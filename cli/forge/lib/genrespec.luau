@@ -13,6 +13,7 @@
 -- `forge build` and `forge qa` all refuse to run against it.
 
 local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 
@@ -424,6 +425,29 @@ function M.load(path: string): (any?, { string })
 		return nil, { path .. ": expected a mapping" }
 	end
 	return decoded, {}
+end
+
+--- Structural equality of two decoded values. The spec's `audio:` section and a
+--- genre's runtime audio module are the same declaration in two encodings, and
+--- the comparison must not care which encoding lists a key first.
+local function equalValue(a: any, b: any): boolean
+	if type(a) ~= type(b) then
+		return false
+	end
+	if type(a) ~= "table" then
+		return a == b
+	end
+	local countA, countB = 0, 0
+	for key, value in a do
+		countA += 1
+		if not equalValue(value, b[key]) then
+			return false
+		end
+	end
+	for _ in b do
+		countB += 1
+	end
+	return countA == countB
 end
 
 --- Every violation in a decoded spec, sorted. `context` supplies the package id
@@ -1254,6 +1278,33 @@ function M.validate(raw: any, runtime: any, context: any): { string }
 					elseif type(on) == "string" then
 						seen[on] = true
 					end
+				end
+			end
+		end
+	end
+
+	-- The genre's runtime audio document, when the genre ships one
+	-- (`module/Audio.luau`), is the same declaration as the spec's `audio:`
+	-- section. A pack whose client owns its own transport reads the module, so a
+	-- drift between the two would play a cue the spec does not bind — or miss one
+	-- it does. A genre without the module is not asked for one: the generated
+	-- client reads the declaration out of the serialized spec.
+	local audioModulePath = if type(context.path) == "string" then context.path .. "/module/Audio.luau" else nil
+	if audioModulePath ~= nil and fs.isFile(audioModulePath) then
+		local loadedOk, loaded = pcall(function()
+			-- Loaded as a chunk rather than required: the module is pure data, so a
+			-- require of its own would be a defect this catches.
+			return luau.load(fs.readFile(audioModulePath))()
+		end)
+		if not loadedOk then
+			fail("module/Audio.luau: does not load: " .. firstLine(loaded))
+		elseif type(loaded) ~= "table" then
+			fail("module/Audio.luau: expected a table")
+		else
+			local declaredAudio = if type(raw.audio) == "table" then raw.audio else {}
+			for _, key in { "cues", "bindings" } do
+				if not equalValue(loaded[key], declaredAudio[key]) then
+					fail("module/Audio.luau: " .. key .. " must equal the spec's audio." .. key)
 				end
 			end
 		end

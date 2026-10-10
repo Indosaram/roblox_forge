@@ -451,6 +451,37 @@ return {
 		end, "module file is missing")
 	end,
 
+	["a genre's runtime audio module must equal its spec's audio declaration"] = function()
+		-- A pack whose client owns its own transport reads the declaration from the genre
+		-- module, while the generated client reads the serialized spec: a drift between the
+		-- two would play a cue the spec does not bind, or miss one it does.
+		local registry = assert(registryLib.discover())
+		local context = { id = "grow-harvest", path = "genres/grow-harvest" }
+		local raw = assert(genrespec.load("genres/grow-harvest/genre-spec.yml"))
+		local growRuntime = registry.runtimes["grow-harvest"]
+		assert(#genrespec.validate(raw, growRuntime, context) == 0, "the shipped module equals the spec")
+
+		local driftedCue = assert(genrespec.load("genres/grow-harvest/genre-spec.yml"))
+		driftedCue.audio.cues[1].duration = 0.9
+		local cueErrors = genrespec.validate(driftedCue, growRuntime, context)
+		assert(
+			#cueErrors == 1 and string.find(cueErrors[1], "module/Audio.luau: cues", 1, true) ~= nil,
+			"a cue that drifted from the module is a violation: " .. table.concat(cueErrors, "; ")
+		)
+
+		local driftedBinding = assert(genrespec.load("genres/grow-harvest/genre-spec.yml"))
+		driftedBinding.audio.bindings[1].cue = "grow-harvest-plant"
+		local bindingErrors = genrespec.validate(driftedBinding, growRuntime, context)
+		assert(
+			#bindingErrors == 1 and string.find(bindingErrors[1], "module/Audio.luau: bindings", 1, true) ~= nil,
+			"a binding that drifted from the module is a violation: " .. table.concat(bindingErrors, "; ")
+		)
+
+		-- A genre without the module is not asked for one: the generated client reads the
+		-- declaration out of the serialized spec.
+		assert(#violations(spec()) == 0, "a genre with no runtime audio module still validates")
+	end,
+
 	["declared controls and HUD aliases are read back in order"] = function()
 		local raw = spec()
 		assert(#genrespec.controlIds(raw) == 1 and genrespec.controlIds(raw)[1] == "counter:increment", "control id")

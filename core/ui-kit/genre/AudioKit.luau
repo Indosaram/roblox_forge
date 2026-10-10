@@ -10,6 +10,12 @@
 -- collect-raid's hand-wired handlers (state diffs, notify/prompt classifiers,
 -- siege-phase music swap) are the reference implementation of these bindings and
 -- stay as its declared audio override; this kit is what the other genres use.
+--
+-- Two client shapes start it from the same declared document: the generated
+-- client feeds the packets it already receives through `subscribe`, and a pack
+-- whose client owns its own transport (a hand-written game pack) reports each
+-- committed action with `result` and names no cue itself — the mapping stays the
+-- spec's.
 
 local M = {}
 
@@ -26,7 +32,9 @@ export type Options = {
 	-- prompt trigger, which for a namespaced control is not the action id, so
 	-- without this map an action-bound cue never fires for a world prompt.
 	controlActions: { [string]: string }?,
-	subscribe: (packet: any) -> (),
+	-- Optional: a pack that reports its own committed results through `result` has
+	-- nothing to subscribe to.
+	subscribe: ((packet: any) -> ())?,
 	locale: string?,
 	now: (() -> number)?,
 	playback: ((cue: string, definition: any) -> ())?,
@@ -292,12 +300,20 @@ function M.start(options: Options): any
 		end)
 	)
 	setMuted(player:GetAttribute("ForgeAudioMuted") == true)
-	options.subscribe(controller.receive)
+	if options.subscribe ~= nil then
+		options.subscribe(controller.receive)
+	end
 
 	return {
 		missing = missing,
 		controller = controller,
 		setMuted = setMuted,
+		-- Reports one committed action result. A pack whose client owns its own
+		-- transport names the canonical action it just committed; the policy resolves
+		-- the cue from the spec's own binding, so the pack declares no cue mapping.
+		result = function(actionId: string, committed: any): ()
+			controller.receive({ result = committed, action = actionId })
+		end,
 		-- One-shot playback of a declared cue by key, so a caller that observes a
 		-- committed change itself (the world-feedback layer) plays the same cue the
 		-- bindings would, through the same voices and the same content-id guard.
