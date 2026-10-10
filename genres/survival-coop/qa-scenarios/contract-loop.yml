@@ -1,0 +1,11 @@
+name: contract-loop
+genre: survival-coop
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local p = tostring(game.Players:GetPlayers()[1].UserId); assert(q:FindFirstChild("dispatch"):Invoke("survival-coop", "buy-defense", {}, p).ok); q:FindFirstChild("beginClock"):Invoke(); q:FindFirstChild("advanceElapsed"):Invoke(2); q:FindFirstChild("advanceElapsed"):Invoke(4); assert(q:FindFirstChild("dispatch"):Invoke("survival-coop", "defend-active", {}, p).ok); local s = q:FindFirstChild("snapshot"):Invoke("survival-coop", p); assert(s.lastWaveWon and s.balance == 5); assert(not q:FindFirstChild("dispatch"):Invoke("survival-coop", "defend-active", {}, p).ok)'

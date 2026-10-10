@@ -1,0 +1,86 @@
+name: Sky Whale Egg Keepers
+slug: plan-demo
+genres: [collect-raid]
+# Regenerate with: lune run cli/forge plan --concept "sky whale egg keepers defend floating islands" --genre collect-raid --pack plan-demo --seed 7 --title "Sky Whale Egg Keepers" --teams Red,Blue --debug-name PlanDemoDebug --gui-name PlanDemoGui --force
+generatedBy: "lune run cli/forge plan --concept \"sky whale egg keepers defend floating islands\" --genre collect-raid --pack plan-demo --seed 7 --title \"Sky Whale Egg Keepers\" --teams Red,Blue --debug-name PlanDemoDebug --gui-name PlanDemoGui --force"
+currencies: [Coins]
+# Robux products are deterministic only; random hatching runs on free currency only.
+monetization:
+  gamepasses:
+    - key: coins2x
+      name: 2x Coins
+      price: 699
+      id: 0
+    - key: vipSlots
+      name: VIP Slots +4
+      price: 699
+      id: 0
+    - key: autoLock
+      name: Auto Lock
+      price: 199
+      id: 0
+  products:
+    - key: creaturePack
+      name: Guaranteed Rare Creature Pack
+      price: 99
+      id: 0
+      deterministic: true
+      affectsFreeHatchOnly: false
+    - key: hatchSpeedup
+      name: Hatch Speed-Up
+      price: 699
+      id: 0
+      deterministic: true
+      affectsFreeHatchOnly: false
+    - key: siegeShield
+      name: Siege Shield
+      price: 99
+      id: 0
+      deterministic: true
+      affectsFreeHatchOnly: false
+    - key: luckBoost
+      name: Server Luck Boost 15m
+      price: 199
+      id: 0
+      deterministic: true
+      affectsFreeHatchOnly: true
+  subscriptions: []
+art_style: chunky low-poly toy creatures, saturated team colors (red/blue), neon rarity accents, soft daylight with bloom
+poly_budget: { kaiju: 3000, egg: 600, prop: 800, world_parts_max: 6000 }
+locales: [en-us, ko-kr]
+qa_scenarios: [tutorial, core-loop, first-purchase, rejoin]
+liveops_cadence: weekly
+session_target_minutes: 30
+core_loop: Buy an egg, hatch it in seconds, and let the creature earn Coins at the base; spend those Coins on bigger eggs, merge 3-of-a-kind up a rarity, and join the team siege every 10 minutes to raid the rival vault.
+siege:
+  structure: Two teams each defend a shared vault. Every siege period a window opens for a fixed duration and squads move up to max_take eggs from the enemy vault. Personal bases are never a raid target.
+  period_seconds: 600
+  duration_seconds: 120
+  max_take: 3
+tutorial_steps:
+  - Buy your first egg from the base shop
+  - Hold the incubator prompt to hatch it
+  - Watch the creature produce Coins on the parade slot
+  - Buy a bigger egg with the Coins you earned
+  - Merge three of a kind into the next rarity
+  - Open the store and read the deterministic item labels
+analytics_events:
+  - session_start
+  - session_end
+  - tutorial_step
+  - tutorial_complete
+  - egg_purchase
+  - egg_hatch
+  - kaiju_merge
+  - siege_join
+  - raid_success
+  - quest_claim
+  - store_open
+  - robux_purchase
+ratings:
+  violence: Mild fantasy only - creatures shove and bump in team sieges; no blood, no gore, no realistic weapons.
+  romance: None.
+  gambling: None. Random hatching uses free currency only and shows the pool odds; every Robux item is deterministic.
+  social: Default Roblox chat only - no custom chat, no user-generated text, no voice, no external links.
+  language: None (English UI strings only).
+  paid_random: false

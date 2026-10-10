@@ -1,0 +1,59 @@
+name: transfer-crash-matrix
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/item-transfer-recovery]
+data:
+  durable:
+    actions: ["survival-coop:transfer-deposit", "survival-coop:transfer-withdraw"]
+    personal:
+      namespace: transfer-personal
+      inventoryPath: [genres, survival-coop, data, inventory, bag]
+  settlement:
+    key: transfer-tribe
+    tribeId: tribe
+    owner: owner
+    slots: 20
+    radiusStuds: 128
+    positions: {owner: {x: 16, y: 0, z: 16}}
+    items: []
+steps:
+  - {op: join, player: owner}
+  - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
+  - {op: expect_result, player: owner, field: data.phase, equals: PREPARED}
+  - {op: close, player: owner}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: recover_transfers, player: owner, maximum: 1}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
+  - {op: commit_barrier, mode: fail, count: 1}
+  - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
+  - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
+  - {op: expect_result, player: owner, field: data.phase, equals: CREDITED}
+  - {op: close, player: owner}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], times: 20}
+  - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
+  - {op: expect_result, player: owner, field: stateVersion, equals: 1}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
+  - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.transfer:owner:0:Transfer101:output.quantity", equals: 3}
+  - {op: command, player: owner, requestId: Withdraw101, sessionEpoch: current, action: "survival-coop:transfer-withdraw", args: ["transfer:owner:0:Transfer101:output", 3], expect: refused}
+  - {op: expect_result, player: owner, field: data.phase, equals: PREPARED}
+  - {op: close, player: owner}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: command, player: owner, requestId: Withdraw101, sessionEpoch: current, action: "survival-coop:transfer-withdraw", args: ["transfer:owner:0:Transfer101:output", 3], times: 20}
+  - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
+  - {op: expect_result, player: owner, field: stateVersion, at_least: 1}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.transfer:owner:0:Transfer101:output.quantity", equals: 3}
+  - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.transfer:owner:0:Transfer101:output", is_nil: true}
+  - {op: close, player: owner}
+  - {op: expect_members, members: []}

@@ -1,0 +1,96 @@
+# Synthetic quality profile fixture.
+#
+# Quality evaluation tests need a real, schema-valid profile document to exercise
+# the anchored-rubric and first-play goal paths. This file is that document. It is
+# not a benchmark for any shipped game: the reference package is a declaration of
+# the shape a real capture would take, and every exemplar path here is a fixture
+# path that does not exist on disk.
+schema_version: 1
+pack: fixture-quality
+tier: vertical-slice
+provisional_targets: true
+evaluation_receipt: build/quality/fixture-quality.json
+reference:
+  name: Fixture first-party survival benchmark
+  source: cli/forge/fixtures/quality-profile.yml; synthetic fixture, no capture performed
+  rights_holder: Test fixture
+  capture_permission: Synthetic fixture data only; no third-party assets or captures involved
+  capture_date: '2026-10-03'
+  rubric_version: fixture-firstplay-1
+  exemplars:
+    - surface: desktop
+      path: build/quality/fixture-reference-desktop.png
+      note: Fixture path; no 1280x720 capture exists
+    - surface: mobile
+      path: build/quality/fixture-reference-mobile.png
+      note: Fixture path; no 390x844 capture exists
+  disqualifiers:
+    - Objective, avatar, or interaction target obscured at any required camera angle
+    - Raw JSON or debug controls replace the player-facing interface
+    - Hit or refusal feedback cannot be heard and seen in the captured session
+    - Scripted grants, teleports, or omniscient instructions substitute for first-play discovery
+    - Missing mobile, second actor, action trace, audio, timed goal observation, or reference capture
+rubric:
+  version: fixture-firstplay-1
+  criteria:
+    - id: legibility
+      target: 4
+      anchors:
+        1: Avatar, next objective, or resource prompt is hidden on either surface.
+        3: Objective is readable but inventory or crafting covers the target or requires corrective camera movement.
+        5: Objective, resource identity, ingredient count, and action remain readable on both surfaces and all three camera views.
+    - id: coherence
+      target: 4
+      anchors:
+        1: Debug JSON or unrelated placeholder forms interrupt the survival setting.
+        3: Island forms agree but station, food, and equipment cues use inconsistent visual language.
+        5: Shore, vegetation, stations, equipment, and HUD use consistent first-party materials and silhouettes in both reference pairs.
+    - id: feedback
+      target: 4
+      anchors:
+        1: Gather, hit, reservation refusal, or claim produces no perceptible response.
+        3: Success is visible but hit audio, refusal reason, or pending craft state is ambiguous.
+        5: Input, pending work, success, damage, and refusal each have timely readable visual and audible feedback without duplicate rewards.
+    - id: pacing
+      target: 4
+      anchors:
+        1: Player stalls before gathering or cannot complete food and rest in ten minutes.
+        3: Basic loop completes but repeated searching or unexplained waiting breaks progression to shared work.
+        5: Player discovers gather, craft, food, and rest within ten minutes and two actors complete shared camp within twenty without coaching.
+    - id: meaningful-choice
+      target: 4
+      anchors:
+        1: Only a scripted button sequence advances and resource or cooperation choices do not matter.
+        3: Player sees material and role alternatives but cannot explain their costs or effects.
+        5: Players explain and exercise an ingredient or equipment tradeoff and distinct contributions to shared camp from visible information.
+first_play:
+  goals:
+    - id: objective-identified
+      description: Player names the current objective from visible cues without prompting or recipe instructions.
+      within_minutes: 10
+      players: 1
+    - id: first-gather-craft-meal-rest
+      description: One actor gathers resources, reserves and completes a craft, claims its output, eats one meal, and rests through actual controls.
+      within_minutes: 10
+      players: 1
+    - id: shared-facility
+      description: Two distinct actors contribute resources or work to the same camp facility and observe its completion together.
+      within_minutes: 20
+      players: 2
+    - id: claim-equip
+      description: Actor claims the crafted tool once and equips it; inventory and held appearance agree.
+      within_minutes: 10
+      players: 1
+    - id: combat-rejoin
+      description: Actor uses equipped tool in combat, observes hit and refusal feedback, then rejoins with legitimate saved inventory and equipment and no duplicate claim.
+      within_minutes: 20
+      players: 1
+asset_quality:
+  rights_source: First-party procedural assets; per-asset authority remains assets/manifest.yml
+  commercial_use: true
+  moderation: not-applicable
+  platform_approved: false
+fun_verdict:
+  required: true
+  rationale_required: true
+  confidence_required: true

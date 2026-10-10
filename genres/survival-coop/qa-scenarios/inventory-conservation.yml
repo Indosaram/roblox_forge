@@ -1,0 +1,755 @@
+{
+  "name": "inventory-conservation",
+  "genre": "survival-coop",
+  "pack": "fixture-survival",
+  "kind": "native",
+  "contract_api": 1,
+  "timeout_seconds": 120,
+  "players": [
+    "1"
+  ],
+  "fixtures": [],
+  "data": {
+    "durable": {
+      "actions": [
+        "survival-coop:inventory-move",
+        "survival-coop:inventory-split",
+        "survival-coop:inventory-merge"
+      ],
+      "windowSeconds": 1000,
+      "maxOutcomes": 64
+    }
+  },
+  "steps": [
+    {
+      "op": "begin_clock"
+    },
+    {
+      "op": "join",
+      "player": "1"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.wood.quantity",
+      "equals": 10
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 1
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i1",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "chest",
+        "wood",
+        3,
+        "part",
+        2,
+        2
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.wood.quantity",
+      "equals": 7
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.part.quantity",
+      "equals": 3
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.part.attributes.origin",
+      "equals": "initial"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 2
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i2",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "chest",
+        "wood",
+        2,
+        "target",
+        3,
+        3
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.wood.quantity",
+      "equals": 5
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.target.quantity",
+      "equals": 4
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 3
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i3",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "chest",
+        "wood",
+        1,
+        "different",
+        4,
+        4
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "INCOMPATIBLE_STACK"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.version",
+      "equals": 4
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.version",
+      "equals": 4
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 4
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i4",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "bag",
+        "wood",
+        1,
+        "new",
+        4,
+        4
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "SAME_CONTAINER"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 5
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i5",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "chest",
+        "wood",
+        1,
+        "new",
+        3,
+        4
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "STALE_VERSION"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 6
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i6",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "slots",
+        "wood",
+        1,
+        "new",
+        4,
+        20
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "FULL_SLOTS"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.slots.version",
+      "equals": 20
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.wood.quantity",
+      "equals": 5
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 7
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i7",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "bag",
+        "chest",
+        "wood",
+        5,
+        "wood",
+        4,
+        4
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.wood.quantity",
+      "equals": 5
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.wood",
+      "is_nil": true
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 8
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i8",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-split",
+      "args": [
+        "chest",
+        "wood",
+        2,
+        "split",
+        5
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.wood.quantity",
+      "equals": 3
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 9
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i9",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-merge",
+      "args": [
+        "chest",
+        "split",
+        "wood",
+        2,
+        6
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.items.wood.quantity",
+      "equals": 5
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 10
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i10",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-merge",
+      "args": [
+        "chest",
+        "wood",
+        "different",
+        1,
+        7
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "INCOMPATIBLE_STACK"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.chest.version",
+      "equals": 7
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.weightMilli",
+      "equals": 60000
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.speedMultiplierMilli",
+      "equals": 1000
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 11
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i11",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "stock",
+        "weight",
+        "supply",
+        1,
+        "over-soft",
+        1,
+        1
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.weightMilli",
+      "equals": 61000
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.speedMultiplierMilli",
+      "equals": 750
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 12
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i12",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "stock",
+        "weight",
+        "supply",
+        29,
+        "heavy",
+        2,
+        2
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.weightMilli",
+      "equals": 90000
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 13
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i13",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "stock",
+        "weight",
+        "supply",
+        1,
+        "over-hard",
+        3,
+        3
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "FULL_WEIGHT"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.version",
+      "equals": 3
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.weightMilli",
+      "equals": 90000
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.stock.items.supply.quantity",
+      "equals": 10
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 14
+    },
+    {
+      "op": "dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-reserve",
+      "args": [
+        "race",
+        "first",
+        "last",
+        1,
+        1
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "unknown/disallowed action"
+    },
+    {
+      "op": "server_dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-reserve",
+      "args": [
+        "race",
+        "first",
+        "last",
+        1,
+        1
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 15
+    },
+    {
+      "op": "dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-reserve",
+      "args": [
+        "race",
+        "second",
+        "last",
+        1,
+        2
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "unknown/disallowed action"
+    },
+    {
+      "op": "server_dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-reserve",
+      "args": [
+        "race",
+        "second",
+        "last",
+        1,
+        2
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "UNAVAILABLE"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 16
+    },
+    {
+      "op": "dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-consume",
+      "args": [
+        "race",
+        "last",
+        1,
+        2
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "unknown/disallowed action"
+    },
+    {
+      "op": "server_dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-consume",
+      "args": [
+        "race",
+        "last",
+        1,
+        2
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "UNAVAILABLE"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.race.items.last.quantity",
+      "equals": 1
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.race.reservations.first.last",
+      "equals": 1
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.race.version",
+      "equals": 2
+    },
+    {
+      "op": "close",
+      "player": "1"
+    },
+    {
+      "op": "reload"
+    },
+    {
+      "op": "join",
+      "player": "1"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.race.reservations.first.last",
+      "equals": 1
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.weight.weightMilli",
+      "equals": 90000
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 17
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i17",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "race",
+        "bag",
+        "last",
+        1,
+        "last",
+        2,
+        5
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "UNAVAILABLE"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 18
+    },
+    {
+      "op": "dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-release",
+      "args": [
+        "race",
+        "first",
+        2
+      ],
+      "expect": "refused"
+    },
+    {
+      "op": "expect_result",
+      "player": "1",
+      "field": "reason",
+      "equals": "unknown/disallowed action"
+    },
+    {
+      "op": "server_dispatch",
+      "player": "1",
+      "action": "survival-coop:inventory-release",
+      "args": [
+        "race",
+        "first",
+        2
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "advance_elapsed",
+      "seconds": 19
+    },
+    {
+      "op": "command",
+      "player": "1",
+      "requestId": "i19",
+      "sessionEpoch": 0,
+      "action": "survival-coop:inventory-move",
+      "args": [
+        "race",
+        "bag",
+        "last",
+        1,
+        "last",
+        3,
+        5
+      ],
+      "expect": "ok"
+    },
+    {
+      "op": "expect_snapshot",
+      "player": "1",
+      "genre": "survival-coop",
+      "field": "inventory.bag.items.last.quantity",
+      "equals": 1
+    },
+    {
+      "op": "close",
+      "player": "1"
+    },
+    {
+      "op": "expect_members",
+      "members": []
+    }
+  ]
+}

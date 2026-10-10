@@ -1,0 +1,171 @@
+assets:
+  - key: island-scamper
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/quad"
+    assetId: 0
+    moderation: Approved
+  - key: island-serpent
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/serpent"
+    assetId: 0
+    moderation: Approved
+  - key: island-colossus
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/titan"
+    assetId: 0
+    moderation: Approved
+  - key: sky-pup
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/quad"
+    assetId: 0
+    moderation: Approved
+  - key: sky-stalker
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/quad"
+    assetId: 0
+    moderation: Approved
+  - key: sky-leviathan
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/serpent"
+    assetId: 0
+    moderation: Approved
+  - key: island
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/egg"
+    assetId: 0
+    moderation: Approved
+  - key: sky
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/egg"
+    assetId: 0
+    moderation: Approved
+  - key: decor-rock
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+  - key: decor-tree
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+  - key: decor-crystal
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+  - key: decor-crate
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crate"
+    assetId: 0
+    moderation: Approved
+  - key: iconA
+    kind: image
+    tool: forge-procgen
+    source: "procedural launch art (forge gen launchart)"
+    path: assets/icon/icon-a.png
+    assetId: 0
+    moderation: Approved
+  - key: iconB
+    kind: image
+    tool: forge-procgen
+    source: "procedural launch art (forge gen launchart)"
+    path: assets/icon/icon-b.png
+    assetId: 0
+    moderation: Approved
+  - key: thumbA
+    kind: image
+    tool: forge-procgen
+    source: "procedural launch art (forge gen launchart)"
+    path: assets/thumbnails/thumb-a.png
+    assetId: 0
+    moderation: Approved
+  - key: thumbB
+    kind: image
+    tool: forge-procgen
+    source: "procedural launch art (forge gen launchart)"
+    path: assets/thumbnails/thumb-b.png
+    assetId: 0
+    moderation: Approved
+  - key: musicExplore
+    kind: bgm
+    tool: forge-procgen
+    source: "procedural audio/musicExplore"
+    path: assets/audio/musicExplore.wav
+    assetId: 0
+    moderation: Approved
+  - key: musicSiege
+    kind: bgm
+    tool: forge-procgen
+    source: "procedural audio/musicSiege"
+    path: assets/audio/musicSiege.wav
+    assetId: 0
+    moderation: Approved
+  - key: ambienceWind
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/ambienceWind"
+    path: assets/audio/ambienceWind.wav
+    assetId: 0
+    moderation: Approved
+  - key: ambienceBirds
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/ambienceBirds"
+    path: assets/audio/ambienceBirds.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxClick
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxClick"
+    path: assets/audio/sfxClick.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxCoin
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxCoin"
+    path: assets/audio/sfxCoin.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxHatch
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxHatch"
+    path: assets/audio/sfxHatch.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxRare
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxRare"
+    path: assets/audio/sfxRare.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxRaid
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxRaid"
+    path: assets/audio/sfxRaid.wav
+    assetId: 0
+    moderation: Approved
+  - key: sfxError
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/sfxError"
+    path: assets/audio/sfxError.wav
+    assetId: 0
+    moderation: Approved

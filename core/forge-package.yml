@@ -1,0 +1,45 @@
+name: core
+version: 1.0.0
+modules:
+  - core/anticheat/Distance.luau
+  - core/anticheat/RateLimiter.luau
+  - core/anticheat/Validate.luau
+  - core/domain/economy/OfflineIncome.luau
+  - core/domain/economy/Production.luau
+  - core/domain/economy/Vault.luau
+  - core/domain/economy/Wallet.luau
+  - core/domain/economy/WeightedRoll.luau
+  - core/domain/procgen/Creature.luau
+  - core/domain/procgen/Icons.luau
+  - core/domain/procgen/MeshBuilder.luau
+  - core/domain/procgen/Motion.luau
+  - core/domain/procgen/Music.luau
+  - core/domain/procgen/Pixels.luau
+  - core/domain/procgen/Prop.luau
+  - core/domain/procgen/Synth.luau
+  - core/domain/procgen/Textures.luau
+  - core/domain/progression/DailyQuest.luau
+  - core/domain/progression/HatchTimer.luau
+  - core/domain/progression/Merge.luau
+  - core/domain/progression/Tutorial.luau
+  - core/domain/state/ProfileSchema.luau
+  - core/domain/state/Siege.luau
+  - core/ui-kit/Components.luau
+  - core/ui-kit/Layout.luau
+  - core/ui-kit/Theme.luau
+  - core/infra/analytics/Events.luau
+  - core/infra/audio/SoundBank.luau
+  - core/infra/data/DataStoreBackend.luau
+  - core/infra/data/MemoryBackend.luau
+  - core/infra/data/ProfileStore.luau
+  - core/infra/liveops/FeatureFlags.luau
+  - core/infra/liveops/Schedule.luau
+  - core/infra/liveops/Broadcast.luau
+  - core/infra/localization/Strings.luau
+  - core/infra/monetization/Catalog.luau
+  - core/infra/monetization/Receipts.luau
+  - core/infra/net/Schema.luau
+  - core/infra/render/Animator.luau
+  - core/infra/render/ImageAdapter.luau
+  - core/infra/render/MeshAdapter.luau
+  - core/infra/render/ProcAssets.luau

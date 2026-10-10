@@ -1,0 +1,9 @@
+name: social-rp-fashion
+version: 0.1.0
+requires:
+  core: "^1.0.0"
+genre_contract:
+  api: 1
+  generator: generator.luau
+  runtime: module/Contract.luau
+  spec: genre-spec.yml

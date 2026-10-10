@@ -1,0 +1,68 @@
+# Server invite represents accepted consent, not a player invitation UI.
+name: settlement-conflict
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: [owner, member]
+fixtures: [cli/forge/fixtures/settlement-conflict]
+data:
+  durable:
+    actions: ["survival-coop:settlement-reserve", "survival-coop:settlement-place", "survival-coop:settlement-cancel", "survival-coop:settlement-demolish", "survival-coop:settlement-kick"]
+    serverActions: ["survival-coop:settlement-invite"]
+  settlement:
+    key: qa-tribe
+    tribeId: tribe
+    owner: owner
+    slots: 1
+    radiusStuds: 128
+    positions: {owner: {x: 16, y: 0, z: 16}, member: {x: 16, y: 0, z: 16}}
+    items:
+      - {itemId: wood, catalogId: wood, quantity: 10, qualityMilli: 1000, durabilityMilli: 0, attributes: {origin: forest}}
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: member}
+  - {op: command_server, player: owner, requestId: invite, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 0, 0]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.member, equals: member}
+  - {op: command_server, player: member, requestId: forbidden, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [owner, 1, 1], expect: refused}
+  - {op: expect_result, player: member, field: reason, equals: FORBIDDEN}
+  - {op: command, player: owner, requestId: badrotation, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 4, 1, 1, 1], expect: refused}
+  - {op: command, player: owner, requestId: edge, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 0, 4, 1, 1, 1, 1], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: OUT_OF_BOUNDS}
+  - {op: commit_barrier, mode: suspend, key: qa-tribe, skip: 2}
+  - {op: command, player: member, requestId: first, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 1, 1, 1], expect_suspended: true, expect: refused}
+  - {op: command, player: owner, requestId: winner, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 1, 1, 1]}
+  - {op: resume_commit}
+  - {op: expect_result, player: member, field: reason, equals: STALE_WAREHOUSE_VERSION}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.warehouse.items.wood.quantity, equals: 10}
+  - {op: command, player: member, requestId: collision, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 2, 2, 1], expect: refused}
+  - {op: expect_result, player: member, field: reason, equals: COLLISION}
+  - {op: command, player: owner, requestId: place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:5:owner:0:winner", 2, 2], times: 2}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.warehouse.items.wood.quantity, equals: 5}
+  - {op: command, player: owner, requestId: full, sessionEpoch: current, action: "survival-coop:settlement-demolish", args: ["tribe:build:5:tribe:5:owner:0:winner", 3, 3, 1], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: FULL_SLOTS}
+  - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.settlement.structures.tribe:build:5:tribe:5:owner:0:winner.definition.cost.1.quantity", equals: 5}
+  - {op: command, player: member, requestId: second, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 12, 12, 0, 3, 3, 1]}
+  - {op: commit_barrier, mode: suspend, key: qa-tribe, skip: 3}
+  - {op: command, player: member, requestId: revoked-place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:6:member:0:second", 4, 4], expect_suspended: true, expect: refused}
+  - {op: command, player: owner, requestId: kick, sessionEpoch: current, action: "survival-coop:settlement-kick", args: [member, 4, 1]}
+  - {op: resume_commit}
+  - {op: expect_result, player: member, field: reason, equals: FORBIDDEN}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.warehouse.items.wood.quantity, equals: 5}
+  - {op: command, player: owner, requestId: cancel, sessionEpoch: current, action: "survival-coop:settlement-cancel", args: ["build:5:tribe:6:member:0:second", 5, 4]}
+  - {op: command, player: owner, requestId: third, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 12, 12, 0, 6, 5, 2]}
+  - {op: command, player: owner, requestId: third-place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:5:owner:0:third", 7, 6]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.warehouse.items.wood, is_nil: true}
+  - {op: command, player: owner, requestId: refund, sessionEpoch: current, action: "survival-coop:settlement-demolish", args: ["tribe:build:5:tribe:5:owner:0:winner", 8, 7, 2], times: 2}
+  - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.refund:16:5:owner:0:refund:1.quantity", equals: 2}
+  - {op: close, player: member}
+  - {op: close, player: owner}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: command, player: owner, requestId: refund, sessionEpoch: current, action: "survival-coop:settlement-demolish", args: ["tribe:build:5:tribe:5:owner:0:winner", 8, 7, 2]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.version, equals: 9}
+  - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.refund:16:5:owner:0:refund:1.quantity", equals: 2}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood, is_nil: true}
+  - {op: close, player: owner}
+  - {op: expect_members, members: []}

@@ -1,0 +1,18 @@
+name: rejoin
+genre: rpg-progression
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("seed", { level = 7, xp = 120, region = "region-2" })'
+    seconds: 2
+    expect: 'progression is saved with a level and region'
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local p = ForgeQA:Invoke("progress"); assert(p.level == 7 and p.region == "region-2", "progress persisted")'
+    seconds: 2
+    expect: 'level, xp, and region restore from the save schema'

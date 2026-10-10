@@ -1,0 +1,7 @@
+# forge-lock.yml: pinned package versions this pack builds against.
+# Each version must match that package's manifest (core/forge-package.yml or
+# genres/<name>/forge-package.yml); `lune run cli/forge check` verifies the pins.
+core: 1.0.0
+genres:
+  grow-harvest: 0.1.0
+  survival-coop: 0.1.0

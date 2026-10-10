@@ -1,0 +1,42 @@
+# AUTHORED_PARTIAL / BLOCKED: existing rejoin intentionally refuses unsupported physical replacement.
+# Run on a separate fresh persistent profile/backend from release-first-play.
+# save invokes the existing durable adapter; it does not prove physical departure or reload.
+# The rejoin driver must close owned clients, replace their sessions and observe a backend load.
+# Never replace the rejoin step with restore, dispatch, respawn, or a successful handshake.
+# This separate persistence probe uses desktop inputs for both actors; portrait
+# touch usability belongs to release-first-play and cannot be inferred here.
+name: release-rejoin
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 420
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 15}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: [{field: catalogId, equals: fiber}, {field: attributes, empty: true}], label: saved-fiber}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: saved-fiber}, quantity], equals: 3}
+  - {op: save, player: owner, label: before-physical-rejoin}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.berry-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.berry-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: berry-bush-01, key: E, timeout_seconds: 15}
+  - {op: bind_snapshot, player: guest, field: inventory.bag.items, select: [{field: catalogId, equals: berry}, {field: attributes, empty: true}], label: saved-guest-berry}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [inventory, bag, items, {ref: saved-guest-berry}, quantity], equals: 3}
+  - {op: save, player: guest, label: guest-before-physical-rejoin}
+  - {op: capture, target: release-before-physical-rejoin}
+  - {op: rejoin, player: owner, timeout_seconds: 120}
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: [inventory, bag, items, {ref: saved-fiber}, quantity], equals: 3}}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: saved-fiber}, quantity], equals: 3}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [inventory, bag, items, {ref: saved-guest-berry}, quantity], equals: 3}
+  - {op: capture, target: release-after-physical-rejoin}

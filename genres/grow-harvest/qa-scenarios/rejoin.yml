@@ -1,0 +1,18 @@
+name: rejoin
+genre: grow-harvest
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("seed", { crops = { { id = "c1", plantedAt = os.time() - 3600 } } })'
+    seconds: 2
+    expect: 'a crop is saved with an elapsed growth timer'
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "cropsReady") >= 1, "offline growth finished")'
+    seconds: 2
+    expect: 'offline progress matures the crop across the rejoin'

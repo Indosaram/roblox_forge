@@ -1,0 +1,18 @@
+name: rejoin
+genre: pvp-arena
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("seed", { elo = 1480, loadout = "standard" })'
+    seconds: 2
+    expect: 'rank and loadout are saved'
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local p = ForgeQA:Invoke("profile"); assert(p.elo == 1480 and p.loadout == "standard", "rank persisted")'
+    seconds: 2
+    expect: 'elo and loadout restore with the zero-floor rank rule intact'

@@ -1,0 +1,37 @@
+# Native starter supplies only: no gathering, real client, or screenshot claim.
+name: bootstrap-crafting
+genre: survival-coop
+pack: primal-isles
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1"]
+fixtures: []
+data:
+  nativeDeath: development-island-v1
+  survivalSpatial:
+    radiusStuds: 8
+    players: {"1": {x: 0, y: 1, z: 0}}
+    campfires: {campfire: {x: 6, y: 1, z: 0}}
+  durable:
+    actions: ["survival-coop:gather", "survival-coop:transfer-deposit", "survival-coop:transfer-withdraw", "survival-coop:settlement-leave", "survival-coop:settlement-kick", "survival-coop:settlement-transfer-owner", "survival-coop:settlement-rejoin", "survival-coop:settlement-reserve", "survival-coop:settlement-place", "survival-coop:settlement-cancel", "survival-coop:settlement-demolish", "survival-coop:settlement-workshop-reserve", "survival-coop:settlement-workshop-start", "survival-coop:settlement-workshop-complete", "survival-coop:settlement-workshop-cancel", "survival-coop:craft-reserve", "survival-coop:craft-start", "survival-coop:craft-complete", "survival-coop:craft-cancel", "survival-coop:food", "survival-coop:rest", "survival-coop:inventory-move", "survival-coop:inventory-split", "survival-coop:inventory-merge"]
+    serverActions: ["survival-coop:settlement-invite", "survival-coop:server-vitals-tick", "survival-coop:vitals-damage", "survival-coop:rest-stop", "survival-coop:respawn"]
+    tickAction: survival-coop:server-vitals-tick
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: "1"}
+  - {op: command, player: "1", requestId: reserve, sessionEpoch: current, action: "survival-coop:craft-reserve", args: [cord, hand]}
+  - {op: expect_result, player: "1", field: data.jobId, equals: "w1:1:0:7:reserve"}
+  - {op: command, player: "1", requestId: start, sessionEpoch: current, action: "survival-coop:craft-start", args: ["w1:1:0:7:reserve"]}
+  - {op: advance_to, seconds: 4}
+  - {op: command, player: "1", requestId: complete, sessionEpoch: current, action: "survival-coop:craft-complete", args: ["w1:1:0:7:reserve"], times: 2}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.w1:1:0:7:reserve:output:1.quantity", equals: 1}
+  - {op: close, player: "1"}
+  - {op: reload}
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "workshop.entries.w1:1:0:7:reserve.job.state", equals: Committed}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.w1:1:0:7:reserve:output:1.quantity", equals: 1}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}

@@ -1,0 +1,53 @@
+genre_contract:
+  api: 1
+  order: [survival-coop]
+  configs:
+    survival-coop:
+      mode: crafting
+      currency: Coins
+      startingBalance: 0
+      contentVersion: 1
+      inventory:
+        carriedContainer: bag
+        speedPenaltyMilli: 250
+        content:
+          survival_content: 1
+          rules:
+            inheritance: avg-quality-v1
+            durability: quality-scaled-v1
+            ingredientSelection: item-id-ascending
+            demolitionRefund: full-storage-v1
+          limits:
+            slots: 20
+            softWeightMilli: 60000
+            hardWeightMilli: 90000
+            qualityMilliMin: 1
+            qualityMilliMax: 5000
+            tribeMaxMembers: 4
+          vitals:
+            hungerMillisPerUnit: 18000
+            fatigueMilliPerAction: 500
+            restMilliPerSecond: 2000
+            starvationMillisPerUnit: 5000
+          items:
+            - id: ration
+              name: Fixture ration
+              stackMax: 10
+              weightMilli: 100
+              foodEffects: {hungerMilli: 20000, healthMilli: 0, fatigueMilli: 1000}
+            - id: medicine
+              name: Fixture health food
+              stackMax: 10
+              weightMilli: 100
+              foodEffects: {hungerMilli: 0, healthMilli: 10000, fatigueMilli: 0}
+            - id: stone
+              name: Fixture stone
+              stackMax: 10
+              weightMilli: 100
+        containers:
+          bag:
+            - {itemId: ration-stack, catalogId: ration, quantity: 3, qualityMilli: 1000, durabilityMilli: 0, attributes: {}}
+            - {itemId: medicine-stack, catalogId: medicine, quantity: 2, qualityMilli: 1000, durabilityMilli: 0, attributes: {}}
+            - {itemId: stone-stack, catalogId: stone, quantity: 1, qualityMilli: 1000, durabilityMilli: 0, attributes: {}}
+          chest:
+            - {itemId: stored-ration, catalogId: ration, quantity: 2, qualityMilli: 1000, durabilityMilli: 0, attributes: {}}

@@ -1,0 +1,15 @@
+# grow-harvest economy template
+currencies:
+  - id: Coins
+    kind: free
+    starting: 0
+
+sources:
+  - id: sell-crop
+    currency: Coins
+    notes: selling a harvested crop
+
+sinks:
+  - id: plot-upgrade
+    currency: Coins
+    notes: unlocking or upgrading a plot

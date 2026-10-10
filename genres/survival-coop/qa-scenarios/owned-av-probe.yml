@@ -1,0 +1,15 @@
+# Acquisition probe only. Not first-play, listening, or release approval.
+name: owned-av-probe
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 180
+players: [observer, companion]
+steps:
+  - {op: join, player: observer}
+  - {op: join, player: companion}
+  - {op: device, player: observer, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: companion, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: expect_members, members: [observer, companion]}
+  - {op: capture, target: owned-av-probe}

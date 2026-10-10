@@ -1,0 +1,11 @@
+name: contract-rejoin
+genre: social-rp-fashion
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local p = tostring(game.Players:GetPlayers()[1].UserId); assert(q:FindFirstChild("dispatch"):Invoke("social-rp-fashion", "equip", {"starter-top"}, p).ok); local saveResult, saved = q:FindFirstChild("save"):Invoke(p); assert(saveResult.ok and saved ~= nil); assert(q:FindFirstChild("restore"):Invoke(p, saved).ok); local s = q:FindFirstChild("snapshot"):Invoke("social-rp-fashion", p); assert(s.equipped.top == "starter-top" and #s.ranking == 0)'

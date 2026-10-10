@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# Roblox binary assets and media must never be normalized
+*.rbxl binary
+*.rbxm binary
+*.png binary
+*.ppm binary
+*.jpg binary
+*.ogg binary
+*.mp3 binary
+*.wav binary
+*.fbx binary
+
+# docs/ is an archival record: store bytes exactly as written
+docs/** -text

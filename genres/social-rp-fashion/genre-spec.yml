@@ -1,0 +1,269 @@
+# Genre spec for social-rp-fashion (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/social-rp-fashion/module. A fresh pack renders its HUD, world and
+# audio from this spec through core/ui-kit/genre. The vote control is a
+# player-button: its first argument is the roster player the local client
+# selected, so the roster path is exercised by the derived HUD.
+api: 1
+version: 1.0.0
+id: social-rp-fashion
+runtime: social-rp-fashion
+resources:
+  - id: balance
+    nameKey: coin_label
+    name: Coins
+    assetKey: social-rp-fashion-starter-prop
+    initial: 0
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: starter-hat
+    kind: outfit
+    nameKey: outfit_starter_hat
+    name: Starter hat
+    assetKey: social-rp-fashion-starter-prop
+    configPath: [catalog, 1]
+  - id: starter-top
+    kind: outfit
+    nameKey: outfit_starter_top
+    name: Starter top
+    configPath: [catalog, 2]
+  - id: garden-theme
+    kind: theme
+    nameKey: theme_garden
+    name: Garden theme
+    configPath: [themes, 1]
+actions:
+  - action: social-rp-fashion:equip
+    control:
+      id: "social-rp-fashion:equip-hat"
+      labelKey: equip_hat
+      label: Wear hat
+      kind: button
+      args: [starter-hat]
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: not-dressing
+      - ref: not-owned
+  - action: social-rp-fashion:equip
+    control:
+      id: "social-rp-fashion:equip-top"
+      labelKey: equip_top
+      label: Wear top
+      kind: button
+      args: [starter-top]
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: not-dressing
+      - ref: not-owned
+  - action: social-rp-fashion:vote
+    control:
+      id: "social-rp-fashion:vote"
+      labelKey: vote_five
+      label: Vote 5
+      kind: player-button
+      args: [5]
+      ui:
+        slot: action-bar
+        order: 3
+    preconditions:
+      - ref: not-voting
+      - ref: already-voted
+loop:
+  - id: dress
+    actions: [social-rp-fashion:equip]
+    on: OutfitEquipped
+    goalKey: loop_dress
+    goal: Dress up
+  - id: vote
+    actions: [social-rp-fashion:vote]
+    on: VoteCast
+    goalKey: loop_vote
+    goal: Vote for a look
+  - id: results
+    actions: [social-rp-fashion:vote]
+    on: OnResults
+    goalKey: loop_results
+    goal: See the results
+  # The round repeats: after the results the next round is another chance to
+  # dress and vote. Both stages name existing actions; the phase the domain
+  # enforces is what decides when each is accepted.
+  - id: dress-again
+    actions: [social-rp-fashion:equip]
+    on: OutfitEquipped
+    goalKey: loop_dress_again
+    goal: Change the look
+  - id: vote-again
+    actions: [social-rp-fashion:vote]
+    on: VoteCast
+    goalKey: loop_vote_again
+    goal: Vote again
+ui:
+  resourceBar:
+    resources: [balance]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  inventoryGrid:
+    entityKind: outfit
+    field: equipped
+    order: 3
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: plaza
+    offset: [0, 1, 0]
+  zones:
+    - id: plaza
+      kind: plaza
+      center: [0, 0, 0]
+      size: [70, 1, 70]
+    - id: runway
+      kind: base
+      center: [0, 0, -55]
+      size: [30, 1, 40]
+      team: house
+    - id: arena
+      kind: arena
+      center: [0, 0, 0]
+      radius: 26
+  nodes:
+    # The mirror and the wardrobe wear the outfit the domain says is on: the hat
+    # and the top become real accessories on the character when the equipped map
+    # holds them. The runway lights while the round is voting, and the ballot box
+    # speaks the reward it pays out. The vote control itself stays a HUD
+    # player-button - a vote needs the roster player the client selected, which a
+    # world prompt cannot supply - so the booth carries feedback, not a control.
+    - id: mirror
+      zone: plaza
+      kind: station
+      position: [0, 1, 8]
+      control: "social-rp-fashion:equip-hat"
+      feedback:
+        - kind: outfit
+          field: equipped
+          entity: starter-hat
+          label: Hat
+          labelKey: fb_hat
+          cue: social-rp-fashion-equip
+    - id: wardrobe
+      zone: plaza
+      kind: node
+      position: [16, 1, 0]
+      control: "social-rp-fashion:equip-top"
+      feedback:
+        - kind: outfit
+          field: equipped
+          entity: starter-top
+          label: Top
+          labelKey: fb_top
+          cue: social-rp-fashion-equip
+    - id: runway
+      zone: runway
+      kind: node
+      position: [0, 1, -55]
+      feedback:
+        - kind: lamp
+          field: phase
+          active: voting
+          label: Voting
+          labelKey: fb_voting
+          cue: social-rp-fashion-vote
+    - id: ballot-box
+      zone: plaza
+      kind: depot
+      position: [10, 1, 0]
+      feedback:
+        - kind: counter
+          field: balance
+          label: Coins
+          labelKey: fb_coins
+          cue: social-rp-fashion-vote
+audio:
+  cues:
+    - {key: social-rp-fashion-equip, kind: sfx, type: click, duration: 0.1, sampleRate: 8000, seed: 0}
+    - {key: social-rp-fashion-vote, kind: sfx, type: click, duration: 0.12, sampleRate: 8000, seed: 1}
+  bindings:
+    - {on: "action:social-rp-fashion:equip", cue: social-rp-fashion-equip}
+    - {on: "action:social-rp-fashion:vote", cue: social-rp-fashion-vote}
+    - {on: "event:OnResults", cue: social-rp-fashion-vote, field: balance}
+    - {on: "event:OnThemeStart", cue: social-rp-fashion-equip, field: theme}
+economy:
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">=0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["alpha", "beta"]
+  starterState:
+    balance: 0
+  # The round cycles lobby -> dressing -> voting -> results on the wall clock, so at
+  # the frozen instant the phase is arbitrary. The derived world path settles the
+  # round and waits for the dressing phase the equip control is accepted in, the
+  # same way the hand-authored visual scenario does.
+  worldPath:
+    advanceSeconds: 100000
+    waitFor: {source: snapshot, genre: social-rp-fashion, field: phase, equals: dressing}
+    waitTimeoutSeconds: 60
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "alpha"}
+    - {op: join, player: "beta"}
+    - {op: advance_elapsed, seconds: 0}
+    - {op: dispatch, player: "alpha", action: "social-rp-fashion:equip", args: [starter-hat], expect: ok}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: equipped.hat, equals: starter-hat}
+    - {op: dispatch, player: "alpha", action: "social-rp-fashion:vote", args: ["beta", 5], expect: refused}
+    - {op: advance_elapsed, seconds: 2}
+    - {op: dispatch, player: "alpha", action: "social-rp-fashion:vote", args: ["beta", 5], expect: ok}
+    - {op: dispatch, player: "alpha", action: "social-rp-fashion:vote", args: ["beta", 1], expect: refused}
+    - {op: advance_elapsed, seconds: 4}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: ranking.1.target, is_nil: false}
+    - {op: expect_snapshot, player: "beta", genre: social-rp-fashion, field: balance, equals: 5}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: balance, equals: 0}
+    - {op: save, player: "alpha", label: saved}
+    - {op: leave, player: "alpha"}
+    - {op: join, player: "alpha"}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: equipped.hat, equals: starter-hat}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: balance, equals: 0}
+    - {op: restore, player: "alpha", from: saved}
+    - {op: expect_snapshot, player: "alpha", genre: social-rp-fashion, field: equipped.hat, equals: starter-hat}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    coin_label: {ko: "코인"}
+    outfit_starter_hat: {ko: "기본 모자"}
+    outfit_starter_top: {ko: "기본 상의"}
+    theme_garden: {ko: "정원 테마"}
+    equip_hat: {ko: "모자 착용"}
+    equip_top: {ko: "상의 착용"}
+    vote_five: {ko: "투표 5"}
+    loop_dress: {ko: "옷 갈아입기"}
+    loop_vote: {ko: "코디 투표하기"}
+    loop_results: {ko: "결과 보기"}
+    loop_dress_again: {ko: "새 코디 입기"}
+    loop_vote_again: {ko: "다시 투표하기"}
+    fb_hat: {ko: "모자"}
+    fb_top: {ko: "상의"}
+    fb_voting: {ko: "투표 중"}
+    fb_coins: {ko: "코인"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}

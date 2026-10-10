@@ -1,0 +1,33 @@
+# Captures actual runtime objects; this is not a visual or audio approval receipt.
+# Record/listen with the existing event-driven WASAPI Loopback route alongside this run.
+name: asset-showcase
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 360
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.grazer-01}
+  - {op: motion_begin, player: guest, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: capture, target: island-stations-idle-dinosaurs-front, angles: 3}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 15}
+  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: capture, target: distinctive-fiber-node-gather-feedback}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: capture, target: grazer-long-neck-side-and-flee-motion, angles: 3}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.meat-cache-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: wait_for, player: guest, timeout_seconds: 10, predicate: {source: attribute, target: Workspace.ForgeWildlife.hunter-01, field: ForgeWildlifeState, not_equals: idle}}
+  - {op: capture, target: hunter-territorial-warning-and-locomotion, angles: 3}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.workbench, withinStuds: 5, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.campfire, withinStuds: 5, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: R, resultAction: 'survival-coop:rest', expect: ok, timeout_seconds: 10}
+  - {op: capture, target: hearth-workbench-and-rest-feedback-two-clients}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.grazer-01}
+  - {op: motion_end, player: guest, target: Workspace.ForgeWildlife.hunter-01}

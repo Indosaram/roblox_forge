@@ -1,0 +1,69 @@
+# Actual Session, shared production owners, and JSON backend reconstruction.
+name: gather-craft-settle
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: [owner, member, third, fourth, foreign]
+fixtures: [cli/forge/fixtures/survival-services]
+data:
+  durable:
+    actions: ["survival-coop:gather", "survival-coop:transfer-deposit", "survival-coop:transfer-withdraw", "survival-coop:settlement-reserve", "survival-coop:settlement-place", "survival-coop:settlement-workshop-reserve", "survival-coop:settlement-workshop-start", "survival-coop:settlement-workshop-complete"]
+    serverActions: ["survival-coop:settlement-invite"]
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: member}
+  - {op: join, player: foreign}
+  - {op: command_server, player: owner, requestId: invite1, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 0, 0]}
+  - {op: command_server, player: owner, requestId: invite2, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [third, 1, 1]}
+  - {op: command_server, player: owner, requestId: invite3, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [fourth, 2, 2]}
+  - {op: command_server, player: owner, requestId: full, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [foreign, 3, 3], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: TRIBE_FULL}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.foreign, is_nil: true}
+  - {op: commit_barrier, mode: suspend, key: qa-nodes, skip: 1}
+  - {op: command, player: owner, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect_suspended: true, expect: refused}
+  - {op: command, player: member, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect: refused}
+  - {op: expect_result, player: member, field: reason, equals: SOURCE_BUSY}
+  - {op: resume_commit}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: command, player: member, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect: refused}
+  - {op: expect_result, player: member, field: reason, equals: STALE_VERSION}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.g5:owner:0:7:harvest:output:1.quantity", equals: 10}
+  - {op: expect_snapshot, player: member, genre: survival-coop, field: "inventory.bag.items.g6:member:0:7:harvest:output:1", is_nil: true}
+  - {op: expect_snapshot, player: member, scope: session, field: survivalGathering.nodes.final-tree.charges, equals: 0}
+  - {op: command, player: owner, requestId: harvest, sessionEpoch: 0, action: "survival-coop:gather", args: [final-tree, 0], times: 2}
+  - {op: command, player: owner, requestId: deposit, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g5:owner:0:7:harvest:output:1", 10], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: TRANSFER_PENDING}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: command, player: owner, requestId: deposit, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g5:owner:0:7:harvest:output:1", 10]}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.g5:owner:0:7:harvest:output:1", is_nil: true}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.g5:owner:0:7:harvest:output:1.quantity", equals: 10}
+  - {op: command, player: foreign, requestId: steal, sessionEpoch: 0, action: "survival-coop:transfer-withdraw", args: ["g5:owner:0:7:harvest:output:1", 1], expect: refused}
+  - {op: expect_snapshot, player: foreign, scope: session, field: survivalSettlement, is_nil: true}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.g5:owner:0:7:harvest:output:1.quantity", equals: 10}
+  - {op: command, player: owner, requestId: bench, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 3, 1, 3]}
+  - {op: command, player: owner, requestId: place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:5:owner:0:bench", 4, 2]}
+  - {op: command, player: owner, requestId: badstation, sessionEpoch: current, action: "survival-coop:settlement-workshop-reserve", args: [cord, forged, 5, 3, 3], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: STATION_UNAVAILABLE}
+  - {op: command, player: owner, requestId: craft, sessionEpoch: current, action: "survival-coop:settlement-workshop-reserve", args: [cord, "tribe:build:5:tribe:5:owner:0:bench", 5, 3, 3]}
+  - {op: command, player: owner, requestId: start, sessionEpoch: current, action: "survival-coop:settlement-workshop-start", args: ["w5:owner:0:5:craft", owner, 5, 4, 3]}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.workshops.owner.entries.w5:owner:0:5:craft.job.state", equals: Running}
+  - {op: close, player: foreign}
+  - {op: close, player: member}
+  - {op: close, player: owner}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: join, player: member}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.workshops.owner.entries.w5:owner:0:5:craft.job.state", equals: Running}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.settlement.structures.tribe:build:5:tribe:5:owner:0:bench.definition.id", equals: bench}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.g5:owner:0:7:harvest:output:1.quantity", equals: 9}
+  - {op: advance_to, seconds: 1}
+  - {op: command, player: owner, requestId: complete, sessionEpoch: current, action: "survival-coop:settlement-workshop-complete", args: ["w5:owner:0:5:craft", owner, 5, 4, 3], times: 2}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.workshops.owner.entries.w5:owner:0:5:craft.job.state", equals: Committed}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.w5:owner:0:5:craft:output:1.quantity", equals: 1}
+  - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.g5:owner:0:7:harvest:output:1.quantity", equals: 6}
+  - {op: close, player: member}
+  - {op: close, player: owner}
+  - {op: expect_members, members: []}

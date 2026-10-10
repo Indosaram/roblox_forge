@@ -1,0 +1,8 @@
+assets:
+  - key: pendingIcon
+    kind: image
+    tool: studio-mcp
+    source: pending moderation fixture
+    path: assets/icon/icon-a.png
+    assetId: 0
+    moderation: PendingModeration

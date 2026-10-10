@@ -1,0 +1,12 @@
+name: contract-rejoin
+genre: grow-harvest
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    target: grow-harvest:plant
+    code: 'local qa = game.ServerStorage.ForgeQA; local baseline = qa:FindFirstChild("beginClock"):Invoke(); local p = tostring(game.Players:GetPlayers()[1].UserId); assert(qa:FindFirstChild("dispatch"):Invoke("grow-harvest", "plant", {1, "carrot"}, p).ok); local before = qa:FindFirstChild("snapshot"):Invoke("grow-harvest", p); local saveResult, saved = qa:FindFirstChild("save"):Invoke(p); assert(saveResult.ok and saved ~= nil); qa:FindFirstChild("restore"):Invoke(p, saved); local after = qa:FindFirstChild("snapshot"):Invoke("grow-harvest", p); assert(after.balance == before.balance and after.seeds.carrot == before.seeds.carrot and after.plots[1].readyAt == before.plots[1].readyAt and after.plots[1].cropId == "carrot"); qa:FindFirstChild("advanceElapsed"):Invoke(after.plots[1].readyAt - baseline); assert(qa:FindFirstChild("dispatch"):Invoke("grow-harvest", "harvest", {1}, p).ok)'

@@ -1,0 +1,11 @@
+name: contract-rejoin
+genre: survival-coop
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local p = tostring(game.Players:GetPlayers()[1].UserId); assert(q:FindFirstChild("dispatch"):Invoke("survival-coop", "buy-defense", {}, p).ok); local saveResult, saved = q:FindFirstChild("save"):Invoke(p); assert(saveResult.ok and saved ~= nil); assert(saved.genres["survival-coop"].data.waveIndex == nil); assert(q:FindFirstChild("restore"):Invoke(p, saved).ok); local s = q:FindFirstChild("snapshot"):Invoke("survival-coop", p); assert(s.balance == 0 and s.upgradeLevel == 1)'

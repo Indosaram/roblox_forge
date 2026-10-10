@@ -1,0 +1,22 @@
+name: tutorial
+genre: rpg-progression
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+    expect: 'player spawns in the starting region'
+  - action: capture
+    target: spawn
+    expect: 'quest giver and training dummy are visible'
+  - action: click
+    target: accept-quest
+  - action: click
+    target: training-dummy
+    expect: 'combat awards experience'
+  - action: wait
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "xp") > 0, "combat granted xp")'
+  - action: capture
+    target: tutorial-complete
+    expect: 'the first level-up and ability unlock are visible'

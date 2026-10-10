@@ -1,0 +1,336 @@
+{
+  "genre_contract": {
+    "api": 1,
+    "order": [
+      "survival-coop"
+    ],
+    "configs": {
+      "survival-coop": {
+        "mode": "crafting",
+        "currency": "Coins",
+        "startingBalance": 0,
+        "contentVersion": 1,
+      "inventory": {
+        "carriedContainer": "weight",
+        "content": {
+            "survival_content": 1,
+            "rules": {
+              "inheritance": "avg-quality-v1",
+              "durability": "quality-scaled-v1",
+              "ingredientSelection": "item-id-ascending",
+              "demolitionRefund": "full-storage-v1"
+            },
+            "limits": {
+              "slots": 20,
+              "softWeightMilli": 60000,
+              "hardWeightMilli": 90000,
+              "qualityMilliMin": 1,
+              "qualityMilliMax": 5000,
+              "tribeMaxMembers": 4
+            },
+            "tags": [],
+            "items": [
+              {
+                "id": "wood",
+                "name": "Wood",
+                "stackMax": 1000,
+                "weightMilli": 1000
+              },
+              {
+                "id": "light",
+                "name": "Light",
+                "stackMax": 1000,
+                "weightMilli": 0
+              }
+            ]
+          },
+          "speedPenaltyMilli": 250,
+          "containers": {
+            "bag": [
+              {
+                "itemId": "wood",
+                "catalogId": "wood",
+                "quantity": 10,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "odd",
+                "catalogId": "wood",
+                "quantity": 2,
+                "qualityMilli": 2000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ],
+            "chest": [
+              {
+                "itemId": "target",
+                "catalogId": "wood",
+                "quantity": 2,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "different",
+                "catalogId": "wood",
+                "quantity": 2,
+                "qualityMilli": 2000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ],
+            "slots": [
+              {
+                "itemId": "slot0",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot1",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot2",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot3",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot4",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot5",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot6",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot7",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot8",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot9",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot10",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot11",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot12",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot13",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot14",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot15",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot16",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot17",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot18",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              },
+              {
+                "itemId": "slot19",
+                "catalogId": "light",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ],
+            "weight": [
+              {
+                "itemId": "heavy",
+                "catalogId": "wood",
+                "quantity": 60,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ],
+            "stock": [
+              {
+                "itemId": "supply",
+                "catalogId": "wood",
+                "quantity": 40,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ],
+            "race": [
+              {
+                "itemId": "last",
+                "catalogId": "wood",
+                "quantity": 1,
+                "qualityMilli": 1000,
+                "durabilityMilli": 0,
+                "attributes": {
+                  "origin": "initial"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+genre_contract:
+  api: 1
+  order: [survival-coop]
+  configs:
+    survival-coop:
+      mode: crafting
+      currency: Coins
+      startingBalance: 0
+      contentVersion: 1
+      inventory:
+        carriedContainer: bag
+        speedPenaltyMilli: 250
+        content:
+          survival_content: 1
+          rules:
+            inheritance: avg-quality-v1
+            durability: quality-scaled-v1
+            ingredientSelection: item-id-ascending
+            demolitionRefund: full-storage-v1
+          limits:
+            slots: 2
+            softWeightMilli: 60000
+            hardWeightMilli: 90000
+            qualityMilliMin: 1
+            qualityMilliMax: 5000
+            tribeMaxMembers: 4
+          items:
+            - {id: fiber, name: Fiber, stackMax: 1000, weightMilli: 100}
+            - {id: cord, name: Cord, stackMax: 1000, weightMilli: 100}
+            - {id: stone, name: Stone, stackMax: 1000, weightMilli: 100}
+          recipes:
+            - id: cord
+              craftMillis: 1000
+              inputs: [{item: fiber, quantity: 3}]
+              outputs: [{item: cord, quantity: 1}]
+        containers:
+          bag:
+            - {itemId: fiber-stack, catalogId: fiber, quantity: 300, qualityMilli: 1000, durabilityMilli: 0, attributes: {origin: field}}
+            - {itemId: blocker, catalogId: stone, quantity: 1, qualityMilli: 1000, durabilityMilli: 0, attributes: {}}
+          chest: []

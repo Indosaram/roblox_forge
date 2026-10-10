@@ -1,0 +1,11 @@
+name: contract-loop
+genre: pvp-arena
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local ids = game.Players:GetPlayers(); assert(#ids >= 2); for i = 1, 2 do assert(q:FindFirstChild("dispatch"):Invoke("pvp-arena", "enqueue", {}, tostring(ids[i].UserId)).ok) end; q:FindFirstChild("beginClock"):Invoke(); q:FindFirstChild("advanceElapsed"):Invoke(1); assert(q:FindFirstChild("dispatch"):Invoke("pvp-arena", "attack", {}, tostring(ids[1].UserId)).ok); q:FindFirstChild("advanceElapsed"):Invoke(5); assert(q:FindFirstChild("snapshot"):Invoke("pvp-arena", tostring(ids[1].UserId)).phase == "ended")'

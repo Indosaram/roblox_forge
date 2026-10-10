@@ -1,0 +1,15 @@
+# survival-coop economy template
+currencies:
+  - id: Coins
+    kind: free
+    starting: 0
+
+sources:
+  - id: wave-win
+    currency: Coins
+    notes: defending a wave successfully
+
+sinks:
+  - id: defense-upgrade
+    currency: Coins
+    notes: upgrading defenses between waves

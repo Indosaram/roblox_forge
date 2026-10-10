@@ -1,0 +1,26 @@
+# omo tool state
+.omo/
+
+# build output
+build/
+sourcemap.json
+
+# package manager output
+Packages/
+ServerPackages/
+DevPackages/
+node_modules/
+
+# Roblox lock files
+*.rbxl.lock
+*.rbxlx.lock
+
+# secrets
+.env
+
+# generated reports (keep the directory)
+reports/*
+!reports/.gitkeep
+
+# generated OBJ previews (forge gen procedural --obj)
+games/*/assets/preview/

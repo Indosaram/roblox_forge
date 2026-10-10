@@ -1,0 +1,48 @@
+name: native-wave-smoke
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 60
+players: ["1"]
+steps:
+  - op: join
+    player: "1"
+  - op: expect_snapshot
+    player: "1"
+    genre: survival-coop
+    field: balance
+    equals: 10
+  - op: dispatch
+    player: "1"
+    action: survival-coop:buy-defense
+    expect: ok
+  - op: expect_snapshot
+    player: "1"
+    genre: survival-coop
+    field: balance
+    equals: 0
+  - op: advance_to
+    seconds: 2
+  - op: advance_to
+    seconds: 4
+  - op: dispatch
+    player: "1"
+    action: survival-coop:defend-active
+    expect: ok
+  - op: expect_snapshot
+    player: "1"
+    genre: survival-coop
+    field: lastWaveWon
+    equals: true
+  - op: expect_snapshot
+    player: "1"
+    genre: survival-coop
+    field: balance
+    equals: 5
+  - op: dispatch
+    player: "1"
+    action: survival-coop:defend-active
+    expect: refused
+  - op: expect_members
+    members: ["1"]

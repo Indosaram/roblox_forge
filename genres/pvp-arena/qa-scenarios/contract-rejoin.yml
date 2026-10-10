@@ -1,0 +1,11 @@
+name: contract-rejoin
+genre: pvp-arena
+kind: smoke
+contract_api: 1
+operations: [snapshot, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local id = tostring(game.Players:GetPlayers()[1].UserId); local saveResult, saved = q:FindFirstChild("save"):Invoke(id); assert(saveResult.ok and saved ~= nil); local rating = saved.genres["pvp-arena"].data.rating; assert(saved.genres["pvp-arena"].data.matchId == nil); q:FindFirstChild("restore"):Invoke(id, saved); local state = q:FindFirstChild("snapshot"):Invoke("pvp-arena", id); assert(state.rating == rating and state.phase == "lobby" and state.rival == nil)'

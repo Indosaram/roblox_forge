@@ -1,0 +1,21 @@
+name: tutorial
+genre: pvp-arena
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+    expect: 'player spawns in the arena lobby'
+  - action: capture
+    target: lobby
+    expect: 'queue button and rank badge are visible'
+  - action: click
+    target: queue-button
+  - action: wait
+    seconds: 10
+    expect: 'matchmaking fills the round'
+  - action: click
+    target: attack
+    expect: 'the round accepts combat input'
+  - action: capture
+    target: tutorial-complete
+    expect: 'the round HUD and score are visible'

@@ -1,0 +1,11 @@
+name: contract-rejoin
+genre: rpg-progression
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local p = tostring(game.Players:GetPlayers()[1].UserId); q:FindFirstChild("beginClock"):Invoke(); q:FindFirstChild("advanceElapsed"):Invoke(0); q:FindFirstChild("advanceElapsed"):Invoke(2); assert(q:FindFirstChild("dispatch"):Invoke("rpg-progression", "strike-boss", {"slime"}, p).ok); q:FindFirstChild("advanceElapsed"):Invoke(3); assert(q:FindFirstChild("dispatch"):Invoke("rpg-progression", "strike-boss", {"slime"}, p).ok); assert(q:FindFirstChild("dispatch"):Invoke("rpg-progression", "claim-quest", {"first-boss"}, p).ok); local saveResult, save = q:FindFirstChild("save"):Invoke(p); assert(saveResult.ok and save ~= nil); assert(q:FindFirstChild("restore"):Invoke(p, save).ok); local s = q:FindFirstChild("snapshot"):Invoke("rpg-progression", p); assert(s.level == 2 and s.balance == 5 and next(s.activeBosses) == nil); assert(not q:FindFirstChild("dispatch"):Invoke("rpg-progression", "claim-quest", {"first-boss"}, p).ok)'

@@ -1,0 +1,50 @@
+api: 1
+version: 1.0.0
+id: fixture-counter
+runtime: fixture-counter
+resources: []
+entities: []
+actions:
+  - action: fixture-counter:increment
+    control:
+      id: "fixture-counter:increment"
+      labelKey: increment_label
+      label: Increment
+      kind: button
+      args: []
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: rate-limited
+    effects:
+      - path: [count]
+        delta: 1
+loop:
+  - id: count
+    actions: [fixture-counter:increment]
+    on: CountChanged
+    goalKey: loop_count
+    goal: Count once
+locale:
+  default: en
+  strings:
+    increment_label: {ko: "증가"}
+    loop_count: {ko: "한 번 세기"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}
+ui:
+  resourceBar:
+    resources: []
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+draft: true

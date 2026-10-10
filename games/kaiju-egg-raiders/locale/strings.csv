@@ -1,0 +1,61 @@
+Key,Source,Context,en-us,ko-kr
+hud.coinsPrefix,Coins:,Coins label prefix,Coins:,코인:
+hud.coinsCount,Coins: %d,Coins counter template,Coins: %d,코인: %d
+hud.kaijuCount,Kaiju Owned: %d,Creatures owned counter template,Kaiju Owned: %d,보유 카이주: %d
+hud.siegeNextPrefix,Next siege in,Siege banner idle prefix before the clock,Next siege in,다음 공성까지
+hud.siegeActivePrefix,Siege ACTIVE,Siege banner active prefix before the clock,Siege ACTIVE,공성 진행 중
+hud.clock,%d:%02d,Siege countdown clock template,%d:%02d,%d:%02d
+hud.vaultedCount,Vaulted: %d,Vaulted egg counter template,Vaulted: %d,보관된 알: %d
+hud.invite,Invite Friends,Friend invite button,Invite Friends,친구 초대
+hud.inviteUnavailable,Invites are not available here,Toast shown when the platform cannot send a game invite,Invites are not available here,여기서는 초대를 보낼 수 없습니다
+hud.slotStatus,Slot %d: %s (%s),Incubator slot status template,Slot %d: %s (%s),슬롯 %d: %s (%s)
+hud.toggle,\u{2261},HUD panel collapse toggle glyph,≡,≡
+button.raid,Raid rival vault,Raid button label,Raid rival vault,라이벌 금고 습격
+button.merge,Merge %s family,Merge button per creature family,Merge %s family,%s 계열 합성
+button.buyEgg,Buy %s (%d Coins),Egg purchase button,Buy %s (%d Coins),%s 구매 (%d 코인)
+button.store,Store,Store button and store panel title,Store,상점
+button.odds,Odds,Odds button label,Odds,확률
+store.passesHeader,Game Passes,Store game pass section header,Game Passes,게임 패스
+store.productsHeader,Developer Products,Store developer product section header,Developer Products,개발자 제품
+store.itemButton,%s - %d R$,Store item price button,%s - %d R$,%s - %d R$
+store.unpublishedStatus,Not available until published,Store status shown after clicking a not-yet-published item,Not available until published,게시 전에는 이용할 수 없습니다
+odds.title,Hatch Odds,Odds panel title,Hatch Odds,부화 확률
+odds.entry,%s %.1f%%,Odds row per creature in an egg pool,%s %.1f%%,%s %.1f%%
+quest.header,Daily Quests,Daily quest panel header,Daily Quests,일일 퀘스트
+quest.row,%s %d/%d (+%d),Daily quest progress row,%s %d/%d (+%d),%s %d/%d (+%d)
+quest.claim,Claim,Quest claim button,Claim,수령
+quest.claimed,Claimed,Quest claim button after claiming,Claimed,수령 완료
+quest.hatch,hatch,Quest id shown in the quest row,Hatch eggs,알 부화
+quest.buy,buy,Quest id shown in the quest row,Buy eggs,알 구매
+quest.raid,raid,Quest id shown in the quest row,Raid a vault,금고 습격
+incubator.hatchButton,Hatch #%d,Hatch button for a ready incubator,Hatch #%d,부화 #%d
+incubator.slotStatusText,Slot %d: %s (%s),Incubator slot countdown with a preformatted duration,Slot %d: %s (%s),슬롯 %d: %s (%s)
+incubator.eggFallback,Egg,Fallback egg name in the incubator slot status,Egg,알
+tutorial.prefix,Tutorial:,Prefix in front of the tutorial hint,Tutorial:,튜토리얼:
+notify.serverBoost,Server Luck Boost active!,Toast when a server luck boost starts,Server Luck Boost active!,서버 행운 부스트 활성화!
+notify.legendaryHatch,%s hatched %s!,Server-wide broadcast when a legendary creature hatches,%s hatched %s!,%s님이 %s을(를) 부화했습니다!
+kick.profileLocked,Your profile is still locked by another server. Please rejoin.,Kick reason when the profile lock times out,Your profile is still locked by another server. Please rejoin.,프로필이 다른 서버에서 잠겨 있습니다. 다시 접속해 주세요.
+kick.profileLoadFailed,Could not load your profile. Please rejoin.,Kick reason when the profile fails to load,Could not load your profile. Please rejoin.,프로필을 불러오지 못했습니다. 다시 접속해 주세요.
+currency.coins,Coins,Currency display name,Coins,코인
+button.overflowMenu,\u{2261},Overflow menu toggle glyph,≡,≡
+inventory.emptyHint,Hatch an egg to get your first creature,Creature inventory empty-state hint,Hatch an egg to get your first creature,첫 크리처를 얻으려면 알을 부화하세요
+inventory.countPrefix,x,Creature inventory count prefix,x,x
+hud.vaults,Red vault: 0 | Blue vault: 0,Initial team vault counts label,Red vault: 0 | Blue vault: 0,Red 금고: 0 | Blue 금고: 0
+hud.vaultCounts,Red vault: %d | Blue vault: %d,Team vault counts template,Red vault: %d | Blue vault: %d,Red 금고: %d | Blue 금고: %d
+egg.ember,Ember Egg,Egg display name,Ember Egg,Ember Egg
+egg.tidal,Tidal Egg,Egg display name,Tidal Egg,Tidal Egg
+creature.ember-pup,Ember Pup,Creature display name,Ember Pup,Ember Pup
+creature.ember-stalker,Ember Stalker,Creature display name,Ember Stalker,Ember Stalker
+creature.ember-titan,Ember Titan,Creature display name,Ember Titan,Ember Titan
+creature.tidal-hatchling,Tidal Hatchling,Creature display name,Tidal Hatchling,Tidal Hatchling
+creature.tidal-serpent,Tidal Serpent,Creature display name,Tidal Serpent,Tidal Serpent
+creature.tidal-titan,Tidal Titan,Creature display name,Tidal Titan,Tidal Titan
+family.ember,Ember,Merge family display name,Ember,Ember
+family.tidal,Tidal,Merge family display name,Tidal,Tidal
+item.coins2x,2x Coins,Game pass name,2x Coins,2x Coins
+item.vipSlots,VIP Slots +4,Game pass name,VIP Slots +4,VIP Slots +4
+item.autoLock,Auto Lock,Game pass name,Auto Lock,Auto Lock
+item.creaturePack,Guaranteed Rare Creature Pack,Developer product name,Guaranteed Rare Creature Pack,Guaranteed Rare Creature Pack
+item.hatchSpeedup,Hatch Speed-Up,Developer product name,Hatch Speed-Up,Hatch Speed-Up
+item.siegeShield,Siege Shield,Developer product name,Siege Shield,Siege Shield
+item.luckBoost,Server Luck Boost 15m,Developer product name,Server Luck Boost 15m,Server Luck Boost 15m

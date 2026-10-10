@@ -1,0 +1,12 @@
+name: contract-loop
+genre: grow-harvest
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed, save, restore]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    target: grow-harvest:plant
+    code: 'local qa = game.ServerStorage.ForgeQA; local baseline = qa:FindFirstChild("beginClock"):Invoke(); local p = tostring(game.Players:GetPlayers()[1].UserId); assert(qa:FindFirstChild("dispatch"):Invoke("grow-harvest", "plant", {1, "carrot"}, p).ok); local s = qa:FindFirstChild("snapshot"):Invoke("grow-harvest", p); qa:FindFirstChild("advanceElapsed"):Invoke(s.plots[1].readyAt - baseline); assert(qa:FindFirstChild("dispatch"):Invoke("grow-harvest", "harvest", {1}, p).ok); assert(qa:FindFirstChild("dispatch"):Invoke("grow-harvest", "sell-held", {"carrot"}, p).ok)'

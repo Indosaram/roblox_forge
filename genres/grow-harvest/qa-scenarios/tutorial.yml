@@ -1,0 +1,30 @@
+name: tutorial
+genre: grow-harvest
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+    expect: 'player spawns in the garden with empty plots'
+  - action: capture
+    target: garden
+    expect: 'seed shop and empty plots are visible'
+  - action: click
+    target: seed-shop
+  - action: click
+    target: plot-1
+    expect: 'the first seed is planted'
+  - action: wait
+    seconds: 10
+    expect: 'the crop finishes its growth timer'
+  - action: capture
+    target: sprout
+    expect: 'the plot shows a grown crop'
+  - action: click
+    target: plot-1
+    expect: 'harvest moves the crop into the inventory'
+  - action: click
+    target: sell-crop
+    expect: 'selling credits coins'
+  - action: capture
+    target: tutorial-complete
+    expect: 'coins increased and the next seed is affordable'

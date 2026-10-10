@@ -1,0 +1,15 @@
+name: contract-rejoin
+genre: collect-raid
+kind: smoke
+contract_api: 1
+operations: [get, snapshot]
+steps:
+  - action: join
+    seconds: 1
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; assert(q:IsA("BindableFunction")); assert(type(q:Invoke("snapshot")) == "table"); assert(type(q:Invoke("get", "schemaVersion")) == "number"); assert(type(q:Invoke("get", "coins")) == "number")'

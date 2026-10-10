@@ -1,0 +1,39 @@
+# Visual-evidence scenario for the social-rp-fashion genre sweep pack.
+#
+# Captures the live HUD on the desktop and phone surfaces before and after one
+# real control action, driven through the maintained Studio QA driver.
+#
+# The genre's round cycles lobby -> dressing -> voting -> results on the wall
+# clock, so while Studio boots the round is in an arbitrary phase by the time
+# `begin_clock` freezes the clock. The equip action the HUD's "Wear hat" control
+# dispatches is only accepted while dressing or in the lobby, so the scenario
+# cannot click straight away: a capture taken at a frozen voting/results phase
+# refused the equip and the `equipped.hat` predicate never changed.
+#
+# `advance_elapsed` far ahead settles the round instead of guessing: dressing is
+# a sink at the frozen instant (its deadline lies in the future) and the
+# heartbeat walks voting/results through lobby into dressing. The `wait_for` on
+# the snapshot phase proves the round is dressing before the equip, and the
+# equip then succeeds because the genre's own `startingOwned` seed grants the
+# starter hat - so the click is a real action on an owned item, not a shortcut.
+name: hud-visual
+genre: social-rp-fashion
+pack: social-rp-fashion-sweep
+kind: studio
+contract_api: 1
+timeout_seconds: 600
+players: [desktop, mobile]
+steps:
+  - {op: begin_clock}
+  - {op: join, player: desktop}
+  - {op: join, player: mobile}
+  - {op: expect_members, members: [desktop, mobile]}
+  - {op: advance_elapsed, seconds: 100000}
+  - {op: wait_for, player: desktop, timeout_seconds: 60, predicate: {source: snapshot, genre: social-rp-fashion, field: phase, equals: "dressing"}}
+  - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
+  - {op: device, player: mobile, surface: mobile, width: 390, height: 844, timeout_seconds: 30}
+  - {op: wait_for, player: desktop, timeout_seconds: 20, predicate: {source: property, target: "Players.LocalPlayer.PlayerGui.SocialRpFashionSweepGui.SafeArea.ActionBar.social-rp-fashion:equip-hat", field: Visible, equals: true}}
+  - {op: capture, target: social-rp-fashion-hud-before-first-action}
+  - {op: click, player: desktop, target: "Players.LocalPlayer.PlayerGui.SocialRpFashionSweepGui.SafeArea.ActionBar.social-rp-fashion:equip-hat", timeout_seconds: 20}
+  - {op: wait_for, player: desktop, timeout_seconds: 20, predicate: {source: snapshot, genre: social-rp-fashion, field: equipped.hat, equals: "starter-hat"}}
+  - {op: capture, target: social-rp-fashion-hud-after-first-action}

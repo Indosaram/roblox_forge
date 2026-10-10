@@ -1,0 +1,17 @@
+{
+  "status": "pending-integration",
+  "taskComplete": false,
+  "entryPoint": "lune run cli/forge/fixtures/vitals-food-rest/death-session",
+  "expectedCurrentOutcome": "nonzero until adapter death staging is present; real commandServer ingress now exists",
+  "observedRuns": [
+    {"entryPoint": "death-advance-repro", "monitor": "mon_CB51YEGZCXGSGJ8H", "exitCode": 1, "failure": "PENDING_INTEGRATION: actual Session.advance published dead vitals without a journaled death bundle"},
+    {"entryPoint": "death-session", "monitor": "mon_QCWVZT7KPVADG7S4", "exitCode": 1, "failure": "PENDING_INTEGRATION: death-drop must reach the real atomic commit"}
+  ],
+  "staticChecks": "Native analyzer and Selene passed for both executable fixtures and harness; formatting applied separately.",
+  "proposedSnapshotField": "deathBundles",
+  "trustedPortsPending": ["equipment registry", "death position and pickup reach", "world identity and revision"],
+  "hostIdentity": "native runtime-generated UUID passed as ProfileStore sessionId; common locked Session staging must supply context.serverId",
+  "rebindProposal": "Under acquired profile ownership lock, require identical pack/world revision and coordinate frame; preserve saved locations on same-world host change. Reject mismatch without mutating or discarding the save.",
+  "remainingExecutableCases": ["newcomer protection", "equipped/reserved retention", "capacity and geometric pickup", "committed expiry", "fresh-process locked world-revision rebinding"],
+  "warning": "This fixture must never be counted as a passing task9 proof while pending. No adapter or shared contract is implemented by this fixture."
+}

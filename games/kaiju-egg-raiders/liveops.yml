@@ -1,0 +1,8 @@
+# LiveOps events pushed with `forge liveops push` to the staging universe.
+# `kind` is the runtime Broadcast handler name; `data` becomes the envelope data.
+events:
+  - id: double-coins
+    kind: event
+    data:
+      multiplier: 2
+      durationSeconds: 3600

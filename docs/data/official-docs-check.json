@@ -1,0 +1,42 @@
+{
+ "subs": {
+  "status": 200,
+  "hits": [
+   "{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box;-webkit-text-size-adjust:100%;-webkit-print-color-scheme:dark;color-scheme:dark;}*,*::before,*::after{box-sizing:inherit;}strong,b{font-weight:700;}b",
+   "FF;font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:16px;line-height:140%;background-color:rgb(18, 18, 21);}@media print{body{background-color:rgb(255, 255, 255);}}body::backdrop{background-col",
+   "dy{font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:14px;line-height:140%;} ",
+   "5rem;padding:8px;border-radius:50%;overflow:visible;color:#F9F9F9;-webkit-transition:background-color 150ms cubic-bezier(0"
+  ]
+ },
+ "rojo": {
+  "status": 200,
+  "stars": 1756,
+  "pushed": "2026-07-06T06:15:34Z"
+ },
+ "mcp": {
+  "status": 200,
+  "stars": 492,
+  "pushed": "2026-04-03T17:36:12Z"
+ },
+ "wally": {
+  "status": 200,
+  "stars": 498,
+  "pushed": "2026-09-26T21:00:00Z"
+ },
+ "ads": {
+  "status": 404,
+  "hits": [
+   "{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box;-webkit-text-size-adjust:100%;-webkit-print-color-scheme:dark;color-scheme:dark;}*,*::before,*::after{box-sizing:inherit;}strong,b{font-weight:700;}b",
+   "FF;font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:16px;line-height:140%;background-color:rgb(18, 18, 21);}@media print{body{background-color:rgb(255, 255, 255);}}body::backdrop{background-col",
+   "dy{font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:14px;line-height:140%;} {\"props\":{\"pageProps\":{}},\"page\":\"/404\",\"query\":{},\"buildId\":\"Xj3XQ7KenmzDyqbXO-zjl\",\"assetPrefix\":\"https://assets"
+  ]
+ },
+ "devex": {
+  "status": 404,
+  "hits": [
+   "{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box;-webkit-text-size-adjust:100%;-webkit-print-color-scheme:dark;color-scheme:dark;}*,*::before,*::after{box-sizing:inherit;}strong,b{font-weight:700;}b",
+   "FF;font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:16px;line-height:140%;background-color:rgb(18, 18, 21);}@media print{body{background-color:rgb(255, 255, 255);}}body::backdrop{background-col",
+   "dy{font-family:'Builder Sans',Helvetica,Arial,san-serif;font-weight:400;font-style:normal;font-size:14px;line-height:140%;} {\"props\":{\"pageProps\":{}},\"page\":\"/404\",\"query\":{},\"buildId\":\"Xj3XQ7KenmzDyqbXO-zjl\",\"assetPrefix\":\"https://assets"
+  ]
+ }
+}

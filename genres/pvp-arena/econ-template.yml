@@ -1,0 +1,15 @@
+# pvp-arena economy template
+currencies:
+  - id: Coins
+    kind: free
+    starting: 0
+
+sources:
+  - id: match-win
+    currency: Coins
+    notes: winning a ranked match
+
+sinks:
+  - id: gear-shop
+    currency: Coins
+    notes: cosmetic or loadout purchases

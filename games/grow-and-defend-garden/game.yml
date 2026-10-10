@@ -1,0 +1,11 @@
+name: Grow and Defend Garden
+slug: grow-and-defend-garden
+genres: [grow-harvest, survival-coop]
+currencies: [Coins]
+# Robux products are deterministic only; no paid random rewards exist in this pack.
+monetization: {gamepasses: [], products: [], subscriptions: []}
+art_style: "cozy stylized low-poly garden, warm pastel palette (leaf green, pumpkin orange, berry red), soft morning light with gentle bloom"
+poly_budget: { crop: 500, prop: 700, barricade: 900, world_parts_max: 4000 }
+locales: [en-us]
+qa_scenarios: [core-loop]
+liveops_cadence: weekly

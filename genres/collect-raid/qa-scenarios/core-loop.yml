@@ -1,0 +1,41 @@
+name: core-loop
+genre: collect-raid
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+  - action: click
+    target: buy-egg-button
+    expect: 'free currency buys an egg'
+  - action: wait
+    seconds: 6
+    expect: 'the ember eggs first hatch slot (hatchSeconds = 5) is ready'
+  - action: click
+    target: Hatch_1
+    expect: 'hatching the ready egg adds a creature to the collection'
+  - action: wait
+    seconds: 2
+    expect: 'the server round trip lands before the next assertion'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "owned") >= 1, "collect step added a unit")'
+    expect: 'the collection grew by one after buy, wait, and hatch'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("snapshotCoins")'
+    expect: 'coin baseline captured for the income check below'
+  - action: wait
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "coins") > ForgeQA:Invoke("get", "lastCoinSnapshot"), "income accrued")'
+    expect: 'coins increased while the collected unit earned passively'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("forceSiege"), "siege window forced active"); assert(ForgeQA:Invoke("seedVault", 1), "rival vault seeded with a raidable item")'
+    expect: 'an active siege window exists and the rival vault holds a raidable item to move'
+  - action: click
+    target: raid-target
+    expect: 'an active siege window lets a raid move raidable items'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "lastRaidMoved") > 0, "raid moved at least one raidable item from the seeded rival vault")'
+    expect: 'the raid actually moved an item; this fails if raiding were removed or the click were a no-op'
+  - action: capture
+    target: core-loop
+    expect: 'the vault, income, and raid HUD all render after one loop'

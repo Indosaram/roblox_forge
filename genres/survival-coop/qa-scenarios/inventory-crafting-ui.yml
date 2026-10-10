@@ -1,0 +1,34 @@
+name: inventory-crafting-ui
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 240
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 15}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: [{field: catalogId, equals: fiber}, {field: attributes, empty: true}], label: fiber-item}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: fiber-item}], timeout_seconds: 5}
+  - {op: capture, target: actual-selected-inventory-item-and-capacity}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-cord, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-cord, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: cancelled-job}
+  - {op: capture, target: reserved-inputs-job-and-cancel-controls}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cancelled-job, prefix: 'cancel-'}], resultAction: 'survival-coop:craft-cancel', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: cancelled-job}, job, state], equals: Cancelled}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-cord, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: completed-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: completed-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 10}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: completed-job}, job, finishAt], label: ui-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: ui-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: completed-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: completed-job}, job, state], equals: Committed}
+  - {op: capture, target: actual-completed-craft-two-clients}

@@ -1,0 +1,27 @@
+# Real input steps are distinct from server/client behavioral command steps.
+name: bootstrap-crafting-studio
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 180
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: server_command, player: owner, requestId: studio-invite, action: "survival-coop:settlement-invite", args: ["-2", 0, 0], expect: ok}
+  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 30}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 10}
+  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: capture, target: both-running-clients-after-gather}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.workbench, withinStuds: 6, timeout_seconds: 30}
+  - {op: command, player: owner, requestId: studio-cord-reserve, sessionEpoch: current, action: "survival-coop:craft-reserve", args: [cord, hand], expect: ok}
+  - {op: bind_result, player: owner, field: data.jobId, label: cord-job}
+  - {op: command, player: owner, requestId: studio-cord-start, sessionEpoch: current, action: "survival-coop:craft-start", args: [{ref: cord-job}], expect: ok}
+  - {op: begin_clock}
+  - {op: advance_elapsed, seconds: 4}
+  - {op: command, player: owner, requestId: studio-cord-complete, sessionEpoch: current, action: "survival-coop:craft-complete", args: [{ref: cord-job}], expect: ok}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: cord-job}, job, state], equals: Committed}
+  - {op: capture, target: both-running-clients-after-craft}

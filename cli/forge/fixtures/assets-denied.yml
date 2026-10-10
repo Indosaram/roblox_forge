@@ -1,0 +1,8 @@
+assets:
+  - key: badMesh
+    kind: mesh
+    tool: roblox-cube
+    source: research-only fixture
+    path: assets/models/bad.rbxm
+    assetId: 0
+    moderation: NotUploaded

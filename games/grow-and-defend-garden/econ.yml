@@ -1,0 +1,26 @@
+# Config.luau is authoritative until econ codegen exists
+currencies:
+  - id: Coins
+    kind: free
+    starting: 50
+
+crops:
+  - id: carrot
+    displayName: Carrot
+    growthSeconds: 20
+    sellPrice: 10
+  - id: pumpkin
+    displayName: Pumpkin
+    growthSeconds: 45
+    sellPrice: 30
+  - id: starfruit
+    displayName: Starfruit
+    growthSeconds: 90
+    sellPrice: 80
+
+# Barricade points come from harvesting (pack hook) and are spent as defensePower.
+waves:
+  waveInterval: 60
+  baseEnemies: 3
+  growth: 2
+  winReward: 25

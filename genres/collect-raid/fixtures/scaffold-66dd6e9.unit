@@ -1,0 +1,842 @@
+--!strict
+-- scaffold: pure text templates for `forge new`. Kept apart from the command so the
+-- exact bytes a new pack starts from are testable under Lune (no filesystem).
+--
+-- `gameYml` and `projectJson` are genre-agnostic; `collectRaidFiles` adds the
+-- playable collect-raid starter (world data, server loop, ui-kit HUD, procgen
+-- asset specs) so a fresh pack runs in Studio with no hand-written code.
+
+local Assets = require("./assets")
+
+local M = {}
+
+local ART_STYLE = '"stylized low-poly, chunky silhouettes, bright saturated palette, soft ambient light"'
+local POLY_BUDGET = "{ creature: 2000, prop: 800, world_parts_max: 5000 }"
+
+local function wordsOf(slug: string): { string }
+	local words: { string } = {}
+	for word in string.gmatch(slug, "[^-]+") do
+		table.insert(words, word)
+	end
+	return words
+end
+
+--- True for a lowercase-kebab slug (a-z, 0-9, single hyphens, no leading/trailing).
+function M.isValidSlug(slug: string): boolean
+	if slug == "" then
+		return false
+	end
+	if string.find(slug, "[^%l%d%-]") ~= nil then
+		return false
+	end
+	if string.sub(slug, 1, 1) == "-" or string.sub(slug, -1) == "-" then
+		return false
+	end
+	return string.find(slug, "--", 1, true) == nil
+end
+
+function M.titleCase(slug: string): string
+	local words: { string } = {}
+	for _, word in wordsOf(slug) do
+		table.insert(words, string.upper(string.sub(word, 1, 1)) .. string.sub(word, 2))
+	end
+	return table.concat(words, " ")
+end
+
+function M.pascalCase(slug: string): string
+	local words: { string } = {}
+	for _, word in wordsOf(slug) do
+		table.insert(words, string.upper(string.sub(word, 1, 1)) .. string.sub(word, 2))
+	end
+	return table.concat(words)
+end
+
+--- Replaces `__NAME__` placeholders. `string.gsub` gets a function replacement so
+--- a value containing `%` is inserted literally.
+function M.fill(text: string, vars: { [string]: string }): string
+	local out = text
+	for key, value in vars do
+		out = string.gsub(out, key, function(): string
+			return value
+		end)
+	end
+	return out
+end
+
+--- game.yml for a fresh pack. art_style and poly_budget carry real defaults (never
+--- `TBD`), so the new pack passes the check [game] stage immediately.
+function M.gameYml(slug: string, genres: { string }): string
+	return table.concat({
+		"name: " .. M.titleCase(slug),
+		"slug: " .. slug,
+		"genres: [" .. table.concat(genres, ", ") .. "]",
+		"currencies: [Coins]",
+		"monetization: {gamepasses: [], products: [], subscriptions: []}",
+		"art_style: " .. ART_STYLE,
+		"poly_budget: " .. POLY_BUDGET,
+		"locales: [en-us]",
+		"qa_scenarios: [core-loop]",
+		"liveops_cadence: weekly",
+		"",
+	}, "\n")
+end
+
+--- default.project.json mirroring the kaiju-egg-raiders pack: Forge.core (domain,
+--- infra, anticheat, ui-kit), every requested genre module, the pack's shared
+--- folder, Remotes, the server script, and the client script.
+function M.projectJson(slug: string, pascal: string, genres: { string }): string
+	local lines: { string } = {
+		"{",
+		'\t"name": "' .. slug .. '",',
+		'\t"globIgnorePaths": ["**/*.spec.luau", "**/*.md", "**/.gitkeep", "**/*.yml"],',
+		'\t"tree": {',
+		'\t\t"$className": "DataModel",',
+		'\t\t"ReplicatedStorage": {',
+		'\t\t\t"Remotes": { "$className": "Folder" },',
+		'\t\t\t"Forge": {',
+		'\t\t\t\t"$className": "Folder",',
+		'\t\t\t\t"core": {',
+		'\t\t\t\t\t"$className": "Folder",',
+		'\t\t\t\t\t"domain": { "$path": "../../core/domain" },',
+		'\t\t\t\t\t"infra": { "$path": "../../core/infra" },',
+		'\t\t\t\t\t"anticheat": { "$path": "../../core/anticheat" },',
+		'\t\t\t\t\t"ui-kit": { "$path": "../../core/ui-kit" }',
+		"\t\t\t\t},",
+		'\t\t\t\t"genres": {',
+		'\t\t\t\t\t"$className": "Folder",',
+	}
+	for index, genre in genres do
+		table.insert(lines, '\t\t\t\t\t"' .. genre .. '": {')
+		table.insert(lines, '\t\t\t\t\t\t"$className": "Folder",')
+		table.insert(lines, '\t\t\t\t\t\t"module": { "$path": "../../genres/' .. genre .. '/module" }')
+		local comma = if index < #genres then "," else ""
+		table.insert(lines, "\t\t\t\t\t}" .. comma)
+	end
+	table.insert(lines, "\t\t\t\t},")
+	table.insert(lines, '\t\t\t\t"games": {')
+	table.insert(lines, '\t\t\t\t\t"$className": "Folder",')
+	table.insert(lines, '\t\t\t\t\t"' .. slug .. '": {')
+	table.insert(lines, '\t\t\t\t\t\t"$className": "Folder",')
+	table.insert(lines, '\t\t\t\t\t\t"src": {')
+	table.insert(lines, '\t\t\t\t\t\t\t"$className": "Folder",')
+	table.insert(lines, '\t\t\t\t\t\t\t"shared": { "$path": "src/shared" }')
+	table.insert(lines, "\t\t\t\t\t\t}")
+	table.insert(lines, "\t\t\t\t\t}")
+	table.insert(lines, "\t\t\t\t}")
+	table.insert(lines, "\t\t\t}")
+	table.insert(lines, "\t\t},")
+	table.insert(lines, '\t\t"ServerScriptService": {')
+	table.insert(lines, '\t\t\t"' .. pascal .. 'Server": { "$path": "src/server/' .. pascal .. 'Server.server.luau" }')
+	table.insert(lines, "\t\t},")
+	table.insert(lines, '\t\t"StarterPlayer": {')
+	table.insert(lines, '\t\t\t"StarterPlayerScripts": {')
+	table.insert(
+		lines,
+		'\t\t\t\t"' .. pascal .. 'Client": { "$path": "src/client/' .. pascal .. 'Client.client.luau" }'
+	)
+	table.insert(lines, "\t\t\t}")
+	table.insert(lines, "\t\t}")
+	table.insert(lines, "\t}")
+	table.insert(lines, "}")
+	table.insert(lines, "")
+	return table.concat(lines, "\n")
+end
+
+--- Generic shared Config stub for packs whose genre ships no starter.
+function M.configStub(slug: string): string
+	return table.concat({
+		"--!strict",
+		"-- Config: pure data configuration for " .. M.titleCase(slug) .. ".",
+		"",
+		'local EconConfig = require("./EconConfig")',
+		"",
+		"local Config = {}",
+		"",
+		"Config.currency = EconConfig.currency",
+		"Config.startingCoins = EconConfig.startingCoins",
+		"Config.maxIncubators = EconConfig.maxIncubators",
+		"",
+		"return Config",
+		"",
+	}, "\n")
+end
+
+--- Generic server stub for packs whose genre ships no starter.
+function M.serverStub(slug: string, pascal: string): string
+	return table.concat({
+		"--!strict",
+		"-- " .. pascal .. "Server: bootstrap server stub for the " .. slug .. " pack.",
+		"",
+		'local ReplicatedStorage = game:GetService("ReplicatedStorage")',
+		"local Forge = ReplicatedStorage.Forge",
+		'local Config = require(Forge.games["' .. slug .. '"].src.shared.Config)',
+		"",
+		'print("' .. slug .. ' server starting with " .. Config.startingCoins .. " " .. Config.currency)',
+		"",
+	}, "\n")
+end
+
+--- Generic client stub for packs whose genre ships no starter.
+function M.clientStub(slug: string, pascal: string): string
+	return table.concat({
+		"--!strict",
+		"-- " .. pascal .. "Client: bootstrap client stub for the " .. slug .. " pack.",
+		"",
+		'print("' .. slug .. ' client ready")',
+		"",
+	}, "\n")
+end
+
+local PROC_GEN = [==[# Procedural asset specs for __TITLE__. `lune run cli/forge gen procedural --pack __SLUG__`
+# reads this list and writes src/shared/ProcAssets.luau; edit and re-run to regenerate.
+# kind is creature|prop; creature archetypes: quad|serpent|titan|biped.
+assets:
+  - key: emberling
+    kind: creature
+    archetype: quad
+    scale: 1
+    body: [220, 96, 48]
+    accent: [255, 190, 80]
+    eye: [40, 30, 30]
+    seed: 1042
+  - key: tidepup
+    kind: creature
+    archetype: biped
+    scale: 0.9
+    body: [70, 140, 220]
+    accent: [180, 230, 255]
+    eye: [20, 30, 50]
+    seed: 2718
+  - key: starter-egg
+    kind: prop
+    archetype: egg
+    scale: 1
+    body: [240, 230, 210]
+    accent: [200, 90, 60]
+    eye: [60, 60, 60]
+    seed: 7
+  - key: decor-rock
+    kind: prop
+    archetype: rock
+    scale: 1
+    body: [120, 120, 115]
+    accent: [140, 140, 135]
+    eye: [0, 0, 0]
+    seed: 4400
+]==]
+
+-- Procedural audio cues for a fresh pack: one explore loop plus the two SFX the
+-- scaffolded server loop actually triggers (hatch, coin). `lune run cli/forge
+-- gen audio --pack __SLUG__` synthesises them with the pure core DSP/composer
+-- (no API keys, no network); seeds are stable so every WAV is byte-identical.
+local AUDIO_YML = [==[# Procedural audio cues for __TITLE__. `lune run cli/forge gen audio --pack __SLUG__`
+# synthesises every cue under Lune with the pure core/domain/procgen DSP and
+# composer (no API keys, no network), writes games/__SLUG__/assets/audio/<cue>.wav
+# and upserts one forge-procgen/Approved manifest entry per cue.
+#
+# kind: music (mood explore|siege), sfx (type click|coin|hatch|rare|raid|error),
+#       ambience (type wind|birds). duration is seconds; sampleRate optional.
+cues:
+  - key: musicExplore
+    kind: music
+    mood: explore
+    duration: 75
+    sampleRate: 22050
+    seed: 1001
+  - key: sfxHatch
+    kind: sfx
+    type: hatch
+    duration: 0.5
+    sampleRate: 44100
+    seed: 3103
+  - key: sfxCoin
+    kind: sfx
+    type: coin
+    duration: 0.45
+    sampleRate: 44100
+    seed: 3102
+]==]
+
+local PROC_ASSETS = [==[--!strict
+-- ProcAssets: written by `lune run cli/forge gen procedural --pack __SLUG__` from
+-- assets/procgen.yml. Until it runs, this empty table keeps the pack playable:
+-- the server falls back to simple colored parts for any key without a spec.
+return {}
+]==]
+
+local CONFIG = [==[--!strict
+-- Config: pure data for __TITLE__ (collect-raid).
+
+export type ConfigData = {
+	currency: string,
+	startingCoins: number,
+	teams: { string },
+	teamColors: { [string]: BrickColor },
+	maxIncubators: number,
+	hatchSeconds: number,
+	paradeSlots: number,
+	creatureKeys: { string },
+	coinsPerSecond: { [string]: number },
+}
+
+local Config: ConfigData = {
+	currency = "Coins",
+	startingCoins = 100,
+	teams = { "Red", "Blue" },
+	teamColors = {
+		Red = BrickColor.new("Really red"),
+		Blue = BrickColor.new("Bright blue"),
+	},
+	maxIncubators = 2,
+	hatchSeconds = 2,
+	paradeSlots = 3,
+	-- Keys must match assets/procgen.yml.
+	creatureKeys = { "emberling", "tidepup" },
+	coinsPerSecond = { emberling = 1, tidepup = 2 },
+}
+
+return Config
+]==]
+
+local WORLD_LAYOUT = [==[--!strict
+-- WorldLayout: pure world data for __TITLE__ (no Roblox APIs). WorldBuilder turns
+-- it into the arena, two team bases with incubators, and parade slots.
+
+export type Vec = { x: number, y: number, z: number }
+
+export type ParadeLayout = {
+	name: string,
+	positions: { Vec },
+}
+
+export type BaseLayout = {
+	team: string,
+	center: Vec,
+	size: Vec,
+	spawn: Vec,
+	spawnTeamColor: string,
+	incubators: { Vec },
+	vault: Vec,
+	parade: ParadeLayout,
+	shop: Vec,
+	color: { r: number, g: number, b: number },
+}
+
+export type ArenaLayout = {
+	center: Vec,
+	radius: number,
+	covers: { { position: Vec, size: Vec } },
+	torches: { Vec },
+}
+
+export type Layout = {
+	name: string,
+	ground: { cells: number, cellSize: number, originX: number, originZ: number, y: number, thickness: number },
+	bases: { BaseLayout },
+	arena: ArenaLayout,
+}
+
+local INCUBATORS = 2
+local PARADE_SLOTS = 3
+local BASE_X = 70
+
+local function vec(x: number, y: number, z: number): Vec
+	return { x = x, y = y, z = z }
+end
+
+local function base(team: string, sign: number): BaseLayout
+	local cx = sign * BASE_X
+	local incubators: { Vec } = {}
+	for i = 1, INCUBATORS do
+		table.insert(incubators, vec(cx + sign * 14, 1, -12 + (i - 1) * 24))
+	end
+	local positions: { Vec } = {}
+	for k = 1, PARADE_SLOTS do
+		table.insert(positions, vec(cx - sign * 16, 1, -16 + (k - 1) * 16))
+	end
+	return {
+		team = team,
+		center = vec(cx, 0, 0),
+		size = vec(56, 8, 56),
+		spawn = vec(cx + sign * 20, 3, 0),
+		spawnTeamColor = if sign < 0 then "Really red" else "Bright blue",
+		incubators = incubators,
+		vault = vec(cx - sign * 22, 2, 0),
+		parade = { name = "Slot", positions = positions },
+		shop = vec(cx + sign * 16, 1, 20),
+		color = if sign < 0 then { r = 200, g = 50, b = 50 } else { r = 50, g = 90, b = 210 },
+	}
+end
+
+local WorldLayout = {}
+
+WorldLayout.layout = {
+	name = "__PASCAL__World",
+	ground = { cells = 12, cellSize = 25, originX = -150, originZ = -150, y = -0.5, thickness = 1 },
+	bases = { base("Red", -1), base("Blue", 1) },
+	arena = {
+		center = vec(0, 0, 0),
+		radius = 34,
+		covers = {
+			{ position = vec(16, 3, 16), size = vec(8, 6, 2) },
+			{ position = vec(-16, 3, -16), size = vec(8, 6, 2) },
+		},
+		torches = { vec(26, 0, 0), vec(-26, 0, 0), vec(0, 0, 26), vec(0, 0, -26) },
+	},
+	decorations = {
+		{ kind = "Rock", position = vec(44, 2, 44), scale = vec(5, 4, 5), seed = 1.5 },
+		{ kind = "Rock", position = vec(-44, 2, -44), scale = vec(4, 3, 6), seed = 3.1 },
+	},
+	flowers = {},
+}
+
+return WorldLayout
+]==]
+
+local WORLD_THEME = [==[--!strict
+-- WorldTheme: palette, materials, and lighting for __TITLE__, handed to the
+-- collect-raid WorldBuilder. Art lives in the pack, not the genre module.
+
+local WorldTheme = {
+	palette = {
+		ground = { Color3.fromRGB(96, 156, 88), Color3.fromRGB(84, 142, 78) },
+		path = Color3.fromRGB(170, 168, 160),
+		red = Color3.fromRGB(200, 50, 50),
+		blue = Color3.fromRGB(50, 90, 210),
+		accent = Color3.fromRGB(255, 160, 60),
+		platform = Color3.fromRGB(112, 112, 122),
+		metal = Color3.fromRGB(70, 70, 80),
+		glass = Color3.fromRGB(180, 220, 255),
+		slot = Color3.fromRGB(205, 205, 214),
+		crate = Color3.fromRGB(92, 92, 102),
+		wood = Color3.fromRGB(160, 110, 60),
+		arena = Color3.fromRGB(150, 140, 130),
+		cover = Color3.fromRGB(140, 90, 70),
+		decoration = Color3.fromRGB(120, 120, 115),
+	},
+	materials = {
+		ground = Enum.Material.Grass,
+		path = Enum.Material.Cobblestone,
+		platform = Enum.Material.Slate,
+		trim = Enum.Material.Neon,
+		metal = Enum.Material.Metal,
+		glass = Enum.Material.Glass,
+		crate = Enum.Material.DiamondPlate,
+		slot = Enum.Material.SmoothPlastic,
+		shop = Enum.Material.Wood,
+		arena = Enum.Material.Concrete,
+		cover = Enum.Material.Brick,
+		torch = Enum.Material.Wood,
+		decoration = Enum.Material.Rock,
+	},
+	lighting = {
+		technology = "Future",
+		clockTime = 14,
+		brightness = 2.5,
+		ambient = Color3.fromRGB(140, 140, 150),
+		outdoorAmbient = Color3.fromRGB(150, 150, 160),
+		globalShadows = true,
+		shadowSoftness = 0.25,
+		environmentDiffuseScale = 1,
+		environmentSpecularScale = 1,
+		fogEnd = 100000,
+		sky = {
+			celestialBodiesShown = true,
+			sunAngularSize = 22,
+			starCount = 3000,
+			skybox = {},
+		},
+		clouds = { cover = 0.2, density = 0.35, color = Color3.fromRGB(255, 255, 255) },
+		atmosphere = {
+			density = 0.3,
+			haze = 1.2,
+			color = Color3.fromRGB(255, 235, 210),
+			decay = Color3.fromRGB(120, 150, 190),
+		},
+		colorCorrection = { saturation = 0.12, contrast = 0.08 },
+		bloom = { intensity = 0.4, size = 24, threshold = 1.5 },
+		sunRays = { intensity = 0.05 },
+		depthOfField = { farIntensity = 0.15, focusDistance = 45, inFocusRadius = 70, nearIntensity = 0.08 },
+	},
+	particles = {
+		sparkle = "rbxasset://textures/particles/sparkles_main.dds",
+		glow = "rbxasset://textures/sparkle.png",
+		firefly = "rbxasset://textures/particles/sparkles_main.dds",
+		dust = "rbxasset://textures/sparkle.png",
+	},
+	-- Terrain is disabled: the starter keeps the flat ground Parts.
+	terrain = {
+		enabled = false,
+		half = 300,
+		flatHalf = 160,
+		cellSize = 16,
+		baseY = 0,
+		hillHeight = 20,
+		waterLevel = -4,
+		waterDepth = 12,
+		columnDepth = 40,
+		noiseScale = 0.02,
+		seed = 20260929,
+		water = {
+			color = Color3.fromRGB(52, 122, 168),
+			waveSize = 0.35,
+			waveSpeed = 8,
+			transparency = 0.35,
+			reflectance = 0.2,
+		},
+	},
+	detail = {
+		cornerRadius = 2.5,
+		fenceHeight = 5,
+		fencePostSpacing = 14,
+		bannerHeight = 10,
+		flagHeight = 15,
+		standRadius = 60,
+		standCount = 6,
+		incubatorSparkleRate = 4,
+		fireflyRate = 1.2,
+		dustRate = 0.8,
+	},
+	budget = { worldPartsMax = 6000 },
+}
+
+return WorldTheme
+]==]
+
+local SERVER = [==[--!strict
+-- __PASCAL__Server: bootstraps the __TITLE__ collect-raid pack and pays Coins on parade.
+--
+-- Creatures render client-side (see __PASCAL__Client / genres/collect-raid's
+-- CreatureView): EditableMesh content does not replicate, so a server-built
+-- procgen model would be invisible to real clients. The server instead spawns
+-- an invisible placeholder Part tagged with CreatureKey/ProcSeed, which every
+-- client swaps for the real model.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Teams = game:GetService("Teams")
+
+local Forge = ReplicatedStorage:WaitForChild("Forge")
+local Config = require(Forge.games["__SLUG__"].src.shared.Config)
+local WorldLayout = require(Forge.games["__SLUG__"].src.shared.WorldLayout)
+local WorldTheme = require(Forge.games["__SLUG__"].src.shared.WorldTheme)
+local ProcSpecs: any = require(Forge.games["__SLUG__"].src.shared.ProcAssets)
+local WorldBuilder = require(Forge.genres["collect-raid"].module.WorldBuilder)
+local Wallet = require(Forge.core.domain.economy.Wallet)
+local Production = require(Forge.core.domain.economy.Production)
+local HatchTimer = require(Forge.core.domain.progression.HatchTimer)
+local ProfileSchema = require(Forge.core.domain.state.ProfileSchema)
+local ProfileStore = require(Forge.core.infra.data.ProfileStore)
+local MemoryBackend = require(Forge.core.infra.data.MemoryBackend)
+
+local LAYOUT = WorldLayout.layout
+
+local store = ProfileStore.new(MemoryBackend.new(), {
+	sessionId = if game.JobId ~= "" then game.JobId else "studio",
+	lockTimeout = 30,
+	retries = 3,
+	now = function(): number
+		return os.time()
+	end,
+})
+
+local function migrate(raw: any): { [string]: any }
+	return ProfileSchema.migrate(raw, 1, function(): { [string]: any }
+		return { coins = Config.startingCoins }
+	end, {})
+end
+
+-- An invisible placeholder for a creature key: the client-side CreatureView
+-- watches for CreatureKey/ProcSeed and swaps in the real procgen model built
+-- from ProcSpecs.
+local function spawnCreaturePlaceholder(key: string): Model
+	local spec = ProcSpecs[key]
+	local seed = if type(spec) == "table" and type(spec.seed) == "number" then spec.seed else 0
+	local part = Instance.new("Part")
+	part.Name = key
+	part.Size = Vector3.new(3, 3, 3)
+	part.Transparency = 1
+	part.Anchored = true
+	part.CanCollide = false
+	part:SetAttribute("CreatureKey", key)
+	part:SetAttribute("ProcSeed", seed)
+	local model = Instance.new("Model")
+	model.Name = key
+	part.Parent = model
+	model.PrimaryPart = part
+	return model
+end
+
+WorldBuilder.build(LAYOUT, WorldTheme)
+local teamOrder: { Team } = {}
+for _, teamName in Config.teams do
+	local existing = Teams:FindFirstChild(teamName)
+	if existing == nil then
+		local created = Instance.new("Team")
+		created.Name = teamName
+		created.AutoAssignable = false
+		created.TeamColor = Config.teamColors[teamName]
+		created.Parent = Teams
+		existing = created
+	end
+	if existing:IsA("Team") then
+		table.insert(teamOrder, existing)
+	end
+end
+
+type Session = {
+	wallet: Wallet.Wallet,
+	acc: Production.Accumulator,
+	rate: number,
+	profile: ProfileStore.Profile?,
+	coins: IntValue,
+}
+
+local sessions: { [Player]: Session } = {}
+local hatchTimers: { [string]: HatchTimer.Timer? } = {}
+local cursors: { [string]: number } = {}
+local function hatch(team: string, player: Player): ()
+	local now = os.clock()
+	local timer = hatchTimers[team]
+	if timer ~= nil and not HatchTimer.isReady(timer, now) then
+		return
+	end
+	hatchTimers[team] = HatchTimer.start(now, Config.hatchSeconds)
+
+	local cursor = (cursors[team] or 0) + 1
+	cursors[team] = cursor
+	local key = Config.creatureKeys[((cursor - 1) % #Config.creatureKeys) + 1]
+
+	local model = spawnCreaturePlaceholder(key)
+	local slot = WorldBuilder.slot(LAYOUT, team, ((cursor - 1) % Config.paradeSlots) + 1)
+	if slot ~= nil then
+		model:PivotTo(slot.CFrame + Vector3.new(0, 3, 0))
+	end
+	model.Parent = workspace
+
+	local session = sessions[player]
+	if session ~= nil then
+		session.rate += Config.coinsPerSecond[key] or 1
+	end
+end
+
+for _, base in LAYOUT.bases do
+	for index = 1, #base.incubators do
+		local incubator = WorldBuilder.incubator(LAYOUT, base.team, index)
+		if incubator ~= nil then
+			local prompt = Instance.new("ProximityPrompt")
+			prompt.ActionText = "Hatch"
+			prompt.ObjectText = base.team .. " Incubator"
+			prompt.HoldDuration = 0.4
+			prompt.MaxActivationDistance = 12
+			prompt.RequiresLineOfSight = false
+			prompt.Parent = incubator
+			prompt.Triggered:Connect(function(player: Player)
+				if player.Team and player.Team.Name == base.team then
+					hatch(base.team, player)
+				end
+			end)
+		end
+	end
+end
+
+local function sessionFor(player: Player): ()
+	local folder = Instance.new("Folder")
+	folder.Name = "leaderstats"
+	local coins = Instance.new("IntValue")
+	coins.Name = Config.currency
+	coins.Parent = folder
+	folder.Parent = player
+
+	local profile: ProfileStore.Profile? = store:load("player_" .. tostring(player.UserId), migrate)
+	local saved = if profile ~= nil then profile.data.coins else nil
+	local start = if type(saved) == "number" then saved else Config.startingCoins
+	coins.Value = start
+	sessions[player] = {
+		wallet = Wallet.new({ [Config.currency] = start }),
+		acc = Production.new(),
+		rate = 0,
+		profile = profile,
+		coins = coins,
+	}
+	if #teamOrder > 0 then
+		player.Team = teamOrder[(#Players:GetPlayers() % #teamOrder) + 1]
+	end
+end
+
+RunService.Heartbeat:Connect(function(dt: number)
+	for _, session in sessions do
+		local earned = Production.accrue(session.acc, session.rate, dt)
+		if earned > 0 then
+			Wallet.credit(session.wallet, Config.currency, earned)
+			session.coins.Value = Wallet.balance(session.wallet, Config.currency)
+		end
+	end
+end)
+
+Players.PlayerAdded:Connect(sessionFor)
+Players.PlayerRemoving:Connect(function(player: Player)
+	local session = sessions[player]
+	if session ~= nil and session.profile ~= nil then
+		session.profile.data.coins = Wallet.balance(session.wallet, Config.currency)
+		store:save(session.profile)
+	end
+	sessions[player] = nil
+end)
+
+for _, player in Players:GetPlayers() do
+	task.spawn(sessionFor, player)
+end
+]==]
+
+local CLIENT = [==[--!strict
+-- __PASCAL__Client: ui-kit HUD with the player's Coins and a control hint, plus
+-- client-side procgen rendering (CreatureView/DecorView) and the generated
+-- audio bed (SoundBank). EditableMesh content does not replicate, so the
+-- procgen creatures/decorations built by `forge gen procedural` only ever
+-- render on the client; the server spawns invisible placeholders instead.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Forge = ReplicatedStorage:WaitForChild("Forge")
+local Theme = require(Forge.core["ui-kit"].Theme)
+local Layout = require(Forge.core["ui-kit"].Layout)
+local Components = require(Forge.core["ui-kit"].Components)
+local Config = require(Forge.games["__SLUG__"].src.shared.Config)
+local ProcAssetsSpecs: any = require(Forge.games["__SLUG__"].src.shared.ProcAssets)
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local theme = Theme.default
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "__PASCAL__Hud"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+Components.attachScale(gui)
+
+local panel = Components.panel(theme, {
+	name = "Hud",
+	size = UDim2.fromOffset(260, 96),
+	position = UDim2.fromOffset(16, 16),
+	parent = gui,
+})
+
+local coins = Components.label(theme, {
+	text = "Coins: 0",
+	size = UDim2.new(1, 0, 0, 30),
+	textSize = theme.textSizes.title,
+	color = theme.colors.accent,
+	parent = panel,
+})
+
+Components.label(theme, {
+	text = "Walk to an incubator and hold E to hatch a free creature",
+	size = UDim2.new(1, 0, 0, 48),
+	position = UDim2.fromOffset(0, 36),
+	textSize = theme.textSizes.small,
+	color = theme.colors.muted,
+	parent = panel,
+})
+
+local leaderstats = player:WaitForChild("leaderstats")
+local coinsValue = leaderstats:WaitForChild(Config.currency) :: IntValue
+
+local function render(value: number): ()
+	coins.Text = "Coins: " .. Layout.formatNumber(value)
+end
+
+coinsValue.Changed:Connect(render)
+render(coinsValue.Value)
+
+-- Renders procgen creatures/decorations at the server's placeholders (see
+-- __PASCAL__Server) and plays the generated music/SFX bed through SoundBank.
+local CreatureView = require(Forge.genres["collect-raid"].module.CreatureView)
+local DecorView = require(Forge.genres["collect-raid"].module.DecorView)
+local SoundBank = require(Forge.core.infra.audio.SoundBank)
+local Assets = require(Forge.games["__SLUG__"].src.shared.Assets)
+
+CreatureView.watchCreatures(workspace, ProcAssetsSpecs)
+DecorView.watchDecor(workspace, ProcAssetsSpecs, { Rock = "decor-rock" })
+
+local bank = SoundBank.new()
+bank:define("music", { soundId = Assets.musicExplore, volume = 1, looped = true, group = "Music" })
+bank:define("hatch", { soundId = Assets.sfxHatch, volume = 0.6, group = "SFX" })
+bank:define("coin", { soundId = Assets.sfxCoin, volume = 0.35, playbackSpeed = 1.2, group = "SFX" })
+bank:preload()
+bank:playPlaylist({ "music" }, { crossfade = 2, volume = 1 })
+
+local lastCoins = coinsValue.Value
+local lastCoinAt = 0
+coinsValue.Changed:Connect(function(value: number)
+	if value > lastCoins then
+		local now = os.clock()
+		if now - lastCoinAt >= 0.3 then
+			lastCoinAt = now
+			bank:play("coin")
+		end
+	end
+	lastCoins = value
+end)
+
+local function isCreaturePlaceholder(instance: Instance): boolean
+	return instance:IsA("BasePart") and type(instance:GetAttribute("CreatureKey")) == "string"
+end
+
+-- Only newly-hatched creatures play the cue; parades already standing when
+-- this client starts must stay silent.
+workspace.DescendantAdded:Connect(function(descendant: Instance)
+	if isCreaturePlaceholder(descendant) then
+		bank:play("hatch")
+	end
+end)
+]==]
+
+--- Files a `collect-raid` pack starts from (path relative to the pack dir). The
+--- world data, server loop, ui-kit HUD, and asset specs are all placeholders that
+--- gen/build overwrite or consume, so the pack is playable with no hand edits.
+function M.collectRaidFiles(slug: string, pascal: string): { [string]: string }
+	local vars = { __SLUG__ = slug, __PASCAL__ = pascal, __TITLE__ = M.titleCase(slug) }
+	return {
+		["assets/procgen.yml"] = M.fill(PROC_GEN, vars),
+		["assets/audio.yml"] = M.fill(AUDIO_YML, vars),
+		["src/shared/Config.luau"] = M.fill(CONFIG, vars),
+		["src/shared/WorldLayout.luau"] = M.fill(WORLD_LAYOUT, vars),
+		["src/shared/WorldTheme.luau"] = M.fill(WORLD_THEME, vars),
+		["src/shared/ProcAssets.luau"] = M.fill(PROC_ASSETS, vars),
+		["src/shared/Assets.luau"] = Assets.renderLuau({
+			assets = {
+				{
+					key = "musicExplore",
+					kind = "bgm",
+					tool = "forge-procgen",
+					source = "pending forge gen audio",
+					assetId = 0,
+					moderation = "NotUploaded",
+				},
+				{
+					key = "sfxHatch",
+					kind = "sfx",
+					tool = "forge-procgen",
+					source = "pending forge gen audio",
+					assetId = 0,
+					moderation = "NotUploaded",
+				},
+				{
+					key = "sfxCoin",
+					kind = "sfx",
+					tool = "forge-procgen",
+					source = "pending forge gen audio",
+					assetId = 0,
+					moderation = "NotUploaded",
+				},
+			},
+		}, slug),
+		["src/server/" .. pascal .. "Server.server.luau"] = M.fill(SERVER, vars),
+		["src/client/" .. pascal .. "Client.client.luau"] = M.fill(CLIENT, vars),
+	}
+end
+
+return M

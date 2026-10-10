@@ -1,0 +1,11 @@
+name: contract-loop
+genre: collect-raid
+kind: smoke
+contract_api: 1
+operations: [get, snapshot]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; assert(q:IsA("BindableFunction")); local snapshot = q:Invoke("snapshot"); assert(type(snapshot) == "table"); assert(type(q:Invoke("get", "coins")) == "number"); assert(type(q:Invoke("get", "owned")) == "number")'

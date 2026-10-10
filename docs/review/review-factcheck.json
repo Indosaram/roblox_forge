@@ -1,0 +1,37 @@
+{
+ "cube": {
+  "status": 200,
+  "hit": true,
+  "ctx": "(k) “Permitted Purpose” means for academic or research purposes only."
+ },
+ "audiocraft_weights": {
+  "status": 200,
+  "hit": true,
+  "ctx": "Attribution-NonCommercial 4.0 International"
+ },
+ "hunyuan": {
+  "status": 200,
+  "hit": true,
+  "ctx": "THIS LICENSE AGREEMENT DOES NOT APPLY IN THE EUROPEAN UNION, UNITED KINGDOM AND SOUTH KOREA AND IS EXPRESSLY LIMITED TO THE TERRITORY, AS DEFINED BELOW."
+ },
+ "trellis": {
+  "status": 200,
+  "hit": true,
+  "ctx": " MIT License"
+ },
+ "mantle": {
+  "status": 200,
+  "hit": true,
+  "ctx": "> Mantle is no longer maintained. Do not expect responses to tickets, bug fixes, or new features."
+ },
+ "assets_audio": {
+  "status": 200,
+  "hit": true,
+  "ctx": "<li>`audio/ogg`</li><li>`audio/wav`</li><li>`audio/flac`</li></ul> | <ul><li>Up to 7 minutes of duration.</li><li>Up to 100 uploads per month if you're ID-verified.</li><li>Up to 10 total uploads per month if you aren't ID-verified.</li><li>Not available for updating.</li></ul> |"
+ },
+ "blender_mcp": {
+  "status": 200,
+  "hit": true,
+  "ctx": "Security"
+ }
+}

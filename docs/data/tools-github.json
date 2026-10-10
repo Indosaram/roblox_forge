@@ -1,0 +1,128 @@
+{
+ "Selene": {
+  "repo": "Kampfkarren/selene",
+  "stars": 824,
+  "pushed": "2026-05-21",
+  "archived": false,
+  "desc": "A blazing-fast modern Lua linter written in Rust"
+ },
+ "Rojo": {
+  "repo": "rojo-rbx/rojo",
+  "stars": 1756,
+  "pushed": "2026-07-06",
+  "archived": false,
+  "desc": "Rojo enables Roblox developers to use professional-grade software engineering tools"
+ },
+ "Rokit": {
+  "repo": "rojo-rbx/rokit",
+  "stars": 462,
+  "pushed": "2026-09-27",
+  "archived": false,
+  "desc": "Next-generation toolchain manager for Roblox projects"
+ },
+ "Wally": {
+  "repo": "UpliftGames/wally",
+  "stars": 498,
+  "pushed": "2026-09-26",
+  "archived": false,
+  "desc": "Wally is a modern package manager for Roblox projects inspired by Cargo"
+ },
+ "StyLua": {
+  "repo": "JohnnyMorganz/StyLua",
+  "stars": 2297,
+  "pushed": "2026-09-13",
+  "archived": false,
+  "desc": "A Lua code formatter"
+ },
+ "Lune": {
+  "repo": "lune-org/lune",
+  "stars": 955,
+  "pushed": "2026-09-26",
+  "archived": false,
+  "desc": "A standalone Luau runtime"
+ },
+ "luau-lsp": {
+  "repo": "JohnnyMorganz/luau-lsp",
+  "stars": 541,
+  "pushed": "2026-09-27",
+  "archived": false,
+  "desc": "Language Server Implementation for Luau"
+ },
+ "Darklua": {
+  "repo": "seaofvoices/darklua",
+  "stars": 242,
+  "pushed": "2026-07-13",
+  "archived": false,
+  "desc": "A command line tool that transforms Lua code"
+ },
+ "ByteNet": {
+  "repo": "ffrostfall/ByteNet",
+  "stars": 181,
+  "pushed": "2025-08-01",
+  "archived": false,
+  "desc": "An advanced, modern networking library for Luau/Roblox"
+ },
+ "Fusion": {
+  "repo": "dphfox/Fusion",
+  "stars": 797,
+  "pushed": "2026-02-02",
+  "archived": false,
+  "desc": "Futuristic Luau for every universe."
+ },
+ "ProfileStore": {
+  "repo": "MadStudioRoblox/ProfileStore",
+  "stars": 337,
+  "pushed": "2025-07-31",
+  "archived": false,
+  "desc": "Periodic DataStore saving solution with session locking"
+ },
+ "Blink": {
+  "repo": "1Axen/blink",
+  "stars": 185,
+  "pushed": "2026-09-23",
+  "archived": false,
+  "desc": "An IDL compiler written in Luau for ROBLOX buffer networking"
+ },
+ "react-lua": {
+  "repo": "jsdotlua/react-lua",
+  "stars": 570,
+  "pushed": "2025-05-23",
+  "archived": false,
+  "desc": "A comprehensive, but not exhaustive, translation of upstream ReactJS 17.x into Lua."
+ },
+ "Knit": {
+  "repo": "Sleitnick/Knit",
+  "stars": 629,
+  "pushed": "2024-07-31",
+  "archived": true,
+  "desc": "Lightweight game framework for Roblox"
+ },
+ "Studio MCP": {
+  "repo": "Roblox/studio-rust-mcp-server",
+  "stars": 492,
+  "pushed": "2026-04-03",
+  "archived": true,
+  "desc": "Standalone Roblox Studio MCP Server"
+ },
+ "jest-lua": {
+  "repo": "jsdotlua/jest-lua",
+  "stars": 59,
+  "pushed": "2024-12-23",
+  "archived": false,
+  "desc": "Delightful testing for Lua."
+ },
+ "Pesde": {
+  "repo": "pesde-pkg/pesde",
+  "stars": 128,
+  "pushed": "2026-09-26",
+  "archived": false,
+  "desc": "A package manager for the Luau programming language, supporting multiple runtimes includin"
+ },
+ "Argon": {
+  "repo": "argon-rbx/argon",
+  "stars": 147,
+  "pushed": "2026-07-01",
+  "archived": false,
+  "desc": "Argon - Full featured tool for Roblox development"
+ }
+}

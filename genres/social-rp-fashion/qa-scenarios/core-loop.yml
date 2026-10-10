@@ -1,0 +1,23 @@
+name: core-loop
+genre: social-rp-fashion
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+  - action: click
+    target: join-theme-round
+    expect: 'the theme round starts and opens the wardrobe'
+  - action: click
+    target: wear-item
+    expect: 'the themed outfit is assembled'
+  - action: wait
+    seconds: 10
+    expect: 'the round reaches the voting phase'
+  - action: click
+    target: vote-outfit
+    expect: 'a vote is recorded'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "votesCast") >= 1, "vote recorded")'
+  - action: capture
+    target: core-loop
+    expect: 'runway scores and the vote tally render'

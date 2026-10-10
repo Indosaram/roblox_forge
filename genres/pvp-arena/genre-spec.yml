@@ -1,0 +1,193 @@
+# Genre spec for pvp-arena (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/pvp-arena/module. A fresh pack renders its HUD, world and audio from
+# this spec through core/ui-kit/genre.
+api: 1
+version: 1.0.0
+id: pvp-arena
+runtime: pvp-arena
+resources:
+  - id: rating
+    nameKey: rating_label
+    name: Rating
+    assetKey: pvp-arena-starter-prop
+    initial: 1000
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: duel-round
+    kind: round
+    nameKey: round_label
+    name: Duel round
+    configPath: [Round]
+actions:
+  - action: pvp-arena:enqueue
+    control:
+      id: "pvp-arena:queue"
+      labelKey: join_queue
+      label: Join queue
+      kind: button
+      args: []
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: already-queued
+      - ref: rate-limited
+  - action: pvp-arena:attack
+    control:
+      id: "pvp-arena:attack"
+      labelKey: attack_rival
+      label: Attack rival
+      kind: button
+      args: []
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: not-active
+      - ref: cooldown
+loop:
+  - id: queue
+    actions: [pvp-arena:enqueue]
+    on: OnRoundStart
+    goalKey: loop_queue
+    goal: Join the queue
+  - id: duel
+    actions: [pvp-arena:attack]
+    on: OnRoundEnd
+    goalKey: loop_duel
+    goal: Win the duel
+  - id: settle
+    actions: [pvp-arena:enqueue]
+    on: MatchSettled
+    goalKey: loop_settle
+    goal: Collect the rating
+  # The chain does not stop after the first settled match: queueing again is a new
+  # goal with a higher rating on the line. The stages name existing actions only;
+  # the domain's own `already-queued`/`not-active` rules decide every outcome.
+  - id: rematch
+    actions: [pvp-arena:enqueue]
+    on: OnRoundStart
+    goalKey: loop_rematch
+    goal: Queue for a rematch
+  - id: duel-again
+    actions: [pvp-arena:attack]
+    on: OnRoundEnd
+    goalKey: loop_duel_again
+    goal: Win the rematch
+ui:
+  resourceBar:
+    resources: [rating]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: staging
+    offset: [0, 1, 0]
+  zones:
+    - id: staging
+      kind: plaza
+      center: [0, 0, 0]
+      size: [50, 1, 50]
+    - id: arena
+      kind: arena
+      center: [0, 0, -70]
+      radius: 36
+  nodes:
+    # The queue desk is the pad a player walks to; it lights while the domain says
+    # the player is queued, so the world shows the same fact the HUD's rating pill
+    # is beside. The rival dummy is the arena prop the attack control is bound to.
+    - id: queue-desk
+      zone: staging
+      kind: station
+      position: [0, 1, 8]
+      control: "pvp-arena:queue"
+      feedback:
+        - kind: lamp
+          field: queued
+          active: true
+          label: Queued
+          labelKey: fb_queued
+          cue: pvp-arena-queue
+    - id: rival-dummy
+      zone: arena
+      kind: node
+      position: [-14, 1, -70]
+      control: "pvp-arena:attack"
+      feedback:
+        - kind: counter
+          field: rating
+          label: Rating
+          labelKey: fb_rating
+          cue: pvp-arena-attack
+audio:
+  cues:
+    - {key: pvp-arena-queue, kind: sfx, type: click, duration: 0.15, seed: 0}
+    - {key: pvp-arena-attack, kind: sfx, type: raid, duration: 0.2, seed: 1}
+  bindings:
+    - {on: "action:pvp-arena:enqueue", cue: pvp-arena-queue}
+    - {on: "action:pvp-arena:attack", cue: pvp-arena-attack}
+    - {on: "event:OnRoundStart", cue: pvp-arena-queue}
+    - {on: "event:MatchSettled", cue: pvp-arena-attack, field: rating}
+economy:
+  startingBalance:
+    path: [initialRating]
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["1", "2"]
+  starterState:
+    rating: 1000
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "1"}
+    - {op: join, player: "2"}
+    - {op: dispatch, player: "1", action: "pvp-arena:enqueue", expect: ok}
+    - {op: dispatch, player: "2", action: "pvp-arena:enqueue", expect: ok}
+    - {op: expect_snapshot, player: "1", genre: pvp-arena, field: rival, is_nil: false}
+    - {op: expect_snapshot, player: "2", genre: pvp-arena, field: rival, is_nil: false}
+    - {op: advance_elapsed, seconds: 1}
+    - {op: expect_snapshot, player: "1", genre: pvp-arena, field: phase, equals: active}
+    - {op: leave, player: "2"}
+    - {op: expect_snapshot, player: "1", genre: pvp-arena, field: rating, equals: 1016}
+    - {op: save, player: "1", label: saved}
+    - {op: advance_elapsed, seconds: 10}
+    - {op: expect_snapshot, player: "1", genre: pvp-arena, field: rating, equals: 1016}
+    - {op: restore, player: "1", from: saved}
+    - {op: expect_snapshot, player: "1", genre: pvp-arena, field: rating, equals: 1016}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    rating_label: {ko: "레이팅"}
+    round_label: {ko: "결투 라운드"}
+    join_queue: {ko: "대기열 참가"}
+    attack_rival: {ko: "라이벌 공격"}
+    loop_queue: {ko: "대기열 참가하기"}
+    loop_duel: {ko: "결투에서 승리하기"}
+    loop_settle: {ko: "레이팅 받기"}
+    loop_rematch: {ko: "재대결 대기열 참가"}
+    loop_duel_again: {ko: "재대결 승리하기"}
+    fb_queued: {ko: "대기 중"}
+    fb_rating: {ko: "레이팅"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}

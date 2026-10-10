@@ -1,0 +1,293 @@
+# Genre spec for grow-harvest (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/grow-harvest/module. A fresh pack renders its HUD, world and audio
+# from this spec through core/ui-kit/genre.
+api: 1
+version: 1.0.0
+id: grow-harvest
+runtime: grow-harvest
+resources:
+  - id: balance
+    nameKey: coin_label
+    name: Coins
+    assetKey: grow-harvest-starter-prop
+    initial: 10
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: carrot
+    kind: crop
+    nameKey: crop_carrot
+    name: Carrot
+    assetKey: grow-harvest-starter-prop
+    configPath: [crops, carrot]
+  - id: plot
+    kind: plot
+    nameKey: plot_label
+    name: Plot
+actions:
+  - action: grow-harvest:buy-seed
+    control:
+      id: "grow-harvest:seed-shop"
+      labelKey: buy_seed
+      label: Buy seed
+      kind: prompt
+      args: [carrot]
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: insufficient-coins
+      - ref: rate-limited
+    effects:
+      - path: [balance]
+        delta: -1
+  - action: grow-harvest:plant
+    control:
+      id: "grow-harvest:plant"
+      labelKey: plant_crop
+      label: Plant seed
+      kind: prompt
+      args: [1, carrot]
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: no-seed
+  - action: grow-harvest:harvest
+    control:
+      id: "grow-harvest:harvest"
+      labelKey: harvest_crop
+      label: Harvest
+      kind: button
+      args: [1]
+      ui:
+        slot: action-bar
+        order: 3
+    preconditions:
+      - ref: not-ready
+  - action: grow-harvest:sell-held
+    control:
+      id: "grow-harvest:sell"
+      labelKey: sell_crop
+      label: Sell crop
+      kind: button
+      args: [carrot]
+      ui:
+        slot: action-bar
+        order: 4
+    preconditions:
+      - ref: nothing-held
+    effects:
+      - path: [balance]
+        delta: 10
+loop:
+  - id: buy
+    actions: [grow-harvest:buy-seed]
+    on: SeedBought
+    goalKey: loop_buy
+    goal: Buy a seed
+  - id: plant
+    actions: [grow-harvest:plant]
+    on: OnPlant
+    goalKey: loop_plant
+    goal: Plant it
+  - id: harvest
+    actions: [grow-harvest:harvest]
+    on: OnHarvest
+    goalKey: loop_harvest
+    goal: Harvest the crop
+  - id: sell
+    actions: [grow-harvest:sell-held]
+    on: CropSold
+    goalKey: loop_sell
+    goal: Sell the crop
+  # The loop does not end at the first sale: the same four actions repeat with an
+  # escalating goal, so the objective chip keeps naming the next thing to do
+  # instead of parking on a finished stage. This is the whole progression: the
+  # domain already lets a harvested plot be replanted, and the spec only names
+  # the chain. Nothing here is a rule; `Executor` still decides every outcome.
+  - id: buy-again
+    actions: [grow-harvest:buy-seed]
+    on: SeedBought
+    goalKey: loop_buy_again
+    goal: Buy a second seed
+  - id: plant-again
+    actions: [grow-harvest:plant]
+    on: OnPlant
+    goalKey: loop_plant_again
+    goal: Plant the second crop
+  - id: harvest-again
+    actions: [grow-harvest:harvest]
+    on: OnHarvest
+    goalKey: loop_harvest_again
+    goal: Harvest the second crop
+  - id: sell-again
+    actions: [grow-harvest:sell-held]
+    on: CropSold
+    goalKey: loop_sell_again
+    goal: Sell for profit
+ui:
+  resourceBar:
+    resources: [balance]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  inventoryGrid:
+    entityKind: crop
+    field: inventory
+    order: 3
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: farm
+    offset: [0, 1, 0]
+  zones:
+    - id: farm
+      kind: plaza
+      center: [0, 0, 0]
+      size: [60, 1, 60]
+    - id: market
+      kind: base
+      center: [40, 0, 0]
+      size: [24, 1, 24]
+      team: traders
+  nodes:
+    - id: seed-crate
+      zone: farm
+      kind: station
+      position: [0, 1, 6]
+      control: "grow-harvest:seed-shop"
+      feedback:
+        - kind: counter
+          field: balance
+          label: Coins
+          labelKey: fb_coins
+          cue: grow-harvest-buy
+    # The plot the prompt plants into. Its feedback is the world's own reading of
+    # the plot snapshot: empty, a sprout, or a ripe crop, drawn on the node the
+    # player walked to. No rule lives here - the crop's readiness is the domain's.
+    - id: plot-a
+      zone: farm
+      kind: node
+      position: [8, 1, 0]
+      version: 1
+      feedback:
+        - kind: growth
+          field: plots.1
+          entity: carrot
+          label: Crop
+          labelKey: fb_crop
+          cue: grow-harvest-plant
+    # The stall stands on the farm floor, a walk away from the seed crate: it is the
+    # node the derived world path drives (it both sells and pops the sale), and a node
+    # across a zone rim is a node a player cannot walk to.
+    - id: market-stall
+      zone: farm
+      kind: depot
+      position: [22, 1, 0]
+      control: "grow-harvest:sell"
+      feedback:
+        - kind: counter
+          field: balance
+          label: Coins
+          labelKey: fb_coins
+          cue: grow-harvest-sell
+audio:
+  cues:
+    - {key: grow-harvest-buy, kind: sfx, type: coin, duration: 0.2, seed: 0}
+    - {key: grow-harvest-plant, kind: sfx, type: click, duration: 0.15, seed: 1}
+    - {key: grow-harvest-harvest, kind: sfx, type: coin, duration: 0.25, seed: 2}
+    - {key: grow-harvest-sell, kind: sfx, type: coin, duration: 0.3, seed: 3}
+  bindings:
+    - {on: "action:grow-harvest:buy-seed", cue: grow-harvest-buy}
+    - {on: "action:grow-harvest:plant", cue: grow-harvest-plant}
+    - {on: "action:grow-harvest:harvest", cue: grow-harvest-harvest}
+    - {on: "action:grow-harvest:sell-held", cue: grow-harvest-sell}
+    - {on: "event:OnPlant", cue: grow-harvest-plant, field: plots}
+    - {on: "event:OnHarvest", cue: grow-harvest-harvest, field: inventory}
+    - {on: "event:CropSold", cue: grow-harvest-sell, field: balance}
+economy:
+  startingBalance:
+    path: [startingBalance]
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["1"]
+  starterState:
+    balance: 10
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 10}
+    - {op: dispatch, player: "1", action: "grow-harvest:buy-seed", args: [carrot], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 9}
+    - {op: dispatch, player: "1", action: "grow-harvest:plant", args: [1, carrot], expect: ok}
+    - {op: dispatch, player: "1", action: "grow-harvest:harvest", args: [1], expect: refused}
+    - {op: advance_elapsed, seconds: 2}
+    - {op: dispatch, player: "1", action: "grow-harvest:harvest", args: [1], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: inventory.carrot, equals: 1}
+    - {op: dispatch, player: "1", action: "grow-harvest:sell-held", args: [carrot], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 19}
+    - {op: dispatch, player: "1", action: "grow-harvest:sell-held", args: [carrot], expect: refused}
+    # The second loop: the same four actions again, so the spec's chain beyond the
+    # first sale is proven rather than only displayed.
+    - {op: dispatch, player: "1", action: "grow-harvest:buy-seed", args: [carrot], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 18}
+    - {op: dispatch, player: "1", action: "grow-harvest:plant", args: [1, carrot], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: plots.1.cropId, equals: carrot}
+    # `advance_elapsed` is absolute from `begin_clock`, not cumulative: the second
+    # planting happens at base+2, so the clock must reach base+5 for its crop.
+    - {op: advance_elapsed, seconds: 5}
+    - {op: dispatch, player: "1", action: "grow-harvest:harvest", args: [1], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: inventory.carrot, equals: 1}
+    - {op: dispatch, player: "1", action: "grow-harvest:sell-held", args: [carrot], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 28}
+    - {op: save, player: "1", label: saved}
+    - {op: leave, player: "1"}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 28}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: inventory.carrot, equals: 0}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: seeds.carrot, equals: 1}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: plots.1.cropId, is_nil: true}
+    - {op: restore, player: "1", from: saved}
+    - {op: expect_snapshot, player: "1", genre: grow-harvest, field: balance, equals: 28}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    coin_label: {ko: "코인"}
+    crop_carrot: {ko: "당근"}
+    plot_label: {ko: "밭"}
+    buy_seed: {ko: "씨앗 구매"}
+    plant_crop: {ko: "씨앗 심기"}
+    harvest_crop: {ko: "수확"}
+    sell_crop: {ko: "작물 판매"}
+    loop_buy: {ko: "씨앗 구매하기"}
+    loop_plant: {ko: "씨앗 심기"}
+    loop_harvest: {ko: "작물 수확하기"}
+    loop_sell: {ko: "작물 판매하기"}
+    loop_buy_again: {ko: "씨앗 더 구매하기"}
+    loop_plant_again: {ko: "두 번째 작물 심기"}
+    loop_harvest_again: {ko: "두 번째 작물 수확하기"}
+    loop_sell_again: {ko: "이익 남기고 판매하기"}
+    fb_crop: {ko: "작물"}
+    fb_coins: {ko: "코인"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}

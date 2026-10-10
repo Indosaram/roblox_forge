@@ -1,0 +1,26 @@
+name: core-loop
+genre: pvp-arena
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+  - action: click
+    target: queue-button
+    expect: 'queue joins matchmaking'
+  - action: wait
+    seconds: 10
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "roundState") == "active", "round started")'
+  - action: click
+    target: attack
+    expect: 'combat scores a point'
+  - action: wait
+    seconds: 10
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "roundState") == "ended", "round ended")'
+  - action: click
+    target: ready-button
+    expect: 'the player requeues for the next round'
+  - action: capture
+    target: core-loop
+    expect: 'round result and updated rank render'

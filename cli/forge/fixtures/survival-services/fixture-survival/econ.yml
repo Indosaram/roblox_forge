@@ -1,0 +1,26 @@
+genre_contract:
+  api: 1
+  order: [survival-coop]
+  configs:
+    survival-coop:
+      mode: crafting
+      currency: Coins
+      startingBalance: 0
+      contentVersion: 1
+      inventory:
+        carriedContainer: bag
+        speedPenaltyMilli: 250
+        content:
+          survival_content: 1
+          rules: {inheritance: avg-quality-v1, durability: quality-scaled-v1, ingredientSelection: item-id-ascending, demolitionRefund: full-storage-v1}
+          limits: {slots: 20, softWeightMilli: 60000, hardWeightMilli: 90000, qualityMilliMin: 1, qualityMilliMax: 5000, tribeMaxMembers: 4}
+          items:
+            - {id: wood, name: Wood, stackMax: 100, weightMilli: 1000}
+            - {id: cord, name: Cord, stackMax: 100, weightMilli: 1000}
+          nodes:
+            - {id: tree, respawnMillis: 100000, harvest: [{item: wood, quantity: 10}]}
+          recipes:
+            - {id: cord, craftMillis: 1000, inputs: [{item: wood, quantity: 3}], outputs: [{item: cord, quantity: 1}], station: bench}
+          structures:
+            - {id: bench, footprintX: 1, footprintZ: 1, station: true, cost: [{item: wood, quantity: 1}]}
+        containers: {bag: []}

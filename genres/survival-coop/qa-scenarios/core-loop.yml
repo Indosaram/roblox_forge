@@ -1,0 +1,25 @@
+name: core-loop
+genre: survival-coop
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+  - action: wait
+    seconds: 10
+    expect: 'the night wave spawns on schedule'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "waveIndex") >= 1, "wave spawned")'
+  - action: click
+    target: defend-camp
+    expect: 'defense power meets the wave'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "lastWaveWon") == true, "wave resolved as a win")'
+  - action: wait
+    seconds: 10
+    expect: 'the next day starts and resources respawn'
+  - action: click
+    target: craft-table
+    expect: 'day resources craft into a better item'
+  - action: capture
+    target: core-loop
+    expect: 'day counter, wave result, and crafted item render'

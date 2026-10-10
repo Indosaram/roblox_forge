@@ -1,0 +1,18 @@
+name: rejoin
+genre: social-rp-fashion
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("seed", { outfit = "look-3", slots = 4 })'
+    seconds: 2
+    expect: 'the saved outfit is written for the avatar'
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local a = ForgeQA:Invoke("avatar"); assert(a.outfit == "look-3" and a.slots == 4, "outfit persisted")'
+    seconds: 2
+    expect: 'the worn outfit and slot count restore on rejoin'

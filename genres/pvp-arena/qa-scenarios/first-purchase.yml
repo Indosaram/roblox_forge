@@ -1,0 +1,22 @@
+name: first-purchase
+genre: pvp-arena
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "schemaVersion") >= 1, "save schema loads")'
+    seconds: 2
+  - action: purchase_sim
+    target: gamepass
+    seconds: 3
+    expect: 'the deterministic extra-loadout gamepass adds a slot, never a random item'
+  - action: purchase_sim
+    target: product
+    seconds: 3
+    expect: 'a deterministic weapon skin is granted'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "loadoutSlots") == ForgeQA:Invoke("get", "baseLoadoutSlots") + 1, "loadout slot granted")'
+    seconds: 2
+  - action: leave
+    seconds: 1

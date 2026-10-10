@@ -1,0 +1,32 @@
+name: core-loop
+genre: grow-harvest
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+  - action: click
+    target: seed-shop
+  - action: click
+    target: plot-1
+    expect: 'planting consumes a seed'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("snapshotCoins")'
+    expect: 'coin baseline captured for the sale check below'
+  - action: wait
+    seconds: 10
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "cropsReady") >= 1, "growth timer elapsed")'
+    expect: 'the crop is ready to harvest'
+  - action: click
+    target: plot-1
+    expect: 'harvest moves the crop into the inventory'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "inventory") >= 1, "harvest produced a crop")'
+  - action: click
+    target: sell-crop
+    expect: 'selling converts the crop to coins'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "coins") > ForgeQA:Invoke("get", "lastCoinSnapshot"), "sale credited coins")'
+  - action: capture
+    target: core-loop
+    expect: 'coins and inventory update after one plant-harvest-sell loop'

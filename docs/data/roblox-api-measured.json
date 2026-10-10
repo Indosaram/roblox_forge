@@ -1,0 +1,366 @@
+{
+ "measured_at": "2026-09-28T06:26:12.732Z",
+ "source": "https://games.roblox.com/v1/games?universeIds=...",
+ "rows": [
+  {
+   "u": 7709344486,
+   "place": 109983668079237,
+   "name": "[🥚] Steal a Brainrot",
+   "creator": "BRAZILIAN SPYDER",
+   "visits": 73692760176,
+   "playing": 73464,
+   "created": "2025-05-16",
+   "updated": "2026-09-28",
+   "genre": "Simulation",
+   "fav": 29438958
+  },
+  {
+   "u": 994732206,
+   "place": 2753915549,
+   "name": "Blox Fruits",
+   "creator": "Gamer Robot Inc",
+   "visits": 64708036532,
+   "playing": 158755,
+   "created": "2019-01-16",
+   "updated": "2026-09-27",
+   "genre": "RPG",
+   "fav": 19994143
+  },
+  {
+   "u": 383310974,
+   "place": 920587237,
+   "name": "[🏚️] Adopt Me!",
+   "creator": "Uplift Games",
+   "visits": 44867051372,
+   "playing": 90167,
+   "created": "2017-07-14",
+   "updated": "2026-09-26",
+   "genre": "Roleplay & Avatar Sim",
+   "fav": 29666382
+  },
+  {
+   "u": 7436755782,
+   "place": 126884695634066,
+   "name": "[🐿️] Grow a Garden 🌶️",
+   "creator": "The Garden Game",
+   "visits": 35944812119,
+   "playing": 21144,
+   "created": "2025-03-25",
+   "updated": "2026-09-27",
+   "genre": "Simulation",
+   "fav": 11429495
+  },
+  {
+   "u": 66654135,
+   "place": 142823291,
+   "name": "Murder Mystery 2",
+   "creator": "Nikilis",
+   "visits": 30875024310,
+   "playing": 109586,
+   "created": "2014-01-18",
+   "updated": "2026-09-24",
+   "genre": "Survival",
+   "fav": 24261709
+  },
+  {
+   "u": 7326934954,
+   "place": 79546208627805,
+   "name": "99 Nights in the Forest 🔦",
+   "creator": "Grandma's Favourite Games",
+   "visits": 29764128978,
+   "playing": 101727,
+   "created": "2025-03-04",
+   "updated": "2026-09-22",
+   "genre": "Survival",
+   "fav": 9682507
+  },
+  {
+   "u": 6035872082,
+   "place": 17625359962,
+   "name": "RIVALS",
+   "creator": "Nosniy Games",
+   "visits": 18406713694,
+   "playing": 105782,
+   "created": "2024-05-26",
+   "updated": "2026-09-25",
+   "genre": "Shooter",
+   "fav": 93140877
+  },
+  {
+   "u": 5203828273,
+   "place": 15101393044,
+   "name": "Dress To Impress ⭐",
+   "creator": "Dress To Impress Group",
+   "visits": 11065880529,
+   "playing": 34101,
+   "created": "2023-10-18",
+   "updated": "2026-09-28",
+   "genre": "Roleplay & Avatar Sim",
+   "fav": 7491132
+  },
+  {
+   "u": 7018190066,
+   "place": 116495829188952,
+   "name": "Dead Rails",
+   "creator": "RCM Games",
+   "visits": 6581541742,
+   "playing": 12000,
+   "created": "2025-01-01",
+   "updated": "2026-09-27",
+   "genre": "Adventure",
+   "fav": 6117289
+  },
+  {
+   "u": 10563114921,
+   "place": 107778070777162,
+   "name": "Steal An Egg",
+   "creator": "and Collect Rare Pets",
+   "visits": 5776718282,
+   "playing": 1459301,
+   "created": "2026-07-25",
+   "updated": "2026-09-27",
+   "genre": "Simulation",
+   "fav": 6056119
+  },
+  {
+   "u": 6331902150,
+   "place": 18687417158,
+   "name": "[✨BONUS] Forsaken",
+   "creator": "Forsaken Dev Team",
+   "visits": 5749224311,
+   "playing": 34695,
+   "created": "2024-07-28",
+   "updated": "2026-09-28",
+   "genre": "Survival",
+   "fav": 3216287
+  },
+  {
+   "u": 5750914919,
+   "place": 16732694052,
+   "name": "Fisch 🐟 [RACING]",
+   "creator": "Fisching",
+   "visits": 4952819801,
+   "playing": 55657,
+   "created": "2024-03-13",
+   "updated": "2026-09-28",
+   "genre": "Simulation",
+   "fav": 3649169
+  },
+  {
+   "u": 6701277882,
+   "place": 121864768012064,
+   "name": "[👾UPD] Fish It! 🐟",
+   "creator": "Fish Atelier",
+   "visits": 4757788333,
+   "playing": 78137,
+   "created": "2024-10-21",
+   "updated": "2026-09-27",
+   "genre": "Simulation",
+   "fav": 1291169
+  },
+  {
+   "u": 8316902627,
+   "place": 127742093697776,
+   "name": "[⚙️] Plants & Brainrots 🌻",
+   "creator": "Splitting Point - PVB",
+   "visits": 4709477044,
+   "playing": 2007,
+   "created": "2025-08-01",
+   "updated": "2026-09-26",
+   "genre": "Simulation",
+   "fav": 1999016
+  },
+  {
+   "u": 4839802560,
+   "place": 13967668166,
+   "name": "LifeTogether 🏠 RP",
+   "creator": "Cinnamon Software",
+   "visits": 3985140741,
+   "playing": 16362,
+   "created": "2023-07-05",
+   "updated": "2026-09-26",
+   "genre": "Roleplay & Avatar Sim",
+   "fav": 15676315
+  },
+  {
+   "u": 7671049560,
+   "place": 76558904092080,
+   "name": "The Forge [BETA]",
+   "creator": "The Forge Community",
+   "visits": 1031166294,
+   "playing": 1111,
+   "created": "2025-05-10",
+   "updated": "2026-09-05",
+   "genre": "RPG",
+   "fav": 1034335
+  },
+  {
+   "u": 7089588429,
+   "place": 131378148336503,
+   "name": "(WHEELIE STYLE x BIG UPDATE) Drag Drive Simulator",
+   "creator": "ADV Gamers Team",
+   "visits": 599495046,
+   "playing": 74380,
+   "created": "2025-01-15",
+   "updated": "2026-09-28",
+   "genre": "Simulation",
+   "fav": 3033315
+  },
+  {
+   "u": 10035204815,
+   "place": 124216119978534,
+   "name": "[🌋] Ride A Pet",
+   "creator": "this game is gud",
+   "visits": 178727785,
+   "playing": 238990,
+   "created": "2026-04-14",
+   "updated": "2026-09-27",
+   "genre": "Simulation",
+   "fav": 205782
+  },
+  {
+   "u": 5595353122,
+   "place": 16205713724,
+   "name": "Slayers 2",
+   "creator": "Ouw Productions",
+   "visits": 68084912,
+   "playing": 108874,
+   "created": "2024-02-02",
+   "updated": "2026-09-28",
+   "genre": "RPG",
+   "fav": 428881
+  },
+  {
+   "u": 10708913337,
+   "place": 113290951185459,
+   "name": "[⚙️UPD 6] Anime Dice",
+   "creator": "More & More Games",
+   "visits": 40884863,
+   "playing": 62374,
+   "created": "2026-08-15",
+   "updated": "2026-09-28",
+   "genre": "Simulation",
+   "fav": 101241
+  },
+  {
+   "u": 0,
+   "place": 0,
+   "name": "[TITLE UNAVAILABLE]",
+   "creator": "[UNKNOWN]",
+   "visits": 0,
+   "playing": 0,
+   "created": "0001-01-01",
+   "updated": "0001-01-01",
+   "genre": null,
+   "fav": 0
+  }
+ ],
+ "gamepasses": {
+  "[🐿️] Grow a Garden 🌶️": {
+   "count": 1,
+   "priced": 0,
+   "median": null
+  },
+  "[🥚] Steal a Brainrot": {
+   "count": 3,
+   "priced": 3,
+   "median": 375
+  },
+  "Blox Fruits": {
+   "status": 200,
+   "count": 6,
+   "priced": 6,
+   "min": 350,
+   "median": 450,
+   "max": 2700
+  },
+  "[🏚️] Adopt Me!": {
+   "status": 200,
+   "count": 24,
+   "priced": 5,
+   "min": 285,
+   "median": 480,
+   "max": 795
+  },
+  "99 Nights in the Forest 🔦": {
+   "count": 4,
+   "priced": 1,
+   "median": 199
+  },
+  "Murder Mystery 2": {
+   "status": 200,
+   "count": 50,
+   "priced": 1,
+   "min": 3399,
+   "median": 3399,
+   "max": 3399
+  },
+  "Dress To Impress ⭐": {
+   "status": 200,
+   "count": 15,
+   "priced": 14,
+   "min": 129,
+   "median": 299,
+   "max": 799
+  },
+  "RIVALS": {
+   "status": 200,
+   "count": 9,
+   "priced": 8,
+   "min": 59,
+   "median": 849,
+   "max": 1425
+  },
+  "Dead Rails": {
+   "count": 4,
+   "priced": 4,
+   "median": 148
+  },
+  "Steal An Egg": {
+   "count": 2,
+   "priced": 2,
+   "median": 467
+  },
+  "[✨BONUS] Forsaken": {
+   "status": 200,
+   "count": 11,
+   "priced": 4,
+   "min": 175,
+   "median": 399,
+   "max": 599
+  },
+  "Fisch 🐟 [RACING]": {
+   "status": 200,
+   "count": 11,
+   "priced": 9,
+   "min": 99,
+   "median": 239,
+   "max": 499
+  },
+  "[⚙️] Plants & Brainrots 🌻": {
+   "count": 2,
+   "priced": 2,
+   "median": 249
+  },
+  "(WHEELIE STYLE x BIG UPDATE) Drag Drive Simulator": {
+   "count": 11,
+   "priced": 11,
+   "median": 79
+  },
+  "The Forge [BETA]": {
+   "count": 15,
+   "priced": 8,
+   "median": 349
+  },
+  "[🌋] Ride A Pet": {
+   "count": 4,
+   "priced": 1,
+   "median": 399
+  },
+  "[⚙️UPD 6] Anime Dice": {
+   "count": 6,
+   "priced": 6,
+   "median": 349
+  }
+ }
+}

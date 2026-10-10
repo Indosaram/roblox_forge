@@ -1,0 +1,150 @@
+{
+ "gh": {
+  "asphalt": {
+   "repo": "jackTabsCode/asphalt",
+   "stars": 161,
+   "pushed": "2026-07-28",
+   "archived": false,
+   "desc": "An assets-as-files tool for Roblox"
+  },
+  "tarmac": {
+   "repo": "rojo-rbx/tarmac",
+   "stars": 34,
+   "pushed": "2024-03-05",
+   "archived": false,
+   "desc": "Command line asset management tool for Roblox"
+  },
+  "roblox-cube": {
+   "repo": "Roblox/cube",
+   "stars": 1256,
+   "pushed": "2026-05-28",
+   "archived": false,
+   "desc": "Roblox Foundation Model for 3D Intelligence"
+  },
+  "blender-mcp": {
+   "repo": "ahujasid/mcp-for-blender",
+   "stars": 29510,
+   "pushed": "2026-09-27",
+   "archived": false,
+   "desc": "Community plugin to control Blender 3D with any LLM of your choice"
+  },
+  "rbx-open-cloud-mcp": {
+   "repo": "Roblox/open-cloud-mcp",
+   "status": 404
+  },
+  "rbxcloud": {
+   "repo": "Sleitnick/rbxcloud",
+   "stars": 140,
+   "pushed": "2025-03-23",
+   "archived": false,
+   "desc": "CLI and library for Roblox Open Cloud API"
+  },
+  "elevenlabs-mcp": {
+   "repo": "elevenlabs/elevenlabs-mcp",
+   "stars": 1536,
+   "pushed": "2026-08-20",
+   "archived": true,
+   "desc": "The official ElevenLabs MCP server"
+  },
+  "roblox-ts": {
+   "repo": "roblox-ts/roblox-ts",
+   "stars": 1307,
+   "pushed": "2026-09-28",
+   "archived": false,
+   "desc": "A TypeScript-to-Luau Compiler for Roblox"
+  },
+  "mantle": {
+   "repo": "blake-mealey/mantle",
+   "stars": 116,
+   "pushed": "2026-05-28",
+   "archived": false,
+   "desc": "An infrastructure-as-code and deployment tool for Roblox."
+  },
+  "run-in-roblox": {
+   "repo": "rojo-rbx/run-in-roblox",
+   "stars": 78,
+   "pushed": "2024-03-06",
+   "archived": false,
+   "desc": "Run a place, model, or individual script inside Roblox Studio, integrating with command line tools"
+  },
+  "hunyuan3d": {
+   "repo": "Tencent-Hunyuan/Hunyuan3D-2",
+   "stars": 14980,
+   "pushed": "2025-10-28",
+   "archived": false,
+   "desc": "High-Resolution 3D Assets Generation with Large Scale Hunyuan3D Diffusion Models."
+  },
+  "audiocraft": {
+   "repo": "facebookresearch/audiocraft",
+   "stars": 23651,
+   "pushed": "2026-03-03",
+   "archived": false,
+   "desc": "Audiocraft is a library for audio processing and generation with deep learning. It features the stat"
+  },
+  "trellis": {
+   "repo": "microsoft/TRELLIS",
+   "stars": 13714,
+   "pushed": "2026-06-26",
+   "archived": false,
+   "desc": "Official repo for paper \"Structured 3D Latents for Scalable and Versatile 3D Generation\" (CVPR'25 Sp"
+  }
+ },
+ "dd": {
+  "https://create.roblox.com/docs/production/localization": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/production/localization.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Experiences / Localization Localization English Roblox users come from a variety of cultures "
+  },
+  "https://create.roblox.com/docs/studio/mcp": {
+   "status": 200,
+   "snip": " to the Roblox Studio MCP server | Documentation - Roblox Creator Hub For Agents | This page is available as markdown: https://create.roblox.com/docs/en-us/studio/mcp.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Studio Connect to t"
+  },
+  "https://create.roblox.com/docs/production/localization/automatic-translations": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/production/localization/automatic-translations.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Experiences / Localization / Automatic translation Automatic translati"
+  },
+  "https://create.roblox.com/docs/production/analytics": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/production/analytics.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Analytics Analytics English Roblox offers a variety of analytics features to help you chart your"
+  },
+  "https://create.roblox.com/docs/cloud/reference/features/localization": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/cloud/reference/features/localization.md | Documentation index: https://create.roblox.com/docs/llms.txt | Cloud API index: https://create.roblox.com/docs/cloud/llms.txt Learn / Open Cloud API"
+  },
+  "https://create.roblox.com/docs/production/analytics/economy-events": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/production/analytics/economy-events.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Analytics / Event types Economy events English Economy events let you track your "
+  },
+  "https://create.roblox.com/docs/cloud/reference/features/universes": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/cloud/reference/features/universes.md | Documentation index: https://create.roblox.com/docs/llms.txt | Cloud API index: https://create.roblox.com/docs/cloud/llms.txt Learn / Open Cloud API Un"
+  },
+  "https://create.roblox.com/docs/audio": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/audio.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Experiences / Audio Audio English Adding audio to your games is crucial for elevating your games to new heights"
+  },
+  "https://create.roblox.com/docs/assistant/guide": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/assistant/guide.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Studio / Assistant Assistant for Studio English Assistant is an AI helper that helps you build games "
+  },
+  "https://create.roblox.com/docs/studio/testing-modes": {
+   "status": 200,
+   "snip": " testing modes | Documentation - Roblox Creator Hub For Agents | This page is available as markdown: https://create.roblox.com/docs/en-us/studio/testing-modes.md | Documentation index: https://create.roblox.com/docs/llms.txt Learn / Studio Studio testing modes"
+  },
+  "https://create.roblox.com/docs/cloud/reference/features/luau-execution": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/cloud/reference/features/luau-execution.md | Documentation index: https://create.roblox.com/docs/llms.txt | Cloud API index: https://create.roblox.com/docs/cloud/llms.txt Learn / Open Cloud A"
+  },
+  "https://create.roblox.com/docs/cloud/reference/features/assets": {
+   "status": 200,
+   "snip": " page is available as markdown: https://create.roblox.com/docs/en-us/cloud/reference/features/assets.md | Documentation index: https://create.roblox.com/docs/llms.txt | Cloud API index: https://create.roblox.com/docs/cloud/llms.txt Learn / Open Cloud API Asset"
+  },
+  "https://create.roblox.com/docs/cloud/luau-execution": {
+   "status": 404,
+   "snip": ""
+  },
+  "https://create.roblox.com/docs/cloud/guides/usage-assets": {
+   "status": 200,
+   "snip": " guide for assets | Documentation - Roblox Creator Hub For Agents | This page is available as markdown: https://create.roblox.com/docs/en-us/cloud/guides/usage-assets.md | Documentation index: https://create.roblox.com/docs/llms.txt | Cloud API index: https://"
+  }
+ }
+}

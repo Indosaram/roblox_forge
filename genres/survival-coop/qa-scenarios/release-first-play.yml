@@ -1,0 +1,157 @@
+# AUTHORED_PARTIAL: real-input probe, not release approval or unprompted discovery.
+# Requires fresh persistent profiles/nodes and the Task 9 provisioned two-actor pack.
+# All timings/actors/results must come from the driver; no firstPlay supplement is seeded.
+# Blocked-path recovery and simultaneous contention require shared observation/input contracts.
+name: release-first-play
+genre: survival-coop
+pack: primal-isles
+kind: studio
+contract_api: 1
+timeout_seconds: 1200
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: capture, target: release-initial-desktop-portrait, angles: 3}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 15}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: [{field: catalogId, equals: fiber}, {field: attributes, empty: true}], label: gathered-fiber}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: gathered-fiber}, quantity], equals: 3}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-cord, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-cord, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: cord-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cord-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 10}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: cord-job}, job, finishAt], label: cord-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: cord-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cord-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: cord-job}, job, state], equals: Committed}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: {field: catalogId, equals: cord}, label: crafted-cord}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: crafted-cord}, quantity], equals: 1}
+  - {op: capture, target: release-craft-result}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.berry-bush-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeGatherTouch.Gather, nodeId: berry-bush-01, expect: ok, timeout_seconds: 15}
+  - {op: bind_snapshot, player: guest, field: inventory.bag.items, select: [{field: catalogId, equals: berry}, {field: attributes, empty: true}], label: gathered-berry}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [inventory, bag, items, {ref: gathered-berry}, quantity], equals: 3}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.Navigation.Tab-bag, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: touch, player: guest, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: gathered-berry}], timeout_seconds: 5}
+  - {op: touch, player: guest, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: gathered-berry, prefix: 'Eat-'}], resultAction: 'survival-coop:food', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [inventory, bag, items, {ref: gathered-berry}, quantity], equals: 2}
+  - {op: capture, target: release-portrait-food-inventory}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.Navigation.Tab-bag, timeout_seconds: 5}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.campfire, withinStuds: 5, timeout_seconds: 40}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.Rest, resultAction: 'survival-coop:rest', expect: ok, timeout_seconds: 10}
+  - {op: expect_result, player: guest, field: ok, equals: true}
+  - {op: wait_for, player: guest, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.fatigueMilli, equals: 0}}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.grazer-01, home: [-20, 4, 24]}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.ForgeWildlife.grazer-01, field: ForgeWildlifeState, equals: flee}}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.workbench, withinStuds: 3, timeout_seconds: 40}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.grazer-01, timeout_seconds: 25, observations: [{mode: flee, displacement: 1}, {mode: roam, outside: 24}]}
+  - {op: capture, target: release-grazer-observations, angles: 3}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-spear, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-spear, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: spear-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 10}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: spear-job}, job, finishAt], label: spear-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: spear-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: spear-job}, job, state], equals: Committed}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: equip, player: owner, target: Players.LocalPlayer.Backpack.spear, timeout_seconds: 10}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: walk_to, player: owner, target: Workspace.ForgeWildlife.hunter-01.HumanoidRootPart, withinStuds: 6, timeout_seconds: 45}
+  - {op: keyboard, player: owner, key: F, resultAction: 'survival-coop:attack', expect: ok, timeout_seconds: 10}
+  - {op: expect_result, player: owner, field: data.targetId, equals: hunter-01}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: capture, target: release-equipped-combat, angles: 3}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: {field: catalogId, equals: wood}, label: building-wood}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: building-wood}, quantity], equals: 6}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: building-wood}], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: refused, timeout_seconds: 15}
+  - {op: expect_result, player: owner, field: reason, equals: UNAUTHORIZED}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: building-wood}, quantity], equals: 6}
+  - {op: capture, target: release-visible-out-of-range-warehouse-refusal}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: building-wood}], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: bind_snapshot, player: guest, field: warehouse.items, select: {field: catalogId, equals: wood}, label: warehouse-wood}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [warehouse, items, {ref: warehouse-wood}, quantity], equals: 1}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.Navigation.Tab-bag, timeout_seconds: 5}
+  - {op: touch, player: guest, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: warehouse-wood, prefix: 'Withdraw-'}], resultAction: 'survival-coop:transfer-withdraw', expect: ok, timeout_seconds: 15}
+  - {op: bind_snapshot, player: guest, field: inventory.bag.items, select: {field: catalogId, equals: wood}, label: guest-wood}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [inventory, bag, items, {ref: guest-wood}, quantity], equals: 1}
+  - {op: touch, player: guest, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: guest-wood}], timeout_seconds: 5}
+  - {op: touch, player: guest, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: guest-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: touch, player: guest, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.Navigation.Tab-bag, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: building-wood, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: bind_snapshot, player: owner, field: warehouse.items, select: {field: catalogId, equals: wood}, label: construction-stock}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [warehouse, items, {ref: construction-stock}, quantity], equals: 6}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.BuildApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: B, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Structure-floor, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, Z+], timeout_seconds: 5}
+  - {op: capture, target: release-spatial-floor-preview}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.BuildReserve-floor, resultAction: 'survival-coop:settlement-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.reservationId, label: built-floor}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: built-floor, prefix: 'place-'}], resultAction: 'survival-coop:settlement-place', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [settlement, structures, {ref: built-floor}, definition, id], equals: floor}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: [settlement, structures, {ref: built-floor}, definition, id], equals: floor}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [warehouse, items, {ref: construction-stock}, quantity], equals: 2}
+  - {op: bind_snapshot, player: owner, field: settlement.config.tribeId, label: floor-tribe}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.floor, field: ForgeStructureId, equals: {ref: built-floor}}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.floor, field: ForgeTribeId, equals: {ref: floor-tribe}}}
+  - {op: wait_for, player: guest, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.floor, field: ForgeStructureId, equals: {ref: built-floor}}}
+  - {op: wait_for, player: guest, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.floor, field: ForgeTribeId, equals: {ref: floor-tribe}}}
+  - {op: keyboard, player: owner, key: B, timeout_seconds: 5}
+  - {op: capture, target: release-confirmed-floor-and-shared-warehouse, angles: 3}
+  # Real final-charge contention; absent second correlated request is a blocker,
+  # never a fabricated refusal. Driver must not replay either input to pass.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01, withinStuds: 6, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather, nodeId: flint-outcrop-01, key: E, timeout_seconds: 15}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather, nodeId: flint-outcrop-01, key: E, timeout_seconds: 15}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.flint-outcrop-01, withinStuds: 6, timeout_seconds: 40}
+  - op: parallel_prompt
+    label: final-flint-charge
+    timeout_seconds: 15
+    nodeId: flint-outcrop-01
+    target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather
+    key: E
+    players: [owner, guest]
+    expect: {ok: 1, refused: 1}
+    conservation: {catalogId: flint, quantityGain: 3}
+    refusalReasons: [STALE_VERSION, NODE_DEPLETED]
+  - {op: capture, target: release-final-charge-correlated-results}
+  # Permanent authored terrain, not an injected obstacle. The trace must contain
+  # the production path request, failed result and consumed safe refusal.
+  # Missing driver telemetry/ascent support or an actually traversable path blocks.
+  - {op: path_begin, player: owner, label: lookout-path, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.LookoutRampApproach, withinStuds: 1, timeout_seconds: 50}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.LookoutApproach, withinStuds: 1, verticalToleranceStuds: 3, timeout_seconds: 50}
+  - {op: path_end, player: owner, label: lookout-path, target: Workspace.ForgeWildlife.hunter-01, outcome: refused, timeout_seconds: 40}
+  - {op: capture, target: release-correlated-path-failure-safe-refusal, angles: 3}

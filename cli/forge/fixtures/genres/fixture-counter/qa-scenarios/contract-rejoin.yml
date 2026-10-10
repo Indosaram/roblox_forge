@@ -1,0 +1,12 @@
+name: contract-rejoin
+genre: fixture-counter
+kind: smoke
+contract_api: 1
+operations: [save, restore, snapshot]
+steps:
+  - action: join
+    seconds: 1
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 1

@@ -1,0 +1,26 @@
+script_read: Reads a script from the game using dot-notation paths (for example, `game.ServerScriptService.MyScript`). Supports reading entire scripts or
+multi_edit: Applies multiple edits to a script in one operation. If the target path doesn't exist, it creates a new script. Requires specifying a `datam
+script_search: Searches for scripts by name using fuzzy matching. Returns up to 10 results.
+script_grep: Searches for a string pattern across all scripts in the game. Returns up to 50 matches.
+generate_mesh: Generates a textured 3D mesh from a text prompt using AI.
+generate_material: Generates a custom material variant. Returns the base material and material variant name to apply to parts.
+generate_procedural_model: Creates 3D objects built from primitive parts (blocks, spheres, cylinders, wedges) as a ProceduralModel with configurable attributes. Suppor
+wait_job_finished: Waits for a procedural model generation job to finish and returns the final status.
+search_asset: Searches for assets across the Creator Store (public marketplace) and Creator Inventory (user, group, or universe). Supports filtering by as
+insert_asset: Inserts an asset into the game by its numeric Roblox asset ID. Supports models, meshes, images, audio, video, animations, and packages.
+upload_image: Uploads a batch of images from HTTP URLs to the Roblox asset server, returning an image path to asset ID map.
+store_image: Loads an image from a local file path and returns an image URI that can be passed to other tools (for example, as a reference image for `gen
+subagent: Launches a specialized subagent to handle complex, multi-step tasks autonomously. Available types include `explore` (for codebase investigat
+search_game_tree: Explores the instance hierarchy as a flat JSON array. Supports filtering by path, instance type, and keywords, with configurable depth limit
+inspect_instance: Returns detailed information about a specific instance, including all readable properties, custom attributes, and a summary of its children 
+execute_luau: Runs Luau code in Studio. Returns either the result or an error. Requires specifying a `datamodel_type` (Edit, Client, or Server).
+get_studio_state: Gets the current state of Studio, including the play state and available datamodel types.
+start_stop_play: Starts or stops playtesting.
+get_console_output: Retrieves output from the Studio output log.
+screen_capture: Captures the current Studio viewport and returns the image data. Optionally accepts a custom camera position and look-at target.
+character_navigation: Moves the player character to a given position or instance path. Supports a configurable speed multiplier.
+user_keyboard_input: Sends one or more keyboard actions in order: key down, key up, key press, text input, or wait. Supports targeting specific UI instances.
+user_mouse_input: Sends one or more mouse actions in order: move, click, button down/up, scroll, or wait. Supports targeting specific instances or screen coor
+http_get: Fetches content from allowed Roblox documentation URLs (Engine API reference, Creator docs, Cloud API, performance optimization guides). Sup
+skill: Retrieves detailed knowledge, best practices, or reference material for specific skills such as debugging, device simulation, and documentat
+list_roblox_studios: Lists all connected Studio instances, including their name, Studio instance ID, and place ID. Local places that don't have a place ID are li

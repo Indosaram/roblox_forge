@@ -1,0 +1,11 @@
+name: contract-loop
+genre: fixture-counter
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'assert(game.ServerStorage.ForgeQA:Invoke("dispatch", "fixture-counter", "increment", {}, tostring(game.Players:GetPlayers()[1].UserId)).ok)'

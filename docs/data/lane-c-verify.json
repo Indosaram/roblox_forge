@@ -1,0 +1,37 @@
+{
+ "https://create.roblox.com/docs/discovery": {
+  "status": 200,
+  "final": "https://create.roblox.com/docs/discovery",
+  "len": 18158,
+  "hits": [
+   "On Home , the Recommended for You sort personalizes content and connects users with games that foster deep engagement, social interaction, and repeat play",
+   "tage 1: Retrieval Stage 2: Ranking In the Retrieval stage, the algorithm selects a subset of games that each user might enjoy playing based on key signals like engagement, retention, and monetization",
+   "How far your game goes and how much organic distribution it gets from Recommended For You depends entirely on the engagement and retention of users who come to your game through Recommended for You",
+   "Roblox doesn&#x27;t count the engagement, monetization, or retention of users first acquired from ads, curation, friends, search, social media, or any other source in the ranking stage of Recommended for You",
+   "sonality Holiday seasonality If other games are significantly more successful at engaging players, your game&#x27;s distribution may decrease, even if your own engagement signals remain steady",
+   "These changes work toward a consistent goal: a recommendation system that promotes games with strong long term retention"
+  ],
+  "nd": []
+ },
+ "https://create.roblox.com/devex": {
+  "status": 404,
+  "final": "https://create.roblox.com/devex",
+  "len": 1,
+  "hits": [],
+  "nd": []
+ },
+ "https://create.roblox.com/docs/discovery/experience-sorts": {
+  "status": 404,
+  "final": "https://create.roblox.com/docs/discovery/experience-sorts",
+  "len": 1,
+  "hits": [],
+  "nd": []
+ },
+ "https://create.roblox.com/docs/production/discovery": {
+  "status": 404,
+  "final": "https://create.roblox.com/docs/production/discovery",
+  "len": 1,
+  "hits": [],
+  "nd": []
+ }
+}

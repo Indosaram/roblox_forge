@@ -1,0 +1,22 @@
+environments:
+  staging:
+    universeId: 0
+    placeId: 0
+  production:
+    universeId: 0
+    placeId: 0
+    requiresHumanMerge: true
+# Localization Tables API target for `forge locale sync` (0 = unset).
+localizationTableId: 0
+# Launch art uploaded by the G5 publish step; `id` is the A/B variant id.
+assets:
+  icon:
+    - id: a
+      path: assets/icon/icon-a.png
+    - id: b
+      path: assets/icon/icon-b.png
+  thumbnails:
+    - id: a
+      path: assets/thumbnails/thumb-a.png
+    - id: b
+      path: assets/thumbnails/thumb-b.png

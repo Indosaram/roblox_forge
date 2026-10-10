@@ -1,0 +1,272 @@
+# Genre spec for collect-raid (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/collect-raid/module. collect-raid keeps its own HUD, world builder
+# and audio runtime as declared overrides; the spec makes them legible to
+# presentation, world and QA derivation, and its legacy HUD Names are mapped to
+# the actions they drive by overrides.uiTargets.
+api: 1
+version: 1.0.0
+id: collect-raid
+runtime: collect-raid
+resources:
+  - id: coins
+    nameKey: coin_label
+    name: Coins
+    initial: 100
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: ember
+    kind: source
+    nameKey: source_ember
+    name: Ember spring
+    configPath: [sources, ember]
+  - id: tidal
+    kind: source
+    nameKey: source_tidal
+    name: Tidal spring
+    configPath: [sources, tidal]
+  - id: pyro-pup
+    kind: creature
+    nameKey: creature_pyro_pup
+    name: Pyro pup
+    configPath: [creatures, pyro-pup]
+  - id: ember-family
+    kind: merge-family
+    nameKey: family_ember
+    name: Ember family
+    configPath: [mergeFamilies, 1]
+actions:
+  - action: collect-raid:buy-source
+    control:
+      id: "collect-raid:buy-source"
+      labelKey: buy_source
+      label: Buy source
+      kind: prompt
+      args: [ember]
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: insufficient-coins
+      - ref: rate-limited
+    effects:
+      - path: [coins]
+        delta: -50
+  - action: collect-raid:hatch
+    control:
+      id: "collect-raid:hatch"
+      labelKey: hatch_egg
+      label: Hatch egg
+      kind: prompt
+      args: [1]
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: not-ready
+      - ref: rate-limited
+  - action: collect-raid:merge
+    control:
+      id: "collect-raid:merge"
+      labelKey: merge_creatures
+      label: Merge
+      kind: button
+      args: [ember, 1]
+      ui:
+        slot: action-bar
+        order: 3
+    preconditions:
+      - ref: insufficient-copies
+  - action: collect-raid:raid
+    control:
+      id: "collect-raid:raid"
+      labelKey: raid_rival
+      label: Raid rival
+      kind: button
+      args: [blue]
+      ui:
+        slot: action-bar
+        order: 4
+    preconditions:
+      - ref: siege-closed
+      - ref: rate-limited
+  - action: collect-raid:claim-quest
+    control:
+      id: "collect-raid:claim-quest"
+      labelKey: claim_quest
+      label: Claim quest
+      kind: button
+      args: [hatch]
+      ui:
+        slot: action-bar
+        order: 5
+    preconditions:
+      - ref: quest-incomplete
+loop:
+  - id: buy
+    actions: [collect-raid:buy-source]
+    goalKey: loop_buy
+    goal: Buy a source
+  - id: hatch
+    actions: [collect-raid:hatch]
+    on: OnCollect
+    goalKey: loop_hatch
+    goal: Hatch an egg
+  - id: merge
+    actions: [collect-raid:merge]
+    on: Merged
+    goalKey: loop_merge
+    goal: Merge creatures
+  - id: raid
+    actions: [collect-raid:raid]
+    on: OnRaid
+    goalKey: loop_raid
+    goal: Raid a rival
+  - id: quest
+    actions: [collect-raid:claim-quest]
+    on: QuestClaimed
+    goalKey: loop_quest
+    goal: Claim a quest
+ui:
+  resourceBar:
+    resources: [coins]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  inventoryGrid:
+    entityKind: creature
+    field: creatures
+    order: 3
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: hub
+    offset: [0, 1, 0]
+  zones:
+    - id: hub
+      kind: plaza
+      center: [0, 0, 0]
+      size: [80, 1, 80]
+    - id: red
+      kind: base
+      center: [-60, 0, 0]
+      size: [40, 1, 40]
+      team: red
+    - id: blue
+      kind: base
+      center: [60, 0, 0]
+      size: [40, 1, 40]
+      team: blue
+    - id: arena
+      kind: arena
+      center: [0, 0, 0]
+      radius: 28
+  nodes:
+    - id: ember-incubator
+      zone: red
+      kind: incubator
+      position: [-60, 1, 4]
+      control: "collect-raid:buy-source"
+    - id: ember-node
+      zone: hub
+      kind: node
+      position: [0, 1, 8]
+    - id: blue-vault
+      zone: blue
+      kind: depot
+      position: [60, 1, 0]
+audio:
+  # The cues the collect-raid starter pack renders: one explore loop plus the
+  # two SFX its scaffolded loop triggers. The planned pack renders the full
+  # ten-cue set; the spec binds the ones the starter always ships.
+  cues:
+    - {key: musicExplore, kind: music, mood: explore, duration: 75, sampleRate: 44100, seed: 1001}
+    - {key: sfxHatch, kind: sfx, type: hatch, duration: 0.5, sampleRate: 44100, seed: 3103}
+    - {key: sfxCoin, kind: sfx, type: coin, duration: 0.45, sampleRate: 44100, seed: 3102}
+  bindings:
+    - {on: "action:collect-raid:buy-source", cue: sfxCoin}
+    - {on: "action:collect-raid:hatch", cue: sfxHatch}
+    - {on: "action:collect-raid:merge", cue: sfxCoin}
+    - {on: "action:collect-raid:raid", cue: sfxHatch, dedupe: 0.5}
+    - {on: "action:collect-raid:claim-quest", cue: sfxCoin, local: true}
+    - {on: "event:SourceBought", cue: sfxCoin}
+    - {on: "event:Hatched", cue: sfxHatch}
+    - {on: "event:Merged", cue: sfxCoin}
+    - {on: "event:OnCollect", cue: sfxCoin, field: creatures}
+    - {on: "event:OnRaid", cue: sfxHatch, dedupe: 0.5, field: counts}
+    - {on: "event:QuestClaimed", cue: sfxCoin, field: quests}
+    - {on: "event:OnSiegePhase", cue: musicExplore}
+economy:
+  startingBalance:
+    path: [profile]
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["1"]
+  starterState:
+    coins: 100
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: collect-raid, field: coins, equals: 100}
+    - {op: dispatch, player: "1", action: "collect-raid:buy-source", args: [ember], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: collect-raid, field: coins, equals: 50}
+    - {op: dispatch, player: "1", action: "collect-raid:hatch", args: [1], expect: refused}
+    - {op: advance_elapsed, seconds: 5}
+    - {op: dispatch, player: "1", action: "collect-raid:hatch", args: [1], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: collect-raid, field: creatures.1, is_nil: false}
+    - {op: save, player: "1", label: saved}
+    - {op: leave, player: "1"}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: collect-raid, field: creatures.1, is_nil: false}
+    - {op: restore, player: "1", from: saved}
+    - {op: expect_snapshot, player: "1", genre: collect-raid, field: creatures.1, is_nil: false}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    coin_label: {ko: "코인"}
+    source_ember: {ko: "엠버 샘"}
+    source_tidal: {ko: "타이달 샘"}
+    creature_pyro_pup: {ko: "불꽃 강아지"}
+    family_ember: {ko: "엠버 계열"}
+    buy_source: {ko: "원천 구매"}
+    hatch_egg: {ko: "알 부화"}
+    merge_creatures: {ko: "합성"}
+    raid_rival: {ko: "라이벌 습격"}
+    claim_quest: {ko: "퀘스트 보상"}
+    loop_buy: {ko: "원천 구매하기"}
+    loop_hatch: {ko: "알 부화시키기"}
+    loop_merge: {ko: "크리처 합성하기"}
+    loop_raid: {ko: "라이벌 습격하기"}
+    loop_quest: {ko: "퀘스트 보상 받기"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}
+overrides:
+  client:
+    module: genres/collect-raid/module/runtime/Hud
+  world:
+    module: genres/collect-raid/module/WorldBuilder
+  audio:
+    module: genres/collect-raid/module/runtime/Audio
+  uiTargets:
+    buy-egg-button: collect-raid:buy-source
+    Hatch_1: collect-raid:hatch
+    raid-target: collect-raid:raid

@@ -1,0 +1,58 @@
+# Visual-evidence scenario for the collect-raid genre sweep pack.
+#
+# The generated collect-raid pack is the legacy starter scaffold: it binds no
+# ForgeQA/ForgeState surface of its own, and its HUD is a Coins label plus a hint
+# line, so it exposes no HUD action control. The real controls the pack does have
+# are the world incubator ProximityPrompts ("Hatch", hold E) inside each team base.
+# This scenario drives real product input only: it walks the desktop actor to an
+# incubator of the actor's OWN team (the scaffold refuses a hatch at a foreign
+# base), holds E for the prompt's own HoldDuration, and proves the hatch through
+# the real runtime - the leaderstats Coins balance only rises once a creature was
+# hatched, because the scaffold credits coins from the parade's production rate.
+#
+# The walk names both bases' incubators and filters them to the actor's team, then
+# walks to the nearest of those: a teamless actor spawns in whichever team's
+# SpawnLocation Roblox picks, and the two bases sit 140 studs apart with each one's
+# vault crate standing on the straight line between them.
+name: hud-visual
+genre: collect-raid
+pack: collect-raid-sweep
+kind: studio
+contract_api: 1
+timeout_seconds: 600
+players: [desktop, mobile]
+steps:
+  - {op: expect_members, members: [desktop, mobile]}
+  - {op: device, player: desktop, surface: desktop, width: 1280, height: 720, timeout_seconds: 30}
+  - {op: device, player: mobile, surface: mobile, width: 390, height: 844, timeout_seconds: 30}
+  - {op: wait_for, player: desktop, timeout_seconds: 30, predicate: {source: property, target: "Players.LocalPlayer.PlayerGui.CollectRaidSweepHud.SafeArea.Hud.Label", field: Text, not_equals: ""}}
+  - {op: capture, target: collect-raid-hud-before-first-action}
+  - op: walk_to
+    player: desktop
+    ownTeam: true
+    targets:
+      - "Workspace.CollectRaidSweepWorld.BlueBase.Incubator1.Base"
+      - "Workspace.CollectRaidSweepWorld.BlueBase.Incubator2.Base"
+      - "Workspace.CollectRaidSweepWorld.RedBase.Incubator1.Base"
+      - "Workspace.CollectRaidSweepWorld.RedBase.Incubator2.Base"
+    withinStuds: 8
+    timeout_seconds: 90
+  - {op: capture, target: collect-raid-hud-at-incubator-prompt}
+  # A real key hold for the prompt's own duration, on whichever base the actor spawned in.
+  - op: keyboard
+    player: desktop
+    key: E
+    hold_prompt:
+      - "Workspace.CollectRaidSweepWorld.BlueBase.Incubator1.Hatch"
+      - "Workspace.CollectRaidSweepWorld.BlueBase.Incubator2.Hatch"
+      - "Workspace.CollectRaidSweepWorld.RedBase.Incubator1.Hatch"
+      - "Workspace.CollectRaidSweepWorld.RedBase.Incubator2.Hatch"
+    timeout_seconds: 30
+  # The real runtime's own wallet: coins only accrue once a creature was hatched
+  # (the scaffold's parade production rate is set by hatch), so a balance above the
+  # 100 starting coins proves the hatch produced a creature and production began.
+  - {op: wait_for, player: desktop, timeout_seconds: 60, predicate: {source: property, target: "Players.LocalPlayer.leaderstats.Coins", field: Value, at_least: 101}}
+  # The hatched creature itself, as the real runtime spawned it: the first hatch of a team spawns
+  # the `emberling` placeholder, whose CreatureKey attribute is what the client swaps for the model.
+  - {op: wait_for, player: desktop, timeout_seconds: 30, predicate: {source: attribute, target: "Workspace.emberling.emberling", field: CreatureKey, not_equals: ""}}
+  - {op: capture, target: collect-raid-hud-after-first-action, settle: true}

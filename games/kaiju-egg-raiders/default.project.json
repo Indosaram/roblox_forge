@@ -1,0 +1,66 @@
+{
+	"name": "kaiju-egg-raiders",
+	"globIgnorePaths": ["**/*.spec.luau", "**/*.md", "**/.gitkeep", "**/*.yml"],
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"Remotes": {
+				"$className": "Folder",
+				"BuyEgg": { "$className": "RemoteFunction" },
+				"HatchEgg": { "$className": "RemoteFunction" },
+				"StateChanged": { "$className": "RemoteEvent" },
+				"Raid": { "$className": "RemoteFunction" },
+				"Merge": { "$className": "RemoteFunction" },
+				"ClaimQuest": { "$className": "RemoteFunction" },
+				"SiegeState": { "$className": "RemoteEvent" },
+				"Notify": { "$className": "RemoteEvent" },
+				"StoreOpen": { "$className": "RemoteEvent" },
+				"TutorialState": { "$className": "RemoteEvent" },
+				"RaidReplay": { "$className": "RemoteEvent" }
+			},
+			"Forge": {
+				"$className": "Folder",
+				"core": {
+					"$className": "Folder",
+					"domain": { "$path": "../../core/domain" },
+					"infra": { "$path": "../../core/infra" },
+					"anticheat": { "$path": "../../core/anticheat" },
+					"ui-kit": { "$path": "../../core/ui-kit" }
+				},
+				"genres": {
+					"$className": "Folder",
+					"collect-raid": {
+						"$className": "Folder",
+						"module": { "$path": "../../genres/collect-raid/module" }
+					}
+				},
+				"games": {
+					"$className": "Folder",
+					"kaiju-egg-raiders": {
+						"$className": "Folder",
+						"src": {
+							"$className": "Folder",
+							"shared": { "$path": "src/shared" }
+						}
+					}
+				}
+			}
+		},
+		"Lighting": {
+			"$className": "Lighting",
+			"$properties": {
+				"Technology": "Future",
+				"GlobalShadows": true
+			}
+		},
+		"ServerScriptService": {
+			"KaijuEggRaidersServer": { "$path": "src/server/KaijuEggRaidersServer.server.luau" },
+			"World": { "$path": "src/server/World.luau" }
+		},
+		"StarterPlayer": {
+			"StarterPlayerScripts": {
+				"KaijuEggRaidersClient": { "$path": "src/client/KaijuEggRaidersClient.client.luau" }
+			}
+		}
+	}
+}

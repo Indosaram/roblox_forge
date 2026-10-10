@@ -1,0 +1,18 @@
+name: rejoin
+genre: collect-raid
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; ForgeQA:Invoke("seed", { coins = 100, owned = 2, vault = 1 })'
+    seconds: 2
+    expect: 'a deterministic save is written for the session'
+  - action: leave
+    seconds: 1
+  - action: rejoin
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local s = ForgeQA:Invoke("snapshot"); assert(s.owned == 2 and s.coins >= 100 and s.vault == 1, "state persisted")'
+    seconds: 2
+    expect: 'collection, coins, and vault restore from the save schema; this fails if a save/load regression drops vaultedCreatures'

@@ -1,0 +1,23 @@
+name: tutorial
+genre: survival-coop
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+    expect: 'player spawns at the co-op camp'
+  - action: capture
+    target: camp
+    expect: 'camp, resource nodes, and craft table are visible'
+  - action: click
+    target: gather-resource
+    expect: 'gathering adds a resource'
+  - action: wait
+    seconds: 5
+  - action: click
+    target: craft-table
+    expect: 'the first item is crafted from resources'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "crafted") >= 1, "craft step produced an item")'
+  - action: capture
+    target: tutorial-complete
+    expect: 'the crafted item is equipped and the camp gate opens'

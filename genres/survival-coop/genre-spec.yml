@@ -1,0 +1,241 @@
+# Genre spec for survival-coop (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/survival-coop/module. survival-coop keeps SurvivalHUD, SurvivalWorld
+# and SurvivalAudio as declared overrides; the spec makes them legible and
+# declares one golden path per config mode, because `mode: crafting` selects a
+# different adapter with its own action set.
+api: 1
+version: 1.0.0
+id: survival-coop
+runtime: survival-coop
+resources:
+  - id: balance
+    nameKey: coin_label
+    name: Coins
+    initial: 10
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: campfire
+    kind: structure
+    nameKey: structure_campfire
+    name: Campfire
+  - id: workbench
+    kind: structure
+    nameKey: structure_workbench
+    name: Workbench
+  - id: starter-fiber
+    kind: item
+    nameKey: item_starter_fiber
+    name: Fiber
+  - id: cord
+    kind: item
+    nameKey: item_cord
+    name: Cord
+  - id: cord-recipe
+    kind: recipe
+    nameKey: recipe_cord
+    name: Cord recipe
+  - id: boar
+    kind: wildlife
+    nameKey: wildlife_boar
+    name: Boar
+  - id: wave-defense
+    kind: defense
+    nameKey: defense_wave
+    name: Wave
+actions:
+  - action: survival-coop:buy-defense
+    control:
+      id: "survival-coop:buy-defense"
+      labelKey: buy_defense
+      label: Buy defense
+      kind: prompt
+      args: []
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: insufficient-coins
+      - ref: rate-limited
+    effects:
+      - path: [balance]
+        delta: -10
+      - path: [upgradeLevel]
+        delta: 1
+  - action: survival-coop:defend-active
+    control:
+      id: "survival-coop:defend-active"
+      labelKey: defend_active
+      label: Defend
+      kind: button
+      args: []
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: no-active-wave
+      - ref: already-resolved
+loop:
+  - id: upgrade
+    actions: [survival-coop:buy-defense]
+    on: DefenseBought
+    goalKey: loop_upgrade
+    goal: Buy a defense
+  - id: spawn
+    actions: [survival-coop:defend-active]
+    on: OnWaveSpawn
+    goalKey: loop_spawn
+    goal: Survive the wave
+  - id: defend
+    actions: [survival-coop:defend-active]
+    on: OnWaveResolved
+    goalKey: loop_defend
+    goal: Clear the wave
+ui:
+  resourceBar:
+    resources: [balance]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: camp
+    offset: [0, 1, 0]
+  zones:
+    - id: camp
+      kind: plaza
+      center: [0, 0, 0]
+      size: [60, 1, 60]
+    - id: ridge
+      kind: wild
+      center: [0, 0, -70]
+      size: [80, 1, 80]
+  nodes:
+    - id: campfire
+      zone: camp
+      kind: station
+      position: [6, 1, 0]
+      control: "survival-coop:buy-defense"
+    - id: ridge-node
+      zone: ridge
+      kind: node
+      position: [0, 1, -70]
+      version: 1
+audio:
+  cues:
+    - {key: survival-coop-action, kind: sfx, type: raid, duration: 0.3, seed: 0}
+  bindings:
+    - {on: "action:survival-coop:buy-defense", cue: survival-coop-action}
+    - {on: "action:survival-coop:defend-active", cue: survival-coop-action, dedupe: 1}
+    - {on: "event:OnWaveSpawn", cue: survival-coop-action, dedupe: 1, field: waveIndex}
+    - {on: "event:OnWaveResolved", cue: survival-coop-action, dedupe: 1, field: lastWaveWon}
+economy:
+  startingBalance:
+    path: [startingBalance]
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["1"]
+  starterState:
+    balance: 10
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 10}
+    - {op: dispatch, player: "1", action: "survival-coop:buy-defense", expect: ok}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: upgradeLevel, equals: 1}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 0}
+    - {op: advance_elapsed, seconds: 0}
+    - {op: advance_elapsed, seconds: 2}
+    - {op: dispatch, player: "1", action: "survival-coop:defend-active", expect: ok}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: lastWaveWon, equals: true}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 5}
+    - {op: dispatch, player: "1", action: "survival-coop:defend-active", expect: refused}
+    - {op: save, player: "1", label: saved}
+    - {op: leave, player: "1"}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 5}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: upgradeLevel, equals: 1}
+    - {op: restore, player: "1", from: saved}
+    - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 5}
+  crafting:
+    data:
+      nativeDeath: development-island-v1
+      survivalSpatial:
+        radiusStuds: 8
+        players: {"1": {x: 0, y: 1, z: 0}}
+        campfires: {campfire: {x: 6, y: 1, z: 0}}
+      durable:
+        actions: ["survival-coop:gather", "survival-coop:transfer-deposit", "survival-coop:transfer-withdraw", "survival-coop:settlement-leave", "survival-coop:settlement-kick", "survival-coop:settlement-transfer-owner", "survival-coop:settlement-rejoin", "survival-coop:settlement-reserve", "survival-coop:settlement-place", "survival-coop:settlement-cancel", "survival-coop:settlement-demolish", "survival-coop:settlement-workshop-reserve", "survival-coop:settlement-workshop-start", "survival-coop:settlement-workshop-complete", "survival-coop:settlement-workshop-cancel", "survival-coop:craft-reserve", "survival-coop:craft-start", "survival-coop:craft-complete", "survival-coop:craft-cancel", "survival-coop:food", "survival-coop:rest", "survival-coop:inventory-move", "survival-coop:inventory-split", "survival-coop:inventory-merge"]
+        serverActions: ["survival-coop:settlement-invite", "survival-coop:server-vitals-tick", "survival-coop:vitals-damage", "survival-coop:rest-stop", "survival-coop:respawn"]
+        tickAction: survival-coop:server-vitals-tick
+        personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+    goldenPath:
+      - {op: begin_clock}
+      - {op: join, player: "1"}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, at_least: 1}
+      - {op: command, player: "1", requestId: reserve, sessionEpoch: current, action: "survival-coop:craft-reserve", args: [cord, hand], expect: ok}
+      - {op: expect_result, player: "1", field: data.jobId, equals: "w1:1:0:7:reserve"}
+      - {op: command, player: "1", requestId: start, sessionEpoch: current, action: "survival-coop:craft-start", args: ["w1:1:0:7:reserve"], expect: ok}
+      - {op: advance_to, seconds: 4}
+      - {op: command, player: "1", requestId: complete, sessionEpoch: current, action: "survival-coop:craft-complete", args: ["w1:1:0:7:reserve"], expect: ok}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.w1:1:0:7:reserve:output:1.quantity", equals: 1}
+      # A durable profile is re-proved by rejoin, not by an administrative
+      # restore: the ledger must keep its replay record, so restore refuses.
+      - {op: save, player: "1", label: crafted}
+      - {op: leave, player: "1"}
+      - {op: join, player: "1"}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.w1:1:0:7:reserve:output:1.quantity", equals: 1}
+      - {op: expect_snapshot, player: "1", genre: survival-coop, field: "workshop.entries.w1:1:0:7:reserve.job.state", equals: Committed}
+      - {op: close, player: "1"}
+      - {op: expect_members, members: []}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    coin_label: {ko: "코인"}
+    structure_campfire: {ko: "모닥불"}
+    structure_workbench: {ko: "작업대"}
+    item_starter_fiber: {ko: "섬유"}
+    item_cord: {ko: "끈"}
+    recipe_cord: {ko: "끈 제작법"}
+    wildlife_boar: {ko: "멧돼지"}
+    defense_wave: {ko: "웨이브"}
+    buy_defense: {ko: "방어 구매"}
+    defend_active: {ko: "방어"}
+    loop_upgrade: {ko: "방어 구매하기"}
+    loop_spawn: {ko: "웨이브에서 살아남기"}
+    loop_defend: {ko: "웨이브 정리하기"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}
+overrides:
+  client:
+    module: genres/survival-coop/module/SurvivalHUD
+    # SurvivalHUD is the crafting bootstrap's own interface (bag, build, workshop). The default
+    # wave mode renders the kit's HUD, whose action bar carries the wave's own buy-defense prompt
+    # control and defend button - controls SurvivalHUD does not implement.
+    mode: crafting
+  world:
+    module: genres/survival-coop/module/SurvivalWorld
+  audio:
+    module: genres/survival-coop/module/SurvivalAudio

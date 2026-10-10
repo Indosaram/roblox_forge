@@ -1,0 +1,36 @@
+# rpg-progression economy template
+currencies:
+  - id: Coins
+    kind: free
+    starting: 0
+  - id: Gems
+    kind: premium
+    starting: 0
+
+sources:
+  - id: quest-reward
+    currency: Coins
+    notes: quest claim payout
+  - id: boss-drop
+    currency: Coins
+    notes: defeating a region boss
+  - id: level-milestone
+    currency: Coins
+    notes: stipend on reaching a level
+  - id: gem-grant
+    currency: Gems
+    notes: one-time region clear bonus
+
+sinks:
+  - id: stat-respec
+    currency: Coins
+    notes: refund spent stat points
+  - id: gear-shop
+    currency: Coins
+    notes: weapons and armor
+  - id: region-pass
+    currency: Coins
+    notes: unlock a region early
+  - id: premium-cosmetic
+    currency: Gems
+    notes: deterministic cosmetic purchase

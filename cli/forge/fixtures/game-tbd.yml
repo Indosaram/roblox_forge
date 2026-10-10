@@ -1,0 +1,10 @@
+name: Fixture Pack
+slug: fixture-pack
+genres: [collect-raid]
+currencies: [Coins]
+monetization: {gamepasses: [], products: [], subscriptions: []}
+art_style: TBD
+poly_budget: TBD
+locales: [en-us]
+qa_scenarios: [core-loop]
+liveops_cadence: weekly

@@ -1,0 +1,244 @@
+# Genre spec for rpg-progression (see docs/forge/genre-spec.md).
+#
+# A binding document: every rule named here already exists in core/domain/genre
+# or genres/rpg-progression/module. A fresh pack renders its HUD, world and
+# audio from this spec through core/ui-kit/genre.
+api: 1
+version: 1.0.0
+id: rpg-progression
+runtime: rpg-progression
+resources:
+  - id: balance
+    nameKey: coin_label
+    name: Coins
+    assetKey: rpg-progression-starter-prop
+    initial: 0
+    hud:
+      slot: resource-bar
+      order: 1
+entities:
+  - id: slime
+    kind: boss
+    nameKey: boss_slime
+    name: Slime
+    assetKey: rpg-progression-starter-prop
+    configPath: [bosses, slime]
+  - id: golem
+    kind: boss
+    nameKey: boss_golem
+    name: Golem
+    configPath: [bosses, golem]
+  - id: first-boss
+    kind: quest
+    nameKey: quest_first_boss
+    name: First boss
+    configPath: [quests, 1]
+actions:
+  - action: rpg-progression:strike-boss
+    control:
+      id: "rpg-progression:strike-slime"
+      labelKey: strike_slime
+      label: Strike slime
+      kind: button
+      args: [slime]
+      ui:
+        slot: action-bar
+        order: 1
+    preconditions:
+      - ref: locked-region
+      - ref: cooldown
+  - action: rpg-progression:strike-boss
+    control:
+      id: "rpg-progression:strike-golem"
+      labelKey: strike_golem
+      label: Strike golem
+      kind: button
+      args: [golem]
+      ui:
+        slot: action-bar
+        order: 2
+    preconditions:
+      - ref: locked-region
+      - ref: cooldown
+  - action: rpg-progression:claim-quest
+    control:
+      id: "rpg-progression:claim-first-boss"
+      labelKey: claim_first_boss
+      label: Claim reward
+      kind: button
+      args: [first-boss]
+      ui:
+        slot: action-bar
+        order: 3
+    preconditions:
+      - ref: quest-incomplete
+loop:
+  - id: spawn
+    actions: [rpg-progression:strike-boss]
+    on: OnBossSpawn
+    goalKey: loop_spawn
+    goal: Find a boss
+  - id: defeat
+    actions: [rpg-progression:strike-boss]
+    on: OnBossDefeated
+    goalKey: loop_defeat
+    goal: Defeat it
+  - id: claim
+    actions: [rpg-progression:claim-quest]
+    on: QuestClaimed
+    goalKey: loop_claim
+    goal: Claim the reward
+  # The chain continues past the first quest. The ridge is genuinely gated - the
+  # domain refuses a golem strike until the level its region requires - so the
+  # unlock is a domain rule the chip merely names, never a rule the spec adds.
+  - id: unlock
+    actions: [rpg-progression:strike-boss]
+    on: OnBossDefeated
+    goalKey: loop_unlock
+    goal: Unlock the ridge
+  - id: defeat-golem
+    actions: [rpg-progression:strike-boss]
+    on: OnBossDefeated
+    goalKey: loop_defeat_golem
+    goal: Defeat the ridge golem
+ui:
+  resourceBar:
+    resources: [balance]
+    order: 1
+  actionButtons:
+    from: actions
+    kinds: [button, prompt, player-button]
+    order: 2
+  inventoryGrid:
+    entityKind: boss
+    field: activeBosses
+    order: 3
+  objective:
+    from: loop
+    order: 4
+  notifications:
+    kinds: [info, refuse, reward]
+    order: 5
+world:
+  name: World
+  spawn:
+    zone: meadow
+    offset: [0, 1, 0]
+  zones:
+    - id: meadow
+      kind: plaza
+      center: [0, 0, 0]
+      size: [70, 1, 70]
+    - id: ridge
+      kind: wild
+      center: [0, 0, -80]
+      size: [60, 1, 60]
+    - id: arena
+      kind: arena
+      center: [0, 0, 0]
+      radius: 24
+  nodes:
+    # Each camp carries the enemy it strikes. The health bar the world draws is the
+    # `activeBosses` field the adapter already publishes, so an enemy spawning,
+    # taking a hit and being defeated is visible where the player is standing.
+    - id: meadow-camp
+      zone: meadow
+      kind: station
+      position: [0, 1, 10]
+      control: "rpg-progression:strike-slime"
+      feedback:
+        - kind: health
+          field: activeBosses.slime
+          entity: slime
+          max: 2
+          label: Slime
+          labelKey: fb_slime
+          cue: rpg-progression-strike
+    - id: ridge-gate
+      zone: ridge
+      kind: station
+      position: [0, 1, -80]
+      control: "rpg-progression:strike-golem"
+      feedback:
+        - kind: health
+          field: activeBosses.golem
+          entity: golem
+          max: 4
+          label: Golem
+          labelKey: fb_golem
+          cue: rpg-progression-strike
+audio:
+  cues:
+    - {key: rpg-progression-strike, kind: sfx, type: raid, duration: 0.2, seed: 0}
+    - {key: rpg-progression-claim, kind: sfx, type: coin, duration: 0.3, seed: 1}
+  bindings:
+    - {on: "action:rpg-progression:strike-boss", cue: rpg-progression-strike}
+    - {on: "action:rpg-progression:claim-quest", cue: rpg-progression-claim}
+    - {on: "event:OnBossDefeated", cue: rpg-progression-strike, field: activeBosses}
+    - {on: "event:QuestClaimed", cue: rpg-progression-claim, field: quests}
+    - {on: "event:LevelChanged", cue: rpg-progression-claim, field: level}
+economy:
+  startingBalance:
+    path: [startingBalance]
+  simulation:
+    sourceTotal: ">0"
+    sinkTotal: ">0"
+    rejectionRate: "<0.2"
+qa:
+  name: golden-path
+  players: ["1"]
+  starterState:
+    balance: 0
+    level: 1
+  # The meadow boss spawns on the schedule, so the derived world path lets the clock
+  # reach the first spawn tick before it walks to the camp and strikes.
+  worldPath:
+    advanceSeconds: 2
+  goldenPath:
+    - {op: begin_clock}
+    - {op: join, player: "1"}
+    - {op: advance_elapsed, seconds: 0}
+    - {op: advance_elapsed, seconds: 2}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: activeBosses.slime, equals: 2}
+    - {op: dispatch, player: "1", action: "rpg-progression:strike-boss", args: [golem], expect: refused}
+    - {op: dispatch, player: "1", action: "rpg-progression:strike-boss", args: [slime], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: activeBosses.slime, equals: 1}
+    - {op: dispatch, player: "1", action: "rpg-progression:strike-boss", args: [slime], expect: refused}
+    - {op: advance_elapsed, seconds: 3}
+    - {op: dispatch, player: "1", action: "rpg-progression:strike-boss", args: [slime], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: level, equals: 2}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: points, equals: 1}
+    - {op: dispatch, player: "1", action: "rpg-progression:claim-quest", args: [first-boss], expect: ok}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: balance, equals: 5}
+    - {op: dispatch, player: "1", action: "rpg-progression:claim-quest", args: [first-boss], expect: refused}
+    - {op: save, player: "1", label: saved}
+    - {op: leave, player: "1"}
+    - {op: join, player: "1"}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: balance, equals: 5}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: level, equals: 2}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: activeBosses.slime, is_nil: true}
+    - {op: restore, player: "1", from: saved}
+    - {op: expect_snapshot, player: "1", genre: rpg-progression, field: balance, equals: 5}
+locale:
+  # The one language a generated pack renders. Both columns of the pack's
+  # locale table are filled, so switching this line switches the whole HUD.
+  default: en
+  # Every key this spec declares, translated into every language it carries:
+  # `en` is the display text declared above; `ko` is the string here.
+  strings:
+    coin_label: {ko: "코인"}
+    boss_slime: {ko: "슬라임"}
+    boss_golem: {ko: "골렘"}
+    quest_first_boss: {ko: "첫 보스"}
+    strike_slime: {ko: "슬라임 공격"}
+    strike_golem: {ko: "골렘 공격"}
+    claim_first_boss: {ko: "보상 받기"}
+    loop_spawn: {ko: "보스 찾기"}
+    loop_defeat: {ko: "보스 처치하기"}
+    loop_claim: {ko: "보상 받기"}
+    loop_unlock: {ko: "능선 지역 해금"}
+    loop_defeat_golem: {ko: "능선 골렘 처치하기"}
+    fb_slime: {ko: "슬라임"}
+    fb_golem: {ko: "골렘"}
+    hud_menu: {ko: "메뉴"}
+    hud_select_player: {ko: "플레이어를 먼저 선택하세요"}

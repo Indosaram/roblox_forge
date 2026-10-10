@@ -1,0 +1,68 @@
+{
+  "source": "fixture",
+  "games": [
+    {
+      "name": "Kaiju Egg Raiders",
+      "genre": "collect-raid",
+      "playing": 8200,
+      "visits": 190000000,
+      "gamepassPrices": [199, 499, 999]
+    },
+    {
+      "name": "Brainrot Siege",
+      "genre": "collect-raid",
+      "playing": 41000,
+      "visits": 12000000000,
+      "gamepassPrices": [149, 299]
+    },
+    {
+      "name": "Egg Heist Tycoon",
+      "genre": "collect-raid",
+      "playing": 15000,
+      "visits": 3400000000,
+      "gamepassPrices": [99, 199, 399, 799]
+    },
+    {
+      "name": "Garden of Greed",
+      "genre": "grow-harvest",
+      "playing": 21000,
+      "visits": 35000000000,
+      "gamepassPrices": [199, 399]
+    },
+    {
+      "name": "Sprout Empire",
+      "genre": "grow-harvest",
+      "playing": 6400,
+      "visits": 890000000,
+      "gamepassPrices": [149]
+    },
+    {
+      "name": "Rival Clash",
+      "genre": "pvp-arena",
+      "playing": 30000,
+      "visits": 8000000000,
+      "gamepassPrices": [299, 599]
+    },
+    {
+      "name": "Mystery Manor",
+      "genre": "pvp-arena",
+      "playing": 12000,
+      "visits": 5000000000,
+      "gamepassPrices": []
+    },
+    {
+      "name": "Tower Nemesis",
+      "genre": "tower-defense",
+      "playing": 27000,
+      "visits": 9100000000,
+      "gamepassPrices": [249, 499]
+    },
+    {
+      "name": "Castle Holders",
+      "genre": "tower-defense",
+      "playing": 3300,
+      "visits": 120000000,
+      "gamepassPrices": [199]
+    }
+  ]
+}

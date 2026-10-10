@@ -1,0 +1,11 @@
+name: contract-loop
+genre: social-rp-fashion
+kind: smoke
+contract_api: 1
+operations: [dispatch, snapshot, beginClock, advanceElapsed]
+steps:
+  - action: join
+    seconds: 1
+  - action: execute_luau
+    seconds: 1
+    code: 'local q = game.ServerStorage.ForgeQA; local players = game.Players:GetPlayers(); assert(#players >= 2); q:FindFirstChild("beginClock"):Invoke(); local a, b = tostring(players[1].UserId), tostring(players[2].UserId); assert(q:FindFirstChild("dispatch"):Invoke("social-rp-fashion", "equip", {"starter-hat"}, a).ok); q:FindFirstChild("advanceElapsed"):Invoke(0); q:FindFirstChild("advanceElapsed"):Invoke(2); assert(q:FindFirstChild("dispatch"):Invoke("social-rp-fashion", "vote", {b, 5}, a).ok); assert(not q:FindFirstChild("dispatch"):Invoke("social-rp-fashion", "vote", {b, 1}, a).ok); q:FindFirstChild("advanceElapsed"):Invoke(4); local s = q:FindFirstChild("snapshot"):Invoke("social-rp-fashion", b); assert(s.phase == "results" and s.balance == 5); q:FindFirstChild("advanceElapsed"):Invoke(4); assert(q:FindFirstChild("snapshot"):Invoke("social-rp-fashion", b).balance == 5)'

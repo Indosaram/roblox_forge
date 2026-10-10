@@ -1,0 +1,33 @@
+# social-rp-fashion economy template
+currencies:
+  - id: Coins
+    kind: free
+    starting: 0
+  - id: StyleTokens
+    kind: premium
+    starting: 0
+
+sources:
+  - id: vote-win
+    currency: Coins
+    notes: placing in a themed contest
+  - id: participation
+    currency: Coins
+    notes: completing a round
+  - id: theme-bonus
+    currency: Coins
+    notes: matching the round theme
+  - id: token-drop
+    currency: StyleTokens
+    notes: rare round bonus
+
+sinks:
+  - id: outfit-shop
+    currency: Coins
+    notes: hats, tops, bottoms, shoes, accessories
+  - id: dye
+    currency: Coins
+    notes: recolor an owned item
+  - id: premium-look
+    currency: StyleTokens
+    notes: deterministic premium cosmetic set

@@ -1,0 +1,53 @@
+{
+  "name": "grow-and-defend-garden",
+  "globIgnorePaths": ["**/*.spec.luau", "**/*.md", "**/.gitkeep", "**/*.yml"],
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Remotes": {
+        "$className": "Folder",
+        "Plant": { "$className": "RemoteFunction" },
+        "Harvest": { "$className": "RemoteFunction" },
+        "Sell": { "$className": "RemoteFunction" },
+        "StateChanged": { "$className": "RemoteEvent" }
+      },
+      "Forge": {
+        "$className": "Folder",
+        "core": {
+          "$className": "Folder",
+          "domain": { "$path": "../../core/domain" },
+          "infra": { "$path": "../../core/infra" }
+        },
+        "genres": {
+          "$className": "Folder",
+          "grow-harvest": {
+            "$className": "Folder",
+            "module": { "$path": "../../genres/grow-harvest/module" }
+          },
+          "survival-coop": {
+            "$className": "Folder",
+            "module": { "$path": "../../genres/survival-coop/module" }
+          }
+        },
+        "games": {
+          "$className": "Folder",
+          "grow-and-defend-garden": {
+            "$className": "Folder",
+            "src": {
+              "$className": "Folder",
+              "shared": { "$path": "src/shared" }
+            }
+          }
+        }
+      }
+    },
+    "ServerScriptService": {
+      "GardenServer": { "$path": "src/server/GardenServer.server.luau" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "GardenClient": { "$path": "src/client/GardenClient.client.luau" }
+      }
+    }
+  }
+}

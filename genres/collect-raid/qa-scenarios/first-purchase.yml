@@ -1,0 +1,39 @@
+name: first-purchase
+genre: collect-raid
+kind: smoke
+steps:
+  - action: join
+    seconds: 5
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "schemaVersion") >= 1, "save schema loads")'
+    seconds: 2
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "coins2xOwned") == false, "coins2x is not yet owned before the gamepass purchase")'
+    seconds: 2
+    expect: 'baseline: the multiplier pass is not owned before the purchase, so the purchase below is the only thing that can grant it'
+  - action: purchase_sim
+    target: gamepass
+    seconds: 3
+    expect: 'the deterministic coin multiplier gamepass applies, never a random reward'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "coins2xOwned") == true, "the coins2x gamepass purchase actually landed on the player state")'
+    seconds: 2
+    expect: 'this fails if the gamepass purchase_sim silently no-ops instead of granting the pass'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local s = ForgeQA:Invoke("snapshot"); assert(s.vault == 0, "vault starts empty before the product purchase")'
+    seconds: 2
+    expect: 'baseline: a fresh QA player owns no vaulted creatures before the product purchase below'
+  - action: purchase_sim
+    target: product
+    seconds: 3
+    expect: 'a deterministic guaranteed-unit product is granted'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local s = ForgeQA:Invoke("snapshot"); assert(s.vault >= 1, "the guaranteed creature product purchase actually granted a vaulted creature")'
+    seconds: 2
+    expect: 'this fails if the product purchase_sim silently no-ops instead of granting the guaranteed unit'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "coinsPerSecond") == ForgeQA:Invoke("get", "baseCoinsPerSecond") * 2, "multiplier applied")'
+    seconds: 2
+    expect: 'now meaningful: the pass is proven owned and a creature is proven granted, so both sides of this ratio are nonzero'
+  - action: leave
+    seconds: 1

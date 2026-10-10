@@ -1,0 +1,65 @@
+name: vitals-food-rest
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1"]
+fixtures: []
+data:
+  survivalSpatial:
+    radiusStuds: 12
+    players: {"1": {x: 0, y: 0, z: 0}}
+    campfires: {near: {x: 3, y: 0, z: 4}, far: {x: 13, y: 0, z: 0}}
+  durable:
+    actions: ["survival-coop:food", "survival-coop:rest"]
+    windowSeconds: 10000
+    maxOutcomes: 64
+steps:
+  - {op: join, player: "1"}
+  - {op: command, player: "1", requestId: far, sessionEpoch: 0, action: "survival-coop:rest", args: [far], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: CAMPFIRE_UNREACHABLE}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.resting, equals: false}
+  - {op: command, player: "1", requestId: near, sessionEpoch: 0, action: "survival-coop:rest", args: [near]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.resting, equals: true}
+  - {op: command, player: "1", requestId: full, sessionEpoch: 0, action: "survival-coop:food", args: [medicine-stack], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: NO_EFFECT}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.medicine-stack.quantity, equals: 2}
+  - {op: command, player: "1", requestId: invalid, sessionEpoch: 0, action: "survival-coop:food", args: [stone-stack], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: NOT_FOOD}
+  - {op: command, player: "1", requestId: missing, sessionEpoch: 0, action: "survival-coop:food", args: [absent], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: UNAVAILABLE}
+  - {op: command, player: "1", requestId: stored, sessionEpoch: 0, action: "survival-coop:food", args: [stored-ration], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: UNAVAILABLE}
+  - {op: advance_to, seconds: 180}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.hungerMilli, equals: 90000}
+  - {op: commit_barrier, mode: fail}
+  - {op: command, player: "1", requestId: eat, sessionEpoch: 0, action: "survival-coop:food", args: [ration-stack], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: COMMIT_FAILED}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.ration-stack.quantity, equals: 3}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.hungerMilli, equals: 90000}
+  - {op: command, player: "1", requestId: eat, sessionEpoch: 0, action: "survival-coop:food", args: [ration-stack], times: 100}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.ration-stack.quantity, equals: 2}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.hungerMilli, equals: 100000}
+  - {op: close, player: "1"}
+  - {op: advance_to, seconds: 900}
+  - {op: reload}
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.hungerMilli, equals: 100000}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.activeMillis, equals: 180000}
+  - {op: command, player: "1", requestId: eat, sessionEpoch: 0, action: "survival-coop:food", args: [ration-stack], times: 100}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.ration-stack.quantity, equals: 2}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.hungerMilli, equals: 100000}
+  - {op: dispatch, player: "1", action: "survival-coop:rest", args: [fire, true], expect: refused}
+  - {op: dispatch, player: "1", action: "survival-coop:respawn", args: [], expect: refused}
+  - {op: advance_to, seconds: 3300}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.healthMilli, equals: 0}
+  - {op: dispatch, player: "1", action: "survival-coop:respawn", args: [100000, 50000, 80000], expect: refused}
+  - {op: server_dispatch, player: "1", action: "survival-coop:respawn", args: [100000, 50000, 80000]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitalsMovementMilli, equals: 800}
+  - {op: command, player: "1", requestId: recover, sessionEpoch: 0, action: "survival-coop:rest", args: [near]}
+  - {op: advance_to, seconds: 3301}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.fatigueMilli, equals: 78000}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitalsMovementMilli, equals: 1000}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}

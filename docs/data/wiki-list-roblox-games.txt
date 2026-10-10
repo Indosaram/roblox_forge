@@ -1,0 +1,245 @@
+The online video game platform and game creation system Roblox has millions of games (officially referred to as "experiences" from 2021 to 2026) created by users of its creation tool, Roblox Studio. Due to Roblox's popularity, various games created on the site have grown in popularity, with some games having millions of monthly active players and 5,000 games having over a million visits. The rate of games reaching high player counts has increased annually, with it being reported that over seventy games reached a billion visits in 2022 alone, compared to the decade it took for the first ten games with that achievement to reach that number.
+
+
+== Original games ==
+
+
+=== 99 Nights in the Forest ===
+99 Nights in the Forest is a survival horror game developed by Alec Kieft, Cameron Angland, and Matthew Hufton. The objective is to survive by defending a campfire against NPCs known as The Deer and cultists. Players also have to burn wood in the campfire to make sure it is lit. In order to help defend the campfire, players are able to craft defenses while simultaneously focusing on rescuing four missing kids located in caves. By killing a set amount of wolves or bears, players are able to get a key that lets them inside the cave.
+99 Nights in the Forest is one of the most popular games on Roblox, achieving 14.2 million concurrent users at its peak. It is the seventh most-played Roblox game of all time and has 26 billion visits as of April 2026. The game was awarded Best Adventure Experience and Best Horror Experience at the 2025 Roblox Innovation Awards. A film adaptation of the game was announced in April 2026 to be developed by 20th Century Studios, with Kieft, Angland, and Hufton serving as executive producers. The film will be written by Josh Cooley and produced by Sam Raimi and Rob Tapert. In August 2026, 99 Nights in the Forest was announced as one of Fortnite's Chapter 7 Season 4 collaborations to mixed reactions.
+
+
+=== Adopt Me! ===
+
+Adopt Me! is a massively multiplayer online role-playing game where the nominal focus is players pretending to be either parents adopting a child, or children getting adopted, though the de facto focus is around adopting and caring for many different pets, who can be traded with other players. As of July 2020, the game had been played upwards of ten billion times. Adopt Me! was averaging 600,000 concurrent players as of June 2020, making it the most popular game on Roblox. Due to the high cost of pets within the game, with some rare pets selling for up to US$100, a large number of scammers have risen within the game. As the primary user base of Adopt Me! is on average younger than the rest of Roblox, they are especially susceptible to falling for scams. Uplift Games, the studio behind the game, has accumulated over $16 million in revenue, mostly from microtransactions; the game was the highest profiting game on the platform in the United Kingdom in 2022. The game won three awards in the 2020 Bloxy Awards.
+
+
+=== Arsenal ===
+Arsenal is a first-person shooter game released in 2015. Created by game development group Rolve (stylized as ROLVe), Arsenal consists of 6 gamemodes: Standard, Competitive, Randomizer, Gun Rotation, Railgun Royale, and Concussion Mania. The objective of Arsenal is to get as many kills as possible, getting a new gun each time you get a consecutive kill on a player. Barry Stevens, writing for Entertainment Focus, compared Arsenal to Counter-Strike: Global Offensive. Players could also earn or buy a variety of skins for their character.
+Arsenal was included in the Roblox Egg Hunt 2019: Scrambled in Time. Arsenal won Best Sound Design, Best Game Trailer, and Game of the Year at the 7th Bloxy Awards, as well as the Best Shooter Experience in the 2024 Roblox Innovation Awards. Arsenal was also nominated for "Best Live Event" in the 8th Bloxy Awards. In June 2020, Arsenal became the first first-person shooter game on Roblox to get to 1 billion visits. In April 2022, Arsenal partnered with Prime Gaming to give Amazon Prime subscribers both skins and emotes in the game, alongside an avatar item in Roblox.
+
+
+=== Bee Swarm Simulator ===
+Bee Swarm Simulator is an incremental game developed by Onett where bees follow players around. The bees help collect pollen to convert into honey and attack hostile mobs. The game uses quests, events and other features to hook its players into continuing to play the game. Sophia Kim, writing for Los Angeles Times High School Insider, commended the game's simplicity, elaborating that "it doesn't strive to sugarcoat anything at all", further praising its addictivity. The game participated in various Roblox events throughout 2024 and paticipated in a 2020 Egg Hunt event.
+
+
+=== Brookhaven RP ===
+Brookhaven RP (also known as Brookhaven) is a massively multiplayer online role-playing game released in 2020. Created by game developer Wolfpaq, the game allows players to roleplay in the titular virtual city, with a variety of houses and vehicles. The game was cited as a key example of the roleplay genre that several prominent Roblox games are a part of. Brookhaven RP once had around 800,000 concurrent players at one time. The game was nominated for "Favorite Video Game" at the 2022 Kids' Choice Awards and 2023 Kids' Choice Awards. On February 5, 2025, Brookhaven RP was acquired by another game developer, Voldex, with funding from Raine Partners and Shamrock Capital.
+
+
+=== Dandy's World ===
+Dandy's World is a survival horror game developed by BlushCrunch Studio in which players take on the role of an anthropomorphic character known as a Toon. Each Toon has unique statistics and special abilities. Players descend through successive floors using an elevator, where they must locate and operate machines while collecting a mysterious black substance known as Ichor. Players must also avoid the Twisted Toons, corrupted versions of the playable characters, each possessing distinct abilities and characteristics. Twisted Toons can affect gameplay in various ways, such as increasing the likelihood of hazardous rooms with slippery floors, disguising themselves as Research Capsules to ambush unsuspecting players, or summoning two Ichor hands that attack nearby Toons. 
+In October 2025, Dandy's World was among the Top Trending Games on Roblox, reaching approximately 238,900 concurrent players and an engagement rating of 91%. Dandy's World was later named among the Roblox games featured on YouTube's list of trending topics for 2025. YouTube's Culture and Trends team compiled the list using factors including views, uploads, and creator activity. As of 2026, the game has received more than 6 billion visits on Roblox and has been played by more than 90 million unique visitors since its launch in June 2024. 
+In 2025, BlushCrunch Studio entered a merchandising agreement with CultureFly to develop and distribute licensed products based on the game. The initial product range includes plush toys, toys, and impulse items. In 2026, Scholastic Corporation acquired global publishing rights to produce books based on Dandy's World. The agreement covers multiple formats, including a guidebook and novel scheduled for release in spring 2027, followed by a graphic novel in fall 2027. Qwel, the game's creator, is set to co-write the titles, which are aimed at readers aged eight and older.
+
+
+=== Doors ===
+Doors (stylized in all caps) is a first-person roguelite horror escape room game developed by indie game developers LSPLASH and Red, based on another Roblox game, Rooms. Players open doors and go through hotel rooms through trial and error to progress through the game and escape.  Players can get items to help them progress through the game, while creatures called "entities" either try to kill the player in various ways or help them. Players can display how they are progressing through the game by showing off one selected achievement and how many times they died.
+Doors was released on August 10, 2022, with one floor, titled "The Hotel". A major update revamping the hotel was released on January 29, 2023. A nod to Rooms was added as part of said update, featuring a revamped version of the game as a secret level. On August 26, 2023, modifiers were added, allowing the player to change their game after beating it. A second floor, titled "The Mines", was released on August 30, 2024. The game participated in the first edition of The Hunt, adding a new sub-floor, called "The Backdoor". An admin panel and stream integration was added as part of the "Content Update" on December 20, 2024.
+PCGamesN's Whitney Meers described the horror element of Doors as "too much for YouTubers to handle". Carlos Mestre, writing for TheGamer, described the game as a "spine-chilling adventure" and said that the hotel is "Victorian era-esque". Doors collaborated with plushie manufacturer Makeship for plushies of various entities. The game collaborated with another Roblox game, Tower Heroes, featuring an entity, El Goblino, as a limited-time character.
+
+
+=== Dress to Impress ===
+
+Dress to Impress is a competitive dress-up game where players choose an outfit that aligns with a certain theme. After around five minutes of changing clothes, hairstyle, makeup and other fashion items, the avatars are showcased in a fashion show to be rated by other players from one to five stars. Players can collect in-game currency for more accessories and be placed on leaderboards based on their performances. Initially released in November 2023, it saw a boost in popularity in mid-2024, reaching 2.7 billion visits. In August 2024, the game partnered with English music artist Charli XCX to promote her 2024 album Brat. The game has also received three Innovation Awards, and in 2024 was one of the most popular games on the site, consistently accumulating over 250,000 active users a day. In August 2025, the game partnered with Lady Gaga, featuring a new theme named mayhem where players would be able to receive items related to Lady Gaga. The mayhem theme also featured a style showtime mode based on one of Lady Gaga's songs titled Zombieboy. Lady Gaga also acted as a judge in some of the competitions.
+
+
+=== Epic Minigames ===
+Epic Minigames is a party game developed by Typical Games. Inspired by the Mario Party video game series, players participate in various minigames, ranging from parkour to other competitive and cooperative challenges. Winning minigames rewards players with coins and experience points, which can be used to unlock pets, titles, and other cosmetic items, as well as increase their level.
+
+
+=== Flee the Facility ===
+Flee the Facility is an asymmetrical multiplayer horror escape room game developed by A.W. Apps where players must escape without being captured by the "Beast". Up to four players are designated as Survivors, who must escape the facility by hacking several computers before escaping through one of the two exits. One player is designated to be the Beast, who must knock out and capture the Survivors in cryogenic chambers before they can escape. Flee the Facility surpassed 3 billion visits on April 16, 2022. In January 2026, Dress to Impress collaborated with Flee the Facility releasing a quest which gifted a hammer as well as a Gemstone upon completion.
+
+
+=== Frontlines ===
+Frontlines (stylized in all caps) is a first-person shooter game that first released to the public as a beta in February 2022, with its full release a year later on February 22, 2023. The game was developed by Maximillian, a team of five people beginning in 2019. In the game, two teams of seven players fight for the highest score in a match. Each player's loadout can be customized with different weapons, of which can be further modified with different attachments. Each player can also customize their 'skills', which grant them different skills in-game.
+Since its release, the game has received widespread acclaim, primarily for its graphics, which have been described as "not looking like Roblox" and leading to comparisons between it and the Call of Duty series by critics. It has also collaborated with the American heavy metal band Metallica.
+
+
+=== Grow a Garden ===
+
+Grow a Garden is an idle game released in March 2025. The player begins with an empty plot of farmland and some currency to purchase seeds. By planting and harvesting crops, they can earn money to buy progressively more exotic plants, where it is visible to other players on the same server. The game is known for breaking multiple concurrent user (CCU) records, with at least 22.3 million players having been online on August 23, 2025. Previous CCU peaks include over 16 million on June 21, the highest ever recorded in video game history (surpassing Fortnite's 15.3 million). On November 5, 2025, Grow a Garden was announced to have a film adaptation produced by Story Kitchen.
+
+
+=== Hide and Seek Extreme ===
+Hide and Seek Extreme is an action game developed by Tim7775 based on the children's game hide-and-seek, where a randomly selected player is chosen as "It" and has to find the other players. The player that is chosen as It also gains a special ability to help them find the other players, while the hiders have the ability to taunt at It. Maps generally take place in various environments in a house such as a living room, with players being the "size of toys in a toy store". The game's "creative" level design and "easy to jump in and play" gameplay have been praised.
+
+
+=== Jailbreak ===
+Jailbreak is an action-adventure game which is among the most popular games on the site, accumulating tens of thousands of daily players, and which has been played a total of 7.9 billion times as of June 2026. Released in April 2017, Jailbreak's gameplay consists of players in the role of criminals escaping prison and committing crimes such as heists, as well as players in the role of police and SWAT officers trying to stop them, which Barry Stevens of Entertainment Focus likened to the Grand Theft Auto series. The game was conceived and created as a more fleshed-out version of an earlier Roblox game called Prison Life. It accumulated over US$1 million in revenue during its first year of operation.
+Jailbreak was featured in Roblox's Ready Player One event, based around the release of the film. Alex Balfanz, a co-creator of Jailbreak, covered his undergraduate education at Duke University using funds from the game.
+In November 2025, it was announced that a film was being produced by Wind Sun Sky Entertainment based on the game.
+
+
+=== MeepCity ===
+MeepCity (stylized in lowercase) is a massively multiplayer online role-playing game with noted similarities to Club Penguin and Toontown Online. In addition to its role-playing quantities, MeepCity also features customizable pets, called "Meeps". MeepCity's creator, Alex Binello, stated in 2018 that he was making enough money off the game to pay two employees and support his mother and brother. Binello is noted for his development techniques, which include playing the game on alternate accounts to gauge the reactions of new players. MeepCity was the first game on Roblox to pass 1 billion total visits. The game was averaging 100,000 concurrent players in July 2018. The game received criticism throughout and since 2021 due to the number of online daters inside the game and inappropriate clothing and actions found in the party feature. This caused the game to be placed as "under review" by Roblox on February 16, 2022, but the game was put back up a few hours later. At the same time, it was announced that parties were to be removed.
+
+
+=== The Mimic ===
+The Mimic is an episodic horror game that consists of four distinct "books" based on Japanese folklore where the player is the main character. The game was also a participant in the first edition of The Hunt. Allyson Cochran, writing for The Gamer, applauded the game's "astonishingly impressive graphics", further elaborating that it would "leave you questioning if you've stumbled upon a Roblox game at all". Logan Gilchrist of Dot Esports called the game "interesting because it provides more story than the average Roblox horror game". The Mimic was nominated "Best Horror" in the 2024 Roblox Innovation Awards, however lost.
+
+
+=== Murder Mystery 2 ===
+Murder Mystery 2 is a social deduction game where players are randomly assigned roles to play each round. One player is selected to be a murderer, who must kill everyone before the round ends. Another player is selected to be a sheriff and must shoot the murderer to win; all remaining players are selected as innocents whose goal is to survive. Upon the sheriff's death their gun is dropped and innocents are able to pick it up. Within the game you are able to collect coins which can be used to buy powers, emotes and mystery boxes. The game's level design has been praised by critics.
+
+
+=== Natural Disaster Survival ===
+
+Natural Disaster Survival is an action game where players are tasked with the role of surviving a litany of natural disasters, including earthquakes, tornadoes, tsunamis, fires, thunderstorms, sandstorms and floods. The winners are the players who survive to the end of the round.
+Christian Vaz, writing for PCGamesN, rated the game as one of the best Roblox games. However, the real world disaster response advice that the game was seen to be imparting was criticised by Bevan Findlay of the University of Auckland. This included advice to get "outside in the midst of an earthquake" or sheltering inside to avoid tornadoes, concluding that "wrong advice on disaster preparedness needs to be avoided".
+
+
+=== Pet Simulator ===
+
+The Pet Simulator series is an incremental game where the player collects different pets. The game features over 1,000 pets to collect and allows players to trade pets from other people and hatch pets from loot boxes known as eggs. An entry in the Pet Simulator series, Pet Simulator X sparked controversy among the Roblox community when the developers, Big Games, integrated non-fungible tokens into the game, the first ever instance of such on the platform. The game has been played over 5 billion times as of January 2023. Pet Simulator X won the 2023 Roblox Innovation Award for Most Concurrent Users, with a peak of 1.48 million simultaneous players; the award was accepted on behalf of Big Games creator Preston by musician Post Malone.
+A sequel, Pet Simulator 99, was released on December 1, 2023, developed by Big Games Pets. The core gameplay retains the egg-hatching and pet-collecting formula of earlier entries, while introducing pets that break obstacles autonomously, alongside new areas, minigames, and over 2,000 unique collectible pets. Select pets from Pet Simulator X could be transferred to the new game at launch.
+Barry Stevens, writing for Entertainment Focus, praised the launch of Pet Simulator 99 as "fantastic", noting its revised fortnightly update schedule as an improvement over its predecessor. Pet Simulator received a series of McDonald's Happy Meal toys in November 2024. Each meal has two toys, one to keep and one to gift.
+
+
+=== Phantom Forces ===
+Phantom Forces is a first-person shooter game that has been positively compared to the Call of Duty, Battlefield, and Counter-Strike franchises. In the game, players can select weapons from four military types for each round they play. Additionally, players are able to perform various actions, such as the ability to crouch, lie in a prone position, flank, and jump to cover. Phantom Forces has received praise from critics for its design, controls, and complexity for a Roblox game. The game has also received three Bloxy Awards, and in 2018 was one of the more popular games on the site, accumulating about 10,000 players daily.
+
+
+=== Piggy ===
+Piggy is an episodic horror game series that incorporates elements from Peppa Pig and the indie horror game Granny into a zombie apocalypse setting. The games' style of episodic storytelling resulted in a significant fandom developing prior to the game's finale on May 25, 2020. Piggy was uploaded to the site in January 2020 by Kohl Couture (also known as MiniToon) and had been played 12 billion times as of November 2023.
+A sequel to Piggy, titled Piggy: Book 2, released on September 12, 2020. The last chapter was released on October 23, 2021. On November 24, 2022, MiniToon announced that the main game of Piggy was over. The demo to another entry, Piggy: Intercity, an open-world survival game, was released on January 28, 2021. Another demo for Piggy: Intercity released on May 10, 2026, with the full game releasing on June 13, 2026.
+
+
+=== Rainbow Friends ===
+Rainbow Friends is an episodic horror game developed by Roy & Charcle where players attempt to escape the titular group of monsters (namely, Blue, Green, Orange, Purple, Yellow and Cyan) by collecting items. Players can hide in a box to avoid detection. Chapter 1 was released on July 1, 2022. Chapter 2, released on June 2, 2023, takes place in Odd World. Jacqueline Zalace of The Gamer described the game as a "horror-themed Miss Frizzle field trip where monsters lure you into a scary theme park to collect items".
+
+
+=== Restaurant Tycoon 2 ===
+Restaurant Tycoon 2, released on September 1, 2019 by Ultraw, is a business simulation game, where players begin with a basic standard restaurant which they selected, and serve for NPCs, which order for dishes from different cuisines, earning the player with money, which they can then use, to purchase new furniture and upgrades, to increase the restaurant larger in size.
+
+
+=== Rift Royale ===
+Rift Royale is a battle royale game developed by Easy.gg, the developers behind BedWars and Islands. The game was inspired by Fortnite Battle Royale and was an attempt to create an "awesome competitive game" within the Roblox platforms limitations. In August 2022, the game was shut down following a mass wave of exploiters rendering the game unable to be maintained by the developers, with them stating that what they wanted to do was not possible on the platform. It amassed 29 million visits by the time it had shut down.
+
+
+=== Rivals ===
+Rivals, released on, 26 May, 2024 by Nosniy Games, is a first–person shooter game, where players, participate in, a 1v1 or 5v5 battle, in an arena, and are required, to eliminate, the other 1 or 5 players, by using guns, in order, to claim victory. Players, can also, use their movement, to survive, the game, by dashing, and bouncing across, to dodge shoots, or to approach, more rapidly.
+Rivals, is identified, for winning, a various amount, of awards, winning "Best Shooter Game/Experience", in the, 2025 and 2026 Roblox Innovation Awards, and also winning, "Best Studio", representing Nosniy Games, in the, 2026 Roblox Innovation Awards.
+
+
+=== Royale High ===
+Royale High  is a massively multiplayer online role-playing game developed by Callmehbob. The game is set in a magical universe and deals with a fantasy school where players dress-up as royalty or supernatural creatures. Launched in 2017, Royale High had more than 8.2 billion total visits as of October 2022, regularly achieving thousands of concurrent players, making it one of the most popular games on the platform.
+
+
+=== Scuba Diving at Quill Lake ===
+Scuba Diving at Quill Lake is an exploration game where the player explores the ocean floor for different treasures. The player is able to sell different treasures to unlock new equipment, which will allow them to explore underwater caverns. Robert Earl Wells III, writing for Lifewire, commended the game as the perfect game to "play before bed that won't get you too wound up".
+
+
+=== SharkBite ===
+SharkBite is an action game created by game developers Simon Burgess and Max Entwistle. One player would be the shark, who have to kill all the other players, called "survivors" before they could kill the shark itself within a certain time limit. Before each round, survivors can choose their own type of boat, and purchase more powerful weapons to attack the shark with its in-game currency, "shark teeth". Barry Stevens, writing for Entertainment Focus, applauded the game's intensity, elaborating that he felt "genuine panic as [he tries] to swim away without being noticed [by the shark]". Burgess used revenue from SharkBite to pay for his university fees. A sequel, SharkBite 2, is also available on Roblox.
+
+
+=== Speed Run 4 ===
+Speed Run 4 is a fast-paced platformer game developed by Vurse. In the game, the player is to complete 31 different themed levels as fast as possible. After completing the main game, players can unlock different "dimensions", which change the themes of each level in the game. The game's choice of music and short-burst-styled gameplay has been praised.
+
+
+=== Super Bomb Survival ===
+Super Bomb Survival is an action game where players attempt to survive a range of disasters from fires to explosions over the course of two and a half minutes. Each bomb has a different special effect, such as eggs, spikes, and fog. Players also have the ability to purchase "skills". The game had been compared to Natural Disaster Survival. John Julians, writing for Radio Times, complimented the game's fast pace and premise, further elaborating that the players would "find [themselves] with a whole new threat to contend with just after escaping the last".
+
+
+=== Theme Park Tycoon 2 ===
+Theme Park Tycoon 2 is a business simulation game where the player must construct their own theme park on a budget. The game features various different mechanics for the player to keep track of, such as sanitary conditions, while having to accommodate for as many guests as possible with various different amenities. Also featured in the game are online leaderboards, allowing the player to compete with others globally in revenue and guest attendance numbers. This game also have some missions, where some users can do their tasks about putting a new ride, or finding guests inside the theme park. The game has been compared to RollerCoaster Tycoon.
+
+
+=== Tower of Hell ===
+Tower of Hell is a multiplayer platform game where the player must get past a variety of obstacles to get to the top of the tower. Unlike traditional Roblox obstacle courses, there are no checkpoints. The game was nominated "Best Mobile Game" in the 7th Bloxy Awards, however lost.
+
+
+=== Welcome to Bloxburg ===
+Welcome to Bloxburg is a life simulation and role-playing game created by Coeptus in 2014. The game revolves around working various jobs to earn money, which can be used to build and design houses as well as buying cars. Based on The Sims, it cost 25 Robux to access the game, before becoming free-to-play on June 15, 2024. It was acquired by Embracer Group in 2023 under Coffee Stain Gothenburg, a subsidiary of Coffee Stain Studios created for Bloxburg. Welcome to Bloxburg was used as a demonstrative tool at a summer camp called the Junior Builder Camp to teach children about homebuilding.
+
+
+=== Work at a Pizza Place ===
+Work at a Pizza Place is a simulation game in which players pick several different roles in order to work together to fulfill orders at a pizza parlor. Players are able to make money which they can spend on customizing and upgrading their house. The game is considered a classic among the Roblox userbase, due to it being one of the oldest still-popular games on the platform—first released on November 3, 2007—with the creator attributing its success to the game's ability to encourage socializing. The game has received praise for its driving mechanics. Work at a Pizza Place was the first game on Roblox to be played 100 million times, and it has been played 5 billion times as of February 2025.
+
+
+== Licensed games ==
+These games are derived from intellectual properties separate from Roblox and have the owners' licenses to do so.
+
+
+=== The Co-Worker Game ===
+The Co-Worker Game is an official IKEA virtual store that opened on June 24, 2024. It is notable for being the first time that paid work was offered through the platform, as ten players would be hired and paid as employees in the store.
+
+
+=== Driving Empire ===
+Driving Empire, released on June 23, 2019 by Bourgist and currently claimed by Voldex, is an auto racing game, where players can race on a majority of highways, race tracks, and other multiple sets. Since 2022, the game collaborated with significant vehicle brands, and consists of multiple licensed vehicles, branded from Toyota, Land Rover, and NASCAR.
+
+
+=== FIFA Super Soccer ===
+FIFA Super Soccer is an official FIFA-branded game developed by Gamefam. The game is a rebranding of Gamefam's pre-existing Super League Soccer. In it, players can play soccer as a part of official national teams and clubs and unlock exclusive FIFA-themed avatar items.
+
+
+=== Hyundai Mobility Adventure ===
+Hyundai Mobility Adventure is a virtual space showcasing Hyundai Motor Company's vehicles and "future mobility solutions". It was unveiled with the start of the open beta service on September 1, 2021, and the official service began on October 14, 2021. Hyundai Mobility Adventure allows the player to drive vehicles such as Hyundai Ioniq 5 and experience future mobility such as urban air mobility (UAM), purpose-built vehicles (PBV), and robotics.
+
+
+=== Mechamato Robot Battle ===
+Mechamato Robot Battle is an adventure game based on the Mechamato animated series developed by Monsta Game, and released on October 15, 2022. Set in the BoBoiBoy universe, players can level up by eliminating a legion of bad robots and collect coins by exploring the Kota Hilir town.
+
+
+=== Notoriety ===
+Notoriety is a cooperative first-person shooter game developed by Moonstone Games, first released on June 29, 2014 after being in production since January 2010. Notoriety was strongly inspired by the 2013 video game Payday 2 and had extremely similar gameplay, including recreations of the game's levels and unlicensed use of its soundtrack. Notoriety was considerably popular among Roblox's playerbase, amassing approximately 227 million plays and 1.3 million favorites until September 23, 2023, two days before the release of Payday 3, when it was removed from Roblox following a DMCA takedown from Starbreeze Studios, the copyright holders of the Payday series. On December 12, 2024, Starbreeze announced they had entered a licensing agreement with Moonstone Games to relaunch Notoriety as part of the Payday series, featuring "official Payday assets, characters, and heists". The remade officially-licensed version of the game, Notoriety: A Payday Experience, was released on December 16, 2024.
+
+
+=== Party!!! at Olivia's Place ===
+Party!!! at Olivia's Place (stylized in lowercase) is a virtual hangout advergame themed around Olivia Rodrigo. It features a scavenger hunt themed around her sophomore album, Guts (2023), and three songs from said album. Players have the ability to purchase cosmetic items for their avatar inspired by Rodrigo's music videos.
+
+
+=== Sonic Speed Simulator ===
+
+Sonic Speed Simulator is a Sonic the Hedgehog incremental platform game developed by Gamefam in association with Sega of America. Within the game, the player is required to level up by moving around and collecting Chaos Orbs to run faster and jump higher. The game was initially launched on April 13, 2022 as a paid beta game, costing 50 Robux to access, and officially released as free-to-play three days later. Reaching 70 million plays and 275,000 concurrent players in the first week of its release, it broke the record for the largest launch on Roblox, and it would reach 500 million visits in its first four months. It eventually became the first branded game with one billion visits in August 2024.
+
+
+=== SpongeBob Simulator ===
+SpongeBob Simulator is a SpongeBob SquarePants incremental game developed by Gamefam in association with Nickelodeon and Paramount Global. The player controls their avatar or a character from the franchise and journeys Bikini Bottom collecting doubloons and rubies through the use of their "buddies". Buddies collect the currencies for the player which the player can use to purchase various items, such as a boat mount, additional buddy slots, and the Octuple Clam Open, allowing simultaneous opening of eight clams. A paid beta of the game was released on September 9, 2023. With an original set release date of January 26, 2024, the game was later rescheduled to launch a week later on February 2, 2024.
+
+
+=== Steal a Brainrot ===
+
+Steal a Brainrot is an idle game developed by SpyderSammy (also known as Sammy). The game centers around buying and stealing Brainrots—characters drawn from the Italian brainrot memes. Owned by DoBig Studios, Steal a Brainrot is the only Roblox game to have surpassed 25 million concurrent users (CCU) and is the second to have surpassed 20 million CCU, the first being Grow a Garden. The game was popularized on social media, where users have shared strategy tips and viral clips of upset children who had lost their Brainrots.
+
+
+== Unlicensed games ==
+These games, while derived from intellectual properties separate from Roblox, are not licensed by the owners to do so. Unlicensed fan games are an example.
+
+
+=== 3008 ===
+3008 is an open-world horror game where players navigate an "infinite IKEA" filled with supplies, either to make a base or as food, as well as hostile IKEA employees that attack players at night. It is based on SCP-3008, which is from the SCP Foundation universe.
+
+
+=== Anime Fighting Simulator ===
+Anime Fighting Simulator is a fighting game developed by BlockZone. The game features various different playable characters from different manga, anime, and video games such as Final Fantasy VIII. The game also features a competitive tournament mode and story mode.
+
+
+=== BedWars ===
+BedWars is a team-based action-strategy game developed by Easy.gg based on the fan-made Minecraft minigame of the same name. Similar to the original version, players defend their bed from other opponents while attempting to destroy other player's beds. Unlike the Minecraft version, the game has more weapons to use. Players can collect different resources such as diamonds and emeralds to upgrade their team. The game was one of the most played Roblox games in 2022.
+
+
+=== Blox Fruits ===
+Blox Fruits is an action fighting game created by Gamer Robot that is inspired by the manga and anime One Piece. In the game, players choose to be a master swordsman, a powerful fruit user, a martial arts attacker, a gun user, or any mix of the 4 as they sail across the seas alone or in a team in search of various worlds and secrets with the goal of becoming "the strongest player to ever live". Items known as "fruits" grant the player various advantages and disadvantages in battles against powerful enemies and bosses. The game has been described by VG247 to be "one of the most content-packed games on Roblox." Blox Fruits won "Best Action - RPG" in the 2024 Roblox Innovation Awards.
+
+
+=== Pokémon Brick Bronze ===
+Pokémon Brick Bronze was a role-playing game released in 2015 and developed by Llama Train Studio. It was not affiliated with the Pokémon media franchise. It was removed from the platform in April 2018 by Roblox administrators, reportedly after copyright concerns were raised by Nintendo. At its height, the game was regularly reaching tens of thousands of concurrent users. Pokémon Brick Bronze was one of many Pokémon games on Roblox, though it was widely considered the most extensive. The game's graphics were mostly a 3D block-style consistent with most games on Roblox, though the Pokémon were each represented by 3DS models in a pixel art style.
+Pokémon Brick Bronze played much like a traditional Pokémon handheld game. At the beginning, players chose 1 out of 21 Starter Pokémon from numerous games. Brick Bronze featured combat similar to actual Pokémon games, with a turn-based battle system and NPC opponents that consisted of trainers and other traditional Pokémon enemies.
+Luke Binns of Softonic gave a positive review of Brick Bronze, praising its expansiveness and declaring that "When playing Pokémon Brick Bronze, you may think you're playing the real thing". David Jagneaux, writing in PCMag, also spoke positively of the game, stating that it had "enough original ideas to occupy several days of your time". Player-One's Steven Asarch was more negative, criticizing what he considered the "poor implementation of the battle system".
+
+
+=== Ryanair Roblox ===
+Ryanair Roblox is a fan game based on the Irish budget airline Ryanair developed by 11-year-old game developer Sebastian Codling. Similar to real life, players have to purchase "tickets" to board the in-game flights, with "value" tickets being for free. Players can also apply for a role-played job in the game. Ryanair Roblox celebrated its millionth flight in October 2023. Richard Currie of The Register described players taking up jobs in-game to "seem to take their roles seriously and harbor a strange fondness for Ryanair".
+
+
+== Notes ==
+
+
+== References ==
+
+
+=== Primary sources ===
+In the text, these references are preceded by a double dagger (‡):

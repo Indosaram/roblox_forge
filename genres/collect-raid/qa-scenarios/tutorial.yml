@@ -1,0 +1,43 @@
+name: tutorial
+genre: collect-raid
+kind: playtest
+steps:
+  - action: join
+    seconds: 5
+    expect: 'player spawns at the base with the tutorial prompt visible'
+  - action: capture
+    target: spawn
+    expect: 'tutorial prompt overlays the egg shop'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("tutorialState") == "buy", "tutorial starts on the buy step")'
+    expect: 'the tutorial-prompt text is driven by the buy step before anything is purchased'
+  - action: click
+    target: buy-egg-button
+    expect: 'the starting coins buy the first egg'
+  - action: wait
+    seconds: 2
+    expect: 'the server round trip for the purchase and tutorial-step advance lands'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("tutorialState") == "hatch", "buying an egg advances the tutorial-prompt to the hatch step")'
+    expect: 'the tutorial-prompt (driven by TutorialState) now shows the hatch hint, proving buy was observed'
+  - action: wait
+    seconds: 6
+    expect: 'the ember eggs first hatch slot (hatchSeconds = 5) is ready'
+  - action: click
+    target: Hatch_1
+    expect: 'egg hatch timer completes and hatching is triggered'
+  - action: wait
+    seconds: 2
+    expect: 'the server round trip for the hatch lands'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "owned") >= 1, "tutorial collected a unit")'
+    expect: 'one unit is in the collection'
+  - action: wait
+    seconds: 2
+    expect: 'the collected unit starts earning income automatically'
+  - action: execute_luau
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("tutorialState") == "claim", "hatching advances to the claim step, not completion")'
+    expect: 'the tutorial remains on claim until a completed daily quest is claimed'
+  - action: capture
+    target: tutorial-progress
+    expect: 'the claim hint and passive coin income are visible; claim and store steps remain'
