@@ -9,6 +9,7 @@
         "Plant": { "$className": "RemoteFunction" },
         "Harvest": { "$className": "RemoteFunction" },
         "Sell": { "$className": "RemoteFunction" },
+        "BuySeed": { "$className": "RemoteFunction" },
         "StateChanged": { "$className": "RemoteEvent" }
       },
       "Forge": {
@@ -16,7 +17,8 @@
         "core": {
           "$className": "Folder",
           "domain": { "$path": "../../core/domain" },
-          "infra": { "$path": "../../core/infra" }
+          "infra": { "$path": "../../core/infra" },
+          "ui-kit": { "$path": "../../core/ui-kit" }
         },
         "genres": {
           "$className": "Folder",

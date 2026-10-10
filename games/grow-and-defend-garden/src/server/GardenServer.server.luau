@@ -12,6 +12,7 @@ local SurvivalCoop = require(Forge.genres["survival-coop"].module.SurvivalCoop)
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Plant = Remotes:WaitForChild("Plant") :: RemoteFunction
+local BuySeed = Remotes:WaitForChild("BuySeed") :: RemoteFunction
 local Harvest = Remotes:WaitForChild("Harvest") :: RemoteFunction
 local Sell = Remotes:WaitForChild("Sell") :: RemoteFunction
 local StateChanged = Remotes:WaitForChild("StateChanged") :: RemoteEvent
@@ -30,6 +31,7 @@ local function snapshot(state: any, now: number)
 	return {
 		coins = state.grow:balance(),
 		barricades = state.barricades,
+		seeds = state.seeds,
 		plots = plots,
 		nextWaveIn = state.coop:secondsUntilNext(now),
 		lastWave = state.lastWave,
@@ -62,7 +64,7 @@ local function newState(player: Player)
 			end
 		end,
 	})
-	state = { grow = grow, coop = coop, barricades = 0, harvested = {}, lastWave = nil }
+	state = { grow = grow, coop = coop, barricades = 0, harvested = {}, seeds = {}, lastWave = nil }
 	states[player] = state
 	StateChanged:FireClient(player, snapshot(state, os.time()))
 end
@@ -75,12 +77,36 @@ for _, player in Players:GetPlayers() do
 	task.spawn(newState, player)
 end
 
+-- The seed shop is the first stage of the genre's loop (buy-seed -> plant -> harvest ->
+-- sell-held), so a plot is never planted for free: a seed is bought with Coins and
+-- consumed by the plant it enables. Both stages report their committed result to the
+-- client, which is what the audio policy plays the genre's declared cue for.
+BuySeed.OnServerInvoke = function(player: Player, cropId: any)
+	local state = states[player]
+	if state == nil or typeof(cropId) ~= "string" or Config.crops[cropId] == nil then
+		return false
+	end
+	if not state.grow.wallet:canAfford(Config.currency, Config.seedPrice) then
+		return false
+	end
+	assert(state.grow.wallet:debit(Config.currency, Config.seedPrice), "affordability was checked above")
+	state.seeds[cropId] = (state.seeds[cropId] or 0) + 1
+	StateChanged:FireClient(player, snapshot(state, os.time()))
+	return true
+end
+
 Plant.OnServerInvoke = function(player: Player, plotIndex: any, cropId: any)
 	local state = states[player]
 	if state == nil or typeof(plotIndex) ~= "number" or typeof(cropId) ~= "string" then
 		return false
 	end
+	if (state.seeds[cropId] or 0) <= 0 then
+		return false
+	end
 	local planted = state.grow:plant(plotIndex, cropId, os.time())
+	if planted then
+		state.seeds[cropId] -= 1
+	end
 	StateChanged:FireClient(player, snapshot(state, os.time()))
 	return planted
 end
