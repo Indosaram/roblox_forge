@@ -2,23 +2,21 @@
 
 <img src="docs/assets/banner.png" alt="Roblox Game Forge: one sentence in, a playable Roblox game out" width="100%">
 
-**Describe a game in one sentence, then get a Roblox place you can build, test and ship.**
-
 A Lune-based meta-framework that takes a Roblox game from idea through
 planning, assets, build, automated QA and staged deploy. It is built so that
 AI agents (and humans) can produce new games over and over.
 
-![Luau](https://img.shields.io/badge/language-Luau-00A2FF)
-![Runtime](https://img.shields.io/badge/runtime-Lune%200.10.5-7B61FF)
-![Sync](https://img.shields.io/badge/sync-Rojo%207.7.0-E13835)
-![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6)
-![License](https://img.shields.io/badge/license-Sustainable%20Use%201.0-orange)
+![Luau](https://img.shields.io/badge/language-Luau-171717?style=flat-square)
+![Runtime](https://img.shields.io/badge/runtime-Lune%200.10.5-171717?style=flat-square)
+![Sync](https://img.shields.io/badge/sync-Rojo%207.7.0-171717?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20x64-171717?style=flat-square)
+![License](https://img.shields.io/badge/license-Sustainable%20Use%201.0-171717?style=flat-square)
 
 </div>
 
 ---
 
-## ✨ What is this?
+## What is this?
 
 Most Roblox games in the same genre run on the same skeleton: currencies, a save
 system, shops, game passes, waves, raids, harvest loops, analytics. Forge writes
@@ -45,7 +43,7 @@ few hooks**.
 - **Built for agents.** Every step is a CLI command with defined exit codes, works offline where it can, and leaves evidence that a reviewer can check.
 - **Fair monetization by design.** Robux buys only deterministic items. Random rolls (egg hatching and the like) run only on free currency.
 
-## 🧱 How it is layered
+## How it is layered
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
@@ -66,7 +64,7 @@ few hooks**.
 `core` and every genre are semver packages. Each game pins the versions it uses
 in its own `forge-lock.yml`, so changing a game never breaks another one.
 
-## 🎮 Built-in genres
+## Built-in genres
 
 | Genre | Core loop |
 | --- | --- |
@@ -92,7 +90,7 @@ Want another one? See [Adding a new genre](genres/README.md) and the [genre spec
 | `grow-and-defend-garden` | grow-harvest + survival-coop | Cozy garden by day, defend it by night |
 | `plan-demo` | collect-raid | Output of `forge plan` for "sky whale egg keepers" |
 
-## 📊 Status
+## Status
 
 Honest current state, as of this release:
 
@@ -117,7 +115,7 @@ Honest current state, as of this release:
   QA, and capture tooling target Windows with Roblox Studio installed. Offline
   commands (generate, build, inspect, spec, econ, plan) are platform-neutral.
 
-## 🚀 Quick start
+## Quick start
 
 You need [Rokit](https://github.com/rojo-rbx/rokit). It installs the rest of the pinned toolchain.
 
@@ -142,7 +140,7 @@ Open the `.rbxl` in Roblox Studio, or live-sync with `rojo serve`.
 > The first `check` downloads the Roblox type definitions into `build/cache/`.
 > After that it runs fully offline and needs no keys.
 
-## 🧰 Command cheat sheet
+## Command cheat sheet
 
 | Stage | Command | What it does |
 | --- | --- | --- |
@@ -164,7 +162,7 @@ Run any command as `lune run cli/forge <command>`. Use `lune run cli/forge --hel
 for the overview, and see the [CLI contract](docs/release/cli-contract.md) for
 every flag and exit code.
 
-## 🔑 Offline first, keys only for live actions
+## Offline first, keys only for live actions
 
 Planning, generation, building, simulation and QA all run **without credentials**.
 Keys come from environment variables and only matter when you touch live Roblox
@@ -180,7 +178,7 @@ services:
 Keys never fall back to one another, and a staging key that matches the
 production key is refused.
 
-## 🛡️ Quality tiers and release gates
+## Quality tiers and release gates
 
 Forge never treats "it builds" as "it's ready to ship":
 
@@ -191,7 +189,7 @@ Forge never treats "it builds" as "it's ready to ship":
 The details are in [Release authorization](docs/release/authorization.md),
 [Operations](docs/release/operations.md) and [Rollback](docs/release/rollback.md).
 
-## 💻 Platform support
+## Platform support
 
 | Platform | Status |
 | --- | --- |
@@ -202,7 +200,7 @@ The details are in [Release authorization](docs/release/authorization.md),
 The toolchain versions are pinned in [`rokit.toml`](rokit.toml). Full details
 are in the [Support guide](docs/release/support.md).
 
-## 📚 Documentation
+## Documentation
 
 - [Installation](docs/release/install.md): installing from a source archive
 - [CLI contract](docs/release/cli-contract.md): every command, flag, schema and exit code
@@ -211,7 +209,7 @@ are in the [Support guide](docs/release/support.md).
 - [Support and operations](docs/release/support.md): troubleshooting and recovery
 - [AGENTS.md](AGENTS.md): rules for AI agents working in this repo
 
-## 📄 License
+## License
 
 [Sustainable Use License v1.0](LICENSE.md) with a **Commercial Game Runtime
 Exception**: you may publish and monetize Roblox games built with Forge.
