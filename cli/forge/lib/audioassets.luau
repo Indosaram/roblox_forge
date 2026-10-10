@@ -144,10 +144,18 @@ function M.parseOperationResponse(body: string): (OperationState?, string?)
 			assetId = raw
 		end
 	end
+	-- A finished Create Asset operation nests the created asset under
+	-- `response`, so its moderationResult lives there; an earlier reply carried
+	-- the same field at the top level. Both are read so the state is never lost
+	-- for reply shape alone.
 	local moderationState: string? = nil
-	local moderation = decoded.moderationResult
-	if type(moderation) == "table" and type(moderation.moderationState) == "string" then
-		moderationState = moderation.moderationState
+	for _, node in { response, decoded } do
+		if moderationState == nil and type(node) == "table" then
+			local moderation = node.moderationResult
+			if type(moderation) == "table" and type(moderation.moderationState) == "string" then
+				moderationState = moderation.moderationState
+			end
+		end
 	end
 	if assetId == nil then
 		return nil, errorMessage or "operation finished without a positive assetId"

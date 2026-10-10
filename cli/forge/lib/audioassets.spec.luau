@@ -104,6 +104,13 @@ M["parseOperationResponse reads an in-flight reply, then a finished one"] = func
 	)
 	assert(done ~= nil and done.done == true and done.assetId == 123456, "a finished operation carries its id")
 	assert(done.moderationState == "Reviewing", "the moderation state is carried")
+	-- The live Open Cloud reply nests the created asset, and its
+	-- moderationResult, under `response` rather than at the top level.
+	local nested = audioassets.parseOperationResponse(
+		'{"done":true,"response":{"assetId":"123456","moderationResult":{"moderationState":"Approved"}}}'
+	)
+	assert(nested ~= nil and nested.assetId == 123456, "a nested finished operation carries its id")
+	assert(nested.moderationState == "Approved", "a moderation state nested under response is read")
 	local numeric = audioassets.parseOperationResponse('{"done":true,"response":{"assetId":77}}')
 	assert(numeric ~= nil and numeric.assetId == 77, "a numeric assetId is accepted")
 	local noId, reason = audioassets.parseOperationResponse('{"done":true,"response":{}}')
