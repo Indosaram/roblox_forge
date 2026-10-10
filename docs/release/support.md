@@ -167,11 +167,11 @@ Legacy packs remain unassessed and retain normal build support. The explicit exc
 - **Symptom**: `deploy quality: LEGACY_UNASSESSED`.
   - **Resolution**: The pack has no assessed quality profile. Normal builds remain supported. Use explicitly named development staging for development work; production plans and publishing remain refused.
 - **Symptom**: `invalid deploy target: ... require positive finite integers`.
-  - **Resolution**: Correct the selected environment's `universeId` and `placeId` in `deploy.yml`. This configuration change invalidates prior assessed evidence; obtain current approval before release.
+  - **Resolution**: Correct the selected environment's `universeId` and `placeId` in `deploy.yml`, or set the variable its `${FORGE_<ENV>_UNIVERSE_ID}` / `${FORGE_<ENV>_PLACE_ID}` reference names. This configuration change invalidates prior assessed evidence; obtain current approval before release.
 
 See [Release authorization](authorization.md) for the artifact, evaluator, credential, and human-approval boundaries.
 
-Deploy requires exact decimal `ROBLOX_<ENV>_UNIVERSE_ID` and `ROBLOX_<ENV>_PLACE_ID` strings matching the selected YAML IDs. Liveops requires the staging universe binding only. `CREDENTIAL_MISSING`, `CREDENTIAL_SHARED`, and `CREDENTIAL_TARGET_MISMATCH` identify credential refusals; `TARGET_ENVIRONMENT_OVERLAP` refuses shared configured environment targets. Equal staging/production keys are rejected when both are loaded. Local bindings do not prove provider-side permissions.
+Deploy requires exact decimal `ROBLOX_<ENV>_UNIVERSE_ID` and `ROBLOX_<ENV>_PLACE_ID` strings matching the selected `deploy.yml` target, which may itself be a literal id or a `${FORGE_<ENV>_UNIVERSE_ID}` / `${FORGE_<ENV>_PLACE_ID}` reference resolved from the environment. Liveops requires the staging universe binding only. `CREDENTIAL_MISSING`, `CREDENTIAL_SHARED`, and `CREDENTIAL_TARGET_MISMATCH` identify credential refusals; `TARGET_ENVIRONMENT_OVERLAP` refuses shared configured environment targets. Equal staging/production keys are rejected when both are loaded. Local bindings do not prove provider-side permissions.
 
 Deploy and liveops make one POST attempt and do not automatically retry, including HTTP 429. They report `PUBLISH_PERMISSION_DENIED`, `PUBLISH_RATE_LIMITED`, `PUBLISH_TIMEOUT_AMBIGUOUS`, `PUBLISH_TRANSPORT_AMBIGUOUS`, `PUBLISH_MALFORMED_REPLY`, `PUBLISH_HTTP_ERROR`, or `PUBLISH_ACCEPTED`, without raw provider body/status text or thrown transport text. Reconcile actual target state before any separately authorized repeat after an uncertain result. Accepted response validation is not delivery proof.
 

@@ -1,6 +1,7 @@
 --!strict
 -- `forge assets check|codegen|status|upload-audio [--pack <slug>] [--env staging|production]
---   [--manifest <path>] [--quality-profile <path>] [--pack-dir <dir>]`:
+--   [--manifest <path>] [--quality-profile <path>] [--pack-dir <dir>]
+--   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]`:
 --   check        - gate a manifest's provenance (lawful tool/provider, recorded
 --                  recipe and rights, digest matching the artifact bytes on disk)
 --                  and its moderation state. With --quality-profile it additionally
@@ -36,14 +37,67 @@ local ENVS = { "staging", "production" }
 local SUBS = { "check", "codegen", "status", "upload-audio" }
 
 -- Open Cloud Assets API endpoints and the publishing defaults. Audio uploads
--- are free; nothing here spends Robux. The creator is the pack's group by
--- default, matching the deployed staging group.
+-- are free; nothing here spends Robux. The creator is never hardcoded: it comes
+-- from --creator-group/--creator-user or FORGE_ROBLOX_CREATOR_GROUP_ID /
+-- FORGE_ROBLOX_CREATOR_USER_ID, so no group or user id ships in the framework.
 local ASSETS_URL = "https://apis.roblox.com/assets/v1/assets"
 local OPERATIONS_URL = "https://apis.roblox.com/assets/v1/operations/"
-local DEFAULT_CREATOR_GROUP = 570462331
 local DEFAULT_CACHE_PATH = "build/audio-upload-cache.json"
 local UPLOAD_POLL_INTERVAL_SECONDS = 1
 local UPLOAD_POLL_ATTEMPTS = 60
+
+--- The Open Cloud create request names its creator as a group or a user; the id
+--- is supplied by the operator and never defaulted here.
+export type Creator = { kind: "group" | "user", id: number }
+
+local function creatorFields(creator: Creator): { [string]: string }
+	if creator.kind == "group" then
+		return { groupId = tostring(creator.id) }
+	end
+	return { userId = tostring(creator.id) }
+end
+
+--- The cache key for a creator: an id owned by a different creator is never
+--- reused for this upload.
+local function creatorKey(creator: Creator): string
+	return creator.kind .. ":" .. tostring(creator.id)
+end
+
+local function positiveId(text: string?): number?
+	local parsed = cliutil.parseFiniteInt(text or "")
+	if parsed == nil or parsed <= 0 then
+		return nil
+	end
+	return parsed
+end
+
+--- Resolves the upload creator from explicit flags first, then the environment.
+--- Returns (nil, reason) when neither is given or both forms are. Exported so
+--- specs can exercise the resolution with synthetic ids and an injected env.
+function M.resolveCreator(flagGroup: number?, flagUser: number?, variables: { [string]: string? }): (Creator?, string?)
+	if flagGroup ~= nil and flagUser ~= nil then
+		return nil, "pass only one of --creator-group or --creator-user"
+	end
+	if flagGroup ~= nil then
+		return { kind = "group", id = flagGroup }, nil
+	end
+	if flagUser ~= nil then
+		return { kind = "user", id = flagUser }, nil
+	end
+	local envGroup = positiveId(variables["FORGE_ROBLOX_CREATOR_GROUP_ID"])
+	local envUser = positiveId(variables["FORGE_ROBLOX_CREATOR_USER_ID"])
+	if envGroup ~= nil and envUser ~= nil then
+		return nil, "set only one of FORGE_ROBLOX_CREATOR_GROUP_ID or FORGE_ROBLOX_CREATOR_USER_ID"
+	end
+	if envGroup ~= nil then
+		return { kind = "group", id = envGroup }, nil
+	end
+	if envUser ~= nil then
+		return { kind = "user", id = envUser }, nil
+	end
+	return nil,
+		"assets upload-audio needs a creator: pass --creator-group <id> or --creator-user <id>, or set FORGE_ROBLOX_CREATOR_GROUP_ID / FORGE_ROBLOX_CREATOR_USER_ID"
+end
 
 local function isIn(values: { string }, value: string): boolean
 	for _, known in values do
@@ -449,7 +503,7 @@ export type PublishOutcome = { assetId: number, moderation: assetsLib.Moderation
 -- to print.
 local function publishCue(
 	apiKey: string,
-	group: number,
+	creator: Creator,
 	cue: audioassets.Cue,
 	bytes: string
 ): (PublishOutcome?, string?)
@@ -458,7 +512,7 @@ local function publishCue(
 		assetType = "Audio",
 		displayName = cue.key,
 		description = "Forge procedural cue " .. cue.key,
-		creationContext = { creator = { groupId = tostring(group) } },
+		creationContext = { creator = creatorFields(creator) },
 	})
 	local body = M.multipartBody(boundary, requestJson, cue.key .. ".wav", bytes)
 	local createHeaders: net.HttpHeaderMap = {
@@ -525,7 +579,7 @@ local function runUploadAudio(options: {
 	packDir: string,
 	manifestPath: string,
 	manifest: assetsLib.Manifest,
-	creatorGroup: number,
+	creator: Creator,
 	cachePath: string,
 	dryRun: boolean,
 }): boolean
@@ -560,7 +614,7 @@ local function runUploadAudio(options: {
 				cached ~= nil
 				and type(cached.assetId) == "number"
 				and cached.assetId > 0
-				and cached.creatorGroup == options.creatorGroup
+				and cached.creator == creatorKey(options.creator)
 			)
 		then
 			local assetId: number = if cached ~= nil then cached.assetId else 0
@@ -583,7 +637,7 @@ local function runUploadAudio(options: {
 		end
 
 		local bytes = fs.readFile(options.packDir .. "/" .. cue.path)
-		local outcome, err = publishCue(apiKey :: string, options.creatorGroup, cue, bytes)
+		local outcome, err = publishCue(apiKey :: string, options.creator, cue, bytes)
 		if outcome == nil then
 			failures += 1
 			stdio.ewrite(string.format("audio %s: FAIL %s\n", cue.key, tostring(err)))
@@ -601,7 +655,7 @@ local function runUploadAudio(options: {
 			entries[hex] = {
 				assetId = assetId,
 				moderation = moderation,
-				creatorGroup = options.creatorGroup,
+				creator = creatorKey(options.creator),
 				key = cue.key,
 				sha256 = cue.sha256,
 			}
@@ -678,7 +732,8 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local manifestPath: string? = nil
 	local qualityProfilePath: string? = nil
 	local packDirArg: string? = nil
-	local creatorGroup = DEFAULT_CREATOR_GROUP
+	local creatorGroupArg: number? = nil
+	local creatorUserArg: number? = nil
 	local cachePath = DEFAULT_CACHE_PATH
 	local dryRun = false
 	local index = 3
@@ -694,6 +749,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			or flag == "--quality-profile"
 			or flag == "--pack-dir"
 			or flag == "--creator-group"
+			or flag == "--creator-user"
 			or flag == "--cache"
 		then
 			local value = args[index + 1]
@@ -711,13 +767,17 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 				packDirArg = string.gsub(value, "\\", "/")
 			elseif flag == "--cache" then
 				cachePath = string.gsub(value, "\\", "/")
-			elseif flag == "--creator-group" then
+			elseif flag == "--creator-group" or flag == "--creator-user" then
 				local parsed = cliutil.parseFiniteInt(value)
 				if parsed == nil or parsed <= 0 then
-					stdio.ewrite("Error: --creator-group requires a positive integer\n")
+					stdio.ewrite("Error: " .. flag .. " requires a positive integer\n")
 					return false
 				end
-				creatorGroup = parsed
+				if flag == "--creator-group" then
+					creatorGroupArg = parsed
+				else
+					creatorUserArg = parsed
+				end
 			else
 				manifestPath = value
 			end
@@ -746,12 +806,17 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			stdio.ewrite((uploadErr or "Error: invalid manifest") .. "\n")
 			return false
 		end
+		local creator, creatorErr = M.resolveCreator(creatorGroupArg, creatorUserArg, process.env)
+		if creator == nil then
+			stdio.ewrite("Error: " .. tostring(creatorErr) .. "\n")
+			return false
+		end
 		return runUploadAudio({
 			pack = slug,
 			packDir = packDir,
 			manifestPath = uploadManifestPath,
 			manifest = uploadManifest :: assetsLib.Manifest,
-			creatorGroup = creatorGroup,
+			creator = creator :: Creator,
 			cachePath = cachePath,
 			dryRun = dryRun,
 		})

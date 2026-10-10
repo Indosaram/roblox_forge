@@ -241,4 +241,43 @@ return {
 			"the boundary is carried verbatim"
 		)
 	end,
+
+	["upload creator comes from flags or the environment, never a built-in id"] = function()
+		-- Synthetic ids only: the framework must not carry a real group or user id.
+		local flagGroup, flagErr = assetsCommand.resolveCreator(1234567890, nil, {})
+		assert(flagErr == nil, tostring(flagErr))
+		local group = flagGroup :: assetsCommand.Creator
+		assert(group.kind == "group" and group.id == 1234567890, "--creator-group wins")
+
+		local flagUser, userErr = assetsCommand.resolveCreator(nil, 1234567891, {})
+		assert(userErr == nil, tostring(userErr))
+		local user = flagUser :: assetsCommand.Creator
+		assert(user.kind == "user" and user.id == 1234567891, "--creator-user wins")
+
+		local fromEnv, envErr = assetsCommand.resolveCreator(nil, nil, { FORGE_ROBLOX_CREATOR_GROUP_ID = "1234567890" })
+		assert(envErr == nil, tostring(envErr))
+		assert((fromEnv :: assetsCommand.Creator).id == 1234567890, "FORGE_ROBLOX_CREATOR_GROUP_ID is used")
+
+		local fromUserEnv, userEnvErr =
+			assetsCommand.resolveCreator(nil, nil, { FORGE_ROBLOX_CREATOR_USER_ID = "1234567891" })
+		assert(userEnvErr == nil, tostring(userEnvErr))
+		local envUser = fromUserEnv :: assetsCommand.Creator
+		assert(envUser.kind == "user" and envUser.id == 1234567891, "FORGE_ROBLOX_CREATOR_USER_ID is used")
+
+		-- A flag beats the environment, and a missing or contradictory creator is refused.
+		local override, overrideErr =
+			assetsCommand.resolveCreator(1234567890, nil, { FORGE_ROBLOX_CREATOR_USER_ID = "1234567891" })
+		assert(overrideErr == nil and (override :: assetsCommand.Creator).kind == "group", "a flag beats the env")
+		local missing, missingErr = assetsCommand.resolveCreator(nil, nil, {})
+		assert(missing == nil and missingErr ~= nil, "no creator is refused, never defaulted")
+		local both, bothErr = assetsCommand.resolveCreator(1234567890, 1234567891, {})
+		assert(both == nil and bothErr ~= nil, "two creator flags are refused")
+		local bothEnv, bothEnvErr = assetsCommand.resolveCreator(nil, nil, {
+			FORGE_ROBLOX_CREATOR_GROUP_ID = "1234567890",
+			FORGE_ROBLOX_CREATOR_USER_ID = "1234567891",
+		})
+		assert(bothEnv == nil and bothEnvErr ~= nil, "two creator env vars are refused")
+		local zero, zeroErr = assetsCommand.resolveCreator(nil, nil, { FORGE_ROBLOX_CREATOR_GROUP_ID = "0" })
+		assert(zero == nil and zeroErr ~= nil, "a non-positive env creator is refused")
+	end,
 }

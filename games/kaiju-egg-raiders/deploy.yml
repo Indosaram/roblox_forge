@@ -1,8 +1,9 @@
 environments:
+  # Ids are `${VAR}` references resolved from the environment at deploy time, so
+  # no real experience or place id is committed. See .env.example.
   staging:
-    # Owned by group 570462331 "Kaiju Egg Raiders Studio".
-    universeId: 10768717424
-    placeId: 83924867000873
+    universeId: ${FORGE_STAGING_UNIVERSE_ID}
+    placeId: ${FORGE_STAGING_PLACE_ID}
   production:
     universeId: 0
     placeId: 0

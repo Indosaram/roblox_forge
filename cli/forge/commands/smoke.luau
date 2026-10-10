@@ -12,6 +12,7 @@ local stdio = require("@lune/stdio")
 local task = require("@lune/task")
 
 local smokePlan = require("../lib/smokeplan")
+local deploytarget = require("../lib/deploytarget")
 local cliutil = require("../lib/cliutil")
 local generate = require("../lib/genregenerate")
 
@@ -95,7 +96,7 @@ local function runLocal(pack: string, fixturePath: string?, context: cliutil.Com
 	return false
 end
 
-local function stagingIds(pack: string): (number, number, string?)
+local function stagingIds(pack: string, variables: { [string]: string? }): (number, number, string?)
 	local deployPath = "games/" .. pack .. "/deploy.yml"
 	if not fs.isFile(deployPath) then
 		return 0, 0, "missing " .. deployPath
@@ -109,8 +110,16 @@ local function stagingIds(pack: string): (number, number, string?)
 	if typeof(staging) ~= "table" then
 		return 0, 0, "missing environments.staging in " .. deployPath
 	end
-	local universeId = if typeof(staging.universeId) == "number" then staging.universeId else 0
-	local placeId = if typeof(staging.placeId) == "number" then staging.placeId else 0
+	-- Literal ids or `${NAME}` environment references; an unset reference reads as
+	-- unset target 0, which the --cloud path refuses before any network call.
+	local universeId, universeErr = deploytarget.unsettableId(staging.universeId, variables)
+	if universeId == nil then
+		return 0, 0, "deploy.yml staging.universeId " .. tostring(universeErr)
+	end
+	local placeId, placeErr = deploytarget.unsettableId(staging.placeId, variables)
+	if placeId == nil then
+		return 0, 0, "deploy.yml staging.placeId " .. tostring(placeErr)
+	end
 	return universeId, placeId, nil
 end
 
@@ -157,7 +166,7 @@ local function runCloud(pack: string, dryRun: boolean): boolean
 		return true -- no smoke script: skipped, not a failure
 	end
 
-	local universeId, placeId, idErr = stagingIds(pack)
+	local universeId, placeId, idErr = stagingIds(pack, process.env)
 	if idErr ~= nil then
 		stdio.ewrite("Error: " .. idErr .. "\n")
 		return false

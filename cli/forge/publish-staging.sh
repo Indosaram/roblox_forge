@@ -9,18 +9,69 @@
 # <sweep-stamp>  build/sweep/<stamp> (default: newest stamp holding the pack).
 #
 # Publishes with `--env staging --development` (explicit staging-only status,
-# never release approval) to the start place of universe 10768717424, owned by
-# group 570462331 "Kaiju Egg Raiders Studio". The experience stays private:
-# this script never touches production and never changes the public/private
-# setting. The pack is read from build/sweep/<stamp>/packs/ and games/ is never
-# edited. Each run records pack, sweep stamp, accepted version and artifact
-# sha256 into build/publish/published.tsv.
+# never release approval) to the start place of the operator's private staging
+# experience. The experience stays private: this script never touches production
+# and never changes the public/private setting. The pack is read from
+# build/sweep/<stamp>/packs/ and games/ is never edited. Each run records pack,
+# sweep stamp, accepted version and artifact sha256 into
+# build/publish/published.tsv.
+#
+# Owner-specific values are never committed here: the script reads them from the
+# environment, falling back to a gitignored .env.local beside the repository
+# root when one exists. Required:
+#   FORGE_STAGING_UNIVERSE_ID  the private staging universe id
+#   FORGE_STAGING_PLACE_ID     its start place id
+#   FORGE_OWNER_USER_ID        the real owner user id written into the pack's
+#                              survival provisioning config
+#   ROBLOX_API_KEY             an Open Cloud key scoped to that experience
 set -euo pipefail
+
+usage() {
+	cat <<'USAGE'
+usage: cli/forge/publish-staging.sh <genre-slug> [<sweep-stamp>]
+
+Publishes one Forge-generated sweep pack to the private staging experience with
+`--env staging --development` (staging-only status, never release approval).
+
+Required environment, or the same names in a gitignored .env.local beside the
+repository root:
+  FORGE_STAGING_UNIVERSE_ID  private staging universe id
+  FORGE_STAGING_PLACE_ID     its start place id
+  FORGE_OWNER_USER_ID        real owner user id for survival provisioning
+  ROBLOX_API_KEY             Open Cloud key scoped to that experience
+USAGE
+}
+
+case "${1:-}" in
+-h | --help)
+	usage
+	exit 0
+	;;
+esac
 
 SLUG="${1:?usage: publish-staging.sh <genre-slug> [<sweep-stamp>]}"
 STAMP="${2:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
+
+# Owner-specific ids and secrets live in a gitignored local file, never here.
+if [ -f .env.local ]; then
+	set -a
+	# shellcheck disable=SC1091
+	. ./.env.local
+	set +a
+fi
+
+: "${FORGE_STAGING_UNIVERSE_ID:?FORGE_STAGING_UNIVERSE_ID is not set (see .env.example)}"
+: "${FORGE_STAGING_PLACE_ID:?FORGE_STAGING_PLACE_ID is not set (see .env.example)}"
+: "${FORGE_OWNER_USER_ID:?FORGE_OWNER_USER_ID is not set (see .env.example)}"
+: "${ROBLOX_API_KEY:?ROBLOX_API_KEY is not set}"
+case "$FORGE_OWNER_USER_ID" in
+'' | *[!0-9]*)
+	echo "FORGE_OWNER_USER_ID must be a numeric Roblox user id" >&2
+	exit 1
+	;;
+esac
 
 PACK="${SLUG}-sweep"
 if [ -z "$STAMP" ]; then
@@ -40,13 +91,14 @@ DIR="build/sweep/$STAMP/packs/$PACK"
 	exit 1
 }
 
-# Staging target = the private staging experience. Production stays unset (0/0)
-# so the deploy refuses any production path and the overlap check stays clean.
+# Staging target = the operator's private staging experience, named by env vars
+# so no real universe or place id is committed. Production stays unset (0/0) so
+# the deploy refuses any production path and the overlap check stays clean.
 cat >"$DIR/deploy.yml" <<'YAML'
 environments:
   staging:
-    universeId: 10768717424
-    placeId: 83924867000873
+    universeId: ${FORGE_STAGING_UNIVERSE_ID}
+    placeId: ${FORGE_STAGING_PLACE_ID}
   production:
     universeId: 0
     placeId: 0
@@ -59,15 +111,8 @@ YAML
 # to admit any real player under (the reviewed P1: settlement membership was
 # never granted). Publishing it therefore requires an explicit real owner and
 # consent record; the empty-owner path is never used.
-OWNER_ID="${FORGE_OWNER_USER_ID:-11734795308}"
 PROVISION="$DIR/src/server/SurvivalProvisionConfig.luau"
 if [ -f "$PROVISION" ]; then
-	case "$OWNER_ID" in
-	'' | *[!0-9]*)
-		echo "FORGE_OWNER_USER_ID must be a numeric Roblox user id" >&2
-		exit 1
-		;;
-	esac
 	cat >"$PROVISION" <<LUAU
 --!strict
 -- Explicit owner/consent provisioning written by cli/forge/publish-staging.sh.
@@ -77,18 +122,17 @@ if [ -f "$PROVISION" ]; then
 return {
 	provisionId = "staging",
 	policy = "staging",
-	ownerId = "$OWNER_ID",
-	acceptedInvitations = { ["$OWNER_ID"] = true },
+	ownerId = "$FORGE_OWNER_USER_ID",
+	acceptedInvitations = { ["$FORGE_OWNER_USER_ID"] = true },
 	actors = {},
 }
 LUAU
-	echo "provisioned explicit owner $OWNER_ID for $PACK"
+	echo "provisioned explicit owner $FORGE_OWNER_USER_ID for $PACK"
 fi
 
-: "${ROBLOX_API_KEY:?ROBLOX_API_KEY is not set}"
 export ROBLOX_STAGING_API_KEY="$ROBLOX_API_KEY"
-export ROBLOX_STAGING_UNIVERSE_ID=10768717424
-export ROBLOX_STAGING_PLACE_ID=83924867000873
+export ROBLOX_STAGING_UNIVERSE_ID="$FORGE_STAGING_UNIVERSE_ID"
+export ROBLOX_STAGING_PLACE_ID="$FORGE_STAGING_PLACE_ID"
 
 mkdir -p build/publish
 LOG="build/publish/deploy-$PACK-$STAMP.log"

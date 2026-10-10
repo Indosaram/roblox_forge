@@ -15,6 +15,7 @@ local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
 local deployPlan = require("../lib/deployplan")
+local deploytarget = require("../lib/deploytarget")
 local cliutil = require("../lib/cliutil")
 local qualitygate = require("../lib/qualitygate")
 local buildtargets = require("../lib/buildtargets")
@@ -203,40 +204,31 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 		return false
 	end
 
-	local environments: any = deploy.environments
-	local environment: any = nil
-	if typeof(environments) == "table" then
-		environment = environments[env]
-	end
-	local universeId: any = nil
-	local placeId: any = nil
-	if typeof(environment) == "table" then
-		universeId = environment.universeId
-		placeId = environment.placeId
-	end
-	local function validId(value: any): boolean
-		return type(value) == "number" and value > 0 and value < math.huge and value % 1 == 0
-	end
-	if not validId(universeId) or not validId(placeId) then
-		stdio.ewrite(
-			string.format(
-				"invalid deploy target: %s environments.%s.universeId/placeId require positive finite integers\n",
-				deployPath,
-				env
-			)
-		)
+	-- The selected environment's ids are literal integers or `${NAME}`
+	-- references resolved from the operator's environment; an unset reference is
+	-- refused by name so a missing variable never becomes a wrong target.
+	local target, targetError = deploytarget.target(deploy, env, variables)
+	if target == nil then
+		stdio.ewrite("invalid deploy target: " .. deployPath .. " " .. tostring(targetError) .. "\n")
 		return false
 	end
+	local resolvedTarget = target :: deploytarget.Target
+	local universeId = resolvedTarget.universeId
+	local placeId = resolvedTarget.placeId
 
 	local apiKey, credentialError = opencloud.credential(variables, env, universeId, placeId)
 	if apiKey == nil then
 		stdio.ewrite("deploy: " .. tostring(credentialError) .. "\n")
 		return false
 	end
-	local other = environments[if env == "staging" then "production" else "staging"]
-	if type(other) == "table" and (other.universeId == universeId or other.placeId == placeId) then
-		stdio.ewrite("deploy: TARGET_ENVIRONMENT_OVERLAP\n")
-		return false
+	local otherEnv = if env == "staging" then "production" else "staging"
+	local other = deploytarget.target(deploy, otherEnv, variables)
+	if other ~= nil then
+		local otherTarget = other :: deploytarget.Target
+		if otherTarget.universeId == universeId or otherTarget.placeId == placeId then
+			stdio.ewrite("deploy: TARGET_ENVIRONMENT_OVERLAP\n")
+			return false
+		end
 	end
 
 	local projectPath = packDir .. "/default.project.json"

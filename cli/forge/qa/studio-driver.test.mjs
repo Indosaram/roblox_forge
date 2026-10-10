@@ -117,7 +117,7 @@ function fixture(options = {}) {
       }
       if(args.code.includes('local desired=')){const g=geometry(args.studio_id==='client2');return text({device:g.device.id,width:g.device.width,height:g.device.height,orientation:g.device.orientation});}
       if(args.code.includes("folder:FindFirstChild('"))return text({present:false});
-      if (args.code.includes('placeId=game.PlaceId')) return text({ placeId: options.foreign ? 83924867000873 : 0, token: config.ownershipToken, player: args.studio_id === 'client1' ? '-1' : '-2' });
+      if (args.code.includes('placeId=game.PlaceId')) return text({ placeId: options.foreign ? 1234567890 : 0, token: config.ownershipToken, player: args.studio_id === 'client1' ? '-1' : '-2' });
       // A walk's own client code: the character readiness probe, the prepared segment
       // (which carries the resolved target back as evidence), and the movement proof.
       if (args.code.includes('character root missing')) return text({ ready: true, position: [0, 0, 0] });

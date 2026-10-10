@@ -77,7 +77,7 @@ Commands:
                             Write src/shared/Assets.luau and asphalt.toml from assets/manifest.yml
   assets status [--pack <slug>]
                             Refresh moderation for uploaded assets via the Open Cloud Assets API
-  assets upload-audio [--pack <slug> | --pack-dir <dir>] [--creator-group <id>] [--cache <path>] [--dry-run]
+  assets upload-audio [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
                             Publish a pack's synthesised WAV cues (sfx/bgm) through the Open Cloud
                             Assets API, poll each operation, and record the returned rbxassetid plus
                             moderation state in assets/manifest.yml. Idempotent by artifact sha256 via

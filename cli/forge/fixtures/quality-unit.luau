@@ -18,6 +18,7 @@ local imports: { [string]: any } = {
 	["./qualityevaluate"] = require("../lib/qualityevaluate"),
 	["../lib/cliutil"] = require("../lib/cliutil"),
 	["../lib/buildtargets"] = require("../lib/buildtargets"),
+	["../lib/deploytarget"] = require("../lib/deploytarget"),
 	["../lib/opencloud"] = require("../lib/opencloud"),
 }
 

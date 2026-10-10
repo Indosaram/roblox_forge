@@ -15,6 +15,7 @@ local stdio = require("@lune/stdio")
 
 local Broadcast = require("../../../core/infra/liveops/Broadcast")
 local liveopsplan = require("../lib/liveopsplan")
+local deploytarget = require("../lib/deploytarget")
 local opencloud = require("../lib/opencloud")
 local cliutil = require("../lib/cliutil")
 
@@ -33,7 +34,7 @@ local function decodeYaml(path: string): any
 	return decoded
 end
 
-local function stagingUniverseId(pack: string): (number?, string?)
+local function stagingUniverseId(pack: string, variables: { [string]: string? }): (number?, string?)
 	local deployPath = "games/" .. pack .. "/deploy.yml"
 	if not fs.isFile(deployPath) then
 		return nil, "missing " .. deployPath
@@ -42,23 +43,24 @@ local function stagingUniverseId(pack: string): (number?, string?)
 	if deploy == nil then
 		return nil, "failed to decode " .. deployPath
 	end
-	local environments: any = deploy.environments
-	local staging: any = nil
-	if typeof(environments) == "table" then
-		staging = environments.staging
-	end
-	local universeId: any = nil
-	if typeof(staging) == "table" then
-		universeId = staging.universeId
-	end
-	if typeof(universeId) ~= "number" then
+	local environments: any = if type(deploy) == "table" then deploy.environments else nil
+	local staging: any = if type(environments) == "table" then environments.staging else nil
+	local rawUniverseId: any = if type(staging) == "table" then staging.universeId else nil
+	if rawUniverseId == nil then
 		return nil, "deploy.yml staging.universeId is missing"
 	end
-	if universeId < 0 or universeId >= math.huge or universeId % 1 ~= 0 then
-		return nil, "deploy.yml staging.universeId must be a finite nonnegative integer"
+	-- A literal id or a `${NAME}` environment reference; an unset reference reads
+	-- as unset target 0, which the live path below refuses before any network call.
+	local universeId, universeErr = deploytarget.unsettableId(rawUniverseId, variables)
+	if universeId == nil then
+		return nil, "deploy.yml staging.universeId " .. tostring(universeErr)
 	end
-	local production = environments.production
-	if type(production) == "table" and universeId > 0 and production.universeId == universeId then
+	local production: any = if type(environments) == "table" then environments.production else nil
+	local productionId: number? = nil
+	if type(production) == "table" then
+		productionId = deploytarget.unsettableId(production.universeId, variables)
+	end
+	if universeId > 0 and productionId ~= nil and productionId == universeId then
 		return nil, "TARGET_ENVIRONMENT_OVERLAP"
 	end
 	return universeId, nil
@@ -127,7 +129,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 		return false
 	end
 
-	local universeId, universeErr = stagingUniverseId(pack)
+	local universeId, universeErr = stagingUniverseId(pack, if ports and ports.env then ports.env else process.env)
 	if universeId == nil then
 		stdio.ewrite("Error: " .. tostring(universeErr) .. "\n")
 		return false
