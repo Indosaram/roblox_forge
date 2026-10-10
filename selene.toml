@@ -4,5 +4,6 @@ exclude = [
 	"build/**",
 	"docs/**",
 	".omo/**",
+	".orca-worktrees/**",
 	"Packages/**",
 ]
