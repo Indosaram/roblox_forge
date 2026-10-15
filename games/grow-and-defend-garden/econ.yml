@@ -1,4 +1,4 @@
-# Config.luau is authoritative until econ codegen exists
+# Config.luau duplicates these values; Config.spec.luau keeps the two equal.
 currencies:
   - id: Coins
     kind: free
