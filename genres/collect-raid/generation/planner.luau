@@ -169,6 +169,9 @@ export type MonetizationItem = {
 	effect: string,
 	deterministic: boolean,
 	affectsFreeHatchOnly: boolean,
+	-- Gamepass tuning (coins2x income multiplier, vipSlots incubator bonus).
+	multiplier: number?,
+	slotBonus: number?,
 	-- Published Roblox id (0 = not published yet); forge plan carries it over.
 	id: number?,
 }
@@ -574,6 +577,8 @@ function M.buildMonetization(plan: any): Monetization
 			effect = item.effect,
 			deterministic = true,
 			affectsFreeHatchOnly = false,
+			multiplier = item.multiplier,
+			slotBonus = item.slotBonus,
 		})
 	end
 	local products: { MonetizationItem } = {}
@@ -737,13 +742,24 @@ end
 -- Rendering: game.yml + econ.yml
 -- ---------------------------------------------------------------------------
 
-local function renderMonetizationYml(lines: { string }, monetization: Monetization, indent: string): ()
+local function renderMonetizationYml(
+	lines: { string },
+	monetization: Monetization,
+	indent: string,
+	withEffects: boolean?
+): ()
 	add(lines, indent .. "gamepasses:")
 	for _, item in monetization.gamepasses do
 		add(lines, indent .. "  - key: " .. yquote(item.key))
 		add(lines, indent .. "    name: " .. yquote(item.name))
 		add(lines, indent .. "    price: " .. fmtNum(item.price))
 		add(lines, indent .. "    id: " .. tostring(item.id or 0))
+		if withEffects and item.multiplier ~= nil then
+			add(lines, indent .. "    multiplier: " .. fmtNum(item.multiplier))
+		end
+		if withEffects and item.slotBonus ~= nil then
+			add(lines, indent .. "    slotBonus: " .. fmtNum(item.slotBonus))
+		end
 	end
 	add(lines, indent .. "products:")
 	for _, item in monetization.products do
@@ -817,7 +833,7 @@ function M.renderEconYml(economy: Economy): string
 	end
 	add(lines, "")
 	add(lines, "monetization:")
-	renderMonetizationYml(lines, economy.monetization, "  ")
+	renderMonetizationYml(lines, economy.monetization, "  ", true)
 	return table.concat(lines, "\n") .. "\n"
 end
 
@@ -1036,6 +1052,7 @@ function M.renderConfig(roster: Roster, title: string, plan: any?): string
 		"",
 		"\tpricing = EconConfig.pricing,",
 		"\tincome = EconConfig.income,",
+		"\tpassEffects = EconConfig.passEffects,",
 		"",
 		"\tsources = EconConfig.eggs,",
 		"\tsourceOrder = EconConfig.eggOrder,",
@@ -1217,9 +1234,9 @@ function M.renderCatalog(economy: Economy, roster: Roster): string
 	local function grantFor(item: MonetizationItem): string
 		local kind = GRANT_KIND[item.key] or "flag"
 		if kind == "multiplier" then
-			return string.format("{ kind = %q, value = %d }", kind, GRANT_VALUE[item.key] or 2)
+			return string.format("{ kind = %q, value = %d }", kind, item.multiplier or GRANT_VALUE[item.key] or 2)
 		elseif kind == "slots" then
-			return string.format("{ kind = %q, value = %d }", kind, GRANT_VALUE[item.key] or 4)
+			return string.format("{ kind = %q, value = %d }", kind, item.slotBonus or GRANT_VALUE[item.key] or 4)
 		elseif kind == "flag" then
 			return string.format("{ kind = %q, flag = %q }", kind, item.key)
 		elseif kind == "kaiju" then

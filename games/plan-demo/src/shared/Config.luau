@@ -28,6 +28,7 @@ local Config: PackConfig = {
 
 	pricing = EconConfig.pricing,
 	income = EconConfig.income,
+	passEffects = EconConfig.passEffects,
 
 	sources = EconConfig.eggs,
 	sourceOrder = EconConfig.eggOrder,
