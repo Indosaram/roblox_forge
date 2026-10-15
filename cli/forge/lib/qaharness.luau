@@ -68,6 +68,7 @@ export type Target = {
 	-- The pack's serialized genre spec, so a server-side presenter can read the declared
 	-- presentation bindings. A native target carries no engine presenter, so it is optional.
 	spec: any?,
+	seed: number?,
 }
 
 --- A durable backend whose commits can be suspended or failed on demand. The

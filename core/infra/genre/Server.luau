@@ -12,14 +12,19 @@ local Contract = require("../../domain/genre/Contract")
 local Clock = require("./Clock")
 local CommandTransport = require("./CommandTransport")
 local OutfitPresenter = require("./OutfitPresenter")
+local Rng = require("../../domain/random/Rng")
 export type Options = Options.Options
+export type ServerSession = Session.Session & { seed: number }
 local M = {}
-function M.start(options: Options): Session.Session
+function M.start(options: Options): ServerSession
 	Options.validate(options)
 	local clock = options.clock or Clock.new(function()
 		return DateTime.now().UnixTimestampMillis / 1000
 	end)
-	local rng = Random.new()
+	local seed = options.seed or math.floor(DateTime.now().UnixTimestampMillis)
+	print("[forge] session seed", seed)
+	local rng = Rng.new(seed)
+	local jitter = rng:fork("join-retry")
 	local session = Session.new(
 		options,
 		options.backend
@@ -48,7 +53,7 @@ function M.start(options: Options): Session.Session
 				return clock.now()
 			end,
 			roll = function()
-				return rng:NextNumber()
+				return rng:nextNumber()
 			end,
 			emit = function(_event) end,
 		},
@@ -292,7 +297,7 @@ function M.start(options: Options): Session.Session
 		local retryDeadline = os.clock() + 90
 		local result = session.join(id)
 		while not result.ok and retryable(result.reason) and os.clock() < retryDeadline and player.Parent == Players do
-			task.wait(1 + rng:NextNumber() * 3)
+			task.wait(1 + jitter:nextNumber() * 3)
 			result = session.join(id)
 		end
 		if result.notificationError then
@@ -365,6 +370,8 @@ function M.start(options: Options): Session.Session
 			end
 		end
 	end)
-	return session
+	local seeded: any = session
+	seeded.seed = seed
+	return seeded :: ServerSession
 end
 return M

@@ -17,6 +17,7 @@ local RaidTarget = require("./RaidTarget")
 local LiveopsEvent = require("./LiveopsEvent")
 local CollectRaid = require("../CollectRaid")
 local ProfileSchema = require("../../../../core/domain/state/ProfileSchema")
+local Rng = require("../../../../core/domain/random/Rng")
 local ProfileStore = require("../../../../core/infra/data/ProfileStore")
 local MemoryBackend = require("../../../../core/infra/data/MemoryBackend")
 local DataStoreBackend = require("../../../../core/infra/data/DataStoreBackend")
@@ -99,6 +100,8 @@ export type Options = {
 	debugName: string,
 	logPrefix: string,
 	incubatorsPerTeam: number,
+	-- Optional seed for the hatch roll stream; absent means time-derived (logged at start).
+	seed: number?,
 }
 
 local Server = {}
@@ -342,7 +345,9 @@ function Server.start(opts: Options): ()
 
 	local playerStates: { [Player]: Loop.PlayerState } = {}
 	local profiles: { [Player]: ProfileStore.Profile } = {}
-	local rng = Random.new()
+	local seed = opts.seed or math.floor(DateTime.now().UnixTimestampMillis)
+	print(logPrefix .. "session seed", seed)
+	local rng = Rng.new(seed)
 	local siegeJoined: { [Player]: string } = {}
 
 	-- QA-only mirror of the most recently joined player's live state, read by
@@ -780,7 +785,7 @@ function Server.start(opts: Options): ()
 		end
 
 		local now = os.time()
-		local roll = rng:NextNumber()
+		local roll = rng:nextNumber()
 		local incubator = state.incubators[index]
 		local sourceId = if incubator ~= nil then incubator.sourceId else nil
 		local ok, creatureIdOrReason = Loop.hatch(Config, state, index, now, roll, activeLuckMultiplier(now))
