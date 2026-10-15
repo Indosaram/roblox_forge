@@ -413,9 +413,11 @@ return {
 			"parseFiniteInt would accept 1e300"
 		)
 		local recorded = string.format("%d", seed :: number)
+		-- The saturation direction is platform-specific (x86 gives the int64
+		-- minimum, arm64 the maximum); either extreme proves the point.
 		assert(
-			recorded == "-9223372036854775808",
-			"without a bound, %d silently saturates 1e300 to the int64 minimum, got " .. recorded
+			recorded == "-9223372036854775808" or recorded == "9223372036854775807",
+			"without a bound, %d silently saturates 1e300 to an int64 extreme, got " .. recorded
 		)
 	end,
 
