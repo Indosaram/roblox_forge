@@ -1,13 +1,12 @@
 --!strict
 local fs = require("@lune/fs")
+local tempdir = require("./tempdir")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local inspect = require("./inspect")
 return {
 	["project assertions retain class and require checks"] = function()
-		local root = (process.env.TEMP or "C:/Windows/Temp")
-			.. "/forge-inspect-"
-			.. serde.hash("sha256", tostring(os.clock()))
+		local root = tempdir.root() .. "/forge-inspect-" .. serde.hash("sha256", tostring(os.clock()))
 		fs.writeDir(root)
 		local ok, reason = xpcall(function()
 			fs.writeFile(root .. "/Entry.server.luau", 'require("./Shared")\n')

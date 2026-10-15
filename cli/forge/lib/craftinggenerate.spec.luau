@@ -1,5 +1,6 @@
 --!strict
 local fs = require("@lune/fs")
+local tempdir = require("./tempdir")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local luau = require("@lune/luau")
@@ -29,12 +30,22 @@ local qaCommand = require("../commands/qa")
 local qaharness = require("./qaharness")
 local dynamicRequire = require :: any
 
+-- On POSIX the temp root may be a symlink (/tmp -> /private/tmp, /var -> /private/var); rojo and require()
+-- resolve ".." physically, so the relative paths generated for the fixture only work from the real path.
+local function physicalRoot(): string
+	local root = tempdir.root()
+	if process.os == "windows" then
+		return root
+	end
+	local resolved = process.exec("/bin/sh", { "-c", 'cd "$1" && pwd -P', "sh", root })
+	assert(resolved.ok, "cannot resolve temp root: " .. resolved.stderr)
+	return (string.gsub(resolved.stdout, "%s+$", ""))
+end
+
 return {
 	["crafting new writes validated runtime data and rejects unsupported input before writes"] = function()
 		local root = generate.absolute(
-			(process.env.TEMP or "C:/Windows/Temp")
-				.. "/forge-crafting-new-"
-				.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+			physicalRoot() .. "/forge-crafting-new-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 		)
 		local context = { packsDir = root }
 		local ok, reason = xpcall(function()

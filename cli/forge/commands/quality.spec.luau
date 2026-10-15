@@ -4,7 +4,7 @@
 -- and reporting path is exercised, not only the pure schema module.
 
 local fs = require("@lune/fs")
-local process = require("@lune/process")
+local tempdir = require("../lib/tempdir")
 local serde = require("@lune/serde")
 
 local quality = require("./quality")
@@ -89,9 +89,7 @@ fun_verdict:
 ]]
 
 local function withFixture(test: (string) -> ())
-	local root = (process.env.TEMP or process.env.TMP or "C:/Windows/Temp")
-		.. "/forge-quality-validate-"
-		.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+	local root = tempdir.root() .. "/forge-quality-validate-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 	local ok, reason = xpcall(function()
 		fs.writeDir(root)
 		test(root)

@@ -1,5 +1,6 @@
 --!strict
 local fs = require("@lune/fs")
+local tempdir = require("./tempdir")
 local luau = require("@lune/luau")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
@@ -43,9 +44,7 @@ return {
 	end,
 	["food and vitals codegen retains machine values and generated types"] = function()
 		local root = generate.absolute(
-			(process.env.TEMP or process.env.TMP or "C:/Windows/Temp")
-				.. "/forge-content-render-"
-				.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+			tempdir.root() .. "/forge-content-render-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 		)
 		local packDir = root .. "/fixture"
 		local ok, reason = xpcall(function()
