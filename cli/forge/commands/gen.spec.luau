@@ -4,14 +4,12 @@
 local genCommand = require("./gen")
 local genmanifest = require("./genmanifest")
 local fs = require("@lune/fs")
+local tempdir = require("../lib/tempdir")
 local serde = require("@lune/serde")
-local process = require("@lune/process")
 local cliutil = require("../lib/cliutil")
 
 local function fulfillmentFixture(test: (string, string, string) -> ())
-	local root = (process.env.TEMP or process.env.TMP or "C:/Windows/Temp")
-		.. "/forge-gen-fulfill-"
-		.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+	local root = tempdir.root() .. "/forge-gen-fulfill-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 	local requestPath = root .. "/request.json"
 	local manifestPath = root .. "/fixture/assets/manifest.yml"
 	local ok, reason = xpcall(function()

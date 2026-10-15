@@ -33,7 +33,7 @@ function M.relative(from: string, destination: string): string
 	for part in string.gmatch(M.absolute(destination), "[^/]+") do
 		table.insert(b, part)
 	end
-	if string.lower(a[1]) ~= string.lower(b[1]) then
+	if string.match(M.absolute(from), "^%a:") ~= string.match(M.absolute(destination), "^%a:") then
 		return M.absolute(destination)
 	end
 	local i = 1

@@ -1,15 +1,13 @@
 --!strict
 local fs = require("@lune/fs")
-local process = require("@lune/process")
+local tempdir = require("../lib/tempdir")
 local serde = require("@lune/serde")
 local assets = require("../lib/assets")
 local generate = require("../lib/genregenerate")
 return {
 	["planner restoration refreshes real asset codegen on external disk fixture"] = function()
 		local root = generate.absolute(
-			(process.env.TEMP or process.env.TMP or "C:/Windows/Temp")
-				.. "/forge-plan-assets-"
-				.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+			tempdir.root() .. "/forge-plan-assets-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 		)
 		local packDir = root .. "/fixture"
 		local context = { packsDir = root }
