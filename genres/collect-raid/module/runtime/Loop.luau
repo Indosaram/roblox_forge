@@ -115,6 +115,8 @@ export type CreatureConfig = {
 
 export type PricingConfig = { growthPerOwned: number }
 export type IncomeConfig = { activeSlots: number }
+-- Gamepass tuning from econ.yml monetization.gamepasses (coins2x.multiplier, vipSlots.slotBonus).
+export type PassEffectsConfig = { coins2xMultiplier: number, vipSlotBonus: number }
 export type SiegeConfig = { period: number, duration: number, maxTake: number }
 export type OfflineConfig = { maxSeconds: number, efficiency: number }
 export type QuestConfig = { id: string, target: number, reward: number }
@@ -130,6 +132,7 @@ export type Config = {
 	maxIncubators: number,
 	pricing: PricingConfig,
 	income: IncomeConfig,
+	passEffects: PassEffectsConfig,
 	sources: { [string]: SourceConfig },
 	sourceOrder: { string },
 	creatures: { [string]: CreatureConfig },
@@ -192,7 +195,7 @@ end
 local function dailyRate(config: Config, state: PlayerState): number
 	local rate = baseRate(config, state)
 	if state.passes.coins2x then
-		rate *= 2
+		rate *= config.passEffects.coins2xMultiplier
 	end
 	return rate
 end
@@ -227,7 +230,7 @@ end
 -- Effective incubator cap: the base cap plus any slot game pass.
 function Loop.maxIncubators(config: Config, state: PlayerState): number
 	if state.passes.vipSlots then
-		return config.maxIncubators + 4
+		return config.maxIncubators + config.passEffects.vipSlotBonus
 	end
 	return config.maxIncubators
 end

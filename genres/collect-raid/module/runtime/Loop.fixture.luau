@@ -12,6 +12,7 @@ local Fixture: Loop.Config = {
 	maxIncubators = 3,
 	pricing = { growthPerOwned = 0.08 },
 	income = { activeSlots = 6 },
+	passEffects = { coins2xMultiplier = 2, vipSlotBonus = 4 },
 	sources = {
 		ember = {
 			id = "ember",

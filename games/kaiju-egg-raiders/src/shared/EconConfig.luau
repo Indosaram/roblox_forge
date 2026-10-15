@@ -29,12 +29,18 @@ export type IncomeConfig = {
 	activeSlots: number,
 }
 
+export type PassEffectsConfig = {
+	coins2xMultiplier: number,
+	vipSlotBonus: number,
+}
+
 export type EconData = {
 	currency: string,
 	startingCoins: number,
 	maxIncubators: number,
 	pricing: PricingConfig,
 	income: IncomeConfig,
+	passEffects: PassEffectsConfig,
 	eggs: { [string]: EggConfig },
 	eggOrder: { string },
 	kaiju: { [string]: KaijuConfig },
@@ -46,6 +52,7 @@ local EconConfig: EconData = {
 	maxIncubators = 3,
 	pricing = { growthPerOwned = 0.2 },
 	income = { activeSlots = 6 },
+	passEffects = { coins2xMultiplier = 2, vipSlotBonus = 4 },
 	eggs = {
 		["ember"] = {
 			id = "ember",

@@ -21,6 +21,7 @@ function M.validateConfig(config: Contract.ConfigData): { string }
 			"maxIncubators",
 			"pricing",
 			"income",
+			"passEffects",
 			"sources",
 			"sourceOrder",
 			"creatures",
@@ -39,6 +40,12 @@ function M.validateConfig(config: Contract.ConfigData): { string }
 	check(bounded(config.maxIncubators, 1, 64, true), "maxIncubators")
 	check(keys(config.pricing, { "growthPerOwned" }) and bounded(config.pricing.growthPerOwned, 0, 100), "pricing")
 	check(keys(config.income, { "activeSlots" }) and bounded(config.income.activeSlots, 1, 64, true), "income")
+	check(
+		keys(config.passEffects, { "coins2xMultiplier", "vipSlotBonus" })
+			and bounded(config.passEffects.coins2xMultiplier, 1, 100, true)
+			and bounded(config.passEffects.vipSlotBonus, 1, 64, true),
+		"passEffects"
+	)
 	check(keys(config.profile, { "version" }) and config.profile.version == 1, "profile")
 	check(
 		keys(config.siege, { "period", "duration", "maxTake" })

@@ -140,8 +140,8 @@ plan:
       high: 499
       premium: 699
     gamepasses:
-      - { key: coins2x, name: "2x Coins", tier: premium, effect: "Doubles coin income." }
-      - { key: vipSlots, name: "VIP Slots +4", tier: premium, effect: "Adds four incubator slots." }
+      - { key: coins2x, name: "2x Coins", tier: premium, effect: "Doubles coin income.", multiplier: 2 }
+      - { key: vipSlots, name: "VIP Slots +4", tier: premium, effect: "Adds four incubator slots.", slotBonus: 4 }
       - { key: autoLock, name: "Auto Lock", tier: mid, effect: "Auto-locks your creatures before a siege." }
     products:
       - { key: creaturePack, name: "Guaranteed Rare Creature Pack", tier: low, effect: "Grants one fixed Rare creature." }

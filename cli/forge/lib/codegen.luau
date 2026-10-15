@@ -158,6 +158,20 @@ function M.generate(econYaml: string): string
 		end
 	end
 
+	-- Gamepass tuning lives next to its gamepass entry in monetization.gamepasses;
+	-- a pack without the entry keeps the genre's original 2x / +4 effects.
+	local coins2xMultiplier = 2
+	local vipSlotBonus = 4
+	for _, entry in readEntries(field(field(econ, "monetization"), "gamepasses")) do
+		local key = field(entry.value, "key")
+		if key == "coins2x" then
+			coins2xMultiplier =
+				toNumber(field(entry.value, "multiplier"), 2, "monetization.gamepasses[coins2x].multiplier")
+		elseif key == "vipSlots" then
+			vipSlotBonus = toNumber(field(entry.value, "slotBonus"), 4, "monetization.gamepasses[vipSlots].slotBonus")
+		end
+	end
+
 	local eggLines: { string } = {}
 	local eggOrder: { string } = {}
 	for _, entry in readEntries(field(econ, "eggs")) do
@@ -252,12 +266,18 @@ function M.generate(econYaml: string): string
 	table.insert(lines, "\tactiveSlots: number,")
 	table.insert(lines, "}")
 	table.insert(lines, "")
+	table.insert(lines, "export type PassEffectsConfig = {")
+	table.insert(lines, "\tcoins2xMultiplier: number,")
+	table.insert(lines, "\tvipSlotBonus: number,")
+	table.insert(lines, "}")
+	table.insert(lines, "")
 	table.insert(lines, "export type EconData = {")
 	table.insert(lines, "\tcurrency: string,")
 	table.insert(lines, "\tstartingCoins: number,")
 	table.insert(lines, "\tmaxIncubators: number,")
 	table.insert(lines, "\tpricing: PricingConfig,")
 	table.insert(lines, "\tincome: IncomeConfig,")
+	table.insert(lines, "\tpassEffects: PassEffectsConfig,")
 	table.insert(lines, "\teggs: { [string]: EggConfig },")
 	table.insert(lines, "\teggOrder: { string },")
 	table.insert(lines, "\tkaiju: { [string]: KaijuConfig },")
@@ -269,6 +289,14 @@ function M.generate(econYaml: string): string
 	table.insert(lines, "\tmaxIncubators = " .. formatNumber(maxIncubators) .. ",")
 	table.insert(lines, "\tpricing = { growthPerOwned = " .. formatNumber(growthPerOwned) .. " },")
 	table.insert(lines, "\tincome = { activeSlots = " .. formatNumber(activeSlots) .. " },")
+	table.insert(
+		lines,
+		"\tpassEffects = { coins2xMultiplier = "
+			.. formatNumber(coins2xMultiplier)
+			.. ", vipSlotBonus = "
+			.. formatNumber(vipSlotBonus)
+			.. " },"
+	)
 	table.insert(lines, "\teggs = {")
 	if #eggLines == 0 then
 		table.remove(lines, #lines)

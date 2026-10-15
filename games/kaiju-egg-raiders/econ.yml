@@ -95,10 +95,12 @@ monetization:
       name: 2x Coins
       price: 699
       id: 2001134664
+      multiplier: 2
     - key: vipSlots
       name: VIP Slots +4
       price: 699
       id: 2002010646
+      slotBonus: 4
     - key: autoLock
       name: Auto Lock
       price: 199

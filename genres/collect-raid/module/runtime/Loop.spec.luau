@@ -845,4 +845,24 @@ return {
 		assert(Loop.coinsPerSecond(Config, state) == 46, "coins2x doubles the effective rate")
 		assert(Loop.baseCoinsPerSecond(Config, state) == 23, "base rate stays unmultiplied")
 	end,
+
+	["gamepass effects come from config.passEffects, not literals"] = function()
+		local tuned = table.clone(Config)
+		tuned.passEffects = { coins2xMultiplier = 3, vipSlotBonus = 5 }
+
+		local state = Loop.newPlayer(tuned, 0)
+		table.insert(state.creatures, "solar-titan") -- 8 coins/s
+		Loop.setPass(state, "coins2x", true)
+		assert(Loop.coinsPerSecond(tuned, state) == 24, "multiplier 3 triples the effective rate")
+
+		local produced = 0
+		for _ = 1, 10 do
+			produced += Loop.tick(tuned, state, 0.1)
+		end
+		assert(produced == 24, "expected 24 coins over 1s with a 3x pass, got " .. tostring(produced))
+
+		assert(Loop.maxIncubators(tuned, state) == tuned.maxIncubators, "no vipSlots pass: base cap")
+		Loop.setPass(state, "vipSlots", true)
+		assert(Loop.maxIncubators(tuned, state) == tuned.maxIncubators + 5, "vipSlots bonus comes from config")
+	end,
 }
