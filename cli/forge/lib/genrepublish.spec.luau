@@ -6,15 +6,26 @@ local Deadline = require("./deadline")
 local publish = require("./genrepublish")
 local project = require("./genreproject")
 local publication = require("./packpublication")
+local tempdir = require("./tempdir")
 local qa = require("../commands/qa")
 local check = require("../commands/check")
+
+--- On POSIX the temp root may be a symlink (/tmp -> /private/tmp, /var -> /private/var); require() resolves
+--- ".." physically, so the relative module path handed to the child only works from the real path.
+local function physicalRoot(): string
+	local root = tempdir.root()
+	if process.os == "windows" then
+		return root
+	end
+	local resolved = process.exec("/bin/sh", { "-c", 'cd "$1" && pwd -P', "sh", root })
+	assert(resolved.ok, "cannot resolve temp root: " .. resolved.stderr)
+	return (string.gsub(resolved.stdout, "%s+$", ""))
+end
 
 return {
 	["game publication preserves repeat bytes and authored metadata across generated changes"] = function()
 		local root = project.absolute(
-			(process.env.TEMP or "C:/Windows/Temp")
-				.. "/forge-game-bytes-"
-				.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+			physicalRoot() .. "/forge-game-bytes-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 		)
 		assert(not fs.isDir(root), "fixture already exists")
 		publish.ensureDir(root)
@@ -64,9 +75,7 @@ return {
 	end,
 	["pending publication rejects consumers regardless of journal contents"] = function()
 		local root = project.absolute(
-			(process.env.TEMP or "C:/Windows/Temp")
-				.. "/forge-pending-"
-				.. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+			physicalRoot() .. "/forge-pending-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
 		)
 		assert(not fs.isDir(root), "fixture already exists")
 		publish.ensureDir(root .. "/fixture.forge-stage")
@@ -150,7 +159,7 @@ return {
 		end
 		for caseIndex, case in cases do
 			local root = project.absolute(
-				(process.env.TEMP or "C:/Windows/Temp")
+				physicalRoot()
 					.. "/forge-publication-"
 					.. serde.hash("sha256", tostring(os.clock()) .. tostring(caseIndex)):sub(1, 16)
 			)
@@ -169,6 +178,7 @@ return {
 					return string.format(
 						[[
 local p = require(%q)
+local process = require("@lune/process")
 local stdio = require("@lune/stdio")
 -- Parent subscribes to READY before allowing any publication work.
 stdio.write("READY\n")
@@ -177,6 +187,9 @@ local function barrier(event, index)
  if event == %q and index == %d then
   stdio.write("BARRIER\n")
   stdio.readLine()
+  -- Only the parent's kill (or its closed pipes) releases this read. Rokit's lune shim
+  -- can leave this process alive after the shim is killed, so never resume publication.
+  process.exit(1)
  end
 end
 local ok, reason
