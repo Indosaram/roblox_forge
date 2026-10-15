@@ -7,8 +7,6 @@ on:
 jobs:
   forge-check:
     runs-on: ubuntu-latest
-    env:
-      ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,12 +20,53 @@ jobs:
       - name: Set up lune type definitions
         run: lune setup
 
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Run forge check
         run: lune run cli/forge check
+
+      - name: Run JS suites
+        shell: bash
+        run: |
+          failed=0
+          run_suite() {
+            echo "::group::$*"
+            if ! "$@"; then
+              echo "::error::suite failed: $*"
+              failed=1
+            fi
+            echo "::endgroup::"
+          }
+          run_suite bun test cli/forge/lib/opencloud-transport.spec.mjs
+          run_suite node --test cli/forge/lib/qualityav.spec.mjs
+          run_suite node --test cli/forge/lib/qualityjudge.spec.mjs
+          run_suite bun test cli/forge/qa/studio-driver.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-gameplay.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-input.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-lifecycle.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-process.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-rejoin.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-session.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-surface.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-wildlife.test.mjs
+          run_suite bun test cli/release/capacity-persistence.test.mjs
+          run_suite bun test cli/release/capacity-workload.test.mjs
+          run_suite bun test cli/release/capacity-recovery.test.mjs
+          run_suite bun test cli/release/local-persistence-host.test.mjs
+          exit "$failed"
 
       - name: Run local smoke
         run: lune run cli/forge smoke --pack kaiju-egg-raiders --local
 
+      - name: Detect cloud credentials
+        id: cloud
+        env:
+          HAS_ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY != '' }}
+        run: echo "enabled=$HAS_ROBLOX_API_KEY" >> "$GITHUB_OUTPUT"
+
       - name: Run cloud smoke
-        if: ${{ env.ROBLOX_API_KEY != '' }}
+        if: ${{ steps.cloud.outputs.enabled == 'true' }}
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
         run: lune run cli/forge smoke --pack kaiju-egg-raiders --cloud
