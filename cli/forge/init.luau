@@ -27,134 +27,281 @@ local specCommand = require("./forge/commands/spec")
 local contentCommand = require("./forge/commands/content")
 local smokeCommand = require("./forge/commands/smoke")
 local planCommand = require("./forge/commands/plan")
+local imagediffCommand = require("./forge/commands/imagediff")
 local inspector = require("./forge/lib/inspect")
 local specsRunner = require("./forge/lib/specs")
 
-local function printUsage()
-	stdio.ewrite([[Usage: lune run cli/forge <command>
-
-Commands:
+-- One usage entry per command form; the full usage and `<command> --help`
+-- are both rendered from this table so they cannot drift apart.
+local USAGE_ENTRIES: { { name: string, text: string } } = {
+	{
+		name = "check",
+		text = [=[
   check [--pack <slug> | --project <path> | --all] [--packs-root <dir>]
+        [--only <stage[,stage]>] [--skip <stage[,stage]>] [--json <path>]
                             Run full linting, formatting, type checking, econ drift, specs,
                             and then build and inspect every eligible game pack. Each target
                             is reported independently: one failing pack never hides another,
                             and a failed build is never inspected
-  codegen [<pack>]          Regenerate games/<pack>/src/shared/EconConfig.luau from econ.yml (default: kaiju-egg-raiders)
-  new <slug> --genre <g1,g2>  Scaffold games/<slug>/ from genre templates and run codegen
+                            --only/--skip select stages (genre-contract, qa-schema, selene,
+                            stylua, luau-lsp, econ, game, assets, locale, lock, specs, build);
+                            --json writes a schemaVersion 1 stage summary]=],
+	},
+	{
+		name = "codegen",
+		text = [=[
+  codegen [<pack>]          Regenerate games/<pack>/src/shared/EconConfig.luau from econ.yml (default: kaiju-egg-raiders)]=],
+	},
+	{
+		name = "new",
+		text = [=[
+  new <slug> --genre <g1,g2>  Scaffold games/<slug>/ from genre templates and run codegen]=],
+	},
+	{
+		name = "plan",
+		text = [=[
   plan --concept "<text>" --genre <g> --pack <slug> [--seed N]
                             Generate a full game pack (game.yml, econ.yml, monetization,
                             design docs, playable src) from a concept, with no LLM or
-                            API calls: the same concept + seed always writes the same bytes
+                            API calls: the same concept + seed always writes the same bytes]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen <image|mesh|sfx> --key <assetKey> --prompt "<text>" [--pack <slug>] [--dry-run]
                             Generate one asset through its licensed provider (image via
                             studio-mcp, mesh via trellis, sfx via elevenlabs) and upsert it
-                            into assets/manifest.yml as NotUploaded
+                            into assets/manifest.yml as NotUploaded]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen procedural [--pack <slug>] [--obj] [--preview]
                             Generate the pack's procedural creature/prop meshes with the pure
                             core generators (no API keys), write src/shared/ProcAssets.luau,
                             and upsert each key into assets/manifest.yml. --preview renders
                             front/side PPMs plus sheet.ppm under assets/preview/ with the
-                            framework's own z-buffer rasterizer
+                            framework's own z-buffer rasterizer]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen icons [--pack <slug>]
                             Render a 128x128 .ppm icon preview for every creature and egg in
                             assets/procgen.yml into assets/icons/ and refresh one forge-procgen
-                            manifest entry per icon (pure Pixels/Icons, no API keys)
+                            manifest entry per icon (pure Pixels/Icons, no API keys)]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen launchart [--pack <slug>]
                             Render two 512x512 icons and two 1920x1080 thumbnails from the
                             pack's procedural meshes into assets/icon and assets/thumbnails as
-                            deterministic PNGs, and upsert them as forge-procgen/Approved
+                            deterministic PNGs, and upsert them as forge-procgen/Approved]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen audio [--pack <slug>] [--install]
                             Synthesise the pack's assets/audio.yml cues (music/sfx/ambience)
                             with the pure core DSP/composer into assets/audio/<cue>.wav as
                             deterministic 16-bit PCM, and upsert them as forge-procgen/Approved.
                             --install copies them into the newest Studio content/forge/<pack>/
-                            so rbxasset://forge/<pack>/<cue>.wav resolves
+                            so rbxasset://forge/<pack>/<cue>.wav resolves]=],
+	},
+	{
+		name = "gen",
+		text = [=[
   gen fulfill <requestFile> --key <assetKey> [--asset-id <n>]
-                            Append a fulfilled request to the pack's assets/manifest.yml
+                            Append a fulfilled request to the pack's assets/manifest.yml]=],
+	},
+	{
+		name = "assets",
+		text = [=[
   assets check [--pack <slug>] [--env staging|production] [--manifest <path>]
-                            Gate a pack's assets/manifest.yml against license and moderation rules
+                            Gate a pack's assets/manifest.yml against license and moderation rules]=],
+	},
+	{
+		name = "assets",
+		text = [=[
   assets codegen [--pack <slug>]
-                            Write src/shared/Assets.luau and asphalt.toml from assets/manifest.yml
+                            Write src/shared/Assets.luau and asphalt.toml from assets/manifest.yml]=],
+	},
+	{
+		name = "assets",
+		text = [=[
   assets status [--pack <slug>]
-                            Refresh moderation for uploaded assets via the Open Cloud Assets API
+                            Refresh moderation for uploaded assets via the Open Cloud Assets API]=],
+	},
+	{
+		name = "assets",
+		text = [=[
   assets upload-audio [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
                             Publish a pack's synthesised WAV cues (sfx/bgm) through the Open Cloud
                             Assets API, poll each operation, and record the returned rbxassetid plus
                             moderation state in assets/manifest.yml. Idempotent by artifact sha256 via
                             build/audio-upload-cache.json. Pending moderation is reported, never
-                            treated as playable
+                            treated as playable]=],
+	},
+	{
+		name = "deploy",
+		text = [=[
   deploy --env <staging|production> [--pack <slug>] [--dry-run] [--development]
                             Build the place with rojo and publish it via Roblox Open Cloud
-                            (--dry-run: offline product/asset plan, no API key, no network)
+                            (--dry-run: offline product/asset plan, no API key, no network)]=],
+	},
+	{
+		name = "deploy",
+		text = [=[
   deploy plan --env <staging|production> [--pack <slug>] [--out <path>] [--development]
                             Offline plan; --out writes JSON. Declared release-candidates
                             require a current authorized receipt for build/<pack>.rbxl.
                             --development is staging-only and never release approval;
                             it cannot bypass a release-candidate claim. Legacy packs
-                            without quality.yml remain explicitly unassessed
+                            without quality.yml remain explicitly unassessed]=],
+	},
+	{
+		name = "locale",
+		text = [=[
   locale check [--pack <slug>]
-                            Verify locale/strings.csv covers every client literal and has no empty ko-kr
+                            Verify locale/strings.csv covers every client literal and has no empty ko-kr]=],
+	},
+	{
+		name = "locale",
+		text = [=[
   locale sync [--pack <slug>] [--dry-run]
                             Build the Localization Tables payload from strings.csv and write
-                            reports/locale-sync-<pack>.json (offline)
+                            reports/locale-sync-<pack>.json (offline)]=],
+	},
+	{
+		name = "trends",
+		text = [=[
   trends [--fixture <path>] [--out <path>]
-                            Collect top experiences per genre and write reports/trends-<YYYY-MM-DD>.md
+                            Collect top experiences per genre and write reports/trends-<YYYY-MM-DD>.md]=],
+	},
+	{
+		name = "report",
+		text = [=[
   report [--pack <slug>] [--events <path>] [--out <path>]
-                            Write a weekly liveops report to reports/<pack>-weekly-<YYYY-MM-DD>.md
+                            Write a weekly liveops report to reports/<pack>-weekly-<YYYY-MM-DD>.md]=],
+	},
+	{
+		name = "report",
+		text = [=[
   report --all [--out <path>]
-                            Write reports/dashboard-<YYYY-MM-DD>.md summarizing every pack
+                            Write reports/dashboard-<YYYY-MM-DD>.md summarizing every pack]=],
+	},
+	{
+		name = "liveops",
+		text = [=[
   liveops push --pack <slug> --event <id> [--dry-run]
                             Publish a pack's liveops.yml event to its staging universe via Open Cloud
-                            (--dry-run: print the POST target and body; no API key, no network)
-  econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>]
+                            (--dry-run: print the POST target and body; no API key, no network)]=],
+	},
+	{
+		name = "econ",
+		text = [=[
+  econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]
                             Simulate a pack's free-currency economy and write reports/econ-sim-<pack>.md
+                            (--json also writes a schemaVersion 1 machine-readable result)]=],
+	},
+	{
+		name = "qa",
+		text = [=[
   qa plan [--pack <slug>]
-                            Write reports/qa-plan-<pack>.md from the pack's genre qa-scenarios
-  qa validate               Validate every genres/*/qa-scenarios/*.yml scenario file
+                            Write reports/qa-plan-<pack>.md from the pack's genre qa-scenarios]=],
+	},
+	{
+		name = "qa",
+		text = [=[
+  qa validate               Validate every genres/*/qa-scenarios/*.yml scenario file]=],
+	},
+	{
+		name = "spec",
+		text = [=[
   spec init --genre <id> [--concept "<text>"] [--pack <slug>] [--force]
                             Write a draft genres/<id>/genre-spec.yml seeded from the
                             genre's econ-template.yml and design-template.md. The draft
                             is a valid but incomplete binding document: an agent fills it
-                            in and then removes `draft: true`
+                            in and then removes `draft: true`]=],
+	},
+	{
+		name = "spec",
+		text = [=[
   spec validate [--genre <id>]
                             Report every declarative genre-spec violation as
                             `file: reason`. A spec that fails any rule fails genre
-                            discovery, so every other command refuses to run against it
+                            discovery, so every other command refuses to run against it]=],
+	},
+	{
+		name = "qa",
+		text = [=[
   qa run --pack <slug> --scenario <name> [--native|--studio] [--evidence <path>]
+         [--record <journal.json>]
                             Execute one declarative QA scenario against the pack's real
                             Session/Executor/genre adapters with an explicit clock and
                             injectable commit barriers (--native, the default), or through
                             a connected Studio client (--studio). A missing scenario, a
                             scenario that asserts nothing, and an unreachable Studio client
                             are all FAIL: --studio never falls back to a headless run
+                            --record writes the native run's command journal for `replay`]=],
+	},
+	{
+		name = "content",
+		text = [=[
   content check --file <path>
                             Validate a versioned survival content catalog (items, recipes,
                             nodes, structures, wildlife) and print every violation with its
                             field path. Catalog refs, caps, cycles and fixed-point
-                            quantities are checked before anything is written
+                            quantities are checked before anything is written]=],
+	},
+	{
+		name = "content",
+		text = [=[
   content codegen --pack <slug>
                             Write games/<pack>/src/shared/SurvivalContent.luau from the
                             pack's content.yml. Deterministic: identical input always
-                            produces byte-identical output
+                            produces byte-identical output]=],
+	},
+	{
+		name = "quality",
+		text = [=[
   quality validate [--file <path>] [--pack <slug>]
                             Validate one quality profile document (tier, reference package,
                             anchored rubric, first-play goals) and print every schema
                             violation with its field path. Schema only: a profile that
                             passes is a well-formed claim, never an approval, and any
-                            self-declared verdict fails
+                            self-declared verdict fails]=],
+	},
+	{
+		name = "quality",
+		text = [=[
   quality evaluate --pack <slug> --capture <dir> --reference <path> --out <path>
                             Invoke the configured evaluator on bound first-play evidence;
-                            missing evaluator or inconclusive evidence cannot approve
+                            missing evaluator or inconclusive evidence cannot approve]=],
+	},
+	{
+		name = "quality",
+		text = [=[
   quality check --pack <slug> [--target starter|vertical-slice|release-candidate]
                 [--receipt <path>] [--packs-root <dir>]
                             Check the declared tier (a target may not downgrade it).
                             Starter passes without approval; higher tiers require a
                             current digest-bound receipt and FORGE_QUALITY_EVALUATOR /
-                            FORGE_QUALITY_ATTESTATION. No build silently upgrades a tier
-  smoke [--pack <slug>] [--local] [--cloud] [--fixture <save.json>] [--dry-run]
+                            FORGE_QUALITY_ATTESTATION. No build silently upgrades a tier]=],
+	},
+	{
+		name = "smoke",
+		text = [=[
+  smoke [--pack <slug>] [--local] [--cloud] [--fixture <save.json>] [--dry-run] [--strict]
                             Run a pack's local Lune smoke checks, or post and poll an
                             Open Cloud Luau Execution smoke task for the staging place
-  sweep [--genres a,b,...] [--out <dir>]
+                            (--strict with --local fails a pack that has no smoke script)]=],
+	},
+	{
+		name = "sweep",
+		text = [=[
+  sweep [--genres a,b,...] [--out <dir>] [--stamp <text>]
                             Baseline playability sweep: generate a fresh pack for every
                             registered genre (plus survival-coop in --mode crafting) into a
                             scratch packs root outside games/, then record generation, expected
@@ -162,23 +309,146 @@ Commands:
                             static playability-surface probe for each - independently, so one
                             failing genre never stops another. Writes sweep.json and sweep.md to
                             --out (default build/sweep/<stamp>/)
+                            --stamp overrides the wall-clock stamp so two sweeps byte-compare]=],
+	},
+	{
+		name = "build",
+		text = [=[
   build [--all | --pack <slug> | --project <path>] [--packs-root <dir>]
                             Build game places with rojo into build/<target>.rbxl. With no
                             selector the default pack is built; --all builds every discovered
                             pack, --pack builds one, and --project builds one project file.
-                            Selectors are mutually exclusive
-  inspect <path.rbxl>       (internal) Inspect a built .rbxl place file directly
-]])
+                            Selectors are mutually exclusive]=],
+	},
+	{
+		name = "test",
+		text = [=[
+  test [filters...] [--quiet] [--slowest N] [--json <path>]
+                            Run every *.spec.luau (sorted) whose path or "path :: test" contains
+                            any filter. --quiet prints only FAIL lines and the summary,
+                            --slowest N lists the N slowest tests, --json writes a schemaVersion 1
+                            report. Exit 0 when all pass, 1 on any failure or zero matches]=],
+	},
+	{
+		name = "replay",
+		text = [=[
+  replay <journal.json> [--json]
+                            Re-run a journal recorded by `qa run --record` against a fresh Session
+                            and compare state hashes: exit 0 MATCH, 1 MISMATCH, 2 decode error]=],
+	},
+	{
+		name = "imagediff",
+		text = [=[
+  imagediff <base.png> <compare.png> [--diff <out.png>] [--threshold n]
+            [--ignore x1:y1-x2:y2[,..]] [--crop x:y:w:h] [--json]
+                            Compare two PNGs pixel by pixel: exit 0 identical, 1 different,
+                            2 usage or decode error]=],
+	},
+	{
+		name = "help",
+		text = [=[
+  help [<command>]          Print this usage (or one command's section); also --help, -h,
+                            and <command> --help]=],
+	},
+	{
+		name = "inspect",
+		text = [=[
+  inspect <path.rbxl>       (internal) Inspect a built .rbxl place file directly]=],
+	},
+}
+
+local USAGE_HEADER = "Usage: lune run cli/forge <command>\n\nCommands:\n"
+
+local function fullUsage(): string
+	local parts: { string } = {}
+	for _, entry in USAGE_ENTRIES do
+		table.insert(parts, entry.text)
+	end
+	return USAGE_HEADER .. table.concat(parts, "\n") .. "\n"
+end
+
+-- Every entry for one command (gen has several forms), or nil if unknown.
+local function commandUsage(name: string): string?
+	local parts: { string } = {}
+	for _, entry in USAGE_ENTRIES do
+		if entry.name == name then
+			table.insert(parts, entry.text)
+		end
+	end
+	if #parts == 0 then
+		return nil
+	end
+	return "Usage: lune run cli/forge " .. name .. "\n\n" .. table.concat(parts, "\n") .. "\n"
+end
+
+local function isHelpFlag(arg: string?): boolean
+	return arg == "--help" or arg == "-h"
+end
+
+-- Parses `test`/`specs-run` argv (after the command name) into specs.run options.
+local function parseSpecsArgs(args: { string }): (specsRunner.RunOptions?, string?)
+	local filters: { string } = {}
+	local options: specsRunner.RunOptions = { filters = filters }
+	local index = 2
+	while index <= #args do
+		local arg = args[index]
+		if arg == "--quiet" then
+			options.quiet = true
+		elseif arg == "--slowest" then
+			local count = tonumber(args[index + 1])
+			if count == nil or count < 1 or count ~= math.floor(count) then
+				return nil, "--slowest requires a positive integer"
+			end
+			options.slowest = count
+			index += 1
+		elseif arg == "--json" then
+			local path = args[index + 1]
+			if path == nil or path == "" or string.sub(path, 1, 2) == "--" then
+				return nil, "--json requires a path"
+			end
+			options.json = path
+			index += 1
+		elseif string.sub(arg, 1, 2) == "--" then
+			return nil, "unknown flag " .. arg
+		else
+			table.insert(filters, arg)
+		end
+		index += 1
+	end
+	return options, nil
 end
 
 local function main()
 	local args = process.args
 	if #args == 0 then
-		printUsage()
-		process.exit(1)
+		stdio.ewrite(fullUsage())
+		process.exit(2)
 	end
 
 	local cmd = args[1]
+	if cmd == "help" or isHelpFlag(cmd) then
+		local topic = if cmd == "help" then args[2] else nil
+		if topic == nil then
+			stdio.write(fullUsage())
+			process.exit(0)
+		end
+		local section = commandUsage(topic)
+		if section == nil then
+			stdio.ewrite(string.format("Unknown command: '%s'\n\n", topic) .. fullUsage())
+			process.exit(2)
+			return
+		end
+		stdio.write(section)
+		process.exit(0)
+	end
+	if isHelpFlag(args[2]) then
+		local section = commandUsage(cmd)
+		if section ~= nil then
+			stdio.write(section)
+			process.exit(0)
+		end
+	end
+
 	if cmd == "check" then
 		local ok = checkCommand.run(args)
 		if not ok then
@@ -260,15 +530,37 @@ local function main()
 		if not res.ok then
 			process.exit(1)
 		end
-	elseif cmd == "specs-run" then
-		-- Hidden: used by the check command so specs run in their own process.
-		local specsOk, specsOut = specsRunner.runAll()
+	elseif cmd == "test" or cmd == "specs-run" then
+		-- `specs-run` is the hidden alias the check command uses so specs run in
+		-- their own process; both accept the same filters and flags.
+		local options, parseErr = parseSpecsArgs(args)
+		if options == nil then
+			stdio.ewrite("Error: " .. tostring(parseErr) .. "\n\n" .. (commandUsage("test") or ""))
+			process.exit(2)
+			return
+		end
+		local specsOk, specsOut = specsRunner.run(options)
 		stdio.write(specsOut .. "\n")
 		-- Every test has run, so the verdict is final and Lune must not linger. Measured
 		-- 196s of work followed by an unbounded stay-alive with no child process left,
 		-- because a spec leaves a suspended thread or timer behind; on the success path
 		-- that silence used to wedge `forge check` with no specs output at all.
 		process.exit(if specsOk then 0 else 1)
+	elseif cmd == "imagediff" then
+		process.exit(imagediffCommand.run(args))
+	elseif cmd == "replay" then
+		-- Required on demand: the replay command may be absent from this checkout.
+		local dynamicRequire = require :: any
+		local replayPath = "./forge/commands/replay"
+		local loaded, replayCommand = pcall(function()
+			return dynamicRequire(replayPath)
+		end)
+		if not loaded or type(replayCommand) ~= "table" or type(replayCommand.run) ~= "function" then
+			stdio.ewrite("replay: not available\n")
+			process.exit(2)
+			return
+		end
+		process.exit(replayCommand.run(args))
 	elseif cmd == "inspect" then
 		local rbxlPath = args[2]
 		if not rbxlPath or rbxlPath == "" then
@@ -314,9 +606,8 @@ local function main()
 			process.exit(1)
 		end
 	else
-		stdio.ewrite(string.format("Unknown command: '%s'\n\n", cmd))
-		printUsage()
-		process.exit(1)
+		stdio.ewrite(string.format("Unknown command: '%s'\n\n", cmd) .. fullUsage())
+		process.exit(2)
 	end
 end
 
