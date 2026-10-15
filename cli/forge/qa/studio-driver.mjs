@@ -14,6 +14,7 @@ import { parallelPrompt } from './studio-driver-contention.mjs';
 import { writeRejoin } from './studio-driver-rejoin.mjs';
 import { registerClientSource } from './studio-driver-registration.mjs';
 import { openCapture, buildSourceReceipt } from '../lib/qualityav-capture.mjs';
+import { layersOf, withLayers } from './studio-driver-layers.mjs';
 import { resolve, relative, isAbsolute } from 'node:path';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -788,6 +789,7 @@ local value={result=result,revision=received and received.revision}`);
         const expected = step.members.map(player => players.get(String(player)).userId).sort();
         if (JSON.stringify(value) !== JSON.stringify(expected)) throw new Error(`step ${index + 1}: members differ`);
       } else if (step.op === 'capture') {
+        const layers=layersOf(step);
         for(let angle=0;angle<(step.angles || 1);angle++) {
         if(angle>0) for(const captureClient of config.clients) {
           for(let turn=0;turn<2;turn++) await turnCamera(captureClient,execute,call);
@@ -814,7 +816,9 @@ local value={result=result,revision=received and received.revision}`);
             }
           }
           validateGeometry(geometry,devices.get(captureClient.studioId));
-          const response = await call('screen_capture', { studio_id: captureClient.studioId, capture_id: `ForgeQA_${index + 1}_${config.clients.indexOf(captureClient) + 1}` });
+          // Only the screenshot runs with a layer hidden: the geometry samples around it measure the
+          // owned UI and must see it exactly as the player does.
+          const response = await withLayers(layers, captureClient, execute, () => call('screen_capture', { studio_id: captureClient.studioId, capture_id: `ForgeQA_${index + 1}_${config.clients.indexOf(captureClient) + 1}` }));
           const image = response.content?.find(item => item.type === 'image' && item.data);
           if (!image) throw new Error('screen_capture returned no image bytes');
           const bytes = Buffer.from(image.data, 'base64');
@@ -842,7 +846,9 @@ local value={result=result,revision=received and received.revision}`);
           const contentScaleX=raster.width/geometry.logical.full.width,contentScaleY=raster.height/geometry.logical.full.height;
           const excluded=geometry.criticalUI.map(rect=>({x:rect.x*contentScaleX,y:rect.y*contentScaleY,width:rect.width*contentScaleX,height:rect.height*contentScaleY}));
           if(geometry.chat)excluded.push({x:geometry.chat.x*contentScaleX,y:geometry.chat.y*contentScaleY,width:geometry.chat.width*contentScaleX,height:geometry.chat.height*contentScaleY});
-          const visualContent=assertVisualContent({luma:decoded.luma,excludeRects:excluded,label:path});
+          // A frame with the world hidden is flat by construction, so the world-content gate cannot
+          // judge it and must not fail it; the record says why instead of claiming a verdict.
+          const visualContent=layers==='ui'?{verdict:'not-applicable',reason:'world layer hidden'}:assertVisualContent({luma:decoded.luma,excludeRects:excluded,label:path});
           // A skipped visual-content verdict means the HUD covered nearly the whole frame, so
           // the world region could not be judged. That is not evidence the world rendered: it is
           // recorded as inconclusive and carried on the run, so a consumer cannot read it as a
@@ -852,7 +858,7 @@ local value={result=result,revision=received and received.revision}`);
             outcome.inconclusive.push({step:index+1,studio_id:captureClient.studioId,actor:captureClient.userId,reason:visualContent.reason||'visual content not judgeable'});
           }
           const logicalToRaster={origin:'full-screen',scaleX:raster.width/geometry.logical.full.width,scaleY:raster.height/geometry.logical.full.height,offsetX:0,offsetY:0};
-          outcome.captures.push({ schemaVersion:2,originalValidated:true,epoch:outcome.epochs?.length || 1,sessionId:outcome.runtime.server.sessionId,buildIdentity:config.buildIdentity.id,...geometry,raster,visualContent:{...visualContent,verdict:visualContent.verdict==='skipped'?'inconclusive':visualContent.verdict},logicalToRaster,studio_id: captureClient.studioId, actor:captureClient.userId, target: step.target, path, sha256: hash(bytes),step:index+1,elapsedSeconds:(performance.now()-started)/1000 });
+          outcome.captures.push({ schemaVersion:2,originalValidated:true,layers,epoch:outcome.epochs?.length || 1,sessionId:outcome.runtime.server.sessionId,buildIdentity:config.buildIdentity.id,...geometry,raster,visualContent:{...visualContent,verdict:visualContent.verdict==='skipped'?'inconclusive':visualContent.verdict},logicalToRaster,studio_id: captureClient.studioId, actor:captureClient.userId, target: step.target, path, sha256: hash(bytes),step:index+1,elapsedSeconds:(performance.now()-started)/1000 });
         }
         }
       } else {
