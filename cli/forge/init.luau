@@ -28,6 +28,7 @@ local contentCommand = require("./forge/commands/content")
 local smokeCommand = require("./forge/commands/smoke")
 local planCommand = require("./forge/commands/plan")
 local imagediffCommand = require("./forge/commands/imagediff")
+local replayCommand = require("./forge/commands/replay")
 local inspector = require("./forge/lib/inspect")
 local specsRunner = require("./forge/lib/specs")
 
@@ -309,7 +310,8 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
                             static playability-surface probe for each - independently, so one
                             failing genre never stops another. Writes sweep.json and sweep.md to
                             --out (default build/sweep/<stamp>/)
-                            --stamp overrides the wall-clock stamp so two sweeps byte-compare]=],
+                            --stamp overrides the wall-clock stamp that names the output
+                            directory (sweep.json still records per-step durationMs)]=],
 	},
 	{
 		name = "build",
@@ -442,7 +444,8 @@ local function main()
 		process.exit(0)
 	end
 	if isHelpFlag(args[2]) then
-		local section = commandUsage(cmd)
+		-- `specs-run` is the hidden alias of `test` and shares its usage.
+		local section = commandUsage(if cmd == "specs-run" then "test" else cmd)
 		if section ~= nil then
 			stdio.write(section)
 			process.exit(0)
@@ -549,17 +552,6 @@ local function main()
 	elseif cmd == "imagediff" then
 		process.exit(imagediffCommand.run(args))
 	elseif cmd == "replay" then
-		-- Required on demand: the replay command may be absent from this checkout.
-		local dynamicRequire = require :: any
-		local replayPath = "./forge/commands/replay"
-		local loaded, replayCommand = pcall(function()
-			return dynamicRequire(replayPath)
-		end)
-		if not loaded or type(replayCommand) ~= "table" or type(replayCommand.run) ~= "function" then
-			stdio.ewrite("replay: not available\n")
-			process.exit(2)
-			return
-		end
 		process.exit(replayCommand.run(args))
 	elseif cmd == "inspect" then
 		local rbxlPath = args[2]

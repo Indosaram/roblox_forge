@@ -2,11 +2,13 @@
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local specs = require("./specs")
+local tempdir = require("./tempdir")
 
 -- Fake spec trees live under the git-ignored build/ directory because the
--- runner requires specs relative to the working directory (the repo root).
+-- runner requires specs relative to the working directory (the repo root), so
+-- only the unique leaf name comes from tempdir.path, not its scratch root.
 local function withTree(files: { [string]: string }, body: (root: string) -> ())
-	local root = "build/.specs-fixture-" .. serde.hash("sha256", tostring(os.clock()) .. tostring(math.random()))
+	local root = "build/" .. (string.match(tempdir.path(".specs-fixture"), "[^/]+$") :: string)
 	fs.writeDir(root)
 	local ok, reason = xpcall(function()
 		for path, source in files do
