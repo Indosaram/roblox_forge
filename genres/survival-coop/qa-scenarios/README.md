@@ -1,22 +1,50 @@
 # survival-coop QA contract
 
-The `execute_luau` steps in this genre's scenarios call a `ServerStorage.ForgeQA`
-`BindableFunction`, invoked as `game.ServerStorage.ForgeQA:Invoke(...)`. This
-genre is engine-free and cannot create that instance itself, so any pack built
-from `survival-coop` MUST wire it up server-side (see
-`genres/collect-raid/module/runtime/Server.luau` for the reference shape:
-`Instance.new("BindableFunction")` named `ForgeQA`, parented to
-`ServerStorage`, with `OnInvoke` dispatching on the first argument).
+survival-coop is engine-free and creates no QA instance itself. The implemented
+Studio QA surface is the generic `ServerStorage.ForgeQA` **Folder** that
+`core/infra/genre/Server.luau` binds when `RunService:IsStudio()`, so any pack
+started through `Server.start` gets it with no pack-side wiring. It is not a single
+`BindableFunction`: call `Invoke` on a child, never on `ForgeQA` itself.
 
 ## Operations
 
-- `Invoke("get", key)` — returns the current value for `key` (see table below).
-- `Invoke("run")` — returns a table snapshot of the QA player's saved co-op
-  run state (used to assert several fields restored together after rejoin).
-- `Invoke("seed", fields)` — writes deterministic state directly into the QA
-  player's save and persists it, for `rejoin` scenarios.
+Children of the Folder (each a `BindableFunction` unless noted):
 
-## Keys used by this genre's scenarios
+- `dispatch:Invoke(genre, action, args, playerId)` — runs a declared client action
+  through the command transport; returns the `{ ok, reason? }` result.
+- `snapshot:Invoke(genre, playerId)` — returns the genre's slice of the player's
+  snapshot (for survival-coop: `lastWaveWon`, `balance`, ...).
+- `commandServer:Invoke(playerId, requestId, actionId, args)` — declared durable
+  server actions only.
+- `beginClock:Invoke()` — freezes the clock and returns the base epoch;
+  `advanceElapsed:Invoke(seconds)` advances from that base;
+  `advanceTo:Invoke(epoch)` advances to an absolute epoch.
+- `save:Invoke(playerId)` — returns the Result, then the save envelope;
+  `restore:Invoke(playerId, envelope)` restores it.
+- `revision:Invoke()` — the current state revision; `StateChanged` (a
+  `BindableEvent`) fires with each new revision. Subscribe before acting, then await it.
+
+## Scenarios
+
+`contract-loop.yml` and `contract-rejoin.yml` (`contract_api: 1`) have `execute_luau`
+code written against exactly this shape and are the only survival-coop scenarios whose
+code calls an implemented `ForgeQA` surface. They are `kind: smoke` plan documents: `forge qa
+validate` and `forge qa plan` check their schema, and `forge qa run` (which executes only
+`kind: native|studio` scenarios) refuses them. Prefer qualified actions such as
+`survival-coop:<action>` and read results from `snapshot`.
+
+The other `contract_api: 1` scenarios here (`kind: native` / `kind: studio`) use the
+native adapters and the Studio driver described in `studio-driver-contract.md`;
+they do not call a function named `ForgeQA`.
+
+`core-loop.yml`, `first-purchase.yml`, `rejoin.yml` and `tutorial.yml` are legacy plan documents (`kind: smoke` /
+`playtest`). Their `execute_luau` steps call a single-function
+`ForgeQA:Invoke("get" | "run" | "seed", ...)` with the keys and fields listed below.
+**No code implements that function for survival-coop**; the only `get`/`seed`
+implementation is collect-raid's own single-function `ForgeQA` in
+`genres/collect-raid/module/runtime/Server.luau`. Do not treat them as executable proof.
+
+## Legacy keys (unimplemented)
 
 | key | meaning |
 | --- | --- |
@@ -27,12 +55,12 @@ from `survival-coop` MUST wire it up server-side (see
 | `baseLoadoutSlots` | number of loadout slots a player owns before any slot-granting purchase |
 | `crafted` | number of items the player has crafted |
 
-## `run` fields
+## Legacy `run` fields (unimplemented)
 
 - `day` — the current day count of the co-op run.
 - `floor` — the current floor/depth of the co-op run.
 - `resources` — the player's current resource count.
 
-## `seed` fields
+## Legacy `seed` fields (unimplemented)
 
 - `day`, `floor`, `resources` — written into the save (used by `rejoin.yml` to simulate a saved co-op run).
