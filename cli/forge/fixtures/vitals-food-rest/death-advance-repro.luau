@@ -18,7 +18,7 @@ local session = Session.new(
 	},
 	gate.backend,
 	{
-		sessionId = "native-" .. tostring(math.random(1, 2 ^ 30)),
+		sessionId = "native-20261015",
 		lockTimeout = 120,
 		retries = 0,
 		now = function()

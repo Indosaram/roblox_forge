@@ -12,9 +12,17 @@ local DeathBundle = require("../../../../core/domain/survival/DeathBundle")
 local Harness = require("../../lib/qaharness")
 local Adapter = require("../../../../genres/survival-coop/module/CraftingAdapter")
 
+-- Fixed-seed Park-Miller LCG: deterministic host GUIDs. The restore child uses a different seed so
+-- its host identity stays distinct from the parent process, as random GUIDs were.
+local lcgState = if process.args[1] == "restore" then 20261015 else 1790899200
+local function nextInRange(low: number, high: number): number
+	lcgState = (lcgState * 48271) % 2147483647
+	return low + lcgState % (high - low + 1)
+end
+
 local function hostGuid(): string
 	return string.gsub("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx", "[xy]", function(c)
-		return string.format("%x", if c == "x" then math.random(0, 15) else math.random(8, 11))
+		return string.format("%x", if c == "x" then nextInRange(0, 15) else nextInRange(8, 11))
 	end)
 end
 
