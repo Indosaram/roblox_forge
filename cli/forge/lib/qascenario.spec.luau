@@ -163,6 +163,16 @@ return {
 		table.insert(raw.steps, { op = "capture", target = "angles", angles = 2 })
 		assert(#schema.validate(raw) > 0, "unsupported angle count refused")
 	end,
+	["capture layers accept all, world and ui only"] = function()
+		for _, layers in { "all", "world", "ui" } do
+			local raw = scenario()
+			table.insert(raw.steps, { op = "capture", target = "layered", layers = layers })
+			assert(#schema.validate(raw) == 0, "layers " .. layers .. " accepted")
+		end
+		local raw = scenario()
+		table.insert(raw.steps, { op = "capture", target = "layered", layers = "hud" })
+		assert(#schema.validate(raw) > 0, "unknown layer refused")
+	end,
 	["Studio gameplay contract validates while native cannot claim its operations"] = function()
 		local raw = scenario()
 		assert(#schema.validate(raw) == 0, "Studio bootstrap validates")

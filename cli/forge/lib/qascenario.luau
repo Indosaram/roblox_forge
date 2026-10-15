@@ -501,6 +501,11 @@ local function validateStep(errors: { string }, index: number, step: any, scenar
 	if op == "capture" and step.settle ~= nil and type(step.settle) ~= "boolean" then
 		table.insert(errors, label .. ".settle: expected boolean")
 	end
+	-- `layers` renders only the owned UI or only the 3D world; the driver hides the other layer around
+	-- the screenshot and restores it. Absent means everything.
+	if op == "capture" and step.layers ~= nil and not table.find({ "all", "world", "ui" }, step.layers) then
+		table.insert(errors, label .. ".layers: expected all|world|ui")
+	end
 	if table.find({ "keyboard", "click", "touch", "equip", "wait_for", "rejoin", "device" }, op) then
 		if not isPositiveNumber(step.timeout_seconds) or step.timeout_seconds > scenario.timeout_seconds then
 			table.insert(errors, label .. ".timeout_seconds: expected bounded positive timeout")
