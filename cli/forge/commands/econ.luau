@@ -1,7 +1,8 @@
 --!strict
--- `forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>]`:
+-- `forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]`:
 -- simulate a pack's free-currency economy with the pure econsim engine and write
--- a markdown report (default reports/econ-sim-<pack>.md). No network calls.
+-- a markdown report (default reports/econ-sim-<pack>.md), and with --json a
+-- schemaVersion 1 JSON result. No network calls.
 
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
@@ -10,6 +11,7 @@ local stdio = require("@lune/stdio")
 local econsim = require("../lib/econsim")
 local cliutil = require("../lib/cliutil")
 local registryLib = require("../lib/genreregistry")
+local genrecontract = require("../lib/genrecontract")
 local genresim = require("../lib/genresim")
 local scaffold = require("../lib/scaffold")
 
@@ -23,7 +25,8 @@ local MAX_PLAYERS = 1000000
 local MAX_DAYS = 3650
 
 local function printUsage()
-	stdio.ewrite([[Usage: lune run cli/forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>]
+	stdio.ewrite(
+		[[Usage: lune run cli/forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]
 
   sim    Simulate a game pack's free-currency economy and write a markdown report.
          Flags:
@@ -32,7 +35,9 @@ local function printUsage()
            --days D       simulated days (default: 7)
            --seed S       deterministic PRNG seed (default: 1)
            --out <path>   report path (default: reports/econ-sim-<pack>.md)
-]])
+           --json <path>  also write a versioned machine-readable result (schemaVersion 1)
+]]
+	)
 end
 
 local function ensureDir(path: string)
@@ -46,6 +51,39 @@ local function ensureParentDir(path: string)
 	if parent ~= nil then
 		ensureDir(parent)
 	end
+end
+
+local function writeJson(path: string, document: { [string]: any })
+	ensureParentDir(path)
+	fs.writeFile(path, serde.encode("json", document, true) .. "\n")
+end
+
+--- Inserts a "Seed: <n>" line under the genre report title.
+local function withSeedLine(report: string, seed: number): string
+	local title, rest = string.match(report, "^([^\n]*)\n\n(.*)$")
+	assert(title ~= nil and rest ~= nil, "unexpected genre report layout")
+	return title .. "\n\nSeed: " .. string.format("%d", seed) .. "\n\n" .. rest
+end
+
+--- Machine-readable Sources/Sinks/Accepted/Rejected rows, sorted by genre id.
+local function genreRows(results: { [string]: genrecontract.SimMetrics }): { { [string]: any } }
+	local ids = {}
+	for id in results do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	local rows = {}
+	for _, id in ids do
+		local metrics = results[id]
+		table.insert(rows, {
+			genre = id,
+			sources = metrics.sourceTotal,
+			sinks = metrics.sinkTotal,
+			accepted = metrics.acceptedActions,
+			rejected = metrics.rejectedActions,
+		})
+	end
+	return rows
 end
 
 local function loadMonetization(path: string): { econsim.MonetizationEntry }
@@ -97,10 +135,18 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local days = DEFAULT_DAYS
 	local seed = DEFAULT_SEED
 	local out: string? = nil
+	local jsonPath: string? = nil
 	local index = 3
 	while index <= #args do
 		local flag = args[index]
-		if flag == "--pack" or flag == "--players" or flag == "--days" or flag == "--seed" or flag == "--out" then
+		if
+			flag == "--pack"
+			or flag == "--players"
+			or flag == "--days"
+			or flag == "--seed"
+			or flag == "--out"
+			or flag == "--json"
+		then
 			local value = args[index + 1]
 			if value == nil or value == "" then
 				stdio.ewrite("Error: " .. flag .. " requires a value\n")
@@ -110,6 +156,8 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 				pack = value
 			elseif flag == "--out" then
 				out = value
+			elseif flag == "--json" then
+				jsonPath = value
 			else
 				local number, reason = cliutil.parseFiniteInt(value)
 				if number == nil then
@@ -163,7 +211,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		then out
 		else (if context and context.reportsDir then context.reportsDir else "reports") .. "/econ-sim-" .. pack .. ".md"
 	if econ.genre_contract ~= nil then
-		local ok, report = pcall(function()
+		local ok, simulated = pcall(function()
 			local registry, errors = registryLib.discover(if context then context.genresDir else nil)
 			assert(registry ~= nil, table.concat(errors, "; "))
 			local pascal = scaffold.pascalCase(pack)
@@ -178,14 +226,25 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 				debugName = pascal .. "Debug",
 				guiName = pascal .. "Gui",
 			}, players, days)
-			return genresim.render(pack, results)
+			return { report = withSeedLine(genresim.render(pack, results), seed), rows = genreRows(results) }
 		end)
 		if not ok then
-			stdio.ewrite("Error: genre simulation: " .. tostring(report) .. "\n")
+			stdio.ewrite("Error: genre simulation: " .. tostring(simulated) .. "\n")
 			return false
 		end
 		ensureParentDir(outPath)
-		fs.writeFile(outPath, report)
+		fs.writeFile(outPath, simulated.report)
+		if jsonPath ~= nil then
+			writeJson(jsonPath, {
+				schemaVersion = 1,
+				pack = pack,
+				seed = seed,
+				players = players,
+				days = days,
+				mode = "genre",
+				rows = simulated.rows,
+			})
+		end
 		stdio.write("econ sim: wrote " .. outPath .. "\n")
 		return true
 	end
@@ -197,6 +256,33 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 
 	ensureParentDir(outPath)
 	fs.writeFile(outPath, report)
+	if jsonPath ~= nil then
+		local series = {}
+		for day = 1, result.days do
+			table.insert(series, {
+				day = day,
+				supply = result.dailySupply[day],
+				inflationPercent = result.dailyInflation[day],
+			})
+		end
+		local rows = {}
+		for _, item in monetization do
+			table.insert(rows, { kind = item.kind, name = item.name, price = item.price })
+		end
+		writeJson(jsonPath, {
+			schemaVersion = 1,
+			pack = pack,
+			seed = seed,
+			players = result.players,
+			days = result.days,
+			mode = "legacy",
+			startingSupply = result.startingSupply,
+			series = series,
+			totalProduced = result.totalProduced,
+			totalSpent = result.totalSpent,
+			monetization = rows,
+		})
+	end
 
 	stdio.write(econsim.summarize(pack, outPath, result) .. "\n")
 	return true
