@@ -19,8 +19,12 @@ description: Load when running weekly ops reports, deploying environments, or sh
    creates a PR; open the weekly update PR yourself once you have reviewed the report.
 2. Auto-deploy to staging only:
    `lune run cli/forge deploy --env staging --pack <slug>`
-   (needs `ROBLOX_API_KEY`; missing key or unset `deploy.yml` ids exit 1 before any
-   network call).
+   (needs `ROBLOX_STAGING_API_KEY` plus `ROBLOX_STAGING_UNIVERSE_ID` and
+   `ROBLOX_STAGING_PLACE_ID` that exactly match the positive integer ids resolved from
+   `deploy.yml`; there is no `ROBLOX_API_KEY` fallback, and a missing key, unset
+   `deploy.yml` ids or mismatched bindings exit 1 before any network call). A legacy
+   pack without a quality profile deploys to staging only with `--development`
+   (`--pack <slug>` is then mandatory); it never authorizes a release-candidate.
 3. Production: after a **human merges** the PR, a human runs
    `FORGE_ALLOW_PRODUCTION=1 lune run cli/forge deploy --env production --pack <slug>`.
 4. Ship price or probability changes only as a human-authored, human-merged PR — never
@@ -32,8 +36,9 @@ description: Load when running weekly ops reports, deploying environments, or sh
   `FORGE_ALLOW_PRODUCTION=1`.
 - Price/probability changes and core/genre changes require a human-merged PR; core/genre
   PRs must pass every game pack's tests.
-- Open Cloud keys are per-universe and minimal-scope; agents hold staging keys only, and
-  secrets are never read or printed.
+- Open Cloud keys are per-universe and minimal-scope; agents hold staging keys only
+  (`ROBLOX_STAGING_API_KEY`), and secrets are never read or printed. `liveops push`
+  needs `ROBLOX_STAGING_API_KEY` and a matching `ROBLOX_STAGING_UNIVERSE_ID`.
 - A production bundle must contain no asset still `PendingModeration`.
 - No paid random items: Robux sells only deterministic items; random hatching is
   free-currency only.

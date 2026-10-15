@@ -14,11 +14,12 @@ of copying or modifying package code.
    name: your-genre
    version: 0.1.0
    requires:
-     core: ^0.1.0
+     core: ^1.0.0
    genre_contract:
      api: 1
      generator: generator.luau
      runtime: module/Contract.luau
+     spec: genre-spec.yml
    ```
 
    Name equals directory ID. Choose a range compatible with the actual core
@@ -26,7 +27,17 @@ of copying or modifying package code.
    supported (next major for major >0, next minor for 0.minor >0, next patch for
    0.0.patch). This validates compatibility, not dependency resolution. Entry
    filenames are fixed package-relative paths; alternative/traversal paths fail.
-   Adding API 1 does not itself change existing package versions/pins.
+   Adding API 1 does not itself change existing package versions/pins. The
+   `spec:` field is required and must be exactly `genre-spec.yml`; discovery
+   refuses a package whose spec file is missing or invalid.
+   Author the declarative spec with `lune run cli/forge spec init --genre <id>
+   [--concept "<text>"] [--pack <slug>] [--force]`, which writes a draft
+   `genres/<id>/genre-spec.yml` (`draft: true`) seeded from the genre's
+   `econ-template.yml` and `design-template.md`. Fill in resources, entities,
+   actions, loop, world, audio and the golden path, drop `draft: true`, then run
+   `lune run cli/forge spec validate [--genre <id>]`, which reports every violation
+   as `file: reason`. The format is specified in
+   [docs/forge/genre-spec.md](../docs/forge/genre-spec.md).
 2. Implement an engine-free adapter under module/ and export its descriptor from
    `module/Contract.luau`, typed with `core/domain/genre/Contract.luau`. Declare
    actions/events/hooks, concrete config/save validators and an instance factory.

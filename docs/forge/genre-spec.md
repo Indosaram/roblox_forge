@@ -1,6 +1,6 @@
 # Genre Spec — declarative genres, core presentation, derived QA
 
-Status: design. Implementation is out of scope for this document.
+Status: implemented.
 Scope: `forge new <slug> --genre X` must produce a *playable* pack — a real HUD, a real
 world, audio, and executable native QA bound to that pack — without hand-work.
 
