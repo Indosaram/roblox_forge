@@ -57,3 +57,59 @@ binary load them. Existing and paused packs are not silently retrofitted.
 The [consolidated verification preflight](docs/release/verification.md) is an
 execution plan, not passing results. Historical test totals, authored receipts,
 source hashes and dry runs do not close release acceptance.
+
+## 2026-10-15 - agent harness improvements
+
+Status: tooling and test-support changes for agents and maintainers working in
+this repository. No release claim is made; the unreleased section above still
+governs release status.
+
+### Faster, more selective verification
+
+- `forge check` accepts `--only <stage ids>` and `--skip <stage ids>` to run a
+  subset of stages, and `--json <path>` to write a machine-readable result. It
+  now reports seconds per stage and ends with a summary line naming any failed
+  stages.
+- `forge test [filters...] [--quiet] [--slowest N] [--json path]` runs the specs
+  matching the filters, hides passing output with `--quiet`, lists the N slowest
+  tests with `--slowest`, and writes results with `--json`. The runner behind it
+  is `M.run` in `cli/forge/lib/specs.luau`.
+- `forge smoke --local --strict` fails a pack that has no smoke script instead of
+  skipping it.
+- Specs resolve scratch directories through `cli/forge/lib/tempdir.luau`, so they
+  no longer assume a Unix `/tmp`. `cli/forge/lib/profile.luau` records named
+  timing spans and prints them as text or JSON.
+
+### Screenshot comparison
+
+- `forge imagediff <base.png> <compare.png> [--diff out.png] [--threshold n]
+  [--ignore x1:y1-x2:y2] [--crop x:y:w:h] [--json]` compares two PNGs. Exit code
+  0 means identical, 1 different, 2 usage or decode error.
+- QA scenario `capture` steps accept `layers: all|world|ui` to capture only the
+  3D world or only the owned UI.
+
+### Deterministic randomness and replay
+
+- `core/domain/random/Rng.luau` is the single seeded random generator. Genre
+  servers draw all randomness from it and log `[forge] session seed` at start so a
+  session can be reproduced.
+- A native QA scenario may declare a top-level `seed: <int>` to fix its roll
+  stream.
+- `core/domain/command/Journal.luau` records command streams.
+  `forge qa run --record <journal.json>` writes one during a run, and
+  `forge replay <journal.json> [--json]` replays it. Exit code 0 means MATCH,
+  1 MISMATCH, 2 error.
+
+### Reports
+
+- `forge econ sim --json <path>` writes a versioned (schemaVersion 1) result
+  next to the markdown report.
+- `forge sweep --stamp <text>` names the run, and `sweep.json` is now versioned
+  (schemaVersion 1) and records per-step timings.
+
+### Game data
+
+- Collect-raid gamepass effects (the `coins2x` multiplier and the `vipSlots` slot
+  bonus) now live in each pack's `econ.yml` rather than in code.
+- The collect-raid `Loop.newPlayer` now requires an explicit time argument;
+  callers that relied on the implicit clock must pass one.
