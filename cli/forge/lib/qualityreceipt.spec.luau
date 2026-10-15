@@ -1032,4 +1032,69 @@ return {
 		fs.removeDir(root)
 		assert(ok, tostring(reason))
 	end,
+	["root scan skips reserved device names and still includes ordinary files"] = function()
+		for _, name in { "nul", "NUL", "nul.txt", "Con", "prn.log", "aux", "com1", "COM9.x", "lpt1", "lpt9.dat" } do
+			assert(receipt.reservedDeviceName(name), "reserved name must be skipped: " .. name)
+		end
+		for _, name in { "null", "console.md", "com0", "com10", "lpt0", "auxiliary", "README.md", ".nul", "a.nul" } do
+			assert(not receipt.reservedDeviceName(name), "ordinary name must not be skipped: " .. name)
+		end
+		local root = ".omo/fixtures/task-4-native" -- the UNIT tree seam only answers for this root
+		assert(not fs.isDir(root), "task fixture already exists")
+		fs.writeDir(root)
+		local ok, reason = xpcall(function()
+			for _, dir in { "core", "genres", "cli", "skills", "pack/assets", "reference", "evidence" } do
+				fs.writeDir(root .. "/" .. dir)
+			end
+			local files: { [string]: string } = {
+				["core/entry.luau"] = "return 1",
+				["pack/game.yml"] = "name: fixture-quality",
+				["pack/default.project.json"] = "{}",
+				["pack/forge-lock.yml"] = "version: 1",
+				["pack/assets/manifest.yml"] = "assets: []",
+				["pack/assets/model"] = "original asset",
+				["build.rbxl"] = "native digest fixture, not a playable build",
+				["reference/desktop"] = "desktop fixture",
+				["reference/mobile"] = "mobile fixture",
+				["evidence/capture"] = "capture fixture",
+				["evidence/action"] = "action fixture",
+				["evidence/audio"] = "audio fixture",
+				["evidence/scenario"] = "scenario fixture",
+				["pack/quality.yml"] = serde.encode("yaml", document()),
+			}
+			for path, bytes in files do
+				fs.writeFile(root .. "/" .. path, bytes)
+			end
+			local profile, profileErrors =
+				qualityprofile.parse(serde.decode("yaml", fs.readFile(root .. "/pack/quality.yml")))
+			assert(profile, "disk fixture profile must validate: " .. table.concat(profileErrors, "; "))
+			local input: receipt.Inputs = {
+				root = root,
+				packDir = "pack",
+				buildPath = "build.rbxl",
+				receiptPath = "evidence/receipt.json",
+				evidenceDir = "evidence",
+				evidence = {
+					captures = { "evidence/capture" },
+					actions = { "evidence/action" },
+					audio = { "evidence/audio" },
+					scenarios = { "evidence/scenario" },
+				},
+			}
+			local baseline, baselineError = receipt.snapshot(profile, input)
+			assert(baseline, baselineError)
+			-- Happy: a root file named nul is skipped and the receipt snapshot is unchanged.
+			fs.writeFile(root .. "/nul", "device-name fixture")
+			local withNul, nulError = receipt.snapshot(profile, input)
+			assert(withNul, nulError)
+			assert(withNul.source == baseline.source, "nul must not enter the source digest")
+			-- Failure: an ordinary root file is still included in the source digest.
+			fs.writeFile(root .. "/README.md", "ordinary root file")
+			local withOrdinary, ordinaryError = receipt.snapshot(profile, input)
+			assert(withOrdinary, ordinaryError)
+			assert(withOrdinary.source ~= baseline.source, "ordinary root file must change the source digest")
+		end, debug.traceback)
+		fs.removeDir(root)
+		assert(ok, tostring(reason))
+	end,
 }
