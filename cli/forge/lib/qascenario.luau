@@ -120,6 +120,7 @@ export type Scenario = {
 	kind: string,
 	contract_api: number,
 	timeout_seconds: number,
+	seed: number?,
 	players: { string },
 	fixtures: { string },
 	data: { [string]: any },
@@ -657,6 +658,7 @@ function M.validate(raw: any): { string }
 		"kind",
 		"contract_api",
 		"timeout_seconds",
+		"seed",
 		"players",
 		"fixtures",
 		"data",
@@ -681,6 +683,13 @@ function M.validate(raw: any): { string }
 	end
 	if type(raw.kind) ~= "string" or table.find(M.KINDS, raw.kind) == nil then
 		table.insert(errors, "kind: expected " .. table.concat(M.KINDS, "|"))
+	end
+	if raw.seed ~= nil then
+		if raw.kind ~= "native" then
+			table.insert(errors, "seed: only a native scenario may seed the roll stream")
+		elseif type(raw.seed) ~= "number" or raw.seed % 1 ~= 0 or raw.seed < 0 or raw.seed > 9007199254740991 then
+			table.insert(errors, "seed: expected a non-negative safe integer")
+		end
 	end
 	local cap = if raw.kind == "studio" then M.FIRST_PLAY_TIMEOUT_SECONDS else M.HEADLESS_TIMEOUT_SECONDS
 	if not isPositiveNumber(raw.timeout_seconds) or raw.timeout_seconds > cap then

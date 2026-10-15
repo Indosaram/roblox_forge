@@ -4,6 +4,7 @@ local qaharness = require("./qaharness")
 local qastudio = require("./qastudio")
 local Survival = require("../../../genres/survival-coop/module/Contract")
 local Fixture = require("../../../genres/survival-coop/module/Adapter.fixture")
+local Rng = require("../../../core/domain/random/Rng")
 
 local function target(): qaharness.Target
 	return {
@@ -480,6 +481,82 @@ return {
 			assert(outcome.steps[5].ok and outcome.steps[6].ok, "original commit resumes and publishes its save")
 			assert(outcome.steps[7].ok, "the refused close leaves membership intact")
 		end
+	end,
+
+	["a seed makes the roll stream reproducible across a reload and no seed rolls 0"] = function()
+		-- Wrap the real survival contract so every services.roll() the genre could
+		-- have drawn is recorded; the harness still drives the real Session.
+		local function run(seed: number?): ({ number }, any)
+			local drawn: { number } = {}
+			local wrapped = table.clone(Survival)
+			wrapped.create = function(config, services)
+				local instance = Survival.create(config, services)
+				local inner = instance.dispatch
+				instance.dispatch = function(playerId, action, args)
+					table.insert(drawn, services.roll())
+					return inner(playerId, action, args)
+				end
+				return instance
+			end
+			local custom = target()
+			custom.contracts = { wrapped }
+			local steps: { any } = {
+				{ op = "join", player = "1" },
+				{ op = "dispatch", player = "1", action = "survival-coop:buy-defense", expect = "ok" },
+				{ op = "dispatch", player = "1", action = "survival-coop:buy-defense", expect = "refused" },
+				{ op = "save", player = "1" },
+				{ op = "close", player = "1" },
+				{ op = "reload" },
+				{ op = "join", player = "1" },
+				{ op = "dispatch", player = "1", action = "survival-coop:buy-defense", expect = "refused" },
+				{ op = "dispatch", player = "1", action = "survival-coop:buy-defense", expect = "refused" },
+				{ op = "expect_members", members = { "1" } },
+			}
+			local outcome = qaharness.runNative(scenario(steps, { seed = seed }), custom)
+			assert(outcome.ok, table.concat(outcome.failures, "; "))
+			return drawn, outcome
+		end
+		local first, firstOutcome = run(7)
+		local again, againOutcome = run(7)
+		local other = run(8)
+		local unseeded, unseededOutcome = run(nil)
+		assert(#first >= 4, "the scenario drew rolls on both sides of the reload")
+		assert(#first == #again and #first == #other and #first == #unseeded, "same number of draws per run")
+		assert(firstOutcome.seed == 7 and againOutcome.seed == 7, "the seed is exposed in the outcome")
+		assert(unseededOutcome.seed == nil, "no seed leaves the outcome seed absent")
+		local differs = false
+		for i, value in first do
+			assert(value == again[i], "same seed draws identical rolls")
+			assert(value >= 0 and value < 1, "rolls stay in [0, 1)")
+			differs = differs or value ~= other[i]
+			assert(unseeded[i] == 0, "no seed keeps every roll at 0")
+		end
+		assert(differs, "a different seed draws at least one different roll")
+		-- The stream is one per run: the draw after the reload continues it.
+		local fresh = Rng.new(7)
+		for i, value in first do
+			assert(value == fresh:nextNumber(), "draw " .. i .. " continues one stream across the reload")
+		end
+		local serde = require("@lune/serde")
+		assert(
+			serde.encode("json", firstOutcome) == serde.encode("json", againOutcome),
+			"same seed gives an identical outcome"
+		)
+	end,
+
+	["the scenario schema accepts only a non-negative safe integer seed on native scenarios"] = function()
+		for _, good in { 0, 1, 4294967296, 9007199254740991 } do
+			assert(#qascenario.validate(scenario(winningSteps(), { seed = good })) == 0, "seed " .. good .. " is valid")
+		end
+		local badSeeds: { any } = { -1, 1.5, 9007199254740992, 0 / 0, math.huge, "7", true }
+		for _, bad in badSeeds do
+			assert(
+				hasError(qascenario.validate(scenario(winningSteps(), { seed = bad })), "seed:"),
+				"seed " .. tostring(bad) .. " is refused"
+			)
+		end
+		local studio = scenario(winningSteps(), { kind = "studio", timeout_seconds = 600, seed = 1 })
+		assert(hasError(qascenario.validate(studio), "seed: only a native"), "a studio scenario cannot seed")
 	end,
 
 	["the scenario schema rejects malformed and out-of-genre documents"] = function()
