@@ -24,6 +24,24 @@ local function withExec(exec: (string, { string }) -> run.ExecResult, callback: 
 	assert(ok, tostring(reason))
 end
 
+-- The fixture pins an incompatible Lune, so the rokit shim on PATH would resolve that pin itself and
+-- fail before Forge starts. Run the real binary this spec is running under instead.
+local function currentLune(): string
+	local version = string.match(_VERSION, "^Lune (%d+%.%d+%.%d+)%+")
+	local isWindows = process.os == "windows"
+	local home = if isWindows then process.env["USERPROFILE"] else process.env["HOME"]
+	if version and home then
+		local candidate = home
+			.. "/.rokit/tool-storage/lune-org/lune/"
+			.. version
+			.. (if isWindows then "/lune.exe" else "/lune")
+		if fs.isFile(candidate) then
+			return candidate
+		end
+	end
+	return "lune"
+end
+
 return {
 	["real CLI runtime mismatch refuses before command imports or tool probes"] = function()
 		local root = (process.env.TEMP or process.env.TMP or "/tmp")
@@ -37,9 +55,13 @@ return {
 			-- A real runtime, with an incompatible release pin. Commands are deliberately
 			-- absent: admission must precede their imports, not just their writes.
 			fs.writeFile(root .. "/rokit.toml", '[tools]\nlune = "lune-org/lune@99.0.0"\n')
-			local result = process.exec("lune", { "run", "cli/forge", "new", "fixture", "--genre", "collect-raid" }, {
-				cwd = root,
-			})
+			local result = process.exec(
+				currentLune(),
+				{ "run", "cli/forge", "new", "fixture", "--genre", "collect-raid" },
+				{
+					cwd = root,
+				}
+			)
 			assert(not result.ok and result.code == 1, "unsupported running runtime admitted")
 			assert(string.find(result.stderr, "FORGE_RUNTIME_UNSUPPORTED:", 1, true), "runtime refusal missing")
 			assert(not fs.isDir(root .. "/games") and not fs.isDir(root .. "/build"), "runtime refusal wrote output")
