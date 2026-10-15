@@ -9,7 +9,7 @@ AI agents (and humans) can produce new games over and over.
 ![Luau](https://img.shields.io/badge/language-Luau-171717?style=flat-square)
 ![Runtime](https://img.shields.io/badge/runtime-Lune%200.10.5-171717?style=flat-square)
 ![Sync](https://img.shields.io/badge/sync-Rojo%207.7.0-171717?style=flat-square)
-![Platform](https://img.shields.io/badge/platform-Windows%20x64-171717?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20CI-171717?style=flat-square)
 ![License](https://img.shields.io/badge/license-Sustainable%20Use%201.0-171717?style=flat-square)
 
 </div>
@@ -118,27 +118,86 @@ Honest current state, as of this release:
 ## Quick start
 
 You need [Rokit](https://github.com/rojo-rbx/rokit). It installs the rest of the pinned toolchain.
+Run every command from the repository root: Rokit resolves tools from the folder that holds `rokit.toml`.
+
+**macOS / Linux (bash, zsh)**
+
+```bash
+# 1. Install the pinned tools (Rojo, Lune, Selene, StyLua, luau-lsp, Wally)
+rokit install
+
+# 2. Write the Lune type definitions once after installing (without this, check
+#    reports "Unknown require" errors)
+lune setup
+
+# 3. Check the whole repo: lint, format, types, specs, then build every pack
+lune run cli/forge check
+
+# 4. Plan a brand-new game from a single sentence
+lune run cli/forge plan --concept "Defend ancient groves from clockwork beasts" \
+  --genre survival-coop --pack grove-defense --seed 42
+
+# 5. Build it into a place file -> build/grove-defense.rbxl
+lune run cli/forge build --pack grove-defense
+```
+
+**Windows (PowerShell)**
 
 ```powershell
 # 1. Install the pinned tools (Rojo, Lune, Selene, StyLua, luau-lsp, Wally)
 rokit install
 
-# 2. Check the whole repo: lint, format, types, specs, then build every pack
+# 2. Write the Lune type definitions once after installing
+lune setup
+
+# 3. Check the whole repo: lint, format, types, specs, then build every pack
 lune run cli/forge check
 
-# 3. Plan a brand-new game from a single sentence
+# 4. Plan a brand-new game from a single sentence
 lune run cli/forge plan --concept "Defend ancient groves from clockwork beasts" `
   --genre survival-coop --pack grove-defense --seed 42
 
-# 4. Build it into a place file -> build/grove-defense.rbxl
+# 5. Build it into a place file -> build/grove-defense.rbxl
 lune run cli/forge build --pack grove-defense
 ```
+
+[Bun](https://bun.sh) is also required for the deploy and liveops transport, the JS test suites and Studio QA. Install it before using those. Planning, generation, building and the Lune specs do not need it.
 
 Open the `.rbxl` in Roblox Studio, or live-sync with `rojo serve`.
 
 > [!NOTE]
 > The first `check` downloads the Roblox type definitions into `build/cache/`.
-> After that it runs fully offline and needs no keys.
+> After that it runs fully offline and needs no keys. A full `check` takes minutes, so
+> use the fast loop below while you iterate.
+
+## The fast loop
+
+Narrow the work to what you changed instead of running everything:
+
+```bash
+# Run only the specs whose path or name matches a filter, with the slowest 10 timed
+lune run cli/forge test econsim sweep --slowest 10
+
+# Run selected check stages, or all but some, and write a machine-readable summary
+lune run cli/forge check --only selene,stylua,specs
+lune run cli/forge check --skip luau-lsp,build --json build/check.json
+
+# Replay a recorded QA run and compare it with the journal
+lune run cli/forge qa run --pack kaiju-egg-raiders --scenario core-loop --record build/run.json
+lune run cli/forge replay build/run.json
+
+# Compare two screenshots pixel by pixel
+lune run cli/forge imagediff base.png compare.png --diff diff.png
+```
+
+`check` stage ids are `genre-contract`, `qa-schema`, `selene`, `stylua`, `luau-lsp`, `econ`,
+`game`, `assets`, `locale`, `lock`, `specs` and `build`. Each stage reports its seconds, and the
+run ends with a `check: PASS` or `check: FAIL ...` line. The `--json` file has `schemaVersion: 1`
+and a `failed` list. `--pack`, `--project` and `--all` narrow only the build and inspect stages;
+every other stage still runs over all packs.
+
+Evidence and output directories are Git-ignored: `.omo/evidence/`, `reports/`, `build/`
+and `build/sweep/<stamp>/`.
 
 ## Command cheat sheet
 
@@ -147,20 +206,30 @@ Open the `.rbxl` in Roblox Studio, or live-sync with `rojo serve`.
 | Idea | `trends [--fixture <path>]` | Summarize top Roblox experiences by genre and flag genres not covered yet |
 | Plan | `new <slug> --genre <g>` | Scaffold an empty game pack |
 | | `plan --concept "..." --genre <g> --pack <slug>` | Generate a complete starter pack from one sentence |
-| Economy | `econ sim --pack <slug> --players 20 --days 7` | Simulate the in-game economy offline |
+| Economy | `econ sim --pack <slug> --players 20 --days 7 [--json <path>]` | Simulate the in-game economy offline; `--json` writes a versioned result |
 | Assets | `gen procedural` · `gen icons` · `gen launchart` · `gen audio` | Generate assets locally, no keys needed |
 | | `assets check` · `assets codegen` | Validate the asset manifest and generate the Luau asset table |
 | Content | `content check` · `locale check` · `locale sync` | Validate content and translations |
 | Build | `build [--pack <slug> \| --all]` | Rojo build plus inspection of the built place |
-| | `sweep` | Generate, build and inspect every genre variant in one run |
-| QA | `qa plan` · `qa run --native` · `smoke --local` | Run scenario QA headless and smoke-test the place |
+| | `check [--only <stages>] [--skip <stages>] [--json <path>]` | Full verification, or only the stages you pick, with per-stage timing and a JSON summary |
+| | `sweep [--stamp <text>]` | Generate, build and inspect every genre variant in one run; writes `sweep.json` (`schemaVersion` 1) under `build/sweep/<stamp>/` |
+| Test | `test [filters...] [--quiet] [--slowest N] [--json <path>]` | Run the Lune specs, optionally filtered, with timing |
+| QA | `qa plan` · `qa run --native [--record <journal.json>]` · `smoke --local [--strict]` | Run scenario QA headless and smoke-test the place; `--strict` fails when the pack has no smoke script |
+| | `replay <journal.json> [--json]` | Replay a recorded run: exit 0 on MATCH, 1 on MISMATCH, 2 on error |
+| | `imagediff <base.png> <compare.png> [--diff out.png] [--threshold n] [--ignore x1:y1-x2:y2[,..]] [--crop x:y:w:h] [--json]` | Compare two PNGs: exit 0 identical, 1 different, 2 usage or decode error |
 | Quality | `quality check --pack <slug> --target starter` | Check the pack's quality tier |
 | Ship | `deploy plan` · `deploy --dry-run` · `deploy --env staging` | Plan and publish through Open Cloud |
 | Operate | `liveops` · `report` | Send live events and produce reports |
 
-Run any command as `lune run cli/forge <command>`. Use `lune run cli/forge --help`
-for the overview, and see the [CLI contract](docs/release/cli-contract.md) for
-every flag and exit code.
+Run any command as `lune run cli/forge <command>`. `lune run cli/forge --help` (also `-h` and
+`help`) prints the overview to stdout and exits 0, and `lune run cli/forge <command> --help`
+prints that command's usage and exits 0. With no arguments the usage goes to stderr and the
+exit code is 2; an unknown command also exits 2. Every other command exits 1 on failure; the
+exceptions are `imagediff` and `replay`, listed above. `specs-run` still works as a hidden alias of
+`test`. See the [CLI contract](docs/release/cli-contract.md) for every flag and exit code.
+
+Native QA scenarios take an integer `seed: <int>` to fix the roll stream, and a capture step
+takes `layers: all|world|ui` to hide the UI or the world around a screenshot.
 
 ## Offline first, keys only for live actions
 
@@ -171,12 +240,16 @@ services:
 | Variable | Used for |
 | --- | --- |
 | `ROBLOX_STAGING_API_KEY`, `ROBLOX_STAGING_UNIVERSE_ID`, `ROBLOX_STAGING_PLACE_ID` | `deploy --env staging`, `liveops` |
+| `FORGE_STAGING_UNIVERSE_ID`, `FORGE_STAGING_PLACE_ID` (and `FORGE_PRODUCTION_*`) | Deploy targets that `games/<pack>/deploy.yml` refers to; must match the `ROBLOX_*` ids above |
 | `ROBLOX_PRODUCTION_API_KEY` + matching IDs + `FORGE_ALLOW_PRODUCTION=1` | Production deploy (also requires human approval) |
-| `ROBLOX_API_KEY` | `assets status` (moderation check), `smoke --cloud` |
+| `ROBLOX_API_KEY` | `assets status` (moderation check), `assets upload-audio`, `locale check`, `smoke --cloud` |
+| `FORGE_ROBLOX_CREATOR_GROUP_ID` or `FORGE_ROBLOX_CREATOR_USER_ID` (set exactly one) | The creator that owns audio uploaded by `assets upload-audio` |
 | `IMAGE_GEN_URL` · `TRELLIS_URL` · `ELEVENLABS_API_KEY` | Optional external generators for `gen image` · `gen mesh` · `gen sfx` |
 
-Keys never fall back to one another, and a staging key that matches the
-production key is refused.
+The full list is in [`.env.example`](.env.example). `deploy` and `liveops` never fall back from one
+key to another, and a staging key that matches the production key is refused.
+[`cli/forge/publish-staging.sh`](cli/forge/publish-staging.sh) is the one exception: it copies
+`ROBLOX_API_KEY` into `ROBLOX_STAGING_API_KEY` when you run it.
 
 ## Quality tiers and release gates
 
@@ -194,8 +267,10 @@ The details are in [Release authorization](docs/release/authorization.md),
 | Platform | Status |
 | --- | --- |
 | Windows 10/11 x64 | Main target for local authoring, builds and Studio integration |
-| Linux / macOS (headless) | Expected to work under Lune and Rojo, but not verified yet |
+| macOS (arm64) | Verified locally for the headless loop at commit `0f4f8a3`; no Studio GUI claim |
+| Linux (x64) | Verified in CI on `ubuntu-latest` (`lune run cli/forge check`, JS suites and local smoke); headless only |
 | Roblox Studio | Needed for interactive play testing and Studio MCP |
+| Bun | Needed for deploy and liveops transport, the JS test suites and Studio QA |
 
 The toolchain versions are pinned in [`rokit.toml`](rokit.toml). Full details
 are in the [Support guide](docs/release/support.md).
