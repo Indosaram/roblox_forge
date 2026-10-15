@@ -16,6 +16,7 @@ local publication = require("../lib/packpublication")
 local registryLib = require("../lib/genreregistry")
 local contract = require("../lib/genrecontract")
 local qaCommand = require("./qa")
+local Profile = require("../lib/profile")
 local M = {}
 function M.validatePackContract(game: any, config: any, registry: registryLib.Registry): { string }
 	local result = gameYml.validate(game, { registry = registry, config = config })
@@ -114,9 +115,10 @@ local function ensureDefinitions(): (boolean, string)
 	return true, DEFINITIONS_CACHE_PATH
 end
 
-local function printStage(stage: string, pass: boolean, detail: string?)
-	stdio.write(string.format("[%s] %s\n", stage, if pass then "PASS" else "FAIL"))
-	if detail and detail ~= "" then
+-- Every stage line carries its wall time; tool detail is only shown on FAIL.
+local function printStage(stage: string, pass: boolean, ms: number, detail: string?)
+	stdio.write(string.format("[%s] %s (%.1f s)\n", stage, if pass then "PASS" else "FAIL", ms / 1000))
+	if not pass and detail and detail ~= "" then
 		local trimmed = string.gsub(detail, "^%s*(.-)%s*$", "%1")
 		if trimmed ~= "" then
 			stdio.write(trimmed .. "\n")
@@ -212,20 +214,132 @@ local function analyzePack(pack: string, defsPath: string): (boolean, { string }
 	return res.ok and errors == 0, logs
 end
 
+-- Stage ids in execution order. `build` also inspects every built place.
+M.STAGES = {
+	"genre-contract",
+	"qa-schema",
+	"selene",
+	"stylua",
+	"luau-lsp",
+	"econ",
+	"game",
+	"assets",
+	"locale",
+	"lock",
+	"specs",
+	"build",
+}
+
+-- Tools each stage needs; only stages that run are preflighted.
+local STAGE_TOOLS: { [string]: { string } } = {
+	selene = { "selene" },
+	stylua = { "stylua" },
+	["luau-lsp"] = { "luau-lsp", "rojo" },
+	locale = { "lune" },
+	specs = { "lune" },
+	build = { "rojo" },
+}
+
+-- Stages that read the genre registry.
+local REGISTRY_STAGES = { "genre-contract", "qa-schema", "econ", "game", "lock" }
+
+export type StageOptions = {
+	run: { [string]: boolean },
+	jsonPath: string?,
+	rest: { string },
+}
+
+local function usageError(message: string): string
+	return message .. "; valid stages: " .. table.concat(M.STAGES, ", ")
+end
+
+-- Splits --only/--skip/--json out of argv (from startIndex) and returns the
+-- remaining target-selector args untouched.
+function M.parseStageArgs(argv: { string }, startIndex: number?): (StageOptions?, string?)
+	local known: { [string]: boolean } = {}
+	for _, id in M.STAGES do
+		known[id] = true
+	end
+	local only: { [string]: boolean }? = nil
+	local skip: { [string]: boolean } = {}
+	local jsonPath: string? = nil
+	local rest: { string } = {}
+	local seen: { [string]: boolean } = {}
+	local index = startIndex or 1
+	while index <= #argv do
+		local arg = argv[index]
+		if arg == "--only" or arg == "--skip" or arg == "--json" then
+			if seen[arg] then
+				return nil, "duplicate " .. arg
+			end
+			seen[arg] = true
+			local value = argv[index + 1]
+			if value == nil or value == "" or string.sub(value, 1, 2) == "--" then
+				return nil,
+					if arg == "--json" then "--json requires a path" else usageError(arg .. " requires a stage list")
+			end
+			if arg == "--json" then
+				jsonPath = value
+			else
+				local set: { [string]: boolean } = {}
+				for name in string.gmatch(value, "[^,]+") do
+					local id = string.gsub(name, "^%s*(.-)%s*$", "%1")
+					if not known[id] then
+						return nil, usageError("unknown stage '" .. id .. "'")
+					end
+					set[id] = true
+				end
+				if arg == "--only" then
+					only = set
+				else
+					skip = set
+				end
+			end
+			index += 2
+		else
+			table.insert(rest, arg)
+			index += 1
+		end
+	end
+	local runSet: { [string]: boolean } = {}
+	for _, id in M.STAGES do
+		runSet[id] = (only == nil or only[id] == true) and not skip[id]
+	end
+	return { run = runSet, jsonPath = jsonPath, rest = rest }, nil
+end
+
 function M.run(args: { string }?): boolean
+	local startedAt = os.clock()
 	local argv = args or process.args
-	local selection, selectorErr = buildtargets.parseSelectors(argv, 2)
+	local options, optionsErr = M.parseStageArgs(argv, 2)
+	if options == nil then
+		stdio.ewrite("check: " .. tostring(optionsErr) .. "\n")
+		return false
+	end
+	local selection, selectorErr = buildtargets.parseSelectors(options.rest, 1)
 	if selection == nil then
 		stdio.ewrite("check: " .. tostring(selectorErr) .. "\n")
 		return false
 	end
+	local enabled = options.run
 
-	local ready, prerequisiteError = run.preflight({ "selene", "stylua", "luau-lsp", "rojo", "lune" })
+	local tools: { string } = {}
+	local toolSeen: { [string]: boolean } = {}
+	for _, id in M.STAGES do
+		if enabled[id] and STAGE_TOOLS[id] then
+			for _, tool in STAGE_TOOLS[id] do
+				if not toolSeen[tool] then
+					toolSeen[tool] = true
+					table.insert(tools, tool)
+				end
+			end
+		end
+	end
+	local ready, prerequisiteError = run.preflight(tools)
 	if not ready then
 		stdio.ewrite(tostring(prerequisiteError) .. "\n")
 		return false
 	end
-	local anyFailed = false
 	-- Other check stages inspect real packs even when the build selector points
 	-- elsewhere. Reject pending publication before any tool or source consumer.
 	for _, pack in listPacks() do
@@ -242,394 +356,417 @@ function M.run(args: { string }?): boolean
 			return false
 		end
 	end
-	local registry, registryErrors = registryLib.discover()
-	if not registry then
-		anyFailed = true
+
+	local registry: registryLib.Registry? = nil
+	local registryErrors: { string } = {}
+	for _, id in REGISTRY_STAGES do
+		if enabled[id] then
+			registry, registryErrors = registryLib.discover()
+			break
+		end
 	end
-	printStage("genre-contract", registry ~= nil, table.concat(registryErrors, string.char(10)))
-	if registry then
+	local gamePacks = listPacks()
+
+	local stageFns: { [string]: () -> (boolean, string) } = {}
+
+	stageFns["genre-contract"] = function(): (boolean, string)
+		return registry ~= nil, table.concat(registryErrors, "\n")
+	end
+
+	stageFns["qa-schema"] = function(): (boolean, string)
+		if not registry then
+			return false, "genre registry unavailable:\n" .. table.concat(registryErrors, "\n")
+		end
 		local errors = qaCommand.validateRegistry(registry)
-		if #errors > 0 then
-			anyFailed = true
+		return #errors == 0, table.concat(errors, "\n")
+	end
+
+	stageFns.selene = function(): (boolean, string)
+		local res = run.exec("selene", { "." })
+		return res.ok, res.stdout .. (if res.stderr ~= "" then "\n" .. res.stderr else "")
+	end
+
+	stageFns.stylua = function(): (boolean, string)
+		local res = run.exec("stylua", { "--check", "." })
+		return res.ok, res.stdout .. (if res.stderr ~= "" then "\n" .. res.stderr else "")
+	end
+
+	stageFns["luau-lsp"] = function(): (boolean, string)
+		local lspSuccess = true
+		local lspLogs: { string } = {}
+
+		if not fs.isDir("build") then
+			fs.writeDir("build")
 		end
-		printStage("qa-schema", #errors == 0, table.concat(errors, string.char(10)))
-	end
 
-	-- Stage a: selene
-	local seleneRes = run.exec("selene", { "." })
-	local seleneOut = seleneRes.stdout
-	if seleneRes.stderr ~= "" then
-		seleneOut = seleneOut .. "\n" .. seleneRes.stderr
-	end
-	if not seleneRes.ok then
-		anyFailed = true
-		printStage("selene", false, seleneOut)
-	else
-		printStage("selene", true, seleneOut)
-	end
-
-	-- Stage b: stylua
-	local styluaRes = run.exec("stylua", { "--check", "." })
-	local styluaOut = styluaRes.stdout
-	if styluaRes.stderr ~= "" then
-		styluaOut = styluaOut .. "\n" .. styluaRes.stderr
-	end
-	if not styluaRes.ok then
-		anyFailed = true
-		printStage("stylua", false, styluaOut)
-	else
-		printStage("stylua", true, styluaOut)
-	end
-
-	-- Stage c: luau-lsp
-	local lspSuccess = true
-	local lspLogs: { string } = {}
-
-	if not fs.isDir("build") then
-		fs.writeDir("build")
-	end
-
-	local defsOk, defsPathOrErr = ensureDefinitions()
-	if not defsOk then
-		lspSuccess = false
-		table.insert(lspLogs, "definitions error: " .. defsPathOrErr)
-	else
-		local packs = listPacks(true)
-		if #packs == 0 then
+		local defsOk, defsPathOrErr = ensureDefinitions()
+		if not defsOk then
 			lspSuccess = false
-			table.insert(lspLogs, "error: no game packs found under " .. PACKS_DIR)
-		end
-		for _, pack in packs do
-			local packOk, packLogs = analyzePack(pack, defsPathOrErr)
-			if not packOk then
+			table.insert(lspLogs, "definitions error: " .. defsPathOrErr)
+		else
+			local packs = listPacks(true)
+			if #packs == 0 then
+				lspSuccess = false
+				table.insert(lspLogs, "error: no game packs found under " .. PACKS_DIR)
+			end
+			for _, pack in packs do
+				local packOk, packLogs = analyzePack(pack, defsPathOrErr)
+				if not packOk then
+					lspSuccess = false
+				end
+				for _, line in packLogs do
+					table.insert(lspLogs, line)
+				end
+			end
+
+			-- Analyze Lune code (cli) with --platform=standard
+			local luneArgs = { "analyze", "--platform=standard", "cli" }
+			for _, root in { "core", "genres" } do
+				for _, path in sourcePaths(root, true) do
+					table.insert(luneArgs, path)
+				end
+			end
+			local luneRes = run.exec("luau-lsp", luneArgs)
+			if not luneRes.ok then
+				lspSuccess = false
+				table.insert(lspLogs, string.format("luau-lsp (cli/lune): exit code %d", luneRes.code))
+			end
+			local luneOut = luneRes.stdout
+			if luneRes.stderr ~= "" then
+				luneOut = luneOut .. "\n" .. luneRes.stderr
+			end
+			local luneErrors, luneWarnings = parseLspDiagnostics(luneOut)
+			if luneErrors > 0 then
 				lspSuccess = false
 			end
-			for _, line in packLogs do
-				table.insert(lspLogs, line)
+			table.insert(
+				lspLogs,
+				string.format("luau-lsp (cli/lune): %d errors, %d warnings", luneErrors, luneWarnings)
+			)
+			if luneOut ~= "" then
+				table.insert(lspLogs, luneOut)
 			end
 		end
 
-		-- Analyze Lune code (cli) with --platform=standard
-		local luneArgs = { "analyze", "--platform=standard", "cli" }
-		for _, root in { "core", "genres" } do
-			for _, path in sourcePaths(root, true) do
-				table.insert(luneArgs, path)
-			end
-		end
-		local luneRes = run.exec("luau-lsp", luneArgs)
-		if not luneRes.ok then
-			lspSuccess = false
-			table.insert(lspLogs, string.format("luau-lsp (cli/lune): exit code %d", luneRes.code))
-		end
-		local luneOut = luneRes.stdout
-		if luneRes.stderr ~= "" then
-			luneOut = luneOut .. "\n" .. luneRes.stderr
-		end
-		local luneErrors, luneWarnings = parseLspDiagnostics(luneOut)
-		if luneErrors > 0 then
-			lspSuccess = false
-		end
-		table.insert(lspLogs, string.format("luau-lsp (cli/lune): %d errors, %d warnings", luneErrors, luneWarnings))
-		if luneOut ~= "" then
-			table.insert(lspLogs, luneOut)
-		end
+		return lspSuccess, table.concat(lspLogs, "\n")
 	end
 
-	local lspOutputText = table.concat(lspLogs, "\n")
-	if not lspSuccess then
-		anyFailed = true
-		printStage("luau-lsp", false, lspOutputText)
-	else
-		printStage("luau-lsp", true, lspOutputText)
-	end
-
-	-- Stage d: econ codegen drift (must run before specs so a stale EconConfig fails early)
-	local econFailed = false
-	local econLogs: { string } = {}
-	local gamePacks = listPacks()
-	for _, pack in gamePacks do
-		local econPath = "games/" .. pack .. "/econ.yml"
-		if fs.isFile(econPath) then
-			local outputName = "EconConfig.luau"
-			local genOk, generated = pcall(function()
-				local name, content = codegen.generateDocument(fs.readFile(econPath), registry)
-				outputName = name
-				return content
-			end)
-			local generatedPath = "games/" .. pack .. "/src/shared/" .. outputName
-			if not genOk then
-				econFailed = true
-				table.insert(econLogs, "econ drift: " .. econPath .. " does not generate: " .. tostring(generated))
-			elseif not fs.isFile(generatedPath) or fs.readFile(generatedPath) ~= generated then
-				econFailed = true
-				table.insert(
-					econLogs,
-					"econ drift: " .. generatedPath .. " is out of date; run lune run cli/forge codegen"
-				)
-			end
-		end
-	end
-	if econFailed then
-		anyFailed = true
-	end
-	printStage("econ", not econFailed, table.concat(econLogs, "\n"))
-
-	-- Stage d3: every pack's game.yml must be complete (no scaffold TBDs).
-	local gameFailed = false
-	local gameLogs: { string } = {}
-	for _, pack in gamePacks do
-		local gamePath = "games/" .. pack .. "/game.yml"
-		if fs.isFile(gamePath) then
-			local gameOk, decodedGame = pcall(function()
-				return serde.decode("yaml", fs.readFile(gamePath))
-			end)
-			if not gameOk then
-				gameFailed = true
-				table.insert(gameLogs, pack .. ": could not decode " .. gamePath)
-			else
-				local config = nil
-				local configPath = "games/" .. pack .. "/econ.yml"
-				if fs.isFile(configPath) then
-					local configOk, decoded = pcall(function()
-						return serde.decode("yaml", fs.readFile(configPath))
-					end)
-					if configOk then
-						config = decoded
-					end
+	-- econ codegen drift (runs before specs so a stale EconConfig fails early)
+	stageFns["econ"] = function(): (boolean, string)
+		local econFailed = false
+		local econLogs: { string } = {}
+		for _, pack in gamePacks do
+			local econPath = "games/" .. pack .. "/econ.yml"
+			if fs.isFile(econPath) then
+				local outputName = "EconConfig.luau"
+				local genOk, generated = pcall(function()
+					local name, content = codegen.generateDocument(fs.readFile(econPath), registry)
+					outputName = name
+					return content
+				end)
+				local generatedPath = "games/" .. pack .. "/src/shared/" .. outputName
+				if not genOk then
+					econFailed = true
+					table.insert(econLogs, "econ drift: " .. econPath .. " does not generate: " .. tostring(generated))
+				elseif not fs.isFile(generatedPath) or fs.readFile(generatedPath) ~= generated then
+					econFailed = true
+					table.insert(
+						econLogs,
+						"econ drift: " .. generatedPath .. " is out of date; run lune run cli/forge codegen"
+					)
 				end
-				local errors: { string } = if registry
-					then M.validatePackContract(decodedGame, config, registry)
-					else gameYml.validate(decodedGame).errors
-				if #errors > 0 then
+			end
+		end
+		return not econFailed, table.concat(econLogs, "\n")
+	end
+
+	-- every pack's game.yml must be complete (no scaffold TBDs)
+	stageFns["game"] = function(): (boolean, string)
+		local gameFailed = false
+		local gameLogs: { string } = {}
+		for _, pack in gamePacks do
+			local gamePath = "games/" .. pack .. "/game.yml"
+			if fs.isFile(gamePath) then
+				local gameOk, decodedGame = pcall(function()
+					return serde.decode("yaml", fs.readFile(gamePath))
+				end)
+				if not gameOk then
 					gameFailed = true
-					for _, err in errors do
-						table.insert(gameLogs, pack .. ": " .. err)
+					table.insert(gameLogs, pack .. ": could not decode " .. gamePath)
+				else
+					local config = nil
+					local configPath = "games/" .. pack .. "/econ.yml"
+					if fs.isFile(configPath) then
+						local configOk, decoded = pcall(function()
+							return serde.decode("yaml", fs.readFile(configPath))
+						end)
+						if configOk then
+							config = decoded
+						end
+					end
+					local errors: { string } = if registry
+						then M.validatePackContract(decodedGame, config, registry)
+						else gameYml.validate(decodedGame).errors
+					if #errors > 0 then
+						gameFailed = true
+						for _, err in errors do
+							table.insert(gameLogs, pack .. ": " .. err)
+						end
 					end
 				end
 			end
 		end
+		return not gameFailed, table.concat(gameLogs, "\n")
 	end
-	if gameFailed then
-		anyFailed = true
-	end
-	printStage("game", not gameFailed, table.concat(gameLogs, "\n"))
 
-	-- Stage d2: asset manifests must gate cleanly and Assets.luau must not drift.
-	local assetsFailed = false
-	local assetsLogs: { string } = {}
-	for _, pack in gamePacks do
-		local manifestPath = "games/" .. pack .. "/assets/manifest.yml"
-		if fs.isFile(manifestPath) then
+	-- asset manifests must gate cleanly and Assets.luau must not drift
+	stageFns["assets"] = function(): (boolean, string)
+		local assetsFailed = false
+		local assetsLogs: { string } = {}
+		for _, pack in gamePacks do
+			local manifestPath = "games/" .. pack .. "/assets/manifest.yml"
+			if fs.isFile(manifestPath) then
+				local decodeOk, decoded = pcall(function()
+					return serde.decode("yaml", fs.readFile(manifestPath))
+				end)
+				if not decodeOk or typeof(decoded) ~= "table" then
+					assetsFailed = true
+					table.insert(assetsLogs, pack .. ": failed to decode " .. manifestPath)
+				else
+					local manifest, parseErr = assetsLib.parseManifest(decoded)
+					if manifest == nil then
+						assetsFailed = true
+						table.insert(assetsLogs, pack .. ": " .. (parseErr or "invalid manifest"))
+					else
+						local result = assetsLib.check(manifest, "staging")
+						if not result.ok then
+							assetsFailed = true
+							for _, err in result.errors do
+								table.insert(assetsLogs, pack .. ": " .. err)
+							end
+						end
+						local framework = assetsLib.checkFramework(manifest)
+						if not framework.ok then
+							assetsFailed = true
+							for _, err in framework.errors do
+								table.insert(assetsLogs, pack .. ": " .. err)
+							end
+						end
+						local generatedPath = "games/" .. pack .. "/src/shared/Assets.luau"
+						local expected = assetsLib.renderLuau(manifest, pack)
+						if not fs.isFile(generatedPath) or fs.readFile(generatedPath) ~= expected then
+							assetsFailed = true
+							table.insert(
+								assetsLogs,
+								"assets drift: "
+									.. generatedPath
+									.. " is out of date; run: lune run cli/forge assets codegen --pack "
+									.. pack
+							)
+						end
+					end
+				end
+			end
+		end
+		return not assetsFailed, table.concat(assetsLogs, "\n")
+	end
+
+	-- every pack's locale table must cover its client literals and ko-kr
+	stageFns["locale"] = function(): (boolean, string)
+		local localeFailed = false
+		local localeLogs: { string } = {}
+		for _, pack in listPacks() do
+			if fs.isFile("games/" .. pack .. "/locale/strings.csv") then
+				local res = run.exec("lune", { "run", "cli/forge", "locale", "check", "--pack", pack })
+				local out = res.stdout
+				if res.stderr ~= "" then
+					out = out .. "\n" .. res.stderr
+				end
+				if not res.ok then
+					localeFailed = true
+				end
+				if out ~= "" then
+					table.insert(localeLogs, out)
+				end
+			end
+		end
+		return not localeFailed, table.concat(localeLogs, "\n")
+	end
+
+	-- forge-lock pins must match the packages the pack references
+	stageFns["lock"] = function(): (boolean, string)
+		local lockFailed = false
+		local lockLogs: { string } = {}
+
+		local function packageVersion(path: string): string?
+			local readOk, text = pcall(fs.readFile, path)
+			if not readOk then
+				return nil
+			end
 			local decodeOk, decoded = pcall(function()
-				return serde.decode("yaml", fs.readFile(manifestPath))
+				return serde.decode("yaml", text)
 			end)
 			if not decodeOk or typeof(decoded) ~= "table" then
-				assetsFailed = true
-				table.insert(assetsLogs, pack .. ": failed to decode " .. manifestPath)
-			else
-				local manifest, parseErr = assetsLib.parseManifest(decoded)
-				if manifest == nil then
-					assetsFailed = true
-					table.insert(assetsLogs, pack .. ": " .. (parseErr or "invalid manifest"))
+				return nil
+			end
+			local version = decoded.version
+			return if typeof(version) == "string" and version ~= "" then version else nil
+		end
+
+		local coreVersion = packageVersion("core/forge-package.yml")
+		if coreVersion == nil then
+			lockFailed = true
+			table.insert(lockLogs, "core: could not read a version from core/forge-package.yml")
+		end
+
+		for _, pack in listPacks() do
+			local lockPath = "games/" .. pack .. "/forge-lock.yml"
+			if not fs.isFile(lockPath) then
+				lockFailed = true
+				table.insert(lockLogs, pack .. ": missing " .. lockPath)
+				continue
+			end
+
+			local decodeOk, decodedLock = pcall(function()
+				return serde.decode("yaml", fs.readFile(lockPath))
+			end)
+			if not decodeOk then
+				lockFailed = true
+				table.insert(lockLogs, pack .. ": " .. lockPath .. " does not decode: " .. tostring(decodedLock))
+				continue
+			end
+
+			local gameOk, game = pcall(function()
+				return serde.decode("yaml", fs.readFile("games/" .. pack .. "/game.yml"))
+			end)
+			if not gameOk or type(game) ~= "table" or not contract.dense(game.genres, 64) or #game.genres == 0 then
+				lockFailed = true
+				table.insert(lockLogs, pack .. ": invalid genres list")
+				continue
+			end
+			local packGenres: { string } = game.genres
+			local expectedGenres: { [string]: string } = {}
+			local seen = {}
+			for _, id in packGenres do
+				if not contract.id(id) or seen[id] or not registry or not registry.packages[id] then
+					lockFailed = true
+					table.insert(lockLogs, pack .. ": invalid/duplicate/unknown genre " .. tostring(id))
 				else
-					local result = assetsLib.check(manifest, "staging")
-					if not result.ok then
-						assetsFailed = true
-						for _, err in result.errors do
-							table.insert(assetsLogs, pack .. ": " .. err)
-						end
-					end
-					local framework = assetsLib.checkFramework(manifest)
-					if not framework.ok then
-						assetsFailed = true
-						for _, err in framework.errors do
-							table.insert(assetsLogs, pack .. ": " .. err)
-						end
-					end
-					local generatedPath = "games/" .. pack .. "/src/shared/Assets.luau"
-					local expected = assetsLib.renderLuau(manifest, pack)
-					if not fs.isFile(generatedPath) or fs.readFile(generatedPath) ~= expected then
-						assetsFailed = true
-						table.insert(
-							assetsLogs,
-							"assets drift: "
-								.. generatedPath
-								.. " is out of date; run: lune run cli/forge assets codegen --pack "
-								.. pack
-						)
-					end
+					expectedGenres[id] = registry.packages[id].manifest.version
+				end
+				seen[id] = true
+			end
+
+			if coreVersion ~= nil then
+				local errors = lock.validate(lock.fromTable(decodedLock), {
+					core = coreVersion,
+					genres = expectedGenres,
+					packGenres = packGenres,
+				})
+				for _, err in errors do
+					lockFailed = true
+					table.insert(lockLogs, pack .. ": " .. err)
 				end
 			end
 		end
+		return not lockFailed, table.concat(lockLogs, "\n")
 	end
-	if assetsFailed then
-		anyFailed = true
-	end
-	printStage("assets", not assetsFailed, table.concat(assetsLogs, "\n"))
 
-	-- Stage d4: every pack's locale table must cover its client literals and ko-kr.
-	local localeFailed = false
-	local localeLogs: { string } = {}
-	for _, pack in listPacks() do
-		if fs.isFile("games/" .. pack .. "/locale/strings.csv") then
-			local res = run.exec("lune", { "run", "cli/forge", "locale", "check", "--pack", pack })
-			local out = res.stdout
-			if res.stderr ~= "" then
-				out = out .. "\n" .. res.stderr
+	-- specs run as a child process so a broken module cannot wedge the checker.
+	-- "--quiet" keeps passing spec output out of the log; older specs-run ignores it.
+	stageFns.specs = function(): (boolean, string)
+		local res = run.exec("lune", { "run", "cli/forge", "specs-run", "--quiet" })
+		return res.ok, res.stdout .. (if res.stderr ~= "" then "\n" .. res.stderr else "")
+	end
+
+	-- build and inspect every selected target. With no selector this is every
+	-- declared pack under `games`; `--packs-root <dir>` swaps the discovery root
+	-- (QA build matrices) for this stage only. Each target is independent: one
+	-- failing build never stops another target, and a target whose build failed
+	-- is never inspected, so no stale artifact can report a pass.
+	stageFns["build"] = function(): (boolean, string)
+		local targets, resolveErrors = buildtargets.resolveTargets(selection, "all")
+		local buildLogs: { string } = {}
+		local inspectLogs: { string } = {}
+		local buildFailed = #resolveErrors > 0
+		local inspectFailed = #resolveErrors > 0
+		for _, err in resolveErrors do
+			table.insert(buildLogs, "ERROR: " .. err)
+			table.insert(inspectLogs, "ERROR: " .. err)
+		end
+
+		for _, result in buildtargets.runTargets(targets) do
+			for _, log in result.logs do
+				table.insert(buildLogs, log)
 			end
-			if not res.ok then
-				localeFailed = true
+			table.insert(buildLogs, buildtargets.formatBuild(result))
+			table.insert(inspectLogs, buildtargets.formatInspect(result))
+			if not result.built then
+				buildFailed = true
+				inspectFailed = true
+			elseif not result.ok then
+				inspectFailed = true
 			end
-			if out ~= "" then
-				table.insert(localeLogs, out)
+			for _, err in result.errors do
+				if result.built then
+					table.insert(inspectLogs, "ERROR: " .. err)
+				else
+					table.insert(buildLogs, "ERROR: " .. err)
+				end
 			end
 		end
-	end
-	if localeFailed then
-		anyFailed = true
-	end
-	printStage("locale", not localeFailed, table.concat(localeLogs, "\n"))
 
-	-- Stage e: forge-lock pins must match the packages the pack references.
-	local lockFailed = false
-	local lockLogs: { string } = {}
-
-	local function packageVersion(path: string): string?
-		local readOk, text = pcall(fs.readFile, path)
-		if not readOk then
-			return nil
-		end
-		local decodeOk, decoded = pcall(function()
-			return serde.decode("yaml", text)
-		end)
-		if not decodeOk or typeof(decoded) ~= "table" then
-			return nil
-		end
-		local version = decoded.version
-		return if typeof(version) == "string" and version ~= "" then version else nil
+		local detail = "build:\n" .. table.concat(buildLogs, "\n") .. "\ninspect:\n" .. table.concat(inspectLogs, "\n")
+		return not buildFailed and not inspectFailed, detail
 	end
 
-	local coreVersion = packageVersion("core/forge-package.yml")
-	if coreVersion == nil then
-		lockFailed = true
-		table.insert(lockLogs, "core: could not read a version from core/forge-package.yml")
-	end
-
-	for _, pack in listPacks() do
-		local lockPath = "games/" .. pack .. "/forge-lock.yml"
-		if not fs.isFile(lockPath) then
-			lockFailed = true
-			table.insert(lockLogs, pack .. ": missing " .. lockPath)
+	local profile = Profile.new()
+	local stages: { { id: string, ok: boolean, skipped: boolean, ms: number } } = {}
+	local failed: { string } = {}
+	local ran = 0
+	for _, id in M.STAGES do
+		if not enabled[id] then
+			table.insert(stages, { id = id, ok = true, skipped = true, ms = 0 })
 			continue
 		end
-
-		local decodeOk, decodedLock = pcall(function()
-			return serde.decode("yaml", fs.readFile(lockPath))
+		local invoked, ok, detail = pcall(function()
+			return profile:span(id, stageFns[id])
 		end)
-		if not decodeOk then
-			lockFailed = true
-			table.insert(lockLogs, pack .. ": " .. lockPath .. " does not decode: " .. tostring(decodedLock))
-			continue
-		end
-
-		local gameOk, game = pcall(function()
-			return serde.decode("yaml", fs.readFile("games/" .. pack .. "/game.yml"))
-		end)
-		if not gameOk or type(game) ~= "table" or not contract.dense(game.genres, 64) or #game.genres == 0 then
-			lockFailed = true
-			table.insert(lockLogs, pack .. ": invalid genres list")
-			continue
-		end
-		local packGenres: { string } = game.genres
-		local expectedGenres: { [string]: string } = {}
-		local seen = {}
-		for _, id in packGenres do
-			if not contract.id(id) or seen[id] or not registry or not registry.packages[id] then
-				lockFailed = true
-				table.insert(lockLogs, pack .. ": invalid/duplicate/unknown genre " .. tostring(id))
-			else
-				expectedGenres[id] = registry.packages[id].manifest.version
-			end
-			seen[id] = true
-		end
-
-		if coreVersion ~= nil then
-			local errors = lock.validate(lock.fromTable(decodedLock), {
-				core = coreVersion,
-				genres = expectedGenres,
-				packGenres = packGenres,
-			})
-			for _, err in errors do
-				lockFailed = true
-				table.insert(lockLogs, pack .. ": " .. err)
+		local ms = 0
+		for _, row in profile:report() do
+			if row.name == id then
+				ms = row.totalMs
 			end
 		end
+		if not invoked then
+			ok, detail = false, "stage error: " .. tostring(ok)
+		end
+		ran += 1
+		printStage(id, ok == true, ms, detail)
+		table.insert(stages, { id = id, ok = ok == true, skipped = false, ms = ms })
+		if ok ~= true then
+			table.insert(failed, id)
+		end
 	end
-	if lockFailed then
-		anyFailed = true
-	end
-	printStage("lock", not lockFailed, table.concat(lockLogs, "\n"))
 
-	-- Stage f: specs, run as a child process so a broken module cannot wedge the checker
-	local specsRes = run.exec("lune", { "run", "cli/forge", "specs-run" })
-	local specsOut = specsRes.stdout
-	if specsRes.stderr ~= "" then
-		specsOut = specsOut .. "\n" .. specsRes.stderr
-	end
-	if not specsRes.ok then
-		anyFailed = true
-		printStage("specs", false, specsOut)
+	local passed = #failed == 0
+	local totalMs = (os.clock() - startedAt) * 1000
+	if passed then
+		stdio.write(string.format("check: PASS (%d stages, %.1f s)\n", ran, totalMs / 1000))
 	else
-		printStage("specs", true, specsOut)
+		stdio.write(string.format("check: FAIL stages=%s (%.1f s)\n", table.concat(failed, ","), totalMs / 1000))
 	end
 
-	-- Stage g/h: build and inspect every selected target. With no selector this
-	-- is every declared pack under `games`; `--packs-root <dir>` swaps the
-	-- discovery root (QA build matrices) for this stage only - every other stage
-	-- keeps checking the repository's real packs. Each target is independent:
-	-- one failing build never stops another target, and a target whose build
-	-- failed is never inspected, so no stale artifact can report a pass.
-	local targets, resolveErrors = buildtargets.resolveTargets(selection, "all")
-	local buildLogs: { string } = {}
-	local inspectLogs: { string } = {}
-	local buildFailed = #resolveErrors > 0
-	local inspectFailed = #resolveErrors > 0
-	for _, err in resolveErrors do
-		table.insert(buildLogs, "ERROR: " .. err)
-		table.insert(inspectLogs, "ERROR: " .. err)
-	end
-
-	for _, result in buildtargets.runTargets(targets) do
-		for _, log in result.logs do
-			table.insert(buildLogs, log)
-		end
-		table.insert(buildLogs, buildtargets.formatBuild(result))
-		table.insert(inspectLogs, buildtargets.formatInspect(result))
-		if not result.built then
-			buildFailed = true
-			inspectFailed = true
-		elseif not result.ok then
-			inspectFailed = true
-		end
-		for _, err in result.errors do
-			if result.built then
-				table.insert(inspectLogs, "ERROR: " .. err)
-			else
-				table.insert(buildLogs, "ERROR: " .. err)
-			end
+	if options.jsonPath then
+		local report = { schemaVersion = 1, ok = passed, stages = stages, failed = failed }
+		local wrote, writeErr = pcall(fs.writeFile, options.jsonPath, serde.encode("json", report, true))
+		if not wrote then
+			stdio.ewrite("check: could not write " .. options.jsonPath .. ": " .. tostring(writeErr) .. "\n")
+			return false
 		end
 	end
 
-	if buildFailed then
-		anyFailed = true
-	end
-	printStage("build", not buildFailed, table.concat(buildLogs, "\n"))
-	if inspectFailed then
-		anyFailed = true
-	end
-	printStage("inspect", not inspectFailed, table.concat(inspectLogs, "\n"))
-
-	return not anyFailed
+	return passed
 end
 
 return M
