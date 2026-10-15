@@ -138,4 +138,27 @@ return {
 			)
 		end)
 	end,
+
+	["path filters skip requiring non-matching specs, name-only filters fall back"] = function()
+		withTree({
+			["ok/fine.spec.luau"] = 'return { ["target test"] = function() end }\n',
+		}, function(root)
+			-- Requiring this spec leaves a marker file before its top-level error.
+			local marker = root .. "/required.marker"
+			fs.writeDir(root .. "/bad")
+			fs.writeFile(
+				root .. "/bad/explodes.spec.luau",
+				string.format('require("@lune/fs").writeFile(%q, "x")\nerror("top-level boom")\n', marker)
+			)
+			local ok, output = specs.run({ roots = { root }, filters = { "fine" }, quiet = true })
+			assert(ok, output)
+			assert(not fs.isFile(marker), "a spec outside the path filter was required")
+			assert(string.match(output, "^specs: 1 passed, 0 failed, 1 files, "), output)
+
+			ok, output = specs.run({ roots = { root }, filters = { "target test" }, quiet = true })
+			assert(ok, output)
+			assert(fs.isFile(marker), "a test-name-only filter must search every spec")
+			assert(string.match(output, "^specs: 1 passed, 0 failed, 1 files, "), output)
+		end)
+	end,
 }

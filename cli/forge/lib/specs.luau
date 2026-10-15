@@ -87,7 +87,7 @@ local function writeJson(path: string, report: { [string]: any })
 end
 
 function M.run(options: RunOptions): (boolean, string)
-	local filters = options.filters or {}
+	local filters: { string } = options.filters or {}
 	local filtered = #filters > 0
 	local roots: { string } = options.roots or DEFAULT_ROOTS
 	local quiet = options.quiet == true
@@ -107,7 +107,8 @@ function M.run(options: RunOptions): (boolean, string)
 	-- Pre-parse every source before requiring anything. Requiring a module that
 	-- fails to parse reports an error once, but requiring that same module again
 	-- hangs forever (lune 0.10.5), so a shared broken module has to be caught here
-	-- instead of while walking the specs. Filters never narrow this pass.
+	-- instead of while walking the specs. Filters never narrow this pass: it costs
+	-- under a second for the whole repo, unlike requiring every spec.
 	local compileFailed = 0
 	for _, sourceFile in sources do
 		local err = parseFailure(sourceFile)
@@ -121,9 +122,40 @@ function M.run(options: RunOptions): (boolean, string)
 		return false, table.concat(logLines, "\n")
 	end
 
+	-- With filters, require only spec files whose path matches one: requiring
+	-- every spec runs ~200 modules' top-level code and dominated filtered runs.
+	-- A filter that matches no spec path can only match a test name, so in that
+	-- case every spec is still required to search "path :: testName".
+	local toRequire = specs
+	if filtered then
+		local pathMatched: { string } = {}
+		for _, specFile in specs do
+			if matchesAny(filters, specFile) then
+				table.insert(pathMatched, specFile)
+			end
+		end
+		local everyFilterMatchesPath = true
+		for _, filter in filters do
+			local found = false
+			for _, specFile in pathMatched do
+				if contains(specFile, filter) then
+					found = true
+					break
+				end
+			end
+			if not found then
+				everyFilterMatchesPath = false
+				break
+			end
+		end
+		if everyFilterMatchesPath then
+			toRequire = pathMatched
+		end
+	end
+
 	local results: { TestResult } = {}
 	local files = 0
-	for _, specFile in specs do
+	for _, specFile in toRequire do
 		local pathMatches = not filtered or matchesAny(filters, specFile)
 		local relReqPath = "../../../" .. string.gsub(specFile, "%.luau$", "")
 		local reqOk, specTable = pcall(M.requireSpec, relReqPath)
