@@ -332,7 +332,7 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "replay",
 		text = [=[
-  replay <journal.json> [--json]
+  replay <journal.json> [--packs-root <dir>] [--json]
                             Re-run a journal recorded by `qa run --record` against a fresh Session
                             and compare state hashes: exit 0 MATCH, 1 MISMATCH, 2 decode error]=],
 	},
