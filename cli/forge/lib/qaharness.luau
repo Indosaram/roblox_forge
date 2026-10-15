@@ -27,6 +27,7 @@ local Inventory = require("../../../core/domain/inventory/Inventory")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Content = require("../../../core/domain/survival/Content")
 local FencedStore = require("../../../core/infra/data/FencedStore")
+local Rng = require("../../../core/domain/random/Rng")
 
 local M = {}
 
@@ -44,6 +45,7 @@ export type Outcome = {
 	assertions: number,
 	failures: { string },
 	elapsedClockSeconds: number,
+	seed: number?,
 }
 
 export type Target = {
@@ -197,6 +199,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		assertions = 0,
 		failures = {},
 		elapsedClockSeconds = 0,
+		seed = scenario.seed,
 	}
 	local function record(index: number, op: string, ok: boolean, detail: string?)
 		table.insert(outcome.steps, { index = index, op = op, ok = ok, detail = detail })
@@ -216,6 +219,15 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		outcome.ok = false
 		outcome.failures = schemaErrors
 		return outcome
+	end
+	-- One stream per run, created before the first session, so a reload resumes the
+	-- stream where it stopped instead of replaying it. No seed keeps the roll fixed at 0.
+	local rng = if scenario.seed ~= nil then Rng.new(scenario.seed) else nil
+	local function roll(): number
+		if rng ~= nil then
+			return rng:nextNumber()
+		end
+		return 0
 	end
 	local wall = 0
 	local clock = Clock.new(function()
@@ -498,9 +510,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalGathering = trustedServices.survivalGathering,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
-		roll = function()
-			return 0
-		end,
+		roll = roll,
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
 	if fixture then
@@ -791,9 +801,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalGathering = trustedServices.survivalGathering,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
-					roll = function()
-						return 0
-					end,
+					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)
 				if fixture then
