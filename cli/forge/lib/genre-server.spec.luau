@@ -31,6 +31,7 @@ return {
 			["../data/DataStoreBackend"] = {},
 			["../../domain/genre/Contract"] = Contract,
 			["./Clock"] = Clock,
+			["../../domain/random/Rng"] = require("../../../core/domain/random/Rng"),
 			["./CommandTransport"] = require("../../../core/infra/genre/CommandTransport"),
 			["./OutfitPresenter"] = {
 				bindings = function()
@@ -64,15 +65,6 @@ return {
 				DateTime = {
 					now = function()
 						return { UnixTimestampMillis = 100000 }
-					end,
-				},
-				Random = {
-					new = function()
-						return {
-							NextNumber = function()
-								return 0
-							end,
-						}
 					end,
 				},
 				Instance = {
@@ -160,15 +152,6 @@ return {
 						return { UnixTimestampMillis = 100000 }
 					end,
 				},
-				Random = {
-					new = function()
-						return {
-							NextNumber = function()
-								return 0
-							end,
-						}
-					end,
-				},
 				task = {
 					wait = function(duration: number)
 						table.insert(delays, duration)
@@ -191,6 +174,7 @@ return {
 						["../data/DataStoreBackend"] = {},
 						["../../domain/genre/Contract"] = Contract,
 						["./Clock"] = Clock,
+						["../../domain/random/Rng"] = require("../../../core/domain/random/Rng"),
 						["./CommandTransport"] = require("../../../core/infra/genre/CommandTransport"),
 						["./OutfitPresenter"] = {
 							bindings = function()
@@ -244,13 +228,13 @@ return {
 			{ ok = false, reason = "BAD_SAVE" },
 		}
 		local attempts = 0
-		local step = 0
 		local dependencies: { [string]: any } = {
 			["./Options"] = Options,
 			["../data/MemoryBackend"] = MemoryBackend,
 			["../data/DataStoreBackend"] = {},
 			["../../domain/genre/Contract"] = Contract,
 			["./Clock"] = Clock,
+			["../../domain/random/Rng"] = require("../../../core/domain/random/Rng"),
 			["./CommandTransport"] = require("../../../core/infra/genre/CommandTransport"),
 			["./OutfitPresenter"] = {
 				bindings = function()
@@ -308,16 +292,6 @@ return {
 						return { UnixTimestampMillis = 100000 }
 					end,
 				},
-				Random = {
-					new = function()
-						return {
-							NextNumber = function()
-								step += 1
-								return if step == 1 then 0 else 0.5
-							end,
-						}
-					end,
-				},
 				Instance = {
 					new = function()
 						return { FireClient = function() end }
@@ -371,7 +345,15 @@ return {
 		recovered.Parent = players
 		fireJoin(recovered)
 		assert(attempts == 3, "transient transport failures retry until the profile loads")
-		assert(#delays == 2 and delays[1] == 1 and delays[2] == 2.5, "retry delays are jittered")
+		local expected = require("../../../core/domain/random/Rng").new(100000):fork("join-retry")
+		assert(session.seed == 100000, "session exposes the time-derived seed")
+		assert(
+			#delays == 2
+				and delays[1] == 1 + expected:nextNumber() * 3
+				and delays[2] == 1 + expected:nextNumber() * 3
+				and delays[1] ~= delays[2],
+			"retry delays are jittered from the forked seeded stream"
+		)
 		assert(attributes.ForgeLastKick == nil, "recovery records no kick")
 		local terminal: any = {
 			UserId = 2,

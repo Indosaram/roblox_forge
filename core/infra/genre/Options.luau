@@ -37,6 +37,8 @@ export type Options = {
 	-- The pack's serialized genre spec, so a server-side presenter can read the declared
 	-- presentation bindings (outfit feedback) without a second copy of them.
 	spec: any?,
+	-- Seed for the server randomness stream; absent means time-derived (logged at start).
+	seed: number?,
 }
 local M = {}
 function M.validateControls(controls: any, contracts: { Contract.RuntimeContract }): ()
@@ -104,6 +106,7 @@ function M.validate(options: Options): ()
 				"clock",
 				"starterWorld",
 				"spec",
+				"seed",
 			}, tostring(key)),
 			"options: unknown field"
 		)
@@ -136,6 +139,16 @@ function M.validate(options: Options): ()
 		"options: invalid packConfig"
 	)
 	M.validateControls(options.controls, options.contracts)
+	assert(
+		options.seed == nil
+			or (
+				type(options.seed) == "number"
+				and options.seed >= 0
+				and options.seed <= 9007199254740991
+				and options.seed % 1 == 0
+			),
+		"seed: expected non-negative safe integer"
+	)
 	assert(options.starterWorld == nil or type(options.starterWorld) == "boolean", "starterWorld: expected boolean")
 	if options.clock ~= nil then
 		assert(type(options.clock) == "table", "clock: expected table")
