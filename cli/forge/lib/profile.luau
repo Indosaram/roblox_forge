@@ -64,7 +64,7 @@ function Profile.span<T...>(self: Profile, name: string, fn: () -> T...): T...
 	if not packed[1] then
 		error(packed[2], 0)
 	end
-	return table.unpack(packed, 2, packed.n)
+	return table.unpack(packed :: any, 2, packed.n)
 end
 
 function Profile.start(self: Profile, name: string)

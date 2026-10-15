@@ -2,13 +2,14 @@
 local Journal = require("./Journal")
 
 local function sample(): Journal.Journal
+	local hatchArgs: { any } = { "egg", 3, true, { tier = "rare", weights = { 1, 2.5 } } }
 	local journal = Journal.new({ seed = 42, genre = "collect-raid", scenario = "smoke" })
 	journal:record({ kind = "join", actor = "p1", atMillis = 0 })
 	journal:record({
 		kind = "command",
 		actor = "p1",
 		action = "hatch",
-		args = { "egg", 3, true, { tier = "rare", weights = { 1, 2.5 } } },
+		args = hatchArgs,
 		requestId = "r-1",
 		atMillis = 125,
 	})
@@ -20,7 +21,7 @@ local function sample(): Journal.Journal
 	return journal
 end
 
-local function rejects(fn: () -> (), pattern: string): ()
+local function rejects(fn: () -> ...any, pattern: string): ()
 	local ok, err = pcall(fn)
 	assert(not ok, "expected rejection matching " .. pattern)
 	assert(string.find(tostring(err), pattern, 1, true), "unexpected error: " .. tostring(err))

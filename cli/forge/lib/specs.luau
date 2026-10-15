@@ -24,7 +24,7 @@ type TestResult = { file: string, test: string, ok: boolean, ms: number, err: st
 
 local dynamicRequire = require :: any
 
-local DEFAULT_ROOTS = { "core", "games", "cli", "genres" }
+local DEFAULT_ROOTS: { string } = { "core", "games", "cli", "genres" }
 
 function M.requireSpec(specPath: string): any
 	return dynamicRequire(specPath)
@@ -89,7 +89,7 @@ end
 function M.run(options: RunOptions): (boolean, string)
 	local filters = options.filters or {}
 	local filtered = #filters > 0
-	local roots = options.roots or DEFAULT_ROOTS
+	local roots: { string } = options.roots or DEFAULT_ROOTS
 	local quiet = options.quiet == true
 	local startedAt = os.clock()
 

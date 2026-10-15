@@ -152,7 +152,9 @@ local function decodeOrError(bytes: string | buffer): Image
 	if #compressed == 0 then
 		error("PNG_NO_DATA", 0)
 	end
-	local inflatedOk, inflated = pcall(serde.decompress, "zlib", table.concat(compressed))
+	local inflatedOk, inflated = pcall(function()
+		return serde.decompress("zlib", table.concat(compressed))
+	end)
 	if not inflatedOk then
 		error("PNG_INFLATE " .. tostring(inflated), 0)
 	end

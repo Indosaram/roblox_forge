@@ -44,7 +44,7 @@ local function parseIgnore(value: string): ({ imagediff.Rect }?, string?)
 	local rects: { imagediff.Rect } = {}
 	for part in string.gmatch(value, "[^,]+") do
 		local a, b, c, d = string.match(part, "^(%d+):(%d+)%-(%d+):(%d+)$")
-		if a == nil then
+		if a == nil or b == nil or c == nil or d == nil then
 			return nil, "invalid --ignore region '" .. part .. "' (expected x1:y1-x2:y2)"
 		end
 		local rect = {
@@ -103,7 +103,14 @@ function M.parseArgs(args: { string }): (Options?, string?)
 				options.ignore = rects
 			else
 				local x, y, w, h = string.match(value, "^(%d+):(%d+):(%d+):(%d+)$")
-				if x == nil or (integer(w) :: number) < 1 or (integer(h) :: number) < 1 then
+				if
+					x == nil
+					or y == nil
+					or w == nil
+					or h == nil
+					or (integer(w) :: number) < 1
+					or (integer(h) :: number) < 1
+				then
 					return nil, "invalid --crop '" .. value .. "' (expected x:y:w:h with w,h >= 1)"
 				end
 				options.crop = {
@@ -167,7 +174,8 @@ function M.run(args: { string }, out: Output?): number
 		crop = options.crop,
 	})
 	if options.diff ~= nil then
-		local ok, err = pcall(imagediff.writeDiff, base, compare, result, options.diff)
+		local writeDiff: (imagediff.Image, imagediff.Image, imagediff.Result, string) -> ...any = imagediff.writeDiff
+		local ok, err = pcall(writeDiff, base, compare, result, options.diff)
 		if not ok then
 			io.ewrite("imagediff: error: cannot write diff " .. options.diff .. ": " .. tostring(err) .. "\n")
 			return 2

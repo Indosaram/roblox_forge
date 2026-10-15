@@ -20,10 +20,10 @@ end
 
 --- The scratch root directory, using forward slashes only.
 function M.root(): string
-	local raw = fromEnv("TEMP") or fromEnv("TMP") or fromEnv("TMPDIR")
-	if raw == nil then
-		raw = if process.os == "windows" then "C:/Windows/Temp" else "/tmp"
-	end
+	local raw: string = fromEnv("TEMP")
+		or fromEnv("TMP")
+		or fromEnv("TMPDIR")
+		or (if process.os == "windows" then "C:/Windows/Temp" else "/tmp")
 	return (string.gsub(raw, "\\", "/"))
 end
 
