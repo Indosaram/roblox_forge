@@ -2,6 +2,8 @@
 -- Specs for the sweep command's pure logic: option/genre parsing, the variant
 -- matrix, and the report aggregation. No filesystem, no generation, no sleeps.
 
+local serde = require("@lune/serde")
+
 local sweep = require("./sweep")
 
 --- A registry shape with exactly the fields variants() reads, so the matrix is
@@ -163,5 +165,47 @@ return {
 			string.find(markdown, "human-judgment-pending", 1, true) ~= nil,
 			"the report says human judgment stays pending"
 		)
+	end,
+	["parseArgs reads --stamp and rejects an unsafe or duplicate stamp"] = function()
+		local options, err = sweep.parseArgs({ "sweep", "--stamp", "fixed-001" })
+		assert(options ~= nil, "a valid stamp parses: " .. tostring(err))
+		assert(options.stamp == "fixed-001", "stamp kept verbatim")
+		assert(select(2, sweep.parseArgs({ "sweep", "--stamp" })) ~= nil, "missing value rejected")
+		assert(select(2, sweep.parseArgs({ "sweep", "--stamp", "a/b" })) ~= nil, "a path separator is rejected")
+		assert(select(2, sweep.parseArgs({ "sweep", "--stamp", ".." })) ~= nil, "a parent segment is rejected")
+		assert(select(2, sweep.parseArgs({ "sweep", "--stamp", "a", "--stamp", "b" })) ~= nil, "duplicate rejected")
+		assert(sweep.parseArgs({ "sweep" }) ~= nil, "stamp stays optional")
+	end,
+
+	["document carries schemaVersion 1 and the overridden stamp"] = function()
+		local reports = { passing("a") }
+		local summary = sweep.summarize(reports)
+		local document = sweep.document("fixed-001", "lune run cli/forge sweep --stamp fixed-001", reports, summary)
+		assert(document.schemaVersion == 1, "schemaVersion is 1")
+		assert(document.stamp == "fixed-001", "the stamp is the supplied one, not the wall clock")
+		assert(#document.genres == 1 and document.summary == summary, "reports and summary are carried")
+		local again = sweep.document("fixed-001", "lune run cli/forge sweep --stamp fixed-001", reports, summary)
+		assert(
+			serde.encode("json", document, true) == serde.encode("json", again, true),
+			"same stamp and reports encode to identical bytes"
+		)
+	end,
+
+	["step timer records each step's own durationMs"] = function()
+		local now = 0
+		local lap = sweep.newStepTimer(function()
+			return now
+		end)
+		local r = passing("a")
+		now = 0.5
+		lap(r, "generate")
+		now = 0.75
+		lap(r, "files")
+		now = 0.75
+		lap(r, "build")
+		assert(r.steps.generate.durationMs == 500, "first step spans creation to its lap")
+		assert(r.steps.files.durationMs == 250, "next step spans only its own time")
+		assert(r.steps.build.durationMs == 0, "a step lapped back to back is zero")
+		assert(r.steps.hud.durationMs == nil, "unlapped steps are untouched")
 	end,
 }
