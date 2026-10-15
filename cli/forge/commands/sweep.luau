@@ -39,6 +39,7 @@ local genrespec = require("../lib/genrespec")
 local project = require("../lib/genreproject")
 local qaharness = require("../lib/qaharness")
 local loadproof = require("../lib/loadproof")
+local profileLib = require("../lib/profile")
 local qualityevidence = require("../lib/qualityevidence")
 local qualityprofile = require("../lib/qualityprofile")
 local registryLib = require("../lib/genreregistry")
@@ -68,6 +69,7 @@ M.STEP_NAMES = {
 	"load",
 	"quality",
 }
+M.SCHEMA_VERSION = 1
 M.REQUIRED_FILES = { "default.project.json", "game.yml", "econ.yml", "src/shared/Assets.luau", "quality.yml" }
 
 export type Variant = { id: string, mode: string?, label: string, slug: string, artifact: string }
@@ -170,17 +172,17 @@ function M.parseGenreList(raw: string): ({ string }?, string?)
 	return genres, nil
 end
 
-export type Options = { genres: { string }?, out: string? }
+export type Options = { genres: { string }?, out: string?, stamp: string? }
 
 --- Parses the sweep's own options. Returns (nil, reason) for an unknown flag or
 --- a flag without a value.
 function M.parseArgs(args: { string }, startIndex: number?): (Options?, string?)
-	local options: Options = { genres = nil, out = nil }
+	local options: Options = { genres = nil, out = nil, stamp = nil }
 	local index = startIndex or 2
 	while index <= #args do
 		local flag = args[index]
 		local value = args[index + 1]
-		if flag == "--genres" or flag == "--out" then
+		if flag == "--genres" or flag == "--out" or flag == "--stamp" then
 			if value == nil or value == "" or string.sub(value, 1, 2) == "--" then
 				return nil, flag .. " requires a value"
 			end
@@ -193,6 +195,15 @@ function M.parseArgs(args: { string }, startIndex: number?): (Options?, string?)
 					return nil, reason
 				end
 				options.genres = genres
+			elseif flag == "--stamp" then
+				if options.stamp ~= nil then
+					return nil, "duplicate --stamp"
+				end
+				-- The stamp names the default output directory, so it must be one safe path segment.
+				if string.match(value, "^[%w%._%-]+$") == nil or value == "." or value == ".." then
+					return nil, "--stamp must be letters, digits, '.', '_' or '-'"
+				end
+				options.stamp = value
 			else
 				if options.out ~= nil then
 					return nil, "duplicate --out"
@@ -800,6 +811,36 @@ local function placeWorldReport(path: string, spawn: { number }?, volume: any?, 
 end
 
 -- ---------------------------------------------------------------------------
+-- Step timing
+-- ---------------------------------------------------------------------------
+
+--- Returns lap(report, name): stamps report.steps[name].durationMs with the time
+--- elapsed since the previous lap (or since creation). The clock (seconds) is
+--- injectable so specs are deterministic; it defaults to os.clock. Steps that
+--- share one computation (build/inspect) are lapped back to back, so the first
+--- carries the time.
+function M.newStepTimer(clock: (() -> number)?): (Report, string) -> ()
+	local profile = profileLib.new({ clock = clock })
+	local accounted = 0
+	profile:start("lap")
+	return function(report: Report, name: string)
+		profile:stop("lap")
+		local total = 0
+		for _, row in profile:report() do
+			if row.name == "lap" then
+				total = row.totalMs
+			end
+		end
+		local step = report.steps[name]
+		if step ~= nil then
+			step.durationMs = total - accounted
+		end
+		accounted = total
+		profile:start("lap")
+	end
+end
+
+-- ---------------------------------------------------------------------------
 -- One variant
 -- ---------------------------------------------------------------------------
 
@@ -822,6 +863,8 @@ function M.runVariant(
 		ok = false,
 	}
 
+	local lap = M.newStepTimer()
+
 	-- (a) generation
 	local assembly: any = nil
 	local generated, generationError = pcall(function()
@@ -840,6 +883,7 @@ function M.runVariant(
 		assert(written, reason)
 	end)
 	report.steps.generate = { ok = generated, error = if generated then nil else firstLine(generationError) }
+	lap(report, "generate")
 
 	-- (b) expected files
 	local checks = fileChecks(packDir)
@@ -850,6 +894,7 @@ function M.runVariant(
 		serverEntries = checks.serverEntries,
 		error = if #checks.missing > 0 then "missing: " .. table.concat(checks.missing, ", ") else nil,
 	}
+	lap(report, "files")
 
 	-- (c)+(d) build and inspect through the shared target runner, into the
 	-- sweep's own artifact path.
@@ -880,6 +925,8 @@ function M.runVariant(
 			error = if result.built and result.ok then nil else (firstError(result.errors) or "inspection failed"),
 		}
 	end
+	lap(report, "build")
+	lap(report, "inspect")
 
 	-- (e) declarative spec: the variant's genre spec must validate against its
 	-- runtime descriptor and the generated pack must carry its serialized form.
@@ -907,6 +954,7 @@ function M.runVariant(
 		errors = specErrors,
 		error = firstError(specErrors),
 	}
+	lap(report, "spec")
 
 	-- (f) headless native QA: every executable scenario that applies to THIS pack,
 	-- from the pack itself and from the genre directory. A scenario bound to
@@ -1014,6 +1062,8 @@ function M.runVariant(
 			}
 		end
 	end
+
+	lap(report, "nativeQa")
 
 	-- (g) HUD, world and audio probes, then the aggregate surface verdict.
 	--
@@ -1284,6 +1334,7 @@ function M.runVariant(
 		},
 		error = hudError,
 	}
+	lap(report, "hud")
 
 	-- World: the built place must carry a playable world, not just parts. The gate
 	-- is the spec's own plan: a part floor for the whole world and for every zone,
@@ -1436,6 +1487,7 @@ function M.runVariant(
 		errors = worldErrors,
 		error = firstError(worldErrors),
 	}
+	lap(report, "world")
 
 	-- Audio: every bound action/event must resolve to a cue the spec declares and
 	-- the pack actually renders.
@@ -1522,6 +1574,7 @@ function M.runVariant(
 		errors = audioErrors,
 		error = if audioOk then nil else firstError(audioErrors),
 	}
+	lap(report, "audio")
 
 	-- Surface: the conjunction the design's §5.1 defines.
 	local surfaceOk = report.steps.hud.ok and report.steps.world.ok and audioOk and #unmatched == 0
@@ -1553,6 +1606,7 @@ function M.runVariant(
 		world = { modules = worldModules, placeParts = worldParts },
 		audio = { cues = specCues, packCues = packCues },
 	}
+	lap(report, "surface")
 	-- Load: the headless 8-actor proof over the pack's own golden path. It drives
 	-- the real Session/Executor with no Studio and no clock sleep, so it is
 	-- deterministic and runs in the same pass as every other column.
@@ -1608,6 +1662,7 @@ function M.runVariant(
 		runtime = if assembly.legacy then "legacy-contract" else "generated-pack",
 		error = loadError,
 	}
+	lap(report, "load")
 
 	-- Quality: a generated pack declares the starter tier, and the receipt this
 	-- run records is the mechanical evidence above plus the load proof. It never
@@ -1690,6 +1745,7 @@ function M.runVariant(
 		columns = if qualityReport ~= nil then qualityReport.columns else nil,
 		error = qualityError,
 	}
+	lap(report, "quality")
 
 	report.ok = true
 	for _, name in M.STEP_NAMES do
@@ -1704,6 +1760,18 @@ end
 -- ---------------------------------------------------------------------------
 -- Entry point
 -- ---------------------------------------------------------------------------
+
+--- The sweep.json document: versioned, with the run stamp and every genre report
+--- (each step carries its durationMs).
+function M.document(stamp: string, command: string, reports: { Report }, summary: Summary): any
+	return {
+		schemaVersion = M.SCHEMA_VERSION,
+		stamp = stamp,
+		command = command,
+		genres = reports,
+		summary = summary,
+	}
+end
 
 function M.stamp(): string
 	return os.date("!%Y%m%dT%H%M%SZ")
@@ -1741,7 +1809,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		return false
 	end
 
-	local stamp = M.stamp()
+	local stamp = options.stamp or M.stamp()
 	local outDir = options.out or (M.DEFAULT_OUT_ROOT .. "/" .. stamp)
 	local packsDir = outDir .. "/packs"
 	-- The scratch packs root is the sweep's own output, and a stale pack from an
@@ -1766,6 +1834,9 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	if options.out ~= nil then
 		command ..= " --out " .. options.out
 	end
+	if options.stamp ~= nil then
+		command ..= " --stamp " .. options.stamp
+	end
 
 	local reports: { Report } = {}
 	for _, variant in variants do
@@ -1776,12 +1847,10 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	end
 
 	local summary = M.summarize(reports)
-	fs.writeFile(outDir .. "/sweep.json", serde.encode("json", {
-		stamp = stamp,
-		command = command,
-		genres = reports,
-		summary = summary,
-	}, true) .. "\n")
+	fs.writeFile(
+		outDir .. "/sweep.json",
+		serde.encode("json", M.document(stamp, command, reports, summary), true) .. "\n"
+	)
 	fs.writeFile(outDir .. "/sweep.md", M.renderMarkdown(summary, reports, stamp))
 	stdio.write(string.format("sweep: %d/%d genres fully passed; report %s\n", summary.passed, summary.total, outDir))
 	return summary.failed == 0
