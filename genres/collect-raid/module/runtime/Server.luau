@@ -774,7 +774,11 @@ function Server.start(opts: Options): ()
 		end
 
 		if
-			not Validate.isIndex(index, 1, Loop.maxIncubators(Config, playerStates[player] or Loop.newPlayer(Config)))
+			not Validate.isIndex(
+				index,
+				1,
+				Loop.maxIncubators(Config, playerStates[player] or Loop.newPlayer(Config, os.time()))
+			)
 		then
 			return false, "invalid incubator index type"
 		end

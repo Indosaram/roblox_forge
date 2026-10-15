@@ -211,8 +211,9 @@ function Loop.coinsPerSecond(config: Config, state: PlayerState): number
 	return dailyRate(config, state)
 end
 
-function Loop.newPlayer(config: Config, now: number?): PlayerState
-	local day = DailyQuest.dayIndex(now or os.time())
+function Loop.newPlayer(config: Config, now: number): PlayerState
+	assert(type(now) == "number", "Loop.newPlayer requires an explicit time")
+	local day = DailyQuest.dayIndex(now)
 	return {
 		wallet = Wallet.new({ [config.currency] = config.startingCoins }),
 		incubators = {},
