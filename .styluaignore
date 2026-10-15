@@ -2,3 +2,6 @@ build/
 docs/
 .omo/
 Packages/
+.orca-worktrees/
+ServerPackages/
+DevPackages/

@@ -18,6 +18,8 @@ node_modules/
 # secrets
 .env
 .env.local
+.env.*
+!.env.example
 
 # generated reports (keep the directory)
 reports/*
@@ -25,3 +27,11 @@ reports/*
 
 # generated OBJ previews (forge gen procedural --obj)
 games/*/assets/preview/
+
+# stray OS and tool files
+nul
+.DS_Store
+Thumbs.db
+*.log
+.orca-worktrees/
+/C:/
