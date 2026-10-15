@@ -15,6 +15,11 @@ Roblox Game Forge is a meta-framework for AI-agent-driven planning, building, an
 - Do not use non-commercial generative models: AudioCraft weights (CC-BY-NC), Roblox Cube (research only), Hunyuan3D-2 (excludes Korea, EU, UK). TRELLIS (MIT) is allowed.
 - No paid random items: Robux sells only deterministic items, and random hatching runs only on free currency.
 - No 1:1 personal-base theft structure and no "Steal a ..." title pattern; design around team siege instead.
+- Never hand-edit generated files: `EconConfig.luau`, `GenreConfig.luau`, `Assets.luau`, `ProcAssets.luau` (and `SurvivalContent.luau`). Edit the source (`econ.yml`, `assets/manifest.yml`, `content.yml`) and run the codegen (`forge codegen`, `forge assets codegen`, `forge gen procedural`, `forge content codegen`).
+- All randomness goes through `core/domain/random/Rng` with a recorded seed (`Rng.new(seed)`, `:fork(label)`); never call `math.random` or `os.time` for game logic.
+- Domain code takes time as a parameter (explicit clock); it never reads wall-clock time itself.
+- Run every command from the repository root: rokit resolves `rokit.toml` from the current directory.
+- Never create files named `nul` (Windows reserved name; it is gitignored).
 
 ## Layer rules (plan §11.1)
 
@@ -27,22 +32,57 @@ Roblox Game Forge is a meta-framework for AI-agent-driven planning, building, an
 
 ## Commands
 
-- `rokit install` — install the pinned toolchain from `rokit.toml`.
-- `lune run cli/forge check` — full verification: selene, `stylua --check`, `luau-lsp analyze`, Lune specs, then `rojo build` plus built-place inspection for **every** eligible game pack, each target reported independently. Narrow it with `--pack <slug>`, `--project <path>` or `--all`. Provided by `cli/forge`.
-- `lune run cli/forge build [--all | --pack <slug> | --project <path>]` — build game places into `build/<target>.rbxl`; with no selector the default pack is built. Provided by `cli/forge`.
+`forge` below means `lune run cli/forge`. `lune run cli/forge --help` (or `-h`, `help`) prints usage to stdout and exits 0; `lune run cli/forge <cmd> --help` prints that command's usage and exits 0. No arguments prints usage to stderr and exits 2; an unknown command exits 2. Every other command exits 1 on failure.
+
+- `rokit install` — install the pinned toolchain from `rokit.toml`, then run `lune setup` once. `bun` is also needed for the JS suites, deploy/liveops transport and Studio QA.
+- `forge check` — full verification: genre-contract, qa-schema, selene, stylua, luau-lsp, econ, game, assets, locale, lock, specs, build (the `build` stage runs `rojo build` plus built-place inspection for **every** eligible game pack, each target reported independently). `--pack <slug>`, `--project <path>` and `--all` narrow only build + inspect.
+- `forge build [--all | --pack <slug> | --project <path>]` — build places into `build/<target>.rbxl`; with no selector the default pack is built.
+- `forge codegen [<pack>]`, `forge new <slug> --genre <g1,g2>`, `forge plan`, `forge gen`, `forge assets`, `forge locale`, `forge deploy`, `forge liveops`, `forge report`, `forge trends`, `forge quality`, `forge spec`, `forge content`: see `lune run cli/forge <cmd> --help`.
 - `stylua .` — format the repository.
+
+## Fast loop
+
+Do not run the full `check` for every edit; it takes minutes. Iterate with the narrowest command that covers the change, and run the full `check` once before handing off.
+
+1. `lune setup` once after `rokit install` (generates Luau type definitions).
+2. `forge test <substring> [more filters] --quiet` — run only the Lune specs whose path matches a substring. Also `--slowest N` (slowest specs) and `--json <path>` (machine-readable result). `specs-run` remains a hidden alias.
+3. `forge check --only <stages>` (comma-separated) or `forge check --skip <stages>`; stage ids: `genre-contract,qa-schema,selene,stylua,luau-lsp,econ,game,assets,locale,lock,specs,build`. Each stage prints its seconds and the run ends with `check: PASS ...` or `check: FAIL stages=...`.
+4. `forge check --json <path>` — writes `{schemaVersion: 1, ok, stages, failed}`; `failed` is a list of stage ids.
+5. Reproduce QA deterministically: `forge qa run --pack <slug> --scenario <name> --record <journal.json>`, then `forge replay <journal.json> [--json]` (exit 0 MATCH, 1 MISMATCH, 2 error). Native scenarios take `seed: <int>`; `capture` steps take `layers: all|world|ui`.
+6. Compare screenshots with `forge imagediff <base.png> <compare.png> [--diff out.png] [--threshold n] [--ignore x1:y1-x2:y2[,..]] [--crop x:y:w:h] [--json]` (exit 0 identical, 1 different, 2 usage or decode error).
+7. Other machine-readable runs: `forge smoke --local --strict`, `forge econ sim --json <path>`, `forge sweep --stamp <text>` (writes `sweep.json`, schemaVersion 1).
+
+Evidence and output go to gitignored directories, so never commit them: `.omo/evidence/`, `reports/`, `build/`, `build/sweep/<stamp>/`.
+
+## Docs
+
+- [skills/](skills/README.md) — per-layer agent skills (3d, audio, locale, econ, qa, liveops).
+- [cli/forge/README.md](cli/forge/README.md) — CLI behavior and genre-contract command semantics.
+- [genres/README.md](genres/README.md) — genre module extension guide and APIs.
+- [docs/release/cli-contract.md](docs/release/cli-contract.md) — CLI exit-code and output contract.
+- [docs/forge/genre-spec.md](docs/forge/genre-spec.md) — declarative genre-spec format.
 
 ## Repository map
 
 ```
-roblox-game-forge/
+roblox_forge/
   AGENTS.md                    # agent rules, layer rules, approval gates
   .gitignore  .gitattributes
+  docs/                        # release/ (operations, contracts), forge/ (genre-spec), research/, review/
   cli/
-    forge/                     # Lune CLI: new, sweep, trends, gen, econ, locale, qa, quality, deploy, report
+    forge/                     # Lune CLI
+      commands/                # one file per command (+ command specs)
+      lib/                     # shared libraries and their *.spec.luau
+      qa/                      # Studio QA drivers (mjs)
+      fixtures/                # spec and proof fixtures
+    release/                   # release packaging, capacity, persistence readiness
   core/                        # packages common to every game
-    domain/                    # engine-free pure Luau: economy/, progression/, state/
-    infra/                     # engine adapters: data/, net/, monetization/, analytics/, localization/, liveops/
+    domain/                    # engine-free pure Luau
+      command/  crafting/  economy/  genre/  inventory/  procgen/
+      progression/  random/  settlement/  state/  survival/
+    infra/                     # engine adapters
+      analytics/  audio/  camera/  data/  genre/  liveops/
+      localization/  monetization/  net/  render/
     anticheat/
     ui-kit/
   genres/
@@ -55,5 +95,6 @@ roblox-game-forge/
     grow-and-defend-garden/    # second pack (grow-harvest + survival-coop)
     plan-demo/                 # generated sample pack
   skills/                      # per-layer agent skills: 3d, audio, locale, econ, qa, liveops
+  reports/                     # generated output (gitignored)
   .github/workflows/           # CI (lint, specs, rojo build)
 ```
