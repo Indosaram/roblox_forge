@@ -71,6 +71,18 @@ local function inside(path: string, dir: string): boolean
 	return path == dir or string.sub(path, 1, #dir + 1) == dir .. "/"
 end
 
+-- Windows device names (nul, con, prn, aux, com1-9, lpt1-9) are reserved with or without an extension.
+function M.reservedDeviceName(name: string): boolean
+	local stem = string.lower(string.match(name, "^([^.]*)") or name)
+	stem = string.gsub(stem, "[ ]+$", "")
+	return stem == "nul"
+		or stem == "con"
+		or stem == "prn"
+		or stem == "aux"
+		or string.match(stem, "^com[1-9]$") ~= nil
+		or string.match(stem, "^lpt[1-9]$") ~= nil
+end
+
 local function snapshot(profile: qualityprofile.Profile, input: Inputs): Snapshot
 	for _, path in { input.packDir, input.buildPath, input.receiptPath, input.evidenceDir } do
 		assert(relative(path), "INVALID_PATH: " .. path)
@@ -134,7 +146,12 @@ local function snapshot(profile: qualityprofile.Profile, input: Inputs): Snapsho
 		walk(dir)
 	end
 	for _, name in fs.readDir(input.root) do
-		if fs.isFile(input.root .. "/" .. name) and name ~= ".git" then
+		-- Reserved Windows device names make fs.isFile throw; one bad entry must not abort the scan.
+		if M.reservedDeviceName(name) then
+			continue
+		end
+		local statOk, isFile = pcall(fs.isFile, input.root .. "/" .. name)
+		if statOk and isFile and name ~= ".git" then
 			add(name)
 		end
 	end
