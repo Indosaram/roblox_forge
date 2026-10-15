@@ -18,6 +18,7 @@ local registryLib = require("../lib/genreregistry")
 local cliutil = require("../lib/cliutil")
 local gameyml = require("../lib/gameyml")
 local publication = require("../lib/packpublication")
+local Journal = require("../../../core/domain/command/Journal")
 
 local M = {}
 
@@ -366,7 +367,7 @@ function M.resolveScenario(
 	return nil, { string.format("qa run: FAIL scenario '%s' is not a genre scenario", reference) }
 end
 
---- `forge qa run --pack <slug> --scenario <name> [--native|--studio]`.
+--- `forge qa run --pack <slug> --scenario <name> [--native|--studio] [--record <journal.json>]`.
 --- A missing scenario file, a scenario that drives nothing, and an
 --- unreachable Studio client are all FAIL. There is no skip path.
 function M.runScenario(args: { string }, registry: registryLib.Registry, context: cliutil.CommandContext?): boolean
@@ -375,6 +376,7 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 	local evidencePath: string? = nil
 	local receiptPath: string? = nil
 	local packsRoot: string? = nil
+	local recordPath: string? = nil
 	local mode: string? = nil
 	local bootstrapOwned = false
 	local index = 3
@@ -413,6 +415,8 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 			receiptPath = value
 		elseif flag == "--packs-root" then
 			packsRoot = value
+		elseif flag == "--record" then
+			recordPath = value
 		else
 			stdio.ewrite("Error: unknown argument '" .. tostring(flag) .. "' for forge qa run\n")
 			return false
@@ -498,7 +502,12 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 	end
 
 	local outcome: any
+	local startedAt = os.clock()
 	if mode == "studio" then
+		if recordPath ~= nil then
+			stdio.ewrite("Error: --record requires a native run\n")
+			return false
+		end
 		if raw.kind ~= "studio" then
 			stdio.ewrite("qa run: FAIL --studio requires a scenario of kind 'studio'\n")
 			return false
@@ -524,9 +533,21 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 			stdio.ewrite("qa run: FAIL bootstrap-crafting requires crafting config\n")
 			return false
 		end
-		local nativeOutcome = qaharness.runNative(raw, target :: qaharness.Target)
+		-- The journal names the scenario as <genre>:<name> so replay resolves it
+		-- the same way; the pack comes from the scenario's own binding.
+		local journal = if recordPath ~= nil
+			then Journal.new({ seed = raw.seed or 0, genre = raw.genre, scenario = raw.genre .. ":" .. raw.name })
+			else nil
+		local nativeOutcome = qaharness.runNative(raw, target :: qaharness.Target, nil, { journal = journal })
 		for _, failure in nativeOutcome.failures do
 			stdio.ewrite("qa run: FAIL " .. failure .. "\n")
+		end
+		if journal ~= nil and recordPath ~= nil then
+			local dir = string.match(recordPath, "^(.*)/[^/]+$")
+			if dir ~= nil and not fs.isDir(dir) then
+				fs.writeDir(dir)
+			end
+			fs.writeFile(recordPath, Journal.encode(journal) .. "\n")
 		end
 		outcome = nativeOutcome
 	end
@@ -555,11 +576,21 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 			fs.writeFile(evidencePath .. ".discovery.json", serde.encode("json", outcome.discovery, true) .. "\n")
 		end
 	end
+	local summary = ""
+	if runMode == "native" then
+		summary = string.format(
+			" steps=%d assertions=%d seed=%s ms=%d",
+			#outcome.steps,
+			outcome.assertions,
+			if outcome.seed ~= nil then string.format("%d", outcome.seed) else "none",
+			math.floor((os.clock() - startedAt) * 1000)
+		)
+	end
 	if outcome.ok then
-		stdio.write(string.format("qa run: PASS %s (%s)\n", scenarioId, runMode))
+		stdio.write(string.format("qa run: PASS %s (%s)%s\n", scenarioId, runMode, summary))
 		return true
 	end
-	stdio.write(string.format("qa run: FAIL %s (%s)\n", scenarioId, runMode))
+	stdio.write(string.format("qa run: FAIL %s (%s)%s\n", scenarioId, runMode, summary))
 	return false
 end
 

@@ -28,6 +28,7 @@ local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Content = require("../../../core/domain/survival/Content")
 local FencedStore = require("../../../core/infra/data/FencedStore")
 local Rng = require("../../../core/domain/random/Rng")
+local Journal = require("../../../core/domain/command/Journal")
 
 local M = {}
 
@@ -46,7 +47,16 @@ export type Outcome = {
 	failures: { string },
 	elapsedClockSeconds: number,
 	seed: number?,
+	-- Journal.hash of the durable store plus every joined actor's snapshot at the end of the run.
+	stateHash: string?,
+	-- Set when a replay could not apply the journal in step with the scenario.
+	diverged: string?,
 }
+
+--- `journal` records every join/leave/command/advance/save/reload the run executes.
+--- `replay` makes those same steps take their inputs (actor, action, args,
+--- requestId, clock and seed) from a recorded journal, in order.
+export type RunOptions = { journal: Journal.Journal?, replay: Journal.Journal? }
 
 export type Target = {
 	clock: Clock.Clock?,
@@ -190,7 +200,16 @@ end
 --- Runs one validated native scenario against a real Session built from
 --- `target`. Returns the outcome; it never raises for a scenario failure, and
 --- it never reports ok for a step the real modules refused.
-function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Barrier?): Outcome
+function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Barrier?, options: RunOptions?): Outcome
+	local runOptions: RunOptions = options or {}
+	local recording = runOptions.journal
+	local replaying = runOptions.replay
+	-- A replay rolls the recorded seed. Journal meta.seed is mandatory, so 0 with an
+	-- unseeded scenario means "no stream", matching the recorded run.
+	local seed = scenario.seed
+	if replaying and (scenario.seed ~= nil or replaying.meta.seed ~= 0) then
+		seed = replaying.meta.seed
+	end
 	local outcome: Outcome = {
 		ok = true,
 		scenario = scenario.name,
@@ -199,7 +218,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		assertions = 0,
 		failures = {},
 		elapsedClockSeconds = 0,
-		seed = scenario.seed,
+		seed = seed,
 	}
 	local function record(index: number, op: string, ok: boolean, detail: string?)
 		table.insert(outcome.steps, { index = index, op = op, ok = ok, detail = detail })
@@ -222,7 +241,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	end
 	-- One stream per run, created before the first session, so a reload resumes the
 	-- stream where it stopped instead of replaying it. No seed keeps the roll fixed at 0.
-	local rng = if scenario.seed ~= nil then Rng.new(scenario.seed) else nil
+	local rng = if seed ~= nil then Rng.new(seed) else nil
 	local function roll(): number
 		if rng ~= nil then
 			return rng:nextNumber()
@@ -233,6 +252,33 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	local clock = Clock.new(function()
 		return wall
 	end)
+	local function nowMillis(): number
+		return Clock.millis(math.max(0, clock.now()))
+	end
+	-- Journal cursor: records the entry, or, in a replay, returns the next recorded
+	-- entry whose fields then drive the step. A kind mismatch is a divergence.
+	local cursor = 0
+	local function journalStep(entry: Journal.Entry): Journal.Entry
+		if replaying then
+			cursor += 1
+			local recorded = replaying.entries[cursor]
+			if recorded == nil or recorded.kind ~= entry.kind then
+				local reason = string.format(
+					"journal entry %d: scenario expects %s, journal has %s",
+					cursor,
+					entry.kind,
+					if recorded then recorded.kind else "nothing"
+				)
+				outcome.diverged = outcome.diverged or reason
+				error(reason, 0)
+			end
+			return recorded
+		end
+		if recording then
+			recording:record(entry)
+		end
+		return entry
+	end
 	local spatial: {
 		campfire: (string, string) -> { reachable: boolean }?,
 		station: ((string, string) -> { kind: string, reachable: boolean }?)?,
@@ -569,15 +615,19 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		local op = step.op
 		local ok, detail = pcall(function(): string?
 			if op == "join" then
-				local result = session.join(playerOf(step))
+				local actor =
+					journalStep({ kind = "join", actor = playerOf(step), atMillis = nowMillis() }).actor :: string
+				local result = session.join(actor)
 				if not result.ok then
 					return "join refused: " .. tostring(result.reason)
 				end
-				transferOwner(playerOf(step))
+				transferOwner(actor)
 				return nil
 			elseif op == "leave" or op == "close" then
+				local actor =
+					journalStep({ kind = "leave", actor = playerOf(step), atMillis = nowMillis() }).actor :: string
 				local finished, closeDetail = callSession(op, function(): string?
-					local result = session.close(playerOf(step))
+					local result = session.close(actor)
 					if not result.ok then
 						return "close refused: " .. tostring(result.reason)
 					end
@@ -602,16 +652,25 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					else session.command
 				local function invoke(): string?
 					for _ = 1, step.times or 1 do
-						local result = command(playerOf(step), {
-							requestId = step.requestId,
-							sessionEpoch = if step.sessionEpoch == "current"
-								then session.commandEpoch(playerOf(step), step.action)
-								else step.sessionEpoch,
+						local entry = journalStep({
+							kind = "command",
+							actor = playerOf(step),
 							action = step.action,
 							args = step.args or {},
+							requestId = step.requestId,
+							atMillis = nowMillis(),
+						})
+						local actor = entry.actor :: string
+						local result = command(actor, {
+							requestId = entry.requestId,
+							sessionEpoch = if step.sessionEpoch == "current"
+								then session.commandEpoch(actor, entry.action)
+								else step.sessionEpoch,
+							action = entry.action,
+							args = entry.args or {},
 							actorId = step.actorId,
 						})
-						results[playerOf(step)] = result
+						results[actor] = result
 						if (step.expect or "ok") == "ok" and not result.ok then
 							return "command refused: " .. tostring(result.reason)
 						end
@@ -642,10 +701,19 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				if op == "server_dispatch" and scenario.kind ~= "native" then
 					return "server_dispatch is native-only"
 				end
+				-- A dispatch is journaled as a command without a requestId.
+				local entry = journalStep({
+					kind = "command",
+					actor = playerOf(step),
+					action = step.action,
+					args = step.args or {},
+					atMillis = nowMillis(),
+				})
+				local actor = entry.actor :: string
 				local result = if op == "server_dispatch"
-					then session.dispatchServer(playerOf(step), step.action, step.args or {})
-					else session.dispatch(playerOf(step), step.action, step.args or {})
-				results[playerOf(step)] = result
+					then session.dispatchServer(actor, entry.action :: string, entry.args or {})
+					else session.dispatch(actor, entry.action :: string, entry.args or {})
+				results[actor] = result
 				if expect == "ok" and not result.ok then
 					return "dispatch refused: " .. tostring(result.reason)
 				end
@@ -657,24 +725,37 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				clock.begin()
 				return nil
 			elseif op == "advance_to" then
-				wall = math.max(wall, step.seconds :: number)
-				session.advance(clock.advanceTo(step.seconds :: number))
+				local seconds = step.seconds :: number
+				local entry = journalStep({ kind = "advance", atMillis = Clock.millis(seconds) })
+				if replaying then
+					seconds = entry.atMillis / 1000
+				end
+				wall = math.max(wall, seconds)
+				session.advance(clock.advanceTo(seconds))
 				outcome.elapsedClockSeconds = clock.now()
 				return nil
 			elseif op == "advance_elapsed" then
-				local value = clock.advanceElapsed(step.seconds :: number)
+				local value: number
+				if replaying then
+					value = clock.advanceTo(journalStep({ kind = "advance", atMillis = 0 }).atMillis / 1000)
+				else
+					value = clock.advanceElapsed(step.seconds :: number)
+					journalStep({ kind = "advance", atMillis = Clock.millis(value) })
+				end
 				wall = math.max(wall, value)
 				session.advance(value)
 				outcome.elapsedClockSeconds = clock.now()
 				return nil
 			elseif op == "save" then
+				local actor =
+					journalStep({ kind = "save", actor = playerOf(step), atMillis = nowMillis() }).actor :: string
 				local finished, saveDetail = callSession(op, function(): string?
-					local result = session.save(playerOf(step))
+					local result = session.save(actor)
 					if not result.ok then
 						return "save refused: " .. tostring(result.reason)
 					end
 					if step.label ~= nil then
-						saves[step.label] = session.envelope(playerOf(step))
+						saves[step.label] = session.envelope(actor)
 					end
 					return nil
 				end)
@@ -771,6 +852,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 			elseif op == "reload" then
 				-- Rebuild the session from the durable snapshot only: this is the
 				-- restart proof, so nothing in-memory may carry over.
+				journalStep({ kind = "reload", atMillis = nowMillis() })
 				if runtime then
 					assert(runtime.close().ok, "settlement release before reload")
 				end
@@ -826,6 +908,18 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 			outcome.failures,
 			string.format("scenario ended with '%s' suspended at a commit barrier", tostring(suspendedOp))
 		)
+	end
+	if replaying and outcome.diverged == nil and cursor ~= #replaying.entries then
+		outcome.diverged = string.format("journal has %d entries, the scenario applied %d", #replaying.entries, cursor)
+	end
+	-- The state hash covers every durable save plus every joined actor's snapshot.
+	local snapshots: { [string]: any } = {}
+	for _, id in session.members() do
+		snapshots[id] = session.snapshot(id)
+	end
+	outcome.stateHash = Journal.hash({ store = gate.snapshot(), snapshots = snapshots })
+	if recording then
+		recording:finish(outcome.stateHash :: string)
 	end
 	if outcome.assertions == 0 then
 		outcome.ok = false
