@@ -1,6 +1,7 @@
 --!strict
--- `forge smoke [--pack <slug>] [--local] [--cloud] [--fixture <save.json>] [--dry-run]`
+-- `forge smoke [--pack <slug>] [--local] [--cloud] [--fixture <save.json>] [--dry-run] [--strict]`
 -- `--local` (default) runs a pack's pure Lune smoke script and reports each check.
+-- `--strict` (with --local) fails a pack that has no smoke script instead of skipping it.
 -- `--cloud` builds and posts an Open Cloud Luau Execution task for the staging
 -- place, then polls it to completion. `--dry-run` prints the request offline.
 
@@ -40,8 +41,9 @@ end
 
 --- Loads games/<pack>/smoke/smoke.luau and runs its checks. A pack that does
 --- not exist at all is a failure (a mistyped --pack must not report success);
---- an existing pack that just has no smoke script is skipped, not a failure.
-local function runLocal(pack: string, fixturePath: string?, context: cliutil.CommandContext?): boolean
+--- an existing pack that just has no smoke script is skipped, not a failure,
+--- unless `strict` is set, in which case the missing script is a failure.
+local function runLocal(pack: string, fixturePath: string?, context: cliutil.CommandContext?, strict: boolean): boolean
 	local packDir = (if context and context.packsDir then context.packsDir else "games") .. "/" .. pack
 	if not fs.isDir(packDir) then
 		stdio.ewrite("Error: unknown game pack '" .. pack .. "' (missing games/" .. pack .. "/)\n")
@@ -50,7 +52,11 @@ local function runLocal(pack: string, fixturePath: string?, context: cliutil.Com
 
 	local scriptPath = packDir .. "/smoke/smoke.luau"
 	if not fs.isFile(scriptPath) then
-		stdio.write("smoke: no smoke script for " .. pack .. "\n")
+		if strict then
+			stdio.ewrite("smoke: FAIL no smoke script for " .. pack .. " (--strict)\n")
+			return false
+		end
+		stdio.write("smoke: SKIP no smoke script for " .. pack .. "\n")
 		return true
 	end
 
@@ -266,6 +272,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local localRun = false
 	local cloudRun = false
 	local dryRun = false
+	local strict = false
 
 	local index = 2
 	while index <= #args do
@@ -275,6 +282,9 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			index += 1
 		elseif flag == "--cloud" then
 			cloudRun = true
+			index += 1
+		elseif flag == "--strict" then
+			strict = true
 			index += 1
 		elseif flag == "--dry-run" then
 			dryRun = true
@@ -303,7 +313,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 
 	local success = true
 	if localRun then
-		if not runLocal(pack, fixturePath, context) then
+		if not runLocal(pack, fixturePath, context, strict) then
 			success = false
 		end
 	end
