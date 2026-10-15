@@ -191,13 +191,13 @@ return {
 		assert(state.wallet:balance(Config.currency) == Config.startingCoins, "balance is unchanged")
 	end,
 	["new player has 100 Coins"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local snap = Loop.snapshot(Config, state, 0)
 		assert(snap.coins == 100, "expected 100 coins, got " .. tostring(snap.coins))
 	end,
 
 	["buying ember debits 50 and adds one incubator"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local ok, err = Loop.buySource(Config, state, "ember", 1000)
 		assert(ok, "buySource ember failed: " .. tostring(err))
 		local snap = Loop.snapshot(Config, state, 1000)
@@ -208,7 +208,7 @@ return {
 	end,
 
 	["insufficient Coins rejected, balance unchanged"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		-- tidal costs 250 Coins, player starts with 100
 		local ok, err = Loop.buySource(Config, state, "tidal", 1000)
 		expectFalse(ok, "expected tidal purchase to fail")
@@ -219,21 +219,21 @@ return {
 	end,
 
 	["unknown source id rejected"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local ok, err = Loop.buySource(Config, state, "nonexistent-egg", 1000)
 		expectFalse(ok, "expected nonexistent source to fail")
 		assert(err == "unknown source id", "unexpected error reason: " .. tostring(err))
 	end,
 
 	["numeric source id rejected"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local ok, err = Loop.buySource(Config, state, 123 :: any, 1000)
 		expectFalse(ok, "expected numeric source id to fail")
 		assert(err == "invalid source id type", "unexpected error reason: " .. tostring(err))
 	end,
 
 	["4th egg rejected when incubators full"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		-- Give enough coins to test 4 buys (ember costs 50, 4 would cost 200)
 		state.wallet:credit(Config.currency, 200)
 
@@ -249,7 +249,7 @@ return {
 	end,
 
 	["hatch before hatchSeconds rejected"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local okBuy = Loop.buySource(Config, state, "ember", 100)
 		assert(okBuy, "buy should succeed")
 
@@ -261,7 +261,7 @@ return {
 	end,
 
 	["hatch at hatchSeconds succeeds"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		Loop.buySource(Config, state, "ember", 100)
 
 		-- ember duration is 5s, ready at 105
@@ -273,7 +273,7 @@ return {
 	end,
 
 	["roll 0 yields first pool entry"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		Loop.buySource(Config, state, "ember", 0)
 		local okHatch, creatureId = Loop.hatch(Config, state, 1, 10, 0)
 		assert(okHatch, "hatch should succeed")
@@ -281,7 +281,7 @@ return {
 	end,
 
 	["roll 0.99 yields last pool entry"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		Loop.buySource(Config, state, "ember", 0)
 		local okHatch, creatureId = Loop.hatch(Config, state, 1, 10, 0.99)
 		assert(okHatch, "hatch should succeed")
@@ -289,7 +289,7 @@ return {
 	end,
 
 	["hatch index 0, 99, 1.5 rejected"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		Loop.buySource(Config, state, "ember", 0)
 
 		local ok0, _ = Loop.hatch(Config, state, 0, 10, 0)
@@ -303,7 +303,7 @@ return {
 	end,
 
 	["tick with one pyro-pup over 10 x 0.1 s yields exactly its rate"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		-- Initial balance is 100
 		local initialCoins = state.wallet:balance(Config.currency)
 		table.insert(state.creatures, "pyro-pup") -- 1 coin/sec
@@ -323,7 +323,7 @@ return {
 	end,
 
 	["snapshot odds per source sum to 1"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local snap = Loop.snapshot(Config, state, 0)
 		local EPSILON = 1e-6
 
@@ -727,9 +727,9 @@ return {
 	end,
 
 	["tick applies an optional multiplier"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		table.insert(state.creatures, "pyro-pup") -- 1 coin/sec
-		local state2 = Loop.newPlayer(Config)
+		local state2 = Loop.newPlayer(Config, 0)
 		table.insert(state2.creatures, "pyro-pup")
 
 		local first = Loop.tick(Config, state, 1)
@@ -763,7 +763,7 @@ return {
 	end,
 
 	["luck boost shifts hatch odds away from the common pool entry"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		state.wallet:credit(Config.currency, 100)
 		Loop.buySource(Config, state, "ember", 0)
 
@@ -784,7 +784,7 @@ return {
 	end,
 
 	["luck boost is reflected in the snapshot odds"] = function()
-		local state = Loop.newPlayer(Config)
+		local state = Loop.newPlayer(Config, 0)
 		local baseSnap = Loop.snapshot(Config, state, 0)
 		local boostedSnap = Loop.snapshot(Config, state, 0, 4)
 
