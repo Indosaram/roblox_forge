@@ -308,6 +308,13 @@ function M.parseStageArgs(argv: { string }, startIndex: number?): (StageOptions?
 	return { run = runSet, jsonPath = jsonPath, rest = rest }, nil
 end
 
+-- serde encodes an empty table as {}; `failed` is a list, so keep it [].
+function M.encodeReport(report: { [string]: any }): string
+	local encoded = serde.encode("json", report, true)
+	encoded = string.gsub(encoded, '"failed":(%s*){}', '"failed":%1[]')
+	return encoded
+end
+
 function M.run(args: { string }?): boolean
 	local startedAt = os.clock()
 	local argv = args or process.args
@@ -759,7 +766,7 @@ function M.run(args: { string }?): boolean
 
 	if options.jsonPath then
 		local report = { schemaVersion = 1, ok = passed, stages = stages, failed = failed }
-		local wrote, writeErr = pcall(fs.writeFile, options.jsonPath, serde.encode("json", report, true))
+		local wrote, writeErr = pcall(fs.writeFile, options.jsonPath, M.encodeReport(report))
 		if not wrote then
 			stdio.ewrite("check: could not write " .. options.jsonPath .. ": " .. tostring(writeErr) .. "\n")
 			return false

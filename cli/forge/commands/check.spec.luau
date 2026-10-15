@@ -1,4 +1,5 @@
 --!strict
+local serde = require("@lune/serde")
 local check = require("./check")
 
 local function enabled(options: any): { string }
@@ -68,6 +69,19 @@ return {
 			check.parseStageArgs({ "check", "--only", "econ", "--only", "game" }, 2) == nil,
 			"expected: check.parseStageArgs({ 'check', '--only', 'econ', '--only', 'game' }, 2) == nil"
 		)
+	end,
+	["json report encodes an empty failed list as an array"] = function()
+		local text = check.encodeReport({
+			schemaVersion = 1,
+			ok = true,
+			stages = { { id = "econ", ok = true, skipped = false, ms = 1 } },
+			failed = {},
+		})
+		local decoded = serde.decode("json", text)
+		assert(decoded.schemaVersion == 1 and decoded.ok == true, "report fields lost")
+		assert(string.find(text, '"failed": []', 1, true) ~= nil, text)
+		local failing = check.encodeReport({ schemaVersion = 1, ok = false, stages = {}, failed = { "econ" } })
+		assert(serde.decode("json", failing).failed[1] == "econ", failing)
 	end,
 	["run rejects an unknown stage before any tool runs"] = function()
 		assert(
