@@ -44,6 +44,7 @@ jobs:
           run_suite bun test cli/forge/qa/studio-driver.test.mjs
           run_suite bun test cli/forge/qa/studio-driver-gameplay.test.mjs
           run_suite bun test cli/forge/qa/studio-driver-input.test.mjs
+          run_suite bun test cli/forge/qa/studio-driver-layers.test.mjs
           run_suite bun test cli/forge/qa/studio-driver-lifecycle.test.mjs
           run_suite bun test cli/forge/qa/studio-driver-process.test.mjs
           run_suite bun test cli/forge/qa/studio-driver-rejoin.test.mjs
