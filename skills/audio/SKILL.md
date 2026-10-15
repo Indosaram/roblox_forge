@@ -41,7 +41,15 @@ library/provider fallback for cues that cannot be synthesised.
    100/month on ID-verified accounts (unverified accounts: 10 total, no updates). The
    CLI does not track or enforce this; count your own uploads for the month and stop
    requesting new ones once you are at the limit.
-5. Run `lune run cli/forge check`.
+5. Publish synthesised cues with
+   `lune run cli/forge assets upload-audio [--pack <slug> | --pack-dir <dir>]
+   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]`. It
+   uploads each `sfx`/`bgm` WAV through Open Cloud, writes the returned
+   `rbxassetid` and moderation state into `assets/manifest.yml`, and reuses a
+   previous upload of identical bytes from the sha256 cache. `--dry-run` needs no
+   key and no network. Pending moderation is not playable, and the upload still
+   counts against the monthly quota above.
+6. Run `lune run cli/forge check`.
 
 ## Rules
 

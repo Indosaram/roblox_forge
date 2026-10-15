@@ -1,33 +1,42 @@
 # grow-harvest QA contract
 
-The `execute_luau` steps in this genre's scenarios call a `ServerStorage.ForgeQA`
-`BindableFunction`, invoked as `game.ServerStorage.ForgeQA:Invoke(...)`. This
-genre is engine-free and cannot create that instance itself, so any pack built
-from `grow-harvest` MUST wire it up server-side (see
-`genres/collect-raid/module/runtime/Server.luau` for the reference shape:
-`Instance.new("BindableFunction")` named `ForgeQA`, parented to
-`ServerStorage`, with `OnInvoke` dispatching on the first argument).
+grow-harvest is engine-free and creates no QA instance itself. The implemented
+Studio QA surface is the generic `ServerStorage.ForgeQA` **Folder** that
+`core/infra/genre/Server.luau` binds when `RunService:IsStudio()`, so any pack
+started through `Server.start` gets it with no pack-side wiring. It is not a single
+`BindableFunction`: call `Invoke` on a child, never on `ForgeQA` itself.
 
 ## Operations
 
-- `Invoke("get", key)` — returns the current value for `key` (see table below).
-- `Invoke("snapshotCoins")` — captures the QA player's current coin balance so
-  a later step can assert a delta against it via `get("lastCoinSnapshot")`.
-- `Invoke("seed", fields)` — writes deterministic state directly into the QA
-  player's save and persists it, for `rejoin` scenarios.
+Children of the Folder (each a `BindableFunction` unless noted):
 
-## Keys used by this genre's scenarios
+- `dispatch:Invoke(genre, action, args, playerId)` — runs a declared client action
+  through the command transport; returns the `{ ok, reason? }` result.
+- `snapshot:Invoke(genre, playerId)` — returns the genre's slice of the player's
+  snapshot (for grow-harvest: `balance`, `seeds`, `plots[i].readyAt`, ...).
+- `commandServer:Invoke(playerId, requestId, actionId, args)` — declared durable
+  server actions only.
+- `beginClock:Invoke()` — freezes the clock and returns the base epoch;
+  `advanceElapsed:Invoke(seconds)` advances from that base;
+  `advanceTo:Invoke(epoch)` advances to an absolute epoch.
+- `save:Invoke(playerId)` — returns the Result, then the save envelope;
+  `restore:Invoke(playerId, envelope)` restores it.
+- `revision:Invoke()` — the current state revision; `StateChanged` (a
+  `BindableEvent`) fires with each new revision. Subscribe before acting, then await it.
 
-| key | meaning |
-| --- | --- |
-| `schemaVersion` | the save schema version the loaded profile is on |
-| `cropsReady` | number of planted crops whose growth timer has elapsed |
-| `inventory` | number of harvested crops sitting in the player's inventory |
-| `coins` | the player's current coin balance |
-| `lastCoinSnapshot` | coin balance captured by the most recent `snapshotCoins` call |
-| `plots` | number of plots the player currently owns |
-| `basePlots` | number of plots a player owns before any plot-granting purchase |
+## Scenarios
 
-## `seed` fields
+`contract-loop.yml` and `contract-rejoin.yml` (`contract_api: 1`) have `execute_luau`
+code written against exactly this shape and are the only grow-harvest scenarios whose
+code matches an implemented surface. They are `kind: smoke` plan documents: `forge qa
+validate` and `forge qa plan` check their schema, and `forge qa run` (which executes only
+`kind: native|studio` scenarios) refuses them. Prefer qualified actions such as
+`grow-harvest:plant` and read results from `snapshot`.
 
-- `crops` — array of `{ id, plantedAt }` to write into the save (used by `rejoin.yml` to simulate an elapsed growth timer).
+`core-loop.yml`, `first-purchase.yml`, `rejoin.yml` and `tutorial.yml` are legacy
+plan documents (`kind: smoke` / `playtest`). Their `execute_luau` steps call a
+`ForgeQA:Invoke("get" | "snapshotCoins" | "seed", ...)` function with the keys
+`schemaVersion`, `cropsReady`, `inventory`, `coins`, `lastCoinSnapshot`, `plots`
+and `basePlots`. **No code implements that function for grow-harvest**; the only
+`get`/`seed` implementation is collect-raid's own single-function `ForgeQA` in
+`genres/collect-raid/module/runtime/Server.luau`. Do not treat them as executable proof.
