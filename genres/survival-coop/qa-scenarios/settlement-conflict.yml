@@ -30,7 +30,9 @@ steps:
   - {op: command, player: owner, requestId: badrotation, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 4, 1, 1, 1], expect: refused}
   - {op: command, player: owner, requestId: edge, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 0, 4, 1, 1, 1, 1], expect: refused}
   - {op: expect_result, player: owner, field: reason, equals: OUT_OF_BOUNDS}
-  - {op: commit_barrier, mode: suspend, key: qa-tribe, skip: 2}
+  # The barrier parks the next qa-tribe update: the command's own mutation commit.
+  # Epoch issue and admission refresh are read-only on a healthy lease, so no skip.
+  - {op: commit_barrier, mode: suspend, key: qa-tribe}
   - {op: command, player: member, requestId: first, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 1, 1, 1], expect_suspended: true, expect: refused}
   - {op: command, player: owner, requestId: winner, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 4, 4, 0, 1, 1, 1]}
   - {op: resume_commit}
@@ -44,7 +46,7 @@ steps:
   - {op: expect_result, player: owner, field: reason, equals: FULL_SLOTS}
   - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.settlement.structures.tribe:build:5:tribe:5:owner:0:winner.definition.cost.1.quantity", equals: 5}
   - {op: command, player: member, requestId: second, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [bench, 12, 12, 0, 3, 3, 1]}
-  - {op: commit_barrier, mode: suspend, key: qa-tribe, skip: 3}
+  - {op: commit_barrier, mode: suspend, key: qa-tribe}
   - {op: command, player: member, requestId: revoked-place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:6:member:0:second", 4, 4], expect_suspended: true, expect: refused}
   - {op: command, player: owner, requestId: kick, sessionEpoch: current, action: "survival-coop:settlement-kick", args: [member, 4, 1]}
   - {op: resume_commit}
