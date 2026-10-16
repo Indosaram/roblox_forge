@@ -11,6 +11,7 @@ local run = require("../lib/run")
 local registryLib = require("../lib/genreregistry")
 local qaharness = require("../lib/qaharness")
 local qa = require("./qa")
+local Settlement = require("../../../core/domain/settlement/Settlement")
 
 local SCENARIOS_DIR = "genres/survival-coop/qa-scenarios"
 
@@ -19,6 +20,7 @@ local RUNNABLE: { [string]: string } = {
 	["command-replay"] = "cli/forge/fixtures/command-replay",
 	["crafting-reservation"] = "cli/forge/fixtures/crafting-reservation",
 	["gather-craft-settle"] = "cli/forge/fixtures/survival-services",
+	["rejoin-cooldown"] = "cli/forge/fixtures/settlement-conflict",
 	["inventory-conservation"] = "cli/forge/fixtures/inventory-conservation",
 	["settlement-conflict"] = "cli/forge/fixtures/settlement-conflict",
 	["transfer-crash-matrix"] = "cli/forge/fixtures/item-transfer-recovery",
@@ -91,6 +93,27 @@ local specs: { [string]: () -> () } = {
 		local found = false
 		for _, failure in outcome.failures do
 			if string.find(failure, "command did not suspend", 1, true) then
+				found = true
+			end
+		end
+		assert(found, table.concat(outcome.failures, "; "))
+	end,
+	-- Negative: with a cooldown shorter than the scenario's 60 s wait, the late
+	-- re-invite is accepted and the scenario must fail.
+	["rejoin-cooldown fails when the cooldown has already elapsed"] = function()
+		local registry = assert(registryLib.discover(nil))
+		local target, errors =
+			qa.loadTarget("fixture-survival", registry, nil, "cli/forge/fixtures/settlement-conflict")
+		assert(target, table.concat(errors, "; "))
+		local original = Settlement.REJOIN_COOLDOWN_SECONDS
+		Settlement.REJOIN_COOLDOWN_SECONDS = 30
+		local ran, outcome = pcall(qaharness.runNative, decode("rejoin-cooldown"), target :: qaharness.Target)
+		Settlement.REJOIN_COOLDOWN_SECONDS = original
+		assert(ran, tostring(outcome))
+		assert(not outcome.ok, "an elapsed cooldown must fail the scenario")
+		local found = false
+		for _, failure in outcome.failures do
+			if string.find(failure, "command unexpectedly succeeded", 1, true) then
 				found = true
 			end
 		end

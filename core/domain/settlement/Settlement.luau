@@ -26,6 +26,9 @@ export type State = {
 	reservations: { [string]: Placement },
 	structures: { [string]: Placement },
 	usedIds: { [string]: boolean },
+	-- Membership clock (seconds, caller supplied). Absent in legacy saves.
+	joinedAt: { [string]: number },
+	departedAt: { [string]: number },
 }
 export type Request = { id: string, definition: Definition, x: number, z: number, rotation: number }
 
@@ -44,10 +47,22 @@ local function integer(value: number, minimum: number, maximum: number): boolean
 	return value == value and value >= minimum and value <= maximum and value % 1 == 0
 end
 
-function Settlement.new(config: Config, ownerId: string): State
+--- Plan 7.1-4: a departed account (leave or revoke) cannot be re-invited before
+--- this many seconds pass, so camps cannot rotate alt accounts through a slot.
+Settlement.REJOIN_COOLDOWN_SECONDS = 86400
+--- Plan 7.1-4: siege league registration floor for every current member.
+Settlement.LEAGUE_POLICY = { minAccountAgeDays = 7, minMembershipSeconds = 7 * 86400 }
+export type LeaguePolicy = { minAccountAgeDays: number, minMembershipSeconds: number }
+export type LeagueFailure = { actorId: string, reason: string }
+
+local MAX_CLOCK = 2 ^ 53 - 1
+
+function Settlement.new(config: Config, ownerId: string, now: number?): State
 	assert(config.tribeId ~= "" and ownerId ~= "", "identity required")
 	assert(integer(config.width, 1, 32) and integer(config.depth, 1, 32), "grid exceeds bounds")
 	assert(integer(config.cellStuds, 1, 128) and integer(config.maxMembers, 1, 4), "invalid policy")
+	local created = now or 0
+	assert(integer(created, 0, MAX_CLOCK), "invalid clock")
 	return {
 		version = 0,
 		membershipRevision = 0,
@@ -57,6 +72,8 @@ function Settlement.new(config: Config, ownerId: string): State
 		reservations = {},
 		structures = {},
 		usedIds = {},
+		joinedAt = { [ownerId] = created },
+		departedAt = {},
 	}
 end
 
@@ -76,14 +93,19 @@ local function access(state: State, actorId: string, version: number, revision: 
 end
 
 -- Invite is the authoritative accepted invitation, not a client-controlled role assignment.
+-- now is the server clock in seconds; departures and joins are stamped with it.
 function Settlement.membership(
 	state: State,
 	actorId: string,
 	version: number,
 	revision: number,
 	action: string,
-	targetId: string
+	targetId: string,
+	now: number
 ): (State?, string?)
+	if not integer(now, 0, MAX_CLOCK) then
+		return nil, "INVALID_CLOCK"
+	end
 	local err = access(state, actorId, version, revision)
 	if action == "rejoin" and actorId == state.ownerId and next(state.roles) == nil then
 		err = if version ~= state.version
@@ -107,6 +129,11 @@ function Settlement.membership(
 			return nil, "ALREADY_MEMBER"
 		elseif count >= state.config.maxMembers then
 			return nil, "TRIBE_FULL"
+		elseif
+			state.departedAt[targetId] ~= nil
+			and now < state.departedAt[targetId] + Settlement.REJOIN_COOLDOWN_SECONDS
+		then
+			return nil, "REJOIN_COOLDOWN"
 		end
 	elseif action == "revoke" or action == "leave" then
 		if (action == "revoke" and actorId ~= state.ownerId) or (action == "leave" and targetId ~= actorId) then
@@ -130,20 +157,68 @@ function Settlement.membership(
 		return nil, "INVALID_ACTION"
 	end
 	local result = copy(state) :: State
-	if action == "invite" then
-		result.roles[targetId] = "member"
-	elseif action == "rejoin" then
-		result.roles[targetId] = "owner"
+	if action == "invite" or action == "rejoin" then
+		-- The sole owner reclaiming an empty settlement rotates no one, so it is exempt.
+		result.roles[targetId] = if action == "invite" then "member" else "owner"
+		result.joinedAt[targetId] = now
+		result.departedAt[targetId] = nil
 	elseif action == "transferOwner" then
 		result.roles[actorId] = "member"
 		result.roles[targetId] = "owner"
 		result.ownerId = targetId
 	else
 		result.roles[targetId] = nil
+		result.joinedAt[targetId] = nil
+		-- Expired departures carry no cooldown; drop them so the map stays bounded.
+		for departed, at in result.departedAt do
+			if now >= at + Settlement.REJOIN_COOLDOWN_SECONDS then
+				result.departedAt[departed] = nil
+			end
+		end
+		result.departedAt[targetId] = now
 	end
 	result.version += 1
 	result.membershipRevision += 1
 	return result, nil
+end
+
+-- Siege league registration floor. accountAgeDays is trusted server data
+-- (Player.AccountAge) keyed by member id; a member missing from it fails.
+function Settlement.leagueEligibility(
+	state: State,
+	now: number,
+	accountAgeDays: { [string]: number },
+	policy: LeaguePolicy?
+): (boolean, { LeagueFailure })
+	assert(integer(now, 0, MAX_CLOCK), "invalid clock")
+	local floor = policy or Settlement.LEAGUE_POLICY
+	local failures: { LeagueFailure } = {}
+	local members: { string } = {}
+	for actor in state.roles do
+		table.insert(members, actor)
+	end
+	table.sort(members)
+	if #members == 0 then
+		return false, { { actorId = "", reason = "NO_MEMBERS" } }
+	end
+	for _, actor in members do
+		local age = accountAgeDays[actor]
+		local joined = state.joinedAt[actor]
+		local reason: string? = nil
+		if type(age) ~= "number" or not integer(age, 0, MAX_CLOCK) then
+			reason = "ACCOUNT_AGE_UNKNOWN"
+		elseif age < floor.minAccountAgeDays then
+			reason = "ACCOUNT_TOO_NEW"
+		elseif joined == nil then
+			reason = "MEMBERSHIP_UNKNOWN"
+		elseif now - joined < floor.minMembershipSeconds then
+			reason = "MEMBERSHIP_TOO_SHORT"
+		end
+		if reason then
+			table.insert(failures, { actorId = actor, reason = reason })
+		end
+	end
+	return #failures == 0, failures
 end
 
 local function rotate(x: number, z: number, rotation: number): Cell
@@ -415,6 +490,25 @@ function Settlement.fromSave(raw: any, config: Config, definitions: { [string]: 
 	for id, used in raw.usedIds do
 		assert(type(id) == "string" and id ~= "" and used == true, "INVALID_USED_ID")
 	end
+	-- Legacy saves predate the membership clock: no join stamps (league-ineligible
+	-- until rejoined) and no recorded departures.
+	local joinedAt = if raw.joinedAt == nil then {} else raw.joinedAt
+	local departedAt = if raw.departedAt == nil then {} else raw.departedAt
+	assert(type(joinedAt) == "table" and type(departedAt) == "table", "INVALID_MEMBERSHIP_CLOCK")
+	for actor, at in joinedAt do
+		assert(raw.roles[actor] ~= nil and type(at) == "number" and integer(at, 0, MAX_CLOCK), "INVALID_JOINED_AT")
+	end
+	for actor, at in departedAt do
+		assert(
+			type(actor) == "string"
+				and actor ~= ""
+				and raw.roles[actor] == nil
+				and type(at) == "number"
+				and integer(at, 0, MAX_CLOCK),
+			"INVALID_DEPARTED_AT"
+		)
+	end
+	result.joinedAt, result.departedAt = copy(joinedAt), copy(departedAt)
 	result.roles, result.usedIds = copy(raw.roles), copy(raw.usedIds)
 	result.version, result.membershipRevision = raw.version, raw.membershipRevision
 	return result

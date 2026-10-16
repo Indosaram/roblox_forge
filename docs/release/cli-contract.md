@@ -188,6 +188,24 @@ lune run cli/forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] 
 
 ---
 
+### `spike`
+
+QA-SPIKE-01 layer 1 join-spike simulation (plan §12, M6). Offline and deterministic: a simulated integer clock, no sleeps, no network.
+
+```powershell
+lune run cli/forge spike [--players N] [--seed S] [--out <path>]
+```
+
+- **Arguments**:
+  - `--players N`: Virtual arrivals (default: 64; 1..100000).
+  - `--seed S`: Rng seed for arrival times, friend-follow joins and throttled commits (default: 1).
+  - `--out <path>`: Report path (default: `.omo/evidence/robango/spike-64.json`, gitignored).
+- **Behavior**: Feeds seeded arrivals through `core/domain/island/Allocation` once per simulated second; each island roster is a lease-fenced `FencedStore` aggregate on an in-memory backend, and commits can be throttled. Failed commits re-queue players; nobody is dropped.
+- **Output**: schemaVersion 1 JSON with `wait.{p50,p95,max}` (simulated seconds), `targetP95`, `lost`, `duplicated`, `unadmitted`, `overfull`, `splitBrain`, `leaks`, `leakReasons`, `ok` and `failures`, plus one `spike: PASS|FAIL ...` line.
+- **Errors**: Exit 1 when any gate fails (`p95` over target, lost/duplicated/unadmitted players, overfull islands, split-brain lease, leaked internal ids, stack or SQL/backend text) or on invalid arguments.
+
+---
+
 ### `gen`
 
 Generates assets through procedural math engines or external AI providers.

@@ -60,7 +60,7 @@
         'id':
          'berry'
         'name':
-         'berry'
+         'Bramble Berry'
         'stackMax':
          50
         'tags':
@@ -80,7 +80,7 @@
         'id':
          'berry-meal'
         'name':
-         'berry-meal'
+         'Berry Mash'
         'stackMax':
          50
         'tags':
@@ -92,7 +92,7 @@
         'id':
          'campfire-kit'
         'name':
-         'campfire-kit'
+         'Hearth Bundle'
         'stackMax':
          50
         'tags':
@@ -112,7 +112,7 @@
         'id':
          'cooked-meat'
         'name':
-         'cooked-meat'
+         'Ember-roast Meat'
         'stackMax':
          50
         'tags':
@@ -124,7 +124,7 @@
         'id':
          'cord'
         'name':
-         'cord'
+         'Twisted Cord'
         'stackMax':
          50
         'tags':
@@ -136,7 +136,7 @@
         'id':
          'fiber'
         'name':
-         'fiber'
+         'Bracken Fiber'
         'stackMax':
          50
         'tags':
@@ -148,7 +148,7 @@
         'id':
          'flint'
         'name':
-         'flint'
+         'Knapping Flint'
         'stackMax':
          50
         'tags':
@@ -160,7 +160,7 @@
         'id':
          'floor-kit'
         'name':
-         'floor-kit'
+         'Plank Floor Kit'
         'stackMax':
          50
         'tags':
@@ -172,7 +172,7 @@
         'id':
          'meat'
         'name':
-         'meat'
+         'Raw Game Meat'
         'stackMax':
          50
         'tags':
@@ -184,7 +184,7 @@
         'id':
          'plank'
         'name':
-         'plank'
+         'Split Plank'
         'stackMax':
          50
         'tags':
@@ -196,7 +196,7 @@
         'id':
          'roof-kit'
         'name':
-         'roof-kit'
+         'Plank Roof Kit'
         'stackMax':
          50
         'tags':
@@ -210,7 +210,7 @@
         'maxDurabilityMilli':
          100000
         'name':
-         'spear'
+         'Fire-hardened Spear'
         'stackMax':
          1
         'tags':
@@ -226,7 +226,7 @@
         'maxDurabilityMilli':
          100000
         'name':
-         'stone-axe'
+         'Flint Hatchet'
         'stackMax':
          1
         'tags':
@@ -242,7 +242,7 @@
         'maxDurabilityMilli':
          100000
         'name':
-         'stone-pick'
+         'Flint Pick'
         'stackMax':
          1
         'tags':
@@ -256,7 +256,7 @@
         'id':
          'storage-kit'
         'name':
-         'storage-kit'
+         'Crate Bundle'
         'stackMax':
          50
         'tags':
@@ -268,7 +268,7 @@
         'id':
          'wood'
         'name':
-         'wood'
+         'Windfall Log'
         'stackMax':
          50
         'tags':
@@ -280,7 +280,7 @@
         'id':
          'workbench-kit'
         'name':
-         'workbench-kit'
+         'Bench Bundle'
         'stackMax':
          50
         'tags':

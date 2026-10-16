@@ -10,6 +10,7 @@ local Ledger = require("../../../core/domain/command/Ledger")
 local Transfer = require("../../../core/infra/data/ItemTransfer")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
+local Events = require("../../../core/infra/analytics/Events")
 local M = {}
 export type PersonalPort = {
 	personal: Personal.Store,
@@ -37,6 +38,9 @@ export type Config = {
 	-- busy gate excludes local bag mutation; external lease takeover is checked
 	-- again on destination credit. This is authorization, not a bag debit.
 	access: (Request, Inventory.State, Fenced.Data) -> Gathering.Access?,
+	-- Optional core analytics emitter: one gather event per newly accepted
+	-- source commit (never for idempotent replays or rejections).
+	analytics: Events.Emitter?,
 }
 export type Result = { status: string, error: string?, transfers: { Transfer.Result } }
 export type Runtime = {
@@ -179,8 +183,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local bag = Inventory.fromSave(current.data.inventory, catalog)
 		local reason: string? = nil
 		local accepted: any = nil
+		local fresh: number? = nil
 		local updated, err = store:update(source, function(data)
-			reason, accepted = nil, nil
+			reason, accepted, fresh = nil, nil, nil
 			local known = data.grants[id]
 			if known then
 				if known.binding ~= binding then
@@ -264,6 +269,11 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				end
 			end
 			accepted = { binding = binding, mints = mints, destination = destinationKey }
+			local total = 0
+			for _, mint in mints do
+				total += mint.item.quantity
+			end
+			fresh = total
 			minted.grants[id] = copy(accepted)
 			return minted
 		end)
@@ -273,6 +283,14 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		source = updated
 		if reason then
 			return failed(reason, if reason == "REQUEST_CONFLICT" then "conflict" else nil)
+		end
+		if fresh and config.analytics then
+			config.analytics:emit("gather", {
+				actorId = req.actorId,
+				nodeId = req.nodeId,
+				quantity = fresh,
+				atMillis = config.nowMillis(),
+			})
 		end
 		return advance(personal, { accepted })
 	end
