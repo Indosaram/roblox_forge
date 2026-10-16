@@ -1,0 +1,17 @@
+Key,Source,Context,en-us,ko-kr
+game_name,Robango Island,experience title,Robango Island,로방고 섬
+coin_label,Coins,hud resource balance,Coins,코인
+structure_campfire,Campfire,entity campfire,Campfire,모닥불
+structure_workbench,Workbench,entity workbench,Workbench,작업대
+item_starter_fiber,Fiber,entity starter-fiber,Fiber,섬유
+item_cord,Cord,entity cord,Cord,끈
+recipe_cord,Cord recipe,entity cord-recipe,Cord recipe,끈 제작법
+wildlife_boar,Boar,entity boar,Boar,멧돼지
+defense_wave,Wave,entity wave-defense,Wave,웨이브
+buy_defense,Buy defense,control survival-coop:buy-defense,Buy defense,방어 구매
+defend_active,Defend,control survival-coop:defend-active,Defend,방어
+loop_upgrade,Buy a defense,objective upgrade,Buy a defense,방어 구매하기
+loop_spawn,Survive the wave,objective spawn,Survive the wave,웨이브에서 살아남기
+loop_defend,Clear the wave,objective defend,Clear the wave,웨이브 정리하기
+hud_select_player,Select a player first,hud kit string,Select a player first,플레이어를 먼저 선택하세요
+hud_menu,Menu,hud kit string,Menu,메뉴

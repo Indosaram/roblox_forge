@@ -1,0 +1,8 @@
+assets:
+  - key: survival-coop-starter-prop
+    kind: prop
+    archetype: rock
+    scale: 1
+    body: [100, 110, 120]
+    accent: [180, 200, 220]
+    seed: 0

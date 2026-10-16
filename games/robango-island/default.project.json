@@ -1,0 +1,145 @@
+{
+  "globIgnorePaths": [
+    "**/*.spec.luau",
+    "**/*.md",
+    "**/.gitkeep",
+    "**/*.yml"
+  ],
+  "name": "robango-island",
+  "tree": {
+    "$className": "DataModel",
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Ambient": [
+          0.35294117647058826,
+          0.3764705882352941,
+          0.4235294117647059
+        ],
+        "Brightness": 2.4,
+        "ClockTime": 14.5,
+        "EnvironmentDiffuseScale": 0.35,
+        "EnvironmentSpecularScale": 0.35,
+        "ExposureCompensation": 0.2,
+        "GeographicLatitude": 41.7,
+        "GlobalShadows": true,
+        "OutdoorAmbient": [
+          0.5019607843137255,
+          0.5333333333333333,
+          0.5803921568627451
+        ],
+        "Technology": "ShadowMap"
+      },
+      "ForgeAtmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Color": [
+            0.7803921568627451,
+            0.8431372549019608,
+            0.9215686274509804
+          ],
+          "Decay": [
+            0.3764705882352941,
+            0.4627450980392157,
+            0.5882352941176471
+          ],
+          "Density": 0.32,
+          "Glare": 0.2,
+          "Haze": 1.2,
+          "Offset": 0.1
+        }
+      },
+      "ForgeSky": {
+        "$className": "Sky",
+        "$properties": {
+          "SkyboxBk": "rbxasset://textures/sky/sky512_bk.tex",
+          "SkyboxDn": "rbxasset://textures/sky/sky512_dn.tex",
+          "SkyboxFt": "rbxasset://textures/sky/sky512_ft.tex",
+          "SkyboxLf": "rbxasset://textures/sky/sky512_lf.tex",
+          "SkyboxRt": "rbxasset://textures/sky/sky512_rt.tex",
+          "SkyboxUp": "rbxasset://textures/sky/sky512_up.tex"
+        }
+      }
+    },
+    "ReplicatedStorage": {
+      "Forge": {
+        "$className": "Folder",
+        "core": {
+          "$className": "Folder",
+          "anticheat": {
+            "$path": "../../core/anticheat"
+          },
+          "domain": {
+            "$path": "../../core/domain"
+          },
+          "infra": {
+            "$path": "../../core/infra"
+          },
+          "ui-kit": {
+            "$path": "../../core/ui-kit"
+          }
+        },
+        "games": {
+          "$className": "Folder",
+          "robango-island": {
+            "$className": "Folder",
+            "src": {
+              "$className": "Folder",
+              "shared": {
+                "$path": "src/shared"
+              }
+            }
+          }
+        },
+        "genres": {
+          "$className": "Folder",
+          "grow-harvest": {
+            "$className": "Folder",
+            "module": {
+              "$path": "../../genres/grow-harvest/module"
+            }
+          },
+          "survival-coop": {
+            "$className": "Folder",
+            "module": {
+              "$path": "../../genres/survival-coop/module"
+            }
+          }
+        }
+      },
+      "Remotes": {
+        "$className": "Folder"
+      }
+    },
+    "ServerScriptService": {
+      "GenreHooks": {
+        "$path": "src/server/GenreHooks.luau"
+      },
+      "PersistenceConfig": {
+        "$path": "src/server/PersistenceConfig.luau"
+      },
+      "RobangoIslandServer": {
+        "$path": "src/server/RobangoIslandServer.server.luau"
+      },
+      "SurvivalFactory": {
+        "$path": "src/server/SurvivalFactory.luau"
+      },
+      "SurvivalProvision": {
+        "$path": "src/server/SurvivalProvision.luau"
+      },
+      "SurvivalProvisionConfig": {
+        "$path": "src/server/SurvivalProvisionConfig.luau"
+      },
+      "SurvivalWorldBootstrap": {
+        "$path": "src/server/SurvivalWorldBootstrap.luau"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "RobangoIslandClient": {
+          "$path": "src/client/RobangoIslandClient.client.luau"
+        }
+      }
+    }
+  }
+}

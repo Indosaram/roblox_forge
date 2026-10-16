@@ -1,0 +1,60 @@
+'art_style':
+  'stylized low-poly'
+'capability_tier':
+  'starter'
+'currencies':
+  - 
+   'Coins'
+  
+'developmental':
+  true
+'generated_by':
+  'lune run cli/forge new robango-island --genre survival-coop --mode crafting'
+'genre_contract':
+  1
+'genres':
+  - 
+   'survival-coop'
+  
+'liveops_cadence':
+  'weekly'
+'locale':
+  'default':
+   'en'
+  
+'locales':
+  - 
+   'en-us'
+  - 
+   'ko-kr'
+  
+'name':
+  'Robango Island'
+'pending_capabilities':
+  - 
+   'gathering'
+  - 
+   'placement'
+  - 
+   'transfer'
+  - 
+   'tribe'
+  - 
+   'vitals'
+  - 
+   'wildlife'
+  
+'poly_budget':
+  'prop':
+   800
+  'world_parts_max':
+   5000
+  
+'qa_scenarios':
+  - 
+   'survival-coop:bootstrap-crafting'
+  
+'runtime_mode':
+  'crafting'
+'slug':
+  'robango-island'

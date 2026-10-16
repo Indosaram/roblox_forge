@@ -1,0 +1,3 @@
+environments:
+  staging: {universeId: 0, placeId: 0}
+  production: {universeId: 0, placeId: 0}
