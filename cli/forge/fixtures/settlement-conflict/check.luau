@@ -36,7 +36,7 @@ local function initialize(data: FencedStore.Data): FencedStore.Data
 	end
 	local settlement =
 		Settlement.new({ tribeId = "tribe", width = 32, depth = 32, cellStuds = 4, maxMembers = 4 }, "owner")
-	local invited = Settlement.membership(settlement, "owner", 0, 0, "invite", "member")
+	local invited = Settlement.membership(settlement, "owner", 0, 0, "invite", "member", 0)
 	assert(invited, "invite")
 	local warehouse = Inventory.new("warehouse", { slots = 20, softWeightMilli = 60000, hardWeightMilli = 90000 })
 	local filled = Inventory.add(warehouse, catalog, {
@@ -159,7 +159,8 @@ profile = assert(store:update(profile, function(data)
 		state.settlement.version,
 		state.settlement.membershipRevision,
 		"revoke",
-		"member"
+		"member",
+		0
 	)
 	assert(revoked, "revocation commits while debit suspended")
 	state.settlement = revoked

@@ -27,6 +27,7 @@ export type Summary = {
 	tutorialCompletionRate: number,
 	robuxRevenue: number,
 	funnel: { FunnelStep },
+	survivalFunnel: { FunnelStep },
 }
 
 export type DashboardRow = {
@@ -38,6 +39,8 @@ export type DashboardRow = {
 }
 
 local FUNNEL = { "session_start", "egg_purchase", "egg_hatch", "robux_purchase" }
+-- Survival loop (plan 11.9): session -> first gather -> craft -> build.
+local SURVIVAL_FUNNEL = { "session_start", "gather", "craft", "build" }
 
 --- Parses JSON lines into events. Blank lines are skipped; a malformed or
 --- nameless line raises, so the caller reports it instead of under-counting.
@@ -66,7 +69,7 @@ function Report.parse(text: string): { Event }
 	return events
 end
 
---- Counts every registered event name (all 12 keys are present, defaulting to
+--- Counts every registered event name (every key is present, defaulting to
 --- 0); names outside the registry are ignored.
 function Report.counts(events: { Event }): { [string]: number }
 	local counts: { [string]: number } = {}
@@ -106,10 +109,10 @@ end
 
 --- session_start -> egg_purchase -> egg_hatch -> robux_purchase, each step with
 --- its conversion against session_start.
-function Report.funnel(counts: { [string]: number }): { FunnelStep }
+local function walk(order: { string }, counts: { [string]: number }): { FunnelStep }
 	local steps: { FunnelStep } = {}
-	local base = counts[FUNNEL[1]] or 0
-	for _, name in FUNNEL do
+	local base = counts[order[1]] or 0
+	for _, name in order do
 		local count = counts[name] or 0
 		table.insert(steps, {
 			step = name,
@@ -120,6 +123,16 @@ function Report.funnel(counts: { [string]: number }): { FunnelStep }
 	return steps
 end
 
+function Report.funnel(counts: { [string]: number }): { FunnelStep }
+	return walk(FUNNEL, counts)
+end
+
+--- session_start -> gather -> craft -> build, each step with its conversion
+--- against session_start.
+function Report.survivalFunnel(counts: { [string]: number }): { FunnelStep }
+	return walk(SURVIVAL_FUNNEL, counts)
+end
+
 function Report.summarize(events: { Event }): Summary
 	local counts = Report.counts(events)
 	return {
@@ -127,10 +140,12 @@ function Report.summarize(events: { Event }): Summary
 		tutorialCompletionRate = Report.tutorialCompletionRate(counts),
 		robuxRevenue = Report.robuxRevenue(events),
 		funnel = Report.funnel(counts),
+		survivalFunnel = Report.survivalFunnel(counts),
 	}
 end
 
---- Renders the weekly report: event counts, purchase funnel, and monetization.
+--- Renders the weekly report: event counts, purchase funnel, survival funnel,
+--- and monetization.
 function Report.render(summary: Summary, pack: string, date: string): string
 	local lines: { string } = {
 		"# " .. pack .. " Weekly Liveops Report",
@@ -154,6 +169,16 @@ function Report.render(summary: Summary, pack: string, date: string): string
 	for _, step in summary.funnel do
 		table.insert(lines, string.format("| %s | %d | %.1f%% |", step.step, step.count, step.conversion * 100))
 	end
+
+	table.insert(lines, "")
+	table.insert(lines, "## Survival Funnel")
+	table.insert(lines, "")
+	table.insert(lines, "| Step | Count | Conversion |")
+	table.insert(lines, "| --- | ---: | ---: |")
+	for _, step in summary.survivalFunnel do
+		table.insert(lines, string.format("| %s | %d | %.1f%% |", step.step, step.count, step.conversion * 100))
+	end
+	table.insert(lines, string.format("- Deaths: %d", summary.counts.death or 0))
 
 	table.insert(lines, "")
 	table.insert(lines, "## Monetization")

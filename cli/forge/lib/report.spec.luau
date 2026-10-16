@@ -96,6 +96,29 @@ return {
 		assert(steps[4].conversion == 0.5, "robux conversion is 2/4")
 	end,
 
+	["survivalFunnel walks session_start to build and renders with deaths"] = function()
+		local text = table.concat({
+			'{"name":"session_start","fields":{}}',
+			'{"name":"session_start","fields":{}}',
+			'{"name":"gather","fields":{"actorId":"a","nodeId":"n","quantity":3}}',
+			'{"name":"gather","fields":{"actorId":"b","nodeId":"n","quantity":1}}',
+			'{"name":"craft","fields":{"actorId":"a","recipeId":"cord","jobId":"j"}}',
+			'{"name":"death","fields":{"actorId":"b","cause":"vitals-damage"}}',
+		}, "\n")
+		local summary = report.summarize(report.parse(text))
+		local steps = summary.survivalFunnel
+		assert(#steps == 4, "survival funnel has four steps")
+		assert(steps[1].step == "session_start" and steps[1].count == 2, "starts at sessions")
+		assert(steps[2].step == "gather" and steps[2].count == 2, "gather step")
+		assert(steps[3].step == "craft" and steps[3].conversion == 0.5, "craft is 1/2")
+		assert(steps[4].step == "build" and steps[4].count == 0, "no builds")
+		local markdown = report.render(summary, "robango-island", "2026-10-16")
+		assert(contains(markdown, "## Survival Funnel"), "survival heading")
+		assert(contains(markdown, "| craft | 1 | 50.0% |"), "craft row")
+		assert(contains(markdown, "- Deaths: 1"), "death count")
+		assert(report.survivalFunnel({})[2].conversion == 0, "no sessions means 0 conversion")
+	end,
+
 	["render emits the count, funnel, and monetization headings"] = function()
 		local summary = report.summarize(report.parse(SAMPLE))
 		local markdown = report.render(summary, "kaiju-egg-raiders", "2026-09-29")
