@@ -46,6 +46,24 @@ export type Capability = {
 	actions: { string },
 	features: { declared: { string }, implemented: { string } },
 }
+export type SponsorBundle = { tier: number, items: { Quantity } }
+export type Faction = { id: string, name: string, trustThresholds: { number }, bundles: { SponsorBundle } }
+export type ContractEntry = {
+	id: string,
+	faction: string,
+	pool: string,
+	deliver: { Quantity },
+	reward: { Quantity },
+	trust: number,
+}
+export type ContractCatalog = {
+	factions: { Faction },
+	entries: { ContractEntry },
+	firstDay: { string },
+	dailyCount: number,
+	swapCooldownMillis: number,
+	dayMillis: number,
+}
 export type Content = {
 	version: number,
 	rules: { [string]: string },
@@ -58,6 +76,7 @@ export type Content = {
 	wildlife: { Wildlife },
 	capability: Capability,
 	vitals: VitalsConfig?,
+	contracts: ContractCatalog?,
 }
 local content: Content = {
 	["capability"] = {
@@ -111,10 +130,137 @@ local content: Content = {
 				[7] = "wildlife",
 				[8] = "transfer",
 			},
-			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs" },
+			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs", [3] = "gathering" },
 		},
 		["mode"] = "crafting",
 		["saveVersion"] = 2,
+	},
+	["contracts"] = {
+		["dailyCount"] = 3,
+		["dayMillis"] = 86400000,
+		["entries"] = {
+			[1] = {
+				["deliver"] = { [1] = { ["item"] = "berry", ["quantity"] = 10 } },
+				["faction"] = "island-ecology",
+				["id"] = "daily-eco-berries",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "fiber", ["quantity"] = 4 } },
+				["trust"] = 20,
+			},
+			[2] = {
+				["deliver"] = { [1] = { ["item"] = "berry-meal", ["quantity"] = 2 } },
+				["faction"] = "island-ecology",
+				["id"] = "daily-eco-meal",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "wood", ["quantity"] = 5 } },
+				["trust"] = 25,
+			},
+			[3] = {
+				["deliver"] = { [1] = { ["item"] = "cord", ["quantity"] = 3 } },
+				["faction"] = "artisan-guilds",
+				["id"] = "daily-guild-cord",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "plank", ["quantity"] = 2 } },
+				["trust"] = 20,
+			},
+			[4] = {
+				["deliver"] = { [1] = { ["item"] = "spear", ["quantity"] = 1 } },
+				["faction"] = "artisan-guilds",
+				["id"] = "daily-guild-spear",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "cord", ["quantity"] = 3 } },
+				["trust"] = 30,
+			},
+			[5] = {
+				["deliver"] = { [1] = { ["item"] = "flint", ["quantity"] = 4 } },
+				["faction"] = "route-surveyors",
+				["id"] = "daily-survey-flint",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "cord", ["quantity"] = 2 } },
+				["trust"] = 20,
+			},
+			[6] = {
+				["deliver"] = { [1] = { ["item"] = "plank", ["quantity"] = 3 } },
+				["faction"] = "route-surveyors",
+				["id"] = "daily-survey-planks",
+				["pool"] = "daily",
+				["reward"] = { [1] = { ["item"] = "flint", ["quantity"] = 3 } },
+				["trust"] = 20,
+			},
+			[7] = {
+				["deliver"] = { [1] = { ["item"] = "fiber", ["quantity"] = 4 } },
+				["faction"] = "island-ecology",
+				["id"] = "eco-fiber-sample",
+				["pool"] = "first-day",
+				["reward"] = { [1] = { ["item"] = "berry", ["quantity"] = 5 } },
+				["trust"] = 40,
+			},
+			[8] = {
+				["deliver"] = { [1] = { ["item"] = "stone-axe", ["quantity"] = 1 } },
+				["faction"] = "artisan-guilds",
+				["id"] = "guild-stone-axe",
+				["pool"] = "first-day",
+				["reward"] = { [1] = { ["item"] = "plank", ["quantity"] = 2 } },
+				["trust"] = 40,
+			},
+			[9] = {
+				["deliver"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
+				["faction"] = "route-surveyors",
+				["id"] = "survey-driftwood",
+				["pool"] = "first-day",
+				["reward"] = { [1] = { ["item"] = "cord", ["quantity"] = 1 } },
+				["trust"] = 40,
+			},
+		},
+		["factions"] = {
+			[1] = {
+				["bundles"] = {
+					[1] = {
+						["items"] = {
+							[1] = { ["item"] = "cord", ["quantity"] = 4 },
+							[2] = {
+								["item"] = "flint",
+								["quantity"] = 4,
+							},
+						},
+						["tier"] = 2,
+					},
+					[2] = { ["items"] = { [1] = { ["item"] = "workbench-kit", ["quantity"] = 1 } }, ["tier"] = 3 },
+				},
+				["id"] = "artisan-guilds",
+				["name"] = "Artisan Guild Union",
+				["trustThresholds"] = { [1] = 0, [2] = 100, [3] = 300, [4] = 700, [5] = 1500 },
+			},
+			[2] = {
+				["bundles"] = {
+					[1] = { ["items"] = { [1] = { ["item"] = "berry-meal", ["quantity"] = 3 } }, ["tier"] = 2 },
+					[2] = { ["items"] = { [1] = { ["item"] = "cooked-meat", ["quantity"] = 3 } }, ["tier"] = 3 },
+				},
+				["id"] = "island-ecology",
+				["name"] = "Island Ecology Trust",
+				["trustThresholds"] = { [1] = 0, [2] = 100, [3] = 300, [4] = 700, [5] = 1500 },
+			},
+			[3] = {
+				["bundles"] = {
+					[1] = {
+						["items"] = {
+							[1] = { ["item"] = "cord", ["quantity"] = 2 },
+							[2] = {
+								["item"] = "plank",
+								["quantity"] = 4,
+							},
+						},
+						["tier"] = 2,
+					},
+					[2] = { ["items"] = { [1] = { ["item"] = "storage-kit", ["quantity"] = 1 } }, ["tier"] = 3 },
+				},
+				["id"] = "route-surveyors",
+				["name"] = "Route Survey Society",
+				["trustThresholds"] = { [1] = 0, [2] = 100, [3] = 300, [4] = 700, [5] = 1500 },
+			},
+		},
+		["firstDay"] = { [1] = "survey-driftwood", [2] = "guild-stone-axe", [3] = "eco-fiber-sample" },
+		["swapCooldownMillis"] = 3600000,
 	},
 	["items"] = {
 		[1] = {

@@ -90,4 +90,68 @@ end
 		end
 		assert(ok, tostring(reason))
 	end,
+	["contracts section renders typed data and stays absent when undeclared"] = function()
+		local plain = assert(render.build(fixture(), "crafting"))
+		assert(luau.load(plain.content)().contracts == nil, "no contracts section without source data")
+		assert(not string.find(plain.content, "ContractCatalog", 1, true), "no contract types without data")
+		local raw = fixture()
+		raw.contracts = {
+			factions = { { id = "guild", name = "Guild", trustThresholds = { 0, 1, 2, 3, 4 } } },
+			entries = {
+				{
+					id = "c",
+					faction = "guild",
+					pool = "first-day",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+				{
+					id = "b",
+					faction = "guild",
+					pool = "first-day",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+				{
+					id = "a",
+					faction = "guild",
+					pool = "first-day",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+				{
+					id = "d1",
+					faction = "guild",
+					pool = "daily",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+				{
+					id = "d2",
+					faction = "guild",
+					pool = "daily",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+				{
+					id = "d3",
+					faction = "guild",
+					pool = "daily",
+					deliver = { { item = "berry", quantity = 1 } },
+					trust = 1,
+				},
+			},
+			firstDay = { "c", "b", "a" },
+		}
+		local rendered = assert(render.build(raw, "crafting"))
+		assert(string.find(rendered.content, "contracts: ContractCatalog?", 1, true), "typed contracts field")
+		local decoded = luau.load(rendered.content)().contracts
+		assert(decoded.firstDay[1] == "c" and decoded.firstDay[3] == "a", "authored first-day order kept")
+		assert(decoded.entries[1].id == "a", "entries canonical by id")
+		assert(decoded.dailyCount == 3 and decoded.swapCooldownMillis == 3600000, "defaults resolved")
+		assert(decoded.factions[1].trustThresholds[5] == 4, "thresholds ship")
+		assert((assert(render.build(raw, "crafting"))).content == rendered.content, "deterministic bytes")
+		raw.contracts.firstDay = { "c", "b" }
+		assert(render.build(raw, "crafting") == nil, "malformed contracts refuse to render")
+	end,
 }
