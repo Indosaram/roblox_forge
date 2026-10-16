@@ -13,6 +13,23 @@ local function equal(a: any, b: any)
 	end
 end
 
+local function exposureConfig(): any
+	return {
+		hungerMillisPerUnit = 18000,
+		fatigueMilliPerAction = 500,
+		restMilliPerSecond = 2000,
+		starvationMillisPerUnit = 5000,
+		exposureRiseTier1MilliPerSecond = 100,
+		exposureRiseTier2MilliPerSecond = 400,
+		exposureRiseTier3MilliPerSecond = 1000,
+		exposureRecoverMilliPerSecond = 500,
+		exposureDamageMillisPerUnit = 5000,
+		staminaRegenMilliPerSecond = 5000,
+		staminaCostMilliPerAction = 10000,
+		respawnDelayMillis = 5000,
+	}
+end
+
 return {
 	["stop rest preserves fatigue and clock without action cost"] = function()
 		local state = Vitals.rest(Vitals.action(Vitals.new(1790899200000)), { campfireId = "fire", reachable = true })
@@ -152,6 +169,143 @@ return {
 		assert(Vitals.deathPolicy(old).dropBag, "vital policy expectation")
 		rejects(function()
 			Vitals.food(old, { hungerMilli = 1000, healthMilli = 1000, fatigueMilli = 0 })
+		end)
+	end,
+	["exposure rises per tier, is mitigated by clothing, and drains health only at full"] = function()
+		local config = exposureConfig()
+		local naked = Vitals.setEnvironment(Vitals.new(0, config), 3, 0)
+		local clothed = Vitals.setEnvironment(Vitals.new(0, config), 3, 500)
+		assert(Vitals.advance(naked, 10000).exposureMilli == 10000, "extreme tier rises 1000 milli per second")
+		assert(Vitals.advance(clothed, 10000).exposureMilli == 5000, "half resistance halves the rise")
+		local temperate = Vitals.advance(Vitals.new(0, config), 10000)
+		assert(temperate.exposureMilli == 0 and temperate.healthMilli == 100000, "temperate never rises")
+		local full = Vitals.setEnvironment(Vitals.new(0, config), 3, 0)
+		full.exposureMilli = 99000
+		full.hungerMilli = 100000
+		local drained = Vitals.advance(full, 3000)
+		-- 1000 ms to reach full, then 2000 ms at 0.2 health milli per ms.
+		assert(
+			drained.exposureMilli == 100000 and drained.healthMilli == 100000 - 400,
+			"drain begins at the full crossing"
+		)
+		local early = Vitals.advance(full, 1000)
+		assert(early.exposureMilli == 100000 and early.healthMilli == 100000, "no drain before the crossing")
+		local safe = Vitals.setEnvironment(Vitals.new(0, config), 3, 1000)
+		assert(Vitals.advance(safe, 60000).exposureMilli == 0, "full resistance is immune")
+		local warm =
+			Vitals.rest(Vitals.setEnvironment(Vitals.new(0, config), 3, 0), { campfireId = "fire", reachable = true })
+		warm.exposureMilli = 50000
+		assert(Vitals.advance(warm, 10000).exposureMilli == 50000 - 5000, "campfire rest recovers")
+	end,
+	["exposure drain is heartbeat independent and reaches death at the exact millisecond"] = function()
+		local config = exposureConfig()
+		local start = Vitals.setEnvironment(Vitals.new(0, config), 3, 0)
+		start.exposureMilli = 98000
+		start.hungerMilli = 100000
+		start.healthMilli = 20
+		local fine = start
+		for i = 1, 40 do
+			fine = Vitals.advance(fine, i * 100)
+		end
+		equal(fine, Vitals.advance(start, 4000))
+		-- Full at 2000 ms, then 20 health milli at 0.2 per ms: dead at exactly 2100 ms.
+		assert(fine.healthMilli == 0 and fine.exposureMilli == 100000, "drained to death")
+		assert(fine.respawnWaitMillis == 5000 - (4000 - 2100), "death time fixes the wait")
+		assert(Vitals.advance(start, 2099).healthMilli == 1, "alive one millisecond before the fatal tick")
+		assert(Vitals.advance(start, 2100).healthMilli == 0, "dead at the fatal millisecond")
+	end,
+	["exposure config groups are all or nothing and bounded"] = function()
+		for _, field in Vitals.EXPOSURE_FIELDS do
+			local config = exposureConfig()
+			config[field] = nil
+			rejects(function()
+				Vitals.new(0, config)
+			end)
+		end
+		for _, field in Vitals.STAMINA_FIELDS do
+			local config = exposureConfig()
+			config[field] = nil
+			rejects(function()
+				Vitals.new(0, config)
+			end)
+		end
+		local zero = exposureConfig()
+		zero.exposureDamageMillisPerUnit = 0
+		rejects(function()
+			Vitals.new(0, zero)
+		end)
+		local legacy = Vitals.new(0)
+		assert(legacy.exposureMilli == nil and legacy.staminaMilli == nil, "legacy state has no new gauges")
+		rejects(function()
+			Vitals.setEnvironment(legacy, 1, 0)
+		end)
+		local state = Vitals.new(0, exposureConfig())
+		for _, bad in { { 4, 0 }, { -1, 0 }, { 1, 1001 }, { 1, -1 }, { 0.5, 0 } } do
+			rejects(function()
+				Vitals.setEnvironment(state, bad[1], bad[2])
+			end)
+		end
+	end,
+	["stamina regenerates automatically, floors at zero and slows movement"] = function()
+		local config = exposureConfig()
+		local state = Vitals.new(0, config)
+		assert(state.staminaMilli == 100000, "starts full")
+		for _ = 1, 8 do
+			state = Vitals.action(state)
+		end
+		assert(state.staminaMilli == 20000 and not Vitals.exhausted(state), "actions spend stamina")
+		state = Vitals.action(Vitals.action(Vitals.action(state)))
+		assert(state.staminaMilli == 0 and Vitals.exhausted(state), "stamina floors at zero")
+		assert(Vitals.movementMilli(state) == 800, "exhaustion slows movement")
+		local regen = Vitals.advance(state, 1000)
+		assert(regen.staminaMilli == 5000 and not Vitals.exhausted(regen), "regenerates without resting")
+		assert(Vitals.movementMilli(regen) == 1000, "movement recovers with stamina")
+		local fine = state
+		for i = 1, 1000 do
+			fine = Vitals.advance(fine, i * 7)
+		end
+		equal(fine, Vitals.advance(state, 7000))
+		assert(Vitals.advance(state, 100000).staminaMilli == 100000, "caps at full")
+	end,
+	["respawn is refused until the configured delay has elapsed online"] = function()
+		local config = exposureConfig()
+		local dead = Vitals.damage(Vitals.new(0, config), 100000)
+		local values = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 }
+		assert(Vitals.respawnWait(dead) == 5000, "wait starts at the configured delay")
+		rejects(function()
+			Vitals.respawn(dead, values)
+		end)
+		local almost = Vitals.advance(dead, 4999)
+		assert(Vitals.respawnWait(almost) == 1, "wait counts down")
+		rejects(function()
+			Vitals.respawn(almost, values)
+		end)
+		local offline = Vitals.advance(Vitals.disconnect(almost, 4999), 99999)
+		assert(Vitals.respawnWait(offline) == 1, "offline time does not shorten the wait")
+		local ready = Vitals.advance(dead, 5000)
+		local revived = Vitals.respawn(ready, values)
+		assert(
+			revived.healthMilli == 100000 and revived.exposureMilli == 0 and revived.staminaMilli == 100000,
+			"gauges reset"
+		)
+		local plain = Vitals.respawn(Vitals.damage(Vitals.new(0), 100000), values)
+		assert(plain.healthMilli == 100000, "no configured delay keeps instant respawn")
+	end,
+	["death rule keeps the safe zone inventory and drops only in the opt-in danger zone"] = function()
+		local old = Vitals.new(0, exposureConfig())
+		old.activeMillis = 3600000
+		local dead = Vitals.damage(old, 100000)
+		local safe = Vitals.deathPolicy(dead, "safe")
+		assert(not safe.dropBag and safe.respawnWaitMillis == 5000, "safe zone keeps everything and waits")
+		assert(Vitals.deathPolicy(dead, "danger").dropBag, "danger zone drops")
+		local fresh = Vitals.damage(Vitals.new(0, exposureConfig()), 100000)
+		assert(Vitals.deathPolicy(fresh, "danger").dropBag, "no newcomer protection after opting in")
+		assert(Vitals.deathPolicy(fresh).dropBag == false, "legacy rule is unchanged without a zone")
+		rejects(function()
+			Vitals.deathPolicy(dead, "wild" :: any)
+		end)
+		rejects(function()
+			Vitals.deathPolicy(Vitals.new(0), "safe")
 		end)
 	end,
 }
