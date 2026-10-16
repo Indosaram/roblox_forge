@@ -105,7 +105,7 @@ local CRAFTING: Descriptor = {
 		"settlement-workshop-complete",
 		"settlement-workshop-cancel",
 	},
-	features = { declared = CRAFTING_FEATURES, implemented = { "inventory", "crafting-jobs" } },
+	features = { declared = CRAFTING_FEATURES, implemented = { "inventory", "crafting-jobs", "gathering" } },
 }
 
 local DESCRIPTORS: { [string]: Descriptor } = { wave = WAVE, crafting = CRAFTING }
