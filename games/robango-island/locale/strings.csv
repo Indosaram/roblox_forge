@@ -1,11 +1,11 @@
 Key,Source,Context,en-us,ko-kr
 game_name,Robango Island,experience title,Robango Island,로방고 섬
-coin_label,Coins,hud resource balance,Coins,코인
+coin_label,Shellmoney,hud resource balance,Shellmoney,조개돈
 structure_campfire,Campfire,entity campfire,Campfire,모닥불
 structure_workbench,Workbench,entity workbench,Workbench,작업대
 item_starter_fiber,Fiber,entity starter-fiber,Fiber,섬유
-item_cord,Cord,entity cord,Cord,끈
-recipe_cord,Cord recipe,entity cord-recipe,Cord recipe,끈 제작법
+item_cord,Twisted Cord,entity cord,Twisted Cord,꼰 끈
+recipe_cord,Twisted Cord recipe,entity cord-recipe,Twisted Cord recipe,꼰 끈 제작법
 wildlife_boar,Boar,entity boar,Boar,멧돼지
 defense_wave,Wave,entity wave-defense,Wave,웨이브
 buy_defense,Buy defense,control survival-coop:buy-defense,Buy defense,방어 구매
@@ -15,3 +15,171 @@ loop_spawn,Survive the wave,objective spawn,Survive the wave,웨이브에서 살
 loop_defend,Clear the wave,objective defend,Clear the wave,웨이브 정리하기
 hud_select_player,Select a player first,hud kit string,Select a player first,플레이어를 먼저 선택하세요
 hud_menu,Menu,hud kit string,Menu,메뉴
+currency_name,Shellmoney,soft currency display name (id Coins),Shellmoney,조개돈
+biome_temperate_forest,Temperate Forest,biome temperate-forest,Temperate Forest,온대 숲
+biome_coastal_marsh,Coastal Marsh,biome coastal-marsh,Coastal Marsh,해안 습지
+item_wood,Windfall Log,entity wood,Windfall Log,쓰러진 통나무
+item_flint,Knapping Flint,entity flint,Knapping Flint,뗀석기 부싯돌
+item_fiber,Bracken Fiber,entity fiber,Bracken Fiber,고사리 섬유
+item_berry,Bramble Berry,entity berry,Bramble Berry,덤불딸기
+item_meat,Raw Game Meat,entity meat,Raw Game Meat,날고기
+item_stone_axe,Flint Hatchet,entity stone-axe,Flint Hatchet,부싯돌 손도끼
+item_stone_pick,Flint Pick,entity stone-pick,Flint Pick,부싯돌 곡괭이
+item_spear,Fire-hardened Spear,entity spear,Fire-hardened Spear,불에 단련한 창
+item_cooked_meat,Ember-roast Meat,entity cooked-meat,Ember-roast Meat,잉걸불 구이
+item_berry_meal,Berry Mash,entity berry-meal,Berry Mash,으깬 딸기죽
+item_plank,Split Plank,entity plank,Split Plank,쪼갠 판자
+item_campfire_kit,Hearth Bundle,entity campfire-kit,Hearth Bundle,화덕 꾸러미
+item_workbench_kit,Bench Bundle,entity workbench-kit,Bench Bundle,작업대 꾸러미
+item_storage_kit,Crate Bundle,entity storage-kit,Crate Bundle,상자 꾸러미
+item_floor_kit,Plank Floor Kit,entity floor-kit,Plank Floor Kit,판자 바닥 부재
+item_roof_kit,Plank Roof Kit,entity roof-kit,Plank Roof Kit,판자 지붕 부재
+item_birch_bark,Birch Bark Curl,entity birch-bark,Birch Bark Curl,자작나무 껍질
+item_hazelnut,Hazelnut,entity hazelnut,Hazelnut,개암
+item_chanterelle,Golden Chanterelle,entity chanterelle,Golden Chanterelle,꾀꼬리버섯
+item_fieldstone,Fieldstone,entity fieldstone,Fieldstone,들돌
+item_reed,Common Reed Stalk,entity reed,Common Reed Stalk,갈대 줄기
+item_cattail_root,Cattail Rhizome,entity cattail-root,Cattail Rhizome,부들 뿌리줄기
+item_marsh_clay,Saltmarsh Clay,entity marsh-clay,Saltmarsh Clay,갯벌 점토
+item_samphire,Glasswort Sprig,entity samphire,Glasswort Sprig,퉁퉁마디 순
+item_clam,Mud Clam,entity clam,Mud Clam,갯벌 조개
+item_shell_fragment,Shell Shard,entity shell-fragment,Shell Shard,조개껍데기 조각
+item_hide,Tough Hide,entity hide,Tough Hide,질긴 가죽
+item_flint_knife,Flint Knife,entity flint-knife,Flint Knife,부싯돌 칼
+item_stone_maul,Stone Maul,entity stone-maul,Stone Maul,돌 메
+item_thatch_bundle,Thatch Bundle,entity thatch-bundle,Thatch Bundle,이엉 다발
+item_timber_beam,Timber Beam,entity timber-beam,Timber Beam,각재
+item_stone_block,Dressed Stone Block,entity stone-block,Dressed Stone Block,다듬은 돌
+item_mud_brick,Fired Mud Brick,entity mud-brick,Fired Mud Brick,구운 흙벽돌
+item_timber_wall_kit,Timber Wall Kit,entity timber-wall-kit,Timber Wall Kit,목재 벽 부재
+item_stone_floor_kit,Stone Floor Kit,entity stone-floor-kit,Stone Floor Kit,석재 바닥 부재
+item_stone_wall_kit,Stone Wall Kit,entity stone-wall-kit,Stone Wall Kit,석재 벽 부재
+item_stone_roof_kit,Stone Roof Kit,entity stone-roof-kit,Stone Roof Kit,석재 지붕 부재
+item_brick_floor_kit,Brick Floor Kit,entity brick-floor-kit,Brick Floor Kit,벽돌 바닥 부재
+item_brick_wall_kit,Brick Wall Kit,entity brick-wall-kit,Brick Wall Kit,벽돌 벽 부재
+item_brick_roof_kit,Brick-and-Thatch Roof Kit,entity brick-roof-kit,Brick-and-Thatch Roof Kit,벽돌 이엉 지붕 부재
+item_roasted_hazelnuts,Roasted Hazelnuts,entity roasted-hazelnuts,Roasted Hazelnuts,볶은 개암
+item_woodland_skewer,Woodland Skewer,entity woodland-skewer,Woodland Skewer,숲 꼬치
+item_clam_bake,Clam Bake,entity clam-bake,Clam Bake,조개 구이
+item_cattail_flatbread,Cattail Flatbread,entity cattail-flatbread,Cattail Flatbread,부들 납작빵
+recipe_stone_axe,Flint Hatchet recipe,entity stone-axe-recipe,Flint Hatchet recipe,부싯돌 손도끼 제작법
+recipe_stone_pick,Flint Pick recipe,entity stone-pick-recipe,Flint Pick recipe,부싯돌 곡괭이 제작법
+recipe_spear,Fire-hardened Spear recipe,entity spear-recipe,Fire-hardened Spear recipe,불에 단련한 창 제작법
+recipe_cooked_meat,Ember-roast Meat recipe,entity cooked-meat-recipe,Ember-roast Meat recipe,잉걸불 구이 제작법
+recipe_berry_meal,Berry Mash recipe,entity berry-meal-recipe,Berry Mash recipe,으깬 딸기죽 제작법
+recipe_plank,Split Plank recipe,entity plank-recipe,Split Plank recipe,쪼갠 판자 제작법
+recipe_campfire_kit,Hearth Bundle recipe,entity campfire-kit-recipe,Hearth Bundle recipe,화덕 꾸러미 제작법
+recipe_workbench_kit,Bench Bundle recipe,entity workbench-kit-recipe,Bench Bundle recipe,작업대 꾸러미 제작법
+recipe_storage_kit,Crate Bundle recipe,entity storage-kit-recipe,Crate Bundle recipe,상자 꾸러미 제작법
+recipe_floor_kit,Plank Floor Kit recipe,entity floor-kit-recipe,Plank Floor Kit recipe,판자 바닥 부재 제작법
+recipe_roof_kit,Plank Roof Kit recipe,entity roof-kit-recipe,Plank Roof Kit recipe,판자 지붕 부재 제작법
+recipe_flint_knife,Flint Knife recipe,entity flint-knife-recipe,Flint Knife recipe,부싯돌 칼 제작법
+recipe_stone_maul,Stone Maul recipe,entity stone-maul-recipe,Stone Maul recipe,돌 메 제작법
+recipe_thatch_bundle,Thatch Bundle recipe,entity thatch-bundle-recipe,Thatch Bundle recipe,이엉 다발 제작법
+recipe_rawhide_lashing,Rawhide Lashing,entity rawhide-lashing-recipe,Rawhide Lashing,생가죽 끈 제작법
+recipe_timber_beam,Timber Beam recipe,entity timber-beam-recipe,Timber Beam recipe,각재 제작법
+recipe_timber_wall_kit,Timber Wall Kit recipe,entity timber-wall-kit-recipe,Timber Wall Kit recipe,목재 벽 부재 제작법
+recipe_stone_block,Dressed Stone Block recipe,entity stone-block-recipe,Dressed Stone Block recipe,다듬은 돌 제작법
+recipe_stone_floor_kit,Stone Floor Kit recipe,entity stone-floor-kit-recipe,Stone Floor Kit recipe,석재 바닥 부재 제작법
+recipe_stone_wall_kit,Stone Wall Kit recipe,entity stone-wall-kit-recipe,Stone Wall Kit recipe,석재 벽 부재 제작법
+recipe_stone_roof_kit,Stone Roof Kit recipe,entity stone-roof-kit-recipe,Stone Roof Kit recipe,석재 지붕 부재 제작법
+recipe_mud_brick,Fired Mud Brick recipe,entity mud-brick-recipe,Fired Mud Brick recipe,구운 흙벽돌 제작법
+recipe_brick_floor_kit,Brick Floor Kit recipe,entity brick-floor-kit-recipe,Brick Floor Kit recipe,벽돌 바닥 부재 제작법
+recipe_brick_wall_kit,Brick Wall Kit recipe,entity brick-wall-kit-recipe,Brick Wall Kit recipe,벽돌 벽 부재 제작법
+recipe_brick_roof_kit,Brick-and-Thatch Roof Kit recipe,entity brick-roof-kit-recipe,Brick-and-Thatch Roof Kit recipe,벽돌 이엉 지붕 부재 제작법
+recipe_roasted_hazelnuts,Roasted Hazelnuts recipe,entity roasted-hazelnuts-recipe,Roasted Hazelnuts recipe,볶은 개암 제작법
+recipe_woodland_skewer,Woodland Skewer recipe,entity woodland-skewer-recipe,Woodland Skewer recipe,숲 꼬치 제작법
+recipe_clam_bake,Clam Bake recipe,entity clam-bake-recipe,Clam Bake recipe,조개 구이 제작법
+recipe_cattail_flatbread,Cattail Flatbread recipe,entity cattail-flatbread-recipe,Cattail Flatbread recipe,부들 납작빵 제작법
+node_fallen_tree,Fallen Trunk,entity fallen-tree,Fallen Trunk,쓰러진 나무
+node_flint_outcrop,Flint Outcrop,entity flint-outcrop,Flint Outcrop,부싯돌 노두
+node_fiber_bush,Fiber Tuft,entity fiber-bush,Fiber Tuft,섬유 덤불
+node_berry_bush,Berry Bush,entity berry-bush,Berry Bush,딸기 덤불
+node_meat_cache,Hunter's Cache,entity meat-cache,Hunter's Cache,사냥감 보관더미
+node_forest_oak_windfall,Oak Windfall,entity forest-oak-windfall,Oak Windfall,참나무 풍도목
+node_forest_birch_stand,Birch Stand,entity forest-birch-stand,Birch Stand,자작나무 숲
+node_forest_hazel_thicket,Hazel Thicket,entity forest-hazel-thicket,Hazel Thicket,개암나무 덤불
+node_forest_bramble_patch,Bramble Patch,entity forest-bramble-patch,Bramble Patch,나무딸기 덤불
+node_forest_bracken_bed,Bracken Bed,entity forest-bracken-bed,Bracken Bed,고사리 군락
+node_forest_chanterelle_log,Mossy Log,entity forest-chanterelle-log,Mossy Log,이끼 낀 통나무
+node_forest_flint_scree,Flint Scree,entity forest-flint-scree,Flint Scree,부싯돌 너덜
+node_forest_boulder_field,Boulder Field,entity forest-boulder-field,Boulder Field,바위밭
+node_marsh_reed_bed,Reed Bed,entity marsh-reed-bed,Reed Bed,갈대밭
+node_marsh_cattail_stand,Cattail Stand,entity marsh-cattail-stand,Cattail Stand,부들 군락
+node_marsh_cordgrass_tussock,Cordgrass Tussock,entity marsh-cordgrass-tussock,Cordgrass Tussock,갯줄풀 포기
+node_marsh_samphire_flat,Samphire Flat,entity marsh-samphire-flat,Samphire Flat,퉁퉁마디 갯벌
+node_marsh_clay_bank,Clay Bank,entity marsh-clay-bank,Clay Bank,점토 둔덕
+node_marsh_clam_bed,Clam Bed,entity marsh-clam-bed,Clam Bed,조개밭
+node_marsh_driftwood_line,Driftwood Line,entity marsh-driftwood-line,Driftwood Line,표류목 띠
+structure_storage,Storage Crate,entity storage,Storage Crate,보관 상자
+structure_floor,Plank Floor,entity floor,Plank Floor,판자 바닥
+structure_joiner_bench,Joiner's Bench,entity joiner-bench,Joiner's Bench,목공대
+structure_mason_bench,Mason's Bench,entity mason-bench,Mason's Bench,석공대
+structure_mud_kiln,Mud Kiln,entity mud-kiln,Mud Kiln,흙가마
+structure_timber_wall,Timber Wall,entity timber-wall,Timber Wall,목재 벽
+structure_timber_roof,Timber Roof,entity timber-roof,Timber Roof,목재 지붕
+structure_stone_floor,Stone Floor,entity stone-floor,Stone Floor,석재 바닥
+structure_stone_wall,Stone Wall,entity stone-wall,Stone Wall,석재 벽
+structure_stone_roof,Stone Roof,entity stone-roof,Stone Roof,석재 지붕
+structure_brick_floor,Brick Floor,entity brick-floor,Brick Floor,벽돌 바닥
+structure_brick_wall,Brick Wall,entity brick-wall,Brick Wall,벽돌 벽
+structure_brick_roof,Brick-and-Thatch Roof,entity brick-roof,Brick-and-Thatch Roof,벽돌 이엉 지붕
+wildlife_grazer,Meadow Plodder,entity grazer,Meadow Plodder,풀밭느림보
+wildlife_hunter,Brush Stalker,entity hunter,Brush Stalker,덤불살금이
+wildlife_leaper_fernhop,Fernhopper,entity leaper-fernhop,Fernhopper,고사리뜀이
+wildlife_leaper_reedvault,Reed Vaulter,entity leaper-reedvault,Reed Vaulter,갈대도약이
+wildlife_charger_oakbrow,Oakbrow Rammer,entity charger-oakbrow,Oakbrow Rammer,참나무이마박치기
+wildlife_charger_mudbrow,Mudbrow Rammer,entity charger-mudbrow,Mudbrow Rammer,진흙이마박치기
+wildlife_tailswing_mossback,Mossback Swinger,entity tailswing-mossback,Mossback Swinger,이끼등꼬리채
+wildlife_tailswing_shellclub,Shellclub Swinger,entity tailswing-shellclub,Shellclub Swinger,조가비곤봉꼬리
+wildlife_roarer_thicket,Thicket Bellower,entity roarer-thicket,Thicket Bellower,덤불울림이
+wildlife_roarer_tidecall,Tidecall Bellower,entity roarer-tidecall,Tidecall Bellower,물때울림이
+wildlife_scavenger_barkpicker,Barkpicker,entity scavenger-barkpicker,Barkpicker,껍질뒤짐이
+wildlife_scavenger_flotsam,Flotsam Sniffer,entity scavenger-flotsam,Flotsam Sniffer,표류물킁킁이
+wildlife_herd_acorncrest,Acorncrest Grazer,entity herd-acorncrest,Acorncrest Grazer,도토리볏풀뜯이
+wildlife_herd_sedgewader,Sedge Wader,entity herd-sedgewader,Sedge Wader,사초건너미
+archetype_leaper,Leaper,wildlife archetype,Leaper,도약형
+archetype_charger,Charger,wildlife archetype,Charger,돌진형
+archetype_tailswing,Tail-swinger,wildlife archetype,Tail-swinger,꼬리형
+archetype_roarer,Bellower,wildlife archetype,Bellower,포효형
+archetype_scavenger,Scavenger,wildlife archetype,Scavenger,청소부형
+archetype_herd_grazer,Herd Grazer,wildlife archetype,Herd Grazer,초식 무리형
+lore_premise,"After the Tidal Rift, islands that reshape themselves rose in the open ocean, home to great reptiles thought long gone and unfamiliar plants.",world premise,"After the Tidal Rift, islands that reshape themselves rose in the open ocean, home to great reptiles thought long gone and unfamiliar plants.",「조수 균열」 이후 대양 한가운데에 지형이 수시로 바뀌는 섬들이 떠올랐다. 그곳에는 사라졌다고 여겨진 거대한 파충류와 낯선 식물이 산다.
+lore_role,"You sail with the Searoute Company, a civilian crew that surveys the islands and builds settlements for its backers.",player role,"You sail with the Searoute Company, a civilian crew that surveys the islands and builds settlements for its backers.","당신은 섬을 조사하고 후원자를 위해 정착지를 세우는 민간 선단, 항로단의 일원이다."
+lore_rift,Tidal Rift,world event name,Tidal Rift,조수 균열
+org_searoute_company,Searoute Company,player organisation,Searoute Company,항로단
+faction_survey_guild,Searoute Survey Society,faction,Searoute Survey Society,항로 측량회
+faction_survey_guild_motive,Sells maps and sea lanes for profit.,faction motive,Sells maps and sea lanes for profit.,지도와 항로를 팔아 이익을 낸다.
+faction_craft_union,Artisan Guild Union,faction,Artisan Guild Union,장인 길드 연합
+faction_craft_union_motive,Turns island materials into new crafts.,faction motive,Turns island materials into new crafts.,섬 재료로 새 공예를 만든다.
+faction_ecology_trust,Island Ecology Trust,faction,Island Ecology Trust,섬 생태 보존단
+faction_ecology_trust_motive,Records and protects island life.,faction motive,Records and protects island life.,섬의 생태를 기록하고 보호한다.
+npc_liaison_survey,Marit Ossel,Survey Society field liaison,Marit Ossel,마리트 오셀
+npc_liaison_craft,Bram Teodor,Artisan Guild field liaison,Bram Teodor,브람 테오도르
+npc_liaison_ecology,Ines Calloway,Ecology Trust field liaison,Ines Calloway,이네스 캘러웨이
+npc_shipwright,Old Hobb,port shipwright,Old Hobb,조선공 홉 영감
+npc_appraiser,Sela Vane,port appraiser,Sela Vane,감정사 셀라 베인
+npc_board_keeper,Tuck Marrow,port contract board keeper,Tuck Marrow,게시판지기 턱 매로
+npc_courier,Pip Lantry,port courier,Pip Lantry,우체부 핍 랜트리
+npc_liaison_survey_greet,Every rock you chart is a rock somebody pays for. Bring me landmarks.,npc line,Every rock you chart is a rock somebody pays for. Bring me landmarks.,네가 지도에 올린 바위마다 값을 치를 사람이 있지. 눈에 띄는 지점을 가져와.
+npc_liaison_craft_greet,"Good material, honest work. Show me what this island can become.",npc line,"Good material, honest work. Show me what this island can become.",좋은 재료에 정직한 솜씨. 이 섬이 무엇이 될 수 있는지 보여 줘.
+npc_liaison_ecology_greet,"Watch first, touch later. The island remembers who was gentle.",npc line,"Watch first, touch later. The island remembers who was gentle.","먼저 지켜보고, 손은 나중에. 섬은 누가 조심스러웠는지 기억해."
+npc_shipwright_greet,"Hull's patched, sails are dry. Where to this time?",npc line,"Hull's patched, sails are dry. Where to this time?","선체 수리 끝, 돛도 말랐어. 이번엔 어디로 가나?"
+npc_board_keeper_greet,"Three fresh contracts on the board today. First come, first paid.",npc line,"Three fresh contracts on the board today. First come, first paid.",오늘 게시판에 새 의뢰가 셋. 먼저 온 사람이 먼저 받아 가지.
+contract_day1_gather,Gather 6 Windfall Logs,first-day contract,Gather 6 Windfall Logs,쓰러진 통나무 6개 모으기
+contract_day1_craft,Craft a Flint Hatchet,first-day contract,Craft a Flint Hatchet,부싯돌 손도끼 만들기
+contract_day1_settle,Claim a settlement plot and place a Workbench,first-day contract,Claim a settlement plot and place a Workbench,정착지 구획을 정하고 작업대 놓기
+contract_daily_header,Daily contracts,contract board header,Daily contracts,오늘의 의뢰
+contract_trust_level,Trust,faction trust label,Trust,신뢰도
+tutorial_arrival,The tide carried you here. Skip any time.,tutorial step 1,The tide carried you here. Skip any time.,물때가 당신을 이곳에 데려왔다. 언제든 건너뛸 수 있다.
+tutorial_gather,Walk up to a fallen trunk and gather.,tutorial step 2,Walk up to a fallen trunk and gather.,쓰러진 나무에 다가가 채집하자.
+tutorial_craft,Open crafting and make a Flint Hatchet.,tutorial step 3,Open crafting and make a Flint Hatchet.,제작 창을 열고 부싯돌 손도끼를 만들자.
+tutorial_settle,Choose a spot and claim your settlement.,tutorial step 4,Choose a spot and claim your settlement.,자리를 골라 정착지를 선언하자.
+tutorial_contract,Accept your first contract and deliver it.,tutorial step 5,Accept your first contract and deliver it.,첫 의뢰를 받고 납품하자.
+tutorial_done,Your crew has a foothold. The islands are waiting.,tutorial complete,Your crew has a foothold. The islands are waiting.,선단이 발판을 마련했다. 섬들이 기다린다.
+tip_01,Food from the campfire fills you up far more than raw forage.,loading tip,Food from the campfire fills you up far more than raw forage.,모닥불에서 만든 음식은 날것보다 훨씬 든든하다.
+tip_02,Bellowers warn before they charge. Step aside when the ground flashes.,loading tip,Bellowers warn before they charge. Step aside when the ground flashes.,울림이는 돌진하기 전에 경고한다. 땅이 번쩍이면 옆으로 피하자.
+tip_03,"Stone walls need a Mason's Bench, and the bench needs timber beams.",loading tip,"Stone walls need a Mason's Bench, and the bench needs timber beams.","석재 벽은 석공대가 필요하고, 석공대는 각재가 필요하다."
+tip_04,Marsh clay turns into brick only in a Mud Kiln.,loading tip,Marsh clay turns into brick only in a Mud Kiln.,갯벌 점토는 흙가마에서만 벽돌이 된다.
+tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip,Grazers run from you. Hunters warn you. Learn the difference.,풀뜯이는 도망치고 사냥꾼은 경고한다. 그 차이를 익히자.
+tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
