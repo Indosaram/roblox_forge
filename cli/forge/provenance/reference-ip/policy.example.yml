@@ -1,6 +1,6 @@
 # Template for games/<pack>/provenance/policy.yml (opt-in). With this policy
 # the pack must also carry provenance/fingerprints/namu-20261016.path holding
-# the line: cli/forge/provenance/durango/fingerprints
+# the line: cli/forge/provenance/reference-ip/fingerprints
 version: 1
 track: original
 allowedSources: [original]

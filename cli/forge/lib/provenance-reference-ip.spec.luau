@@ -1,5 +1,5 @@
 --!strict
--- The shipped Durango provenance kit (cli/forge/provenance/durango) parses,
+-- The shipped reference-IP provenance kit (cli/forge/provenance/reference-ip) parses,
 -- its fingerprint set is intact, the clean fixture pack passes under it, and
 -- the user-named banned terms and stems are rejected under it.
 
@@ -7,9 +7,18 @@ local fs = require("@lune/fs")
 
 local provenance = require("./provenance")
 
-local KIT = "cli/forge/provenance/durango"
+local KIT = "cli/forge/provenance/reference-ip"
 local CLEAN = "cli/forge/fixtures/provenance/packs/clean"
 local SET = "namu-20261016"
+
+-- The original title is never written in plain text in the repository; the
+-- spec rebuilds it from code points to prove the hashed entries reject it.
+local ORIGINAL_TITLE_EN = { 68, 117, 114, 97, 110, 103, 111 }
+local ORIGINAL_TITLE_KO = { 46272, 46993, 44256 }
+
+local function codepointsToString(points: { number }): string
+	return utf8.char(table.unpack(points))
+end
 
 local function kitFiles(): ({ [string]: string }, { [string]: provenance.SetFiles })
 	local files: { [string]: string } = {}
@@ -35,7 +44,7 @@ local function addLocale(files: { [string]: string }, key: string, cell: string)
 end
 
 return {
-	["clean fixture strings pass under the real Durango kit"] = function()
+	["clean fixture strings pass under the real reference-IP kit"] = function()
 		local files, sets = kitFiles()
 		local report = provenance.checkPack("kit", files, sets)
 		local lines = {}
@@ -48,7 +57,17 @@ return {
 
 	["every user-named term and stem is rejected under the real kit"] = function()
 		local files, sets = kitFiles()
-		for index, text in { "Durango", "듀랑고", "Wild Lands", "야생의 땅", "개척자", "Pioneer", "워프" } do
+		for index, text in
+			{
+				codepointsToString(ORIGINAL_TITLE_EN),
+				codepointsToString(ORIGINAL_TITLE_KO),
+				"Wild Lands",
+				"야생의 땅",
+				"개척자",
+				"Pioneer",
+				"워프",
+			}
+		do
 			addLocale(files, "hud.banned" .. index, text)
 		end
 		local report = provenance.checkPack("kit", files, sets)
@@ -56,7 +75,8 @@ return {
 		for _, finding in report.findings do
 			counts[finding.rule] = (counts[finding.rule] or 0) + 1
 		end
-		assert((counts["NAME-TERM"] or 0) >= 4, "terms: " .. tostring(counts["NAME-TERM"]))
+		assert((counts["NAME-TERM"] or 0) >= 2, "terms: " .. tostring(counts["NAME-TERM"]))
 		assert((counts["NAME-STEM"] or 0) >= 3, "stems: " .. tostring(counts["NAME-STEM"]))
+		assert((counts["NAME-HASHED"] or 0) >= 2, "hashed title: " .. tostring(counts["NAME-HASHED"]))
 	end,
 }

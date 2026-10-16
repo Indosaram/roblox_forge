@@ -1,3 +1,5 @@
+# 2.8 MB (under the 3 MB limit), so the .fp is committed in git (marked binary in .gitattributes).
+# Only sha256-48 hashes of skeleton 8-grams are stored; no original text.
 version: 1
 set: namu-20261016
 n: 8
