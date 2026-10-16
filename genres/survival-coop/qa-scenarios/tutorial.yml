@@ -1,23 +1,44 @@
 name: tutorial
 genre: survival-coop
 kind: playtest
+# QA-CORE-01 (plan §9.4): first five minutes golden path. One step teaches one
+# thing: arrive (skippable) -> gather -> craft stone axe -> declare settlement
+# -> accept and deliver the first contract. Evidence: analytics tutorial_step
+# 1..6 in order with no duplicates, tutorial_complete exactly once, and a rejoin
+# mid-tutorial resumes at the same step. Domain proof:
+# genres/survival-coop/module/SurvivalTutorial.spec.luau.
 steps:
   - action: join
     seconds: 5
-    expect: 'player spawns at the co-op camp'
-  - action: capture
-    target: camp
-    expect: 'camp, resource nodes, and craft table are visible'
+    expect: 'player arrives and the arrival scene offers an immediate skip'
   - action: click
-    target: gather-resource
-    expect: 'gathering adds a resource'
-  - action: wait
-    seconds: 5
+    target: skip-arrival
+    expect: 'tutorial_step 1 (arrive) is emitted once and the gather hint shows'
   - action: click
     target: craft-table
-    expect: 'the first item is crafted from resources'
+    expect: 'crafting before gathering does not advance the tutorial (no tutorial_step 2)'
+  - action: click
+    target: gather-resource
+    expect: 'the personal non-depleting node adds a resource; tutorial_step 2 (gather)'
+  - action: click
+    target: craft-table
+    expect: 'a stone axe is crafted; tutorial_step 3 (craft-stone-axe)'
+  - action: leave
+    seconds: 2
+  - action: rejoin
+    seconds: 5
+    expect: 'the declare-settlement hint is shown again; no tutorial_step is re-emitted'
+  - action: click
+    target: declare-settlement
+    expect: 'settlement declared; tutorial_step 4 (declare-settlement)'
+  - action: click
+    target: contract-board
+    expect: 'first-day contract 1 of 3 accepted; tutorial_step 5 (accept-contract)'
+  - action: click
+    target: deliver-contract
+    expect: 'first contract delivered; tutorial_step 6 (deliver-contract) then tutorial_complete once'
   - action: execute_luau
-    code: 'local ForgeQA = game.ServerStorage.ForgeQA; assert(ForgeQA:Invoke("get", "crafted") >= 1, "craft step produced an item")'
+    code: 'local ForgeQA = game.ServerStorage.ForgeQA; local log = ForgeQA:Invoke("get", "analytics"); local n, done = 0, 0; for _, e in log do if e.name == "tutorial_step" then n += 1; assert(e.fields.step == n, "tutorial_step out of order or duplicated") elseif e.name == "tutorial_complete" then done += 1 end end; assert(n == 6 and done == 1, "QA-CORE-01: 6 steps and one completion")'
   - action: capture
     target: tutorial-complete
-    expect: 'the crafted item is equipped and the camp gate opens'
+    expect: 'the long-term board is reachable and the first-day contract list shows 2 remaining'
