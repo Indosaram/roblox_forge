@@ -35,8 +35,9 @@ export type Recipe = {
 	slots: { Slot }?,
 	tier: number?,
 	latents: { string }?,
+	skill: nil,
 }
-export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }
+export type Node = { id: string, harvest: { Quantity }, respawnMillis: number, skill: nil }
 export type Slot = { tag: string, minGrade: number, quantity: number }
 export type Structure = {
 	id: string,
@@ -97,6 +98,7 @@ export type Content = {
 	wildlife: { Wildlife },
 	capability: Capability,
 	vitals: VitalsConfig?,
+	skills: nil,
 	contracts: ContractCatalog?,
 }
 local content: Content = {
@@ -154,7 +156,7 @@ local content: Content = {
 			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs", [3] = "gathering" },
 		},
 		["mode"] = "crafting",
-		["saveVersion"] = 2,
+		["saveVersion"] = 3,
 	},
 	["contracts"] = {
 		["dailyCount"] = 3,

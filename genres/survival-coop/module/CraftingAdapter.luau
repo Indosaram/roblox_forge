@@ -16,6 +16,7 @@ local Inventory = require("../../../core/domain/inventory/Inventory")
 local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
+local Skills = require("./Skills")
 local Events = require("../../../core/infra/analytics/Events")
 
 local M = {}
@@ -193,12 +194,33 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 	return errors
 end
 
+--- The previous crafting slice marker. A v2 save predates craft mastery: it
+--- carries no `skills` field and upgrades losslessly to the current marker.
+M.PREVIOUS_SAVE_VERSION = 2
+
+--- Pure upgrade step: reads a v2 crafting save and yields the current (v3)
+--- shape. Mastery starts empty (filled from content at load). A current save is
+--- returned as an isolated copy; any other marker is returned unchanged so the
+--- validator refuses it by name.
+function M.upgradeSave(data: Shared.StateData): Shared.StateData
+	local copy = table.clone(data)
+	if data.saveVersion == M.PREVIOUS_SAVE_VERSION and data.skills == nil then
+		copy.saveVersion = Capability.describe("crafting").saveVersion
+	end
+	return copy
+end
+
 --- Crafting saves carry their own `saveVersion`. A wave save (no marker) and a
 --- crafting save can never be read as each other, and a save from a newer
---- crafting writer is refused rather than downgraded.
-function M.validateSave(data: Shared.StateData): { string }
+--- crafting writer is refused rather than downgraded. A v2 save is read
+--- through `upgradeSave`.
+function M.validateSave(raw: Shared.StateData): { string }
 	local errors: { string } = {}
 	local descriptor = Capability.describe("crafting")
+	if raw.saveVersion == M.PREVIOUS_SAVE_VERSION and raw.skills ~= nil then
+		table.insert(errors, "skills: not valid in a v2 crafting save")
+	end
+	local data = M.upgradeSave(raw)
 	if data.saveVersion ~= descriptor.saveVersion then
 		table.insert(
 			errors,
@@ -226,6 +248,9 @@ function M.validateSave(data: Shared.StateData): { string }
 	end
 	if data.death ~= nil and type(data.death) ~= "table" then
 		table.insert(errors, "death: expected saved aggregate")
+	end
+	if data.skills ~= nil and (type(data.skills) ~= "table" or data.skills.saveVersion ~= Skills.SAVE_VERSION) then
+		table.insert(errors, "skills: expected saved mastery")
 	end
 	if data.combat ~= nil then
 		if
@@ -264,6 +289,7 @@ function M.validateSave(data: Shared.StateData): { string }
 			and key ~= "workshop"
 			and key ~= "death"
 			and key ~= "combat"
+			and key ~= "skills"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -298,11 +324,13 @@ function M.new(
 		workshop: Workshop.State?,
 		death: DeathState?,
 		combat: any?,
+		skills: Skills.State?,
 	}
 	local players: { [string]: Player } = {}
 	local inventoryConfig = config.inventory
 	local content = if inventoryConfig then Content.canonicalize(inventoryConfig.content) else nil
 	local catalog = if content then catalogOf(content) else {}
+	local mastery = if content then Skills.catalog(content) else nil
 	local function inventories(saved: Shared.StateData?): { [string]: Inventory.State }?
 		if not inventoryConfig or not content then
 			assert(not saved or saved.inventory == nil, "inventory config missing")
@@ -365,7 +393,8 @@ function M.new(
 		id: string,
 		containers: { [string]: Inventory.State }?,
 		vitals: Vitals.State?,
-		workshop: Workshop.State?
+		workshop: Workshop.State?,
+		skills: Skills.State?
 	): Shared.StateData
 		local saved: Shared.StateData = {
 			saveVersion = descriptor.saveVersion,
@@ -373,6 +402,7 @@ function M.new(
 			vitals = if vitals then copyVitals(vitals) else nil,
 			workshop = if workshop then Workshop.save(workshop) else nil,
 			combat = if players[id] then players[id].combat else nil,
+			skills = if skills then Skills.save(skills) else nil,
 		}
 		if containers then
 			saved.inventory = {}
@@ -443,6 +473,26 @@ function M.new(
 					and player.vitals
 				then Vitals.action(player.vitals)
 				else player.vitals
+			-- Craft mastery: a completion that commits its job earns the recipe's
+			-- content-declared XP, capped by the best usable tool in the bag.
+			local skills = player.skills
+			if
+				candidate
+				and err == nil
+				and action == "craft-complete"
+				and mastery
+				and skills
+				and content
+				and candidate.jobs.entries[candidate.jobId].job.state == "Committed"
+			then
+				local recipeId = candidate.jobs.entries[candidate.jobId].job.recipeId
+				for _, recipe in content.recipes do
+					if recipe.id == recipeId and recipe.skill then
+						local tier = Skills.toolTier(mastery, recipe.skill.id, candidate.inventory)
+						skills = (Skills.award(mastery, skills, recipe.skill.id, recipe.skill.xp, tier))
+					end
+				end
+			end
 			if candidate and err == nil and action == "craft-complete" then
 				local entry = candidate.jobs.entries[candidate.jobId]
 				if entry and entry.job.state == "Committed" then
@@ -457,18 +507,20 @@ function M.new(
 					})
 				end
 			end
+			local data = savePlayer(id, states, vitals, jobs, skills)
 			return {
 				result = {
 					ok = candidate ~= nil and err == nil,
 					reason = err,
 					data = if candidate then { jobId = candidate.jobId } else nil,
 				},
-				data = savePlayer(id, states, vitals, jobs),
+				data = data,
 				apply = function()
 					if candidate then
 						player.inventory = states
 						player.workshop = jobs
 						player.vitals = vitals
+						player.skills = skills
 					end
 				end,
 			}
@@ -537,7 +589,13 @@ function M.new(
 			end
 			return {
 				result = { ok = accepted, reason = err },
-				data = savePlayer(id, candidate, if accepted then nextVitals else player.vitals, player.workshop),
+				data = savePlayer(
+					id,
+					candidate,
+					if accepted then nextVitals else player.vitals,
+					player.workshop,
+					player.skills
+				),
 				apply = function()
 					if accepted then
 						player.inventory = candidate
@@ -597,7 +655,7 @@ function M.new(
 		local candidate = if accepted then states else player.inventory
 		return {
 			result = { ok = accepted, reason = err },
-			data = savePlayer(id, candidate, player.vitals, player.workshop),
+			data = savePlayer(id, candidate, player.vitals, player.workshop, player.skills),
 			apply = function()
 				if accepted then
 					player.inventory = candidate
@@ -733,7 +791,7 @@ function M.new(
 		end
 		local data = if inner
 			then inner.data
-			else savePlayer(id, candidate.inventory, candidate.vitals, candidate.workshop)
+			else savePlayer(id, candidate.inventory, candidate.vitals, candidate.workshop, candidate.skills)
 		data.death = { bundles = DeathBundle.save(bundles), worldRevision = port.worldRevision, locations = locations }
 		return {
 			result = if inner then inner.result else result :: Shared.Result,
@@ -863,6 +921,16 @@ function M.new(
 		if not validWorkshop then
 			return { ok = false, reason = tostring(workshop) }
 		end
+		local validSkills, skills = pcall(function(): Skills.State?
+			if not mastery then
+				assert(not saved or saved.skills == nil, "skills config missing")
+				return nil
+			end
+			return if saved and saved.skills then Skills.fromSave(saved.skills, mastery) else Skills.new(mastery)
+		end)
+		if not validSkills then
+			return { ok = false, reason = tostring(skills) }
+		end
 		local validDeath, death = pcall(function(): DeathState?
 			if not saved or saved.death == nil then
 				return nil
@@ -897,6 +965,7 @@ function M.new(
 			workshop = workshop,
 			death = death,
 			combat = if saved then saved.combat else nil,
+			skills = skills,
 			wallet = if suppliedWallet
 				then nil
 				else Wallet.new({ [config.currency] = if saved then saved.balance else config.startingBalance }),
@@ -982,6 +1051,12 @@ function M.new(
 				workshop = if players[id].workshop
 					then Workshop.snapshot(players[id].workshop :: Workshop.State)
 					else nil,
+				skills = if players[id].skills and mastery
+					then {
+						displayLevel = Skills.displayLevel(mastery, players[id].skills :: Skills.State),
+						state = Skills.snapshot(players[id].skills :: Skills.State),
+					}
+					else nil,
 				deathBundles = if players[id].death
 					then DeathBundle.snapshot((players[id].death :: DeathState).bundles)
 					else nil,
@@ -1010,7 +1085,7 @@ function M.new(
 		save = function(id)
 			local player = players[id]
 			assert(player ~= nil, "player not joined")
-			local saved = savePlayer(id, player.inventory, player.vitals, player.workshop)
+			local saved = savePlayer(id, player.inventory, player.vitals, player.workshop, player.skills)
 			if player.death then
 				saved.death = {
 					bundles = DeathBundle.save(player.death.bundles),

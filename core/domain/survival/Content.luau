@@ -111,6 +111,8 @@ export type Item = {
 	foodEffects: FoodEffects?,
 	tags: { string },
 }
+--- Action XP a recipe or node awards to one craft discipline on success.
+export type SkillGrant = { id: string, xp: number }
 -- Crafting: a tag slot accepts any item carrying `tag` whose grade (1..5 stars)
 -- is at least `minGrade`. `tier` is the minimum workbench tier; `latents` is
 -- the declared-tag pool a latent attribute roll draws from.
@@ -122,11 +124,20 @@ export type Recipe = {
 	outputs: { Quantity },
 	station: string?,
 	requiredToolTag: string?,
+	skill: SkillGrant?,
 	slots: { Slot }?,
 	tier: number?,
 	latents: { string }?,
 }
-export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }
+export type Node = { id: string, harvest: { Quantity }, respawnMillis: number, skill: SkillGrant? }
+--- A tool item and the tier it lends a discipline's level cap.
+export type SkillTool = { item: string, tier: number }
+--- One craft discipline. `thresholds[n]` is the cumulative XP that reaches
+--- level n; the list is strictly ascending, so level is a pure count.
+export type Discipline = { id: string, thresholds: { number }, tools: { SkillTool } }
+--- Craft mastery catalog. `baseStep` is every discipline's starting mastery
+--- step; a discipline's level cap is tool tier + mastery step.
+export type Skills = { baseStep: number, disciplines: { Discipline } }
 export type Structure = {
 	id: string,
 	footprintX: number,
@@ -182,7 +193,13 @@ export type Document = {
 	nodes: { Node },
 	structures: { Structure },
 	wildlife: { Wildlife },
+	skills: Skills?,
 }
+
+--- The approved mastery design has exactly six craft disciplines (plan §4.4).
+M.SKILL_DISCIPLINES = 6
+local SKILL_CAPS = { steps = 64, xp = 1000000000, grant = 100000, tier = 64 }
+M.SKILL_CAPS = SKILL_CAPS
 
 local CATALOGS = { "items", "recipes", "nodes", "structures", "wildlife" }
 local FOOD_FIELDS = { "hungerMilli", "healthMilli", "fatigueMilli" }
@@ -511,12 +528,117 @@ local function validateStructures(errors: { string }, raw: any, items: { [string
 	return stations
 end
 
+local function validateSkills(errors: { string }, raw: any, items: { [string]: boolean }): { [string]: boolean }?
+	if raw == nil then
+		return nil
+	end
+	local ids: { [string]: boolean } = {}
+	if type(raw) ~= "table" then
+		table.insert(errors, "skills: expected mapping")
+		return ids
+	end
+	unknown(errors, "skills", raw, { "baseStep", "disciplines" })
+	if not isInt(raw.baseStep, 0, SKILL_CAPS.steps) then
+		table.insert(errors, "skills.baseStep: expected integer 0.." .. SKILL_CAPS.steps)
+	end
+	if not Validation.dense(raw.disciplines, CAPS.list) or #raw.disciplines ~= M.SKILL_DISCIPLINES then
+		table.insert(errors, string.format("skills.disciplines: expected exactly %d disciplines", M.SKILL_DISCIPLINES))
+		if not Validation.dense(raw.disciplines, CAPS.list) then
+			return ids
+		end
+	end
+	for index, entry in raw.disciplines do
+		local at = string.format("skills.disciplines[%d]", index)
+		if type(entry) ~= "table" then
+			table.insert(errors, at .. ": expected mapping")
+			continue
+		end
+		unknown(errors, at, entry, { "id", "thresholds", "tools" })
+		if not isId(entry.id) then
+			table.insert(errors, at .. ".id: invalid id")
+		elseif ids[entry.id] then
+			table.insert(errors, at .. ".id: duplicate discipline " .. entry.id)
+		else
+			ids[entry.id] = true
+		end
+		if not Validation.dense(entry.thresholds, SKILL_CAPS.steps) or #entry.thresholds == 0 then
+			table.insert(errors, string.format("%s.thresholds: expected 1..%d levels", at, SKILL_CAPS.steps))
+		else
+			local previous = 0
+			for step, value in entry.thresholds do
+				if not isInt(value, previous + 1, SKILL_CAPS.xp) then
+					table.insert(
+						errors,
+						string.format(
+							"%s.thresholds[%d]: expected strictly ascending integer 1..%d",
+							at,
+							step,
+							SKILL_CAPS.xp
+						)
+					)
+					break
+				end
+				previous = value
+			end
+		end
+		if entry.tools ~= nil then
+			if not Validation.dense(entry.tools, CAPS.list) then
+				table.insert(errors, at .. ".tools: expected dense list")
+			else
+				local seen: { [string]: boolean } = {}
+				for toolIndex, tool in entry.tools do
+					local toolAt = string.format("%s.tools[%d]", at, toolIndex)
+					if type(tool) ~= "table" then
+						table.insert(errors, toolAt .. ": expected mapping")
+						continue
+					end
+					unknown(errors, toolAt, tool, { "item", "tier" })
+					if not isId(tool.item) or not items[tool.item] then
+						table.insert(errors, toolAt .. ".item: unknown item " .. tostring(tool.item))
+					elseif seen[tool.item] then
+						table.insert(errors, toolAt .. ".item: duplicate tool " .. tool.item)
+					else
+						seen[tool.item] = true
+					end
+					if not isInt(tool.tier, 1, SKILL_CAPS.tier) then
+						table.insert(errors, toolAt .. ".tier: expected integer 1.." .. SKILL_CAPS.tier)
+					end
+				end
+			end
+		end
+	end
+	return ids
+end
+
+--- A recipe/node skill grant must name a declared discipline.
+local function validateGrant(errors: { string }, at: string, raw: any, disciplines: { [string]: boolean }?)
+	if raw == nil then
+		return
+	end
+	if disciplines == nil then
+		table.insert(errors, at .. ".skill: requires a skills section")
+		return
+	end
+	if type(raw) ~= "table" then
+		table.insert(errors, at .. ".skill: expected mapping")
+		return
+	end
+	unknown(errors, at .. ".skill", raw, { "id", "xp" })
+	if not isId(raw.id) or not disciplines[raw.id] then
+		table.insert(errors, at .. ".skill.id: unknown discipline " .. tostring(raw.id))
+	end
+	if not isInt(raw.xp, 1, SKILL_CAPS.grant) then
+		table.insert(errors, at .. ".skill.xp: expected integer 1.." .. SKILL_CAPS.grant)
+	end
+end
+
 local function validateRecipes(
 	errors: { string },
 	raw: any,
 	items: { [string]: boolean },
 	tags: { [string]: boolean },
-	stations: { [string]: boolean }
+	stations: { [string]: boolean },
+	disciplines: { [string]: boolean }?
 )
 	if raw == nil then
 		return
@@ -536,7 +658,7 @@ local function validateRecipes(
 			errors,
 			at,
 			recipe,
-			{ "id", "craftMillis", "inputs", "outputs", "station", "requiredToolTag", "slots", "tier", "latents" }
+			{ "id", "craftMillis", "inputs", "outputs", "station", "requiredToolTag", "slots", "tier", "latents", "skill" }
 		)
 		local slotted = false
 		if recipe.slots ~= nil then
@@ -588,6 +710,7 @@ local function validateRecipes(
 				end
 			end
 		end
+		validateGrant(errors, at, recipe.skill, disciplines)
 		if not isId(recipe.id) then
 			table.insert(errors, at .. ".id: invalid id")
 		elseif ids[recipe.id] then
@@ -624,7 +747,12 @@ local function validateRecipes(
 	end
 end
 
-local function validateNodes(errors: { string }, raw: any, items: { [string]: boolean })
+local function validateNodes(
+	errors: { string },
+	raw: any,
+	items: { [string]: boolean },
+	disciplines: { [string]: boolean }?
+)
 	if raw == nil then
 		return
 	end
@@ -639,7 +767,8 @@ local function validateNodes(errors: { string }, raw: any, items: { [string]: bo
 			table.insert(errors, at .. ": expected mapping")
 			continue
 		end
-		unknown(errors, at, node, { "id", "harvest", "respawnMillis" })
+		unknown(errors, at, node, { "id", "harvest", "respawnMillis", "skill" })
+		validateGrant(errors, at, node.skill, disciplines)
 		if not isId(node.id) then
 			table.insert(errors, at .. ".id: invalid id")
 		elseif ids[node.id] then
@@ -911,6 +1040,7 @@ function M.validate(raw: any): { string }
 		"structures",
 		"wildlife",
 		"vitals",
+		"skills",
 		"contracts",
 	})
 	if raw.survival_content ~= M.VERSION then
@@ -941,8 +1071,9 @@ function M.validate(raw: any): { string }
 	local tags = validateTags(errors, if raw.tags == nil then {} else raw.tags)
 	local items = validateItems(errors, raw.items, tags)
 	local stations = validateStructures(errors, raw.structures, items)
-	validateRecipes(errors, raw.recipes, items, tags, stations)
-	validateNodes(errors, raw.nodes, items)
+	local disciplines = validateSkills(errors, raw.skills, items)
+	validateRecipes(errors, raw.recipes, items, tags, stations, disciplines)
+	validateNodes(errors, raw.nodes, items, disciplines)
 	validateWildlife(errors, raw.wildlife)
 	validateContracts(errors, raw.contracts, items)
 	table.sort(errors)
@@ -953,6 +1084,29 @@ local function sortById(list: { any })
 	table.sort(list, function(left, right)
 		return left.id < right.id
 	end)
+end
+
+local function canonicalGrant(raw: any): SkillGrant?
+	return if raw == nil then nil else { id = raw.id, xp = raw.xp }
+end
+
+local function canonicalSkills(raw: any): Skills?
+	if raw == nil then
+		return nil
+	end
+	local disciplines: { Discipline } = {}
+	for _, entry in raw.disciplines do
+		local tools: { SkillTool } = {}
+		for _, tool in entry.tools or {} do
+			table.insert(tools, { item = tool.item, tier = tool.tier })
+		end
+		table.sort(tools, function(left, right)
+			return left.item < right.item
+		end)
+		table.insert(disciplines, { id = entry.id, thresholds = table.clone(entry.thresholds), tools = tools })
+	end
+	sortById(disciplines)
+	return { baseStep = raw.baseStep, disciplines = disciplines }
 end
 
 local function canonicalQuantities(raw: any): { Quantity }
@@ -1030,6 +1184,7 @@ function M.canonicalize(raw: any): (Document?, { string })
 			outputs = canonicalQuantities(recipe.outputs),
 			station = recipe.station,
 			requiredToolTag = recipe.requiredToolTag,
+			skill = canonicalGrant(recipe.skill),
 			slots = canonicalSlots(recipe.slots),
 			tier = recipe.tier,
 			latents = if recipe.latents == nil then nil else sortedStrings(recipe.latents),
@@ -1038,10 +1193,12 @@ function M.canonicalize(raw: any): (Document?, { string })
 	sortById(recipes)
 	local nodes: { Node } = {}
 	for _, node in raw.nodes or {} do
-		table.insert(
-			nodes,
-			{ id = node.id, harvest = canonicalQuantities(node.harvest), respawnMillis = node.respawnMillis }
-		)
+		table.insert(nodes, {
+			id = node.id,
+			harvest = canonicalQuantities(node.harvest),
+			respawnMillis = node.respawnMillis,
+			skill = canonicalGrant(node.skill),
+		})
 	end
 	sortById(nodes)
 	local structures: { Structure } = {}
@@ -1144,6 +1301,7 @@ function M.canonicalize(raw: any): (Document?, { string })
 		nodes = nodes,
 		structures = structures,
 		wildlife = wildlife,
+		skills = canonicalSkills(raw.skills),
 	}, {}
 end
 
