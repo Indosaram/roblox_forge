@@ -38,3 +38,12 @@ local SurvivalCoop = require("genres/survival-coop/module/SurvivalCoop")
 |---|---|
 | `OnWaveSpawn` | `{ index: number, enemies: number }` when a wave spawns |
 | `OnWaveResolved` | `{ index: number, enemies: number, defensePower: number, won: boolean }` after `defend` |
+
+## Taming and mounts
+
+- `TamingRuntime.new(config) -> Runtime` — server-authoritative wild stun gauges, capture (`Taming` rules in
+  `core/domain/taming`, roll from `Rng:fork("capture")`), penned animals and the active ride. Idempotent per
+  `(actor, requestId)`; no entitlement input exists on any call.
+- `Mounts.catalog(content, rules)` / `Mounts.resolve(catalog, species, skin, zone)` — rideable is a species flag,
+  speed and carry are species values, PvP opt-in zones clamp speed to one shared cap, and a paid skin resolves to the
+  free same-species speed and carry (it never adds carry capacity).
