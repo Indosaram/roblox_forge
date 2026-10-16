@@ -43,10 +43,10 @@ return {
 
 	["untagged or invalid credits are refused and never count as earned"] = function()
 		local ledger = CurrencyLedger.new()
-		for _, tag in { "robux", "", nil, 1 } do
+		for _, tag in { "robux", "", nil, 1 } :: { any } do
 			assert(ledger:credit(tag, 10) == false, "unknown tag refused: " .. tostring(tag))
 		end
-		for _, amount in { 0, -1, 1.5, 0 / 0, math.huge, "10" } do
+		for _, amount in { 0, -1, 1.5, 0 / 0, math.huge, "10" } :: { any } do
 			assert(ledger:credit("earned", amount) == false, "invalid amount refused: " .. tostring(amount))
 		end
 		assert(ledger:balance() == 0 and ledger:earnedOnly() == 0, "nothing credited")

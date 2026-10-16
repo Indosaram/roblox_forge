@@ -194,7 +194,7 @@ end
 function IslandDirectory.memoryMap(now: () -> number): MemoryMap
 	local entries: { [string]: { value: any, expiresAt: number } } = {}
 	local function live(key: string): any
-		local entry = entries[key]
+		local entry: { value: any, expiresAt: number }? = entries[key]
 		if entry and now() >= entry.expiresAt then
 			entries[key] = nil
 			entry = nil
@@ -235,7 +235,8 @@ function IslandDirectory.memoryMap(now: () -> number): MemoryMap
 end
 
 -- Adapter over a live MemoryStoreSortedMap (MemoryStoreService:GetSortedMap(name)).
-function IslandDirectory.sortedMap(sortedMap: any): Map
+-- enum is the engine Enum table, injected so no engine global is read here.
+function IslandDirectory.sortedMap(sortedMap: any, enum: any): Map
 	return {
 		get = function(key: string): (boolean, any)
 			return pcall(function()
@@ -256,7 +257,7 @@ function IslandDirectory.sortedMap(sortedMap: any): Map
 		end,
 		list = function(limit: number): (boolean, { { key: string, value: any } } | string)
 			local ok, result = pcall(function()
-				return sortedMap:GetRangeAsync(Enum.SortDirection.Ascending, math.clamp(limit, 1, 200))
+				return sortedMap:GetRangeAsync(enum.SortDirection.Ascending, math.clamp(limit, 1, 200))
 			end)
 			if not ok then
 				return false, tostring(result)

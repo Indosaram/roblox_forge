@@ -105,9 +105,9 @@ return {
 
 	["percentile uses nearest rank"] = function()
 		local sorted = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
-		assert(spikesim.percentile(sorted, 0.5) == 5)
-		assert(spikesim.percentile(sorted, 0.95) == 10)
-		assert(spikesim.percentile({}, 0.95) == 0)
+		assert(spikesim.percentile(sorted, 0.5) == 5, "p50 is the 5th of 10")
+		assert(spikesim.percentile(sorted, 0.95) == 10, "p95 is the 10th of 10")
+		assert(spikesim.percentile({}, 0.95) == 0, "empty input yields 0")
 	end,
 
 	["invalid options are rejected"] = function()

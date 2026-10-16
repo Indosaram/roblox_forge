@@ -44,7 +44,7 @@ function Subscription.promptIfEligible(
 ): PromptResult
 	local eligible, result = Subscription.isEligible(policy, player)
 	if not eligible then
-		return result
+		return result :: PromptResult
 	end
 	prompt.prompt(player, subscriptionId)
 	return "prompted"

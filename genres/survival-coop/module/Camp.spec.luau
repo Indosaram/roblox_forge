@@ -61,7 +61,7 @@ return {
 		ok, reason = Camp.leagueEligible(state, l, s, 30 * DAY, ages)
 		assert(ok and reason == nil, "eligible camp")
 		ok, reason, failures = Camp.leagueEligible(state, l, s, DAY, ages)
-		assert(not ok and reason == "MEMBER_FLOOR" and failures and #failures == 4, "membership too short")
+		assert(not ok and (reason :: string?) == "MEMBER_FLOOR" and failures and #failures == 4, "membership too short")
 	end,
 	["solo deliveries outsiders and over delivery never count as a joint build"] = function()
 		local l, s = ladder(), camp()

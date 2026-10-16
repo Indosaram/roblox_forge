@@ -495,7 +495,7 @@ function M.run(options: Options?): Report
 				table.sort(target[id])
 			end
 		end
-		local moves = if rebalance then plan.moves else {}
+		local moves: { Allocation.Move } = if rebalance then plan.moves else {}
 		local moveFrom: { [string]: string } = {}
 		for _, move in moves do
 			moveFrom[move.player] = move.from
@@ -527,7 +527,7 @@ function M.run(options: Options?): Report
 
 		-- 4b. Additions: a move lands only if its removal committed; a player
 		-- whose removal failed stays on its source island.
-			for _, id in planOrder do
+		for _, id in planOrder do
 			local desired: { string } = {}
 			for _, player in target[id] do
 				if not (stuck[player] and moveFrom[player] ~= id) then
@@ -606,10 +606,10 @@ function M.run(options: Options?): Report
 	for _, id in islandIds do
 		local server = servers[id]
 		local refreshed, err = server.store:refresh(server.handle.profile)
-		local profile = refreshed
 		if refreshed == nil then
 			error("spikesim audit read failed: " .. tostring(err))
 		end
+		local profile = refreshed
 		local roster = rosterOf(profile)
 		if #roster > cap then
 			finalOverfull += 1

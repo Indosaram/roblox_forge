@@ -55,7 +55,7 @@ local function types(extended: boolean, contracts: boolean): string
 		table.insert(
 			fields,
 			2,
-			"export type VitalsConfig = { hungerMillisPerUnit: number, fatigueMilliPerAction: number, restMilliPerSecond: number, starvationMillisPerUnit: number }"
+			"export type VitalsConfig = { hungerMillisPerUnit: number, fatigueMilliPerAction: number, restMilliPerSecond: number, starvationMillisPerUnit: number, exposureRiseTier1MilliPerSecond: number?, exposureRiseTier2MilliPerSecond: number?, exposureRiseTier3MilliPerSecond: number?, exposureRecoverMilliPerSecond: number?, exposureDamageMillisPerUnit: number?, staminaRegenMilliPerSecond: number?, staminaCostMilliPerAction: number?, respawnDelayMillis: number? }"
 		)
 		table.insert(fields, "\tvitals: VitalsConfig?,")
 	end

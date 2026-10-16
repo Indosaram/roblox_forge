@@ -171,7 +171,7 @@ return {
 					grant = { kind = "cosmeticSet", cosmeticSetId = "hat" },
 				},
 				{ key = "shield", name = "Shield", price = 90, grant = { kind = "shield", seconds = 30 } },
-			},
+			} :: { any },
 		}
 		local violations = Catalog.lint(catalog)
 		assert(#violations == 0, "clean catalog: " .. table.concat(violations, "; "))

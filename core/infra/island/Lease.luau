@@ -60,7 +60,8 @@ export type Lease = typeof(setmetatable(
 
 function Lease.new(opts: Options): Lease
 	assert(type(opts.serverId) == "string" and #opts.serverId > 0, "invalid server id")
-	assert(opts.store ~= nil, "store required")
+	local store: FencedStore.Store? = opts.store
+	assert(store ~= nil, "store required")
 	return setmetatable({ _opts = table.clone(opts) }, Lease)
 end
 

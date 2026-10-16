@@ -49,13 +49,13 @@ return {
 		local ok, err = directory:publish({ islandId = "bad id!", accessCode = "a", population = 0 })
 		assert(not ok and err == "invalid island id", "id validated")
 		ok, err = directory:publish({ islandId = "isl-1", accessCode = "a", population = -1 })
-		assert(not ok and err == "invalid population", "population validated")
+		assert(not ok and (err :: string) == "invalid population", "population validated")
 		ok, err = directory:publish({
 			islandId = "isl-1",
 			accessCode = string.rep("x", IslandDirectory.MAX_VALUE_BYTES),
 			population = 0,
 		})
-		assert(not ok and err == "value too large", "32KB value limit enforced")
+		assert(not ok and (err :: string) == "value too large", "32KB value limit enforced")
 		assert(directory:lookup("isl-1") == nil, "refusal published nothing")
 	end,
 

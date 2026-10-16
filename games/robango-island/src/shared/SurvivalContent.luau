@@ -6,6 +6,14 @@ export type VitalsConfig = {
 	fatigueMilliPerAction: number,
 	restMilliPerSecond: number,
 	starvationMillisPerUnit: number,
+	exposureRiseTier1MilliPerSecond: number?,
+	exposureRiseTier2MilliPerSecond: number?,
+	exposureRiseTier3MilliPerSecond: number?,
+	exposureRecoverMilliPerSecond: number?,
+	exposureDamageMillisPerUnit: number?,
+	staminaRegenMilliPerSecond: number?,
+	staminaCostMilliPerAction: number?,
+	respawnDelayMillis: number?,
 }
 export type Quantity = { item: string, quantity: number }
 export type Item = {
