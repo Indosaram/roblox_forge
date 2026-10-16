@@ -9,6 +9,10 @@ export type Item = {
 	quantity: number,
 	qualityMilli: number,
 	durabilityMilli: number,
+	-- Present only once a repair has permanently lowered the ceiling.
+	maxDurabilityMilli: number?,
+	-- Rolled latent attribute (a content tag), if any.
+	latent: string?,
 	attributes: { [string]: string | number | boolean },
 }
 export type Limits = {
@@ -66,13 +70,10 @@ local function validItem(catalog: Catalog.Catalog, item: Item): boolean
 	if not definition or not Catalog.identity(item.itemId) then
 		return false
 	end
-	if
-		not Catalog.integer(item.quantity, 1, definition.stackMax) or not Catalog.integer(item.qualityMilli, 1, 5000)
-	then
+	if not Catalog.integer(item.quantity, 1, definition.stackMax) or not Catalog.validInstance(definition, item) then
 		return false
 	end
-	local maximum = math.floor((definition.maxDurabilityMilli or 0) * item.qualityMilli / 1000)
-	if not Catalog.integer(item.durabilityMilli, 0, maximum) or type(item.attributes) ~= "table" then
+	if type(item.attributes) ~= "table" then
 		return false
 	end
 	local count = 0
@@ -165,6 +166,8 @@ function M.compatible(left: Item, right: Item): boolean
 		left.catalogId ~= right.catalogId
 		or left.qualityMilli ~= right.qualityMilli
 		or left.durabilityMilli ~= right.durabilityMilli
+		or left.maxDurabilityMilli ~= right.maxDurabilityMilli
+		or left.latent ~= right.latent
 	then
 		return false
 	end

@@ -11,7 +11,15 @@ M.MAX_RETAINED = 64
 export type Context = { actorId: string, sessionEpoch: number, requestId: string }
 export type Entry = { epoch: number, retainedThroughEpoch: number, requestId: string, job: Job.Job }
 export type State = { actorId: string, epoch: number, expiredBeforeEpoch: number, entries: { [string]: Entry } }
-export type Access = { carriedContainer: string, stationId: string?, stationKind: string?, inReach: boolean }
+-- `stationTier` is the reached workbench's upgraded tier; absent means the
+-- tier its structure kind declares in content.
+export type Access = {
+	carriedContainer: string,
+	stationId: string?,
+	stationKind: string?,
+	stationTier: number?,
+	inReach: boolean,
+}
 export type Candidate = { jobs: State, inventory: Inventory.State, jobId: string, reason: string? }
 
 function M.identity(context: Context): string?
@@ -101,7 +109,8 @@ function M.reserve(
 	revision: string,
 	recipeId: string,
 	nowMillis: number,
-	access: Access
+	access: Access,
+	options: Job.Options?
 ): (Candidate?, string?)
 	local jobs, err = prepare(state, context)
 	if not jobs then
@@ -139,6 +148,9 @@ function M.reserve(
 	then
 		return nil, "STATION_UNAVAILABLE"
 	end
+	if selected.tier and (access.stationTier or Job.stationTier(content, access.stationKind)) < selected.tier then
+		return nil, "STATION_TIER"
+	end
 	if selected.requiredToolTag then
 		local found = false
 		for _, item in inventory.items do
@@ -158,7 +170,7 @@ function M.reserve(
 			return nil, "TOOL_UNAVAILABLE"
 		end
 	end
-	local job, reserved, reason = Job.reserve(inventory, content, revision, recipeId, id, nowMillis)
+	local job, reserved, reason = Job.reserve(inventory, content, revision, recipeId, id, nowMillis, options)
 	if not job or not reserved then
 		return nil, reason
 	end

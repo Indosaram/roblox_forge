@@ -3,7 +3,24 @@
 local Content = require("../survival/Content")
 local Catalog = require("../inventory/ItemCatalog")
 local Inventory = require("../inventory/Inventory")
+local Rng = require("../random/Rng")
 local M = {}
+
+--- Free-play roll odds (permille). Purchases never change these: rolls read
+--- only the recorded seed, the job id and the inputs (QA-BM-02).
+M.CRIT_PERMILLE = 50
+M.CRIT_BONUS_MILLI = 1000
+M.LATENT_PERMILLE = 200
+
+-- Recorded inputs of the free random rolls. `masteryCapMilli` caps the
+-- material-average quality (mastery step); the crit bonus applies after it.
+export type Roll = { seed: number, masteryCapMilli: number }
+export type Options = {
+	seed: number,
+	masteryCapMilli: number?,
+	-- Accepted so callers can pass ownership state through unchanged; never read.
+	entitlements: { [string]: any }?,
+}
 
 export type Job = {
 	id: string,
@@ -17,6 +34,8 @@ export type Job = {
 	finishAt: number?,
 	inputs: { Inventory.Item },
 	outputs: { Inventory.Item },
+	roll: Roll?,
+	critical: boolean?,
 }
 
 local function copy(value: any): any
@@ -85,7 +104,7 @@ function M.catalog(content: Content.Document): Catalog.Catalog
 	return Catalog.new(definitions)
 end
 
-local function outputs(job: Job): { Inventory.Item }
+local function outputs(job: Job): ({ Inventory.Item }, boolean)
 	local total, weighted = 0, 0
 	local attributes = copy(job.inputs[1].attributes)
 	for _, input in job.inputs do
@@ -102,11 +121,30 @@ local function outputs(job: Job): { Inventory.Item }
 			end
 		end
 	end
-	local quality =
-		math.clamp(math.floor(weighted / total), job.content.limits.qualityMilliMin, job.content.limits.qualityMilliMax)
+	local limits = job.content.limits
+	local quality = math.clamp(math.floor(weighted / total), limits.qualityMilliMin, limits.qualityMilliMax)
+	local selected = recipe(job.content, job.recipeId)
+	local latent: string? = nil
+	local critical = false
+	local roll = job.roll
+	if roll then
+		quality = math.max(limits.qualityMilliMin, math.min(quality, roll.masteryCapMilli))
+		local stream = Rng.new(roll.seed):fork("job:" .. job.id)
+		critical = stream:fork("craft-crit"):nextInteger(1, 1000) <= M.CRIT_PERMILLE
+		if critical then
+			quality = math.min(quality + M.CRIT_BONUS_MILLI, limits.qualityMilliMax)
+		end
+		local pool = selected.latents
+		if pool then
+			local latentStream = stream:fork("latent")
+			if latentStream:nextInteger(1, 1000) <= M.LATENT_PERMILLE then
+				latent = pool[latentStream:nextInteger(1, #pool)]
+			end
+		end
+	end
 	local catalog = M.catalog(job.content)
 	local result: { Inventory.Item } = {}
-	for _, output in recipe(job.content, job.recipeId).outputs do
+	for _, output in selected.outputs do
 		local definition = catalog[output.item]
 		local remaining = output.quantity
 		while remaining > 0 do
@@ -117,12 +155,37 @@ local function outputs(job: Job): { Inventory.Item }
 				quantity = quantity,
 				qualityMilli = quality,
 				durabilityMilli = math.floor((definition.maxDurabilityMilli or 0) * quality / 1000),
+				latent = latent,
 				attributes = copy(attributes),
 			})
 			remaining -= quantity
 		end
 	end
-	return result
+	return result, critical
+end
+
+local function tagged(content: Content.Document, catalogId: string, tag: string): boolean
+	for _, item in content.items do
+		if item.id == catalogId then
+			return table.find(item.tags, tag) ~= nil
+		end
+	end
+	return false
+end
+
+-- A tag slot accepts an item carrying the tag at or above the minimum grade.
+local function eligible(content: Content.Document, slot: Content.Slot, item: Inventory.Item): boolean
+	return tagged(content, item.catalogId, slot.tag) and Catalog.grade(item.qualityMilli) >= slot.minGrade
+end
+
+--- Workbench tier a station kind provides (structures default to tier 1).
+function M.stationTier(content: Content.Document, kind: string?): number
+	for _, structure in content.structures do
+		if structure.id == kind then
+			return structure.tier or 1
+		end
+	end
+	return 0
 end
 
 local function agreement(job: Job, inventory: Inventory.State): boolean
@@ -157,10 +220,18 @@ function M.reserve(
 	revision: string,
 	recipeId: string,
 	jobId: string,
-	now: number
+	now: number,
+	options: Options?
 ): (Job?, Inventory.State?, string?)
 	clock(now)
 	assert(Catalog.identity(jobId) and #jobId <= 100 and Catalog.identity(revision), "INVALID_JOB_IDENTITY")
+	local roll: Roll? = nil
+	if options then
+		local cap = options.masteryCapMilli or content.limits.qualityMilliMax
+		assert(Catalog.integer(options.seed, 0, 2 ^ 53 - 1), "INVALID_CRAFT_SEED")
+		assert(Catalog.integer(cap, 1, 5000), "INVALID_MASTERY_CAP")
+		roll = { seed = options.seed, masteryCapMilli = cap }
+	end
 	local pinned = canonical(content)
 	local selected = recipe(pinned, recipeId)
 	local ids: { string } = {}
@@ -189,6 +260,40 @@ function M.reserve(
 			return nil, nil, "MISSING_INPUTS"
 		end
 	end
+	-- Tag slots draw, in canonical slot order, from ascending item ids.
+	for _, slot in (selected.slots or {}) :: { Content.Slot } do
+		local remaining = slot.quantity
+		for _, id in ids do
+			local item = inventory.items[id]
+			if remaining > 0 and eligible(pinned, slot, item) then
+				local amount = math.min(remaining, Inventory.available(inventory, id) - (quantities[id] or 0))
+				if amount > 0 then
+					local input = copy(item)
+					input.quantity = amount
+					table.insert(inputs, input)
+					quantities[id] = (quantities[id] or 0) + amount
+					remaining -= amount
+				end
+			end
+		end
+		if remaining > 0 then
+			return nil, nil, "MISSING_INPUTS"
+		end
+	end
+	-- One input entry per inventory item, even when two requirements share it.
+	local merged: { [string]: Inventory.Item } = {}
+	for _, input in inputs do
+		local existing = merged[input.itemId]
+		if existing then
+			existing.quantity += input.quantity
+		else
+			merged[input.itemId] = input
+		end
+	end
+	inputs = {}
+	for _, input in merged do
+		table.insert(inputs, input)
+	end
 	table.sort(inputs, function(a, b)
 		return a.itemId < b.itemId
 	end)
@@ -206,8 +311,11 @@ function M.reserve(
 		reservedAt = now,
 		inputs = inputs,
 		outputs = {},
+		roll = roll,
 	}
-	job.outputs = outputs(job)
+	local produced, critical = outputs(job)
+	job.outputs = produced
+	job.critical = if roll then critical else nil
 	return job, reserved, nil
 end
 
@@ -271,12 +379,53 @@ end
 
 function M.save(job: Job): any
 	local result: any = M.snapshot(job)
-	result.saveVersion = 1
+	-- Version 2 carries the recorded roll; rolls never apply to version 1 jobs.
+	result.saveVersion = if job.roll then 2 else 1
 	return result
 end
 
+--- Repairs one unreserved item in place: durability refills to a permanently
+--- lowered maximum (ItemCatalog.REPAIR_LOSS_PERMILLE per repair).
+function M.repair(
+	inventory: Inventory.State,
+	catalog: Catalog.Catalog,
+	itemId: string,
+	expected: number
+): (Inventory.State?, string?)
+	if expected ~= inventory.version then
+		return nil, "STALE_VERSION"
+	end
+	local item = inventory.items[itemId]
+	if not item then
+		return nil, "UNKNOWN_ITEM"
+	elseif Inventory.available(inventory, itemId) ~= item.quantity then
+		return nil, "ITEM_RESERVED"
+	end
+	local maximum, err = Catalog.repaired(catalog[item.catalogId], item)
+	if not maximum then
+		return nil, err
+	end
+	local result = Inventory.snapshot(inventory)
+	result.items[itemId].maxDurabilityMilli = maximum
+	result.items[itemId].durabilityMilli = maximum
+	result.version += 1
+	return result, nil
+end
+
 function M.fromSave(raw: any, inventory: Inventory.State): Job
-	assert(type(raw) == "table" and raw.saveVersion == 1, "UNSUPPORTED_CRAFTING_SAVE")
+	assert(
+		type(raw) == "table" and (raw.saveVersion == 1 and raw.roll == nil or raw.saveVersion == 2),
+		"UNSUPPORTED_CRAFTING_SAVE"
+	)
+	if raw.saveVersion == 2 then
+		assert(
+			type(raw.roll) == "table"
+				and Catalog.integer(raw.roll.seed, 0, 2 ^ 53 - 1)
+				and Catalog.integer(raw.roll.masteryCapMilli, 1, 5000)
+				and type(raw.critical) == "boolean",
+			"INVALID_CRAFT_ROLL"
+		)
+	end
 	assert(
 		Catalog.identity(raw.id) and #raw.id <= 100 and Catalog.identity(raw.catalogRevision),
 		"INVALID_JOB_IDENTITY"
@@ -312,12 +461,34 @@ function M.fromSave(raw: any, inventory: Inventory.State): Job
 		previous = input.itemId
 		totals[input.catalogId] = (totals[input.catalogId] or 0) + input.quantity
 	end
-	local required = {}
-	for _, input in selected.inputs do
-		required[input.item] = input.quantity
+	-- Fixed inputs are matched by catalog id; the rest must fill the tag slots.
+	local slotted = 0
+	for _, slot in (selected.slots or {}) :: { Content.Slot } do
+		slotted += slot.quantity
 	end
-	assert(same(totals, required), "INVALID_INPUTS")
-	assert(same(result.outputs, outputs(result)), "INVALID_OUTPUTS")
+	for _, input in selected.inputs do
+		totals[input.item] = (totals[input.item] or 0) - input.quantity
+	end
+	local spare = 0
+	for catalogId, amount in totals do
+		assert(amount >= 0, "INVALID_INPUTS")
+		spare += amount
+		if amount > 0 then
+			local accepted = false
+			for _, input in result.inputs do
+				if input.catalogId == catalogId then
+					for _, slot in (selected.slots or {}) :: { Content.Slot } do
+						accepted = accepted or eligible(result.content, slot, input)
+					end
+				end
+			end
+			assert(accepted, "INVALID_INPUTS")
+		end
+	end
+	assert(spare == slotted, "INVALID_INPUTS")
+	local expectedOutputs, critical = outputs(result)
+	assert(same(result.outputs, expectedOutputs), "INVALID_OUTPUTS")
+	assert(result.critical == (if result.roll then critical else nil), "INVALID_OUTPUTS")
 	assert(agreement(result, inventory), "RESERVATION_MISMATCH")
 	return result
 end

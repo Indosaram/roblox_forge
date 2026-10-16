@@ -24,9 +24,20 @@ export type Recipe = {
 	outputs: { Quantity },
 	station: string?,
 	requiredToolTag: string?,
+	slots: { Slot }?,
+	tier: number?,
+	latents: { string }?,
 }
 export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }
-export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity } }
+export type Slot = { tag: string, minGrade: number, quantity: number }
+export type Structure = {
+	id: string,
+	footprintX: number,
+	footprintZ: number,
+	station: boolean,
+	cost: { Quantity },
+	tier: number?,
+}
 export type Wildlife = {
 	id: string,
 	behavior: string,
