@@ -1,4 +1,5 @@
 Key,Source,Context,en-us,ko-kr
+game_name,Robango Island,experience title,Robango Island,로방고 섬
 coin_label,Coins,hud resource balance,Coins,코인
 structure_campfire,Campfire,entity campfire,Campfire,모닥불
 structure_workbench,Workbench,entity workbench,Workbench,작업대
