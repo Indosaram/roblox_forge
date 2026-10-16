@@ -16,6 +16,7 @@ local Fenced = require("../../../core/infra/data/FencedStore")
 local ProfileStore = require("../../../core/infra/data/ProfileStore")
 local EnvelopeBudget = require("../../../core/infra/data/EnvelopeBudget")
 local Workshop = require("./Workshop")
+local Events = require("../../../core/infra/analytics/Events")
 local M = {}
 export type World = {
 	services: Options.Services,
@@ -36,6 +37,9 @@ export type Config = {
 	content: Content.Document,
 	now: () -> number,
 	nowMillis: () -> number,
+	-- Optional core analytics emitter shared by the gathering source and every
+	-- tribe settlement owner (gather/build/craft events).
+	analytics: Events.Emitter?,
 	wildlife: {
 		key: string,
 		catalog: Wildlife.Catalog,
@@ -63,6 +67,9 @@ function M.new(
 	for _, original in config.settlements.tribes do
 		assert(original.key ~= config.sourceKey, "SOURCE_TRIBE_KEY_COLLISION")
 		local entry = table.clone(original)
+		if entry.analytics == nil then
+			entry.analytics = config.analytics
+		end
 		if original.workshop then
 			local workshop = table.clone(original.workshop)
 			workshop.verifyStation = function(actor, id, state)
@@ -119,6 +126,7 @@ function M.new(
 		now = config.now,
 		nowMillis = config.nowMillis,
 		maxReceipts = settings.maxReceipts,
+		analytics = config.analytics,
 		resolvePersonal = function(actor)
 			local session = active
 			local port = if session and not closed then session.personalTransfer(actor) else nil
