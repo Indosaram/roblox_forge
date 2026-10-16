@@ -2,7 +2,7 @@
 
 게임 팩 `robango-island`의 출시 준비(M7)와 라이브 운영(M9) 문서입니다. 팩 코드는 다른 레인에서 만들고 있으며, 이 폴더는 문서만 담습니다. 모든 문서는 초안이고, 외부 제출·결제·배포는 사용자 승인 후 사용자가 직접 합니다.
 
-원자료: `roblox_forge/.omo/plans/durango-roblox-port.md`(계획), `.omo/ulw-research/20261016-023844-durango/preprod/`(ADR-preprod.md, kr-policy.md, user-actions.md, trademark-search.md).
+원자료: `roblox_forge/.omo/plans/durango-roblox-port.md`(계획), `.omo/ulw-research/20261016-023844-durango/preprod/`(ADR-preprod.md, kr-policy.md, trademark-search.md); 사용자 몫 목록은 이 폴더의 user-actions.md.
 
 | 파일 | 내용 | 관련 계획 절 | 사용자 몫 |
 | --- | --- | --- | --- |
