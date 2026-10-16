@@ -84,6 +84,9 @@ local function parseCsv(text: string): { { string } }
 	return rows
 end
 
+-- Shared with the provenance gate so both read strings.csv identically.
+M.parseCsv = parseCsv
+
 local function isBlankRow(row: { string }): boolean
 	for _, field in row do
 		if trim(field) ~= "" then

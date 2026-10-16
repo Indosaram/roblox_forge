@@ -1,0 +1,12 @@
+name: Durango Lite
+slug: contaminated
+genres: [survival-coop]
+monetization:
+  gamepasses:
+    - key: wideSatchel
+      name: 모래등대단 Satchel
+      price: 199
+  products: []
+  subscriptions: []
+art_style: soft clay shoreline props
+locales: [en-us, ko-kr]

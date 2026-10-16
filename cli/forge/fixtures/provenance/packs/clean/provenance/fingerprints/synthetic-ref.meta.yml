@@ -1,0 +1,12 @@
+version: 1
+set: synthetic-ref
+n: 8
+algo: sha256-48
+salt: "synthetic-ref"
+normalization: skeleton-v1
+boilerplateDocFraction: 0.5
+generator: "forge provenance fingerprint v1"
+sources:
+  - { sha256: "65c91371ef7cc3874de427bc8def54059321dd495d088aeab0078064d36db28d", grams: 64, fetched: 2026-10-16 }
+count: 64
+fpSha256: "fa10e191593f77730d74d2c054c1bb12d0634d4bd4740d2d6f550d7be30ba7b9"

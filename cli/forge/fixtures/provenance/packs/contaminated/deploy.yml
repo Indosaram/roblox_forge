@@ -1,0 +1,5 @@
+environments:
+  staging:
+    universeId: 0
+    placeId: 0
+localizationTableId: 0

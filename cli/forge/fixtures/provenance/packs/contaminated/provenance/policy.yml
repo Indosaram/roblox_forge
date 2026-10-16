@@ -1,0 +1,13 @@
+version: 1
+track: original
+allowedSources: [original]
+ngram:
+  n: 8
+  sets: [synthetic-ref]
+dialogueKeyPrefixes: [dialogue., speaker., npc.]
+assets:
+  allowTools: [forge-procgen, trellis]
+  allowRecipes:
+    forge-procgen: [gen-procedural, gen-audio]
+  licensedKinds: [sfx]
+  denyTools: [audiocraft, roblox-cube, hunyuan3d-2]

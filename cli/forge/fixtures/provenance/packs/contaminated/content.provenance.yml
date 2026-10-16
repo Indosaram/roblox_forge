@@ -1,0 +1,8 @@
+version: 1
+defaults: { source: original, author: "agent:opus-5.5/fixture" }
+entries:
+  items/tide-kelp: { created: 2026-10-16 }
+  items/stone-adze: { created: 2026-10-16, author: "human:indo" }
+  recipes/adze-basic: { created: 2026-10-16 }
+  sections/rules: { created: 2026-10-16 }
+  sections/tags: { created: 2026-10-16 }

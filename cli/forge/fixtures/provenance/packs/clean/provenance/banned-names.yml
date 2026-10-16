@@ -1,0 +1,18 @@
+version: 1
+terms:
+  - Durango
+  - 듀랑고
+  - Wild Lands
+  - 야생의 땅
+stems:
+  - 개척
+  - Pioneer
+  - 워프
+singleLetter:
+  - K
+  - X
+hashedNames:
+  algo: sha256-48
+  salt: "fixture-names-v1"
+  entries:
+    - [5, "9c7db095dc19"]
