@@ -12,6 +12,7 @@ local FencedStore = require("../../../core/infra/data/FencedStore")
 local Workshop = require("./Workshop")
 local Content = require("../../../core/domain/survival/Content")
 local Job = require("../../../core/domain/crafting/Job")
+local Events = require("../../../core/infra/analytics/Events")
 local M = {}
 export type Config = {
 	key: string,
@@ -34,6 +35,9 @@ export type Config = {
 	-- Trusted server geometry/service proof, never a remote boolean. Called in
 	-- the source acceptance callback; must be pure, non-yielding and replay-safe.
 	verifyTransfer: ((string, any) -> boolean)?,
+	-- Optional core analytics emitter: build (place) and craft (workshop
+	-- complete) events after the tribe commit is durable; replays never emit.
+	analytics: Events.Emitter?,
 }
 export type TransferPort = {
 	profile: () -> FencedStore.Profile,
@@ -602,8 +606,10 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 			end
 		end
 		local response: Shared.Result = failure("UNCONFIRMED")
+		local observed: { { name: string, fields: Events.Fields } } = {}
 		local updated, err = store:update(token, function(data)
 			response = failure("UNCONFIRMED")
+			observed = {}
 			local state: Transaction.State = data.aggregate
 			if not authorized(state.settlement, actor) then
 				response = failure("FORBIDDEN")
@@ -697,6 +703,19 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 						candidate = changed
 						reason = crafted.reason
 						resultData = { jobId = crafted.jobId, state = crafted.jobs.entries[crafted.jobId].job.state }
+						local job = crafted.jobs.entries[crafted.jobId].job
+						if action == "workshop-complete" and reason == nil and job.state == "Committed" then
+							table.insert(observed, {
+								name = "craft",
+								fields = {
+									actorId = actor,
+									recipeId = job.recipeId,
+									jobId = crafted.jobId,
+									settlementId = tribeId,
+									atMillis = now * 1000,
+								},
+							})
+						end
 					end
 				end
 			elseif table.find({ "invite", "leave", "kick", "transfer-owner", "rejoin" }, action) then
@@ -763,6 +782,19 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 					then
 						candidate, reason = nil, "PLACEMENT_UNREACHABLE"
 					end
+					local reservation = state.settlement.reservations[args[1]]
+					if candidate and reservation then
+						table.insert(observed, {
+							name = "build",
+							fields = {
+								actorId = actor,
+								structureId = reservation.definition.id,
+								placementId = args[1],
+								settlementId = tribeId,
+								atMillis = now * 1000,
+							},
+						})
+					end
 				elseif action == "cancel" then
 					candidate, reason = Transaction.cancel(state, txContext, args[1])
 				else
@@ -780,6 +812,8 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 			}
 			if candidate then
 				data.aggregate = candidate
+			else
+				observed = {}
 			end
 			epoch.outcomes[context.requestId] = {
 				binding = binding,
@@ -795,6 +829,11 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 		end
 		token = updated
 		admissions[actor], executing[actor] = nil, nil
+		if config.analytics then
+			for _, event in observed do
+				config.analytics:emit(event.name, event.fields)
+			end
+		end
 		local notificationError = publish()
 		if notificationError then
 			response = copy(response)
