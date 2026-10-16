@@ -29,6 +29,7 @@ local smokeCommand = require("./forge/commands/smoke")
 local planCommand = require("./forge/commands/plan")
 local imagediffCommand = require("./forge/commands/imagediff")
 local replayCommand = require("./forge/commands/replay")
+local spikeCommand = require("./forge/commands/spike")
 local inspector = require("./forge/lib/inspect")
 local specsRunner = require("./forge/lib/specs")
 
@@ -205,6 +206,16 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
   econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]
                             Simulate a pack's free-currency economy and write reports/econ-sim-<pack>.md
                             (--json also writes a schemaVersion 1 machine-readable result)]=],
+	},
+	{
+		name = "spike",
+		text = [=[
+  spike [--players N] [--seed S] [--out <path>]
+                            QA-SPIKE-01 layer 1: simulate N (default 64) seeded arrivals through
+                            the island Allocation, queue and lease-fenced rosters on a simulated
+                            clock; write the JSON report (default .omo/evidence/robango/spike-64.json)
+                            and exit 1 if p95 wait > target, anyone is lost, an island is
+                            overfull, or a player message leaks internal text]=],
 	},
 	{
 		name = "qa",
@@ -499,6 +510,10 @@ local function main()
 		end
 	elseif cmd == "econ" then
 		if not econCommand.run(args) then
+			process.exit(1)
+		end
+	elseif cmd == "spike" then
+		if not spikeCommand.run(args) then
 			process.exit(1)
 		end
 	elseif cmd == "qa" then
