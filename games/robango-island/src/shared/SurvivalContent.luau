@@ -37,6 +37,8 @@ export type Wildlife = {
 	leashStuds: number?,
 	telegraphMillis: number?,
 	cooldownMillis: number?,
+	flag: string?,
+	dangerBand: number?,
 }
 export type Capability = {
 	mode: string,
@@ -111,7 +113,7 @@ local content: Content = {
 				[7] = "wildlife",
 				[8] = "transfer",
 			},
-			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs" },
+			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs", [3] = "gathering" },
 		},
 		["mode"] = "crafting",
 		["saveVersion"] = 2,

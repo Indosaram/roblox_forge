@@ -12,6 +12,7 @@
 
 local Validation = require("../genre/Validation")
 local Vitals = require("./Vitals")
+local Archetype = require("./Archetype")
 
 local M = {}
 
@@ -136,6 +137,10 @@ export type Wildlife = {
 	leashStuds: number?,
 	telegraphMillis: number?,
 	cooldownMillis: number?,
+	-- Archetype behaviour flag and danger band. Archetype entries always carry
+	-- both after canonicalization; legacy grazer|hunter entries only if authored.
+	flag: string?,
+	dangerBand: number?,
 }
 export type Document = {
 	version: number,
@@ -576,7 +581,7 @@ local function validateWildlife(errors: { string }, raw: any)
 			table.insert(errors, at .. ": expected mapping")
 			continue
 		end
-		local allowed = { "id", "behavior" }
+		local allowed = { "id", "behavior", "flag", "dangerBand" }
 		for _, field in GRAZER_FIELDS do
 			table.insert(allowed, field)
 		end
@@ -591,12 +596,24 @@ local function validateWildlife(errors: { string }, raw: any)
 		else
 			ids[entry.id] = true
 		end
-		if entry.behavior ~= "grazer" and entry.behavior ~= "hunter" then
-			table.insert(errors, at .. ".behavior: expected grazer|hunter")
+		-- Legacy engine names (grazer|hunter) stay valid; an archetype id runs
+		-- the engine its archetype declares.
+		local engine = if type(entry.behavior) == "string" then Archetype.engine(entry.behavior) else nil
+		if engine == nil then
+			table.insert(errors, at .. ".behavior: expected grazer|hunter or an archetype id")
 			continue
 		end
-		local own: { string } = if entry.behavior == "grazer" then GRAZER_FIELDS else HUNTER_FIELDS
-		local foreign: { string } = if entry.behavior == "grazer" then HUNTER_FIELDS else GRAZER_FIELDS
+		if entry.flag ~= nil and not Archetype.allowsFlag(engine, entry.flag) then
+			table.insert(errors, string.format("%s.flag: %s not valid for %s engine", at, tostring(entry.flag), engine))
+		end
+		if entry.dangerBand ~= nil and not Archetype.isBand(entry.dangerBand) then
+			table.insert(
+				errors,
+				string.format("%s.dangerBand: expected integer %d..%d", at, Archetype.BAND_MIN, Archetype.BAND_MAX)
+			)
+		end
+		local own: { string } = if engine == "grazer" then GRAZER_FIELDS else HUNTER_FIELDS
+		local foreign: { string } = if engine == "grazer" then HUNTER_FIELDS else GRAZER_FIELDS
 		for _, field in foreign do
 			if entry[field] ~= nil then
 				table.insert(errors, string.format("%s.%s: not valid for %s", at, field, entry.behavior))
@@ -604,7 +621,7 @@ local function validateWildlife(errors: { string }, raw: any)
 		end
 		local resolved: { [string]: number } = {}
 		for _, field in own do
-			local value = if entry[field] == nil then WILDLIFE_DEFAULTS[entry.behavior][field] else entry[field]
+			local value = if entry[field] == nil then WILDLIFE_DEFAULTS[engine][field] else entry[field]
 			local cap = if string.match(field, "Millis$") then CAPS.millis else CAPS.studs
 			if not isInt(value, 1, cap) then
 				table.insert(errors, string.format("%s.%s: expected integer 1..%d", at, field, cap))
@@ -612,7 +629,7 @@ local function validateWildlife(errors: { string }, raw: any)
 				resolved[field] = value
 			end
 		end
-		if entry.behavior == "grazer" then
+		if engine == "grazer" then
 			if resolved.senseStuds and resolved.fleeStuds and resolved.senseStuds >= resolved.fleeStuds then
 				table.insert(errors, at .. ".senseStuds: must be below fleeStuds")
 			end
@@ -763,12 +780,18 @@ function M.canonicalize(raw: any): (Document?, { string })
 	local rawWildlife: { any } = raw.wildlife or {}
 	for _, entry in rawWildlife do
 		local resolved: Wildlife = { id = entry.id, behavior = entry.behavior }
-		local fields: { string } = if entry.behavior == "grazer" then GRAZER_FIELDS else HUNTER_FIELDS
+		local archetype = assert(Archetype.get(entry.behavior), "validated behavior")
+		local fields: { string } = if archetype.engine == "grazer" then GRAZER_FIELDS else HUNTER_FIELDS
 		for _, field in fields do
 			(resolved :: any)[field] = if entry[field] == nil
-				then WILDLIFE_DEFAULTS[entry.behavior][field]
+				then WILDLIFE_DEFAULTS[archetype.engine][field]
 				else entry[field]
 		end
+		-- Archetypes always publish their resolved flag and band; legacy entries
+		-- render byte-identically unless they author one.
+		local isArchetype = Archetype.isArchetype(entry.behavior)
+		resolved.flag = if entry.flag ~= nil then entry.flag elseif isArchetype then archetype.flag else nil
+		resolved.dangerBand = if entry.dangerBand ~= nil then entry.dangerBand elseif isArchetype then 1 else nil
 		table.insert(wildlife, resolved)
 	end
 	sortById(wildlife)

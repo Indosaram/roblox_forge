@@ -31,7 +31,7 @@ local function types(extended: boolean): string
 		"export type Recipe = { id: string, craftMillis: number, inputs: { Quantity }, outputs: { Quantity }, station: string?, requiredToolTag: string? }",
 		"export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }",
 		"export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity } }",
-		"export type Wildlife = { id: string, behavior: string, senseStuds: number?, fleeStuds: number?, warnStuds: number?, attackStuds: number?, leashStuds: number?, telegraphMillis: number?, cooldownMillis: number? }",
+		"export type Wildlife = { id: string, behavior: string, senseStuds: number?, fleeStuds: number?, warnStuds: number?, attackStuds: number?, leashStuds: number?, telegraphMillis: number?, cooldownMillis: number?, flag: string?, dangerBand: number? }",
 		"export type Capability = { mode: string, actionVersion: number, saveVersion: number, contentVersion: number?, actions: { string }, features: { declared: { string }, implemented: { string } } }",
 		"export type Content = {",
 		"\tversion: number,",
