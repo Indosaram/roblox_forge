@@ -13,3 +13,4 @@
 
 # docs/ is an archival record: store bytes exactly as written
 docs/** -text
+*.fp -diff

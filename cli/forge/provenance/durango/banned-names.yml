@@ -1,0 +1,38 @@
+# QA-NAME-01 banned names for packs derived from the Durango research
+# (plan §2.1, design provenance-gate-design.md §5.7). Copy into
+# games/<pack>/provenance/banned-names.yml.
+# terms/stems are plain on purpose (review readability, plan wording);
+# original proper names are committed only as sha256-48 hashes, generated from
+# a reviewed list kept under the gitignored .omo/ with:
+#   lune run cli/forge provenance fingerprint --names <list> --salt durango-names-v1
+version: 1
+terms:
+  - Durango
+  - 듀랑고
+  - Wild Lands
+  - 야생의 땅
+stems:
+  - 개척
+  - Pioneer
+  - 워프
+singleLetter:
+  - K
+  - X
+hashedNames:
+  algo: sha256-48
+  salt: "durango-names-v1"
+  entries:
+    - [2, "9023d4cf4dba"]
+    - [3, "effdd2087d7d"]
+    - [3, "fa693d0c5be7"]
+    - [4, "4b896e39a799"]
+    - [4, "60db9893bbae"]
+    - [4, "85e7b72c5772"]
+    - [5, "06fb0c86fb95"]
+    - [5, "983459833d76"]
+    - [5, "fb1743463677"]
+    - [6, "5757f7888678"]
+    - [6, "75160ed0570f"]
+    - [7, "185956ae4b42"]
+    - [7, "3bdef472f3ab"]
+    - [7, "66d896b901e8"]
