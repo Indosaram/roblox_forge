@@ -239,6 +239,13 @@ return {
 				game.capability_tier == "starter" and game.developmental and #game.qa_scenarios == 1,
 				"no wave scenarios or quality claim"
 			)
+			assert(
+				type(game.pending_capabilities) == "table"
+					and table.find(game.pending_capabilities, "gathering") == nil
+					and table.find(game.pending_capabilities, "crafting-jobs") == nil
+					and table.find(game.pending_capabilities, "wildlife") ~= nil,
+				"pending capabilities omit implemented gathering and keep wildlife"
+			)
 			local contractErrors = checkCommand.validatePackContract(game, { genre_contract = pack }, codegenRegistry)
 			assert(#contractErrors == 0, table.concat(contractErrors, "; "))
 			local entries, selectionErrors = qaCommand.planPack("fixture-crafting", game, codegenRegistry)
