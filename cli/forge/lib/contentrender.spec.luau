@@ -20,6 +20,35 @@ local function fixture(): any
 end
 
 return {
+	["skills content renders a typed skills table and its absence changes nothing"] = function()
+		local plain = assert(render.build(fixture(), "crafting"))
+		assert(not string.find(plain.content, "SkillGrant", 1, true), "no skills section, no skills types")
+		local raw = fixture()
+		local disciplines = {}
+		for _, id in { "f", "e", "d", "c", "b", "a" } do
+			table.insert(disciplines, { id = id, thresholds = { 5, 20 } })
+		end
+		raw.skills = { baseStep = 1, disciplines = disciplines }
+		raw.nodes = {
+			{
+				id = "bush",
+				respawnMillis = 1000,
+				harvest = { { item = "berry", quantity = 1 } },
+				skill = { id = "b", xp = 3 },
+			},
+		}
+		local rendered = assert(render.build(raw, "crafting"))
+		local decoded = luau.load(rendered.content)()
+		assert(#decoded.skills.disciplines == 6 and decoded.skills.disciplines[1].id == "a", "sorted skills ship")
+		assert(decoded.skills.disciplines[1].thresholds[2] == 20, "thresholds ship")
+		assert(decoded.nodes[1].skill.xp == 3, "node grant ships")
+		assert(string.find(rendered.content, "skills: Skills?", 1, true), "generated type carries skills")
+		local repeated = assert(render.build(raw, "crafting"))
+		assert(repeated.content == rendered.content, "skills render byte-identical")
+		raw.skills.disciplines[1].thresholds = { 20, 5 }
+		local refused, errors = render.build(raw, "crafting")
+		assert(refused == nil and #errors > 0, "invalid skills never render")
+	end,
 	["legacy content preserves absent optional values and current capability payload"] = function()
 		local rendered = render.build(fixture(), "crafting")
 		assert(rendered ~= nil, "legacy fixture renders")
