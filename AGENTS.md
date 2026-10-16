@@ -35,7 +35,7 @@ Roblox Game Forge is a meta-framework for AI-agent-driven planning, building, an
 `forge` below means `lune run cli/forge`. `lune run cli/forge --help` (or `-h`, `help`) prints usage to stdout and exits 0; `lune run cli/forge <cmd> --help` prints that command's usage and exits 0. No arguments prints usage to stderr and exits 2; an unknown command exits 2. Every other command exits 1 on failure.
 
 - `rokit install` — install the pinned toolchain from `rokit.toml`, then run `lune setup` once. `bun` is also needed for the JS suites, deploy/liveops transport and Studio QA.
-- `forge check` — full verification: genre-contract, qa-schema, selene, stylua, luau-lsp, econ, game, assets, locale, lock, specs, build (the `build` stage runs `rojo build` plus built-place inspection for **every** eligible game pack, each target reported independently). `--pack <slug>`, `--project <path>` and `--all` narrow only build + inspect.
+- `forge check` — full verification: genre-contract, qa-schema, selene, stylua, luau-lsp, econ, game, assets, locale, provenance, lock, specs, build (the `build` stage runs `rojo build` plus built-place inspection for **every** eligible game pack, each target reported independently). `--pack <slug>`, `--project <path>` and `--all` narrow only build + inspect.
 - `forge build [--all | --pack <slug> | --project <path>]` — build places into `build/<target>.rbxl`; with no selector the default pack is built.
 - `forge codegen [<pack>]`, `forge new <slug> --genre <g1,g2>`, `forge plan`, `forge gen`, `forge assets`, `forge locale`, `forge deploy`, `forge liveops`, `forge report`, `forge trends`, `forge quality`, `forge spec`, `forge content`: see `lune run cli/forge <cmd> --help`.
 - `stylua .` — format the repository.
@@ -46,7 +46,7 @@ Do not run the full `check` for every edit; it takes minutes. Iterate with the n
 
 1. `lune setup` once after `rokit install` (generates Luau type definitions).
 2. `forge test <substring> [more filters] --quiet` — run only the Lune specs whose path matches a substring. Also `--slowest N` (slowest specs) and `--json <path>` (machine-readable result). `specs-run` remains a hidden alias.
-3. `forge check --only <stages>` (comma-separated) or `forge check --skip <stages>`; stage ids: `genre-contract,qa-schema,selene,stylua,luau-lsp,econ,game,assets,locale,lock,specs,build`. Each stage prints its seconds and the run ends with `check: PASS ...` or `check: FAIL stages=...`.
+3. `forge check --only <stages>` (comma-separated) or `forge check --skip <stages>`; stage ids: `genre-contract,qa-schema,selene,stylua,luau-lsp,econ,game,assets,locale,provenance,lock,specs,build`. Each stage prints its seconds and the run ends with `check: PASS ...` or `check: FAIL stages=...`.
 4. `forge check --json <path>` — writes `{schemaVersion: 1, ok, stages, failed}`; `failed` is a list of stage ids.
 5. Reproduce QA deterministically: `forge qa run --pack <slug> --scenario <name> --record <journal.json>`, then `forge replay <journal.json> [--json]` (exit 0 MATCH, 1 MISMATCH, 2 error). Native scenarios take `seed: <int>`; `capture` steps take `layers: all|world|ui`.
 6. Compare screenshots with `forge imagediff <base.png> <compare.png> [--diff out.png] [--threshold n] [--ignore x1:y1-x2:y2[,..]] [--crop x:y:w:h] [--json]` (exit 0 identical, 1 different, 2 usage or decode error).
