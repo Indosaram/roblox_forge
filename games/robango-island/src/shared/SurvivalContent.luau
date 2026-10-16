@@ -24,9 +24,20 @@ export type Recipe = {
 	outputs: { Quantity },
 	station: string?,
 	requiredToolTag: string?,
+	slots: { Slot }?,
+	tier: number?,
+	latents: { string }?,
 }
 export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }
-export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity } }
+export type Slot = { tag: string, minGrade: number, quantity: number }
+export type Structure = {
+	id: string,
+	footprintX: number,
+	footprintZ: number,
+	station: boolean,
+	cost: { Quantity },
+	tier: number?,
+}
 export type Wildlife = {
 	id: string,
 	behavior: string,
@@ -111,7 +122,7 @@ local content: Content = {
 				[7] = "wildlife",
 				[8] = "transfer",
 			},
-			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs" },
+			["implemented"] = { [1] = "inventory", [2] = "crafting-jobs", [3] = "gathering" },
 		},
 		["mode"] = "crafting",
 		["saveVersion"] = 2,

@@ -110,6 +110,10 @@ export type Item = {
 	foodEffects: FoodEffects?,
 	tags: { string },
 }
+-- Crafting: a tag slot accepts any item carrying `tag` whose grade (1..5 stars)
+-- is at least `minGrade`. `tier` is the minimum workbench tier; `latents` is
+-- the declared-tag pool a latent attribute roll draws from.
+export type Slot = { tag: string, minGrade: number, quantity: number }
 export type Recipe = {
 	id: string,
 	craftMillis: number,
@@ -117,6 +121,9 @@ export type Recipe = {
 	outputs: { Quantity },
 	station: string?,
 	requiredToolTag: string?,
+	slots: { Slot }?,
+	tier: number?,
+	latents: { string }?,
 }
 export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }
 export type Structure = {
@@ -125,6 +132,7 @@ export type Structure = {
 	footprintZ: number,
 	station: boolean,
 	cost: { Quantity },
+	tier: number?,
 }
 export type Wildlife = {
 	id: string,
@@ -450,7 +458,10 @@ local function validateStructures(errors: { string }, raw: any, items: { [string
 			table.insert(errors, at .. ": expected mapping")
 			continue
 		end
-		unknown(errors, at, entry, { "id", "footprintX", "footprintZ", "station", "cost" })
+		unknown(errors, at, entry, { "id", "footprintX", "footprintZ", "station", "cost", "tier" })
+		if entry.tier ~= nil and (not isInt(entry.tier, 1, 5) or entry.station ~= true) then
+			table.insert(errors, at .. ".tier: expected integer 1..5 on a station")
+		end
 		if not isId(entry.id) then
 			table.insert(errors, at .. ".id: invalid id")
 		elseif ids[entry.id] then
@@ -495,7 +506,62 @@ local function validateRecipes(
 			table.insert(errors, at .. ": expected mapping")
 			continue
 		end
-		unknown(errors, at, recipe, { "id", "craftMillis", "inputs", "outputs", "station", "requiredToolTag" })
+		unknown(
+			errors,
+			at,
+			recipe,
+			{ "id", "craftMillis", "inputs", "outputs", "station", "requiredToolTag", "slots", "tier", "latents" }
+		)
+		local slotted = false
+		if recipe.slots ~= nil then
+			if not Validation.dense(recipe.slots, CAPS.tagsPerEntry) or #recipe.slots == 0 then
+				table.insert(errors, at .. ".slots: expected nonempty dense list")
+			else
+				slotted = true
+				for slotIndex, slot in recipe.slots do
+					local slotAt = string.format("%s.slots[%d]", at, slotIndex)
+					if type(slot) ~= "table" then
+						table.insert(errors, slotAt .. ": expected mapping")
+						continue
+					end
+					unknown(errors, slotAt, slot, { "tag", "minGrade", "quantity" })
+					if not isId(slot.tag) or not tags[slot.tag] then
+						table.insert(errors, slotAt .. ".tag: undeclared tag " .. tostring(slot.tag))
+					end
+					if not isInt(slot.minGrade, 1, 5) then
+						table.insert(errors, slotAt .. ".minGrade: expected integer 1..5")
+					end
+					if not isInt(slot.quantity, 1, CAPS.quantity) then
+						table.insert(errors, slotAt .. ".quantity: expected integer 1.." .. CAPS.quantity)
+					end
+				end
+			end
+		end
+		if recipe.tier ~= nil and (not isInt(recipe.tier, 1, 5) or recipe.station == nil) then
+			table.insert(errors, at .. ".tier: expected integer 1..5 with a station")
+		end
+		if recipe.latents ~= nil then
+			if not Validation.dense(recipe.latents, CAPS.tagsPerEntry) or #recipe.latents == 0 then
+				table.insert(errors, at .. ".latents: expected nonempty dense list")
+			else
+				local seenLatent: { [string]: boolean } = {}
+				for latentIndex, latent in recipe.latents do
+					if not isId(latent) or not tags[latent] or seenLatent[latent] then
+						table.insert(
+							errors,
+							string.format(
+								"%s.latents[%d]: undeclared or duplicate tag %s",
+								at,
+								latentIndex,
+								tostring(latent)
+							)
+						)
+					else
+						seenLatent[latent] = true
+					end
+				end
+			end
+		end
 		if not isId(recipe.id) then
 			table.insert(errors, at .. ".id: invalid id")
 		elseif ids[recipe.id] then
@@ -506,7 +572,11 @@ local function validateRecipes(
 		if not isInt(recipe.craftMillis, 1, CAPS.millis) then
 			table.insert(errors, at .. ".craftMillis: expected integer 1.." .. CAPS.millis)
 		end
-		quantities(errors, at .. ".inputs", recipe.inputs, items)
+		-- Tag slots may replace fixed inputs entirely.
+		local hasInputs = recipe.inputs ~= nil and not (type(recipe.inputs) == "table" and next(recipe.inputs) == nil)
+		if not slotted or hasInputs then
+			quantities(errors, at .. ".inputs", recipe.inputs, items)
+		end
 		quantities(errors, at .. ".outputs", recipe.outputs, items)
 		if recipe.station ~= nil then
 			if not isId(recipe.station) then
@@ -697,6 +767,29 @@ local function canonicalQuantities(raw: any): { Quantity }
 	return list
 end
 
+local function sortedStrings(raw: { string }): { string }
+	local list = table.clone(raw)
+	table.sort(list)
+	return list
+end
+
+local function canonicalSlots(raw: any): { Slot }?
+	if raw == nil then
+		return nil
+	end
+	local list: { Slot } = {}
+	for _, slot in raw do
+		table.insert(list, { tag = slot.tag, minGrade = slot.minGrade, quantity = slot.quantity })
+	end
+	table.sort(list, function(left, right)
+		if left.tag ~= right.tag then
+			return left.tag < right.tag
+		end
+		return left.minGrade < right.minGrade
+	end)
+	return list
+end
+
 --- Validates `raw` and returns its canonical form: defaults resolved, every
 --- catalog sorted by id and every quantity list sorted by item id. Two runs
 --- over the same source always produce byte-identical rendered output.
@@ -737,6 +830,9 @@ function M.canonicalize(raw: any): (Document?, { string })
 			outputs = canonicalQuantities(recipe.outputs),
 			station = recipe.station,
 			requiredToolTag = recipe.requiredToolTag,
+			slots = canonicalSlots(recipe.slots),
+			tier = recipe.tier,
+			latents = if recipe.latents == nil then nil else sortedStrings(recipe.latents),
 		})
 	end
 	sortById(recipes)
@@ -756,6 +852,7 @@ function M.canonicalize(raw: any): (Document?, { string })
 			footprintZ = structure.footprintZ,
 			station = structure.station == true,
 			cost = canonicalQuantities(structure.cost),
+			tier = structure.tier,
 		})
 	end
 	sortById(structures)

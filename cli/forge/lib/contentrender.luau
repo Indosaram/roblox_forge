@@ -28,9 +28,10 @@ local function types(extended: boolean): string
 		if extended
 			then "export type Item = { id: string, name: string, stackMax: number, weightMilli: number, maxDurabilityMilli: number?, foodEffects: FoodEffects?, tags: { string } }"
 			else "export type Item = { id: string, name: string, stackMax: number, weightMilli: number, maxDurabilityMilli: number?, tags: { string } }",
-		"export type Recipe = { id: string, craftMillis: number, inputs: { Quantity }, outputs: { Quantity }, station: string?, requiredToolTag: string? }",
+		"export type Recipe = { id: string, craftMillis: number, inputs: { Quantity }, outputs: { Quantity }, station: string?, requiredToolTag: string?, slots: { Slot }?, tier: number?, latents: { string }? }",
 		"export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }",
-		"export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity } }",
+		"export type Slot = { tag: string, minGrade: number, quantity: number }",
+		"export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity }, tier: number? }",
 		"export type Wildlife = { id: string, behavior: string, senseStuds: number?, fleeStuds: number?, warnStuds: number?, attackStuds: number?, leashStuds: number?, telegraphMillis: number?, cooldownMillis: number? }",
 		"export type Capability = { mode: string, actionVersion: number, saveVersion: number, contentVersion: number?, actions: { string }, features: { declared: { string }, implemented: { string } } }",
 		"export type Content = {",
