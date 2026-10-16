@@ -3,8 +3,47 @@
 -- items, and deterministic asset collection.
 
 local DeployPlan = require("./deployplan")
+local Catalog = require("../../../core/infra/monetization/Catalog")
+local fs = require("@lune/fs")
+local serde = require("@lune/serde")
+
+local function fixtureMonetization(name: string): any
+	local game = serde.decode("yaml", fs.readFile("cli/forge/fixtures/catalog-lint/" .. name .. "/game.yml"))
+	return game.monetization
+end
 
 return {
+	["QA-BM-01 the dirty catalog fixture is refused with every ADR-07 rule named"] = function()
+		local monetization = fixtureMonetization("dirty")
+		local plan = DeployPlan.buildPlan("fixture", "staging", monetization, nil)
+		assert(plan == nil, "a dirty catalog must not produce a plan")
+		local reason = table.concat(Catalog.lint(monetization), "; ")
+		for _, expected in
+			{
+				"luck-drop-boost: luckyCharm",
+				"paid-random: mysteryCrate",
+				"luck-drop-boost: harvestBoost",
+				"soft-currency-sale: shellPack",
+				"subscription-effect: tideMonthly",
+			}
+		do
+			assert(string.find(reason, expected, 1, true) ~= nil, "missing " .. expected .. " in " .. reason)
+		end
+	end,
+
+	["the lint refuses a plan that passes the paid-random field check"] = function()
+		local plan, err = DeployPlan.buildPlan("pack", "staging", {
+			products = { { key = "harvestBoost", name = "Harvest Boost", price = 149, dropRate = 2 } },
+		}, nil)
+		assert(plan == nil, "a drop-rate product must not produce a plan")
+		assert(err == "catalog lint: luck-drop-boost: harvestBoost (field dropRate)", "reason: " .. tostring(err))
+	end,
+
+	["QA-BM-01 the clean survival catalog fixture plans"] = function()
+		local plan, err = DeployPlan.buildPlan("fixture", "staging", fixtureMonetization("clean"), nil)
+		assert(err == nil, "clean catalog refused: " .. tostring(err))
+		assert(plan ~= nil and #plan.items == 4, "gamepasses and products are planned")
+	end,
 	["production plans require local approval without claiming external proof"] = function()
 		for _, quality in
 			{
