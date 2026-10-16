@@ -18,6 +18,7 @@
           "$className": "Folder",
           "domain": { "$path": "../../core/domain" },
           "infra": { "$path": "../../core/infra" },
+          "anticheat": { "$path": "../../core/anticheat" },
           "ui-kit": { "$path": "../../core/ui-kit" }
         },
         "genres": {
