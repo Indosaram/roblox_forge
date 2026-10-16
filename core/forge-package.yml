@@ -27,6 +27,7 @@ modules:
   - core/domain/progression/Tutorial.luau
   - core/domain/state/ProfileSchema.luau
   - core/domain/state/Siege.luau
+  - core/domain/taming/Taming.luau
   - core/ui-kit/Components.luau
   - core/ui-kit/Layout.luau
   - core/ui-kit/Theme.luau

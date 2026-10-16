@@ -7,4 +7,4 @@ and simulations.
 **Allowed:** plain Luau only. **Forbidden:** `game`, `Instance`, `task`, and any
 Roblox service. Engine access belongs in `core/infra`.
 
-Subpackages: `economy/`, `progression/`, `state/`, `procgen/`, `island/` — semver-versioned with core.
+Subpackages: `economy/`, `progression/`, `state/`, `procgen/`, `island/`, `taming/` — semver-versioned with core.
