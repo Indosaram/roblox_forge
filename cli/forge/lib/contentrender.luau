@@ -32,7 +32,7 @@ local function types(extended: boolean, contracts: boolean): string
 		"export type Node = { id: string, harvest: { Quantity }, respawnMillis: number }",
 		"export type Slot = { tag: string, minGrade: number, quantity: number }",
 		"export type Structure = { id: string, footprintX: number, footprintZ: number, station: boolean, cost: { Quantity }, tier: number? }",
-		"export type Wildlife = { id: string, behavior: string, senseStuds: number?, fleeStuds: number?, warnStuds: number?, attackStuds: number?, leashStuds: number?, telegraphMillis: number?, cooldownMillis: number? }",
+		"export type Wildlife = { id: string, behavior: string, senseStuds: number?, fleeStuds: number?, warnStuds: number?, attackStuds: number?, leashStuds: number?, telegraphMillis: number?, cooldownMillis: number?, flag: string?, dangerBand: number? }",
 		"export type Capability = { mode: string, actionVersion: number, saveVersion: number, contentVersion: number?, actions: { string }, features: { declared: { string }, implemented: { string } } }",
 		"export type Content = {",
 		"\tversion: number,",
@@ -72,6 +72,10 @@ local function types(extended: boolean, contracts: boolean): string
 			table.insert(fields, at + offset - 1, line)
 		end
 		table.insert(fields, "\tcontracts: ContractCatalog?,")
+	else
+		-- Content.Document declares an optional contracts field; keep the generated
+		-- table type assignable to it without emitting contract types.
+		table.insert(fields, "\tcontracts: nil,")
 	end
 	table.insert(fields, "}")
 	return table.concat(fields, "\n")

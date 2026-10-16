@@ -48,6 +48,8 @@ export type Wildlife = {
 	leashStuds: number?,
 	telegraphMillis: number?,
 	cooldownMillis: number?,
+	flag: string?,
+	dangerBand: number?,
 }
 export type Capability = {
 	mode: string,
