@@ -2,11 +2,10 @@
 -- spikesim: QA-SPIKE-01 layer 1 (plan §12, M6). A Lune join-spike simulation:
 -- N virtual players arrive at seeded times and are fed, tick by tick, through
 -- the pure island Allocation (core/domain/island/Allocation) and a lease-fenced
--- roster per island. Each island is one writer: its roster lives behind a
--- FencedStore lease on a shared in-memory backend (stand-in for
--- core/infra/island/Lease until that module lands), so every admission, move
--- and friend-follow join is a fenced commit that can fail (seeded throttling)
--- and must be recovered without losing anyone.
+-- roster per island. Each island is one writer: its roster is a delta on the
+-- island's core/infra/island/Lease (FencedStore on a shared in-memory backend),
+-- so every admission, move and friend-follow join is a fenced write that can
+-- fail (seeded throttling) and must be recovered without losing anyone.
 --
 -- Time is an injected integer clock in simulated seconds; nothing sleeps and
 -- nothing reads wall-clock time. All randomness comes from Rng forks of the
@@ -21,6 +20,7 @@ local Rng = require("../../../core/domain/random/Rng")
 local Topology = require("../../../core/domain/island/Topology")
 local Allocation = require("../../../core/domain/island/Allocation")
 local FencedStore = require("../../../core/infra/data/FencedStore")
+local Lease = require("../../../core/infra/island/Lease")
 local MemoryBackend = require("../../../core/infra/data/MemoryBackend")
 
 local M = {}
@@ -203,13 +203,16 @@ type PlayerState = {
 
 type Server = {
 	store: FencedStore.Store,
-	profile: FencedStore.Profile,
+	lease: Lease.Lease,
+	handle: Lease.Handle,
 }
 
+-- The roster is the payload of the island's latest "roster" delta.
 local function rosterOf(profile: FencedStore.Profile): { string }
-	local players = profile.data.players
 	local list: { string } = {}
-	if type(players) == "table" then
+	local deltas = profile.data.deltas
+	if type(deltas) == "table" and #deltas > 0 then
+		local players = deltas[#deltas].payload.players
 		for _, player in players do
 			table.insert(list, player)
 		end
@@ -300,6 +303,7 @@ function M.run(options: Options?): Report
 	local overfullPeak = 0
 	local admittedCount = 0
 	local firstArrivalMs: number? = nil
+	local readyAt: { [string]: number } = {}
 
 	local function clock(): number
 		return now
@@ -326,21 +330,26 @@ function M.run(options: Options?): Report
 		return message
 	end
 
-	local function keyOf(islandId: string): string
-		return "isl:" .. islandId
+	-- Lease island ids are [%w_-]+; allocator ids look like "new:landing:3".
+	local function leaseId(islandId: string): string
+		return (string.gsub(islandId, "[^%w_%-]", "-"))
 	end
+
+	local deltaSeq = 0
 
 	local function commit(islandId: string, roster: { string }): (boolean, string?)
 		local server = servers[islandId]
 		maybeThrottle()
-		local nextProfile, err = server.store:update(server.profile, function(data)
-			data.players = table.clone(roster)
-			return data
-		end)
-		if nextProfile == nil then
+		deltaSeq += 1
+		local nextHandle, err = server.lease:write(server.handle, {
+			id = "d" .. deltaSeq,
+			op = "roster",
+			payload = { players = table.clone(roster) },
+		})
+		if nextHandle == nil then
 			return false, err
 		end
-		server.profile = nextProfile
+		server.handle = nextHandle
 		return true, nil
 	end
 
@@ -350,35 +359,32 @@ function M.run(options: Options?): Report
 			leaseSeconds = leaseSeconds,
 			now = clock,
 		})
+		local lease = Lease.new({ store = store, serverId = "srv-" .. islandId })
 		maybeThrottle()
-		local profile, err = store:acquire(keyOf(islandId), function(data)
-			data.players = table.clone(roster)
-			return data
-		end)
-		if profile == nil then
+		local handle, err = lease:acquire(leaseId(islandId))
+		if handle == nil then
 			return false, err
 		end
-		servers[islandId] = { store = store, profile = profile }
+		servers[islandId] = { store = store, lease = lease, handle = handle }
 		table.insert(islandIds, islandId)
+		readyAt[islandId] = now + startSeconds
 		-- A second server racing for the same island must be fenced out.
-		local rogue = FencedStore.new(backend, {
+		local rogueStore = FencedStore.new(backend, {
 			sessionId = "rogue-" .. islandId,
 			leaseSeconds = leaseSeconds,
 			now = clock,
 		})
-		local stolen = rogue:acquire(keyOf(islandId), function(data)
-			return data
-		end)
-		if stolen ~= nil then
+		local rogue = Lease.new({ store = rogueStore, serverId = "rogue-" .. islandId })
+		if rogue:acquire(leaseId(islandId)) ~= nil then
 			splitBrain += 1
 		end
-		return true, nil
+		return commit(islandId, roster)
 	end
 
 	local function rosters(): { [string]: { string } }
 		local out: { [string]: { string } } = {}
 		for _, id in islandIds do
-			out[id] = rosterOf(servers[id].profile)
+			out[id] = rosterOf(servers[id].handle.profile)
 		end
 		return out
 	end
@@ -421,7 +427,7 @@ function M.run(options: Options?): Report
 			if player.direct and player.friend ~= nil then
 				local friend = players[player.friend :: number].id
 				for _, islandId in islandIds do
-					local roster = rosterOf(servers[islandId].profile)
+					local roster = rosterOf(servers[islandId].handle.profile)
 					if table.find(roster, friend) then
 						table.insert(roster, player.id)
 						table.sort(roster)
@@ -521,8 +527,7 @@ function M.run(options: Options?): Report
 
 		-- 4b. Additions: a move lands only if its removal committed; a player
 		-- whose removal failed stays on its source island.
-		local newThisTick: { [string]: boolean } = {}
-		for _, id in planOrder do
+			for _, id in planOrder do
 			local desired: { string } = {}
 			for _, player in target[id] do
 				if not (stuck[player] and moveFrom[player] ~= id) then
@@ -538,21 +543,19 @@ function M.run(options: Options?): Report
 			if servers[id] == nil then
 				if #desired > 0 then
 					local ok, err = open(id, desired)
-					if ok then
-						newThisTick[id] = true
-					else
+					if not ok then
 						table.insert(messages, failureMessage(err, id))
 					end
 				end
-			elseif not sameList(desired, rosterOf(servers[id].profile)) then
+			elseif not sameList(desired, rosterOf(servers[id].handle.profile)) then
 				local ok, err = commit(id, desired)
 				if not ok then
 					table.insert(messages, failureMessage(err, id))
 				end
 			else
-				local renewed = servers[id].store:renew(servers[id].profile)
+				local renewed = servers[id].lease:renew(servers[id].handle)
 				if renewed ~= nil then
-					servers[id].profile = renewed
+					servers[id].handle = renewed
 				end
 			end
 		end
@@ -579,7 +582,7 @@ function M.run(options: Options?): Report
 				if island == nil then
 					table.insert(queue, player.id)
 				elseif player.waitSeconds == nil then
-					admit(player, if newThisTick[island] then startSeconds else 0)
+					admit(player, math.max(0, (readyAt[island] or 0) - now))
 					table.insert(messages, playerMessage("assigned"))
 				end
 			end
@@ -602,8 +605,8 @@ function M.run(options: Options?): Report
 	local finalOverfull = 0
 	for _, id in islandIds do
 		local server = servers[id]
-		local refreshed, err = server.store:refresh(server.profile)
-		local profile = refreshed or server.profile
+		local refreshed, err = server.store:refresh(server.handle.profile)
+		local profile = refreshed
 		if refreshed == nil then
 			error("spikesim audit read failed: " .. tostring(err))
 		end
