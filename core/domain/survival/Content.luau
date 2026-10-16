@@ -654,12 +654,18 @@ local function validateRecipes(
 			table.insert(errors, at .. ": expected mapping")
 			continue
 		end
-		unknown(
-			errors,
-			at,
-			recipe,
-			{ "id", "craftMillis", "inputs", "outputs", "station", "requiredToolTag", "slots", "tier", "latents", "skill" }
-		)
+		unknown(errors, at, recipe, {
+			"id",
+			"craftMillis",
+			"inputs",
+			"outputs",
+			"station",
+			"requiredToolTag",
+			"slots",
+			"tier",
+			"latents",
+			"skill",
+		})
 		local slotted = false
 		if recipe.slots ~= nil then
 			if not Validation.dense(recipe.slots, CAPS.tagsPerEntry) or #recipe.slots == 0 then
