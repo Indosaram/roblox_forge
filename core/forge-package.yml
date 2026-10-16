@@ -9,6 +9,9 @@ modules:
   - core/domain/economy/Vault.luau
   - core/domain/economy/Wallet.luau
   - core/domain/economy/WeightedRoll.luau
+  - core/domain/island/Allocation.luau
+  - core/domain/island/Expedition.luau
+  - core/domain/island/Topology.luau
   - core/domain/procgen/Creature.luau
   - core/domain/procgen/Icons.luau
   - core/domain/procgen/MeshBuilder.luau
