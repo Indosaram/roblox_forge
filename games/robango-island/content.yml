@@ -2346,3 +2346,37 @@
     8
    
   
+contracts:
+  firstDay: [survey-driftwood, guild-stone-axe, eco-fiber-sample]
+  dailyCount: 3
+  swapCooldownMillis: 3600000
+  dayMillis: 86400000
+  factions:
+    - id: route-surveyors
+      name: Route Survey Society
+      trustThresholds: [0, 100, 300, 700, 1500]
+      bundles:
+        - {tier: 2, items: [{item: plank, quantity: 4}, {item: cord, quantity: 2}]}
+        - {tier: 3, items: [{item: storage-kit, quantity: 1}]}
+    - id: artisan-guilds
+      name: Artisan Guild Union
+      trustThresholds: [0, 100, 300, 700, 1500]
+      bundles:
+        - {tier: 2, items: [{item: cord, quantity: 4}, {item: flint, quantity: 4}]}
+        - {tier: 3, items: [{item: workbench-kit, quantity: 1}]}
+    - id: island-ecology
+      name: Island Ecology Trust
+      trustThresholds: [0, 100, 300, 700, 1500]
+      bundles:
+        - {tier: 2, items: [{item: berry-meal, quantity: 3}]}
+        - {tier: 3, items: [{item: cooked-meat, quantity: 3}]}
+  entries:
+    - {id: survey-driftwood, faction: route-surveyors, pool: first-day, deliver: [{item: wood, quantity: 3}], reward: [{item: cord, quantity: 1}], trust: 40}
+    - {id: guild-stone-axe, faction: artisan-guilds, pool: first-day, deliver: [{item: stone-axe, quantity: 1}], reward: [{item: plank, quantity: 2}], trust: 40}
+    - {id: eco-fiber-sample, faction: island-ecology, pool: first-day, deliver: [{item: fiber, quantity: 4}], reward: [{item: berry, quantity: 5}], trust: 40}
+    - {id: daily-survey-flint, faction: route-surveyors, pool: daily, deliver: [{item: flint, quantity: 4}], reward: [{item: cord, quantity: 2}], trust: 20}
+    - {id: daily-survey-planks, faction: route-surveyors, pool: daily, deliver: [{item: plank, quantity: 3}], reward: [{item: flint, quantity: 3}], trust: 20}
+    - {id: daily-guild-cord, faction: artisan-guilds, pool: daily, deliver: [{item: cord, quantity: 3}], reward: [{item: plank, quantity: 2}], trust: 20}
+    - {id: daily-guild-spear, faction: artisan-guilds, pool: daily, deliver: [{item: spear, quantity: 1}], reward: [{item: cord, quantity: 3}], trust: 30}
+    - {id: daily-eco-berries, faction: island-ecology, pool: daily, deliver: [{item: berry, quantity: 10}], reward: [{item: fiber, quantity: 4}], trust: 20}
+    - {id: daily-eco-meal, faction: island-ecology, pool: daily, deliver: [{item: berry-meal, quantity: 2}], reward: [{item: wood, quantity: 5}], trust: 25}
