@@ -9,8 +9,8 @@ local function expectError(fn: () -> (), message: string): ()
 end
 
 return {
-	["NAMES has exactly 12 unique entries"] = function()
-		assert(#Events.NAMES == 12, "expected exactly 12 names, got " .. #Events.NAMES)
+	["NAMES has exactly 19 unique entries"] = function()
+		assert(#Events.NAMES == 19, "expected exactly 19 names, got " .. #Events.NAMES)
 		local seen: { [string]: boolean } = {}
 		for _, name in Events.NAMES do
 			assert(type(name) == "string", "every name must be a string")
@@ -61,5 +61,58 @@ return {
 		local counts = emitter:counts()
 		assert(counts["egg_hatch"] == 2, "egg_hatch count should be 2, got " .. tostring(counts["egg_hatch"]))
 		assert(counts["session_start"] == nil, "unemitted event should not be counted")
+	end,
+
+	["survival events are registered with typed schemas"] = function()
+		assert(#Events.SURVIVAL == 7, "seven survival events")
+		for _, name in Events.SURVIVAL do
+			assert(table.find(Events.NAMES, name) ~= nil, "survival event in NAMES: " .. name)
+			local types = Events.TYPES[name]
+			assert(types ~= nil, "typed schema for " .. name)
+			for _, required in Events.SCHEMA[name] do
+				assert(types[required] ~= nil, name .. " types its required field " .. required)
+			end
+		end
+		assert(Events.TYPES.gather.ratePerMinute == "number", "gather carries a rate anomaly input")
+		assert(Events.TYPES.travel.pathRepeatId == "string", "travel carries a path repetition id")
+		assert(
+			Events.TYPES.trade.transferGiven == "count" and Events.TYPES.trade.transferReceived == "count",
+			"trade carries one-way transfer ratio inputs"
+		)
+	end,
+
+	["survival emit validates payload types"] = function()
+		local seen = 0
+		local emitter = Events.new(function(_name: string, _fields: { [string]: any })
+			seen += 1
+		end)
+		emitter:emit("gather", { actorId = "a", nodeId = "bush-1", quantity = 3, ratePerMinute = 12.5 })
+		emitter:emit("trade", {
+			actorId = "a",
+			counterpartyId = "b",
+			itemId = "wood",
+			quantity = 2,
+			transferGiven = 2,
+			transferReceived = 0,
+		})
+		expectError(function()
+			emitter:emit("gather", { actorId = "a", nodeId = "bush-1", quantity = -1 })
+		end, "negative count")
+		expectError(function()
+			emitter:emit("gather", { actorId = "a", nodeId = "bush-1", quantity = 1.5 })
+		end, "fractional count")
+		expectError(function()
+			emitter:emit("craft", { actorId = "", recipeId = "r", jobId = "j" })
+		end, "empty string")
+		expectError(function()
+			emitter:emit("death", { actorId = "a", cause = "fall", atMillis = math.huge })
+		end, "non-finite number")
+		expectError(function()
+			emitter:emit("tame", { actorId = "a", creatureId = "c" })
+		end, "missing speciesId")
+		assert(seen == 2, "only valid survival emits reach the sink, got " .. seen)
+		local counts = emitter:counts()
+		assert(counts.gather == 1 and counts.trade == 1, "valid emits are counted once")
+		assert(counts.tame == nil and counts.craft == nil, "invalid emits are not counted")
 	end,
 }
