@@ -7,6 +7,7 @@
 -- field is refused with "paid random item: <key>".
 
 local qualitygate = require("./qualitygate")
+local Catalog = require("../../../core/infra/monetization/Catalog")
 local M = {}
 
 export type Action = "create" | "update"
@@ -156,6 +157,11 @@ function M.buildPlan(
 	local productError = planSection("product", monetization.products, items)
 	if productError ~= nil then
 		return nil, productError
+	end
+	-- ADR-07 BM hard rules (QA-BM-01): any violation refuses the whole plan.
+	local violations = Catalog.lint(monetization)
+	if #violations > 0 then
+		return nil, "catalog lint: " .. table.concat(violations, "; ")
 	end
 	return {
 		pack = pack,
