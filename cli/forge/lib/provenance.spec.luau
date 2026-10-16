@@ -398,7 +398,7 @@ entries:
 	end,
 
 	["N-F1 banned terms in game.yml survive width, case and punctuation tricks"] = function()
-		for _, title in { "Durango Lite", "ＤＵＲＡＮＧＯ", "D.u.r.a.n.g.o" } do
+		for _, title in { "Mooncairn Lite", "ＭＯＯＮＣＡＩＲＮ", "M.o.o.n.c.a.i.r.n" } do
 			expectRule(
 				run(function(files)
 					files[provenance.FILES.game] =
@@ -413,7 +413,7 @@ entries:
 	["N-F2 banned terms in locale cells are matched after normalization"] = function()
 		expectRule(
 			run(function(files)
-				addLocale(files, "hud.a", "듀 랑 고")
+				addLocale(files, "hud.a", "문 케 언")
 				addLocale(files, "hud.b", "야생의땅")
 				addLocale(files, "hud.c", "wild-lands")
 			end),
@@ -479,21 +479,21 @@ entries:
 	["N-F8 findings never print banned words or hashed names in plain text"] = function()
 		local report = run(function(files)
 			files[provenance.FILES.game] =
-				string.gsub(files[provenance.FILES.game], "name: Tidewatch Fixture", "name: Durango")
+				string.gsub(files[provenance.FILES.game], "name: Tidewatch Fixture", "name: Mooncairn")
 			files[provenance.FILES.game] =
 				string.gsub(files[provenance.FILES.game], "name: Wide Satchel", "name: 모래등대단")
-			addLocale(files, "hud.d", "듀랑고 " .. REFERENCE_SLICE)
+			addLocale(files, "hud.d", "문케언 " .. REFERENCE_SLICE)
 		end)
 		assert(not report.ok, "expected FAIL")
 		local text = describe(report)
-		for _, plain in { "Durango", "durango", "듀랑고", "모래등대단", "물결" } do
+		for _, plain in { "Mooncairn", "mooncairn", "문케언", "모래등대단", "물결" } do
 			assert(not string.find(text, plain, 1, true), "plain text leaked: " .. plain)
 		end
 	end,
 
 	["skeleton folds width and case and drops punctuation and zero-width marks"] = function()
-		local a = table.concat(provenance.skeleton("Ｄ.u-r\u{200B}A n g o!") :: { string })
-		assert(a == "durango", a)
+		local a = table.concat(provenance.skeleton("Ｍ.o-o\u{200B}N c a i r n!") :: { string })
+		assert(a == "mooncairn", a)
 		assert(provenance.standaloneLetter("— X:", "X"), "dash-colon bounded letter matches")
 		assert(not provenance.standaloneLetter("XK1", "K"), "letters inside tokens do not match")
 	end,

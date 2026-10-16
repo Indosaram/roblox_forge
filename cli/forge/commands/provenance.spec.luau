@@ -36,7 +36,7 @@ return {
 		end
 		local _, err = command.formatReport(report)
 		assert(string.find(err, "provenance: FAIL contaminated (", 1, true), err)
-		assert(not string.find(err, "Durango", 1, true), "banned term leaked into output")
+		assert(not string.find(err, "Mooncairn", 1, true), "banned term leaked into output")
 	end,
 
 	["shipped packs have no policy, so the gate never touches them"] = function()
