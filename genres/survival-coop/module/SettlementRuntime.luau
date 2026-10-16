@@ -122,7 +122,8 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 							settlement.version,
 							settlement.membershipRevision,
 							"invite",
-							actor
+							actor,
+							clock()
 						)
 						assert(invited, reason)
 						settlement = invited
@@ -705,7 +706,7 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 					else action
 				local target = if action == "leave" or action == "rejoin" then actor else args[1]
 				local settlement, membershipError =
-					Settlement.membership(state.settlement, actor, args[2], args[3], operation, target)
+					Settlement.membership(state.settlement, actor, args[2], args[3], operation, target, now)
 				reason = membershipError
 				if settlement then
 					local changed = Transaction.snapshot(state)
