@@ -1,6 +1,6 @@
 # 로방고 섬 (Robango Island) — 팩 설계 요약
 
-이 문서는 구현 계획(`.omo/plans/durango-roblox-port.md`) §1, §4~§9와 착수 전 결정(ADR-01~09) 가운데 이 팩에 해당하는 내용을 요약한다. 계획 원문이 우선하며, 이 문서의 수치는 전부 신규 산정 초기 가설이다.
+이 문서는 구현 계획 §1, §4~§9와 착수 전 결정 ADR-01~09 가운데 이 팩에 해당하는 내용을 요약한다. 계획 원문이 우선하며, 이 문서의 수치는 전부 신규 산정 초기 가설이다.
 
 - 작업명: 「로방고 섬 / Robango Island」, 팩 slug `robango-island` (ADR-01).
 - 장르: survival-coop 단독, crafting 모드 (ADR-02). 생성 명령: `lune run cli/forge new robango-island --genre survival-coop --mode crafting`.
