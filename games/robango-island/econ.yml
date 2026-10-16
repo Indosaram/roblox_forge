@@ -1,0 +1,800 @@
+'genre_contract':
+  'api':
+   1
+  'configs':
+   'survival-coop':
+    'contentVersion':
+     1
+    'currency':
+     'Coins'
+    'inventory':
+     'carriedContainer':
+      'bag'
+     'containers':
+      'bag':
+       - 
+        'attributes':
+         'origin':
+          'starter'
+         
+        'catalogId':
+         'fiber'
+        'durabilityMilli':
+         0
+        'itemId':
+         'starter-fiber'
+        'qualityMilli':
+         1000
+        'quantity':
+         12
+        
+       - 
+        'attributes':
+         'origin':
+          'starter'
+         
+        'catalogId':
+         'berry'
+        'durabilityMilli':
+         0
+        'itemId':
+         'starter-berry'
+        'qualityMilli':
+         1000
+        'quantity':
+         3
+        
+       
+      
+     'content':
+      'items':
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          5000
+         
+        'id':
+         'berry'
+        'name':
+         'berry'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          15000
+         
+        'id':
+         'berry-meal'
+        'name':
+         'berry-meal'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'campfire-kit'
+        'name':
+         'campfire-kit'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          20000
+         
+        'id':
+         'cooked-meat'
+        'name':
+         'cooked-meat'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'cord'
+        'name':
+         'cord'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'fiber'
+        'name':
+         'fiber'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'flint'
+        'name':
+         'flint'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'floor-kit'
+        'name':
+         'floor-kit'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'meat'
+        'name':
+         'meat'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'plank'
+        'name':
+         'plank'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'roof-kit'
+        'name':
+         'roof-kit'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'spear'
+        'maxDurabilityMilli':
+         100000
+        'name':
+         'spear'
+        'stackMax':
+         1
+        'tags':
+         - 
+          'tool'
+         
+        'weightMilli':
+         2500
+        
+       - 
+        'id':
+         'stone-axe'
+        'maxDurabilityMilli':
+         100000
+        'name':
+         'stone-axe'
+        'stackMax':
+         1
+        'tags':
+         - 
+          'tool'
+         
+        'weightMilli':
+         2500
+        
+       - 
+        'id':
+         'stone-pick'
+        'maxDurabilityMilli':
+         100000
+        'name':
+         'stone-pick'
+        'stackMax':
+         1
+        'tags':
+         - 
+          'tool'
+         
+        'weightMilli':
+         2500
+        
+       - 
+        'id':
+         'storage-kit'
+        'name':
+         'storage-kit'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'wood'
+        'name':
+         'wood'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       - 
+        'id':
+         'workbench-kit'
+        'name':
+         'workbench-kit'
+        'stackMax':
+         50
+        'tags':
+         
+        'weightMilli':
+         500
+        
+       
+      'limits':
+       'hardWeightMilli':
+        90000
+       'qualityMilliMax':
+        5000
+       'qualityMilliMin':
+        1
+       'slots':
+        20
+       'softWeightMilli':
+        60000
+       'tribeMaxMembers':
+        4
+       
+      'nodes':
+       - 
+        'harvest':
+         - 
+          'item':
+           'berry'
+          'quantity':
+           3
+          
+         
+        'id':
+         'berry-bush'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           3
+          
+         
+        'id':
+         'fallen-tree'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'fiber'
+          'quantity':
+           3
+          
+         
+        'id':
+         'fiber-bush'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'flint'
+          'quantity':
+           3
+          
+         
+        'id':
+         'flint-outcrop'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'meat'
+          'quantity':
+           3
+          
+         
+        'id':
+         'meat-cache'
+        'respawnMillis':
+         120000
+        
+       
+      'recipes':
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'berry-meal'
+        'inputs':
+         - 
+          'item':
+           'berry'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'berry-meal'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'campfire-kit'
+        'inputs':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           4
+          
+         
+        'outputs':
+         - 
+          'item':
+           'campfire-kit'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'cooked-meat'
+        'inputs':
+         - 
+          'item':
+           'meat'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'cooked-meat'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'cord'
+        'inputs':
+         - 
+          'item':
+           'fiber'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'cord'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'floor-kit'
+        'inputs':
+         - 
+          'item':
+           'plank'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'floor-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'plank'
+        'inputs':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'plank'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'roof-kit'
+        'inputs':
+         - 
+          'item':
+           'plank'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'roof-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'spear'
+        'inputs':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'spear'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'stone-axe'
+        'inputs':
+         - 
+          'item':
+           'flint'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-axe'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'stone-pick'
+        'inputs':
+         - 
+          'item':
+           'flint'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-pick'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'storage-kit'
+        'inputs':
+         - 
+          'item':
+           'plank'
+          'quantity':
+           4
+          
+         
+        'outputs':
+         - 
+          'item':
+           'storage-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         3000
+        'id':
+         'workbench-kit'
+        'inputs':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           6
+          
+         
+        'outputs':
+         - 
+          'item':
+           'workbench-kit'
+          'quantity':
+           1
+          
+         
+        
+       
+      'rules':
+       'demolitionRefund':
+        'full-storage-v1'
+       'durability':
+        'quality-scaled-v1'
+       'ingredientSelection':
+        'item-id-ascending'
+       'inheritance':
+        'avg-quality-v1'
+       
+      'structures':
+       - 
+        'cost':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           4
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'campfire'
+        'station':
+         true
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           4
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'floor'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           4
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'storage'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           4
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'workbench'
+        'station':
+         true
+        
+       
+      'survival_content':
+       1
+      'tags':
+       - 
+        'tool'
+       
+      'vitals':
+       'fatigueMilliPerAction':
+        500
+       'hungerMillisPerUnit':
+        18000
+       'restMilliPerSecond':
+        2000
+       'starvationMillisPerUnit':
+        5000
+       
+      'wildlife':
+       - 
+        'behavior':
+         'grazer'
+        'fleeStuds':
+         24
+        'id':
+         'grazer'
+        'senseStuds':
+         12
+        
+       - 
+        'attackStuds':
+         4
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         2000
+        'id':
+         'hunter'
+        'leashStuds':
+         40
+        'telegraphMillis':
+         1000
+        'warnStuds':
+         12
+        
+       
+      
+     'speedPenaltyMilli':
+      300
+     
+    'mode':
+     'crafting'
+    'startingBalance':
+     0
+    'survivalDeath':
+     true
+    
+   
+  'order':
+   - 
+    'survival-coop'
+   
+  

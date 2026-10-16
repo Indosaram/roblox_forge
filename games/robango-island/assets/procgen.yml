@@ -1,0 +1,30 @@
+'assets':
+  - 
+   'accent':
+    - 
+     180
+    - 
+     200
+    - 
+     220
+    
+   'archetype':
+    'rock'
+   'body':
+    - 
+     100
+    - 
+     110
+    - 
+     120
+    
+   'key':
+    'survival-coop-starter-prop'
+   'kind':
+    'prop'
+   'scale':
+    1
+   'seed':
+    0
+   
+  
