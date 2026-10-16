@@ -42,6 +42,8 @@ export type Config = {
 	startingBalance: number,
 	contentVersion: number,
 	survivalDeath: boolean?,
+	-- Recorded seed for free craft-crit/latent rolls; absent keeps rolls off.
+	craftSeed: number?,
 	inventory: {
 		content: any,
 		carriedContainer: string,
@@ -106,7 +108,11 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 		contentVersion = true,
 		inventory = true,
 		survivalDeath = true,
+		craftSeed = true,
 	}
+	if data.craftSeed ~= nil and not bounded(data.craftSeed, 0, 2 ^ 53 - 1, true) then
+		table.insert(errors, "craftSeed: invalid bounded integer")
+	end
 	if data.survivalDeath ~= nil and type(data.survivalDeath) ~= "boolean" then
 		table.insert(errors, "survivalDeath: expected boolean")
 	end
@@ -406,7 +412,9 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 							stationId = if station then args[2] else nil,
 							stationKind = if station then station.kind else nil,
 							inReach = station ~= nil and station.reachable,
-						}
+						},
+						-- Rolls read only the recorded seed and job inputs, never ownership.
+						if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
 					)
 				else
 					candidate, err =
