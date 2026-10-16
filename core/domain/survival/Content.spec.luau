@@ -240,6 +240,129 @@ return {
 		)
 	end,
 
+	["skills section validates six disciplines and canonicalizes deterministically"] = function()
+		local function withSkills(): any
+			local document = valid()
+			local disciplines = {}
+			for _, id in { "woodcraft", "gathering", "tailoring", "hearth", "building", "butchery" } do
+				table.insert(disciplines, { id = id, thresholds = { 100, 250, 450 } })
+			end
+			disciplines[1].tools = { { item = "axe", tier = 2 } }
+			document.skills = { baseStep = 1, disciplines = disciplines }
+			document.recipes[2].skill = { id = "woodcraft", xp = 40 }
+			document.nodes[1].skill = { id = "gathering", xp = 5 }
+			return document
+		end
+		local document, errors = Content.canonicalize(withSkills())
+		assert(document ~= nil, table.concat(errors, "; "))
+		local skills = (document :: any).skills
+		assert(skills.baseStep == 1 and #skills.disciplines == 6, "six disciplines ship")
+		assert(skills.disciplines[1].id == "building", "disciplines sorted by id")
+		local woodcraft = skills.disciplines[6]
+		assert(woodcraft.id == "woodcraft" and woodcraft.tools[1].tier == 2, "tool tiers ship")
+		assert((document :: any).nodes[1].skill.xp == 5, "node grant ships")
+		local again = assert(Content.canonicalize(withSkills()))
+		assert(contract.serialize(again) == contract.serialize(document), "deterministic canonical skills")
+		local legacy = assert(Content.canonicalize(valid()))
+		assert(legacy.skills == nil and legacy.recipes[1].skill == nil, "absent skills stay absent")
+
+		local function broken(change: (any) -> ()): { string }
+			local raw = withSkills()
+			change(raw)
+			return Content.validate(raw)
+		end
+		assert(
+			hasError(
+				broken(function(d)
+					table.remove(d.skills.disciplines)
+				end),
+				"expected exactly 6 disciplines"
+			),
+			"five disciplines refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.skills.disciplines[2].thresholds = { 100, 100 }
+				end),
+				"strictly ascending"
+			),
+			"non-ascending thresholds refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.skills.disciplines[2].id = "woodcraft"
+				end),
+				"duplicate discipline"
+			),
+			"duplicate discipline refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.skills.respec = "reroll"
+				end),
+				"skills: unknown field respec"
+			),
+			"unknown skills field refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.skills.disciplines[1].bonus = 1
+				end),
+				"unknown field bonus"
+			),
+			"unknown discipline field refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.skills.disciplines[1].tools[1].item = "ghost"
+				end),
+				"unknown item ghost"
+			),
+			"unknown tool item refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.recipes[2].skill.id = "alchemy"
+				end),
+				"unknown discipline alchemy"
+			),
+			"grant must name a declared discipline"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.nodes[1].skill.xp = 0
+				end),
+				"skill.xp: expected integer"
+			),
+			"zero xp grant refused"
+		)
+		assert(
+			hasError(
+				broken(function(d)
+					d.recipes[2].skill.bonus = 2
+				end),
+				"skill: unknown field bonus"
+			),
+			"unknown grant field refused"
+		)
+		assert(
+			hasError(
+				mutate(function(d)
+					d.nodes[1].skill = { id = "gathering", xp = 5 }
+				end),
+				"requires a skills section"
+			),
+			"grant without skills section refused"
+		)
+	end,
+
 	["a newer envelope version is refused rather than downgraded"] = function()
 		local errors = mutate(function(document)
 			document.survival_content = 2
