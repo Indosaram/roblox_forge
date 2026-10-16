@@ -7,6 +7,7 @@ local Job = require("../../../core/domain/crafting/Job")
 local Memory = require("../../../core/infra/data/MemoryBackend")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
+local Events = require("../../../core/infra/analytics/Events")
 local serde = require("@lune/serde")
 local function encode(value: any): string
 	return serde.encode("json", value)
@@ -140,6 +141,7 @@ local function fixture(skilled: boolean?): any
 			initial = c.initial,
 			content = c.content,
 			maxReceipts = c.cap,
+			analytics = c.analytics,
 			nowMillis = function(): number
 				return c.millis or 0
 			end,
@@ -265,6 +267,33 @@ return {
 		local envelope = c.read("personal-v1:alice").data.envelope
 		assert(envelope.skills == nil and envelope.genres == nil, "no skills data appears")
 		assert(envelope.unrelated.coins == 17, "envelope otherwise unchanged")
+	end,
+	["accepted gather emits one typed analytics event and replays or refusals emit none"] = function()
+		local seen: { { name: string, fields: { [string]: any } } } = {}
+		local refused = fixture()
+		refused.analytics = Events.new(function(name: string, fields: { [string]: any })
+			table.insert(seen, { name = name, fields = fields })
+		end)
+		refused.open("same-session")
+		refused.allowed = false
+		assert(refused.runtime.command(refused.request).status == "rejected", "access refusal")
+		assert(#seen == 0, "a refused gather emits nothing")
+		local c = fixture()
+		c.millis = 4200
+		c.analytics = refused.analytics
+		c.open("same-session")
+		assert(c.runtime.command(c.request).status == "pending", "first credit is pending finalization")
+		finish(c)
+		for _ = 1, 3 do
+			assert(c.runtime.command(c.request).status == "confirmed", "exact duplicate")
+		end
+		assert(#seen == 1, "exactly one gather event, got " .. #seen)
+		local event = seen[1]
+		assert(event.name == "gather", "gather event")
+		assert(event.fields.actorId == "alice" and event.fields.nodeId == "bush-1", "actor and node")
+		assert(event.fields.quantity == 4, "fiber 3 + seed 1 minted, got " .. tostring(event.fields.quantity))
+		assert(event.fields.atMillis == 4200, "explicit clock, not wall time")
+		assert(c.analytics:counts().gather == 1, "counted once")
 	end,
 	["respawn persists exact deadline capacity and version without replay harvest"] = function()
 		local c = fixture()

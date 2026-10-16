@@ -1,0 +1,39 @@
+# QA-NAME-01 banned names for packs derived from the reference-IP research
+# (plan §2.1, design provenance-gate-design.md §5.7). Copy into
+# games/<pack>/provenance/banned-names.yml.
+# The original title is committed only inside hashedNames (never in plain text).
+# The remaining terms/stems are plain on purpose (review readability, plan wording);
+# original proper names are committed only as sha256-48 hashes, generated from
+# a reviewed list kept under the gitignored .omo/ with:
+#   lune run cli/forge provenance fingerprint --names <list> --salt reference-ip-names-v1
+version: 1
+terms:
+  - Wild Lands
+  - 야생의 땅
+stems:
+  - 개척
+  - Pioneer
+  - 워프
+singleLetter:
+  - K
+  - X
+hashedNames:
+  algo: sha256-48
+  salt: "reference-ip-names-v1"
+  entries:
+    - [2, "91adb52a2fff"]
+    - [3, "8af17bffb677"]
+    - [3, "dd15461a8fb3"]
+    - [3, "e93919b19b27"]
+    - [4, "38b85dc8fd1e"]
+    - [4, "c1139850acec"]
+    - [4, "c70ca5c1d83b"]
+    - [5, "625dd104f27d"]
+    - [5, "730dc45c79f8"]
+    - [5, "cd9dd24fdbec"]
+    - [6, "0141e45c4ac3"]
+    - [6, "03594e99df65"]
+    - [7, "14bd18d4927c"]
+    - [7, "4a06b908d6ba"]
+    - [7, "c447e65cabb5"]
+    - [7, "c937169718d8"]

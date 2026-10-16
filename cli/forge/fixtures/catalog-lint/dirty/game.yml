@@ -1,0 +1,28 @@
+name: Catalog lint dirty fixture
+# QA-BM-01 failing fixture: every entry breaks one ADR-07 rule.
+monetization:
+  gamepasses:
+    - key: luckyCharm
+      name: Lucky Charm
+      price: 199
+      luckMultiplier: 2
+  products:
+    - key: mysteryCrate
+      name: Mystery Crate
+      price: 99
+      pool: [a, b]
+      odds: [50, 50]
+    - key: harvestBoost
+      name: Harvest Boost
+      price: 149
+      dropRate: 1.5
+    - key: shellPack
+      name: Shell Pack
+      price: 49
+      kind: currency
+      currencyAmount: 1000
+  subscriptions:
+    - key: tideMonthly
+      name: Tide Monthly
+      price: 499
+      grant: {kind: subscriptionMonthly, cosmeticSetId: tide-set, storageSlots: 10, rerollChance: 5}

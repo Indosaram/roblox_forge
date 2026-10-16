@@ -1,0 +1,51 @@
+--!strict
+export type Policy = {
+	personal: { namespace: string, inventoryPath: { string } }?,
+	actions: { string },
+	serverActions: { string }?,
+	tickAction: string?,
+	windowSeconds: number?,
+	maxOutcomes: number?,
+}
+local policy: Policy = {
+	["actions"] = {
+		[1] = "survival-coop:attack",
+		[10] = "survival-coop:settlement-place",
+		[11] = "survival-coop:settlement-cancel",
+		[12] = "survival-coop:settlement-demolish",
+		[13] = "survival-coop:settlement-workshop-reserve",
+		[14] = "survival-coop:settlement-workshop-start",
+		[15] = "survival-coop:settlement-workshop-complete",
+		[16] = "survival-coop:settlement-workshop-cancel",
+		[17] = "survival-coop:craft-reserve",
+		[18] = "survival-coop:craft-start",
+		[19] = "survival-coop:craft-complete",
+		[2] = "survival-coop:gather",
+		[20] = "survival-coop:craft-cancel",
+		[21] = "survival-coop:food",
+		[22] = "survival-coop:rest",
+		[23] = "survival-coop:inventory-move",
+		[24] = "survival-coop:inventory-split",
+		[25] = "survival-coop:inventory-merge",
+		[3] = "survival-coop:transfer-deposit",
+		[4] = "survival-coop:transfer-withdraw",
+		[5] = "survival-coop:settlement-leave",
+		[6] = "survival-coop:settlement-kick",
+		[7] = "survival-coop:settlement-transfer-owner",
+		[8] = "survival-coop:settlement-rejoin",
+		[9] = "survival-coop:settlement-reserve",
+	},
+	["personal"] = {
+		["inventoryPath"] = { [1] = "genres", [2] = "survival-coop", [3] = "data", [4] = "inventory", [5] = "bag" },
+		["namespace"] = "personal",
+	},
+	["serverActions"] = {
+		[1] = "survival-coop:settlement-invite",
+		[2] = "survival-coop:server-vitals-tick",
+		[3] = "survival-coop:vitals-damage",
+		[4] = "survival-coop:rest-stop",
+		[5] = "survival-coop:respawn",
+	},
+	["tickAction"] = "survival-coop:server-vitals-tick",
+}
+return policy

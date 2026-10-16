@@ -1,0 +1,74 @@
+'cues':
+  - 
+   'duration':
+    0.3
+   'key':
+    'survival-coop-action'
+   'kind':
+    'sfx'
+   'seed':
+    0
+   'type':
+    'raid'
+   
+  - 
+   'duration':
+    0.2
+   'key':
+    'survival-coop-gather'
+   'kind':
+    'sfx'
+   'seed':
+    1
+   'type':
+    'click'
+   
+  - 
+   'duration':
+    0.4
+   'key':
+    'survival-coop-craft'
+   'kind':
+    'sfx'
+   'seed':
+    2
+   'type':
+    'hatch'
+   
+  - 
+   'duration':
+    0.15
+   'key':
+    'survival-coop-eat'
+   'kind':
+    'sfx'
+   'seed':
+    3
+   'type':
+    'click'
+   
+  - 
+   'duration':
+    4
+   'key':
+    'survival-coop-rest'
+   'kind':
+    'ambience'
+   'seed':
+    4
+   'type':
+    'wind'
+   
+  - 
+   'duration':
+    6
+   'key':
+    'survival-coop-ambient'
+   'kind':
+    'ambience'
+   'seed':
+    5
+   'type':
+    'birds'
+   
+  

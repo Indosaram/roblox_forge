@@ -11,6 +11,7 @@ local Transfer = require("../../../core/infra/data/ItemTransfer")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
 local Skills = require("./Skills")
+local Events = require("../../../core/infra/analytics/Events")
 local M = {}
 export type PersonalPort = {
 	personal: Personal.Store,
@@ -38,6 +39,9 @@ export type Config = {
 	-- busy gate excludes local bag mutation; external lease takeover is checked
 	-- again on destination credit. This is authorization, not a bag debit.
 	access: (Request, Inventory.State, Fenced.Data) -> Gathering.Access?,
+	-- Optional core analytics emitter: one gather event per newly accepted
+	-- source commit (never for idempotent replays or rejections).
+	analytics: Events.Emitter?,
 }
 export type Result = { status: string, error: string?, transfers: { Transfer.Result }, skillError: string? }
 export type Runtime = {
@@ -208,8 +212,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local reason: string? = nil
 		local accepted: any = nil
 		local fresh: { grant: Content.SkillGrant, tools: Inventory.State }? = nil
+		local gathered: number? = nil
 		local updated, err = store:update(source, function(data)
-			reason, accepted, fresh = nil, nil, nil
+			reason, accepted, fresh, gathered = nil, nil, nil, nil
 			local known = data.grants[id]
 			if known then
 				if known.binding ~= binding then
@@ -293,6 +298,11 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				end
 			end
 			accepted = { binding = binding, mints = mints, destination = destinationKey }
+			local total = 0
+			for _, mint in mints do
+				total += mint.item.quantity
+			end
+			gathered = total
 			minted.grants[id] = copy(accepted)
 			if mastery then
 				local catalogId = candidate.nodes.nodes[req.nodeId].catalogId
@@ -313,6 +323,14 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return failed(reason, if reason == "REQUEST_CONFLICT" then "conflict" else nil)
 		end
 		local progressed = advance(personal, { accepted })
+		if gathered and config.analytics then
+			config.analytics:emit("gather", {
+				actorId = req.actorId,
+				nodeId = req.nodeId,
+				quantity = gathered,
+				atMillis = config.nowMillis(),
+			})
+		end
 		if fresh then
 			local skillError = awardSkill(personal, fresh.grant, fresh.tools)
 			if skillError then

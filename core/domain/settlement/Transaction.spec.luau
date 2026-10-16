@@ -224,19 +224,20 @@ return {
 	end,
 	["revoked actor cannot debit and owner can release pinned reservation"] = function()
 		local state = initial()
-		local invited = Settlement.membership(state.settlement, "owner", 0, 0, "invite", "member")
+		local invited = Settlement.membership(state.settlement, "owner", 0, 0, "invite", "member", 0)
 		assert(invited, "invite")
 		state.settlement = invited
 		local reserved = Transaction.reserve(state, catalog, context(state, "member-place", "member"), request())
 		assert(reserved, "member reserves")
-		local revoked = Settlement.membership(reserved.settlement, "owner", 2, 1, "revoke", "member")
+		local revoked = Settlement.membership(reserved.settlement, "owner", 2, 1, "revoke", "member", 0)
 		assert(revoked, "revoke")
 		reserved.settlement = revoked
 		local before = Transaction.snapshot(reserved)
 		local id = Transaction.reservationId("tribe", "member-place")
 		local refused, err = Transaction.commit(reserved, catalog, context(reserved, "commit", "member"), id)
 		assert(not refused and err == "FORBIDDEN" and equal(before, reserved), "revocation precedes debit")
-		local reinvited = Settlement.membership(revoked, "owner", 3, 2, "invite", "member")
+		local reinvited =
+			Settlement.membership(revoked, "owner", 3, 2, "invite", "member", Settlement.REJOIN_COOLDOWN_SECONDS)
 		assert(reinvited, "reinvite")
 		reserved.settlement = reinvited
 		local late, lateError = Transaction.commit(reserved, catalog, context(reserved, "late", "member"), id)

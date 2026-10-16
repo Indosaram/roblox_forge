@@ -16,7 +16,9 @@ local publication = require("../lib/packpublication")
 local registryLib = require("../lib/genreregistry")
 local contract = require("../lib/genrecontract")
 local qaCommand = require("./qa")
+local provenanceCommand = require("./provenance")
 local Profile = require("../lib/profile")
+local MonetizationCatalog = require("../../../core/infra/monetization/Catalog")
 local M = {}
 function M.validatePackContract(game: any, config: any, registry: registryLib.Registry): { string }
 	local result = gameYml.validate(game, { registry = registry, config = config })
@@ -225,6 +227,7 @@ M.STAGES = {
 	"game",
 	"assets",
 	"locale",
+	"provenance",
 	"lock",
 	"specs",
 	"build",
@@ -483,6 +486,19 @@ function M.run(args: { string }?): boolean
 					)
 				end
 			end
+			-- ADR-07 BM hard rules over game.yml monetization (QA-BM-01).
+			local gamePath = "games/" .. pack .. "/game.yml"
+			if fs.isFile(gamePath) then
+				local gameOk, game = pcall(function()
+					return serde.decode("yaml", fs.readFile(gamePath))
+				end)
+				if gameOk and type(game) == "table" then
+					for _, violation in MonetizationCatalog.lint(game.monetization) do
+						econFailed = true
+						table.insert(econLogs, "catalog lint: " .. gamePath .. ": " .. violation)
+					end
+				end
+			end
 		end
 		return not econFailed, table.concat(econLogs, "\n")
 	end
@@ -598,6 +614,25 @@ function M.run(args: { string }?): boolean
 			end
 		end
 		return not localeFailed, table.concat(localeLogs, "\n")
+	end
+
+	-- release provenance (QA-PROV-01/QA-NAME-01) for packs that opted in with
+	-- provenance/policy.yml; packs without a policy are skipped
+	stageFns["provenance"] = function(): (boolean, string)
+		local provenanceFailed = false
+		local provenanceLogs: { string } = {}
+		for _, pack in gamePacks do
+			local packDir = PACKS_DIR .. "/" .. pack
+			if provenanceCommand.hasPolicy(packDir) then
+				local report = provenanceCommand.checkPackDir(pack, packDir)
+				local out, errText = provenanceCommand.formatReport(report)
+				if not report.ok then
+					provenanceFailed = true
+				end
+				table.insert(provenanceLogs, out .. errText)
+			end
+		end
+		return not provenanceFailed, table.concat(provenanceLogs, "")
 	end
 
 	-- forge-lock pins must match the packages the pack references

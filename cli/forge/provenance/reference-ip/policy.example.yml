@@ -1,0 +1,17 @@
+# Template for games/<pack>/provenance/policy.yml (opt-in). With this policy
+# the pack must also carry provenance/fingerprints/namu-20261016.path holding
+# the line: cli/forge/provenance/reference-ip/fingerprints
+version: 1
+track: original
+allowedSources: [original]
+ngram:
+  n: 8
+  sets: [namu-20261016]
+dialogueKeyPrefixes: [dialogue., speaker., npc.]
+assets:
+  allowTools: [forge-procgen, trellis]
+  # recipe.id values written by forge gen procedural / gen audio
+  allowRecipes:
+    forge-procgen: [gen-procedural, gen-audio]
+  licensedKinds: [sfx]
+  denyTools: [audiocraft, roblox-cube, hunyuan3d-2]

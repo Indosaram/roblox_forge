@@ -17,6 +17,7 @@ local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
 local Skills = require("./Skills")
+local Events = require("../../../core/infra/analytics/Events")
 
 local M = {}
 
@@ -43,6 +44,8 @@ export type Config = {
 	startingBalance: number,
 	contentVersion: number,
 	survivalDeath: boolean?,
+	-- Recorded seed for free craft-crit/latent rolls; absent keeps rolls off.
+	craftSeed: number?,
 	inventory: {
 		content: any,
 		carriedContainer: string,
@@ -107,7 +110,11 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 		contentVersion = true,
 		inventory = true,
 		survivalDeath = true,
+		craftSeed = true,
 	}
+	if data.craftSeed ~= nil and not bounded(data.craftSeed, 0, 2 ^ 53 - 1, true) then
+		table.insert(errors, "craftSeed: invalid bounded integer")
+	end
 	if data.survivalDeath ~= nil and type(data.survivalDeath) ~= "boolean" then
 		table.insert(errors, "survivalDeath: expected boolean")
 	end
@@ -298,7 +305,14 @@ local ACTION_FEATURE: { [string]: string } = {
 	["defend-active"] = "wildlife",
 }
 
-function M.new(config: Config, services: Shared.Services, suppliedWallet: WalletPort?): Shared.Instance
+-- analytics is optional: when supplied, committed craft completions and
+-- survival deaths emit core analytics events after apply/notify.
+function M.new(
+	config: Config,
+	services: Shared.Services,
+	suppliedWallet: WalletPort?,
+	analytics: Events.Emitter?
+): Shared.Instance
 	assert(#M.validateConfig(config :: any) == 0, "invalid crafting config")
 	config = table.clone(config)
 	assert(suppliedWallet == nil or config.startingBalance == 0, "composition requires zero crafting starting balance")
@@ -373,6 +387,8 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 		}
 	local lastAt = services.now()
 	assert(type(lastAt) == "number" and lastAt == lastAt and math.abs(lastAt) < math.huge, "invalid initial clock")
+	-- Events observed while staging one command; emitted only once it commits.
+	local observed: { { name: string, fields: Events.Fields } } = {}
 	local function savePlayer(
 		id: string,
 		containers: { [string]: Inventory.State }?,
@@ -436,7 +452,9 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 							stationId = if station then args[2] else nil,
 							stationKind = if station then station.kind else nil,
 							inReach = station ~= nil and station.reachable,
-						}
+						},
+						-- Rolls read only the recorded seed and job inputs, never ownership.
+						if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
 					)
 				else
 					candidate, err =
@@ -473,6 +491,20 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 						local tier = Skills.toolTier(mastery, recipe.skill.id, candidate.inventory)
 						skills = (Skills.award(mastery, skills, recipe.skill.id, recipe.skill.xp, tier))
 					end
+				end
+			end
+			if candidate and err == nil and action == "craft-complete" then
+				local entry = candidate.jobs.entries[candidate.jobId]
+				if entry and entry.job.state == "Committed" then
+					table.insert(observed, {
+						name = "craft",
+						fields = {
+							actorId = id,
+							recipeId = entry.job.recipeId,
+							jobId = candidate.jobId,
+							atMillis = if context then context.nowMillis else nil,
+						},
+					})
 				end
 			end
 			local data = savePlayer(id, states, vitals, jobs, skills)
@@ -515,6 +547,12 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 						nextVitals = if action == "vitals-damage"
 							then Vitals.damage(advanced, args[1])
 							else Vitals.stopRest(advanced)
+						if nextVitals and nextVitals.healthMilli == 0 then
+							table.insert(observed, {
+								name = "death",
+								fields = { actorId = id, cause = action, atMillis = nowMillis },
+							})
+						end
 					end
 				elseif action == "food" then
 					nextBag, nextVitals, err = Consumption.consume(
@@ -699,9 +737,23 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 			end
 			bundles, bag = dropped, remaining
 			local deathId = "death:" .. tostring(bundles.lastSequence)
+			local droppedItems = 0
 			if bundles.bundles[deathId] then
 				locations[deathId] = table.clone(position)
+				for _ in bundles.bundles[deathId].inventory.items do
+					droppedItems += 1
+				end
 			end
+			table.insert(observed, {
+				name = "death",
+				fields = {
+					actorId = id,
+					cause = action,
+					deathId = deathId,
+					droppedItems = droppedItems,
+					atMillis = now,
+				},
+			})
 		end
 		local expired = DeathBundle.expire(bundles, authority, now)
 		if not expired then
@@ -751,6 +803,45 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 				players[id] = candidate
 			end,
 		}
+	end
+	-- Emits what one staged command observed exactly once, after Session commits
+	-- it (apply on the legacy lane, notify on the fenced personal lane).
+	local function tracked(
+		id: string,
+		action: string,
+		args: { any },
+		context: Shared.CommandContext?
+	): Shared.CommandStage?
+		table.clear(observed)
+		local candidate = stage(id, action, args, context)
+		local events = table.clone(observed)
+		table.clear(observed)
+		if not candidate or not analytics or #events == 0 or not candidate.result.ok then
+			return candidate
+		end
+		local emitter = analytics
+		local sent = false
+		local function flush()
+			if sent then
+				return
+			end
+			sent = true
+			for _, event in events do
+				emitter:emit(event.name, event.fields)
+			end
+		end
+		local apply, notify = candidate.apply, candidate.notify
+		candidate.apply = function()
+			apply()
+			flush()
+		end
+		candidate.notify = function()
+			if notify then
+				notify()
+			end
+			flush()
+		end
+		return candidate
 	end
 	local function pendingServerEvent(id: string, nowMillis: number): string?
 		local player = players[id]
@@ -910,12 +1001,12 @@ function M.new(config: Config, services: Shared.Services, suppliedWallet: Wallet
 		leave = function(id)
 			players[id] = nil
 		end,
-		stageCommand = stage,
+		stageCommand = tracked,
 		dispatch = function(id, action, args)
 			if players[id] == nil then
 				return { ok = false, reason = "not joined" }
 			end
-			local staged = stage(id, action, args)
+			local staged = tracked(id, action, args)
 			if staged then
 				staged.apply()
 				return staged.result

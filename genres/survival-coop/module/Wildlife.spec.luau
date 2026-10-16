@@ -208,4 +208,119 @@ return {
 		local duplicate, err = Wildlife.attack(dead.wildlife, dead.inventory, catalog, 4000, dead.nextAttack, access)
 		assert(not duplicate and err == "ALREADY_DEAD", "wildlife invariant")
 	end,
+	["leash escape returns home healing and arrival restores full health"] = function()
+		local content, catalog, state, observation = fixture()
+		local definition, rule = content.wildlife[2], catalog.species.hunter
+		state.healthMilli = 10000
+		observation.position = { x = 41, y = 0, z = 0 }
+		local returning, intent = Wildlife.step(state, definition, rule, 1000, observation)
+		assert(tostring(returning.mode) == "return" and returning.target == nil, "beyond leash returns")
+		assert(assert(intent.destination, "home").x == 0, "return aims at home")
+		assert(returning.healthMilli == 20000 and intent.healMilli == 10000, "regen while returning: 25%/s")
+		observation.position = { x = 0.5, y = 0, z = 0 }
+		observation.actors = {}
+		local home, arrived = Wildlife.step(returning, definition, rule, 1100, observation)
+		assert(tostring(home.mode) == "idle" and home.healthMilli == 40000, "arrival restores full health")
+		assert(arrived.healMilli == 20000, "heal delta is published for the owner")
+		local again, none = Wildlife.step(home, definition, rule, 1200, observation)
+		assert(again.healthMilli == 40000 and none.healMilli == nil, "no heal past maximum")
+	end,
+	["no stuck aggro: unreachable engagement disengages and vanished provokers are forgotten"] = function()
+		local content, catalog, state, observation = fixture()
+		local definition, rule = content.wildlife[2], catalog.species.hunter
+		observation.actors = { { id = "alice", position = { x = 6, y = 0, z = 0 }, alive = true } }
+		local function step(now: number): Wildlife.Intent
+			local nextState, intent = Wildlife.step(state, definition, rule, now, observation)
+			state = nextState
+			return intent
+		end
+		step(0)
+		assert(tostring(state.mode) == "warn", "engages")
+		step(1000)
+		step(19999)
+		assert(tostring(state.mode) == "chase", "still chasing inside the disengage window")
+		local intent = step(20000)
+		assert(tostring(state.mode) == "idle" and state.target == nil, "disengages after 20s out of strike range")
+		assert(intent.damage == nil, "disengage never strikes")
+		-- Negative control: a target kept inside strike range refreshes the engagement.
+		local _, catalog2, fresh, near = fixture()
+		near.actors = { { id = "bob", position = { x = 3, y = 0, z = 0 }, alive = true } }
+		local s = fresh
+		for _, now in { 0, 1000, 2000, 4000, 8000, 12000, 16000, 20000, 24000 } do
+			s = Wildlife.step(s, definition, catalog2.species.hunter, now, near)
+		end
+		assert(tostring(s.mode) ~= "idle" and tostring(s.mode) ~= "return", "an engaged fight is not dropped")
+		-- A provoker that dies or teleports away cannot keep the creature hostile.
+		local _, catalog3, sweeper = fixture()
+		local tail: any = table.clone(definition)
+		tail.behavior = "tail-sweeper"
+		local quiet: Wildlife.Observation = {
+			position = { x = 0, y = 0, z = 0 },
+			actors = { { id = "carol", position = { x = 3, y = 0, z = 0 }, alive = true } },
+			pathFailed = false,
+			lineOfSight = function()
+				return true
+			end,
+		}
+		sweeper = Wildlife.step(sweeper, tail, catalog3.species.hunter, 0, quiet)
+		assert(tostring(sweeper.mode) == "idle", "retaliator ignores an unprovoking actor in range")
+		quiet.provokedBy = "carol"
+		sweeper = Wildlife.step(sweeper, tail, catalog3.species.hunter, 10, quiet)
+		assert(tostring(sweeper.mode) == "warn" and sweeper.provoker == "carol", "provocation engages")
+		quiet.provokedBy = nil
+		quiet.actors[1].alive = false
+		sweeper = Wildlife.step(sweeper, tail, catalog3.species.hunter, 20, quiet)
+		assert(sweeper.provoker == nil and sweeper.target == nil, "dead provoker forgotten")
+		assert(tostring(sweeper.mode) == "idle", "no aggro survives its target")
+	end,
+	["sleep wakes only on close approach and hibernation outside observers heals in place"] = function()
+		local content, catalog, state, observation = fixture()
+		local definition, rule = content.wildlife[2], catalog.species.hunter
+		observation.actors = { { id = "alice", position = { x = 8, y = 0, z = 0 }, alive = true } }
+		observation.resting = true
+		local slept = Wildlife.step(state, definition, rule, 0, observation)
+		assert(tostring(slept.mode) == "sleep", "inside detection but beyond the wake radius it sleeps")
+		observation.actors[1].position.x = 5
+		local woke = Wildlife.step(slept, definition, rule, 1, observation)
+		assert(tostring(woke.mode) == "warn", "a close approach wakes it")
+		-- Negative control: awake (no rest window), the same approach at 8 studs warns.
+		observation.resting = nil
+		observation.actors[1].position.x = 8
+		assert(tostring(Wildlife.step(state, definition, rule, 0, observation).mode) == "warn", "awake warns")
+		observation.observerStuds = Wildlife.HIBERNATE_STUDS
+		observation.actors[1].position.x = 200
+		local hurt = table.clone(state)
+		hurt.healthMilli = 1
+		local idle, intent = Wildlife.step(hurt, definition, rule, 5, observation)
+		assert(tostring(idle.mode) == "hibernate" and idle.healthMilli == 40000, "unobserved at home hibernates whole")
+		assert(intent.destination == nil and intent.healMilli == 39999, "hibernation stops movement")
+		observation.position = { x = 30, y = 0, z = 0 }
+		local away, walk = Wildlife.step(hurt, definition, rule, 5, observation)
+		assert(tostring(away.mode) == "return" and assert(walk.destination, "home").x == 0, "strays walk home first")
+		observation.actors[1].position.x = 40
+		observation.position = { x = 0, y = 0, z = 0 }
+		local seen = Wildlife.step(idle, definition, rule, 6, observation)
+		assert(tostring(seen.mode) == "idle", "an observer inside the radius ends hibernation")
+	end,
+	["danger band widens hunter detection and herd-grazer flees provocation"] = function()
+		local content, catalog, state, observation = fixture()
+		local banded: any = table.clone(content.wildlife[2])
+		banded.behavior, banded.dangerBand = "charger", 3
+		observation.actors = { { id = "alice", position = { x = 17, y = 0, z = 0 }, alive = true } }
+		assert(
+			tostring(Wildlife.step(state, content.wildlife[2], catalog.species.hunter, 0, observation).mode) == "idle",
+			"band 1 ignores 17 studs"
+		)
+		assert(
+			tostring(Wildlife.step(state, banded, catalog.species.hunter, 0, observation).mode) == "warn",
+			"band 3 (x1.5 = 18) notices 17 studs"
+		)
+		local grazer = Wildlife.new("g", "grazer", { x = 0, y = 0, z = 0 }, catalog)
+		local herd: any = table.clone(content.wildlife[1])
+		herd.behavior = "herd-grazer"
+		observation.actors[1].position.x = 30
+		observation.provokedBy = "alice"
+		local fled = Wildlife.step(grazer, herd, catalog.species.grazer, 0, observation)
+		assert(tostring(fled.mode) == "flee" and fled.target == "alice", "alarm makes a grazer flee its provoker")
+	end,
 }

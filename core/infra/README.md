@@ -9,5 +9,6 @@ engine APIs.
 - `analytics/` — Economy Events and telemetry
 - `localization/` — string extraction and Localization API sync
 - `liveops/` — events, messaging, weekly update plumbing
+- `island/` — friend home-island visits (read and help only, never take)
 
 Adapters translate engine calls into domain inputs; domain logic stays pure.

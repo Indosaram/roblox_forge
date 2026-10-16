@@ -2,8 +2,11 @@
 -- Copy-on-write encounter rules. The owning command transaction publishes combat
 -- candidates, including inventory wear and the one death/drop entitlement together.
 local Content = require("../../../core/domain/survival/Content")
+local Archetype = require("../../../core/domain/survival/Archetype")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local M = {}
+--- Observer radius used by the world binding for hibernation LOD.
+M.HIBERNATE_STUDS = Archetype.HIBERNATE_STUDS
 export type Position = { x: number, y: number, z: number }
 export type Actor = { id: string, position: Position, alive: boolean }
 export type Species = { healthMilli: number, damageMilli: number, drops: { Content.Quantity } }
@@ -28,14 +31,26 @@ export type State = {
 	strike: number,
 	version: number,
 	killer: string?,
+	-- Actor that provoked this creature (damage or herd alarm); cleared on disengage.
+	provoker: string?,
+	-- Last clock at which the engagement made progress (new target, in strike range).
+	engagedAt: number?,
 }
 export type Observation = {
 	position: Position,
 	actors: { Actor },
 	pathFailed: boolean,
 	lineOfSight: (string) -> boolean,
+	-- Optional extensions; absent keeps the legacy behaviour exactly.
+	observerStuds: number?, -- no living actor this close: hibernate
+	resting: boolean?, -- caller's clock-derived rest window: an undisturbed creature sleeps
+	provokedBy: string?, -- actor that damaged it (or alarmed its herd) since the last step
 }
-export type Intent = { destination: Position?, damage: { actorId: string, damageMilli: number, strikeId: string }? }
+export type Intent = {
+	destination: Position?,
+	damage: { actorId: string, damageMilli: number, strikeId: string }?,
+	healMilli: number?,
+}
 export type Access = {
 	actorId: string,
 	alive: boolean,
@@ -99,6 +114,19 @@ function M.new(id: string, kind: string, home: Position, catalog: Catalog): Stat
 		version = 0,
 	}
 end
+local RESTING: { [string]: boolean } = { idle = true, roam = true, sleep = true, hibernate = true }
+local ENGAGED: { [string]: boolean } = { warn = true, chase = true, telegraph = true }
+-- Health restored by a return leg of `elapsed` milliseconds (integer, floor).
+local function regen(maxMilli: number, elapsed: number): number
+	return maxMilli * Archetype.RETURN_REGEN_PERMILLE_PER_SECOND * elapsed // 1000000
+end
+-- Heals `nextState` to `target` health and records the delta on the intent.
+local function heal(nextState: State, intent: Intent, target: number)
+	if target > nextState.healthMilli then
+		intent.healMilli = (intent.healMilli or 0) + target - nextState.healthMilli
+		nextState.healthMilli = target
+	end
+end
 function M.step(
 	state: State,
 	definition: Content.Wildlife,
@@ -108,6 +136,9 @@ function M.step(
 ): (State, Intent)
 	assert(integer(now, state.lastMillis, 2 ^ 53 - 1), "INVALID_CLOCK")
 	assert(definition.id == state.catalogId, "WRONG_SPECIES")
+	local archetype = assert(Archetype.get(definition.behavior), "UNKNOWN_BEHAVIOR")
+	local flag = definition.flag or archetype.flag
+	local band = definition.dangerBand or 1
 	local nextState = table.clone(state)
 	nextState.home = table.clone(state.home)
 	nextState.lastMillis = now
@@ -120,23 +151,70 @@ function M.step(
 		nextState.mode, nextState.target, nextState.deadline = "idle", nil, 0
 		return nextState, intent
 	end
+	if observation.provokedBy then
+		nextState.provoker = observation.provokedBy
+	end
 	local closest: Actor? = nil
 	local distance = math.huge
+	local provoker: Actor? = nil
 	for _, actor in observation.actors do
 		if actor.alive then
 			local d = M.distance(observation.position, actor.position)
 			if d < distance or (d == distance and closest ~= nil and actor.id < closest.id) then
 				closest, distance = actor, d
 			end
+			if actor.id == nextState.provoker then
+				provoker = actor
+			end
 		end
 	end
-	if definition.behavior == "grazer" then
-		local radius = if state.mode == "flee"
-			then assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD")
-			else assert(definition.senseStuds, "MISSING_BEHAVIOR_FIELD")
-		if closest and distance <= radius then
-			nextState.mode, nextState.target = "flee", closest.id
-			local dx, dz = observation.position.x - closest.position.x, observation.position.z - closest.position.z
+	-- A provoker that died, left or teleported away is forgotten: no aggro may
+	-- outlive the actor it points at.
+	if not provoker then
+		nextState.provoker = nil
+	end
+	local homeDistance = M.distance(observation.position, state.home)
+	-- LOD: nobody can observe it, so it stops perceiving. It walks home if it
+	-- strayed and is whole again once it arrives.
+	local observerStuds = observation.observerStuds
+	if observerStuds and not provoker and distance > observerStuds then
+		nextState.target, nextState.deadline, nextState.engagedAt = nil, 0, nil
+		if homeDistance > 1 then
+			nextState.mode = "return"
+			heal(
+				nextState,
+				intent,
+				math.min(rule.healthMilli, state.healthMilli + regen(rule.healthMilli, now - state.lastMillis))
+			)
+			intent.destination = table.clone(state.home)
+		else
+			nextState.mode = "hibernate"
+			heal(nextState, intent, rule.healthMilli)
+		end
+		return nextState, intent
+	end
+	local senseBase = if archetype.engine == "grazer"
+		then assert(definition.senseStuds, "MISSING_BEHAVIOR_FIELD")
+		else assert(definition.warnStuds, "MISSING_BEHAVIOR_FIELD")
+	local detect = Archetype.detection(senseBase, band)
+	-- Sleep inside the caller's rest window; only provocation or an actor well
+	-- inside the detection radius wakes it.
+	if
+		observation.resting
+		and RESTING[state.mode]
+		and not provoker
+		and distance > detect * Archetype.WAKE_PERMILLE / 1000
+	then
+		nextState.mode, nextState.target, nextState.deadline, nextState.engagedAt = "sleep", nil, 0, nil
+		return nextState, intent
+	end
+	if archetype.engine == "grazer" then
+		local threat: Actor? = provoker or closest
+		local threatDistance = if provoker then M.distance(observation.position, provoker.position) else distance
+		local radius = if state.mode == "flee" then assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD") else detect
+		if threat and (threatDistance <= radius or observation.provokedBy == threat.id) then
+			nextState.mode, nextState.target = "flee", threat.id
+			local dx, dz = observation.position.x - threat.position.x, observation.position.z - threat.position.z
 			local length = math.sqrt(dx * dx + dz * dz)
 			if length == 0 then
 				dx, dz, length = 1, 0, 1
@@ -147,38 +225,50 @@ function M.step(
 				z = observation.position.z + dz / length * assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD"),
 			}
 		else
-			nextState.mode, nextState.target = "roam", nil
+			nextState.mode, nextState.target, nextState.provoker = "roam", nil, nil
 			intent.destination = table.clone(state.home)
 		end
 		return nextState, intent
 	end
+	-- Whoever provoked it is engaged first; otherwise retaliators stay calm and
+	-- aggressors take the closest actor.
+	local candidate: Actor? = if provoker then provoker elseif flag == "retaliate" then nil else closest
+	local candidateDistance = if candidate then M.distance(observation.position, candidate.position) else math.huge
+	local leash = assert(definition.leashStuds, "MISSING_BEHAVIOR_FIELD")
+	local stale = ENGAGED[state.mode] and now - (state.engagedAt or now) >= Archetype.DISENGAGE_MILLIS
 	if
 		state.mode == "return"
-		or M.distance(observation.position, state.home) > assert(definition.leashStuds, "MISSING_BEHAVIOR_FIELD")
-		or (
-			closest
-			and M.distance(closest.position, state.home) > assert(definition.leashStuds, "MISSING_BEHAVIOR_FIELD")
-		)
+		or stale
+		or homeDistance > leash
+		or (candidate and M.distance(candidate.position, state.home) > leash)
 	then
-		nextState.mode, nextState.target =
-			if M.distance(observation.position, state.home) <= 1 then "idle" else "return", nil
-		intent.destination = table.clone(state.home)
+		nextState.target, nextState.provoker, nextState.engagedAt = nil, nil, nil
+		if homeDistance <= 1 then
+			nextState.mode = "idle"
+			heal(nextState, intent, rule.healthMilli)
+		else
+			nextState.mode = "return"
+			heal(
+				nextState,
+				intent,
+				math.min(rule.healthMilli, state.healthMilli + regen(rule.healthMilli, now - state.lastMillis))
+			)
+			intent.destination = table.clone(state.home)
+		end
 		return nextState, intent
 	end
-	if
-		not closest
-		or (
-			(state.mode == "idle" or state.mode == "roam")
-			and distance > assert(definition.warnStuds, "MISSING_BEHAVIOR_FIELD")
-		)
-	then
-		nextState.mode, nextState.target = "idle", nil
+	if not candidate or (RESTING[state.mode] and candidateDistance > detect and candidate.id ~= nextState.provoker) then
+		nextState.mode, nextState.target, nextState.engagedAt = "idle", nil, nil
 		return nextState, intent
+	end
+	local attackStuds = assert(definition.attackStuds, "MISSING_BEHAVIOR_FIELD")
+	if candidateDistance <= attackStuds then
+		nextState.engagedAt = now
 	end
 	-- A changed target must receive its own full warning, never inherit a strike.
-	if state.target ~= closest.id or state.mode == "idle" then
-		nextState.mode, nextState.target, nextState.deadline =
-			"warn", closest.id, now + assert(definition.telegraphMillis, "MISSING_BEHAVIOR_FIELD")
+	if state.target ~= candidate.id or RESTING[state.mode] then
+		nextState.mode, nextState.target, nextState.deadline, nextState.engagedAt =
+			"warn", candidate.id, now + assert(definition.telegraphMillis, "MISSING_BEHAVIOR_FIELD"), now
 		return nextState, intent
 	end
 	if state.mode == "warn" then
@@ -193,24 +283,22 @@ function M.step(
 		end
 		nextState.mode, nextState.nextAttack =
 			"chase", now + assert(definition.cooldownMillis, "MISSING_BEHAVIOR_FIELD")
-		if
-			distance <= assert(definition.attackStuds, "MISSING_BEHAVIOR_FIELD") and observation.lineOfSight(closest.id)
-		then
+		if candidateDistance <= attackStuds and observation.lineOfSight(candidate.id) then
 			nextState.strike += 1
 			intent.damage = {
-				actorId = closest.id,
+				actorId = candidate.id,
 				damageMilli = rule.damageMilli,
 				strikeId = state.id .. ":" .. tostring(nextState.strike),
 			}
 		end
 		return nextState, intent
 	end
-	if distance <= assert(definition.attackStuds, "MISSING_BEHAVIOR_FIELD") and now >= state.nextAttack then
+	if candidateDistance <= attackStuds and now >= state.nextAttack then
 		nextState.mode, nextState.deadline =
 			"telegraph", now + assert(definition.telegraphMillis, "MISSING_BEHAVIOR_FIELD")
 	else
 		nextState.mode = "chase"
-		intent.destination = table.clone(closest.position)
+		intent.destination = table.clone(candidate.position)
 	end
 	return nextState, intent
 end

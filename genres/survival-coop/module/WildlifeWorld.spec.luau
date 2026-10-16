@@ -388,4 +388,107 @@ return {
 		assert(api.snapshot("h1").mode == "idle", "return at the resting height reports idle")
 		api.destroy()
 	end,
+	-- QA-WILD-01: the world budget is 32 NPCs; the 33rd spawn request is refused and a budget above
+	-- 32 cannot be configured. The refusal is the real register gate, not a restated constant.
+	["thirty third NPC spawn is refused and the cap cannot be raised"] = function()
+		local heartbeat = signal()
+		active.moved, active.owners = {}, {}
+		active.finished, active.obstacle = signal(), false
+		installMocks()
+		local world = roblox.Instance.new("Workspace")
+		active.world = world
+		local function rig(x: number)
+			local model = roblox.Instance.new("Model")
+			model.Parent = world
+			local root = roblox.Instance.new("Part")
+			root.Name, root.Parent, root.Position = "HumanoidRootPart", model, roblox.Vector3.new(x, 0, 0)
+			root.AssemblyLinearVelocity = roblox.Vector3.zero
+			local humanoid = roblox.Instance.new("Humanoid")
+			humanoid.Parent = model
+			return model
+		end
+		local services = {
+			Workspace = world,
+			Players = {
+				GetPlayerByUserId = function()
+					return nil
+				end,
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			RunService = {
+				Heartbeat = heartbeat,
+				IsStudio = function()
+					return true
+				end,
+			},
+			PathfindingService = {},
+		}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+				require = function(name)
+					return if name == "./Wildlife"
+						then Wildlife
+						elseif name == "./DinosaurMotion" then DinosaurMotion
+						else Content
+				end,
+				Vector3 = roblox.Vector3,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				task = { spawn = function() end },
+			},
+		})()
+		local content, errors = Content.canonicalize({
+			survival_content = 1,
+			rules = Content.RULES,
+			limits = Content.DEFAULT_LIMITS,
+			items = { { id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 } },
+			wildlife = { { id = "hunter", behavior = "hunter" } },
+		})
+		assert(content, table.concat(errors, "; "))
+		local function config(maximum: number): any
+			return {
+				content = content,
+				catalog = {
+					species = { hunter = { healthMilli = 40000, damageMilli = 10000, drops = {} } },
+					weapons = {},
+				},
+				maximum = maximum,
+				nowMillis = function()
+					return 0
+				end,
+				alive = function()
+					return true
+				end,
+				equipment = function()
+					return {}
+				end,
+				damage = function() end,
+			}
+		end
+		local raised, reason = pcall(module.new, config(33))
+		assert(not raised and string.find(tostring(reason), "INVALID_NPC_BUDGET", 1, true), "cap above 32 refused")
+		local api = module.new(config(32))
+		for index = 1, 32 do
+			assert(api.register(rig(index * 10), "npc-" .. index, "hunter"), "within budget")
+		end
+		local accepted, refusal = pcall(api.register, rig(400), "npc-33", "hunter")
+		assert(not accepted and string.find(tostring(refusal), "NPC_BUDGET_OR_ID", 1, true), "33rd spawn refused")
+		assert(api.snapshot("npc-33") == nil and api.snapshot("npc-32") ~= nil, "census unchanged by refusal")
+		-- With no observer the world hibernates every NPC instead of perceiving.
+		heartbeat.fire()
+		assert(api.snapshot("npc-1").mode == "hibernate", "unobserved NPCs hibernate")
+		assert(api.provoke("npc-1", "7") and not api.provoke("missing", "7"), "provoke reaches only real NPCs")
+		api.destroy()
+	end,
 }

@@ -100,12 +100,28 @@ return {
 		assert(#missing > 0, "crafting still has unimplemented features")
 		assert(Capability.isImplemented("crafting", "inventory"), "inventory is backed by domain transitions")
 		assert(Capability.isImplemented("crafting", "crafting-jobs"), "crafting jobs are bound through Workshop")
-		for _, feature in { "gathering", "vitals", "placement", "tribe", "wildlife" } do
+		assert(Capability.isImplemented("crafting", "gathering"), "gathering is bound through GatheringRuntime")
+		assert(table.find(missing, "gathering") == nil, "gathering is no longer reported missing")
+		local gatherOk, gatherReason = Capability.assertSupported("crafting", "gathering")
+		assert(gatherOk and gatherReason == nil, "gathering is supported")
+		assert(
+			table.concat(Capability.describe("crafting").features.implemented, ",")
+				== "inventory,crafting-jobs,gathering",
+			"exactly inventory, crafting-jobs and gathering are implemented"
+		)
+		for _, feature in { "vitals", "placement", "tribe", "wildlife", "transfer" } do
 			assert(table.find(missing, feature) ~= nil, "declared but unimplemented: " .. feature)
 			assert(not Capability.isImplemented("crafting", feature), feature .. " must not claim implementation")
 			local ok, reason = Capability.assertSupported("crafting", feature)
 			assert(not ok and reason ~= nil and string.find(reason :: string, feature, 1, true), "named refusal")
 		end
+		local wildlifeOk, wildlifeReason = Capability.assertSupported("crafting", "wildlife")
+		assert(
+			not wildlifeOk
+				and wildlifeReason ~= nil
+				and string.find(wildlifeReason :: string, "declared but not implemented", 1, true),
+			"wildlife stays declared-but-refused"
+		)
 		local ok, reason = Capability.assertSupported("crafting", "teleportation")
 		assert(not ok and reason ~= nil and string.find(reason :: string, "not declared", 1, true), "undeclared fails")
 		assert(#Capabilities.missing("crafting") == #missing, "the genre descriptor reports the same gap")

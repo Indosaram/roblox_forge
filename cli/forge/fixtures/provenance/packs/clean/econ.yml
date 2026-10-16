@@ -1,0 +1,13 @@
+genre_contract:
+  api: 1
+  order: [survival-coop]
+  configs:
+    survival-coop:
+      mode: crafting
+      currency: Shells
+      startingBalance: 0
+monetization:
+  gamepasses:
+    - key: wideSatchel
+      name: Wide Satchel
+      price: 199

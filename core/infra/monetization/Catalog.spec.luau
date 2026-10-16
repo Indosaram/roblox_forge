@@ -9,6 +9,174 @@ local function makeGrant(fields: { [string]: any }): any
 end
 
 return {
+	["survival grant kinds validate in their sections"] = function()
+		local catalog: any = {
+			gamepasses = {
+				{
+					key = "wide",
+					name = "Wide Storage",
+					price = 199,
+					grant = makeGrant({ kind = "storageSlots", amount = 10 }),
+				},
+				{
+					key = "alt",
+					name = "Character Slot",
+					price = 149,
+					grant = makeGrant({ kind = "characterSlot", amount = 1 }),
+				},
+			},
+			products = {
+				{ key = "respec", name = "Respec", price = 99, grant = makeGrant({ kind = "respecToken" }) },
+				{
+					key = "reef",
+					name = "Reef Outfit",
+					price = 149,
+					grant = makeGrant({ kind = "cosmeticSet", cosmeticSetId = "reef-outfit" }),
+				},
+			},
+			subscriptions = {
+				{
+					key = "tide",
+					name = "Tide Monthly",
+					price = 499,
+					grant = makeGrant({ kind = "subscriptionMonthly", cosmeticSetId = "tide-set", storageSlots = 10 }),
+				},
+			},
+		}
+		local ok, reason = Catalog.validate(catalog)
+		assert(ok == true, "survival catalog must validate: " .. tostring(reason))
+		assert(
+			#Catalog.lint(catalog) == 0,
+			"survival catalog must lint clean: " .. table.concat(Catalog.lint(catalog), "; ")
+		)
+	end,
+
+	["survival grant kinds reject missing fixed fields and wrong sections"] = function()
+		local cases: { { label: string, catalog: any, reason: string } } = {
+			{
+				label = "storage without amount",
+				catalog = { gamepasses = { { key = "s", name = "S", price = 1, grant = { kind = "storageSlots" } } } },
+				reason = "storageSlots grant requires a positive integer amount: s",
+			},
+			{
+				label = "cosmetic without set id",
+				catalog = { products = { { key = "c", name = "C", price = 1, grant = { kind = "cosmeticSet" } } } },
+				reason = "cosmeticSet grant requires a fixed cosmeticSetId: c",
+			},
+			{
+				label = "subscription without storage",
+				catalog = {
+					subscriptions = {
+						{
+							key = "m",
+							name = "M",
+							price = 1,
+							grant = { kind = "subscriptionMonthly", cosmeticSetId = "x" },
+						},
+					},
+				},
+				reason = "subscriptionMonthly grant requires positive integer storageSlots: m",
+			},
+			{
+				label = "subscription kind sold as a product",
+				catalog = {
+					products = {
+						{
+							key = "p",
+							name = "P",
+							price = 1,
+							grant = { kind = "subscriptionMonthly", cosmeticSetId = "x", storageSlots = 1 },
+						},
+					},
+				},
+				reason = "invalid grant kind: p",
+			},
+			{
+				label = "coins sold as a subscription",
+				catalog = {
+					subscriptions = { { key = "k", name = "K", price = 1, grant = { kind = "coins", amount = 5 } } },
+				},
+				reason = "invalid grant kind: k",
+			},
+		}
+		for _, case in cases do
+			local ok, reason = Catalog.validate(case.catalog)
+			assert(ok == false, case.label .. " must be rejected")
+			assert(reason == case.reason, case.label .. ": reason " .. tostring(reason))
+		end
+	end,
+
+	["lint flags every ADR-07 rule by field name and kind"] = function()
+		local cases: { { label: string, entry: any, section: string, rule: string } } = {
+			{ label = "pool", section = "products", rule = "paid-random", entry = { pool = { "a" } } },
+			{ label = "oddsPct", section = "products", rule = "paid-random", entry = { grant = { oddsPct = 5 } } },
+			{ label = "luck_mult", section = "gamepasses", rule = "luck-drop-boost", entry = { luck_mult = 2 } },
+			{ label = "dropBonus", section = "products", rule = "luck-drop-boost", entry = { dropBonus = 1 } },
+			{ label = "rateUp", section = "products", rule = "luck-drop-boost", entry = { grant = { rateUp = 1 } } },
+			{
+				label = "coins kind",
+				section = "products",
+				rule = "soft-currency-sale",
+				entry = { grant = { kind = "coins" } },
+			},
+			{
+				label = "currency field",
+				section = "products",
+				rule = "soft-currency-sale",
+				entry = { currencyAmount = 9 },
+			},
+			{
+				label = "multiplier kind",
+				section = "gamepasses",
+				rule = "luck-drop-boost",
+				entry = { grant = { kind = "multiplier" } },
+			},
+			{ label = "enhance input", section = "products", rule = "mixed-random", entry = { enhanceInput = "gem" } },
+			{
+				label = "subscription extra effect",
+				section = "subscriptions",
+				rule = "subscription-effect",
+				entry = { grant = { kind = "subscriptionMonthly", cosmeticSetId = "x", storageSlots = 1, xpBonus = 2 } },
+			},
+			{
+				label = "subscription wrong kind",
+				section = "subscriptions",
+				rule = "subscription-effect",
+				entry = { grant = { kind = "speedup" } },
+			},
+		}
+		for _, case in cases do
+			local entry = table.clone(case.entry)
+			entry.key = "bad"
+			entry.name = "Bad"
+			entry.price = 10
+			local violations = Catalog.lint({ [case.section] = { entry } })
+			local found = false
+			for _, violation in violations do
+				if string.sub(violation, 1, #case.rule + 7) == case.rule .. ": bad (" then
+					found = true
+				end
+			end
+			assert(found, case.label .. ": expected " .. case.rule .. ", got " .. table.concat(violations, "; "))
+		end
+	end,
+
+	["lint passes deterministic entries and ignores names and keys"] = function()
+		local catalog: any = {
+			products = {
+				{
+					key = "luckyHat",
+					name = "Lucky Drop Hat",
+					price = 49,
+					grant = { kind = "cosmeticSet", cosmeticSetId = "hat" },
+				},
+				{ key = "shield", name = "Shield", price = 90, grant = { kind = "shield", seconds = 30 } },
+			} :: { any },
+		}
+		local violations = Catalog.lint(catalog)
+		assert(#violations == 0, "clean catalog: " .. table.concat(violations, "; "))
+		assert(#Catalog.lint(nil) == 0 and #Catalog.lint({}) == 0, "empty input lints clean")
+	end,
 	["coins grants reject missing and invalid amounts"] = function()
 		local invalid: { { label: string, amount: any } } = {
 			{ label = "missing" },

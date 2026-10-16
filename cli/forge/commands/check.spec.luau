@@ -28,6 +28,17 @@ return {
 		assert(options ~= nil, err)
 		assert(table.concat(enabled(options), ",") == "econ,game", table.concat(enabled(options), ","))
 	end,
+	["provenance runs after locale and before lock, and --only selects it alone"] = function()
+		local position: { [string]: number } = {}
+		for index, id in check.STAGES do
+			position[id] = index
+		end
+		assert(position.provenance ~= nil, "provenance stage missing")
+		assert(position.locale < position.provenance and position.provenance < position.lock, "stage order")
+		local options, err = check.parseStageArgs({ "check", "--only", "provenance" }, 2)
+		assert(options ~= nil, err)
+		assert(table.concat(enabled(options), ",") == "provenance", table.concat(enabled(options), ","))
+	end,
 	["--skip removes stages and --json captures the path"] = function()
 		local options, err =
 			check.parseStageArgs({ "check", "--skip", "specs,build,luau-lsp", "--json", "/tmp/c.json", "--all" }, 2)

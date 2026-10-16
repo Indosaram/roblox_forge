@@ -59,7 +59,7 @@ lune run cli/forge check [--pack <slug> | --project <path> | --all] [--packs-roo
   - `--only <stages>`: Comma-separated stage ids; run only these stages.
   - `--skip <stages>`: Comma-separated stage ids; run every stage except these.
   - `--json <path>`: Write the machine-readable report (see [JSON Schemas](#json-schemas)).
-  - Stage ids: `genre-contract`, `qa-schema`, `selene`, `stylua`, `luau-lsp`, `econ`, `game`, `assets`, `locale`, `lock`, `specs`, `build`. An unknown id, a duplicate flag, or a flag without a value is a usage failure that lists the valid ids.
+  - Stage ids: `genre-contract`, `qa-schema`, `selene`, `stylua`, `luau-lsp`, `econ`, `game`, `assets`, `locale`, `provenance`, `lock`, `specs`, `build`. An unknown id, a duplicate flag, or a flag without a value is a usage failure that lists the valid ids.
   - `--pack`, `--project`, `--all` and `--packs-root` narrow only `build` and its inspection; they never narrow the other stages.
 - **Output**: each stage prints `[<stage>] PASS|FAIL (<seconds> s)` (tool detail appears only on FAIL), and the run ends with one summary line: `check: PASS (<n> stages, <seconds> s)` or `check: FAIL stages=<id,id> (<seconds> s)`.
 - **Pipeline Execution Stages**:
@@ -72,9 +72,10 @@ lune run cli/forge check [--pack <slug> | --project <path> | --all] [--packs-roo
   7. `[game]`: Validates `game.yml` structure and ensures no placeholder TBD values remain.
   8. `[assets]`: Checks asset licenses against allow-lists and verifies `Assets.luau` does not drift.
   9. `[locale]`: Verifies client literals have translations in `locale/strings.csv`.
-  10. `[lock]`: Confirms `forge-lock.yml` version pins match `core` and `genres` packages.
-  11. `[specs]`: Runs all unit specs across `core/`, `cli/`, `genres/`, and `games/` in a child process (the same runner as `test`).
-  12. `[build]`: Compiles project files to `build/<pack>.rbxl` using Rojo, then inspects each `.rbxl` binary for required instances, entry scripts, and clean require graphs. A failed build is never inspected.
+  10. `[provenance]`: Runs the release provenance gate (QA-PROV-01/QA-NAME-01) for every pack with `provenance/policy.yml`; packs without a policy are skipped. See [`provenance`](#provenance).
+  11. `[lock]`: Confirms `forge-lock.yml` version pins match `core` and `genres` packages.
+  12. `[specs]`: Runs all unit specs across `core/`, `cli/`, `genres/`, and `games/` in a child process (the same runner as `test`).
+  13. `[build]`: Compiles project files to `build/<pack>.rbxl` using Rojo, then inspects each `.rbxl` binary for required instances, entry scripts, and clean require graphs. A failed build is never inspected.
 - **Errors**: Exit 1 if any stage fails. One failing pack never hides errors in another pack.
 
 ---
@@ -188,6 +189,24 @@ lune run cli/forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] 
 
 ---
 
+### `spike`
+
+QA-SPIKE-01 layer 1 join-spike simulation (plan §12, M6). Offline and deterministic: a simulated integer clock, no sleeps, no network.
+
+```powershell
+lune run cli/forge spike [--players N] [--seed S] [--out <path>]
+```
+
+- **Arguments**:
+  - `--players N`: Virtual arrivals (default: 64; 1..100000).
+  - `--seed S`: Rng seed for arrival times, friend-follow joins and throttled commits (default: 1).
+  - `--out <path>`: Report path (default: `.omo/evidence/robango/spike-64.json`, gitignored).
+- **Behavior**: Feeds seeded arrivals through `core/domain/island/Allocation` once per simulated second; each island roster is a lease-fenced `FencedStore` aggregate on an in-memory backend, and commits can be throttled. Failed commits re-queue players; nobody is dropped.
+- **Output**: schemaVersion 1 JSON with `wait.{p50,p95,max}` (simulated seconds), `targetP95`, `lost`, `duplicated`, `unadmitted`, `overfull`, `splitBrain`, `leaks`, `leakReasons`, `ok` and `failures`, plus one `spike: PASS|FAIL ...` line.
+- **Errors**: Exit 1 when any gate fails (`p95` over target, lost/duplicated/unadmitted players, overfull islands, split-brain lease, leaked internal ids, stack or SQL/backend text) or on invalid arguments.
+
+---
+
 ### `gen`
 
 Generates assets through procedural math engines or external AI providers.
@@ -279,6 +298,22 @@ lune run cli/forge content codegen --pack <slug>
 - `content codegen`: Compiles `games/<pack>/content.yml` into `games/<pack>/src/shared/SurvivalContent.luau`.
 
 ---
+
+### `provenance`
+
+Release provenance gate for packs that opted in with `games/<pack>/provenance/policy.yml` (plan §9.5, ADR-06).
+
+```powershell
+lune run cli/forge provenance check --pack <slug> [--packs-root <dir>] [--json <path>]
+lune run cli/forge provenance fingerprint --corpus <dir> --set <id> --out <dir>
+lune run cli/forge provenance fingerprint --names <file> --salt <salt>
+```
+
+- **Output**: PASS prints `provenance: PASS <pack> (<s> strings, <e> entries, <a> assets, sets=<ids>)` to stdout. FAIL prints one finding per line to stderr as `<pack>: <file>:<locator>: <RULE> <detail>`, then `provenance: FAIL <pack> (<k> findings)`. Matched banned words and reference grams are never printed in plain text (a list index or hash is printed instead).
+- **Rule ids**: `PROV-POLICY`, `PROV-FP`, `PROV-MISSING`, `PROV-STALE`, `PROV-FIELD`, `PROV-NGRAM`, `NAME-TERM`, `NAME-STEM`, `NAME-LETTER`, `NAME-HASHED`, `NAME-ENCODING`, `ASSET-TOOL`, `ASSET-PROV`.
+- **JSON**: `--json` writes `{schemaVersion: 1, ok, pack, findings: [{rule, file, locator, detail}]}` (`[]` when empty).
+- **Fingerprint sets**: `provenance/fingerprints/<id>.fp` + `<id>.meta.yml`, or a one-line `<id>.path` naming the directory that holds them (used for sets kept outside the pack or outside Git).
+- **Exit codes**: 0 PASS; 1 FAIL, argument error, missing policy for the named pack, or parse error. 2 is not used.
 
 ### `locale`
 

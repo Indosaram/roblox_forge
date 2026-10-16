@@ -1,0 +1,28 @@
+version: 2
+assets:
+  - key: kelp-mesh
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/kelp"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      recipe: { id: gen-procedural, version: "1" }
+      provider: { name: forge-procgen, version: "1" }
+      rights: { source: "first-party generator in this repository", ownership: first-party }
+      author: "agent:opus-5.5/fixture"
+      created: 2026-10-16
+  - key: shore-loop
+    kind: bgm
+    tool: forge-procgen
+    source: "procedural audio/shore-loop"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      recipe: { id: gen-audio, version: "1" }
+      provider: { name: forge-procgen, version: "1" }
+      rights: { source: "first-party generator in this repository", ownership: first-party }
+      author: "agent:opus-5.5/fixture"
+      created: 2026-10-16
