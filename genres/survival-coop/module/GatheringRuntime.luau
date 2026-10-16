@@ -10,6 +10,7 @@ local Ledger = require("../../../core/domain/command/Ledger")
 local Transfer = require("../../../core/infra/data/ItemTransfer")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
+local Skills = require("./Skills")
 local M = {}
 export type PersonalPort = {
 	personal: Personal.Store,
@@ -38,7 +39,7 @@ export type Config = {
 	-- again on destination credit. This is authorization, not a bag debit.
 	access: (Request, Inventory.State, Fenced.Data) -> Gathering.Access?,
 }
-export type Result = { status: string, error: string?, transfers: { Transfer.Result } }
+export type Result = { status: string, error: string?, transfers: { Transfer.Result }, skillError: string? }
 export type Runtime = {
 	command: (Request) -> Result,
 	recover: (string, number) -> Result,
@@ -62,6 +63,33 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 	assert(Catalog.integer(config.maxReceipts, 1, 4096), "INVALID_RECEIPT_LIMIT")
 	local content = copy(config.content)
 	local catalog = Job.catalog(content)
+	-- Nil when the pack declares no skills section: gathering is then unchanged.
+	local mastery = Skills.catalog(content)
+	-- Awards a freshly accepted gather's node XP into the actor's personal
+	-- crafting save. At most once: only the single CAS-won acceptance of a grant
+	-- reaches this, and a replayed or recovered grant never does. A failed
+	-- personal write forfeits the XP rather than risking a double award.
+	local function awardSkill(personal: PersonalPort, grant: Content.SkillGrant, tools: Inventory.State): string?
+		if not mastery then
+			return nil
+		end
+		local current, err = personal.personal:refresh(personal.profile())
+		if not current then
+			return err or "PERSONAL_UNAVAILABLE"
+		end
+		local envelope = copy(current.data.envelope)
+		local slice = envelope.genres and envelope.genres["survival-coop"]
+		local data = slice and slice.data
+		if type(data) ~= "table" or data.saveVersion == nil then
+			return "SKILLS_UNAVAILABLE"
+		end
+		data.skills = (Skills.grantSaved(mastery, data.skills, grant, tools))
+		local saved, commitError = personal.personal:commit(current, current.data.stateRevision, envelope, nil)
+		if saved then
+			personal.install(saved)
+		end
+		return if saved then commitError else commitError or "PERSONAL_UNKNOWN"
+	end
 	local function replenish(data: Fenced.Data)
 		data.respawns = data.respawns or {}
 		for id, node in data.nodes.nodes do
@@ -179,8 +207,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local bag = Inventory.fromSave(current.data.inventory, catalog)
 		local reason: string? = nil
 		local accepted: any = nil
+		local fresh: { grant: Content.SkillGrant, tools: Inventory.State }? = nil
 		local updated, err = store:update(source, function(data)
-			reason, accepted = nil, nil
+			reason, accepted, fresh = nil, nil, nil
 			local known = data.grants[id]
 			if known then
 				if known.binding ~= binding then
@@ -265,6 +294,15 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			end
 			accepted = { binding = binding, mints = mints, destination = destinationKey }
 			minted.grants[id] = copy(accepted)
+			if mastery then
+				local catalogId = candidate.nodes.nodes[req.nodeId].catalogId
+				for _, definition in content.nodes do
+					if definition.id == catalogId and definition.skill then
+						-- Tier comes from the trusted equipped tools staged above.
+						fresh = { grant = copy(definition.skill), tools = Inventory.snapshot(staging) }
+					end
+				end
+			end
 			return minted
 		end)
 		if not updated then
@@ -274,7 +312,14 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		if reason then
 			return failed(reason, if reason == "REQUEST_CONFLICT" then "conflict" else nil)
 		end
-		return advance(personal, { accepted })
+		local progressed = advance(personal, { accepted })
+		if fresh then
+			local skillError = awardSkill(personal, fresh.grant, fresh.tools)
+			if skillError then
+				progressed.skillError = skillError
+			end
+		end
+		return progressed
 	end
 	function runtime.recover(actor, maximum)
 		assert(Catalog.integer(maximum, 1, 64), "INVALID_RECOVERY_BOUND")

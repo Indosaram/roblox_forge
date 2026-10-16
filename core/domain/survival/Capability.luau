@@ -66,7 +66,9 @@ local WAVE: Descriptor = {
 local CRAFTING: Descriptor = {
 	mode = "crafting",
 	actionVersion = 2,
-	saveVersion = 2,
+	-- 3: the crafting slice gained `skills` (craft mastery). v2 saves upgrade
+	-- losslessly through CraftingAdapter.upgradeSave.
+	saveVersion = 3,
 	contentVersion = 1,
 	actions = {
 		"gather",

@@ -11,9 +11,21 @@ local serde = require("@lune/serde")
 local function encode(value: any): string
 	return serde.encode("json", value)
 end
-local function fixture(): any
+local function fixture(skilled: boolean?): any
 	local c: any = { now = 0, allowed = true, reachable = true, equipped = true, calls = 0, failAt = 0, cap = 20 }
+	local skills: any = nil
+	local grant: any = nil
+	if skilled then
+		local disciplines = {}
+		for _, id in { "building", "butchery", "gathering", "hearth", "tailoring", "woodcraft" } do
+			table.insert(disciplines, { id = id, thresholds = { 10, 30, 60 } })
+		end
+		disciplines[3].tools = { { item = "knife", tier = 1 } }
+		skills = { baseStep = 0, disciplines = disciplines }
+		grant = { id = "gathering", xp = 25 }
+	end
 	local document, errors = Content.canonicalize({
+		skills = skills,
 		survival_content = 1,
 		rules = table.clone(Content.RULES),
 		limits = table.clone(Content.DEFAULT_LIMITS),
@@ -35,6 +47,7 @@ local function fixture(): any
 				id = "bush",
 				respawnMillis = 1000,
 				harvest = { { item = "fiber", quantity = 3 }, { item = "seed", quantity = 1 } },
+				skill = grant,
 			},
 		},
 	})
@@ -93,9 +106,10 @@ local function fixture(): any
 		c.personal = Personal.new(c.backend, {
 			namespace = "personal-v1",
 			store = options,
-			inventoryPath = { "bag" },
+			inventoryPath = if skilled then { "genres", "survival-coop", "data", "inventory", "bag" } else { "bag" },
 			validateEnvelope = function(value: any): boolean
-				return type(value) == "table" and pcall(Inventory.fromSave, value.bag, c.catalog)
+				local bag = if skilled then value.genres["survival-coop"].data.inventory.bag else value.bag
+				return type(value) == "table" and pcall(Inventory.fromSave, bag, c.catalog)
 			end,
 		})
 		c.token = assert(c.personal:load("alice", function(): any
@@ -108,6 +122,16 @@ local function fixture(): any
 				durabilityMilli = 1000,
 				attributes = {},
 			}, 0))
+			if skilled then
+				return {
+					genres = {
+						["survival-coop"] = {
+							version = 1,
+							data = { saveVersion = 3, inventory = { bag = Inventory.save(bag) } },
+						},
+					},
+				}
+			end
 			return { bag = Inventory.save(bag), unrelated = { coins = 17 } }
 		end))
 		c.store = Fenced.new(c.backend, options)
@@ -182,10 +206,12 @@ local function conserved(c: any, accepted: boolean)
 	local source = c.read("nodes:world-1").data
 	local personal = c.read("personal-v1:alice").data
 	assert(source.inventory == nil and personal.inventory == nil, "no mirrored or spendable source inventory")
-	assert(personal.envelope.unrelated.coins == 17, "unrelated personal fields retained")
+	local skilled = personal.envelope.genres ~= nil
+	assert(skilled or personal.envelope.unrelated.coins == 17, "unrelated personal fields retained")
+	local bag = if skilled then personal.envelope.genres["survival-coop"].data.inventory.bag else personal.envelope.bag
 	assert(source.nodes.nodes["bush-1"].charges == (if accepted then 0 else 1), "exact charge")
 	local total = { fiber = 0, seed = 0 }
-	for _, item in personal.envelope.bag.items do
+	for _, item in bag.items do
 		if total[item.catalogId] then
 			total[item.catalogId] += item.quantity
 		end
@@ -210,7 +236,36 @@ local function finish(c: any)
 	conserved(c, true)
 end
 
+local function savedSkills(c: any): any
+	return c.read("personal-v1:alice").data.envelope.genres["survival-coop"].data.skills
+end
+
 return {
+	["a gathered node awards its discipline xp once, capped by the equipped tool"] = function()
+		local c = fixture(true)
+		c.runtime.command(c.request)
+		finish(c)
+		local skills = savedSkills(c)
+		assert(skills ~= nil and skills.saveVersion == 1, "skills written into the crafting save")
+		assert(skills.disciplines.gathering.xp == 10, "knife tier 1 + step 0 caps the 25 xp grant at 10")
+		for id, progress in skills.disciplines do
+			if id ~= "gathering" then
+				assert(progress.xp == 0, id .. " untouched")
+			end
+		end
+		for _ = 1, 5 do
+			assert(c.runtime.command(c.request).status == "confirmed", "duplicate request")
+		end
+		assert(savedSkills(c).disciplines.gathering.xp == 10, "replays never award again")
+	end,
+	["a pack without skills gathers exactly as before"] = function()
+		local c = fixture()
+		c.runtime.command(c.request)
+		finish(c)
+		local envelope = c.read("personal-v1:alice").data.envelope
+		assert(envelope.skills == nil and envelope.genres == nil, "no skills data appears")
+		assert(envelope.unrelated.coins == 17, "envelope otherwise unchanged")
+	end,
 	["respawn persists exact deadline capacity and version without replay harvest"] = function()
 		local c = fixture()
 		c.runtime.command(c.request)
