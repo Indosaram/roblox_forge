@@ -25,7 +25,8 @@ local function visit(): Visit.Visit
 				return state, nil
 			end,
 			erase = function(state, _visitor, _args)
-				state.items.berry = nil
+				local items: { [string]: number? } = state.items
+				items.berry = nil
 				return state, nil
 			end,
 		},

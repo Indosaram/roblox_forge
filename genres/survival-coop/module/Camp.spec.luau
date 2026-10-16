@@ -53,13 +53,13 @@ return {
 		assert(Camp.rung(state, l) == 1 and state.facilities["shared-storage"], "first facility")
 		assert(not state.facilities["camp-forge"], "second facility still locked")
 		local ages = { owner = 30, a = 30, b = 30, c = 30 }
-		local ok, reason = Camp.leagueEligible(state, l, s, 30 * DAY, ages)
+		local ok: boolean, reason: string?, failures: { Settlement.LeagueFailure }?
+		ok, reason = Camp.leagueEligible(state, l, s, 30 * DAY, ages)
 		assert(not ok and reason == "LADDER_RUNG_REQUIRED", "league needs the top rung")
 		state = build(state, l, s, "smokehouse")
 		assert(Camp.rung(state, l) == 2 and state.facilities["camp-forge"], "second facility")
 		ok, reason = Camp.leagueEligible(state, l, s, 30 * DAY, ages)
 		assert(ok and reason == nil, "eligible camp")
-		local failures
 		ok, reason, failures = Camp.leagueEligible(state, l, s, DAY, ages)
 		assert(not ok and reason == "MEMBER_FLOOR" and failures and #failures == 4, "membership too short")
 	end,
