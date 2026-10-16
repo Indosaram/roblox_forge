@@ -47,6 +47,8 @@ type Entry = {
 	settle: string,
 	connections: { RBXScriptConnection },
 	motion: DinosaurMotion.Controller,
+	-- Actor that damaged this rig (or alarmed its herd) since the last step.
+	provokedBy: string?,
 }
 function M.new(config: Config)
 	assert(config.maximum >= 1 and config.maximum <= 32 and config.maximum % 1 == 0, "INVALID_NPC_BUDGET")
@@ -362,6 +364,16 @@ function M.new(config: Config)
 		end
 		entry.motion.update(entry.state, config.nowMillis(), entry.root.AssemblyLinearVelocity)
 	end
+	-- Server-side provocation (a confirmed hit, or a Herd alarm join). It is
+	-- consumed by the next Heartbeat step; client input never reaches here.
+	function api.provoke(id: string, actorId: string): boolean
+		local entry = entries[id]
+		if not entry or entry.state.healthMilli == 0 then
+			return false
+		end
+		entry.provokedBy = actorId
+		return true
+	end
 	function api.snapshot(id: string): Wildlife.State?
 		local entry = entries[id]
 		if not entry then
@@ -417,9 +429,11 @@ function M.new(config: Config)
 						local target = root(actorId)
 						return target ~= nil and visible(entry.root, target)
 					end,
+					observerStuds = Wildlife.HIBERNATE_STUDS,
+					provokedBy = entry.provokedBy,
 				}
 			)
-			entry.state, entry.failed = state, false
+			entry.state, entry.failed, entry.provokedBy = state, false, nil
 			if entry.failedPath then
 				local failure = entry.failedPath
 				observe(entry, failure, "consumed", failure.status)
