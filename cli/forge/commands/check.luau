@@ -16,6 +16,7 @@ local publication = require("../lib/packpublication")
 local registryLib = require("../lib/genreregistry")
 local contract = require("../lib/genrecontract")
 local qaCommand = require("./qa")
+local provenanceCommand = require("./provenance")
 local Profile = require("../lib/profile")
 local MonetizationCatalog = require("../../../core/infra/monetization/Catalog")
 local M = {}
@@ -226,6 +227,7 @@ M.STAGES = {
 	"game",
 	"assets",
 	"locale",
+	"provenance",
 	"lock",
 	"specs",
 	"build",
@@ -612,6 +614,25 @@ function M.run(args: { string }?): boolean
 			end
 		end
 		return not localeFailed, table.concat(localeLogs, "\n")
+	end
+
+	-- release provenance (QA-PROV-01/QA-NAME-01) for packs that opted in with
+	-- provenance/policy.yml; packs without a policy are skipped
+	stageFns["provenance"] = function(): (boolean, string)
+		local provenanceFailed = false
+		local provenanceLogs: { string } = {}
+		for _, pack in gamePacks do
+			local packDir = PACKS_DIR .. "/" .. pack
+			if provenanceCommand.hasPolicy(packDir) then
+				local report = provenanceCommand.checkPackDir(pack, packDir)
+				local out, errText = provenanceCommand.formatReport(report)
+				if not report.ok then
+					provenanceFailed = true
+				end
+				table.insert(provenanceLogs, out .. errText)
+			end
+		end
+		return not provenanceFailed, table.concat(provenanceLogs, "")
 	end
 
 	-- forge-lock pins must match the packages the pack references

@@ -1,0 +1,5 @@
+Key,Source,Context,en-us,ko-kr
+hud.shells,Shells: %d,Currency counter,Shells: %d,조개: %d
+hud.scan,X-ray scan ready,UI label,X-ray scan ready,X선 스캔 준비
+dialogue.guide.greet,"OK, the tide is low. Walk with me.",Guide greeting,"OK, the tide is low. Walk with me.",좋아요 물이 빠졌어요 같이 걸어요
+dialogue.guide.laugh,Ha!,Guide laugh,Ha!,ㅋㅋ

@@ -29,6 +29,7 @@ local smokeCommand = require("./forge/commands/smoke")
 local planCommand = require("./forge/commands/plan")
 local imagediffCommand = require("./forge/commands/imagediff")
 local replayCommand = require("./forge/commands/replay")
+local provenanceCommand = require("./forge/commands/provenance")
 local spikeCommand = require("./forge/commands/spike")
 local inspector = require("./forge/lib/inspect")
 local specsRunner = require("./forge/lib/specs")
@@ -46,7 +47,8 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
                             is reported independently: one failing pack never hides another,
                             and a failed build is never inspected
                             --only/--skip select stages (genre-contract, qa-schema, selene,
-                            stylua, luau-lsp, econ, game, assets, locale, lock, specs, build);
+                            stylua, luau-lsp, econ, game, assets, locale, provenance, lock,
+                            specs, build);
                             --json writes a schemaVersion 1 stage summary]=],
 	},
 	{
@@ -274,6 +276,24 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
                             Write games/<pack>/src/shared/SurvivalContent.luau from the
                             pack's content.yml. Deterministic: identical input always
                             produces byte-identical output]=],
+	},
+	{
+		name = "provenance",
+		text = [=[
+  provenance check --pack <slug> [--packs-root <dir>] [--json <path>]
+                            Gate an opted-in pack (provenance/policy.yml): banned names, stems,
+                            single-letter speakers, hashed proper names, reference 8-gram
+                            fingerprints, sidecar provenance coverage and asset tools.
+                            Matches are reported by index or hash, never in plain text]=],
+	},
+	{
+		name = "provenance",
+		text = [=[
+  provenance fingerprint --corpus <dir> --set <id> --out <dir>
+  provenance fingerprint --names <file> --salt <salt>
+                            Hash a reference corpus into <id>.fp + <id>.meta.yml (sorted
+                            12-hex sha256-48 hashes only), or hash a reviewed proper-name list
+                            into banned-names hashedNames entries]=],
 	},
 	{
 		name = "quality",
@@ -534,6 +554,10 @@ local function main()
 		end
 	elseif cmd == "content" then
 		if not contentCommand.run(args) then
+			process.exit(1)
+		end
+	elseif cmd == "provenance" then
+		if not provenanceCommand.run(args) then
 			process.exit(1)
 		end
 	elseif cmd == "smoke" then

@@ -1,0 +1,7 @@
+version: 1
+defaults: { source: original, author: "agent:opus-5.5/fixture" }
+entries:
+  "genre_contract.configs.survival-coop.mode": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.currency": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.startingBalance": { created: 2026-10-16, note: "fixture value" }
+  "monetization.gamepasses.wideSatchel": { created: 2026-10-16, author: "human:indo" }

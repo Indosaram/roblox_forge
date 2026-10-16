@@ -1,0 +1,4 @@
+SOURCE: synthetic fixture text written for the provenance gate specs (no third-party wording)
+FETCHED: 2026-10-16
+물결을 따라 모래톱 끝까지 걸어간 조사단은 등불을 켰다.
+The lantern keepers counted every tide stone before dawn.

@@ -1,0 +1,16 @@
+survival_content: 1
+rules:
+  inheritance: avg-quality-v1
+tags: []
+items:
+  - id: tide-kelp
+    name: Tide Kelp
+    stackMax: 100
+    weightMilli: 200
+  - id: stone-adze
+    name: Stone Adze
+    stackMax: 1
+    weightMilli: 1500
+recipes:
+  - id: adze-basic
+    station: bench
