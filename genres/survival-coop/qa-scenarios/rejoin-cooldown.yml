@@ -1,0 +1,43 @@
+# QA-ECON-03 (alt rotation part): a departed account cannot be re-invited before the
+# rejoin cooldown elapses, while a different account can take the freed slot.
+name: rejoin-cooldown
+genre: survival-coop
+pack: fixture-survival
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: [owner, member, other]
+fixtures: [cli/forge/fixtures/settlement-conflict]
+data:
+  durable:
+    actions: ["survival-coop:settlement-leave"]
+    serverActions: ["survival-coop:settlement-invite"]
+  settlement:
+    key: qa-tribe
+    tribeId: tribe
+    owner: owner
+    slots: 1
+    radiusStuds: 128
+    positions: {owner: {x: 16, y: 0, z: 16}, member: {x: 16, y: 0, z: 16}, other: {x: 16, y: 0, z: 16}}
+    items:
+      - {itemId: wood, catalogId: wood, quantity: 10, qualityMilli: 1000, durabilityMilli: 0, attributes: {origin: forest}}
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: member}
+  - {op: join, player: other}
+  - {op: command_server, player: owner, requestId: invite, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 0, 0]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.member, equals: member}
+  - {op: command, player: member, requestId: leave, sessionEpoch: current, action: "survival-coop:settlement-leave", args: [member, 1, 1]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.member, is_nil: true}
+  - {op: command_server, player: owner, requestId: early, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 2, 2], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: REJOIN_COOLDOWN}
+  - {op: advance_to, seconds: 60}
+  - {op: command_server, player: owner, requestId: later, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 2, 2], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: REJOIN_COOLDOWN}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.member, is_nil: true}
+  - {op: command_server, player: owner, requestId: fresh, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [other, 2, 2]}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.other, equals: member}
+  - {op: close, player: other}
+  - {op: close, player: member}
+  - {op: close, player: owner}
+  - {op: expect_members, members: []}

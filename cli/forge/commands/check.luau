@@ -17,6 +17,7 @@ local registryLib = require("../lib/genreregistry")
 local contract = require("../lib/genrecontract")
 local qaCommand = require("./qa")
 local Profile = require("../lib/profile")
+local MonetizationCatalog = require("../../../core/infra/monetization/Catalog")
 local M = {}
 function M.validatePackContract(game: any, config: any, registry: registryLib.Registry): { string }
 	local result = gameYml.validate(game, { registry = registry, config = config })
@@ -481,6 +482,19 @@ function M.run(args: { string }?): boolean
 						econLogs,
 						"econ drift: " .. generatedPath .. " is out of date; run lune run cli/forge codegen"
 					)
+				end
+			end
+			-- ADR-07 BM hard rules over game.yml monetization (QA-BM-01).
+			local gamePath = "games/" .. pack .. "/game.yml"
+			if fs.isFile(gamePath) then
+				local gameOk, game = pcall(function()
+					return serde.decode("yaml", fs.readFile(gamePath))
+				end)
+				if gameOk and type(game) == "table" then
+					for _, violation in MonetizationCatalog.lint(game.monetization) do
+						econFailed = true
+						table.insert(econLogs, "catalog lint: " .. gamePath .. ": " .. violation)
+					end
 				end
 			end
 		end

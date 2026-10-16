@@ -98,4 +98,48 @@ return {
 		assert(harness.calls.grant == 1, "grant runs only once since hasProcessed marks it idempotent")
 		assert(harness.calls.commit == 2, "commit is retried until it saves")
 	end,
+
+	-- QA-BM-03: a redelivery storm (Roblox retries ProcessReceipt until it gets
+	-- PurchaseGranted, and may redeliver after) leaves exactly one ledger grant
+	-- per PurchaseId, even with failing grants and saves interleaved.
+	["QA-BM-03 redelivery storm yields zero duplicate grants in the grant ledger"] = function()
+		local ledger: { [string]: number } = {}
+		local attempt = 0
+		local harness = newHarness({ [1] = "respec", [2] = "reefOutfit" }, function(userId: number, productKey: string)
+			attempt += 1
+			-- Every third grant attempt errors before writing anything.
+			if attempt % 3 == 0 then
+				error("transient grant failure")
+			end
+			local entry = tostring(userId) .. ":" .. productKey
+			ledger[entry] = (ledger[entry] or 0) + 1
+			return true
+		end, function()
+			-- Every other save fails, forcing redelivery after the grant.
+			attempt += 1
+			return attempt % 2 == 0
+		end)
+		local receipts = {
+			{ PlayerId = 1, ProductId = 1, PurchaseId = "bm3-a" },
+			{ PlayerId = 1, ProductId = 2, PurchaseId = "bm3-b" },
+			{ PlayerId = 2, ProductId = 1, PurchaseId = "bm3-c" },
+		}
+		local granted: { [string]: boolean } = {}
+		for _ = 1, 20 do
+			for _, receipt in receipts do
+				if harness.processor:process(receipt) == "PurchaseGranted" then
+					granted[receipt.PurchaseId] = true
+				end
+			end
+		end
+		for _, receipt in receipts do
+			assert(granted[receipt.PurchaseId], "every receipt is eventually granted: " .. receipt.PurchaseId)
+		end
+		local total = 0
+		for entry, count in ledger do
+			assert(count == 1, "duplicate grant for " .. entry .. ": " .. tostring(count))
+			total += count
+		end
+		assert(total == #receipts, "one ledger grant per purchase, got " .. tostring(total))
+	end,
 }

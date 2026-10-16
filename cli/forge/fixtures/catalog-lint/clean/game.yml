@@ -1,0 +1,26 @@
+name: Catalog lint clean fixture
+# QA-BM-01 passing fixture: the plan section 8.1 deterministic survival catalog.
+monetization:
+  gamepasses:
+    - key: wideStorage
+      name: Wide Storage
+      price: 199
+      grant: {kind: storageSlots, amount: 10}
+    - key: extraCharacter
+      name: Extra Character Slot
+      price: 149
+      grant: {kind: characterSlot, amount: 1}
+  products:
+    - key: respec
+      name: Mastery Respec
+      price: 99
+      grant: {kind: respecToken, amount: 1}
+    - key: reefOutfit
+      name: Reef Outfit
+      price: 149
+      grant: {kind: cosmeticSet, cosmeticSetId: reef-outfit}
+  subscriptions:
+    - key: tideMonthly
+      name: Tide Monthly
+      price: 499
+      grant: {kind: subscriptionMonthly, cosmeticSetId: tide-set, storageSlots: 10}

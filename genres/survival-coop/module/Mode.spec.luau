@@ -103,7 +103,8 @@ return {
 		local gatherOk, gatherReason = Capability.assertSupported("crafting", "gathering")
 		assert(gatherOk and gatherReason == nil, "gathering is supported")
 		assert(
-			table.concat(Capability.describe("crafting").features.implemented, ",") == "inventory,crafting-jobs,gathering",
+			table.concat(Capability.describe("crafting").features.implemented, ",")
+				== "inventory,crafting-jobs,gathering",
 			"exactly inventory, crafting-jobs and gathering are implemented"
 		)
 		for _, feature in { "vitals", "placement", "tribe", "wildlife", "transfer" } do

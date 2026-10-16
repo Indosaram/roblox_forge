@@ -19,6 +19,102 @@ local policy: {
 	{
 		["catalog"] = {
 			["species"] = {
+				["leaper-fernhop"] = {
+					["damageMilli"] = 7000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 45000,
+				},
+				["leaper-reedvault"] = {
+					["damageMilli"] = 7000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 42000,
+				},
+				["charger-oakbrow"] = {
+					["damageMilli"] = 12000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 4 },
+						[2] = { ["item"] = "hide", ["quantity"] = 2 },
+					},
+					["healthMilli"] = 90000,
+				},
+				["charger-mudbrow"] = {
+					["damageMilli"] = 12000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 4 },
+						[2] = { ["item"] = "hide", ["quantity"] = 2 },
+					},
+					["healthMilli"] = 85000,
+				},
+				["tailswing-mossback"] = {
+					["damageMilli"] = 9000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 3 },
+						[2] = { ["item"] = "hide", ["quantity"] = 2 },
+					},
+					["healthMilli"] = 110000,
+				},
+				["tailswing-shellclub"] = {
+					["damageMilli"] = 9000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 3 },
+						[2] = { ["item"] = "shell-fragment", ["quantity"] = 2 },
+					},
+					["healthMilli"] = 100000,
+				},
+				["roarer-thicket"] = {
+					["damageMilli"] = 14000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 3 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 75000,
+				},
+				["roarer-tidecall"] = {
+					["damageMilli"] = 14000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 3 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 70000,
+				},
+				["scavenger-barkpicker"] = {
+					["damageMilli"] = 0,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 1 },
+						[2] = { ["item"] = "birch-bark", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 30000,
+				},
+				["scavenger-flotsam"] = {
+					["damageMilli"] = 0,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 1 },
+						[2] = { ["item"] = "shell-fragment", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 30000,
+				},
+				["herd-acorncrest"] = {
+					["damageMilli"] = 0,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 55000,
+				},
+				["herd-sedgewader"] = {
+					["damageMilli"] = 0,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 50000,
+				},
 				["grazer"] = {
 					["damageMilli"] = 0,
 					["drops"] = { [1] = { ["item"] = "meat", ["quantity"] = 2 } },

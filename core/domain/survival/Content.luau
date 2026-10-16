@@ -145,8 +145,29 @@ export type Wildlife = {
 	telegraphMillis: number?,
 	cooldownMillis: number?,
 }
+-- Contracts section (plan §9.3): fixed first-day contracts, a seeded daily
+-- pool, five faction trust tiers and fixed-composition sponsor bundles.
+export type SponsorBundle = { tier: number, items: { Quantity } }
+export type Faction = { id: string, name: string, trustThresholds: { number }, bundles: { SponsorBundle } }
+export type ContractEntry = {
+	id: string,
+	faction: string,
+	pool: string,
+	deliver: { Quantity },
+	reward: { Quantity },
+	trust: number,
+}
+export type ContractCatalog = {
+	factions: { Faction },
+	entries: { ContractEntry },
+	firstDay: { string },
+	dailyCount: number,
+	swapCooldownMillis: number,
+	dayMillis: number,
+}
 export type Document = {
 	version: number,
+	contracts: ContractCatalog?,
 	rules: { [string]: string },
 	limits: { [string]: number },
 	vitals: VitalsConfig?,
@@ -628,6 +649,166 @@ local function validateNodes(errors: { string }, raw: any, items: { [string]: bo
 	end
 end
 
+--- Contracts section. Trust has exactly five tiers; tier 1 starts at 0 and
+--- every later threshold is strictly higher. Sponsor bundles are fixed item
+--- lists keyed by tier: there is no weight, chance or roll field to declare.
+local CONTRACT_TIERS = 5
+local CONTRACT_POOLS = { "first-day", "daily" }
+local CONTRACT_FIRST_DAY = 3
+local CONTRACT_DEFAULTS = { dailyCount = 3, swapCooldownMillis = 3600000, dayMillis = 86400000 }
+M.CONTRACT_TIERS = CONTRACT_TIERS
+M.CONTRACT_DEFAULTS = CONTRACT_DEFAULTS
+
+local function validateContracts(errors: { string }, raw: any, items: { [string]: boolean })
+	if raw == nil then
+		return
+	end
+	if type(raw) ~= "table" then
+		table.insert(errors, "contracts: expected mapping")
+		return
+	end
+	unknown(
+		errors,
+		"contracts",
+		raw,
+		{ "factions", "entries", "firstDay", "dailyCount", "swapCooldownMillis", "dayMillis" }
+	)
+	local factions: { [string]: boolean } = {}
+	if not Validation.dense(raw.factions, CAPS.list) or #raw.factions == 0 then
+		table.insert(errors, "contracts.factions: expected nonempty dense list")
+	else
+		for index, faction in raw.factions do
+			local at = string.format("contracts.factions[%d]", index)
+			if type(faction) ~= "table" then
+				table.insert(errors, at .. ": expected mapping")
+				continue
+			end
+			unknown(errors, at, faction, { "id", "name", "trustThresholds", "bundles" })
+			if not isId(faction.id) then
+				table.insert(errors, at .. ".id: invalid id")
+			elseif factions[faction.id] then
+				table.insert(errors, at .. ".id: duplicate faction " .. faction.id)
+			else
+				factions[faction.id] = true
+			end
+			if type(faction.name) ~= "string" or #faction.name == 0 or #faction.name > CAPS.name then
+				table.insert(errors, at .. ".name: expected 1.." .. CAPS.name .. " characters")
+			end
+			local thresholds = faction.trustThresholds
+			if not Validation.dense(thresholds, CONTRACT_TIERS) or #thresholds ~= CONTRACT_TIERS then
+				table.insert(errors, string.format("%s.trustThresholds: expected exactly %d tiers", at, CONTRACT_TIERS))
+			else
+				for tier, value in thresholds do
+					local previous = if tier == 1 then nil else thresholds[tier - 1]
+					local ok = if previous == nil
+						then value == 0
+						else isInt(previous, 0, CAPS.weightMilli) and isInt(value, previous + 1, CAPS.weightMilli)
+					if not ok then
+						table.insert(
+							errors,
+							string.format(
+								"%s.trustThresholds[%d]: expected 0 then strictly ascending integers",
+								at,
+								tier
+							)
+						)
+						break
+					end
+				end
+			end
+			if faction.bundles ~= nil then
+				if not Validation.dense(faction.bundles, CONTRACT_TIERS) then
+					table.insert(errors, at .. ".bundles: expected dense list")
+				else
+					local tiers: { [number]: boolean } = {}
+					for bundleIndex, bundle in faction.bundles do
+						local bundleAt = string.format("%s.bundles[%d]", at, bundleIndex)
+						if type(bundle) ~= "table" then
+							table.insert(errors, bundleAt .. ": expected mapping")
+							continue
+						end
+						unknown(errors, bundleAt, bundle, { "tier", "items" })
+						if not isInt(bundle.tier, 1, CONTRACT_TIERS) then
+							table.insert(
+								errors,
+								string.format("%s.tier: expected integer 1..%d", bundleAt, CONTRACT_TIERS)
+							)
+						elseif tiers[bundle.tier] then
+							table.insert(errors, bundleAt .. ".tier: duplicate tier " .. bundle.tier)
+						else
+							tiers[bundle.tier] = true
+						end
+						quantities(errors, bundleAt .. ".items", bundle.items, items)
+					end
+				end
+			end
+		end
+	end
+	local pools: { [string]: string } = {}
+	local dailySize = 0
+	if not Validation.dense(raw.entries, CAPS.list) or #raw.entries == 0 then
+		table.insert(errors, "contracts.entries: expected nonempty dense list")
+	else
+		for index, entry in raw.entries do
+			local at = string.format("contracts.entries[%d]", index)
+			if type(entry) ~= "table" then
+				table.insert(errors, at .. ": expected mapping")
+				continue
+			end
+			unknown(errors, at, entry, { "id", "faction", "pool", "deliver", "reward", "trust" })
+			if not isId(entry.id) then
+				table.insert(errors, at .. ".id: invalid id")
+			elseif pools[entry.id] then
+				table.insert(errors, at .. ".id: duplicate contract " .. entry.id)
+			elseif table.find(CONTRACT_POOLS, entry.pool) then
+				pools[entry.id] = entry.pool
+				if entry.pool == "daily" then
+					dailySize += 1
+				end
+			end
+			if not table.find(CONTRACT_POOLS, entry.pool) then
+				table.insert(errors, at .. ".pool: expected first-day|daily")
+			end
+			if not isId(entry.faction) or not factions[entry.faction] then
+				table.insert(errors, at .. ".faction: unknown faction " .. tostring(entry.faction))
+			end
+			quantities(errors, at .. ".deliver", entry.deliver, items)
+			if entry.reward ~= nil then
+				quantities(errors, at .. ".reward", entry.reward, items)
+			end
+			if not isInt(entry.trust, 0, CAPS.quantity) then
+				table.insert(errors, at .. ".trust: expected integer 0.." .. CAPS.quantity)
+			end
+		end
+	end
+	if not Validation.dense(raw.firstDay, CONTRACT_FIRST_DAY) or #raw.firstDay ~= CONTRACT_FIRST_DAY then
+		table.insert(errors, string.format("contracts.firstDay: expected exactly %d contract ids", CONTRACT_FIRST_DAY))
+	else
+		local seen: { [string]: boolean } = {}
+		for index, id in raw.firstDay do
+			local at = string.format("contracts.firstDay[%d]", index)
+			if type(id) ~= "string" or pools[id] ~= "first-day" then
+				table.insert(errors, at .. ": expected a first-day contract id, got " .. tostring(id))
+			elseif seen[id] then
+				table.insert(errors, at .. ": duplicate contract " .. id)
+			else
+				seen[id] = true
+			end
+		end
+	end
+	local dailyCount = if raw.dailyCount == nil then CONTRACT_DEFAULTS.dailyCount else raw.dailyCount
+	if not isInt(dailyCount, 1, 8) then
+		table.insert(errors, "contracts.dailyCount: expected integer 1..8")
+	elseif dailySize < dailyCount then
+		table.insert(errors, string.format("contracts.entries: daily pool has %d, needs %d", dailySize, dailyCount))
+	end
+	for _, field in { "swapCooldownMillis", "dayMillis" } do
+		if raw[field] ~= nil and not isInt(raw[field], 1, CAPS.millis) then
+			table.insert(errors, string.format("contracts.%s: expected integer 1..%d", field, CAPS.millis))
+		end
+	end
+end
+
 local GRAZER_FIELDS: { string } = { "senseStuds", "fleeStuds" }
 local HUNTER_FIELDS: { string } = { "warnStuds", "attackStuds", "leashStuds", "telegraphMillis", "cooldownMillis" }
 
@@ -713,6 +894,7 @@ function M.validate(raw: any): { string }
 		"structures",
 		"wildlife",
 		"vitals",
+		"contracts",
 	})
 	if raw.survival_content ~= M.VERSION then
 		table.insert(
@@ -745,6 +927,7 @@ function M.validate(raw: any): { string }
 	validateRecipes(errors, raw.recipes, items, tags, stations)
 	validateNodes(errors, raw.nodes, items)
 	validateWildlife(errors, raw.wildlife)
+	validateContracts(errors, raw.contracts, items)
 	table.sort(errors)
 	return errors
 end
@@ -884,8 +1067,51 @@ function M.canonicalize(raw: any): (Document?, { string })
 		end
 		vitals = resolved
 	end
+	local contracts: ContractCatalog? = nil
+	if raw.contracts ~= nil then
+		local source = raw.contracts
+		local factions: { Faction } = {}
+		for _, faction in source.factions do
+			local bundles: { SponsorBundle } = {}
+			for _, bundle in faction.bundles or {} do
+				table.insert(bundles, { tier = bundle.tier, items = canonicalQuantities(bundle.items) })
+			end
+			table.sort(bundles, function(left, right)
+				return left.tier < right.tier
+			end)
+			table.insert(factions, {
+				id = faction.id,
+				name = faction.name,
+				trustThresholds = table.clone(faction.trustThresholds),
+				bundles = bundles,
+			})
+		end
+		sortById(factions)
+		local entries: { ContractEntry } = {}
+		for _, entry in source.entries do
+			table.insert(entries, {
+				id = entry.id,
+				faction = entry.faction,
+				pool = entry.pool,
+				deliver = canonicalQuantities(entry.deliver),
+				reward = canonicalQuantities(entry.reward),
+				trust = entry.trust,
+			})
+		end
+		sortById(entries)
+		contracts = {
+			factions = factions,
+			entries = entries,
+			-- Authored order is the fixed first-day order; it is never sorted.
+			firstDay = table.clone(source.firstDay),
+			dailyCount = source.dailyCount or CONTRACT_DEFAULTS.dailyCount,
+			swapCooldownMillis = source.swapCooldownMillis or CONTRACT_DEFAULTS.swapCooldownMillis,
+			dayMillis = source.dayMillis or CONTRACT_DEFAULTS.dayMillis,
+		}
+	end
 	return {
 		version = M.VERSION,
+		contracts = contracts,
 		rules = rules,
 		limits = limits,
 		vitals = vitals,
