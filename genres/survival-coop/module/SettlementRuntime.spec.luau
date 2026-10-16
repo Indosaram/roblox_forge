@@ -12,6 +12,7 @@ local Content = require("../../../core/domain/survival/Content")
 local Job = require("../../../core/domain/crafting/Job")
 local Workshop = require("./Workshop")
 local Bridge = require("./SettlementBridge")
+local Events = require("../../../core/infra/analytics/Events")
 local serde = require("@lune/serde")
 local catalog = Catalog.new({ { id = "wood", stackMax = 100, weightMilli = 1000 } })
 local function config(now: () -> number): Runtime.Config
@@ -963,6 +964,44 @@ return {
 			Ledger.canonical(restored.link()) == Ledger.canonical({ tribeId = "tribe" }),
 			"player link contains no aggregate"
 		)
+	end,
+	["committed place emits one build event and refusals or replays emit none"] = function()
+		local seen: { { name: string, fields: { [string]: any } } } = {}
+		local cfg = config(function()
+			return 7
+		end)
+		cfg.analytics = Events.new(function(name: string, fields: { [string]: any })
+			table.insert(seen, { name = name, fields = fields })
+		end)
+		local reachable = true
+		cfg.verifyPlacement = function()
+			return reachable
+		end
+		local runtime = assert(
+			Runtime.new(
+				cfg,
+				FencedStore.new(harness.barrier().backend, { sessionId = "a", leaseSeconds = 120, now = cfg.now })
+			)
+		)
+		assert(runtime.epoch("owner") == 0, "owner epoch")
+		local reserved = command(runtime, "owner", "reserve", "reserve", { "bench", 4, 4, 0, 0, 1, 0 })
+		local id = assert(reserved.data).reservationId
+		assert(#seen == 0, "reserve is not a build")
+		reachable = false
+		assert(command(runtime, "owner", "far", "place", { id, 1, 2 }).reason == "PLACEMENT_UNREACHABLE", "refused")
+		assert(#seen == 0, "a refused place emits nothing")
+		reachable = true
+		local placed = command(runtime, "owner", "place", "place", { id, 1, 2 })
+		assert(placed.ok, placed.reason)
+		local replay = command(runtime, "owner", "place", "place", { id, 1, 2 })
+		assert(Ledger.canonical(replay) == Ledger.canonical(placed), "exact receipt replay")
+		assert(#seen == 1, "exactly one build event, got " .. #seen)
+		local event = seen[1]
+		assert(event.name == "build", "build event")
+		assert(event.fields.actorId == "owner" and event.fields.structureId == "bench", "actor and structure")
+		assert(event.fields.placementId == id and event.fields.settlementId == "tribe", "placement and tribe")
+		assert(event.fields.atMillis == 7000, "explicit clock")
+		assert(runtime.close().ok, "runtime closes cleanly")
 	end,
 	["membership limits transfer owner and empty settlement same owner rejoin"] = function()
 		local runtime = setup()

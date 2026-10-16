@@ -136,7 +136,7 @@ All commands run from the repository root as `lune run cli/forge <command> [args
   Collects the top Roblox experiences per genre and writes a markdown report (default `reports/trends-<YYYY-MM-DD>.md`): experience count, total CCU, and median gamepass price per genre, plus genres with no directory under `genres/` flagged as new Genre Module candidates (plan section 11.4). Live mode fetches the Explore `top-playing-now` sort via `@lune/net` and exits 1 with a clear message if the fetch fails; `--fixture` reads a saved JSON payload instead and never touches the network.
 
 - `lune run cli/forge report [--pack <slug>] [--events <path>] [--out <path>]`
-  Reads a JSON-lines analytics log (default `games/<pack>/analytics/events.jsonl`), counts events against `core/infra/analytics/Events.luau`, and writes the weekly liveops report to `reports/<pack>-weekly-<YYYY-MM-DD>.md`: event counts, tutorial completion rate, Robux revenue, and the `session_start -> egg_purchase -> egg_hatch -> robux_purchase` funnel.
+  Reads a JSON-lines analytics log (default `games/<pack>/analytics/events.jsonl`), counts events against `core/infra/analytics/Events.luau`, and writes the weekly liveops report to `reports/<pack>-weekly-<YYYY-MM-DD>.md`: event counts, tutorial completion rate, Robux revenue, the `session_start -> egg_purchase -> egg_hatch -> robux_purchase` funnel, and the survival funnel `session_start -> gather -> craft -> build` with the death count.
 
 ## Testing and debugging tools
 
