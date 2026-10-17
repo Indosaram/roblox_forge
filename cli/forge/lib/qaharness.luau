@@ -529,7 +529,16 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	settlementOwner()
 	local fixture: any = nil
 	local function openFixture()
-		if scenario.name == "shop-receipt-storm" then
+		if scenario.name == "contracts-tutorial" then
+			assert(scenario.genre == "survival-coop", "contracts-tutorial binds the survival-coop genre")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/contracts-tutorial"))
+			fixture = require("../fixtures/contracts-tutorial/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		elseif scenario.name == "shop-receipt-storm" then
 			assert(scenario.genre == "survival-coop", "shop fixture genre binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/monetization-shop"))
 			fixture = require("../fixtures/monetization-shop/scenario").new(target.packConfig, gate.backend, function()

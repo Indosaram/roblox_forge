@@ -122,6 +122,21 @@ local contract: Shared.RuntimeContract = {
 		{ id = "craft-start", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "craft-complete", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "craft-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "contract-accept", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "contract-deliver", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "contract-swap",
+			args = { Schema.number({ min = 1, max = 8, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "contract-claim",
+			args = { id, Schema.number({ min = 1, max = 5, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "tutorial-skip-arrival", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "buy-defense", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "defend-active", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "food", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
@@ -186,6 +201,11 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"contract-accept",
+		"contract-deliver",
+		"contract-swap",
+		"contract-claim",
+		"tutorial-skip-arrival",
 		"shop-prompt",
 		"shop-sync",
 		"market-list",

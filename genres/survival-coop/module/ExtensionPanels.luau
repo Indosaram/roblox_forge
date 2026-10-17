@@ -17,6 +17,7 @@ export type Factory = (Context) -> Panel?
 local M = {}
 M.factories = {
 	-- Append panel factories here (one require of ./<Name>Panel per line, then .factory).
+	require("./ContractsPanel").factory,
 	require("./ShopPanel").factory,
 	require("./MarketPanel").factory,
 } :: { Factory }

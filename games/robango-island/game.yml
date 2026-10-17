@@ -57,6 +57,8 @@
    'survival-coop:market-trade'
   - 
    'survival-coop:shop-receipt-storm'
+  - 
+   'survival-coop:contracts-tutorial'
   
 'runtime_mode':
   'crafting'
