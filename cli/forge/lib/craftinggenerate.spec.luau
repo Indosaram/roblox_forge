@@ -1036,14 +1036,27 @@ return {
 					}
 				end,
 			}
+			local panelsDestroyed = false
+			forge.genres["survival-coop"].module.ExtensionPanels = {
+				start = function(options)
+					assert(craftingStarted, "extension panels start after the HUD")
+					assert(options.ui and options.ui.components, "panels receive ui-kit components")
+					return {
+						destroy = function()
+							panelsDestroyed = true
+						end,
+					}
+				end,
+			}
 			luau.load(
 				fs.readFile(dir .. "/src/client/FixtureCraftingClient.client.luau"),
 				{ environment = environment }
 			)()
-			assert(#cleanup == 4, "GUI owns audio gathering HUD and camera cleanup")
+			assert(#cleanup == 5, "GUI owns audio gathering HUD panels and camera cleanup")
 			for _, callback in cleanup do
 				callback()
 			end
+			assert(panelsDestroyed, "extension panels destroyed with GUI")
 			assert(gatheringDestroyed, "gathering destroyed with GUI")
 			assert(cameraStopped, "camera stopped with GUI")
 			assert(hudDestroyed, "HUD destroyed with GUI")

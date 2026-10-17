@@ -14,7 +14,7 @@ local function fixture(extensions: { any }?)
 		handles = function(action: string): boolean
 			return action == ACTION
 		end,
-		command = function(actor, action, args, context, origin, admit)
+		command = function(actor, action, _args, context, origin, admit)
 			local admitted = admit()
 			table.insert(calls, { actor = actor, action = action, context = context, origin = origin })
 			if not admitted.ok then
