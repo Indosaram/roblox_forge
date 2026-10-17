@@ -26,7 +26,7 @@ export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?
 
 local factories: { Factory } = {
-	-- Append extension factories here, e.g. require("./TamingExtension").factory,
+	-- Append extension factories here (one require of ./<Name>Extension per line, then .factory).
 	require("./MonetizationExtension").factory,
 	require("./MarketExtension").factory,
 }
