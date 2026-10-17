@@ -192,3 +192,11 @@ shop_price,%d Robux,shop panel price text,%d Robux,%d 로벅스
 shop_unavailable,Not available yet,shop refusal product id 0,Not available yet,아직 구매할 수 없어요
 shop_ineligible,Subscriptions are not available for this account,shop refusal subscription policy,Subscriptions are not available for this account,이 계정은 구독을 이용할 수 없어요
 shop_failed,Purchase could not start. Try again later,shop refusal generic,Purchase could not start. Try again later,구매를 시작하지 못했어요. 잠시 후 다시 시도하세요
+market_title,Market,market panel title,Market,시장
+market_buy,Buy,market buy button,Buy,구매
+market_list,List 1,market list one unit button,List 1,1개 등록
+market_price,%d x%d,market listing unit price and quantity,%d x%d,%d x%d
+market_empty,No listings,market empty state,No listings,등록된 물건이 없어요
+market_ineligible,This account cannot trade yet,market eligibility refusal,This account cannot trade yet,이 계정은 아직 거래할 수 없어요
+market_outlier,That price is too far from the market,market outlier price refusal,That price is too far from the market,시세와 너무 다른 가격이에요
+market_failed,Trade could not complete. Try again later,market generic failure,Trade could not complete. Try again later,거래를 완료하지 못했어요. 잠시 후 다시 시도하세요
