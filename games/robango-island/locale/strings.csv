@@ -183,6 +183,27 @@ tip_03,"Stone walls need a Mason's Bench, and the bench needs timber beams.",loa
 tip_04,Marsh clay turns into brick only in a Mud Kiln.,loading tip,Marsh clay turns into brick only in a Mud Kiln.,갯벌 점토는 흙가마에서만 벽돌이 된다.
 tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip,Grazers run from you. Hunters warn you. Learn the difference.,풀뜯이는 도망치고 사냥꾼은 경고한다. 그 차이를 익히자.
 tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
+ct_contracts_title,Contracts,contracts and tutorial panel,Contracts,계약
+ct_contracts_accept,Accept,contracts and tutorial panel,Accept,수락
+ct_contracts_deliver,Deliver,contracts and tutorial panel,Deliver,납품
+ct_contracts_accepted,Accepted,contracts and tutorial panel,Accepted,수락함
+ct_contracts_reward,Reward,contracts and tutorial panel,Reward,보상
+ct_contracts_trust,Trust,contracts and tutorial panel,Trust,신뢰도
+ct_contracts_tier,Tier,contracts and tutorial panel,Tier,단계
+ct_contracts_empty,No contracts available,contracts and tutorial panel,No contracts available,받을 수 있는 계약이 없어요
+ct_contracts_refused,Refused: ,contracts and tutorial panel,Refused: ,거절됨: 
+ct_tutorial_title,Objective,contracts and tutorial panel,Objective,목표
+ct_tutorial_skip,Skip arrival,contracts and tutorial panel,Skip arrival,도착 장면 건너뛰기
+ct_tutorial_done,Tutorial complete,contracts and tutorial panel,Tutorial complete,튜토리얼 완료
+ct_tutorial_arrive,Arrive on the island,contracts and tutorial panel,Arrive on the island,섬에 도착하세요
+ct_tutorial_gather,Gather a resource,contracts and tutorial panel,Gather a resource,자원을 채집하세요
+ct_tutorial_craft_stone_axe,Craft a stone axe,contracts and tutorial panel,Craft a stone axe,돌도끼를 만드세요
+ct_tutorial_declare_settlement,Place your settlement,contracts and tutorial panel,Place your settlement,정착지를 세우세요
+ct_tutorial_accept_contract,Accept the first contract,contracts and tutorial panel,Accept the first contract,첫 계약을 수락하세요
+ct_tutorial_deliver_contract,Deliver the first contract,contracts and tutorial panel,Deliver the first contract,첫 계약을 납품하세요
+ct_faction_route_surveyors,Route Survey Society,contracts and tutorial panel,Route Survey Society,노선 측량 협회
+ct_faction_artisan_guilds,Artisan Guild Union,contracts and tutorial panel,Artisan Guild Union,장인 길드 연합
+ct_faction_island_ecology,Island Ecology Trust,contracts and tutorial panel,Island Ecology Trust,섬 생태 신탁
 island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
 island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.
 item_capture_bola,Hobble Bola,entity capture-bola,Hobble Bola,속박 볼라
@@ -201,3 +222,18 @@ tame_mounted,Riding %s,taming mounted label,Riding %s,%s 탑승 중
 tame_failed,That did not work. Try again.,taming refusal,That did not work. Try again.,잘 안 됐어요. 다시 시도하세요.
 tame_pending,Saving... try the same action again.,taming charge pending,Saving... try the same action again.,저장 중이에요. 같은 동작을 다시 시도하세요.
 tame_gauge,Stun gauge: %s,taming gauge label,Stun gauge: %s,기절 게이지: %s
+shop_title,Shop,shop panel title,Shop,상점
+shop_buy,Buy,shop panel buy button,Buy,구매
+shop_owned,Owned,shop panel owned label,Owned,보유 중
+shop_price,%d Robux,shop panel price text,%d Robux,%d 로벅스
+shop_unavailable,Not available yet,shop refusal product id 0,Not available yet,아직 구매할 수 없어요
+shop_ineligible,Subscriptions are not available for this account,shop refusal subscription policy,Subscriptions are not available for this account,이 계정은 구독을 이용할 수 없어요
+shop_failed,Purchase could not start. Try again later,shop refusal generic,Purchase could not start. Try again later,구매를 시작하지 못했어요. 잠시 후 다시 시도하세요
+market_title,Market,market panel title,Market,시장
+market_buy,Buy,market buy button,Buy,구매
+market_list,List 1,market list one unit button,List 1,1개 등록
+market_price,%d x%d,market listing unit price and quantity,%d x%d,%d x%d
+market_empty,No listings,market empty state,No listings,등록된 물건이 없어요
+market_ineligible,This account cannot trade yet,market eligibility refusal,This account cannot trade yet,이 계정은 아직 거래할 수 없어요
+market_outlier,That price is too far from the market,market outlier price refusal,That price is too far from the market,시세와 너무 다른 가격이에요
+market_failed,Trade could not complete. Try again later,market generic failure,Trade could not complete. Try again later,거래를 완료하지 못했어요. 잠시 후 다시 시도하세요

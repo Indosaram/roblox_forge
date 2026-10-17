@@ -877,11 +877,34 @@ function M.new(
 		return Executor.clone(ledgers[id].epochs[tostring(request.sessionEpoch)].outcomes[request.requestId].result),
 			if notificationError then { notificationError = notificationError } else nil
 	end
+	-- Extensions observe every settled command result; a failing observer is
+	-- reported as a notification error, never allowed to rewrite the result.
+	local function observed(
+		id: string,
+		request: any,
+		origin: "client" | "server"
+	): (Contract.Result, { notificationError: string }?)
+		local result, note = command(id, request, origin)
+		if type(request) == "table" and type(request.action) == "string" and type(request.args) == "table" then
+			for _, extension in extensions do
+				if extension.observe then
+					local ok, err = pcall(function(): boolean
+						(extension.observe :: any)(id, request.action, request.args, result)
+						return true
+					end)
+					if not ok then
+						note = { notificationError = tostring(err) }
+					end
+				end
+			end
+		end
+		return result, note
+	end
 	function session.command(id, request)
-		return command(id, request, "client")
+		return observed(id, request, "client")
 	end
 	function session.commandServer(id, request)
-		return command(id, request, "server")
+		return observed(id, request, "server")
 	end
 	function session.advance(epoch)
 		if next(busy) then

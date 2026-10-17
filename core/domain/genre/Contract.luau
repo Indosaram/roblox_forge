@@ -17,6 +17,9 @@ export type Extension = {
 	snapshot: ((string) -> (StateData?, string?))?,
 	recover: ((string, number) -> any)?,
 	epoch: ((string, string) -> (number?, string?))?,
+	-- Called after every command Session settles (any port), with the action, its args
+	-- and the real result. Lets an extension follow gameplay without client claims.
+	observe: ((string, string, { any }, Result) -> ())?,
 }
 export type Services = {
 	survivalExtensions: { Extension }?,

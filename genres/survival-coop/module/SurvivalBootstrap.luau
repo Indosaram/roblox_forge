@@ -283,6 +283,7 @@ function M.new(
 		now = config.now,
 		nowMillis = config.nowMillis,
 		world = world,
+		analytics = config.analytics,
 		members = function()
 			return if active and not closed then active.members() else {}
 		end,
