@@ -61,6 +61,14 @@ export type Runtime = {
 	recorded: (actorId: string) -> Recorded?,
 	carryCapacity: (actorId: string, baseMilli: number) -> number,
 	wildCount: () -> number,
+	--- Loads previously saved animals for one owner (idempotent per animal id).
+	restore: (actorId: string, saved: { Owned }) -> string?,
+	--- Drops every in-memory animal and ride of one owner (reload from a save).
+	forget: (actorId: string) -> (),
+	--- The owner's animals, ordered by id.
+	list: (actorId: string) -> { Owned },
+	--- Fraction of a wild animal's gauge capacity, for server-side checks.
+	gaugeMax: () -> number,
 }
 
 type Wild = { species: string, gauge: Taming.Gauge, rng: Rng.Rng }
@@ -296,6 +304,66 @@ function M.new(config: Config): Runtime
 
 	function runtime.wildCount(): number
 		return wildCount
+	end
+
+	function runtime.gaugeMax(): number
+		return config.taming.gaugeMax
+	end
+
+	function runtime.restore(actorId: string, saved: { Owned }): string?
+		if not id(actorId) then
+			return "INVALID_REQUEST"
+		end
+		for _, animal in saved do
+			if
+				not id(animal.id)
+				or animal.owner ~= actorId
+				or animals[animal.id]
+				or not tameable[animal.species]
+				or not integer(animal.pen.startedAt, 0, 2 ^ 53 - 1)
+				or not integer(animal.pen.readyAt, animal.pen.startedAt, 2 ^ 53 - 1)
+			then
+				return "INVALID_ANIMAL"
+			end
+			if (owned[actorId] or 0) >= config.maxAnimalsPerOwner then
+				return "PEN_FULL"
+			end
+			animals[animal.id] = {
+				id = animal.id,
+				species = animal.species,
+				owner = actorId,
+				pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
+			}
+			owned[actorId] = (owned[actorId] or 0) + 1
+			local suffix = tonumber(string.match(animal.id, ":(%d+)$"))
+			if suffix and suffix > serial then
+				serial = suffix
+			end
+		end
+		return nil
+	end
+
+	function runtime.forget(actorId: string)
+		for animalId, animal in animals do
+			if animal.owner == actorId then
+				animals[animalId] = nil
+			end
+		end
+		owned[actorId] = nil
+		rides[actorId] = nil
+	end
+
+	function runtime.list(actorId: string): { Owned }
+		local result: { Owned } = {}
+		for _, animal in animals do
+			if animal.owner == actorId then
+				table.insert(result, runtime.animal(animal.id) :: Owned)
+			end
+		end
+		table.sort(result, function(left, right)
+			return left.id < right.id
+		end)
+		return result
 	end
 
 	return runtime

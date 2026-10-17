@@ -206,6 +206,22 @@ ct_faction_artisan_guilds,Artisan Guild Union,contracts and tutorial panel,Artis
 ct_faction_island_ecology,Island Ecology Trust,contracts and tutorial panel,Island Ecology Trust,섬 생태 신탁
 island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
 island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.
+item_capture_bola,Hobble Bola,entity capture-bola,Hobble Bola,속박 볼라
+recipe_capture_bola,Hobble Bola recipe,entity capture-bola-recipe,Hobble Bola recipe,속박 볼라 제작법
+wildlife_ridge_strider,Ridge Strider,entity ridge-strider,Ridge Strider,능선걸음이
+wildlife_fen_trotter,Fen Trotter,entity fen-trotter,Fen Trotter,늪종종이
+wildlife_bluff_bounder,Bluff Bounder,entity bluff-bounder,Bluff Bounder,벼랑깡충이
+tame_title,Tamed animals,taming panel title,Tamed animals,길들인 동물
+tame_empty,"No tamed animals yet. Stun a wild animal, then capture it with a bola.",taming panel empty,"No tamed animals yet. Stun a wild animal, then capture it with a bola.",길들인 동물이 아직 없어요. 야생 동물을 기절시킨 뒤 볼라로 붙잡으세요.
+tame_ready,Ready,taming pen ready,Ready,준비 완료
+tame_remaining,Ready in %s,taming pen timer,Ready in %s,%s 후 준비
+tame_feed,Feed,taming feed button,Feed,먹이 주기
+tame_mount,Mount,taming mount button,Mount,타기
+tame_dismount,Dismount,taming dismount button,Dismount,내리기
+tame_mounted,Riding %s,taming mounted label,Riding %s,%s 탑승 중
+tame_failed,That did not work. Try again.,taming refusal,That did not work. Try again.,잘 안 됐어요. 다시 시도하세요.
+tame_pending,Saving... try the same action again.,taming charge pending,Saving... try the same action again.,저장 중이에요. 같은 동작을 다시 시도하세요.
+tame_gauge,Stun gauge: %s,taming gauge label,Stun gauge: %s,기절 게이지: %s
 shop_title,Shop,shop panel title,Shop,상점
 shop_buy,Buy,shop panel buy button,Buy,구매
 shop_owned,Owned,shop panel owned label,Owned,보유 중

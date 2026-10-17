@@ -24,6 +24,8 @@ export type Context = {
 	personalTransfer: (string) -> Session.PersonalTransfer?,
 	-- Optional core analytics emitter shared with the bootstrap (nil when none).
 	analytics: Events.Emitter?,
+	-- Live wildlife state by id (nil when absent or the pack has no wildlife source).
+	wildlife: ((string) -> { catalogId: string, healthMilli: number }?)?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?
@@ -31,6 +33,7 @@ export type Factory = (Context) -> Built?
 local factories: { Factory } = {
 	-- Append extension factories here (one require of ./<Name>Extension per line, then .factory).
 	require("./ContractsExtension").factory,
+	require("./TamingExtension").factory,
 	require("./MonetizationExtension").factory,
 	require("./MarketExtension").factory,
 }

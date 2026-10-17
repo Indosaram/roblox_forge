@@ -9,6 +9,8 @@ local Clock = require(Forge.core.infra.genre.Clock)
 local content = require(Shared.SurvivalContent)
 local source = require(Shared.SurvivalWorldConfig)
 local wildlifePolicy = require(Shared.WildlifePolicy)
+-- Taming/mounts: the pack only supplies the policy; the extension registry builds the system.
+require(Forge.genres["survival-coop"].module.TamingExtension).configure(require(Shared.TamingConfig))
 -- The provisioning policy is guarded by the environment: `studio` is true only for a local Studio
 -- place with no published experience id, so a published server can never select the permissive path.
 local provision = require(script.Parent.SurvivalProvision)(

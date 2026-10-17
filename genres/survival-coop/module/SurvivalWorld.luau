@@ -11,6 +11,7 @@ local Fenced = require("../../../core/infra/data/FencedStore")
 local Wildlife = require("./Wildlife")
 local WildlifeWorld = require("./WildlifeWorld")
 local DinosaurRig = require("./DinosaurRig")
+local Archetype = require("../../../core/domain/survival/Archetype")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local M = {}
 export type GatherAuthority = (Session.Session, GatheringRuntime.Request, Inventory.State) -> boolean
@@ -596,7 +597,13 @@ function M.new(config: Config)
 			wildlifeFolder = folder
 			for _, spawn in policy.spawns do
 				local p = spawn.position
-				local model = DinosaurRig.new(spawn.catalogId, spawn.id, Vector3.new(p.x, p.y, p.z), folder)
+				local engine = "hunter"
+				for _, entry in config.content.wildlife or {} do
+					if entry.id == spawn.catalogId then
+						engine = Archetype.engine(entry.behavior) or "hunter"
+					end
+				end
+				local model = DinosaurRig.new(engine, spawn.id, Vector3.new(p.x, p.y, p.z), folder)
 				wildlife.register(model, spawn.id, spawn.catalogId)
 			end
 		end
@@ -706,6 +713,16 @@ function M.new(config: Config)
 							* (state.speedMultiplierMilli or 1000)
 							* (state.vitalsMovementMilli or 1000)
 							/ 1000000
+						-- A mounted rider moves at the server-resolved ride speed (never client input),
+						-- scaled by the same load penalty measured against the ride's carry capacity.
+						local shared = active.snapshot(id).survivalExtensions
+						local ride = if type(shared) == "table" then shared.taming else nil
+						if type(ride) == "table" and ride.walkSpeedStuds then
+							humanoid.WalkSpeed = ride.walkSpeedStuds
+								* (ride.loadMilli or 1000)
+								* (state.vitalsMovementMilli or 1000)
+								/ 1000000
+						end
 						if state.vitals and #(pending[id] or {}) == 0 then
 							humanoid.MaxHealth = 100
 							observed[humanoid] = state.vitals.healthMilli / 1000

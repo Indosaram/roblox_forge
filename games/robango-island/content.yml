@@ -702,6 +702,22 @@
     500
    
   
+  - 
+   'id':
+    'capture-bola'
+   'maxDurabilityMilli':
+    100000
+   'name':
+    'Hobble Bola'
+   'stackMax':
+    1
+   'tags':
+    - 
+     'tool'
+    
+   'weightMilli':
+    1500
+   
 'limits':
   'hardWeightMilli':
    90000
@@ -1814,6 +1830,28 @@
     
    
   
+  - 
+   'craftMillis':
+    3000
+   'id':
+    'capture-bola'
+   'inputs':
+    - 
+     'item':
+      'fiber'
+     'quantity':
+      6
+     
+    
+   'outputs':
+    - 
+     'item':
+      'capture-bola'
+     'quantity':
+      1
+     
+    
+   
 'rules':
   'demolitionRefund':
    'full-storage-v1'
@@ -2346,6 +2384,42 @@
     8
    
   
+  - 
+   'behavior':
+    'herd-grazer'
+   'fleeStuds':
+    26
+   'id':
+    'ridge-strider'
+   'senseStuds':
+    12
+   
+  - 
+   'behavior':
+    'herd-grazer'
+   'fleeStuds':
+    24
+   'id':
+    'fen-trotter'
+   'senseStuds':
+    10
+   
+  - 
+   'attackStuds':
+    5
+   'behavior':
+    'leaper'
+   'cooldownMillis':
+    1800
+   'id':
+    'bluff-bounder'
+   'leashStuds':
+    36
+   'telegraphMillis':
+    900
+   'warnStuds':
+    14
+   
 contracts:
   firstDay: [survey-driftwood, guild-stone-axe, eco-fiber-sample]
   dailyCount: 3

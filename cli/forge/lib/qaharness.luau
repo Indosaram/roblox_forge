@@ -29,6 +29,10 @@ local Content = require("../../../core/domain/survival/Content")
 local FencedStore = require("../../../core/infra/data/FencedStore")
 local Rng = require("../../../core/domain/random/Rng")
 local Journal = require("../../../core/domain/command/Journal")
+local Extensions = require("../../../genres/survival-coop/module/Extensions")
+local TamingExtension = require("../../../genres/survival-coop/module/TamingExtension")
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 
 local M = {}
 
@@ -569,6 +573,77 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		end
 	end
 	openFixture()
+	-- Genre extensions (taming): built from the real registry factory over the run's backend,
+	-- wired to the session late so personalTransfer resolves the live personal aggregate.
+	local extensionClosers: { () -> Contract.Result } = {}
+	local liveSession: Session.Session? = nil
+	local function buildExtensions(sessionId: string): { Contract.Extension }?
+		local tamingFixture = if scenario.data then scenario.data.taming else nil
+		if not tamingFixture then
+			return nil
+		end
+		local policy: any = luau.load(fs.readFile("games/" .. scenario.pack .. "/src/shared/TamingConfig.luau"))()
+		for key, value in tamingFixture.policy or {} do
+			if key == "taming" then
+				for inner, innerValue in value do
+					policy.taming[inner] = innerValue
+				end
+			else
+				policy[key] = value
+			end
+		end
+		TamingExtension.configure(policy)
+		local config = target.packConfig.configs["survival-coop"]
+		local content, errors = Content.canonicalize(config.inventory.content)
+		assert(content, table.concat(errors, "; "))
+		local extensionOptions: FencedStore.Options = {
+			sessionId = sessionId,
+			leaseSeconds = 120,
+			now = function()
+				return math.floor(wall)
+			end,
+			budget = {
+				encode = function(value)
+					return serde.encode("json", value)
+				end,
+			},
+		}
+		local ports: { Contract.Extension } = {}
+		for _, factory in Extensions.factories do
+			local extension = factory({
+				content = content,
+				store = function()
+					return FencedStore.new(gate.backend, extensionOptions)
+				end,
+				backend = gate.backend,
+				options = extensionOptions,
+				now = function()
+					return math.floor(wall)
+				end,
+				nowMillis = nowMillis,
+				world = nil,
+				members = function()
+					return if liveSession then liveSession.members() else {}
+				end,
+				personalTransfer = function(actor)
+					return if liveSession then liveSession.personalTransfer(actor) else nil
+				end,
+				wildlife = function(id)
+					local catalogId = tamingFixture.wild[id]
+					return if catalogId then { catalogId = catalogId, healthMilli = 1000 } else nil
+				end,
+			})
+			if extension then
+				if extension.close then
+					table.insert(extensionClosers, extension.close)
+				end
+				local port: any = table.clone(extension)
+				port.close = nil
+				table.insert(ports, port)
+			end
+		end
+		return if #ports > 0 then ports else nil
+	end
 	local session = Session.new(actualTarget, gate.backend, {
 		sessionId = "qa-" .. scenario.name,
 		lockTimeout = 120,
@@ -587,9 +662,11 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalExtensions = trustedServices.survivalExtensions,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
+		survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-ext"),
 		roll = roll,
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
+	liveSession = session
 	if fixture then
 		fixture.bind(session)
 	end
@@ -890,6 +967,10 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				if fixture then
 					assert(fixture.close().ok, "fixture release before reload")
 				end
+				for closer = #extensionClosers, 1, -1 do
+					assert(extensionClosers[closer]().ok, "extension release before reload")
+					table.remove(extensionClosers, closer)
+				end
 				local durable = serde.decode("json", serde.encode("json", gate.snapshot()))
 				local restarted = M.barrier(durable)
 				gate = restarted
@@ -915,9 +996,11 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalExtensions = trustedServices.survivalExtensions,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
+					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext"),
 					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)
+				liveSession = session
 				if fixture then
 					fixture.bind(session)
 				end

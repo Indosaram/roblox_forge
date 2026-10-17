@@ -115,6 +115,27 @@ local policy: {
 					},
 					["healthMilli"] = 50000,
 				},
+				["ridge-strider"] = {
+					["damageMilli"] = 0,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 50000,
+				},
+				["fen-trotter"] = {
+					["damageMilli"] = 0,
+					["drops"] = { [1] = { ["item"] = "meat", ["quantity"] = 2 } },
+					["healthMilli"] = 45000,
+				},
+				["bluff-bounder"] = {
+					["damageMilli"] = 7000,
+					["drops"] = {
+						[1] = { ["item"] = "meat", ["quantity"] = 2 },
+						[2] = { ["item"] = "hide", ["quantity"] = 1 },
+					},
+					["healthMilli"] = 42000,
+				},
 				["grazer"] = {
 					["damageMilli"] = 0,
 					["drops"] = { [1] = { ["item"] = "meat", ["quantity"] = 2 } },
@@ -149,6 +170,21 @@ local policy: {
 				["catalogId"] = "hunter",
 				["id"] = "hunter-01",
 				["position"] = { ["x"] = 22, ["y"] = 4, ["z"] = 24 },
+			},
+			[3] = {
+				["catalogId"] = "ridge-strider",
+				["id"] = "ridge-strider-01",
+				["position"] = { ["x"] = -34, ["y"] = 4, ["z"] = 30 },
+			},
+			[4] = {
+				["catalogId"] = "fen-trotter",
+				["id"] = "fen-trotter-01",
+				["position"] = { ["x"] = -8, ["y"] = 4, ["z"] = 36 },
+			},
+			[5] = {
+				["catalogId"] = "bluff-bounder",
+				["id"] = "bluff-bounder-01",
+				["position"] = { ["x"] = 36, ["y"] = 4, ["z"] = 34 },
 			},
 		},
 		["version"] = 1,

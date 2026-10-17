@@ -2,6 +2,7 @@ version: 1
 defaults: { source: original, author: "agent:claude-5.5/robango-g1" }
 entries:
   "items/berry": { created: 2026-10-16 }
+  "items/capture-bola": { created: 2026-10-17 }
   "items/berry-meal": { created: 2026-10-16 }
   "items/birch-bark": { created: 2026-10-16 }
   "items/brick-floor-kit": { created: 2026-10-16 }
@@ -51,6 +52,7 @@ entries:
   "recipes/brick-roof-kit": { created: 2026-10-16 }
   "recipes/brick-wall-kit": { created: 2026-10-16 }
   "recipes/campfire-kit": { created: 2026-10-16 }
+  "recipes/capture-bola": { created: 2026-10-17 }
   "recipes/cattail-flatbread": { created: 2026-10-16 }
   "recipes/clam-bake": { created: 2026-10-16 }
   "recipes/cooked-meat": { created: 2026-10-16 }
@@ -114,7 +116,10 @@ entries:
   "wildlife/charger-mudbrow": { created: 2026-10-16 }
   "wildlife/charger-oakbrow": { created: 2026-10-16 }
   "wildlife/grazer": { created: 2026-10-16 }
+  "wildlife/bluff-bounder": { created: 2026-10-17 }
+  "wildlife/fen-trotter": { created: 2026-10-17 }
   "wildlife/herd-acorncrest": { created: 2026-10-16 }
+  "wildlife/ridge-strider": { created: 2026-10-17 }
   "wildlife/herd-sedgewader": { created: 2026-10-16 }
   "wildlife/hunter": { created: 2026-10-16 }
   "wildlife/leaper-fernhop": { created: 2026-10-16 }
