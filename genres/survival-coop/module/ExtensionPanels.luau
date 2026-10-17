@@ -17,6 +17,7 @@ export type Factory = (Context) -> Panel?
 local M = {}
 M.factories = {
 	-- Append panel factories here, e.g. require("./TamingPanel").factory,
+	require("./ContractsPanel").factory,
 } :: { Factory }
 
 function M.start(options: { ui: any, locale: string, factories: { Factory }? }): Panel
