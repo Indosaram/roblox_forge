@@ -1013,7 +1013,8 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalGathering = trustedServices.survivalGathering,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
-					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext") or trustedServices.survivalExtensions,
+					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext")
+						or trustedServices.survivalExtensions,
 					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)
