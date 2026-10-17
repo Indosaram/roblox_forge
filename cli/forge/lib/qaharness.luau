@@ -571,6 +571,15 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "camp-ladder" then
+			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
+			fixture = require("../fixtures/camp-ladder/scenario").new("games/robango-island", gate.backend, function()
+				return math.floor(wall)
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
 	end
 	openFixture()
 	-- Genre extensions (taming): built from the real registry factory over the run's backend,
@@ -659,10 +668,9 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalSettlement = trustedServices.survivalSettlement,
 		survivalTransfer = trustedServices.survivalTransfer,
 		survivalGathering = trustedServices.survivalGathering,
-		survivalExtensions = trustedServices.survivalExtensions,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
-		survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-ext"),
+		survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-ext") or trustedServices.survivalExtensions,
 		roll = roll,
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
@@ -993,10 +1001,9 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalSettlement = trustedServices.survivalSettlement,
 					survivalTransfer = trustedServices.survivalTransfer,
 					survivalGathering = trustedServices.survivalGathering,
-					survivalExtensions = trustedServices.survivalExtensions,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
-					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext"),
+					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext") or trustedServices.survivalExtensions,
 					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)

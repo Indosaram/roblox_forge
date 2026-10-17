@@ -25,7 +25,17 @@ local backend = RuntimeBackend.new(require(script.Parent.PersistenceConfig), "Su
 local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wildlifePolicy, function()
 	return Clock.millis(clock.now())
 end)
-local factory, err = require(script.Parent.SurvivalFactory)(content, source, world, backend, clock, {
+-- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
+local visitWorld: any = world
+visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
+	players = game:GetService("Players"),
+	isStudio = RunService:IsStudio(),
+	placeId = game.PlaceId,
+	now = function()
+		return DateTime.now().UnixTimestampMillis / 1000
+	end,
+})
+local factory, err = require(script.Parent.SurvivalFactory)(content, source, visitWorld, backend, clock, {
 	sessionId = game.JobId .. HttpService:GenerateGUID(false),
 	leaseSeconds = 120,
 	now = function()

@@ -2454,3 +2454,11 @@ contracts:
     - {id: daily-guild-spear, faction: artisan-guilds, pool: daily, deliver: [{item: spear, quantity: 1}], reward: [{item: cord, quantity: 3}], trust: 30}
     - {id: daily-eco-berries, faction: island-ecology, pool: daily, deliver: [{item: berry, quantity: 10}], reward: [{item: fiber, quantity: 4}], trust: 20}
     - {id: daily-eco-meal, faction: island-ecology, pool: daily, deliver: [{item: berry-meal, quantity: 2}], reward: [{item: wood, quantity: 5}], trust: 25}
+camp:
+  leagueRung: 2
+  rungs:
+    - {rung: 1, completions: 1, facility: camp-cache}
+    - {rung: 2, completions: 2, facility: camp-hearth}
+  projects:
+    - {id: windbreak, rung: 1, cost: [{item: fiber, quantity: 8}]}
+    - {id: drying-rack, rung: 2, cost: [{item: berry, quantity: 3}, {item: fiber, quantity: 4}]}

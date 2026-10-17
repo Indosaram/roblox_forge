@@ -193,6 +193,26 @@ local contract: Shared.RuntimeContract = {
 			origin = "server",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
+		-- Camp ladder + friend visit (module/CampExtension)
+		{
+			id = "camp-contribute",
+			args = { id, id, quantity, version },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "camp-complete",
+			args = { id, version },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "camp-visit-open", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "camp-visit-help",
+			args = { id, id, id, quantity, version },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{ id = "shop-prompt", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "shop-sync", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
@@ -216,6 +236,10 @@ local contract: Shared.RuntimeContract = {
 		"tame-feed",
 		"tame-mount",
 		"tame-dismount",
+		"camp-contribute",
+		"camp-complete",
+		"camp-visit-open",
+		"camp-visit-help",
 		"shop-prompt",
 		"shop-sync",
 		"market-list",
