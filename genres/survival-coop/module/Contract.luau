@@ -8,6 +8,7 @@ local quantity = Schema.number({ min = 1, max = 1000, integer = true })
 local version = Schema.number({ min = 0, max = 2 ^ 53 - 2, integer = true })
 local vital = Schema.number({ min = 0, max = 100000, integer = true })
 local coordinate = Schema.number({ min = 0, max = 31, integer = true })
+local price = Schema.number({ min = 1, max = 2 ^ 31, integer = true })
 local rotation = Schema.number({ min = 0, max = 3, integer = true })
 local contract: Shared.RuntimeContract = {
 	api = 1,
@@ -174,12 +175,21 @@ local contract: Shared.RuntimeContract = {
 		},
 		{ id = "shop-prompt", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "shop-sync", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "market-list",
+			args = { id, quantity, price },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "market-buy", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 	},
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
 		"shop-prompt",
 		"shop-sync",
+		"market-list",
+		"market-buy",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
