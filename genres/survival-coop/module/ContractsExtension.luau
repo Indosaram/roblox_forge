@@ -201,6 +201,21 @@ function M.factory(ctx: any): any
 		for _, event in events do
 			SurvivalTutorial.observe(session, event)
 		end
+		-- Contract steps are state facts, not moments: a contract accepted or delivered
+		-- before the player reaches that step still counts once the step is current.
+		while true do
+			local step = Tutorial.current(session.state)
+			local contracts = data.contracts
+			local satisfied = step ~= nil
+				and (
+					(step.event == "ContractAccepted" and (next(contracts.accepted) ~= nil or contracts.delivered > 0))
+					or (step.event == "ContractDelivered" and contracts.delivered > 0)
+				)
+			if not satisfied then
+				break
+			end
+			SurvivalTutorial.observe(session, (step :: Tutorial.Step).event)
+		end
 		data.tutorial = SurvivalTutorial.save(session)
 	end
 
@@ -349,6 +364,7 @@ function M.factory(ctx: any): any
 						reason = why or "REJECTED"
 						return data
 					end
+					data.contracts = Contracts.toSave(state)
 					advance(data, { "ContractAccepted" }, emits)
 					result = { ok = true, data = { contractId = args[1] } }
 				else

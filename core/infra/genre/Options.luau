@@ -43,7 +43,7 @@ export type Options = {
 }
 local M = {}
 local EXTENSION_REQUIRED = { "handles", "command" }
-local EXTENSION_OPTIONAL = { "snapshot", "recover", "epoch" }
+local EXTENSION_OPTIONAL = { "snapshot", "recover", "epoch", "observe" }
 function M.validateExtensions(list: any): ()
 	assert(Validation.dense(list, 64), "services: invalid extension list")
 	local seen: { [string]: boolean } = {}

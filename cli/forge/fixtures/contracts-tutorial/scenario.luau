@@ -18,11 +18,16 @@ local Fenced = require("../../../../core/infra/data/FencedStore")
 local Session = require("../../../../core/infra/genre/Session")
 local Contract = require("../../../../core/domain/genre/Contract")
 local ProfileStore = require("../../../../core/infra/data/ProfileStore")
+local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local M = {}
 
+-- The analytics stream this fixture observed must follow the golden path: steps strictly
+-- ascending by one, tutorial_complete at most once and only right after step 6. A restart
+-- opens a fresh fixture (empty log) that resumes mid-path, so only ordering is checked here;
+-- completeness is asserted on the real snapshot by the scenario itself.
 local function validStream(log: { { name: string, fields: any } }): string?
-	local last = nil :: number?
+	local last: number? = nil
 	local completed = 0
 	for _, event in log do
 		if event.name == "tutorial_step" then
@@ -44,7 +49,10 @@ local function validStream(log: { { name: string, fields: any } }): string?
 end
 
 function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: () -> number)
-	local content = assert(Content.canonicalize(config.configs["survival-coop"].inventory.content))
+	-- The contracts catalog lives in the pack's content.yml (the econ.yml QA target carries none).
+	local content = assert(Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))))
+	assert(content.contracts ~= nil, "pack content declares no contracts")
+	assert(config.configs["survival-coop"] ~= nil, "pack config binds survival-coop")
 	local options = {
 		sessionId = "contracts-tutorial-owner",
 		leaseSeconds = 120,
@@ -79,7 +87,7 @@ function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: 
 				initial = {
 					settlement = Settlement.new(
 						{ tribeId = "tribe", width = 32, depth = 32, cellStuds = 4, maxMembers = 4 },
-						"owner"
+						"1"
 					),
 					warehouse = Inventory.new(
 						"warehouse",
