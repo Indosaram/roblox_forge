@@ -165,7 +165,7 @@ function M.policy(): Ledger.Policy
 	end
 	for _, id in SurvivalContract.extensionActions or {} do
 		local origin = assert(origins[id], "undeclared extension action: " .. id)
-		local list = if origin == "server" then assert(policy.serverActions) else policy.actions
+		local list = if origin == "server" then assert(policy.serverActions, "server durable actions declared") else policy.actions
 		local namespaced = SurvivalContract.id .. ":" .. id
 		assert(not table.find(list, namespaced), "duplicate extension action: " .. id)
 		table.insert(list, namespaced)

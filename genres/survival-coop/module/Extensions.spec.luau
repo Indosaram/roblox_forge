@@ -153,7 +153,7 @@ return {
 			local derived = crafting.policy()
 			assert(derived.actions[#derived.actions] == "survival-coop:defend-active", "client action appended")
 			assert(#derived.actions == #base.actions + 1, "one client action added")
-			local server = assert(derived.serverActions)
+			local server = assert(derived.serverActions, "derived server actions")
 			assert(server[#server] == "survival-coop:death-drop", "server action appended by origin")
 			Contract.extensionActions = { "not-declared" }
 			assert(not pcall(crafting.policy), "undeclared extension action rejected")
