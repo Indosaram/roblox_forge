@@ -83,6 +83,8 @@ local function copyVitals(raw: any): Vitals.State
 			end
 		elseif type(initial) == "boolean" then
 			assert(type(value) == "boolean", "invalid saved vital flag")
+		elseif key == "zone" then
+			assert(value == "safe" or value == "danger", "invalid saved death zone")
 		else
 			local maximum = if table.find({ "healthMilli", "hungerMilli", "fatigueMilli" }, key)
 				then 100000

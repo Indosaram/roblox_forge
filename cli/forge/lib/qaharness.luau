@@ -561,11 +561,30 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "zone-death" then
+			assert(scenario.genre == "survival-coop", "zone fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/death-zone"))
+			fixture = require("../fixtures/death-zone/scenario").new(function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
 		if scenario.name == "market-trade" then
 			assert(scenario.genre == "survival-coop", "market fixture genre binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/market-extension"))
 			fixture = require("../fixtures/market-extension/scenario").new(gate.backend, function()
 				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
+		if scenario.name == "camp-ladder" then
+			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
+			fixture = require("../fixtures/camp-ladder/scenario").new("games/robango-island", gate.backend, function()
+				return math.floor(wall)
 			end)
 			for key, service in fixture.services do
 				(trustedServices :: any)[key] = service
@@ -661,7 +680,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalGathering = trustedServices.survivalGathering,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
-		survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-ext"),
+		survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-ext") or trustedServices.survivalExtensions,
 		roll = roll,
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
@@ -994,7 +1013,8 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalGathering = trustedServices.survivalGathering,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
-					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext"),
+					survivalExtensions = buildExtensions("qa-" .. scenario.name .. "-restart-ext")
+						or trustedServices.survivalExtensions,
 					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)

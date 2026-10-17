@@ -61,6 +61,10 @@
    'survival-coop:contracts-tutorial'
   - 
    'survival-coop:taming-mounts'
+  - 
+   'survival-coop:camp-ladder'
+  - 
+   'survival-coop:zone-death'
   
 'runtime_mode':
   'crafting'

@@ -181,9 +181,14 @@ export type ContractCatalog = {
 	swapCooldownMillis: number,
 	dayMillis: number,
 }
+-- Camp section: the shared project ladder (genres/survival-coop/module/Camp).
+export type CampRung = { rung: number, completions: number, facility: string }
+export type CampProject = { id: string, rung: number, cost: { Quantity } }
+export type CampCatalog = { leagueRung: number, rungs: { CampRung }, projects: { CampProject } }
 export type Document = {
 	version: number,
 	contracts: ContractCatalog?,
+	camp: CampCatalog?,
 	rules: { [string]: string },
 	limits: { [string]: number },
 	vitals: VitalsConfig?,
@@ -208,6 +213,8 @@ local VITALS_FIELDS = {
 	"fatigueMilliPerAction",
 	"restMilliPerSecond",
 	"starvationMillisPerUnit",
+	-- Optional, no default: its presence switches on the death zone (see Vitals.Config).
+	"respawnDelayMillis",
 }
 local VITALS_DEFAULTS: VitalsConfig = {
 	hungerMillisPerUnit = 18000,
@@ -406,7 +413,8 @@ local function validateVitals(errors: { string }, raw: any)
 	unknown(errors, "vitals", raw, VITALS_FIELDS)
 	for _, field in VITALS_FIELDS do
 		local period = field == "hungerMillisPerUnit" or field == "starvationMillisPerUnit"
-		local low, high = if period then 1 else 0, if period then CAPS.millis else 100000
+		local low, high =
+			if period then 1 else 0, if period or field == "respawnDelayMillis" then CAPS.millis else 100000
 		if raw[field] ~= nil and not isInt(raw[field], low, high) then
 			table.insert(errors, string.format("vitals.%s: expected integer %d..%d", field, low, high))
 		end
@@ -789,6 +797,78 @@ local function validateNodes(
 	end
 end
 
+--- Camp section: dense rungs 1..N with strictly increasing completion counts and
+--- one unique facility each, plus projects that cost declared items.
+local CAMP_MAX_RUNGS = 16
+local function validateCamp(errors: { string }, raw: any, items: { [string]: boolean })
+	if raw == nil then
+		return
+	end
+	if type(raw) ~= "table" then
+		table.insert(errors, "camp: expected mapping")
+		return
+	end
+	unknown(errors, "camp", raw, { "leagueRung", "rungs", "projects" })
+	local rungCount = 0
+	if not Validation.dense(raw.rungs, CAMP_MAX_RUNGS) or #raw.rungs == 0 then
+		table.insert(errors, "camp.rungs: expected nonempty dense list")
+	else
+		rungCount = #raw.rungs
+		local previous = 0
+		local facilities: { [string]: boolean } = {}
+		for index, rung in raw.rungs do
+			local at = string.format("camp.rungs[%d]", index)
+			if type(rung) ~= "table" then
+				table.insert(errors, at .. ": expected mapping")
+				continue
+			end
+			unknown(errors, at, rung, { "rung", "completions", "facility" })
+			if rung.rung ~= index then
+				table.insert(errors, at .. ".rung: expected " .. index)
+			end
+			if not isInt(rung.completions, previous + 1, 1000) then
+				table.insert(errors, at .. ".completions: expected integer increasing from " .. (previous + 1))
+			else
+				previous = rung.completions
+			end
+			if not isId(rung.facility) then
+				table.insert(errors, at .. ".facility: invalid id")
+			elseif facilities[rung.facility] then
+				table.insert(errors, at .. ".facility: duplicate facility " .. rung.facility)
+			else
+				facilities[rung.facility] = true
+			end
+		end
+	end
+	if not isInt(raw.leagueRung, 1, math.max(rungCount, 1)) then
+		table.insert(errors, "camp.leagueRung: expected integer within the rung count")
+	end
+	if not Validation.dense(raw.projects, CAPS.list) or #raw.projects == 0 then
+		table.insert(errors, "camp.projects: expected nonempty dense list")
+		return
+	end
+	local ids: { [string]: boolean } = {}
+	for index, project in raw.projects do
+		local at = string.format("camp.projects[%d]", index)
+		if type(project) ~= "table" then
+			table.insert(errors, at .. ": expected mapping")
+			continue
+		end
+		unknown(errors, at, project, { "id", "rung", "cost" })
+		if not isId(project.id) then
+			table.insert(errors, at .. ".id: invalid id")
+		elseif ids[project.id] then
+			table.insert(errors, at .. ".id: duplicate project " .. project.id)
+		else
+			ids[project.id] = true
+		end
+		if not isInt(project.rung, 1, math.max(rungCount, 1)) then
+			table.insert(errors, at .. ".rung: expected integer within the rung count")
+		end
+		quantities(errors, at .. ".cost", project.cost, items)
+	end
+end
+
 --- Contracts section. Trust has exactly five tiers; tier 1 starts at 0 and
 --- every later threshold is strictly higher. Sponsor bundles are fixed item
 --- lists keyed by tier: there is no weight, chance or roll field to declare.
@@ -1048,6 +1128,7 @@ function M.validate(raw: any): { string }
 		"vitals",
 		"skills",
 		"contracts",
+		"camp",
 	})
 	if raw.survival_content ~= M.VERSION then
 		table.insert(
@@ -1082,6 +1163,7 @@ function M.validate(raw: any): { string }
 	validateNodes(errors, raw.nodes, items, disciplines)
 	validateWildlife(errors, raw.wildlife)
 	validateContracts(errors, raw.contracts, items)
+	validateCamp(errors, raw.camp, items)
 	table.sort(errors)
 	return errors
 end
@@ -1295,9 +1377,23 @@ function M.canonicalize(raw: any): (Document?, { string })
 			dayMillis = source.dayMillis or CONTRACT_DEFAULTS.dayMillis,
 		}
 	end
+	local camp: CampCatalog? = nil
+	if raw.camp ~= nil then
+		local projects: { CampProject } = {}
+		for _, project in raw.camp.projects do
+			table.insert(projects, { id = project.id, rung = project.rung, cost = canonicalQuantities(project.cost) })
+		end
+		sortById(projects)
+		local rungs: { CampRung } = {}
+		for _, rung in raw.camp.rungs do
+			table.insert(rungs, { rung = rung.rung, completions = rung.completions, facility = rung.facility })
+		end
+		camp = { leagueRung = raw.camp.leagueRung, rungs = rungs, projects = projects }
+	end
 	return {
 		version = M.VERSION,
 		contracts = contracts,
+		camp = camp,
 		rules = rules,
 		limits = limits,
 		vitals = vitals,

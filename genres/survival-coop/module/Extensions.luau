@@ -21,6 +21,8 @@ export type Context = {
 	nowMillis: () -> number,
 	world: any,
 	members: () -> { string },
+	-- Trusted settlement port (membership-gated snapshot); nil only before bind in tests.
+	settlement: { snapshot: (string) -> (Shared.StateData?, string?) },
 	personalTransfer: (string) -> Session.PersonalTransfer?,
 	-- Optional core analytics emitter shared with the bootstrap (nil when none).
 	analytics: Events.Emitter?,
@@ -34,8 +36,10 @@ local factories: { Factory } = {
 	-- Append extension factories here (one require of ./<Name>Extension per line, then .factory).
 	require("./ContractsExtension").factory,
 	require("./TamingExtension").factory,
+	require("./CampExtension").factory,
 	require("./MonetizationExtension").factory,
 	require("./MarketExtension").factory,
+	require("./DeathZoneExtension").factory,
 }
 
 return { factories = factories }

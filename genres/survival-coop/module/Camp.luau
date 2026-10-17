@@ -149,6 +149,21 @@ function M.contribute(
 	return result, nil
 end
 
+-- A visiting friend is not a tribe member: stand in a one-role roster so only the
+-- shared delivery rules (lock, need, overflow, version) apply. Visitors may help
+-- a host project but can never complete one; the caller debits the visitor's bag.
+function M.assist(
+	state: State,
+	ladder: Ladder,
+	visitorId: string,
+	version: number,
+	projectId: string,
+	contribution: Contribution
+): (State?, string?)
+	local guest = { config = { tribeId = state.tribeId }, roles = { [visitorId] = "visitor" } }
+	return M.contribute(state, ladder, guest :: any, visitorId, version, projectId, contribution)
+end
+
 -- Completes a fully delivered joint project, counting it toward the ladder and
 -- granting every facility whose rung is now reached.
 function M.complete(

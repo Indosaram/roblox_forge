@@ -1,0 +1,48 @@
+# Death zone: the server-validated zone-set command picks the rule CraftingAdapter applies at death
+# through Vitals.deathPolicy. Safe keeps the bag; danger drops it through DeathBundle. Real Session.
+name: zone-death
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1"]
+fixtures: [cli/forge/fixtures/death-zone]
+data:
+  nativeDeath: development-island-v1
+  survivalSpatial:
+    radiusStuds: 8
+    players: {"1": {x: 0, y: 1, z: 0}}
+    campfires: {campfire: {x: 6, y: 1, z: 0}}
+  durable:
+    actions: ["survival-coop:zone-set"]
+    serverActions: ["survival-coop:server-vitals-tick", "survival-coop:vitals-damage", "survival-coop:respawn", "survival-coop:death-drop"]
+    tickAction: survival-coop:server-vitals-tick
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.death-zone.zone, equals: safe}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, at_least: 1}
+  - {op: command, player: "1", requestId: bad, sessionEpoch: current, action: "survival-coop:zone-set", args: [pvp], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: INVALID_ZONE}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.death-zone.zone, equals: safe}
+  - {op: command_server, player: "1", requestId: fall-safe, sessionEpoch: current, action: "survival-coop:vitals-damage", args: [100000]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.healthMilli, equals: 0}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, at_least: 1}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: deathBundles.bundles.death:1, is_nil: true}
+  - {op: command, player: "1", requestId: dead-zone, sessionEpoch: current, action: "survival-coop:zone-set", args: [danger], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: NOT_ALIVE}
+  - {op: command_server, player: "1", requestId: stand-up, sessionEpoch: current, action: "survival-coop:respawn", args: [100000, 50000, 0]}
+  - {op: command, player: "1", requestId: enter, sessionEpoch: current, action: "survival-coop:zone-set", args: [danger]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.death-zone.zone, equals: danger}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.zone, equals: danger}
+  - {op: close, player: "1"}
+  - {op: reload}
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.death-zone.zone, equals: danger}
+  - {op: command_server, player: "1", requestId: fall-danger, sessionEpoch: current, action: "survival-coop:vitals-damage", args: [100000]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: vitals.healthMilli, equals: 0}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber, is_nil: true}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: deathBundles.bundles.death:2.inventory.items.starter-fiber.quantity, at_least: 1}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}

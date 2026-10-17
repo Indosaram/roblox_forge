@@ -9,7 +9,9 @@ export type Context = {
 	ui: any,
 	locale: string,
 	send: (string, { any }) -> any,
-	onSnapshot: (({ [string]: any }) -> ()) -> () -> (),
+	-- The listener gets snapshot.survivalExtensions and, second, the whole packet
+	-- (snapshots, roster, ...) for panels that also read another snapshot slice.
+	onSnapshot: (({ [string]: any }, { [string]: any }) -> ()) -> () -> (),
 }
 export type Panel = { destroy: () -> () }
 export type Factory = (Context) -> Panel?
@@ -24,8 +26,10 @@ M.factories = {
 	-- Append panel factories here (one require of ./<Name>Panel per line, then .factory).
 	require("./ContractsPanel").factory,
 	require("./TamingPanel").factory,
+	require("./CampPanel").factory,
 	require("./ShopPanel").factory,
 	require("./MarketPanel").factory,
+	require("./DeathZonePanel").factory,
 } :: { Factory }
 
 function M.start(options: { ui: any, locale: string, factories: { Factory }? }): Panel
@@ -35,7 +39,8 @@ function M.start(options: { ui: any, locale: string, factories: { Factory }? }):
 	local state = storage:WaitForChild("ForgeState")
 	local durable: any = nil
 	local latest: { [string]: any } = {}
-	local listeners: { [number]: ({ [string]: any }) -> () } = {}
+	local latestPacket: { [string]: any } = {}
+	local listeners: { [number]: ({ [string]: any }, { [string]: any }) -> () } = {}
 	local nextListener = 0
 	local pending: { [string]: any } = {}
 	local connection = state.OnClientEvent:Connect(function(packet)
@@ -47,8 +52,9 @@ function M.start(options: { ui: any, locale: string, factories: { Factory }? }):
 		end
 		if type(packet.snapshots) == "table" then
 			latest = packet.snapshots.survivalExtensions or {}
+			latestPacket = packet
 			for _, listener in listeners do
-				task.spawn(listener, latest)
+				task.spawn(listener, latest, latestPacket)
 			end
 		end
 	end)
@@ -76,7 +82,7 @@ function M.start(options: { ui: any, locale: string, factories: { Factory }? }):
 			nextListener += 1
 			local key = nextListener
 			listeners[key] = callback
-			task.spawn(callback, latest)
+			task.spawn(callback, latest, latestPacket)
 			return function()
 				listeners[key] = nil
 			end
