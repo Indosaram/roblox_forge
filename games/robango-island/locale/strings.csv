@@ -183,3 +183,10 @@ tip_03,"Stone walls need a Mason's Bench, and the bench needs timber beams.",loa
 tip_04,Marsh clay turns into brick only in a Mud Kiln.,loading tip,Marsh clay turns into brick only in a Mud Kiln.,갯벌 점토는 흙가마에서만 벽돌이 된다.
 tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip,Grazers run from you. Hunters warn you. Learn the difference.,풀뜯이는 도망치고 사냥꾼은 경고한다. 그 차이를 익히자.
 tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
+shop_title,Shop,shop panel title,Shop,상점
+shop_buy,Buy,shop panel buy button,Buy,구매
+shop_owned,Owned,shop panel owned label,Owned,보유 중
+shop_price,%d Robux,shop panel price text,%d Robux,%d 로벅스
+shop_unavailable,Not available yet,shop refusal product id 0,Not available yet,아직 구매할 수 없어요
+shop_ineligible,Subscriptions are not available for this account,shop refusal subscription policy,Subscriptions are not available for this account,이 계정은 구독을 이용할 수 없어요
+shop_failed,Purchase could not start. Try again later,shop refusal generic,Purchase could not start. Try again later,구매를 시작하지 못했어요. 잠시 후 다시 시도하세요
