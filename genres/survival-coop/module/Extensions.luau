@@ -21,12 +21,17 @@ export type Context = {
 	world: any,
 	members: () -> { string },
 	personalTransfer: (string) -> Session.PersonalTransfer?,
+	-- Live wildlife state by id (nil when absent or the pack has no wildlife source).
+	wildlife: ((string) -> { catalogId: string, healthMilli: number }?)?,
+	-- Pack-supplied policy tables keyed by extension id (opaque to the registry).
+	policies: { [string]: any }?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?
 
 local factories: { Factory } = {
 	-- Append extension factories here, e.g. require("./TamingExtension").factory,
+	require("./TamingExtension").factory,
 }
 
 return { factories = factories }

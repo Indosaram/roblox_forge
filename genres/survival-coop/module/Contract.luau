@@ -123,6 +123,11 @@ local contract: Shared.RuntimeContract = {
 		{ id = "craft-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "buy-defense", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "defend-active", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "tame-hit", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "tame-capture", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "tame-feed", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "tame-mount", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "tame-dismount", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "food", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "rest",
@@ -175,7 +180,13 @@ local contract: Shared.RuntimeContract = {
 	},
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
-	extensionActions = {},
+	extensionActions = {
+		"tame-hit",
+		"tame-capture",
+		"tame-feed",
+		"tame-mount",
+		"tame-dismount",
+	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	validateConfig = Mode.validateConfig,

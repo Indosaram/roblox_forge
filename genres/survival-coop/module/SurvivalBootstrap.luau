@@ -43,6 +43,8 @@ export type Config = {
 	analytics: Events.Emitter?,
 	-- Extension factories to build; defaults to the genre registry (module/Extensions).
 	extensions: { Extensions.Factory }?,
+	-- Pack policies handed to extension factories (ctx.policies), keyed by extension id.
+	policies: { [string]: any }?,
 	wildlife: {
 		key: string,
 		catalog: Wildlife.Catalog,
@@ -190,6 +192,7 @@ function M.new(
 	services.survivalSettlement = settlement.services.survivalSettlement
 	services.survivalTransfer = settlement.services.survivalTransfer
 	services.survivalGathering = gathering
+	local wildlifeOwner: WildlifeRuntime.Runtime? = nil
 	local wildlifeToken: Fenced.Profile? = nil
 	local wildlifeStore: Fenced.Store? = nil
 	if config.wildlife then
@@ -240,6 +243,7 @@ function M.new(
 			settlement.close()
 			return nil, err
 		end
+		wildlifeOwner = owner
 		local wildlifeBridge = WildlifeBridge.new({
 			resolve = function()
 				return if active and not closed then owner else nil
@@ -287,6 +291,13 @@ function M.new(
 		personalTransfer = function(actor)
 			return if active and not closed then active.personalTransfer(actor) else nil
 		end,
+		wildlife = function(id)
+			local owner = wildlifeOwner
+			local states = if owner and not closed then owner.snapshot() else nil
+			local state = if states then states[id] else nil
+			return if state then { catalogId = state.catalogId, healthMilli = state.healthMilli } else nil
+		end,
+		policies = config.policies,
 	}
 	for _, factory in config.extensions or Extensions.factories do
 		local extension = factory(extensionContext)
