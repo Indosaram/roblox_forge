@@ -10,7 +10,7 @@ local M = {}
 --   exposure: exposureRiseTier1..3MilliPerSecond, exposureRecoverMilliPerSecond,
 --             exposureDamageMillisPerUnit (climate gauge; tier 0 never rises)
 --   stamina:  staminaRegenMilliPerSecond, staminaCostMilliPerAction
---   respawn:  respawnDelayMillis
+--   death:    respawnDelayMillis (also enables the death zone, safe or danger)
 -- State fields for a group exist only when its config exists, so saves written
 -- before a group was configured keep loading unchanged.
 export type Config = {
@@ -27,6 +27,7 @@ export type Config = {
 	staminaCostMilliPerAction: number?,
 	respawnDelayMillis: number?,
 }
+export type Zone = "safe" | "danger"
 export type State = {
 	healthMilli: number,
 	hungerMilli: number,
@@ -42,6 +43,7 @@ export type State = {
 	staminaMilli: number?,
 	staminaRemainder: number?,
 	respawnWaitMillis: number?,
+	zone: Zone?,
 	clockMillis: number,
 	activeMillis: number,
 	combatUntilMillis: number,
@@ -135,6 +137,7 @@ function M.new(nowMillis: number, config: Config?): State
 		staminaMilli = if staminaOn then MAX else nil,
 		staminaRemainder = if staminaOn then 0 else nil,
 		respawnWaitMillis = if delayed then 0 else nil,
+		zone = if delayed then "safe" else nil,
 		clockMillis = now,
 		activeMillis = 0,
 		combatUntilMillis = now + 10000,
@@ -376,6 +379,16 @@ function M.rest(state: State, port: { campfireId: string, reachable: boolean }):
 	return s
 end
 
+--- Server-observed opt-in zone. Entering the danger zone is the player's choice.
+function M.setZone(state: State, zone: Zone): State
+	alive(state)
+	assert(state.zone ~= nil, "death rule is not configured")
+	assert(zone == "safe" or zone == "danger", "invalid death zone")
+	local s = table.clone(state)
+	s.zone = zone
+	return s
+end
+
 function M.exhausted(state: State): boolean
 	return state.staminaMilli ~= nil and state.staminaMilli == 0
 end
@@ -418,9 +431,8 @@ function M.respawn(state: State, values: { healthMilli: number, hungerMilli: num
 	return s
 end
 
-export type Zone = "safe" | "danger"
-
---- `zone` selects the death rule. nil keeps the legacy newcomer-threshold rule.
+--- The death rule follows `zone` (default: the actor's own zone). An actor without
+--- a configured death group has no zone and keeps the legacy newcomer-threshold rule.
 --- "safe": the whole inventory is kept and only the respawn wait applies.
 --- "danger" (opt-in): the carried-in items drop through DeathBundle, with no
 --- newcomer protection because entering the zone was the player's choice.
@@ -436,7 +448,8 @@ function M.deathPolicy(
 }
 	assert(state.healthMilli == 0, "actor is not dead")
 	assert(zone == nil or zone == "safe" or zone == "danger", "invalid death zone")
-	local drop = if zone == nil then state.activeMillis >= 1800000 else zone == "danger"
+	local rule = zone or state.zone
+	local drop = if rule == nil then state.activeMillis >= 1800000 else rule == "danger"
 	return {
 		keepEquipped = true,
 		dropBag = drop,
