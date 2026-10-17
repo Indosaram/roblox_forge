@@ -86,6 +86,11 @@ export type ContractCatalog = {
 	swapCooldownMillis: number,
 	dayMillis: number,
 }
+export type CampCatalog = {
+	leagueRung: number,
+	rungs: { { rung: number, completions: number, facility: string } },
+	projects: { { id: string, rung: number, cost: { Quantity } } },
+}
 export type Content = {
 	version: number,
 	rules: { [string]: string },
@@ -100,8 +105,27 @@ export type Content = {
 	vitals: VitalsConfig?,
 	skills: nil,
 	contracts: ContractCatalog?,
+	camp: CampCatalog?,
 }
 local content: Content = {
+	["camp"] = {
+		["leagueRung"] = 2,
+		["projects"] = {
+			[1] = {
+				["cost"] = {
+					[1] = { ["item"] = "berry", ["quantity"] = 3 },
+					[2] = { ["item"] = "fiber", ["quantity"] = 4 },
+				},
+				["id"] = "drying-rack",
+				["rung"] = 2,
+			},
+			[2] = { ["cost"] = { [1] = { ["item"] = "fiber", ["quantity"] = 8 } }, ["id"] = "windbreak", ["rung"] = 1 },
+		},
+		["rungs"] = {
+			[1] = { ["completions"] = 1, ["facility"] = "camp-cache", ["rung"] = 1 },
+			[2] = { ["completions"] = 2, ["facility"] = "camp-hearth", ["rung"] = 2 },
+		},
+	},
 	["capability"] = {
 		["actionVersion"] = 2,
 		["actions"] = {

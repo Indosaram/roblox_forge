@@ -20,6 +20,8 @@ export type Context = {
 	nowMillis: () -> number,
 	world: any,
 	members: () -> { string },
+	-- Trusted settlement port (membership-gated snapshot); nil only before bind in tests.
+	settlement: { snapshot: (string) -> (Shared.StateData?, string?) },
 	personalTransfer: (string) -> Session.PersonalTransfer?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
@@ -27,6 +29,7 @@ export type Factory = (Context) -> Built?
 
 local factories: { Factory } = {
 	-- Append extension factories here, e.g. require("./TamingExtension").factory,
+	require("./CampExtension").factory,
 }
 
 return { factories = factories }

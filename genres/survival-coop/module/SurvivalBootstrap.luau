@@ -284,6 +284,7 @@ function M.new(
 		members = function()
 			return if active and not closed then active.members() else {}
 		end,
+		settlement = services.survivalSettlement :: any,
 		personalTransfer = function(actor)
 			return if active and not closed then active.personalTransfer(actor) else nil
 		end,

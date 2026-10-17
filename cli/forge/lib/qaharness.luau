@@ -327,6 +327,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	} =
 		table.clone(target.services or {})
 	actualTarget.services = trustedServices
@@ -537,6 +538,15 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "camp-ladder" then
+			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
+			fixture = require("../fixtures/camp-ladder/scenario").new("games/robango-island", gate.backend, function()
+				return math.floor(wall)
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
 	end
 	openFixture()
 	local session = Session.new(actualTarget, gate.backend, {
@@ -556,6 +566,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalGathering = trustedServices.survivalGathering,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
+		survivalExtensions = trustedServices.survivalExtensions,
 		roll = roll,
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
@@ -883,6 +894,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalGathering = trustedServices.survivalGathering,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
+					survivalExtensions = trustedServices.survivalExtensions,
 					roll = roll,
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)
