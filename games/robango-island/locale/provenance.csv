@@ -185,3 +185,10 @@ tip_05,original,agent:claude-5.5/robango-g1,2026-10-16
 tip_06,original,agent:claude-5.5/robango-g1,2026-10-16
 island_route_failed,original,agent:claude-5.5/robango-h6,2026-10-17
 island_route_retry,original,agent:claude-5.5/robango-h6,2026-10-17
+shop_title,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_buy,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_owned,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_price,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_unavailable,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_ineligible,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_failed,original,agent:claude-5.5/h5-monetization,2026-10-17

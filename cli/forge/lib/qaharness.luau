@@ -327,6 +327,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	} =
 		table.clone(target.services or {})
 	actualTarget.services = trustedServices
@@ -527,7 +528,16 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	settlementOwner()
 	local fixture: any = nil
 	local function openFixture()
-		if scenario.name == "gather-craft-settle" then
+		if scenario.name == "shop-receipt-storm" then
+			assert(scenario.genre == "survival-coop", "shop fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/monetization-shop"))
+			fixture = require("../fixtures/monetization-shop/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		elseif scenario.name == "gather-craft-settle" then
 			assert(scenario.genre == "survival-coop" and scenario.pack == "fixture-survival", "fixture pack binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/survival-services"))
 			fixture = require("../fixtures/survival-services/scenario").new(target.packConfig, gate.backend, function()
@@ -554,6 +564,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalSettlement = trustedServices.survivalSettlement,
 		survivalTransfer = trustedServices.survivalTransfer,
 		survivalGathering = trustedServices.survivalGathering,
+		survivalExtensions = trustedServices.survivalExtensions,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
 		roll = roll,
@@ -881,6 +892,8 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalSettlement = trustedServices.survivalSettlement,
 					survivalTransfer = trustedServices.survivalTransfer,
 					survivalGathering = trustedServices.survivalGathering,
+					survivalExtensions = trustedServices.survivalExtensions,
+					survivalExtensions = trustedServices.survivalExtensions,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
 					roll = roll,

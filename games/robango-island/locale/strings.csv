@@ -185,3 +185,10 @@ tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip
 tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
 island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
 island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.
+shop_title,Shop,shop panel title,Shop,상점
+shop_buy,Buy,shop panel buy button,Buy,구매
+shop_owned,Owned,shop panel owned label,Owned,보유 중
+shop_price,%d Robux,shop panel price text,%d Robux,%d 로벅스
+shop_unavailable,Not available yet,shop refusal product id 0,Not available yet,아직 구매할 수 없어요
+shop_ineligible,Subscriptions are not available for this account,shop refusal subscription policy,Subscriptions are not available for this account,이 계정은 구독을 이용할 수 없어요
+shop_failed,Purchase could not start. Try again later,shop refusal generic,Purchase could not start. Try again later,구매를 시작하지 못했어요. 잠시 후 다시 시도하세요
