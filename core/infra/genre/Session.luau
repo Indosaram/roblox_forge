@@ -59,6 +59,18 @@ function M.new(
 		assert(limit >= 1 and limit <= 4096 and limit % 1 == 0, "invalid command limit")
 	end
 	local executor = Executor.new(options.packConfig, options.contracts, services, options.hooks)
+	local extensions: { Contract.Extension } = services.survivalExtensions or {}
+	local function extensionFor(action: string?): Contract.Extension?
+		if action == nil then
+			return nil
+		end
+		for _, extension in extensions do
+			if extension.handles(action) then
+				return extension
+			end
+		end
+		return nil
+	end
 	local store = ProfileStore.new(backend, storeOptions)
 	local personal: PersonalAggregate.Store? = nil
 	local tokens: { [string]: FencedStore.Profile } = {}
@@ -171,7 +183,17 @@ function M.new(
 		local transfer = services.survivalTransfer
 		local gathering = services.survivalGathering
 		local wildlife = services.survivalWildlife
-		if (not transfer and not gathering and not wildlife) or not personal or not joined[id] then
+		local recoverable = {}
+		for _, extension in extensions do
+			if extension.recover then
+				table.insert(recoverable, extension)
+			end
+		end
+		if
+			(not transfer and not gathering and not wildlife and #recoverable == 0)
+			or not personal
+			or not joined[id]
+		then
 			return failure("TRANSFER_UNAVAILABLE")
 		end
 		if busy[id] or next(pending) then
@@ -189,6 +211,9 @@ function M.new(
 			end
 			if wildlife then
 				table.insert(ports, wildlife)
+			end
+			for _, extension in recoverable do
+				table.insert(ports, extension)
 			end
 			for _ = 1, math.min(maximum, 8) do
 				recoveryTurn[id] = (recoveryTurn[id] or 0) % #ports + 1
@@ -475,6 +500,11 @@ function M.new(
 			local epoch = services.survivalSettlement.epoch(id, action)
 			return epoch
 		end
+		local extension = extensionFor(action)
+		if extension and extension.epoch then
+			local epoch = extension.epoch(id, action :: string)
+			return epoch
+		end
 		local ledger = ledgers[id]
 		if not ledger then
 			return nil
@@ -661,6 +691,34 @@ function M.new(
 				end
 			)
 		end
+		local extension = extensionFor(request.action)
+		if extension then
+			if busy[id] or next(pending) then
+				return failure("COMMAND_PENDING")
+			end
+			busy[id] = true
+			local ok, result = pcall(
+				extension.command,
+				id,
+				request.action,
+				request.args,
+				{
+					actorId = id,
+					requestId = request.requestId,
+					sessionEpoch = request.sessionEpoch,
+					serverId = storeOptions.sessionId,
+				},
+				origin,
+				function()
+					return executor.admit(id, request.action, request.args, origin)
+				end
+			)
+			busy[id] = nil
+			if not ok then
+				error(result)
+			end
+			return result
+		end
 		-- A fixed discriminator binds origin without spending payload budget on
 		-- another canonical mapping key. Client bindings retain their prior form;
 		-- server bindings cannot collide with a canonical mapping's opening brace.
@@ -841,7 +899,7 @@ function M.new(
 			return
 		end
 		executor.advance(epoch)
-		if services.survivalTransfer or services.survivalGathering then
+		if services.survivalTransfer or services.survivalGathering or #extensions > 0 then
 			for id in joined do
 				session.recoverTransfers(id, 8)
 			end
@@ -859,6 +917,15 @@ function M.new(
 			local shared = services.survivalSettlement.snapshot(id)
 			if shared then
 				snapshot.survivalSettlement = shared
+			end
+		end
+		for _, extension in extensions do
+			if extension.snapshot then
+				local shared = extension.snapshot(id)
+				if shared then
+					snapshot.survivalExtensions = snapshot.survivalExtensions or {}
+					snapshot.survivalExtensions[extension.id] = shared
+				end
 			end
 		end
 		return snapshot
