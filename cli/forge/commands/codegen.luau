@@ -9,14 +9,42 @@ local serde = require("@lune/serde")
 local registryLib = require("../lib/genreregistry")
 local cliutil = require("../lib/cliutil")
 local gameyml = require("../lib/gameyml")
+local crafting = require("../lib/craftinggenerate")
 
 local M = {}
+
+--- `forge codegen <pack> --durable`: rewrite a crafting pack's generated
+--- src/shared/GenreDurable.luau from the survival-coop Contract (base policy plus
+--- its declared `extensionActions`). Only crafting-mode packs carry that policy.
+function M.durable(pack: string?, context: cliutil.CommandContext?): boolean
+	if pack == nil or pack == "" then
+		stdio.ewrite("Error: codegen --durable requires <pack>\n")
+		return false
+	end
+	local packDir = (if context and context.packsDir then context.packsDir else "games") .. "/" .. pack
+	local ok, result = pcall(function()
+		local game = serde.decode("yaml", fs.readFile(packDir .. "/game.yml"))
+		assert(game.runtime_mode == "crafting", "pack is not a survival-coop crafting pack")
+		local path = packDir .. "/src/shared/GenreDurable.luau"
+		fs.writeFile(path, crafting.durableFormatted())
+		return path
+	end)
+	if not ok then
+		stdio.ewrite("Error: codegen --durable " .. pack .. ": " .. tostring(result) .. "\n")
+		return false
+	end
+	stdio.write("codegen: wrote " .. tostring(result) .. "\n")
+	return true
+end
 
 local DEFAULT_PACK = "kaiju-egg-raiders"
 
 --- Writes the generated EconConfig.luau for a pack. Returns false (with a message
 --- on stderr) when the pack or its econ.yml is missing or does not decode.
 function M.run(args: { string }, context: cliutil.CommandContext?): boolean
+	if args[3] == "--durable" then
+		return M.durable(args[2], context)
+	end
 	local pack = DEFAULT_PACK
 	if args[2] ~= nil and args[2] ~= "" then
 		pack = args[2]

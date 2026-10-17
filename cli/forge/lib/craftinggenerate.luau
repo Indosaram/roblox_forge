@@ -12,6 +12,7 @@ local registryLib = require("./genreregistry")
 local genrespec = require("./genrespec")
 local project = require("./genreproject")
 local contentrender = require("./contentrender")
+local SurvivalContract = require("../../../genres/survival-coop/module/Contract")
 local M = {}
 
 function M.content(): any
@@ -118,7 +119,7 @@ function M.content(): any
 end
 
 function M.policy(): Ledger.Policy
-	return {
+	local policy: Ledger.Policy = {
 		actions = {
 			"survival-coop:attack",
 			"survival-coop:gather",
@@ -156,6 +157,38 @@ function M.policy(): Ledger.Policy
 		tickAction = "survival-coop:server-vitals-tick",
 		personal = { namespace = "personal", inventoryPath = { "genres", "survival-coop", "data", "inventory", "bag" } },
 	}
+	-- Extension lanes declare their action ids in the genre Contract's
+	-- `extensionActions`; each is appended by its declared origin, in order.
+	local origins: { [string]: string } = {}
+	for _, action in SurvivalContract.actions do
+		origins[action.id] = action.origin
+	end
+	for _, id in SurvivalContract.extensionActions or {} do
+		local origin = assert(origins[id], "undeclared extension action: " .. id)
+		local list = if origin == "server" then assert(policy.serverActions) else policy.actions
+		local namespaced = SurvivalContract.id .. ":" .. id
+		assert(not table.find(list, namespaced), "duplicate extension action: " .. id)
+		table.insert(list, namespaced)
+	end
+	return policy
+end
+
+-- The generated durable policy module (unformatted; publication runs stylua).
+function M.durableSource(): string
+	return "--!strict\nexport type Policy = {personal:{namespace:string,inventoryPath:{string}}?,actions:{string},serverActions:{string}?,tickAction:string?,windowSeconds:number?,maxOutcomes:number?}\nlocal policy: Policy = "
+		.. contract.serialize(M.policy())
+		.. "\nreturn policy\n"
+end
+
+-- Formatted bytes exactly as a published pack carries them.
+function M.durableFormatted(): string
+	local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })
+	formatter.stdin:write(M.durableSource())
+	formatter.stdin:close()
+	local text = formatter.stdout:readToEnd()
+	local errors = formatter.stderr:readToEnd()
+	assert(formatter:status().ok, errors)
+	return text
 end
 
 function M.worldConfig(): any
@@ -357,9 +390,7 @@ function M.render(
 		.. "\nreturn "
 		.. worldSource
 		.. "\n"
-	files["src/shared/GenreDurable.luau"] = "--!strict\nexport type Policy = {personal:{namespace:string,inventoryPath:{string}}?,actions:{string},serverActions:{string}?,tickAction:string?,windowSeconds:number?,maxOutcomes:number?}\nlocal policy: Policy = "
-		.. contract.serialize(M.policy())
-		.. "\nreturn policy\n"
+	files["src/shared/GenreDurable.luau"] = M.durableSource()
 	local path = "src/server/" .. input.pascal .. "Server.server.luau"
 	local clientPath = "src/client/" .. input.pascal .. "Client.client.luau"
 	files["src/shared/AudioConfig.luau"] = [[--!strict
@@ -416,6 +447,17 @@ ambient={asset="survival-coop-ambient",volume=0.12},
 		"})",
 		"gui.Destroying:Connect(hud.destroy)",
 		"script.Destroying:Connect(hud.destroy)",
+		"",
+		'local ExtensionPanels = require(Forge.genres["survival-coop"].module.ExtensionPanels)',
+		"local panels = ExtensionPanels.start({",
+		"\tui = {",
+		'\t\tcomponents = require(Forge.core["ui-kit"].Components),',
+		'\t\ttheme = require(Forge.core["ui-kit"].Theme),',
+		"\t},",
+		"\tlocale = " .. string.format("%q", locale) .. ",",
+		"})",
+		"gui.Destroying:Connect(panels.destroy)",
+		"script.Destroying:Connect(panels.destroy)",
 		"",
 		"local QuarterView = require(Forge.core.infra.camera.QuarterView)",
 		"local camera = QuarterView.start()",

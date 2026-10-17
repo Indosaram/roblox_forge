@@ -33,6 +33,17 @@ local hud = SurvivalHUD.start({
 gui.Destroying:Connect(hud.destroy)
 script.Destroying:Connect(hud.destroy)
 
+local ExtensionPanels = require(Forge.genres["survival-coop"].module.ExtensionPanels)
+local panels = ExtensionPanels.start({
+	ui = {
+		components = require(Forge.core["ui-kit"].Components),
+		theme = require(Forge.core["ui-kit"].Theme),
+	},
+	locale = "en",
+})
+gui.Destroying:Connect(panels.destroy)
+script.Destroying:Connect(panels.destroy)
+
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
 local camera = QuarterView.start()
 gui.Destroying:Connect(camera.stop)

@@ -7,6 +7,7 @@ local stdio = require("@lune/stdio")
 
 local run = require("../lib/run")
 local codegen = require("../lib/codegen")
+local crafting = require("../lib/craftinggenerate")
 local assetsLib = require("../lib/assets")
 local gameYml = require("../lib/gameyml")
 local lock = require("../lib/lock")
@@ -488,6 +489,26 @@ function M.run(args: { string }?): boolean
 			end
 			-- ADR-07 BM hard rules over game.yml monetization (QA-BM-01).
 			local gamePath = "games/" .. pack .. "/game.yml"
+			local durablePath = "games/" .. pack .. "/src/shared/GenreDurable.luau"
+			if fs.isFile(gamePath) and fs.isFile(durablePath) then
+				local decoded, game = pcall(serde.decode, "yaml", fs.readFile(gamePath))
+				if
+					decoded
+					and type(game) == "table"
+					and game.runtime_mode == "crafting"
+					and fs.readFile(durablePath) ~= crafting.durableFormatted()
+				then
+					econFailed = true
+					table.insert(
+						econLogs,
+						"durable drift: "
+							.. durablePath
+							.. " is out of date; run lune run cli/forge codegen "
+							.. pack
+							.. " --durable"
+					)
+				end
+			end
 			if fs.isFile(gamePath) then
 				local gameOk, game = pcall(function()
 					return serde.decode("yaml", fs.readFile(gamePath))
