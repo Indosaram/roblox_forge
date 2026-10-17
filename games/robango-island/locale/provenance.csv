@@ -204,3 +204,12 @@ ct_tutorial_deliver_contract,original,agent:claude-5.5/robango-h3,2026-10-17
 ct_faction_route_surveyors,original,agent:claude-5.5/robango-h3,2026-10-17
 ct_faction_artisan_guilds,original,agent:claude-5.5/robango-h3,2026-10-17
 ct_faction_island_ecology,original,agent:claude-5.5/robango-h3,2026-10-17
+island_route_failed,original,agent:claude-5.5/robango-h6,2026-10-17
+island_route_retry,original,agent:claude-5.5/robango-h6,2026-10-17
+shop_title,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_buy,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_owned,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_price,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_unavailable,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_ineligible,original,agent:claude-5.5/h5-monetization,2026-10-17
+shop_failed,original,agent:claude-5.5/h5-monetization,2026-10-17

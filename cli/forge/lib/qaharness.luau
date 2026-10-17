@@ -537,6 +537,15 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 			for key, service in fixture.services do
 				(trustedServices :: any)[key] = service
 			end
+		elseif scenario.name == "shop-receipt-storm" then
+			assert(scenario.genre == "survival-coop", "shop fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/monetization-shop"))
+			fixture = require("../fixtures/monetization-shop/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
 		elseif scenario.name == "gather-craft-settle" then
 			assert(scenario.genre == "survival-coop" and scenario.pack == "fixture-survival", "fixture pack binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/survival-services"))
