@@ -73,6 +73,7 @@ export type Target = {
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	}?,
 	packConfig: Contract.PackConfig,
 	contracts: { Contract.RuntimeContract },
@@ -331,6 +332,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	} =
 		table.clone(target.services or {})
 	actualTarget.services = trustedServices
@@ -548,12 +550,12 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	local extensionClosers: { () -> Contract.Result } = {}
 	local liveSession: Session.Session? = nil
 	local function buildExtensions(sessionId: string): { Contract.Extension }?
-		local fixture = if scenario.data then scenario.data.taming else nil
-		if not fixture then
+		local tamingFixture = if scenario.data then scenario.data.taming else nil
+		if not tamingFixture then
 			return nil
 		end
 		local policy: any = luau.load(fs.readFile("games/" .. scenario.pack .. "/src/shared/TamingConfig.luau"))()
-		for key, value in fixture.policy or {} do
+		for key, value in tamingFixture.policy or {} do
 			if key == "taming" then
 				for inner, innerValue in value do
 					policy.taming[inner] = innerValue
@@ -566,7 +568,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		local config = target.packConfig.configs["survival-coop"]
 		local content, errors = Content.canonicalize(config.inventory.content)
 		assert(content, table.concat(errors, "; "))
-		local options: FencedStore.Options = {
+		local extensionOptions: FencedStore.Options = {
 			sessionId = sessionId,
 			leaseSeconds = 120,
 			now = function()
@@ -583,10 +585,10 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 			local extension = factory({
 				content = content,
 				store = function()
-					return FencedStore.new(gate.backend, options)
+					return FencedStore.new(gate.backend, extensionOptions)
 				end,
 				backend = gate.backend,
-				options = options,
+				options = extensionOptions,
 				now = function()
 					return math.floor(wall)
 				end,
@@ -599,7 +601,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					return if liveSession then liveSession.personalTransfer(actor) else nil
 				end,
 				wildlife = function(id)
-					local catalogId = fixture.wild[id]
+					local catalogId = tamingFixture.wild[id]
 					return if catalogId then { catalogId = catalogId, healthMilli = 1000 } else nil
 				end,
 			})
@@ -936,9 +938,9 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				if fixture then
 					assert(fixture.close().ok, "fixture release before reload")
 				end
-				for index = #extensionClosers, 1, -1 do
-					assert(extensionClosers[index]().ok, "extension release before reload")
-					table.remove(extensionClosers, index)
+				for closer = #extensionClosers, 1, -1 do
+					assert(extensionClosers[closer]().ok, "extension release before reload")
+					table.remove(extensionClosers, closer)
 				end
 				local durable = serde.decode("json", serde.encode("json", gate.snapshot()))
 				local restarted = M.barrier(durable)

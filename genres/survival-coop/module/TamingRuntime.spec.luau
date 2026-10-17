@@ -275,4 +275,18 @@ return {
 		assert(not pcall(build, { tameable = { "ghost" } }), "tameable species must exist in content")
 		assert(not pcall(build, { maxWild = 33 }), "wild budget above 32 refused")
 	end,
+	["restore, list and forget rebuild one owner's pen from saved data"] = function()
+		local runtime = build()
+		local saved: { TamingRuntime.Owned } = {
+			{ id = "p1:2", species = "stag", owner = "p1", pen = { startedAt = 0, readyAt = 5000 } },
+			{ id = "p1:1", species = "drover", owner = "p1", pen = { startedAt = 0, readyAt = 9000 } },
+		}
+		assert(runtime.restore("p1", saved) == nil, "restore")
+		local listed = runtime.list("p1")
+		assert(#listed == 2 and listed[1].id == "p1:1" and listed[2].id == "p1:2", "ordered by id")
+		assert(runtime.restore("p1", { saved[1] }) == "INVALID_ANIMAL", "duplicate refused")
+		assert(runtime.restore("p2", { saved[1] }) == "INVALID_ANIMAL", "foreign owner refused")
+		runtime.forget("p1")
+		assert(#runtime.list("p1") == 0, "forgotten")
+	end,
 }

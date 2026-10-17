@@ -200,3 +200,4 @@ tame_dismount,Dismount,taming dismount button,Dismount,내리기
 tame_mounted,Riding %s,taming mounted label,Riding %s,%s 탑승 중
 tame_failed,That did not work. Try again.,taming refusal,That did not work. Try again.,잘 안 됐어요. 다시 시도하세요.
 tame_pending,Saving... try the same action again.,taming charge pending,Saving... try the same action again.,저장 중이에요. 같은 동작을 다시 시도하세요.
+tame_gauge,Stun gauge: %s,taming gauge label,Stun gauge: %s,기절 게이지: %s

@@ -110,6 +110,7 @@ function M.factory(ctx: any): any
 	local seenHits: { [string]: boolean } = {}
 	local seenOrder: { string } = {}
 	local capturedUntil: { [string]: number } = {}
+	local lastTarget: { [string]: string } = {}
 
 	local function key(actor: string): string
 		return "taming-v1:" .. actor
@@ -413,6 +414,7 @@ function M.factory(ctx: any): any
 			return reject(reason or "UNKNOWN_WILD", profile.data.rev)
 		end
 		lastHit[actor] = now
+		lastTarget[actor] = wildId
 		seenHits[key_] = true
 		table.insert(seenOrder, key_)
 		if #seenOrder > config.maxReceipts then
@@ -465,34 +467,28 @@ function M.factory(ctx: any): any
 				pen = Taming.pen(tamingConfig, ctx.nowMillis()),
 			}
 		end
-		local result, err = commit(
-			actor,
-			requestId,
-			"tame-capture",
-			function(data)
-				if animal then
-					data.animals[animal.id] = {
-						id = animal.id,
-						species = animal.species,
-						pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
-					}
-				end
-				return {
-					data = {
-						captured = attempt.captured,
-						retry = attempt.retry,
-						animalId = attempt.animalId,
-						species = if animal then animal.species else nil,
-					},
+		local result, err = commit(actor, requestId, "tame-capture", function(data)
+			if animal then
+				data.animals[animal.id] = {
+					id = animal.id,
+					species = animal.species,
+					pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
 				}
-			end,
-			{
-				kind = "tool",
-				itemId = tool.itemId,
-				durabilityMilli = attempt.tool.durabilityMilli,
-				bagVersion = bag.version,
+			end
+			return {
+				data = {
+					captured = attempt.captured,
+					retry = attempt.retry,
+					animalId = attempt.animalId,
+					species = if animal then animal.species else nil,
+				},
 			}
-		)
+		end, {
+			kind = "tool",
+			itemId = tool.itemId,
+			durabilityMilli = attempt.tool.durabilityMilli,
+			bagVersion = bag.version,
+		})
 		if not result then
 			return reject(err or "TAMING_UNAVAILABLE", nil)
 		end
@@ -647,8 +643,21 @@ function M.factory(ctx: any): any
 		end
 		table.sort(feeds)
 		local ride = runtime.recorded(actor)
+		local gauge = nil
+		local targetId = lastTarget[actor]
+		local level = if targetId then runtime.gaugeLevel(targetId) else nil
+		if targetId and level then
+			local species = if ctx.wildlife then ctx.wildlife(targetId) else nil
+			gauge = {
+				wildId = targetId,
+				species = if species then species.catalogId else nil,
+				level = level,
+				max = tamingConfig.gaugeMax,
+			}
+		end
 		return {
 			rev = profile.data.rev,
+			gauge = gauge,
 			nowMillis = now,
 			animals = animals,
 			feeds = feeds,

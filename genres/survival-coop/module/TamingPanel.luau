@@ -22,6 +22,7 @@ local strings: { [string]: { string } } = {
 	tame_mount = { "Mount", "타기" },
 	tame_dismount = { "Dismount", "내리기" },
 	tame_mounted = { "Riding %s", "%s 탑승 중" },
+	tame_gauge = { "Stun gauge: %s", "기절 게이지: %s" },
 	tame_failed = { "That did not work. Try again.", "잘 안 됐어요. 다시 시도하세요." },
 	tame_pending = {
 		"Saving... try the same action again.",
@@ -69,6 +70,12 @@ function M.pen(locale: string, remainingMillis: number): string
 	return M.text(locale, "tame_remaining", M.clock(remainingMillis))
 end
 
+--- Gauge line: "Stun gauge: Ridge Strider 60/100" (species omitted when unknown).
+function M.gauge(locale: string, gauge: { species: string?, level: number, max: number }): string
+	local name = if gauge.species then M.species(locale, gauge.species) .. " " else ""
+	return M.text(locale, "tame_gauge", string.format("%s%d/%d", name, gauge.level, gauge.max))
+end
+
 --- Maps a send result to the message shown under the list ("" on success).
 function M.refusal(locale: string, result: { ok: boolean?, reason: string? }): string
 	if result.ok then
@@ -93,7 +100,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	status.Name = "TamingStatus"
 	local rows = Instance.new("Frame")
 	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent =
-		"TamingRows", 1, UDim2.new(1, 0, 0, 0), sheet.content
+		"TamingRows", 1, UDim2.fromScale(1, 0), sheet.content
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
@@ -131,6 +138,22 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			frame.Name, frame.BackgroundTransparency, frame.Size = "Row" .. order, 1, UDim2.new(1, 0, 0, 48)
 			frame.LayoutOrder, frame.Parent = order, rows
 			return frame
+		end
+		if state.gauge then
+			local gaugeRow = line()
+			local gaugeLabel = ui.components.label(theme, {
+				text = M.gauge(ctx.locale, state.gauge),
+				size = UDim2.new(1, 0, 0, 22),
+				parent = gaugeRow,
+			})
+			gaugeLabel.Name = "GaugeLabel"
+			local bar, setBar = ui.components.progressBar(theme, {
+				size = UDim2.new(1, 0, 0, 14),
+				position = UDim2.fromOffset(0, 28),
+				parent = gaugeRow,
+			})
+			bar.Name = "GaugeBar"
+			setBar(state.gauge.level / math.max(1, state.gauge.max))
 		end
 		if state.ride then
 			local mounted = line()
