@@ -192,6 +192,8 @@ local contract: Shared.RuntimeContract = {
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
+		{ id = "shop-prompt", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "shop-sync", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 	},
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
@@ -200,6 +202,8 @@ local contract: Shared.RuntimeContract = {
 		"camp-complete",
 		"camp-visit-open",
 		"camp-visit-help",
+		"shop-prompt",
+		"shop-sync",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },

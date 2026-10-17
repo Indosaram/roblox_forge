@@ -18,6 +18,7 @@ local M = {}
 M.factories = {
 	-- Append panel factories here, e.g. require("./TamingPanel").factory,
 	require("./CampPanel").factory,
+	require("./ShopPanel").factory,
 } :: { Factory }
 
 function M.start(options: { ui: any, locale: string, factories: { Factory }? }): Panel

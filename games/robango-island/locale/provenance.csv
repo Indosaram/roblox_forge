@@ -183,3 +183,14 @@ tip_03,original,agent:claude-5.5/robango-g1,2026-10-16
 tip_04,original,agent:claude-5.5/robango-g1,2026-10-16
 tip_05,original,agent:claude-5.5/robango-g1,2026-10-16
 tip_06,original,agent:claude-5.5/robango-g1,2026-10-16
+island_route_failed,original,agent:claude-5.5/robango-h6,2026-10-17
+island_route_retry,original,agent:claude-5.5/robango-h6,2026-10-17
+camp_title,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_rung,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_contribute,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_complete,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_locked,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_visitor,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_visitor_none,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_cooldown,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_facility,original,agent:claude-5.5/robango-h2,2026-10-17

@@ -400,7 +400,7 @@ function M.new(config: Config): Built?
 		end)
 	end
 
-	local function open_visit(actor: string, args: { any }, context: Shared.CommandContext): Shared.Result
+	local function open_visit(actor: string, args: { any }): Shared.Result
 		local host = member(args[1])
 		if host == nil then
 			return failure("HOST_UNAVAILABLE")
@@ -441,7 +441,6 @@ function M.new(config: Config): Built?
 			return failure(refused)
 		end
 		visits[actor] = tribeId
-		_ = context
 		return { ok = true, data = { hostId = pass.hostId, expiresAt = pass.expiresAt } }
 	end
 
@@ -510,7 +509,7 @@ function M.new(config: Config): Built?
 		elseif mapped == "complete" then
 			return complete(actor, args, context)
 		elseif mapped == "visit-open" then
-			return open_visit(actor, args, context)
+			return open_visit(actor, args)
 		end
 		return help(actor, args, context)
 	end

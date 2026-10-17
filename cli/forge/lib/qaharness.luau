@@ -69,6 +69,7 @@ export type Target = {
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	}?,
 	packConfig: Contract.PackConfig,
 	contracts: { Contract.RuntimeContract },
