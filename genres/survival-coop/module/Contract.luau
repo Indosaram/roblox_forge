@@ -199,7 +199,7 @@ local contract: Shared.RuntimeContract = {
 		{ id = "market-buy", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "zone-set",
-			args = { Schema.enum({ "safe", "danger" }) },
+			args = { id },
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},

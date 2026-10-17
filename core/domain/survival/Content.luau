@@ -208,6 +208,8 @@ local VITALS_FIELDS = {
 	"fatigueMilliPerAction",
 	"restMilliPerSecond",
 	"starvationMillisPerUnit",
+	-- Optional, no default: its presence switches on the death zone (see Vitals.Config).
+	"respawnDelayMillis",
 }
 local VITALS_DEFAULTS: VitalsConfig = {
 	hungerMillisPerUnit = 18000,
@@ -406,7 +408,8 @@ local function validateVitals(errors: { string }, raw: any)
 	unknown(errors, "vitals", raw, VITALS_FIELDS)
 	for _, field in VITALS_FIELDS do
 		local period = field == "hungerMillisPerUnit" or field == "starvationMillisPerUnit"
-		local low, high = if period then 1 else 0, if period then CAPS.millis else 100000
+		local low, high =
+			if period then 1 else 0, if period or field == "respawnDelayMillis" then CAPS.millis else 100000
 		if raw[field] ~= nil and not isInt(raw[field], low, high) then
 			table.insert(errors, string.format("vitals.%s: expected integer %d..%d", field, low, high))
 		end

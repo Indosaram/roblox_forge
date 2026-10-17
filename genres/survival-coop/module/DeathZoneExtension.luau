@@ -27,7 +27,9 @@ local function vitalsOf(envelope: any): any
 	return if slice and type(slice.data) == "table" then slice.data.vitals else nil
 end
 
-function M.factory(ctx: { personalTransfer: (string) -> any? }): (Shared.Extension & { close: (() -> Shared.Result)? })?
+function M.factory(
+	ctx: { personalTransfer: (string) -> any?, nowMillis: () -> number }
+): (Shared.Extension & { close: (() -> Shared.Result)? })?
 	local extension = {
 		id = "death-zone",
 		handles = function(action: string): boolean
@@ -57,7 +59,11 @@ function M.factory(ctx: { personalTransfer: (string) -> any? }): (Shared.Extensi
 			if vitals.zone == zone then
 				return { ok = true, data = { zone = zone } }
 			end
-			local changed, next = pcall(Vitals.setZone, clone(vitals), zone)
+			-- Bring the saved vitals to the authoritative clock first, so the committed state is
+			-- never older than the live one; a fatal advance is the tick's death, not a zone change.
+			local changed, next = pcall(function()
+				return Vitals.setZone(Vitals.advance(clone(vitals), ctx.nowMillis()), zone)
+			end)
 			if not changed then
 				return { ok = false, reason = "NOT_ALIVE" }
 			end

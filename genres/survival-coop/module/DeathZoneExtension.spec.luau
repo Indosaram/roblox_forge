@@ -54,6 +54,9 @@ local function build(vitals: any, available: boolean?, commitReason: string?): H
 		personalTransfer = function(_actor: string)
 			return if available == false then nil else port
 		end,
+		nowMillis = function()
+			return 5000
+		end,
 	}))
 	harness.current = function()
 		return token.data.envelope.genres["survival-coop"].data.vitals
@@ -82,6 +85,7 @@ return {
 		local h = build(configured())
 		assert(run(h, "danger").ok, "enter danger")
 		assert(h.current().zone == "danger", "danger persisted in the envelope")
+		assert(h.current().clockMillis == 5000, "vitals advanced to the authoritative clock before the commit")
 		assert(h.installed ~= nil and h.commits == 1, "committed once and installed")
 		assert(h.extension.snapshot("1").zone == "danger", "snapshot reports danger")
 		assert(run(h, "safe").ok, "leave danger")

@@ -557,6 +557,16 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "zone-death" then
+			assert(scenario.genre == "survival-coop", "zone fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/death-zone"))
+			fixture = require("../fixtures/death-zone/scenario").new(function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
 		if scenario.name == "market-trade" then
 			assert(scenario.genre == "survival-coop", "market fixture genre binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/market-extension"))

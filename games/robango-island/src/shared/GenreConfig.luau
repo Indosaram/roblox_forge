@@ -325,6 +325,7 @@ local config: PackConfig = {
 					["vitals"] = {
 						["fatigueMilliPerAction"] = 500,
 						["hungerMillisPerUnit"] = 18000,
+						["respawnDelayMillis"] = 0,
 						["restMilliPerSecond"] = 2000,
 						["starvationMillisPerUnit"] = 5000,
 					},

@@ -59,6 +59,8 @@
    'survival-coop:shop-receipt-storm'
   - 
    'survival-coop:contracts-tutorial'
+  - 
+   'survival-coop:zone-death'
   
 'runtime_mode':
   'crafting'
