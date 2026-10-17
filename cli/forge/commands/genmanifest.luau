@@ -13,6 +13,31 @@ function M.writeJson(path: string, value: any)
 	fs.writeFile(path, serde.encode("json", value, true) .. "\n")
 end
 
+--- Parses the optional `--author <human:|agent:...> --created <YYYY-MM-DD>` pair a
+--- generator stamps into each manifest provenance block (checked by `forge
+--- provenance check`). Both flags or neither; returns the extra provenance lines.
+function M.parseStamp(flag: string, value: string?, stamp: { author: string?, created: string? }): string?
+	if value == nil or value == "" then
+		return "Error: " .. flag .. " requires a value\n"
+	end
+	if flag == "--author" then
+		stamp.author = value
+	else
+		stamp.created = value
+	end
+	return nil
+end
+
+function M.stampLines(stamp: { author: string?, created: string? }): ({ string }, string?)
+	if stamp.author == nil and stamp.created == nil then
+		return {}, nil
+	end
+	if stamp.author == nil or stamp.created == nil then
+		return {}, "Error: --author and --created must be given together\n"
+	end
+	return { "      author: " .. M.yamlQuote(stamp.author), "      created: " .. stamp.created }, nil
+end
+
 function M.yamlQuote(value: string): string
 	local escaped = string.gsub(value, "\\", "\\\\")
 	escaped = string.gsub(escaped, '"', '\\"')

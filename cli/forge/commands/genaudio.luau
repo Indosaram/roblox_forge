@@ -60,6 +60,7 @@ end
 function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local pack = DEFAULT_PACK
 	local install = false
+	local stamp: { author: string?, created: string? } = {}
 	local index = 3
 	while index <= #args do
 		local flag = args[index]
@@ -74,6 +75,13 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		elseif flag == "--install" then
 			install = true
 			index += 1
+		elseif flag == "--author" or flag == "--created" then
+			local stampErr = manifest.parseStamp(flag, args[index + 1], stamp)
+			if stampErr ~= nil then
+				stdio.ewrite(stampErr)
+				return false
+			end
+			index += 2
 		else
 			stdio.ewrite("Error: unknown argument '" .. tostring(flag) .. "' for forge gen audio\n")
 			return false
@@ -96,6 +104,11 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	end)
 	if not decodeOk or typeof(doc) ~= "table" then
 		stdio.ewrite("Error: failed to decode " .. audioPath .. "\n")
+		return false
+	end
+	local stampLines, stampErr = manifest.stampLines(stamp)
+	if stampErr ~= nil then
+		stdio.ewrite(stampErr)
 		return false
 	end
 	local cues, errors = audiocues.plan(doc)
@@ -152,6 +165,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			"      rights:",
 			"        source: " .. manifest.yamlQuote("first-party generator in this repository"),
 			"        ownership: first-party",
+			table.unpack(stampLines),
 		}, "\n") .. "\n"
 		manifest.upsertAsset(manifestPath, cue.key, block)
 		table.insert(written, { key = cue.key, relPath = relPath })

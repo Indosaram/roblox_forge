@@ -39,10 +39,12 @@ return {
 		assert(not string.find(err, "Mooncairn", 1, true), "banned term leaked into output")
 	end,
 
-	["shipped packs have no policy, so the gate never touches them"] = function()
+	["only the packs that opted in carry a policy, so the gate never touches the rest"] = function()
+		local optedIn: { [string]: boolean } = { ["robango-island"] = true }
 		for _, name in fs.readDir("games") do
 			if fs.isDir("games/" .. name) then
-				assert(not command.hasPolicy("games/" .. name), name .. " unexpectedly opted in")
+				local expected = optedIn[name] == true
+				assert(command.hasPolicy("games/" .. name) == expected, name .. " opt-in state changed")
 			end
 		end
 	end,

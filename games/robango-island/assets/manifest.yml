@@ -1,294 +1,154 @@
-'assets':
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-starter-prop'
-   'kind':
-    'model'
-   'moderation':
-    'Approved'
-   'provenance':
-    'digest':
-     'sha256:47149ad9af546e8e93ef19f20dd3bd4aaf6587dbcbfff4bc06c42e39af7451b2'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-procedural'
-     'input':
-      'assets/procgen.yml#survival-coop-starter-prop'
-     'inputVersion':
-      'sha256:d9058dd3b5fe947833e4bad83afd6e044c939c21663aa320e95e344bb1c78488'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural prop/rock'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-action'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-action.wav'
-   'provenance':
-    'digest':
-     'sha256:cb84021766a3d733d806ff519cfad5f36fb54a2616263046858222f0719de731'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-action'
-     'inputVersion':
-      'sha256:e9cb56d6041e24e5ecf4d2f5536249f622d44c85da147acf1a494b49ebe4d986'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-action'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-gather'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-gather.wav'
-   'provenance':
-    'digest':
-     'sha256:3c5acc932a3154a5c87c99a843f8a5d22c83403c442372ac1ba0d478f99342cf'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-gather'
-     'inputVersion':
-      'sha256:29ecb14150d35ede21e25db0064bcfc07111cefe07615ecf069bdb601f9d523c'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-gather'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-craft'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-craft.wav'
-   'provenance':
-    'digest':
-     'sha256:02ffff3bdc14a240b30d5dc37bd7fb491406562c3f74ba65f31adefcb6cc755a'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-craft'
-     'inputVersion':
-      'sha256:b9e30a522deb83f21b61ec22749adedb94c070580df11b0f01f373fc6194f62f'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-craft'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-eat'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-eat.wav'
-   'provenance':
-    'digest':
-     'sha256:146622103f052a0c8203db7627f8f53df3952106ae98780bd7fcc464f081703a'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-eat'
-     'inputVersion':
-      'sha256:0ff3ea5d4a842a94767489121c03511da748e0bf04f66d92114360af5f54fc42'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-eat'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-rest'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-rest.wav'
-   'provenance':
-    'digest':
-     'sha256:befe76d37e5f7e2bd27a91f33351c67c3ed5ddbbd1c8445e3ea6f259609d8236'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-rest'
-     'inputVersion':
-      'sha256:9896f9aa96e27fcbc48b4f08b85bffaaa92bb6907394f15b2763c1a3b3a5cfb3'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-rest'
-   'tool':
-    'forge-procgen'
-   
-  - 
-   'assetId':
-    0
-   'key':
-    'survival-coop-ambient'
-   'kind':
-    'sfx'
-   'moderation':
-    'Approved'
-   'path':
-    'assets/audio/survival-coop-ambient.wav'
-   'provenance':
-    'digest':
-     'sha256:e70687415893238ef5fe284e64bf9ac8fb42cc122633aab7db595230ad9706c2'
-    'provider':
-     'name':
-      'forge-procgen'
-     'version':
-      1
-     
-    'recipe':
-     'id':
-      'gen-audio'
-     'input':
-      'assets/audio.yml#survival-coop-ambient'
-     'inputVersion':
-      'sha256:ba349a3ead5a3d10a30593f7e2959cc049d9bcff6c54c4d2867bb0438d545538'
-     'version':
-      1
-     
-    'rights':
-     'ownership':
-      'first-party'
-     'source':
-      'first-party generator in this repository'
-     
-    
-   'source':
-    'procedural audio/survival-coop-ambient'
-   'tool':
-    'forge-procgen'
-   
-  
+assets:
+  - key: survival-coop-starter-prop
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:47149ad9af546e8e93ef19f20dd3bd4aaf6587dbcbfff4bc06c42e39af7451b2
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#survival-coop-starter-prop"
+        inputVersion: sha256:d9058dd3b5fe947833e4bad83afd6e044c939c21663aa320e95e344bb1c78488
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-action
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-action"
+    path: assets/audio/survival-coop-action.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:cb84021766a3d733d806ff519cfad5f36fb54a2616263046858222f0719de731
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-action"
+        inputVersion: sha256:e9cb56d6041e24e5ecf4d2f5536249f622d44c85da147acf1a494b49ebe4d986
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-gather
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-gather"
+    path: assets/audio/survival-coop-gather.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:3c5acc932a3154a5c87c99a843f8a5d22c83403c442372ac1ba0d478f99342cf
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-gather"
+        inputVersion: sha256:29ecb14150d35ede21e25db0064bcfc07111cefe07615ecf069bdb601f9d523c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-craft
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-craft"
+    path: assets/audio/survival-coop-craft.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:02ffff3bdc14a240b30d5dc37bd7fb491406562c3f74ba65f31adefcb6cc755a
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-craft"
+        inputVersion: sha256:b9e30a522deb83f21b61ec22749adedb94c070580df11b0f01f373fc6194f62f
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-eat
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-eat"
+    path: assets/audio/survival-coop-eat.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:146622103f052a0c8203db7627f8f53df3952106ae98780bd7fcc464f081703a
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-eat"
+        inputVersion: sha256:0ff3ea5d4a842a94767489121c03511da748e0bf04f66d92114360af5f54fc42
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-rest
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-rest"
+    path: assets/audio/survival-coop-rest.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:befe76d37e5f7e2bd27a91f33351c67c3ed5ddbbd1c8445e3ea6f259609d8236
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-rest"
+        inputVersion: sha256:9896f9aa96e27fcbc48b4f08b85bffaaa92bb6907394f15b2763c1a3b3a5cfb3
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16
+  - key: survival-coop-ambient
+    kind: sfx
+    tool: forge-procgen
+    source: "procedural audio/survival-coop-ambient"
+    path: assets/audio/survival-coop-ambient.wav
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:e70687415893238ef5fe284e64bf9ac8fb42cc122633aab7db595230ad9706c2
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/audio.yml#survival-coop-ambient"
+        inputVersion: sha256:ba349a3ead5a3d10a30593f7e2959cc049d9bcff6c54c4d2867bb0438d545538
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:claude-5.5/robango-g1"
+      created: 2026-10-16

@@ -1,0 +1,9 @@
+version: 1
+defaults: { source: original, author: "agent:claude-5.5/robango-g1" }
+entries:
+  "genre_contract.configs.survival-coop.contentVersion": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.currency": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.inventory": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.mode": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.startingBalance": { created: 2026-10-16 }
+  "genre_contract.configs.survival-coop.survivalDeath": { created: 2026-10-16 }
