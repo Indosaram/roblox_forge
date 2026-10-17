@@ -183,3 +183,5 @@ tip_03,"Stone walls need a Mason's Bench, and the bench needs timber beams.",loa
 tip_04,Marsh clay turns into brick only in a Mud Kiln.,loading tip,Marsh clay turns into brick only in a Mud Kiln.,갯벌 점토는 흙가마에서만 벽돌이 된다.
 tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip,Grazers run from you. Hunters warn you. Learn the difference.,풀뜯이는 도망치고 사냥꾼은 경고한다. 그 차이를 익히자.
 tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
+island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
+island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.

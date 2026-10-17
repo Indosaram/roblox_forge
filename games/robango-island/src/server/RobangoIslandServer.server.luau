@@ -50,3 +50,54 @@ Server.start({
 	hooks = require(script.Parent.GenreHooks),
 	storeName = "robango-island-genre-v1",
 })
+-- Island routing: a no-op `single` mode in Studio, placeId 0 or when a service is missing.
+require(Forge.genres["survival-coop"].module.IslandBootstrap).start({
+	players = game:GetService("Players"),
+	teleportService = game:GetService("TeleportService"),
+	memoryStoreService = game:GetService("MemoryStoreService"),
+	backend = backend,
+	placeId = game.PlaceId,
+	jobId = game.JobId,
+	privateServerId = game.PrivateServerId,
+	isStudio = RunService:IsStudio(),
+	now = function()
+		return math.floor(DateTime.now().UnixTimestampMillis / 1000)
+	end,
+	log = function(message)
+		warn(message)
+	end,
+	enum = Enum,
+	encode = function(value)
+		return HttpService:JSONEncode(value)
+	end,
+	newTeleportOptions = function()
+		return Instance.new("TeleportOptions")
+	end,
+	sleep = function(seconds)
+		task.wait(seconds)
+	end,
+	spawn = function(fn)
+		task.spawn(fn)
+	end,
+	delay = function(seconds, fn)
+		task.delay(seconds, fn)
+	end,
+	every = function(seconds, fn)
+		local running = true
+		task.spawn(function()
+			while running do
+				task.wait(seconds)
+				if running then
+					fn()
+				end
+			end
+		end)
+		return function()
+			running = false
+		end
+	end,
+	-- Localized key only; the client resolves it from locale/strings.csv.
+	notify = function(player, key)
+		player:SetAttribute("IslandNoticeKey", key)
+	end,
+})
