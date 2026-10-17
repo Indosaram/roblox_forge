@@ -27,6 +27,7 @@ export type Factory = (Context) -> Built?
 
 local factories: { Factory } = {
 	-- Append extension factories here, e.g. require("./TamingExtension").factory,
+	require("./MonetizationExtension").factory,
 }
 
 return { factories = factories }
