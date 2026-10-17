@@ -75,7 +75,7 @@ local function build(catalog: any, eligible: { [string]: boolean }, backend: any
 			return 0
 		end,
 	}))
-	return extension, fake, slots, skins, store
+	return extension :: any, fake, slots, skins, store
 end
 local function command(extension: any, action: string, args: { any }): any
 	return extension.command(

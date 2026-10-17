@@ -55,7 +55,7 @@ local function build(backend: any?)
 			return NOW
 		end,
 	}))
-	return extension, wallet, moves
+	return extension :: any, wallet, moves
 end
 local function command(extension: any, actor: string, action: string, args: { any }): any
 	return extension.command(

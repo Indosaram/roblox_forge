@@ -491,7 +491,9 @@ function M.run(args: { string }?): boolean
 			local gamePath = "games/" .. pack .. "/game.yml"
 			local durablePath = "games/" .. pack .. "/src/shared/GenreDurable.luau"
 			if fs.isFile(gamePath) and fs.isFile(durablePath) then
-				local decoded, game = pcall(serde.decode, "yaml", fs.readFile(gamePath))
+				local decoded, game = pcall(function()
+					return serde.decode("yaml", fs.readFile(gamePath))
+				end)
 				if
 					decoded
 					and type(game) == "table"

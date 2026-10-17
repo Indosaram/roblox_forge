@@ -598,7 +598,7 @@ function M.new(config: Config)
 			for _, spawn in policy.spawns do
 				local p = spawn.position
 				local engine = "hunter"
-				for _, entry in config.content.wildlife or {} do
+				for _, entry in (config.content.wildlife or {}) :: { any } do
 					if entry.id == spawn.catalogId then
 						engine = Archetype.engine(entry.behavior) or "hunter"
 					end

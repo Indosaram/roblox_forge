@@ -53,7 +53,7 @@ local function fixture(extensions: { any }?)
 			return 0
 		end,
 		emit = function() end,
-		survivalExtensions = extensions or { extension },
+		survivalExtensions = (extensions or { extension }) :: { any },
 	}, policy)
 	return session, calls, options
 end

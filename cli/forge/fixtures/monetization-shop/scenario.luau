@@ -14,43 +14,44 @@ local M = {}
 function M.new(_config: Contract.PackConfig, backend: ProfileStore.Backend, now: () -> number)
 	local marketplace = MarketplacePort.fake()
 	marketplace.redeliveries = 5
-	Monetization.configure({
-		catalog = {
-			gamepasses = {
-				{
-					key = "wideWarehouse",
-					name = "Wide Warehouse",
-					price = 199,
-					id = 9001,
-					grant = { kind = "storageSlots", amount = 10 },
-				},
-			},
-			products = {
-				{
-					key = "skinReefRunner",
-					name = "Reef Runner Skin",
-					price = 99,
-					id = 9101,
-					grant = { kind = "cosmeticSet", cosmeticSetId = "reef-runner" },
-				},
-				{
-					key = "skinUnregistered",
-					name = "Unregistered Skin",
-					price = 99,
-					id = 0,
-					grant = { kind = "cosmeticSet", cosmeticSetId = "unregistered" },
-				},
-			},
-			subscriptions = {
-				{
-					key = "voyagerMonthly",
-					name = "Voyager Monthly",
-					price = 99,
-					id = 9201,
-					grant = { kind = "subscriptionMonthly", cosmeticSetId = "voyager-monthly", storageSlots = 5 },
-				},
+	local catalog: any = {
+		gamepasses = {
+			{
+				key = "wideWarehouse",
+				name = "Wide Warehouse",
+				price = 199,
+				id = 9001,
+				grant = { kind = "storageSlots", amount = 10 },
 			},
 		},
+		products = {
+			{
+				key = "skinReefRunner",
+				name = "Reef Runner Skin",
+				price = 99,
+				id = 9101,
+				grant = { kind = "cosmeticSet", cosmeticSetId = "reef-runner" },
+			},
+			{
+				key = "skinUnregistered",
+				name = "Unregistered Skin",
+				price = 99,
+				id = 0,
+				grant = { kind = "cosmeticSet", cosmeticSetId = "unregistered" },
+			},
+		},
+		subscriptions = {
+			{
+				key = "voyagerMonthly",
+				name = "Voyager Monthly",
+				price = 99,
+				id = 9201,
+				grant = { kind = "subscriptionMonthly", cosmeticSetId = "voyager-monthly", storageSlots = 5 },
+			},
+		},
+	}
+	Monetization.configure({
+		catalog = catalog,
 		marketplace = marketplace.port,
 		policy = PolicyPort.fake({ ["1"] = true }),
 	})

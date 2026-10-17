@@ -163,7 +163,7 @@ function M.policy(): Ledger.Policy
 	for _, action in SurvivalContract.actions do
 		origins[action.id] = action.origin
 	end
-	for _, id in SurvivalContract.extensionActions or {} do
+	for _, id in (SurvivalContract.extensionActions or {}) :: { string } do
 		local origin = assert(origins[id], "undeclared extension action: " .. id)
 		local list = if origin == "server"
 			then assert(policy.serverActions, "server durable actions declared")
