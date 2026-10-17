@@ -39,5 +39,8 @@
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 공개 저장소로 push 하기 전에 히스토리 재작성(squash 또는 filter-repo)을 할지 결정합니다. 재작성은 force-push 이 필요해 에이전트가 하지 않았습니다 | 무료 | QA-NAME-01 |
 | U19 | 저사양 기기 성능 실측(QA-PERF-01 2층) | 정적 예산(인스턴스·스크립트·용량)은 로컬 PASS입니다. 첫 상호작용 시간과 최대 메모리는 Studio 저사양 프로필이나 실기기에서 재서 qa-evidence.md 주 3에 적어야 합니다 | 무료 | qa-evidence.md 주 3 |
 | U20 | 스테이징 QA 2층 확인 | QA-SPIKE-01(실제 MemoryStore 부하), QA-BM-04(실제 PolicyService 프롬프트 로그)는 스테이징 Universe에서 사람이 확인해야 합니다. 로컬 1층(시뮬레이션·가짜 서비스)은 PASS입니다 | 무료 | qa-evidence.md |
+| U21 | 배포 대상·키 입력 | `games/robango-island/deploy.yml`의 universeId/placeId가 0이고, Open Cloud 키 환경 변수(ROBLOX_STAGING_API_KEY 등, `.env.example` 참고)가 이 Mac에 없습니다(2026-10-17 실측). Roblox에서 체험·플레이스를 만들고 `.env.local`에 ID와 키를 넣어야 `forge deploy --env staging`이 동작합니다 | 무료 | .env.example |
+| U22 | Roblox Studio 설치·실행 | 이 Mac에 Studio가 없습니다(/Applications/RobloxStudio.app 없음). 저장소의 Studio QA 드라이버는 Windows 경로 기준입니다. 첫 플레이 캡처와 Studio 시나리오는 Studio가 있는 기기에서 사용자 승인 후 진행합니다 | 무료 | docs/release/studio-qa.md |
+| U23 | 품질 등급 승격 | `quality.yml` 등급이 starter입니다. release-candidate로 올리려면 실제 첫 플레이 캡처(데스크톱·모바일), 독립 레퍼런스, 평가자(FORGE_QUALITY_EVALUATOR) 승인 영수증이 필요합니다. 에이전트가 스스로 승인할 수 없습니다 | 무료 | forge quality --help |
 
 결정안: 착수에 필요한 사용자 결정은 모두 끝났고, 나머지는 M7 출시 준비까지 처리하면 된다.
