@@ -92,7 +92,7 @@ return {
 		local seen: any = nil
 		local releases = 0
 		local factory = assert(build({
-			function(ctx)
+			function(ctx): Extensions.Built?
 				seen = ctx
 				return {
 					id = "fixture",
@@ -106,7 +106,7 @@ return {
 						releases += 1
 						return { ok = true }
 					end,
-				}
+				} :: any
 			end,
 			function()
 				return nil -- a disabled factory contributes nothing
@@ -121,7 +121,7 @@ return {
 	end,
 	["a failing extension release fails close"] = function()
 		local factory = assert(build({
-			function()
+			function(): Extensions.Built?
 				return {
 					id = "stuck",
 					handles = function()
@@ -133,7 +133,7 @@ return {
 					close = function()
 						return { ok = false, reason = "STUCK" }
 					end,
-				}
+				} :: any
 			end,
 		}))
 		assert(factory.close().reason == "STUCK", "release failure surfaces")

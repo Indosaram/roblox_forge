@@ -14,6 +14,11 @@ export type Context = {
 export type Panel = { destroy: () -> () }
 export type Factory = (Context) -> Panel?
 
+-- Roblox globals are read from the environment so this module also type-checks under lune.
+local env: any = getfenv()
+local game: any = env.game
+local task: any = env.task
+
 local M = {}
 M.factories = {
 	-- Append panel factories here (one require of ./<Name>Panel per line, then .factory).
@@ -26,8 +31,8 @@ M.factories = {
 function M.start(options: { ui: any, locale: string, factories: { Factory }? }): Panel
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
-	local action = storage:WaitForChild("ForgeAction") :: RemoteFunction
-	local state = storage:WaitForChild("ForgeState") :: RemoteEvent
+	local action = storage:WaitForChild("ForgeAction")
+	local state = storage:WaitForChild("ForgeState")
 	local durable: any = nil
 	local latest: { [string]: any } = {}
 	local listeners: { [number]: ({ [string]: any }) -> () } = {}
