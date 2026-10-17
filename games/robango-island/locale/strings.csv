@@ -258,3 +258,13 @@ camp_not_friend,Only friends can visit,camp visit refusal not friend,Only friend
 camp_no_pass,Ask to visit first,camp help refusal no pass,Ask to visit first,먼저 방문을 요청하세요
 camp_expired,Visit pass expired,camp visit pass expired,Visit pass expired,방문 허가가 만료됐어요
 camp_refused,Camp action refused,camp generic refusal,Camp action refused,캠프 작업이 거절됐어요
+zone_title,Death zone,death zone panel title,Death zone,데스 존
+zone_safe,Safe zone: you keep your bag when you fall,"death zone indicator, safe",Safe zone: you keep your bag when you fall,안전 구역: 쓰러져도 가방을 지켜요
+zone_danger,Danger zone: your bag drops when you fall,"death zone indicator, danger",Danger zone: your bag drops when you fall,위험 구역: 쓰러지면 가방을 떨어뜨려요
+zone_enter,Enter danger zone,death zone toggle to danger,Enter danger zone,위험 구역 입장
+zone_leave,Return to safe zone,death zone toggle to safe,Return to safe zone,안전 구역으로 돌아가기
+zone_warning,"If you fall in the danger zone, everything in your bag drops. Others can take it for ten minutes after you.",death zone confirm warning,"If you fall in the danger zone, everything in your bag drops. Others can take it for ten minutes after you.",위험 구역에서 쓰러지면 가방의 모든 물건을 떨어뜨려요. 열 분 뒤에는 다른 사람도 가져갈 수 있어요.
+zone_confirm,Enter anyway,death zone confirm button,Enter anyway,그래도 입장
+zone_cancel,Stay safe,death zone cancel button,Stay safe,안전하게 있기
+zone_failed,The zone could not be changed. Try again later,death zone generic refusal,The zone could not be changed. Try again later,구역을 바꾸지 못했어요. 잠시 후 다시 시도하세요
+zone_dead,You cannot change zone while down,death zone refusal while down,You cannot change zone while down,쓰러진 동안은 구역을 바꿀 수 없어요

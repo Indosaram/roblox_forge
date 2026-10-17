@@ -24,6 +24,7 @@ M.factories = {
 	require("./CampPanel").factory,
 	require("./ShopPanel").factory,
 	require("./MarketPanel").factory,
+	require("./DeathZonePanel").factory,
 } :: { Factory }
 
 function M.start(options: { ui: any, locale: string, factories: { Factory }? }): Panel

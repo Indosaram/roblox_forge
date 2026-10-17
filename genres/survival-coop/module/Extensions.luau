@@ -39,6 +39,7 @@ local factories: { Factory } = {
 	require("./CampExtension").factory,
 	require("./MonetizationExtension").factory,
 	require("./MarketExtension").factory,
+	require("./DeathZoneExtension").factory,
 }
 
 return { factories = factories }
