@@ -1,10 +1,11 @@
 --!strict
 -- TamingExtension: durable wiring of TamingRuntime into the running survival-coop game.
 --
+-- A pack supplies its policy through `configure` (no policy: the factory stays disabled).
 -- Actions (declared in module/Contract.luau, served through Session's extension seam):
 --   tame-hit {wildId}        fill the stun gauge of a present, tameable wild animal
 --   tame-capture {wildId}    capture it with the capture tool held in the bag
---   tame-feed {animalId, itemId}   feed a penned animal with a food item from the bag
+--   tame-feed {animalId, feedId}   feed a penned animal one food item (by catalog id) from the bag
 --   tame-mount {animalId} / tame-dismount {}
 --
 -- Persistence: one Fenced record per owner ("taming-v1:<actor>") holding the penned animals,
@@ -67,13 +68,23 @@ local function reject(reason: string, rev: number?): Shared.Result
 	return { ok = false, reason = reason, stateVersion = rev, data = { status = "rejected" } }
 end
 
+local configured: Policy? = nil
+
+--- A pack calls this once (before the bootstrap builds its extensions) with its taming policy;
+--- without one the factory stays disabled.
+function M.configure(policy: Policy?)
+	if policy ~= nil then
+		assert(policy.version == 1, "TAMING_POLICY_VERSION")
+		Taming.config(policy.taming)
+	end
+	configured = policy
+end
+
 function M.factory(ctx: any): any
-	local policy: Policy? = if ctx.policies then ctx.policies.taming else nil
-	if policy == nil then
+	local config = configured
+	if config == nil then
 		return nil
 	end
-	assert(policy.version == 1, "TAMING_POLICY_VERSION")
-	local config = policy :: Policy
 	local items = Job.catalog(ctx.content)
 	local runtime = TamingRuntime.new({
 		taming = Taming.config(config.taming),
@@ -428,7 +439,11 @@ function M.factory(ctx: any): any
 		local tool: Inventory.Item? = nil
 		for _, id in ids(bag) do
 			local item = bag.items[id]
-			if item.catalogId == config.captureTool and item.durabilityMilli > 0 and Inventory.available(bag, id) > 0 then
+			if
+				item.catalogId == config.captureTool
+				and item.durabilityMilli > 0
+				and Inventory.available(bag, id) > 0
+			then
 				tool = item
 				break
 			end
@@ -441,31 +456,54 @@ function M.factory(ctx: any): any
 			return reject(attempt.reason or "CAPTURE_REFUSED", rev)
 		end
 		local animal = if attempt.animalId then runtime.animal(attempt.animalId) else nil
-		if attempt.captured then
-			capturedUntil[wildId] = ctx.nowMillis() + config.wildRespawnMillis
-		end
-		local result, err = commit(actor, requestId, "tame-capture", function(data)
-			if animal then
-				data.animals[animal.id] =
-					{ id = animal.id, species = animal.species, pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt } }
-			end
-			return {
-				data = {
-					captured = attempt.captured,
-					retry = attempt.retry,
-					animalId = attempt.animalId,
-					species = if animal then animal.species else nil,
-				},
+		if attempt.captured and not animal and attempt.animalId then
+			-- A stored receipt replayed after a failed commit: rebuild the animal from it.
+			animal = {
+				id = attempt.animalId,
+				species = wildState(wildId) or "",
+				owner = actor,
+				pen = Taming.pen(tamingConfig, ctx.nowMillis()),
 			}
-		end, { kind = "tool", itemId = tool.itemId, durabilityMilli = attempt.tool.durabilityMilli, bagVersion = bag.version })
+		end
+		local result, err = commit(
+			actor,
+			requestId,
+			"tame-capture",
+			function(data)
+				if animal then
+					data.animals[animal.id] = {
+						id = animal.id,
+						species = animal.species,
+						pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
+					}
+				end
+				return {
+					data = {
+						captured = attempt.captured,
+						retry = attempt.retry,
+						animalId = attempt.animalId,
+						species = if animal then animal.species else nil,
+					},
+				}
+			end,
+			{
+				kind = "tool",
+				itemId = tool.itemId,
+				durabilityMilli = attempt.tool.durabilityMilli,
+				bagVersion = bag.version,
+			}
+		)
 		if not result then
 			return reject(err or "TAMING_UNAVAILABLE", nil)
+		end
+		if attempt.captured then
+			capturedUntil[wildId] = ctx.nowMillis() + config.wildRespawnMillis
 		end
 		return finish(actor, requestId, result)
 	end
 
 	handlers["tame-feed"] = function(actor, requestId, args, profile)
-		local animalId, itemId = args[1], args[2]
+		local animalId, feedId = args[1], args[2]
 		local rev = profile.data.rev
 		local animal = runtime.animal(animalId)
 		if not animal or animal.owner ~= actor then
@@ -478,21 +516,27 @@ function M.factory(ctx: any): any
 		if not access or not bag then
 			return reject(bagError or "PERSONAL_UNAVAILABLE", nil)
 		end
-		local item = bag.items[itemId]
-		if not item or Inventory.available(bag, itemId) < 1 then
-			return reject("NO_FEED_ITEM", rev)
-		end
-		if tamingConfig.feedShortenMillis[item.catalogId] == nil then
+		if tamingConfig.feedShortenMillis[feedId] == nil then
 			return reject("UNKNOWN_FEED", rev)
 		end
-		local pen, reason = runtime.feed(actor, animalId, item.catalogId)
+		local item: Inventory.Item? = nil
+		for _, id in ids(bag) do
+			if bag.items[id].catalogId == feedId and Inventory.available(bag, id) >= 1 then
+				item = bag.items[id]
+				break
+			end
+		end
+		if not item then
+			return reject("NO_FEED_ITEM", rev)
+		end
+		local pen, reason = runtime.feed(actor, animalId, feedId)
 		if not pen then
 			return reject(reason or "FEED_REFUSED", rev)
 		end
 		local result, err = commit(actor, requestId, "tame-feed", function(data)
 			data.animals[animalId].pen = { startedAt = pen.startedAt, readyAt = pen.readyAt }
 			return { data = { animalId = animalId, readyAt = pen.readyAt } }
-		end, { kind = "feed", itemId = itemId, bagVersion = bag.version })
+		end, { kind = "feed", itemId = item.itemId, bagVersion = bag.version })
 		if not result then
 			return reject(err or "TAMING_UNAVAILABLE", nil)
 		end
@@ -535,7 +579,8 @@ function M.factory(ctx: any): any
 	local extension: any = {
 		id = "taming",
 		handles = function(action: string): boolean
-			return string.sub(action, 1, #PREFIX) == PREFIX and table.find(ACTIONS, string.sub(action, #PREFIX + 1)) ~= nil
+			return string.sub(action, 1, #PREFIX) == PREFIX
+				and table.find(ACTIONS, string.sub(action, #PREFIX + 1)) ~= nil
 		end,
 	}
 
@@ -560,10 +605,30 @@ function M.factory(ctx: any): any
 		return handlers[name](actor, requestId, args, profile)
 	end
 
+	--- Speed multiplier (permille) the rider's bag load gives while mounted: the species carry
+	--- raises the soft-weight threshold the existing speed penalty is measured against.
+	local function loadMilli(actor: string, carryMilli: number): number
+		local access = ctx.personalTransfer(actor)
+		local data = if access then access.profile().data.envelope.genres["survival-coop"].data else nil
+		local saved = if data and data.inventory then data.inventory[config.carriedContainer] else nil
+		if not saved then
+			return 1000
+		end
+		local bag = Inventory.fromSave(saved, items)
+		local soft = bag.limits.softWeightMilli + carryMilli
+		return if Inventory.weight(bag, items) > soft then 1000 - (bag.limits.speedPenaltyMilli or 0) else 1000
+	end
+
 	function extension.snapshot(actor: string): (any?, string?)
-		local profile = ensure(actor)
-		if not profile then
-			return nil, "TAMING_UNAVAILABLE"
+		-- Single owner per actor: the cached record is the truth, so a per-frame snapshot
+		-- never costs a backend read. Only the first read (or a lost cache) acquires.
+		local profile = tokens[actor]
+		if not profile or synced[actor] ~= profile.data.rev then
+			local ensured = ensure(actor)
+			if not ensured then
+				return nil, "TAMING_UNAVAILABLE"
+			end
+			profile = ensured
 		end
 		local now = ctx.nowMillis()
 		local animals = {}
@@ -589,10 +654,16 @@ function M.factory(ctx: any): any
 			feeds = feeds,
 			captureTool = config.captureTool,
 			ride = if ride
-				then { animalId = ride.animalId, species = ride.species, speedStuds = ride.speedStuds, carryMilli = ride.carryMilli }
+				then {
+					animalId = ride.animalId,
+					species = ride.species,
+					speedStuds = ride.speedStuds,
+					carryMilli = ride.carryMilli,
+				}
 				else nil,
 			-- Read by the world's Heartbeat: the server, never the client, sets WalkSpeed.
 			walkSpeedStuds = if ride then ride.speedStuds else nil,
+			loadMilli = if ride then loadMilli(actor, ride.carryMilli) else nil,
 		},
 			nil
 	end

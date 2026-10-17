@@ -53,6 +53,8 @@
 'qa_scenarios':
   - 
    'survival-coop:bootstrap-crafting'
+  - 
+   'survival-coop:taming-mounts'
   
 'runtime_mode':
   'crafting'

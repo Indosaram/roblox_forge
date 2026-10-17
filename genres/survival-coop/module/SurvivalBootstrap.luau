@@ -43,8 +43,6 @@ export type Config = {
 	analytics: Events.Emitter?,
 	-- Extension factories to build; defaults to the genre registry (module/Extensions).
 	extensions: { Extensions.Factory }?,
-	-- Pack policies handed to extension factories (ctx.policies), keyed by extension id.
-	policies: { [string]: any }?,
 	wildlife: {
 		key: string,
 		catalog: Wildlife.Catalog,
@@ -297,7 +295,6 @@ function M.new(
 			local state = if states then states[id] else nil
 			return if state then { catalogId = state.catalogId, healthMilli = state.healthMilli } else nil
 		end,
-		policies = config.policies,
 	}
 	for _, factory in config.extensions or Extensions.factories do
 		local extension = factory(extensionContext)
