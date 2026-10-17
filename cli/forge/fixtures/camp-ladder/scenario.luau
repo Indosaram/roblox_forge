@@ -79,6 +79,9 @@ function M.new(packPath: string, backend: ProfileStore.Backend, now: () -> numbe
 		personalTransfer = function(actor)
 			return if session then session.personalTransfer(actor) else nil
 		end,
+		members = function()
+			return if session then session.members() else {}
+		end,
 		isFriend = function(host, visitor)
 			return FRIENDS[host] ~= nil and FRIENDS[host][visitor] == true
 		end,

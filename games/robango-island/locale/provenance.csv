@@ -194,3 +194,15 @@ camp_visitor,original,agent:claude-5.5/robango-h2,2026-10-17
 camp_visitor_none,original,agent:claude-5.5/robango-h2,2026-10-17
 camp_cooldown,original,agent:claude-5.5/robango-h2,2026-10-17
 camp_facility,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_visit,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_help,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_visitors,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_item,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_quantity,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_less,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_more,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_no_items,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_not_friend,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_no_pass,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_expired,original,agent:claude-5.5/robango-h2,2026-10-17
+camp_refused,original,agent:claude-5.5/robango-h2,2026-10-17

@@ -36,6 +36,9 @@ steps:
   - {op: command, player: owner, requestId: done, sessionEpoch: current, action: "survival-coop:camp-complete", args: [windbreak, 2]}
   - {op: expect_snapshot, player: member, scope: session, field: survivalExtensions.camp.rung, equals: 1}
   - {op: expect_snapshot, player: member, scope: session, field: survivalExtensions.camp.facilities.camp-cache, equals: true}
+  # The visit candidates are the tribe members present; they are shown to a non-member.
+  - {op: expect_snapshot, player: guest, scope: session, field: survivalExtensions.camp.hosts.owner, equals: true}
+  - {op: expect_snapshot, player: guest, scope: session, field: survivalExtensions.camp.role, equals: guest}
   # Visit: a friend gets a time-boxed pass and can help a host project; an unfriended
   # stranger cannot open one; the visitor never completes and never touches host items.
   - {op: command, player: stranger, requestId: visit, sessionEpoch: current, action: "survival-coop:camp-visit-open", args: [owner], expect: refused}

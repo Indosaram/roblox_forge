@@ -27,6 +27,8 @@ export type World = {
 	wildlifeAccess: ((string, string) -> Wildlife.Access?)?,
 	publishWildlife: (({ [string]: Wildlife.State }) -> ())?,
 	publishCapacityLimits: ((any) -> ())?,
+	-- Trusted friendship source for friend visits (core/infra/island/Friends); nil = no visits.
+	isFriend: ((string, string) -> boolean)?,
 	gatheringAccess: (
 		(Session.Session, Runtime.Request, Inventory.State) -> boolean
 	) -> (Runtime.Request, Inventory.State, Fenced.Data) -> Gathering.Access?,

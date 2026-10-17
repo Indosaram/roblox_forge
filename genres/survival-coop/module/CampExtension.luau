@@ -41,6 +41,8 @@ export type Config = {
 	-- Trusted settlement port: snapshot(actor) answers only for tribe members.
 	settlement: { snapshot: (string) -> (Shared.StateData?, string?) },
 	personalTransfer: (string) -> Session.PersonalTransfer?,
+	-- Session roster, used only to list who a guest could visit.
+	members: (() -> { string })?,
 	-- Trusted friendship source (for example a Players:IsFriendsWithAsync cache).
 	isFriend: ((string, string) -> boolean)?,
 	visitSeconds: number?,
@@ -159,6 +161,19 @@ function M.new(config: Config): Built?
 	local function member(actor: string): Settlement.State?
 		local state = config.settlement.snapshot(actor)
 		return if state then (state :: any).settlement else nil
+	end
+	-- Session members that belong to a tribe, other than `actor`: the visit candidates.
+	-- Friendship is deliberately not asked here (the engine call yields); camp-visit-open
+	-- refuses a non-friend with NOT_FRIEND.
+	local function candidates(actor: string): { [string]: boolean }
+		local result: { [string]: boolean } = {}
+		local roster: { string } = if config.members then (config.members :: () -> { string })() else {}
+		for _, other in roster do
+			if other ~= actor and member(other) ~= nil then
+				result[other] = true
+			end
+		end
+		return result
 	end
 	local function cooldowns(settlement: Settlement.State, now: number): { [string]: number }
 		local result: { [string]: number } = {}
@@ -518,7 +533,11 @@ function M.new(config: Config): Built?
 		local settlement = member(actor)
 		local tribeId = if settlement then settlement.config.tribeId else visits[actor]
 		if tribeId == nil then
-			return nil, nil
+			local hosts = candidates(actor)
+			if next(hosts) == nil then
+				return nil, nil
+			end
+			return { role = "guest", hosts = hosts } :: any, nil
 		end
 		local token, err = open(tribeId)
 		if not token then
@@ -548,6 +567,7 @@ function M.new(config: Config): Built?
 			view.pass = if pass and now < pass.expiresAt
 				then { hostId = pass.hostId, expiresAt = pass.expiresAt }
 				else nil
+			view.hosts = candidates(actor)
 		end
 		return view :: any, nil
 	end
@@ -613,6 +633,7 @@ function M.factory(ctx: any): Built?
 		now = ctx.now,
 		settlement = ctx.settlement,
 		personalTransfer = ctx.personalTransfer,
+		members = ctx.members,
 		isFriend = (ctx.world :: any).isFriend,
 	})
 end
