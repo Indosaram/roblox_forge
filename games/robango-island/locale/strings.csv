@@ -185,3 +185,11 @@ tip_05,Grazers run from you. Hunters warn you. Learn the difference.,loading tip
 tip_06,"Your camp holds up to four members. Build together, keep together.",loading tip,"Your camp holds up to four members. Build together, keep together.",캠프에는 최대 네 명까지 들어온다. 함께 짓고 함께 지키자.
 island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
 island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.
+market_title,Market,market panel title,Market,시장
+market_buy,Buy,market buy button,Buy,구매
+market_list,List 1,market list one unit button,List 1,1개 등록
+market_price,%d x%d,market listing unit price and quantity,%d x%d,%d x%d
+market_empty,No listings,market empty state,No listings,등록된 물건이 없어요
+market_ineligible,This account cannot trade yet,market eligibility refusal,This account cannot trade yet,이 계정은 아직 거래할 수 없어요
+market_outlier,That price is too far from the market,market outlier price refusal,That price is too far from the market,시세와 너무 다른 가격이에요
+market_failed,Trade could not complete. Try again later,market generic failure,Trade could not complete. Try again later,거래를 완료하지 못했어요. 잠시 후 다시 시도하세요

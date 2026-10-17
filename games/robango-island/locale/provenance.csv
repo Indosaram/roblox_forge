@@ -185,3 +185,11 @@ tip_05,original,agent:claude-5.5/robango-g1,2026-10-16
 tip_06,original,agent:claude-5.5/robango-g1,2026-10-16
 island_route_failed,original,agent:claude-5.5/robango-h6,2026-10-17
 island_route_retry,original,agent:claude-5.5/robango-h6,2026-10-17
+market_title,original,agent:claude-5.5/robango-h4,2026-10-17
+market_buy,original,agent:claude-5.5/robango-h4,2026-10-17
+market_list,original,agent:claude-5.5/robango-h4,2026-10-17
+market_price,original,agent:claude-5.5/robango-h4,2026-10-17
+market_empty,original,agent:claude-5.5/robango-h4,2026-10-17
+market_ineligible,original,agent:claude-5.5/robango-h4,2026-10-17
+market_outlier,original,agent:claude-5.5/robango-h4,2026-10-17
+market_failed,original,agent:claude-5.5/robango-h4,2026-10-17

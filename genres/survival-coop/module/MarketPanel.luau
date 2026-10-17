@@ -70,7 +70,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	status.Name = "MarketStatus"
 	local rows = Instance.new("Frame")
 	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent =
-		"MarketRows", 1, UDim2.new(1, 0, 0, 0), sheet.content
+		"MarketRows", 1, UDim2.fromScale(1, 0), sheet.content
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
@@ -94,10 +94,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		for _, catalog in market.catalogs do
 			order += 1
 			local header = line(order)
-			ui.components.label(theme, { text = catalog.catalogId, size = UDim2.new(0.62, 0, 1, 0), parent = header })
+			ui.components.label(theme, { text = catalog.catalogId, size = UDim2.fromScale(0.62, 1), parent = header })
 			ui.components.button(theme, {
 				text = M.text(ctx.locale, "market_list"),
-				size = UDim2.new(0.36, 0, 1, 0),
+				size = UDim2.fromScale(0.36, 1),
 				position = UDim2.fromScale(0.64, 0),
 				parent = header,
 				onClick = function()
@@ -109,7 +109,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				order += 1
 				ui.components.label(
 					theme,
-					{ text = M.text(ctx.locale, "market_empty"), size = UDim2.new(1, 0, 1, 0), parent = line(order) }
+					{ text = M.text(ctx.locale, "market_empty"), size = UDim2.fromScale(1, 1), parent = line(order) }
 				)
 			end
 			for _, listing in catalog.listings do
@@ -117,12 +117,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				local entry = line(order)
 				ui.components.label(theme, {
 					text = M.text(ctx.locale, "market_price", listing.unitPrice, listing.quantity),
-					size = UDim2.new(0.62, 0, 1, 0),
+					size = UDim2.fromScale(0.62, 1),
 					parent = entry,
 				})
 				ui.components.button(theme, {
 					text = M.text(ctx.locale, "market_buy"),
-					size = UDim2.new(0.36, 0, 1, 0),
+					size = UDim2.fromScale(0.36, 1),
 					position = UDim2.fromScale(0.64, 0),
 					parent = entry,
 					onClick = function()

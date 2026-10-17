@@ -105,7 +105,8 @@ return {
 		assert(extension.snapshot("7").listed[listed.data.listingId].status == "sold", "seller ledger")
 		assert(
 			command(extension, "8", "survival-coop:market-buy", { listed.data.listingId }).reason
-				== "LISTING_UNAVAILABLE"
+				== "LISTING_UNAVAILABLE",
+			"resold listing refused"
 		)
 		assert(extension.close().ok, "close")
 	end,
@@ -126,10 +127,19 @@ return {
 		local low = command(extension, "7", "survival-coop:market-list", { "wood", 1, 1 })
 		assert(not low.ok and low.reason == "PRICE_OUTLIER", tostring(low.reason))
 		assert(#moves == 3, "rejected listings never reach escrow")
-		assert(command(extension, "7", "survival-coop:market-list", { "wood", 0, 10 }).reason == "INVALID_LISTING")
-		assert(command(extension, "7", "survival-coop:market-list", { "gold", 1, 10 }).reason == "UNKNOWN_CATALOG")
-		assert(command(extension, "7", "survival-coop:market-list", { "wood", 11, 10 }).reason == "NOT_OWNED")
-		assert(command(extension, "7", "survival-coop:market-buy", { "mk:7:1" }).reason == "SELF_TRADE")
+		assert(
+			command(extension, "7", "survival-coop:market-list", { "wood", 0, 10 }).reason == "INVALID_LISTING",
+			"INVALID_LISTING"
+		)
+		assert(
+			command(extension, "7", "survival-coop:market-list", { "gold", 1, 10 }).reason == "UNKNOWN_CATALOG",
+			"UNKNOWN_CATALOG"
+		)
+		assert(
+			command(extension, "7", "survival-coop:market-list", { "wood", 11, 10 }).reason == "NOT_OWNED",
+			"NOT_OWNED"
+		)
+		assert(command(extension, "7", "survival-coop:market-buy", { "mk:7:1" }).reason == "SELF_TRADE", "SELF_TRADE")
 		assert(extension.close().ok, "close")
 	end,
 	["listing ledger survives a reload"] = function()

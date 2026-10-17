@@ -69,6 +69,7 @@ export type Target = {
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	}?,
 	packConfig: Contract.PackConfig,
 	contracts: { Contract.RuntimeContract },
@@ -327,6 +328,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	} =
 		table.clone(target.services or {})
 	actualTarget.services = trustedServices
@@ -537,6 +539,16 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "market-trade" then
+			assert(scenario.genre == "survival-coop", "market fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/market-extension"))
+			fixture = require("../fixtures/market-extension/scenario").new(gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
 	end
 	openFixture()
 	local session = Session.new(actualTarget, gate.backend, {
@@ -554,6 +566,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalSettlement = trustedServices.survivalSettlement,
 		survivalTransfer = trustedServices.survivalTransfer,
 		survivalGathering = trustedServices.survivalGathering,
+		survivalExtensions = trustedServices.survivalExtensions,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
 		roll = roll,
@@ -881,6 +894,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalSettlement = trustedServices.survivalSettlement,
 					survivalTransfer = trustedServices.survivalTransfer,
 					survivalGathering = trustedServices.survivalGathering,
+					survivalExtensions = trustedServices.survivalExtensions,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
 					roll = roll,
