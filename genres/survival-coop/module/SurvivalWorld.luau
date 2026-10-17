@@ -185,7 +185,8 @@ function M.new(config: Config)
 			end,
 		},
 	}
-	local api = { services = services }
+	-- isFriend is declared so the table satisfies SurvivalBootstrap.World; hosts assign the trusted friendship source.
+	local api = { services = services, isFriend = nil :: ((string, string) -> boolean)? }
 	local built: { [string]: BasePart } = {}
 	local builtVersion: { [string]: number } = {}
 	-- The host supplies a trusted plot origin and warehouse position. These ports
