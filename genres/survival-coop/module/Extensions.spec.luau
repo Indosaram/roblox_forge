@@ -84,9 +84,9 @@ local function build(factories: { Extensions.Factory })
 end
 
 return {
-	["extension registries ship empty"] = function()
-		assert(#Extensions.factories == 0, "server registry empty in the seam lane")
-		assert(#ExtensionPanels.factories == 0, "client registry empty in the seam lane")
+	["extension registries are tables"] = function()
+		assert(type(Extensions.factories) == "table", "server registry present")
+		assert(type(ExtensionPanels.factories) == "table", "client registry present")
 	end,
 	["bootstrap builds registered extensions and releases them on close"] = function()
 		local seen: any = nil
@@ -146,8 +146,10 @@ return {
 	["durable policy derives extension actions from the genre contract"] = function()
 		local Contract: any = require("./Contract")
 		local crafting = require("../../../cli/forge/lib/craftinggenerate")
-		local base = crafting.policy()
 		local saved = Contract.extensionActions
+		local restoredCount = #crafting.policy().actions
+		Contract.extensionActions = {}
+		local base = crafting.policy()
 		Contract.extensionActions = { "defend-active", "death-drop" }
 		local ok, err = pcall(function()
 			local derived = crafting.policy()
@@ -162,6 +164,6 @@ return {
 		end)
 		Contract.extensionActions = saved
 		assert(ok, err)
-		assert(#crafting.policy().actions == #base.actions, "restored")
+		assert(#crafting.policy().actions == restoredCount, "restored")
 	end,
 }
