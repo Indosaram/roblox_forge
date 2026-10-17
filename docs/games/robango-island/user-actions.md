@@ -36,5 +36,6 @@
 | U15 | Robux 상품 등록 | catalog lint 를 통과한 상품 목록(econ.yml)을 실제 Game Pass·Developer Product 로 만들고 ID를 채웁니다. 가격 변경은 사람 승인 사항입니다 | 무료(등록) | AGENTS.md, QA-BM-01 |
 | U16 | 오디오·3D 애셋 제작 확정 | 생성 모델 라이선스 규칙(TRELLIS 허용, AudioCraft 등 금지) 안에서 최종 애셋을 만들고 업로드합니다 | 유료 가능 | AGENTS.md |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
+| U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 공개 저장소로 push 하기 전에 히스토리 재작성(squash 또는 filter-repo)을 할지 결정합니다. 재작성은 force-push 이 필요해 에이전트가 하지 않았습니다 | 무료 | QA-NAME-01 |
 
 결정안: 착수에 필요한 사용자 결정은 모두 끝났고, 나머지는 M7 출시 준비까지 처리하면 된다.

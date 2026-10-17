@@ -13,6 +13,7 @@ local imports: { [string]: any } = {
 	["./qualityregistration"] = require("../lib/qualityregistration"),
 	["./buildidentity"] = require("../lib/buildidentity"),
 	["../../../core/domain/genre/Validation"] = require("../../../core/domain/genre/Validation"),
+	["../../../core/infra/monetization/Catalog"] = require("../../../core/infra/monetization/Catalog"),
 	["./qastudio"] = require("../lib/qastudio"),
 	["./licenses"] = require("../lib/licenses"),
 	["./qualityevaluate"] = require("../lib/qualityevaluate"),
