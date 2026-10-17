@@ -53,6 +53,10 @@
 'qa_scenarios':
   - 
    'survival-coop:bootstrap-crafting'
+  - 
+   'survival-coop:market-trade'
+  - 
+   'survival-coop:shop-receipt-storm'
   
 'runtime_mode':
   'crafting'
