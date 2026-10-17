@@ -1,0 +1,98 @@
+# New-player golden path on the real Session: the tutorial advances only on settled gameplay
+# (gather confirmed, stone axe crafted, settlement placed) and the real contract commands.
+# Negative steps: delivering before accepting is refused, a replayed request id returns the stored
+# outcome without a second reward, and the tutorial never advances on a refused command.
+name: contracts-tutorial
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1"]
+fixtures: [cli/forge/fixtures/contracts-tutorial]
+data:
+  nativeDeath: development-island-v1
+  survivalSpatial:
+    radiusStuds: 8
+    players: {"1": {x: 0, y: 1, z: 0}}
+    campfires: {campfire: {x: 6, y: 1, z: 0}}
+  durable:
+    actions: ["survival-coop:gather", "survival-coop:transfer-deposit", "survival-coop:transfer-withdraw", "survival-coop:settlement-reserve", "survival-coop:settlement-place", "survival-coop:craft-reserve", "survival-coop:craft-start", "survival-coop:craft-complete", "survival-coop:contract-accept", "survival-coop:contract-deliver", "survival-coop:contract-swap", "survival-coop:contract-claim", "survival-coop:tutorial-skip-arrival"]
+    serverActions: ["survival-coop:settlement-invite", "survival-coop:server-vitals-tick", "survival-coop:vitals-damage", "survival-coop:rest-stop", "survival-coop:respawn"]
+    tickAction: survival-coop:server-vitals-tick
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: arrive}
+  - {op: command, player: "1", requestId: early-deliver, sessionEpoch: current, action: "survival-coop:contract-deliver", args: [survey-driftwood], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: NOT_ACCEPTED}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.index, equals: 1}
+  - {op: command, player: "1", requestId: harvest1, sessionEpoch: current, action: "survival-coop:gather", args: [tree-1, 0], expect: refused}
+  - {op: expect_result, player: "1", field: data.status, equals: pending}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.index, equals: 1}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: harvest1, sessionEpoch: current, action: "survival-coop:gather", args: [tree-1, 0]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: craft-stone-axe}
+  - {op: advance_to, seconds: 2}
+  - {op: command, player: "1", requestId: harvest2, sessionEpoch: current, action: "survival-coop:gather", args: [flint-1, 1], expect: refused}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: harvest2, sessionEpoch: current, action: "survival-coop:gather", args: [flint-1, 1]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.g1:1:0:8:harvest2:output:1.quantity", equals: 3}
+  - {op: command, player: "1", requestId: axe, sessionEpoch: current, action: "survival-coop:craft-reserve", args: [stone-axe, hand]}
+  - {op: expect_result, player: "1", field: data.jobId, equals: "w1:1:0:3:axe"}
+  - {op: command, player: "1", requestId: axe-start, sessionEpoch: current, action: "survival-coop:craft-start", args: ["w1:1:0:3:axe"]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: craft-stone-axe}
+  - {op: advance_to, seconds: 6}
+  - {op: command, player: "1", requestId: axe-done, sessionEpoch: current, action: "survival-coop:craft-complete", args: ["w1:1:0:3:axe"], times: 2}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: declare-settlement}
+  - {op: advance_to, seconds: 8}
+  - {op: command, player: "1", requestId: harvest3, sessionEpoch: current, action: "survival-coop:gather", args: [tree-2, 2], expect: refused}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: harvest3, sessionEpoch: current, action: "survival-coop:gather", args: [tree-2, 2]}
+  - {op: advance_to, seconds: 14}
+  - {op: command, player: "1", requestId: harvest4, sessionEpoch: current, action: "survival-coop:gather", args: [tree-3, 3], expect: refused}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: harvest4, sessionEpoch: current, action: "survival-coop:gather", args: [tree-3, 3]}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.g1:1:0:8:harvest3:output:1.quantity", equals: 3}
+  - {op: command, player: "1", requestId: dep1, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g1:1:0:8:harvest3:output:1", 3], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: TRANSFER_PENDING}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: dep1, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g1:1:0:8:harvest3:output:1", 3]}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: dep2, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g1:1:0:8:harvest4:output:1", 3], expect: refused}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: dep2, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g1:1:0:8:harvest4:output:1", 3]}
+  - {op: recover_transfers, player: "1", maximum: 8}
+  - {op: command, player: "1", requestId: camp, sessionEpoch: current, action: "survival-coop:settlement-reserve", args: [campfire, 4, 4, 0, 0, 2, 0]}
+  - {op: expect_result, player: "1", field: data.reservationId, equals: "build:5:tribe:1:1:0:camp"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: declare-settlement}
+  - {op: command, player: "1", requestId: camp-place, sessionEpoch: current, action: "survival-coop:settlement-place", args: ["build:5:tribe:1:1:0:camp", 1, 3]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: accept-contract}
+  - {op: command, player: "1", requestId: skip-late, sessionEpoch: current, action: "survival-coop:tutorial-skip-arrival", args: []}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: accept-contract}
+  - {op: command, player: "1", requestId: bad-accept, sessionEpoch: current, action: "survival-coop:contract-accept", args: [guild-stone-axe], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: OUT_OF_ORDER}
+  - {op: command, player: "1", requestId: accept1, sessionEpoch: current, action: "survival-coop:contract-accept", args: [survey-driftwood]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: deliver-contract}
+  - {op: command, player: "1", requestId: deliver1, sessionEpoch: current, action: "survival-coop:contract-deliver", args: [survey-driftwood]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.complete, equals: true}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.trust.route-surveyors.value, equals: 40}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.delivered, equals: 1}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: "inventory.bag.items.ct:deliver1:1:1.quantity", equals: 1}
+  - {op: command, player: "1", requestId: deliver1, sessionEpoch: current, action: "survival-coop:contract-deliver", args: [survey-driftwood]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.delivered, equals: 1}
+  - {op: command, player: "1", requestId: deliver-again, sessionEpoch: current, action: "survival-coop:contract-deliver", args: [survey-driftwood], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: NOT_ACCEPTED}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}
+  - {op: reload}
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.complete, equals: true}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.delivered, equals: 1}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.trust.route-surveyors.value, equals: 40}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.phase, equals: first-day}
+  - {op: command, player: "1", requestId: deliver1, sessionEpoch: current, action: "survival-coop:contract-deliver", args: [survey-driftwood]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.delivered, equals: 1}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}

@@ -9,6 +9,7 @@ local Content = require("../../../core/domain/survival/Content")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local ProfileStore = require("../../../core/infra/data/ProfileStore")
 local Session = require("../../../core/infra/genre/Session")
+local Events = require("../../../core/infra/analytics/Events")
 
 export type Context = {
 	content: Content.Document,
@@ -21,13 +22,17 @@ export type Context = {
 	world: any,
 	members: () -> { string },
 	personalTransfer: (string) -> Session.PersonalTransfer?,
+	-- Optional core analytics emitter shared with the bootstrap (nil when none).
+	analytics: Events.Emitter?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?
 
 local factories: { Factory } = {
-	-- Append extension factories here, e.g. require("./TamingExtension").factory,
+	-- Append extension factories here (one require of ./<Name>Extension per line, then .factory).
+	require("./ContractsExtension").factory,
 	require("./MonetizationExtension").factory,
+	require("./MarketExtension").factory,
 	require("./DeathZoneExtension").factory,
 }
 

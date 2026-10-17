@@ -62,7 +62,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.content })
 	status.Name = "ShopStatus"
 	local rows = Instance.new("Frame")
-	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent = "ShopRows", 1, UDim2.new(1, 0, 0, 0), sheet.content
+	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent = "ShopRows", 1, UDim2.fromScale(1, 0), sheet.content
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
@@ -82,12 +82,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			line.LayoutOrder, line.Parent = index, rows
 			ui.components.label(theme, {
 				text = row.name .. "  " .. M.text(ctx.locale, "shop_price", row.price),
-				size = UDim2.new(0.62, 0, 1, 0),
+				size = UDim2.fromScale(0.62, 1),
 				parent = line,
 			})
 			ui.components.button(theme, {
 				text = M.text(ctx.locale, if row.owned then "shop_owned" else "shop_buy"),
-				size = UDim2.new(0.36, 0, 1, 0),
+				size = UDim2.fromScale(0.36, 1),
 				position = UDim2.fromScale(0.64, 0),
 				parent = line,
 				onClick = function()

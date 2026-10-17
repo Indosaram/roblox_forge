@@ -8,6 +8,7 @@ local quantity = Schema.number({ min = 1, max = 1000, integer = true })
 local version = Schema.number({ min = 0, max = 2 ^ 53 - 2, integer = true })
 local vital = Schema.number({ min = 0, max = 100000, integer = true })
 local coordinate = Schema.number({ min = 0, max = 31, integer = true })
+local price = Schema.number({ min = 1, max = 2 ^ 31, integer = true })
 local rotation = Schema.number({ min = 0, max = 3, integer = true })
 local contract: Shared.RuntimeContract = {
 	api = 1,
@@ -121,6 +122,21 @@ local contract: Shared.RuntimeContract = {
 		{ id = "craft-start", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "craft-complete", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "craft-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "contract-accept", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "contract-deliver", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "contract-swap",
+			args = { Schema.number({ min = 1, max = 8, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "contract-claim",
+			args = { id, Schema.number({ min = 1, max = 5, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "tutorial-skip-arrival", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "buy-defense", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "defend-active", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "food", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
@@ -175,6 +191,13 @@ local contract: Shared.RuntimeContract = {
 		{ id = "shop-prompt", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "shop-sync", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
+			id = "market-list",
+			args = { id, quantity, price },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "market-buy", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
 			id = "zone-set",
 			args = { Schema.enum({ "safe", "danger" }) },
 			origin = "client",
@@ -184,8 +207,15 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"contract-accept",
+		"contract-deliver",
+		"contract-swap",
+		"contract-claim",
+		"tutorial-skip-arrival",
 		"shop-prompt",
 		"shop-sync",
+		"market-list",
+		"market-buy",
 		"zone-set",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },

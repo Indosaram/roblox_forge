@@ -69,6 +69,7 @@ export type Target = {
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	}?,
 	packConfig: Contract.PackConfig,
 	contracts: { Contract.RuntimeContract },
@@ -327,6 +328,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalTransfer: any?,
 		survivalGathering: any?,
 		survivalWildlife: any?,
+		survivalExtensions: any?,
 	} =
 		table.clone(target.services or {})
 	actualTarget.services = trustedServices
@@ -527,10 +529,38 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	settlementOwner()
 	local fixture: any = nil
 	local function openFixture()
-		if scenario.name == "gather-craft-settle" then
+		if scenario.name == "contracts-tutorial" then
+			assert(scenario.genre == "survival-coop", "contracts-tutorial binds the survival-coop genre")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/contracts-tutorial"))
+			fixture = require("../fixtures/contracts-tutorial/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		elseif scenario.name == "shop-receipt-storm" then
+			assert(scenario.genre == "survival-coop", "shop fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/monetization-shop"))
+			fixture = require("../fixtures/monetization-shop/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		elseif scenario.name == "gather-craft-settle" then
 			assert(scenario.genre == "survival-coop" and scenario.pack == "fixture-survival", "fixture pack binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/survival-services"))
 			fixture = require("../fixtures/survival-services/scenario").new(target.packConfig, gate.backend, function()
+				return wall
+			end)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
+		if scenario.name == "market-trade" then
+			assert(scenario.genre == "survival-coop", "market fixture genre binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/market-extension"))
+			fixture = require("../fixtures/market-extension/scenario").new(gate.backend, function()
 				return wall
 			end)
 			for key, service in fixture.services do
@@ -554,6 +584,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		survivalSettlement = trustedServices.survivalSettlement,
 		survivalTransfer = trustedServices.survivalTransfer,
 		survivalGathering = trustedServices.survivalGathering,
+		survivalExtensions = trustedServices.survivalExtensions,
 		survivalSpatial = spatial,
 		survivalDeath = trustedServices.survivalDeath,
 		roll = roll,
@@ -881,6 +912,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					survivalSettlement = trustedServices.survivalSettlement,
 					survivalTransfer = trustedServices.survivalTransfer,
 					survivalGathering = trustedServices.survivalGathering,
+					survivalExtensions = trustedServices.survivalExtensions,
 					survivalSpatial = spatial,
 					survivalDeath = trustedServices.survivalDeath,
 					roll = roll,

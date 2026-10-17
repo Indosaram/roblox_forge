@@ -1,0 +1,43 @@
+# Shop loop on the real Session: a developer product is bought through the fake marketplace whose
+# receipt is redelivered five times (granted exactly once), a pass and the monthly subscription
+# raise warehouse slots and unlock cosmetics, an unregistered (id 0) product and an ineligible
+# subscription both refuse without a marketplace prompt, and the state survives a restart.
+name: shop-receipt-storm
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1", "2"]
+fixtures: [cli/forge/fixtures/monetization-shop]
+data:
+  durable:
+    actions: ["survival-coop:shop-prompt", "survival-coop:shop-sync"]
+steps:
+  - {op: join, player: "1"}
+  - {op: join, player: "2"}
+  - {op: command, player: "1", requestId: skin1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [skinReefRunner]}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.grants, equals: 1}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.skins.reef-runner, equals: true}
+  - {op: command, player: "1", requestId: skin2, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [skinReefRunner], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: ALREADY_OWNED}
+  - {op: command, player: "1", requestId: unreg, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [skinUnregistered], expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: PRODUCT_NOT_CONFIGURED}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.grants, equals: 1}
+  - {op: command, player: "1", requestId: pass1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [wideWarehouse]}
+  - {op: command, player: "1", requestId: sub1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [voyagerMonthly]}
+  - {op: command, player: "1", requestId: sync1, sessionEpoch: current, action: "survival-coop:shop-sync", args: []}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.storageBonus, equals: 15}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.skins.voyager-monthly, equals: true}
+  - {op: command, player: "2", requestId: inelig1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [voyagerMonthly], expect: refused}
+  - {op: expect_result, player: "2", field: reason, equals: SUBSCRIPTION_INELIGIBLE}
+  - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.monetization.promptsIssued, equals: 0}
+  - {op: close, player: "1"}
+  - {op: close, player: "2"}
+  - {op: reload}
+  - {op: join, player: "1"}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.grants, equals: 1}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.storageBonus, equals: 15}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.skins.reef-runner, equals: true}
+  - {op: close, player: "1"}
+  - {op: expect_members, members: []}
