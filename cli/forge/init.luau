@@ -80,12 +80,13 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "gen",
 		text = [=[
-  gen procedural [--pack <slug>] [--obj] [--preview]
+  gen procedural [--pack <slug>] [--obj] [--preview] [--author <who> --created <date>]
                             Generate the pack's procedural creature/prop meshes with the pure
                             core generators (no API keys), write src/shared/ProcAssets.luau,
                             and upsert each key into assets/manifest.yml. --preview renders
                             front/side PPMs plus sheet.ppm under assets/preview/ with the
-                            framework's own z-buffer rasterizer]=],
+                            framework's own z-buffer rasterizer. --author (human:<handle> or
+                            agent:<model>/<run>) with --created (YYYY-MM-DD) stamps each entry]=],
 	},
 	{
 		name = "gen",
@@ -106,12 +107,13 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "gen",
 		text = [=[
-  gen audio [--pack <slug>] [--install]
+  gen audio [--pack <slug>] [--install] [--author <who> --created <date>]
                             Synthesise the pack's assets/audio.yml cues (music/sfx/ambience)
                             with the pure core DSP/composer into assets/audio/<cue>.wav as
                             deterministic 16-bit PCM, and upsert them as forge-procgen/Approved.
                             --install copies them into the newest Studio content/forge/<pack>/
-                            so rbxasset://forge/<pack>/<cue>.wav resolves]=],
+                            so rbxasset://forge/<pack>/<cue>.wav resolves. --author/--created
+                            stamp each entry's provenance as for gen procedural]=],
 	},
 	{
 		name = "gen",

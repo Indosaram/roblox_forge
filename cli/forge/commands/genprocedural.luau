@@ -23,6 +23,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local pack = DEFAULT_PACK
 	local obj = false
 	local preview = false
+	local stamp: { author: string?, created: string? } = {}
 	local index = 3
 	while index <= #args do
 		local flag = args[index]
@@ -40,6 +41,13 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		elseif flag == "--preview" then
 			preview = true
 			index += 1
+		elseif flag == "--author" or flag == "--created" then
+			local stampErr = manifest.parseStamp(flag, args[index + 1], stamp)
+			if stampErr ~= nil then
+				stdio.ewrite(stampErr)
+				return false
+			end
+			index += 2
 		else
 			stdio.ewrite("Error: unknown argument '" .. tostring(flag) .. "' for forge gen procedural\n")
 			return false
@@ -74,6 +82,12 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		if gameOk and typeof(game) == "table" and typeof(game.poly_budget) == "table" then
 			polyBudget = game.poly_budget
 		end
+	end
+
+	local stampLines, stampErr = manifest.stampLines(stamp)
+	if stampErr ~= nil then
+		stdio.ewrite(stampErr)
+		return false
 	end
 
 	local resolved, errors = procgen.plan(doc, polyBudget)
@@ -119,6 +133,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			"      rights:",
 			"        source: " .. manifest.yamlQuote("first-party generator in this repository"),
 			"        ownership: first-party",
+			table.unpack(stampLines),
 		}, "\n") .. "\n"
 		manifest.upsertAsset(manifestPath, entry.key, block)
 	end

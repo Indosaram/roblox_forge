@@ -145,7 +145,7 @@ archetype_roarer,Bellower,wildlife archetype,Bellower,포효형
 archetype_scavenger,Scavenger,wildlife archetype,Scavenger,청소부형
 archetype_herd_grazer,Herd Grazer,wildlife archetype,Herd Grazer,초식 무리형
 lore_premise,"After the Tidal Rift, islands that reshape themselves rose in the open ocean, home to great reptiles thought long gone and unfamiliar plants.",world premise,"After the Tidal Rift, islands that reshape themselves rose in the open ocean, home to great reptiles thought long gone and unfamiliar plants.",「조수 균열」 이후 대양 한가운데에 지형이 수시로 바뀌는 섬들이 떠올랐다. 그곳에는 사라졌다고 여겨진 거대한 파충류와 낯선 식물이 산다.
-lore_role,"You sail with the Searoute Company, a civilian crew that surveys the islands and builds settlements for its backers.",player role,"You sail with the Searoute Company, a civilian crew that surveys the islands and builds settlements for its backers.","당신은 섬을 조사하고 후원자를 위해 정착지를 세우는 민간 선단, 항로단의 일원이다."
+lore_role,"You crew a civilian Searoute Company ship, mapping unfamiliar islands and raising camps for the patrons who fund the voyage.",player role,"You crew a civilian Searoute Company ship, mapping unfamiliar islands and raising camps for the patrons who fund the voyage.","당신은 섬을 조사하고 후원자를 위해 정착지를 세우는 민간 선단, 항로단의 일원이다."
 lore_rift,Tidal Rift,world event name,Tidal Rift,조수 균열
 org_searoute_company,Searoute Company,player organisation,Searoute Company,항로단
 faction_survey_guild,Searoute Survey Society,faction,Searoute Survey Society,항로 측량회
@@ -176,7 +176,7 @@ tutorial_gather,Walk up to a fallen trunk and gather.,tutorial step 2,Walk up to
 tutorial_craft,Open crafting and make a Flint Hatchet.,tutorial step 3,Open crafting and make a Flint Hatchet.,제작 창을 열고 부싯돌 손도끼를 만들자.
 tutorial_settle,Choose a spot and claim your settlement.,tutorial step 4,Choose a spot and claim your settlement.,자리를 골라 정착지를 선언하자.
 tutorial_contract,Accept your first contract and deliver it.,tutorial step 5,Accept your first contract and deliver it.,첫 의뢰를 받고 납품하자.
-tutorial_done,Your crew has a foothold. The islands are waiting.,tutorial complete,Your crew has a foothold. The islands are waiting.,선단이 발판을 마련했다. 섬들이 기다린다.
+tutorial_done,"Your camp is standing at last, and the next island is out there.",tutorial complete,"Your camp is standing at last, and the next island is out there.",선단이 발판을 마련했다. 섬들이 기다린다.
 tip_01,Food from the campfire fills you up far more than raw forage.,loading tip,Food from the campfire fills you up far more than raw forage.,모닥불에서 만든 음식은 날것보다 훨씬 든든하다.
 tip_02,Bellowers warn before they charge. Step aside when the ground flashes.,loading tip,Bellowers warn before they charge. Step aside when the ground flashes.,울림이는 돌진하기 전에 경고한다. 땅이 번쩍이면 옆으로 피하자.
 tip_03,"Stone walls need a Mason's Bench, and the bench needs timber beams.",loading tip,"Stone walls need a Mason's Bench, and the bench needs timber beams.","석재 벽은 석공대가 필요하고, 석공대는 각재가 필요하다."
