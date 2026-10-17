@@ -173,6 +173,9 @@ local contract: Shared.RuntimeContract = {
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
 	},
+	-- Action ids served by module/Extensions factories. Each id must also be declared in
+	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
+	extensionActions = {},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	validateConfig = Mode.validateConfig,

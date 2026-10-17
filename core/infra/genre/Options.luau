@@ -20,6 +20,7 @@ export type Services = {
 	survivalTransfer: any?,
 	survivalGathering: any?,
 	survivalWildlife: any?,
+	survivalExtensions: { Contract.Extension }?,
 }
 export type Options = {
 	clock: Clock.Clock?,
@@ -41,6 +42,30 @@ export type Options = {
 	seed: number?,
 }
 local M = {}
+local EXTENSION_REQUIRED = { "handles", "command" }
+local EXTENSION_OPTIONAL = { "snapshot", "recover", "epoch" }
+function M.validateExtensions(list: any): ()
+	assert(Validation.dense(list, 64), "services: invalid extension list")
+	local seen: { [string]: boolean } = {}
+	for _, extension in list do
+		assert(type(extension) == "table", "services: invalid extension")
+		assert(Validation.id(extension.id) and not seen[extension.id], "services: invalid/duplicate extension id")
+		seen[extension.id] = true
+		for key, value in extension do
+			if key == "id" then
+				continue
+			end
+			assert(
+				table.find(EXTENSION_REQUIRED, key) or table.find(EXTENSION_OPTIONAL, key),
+				"services: unknown extension field"
+			)
+			assert(type(value) == "function", "services: invalid extension callback")
+		end
+		for _, key in EXTENSION_REQUIRED do
+			assert(type(extension[key]) == "function", "services: missing extension callback")
+		end
+	end
+end
 function M.validateControls(controls: any, contracts: { Contract.RuntimeContract }): ()
 	assert(Validation.dense(controls, 1024), "controls: expected dense list")
 	local actions: { [string]: Contract.Action } = {}
@@ -173,6 +198,10 @@ function M.validate(options: Options): ()
 	if options.services then
 		local ports: { [string]: any } = options.services :: any
 		for name, port in ports do
+			if name == "survivalExtensions" then
+				M.validateExtensions(port)
+				continue
+			end
 			assert(
 				name == "survivalSpatial"
 					or name == "survivalDeath"

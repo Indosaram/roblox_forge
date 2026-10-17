@@ -17,6 +17,7 @@ local ProfileStore = require("../../../core/infra/data/ProfileStore")
 local EnvelopeBudget = require("../../../core/infra/data/EnvelopeBudget")
 local Workshop = require("./Workshop")
 local Events = require("../../../core/infra/analytics/Events")
+local Extensions = require("./Extensions")
 local M = {}
 export type World = {
 	services: Options.Services,
@@ -40,6 +41,8 @@ export type Config = {
 	-- Optional core analytics emitter shared by the gathering source and every
 	-- tribe settlement owner (gather/build/craft events).
 	analytics: Events.Emitter?,
+	-- Extension factories to build; defaults to the genre registry (module/Extensions).
+	extensions: { Extensions.Factory }?,
 	wildlife: {
 		key: string,
 		catalog: Wildlife.Catalog,
@@ -266,6 +269,39 @@ function M.new(
 			publishWildlife()
 		end
 	end
+	local extensionClosers: { () -> Shared.Result } = {}
+	local built: { Shared.Extension } = {}
+	local extensionContext: Extensions.Context = {
+		content = config.content,
+		store = function()
+			return Fenced.new(backend, options)
+		end,
+		backend = backend,
+		options = options,
+		now = config.now,
+		nowMillis = config.nowMillis,
+		world = world,
+		members = function()
+			return if active and not closed then active.members() else {}
+		end,
+		personalTransfer = function(actor)
+			return if active and not closed then active.personalTransfer(actor) else nil
+		end,
+	}
+	for _, factory in config.extensions or Extensions.factories do
+		local extension = factory(extensionContext)
+		if extension then
+			if extension.close then
+				table.insert(extensionClosers, extension.close)
+			end
+			local port: any = table.clone(extension)
+			port.close = nil
+			table.insert(built, port)
+		end
+	end
+	if #built > 0 then
+		services.survivalExtensions = built
+	end
 	local api = { services = services }
 	function api.bind(session: Session.Session)
 		assert(not closed and active == nil and #session.members() == 0, "BIND_BEFORE_JOIN")
@@ -311,6 +347,13 @@ function M.new(
 			return { ok = false, reason = "PLAYERS_ACTIVE" }
 		end
 		closing = true
+		for index = #extensionClosers, 1, -1 do
+			local released = extensionClosers[index]()
+			if not released.ok then
+				return released
+			end
+			table.remove(extensionClosers, index)
+		end
 		if wildlifeToken and wildlifeStore then
 			local released, err = wildlifeStore:release(wildlifeToken)
 			if not released then

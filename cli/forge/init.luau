@@ -54,7 +54,8 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "codegen",
 		text = [=[
-  codegen [<pack>]          Regenerate games/<pack>/src/shared/EconConfig.luau from econ.yml (default: kaiju-egg-raiders)]=],
+  codegen [<pack>]          Regenerate games/<pack>/src/shared/EconConfig.luau from econ.yml (default: kaiju-egg-raiders)
+  codegen <pack> --durable  Regenerate a crafting pack's src/shared/GenreDurable.luau from the survival-coop Contract]=],
 	},
 	{
 		name = "new",

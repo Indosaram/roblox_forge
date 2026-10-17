@@ -5,7 +5,21 @@ export type StateData = { [string]: any }
 export type PlayerId = string
 export type SurvivalPosition = { x: number, y: number, z: number }
 export type Event = { genre: string, name: string, playerId: PlayerId?, data: StateData }
+-- A generic durable command bridge a genre registers without touching Session.
+-- Session routes an action to the first extension whose `handles` is true (after
+-- the four built-in survival ports), merges `snapshot` under
+-- snapshot.survivalExtensions[id], asks `epoch` for the action's command epoch
+-- (ledger epoch when absent) and sweeps `recover` with the transfer recovery.
+export type Extension = {
+	id: string,
+	handles: (string) -> boolean,
+	command: (string, string, { any }, CommandContext, "client" | "server", () -> Result) -> Result,
+	snapshot: ((string) -> (StateData?, string?))?,
+	recover: ((string, number) -> any)?,
+	epoch: ((string, string) -> (number?, string?))?,
+}
 export type Services = {
+	survivalExtensions: { Extension }?,
 	survivalWildlife: {
 		handles: (string) -> boolean,
 		command: (string, { any }, CommandContext, number, () -> Result) -> Result,
@@ -80,6 +94,9 @@ export type RuntimeContract = {
 	configVersion: number,
 	saveVersion: number,
 	actions: { Action },
+	-- Declared action ids (without namespace) owned by registered extensions; the
+	-- crafting codegen appends them to the generated durable policy by origin.
+	extensionActions: { string }?,
 	events: { string },
 	hooks: { string },
 	validateConfig: (ConfigData) -> { string },
