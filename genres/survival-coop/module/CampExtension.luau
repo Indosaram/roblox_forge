@@ -634,7 +634,7 @@ function M.factory(ctx: any): Built?
 		settlement = ctx.settlement,
 		personalTransfer = ctx.personalTransfer,
 		members = ctx.members,
-		isFriend = (ctx.world :: any).isFriend,
+		isFriend = if ctx.world then (ctx.world :: any).isFriend else nil,
 	})
 end
 
