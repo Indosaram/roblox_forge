@@ -22,7 +22,7 @@ export type Context = {
 	world: any,
 	members: () -> { string },
 	-- Trusted settlement port (membership-gated snapshot); nil only before bind in tests.
-	settlement: { snapshot: (string) -> (Shared.StateData?, string?) },
+	settlement: { snapshot: (string) -> (Shared.StateData?, string?) }?,
 	personalTransfer: (string) -> Session.PersonalTransfer?,
 	-- Optional core analytics emitter shared with the bootstrap (nil when none).
 	analytics: Events.Emitter?,

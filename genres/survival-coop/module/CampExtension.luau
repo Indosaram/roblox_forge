@@ -39,7 +39,7 @@ export type Config = {
 	store: () -> Fenced.Store,
 	now: () -> number,
 	-- Trusted settlement port: snapshot(actor) answers only for tribe members.
-	settlement: { snapshot: (string) -> (Shared.StateData?, string?) },
+	settlement: { snapshot: (string) -> (Shared.StateData?, string?) }?,
 	personalTransfer: (string) -> Session.PersonalTransfer?,
 	-- Session roster, used only to list who a guest could visit.
 	members: (() -> { string })?,
@@ -159,7 +159,11 @@ function M.new(config: Config): Built?
 		return acquired, nil
 	end
 	local function member(actor: string): Settlement.State?
-		local state = config.settlement.snapshot(actor)
+		local port = config.settlement
+		if not port then
+			return nil
+		end
+		local state = port.snapshot(actor)
 		return if state then (state :: any).settlement else nil
 	end
 	-- Session members that belong to a tribe, other than `actor`: the visit candidates.

@@ -31,7 +31,7 @@ local function build(vitals: any, available: boolean?, commitReason: string?): H
 			harness.commits += 1
 			assert(expected == profile.data.stateRevision, "commit uses the current revision")
 			if commitReason then
-				return profile, commitReason, nil, false
+				return profile, commitReason :: any, nil, false
 			end
 			local updated = { key = profile.key, data = { stateRevision = expected + 1, envelope = candidate } }
 			token = updated
@@ -103,7 +103,8 @@ return {
 	end,
 	["invalid zone input is rejected before admission or commit"] = function()
 		local h = build(configured())
-		for _, bad in { "", "Danger", "pvp", 1, true } do
+		local bads: { any } = { "", "Danger", "pvp", 1, true }
+		for _, bad in bads do
 			local result = run(h, bad)
 			assert(not result.ok and result.reason == "INVALID_ZONE", "typed error for " .. tostring(bad))
 		end
@@ -132,7 +133,7 @@ return {
 		assert(not refused.ok and refused.reason == "rate limited", "admission refusal passes through")
 	end,
 	["the extension and its action are registered in the genre seams"] = function()
-		assert(table.find(Contract.extensionActions, "zone-set"), "extension action declared")
+		assert(table.find(Contract.extensionActions :: { string }, "zone-set"), "extension action declared")
 		local declared = false
 		for _, action in Contract.actions do
 			if action.id == "zone-set" then
