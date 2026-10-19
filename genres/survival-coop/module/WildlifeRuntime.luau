@@ -43,6 +43,9 @@ local function rejected(reason: string): Shared.Result
 end
 export type Runtime = {
 	command: (Request, () -> Shared.Result) -> Shared.Result,
+	--- Durably takes a creature out of the world until `untilMillis` (a tame capture). Idempotent
+	--- by captureId; returns an error reason only for transient refusals worth retrying.
+	capture: (wildId: string, captureId: string, untilMillis: number) -> string?,
 	recover: (string, number) -> Shared.Result,
 	snapshot: () -> (Fenced.Data?, string?),
 }
@@ -398,7 +401,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				return data
 			end
 			local npc = data.npcs[req.targetId]
-			if not npc then
+			if not npc or Wildlife.captured(npc, config.nowMillis()) then
 				refusal = "UNKNOWN_TARGET"
 				return data
 			end
@@ -457,12 +460,51 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		-- `source` is this session's fenced profile and every write in this
 		-- process flows through update(); the identity refresh this used to do
 		-- cost one HttpService read per sweep for data that is already current.
+		-- The lease still has to be kept: renew() is local while it is healthy and
+		-- writes once per half lease, so a quiet world never loses its owner
+		-- (Studio: the first attack after two idle minutes answered "lease lost").
+		local renewed, renewError = store:renew(source)
+		if not renewed then
+			return pending(renewError or "SOURCE_UNKNOWN")
+		end
+		source = renewed
 		local id = source.data.actors[actor]
 		if not id then
 			return { ok = true, data = { status = "confirmed" } }
 		end
 		local personal = config.resolvePersonal(actor)
 		return if personal then progress(id, personal) else pending("PERSONAL_UNAVAILABLE")
+	end
+	function runtime.capture(wildId: string, captureId: string, untilMillis: number): string?
+		local npc = source.data.npcs[wildId]
+		if not npc then
+			return "UNKNOWN_TARGET"
+		end
+		-- Already applied (replay), dead, past its window, or held by another capture: the
+		-- creature is not in the world for this capture to take, so there is nothing to retry.
+		if
+			npc.captureId == captureId
+			or npc.healthMilli == 0
+			or untilMillis <= config.nowMillis()
+			or Wildlife.captured(npc, config.nowMillis())
+		then
+			return nil
+		end
+		if source.data.locks[wildId] then
+			return "WILD_BUSY"
+		end
+		return update(function(data)
+			local current = data.npcs[wildId]
+			if current.captureId == captureId or data.locks[wildId] then
+				return data
+			end
+			-- It returns home as a fresh creature when the window ends.
+			current.capturedUntil, current.captureId = untilMillis, captureId
+			current.healthMilli = policy.species[current.catalogId].healthMilli
+			current.mode, current.target, current.deadline, current.killer, current.provoker = "idle", nil, 0, nil, nil
+			current.version += 1
+			return data
+		end)
 	end
 	function runtime.snapshot(): (Fenced.Data?, string?)
 		-- Same reasoning as recover(): no durable round-trip to read our own

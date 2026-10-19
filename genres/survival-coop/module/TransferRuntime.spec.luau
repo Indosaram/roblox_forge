@@ -267,6 +267,33 @@ specs["recovery protects active pending escrow and bounds retirement fairly"] = 
 	assert(#c.runtime.recover(1) == 1, "next cursor cleanup")
 	assert(next(c.snapshot()[Fixture.tribeKey].data.transferGrants.entries) == nil, "fair cursor retires next")
 end
+specs["a finished grant costs no backend request per sweep until it is due for retirement"] = function()
+	local c = Fixture.context("deposit")
+	-- Without the settle flag each command advances one phase; drive it to FINALIZED.
+	local result = c.command()
+	for _ = 1, 4 do
+		if result.status == "confirmed" then
+			break
+		end
+		result = c.command()
+	end
+	assert(result.status == "confirmed" and result.phase == "FINALIZED", "transfer finalized")
+	local update = c.backend.update
+	local calls = 0
+	c.backend.update = function(...)
+		calls += 1
+		return update(...)
+	end
+	for _ = 1, 5 do
+		assert(#c.runtime.recover(1) == 0, "finished grant is not re-advanced")
+	end
+	assert(calls == 0, "quiet sweeps never reach the backend")
+	assert(next(c.snapshot()[Fixture.tribeKey].data.transferGrants.entries) ~= nil, "grant kept until expiry")
+	-- After expiry (a later server restores the records) the grant is retired as before.
+	local later = Fixture.context("deposit", c.snapshot(), c.request.expiresAt)
+	assert(#later.runtime.recover(1) == 1, "expired grant swept")
+	assert(next(later.snapshot()[Fixture.tribeKey].data.transferGrants.entries) == nil, "expired grant retired")
+end
 specs["grant acceptance remains irrevocable after membership revocation"] = function()
 	for _, accepted in { false, true } do
 		local c = Fixture.context("deposit")

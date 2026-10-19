@@ -156,7 +156,7 @@ export async function launchOwnedEditor(config, lifecycle, spawnProcess = spawn)
       lines?.close();
       if (child.exitCode === null && child.signalCode === null) child.kill();
     }
-  });
+  }, { cleanupTimeoutMs: 40000 });
   let acquired, releaseRejected;
   const result = await lifecycle.observe({
     phase: 'editor-launch',

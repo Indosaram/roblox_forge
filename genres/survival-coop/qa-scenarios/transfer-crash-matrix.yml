@@ -22,8 +22,10 @@ data:
     items: []
 steps:
   - {op: join, player: owner}
+  # A deposit settles in its own command; fail the escrow write so the crash lands right after PREPARED.
+  - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 2}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
-  - {op: expect_result, player: owner, field: data.phase, equals: PREPARED}
+  - {op: expect_result, player: owner, field: data.phase, equals: SOURCE_UNKNOWN}
   - {op: close, player: owner}
   - {op: reload}
   - {op: join, player: owner}
@@ -31,8 +33,10 @@ steps:
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
   - {op: commit_barrier, mode: fail, count: 1}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
+  # The retry credits the warehouse; fail the source finalize so the crash lands right after CREDITED.
+  - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 4}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
-  - {op: expect_result, player: owner, field: data.phase, equals: CREDITED}
+  - {op: expect_result, player: owner, field: data.phase, equals: FINALIZE_UNKNOWN}
   - {op: close, player: owner}
   - {op: reload}
   - {op: join, player: owner}
@@ -41,8 +45,10 @@ steps:
   - {op: expect_result, player: owner, field: stateVersion, equals: 1}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
   - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.transfer:owner:0:Transfer101:output.quantity", equals: 3}
+  # Fail the warehouse escrow write so the withdraw crash lands right after PREPARED.
+  - {op: commit_barrier, mode: fail, count: 1, key: transfer-tribe, skip: 3}
   - {op: command, player: owner, requestId: Withdraw101, sessionEpoch: current, action: "survival-coop:transfer-withdraw", args: ["transfer:owner:0:Transfer101:output", 3], expect: refused}
-  - {op: expect_result, player: owner, field: data.phase, equals: PREPARED}
+  - {op: expect_result, player: owner, field: data.phase, equals: SOURCE_UNKNOWN}
   - {op: close, player: owner}
   - {op: reload}
   - {op: join, player: owner}

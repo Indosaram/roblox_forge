@@ -139,7 +139,7 @@ function M.factory(ctx: any): any
 		if not token then
 			return acquire(actor)
 		end
-		local refreshed, err = store:refresh(token, nil)
+		local refreshed, err = store:renew(token)
 		if not refreshed and err == "lease lost" then
 			return acquire(actor)
 		end
@@ -171,6 +171,11 @@ function M.factory(ctx: any): any
 		return updated, err
 	end
 
+	--- A receipt still owes work: an uncharged bag charge or an unapplied wild release.
+	local function open(receipt: any): boolean
+		return receipt ~= nil and (not receipt.charged or receipt.released == false)
+	end
+
 	local function sync(actor: string, profile: Fenced.Profile)
 		local data = profile.data
 		if synced[actor] == data.rev then
@@ -195,7 +200,7 @@ function M.factory(ctx: any): any
 		end
 		synced[actor] = data.rev
 		for _, receipt in data.receipts do
-			if not receipt.charged then
+			if open(receipt) then
 				unsettled[actor] = true
 			end
 		end
@@ -277,6 +282,32 @@ function M.factory(ctx: any): any
 			return readError or "TAMING_UNAVAILABLE"
 		end
 		local receipt = profile.data.receipts[requestId]
+		if not receipt then
+			return nil
+		end
+		-- A captured wild animal leaves the world through the wildlife owner (idempotent by
+		-- captureId), then the receipt records it so a replay never touches the world again.
+		if receipt.release and not receipt.released then
+			local release = receipt.release
+			local captureWild = ctx.captureWild
+			if not captureWild then
+				return "WILDLIFE_UNAVAILABLE"
+			end
+			local releaseError = captureWild(release.wildId, release.captureId, release.untilMillis)
+			if releaseError then
+				return releaseError
+			end
+			local marked, markError = write(actor, function(data)
+				if data.receipts[requestId] then
+					data.receipts[requestId].released = true
+				end
+				return data
+			end)
+			if not marked then
+				return markError or "TAMING_UNAVAILABLE"
+			end
+			receipt = marked.data.receipts[requestId]
+		end
 		if not receipt or receipt.charged then
 			return nil
 		end
@@ -299,7 +330,8 @@ function M.factory(ctx: any): any
 		requestId: string,
 		action: string,
 		mutate: (any) -> any,
-		charge: any?
+		charge: any?,
+		release: ((any) -> any?)?
 	): (Shared.Result?, string?)
 		local outcome: any = nil
 		local updated, err = write(actor, function(data)
@@ -314,10 +346,15 @@ function M.factory(ctx: any): any
 			result.ok = true
 			data.receipts[requestId] =
 				{ action = action, result = copy(result), charge = charge, charged = charge == nil }
+			local released = if release then release(result) else nil
+			if released then
+				data.receipts[requestId].release = released
+				data.receipts[requestId].released = false
+			end
 			table.insert(data.order, requestId)
 			while #data.order > config.maxReceipts do
 				local oldest = data.receipts[data.order[1]]
-				if oldest and not oldest.charged then
+				if oldest and (not oldest.charged or oldest.released == false) then
 					break
 				end
 				data.receipts[table.remove(data.order, 1)] = nil
@@ -334,7 +371,7 @@ function M.factory(ctx: any): any
 
 	local function finish(actor: string, requestId: string, result: Shared.Result): Shared.Result
 		local profile = tokens[actor]
-		if profile and profile.data.receipts[requestId] and not profile.data.receipts[requestId].charged then
+		if profile and open(profile.data.receipts[requestId]) then
 			local err = settle(actor, requestId)
 			if err then
 				unsettled[actor] = true
@@ -467,28 +504,47 @@ function M.factory(ctx: any): any
 				pen = Taming.pen(tamingConfig, ctx.nowMillis()),
 			}
 		end
-		local result, err = commit(actor, requestId, "tame-capture", function(data)
-			if animal then
-				data.animals[animal.id] = {
-					id = animal.id,
-					species = animal.species,
-					pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
+		local result, err = commit(
+			actor,
+			requestId,
+			"tame-capture",
+			function(data)
+				if animal then
+					data.animals[animal.id] = {
+						id = animal.id,
+						species = animal.species,
+						pen = { startedAt = animal.pen.startedAt, readyAt = animal.pen.readyAt },
+					}
+				end
+				return {
+					data = {
+						captured = attempt.captured,
+						retry = attempt.retry,
+						animalId = attempt.animalId,
+						species = if animal then animal.species else nil,
+					},
 				}
-			end
-			return {
-				data = {
-					captured = attempt.captured,
-					retry = attempt.retry,
-					animalId = attempt.animalId,
-					species = if animal then animal.species else nil,
-				},
-			}
-		end, {
-			kind = "tool",
-			itemId = tool.itemId,
-			durabilityMilli = attempt.tool.durabilityMilli,
-			bagVersion = bag.version,
-		})
+			end,
+			{
+				kind = "tool",
+				itemId = tool.itemId,
+				durabilityMilli = attempt.tool.durabilityMilli,
+				bagVersion = bag.version,
+			},
+			if ctx.captureWild
+				then function(outcome: any): any?
+					if not outcome.data.captured then
+						return nil
+					end
+					-- Fixed at commit time, so every retry or replay applies the same window.
+					return {
+						wildId = wildId,
+						captureId = actor .. ":" .. requestId,
+						untilMillis = ctx.nowMillis() + config.wildRespawnMillis,
+					}
+				end
+				else nil
+		)
 		if not result then
 			return reject(err or "TAMING_UNAVAILABLE", nil)
 		end
@@ -662,6 +718,9 @@ function M.factory(ctx: any): any
 			animals = animals,
 			feeds = feeds,
 			captureTool = config.captureTool,
+			-- Read by the client stun/capture prompts: which wild species get a prompt, and its reach.
+			tameable = table.clone(config.tameable),
+			reachStuds = config.reachStuds,
 			ride = if ride
 				then {
 					animalId = ride.animalId,
@@ -689,7 +748,7 @@ function M.factory(ctx: any): any
 		end
 		local profile = tokens[actor]
 		for requestId, receipt in profile.data.receipts do
-			if not receipt.charged then
+			if open(receipt) then
 				local err = settle(actor, requestId)
 				if err then
 					return { ok = false, reason = err }

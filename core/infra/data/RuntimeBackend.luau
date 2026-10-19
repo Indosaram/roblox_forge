@@ -136,6 +136,7 @@ function M.new(config: any, productionStore: string): any
 	if config.mode == "studio-local" and type(config.wait) ~= "function" then
 		loopbackConfig = table.clone(config)
 		loopbackConfig.wait = task.wait
+		loopbackConfig.log = warn
 	end
 	local underlying = if config.mode == "studio-local"
 		then Loopback.new(loopbackConfig, http)

@@ -6,6 +6,8 @@ local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local Job = require("../../../core/domain/crafting/Job")
 local Memory = require("../../../core/infra/data/MemoryBackend")
+local Fenced = require("../../../core/infra/data/FencedStore")
+local PersonalAggregate = require("../../../core/infra/data/PersonalAggregate")
 
 local function content(): any
 	local document = serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))
@@ -37,6 +39,121 @@ local function quantityOf(view: any, catalogId: string): number
 		end
 	end
 	return total
+end
+
+local PATH = { "genres", "survival-coop", "data", "inventory", "bag" }
+local budget = {
+	encode = function(value: any): string
+		return serde.encode("json", value)
+	end,
+}
+
+-- Real ContractsExtension over a real PersonalAggregate on one MemoryBackend. `faults.next`
+-- injects one failure on the next personal write: "fail" (nothing written) or "lost" (written,
+-- acknowledgement lost). `reopen()` simulates a server restart (fresh extension and leases).
+local function harness(balance: number)
+	local document = content()
+	local backend = Memory.new()
+	local clock = { millis = 0 }
+	local now = function()
+		return clock.millis // 1000
+	end
+	local personal = PersonalAggregate.new(backend, {
+		namespace = "personal",
+		inventoryPath = PATH,
+		validateEnvelope = function(value)
+			return type(value) == "table" and value.version == 1
+		end,
+		store = { sessionId = "players", leaseSeconds = 120, now = now, budget = budget },
+	})
+	local start = bagWith(document, { { "wood", 6 } }).inventory
+	local token: any = assert(personal:load("1", function()
+		return {
+			version = 1,
+			genres = { ["survival-coop"] = { version = 1, data = { balance = balance, inventory = { bag = start } } } },
+		}
+	end))
+	local faults: { next: string? } = { next = nil }
+	local port = {
+		personal = {
+			inventoryLens = function(_self)
+				return personal:inventoryLens()
+			end,
+			inventoryPath = function(_self)
+				return personal:inventoryPath()
+			end,
+			refresh = function(_self, current)
+				return personal:refresh(current)
+			end,
+			update = function(_self, current, transform): (any, string?)
+				local fault = faults.next
+				faults.next = nil
+				if fault == "fail" then
+					return nil, "throttled"
+				end
+				local updated, err = personal:update(current, transform)
+				if fault == "lost" then
+					token = updated or token
+					return nil, "throttled"
+				end
+				return updated, err
+			end,
+		},
+		profile = function()
+			return token
+		end,
+		install = function(next)
+			token = next
+		end,
+	}
+	local self: any = { clock = clock, faults = faults }
+	function self.reopen(sessionId: string)
+		self.extension = assert(Extension.factory({
+			content = document,
+			store = function()
+				return Fenced.new(backend, { sessionId = sessionId, leaseSeconds = 120, now = now, budget = budget })
+			end,
+			nowMillis = function()
+				return clock.millis
+			end,
+			members = function()
+				return { "1" }
+			end,
+			personalTransfer = function()
+				return port
+			end,
+		}))
+		return self.extension
+	end
+	function self.command(action: string, args: { any }, requestId: string): any
+		return self.extension.command(
+			"1",
+			"survival-coop:" .. action,
+			args,
+			{
+				actorId = "1",
+				requestId = requestId,
+				sessionEpoch = 0,
+			},
+			"client",
+			function()
+				return { ok = true }
+			end
+		)
+	end
+	function self.balance(): number
+		return token.data.envelope.genres["survival-coop"].data.balance
+	end
+	function self.held(catalogId: string): number
+		local total = 0
+		for _, item in token.data.envelope.genres["survival-coop"].data.inventory.bag.items do
+			if item.catalogId == catalogId then
+				total += item.quantity
+			end
+		end
+		return total
+	end
+	return self
 end
 
 return {
@@ -111,5 +228,64 @@ return {
 			assert(built.handles("survival-coop:" .. action), action)
 		end
 		assert(not built.handles("survival-coop:gather") and not built.handles("contract-accept"), "foreign ids")
+	end,
+	["a contract coin reward is credited once under replay"] = function()
+		local h = harness(5)
+		h.reopen("srv-a")
+		assert(h.command("tutorial-skip-arrival", {}, "skip").ok, "skip")
+		assert(h.command("contract-accept", { "survey-driftwood" }, "a1").ok, "accept")
+		local delivered = h.command("contract-deliver", { "survey-driftwood" }, "d1")
+		assert(delivered.ok and delivered.data.coins == 10, tostring(delivered.reason))
+		assert(h.balance() == 15 and h.held("wood") == 3 and h.held("cord") == 1, "coins + items granted")
+		local replay = h.command("contract-deliver", { "survey-driftwood" }, "d1")
+		assert(replay.ok and replay.data.coins == 10, "replay returns the stored outcome")
+		assert(h.balance() == 15 and h.held("cord") == 1, "no second grant")
+		local offers = h.extension.snapshot("1").offers
+		local found = false
+		for _, offer in offers do
+			found = found or (offer.id == "guild-stone-axe" and offer.coins == 20)
+		end
+		assert(found, "offers carry their coin reward")
+		assert(h.extension.close().ok, "close")
+	end,
+	["a crash between contract completion and the grant recovers exactly once"] = function()
+		for _, fault in { "fail", "lost" } do
+			local h = harness(0)
+			h.reopen("srv-a")
+			assert(h.command("tutorial-skip-arrival", {}, "skip").ok, "skip")
+			assert(h.command("contract-accept", { "survey-driftwood" }, "a1").ok, "accept")
+			h.faults.next = fault
+			local first = h.command("contract-deliver", { "survey-driftwood" }, "d1")
+			assert(not first.ok, fault .. ": grant write failed after the contract committed")
+			assert(h.extension.snapshot("1").pending == true, fault .. ": completion recorded as pending")
+			assert(h.extension.close().ok, "server stops")
+			h.clock.millis += 1000
+			h.reopen("srv-b")
+			local recovered = h.extension.recover("1", 8)
+			assert(recovered.status == "confirmed", fault .. ": " .. tostring(recovered.error))
+			assert(
+				h.balance() == 10 and h.held("cord") == 1 and h.held("wood") == 3,
+				string.format(
+					"%s: granted once (balance=%d cord=%d wood=%d)",
+					fault,
+					h.balance(),
+					h.held("cord"),
+					h.held("wood")
+				)
+			)
+			assert(h.extension.recover("1", 8).status == "confirmed", "second sweep is a no-op")
+			local replay = h.command("contract-deliver", { "survey-driftwood" }, "d1")
+			assert(replay.ok and replay.data.coins == 10, fault .. ": original request gets the result")
+			assert(h.balance() == 10 and h.held("cord") == 1, fault .. ": still once")
+			assert(h.extension.snapshot("1").delivered == 1, fault .. ": completed once")
+			assert(h.extension.close().ok, "close")
+		end
+	end,
+	["coins validate as an optional positive integer"] = function()
+		local document = serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))
+		document.contracts.entries[1].coins = 0
+		assert(Content.canonicalize(document) == nil, "zero coins refused")
+		document.contracts.entries[1].coins = nil
+		assert(Content.canonicalize(document) ~= nil, "coins optional")
 	end,
 }

@@ -86,7 +86,8 @@ export class StudioSession {
     // only that failure against a bounded deadline so a slow bridge never fails a
     // run; every other error still propagates immediately. A no-place response is not a
     // bridge that is still loading, so it is classified separately below and never retried.
-    const transientBridge = error => /Target is not reachable|createExecuteLuauBridge/i.test(String(error && error.message ? error.message : error));
+    // A hub handover (see studio-driver.mjs) briefly reports no connected instance.
+    const transientBridge = error => /Target is not reachable|createExecuteLuauBridge|No Roblox Studio instances are connected|is not connected/i.test(String(error && error.message ? error.message : error));
     const deadline = Date.now() + 30000;
     return (await this.lifecycle.observe({
       phase,
@@ -469,8 +470,18 @@ assert(m.Value~='','TRANSFER_REQUEST_NOT_OBSERVED');return m.Value`);
     const closeEvidence = await this.controller.close();
     const closedAt=performance.now();
     if (!closeEvidence.released) throw new Error('REJOIN_OLD_TREE_EXIT_UNPROVEN');
+    // A Studio test stop does not prove the old server released its fenced leases, and a fresh
+    // server that acquires a still-leased record refuses with "locked" before ForgeQA binds. The
+    // pre-stop snapshot is not enough: the old server keeps renewing until it stops (fcr33: camp-v1
+    // renewed past the snapshot's latest expiry). Every lease it could have renewed expires within
+    // one lease length of the stop, so wait for that bound (the backend caps it at 125 s).
+    const LEASE_SECONDS = 120;
+    const held = before.records.some(record => { try { return JSON.parse(record.serialized)?.lease?.expiresAt !== undefined; } catch { return false; } });
+    const waitLeaseExpiry = held ? Math.ceil(Date.now() / 1000) + LEASE_SECONDS + 1 : undefined;
+    const launchConfig = waitLeaseExpiry !== undefined && config.persistence
+      ? { ...config, persistence: { ...config.persistence, waitLeaseExpiry } } : config;
     const fresh = await openFresh();
-    const admission = await fresh.session.launch(config, players);
+    const admission = await fresh.session.launch(launchConfig, players);
     if (!admission.ok) throw new Error(admission.blockers.join(';'));
     if (oldActors.some(actor => !admission.clients.some(next => next.userId===actor.userId && next.studioId!==actor.studioId))) throw new Error('REJOIN_ACTOR_REPLACEMENT_MISMATCH');
     admission.clients=oldActors.map(actor=>admission.clients.find(next=>next.userId===actor.userId));
@@ -510,7 +521,21 @@ assert(m.Value~='','TRANSFER_REQUEST_NOT_OBSERVED');return m.Value`);
       const old=JSON.parse(committed.serialized),loaded=JSON.parse(record.previousSerialized);
       if (!loaded || loaded.revision<old.revision) throw new Error('REJOIN_DURABLE_REVISION_REGRESSED');
       const ordered=value=>Array.isArray(value)?value.map(ordered):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,ordered(value[key])])):value;
-      if(JSON.stringify(ordered(loaded.data))!==JSON.stringify(ordered(old.data)))throw new Error('REJOIN_DURABLE_DATA_CHANGED');
+      // The world keeps running between the pre-stop snapshot and the stop, so a later committed
+      // revision (fcr37: a wild hit and the respawn landed in that window) is newer durable state, not
+      // a lost write; the revision check above already refuses a regression. Equal revisions must be
+      // byte-identical data.
+      if(loaded.revision===old.revision && JSON.stringify(ordered(loaded.data))!==JSON.stringify(ordered(old.data))) {
+        // Name the record and the first differing paths so a failure is diagnosable from the error alone.
+        const diffs=[];
+        const walk=(x,y,path)=>{
+          if(diffs.length>=6)return;
+          if(x&&y&&typeof x==='object'&&typeof y==='object'){for(const k of new Set([...Object.keys(x),...Object.keys(y)]))walk(x[k],y[k],path+'.'+k);return;}
+          if(JSON.stringify(x)!==JSON.stringify(y))diffs.push(path+': '+JSON.stringify(x)?.slice(0,80)+' -> '+JSON.stringify(y)?.slice(0,80));
+        };
+        walk(old.data,loaded.data,'data');
+        throw new Error(`REJOIN_DURABLE_DATA_CHANGED key=${record.key} committedRevision=${old.revision} loadedRevision=${loaded.revision} ${diffs.join(' | ')}`);
+      }
       loads.push({profileKey:record.key,committed,loaded:record});
       latest.delete(record.key);
     }

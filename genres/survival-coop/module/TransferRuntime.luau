@@ -15,6 +15,8 @@ export type Config = {
 	catalog: Catalog.Catalog,
 	now: () -> number,
 	maxReceipts: number,
+	-- Hosts that mint a runtime per call pass one table for the process so the memo below outlives it.
+	finalized: { [string]: boolean }?,
 }
 export type DiscoveryFailure = {
 	version: number,
@@ -26,7 +28,7 @@ export type DiscoveryFailure = {
 export type RecoveryResult = Transfer.Result | DiscoveryFailure
 export type Runtime = {
 	resolveRequest: (RequestInput, number?) -> (Transfer.Request?, string?),
-	command: (Transfer.Request, number, any, string, (() -> boolean)?) -> Transfer.Result,
+	command: (Transfer.Request, number, any, string, (() -> boolean)?, boolean?) -> Transfer.Result,
 	recover: (number) -> { RecoveryResult },
 	retire: (Transfer.Request) -> (boolean, string?),
 }
@@ -96,6 +98,12 @@ function M.new(config: Config): Runtime
 			destination = destination,
 		}
 	end
+	-- Grants this process has already driven to FINALIZED. FINALIZED is terminal: advancing it again
+	-- only re-reads both records and answers "confirmed". Such a grant stays in the tribe record until
+	-- its request expires and is then retired, so without this memo every heartbeat sweep re-advanced
+	-- every finished transfer of the player (three personal and two tribe requests each), which in
+	-- Studio exhausted the HttpService request quota within two minutes of warehouse use.
+	local finalized: { [string]: boolean } = config.finalized or {}
 	local function advance(req: Transfer.Request, acceptedBinding: string, origin: string): Transfer.Result
 		-- This closure is the capability. It is minted only after a confirmed
 		-- read/commit of the irrevocable grant; callers cannot supply it.
@@ -107,7 +115,11 @@ function M.new(config: Config): Runtime
 			end,
 		})
 		local source, destination = tokens(req)
-		return coordinator:advance(source, destination, req, nil)
+		local result = coordinator:advance(source, destination, req, nil)
+		if result.status == "confirmed" and result.phase == "FINALIZED" then
+			finalized[req.id] = true
+		end
+		return result
 	end
 	function runtime.resolveRequest(input, newExpiresAt)
 		if
@@ -185,7 +197,10 @@ function M.new(config: Config): Runtime
 		},
 			nil
 	end
-	function runtime.command(req, revision, proof, origin, admit)
+	-- settle drives the accepted grant through every durable phase in this call
+	-- (each phase stays its own crash barrier); without it one phase is taken and
+	-- recover() finishes the rest. A failed phase stops the loop for recover().
+	function runtime.command(req, revision, proof, origin, admit, settle)
 		local personal, tribe = personalToken(), config.tribe.profile()
 		if
 			not Catalog.identity(req.id)
@@ -269,7 +284,14 @@ function M.new(config: Config): Runtime
 		if reason then
 			return failed(req, reason)
 		end
-		return advance(req, canonical, origin)
+		local result = advance(req, canonical, origin)
+		-- PREPARED -> ESCROWED -> CREDITED -> FINALIZED: at most three more steps.
+		local steps = 0
+		while settle and result.status == "pending" and result.error == nil and steps < 3 do
+			steps += 1
+			result = advance(req, canonical, origin)
+		end
+		return result
 	end
 	function runtime.recover(maximum)
 		assert(Catalog.integer(maximum, 1, 64), "INVALID_RECOVERY_BOUND")
@@ -290,15 +312,19 @@ function M.new(config: Config): Runtime
 			local grants = projected.data.transferGrants
 			local key = personalToken().key
 			local mine = false
-			for _, grant in grants.entries do
-				if grant.request.source == key or grant.request.destination == key then
+			local now = config.now()
+			for id, grant in grants.entries do
+				if
+					(grant.request.source == key or grant.request.destination == key)
+					and (not finalized[id] or now >= grant.request.expiresAt)
+				then
 					mine = true
 					break
 				end
 			end
-			if not mine and type(grants.cursors) == "table" and grants.cursors[key] == nil then
-				-- Nothing of ours and no stale cursor to clear: the durable scan
-				-- could only reproduce this empty result.
+			if not mine then
+				-- Nothing of ours is unfinished or due for retirement: the durable scan
+				-- could only reproduce this result. A leftover cursor only orders the next real sweep.
 				return {}
 			end
 		end

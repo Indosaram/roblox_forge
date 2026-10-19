@@ -90,3 +90,18 @@ test('unproven cleanup retains residual and continues without touching foreign r
   expect(receipt.residuals).toEqual(['owned-client']);
   expect(receipt.ok).toBe(false);
 });
+
+test('a resource with its own cleanup bound is not cut off by the default timeout', async () => {
+  const timers = [];
+  const lifecycle = new StudioLifecycle({ timeoutMs: 10, schedule: (callback, ms) => { timers.push({ callback, ms }); return callback; }, unschedule: () => {} });
+  let finish;
+  const row = lifecycle.attempt('editor-process', 'slow-editor', () => new Promise(resolve => { finish = resolve; }), { cleanupTimeoutMs: 40000 });
+  lifecycle.acquire(row, { pid: 1 });
+  const closing = lifecycle.close();
+  for (let i = 0; i < 10 && !finish; i++) await Promise.resolve();
+  expect(timers.at(-1).ms).toBe(40000);
+  finish({ released: true, evidence: { treeExited: true } });
+  const receipt = await closing;
+  expect(row.cleanup).toBe('released');
+  expect(receipt.ok).toBe(true);
+});

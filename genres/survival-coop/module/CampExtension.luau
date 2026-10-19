@@ -137,7 +137,7 @@ function M.new(config: Config): Built?
 	local function open(tribeId: string): (Fenced.Profile?, string?)
 		local held = tokens[tribeId]
 		if held then
-			local refreshed = store:refresh(held)
+			local refreshed = store:renew(held)
 			if refreshed then
 				tokens[tribeId] = refreshed
 				return refreshed, nil
@@ -579,6 +579,22 @@ function M.new(config: Config): Built?
 		local personal = config.personalTransfer(actor)
 		if not personal then
 			return { status = "recovering", error = "PERSONAL_UNAVAILABLE" }
+		end
+		local savedBag: any = personal.profile().data.envelope
+		for _, key in personal.personal:inventoryPath() do
+			savedBag = if type(savedBag) == "table" then savedBag[key] else nil
+		end
+		if type(savedBag) == "table" and type(savedBag.reservations) == "table" then
+			local pending = false
+			for owner in savedBag.reservations do
+				if string.sub(owner, 1, #PREFIX) == PREFIX then
+					pending = true
+					break
+				end
+			end
+			if not pending then
+				return { status = "confirmed", settled = 0 }
+			end
 		end
 		local lens = personal.personal:inventoryLens()
 		local current = lens:update(personal.profile(), function(data)

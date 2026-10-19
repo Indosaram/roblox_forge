@@ -16,15 +16,39 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	gui.Name = "CampPanel"
 	gui.ResetOnSpawn = false
 	gui.Enabled = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	-- Like every docked sheet, the open camp panel is modal above the HUD (15) and dock (16);
+	-- at 0 the HUD stack drew over its quantity picker and contribute buttons.
+	gui.DisplayOrder = 20
 	gui.Parent = (players.LocalPlayer :: Player):WaitForChild("PlayerGui")
+	-- Opened from the shared dock; without a dock (headless) it shows whenever there is a model.
+	local wanted = ctx.dock == nil
+	local available = false
+	local dock = if ctx.dock
+		then ctx.dock({
+			id = "camp",
+			label = Model.text(ctx.locale, "camp_title"),
+			order = 4,
+			setOpen = function(open: boolean)
+				wanted = open
+				gui.Enabled = open and available
+			end,
+			isOpen = function()
+				return gui.Enabled
+			end,
+		})
+		else nil
 	local frame = components.panel(theme, {
 		name = "Camp",
 		size = UDim2.fromOffset(320, 0),
-		position = UDim2.new(1, -336, 0, 16),
+		position = if ctx.dock then UDim2.fromScale(0.5, 0.5) else UDim2.new(1, -336, 0, 16),
 		parent = gui,
 		header = Model.text(ctx.locale, "camp_title"),
 	})
 	frame.AutomaticSize = Enum.AutomaticSize.Y
+	if ctx.dock then
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	end
 	local list = Instance.new("UIListLayout")
 	list.Padding = UDim.new(0, 6)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
@@ -36,6 +60,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		holder.Size = UDim2.new(1, 0, 0, height)
 		holder.BackgroundTransparency = 1
 		holder.LayoutOrder = order
+		-- Unique row names keep each control's full path unambiguous for QA drivers.
+		holder.Name = "Row" .. order
 		holder.Parent = frame
 		return holder
 	end
@@ -57,7 +83,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		table.clear(shown)
 		order = 1
 		local model = Model.model(slice, os.time(), packet)
-		gui.Enabled = model ~= nil
+		available = model ~= nil
+		gui.Enabled = available and wanted
+		if dock then
+			dock.setAvailable(available)
+		end
 		if not model then
 			return
 		end
@@ -162,7 +192,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		for _, row in model.rows do
 			local holder = add(52)
-			components.label(theme, { text = row.label, size = UDim2.new(1, 0, 0, 18), parent = holder })
+			local label = if ctx.names and ctx.names["camp:" .. row.id] then ctx.names["camp:" .. row.id] else row.label
+			components.label(theme, {
+				text = label .. "  " .. row.delivered .. "/" .. row.need,
+				size = UDim2.new(1, 0, 0, 18),
+				parent = holder,
+			})
 			local bar, setProgress = components.progressBar(theme, {
 				size = UDim2.new(0.6, 0, 0, 14),
 				position = UDim2.fromOffset(0, 24),
@@ -198,7 +233,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				if row.delivered >= row.need and row.need > 0 then
 					local done = add(44)
 					components.button(theme, {
-						text = Model.text(ctx.locale, "camp_complete") .. " " .. row.label,
+						text = Model.text(ctx.locale, "camp_complete") .. " " .. (if ctx.names
+								and ctx.names["camp:" .. row.id]
+							then ctx.names["camp:" .. row.id]
+							else row.label),
 						size = UDim2.fromScale(1, 1),
 						parent = done,
 						onClick = function()

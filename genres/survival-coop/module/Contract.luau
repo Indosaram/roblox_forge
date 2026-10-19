@@ -222,6 +222,7 @@ local contract: Shared.RuntimeContract = {
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
 		{ id = "market-buy", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "market-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "zone-set",
 			args = { id },
@@ -250,6 +251,7 @@ local contract: Shared.RuntimeContract = {
 		"shop-sync",
 		"market-list",
 		"market-buy",
+		"market-cancel",
 		"zone-set",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },

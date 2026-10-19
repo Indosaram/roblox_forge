@@ -4,6 +4,7 @@ local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local Settlement = require("../../../core/domain/settlement/Settlement")
+local MountVisual = require("./MountVisual")
 local healthSignals: { [any]: any } = {}
 local healthValues: { [any]: number } = {}
 local deferredHealth: { () -> () }? = nil
@@ -91,6 +92,8 @@ local function fixture(dependencies: any?)
 		return connect(self, fn)
 	end
 	local actor: any = { Character = character }
+	local mate = roblox.Instance.new("Model")
+	mate.Name, mate.Parent = "Tribemate", world
 	local backpack = roblox.Instance.new("Backpack")
 	actor.FindFirstChildOfClass = function(_, name)
 		return if name == "Backpack" then backpack else nil
@@ -101,6 +104,10 @@ local function fixture(dependencies: any?)
 		Players = {
 			GetPlayerByUserId = function(_, id)
 				return if id == 1 then actor else nil
+			end,
+			-- A tribemate standing in the world: reach rays must pass through other characters.
+			GetPlayers = function()
+				return { actor, { Character = mate } }
 			end,
 		},
 		Workspace = world,
@@ -137,6 +144,9 @@ local function fixture(dependencies: any?)
 			require = function(name)
 				if name == "../../../core/domain/inventory/Inventory" then
 					return Inventory
+				end
+				if name == "./MountVisual" then
+					return MountVisual :: any
 				end
 				return if dependencies then dependencies[name] or {} else {}
 			end,
@@ -193,7 +203,12 @@ return {
 			end
 			return if obstructed then { Instance = spawn } else nil
 		end
-		boundsHandler = function(_, _center, _size, _overlap)
+		boundsHandler = function(_, _center, _size, overlap)
+			local ignored = false
+			for _, instance in overlap.FilterDescendantsInstances do
+				ignored = ignored or instance.Name == "Tribemate"
+			end
+			assert(ignored, "a tribemate standing on the plot never blocks a build")
 			return if obstructed then { spawn } else {}
 		end
 		ownFolderWorldMethods()
@@ -630,7 +645,9 @@ return {
 		services.Workspace = world
 		local blocked = false
 		raycastHandler = function(_, _, _, params)
-			assert(#params.FilterDescendantsInstances == 1, "character excluded")
+			local filtered = params.FilterDescendantsInstances
+			assert(#filtered == 2 and filtered[1] == root.Parent, "own character excluded once")
+			assert(filtered[2].Name == "Tribemate", "tribemate character never blocks reach")
 			return if blocked then { Instance = root } else nil
 		end
 		-- This spec never exercises bounds queries; a stale handler from another

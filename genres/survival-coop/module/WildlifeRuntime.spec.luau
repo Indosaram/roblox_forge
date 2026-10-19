@@ -222,6 +222,41 @@ local function check(c: any, charged: boolean)
 	assert(source.npcs.hunter.healthMilli == (if charged then 0 else 20000), "exactly one lethal hit")
 end
 local specs: { [string]: () -> () } = {
+	["idle recovery sweeps keep the world lease alive past its original expiry"] = function()
+		local c = fixture()
+		-- No player attacks for longer than the 120 s lease; only heartbeat sweeps run.
+		for second = 1, 300, 5 do
+			c.now = second
+			-- The personal owner is kept leased the way the live heartbeat keeps it.
+			assert(c.session.save("alice").ok, "renew personal lease")
+			assert(c.runtime.recover("alice", 1).ok, "quiet sweep")
+		end
+		local first = c.session.command("alice", c.request("hunter", "late-hit"))
+		assert(first.reason ~= "lease lost", "world owner kept its lease while idle: " .. tostring(first.reason))
+	end,
+	["a tame capture durably removes the wild, survives restart, and respawns after the window"] = function()
+		local c = fixture()
+		c.now = 10
+		assert(c.runtime.capture("grazer", "alice:c1", 15000) == nil, "capture applies")
+		local held = c.read("wildlife:one").data.npcs.grazer
+		assert(held.capturedUntil == 15000 and held.captureId == "alice:c1", "durable window")
+		assert(Wildlife.captured(held, 10000) and not Wildlife.captured(held, 15000), "window bounds")
+		local version = held.version
+		assert(c.runtime.capture("grazer", "alice:c1", 99999) == nil, "replay accepted")
+		assert(c.runtime.capture("grazer", "bob:c9", 99999) == nil, "a second capture inside the window is a no-op")
+		local after = c.read("wildlife:one").data.npcs.grazer
+		assert(after.version == version and after.capturedUntil == 15000, "replay never double-removes")
+		local refused = c.session.command("alice", c.request("grazer", "hit-captured"))
+		assert(not refused.ok and refused.reason == "UNKNOWN_TARGET", "a captured wild cannot be attacked")
+		c.restart()
+		local restored = assert(c.runtime.snapshot())
+		assert(restored.grazer.capturedUntil == 15000, "captured state survives restart")
+		c.now = 15
+		assert(not Wildlife.captured(restored.grazer, c.now * 1000), "respawned once the window passes")
+		assert(c.session.command("alice", c.request("grazer", "hit-back")).ok, "the respawned wild is a target again")
+		assert(c.runtime.capture("hunter", "alice:c2", 1000) == nil, "an elapsed window is not applied")
+		assert(c.read("wildlife:one").data.npcs.hunter.captureId == nil, "expired window left untouched")
+	end,
 	["pending intent survives expiry and unavailable owner blocks mutation"] = function()
 		local c = fixture()
 		local armed = false

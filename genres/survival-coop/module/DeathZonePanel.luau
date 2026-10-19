@@ -5,7 +5,8 @@
 -- Strings mirror games/robango-island/locale/strings.csv keys (zone_*).
 local M = {}
 
-local SET = "zone-set"
+-- Durable ids are namespaced: the server's action list carries "survival-coop:zone-set".
+local SET = "survival-coop:zone-set"
 
 local strings: { [string]: { string } } = {
 	zone_title = { "Death zone", "데스 존" },
@@ -70,6 +71,23 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		parent = gui,
 	})
 	sheet.frame.Visible = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	if ctx.fitSheet then
+		ctx.fitSheet(sheet.frame)
+	end
+	local dock = if ctx.dock
+		then ctx.dock({
+			id = "death-zone",
+			label = M.text(ctx.locale, "zone_title"),
+			order = 7,
+			setOpen = function(open: boolean)
+				gui.Enabled = open
+			end,
+			isOpen = function()
+				return gui.Enabled
+			end,
+		})
+		else nil
 	local indicator = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 56) })
 	indicator.Name, indicator.LayoutOrder, indicator.Parent = "ZoneIndicator", 1, sheet.scroll
 	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 40) })
@@ -128,12 +146,19 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local state = snapshot["death-zone"]
 		if type(state) ~= "table" then
 			gui.Enabled = false
+			if dock then
+				dock.setAvailable(false)
+			end
 			return
+		end
+		if dock then
+			dock.setAvailable(true)
 		end
 		zone, alive = state.zone, state.alive ~= false
 		indicator.Text = M.text(ctx.locale, if zone == "danger" then "zone_danger" else "zone_safe")
 		toggle.Text = M.text(ctx.locale, if zone == "danger" then "zone_leave" else "zone_enter")
-		gui.Enabled = true
+		-- The panel opens from the dock (or Z); a snapshot only refreshes its text and never
+		-- pops the sheet over the world.
 	end
 	sheet.close.Activated:Connect(function()
 		gui.Enabled = false

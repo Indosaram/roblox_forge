@@ -12,12 +12,19 @@ export class StudioLifecycle {
     this.closing = false;
   }
 
-  attempt(kind, id, dispose) {
+  attempt(kind, id, dispose, { cleanupTimeoutMs } = {}) {
     if (this.closing) throw new Error('LIFECYCLE_CLOSED');
     if (!kind || !id || typeof dispose !== 'function' || this.resources.some(row => row.id === id)) throw new Error('INVALID_OWNED_RESOURCE');
     const row = { kind, id, state: 'attempted', acquired: false, cleanup: 'pending' };
     this.resources.push(row);
     this.disposers.set(row, dispose);
+    // A disposer whose own proof has a longer bound (the editor tree waits up to 30 s for the
+    // job's last process) gets that bound; racing it against the 10 s default reported a tree
+    // that was still exiting as unresolved and killed its supervisor before the proof arrived.
+    if (cleanupTimeoutMs !== undefined) {
+      if (!Number.isFinite(cleanupTimeoutMs) || cleanupTimeoutMs <= 0) throw new Error('INVALID_LIFECYCLE_TIMEOUT');
+      (this.cleanupTimeouts ??= new Map()).set(row, cleanupTimeoutMs);
+    }
     return row;
   }
 
@@ -106,7 +113,7 @@ export class StudioLifecycle {
       try {
         const proof = await Promise.race([
           Promise.resolve().then(() => this.disposers.get(row)(row, controller.signal)),
-          new Promise((_, reject) => { timer = this.schedule(() => { controller.abort(); reject(new Error('CLEANUP_TIMEOUT')); }, this.timeoutMs); }),
+          new Promise((_, reject) => { timer = this.schedule(() => { controller.abort(); reject(new Error('CLEANUP_TIMEOUT')); }, this.cleanupTimeouts?.get(row) ?? this.timeoutMs); }),
         ]);
         if (proof?.released !== true || !proof.evidence) throw new Error('CLEANUP_UNPROVEN');
         row.cleanup = 'released';

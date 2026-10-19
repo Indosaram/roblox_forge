@@ -39,6 +39,8 @@ export type State = {
 export type Delivery = {
 	consume: { Content.Quantity },
 	reward: { Content.Quantity },
+	-- Soft-currency reward (0 when the contract grants none); the caller credits it atomically.
+	coins: number,
 	faction: string,
 	trust: number,
 	tierBefore: number,
@@ -276,6 +278,7 @@ function M.deliver(
 	return {
 		consume = copy(found.deliver),
 		reward = copy(found.reward),
+		coins = found.coins or 0,
 		faction = found.faction,
 		trust = state.trust[found.faction],
 		tierBefore = tierBefore,

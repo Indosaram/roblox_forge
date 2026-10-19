@@ -905,6 +905,11 @@ function M.new(
 				restored.clockMillis = nowMillis
 				restored.online = true
 				restored.resting = false
+			elseif nowMillis > restored.clockMillis then
+				local projected = Vitals.advance(restored, nowMillis)
+				if not config.survivalDeath or restored.healthMilli == 0 or projected.healthMilli > 0 then
+					restored = projected
+				end
 			end
 			return restored
 		end)

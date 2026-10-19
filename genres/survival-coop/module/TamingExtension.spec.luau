@@ -61,7 +61,7 @@ end
 
 type Rig = { extension: any, clock: { now: number }, bag: () -> any, failCommits: (number) -> (), backend: any }
 
-local function build(existing: any?): Rig
+local function build(existing: any?, captureWild: any?): Rig
 	local doc = content()
 	local items = Job.catalog(doc)
 	local clock = { now = 0 }
@@ -138,6 +138,7 @@ local function build(existing: any?): Rig
 		personalTransfer = function()
 			return access
 		end,
+		captureWild = captureWild,
 		wildlife = function(id: string): any?
 			if id == "wild-1" then
 				return { catalogId = "strider", healthMilli = 1000 }
@@ -237,6 +238,36 @@ return {
 		assert(send(rig, "d1", "tame-dismount", {}).ok, "dismount")
 		assert(rig.extension.snapshot("p1").walkSpeedStuds == nil, "speed cleared")
 		assert(send(rig, "d2", "tame-dismount", {}).reason == "NOT_MOUNTED", "second dismount refused")
+	end,
+	["capture releases the wild once with a fixed respawn window, even on replay and restart"] = function()
+		local calls: { any } = {}
+		local fail = 1
+		local function captureWild(wildId: string, captureId: string, untilMillis: number): string?
+			table.insert(calls, { wildId = wildId, captureId = captureId, untilMillis = untilMillis })
+			if fail > 0 then
+				fail -= 1
+				return "WILD_BUSY"
+			end
+			return nil
+		end
+		local rig = build(nil, captureWild)
+		rig.clock.now = 500
+		send(rig, "h1", "tame-hit", { "wild-1" })
+		send(rig, "h2", "tame-hit", { "wild-1" })
+		local pending = send(rig, "c1", "tame-capture", { "wild-1" })
+		assert(pending.reason == "CHARGE_PENDING" and #calls == 1, "transient release failure stays pending")
+		rig.clock.now = 700
+		local settled = send(rig, "c1", "tame-capture", { "wild-1" })
+		assert(settled.ok and settled.data.captured, "retry settles")
+		assert(#calls == 2, "release retried once")
+		assert(calls[2].wildId == "wild-1" and calls[2].captureId == "p1:c1", "capture identity")
+		assert(calls[1].untilMillis == 1500 and calls[2].untilMillis == 1500, "window fixed at commit time")
+		assert(rig.bag().items["tool-1"].durabilityMilli == 90000, "tool worn once")
+		assert(send(rig, "c1", "tame-capture", { "wild-1" }).ok and #calls == 2, "replay never re-releases")
+		assert(rig.extension.close().ok, "release lease")
+		local restarted = build(rig.backend, captureWild)
+		assert(send(restarted, "c1", "tame-capture", { "wild-1" }).ok and #calls == 2, "restart replay is a no-op")
+		assert(restarted.extension.recover("p1", 1).data.status == "idle", "nothing left to settle")
 	end,
 	["pens and the ride survive a restart over the same backend"] = function()
 		local rig = build()

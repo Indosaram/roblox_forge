@@ -9,6 +9,8 @@ local Gathering = require("../../../../genres/survival-coop/module/Gathering")
 local Runtime = require("../../../../genres/survival-coop/module/GatheringRuntime")
 local Bridge = require("../../../../genres/survival-coop/module/GatheringBridge")
 local ContractsExtension = require("../../../../genres/survival-coop/module/ContractsExtension")
+local MarketExtension = require("../../../../genres/survival-coop/module/MarketExtension")
+local MarketPorts = require("../../../../games/robango-island/src/shared/MarketPorts")
 local Content = require("../../../../core/domain/survival/Content")
 local Job = require("../../../../core/domain/crafting/Job")
 local Settlement = require("../../../../core/domain/settlement/Settlement")
@@ -21,6 +23,7 @@ local ProfileStore = require("../../../../core/infra/data/ProfileStore")
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local M = {}
+local SELLER_COINS = 20
 
 -- The analytics stream this fixture observed must follow the golden path: steps strictly
 -- ascending by one, tutorial_complete at most once and only right after step 6. A restart
@@ -187,18 +190,76 @@ function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: 
 	}))
 	local port: any = table.clone(extension)
 	port.close = nil
+	-- Earn-then-spend: the real Market with the pack's goods. Player "1" earns Coins only from
+	-- contracts; eligibility reads the real Contracts tutorial. Player "2" is a fixture veteran
+	-- seller (tutorial done, SELLER_COINS seeded once) so the buyer has someone to buy from.
+	MarketExtension.configure(MarketPorts.config({
+		accountAgeDays = function()
+			return 30
+		end,
+		sessionSeconds = function()
+			return 10 * 3600
+		end,
+		tutorialComplete = function(actor)
+			if actor == "2" then
+				return true
+			end
+			local data = extension.snapshot(actor)
+			return type(data) == "table" and data.tutorial.complete == true
+		end,
+	}))
+	local market = assert(MarketExtension.factory({
+		store = function()
+			return Fenced.new(backend, {
+				sessionId = "contracts-tutorial-market",
+				leaseSeconds = 120,
+				now = function()
+					return math.floor(now())
+				end,
+				budget = options.budget,
+			})
+		end,
+		now = function()
+			return math.floor(now())
+		end,
+		content = content,
+		personalTransfer = function(actor)
+			return if session then session.personalTransfer(actor) else nil
+		end,
+		members = function()
+			return if session then session.members() else {}
+		end,
+	}))
+	local marketPort: any = table.clone(market)
+	marketPort.close = nil
 	local services = table.clone(factory.services)
 	services.survivalGathering = Bridge.new({
 		resolve = function()
 			return runtime
 		end,
 	})
-	services.survivalExtensions = { port }
+	services.survivalExtensions = { port, marketPort }
 	return {
 		services = services,
 		bind = function(value: Session.Session)
 			session = value
 			factory.bind(value)
+			local join = value.join
+			value.join = function(actor)
+				local result = join(actor)
+				local access = if result.ok and actor == "2" then value.personalTransfer(actor) else nil
+				if access then
+					local token = assert(access.personal:update(access.profile(), function(view)
+						if view.itemTransfers.receipts["qa-seller-coins"] == nil then
+							view.envelope.genres["survival-coop"].data.balance = SELLER_COINS
+							view.itemTransfers.receipts["qa-seller-coins"] = { phase = "QA" }
+						end
+						return view
+					end))
+					access.install(token)
+				end
+				return result
+			end
 		end,
 		close = function(): Contract.Result
 			local streamError = validStream(log)
@@ -208,6 +269,11 @@ function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: 
 			local released = (extension :: any).close()
 			if not released.ok then
 				return released
+			end
+			local marketReleased = (market :: any).close()
+			MarketExtension.configure(nil)
+			if not marketReleased.ok then
+				return marketReleased
 			end
 			local closed = factory.close()
 			if not closed.ok then

@@ -84,6 +84,27 @@ local function build(factories: { Extensions.Factory })
 end
 
 return {
+	["an open panel sheet stays clear of the chat window and the right-hand HUD"] = function()
+		local function overlaps(x: number, y: number, w: number, h: number, cr: number, cb: number): boolean
+			return x < cr and y < cb and x + w > 0 and y + h > 0
+		end
+		-- Desktop 1280x720 with the default 512x245 chat (tutorial Studio QA, step 78).
+		local w, h = ExtensionPanels.sheetBounds(1280, 720)
+		local x, y, fitted = ExtensionPanels.sheetPosition(1280, 720, w, h, 520, 253)
+		assert(not overlaps(x, y, w, fitted, 520, 253), "desktop sheet clear of chat")
+		assert(x == math.floor((1280 - w) / 2), "desktop sheet keeps its centered column, clear of the HUD stack")
+		assert(y + fitted <= 720 - 12 and fitted >= 240, "desktop sheet fits below the chat")
+		-- No chat: centered and full height, as before.
+		local cx, cy, ch = ExtensionPanels.sheetPosition(1280, 720, w, h, 0, 0)
+		assert(
+			cx == math.floor((1280 - w) / 2) and cy == math.floor((720 - h) / 2) and ch == h,
+			"centered without chat"
+		)
+		-- Portrait phone: below the chat.
+		local pw, ph = ExtensionPanels.sheetBounds(390, 844)
+		local px, py, pf = ExtensionPanels.sheetPosition(390, 844, pw, ph, 300, 200)
+		assert(not overlaps(px, py, pw, pf, 300, 200) and py + pf <= 844, "phone sheet below chat")
+	end,
 	["extension registries are tables"] = function()
 		assert(type(Extensions.factories) == "table", "server registry present")
 		assert(type(ExtensionPanels.factories) == "table", "client registry present")

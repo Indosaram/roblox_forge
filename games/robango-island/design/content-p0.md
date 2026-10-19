@@ -3,8 +3,8 @@
 이 문서는 `content.yml`(원본)에 들어간 P0 콘텐츠 전체를 나열한다. 계획 §5(생물군계), §6(로스터), §9.1~9.4(세계관·NPC·의뢰·튜토리얼), §10(텍스트)을 따른다. **표에 나오는 수치는 모두 신규 산정**이며 초기 가설이다. 원작 수치나 커뮤니티 표는 시작점으로도 쓰지 않았다. 밸런스는 이후 `forge econ sim`과 시드 고정 시뮬레이션 spec으로 조정한다.
 
 - 원본: `content.yml` → `forge content codegen` → `src/shared/SurvivalContent.luau`(생성 파일, 손 편집 금지).
-- 런타임 카탈로그: `econ.yml`의 `survival-coop.inventory.content` → `forge codegen` → `GenreConfig.luau`. 이 레인에서는 기존 17개 아이템의 **이름만** 바꿨다.
-- 생물 전투 규칙: `src/shared/WildlifePolicy.luau`의 `catalog.species`. `Wildlife.catalog`는 content의 모든 wildlife id에 규칙을 요구하므로 신규 12종 규칙을 넣었다. 스폰은 추가하지 않았다(아래 '스키마 한계' 참고).
+- 런타임 카탈로그: `econ.yml`의 `survival-coop.inventory.content` → `forge codegen` → `GenreConfig.luau`. items·recipes·nodes·structures·wildlife·tags는 `content.yml`과 같은 내용으로 맞춰 두었다(§9).
+- 생물 전투 규칙과 스폰: `src/shared/WildlifePolicy.luau`의 `catalog.species`와 `spawns`. 17종 모두 규칙이 있고, 17종 모두 섬에 한 마리 이상 스폰된다(§9).
 - 표시 이름은 `locale/strings.csv`의 en-us·ko-kr 열에 있다. 키 규칙: `item_<id>`, `recipe_<id>`, `node_<id>`, `structure_<id>`, `wildlife_<id>`(하이픈은 밑줄로 바꾼다).
 - 재화: 소프트 재화 표시명은 **조개돈 / Shellmoney**(`currency_name`, `coin_label`)이다. 내부 id `Coins`는 survival-coop 어댑터가 `currency: Coins`를 강제하므로 유지하고, 표시 문자열만 바꿨다.
 
@@ -193,8 +193,112 @@
 - 튜토리얼 5단계와 완료 문구(`tutorial_*`): 도착(건너뛰기 가능) → 채집 → 손도끼 제작 → 정착지 선언 → 첫 의뢰.
 - 로딩 팁 6개(`tip_01`~`tip_06`). P0 목표는 30개이고 나머지는 후속 작업이다.
 
-## 9. 스키마 한계와 후속 작업
+## 9. 월드 배치, 카탈로그 동기화, 남은 한계
 
-- 생물군계, 노출, 아키타입, 선공 3단계, 무리, 스폰 테이블 필드는 아직 `Content.luau`에 없다(다른 레인에서 확장 중). 스키마가 확장되면 접두사 표기를 정식 필드로 옮긴다.
-- 신규 12종은 카탈로그와 전투 규칙에만 있고 월드에는 스폰되지 않는다. `DinosaurRig`가 `grazer|hunter` 리그만 만들기 때문이다(genre PR 대상).
-- 신규 노드·설비는 카탈로그에만 있고, 개발 섬 배치(`SurvivalWorldConfig.luau`)는 기존 5개 노드를 유지한다. 런타임은 카탈로그를 두 곳에서 읽는다. 서버 월드·정착 경로는 `SurvivalContent.luau`(content.yml)를 쓰고, 세션 인벤토리와 개인 제작 검증은 `GenreConfig.luau`(econ.yml 내장 content)를 쓴다. 신규 아이템·레시피를 개인 제작에서도 켜려면 econ.yml의 내장 content를 content.yml과 맞추는 후속 작업이 필요하다. 이 레인에서는 econ.yml의 이름만 바꾸라는 지시를 따랐다.
+### 9.1 섬 지형
+
+`src/server/SurvivalWorldBootstrap.luau`가 서버 시작 때 `Workspace.Terrain`에 섬을 만든다. 높이와 재질은 `src/shared/IslandTerrain.luau`의 고정 수식에서 나온다(난수 없음). 섬은 약 260×200 스터드 타원이고, 가장자리에서 모래 해안선을 거쳐 수심 -12의 바다(해수면 -4)로 내려간다.
+
+| 구역 | 범위 | 지면 | 재질 |
+|---|---|---|---|
+| 상륙지(landing) | -44 < x < 44 | 평탄(-0.6), 기존 `IslandFloor` 64×48 판과 정착 격자 유지 | Grass |
+| 온대 숲(forest) | x < -44 | 완만한 언덕(약 0~5) | LeafyGrass / Ground |
+| 해안 습지(marsh) | x > 44 | 낮은 갯벌(약 -2.4~-3), 민물 웅덩이 2곳 | Mud / Grass, 웅덩이는 Water |
+
+상륙지의 기존 이름(`DevelopmentIsland` 폴더, `SurvivalSpawn`, `campfire`, `workbench`, `WarehouseApproach`, `GatherLOSWall`, `CameraTestRoof`, 기존 5개 노드)과 위치는 그대로다. QA 표지 `wildlife-approach-01`(-19, 0.1, 19; grazer-01 집에서 5스터드)과 `WildlifeApproach`(같은 위치), `BuildApproach`(-6, 0.1, -10; 바닥 미리보기 입구 칸)를 새로 두었다. 셋 다 충돌·쿼리가 없는 반투명 판이다. 상륙지에서 양쪽 생물군계로 가는 디딤돌 길과 표지판 2개(`Temperate Forest`, `Coastal Marsh`)가 있다. 숲 나무 26그루와 습지 갈대 18포기는 고정 시드(20261018) `Rng`로 흩뿌리며, 노드·생물 집·길과는 9스터드 이상 떨어진다. 장식 파트는 모두 `IslandScenery` 폴더에 있고 CanCollide·CanQuery가 꺼져 있다(나무 줄기만 충돌). 모든 지오메트리는 런타임에 만들어지므로 빌드된 place의 정적 인스턴스 수(QA-PERF-01)는 바뀌지 않는다.
+
+### 9.2 노드 배치 (20종 전부, `SurvivalWorldConfig.luau`)
+
+생물군계 노드의 y는 `IslandTerrain.nodeY`로 정한다(지면을 반 스터드 단위로 내림 + 파트 높이의 절반). 채집 파트는 도달 거리 8 안에 프롬프트가 오도록 낮게 만들고, 키 큰 실루엣(자작나무 줄기, 부들 이삭 등)은 장식으로 따로 둔다.
+
+| id | 위치 (x, y, z) | 생물군계 | 횟수 |
+|---|---|---|---|
+| fallen-tree-01 | -20, 2, 14 | landing | 3 |
+| flint-outcrop-01 | -10, 2, 14 | landing | 3 |
+| fiber-bush-01 | 0, 2, 14 | landing | 3 |
+| berry-bush-01 | 10, 2, 14 | landing | 3 |
+| meat-cache-01 | 20, 2, 14 | landing | 3 |
+| forest-oak-windfall-01 | -70, 1.25, 14 | forest | 3 |
+| forest-birch-stand-01 | -80, 2, -12 | forest | 3 |
+| forest-hazel-thicket-01 | -68, 4.5, -30 | forest | 3 |
+| forest-bramble-patch-01 | -84, 3.75, 28 | forest | 3 |
+| forest-bracken-bed-01 | -62, 0.25, 0 | forest | 3 |
+| forest-chanterelle-log-01 | -92, 3, 6 | forest | 2 |
+| forest-flint-scree-01 | -96, 1, -28 | forest | 3 |
+| forest-boulder-field-01 | -80, 4.5, 44 | forest | 2 |
+| marsh-reed-bed-01 | 64, -1.5, 14 | marsh | 3 |
+| marsh-cattail-stand-01 | 86, -1.5, 8 | marsh | 3 |
+| marsh-cordgrass-tussock-01 | 70, -1.75, -18 | marsh | 3 |
+| marsh-samphire-flat-01 | 92, -3, -16 | marsh | 3 |
+| marsh-clay-bank-01 | 78, -1.25, 28 | marsh | 2 |
+| marsh-clam-bed-01 | 98, -2.5, 10 | marsh | 2 |
+| marsh-driftwood-line-01 | 86, -2.25, -36 | marsh | 3 |
+
+### 9.3 생물 스폰 (17종 전부, `WildlifePolicy.luau`, maximum 24)
+
+스폰 y는 그 지점 지면보다 3~5스터드 위다(리그가 떨어져 착지). 공격형(leaper·charger·roarer·tail-sweeper 행동과 `bluff-bounder`)은 상륙 지점에서 60스터드 이상 떨어진 생물군계 안쪽에 둔다. 단, `hunter-01`은 장르 QA 시나리오가 (22, 4, 24)를 집으로 참조하므로 상륙지에 남겼다.
+
+| id | 위치 (x, y, z) | 생물군계 |
+|---|---|---|
+| grazer-01 | -20, 4, 24 | landing |
+| hunter-01 | 22, 4, 24 | landing |
+| ridge-strider-01 | -66, 7, 34 | forest |
+| herd-acorncrest-01 | -74, 8, -46 | forest |
+| scavenger-barkpicker-01 | -76, 4, -4 | forest |
+| leaper-fernhop-01 | -100, 6, -14 | forest |
+| charger-oakbrow-01 | -102, 7, 18 | forest |
+| tailswing-mossback-01 | -90, 6, -44 | forest |
+| roarer-thicket-01 | -94, 6, 40 | forest |
+| bluff-bounder-01 | -108, 7, -4 | forest |
+| fen-trotter-01 | 68, 2, -4 | marsh |
+| herd-sedgewader-01 | 72, 2, 40 | marsh |
+| scavenger-flotsam-01 | 76, 2, -30 | marsh |
+| leaper-reedvault-01 | 100, 2, -24 | marsh |
+| charger-mudbrow-01 | 104, 2, 4 | marsh |
+| tailswing-shellclub-01 | 90, 2, -42 | marsh |
+| roarer-tidecall-01 | 98, 1, 30 | marsh |
+
+`world.spec.luau`가 이 배치를 검사한다. 20종 노드 전부 배치, 17종 전부 스폰, 모든 지점이 해수면 위 육지이고 올바른 생물군계 안, 공격형은 상륙 지점에서 60스터드 이상, 스폰 수가 maximum(≤32) 이하인지 본다.
+
+노드·생물 목록이 바뀌었으므로 영속 키를 `nodes-v2`, `wildlife-v2`로 올렸다. 기존 v1 저장본은 5개 노드만 담고 있어 새 노드의 재생 타이머를 찾지 못하기 때문이다. 대신 스테이징의 이전 노드 잔량·생물 상태는 처음부터 다시 시작한다. `worldRevision`(`development-island-v1`)은 장르 QA 시나리오가 참조하므로 바꾸지 않았다.
+
+### 9.4 런타임 카탈로그 동기화
+
+`econ.yml`의 `survival-coop.inventory.content`에 있는 items(46), recipes(31), nodes(20), structures(15), wildlife(17), tags(8)를 `content.yml`과 같게 맞추고 `forge codegen robango-island`로 `GenreConfig.luau`를 다시 만들었다. 이제 세션 인벤토리와 개인 제작 검증도 신규 아이템·레시피(flint-knife, stone-maul, timber-beam, mud-brick, 각종 벽·바닥·지붕 부재, roasted-hazelnuts, woodland-skewer, clam-bake, cattail-flatbread, rawhide-lashing, thatch-bundle 등)를 인식한다. limits·rules·vitals는 원래 같았다. 내구 정책(`GenreDurable.luau`)은 바뀌지 않았다.
+
+### 9.4b 중반 일일 의뢰 (신규 산정)
+
+첫날 의뢰 3종과 초반 일일 의뢰 6종은 목재·섬유·딸기 단계에서 끝난다. 숲·습지 소재와 2단계 시설(소목 작업대·진흙 가마·석공 작업대)로 넘어간 뒤에도 일일 보드에 할 일이 남도록 일일 풀에 6종을 더했다(풀 15종, 하루 3종 추첨).
+
+| id | 세력 | 납품 | 보상 | 신뢰 |
+|---|---|---|---|---|
+| daily-survey-reeds | 항로 측량회 | reed×8 | plank×3 | 20 |
+| daily-survey-beams | 항로 측량회 | timber-beam×2 | cord×4, flint×2 | 40 |
+| daily-guild-bricks | 장인 길드 연합 | mud-brick×4 | timber-beam×1 | 35 |
+| daily-guild-stone | 장인 길드 연합 | stone-block×2 | thatch-bundle×2 | 35 |
+| daily-eco-hazelnuts | 섬 생태 신탁 | hazelnut×8 | berry-meal×2 | 20 |
+| daily-eco-clambake | 섬 생태 신탁 | clam-bake×2 | roasted-hazelnuts×2, hide×1 | 30 |
+
+어느 보상도 추가 재료 없이 같은 의뢰의 납품물로 되돌아가지 않으므로, 의뢰만 반복해 소재를 불리는 순환은 없다. 보상은 다음 단계 제작에 쓰는 중간재 위주다.
+
+### 9.4c 조개돈 획득률 (의뢰 `coins`, 신규 산정)
+
+조개돈(`Coins`)의 유일한 획득원은 의뢰 납품이다. `content.yml` 의뢰 항목의 선택 필드 `coins: N`을 ContractsExtension이 납품 아이템 교환과 **같은 개인 저장 한 번**에 지갑에 더한다(마커 영수증으로 재시도·서버 중단 뒤에도 한 번만 지급). 시장(장터)이 정산하는 지갑과 같다. 시작 잔액은 0, Robux 환전은 없다.
+
+| 구분 | 의뢰(조개돈) |
+|---|---|
+| 첫날 (합 40) | survey-driftwood 10, guild-stone-axe 20, eco-fiber-sample 10 |
+| 초반 일일 | daily-survey-flint 15, daily-eco-berries 15, daily-survey-planks 20, daily-guild-cord 20, daily-eco-meal 25, daily-guild-spear 30 |
+| 중반 일일 | daily-survey-reeds 15, daily-eco-hazelnuts 15, daily-eco-clambake 30, daily-survey-beams 35, daily-guild-bricks 35, daily-guild-stone 40 |
+
+- 난이도 기준: 원재료 납품 15, 1차 가공품 20~25, 도구·요리 30, 2단계 시설 가공품 35~40.
+- 하루 보드 3종 기준 일일 획득은 약 45~105(평균 약 75), 첫날은 40.
+- 시장 비용: 등록 수수료 5%(최소 1, 소멸). 원재료 10개 묶음을 개당 5~10에 사면 50~100 조개돈으로, 의뢰 2~5건이다.
+- 현재 획득원은 의뢰뿐이다. 수치는 임시 산정이며 실측 후 조정한다.
+
+### 9.5 남은 한계
+
+- 생물군계, 노출, 선공 3단계, 무리, 스폰 테이블 필드는 아직 `Content.luau`에 없다. 소속은 노드 id 접두사와 이 문서의 배치표로만 표시한다.
+- `DinosaurRig`는 `grazer|hunter` 두 실루엣만 만든다. 17종이 모두 스폰되지만, 종마다 다른 외형은 genre PR이 필요하다.
+- 정착 격자는 상륙지 64×48 판 위에만 있다. 숲·습지에는 아직 건축할 수 없다.
+- 지형과 장식의 시각 품질, 경로 탐색, 스튜디오 동선은 아직 Studio에서 확인하지 않았다.

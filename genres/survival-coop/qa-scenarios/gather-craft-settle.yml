@@ -34,10 +34,10 @@ steps:
   - {op: expect_snapshot, player: member, genre: survival-coop, field: "inventory.bag.items.g6:member:0:7:harvest:output:1", is_nil: true}
   - {op: expect_snapshot, player: member, scope: session, field: survivalGathering.nodes.final-tree.charges, equals: 0}
   - {op: command, player: owner, requestId: harvest, sessionEpoch: 0, action: "survival-coop:gather", args: [final-tree, 0], times: 2}
-  - {op: command, player: owner, requestId: deposit, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g5:owner:0:7:harvest:output:1", 10], expect: refused}
-  - {op: expect_result, player: owner, field: reason, equals: TRANSFER_PENDING}
-  - {op: recover_transfers, player: owner, maximum: 8}
   - {op: command, player: owner, requestId: deposit, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g5:owner:0:7:harvest:output:1", 10]}
+  - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
+  - {op: command, player: owner, requestId: deposit, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: ["g5:owner:0:7:harvest:output:1", 10]}
+  - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.g5:owner:0:7:harvest:output:1", is_nil: true}
   - {op: expect_snapshot, player: member, scope: session, field: "survivalSettlement.warehouse.items.g5:owner:0:7:harvest:output:1.quantity", equals: 10}
   - {op: command, player: foreign, requestId: steal, sessionEpoch: 0, action: "survival-coop:transfer-withdraw", args: ["g5:owner:0:7:harvest:output:1", 1], expect: refused}

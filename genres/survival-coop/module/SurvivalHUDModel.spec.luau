@@ -38,6 +38,22 @@ local function model(): any
 end
 
 return {
+	["a handshake refusal clears once the server's policy arrives (rejoin swaps the server)"] = function()
+		local state: any = Model.new("bob", function()
+			return "r"
+		end)
+		-- No policy yet: an action is refused with the handshake banner.
+		assert(state.begin("rest", {}) == nil and state.reason == "HANDSHAKE_FAILED", "refused before policy")
+		state.receive({ durable = { actions = { "survival-coop:rest" }, sessionEpoch = 1 } })
+		assert(state.status ~= "conflict" and state.reason == nil, "policy clears the handshake banner")
+		-- Any other refusal is not touched by a policy broadcast.
+		state.status, state.reason = "conflict", "BAG_FULL"
+		state.receive({ durable = { actions = { "survival-coop:rest" }, sessionEpoch = 1 } })
+		local function reason(value: any): string?
+			return value.reason
+		end
+		assert(reason(state) == "BAG_FULL", "unrelated refusal kept")
+	end,
 	["publication failure exposes recovery without resubmitting committed placement"] = function()
 		local state = model()
 		local placementArgs: { any } = { "reserved", 1, 2 }
@@ -62,6 +78,16 @@ return {
 				assert(top >= Model.STACK_BOTTOM, "sheet clears the HUD control stack")
 			end
 		end
+	end,
+	["short landscape sheet sits left of the control stack so the tabs stay reachable"] = function()
+		for _, viewport in { { 819, 295 }, { 716, 284 }, { 643, 340 } } do
+			local stack = math.min(320, math.floor(viewport[1] * 0.45))
+			local width, height, top, right = Model.sheetBounds(viewport[1], viewport[2], stack)
+			assert(right >= stack, "sheet keeps the stack column free")
+			assert(width + right <= viewport[1] and top == 0 and height >= 100, "sheet fits beside the stack")
+		end
+		local _, _, _, right = Model.sheetBounds(1256, 664, 320)
+		assert(right == 0, "tall viewports keep the sheet under the stack")
 	end,
 	["placement rows retain canonical order and exclude other actors"] = function()
 		local first = { actorId = "alice" }

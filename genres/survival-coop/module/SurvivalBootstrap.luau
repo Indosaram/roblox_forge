@@ -193,6 +193,7 @@ function M.new(
 	services.survivalTransfer = settlement.services.survivalTransfer
 	services.survivalGathering = gathering
 	local wildlifeOwner: WildlifeRuntime.Runtime? = nil
+	local captureWild: ((string, string, number) -> string?)? = nil
 	local wildlifeToken: Fenced.Profile? = nil
 	local wildlifeStore: Fenced.Store? = nil
 	if config.wildlife then
@@ -244,7 +245,7 @@ function M.new(
 			return nil, err
 		end
 		wildlifeOwner = owner
-		local wildlifeBridge = WildlifeBridge.new({
+		local wildlifeBridge, captureOwner = WildlifeBridge.new({
 			resolve = function()
 				return if active and not closed then owner else nil
 			end,
@@ -267,6 +268,13 @@ function M.new(
 			return result
 		end
 		services.survivalWildlife = wildlifeBridge
+		captureWild = function(wildId, captureId, untilMillis)
+			local reason = captureOwner("", wildId, captureId, untilMillis)
+			if not reason then
+				publishWildlife()
+			end
+			return reason
+		end
 		local previousPublish = publish
 		publish = function()
 			previousPublish()
@@ -297,8 +305,13 @@ function M.new(
 			local owner = wildlifeOwner
 			local states = if owner and not closed then owner.snapshot() else nil
 			local state = if states then states[id] else nil
-			return if state then { catalogId = state.catalogId, healthMilli = state.healthMilli } else nil
+			-- A captured creature is out of the world until its window ends.
+			if not state or Wildlife.captured(state, config.nowMillis()) then
+				return nil
+			end
+			return { catalogId = state.catalogId, healthMilli = state.healthMilli }
 		end,
+		captureWild = captureWild,
 	}
 	for _, factory in config.extensions or Extensions.factories do
 		local extension = factory(extensionContext)

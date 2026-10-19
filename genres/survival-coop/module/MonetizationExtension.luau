@@ -150,7 +150,13 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	local function load(actor: string): Entry?
 		local existing = entries[actor]
 		if existing then
-			return existing
+			-- Keep the lease alive (a no-op write while healthy); a lost lease reloads durable state.
+			local renewed = store:renew(existing.profile)
+			if renewed then
+				existing.profile = renewed
+				return existing
+			end
+			entries[actor] = nil
 		end
 		if closed then
 			return nil

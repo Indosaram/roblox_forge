@@ -5,6 +5,8 @@ local Wildlife = require("./Wildlife")
 local DinosaurMotion = require("./DinosaurMotion")
 local Content = require("../../../core/domain/survival/Content")
 local M = {}
+-- How far below its home a creature may drop before it is returned there (off-island fall).
+local FALL_RECOVERY_STUDS = 60
 export type PathObservation = {
 	npcId: string,
 	serial: number,
@@ -49,6 +51,9 @@ type Entry = {
 	motion: DinosaurMotion.Controller,
 	-- Actor that damaged this rig (or alarmed its herd) since the last step.
 	provokedBy: string?,
+	-- A durable tame capture holds the rig out of the world until this clock; parent restores it.
+	hiddenUntil: number?,
+	parent: Instance?,
 }
 function M.new(config: Config)
 	assert(config.maximum >= 1 and config.maximum <= 32 and config.maximum % 1 == 0, "INVALID_NPC_BUDGET")
@@ -262,11 +267,13 @@ function M.new(config: Config)
 		if not entry or not actorRoot or not entry.root:IsDescendantOf(world) then
 			return nil
 		end
+		local delta = entry.root.Position - actorRoot.Position
+		local facing = if delta.Magnitude > 0 and delta.Magnitude <= 8 then delta.Unit else actorRoot.CFrame.LookVector
 		return {
 			actorId = actorId,
 			alive = config.alive(actorId),
 			position = point(actorRoot.Position),
-			facing = point(actorRoot.CFrame.LookVector),
+			facing = point(facing),
 			targetPosition = point(entry.root.Position),
 			lineOfSight = visible(actorRoot, entry.root),
 			equipped = table.clone(config.equipment(actorId) or {}),
@@ -354,10 +361,30 @@ function M.new(config: Config)
 	end
 	-- Commit publication only; callers must not publish a staged/failed candidate.
 	function api.publish(confirmed: Wildlife.State)
-		local entry = assert(entries[confirmed.id], "UNKNOWN_NPC")
+		-- A rig whose root left the world (fell off the map, was destroyed) is disposed by the
+		-- Heartbeat sweep while the durable owner still holds its confirmed state. That state
+		-- has no physical body left to update, so it is skipped instead of failing every
+		-- later publish (and with it every session advance).
+		local entry = entries[confirmed.id]
+		if entry == nil then
+			return
+		end
 		assert(confirmed.catalogId == entry.state.catalogId and confirmed.version >= entry.state.version, "STALE_NPC")
 		entry.state.healthMilli, entry.state.version, entry.state.killer =
 			confirmed.healthMilli, confirmed.version, confirmed.killer
+		entry.state.capturedUntil, entry.state.captureId = confirmed.capturedUntil, confirmed.captureId
+		if Wildlife.captured(confirmed, config.nowMillis()) then
+			-- Captured: the creature leaves the world (no access, no step, no strike) until the
+			-- durable window ends, then the Heartbeat returns it home. Republishing is a no-op.
+			if not entry.hiddenUntil then
+				cancel(entry)
+				entry.parent = entry.model.Parent
+				entry.model:SetAttribute("ForgeWildlifeState", "captured")
+				entry.model.Parent = nil
+			end
+			entry.hiddenUntil = confirmed.capturedUntil
+			return
+		end
 		if confirmed.healthMilli == 0 then
 			entry.state.mode = "dead"
 			cancel(entry)
@@ -393,11 +420,35 @@ function M.new(config: Config)
 			end
 		end
 		for id, entry in entries do
+			local hiddenUntil = entry.hiddenUntil
+			if hiddenUntil then
+				if config.nowMillis() < hiddenUntil then
+					continue
+				end
+				-- Respawn at home as a fresh creature (the owner already reset its health).
+				local home = entry.state.home
+				entry.hiddenUntil = nil
+				entry.state.mode, entry.state.target, entry.state.deadline = "idle", nil, 0
+				entry.state.provoker, entry.state.engagedAt, entry.provokedBy = nil, nil, nil
+				entry.model.Parent = entry.parent
+				entry.root.CFrame = CFrame.new(home.x, home.y, home.z)
+				entry.root.AssemblyLinearVelocity = Vector3.zero
+			end
 			if not entry.root:IsDescendantOf(world) then
 				dispose(entry)
 				entries[id] = nil
 				count -= 1
 				continue
+			end
+			-- A creature that slipped off the island (a flee or path past the shoreline) would fall
+			-- until the engine destroys it, losing that spawn for the whole server. Far below its home
+			-- it is put back there as an idle creature instead.
+			local home = entry.state.home
+			if entry.root.Position.Y < home.y - FALL_RECOVERY_STUDS then
+				cancel(entry)
+				entry.state.mode, entry.state.target, entry.state.deadline = "idle", nil, 0
+				entry.root.CFrame = CFrame.new(home.x, home.y, home.z)
+				entry.root.AssemblyLinearVelocity = Vector3.zero
 			end
 			-- Home is the physical resting root coordinate at the spawn location, not the spawn placement.
 			-- A rig is created above the floor and falls onto it, so a home taken from the placement carries
@@ -468,6 +519,10 @@ function M.new(config: Config)
 		heartbeat:Disconnect()
 		for _, entry in entries do
 			dispose(entry)
+			if entry.hiddenUntil then
+				-- Hand a captured rig back to its owner folder so bootstrap teardown removes it.
+				entry.model.Parent = entry.parent
+			end
 		end
 		table.clear(entries)
 		count = 0

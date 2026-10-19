@@ -172,6 +172,8 @@ export type ContractEntry = {
 	deliver: { Quantity },
 	reward: { Quantity },
 	trust: number,
+	-- Optional soft-currency reward (the pack wallet, e.g. Coins) granted on delivery.
+	coins: number?,
 }
 export type ContractCatalog = {
 	factions: { Faction },
@@ -975,7 +977,7 @@ local function validateContracts(errors: { string }, raw: any, items: { [string]
 				table.insert(errors, at .. ": expected mapping")
 				continue
 			end
-			unknown(errors, at, entry, { "id", "faction", "pool", "deliver", "reward", "trust" })
+			unknown(errors, at, entry, { "id", "faction", "pool", "deliver", "reward", "trust", "coins" })
 			if not isId(entry.id) then
 				table.insert(errors, at .. ".id: invalid id")
 			elseif pools[entry.id] then
@@ -998,6 +1000,9 @@ local function validateContracts(errors: { string }, raw: any, items: { [string]
 			end
 			if not isInt(entry.trust, 0, CAPS.quantity) then
 				table.insert(errors, at .. ".trust: expected integer 0.." .. CAPS.quantity)
+			end
+			if entry.coins ~= nil and not isInt(entry.coins, 1, CAPS.quantity) then
+				table.insert(errors, at .. ".coins: expected integer 1.." .. CAPS.quantity)
 			end
 		end
 	end
@@ -1364,6 +1369,7 @@ function M.canonicalize(raw: any): (Document?, { string })
 				deliver = canonicalQuantities(entry.deliver),
 				reward = canonicalQuantities(entry.reward),
 				trust = entry.trust,
+				coins = entry.coins,
 			})
 		end
 		sortById(entries)

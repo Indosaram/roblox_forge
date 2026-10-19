@@ -151,15 +151,15 @@ local policy: {
 				["spear"] = {
 					["cooldownMillis"] = 2000,
 					["damageMilli"] = 20000,
-					["facingDot"] = 0.5,
+					["facingDot"] = 0,
 					["rangeStuds"] = 8,
 					["wearMilli"] = 1000,
 				},
 			},
 		},
 		["maxReceipts"] = 512,
-		["maximum"] = 8,
-		["sourceKey"] = "wildlife-v1",
+		["maximum"] = 24,
+		["sourceKey"] = "wildlife-v2",
 		["spawns"] = {
 			[1] = {
 				["catalogId"] = "grazer",
@@ -174,17 +174,77 @@ local policy: {
 			[3] = {
 				["catalogId"] = "ridge-strider",
 				["id"] = "ridge-strider-01",
-				["position"] = { ["x"] = -34, ["y"] = 4, ["z"] = 30 },
+				["position"] = { ["x"] = -66, ["y"] = 7, ["z"] = 34 },
 			},
 			[4] = {
-				["catalogId"] = "fen-trotter",
-				["id"] = "fen-trotter-01",
-				["position"] = { ["x"] = -8, ["y"] = 4, ["z"] = 36 },
+				["catalogId"] = "herd-acorncrest",
+				["id"] = "herd-acorncrest-01",
+				["position"] = { ["x"] = -74, ["y"] = 8, ["z"] = -46 },
 			},
 			[5] = {
+				["catalogId"] = "scavenger-barkpicker",
+				["id"] = "scavenger-barkpicker-01",
+				["position"] = { ["x"] = -76, ["y"] = 4, ["z"] = -4 },
+			},
+			[6] = {
+				["catalogId"] = "leaper-fernhop",
+				["id"] = "leaper-fernhop-01",
+				["position"] = { ["x"] = -100, ["y"] = 6, ["z"] = -14 },
+			},
+			[7] = {
+				["catalogId"] = "charger-oakbrow",
+				["id"] = "charger-oakbrow-01",
+				["position"] = { ["x"] = -102, ["y"] = 7, ["z"] = 18 },
+			},
+			[8] = {
+				["catalogId"] = "tailswing-mossback",
+				["id"] = "tailswing-mossback-01",
+				["position"] = { ["x"] = -90, ["y"] = 6, ["z"] = -44 },
+			},
+			[9] = {
+				["catalogId"] = "roarer-thicket",
+				["id"] = "roarer-thicket-01",
+				["position"] = { ["x"] = -94, ["y"] = 6, ["z"] = 40 },
+			},
+			[10] = {
 				["catalogId"] = "bluff-bounder",
 				["id"] = "bluff-bounder-01",
-				["position"] = { ["x"] = 36, ["y"] = 4, ["z"] = 34 },
+				["position"] = { ["x"] = -108, ["y"] = 7, ["z"] = -4 },
+			},
+			[11] = {
+				["catalogId"] = "fen-trotter",
+				["id"] = "fen-trotter-01",
+				["position"] = { ["x"] = 68, ["y"] = 2, ["z"] = -4 },
+			},
+			[12] = {
+				["catalogId"] = "herd-sedgewader",
+				["id"] = "herd-sedgewader-01",
+				["position"] = { ["x"] = 72, ["y"] = 2, ["z"] = 40 },
+			},
+			[13] = {
+				["catalogId"] = "scavenger-flotsam",
+				["id"] = "scavenger-flotsam-01",
+				["position"] = { ["x"] = 76, ["y"] = 2, ["z"] = -30 },
+			},
+			[14] = {
+				["catalogId"] = "leaper-reedvault",
+				["id"] = "leaper-reedvault-01",
+				["position"] = { ["x"] = 100, ["y"] = 2, ["z"] = -24 },
+			},
+			[15] = {
+				["catalogId"] = "charger-mudbrow",
+				["id"] = "charger-mudbrow-01",
+				["position"] = { ["x"] = 104, ["y"] = 2, ["z"] = 4 },
+			},
+			[16] = {
+				["catalogId"] = "tailswing-shellclub",
+				["id"] = "tailswing-shellclub-01",
+				["position"] = { ["x"] = 90, ["y"] = 2, ["z"] = -42 },
+			},
+			[17] = {
+				["catalogId"] = "roarer-tidecall",
+				["id"] = "roarer-tidecall-01",
+				["position"] = { ["x"] = 98, ["y"] = 1, ["z"] = 30 },
 			},
 		},
 		["version"] = 1,

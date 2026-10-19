@@ -1,37 +1,80 @@
-# Native player market: list, buy, refusals and the durable per-actor ledger over a real Session.
+# Native player market over a real Session with personal aggregates: a seller lists starter fiber
+# (units leave the bag into the durable escrow, the listing fee is a Coins sink), a buyer completes
+# the trade (buyer coins -price, seller coins +price, units delivered), a replayed request id returns
+# the stored outcome without a second debit, refusals move nothing, and an escrowed listing survives
+# a restart and is cancelled back into the seller's bag. Coins are seeded by the fixture.
 name: market-trade
 genre: survival-coop
 pack: robango-island
 kind: native
 contract_api: 1
 timeout_seconds: 120
-players: ["1", "2", "3"]
+players: ["1", "2", "3", "4"]
 fixtures: [cli/forge/fixtures/market-extension]
 data:
   durable:
-    actions: ["survival-coop:market-list", "survival-coop:market-buy"]
+    actions: ["survival-coop:market-list", "survival-coop:market-buy", "survival-coop:market-cancel"]
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
 steps:
   - {op: join, player: "1"}
   - {op: join, player: "2"}
   - {op: join, player: "3"}
-  - {op: command, player: "1", requestId: list1, sessionEpoch: current, action: "survival-coop:market-list", args: [wood, 4, 25]}
+  - {op: join, player: "4"}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 100}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.holdings.fiber, equals: 12}
+  - {op: command, player: "1", requestId: list1, sessionEpoch: current, action: "survival-coop:market-list", args: [fiber, 4, 25]}
   - {op: expect_result, player: "1", field: data.fee, equals: 5}
-  - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.market.catalogs.1.listings.1.unitPrice, equals: 25}
-  - {op: command, player: "3", requestId: ineligible, sessionEpoch: current, action: "survival-coop:market-list", args: [wood, 1, 10], expect: refused}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 95}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
+  - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.market.catalogs.2.listings.1.unitPrice, equals: 25}
+  # NEGATIVE: tutorial gate, self trade and an empty wallet refuse before anything moves.
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.eligible, equals: true}
+  - {op: expect_snapshot, player: "3", scope: session, field: survivalExtensions.market.eligible, equals: false}
+  - {op: expect_snapshot, player: "3", scope: session, field: survivalExtensions.market.ineligibleReason, equals: INELIGIBLE_TUTORIAL}
+  - {op: command, player: "3", requestId: ineligible, sessionEpoch: current, action: "survival-coop:market-list", args: [fiber, 1, 10], expect: refused}
   - {op: expect_result, player: "3", field: reason, equals: INELIGIBLE_TUTORIAL}
   - {op: command, player: "1", requestId: self, sessionEpoch: current, action: "survival-coop:market-buy", args: ["mk:1:1"], expect: refused}
   - {op: expect_result, player: "1", field: reason, equals: SELF_TRADE}
+  - {op: command, player: "4", requestId: broke, sessionEpoch: current, action: "survival-coop:market-buy", args: ["mk:1:1"], expect: refused}
+  - {op: expect_result, player: "4", field: reason, equals: INSUFFICIENT_FUNDS}
+  - {op: expect_snapshot, player: "4", genre: survival-coop, field: inventory.bag.items.mk:1:1, is_nil: true}
+  # The completed trade: buyer -100 coins +4 fiber, seller +100 coins (fee 5 already sunk).
   - {op: command, player: "2", requestId: buy1, sessionEpoch: current, action: "survival-coop:market-buy", args: ["mk:1:1"]}
   - {op: expect_result, player: "2", field: data.price, equals: 100}
+  - {op: expect_snapshot, player: "2", genre: survival-coop, field: balance, equals: 50}
+  - {op: expect_snapshot, player: "2", genre: survival-coop, field: inventory.bag.items.mk:1:1.quantity, equals: 4}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 195}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
   - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.market.bought.mk:1:1.price, equals: 100}
   - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.listed.mk:1:1.status, equals: sold}
+  # Replay of the same request id: stored outcome, no second debit or delivery.
+  - {op: command, player: "2", requestId: buy1, sessionEpoch: current, action: "survival-coop:market-buy", args: ["mk:1:1"]}
+  - {op: expect_result, player: "2", field: data.price, equals: 100}
+  - {op: expect_snapshot, player: "2", genre: survival-coop, field: balance, equals: 50}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 195}
   - {op: command, player: "2", requestId: again, sessionEpoch: current, action: "survival-coop:market-buy", args: ["mk:1:1"], expect: refused}
   - {op: expect_result, player: "2", field: reason, equals: LISTING_UNAVAILABLE}
+  # A second listing stays in escrow across a restart, then is cancelled back to the bag.
+  - {op: command, player: "1", requestId: list2, sessionEpoch: current, action: "survival-coop:market-list", args: [fiber, 2, 20]}
+  - {op: expect_result, player: "1", field: data.fee, equals: 2}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 6}
   - {op: close, player: "1"}
   - {op: close, player: "2"}
   - {op: close, player: "3"}
+  - {op: close, player: "4"}
   - {op: reload}
   - {op: join, player: "1"}
+  - {op: join, player: "2"}
   - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.listed.mk:1:1.status, equals: sold}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.listed.mk:1:2.status, equals: active}
+  - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.market.catalogs.2.listings.1.id, equals: "mk:1:2"}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 193}
+  - {op: command, player: "1", requestId: cancel2, sessionEpoch: current, action: "survival-coop:market-cancel", args: ["mk:1:2"]}
+  - {op: expect_result, player: "1", field: data.quantity, equals: 2}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: inventory.bag.items.mk:1:2:r.quantity, equals: 2}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.listed.mk:1:2.status, equals: returned}
+  - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.market.catalogs.2.listings.1, is_nil: true}
+  - {op: expect_snapshot, player: "1", genre: survival-coop, field: balance, equals: 193}
   - {op: close, player: "1"}
+  - {op: close, player: "2"}
   - {op: expect_members, members: []}

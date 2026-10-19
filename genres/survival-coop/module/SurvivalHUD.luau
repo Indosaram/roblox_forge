@@ -89,8 +89,12 @@ function M.start(options: Options)
 	local action = storage:WaitForChild("ForgeAction") :: RemoteFunction
 	local state = storage:WaitForChild("ForgeState") :: RemoteEvent
 	local locale = options.locale or player.LocaleId
+	-- A touch-only device has no keyboard: key hints like " [R]" only crowd the buttons.
+	-- Read live: an emulated or convertible device can switch after the HUD starts.
 	local function t(key: string): string
-		return Locale.text(locale, key)
+		local text = Locale.text(locale, key)
+		local touchOnly = input.TouchEnabled and not input.KeyboardEnabled
+		return if touchOnly then (string.gsub(text, " %[%u%]$", "")) else text
 	end
 	local function name(id: string): string
 		return if options.names and options.names[id] then options.names[id] else t(id)
@@ -121,6 +125,11 @@ function M.start(options: Options)
 		textSize = 14,
 	})
 	status.Name = "Status"
+	-- A status plus its refusal sentence runs two or three lines; at phone widths the 36 px bar
+	-- clipped it. Scale the text down to fit, never above the authored size.
+	status.TextScaled = true
+	local statusLimit = Instance.new("UITextSizeConstraint")
+	statusLimit.MaxTextSize, statusLimit.MinTextSize, statusLimit.Parent = 14, 8, status
 	status.BackgroundColor3, status.BackgroundTransparency = Color3.fromRGB(27, 43, 40), 0.12
 	local toolbar = Instance.new("Frame")
 	toolbar.Name, toolbar.BackgroundTransparency = "Navigation", 1
@@ -171,6 +180,7 @@ function M.start(options: Options)
 	requestEvent.Name, requestEvent.Parent = "ForgeHUDRequested", player
 	local render: () -> ()
 	local refresh: () -> ()
+	local handshakeRetries = 0
 	local function send(request: any)
 		if not request then
 			render()
@@ -243,6 +253,10 @@ function M.start(options: Options)
 	end
 	local function rest()
 		if model.pending then
+			-- A transient refusal (COMMAND_PENDING while another command settles) keeps the request.
+			-- Pressing the key again retries it under the same identity; before, the key went dead
+			-- until the player found the Retry button inside the sheet (Studio, 2026-10-19).
+			send(model.retry())
 			return
 		end
 		if not model.durable or not table.find(model.durable.actions, "survival-coop:rest") then
@@ -260,6 +274,10 @@ function M.start(options: Options)
 	end
 	local function attack()
 		if model.pending then
+			-- A transient refusal (COMMAND_PENDING while another command settles) keeps the request.
+			-- Pressing the key again retries it under the same identity; before, the key went dead
+			-- until the player found the Retry button inside the sheet (Studio, 2026-10-19).
+			send(model.retry())
 			return
 		end
 		if not model.durable or not table.find(model.durable.actions, "survival-coop:attack") then
@@ -271,21 +289,27 @@ function M.start(options: Options)
 			return
 		end
 		local target: string? = nil
+		local targetPos: Vector3? = nil
 		local distance = 8
 		for _, instance in world:GetDescendants() do
 			local id = instance:GetAttribute("ForgeWildlifeId")
-			if instance:IsA("Model") and type(id) == "string" then
+			local hp = instance:GetAttribute("ForgeWildlifeHealthMilli")
+			if instance:IsA("Model") and type(id) == "string" and (type(hp) ~= "number" or hp > 0) then
 				local rootPart = instance:FindFirstChild("HumanoidRootPart")
 				if rootPart and rootPart:IsA("BasePart") then
 					local offset = rootPart.Position - pivot.Position
 					local d = offset.Magnitude
-					if d < distance and (d == 0 or pivot.CFrame.LookVector:Dot(offset.Unit) > 0) then
-						target, distance = id, d
+					if d < distance then
+						target, targetPos, distance = id, rootPart.Position, d
 					end
 				end
 			end
 		end
-		if target then
+		if target and targetPos then
+			local flat = Vector3.new(targetPos.X - pivot.Position.X, 0, targetPos.Z - pivot.Position.Z)
+			if flat.Magnitude > 0.001 then
+				pivot.CFrame = CFrame.lookAt(pivot.Position, pivot.Position + flat)
+			end
 			command("attack", { target })
 		else
 			model.status, model.reason = "conflict", "WILDLIFE_UNREACHABLE"
@@ -327,6 +351,8 @@ function M.start(options: Options)
 		item:SetAttribute("JobLabel", nil)
 		return item
 	end
+	local focusId: string? = nil
+	local focusBottom: string? = nil
 	local function button(id: string, text: string, callback: () -> (), enabled: boolean?)
 		return controls.button(id, text, callback, enabled ~= false)
 	end
@@ -403,7 +429,8 @@ function M.start(options: Options)
 				v.hungerMilli / 1000,
 				t("fatigue"),
 				v.fatigueMilli / 1000,
-				if v.resting then t("resting") else t("ready")
+				-- The status row already says "ready"; repeating it here was a visible duplicate.
+				if v.resting then t("resting") elseif model.status == "ready" then "" else t("ready")
 			)
 			else ""
 		status.Text = t(model.status) .. (if model.reason then "\n" .. Locale.refusal(locale, model.reason) else "")
@@ -467,6 +494,9 @@ function M.start(options: Options)
 				if not inventoryGrid then
 					inventoryGrid = Grid.new(sheet.scroll, theme, function(id)
 						selected = id
+						-- The detail and its Deposit/Eat buttons render below the grid; on a short
+						-- landscape phone they were below the fold, so the selection pulls them in.
+						focusBottom = "Deposit-" .. id
 						render()
 					end)
 				end
@@ -519,6 +549,8 @@ function M.start(options: Options)
 			for _, recipe in options.content.recipes do
 				button("Recipe-" .. recipe.id, name(recipe.id), function()
 					recipeId = recipe.id
+					-- Reserve renders after the whole recipe list; bring it into view.
+					focusBottom = "Reserve-" .. recipe.id
 					render()
 				end)
 				if recipe.id == recipeId then
@@ -580,6 +612,9 @@ function M.start(options: Options)
 			for _, definition in options.content.structures do
 				button("Structure-" .. definition.id, name(definition.id), function()
 					structureId = definition.id
+					-- The detail, arrows and Reserve render after the whole structure list (17 in
+					-- the island pack), so the selection pulls Reserve into view, not the row.
+					focusBottom = "BuildReserve-" .. definition.id
 					render()
 				end)
 			end
@@ -652,6 +687,27 @@ function M.start(options: Options)
 			notePool[index].Visible = false
 		end
 		sheet.scroll.CanvasPosition = scrollPosition
+		-- A fresh selection scrolls its row to the top so the detail and its action buttons
+		-- below it are on screen; otherwise Reserve sat below the fold on every screen size.
+		local focused = if focusId then sheet.scroll:FindFirstChild(focusId) else nil
+		focusId = nil
+		if focused and focused:IsA("GuiObject") then
+			sheet.scroll.CanvasPosition = Vector2.new(
+				0,
+				math.max(0, scrollPosition.Y + focused.AbsolutePosition.Y - sheet.scroll.AbsolutePosition.Y - 8)
+			)
+		end
+		local bottom = if focusBottom then sheet.scroll:FindFirstChild(focusBottom) else nil
+		focusBottom = nil
+		if bottom and bottom:IsA("GuiObject") then
+			local overflow = bottom.AbsolutePosition.Y
+				+ bottom.AbsoluteSize.Y
+				- (sheet.scroll.AbsolutePosition.Y + sheet.scroll.AbsoluteSize.Y)
+				+ 8
+			if overflow > 0 then
+				sheet.scroll.CanvasPosition = sheet.scroll.CanvasPosition + Vector2.new(0, overflow)
+			end
+		end
 		preview()
 	end
 	refresh = function()
@@ -669,6 +725,15 @@ function M.start(options: Options)
 			end
 			if ok and result.ok then
 				model.receive(result)
+				handshakeRetries = 0
+			elseif model.durable == nil and handshakeRetries < 8 then
+				-- The first handshake can run before the server session is bound (Studio play
+				-- showed the conflict banner stuck from spawn). Retry quietly with backoff.
+				handshakeRetries += 1
+				task.delay(math.min(8, handshakeRetries), function()
+					refresh()
+				end)
+				return
 			else
 				model.status, model.reason = "conflict", "HANDSHAKE_FAILED"
 			end
@@ -683,6 +748,7 @@ function M.start(options: Options)
 		sheet.scroll.CanvasPosition = Vector2.zero
 		render()
 	end
+	local tabs: { [string]: TextButton } = {}
 	for index, key in { "bag", "craft", "build" } do
 		local tab = Components.button(theme, {
 			text = t(key),
@@ -695,6 +761,7 @@ function M.start(options: Options)
 		})
 		tab.Name = "Tab-" .. key
 		fitText(tab)
+		tabs[key] = tab
 	end
 	local restButton = Components.button(theme, {
 		text = t("rest"),
@@ -749,8 +816,8 @@ function M.start(options: Options)
 		local width = if portrait
 			then math.max(MIN_STACK_WIDTH, math.floor(size.X - chatRight - 12))
 			else math.min(320, math.floor(size.X * 0.45))
-		local sheetWidth, sheetHeight, top = Model.sheetBounds(size.X, size.Y)
-		sheet.frame.Position = UDim2.new(1, 0, 0, top)
+		local sheetWidth, sheetHeight, top, right = Model.sheetBounds(size.X, size.Y, if portrait then nil else width)
+		sheet.frame.Position = UDim2.new(1, -right, 0, top)
 		sheet.frame.Size = UDim2.fromOffset(sheetWidth, sheetHeight)
 		vitals.AnchorPoint, status.AnchorPoint, toolbar.AnchorPoint, restButton.AnchorPoint =
 			Vector2.new(1, 0), Vector2.new(1, 0), Vector2.new(1, 0), Vector2.new(1, 0)
@@ -844,6 +911,11 @@ function M.start(options: Options)
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function()
+			-- Key hints follow the live input mode (t drops them on touch-only devices).
+			for key, tab in tabs do
+				tab.Text = t(key)
+			end
+			restButton.Text, attackButton.Text = t("rest"), t("attack")
 			attackButton.Visible = model.durable ~= nil
 				and table.find(model.durable.actions, "survival-coop:attack") ~= nil
 			for item, verb in { [restButton] = "rest", [attackButton] = "attack" } do
@@ -887,6 +959,20 @@ function M.start(options: Options)
 	resize()
 	render()
 	refresh()
-	return { destroy = destroy, open = open, gui = gui }
+	return {
+		destroy = destroy,
+		open = open,
+		gui = gui,
+		-- Closes the open sheet; a pack calls this when an extension panel takes the screen.
+		close = function()
+			section = ""
+			sheet.frame.Visible = false
+		end,
+		isOpen = function(): boolean
+			return sheet.frame.Visible
+		end,
+		-- Fires when the HUD sheet shows or hides, so a pack can close extension panels.
+		opened = sheet.frame:GetPropertyChangedSignal("Visible"),
+	}
 end
 return M

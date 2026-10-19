@@ -65,7 +65,7 @@ local strings: { [string]: { string } } = {
 	reserve = { "Reserve ingredients", "재료 예약" },
 	inputs = { "Ingredients (available / needed)", "재료 (사용 가능 / 필요)" },
 	outputs = { "Makes", "결과" },
-	station = { "Station", "작업대" },
+	station = { "Station", "제작 시설" },
 	tool = { "Tool", "도구" },
 	hand = { "By hand", "손으로 제작" },
 	start = { "Start", "시작" },
@@ -116,9 +116,32 @@ local strings: { [string]: { string } } = {
 		"Gather more ingredients, or cancel another reservation.",
 		"재료를 더 채집하거나 다른 예약을 취소하세요.",
 	},
+	MISSING_INPUTS = {
+		"Not enough free materials. Gather more, or cancel a reserved job to free them.",
+		"쓸 수 있는 재료가 모자라요. 더 채집하거나 예약한 작업을 취소해 재료를 풀어 주세요.",
+	},
+	-- Inventory/Transaction refuse a cost they cannot cover with "UNAVAILABLE" (a live
+	-- campfire reserve with 3 of 4 wood in the warehouse read "refresh and retry").
+	UNAVAILABLE = {
+		"The camp warehouse lacks the materials. Store more from your bag, then reserve again.",
+		"공용 창고에 재료가 모자라요. 가방에서 재료를 더 보관한 뒤 다시 예약하세요.",
+	},
+	-- The server checks the actor can reach the preview's entry tile (the small marker).
+	PLACEMENT_UNREACHABLE = {
+		"Walk up to the build preview's entry marker, then try again.",
+		"건설 미리보기의 입구 표시 가까이 가서 다시 시도하세요.",
+	},
+	ITEM_RESERVED = {
+		"That item is held by a reserved job. Cancel the job first.",
+		"예약한 작업이 쓰고 있는 물건이에요. 먼저 그 작업을 취소하세요.",
+	},
+	UNKNOWN_RECIPE = {
+		"That recipe is not available here.",
+		"여기서는 만들 수 없는 레시피예요.",
+	},
 	STATION_UNAVAILABLE = {
 		"Move closer to the required station, then reserve again.",
-		"필요한 작업대 가까이 이동한 뒤 다시 예약하세요.",
+		"필요한 제작 시설(모닥불·작업대 등) 가까이 이동한 뒤 다시 예약하세요.",
 	},
 	CAMPFIRE_UNREACHABLE = {
 		"Move closer to a campfire to rest.",

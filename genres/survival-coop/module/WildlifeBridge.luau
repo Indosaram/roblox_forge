@@ -85,6 +85,19 @@ function M.new(config: { resolve: (string) -> any })
 		end)
 		return result.data, result.error
 	end
-	return bridge
+	--- Server-only (tame capture): takes a creature out of the world under the same source lock
+	--- as combat. Returns a transient reason when it must be retried. Returned separately so the
+	--- published Session port keeps exactly the validated handles/command/recover/snapshot shape.
+	local function capture(actor: string, wildId: string, captureId: string, untilMillis: number): string?
+		local runtime = config.resolve(actor)
+		if not runtime then
+			return "WILDLIFE_UNAVAILABLE"
+		end
+		local result = locked(runtime, function()
+			return { reason = runtime.capture(wildId, captureId, untilMillis) }
+		end)
+		return result.reason
+	end
+	return bridge, capture
 end
 return M

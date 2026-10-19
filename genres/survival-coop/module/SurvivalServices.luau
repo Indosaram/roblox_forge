@@ -61,6 +61,9 @@ function M.new(config: Config, backend: ProfileStore.Backend, options: Fenced.Op
 		local id = config.tribeFor(actor)
 		return if id then owners[id] else nil
 	end
+	-- A runtime is minted per call; this server-lifetime memo of grants seen FINALIZED keeps the
+	-- heartbeat recovery sweep from re-advancing finished transfers on every tick.
+	local finalized: { [string]: boolean } = {}
 	local function transfer(actor: string): Transfer.Runtime?
 		local session = active
 		local tribe = resolve(actor)
@@ -82,6 +85,7 @@ function M.new(config: Config, backend: ProfileStore.Backend, options: Fenced.Op
 			catalog = entry.catalog,
 			now = entry.now,
 			maxReceipts = config.maxReceipts,
+			finalized = finalized,
 		})
 	end
 	local settlement = SettlementBridge.new({

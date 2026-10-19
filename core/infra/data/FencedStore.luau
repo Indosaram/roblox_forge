@@ -162,7 +162,18 @@ function FencedStore._commit(
 		local nextRevision = if old then old.revision + 1 else 1
 		local data = transform(clone(if old then old.data else {}))
 		assert(type(data) == "table", "transform must return aggregate data")
-		if mode == "update" and old ~= nil and self._opts.suppressIdentityUpdates and deepEqual(data, old.data) then
+		if
+			mode == "update"
+			and old ~= nil
+			and self._opts.suppressIdentityUpdates
+			and deepEqual(data, old.data)
+			-- Only while the lease is healthy: an identity update is also how a quiet owner keeps its
+			-- lease alive, so skipping it near expiry let the lease lapse (Studio: "lease lost" after
+			-- exactly leaseSeconds of play).
+			and old.lease ~= nil
+			and old.lease.sessionId == self._opts.sessionId
+			and now + self._opts.leaseSeconds / 2 <= old.lease.expiresAt
+		then
 			-- Identity transform: nothing changed, so there is nothing to publish.
 			-- Acknowledge without a CAS candidate (the backend still performed its
 			-- read; skipping the write keeps studio-local loopback under the

@@ -185,6 +185,38 @@ assert(m.Value~='','movement event timeout');local value=game:GetService('HttpSe
   // committed result the server publishes on ForgeState.
   const shape=await execute(id,'Client',`${pathCode(step.target)}
 assert(target:IsA('ProximityPrompt'),'prompt required');local value={specNode=target.Parent:IsA('BasePart'),control=target.Name,nodeId=target.Parent:GetAttribute('ForgeNodeId')}`);
+  // A player who walks up to a node looks at it before pressing E, and the engine's
+  // own prompt relevance test is a line-of-sight ray from the camera, so the step
+  // aims the camera at the node first and restores it afterwards. The camera stands
+  // where a player's camera stands - behind the character on the side it walked in
+  // from, one shoulder off the axis - so the node's own prop can never sit between
+  // the camera and the character: aimed from beyond the node, the node's sign and
+  // board covered the character and most of the scene in every thin-genre capture.
+  const aimCamera=async()=>{
+  await execute(id,'Client',`local p=game:GetService('Players').LocalPlayer
+local root=p.Character and p.Character:FindFirstChild('HumanoidRootPart');assert(root,'root missing')
+local target=game;for part in string.gmatch(${quote(step.target)},'[^.]+') do target=target:FindFirstChild(part);assert(target,'prompt missing') end
+local camera=workspace.CurrentCamera
+p:SetAttribute('ForgeQACameraType',camera.CameraType.Name)
+camera.CameraType=Enum.CameraType.Scriptable
+-- A gather prompt sits on an Attachment, whose Position is local to its node; use the world point.
+local at=if target.Parent:IsA('Attachment') then target.Parent.WorldPosition else target.Parent.Position
+local approach=Vector3.new(at.X-root.Position.X,0,at.Z-root.Position.Z)
+local unit=if approach.Magnitude>1e-3 then approach.Unit else Vector3.new(0,0,-1)
+local right=Vector3.new(-unit.Z,0,unit.X)
+local eye=root.Position-unit*11+right*4+Vector3.new(0,6,0)
+camera.CFrame=CFrame.lookAt(eye,at+Vector3.new(0,1.5,0))
+root.CFrame=CFrame.lookAt(root.Position,Vector3.new(at.X,root.Position.Y,at.Z))
+local value={aimed=true}`);
+  };
+  const restoreCamera=async()=>{
+    try {
+      await execute(id,'Client',`local p=game:GetService('Players').LocalPlayer
+local name=p:GetAttribute('ForgeQACameraType')
+if name then p:SetAttribute('ForgeQACameraType',nil);workspace.CurrentCamera.CameraType=Enum.CameraType[name] end
+local value={restored=name}`);
+    } catch {}
+  };
   if(shape.specNode===true) {
     if(shape.nodeId!==step.nodeId) throw new Error('prompt node mismatch: '+JSON.stringify(shape));
     const control=shape.control;
@@ -212,35 +244,7 @@ table.insert(connections,state.OnClientEvent:Connect(function(packet)
 end))
 proof.Destroying:Once(function() for _,connection in connections do connection:Disconnect() end end)
 local value={subscribed=true,control=${quote(control)}}`);
-    // A player who walks up to a node looks at it before pressing E, and the engine's
-    // own prompt relevance test is a line-of-sight ray from the camera, so the step
-    // aims the camera at the node first and restores it afterwards. The camera stands
-    // where a player's camera stands - behind the character on the side it walked in
-    // from, one shoulder off the axis - so the node's own prop can never sit between
-    // the camera and the character: aimed from beyond the node, the node's sign and
-    // board covered the character and most of the scene in every thin-genre capture.
-    await execute(id,'Client',`local p=game:GetService('Players').LocalPlayer
-local root=p.Character and p.Character:FindFirstChild('HumanoidRootPart');assert(root,'root missing')
-local target=game;for part in string.gmatch(${quote(step.target)},'[^.]+') do target=target:FindFirstChild(part);assert(target,'prompt missing') end
-local camera=workspace.CurrentCamera
-p:SetAttribute('ForgeQACameraType',camera.CameraType.Name)
-camera.CameraType=Enum.CameraType.Scriptable
-local at=target.Parent.Position
-local approach=Vector3.new(at.X-root.Position.X,0,at.Z-root.Position.Z)
-local unit=if approach.Magnitude>1e-3 then approach.Unit else Vector3.new(0,0,-1)
-local right=Vector3.new(-unit.Z,0,unit.X)
-local eye=root.Position-unit*11+right*4+Vector3.new(0,6,0)
-camera.CFrame=CFrame.lookAt(eye,at+Vector3.new(0,1.5,0))
-root.CFrame=CFrame.lookAt(root.Position,Vector3.new(at.X,root.Position.Y,at.Z))
-local value={aimed=true}`);
-    const restoreCamera=async()=>{
-      try {
-        await execute(id,'Client',`local p=game:GetService('Players').LocalPlayer
-local name=p:GetAttribute('ForgeQACameraType')
-if name then p:SetAttribute('ForgeQACameraType',nil);workspace.CurrentCamera.CameraType=Enum.CameraType[name] end
-local value={restored=name}`);
-      } catch {}
-    };
+    await aimCamera();
     const promptDiagnostics=async() => {
       try {
         const value=await execute(id,'Client',`local p=game:GetService('Players').LocalPlayer
@@ -337,6 +341,11 @@ end)()
 ForgeQACorrelation.install({input=game:GetService('UserInputService'),prompt=game:GetService('ProximityPromptService'),keyE=Enum.KeyCode.E,now=function() return workspace:GetServerTimeNow() end,encode=function(value) return game:GetService('HttpService'):JSONEncode(value) end},m,target,${quote(step.nodeId)},relay,requested,connections)
 m.Destroying:Once(function() for _,c in connections do c:Disconnect() end end)
 local value={subscribed=true}`);
+    // Neighbouring nodes share the E key (the landing's fallen tree and flint outcrop are 10 studs apart,
+    // both inside the 8-stud range from the walk's arrival), and the engine gives the key to the prompt
+    // nearest the camera's view: with the camera left behind from the walk the press gathered the flint
+    // (tutorial QA, step 72). Look at this node first, as a player does, so the press goes to it.
+    await aimCamera();
     let requestId;
     // settledRefusal: the last correlated result ended the client's request (a refusal that
     // decided against the frozen payload, or an expired epoch), so the next activation
@@ -368,7 +377,7 @@ if char then
  local losParams=RaycastParams.new(); losParams.FilterType=Enum.RaycastFilterType.Exclude; losParams.FilterDescendantsInstances={p.Character,target}
  lineOfSightRaycast=workspace:Raycast(head.Position, target.Parent.WorldPosition-head.Position, losParams)==nil
 end
-local value={why=${quote(why)},input=m and m:GetAttribute('Input'),triggered=m and m:GetAttribute('Triggered'),packets=m and m:GetAttribute('Packets'),relevant=m and m:GetAttribute('Relevant'),marker=m and m.Value,enabled=target.Enabled,lineOfSight=target.RequiresLineOfSight,lineOfSightRaycast=lineOfSightRaycast,lineOfSightRaycastKind='inferred-raycast',policyReady=m and m:GetAttribute('PolicyReady'),requestIdLog=m and m:GetAttribute('RequestIdLog'),packetIdLog=m and m:GetAttribute('PacketIdLog'),holdDuration=target.HoldDuration,maxDistance=target.MaxActivationDistance,serviceEnabled=game:GetService('ProximityPromptService').Enabled,distance=char and (target.Parent.WorldPosition-char.Position).Magnitude,blockedBy=blocked,blockedKind=blockedKind}`);
+local value={why=${quote(why)},input=m and m:GetAttribute('Input'),triggered=m and m:GetAttribute('Triggered'),packets=m and m:GetAttribute('Packets'),relevant=m and m:GetAttribute('Relevant'),marker=m and m.Value,enabled=target.Enabled,lineOfSight=target.RequiresLineOfSight,lineOfSightRaycast=lineOfSightRaycast,lineOfSightRaycastKind='inferred-raycast',policyReady=m and m:GetAttribute('PolicyReady'),requestIdLog=m and m:GetAttribute('RequestIdLog'),packetIdLog=m and m:GetAttribute('PacketIdLog'),requestedInstances=(function() local n=0;for _,c in p:GetChildren() do if c.Name=='ForgeGatherRequested' then n+=1 end end;return n end)(),holdDuration=target.HoldDuration,maxDistance=target.MaxActivationDistance,serviceEnabled=game:GetService('ProximityPromptService').Enabled,distance=char and (target.Parent.WorldPosition-char.Position).Magnitude,blockedBy=blocked,blockedKind=blockedKind}`);
         return JSON.stringify(state);
       } catch(error) { return 'diagnostic failed: '+String(error && error.message); }
     };
@@ -431,5 +440,5 @@ end`);
     if(waitDiagnostics!==null) throw new Error('gather result wait failed ['+waitDiagnostics+']');
     if(lastRefused) throw new Error('unexpected terminal gather result: '+JSON.stringify(lastRefused));
     throw new Error('terminal gather result missing');
-  } finally { try { await key('keyUp','E'); } finally { await cleanup(); } }
+  } finally { try { await key('keyUp','E'); } finally { try { await cleanup(); } finally { await restoreCamera(); } } }
 }

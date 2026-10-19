@@ -37,6 +37,8 @@ function M.new(config: Config)
 		if not request or revision == nil then
 			return { ok = false, reason = err or "INVALID_TRANSFER_REQUEST" }
 		end
+		-- A player command settles in the same call; only an interrupted phase is
+		-- left to recover(), and a resend of a finished request replays confirmed.
 		local result = runtime.command(
 			request,
 			revision,
@@ -46,7 +48,8 @@ function M.new(config: Config)
 				then function(): boolean
 					return admit().ok
 				end
-				else nil
+				else nil,
+			true
 		)
 		return {
 			ok = result.status == "confirmed",

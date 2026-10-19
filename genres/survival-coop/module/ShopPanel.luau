@@ -5,8 +5,9 @@
 -- Strings mirror games/robango-island/locale/strings.csv keys (shop_*).
 local M = {}
 
-local PROMPT = "shop-prompt"
-local SYNC = "shop-sync"
+-- Durable ids are namespaced: the server's action list carries "survival-coop:<id>".
+local PROMPT = "survival-coop:shop-prompt"
+local SYNC = "survival-coop:shop-sync"
 
 local strings: { [string]: { string } } = {
 	shop_title = { "Shop", "상점" },
@@ -59,45 +60,92 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		title = M.text(ctx.locale, "shop_title"),
 		parent = gui,
 	})
-	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.content })
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	sheet.frame.Visible = true
+	if ctx.fitSheet then
+		ctx.fitSheet(sheet.frame)
+	end
+	sheet.close.Activated:Connect(function()
+		gui.Enabled = false
+	end)
+	if ctx.dock then
+		ctx.dock({
+			id = "shop",
+			label = M.text(ctx.locale, "shop_title"),
+			order = 6,
+			setOpen = function(open: boolean)
+				gui.Enabled = open
+			end,
+			isOpen = function()
+				return gui.Enabled
+			end,
+		})
+	end
+	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.scroll })
 	status.Name = "ShopStatus"
 	local rows = Instance.new("Frame")
-	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent = "ShopRows", 1, UDim2.fromScale(1, 0), sheet.content
+	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent = "ShopRows", 1, UDim2.fromScale(1, 0), sheet.scroll
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
+	-- Rows are kept and updated in place. Rebuilding them on every snapshot replaced the Buy
+	-- button between a player's press and release (snapshots arrive several times a second),
+	-- so a tap could land on a destroyed button and nothing happened (live Studio capture).
+	local built: { [string]: { line: Frame, label: TextLabel, button: TextButton, row: any } } = {}
 	local function render(snapshot: { [string]: any })
-		for _, child in rows:GetChildren() do
-			if child:IsA("Frame") then
-				child:Destroy()
-			end
-		end
 		local shop = snapshot.monetization
 		if type(shop) ~= "table" then
 			return
 		end
+		local seen: { [string]: boolean } = {}
 		for index, row in shop.catalog do
-			local line = Instance.new("Frame")
-			line.Name, line.BackgroundTransparency, line.Size = "Row" .. index, 1, UDim2.new(1, 0, 0, 48)
-			line.LayoutOrder, line.Parent = index, rows
-			ui.components.label(theme, {
-				text = row.name .. "  " .. M.text(ctx.locale, "shop_price", row.price),
-				size = UDim2.fromScale(0.62, 1),
-				parent = line,
-			})
-			ui.components.button(theme, {
-				text = M.text(ctx.locale, if row.owned then "shop_owned" else "shop_buy"),
-				size = UDim2.fromScale(0.36, 1),
-				position = UDim2.fromScale(0.64, 0),
-				parent = line,
-				onClick = function()
-					if row.owned then
-						return
-					end
-					local result = ctx.send(PROMPT, { row.key })
-					status.Text = if result.ok then "" else M.refusal(ctx.locale, result.reason)
-				end,
-			})
+			seen[row.key] = true
+			local entry = built[row.key]
+			if entry == nil then
+				local line = Instance.new("Frame")
+				line.Name, line.BackgroundTransparency, line.Size = "Row" .. index, 1, UDim2.new(1, 0, 0, 48)
+				line.Parent = rows
+				local label = ui.components.label(theme, {
+					text = "",
+					size = UDim2.fromScale(0.62, 1),
+					parent = line,
+				})
+				local created: any = nil
+				local button = ui.components.button(theme, {
+					text = "",
+					size = UDim2.fromScale(0.36, 1),
+					position = UDim2.fromScale(0.64, 0),
+					parent = line,
+					onClick = function()
+						local current = created.row
+						if current.owned then
+							return
+						end
+						local result = ctx.send(PROMPT, { current.key })
+						status.Text = if result.ok then "" else M.refusal(ctx.locale, result.reason)
+					end,
+				})
+				button.Name = "Buy-" .. row.key
+				created = { line = line, label = label, button = button, row = row }
+				entry = created
+				built[row.key] = created
+			end
+			local current = assert(entry, "shop row")
+			current.row = row
+			current.line.LayoutOrder = index
+			-- A pack can localize listing names by key ("shop:<key>"); the catalog name is the fallback.
+			current.label.Text = (
+				if ctx.names and ctx.names["shop:" .. row.key] then ctx.names["shop:" .. row.key] else row.name
+			)
+				.. "  "
+				.. M.text(ctx.locale, "shop_price", row.price)
+			current.button.Text = M.text(ctx.locale, if row.owned then "shop_owned" else "shop_buy")
+		end
+		for key, entry in built do
+			if not seen[key] then
+				entry.line:Destroy()
+				built[key] = nil
+			end
 		end
 	end
 	local unsubscribe = ctx.onSnapshot(render)

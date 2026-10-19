@@ -11,6 +11,7 @@ local Fenced = require("../../../core/infra/data/FencedStore")
 local Wildlife = require("./Wildlife")
 local WildlifeWorld = require("./WildlifeWorld")
 local DinosaurRig = require("./DinosaurRig")
+local MountVisual = require("./MountVisual")
 local Archetype = require("../../../core/domain/survival/Archetype")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local M = {}
@@ -132,7 +133,15 @@ function M.new(config: Config)
 		end
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
-		params.FilterDescendantsInstances = { from.Parent :: Instance }
+		-- Characters are not walls: a tribemate standing in front of the warehouse or a station must
+		-- not revoke another player's reach (Studio co-op QA caught exactly that refusal).
+		local ignored: { Instance } = { from.Parent :: Instance }
+		for _, other in players:GetPlayers() do
+			if other.Character and other.Character ~= from.Parent then
+				table.insert(ignored, other.Character)
+			end
+		end
+		params.FilterDescendantsInstances = ignored
 		params.RespectCanCollide = true
 		local hit = world:Raycast(from.Position, delta, params)
 		return hit == nil or (instance ~= nil and (hit.Instance == instance or hit.Instance:IsDescendantOf(instance)))
@@ -207,8 +216,19 @@ function M.new(config: Config)
 				end
 				local params = RaycastParams.new()
 				params.FilterType = Enum.RaycastFilterType.Exclude
+				-- Characters never block a plot: they walk away, and a tribemate standing near the camp
+				-- (Studio co-op QA: the guest by the warehouse, on the entry cell) must not refuse a build.
+				local characters: { Instance } = {}
+				for _, other in players:GetPlayers() do
+					if other.Character then
+						table.insert(characters, other.Character)
+					end
+				end
 				local actorRoot = root(actor)
-				params.FilterDescendantsInstances = if actorRoot then { actorRoot.Parent :: Instance } else {}
+				if actorRoot and not table.find(characters, actorRoot.Parent :: Instance) then
+					table.insert(characters, actorRoot.Parent :: Instance)
+				end
+				params.FilterDescendantsInstances = characters
 				params.RespectCanCollide = true
 				local cells = table.clone(placement.cells)
 				table.insert(cells, placement.entry)
@@ -285,6 +305,77 @@ function M.new(config: Config)
 	end
 	local wildlife: any = nil
 	local wildlifeFolder: Folder? = nil
+	-- Visible mounts: one dressed wildlife rig per rider, welded under the character (server-made,
+	-- so it replicates to every client). Driven only by the taming snapshot's ride species.
+	local mounts: { [string]: { species: string, model: Model, humanoid: Humanoid, hip: number } } = {}
+	local function detachMount(id: string)
+		local mount = mounts[id]
+		if not mount then
+			return
+		end
+		mounts[id] = nil
+		if mount.humanoid.Parent then
+			mount.humanoid.HipHeight = mount.hip
+		end
+		mount.model:Destroy()
+	end
+	local function attachMount(id: string, species: string)
+		local actor = player(id)
+		local character = if actor then actor.Character else nil
+		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+		local rider = root(id)
+		if not character or not humanoid or not rider then
+			return
+		end
+		local engine = "grazer"
+		for _, entry in (config.content.wildlife or {}) :: { any } do
+			if entry.id == species then
+				engine = Archetype.engine(entry.behavior) or engine
+			end
+		end
+		local model = MountVisual.dress(DinosaurRig.new(engine, MountVisual.MODEL_NAME, rider.Position, character))
+		local body = model:FindFirstChild("MountRoot") :: BasePart
+		body.CFrame = rider.CFrame * CFrame.new(0, MountVisual.SEAT.offsetStuds, 0)
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0, weld.Part1, weld.Parent = rider, body, body
+		model:SetAttribute("ForgeMountSpecies", species)
+		mounts[id] = { species = species, model = model, humanoid = humanoid, hip = humanoid.HipHeight }
+		humanoid.HipHeight += MountVisual.SEAT.liftStuds
+	end
+	local function syncMounts(active: Session.Session, members: { string })
+		local wanted: { [string]: string } = {}
+		local attached: { [string]: string } = {}
+		for id, mount in mounts do
+			local actor = player(id)
+			-- A respawned character (death) or a departed player drops the old body with it.
+			if not actor or not mount.model:IsDescendantOf(world) or mount.model.Parent ~= actor.Character then
+				detachMount(id)
+			else
+				attached[id] = mount.species
+			end
+		end
+		for _, id in members do
+			local state = snapshot(id)
+			if busy[id] or not state or not state.vitals or state.vitals.healthMilli <= 0 then
+				if busy[id] and attached[id] then
+					wanted[id] = attached[id]
+				end
+				continue
+			end
+			local shared = active.snapshot(id).survivalExtensions
+			local species = MountVisual.species(if type(shared) == "table" then shared.taming else nil)
+			if species then
+				wanted[id] = species
+			end
+		end
+		local plan = MountVisual.plan(wanted, attached)
+		for _, id in plan.detach do
+			detachMount(id)
+		end
+		for _, entry in plan.attach do
+			attachMount(entry.actor, entry.species)
+		end
+	end
 	local pathObserved: BindableEvent? = nil
 	local capacityQA: Folder? = nil
 	function api.publishCapacityLimits(limits: any)
@@ -552,9 +643,14 @@ function M.new(config: Config)
 		-- before projecting vitals so undelivered damage cannot be overwritten.
 		local health = humanoid.Health
 		local previous = observed[humanoid]
-		observed[humanoid] = health
-		if previous and health < previous then
-			enqueue(id, "vitals-damage", { math.clamp(math.floor((previous - health) * 1000 + 0.5), 0, 100000) })
+		if previous == nil then
+			observed[humanoid] = health
+		elseif health < previous then
+			observed[humanoid] = health
+			local damage = math.clamp(math.floor((previous - health) * 1000 + 0.5), 0, 100000)
+			if damage > 0 then
+				enqueue(id, "vitals-damage", { damage })
+			end
 		end
 	end
 	local function loadCharacter(actor: Player): boolean
@@ -732,6 +828,7 @@ function M.new(config: Config)
 						end
 					end
 				end
+				syncMounts(active, members)
 			end)
 		)
 	end
@@ -762,6 +859,9 @@ function M.new(config: Config)
 		return result
 	end
 	function api.destroy()
+		for id in mounts do
+			detachMount(id)
+		end
 		if capacityQA then
 			capacityQA:Destroy()
 			capacityQA = nil

@@ -117,6 +117,22 @@ end
 assert(first.ok, "initial actual Session transfer: " .. tostring(first.reason))
 local savedResponse = encode(first)
 assert(session.command("1", request).ok, "same-epoch replay")
+-- A finished transfer stays granted until its request expires. The factory mints a fresh runtime per
+-- call, so only a factory-lifetime memo keeps the heartbeat sweep from re-advancing it every tick
+-- (live Studio co-op exhausted the HttpService quota that way). Quiet sweeps touch no record.
+do
+	local update = backend.update
+	local calls = 0
+	(backend :: any).update = function(...)
+		calls += 1
+		return update(...)
+	end
+	for _ = 1, 3 do
+		assert(factory.services.survivalTransfer.recover("1", 1), "quiet sweep")
+	end
+	(backend :: any).update = update
+	assert(calls == 0, "finished transfer re-advanced by recovery sweep: " .. calls .. " backend calls")
+end
 local function command(id: string, verb: string, values: { any })
 	local name = "survival-coop:settlement-" .. verb
 	local envelope = {

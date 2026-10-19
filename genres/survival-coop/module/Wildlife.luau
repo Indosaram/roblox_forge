@@ -35,7 +35,15 @@ export type State = {
 	provoker: string?,
 	-- Last clock at which the engagement made progress (new target, in strike range).
 	engagedAt: number?,
+	-- Durable capture window: while nowMillis < capturedUntil the creature is out of the world
+	-- (tamed by captureId); afterwards it is back at home. Set only by the wildlife owner.
+	capturedUntil: number?,
+	captureId: string?,
 }
+--- True while a durable capture keeps this creature out of the world.
+function M.captured(state: { capturedUntil: number? }, now: number): boolean
+	return state.capturedUntil ~= nil and now < state.capturedUntil
+end
 export type Observation = {
 	position: Position,
 	actors: { Actor },

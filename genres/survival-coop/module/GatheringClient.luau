@@ -1,7 +1,9 @@
 --!strict
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local M = {}
-export type Options = { onResult: ((any, any?) -> ())? }
+-- `locale` picks the action label (Korean on a "ko" prefix); `names` maps a node kind or catalog id
+-- to its display name, so prompts never show a raw id. Both are optional.
+export type Options = { onResult: ((any, any?) -> ())?, locale: string?, names: { [string]: string }? }
 local TAG = "ForgeSurvivalNode"
 local ACTION = "survival-coop:gather"
 
@@ -9,7 +11,14 @@ local function integer(value: any): boolean
 	return type(value) == "number" and value >= 0 and value <= 2 ^ 53 - 2 and value % 1 == 0
 end
 
+--- Gather action label for a locale (specced).
+function M.actionText(locale: string?): string
+	return if locale and string.sub(locale, 1, 2) == "ko" then "채집하기" else "Gather"
+end
+
 function M.start(options: Options?)
+	local actionText = M.actionText(options and options.locale)
+	local names: { [string]: string } = options and options.names or {}
 	local tags = game:GetService("CollectionService")
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
@@ -35,7 +44,7 @@ function M.start(options: Options?)
 	touchGui.Name, touchGui.ResetOnSpawn = "ForgeGatherTouch", false
 	touchGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	local touch = Instance.new("TextButton")
-	touch.Name, touch.Text, touch.Visible = "Gather", "Gather", false
+	touch.Name, touch.Text, touch.Visible = "Gather", actionText, false
 	touch.Size, touch.Position = UDim2.fromOffset(120, 52), UDim2.new(0.5, -60, 1, -120)
 	touch.Parent = touchGui
 	touchGui.Parent = player:WaitForChild("PlayerGui")
@@ -82,7 +91,7 @@ function M.start(options: Options?)
 			local id, kind = registered(part)
 			entry.prompt.Enabled = not disposed and id ~= nil and (pending[id] ~= nil or harvestable(part))
 			if kind then
-				entry.prompt.ObjectText = kind
+				entry.prompt.ObjectText = names[kind] or kind
 			end
 		end
 	end
@@ -197,7 +206,7 @@ function M.start(options: Options?)
 		anchor.Position = Vector3.new(0, instance.Size.Y / 2 + 1, 0)
 		anchor.Parent = instance
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name, prompt.ActionText = "ForgeGather", "Gather"
+		prompt.Name, prompt.ActionText = "ForgeGather", actionText
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.MaxActivationDistance, prompt.HoldDuration = 8, 0
 		prompt.RequiresLineOfSight, prompt.ClickablePrompt, prompt.Enabled = true, true, false

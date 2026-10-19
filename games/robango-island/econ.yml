@@ -63,8 +63,6 @@
          'Bramble Berry'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
         
@@ -83,10 +81,70 @@
          'Berry Mash'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'birch-bark'
+        'name':
+         'Birch Bark Curl'
+        'stackMax':
+         80
+        'tags':
+         - 
+          'fuel'
+         
+        'weightMilli':
+         150
+        
+       - 
+        'id':
+         'brick-floor-kit'
+        'name':
+         'Brick Floor Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         4500
+        
+       - 
+        'id':
+         'brick-roof-kit'
+        'name':
+         'Brick-and-Thatch Roof Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         5000
+        
+       - 
+        'id':
+         'brick-wall-kit'
+        'name':
+         'Brick Wall Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         7000
         
        - 
         'id':
@@ -95,10 +153,98 @@
          'Hearth Bundle'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          2000
+         'healthMilli':
+          0
+         'hungerMilli':
+          14000
+         
+        'id':
+         'cattail-flatbread'
+        'name':
+         'Cattail Flatbread'
+        'stackMax':
+         30
+        'weightMilli':
+         300
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          4000
+         
+        'id':
+         'cattail-root'
+        'name':
+         'Cattail Rhizome'
+        'stackMax':
+         40
+        'weightMilli':
+         300
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          1000
+         'hungerMilli':
+          2000
+         
+        'id':
+         'chanterelle'
+        'name':
+         'Golden Chanterelle'
+        'stackMax':
+         40
+        'weightMilli':
+         150
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          3000
+         
+        'id':
+         'clam'
+        'name':
+         'Mud Clam'
+        'stackMax':
+         40
+        'weightMilli':
+         250
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          4000
+         'hungerMilli':
+          22000
+         
+        'id':
+         'clam-bake'
+        'name':
+         'Clam Bake'
+        'stackMax':
+         20
+        'weightMilli':
+         400
         
        - 
         'foodEffects':
@@ -115,8 +261,6 @@
          'Ember-roast Meat'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
         
@@ -127,8 +271,6 @@
          'Twisted Cord'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
         
@@ -139,10 +281,22 @@
          'Bracken Fiber'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'fieldstone'
+        'name':
+         'Fieldstone'
+        'stackMax':
+         30
+        'tags':
+         - 
+          'material-stone'
+         
+        'weightMilli':
+         1500
         
        - 
         'id':
@@ -151,10 +305,26 @@
          'Knapping Flint'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'flint-knife'
+        'maxDurabilityMilli':
+         60000
+        'name':
+         'Flint Knife'
+        'stackMax':
+         1
+        'tags':
+         - 
+          'cutting'
+         - 
+          'tool'
+         
+        'weightMilli':
+         600
         
        - 
         'id':
@@ -163,10 +333,50 @@
          'Plank Floor Kit'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          3000
+         
+        'id':
+         'hazelnut'
+        'name':
+         'Hazelnut'
+        'stackMax':
+         60
+        'weightMilli':
+         100
+        
+       - 
+        'id':
+         'hide'
+        'name':
+         'Tough Hide'
+        'stackMax':
+         20
+        'weightMilli':
+         800
+        
+       - 
+        'id':
+         'marsh-clay'
+        'name':
+         'Saltmarsh Clay'
+        'stackMax':
+         30
+        'tags':
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         1200
         
        - 
         'id':
@@ -175,10 +385,22 @@
          'Raw Game Meat'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'mud-brick'
+        'name':
+         'Fired Mud Brick'
+        'stackMax':
+         20
+        'tags':
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         1500
         
        - 
         'id':
@@ -187,10 +409,36 @@
          'Split Plank'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'reed'
+        'name':
+         'Common Reed Stalk'
+        'stackMax':
+         80
+        'weightMilli':
+         200
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          2000
+         'hungerMilli':
+          12000
+         
+        'id':
+         'roasted-hazelnuts'
+        'name':
+         'Roasted Hazelnuts'
+        'stackMax':
+         30
+        'weightMilli':
+         200
         
        - 
         'id':
@@ -199,10 +447,36 @@
          'Plank Roof Kit'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          0
+         'hungerMilli':
+          2000
+         
+        'id':
+         'samphire'
+        'name':
+         'Glasswort Sprig'
+        'stackMax':
+         60
+        'weightMilli':
+         100
+        
+       - 
+        'id':
+         'shell-fragment'
+        'name':
+         'Shell Shard'
+        'stackMax':
+         80
+        'weightMilli':
+         100
         
        - 
         'id':
@@ -238,6 +512,54 @@
         
        - 
         'id':
+         'stone-block'
+        'name':
+         'Dressed Stone Block'
+        'stackMax':
+         10
+        'tags':
+         - 
+          'material-stone'
+         
+        'weightMilli':
+         3000
+        
+       - 
+        'id':
+         'stone-floor-kit'
+        'name':
+         'Stone Floor Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-stone'
+         
+        'weightMilli':
+         6000
+        
+       - 
+        'id':
+         'stone-maul'
+        'maxDurabilityMilli':
+         140000
+        'name':
+         'Stone Maul'
+        'stackMax':
+         1
+        'tags':
+         - 
+          'masonry'
+         - 
+          'tool'
+         
+        'weightMilli':
+         3500
+        
+       - 
+        'id':
          'stone-pick'
         'maxDurabilityMilli':
          100000
@@ -254,15 +576,89 @@
         
        - 
         'id':
+         'stone-roof-kit'
+        'name':
+         'Stone Roof Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-stone'
+         
+        'weightMilli':
+         8000
+        
+       - 
+        'id':
+         'stone-wall-kit'
+        'name':
+         'Stone Wall Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-stone'
+         
+        'weightMilli':
+         9000
+        
+       - 
+        'id':
          'storage-kit'
         'name':
          'Crate Bundle'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'id':
+         'thatch-bundle'
+        'name':
+         'Thatch Bundle'
+        'stackMax':
+         20
+        'tags':
+         - 
+          'material-brick'
+         
+        'weightMilli':
+         800
+        
+       - 
+        'id':
+         'timber-beam'
+        'name':
+         'Timber Beam'
+        'stackMax':
+         10
+        'tags':
+         - 
+          'material-timber'
+         
+        'weightMilli':
+         2500
+        
+       - 
+        'id':
+         'timber-wall-kit'
+        'name':
+         'Timber Wall Kit'
+        'stackMax':
+         5
+        'tags':
+         - 
+          'building-part'
+         - 
+          'material-timber'
+         
+        'weightMilli':
+         5000
         
        - 
         'id':
@@ -271,10 +667,26 @@
          'Windfall Log'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
+        
+       - 
+        'foodEffects':
+         'fatigueMilli':
+          0
+         'healthMilli':
+          5000
+         'hungerMilli':
+          25000
+         
+        'id':
+         'woodland-skewer'
+        'name':
+         'Woodland Skewer'
+        'stackMax':
+         20
+        'weightMilli':
+         400
         
        - 
         'id':
@@ -283,12 +695,9 @@
          'Bench Bundle'
         'stackMax':
          50
-        'tags':
-         
         'weightMilli':
          500
         
-       
        - 
         'id':
          'capture-bola'
@@ -305,6 +714,7 @@
         'weightMilli':
          1500
         
+       
       'limits':
        'hardWeightMilli':
         90000
@@ -380,6 +790,246 @@
         'harvest':
          - 
           'item':
+           'birch-bark'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'wood'
+          'quantity':
+           1
+          
+         
+        'id':
+         'forest-birch-stand'
+        'respawnMillis':
+         150000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'fieldstone'
+          'quantity':
+           3
+          
+         
+        'id':
+         'forest-boulder-field'
+        'respawnMillis':
+         240000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'fiber'
+          'quantity':
+           3
+          
+         
+        'id':
+         'forest-bracken-bed'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'berry'
+          'quantity':
+           3
+          
+         
+        'id':
+         'forest-bramble-patch'
+        'respawnMillis':
+         150000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'chanterelle'
+          'quantity':
+           2
+          
+         
+        'id':
+         'forest-chanterelle-log'
+        'respawnMillis':
+         240000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'fieldstone'
+          'quantity':
+           1
+          
+         - 
+          'item':
+           'flint'
+          'quantity':
+           2
+          
+         
+        'id':
+         'forest-flint-scree'
+        'respawnMillis':
+         180000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'hazelnut'
+          'quantity':
+           3
+          
+         
+        'id':
+         'forest-hazel-thicket'
+        'respawnMillis':
+         180000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           3
+          
+         
+        'id':
+         'forest-oak-windfall'
+        'respawnMillis':
+         150000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'cattail-root'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'fiber'
+          'quantity':
+           1
+          
+         
+        'id':
+         'marsh-cattail-stand'
+        'respawnMillis':
+         180000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'clam'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'shell-fragment'
+          'quantity':
+           1
+          
+         
+        'id':
+         'marsh-clam-bed'
+        'respawnMillis':
+         240000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'marsh-clay'
+          'quantity':
+           3
+          
+         
+        'id':
+         'marsh-clay-bank'
+        'respawnMillis':
+         240000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'fiber'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'reed'
+          'quantity':
+           1
+          
+         
+        'id':
+         'marsh-cordgrass-tussock'
+        'respawnMillis':
+         150000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'wood'
+          'quantity':
+           2
+          
+         
+        'id':
+         'marsh-driftwood-line'
+        'respawnMillis':
+         180000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'reed'
+          'quantity':
+           3
+          
+         
+        'id':
+         'marsh-reed-bed'
+        'respawnMillis':
+         120000
+        
+       - 
+        'harvest':
+         - 
+          'item':
+           'samphire'
+          'quantity':
+           3
+          
+         
+        'id':
+         'marsh-samphire-flat'
+        'respawnMillis':
+         180000
+        
+       - 
+        'harvest':
+         - 
+          'item':
            'meat'
           'quantity':
            3
@@ -418,6 +1068,90 @@
         
        - 
         'craftMillis':
+         10000
+        'id':
+         'brick-floor-kit'
+        'inputs':
+         - 
+          'item':
+           'mud-brick'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'brick-floor-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
+         12000
+        'id':
+         'brick-roof-kit'
+        'inputs':
+         - 
+          'item':
+           'mud-brick'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'thatch-bundle'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'brick-roof-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
+         12000
+        'id':
+         'brick-wall-kit'
+        'inputs':
+         - 
+          'item':
+           'mud-brick'
+          'quantity':
+           4
+          
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'brick-wall-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
          3000
         'id':
          'campfire-kit'
@@ -437,6 +1171,60 @@
            1
           
          
+        
+       - 
+        'craftMillis':
+         5000
+        'id':
+         'cattail-flatbread'
+        'inputs':
+         - 
+          'item':
+           'cattail-root'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'cattail-flatbread'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
+        
+       - 
+        'craftMillis':
+         5000
+        'id':
+         'clam-bake'
+        'inputs':
+         - 
+          'item':
+           'clam'
+          'quantity':
+           3
+          
+         - 
+          'item':
+           'samphire'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'clam-bake'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
         
        - 
         'craftMillis':
@@ -486,6 +1274,34 @@
         
        - 
         'craftMillis':
+         4000
+        'id':
+         'flint-knife'
+        'inputs':
+         - 
+          'item':
+           'cord'
+          'quantity':
+           1
+          
+         - 
+          'item':
+           'flint'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'flint-knife'
+          'quantity':
+           1
+          
+         
+        
+       - 
+        'craftMillis':
          3000
         'id':
          'floor-kit'
@@ -510,6 +1326,36 @@
         
        - 
         'craftMillis':
+         10000
+        'id':
+         'mud-brick'
+        'inputs':
+         - 
+          'item':
+           'birch-bark'
+          'quantity':
+           1
+          
+         - 
+          'item':
+           'marsh-clay'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'mud-brick'
+          'quantity':
+           2
+          
+         
+        'station':
+         'mud-kiln'
+        
+       - 
+        'craftMillis':
          3000
         'id':
          'plank'
@@ -531,6 +1377,56 @@
          
         'station':
          'workbench'
+        
+       - 
+        'craftMillis':
+         4000
+        'id':
+         'rawhide-lashing'
+        'inputs':
+         - 
+          'item':
+           'hide'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'cord'
+          'quantity':
+           2
+          
+         
+        'requiredToolTag':
+         'cutting'
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         4000
+        'id':
+         'roasted-hazelnuts'
+        'inputs':
+         - 
+          'item':
+           'hazelnut'
+          'quantity':
+           4
+          
+         
+        'outputs':
+         - 
+          'item':
+           'roasted-hazelnuts'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
         
        - 
         'craftMillis':
@@ -602,6 +1498,92 @@
         
        - 
         'craftMillis':
+         8000
+        'id':
+         'stone-block'
+        'inputs':
+         - 
+          'item':
+           'fieldstone'
+          'quantity':
+           3
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-block'
+          'quantity':
+           1
+          
+         
+        'requiredToolTag':
+         'masonry'
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
+         10000
+        'id':
+         'stone-floor-kit'
+        'inputs':
+         - 
+          'item':
+           'stone-block'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-floor-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
+         6000
+        'id':
+         'stone-maul'
+        'inputs':
+         - 
+          'item':
+           'cord'
+          'quantity':
+           1
+          
+         - 
+          'item':
+           'fieldstone'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'wood'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-maul'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
          3000
         'id':
          'stone-pick'
@@ -621,6 +1603,66 @@
            1
           
          
+        
+       - 
+        'craftMillis':
+         12000
+        'id':
+         'stone-roof-kit'
+        'inputs':
+         - 
+          'item':
+           'stone-block'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-roof-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
+        
+       - 
+        'craftMillis':
+         12000
+        'id':
+         'stone-wall-kit'
+        'inputs':
+         - 
+          'item':
+           'stone-block'
+          'quantity':
+           3
+          
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'stone-wall-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'mason-bench'
         
        - 
         'craftMillis':
@@ -648,6 +1690,122 @@
         
        - 
         'craftMillis':
+         4000
+        'id':
+         'thatch-bundle'
+        'inputs':
+         - 
+          'item':
+           'reed'
+          'quantity':
+           4
+          
+         
+        'outputs':
+         - 
+          'item':
+           'thatch-bundle'
+          'quantity':
+           1
+          
+         
+        'station':
+         'workbench'
+        
+       - 
+        'craftMillis':
+         8000
+        'id':
+         'timber-beam'
+        'inputs':
+         - 
+          'item':
+           'cord'
+          'quantity':
+           1
+          
+         - 
+          'item':
+           'plank'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           1
+          
+         
+        'requiredToolTag':
+         'cutting'
+        'station':
+         'joiner-bench'
+        
+       - 
+        'craftMillis':
+         10000
+        'id':
+         'timber-wall-kit'
+        'inputs':
+         - 
+          'item':
+           'plank'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           2
+          
+         
+        'outputs':
+         - 
+          'item':
+           'timber-wall-kit'
+          'quantity':
+           1
+          
+         
+        'station':
+         'joiner-bench'
+        
+       - 
+        'craftMillis':
+         5000
+        'id':
+         'woodland-skewer'
+        'inputs':
+         - 
+          'item':
+           'chanterelle'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'meat'
+          'quantity':
+           1
+          
+         
+        'outputs':
+         - 
+          'item':
+           'woodland-skewer'
+          'quantity':
+           1
+          
+         
+        'station':
+         'campfire'
+        
+       - 
+        'craftMillis':
          3000
         'id':
          'workbench-kit'
@@ -668,7 +1826,6 @@
           
          
         
-       
        - 
         'craftMillis':
          3000
@@ -691,6 +1848,7 @@
           
          
         
+       
       'rules':
        'demolitionRefund':
         'full-storage-v1'
@@ -702,6 +1860,60 @@
         'avg-quality-v1'
        
       'structures':
+       - 
+        'cost':
+         - 
+          'item':
+           'brick-floor-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'brick-floor'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'brick-roof-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'brick-roof'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'brick-wall-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         1
+        'id':
+         'brick-wall'
+        'station':
+         false
+        
        - 
         'cost':
          - 
@@ -742,6 +1954,138 @@
         'cost':
          - 
           'item':
+           'cord'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'flint'
+          'quantity':
+           2
+          
+         - 
+          'item':
+           'plank'
+          'quantity':
+           4
+          
+         
+        'footprintX':
+         3
+        'footprintZ':
+         2
+        'id':
+         'joiner-bench'
+        'station':
+         true
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'fieldstone'
+          'quantity':
+           6
+          
+         - 
+          'item':
+           'timber-beam'
+          'quantity':
+           2
+          
+         
+        'footprintX':
+         3
+        'footprintZ':
+         2
+        'id':
+         'mason-bench'
+        'station':
+         true
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'marsh-clay'
+          'quantity':
+           6
+          
+         - 
+          'item':
+           'stone-block'
+          'quantity':
+           2
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'mud-kiln'
+        'station':
+         true
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'stone-floor-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'stone-floor'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'stone-roof-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'stone-roof'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'stone-wall-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         1
+        'id':
+         'stone-wall'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
            'wood'
           'quantity':
            4
@@ -753,6 +2097,42 @@
          2
         'id':
          'storage'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'roof-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         2
+        'id':
+         'timber-roof'
+        'station':
+         false
+        
+       - 
+        'cost':
+         - 
+          'item':
+           'timber-wall-kit'
+          'quantity':
+           1
+          
+         
+        'footprintX':
+         2
+        'footprintZ':
+         1
+        'id':
+         'timber-wall'
         'station':
          false
         
@@ -779,6 +2159,20 @@
        1
       'tags':
        - 
+        'building-part'
+       - 
+        'cutting'
+       - 
+        'fuel'
+       - 
+        'masonry'
+       - 
+        'material-brick'
+       - 
+        'material-stone'
+       - 
+        'material-timber'
+       - 
         'tool'
        
       'vitals':
@@ -795,12 +2189,64 @@
        
       'wildlife':
        - 
+        'attackStuds':
+         6
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         2600
+        'id':
+         'charger-mudbrow'
+        'leashStuds':
+         40
+        'telegraphMillis':
+         1300
+        'warnStuds':
+         14
+        
+       - 
+        'attackStuds':
+         6
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         2600
+        'id':
+         'charger-oakbrow'
+        'leashStuds':
+         44
+        'telegraphMillis':
+         1300
+        'warnStuds':
+         16
+        
+       - 
         'behavior':
          'grazer'
         'fleeStuds':
          24
         'id':
          'grazer'
+        'senseStuds':
+         12
+        
+       - 
+        'behavior':
+         'grazer'
+        'fleeStuds':
+         28
+        'id':
+         'herd-acorncrest'
+        'senseStuds':
+         14
+        
+       - 
+        'behavior':
+         'grazer'
+        'fleeStuds':
+         26
+        'id':
+         'herd-sedgewader'
         'senseStuds':
          12
         
@@ -819,6 +2265,122 @@
          1000
         'warnStuds':
          12
+        
+       - 
+        'attackStuds':
+         5
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         1800
+        'id':
+         'leaper-fernhop'
+        'leashStuds':
+         36
+        'telegraphMillis':
+         900
+        'warnStuds':
+         14
+        
+       - 
+        'attackStuds':
+         5
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         1800
+        'id':
+         'leaper-reedvault'
+        'leashStuds':
+         32
+        'telegraphMillis':
+         900
+        'warnStuds':
+         12
+        
+       - 
+        'attackStuds':
+         4
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         3000
+        'id':
+         'roarer-thicket'
+        'leashStuds':
+         48
+        'telegraphMillis':
+         1500
+        'warnStuds':
+         20
+        
+       - 
+        'attackStuds':
+         4
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         3000
+        'id':
+         'roarer-tidecall'
+        'leashStuds':
+         44
+        'telegraphMillis':
+         1500
+        'warnStuds':
+         18
+        
+       - 
+        'behavior':
+         'grazer'
+        'fleeStuds':
+         20
+        'id':
+         'scavenger-barkpicker'
+        'senseStuds':
+         10
+        
+       - 
+        'behavior':
+         'grazer'
+        'fleeStuds':
+         22
+        'id':
+         'scavenger-flotsam'
+        'senseStuds':
+         10
+        
+       - 
+        'attackStuds':
+         5
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         2400
+        'id':
+         'tailswing-mossback'
+        'leashStuds':
+         24
+        'telegraphMillis':
+         1100
+        'warnStuds':
+         8
+        
+       - 
+        'attackStuds':
+         5
+        'behavior':
+         'hunter'
+        'cooldownMillis':
+         2400
+        'id':
+         'tailswing-shellclub'
+        'leashStuds':
+         22
+        'telegraphMillis':
+         1100
+        'warnStuds':
+         8
         
        - 
         'behavior':

@@ -1,3 +1,11 @@
 environments:
-  staging: {universeId: 0, placeId: 0}
-  production: {universeId: 0, placeId: 0}
+  # Ids are `${VAR}` references resolved from the environment at deploy time, so
+  # no real experience or place id is committed. Fill them in .env.local (see
+  # .env.example).
+  staging:
+    universeId: ${FORGE_STAGING_UNIVERSE_ID}
+    placeId: ${FORGE_STAGING_PLACE_ID}
+  production:
+    universeId: ${FORGE_PRODUCTION_UNIVERSE_ID}
+    placeId: ${FORGE_PRODUCTION_PLACE_ID}
+    requiresHumanMerge: true

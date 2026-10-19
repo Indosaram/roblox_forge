@@ -28,6 +28,9 @@ export type Context = {
 	analytics: Events.Emitter?,
 	-- Live wildlife state by id (nil when absent or the pack has no wildlife source).
 	wildlife: ((string) -> { catalogId: string, healthMilli: number }?)?,
+	-- Durably takes a wild animal out of the world until untilMillis (tame capture), idempotent by
+	-- captureId; returns a transient reason to retry. nil when the pack has no wildlife owner.
+	captureWild: ((wildId: string, captureId: string, untilMillis: number) -> string?)?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?

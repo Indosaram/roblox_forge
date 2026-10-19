@@ -1,0 +1,76 @@
+# robango-island binding of genres/survival-coop/qa-scenarios/wildlife-spatial.yml (pack-local override,
+# resolved first by `forge qa run`). The robango development island keeps the same QA world facts:
+# grazer-01 home (-20,4,24), hunter-01 home (22,4,24), wildlife-approach-01 (-19,0.1,19), workbench (6,1,0),
+# campfire (-6,0.5,0), fallen-tree-01 (-20,2,14); spear = 3 wood (one fallen-tree gather), hunter drops 3 meat.
+name: wildlife-spatial
+genre: survival-coop
+pack: robango-island
+kind: studio
+contract_api: 1
+timeout_seconds: 900
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.grazer-01, home: [-20, 4, 24]}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.ForgeWildlife.grazer-01, field: ForgeWildlifeState, equals: flee}}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.workbench, withinStuds: 3, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.campfire, withinStuds: 2, timeout_seconds: 40}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.grazer-01, timeout_seconds: 25, observations: [{mode: flee, displacement: 1}, {mode: roam, outside: 24}]}
+  - {op: capture, target: observed-grazer-flee-roam-both-actors-outside, angles: 3}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.hunter-01, home: [22, 4, 24]}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 2, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.ForgeWildlife.hunter-01.HumanoidRootPart, withinStuds: 6, timeout_seconds: 40}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: attribute, target: Workspace.ForgeWildlife.hunter-01, field: ForgeWildlifeState, equals: chase}}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 3, timeout_seconds: 50}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.hunter-01, timeout_seconds: 40, observations: [{mode: warn}, {mode: chase, displacement: 1}, {mode: return, actorsHomeOutside: 40}, {mode: idle, homeAtMost: 1, outside: 12}]}
+  - {op: capture, target: observed-hunter-warn-chase-return-home-idle, angles: 3}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.workbench, withinStuds: 3, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01, withinStuds: 2, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-spear, timeout_seconds: 20}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-spear, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: spear-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 20}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: spear-job}, job, finishAt], label: spear-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: spear-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: equip, player: owner, target: 'Players.LocalPlayer.Backpack.Fire-hardened Spear', timeout_seconds: 10}
+  - {op: command, player: owner, requestId: wildlife-malformed-damage, sessionEpoch: current, action: 'survival-coop:attack', args: [hunter-01, 999999], expect: refused, conserveAttack: true}
+  - {op: expect_result, player: owner, field: reason, equals: invalid tuple}
+  - {op: command, player: owner, requestId: wildlife-outside-range, sessionEpoch: 0, action: 'survival-coop:attack', args: [hunter-01], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: OUT_OF_RANGE}
+  - {op: command, player: owner, requestId: wildlife-forged-target, sessionEpoch: 0, action: 'survival-coop:attack', args: [not-a-real-dinosaur], expect: refused}
+  - {op: capture, target: equipped-spear-outside-range-no-damage, angles: 3}
+  - {op: motion_begin, player: owner, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: walk_to, player: owner, target: Workspace.ForgeWildlife.hunter-01.HumanoidRootPart, withinStuds: 3, timeout_seconds: 45}
+  - {op: keyboard, player: owner, key: F, resultAction: 'survival-coop:attack', expect: ok, timeout_seconds: 10}
+  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: bind_snapshot, player: owner, field: vitals.clockMillis, label: hit-clock}
+  - {op: wait_for, player: owner, timeout_seconds: 10, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: hit-clock, offset: 3100}}}
+  - {op: obstacle, player: owner, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: command, player: owner, requestId: wildlife-obstacle, sessionEpoch: 0, action: 'survival-coop:attack', args: [hunter-01], expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: BLOCKED}
+  - {op: capture, target: real-wall-inside-reach-blocks-attack}
+  - {op: obstacle, player: owner, target: Workspace.ForgeWildlife.hunter-01, remove: true}
+  - {op: keyboard, player: owner, key: F, resultAction: 'survival-coop:attack', expect: ok, timeout_seconds: 10}
+  - {op: bind_snapshot, player: owner, field: vitals.clockMillis, label: second-hit-clock}
+  - {op: wait_for, player: owner, timeout_seconds: 10, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: second-hit-clock, offset: 3100}}}
+  - {op: keyboard, player: owner, key: F, resultAction: 'survival-coop:attack', expect: ok, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 10, predicate: {source: attribute, target: Workspace.ForgeWildlife.hunter-01, field: ForgeWildlifeHealthMilli, equals: 0}}
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: {field: catalogId, equals: meat}, label: hunter-loot}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: hunter-loot}, quantity], equals: 3}
+  - {op: command, player: owner, requestId: wildlife-dead-repeat, sessionEpoch: 0, action: 'survival-coop:attack', args: [hunter-01], expect: refused}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [inventory, bag, items, {ref: hunter-loot}, quantity], equals: 3}
+  - {op: motion_end, player: owner, target: Workspace.ForgeWildlife.hunter-01}
+  - {op: capture, target: canonical-hunter-death-and-once-only-loot, angles: 3}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.SurvivalSpawn, withinStuds: 5, timeout_seconds: 45}
+  - {op: capture, target: retreat-physical-locomotion-and-second-client}

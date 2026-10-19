@@ -240,6 +240,7 @@ return {
 			"removed rig releases controller"
 		)
 		assert(npc:GetAttribute("ForgeWildlifeId") == nil, "removed rig clears world attributes")
+		assert(pcall(api.publish, confirmed), "publish for a removed rig is skipped, not an error")
 		npc.Parent = world
 		api.register(npc, "h2", "hunter")
 		assert(npc:FindFirstChild("WildlifeFeedback"), "removed rig frees budget")
@@ -489,6 +490,127 @@ return {
 		heartbeat.fire()
 		assert(api.snapshot("npc-1").mode == "hibernate", "unobserved NPCs hibernate")
 		assert(api.provoke("npc-1", "7") and not api.provoke("missing", "7"), "provoke reaches only real NPCs")
+		api.destroy()
+	end,
+	-- A durable tame capture takes the rig out of the world (no access, no step) and the Heartbeat
+	-- returns it home once the window ends. Republishing the same capture never re-hides it.
+	["a captured wild leaves the world and respawns at home after its window"] = function()
+		local heartbeat = signal()
+		active.moved, active.owners = {}, {}
+		active.finished, active.obstacle = signal(), false
+		installMocks()
+		local world = roblox.Instance.new("Workspace")
+		active.world = world
+		local folder = roblox.Instance.new("Folder")
+		folder.Parent = world
+		local npc = roblox.Instance.new("Model")
+		npc.Parent = folder
+		local npcRoot = roblox.Instance.new("Part")
+		npcRoot.Name, npcRoot.Parent, npcRoot.Position = "HumanoidRootPart", npc, roblox.Vector3.new(0, 3, 0)
+		npcRoot.AssemblyLinearVelocity = roblox.Vector3.zero
+		roblox.Instance.new("Humanoid").Parent = npc
+		local character = roblox.Instance.new("Model")
+		character.Parent = world
+		local actorRoot = roblox.Instance.new("Part")
+		actorRoot.Name, actorRoot.Parent, actorRoot.Position =
+			"HumanoidRootPart", character, roblox.Vector3.new(4, 3, 0)
+		local actor = { UserId = 1, Character = character }
+		local services = {
+			Workspace = world,
+			Players = {
+				GetPlayerByUserId = function(_, id)
+					return if id == 1 then actor else nil
+				end,
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			RunService = {
+				Heartbeat = heartbeat,
+				IsStudio = function()
+					return true
+				end,
+			},
+			PathfindingService = {},
+		}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+				require = function(name)
+					return if name == "./Wildlife"
+						then Wildlife
+						elseif name == "./DinosaurMotion" then DinosaurMotion
+						else Content
+				end,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				task = { spawn = function() end },
+			},
+		})()
+		local content, errors = Content.canonicalize({
+			survival_content = 1,
+			rules = Content.RULES,
+			limits = Content.DEFAULT_LIMITS,
+			items = { { id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 } },
+			wildlife = { { id = "hunter", behavior = "hunter" } },
+		})
+		assert(content, table.concat(errors, "; "))
+		local now = 0
+		local api = module.new({
+			content = content,
+			catalog = { species = { hunter = { healthMilli = 40000, damageMilli = 10000, drops = {} } }, weapons = {} },
+			maximum = 1,
+			nowMillis = function()
+				return now
+			end,
+			alive = function()
+				return true
+			end,
+			equipment = function()
+				return {}
+			end,
+			damage = function() end,
+		})
+		api.register(npc, "h1", "hunter")
+		heartbeat.fire()
+		assert(api.access("1", "h1") ~= nil, "present before capture")
+		local captured = api.snapshot("h1")
+		captured.version += 1
+		captured.capturedUntil, captured.captureId = 5000, "1:c1"
+		now = 100
+		api.publish(captured)
+		assert(npc.Parent == nil and api.access("1", "h1") == nil, "captured rig leaves the world")
+		heartbeat.fire()
+		assert(api.snapshot("h1") ~= nil, "a hidden rig keeps its registration (not disposed)")
+		npcRoot.Position = roblox.Vector3.new(30, 3, 0)
+		now = 200
+		api.publish(captured)
+		assert(npc.Parent == nil, "republishing the capture is a no-op")
+		now = 5000
+		heartbeat.fire()
+		assert(npc.Parent == folder and api.access("1", "h1") ~= nil, "respawned into its folder")
+		local home = api.snapshot("h1").home
+		-- Lune keeps CFrame and Position as independent properties; the world moves the root by CFrame.
+		local placed = npcRoot.CFrame.Position
+		assert(placed.X == home.x and placed.Y == home.y and placed.Z == home.z, "respawned at home")
+		assert(npc:GetAttribute("ForgeWildlifeState") ~= "captured", "live state published again")
+		-- Off-island fall: far below home the creature is put back there instead of being lost.
+		npcRoot.Position = roblox.Vector3.new(home.x + 40, home.y - 200, home.z)
+		npcRoot.CFrame = roblox.CFrame.new(home.x + 40, home.y - 200, home.z)
+		heartbeat.fire()
+		local recovered = npcRoot.CFrame.Position
+		assert(recovered.X == home.x and recovered.Y == home.y and recovered.Z == home.z, "fallen rig returns home")
+		assert(npc.Parent == folder and api.snapshot("h1") ~= nil, "fallen rig stays registered")
 		api.destroy()
 	end,
 }

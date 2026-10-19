@@ -103,7 +103,18 @@ function M.install(
 			local matched = if type(requestId) == "string" and packet.requestId == requestId then "1" else "0"
 			m:SetAttribute(
 				"PacketIdLog",
-				bounded(m:GetAttribute("PacketIdLog"), tostring(packet.requestId) .. "=" .. matched)
+				bounded(
+					m:GetAttribute("PacketIdLog"),
+					tostring(packet.requestId)
+						.. "="
+						.. matched
+						.. ":"
+						.. tostring(
+							type(packet.result) == "table"
+									and (packet.result.reason or (type(packet.result.data) == "table" and packet.result.data.status) or packet.result.ok)
+								or "?"
+						)
+				)
 			)
 			-- The service-level trigger event is recorded as evidence, never required: its order
 			-- against the client's own synchronous dispatch is not guaranteed and gating on it

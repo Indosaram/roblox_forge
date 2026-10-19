@@ -178,15 +178,23 @@ local controls={};local playerGui=game:GetService('Players').LocalPlayer.PlayerG
 for _,item in playerGui:GetDescendants() do
  if item:IsA('GuiObject') and (item:IsA('GuiButton') or item:IsA('TextLabel') or item:IsA('TextBox')) then
   local visible=item.Visible;local ancestor=item.Parent;local nested=false;local screenName=''
+  -- A clipping ancestor (a scrolled sheet) is what the player actually sees through: the part of a
+  -- control outside it is not drawn, so the measured rectangle is the intersection, and a control
+  -- scrolled fully out of it is not on screen at all.
+  local clipMinX,clipMinY,clipMaxX,clipMaxY=-math.huge,-math.huge,math.huge,math.huge
   while ancestor and ancestor~=playerGui do
-   if ancestor:IsA('GuiObject') then visible=visible and ancestor.Visible;if ancestor:IsA('GuiButton') then nested=true end end
+   if ancestor:IsA('GuiObject') then visible=visible and ancestor.Visible;if ancestor:IsA('GuiButton') then nested=true end
+    if ancestor.ClipsDescendants then local ap,as=ancestor.AbsolutePosition,ancestor.AbsoluteSize;clipMinX,clipMinY=math.max(clipMinX,ap.X),math.max(clipMinY,ap.Y);clipMaxX,clipMaxY=math.min(clipMaxX,ap.X+as.X),math.min(clipMaxY,ap.Y+as.Y) end end
    if ancestor:IsA('ScreenGui') then visible=visible and ancestor.Enabled;screenName=ancestor.Name end
    ancestor=ancestor.Parent
   end
   local robloxCore=screenName=='Chat' or screenName=='BubbleChat' or screenName=='TouchGui' or screenName=='Freecam' or screenName=='RobloxGui' or screenName=='ProximityPrompts' or screenName=='PlayerList' or screenName=='Health' or screenName=='Backpack' or screenName=='MainMenu' or screenName=='ErrorPrompt'
   if visible and not nested and not robloxCore and (not item:IsA('TextLabel') or item.Text~='') then
    assert(item.AbsoluteRotation==0,'rotated critical UI unsupported')
-   local pos=item.AbsolutePosition;local size=item.AbsoluteSize
+   local rawPos=item.AbsolutePosition;local rawSize=item.AbsoluteSize
+   local minX,minY=math.max(rawPos.X,clipMinX),math.max(rawPos.Y,clipMinY)
+   local maxX,maxY=math.min(rawPos.X+rawSize.X,clipMaxX),math.min(rawPos.Y+rawSize.Y,clipMaxY)
+   local pos=Vector2.new(minX,minY);local size=Vector2.new(math.max(0,maxX-minX),math.max(0,maxY-minY))
    if size.X>0 and size.Y>0 then
     -- The live text-scale fact: a label that scales to its control must carry its own
     -- UITextSizeConstraint cap. Source text cannot establish that for an instantiated label, so
@@ -241,7 +249,7 @@ export function validateGeometry(g, expected) {
     // it renders at the control's own height. A sample that reports the fact is held to it; an older
     // sample without the field is judged on the rectangles it does have.
     if(r.scaled===true && !(typeof r.cap==='number' && Number.isFinite(r.cap) && r.cap>0 && r.cap<=32))throw new Error('CRITICAL_UI_TEXT_SCALE_UNCAPPED '+JSON.stringify({element:{id:r.id,cap:r.cap??null}}));
-    for(const o of g.criticalUI.slice(0,n))if(r.x<o.x+o.width&&o.x<r.x+r.width&&r.y<o.y+o.height&&o.y<r.y+r.height)throw new Error('CRITICAL_UI_OVERLAP');
+    for(const o of g.criticalUI.slice(0,n))if(r.x<o.x+o.width&&o.x<r.x+r.width&&r.y<o.y+o.height&&o.y<r.y+r.height)throw new Error('CRITICAL_UI_OVERLAP '+JSON.stringify({element:r,other:o}));
   }
   // The chat frame is a reserved region, not owned UI: nothing this run owns may
   // sit on it. A capture taken before this check existed simply carries no chat
@@ -362,7 +370,8 @@ c=game:GetService('RunService').PostSimulation:Connect(function()
  local value=Instance.new('StringValue');value.Name=tostring(count);value.Value=game:GetService('HttpService'):JSONEncode({elapsedSeconds=elapsed,mode=target:GetAttribute('ForgeWildlifeState'),feedback=target:GetAttribute('ForgeWildlifeFeedback'),healthMilli=target:GetAttribute('ForgeWildlifeHealthMilli'),position={root.Position.X,root.Position.Y,root.Position.Z},velocity={root.AssemblyLinearVelocity.X,root.AssemblyLinearVelocity.Y,root.AssemblyLinearVelocity.Z},joints=joints});value.Parent=folder
 end);folder.Destroying:Once(function() c:Disconnect() end)
 local value={recording=true,maximumSamples=600,maximumHz=20}`:`assert(folder,'motion trace absent');local samples=folder:GetChildren();table.sort(samples,function(a,b)return tonumber(a.Name)<tonumber(b.Name) end)
-local values={};for _,sample in samples do table.insert(values,game:GetService('HttpService'):JSONDecode(sample.Value)) end
+local http=game:GetService('HttpService');local values={};for i=math.max(1,#samples-5),#samples do local sample=samples[i];table.insert(values,http:JSONDecode(sample.Value)) end
+while #values>2 and #http:JSONEncode({samples=values,video=false})>8000 do table.remove(values,1) end
 folder:Destroy();assert(#values>1,'motion trace missing frames');local value={samples=values,video=false}`}`);
 }
 

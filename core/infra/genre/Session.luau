@@ -921,9 +921,18 @@ function M.new(
 		if next(pending) then
 			return
 		end
-		executor.advance(epoch)
+		-- A flushed server event dispatches, and dispatch refreshes the executor clock to
+		-- services.now(), which may already be past the epoch the caller sampled before this
+		-- tick: advance to whichever is later so the tick never runs the clock backwards.
+		executor.advance(math.max(epoch, services.now()))
 		if services.survivalTransfer or services.survivalGathering or #extensions > 0 then
 			for id in joined do
+				if personal and tokens[id] then
+					local renewed = personal:renew(tokens[id])
+					if renewed then
+						tokens[id] = renewed
+					end
+				end
 				session.recoverTransfers(id, 8)
 			end
 		end

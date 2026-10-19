@@ -49,6 +49,7 @@ function M.start(options: Options): ServerSession
 			survivalSettlement = if options.services then options.services.survivalSettlement else nil,
 			survivalTransfer = if options.services then options.services.survivalTransfer else nil,
 			survivalGathering = if options.services then options.services.survivalGathering else nil,
+			survivalWildlife = if options.services then options.services.survivalWildlife else nil,
 			survivalExtensions = if options.services then options.services.survivalExtensions else nil,
 			now = function()
 				return clock.now()

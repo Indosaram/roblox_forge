@@ -210,6 +210,23 @@ local function consume(self: Market, account: Account, now: number): string?
 	return nil
 end
 
+-- Read-only gate (eligibility + daily cap) with the exact rules `admit` applies, minus the
+-- throttle token: lets a UI show up front why a trade would be refused. Never mutates.
+function M.blocked(self: Market, account: Account, now: number): string?
+	return gate(self, account, now)
+end
+
+-- Gate + consume for callers that run their own durable settlement (no in-memory book):
+-- eligibility, daily cap, then one throttle token. A refusal consumes nothing.
+function M.admit(self: Market, account: Account, now: number): string?
+	return gate(self, account, now) or consume(self, account, now)
+end
+
+-- Effective (validated) configuration, detached.
+function M.settings(self: Market): Config
+	return table.clone(self._config)
+end
+
 function M.fee(self: Market, quantity: number, unitPrice: number): number
 	return math.max(self._config.minFee, (quantity * unitPrice * self._config.feeBasisPoints) // 10000)
 end
@@ -232,6 +249,12 @@ function M.outlier(self: Market, catalogId: string, unitPrice: number): boolean
 			table.insert(prices, listing.unitPrice)
 		end
 	end
+	return self:priceOutlier(prices, unitPrice)
+end
+
+-- Outlier test against an explicit set of active unit prices (same catalog item).
+function M.priceOutlier(self: Market, active: { number }, unitPrice: number): boolean
+	local prices = table.clone(active)
 	if #prices < self._config.outlierMinSamples then
 		return false
 	end

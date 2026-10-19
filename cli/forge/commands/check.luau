@@ -199,9 +199,25 @@ local function analyzePack(pack: string, defsPath: string): (boolean, { string }
 		"--sourcemap",
 		sourcemapPath,
 	}
+	-- A spec is not in the place (globIgnorePaths), so a core spec that requires a genre this
+	-- pack does not mount cannot resolve here; that genre's own packs analyze it.
+	local project = fs.readFile(projectPath)
+	local function mountsRequiredGenres(path: string): boolean
+		if not string.match(path, "%.spec%.luau$") then
+			return true
+		end
+		for genre in string.gmatch(fs.readFile(path), "genres/([%w%-]+)/") do
+			if not string.find(project, "genres/" .. genre .. "/", 1, true) then
+				return false
+			end
+		end
+		return true
+	end
 	for _, root in { "core", "genres", PACKS_DIR .. "/" .. pack .. "/src" } do
 		for _, path in sourcePaths(root, false) do
-			table.insert(args, path)
+			if mountsRequiredGenres(path) then
+				table.insert(args, path)
+			end
 		end
 	end
 	local res = run.exec("luau-lsp", args)

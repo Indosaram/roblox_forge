@@ -114,6 +114,19 @@ test('session request lets the transient bridge retry outlive the default lifecy
   expect(value).toEqual({ ready: true });
 });
 
+test('a hub handover that briefly reports no connected Studio is retried, not fatal', async () => {
+  const lifecycle = { observe: async ({ subscribe, action }) => { subscribe(() => {}); return { value: await action(new AbortController().signal) }; } };
+  const adapter = new StudioSession({ call: async () => ({}) }, lifecycle, { delay: async () => {} });
+  let attempts = 0;
+  const value = await adapter.request('identify-owner', async () => {
+    attempts += 1;
+    if (attempts === 1) throw new Error('execute_luau: {"text":"No Roblox Studio instances are connected. Ask the user to confirm"}');
+    return { ready: true };
+  });
+  expect(attempts).toBe(2);
+  expect(value).toEqual({ ready: true });
+});
+
 test('the startup lease read waits for the persistence bootstrap instead of racing it',async()=>{
   const {adapter}=fixture();
   adapter.active={serverId:'owned-server',clients:[]};

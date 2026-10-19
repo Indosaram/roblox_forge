@@ -4,11 +4,20 @@
 -- feed value, ride speed and carry); this panel only sends durable commands and renders results.
 -- Strings mirror games/robango-island/locale/strings.csv keys (tame_*); species names are the
 -- pack's wildlife_<id> strings, with the raw id as fallback.
+-- World input: every wild model under Workspace.ForgeWildlife whose ForgeWildlifeKind is in
+-- snapshot.taming.tameable gets a client-local ProximityPrompt (Q / click / tap) that sends
+-- tame-hit until the stun gauge for that wild id is full, then tame-capture.
 local M = {}
 
-local FEED = "tame-feed"
-local MOUNT = "tame-mount"
-local DISMOUNT = "tame-dismount"
+-- Durable ids are genre-qualified: ctx.send checks them against the published action list.
+local PREFIX = "survival-coop:"
+local FEED = PREFIX .. "tame-feed"
+local MOUNT = PREFIX .. "tame-mount"
+local DISMOUNT = PREFIX .. "tame-dismount"
+local HIT = PREFIX .. "tame-hit"
+local CAPTURE = PREFIX .. "tame-capture"
+local PROMPT_NAME = "ForgeTame"
+local DEFAULT_REACH = 10
 
 local strings: { [string]: { string } } = {
 	tame_title = { "Tamed animals", "길들인 동물" },
@@ -28,6 +37,17 @@ local strings: { [string]: { string } } = {
 		"Saving... try the same action again.",
 		"저장 중이에요. 같은 동작을 다시 시도하세요.",
 	},
+	tame_stun = { "Stun", "기절시키기" },
+	tame_capture = { "Capture", "포획하기" },
+	tame_no_tool = { "Craft a Hobble Bola first", "속박 볼라를 먼저 만드세요" },
+	tame_not_full = {
+		"Not stunned enough yet. Keep stunning it.",
+		"아직 덜 기절했어요. 계속 기절시키세요.",
+	},
+	tame_too_far = { "Too far away. Get closer.", "너무 멀어요. 더 가까이 가세요." },
+	tame_escaped = { "It broke free! Try again.", "빠져나갔어요! 다시 시도하세요." },
+	tame_gone = { "That animal is not here anymore.", "그 동물은 이제 여기 없어요." },
+	tame_captured = { "Captured %s! It is in your pen.", "%s 포획! 우리에 들어갔어요." },
 	wildlife_ridge_strider = { "Ridge Strider", "능선걸음이" },
 	wildlife_fen_trotter = { "Fen Trotter", "늪종종이" },
 	wildlife_bluff_bounder = { "Bluff Bounder", "벼랑깡충이" },
@@ -77,11 +97,52 @@ function M.gauge(locale: string, gauge: { species: string?, level: number, max: 
 end
 
 --- Maps a send result to the message shown under the list ("" on success).
+-- Refusal reasons with a specific message; COOLDOWN is silent (the next press just works).
+local REFUSALS: { [string]: string } = {
+	CHARGE_PENDING = "tame_pending",
+	NO_CAPTURE_TOOL = "tame_no_tool",
+	GAUGE_NOT_FULL = "tame_not_full",
+	OUT_OF_REACH = "tame_too_far",
+	WILD_GONE = "tame_gone",
+	WILD_ABSENT = "tame_gone",
+	COOLDOWN = "",
+}
+
 function M.refusal(locale: string, result: { ok: boolean?, reason: string? }): string
 	if result.ok then
 		return ""
 	end
-	return M.text(locale, if result.reason == "CHARGE_PENDING" then "tame_pending" else "tame_failed")
+	local key = if result.reason then REFUSALS[result.reason] else nil
+	if key == "" then
+		return ""
+	end
+	return M.text(locale, key or "tame_failed")
+end
+
+export type Gauge = { wildId: string?, level: number, max: number, full: boolean? }
+
+--- Pure prompt selection (specced): "capture" once the known gauge for this wild id is full,
+--- else "stun". Returns the durable action id and the localized prompt text.
+function M.promptAction(locale: string, gauge: Gauge?, wildId: string): (string, string)
+	local full = gauge ~= nil
+		and (gauge.wildId == nil or gauge.wildId == wildId)
+		and (gauge.full == true or gauge.level >= gauge.max)
+	if full then
+		return CAPTURE, M.text(locale, "tame_capture")
+	end
+	return HIT, M.text(locale, "tame_stun")
+end
+
+--- Message for a stun/capture result (specced): capture outcomes get their own lines,
+--- refusals go through `refusal`.
+function M.outcome(locale: string, action: string, result: any, species: string?): string
+	if result.ok and action == CAPTURE and type(result.data) == "table" then
+		if result.data.captured then
+			return M.text(locale, "tame_captured", M.species(locale, result.data.species or species or ""))
+		end
+		return M.text(locale, "tame_escaped")
+	end
+	return M.refusal(locale, result)
 end
 
 function M.factory(ctx: any): { destroy: () -> () }?
@@ -96,11 +157,32 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		title = M.text(ctx.locale, "tame_title"),
 		parent = gui,
 	})
-	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.content })
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	sheet.frame.Visible = true
+	if ctx.fitSheet then
+		ctx.fitSheet(sheet.frame)
+	end
+	sheet.close.Activated:Connect(function()
+		gui.Enabled = false
+	end)
+	if ctx.dock then
+		ctx.dock({
+			id = "taming",
+			label = M.text(ctx.locale, "tame_title"),
+			order = 3,
+			setOpen = function(open: boolean)
+				gui.Enabled = open
+			end,
+			isOpen = function()
+				return gui.Enabled
+			end,
+		})
+	end
+	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.scroll })
 	status.Name = "TamingStatus"
 	local rows = Instance.new("Frame")
 	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent =
-		"TamingRows", 1, UDim2.fromScale(1, 0), sheet.content
+		"TamingRows", 1, UDim2.fromScale(1, 0), sheet.scroll
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
@@ -209,8 +291,152 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			mountButton.Name = "Mount-" .. animal.id
 		end
 	end
-	local unsubscribe = ctx.onSnapshot(render)
+	-- World prompts -------------------------------------------------------------------------
+	-- One client-local ProximityPrompt per tameable wild model. The server decides reach,
+	-- cooldown, gauge and capture; the prompt only picks hit vs capture from the last gauge it
+	-- saw (a hit result or the snapshot) and shows the outcome.
+	local tameable: { [string]: boolean } = {}
+	local reach = DEFAULT_REACH
+	local gauge: Gauge? = nil
+	local busy = false
+	local prompts: { [Model]: { prompt: ProximityPrompt, connections: { RBXScriptConnection } } } = {}
+	local function wildOf(model: Model): (string?, string?)
+		local id, kind = model:GetAttribute("ForgeWildlifeId"), model:GetAttribute("ForgeWildlifeKind")
+		return if type(id) == "string" then id else nil, if type(kind) == "string" then kind else nil
+	end
+	local function update(model: Model)
+		local entry = prompts[model]
+		if not entry then
+			return
+		end
+		local id, kind = wildOf(model)
+		local health = model:GetAttribute("ForgeWildlifeHealthMilli")
+		local alive_ = health == nil or (type(health) == "number" and health > 0)
+		local prompt = entry.prompt
+		prompt.Enabled = id ~= nil and kind ~= nil and tameable[kind] == true and alive_
+		prompt.MaxActivationDistance = reach
+		if id then
+			local _, text = M.promptAction(ctx.locale, gauge, id)
+			prompt.ActionText = text
+		end
+		if kind and prompt.ObjectText == "" then
+			prompt.ObjectText = M.species(ctx.locale, kind)
+		end
+	end
+	local function updateAll()
+		for model in prompts do
+			update(model)
+		end
+	end
+	local function trigger(model: Model)
+		local id, kind = wildOf(model)
+		if busy or not id or not kind or not tameable[kind] then
+			return
+		end
+		busy = true
+		local action = M.promptAction(ctx.locale, gauge, id)
+		local ok, result = pcall(ctx.send, action, { id })
+		busy = false
+		if not ok then
+			result = { ok = false, reason = "TRANSPORT_FAILED" }
+		end
+		local message = M.outcome(ctx.locale, action, result, kind)
+		status.Text = message
+		local data = if type(result.data) == "table" then result.data else {}
+		if action == HIT and result.ok and type(data.level) == "number" then
+			gauge = { wildId = id, level = data.level, max = data.max or data.level, full = data.full }
+		elseif action == CAPTURE and (result.reason == "GAUGE_NOT_FULL" or (result.ok and data.captured)) then
+			gauge = nil
+		end
+		local entry = prompts[model]
+		if entry then
+			entry.prompt.ObjectText = if message ~= "" then message else M.species(ctx.locale, kind)
+		end
+		updateAll()
+		if action == CAPTURE and result.ok and data.captured then
+			gui.Enabled = true
+		end
+	end
+	local function attach(child: Instance)
+		if not child:IsA("Model") or prompts[child] then
+			return
+		end
+		local model = child :: Model
+		local root = model:WaitForChild("HumanoidRootPart", 10)
+		if not root or not root:IsA("BasePart") or prompts[model] or model.Parent == nil then
+			return
+		end
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = PROMPT_NAME
+		prompt.KeyboardKeyCode, prompt.GamepadKeyCode = Enum.KeyCode.Q, Enum.KeyCode.ButtonY
+		prompt.HoldDuration, prompt.ClickablePrompt, prompt.RequiresLineOfSight = 0, true, false
+		prompt.Exclusivity = Enum.ProximityPromptExclusivity.OnePerButton
+		prompt.ObjectText, prompt.Enabled = "", false
+		prompts[model] = {
+			prompt = prompt,
+			connections = {
+				prompt.Triggered:Connect(function()
+					trigger(model)
+				end),
+				model.AttributeChanged:Connect(function(name)
+					if
+						name == "ForgeWildlifeId"
+						or name == "ForgeWildlifeKind"
+						or name == "ForgeWildlifeHealthMilli"
+					then
+						update(model)
+					end
+				end),
+			},
+		}
+		prompt.Parent = root
+		update(model)
+	end
+	local function detach(child: Instance)
+		local entry = prompts[child :: Model]
+		if not entry then
+			return
+		end
+		prompts[child :: Model] = nil
+		for _, connection in entry.connections do
+			connection:Disconnect()
+		end
+		entry.prompt:Destroy()
+	end
 	local alive = true
+	local folderConnections: { RBXScriptConnection } = {}
+	task.spawn(function()
+		-- The wildlife folder is created when the server world binds, possibly after this panel.
+		local folder = workspace:WaitForChild("ForgeWildlife", math.huge)
+		if not alive or not folder then
+			return
+		end
+		table.insert(
+			folderConnections,
+			folder.ChildAdded:Connect(function(child)
+				task.spawn(attach, child)
+			end)
+		)
+		table.insert(folderConnections, folder.ChildRemoved:Connect(detach))
+		for _, child in folder:GetChildren() do
+			task.spawn(attach, child)
+		end
+	end)
+	local unsubscribe = ctx.onSnapshot(function(snapshot: { [string]: any })
+		local state = snapshot.taming
+		if type(state) == "table" then
+			table.clear(tameable)
+			for _, species in (if type(state.tameable) == "table" then state.tameable else {}) :: { string } do
+				tameable[species] = true
+			end
+			reach = if type(state.reachStuds) == "number" then state.reachStuds else DEFAULT_REACH
+			if type(state.gauge) == "table" then
+				gauge = state.gauge
+			end
+			updateAll()
+		end
+		render(snapshot)
+	end)
 	task.spawn(function()
 		while alive do
 			task.wait(1)
@@ -234,6 +460,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			alive = false
 			keyConnection:Disconnect()
 			unsubscribe()
+			for _, connection in folderConnections do
+				connection:Disconnect()
+			end
+			for model in prompts do
+				detach(model)
+			end
 			gui:Destroy()
 		end,
 	}

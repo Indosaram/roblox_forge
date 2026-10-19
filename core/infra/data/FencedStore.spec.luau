@@ -313,6 +313,37 @@ return {
 			end,
 		}), "empty session identity refused")
 	end,
+	["suppressed identity update skips the write only while the lease is healthy"] = function()
+		local memory = MemoryBackend.new()
+		local now = 0
+		local a = FencedStore.new(memory, {
+			sessionId = "a",
+			leaseSeconds = 30,
+			now = function()
+				return now
+			end,
+			suppressIdentityUpdates = true,
+		})
+		local token = assert(a:acquire("k", initial))
+		local identity = function(data)
+			return data
+		end
+		token = assert(a:update(token, identity))
+		local _, quiet = memory.update("k", function(old)
+			return old
+		end)
+		assert(quiet.revision == 1, "healthy identity update publishes nothing")
+		-- Past half the lease the identity update is the owner's renewal and must publish.
+		now = 20
+		token = assert(a:update(token, identity))
+		local _, renewed = memory.update("k", function(old)
+			return old
+		end)
+		assert(renewed.revision == 2 and renewed.lease.expiresAt == 50, "identity update renews a lapsing lease")
+		-- An owner kept busy only by identity updates never loses its lease.
+		now = 45
+		assert(a:update(token, identity), "lease survives past the original expiry")
+	end,
 	["read-through refresh publishes only a lease renewal and never stale data"] = function()
 		local memory = MemoryBackend.new()
 		local now = 0

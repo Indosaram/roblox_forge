@@ -100,7 +100,7 @@ export type Target = {
 --- `resume_commit` step is what makes the barrier honest.
 export type Barrier = {
 	backend: MemoryBackend.Backend,
-	fail: (count: number) -> (),
+	fail: (count: number, key: string?, skip: number?) -> (),
 	suspend: (string?, number?) -> (),
 	pending: () -> boolean,
 	resume: () -> (),
@@ -124,15 +124,21 @@ end
 function M.barrier(storage: { [string]: any }?): Barrier
 	local data: { [string]: any } = storage or {}
 	local failures = 0
+	local failKey: string? = nil
+	local failSkip = 0
 	local armed = false
 	local waiting = false
 	local selectedKey: string? = nil
 	local skip = 0
 	local backend = {
 		update = function(key: string, transform: (any) -> any): (boolean, any)
-			if failures > 0 then
-				failures -= 1
-				return false, "commit barrier: backend refused"
+			if failures > 0 and (failKey == nil or failKey == key) then
+				if failSkip > 0 then
+					failSkip -= 1
+				else
+					failures -= 1
+					return false, "commit barrier: backend refused"
+				end
 			end
 			if armed and (selectedKey == nil or selectedKey == key) and skip > 0 then
 				skip -= 1
@@ -149,8 +155,8 @@ function M.barrier(storage: { [string]: any }?): Barrier
 	}
 	return {
 		backend = backend,
-		fail = function(count: number)
-			failures = count
+		fail = function(count: number, key: string?, skipCount: number?)
+			failures, failKey, failSkip = count, key, skipCount or 0
 		end,
 		suspend = function(key, skipCount)
 			selectedKey, skip = key, skipCount or 0
@@ -574,9 +580,13 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		if scenario.name == "market-trade" then
 			assert(scenario.genre == "survival-coop", "market fixture genre binding")
 			assert(table.find(scenario.fixtures, "cli/forge/fixtures/market-extension"))
-			fixture = require("../fixtures/market-extension/scenario").new(gate.backend, function()
-				return wall
-			end)
+			fixture = require("../fixtures/market-extension/scenario").new(
+				"games/" .. scenario.pack,
+				gate.backend,
+				function()
+					return wall
+				end
+			)
 			for key, service in fixture.services do
 				(trustedServices :: any)[key] = service
 			end
@@ -909,7 +919,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					return "a commit is already suspended; resume_commit it first"
 				end
 				if step.mode == "fail" then
-					gate.fail(step.count or 1)
+					gate.fail(step.count or 1, step.key, step.skip)
 				else
 					gate.suspend(step.key, step.skip)
 				end

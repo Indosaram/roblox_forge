@@ -34,6 +34,7 @@ function M.new(config: any, http: any): any
 		end
 	end
 	local backendEpoch: string? = nil
+	local lastTransportWarning = -math.huge
 	local correlationLost = false
 	local function request(route: string, body: { [string]: any }): (any?, string?, any?)
 		body.namespace = config.namespace
@@ -46,6 +47,14 @@ function M.new(config: any, http: any): any
 			})
 		end)
 		if not ok then
+			-- The reason stays a stable code for callers; the raw HttpService error (request quota,
+			-- refused connection, timeout) is otherwise lost, so surface it, at most once a second.
+			local log = config.log
+			local now = os.clock()
+			if type(log) == "function" and now - lastTransportWarning >= 1 then
+				lastTransportWarning = now
+				log("Forge loopback transport: " .. route .. ": " .. tostring(response))
+			end
 			return nil, "LOCAL_TRANSPORT_UNAVAILABLE", nil
 		end
 		local headers = {}

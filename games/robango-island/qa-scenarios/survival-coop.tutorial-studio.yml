@@ -1,0 +1,111 @@
+# QA-CORE-01 on the real robango-island place (studio-kind counterpart of the playtest-kind
+# genres/survival-coop/qa-scenarios/tutorial.yml, which `forge qa run` refuses as a legacy kind).
+# The objective tracker (ForgePanelDock.Dock.Objective.ObjectiveTracker) renders the durable
+# ContractsExtension tutorial state, so each wait_for proves the step index advanced by exactly one,
+# in order: arrive -> gather -> craft-stone-axe -> declare-settlement -> accept -> deliver -> complete.
+# A physical rejoin after step 3 must resume at declare-settlement. Text is the ko-kr locale the owned
+# Studio account renders. robango wires no analytics emitter, so tutorial_step/tutorial_complete
+# events are not observable here; the domain proof is genres/survival-coop/module/SurvivalTutorial.spec.luau.
+# Both clients run the desktop surface: the mobile dock/chat overlap is tracked by wildlife-spatial and
+# full-coop-rejoin (CRITICAL_UI_CHAT_OVERLAP), and this scenario proves tutorial ordering only.
+# The fallen tree (-20,2,14) and the flint outcrop (-10,2,14) are 10 studs apart, so a character that
+# walks to the tree from the landing stands about 7.5 studs from the flint prompt, inside its 8-stud
+# reach, and E can go to either. Gathers approach the tree from the north mark wildlife-approach-01
+# (-19,0.1,19): about 6 studs from the tree's prompt and 11 from the flint's.
+name: tutorial-studio
+genre: survival-coop
+pack: robango-island
+kind: studio
+contract_api: 1
+timeout_seconds: 1200
+players: [owner, guest]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 섬에 도착하세요'}}
+  - {op: capture, target: tutorial-arrival-skip-offered, settle: true}
+  # Step 1: skip the arrival scene through the docked button.
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.SkipArrival, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 자원을 채집하세요'}}
+  # Crafting before gathering (cord from starter fiber) must not advance the tutorial.
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-cord, timeout_seconds: 20}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-cord, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: cord-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cord-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 20}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: cord-job}, job, finishAt], label: cord-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: cord-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cord-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 자원을 채집하세요'}}
+  # Step 2: gather flint (3) at the landing outcrop.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01, withinStuds: 3.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather, nodeId: flint-outcrop-01, key: E, timeout_seconds: 15}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 돌도끼를 만드세요'}}
+  # Step 3: craft the stone axe (2 flint) through the craft sheet.
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-stone-axe, timeout_seconds: 20}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-stone-axe, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: axe-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: axe-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 20}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: axe-job}, job, finishAt], label: axe-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: axe-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: axe-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 정착지를 세우세요'}}
+  - {op: capture, target: tutorial-stone-axe-before-rejoin, settle: true}
+  # Physical rejoin mid-tutorial: the replacement client resumes at declare-settlement.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.SurvivalSpawn, withinStuds: 5, timeout_seconds: 45}
+  - {op: rejoin, player: owner, timeout_seconds: 120}
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 정착지를 세우세요'}}
+  - {op: capture, target: tutorial-rejoin-resumes-declare-settlement, settle: true}
+  # Step 4: fund a floor (4 wood) in the warehouse and place it.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 1.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  # Each gather makes its own stack: bind the first one before the second gather adds another.
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: {field: catalogId, equals: wood}, label: wood-a}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: wood-a}], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: wood-a, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: wood-a, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: wood-a, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  # The first stack (3 wood) is fully deposited, so the second gather's stack is now the only wood.
+  - {op: bind_snapshot, player: owner, field: inventory.bag.items, select: {field: catalogId, equals: wood}, label: wood-b}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, InventoryGrid, {ref: wood-b}], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: wood-b, prefix: 'Deposit-'}], resultAction: 'survival-coop:transfer-deposit', expect: ok, timeout_seconds: 15}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.BuildApproach, withinStuds: 2, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: B, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Structure-floor, timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, X+], timeout_seconds: 5}
+  # Cursor (7,1): the 2x2 floor covers world x -4..4, z -12..-4, clear of the SurvivalSpawn pad
+  # (x,z -2..2) that a z=2 footprint overlapped (server PLACEMENT_UNREACHABLE).
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.BuildReserve-floor, resultAction: 'survival-coop:settlement-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.reservationId, label: tutorial-floor}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: tutorial-floor, prefix: 'place-'}], resultAction: 'survival-coop:settlement-place', expect: ok, timeout_seconds: 10}
+  - {op: keyboard, player: owner, key: B, timeout_seconds: 5}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 첫 계약을 수락하세요'}}
+  # Steps 5-6: accept and deliver the first-day contract (survey-driftwood: 3 wood) on the board.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.SurvivalSpawn, withinStuds: 4, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 1.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Menu.Dock-contracts, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ContractsPanel.ContractBoard.Content.Accept-survey-driftwood, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 첫 계약을 납품하세요'}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ContractsPanel.ContractBoard.Content.Deliver-survey-driftwood, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 튜토리얼 완료'}}
+  - {op: capture, target: tutorial-complete-contract-board, settle: true}

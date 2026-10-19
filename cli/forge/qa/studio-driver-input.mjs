@@ -330,7 +330,7 @@ assert(m.Value~='' and m.Value~='TIMEOUT','exact predicate/input timeout');local
       throw new Error(String(error && error.message || error)+' click='+JSON.stringify({studio_id:client.studioId,x:clickProbe.x,y:clickProbe.y,path:clickProbe.path,rebound:clickProbe.rebound,accepted:injection?.accepted===true,ack:injection?.ack,viewport:clickProbe.viewport,inset:clickProbe.inset,input:clickProbe.input,actor:clickProbe.actor,gui:clickProbe.gui,atPosition:clickProbe.atPosition,seen:seenEvents}));
     }
     if(step.resultAction && (!value.request?.requestId || value.request.action!==step.resultAction || !value.result)) throw new Error('uncorrelated HUD result');
-    if(step.expect && value.result?.ok!==(step.expect==='ok')) throw new Error('unexpected HUD command result');
+    if(step.expect && value.result?.ok!==(step.expect==='ok')) throw new Error('unexpected HUD command result: '+JSON.stringify(value.result).slice(0,600));
     return value;
   } finally { await cleanup(); }
 }

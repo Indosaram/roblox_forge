@@ -95,6 +95,15 @@ const literal = value => {
   if (typeof value !== 'object') return String(value);
   return `{${Object.entries(value).map(([key, item]) => `[${Array.isArray(value) ? Number(key) + 1 : literal(key)}]=${literal(item)}`).join(',')}}`;
 };
+// The genre snapshot carries per-player state; co-op shared sections (warehouse, settlement,
+// gathering) live beside it in the session snapshot. A field whose head is absent from the genre
+// snapshot is read from the shared section that owns it.
+const SHARED_SNAPSHOTS = ['survivalSettlement', 'survivalGathering'];
+const sharedSnapshot = (genre, userId, field) => {
+  const head = Array.isArray(field) ? field[0] : String(field).split('.')[0];
+  return `local q=game:GetService('ServerStorage').ForgeQA;local value=q.snapshot:Invoke(${literal(genre)},${literal(userId)})
+if type(value)=='table' and value[${literal(head)}]==nil then for _,name in ${literal(SHARED_SNAPSHOTS)} do local shared=q.snapshot:Invoke(name,${literal(userId)});if type(shared)=='table' and shared[${literal(head)}]~=nil then value=shared;break end end end`;
+};
 
 export class StdioMcp {
   constructor(command, args, timeoutMs, lifecycle = new StudioLifecycle()) {
@@ -273,7 +282,11 @@ export async function runStudio(scenario, config, transport, artifactWriter) {
   // A freshly started client registers with the MCP host before its Luau bridge is
   // ready, so the first calls can report a transient reachability failure. Retry only
   // that specific transient inside the scenario deadline; every other error propagates.
-  const transientReachability = error => /Target is not reachable|createExecuteLuauBridge|Place is not open/i.test(String(error && error.message ? error.message : error));
+  // The MCP hub on localhost is owned by whichever StudioMCP process started first; when that
+  // process exits (a rejoin closes the old transport, or another tool's session ends) every Studio
+  // reconnects to the next hub within a few seconds. Calls in that window report no connected
+  // instance, which is the same transient as a bridge that is still loading.
+  const transientReachability = error => /Target is not reachable|createExecuteLuauBridge|Place is not open|No Roblox Studio instances are connected|is not connected/i.test(String(error && error.message ? error.message : error));
   const call = async (name, args) => {
     if (Date.now() >= deadline) throw new Error('scenario deadline exceeded');
     let result;
@@ -454,7 +467,25 @@ assert(result.ok,'profile not ready');assert(state.snapshots,'snapshots missing'
       else if(step.op==='motion_begin' || step.op==='motion_end') value=step.home || step.observations ? await wildlifeTrace(step,config.serverId,execute) : await motionStep(step,client,execute);
       else if(step.op==='obstacle') value=await obstacleStep(step,client,config.serverId,execute);
       else if (['keyboard','click','equip','wait_for'].includes(step.op)) {
-        value=await inputStep(step,client,config.serverId,scenario.genre,execute,call);
+        try {
+          value=await inputStep(step,client,config.serverId,scenario.genre,execute,call);
+        } catch(error) {
+          // COMMAND_PENDING is the server's transient "another command of yours is still settling"
+          // answer. The HUD keeps that request and offers its own Retry button, which is what a
+          // player presses; the driver presses the same button (same request identity) a bounded
+          // number of times instead of failing on a transient the product already handles.
+          // A key press retries the same way: pressing the key again resends the kept request.
+          if(!['click','keyboard'].includes(step.op) || !step.resultAction || !String(error?.message).includes('"COMMAND_PENDING"')) throw error;
+          const retryStep=step.op==='keyboard' ? step : {...step,target:'Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Retry'};
+          let lastError=error;
+          value=undefined;
+          for(let retry=0;retry<4 && value===undefined;retry++) {
+            await new Promise(resolve=>setTimeout(resolve,1000));
+            try { value=await inputStep(retryStep,client,config.serverId,scenario.genre,execute,call); value.retriedPending=retry+1; }
+            catch(retryError) { lastError=retryError; if(!String(retryError?.message).includes('"COMMAND_PENDING"')) throw retryError; }
+          }
+          if(value===undefined) throw lastError;
+        }
         if(value.result) results.set(String(step.player),value.result);
         outcome.inputs.push({studio_id:client.studioId,op:step.op,value});
       } else if(step.op==='path_begin') {
@@ -705,7 +736,7 @@ assert(ready(),'movement not replicated inside server reach');local value={serve
           results.set(String(step.player),value.result);
         }
       } else if(step.op==='bind_result' || step.op==='bind_snapshot') {
-        value=step.op==='bind_result'?results.get(String(step.player)):await execute(config.serverId,'Server',`local value=game:GetService('ServerStorage').ForgeQA.snapshot:Invoke(${literal(scenario.genre)},${literal(client.userId)})`);
+        value=step.op==='bind_result'?results.get(String(step.player)):await execute(config.serverId,'Server',sharedSnapshot(scenario.genre,client.userId,step.field));
         for(const field of Array.isArray(step.field)?step.field:step.field.split('.')) value=value?.[field];
         if(step.select) {
           // Starter grants and gathered output are separate stacks with the same
@@ -782,7 +813,7 @@ local value={result=result,revision=received and received.revision}`);
         if(step.conserveAttack) {const after=await conserved();conservation(before,after);value.conservation={before,after};}
         if (step.expect && value.result.ok !== (step.expect === 'ok')) throw new Error(`step ${index + 1}: unexpected dispatch result`);
       } else if (step.op === 'expect_snapshot') {
-        value = await execute(config.serverId, 'Server', `local value=game:GetService('ServerStorage').ForgeQA.snapshot:Invoke(${literal(step.genre)},${literal(client.userId)})`);
+        value = await execute(config.serverId, 'Server', sharedSnapshot(step.genre, client.userId, step.field));
       } else if (step.op === 'expect_result') value = results.get(String(step.player));
       else if (step.op === 'expect_members') {
         value = await execute(config.serverId, 'Server', `local value={};for _,p in game:GetService('Players'):GetPlayers() do table.insert(value,tostring(p.UserId)) end;table.sort(value)`);

@@ -21,6 +21,11 @@ function M.new(actor: string, newId: () -> string): any
 		end
 		if packet.durable then
 			model.durable = packet.durable
+			-- A handshake that failed while the server was swapping (a rejoin restarts it) is over once a
+			-- policy arrives; without this the refusal banner stayed up for the rest of the session.
+			if model.status == "conflict" and model.reason == "HANDSHAKE_FAILED" then
+				model.status, model.reason = if model.pending then "pending" else "ready", nil
+			end
 		end
 		if packet.snapshots and packet.snapshots["survival-coop"] then
 			model.snapshot = table.clone(packet.snapshots["survival-coop"])
@@ -68,8 +73,16 @@ function M.new(actor: string, newId: () -> string): any
 			return
 		end
 		model.pending = Transport.settle(model.pending, result)
-		-- Transfer completes in another durable owner and exposes its phase instead.
-		if result.ok and result.data and result.data.status == "confirmed" then
+		-- Transfer completes in another durable owner and exposes its phase instead. A rejected
+		-- grant is final too: replaying it returns the same refusal, and keeping it pending
+		-- locked every later HUD action behind "waiting for the server" (Studio, 2026-10-18).
+		if
+			result.data
+			and (
+				(result.ok and result.data.status == "confirmed")
+				or (not result.ok and result.data.status == "rejected")
+			)
+		then
 			model.pending = nil
 		end
 		model.reason = result.reason
@@ -160,13 +173,24 @@ end
 -- above this line.
 M.STACK_BOTTOM = 180
 
-function M.sheetBounds(width: number, height: number): (number, number, number)
+-- Returns width, height, top and the gap kept free at the right edge. A short landscape
+-- viewport has no room below the stack, and a sheet starting at the top covered the
+-- section tabs (live 819x295 capture: no way from the bag to the build tab), so there the
+-- sheet sits left of the `stackWidth`-wide control stack instead.
+function M.sheetBounds(width: number, height: number, stackWidth: number?): (number, number, number, number)
 	local portrait = height > width
+	if height < 500 and not portrait and stackWidth then
+		local right = stackWidth + 8
+		-- The Roblox chat owns the top-left corner; keep its usual 160 px clear when the
+		-- viewport allows, but never squeeze the sheet below 240 px.
+		local room = width - right - 8
+		return math.max(math.min(240, room), math.min(400, room - 160)), math.max(0, height - 60), 0, right
+	end
 	local top = if height < 500
 		then 0
 		elseif portrait then math.max(M.STACK_BOTTOM, math.floor(height * 0.58))
 		else M.STACK_BOTTOM
-	return math.min(400, width), math.max(0, height - top - 60), top
+	return math.min(400, width), math.max(0, height - top - 60), top, 0
 end
 
 function M.buildArgs(snapshot: any, definition: any, x: number, z: number, rotation: number): ({ any }?, string?)

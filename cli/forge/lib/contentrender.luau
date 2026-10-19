@@ -84,7 +84,7 @@ local function types(extended: boolean, skilled: boolean, contracts: boolean, ca
 			{
 				"export type SponsorBundle = { tier: number, items: { Quantity } }",
 				"export type Faction = { id: string, name: string, trustThresholds: { number }, bundles: { SponsorBundle } }",
-				"export type ContractEntry = { id: string, faction: string, pool: string, deliver: { Quantity }, reward: { Quantity }, trust: number }",
+				"export type ContractEntry = { id: string, faction: string, pool: string, deliver: { Quantity }, reward: { Quantity }, trust: number, coins: number? }",
 				"export type ContractCatalog = { factions: { Faction }, entries: { ContractEntry }, firstDay: { string }, dailyCount: number, swapCooldownMillis: number, dayMillis: number }",
 			}
 		do

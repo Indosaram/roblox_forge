@@ -11,7 +11,10 @@ local policy = {
 	taming = {
 		gaugeMax = 100,
 		fillPerHit = 25,
-		decayStepMillis = 1000,
+		-- Capture needs a full gauge. At 1 unit/s, and again at 1 unit/4 s, a full gauge dropped to
+		-- 99 before a real player's capture press reached the server (Studio play, 2026-10-18);
+		-- one unit per 10 s leaves a full gauge ten seconds to capture.
+		decayStepMillis = 10000,
 		successPermille = 700,
 		toolWearMilli = 25000,
 		penMillis = 120000,

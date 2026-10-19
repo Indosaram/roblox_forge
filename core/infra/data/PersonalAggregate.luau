@@ -194,6 +194,12 @@ function M.refresh(self: Store, token: FencedStore.Profile): (FencedStore.Profil
 		return data
 	end)
 end
+function M.renew(self: Store, token: FencedStore.Profile): (FencedStore.Profile?, string?)
+	if not owns(self, token.key) then
+		return nil, "PERSONAL_NAMESPACE"
+	end
+	return self._store:renew(token)
+end
 -- Preserve current data; final envelope capture must first pass commit's CAS.
 function M.release(self: Store, token: FencedStore.Profile): (FencedStore.Profile?, string?)
 	if not owns(self, token.key) then
@@ -203,6 +209,40 @@ function M.release(self: Store, token: FencedStore.Profile): (FencedStore.Profil
 end
 function M.releaseLock(self: Store, token: FencedStore.Profile): (FencedStore.Profile?, string?)
 	return self:release(token)
+end
+
+-- Inventory path inside the envelope (callers that edit the bag through `update`).
+function M.inventoryPath(self: Store): { string }
+	return table.clone(self._options.inventoryPath)
+end
+
+-- Full-envelope mutation for extensions that move value across fields in one atomic write
+-- (bag + soft currency + a durable receipt). The transform receives a detached
+-- `{ envelope, itemTransfers }` view and returns it; a changed view bumps the revision and
+-- must still pass envelope validation. Returns the real (unprojected) fenced token.
+function M.update(
+	self: Store,
+	token: FencedStore.Profile,
+	transform: FencedStore.Transform
+): (FencedStore.Profile?, string?)
+	if not owns(self, token.key) then
+		return nil, "PERSONAL_NAMESPACE"
+	end
+	return self._store:update(token, function(data)
+		validate(self, data)
+		local before = { envelope = copy(data.envelope), itemTransfers = copy(data.itemTransfers) }
+		local after = transform(copy(before))
+		for key in after do
+			assert(key == "envelope" or key == "itemTransfers", "UNKNOWN_PERSONAL_VIEW_FIELD")
+		end
+		if not equal(before, after) then
+			data.envelope = copy(after.envelope)
+			data.itemTransfers = copy(after.itemTransfers)
+			bump(data)
+			validate(self, data)
+		end
+		return data
+	end)
 end
 
 -- Lens tokens still carry the actual fenced key/session/generation. data is only

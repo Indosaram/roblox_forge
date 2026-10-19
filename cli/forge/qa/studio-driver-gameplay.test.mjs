@@ -169,6 +169,26 @@ test('prompt proof correlates the injected input with the client dispatch, not t
  expect(reset).not.toContain("m:SetAttribute('Input',false)");
 });
 
+test('a gather step looks at its own node before pressing E and gives the camera back afterwards',async()=>{
+ // Neighbouring nodes share E; the engine gives the key to the prompt the camera faces.
+ const calls=[];
+ const execute=async(_id,_model,code)=>{calls.push(code);
+  if(code.includes('relay.Event:Connect'))return {subscribed:true};
+  if(code.includes('JSONDecode(m.Value)'))return {nodeId:'fiber',requestId:'r',result:{ok:true,data:{status:'confirmed'}}};
+  return {clean:true};};
+ const keys=[];
+ await gameplay({op:'activate_prompt',target:'Workspace.Node.Anchor.ForgeGather',nodeId:'fiber',timeout_seconds:5},{studioId:'c'},execute,async(name,args)=>{if(name==='user_keyboard_input')keys.push([args.actions[0].action,calls.length]);});
+ const subscribe=calls.findIndex(code=>code.includes('relay.Event:Connect'));
+ const aim=calls.findIndex(code=>code.includes('camera.CFrame=CFrame.lookAt'));
+ const firstPress=keys.find(([kind])=>kind==='keyDown');
+ expect(subscribe).toBeGreaterThanOrEqual(0);
+ expect(aim).toBeGreaterThan(subscribe);
+ expect(firstPress[1]).toBeGreaterThan(aim);
+ expect(calls.findIndex(code=>code.includes("p:SetAttribute('ForgeQACameraType',nil)"))).toBeGreaterThan(aim);
+ // The gather prompt's parent is an Attachment: its Position is local, so the aim must use the world point.
+ expect(calls[aim]).toContain("target.Parent:IsA('Attachment') then target.Parent.WorldPosition");
+});
+
 test('the emitted client code embeds the real correlation modules and neither needs a suppression',async()=>{
  const calls=[];
  const execute=async(_id,_model,code)=>{calls.push(code);

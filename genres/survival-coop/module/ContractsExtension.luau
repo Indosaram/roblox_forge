@@ -12,6 +12,10 @@
 --   the bag exchange is applied exactly once through a marker receipt in the
 --   personal `itemTransfers`, and only then is `pending` cleared. `recover`
 --   resumes an interrupted exchange.
+-- * An optional contract `coins` reward is credited to the persisted soft-currency balance
+--   (envelope genres["survival-coop"].data.balance, the same wallet the Market settles) in the
+--   SAME atomic personal write as the bag exchange and its marker receipt, so a retried or
+--   crash-resumed delivery grants items and coins exactly once.
 -- * Tutorial steps are never client claims. Gather/craft/settlement steps are
 --   observed from real settled Session command results (`observe`); only the
 --   arrival skip and the contract steps are direct commands.
@@ -141,6 +145,65 @@ function M.exchange(
 	return out, nil
 end
 
+local GENRE = "survival-coop"
+local MAX_BALANCE = 1e9
+
+--- Pure: credits `coins` to the envelope's survival-coop balance in place. Returns a refusal.
+function M.credit(envelope: any, coins: number): string?
+	if coins == 0 then
+		return nil
+	end
+	local genres = if type(envelope) == "table" then envelope.genres else nil
+	local slice = if type(genres) == "table" then genres[GENRE] else nil
+	local data = if type(slice) == "table" then slice.data else nil
+	local balance = if type(data) == "table" then data.balance else nil
+	if type(balance) ~= "number" or balance < 0 or balance % 1 ~= 0 then
+		return "WALLET_UNAVAILABLE"
+	end
+	if balance + coins > MAX_BALANCE then
+		return "WALLET_FULL"
+	end
+	data.balance = balance + coins
+	return nil
+end
+
+--- Pure full-view step (`{ envelope, itemTransfers }`): bag exchange + coin credit under one
+--- marker. A view that already carries the marker is returned unchanged.
+function M.settle(
+	view: any,
+	path: { string },
+	catalog: ItemCatalog.Catalog,
+	consume: { any },
+	reward: { any },
+	coins: number,
+	marker: string
+): (any?, string?)
+	if view.itemTransfers.receipts[marker] ~= nil then
+		return view, nil
+	end
+	local parent = view.envelope
+	for index = 1, #path - 1 do
+		parent = parent[path[index]]
+	end
+	local lens = { inventory = parent[path[#path]], itemTransfers = view.itemTransfers }
+	local out, err = M.exchange(lens, catalog, consume, reward, marker)
+	if not out then
+		return nil, err
+	end
+	local result = copy(view)
+	local target = result.envelope
+	for index = 1, #path - 1 do
+		target = target[path[index]]
+	end
+	target[path[#path]] = out.inventory
+	result.itemTransfers = out.itemTransfers
+	local refused = M.credit(result.envelope, coins)
+	if refused then
+		return nil, refused
+	end
+	return result, nil
+end
+
 function M.factory(ctx: any): any
 	local content = ctx.content
 	if content.contracts == nil then
@@ -256,9 +319,11 @@ function M.factory(ctx: any): any
 			return false, "PERSONAL_UNAVAILABLE"
 		end
 		local reason: string? = nil
-		local applied, applyError = port.personal:inventoryLens():update(port.profile(), function(view)
+		local path = port.personal:inventoryPath()
+		local applied, applyError = port.personal:update(port.profile(), function(view)
 			reason = nil
-			local out, why = M.exchange(view, itemCatalog, pending.consume, pending.reward, pending.marker)
+			local out, why =
+				M.settle(view, path, itemCatalog, pending.consume, pending.reward, pending.coins or 0, pending.marker)
 			if not out then
 				reason = why or "EXCHANGE_FAILED"
 				return view
@@ -271,11 +336,7 @@ function M.factory(ctx: any): any
 		if reason then
 			return false, reason
 		end
-		local current, refreshError = port.personal:refresh(applied)
-		if not current then
-			return false, refreshError
-		end
-		port.install(current)
+		port.install(applied)
 		local emits: { any } = {}
 		local cleared, clearError = update(actor, function(data)
 			emits = {}
@@ -405,6 +466,7 @@ function M.factory(ctx: any): any
 			reason, emits, result, pendingRecord = nil, {}, nil, nil
 			local state = Contracts.fromSave(data.contracts)
 			local consume: { any }, reward: { any } = {}, {}
+			local coins = 0
 			local event: string? = nil
 			if name == "contract-deliver" then
 				local delivery, why = Contracts.deliver(state, catalog, args[1], held, now)
@@ -413,10 +475,12 @@ function M.factory(ctx: any): any
 					return data
 				end
 				consume, reward, event = delivery.consume, delivery.reward, "ContractDelivered"
+				coins = delivery.coins
 				result = {
 					ok = true,
 					data = {
 						contractId = args[1],
+						coins = coins,
 						faction = delivery.faction,
 						trust = delivery.trust,
 						tierBefore = delivery.tierBefore,
@@ -448,6 +512,7 @@ function M.factory(ctx: any): any
 				contractId = args[1],
 				consume = consume,
 				reward = reward,
+				coins = coins,
 				event = event,
 				result = result,
 			}
@@ -490,6 +555,7 @@ function M.factory(ctx: any): any
 						accepted = state.accepted[id] == true,
 						deliver = copy(entry.deliver),
 						reward = copy(entry.reward),
+						coins = entry.coins,
 						trust = entry.trust,
 					})
 				end
@@ -571,7 +637,11 @@ function M.factory(ctx: any): any
 			end
 		end
 		if tokens[actor] == nil then
-			return { status = "confirmed", transfers = {} }
+			-- A member of this server is loaded so an interrupted grant (e.g. after a restart)
+			-- finishes on the recovery sweep instead of waiting for the next contract command.
+			if not table.find(members, actor) or load(actor) == nil then
+				return { status = "confirmed", transfers = {} }
+			end
 		end
 		local finished, err = finish(actor)
 		return if finished then { status = "confirmed", transfers = {} } else { status = "recovering", error = err }

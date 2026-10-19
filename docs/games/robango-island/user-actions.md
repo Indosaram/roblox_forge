@@ -31,16 +31,16 @@
 | # | 항목 | 내용 | 비용 | 근거 |
 |---|---|---|---|---|
 | U12 | ~~main 반영 승인~~ **완료**: 사용자 승인("모두 가장 좋은 대로", 2026-10-17)에 따라 에이전트가 `durango/integration`을 main 에 fast-forward 했습니다(force 없음). 이후 main 보호 규칙·리뷰 정책은 사용자가 정합니다 | — | AGENTS.md layer rules |
-| U13 | Studio QA 실행 승인 | wildlife-spatial·full-coop-rejoin·tutorial(QA-CORE-01) 같은 Studio 시나리오, 실제 TeleportService 왕복(QA-TP-01의 2층), 실제 MemoryStore 부하(QA-SPIKE-01의 2층)는 Studio·라이브 서버가 필요해 실행하지 않았습니다 | 무료 | 계획 §12 |
+| U13 | 라이브 서버 QA 2층 | Studio 시나리오 wildlife-spatial·full-coop-rejoin·tutorial(QA-CORE-01)은 2026-10-19 Windows Studio에서 통과했습니다(qa-evidence.md 주 7). 실제 TeleportService 왕복(QA-TP-01의 2층)과 실제 MemoryStore 부하(QA-SPIKE-01의 2층)는 라이브 서버가 필요해 아직 실행하지 않았습니다 | 무료 | 계획 §12 |
 | U14 | 스테이징 배포 | forge deploy 로 스테이징 플레이스에 올리려면 플레이스 ID·API 키(Open Cloud)가 필요합니다 | 무료 | deploy.yml |
 | U15 | Robux 상품 등록 | catalog lint 를 통과한 상품 목록(econ.yml)을 실제 Game Pass·Developer Product 로 만들고 ID를 채웁니다. 가격 변경은 사람 승인 사항입니다 | 무료(등록) | AGENTS.md, QA-BM-01 |
 | U16 | 오디오·3D 애셋 제작 확정 | 생성 모델 라이선스 규칙(TRELLIS 허용, AudioCraft 등 금지) 안에서 최종 애셋을 만들고 업로드합니다 | 유료 가능 | AGENTS.md |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 이 커밋들은 이미 공개 원격의 `durango/integration`에 올라가 있고, main fast-forward 로 main 히스토리에도 포함됩니다. 지우려면 히스토리 재작성(squash 또는 filter-repo) 후 main·integration 둘 다 force-push 해야 하며, 이미 받아 간 사본은 회수할 수 없습니다. force-push 라 에이전트는 하지 않았습니다 | 무료 | QA-NAME-01 |
-| U19 | 저사양 기기 성능 실측(QA-PERF-01 2층) | 정적 예산(인스턴스·스크립트·용량)은 로컬 PASS입니다. 첫 상호작용 시간과 최대 메모리는 Studio 저사양 프로필이나 실기기에서 재서 qa-evidence.md 주 3에 적어야 합니다 | 무료 | qa-evidence.md 주 3 |
+| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | Studio 최저 품질(Level01)에서 실측 완료(2026-10-18): 첫 상호작용 2.86초, 월드 생성 0.24초, Studio 프로세스(서버+클라이언트) 최대 메모리 2,639MB, 클라이언트 LuaHeap 806MB. 지형 생성 양보 방식을 고쳐 4.45초에서 2.86초로 줄였습니다. Studio는 휴대폰 메모리 한도를 재현하지 못하므로 실제 저사양 휴대폰 1회 확인만 남았습니다 | 무료 | qa-evidence.md 주 3 |
 | U20 | 스테이징 QA 2층 확인 | QA-SPIKE-01(실제 MemoryStore 부하), QA-BM-04(실제 PolicyService 프롬프트 로그)는 스테이징 Universe에서 사람이 확인해야 합니다. 로컬 1층(시뮬레이션·가짜 서비스)은 PASS입니다 | 무료 | qa-evidence.md |
 | U21 | 배포 대상·키 입력 | `games/robango-island/deploy.yml`의 universeId/placeId가 0이고, Open Cloud 키 환경 변수(ROBLOX_STAGING_API_KEY 등, `.env.example` 참고)가 이 Mac에 없습니다(2026-10-17 실측). Roblox에서 체험·플레이스를 만들고 `.env.local`에 ID와 키를 넣어야 `forge deploy --env staging`이 동작합니다 | 무료 | .env.example |
-| U22 | Roblox Studio 설치·실행 | 이 Mac에 Studio가 없습니다(/Applications/RobloxStudio.app 없음). 저장소의 Studio QA 드라이버는 Windows 경로 기준입니다. 첫 플레이 캡처와 Studio 시나리오는 Studio가 있는 기기에서 사용자 승인 후 진행합니다 | 무료 | docs/release/studio-qa.md |
+| U22 | Roblox Studio 설치·실행 | 완료(2026-10-18~19): Windows Studio에서 데스크톱·모바일 첫 플레이 캡처, 전체 흐름 플레이 점검(주 6), Studio 시나리오 3종(주 7)을 실행했습니다. 다시 돌릴 때만 Studio 실행 승인이 필요합니다 | 무료 | docs/release/studio-qa.md |
 | U23 | 품질 등급 승격 | `quality.yml` 등급이 starter입니다. release-candidate로 올리려면 실제 첫 플레이 캡처(데스크톱·모바일), 독립 레퍼런스, 평가자(FORGE_QUALITY_EVALUATOR) 승인 영수증이 필요합니다. 에이전트가 스스로 승인할 수 없습니다 | 무료 | forge quality --help |
 
 결정안: 착수에 필요한 사용자 결정은 모두 끝났고, 나머지는 M7 출시 준비까지 처리하면 된다.
