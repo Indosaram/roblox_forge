@@ -81,7 +81,7 @@ Verified flows in Studio: arrival, the tutorial tracker, gathering, crafting a b
 | Scenario | Run | Result |
 |---|---|---|
 | `survival-coop:wildlife-spatial` | `live-wildlife-spatial-20261019T100832Z` | PASS, 64 steps, 132 s, 28 captures |
-| `survival-coop:full-coop-rejoin` | `live-full-coop-rejoin-20261019T095317Z` | PASS, 104 steps, 303 s, 12 captures (desktop owner + touch guest) |
+| `survival-coop:full-coop-rejoin` | `live-full-coop-rejoin-20261019T115841Z` | PASS, 104 steps, 303 s, 12 captures (desktop owner + touch guest) |
 | `survival-coop:tutorial-studio` (QA-CORE-01) | `live-tutorial-studio-20261019T101133Z` | PASS, 78 steps, 271 s, 8 captures, including a physical rejoin mid-tutorial |
 
 Game bugs these runs found and fixed (each with a spec that fails without the fix):
@@ -102,4 +102,4 @@ QA driver fixes made along the way (`cli/forge/qa`, 162 tests): rejoin waits out
 
 UX note: the crafting list is long enough that reaching a later recipe needs a scroll on desktop. It stays usable (each recipe is one row), so it is recorded here rather than fixed in this round.
 
-Flaky-run note: on the same final code two tutorial attempts stopped on the walk to the warehouse after the rejoin (`action or state signal timeout`, `walk_to deadline`) and one wildlife attempt on `movement not replicated`; the passing runs above made the same walks without retries. Those stops left no game error in the Studio logs, so they are recorded as Studio input/replication timing rather than product faults, and are worth watching on the live server.
+Flaky-run note: on the same final code two tutorial attempts stopped on the walk to the warehouse after the rejoin (`action or state signal timeout`, `walk_to deadline`) and one wildlife attempt on `movement not replicated`. The full-coop-rejoin re-run on the committed tree (9ecdd18) stopped twice on the owner's walk to the warehouse with the same `action or state signal timeout` before its third attempt passed. The passing runs above made the same walks without retries. Those stops left no game error in the Studio logs, so they are recorded as Studio input/replication timing rather than product faults, and are worth watching on the live server.
