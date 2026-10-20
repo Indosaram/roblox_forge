@@ -382,6 +382,11 @@ function M.new(
 			end
 			local notification = executor.leave(id)
 			joined[id], profiles[id], tokens[id], ledgers[id] = nil, nil, nil, nil
+			for _, extension in extensions do
+				if extension.recover then
+					pcall(extension.recover, id, 1)
+				end
+			end
 			return { ok = true, notificationError = notification or prepared }
 		end
 		-- Capture before detaching even if a backend write is suspended. The

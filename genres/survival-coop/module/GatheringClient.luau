@@ -45,7 +45,21 @@ function M.start(options: Options?)
 	touchGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	local touch = Instance.new("TextButton")
 	touch.Name, touch.Text, touch.Visible = "Gather", actionText, false
-	touch.Size, touch.Position = UDim2.fromOffset(120, 52), UDim2.new(0.5, -60, 1, -120)
+	touch.Size, touch.Position = UDim2.fromOffset(132, 48), UDim2.new(0.5, -66, 1, -112)
+	touch.BackgroundColor3 = Color3.fromRGB(54, 108, 82)
+	touch.BorderSizePixel = 0
+	touch.Font = Enum.Font.GothamBold
+	touch.TextSize = 15
+	touch.TextColor3 = Color3.fromRGB(240, 246, 240)
+	pcall(function()
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 10)
+		c.Parent = touch
+		local s = Instance.new("UIStroke")
+		s.Color = Color3.fromRGB(142, 196, 162)
+		s.Thickness = 1.5
+		s.Parent = touch
+	end)
 	touch.Parent = touchGui
 	touchGui.Parent = player:WaitForChild("PlayerGui")
 	local shown: { [ProximityPrompt]: BasePart } = {}

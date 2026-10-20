@@ -9,8 +9,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 	local root = Instance.new("Part")
 	root.Name, root.Size, root.Transparency, root.CanCollide = "HumanoidRootPart", Vector3.new(2, 2, 3), 1, true
 	root.CFrame, root.Parent = CFrame.new(position), model
-	local green = if kind == "grazer" then Color3.fromRGB(107, 137, 93) else Color3.fromRGB(135, 111, 76)
-	local belly = Color3.fromRGB(191, 179, 132)
+	local green = if kind == "grazer" then Color3.fromRGB(78, 138, 86) else Color3.fromRGB(164, 92, 54)
+	local accent = if kind == "grazer" then Color3.fromRGB(48, 96, 56) else Color3.fromRGB(76, 44, 32)
+	local belly = Color3.fromRGB(208, 196, 146)
 	local function anatomy(name: string, size: Vector3, offset: CFrame, color: Color3, wedge: boolean?): BasePart
 		local part: BasePart = if wedge then Instance.new("WedgePart") else Instance.new("Part")
 		part.Name, part.Size, part.CFrame, part.Color = name, size, root.CFrame * offset, color
@@ -23,16 +24,19 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 	end
 	anatomy("Torso", Vector3.new(3, 2.5, 5), CFrame.new(0, 0, 0), green)
 	anatomy("Belly", Vector3.new(2.5, 0.7, 3.6), CFrame.new(0, -1, 0), belly)
+	for spine = 1, 3 do
+		anatomy("Spine" .. spine, Vector3.new(0.45, 0.65, 1.1), CFrame.new(0, 1.45, -1.8 + spine * 1.3), accent, true)
+	end
 	for side = -1, 1, 2 do
-		anatomy("Thigh" .. side, Vector3.new(1, 2, 1.5), CFrame.new(side * 1.4, -1.1, 1), green)
-		anatomy("Shin" .. side, Vector3.new(0.6, 1.6, 0.7), CFrame.new(side * 1.4, -2.4, 1), green)
-		anatomy("Foot" .. side, Vector3.new(1, 0.5, 1.8), CFrame.new(side * 1.4, -3, 0.5), belly)
+		anatomy("Thigh" .. side, Vector3.new(1.1, 2, 1.6), CFrame.new(side * 1.4, -1.1, 1), green)
+		anatomy("Shin" .. side, Vector3.new(0.7, 1.6, 0.8), CFrame.new(side * 1.4, -2.4, 1), accent)
+		anatomy("Foot" .. side, Vector3.new(1.1, 0.5, 1.8), CFrame.new(side * 1.4, -3, 0.5), belly)
 		if kind == "grazer" then
-			anatomy("Foreleg" .. side, Vector3.new(0.8, 2.5, 0.9), CFrame.new(side * 1.2, -1.8, -1.6), green)
+			anatomy("Foreleg" .. side, Vector3.new(0.9, 2.5, 1.0), CFrame.new(side * 1.2, -1.8, -1.6), green)
 		else
 			anatomy(
 				"Arm" .. side,
-				Vector3.new(0.4, 1.1, 0.5),
+				Vector3.new(0.45, 1.1, 0.55),
 				CFrame.new(side * 1.55, -0.3, -1.8) * CFrame.Angles(math.rad(-30), 0, 0),
 				green
 			)
@@ -44,7 +48,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 			"Tail" .. segment,
 			Vector3.new(1.8 - segment * 0.3, 1.5 - segment * 0.24, 2),
 			CFrame.new(0, 0.15 + segment * 0.08, 2 + segment * 1.4) * CFrame.Angles(math.rad(4), 0, 0),
-			green,
+			if segment % 2 == 0 then accent else green,
 			true
 		)
 	end
@@ -63,13 +67,15 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 		anatomy("Neck", Vector3.new(1.8, 2, 1.8), CFrame.new(0, 0.7, -2.3), green)
 	end
 	anatomy("Head", Vector3.new(1.8, 1.25, 2.3), CFrame.new(0, headY, headZ), green)
+	anatomy("Snout", Vector3.new(1.4, 0.75, 1.2), CFrame.new(0, headY - 0.1, headZ - 1.4), green, true)
+	anatomy("Crest", Vector3.new(0.5, 0.75, 1.5), CFrame.new(0, headY + 0.85, headZ + 0.2), accent, true)
 	anatomy("Jaw", Vector3.new(1.5, 0.4, 2), CFrame.new(0, headY - 0.6, headZ - 0.1), belly)
 	for side = -1, 1, 2 do
 		anatomy(
 			"Eye" .. side,
-			Vector3.new(0.12, 0.25, 0.28),
+			Vector3.new(0.16, 0.32, 0.34),
 			CFrame.new(side * 0.92, headY + 0.15, headZ - 0.45),
-			Color3.fromRGB(24, 30, 23)
+			Color3.fromRGB(245, 196, 62)
 		)
 	end
 	-- Preserve the authored silhouette while giving motion anatomical pivots.
@@ -83,6 +89,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 			parentPart, parentPart.CFrame:ToObjectSpace(frame), part.CFrame:ToObjectSpace(frame)
 	end
 	link("Belly", "Torso", Vector3.new(0, -1, 0))
+	for spine = 1, 3 do
+		link("Spine" .. spine, "Torso", Vector3.new(0, 1.25, -1.8 + spine * 1.3))
+	end
 	for side = -1, 1, 2 do
 		link("Thigh" .. side, "Torso", Vector3.new(side * 1.4, -0.2, 1))
 		link("Shin" .. side, "Thigh" .. side, Vector3.new(side * 1.4, -1.9, 1))
@@ -115,6 +124,8 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance): M
 		link("Neck", "Torso", Vector3.new(0, 0.3, -1.8))
 	end
 	link("Head", if kind == "grazer" then "Neck3" else "Neck", Vector3.new(0, headY, headZ + 0.8))
+	link("Snout", "Head", Vector3.new(0, headY - 0.1, headZ - 1.0))
+	link("Crest", "Head", Vector3.new(0, headY + 0.6, headZ + 0.2))
 	link("Jaw", "Head", Vector3.new(0, headY - 0.4, headZ + 0.7))
 	local humanoid = Instance.new("Humanoid")
 	humanoid.HipHeight, humanoid.WalkSpeed, humanoid.RequiresNeck = 2, if kind == "grazer" then 12 else 14, false

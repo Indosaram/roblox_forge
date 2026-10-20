@@ -176,8 +176,16 @@ function Components.modalSheet(theme: Theme, props: ModalSheetProps): ModalSheet
 
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = color(theme.colors.muted)
-	stroke.Thickness = 1
+	stroke.Thickness = 1.5
 	stroke.Parent = frame
+
+	local frameGradient = Instance.new("UIGradient")
+	frameGradient.Color = ColorSequence.new(
+		color(theme.colors.panel):Lerp(Color3.new(1, 1, 1), 0.06),
+		color(theme.colors.panel):Lerp(Color3.new(0, 0, 0), 0.24)
+	)
+	frameGradient.Rotation = 90
+	frameGradient.Parent = frame
 
 	local header = Instance.new("Frame")
 	header.Name = "Header"
@@ -190,6 +198,14 @@ function Components.modalSheet(theme: Theme, props: ModalSheetProps): ModalSheet
 	local headerCorner = Instance.new("UICorner")
 	headerCorner.CornerRadius = UDim.new(0, theme.corner)
 	headerCorner.Parent = header
+
+	local headerGradient = Instance.new("UIGradient")
+	headerGradient.Color = ColorSequence.new(
+		color(theme.colors.accent):Lerp(Color3.new(1, 1, 1), 0.16),
+		color(theme.colors.accent):Lerp(Color3.new(0, 0, 0), 0.18)
+	)
+	headerGradient.Rotation = 90
+	headerGradient.Parent = header
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
@@ -319,6 +335,17 @@ function Components.button(theme: Theme, props: ButtonProps): TextButton
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, theme.corner)
 	corner.Parent = button
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color(theme.colors.accent):Lerp(Color3.new(1, 1, 1), 0.25)
+	stroke.Thickness = 1
+	stroke.Transparency = 0.25
+	stroke.Parent = button
+
+	local btnGradient = Instance.new("UIGradient")
+	btnGradient.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(218, 224, 220))
+	btnGradient.Rotation = 90
+	btnGradient.Parent = button
 
 	local constraint = Instance.new("UISizeConstraint")
 	constraint.MinSize = Vector2.new(0, 44)

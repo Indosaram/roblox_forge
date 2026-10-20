@@ -175,7 +175,7 @@ function M.factory(ctx: any): any
 	local slot: Instance = ctx.objectiveSlot or gui
 	local docked = ctx.objectiveSlot ~= nil
 	local tracker = components.label(theme, {
-		text = "",
+		text = M.text(locale, "tutorial_title") .. ": " .. M.text(locale, "tutorial.arrive"),
 		size = if docked then UDim2.fromScale(1, 0) else UDim2.fromOffset(260, 44),
 		position = if docked then nil else UDim2.new(1, -276, 0, 12),
 		parent = slot,

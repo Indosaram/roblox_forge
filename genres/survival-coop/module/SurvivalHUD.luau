@@ -101,7 +101,14 @@ function M.start(options: Options)
 	end
 	local theme = Theme.merge(Theme.default, {
 		font = "Gotham",
-		colors = { panel = { r = 27, g = 43, b = 40 }, accent = { r = 67, g = 112, b = 93 } },
+		colors = {
+			bg = { r = 18, g = 28, b = 26 },
+			panel = { r = 27, g = 43, b = 40 },
+			accent = { r = 67, g = 112, b = 93 },
+			text = { r = 240, g = 244, b = 240 },
+			onAccent = { r = 240, g = 244, b = 240 },
+			muted = { r = 108, g = 148, b = 132 },
+		},
 	})
 	local model = Model.new(tostring(player.UserId), function()
 		return http:GenerateGUID(false)
@@ -116,7 +123,15 @@ function M.start(options: Options)
 		Components.label(theme, { text = t("loading"), size = UDim2.new(1, 0, 0, 52), parent = root, textSize = 15 })
 	-- Sibling names must stay unique: capture validation reads GetFullName paths.
 	vitals.Name = "Vitals"
-	vitals.BackgroundColor3, vitals.BackgroundTransparency = Color3.fromRGB(27, 43, 40), 0.12
+	vitals.BackgroundColor3, vitals.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
+	pcall(function()
+		local vc = Instance.new("UICorner")
+		vc.CornerRadius = UDim.new(0, 8)
+		vc.Parent = vitals
+		local vs = Instance.new("UIStroke")
+		vs.Color, vs.Thickness, vs.Transparency = Color3.fromRGB(88, 138, 114), 1.2, 0.25
+		vs.Parent = vitals
+	end)
 	local status = Components.label(theme, {
 		text = t("loading"),
 		size = UDim2.new(1, 0, 0, 64),
@@ -130,7 +145,15 @@ function M.start(options: Options)
 	status.TextScaled = true
 	local statusLimit = Instance.new("UITextSizeConstraint")
 	statusLimit.MaxTextSize, statusLimit.MinTextSize, statusLimit.Parent = 14, 8, status
-	status.BackgroundColor3, status.BackgroundTransparency = Color3.fromRGB(27, 43, 40), 0.12
+	status.BackgroundColor3, status.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
+	pcall(function()
+		local sc = Instance.new("UICorner")
+		sc.CornerRadius = UDim.new(0, 8)
+		sc.Parent = status
+		local ss = Instance.new("UIStroke")
+		ss.Color, ss.Thickness, ss.Transparency = Color3.fromRGB(88, 138, 114), 1.2, 0.25
+		ss.Parent = status
+	end)
 	local toolbar = Instance.new("Frame")
 	toolbar.Name, toolbar.BackgroundTransparency = "Navigation", 1
 	toolbar.Position, toolbar.Size, toolbar.Parent = UDim2.fromOffset(0, 124), UDim2.new(1, 0, 0, 48), root
@@ -448,14 +471,6 @@ function M.start(options: Options)
 				send(model.retry())
 			end, not model.busy)
 		end
-		button("Refresh", t("refresh"), refresh)
-		button("CameraHelp", t("cameraHelp"), function()
-			helpVisible = not helpVisible
-			render()
-		end)
-		if helpVisible then
-			label(t("cameraHint"), 100)
-		end
 		if model.reason then
 			label(Locale.refusal(locale, model.reason), 100)
 		end
@@ -546,10 +561,56 @@ function M.start(options: Options)
 				)
 			end
 		elseif section == "craft" then
-			for _, recipe in options.content.recipes do
+			local RECIPE_PRIORITY: { [string]: number } = {
+				["cord"] = 1,
+				["stone-axe"] = 2,
+				["berry-meal"] = 3,
+				["capture-bola"] = 4,
+				["stone-pickaxe"] = 5,
+				["wooden-spear"] = 6,
+			}
+			local orderedRecipes: { any } = table.clone(options.content.recipes)
+			table.sort(orderedRecipes, function(a: any, b: any)
+				local pa = RECIPE_PRIORITY[a.id]
+					or (if a.station == nil then 10 elseif a.station == "campfire" then 20 else 30)
+				local pb = RECIPE_PRIORITY[b.id]
+					or (if b.station == nil then 10 elseif b.station == "campfire" then 20 else 30)
+				if pa ~= pb then
+					return pa < pb
+				end
+				return a.id < b.id
+			end)
+			local activeJobs = Model.jobs(model.snapshot, model.actor)
+			local renderedJobs = false
+			local function renderJobs()
+				if renderedJobs then
+					return
+				end
+				renderedJobs = true
+				label(t("jobs"))
+				for _, entry in activeJobs do
+					local job = entry.job
+					local timer = label(name(job.recipeId) .. " - " .. t(job.state), 64)
+					if job.finishAt then
+						timer:SetAttribute("FinishAt", job.finishAt)
+						timer:SetAttribute("JobLabel", timer.Text)
+					end
+					local verb = if job.state == "Reserved" then "start" else "complete"
+					mutation(verb .. "-" .. entry.id, t(verb), "craft-" .. verb, function()
+						command("craft-" .. verb, { entry.id })
+					end)
+					mutation("cancel-" .. entry.id, t("cancel"), "craft-cancel", function()
+						command("craft-cancel", { entry.id })
+					end)
+				end
+			end
+			if recipeId == nil and #activeJobs > 0 then
+				renderJobs()
+			end
+			for _, recipe in orderedRecipes do
 				button("Recipe-" .. recipe.id, name(recipe.id), function()
 					recipeId = recipe.id
-					-- Reserve renders after the whole recipe list; bring it into view.
+					-- Reserve renders right under the selected recipe; bring it into view.
 					focusBottom = "Reserve-" .. recipe.id
 					render()
 				end)
@@ -589,27 +650,29 @@ function M.start(options: Options)
 							{ recipe.id, if station then station:GetAttribute("ForgeStationId") else "hand" }
 						)
 					end)
+					renderJobs()
 				end
 			end
-			label(t("jobs"))
-			for _, entry in Model.jobs(model.snapshot, model.actor) do
-				local job = entry.job
-				local timer = label(name(job.recipeId) .. " - " .. t(job.state), 64)
-				if job.finishAt then
-					timer:SetAttribute("FinishAt", job.finishAt)
-					timer:SetAttribute("JobLabel", timer.Text)
-				end
-				local verb = if job.state == "Reserved" then "start" else "complete"
-				mutation(verb .. "-" .. entry.id, t(verb), "craft-" .. verb, function()
-					command("craft-" .. verb, { entry.id })
-				end)
-				mutation("cancel-" .. entry.id, t("cancel"), "craft-cancel", function()
-					command("craft-cancel", { entry.id })
-				end)
-			end
+			renderJobs()
 		elseif section == "build" then
 			label(t("buildHint"), 80)
-			for _, definition in options.content.structures do
+			local STRUCTURE_PRIORITY: { [string]: number } = {
+				["floor"] = 1,
+				["campfire"] = 2,
+				["workbench"] = 3,
+				["storage"] = 4,
+				["roof"] = 5,
+			}
+			local orderedStructures: { any } = table.clone(options.content.structures)
+			table.sort(orderedStructures, function(a: any, b: any)
+				local pa = STRUCTURE_PRIORITY[a.id] or 10
+				local pb = STRUCTURE_PRIORITY[b.id] or 10
+				if pa ~= pb then
+					return pa < pb
+				end
+				return a.id < b.id
+			end)
+			for _, definition in orderedStructures do
 				button("Structure-" .. definition.id, name(definition.id), function()
 					structureId = definition.id
 					-- The detail, arrows and Reserve render after the whole structure list (17 in
@@ -681,6 +744,14 @@ function M.start(options: Options)
 					end
 				end
 			end
+		end
+		button("Refresh", t("refresh"), refresh)
+		button("CameraHelp", t("cameraHelp"), function()
+			helpVisible = not helpVisible
+			render()
+		end)
+		if helpVisible then
+			label(t("cameraHint"), 100)
 		end
 		controls.finish()
 		for index = noteUsed + 1, #notePool do

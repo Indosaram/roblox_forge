@@ -218,18 +218,34 @@ function M.start(options: {
 	local entries: { DockEntry } = {}
 	local sheets: { any } = {}
 	local ui = options.ui
-	-- The dock shares the survival HUD's palette so launchers read as one interface.
+	-- The dock and every extension panel share the survival HUD's forest-and-sage palette so
+	-- launchers and modal sheets read as one cohesive interface.
 	local theme = ui
 		and ui.theme
 		and ui.theme.merge(ui.theme.default, {
 			font = "GothamMedium",
 			colors = {
+				bg = { r = 18, g = 28, b = 26 },
 				panel = { r = 27, g = 43, b = 40 },
 				accent = { r = 67, g = 112, b = 93 },
+				text = { r = 240, g = 244, b = 240 },
 				onAccent = { r = 240, g = 244, b = 240 },
+				muted = { r = 108, g = 148, b = 132 },
+				good = { r = 82, g = 192, b = 122 },
+				bad = { r = 208, g = 76, b = 68 },
 			},
-			textSizes = { body = 15 },
+			textSizes = { title = 20, body = 15, small = 13 },
 		})
+	if ui and theme then
+		context.ui = {
+			components = ui.components,
+			grid = (ui :: any).grid,
+			theme = {
+				default = theme,
+				merge = ui.theme.merge,
+			},
+		}
+	end
 	local menuToggle = ui.components.button(theme, {
 		text = if string.sub(options.locale, 1, 2) == "ko" then "메뉴" else "Menu",
 		size = UDim2.new(1, 0, 0, 40),
