@@ -30,30 +30,31 @@
   
 'monetization':
   # Deterministic Robux items only (design.md section 8, ADR-07). `id: 0` = not yet registered on
-  # Roblox: MonetizationExtension shows it but refuses to prompt. Runtime mirror:
+  # Roblox: MonetizationExtension shows it but refuses to prompt. Subscription ids are the
+  # `EXP-<id>` string Roblox issues. Runtime mirror:
   # src/shared/MonetizationCatalog.luau (MonetizationCatalog.spec.luau asserts equality).
   'gamepasses':
     - 'key': 'routeGuildPatron'
       'name': 'Route Guild Patron Pass'
       'price': 299
-      'id': 0
+      'id': 2040232413
       'grant': {'kind': 'storageSlots', 'amount': 10}
     - 'key': 'wideWarehouse'
       'name': 'Wide Warehouse'
       'price': 199
-      'id': 0
+      'id': 2037904759
       'grant': {'kind': 'storageSlots', 'amount': 10}
   'products':
     - 'key': 'skinRidgeStriderGold'
       'name': 'Ridge Strider Gold Skin'
       'price': 199
-      'id': 0
+      'id': 3720013569
       'grant': {'kind': 'cosmeticSet', 'cosmeticSetId': 'ridge-strider-gold'}
   'subscriptions':
     - 'key': 'routeGuildMonthly'
       'name': 'Route Guild Monthly'
       'price': 99
-      'id': 0
+      'id': 'EXP-4461467833720767028'
       'grant': {'kind': 'subscriptionMonthly', 'cosmeticSetId': 'route-guild-monthly', 'storageSlots': 5}
 'name':
   'Robango Island'

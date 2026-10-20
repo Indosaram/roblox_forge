@@ -40,13 +40,21 @@ return {
 		local violations = CatalogCore.lint(Catalog)
 		assert(#violations == 0, table.concat(violations, "; "))
 	end,
-	["unregistered items keep id 0 and only extension-granted kinds are sold"] = function()
+	["ids are 0 or registered Roblox ids and only extension-granted kinds are sold"] = function()
 		local supported = { storageSlots = true, cosmeticSet = true, subscriptionMonthly = true }
-		for _, section in { Catalog.gamepasses or {}, Catalog.products or {}, Catalog.subscriptions or {} } do
+		for _, section in { Catalog.gamepasses or {}, Catalog.products or {} } do
 			for _, listing in section do
 				assert(type(listing.id) == "number" and listing.id >= 0 and listing.id % 1 == 0, listing.key)
 				assert(supported[listing.grant.kind], "grant the extension cannot apply: " .. listing.key)
 			end
+		end
+		-- An experience subscription id is the `EXP-<digits>` string PromptSubscriptionPurchase takes.
+		for _, listing in Catalog.subscriptions or {} do
+			assert(
+				listing.id == 0 or (type(listing.id) == "string" and string.match(listing.id, "^EXP%-%d+$") ~= nil),
+				listing.key
+			)
+			assert(supported[listing.grant.kind], "grant the extension cannot apply: " .. listing.key)
 		end
 	end,
 	["cosmetic products name a mount skin the taming policy declares"] = function()
