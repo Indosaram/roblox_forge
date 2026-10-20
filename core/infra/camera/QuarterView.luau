@@ -105,7 +105,7 @@ function M.start(config: Config?)
 		-- Never ignore faded geometry for collision or interaction raycasts.
 		params.RespectCanCollide = true
 		local hit = Workspace:Spherecast(focus, 0.75, offset, params)
-		if hit then
+		if hit and (not hit.Instance or not tagged(hit.Instance)) then
 			offset = offset.Unit * math.max(0.05, hit.Distance - 0.25)
 		end
 		current.CameraType = Enum.CameraType.Scriptable

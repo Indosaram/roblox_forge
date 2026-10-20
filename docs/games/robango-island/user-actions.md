@@ -19,7 +19,7 @@
 | U6 | 소유 계정 준비 | 신분증 인증, 2단계 인증, 그룹 소유로 할지 결정 | 무료 | kr-policy.md C29 |
 | U7 | 저연령(Kids/Select) 노출 요건 | Roblox Plus/Premium 2개월 유지 또는 환불형 퍼블리시 요금, 그리고 16세 이상 평가 기간(engaged 250명). 일정을 줄이려면 신속 심사 50,000 Robux | 유료 | kr-policy.md C29 |
 | U8 | DevEx 준비 | W-8BEN 세금 양식과 DevEx 포털(Tipalti). 실명을 일관되게 써야 합니다 | 무료 | kr-policy.md 추가 |
-| U9 | KR 실측 | 스테이징에서 KR 계정으로 PolicyService 값을 기록합니다. H4 실측(에이전트가 로그 코드를 만들고, 사용자가 접속) | 무료 | ADR-07 |
+| U9 | KR 실측 | 완료(2026-10-20): 한국 로케일 계정(`ko-kr`)으로 안드로이드 실기기(`SM-N981N`)에서 스테이징에 접속해 `PolicyService` 통과 후 구독(`EXP-4461467833720767028`, `Route Guild Monthly 99/월`) 및 개발자 상품(`3720013569`, `Ridge Strider Gold Skin 199`) 네이티브 결제 프롬프트 표출을 확인했습니다(qa-evidence.md 주 8) | 무료 | ADR-07 |
 
 ## 선택
 | # | 항목 | 내용 |
@@ -37,8 +37,8 @@
 | U16 | 오디오·3D 애셋 제작 확정 | 생성 모델 라이선스 규칙(TRELLIS 허용, AudioCraft 등 금지) 안에서 최종 애셋을 만들고 업로드합니다 | 유료 가능 | AGENTS.md |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 이 커밋들은 이미 공개 원격의 `durango/integration`에 올라가 있고, main fast-forward 로 main 히스토리에도 포함됩니다. 지우려면 히스토리 재작성(squash 또는 filter-repo) 후 main·integration 둘 다 force-push 해야 하며, 이미 받아 간 사본은 회수할 수 없습니다. force-push 라 에이전트는 하지 않았습니다 | 무료 | QA-NAME-01 |
-| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | Studio 최저 품질(Level01)에서 실측 완료(2026-10-18): 첫 상호작용 2.86초, 월드 생성 0.24초, Studio 프로세스(서버+클라이언트) 최대 메모리 2,639MB, 클라이언트 LuaHeap 806MB. 지형 생성 양보 방식을 고쳐 4.45초에서 2.86초로 줄였습니다. Studio는 휴대폰 메모리 한도를 재현하지 못하므로 실제 저사양 휴대폰 1회 확인만 남았습니다 | 무료 | qa-evidence.md 주 3 |
-| U20 | 스테이징 QA 2층 확인 | 스테이징 클라우드 검증 완료(2026-10-19, 주 8): 게시된 버전 2에서 Open Cloud Luau Execution으로 실제 `DataStoreService`/`MemoryStoreService` 읽기·쓰기, 상품 3종 `MarketplaceService:GetProductInfo` 일치, `RobangoIslandServer` 전체 월드·세션 부트스트랩(`DevelopmentIsland` 34개 자식, `SurvivalFactory` ok)을 확인했습니다. 64인 동시 접속 MemoryStore 부하(QA-SPIKE-01 2층)와 실제 계정 PolicyService 프롬프트/결제(QA-BM-04 2층)만 실계정 플레이가 필요합니다 | 무료 | qa-evidence.md 주 8 |
+| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | 완료(2026-10-18~20): Studio 최저 품질(Level01)에서 첫 상호작용 2.86초, 월드 생성 0.24초, Studio 최대 메모리 2,639MB(LuaHeap 806MB)를 실측했고, 안드로이드 실기기(`SM-N981N` Galaxy Note 20 5G, Snapdragon 865+, Android 13, 2400x1080)에서 `com.roblox.client` PSS 704.0MB(RSS 848.6MB, Private Dirty 575.7MB, Native Heap 50.1MB, Graphics 34.9MB), 프레임 시간 p50 12ms(GPU p50 9ms), p90 23ms, p95 36ms를 실측했습니다 | 무료 | qa-evidence.md 주 3·8 |
+| U20 | 스테이징 QA 2층 확인 | 스테이징 클라우드 및 안드로이드 실기기 검증 완료(2026-10-19~20, 주 8): 게시된 스테이징 플레이스에서 Open Cloud Luau Execution 및 안드로이드 실기기(`SM-N981N`) 접속으로 `DataStoreService`/`MemoryStoreService` 읽기·쓰기, 한국 계정 `PolicyService` 통과 및 구독·상품 네이티브 프롬프트(QA-BM-04 2층), 채집·제작·섭취·계약·캠프 기부·데스 존 전환 및 재접속 영속성을 모두 확인했습니다. 64인 동시 접속 MemoryStore 부하(QA-SPIKE-01 2층)만 다인 부하 테스트가 필요합니다 | 무료 | qa-evidence.md 주 8 |
 | U21 | 배포 대상·키 입력 | 완료(2026-10-19, 스테이징): `.env.local`(gitignore)에 `FORGE_STAGING_UNIVERSE_ID=10771918494`, `FORGE_STAGING_PLACE_ID=95467272687768`, `ROBLOX_STAGING_API_KEY`, `ROBLOX_API_KEY`를 구성해 `forge deploy --env staging --pack robango-island --development`가 동작합니다. 프로덕션(`FORGE_PROD_UNIVERSE_ID`, `FORGE_PROD_PLACE_ID`, `ROBLOX_PROD_API_KEY`)만 출시 시점에 입력하면 됩니다 | 무료 | .env.example |
 | U22 | Roblox Studio 설치·실행 | 완료(2026-10-18~19): Windows Studio에서 데스크톱·모바일 첫 플레이 캡처, 전체 흐름 플레이 점검(주 6), Studio 시나리오 3종(주 7)을 실행했습니다. 다시 돌릴 때만 Studio 실행 승인이 필요합니다 | 무료 | docs/release/studio-qa.md |
 | U23 | 품질 등급 승격 | `quality.yml` 등급이 starter입니다. release-candidate로 올리려면 실제 첫 플레이 캡처(데스크톱·모바일), 독립 레퍼런스, 평가자(FORGE_QUALITY_EVALUATOR) 승인 영수증이 필요합니다. 에이전트가 스스로 승인할 수 없습니다 | 무료 | forge quality --help |

@@ -160,10 +160,15 @@ function M.start(options: {
 			if not ok then
 				return { ok = false, reason = "TRANSPORT_FAILED: " .. tostring(result) }
 			end
-			-- An accepted command is a persisted outcome even when the extension returns no
-			-- stateVersion (zone-set, contract and camp actions); keeping it pending made the next
-			-- press replay this request's args (Studio: "return to safe zone" replayed "danger").
-			pending[actionId] = if type(result) == "table" and result.ok == true
+			-- An accepted command or a definitive refusal is a settled outcome even when the extension
+			-- returns no stateVersion (zone-set, contract and camp actions); keeping a settled request
+			-- pending made the next press replay its old args forever.
+			local inFlight = type(result) == "table"
+				and (
+					result.reason == "COMMAND_PENDING"
+					or (type(result.data) == "table" and result.data.status == "recovering")
+				)
+			pending[actionId] = if type(result) == "table" and not inFlight
 				then nil
 				else CommandTransport.settle(pending[actionId], result)
 			return result
@@ -243,6 +248,16 @@ function M.start(options: {
 	end
 	-- Bottom edge (in dock coordinates) of the visible Roblox chat window, 0 when absent.
 	-- The chat window's right and bottom edges in dock space (0, 0 when no chat is shown).
+	local function actuallyVisible(item: any, stopAt: any): boolean
+		local current: any = item
+		while current ~= nil and current ~= stopAt do
+			if current:IsA("GuiObject") and not current.Visible then
+				return false
+			end
+			current = current.Parent
+		end
+		return true
+	end
 	local function chatEdges(): (number, number)
 		local chat = players.LocalPlayer.PlayerGui:FindFirstChild("Chat")
 		local right, bottom = 0, 0
@@ -250,7 +265,7 @@ function M.start(options: {
 			local maxWidth = dockGui.AbsoluteSize.X * 0.6
 			local maxHeight = dockGui.AbsoluteSize.Y * 0.75
 			for _, item in chat:GetDescendants() do
-				if item:IsA("GuiObject") and item.Visible then
+				if item:IsA("GuiObject") and actuallyVisible(item, chat) then
 					local frameSize = item.AbsoluteSize
 					local named = item.Name == "ChatWindow"
 						or item.Name == "ChatChannelParentFrame"
@@ -274,6 +289,17 @@ function M.start(options: {
 		local _, bottom = chatEdges()
 		return bottom
 	end
+	local function dockHeight(): number
+		local h = column.AbsoluteSize.Y
+		if menuList.Visible then
+			local gridH = objectiveSlot.AbsoluteSize.Y
+				+ menuToggle.AbsoluteSize.Y
+				+ menuLayout.AbsoluteContentSize.Y
+				+ 12
+			h = math.max(h, gridH)
+		end
+		return h
+	end
 	local lastCompact: boolean? = nil
 	local function place()
 		local size = viewport()
@@ -281,20 +307,6 @@ function M.start(options: {
 		if lastCompact ~= isCompact then
 			lastCompact = isCompact
 			menuList.Visible = not isCompact
-		end
-		if M.dockPlacement(size.X, size.Y, input.TouchEnabled) == "left-center" then
-			-- The Roblox chat owns the top-left corner. Centering alone put the open menu's first
-			-- launcher under a tall chat window (Studio scenario, mobile: chat bottom y 379 vs
-			-- Dock-contracts y 376), so the column starts below the chat's live footprint.
-			local chatBottom = chatBottomEdge()
-			local centered = math.floor(size.Y / 2 - column.AbsoluteSize.Y / 2)
-			-- Below the chat when it fits, but never past the bottom edge: the last launcher
-			-- must stay tappable even if that means overlapping the chat footprint.
-			local lowest = math.max(0, size.Y - column.AbsoluteSize.Y - 8)
-			column.AnchorPoint = Vector2.new(0, 0)
-			column.Position = UDim2.fromOffset(8, math.min(math.max(centered, chatBottom), lowest))
-		else
-			column.AnchorPoint, column.Position = Vector2.new(0, 1), UDim2.new(0, 12, 1, -12)
 		end
 		-- Compact phone viewports get a two-wide launcher grid (three rows for six panels)
 		-- so even an open menu fits between the chat and the bottom safe area.
@@ -306,6 +318,23 @@ function M.start(options: {
 		menuList.Size = UDim2.fromOffset(if twoWide then columnWidth * 2 + 6 else columnWidth, 0)
 		menuLayout.CellSize = UDim2.fromOffset(columnWidth, 44)
 		menuToggle.Visible = isCompact
+		if M.dockPlacement(size.X, size.Y, input.TouchEnabled) == "left-center" then
+			-- The Roblox chat owns the top-left corner. Centering alone put the open menu's first
+			-- launcher under a tall chat window (Studio scenario, mobile: chat bottom y 379 vs
+			-- Dock-contracts y 376), so the column starts below the chat's live footprint.
+			local chatBottom = chatBottomEdge()
+			local totalH = dockHeight()
+			local centered = math.floor(size.Y / 2 - totalH / 2)
+			-- Reserve the bottom-left thumbstick area on touch screens when it fits; never push
+			-- the last launcher past the bottom edge.
+			local reserve = if input.TouchEnabled then 116 else 8
+			local aboveStick = math.max(8, size.Y - totalH - reserve)
+			local lowest = math.min(math.max(chatBottom, aboveStick), math.max(0, size.Y - totalH - 8))
+			column.AnchorPoint = Vector2.new(0, 0)
+			column.Position = UDim2.fromOffset(8, math.min(math.max(centered, chatBottom), lowest))
+		else
+			column.AnchorPoint, column.Position = Vector2.new(0, 1), UDim2.new(0, 12, 1, -12)
+		end
 		local width, height = M.sheetBounds(size.X, size.Y)
 		local chatRight, chatBottom = chatEdges()
 		local left, top, fitted = M.sheetPosition(size.X, size.Y, width, height, chatRight, chatBottom)

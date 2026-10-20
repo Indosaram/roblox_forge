@@ -88,13 +88,13 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end,
 		})
 		else nil
-	local indicator = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 56) })
+	local indicator = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 36) })
 	indicator.Name, indicator.LayoutOrder, indicator.Parent = "ZoneIndicator", 1, sheet.scroll
-	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 40) })
-	status.Name, status.LayoutOrder, status.Parent = "ZoneStatus", 2, sheet.scroll
+	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 32) })
+	status.Name, status.LayoutOrder, status.Visible, status.Parent = "ZoneStatus", 2, false, sheet.scroll
 	local warning = ui.components.label(theme, {
 		text = M.text(ctx.locale, "zone_warning"),
-		size = UDim2.new(1, 0, 0, 88),
+		size = UDim2.new(1, 0, 0, 56),
 	})
 	warning.Name, warning.LayoutOrder, warning.Visible, warning.Parent = "ZoneWarning", 3, false, sheet.scroll
 	local zone = "safe"
@@ -102,13 +102,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local toggle: TextButton
 	local confirm: TextButton
 	local cancel: TextButton
+	local function setStatus(text: string)
+		status.Text = text
+		status.Visible = text ~= ""
+	end
 	local function show(confirming: boolean)
+		indicator.Visible = not confirming
 		warning.Visible, confirm.Visible, cancel.Visible = confirming, confirming, confirming
 		toggle.Visible = not confirming
 	end
 	local function send(target: string)
 		local result = ctx.send(SET, { target })
-		status.Text = if result.ok then "" else M.refusal(ctx.locale, result.reason)
+		setStatus(if result.ok then "" else M.refusal(ctx.locale, result.reason))
 		show(false)
 	end
 	toggle = ui.components.button(theme, {
@@ -116,9 +121,9 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		size = UDim2.new(1, 0, 0, 44),
 		onClick = function()
 			if not alive then
-				status.Text = M.text(ctx.locale, "zone_dead")
+				setStatus(M.text(ctx.locale, "zone_dead"))
 			elseif M.nextStep(zone) == "confirm" then
-				status.Text = ""
+				setStatus("")
 				show(true)
 			else
 				send("safe")

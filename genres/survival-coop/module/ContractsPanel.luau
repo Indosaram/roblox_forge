@@ -32,6 +32,10 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 		en = "Saving... try again in a moment.",
 		ko = "저장 중이에요. 잠시 후 다시 시도하세요.",
 	},
+	contracts_reason_order = {
+		en = "Complete the earlier first-day contract first.",
+		ko = "앞선 첫날 계약을 먼저 완료하세요.",
+	},
 	contracts_reason_other = { en = "That did not work. Try again.", ko = "잘 안 됐어요. 다시 시도하세요." },
 	tutorial_title = { en = "Objective", ko = "목표" },
 	tutorial_skip = { en = "Skip arrival", ko = "도착 장면 건너뛰기" },
@@ -53,6 +57,7 @@ function M.refusal(locale: string, reason: string?): string
 		then "contracts_reason_insufficient"
 		elseif reason == "BAG_FULL" then "contracts_reason_bag_full"
 		elseif reason == "CONTRACT_PENDING" or reason == "CHARGE_PENDING" then "contracts_reason_pending"
+		elseif reason == "OUT_OF_ORDER" then "contracts_reason_order"
 		else "contracts_reason_other"
 	return M.text(locale, key)
 end
@@ -245,14 +250,11 @@ function M.factory(ctx: any): any
 			order += 1
 			local line = components.label(
 				theme,
-				{ text = text, size = UDim2.new(1, -16, 0, 22 * (lines or 1) + 6), parent = sheet.scroll }
+				{ text = text, size = UDim2.new(1, -16, 0, 20 * (lines or 1) + 4), parent = sheet.scroll }
 			)
 			-- Unique per row: the capture audit (and any GUI path) addresses each line by its full name.
 			line.Name = "Line-" .. order
 			line.TextWrapped, line.LayoutOrder = true, order
-		end
-		for _, faction in view.factions do
-			add(faction.text)
 		end
 		if #view.rows == 0 then
 			add(M.text(locale, "contracts_empty"))
@@ -269,7 +271,7 @@ function M.factory(ctx: any): any
 					M.text(locale, "contracts_trust"),
 					row.trust
 				),
-				3
+				2
 			)
 			order += 1
 			local button = components.button(theme, {
@@ -286,6 +288,9 @@ function M.factory(ctx: any): any
 			-- Unique per contract so QA scenarios and captures can address each row.
 			button.Name = (if row.accepted then "Deliver-" else "Accept-") .. row.id
 			button.LayoutOrder = order
+		end
+		for _, faction in view.factions do
+			add(faction.text)
 		end
 	end
 

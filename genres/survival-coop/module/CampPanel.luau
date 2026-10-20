@@ -38,21 +38,19 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end,
 		})
 		else nil
-	local frame = components.panel(theme, {
+	local sheet = components.modalSheet(theme, {
 		name = "Camp",
-		size = UDim2.fromOffset(320, 0),
-		position = if ctx.dock then UDim2.fromScale(0.5, 0.5) else UDim2.new(1, -336, 0, 16),
+		title = Model.text(ctx.locale, "camp_title"),
 		parent = gui,
-		header = Model.text(ctx.locale, "camp_title"),
 	})
-	frame.AutomaticSize = Enum.AutomaticSize.Y
-	if ctx.dock then
-		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	sheet.frame.Visible = true
+	if ctx.fitSheet then
+		ctx.fitSheet(sheet.frame)
 	end
-	local list = Instance.new("UIListLayout")
-	list.Padding = UDim.new(0, 6)
-	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Parent = frame
+	sheet.close.Activated:Connect(function()
+		wanted = false
+		gui.Enabled = false
+	end)
 	local order = 0
 	local function line(height: number): Frame
 		order += 1
@@ -62,32 +60,75 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		holder.LayoutOrder = order
 		-- Unique row names keep each control's full path unambiguous for QA drivers.
 		holder.Name = "Row" .. order
-		holder.Parent = frame
+		holder.Parent = sheet.scroll
 		return holder
 	end
 	local slice: any, packet: any = nil, nil
 	local selected: string? = nil
 	local quantity = 1
 	local shown: { Instance } = {}
-	local render: () -> ()
+	local render: (force: boolean?) -> ()
 	local status = ""
+	local lastKey: string? = nil
+	local function renderKey(model: any, choices: { any }): string
+		if not model then
+			return "nil"
+		end
+		local parts = {
+			tostring(model.role),
+			tostring(model.rung),
+			tostring(model.rungs),
+			tostring(model.version),
+			tostring(model.pass),
+			tostring(model.visitors),
+			tostring(model.cooldowns),
+			tostring(#model.facilities),
+			tostring(selected),
+			tostring(quantity),
+			status,
+		}
+		for _, h in model.hosts do
+			table.insert(parts, h.id .. ":" .. h.name)
+		end
+		for _, c in choices do
+			table.insert(parts, c.itemId .. ":" .. tostring(c.available))
+		end
+		for _, r in model.rows do
+			table.insert(parts, r.id .. ":" .. r.delivered .. "/" .. r.need .. ":" .. tostring(r.locked))
+		end
+		return table.concat(parts, "|")
+	end
 	local function act(action: string, args: { any })
 		local result = ctx.send(action, args)
 		status = if result.ok then "" else Model.refusal(ctx.locale, result.reason)
-		render()
+		render(true)
 	end
-	function render()
-		for _, child in shown do
-			child:Destroy()
-		end
-		table.clear(shown)
-		order = 1
+	function render(force: boolean?)
 		local model = Model.model(slice, os.time(), packet)
 		available = model ~= nil
 		gui.Enabled = available and wanted
 		if dock then
 			dock.setAvailable(available)
 		end
+		local choices = Model.choices(ctx.locale, packet)
+		if selected == nil then
+			for _, c in choices do
+				if string.find(c.itemId, "fiber", 1, true) or string.find(c.itemId, "wood", 1, true) then
+					selected = c.itemId
+					break
+				end
+			end
+		end
+		local key = renderKey(model, choices)
+		if not force and key == lastKey then
+			return
+		end
+		lastKey = key
+		for _, child in shown do
+			child:Destroy()
+		end
+		table.clear(shown)
+		order = 1
 		if not model then
 			return
 		end
@@ -137,7 +178,6 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				})
 			end
 		end
-		local choices = Model.choices(ctx.locale, packet)
 		local choice = Model.select(choices, selected)
 		selected = if choice then choice.itemId else nil
 		local canGive = #model.rows > 0 and (model.role == "member" or model.pass ~= nil)
@@ -151,14 +191,27 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				})
 			else
 				quantity = Model.clamp(quantity, choice.available)
-				local item = components.button(theme, {
+				local item: TextButton
+				local qtyLabel: TextLabel
+				local function refreshPicker()
+					local current = Model.select(choices, selected)
+					if not current then
+						return
+					end
+					selected = current.itemId
+					quantity = Model.clamp(quantity, current.available)
+					item.Text = current.label .. " x" .. current.available
+					qtyLabel.Text = tostring(quantity)
+					lastKey = renderKey(model, choices)
+				end
+				item = components.button(theme, {
 					text = choice.label .. " x" .. choice.available,
 					size = UDim2.fromScale(0.52, 1),
 					parent = picker,
 					onClick = function()
 						selected = Model.cycle(choices, selected, 1)
 						quantity = 1
-						render()
+						refreshPicker()
 					end,
 				})
 				item.Name = "ItemPicker"
@@ -168,11 +221,14 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					position = UDim2.fromScale(0.54, 0),
 					parent = picker,
 					onClick = function()
-						quantity = Model.clamp(quantity - 1, choice.available)
-						render()
+						local current = Model.select(choices, selected)
+						if current then
+							quantity = Model.clamp(quantity - 1, current.available)
+							refreshPicker()
+						end
 					end,
 				})
-				components.label(theme, {
+				qtyLabel = components.label(theme, {
 					text = tostring(quantity),
 					size = UDim2.fromScale(0.14, 1),
 					position = UDim2.fromScale(0.69, 0),
@@ -184,18 +240,32 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					position = UDim2.fromScale(0.84, 0),
 					parent = picker,
 					onClick = function()
-						quantity = Model.clamp(quantity + 1, choice.available)
-						render()
+						local current = Model.select(choices, selected)
+						if current then
+							quantity = Model.clamp(quantity + 1, current.available)
+							refreshPicker()
+						end
 					end,
 				})
 			end
 		end
+		local orderedRows: { any } = {}
 		for _, row in model.rows do
-			local holder = add(52)
+			if not row.locked then
+				table.insert(orderedRows, row)
+			end
+		end
+		for _, row in model.rows do
+			if row.locked then
+				table.insert(orderedRows, row)
+			end
+		end
+		for _, row in orderedRows do
+			local holder = add(48)
 			local label = if ctx.names and ctx.names["camp:" .. row.id] then ctx.names["camp:" .. row.id] else row.label
 			components.label(theme, {
 				text = label .. "  " .. row.delivered .. "/" .. row.need,
-				size = UDim2.new(1, 0, 0, 18),
+				size = UDim2.new(0.62, 0, 0, 18),
 				parent = holder,
 			})
 			local bar, setProgress = components.progressBar(theme, {
@@ -210,19 +280,20 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				components.button(theme, {
 					text = Model.text(ctx.locale, if helping then "camp_help" else "camp_contribute"),
 					size = UDim2.new(0.35, 0, 0, 44),
-					position = UDim2.new(0.65, 0, 0, 4),
+					position = UDim2.new(0.65, 0, 0, 2),
 					parent = holder,
 					onClick = function()
+						local current = Model.select(choices, selected) or choice
 						if helping then
 							act("survival-coop:camp-visit-help", {
 								model.passHost,
 								row.id,
-								choice.itemId,
+								current.itemId,
 								quantity,
 								model.version,
 							})
 						else
-							act("survival-coop:camp-contribute", { row.id, choice.itemId, quantity, model.version })
+							act("survival-coop:camp-contribute", { row.id, current.itemId, quantity, model.version })
 						end
 					end,
 				})
