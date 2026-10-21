@@ -6,20 +6,20 @@ assets:
     assetId: 0
     moderation: Approved
     provenance:
-      digest: sha256:47149ad9af546e8e93ef19f20dd3bd4aaf6587dbcbfff4bc06c42e39af7451b2
+      digest: sha256:ea9b7c7d631936a0fcbc4facd2ca724e8446ca663aeef23321627d1764497c30
       recipe:
         id: gen-procedural
         version: 1
         input: "assets/procgen.yml#survival-coop-starter-prop"
-        inputVersion: sha256:d9058dd3b5fe947833e4bad83afd6e044c939c21663aa320e95e344bb1c78488
+        inputVersion: sha256:7a3cc3a96b5aca31c6102816a3185d31f5ea22a2deb5441ec96d23a610bcf67c
       provider:
         name: forge-procgen
         version: 1
       rights:
         source: "first-party generator in this repository"
         ownership: first-party
-      author: "agent:claude-5.5/robango-g1"
-      created: 2026-10-16
+      author: "agent:omo"
+      created: 2026-10-20
   - key: survival-coop-action
     kind: sfx
     tool: forge-procgen
@@ -152,3 +152,108 @@ assets:
         ownership: first-party
       author: "agent:claude-5.5/robango-g1"
       created: 2026-10-16
+  - key: robango-forest-tree
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:11cdef63aef40977feb963e732d66e416d0950eeba1ec644ce3fce54e2fcaf31
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-forest-tree"
+        inputVersion: sha256:2ee1c41cc8dc61801e95c4137a08c370cd28a928913b50469de4988726fc8fa2
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-flint-crystal
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:73bc9109180f19aaebfe55a19689b6de7f19c6e391647158213567a968938f76
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-flint-crystal"
+        inputVersion: sha256:3b46fc7b41b763dfd93a423486768d5c7304b764859491bbb5734bf985b43f4c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-supply-crate
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crate"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:d10a6b4bae4c29c0a21db18c54fd05b26e26b9b5407aa3b433be61cd70574bb1
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-supply-crate"
+        inputVersion: sha256:962fa0e8001d996ed629d1a916b28a11f578c238d4676a32779203979ea56e76
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-crest-grazer
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/quad"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:0c260c152a5706cd0089b604abe03d98a006483929f5d28af571d87520131e74
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-crest-grazer"
+        inputVersion: sha256:039e36db9639100442164c1fa64d160b88997e1c7d3cd09305225652819a9057
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-amber-hunter
+    kind: model
+    tool: forge-procgen
+    source: "procedural creature/biped"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:186cb4bbcad1442a3c5be234a72b0b3b3b970558f04b936569994833b201ba2c
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-amber-hunter"
+        inputVersion: sha256:0eb03558fa991281f10cc53b02695db6c500c94ae3f1a78646ff89c60357b10b
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20

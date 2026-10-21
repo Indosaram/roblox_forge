@@ -3,14 +3,78 @@
 --!strict
 
 local ProcAssetsSpecs: { [string]: any } = {
+	["robango-amber-hunter"] = {
+		kind = "creature",
+		archetype = "biped",
+		spec = {
+			archetype = "biped",
+			scale = 1.3,
+			polyBudget = 3000,
+			body = { r = 0.6745098039215687, g = 0.3607843137254902, b = 0.20392156862745098 },
+			accent = { r = 0.9254901960784314, g = 0.7215686274509804, b = 0.3058823529411765 },
+			eye = { r = 1, g = 0.8784313725490196, b = 0.3607843137254902 },
+		},
+		seed = 205,
+		triangleCount = 2990,
+	},
+	["robango-crest-grazer"] = {
+		kind = "creature",
+		archetype = "quad",
+		spec = {
+			archetype = "quad",
+			scale = 1.4,
+			polyBudget = 3000,
+			body = { r = 0.2901960784313726, g = 0.5568627450980392, b = 0.34509803921568627 },
+			accent = { r = 0.8313725490196079, g = 0.7764705882352941, b = 0.5411764705882353 },
+			eye = { r = 1, g = 0.8, b = 0.25098039215686274 },
+		},
+		seed = 204,
+		triangleCount = 2978,
+	},
+	["robango-flint-crystal"] = {
+		kind = "prop",
+		archetype = "crystal",
+		spec = {
+			scale = 1.2,
+			polyBudget = 800,
+			body = { r = 0.2823529411764706, g = 0.5803921568627451, b = 0.7294117647058823 },
+			accent = { r = 0.7137254901960784, g = 0.9176470588235294, b = 1 },
+		},
+		seed = 202,
+		triangleCount = 584,
+	},
+	["robango-forest-tree"] = {
+		kind = "prop",
+		archetype = "tree",
+		spec = {
+			scale = 1.5,
+			polyBudget = 800,
+			body = { r = 0.25098039215686274, g = 0.49411764705882355, b = 0.26666666666666666 },
+			accent = { r = 0.4392156862745098, g = 0.2980392156862745, b = 0.17254901960784313 },
+		},
+		seed = 201,
+		triangleCount = 784,
+	},
+	["robango-supply-crate"] = {
+		kind = "prop",
+		archetype = "crate",
+		spec = {
+			scale = 1.1,
+			polyBudget = 800,
+			body = { r = 0.5803921568627451, g = 0.4, b = 0.22745098039215686 },
+			accent = { r = 0.8392156862745098, g = 0.6588235294117647, b = 0.3607843137254902 },
+		},
+		seed = 203,
+		triangleCount = 264,
+	},
 	["survival-coop-starter-prop"] = {
 		kind = "prop",
 		archetype = "rock",
 		spec = {
-			scale = 1,
+			scale = 1.2,
 			polyBudget = 800,
-			body = { r = 0.39215686274509803, g = 0.43137254901960786, b = 0.47058823529411764 },
-			accent = { r = 0.7058823529411765, g = 0.7843137254901961, b = 0.8627450980392157 },
+			body = { r = 0.3764705882352941, g = 0.4235294117647059, b = 0.47843137254901963 },
+			accent = { r = 0.6431372549019608, g = 0.7686274509803922, b = 0.8784313725490196 },
 		},
 		seed = 0,
 		triangleCount = 768,
