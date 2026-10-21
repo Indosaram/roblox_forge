@@ -1,5 +1,5 @@
 --!strict
--- `forge assets check|codegen|status|upload-audio [--pack <slug>] [--env staging|production]
+-- `forge assets check|codegen|status|upload-audio|upload-images [--pack <slug>] [--env staging|production]
 --   [--manifest <path>] [--quality-profile <path>] [--pack-dir <dir>]
 --   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]`:
 --   check        - gate a manifest's provenance (lawful tool/provider, recorded
@@ -27,6 +27,7 @@ local task = require("@lune/task")
 
 local assetsLib = require("../lib/assets")
 local audioassets = require("../lib/audioassets")
+local imageassets = require("../lib/imageassets")
 local cliutil = require("../lib/cliutil")
 local qualityprofile = require("../lib/qualityprofile")
 
@@ -34,7 +35,7 @@ local M = {}
 
 local DEFAULT_PACK = "kaiju-egg-raiders"
 local ENVS = { "staging", "production" }
-local SUBS = { "check", "codegen", "status", "upload-audio" }
+local SUBS = { "check", "codegen", "status", "upload-audio", "upload-images" }
 
 -- Open Cloud Assets API endpoints and the publishing defaults. Audio uploads
 -- are free; nothing here spends Robux. The creator is never hardcoded: it comes
@@ -96,7 +97,7 @@ function M.resolveCreator(flagGroup: number?, flagUser: number?, variables: { [s
 		return { kind = "user", id = envUser }, nil
 	end
 	return nil,
-		"assets upload-audio needs a creator: pass --creator-group <id> or --creator-user <id>, or set FORGE_ROBLOX_CREATOR_GROUP_ID / FORGE_ROBLOX_CREATOR_USER_ID"
+		"assets upload needs a creator: pass --creator-group <id> or --creator-user <id>, or set FORGE_ROBLOX_CREATOR_GROUP_ID / FORGE_ROBLOX_CREATOR_USER_ID"
 end
 
 local function isIn(values: { string }, value: string): boolean
@@ -718,6 +719,90 @@ local function runUploadAudio(options: {
 	return true
 end
 
+local function runUploadImages(options: any): boolean
+	local entries = loadCache(options.cachePath)
+	local count, failures, approved = 0, 0, 0
+	local apiKey = process.env.ROBLOX_API_KEY
+	if not options.dryRun and (apiKey == nil or apiKey == "") then
+		stdio.ewrite("Error: ROBLOX_API_KEY is not set; assets upload-images needs Open Cloud access\n")
+		return false
+	end
+	for _, asset in options.manifest.assets do
+		if asset.kind ~= "image" then
+			continue
+		end
+		count += 1
+		local ok, err = pcall(function(): string?
+			assert(asset.path ~= nil and string.match(asset.path, "%.png$"), "image requires a local PNG path")
+			local bytes = fs.readFile(options.packDir .. "/" .. asset.path)
+			local hex = serde.hash("sha256", bytes)
+			local entry = imageassets.publish({
+				key = asset.key,
+				bytes = bytes,
+				sha256 = hex,
+				cached = entries[hex],
+				creator = creatorKey(options.creator),
+				creatorFields = creatorFields(options.creator),
+				apiKey = apiKey,
+				dryRun = options.dryRun,
+			}, {
+				request = net.request,
+				wait = function(seconds)
+					task.wait(seconds)
+				end,
+				checkpoint = function(updated)
+					entries[hex] = table.clone(updated)
+					saveCache(options.cachePath, entries)
+				end,
+			})
+			if options.dryRun then
+				stdio.write(string.format("image %s: would publish sha256=%s\n", asset.key, hex))
+				return
+			end
+			local update =
+				{ assetId = entry.assetId or 0, moderation = entry.moderation, decalAssetId = entry.decalAssetId }
+			fs.writeFile(
+				options.manifestPath,
+				audioassets.applyUploads(fs.readFile(options.manifestPath), { [asset.key] = update })
+			)
+			asset.assetId = update.assetId
+			asset.moderation = update.moderation
+			if entry.moderation == "Approved" and entry.assetId ~= nil then
+				approved += 1
+			end
+			stdio.write(
+				string.format(
+					"image %s: decal=%d image=%d moderation=%s\n",
+					asset.key,
+					entry.decalAssetId,
+					update.assetId,
+					entry.moderation
+				)
+			)
+			return nil
+		end)
+		if not ok then
+			failures += 1
+			stdio.ewrite("image " .. asset.key .. ": FAIL " .. tostring(err) .. "\n")
+			-- Stop on rate limits or API failures; completed rows and operations
+			-- are already durable, and a rerun resumes them without duplication.
+			break
+		end
+	end
+	if options.dryRun then
+		stdio.write(string.format("assets upload-images: DRY-RUN (%d images) for %s\n", count, options.pack))
+	else
+		if fs.isDir(options.packDir .. "/src/shared") then
+			fs.writeFile(
+				options.packDir .. "/src/shared/Assets.luau",
+				assetsLib.renderLuau(options.manifest, options.pack)
+			)
+		end
+		stdio.write(string.format("image playable: %d of %d images approved and resolved\n", approved, count))
+	end
+	return failures == 0
+end
+
 --- Dispatches one of the assets subcommands. Returns false with a printed
 --- reason on any refusal so the CLI can exit 1.
 function M.run(args: { string }, context: cliutil.CommandContext?): boolean
@@ -734,7 +819,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local packDirArg: string? = nil
 	local creatorGroupArg: number? = nil
 	local creatorUserArg: number? = nil
-	local cachePath = DEFAULT_CACHE_PATH
+	local cachePath = if sub == "upload-images" then "build/image-upload-cache.json" else DEFAULT_CACHE_PATH
 	local dryRun = false
 	local index = 3
 	while index <= #args do
@@ -788,7 +873,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		end
 	end
 
-	if sub == "upload-audio" then
+	if sub == "upload-audio" or sub == "upload-images" then
 		local packDir = packDirArg
 			or ((if context and context.packsDir then context.packsDir else "games") .. "/" .. pack)
 		local slug = if packDirArg ~= nil then basename(packDir) else pack
@@ -811,7 +896,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			stdio.ewrite("Error: " .. tostring(creatorErr) .. "\n")
 			return false
 		end
-		return runUploadAudio({
+		local uploadOptions = {
 			pack = slug,
 			packDir = packDir,
 			manifestPath = uploadManifestPath,
@@ -819,7 +904,11 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			creator = creator :: Creator,
 			cachePath = cachePath,
 			dryRun = dryRun,
-		})
+		}
+		if sub == "upload-images" then
+			return runUploadImages(uploadOptions)
+		end
+		return runUploadAudio(uploadOptions)
 	end
 
 	if not isIn(ENVS, env) then

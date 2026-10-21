@@ -4,6 +4,7 @@
 -- collect-raid file is placeholder-free and data the runtime can consume.
 
 local serde = require("@lune/serde")
+local luau = require("@lune/luau")
 
 local Scaffold = require("./scaffold")
 local GameYml = require("./gameyml")
@@ -166,10 +167,12 @@ return {
 		assert(assetsSrc ~= nil, "forge new must scaffold src/shared/Assets.luau (client requires it at line ~743)")
 		local text = assetsSrc :: string
 		assert(string.sub(text, 1, 9) == "--!strict", "Assets.luau must start with --!strict")
+		-- Compact codegen omits unpublished rows; the module's metatable resolves them to "".
+		local runtime = luau.load(text)()
 		for _, key in { "musicExplore", "sfxHatch", "sfxCoin" } do
 			assert(
-				string.find(text, '["' .. key .. '"]', 1, true) ~= nil,
-				"Assets.luau is missing key " .. key .. " (the client indexes Assets." .. key .. ")"
+				type(runtime[key]) == "string",
+				"Assets.luau must resolve key " .. key .. " (the client indexes Assets." .. key .. ")"
 			)
 		end
 	end,

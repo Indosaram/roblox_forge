@@ -51,6 +51,7 @@ export type Cue = {
 export type UploadUpdate = {
 	assetId: number,
 	moderation: assetsLib.Moderation,
+	decalAssetId: number?,
 }
 
 --- The uploadable cues of a manifest, in manifest order: audio kinds whose
@@ -189,6 +190,7 @@ local function setBlockFields(lines: { string }, text: string, updates: { [strin
 			local fieldIndent = itemIndent .. "  "
 			local sawAssetId = false
 			local sawModeration = false
+			local sawDecal = false
 			for j = i, lastIndex do
 				if update ~= nil and string.match(lines[j], "^" .. fieldIndent .. "assetId:") ~= nil then
 					table.insert(result, fieldIndent .. "assetId: " .. tostring(update.assetId))
@@ -196,12 +198,22 @@ local function setBlockFields(lines: { string }, text: string, updates: { [strin
 				elseif update ~= nil and string.match(lines[j], "^" .. fieldIndent .. "moderation:") ~= nil then
 					table.insert(result, fieldIndent .. "moderation: " .. update.moderation)
 					sawModeration = true
+				elseif
+					update ~= nil
+					and update.decalAssetId ~= nil
+					and string.match(lines[j], "^" .. fieldIndent .. "decalAssetId:") ~= nil
+				then
+					table.insert(result, fieldIndent .. "decalAssetId: " .. tostring(update.decalAssetId))
+					sawDecal = true
 				else
 					table.insert(result, lines[j])
 				end
 			end
 			if update ~= nil and not sawAssetId then
 				table.insert(result, fieldIndent .. "assetId: " .. tostring(update.assetId))
+			end
+			if update ~= nil and update.decalAssetId ~= nil and not sawDecal then
+				table.insert(result, fieldIndent .. "decalAssetId: " .. tostring(update.decalAssetId))
 			end
 			if update ~= nil and not sawModeration then
 				table.insert(result, fieldIndent .. "moderation: " .. update.moderation)
@@ -243,6 +255,9 @@ function M.applyUploads(text: string, updates: { [string]: UploadUpdate }): stri
 			if update ~= nil then
 				asset.assetId = update.assetId
 				asset.moderation = update.moderation
+				if update.decalAssetId ~= nil then
+					asset.decalAssetId = update.decalAssetId
+				end
 			end
 		end
 	end

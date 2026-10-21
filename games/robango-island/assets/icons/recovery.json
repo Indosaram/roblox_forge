@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-21",
+  "atlas": "recovery-atlas.png",
+  "keys": [
+    "ui.icon.capture",
+    "item.icon.cord",
+    "recipe.icon.cord",
+    "item.icon.capture-rope",
+    "recipe.icon.capture-rope",
+    "item.icon.sinew",
+    "item.icon.sinew-profile",
+    "item.icon.skull",
+    "item.icon.skull-profile",
+    "item.icon.rescue-marker",
+    "ui.icon.fatigue"
+  ],
+  "prompt": "Production UI sprite atlas for original stylized island survival game Robango Island. Exactly 4 columns by 4 rows, sixteen equal cells on a 1024x1024 truly TRANSPARENT canvas. Match the supplied atlas reference: crisp charcoal outlines, warm sand #D9BD83, foliage #527247, water #458B99, charcoal #26343B, accent #EBC16A, cream #F5F1E5, broad matte flat shaded shapes. One centered object per cell with 48px clear padding. No text, letters, numbers, logo, watermark, grid, backgrounds or drop shadows. Row-major subjects: 1: closed rectangular wooden animal carrier box with air slots; 2: three straight short tan braided cords side by side, all ends visible; 3: three straight short tan braided cords side by side, all ends visible; 4: straight thick bundled tan braided rope with a short wooden toggle alongside, both rope ends visible; 5: straight thick bundled tan braided rope with a short wooden toggle alongside, both rope ends visible; 6: three straight cream sinew strips side by side, all ends visible; 7: three straight cream sinew strips side by side, all ends visible; 8: smooth cream fossil stone slab with a simple leaf imprint; 9: smooth cream fossil stone slab with a simple leaf imprint; 10: compact teal emergency beacon with amber light atop a broad rectangular base; 11: simple cream pillow with a single shallow crease; 12 through 16: empty transparent cells. All cords and sinew must remain completely straight with visible separated ends, no coils, loops, oval holes or knots. No lasso, no noose, no hanging rope. No skulls, bones, crosses, crescent moons, stars, flags, religious or political symbols, people, weapons, blood, alcohol or drugs."
+}

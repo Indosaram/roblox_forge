@@ -39,7 +39,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if definition.color then
 			value.Color = Color3.fromRGB(table.unpack(definition.color))
 		end
-		if definition.shape then
+		if definition.shape and definition.shape ~= "Wedge" then
 			value.Shape = shapes[definition.shape]
 		end
 		value.CFrame = CFrame.new(definition.position.x, definition.position.y, definition.position.z)
@@ -77,37 +77,80 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
-	for _, definition in dressing.parts do
-		style(part(definition.id, definition.position, definition.size), definition)
-	end
-	local Proc = require(Forge.core.infra.render.ProcAssets)
-	local specs = require(Forge.games["robango-island"].src.shared.ProcAssets)
-	-- One cached mesh key is reserved for nearby mineral outcrops, not one mesh per node.
-	for index, prop in dressing.props do
-		if prop.kind == "rock" and index <= 24 then
-			local model = assert(Proc.build(specs, "survival-coop-starter-prop", "ShoreOutcrop"))
-			model:ScaleTo(2)
-			model:PivotTo(CFrame.new(prop.position.x, prop.position.y + 1, prop.position.z))
-			model.Parent = root
+	-- Include only Terrain: another prop, path or canopy can never become ground.
+	local groundParams = RaycastParams.new()
+	groundParams.FilterType = Enum.RaycastFilterType.Include
+	groundParams.FilterDescendantsInstances = { workspace.Terrain }
+	groundParams.IgnoreWater = true
+	local function grounded(definition: any): any
+		local ground = definition.ground
+			or {
+				x = definition.position.x,
+				y = definition.position.y - definition.size.y / 2,
+				z = definition.position.z,
+			}
+		local hit = workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
+		if not hit then
+			return nil
 		end
+		local result = table.clone(definition)
+		result.position = {
+			x = definition.position.x,
+			y = definition.position.y + hit.Position.Y - ground.y - 0.15,
+			z = definition.position.z,
+		}
+		return result
 	end
 	local lighting = game:GetService("Lighting")
-	lighting.ClockTime, lighting.Brightness = 9.5, 2
-	lighting.Ambient = Color3.fromRGB(111, 123, 127)
-	lighting.OutdoorAmbient = Color3.fromRGB(148, 157, 150)
+	local initialAtmosphere = lighting:FindFirstChild("ForgeAtmosphere")
+	if initialAtmosphere then
+		initialAtmosphere:Destroy()
+	end
+	lighting.ClockTime, lighting.Brightness = 16.2, 2.3
+	lighting.Ambient = Color3.fromRGB(108, 113, 119)
+	lighting.OutdoorAmbient = Color3.fromRGB(151, 151, 137)
+	lighting.FogStart, lighting.FogEnd = 1800, 6000
+	local correction = Instance.new("ColorCorrectionEffect")
+	correction.Name, correction.Brightness, correction.Contrast = "ForgeWarmGrade", 0.015, 0.08
+	correction.Saturation, correction.TintColor, correction.Parent = 0.06, Color3.fromRGB(255, 248, 234), lighting
+	local bloom = Instance.new("BloomEffect")
+	bloom.Name, bloom.Intensity, bloom.Size, bloom.Threshold, bloom.Parent = "ForgeEmberBloom", 0.08, 14, 1.8, lighting
 	local atmosphere = Instance.new("Atmosphere")
 	atmosphere.Name = "ForgeBiomeAtmosphere"
 	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
-	atmosphere.Density, atmosphere.Haze, atmosphere.Parent = 0.12, 0.5, lighting
+	atmosphere.Density, atmosphere.Haze, atmosphere.Glare, atmosphere.Parent = 0.035, 0.08, 0.05, lighting
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	for _, column in columns do
+		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
+		local material = column.material
+		local top = column.top
+		if not protected and top > 0 then
+			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
+			if river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
+				top, material = -5, "Sand"
+			elseif top < 6 then
+				material = "Sand"
+			elseif table.find(layout.biomes, "volcano") and column.x < -32 then
+				material = if column.x % 96 < 32 then "CrackedLava" else "Basalt"
+			elseif layout.biomes[1] == "snow" and column.x % 96 < 32 then
+				material = "Ice"
+			end
+		end
 		workspace.Terrain:FillBlock(
-			CFrame.new(column.x, (column.top - 16) / 2, column.z),
-			Vector3.new(column.cell, column.top + 16, column.cell),
-			materials[column.material]
+			CFrame.new(column.x, (top - 16) / 2, column.z),
+			Vector3.new(column.cell, top + 16, column.cell),
+			materials[material]
 		)
+		if not protected and top > 8 then
+			-- Overlapping rounded shoulders soften the coarse column horizon.
+			workspace.Terrain:FillBall(
+				Vector3.new(column.x, top - 7, column.z),
+				column.cell * 0.48,
+				materials[material]
+			)
+		end
 	end
 	-- The coarse seeded columns are scenery. Authored navigation is a continuous
 	-- dry ribbon with the catalog's slope, including each node's approach branch.
@@ -601,7 +644,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			present[definition.id] = true
 			local value = homeParts[definition.id]
 			if not value then
-				value = part(definition.id, definition.position, definition.size)
+				if definition.shape == "Wedge" then
+					value = Instance.new("WedgePart")
+					value.Name, value.Anchored = definition.id, true
+				else
+					value = part(definition.id, definition.position, definition.size)
+				end
 				value.Parent = folder
 				homeParts[definition.id] = value
 				if stationKinds[definition.kind] then
@@ -613,19 +661,30 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			if definition.kind == "land" then
 				value.Transparency, value.CanCollide = 1, false
 				local half = definition.size.x / 2
-				workspace.Terrain:FillBall(Vector3.new(0, -half - 2, 0), half + 7, Enum.Material.Sand)
-				workspace.Terrain:FillBlock(
-					CFrame.new(0, -3, 0),
-					Vector3.new(half * 2, 8, half * 2),
-					Enum.Material.Grass
-				)
-				for i = 1, 8 do
-					local angle = i * math.pi / 4
+				workspace.Terrain:FillBall(Vector3.new(0, -half - 8, 0), half + 7, Enum.Material.Sand)
+				-- The durable rectangular land envelope remains a hidden capability;
+				-- visible terrain is an asymmetric overlapping set of low islands.
+				for i = 1, 7 do
+					local angle = i * math.pi * 2 / 7
+					local radius = half * (0.6 + (i % 3) * 0.055)
 					workspace.Terrain:FillBall(
-						Vector3.new(math.cos(angle) * half * 0.8, -half * 0.45, math.sin(angle) * half * 0.8),
-						half * 0.55,
+						Vector3.new(math.cos(angle) * half * 0.65, -radius + 0.5, math.sin(angle) * half * 0.65),
+						radius + 3,
 						Enum.Material.Sand
 					)
+				end
+				for x = -half - 8, half + 8, 8 do
+					for z = -half - 8, half + 8, 8 do
+						local angle = math.atan2(z, x)
+						local edge = math.sqrt(x * x + z * z) / half
+						if edge < 1.12 + 0.08 * math.sin(angle * 3) then
+							workspace.Terrain:FillBlock(
+								CFrame.new(x, -2, z),
+								Vector3.new(8, 6, 8),
+								if edge > 0.91 then Enum.Material.Sand else Enum.Material.Grass
+							)
+						end
+					end
 				end
 			end
 		end
@@ -636,11 +695,40 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				homeParts[id] = nil
 			end
 		end
+		-- Land must exist before ray queries; home kits retain their authored offsets.
+		for _, definition in parts do
+			if definition.decorative then
+				local placed = grounded(definition)
+				local value = homeParts[definition.id]
+				if placed then
+					style(value, placed)
+				else
+					value.Transparency = 1
+				end
+			end
+		end
+	end
+	-- Render after terrain, ribbons and catalog clearings have reached final shape.
+	for _, definition in dressing.parts do
+		local placed = grounded(definition)
+		if placed then
+			local value
+			if placed.shape == "Wedge" then
+				value = Instance.new("WedgePart")
+				value.Name, value.Anchored, value.Parent = placed.id, true, root
+				value.Size = Vector3.new(placed.size.x, placed.size.y, placed.size.z)
+			else
+				value = part(placed.id, placed.position, placed.size)
+			end
+			style(value, placed)
+		end
 	end
 	local destroy = world.destroy
 	world.destroy = function()
 		destroy()
 		atmosphere:Destroy()
+		correction:Destroy()
+		bloom:Destroy()
 		root:Destroy()
 	end
 	return world

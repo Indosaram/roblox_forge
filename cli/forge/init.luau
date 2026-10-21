@@ -143,6 +143,9 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "assets",
 		text = [=[
+  assets upload-images [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
+                            Publish PNG icons as Decals, resolve image content ids, and checkpoint
+                            operations in build/image-upload-cache.json. Dry run never uploads.
   assets upload-audio [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
                             Publish a pack's synthesised WAV cues (sfx/bgm) through the Open Cloud
                             Assets API, poll each operation, and record the returned rbxassetid plus

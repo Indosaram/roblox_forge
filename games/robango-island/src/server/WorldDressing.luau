@@ -47,7 +47,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		color: any,
 		shape: string?
 	): any
-		return add(
+		local value = add(
 			parts,
 			id .. "." .. suffix,
 			{ x = p.x + x, y = p.y + y, z = p.z + z },
@@ -56,13 +56,25 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			color,
 			shape
 		)
+		value.ground = { x = p.x, y = p.y, z = p.z }
+		return value
 	end
 	local wood, sand = { 112, 78, 48 }, { 217, 189, 131 }
 	if kind == "tree" or kind == "conifer" then
-		for i = 1, 3 do
-			local trunk =
-				piece("trunk" .. i, (i - 1) * 0.35, i * 4 - 2, 0, 3.8 - i * 0.7, 4.5, 3.8 - i * 0.7, "Wood", wood)
-			trunk.roll = -5
+		for i = 1, 5 do
+			local trunk = piece(
+				"trunk" .. i,
+				math.sin(i * 0.4) * 1.4,
+				i * 2.6 - 1.3,
+				0,
+				3.3,
+				2.6 - i * 0.25,
+				2.6 - i * 0.25,
+				"Wood",
+				wood,
+				"Cylinder"
+			)
+			trunk.roll = 84 + i * 2
 		end
 		for i = 1, 4 do
 			local crown = piece(
@@ -74,7 +86,8 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				5,
 				17 - i * 2.5,
 				"Grass",
-				palette.leaf
+				palette.leaf,
+				if kind == "conifer" then "Wedge" else "Ball"
 			)
 			crown.yaw, crown.roll = i * 37, if kind == "conifer" then 0 else i * 3
 		end
@@ -84,49 +97,93 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			root.yaw, root.roll = math.deg(i * 2), 12
 		end
 	elseif kind == "palm" then
-		for i = 1, 3 do
-			local trunk =
-				piece("trunk" .. i, i * 0.6, i * 5 - 2.5, 0, 2.6 - i * 0.35, 5.6, 2.6 - i * 0.35, "Wood", wood)
-			trunk.roll = -7
+		for i = 1, 6 do
+			local trunk = piece(
+				"trunk" .. i,
+				(i / 6) ^ 2 * 3,
+				i * 2.5 - 1.25,
+				0,
+				3,
+				1.8 - i * 0.1,
+				1.8 - i * 0.1,
+				"Wood",
+				wood,
+				"Cylinder"
+			)
+			trunk.roll = 90 - i * 3
 		end
 		for i = 0, 5 do
 			local angle = i * math.pi / 3
-			local leaf = piece(
-				"frond" .. i,
-				2 + math.cos(angle) * 5,
-				15,
-				math.sin(angle) * 5,
-				12,
-				0.7,
-				2.8,
-				"Grass",
-				palette.leaf
-			)
-			leaf.yaw, leaf.roll = -math.deg(angle), 14
+			for tier = 1, 2 do
+				local leaf = piece(
+					"frond" .. i .. "." .. tier,
+					3 + math.cos(angle) * (tier * 3 - 1),
+					16 - tier * 0.9,
+					math.sin(angle) * (tier * 3 - 1),
+					5.8,
+					0.45,
+					3.2 - tier * 0.8,
+					"Grass",
+					palette.leaf,
+					"Wedge"
+				)
+				leaf.yaw, leaf.roll = -math.deg(angle), if tier == 1 then 16 else -23
+			end
 		end
-	elseif kind == "fern" then
-		for i = 0, 3 do
+	elseif kind == "fern" or kind == "cycad" or kind == "grass" or kind == "horsetail" or kind == "bush" then
+		local tall = kind == "cycad" or kind == "horsetail"
+		if tall then
+			piece("stem", 0, 1.5, 0, 3, 0.8, 0.8, "Wood", wood, "Cylinder").roll = 90
+		end
+		for i = 0, 5 do
 			local leaf = piece(
 				"leaf" .. i,
 				math.cos(i * 1.57) * 2,
-				1.4,
+				if tall then 3 else 1.4,
 				math.sin(i * 1.57) * 2,
 				6,
-				0.5,
-				1.5,
+				if kind == "bush" then 2 else 0.35,
+				if kind == "bush" then 3 else 1.5,
 				"Grass",
-				palette.leaf
+				palette.leaf,
+				if kind == "bush" then "Ball" else "Wedge"
 			)
-			leaf.yaw, leaf.roll = i * 90, 24
+			leaf.yaw, leaf.roll = i * 60, if kind == "grass" or kind == "horsetail" then 65 else 24
 		end
 	elseif kind == "rock" then
 		for i = 1, 3 do
-			local rock = piece("rock" .. i, (i - 2) * 3, i * 1.2, (i % 2) * 2, 7 - i, i * 3, 6, "Slate", palette.rock)
+			local rock = piece(
+				"rock" .. i,
+				(i - 2) * 2,
+				1 + i * 0.4,
+				(i % 2) * 2,
+				7 - i,
+				3 + i,
+				6,
+				"Slate",
+				palette.rock,
+				"Ball"
+			)
 			rock.yaw, rock.roll = i * 35, i * 9
 		end
 	elseif kind == "campfire" then
+		for i = 1, 8 do
+			local angle = i * math.pi / 4
+			piece(
+				"ring" .. i,
+				math.cos(angle) * 2.6,
+				0.5,
+				math.sin(angle) * 2.6,
+				1.5,
+				1.1,
+				1.3,
+				"Slate",
+				palette.rock,
+				"Ball"
+			)
+		end
 		for i = 1, 2 do
-			local log = piece("log" .. i, 0, 0.5, 0, 5, 1, 1, "Wood", wood)
+			local log = piece("log" .. i, 0, 0.5, 0, 5, 1, 1, "Wood", wood, "Cylinder")
 			log.yaw = i * 90
 		end
 		local ember = piece("embers", 0, 1, 0, 2.5, 0.5, 2.5, "Neon", { 255, 106, 24 })
@@ -159,21 +216,55 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 	elseif kind == "shelter" then
 		for _, x in { -5, 5 } do
 			for _, z in { -4, 4 } do
-				piece("post" .. x .. "." .. z, x, 4, z, 0.8, 8, 0.8, "Wood", wood)
+				piece("post" .. x .. "." .. z, x, 4, z, 8, 0.85, 0.85, "Wood", wood, "Cylinder").roll = 90
+				piece("lash" .. x .. "." .. z, x, 7.2, z, 1.05, 0.5, 1.05, "Fabric", sand, "Ball")
 			end
 		end
 		for _, x in { -3, 3 } do
-			local roof = piece("roof" .. x, x, 9, 0, 7, 0.6, 12, "WoodPlanks", sand)
-			roof.roll = if x < 0 then 25 else -25
+			for row = 1, 4 do
+				local roof = piece(
+					"roof" .. x .. "." .. row,
+					x,
+					9,
+					(row - 2.5) * 2.8,
+					7.8,
+					0.65,
+					3.4,
+					"Grass",
+					{ 166 + row * 5, 137 + row * 4, 79 },
+					"Wedge"
+				)
+				roof.roll = if x < 0 then 32 else -32
+			end
 		end
+		piece("ridge", 0, 11, 0, 0.9, 0.9, 12.5, "Wood", wood, "Ball")
+		piece("hide.back", 0, 4, 3.9, 9.8, 6, 0.2, "Fabric", { 150, 116, 75 })
+		piece("hide.side", -4.9, 3, 0, 0.2, 4, 7, "Fabric", { 169, 137, 91 })
 		piece("bedroll", 2, 0.6, 0, 3, 0.6, 6, "Fabric", palette.leaf)
+	elseif kind == "workbench" or kind == "drying-rack" then
+		for _, x in { -3, 3 } do
+			piece("leg" .. x, x, 2.5, 0, 5, 0.7, 0.7, "Wood", wood, "Cylinder").roll = 90
+			piece("lash" .. x, x, 4.7, 0, 0.9, 0.5, 0.9, "Fabric", sand, "Ball")
+		end
+		piece("beam", 0, 5, 0, 8, 0.8, 0.8, "Wood", wood, "Cylinder")
+		if kind == "drying-rack" then
+			for i = 1, 3 do
+				piece("hide" .. i, (i - 2) * 2, 3.7, 0, 1.7, 2.6, 0.2, "Fabric", { 151, 107 + i * 8, 71 }, "Ball")
+			end
+		else
+			for i = 1, 4 do
+				piece("plank" .. i, 0, 3.2, (i - 2.5) * 0.9, 7.5, 0.5, 0.85, "WoodPlanks", wood)
+			end
+			piece("tool", 1, 3.7, 0, 1.2, 0.6, 2, "Slate", palette.rock, "Wedge")
+		end
 	elseif kind == "beacon" then
 		piece("foot", 0, 1, 0, 7, 2, 7, "Rock", palette.rock)
 		piece("shaft", 0, 7, 0, 1, 12, 1, "Wood", wood)
 		piece("flag", 2, 11, 0, 4, 3, 0.3, "Fabric", { 235, 193, 106 })
 	elseif kind == "fence" then
-		for _, x in { -4, 4 } do
-			piece("post" .. x, x, 2, 0, 0.6, 4, 0.6, "Wood", wood)
+		for x = -3, 3, 2 do
+			piece("post" .. x, x, 2.2, 0, 4.5, 0.8, 0.8, "Wood", wood, "Cylinder").roll = 90
+			piece("tip" .. x, x, 4.7, 0, 0.8, 0.8, 0.8, "Wood", sand, "Wedge")
 		end
 		for _, y in { 1.2, 2.8 } do
 			piece("rail" .. y, 0, y, 0, 8, 0.4, 0.4, "Wood", wood)
@@ -191,11 +282,11 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 	local palette = M.palette(layout)
 	local parts: { any } = {}
 	local props: { any } = {}
-	local stride = math.max(1, math.ceil(#columns / 70))
+	local stride = math.max(1, math.ceil(#columns / 120))
 	for index, column in columns do
 		if
 			index % stride == 0
-			and #props < 38
+			and #props < 30
 			and column.top > 0
 			and not terrain.protected(layout, column.x, column.z, 16)
 		then
@@ -210,10 +301,39 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 				elseif layout.biomes[1] == "snow" then "conifer"
 				else "tree"
 			local p = { x = column.x, y = column.top, z = column.z }
+			local spaced = true
+			for _, other in props do
+				if (p.x - other.position.x) ^ 2 + (p.z - other.position.z) ^ 2 < 22 ^ 2 then
+					spaced = false
+				end
+			end
+			if not spaced then
+				continue
+			end
 			table.insert(props, { position = p, kind = kind })
+			local start = #parts + 1
 			M.kit(parts, "biome." .. #props, p, kind, palette)
+			for n = start, #parts do
+				local value = parts[n]
+				local angle = index * 2.399963
+				local dx, dz = value.position.x - p.x, value.position.z - p.z
+				local scale = 0.75 + (index % 5) * 0.1
+				value.position.x = p.x + (dx * math.cos(angle) - dz * math.sin(angle)) * scale
+				value.position.z = p.z + (dx * math.sin(angle) + dz * math.cos(angle)) * scale
+				value.position.y = p.y + (value.position.y - p.y) * scale
+				value.size = { x = value.size.x * scale, y = value.size.y * scale, z = value.size.z * scale }
+				value.yaw = (value.yaw or 0) + math.deg(angle)
+				value.color = {
+					math.clamp(value.color[1] + index % 13 - 6, 0, 255),
+					math.clamp(value.color[2] + index % 17 - 8, 0, 255),
+					value.color[3],
+				}
+			end
 			if kind ~= "rock" then
-				M.kit(parts, "understory." .. #props, { x = p.x + 8, y = p.y, z = p.z + 5 }, "fern", palette)
+				local understory = ({ "fern", "cycad", "grass", "horsetail", "bush" })[#props % 5 + 1]
+				if not terrain.protected(layout, p.x + 8, p.z + 5, 6) then
+					M.kit(parts, "understory." .. #props, { x = p.x + 8, y = p.y, z = p.z + 5 }, understory, palette)
+				end
 			end
 		end
 	end
@@ -263,10 +383,11 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 			palette.rock
 		)
 		base.shape = "Ball"
+		base.ground = p
 		M.kit(
 			parts,
 			art.landmark.id .. ".crown",
-			{ x = p.x, y = p.y + size.y, z = p.z },
+			{ x = p.x + size.x * 0.7 + 6, y = p.y, z = p.z },
 			if art.landmark.kind == "tree" then "tree" else "beacon",
 			palette
 		)
@@ -381,6 +502,8 @@ function M.home(parts: { any }, home: any, rules: any)
 	M.kit(parts, "home.shelter", { x = -half + 12, y = 1, z = -half + 12 }, "shelter", palette)
 	M.kit(parts, "home.dock", home.dock, "dock", palette)
 	M.kit(parts, "home.fire", { x = -8, y = 1, z = 4 }, "campfire", palette)
+	M.kit(parts, "home.workbench", { x = -14, y = 1, z = 10 }, "workbench", palette)
+	M.kit(parts, "home.rack", { x = -20, y = 1, z = 4 }, "drying-rack", palette)
 	M.kit(parts, "home.storage", { x = -half + 17, y = 1, z = -half + 19 }, "chest", palette)
 	M.kit(parts, "home.farm", { x = half - 12, y = 1, z = -half + 14 }, "farm", palette)
 	add(parts, "home.path", { x = 0, y = 1.05, z = 0 }, { x = 7, y = 0.2, z = half * 2 }, "Ground", { 167, 142, 98 })

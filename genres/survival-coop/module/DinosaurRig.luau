@@ -32,6 +32,34 @@ local silhouettes = {
 	dodo = shape("bird", "roundbeak", 1.5, 2, 2, "flutter"),
 }
 
+-- Natural pigment families are explicit art data, independent of gameplay RNG.
+local pigments: { [string]: { number } } = {
+	compsognathus = { 129, 145, 66 },
+	oviraptor = { 139, 86, 67 },
+	protoceratops = { 178, 142, 86 },
+	gallimimus = { 172, 124, 72 },
+	parasaurolophus = { 64, 124, 123 },
+	stegosaurus = { 118, 130, 88 },
+	ankylosaurus = { 122, 110, 82 },
+	triceratops = { 145, 99, 73 },
+	brachiosaurus = { 104, 131, 118 },
+	utahraptor = { 142, 90, 60 },
+	velociraptor = { 171, 145, 88 },
+	dilophosaurus = { 77, 127, 114 },
+	allosaurus = { 126, 115, 80 },
+	tyrannosaurus = { 99, 113, 83 },
+	smilodon = { 183, 143, 84 },
+	tropicalSmilodon = { 149, 116, 66 },
+	direWolf = { 114, 119, 117 },
+	mammoth = { 106, 76, 56 },
+	boar = { 109, 91, 74 },
+	deer = { 165, 121, 79 },
+	elephant = { 131, 125, 113 },
+	crocodile = { 91, 112, 74 },
+	turtle = { 103, 132, 86 },
+	dodo = { 122, 141, 151 },
+}
+
 -- The optional envelope port lets a pack supply generated catalog render metadata.
 -- Legacy archetypes retain their public names for other survival packs.
 function M.new(kind: string, id: string, position: Vector3, parent: Instance, envelope: Vector3?): Model
@@ -50,8 +78,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local w, h, l = dimensions.X, dimensions.Y, dimensions.Z
 	local family, feature = s.family, s.feature
 	local mammal = family == "mammal" or family == "elephant"
-	local bodyColor = if mammal then Color3.fromRGB(132, 105, 78) else Color3.fromRGB(83, 128, 100)
-	local accent = if mammal then Color3.fromRGB(72, 57, 45) else Color3.fromRGB(45, 79, 65)
+	local pigment = assert(pigments[species], "MISSING_SPECIES_PIGMENT")
+	local bodyColor = Color3.fromRGB(pigment[1], pigment[2], pigment[3])
+	local accent = Color3.fromRGB(pigment[1] * 0.55, pigment[2] * 0.55, pigment[3] * 0.55)
+	local underside =
+		Color3.fromRGB(math.min(225, pigment[1] + 49), math.min(219, pigment[2] + 43), math.min(189, pigment[3] + 38))
 	local ivory = Color3.fromRGB(225, 216, 177)
 	local parts: { [string]: BasePart } = { HumanoidRootPart = root }
 	local count = 1
@@ -73,7 +104,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		local localAt = Vector3.new(at.X * w, at.Y * h, at.Z * l)
 		p.Name, p.Size = name, Vector3.new(size.X * w, size.Y * h, size.Z * l)
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		p.Material, p.CanCollide, p.Massless = Enum.Material.SmoothPlastic, false, true
+		p.Material, p.CanCollide, p.Massless = if mammal then Enum.Material.Fabric else Enum.Material.Slate, false, true
 		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
 		p.Parent = model
 		local parentPart = assert(parts[parentName], "MISSING_ANATOMICAL_PARENT")
@@ -106,6 +137,25 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local torsoY = if family == "sauropod" then -0.2 elseif low then -0.05 elseif biped then -0.02 else 0
 	local torsoH = if family == "bird" then 0.57 elseif family == "elephant" then 0.57 elseif low then 0.47 else 0.36
 	add("Torso", 0, torsoY, 0.05, 0.72, torsoH, if family == "bird" then 0.5 else 0.48, "HumanoidRootPart")
+	add("Countershade", 0, torsoY - torsoH * 0.27, 0.04, 0.63, torsoH * 0.5, 0.43, "Torso", nil, underside)
+	for side = -1, 1, 2 do
+		local stripe = add(
+			"FlankPattern" .. side,
+			side * 0.32,
+			torsoY + 0.03,
+			0.08,
+			0.045,
+			torsoH * 0.72,
+			0.26,
+			"Torso",
+			"wedge",
+			accent
+		)
+		stripe.CFrame *= CFrame.Angles(0, 0, math.rad(side * 18))
+		-- Restore the rest attachment after authoring the local stripe rotation.
+		local joint = root:FindFirstChild(stripe.Name .. "Joint") :: Motor6D
+		joint.C1 = stripe.CFrame:ToObjectSpace(assert(joint.Part0).CFrame * joint.C0)
+	end
 	local hy, hz, headW, headH, headL = 0.14, -0.34, 0.37, 0.23, 0.23
 	if family == "sauropod" then
 		for i = 1, 3 do
@@ -162,6 +212,18 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			"Head",
 			nil,
 			Color3.fromRGB(238, 192, 61)
+		)
+		add(
+			"Pupil" .. side,
+			side * headW * 0.477,
+			hy + headH * 0.13,
+			hz - headL * 0.205,
+			0.014,
+			0.024,
+			0.015,
+			"Head",
+			nil,
+			Color3.fromRGB(24, 29, 26)
 		)
 		local lx = if low then 0.4 else 0.28
 		local legH = if low then 0.18 elseif feature == "antlers" or feature == "longlegs" then 0.49 else 0.36

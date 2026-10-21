@@ -15,6 +15,31 @@ local function validate(layout: any, plan: any)
 end
 
 return {
+	["kit roots ground independently and canopy clusters never stack"] = function()
+		for _, layout in Content.layouts :: any do
+			local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
+			for index, prop in plan.props do
+				for previous = 1, index - 1 do
+					local other = plan.props[previous].position
+					assert(
+						(prop.position.x - other.x) ^ 2 + (prop.position.z - other.z) ^ 2 >= 22 ^ 2,
+						"canopy spacing"
+					)
+				end
+			end
+			for _, part in plan.parts do
+				if string.find(part.id, "biome.", 1, true) or string.find(part.id, "understory.", 1, true) then
+					assert(part.ground and part.ground.y <= part.position.y + part.size.y, "kit requires terrain root")
+				end
+				if layout.art and part.id == layout.art.landmark.id .. ".crown.trunk1" then
+					assert(
+						part.ground.x > layout.art.landmark.position.x + layout.art.landmark.size.x / 2,
+						"tree must stand beside boulder"
+					)
+				end
+			end
+		end
+	end,
 	["authored landmarks reach the production dressing plan"] = function()
 		local count = 0
 		for _, layout in Content.layouts :: any do

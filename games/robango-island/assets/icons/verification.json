@@ -203,13 +203,13 @@
     },
     {
       "key": "ui.icon.fatigue",
-      "atlas": 2,
-      "cell": 5,
+      "atlas": "recovery-atlas.png",
+      "cell": 11,
       "width": 96,
       "height": 96,
-      "clear": 4624,
-      "visible": 3970,
-      "borderVisible": 32
+      "clear": 4011,
+      "visible": 4712,
+      "borderVisible": 0
     },
     {
       "key": "ui.icon.xp",
@@ -603,13 +603,13 @@
     },
     {
       "key": "ui.icon.capture",
-      "atlas": 4,
-      "cell": 13,
+      "atlas": "recovery-atlas.png",
+      "cell": 1,
       "width": 96,
       "height": 96,
-      "clear": 5328,
-      "visible": 3204,
-      "borderVisible": 34
+      "clear": 3377,
+      "visible": 5454,
+      "borderVisible": 52
     },
     {
       "key": "ui.icon.party",
@@ -893,12 +893,12 @@
     },
     {
       "key": "item.icon.cord",
-      "atlas": 6,
-      "cell": 10,
+      "atlas": "recovery-atlas.png",
+      "cell": 2,
       "width": 96,
       "height": 96,
-      "clear": 3801,
-      "visible": 4906,
+      "clear": 5140,
+      "visible": 3190,
       "borderVisible": 0
     },
     {
@@ -2603,13 +2603,13 @@
     },
     {
       "key": "item.icon.capture-rope",
-      "atlas": 17,
-      "cell": 5,
+      "atlas": "recovery-atlas.png",
+      "cell": 4,
       "width": 96,
       "height": 96,
-      "clear": 4163,
-      "visible": 4373,
-      "borderVisible": 60
+      "clear": 5774,
+      "visible": 2869,
+      "borderVisible": 24
     },
     {
       "key": "item.icon.saddle",
@@ -2883,13 +2883,13 @@
     },
     {
       "key": "item.icon.skull",
-      "atlas": 19,
-      "cell": 1,
+      "atlas": "recovery-atlas.png",
+      "cell": 8,
       "width": 96,
       "height": 96,
-      "clear": 4720,
-      "visible": 4103,
-      "borderVisible": 44
+      "clear": 3976,
+      "visible": 4824,
+      "borderVisible": 0
     },
     {
       "key": "item.icon.feather",
@@ -2953,13 +2953,13 @@
     },
     {
       "key": "item.icon.sinew",
-      "atlas": 19,
-      "cell": 8,
+      "atlas": "recovery-atlas.png",
+      "cell": 6,
       "width": 96,
       "height": 96,
-      "clear": 5659,
-      "visible": 3170,
-      "borderVisible": 21
+      "clear": 5268,
+      "visible": 3071,
+      "borderVisible": 0
     },
     {
       "key": "item.icon.tusk",
@@ -3013,13 +3013,13 @@
     },
     {
       "key": "item.icon.rescue-marker",
-      "atlas": 19,
-      "cell": 14,
+      "atlas": "recovery-atlas.png",
+      "cell": 10,
       "width": 96,
       "height": 96,
-      "clear": 5698,
-      "visible": 3079,
-      "borderVisible": 19
+      "clear": 4553,
+      "visible": 4190,
+      "borderVisible": 0
     },
     {
       "key": "item.icon.chapter",
@@ -3233,13 +3233,13 @@
     },
     {
       "key": "item.icon.sinew-profile",
-      "atlas": 21,
-      "cell": 4,
+      "atlas": "recovery-atlas.png",
+      "cell": 7,
       "width": 96,
       "height": 96,
-      "clear": 5324,
-      "visible": 3519,
-      "borderVisible": 26
+      "clear": 5289,
+      "visible": 3054,
+      "borderVisible": 0
     },
     {
       "key": "item.icon.tusk-profile",
@@ -3273,12 +3273,12 @@
     },
     {
       "key": "item.icon.skull-profile",
-      "atlas": 21,
-      "cell": 8,
+      "atlas": "recovery-atlas.png",
+      "cell": 9,
       "width": 96,
       "height": 96,
-      "clear": 5607,
-      "visible": 3203,
+      "clear": 3961,
+      "visible": 4826,
       "borderVisible": 0
     },
     {
@@ -3713,13 +3713,13 @@
     },
     {
       "key": "recipe.icon.cord",
-      "atlas": 24,
-      "cell": 4,
+      "atlas": "recovery-atlas.png",
+      "cell": 3,
       "width": 96,
       "height": 96,
-      "clear": 3973,
-      "visible": 4809,
-      "borderVisible": 45
+      "clear": 5149,
+      "visible": 3179,
+      "borderVisible": 0
     },
     {
       "key": "recipe.icon.flint-knife",
@@ -4943,12 +4943,12 @@
     },
     {
       "key": "recipe.icon.capture-rope",
-      "atlas": 31,
-      "cell": 15,
+      "atlas": "recovery-atlas.png",
+      "cell": 5,
       "width": 96,
       "height": 96,
-      "clear": 4832,
-      "visible": 3771,
+      "clear": 5688,
+      "visible": 2921,
       "borderVisible": 0
     },
     {

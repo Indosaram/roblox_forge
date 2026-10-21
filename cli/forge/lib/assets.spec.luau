@@ -213,13 +213,8 @@ return {
 		local alphaAt = string.find(text, '["alpha"]', 1, true)
 		local midAt = string.find(text, '["mid"]', 1, true)
 		local zebraAt = string.find(text, '["zebra"]', 1, true)
-		assert(alphaAt ~= nil and midAt ~= nil and zebraAt ~= nil, "every key is emitted")
-		assert(alphaAt < midAt and midAt < zebraAt, "keys must be emitted in sorted order")
-		assert(string.find(text, '["alpha"] = ""', 1, true) ~= nil, "an unset id renders as an empty string")
-		assert(
-			string.find(text, '["mid"] = "rbxassetid://42"', 1, true) ~= nil,
-			"an uploaded id renders as rbxassetid://<id>"
-		)
+		assert(alphaAt == nil and zebraAt == nil and midAt ~= nil, "only published keys are emitted")
+		assert(string.find(text, '["mid"] = 42', 1, true) ~= nil, "an uploaded id is stored numerically")
 	end,
 
 	["renderLuau on an empty manifest returns an empty table"] = function()
@@ -267,13 +262,10 @@ return {
 				~= nil,
 			"a bgm wav maps to its installed rbxasset URL"
 		)
-		assert(
-			string.find(text, '["iconA"] = "rbxassetid://7"', 1, true) ~= nil,
-			"non-audio assets still use rbxassetid"
-		)
+		assert(string.find(text, '["iconA"] = 7', 1, true) ~= nil, "non-audio assets still use rbxassetid")
 		local withoutPack = Assets.renderLuau(manifest)
 		assert(
-			string.find(withoutPack, '["sfxClick"] = ""', 1, true) ~= nil,
+			string.find(withoutPack, '["sfxClick"]', 1, true) == nil,
 			"without a pack name the local file resolves to an empty id"
 		)
 	end,

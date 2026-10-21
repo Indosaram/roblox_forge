@@ -3,6 +3,7 @@ local Upload = require("../../../core/domain/music/ChunkUpload")
 local Hash = require("../../../core/domain/music/ChunkHash")
 local Score = require("../../../core/domain/music/Score")
 local Schema = require("../../../core/infra/net/Schema")
+local Session = require("../../../core/infra/genre/Session")
 local M = {}
 local prefix = "survival-coop:"
 local configured: any = nil
@@ -36,11 +37,13 @@ function M.factory(ctx: any): any
 	end
 	local config = table.clone(configured)
 	config.rules, config.now = ctx.content.music, ctx.now
-	return M.new(config)
+	local extension = M.new(config)
+	extension.disconnect = nil
+	return Session.registerLifecycle(extension)
 end
 function M.new(config: any): any
 	local upload = Upload.new(config.rules, config.uploadTtl)
-	local api: any = { id = "scoreTransport" }
+	local api: any = { id = "score-transport" }
 	function api.handles(action: string): boolean
 		action = string.gsub(action, "^survival%-coop:", "")
 		return action == "score-upload-begin"
@@ -88,7 +91,7 @@ function M.new(config: any): any
 		upload.clear(actor)
 	end
 	api.releaseActor = function(actor: string): any
-		api.disconnect(actor)
+		upload.clear(actor)
 		return { ok = true }
 	end
 	return api

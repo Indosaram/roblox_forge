@@ -15,6 +15,20 @@ Commercial API rights are not independently verified by this lane; the manifest 
 
 ## File mapping
 
+### Moderation recovery, 2026-10-21
+
+`recovery.json` retains the exact prompt and row-major keys for
+`recovery-atlas.png`, generated through the same `imagegen.mjs` Responses API
+route with `atlas-01.png` as the style reference. `generate.mjs --recover`
+preserves before images in `.omo/evidence/robango-recovery/p6/before/`, then
+uses these recovery cells instead of the original atlas cells. The same crop,
+96x96 resize, alpha cleanup and validation apply. Contact sheets and
+`verification.json` reflect the replacements. The original atlases below remain
+historical evidence, not the active source for keys listed in `recovery.json`.
+Changed manifest rows are reset to NotUploaded with both asset ids zero; their
+old digest entries are removed from the local upload cache. Unchanged upload
+records are preserved. No Roblox request is part of this recovery.
+
 This table is the intended mapping while generation is running. Only files
 confirmed by the final `icons.md` report count as produced; missing files must
 not be inferred from a provenance row.

@@ -21,6 +21,9 @@
     "../../core/ui-kit/genre/WorldKit.luau",
     "../../core/ui-kit/genre/HudKit.luau",
     "../../core/ui-kit/genre/HudText.luau",
+    "../../core/ui-kit/genre/HudLoop.luau",
+    "../../core/ui-kit/genre/AudioKit.luau",
+    "../../core/infra/render/Animator.luau",
     "../../core/ui-kit/genre/WorldFeedback.luau",
     "../../core/ui-kit/genre/WorldFeedbackRuntime.luau",
     "**/*.md",
@@ -65,9 +68,9 @@
             0.4627450980392157,
             0.5882352941176471
           ],
-          "Density": 0.32,
-          "Glare": 0.2,
-          "Haze": 1.2,
+          "Density": 0.035,
+          "Glare": 0.05,
+          "Haze": 0.08,
           "Offset": 0.1
         }
       },

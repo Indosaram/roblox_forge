@@ -118,7 +118,7 @@ export type Rendered = { path: string, content: string }
 
 -- List literals propagate their declared element type into every row. Explicit
 -- numeric keys instead infer an exact first-row shape before checking the list.
-local function serializeV2(value: any, used: { [string]: boolean }, descriptor: string?): string
+local function serializeV2(value: any, used: { [string]: string }, descriptor: string?): string
 	if descriptor and descriptor:sub(1, 1) == "?" then
 		descriptor = descriptor:sub(2)
 	end
@@ -148,11 +148,15 @@ local function serializeV2(value: any, used: { [string]: boolean }, descriptor: 
 	end
 	local literal = "{" .. table.concat(fields, ",") .. "}"
 	if descriptor and ContentV2.isObject(descriptor) then
-		used[descriptor] = true
+		if used[descriptor] == nil then
+			local count = 0
+			for _ in used do
+				count += 1
+			end
+			used[descriptor] = "c" .. tostring(count + 1)
+		end
 	end
-	return if descriptor and ContentV2.isObject(descriptor)
-		then "v2_" .. descriptor .. "(" .. literal .. ")"
-		else literal
+	return if descriptor and ContentV2.isObject(descriptor) then used[descriptor] .. "(" .. literal .. ")" else literal
 end
 
 --- Renders the canonical document plus the resolved capability descriptor.
@@ -225,10 +229,18 @@ function M.render(document: Content.Document, mode: string): string
 		end
 		typeSource = ContentV2.types() .. "\n" .. typeSource:sub(1, -2) .. extra .. "}"
 	end
-	local used: { [string]: boolean } = {}
+	local used: { [string]: string } = {}
 	local serialized = if document.version == 2 then serializeV2(payload, used) else contract.serialize(payload)
 	if document.version == 2 then
-		typeSource ..= "\n" .. ContentV2.constructors(used)
+		local constructors = {}
+		for name, alias in used do
+			table.insert(
+				constructors,
+				"local function " .. alias .. "(value: V2_" .. name .. "): V2_" .. name .. " return value end"
+			)
+		end
+		table.sort(constructors)
+		typeSource ..= "\n" .. table.concat(constructors, "\n")
 	end
 	-- V2 catalogs are large data literals; keep their deterministic compact form
 	-- rather than shipping hundreds of kilobytes of formatter-only whitespace.

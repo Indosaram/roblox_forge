@@ -3,6 +3,7 @@ local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local Shared = Forge.games["robango-island"].src.shared
 local Server = require(Forge.core.infra.genre.Server)
 local RuntimeBackend = require(Forge.core.infra.data.RuntimeBackend)
+local RuntimeServices = require(Forge.core.infra.data.RuntimeServices)
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local IslandBootstrap = require(Forge.genres["survival-coop"].module.IslandBootstrap)
@@ -23,7 +24,9 @@ local Clock = require(Forge.core.infra.genre.Clock)
 local clock = Clock.new(function()
 	return DateTime.now().UnixTimestampMillis / 1000
 end)
-local backend = RuntimeBackend.new(require(script.Parent.PersistenceConfig), "SurvivalShared")
+local persistenceConfig = require(script.Parent.PersistenceConfig)
+local runtimeServices = RuntimeServices.new(persistenceConfig)
+local backend = RuntimeBackend.new(persistenceConfig, "SurvivalShared")
 local homeReservations = require(Forge.core.infra.island.HomeReservation).new(
 	backend,
 	{
@@ -192,8 +195,9 @@ visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
 		return DateTime.now().UnixTimestampMillis / 1000
 	end,
 })
+world.runtimeServices = runtimeServices
 world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibraryStore).new({
-	dataStoreService = game:GetService("DataStoreService"),
+	dataStoreService = runtimeServices.dataStoreService,
 	storeName = source.persistencePrefix .. "-music-v1",
 	rules = content.music,
 	maxStoreBytes = 3900000,
@@ -202,17 +206,17 @@ world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibrar
 	end,
 })
 world.marketStore = require(Forge.core.infra.data.CrossServerMarketStore).new(
-	game:GetService("DataStoreService"):GetDataStore(source.persistencePrefix .. "-trade-v1"),
-	game:GetService("MemoryStoreService"),
+	runtimeServices.dataStoreService:GetDataStore(source.persistencePrefix .. "-trade-v1"),
+	runtimeServices.memoryStoreService,
 	Enum.SortDirection.Ascending
 )
 world.musicDecode = function(text)
 	return HttpService:JSONDecode(text)
 end
 local clanDirectory = require(Forge.core.infra.data.ClanStore).new({
-	dataStore = game:GetService("DataStoreService"):GetDataStore(source.persistencePrefix .. "-clans-v1"),
-	memoryMap = game:GetService("MemoryStoreService"):GetSortedMap("robango-clans-v1"),
-	messaging = game:GetService("MessagingService"),
+	dataStore = runtimeServices.dataStoreService:GetDataStore(source.persistencePrefix .. "-clans-v1"),
+	memoryMap = runtimeServices.memoryStoreService:GetSortedMap("robango-clans-v1"),
+	messaging = runtimeServices.messagingService,
 	topic = "robango-clans-v1",
 	cacheSeconds = 60,
 	rules = content.clanPolicy,
@@ -315,7 +319,7 @@ local routing = IslandBootstrap.start({
 	end,
 	players = game:GetService("Players"),
 	teleportService = game:GetService("TeleportService"),
-	memoryStoreService = game:GetService("MemoryStoreService"),
+	memoryStoreService = runtimeServices.memoryStoreService,
 	backend = backend,
 	placeId = game.PlaceId,
 	jobId = game.JobId,

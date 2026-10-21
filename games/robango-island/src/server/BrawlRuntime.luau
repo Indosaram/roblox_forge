@@ -46,7 +46,8 @@ function M.attack(participant: any, fact: any): any
 	return { ok = true }
 end
 
-function M.new(content: any, _world: any, options: any, session: any, seconds: any, wildlife: any): any
+function M.new(content: any, world: any, options: any, session: any, seconds: any, wildlife: any): any
+	local services = world.runtimeServices
 	local combat = content.progressionPolicy.combat
 	local players = game:GetService("Players")
 	local http = game:GetService("HttpService")
@@ -62,10 +63,10 @@ function M.new(content: any, _world: any, options: any, session: any, seconds: a
 		return if root then { x = root.Position.X, y = root.Position.Y, z = root.Position.Z } else nil
 	end
 	local controller = Controller.new({
-		store = game:GetService("DataStoreService"):GetDataStore("robango-brawl-v1"),
-		lease = game:GetService("MemoryStoreService"):GetSortedMap("robango-brawl-leases-v1"),
-		directory = game:GetService("MemoryStoreService"):GetSortedMap("robango-brawl-directory-v1"),
-		messaging = game:GetService("MessagingService"),
+		store = services.dataStoreService:GetDataStore("robango-brawl-v1"),
+		lease = services.memoryStoreService:GetSortedMap("robango-brawl-leases-v1"),
+		directory = services.memoryStoreService:GetSortedMap("robango-brawl-directory-v1"),
+		messaging = services.messagingService,
 		topic = "robango-brawl-v1",
 		owner = options.sessionId,
 		key = "arena:" .. (if game.PrivateServerId ~= "" then game.PrivateServerId else game.JobId),

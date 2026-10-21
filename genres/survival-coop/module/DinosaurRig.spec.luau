@@ -120,6 +120,25 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
+	["species skin has distinct pigments countershade markings and pupils"] = function()
+		local module = loadRig()
+		local world = roblox.Instance.new("Workspace")
+		local colors = {}
+		for species in envelopes do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			local body = model.Torso
+			assert(not colors[tostring(body.Color)], "species pigment must differ")
+			colors[tostring(body.Color)] = true
+			assert(body.Material ~= roblox.Enum.Material.SmoothPlastic, "matte skin")
+			assert(
+				model.Countershade.Color ~= body.Color and model.FlankPattern1.Color ~= body.Color,
+				"pattern contrast"
+			)
+			assert(model.Pupil1.Color ~= model.Eye1.Color, "readable pupil")
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["catalog body plans use exact clearance and real distinct geometry"] = function()
 		verifyAnatomy(loadRig())
 	end,

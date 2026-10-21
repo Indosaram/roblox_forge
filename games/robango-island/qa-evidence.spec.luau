@@ -380,6 +380,25 @@ return {
 		assert(measure.instances > 0 and measure.scripts > 0, "the built place must contain instances and scripts")
 		local errors = budgetErrors(measure)
 		assert(#errors == 0, table.concat(errors, "; "))
+		local manifest = loadManifest()
+		local icons, audio = 0, 0
+		for _, asset in manifest.assets do
+			if asset.kind == "image" then
+				icons += 1
+			elseif asset.kind == "sfx" or asset.kind == "bgm" then
+				audio += 1
+			end
+			asset.assetId = 999999999999999
+			asset.moderation = "Approved"
+		end
+		assert(icons == 518 and audio == 56, "future budget must include every icon and audio cue")
+		local futureBytes = measure.sourceBytes
+			- #fs.readFile(PACK .. "/src/shared/Assets.luau")
+			+ #assetsLib.renderLuau(manifest, "robango-island")
+		assert(
+			futureBytes <= PERF_BUDGET.sourceBytes - 15000,
+			"fully published assets leave less than 15 KB margin: " .. futureBytes
+		)
 	end,
 
 	["QA-PERF-01 NEGATIVE: an inflated place measurement exceeds the budget"] = function()

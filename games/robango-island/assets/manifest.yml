@@ -460,8 +460,8 @@ assets:
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 1"
     path: assets/icons/ui.icon.bag.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135786205012786
+    moderation: Approved
     provenance:
       digest: sha256:6009a75e365acb47a354da2face86e5fe6b09dfd5e7cfe0e04e2929dce833e46
       recipe:
@@ -481,13 +481,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114940040873016
   - key: ui-icon-craft
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 2"
     path: assets/icons/ui.icon.craft.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 74288460121135
+    moderation: Approved
     provenance:
       digest: sha256:1f58574f33ae34aa02d6358d16cb61161e3754de719a665c9b416e9f0593ffd7
       recipe:
@@ -507,13 +508,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 72557165340322
   - key: ui-icon-build
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 3"
     path: assets/icons/ui.icon.build.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 77162562571636
+    moderation: Approved
     provenance:
       digest: sha256:2370de393c4c3b2a37be692f3fa77591ed5246f61cbd858fbedc61af9ea3e340
       recipe:
@@ -533,13 +535,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 109007586740367
   - key: ui-icon-skills
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 4"
     path: assets/icons/ui.icon.skills.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 111515479391095
+    moderation: Approved
     provenance:
       digest: sha256:bfeca76103bd0392b4132c3ebbefb584b0cf27ac565ab239dceeabde5e26a1ed
       recipe:
@@ -559,13 +562,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 112440930378758
   - key: ui-icon-journal
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 5"
     path: assets/icons/ui.icon.journal.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86240730680884
+    moderation: Approved
     provenance:
       digest: sha256:6d4cfa1a47c43c256eab6ec97f912b001efdcfd7623c62f86b9efe3f4b2939e7
       recipe:
@@ -585,13 +589,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102116521136667
   - key: ui-icon-explore
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 6"
     path: assets/icons/ui.icon.explore.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120615274854960
+    moderation: Approved
     provenance:
       digest: sha256:ac76387f4522435e68a96f8e1af83affb8181ed7b1c7bf44fbd7dc6b99c10948
       recipe:
@@ -611,13 +616,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102516922518198
   - key: ui-icon-social
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 7"
     path: assets/icons/ui.icon.social.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132207923966148
+    moderation: Approved
     provenance:
       digest: sha256:6ee300456079acc8e2c095b5c76a1c82d52ecdc8b6846c4d307e264174a09f97
       recipe:
@@ -637,13 +643,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94791200863564
   - key: ui-icon-market
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 8"
     path: assets/icons/ui.icon.market.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120376222854034
+    moderation: Approved
     provenance:
       digest: sha256:0ef620185565418969e63f697d09fb2ba5f1337237858382506d0c8858672a80
       recipe:
@@ -663,13 +670,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 105413882033203
   - key: ui-icon-music
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 9"
     path: assets/icons/ui.icon.music.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 123281124758624
+    moderation: Approved
     provenance:
       digest: sha256:8319dac3a9a1d59871a36e4eb530ed924c54aa9bd3a30e5bd2aa4c8ff36a84cf
       recipe:
@@ -689,13 +697,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102447382615029
   - key: ui-icon-inbox
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 10"
     path: assets/icons/ui.icon.inbox.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76167266563454
+    moderation: Approved
     provenance:
       digest: sha256:f59dc93ef639752b83d68f0950098c1bf29f35f06a1e4d408cb9ac48cf3a1e39
       recipe:
@@ -715,13 +724,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 109850441744564
   - key: ui-icon-settings
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 11"
     path: assets/icons/ui.icon.settings.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72948100346624
+    moderation: Approved
     provenance:
       digest: sha256:8658dd5bb3ec67fba636bb50702adb1acaf5a8e8bf60d88e898db4a07e8daa56
       recipe:
@@ -741,13 +751,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 106999730916674
   - key: ui-icon-close
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 12"
     path: assets/icons/ui.icon.close.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 100168431386921
+    moderation: Approved
     provenance:
       digest: sha256:7807a0b1116a558b8b21322ea07d608adcd62c1b4e93217bfe4c1e8445b7cd44
       recipe:
@@ -767,13 +778,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82083506865936
   - key: ui-icon-back
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 13"
     path: assets/icons/ui.icon.back.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135938385210907
+    moderation: Approved
     provenance:
       digest: sha256:ca48909a3bbcbe2fbc552d012d0fde11d1fd335dfbf576cf1a249a0c332f07b3
       recipe:
@@ -793,13 +805,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 89501788237296
   - key: ui-icon-search
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 14"
     path: assets/icons/ui.icon.search.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 101185525469804
+    moderation: Approved
     provenance:
       digest: sha256:d9c55d6fa1540eaf6cf27fedd9c1c6dd9b7ea7bfe4a2664d2ca7753b7603cf58
       recipe:
@@ -819,13 +832,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 108414464354045
   - key: ui-icon-filter
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 15"
     path: assets/icons/ui.icon.filter.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132497514166659
+    moderation: Approved
     provenance:
       digest: sha256:a9b796e9e9a9f53bb78555b4d8e70699ecea22014cc397911f739376d66d8810
       recipe:
@@ -845,13 +859,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82015538875667
   - key: ui-icon-sort
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-01.png cell 16"
     path: assets/icons/ui.icon.sort.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 82542429844992
+    moderation: Approved
     provenance:
       digest: sha256:c2b0c48ab12f78bdf4ce2ce85294e43bdfca4fc401dc655f2cc02764fe2af12d
       recipe:
@@ -871,13 +886,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 108467981128082
   - key: ui-icon-refresh
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 1"
     path: assets/icons/ui.icon.refresh.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 74656494173772
+    moderation: Approved
     provenance:
       digest: sha256:983089b9db06c8928ccd28a1afaa9251ddc2040ad9f1e72bdd30380eaa661c56
       recipe:
@@ -897,13 +913,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 77699832926970
   - key: ui-icon-help
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 2"
     path: assets/icons/ui.icon.help.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 123903554581682
+    moderation: Approved
     provenance:
       digest: sha256:9f65ae4c51e6db370f26f7a9cf4af8c70f6abb36be7f01de8cbc8153f41daf4c
       recipe:
@@ -923,13 +940,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 81071388207819
   - key: ui-icon-health
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 3"
     path: assets/icons/ui.icon.health.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84305457167464
+    moderation: Approved
     provenance:
       digest: sha256:51bf2f65bf8d07b9310428eca3bae8bb53e6577ac9b056986e842c6765e38724
       recipe:
@@ -949,13 +967,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 73946244989222
   - key: ui-icon-energy
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 4"
     path: assets/icons/ui.icon.energy.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113760518729927
+    moderation: Approved
     provenance:
       digest: sha256:9b7707a74f62b8c5e3d39c3448cd80d19a2bb15b09aab2f4c5c0ed17a56b29c1
       recipe:
@@ -975,20 +994,21 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 83607908314162
   - key: ui-icon-fatigue
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-02.png cell 5"
+    source: "gpt-image recovery-atlas.png cell 11"
     path: assets/icons/ui.icon.fatigue.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:e91519652ddc29ae887337f0de77f1b409e04d016d22f86ca8e6de6223080213
+      digest: sha256:36b081840b60fe3a22b10398f0635fa1d4a27b45ea7cc3638bdead8ae7dc0581
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#2"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -1001,13 +1021,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 0
   - key: ui-icon-xp
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 6"
     path: assets/icons/ui.icon.xp.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 94918218284793
+    moderation: Approved
     provenance:
       digest: sha256:e8cf7c737d8798913cd6c8ef8d6490b288cea90f31b8b6207df9ca7d9aace1d5
       recipe:
@@ -1027,13 +1048,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 84544295448597
   - key: ui-icon-skill-point
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 7"
     path: assets/icons/ui.icon.skill-point.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114369269599900
+    moderation: Approved
     provenance:
       digest: sha256:9b41a5e1566a7953a8297f1318a6ae5a079dcb324f527e9ad52efdc258f20a1b
       recipe:
@@ -1053,13 +1075,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114076978382755
   - key: ui-icon-exploration-rank
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 8"
     path: assets/icons/ui.icon.exploration-rank.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114229649929439
+    moderation: Approved
     provenance:
       digest: sha256:3b2164f023e3ac8cd75518237efc90ec0167058607dba8adea685d558ff063fd
       recipe:
@@ -1079,13 +1102,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 122292300505384
   - key: ui-icon-clock
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 9"
     path: assets/icons/ui.icon.clock.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93336714550010
+    moderation: Approved
     provenance:
       digest: sha256:dc7e46e387f979493e8f0e581a110832883158cfdc90a1a14f5f098d05d0f8e3
       recipe:
@@ -1105,13 +1129,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 96612960485065
   - key: ui-icon-capacity
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 10"
     path: assets/icons/ui.icon.capacity.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93635350417675
+    moderation: Approved
     provenance:
       digest: sha256:6ff47c327ab0b1db1a2b2ad4d119c2b1e3e305c868dd2e9d491c86eef83f9dd5
       recipe:
@@ -1131,13 +1156,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 90046156783631
   - key: ui-icon-weight
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 11"
     path: assets/icons/ui.icon.weight.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106679937379864
+    moderation: Approved
     provenance:
       digest: sha256:a466b7c13e3c7191202e688dd8d6098b220a03297625fedc936830ae8c15f3b0
       recipe:
@@ -1157,13 +1183,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121524164146609
   - key: ui-icon-currency
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 12"
     path: assets/icons/ui.icon.currency.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87264923307253
+    moderation: Approved
     provenance:
       digest: sha256:209549d9f100bec690add2ab2ccc5dbce588ee6a4827c37403f1ff386ccb81c9
       recipe:
@@ -1183,13 +1210,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 100097286529579
   - key: ui-icon-loading
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 13"
     path: assets/icons/ui.icon.loading.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 94165689188700
+    moderation: Approved
     provenance:
       digest: sha256:57da083cdd796fd052a44cfdc91ca10e435c3d9536ec8eb2b2cda6c6e5bca402
       recipe:
@@ -1209,13 +1237,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111771194296366
   - key: ui-icon-empty
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 14"
     path: assets/icons/ui.icon.empty.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139260469535472
+    moderation: Approved
     provenance:
       digest: sha256:5cbe70500ef8169cc37db0e51165fd202324c66140ac9bbda71f13841a80baae
       recipe:
@@ -1235,13 +1264,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 81223567616089
   - key: ui-icon-error
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 15"
     path: assets/icons/ui.icon.error.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92406403810788
+    moderation: Approved
     provenance:
       digest: sha256:cb299da7be4e02ad72be9b09df8dd800a83e78385a9a562651b41770936db0a7
       recipe:
@@ -1261,13 +1291,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 97733546371857
   - key: ui-icon-pending
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-02.png cell 16"
     path: assets/icons/ui.icon.pending.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97020792763489
+    moderation: Approved
     provenance:
       digest: sha256:65875aa3eaf4a5e550820138ed0779fce4c947555ff58f08fa6d72ad7c6d21c5
       recipe:
@@ -1287,13 +1318,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130565615939166
   - key: ui-icon-success
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 1"
     path: assets/icons/ui.icon.success.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114854104291169
+    moderation: Approved
     provenance:
       digest: sha256:aa26cba3b51de04e52287baccfccdcb6262b6229c14b26dd4f8083a9c1530fc4
       recipe:
@@ -1313,13 +1345,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94112100557942
   - key: ui-icon-locked
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 2"
     path: assets/icons/ui.icon.locked.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85901750417676
+    moderation: Approved
     provenance:
       digest: sha256:a6788f7552ba12220b4a3313993aa6ea7d0031704e167a38cc5cb0fb8aa17a8b
       recipe:
@@ -1339,13 +1372,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 131994258897881
   - key: ui-icon-permission
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 3"
     path: assets/icons/ui.icon.permission.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 126036771123605
+    moderation: Approved
     provenance:
       digest: sha256:131aa7c0424ea90b077868229deedc0b5c59e81f44f042465fdd17967c5641b3
       recipe:
@@ -1365,13 +1399,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121157996172893
   - key: ui-icon-stale
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 4"
     path: assets/icons/ui.icon.stale.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106695898655101
+    moderation: Approved
     provenance:
       digest: sha256:553293f213e89d0b667e26b078ae1a9854dda236a376f2abb95908c60947c78d
       recipe:
@@ -1391,13 +1426,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 129421550126987
   - key: ui-icon-offline
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 5"
     path: assets/icons/ui.icon.offline.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 95270743133821
+    moderation: Approved
     provenance:
       digest: sha256:d34a0956b3a327f99ad835727cdb6b861ca0ed701bed4d97519dee10ce2fd6f9
       recipe:
@@ -1417,13 +1453,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114399034490214
   - key: ui-icon-claim
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 6"
     path: assets/icons/ui.icon.claim.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90550359009955
+    moderation: Approved
     provenance:
       digest: sha256:0ebf2fd06226378d2e059b7af53ac04b9a8ff5e359ee0ebc4c0f352f590814a8
       recipe:
@@ -1443,13 +1480,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 86868724873890
   - key: ui-icon-refund
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 7"
     path: assets/icons/ui.icon.refund.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136618882040910
+    moderation: Approved
     provenance:
       digest: sha256:e8fc94992e2c208059aa4f20b64efcc85569e316c8c0af8d552813063bdaca7f
       recipe:
@@ -1469,13 +1507,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111829312689325
   - key: ui-icon-escrow
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 8"
     path: assets/icons/ui.icon.escrow.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139360270974524
+    moderation: Approved
     provenance:
       digest: sha256:25c53dfd691aa36b5a5de7e7520fa363999c9e3918c16ba52026c507efc857d0
       recipe:
@@ -1495,13 +1534,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 73450418980946
   - key: ui-icon-favorite
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 9"
     path: assets/icons/ui.icon.favorite.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 70555567862561
+    moderation: Approved
     provenance:
       digest: sha256:1016b8b009398f0c98a22deaa2bb40430fdc53d2ecff81679656c36894b63189
       recipe:
@@ -1521,13 +1561,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 104264679842771
   - key: ui-icon-todo
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 10"
     path: assets/icons/ui.icon.todo.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 124062821229614
+    moderation: Approved
     provenance:
       digest: sha256:712485bd0e872859ce92d3824e6c172950356aac5a7072d87416b7ffbdfd1c00
       recipe:
@@ -1547,13 +1588,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 90478523720429
   - key: ui-icon-quality
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 11"
     path: assets/icons/ui.icon.quality.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 100094899728415
+    moderation: Approved
     provenance:
       digest: sha256:553d613a503dcda2f85b91452ad583821332aaed28586fc1bbd76c0b647f0699
       recipe:
@@ -1573,13 +1615,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 110079940305556
   - key: ui-icon-durability
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 12"
     path: assets/icons/ui.icon.durability.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120135940571114
+    moderation: Approved
     provenance:
       digest: sha256:7ba4da5e8061f7dddf95b2e6e739d105c42dc80d64bee9f7634264cb6a4caa9d
       recipe:
@@ -1599,13 +1642,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 99588289311955
   - key: ui-icon-processing-budget
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 13"
     path: assets/icons/ui.icon.processing-budget.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116579449796776
+    moderation: Approved
     provenance:
       digest: sha256:337061cef66f06d1e6a4ff71490c560f855df2542457319f53c928b1b6f09cd3
       recipe:
@@ -1625,13 +1669,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114911340480592
   - key: ui-icon-hardness
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 14"
     path: assets/icons/ui.icon.hardness.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103651347021424
+    moderation: Approved
     provenance:
       digest: sha256:fe104dc66bc6a53fd8cf45379883c9d3dc758189d167a426b420a1e6b3898984
       recipe:
@@ -1651,13 +1696,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 99887726943222
   - key: ui-icon-flexibility
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 15"
     path: assets/icons/ui.icon.flexibility.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 70823131175972
+    moderation: Approved
     provenance:
       digest: sha256:382bacf95d3f89d9b6d64a3507c31a403c23b0dcbab6c67e67f8c4d5f9c48fd1
       recipe:
@@ -1677,13 +1723,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 71574941028746
   - key: ui-icon-sharpness
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-03.png cell 16"
     path: assets/icons/ui.icon.sharpness.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114594378018429
+    moderation: Approved
     provenance:
       digest: sha256:5357d6cd79652d36911a9a231c36d220712059881ce29c98581b21e8840d55b2
       recipe:
@@ -1703,13 +1750,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 137315573966070
   - key: ui-icon-insulation
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 1"
     path: assets/icons/ui.icon.insulation.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 122744454890615
+    moderation: Approved
     provenance:
       digest: sha256:7eb01b379f5e00deff9781e354febff9952d8d5e409d5a7cf11335c678c22b2c
       recipe:
@@ -1729,13 +1777,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 79940790776221
   - key: ui-icon-nutrition
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 2"
     path: assets/icons/ui.icon.nutrition.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87904569952363
+    moderation: Approved
     provenance:
       digest: sha256:a6d8525a771fe065dc62a7458d10c4fe4acf42149ab6e566efc4712451d5bb10
       recipe:
@@ -1755,13 +1804,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98039200377012
   - key: ui-icon-fertility
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 3"
     path: assets/icons/ui.icon.fertility.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103076528855331
+    moderation: Approved
     provenance:
       digest: sha256:6f9a56aaf855ad59ee3d9a4c1978bbd59c8c58485dbe1b72f6e160293c7b951d
       recipe:
@@ -1781,13 +1831,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125804143131861
   - key: ui-icon-stance-attack
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 4"
     path: assets/icons/ui.icon.stance.attack.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114426356296456
+    moderation: Approved
     provenance:
       digest: sha256:566db64af5b3b12e24a05b7794a87643ef1521b3dd4940a304142fe91f6592b9
       recipe:
@@ -1807,13 +1858,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 87765783418368
   - key: ui-icon-stance-defense
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 5"
     path: assets/icons/ui.icon.stance.defense.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 117479893009239
+    moderation: Approved
     provenance:
       digest: sha256:3ee8aba79ffe8e579d5e1eabf302e535b1e2cbf7c6071f11c6ac368eb346da1c
       recipe:
@@ -1833,13 +1885,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 128352775931325
   - key: ui-icon-stance-counter
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 6"
     path: assets/icons/ui.icon.stance.counter.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 140461929101398
+    moderation: Approved
     provenance:
       digest: sha256:9750d7e726442976d3bfddee5c5d80470cd2083fd77850b41f752903ee1af48b
       recipe:
@@ -1859,13 +1912,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130929523252941
   - key: ui-icon-stance-onslaught
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 7"
     path: assets/icons/ui.icon.stance.onslaught.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 124729604277215
+    moderation: Approved
     provenance:
       digest: sha256:935dfecdf3a77c65f52f75b7caea7b99eecc4aa14f3b82adfbf194db834a3ad7
       recipe:
@@ -1885,13 +1939,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 137926174297042
   - key: ui-icon-stance-charge
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 8"
     path: assets/icons/ui.icon.stance.charge.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106765712580053
+    moderation: Approved
     provenance:
       digest: sha256:063ade19c402575b295bf636fee7c88f1e43a2d2867c19826bcaa39e6757fd30
       recipe:
@@ -1911,13 +1966,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94467726484006
   - key: ui-icon-stance-shoot
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 9"
     path: assets/icons/ui.icon.stance.shoot.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 82257582048162
+    moderation: Approved
     provenance:
       digest: sha256:89ac26383461aed067ca177986cea1a8a0187129476b0a904ca71713117023b6
       recipe:
@@ -1937,13 +1993,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 99435057354679
   - key: ui-icon-dodge
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 10"
     path: assets/icons/ui.icon.dodge.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87124653283980
+    moderation: Approved
     provenance:
       digest: sha256:e436760abd70dfc8eb28af4570eebe3a93554a738023c804d566d9097234b76b
       recipe:
@@ -1963,13 +2020,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133124000532479
   - key: ui-icon-block
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 11"
     path: assets/icons/ui.icon.block.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 75864416106206
+    moderation: Approved
     provenance:
       digest: sha256:afa7314182885e3e6a40f1e548c75eba7e1f25a2b95098b3f49ee0d6e09b8178
       recipe:
@@ -1989,13 +2047,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 78811310482024
   - key: ui-icon-subdue
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 12"
     path: assets/icons/ui.icon.subdue.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116882769138474
+    moderation: Approved
     provenance:
       digest: sha256:63fca5cdf8743dc45ed59b7039ea32cee28c3fe91930c1365e91ef23d183b288
       recipe:
@@ -2015,20 +2074,21 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 122671698267395
   - key: ui-icon-capture
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-04.png cell 13"
+    source: "gpt-image recovery-atlas.png cell 1"
     path: assets/icons/ui.icon.capture.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:0b776f598c1164e4b6a12a1c2f0b4c1a0e460222896d0f8e4303bc2cb4e83e57
+      digest: sha256:780b54b9fa03d4d33662bd96230930cc245b6f76afb234d5d2ef99c749b19dc4
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#4"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -2041,13 +2101,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 0
   - key: ui-icon-party
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 14"
     path: assets/icons/ui.icon.party.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 102845541928185
+    moderation: Approved
     provenance:
       digest: sha256:70593c5d96e1d8a478199903dd3e708da8dc38926815c6e3c20f2728765085bf
       recipe:
@@ -2067,13 +2128,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98380632325568
   - key: ui-icon-invite
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 15"
     path: assets/icons/ui.icon.invite.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112420206307553
+    moderation: Approved
     provenance:
       digest: sha256:79b046f507ffabc9a989418341b012265ee1aa08c296578621f50ee1a3b9bf95
       recipe:
@@ -2093,13 +2155,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98742374781237
   - key: ui-icon-ready
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-04.png cell 16"
     path: assets/icons/ui.icon.ready.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130173412763486
+    moderation: Approved
     provenance:
       digest: sha256:309f2a0ad4bc434287072095de5cfb51e92a0f74fc2fd85ff819b0a01e4b8b57
       recipe:
@@ -2119,13 +2182,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 139725184996825
   - key: ui-icon-leader
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 1"
     path: assets/icons/ui.icon.leader.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112718947829177
+    moderation: Approved
     provenance:
       digest: sha256:ca002ca9ef2e8d54dd5cae4bb0d824c1ce869146f4494666f82745b77a922e64
       recipe:
@@ -2145,13 +2209,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 95357447709509
   - key: ui-icon-clan
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 2"
     path: assets/icons/ui.icon.clan.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108540785302307
+    moderation: Approved
     provenance:
       digest: sha256:e426b50fd42954ae88641930afc8011fc8a5d133f520d3233e6c824653f9729a
       recipe:
@@ -2171,13 +2236,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 129559387649977
   - key: ui-icon-owner
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 3"
     path: assets/icons/ui.icon.owner.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 73512493860108
+    moderation: Approved
     provenance:
       digest: sha256:1765285f203ce40470ca373e8de224a6c2d6239f9100bd32c0445f32b5ebf37b
       recipe:
@@ -2197,13 +2263,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 81912563943201
   - key: ui-icon-officer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 4"
     path: assets/icons/ui.icon.officer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135671781900371
+    moderation: Approved
     provenance:
       digest: sha256:75351c50db22d84bfe028187c996aa75a75b906ae4c6511b2ca793995df02e3e
       recipe:
@@ -2223,13 +2290,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 129257784325874
   - key: ui-icon-member
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 5"
     path: assets/icons/ui.icon.member.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118481437339309
+    moderation: Approved
     provenance:
       digest: sha256:83fcab5291570d4c883a03dbe4a73b4533cbb3a3f2335b39a2d9100103d4c187
       recipe:
@@ -2249,13 +2317,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 104840965830966
   - key: ui-icon-visitor
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 6"
     path: assets/icons/ui.icon.visitor.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127226616506637
+    moderation: Approved
     provenance:
       digest: sha256:836e669fe04f6f805fce874e8ca09d950cc49711d9d14d1328a380ee08730e83
       recipe:
@@ -2275,13 +2344,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 77913806981103
   - key: ui-icon-withdraw-capability
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 7"
     path: assets/icons/ui.icon.withdraw-capability.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 98613268842017
+    moderation: Approved
     provenance:
       digest: sha256:f154be8f637527b4f7c710c501d3fe2529088400654e888db56131a546092cc1
       recipe:
@@ -2301,13 +2371,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91597331802237
   - key: ui-icon-weather-clear
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 8"
     path: assets/icons/ui.icon.weather.clear.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79858068083865
+    moderation: Approved
     provenance:
       digest: sha256:1ad98ec9047b02c8cfa71fa24cc5f39d7c776916bb5fa57a7bf0bdf8dcb5eab9
       recipe:
@@ -2327,13 +2398,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 103542344692955
   - key: ui-icon-weather-rain
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 9"
     path: assets/icons/ui.icon.weather.rain.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76357403059174
+    moderation: Approved
     provenance:
       digest: sha256:9cef5670c1f3c1b6141050e06def082bbd828a53105da1a95e9e7fd3359f3249
       recipe:
@@ -2353,13 +2425,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 123486192254451
   - key: ui-icon-weather-fog
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 10"
     path: assets/icons/ui.icon.weather.fog.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127545864785214
+    moderation: Approved
     provenance:
       digest: sha256:1a79965e493bf69c0af7fa9a512cb1a4140af14fe46d02c959c7529e4728bf94
       recipe:
@@ -2379,13 +2452,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111809370002742
   - key: ui-icon-weather-storm
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 11"
     path: assets/icons/ui.icon.weather.storm.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93348019940163
+    moderation: Approved
     provenance:
       digest: sha256:82073df66b30aa3f3c1bb5cecd24266d771936c959642f8fdcae363d8c609e9c
       recipe:
@@ -2405,13 +2479,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115975285432745
   - key: ui-icon-weather-collapse
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 12"
     path: assets/icons/ui.icon.weather.collapse.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93019118540854
+    moderation: Approved
     provenance:
       digest: sha256:4de1729cd1a6ffca929052cc583398d3bbda8e17a6b03d54749588c40c4ac0fd
       recipe:
@@ -2431,13 +2506,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 86142745805737
   - key: item-icon-berry
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 13"
     path: assets/icons/item.icon.berry.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 71761572599220
+    moderation: Approved
     provenance:
       digest: sha256:80c693d07c5c7943aeda07732b3015be89e1744ff8a3d2169ed8d7f4cfc43ff9
       recipe:
@@ -2457,13 +2533,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 73853217449066
   - key: item-icon-berry-meal
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 14"
     path: assets/icons/item.icon.berry-meal.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 117915247635961
+    moderation: Approved
     provenance:
       digest: sha256:fff81b245646d462ab419252ca5ab54b217128a134fe93760652ad55b3df138e
       recipe:
@@ -2483,13 +2560,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121566363001088
   - key: item-icon-birch-bark
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 15"
     path: assets/icons/item.icon.birch-bark.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 137715506139340
+    moderation: Approved
     provenance:
       digest: sha256:28126a807bfc5171510c309844f553db7bee8ef7b744385c07526f018a15845f
       recipe:
@@ -2509,13 +2587,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 95969097049111
   - key: item-icon-brick-floor-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-05.png cell 16"
     path: assets/icons/item.icon.brick-floor-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86508977212616
+    moderation: Approved
     provenance:
       digest: sha256:aba94f45492916a5a5df97fcacac1f48f290222b427d296c3abb4e8908a11d8a
       recipe:
@@ -2535,13 +2614,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82233372103642
   - key: item-icon-brick-roof-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 1"
     path: assets/icons/item.icon.brick-roof-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 125422394164065
+    moderation: Approved
     provenance:
       digest: sha256:4ce702bbe42cb7b7bcdf24762c6abaae999330620defc84a7151120e36a749fa
       recipe:
@@ -2561,13 +2641,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 135951825059293
   - key: item-icon-brick-wall-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 2"
     path: assets/icons/item.icon.brick-wall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 100400660937438
+    moderation: Approved
     provenance:
       digest: sha256:08ab421c58c5360e7b390362350441c95f527fb812026a9c542295cdc36eda53
       recipe:
@@ -2587,13 +2668,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 107889783317236
   - key: item-icon-campfire-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 3"
     path: assets/icons/item.icon.campfire-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 77720092632535
+    moderation: Approved
     provenance:
       digest: sha256:593fa941e6bf435dbd302132f32d6aaa44d90636515df27ff631ef417d54609b
       recipe:
@@ -2613,13 +2695,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 97584496403952
   - key: item-icon-cattail-flatbread
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 4"
     path: assets/icons/item.icon.cattail-flatbread.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129841235498337
+    moderation: Approved
     provenance:
       digest: sha256:8204cd3415a3ec66e176376626f316c8b5e904d8aa1f2dcb58b201d3bae0764e
       recipe:
@@ -2639,13 +2722,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 106346337527131
   - key: item-icon-cattail-root
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 5"
     path: assets/icons/item.icon.cattail-root.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80065493850053
+    moderation: Approved
     provenance:
       digest: sha256:695f316257a9ef6ade26fff0debd17fd4d2bc89e4de46b8969dc993da6aa7811
       recipe:
@@ -2665,13 +2749,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130590391177672
   - key: item-icon-chanterelle
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 6"
     path: assets/icons/item.icon.chanterelle.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132481098500476
+    moderation: Approved
     provenance:
       digest: sha256:eb4a28f7812362ec933d4d9ed2414ed9d49e62550dd8295f8d62c32ea2d16bb6
       recipe:
@@ -2691,13 +2776,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 76512064373840
   - key: item-icon-clam
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 7"
     path: assets/icons/item.icon.clam.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132440582749107
+    moderation: Approved
     provenance:
       digest: sha256:e4f671787bafa3145fc360267ac5f75670f5b68f337a6facc19a8be8b8dcbd3a
       recipe:
@@ -2717,13 +2803,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 92783928513430
   - key: item-icon-clam-bake
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 8"
     path: assets/icons/item.icon.clam-bake.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90952483820332
+    moderation: Approved
     provenance:
       digest: sha256:7693a5db135ea9a93f3b869bd33ab364cb1c214a89cf12e67d3d7bbea1269ce3
       recipe:
@@ -2743,13 +2830,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 135628544512358
   - key: item-icon-cooked-meat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 9"
     path: assets/icons/item.icon.cooked-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 131428742897671
+    moderation: Approved
     provenance:
       digest: sha256:e59a599f31b3a8e02fc690f849229170495ef12c63958dd79e72915c910828c7
       recipe:
@@ -2769,20 +2857,21 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 80499031422590
   - key: item-icon-cord
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-06.png cell 10"
+    source: "gpt-image recovery-atlas.png cell 2"
     path: assets/icons/item.icon.cord.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:fe127979d10f2457b673c6872823fe305897bfa26e8fcd1541038efb8461f4a7
+      digest: sha256:c84b036a2f77ca530a515a96cea62e9a4b9e321371bac683b2ac533bb9d2ec33
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#6"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -2795,13 +2884,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 0
   - key: item-icon-fiber
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 11"
     path: assets/icons/item.icon.fiber.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 133833153206428
+    moderation: Approved
     provenance:
       digest: sha256:8cfaf4b78dbb809d69b6872c5b1ba77ec567f7ae0cb20281f89b152a20172990
       recipe:
@@ -2821,13 +2911,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 117793506278896
   - key: item-icon-fieldstone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 12"
     path: assets/icons/item.icon.fieldstone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 125135752700611
+    moderation: Approved
     provenance:
       digest: sha256:24d83c4afae9f4309ab241219669be1e2b3dbe100eac1df468eafed598671efd
       recipe:
@@ -2847,13 +2938,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115259697412241
   - key: item-icon-flint
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 13"
     path: assets/icons/item.icon.flint.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 75558509777826
+    moderation: Approved
     provenance:
       digest: sha256:73ad7d84e65d64c459328a3ec09fb503317f87d9f2aea39b473be80c97c25939
       recipe:
@@ -2873,13 +2965,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133062725395044
   - key: item-icon-flint-knife
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 14"
     path: assets/icons/item.icon.flint-knife.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83735618200928
+    moderation: Approved
     provenance:
       digest: sha256:f53a30b996589a9c19a18dda3ae0fde48ee5a5aa5a20eae61dd14bf628f55d3b
       recipe:
@@ -2899,13 +2992,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121971730252484
   - key: item-icon-floor-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 15"
     path: assets/icons/item.icon.floor-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132616391537060
+    moderation: Approved
     provenance:
       digest: sha256:da63c61f9beef43524b5839f75e8d5bdac189f1b7c7d53ca03206a65da02de6d
       recipe:
@@ -2925,13 +3019,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 86700223101844
   - key: item-icon-hazelnut
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-06.png cell 16"
     path: assets/icons/item.icon.hazelnut.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 89088502000160
+    moderation: Approved
     provenance:
       digest: sha256:d7a1bcd716607cf09c46017091133952b1779d59e8baa92bb989f06fc86a2621
       recipe:
@@ -2951,13 +3046,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115857634142511
   - key: item-icon-hide
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 1"
     path: assets/icons/item.icon.hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109431097409729
+    moderation: Approved
     provenance:
       digest: sha256:ad93b5daf8aeb6ad09c43356ca12c3decb40b3d5def7f75651cd191a41f93e00
       recipe:
@@ -2977,13 +3073,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 88199949755269
   - key: item-icon-marsh-clay
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 2"
     path: assets/icons/item.icon.marsh-clay.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120454643878049
+    moderation: Approved
     provenance:
       digest: sha256:8c2cc5feb601ef832a89d4a02ffda62cecc1a3f68d285247d4a257cb1899362d
       recipe:
@@ -3003,13 +3100,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 103350600236465
   - key: item-icon-meat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 3"
     path: assets/icons/item.icon.meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92603927210960
+    moderation: Approved
     provenance:
       digest: sha256:3b0382302369f2e66b68e7b3cec4016f5ab7eb0c2e40d5af7072fa8167b04dcd
       recipe:
@@ -3029,13 +3127,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 87146372591159
   - key: item-icon-mud-brick
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 4"
     path: assets/icons/item.icon.mud-brick.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97074398186433
+    moderation: Approved
     provenance:
       digest: sha256:b669fb112b922c0c627a8ea97fb6629c88e6f9505cc9be16590420a093ca735a
       recipe:
@@ -3055,13 +3154,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102760388043161
   - key: item-icon-plank
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 5"
     path: assets/icons/item.icon.plank.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112580849053779
+    moderation: Approved
     provenance:
       digest: sha256:bad4c8a1cad99275988e6f37c876b44bb4b60239a41450660321232b99a56da7
       recipe:
@@ -3081,13 +3181,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 71913281236445
   - key: item-icon-reed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 6"
     path: assets/icons/item.icon.reed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106013081172293
+    moderation: Approved
     provenance:
       digest: sha256:0760724f896f87fae1f383b65cc8af983e7db7ba57680deabd3186aaba73745a
       recipe:
@@ -3107,13 +3208,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102272265974707
   - key: item-icon-roasted-hazelnuts
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 7"
     path: assets/icons/item.icon.roasted-hazelnuts.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130761141731590
+    moderation: Approved
     provenance:
       digest: sha256:c877cfe0bb7c6b2a724818a91f74028f32d27371bc9bdda9d3f69e0eee8d076a
       recipe:
@@ -3133,13 +3235,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 128720542925246
   - key: item-icon-roof-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 8"
     path: assets/icons/item.icon.roof-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 91271757257474
+    moderation: Approved
     provenance:
       digest: sha256:49396894110109acead51edbafcc2c84aec0433c4fa3d7ccc8b8e76506706e68
       recipe:
@@ -3159,13 +3262,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 124641659853648
   - key: item-icon-samphire
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 9"
     path: assets/icons/item.icon.samphire.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130520691701704
+    moderation: Approved
     provenance:
       digest: sha256:c9c8db2dbfd576c7adbb4364d106af6b60af79c01e471249f94d1d8e26a6f062
       recipe:
@@ -3185,13 +3289,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102937376015198
   - key: item-icon-shell-fragment
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 10"
     path: assets/icons/item.icon.shell-fragment.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 133238268879753
+    moderation: Approved
     provenance:
       digest: sha256:7d09687f6893b18785cc810c65af5e00c6e1a0f4e4a0d4b2cff944eebe6b3ce0
       recipe:
@@ -3211,13 +3316,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 128535393690122
   - key: item-icon-spear
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 11"
     path: assets/icons/item.icon.spear.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112787128112165
+    moderation: Approved
     provenance:
       digest: sha256:6218553c484b5e92f829341db2b2966e8699cf493be266dd22e7706dd807d0f9
       recipe:
@@ -3237,13 +3343,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125617026008901
   - key: item-icon-stone-axe
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 12"
     path: assets/icons/item.icon.stone-axe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108601696234201
+    moderation: Approved
     provenance:
       digest: sha256:3510a918f3e89c3760865d5a36ed5d2914c7f75a5805530fc56e962b4a159e56
       recipe:
@@ -3263,13 +3370,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 122586312627193
   - key: item-icon-stone-block
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 13"
     path: assets/icons/item.icon.stone-block.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116789308331129
+    moderation: Approved
     provenance:
       digest: sha256:7f243d95f41267cd5023bca2ee1c0def0ad4fc8b478cffa11f37ea1f747e7878
       recipe:
@@ -3289,13 +3397,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 93783997003634
   - key: item-icon-stone-floor-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 14"
     path: assets/icons/item.icon.stone-floor-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112116821828084
+    moderation: Approved
     provenance:
       digest: sha256:48e8a8431981f9ea2289ceca7e2e9f2093b80a78bd2baa734a5c3515091eaf1a
       recipe:
@@ -3315,13 +3424,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94218308526168
   - key: item-icon-stone-maul
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 15"
     path: assets/icons/item.icon.stone-maul.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97123118180236
+    moderation: Approved
     provenance:
       digest: sha256:5644759a224dad6f8f8d4a8b581dbe04756d96585a5158b42e9ff21b3a1c8d8c
       recipe:
@@ -3341,13 +3451,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125075108832694
   - key: item-icon-stone-pick
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-07.png cell 16"
     path: assets/icons/item.icon.stone-pick.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 137507119372338
+    moderation: Approved
     provenance:
       digest: sha256:128e56f854b976301740bce5c1e2b20806cf0cedeaefc114c0a6c1ab1bebf326
       recipe:
@@ -3367,13 +3478,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 104159937296175
   - key: item-icon-stone-roof-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 1"
     path: assets/icons/item.icon.stone-roof-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 71911778255005
+    moderation: Approved
     provenance:
       digest: sha256:9156070c473293a99dbde05e1d6ea071a0e41733825e4348e08fffccdf042a07
       recipe:
@@ -3393,13 +3505,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115502695989894
   - key: item-icon-stone-wall-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 2"
     path: assets/icons/item.icon.stone-wall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87339028747073
+    moderation: Approved
     provenance:
       digest: sha256:d894aa2084e88d2a7595ef4a56a706086b487ae5e256645f9ee18eb99ab93044
       recipe:
@@ -3419,13 +3532,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114108839259905
   - key: item-icon-storage-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 3"
     path: assets/icons/item.icon.storage-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93140454977704
+    moderation: Approved
     provenance:
       digest: sha256:aa9b785c5b95f8f0d537446ba1f2f92aa226d4db8f0898d072202932f8919867
       recipe:
@@ -3445,13 +3559,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133338721781644
   - key: item-icon-thatch-bundle
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 4"
     path: assets/icons/item.icon.thatch-bundle.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112465616363022
+    moderation: Approved
     provenance:
       digest: sha256:9aa41df89b8292d4c4903e61390007681b7b102ab50d0c3f24cd6dbd0d760117
       recipe:
@@ -3471,13 +3586,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 118076564413700
   - key: item-icon-timber-beam
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 5"
     path: assets/icons/item.icon.timber-beam.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 82612929251760
+    moderation: Approved
     provenance:
       digest: sha256:1425ac1c234a10a04968869693d827f79d48a9df9c3cea507b4fdb07d7f61e56
       recipe:
@@ -3497,13 +3613,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125039906092785
   - key: item-icon-timber-wall-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 6"
     path: assets/icons/item.icon.timber-wall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 89885234502887
+    moderation: Approved
     provenance:
       digest: sha256:8293d05f26bd2121c4b9bfbf98951356c296b198dfd0c47c20903dd3ebb5846b
       recipe:
@@ -3523,13 +3640,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 118046462985328
   - key: item-icon-wood
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 7"
     path: assets/icons/item.icon.wood.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129187424321668
+    moderation: Approved
     provenance:
       digest: sha256:36e8edb7b192c46bf136f84583bed95f5e179bb7f911eae6ee5241baffa27a00
       recipe:
@@ -3549,13 +3667,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121025692865824
   - key: item-icon-woodland-skewer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 8"
     path: assets/icons/item.icon.woodland-skewer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116374359113978
+    moderation: Approved
     provenance:
       digest: sha256:104c5a92356dd6f0cbc78e3eaec010e7443a8f6bae3b592e855685a14de87235
       recipe:
@@ -3575,13 +3694,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 119274419674857
   - key: item-icon-workbench-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 9"
     path: assets/icons/item.icon.workbench-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90055555973243
+    moderation: Approved
     provenance:
       digest: sha256:dafeae17ebaf1bc72f02e3085dbf9a0254c2362ff0291d4b80ce414a37f35d96
       recipe:
@@ -3601,13 +3721,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115058605726689
   - key: item-icon-capture-bola
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 10"
     path: assets/icons/item.icon.capture-bola.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 78864726345768
+    moderation: Approved
     provenance:
       digest: sha256:a775652f17e2d47586d207c77e4a53d612a0f7df92182688aee70e5111974fe9
       recipe:
@@ -3627,13 +3748,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 71761604649118
   - key: item-icon-kiln-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 11"
     path: assets/icons/item.icon.kiln-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115368066773450
+    moderation: Approved
     provenance:
       digest: sha256:7aa05cb7b146fc6bce01f6442057564a71e9815febbb579f8d6a19f06331f8ee
       recipe:
@@ -3653,13 +3775,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 119000950299771
   - key: item-icon-tanning-frame-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 12"
     path: assets/icons/item.icon.tanning-frame-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113744458060742
+    moderation: Approved
     provenance:
       digest: sha256:a20c0298234dbdb5471f04296cb98d9c4a865cedb99b753326151771b7e4d619
       recipe:
@@ -3679,13 +3802,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114670776718125
   - key: item-icon-refrigerator-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 13"
     path: assets/icons/item.icon.refrigerator-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 138515129451654
+    moderation: Approved
     provenance:
       digest: sha256:dcb0e528b13c208e271d4029a317593bf106739423342a9c144f2e53dea199c7
       recipe:
@@ -3705,13 +3829,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 127347979285781
   - key: item-icon-tent-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 14"
     path: assets/icons/item.icon.tent-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 134311100527238
+    moderation: Approved
     provenance:
       digest: sha256:de616b24ca3adce986b122402474543fa5570fba1541fd70bcdab272ca3cf55e
       recipe:
@@ -3731,13 +3856,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 104285576262617
   - key: item-icon-bed-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 15"
     path: assets/icons/item.icon.bed-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 88158731388570
+    moderation: Approved
     provenance:
       digest: sha256:724ef7876685dd480a077641d0b8febb4cd76d10e4a6a39371a1224307de83fd
       recipe:
@@ -3757,13 +3883,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82044530133738
   - key: item-icon-well-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-08.png cell 16"
     path: assets/icons/item.icon.well-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 125067147316061
+    moderation: Approved
     provenance:
       digest: sha256:8e5307328f54dd693258b4218ed9d6960369095c610825a453cda3f847b24439
       recipe:
@@ -3783,13 +3910,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 95913549337704
   - key: item-icon-signal-relay-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 1"
     path: assets/icons/item.icon.signal-relay-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130546742523000
+    moderation: Approved
     provenance:
       digest: sha256:fff7842ecaea85c30cfd62ad32d5f3781820ba469147d48b116a649c4f0efac7
       recipe:
@@ -3809,13 +3937,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 74647737330361
   - key: item-icon-laboratory-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 2"
     path: assets/icons/item.icon.laboratory-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 131218627076166
+    moderation: Approved
     provenance:
       digest: sha256:eae63bb931e07f462c2c15896b52fd9bdedbc87d542582ff5d0f3ac86e296717
       recipe:
@@ -3835,13 +3964,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121854652204368
   - key: item-icon-clan-hall-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 3"
     path: assets/icons/item.icon.clan-hall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 81457232477028
+    moderation: Approved
     provenance:
       digest: sha256:2ca9b38c7235e63b3b5a6b5968ad4eb0e83862e1361431f6b15bf133ff1aa37b
       recipe:
@@ -3861,13 +3991,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 138087696264634
   - key: item-icon-animal-pen
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 4"
     path: assets/icons/item.icon.animal-pen.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84503436680366
+    moderation: Approved
     provenance:
       digest: sha256:920ad47bfe95528f4c18f3a43049f7080bf2606addc5232fd2f6480bf8226314
       recipe:
@@ -3887,13 +4018,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111471471358180
   - key: item-icon-wall-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 5"
     path: assets/icons/item.icon.wall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132976199969045
+    moderation: Approved
     provenance:
       digest: sha256:507690b232688a088cff481e640353eabb7a2a1e808aae6872fa1dddcc89ce97
       recipe:
@@ -3913,13 +4045,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 103928426778423
   - key: item-icon-stairs-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 6"
     path: assets/icons/item.icon.stairs-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 125926425593106
+    moderation: Approved
     provenance:
       digest: sha256:fa292ec16ce0da33669eda851054edf946d0352201562c9438d9c59d529714c5
       recipe:
@@ -3939,13 +4072,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133465726042989
   - key: item-icon-door-kit
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 7"
     path: assets/icons/item.icon.door-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109751181253841
+    moderation: Approved
     provenance:
       digest: sha256:e140d8bb23fe3a907be6f75a645e3a23023f895366e1708cf40a1bc39ced2e2e
       recipe:
@@ -3965,13 +4099,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 79043257899440
   - key: item-icon-roof
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 8"
     path: assets/icons/item.icon.roof.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76265474196320
+    moderation: Approved
     provenance:
       digest: sha256:e21920a132abf2ce08c19d68d88197689f21b1a92b05b9c03300092413155fb9
       recipe:
@@ -3991,13 +4126,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 131358836242877
   - key: item-icon-pillar
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 9"
     path: assets/icons/item.icon.pillar.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109539716041389
+    moderation: Approved
     provenance:
       digest: sha256:0afc7a62ee90ac937230d59242c776851004fdeb165653cd5f1347e15c9684cf
       recipe:
@@ -4017,13 +4153,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82228842724353
   - key: item-icon-volcanic-wall
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 10"
     path: assets/icons/item.icon.volcanic-wall.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120907975848980
+    moderation: Approved
     provenance:
       digest: sha256:e8bbfcef03f48d5dba629b6ced74fd198ce9f69537a2deb11e3d3c908ffb690f
       recipe:
@@ -4043,13 +4180,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 93879638483481
   - key: item-icon-branch
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 11"
     path: assets/icons/item.icon.branch.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112919727744620
+    moderation: Approved
     provenance:
       digest: sha256:7ba2586726a2a23cb8ff1f279c3e3aae576b318d7f0ef20153921dce0914bc36
       recipe:
@@ -4069,13 +4207,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 87024585200648
   - key: item-icon-dried-wood
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 12"
     path: assets/icons/item.icon.dried-wood.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80846268088637
+    moderation: Approved
     provenance:
       digest: sha256:bbdeb898943d4610265982a7aa0952792831a81644722389ae2173e8a5580de7
       recipe:
@@ -4095,13 +4234,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 74404438599681
   - key: item-icon-dried-fiber
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 13"
     path: assets/icons/item.icon.dried-fiber.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 121080928503261
+    moderation: Approved
     provenance:
       digest: sha256:d6c477185d4e1263dd6e5eb7c70378f3ed507a60196fce8ccd1279a8fbe50e7e
       recipe:
@@ -4121,13 +4261,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 88472051648447
   - key: item-icon-dried-hide
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 14"
     path: assets/icons/item.icon.dried-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115687157329772
+    moderation: Approved
     provenance:
       digest: sha256:fb9b4044de18ef375b5d5bbad06af0119d96b1f2600ab31689e27a18cc92f0fd
       recipe:
@@ -4147,13 +4288,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 92221855146377
   - key: item-icon-dried-meat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 15"
     path: assets/icons/item.icon.dried-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113249601052592
+    moderation: Approved
     provenance:
       digest: sha256:679c17cd0657f8987a1b257ac222d7e48d37ac5432e21eceee9253c18d436b3d
       recipe:
@@ -4173,13 +4315,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 124251172931060
   - key: item-icon-leather
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-09.png cell 16"
     path: assets/icons/item.icon.leather.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109137961423370
+    moderation: Approved
     provenance:
       digest: sha256:05ebeee36aab72bc0ffb5d1b037384b46b49e8db5e677b03312d9a81e0908ccc
       recipe:
@@ -4199,13 +4342,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 99385420191519
   - key: item-icon-thick-leather
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 1"
     path: assets/icons/item.icon.thick-leather.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 78037849796314
+    moderation: Approved
     provenance:
       digest: sha256:edfbdd83f9211fd23c4bc483be44dfef58bbdbab5ad8ce63974d724413eab08c
       recipe:
@@ -4225,13 +4369,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 136504691710945
   - key: item-icon-fur
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 2"
     path: assets/icons/item.icon.fur.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76894855248402
+    moderation: Approved
     provenance:
       digest: sha256:dacbdae290acd44b46107a7f170e63dab383af6abfd4d0a978d823a741a531f9
       recipe:
@@ -4251,13 +4396,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 83767350457239
   - key: item-icon-fur-leather
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 3"
     path: assets/icons/item.icon.fur-leather.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 101676356849048
+    moderation: Approved
     provenance:
       digest: sha256:00998b6762e491849b3f8a76ac5883b1ad8707d754d0a87137c92cd816a19523
       recipe:
@@ -4277,13 +4423,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 80111698301482
   - key: item-icon-rex-leather
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 4"
     path: assets/icons/item.icon.rex-leather.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107808456037480
+    moderation: Approved
     provenance:
       digest: sha256:8e97ae51b2e2d25e2cbbebd67a9d16b52d07300e334f22c23a04730e2e0695b4
       recipe:
@@ -4303,13 +4450,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 132476396551751
   - key: item-icon-stone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 5"
     path: assets/icons/item.icon.stone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136943366013195
+    moderation: Approved
     provenance:
       digest: sha256:857cf1bd3cb8442d649abad07c5f86e4f2f43c8a213c55984676ddceea41e7b8
       recipe:
@@ -4329,13 +4477,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 138122474925437
   - key: item-icon-polished-stone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 6"
     path: assets/icons/item.icon.polished-stone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129878077585528
+    moderation: Approved
     provenance:
       digest: sha256:ec5c4ac7d69af303ca0b585f66fd7aa18033acc309146f4eaa5dbfe1ff6dc9fd
       recipe:
@@ -4355,13 +4504,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114752012812394
   - key: item-icon-polished-flint
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 7"
     path: assets/icons/item.icon.polished-flint.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120176541507342
+    moderation: Approved
     provenance:
       digest: sha256:93d35e5e06b90cbbab260425adc99142b5ad4ef196cd18664267839138989b6a
       recipe:
@@ -4381,13 +4531,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 93134018913479
   - key: item-icon-bone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 8"
     path: assets/icons/item.icon.bone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135835193486619
+    moderation: Approved
     provenance:
       digest: sha256:ddd525c78894f1025c8f2831ec6df16607d1cdc3c3dc87c65bdeee7e647343e0
       recipe:
@@ -4407,13 +4558,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 112647978627468
   - key: item-icon-polished-bone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 9"
     path: assets/icons/item.icon.polished-bone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 123179400404648
+    moderation: Approved
     provenance:
       digest: sha256:69613b76da72a9c1d1837fe996bf0ce1146fbe1ef8960081b86cf2a1bcbcef7f
       recipe:
@@ -4433,13 +4585,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 89076745940387
   - key: item-icon-basalt
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 10"
     path: assets/icons/item.icon.basalt.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76597101961406
+    moderation: Approved
     provenance:
       digest: sha256:db1c26ef6db774e9e057a387f2a4137ef8e25a661128fd72b477757576fe2f13
       recipe:
@@ -4459,13 +4612,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82384704427999
   - key: item-icon-polished-basalt
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 11"
     path: assets/icons/item.icon.polished-basalt.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113297161402539
+    moderation: Approved
     provenance:
       digest: sha256:30d870af5fe354ea215eda0f11b42a24a897713f70198886201f875a8ac78e0d
       recipe:
@@ -4485,13 +4639,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91266663794375
   - key: item-icon-copper-ore
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 12"
     path: assets/icons/item.icon.copper-ore.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 133808576306010
+    moderation: Approved
     provenance:
       digest: sha256:715ca32f8718a97d68c3a29bde492213c5ab37a12db83231ddb6780490f7c1ba
       recipe:
@@ -4511,13 +4666,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 126510662795301
   - key: item-icon-copper
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 13"
     path: assets/icons/item.icon.copper.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 70955457307827
+    moderation: Approved
     provenance:
       digest: sha256:c42843363455d080d26b9421081ff3d9464111636ed56b369b7846c9a4e1fb76
       recipe:
@@ -4537,13 +4693,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 138641912650149
   - key: item-icon-iron-ore
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 14"
     path: assets/icons/item.icon.iron-ore.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 102536026692945
+    moderation: Approved
     provenance:
       digest: sha256:a62579a75e4dd9217756c37f7904ae3859944215db9ad0714b752a097a3f79ec
       recipe:
@@ -4563,13 +4720,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 106206951560775
   - key: item-icon-iron
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 15"
     path: assets/icons/item.icon.iron.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129879791197295
+    moderation: Approved
     provenance:
       digest: sha256:9eff22c0c7e45dec39912970cafe5a97d7ac3778570564ffb3d4c2ffb737caff
       recipe:
@@ -4589,13 +4747,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94287700076423
   - key: item-icon-charcoal
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-10.png cell 16"
     path: assets/icons/item.icon.charcoal.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 133039597413371
+    moderation: Approved
     provenance:
       digest: sha256:13e06ec0ada0ad2b39653210ba34900da45a4f3ac8ed58f3ebd4bd13ab911387
       recipe:
@@ -4615,13 +4774,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 134730459259432
   - key: item-icon-steel
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 1"
     path: assets/icons/item.icon.steel.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107188163589825
+    moderation: Approved
     provenance:
       digest: sha256:ed4514f5bbcc003892e18ae65cfb74cec6e7974262491ea836dfd95f59dbebeb
       recipe:
@@ -4641,13 +4801,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 96103658453911
   - key: item-icon-volcanic-ore
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 2"
     path: assets/icons/item.icon.volcanic-ore.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 91802998384991
+    moderation: Approved
     provenance:
       digest: sha256:652821b555f52de54c474c74316457d4b8f8690532f24fab9cba4784b2653445
       recipe:
@@ -4667,13 +4828,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125511702669614
   - key: item-icon-volcanic-alloy
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 3"
     path: assets/icons/item.icon.volcanic-alloy.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 140680964081775
+    moderation: Approved
     provenance:
       digest: sha256:c4ac7af2f5c1e1774219098bc3b07749a2aac0e98bc1c38677150b92acc5f9ef
       recipe:
@@ -4693,13 +4855,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 120635828678167
   - key: item-icon-corn
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 4"
     path: assets/icons/item.icon.corn.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85444432887380
+    moderation: Approved
     provenance:
       digest: sha256:efda881471cc571038027f8be425777a0c8fcf72b950ca42aa97359a4896ee44
       recipe:
@@ -4719,13 +4882,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 115659211018098
   - key: item-icon-fermented-corn
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 5"
     path: assets/icons/item.icon.fermented-corn.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135250006041363
+    moderation: Approved
     provenance:
       digest: sha256:230bb5b5cdbf6c8fa880f3fb87968d20d4023f94a620c6a72b6cd38fea1d3523
       recipe:
@@ -4745,13 +4909,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98009390684205
   - key: item-icon-wheat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 6"
     path: assets/icons/item.icon.wheat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 78542661776565
+    moderation: Approved
     provenance:
       digest: sha256:59c829a2d9271b772be0b9ece53e26533685e1b3f777b74e77b8753848407f90
       recipe:
@@ -4771,13 +4936,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 131192133216073
   - key: item-icon-fermented-wheat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 7"
     path: assets/icons/item.icon.fermented-wheat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118860570610498
+    moderation: Approved
     provenance:
       digest: sha256:a1095bcd7323d1e54632fb019009fe47814deb327125cfad55e8c5a34f15f4e5
       recipe:
@@ -4797,13 +4963,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 73187346363773
   - key: item-icon-banana
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 8"
     path: assets/icons/item.icon.banana.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130570665126158
+    moderation: Approved
     provenance:
       digest: sha256:734276649f7d97116a570d4b254665921bf0e5f7dea1ee21bc7230122b89b87b
       recipe:
@@ -4823,13 +4990,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 104070781423182
   - key: item-icon-fermented-banana
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 9"
     path: assets/icons/item.icon.fermented-banana.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135551765410118
+    moderation: Approved
     provenance:
       digest: sha256:82f3f5539d6e15d050c1232cec071696617e5d7cba11c9456c532d6b63fbd5e0
       recipe:
@@ -4849,13 +5017,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 116705130634391
   - key: item-icon-fig
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 10"
     path: assets/icons/item.icon.fig.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127547796683232
+    moderation: Approved
     provenance:
       digest: sha256:63e5ad9283b625e88a7ac89dc688efaf1a312c920b6246a32a8f9bf26786a999
       recipe:
@@ -4875,13 +5044,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 126620695278906
   - key: item-icon-fermented-fig
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 11"
     path: assets/icons/item.icon.fermented-fig.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115402303236848
+    moderation: Approved
     provenance:
       digest: sha256:486a4135d1d20a6e15d45b576dfc2da3fc8a7d8417dbe2b62b31020bc22a52ac
       recipe:
@@ -4901,13 +5071,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 127400592698563
   - key: item-icon-fiber-compost
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 12"
     path: assets/icons/item.icon.fiber-compost.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84117034444056
+    moderation: Approved
     provenance:
       digest: sha256:4e17a6d1028b6d5c589fac2170b43c733045c51e73f6fd1111bc3c245982b05e
       recipe:
@@ -4927,13 +5098,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 100384559805149
   - key: item-icon-berry-compost
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 13"
     path: assets/icons/item.icon.berry-compost.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127577997696896
+    moderation: Approved
     provenance:
       digest: sha256:7c15ce0faf086976a4ac570148cc279417a42f6a9d4335c2ea00c625f2a281e1
       recipe:
@@ -4953,13 +5125,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 72991440625837
   - key: item-icon-leaves
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 14"
     path: assets/icons/item.icon.leaves.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120546243578429
+    moderation: Approved
     provenance:
       digest: sha256:bd66b76ad6d0f31d0c95a0234e3d519381f8c37dfc330550f84ecbe52e5273d5
       recipe:
@@ -4979,13 +5152,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 105542243438081
   - key: item-icon-leaf-compost
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 15"
     path: assets/icons/item.icon.leaf-compost.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85194595608163
+    moderation: Approved
     provenance:
       digest: sha256:20c12667d864e0bbdc7671f1e13a64d1e6ab4f1ac9eaf35a23d4ebe79eba0bb3
       recipe:
@@ -5005,13 +5179,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 100312216052147
   - key: item-icon-spoiled-food
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-11.png cell 16"
     path: assets/icons/item.icon.spoiled-food.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107750066347282
+    moderation: Approved
     provenance:
       digest: sha256:38c791f030b9e17f39435c44d89653abebb8655e9d1436e1fc1d52e9fe139100
       recipe:
@@ -5031,13 +5206,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 140241210058320
   - key: item-icon-food-compost
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 1"
     path: assets/icons/item.icon.food-compost.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 104660546168638
+    moderation: Approved
     provenance:
       digest: sha256:dbd2a238156c3f242bba727ff2348e1bf3cb6a5e99161857ba8030f37250f7d0
       recipe:
@@ -5057,13 +5233,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98382021678523
   - key: item-icon-axe-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 2"
     path: assets/icons/item.icon.axe-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115824720682487
+    moderation: Approved
     provenance:
       digest: sha256:de0a666265585a321025420e2e16a21268f7f596e43eb168bf85450835243516
       recipe:
@@ -5083,13 +5260,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125581728596572
   - key: item-icon-pickaxe-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 3"
     path: assets/icons/item.icon.pickaxe-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 98391402686306
+    moderation: Approved
     provenance:
       digest: sha256:65d8398004bf6b21e0cb04579f5392ab9ae655f3a74d6039ea77e20f11e4ed97
       recipe:
@@ -5109,13 +5287,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 82801819196886
   - key: item-icon-knife-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 4"
     path: assets/icons/item.icon.knife-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76151793178187
+    moderation: Approved
     provenance:
       digest: sha256:93aeb4548d6823e780cc1905f6111f423e681fad9e4995dbea47e2f3da6d351d
       recipe:
@@ -5135,13 +5314,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 84748246968460
   - key: item-icon-hoe-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 5"
     path: assets/icons/item.icon.hoe-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 134568309295401
+    moderation: Approved
     provenance:
       digest: sha256:158431315614b5cde8aba6df14b0b2a5ef449bb7a7f88efc2caad15a9e3d3607
       recipe:
@@ -5161,13 +5341,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 140605808163202
   - key: item-icon-axe-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 6"
     path: assets/icons/item.icon.axe-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79227147186860
+    moderation: Approved
     provenance:
       digest: sha256:589d9ad119bf1dd28f6774859702dd7747cf30281a60c6a82a2f56347de85981
       recipe:
@@ -5187,13 +5368,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 124573717309972
   - key: item-icon-pickaxe-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 7"
     path: assets/icons/item.icon.pickaxe-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 102508582910455
+    moderation: Approved
     provenance:
       digest: sha256:9ac545fa8b781986ed29fe16f21b3aaf9573b67a8c097a83c87e903d9eda7db5
       recipe:
@@ -5213,13 +5395,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 86009901421072
   - key: item-icon-knife-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 8"
     path: assets/icons/item.icon.knife-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 137599368469990
+    moderation: Approved
     provenance:
       digest: sha256:ddfd42915bd2b6e2ac58063088228a41a692fbdcdd04d6f19d96e87aa6c5ad66
       recipe:
@@ -5239,13 +5422,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 112070105498585
   - key: item-icon-hoe-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 9"
     path: assets/icons/item.icon.hoe-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80705521824245
+    moderation: Approved
     provenance:
       digest: sha256:6df3b50144bf7b3c1b30491169d1f30daf54bec352df1dcb5a0f4c84fd0dcf24
       recipe:
@@ -5265,13 +5449,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133133911790326
   - key: item-icon-axe-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 10"
     path: assets/icons/item.icon.axe-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 94142554882188
+    moderation: Approved
     provenance:
       digest: sha256:f6fbf650852bfb896ff2f043c032c39e7bafe90e398905c3d91211bf1b5e898c
       recipe:
@@ -5291,13 +5476,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91294808766165
   - key: item-icon-pickaxe-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 11"
     path: assets/icons/item.icon.pickaxe-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103383366549806
+    moderation: Approved
     provenance:
       digest: sha256:14239a4e080f4086553a9831b0c50d256c31ada78568b06c5d70353b8d68dff3
       recipe:
@@ -5317,13 +5503,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 81774062225849
   - key: item-icon-knife-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 12"
     path: assets/icons/item.icon.knife-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118027681010534
+    moderation: Approved
     provenance:
       digest: sha256:a40922a200d21e8b882918dcc865851647738416f73a22932012911a79b3940b
       recipe:
@@ -5343,13 +5530,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 132318748890956
   - key: item-icon-hoe-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 13"
     path: assets/icons/item.icon.hoe-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128501977538586
+    moderation: Approved
     provenance:
       digest: sha256:e64a1ae1c0f72f959ac1a345de11ff3609550f21613acd39d1737d0739c6a944
       recipe:
@@ -5369,13 +5557,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 136464164999987
   - key: item-icon-club-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 14"
     path: assets/icons/item.icon.club-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103886340677411
+    moderation: Approved
     provenance:
       digest: sha256:a9971773e3a7364861044c5ac2b795f5c12dbce38e3acda510483eb5ca674f58
       recipe:
@@ -5395,13 +5584,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 118625176779139
   - key: item-icon-spear-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 15"
     path: assets/icons/item.icon.spear-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79767055257882
+    moderation: Approved
     provenance:
       digest: sha256:0d29b1fa39c0b67bbbd51e1407fa7366f6cfefdb4dd9be6d577497465e3df676
       recipe:
@@ -5421,13 +5611,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91216791746308
   - key: item-icon-sword-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-12.png cell 16"
     path: assets/icons/item.icon.sword-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127160493961068
+    moderation: Approved
     provenance:
       digest: sha256:c10012c767ebafd98178ddbaf28152dbfb0456ab46f5e2bb1dbcb735d558c8b3
       recipe:
@@ -5447,13 +5638,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 110573618212027
   - key: item-icon-hammer-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 1"
     path: assets/icons/item.icon.hammer-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115492073454388
+    moderation: Approved
     provenance:
       digest: sha256:03a8dea9bc531e04c6716f716ccfc4a48ec09d334b0952be81a9fa7f94364911
       recipe:
@@ -5473,13 +5665,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125797836682905
   - key: item-icon-bow-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 2"
     path: assets/icons/item.icon.bow-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116395715561399
+    moderation: Approved
     provenance:
       digest: sha256:b2b97ca18c944082a2c12afea42dbce10d0a635cae8cbba895a8632f449499dd
       recipe:
@@ -5499,13 +5692,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 88268377323926
   - key: item-icon-crossbow-t1
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 3"
     path: assets/icons/item.icon.crossbow-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128722889008675
+    moderation: Approved
     provenance:
       digest: sha256:215e1ba9f94c5a7cc8370e0a5f40d1c3fb3a678953e93421ae6bd18ede516c75
       recipe:
@@ -5525,13 +5719,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130506713685769
   - key: item-icon-club-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 4"
     path: assets/icons/item.icon.club-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128987147133606
+    moderation: Approved
     provenance:
       digest: sha256:4f35f3e4dd59b60ad1a922085a56c32c25cea6dc44b81d768545a2aeeb2662d6
       recipe:
@@ -5551,13 +5746,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 94097138857138
   - key: item-icon-spear-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 5"
     path: assets/icons/item.icon.spear-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119849113459359
+    moderation: Approved
     provenance:
       digest: sha256:39b0b235f440d54f05c992a1368f37c0ede983f118131845282c229652b122f4
       recipe:
@@ -5577,13 +5773,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 138837813035732
   - key: item-icon-sword-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 6"
     path: assets/icons/item.icon.sword-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114842781515962
+    moderation: Approved
     provenance:
       digest: sha256:449b1995d27e5dcdf1cc8073574bc9479521ddb91eb9cf1b19eeea1004455708
       recipe:
@@ -5603,13 +5800,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 109556109619758
   - key: item-icon-hammer-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 7"
     path: assets/icons/item.icon.hammer-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 73764097477414
+    moderation: Approved
     provenance:
       digest: sha256:d69b10d935469e96d2c77e92aff92a776482dc3296e43618ddc3fadf5857259b
       recipe:
@@ -5629,13 +5827,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 98828981472701
   - key: item-icon-bow-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 8"
     path: assets/icons/item.icon.bow-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85917915388646
+    moderation: Approved
     provenance:
       digest: sha256:b67c704de84304230e82ec4e0838dea96e7ce9293c405357b10f4676c8035bb4
       recipe:
@@ -5655,13 +5854,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91258987169962
   - key: item-icon-crossbow-t2
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 9"
     path: assets/icons/item.icon.crossbow-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 74223296348954
+    moderation: Approved
     provenance:
       digest: sha256:65c9d1a01c2d0667a65b4e0e23d15c38cd184b1c273a40bd15d2c3624ed535cf
       recipe:
@@ -5681,13 +5881,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 119983095513592
   - key: item-icon-club-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 10"
     path: assets/icons/item.icon.club-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128985104188760
+    moderation: Approved
     provenance:
       digest: sha256:614906e7df57190900824fbeb85b1b93914b67982ed3e9f4b406d62af3e7760e
       recipe:
@@ -5707,13 +5908,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 137709001722277
   - key: item-icon-spear-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 11"
     path: assets/icons/item.icon.spear-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87660675408822
+    moderation: Approved
     provenance:
       digest: sha256:8245e926870c8508652d4b01f3ca4d54c5d5445d232f5399a4a98ce229739f01
       recipe:
@@ -5733,13 +5935,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 132073650499025
   - key: item-icon-sword-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 12"
     path: assets/icons/item.icon.sword-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72941019160477
+    moderation: Approved
     provenance:
       digest: sha256:4c9e1a588381d9759525b130cd4fbf5c38afa2dd057d6b906e977f407c452c2f
       recipe:
@@ -5759,13 +5962,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102114773685928
   - key: item-icon-hammer-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 13"
     path: assets/icons/item.icon.hammer-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128241335042299
+    moderation: Approved
     provenance:
       digest: sha256:4157e1a66be097120e22533b68e01c46e31c2688008bc731bfb66d0106361bfc
       recipe:
@@ -5785,13 +5989,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125390519182090
   - key: item-icon-bow-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 14"
     path: assets/icons/item.icon.bow-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93642575371117
+    moderation: Approved
     provenance:
       digest: sha256:61c0716020923a0f714ecf31a0a5ac29848ff889bc48aea78b33b92eb2badf0d
       recipe:
@@ -5811,13 +6016,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 123014152372562
   - key: item-icon-crossbow-t3
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 15"
     path: assets/icons/item.icon.crossbow-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115209041569999
+    moderation: Approved
     provenance:
       digest: sha256:fc6df048b7e281933377955c1f90041911d55a769161134de3cfc7a4b9e55fa2
       recipe:
@@ -5837,13 +6043,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 93314268966868
   - key: item-icon-temperate-head
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-13.png cell 16"
     path: assets/icons/item.icon.temperate-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 74333599772934
+    moderation: Approved
     provenance:
       digest: sha256:9297f6a49d4a913afefb5fb1e42fd985327b79c588de4362b426fd92b2e09c8f
       recipe:
@@ -5863,13 +6070,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 80924308202461
   - key: item-icon-temperate-top
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 1"
     path: assets/icons/item.icon.temperate-top.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 71938018964115
+    moderation: Approved
     provenance:
       digest: sha256:f491925e66b09572b5d5fe1b43afab3a13f8ef2f2a51e6a4b6045a7b9b0ffb13
       recipe:
@@ -5889,13 +6097,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121453413181684
   - key: item-icon-temperate-bottom
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 2"
     path: assets/icons/item.icon.temperate-bottom.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 123946379027123
+    moderation: Approved
     provenance:
       digest: sha256:6519e7ef56f9faad3c6c55eb646646e3a565618605debb56121b535bf952b712
       recipe:
@@ -5915,13 +6124,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 131525847175578
   - key: item-icon-temperate-shoes
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 3"
     path: assets/icons/item.icon.temperate-shoes.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 104318376791081
+    moderation: Approved
     provenance:
       digest: sha256:8b79d96db3d95f97bfdb5c2e7727b93bc6eb9362d68ffdda223b8a376c16ed44
       recipe:
@@ -5941,13 +6151,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 120399518050449
   - key: item-icon-temperate-gloves
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 4"
     path: assets/icons/item.icon.temperate-gloves.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79730920109201
+    moderation: Approved
     provenance:
       digest: sha256:b1394cc5e727b002321bd7596c141f5404245b41cba04a4a5ed87879edea8de1
       recipe:
@@ -5967,13 +6178,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 92231000203074
   - key: item-icon-temperate-bag
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 5"
     path: assets/icons/item.icon.temperate-bag.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135840295929395
+    moderation: Approved
     provenance:
       digest: sha256:9cc8d7aa782e0c6dc373fdaf15f5597c76decf1ba9ac7acb1adb78063aa12cf0
       recipe:
@@ -5993,13 +6205,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 137823456620441
   - key: item-icon-flax
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 6"
     path: assets/icons/item.icon.flax.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 73133933927687
+    moderation: Approved
     provenance:
       digest: sha256:2af68e937101b6ef20eca7b6c3e1ec28df052a1c351b34af6d01cda26f008e36
       recipe:
@@ -6019,13 +6232,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 78870710236786
   - key: item-icon-tropical-head
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 7"
     path: assets/icons/item.icon.tropical-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 77976592990185
+    moderation: Approved
     provenance:
       digest: sha256:b1b7b5f899231f6018a5205a77f42a235fd382ad05f4c998360bbeea5031e7a4
       recipe:
@@ -6045,13 +6259,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 116215377117980
   - key: item-icon-tropical-top
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 8"
     path: assets/icons/item.icon.tropical-top.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103283899878514
+    moderation: Approved
     provenance:
       digest: sha256:0caddfd73ac68244ff22ed02511bb5d6e98fa9fd53ca920fdd771bbfbc07f02f
       recipe:
@@ -6071,13 +6286,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91552771888212
   - key: item-icon-tropical-bottom
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 9"
     path: assets/icons/item.icon.tropical-bottom.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90630099861017
+    moderation: Approved
     provenance:
       digest: sha256:a5cf180d3c8ecbf235fa2acf3c46ebdc143a16d222aa7be5303d3b830978e1c0
       recipe:
@@ -6097,13 +6313,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 135397948958479
   - key: item-icon-tropical-shoes
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 10"
     path: assets/icons/item.icon.tropical-shoes.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115593076911486
+    moderation: Approved
     provenance:
       digest: sha256:71e8e59ceca035a52f9f8aaf3ba3df578df8de936d17fd340eff6003e4fce010
       recipe:
@@ -6123,13 +6340,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 114989762909957
   - key: item-icon-tropical-gloves
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 11"
     path: assets/icons/item.icon.tropical-gloves.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119644856164822
+    moderation: Approved
     provenance:
       digest: sha256:7401c22746af16785addb364ed0918fe175e746a9eb27a7177a18bb81ce6a838
       recipe:
@@ -6149,13 +6367,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111424512405734
   - key: item-icon-tropical-bag
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 12"
     path: assets/icons/item.icon.tropical-bag.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84680837320200
+    moderation: Approved
     provenance:
       digest: sha256:28e450a679fb76a62c7a7a3fa5dc1c2e935f35a52e33e581eb6b8fc78c93b27b
       recipe:
@@ -6175,13 +6394,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 96132707189137
   - key: item-icon-cold-head
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 13"
     path: assets/icons/item.icon.cold-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135649412167143
+    moderation: Approved
     provenance:
       digest: sha256:d64630516f032d1ee1f314c1813081ffd6ed3e10b98c4da63e82d9dcc9c27f87
       recipe:
@@ -6201,13 +6421,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 111239576209422
   - key: item-icon-cold-top
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 14"
     path: assets/icons/item.icon.cold-top.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128801303881819
+    moderation: Approved
     provenance:
       digest: sha256:af23bb28cf07b3d3860577397abf4c6b156bdc1e38914e49e4fd7515965341b6
       recipe:
@@ -6227,13 +6448,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 123730879335614
   - key: item-icon-cold-bottom
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 15"
     path: assets/icons/item.icon.cold-bottom.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113874460395267
+    moderation: Approved
     provenance:
       digest: sha256:67856314118e65d6fad2549a1fdf1ddc610ce0a7556cee6d7f704b20e36503e9
       recipe:
@@ -6253,13 +6475,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 124434132175688
   - key: item-icon-cold-shoes
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-14.png cell 16"
     path: assets/icons/item.icon.cold-shoes.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 137455971341305
+    moderation: Approved
     provenance:
       digest: sha256:8ed853b5cc8b4b112d8fb7677bfc25f0e79dc263e3e820321ee71c1abe7b02c6
       recipe:
@@ -6279,13 +6502,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 71153595306209
   - key: item-icon-cold-gloves
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 1"
     path: assets/icons/item.icon.cold-gloves.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85583081091571
+    moderation: Approved
     provenance:
       digest: sha256:7c15f634d3068e7f576604cc23d8f18df994f38e98606f47f8f90fdcf6902212
       recipe:
@@ -6305,13 +6529,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121230793477497
   - key: item-icon-cold-bag
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 2"
     path: assets/icons/item.icon.cold-bag.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 82412115600055
+    moderation: Approved
     provenance:
       digest: sha256:50dc71fde62df186d2b452542a802cf551c4d92d8a536f44a8fa65c9e10c5c79
       recipe:
@@ -6331,13 +6556,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 88425034636518
   - key: item-icon-water
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 3"
     path: assets/icons/item.icon.water.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129025860650789
+    moderation: Approved
     provenance:
       digest: sha256:4de0674e36f0692d519f10f88a79adcdec93d7b1f7bcd0d6c931435374d2c6d7
       recipe:
@@ -6357,13 +6583,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 106555918445696
   - key: item-icon-corn-porridge
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 4"
     path: assets/icons/item.icon.corn-porridge.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90143611228991
+    moderation: Approved
     provenance:
       digest: sha256:db16c6e89a61976f7444ffd9c8fb8948a57384ada50e1ca0dec2356fb42013c3
       recipe:
@@ -6383,13 +6610,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 126055115070353
   - key: item-icon-potato
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 5"
     path: assets/icons/item.icon.potato.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108921326598153
+    moderation: Approved
     provenance:
       digest: sha256:8be9d579f840ce3a381be5194526ae9d9649ee2b91e19da101dd745809009ddf
       recipe:
@@ -6409,13 +6637,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 103300430301091
   - key: item-icon-baked-potato
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 6"
     path: assets/icons/item.icon.baked-potato.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 131877693853483
+    moderation: Approved
     provenance:
       digest: sha256:27415c6997bb95a3989613a2f21b1c4a9142d64ed34c4ca7f78d50fb6f6c6974
       recipe:
@@ -6435,13 +6664,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 72227230767930
   - key: item-icon-wheat-flatbread
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 7"
     path: assets/icons/item.icon.wheat-flatbread.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79451269391982
+    moderation: Approved
     provenance:
       digest: sha256:c30f81b2ad9151da358a1e353a90958957751190be5f6958455dcf20f9f16484
       recipe:
@@ -6461,13 +6691,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 106875280319353
   - key: item-icon-onion
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 8"
     path: assets/icons/item.icon.onion.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 126905771304456
+    moderation: Approved
     provenance:
       digest: sha256:879827a9a075a9138cde8c3ea61ab3daf3c0187ff7b8ff373df0faa76c21a4e4
       recipe:
@@ -6487,13 +6718,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 105792483642900
   - key: item-icon-onion-soup
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 9"
     path: assets/icons/item.icon.onion-soup.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 124644249912170
+    moderation: Approved
     provenance:
       digest: sha256:11bffe786bddae1fe6a418d68c83d21e05c742f52e0c574ae8764140bb41fd70
       recipe:
@@ -6513,13 +6745,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 120990952672879
   - key: item-icon-flaxseed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 10"
     path: assets/icons/item.icon.flaxseed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 81597761660750
+    moderation: Approved
     provenance:
       digest: sha256:2ba5c5237cd982de84b6ccead7361c07422f25f7425d77c99af02d23db9ca2b8
       recipe:
@@ -6539,13 +6772,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 138764603316599
   - key: item-icon-flax-seed-crisp
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 11"
     path: assets/icons/item.icon.flax-seed-crisp.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128276282943584
+    moderation: Approved
     provenance:
       digest: sha256:fb1e8816e448bb9761157c37c3ab1e045bf51dee8d836da34d7535d814697cb9
       recipe:
@@ -6565,13 +6799,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 90331723696009
   - key: item-icon-banana-mash
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 12"
     path: assets/icons/item.icon.banana-mash.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 99758852938934
+    moderation: Approved
     provenance:
       digest: sha256:8c29cbbbffef75104f71a5e17a7d80a2a6186f0c95236d9f47bc56db0ba88817
       recipe:
@@ -6591,13 +6826,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130054600649498
   - key: item-icon-fig-stew
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 13"
     path: assets/icons/item.icon.fig-stew.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106715161180269
+    moderation: Approved
     provenance:
       digest: sha256:27b27ed5326de5a5faecc8cee65e9ff83bcb2dca0f7b1a7359e8afd6a949b5d1
       recipe:
@@ -6617,13 +6853,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 80871493003321
   - key: item-icon-apple
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 14"
     path: assets/icons/item.icon.apple.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 95396495038296
+    moderation: Approved
     provenance:
       digest: sha256:1575d3941eb46aa917f78aa1a4e6e5a487ed609c355d18736ab184ead822a829
       recipe:
@@ -6643,13 +6880,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 139225203458158
   - key: item-icon-baked-apple
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 15"
     path: assets/icons/item.icon.baked-apple.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 88707679951328
+    moderation: Approved
     provenance:
       digest: sha256:3db6d9abcb8ef3d46642b219936359468ac9766d9370f0f6a6f1566b0b39790b
       recipe:
@@ -6669,13 +6907,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 139673585856668
   - key: item-icon-roast-meat
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-15.png cell 16"
     path: assets/icons/item.icon.roast-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115595069705847
+    moderation: Approved
     provenance:
       digest: sha256:a50c9d3f6b2fcc82585dbe18429342303a21852ce05c475fce7f443139798190
       recipe:
@@ -6695,13 +6934,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91380196420534
   - key: item-icon-meat-potato-stew
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 1"
     path: assets/icons/item.icon.meat-potato-stew.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86364260379555
+    moderation: Approved
     provenance:
       digest: sha256:2361a25e330404bfa4b47f6f700493e41147e8ce8675663553ca2b1477304b49
       recipe:
@@ -6721,13 +6961,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 89632158011699
   - key: item-icon-onion-meat-skewer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 2"
     path: assets/icons/item.icon.onion-meat-skewer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83123742518892
+    moderation: Approved
     provenance:
       digest: sha256:4e7944907ecf10d39ae36782eccb1b30104aedab22d6a7a5e290690573b1d0a9
       recipe:
@@ -6747,13 +6988,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 136407916458126
   - key: item-icon-rex-meat-stew
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 3"
     path: assets/icons/item.icon.rex-meat-stew.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 140360528781693
+    moderation: Approved
     provenance:
       digest: sha256:0dd6cc0dbebb2573aaaf4bded2e125c1dfab12ed9d3c938577abacbab7cad8d0
       recipe:
@@ -6773,13 +7015,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 134883154183778
   - key: item-icon-fish
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 4"
     path: assets/icons/item.icon.fish.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118878793784962
+    moderation: Approved
     provenance:
       digest: sha256:36a0ccc4bd2673e93836f7d7f108db02ff054a7717b5d5c2f2cfe2530f821236
       recipe:
@@ -6799,13 +7042,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 125214318699132
   - key: item-icon-grilled-fish
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 5"
     path: assets/icons/item.icon.grilled-fish.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112810234805679
+    moderation: Approved
     provenance:
       digest: sha256:5f0d3ab76cee45c9f4ef7f47eea08e58974f189502ed3dda527893979ee09bb1
       recipe:
@@ -6825,13 +7069,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 70527607738780
   - key: item-icon-clam-soup
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 6"
     path: assets/icons/item.icon.clam-soup.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 81055072826022
+    moderation: Approved
     provenance:
       digest: sha256:e337658ea33e6b212822084bbca85fc1808eff6af15cf6ff5539ab244e5dcdca
       recipe:
@@ -6851,13 +7096,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 112834112832489
   - key: item-icon-herbivore-feed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 7"
     path: assets/icons/item.icon.herbivore-feed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 133716459406627
+    moderation: Approved
     provenance:
       digest: sha256:380e0800f130d644c177c96cac6303e0bd2298b3bdf5f7a3072b529ea3f5dded
       recipe:
@@ -6877,13 +7123,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 85088875472094
   - key: item-icon-carnivore-feed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 8"
     path: assets/icons/item.icon.carnivore-feed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85380292014378
+    moderation: Approved
     provenance:
       digest: sha256:009046d503743e9ab9b4e4a134606112d01428a0520a44d5afef6f3604386c1b
       recipe:
@@ -6903,13 +7150,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 88715933037243
   - key: item-icon-corn-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 9"
     path: assets/icons/item.icon.corn-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79458669499875
+    moderation: Approved
     provenance:
       digest: sha256:a474a1065578e25458c47f78574762085583be3d3c8ba59610cc5b7824cd6517
       recipe:
@@ -6929,13 +7177,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 101547923286287
   - key: item-icon-potato-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 10"
     path: assets/icons/item.icon.potato-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112703311898779
+    moderation: Approved
     provenance:
       digest: sha256:6d9019ea24cbe77b5eac26f0574c51fdb4368a779f231731734a79df254778cc
       recipe:
@@ -6955,13 +7204,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 136062260861061
   - key: item-icon-wheat-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 11"
     path: assets/icons/item.icon.wheat-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 134993311168742
+    moderation: Approved
     provenance:
       digest: sha256:9d8cfc31935015019b35bb8ab300f43690f85d4ae9d1c11e54c7f0c6adc3f83b
       recipe:
@@ -6981,13 +7231,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 95757018939499
   - key: item-icon-onion-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 12"
     path: assets/icons/item.icon.onion-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93383164605153
+    moderation: Approved
     provenance:
       digest: sha256:a14e152595c73a2f276286fd89b58d9032a2e0fb9af104a5b2bce7ecb6614d6f
       recipe:
@@ -7007,13 +7258,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 89647794616545
   - key: item-icon-flax-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 13"
     path: assets/icons/item.icon.flax-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129609610773139
+    moderation: Approved
     provenance:
       digest: sha256:147edf5cfc8b1261b36f866770826221197bc42f1f6090e9a07fb320c1efcd86
       recipe:
@@ -7033,13 +7285,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 110513794502266
   - key: item-icon-banana-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 14"
     path: assets/icons/item.icon.banana-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136491346547403
+    moderation: Approved
     provenance:
       digest: sha256:17b8b738eb02159e07c202ccae6746836592ce10bbe1c2b27c002ad369b16a11
       recipe:
@@ -7059,13 +7312,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 110476681696506
   - key: item-icon-fig-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 15"
     path: assets/icons/item.icon.fig-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 111616730095437
+    moderation: Approved
     provenance:
       digest: sha256:19e3776f1cc19817533d1180f95d5f26173cb13825c908873a27ca2dad9903cc
       recipe:
@@ -7085,13 +7339,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 135973198294019
   - key: item-icon-apple-seed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-16.png cell 16"
     path: assets/icons/item.icon.apple-seed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76415000020589
+    moderation: Approved
     provenance:
       digest: sha256:9fe0e919e5c5a1c08a63741c9175b315e9581890306649ddefdbc87e7bd01483
       recipe:
@@ -7111,13 +7366,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91512725854232
   - key: item-icon-liquid-fertilizer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 1"
     path: assets/icons/item.icon.liquid-fertilizer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 101123236676923
+    moderation: Approved
     provenance:
       digest: sha256:c9887ad7a5b7baa3ca13af134fd232e0053ba734963c01539f599e23d1f9296e
       recipe:
@@ -7137,13 +7393,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 137418743189723
   - key: item-icon-fruit-fertilizer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 2"
     path: assets/icons/item.icon.fruit-fertilizer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84078608670091
+    moderation: Approved
     provenance:
       digest: sha256:b3b2cd83d776c8358c44a4667c7b7e9e2c0fb3eb429d8bf4c577004bb73652f0
       recipe:
@@ -7163,13 +7420,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 91640991716943
   - key: item-icon-stem-fertilizer
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 3"
     path: assets/icons/item.icon.stem-fertilizer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 87584287361970
+    moderation: Approved
     provenance:
       digest: sha256:1a9762462da06854162683340f52dbaec4c75b29c00ea20b7c511512839f38e0
       recipe:
@@ -7189,13 +7447,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 105183340460194
   - key: item-icon-sprinkler
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 4"
     path: assets/icons/item.icon.sprinkler.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 94678795049009
+    moderation: Approved
     provenance:
       digest: sha256:381eaf2ac2e442b537380092bad6c576d96956ae82a91e615e78cce73040c308
       recipe:
@@ -7215,20 +7474,21 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 84763913400253
   - key: item-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-17.png cell 5"
+    source: "gpt-image recovery-atlas.png cell 4"
     path: assets/icons/item.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:9eafd28b314499b2d9707d4b1935c2e508763c303efccf92f0864955e6de7f46
+      digest: sha256:7544911988aefb6164cdc79a895e99d50650ff11ecb08f26003f7ce5d4fa14f4
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#17"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -7241,13 +7501,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 0
   - key: item-icon-saddle
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 6"
     path: assets/icons/item.icon.saddle.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107663352897676
+    moderation: Approved
     provenance:
       digest: sha256:7fabdb95c8ae1390cf1774a3c131a76dfae7fdaa6e356ec2dcf290f9db86e25f
       recipe:
@@ -7267,13 +7528,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 81480770052454
   - key: item-icon-recovery-feed
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 7"
     path: assets/icons/item.icon.recovery-feed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85319123369991
+    moderation: Approved
     provenance:
       digest: sha256:3c365f21eecbfa397f8e052c4ba386a88245550eb9d468f04804443b46971241
       recipe:
@@ -7293,13 +7555,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133048978330544
   - key: item-icon-clay
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 8"
     path: assets/icons/item.icon.clay.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115623757211603
+    moderation: Approved
     provenance:
       digest: sha256:c081f049c3f26d8e4c4c600189a5b36e8e310a82e5d2a17fb7cc5f189e6a2fec
       recipe:
@@ -7319,13 +7582,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 110929458361841
   - key: item-icon-volcanic-bone
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 9"
     path: assets/icons/item.icon.volcanic-bone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86087276529862
+    moderation: Approved
     provenance:
       digest: sha256:cc66ed60d268bc7eb6cdaaa5d0fe0d92bb301c5e38dd076e2a010be9c98664da
       recipe:
@@ -7345,6 +7609,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 74065249869144
   - key: item-icon-lava-protection-boots
     kind: image
     tool: gpt-image
@@ -7946,17 +8211,18 @@ assets:
   - key: item-icon-skull
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 1"
+    source: "gpt-image recovery-atlas.png cell 8"
     path: assets/icons/item.icon.skull.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:8f931d40001c280cd2cb2368a433d2ee01782e1d3f4cece86c4cc711c815d3dd
+      digest: sha256:dd582daa231f828d23bdfd28a11bbbec9b804519d8fe3bf564fdc93a7031167b
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -8128,17 +8394,18 @@ assets:
   - key: item-icon-sinew
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 8"
+    source: "gpt-image recovery-atlas.png cell 6"
     path: assets/icons/item.icon.sinew.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:f1471e775494873a4a1a6049b4e3b47169dfa5f93c99b8c40f8db1d7da39cbcf
+      digest: sha256:dbd3c5108bc613bb507ac5ccaf55ecfa9bf54d1261d1a475e4b773ea38066888
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -8284,17 +8551,18 @@ assets:
   - key: item-icon-rescue-marker
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 14"
+    source: "gpt-image recovery-atlas.png cell 10"
     path: assets/icons/item.icon.rescue-marker.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:76ad6740804636ce170a7abf2393d89ef85d523895132e6f2e7a77c07cb8cabe
+      digest: sha256:16dd1a2e9044d4bbbbb13222eae6b64294ce5547e33eec683a794f3e192e1c62
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -8856,17 +9124,18 @@ assets:
   - key: item-icon-sinew-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 4"
+    source: "gpt-image recovery-atlas.png cell 7"
     path: assets/icons/item.icon.sinew-profile.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:eba7a667fa4ee54606cf08ff45c067a3ebcc0534e48296c7e6c364f5694f164a
+      digest: sha256:0543b7b5ce54fedd7f04da965dafc7c157ff621b59025694c26411ecf1b907f3
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -8960,17 +9229,18 @@ assets:
   - key: item-icon-skull-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 8"
+    source: "gpt-image recovery-atlas.png cell 9"
     path: assets/icons/item.icon.skull-profile.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:615450c3e90d89a41b9ca6b9d3196424beee8917a8802817cdd8f87a6df462a8
+      digest: sha256:87b5b729a8033e151d7434197f6ae8d4d36f5ae76ed9e9d128e2288764f0dd5c
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -10104,17 +10374,18 @@ assets:
   - key: recipe-icon-cord
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 4"
+    source: "gpt-image recovery-atlas.png cell 3"
     path: assets/icons/recipe.icon.cord.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:5f35116f5d710f7742a5e985d26ebb0de56b22e76b0d48a66e205485fefabf1b
+      digest: sha256:0a23a8d6883799c8e616bef3b780ecd550a18c83ed4cc673e08d7bbc29741bb5
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API
@@ -13302,17 +13573,18 @@ assets:
   - key: recipe-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-31.png cell 15"
+    source: "gpt-image recovery-atlas.png cell 5"
     path: assets/icons/recipe.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
+    decalAssetId: 0
     provenance:
-      digest: sha256:4b464388beb5ab2f59215195a129ede6481fe993891808cb1492aefdc911aa3c
+      digest: sha256:a908de255073062fc2a7a54ea851918c836bbc082873b4315bac82bd4f9d85df
       recipe:
-        id: robango-icon-atlas
-        version: 1
-        input: "assets/icons/jobs.json#31"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        id: robango-icon-recovery
+        version: 2
+        input: "assets/icons/recovery.json"
+        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
       provider:
         name: gpt-image
         version: Responses-API

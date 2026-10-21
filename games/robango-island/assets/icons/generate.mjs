@@ -4,6 +4,21 @@ import { inflateSync, deflateSync } from 'node:zlib';
 const root = 'games/robango-island/assets/icons';
 const jobs = JSON.parse(await readFile(`${root}/jobs.json`, 'utf8'));
 const keys = JSON.parse(await readFile(`${root}/keys.json`, 'utf8'));
+const recovery = await Bun.file(`${root}/recovery.json`).exists()
+  ? JSON.parse(await readFile(`${root}/recovery.json`, 'utf8')) : null;
+if (process.argv.includes('--recover')) {
+  if (!recovery) throw new Error('Missing recovery.json');
+  const { mkdir, copyFile } = await import('node:fs/promises');
+  const before = '.omo/evidence/robango-recovery/p6/before';
+  await mkdir(before, { recursive: true });
+  for (const key of recovery.keys) {
+    if (!await Bun.file(`${before}/${key}.png`).exists()) await copyFile(`${root}/${key}.png`, `${before}/${key}.png`);
+  }
+  if (!await Bun.file(`${root}/${recovery.atlas}`).exists()) {
+    const child = Bun.spawn(['bun', 'C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs', '--out', `${root}/${recovery.atlas}`, '--size', '1024x1024', '--quality', 'high', '--background', 'transparent', '--ref', `${root}/atlas-01.png`, '--prompt', recovery.prompt], { stdout: 'inherit', stderr: 'inherit' });
+    if (await child.exited !== 0) throw new Error('Recovery image generation failed');
+  }
+}
 if (process.argv.includes('--preview')) keys.splice(16);
 if (process.argv.includes('--existing')) {
   let covered = 0;
@@ -94,14 +109,18 @@ console.log('WORKING: Robango icons - slicing and alpha validation');
 const tiles = [];
 for (let number = 1; (number - 1) * 16 < keys.length; number++) {
   const path = `${root}/atlas-${String(number).padStart(2, '0')}.png`;
-  const atlas = decode(await readFile(path));
+  const originalAtlas = decode(await readFile(path));
   for (let cell = 0; cell < 16; cell++) {
     const key = keys[(number - 1) * 16 + cell];
     if (!key) break;
+    const recoveryCell = recovery ? recovery.keys.indexOf(key) : -1;
+    const useRecovery = recoveryCell >= 0 && await Bun.file(`${root}/${recovery.atlas}`).exists();
+    const atlas = useRecovery ? decode(await readFile(`${root}/${recovery.atlas}`)) : originalAtlas;
+    const sourceCell = useRecovery ? recoveryCell : cell;
     const insetX = Math.round(atlas.width / 4 * 0.05), insetY = Math.round(atlas.height / 4 * 0.05);
-    const x = Math.round((cell % 4) * atlas.width / 4) + insetX, y = Math.round(Math.floor(cell / 4) * atlas.height / 4) + insetY;
-    const w = Math.round((cell % 4 + 1) * atlas.width / 4) - x - insetX;
-    const h = Math.round((Math.floor(cell / 4) + 1) * atlas.height / 4) - y - insetY;
+    const x = Math.round((sourceCell % 4) * atlas.width / 4) + insetX, y = Math.round(Math.floor(sourceCell / 4) * atlas.height / 4) + insetY;
+    const w = Math.round((sourceCell % 4 + 1) * atlas.width / 4) - x - insetX;
+    const h = Math.round((Math.floor(sourceCell / 4) + 1) * atlas.height / 4) - y - insetY;
     const pixels = Buffer.alloc(w * h * 4);
     for (let row = 0; row < h; row++) atlas.pixels.copy(pixels, row * w * 4, ((y + row) * atlas.width + x) * 4, ((y + row) * atlas.width + x + w) * 4);
     const visited = new Uint8Array(w * h), components = [];
@@ -134,7 +153,7 @@ for (let number = 1; (number - 1) * 16 < keys.length; number++) {
         if (tile.pixels[p * 4 + 3] >= 8) borderVisible++;
       }
     }
-    verification.push({ key, atlas: number, cell: cell + 1, width: 96, height: 96, clear, visible, borderVisible });
+    verification.push({ key, atlas: useRecovery ? recovery.atlas : number, cell: sourceCell + 1, width: 96, height: 96, clear, visible, borderVisible });
     const file = `${root}/${key}.png`;
     await Bun.write(file, resized);
     tiles.push(tile);
