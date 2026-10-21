@@ -3,6 +3,7 @@ local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
 local HUDModel = require("./SurvivalHUDModel")
 local Locale = require("./SurvivalHUDLocale")
+local IconFallback = require("../../../core/ui-kit/IconFallback")
 
 export type Context = {
 	ui: any,
@@ -369,8 +370,12 @@ function M.start(options: {
 			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
 			menuList.AnchorPoint = Vector2.new(0.5, 0)
 			menuList.Position = UDim2.new(0.5, 0, 0, menuTop)
-			menuList.Size =
-				UDim2.fromOffset(menuWidth, math.max(0, size.Y - menuTop - (if size.X > size.Y then 96 else 128)))
+			local menuHeight = math.max(0, size.Y - menuTop - (if size.X > size.Y then 96 else 128))
+			menuList.Size = UDim2.fromOffset(menuWidth, menuHeight)
+			local mx, my, mw, mh =
+				HUDModel.chatSafe(size.X, size.Y, (size.X - menuWidth) / 2, menuTop, menuWidth, menuHeight)
+			menuList.AnchorPoint, menuList.Position, menuList.Size =
+				Vector2.zero, UDim2.fromOffset(mx, my), UDim2.fromOffset(mw, mh)
 			menuLayout.CellSize = UDim2.fromOffset(math.floor((menuWidth - (columns - 1) * 6) / columns), tileHeight)
 			objectiveSlot.Visible = not menuList.Visible
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
@@ -382,13 +387,14 @@ function M.start(options: {
 			objectiveSlot.Visible = objectiveSlot.Visible and not open
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
 			local width, height, top, right = HUDModel.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
+			local sx, sy, sw, sh = HUDModel.chatSafe(size.X, size.Y, size.X - right - width, top, width, height)
 			for _, frame in sheets do
 				local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 				if owner then
 					owner.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 				end
-				frame.AnchorPoint, frame.Position = Vector2.new(1, 0), UDim2.new(1, -right, 0, top)
-				frame.Size = UDim2.fromOffset(width, height)
+				frame.AnchorPoint, frame.Position = Vector2.zero, UDim2.fromOffset(sx, sy)
+				frame.Size = UDim2.fromOffset(sw, sh)
 			end
 			return
 		end
@@ -518,23 +524,33 @@ function M.start(options: {
 			heading.TextColor3 = Color3.fromRGB(224, 241, 229)
 			heading.TextXAlignment = Enum.TextXAlignment.Center
 			local icon = if options.icons then options.icons.ui(iconId) else nil
-			local badge = Instance.new("TextLabel")
-			badge.Name, badge.BackgroundColor3 = "MenuIconFallback", Color3.fromRGB(67, 112, 93)
-			badge.Size, badge.Position = UDim2.fromOffset(20, 20), UDim2.new(0.5, -10, 0, 17)
-			badge.Text, badge.TextColor3, badge.TextSize =
-				string.upper(string.sub(iconId, 1, 2)), Color3.fromRGB(240, 244, 240), 14
-			badge.Parent = button
-			if icon and icon.image then
-				local image = Instance.new("ImageLabel")
-				image.Name, image.BackgroundTransparency = "MenuIcon", 1
-				image.Size, image.Parent = UDim2.fromScale(1, 1), badge
-				image.Image = icon.image
-				local function loaded()
-					badge.TextTransparency = if image.IsLoaded then 1 else 0
-				end
-				image:GetPropertyChangedSignal("IsLoaded"):Connect(loaded)
-				loaded()
-			end
+			local glyphs = {
+				bag = "item",
+				craft = "tool",
+				build = "building",
+				capture = "creature",
+				skills = "seed",
+				energy = "food",
+				currency = "stone",
+				music = "fiber",
+				settings = "tool",
+				social = "creature",
+				party = "creature",
+				clan = "creature",
+				invite = "creature",
+				explore = "seed",
+				journal = "wood",
+				todo = "wood",
+				market = "food",
+			}
+			IconFallback.mount(
+				button,
+				glyphs[iconId],
+				UDim2.fromOffset(20, 20),
+				UDim2.new(0.5, -10, 0, 17),
+				if icon then icon.image else nil,
+				"MenuIconFallback"
+			)
 			local caption = ui.components.label(theme, {
 				text = if entry.id == "music" then Locale.text(options.locale, "music") else entry.label,
 				parent = button,

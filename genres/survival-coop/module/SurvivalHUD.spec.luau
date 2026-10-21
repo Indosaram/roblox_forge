@@ -8,7 +8,12 @@ return {
 		local hud = luau.load(source, {
 			environment = {
 				require = function(path)
-					assert(path == "./SurvivalHUDModel" or path == "./SurvivalHUDLocale", "HUD dependencies")
+					assert(
+						path == "./SurvivalHUDModel"
+							or path == "./SurvivalHUDLocale"
+							or path == "../../../core/ui-kit/IconFallback",
+						"HUD dependencies"
+					)
 					return {}
 				end,
 				UDim2 = {

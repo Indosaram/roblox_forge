@@ -1,6 +1,7 @@
 --!strict
 local Model = require("./SurvivalHUDModel")
 local Locale = require("./SurvivalHUDLocale")
+local IconFallback = require("../../../core/ui-kit/IconFallback")
 local M = {}
 
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
@@ -243,6 +244,23 @@ function M.start(options: Options)
 	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
 	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
+	local buildCards = Instance.new("Frame")
+	buildCards.Name, buildCards.BackgroundTransparency = "BuildCards", 1
+	buildCards.Size, buildCards.AutomaticSize, buildCards.Parent =
+		UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, sheet.scroll
+	local buildLayout = Instance.new("UIGridLayout")
+	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
+		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
+	local function fitBuildCards()
+		local columns = if sheet.frame.AbsoluteSize.X >= 600 then 3 else 2
+		local rows = 1
+		for _, definition in content.structures do
+			rows = math.max(rows, #definition.cost)
+		end
+		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 44 + rows * 40)
+	end
+	sheet.frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitBuildCards)
+	fitBuildCards()
 	local missingText: string? = nil
 	local toast = Components.label(theme, {
 		text = "",
@@ -439,7 +457,13 @@ function M.start(options: Options)
 		end
 		local fallback = item:FindFirstChild("IconFallback")
 		if fallback then
-			(fallback :: TextLabel).Visible = false
+			(fallback :: Frame).Visible = false
+		end
+		for _, childName in { "RowName", "RowCount" } do
+			local child = item:FindFirstChild(childName)
+			if child then
+				(child :: TextLabel).Visible = false
+			end
 		end
 		local padding = item:FindFirstChild("IconPadding")
 		if padding then
@@ -459,31 +483,44 @@ function M.start(options: Options)
 	end
 	local function itemIcon(item: any, icon: any)
 		icon = icon or {}
-		local badge = item:FindFirstChild("IconFallback")
-		if not badge then
-			badge = Instance.new("TextLabel")
-			badge.Name, badge.BackgroundColor3 = "IconFallback", Color3.fromRGB(67, 112, 93)
-			badge.Size, badge.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(-42, 6)
-			badge.TextColor3, badge.TextSize, badge.Parent = Color3.fromRGB(240, 244, 240), 14, item
+		IconFallback.mount(item, icon.category, UDim2.fromOffset(28, 28), UDim2.fromOffset(4, 6), icon.image)
+		local padding = item:FindFirstChild("IconPadding") or Instance.new("UIPadding")
+		padding.Name, padding.PaddingLeft, padding.Parent = "IconPadding", UDim.new(0, 40), item
+		-- Padding affects child coordinates too; keep the glyph inside the row.
+		item:FindFirstChild("IconFallback").Position = UDim2.fromOffset(-36, 6)
+	end
+	local function materialRow(id: string, available: number?, needed: number, parent: any?): any
+		local row = if parent
+			then parent:FindFirstChild("Cost-" .. id) or Components.label(
+				theme,
+				{ text = "", parent = parent, size = UDim2.new(1, -8, 0, 40) }
+			)
+			else label("", 40)
+		if parent then
+			row.Name = "Cost-" .. id
 		end
-		local monogram = string.match(icon.key or "", "[^.]+$") or "IT"
-		badge.Text, badge.Visible = string.upper(string.sub(monogram, 1, 2)), true
-		local image = item:FindFirstChild("ItemIcon")
-		if not image then
-			image = Instance.new("ImageLabel")
-			image.Name, image.BackgroundTransparency = "ItemIcon", 1
-			image.Size, image.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(-42, 6)
-			image.Parent = item
-			local asset = image
-			image:GetPropertyChangedSignal("IsLoaded"):Connect(function()
-				badge.TextTransparency = if asset.IsLoaded then 1 else 0
-			end)
-			local padding = Instance.new("UIPadding")
-			padding.Name, padding.Parent = "IconPadding", item
+		itemIcon(row, if options.icons then options.icons.item(id) else nil)
+		local specs: { { any } } = {
+			{ "RowName", name(id), UDim2.new(1, -72, 1, 0), UDim2.fromOffset(0, 0) },
+			{
+				"RowCount",
+				(if available then available .. "/" else "") .. needed,
+				UDim2.fromOffset(68, 40),
+				UDim2.new(1, -68, 0, 0),
+			},
+		}
+		for _, spec in specs do
+			local text = row:FindFirstChild(spec[1])
+				or Components.label(theme, { text = "", parent = row, textSize = 12, size = spec[3] })
+			text.Name, text.Text, text.Size, text.Position, text.Visible = spec[1], spec[2], spec[3], spec[4], true
+			text.TextXAlignment = if spec[1] == "RowCount" then Enum.TextXAlignment.Right else Enum.TextXAlignment.Left
+			text.TextScaled, text.TextWrapped = true, true
+			fitText(text)
+			text.TextColor3 = if available and available < needed
+				then Color3.fromRGB(255, 155, 132)
+				else Color3.fromRGB(127, 224, 156)
 		end
-		item:FindFirstChild("IconPadding").PaddingLeft = UDim.new(0, 48)
-		image.Image, image.Visible = icon.image or "", icon.image ~= nil
-		badge.TextTransparency = if image.IsLoaded and icon.image then 1 else 0
+		return row
 	end
 	local function selectedDefinition(): any
 		for _, definition in options.content.structures do
@@ -677,6 +714,7 @@ function M.start(options: Options)
 		controls.begin(section)
 		noteUsed = 0
 		panes.Visible = section == "bag" or section == "craft"
+		buildCards.Visible = section == "build"
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
 		contentParent = if panes.Visible then listPane else sheet.scroll
@@ -725,7 +763,7 @@ function M.start(options: Options)
 						id = row.item.itemId,
 						image = if options.icons then options.icons.item(row.item.catalogId).image else nil,
 						text = name(row.item.catalogId),
-						fallback = string.upper(string.sub(row.item.catalogId, 1, 2)),
+						category = if options.icons then options.icons.item(row.item.catalogId).category else "item",
 						quantity = row.item.quantity,
 					})
 				end
@@ -856,21 +894,13 @@ function M.start(options: Options)
 					label(name(recipe.id), 36)
 					label(t("inputs"))
 					for _, ingredient in Model.ingredients(bag, recipe) do
-						local ingredientRow =
-							label(name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
-						itemIcon(ingredientRow, if options.icons then options.icons.item(ingredient.id) else nil)
-						ingredientRow.TextColor3 = if ingredient.available >= ingredient.needed
-							then Color3.fromRGB(127, 224, 156)
-							else Color3.fromRGB(255, 155, 132)
+						materialRow(ingredient.id, ingredient.available, ingredient.needed)
 					end
-					local output = {}
+					label(t("outputs"), 32)
 					for _, item in recipe.outputs do
-						table.insert(output, name(item.item) .. " x" .. item.quantity)
+						materialRow(item.item, nil, item.quantity)
 					end
-					label(
-						t("outputs") .. ": " .. table.concat(output, ", ") .. "\n" .. recipe.craftMillis / 1000 .. "s",
-						48
-					)
+					label(recipe.craftMillis / 1000 .. "s", 24)
 					label(
 						t("station")
 							.. ": "
@@ -903,6 +933,7 @@ function M.start(options: Options)
 			renderJobs()
 		elseif section == "build" then
 			label(t("buildHint"), 48)
+			buildCards.LayoutOrder = controls.order()
 			local STRUCTURE_PRIORITY: { [string]: number } = {
 				["floor"] = 1,
 				["campfire"] = 2,
@@ -920,12 +951,30 @@ function M.start(options: Options)
 				return a.id < b.id
 			end)
 			for _, definition in orderedStructures do
-				button("Structure-" .. definition.id, name(definition.id), function()
+				controls.parent = buildCards
+				local affordable = #Model.missingMaterials(model.snapshot.warehouse, definition.cost) == 0
+				local card = button("Structure-" .. definition.id, "", function()
 					structureId = definition.id
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
-				end)
+				end, affordable)
+				IconFallback.mount(card, "building", UDim2.fromOffset(28, 28), UDim2.fromOffset(6, 6), nil)
+				local title = card:FindFirstChild("StructureName")
+					or Components.label(
+						theme,
+						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -44, 0, 40) }
+					)
+				title.Name, title.Text = "StructureName", name(definition.id)
+				title.Size, title.Position = UDim2.new(1, -44, 0, 40), UDim2.fromOffset(40, 0)
+				title.TextScaled, title.TextWrapped = true, true
+				fitText(title)
+				for index, cost in Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost }) do
+					local chip = materialRow(cost.id, cost.available, cost.needed, card)
+					chip.Position = UDim2.fromOffset(4, 42 + (index - 1) * 40)
+					chip.BackgroundTransparency = 0.25
+				end
 			end
+			controls.parent = sheet.scroll
 			local definition = selectedDefinition()
 			if definition then
 				label(t("placementHint"))
@@ -1142,7 +1191,9 @@ function M.start(options: Options)
 		local size = root.AbsoluteSize
 		if contextual then
 			local width, height, top, right = Model.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
-			sheet.frame.Position, sheet.frame.Size = UDim2.new(1, -right, 0, top), UDim2.fromOffset(width, height)
+			local sx, sy, sw, sh = Model.chatSafe(size.X, size.Y, size.X - right - width, top, width, height)
+			sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
+				Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
 			local bounds = Model.contextHudBounds(size.X + 24, size.Y + 16).vitals
 			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
 			vitals.Size = UDim2.fromOffset(bounds.width, bounds.height)

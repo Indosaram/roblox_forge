@@ -233,6 +233,27 @@ function M.contextSheetBounds(width: number, height: number, touch: boolean): (n
 	return math.min(720, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
 end
 
+-- Desktop chat may be implemented by CoreGui instead of a PlayerGui Chat tree.
+-- Reserve its known rectangle even when that tree cannot be inspected.
+function M.chatSafe(
+	width: number,
+	height: number,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+): (number, number, number, number)
+	if width >= 1000 and x < 540 and y < 320 then
+		if width - 548 >= w then
+			x = 548
+		else
+			y = 328
+		end
+		h = math.min(h, height - y - 8)
+	end
+	return x, y, w, h
+end
+
 function M.contextHudBounds(width: number, height: number?): any
 	local w = math.min(216, width - 24)
 	local short = height ~= nil and height < 400

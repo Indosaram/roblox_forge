@@ -7,6 +7,15 @@ local Transport = require("../../../core/infra/genre/CommandTransport")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 
 return {
+	["desktop sheets and menus avoid the CoreGui chat rectangle"] = function()
+		for _, viewport in { { 1000, 700 }, { 1346, 790 }, { 1920, 1080 } } do
+			local w, h = viewport[1], viewport[2]
+			local width, height, top, right = Model.contextSheetBounds(w, h, false)
+			local x, y, sw, sh = Model.chatSafe(w, h, w - right - width, top, width, height)
+			assert(x >= 540 or y >= 320, "sheet outside chat")
+			assert(x + sw <= w and y + sh <= h, "sheet inside viewport")
+		end
+	end,
 	["objective selects the nearest available gatherable and handles an empty island"] = function()
 		local near = { available = true, distance = 4 }
 		assert(

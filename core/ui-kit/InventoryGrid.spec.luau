@@ -43,34 +43,46 @@ local function fixture(source: string): any
 			return button
 		end,
 	}
-	local module = luau.load(source, {
-		environment = {
-			require = function(name)
-				assert(name == "./Components", "only production Components dependency")
-				return components
+	local environment: any
+	environment = {
+		require = function(name)
+			if name == "./IconFallback" then
+				local chunk = assert(loadstring(fs.readFile("core/ui-kit/IconFallback.luau")))
+				local glyphEnvironment = table.clone(getfenv())
+				for key, value in environment do
+					glyphEnvironment[key] = value
+				end
+				setfenv(chunk, glyphEnvironment)
+				return chunk()
+			end
+			assert(name == "./Components", "only production Components dependency")
+			return components
+		end,
+		Instance = { new = instance },
+		Color3 = {
+			fromRGB = function(...: number): any
+				return { ... }
 			end,
-			Instance = { new = instance },
-			Color3 = {
-				fromRGB = function(...: number): any
-					return { ... }
-				end,
-			},
-			UDim = {
-				new = function(scale, offset)
-					return { Scale = scale, Offset = offset }
-				end,
-			},
-			UDim2 = {
-				new = function(xs, xo, ys, yo)
-					return { X = { Scale = xs, Offset = xo }, Y = { Scale = ys, Offset = yo } }
-				end,
-				fromOffset = function(x, y)
-					return { X = { Scale = 0, Offset = x }, Y = { Scale = 0, Offset = y } }
-				end,
-			},
-			Enum = { AutomaticSize = { Y = "Y" }, SortOrder = { LayoutOrder = "LayoutOrder" } },
 		},
-	})()
+		UDim = {
+			new = function(scale, offset)
+				return { Scale = scale, Offset = offset }
+			end,
+		},
+		UDim2 = {
+			new = function(xs, xo, ys, yo)
+				return { X = { Scale = xs, Offset = xo }, Y = { Scale = ys, Offset = yo } }
+			end,
+			fromOffset = function(x, y)
+				return { X = { Scale = 0, Offset = x }, Y = { Scale = 0, Offset = y } }
+			end,
+			fromScale = function(x, y)
+				return { X = { Scale = x, Offset = 0 }, Y = { Scale = y, Offset = 0 } }
+			end,
+		},
+		Enum = { AutomaticSize = { Y = "Y" }, SortOrder = { LayoutOrder = "LayoutOrder" } },
+	}
+	local module = luau.load(source, { environment = environment })()
 	local grid = module.new(instance("Frame"), {}, function(id)
 		table.insert(selected, id)
 	end)
@@ -113,27 +125,20 @@ local function regression(source: string): boolean
 		spear and berry and spear.BackgroundTransparency == 0.4 and berry.BackgroundTransparency == 0,
 		"initial selection"
 	)
-	local icon = spear:FindFirstChild("ItemIcon")
+	local badge = spear:FindFirstChild("IconFallback")
+	local icon = badge:FindFirstChild("Asset")
+	assert(icon and icon.ClassName == "ImageLabel" and icon.Image == "rbxassetid://123", "item icon created")
+	assert(badge.Size.X.Offset == 36 and badge.Position.Y.Offset == 6, "icon dimensions")
 	assert(
-		icon and icon.ClassName == "ImageLabel" and icon.Image == "rbxassetid://123" and icon.Visible,
-		"item icon created"
+		badge.ClassName == "Frame" and badge:FindFirstChild("Glyph").Visible,
+		"unloaded asset retains non-text fallback"
 	)
-	assert(icon.Size.X.Offset == 36 and icon.Position.Y.Offset == 6, "icon dimensions")
-	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 0, "slot text sits below icon")
-	assert(
-		spear:FindFirstChild("IconFallback").Text ~= "" and spear:FindFirstChild("IconFallback").TextTransparency == 0,
-		"unloaded asset retains readable fallback"
-	)
-	assert(berry:FindFirstChild("IconFallback").Text ~= "", "imageless slot has fallback")
-	assert(berry:FindFirstChild("ItemIcon") == nil, "imageless row needs no icon")
+	assert(berry:FindFirstChild("IconFallback"):FindFirstChild("Glyph"), "imageless slot has glyph")
+	assert(berry:FindFirstChild("IconFallback"):FindFirstChild("Asset") == nil, "imageless row needs no asset")
 	local callback = spear.callback
 	f.down(spear)
 	f.grid.update({ { id = "berry", text = "Berry x2" }, { id = "spear", text = "Spear 99%" } }, "spear")
-	assert(
-		spear:FindFirstChild("ItemIcon") == icon and not icon.Visible and tostring(icon.Image) == "",
-		"imageless update hides retained icon"
-	)
-	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 0, "imageless update resets padding")
+	assert(spear:FindFirstChild("IconFallback"):FindFirstChild("Asset") == nil, "imageless update removes asset")
 	assert(f.release(spear), "snapshot during press must activate the original live button")
 	assert(f.button("spear") == spear and spear.callback == callback, "same identity preserves object and handler")
 	assert(f.selected[1] == "spear" and #f.selected == 1, "press targets original item exactly once")

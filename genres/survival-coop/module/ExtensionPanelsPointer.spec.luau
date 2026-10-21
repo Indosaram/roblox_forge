@@ -22,7 +22,8 @@ return {
 	["contextual menu pointer reaches every tile and survives the next frame"] = function()
 		for _, size in { { 1920, 1080 }, { 360, 640 } } do
 			local width, height = size[1], size[2] - 56
-			local nodes, attributes = {}, {}
+			local nodes: { any } = {}
+			local attributes = {}
 			local dimension = {
 				new = function(xs, xo, ys, yo)
 					return { xs or 0, xo or 0, ys or 0, yo or 0 }
@@ -76,6 +77,13 @@ return {
 				end
 				function item:Destroy()
 					self.Parent, self.Visible = nil, false
+				end
+				function item:FindFirstChild(name)
+					for _, child in nodes do
+						if child.Parent == self and child.Name == name then
+							return child
+						end
+					end
 				end
 				function item:FindFirstAncestorWhichIsA(kind)
 					local current = self.Parent
@@ -175,6 +183,8 @@ return {
 					return Locale
 				elseif path == "../../../core/ui-kit/Layout" then
 					return require("../../../core/ui-kit/Layout")
+				elseif path == "../../../core/ui-kit/IconFallback" then
+					return load("core/ui-kit/IconFallback.luau")
 				end
 				return { factory = function() end }
 			end
@@ -362,7 +372,7 @@ return {
 						fallback = item
 					end
 				end
-				assert(fallback and fallback.Text ~= "", "every menu tile has an asset-independent fallback")
+				assert(fallback and fallback.ClassName == "Frame", "every menu tile has a non-text fallback")
 				click(tile)
 				assert(not menu.Visible and visible[id], "tile opens sheet: " .. id)
 				heartbeat:fire()

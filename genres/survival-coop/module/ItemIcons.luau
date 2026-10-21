@@ -1,25 +1,32 @@
 --!strict
 -- Catalog and published assets are injected; this module has no game-pack dependency.
 local ItemIcons = {}
+local IconFallback = require("../../../core/ui-kit/IconFallback")
 
 export type Catalog = {
 	items: { any },
 	materials: { any }?,
 	recipes: { any },
 }
-export type Icon = { key: string?, image: string?, text: string }
+export type Icon = { key: string?, image: string?, text: string, category: string? }
 
 function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
 	local items: { [string]: string } = {}
 	local recipes: { [string]: boolean } = {}
+	local categories: { [string]: string } = {}
 	for _, item in catalog.items do
 		items[item.id] = item.name or item.id
+		categories[item.id] = IconFallback.category(item)
 	end
 	for _, material in (catalog.materials or {}) :: { any } do
 		items[material.id] = items[material.item] or material.item
+		categories[material.id] = categories[material.item]
 	end
 	for _, recipe in catalog.recipes do
 		recipes[recipe.id] = true
+		categories[recipe.id] = if recipe.outputs and recipe.outputs[1]
+			then categories[recipe.outputs[1].item]
+			else "item"
 	end
 
 	local function resolve(kind: string, id: string, label: string?): Icon
@@ -36,6 +43,7 @@ function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
 		return {
 			key = key,
 			image = image,
+			category = categories[id] or "item",
 			text = label or (if kind == "item" then items[id] else nil) or id,
 		}
 	end

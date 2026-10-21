@@ -2,6 +2,7 @@
 -- A reusable touch/keyboard-selectable inventory grid. Detail text stays in the
 -- caller's scroll flow instead of a hover-only tooltip outside the safe area.
 local Components = require("./Components")
+local IconFallback = require("./IconFallback")
 local M = {}
 function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -> ())
 	local frame = Instance.new("Frame")
@@ -43,43 +44,7 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 				end
 				assert(caption, "SLOT_CAPTION_REQUIRED")
 				caption.Text = row.text
-				local icon = button:FindFirstChild("ItemIcon") :: ImageLabel?
-				local fallback = button:FindFirstChild("IconFallback") :: TextLabel?
-				if not fallback then
-					local created = Instance.new("TextLabel")
-					created.Name = "IconFallback"
-					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.new(0.5, -18, 0, 6)
-					created.BackgroundColor3, created.TextColor3 =
-						Color3.fromRGB(67, 112, 93), Color3.fromRGB(240, 244, 240)
-					created.TextSize, created.Parent = 16, button
-					fallback = created
-				end
-				assert(fallback, "SLOT_FALLBACK_REQUIRED")
-				fallback.Text = row.fallback or string.upper(string.sub(row.id, 1, 2))
-				if row.image and not icon then
-					local created = Instance.new("ImageLabel")
-					created.Name, created.BackgroundTransparency = "ItemIcon", 1
-					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.new(0.5, -18, 0, 6)
-					created.Parent = button
-					icon = created
-					local badge = fallback
-					created:GetPropertyChangedSignal("IsLoaded"):Connect(function()
-						badge.TextTransparency = if created.IsLoaded then 1 else 0
-					end)
-				end
-				if icon then
-					icon.Image, icon.Visible = row.image or "", row.image ~= nil
-					fallback.TextTransparency = if icon.IsLoaded and row.image then 1 else 0
-				end
-				local padding = button:FindFirstChild("IconPadding") :: UIPadding?
-				if row.image and not padding then
-					local created = Instance.new("UIPadding")
-					created.Name, created.Parent = "IconPadding", button
-					padding = created
-				end
-				if padding then
-					padding.PaddingLeft = UDim.new(0, 0)
-				end
+				IconFallback.mount(button, row.category, UDim2.fromOffset(36, 36), UDim2.new(0.5, -18, 0, 6), row.image)
 				local quantity = button:FindFirstChild("Quantity") :: TextLabel?
 				if not quantity then
 					local created = Instance.new("TextLabel")
