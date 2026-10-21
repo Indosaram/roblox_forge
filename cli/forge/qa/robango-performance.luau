@@ -70,7 +70,10 @@ local function usable(prompt)
 		return false
 	end
 	local anchor = prompt.Parent
-	local position = if anchor and anchor:IsA("Attachment") then anchor.WorldPosition else nil
+	local position = if anchor and anchor:IsA("Attachment")
+		then anchor.WorldPosition
+		elseif anchor and anchor:IsA("BasePart") then anchor.Position
+		else nil
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	if not position or not root or (position - root.Position).Magnitude > prompt.MaxActivationDistance then
 		return false
@@ -80,7 +83,7 @@ local function usable(prompt)
 		params.FilterDescendantsInstances = { player.Character }
 		params.FilterType = Enum.RaycastFilterType.Exclude
 		local hit = workspace:Raycast(camera.CFrame.Position, position - camera.CFrame.Position, params)
-		return hit == nil or hit.Instance == anchor.Parent
+		return hit == nil or hit.Instance == (if anchor:IsA("Attachment") then anchor.Parent else anchor)
 	end
 	return true
 end

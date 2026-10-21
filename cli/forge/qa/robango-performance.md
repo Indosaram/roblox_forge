@@ -57,8 +57,17 @@ line of sight. It observes readiness each render frame, independently of memory
 sampling. If readiness already exists on attachment, the exact transition is
 unknowable: `interactionStatus` is `left-censored-at-attachment` and no fabricated
 time is emitted. For an exact startup observation, attach before that transition
-in a fresh authorized Play. A missing prompt remains `not-observed`, not a pass.
+in a fresh authorized Play. A disk-built temporary ReplicatedFirst LocalScript
+can subscribe from the earliest client frames; remove its privileged rendering
+setters and apply those through Studio MCP's Client context. Record the first
+observer frame and whether profile setup completed before readiness. Edit-mode
+simulator/rendering settings may reset when Play creates its Client DataModel;
+verify the actual Client settings on every run. Start the 120-second memory
+window only after the exact content viewport and Level01 profile are verified.
+A missing prompt remains `not-observed`, not a pass.
 Moving to a node changes the measured scenario; record any real input separately.
+Prompt anchors may be either Attachments or BaseParts; range and line-of-sight
+checks must use the corresponding world position and the actual owning part.
 
 Memory uses `Stats:GetTotalMemoryUsageMb()` and key
 `Stats:GetMemoryUsageMbForTag()` values. Instance count is `Stats.InstanceCount`;

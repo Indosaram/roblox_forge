@@ -142,6 +142,12 @@ function M.new(physicalWarehouse: boolean?): any
 			return assert(self:FindFirstChild(name), name)
 		end
 		function value:SetAttribute(key, data)
+			-- Roblox rejects tables ("Dictionary is not a supported attribute type"); the
+			-- fake must too, or a live startup crash passes every production-world spec.
+			assert(
+				type(data) ~= "table" or getmetatable(data) ~= nil,
+				"Dictionary is not a supported attribute type: " .. key
+			)
 			self.attributes[key] = data
 			self.AttributeChanged:Fire(key)
 		end

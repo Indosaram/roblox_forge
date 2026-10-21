@@ -333,7 +333,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			target.Shape = Enum.PartType.Ball
 		end
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
-		target:SetAttribute("ForgeNodeItem", nodeItems[node.id])
+		-- Attributes cannot hold tables; the HUD tracker resolves the item id to a localized name.
+		target:SetAttribute("ForgeNodeItem", nodeItems[node.id].id)
 	end
 	local musicVenues = {}
 	for _, anchor in layout.anchors do
