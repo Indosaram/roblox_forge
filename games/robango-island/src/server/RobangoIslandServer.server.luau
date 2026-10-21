@@ -88,10 +88,20 @@ local Players = game:GetService("Players")
 -- place assigns ProcessReceipt. No grant hooks yet: see MonetizationCatalog for the open effects.
 local MarketplacePort = require(Forge.core.infra.monetization.MarketplacePort)
 local PolicyPort = require(Forge.core.infra.monetization.PolicyPort)
+local entitlementFactory: any = nil
 require(Forge.genres["survival-coop"].module.MonetizationExtension).configure({
 	catalog = require(Shared.MonetizationCatalog) :: any,
 	marketplace = MarketplacePort.roblox(game:GetService("MarketplaceService"), Players, Enum.ProductPurchaseDecision),
 	policy = PolicyPort.roblox(game:GetService("PolicyService"), Players),
+	hooks = {
+		warehouseSlots = function(actor)
+			task.defer(function()
+				if entitlementFactory then
+					entitlementFactory.refreshWarehouse(actor)
+				end
+			end)
+		end,
+	},
 })
 -- Market: the pack supplies tradeable goods and Players eligibility facts; the genre extension
 -- owns the durable escrow and the Coins settlement over the live session (see MarketPorts).
@@ -125,7 +135,7 @@ end
 Players.PlayerRemoving:Connect(function(player)
 	joinedAt[tostring(player.UserId)] = nil
 end)
-require(Forge.genres["survival-coop"].module.MarketExtension).configure(require(Shared.MarketPorts).config({
+local marketConfig = require(Shared.MarketPorts).config({
 	accountAgeDays = function(actor)
 		local userId = tonumber(actor)
 		local player = if userId then Players:GetPlayerByUserId(userId) else nil
@@ -140,7 +150,8 @@ require(Forge.genres["survival-coop"].module.MarketExtension).configure(require(
 		local data = if tutorialSource then tutorialSource.snapshot(actor) else nil
 		return type(data) == "table" and type(data.tutorial) == "table" and data.tutorial.complete == true
 	end,
-}))
+})
+require(Forge.genres["survival-coop"].module.MarketExtension).configure(marketConfig)
 provision.homeAccessCode = function(actor: string)
 	local reservation = homeReservations.resolve(actor)
 	return if reservation then reservation.accessCode else nil
@@ -170,6 +181,7 @@ end
 local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wildlifePolicy, function()
 	return Clock.millis(clock.now())
 end, worldRole, RunService:IsStudio() and workspace:GetAttribute("ForgeStudioRole") == nil)
+world.marketAccount = marketConfig.account
 -- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
 local visitWorld: any = world
 visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
@@ -180,6 +192,43 @@ visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
 		return DateTime.now().UnixTimestampMillis / 1000
 	end,
 })
+world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibraryStore).new({
+	dataStoreService = game:GetService("DataStoreService"),
+	storeName = source.persistencePrefix .. "-music-v1",
+	rules = content.music,
+	maxStoreBytes = 3900000,
+	encode = function(value)
+		return HttpService:JSONEncode(value)
+	end,
+})
+world.marketStore = require(Forge.core.infra.data.CrossServerMarketStore).new(
+	game:GetService("DataStoreService"):GetDataStore(source.persistencePrefix .. "-trade-v1"),
+	game:GetService("MemoryStoreService"),
+	Enum.SortDirection.Ascending
+)
+world.musicDecode = function(text)
+	return HttpService:JSONDecode(text)
+end
+local clanDirectory = require(Forge.core.infra.data.ClanStore).new({
+	dataStore = game:GetService("DataStoreService"):GetDataStore(source.persistencePrefix .. "-clans-v1"),
+	memoryMap = game:GetService("MemoryStoreService"):GetSortedMap("robango-clans-v1"),
+	messaging = game:GetService("MessagingService"),
+	topic = "robango-clans-v1",
+	cacheSeconds = 60,
+	rules = content.clanPolicy,
+	maxBytes = 3900000,
+	encode = function(value)
+		return HttpService:JSONEncode(value)
+	end,
+	fence = {
+		sessionId = "clans:" .. HttpService:GenerateGUID(false),
+		leaseSeconds = 120,
+		now = function()
+			return math.floor(clock.now())
+		end,
+	},
+})
+world.clanDirectory = clanDirectory
 local factory, err = require(script.Parent.SurvivalFactory)(content, source, visitWorld, backend, clock, {
 	sessionId = game.JobId .. HttpService:GenerateGUID(false),
 	leaseSeconds = 120,
@@ -198,6 +247,7 @@ local factory, err = require(script.Parent.SurvivalFactory)(content, source, vis
 	},
 }, provision, wildlifePolicy)
 assert(factory, err)
+entitlementFactory = factory
 for _, extension in (factory.services.survivalExtensions or {}) :: { any } do
 	if extension.id == "contracts" then
 		tutorialSource = extension
@@ -217,6 +267,32 @@ local session = Server.start({
 	hooks = require(script.Parent.GenreHooks),
 	storeName = "robango-island-genre-v1",
 })
+-- Recover durable listing barriers even when no seller is online. The extension
+-- wrapper serializes this worker with market commands and Session fences value.
+local tradeRecovery: any = nil
+for _, extension in (factory.services.survivalExtensions or {}) :: { any } do
+	if extension.id == "market" then
+		tradeRecovery = extension
+	end
+end
+local tradeRunning, tradeElapsed = false, 30
+local tradeWorker = RunService.Heartbeat:Connect(function(delta)
+	tradeElapsed += delta
+	if not tradeRecovery or tradeRunning or tradeElapsed < 30 then
+		return
+	end
+	tradeRunning, tradeElapsed = true, 0
+	task.spawn(function()
+		local ok, failure = pcall(tradeRecovery.recover, "")
+		tradeRunning = false
+		if not ok then
+			warn("TRADE_RECOVERY:" .. tostring(failure))
+		end
+	end)
+end)
+script.Destroying:Connect(function()
+	tradeWorker:Disconnect()
+end)
 local routing = IslandBootstrap.start({
 	roles = roles,
 	studioRole = "onboarding",

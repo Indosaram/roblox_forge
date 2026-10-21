@@ -17,6 +17,21 @@ function M.new(env: any): any
 	}, { sessionId = env.owner, leaseSeconds = env.leaseSeconds, now = env.utc })
 	local profile: any = nil
 	local api = {}
+	local function lease(): boolean
+		if not env.lease then
+			return true
+		end
+		local now = env.utc()
+		local ok, value = pcall(function()
+			return env.lease:UpdateAsync(env.key, function(old: any): any
+				if old and old.owner ~= env.owner and old.expiresAt > now then
+					return old
+				end
+				return { owner = env.owner, expiresAt = now + env.leaseSeconds }
+			end, env.leaseSeconds)
+		end)
+		return ok and value ~= nil and value.owner == env.owner
+	end
 	local function publish()
 		local state = Data.clone(profile.data.match)
 		env.publish(state)
@@ -33,6 +48,9 @@ function M.new(env: any): any
 		end
 	end
 	function api.acquire(): any
+		if not lease() then
+			return { ok = false, reason = "ARENA_LEASE_BUSY" }
+		end
 		local loaded, reason = store:acquire(env.key, function(document: any): any
 			if not document.match then
 				document.match = Match.new(env.matchId, env.policy)
@@ -50,6 +68,9 @@ function M.new(env: any): any
 	local function change(transform: any): any
 		if not profile then
 			return { ok = false, reason = "NOT_OWNER" }
+		end
+		if not lease() then
+			return { ok = false, reason = "ARENA_LEASE_LOST" }
 		end
 		local result: any = nil
 		local loaded, reason = store:update(profile, function(document: any): any
@@ -118,6 +139,13 @@ function M.new(env: any): any
 		end)
 	end
 	api.snapshot = snapshot
+	function api.claim(actor: string): any
+		local state = snapshot()
+		if not state.actors[actor] then
+			return { ok = true }
+		end
+		return env.ledger.claim(actor, state, env.utc())
+	end
 	function api.disconnect(actor: string): any
 		return api.command(actor, "brawl-leave", {})
 	end

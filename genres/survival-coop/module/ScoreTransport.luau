@@ -87,6 +87,10 @@ function M.new(config: any): any
 	function api.disconnect(actor: string)
 		upload.clear(actor)
 	end
+	api.releaseActor = function(actor: string): any
+		api.disconnect(actor)
+		return { ok = true }
+	end
 	return api
 end
 function M.send(ctx: any, text: string, scoreId: string?, requestId: string): any

@@ -74,7 +74,11 @@ function M.new(config: any): any
 		return { room = rooms.snapshot() }
 	end
 	function extension.recover(_actor: string, now: number)
-		rooms.advance(now)
+		if config.enforceRange then
+			config.enforceRange(rooms.snapshot(), rooms.leave)
+		end
+		rooms.advance(if config.serverNow then config.serverNow() else now)
+		return { status = "confirmed", pending = 0 }
 	end
 	return extension
 end
@@ -84,7 +88,7 @@ function M.factory(ctx: any): any
 		return nil
 	end
 	local config = table.clone(configured)
-	config.now = ctx.now
+	config.now = config.serverNow or ctx.now
 	return M.new(config)
 end
 

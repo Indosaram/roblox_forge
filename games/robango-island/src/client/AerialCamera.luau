@@ -1,9 +1,9 @@
 --!strict
 -- Roblox-shaped camera and controls are injected so no foreground APIs are needed.
-local Aerial = require("../../../../genres/survival-coop/module/AerialView")
 local M = {}
 
 function M.new(ctx: any): any
+	local Aerial = ctx.aerial
 	local active: any = nil
 	local camera: any = nil
 	local saved: any = nil

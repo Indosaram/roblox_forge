@@ -3,6 +3,8 @@ local Extension = require("../../../genres/survival-coop/module/BrawlExtension")
 local Match = require("../../../core/domain/brawl/Match")
 local Policy = require("../../../core/domain/brawl/Policy.fixture")
 local Data = require("../../../core/domain/genre/SerializedData")
+local Controller = require("../../../genres/survival-coop/module/BrawlController")
+local Memory = require("../../../core/infra/data/MemoryBackend")
 local World = require("../../../games/robango-island/src/server/BrawlWorld")
 local Content = require("../../../games/robango-island/src/shared/SurvivalContent")
 return {
@@ -112,16 +114,38 @@ return {
 	["factory is opt in and admission gates commands"] = function()
 		assert(Extension.factory({ content = {}, world = {} }) == nil, "other packs remain disabled")
 		local calls = 0
+		local backend = Memory.new()
+		local controller = Controller.new({
+			store = {
+				UpdateAsync = function(_, key, transform)
+					local ok, value = backend.update(key, transform)
+					assert(ok, value)
+					return value
+				end,
+			},
+			owner = "admission-spec",
+			leaseSeconds = 120,
+			key = "arena",
+			matchId = "admission",
+			policy = Policy,
+			now = function()
+				return 0
+			end,
+			utc = function()
+				return 0
+			end,
+			facts = function()
+				calls += 1
+				return { level = Policy.minimumLevel, maxHealth = 100, equipment = { durability = 10 } }
+			end,
+			publish = function() end,
+		})
+		assert(controller.acquire().ok, "production controller owns durable arena")
 		local factory = Extension.factory({
 			content = { brawlPolicy = Policy },
 			world = {
 				brawl = {
-					match = {
-						transaction = function()
-							calls += 1
-							return { ok = true }
-						end,
-					},
+					controller = controller,
 				},
 			},
 		})
@@ -136,5 +160,7 @@ return {
 		assert(factory.command("a", "survival-coop:brawl-queue", {}, {}, "client", function()
 			return { ok = true }
 		end).ok and calls == 1, "admitted command uses runtime")
+		assert(controller.snapshot().actors.a, "admitted actor persisted in real match")
+		assert(controller.release().ok, "release durable arena")
 	end,
 }

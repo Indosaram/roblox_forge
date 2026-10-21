@@ -10,6 +10,14 @@
     "../../core/domain/music/TestCatalog.luau",
     "../../core/domain/procgen/Textures.luau",
     "../../core/domain/procgen/Pixels.luau",
+    "../../core/domain/economy/OfflineIncome.luau",
+    "../../core/domain/economy/Production.luau",
+    "../../core/domain/economy/Vault.luau",
+    "../../core/domain/economy/WeightedRoll.luau",
+    "../../core/domain/economy/CurrencyLedger.luau",
+    "../../core/domain/progression/DailyQuest.luau",
+    "../../core/domain/progression/Merge.luau",
+    "../../core/domain/state/Siege.luau",
     "../../core/ui-kit/genre/WorldKit.luau",
     "../../core/ui-kit/genre/HudKit.luau",
     "../../core/ui-kit/genre/HudText.luau",
@@ -141,6 +149,9 @@
       "LateEquipmentPorts": {
         "$path": "src/server/LateEquipmentPorts.luau"
       },
+      "BrawlRuntime": {
+        "$path": "src/server/BrawlRuntime.luau"
+      },
       "GenreHooks": {
         "$path": "src/server/GenreHooks.luau"
       },
@@ -165,6 +176,9 @@
     },
     "StarterPlayer": {
       "StarterPlayerScripts": {
+        "AerialCamera": {
+          "$path": "src/client/AerialCamera.luau"
+        },
         "CreaturePose": {
           "$path": "src/client/CreaturePose.luau"
         },

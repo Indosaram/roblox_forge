@@ -1,6 +1,7 @@
 version: 1
 defaults: { source: original, author: "agent:claude-5.5/robango-g1" }
 entries:
+  "sections/buildingPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-R04-C08", created: 2026-10-21 }
   "sections/music": { source: original, author: "agent:hephaestus/RECONSTRUCTED-C05-R05", created: 2026-10-21 }
   "sections/clanPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-R04-C08", created: 2026-10-21 }
   "sections/outpostPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-R04-C08", created: 2026-10-21 }

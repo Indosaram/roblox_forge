@@ -267,6 +267,17 @@ local schemas: { [string]: { [string]: string } } = {
 		weaponRangeStuds = "positive",
 		weaponCooldownMillis = "positive",
 	},
+	buildingKits = {
+		floor = "@items",
+		pillar = "@items",
+		stairs = "@items",
+	},
+	buildingPolicy = {
+		provenance = "provenance",
+		cellStuds = "positive",
+		stairSteps = "positive",
+		kits = "buildingKits",
+	},
 	homePolicy = {
 		provenance = "provenance",
 		tiers = "[]homeTier",
@@ -413,8 +424,16 @@ M.SECTIONS = {
 	"guides",
 	"chapters",
 }
-M.POLICIES =
-	{ "progressionPolicy", "homePolicy", "missionPolicy", "clanPolicy", "outpostPolicy", "brawlPolicy", "music" }
+M.POLICIES = {
+	"progressionPolicy",
+	"homePolicy",
+	"buildingPolicy",
+	"missionPolicy",
+	"clanPolicy",
+	"outpostPolicy",
+	"brawlPolicy",
+	"music",
+}
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },
 	operationKind = {

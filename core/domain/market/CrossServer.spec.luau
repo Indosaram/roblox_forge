@@ -72,6 +72,23 @@ local function conserved(f: any)
 	assert(coins + f.records["listing:seller:one"].fee == 200, "currency plus fee conservation")
 end
 return {
+	["buyer delivery survives a seller held by another server and settles after release"] = function()
+		local f = fixture()
+		assert(f.serverA.list("seller", "one", "twig", 4, 21, 0).ok, "listed")
+		local update = f.ports.update
+		f.ports.update = function(key, transform)
+			if key == "player:seller" then
+				return false, nil
+			end
+			return update(key, transform)
+		end
+		local result = f.serverB.buy("buyer", "buy", "seller:one", 21, 1)
+		assert(not result.ok and f.records["listing:seller:one"].state == "DELIVERED", "seller settlement pending")
+		assert(f.records["player:buyer"].market.claims["buyer:buy:0"].item.quantity == 4, "buyer already delivered")
+		f.ports.update = update
+		assert(Market.new(f.ports).recover("seller:one", 2).ok, "offline worker finishes")
+		conserved(f)
+	end,
 	["return claims survive before and after each cancellation CAS"] = function()
 		for after = 0, 1 do
 			for barrier = 1, 5 do

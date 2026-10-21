@@ -285,11 +285,32 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
 	end
+	local musicVenues = {}
 	for _, anchor in layout.anchors do
 		local station = string.match(anchor.id, "^station%.(.+)%.t%d+$")
 		if station then
 			local target = part(anchor.id, anchor.position, { x = 4, y = 2, z = 3 })
 			world.registerStation(target, anchor.id, station)
+			if station == "campfire" or station == "fireplace" then
+				table.insert(musicVenues, { enabled = true, part = target })
+			end
+		end
+	end
+	world.musicVenues = function()
+		return musicVenues
+	end
+	if layoutId == "rw.harbor" then
+		local Harbor = require(Forge.genres["survival-coop"].module.HarborFacilities)
+		world.harborFacilities = Harbor.describe(content)
+		for _, facility in world.harborFacilities do
+			if facility.kind == "npc" or facility.kind == "market" or facility.kind == "interaction" then
+				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
+				target:SetAttribute("ForgeHarborFacility", facility.anchor)
+				local prompt = Instance.new("ProximityPrompt")
+				prompt.ActionText = if facility.kind == "market" then "Market" else "Interact"
+				prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent = facility.anchor, 8, target
+				prompt:SetAttribute("ForgeMarket", facility.kind == "market" or facility.anchor == "npc.sella")
+			end
 		end
 	end
 	local bound: any = nil
@@ -430,6 +451,28 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	local homeParts: any = {}
+	local buildingParts: { Part } = {}
+	local buildingHash: string? = nil
+	world.publishBuilding = function(_actor, boxes)
+		local hash = Journal.fnv1a64(require(Forge.core.domain.command.Ledger).canonical(boxes))
+		if hash == buildingHash then
+			return
+		end
+		buildingHash = hash
+		for _, value in buildingParts do
+			value:Destroy()
+		end
+		table.clear(buildingParts)
+		for index, box in boxes do
+			local value = part("Building:" .. index, { x = box.x, y = box.y, z = box.z }, {
+				x = box.width,
+				y = box.height,
+				z = box.depth,
+			})
+			value.Material, value.CanCollide = Enum.Material.WoodPlanks, box.canCollide
+			table.insert(buildingParts, value)
+		end
+	end
 	local stationKinds = {}
 	for _, recipe in content.recipes do
 		if recipe.station then

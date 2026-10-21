@@ -111,6 +111,6 @@ return {
 		assert(#sent == 2 and sent[2] == "survival-coop:brawl-reward", "one acknowledged claim")
 		panel.resize(1920, 1080)
 		panel.destroy()
-		assert(disconnected == 3 and objects[1].destroyed, "cleanup")
+		assert(disconnected == 6 and objects[1].destroyed, "cleanup")
 	end,
 }

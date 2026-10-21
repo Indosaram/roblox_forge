@@ -1,4 +1,180 @@
 assets:
+  - key: audio-instrument-bass
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/bass.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:336bf740612d9200f1d29326863ca108a36efc24a38f2edb4fb1cea47cde9a6c
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.bass"
+        inputVersion: sha256:336bf740612d9200f1d29326863ca108a36efc24a38f2edb4fb1cea47cde9a6c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-clarinet
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/clarinet.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:3b24cb226272bcda70320881c70454814fb912b8afec9f9fd3c4692115366fa4
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.clarinet"
+        inputVersion: sha256:3b24cb226272bcda70320881c70454814fb912b8afec9f9fd3c4692115366fa4
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-drums
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/drums.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:7f18ea99e9cc92794e8765a05723cc9815bd2d11623be483158bb11fe0174d73
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.drums"
+        inputVersion: sha256:7f18ea99e9cc92794e8765a05723cc9815bd2d11623be483158bb11fe0174d73
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-flute
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/flute.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:3940a4eb696fa4dce46b2255723b9199c6b75a67d48810f814ba172f2a65f2fe
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.flute"
+        inputVersion: sha256:3940a4eb696fa4dce46b2255723b9199c6b75a67d48810f814ba172f2a65f2fe
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-guitar
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/guitar.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:c366f81998809cf88e1777522b303ad9d57b7197d11a0b2c90949e647a2e6463
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.guitar"
+        inputVersion: sha256:c366f81998809cf88e1777522b303ad9d57b7197d11a0b2c90949e647a2e6463
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-piano
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/piano.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:9c35cbed0bbd7ddc889a40e42b472d8cbe3daf036e152ef9b4251fa73c96c263
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.piano"
+        inputVersion: sha256:9c35cbed0bbd7ddc889a40e42b472d8cbe3daf036e152ef9b4251fa73c96c263
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-trumpet
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/trumpet.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:3ad855a6b929fda0fddd5f5a1c06d8166b33bc77429c71533de2b65da20e5841
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.trumpet"
+        inputVersion: sha256:3ad855a6b929fda0fddd5f5a1c06d8166b33bc77429c71533de2b65da20e5841
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
+  - key: audio-instrument-violin
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party deterministic instrument synthesis"
+    path: assets/audio/instruments/violin.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:d75dff6015cfdae75420753ca597290baf077b2d5f02547983d0d10373228fde
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "content.yml#music.instruments.violin"
+        inputVersion: sha256:d75dff6015cfdae75420753ca597290baf077b2d5f02547983d0d10373228fde
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator core/domain/music/Timbre.luau; no external model or recording"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-21
   - key: survival-coop-starter-prop
     kind: model
     tool: forge-procgen

@@ -8,6 +8,38 @@ id = 0
 [codegen]
 style = "flat"
 
+[inputs.audio-instrument-bass]
+path = "assets/audio/instruments/bass.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-clarinet]
+path = "assets/audio/instruments/clarinet.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-drums]
+path = "assets/audio/instruments/drums.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-flute]
+path = "assets/audio/instruments/flute.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-guitar]
+path = "assets/audio/instruments/guitar.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-piano]
+path = "assets/audio/instruments/piano.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-trumpet]
+path = "assets/audio/instruments/trumpet.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.audio-instrument-violin]
+path = "assets/audio/instruments/violin.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.item-icon-animal-pen]
 path = "assets/icons/item.icon.animal-pen.png"
 output_path = "games/robango-island/src/shared"

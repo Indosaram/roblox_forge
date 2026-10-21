@@ -67,6 +67,10 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 		["survival-coop:craft-complete"] = "craft-complete",
 		["survival-coop:home-place"] = "build-place",
 		["survival-coop:tame-mount"] = "mount",
+		["survival-coop:attack"] = "attack",
+		["survival-coop:dodge"] = "dodge",
+		["survival-coop:guard"] = "guard",
+		["survival-coop:settlement-place"] = "build-place",
 	}
 	local function attach(child: Instance)
 		if attached[child] or not child:IsA("BindableEvent") then
@@ -90,6 +94,23 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	for _, child in player:GetChildren() do
 		attach(child)
 	end
+	local state = game:GetService("ReplicatedStorage"):WaitForChild("ForgeState")
+	table.insert(
+		connections,
+		state.OnClientEvent:Connect(function(packet)
+			local settings = if type(packet) == "table"
+					and packet.snapshots
+					and packet.snapshots.survivalExtensions
+				then packet.snapshots.survivalExtensions["audio-settings"]
+				else nil
+			if settings then
+				director.setMuted(settings.muted)
+				for group, gain in config.groups do
+					director.setVolume(group, gain * settings.volume)
+				end
+			end
+		end)
+	)
 	local disposed = false
 	return {
 		director = director,

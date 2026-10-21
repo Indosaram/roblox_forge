@@ -99,6 +99,23 @@ local function run(instance: Shared.Instance, action: string, args: { any }, ctx
 end
 
 return {
+	["personal extension state survives hydrate and subsequent crafting saves"] = function()
+		local instance = setup()
+		local saved: any = instance.save("alice")
+		local keys =
+			{ "journal", "journalOutcomes", "journalGrants", "missionItems", "multistorey", "buildOutcomes", "brawl" }
+		for _, key in keys do
+			saved[key] = { retained = key }
+		end
+		assert(#CraftingAdapter.validateSave(saved) == 0, "extension fields accepted at save ingress")
+		assert(assert(instance.hydrate)("alice", saved).ok, "hydrate personal fence commit")
+		local nextSave: any = instance.save("alice")
+		for _, key in keys do
+			assert(nextSave[key].retained == key, "extension survives ordinary save: " .. key)
+			nextSave[key].retained = "changed"
+			assert(saved[key].retained == key, "save does not alias hydrated document")
+		end
+	end,
 	["v2 join migrates a persisted twenty slot bag without changing its items"] = function()
 		local legacy = setup()
 		local saved: any = legacy.save("alice")

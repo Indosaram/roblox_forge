@@ -52,6 +52,7 @@ local function fixture(): any
 	function h.make(owner: string): any
 		return Controller.new({
 			store = h.store,
+			lease = h.lease,
 			owner = owner,
 			leaseSeconds = 10,
 			key = "arena",
@@ -118,6 +119,23 @@ local function fixture(): any
 end
 
 return {
+	["MemoryStore lease refuses foreign owner before durable acquisition"] = function()
+		local h = fixture()
+		local lease: any = nil
+		h.lease = {
+			UpdateAsync = function(_, _, transform)
+				lease = transform(lease)
+				return lease
+			end,
+		}
+		local first = h.make("one")
+		assert(first.acquire().ok, "first owner")
+		local second = h.make("two")
+		assert(second.acquire().reason == "ARENA_LEASE_BUSY", "foreign lease blocked")
+		h.utc += 11
+		assert(second.acquire().ok, "expired owner takeover")
+		assert(first.command("a", "brawl-queue", {}).reason == "ARENA_LEASE_LOST", "old owner stopped")
+	end,
 	["CAS conflict takeover discards first successful transform"] = function()
 		local h = fixture()
 		local c = h.make("one")

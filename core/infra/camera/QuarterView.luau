@@ -42,6 +42,7 @@ function M.start(config: Config?)
 	local saved: { cameraType: Enum.CameraType, subject: (BasePart | Humanoid)?, cf: CFrame, focus: CFrame, fov: number }? =
 		nil
 	local stopped = false
+	local suspended = false
 	local pinchDistance: number? = nil
 	local rotateOrigin: number? = nil
 	local function clear()
@@ -72,7 +73,7 @@ function M.start(config: Config?)
 		return false
 	end
 	local function render()
-		if stopped then
+		if stopped or suspended then
 			return
 		end
 		local current = Workspace.CurrentCamera
@@ -229,6 +230,13 @@ function M.start(config: Config?)
 		end)
 	)
 	local api = {}
+	function api.suspend(value: boolean)
+		assert(not stopped, "camera stopped")
+		suspended = value
+		if value then
+			clear()
+		end
+	end
 	function api.setView(newYaw: number, newPitch: number, newDistance: number)
 		assert(not stopped, "camera stopped")
 		assert(

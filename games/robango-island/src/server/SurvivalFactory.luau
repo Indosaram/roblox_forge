@@ -77,18 +77,247 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}
 	end
 	local extensionFactories = table.clone(Extensions.factories)
+	if world.clanDirectory then
+		local directory = world.clanDirectory
+		local operations = {}
+		for _, operation in content.operations do
+			operations[operation.id] = operation
+		end
+		world.clan = {
+			store = function()
+				return directory.store
+			end,
+			now = seconds,
+			owner = function(id)
+				local state = directory.read("clan:" .. id)
+				return if state then state.owner else ""
+			end,
+			create = directory.create,
+			identity = function(actor, requested)
+				if requested then
+					local state = directory.read("clan:" .. requested)
+					return if state then requested else nil
+				end
+				return directory.membership(actor)
+			end,
+			visible = function(state, actor)
+				return state.members[actor] ~= nil and not state.dissolved
+			end,
+			facts = function(_actor, _id, _operation, args)
+				local territory = false
+				for _, layout in content.layouts do
+					territory = territory or layout.id == args.territory
+				end
+				local state = directory.read("clan:" .. _id)
+				local hall = false
+				local anchors: { any } = if world.layout then world.layout.anchors else {}
+				for _, anchor in anchors do
+					hall = hall
+						or (anchor.id == "station.clan-hall.t1" and state and state.territory == world.layout.id)
+				end
+				return {
+					rules = content.clanPolicy,
+					operations = operations,
+					hall = hall,
+					territoryAllowed = territory,
+					hasProperty = state ~= nil and state.territory ~= "",
+					transferAuthorized = false,
+				}
+			end,
+		}
+	end
 	local expeditionStore = ActorDocuments.new(backend, options, "robango-exp-v1")
 	local activeSession: any = nil
 	local monetization: any = nil
 	local gatherReceipt: any = nil
 	local wildlifeSnapshot: any = nil
 	local commandReceipts: any = {}
+	if world.marketStore then
+		local LocalMarket = require(Forge.genres["survival-coop"].module.MarketExtension)
+		for index, create in extensionFactories do
+			if create == LocalMarket.factory then
+				extensionFactories[index] = function(ctx)
+					local personal = require(Forge.core.infra.data.CrossServerMarketPersonal).new({
+						personalTransfer = function(actor)
+							return if activeSession then activeSession.personalTransfer(actor) else nil
+						end,
+						personalTransaction = function(actor, transform)
+							if not activeSession then
+								return false, "PERSONAL_UNAVAILABLE"
+							end
+							return activeSession.personalTransaction(actor, transform)
+						end,
+					}, ctx.content.items, require(Forge.games["robango-island"].src.shared.MarketPorts).CATALOG_IDS)
+					local tradePorts = table.clone(world.marketStore)
+					local durableUpdate = tradePorts.update
+					tradePorts.update = function(key, transform)
+						if string.sub(key, 1, 7) == "player:" then
+							return personal.update(string.sub(key, 8), transform)
+						end
+						return durableUpdate(key, transform)
+					end
+					return require(Forge.genres["survival-coop"].module.CrossServerMarketExtension).new(
+						tradePorts,
+						ctx.now,
+						personal,
+						require(Forge.games["robango-island"].src.shared.MarketPorts).CATALOG_IDS,
+						world.marketAccount
+					)
+				end
+			end
+		end
+	end
+	if world.clan then
+		local WalletTransfer = require(Forge.core.infra.data.ClanStoreWallet)
+		local Clan = require(Forge.core.domain.settlement.Clan)
+		world.clan.wallet = function(actor, operation, body, context, clanToken, retained)
+			local personal = if activeSession then activeSession.personalTransfer(actor) else nil
+			if not personal then
+				return { result = { ok = false, reason = "PERSONAL_UNAVAILABLE" } }
+			end
+			local actorToken = personal.profile()
+			local function slice(data: any, key: string): any
+				return if string.sub(key, 1, 5) == "clan:" then data else data.envelope.genres["survival-coop"].data
+			end
+			local composite = {
+				update = function(_, token, transform)
+					if string.sub(token.key, 1, 5) == "clan:" then
+						local updated, reason = world.clanDirectory.store:update(token, transform)
+						if updated then
+							clanToken = updated
+						end
+						return updated, reason
+					end
+					local saved, reason = activeSession.personalTransaction(actor, transform)
+					if saved then
+						actorToken = personal.profile()
+					end
+					return if saved then actorToken else nil, if saved then nil else reason
+				end,
+			}
+			local sourceToken = if operation == "deposit" then actorToken else clanToken
+			local destinationToken = if operation == "deposit" then clanToken else actorToken
+			local id = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId
+			local request = retained
+				or {
+					id = id,
+					actor = actor,
+					operation = operation,
+					amount = body.amount,
+					source = sourceToken.key,
+					destination = destinationToken.key,
+					epoch = tostring(context.sessionEpoch),
+					expiresAt = 9007199254740991,
+				}
+			local intentResult: any = nil
+			local intent, intentError = world.clanDirectory.store:update(clanToken, function(document)
+				document.walletOperations = document.walletOperations or {}
+				local known = document.walletOperations[request.id]
+				local canonical = require(Forge.core.domain.command.Ledger).canonical
+				if known and canonical(known.request) ~= canonical(request) then
+					intentResult = { ok = false, reason = "TRANSFER_CONFLICT" }
+				elseif known then
+					intentResult = known.result
+				elseif not Clan.allowed(document, actor, operation) then
+					intentResult = { ok = false, reason = "FORBIDDEN" }
+				else
+					document.walletOperations[request.id] = { request = request }
+				end
+				return document
+			end)
+			if not intent then
+				return { token = clanToken, result = { ok = false, reason = intentError } }
+			end
+			clanToken = intent
+			if intentResult then
+				return { token = clanToken, result = intentResult }
+			end
+			sourceToken = if operation == "deposit" then actorToken else clanToken
+			destinationToken = if operation == "deposit" then clanToken else actorToken
+			local advanced = WalletTransfer.advance({
+				store = composite,
+				now = seconds,
+				maxReceipts = 4096,
+				encode = require(Forge.core.domain.command.Ledger).canonical,
+				balance = function(data, key)
+					local owner = slice(data, key)
+					return if string.sub(key, 1, 5) == "clan:" then owner.funds else owner.balance
+				end,
+				setBalance = function(data, key, amount)
+					local owner = slice(data, key)
+					if string.sub(key, 1, 5) == "clan:" then
+						owner.funds = amount
+					else
+						owner.balance = amount
+					end
+				end,
+				authorize = function()
+					return Clan.allowed(clanToken.data, actor, operation)
+				end,
+			}, sourceToken, destinationToken, request)
+			local result = {
+				ok = advanced.status == "confirmed",
+				reason = advanced.reason,
+				data = { status = advanced.status },
+			}
+			if advanced.status == "confirmed" or advanced.status == "rejected" then
+				local finished, reason = world.clanDirectory.store:update(clanToken, function(document)
+					document.walletOperations[request.id].result = result
+					return document
+				end)
+				if not finished then
+					return { token = clanToken, result = { ok = false, reason = reason } }
+				end
+				clanToken = finished
+			end
+			return {
+				token = clanToken,
+				result = result,
+			}
+		end
+	end
 	-- BEGIN authoritative home owner. Personal profile and server spatial ports supply facts.
 	local HomeContent = require(Forge.core.domain.home.HomeContent)
 	local homeOwner: any = nil
 	local function personalData(actor)
 		local port = if activeSession then activeSession.personalTransfer(actor) else nil
 		return if port then port.profile().data.envelope.genres["survival-coop"].data else nil
+	end
+	-- The repository is composed only by the Roblox entrypoint. Native fixtures
+	-- retain their injected service boundary rather than acquiring cloud services.
+	if world.musicRepository then
+		local MusicRange = require(Forge.genres["survival-coop"].module.EnsembleRange)
+		local range = MusicRange.new({
+			players = game:GetService("Players"),
+			workspace = workspace,
+			venues = world.musicVenues,
+			hasInstrument = function(actor)
+				local data = personalData(actor)
+				for _, item in if data then data.inventory.bag.items else {} do
+					if string.match(item.catalogId, "^instrument%-") then
+						return true
+					end
+				end
+				return false
+			end,
+		})
+		require(Forge.genres["survival-coop"].module.EnsembleExtension).configure({
+			rules = content.music,
+			repository = world.musicRepository,
+			decode = world.musicDecode,
+			inRange = range.inRange,
+			serverNow = function()
+				return workspace:GetServerTimeNow()
+			end,
+			enforceRange = function(room, leave)
+				range.enforce(room, leave, content.music.radiusStuds)
+			end,
+		})
+		require(Forge.genres["survival-coop"].module.ScoreTransport).configure({
+			repository = world.musicRepository,
+			decode = world.musicDecode,
+			uploadTtl = 120,
+		})
 	end
 	local function developmentFacts(document: any): any
 		local points = if document and document.development then document.development.points else 0
@@ -317,6 +546,166 @@ return function(content: any, source, world, backend, clock, options, provision,
 			return homeOwner
 		end)
 	end
+	local JournalPorts = require(Forge.genres["survival-coop"].module.JournalPorts)
+	local journalPort = JournalPorts.new(
+		JournalPorts.personal({
+			personalTransaction = function(actor, transform)
+				return activeSession.personalTransaction(actor, transform)
+			end,
+			personalTransfer = function(actor)
+				return if activeSession then activeSession.personalTransfer(actor) else nil
+			end,
+		}),
+		content
+	)
+	local journalFeed = require(Forge.genres["survival-coop"].module.JournalObjectiveFeed).new(journalPort, content, {})
+	if content.buildingPolicy and world.layout and world.layout.id == "rw.home" then
+		local ItemCatalog = require(Forge.core.domain.inventory.ItemCatalog)
+		local catalog = ItemCatalog.new(content.items)
+		local buildHome: any = nil
+		local building = require(Forge.genres["survival-coop"].module.MultistoreyCommands).new(
+			JournalPorts.personal({
+				personalTransaction = function(actor, transform)
+					return activeSession.personalTransaction(actor, transform)
+				end,
+				personalTransfer = function(actor)
+					return if activeSession then activeSession.personalTransfer(actor) else nil
+				end,
+			}),
+			content,
+			function(actor, document, operation, body)
+				local home = buildHome
+				local part = if operation == "place"
+					then body.part
+					else if document.multistorey then document.multistorey.parts[body.id] else nil
+				local position = if part
+					then {
+						x = part.x * content.buildingPolicy.cellStuds,
+						y = content.homePolicy.dock.y + content.homePolicy.floors[part.floor],
+						z = part.z * content.buildingPolicy.cellStuds,
+					}
+					else nil
+				local half = if home then world.home.rules.landSizes[home.landRank] / 2 else 0
+				return {
+					allowed = home ~= nil and home.owner == actor,
+					inBounds = position ~= nil
+						and math.abs(position.x) + 2 <= half
+						and math.abs(position.z) + 2 <= half,
+					reachable = position ~= nil and world.services.survivalDeath.reachable(actor, position),
+					occupied = false,
+				}
+			end,
+			function(document, consume, grant, receipt: string)
+				local bag = Inventory.fromSave(document.inventory.bag, catalog)
+				for _, cost in consume do
+					local remaining = cost.quantity
+					for id, item in bag.items do
+						if item.catalogId == cost.item and remaining > 0 then
+							local quantity = math.min(Inventory.available(bag, id), remaining)
+							if quantity > 0 then
+								local updated, reason = Inventory.consume(bag, id, quantity, bag.version)
+								if not updated then
+									return reason
+								end
+								bag, remaining = updated, remaining - quantity
+							end
+						end
+					end
+					if remaining > 0 then
+						return "MISSING_KIT"
+					end
+				end
+				for index, refund in grant do
+					local updated, reason = Inventory.add(bag, catalog, {
+						itemId = receipt .. ":" .. index,
+						catalogId = refund.item,
+						quantity = refund.quantity,
+						qualityMilli = 1000,
+						durabilityMilli = catalog[refund.item].maxDurabilityMilli or 0,
+						attributes = {},
+					}, bag.version)
+					if not updated then
+						return reason
+					end
+					bag = updated
+				end
+				document.inventory.bag = Inventory.save(bag)
+				return nil
+			end
+		)
+		table.insert(extensionFactories, function(): any
+			local extension = { id = "building" }
+			function extension.handles(action)
+				return action == "survival-coop:building-place" or action == "survival-coop:building-remove"
+			end
+			function extension.command(actor, action, args, context, _origin, admit)
+				local admission = admit()
+				if not admission.ok then
+					return admission
+				end
+				buildHome = if homeOwner then homeOwner.snapshot(actor) else nil
+				local result = building.command(
+					actor,
+					tostring(context.sessionEpoch) .. ":" .. context.requestId,
+					string.sub(action, #"survival-coop:building-" + 1),
+					args[1]
+				)
+				if result.ok and world.publishBuilding then
+					world.publishBuilding(actor, building.geometry(result.data))
+				end
+				return result
+			end
+			function extension.snapshot(actor)
+				local data = personalData(actor)
+				local state = if data then data.multistorey else nil
+				if state and world.publishBuilding then
+					world.publishBuilding(actor, building.geometry(state))
+				end
+				return state
+			end
+			return require(Forge.core.infra.genre.Session).registerLifecycle(extension)
+		end)
+	end
+	table.insert(extensionFactories, function(): any
+		return {
+			id = "audio-settings",
+			handles = function(action)
+				return action == "survival-coop:audio-settings"
+			end,
+			command = function(actor, _action, args, _context, _origin, admit)
+				local allowed = admit()
+				if not allowed.ok then
+					return allowed
+				end
+				local ok, reason = journalPort.update(actor, function(document)
+					document.audioSettings = { muted = args[1], volume = args[2] }
+					return document
+				end)
+				return { ok = ok, reason = reason }
+			end,
+			snapshot = function(actor)
+				local document = personalData(actor)
+				return if document then document.audioSettings or { muted = false, volume = 1 } else nil
+			end,
+		}
+	end)
+	table.insert(extensionFactories, function(ctx)
+		local journalContext = table.clone(ctx)
+		journalContext.journal = journalPort
+		return require(Forge.genres["survival-coop"].module.JournalExtension).factory(journalContext)
+	end)
+	local brawlController: any = nil
+	if world.brawlPlan then
+		brawlController = require(script.Parent.BrawlRuntime).new(content, world, options, {
+			personalTransaction = function(actor, transform)
+				return activeSession.personalTransaction(actor, transform)
+			end,
+			personalTransfer = function(actor)
+				return if activeSession then activeSession.personalTransfer(actor) else nil
+			end,
+		}, seconds, wildlifePolicy)
+		world.brawl = { controller = brawlController }
+	end
 	local factory, err = Bootstrap.new({
 		sourceKey = prefix .. ":" .. source.sourceKey,
 		initial = Gathering.new(source.worldRevision, content, source.nodes),
@@ -382,6 +771,12 @@ return function(content: any, source, world, backend, clock, options, provision,
 		return factory, err
 	end
 	local factoryPorts: any = factory
+	factoryPorts.brawlController = brawlController
+	local closeFactory = factory.close
+	factory.close = function(...)
+		journalFeed.close()
+		return closeFactory(...)
+	end
 	if factoryPorts.services.survivalWildlife then
 		wildlifeSnapshot = factoryPorts.services.survivalWildlife.snapshot
 	end
@@ -452,6 +847,27 @@ return function(content: any, source, world, backend, clock, options, provision,
 					"g:" .. tostring(epoch) .. ":" .. requestId .. ":" .. item,
 					{ action = "gather", target = item, quantity = quantity }
 				)
+				local binding = awaiting[actor] and awaiting[actor][tostring(epoch) .. ":" .. requestId]
+				if binding and binding.chapterId then
+					local credited = journalFeed.accept({
+						actor = actor,
+						chapterId = binding.chapterId,
+						receiptId = "g:" .. tostring(epoch) .. ":" .. requestId .. ":" .. item,
+						committed = true,
+						ok = true,
+						action = "gather",
+						target = item,
+						quantity = quantity,
+					})
+					if
+						not credited.ok
+						and credited.reason ~= "CHAPTER_MISMATCH"
+						and credited.reason ~= "WRONG_OBJECTIVE"
+						and credited.reason ~= "AWAITING_CLAIM"
+					then
+						return false
+					end
+				end
 			end
 			local credited = archipelago.gatherObjective(actor, epoch, requestId)
 			return credited.ok
@@ -472,6 +888,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end
 		local command = gatheringPort.command
 		gatheringPort.command = function(actor, args, context, expiresAt, admit)
+			local admittedData = personalData(actor)
+			local chapterId = if admittedData and admittedData.journal then admittedData.journal.active else nil
 			local function resourceAdmission()
 				local node: any = nil
 				for _, candidate in source.resourceNodes or {} do
@@ -511,7 +929,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 			if result.ok or (result.data and result.data.status == "pending") then
 				awaiting[actor] = awaiting[actor] or {}
 				awaiting[actor][tostring(context.sessionEpoch) .. ":" .. context.requestId] =
-					{ epoch = context.sessionEpoch, requestId = context.requestId }
+					{ epoch = context.sessionEpoch, requestId = context.requestId, chapterId = chapterId }
+				creditGather(actor, context.sessionEpoch, context.requestId)
 				local grant = factoryPorts.gatherReceipt(actor, context.sessionEpoch, context.requestId)
 				if grant then
 					for item, quantity in grant.items do
@@ -573,6 +992,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 			local command = session[method]
 			session[method] = function(actor, request)
 				local data = personalData(actor)
+				local chapterId = if data and data.journal then data.journal.active else nil
 				local action = string.gsub(request.action, "^survival%-coop:", "")
 				local recipe: string? = nil
 				if action == "craft-complete" and data and data.workshop then
@@ -621,6 +1041,18 @@ return function(content: any, source, world, backend, clock, options, provision,
 						tostring(request.sessionEpoch) .. ":" .. request.requestId,
 						event
 					)
+					if chapterId then
+						journalFeed.accept({
+							actor = actor,
+							chapterId = chapterId,
+							receiptId = tostring(request.sessionEpoch) .. ":" .. request.requestId,
+							committed = true,
+							ok = true,
+							action = event.action,
+							target = event.target,
+							quantity = event.quantity,
+						})
+					end
 				end
 				if recipe then
 					local operation = tostring(request.sessionEpoch) .. ":" .. request.requestId
@@ -753,6 +1185,12 @@ return function(content: any, source, world, backend, clock, options, provision,
 			-- Session snapshots, including when the backend yields on renew.
 			monetization = extensions[index]
 		end
+		if extension.id == "home" then
+			homeOwner = extensions[index]
+		end
+	end
+	factoryPorts.refreshWarehouse = function(actor)
+		return if homeOwner then homeOwner.snapshot(actor) else nil
 	end
 	if not provision.admit then
 		return factory, err

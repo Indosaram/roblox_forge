@@ -48,6 +48,7 @@ export type Session = {
 	commandServer: (string, any) -> (Contract.Result, { notificationError: string }?),
 	commandEpoch: (string, string?) -> number?,
 	personalTransfer: (string) -> PersonalTransfer?,
+	personalTransaction: (string, (any) -> any) -> (boolean, any),
 	committedReceipt: (string, number, string, string, { any }, string) -> Contract.Result?,
 	recoverTransfers: (string, number) -> Contract.Result,
 	advance: (number) -> (),
@@ -125,6 +126,7 @@ function M.new(
 	local departed: { [string]: boolean } = {}
 	local releasedActors: { [string]: { [string]: boolean } } = {}
 	local busy: { [string]: boolean } = {}
+	local personalCaller: { [string]: thread } = {}
 	local captureErrors: { [string]: string } = {}
 	local ledgers: { [string]: Ledger.Ledger } = {}
 	local pending: {
@@ -182,6 +184,40 @@ function M.new(
 		profiles[id] = { key = token.key, data = Executor.clone(token.data.envelope) }
 		ledgers[id] = Executor.clone(token.data.envelope.commands)
 		executor.hydrate(id, token.data.envelope)
+	end
+	function session.personalTransaction(id, transform)
+		if not personal or pending[id] or (busy[id] and personalCaller[id] ~= coroutine.running()) then
+			return false, "COMMAND_PENDING"
+		end
+		local owner = personal
+		local online = joined[id] and not departed[id]
+		local wasBusy = busy[id]
+		busy[id] = true
+		local ok, accepted, value = pcall(function(): (boolean, any)
+			local token = if online
+				then tokens[id]
+				else owner:load(id, function()
+					return nil
+				end)
+			if not token then
+				return false, "PERSONAL_UNAVAILABLE"
+			end
+			local updated, reason = owner:update(token, transform)
+			if online and updated then
+				hydrate(id, updated)
+			elseif not online then
+				local released, releaseReason = owner:release(updated or token)
+				if not released then
+					return false, releaseReason
+				end
+			end
+			return updated ~= nil, if updated then updated.data else reason
+		end)
+		busy[id] = wasBusy
+		if not ok then
+			return false, accepted
+		end
+		return accepted, value
 	end
 	function session.personalTransfer(id)
 		if not personal or not joined[id] or pending[id] or departed[id] then
@@ -250,6 +286,7 @@ function M.new(
 		end
 		busy[id] = true
 		local ok, results = pcall(function()
+			personalCaller[id] = coroutine.running()
 			local batch = {}
 			local ports: { any } = {}
 			if transfer then
@@ -271,6 +308,7 @@ function M.new(
 			end
 			return batch
 		end)
+		personalCaller[id] = nil
 		busy[id] = nil
 		if not ok then
 			error(results)
@@ -969,6 +1007,7 @@ function M.new(
 				return failure("COMMAND_PENDING")
 			end
 			busy[id] = true
+			personalCaller[id] = coroutine.running()
 			local ok, result = pcall(
 				extension.command,
 				id,
@@ -985,6 +1024,7 @@ function M.new(
 					return executor.admit(id, request.action, request.args, origin)
 				end
 			)
+			personalCaller[id] = nil
 			busy[id] = nil
 			if not ok then
 				error(result)

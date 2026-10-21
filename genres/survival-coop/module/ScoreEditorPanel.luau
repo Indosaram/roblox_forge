@@ -101,6 +101,12 @@ function M.new(ctx: any): any
 		end
 		return ctx.send("survival-coop:score-share", { saved.scoreId, saved.revision, recipient })
 	end
+	function api.join(): any
+		if dirty or not saved then
+			return { ok = false, reason = "score.unsaved" }
+		end
+		return ctx.send("survival-coop:ensemble-join", { saved.scoreId, saved.revision, part })
+	end
 	function api.play()
 		ctx.stop()
 		playing = true
@@ -238,6 +244,18 @@ function M.factory(ctx: any): any
 	local recipient = control("TextBox", "Recipient", "", nil)
 	control("TextButton", "Share", "Share saved revision", function()
 		result(api.share(recipient.Text))
+	end)
+	control("TextButton", "Join", "Join ensemble", function()
+		result(api.join())
+	end)
+	control("TextButton", "Ready", "Ready", function()
+		result(ctx.send("survival-coop:ensemble-ready", { true }))
+	end)
+	control("TextButton", "Start", "Start ensemble", function()
+		result(ctx.send("survival-coop:ensemble-start", {}))
+	end)
+	control("TextButton", "Leave", "Leave ensemble", function()
+		result(ctx.send("survival-coop:ensemble-leave", {}))
 	end)
 	control("TextButton", "Close", "Close", function()
 		if api.close() then

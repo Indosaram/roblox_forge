@@ -1,17 +1,13 @@
 --!strict
--- Native authority for the market-trade scenario: the real MarketExtension (durable escrow over
--- the Session's personal aggregates) configured with the pack's own tradeable goods, over the
--- harness backend. Players facts are fixed here: every account is 30 days old with 10h played;
--- player "3" has not finished the tutorial. The pack starts every wallet at 0 Coins and has no
--- coin faucet yet, so this fixture (test authority only) seeds each joining player's persisted
--- Coins balance once from `COINS`, through the same atomic personal write the market uses.
--- Commands and assertions stay in qaharness.
+-- Native authority for market scenarios: production universe book and personal projection
+-- over the harness atomic backend. Accounts are 30 days old with 10h played; player "3"
+-- has not completed the tutorial. Fixture-only wallet seeds are persisted once.
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
-local Market = require("../../../../genres/survival-coop/module/MarketExtension")
+local Market = require("../../../../genres/survival-coop/module/CrossServerMarketExtension")
+local Personal = require("../../../../core/infra/data/CrossServerMarketPersonal")
 local Ports = require("../../../../games/robango-island/src/shared/MarketPorts")
 local Content = require("../../../../core/domain/survival/Content")
-local Fenced = require("../../../../core/infra/data/FencedStore")
 local Contract = require("../../../../core/domain/genre/Contract")
 local Session = require("../../../../core/infra/genre/Session")
 local ProfileStore = require("../../../../core/infra/data/ProfileStore")
@@ -20,47 +16,97 @@ local COINS: { [string]: number } = { ["1"] = 100, ["2"] = 150, ["3"] = 50, ["4"
 local SEED = "qa-market-seed"
 
 local M = {}
+-- Same participant projection and durable book as SurvivalFactory. The harness backend
+-- substitutes atomic persistence; its advisory index is rebuilt by book recovery.
+function M.market(content: any, backend: ProfileStore.Backend, now: () -> number, session: any, tutorial: any): any
+	local personal = Personal.new(session, content.items, Ports.CATALOG_IDS)
+	local ports = {
+		update = function(key, transform)
+			if string.sub(key, 1, 7) == "player:" then
+				return personal.update(string.sub(key, 8), transform)
+			end
+			if string.sub(key, 1, 8) == "listing:" then
+				local ok, reason = backend.update("qa-market-keys", function(keys)
+					keys = keys or {}
+					keys[key] = true
+					return keys
+				end)
+				if not ok then
+					return false, reason
+				end
+			end
+			return backend.update("qa-market:" .. key, transform)
+		end,
+		index = function(partition, listing)
+			local ok, reason = backend.update("qa-market-index:" .. partition, function(rows)
+				rows = rows or {}
+				rows[listing.id] = if listing.state == "ACTIVE" then listing else nil
+				return rows
+			end)
+			assert(ok, reason)
+		end,
+		search = function(partition)
+			local ok, rows = backend.update("qa-market-index:" .. partition, function(old)
+				return old or {}
+			end)
+			assert(ok, rows)
+			local result = {}
+			for _, listing in rows do
+				table.insert(result, listing)
+			end
+			table.sort(result, function(a, b)
+				return a.id < b.id
+			end)
+			return result
+		end,
+		pending = function()
+			local ok, keys = backend.update("qa-market-keys", function(old)
+				return old or {}
+			end)
+			assert(ok, keys)
+			local result = {}
+			for key in keys do
+				local loaded, listing = backend.update("qa-market:" .. key, function(old)
+					return old
+				end)
+				assert(loaded, listing)
+				if
+					listing
+					and listing.state ~= "SOLD"
+					and listing.state ~= "RETURNED"
+					and listing.state ~= "ABORTED"
+				then
+					table.insert(result, listing.id)
+				end
+			end
+			table.sort(result)
+			return result
+		end,
+	}
+	local config = Ports.config({
+		accountAgeDays = function()
+			return 30
+		end,
+		sessionSeconds = function()
+			return 10 * 3600
+		end,
+		tutorialComplete = tutorial,
+	})
+	return Market.new(ports, now, personal, Ports.CATALOG_IDS, config.account)
+end
 function M.new(packPath: string, backend: ProfileStore.Backend, now: () -> number)
 	local content = assert(Content.canonicalize(serde.decode("yaml", fs.readFile(packPath .. "/content.yml"))))
 	local session: Session.Session? = nil
-	Market.configure(Ports.config({
-		accountAgeDays = function(_actor)
-			return 30
-		end,
-		sessionSeconds = function(_actor, _now)
-			return 10 * 3600
-		end,
-		tutorialComplete = function(actor)
-			return actor ~= "3"
-		end,
-	}))
-	local store = Fenced.new(backend, {
-		sessionId = "qa-market",
-		leaseSeconds = 120,
-		now = function()
-			return math.floor(now())
-		end,
-		budget = {
-			encode = function(value: any): string
-				return serde.encode("json", value)
-			end,
-		},
-	})
-	local extension = assert(Market.factory({
-		store = function()
-			return store
-		end,
-		now = function()
-			return math.floor(now())
-		end,
-		content = content,
+	local extension = M.market(content, backend, now, {
 		personalTransfer = function(actor)
 			return if session then session.personalTransfer(actor) else nil
 		end,
-		members = function()
-			return if session then session.members() else {}
+		personalTransaction = function(actor, transform)
+			return assert(session, "fixture bound").personalTransaction(actor, transform)
 		end,
-	}))
+	}, function(actor)
+		return actor ~= "3"
+	end)
 	local function seed(actor: string)
 		local amount = COINS[actor]
 		local port = if session then session.personalTransfer(actor) else nil
@@ -76,7 +122,7 @@ function M.new(packPath: string, backend: ProfileStore.Backend, now: () -> numbe
 		end))
 		port.install(token)
 	end
-	-- The session port carries no `close`; the fixture owns the release instead.
+	-- Participant state belongs to Session; book writes do not hold a second lease.
 	local port: any = table.clone(extension)
 	port.close = nil
 	return {
@@ -93,9 +139,7 @@ function M.new(packPath: string, backend: ProfileStore.Backend, now: () -> numbe
 			end
 		end,
 		close = function(): Contract.Result
-			local closed = (extension :: any).close()
-			Market.configure(nil)
-			return closed
+			return { ok = true }
 		end,
 	}
 end

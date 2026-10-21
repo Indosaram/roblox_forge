@@ -17,11 +17,11 @@ M.operations = {
 			return listed.reason
 		end
 		local buyer = ctx.playerOf({ player = "buyer" })
-		local bought = command(buyer, "survival-coop:market-buy", { actor .. ":list" }, "purchase")
+		local bought = command(buyer, "survival-coop:market-buy", { actor .. ":list", 21 }, "purchase")
 		if not bought.ok then
 			return bought.reason
 		end
-		local repeated = command(buyer, "survival-coop:market-buy", { actor .. ":list" }, "purchase")
+		local repeated = command(buyer, "survival-coop:market-buy", { actor .. ":list", 21 }, "purchase")
 		if not repeated.ok then
 			return repeated.reason
 		end

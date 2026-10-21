@@ -4,6 +4,7 @@
 -- MemoryStore/MessagingService values as authority for membership or balances.
 local Data = require("../../domain/genre/SerializedData")
 local Fenced = require("./FencedStore")
+local Clan = require("../../domain/settlement/Clan")
 local M = {}
 
 function M.new(config: any): any
@@ -53,6 +54,28 @@ function M.new(config: any): any
 	}
 	local store = Fenced.new(backend, config.fence)
 	local api = { store = store }
+	function api.create(actor: string, id: string): any
+		local outcome: any = nil
+		local ok, state = transact(function(directory)
+			local existing = directory.members[actor]
+			local record = directory.records["clan:" .. id]
+			if existing then
+				outcome = { ok = existing == id, reason = if existing == id then nil else "ALREADY_IN_CLAN" }
+				return
+			elseif record then
+				outcome = { ok = false, reason = "CLAN_EXISTS" }
+				return
+			end
+			outcome = { ok = true }
+			directory.records["clan:" .. id] = {
+				version = 1,
+				generation = 1,
+				revision = 0,
+				data = Clan.new(id, actor),
+			}
+		end)
+		return if ok then outcome else { ok = false, reason = tostring(state) }
+	end
 	function api.membership(actor: string): (string?, string?)
 		local ok, state = transact(function(_state: any) end)
 		if not ok then

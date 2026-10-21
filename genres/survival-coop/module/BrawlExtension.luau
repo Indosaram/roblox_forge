@@ -61,8 +61,8 @@ function M.factory(ctx: any): any
 	if not ctx.content.brawlPolicy or not ctx.world or not ctx.world.brawl then
 		return nil
 	end
-	local runtime = M.new(ctx.world.brawl)
-	return {
+	local runtime = assert(ctx.world.brawl.controller, "BRAWL_CONTROLLER_REQUIRED")
+	local extension = {
 		id = "brawl",
 		handles = function(action: string): boolean
 			return table.find({
@@ -82,6 +82,37 @@ function M.factory(ctx: any): any
 		snapshot = function(): any
 			return runtime.snapshot()
 		end,
+		recover = function(actor: string): any
+			local state = runtime.snapshot()
+			if state.phase == "queue" then
+				if #state.order >= state.policy.minimumPlayers then
+					return runtime.start()
+				end
+				return { ok = true }
+			elseif state.phase == "finished" then
+				local claimed = runtime.claim(actor)
+				if not claimed.ok then
+					return claimed
+				end
+				return runtime.finish()
+			end
+			local result = runtime.tick()
+			return if result.reason == "STALE_TICK" then { ok = true } else result
+		end,
+		drain = function(): any
+			return { ok = true }
+		end,
+		releaseActor = function(actor: string): any
+			local state = runtime.snapshot()
+			return if state.actors[actor] and state.phase ~= "finished"
+				then runtime.disconnect(actor)
+				else { ok = true }
+		end,
+		resumeActor = function(): any
+			return { ok = true }
+		end,
+		close = runtime.release,
 	}
+	return require("../../../core/infra/genre/Session").registerLifecycle(extension)
 end
 return M

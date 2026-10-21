@@ -269,7 +269,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		Enum.PartType.Cylinder,
 		Enum.Material.Cobblestone
 	)
-	local world = World.new({
+	local world: any = World.new({
 		content = content,
 		worldRevision = source.worldRevision,
 		spawn = spawn,
@@ -392,6 +392,9 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	)
 	world.registerStation(campfire, "campfire", "campfire")
 	world.registerStation(bench, "workbench", "workbench")
+	world.musicVenues = function()
+		return { { enabled = true, part = campfire } }
+	end
 
 	-- One builder per node kind: the returned part is the registered gather target (anchored,
 	-- collidable, short enough that its prompt sits within reach); the rest is silhouette decor.

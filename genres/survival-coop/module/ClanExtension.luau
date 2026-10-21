@@ -25,16 +25,18 @@ function M.actions(): { any }
 		dissolve = {},
 	}
 	local actions = {}
+	table.insert(actions, {
+		id = "clan-create",
+		args = { id },
+		origin = "client",
+		rate = { capacity = 2, refillPerSecond = 1 },
+	})
 	for operation, fields in definitions do
 		fields.expectedRevision = Schema.optional(revision)
 		table.insert(actions, {
 			id = "clan-" .. operation,
 			args = { id, Schema.object(fields) },
-			origin = if operation == "contribute"
-					or operation == "deposit"
-					or operation == "withdraw"
-				then "server"
-				else "client",
+			origin = if operation == "contribute" then "server" else "client",
 			rate = { capacity = 50, refillPerSecond = 10 },
 		})
 	end
@@ -64,6 +66,9 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 		return token, reason
 	end
 	function extension.handles(action: string): boolean
+		if action == "survival-coop:clan-create" and prefix == "clan" and config.create then
+			return true
+		end
 		local normalized = string.gsub(action, "^survival%-coop:" .. prefix .. "%-", "")
 		return table.find(actions, normalized) ~= nil
 	end
@@ -79,6 +84,9 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 			return admitted
 		end
 		local operation = string.gsub(action, "^survival%-coop:" .. prefix .. "%-", "")
+		if operation == "create" then
+			return config.create(actor, args[1], context)
+		end
 		local id = config.identity(actor, args[1])
 		if not id then
 			return { ok = false, reason = "WRONG_IDENTITY" }
@@ -88,6 +96,13 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 			return { ok = false, reason = reason }
 		end
 		local receipt = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId
+		if (operation == "deposit" or operation == "withdraw") and config.wallet then
+			local result = config.wallet(actor, operation, args[2], context, token)
+			if result.token then
+				tokens[id] = result.token
+			end
+			return result.result
+		end
 		local facts = config.facts(actor, id, operation, args[2] or {}, origin)
 		local result: any = nil
 		local committed, err = store:update(token, function(data: any): any
@@ -139,8 +154,40 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 	function extension.drain(_actor: string): any
 		return { ok = true }
 	end
-	function extension.recover(_actor: string, _maximum: number): any
-		return { status = "confirmed", pending = 0 }
+	function extension.recover(actor: string, maximum: number): any
+		local id = config.identity(actor, nil)
+		if not id or not config.wallet then
+			return { status = "confirmed", pending = 0 }
+		end
+		local token, reason = open(id)
+		if not token then
+			return { status = "recovering", pending = 1, reason = reason }
+		end
+		local pending, driven = 0, 0
+		for _, row in token.data.walletOperations or {} do
+			if row.request.actor == actor and not row.result then
+				if driven < maximum then
+					driven += 1
+					local request = row.request
+					local result = config.wallet(
+						actor,
+						request.operation,
+						{ amount = request.amount },
+						{},
+						token,
+						request
+					)
+					token = result.token or token
+					tokens[id] = token
+					if not result.result.ok then
+						pending += 1
+					end
+				else
+					pending += 1
+				end
+			end
+		end
+		return { status = if pending == 0 then "confirmed" else "recovering", pending = pending }
 	end
 	function extension.close(): any
 		for id, token in tokens do

@@ -12438,6 +12438,11 @@ music:
         - {id: tomhigh, frequency: 160, attack: 0.001, release: 0.12, decay: 14, harmonics: [1, 0.2], noise: 0.05, gain: 0.3}
         - {id: crash, frequency: 3400, attack: 0.001, release: 0.5, decay: 4, harmonics: [0.15, 0.1], noise: 1, gain: 0.15}
         - {id: ride, frequency: 4500, attack: 0.001, release: 0.3, decay: 8, harmonics: [0.3, 0.1], noise: 0.6, gain: 0.15}
+buildingPolicy:
+  provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
+  cellStuds: 4
+  stairSteps: 24
+  kits: {floor: floor-kit, pillar: pillar, stairs: stairs-kit}
 clanPolicy:
   provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
   maxMembers: 50

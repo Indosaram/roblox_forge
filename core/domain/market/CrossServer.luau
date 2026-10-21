@@ -100,6 +100,7 @@ function M.new(ports: Ports): any
 			listing = change(key, function(old)
 				if old.state == "PREPARED" then
 					old.state = if seller.market.markers[id .. ":list"] == "DEBITED" then "ACTIVE" else "ABORTED"
+					old.item = copy(seller.market.escrow[id])
 				end
 				return old
 			end)
@@ -146,11 +147,7 @@ function M.new(ports: Ports): any
 				end)
 				return { ok = false, reason = if listing then "insufficient_funds" else "pending" }
 			end
-			local seller = read(sellerKey)
-			if not seller then
-				return { ok = false, reason = "pending" }
-			end
-			local item = seller.market.escrow[id]
+			local item = listing.item
 			buyer = change("player:" .. listing.buyer, function(old)
 				old = account(old)
 				if old.market.markers[operation] == "DEBITED" then
@@ -163,8 +160,20 @@ function M.new(ports: Ports): any
 			if not buyer then
 				return { ok = false, reason = "pending" }
 			end
+			listing = change(key, function(old)
+				if old.operation == operation and old.state == "RESERVED" then
+					old.state = "DELIVERED"
+				end
+				return old
+			end)
+			if not listing then
+				return { ok = false, reason = "pending" }
+			end
+		end
+		if listing.state == "DELIVERED" then
+			local operation = listing.operation
 			-- If delivery committed before a crash, its marker wins over coordinator state.
-			seller = change(sellerKey, function(old)
+			local seller = change(sellerKey, function(old)
 				old = account(old)
 				if old.market.markers[operation] ~= "COMMITTED" then
 					old.market.claims[operation .. ":1"] = { coins = listing.price - listing.fee }
@@ -300,7 +309,7 @@ function M.new(ports: Ports): any
 		if
 			listing.operation ~= operation
 			or listing.price ~= price
-			or (listing.state ~= "RESERVED" and listing.state ~= "SOLD")
+			or (listing.state ~= "RESERVED" and listing.state ~= "DELIVERED" and listing.state ~= "SOLD")
 		then
 			return { ok = false, reason = "listing_unavailable" }
 		end

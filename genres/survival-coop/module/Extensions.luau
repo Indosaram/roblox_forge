@@ -20,6 +20,7 @@ export type Context = {
 	now: () -> number,
 	nowMillis: () -> number,
 	world: any,
+	journal: any?,
 	members: () -> { string },
 	-- Trusted settlement port (membership-gated snapshot); nil only before bind in tests.
 	settlement: { snapshot: (string) -> (Shared.StateData?, string?) }?,
@@ -48,6 +49,7 @@ local factories: { Factory } = {
 	require("./ClanExtension").factory,
 	require("./OutpostExtension").factory,
 	require("./EnsembleExtension").factory,
+	require("./ScoreTransport").factory,
 	require("./JournalExtension").factory,
 }
 

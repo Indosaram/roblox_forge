@@ -9,8 +9,7 @@ local Gathering = require("../../../../genres/survival-coop/module/Gathering")
 local Runtime = require("../../../../genres/survival-coop/module/GatheringRuntime")
 local Bridge = require("../../../../genres/survival-coop/module/GatheringBridge")
 local ContractsExtension = require("../../../../genres/survival-coop/module/ContractsExtension")
-local MarketExtension = require("../../../../genres/survival-coop/module/MarketExtension")
-local MarketPorts = require("../../../../games/robango-island/src/shared/MarketPorts")
+local MarketFixture = require("../market-extension/scenario")
 local Content = require("../../../../core/domain/survival/Content")
 local Job = require("../../../../core/domain/crafting/Job")
 local Settlement = require("../../../../core/domain/settlement/Settlement")
@@ -190,46 +189,22 @@ function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: 
 	}))
 	local port: any = table.clone(extension)
 	port.close = nil
-	-- Earn-then-spend: the real Market with the pack's goods. Player "1" earns Coins only from
-	-- contracts; eligibility reads the real Contracts tutorial. Player "2" is a fixture veteran
-	-- seller (tutorial done, SELLER_COINS seeded once) so the buyer has someone to buy from.
-	MarketExtension.configure(MarketPorts.config({
-		accountAgeDays = function()
-			return 30
-		end,
-		sessionSeconds = function()
-			return 10 * 3600
-		end,
-		tutorialComplete = function(actor)
-			if actor == "2" then
-				return true
-			end
-			local data = extension.snapshot(actor)
-			return type(data) == "table" and data.tutorial.complete == true
-		end,
-	}))
-	local market = assert(MarketExtension.factory({
-		store = function()
-			return Fenced.new(backend, {
-				sessionId = "contracts-tutorial-market",
-				leaseSeconds = 120,
-				now = function()
-					return math.floor(now())
-				end,
-				budget = options.budget,
-			})
-		end,
-		now = function()
-			return math.floor(now())
-		end,
-		content = content,
+	-- Earn-then-spend on the production universe book. Eligibility reads the real tutorial;
+	-- player "2" is a veteran seller with SELLER_COINS seeded once.
+	local market = MarketFixture.market(content, backend, now, {
 		personalTransfer = function(actor)
 			return if session then session.personalTransfer(actor) else nil
 		end,
-		members = function()
-			return if session then session.members() else {}
+		personalTransaction = function(actor, transform)
+			return assert(session, "fixture bound").personalTransaction(actor, transform)
 		end,
-	}))
+	}, function(actor)
+		if actor == "2" then
+			return true
+		end
+		local data = extension.snapshot(actor)
+		return type(data) == "table" and data.tutorial.complete == true
+	end)
 	local marketPort: any = table.clone(market)
 	marketPort.close = nil
 	local services = table.clone(factory.services)
@@ -269,11 +244,6 @@ function M.new(config: Contract.PackConfig, backend: ProfileStore.Backend, now: 
 			local released = (extension :: any).close()
 			if not released.ok then
 				return released
-			end
-			local marketReleased = (market :: any).close()
-			MarketExtension.configure(nil)
-			if not marketReleased.ok then
-				return marketReleased
 			end
 			local closed = factory.close()
 			if not closed.ok then

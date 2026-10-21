@@ -378,7 +378,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					row
 				)
 				button(M.text(ctx.locale, "market_buy"), 0.64, 0.36, row, function()
-					send(M.BUY, { listing.id }, function()
+					send(M.BUY, { listing.id, listing.unitPrice * listing.quantity }, function()
 						return M.text(ctx.locale, "market_bought", catalog.name)
 					end)
 				end, model.eligible)

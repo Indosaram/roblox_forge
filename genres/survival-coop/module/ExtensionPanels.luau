@@ -98,6 +98,7 @@ M.factories = {
 	require("./ShopPanel").factory,
 	require("./MarketPanel").factory,
 	require("./DeathZonePanel").factory,
+	require("./BrawlPanel").factory,
 } :: { Factory }
 
 export type Started = { destroy: () -> (), closeAll: () -> () }

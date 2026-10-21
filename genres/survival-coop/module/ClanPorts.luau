@@ -18,6 +18,7 @@ function M.new(config: any): any
 		return reason == nil and actual == id
 	end
 	local clan = {
+		create = config.create,
 		store = function(): any
 			return directory.store
 		end,

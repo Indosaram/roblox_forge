@@ -183,10 +183,7 @@ function M.new(ctx: any): any
 			joined[actor] = true
 		end
 		request += 1
-		local server = prefix == "outpost"
-			or operation == "deposit"
-			or operation == "withdraw"
-			or operation == "contribute"
+		local server = prefix == "outpost" or operation == "contribute"
 		local fn = if server then session.commandServer else session.command
 		return fn(actor, {
 			requestId = fixed or tostring(request),

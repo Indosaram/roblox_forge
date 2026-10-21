@@ -9,6 +9,15 @@ local M = {}
 function M.personal(session: any): any
 	return {
 		transaction = function(actor: string, transform: any): any
+			if session.personalTransaction then
+				local outcome: any = nil
+				local saved, reason = session.personalTransaction(actor, function(raw)
+					local candidate = Data.clone(raw)
+					outcome = transform(candidate.envelope.genres["survival-coop"].data)
+					return if outcome.ok then candidate else raw
+				end)
+				return if saved then outcome else { ok = false, reason = reason }
+			end
 			local port = session.personalTransfer(actor)
 			if not port then
 				return { ok = false, reason = "PERSONAL_UNAVAILABLE" }

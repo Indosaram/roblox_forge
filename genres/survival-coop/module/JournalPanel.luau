@@ -126,6 +126,9 @@ function M.factory(ctx: any): any
 		open = function()
 			sheet.frame.Visible = true
 		end,
+		isOpen = function()
+			return sheet.frame.Visible
+		end,
 		snapshot = function(snapshot)
 			local data = snapshot.survivalExtensions
 			if data and data.journal then

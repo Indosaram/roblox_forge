@@ -1,108 +1,150 @@
 --!strict
--- Real brawl command module behind injected match/personal transactions.
--- Session join/snapshot are real; brawl action registration awaits integrate3.
-local Match = require("../../../../core/domain/brawl/Match")
-local Data = require("../../../../core/domain/genre/SerializedData")
+local Controller = require("../../../../genres/survival-coop/module/BrawlController")
 local Extension = require("../../../../genres/survival-coop/module/BrawlExtension")
+local Match = require("../../../../core/domain/brawl/Match")
+local Session = require("../../../../core/infra/genre/Session")
 local Content = require("../../../../games/robango-island/src/shared/SurvivalContent")
-local Policy = require("../../../../core/domain/brawl/Policy.fixture")
+local serde = require("@lune/serde")
 local M = {}
 M.operations = {
 	brawl_command = function(ctx, step): string?
-		local actor = ctx.playerOf(step)
-		if not ctx.session.snapshot(actor) then
-			return "Session actor not joined"
-		end
-		local result = ctx.fixture.command(actor, step.action, step.token)
-		ctx.results[actor] = result
-		return if (step.expect == "refused") == result.ok then "unexpected brawl command result" else nil
+		local result = ctx.fixture.command(ctx.playerOf(step), step.action, step.token)
+		ctx.results[ctx.playerOf(step)] = result
+		return if result.ok ~= (step.expect ~= "refused") then tostring(result.reason) else nil
 	end,
 	brawl_frame = function(ctx, step): string?
 		local result = ctx.fixture.frame(step.elapsed, step.damage or {})
-		ctx.results[ctx.playerOf(step)] = result
 		return if result.ok then nil else result.reason
 	end,
 	brawl_assert = function(ctx, step): string?
-		local saved = ctx.fixture.snapshot()
-		if step.check == "draw" then
-			return if saved.match.phase == "finished" and not saved.match.winner then nil else "not a simultaneous draw"
-		end
-		return if saved.wallets.owner.balance == 50
-				and saved.wallets.rival.balance == 50
-				and saved.original.durability == 10
-			then nil
-			else "reward or equipment conservation failed"
+		return ctx.fixture.check(step.check)
 	end,
 }
-function M.new(ctx): any
-	local policy = (Content :: any).brawlPolicy or Policy
-	local state = Match.new("native-brawl-weather", policy)
+function M.new(ctx: any): any
 	local clock = ctx.now()
-	local original = { durability = 10 }
-	local wallets: any = { owner = { balance = 0 }, rival = { balance = 0 } }
-	local damage: any = {}
-	local extension = Extension.new({
-		match = {
-			snapshot = function()
-				return state
-			end,
-			transaction = function(transform)
-				local candidate = Data.clone(state)
-				local result = transform(candidate)
-				if result.ok then
-					state = candidate
-				end
-				return result
+	local session: any = nil
+	local controller: any = nil
+	local positions: any = { owner = { x = 0, y = 0, z = 0 }, rival = { x = 0, y = 0, z = 0 } }
+	local policy = (Content :: any).brawlPolicy
+	local function now(): number
+		return clock
+	end
+	controller = Controller.new({
+		store = {
+			UpdateAsync = function(_, key, transform)
+				local ok, value = ctx.backend.update(key, transform)
+				assert(ok, tostring(value))
+				return value
 			end,
 		},
-		personal = {
-			transaction = function(actor, transform)
-				local candidate = Data.clone(wallets[actor])
-				local result = transform(candidate)
-				if result.ok then
-					wallets[actor] = candidate
-				end
-				return result
+		owner = "brawl-native",
+		key = "brawl-native-arena",
+		matchId = "brawl-native-match",
+		policy = policy,
+		leaseSeconds = 120,
+		now = now,
+		utc = ctx.now,
+		publish = function() end,
+		ledger = {
+			claim = function(actor, state, utc)
+				local result: any = nil
+				local ok, reason = session.personalTransaction(actor, function(raw)
+					result = Match.reward(raw.envelope.genres["survival-coop"].data, state, actor, utc)
+					return raw
+				end)
+				return if ok then result else { ok = false, reason = reason }
 			end,
 		},
 		facts = function()
-			return { level = 60, maxHealth = 100, equipment = original }
+			return { level = 60, maxHealth = 100, equipment = { durability = 10 } }
 		end,
-		now = function()
-			return clock
+		action = function(_, token)
+			return {
+				kind = if token == "shot" then "ranged" elseif token == "mount" then "mount" else "sprint",
+				range = if token == "shot" then 40 else 0,
+			}
 		end,
-		utc = ctx.now,
-		action = function(_actor, token)
-			if token == "shot" then
-				return { kind = "ranged", range = 40 }
-			end
-			if token == "mount" then
-				return { kind = "mount", range = 0 }
-			end
-			return { kind = "sprint", range = 0 }
-		end,
-		apply = function(candidate: any, actor, _fact, allowed)
-			candidate.actors[actor].equipment.durability -= 1
+		apply = function(_, _, _, allowed)
 			return allowed
 		end,
 		frame = function()
-			return {}, damage
+			return { connected = { owner = true, rival = true }, positions = positions, sight = {} }
 		end,
 	})
+	assert(controller.acquire().ok, "brawl native acquire")
+	local extension = Extension.factory({ content = Content, world = { brawl = { controller = controller } } })
+	local services = {
+		now = now,
+		roll = function()
+			return 0
+		end,
+		emit = function() end,
+		encode = function(value)
+			return serde.encode("json", value)
+		end,
+		survivalExtensions = { extension },
+	}
+	local durable = require("../../../../games/robango-island/src/shared/GenreDurable")
+	session = Session.new(
+		{
+			packConfig = require("../../../../games/robango-island/src/shared/GenreConfig"),
+			contracts = { require("../../../../genres/survival-coop/module/Contract") },
+			controls = {},
+			durable = durable,
+			storeName = "brawl-native-personal",
+		} :: any,
+		ctx.backend,
+		{ sessionId = "brawl-native-personal", lockTimeout = 120, retries = 0, now = ctx.now },
+		services,
+		durable
+	)
+	assert(session.join("owner").ok and session.join("rival").ok, "brawl native join")
+	local sequence = 0
+	local initial: any = {}
+	for _, actor in { "owner", "rival" } do
+		initial[actor] = session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.balance
+	end
 	return {
 		command = function(actor, action, token)
 			if action == "start" then
-				return extension.start()
+				return extension.recover(actor)
 			end
-			return extension.command(actor, "brawl-" .. action, { token })
+			sequence += 1
+			return session.command(actor, {
+				action = "survival-coop:brawl-" .. action,
+				args = if token then { token } else {},
+				requestId = tostring(sequence),
+				sessionEpoch = session.commandEpoch(actor),
+			})
 		end,
-		frame = function(elapsed, losses)
-			clock = state.startsAt + elapsed
-			damage = losses
-			return extension.tick()
+		frame = function(elapsed, damage)
+			clock = controller.snapshot().startsAt + elapsed
+			for actor in damage do
+				positions[actor] = { x = 1000, y = 0, z = 0 }
+			end
+			return controller.tick()
 		end,
-		snapshot = function()
-			return { match = extension.snapshot(), wallets = Data.clone(wallets), original = original }
+		check = function(check)
+			local state = controller.snapshot()
+			if check == "draw" then
+				-- A single authoritative boundary frame eliminates both snapshot actors.
+				for _ = 1, 5 do
+					clock += 1
+					assert(controller.tick().ok, "boundary elimination frame")
+				end
+				state = controller.snapshot()
+				return if state.phase == "finished" and state.winner == nil then nil else "not a draw"
+			end
+			for _, actor in { "owner", "rival" } do
+				local saved = session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
+				if saved.balance ~= initial[actor] + policy.participationReward then
+					return "settlement not exactly once"
+				end
+				if state.actors[actor].equipment.durability ~= 10 then
+					return "original equipment changed"
+				end
+			end
+			return nil
 		end,
 	}
 end

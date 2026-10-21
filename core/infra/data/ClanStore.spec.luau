@@ -64,6 +64,18 @@ local function fixture(): any
 end
 
 return {
+	["create commits an unleased clan record and retries without duplicate membership"] = function()
+		local f = fixture()
+		local directory = f.build("create")
+		assert(directory.create("owner", "alpha").ok, "create")
+		assert(directory.create("owner", "alpha").ok, "idempotent owner retry")
+		assert(not directory.create("owner", "beta").ok, "one membership per actor")
+		assert(not directory.create("other", "alpha").ok, "unique clan id")
+		local token = directory.store:acquire("clan:alpha", function(data)
+			return data
+		end)
+		assert(token and token.data.owner == "owner", "new aggregate is a valid fenced record")
+	end,
 	["directory CAS owns membership uniqueness, cap, dissolution and stale fences"] = function()
 		local f = fixture()
 		local a, b = f.build("a"), f.build("b")

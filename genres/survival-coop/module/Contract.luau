@@ -20,6 +20,55 @@ local contract: Shared.RuntimeContract = {
 	configVersion = 1,
 	saveVersion = 1,
 	actions = {
+		{
+			id = "building-place",
+			args = {
+				Schema.object({
+					version = version,
+					part = Schema.object({
+						id = id,
+						kind = id,
+						x = Schema.number({ min = -1000, max = 1000, integer = true }),
+						z = Schema.number({ min = -1000, max = 1000, integer = true }),
+						floor = Schema.number({ min = 1, max = 3, integer = true }),
+					}),
+				}),
+			},
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "building-remove",
+			args = { Schema.object({ version = version, id = id }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "audio-settings",
+			args = { Schema.boolean(), Schema.number({ min = 0, max = 1 }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "score-share",
+			args = { id, quantity, id },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "ensemble-join",
+			args = { id, quantity, quantity },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "ensemble-ready",
+			args = { Schema.boolean() },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "ensemble-start", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "ensemble-leave", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "skin-select", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "brawl-queue", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
 		{ id = "brawl-leave", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
@@ -302,8 +351,20 @@ local contract: Shared.RuntimeContract = {
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
-		{ id = "market-buy", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "market-buy",
+			args = { id, Schema.number({ min = 1, max = 1000000, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{ id = "market-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "market-browse",
+			args = { id, quantity },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "market-claim", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "zone-set",
 			args = { id },
@@ -314,12 +375,20 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"building-place",
+		"building-remove",
 		"brawl-queue",
 		"brawl-leave",
 		"brawl-action",
 		"brawl-reward",
 		"journal-open",
 		"journal-claim",
+		"audio-settings",
+		"score-share",
+		"ensemble-join",
+		"ensemble-ready",
+		"ensemble-start",
+		"ensemble-leave",
 		"mission-action",
 		"home-deposit",
 		"home-withdraw",
@@ -352,6 +421,8 @@ local contract: Shared.RuntimeContract = {
 		"market-list",
 		"market-buy",
 		"market-cancel",
+		"market-browse",
+		"market-claim",
 		"zone-set",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
@@ -361,7 +432,13 @@ local contract: Shared.RuntimeContract = {
 	recipe = GardenDefense.recipe,
 	create = Mode.create,
 }
-for _, actions in { require("./ClanExtension").actions(), require("./OutpostExtension").actions() } do
+for _, actions in
+	{
+		require("./ClanExtension").actions(),
+		require("./OutpostExtension").actions(),
+		require("./ScoreTransport").actions(),
+	}
+do
 	for _, action in actions do
 		table.insert(contract.actions, action)
 		table.insert(assert(contract.extensionActions, "extension actions configured"), action.id)

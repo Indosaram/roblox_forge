@@ -53,6 +53,32 @@ M.operations = {
 		end
 		return result
 	end,
+	world_score = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.score(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "production_score_exception"
+		end
+		return result
+	end,
+	world_audio = function(ctx, step): string?
+		return ctx.fixture.audio(actorOf(ctx, step))
+	end,
+	world_clan = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.clan(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "production_clan_exception"
+		end
+		return result
+	end,
+	world_building = function(ctx, step): string?
+		return ctx.fixture.building(actorOf(ctx, step))
+	end,
 }
 function M.new(ctx: any): any
 	local engine = Engine.new()
@@ -63,18 +89,37 @@ function M.new(ctx: any): any
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
-	module.Extensions = { factories = {} }
+	module.Extensions = {
+		factories = {
+			require("../../../../genres/survival-coop/module/ScoreTransport").factory,
+			require("../../../../genres/survival-coop/module/EnsembleExtension").factory,
+			require("../../../../genres/survival-coop/module/ClanExtension").factory,
+		},
+	}
+	module.JournalPorts = require("../../../../genres/survival-coop/module/JournalPorts")
+	module.JournalObjectiveFeed = require("../../../../genres/survival-coop/module/JournalObjectiveFeed")
+	module.JournalExtension = require("../../../../genres/survival-coop/module/JournalExtension")
 	forge.core.domain.home = { HomeContent = HomeContent }
 	forge.core.domain.settlement = { Settlement = require("../../../../core/domain/settlement/Settlement") }
-	forge.core.domain.inventory = { Inventory = require("../../../../core/domain/inventory/Inventory") }
+	forge.core.domain.settlement.Clan = require("../../../../core/domain/settlement/Clan")
+	forge.core.domain.inventory = {
+		Inventory = require("../../../../core/domain/inventory/Inventory"),
+		ItemCatalog = require("../../../../core/domain/inventory/ItemCatalog"),
+	}
 	forge.core.domain.crafting = { Job = require("../../../../core/domain/crafting/Job") }
-	forge.core.domain.command = { Journal = require("../../../../core/domain/command/Journal") }
+	forge.core.domain.command = {
+		Journal = require("../../../../core/domain/command/Journal"),
+		Ledger = require("../../../../core/domain/command/Ledger"),
+	}
 	forge.core.domain.island.Archipelago = require("../../../../core/domain/island/Archipelago")
 	forge.core.infra = {
 		render = forge.core.infra.render,
 		genre = { Clock = require("../../../../core/infra/genre/Clock"), Session = Session },
 		data = { ActorDocumentStore = require("../../../../core/infra/data/ActorDocumentStore") },
 	}
+	forge.core.infra.data.ClanStoreWallet = require("../../../../core/infra/data/ClanStoreWallet")
+	forge.genres["survival-coop"].module.MultistoreyCommands =
+		require("../../../../genres/survival-coop/module/MultistoreyCommands")
 	local factoryBuilder = engine.load("games/robango-island/src/server/SurvivalFactory.luau", {}, {
 		Parent = { LateEquipmentPorts = require("../../../../games/robango-island/src/server/LateEquipmentPorts") },
 	})
@@ -82,6 +127,7 @@ function M.new(ctx: any): any
 	source.seed, source.renderRole = ctx.scenario.seed, engine.role.build
 	local factory: any, session: any, world: any
 	local sequence = 0
+	local clanDirectory: any = nil
 	local actorId: string? = nil
 	local function create(role: string, actor: string)
 		sequence += 1
@@ -110,6 +156,7 @@ function M.new(ctx: any): any
 			source.tribe.config.tribeId,
 			{ studio = false, server = "worlds:" .. tostring(sequence) }
 		)
+		world.clanDirectory = clanDirectory
 		factory = assert(factoryBuilder(Content, source, world, ctx.backend, ctx.clock, options, provision, Policy))
 		local services = table.clone(factory.services)
 		services.now = ctx.clock.now
@@ -219,6 +266,172 @@ function M.new(ctx: any): any
 		})
 		assert(result.ok or (result.data and result.data.status == "pending"), action .. ":" .. tostring(result.reason))
 		return result
+	end
+	function api.score(actor)
+		local serde = require("@lune/serde")
+		local repository = require("../../../../genres/survival-coop/module/ScoreLibraryStore").new({
+			dataStoreService = {
+				GetDataStore = function(_, name: string)
+					return {
+						UpdateAsync = function(_, key, transform)
+							local ok, value = ctx.backend.update(name .. ":" .. key, transform)
+							assert(ok, value)
+							return value
+						end,
+						GetAsync = function(_, key)
+							local ok, value = ctx.backend.update(name .. ":" .. key, function(old)
+								return old
+							end)
+							assert(ok, value)
+							return value
+						end,
+					}
+				end,
+			},
+			storeName = "production-scores",
+			rules = Content.music,
+			maxStoreBytes = 3900000,
+			encode = function(value)
+				return serde.encode("json", value)
+			end,
+		})
+		local decode = function(text)
+			return serde.decode("json", text)
+		end
+		require("../../../../genres/survival-coop/module/ScoreTransport").configure({
+			repository = repository,
+			decode = decode,
+			uploadTtl = 120,
+		})
+		require("../../../../genres/survival-coop/module/EnsembleExtension").configure({
+			rules = Content.music,
+			repository = repository,
+			decode = decode,
+			inRange = function(id)
+				return world.services.survivalDeath.position(id) ~= nil
+			end,
+		})
+		assert(api.enter("home", actor) == nil, "rebuild configured production session")
+		local transport = require("../../../../genres/survival-coop/module/ScoreTransport")
+		local saved = transport.send(
+			{
+				rules = Content.music,
+				send = function(action, args)
+					return command(actor, string.gsub(action, "^survival%-coop:", ""), args)
+				end,
+			},
+			serde.encode("json", {
+				version = 1,
+				tempo = Content.music.tempoMin,
+				parts = {
+					{
+						instrumentId = "piano",
+						notes = {
+							{
+								startTick = 0,
+								durationTicks = Content.music.ticksPerQuarter,
+								pitch = 60,
+								velocity = 100,
+							},
+						},
+					},
+				},
+			}),
+			nil,
+			"production-score-upload"
+		)
+		assert(saved.ok, saved.reason)
+		command(actor, "score-share", { saved.data.scoreId, saved.data.revision, "11734795309" })
+		command(actor, "ensemble-join", { saved.data.scoreId, saved.data.revision, 1 })
+		command(actor, "ensemble-ready", { true })
+		command(actor, "ensemble-start", {})
+		local snapshot = session.snapshot(actor).survivalExtensions.ensemble
+		assert(snapshot.room and snapshot.room.startAt, "ensemble has authoritative start timestamp")
+		return nil
+	end
+	function api.audio(actor)
+		command(actor, "audio-settings", { true, 0.5 })
+		local before = session.snapshot(actor).survivalExtensions["audio-settings"]
+		assert(before.muted and before.volume == 0.5, "settings committed through Session")
+		assert(api.enter("home", actor) == nil, "rejoin home")
+		local after = session.snapshot(actor).survivalExtensions["audio-settings"]
+		assert(after.muted and after.volume == 0.5, "settings survive fresh profile owner")
+		return nil
+	end
+	function api.building(actor)
+		local port = session.personalTransfer(actor)
+		local token = assert(port.personal:update(port.profile(), function(data)
+			local bag = data.envelope.genres["survival-coop"].data.inventory.bag
+			bag.items["fixture-floor"] = {
+				itemId = "fixture-floor",
+				catalogId = "floor-kit",
+				quantity = 1,
+				qualityMilli = 1000,
+				durabilityMilli = 0,
+				attributes = {},
+			}
+			return data
+		end))
+		port.install(token)
+		engine.move(actor, Content.homePolicy.dock)
+		engine.move(actor, { x = 0, y = Content.homePolicy.dock.y, z = 0 })
+		command(
+			actor,
+			"building-place",
+			{ { version = 0, part = { id = "floor1", kind = "floor", x = 0, z = 0, floor = 1 } } }
+		)
+		assert(session.snapshot(actor).survivalExtensions.building.parts.floor1, "committed floor snapshot")
+		command(actor, "building-remove", { { version = 1, id = "floor1" } })
+		local bag = session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.inventory.bag
+		local count = 0
+		for _, item in bag.items do
+			if item.catalogId == "floor-kit" then
+				count += item.quantity
+			end
+		end
+		assert(count == 1, "exact kit refund after place/remove")
+		return nil
+	end
+	function api.clan(actor)
+		local serde = require("@lune/serde")
+		clanDirectory = require("../../../../core/infra/data/ClanStore").new({
+			dataStore = {
+				UpdateAsync = function(_, key, transform)
+					local ok, result = ctx.backend.update("clan-directory:" .. key, transform)
+					assert(ok, result)
+					return result
+				end,
+			},
+			rules = Content.clanPolicy,
+			maxBytes = 3900000,
+			encode = function(value)
+				return serde.encode("json", value)
+			end,
+			fence = { sessionId = "native-clan", leaseSeconds = 120, now = ctx.now },
+		})
+		assert(api.enter("home", actor) == nil, "rebuild production clan bindings")
+		command(actor, "clan-create", { "native-clan" })
+		local other = "11734795309"
+		assert(session.join(other).ok, "second live Session actor")
+		command(actor, "clan-invite", { "native-clan", { target = other } })
+		command(other, "clan-join", { "native-clan", {} })
+		local funds = session.personalTransfer(actor)
+		local token = assert(
+			funds.personal:update(funds.profile(), function(data)
+				data.envelope.genres["survival-coop"].data.balance = 100
+				return data
+			end),
+			"fixture starting wallet"
+		)
+		funds.install(token)
+		command(actor, "clan-deposit", { "native-clan", { amount = 25 } })
+		local state = session.snapshot(actor).survivalExtensions.clan
+		assert(state.funds == 25 and state.members[other], "durable clan funds and membership")
+		assert(
+			session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.balance == 75,
+			"same personal wallet debited"
+		)
+		return nil
 	end
 	local function gather(actor, item, count)
 		local node

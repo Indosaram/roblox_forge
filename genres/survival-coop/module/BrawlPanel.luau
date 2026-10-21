@@ -119,10 +119,13 @@ function M.mount(ctx: any): any
 		labels.brawl_weather.Text = ctx.text("brawl_weather", model)
 		labels.brawl_rewards.Text = ctx.text("brawl_rewards", model)
 		for name, button in buttons do
+			local combat = name == "attack" or name == "dodge" or name == "guard"
+			local participant = state.actors[ctx.actor]
 			button.Visible = model[name] == true
+				or (combat and participant ~= nil and participant.alive and state.phase == "active")
 		end
 	end
-	for index, name in { "join", "leave", "claim" } do
+	for index, name in { "join", "leave", "claim", "attack", "dodge", "guard" } do
 		local button = make("TextButton", {
 			Name = name,
 			LayoutOrder = 10 + index,
@@ -139,11 +142,27 @@ function M.mount(ctx: any): any
 					return
 				end
 				local model = M.model(state, ctx.actor, ctx.now(), receipt)
-				if not model[name] then
+				local combat = name == "attack" or name == "dodge" or name == "guard"
+				local participant = state.actors[ctx.actor]
+				if
+					not model[name] and not (combat and participant and participant.alive and state.phase == "active")
+				then
 					return
 				end
 				local actions = { join = "brawl-queue", leave = "brawl-leave", claim = "brawl-reward" }
-				local result = ctx.send("survival-coop:" .. actions[name], {})
+				local args = {}
+				if combat then
+					local token = name
+					if name == "attack" then
+						local target = if ctx.target then ctx.target(state) else nil
+						if not target then
+							return
+						end
+						token = "melee:" .. target
+					end
+					args = { token }
+				end
+				local result = ctx.send("survival-coop:" .. (if combat then "brawl-action" else actions[name]), args)
 				if name == "claim" then
 					receipt = result
 				end
@@ -160,6 +179,153 @@ function M.mount(ctx: any): any
 	end
 	api.resize(ctx.width, ctx.height)
 	return api
+end
+
+function M.factory(ctx: any): any
+	local env: any = getfenv()
+	local players = env.game:GetService("Players")
+	local workspace = env.game:GetService("Workspace")
+	local gui = env.Instance.new("ScreenGui")
+	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder, gui.Enabled = "ForgeBrawl", false, 18, false
+	gui.Parent = players.LocalPlayer:WaitForChild("PlayerGui")
+	local korean = string.sub(ctx.locale, 1, 2) == "ko"
+	local strings = {
+		brawl_title = { "Brawl", "난투" },
+		brawl_snapshot = {
+			"Snapshot equipment only. Original equipment is not consumed.",
+			"복제 장비만 사용합니다. 원본 장비는 소모되지 않습니다.",
+		},
+		brawl_join = { "Join queue", "대기열 참가" },
+		brawl_leave = { "Leave", "나가기" },
+		brawl_claim = { "Claim result", "결과 받기" },
+		brawl_feedback = { "", "" },
+		brawl_ok = { "Confirmed", "확인됨" },
+		brawl_attack = { "Attack nearest rival", "가까운 상대 공격" },
+		brawl_dodge = { "Dodge", "회피" },
+		brawl_guard = { "Guard", "방어" },
+		LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },
+		QUEUE_FULL = { "Queue full", "대기열이 가득 찼습니다" },
+		QUEUE_CLOSED = { "Queue closed", "대기열이 마감되었습니다" },
+		NOT_ACTIVE = { "Match has not started", "경기가 시작되지 않았습니다" },
+		ELIMINATED = { "Eliminated: spectating", "탈락: 관전 중" },
+		WEATHER_RANGE = { "Fog restricts range", "안개로 사거리가 제한됩니다" },
+		WEATHER_MOUNT = { "Storm prevents mounting", "폭풍 중에는 탑승할 수 없습니다" },
+		UNVERIFIED_ACTION = { "Action unavailable", "사용할 수 없는 행동입니다" },
+		RECOVERY = { "Recovering", "회복 중" },
+		PERSONAL_UNAVAILABLE = { "Settlement pending", "정산 대기 중" },
+		COMMAND_PENDING = { "Previous command pending", "이전 명령 처리 중" },
+	}
+	local statuses = {
+		queue = "대기열",
+		preparing = "준비 중",
+		active = "경기 중",
+		finished = "종료",
+		win = "승리",
+		draw = "무승부",
+		eliminated = "탈락",
+		spectator = "관전 중",
+	}
+	local function text(key: string, model: any?): string
+		if key == "brawl_status" and model then
+			local result = model.result or (if model.spectator then "spectator" else "")
+			return string.format(
+				"%s | %d/%d | %ds | %s",
+				if korean then statuses[model.phase] or model.phase else model.phase,
+				model.queued,
+				model.maximum,
+				model.remaining,
+				if korean then statuses[result] or result else result
+			)
+		elseif key == "brawl_weather" and model then
+			return string.format(
+				"%s | %.0f | %s",
+				model.weather,
+				model.radius,
+				if korean
+					then "비: 질주 기력 증가 / 안개: 사거리 제한 / 폭풍: 탑승 해제"
+					else "Rain: sprint cost / Fog: range limit / Storm: dismount"
+			)
+		elseif key == "brawl_rewards" and model then
+			return string.format(
+				"%s %d / %d | %d",
+				if korean then "참가 / 승리" else "Participation / win",
+				model.participationReward,
+				model.winReward,
+				model.dailySettlements
+			)
+		end
+		local row = strings[key]
+		return if row then row[if korean then 2 else 1] else key
+	end
+	local function now(): number
+		return workspace:GetServerTimeNow()
+	end
+	local panel = M.mount({
+		ui = { Instance = env.Instance, Enum = env.Enum, UDim = env.UDim, UDim2 = env.UDim2, Vector2 = env.Vector2 },
+		parent = gui,
+		target = function(state: any): string?
+			local character = players.LocalPlayer.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			if not root then
+				return nil
+			end
+			local nearest, distance = nil, math.huge
+			for actor, participant in state.actors do
+				if actor ~= tostring(players.LocalPlayer.UserId) and participant.alive then
+					local player = players:GetPlayerByUserId(tonumber(actor) or 0)
+					local other = player and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+					if other and (other.Position - root.Position).Magnitude < distance then
+						nearest, distance = actor, (other.Position - root.Position).Magnitude
+					end
+				end
+			end
+			return nearest
+		end,
+		actor = tostring(players.LocalPlayer.UserId),
+		send = ctx.send,
+		now = now,
+		width = gui.AbsoluteSize.X,
+		height = gui.AbsoluteSize.Y,
+		text = text,
+	})
+	local dock = if ctx.dock
+		then ctx.dock({
+			id = "brawl",
+			label = text("brawl_title"),
+			order = 65,
+			setOpen = function(open: boolean)
+				gui.Enabled = open
+			end,
+			isOpen = function(): boolean
+				return gui.Enabled
+			end,
+		})
+		else nil
+	if dock then
+		dock.setAvailable(false)
+	end
+	local unsubscribe = ctx.onSnapshot(function(snapshots)
+		local state = snapshots.brawl
+		if dock then
+			dock.setAvailable(state ~= nil)
+		end
+		if state then
+			panel.update(state, now())
+		else
+			gui.Enabled = false
+		end
+	end)
+	local resize = gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		panel.resize(gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
+	end)
+	return {
+		destroy = function()
+			unsubscribe()
+			resize:Disconnect()
+			panel.destroy()
+			gui:Destroy()
+		end,
+	}
 end
 
 return M

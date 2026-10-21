@@ -34,6 +34,7 @@ return {
 			local suspended = false
 			local captured = false
 			local controller = Camera.new({
+				aerial = require("../../../../genres/survival-coop/module/AerialView"),
 				workspace = { CurrentCamera = camera },
 				guis = { visible, hidden },
 				buttons = buttons,

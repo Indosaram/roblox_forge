@@ -304,6 +304,15 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "skills"
 			and key ~= "progression"
 			and key ~= "companions"
+			and key ~= "journal"
+			and key ~= "journalOutcomes"
+			and key ~= "journalGrants"
+			and key ~= "missionItems"
+			and key ~= "multistorey"
+			and key ~= "buildOutcomes"
+			and key ~= "audioSettings"
+			and key ~= "market"
+			and key ~= "brawl"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -340,6 +349,7 @@ function M.new(
 		combat: any?,
 		progression: any?,
 		companions: any?,
+		personalExtensions: { [string]: any }?,
 		skills: Skills.State?,
 	}
 	local players: { [string]: Player } = {}
@@ -435,6 +445,10 @@ function M.new(
 			for name, state in containers do
 				saved.inventory[name] = Inventory.save(state)
 			end
+		end
+		local retained: { [string]: any } = if players[id] then players[id].personalExtensions or {} else {}
+		for key, value in retained do
+			saved[key] = Data.clone(value)
 		end
 		return saved
 	end
@@ -1178,6 +1192,25 @@ function M.new(
 				then nil
 				else Wallet.new({ [config.currency] = if saved then saved.balance else config.startingBalance }),
 		}
+		local retained = {}
+		for _, key in
+			{
+				"journal",
+				"journalOutcomes",
+				"journalGrants",
+				"missionItems",
+				"multistorey",
+				"buildOutcomes",
+				"audioSettings",
+				"market",
+				"brawl",
+			}
+		do
+			if saved and saved[key] ~= nil then
+				retained[key] = Data.clone(saved[key])
+			end
+		end
+		players[id].personalExtensions = retained
 		local loadedCompanions = players[id].companions
 		if rebase and loadedCompanions then
 			local companions = Data.clone(loadedCompanions)

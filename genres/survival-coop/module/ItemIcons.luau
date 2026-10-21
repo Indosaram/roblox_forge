@@ -23,7 +23,7 @@ function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
 	end
 
 	local function resolve(kind: string, id: string, label: string?): Icon
-		local known = if kind == "item" then items[id] ~= nil else recipes[id] == true
+		local known = if kind == "item" then items[id] ~= nil elseif kind == "ui" then true else recipes[id] == true
 		local key = if known then kind .. ".icon." .. id else nil
 		local manifestKey = if key then string.gsub(key, "[.]", "-") else nil
 		local asset = if manifestKey then assets[manifestKey] else nil
@@ -41,6 +41,9 @@ function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
 	end
 
 	return {
+		ui = function(id: string, label: string?): Icon
+			return resolve("ui", id, label)
+		end,
 		item = function(id: string, label: string?): Icon
 			return resolve("item", id, label)
 		end,
