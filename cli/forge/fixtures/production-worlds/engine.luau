@@ -11,6 +11,7 @@ function M.new(physicalWarehouse: boolean?): any
 	local function signal()
 		local handlers: { (...any) -> () } = {}
 		return {
+			Wait = function() end,
 			Connect = function(_, fn)
 				table.insert(handlers, fn)
 				return { Disconnect = function() end }
@@ -116,6 +117,9 @@ function M.new(physicalWarehouse: boolean?): any
 				end
 			end
 			self.WorldPivot = cf
+		end
+		function value:GetPivot()
+			return self.WorldPivot or roblox.CFrame.identity
 		end
 		function value:ScaleTo(scale)
 			for _, child in self:GetDescendants() do
@@ -360,13 +364,7 @@ function M.new(physicalWarehouse: boolean?): any
 				}
 			end,
 		},
-		["./DinosaurRig"] = {
-			new = function(_, id, position, parent)
-				local model = instance("Model")
-				model.Name, model.Position, model.Parent = id, position, parent
-				return model
-			end,
-		},
+		["./DinosaurRig"] = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil),
 		["./MountVisual"] = {
 			species = function()
 				return nil
@@ -376,6 +374,7 @@ function M.new(physicalWarehouse: boolean?): any
 			end,
 		},
 	}, nil)
+	module.DinosaurRig = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil)
 	local dressing = load("games/robango-island/src/server/WorldDressing.luau", {}, nil)
 	forge.core.infra = {
 		render = {

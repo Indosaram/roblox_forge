@@ -23792,9 +23792,9 @@ layouts:
         id: "rw.onboarding.fiber"
         item: "fiber"
         position:
-          x: -42
+          x: 4
           y: 2
-          z: 12
+          z: 68
         stock: 40
         level: 1
         yield: 3

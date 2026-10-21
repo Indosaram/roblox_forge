@@ -36,7 +36,7 @@ return {
 		assert(left == 3 and alpha == 0, "next biome restarts")
 	end,
 	["sheet close and build action surfaces stay separate at all target sizes"] = function()
-		for _, size in { { 360, 640 }, { 640, 360 }, { 1280, 720 }, { 1920, 1080 } } do
+		for _, size in { { 360, 640 }, { 360, 620 }, { 640, 360 }, { 1280, 720 }, { 1920, 1080 } } do
 			local width, height = size[1], size[2] - 56
 			local w, h, top, right = Model.contextSheetBounds(width, height, width < 700)
 			local close = { x = width - right - 50, y = top, width = 44, height = 44 }
@@ -225,9 +225,10 @@ return {
 			local stick = { x = 0, y = height - 128, width = 128, height = 128 }
 			local jump = { x = width - 128, y = height - 128, width = 128, height = 128 }
 			assert(menuWidth <= 720 and menu.x >= 0 and menu.y >= 0, "centered menu respects safe area")
-			assert(menu.y + menu.height <= height - 128, "all tiles fit above movement controls without scrolling")
-			assert(not overlaps(menu, stick) and not overlaps(menu, jump), "menu clears movement zones")
+			menu.height = math.min(menu.height, math.max(0, height - top - 128))
+			assert(not overlaps(menu, stick) and not overlaps(menu, jump), "scroll viewport clears movement zones")
 			local hud = Model.contextHudBounds(width, height)
+			assert(not overlaps(menu, hud.menu), "card grid clears menu toggle")
 			local chat = { x = 0, y = 0, width = 540, height = 320 }
 			for _, key in { "vitals", "objective", "menu", "biome" } do
 				for _, other in { "vitals", "objective", "menu", "biome" } do

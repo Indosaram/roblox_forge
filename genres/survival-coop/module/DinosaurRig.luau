@@ -540,6 +540,30 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	return model
 end
 
+-- Spawn against Terrain only: foliage and another creature are not support.
+function M.ground(model: Model)
+	local root = assert(model.PrimaryPart, "CREATURE_ROOT_REQUIRED")
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { workspace.Terrain }
+	params.IgnoreWater = true
+	local hit = workspace:Raycast(Vector3.new(root.Position.X, 512, root.Position.Z), Vector3.new(0, -1024, 0), params)
+	assert(hit, "CREATURE_SPAWN_WITHOUT_TERRAIN:" .. model.Name)
+	local lowest = math.huge
+	for _, piece in model:GetDescendants() do
+		if piece:IsA("BasePart") then
+			local cf, size = piece.CFrame, piece.Size
+			local half = (
+				math.abs(cf.RightVector.Y) * size.X
+				+ math.abs(cf.UpVector.Y) * size.Y
+				+ math.abs(cf.LookVector.Y) * size.Z
+			) / 2
+			lowest = math.min(lowest, cf.Position.Y - half)
+		end
+	end
+	model:PivotTo(model:GetPivot() + Vector3.new(0, hit.Position.Y + 0.1 - lowest, 0))
+end
+
 -- Pure sampling: no connections, wall clock, random motion or client damage.
 function M.pose(model: Model, state: string, elapsed: number, speed: number)
 	local root = model.PrimaryPart

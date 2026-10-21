@@ -14,6 +14,7 @@ function M.factory(ctx: any): any
 	end
 	local gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn, gui.Enabled = "ForgeCrossServerMarket", false, false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
 		name = "TradeSheet",
@@ -80,6 +81,10 @@ function M.factory(ctx: any): any
 	local unsubscribe = ctx.onSnapshot(function(snapshot)
 		local state = snapshot.market
 		if not state then
+			status.Text = text(
+				"Market is loading. Gather goods, then return to list or browse bundles.",
+				"장터를 불러오는 중입니다. 재료를 채집한 뒤 돌아와 판매하거나 구매하세요."
+			)
 			return
 		end
 		local signature = Ledger.canonical(state)
@@ -95,10 +100,12 @@ function M.factory(ctx: any): any
 		order = 0
 		label(text("Shellmoney ", "조개돈 ") .. tostring(state.balance))
 		label(text("Sell: quantity / whole bundle price", "판매: 수량 / 묶음 전체 가격"))
+		local sellable = 0
 		for id, item in state.items do
 			if not table.find(state.catalogIds, item.catalogId) then
 				continue
 			end
+			sellable += 1
 			itemLabel(item.catalogId, item.quantity, "")
 			local draft = drafts[id] or { quantity = 1, price = 10 }
 			drafts[id] = draft
@@ -112,6 +119,14 @@ function M.factory(ctx: any): any
 				send("list", { id, draft.quantity, draft.price })
 			end)
 		end
+		if sellable == 0 then
+			label(
+				text(
+					"No tradable goods yet. Gather resources and bring them to the harbor.",
+					"판매할 재료가 없습니다. 재료를 채집하여 항구로 가져오세요."
+				)
+			)
+		end
 		label(text("Your listings", "내 판매 목록"))
 		for _, listing in state.listed do
 			itemLabel(listing.catalogId, listing.quantity, tostring(listing.price))
@@ -120,6 +135,17 @@ function M.factory(ctx: any): any
 			end)
 		end
 		label(text("Browse / filter", "목록 / 품목 선택"))
+		button(text("Refresh listings", "판매 목록 새로고침"), function()
+			send("browse", { state.filter, state.page })
+		end)
+		if #state.listings == 0 then
+			label(
+				text(
+					"No bundles listed. Choose an item below or list your own goods.",
+					"등록된 묶음이 없습니다. 아래 품목을 선택하거나 직접 판매해 보세요."
+				)
+			)
+		end
 		for _, id in state.catalogIds do
 			button(ctx.icons.item(id).text, function()
 				send("browse", { id, state.page })

@@ -413,6 +413,7 @@ return {
 					model.Name, model.Parent = id, parent
 					return model
 				end,
+				ground = function() end,
 			},
 		})
 		local api = module.new({

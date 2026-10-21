@@ -26,7 +26,7 @@ local nodes: { Node } = {
 		["catalogId"] = "fiber-bush",
 		["charges"] = 3,
 		["id"] = "fiber-bush-01",
-		["position"] = { ["x"] = 0, ["y"] = 2, ["z"] = 14 },
+		["position"] = { ["x"] = 0, ["y"] = 2, ["z"] = 5 },
 		["qualityMilli"] = 1000,
 	},
 	[4] = {

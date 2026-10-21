@@ -718,7 +718,11 @@ gui.Destroying:Connect(panels.destroy)
 script.Destroying:Connect(panels.destroy)
 
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
-local camera = QuarterView.start()
+local camera = QuarterView.start(
+	if workspace:GetAttribute("ForgeWorldBiome") == "volcano"
+		then { yaw = -90, pitch = 35, distance = 110, fieldOfView = 60 }
+		else nil
+)
 gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
 local aerialGui = Instance.new("ScreenGui")

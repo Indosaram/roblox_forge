@@ -234,11 +234,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		for index, offset in { -36, 32 } do
 			local position = Vector3.new(entry.x + offset, entry.y, entry.z - 58 - index * 12)
 			workspace.Terrain:FillBall(position - Vector3.new(0, 6, 0), 12, Enum.Material.Sand)
+			game:GetService("RunService").Heartbeat:Wait()
 			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root)
 			animal:ScaleTo(1.4)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))
+			rig.ground(animal)
 			for _, piece in animal:GetDescendants() do
 				if piece:IsA("BasePart") then
+					piece.Anchored = true
 					piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
 				end
 			end

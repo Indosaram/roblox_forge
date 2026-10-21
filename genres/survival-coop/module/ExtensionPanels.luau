@@ -80,7 +80,7 @@ end
 function M.menuBounds(width: number, height: number): (number, number, number, number)
 	local landscape = width > height
 	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
-	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 56
+	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 116
 end
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
@@ -369,7 +369,7 @@ function M.start(options: {
 			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
 			menuList.AnchorPoint = Vector2.new(0.5, 0)
 			menuList.Position = UDim2.new(0.5, 0, 0, menuTop)
-			local menuHeight = math.max(0, size.Y - menuTop - (if size.X > size.Y then 96 else 128))
+			local menuHeight = math.max(0, size.Y - menuTop - 128)
 			menuList.Size = UDim2.fromOffset(menuWidth, menuHeight)
 			local mx, my, mw, mh =
 				HUDModel.chatSafe(size.X, size.Y, (size.X - menuWidth) / 2, menuTop, menuWidth, menuHeight)

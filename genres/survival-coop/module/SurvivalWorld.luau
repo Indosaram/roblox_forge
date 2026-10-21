@@ -763,6 +763,7 @@ function M.new(config: Config)
 					end
 				end
 				local model = DinosaurRig.new(engine, spawn.id, Vector3.new(p.x, p.y, p.z), folder, envelope)
+				DinosaurRig.ground(model)
 				wildlife.register(model, spawn.id, spawn.catalogId)
 			end
 		end

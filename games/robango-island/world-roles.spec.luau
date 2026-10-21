@@ -9,6 +9,69 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["every onboarding spawn has an immediately reachable gather prompt"] = function()
+		local roblox = require("@lune/roblox")
+		for _, preview in { true, false } do
+			local engine = Engine.new()
+			if preview then
+				engine.preview(Content, Source, nil, nil, "onboarding", true)
+			else
+				engine.role.build(Content, Source, Policy, function()
+					return 0
+				end, "rw.onboarding", 79)
+			end
+			engine.move("1", { x = 0, y = 0, z = 0 })
+			local client = engine.gatherClient("1", function()
+				return { ok = true }
+			end)
+			local workspace = engine.game:GetService("Workspace")
+			for _, spawn in workspace:GetDescendants() do
+				if spawn:IsA("SpawnLocation") then
+					local reachable = false
+					for _, prompt in workspace:GetDescendants() do
+						if prompt:IsA("ProximityPrompt") and prompt.Name == "ForgeGather" then
+							reachable = reachable
+								or (prompt.Parent.Position - (spawn.Position + roblox.Vector3.new(0, 4, 0))).Magnitude
+									<= prompt.MaxActivationDistance
+						end
+					end
+					assert(reachable, "onboarding spawn has no gather prompt in activation range")
+				end
+			end
+			client.destroy()
+		end
+	end,
+	["production onboarding creatures spawn with their lowest part on terrain"] = function()
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.onboarding", 79)
+		world.bind({} :: any)
+		local count = 0
+		for _, model in engine.game:GetService("Workspace"):GetDescendants() do
+			if model:IsA("Model") and model:GetAttribute("Species") then
+				local lowest = math.huge
+				for _, part in model:GetDescendants() do
+					if part:IsA("BasePart") then
+						local cf, size = part.CFrame, part.Size
+						lowest = math.min(
+							lowest,
+							cf.Position.Y
+								- (
+										math.abs(cf.RightVector.Y) * size.X
+										+ math.abs(cf.UpVector.Y) * size.Y
+										+ math.abs(cf.LookVector.Y) * size.Z
+									)
+									/ 2
+						)
+					end
+				end
+				assert(lowest >= 0 and lowest <= 1, model.Name .. " is not grounded")
+				count += 1
+			end
+		end
+		assert(count >= 8, "all six tutorial species and two arrival grazers")
+	end,
 	["warehouse prompt approaches keep authority rays and decorative kits unobstructed"] = function()
 		local engine = Engine.new()
 		local workspace = engine.game:GetService("Workspace")

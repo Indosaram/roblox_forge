@@ -39,7 +39,7 @@ return {
 					end,
 				},
 				instance = { new = node },
-				enum = { AutomaticSize = { Y = "Y" } },
+				enum = { AutomaticSize = { Y = "Y" }, ZIndexBehavior = { Sibling = "Sibling" } },
 				udim2 = {
 					new = function(...)
 						return { ... }
