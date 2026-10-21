@@ -9,6 +9,61 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["warehouse prompt approaches keep authority rays and decorative kits unobstructed"] = function()
+		local engine = Engine.new()
+		local workspace = engine.game:GetService("Workspace")
+		local fills = {}
+		workspace.Terrain.FillBlock = function(_, frame, size, material)
+			table.insert(fills, { position = frame.Position, size = size, material = material.Name })
+		end
+		engine.preview(Content, Source, nil, nil, "onboarding", true)
+		local marker = workspace:FindFirstChild("DevelopmentIsland"):FindFirstChild("Warehouse")
+		assert(marker:FindFirstChild("ForgeWarehouse"), "real bootstrap warehouse prompt")
+		local target = Source.tribe.warehousePosition
+		for _, offset in { { 7, 0 }, { -7, 0 }, { 0, 7 }, { 0, -7 }, { 5, 5 }, { -5, 5 }, { 5, -5 }, { -5, -5 } } do
+			local from = { X = marker.Position.X + offset[1], Y = 3.2, Z = marker.Position.Z + offset[2] }
+			local to = { X = target.x, Y = target.y, Z = target.z }
+			for step = 0, 20 do
+				local point, material = {}, "Air"
+				for _, axis in { "X", "Y", "Z" } do
+					point[axis] = from[axis] + (to[axis] - from[axis]) * step / 20
+				end
+				for _, fill in fills do
+					local overlaps = true
+					for _, axis in { "X", "Y", "Z" } do
+						if
+							fill.position[axis] + fill.size[axis] / 2 <= point[axis]
+							or fill.position[axis] - fill.size[axis] / 2 >= point[axis]
+						then
+							overlaps = false
+						end
+					end
+					if overlaps then
+						material = fill.material
+					end
+				end
+				assert(
+					material == "Air",
+					"warehouse authority ray intersects "
+						.. material
+						.. " at "
+						.. point.X
+						.. ","
+						.. point.Y
+						.. ","
+						.. point.Z
+				)
+			end
+		end
+		for _, part in workspace:GetDescendants() do
+			if
+				part:IsA("BasePart")
+				and (part.Parent.Name == "IslandScenery" or string.find(part.Name, "WarehouseBaskets", 1, true))
+			then
+				assert(part.CanCollide == false, part.Name .. " decorative kit blocks reach")
+			end
+		end
+	end,
 	["live role bootstrap receives the same structure templates as Studio preview"] = function()
 		local engine = Engine.new()
 		local bootstrap = engine.load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
