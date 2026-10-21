@@ -62,6 +62,7 @@ function M.open(content: any, options: any, facts: any, now: number): (any?, str
 		expiresAt = island.expiresAt,
 		stage = 1,
 		status = "active",
+		openedAt = now,
 		completed = {},
 		progress = {},
 		receipts = {},

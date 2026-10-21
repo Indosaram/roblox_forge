@@ -66,6 +66,11 @@ local contract: Shared.RuntimeContract = {
 		{ id = "equipment-complete", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "equipment-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "attack", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "dodge", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "guard", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "skill-learn", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "skill-reset", args = { version }, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "companion-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "gather", args = { id, version }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "transfer-deposit",
@@ -79,7 +84,18 @@ local contract: Shared.RuntimeContract = {
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
-		{ id = "vitals-damage", args = { vital }, origin = "server", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "vitals-damage",
+			args = { vital },
+			origin = "server",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "combat-damage",
+			args = { vital, version },
+			origin = "server",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{ id = "rest-stop", args = {}, origin = "server", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "settlement-invite",
@@ -278,6 +294,7 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"companion-action",
 		"home-expand",
 		"home-place",
 		"home-recover",

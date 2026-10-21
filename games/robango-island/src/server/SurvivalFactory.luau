@@ -9,7 +9,14 @@ local Clock = require(Forge.core.infra.genre.Clock)
 local Wildlife = require(Forge.genres["survival-coop"].module.Wildlife)
 local HomeExtension = require(Forge.genres["survival-coop"].module.HomeExtension)
 local Extensions = require(Forge.genres["survival-coop"].module.Extensions)
+local ActorDocuments = require(Forge.core.infra.data.ActorDocumentStore)
+local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.ArchipelagoExtension)
+local Archipelago = require(Forge.core.domain.island.Archipelago)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
+	-- BEGIN production role projection. Geometry and durable gathering share one layout.
+	content, source, wildlifePolicy =
+		world.roleContent or content, world.roleSource or source, world.roleWildlife or wildlifePolicy
+	-- END production role projection.
 	-- The rendered module also carries capability metadata, not domain content.
 	content = table.clone(content)
 	content.capability = nil
@@ -70,11 +77,161 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}
 	end
 	local extensionFactories = table.clone(Extensions.factories)
+	local expeditionStore = ActorDocuments.new(backend, options, "robango-exp-v1")
+	local activeSession: any = nil
+	local gatherReceipt: any = nil
+	-- BEGIN authoritative home owner. Personal profile and server spatial ports supply facts.
+	local HomeContent = require(Forge.core.domain.home.HomeContent)
+	local homeOwner: any = nil
+	local function personalData(actor)
+		local port = if activeSession then activeSession.personalTransfer(actor) else nil
+		return if port then port.profile().data.envelope.genres["survival-coop"].data else nil
+	end
+	local function developmentFacts(document: any): any
+		local points = if document and document.development then document.development.points else 0
+		local rank = 1
+		for _, tier in if content.homePolicy then content.homePolicy.tiers else {} do
+			if points >= tier.development then
+				rank = tier.rank
+			end
+		end
+		return { homeRank = rank, grade = math.min(10, math.floor(points / 100)), points = points }
+	end
+	if content.homePolicy then
+		local rules = HomeContent.rules(content)
+		local published: any = {}
+		local structures = {}
+		for _, definition in content.structures do
+			local kit = definition.id .. "-kit"
+			for _, item in content.items do
+				if item.id == kit then
+					structures[definition.id] =
+						{ kit = kit, halfSize = math.max(definition.footprintX, definition.footprintZ) * 2, rank = 1 }
+				end
+			end
+		end
+		world.home = {
+			rules = rules,
+			structures = structures,
+			seed = function(actor)
+				local seed = 0
+				for i = 1, #actor do
+					seed = (seed * 31 + string.byte(actor, i)) % 2147483647
+				end
+				return seed
+			end,
+			ownerOf = function(actor, token)
+				return if token == "home:" .. actor then actor else nil
+			end,
+			facts = function(actor, owner, operation, body)
+				local data = personalData(owner)
+				local development = developmentFacts(expeditionStore.snapshot(owner))
+				local spatial = world.services.survivalDeath
+				local position = if spatial then spatial.position(actor) else nil
+				local state = published[owner]
+				local half = rules.landSizes[if state then state.landRank else 1] / 2
+				local target = if operation == "place"
+					then body.position
+					else if state and body then (state.structures[body.id or body.plot] or {}).position else nil
+				local inReach = target == nil or (spatial ~= nil and spatial.reachable(actor, target))
+				return {
+					reachable = inReach
+						and position ~= nil
+						and world.layout ~= nil
+						and world.layout.id == "rw.home"
+						and math.abs(position.x) <= half
+						and math.abs(position.z) <= half,
+					atDock = spatial ~= nil and spatial.reachable(actor, rules.dock),
+					ownerOnline = actor == owner,
+					developmentRank = development.homeRank,
+					nodes = if data and data.progression then data.progression.nodes or {} else {},
+					entitlements = {},
+				}
+			end,
+			publish = function(_owner, state)
+				published[_owner] = state
+				if world.publishHome then
+					world.publishHome(state, rules)
+				end
+			end,
+		}
+	end
+	-- END authoritative home owner.
+	local function expeditionFacts(actor, document: any?)
+		local port = if activeSession then activeSession.personalTransfer(actor) else nil
+		local envelope = if port then port.profile().data.envelope else nil
+		local data = envelope and envelope.genres["survival-coop"].data
+		local development = if document then document.development else nil
+		return {
+			level = if data and data.progression then data.progression.level else 1,
+			developmentRank = developmentFacts(document).grade,
+			instabilityAccess = if development then development.instabilityAccess else 1,
+		}
+	end
+	local archipelago = ArchipelagoExtension.new({
+		content = content,
+		entryBuffer = source.archipelago.entryBufferSeconds,
+		now = seconds,
+		store = expeditionStore,
+		facts = expeditionFacts,
+		verify = function(actor, operationId)
+			return if provision.archipelagoReceipt then provision.archipelagoReceipt(actor, operationId) else nil
+		end,
+		gatherReceipt = function(actor, epoch, requestId)
+			return if gatherReceipt then gatherReceipt(actor, epoch, requestId) else nil
+		end,
+		-- BEGIN finalized spatial survey receipts. Identity derives from server markers.
+		surveyReceipt = function(actor, state, objectiveId, markerId): any
+			local marker = if world.surveyMarkers then world.surveyMarkers[markerId] else nil
+			if not marker or marker.objective ~= objectiveId or marker.layout ~= Archipelago.layout(state) then
+				return nil
+			end
+			if not world.services.survivalDeath.reachable(actor, marker.position) then
+				return nil
+			end
+			return {
+				id = state.id .. ":survey:" .. markerId,
+				actor = actor,
+				expedition = state.id,
+				revision = state.revision,
+				objective = objectiveId,
+				action = "survey",
+				target = objectiveId,
+				quantity = 1,
+			}
+		end,
+		-- END finalized spatial survey receipts.
+		returnHome = function(actor)
+			return if provision.returnHome
+				then provision.returnHome(actor)
+				else { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
+		end,
+	})
+	table.insert(extensionFactories, function()
+		return require(Forge.core.infra.genre.Session).registerLifecycle({
+			id = "archipelago",
+			handles = function()
+				return false
+			end,
+			command = function()
+				return { ok = false, reason = "SERVER_ONLY" }
+			end,
+			snapshot = function(actor)
+				local document, reason = expeditionStore.snapshot(actor)
+				return if document then document.archipelago else nil, reason
+			end,
+			drain = expeditionStore.drain,
+			releaseActor = expeditionStore.releaseActor,
+			resumeActor = expeditionStore.resumeActor,
+			close = expeditionStore.close,
+		})
+	end)
 	if world.home then
 		table.insert(extensionFactories, function(ctx)
 			local config = table.clone(world.home)
 			config.content, config.store, config.now = ctx.content, ctx.store, ctx.now
-			return HomeExtension.new(config)
+			homeOwner = HomeExtension.new(config)
+			return homeOwner
 		end)
 	end
 	local factory, err = Bootstrap.new({
@@ -140,6 +297,60 @@ return function(content: any, source, world, backend, clock, options, provision,
 	}, world, backend, options)
 	if not factory then
 		return factory, err
+	end
+	local factoryPorts: any = factory
+	factoryPorts.homeOwner = function()
+		return homeOwner
+	end
+	factoryPorts.archipelago = archipelago
+	local roleWorld: any = world
+	roleWorld.surveyObjective = archipelago.survey
+	factoryPorts.expeditionStore = expeditionStore
+	factoryPorts.gatherReceipt = function(actor, epoch, requestId)
+		local port = factory.services.survivalGathering
+		return if port and port.receipt then port.receipt(actor, epoch, requestId) else nil
+	end
+	gatherReceipt = factoryPorts.gatherReceipt
+	local gatheringPort = factory.services.survivalGathering
+	if gatheringPort then
+		local command = gatheringPort.command
+		gatheringPort.command = function(actor, args, context, expiresAt, admit)
+			local result = command(actor, args, context, expiresAt, admit)
+			if result.ok then
+				local credited = archipelago.gatherObjective(actor, context.sessionEpoch, context.requestId)
+				if
+					not credited.ok
+					and credited.reason ~= "missing_expedition"
+					and credited.reason ~= "objective_mismatch"
+					and credited.reason ~= "receipt_scope"
+					and credited.reason ~= "duplicate_receipt"
+				then
+					local noted = table.clone(result)
+					noted.data = table.clone(result.data or {})
+					noted.data.objectiveError = credited.reason
+					return noted
+				end
+			end
+			return result
+		end
+	end
+	factoryPorts.admitExpedition = function(actor)
+		local document, reason = expeditionStore.snapshot(actor)
+		if not document or not document.archipelago then
+			return false, reason or "missing_expedition"
+		end
+		return Archipelago.admit(
+			document.archipelago,
+			content,
+			expeditionFacts(actor, document),
+			seconds(),
+			source.archipelago.entryBufferSeconds
+		)
+	end
+	local bindSession = factory.bind
+	factory.bind = function(session)
+		activeSession = session
+		bindSession(session)
 	end
 	-- Session asks for a command epoch for every durable action on every state push. The runtime
 	-- answers a non-member (a visitor, or anyone routed here without a seat) only after a durable
@@ -235,7 +446,17 @@ return function(content: any, source, world, backend, clock, options, provision,
 				return table.unpack(results, 1, results.n)
 			end
 		end
-		return port
+		local Session = require(Forge.core.infra.genre.Session)
+		local lifecycle = Session.lifecycle(extension)
+		for _, name in { "drain", "releaseActor", "resumeActor" } do
+			local method = (lifecycle :: any)[name]
+			if method then
+				port[name] = function(...)
+					return run(method, ...)
+				end
+			end
+		end
+		return Session.registerLifecycle(port)
 	end
 	local extensions = (factory.services :: any).survivalExtensions
 	for index, extension in extensions or {} do

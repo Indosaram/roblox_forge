@@ -106,21 +106,25 @@ function M.replay(journal: Journal.Journal, packsRoot: string?, context: cliutil
 	-- Read the scenario's pack binding from the genre copy, then resolve through
 	-- the same path `qa run` uses so a pack-local override wins identically.
 	local genrePath = registry.packages[genre].path .. "/qa-scenarios/" .. name .. ".yml"
-	if not fs.isFile(genrePath) then
-		return nil, "scenario not found: " .. genrePath
+	local pack = journal.meta.pack
+	if not pack then
+		if not fs.isFile(genrePath) then
+			return nil, "scenario not found: " .. genrePath
+		end
+		local okGenre, genreRaw = pcall(function()
+			return serde.decode("yaml", fs.readFile(genrePath))
+		end)
+		if not okGenre or type(genreRaw) ~= "table" or type(genreRaw.pack) ~= "string" then
+			return nil, "scenario declares no pack: " .. genrePath
+		end
+		pack = genreRaw.pack
 	end
-	local okGenre, genreRaw = pcall(function()
-		return serde.decode("yaml", fs.readFile(genrePath))
-	end)
-	if not okGenre or type(genreRaw) ~= "table" or type(genreRaw.pack) ~= "string" then
-		return nil, "scenario declares no pack: " .. genrePath
-	end
-	local pack: string = journal.meta.pack or genreRaw.pack
-	local packsDir = packsDirFor(pack, name :: string, packsRoot)
+	local targetPack = assert(pack, "scenario pack resolved")
+	local packsDir = packsDirFor(targetPack, name :: string, packsRoot)
 	if packsDir == nil then
-		return nil, "no target found for pack '" .. pack .. "'; pass --packs-root"
+		return nil, "no target found for pack '" .. targetPack .. "'; pass --packs-root"
 	end
-	local resolution, resolutionErrors = qa.resolveScenario(reference, pack, packsDir, registry)
+	local resolution, resolutionErrors = qa.resolveScenario(reference, targetPack, packsDir, registry)
 	if resolution == nil then
 		return nil, table.concat(resolutionErrors, "; ")
 	end
@@ -134,7 +138,7 @@ function M.replay(journal: Journal.Journal, packsRoot: string?, context: cliutil
 	if #errors > 0 then
 		return nil, table.concat(errors, "; ")
 	end
-	local target, targetErrors = qa.loadTarget(pack, registry, context, packsDir)
+	local target, targetErrors = qa.loadTarget(targetPack, registry, context, packsDir)
 	if target == nil then
 		return nil, table.concat(targetErrors, "; ")
 	end

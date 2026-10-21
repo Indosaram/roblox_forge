@@ -41,7 +41,11 @@ function M.start(env: any): any
 			return false, reason
 		end
 		if destination == "archipelago" then
-			allowed, reason = Expedition.admitStage(facts.expedition, env.now())
+			if env.admitExpedition then
+				allowed, reason = env.admitExpedition(tostring(player.UserId))
+			else
+				allowed, reason = Expedition.admitStage(facts.expedition, env.now())
+			end
 			if not allowed then
 				return false, reason
 			end

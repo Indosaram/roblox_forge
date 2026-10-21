@@ -15,6 +15,9 @@ local Gathering = require("../../genres/survival-coop/module/Gathering")
 local Wildlife = require("../../genres/survival-coop/module/Wildlife")
 local Extensions = require("../../genres/survival-coop/module/Extensions")
 local HomeExtension = require("../../genres/survival-coop/module/HomeExtension")
+local ArchipelagoExtension = require("../../genres/survival-coop/module/ArchipelagoExtension")
+local ActorDocumentStore = require("../../core/infra/data/ActorDocumentStore")
+local Archipelago = require("../../core/domain/island/Archipelago")
 local LateEquipmentPorts = require("./src/server/LateEquipmentPorts")
 local Contract = require("../../genres/survival-coop/module/Contract")
 local Settlement = require("../../core/domain/settlement/Settlement")
@@ -52,17 +55,20 @@ local forge = {
 				Wildlife = Wildlife,
 				Extensions = Extensions,
 				HomeExtension = HomeExtension,
+				ArchipelagoExtension = ArchipelagoExtension,
 			},
 		},
 	},
 	core = {
 		domain = {
+			home = { HomeContent = require("../../core/domain/home/HomeContent") },
+			island = { Archipelago = Archipelago },
 			settlement = { Settlement = Settlement },
 			inventory = { Inventory = Inventory },
 			crafting = { Job = Job },
 			command = { Journal = Journal },
 		},
-		infra = { genre = { Clock = Clock } },
+		infra = { genre = { Clock = Clock, Session = Session }, data = { ActorDocumentStore = ActorDocumentStore } },
 	},
 }
 local manualScheduling = false

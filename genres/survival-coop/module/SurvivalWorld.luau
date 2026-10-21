@@ -550,6 +550,13 @@ function M.new(config: Config)
 		assert(wildlife, "WILDLIFE_NOT_BOUND")
 		for _, state in states do
 			wildlife.publish(state)
+			if wildlifeFolder then
+				for _, model in wildlifeFolder:GetChildren() do
+					if model:GetAttribute("ForgeWildlifeId") == state.id then
+						model:SetAttribute("ForgePlayerWindupUntil", (state :: any).playerWindupUntil)
+					end
+				end
+			end
 		end
 	end
 	function api.registerStation(part: BasePart, id: string, kind: string)
@@ -686,7 +693,7 @@ function M.new(config: Config)
 					return services.survivalDeath.equipment(id)
 				end,
 				damage = function(id, strike, damage)
-					enqueue(id, "vitals-damage", { damage }, "npc:" .. incarnation .. ":" .. strike)
+					enqueue(id, "combat-damage", { damage, policy.nowMillis() }, "npc:" .. incarnation .. ":" .. strike)
 				end,
 			})
 			local folder = Instance.new("Folder")

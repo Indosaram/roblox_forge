@@ -50,6 +50,20 @@ local function fake()
 	return env, calls, facts
 end
 return {
+	["production expedition admission uses the committed document gate before handoff"] = function()
+		local env, calls = fake()
+		env.admitExpedition = function(actor)
+			assert(actor == "1", "server actor identity passed")
+			return false, "expiry_imminent"
+		end
+		local ok, reason = Bootstrap.start(env).travel({ UserId = 1 }, "archipelago")
+		assert(not ok and reason == "expiry_imminent" and #calls == 0, "document gate precedes handoff")
+		env.admitExpedition = function()
+			return true
+		end
+		assert(Bootstrap.start(env).travel({ UserId = 1 }, "archipelago"), "committed document authorizes travel")
+		assert(table.concat(calls, ",") == "drain,teleport", "drain precedes teleport after admission")
+	end,
 	["unknown live place and zero fail closed"] = function()
 		local env = fake()
 		env.placeId = 0

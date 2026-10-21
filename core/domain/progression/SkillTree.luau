@@ -6,6 +6,7 @@ local M = {}
 export type Mastery = { level: number, xp: number }
 export type State = {
 	level: number,
+	xp: number?,
 	sp: number,
 	paid: { [string]: number },
 	mastery: { [string]: Mastery },
@@ -56,6 +57,18 @@ function M.award(state: State, policy: Policy, category: string, receipt: string
 	end
 	local result = M.copy(state)
 	result.receipts[receipt] = true
+	-- Character experience is earned by the same finalized action as mastery.
+	-- Older saves start at zero remaining XP; replayed receipts award neither.
+	result.xp = (result.xp or 0) + policy.actionXP
+	while result.level < policy.maxLevel do
+		local required = policy.xpBase + policy.xpStep * result.level
+		if result.xp < required then
+			break
+		end
+		result.xp -= required
+		result.sp += policy.spPerLevel
+		result.level += 1
+	end
 	local mastery = result.mastery[category]
 	if mastery.level == 0 then
 		mastery.level = 1

@@ -106,6 +106,8 @@ local schemas: { [string]: { [string]: string } } = {
 		lavaMaxHealthFraction = "number",
 	},
 	progressionPolicy = {
+		combat = "?combatPolicy",
+		companion = "?companionPolicy",
 		volcano = "?volcano",
 		tree = "progressionTree",
 		sharpnessPerPoint = "number",
@@ -124,6 +126,45 @@ local schemas: { [string]: { [string]: string } } = {
 		feed = "mapBoolean",
 		foodFamilies = "mapFamily",
 		clothing = "mapClimate",
+	},
+	combatPolicy = {
+		windupMillis = "positive",
+		dodgeMillis = "positive",
+		guardMillis = "positive",
+		guardPermille = "integer",
+		defenseRecoveryMillis = "positive",
+	},
+	companionPolicy = {
+		capacity = "positive",
+		feedItem = "@items",
+		feedCount = "positive",
+		trainingMillis = "positive",
+		maxSatiety = "positive",
+		feedSatiety = "positive",
+		hungerMillis = "positive",
+		downMillis = "positive",
+		ropeItem = "@items",
+		stunMillis = "positive",
+		stunRecoveryMillis = "positive",
+		stunRange = "positive",
+		basePermille = "integer",
+		levelPermille = "integer",
+		bonusPermille = "integer",
+		minPermille = "integer",
+		maxPermille = "integer",
+		seed = "integer",
+	},
+	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
+	homePolicy = {
+		provenance = "provenance",
+		tiers = "[]homeTier",
+		dock = "point",
+		dockSize = "point",
+		padSize = "point",
+		structureSize = "point",
+		baseSlots = "positive",
+		labRank = "positive",
+		floors = "[]integer",
 	},
 	skillCategories = { id = "id", provenance = "provenance", entryActions = "[]id", nameKey = "text" },
 	skillNodes = {
@@ -257,7 +298,7 @@ M.SECTIONS = {
 	"guides",
 	"chapters",
 }
-M.POLICIES = { "progressionPolicy" }
+M.POLICIES = { "progressionPolicy", "homePolicy" }
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },
 	operationKind = {

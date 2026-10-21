@@ -12,7 +12,7 @@ local process = require("@lune/process")
 local function encode(value: any): string
 	return serde.encode("json", value)
 end
-local function fixture(): any
+local function fixture(windup: boolean?): any
 	local c: any = { now = 0, calls = 0, failAt = 0, lost = false, capacity = 32 }
 	local definitions: { any } = {
 		{ id = "spear", name = "Spear", stackMax = 1, weightMilli = 100, maxDurabilityMilli = 1000 },
@@ -28,6 +28,9 @@ local function fixture(): any
 	local content, errors = Content.canonicalize(raw)
 	assert(content, table.concat(errors, "; "))
 	c.content = content
+	if windup then
+		(c.content :: any).progressionPolicy = { combat = { windupMillis = 600 } }
+	end
 	c.policy = Wildlife.catalog(content, {
 		species = {
 			hunter = { healthMilli = 20000, damageMilli = 1000, drops = { { item = "meat", quantity = 2 } } },
@@ -182,7 +185,7 @@ local function fixture(): any
 					alive = true,
 					position = { x = 0, y = 0, z = 0 },
 					facing = { x = 1, y = 0, z = 0 },
-					targetPosition = { x = 4, y = 0, z = 0 },
+					targetPosition = { x = if c.outOfRange then 40 else 4, y = 0, z = 0 },
 					lineOfSight = true,
 					equipped = { spear = true },
 				}
@@ -222,6 +225,18 @@ local function check(c: any, charged: boolean)
 	assert(source.npcs.hunter.healthMilli == (if charged then 0 else 20000), "exactly one lethal hit")
 end
 local specs: { [string]: () -> () } = {
+	["server windup defers damage and rechecks geometry at strike"] = function()
+		local c = fixture(true)
+		local result = c.session.command("alice", c.request("hunter", "windup"))
+		assert(not result.ok and result.reason == "WINDUP", "intent pending before strike")
+		assert(c.read("wildlife:one").data.npcs.hunter.healthMilli == 20000, "no early damage")
+		c.now, c.outOfRange = 1, true
+		local recovered = c.runtime.recover("alice", 8)
+		assert(recovered.ok, "bounded strike recovery: " .. tostring(recovered.reason))
+		assert(c.read("wildlife:one").data.npcs.hunter.healthMilli == 20000, "moving away causes miss")
+		local bag = c.read("combat:alice").data.envelope.genres["survival-coop"].data.inventory.bag
+		assert(bag.items.spear.durabilityMilli == 900, "miss still pays one attempt")
+	end,
 	["idle recovery sweeps keep the world lease alive past its original expiry"] = function()
 		local c = fixture()
 		-- No player attacks for longer than the 120 s lease; only heartbeat sweeps run.

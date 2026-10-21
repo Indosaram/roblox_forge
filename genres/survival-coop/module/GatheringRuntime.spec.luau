@@ -243,6 +243,26 @@ local function savedSkills(c: any): any
 end
 
 return {
+	["mission receipt requires finalized destination credit and exact actor identity"] = function()
+		local c = fixture()
+		assert(c.runtime.receipt("alice", 0, "harvest") == nil, "unissued gather cannot complete mission")
+		c.runtime.command(c.request)
+		finish(c)
+		local receipt = c.runtime.receipt("alice", 0, "harvest")
+		assert(
+			receipt and receipt.nodeId == "bush-1" and receipt.quantity == 4,
+			"finalized gather yields trusted facts"
+		)
+		assert(c.runtime.receipt("other", 0, "harvest") == nil, "foreign actor cannot reuse receipt")
+		assert(
+			receipt.items.fiber == 3 and receipt.items.seed == 1,
+			"objective quantities retain output catalog identity"
+		)
+		receipt.quantity = 999
+		receipt.items.fiber = 999
+		local reread = c.runtime.receipt("alice", 0, "harvest")
+		assert(reread and reread.quantity == 4 and reread.items.fiber == 3, "receipt returned as detached data")
+	end,
 	["a gathered node awards its discipline xp once, capped by the equipped tool"] = function()
 		local c = fixture(true)
 		c.runtime.command(c.request)

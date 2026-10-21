@@ -1,4 +1,21 @@
 Key,Source,Context,en-us,ko-kr
+combat_dodge,Dodge [Q],combat action,Dodge [Q],회피 [Q]
+combat_guard,Guard [G],combat action,Guard [G],방어 [G]
+progression_skills,Skills,progression sheet,Skills,기술
+progression_learn,Learn,progression action,Learn,배우기
+progression_reset,Reset specializations,progression action,Reset specializations,전문 기술 초기화
+companion_place,Place in pen,companion action,Place in pen,우리에 놓기
+companion_train,Begin taming,companion action,Begin taming,조련 시작
+companion_feed,Feed,companion action,Feed,먹이 주기
+companion_claim,Claim,companion action,Claim,조련 완료
+companion_cancel,Cancel,companion action,Cancel,취소
+companion_deploy,Deploy,companion action,Deploy,소환
+companion_recall,Recall,companion action,Recall,보관
+companion_saddle,Equip saddle,companion action,Equip saddle,안장 장착
+companion_mount,Mount,companion action,Mount,타기
+companion_dismount,Dismount,companion action,Dismount,내리기
+companion_release,Release,companion action,Release,놓아주기
+companion_recover,Recover,companion action,Recover,회복
 game_name,Robango Island,experience title,Robango Island,로방고 섬
 coin_label,Shellmoney,hud resource balance,Shellmoney,조개돈
 structure_campfire,Campfire,entity campfire,Campfire,모닥불

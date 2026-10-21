@@ -19,14 +19,57 @@ local roleEnv = {
 local worldRole, routingOnly = IslandBootstrap.select(roleEnv)
 workspace:SetAttribute("ForgeWorldRole", worldRole)
 workspace:SetAttribute("ForgeTravelMode", if RunService:IsStudio() then "studio-single" else "live")
+local Clock = require(Forge.core.infra.genre.Clock)
+local clock = Clock.new(function()
+	return DateTime.now().UnixTimestampMillis / 1000
+end)
+local backend = RuntimeBackend.new(require(script.Parent.PersistenceConfig), "SurvivalShared")
+local homeReservations = require(Forge.core.infra.island.HomeReservation).new(
+	backend,
+	{
+		sessionId = "home-route:" .. HttpService:GenerateGUID(false),
+		leaseSeconds = 120,
+		now = function()
+			return math.floor(clock.now())
+		end,
+		budget = {
+			encode = function(value)
+				return HttpService:JSONEncode(value)
+			end,
+		},
+	},
+	if roles then roles.home or 0 else 0,
+	function(placeId)
+		return game:GetService("TeleportService"):ReserveServerAsync(placeId)
+	end
+)
 if routingOnly then
 	-- This server is not an island host. It must never construct SurvivalFactory
 	-- or Server.start (which would claim gameplay leases for routing arrivals).
-	error("home_entry_requires_stable_home_resolver")
+	local function route(player: Player)
+		local reservation, reason = homeReservations.resolve(tostring(player.UserId))
+		if not reservation then
+			warn("HOME_ROUTE:" .. tostring(reason))
+			return
+		end
+		local options = Instance.new("TeleportOptions")
+		options.ReservedServerAccessCode = reservation.accessCode
+		local ok, err = pcall(function()
+			game:GetService("TeleportService"):TeleportAsync(reservation.placeId, { player }, options)
+		end)
+		if not ok then
+			warn("HOME_ROUTE:" .. tostring(err))
+		end
+	end
+	local players = game:GetService("Players")
+	players.PlayerAdded:Connect(route)
+	for _, player in players:GetPlayers() do
+		task.spawn(route, player)
+	end
+	return
 end
-local Clock = require(Forge.core.infra.genre.Clock)
 local content = require(Shared.SurvivalContent)
-local source = require(Shared.SurvivalWorldConfig)
+local source: any = table.clone(require(Shared.SurvivalWorldConfig))
 local wildlifePolicy = require(Shared.WildlifePolicy)
 -- Taming/mounts: the pack only supplies the policy; the extension registry builds the system.
 require(Forge.genres["survival-coop"].module.TamingExtension).configure(require(Shared.TamingConfig))
@@ -64,9 +107,6 @@ local provision = require(script.Parent.SurvivalProvision)(
 			else "local:" .. HttpService:GenerateGUID(false),
 	}
 )
-local clock = Clock.new(function()
-	return DateTime.now().UnixTimestampMillis / 1000
-end)
 local function trackJoin(player: Player)
 	joinedAt[tostring(player.UserId)] = math.floor(clock.now())
 end
@@ -93,7 +133,32 @@ require(Forge.genres["survival-coop"].module.MarketExtension).configure(require(
 		return type(data) == "table" and type(data.tutorial) == "table" and data.tutorial.complete == true
 	end,
 }))
-local backend = RuntimeBackend.new(require(script.Parent.PersistenceConfig), "SurvivalShared")
+provision.homeAccessCode = function(actor: string)
+	local reservation = homeReservations.resolve(actor)
+	return if reservation then reservation.accessCode else nil
+end
+-- BEGIN persisted role layout selection. TeleportData is never layout authority.
+if worldRole == "archipelago" and not RunService:IsStudio() then
+	local player = Players:GetPlayers()[1] or Players.PlayerAdded:Wait()
+	local actor = tostring(player.UserId)
+	local owner = require(Forge.core.infra.data.ActorDocumentStore).new(backend, {
+		sessionId = "layout:" .. HttpService:GenerateGUID(false),
+		leaseSeconds = 120,
+		now = function()
+			return math.floor(clock.now())
+		end,
+		budget = {
+			encode = function(value)
+				return HttpService:JSONEncode(value)
+			end,
+		},
+	}, "robango-exp-v1")
+	local document, reason = owner.snapshot(actor)
+	assert(document and document.archipelago, reason or "PERSISTED_EXPEDITION_REQUIRED")
+	source.expedition = document.archipelago
+	assert(owner.close().ok, "LAYOUT_OWNER_RELEASE_FAILED")
+end
+-- END persisted role layout selection.
 local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wildlifePolicy, function()
 	return Clock.millis(clock.now())
 end, worldRole, RunService:IsStudio())
@@ -150,11 +215,19 @@ local routing = IslandBootstrap.start({
 	prepareHandoff = session.prepareHandoff,
 	resumeHandoff = session.resumeHandoff,
 	completeHandoff = session.completeHandoff,
+	admitExpedition = (factory :: any).admitExpedition,
 	facts = function(userId, _destination)
-		local snapshot: any = session.snapshot(tostring(userId))
-		local state = snapshot and snapshot["survival-coop"]
-		local data = state and state.data
-		return if data then { level = data.level, expedition = data.expedition } else nil
+		local port = session.personalTransfer(tostring(userId))
+		local envelope = if port then port.profile().data.envelope else nil
+		local data = envelope and envelope.genres["survival-coop"].data
+		local document = (factory :: any).expeditionStore.snapshot(tostring(userId))
+		return if data
+			then {
+				level = if data.progression then data.progression.level else 1,
+				expedition = if document then document.archipelago else nil,
+				homeAccessCode = if provision.homeAccessCode then provision.homeAccessCode(tostring(userId)) else nil,
+			}
+			else nil
 	end,
 	players = game:GetService("Players"),
 	teleportService = game:GetService("TeleportService"),
@@ -205,6 +278,34 @@ local routing = IslandBootstrap.start({
 		player:SetAttribute("IslandNoticeKey", key)
 	end,
 })
+-- BEGIN production world interactions.
+local liveWorld: any = world
+liveWorld.travel = function(player: Player, destination: string)
+	if destination == "archipelago" then
+		local actor = tostring(player.UserId)
+		local opened = (factory :: any).archipelago.open(actor, {
+			id = HttpService:GenerateGUID(false),
+			index = 1,
+			seed = 20261018,
+			revision = "robango-route-v1",
+			ttl = 1800,
+			entryBuffer = source.archipelago.entryBufferSeconds,
+		})
+		if not opened.ok and opened.reason ~= "expedition_active" then
+			return false, opened.reason
+		end
+	end
+	return if routing.travel then routing.travel(player, destination) else false
+end
+-- END production world interactions.
+provision.returnHome = function(actor: string)
+	local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
+	if not player or not routing.travel then
+		return { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
+	end
+	local ok, reason = routing.travel(player, "home")
+	return { ok = ok, reason = reason }
+end
 -- Only server code may request travel. A gameplay interaction must resolve the
 -- destination role here; there is deliberately no client-controlled teleport remote.
 if routing.travel then

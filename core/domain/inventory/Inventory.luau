@@ -15,6 +15,8 @@ export type Item = {
 	-- Rolled latent attribute (a content tag), if any.
 	latent: string?,
 	attributes: { [string]: string | number | boolean },
+	-- Absent on legacy instances; migration must never infer origin or level.
+	material: any?,
 }
 export type Limits = {
 	contentVersion: number?,
@@ -35,6 +37,11 @@ export type State = {
 local function copyItem(item: Item): Item
 	local copy = table.clone(item)
 	copy.attributes = table.clone(item.attributes)
+	if item.material then
+		local material = table.clone(item.material)
+		material.attributes = table.clone(item.material.attributes)
+		copy.material = material
+	end
 	return copy
 end
 
@@ -83,6 +90,27 @@ local function validItem(catalog: Catalog.Catalog, item: Item): boolean
 	end
 	if type(item.attributes) ~= "table" then
 		return false
+	end
+	if item.material then
+		local material = item.material
+		if
+			type(material) ~= "table"
+			or material.item ~= item.catalogId
+			or not Catalog.integer(material.level, 0, 60)
+			or not Catalog.integer(material.quality, 0, 3)
+			or not Catalog.integer(material.budget, 0, 1000)
+			or type(material.history) ~= "string"
+			or #material.history > 65536
+			or type(material.attributes) ~= "table"
+			or (material.sourceSpeciesId ~= nil and not Catalog.identity(material.sourceSpeciesId))
+		then
+			return false
+		end
+		for key, value in material.attributes do
+			if not Catalog.identity(key) or not Catalog.integer(value, 0, 10) then
+				return false
+			end
+		end
 	end
 	local count = 0
 	for key, value in item.attributes do
@@ -170,6 +198,26 @@ function M.save(state: State): any
 end
 
 function M.compatible(left: Item, right: Item): boolean
+	if (left.material == nil) ~= (right.material == nil) then
+		return false
+	end
+	if left.material and right.material then
+		for _, key in { "level", "quality", "budget", "history", "sourceSpeciesId" } do
+			if left.material[key] ~= right.material[key] then
+				return false
+			end
+		end
+		for key, value in left.material.attributes do
+			if right.material.attributes[key] ~= value then
+				return false
+			end
+		end
+		for key, value in right.material.attributes do
+			if left.material.attributes[key] ~= value then
+				return false
+			end
+		end
+	end
 	if
 		left.catalogId ~= right.catalogId
 		or left.qualityMilli ~= right.qualityMilli

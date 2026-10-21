@@ -3,6 +3,8 @@
 -- Only the personal envelope owns its bag. Shared intents retain scalar effects,
 -- never a bag snapshot; an NPC is locked until its accepted intent resolves.
 local Wildlife = require("./Wildlife")
+local Combat = require("./Combat")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local GatheringRuntime = require("./GatheringRuntime")
 local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")
@@ -151,6 +153,27 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return pending(err)
 		end
 		local receipt = personal.profile().data.envelope.genres["survival-coop"].data.combat.receipts[id]
+		local accepted = source.data.intents[id]
+		if receipt.charged and accepted.attack and config.nowMillis() < accepted.attack.resolveAt then
+			return pending("WINDUP")
+		end
+		local damage = accepted.damage
+		if receipt.charged and accepted.attack then
+			local access = config.access(accepted.request.actorId, accepted.request.targetId)
+			if not access or not access.alive then
+				damage = 0
+			else
+				local _, resolved = Combat.resolve(
+					accepted.attack,
+					config.nowMillis(),
+					accepted.request.targetId,
+					access.targetPosition,
+					access.lineOfSight,
+					Combat.defense()
+				)
+				damage = resolved
+			end
+		end
 		err = update(function(data)
 			local intent = data.intents[id]
 			if intent.phase ~= "INTENT" then
@@ -162,7 +185,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			else
 				local npc = data.npcs[intent.request.targetId]
 				assert(data.locks[npc.id] == id and npc.version == intent.npcVersion, "NPC_INTENT_OWNERSHIP")
-				npc.healthMilli = math.max(0, npc.healthMilli - intent.damage)
+				npc.healthMilli = math.max(0, npc.healthMilli - damage)
 				npc.version += 1
 				intent.phase = "APPLIED"
 				intent.mints = {}
@@ -276,6 +299,11 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return if err then pending(err) else copy(known.result)
 		end
 		ledger.stateVersion += 1
+		local player = envelope.genres["survival-coop"].data
+		if player.progression and intent.phase ~= "REJECTED" and damage > 0 then
+			player.progression =
+				SkillTree.award(player.progression, (config.content :: any).progressionPolicy.tree, "melee", id)
+		end
 		local result: Shared.Result = {
 			ok = intent.phase ~= "REJECTED",
 			reason = intent.reason,
@@ -411,6 +439,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				return data
 			end
 			local player = current.data.envelope.genres["survival-coop"].data
+			if player.companions and player.companions.ride then
+				refusal = "MOUNTED"
+				return data
+			end
 			local bag = Inventory.fromSave(player.inventory[config.carriedContainer], items)
 			local at = config.nowMillis()
 			local candidate, reason =
@@ -428,7 +460,25 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			end
 			local selected = bag.items[assert(itemId, "MISSING_WEAR")]
 			local weapon = policy.weapons[selected.catalogId]
+			local combatPolicy = (config.content :: any).progressionPolicy
+			local attack = nil
+			if combatPolicy and combatPolicy.combat then
+				attack = Combat.begin(id, req.targetId, {
+					mode = "melee",
+					windupMillis = combatPolicy.combat.windupMillis,
+					recoveryMillis = weapon.cooldownMillis,
+					range = weapon.rangeStuds,
+					facingDot = weapon.facingDot,
+					damageMilli = weapon.damageMilli,
+					ammo = 0,
+				}, at, if player.combat then player.combat.nextAttack else 0, access.position, access.facing, 0, false)
+				if not attack then
+					refusal = "RECOVERY"
+					return data
+				end
+			end
 			data.intents[id] = {
+				attack = attack,
 				request = req,
 				binding = id .. binding,
 				commandBinding = binding,
@@ -441,7 +491,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				weaponId = selected.catalogId,
 				damage = weapon.damageMilli,
 				wear = weapon.wearMilli,
-				cooldown = weapon.cooldownMillis,
+				cooldown = weapon.cooldownMillis + (if attack then combatPolicy.combat.windupMillis else 0),
 				drops = copy(policy.species[npc.catalogId].drops),
 			}
 			data.locks[req.targetId], data.actors[req.actorId] = id, id
@@ -480,6 +530,17 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		if not npc then
 			return "UNKNOWN_TARGET"
 		end
+		if (config.content :: any).progressionPolicy and (config.content :: any).progressionPolicy.companion then
+			if npc.captureId == captureId then
+				return nil
+			end
+			if npc.healthMilli == 0 then
+				return "ALREADY_DEAD"
+			end
+			if npc.captureId then
+				return "ALREADY_CAPTURED"
+			end
+		end
 		-- Already applied (replay), dead, past its window, or held by another capture: the
 		-- creature is not in the world for this capture to take, so there is nothing to retry.
 		if
@@ -509,7 +570,13 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 	function runtime.snapshot(): (Fenced.Data?, string?)
 		-- Same reasoning as recover(): no durable round-trip to read our own
 		-- current profile.
-		return copy(source.data.npcs), nil
+		local npcs = copy(source.data.npcs)
+		for _, intent in source.data.intents do
+			if intent.phase == "INTENT" and intent.attack then
+				npcs[intent.request.targetId].playerWindupUntil = intent.attack.resolveAt
+			end
+		end
+		return npcs, nil
 	end
 	return runtime, nil
 end

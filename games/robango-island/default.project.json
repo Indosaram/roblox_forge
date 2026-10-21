@@ -112,6 +112,12 @@
       }
     },
     "ServerScriptService": {
+      "HomeWorld": {
+        "$path": "src/server/HomeWorld.luau"
+      },
+      "RoleWorld": {
+        "$path": "src/server/RoleWorld.luau"
+      },
       "LateEquipmentPorts": {
         "$path": "src/server/LateEquipmentPorts.luau"
       },

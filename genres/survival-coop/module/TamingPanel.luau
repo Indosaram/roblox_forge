@@ -20,6 +20,18 @@ local PROMPT_NAME = "ForgeTame"
 local DEFAULT_REACH = 10
 
 local strings: { [string]: { string } } = {
+	companion_place = { "Place in pen", "우리에 놓기" },
+	companion_train = { "Begin taming", "조련 시작" },
+	companion_feed = { "Feed", "먹이 주기" },
+	companion_claim = { "Claim", "조련 완료" },
+	companion_cancel = { "Cancel", "취소" },
+	companion_deploy = { "Deploy", "소환" },
+	companion_recall = { "Recall", "보관" },
+	companion_saddle = { "Equip saddle", "안장 장착" },
+	companion_mount = { "Mount", "타기" },
+	companion_dismount = { "Dismount", "내리기" },
+	companion_release = { "Release", "놓아주기" },
+	companion_recover = { "Recover", "회복" },
 	tame_title = { "Tamed animals", "길들인 동물" },
 	tame_empty = {
 		"No tamed animals yet. Stun a wild animal, then capture it with a bola.",
@@ -213,6 +225,43 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		if type(state) ~= "table" then
 			return
 		end
+		if state.companions then
+			local order = 0
+			for id, pet in state.companions.pets do
+				order += 1
+				local frame = Instance.new("Frame")
+				frame.Name, frame.BackgroundTransparency, frame.Size, frame.Parent =
+					"Companion-" .. id, 1, UDim2.new(1, 0, 0, 160), rows
+				frame.LayoutOrder = order
+				ui.components.label(
+					theme,
+					{ text = pet.species .. " / " .. pet.phase, size = UDim2.new(1, 0, 0, 32), parent = frame }
+				)
+				local actions = if pet.phase == "Captured"
+					then { "place" }
+					elseif pet.phase == "PenPlaced" then { "train" }
+					elseif pet.phase == "Taming" then { "feed", "claim", "cancel" }
+					elseif pet.phase == "Stored" then { "deploy", "saddle", "release:" .. id }
+					elseif pet.phase == "Deployed" then { "feed", "recall", "mount", "dismount" }
+					else { "recover", "feed" }
+				for index, verb in ipairs(actions) do
+					local control = ui.components.button(theme, {
+						text = M.text(
+							ctx.locale,
+							"companion_" .. (if string.sub(verb, 1, 8) == "release:" then "release" else verb)
+						),
+						size = UDim2.new(0.5, -4, 0, 48),
+						position = UDim2.new((index - 1) % 2 / 2, 0, 0, 36 + math.floor((index - 1) / 2) * 52),
+						parent = frame,
+						onClick = function()
+							send(PREFIX .. "companion-action", { verb, id })
+						end,
+					})
+					control.Name = verb .. "-" .. id
+				end
+			end
+			return
+		end
 		local order = 0
 		local function line(): Frame
 			order += 1
@@ -368,7 +417,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = PROMPT_NAME
-		prompt.KeyboardKeyCode, prompt.GamepadKeyCode = Enum.KeyCode.Q, Enum.KeyCode.ButtonY
+		prompt.KeyboardKeyCode, prompt.GamepadKeyCode = Enum.KeyCode.E, Enum.KeyCode.ButtonY
 		prompt.HoldDuration, prompt.ClickablePrompt, prompt.RequiresLineOfSight = 0, true, false
 		prompt.Exclusivity = Enum.ProximityPromptExclusivity.OnePerButton
 		prompt.ObjectText, prompt.Enabled = "", false

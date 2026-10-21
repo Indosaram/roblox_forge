@@ -13,6 +13,10 @@ local Gathering = require("../../genres/survival-coop/module/Gathering")
 local Wildlife = require("../../genres/survival-coop/module/Wildlife")
 local Extensions = require("../../genres/survival-coop/module/Extensions")
 local HomeExtension = require("../../genres/survival-coop/module/HomeExtension")
+local ArchipelagoExtension = require("../../genres/survival-coop/module/ArchipelagoExtension")
+local ActorDocumentStore = require("../../core/infra/data/ActorDocumentStore")
+local Archipelago = require("../../core/domain/island/Archipelago")
+local Session = require("../../core/infra/genre/Session")
 local LateEquipmentPorts = require("./src/server/LateEquipmentPorts")
 local TamingExtension = require("../../genres/survival-coop/module/TamingExtension")
 local Contract = require("../../genres/survival-coop/module/Contract")
@@ -38,17 +42,20 @@ local forge = {
 				Wildlife = Wildlife,
 				Extensions = Extensions,
 				HomeExtension = HomeExtension,
+				ArchipelagoExtension = ArchipelagoExtension,
 			},
 		},
 	},
 	core = {
 		domain = {
+			home = { HomeContent = require("../../core/domain/home/HomeContent") },
+			island = { Archipelago = Archipelago },
 			settlement = { Settlement = Settlement },
 			inventory = { Inventory = Inventory },
 			crafting = { Job = Job },
 			command = { Journal = Journal },
 		},
-		infra = { genre = { Clock = Clock } },
+		infra = { genre = { Clock = Clock, Session = Session }, data = { ActorDocumentStore = ActorDocumentStore } },
 	},
 }
 local environment: any = {
@@ -138,6 +145,27 @@ return {
 		}, provision, wildlifePolicy))
 		TamingExtension.configure(nil)
 		local services = factory.services
+		assert(services.survivalGathering.receipt, "trusted gather receipt port is published")
+		assert((factory :: any).gatherReceipt("123", 0, "missing") == nil, "unbound factory cannot invent receipt")
+		local expedition = (factory :: any).expeditionStore
+		local saved = expedition.transaction("123", function(document)
+			document.archipelago = { stage = 1, status = "active" }
+			return { ok = true }
+		end)
+		assert(saved.ok, "production factory owns a durable expedition document")
+		local expeditionExtension = nil
+		for _, extension in services.survivalExtensions or {} do
+			if extension.id == "archipelago" then
+				expeditionExtension = extension
+			end
+		end
+		assert(expeditionExtension, "expedition snapshot and lifecycle are registered")
+		local lifecycle = Session.lifecycle(expeditionExtension)
+		assert(lifecycle.releaseActor and lifecycle.resumeActor, "serialized extension preserves handoff lifecycle")
+		assert(lifecycle.releaseActor("123").ok, "handoff releases expedition lease")
+		assert(not expedition.snapshot("123"), "released actor cannot retain expedition authority")
+		assert(lifecycle.resumeActor("123").ok, "failed teleport resumes expedition lease")
+		assert(expedition.snapshot("123").archipelago.stage == 1, "handoff resume conserves expedition state")
 		assert(services.survivalWildlife, "wildlife port is published")
 		local taming = false
 		for _, extension in services.survivalExtensions or {} do

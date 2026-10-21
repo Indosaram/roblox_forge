@@ -1,0 +1,18 @@
+name: fresh-home-archipelago-return
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 79
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/production-worlds]
+steps:
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner]}
+  - {op: world_join, player: owner}
+  - {op: world_home, player: owner}
+  - {op: world_expedition, player: owner}
+  - {op: world_gather, player: owner}
+  - {op: world_survey, player: owner}
+  - {op: world_return_reload, player: owner}

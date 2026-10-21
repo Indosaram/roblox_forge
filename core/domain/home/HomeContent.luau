@@ -1,6 +1,26 @@
 --!strict
 -- Translate the generated survival catalog, never a second crop balance table.
 local M = {}
+function M.rules(content: any): any
+	local policy = assert(content.homePolicy, "HOME_POLICY_REQUIRED")
+	local landSizes, plotCaps = {}, {}
+	for _, tier in policy.tiers do
+		landSizes[tier.rank], plotCaps[tier.rank] = tier.sideStuds, tier.plotCap
+	end
+	return {
+		landSizes = landSizes,
+		plotCaps = plotCaps,
+		placedPlots = true,
+		dock = policy.dock,
+		dockSize = policy.dockSize,
+		padSize = policy.padSize,
+		structureSize = policy.structureSize,
+		baseSlots = policy.baseSlots,
+		labRank = policy.labRank,
+		floors = policy.floors,
+		storageGrants = {},
+	}
+end
 function M.crops(content: any): any
 	local crops = {}
 	for _, operation in content.operations do

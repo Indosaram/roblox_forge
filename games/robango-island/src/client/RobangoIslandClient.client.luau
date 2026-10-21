@@ -35,6 +35,34 @@ local hud = SurvivalHUD.start({
 	locale = locale,
 	names = names,
 })
+-- Server-published attack intent only: no client prediction can confirm a hit.
+local telegraphs: { [Model]: Highlight } = {}
+local telegraphConnection = game:GetService("RunService").Heartbeat:Connect(function()
+	local folder = workspace:FindFirstChild("ForgeWildlife")
+	if not folder then
+		return
+	end
+	for _, model in folder:GetChildren() do
+		if not model:IsA("Model") then
+			continue
+		end
+		local active = model:GetAttribute("ForgePlayerWindupUntil") ~= nil
+		local marker = telegraphs[model]
+		if active and not marker then
+			local created = Instance.new("Highlight")
+			created.Name, created.Adornee, created.Parent = "AttackWindup", model, model
+			created.FillColor, created.OutlineColor = Color3.fromRGB(232, 138, 65), Color3.fromRGB(245, 241, 229)
+			created.FillTransparency = 0.65
+			telegraphs[model] = created
+		elseif not active and marker then
+			marker:Destroy()
+			telegraphs[model] = nil
+		end
+	end
+end)
+gui.Destroying:Connect(function()
+	telegraphConnection:Disconnect()
+end)
 gui.Destroying:Connect(hud.destroy)
 script.Destroying:Connect(hud.destroy)
 

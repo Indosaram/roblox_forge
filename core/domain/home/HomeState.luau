@@ -186,6 +186,17 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 				return nil, "OCCUPIED"
 			end
 		end
+		if args.kind == "farm-plot" and ctx.rules.placedPlots then
+			local count = 0
+			for _, placed in state.structures do
+				if placed.kind == "farm-plot" then
+					count += 1
+				end
+			end
+			if count >= ctx.rules.plotCaps[state.landRank] then
+				return nil, "PLOT_CAP"
+			end
+		end
 		local storage, reason = take(out.storage, ctx.catalog, definition.kit, 1)
 		if not storage then
 			return nil, reason
@@ -194,7 +205,11 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		out.structures[args.id] = { kind = args.kind, position = M.copy(position), owner = actor }
 	elseif action == "plant" then
 		local crop = ctx.crops[args.crop]
-		if not crop or not ctx.rules.plots[args.plot] then
+		local plot = state.structures[args.plot]
+		local validPlot = if ctx.rules.placedPlots
+			then plot ~= nil and plot.kind == "farm-plot"
+			else ctx.rules.plots[args.plot] == true
+		if not crop or not validPlot then
 			return nil, "UNKNOWN_CROP_OR_PLOT"
 		end
 		if state.plots[args.plot] ~= nil then
@@ -277,6 +292,9 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		local placed = state.structures[args.id]
 		if not placed then
 			return nil, "UNKNOWN_STRUCTURE"
+		end
+		if state.plots[args.id] then
+			return nil, "PLOT_OCCUPIED"
 		end
 		local occupied = 0
 		for _ in out.storage.items do

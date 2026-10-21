@@ -73,7 +73,7 @@ function M.new(config: any): any
 		if not owner or Home.identity(owner) ~= args[1] then
 			return { ok = false, reason = "WRONG_HOME_TOKEN" }
 		end
-		local facts = config.facts(actor, owner)
+		local facts = config.facts(actor, owner, operation, args[2] or {})
 		if not facts.reachable then
 			return { ok = false, reason = "OUT_OF_RANGE" }
 		end
@@ -117,6 +117,9 @@ function M.new(config: any): any
 		end
 		tokens[owner] = committed
 		attached[actor] = owner
+		if result.ok and config.publish then
+			config.publish(owner, Home.copy(committed.data.home))
+		end
 		return result
 	end
 	function extension.snapshot(actor: string): (any?, string?)
@@ -132,6 +135,9 @@ function M.new(config: any): any
 			return nil, "FORBIDDEN"
 		end
 		attached[actor] = owner
+		if config.publish then
+			config.publish(owner, Home.copy(token.data.home))
+		end
 		return Home.copy(token.data.home), nil
 	end
 	function extension.recover(_actor: string, _maximum: number): any

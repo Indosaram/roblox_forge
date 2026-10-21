@@ -51,4 +51,12 @@ function M.build(config: any): any
 	end
 	return parts
 end
+
+function M.live(content: any, source: any, wildlife: any, nowMillis: any): any
+	local world = source.renderRole(content, source, wildlife, nowMillis, "rw.home", source.seed)
+	world.publishHome = function(home: any, rules: any)
+		world.renderHome(M.plan(content, home, rules))
+	end
+	return world
+end
 return M

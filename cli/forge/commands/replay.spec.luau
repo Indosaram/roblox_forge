@@ -68,6 +68,33 @@ local function rewrite(path: string, mutate: (any) -> ())
 end
 
 return {
+	["pack-local native scenario replays without a genre copy"] = function()
+		local root = tempdir.path("forge-pack-local-replay")
+		local ok, reason = xpcall(function()
+			fs.writeDir(root)
+			local path = root .. "/journal.json"
+			local registry = assert(registryLib.discover(nil))
+			assert(
+				qa.runScenario({
+					"qa",
+					"run",
+					"--pack",
+					"robango-island",
+					"--scenario",
+					"qa-save-01-rejoin-transfer-crash",
+					"--record",
+					path,
+				}, registry, nil),
+				"pack-local recording"
+			)
+			local io = capture()
+			assert(replay.run({ "replay", path }, io) == 0, "recorded pack binds scenario resolution")
+		end, debug.traceback)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
 	["a mutated fixture result replays to MISMATCH"] = function()
 		local root = tempdir.path("forge-fixture-replay")
 		local ok, reason = xpcall(function()

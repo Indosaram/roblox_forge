@@ -80,4 +80,11 @@ function M.build(env: any): any
 	end
 	return root
 end
+
+function M.live(content: any, source: any, wildlife: any, nowMillis: any): any
+	local state = assert(source.expedition, "PERSISTED_EXPEDITION_REQUIRED")
+	assert(state.status == "active", "EXPEDITION_INACTIVE")
+	local layoutId = state.templateId .. ".s" .. tostring(state.stage)
+	return source.renderRole(content, source, wildlife, nowMillis, layoutId, state.seed)
+end
 return M

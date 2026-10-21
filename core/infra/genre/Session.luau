@@ -48,6 +48,7 @@ export type Session = {
 	commandServer: (string, any) -> (Contract.Result, { notificationError: string }?),
 	commandEpoch: (string, string?) -> number?,
 	personalTransfer: (string) -> PersonalTransfer?,
+	committedReceipt: (string, number, string, string, { any }, string) -> Contract.Result?,
 	recoverTransfers: (string, number) -> Contract.Result,
 	advance: (number) -> (),
 	snapshot: (string) -> Contract.StateData,
@@ -203,6 +204,24 @@ function M.new(
 				hydrate(id, token)
 			end,
 		}
+	end
+	function session.committedReceipt(id, epochId, requestId, action, args, origin)
+		-- Only persisted personal data is evidence. Pending/executor state can contain
+		-- a candidate whose backend acknowledgment has not arrived yet.
+		if not joined[id] or departed[id] or busy[id] or pending[id] or not tokens[id] then
+			return nil
+		end
+		if origin ~= "server" and origin ~= "client" then
+			return nil
+		end
+		local ledger = tokens[id].data.envelope.commands
+		local epoch = ledger and ledger.epochs[tostring(epochId)]
+		local receipt = epoch and epoch.outcomes[requestId]
+		if not receipt or not receipt.result.ok or storeOptions.now() >= receipt.expiresAt then
+			return nil
+		end
+		local binding = (if origin == "server" then "S" else "") .. Ledger.canonical({ action = action, args = args })
+		return if receipt.binding == binding then Executor.clone(receipt.result) else nil
 	end
 	local recoveryTurn: { [string]: number } = {}
 	function session.recoverTransfers(id, maximum)
@@ -854,7 +873,11 @@ function M.new(
 			end
 		end
 		local transfer = services.survivalTransfer
-		local gathering = services.survivalGathering
+		local gathering: {
+			handles: (string) -> boolean,
+			command: (string, { any }, Contract.CommandContext, number, () -> Contract.Result) -> Contract.Result,
+		}? =
+			services.survivalGathering
 		local wildlife = services.survivalWildlife
 		if wildlife and wildlife.handles(request.action) then
 			gathering = wildlife

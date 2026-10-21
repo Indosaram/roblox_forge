@@ -7,6 +7,7 @@ local Fixture = require("../../../genres/survival-coop/module/Adapter.fixture")
 local serde = require("@lune/serde")
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local Ledger = require("../../domain/command/Ledger")
 
 local ACTION = "survival-coop:defend-active"
 
@@ -78,6 +79,38 @@ local function fixture(extensions: { any }?, backend: any?, owner: string?, pers
 end
 
 return {
+	["receipt resolver only returns committed outcomes with exact actor command binding"] = function()
+		local session = fixture({}, nil, "receipts", true)
+		assert(session.join("1").ok, "join")
+		local action = ACTION
+		local epoch = assert(session.commandEpoch("1"), "personal epoch")
+		assert(session.committedReceipt("1", epoch, "r1", action, {}, "client") == nil, "unissued receipt refused")
+		local port = assert(session.personalTransfer("1"), "personal owner")
+		local token = assert(
+			port.personal:update(port.profile(), function(view)
+				local ledger = view.envelope.commands
+				ledger.stateVersion += 1
+				ledger.epochs[tostring(epoch)].outcomes.r1 = {
+					binding = Ledger.canonical({ action = action, args = {} }),
+					result = { ok = true, stateVersion = ledger.stateVersion },
+					createdAt = 0,
+					expiresAt = 86400,
+				}
+				return view
+			end),
+			"receipt durably committed"
+		)
+		port.install(token)
+		local receipt = session.committedReceipt("1", epoch, "r1", action, {}, "client")
+		assert(receipt and receipt.ok, "committed successful outcome resolves")
+		receipt.ok = false
+		local reread = session.committedReceipt("1", epoch, "r1", action, {}, "client")
+		assert(reread and reread.ok, "returned receipt is detached")
+		assert(session.committedReceipt("2", epoch, "r1", action, {}, "client") == nil, "foreign actor refused")
+		assert(session.committedReceipt("1", epoch, "r1", action, { 1 }, "client") == nil, "changed arguments refused")
+		assert(session.committedReceipt("1", epoch, "r1", action, {}, "server") == nil, "changed origin refused")
+		assert(session.close("1").ok, "close")
+	end,
 	["handoff drains saves and releases every actor before travel and blocks old callbacks"] = function()
 		local order = {}
 		local backend = Memory.new()

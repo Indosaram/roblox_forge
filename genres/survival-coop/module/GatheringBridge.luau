@@ -24,6 +24,15 @@ function M.new(config: Config)
 	function bridge.handles(action: string): boolean
 		return action == "survival-coop:gather"
 	end
+	function bridge.receipt(actor: string, epoch: number, requestId: string): Shared.StateData?
+		local runtime = config.resolve(actor)
+		if not runtime or busy[runtime] then
+			return nil
+		end
+		return locked(runtime, function()
+			return runtime.receipt(actor, epoch, requestId)
+		end)
+	end
 	function bridge.command(
 		actor: string,
 		args: { any },

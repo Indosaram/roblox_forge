@@ -11,6 +11,8 @@ local Transfer = require("../../../core/infra/data/ItemTransfer")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
 local Skills = require("./Skills")
+local MaterialGrowth = require("../../../core/domain/crafting/MaterialGrowth")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Events = require("../../../core/infra/analytics/Events")
 local M = {}
 export type PersonalPort = {
@@ -48,6 +50,7 @@ export type Runtime = {
 	command: (Request) -> Result,
 	recover: (string, number) -> Result,
 	snapshot: () -> (Fenced.Data?, string?),
+	receipt: (string, number, string) -> any?,
 }
 local function copy(value: any): any
 	if type(value) ~= "table" then
@@ -173,10 +176,66 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 					result.error = progressed.error or result.error
 				end
 			end
+			if result.status == "confirmed" and (content :: any).progressionPolicy then
+				local current, refreshError = personal.personal:refresh(personal.profile())
+				if not current then
+					return failed(refreshError or "PERSONAL_UNAVAILABLE", "pending")
+				end
+				local envelope = copy(current.data.envelope)
+				local slice = envelope.genres["survival-coop"].data
+				if slice.progression then
+					slice.progression = SkillTree.award(
+						slice.progression,
+						(content :: any).progressionPolicy.tree,
+						"gathering",
+						grant.binding
+					)
+					local committed, commitError =
+						personal.personal:commit(current, current.data.stateRevision, envelope, nil)
+					if not committed or commitError then
+						return failed(commitError or "SAVE_FAILED", "pending")
+					end
+					personal.install(committed)
+				end
+			end
 		end
 		return result
 	end
 	local runtime = {} :: Runtime
+	function runtime.receipt(actor, epoch, requestId)
+		local id = string.format("g%d:%s:%d:%d:%s", #actor, actor, epoch, #requestId, requestId)
+		local current, reason = store:refresh(source)
+		if not current or reason then
+			return nil
+		end
+		source = current
+		local grant = current.data.grants[id]
+		if not grant or #grant.mints == 0 then
+			return nil
+		end
+		-- A source acceptance alone is insufficient: destination credit must be
+		-- acknowledged before the receipt may satisfy a mission objective.
+		for _, mint in grant.mints do
+			if mint.request.actor ~= actor or config.now() >= mint.request.expiresAt then
+				return nil
+			end
+			local receipt = current.data.itemTransfers.receipts[mint.request.id]
+			if not receipt or receipt.phase ~= "FINALIZED" then
+				return nil
+			end
+		end
+		local nodeId = grant.nodeId
+		if not nodeId then
+			return nil -- Older grants retain their items, but cannot invent mission provenance.
+		end
+		local result = copy(grant)
+		result.items = {}
+		for _, mint in grant.mints do
+			local item = mint.item
+			result.items[item.catalogId] = (result.items[item.catalogId] or 0) + item.quantity
+		end
+		return result
+	end
 	function runtime.command(request)
 		local req: Request = copy(request)
 		if
@@ -262,6 +321,25 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			local mints: { Transfer.Mint } = {}
 			for _, itemId in candidate.itemIds do
 				local item = candidate.inventory.items[itemId]
+				-- New acquisition records its authored source; old inventory stays unclassified.
+				local detailed: any = content
+				for _, layout in detailed.layouts or {} do
+					for _, resource in layout.resources or {} do
+						if resource.id == req.nodeId and resource.item == item.catalogId then
+							for _, profile in detailed.materials or {} do
+								if profile.item == item.catalogId then
+									item.material = MaterialGrowth.raw(
+										content,
+										item.catalogId,
+										resource.level,
+										profile.quality,
+										nil
+									)
+								end
+							end
+						end
+					end
+				end
 				table.insert(mints, {
 					item = copy(item),
 					request = {
@@ -297,12 +375,19 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 					end
 				end
 			end
-			accepted = { binding = binding, mints = mints, destination = destinationKey }
+			accepted = {
+				binding = binding,
+				mints = mints,
+				destination = destinationKey,
+				nodeId = req.nodeId,
+				createdAt = config.now(),
+			}
 			local total = 0
 			for _, mint in mints do
 				total += mint.item.quantity
 			end
 			gathered = total
+			accepted.quantity = total
 			minted.grants[id] = copy(accepted)
 			if mastery then
 				local catalogId = candidate.nodes.nodes[req.nodeId].catalogId

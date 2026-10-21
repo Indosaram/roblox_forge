@@ -28,6 +28,33 @@ export type V2_chapters = {
 	rewards: V2_rewards,
 }
 export type V2_climateResistance = { cold: number, heat: number }
+export type V2_combatPolicy = {
+	defenseRecoveryMillis: number,
+	dodgeMillis: number,
+	guardMillis: number,
+	guardPermille: number,
+	windupMillis: number,
+}
+export type V2_companionPolicy = {
+	basePermille: number,
+	bonusPermille: number,
+	capacity: number,
+	downMillis: number,
+	feedCount: number,
+	feedItem: string,
+	feedSatiety: number,
+	hungerMillis: number,
+	levelPermille: number,
+	maxPermille: number,
+	maxSatiety: number,
+	minPermille: number,
+	ropeItem: string,
+	seed: number,
+	stunMillis: number,
+	stunRange: number,
+	stunRecoveryMillis: number,
+	trainingMillis: number,
+}
 export type V2_drop = { item: string, quantity: number, skillNode: string? }
 export type V2_effect = { id: string, unit: string, value: number }
 export type V2_gate = {
@@ -55,6 +82,18 @@ export type V2_hazard = {
 	position: V2_point,
 	radius: number,
 }
+export type V2_homePolicy = {
+	baseSlots: number,
+	dock: V2_point,
+	dockSize: V2_point,
+	floors: { number },
+	labRank: number,
+	padSize: V2_point,
+	provenance: V2_provenance,
+	structureSize: V2_point,
+	tiers: { V2_homeTier },
+}
+export type V2_homeTier = { development: number, plotCap: number, rank: number, sideStuds: number }
 export type V2_layouts = {
 	anchors: { V2_anchor },
 	biomes: { string },
@@ -121,6 +160,8 @@ export type V2_progressionPolicy = {
 	buffSeconds: number,
 	buffStrength: V2_buffStrength,
 	clothing: { [string]: V2_climateResistance },
+	combat: V2_combatPolicy?,
+	companion: V2_companionPolicy?,
 	energyBase: number,
 	energyNutrition: number,
 	exposureFatigue: number,
@@ -350,6 +391,7 @@ export type Content = {
 	guides: { V2_guides }?,
 	chapters: { V2_chapters }?,
 	progressionPolicy: V2_progressionPolicy?,
+	homePolicy: V2_homePolicy?,
 }
 local function v2_anchor(value: V2_anchor): V2_anchor
 	return value
@@ -465,6 +507,10 @@ local content: Content = {
 		actionVersion = 2,
 		actions = {
 			"gather",
+			"dodge",
+			"guard",
+			"skill-learn",
+			"skill-reset",
 			"transfer-deposit",
 			"transfer-withdraw",
 			"inventory-move",
@@ -1395,6 +1441,23 @@ local content: Content = {
 				xp = 1100,
 			}),
 		}),
+	},
+	homePolicy = {
+		baseSlots = 40,
+		dock = { x = 0, y = 2, z = 28 },
+		dockSize = { x = 12, y = 1, z = 8 },
+		floors = { 0, 8, 16 },
+		labRank = 3,
+		padSize = { x = 6, y = 1, z = 6 },
+		provenance = { classification = "RECONSTRUCTED", sourceId = "lead-home-tier-decision" },
+		structureSize = { x = 4, y = 2, z = 4 },
+		tiers = {
+			{ development = 0, plotCap = 4, rank = 1, sideStuds = 64 },
+			{ development = 200, plotCap = 6, rank = 2, sideStuds = 96 },
+			{ development = 400, plotCap = 9, rank = 3, sideStuds = 128 },
+			{ development = 600, plotCap = 12, rank = 4, sideStuds = 176 },
+			{ development = 800, plotCap = 16, rank = 5, sideStuds = 224 },
+		},
 	},
 	items = {
 		{ id = "animal-pen", name = "Animal Pen", stackMax = 1, tags = {}, weightMilli = 500 },
@@ -15755,6 +15818,33 @@ local content: Content = {
 			["tropical-head"] = { cold = 0, heat = 2 },
 			["tropical-shoes"] = { cold = 0, heat = 2 },
 			["tropical-top"] = { cold = 0, heat = 2 },
+		},
+		combat = {
+			defenseRecoveryMillis = 2000,
+			dodgeMillis = 350,
+			guardMillis = 1000,
+			guardPermille = 500,
+			windupMillis = 600,
+		},
+		companion = {
+			basePermille = 650,
+			bonusPermille = 50,
+			capacity = 8,
+			downMillis = 60000,
+			feedCount = 3,
+			feedItem = "herbivore-feed",
+			feedSatiety = 30,
+			hungerMillis = 60000,
+			levelPermille = 10,
+			maxPermille = 900,
+			maxSatiety = 100,
+			minPermille = 200,
+			ropeItem = "capture-rope",
+			seed = 314159,
+			stunMillis = 3000,
+			stunRange = 6,
+			stunRecoveryMillis = 8000,
+			trainingMillis = 300000,
 		},
 		energyBase = 10,
 		energyNutrition = 2,

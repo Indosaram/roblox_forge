@@ -1,6 +1,7 @@
 version: 1
 defaults: { source: original, author: "agent:claude-5.5/robango-g1" }
 entries:
+  "homePolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-home-tier-decision", created: 2026-10-21 }
   "items/berry": { created: 2026-10-16 }
   "items/capture-bola": { created: 2026-10-17 }
   "items/berry-meal": { created: 2026-10-16 }

@@ -34,6 +34,7 @@ export type Services = {
 		command: (string, { any }, CommandContext, number, () -> Result) -> Result,
 		recover: (string, number) -> any,
 		snapshot: (string) -> (StateData?, string?),
+		receipt: ((string, number, string) -> StateData?)?,
 	}?,
 	survivalTransfer: {
 		handles: (string) -> boolean,

@@ -104,7 +104,27 @@ local function setupAtmosphere()
 	end)
 end
 
-return function(content, source: any, wildlifePolicy, epochMillis, role: string, studioSingle: boolean)
+return function(content: any, source: any, wildlifePolicy, epochMillis, role: string, studioSingle: boolean)
+	if not studioSingle then
+		local configured = table.clone(source)
+		configured.seed = source.seed or DECOR_SEED
+		configured.renderRole = require(script.Parent.RoleWorld).build
+		configured.roleBuilders = table.clone(source.roleBuilders or {})
+		configured.roleBuilders.home = require(script.Parent.HomeWorld).live
+		configured.roleBuilders.archipelago = function(c, s, w, now)
+			local state: any = assert(s.expedition, "PERSISTED_EXPEDITION_REQUIRED")
+			assert(state.status == "active", "EXPEDITION_INACTIVE")
+			return configured.renderRole(c, s, w, now, state.templateId .. ".s" .. tostring(state.stage), state.seed)
+		end
+		for _, region in content.supportRegions or {} do
+			if region.role ~= "home" then
+				configured.roleBuilders[region.role] = function(c, s, w, now)
+					return require(script.Parent.RoleWorld).build(c, s, w, now, region.layout, configured.seed)
+				end
+			end
+		end
+		source = configured
+	end
 	-- World geometry is supplied by the pack's role builders. The legacy island
 	-- remains an explicitly labeled Studio preview, never a live-role fallback.
 	if not studioSingle then

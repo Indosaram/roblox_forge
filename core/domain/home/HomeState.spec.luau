@@ -4,6 +4,33 @@ local Inventory = require("../inventory/Inventory")
 local Catalog = require("../inventory/ItemCatalog")
 local M = {}
 
+function M.placedPlotCap()
+	local f = M.fixture()
+	f.ctx.rules.placedPlots = true
+	f.ctx.rules.plotCaps = { 1, 2, 3 }
+	f.ctx.structures["farm-plot"] = f.ctx.structures.workbench
+	f.state.structures.plot = { kind = "farm-plot", position = { x = 0, y = 2, z = 0 }, owner = "owner" }
+	local state, reason = Home.apply(f.state, "owner", "home:owner", "place", {
+		id = "second",
+		kind = "farm-plot",
+		position = { x = 12, y = 2, z = 0 },
+	}, f.ctx)
+	assert(state == nil and reason == "PLOT_CAP", "placed plot cap")
+	local planted = assert(Home.apply(f.state, "owner", "home:owner", "plant", {
+		plot = "plot",
+		crop = "corn",
+		seedItem = "seed",
+	}, f.ctx))
+	local recovered, errorCode = Home.apply(planted, "owner", "home:owner", "recover", { id = "plot" }, f.ctx)
+	assert(recovered == nil and errorCode == "PLOT_OCCUPIED", "cannot recover planted plot")
+	local unknown, unknownReason = Home.apply(f.state, "owner", "home:owner", "plant", {
+		plot = "p1",
+		crop = "corn",
+		seedItem = "seed",
+	}, f.ctx)
+	assert(unknown == nil and unknownReason == "UNKNOWN_CROP_OR_PLOT", "fixed fixture plot does not exist")
+end
+
 function M.fixture(): any
 	local catalog = Catalog.new({
 		{ id = "corn-seed", stackMax = 50, weightMilli = 0 },
@@ -68,6 +95,7 @@ local function apply(f: any, action: string, args: any, actor: string?): (any?, 
 end
 
 return {
+	["placed farm plots use stable identities and enforce tier cap"] = M.placedPlotCap,
 	["expiry overflow remains loadable and refuses harvest until space exists"] = function()
 		local f = M.fixture()
 		f.ctx.entitlements = { patron = true, warehouse = true, monthly = true }

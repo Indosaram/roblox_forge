@@ -5,6 +5,7 @@
 -- crafting features continue to fail closed until their mechanisms are bound.
 
 local Shared = require("../../../core/domain/genre/Contract")
+local Data = require("../../../core/domain/genre/SerializedData")
 local Clock = require("../../../core/infra/genre/Clock")
 local Wallet = require("../../../core/domain/economy/Wallet")
 local Capability = require("../../../core/domain/survival/Capability")
@@ -17,6 +18,9 @@ local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
 local Skills = require("./Skills")
+local Combat = require("./Combat")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
+local Progression = require("./ProgressionExtension")
 local Events = require("../../../core/infra/analytics/Events")
 
 local M = {}
@@ -284,6 +288,9 @@ function M.validateSave(raw: Shared.StateData): { string }
 			end
 		end
 	end
+	if data.progression ~= nil and (type(data.progression) ~= "table" or type(data.progression.mastery) ~= "table") then
+		table.insert(errors, "progression: invalid specialization state")
+	end
 	for key in data do
 		if
 			key ~= "saveVersion"
@@ -294,6 +301,8 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "death"
 			and key ~= "combat"
 			and key ~= "skills"
+			and key ~= "progression"
+			and key ~= "companions"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -328,6 +337,8 @@ function M.new(
 		workshop: Workshop.State?,
 		death: DeathState?,
 		combat: any?,
+		progression: any?,
+		companions: any?,
 		skills: Skills.State?,
 	}
 	local players: { [string]: Player } = {}
@@ -406,7 +417,9 @@ function M.new(
 			balance = if suppliedWallet then nil else wallet.balance(id),
 			vitals = if vitals then copyVitals(vitals) else nil,
 			workshop = if workshop then Workshop.save(workshop) else nil,
-			combat = if players[id] then players[id].combat else nil,
+			combat = if players[id] and players[id].combat then Data.clone(players[id].combat) else nil,
+			progression = if players[id] and players[id].progression then Data.clone(players[id].progression) else nil,
+			companions = if players[id] and players[id].companions then Data.clone(players[id].companions) else nil,
 			skills = if skills then Skills.save(skills) else nil,
 		}
 		if containers then
@@ -424,8 +437,64 @@ function M.new(
 		context: Shared.CommandContext?,
 		player: Player
 	): Shared.CommandStage?
+		if action == "combat-damage" then
+			action = "vitals-damage"
+		end
 		if not player or not player.inventory then
 			return nil
+		end
+		if action == "dodge" or action == "guard" or action == "skill-learn" or action == "skill-reset" then
+			local policy = if content then (content :: any).progressionPolicy else nil
+			local err: string? = nil
+			local combat = table.clone(player.combat or { version = 1, nextAttack = 0, receipts = {} })
+			local progression = player.progression
+			local now = if context then context.nowMillis else nil
+			if not policy or not progression then
+				err = "PROGRESSION_NOT_CONFIGURED"
+			elseif not now or not context or context.actorId ~= id then
+				err = "DURABLE_COMMAND_REQUIRED"
+			elseif not player.vitals or player.vitals.healthMilli == 0 then
+				err = "NOT_ALIVE"
+			elseif action == "skill-learn" then
+				progression, err = SkillTree.learn(content, progression, args[1])
+			elseif action == "skill-reset" then
+				local jobs = 0
+				for _, entry in pairs(if player.workshop then player.workshop.entries else {}) do
+					if entry.job.state ~= "Committed" and entry.job.state ~= "Cancelled" then
+						jobs += 1
+					end
+				end
+				progression, err = SkillTree.reset(progression, args[1], now < combat.nextAttack, jobs)
+			elseif not policy.combat then
+				err = "COMBAT_NOT_CONFIGURED"
+			elseif now < (combat.defenseReadyAt or 0) then
+				err = "RECOVERY"
+			elseif now < combat.nextAttack then
+				err = "WINDUP_OR_RECOVERY"
+			else
+				local rule = policy.combat
+				combat.defense = Combat.window(
+					combat.defense or Combat.defense(),
+					action,
+					now,
+					if action == "dodge" then rule.dodgeMillis else rule.guardMillis
+				)
+				combat.defense.guardPermille = rule.guardPermille
+				combat.defenseReadyAt = now + rule.defenseRecoveryMillis
+			end
+			local saved = savePlayer(id, player.inventory, player.vitals, player.workshop, player.skills)
+			if not err then
+				saved.combat, saved.progression = combat, progression
+			end
+			return {
+				result = { ok = err == nil, reason = err },
+				data = saved,
+				apply = function()
+					if not err then
+						player.combat, player.progression = combat, progression
+					end
+				end,
+			}
 		end
 		if string.sub(action, 1, 6) == "craft-" then
 			local candidate: Workshop.Candidate? = nil
@@ -442,28 +511,73 @@ function M.new(
 					else Workshop.snapshot(player.workshop)
 				local bag = player.inventory[inventoryConfig.carriedContainer]
 				if action == "craft-reserve" then
+					if player.progression then
+						for _, detail in (content :: any).recipeDetails do
+							if detail.id == args[1] then
+								if player.progression.level < detail.minCharacterLevel then
+									err = "CHARACTER_LEVEL_GATE"
+								end
+								for _, node in detail.skillNodes do
+									if not player.progression.paid[node] then
+										err = "SKILL_NODE_GATE"
+									end
+								end
+							end
+						end
+					end
 					local port = services.survivalSpatial
 					local station = if port and port.station then port.station(id, args[2]) else nil
-					candidate, err = Workshop.reserve(
-						jobs,
-						bag,
-						context,
-						content,
-						"content-v" .. tostring(config.contentVersion),
-						args[1],
-						context.nowMillis,
-						{
-							carriedContainer = inventoryConfig.carriedContainer,
-							stationId = if station then args[2] else nil,
-							stationKind = if station then station.kind else nil,
-							inReach = station ~= nil and station.reachable,
-						},
-						-- Rolls read only the recorded seed and job inputs, never ownership.
-						if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
-					)
+					if not err then
+						candidate, err = Workshop.reserve(
+							jobs,
+							bag,
+							context,
+							content,
+							"content-v" .. tostring(config.contentVersion),
+							args[1],
+							context.nowMillis,
+							{
+								carriedContainer = inventoryConfig.carriedContainer,
+								stationId = if station then args[2] else nil,
+								stationKind = if station then station.kind else nil,
+								inReach = station ~= nil and station.reachable,
+							},
+							-- Rolls read only the recorded seed and job inputs, never ownership.
+							if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
+						)
+					end
 				else
 					candidate, err =
 						Workshop.transition(jobs, bag, context, args[1], string.sub(action, 7), context.nowMillis)
+				end
+				if candidate and not err and action == "craft-complete" and player.progression then
+					local job = candidate.jobs.entries[candidate.jobId].job
+					local inputs = {}
+					local recorded = true
+					for _, item in job.inputs do
+						if not item.material then
+							recorded = false
+							break
+						end
+						local material = table.clone(item.material)
+						material.quantity = item.quantity
+						table.insert(inputs, material)
+					end
+					if recorded then
+						local material
+						material, err = Progression.craft(content, player.progression, job.recipeId, inputs)
+						if material then
+							for _, output in job.outputs do
+								if output.catalogId == material.item then
+									output.material = material
+									candidate.inventory.items[output.itemId].material = material
+								end
+							end
+						end
+					end
+					if err then
+						candidate = nil
+					end
 				end
 			end
 			local states = table.clone(player.inventory)
@@ -513,6 +627,29 @@ function M.new(
 				end
 			end
 			local data = savePlayer(id, states, vitals, jobs, skills)
+			local progression = player.progression
+			if progression and candidate and not err and action == "craft-complete" and content then
+				local recipeId = candidate.jobs.entries[candidate.jobId].job.recipeId
+				for _, category in (content :: any).skillCategories do
+					local matches = table.find(category.entryActions, recipeId) ~= nil
+					for _, detail in (content :: any).recipeDetails do
+						if detail.id == recipeId then
+							for _, node in detail.skillNodes do
+								matches = matches or string.match(node, "^(.*)_%d+$") == category.id
+							end
+						end
+					end
+					if matches then
+						progression = SkillTree.award(
+							progression,
+							(content :: any).progressionPolicy.tree,
+							category.id,
+							"craft:" .. candidate.jobId .. ":" .. category.id
+						)
+					end
+				end
+				data.progression = progression
+			end
 			return {
 				result = {
 					ok = candidate ~= nil and err == nil,
@@ -526,6 +663,7 @@ function M.new(
 						player.workshop = jobs
 						player.vitals = vitals
 						player.skills = skills
+						player.progression = progression
 					end
 				end,
 			}
@@ -549,8 +687,26 @@ function M.new(
 					if not advanced.online or advanced.healthMilli == 0 then
 						err = "NOT_ALIVE"
 					else
+						local damage = args[1]
+						local defense = if player.combat then player.combat.defense else nil
+						local strikeAt = args[2] or nowMillis
+						if action == "vitals-damage" and defense then
+							if
+								defense.dodgeStart
+								and strikeAt >= defense.dodgeStart
+								and strikeAt < defense.dodgeEnd
+							then
+								damage = 0
+							elseif
+								defense.guardStart
+								and strikeAt >= defense.guardStart
+								and strikeAt < defense.guardEnd
+							then
+								damage = damage * defense.guardPermille // 1000
+							end
+						end
 						nextVitals = if action == "vitals-damage"
-							then Vitals.damage(advanced, args[1])
+							then Vitals.damage(advanced, damage)
 							else Vitals.stopRest(advanced)
 						if nextVitals and nextVitals.healthMilli == 0 then
 							table.insert(observed, {
@@ -592,19 +748,31 @@ function M.new(
 			if nextBag and inventoryConfig then
 				candidate[inventoryConfig.carriedContainer] = nextBag
 			end
+			local progression = player.progression
+			if accepted and action == "food" and progression and content and context then
+				progression = SkillTree.award(
+					progression,
+					(content :: any).progressionPolicy.tree,
+					"survival",
+					tostring(context.sessionEpoch) .. ":" .. context.requestId
+				)
+			end
+			local saved = savePlayer(
+				id,
+				candidate,
+				if accepted then nextVitals else player.vitals,
+				player.workshop,
+				player.skills
+			)
+			saved.progression = progression
 			return {
 				result = { ok = accepted, reason = err },
-				data = savePlayer(
-					id,
-					candidate,
-					if accepted then nextVitals else player.vitals,
-					player.workshop,
-					player.skills
-				),
+				data = saved,
 				apply = function()
 					if accepted then
 						player.inventory = candidate
 						player.vitals = nextVitals
+						player.progression = progression
 					end
 				end,
 			}
@@ -682,6 +850,9 @@ function M.new(
 			return stageRaw(id, action, args, context, live)
 		end
 		local port = services.survivalDeath
+		if action == "combat-damage" then
+			action = "vitals-damage"
+		end
 		if
 			not context
 			or context.actorId ~= id
@@ -720,7 +891,17 @@ function M.new(
 			if not advanced.online or advanced.healthMilli == 0 then
 				damageResult = { ok = false, reason = "NOT_ALIVE" }
 			else
-				advanced = Vitals.damage(advanced, args[1])
+				local damage = args[1]
+				local defense = if live.combat then live.combat.defense else nil
+				local strikeAt = args[2] or now
+				if defense then
+					if defense.dodgeStart and strikeAt >= defense.dodgeStart and strikeAt < defense.dodgeEnd then
+						damage = 0
+					elseif defense.guardStart and strikeAt >= defense.guardStart and strikeAt < defense.guardEnd then
+						damage = damage * defense.guardPermille // 1000
+					end
+				end
+				advanced = Vitals.damage(advanced, damage)
 				damageResult = { ok = true }
 			end
 		end
@@ -975,11 +1156,23 @@ function M.new(
 			workshop = workshop,
 			death = death,
 			combat = if saved then saved.combat else nil,
+			progression = if saved and saved.progression
+				then SkillTree.copy(saved.progression)
+				else if content and (content :: any).progressionPolicy
+					then SkillTree.new(content, (content :: any).progressionPolicy.tree)
+					else nil,
+			companions = if saved then saved.companions else nil,
 			skills = skills,
 			wallet = if suppliedWallet
 				then nil
 				else Wallet.new({ [config.currency] = if saved then saved.balance else config.startingBalance }),
 		}
+		local loadedCompanions = players[id].companions
+		if rebase and loadedCompanions then
+			local companions = Data.clone(loadedCompanions)
+			companions.lastMillis = Clock.millis(lastAt)
+			players[id].companions = companions
+		end
 		return { ok = true }
 	end
 	return {
@@ -1056,6 +1249,8 @@ function M.new(
 				actionVersion = descriptor.actionVersion,
 				contentVersion = config.contentVersion,
 				balance = wallet.balance(id),
+				combat = players[id].combat,
+				progression = players[id].progression,
 				missingFeatures = Capability.missingFeatures("crafting"),
 				vitals = if players[id].vitals then copyVitals(players[id].vitals) else nil,
 				workshop = if players[id].workshop

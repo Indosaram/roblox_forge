@@ -1,6 +1,11 @@
 --!strict
 local M = {}
 local strings: { [string]: { string } } = {
+	dodge = { "Dodge [Q]", "회피 [Q]" },
+	guard = { "Guard [G]", "방어 [G]" },
+	skills = { "Skills", "기술" },
+	learn = { "Learn", "배우기" },
+	skill_reset = { "Reset specializations", "전문 기술 초기화" },
 	wood = { "Wood", "목재" },
 	fiber = { "Fiber", "섬유" },
 	flint = { "Flint", "부싯돌" },

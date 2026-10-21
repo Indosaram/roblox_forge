@@ -230,6 +230,7 @@ function M.validate(options: Options): ()
 				assert(
 					table.find(required, key)
 						or (name == "survivalSpatial" and key == "station")
+						or (name == "survivalGathering" and key == "receipt")
 						or (name == "survivalDeath" and key == "worldRevision"),
 					"services: unknown field"
 				)

@@ -29,6 +29,8 @@ Source IDs refer to `.omo/drafts/robango-late-service-source-ledger.md`. URLs be
 
 ## System traceability
 
+The lead-approved home land tiers are a RECONSTRUCTED Robango redesign, not recovered original dimensions: development ranks 1 through 5 use square sides 64, 96, 128, 176 and 224 studs, with player-placed farm-plot caps 4, 6, 9, 12 and 16. Expansion applies once at the home dock; plot identities are durable placement identities. `content.yml` homePolicy is the authoring source. Starter pads retain the binding quest/support positions.
+
 The source links in each row resolve to the exact register above. Plan numbers refer to the numbered implementation tasks, not completion receipts. QA names are **planned acceptance scenarios**, not claims that these commands already exist or pass; additional acceptance checks are named as checks rather than fabricated scenarios. All systems also require task 12 live acceptance and F1-F4 review.
 
 | Major system | Original evidence | Status | Robango design reference (catalog + section) and declared difference | Implementing plan task number | QA scenario name | Current implementation state |

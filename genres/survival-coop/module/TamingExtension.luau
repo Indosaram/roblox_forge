@@ -82,6 +82,9 @@ function M.configure(policy: Policy?)
 end
 
 function M.factory(ctx: any): any
+	if ctx.content.progressionPolicy and ctx.content.progressionPolicy.companion then
+		return require("./PersonalCompanionExtension").factory(ctx)
+	end
 	local config = configured
 	if config == nil then
 		return nil

@@ -4,6 +4,86 @@ local Content = require("../../../games/robango-island/src/shared/SurvivalConten
 local World = require("../../../games/robango-island/src/server/ArchipelagoWorld")
 local serde = require("@lune/serde")
 return {
+	["gather objectives consume only current route finalized node receipts once"] = function()
+		local document: any = {}
+		local grant: any = nil
+		local commit = true
+		local extension = Extension.new({
+			content = Content,
+			entryBuffer = 30,
+			now = function()
+				return 10
+			end,
+			facts = function()
+				return { level = 60, developmentRank = 10, instabilityAccess = 5 }
+			end,
+			gatherReceipt = function(actor, epoch, requestId)
+				assert(actor == "owner" and epoch == 1 and requestId == "g1", "exact server receipt identity")
+				return grant
+			end,
+			store = {
+				transaction = function(_actor, transform)
+					local candidate = serde.decode("json", serde.encode("json", document))
+					local result = transform(candidate)
+					if result.ok and not commit then
+						return { ok = false, reason = "commit_failed" }
+					end
+					if result.ok then
+						document = candidate
+					end
+					return result
+				end,
+			},
+		})
+		assert(
+			extension.open(
+				"owner",
+				{ id = "trip", index = 1, seed = 74, ttl = 1000, revision = "v2", entryBuffer = 30 }
+			).ok,
+			"route opened"
+		)
+		assert(
+			extension.gatherObjective("owner", 1, "g1").reason == "unverified_objective",
+			"uncommitted receipt refused"
+		)
+		grant = { nodeId = "rw.a1.s1.material.wood", items = { wood = 5, stone = 30 }, createdAt = 9 }
+		assert(
+			extension.gatherObjective("owner", 1, "g1").reason == "unverified_objective",
+			"pre-route receipt refused"
+		)
+		grant.createdAt = 10
+		grant.items = { stone = 5 }
+		assert(
+			extension.gatherObjective("owner", 1, "g1").reason == "invalid_quantity",
+			"unrelated mint output cannot satisfy wood objective"
+		)
+		grant.items = { wood = 5, stone = 30 }
+		commit = false
+		assert(
+			extension.gatherObjective("owner", 1, "g1").reason == "commit_failed",
+			"objective requires durable acknowledgement"
+		)
+		assert(
+			not document.archipelago.completed["rw.a1.s1.gather"] and not document.gatherReceipts,
+			"failed commit consumes no objective receipt"
+		)
+		commit = true
+		assert(extension.gatherObjective("owner", 1, "g1").ok, "finalized current-layout gather credited")
+		assert(document.archipelago.completed["rw.a1.s1.gather"], "authored objective completed")
+		assert(extension.gatherObjective("owner", 1, "g1").reason == "duplicate_receipt", "receipt cannot grant twice")
+		document.archipelago = nil
+		assert(
+			extension.open(
+				"owner",
+				{ id = "trip2", index = 1, seed = 74, ttl = 1000, revision = "v2", entryBuffer = 30 }
+			).ok,
+			"new route opened"
+		)
+		assert(
+			extension.gatherObjective("owner", 1, "g1").reason == "duplicate_receipt",
+			"new route cannot recycle consumed receipt"
+		)
+	end,
 	["opaque mission IDs and fenced transactions protect the owned bag"] = function()
 		local document: any = { bag = { { id = "owned-pick", durability = 27 } } }
 		local now, returns, fenced = 0, 0, false

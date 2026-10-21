@@ -122,6 +122,10 @@ function M.policy(): Ledger.Policy
 	local policy: Ledger.Policy = {
 		actions = {
 			"survival-coop:attack",
+			"survival-coop:dodge",
+			"survival-coop:guard",
+			"survival-coop:skill-learn",
+			"survival-coop:skill-reset",
 			"survival-coop:gather",
 			"survival-coop:transfer-deposit",
 			"survival-coop:transfer-withdraw",
@@ -151,6 +155,7 @@ function M.policy(): Ledger.Policy
 			"survival-coop:settlement-invite",
 			"survival-coop:server-vitals-tick",
 			"survival-coop:vitals-damage",
+			"survival-coop:combat-damage",
 			"survival-coop:rest-stop",
 			"survival-coop:respawn",
 		},

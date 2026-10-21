@@ -89,6 +89,7 @@ function M.start(options: Options)
 	local action = storage:WaitForChild("ForgeAction") :: RemoteFunction
 	local state = storage:WaitForChild("ForgeState") :: RemoteEvent
 	local locale = options.locale or player.LocaleId
+	local content = options.content
 	-- A touch-only device has no keyboard: key hints like " [R]" only crowd the buttons.
 	-- Read live: an emulated or convertible device can switch after the HUD starts.
 	local function t(key: string): string
@@ -560,6 +561,20 @@ function M.start(options: Options)
 					end
 				)
 			end
+		elseif section == "skills" then
+			local progression = model.snapshot.progression
+			if progression then
+				label("Level " .. tostring(progression.level) .. " / SP " .. tostring(progression.sp), 40)
+				button("skill-reset", t("skill_reset"), function()
+					command("skill-reset", { progression.version })
+				end, true)
+				for _, node in content.skillNodes or {} do
+					local learned = progression.paid[node.id] ~= nil
+					button("learn-" .. node.id, node.id .. " / " .. tostring(node.cost) .. " SP", function()
+						command("skill-learn", { node.id })
+					end, not learned)
+				end
+			end
 		elseif section == "craft" then
 			local RECIPE_PRIORITY: { [string]: number } = {
 				["cord"] = 1,
@@ -819,6 +834,18 @@ function M.start(options: Options)
 		sheet.scroll.CanvasPosition = Vector2.zero
 		render()
 	end
+	if content.progressionPolicy then
+		local skillsButton = Components.button(theme, {
+			text = t("skills"),
+			parent = root,
+			size = UDim2.fromOffset(160, 48),
+			position = UDim2.new(1, -168, 0, 240),
+			onClick = function()
+				open("skills")
+			end,
+		})
+		skillsButton.Name = "Skills"
+	end
 	local tabs: { [string]: TextButton } = {}
 	for index, key in { "bag", "craft", "build" } do
 		local tab = Components.button(theme, {
@@ -852,6 +879,19 @@ function M.start(options: Options)
 	attackButton.Name, attackButton.AnchorPoint = "Attack", Vector2.new(1, 0)
 	fitText(attackButton)
 	attackButton.Visible = false
+	for index, defenseAction in { "dodge", "guard" } do
+		local defenseButton = Components.button(theme, {
+			text = t(defenseAction),
+			size = UDim2.fromOffset(76, 48),
+			position = UDim2.new(1, -index * 84, 0, 184),
+			parent = root,
+			onClick = function()
+				command(defenseAction, {})
+			end,
+		})
+		defenseButton.Name = defenseAction
+		defenseButton.Visible = content.progressionPolicy ~= nil and content.progressionPolicy.combat ~= nil
+	end
 
 	-- The chat window's live right edge in screen space, or the documented reserve when the
 	-- chat is absent. Recomputed on demand and on every chat layout change, never guessed
@@ -941,6 +981,10 @@ function M.start(options: Options)
 				rest()
 			elseif key.KeyCode == Enum.KeyCode.F then
 				attack()
+			elseif key.KeyCode == Enum.KeyCode.Q and content.progressionPolicy and content.progressionPolicy.combat then
+				command("dodge", {})
+			elseif key.KeyCode == Enum.KeyCode.G and content.progressionPolicy and content.progressionPolicy.combat then
+				command("guard", {})
 			end
 		end)
 	)

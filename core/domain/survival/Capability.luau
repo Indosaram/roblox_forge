@@ -72,6 +72,10 @@ local CRAFTING: Descriptor = {
 	contentVersion = 1,
 	actions = {
 		"gather",
+		"dodge",
+		"guard",
+		"skill-learn",
+		"skill-reset",
 		"transfer-deposit",
 		"transfer-withdraw",
 		"inventory-move",

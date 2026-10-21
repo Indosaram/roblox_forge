@@ -99,6 +99,33 @@ local function run(instance: Shared.Instance, action: string, args: { any }, ctx
 end
 
 return {
+	["legacy items keep missing provenance and material state roundtrips without aliasing"] = function()
+		local instance = setup()
+		local saved: any = instance.save("alice")
+		assert(saved.inventory.bag.items.fiber.material == nil, "legacy origin is not invented")
+		saved.inventory.bag.items.fiber.material = {
+			item = "fiber",
+			quantity = 30,
+			level = 10,
+			quality = 1,
+			budget = 3,
+			attributes = { hardness = 2 },
+			history = "recorded-gather",
+			sourceSpeciesId = "recorded-species",
+		}
+		assert(instance.hydrate and instance.hydrate("alice", saved).ok, "hydrate recorded provenance")
+		local reloaded: any = instance.save("alice")
+		assert(
+			reloaded.inventory.bag.items.fiber.material.sourceSpeciesId == "recorded-species",
+			"origin survives adapter"
+		)
+		reloaded.inventory.bag.items.fiber.material.attributes.hardness = 9
+		local isolated: any = instance.save("alice")
+		assert(
+			isolated.inventory.bag.items.fiber.material.attributes.hardness == 2,
+			"save candidate does not alias live material"
+		)
+	end,
 	["v2 explicitly opts into larger bags and clans while v1 keeps its caps"] = function()
 		local cfg = config()
 		cfg.inventory.content.limits.slots = 30
