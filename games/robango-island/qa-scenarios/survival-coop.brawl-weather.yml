@@ -1,0 +1,33 @@
+name: brawl-weather
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner, rival]
+fixtures: [cli/forge/fixtures/brawl-weather]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: rival}
+  - {op: brawl_command, player: owner, action: queue}
+  - {op: brawl_command, player: rival, action: queue}
+  - {op: brawl_command, player: owner, action: start}
+  - {op: brawl_command, player: owner, action: action, token: shot, expect: refused}
+  - {op: brawl_frame, player: owner, elapsed: 120}
+  - {op: brawl_command, player: owner, action: action, token: sprint}
+  - {op: expect_result, player: owner, field: staminaMultiplier, equals: 1.25}
+  - {op: brawl_frame, player: owner, elapsed: 240}
+  - {op: brawl_command, player: owner, action: action, token: shot, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: WEATHER_RANGE}
+  - {op: brawl_frame, player: owner, elapsed: 360}
+  - {op: brawl_command, player: owner, action: action, token: mount, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: WEATHER_MOUNT}
+  - {op: brawl_frame, player: owner, elapsed: 480, damage: {owner: 100, rival: 100}}
+  - {op: brawl_assert, player: owner, check: draw}
+  - {op: brawl_command, player: owner, action: reward}
+  - {op: brawl_command, player: rival, action: reward}
+  - {op: brawl_command, player: owner, action: reward}
+  - {op: brawl_assert, player: owner, check: rewards}
+  - {op: close, player: owner}
+  - {op: close, player: rival}

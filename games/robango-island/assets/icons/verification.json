@@ -1,0 +1,5185 @@
+{
+  "count": 518,
+  "icons": [
+    {
+      "key": "ui.icon.bag",
+      "atlas": 1,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3209,
+      "visible": 5627,
+      "borderVisible": 75
+    },
+    {
+      "key": "ui.icon.craft",
+      "atlas": 1,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4740,
+      "visible": 3812,
+      "borderVisible": 43
+    },
+    {
+      "key": "ui.icon.build",
+      "atlas": 1,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4814,
+      "visible": 3796,
+      "borderVisible": 82
+    },
+    {
+      "key": "ui.icon.skills",
+      "atlas": 1,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5569,
+      "visible": 2940,
+      "borderVisible": 66
+    },
+    {
+      "key": "ui.icon.journal",
+      "atlas": 1,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 2915,
+      "visible": 6033,
+      "borderVisible": 136
+    },
+    {
+      "key": "ui.icon.explore",
+      "atlas": 1,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4197,
+      "visible": 4634,
+      "borderVisible": 59
+    },
+    {
+      "key": "ui.icon.social",
+      "atlas": 1,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4698,
+      "visible": 3995,
+      "borderVisible": 85
+    },
+    {
+      "key": "ui.icon.market",
+      "atlas": 1,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4157,
+      "visible": 4510,
+      "borderVisible": 73
+    },
+    {
+      "key": "ui.icon.music",
+      "atlas": 1,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5930,
+      "visible": 2831,
+      "borderVisible": 23
+    },
+    {
+      "key": "ui.icon.inbox",
+      "atlas": 1,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4170,
+      "visible": 4689,
+      "borderVisible": 30
+    },
+    {
+      "key": "ui.icon.settings",
+      "atlas": 1,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4809,
+      "visible": 3901,
+      "borderVisible": 42
+    },
+    {
+      "key": "ui.icon.close",
+      "atlas": 1,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5625,
+      "visible": 3188,
+      "borderVisible": 35
+    },
+    {
+      "key": "ui.icon.back",
+      "atlas": 1,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 6474,
+      "visible": 2357,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.search",
+      "atlas": 1,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5239,
+      "visible": 3561,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.filter",
+      "atlas": 1,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 6116,
+      "visible": 2685,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.sort",
+      "atlas": 1,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5896,
+      "visible": 2645,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.refresh",
+      "atlas": 2,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4838,
+      "visible": 3719,
+      "borderVisible": 38
+    },
+    {
+      "key": "ui.icon.help",
+      "atlas": 2,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3446,
+      "visible": 5430,
+      "borderVisible": 61
+    },
+    {
+      "key": "ui.icon.health",
+      "atlas": 2,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4005,
+      "visible": 4827,
+      "borderVisible": 20
+    },
+    {
+      "key": "ui.icon.energy",
+      "atlas": 2,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 6076,
+      "visible": 2726,
+      "borderVisible": 16
+    },
+    {
+      "key": "ui.icon.fatigue",
+      "atlas": 2,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4624,
+      "visible": 3970,
+      "borderVisible": 32
+    },
+    {
+      "key": "ui.icon.xp",
+      "atlas": 2,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4928,
+      "visible": 3822,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.skill-point",
+      "atlas": 2,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4983,
+      "visible": 3627,
+      "borderVisible": 30
+    },
+    {
+      "key": "ui.icon.exploration-rank",
+      "atlas": 2,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3216,
+      "visible": 5528,
+      "borderVisible": 46
+    },
+    {
+      "key": "ui.icon.clock",
+      "atlas": 2,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3530,
+      "visible": 5266,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.capacity",
+      "atlas": 2,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 2734,
+      "visible": 5988,
+      "borderVisible": 14
+    },
+    {
+      "key": "ui.icon.weight",
+      "atlas": 2,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4126,
+      "visible": 4584,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.currency",
+      "atlas": 2,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4019,
+      "visible": 4749,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.loading",
+      "atlas": 2,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4903,
+      "visible": 3593,
+      "borderVisible": 16
+    },
+    {
+      "key": "ui.icon.empty",
+      "atlas": 2,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3900,
+      "visible": 4929,
+      "borderVisible": 28
+    },
+    {
+      "key": "ui.icon.error",
+      "atlas": 2,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4792,
+      "visible": 4040,
+      "borderVisible": 5
+    },
+    {
+      "key": "ui.icon.pending",
+      "atlas": 2,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4757,
+      "visible": 4027,
+      "borderVisible": 63
+    },
+    {
+      "key": "ui.icon.success",
+      "atlas": 3,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4430,
+      "visible": 4417,
+      "borderVisible": 17
+    },
+    {
+      "key": "ui.icon.locked",
+      "atlas": 3,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5033,
+      "visible": 3828,
+      "borderVisible": 44
+    },
+    {
+      "key": "ui.icon.permission",
+      "atlas": 3,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4724,
+      "visible": 4127,
+      "borderVisible": 18
+    },
+    {
+      "key": "ui.icon.stale",
+      "atlas": 3,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4681,
+      "visible": 4130,
+      "borderVisible": 26
+    },
+    {
+      "key": "ui.icon.offline",
+      "atlas": 3,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5260,
+      "visible": 3356,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.claim",
+      "atlas": 3,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5299,
+      "visible": 3291,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.refund",
+      "atlas": 3,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4524,
+      "visible": 4156,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.escrow",
+      "atlas": 3,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3909,
+      "visible": 4866,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.favorite",
+      "atlas": 3,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5586,
+      "visible": 3201,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.todo",
+      "atlas": 3,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3632,
+      "visible": 5179,
+      "borderVisible": 10
+    },
+    {
+      "key": "ui.icon.quality",
+      "atlas": 3,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4496,
+      "visible": 4190,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.durability",
+      "atlas": 3,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4515,
+      "visible": 4302,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.processing-budget",
+      "atlas": 3,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3900,
+      "visible": 4755,
+      "borderVisible": 35
+    },
+    {
+      "key": "ui.icon.hardness",
+      "atlas": 3,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4685,
+      "visible": 3977,
+      "borderVisible": 4
+    },
+    {
+      "key": "ui.icon.flexibility",
+      "atlas": 3,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5483,
+      "visible": 3040,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.sharpness",
+      "atlas": 3,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 6281,
+      "visible": 2522,
+      "borderVisible": 11
+    },
+    {
+      "key": "ui.icon.insulation",
+      "atlas": 4,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3724,
+      "visible": 5125,
+      "borderVisible": 72
+    },
+    {
+      "key": "ui.icon.nutrition",
+      "atlas": 4,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4512,
+      "visible": 4357,
+      "borderVisible": 44
+    },
+    {
+      "key": "ui.icon.fertility",
+      "atlas": 4,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5368,
+      "visible": 3380,
+      "borderVisible": 72
+    },
+    {
+      "key": "ui.icon.stance.attack",
+      "atlas": 4,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4721,
+      "visible": 3636,
+      "borderVisible": 56
+    },
+    {
+      "key": "ui.icon.stance.defense",
+      "atlas": 4,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3932,
+      "visible": 4810,
+      "borderVisible": 52
+    },
+    {
+      "key": "ui.icon.stance.counter",
+      "atlas": 4,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5070,
+      "visible": 3473,
+      "borderVisible": 16
+    },
+    {
+      "key": "ui.icon.stance.onslaught",
+      "atlas": 4,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3867,
+      "visible": 4526,
+      "borderVisible": 32
+    },
+    {
+      "key": "ui.icon.stance.charge",
+      "atlas": 4,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5400,
+      "visible": 3185,
+      "borderVisible": 10
+    },
+    {
+      "key": "ui.icon.stance.shoot",
+      "atlas": 4,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5451,
+      "visible": 3040,
+      "borderVisible": 14
+    },
+    {
+      "key": "ui.icon.dodge",
+      "atlas": 4,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4439,
+      "visible": 3975,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.block",
+      "atlas": 4,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4292,
+      "visible": 4460,
+      "borderVisible": 21
+    },
+    {
+      "key": "ui.icon.subdue",
+      "atlas": 4,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4591,
+      "visible": 4116,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.capture",
+      "atlas": 4,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5328,
+      "visible": 3204,
+      "borderVisible": 34
+    },
+    {
+      "key": "ui.icon.party",
+      "atlas": 4,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3493,
+      "visible": 5137,
+      "borderVisible": 42
+    },
+    {
+      "key": "ui.icon.invite",
+      "atlas": 4,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4819,
+      "visible": 3763,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.ready",
+      "atlas": 4,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4043,
+      "visible": 4759,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.leader",
+      "atlas": 5,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 5184,
+      "visible": 3610,
+      "borderVisible": 70
+    },
+    {
+      "key": "ui.icon.clan",
+      "atlas": 5,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4617,
+      "visible": 4292,
+      "borderVisible": 122
+    },
+    {
+      "key": "ui.icon.owner",
+      "atlas": 5,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4606,
+      "visible": 4194,
+      "borderVisible": 96
+    },
+    {
+      "key": "ui.icon.officer",
+      "atlas": 5,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4708,
+      "visible": 4180,
+      "borderVisible": 37
+    },
+    {
+      "key": "ui.icon.member",
+      "atlas": 5,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4857,
+      "visible": 3982,
+      "borderVisible": 68
+    },
+    {
+      "key": "ui.icon.visitor",
+      "atlas": 5,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3971,
+      "visible": 4901,
+      "borderVisible": 80
+    },
+    {
+      "key": "ui.icon.withdraw-capability",
+      "atlas": 5,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3917,
+      "visible": 4871,
+      "borderVisible": 29
+    },
+    {
+      "key": "ui.icon.weather.clear",
+      "atlas": 5,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4507,
+      "visible": 3969,
+      "borderVisible": 20
+    },
+    {
+      "key": "ui.icon.weather.rain",
+      "atlas": 5,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4404,
+      "visible": 4171,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.weather.fog",
+      "atlas": 5,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4581,
+      "visible": 4138,
+      "borderVisible": 44
+    },
+    {
+      "key": "ui.icon.weather.storm",
+      "atlas": 5,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4626,
+      "visible": 4143,
+      "borderVisible": 0
+    },
+    {
+      "key": "ui.icon.weather.collapse",
+      "atlas": 5,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3409,
+      "visible": 5093,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.berry",
+      "atlas": 5,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4388,
+      "visible": 4343,
+      "borderVisible": 3
+    },
+    {
+      "key": "item.icon.berry-meal",
+      "atlas": 5,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4050,
+      "visible": 4717,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.birch-bark",
+      "atlas": 5,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4102,
+      "visible": 4695,
+      "borderVisible": 8
+    },
+    {
+      "key": "item.icon.brick-floor-kit",
+      "atlas": 5,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4920,
+      "visible": 3947,
+      "borderVisible": 19
+    },
+    {
+      "key": "item.icon.brick-roof-kit",
+      "atlas": 6,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4607,
+      "visible": 4194,
+      "borderVisible": 23
+    },
+    {
+      "key": "item.icon.brick-wall-kit",
+      "atlas": 6,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4097,
+      "visible": 4746,
+      "borderVisible": 33
+    },
+    {
+      "key": "item.icon.campfire-kit",
+      "atlas": 6,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4750,
+      "visible": 4111,
+      "borderVisible": 79
+    },
+    {
+      "key": "item.icon.cattail-flatbread",
+      "atlas": 6,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4405,
+      "visible": 4339,
+      "borderVisible": 57
+    },
+    {
+      "key": "item.icon.cattail-root",
+      "atlas": 6,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4337,
+      "visible": 4254,
+      "borderVisible": 58
+    },
+    {
+      "key": "item.icon.chanterelle",
+      "atlas": 6,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5031,
+      "visible": 3736,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.clam",
+      "atlas": 6,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4573,
+      "visible": 4256,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.clam-bake",
+      "atlas": 6,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3587,
+      "visible": 5199,
+      "borderVisible": 51
+    },
+    {
+      "key": "item.icon.cooked-meat",
+      "atlas": 6,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4715,
+      "visible": 4083,
+      "borderVisible": 11
+    },
+    {
+      "key": "item.icon.cord",
+      "atlas": 6,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3801,
+      "visible": 4906,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fiber",
+      "atlas": 6,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4688,
+      "visible": 4031,
+      "borderVisible": 1
+    },
+    {
+      "key": "item.icon.fieldstone",
+      "atlas": 6,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4508,
+      "visible": 4319,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flint",
+      "atlas": 6,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4927,
+      "visible": 3893,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flint-knife",
+      "atlas": 6,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5707,
+      "visible": 3084,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.floor-kit",
+      "atlas": 6,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4779,
+      "visible": 4051,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.hazelnut",
+      "atlas": 6,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5256,
+      "visible": 3570,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.hide",
+      "atlas": 7,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4184,
+      "visible": 4579,
+      "borderVisible": 59
+    },
+    {
+      "key": "item.icon.marsh-clay",
+      "atlas": 7,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4997,
+      "visible": 3847,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.meat",
+      "atlas": 7,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5162,
+      "visible": 3663,
+      "borderVisible": 20
+    },
+    {
+      "key": "item.icon.mud-brick",
+      "atlas": 7,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5237,
+      "visible": 3610,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.plank",
+      "atlas": 7,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5086,
+      "visible": 3769,
+      "borderVisible": 29
+    },
+    {
+      "key": "item.icon.reed",
+      "atlas": 7,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4482,
+      "visible": 4115,
+      "borderVisible": 31
+    },
+    {
+      "key": "item.icon.roasted-hazelnuts",
+      "atlas": 7,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5045,
+      "visible": 3730,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.roof-kit",
+      "atlas": 7,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4257,
+      "visible": 4509,
+      "borderVisible": 18
+    },
+    {
+      "key": "item.icon.samphire",
+      "atlas": 7,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4968,
+      "visible": 3530,
+      "borderVisible": 15
+    },
+    {
+      "key": "item.icon.shell-fragment",
+      "atlas": 7,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5273,
+      "visible": 3545,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.spear",
+      "atlas": 7,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 6931,
+      "visible": 1913,
+      "borderVisible": 8
+    },
+    {
+      "key": "item.icon.stone-axe",
+      "atlas": 7,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5308,
+      "visible": 3454,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.stone-block",
+      "atlas": 7,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3698,
+      "visible": 5169,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.stone-floor-kit",
+      "atlas": 7,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4526,
+      "visible": 4323,
+      "borderVisible": 20
+    },
+    {
+      "key": "item.icon.stone-maul",
+      "atlas": 7,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5314,
+      "visible": 3499,
+      "borderVisible": 32
+    },
+    {
+      "key": "item.icon.stone-pick",
+      "atlas": 7,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5842,
+      "visible": 2925,
+      "borderVisible": 62
+    },
+    {
+      "key": "item.icon.stone-roof-kit",
+      "atlas": 8,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4987,
+      "visible": 3880,
+      "borderVisible": 43
+    },
+    {
+      "key": "item.icon.stone-wall-kit",
+      "atlas": 8,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4317,
+      "visible": 4490,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.storage-kit",
+      "atlas": 8,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3916,
+      "visible": 4824,
+      "borderVisible": 23
+    },
+    {
+      "key": "item.icon.thatch-bundle",
+      "atlas": 8,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5446,
+      "visible": 3397,
+      "borderVisible": 51
+    },
+    {
+      "key": "item.icon.timber-beam",
+      "atlas": 8,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5775,
+      "visible": 3067,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.timber-wall-kit",
+      "atlas": 8,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3260,
+      "visible": 5456,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.wood",
+      "atlas": 8,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4440,
+      "visible": 4359,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.woodland-skewer",
+      "atlas": 8,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 6572,
+      "visible": 2203,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.workbench-kit",
+      "atlas": 8,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4154,
+      "visible": 4497,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.capture-bola",
+      "atlas": 8,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4812,
+      "visible": 3730,
+      "borderVisible": 16
+    },
+    {
+      "key": "item.icon.kiln-kit",
+      "atlas": 8,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 3449,
+      "visible": 5325,
+      "borderVisible": 15
+    },
+    {
+      "key": "item.icon.tanning-frame-kit",
+      "atlas": 8,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3095,
+      "visible": 5608,
+      "borderVisible": 33
+    },
+    {
+      "key": "item.icon.refrigerator-kit",
+      "atlas": 8,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4312,
+      "visible": 4539,
+      "borderVisible": 65
+    },
+    {
+      "key": "item.icon.tent-kit",
+      "atlas": 8,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4857,
+      "visible": 3975,
+      "borderVisible": 41
+    },
+    {
+      "key": "item.icon.bed-kit",
+      "atlas": 8,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4894,
+      "visible": 3902,
+      "borderVisible": 36
+    },
+    {
+      "key": "item.icon.well-kit",
+      "atlas": 8,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4098,
+      "visible": 4606,
+      "borderVisible": 65
+    },
+    {
+      "key": "item.icon.signal-relay-kit",
+      "atlas": 9,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4601,
+      "visible": 3893,
+      "borderVisible": 79
+    },
+    {
+      "key": "item.icon.laboratory-kit",
+      "atlas": 9,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4215,
+      "visible": 4667,
+      "borderVisible": 84
+    },
+    {
+      "key": "item.icon.clan-hall-kit",
+      "atlas": 9,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3797,
+      "visible": 5065,
+      "borderVisible": 103
+    },
+    {
+      "key": "item.icon.animal-pen",
+      "atlas": 9,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4983,
+      "visible": 3852,
+      "borderVisible": 66
+    },
+    {
+      "key": "item.icon.wall-kit",
+      "atlas": 9,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3771,
+      "visible": 4972,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.stairs-kit",
+      "atlas": 9,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4473,
+      "visible": 4281,
+      "borderVisible": 15
+    },
+    {
+      "key": "item.icon.door-kit",
+      "atlas": 9,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3838,
+      "visible": 4891,
+      "borderVisible": 38
+    },
+    {
+      "key": "item.icon.roof",
+      "atlas": 9,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4888,
+      "visible": 3885,
+      "borderVisible": 18
+    },
+    {
+      "key": "item.icon.pillar",
+      "atlas": 9,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5659,
+      "visible": 3110,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.volcanic-wall",
+      "atlas": 9,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3419,
+      "visible": 5354,
+      "borderVisible": 38
+    },
+    {
+      "key": "item.icon.branch",
+      "atlas": 9,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5650,
+      "visible": 2969,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.dried-wood",
+      "atlas": 9,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4506,
+      "visible": 4275,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.dried-fiber",
+      "atlas": 9,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5198,
+      "visible": 3535,
+      "borderVisible": 7
+    },
+    {
+      "key": "item.icon.dried-hide",
+      "atlas": 9,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3892,
+      "visible": 4769,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.dried-meat",
+      "atlas": 9,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4862,
+      "visible": 3905,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.leather",
+      "atlas": 9,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4785,
+      "visible": 4062,
+      "borderVisible": 19
+    },
+    {
+      "key": "item.icon.thick-leather",
+      "atlas": 10,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3817,
+      "visible": 4949,
+      "borderVisible": 34
+    },
+    {
+      "key": "item.icon.fur",
+      "atlas": 10,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3872,
+      "visible": 4985,
+      "borderVisible": 61
+    },
+    {
+      "key": "item.icon.fur-leather",
+      "atlas": 10,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3853,
+      "visible": 4951,
+      "borderVisible": 52
+    },
+    {
+      "key": "item.icon.rex-leather",
+      "atlas": 10,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4411,
+      "visible": 4382,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.stone",
+      "atlas": 10,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4508,
+      "visible": 4319,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.polished-stone",
+      "atlas": 10,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5007,
+      "visible": 3840,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.polished-flint",
+      "atlas": 10,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5569,
+      "visible": 3248,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.bone",
+      "atlas": 10,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 6124,
+      "visible": 2690,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.polished-bone",
+      "atlas": 10,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 6304,
+      "visible": 2559,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.basalt",
+      "atlas": 10,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4470,
+      "visible": 4326,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.polished-basalt",
+      "atlas": 10,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5117,
+      "visible": 3726,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.copper-ore",
+      "atlas": 10,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4000,
+      "visible": 4800,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.copper",
+      "atlas": 10,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5384,
+      "visible": 3467,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.iron-ore",
+      "atlas": 10,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3793,
+      "visible": 5005,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.iron",
+      "atlas": 10,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5268,
+      "visible": 3575,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.charcoal",
+      "atlas": 10,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4860,
+      "visible": 3945,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.steel",
+      "atlas": 11,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 5499,
+      "visible": 3351,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.volcanic-ore",
+      "atlas": 11,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4351,
+      "visible": 4459,
+      "borderVisible": 2
+    },
+    {
+      "key": "item.icon.volcanic-alloy",
+      "atlas": 11,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5483,
+      "visible": 3357,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.corn",
+      "atlas": 11,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4957,
+      "visible": 3885,
+      "borderVisible": 32
+    },
+    {
+      "key": "item.icon.fermented-corn",
+      "atlas": 11,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3377,
+      "visible": 5412,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.wheat",
+      "atlas": 11,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4807,
+      "visible": 3866,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.fermented-wheat",
+      "atlas": 11,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3312,
+      "visible": 5452,
+      "borderVisible": 27
+    },
+    {
+      "key": "item.icon.banana",
+      "atlas": 11,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4567,
+      "visible": 4242,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.fermented-banana",
+      "atlas": 11,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3602,
+      "visible": 5155,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fig",
+      "atlas": 11,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3376,
+      "visible": 5337,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fermented-fig",
+      "atlas": 11,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 3517,
+      "visible": 5232,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fiber-compost",
+      "atlas": 11,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3852,
+      "visible": 4911,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.berry-compost",
+      "atlas": 11,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4284,
+      "visible": 4535,
+      "borderVisible": 24
+    },
+    {
+      "key": "item.icon.leaves",
+      "atlas": 11,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4492,
+      "visible": 4176,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.leaf-compost",
+      "atlas": 11,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4359,
+      "visible": 4484,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.spoiled-food",
+      "atlas": 11,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5634,
+      "visible": 3094,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.food-compost",
+      "atlas": 12,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3871,
+      "visible": 4888,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.axe-t1",
+      "atlas": 12,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5565,
+      "visible": 3205,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.pickaxe-t1",
+      "atlas": 12,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5935,
+      "visible": 2787,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.knife-t1",
+      "atlas": 12,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 6505,
+      "visible": 2344,
+      "borderVisible": 7
+    },
+    {
+      "key": "item.icon.hoe-t1",
+      "atlas": 12,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 6356,
+      "visible": 2429,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.axe-t2",
+      "atlas": 12,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5746,
+      "visible": 2999,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.pickaxe-t2",
+      "atlas": 12,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5973,
+      "visible": 2719,
+      "borderVisible": 11
+    },
+    {
+      "key": "item.icon.knife-t2",
+      "atlas": 12,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 6603,
+      "visible": 2242,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.hoe-t2",
+      "atlas": 12,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 6496,
+      "visible": 2319,
+      "borderVisible": 32
+    },
+    {
+      "key": "item.icon.axe-t3",
+      "atlas": 12,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5476,
+      "visible": 3285,
+      "borderVisible": 35
+    },
+    {
+      "key": "item.icon.pickaxe-t3",
+      "atlas": 12,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5796,
+      "visible": 2894,
+      "borderVisible": 24
+    },
+    {
+      "key": "item.icon.knife-t3",
+      "atlas": 12,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 6481,
+      "visible": 2354,
+      "borderVisible": 8
+    },
+    {
+      "key": "item.icon.hoe-t3",
+      "atlas": 12,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 6626,
+      "visible": 2231,
+      "borderVisible": 62
+    },
+    {
+      "key": "item.icon.club-t1",
+      "atlas": 12,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 6093,
+      "visible": 2783,
+      "borderVisible": 38
+    },
+    {
+      "key": "item.icon.spear-t1",
+      "atlas": 12,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 7084,
+      "visible": 1787,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.sword-t1",
+      "atlas": 12,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 6314,
+      "visible": 2517,
+      "borderVisible": 29
+    },
+    {
+      "key": "item.icon.hammer-t1",
+      "atlas": 13,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 5491,
+      "visible": 3275,
+      "borderVisible": 7
+    },
+    {
+      "key": "item.icon.bow-t1",
+      "atlas": 13,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 6571,
+      "visible": 2003,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.crossbow-t1",
+      "atlas": 13,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5256,
+      "visible": 3315,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.club-t2",
+      "atlas": 13,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 6258,
+      "visible": 2559,
+      "borderVisible": 18
+    },
+    {
+      "key": "item.icon.spear-t2",
+      "atlas": 13,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 7106,
+      "visible": 1696,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.sword-t2",
+      "atlas": 13,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 6022,
+      "visible": 2687,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.hammer-t2",
+      "atlas": 13,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5810,
+      "visible": 2949,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.bow-t2",
+      "atlas": 13,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 6490,
+      "visible": 2086,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.crossbow-t2",
+      "atlas": 13,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5167,
+      "visible": 3427,
+      "borderVisible": 15
+    },
+    {
+      "key": "item.icon.club-t3",
+      "atlas": 13,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 6042,
+      "visible": 2755,
+      "borderVisible": 18
+    },
+    {
+      "key": "item.icon.spear-t3",
+      "atlas": 13,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 6788,
+      "visible": 2016,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.sword-t3",
+      "atlas": 13,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5853,
+      "visible": 2863,
+      "borderVisible": 16
+    },
+    {
+      "key": "item.icon.hammer-t3",
+      "atlas": 13,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5482,
+      "visible": 3325,
+      "borderVisible": 50
+    },
+    {
+      "key": "item.icon.bow-t3",
+      "atlas": 13,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 6532,
+      "visible": 2044,
+      "borderVisible": 21
+    },
+    {
+      "key": "item.icon.crossbow-t3",
+      "atlas": 13,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5014,
+      "visible": 3497,
+      "borderVisible": 15
+    },
+    {
+      "key": "item.icon.temperate-head",
+      "atlas": 13,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4495,
+      "visible": 4284,
+      "borderVisible": 25
+    },
+    {
+      "key": "item.icon.temperate-top",
+      "atlas": 14,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3765,
+      "visible": 5029,
+      "borderVisible": 19
+    },
+    {
+      "key": "item.icon.temperate-bottom",
+      "atlas": 14,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4101,
+      "visible": 4580,
+      "borderVisible": 1
+    },
+    {
+      "key": "item.icon.temperate-shoes",
+      "atlas": 14,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4232,
+      "visible": 4531,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.temperate-gloves",
+      "atlas": 14,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4834,
+      "visible": 3925,
+      "borderVisible": 3
+    },
+    {
+      "key": "item.icon.temperate-bag",
+      "atlas": 14,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3266,
+      "visible": 5478,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flax",
+      "atlas": 14,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4827,
+      "visible": 3863,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.tropical-head",
+      "atlas": 14,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4953,
+      "visible": 3888,
+      "borderVisible": 23
+    },
+    {
+      "key": "item.icon.tropical-top",
+      "atlas": 14,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3632,
+      "visible": 5126,
+      "borderVisible": 5
+    },
+    {
+      "key": "item.icon.tropical-bottom",
+      "atlas": 14,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3320,
+      "visible": 5371,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.tropical-shoes",
+      "atlas": 14,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4035,
+      "visible": 4730,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.tropical-gloves",
+      "atlas": 14,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4237,
+      "visible": 4493,
+      "borderVisible": 11
+    },
+    {
+      "key": "item.icon.tropical-bag",
+      "atlas": 14,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3849,
+      "visible": 4796,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.cold-head",
+      "atlas": 14,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3610,
+      "visible": 5156,
+      "borderVisible": 33
+    },
+    {
+      "key": "item.icon.cold-top",
+      "atlas": 14,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 2788,
+      "visible": 6015,
+      "borderVisible": 68
+    },
+    {
+      "key": "item.icon.cold-bottom",
+      "atlas": 14,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 3895,
+      "visible": 4814,
+      "borderVisible": 48
+    },
+    {
+      "key": "item.icon.cold-shoes",
+      "atlas": 14,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 3443,
+      "visible": 5268,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.cold-gloves",
+      "atlas": 15,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4024,
+      "visible": 4765,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.cold-bag",
+      "atlas": 15,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 2970,
+      "visible": 5866,
+      "borderVisible": 33
+    },
+    {
+      "key": "item.icon.water",
+      "atlas": 15,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5706,
+      "visible": 3176,
+      "borderVisible": 20
+    },
+    {
+      "key": "item.icon.corn-porridge",
+      "atlas": 15,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4439,
+      "visible": 4388,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.potato",
+      "atlas": 15,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4194,
+      "visible": 4628,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.baked-potato",
+      "atlas": 15,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3857,
+      "visible": 4937,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.wheat-flatbread",
+      "atlas": 15,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3383,
+      "visible": 5396,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.onion",
+      "atlas": 15,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5056,
+      "visible": 3738,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.onion-soup",
+      "atlas": 15,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3846,
+      "visible": 4979,
+      "borderVisible": 24
+    },
+    {
+      "key": "item.icon.flaxseed",
+      "atlas": 15,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5919,
+      "visible": 2717,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flax-seed-crisp",
+      "atlas": 15,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4574,
+      "visible": 4242,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.banana-mash",
+      "atlas": 15,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4393,
+      "visible": 4416,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fig-stew",
+      "atlas": 15,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3609,
+      "visible": 5218,
+      "borderVisible": 25
+    },
+    {
+      "key": "item.icon.apple",
+      "atlas": 15,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4182,
+      "visible": 4616,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.baked-apple",
+      "atlas": 15,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4052,
+      "visible": 4730,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.roast-meat",
+      "atlas": 15,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5347,
+      "visible": 3428,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.meat-potato-stew",
+      "atlas": 16,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3623,
+      "visible": 5302,
+      "borderVisible": 89
+    },
+    {
+      "key": "item.icon.onion-meat-skewer",
+      "atlas": 16,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5956,
+      "visible": 2839,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.rex-meat-stew",
+      "atlas": 16,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3596,
+      "visible": 5270,
+      "borderVisible": 56
+    },
+    {
+      "key": "item.icon.fish",
+      "atlas": 16,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4767,
+      "visible": 4026,
+      "borderVisible": 49
+    },
+    {
+      "key": "item.icon.grilled-fish",
+      "atlas": 16,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4904,
+      "visible": 3889,
+      "borderVisible": 31
+    },
+    {
+      "key": "item.icon.clam-soup",
+      "atlas": 16,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3169,
+      "visible": 5692,
+      "borderVisible": 65
+    },
+    {
+      "key": "item.icon.herbivore-feed",
+      "atlas": 16,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 2533,
+      "visible": 6194,
+      "borderVisible": 40
+    },
+    {
+      "key": "item.icon.carnivore-feed",
+      "atlas": 16,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3154,
+      "visible": 5641,
+      "borderVisible": 55
+    },
+    {
+      "key": "item.icon.corn-seed",
+      "atlas": 16,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3219,
+      "visible": 5500,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.potato-seed",
+      "atlas": 16,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3290,
+      "visible": 5423,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.wheat-seed",
+      "atlas": 16,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 3325,
+      "visible": 5413,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.onion-seed",
+      "atlas": 16,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3236,
+      "visible": 5483,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flax-seed",
+      "atlas": 16,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3540,
+      "visible": 5293,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.banana-seed",
+      "atlas": 16,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3555,
+      "visible": 5280,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.fig-seed",
+      "atlas": 16,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 3546,
+      "visible": 5266,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.apple-seed",
+      "atlas": 16,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 3510,
+      "visible": 5329,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.liquid-fertilizer",
+      "atlas": 17,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3803,
+      "visible": 4995,
+      "borderVisible": 72
+    },
+    {
+      "key": "item.icon.fruit-fertilizer",
+      "atlas": 17,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3907,
+      "visible": 4941,
+      "borderVisible": 82
+    },
+    {
+      "key": "item.icon.stem-fertilizer",
+      "atlas": 17,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3936,
+      "visible": 4921,
+      "borderVisible": 83
+    },
+    {
+      "key": "item.icon.sprinkler",
+      "atlas": 17,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5693,
+      "visible": 2761,
+      "borderVisible": 75
+    },
+    {
+      "key": "item.icon.capture-rope",
+      "atlas": 17,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4163,
+      "visible": 4373,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.saddle",
+      "atlas": 17,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4067,
+      "visible": 4636,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.recovery-feed",
+      "atlas": 17,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4555,
+      "visible": 4261,
+      "borderVisible": 8
+    },
+    {
+      "key": "item.icon.clay",
+      "atlas": 17,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4722,
+      "visible": 4107,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.volcanic-bone",
+      "atlas": 17,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 6013,
+      "visible": 2789,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.lava-protection-boots",
+      "atlas": 17,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 2810,
+      "visible": 5911,
+      "borderVisible": 20
+    },
+    {
+      "key": "item.icon.starter-axe",
+      "atlas": 17,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5646,
+      "visible": 3101,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.starter-pickaxe",
+      "atlas": 17,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5719,
+      "visible": 2944,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.starter-club",
+      "atlas": 17,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5992,
+      "visible": 2901,
+      "borderVisible": 53
+    },
+    {
+      "key": "item.icon.practice-stitch",
+      "atlas": 17,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3889,
+      "visible": 4777,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.practice-seedbed",
+      "atlas": 17,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4075,
+      "visible": 4675,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.instrument-piano",
+      "atlas": 17,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 2877,
+      "visible": 5960,
+      "borderVisible": 96
+    },
+    {
+      "key": "item.icon.instrument-guitar",
+      "atlas": 18,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 5534,
+      "visible": 3300,
+      "borderVisible": 60
+    },
+    {
+      "key": "item.icon.instrument-bass",
+      "atlas": 18,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 6198,
+      "visible": 2588,
+      "borderVisible": 56
+    },
+    {
+      "key": "item.icon.instrument-violin",
+      "atlas": 18,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5759,
+      "visible": 3027,
+      "borderVisible": 41
+    },
+    {
+      "key": "item.icon.instrument-flute",
+      "atlas": 18,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 7262,
+      "visible": 1624,
+      "borderVisible": 23
+    },
+    {
+      "key": "item.icon.instrument-clarinet",
+      "atlas": 18,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 6971,
+      "visible": 1851,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.instrument-trumpet",
+      "atlas": 18,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5227,
+      "visible": 3490,
+      "borderVisible": 50
+    },
+    {
+      "key": "item.icon.instrument-drums",
+      "atlas": 18,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3781,
+      "visible": 4990,
+      "borderVisible": 84
+    },
+    {
+      "key": "item.icon.granite",
+      "atlas": 18,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4608,
+      "visible": 4299,
+      "borderVisible": 68
+    },
+    {
+      "key": "item.icon.bandage",
+      "atlas": 18,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5483,
+      "visible": 3359,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.signal-lens",
+      "atlas": 18,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3519,
+      "visible": 5164,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.sample-case",
+      "atlas": 18,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 3413,
+      "visible": 5249,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.research-bundle",
+      "atlas": 18,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3402,
+      "visible": 5398,
+      "borderVisible": 33
+    },
+    {
+      "key": "item.icon.shelter-liner",
+      "atlas": 18,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4060,
+      "visible": 4757,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.heat-brace",
+      "atlas": 18,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4794,
+      "visible": 4003,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.signal-fragment",
+      "atlas": 18,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5140,
+      "visible": 3669,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.rescue-transponder",
+      "atlas": 18,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4841,
+      "visible": 3962,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.skull",
+      "atlas": 19,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4720,
+      "visible": 4103,
+      "borderVisible": 44
+    },
+    {
+      "key": "item.icon.feather",
+      "atlas": 19,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5206,
+      "visible": 3636,
+      "borderVisible": 26
+    },
+    {
+      "key": "item.icon.plate",
+      "atlas": 19,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3784,
+      "visible": 5077,
+      "borderVisible": 47
+    },
+    {
+      "key": "item.icon.horn",
+      "atlas": 19,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 6271,
+      "visible": 2597,
+      "borderVisible": 44
+    },
+    {
+      "key": "item.icon.claw",
+      "atlas": 19,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5733,
+      "visible": 3086,
+      "borderVisible": 11
+    },
+    {
+      "key": "item.icon.tooth",
+      "atlas": 19,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5640,
+      "visible": 3176,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.fang",
+      "atlas": 19,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 7170,
+      "visible": 1717,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.sinew",
+      "atlas": 19,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5659,
+      "visible": 3170,
+      "borderVisible": 21
+    },
+    {
+      "key": "item.icon.tusk",
+      "atlas": 19,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5804,
+      "visible": 3007,
+      "borderVisible": 35
+    },
+    {
+      "key": "item.icon.antler",
+      "atlas": 19,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5303,
+      "visible": 3248,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.relief-unit",
+      "atlas": 19,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 3645,
+      "visible": 5094,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.survey-sample",
+      "atlas": 19,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4520,
+      "visible": 4375,
+      "borderVisible": 4
+    },
+    {
+      "key": "item.icon.volcanic-ash",
+      "atlas": 19,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5733,
+      "visible": 2968,
+      "borderVisible": 10
+    },
+    {
+      "key": "item.icon.rescue-marker",
+      "atlas": 19,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5698,
+      "visible": 3079,
+      "borderVisible": 19
+    },
+    {
+      "key": "item.icon.chapter",
+      "atlas": 19,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 3536,
+      "visible": 5285,
+      "borderVisible": 56
+    },
+    {
+      "key": "item.icon.fragment",
+      "atlas": 19,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5555,
+      "visible": 3283,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.rw-journal-seal-1",
+      "atlas": 20,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3421,
+      "visible": 5399,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.rw-journal-seal-2",
+      "atlas": 20,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3421,
+      "visible": 5404,
+      "borderVisible": 29
+    },
+    {
+      "key": "item.icon.rw-journal-seal-3",
+      "atlas": 20,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3427,
+      "visible": 5414,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.rw-journal-seal-4",
+      "atlas": 20,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 3391,
+      "visible": 5434,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.rw-journal-seal-5",
+      "atlas": 20,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3336,
+      "visible": 5429,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.rw-journal-seal-6",
+      "atlas": 20,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3317,
+      "visible": 5461,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.rw-journal-seal-7",
+      "atlas": 20,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3258,
+      "visible": 5515,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.rw-journal-seal-8",
+      "atlas": 20,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3335,
+      "visible": 5451,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.meat-profile",
+      "atlas": 20,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4182,
+      "visible": 4613,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.hide-profile",
+      "atlas": 20,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3809,
+      "visible": 4853,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.bone-profile",
+      "atlas": 20,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 6109,
+      "visible": 2675,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.feather-profile",
+      "atlas": 20,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5257,
+      "visible": 3544,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.plate-profile",
+      "atlas": 20,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3917,
+      "visible": 4922,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.shell-fragment-profile",
+      "atlas": 20,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4724,
+      "visible": 4068,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.claw-profile",
+      "atlas": 20,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 6098,
+      "visible": 2728,
+      "borderVisible": 11
+    },
+    {
+      "key": "item.icon.tooth-profile",
+      "atlas": 20,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5900,
+      "visible": 3000,
+      "borderVisible": 59
+    },
+    {
+      "key": "item.icon.volcanic-bone-profile",
+      "atlas": 21,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 5661,
+      "visible": 3181,
+      "borderVisible": 23
+    },
+    {
+      "key": "item.icon.fur-profile",
+      "atlas": 21,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4589,
+      "visible": 4195,
+      "borderVisible": 31
+    },
+    {
+      "key": "item.icon.fang-profile",
+      "atlas": 21,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 6806,
+      "visible": 2088,
+      "borderVisible": 13
+    },
+    {
+      "key": "item.icon.sinew-profile",
+      "atlas": 21,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5324,
+      "visible": 3519,
+      "borderVisible": 26
+    },
+    {
+      "key": "item.icon.tusk-profile",
+      "atlas": 21,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5886,
+      "visible": 2949,
+      "borderVisible": 48
+    },
+    {
+      "key": "item.icon.horn-profile",
+      "atlas": 21,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5749,
+      "visible": 3072,
+      "borderVisible": 21
+    },
+    {
+      "key": "item.icon.antler-profile",
+      "atlas": 21,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5687,
+      "visible": 2906,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.skull-profile",
+      "atlas": 21,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5607,
+      "visible": 3203,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.branch-profile",
+      "atlas": 21,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5837,
+      "visible": 2839,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.wood-profile",
+      "atlas": 21,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4903,
+      "visible": 3921,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.stone-profile",
+      "atlas": 21,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4657,
+      "visible": 4139,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.fiber-profile",
+      "atlas": 21,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4433,
+      "visible": 4251,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.berry-profile",
+      "atlas": 21,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4671,
+      "visible": 4034,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.water-profile",
+      "atlas": 21,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5639,
+      "visible": 3200,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flint-profile",
+      "atlas": 21,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5661,
+      "visible": 3197,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.clay-profile",
+      "atlas": 21,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4415,
+      "visible": 4386,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.leaves-profile",
+      "atlas": 22,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4904,
+      "visible": 3902,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.copper-ore-profile",
+      "atlas": 22,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4515,
+      "visible": 4335,
+      "borderVisible": 30
+    },
+    {
+      "key": "item.icon.iron-ore-profile",
+      "atlas": 22,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4618,
+      "visible": 4230,
+      "borderVisible": 28
+    },
+    {
+      "key": "item.icon.charcoal-profile",
+      "atlas": 22,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5023,
+      "visible": 3850,
+      "borderVisible": 26
+    },
+    {
+      "key": "item.icon.granite-profile",
+      "atlas": 22,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4356,
+      "visible": 4485,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.basalt-profile",
+      "atlas": 22,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4510,
+      "visible": 4314,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.volcanic-ore-profile",
+      "atlas": 22,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4154,
+      "visible": 4654,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.corn-profile",
+      "atlas": 22,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4774,
+      "visible": 4050,
+      "borderVisible": 17
+    },
+    {
+      "key": "item.icon.potato-profile",
+      "atlas": 22,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4429,
+      "visible": 4413,
+      "borderVisible": 20
+    },
+    {
+      "key": "item.icon.wheat-profile",
+      "atlas": 22,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5665,
+      "visible": 3119,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.onion-profile",
+      "atlas": 22,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4953,
+      "visible": 3796,
+      "borderVisible": 6
+    },
+    {
+      "key": "item.icon.flax-profile",
+      "atlas": 22,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4779,
+      "visible": 3762,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.flaxseed-profile",
+      "atlas": 22,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 6265,
+      "visible": 2458,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.banana-profile",
+      "atlas": 22,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5642,
+      "visible": 3168,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.fig-profile",
+      "atlas": 22,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4119,
+      "visible": 4643,
+      "borderVisible": 0
+    },
+    {
+      "key": "item.icon.apple-profile",
+      "atlas": 22,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4490,
+      "visible": 4316,
+      "borderVisible": 21
+    },
+    {
+      "key": "item.icon.fish-profile",
+      "atlas": 23,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4799,
+      "visible": 3939,
+      "borderVisible": 26
+    },
+    {
+      "key": "item.icon.clam-profile",
+      "atlas": 23,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4423,
+      "visible": 4434,
+      "borderVisible": 38
+    },
+    {
+      "key": "item.icon.spoiled-food-profile",
+      "atlas": 23,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5918,
+      "visible": 2890,
+      "borderVisible": 59
+    },
+    {
+      "key": "item.icon.corn-seed-profile",
+      "atlas": 23,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5005,
+      "visible": 3740,
+      "borderVisible": 31
+    },
+    {
+      "key": "item.icon.potato-seed-profile",
+      "atlas": 23,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4898,
+      "visible": 3868,
+      "borderVisible": 22
+    },
+    {
+      "key": "item.icon.wheat-seed-profile",
+      "atlas": 23,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5934,
+      "visible": 2861,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.onion-seed-profile",
+      "atlas": 23,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5676,
+      "visible": 3117,
+      "borderVisible": 47
+    },
+    {
+      "key": "item.icon.flax-seed-profile",
+      "atlas": 23,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5636,
+      "visible": 2889,
+      "borderVisible": 12
+    },
+    {
+      "key": "item.icon.banana-seed-profile",
+      "atlas": 23,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5362,
+      "visible": 3401,
+      "borderVisible": 14
+    },
+    {
+      "key": "item.icon.fig-seed-profile",
+      "atlas": 23,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4289,
+      "visible": 4491,
+      "borderVisible": 9
+    },
+    {
+      "key": "item.icon.apple-seed-profile",
+      "atlas": 23,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5028,
+      "visible": 3730,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.berry-meal",
+      "atlas": 23,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3956,
+      "visible": 4831,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.brick-floor-kit",
+      "atlas": 23,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4780,
+      "visible": 4101,
+      "borderVisible": 21
+    },
+    {
+      "key": "recipe.icon.brick-roof-kit",
+      "atlas": 23,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5341,
+      "visible": 3496,
+      "borderVisible": 15
+    },
+    {
+      "key": "recipe.icon.brick-wall-kit",
+      "atlas": 23,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4077,
+      "visible": 4701,
+      "borderVisible": 21
+    },
+    {
+      "key": "recipe.icon.legacy-campfire-kit",
+      "atlas": 23,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4074,
+      "visible": 4699,
+      "borderVisible": 16
+    },
+    {
+      "key": "recipe.icon.cattail-flatbread",
+      "atlas": 24,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3783,
+      "visible": 5030,
+      "borderVisible": 95
+    },
+    {
+      "key": "recipe.icon.clam-bake",
+      "atlas": 24,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3777,
+      "visible": 5044,
+      "borderVisible": 42
+    },
+    {
+      "key": "recipe.icon.cooked-meat",
+      "atlas": 24,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5197,
+      "visible": 3645,
+      "borderVisible": 38
+    },
+    {
+      "key": "recipe.icon.cord",
+      "atlas": 24,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 3973,
+      "visible": 4809,
+      "borderVisible": 45
+    },
+    {
+      "key": "recipe.icon.flint-knife",
+      "atlas": 24,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5904,
+      "visible": 2935,
+      "borderVisible": 27
+    },
+    {
+      "key": "recipe.icon.legacy-floor-kit",
+      "atlas": 24,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4253,
+      "visible": 4522,
+      "borderVisible": 25
+    },
+    {
+      "key": "recipe.icon.mud-brick",
+      "atlas": 24,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4542,
+      "visible": 4273,
+      "borderVisible": 6
+    },
+    {
+      "key": "recipe.icon.plank",
+      "atlas": 24,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5552,
+      "visible": 3295,
+      "borderVisible": 15
+    },
+    {
+      "key": "recipe.icon.rawhide-lashing",
+      "atlas": 24,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4307,
+      "visible": 4471,
+      "borderVisible": 2
+    },
+    {
+      "key": "recipe.icon.roasted-hazelnuts",
+      "atlas": 24,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5037,
+      "visible": 3782,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.roof-kit",
+      "atlas": 24,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4417,
+      "visible": 4386,
+      "borderVisible": 22
+    },
+    {
+      "key": "recipe.icon.spear",
+      "atlas": 24,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 6630,
+      "visible": 2173,
+      "borderVisible": 12
+    },
+    {
+      "key": "recipe.icon.stone-axe",
+      "atlas": 24,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5373,
+      "visible": 3434,
+      "borderVisible": 47
+    },
+    {
+      "key": "recipe.icon.stone-block",
+      "atlas": 24,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3966,
+      "visible": 4817,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.stone-floor-kit",
+      "atlas": 24,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4445,
+      "visible": 4410,
+      "borderVisible": 17
+    },
+    {
+      "key": "recipe.icon.stone-maul",
+      "atlas": 24,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 5637,
+      "visible": 3172,
+      "borderVisible": 33
+    },
+    {
+      "key": "recipe.icon.stone-pick",
+      "atlas": 25,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 6029,
+      "visible": 2709,
+      "borderVisible": 16
+    },
+    {
+      "key": "recipe.icon.stone-roof-kit",
+      "atlas": 25,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5097,
+      "visible": 3717,
+      "borderVisible": 20
+    },
+    {
+      "key": "recipe.icon.stone-wall-kit",
+      "atlas": 25,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 3564,
+      "visible": 5207,
+      "borderVisible": 39
+    },
+    {
+      "key": "recipe.icon.legacy-storage-kit",
+      "atlas": 25,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 3453,
+      "visible": 5258,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.thatch-bundle",
+      "atlas": 25,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4537,
+      "visible": 4258,
+      "borderVisible": 43
+    },
+    {
+      "key": "recipe.icon.timber-beam",
+      "atlas": 25,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 5502,
+      "visible": 3364,
+      "borderVisible": 18
+    },
+    {
+      "key": "recipe.icon.timber-wall-kit",
+      "atlas": 25,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3032,
+      "visible": 5779,
+      "borderVisible": 51
+    },
+    {
+      "key": "recipe.icon.woodland-skewer",
+      "atlas": 25,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 6127,
+      "visible": 2613,
+      "borderVisible": 9
+    },
+    {
+      "key": "recipe.icon.legacy-workbench-kit",
+      "atlas": 25,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4051,
+      "visible": 4547,
+      "borderVisible": 24
+    },
+    {
+      "key": "recipe.icon.capture-bola",
+      "atlas": 25,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 5023,
+      "visible": 3407,
+      "borderVisible": 32
+    },
+    {
+      "key": "recipe.icon.dry-twig",
+      "atlas": 25,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 6550,
+      "visible": 2159,
+      "borderVisible": 10
+    },
+    {
+      "key": "recipe.icon.dry-fiber",
+      "atlas": 25,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4802,
+      "visible": 3883,
+      "borderVisible": 23
+    },
+    {
+      "key": "recipe.icon.dry-hide",
+      "atlas": 25,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3880,
+      "visible": 4825,
+      "borderVisible": 11
+    },
+    {
+      "key": "recipe.icon.dry-meat",
+      "atlas": 25,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4767,
+      "visible": 4012,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.tan-hide",
+      "atlas": 25,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4338,
+      "visible": 4394,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.tan-thick-hide",
+      "atlas": 25,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4334,
+      "visible": 4470,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.tan-fur-hide",
+      "atlas": 26,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4240,
+      "visible": 4514,
+      "borderVisible": 47
+    },
+    {
+      "key": "recipe.icon.tan-rex-hide",
+      "atlas": 26,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4446,
+      "visible": 4291,
+      "borderVisible": 20
+    },
+    {
+      "key": "recipe.icon.polish-stone",
+      "atlas": 26,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5085,
+      "visible": 3769,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.polish-flint",
+      "atlas": 26,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5011,
+      "visible": 3861,
+      "borderVisible": 46
+    },
+    {
+      "key": "recipe.icon.polish-bone",
+      "atlas": 26,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 6447,
+      "visible": 2380,
+      "borderVisible": 3
+    },
+    {
+      "key": "recipe.icon.polish-basalt",
+      "atlas": 26,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4913,
+      "visible": 3924,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.smelt-copper",
+      "atlas": 26,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5085,
+      "visible": 3721,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.smelt-iron",
+      "atlas": 26,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5070,
+      "visible": 3737,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.smelt-steel",
+      "atlas": 26,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 5084,
+      "visible": 3737,
+      "borderVisible": 4
+    },
+    {
+      "key": "recipe.icon.smelt-volcanic-alloy",
+      "atlas": 26,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4993,
+      "visible": 3817,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.ferment-corn",
+      "atlas": 26,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4182,
+      "visible": 4557,
+      "borderVisible": 3
+    },
+    {
+      "key": "recipe.icon.ferment-wheat",
+      "atlas": 26,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4215,
+      "visible": 4503,
+      "borderVisible": 3
+    },
+    {
+      "key": "recipe.icon.ferment-banana",
+      "atlas": 26,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 4056,
+      "visible": 4726,
+      "borderVisible": 7
+    },
+    {
+      "key": "recipe.icon.ferment-fig",
+      "atlas": 26,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 4074,
+      "visible": 4702,
+      "borderVisible": 7
+    },
+    {
+      "key": "recipe.icon.compost-fiber",
+      "atlas": 26,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4115,
+      "visible": 4574,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.compost-berry",
+      "atlas": 26,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4428,
+      "visible": 4295,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.compost-leaves",
+      "atlas": 27,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4626,
+      "visible": 4163,
+      "borderVisible": 39
+    },
+    {
+      "key": "recipe.icon.compost-spoiled-food",
+      "atlas": 27,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4811,
+      "visible": 3916,
+      "borderVisible": 7
+    },
+    {
+      "key": "recipe.icon.axe-t1",
+      "atlas": 27,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 5710,
+      "visible": 3058,
+      "borderVisible": 14
+    },
+    {
+      "key": "recipe.icon.pickaxe-t1",
+      "atlas": 27,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5874,
+      "visible": 2815,
+      "borderVisible": 24
+    },
+    {
+      "key": "recipe.icon.knife-t1",
+      "atlas": 27,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 6554,
+      "visible": 2261,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.hoe-t1",
+      "atlas": 27,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 6495,
+      "visible": 2243,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.axe-t2",
+      "atlas": 27,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5826,
+      "visible": 2903,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.pickaxe-t2",
+      "atlas": 27,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5836,
+      "visible": 2792,
+      "borderVisible": 6
+    },
+    {
+      "key": "recipe.icon.knife-t2",
+      "atlas": 27,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 6603,
+      "visible": 2235,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.hoe-t2",
+      "atlas": 27,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 6480,
+      "visible": 2243,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.axe-t3",
+      "atlas": 27,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5836,
+      "visible": 2902,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.pickaxe-t3",
+      "atlas": 27,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 5780,
+      "visible": 2859,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.knife-t3",
+      "atlas": 27,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 6460,
+      "visible": 2393,
+      "borderVisible": 21
+    },
+    {
+      "key": "recipe.icon.hoe-t3",
+      "atlas": 27,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 6518,
+      "visible": 2256,
+      "borderVisible": 27
+    },
+    {
+      "key": "recipe.icon.club-t1",
+      "atlas": 27,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 5965,
+      "visible": 2862,
+      "borderVisible": 31
+    },
+    {
+      "key": "recipe.icon.spear-t1",
+      "atlas": 27,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 6921,
+      "visible": 1932,
+      "borderVisible": 27
+    },
+    {
+      "key": "recipe.icon.sword-t1",
+      "atlas": 28,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 6003,
+      "visible": 2757,
+      "borderVisible": 19
+    },
+    {
+      "key": "recipe.icon.hammer-t1",
+      "atlas": 28,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 5437,
+      "visible": 3329,
+      "borderVisible": 9
+    },
+    {
+      "key": "recipe.icon.bow-t1",
+      "atlas": 28,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 6614,
+      "visible": 2033,
+      "borderVisible": 13
+    },
+    {
+      "key": "recipe.icon.crossbow-t1",
+      "atlas": 28,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4846,
+      "visible": 3636,
+      "borderVisible": 20
+    },
+    {
+      "key": "recipe.icon.club-t2",
+      "atlas": 28,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 5759,
+      "visible": 2986,
+      "borderVisible": 16
+    },
+    {
+      "key": "recipe.icon.spear-t2",
+      "atlas": 28,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 6358,
+      "visible": 2327,
+      "borderVisible": 3
+    },
+    {
+      "key": "recipe.icon.sword-t2",
+      "atlas": 28,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 6031,
+      "visible": 2715,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.hammer-t2",
+      "atlas": 28,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 5093,
+      "visible": 3632,
+      "borderVisible": 9
+    },
+    {
+      "key": "recipe.icon.bow-t2",
+      "atlas": 28,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 6197,
+      "visible": 2369,
+      "borderVisible": 12
+    },
+    {
+      "key": "recipe.icon.crossbow-t2",
+      "atlas": 28,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4698,
+      "visible": 3781,
+      "borderVisible": 13
+    },
+    {
+      "key": "recipe.icon.club-t3",
+      "atlas": 28,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5706,
+      "visible": 3053,
+      "borderVisible": 10
+    },
+    {
+      "key": "recipe.icon.spear-t3",
+      "atlas": 28,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 6340,
+      "visible": 2357,
+      "borderVisible": 17
+    },
+    {
+      "key": "recipe.icon.sword-t3",
+      "atlas": 28,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5937,
+      "visible": 2821,
+      "borderVisible": 27
+    },
+    {
+      "key": "recipe.icon.hammer-t3",
+      "atlas": 28,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5081,
+      "visible": 3674,
+      "borderVisible": 28
+    },
+    {
+      "key": "recipe.icon.bow-t3",
+      "atlas": 28,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 6307,
+      "visible": 2264,
+      "borderVisible": 31
+    },
+    {
+      "key": "recipe.icon.crossbow-t3",
+      "atlas": 28,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4344,
+      "visible": 4138,
+      "borderVisible": 16
+    },
+    {
+      "key": "recipe.icon.temperate-head",
+      "atlas": 29,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4751,
+      "visible": 4064,
+      "borderVisible": 15
+    },
+    {
+      "key": "recipe.icon.temperate-top",
+      "atlas": 29,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3662,
+      "visible": 5209,
+      "borderVisible": 75
+    },
+    {
+      "key": "recipe.icon.temperate-bottom",
+      "atlas": 29,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4507,
+      "visible": 4261,
+      "borderVisible": 58
+    },
+    {
+      "key": "recipe.icon.temperate-shoes",
+      "atlas": 29,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4813,
+      "visible": 4061,
+      "borderVisible": 53
+    },
+    {
+      "key": "recipe.icon.temperate-gloves",
+      "atlas": 29,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4301,
+      "visible": 4471,
+      "borderVisible": 13
+    },
+    {
+      "key": "recipe.icon.temperate-bag",
+      "atlas": 29,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3400,
+      "visible": 5352,
+      "borderVisible": 28
+    },
+    {
+      "key": "recipe.icon.tropical-head",
+      "atlas": 29,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4800,
+      "visible": 4065,
+      "borderVisible": 35
+    },
+    {
+      "key": "recipe.icon.tropical-top",
+      "atlas": 29,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3403,
+      "visible": 5391,
+      "borderVisible": 15
+    },
+    {
+      "key": "recipe.icon.tropical-bottom",
+      "atlas": 29,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3049,
+      "visible": 5641,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.tropical-shoes",
+      "atlas": 29,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4124,
+      "visible": 4667,
+      "borderVisible": 16
+    },
+    {
+      "key": "recipe.icon.tropical-gloves",
+      "atlas": 29,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4376,
+      "visible": 4368,
+      "borderVisible": 13
+    },
+    {
+      "key": "recipe.icon.tropical-bag",
+      "atlas": 29,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3027,
+      "visible": 5665,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.cold-head",
+      "atlas": 29,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3725,
+      "visible": 5044,
+      "borderVisible": 41
+    },
+    {
+      "key": "recipe.icon.cold-top",
+      "atlas": 29,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 2556,
+      "visible": 6296,
+      "borderVisible": 85
+    },
+    {
+      "key": "recipe.icon.cold-bottom",
+      "atlas": 29,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4394,
+      "visible": 4315,
+      "borderVisible": 44
+    },
+    {
+      "key": "recipe.icon.cold-shoes",
+      "atlas": 29,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 3501,
+      "visible": 5213,
+      "borderVisible": 6
+    },
+    {
+      "key": "recipe.icon.cold-gloves",
+      "atlas": 30,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4204,
+      "visible": 4683,
+      "borderVisible": 84
+    },
+    {
+      "key": "recipe.icon.cold-bag",
+      "atlas": 30,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3602,
+      "visible": 5263,
+      "borderVisible": 87
+    },
+    {
+      "key": "recipe.icon.corn-porridge",
+      "atlas": 30,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4213,
+      "visible": 4663,
+      "borderVisible": 49
+    },
+    {
+      "key": "recipe.icon.baked-potato",
+      "atlas": 30,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4369,
+      "visible": 4525,
+      "borderVisible": 49
+    },
+    {
+      "key": "recipe.icon.wheat-flatbread",
+      "atlas": 30,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3678,
+      "visible": 5190,
+      "borderVisible": 50
+    },
+    {
+      "key": "recipe.icon.onion-soup",
+      "atlas": 30,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 3755,
+      "visible": 5122,
+      "borderVisible": 45
+    },
+    {
+      "key": "recipe.icon.flax-seed-crisp",
+      "atlas": 30,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 4471,
+      "visible": 4370,
+      "borderVisible": 14
+    },
+    {
+      "key": "recipe.icon.banana-mash",
+      "atlas": 30,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 3621,
+      "visible": 5218,
+      "borderVisible": 38
+    },
+    {
+      "key": "recipe.icon.fig-stew",
+      "atlas": 30,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 3518,
+      "visible": 5320,
+      "borderVisible": 33
+    },
+    {
+      "key": "recipe.icon.baked-apple",
+      "atlas": 30,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3559,
+      "visible": 5180,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.roast-meat",
+      "atlas": 30,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 5206,
+      "visible": 3577,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.meat-potato-stew",
+      "atlas": 30,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3136,
+      "visible": 5670,
+      "borderVisible": 28
+    },
+    {
+      "key": "recipe.icon.onion-meat-skewer",
+      "atlas": 30,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 5489,
+      "visible": 3311,
+      "borderVisible": 30
+    },
+    {
+      "key": "recipe.icon.rex-meat-stew",
+      "atlas": 30,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3027,
+      "visible": 5861,
+      "borderVisible": 75
+    },
+    {
+      "key": "recipe.icon.grilled-fish",
+      "atlas": 30,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 3947,
+      "visible": 4941,
+      "borderVisible": 61
+    },
+    {
+      "key": "recipe.icon.clam-soup",
+      "atlas": 30,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 3041,
+      "visible": 5820,
+      "borderVisible": 60
+    },
+    {
+      "key": "recipe.icon.herbivore-feed",
+      "atlas": 31,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 3963,
+      "visible": 4923,
+      "borderVisible": 92
+    },
+    {
+      "key": "recipe.icon.carnivore-feed",
+      "atlas": 31,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4452,
+      "visible": 4397,
+      "borderVisible": 86
+    },
+    {
+      "key": "recipe.icon.extract-corn-seed",
+      "atlas": 31,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4731,
+      "visible": 3839,
+      "borderVisible": 45
+    },
+    {
+      "key": "recipe.icon.extract-potato-seed",
+      "atlas": 31,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 4832,
+      "visible": 3918,
+      "borderVisible": 66
+    },
+    {
+      "key": "recipe.icon.extract-wheat-seed",
+      "atlas": 31,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 4905,
+      "visible": 3629,
+      "borderVisible": 28
+    },
+    {
+      "key": "recipe.icon.extract-onion-seed",
+      "atlas": 31,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 4965,
+      "visible": 3489,
+      "borderVisible": 24
+    },
+    {
+      "key": "recipe.icon.extract-flax-seed",
+      "atlas": 31,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 5260,
+      "visible": 3217,
+      "borderVisible": 11
+    },
+    {
+      "key": "recipe.icon.extract-banana-seed",
+      "atlas": 31,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 4743,
+      "visible": 3946,
+      "borderVisible": 51
+    },
+    {
+      "key": "recipe.icon.extract-fig-seed",
+      "atlas": 31,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4440,
+      "visible": 4195,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.extract-apple-seed",
+      "atlas": 31,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 3794,
+      "visible": 4834,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.liquid-fertilizer",
+      "atlas": 31,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 4652,
+      "visible": 4171,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.fruit-fertilizer",
+      "atlas": 31,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 3756,
+      "visible": 4965,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.stem-fertilizer",
+      "atlas": 31,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3812,
+      "visible": 4979,
+      "borderVisible": 47
+    },
+    {
+      "key": "recipe.icon.sprinkler",
+      "atlas": 31,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 5246,
+      "visible": 2994,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.capture-rope",
+      "atlas": 31,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 4832,
+      "visible": 3771,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.animal-pen",
+      "atlas": 31,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4559,
+      "visible": 4163,
+      "borderVisible": 29
+    },
+    {
+      "key": "recipe.icon.saddle",
+      "atlas": 32,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4235,
+      "visible": 4541,
+      "borderVisible": 63
+    },
+    {
+      "key": "recipe.icon.recovery-feed",
+      "atlas": 32,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 3837,
+      "visible": 4994,
+      "borderVisible": 80
+    },
+    {
+      "key": "recipe.icon.campfire-kit",
+      "atlas": 32,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4565,
+      "visible": 4245,
+      "borderVisible": 62
+    },
+    {
+      "key": "recipe.icon.workbench-kit",
+      "atlas": 32,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 3900,
+      "visible": 4734,
+      "borderVisible": 73
+    },
+    {
+      "key": "recipe.icon.kiln-kit",
+      "atlas": 32,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 3777,
+      "visible": 5084,
+      "borderVisible": 101
+    },
+    {
+      "key": "recipe.icon.tanning-frame-kit",
+      "atlas": 32,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 2832,
+      "visible": 5890,
+      "borderVisible": 82
+    },
+    {
+      "key": "recipe.icon.refrigerator-kit",
+      "atlas": 32,
+      "cell": 7,
+      "width": 96,
+      "height": 96,
+      "clear": 3154,
+      "visible": 5701,
+      "borderVisible": 57
+    },
+    {
+      "key": "recipe.icon.storage-kit",
+      "atlas": 32,
+      "cell": 8,
+      "width": 96,
+      "height": 96,
+      "clear": 2901,
+      "visible": 6070,
+      "borderVisible": 158
+    },
+    {
+      "key": "recipe.icon.tent-kit",
+      "atlas": 32,
+      "cell": 9,
+      "width": 96,
+      "height": 96,
+      "clear": 4583,
+      "visible": 4164,
+      "borderVisible": 23
+    },
+    {
+      "key": "recipe.icon.bed-kit",
+      "atlas": 32,
+      "cell": 10,
+      "width": 96,
+      "height": 96,
+      "clear": 4525,
+      "visible": 4252,
+      "borderVisible": 39
+    },
+    {
+      "key": "recipe.icon.well-kit",
+      "atlas": 32,
+      "cell": 11,
+      "width": 96,
+      "height": 96,
+      "clear": 2926,
+      "visible": 5688,
+      "borderVisible": 43
+    },
+    {
+      "key": "recipe.icon.signal-relay-kit",
+      "atlas": 32,
+      "cell": 12,
+      "width": 96,
+      "height": 96,
+      "clear": 4822,
+      "visible": 3735,
+      "borderVisible": 59
+    },
+    {
+      "key": "recipe.icon.laboratory-kit",
+      "atlas": 32,
+      "cell": 13,
+      "width": 96,
+      "height": 96,
+      "clear": 3632,
+      "visible": 4807,
+      "borderVisible": 17
+    },
+    {
+      "key": "recipe.icon.clan-hall-kit",
+      "atlas": 32,
+      "cell": 14,
+      "width": 96,
+      "height": 96,
+      "clear": 3155,
+      "visible": 5661,
+      "borderVisible": 52
+    },
+    {
+      "key": "recipe.icon.wall-kit",
+      "atlas": 32,
+      "cell": 15,
+      "width": 96,
+      "height": 96,
+      "clear": 2648,
+      "visible": 5979,
+      "borderVisible": 0
+    },
+    {
+      "key": "recipe.icon.floor-kit",
+      "atlas": 32,
+      "cell": 16,
+      "width": 96,
+      "height": 96,
+      "clear": 4727,
+      "visible": 4155,
+      "borderVisible": 27
+    },
+    {
+      "key": "recipe.icon.stairs-kit",
+      "atlas": 33,
+      "cell": 1,
+      "width": 96,
+      "height": 96,
+      "clear": 4557,
+      "visible": 4295,
+      "borderVisible": 49
+    },
+    {
+      "key": "recipe.icon.door-kit",
+      "atlas": 33,
+      "cell": 2,
+      "width": 96,
+      "height": 96,
+      "clear": 4235,
+      "visible": 4615,
+      "borderVisible": 69
+    },
+    {
+      "key": "recipe.icon.lava-protection-boots",
+      "atlas": 33,
+      "cell": 3,
+      "width": 96,
+      "height": 96,
+      "clear": 4718,
+      "visible": 4085,
+      "borderVisible": 66
+    },
+    {
+      "key": "recipe.icon.starter-axe",
+      "atlas": 33,
+      "cell": 4,
+      "width": 96,
+      "height": 96,
+      "clear": 5944,
+      "visible": 2844,
+      "borderVisible": 20
+    },
+    {
+      "key": "recipe.icon.starter-pickaxe",
+      "atlas": 33,
+      "cell": 5,
+      "width": 96,
+      "height": 96,
+      "clear": 6214,
+      "visible": 2510,
+      "borderVisible": 21
+    },
+    {
+      "key": "recipe.icon.starter-club",
+      "atlas": 33,
+      "cell": 6,
+      "width": 96,
+      "height": 96,
+      "clear": 6293,
+      "visible": 2552,
+      "borderVisible": 20
+    }
+  ]
+}

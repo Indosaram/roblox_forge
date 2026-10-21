@@ -1,4 +1,62 @@
 Key,Source,Context,en-us,ko-kr
+trade.facility.market,Harbor market,harbor facility,Harbor market,항구 장터
+trade.facility.dock,Departure dock,harbor facility,Departure dock,출항 부두
+trade.bundle,Whole bundle,trade,Whole bundle,묶음 전체
+trade.pending,Settlement pending,trade,Settlement pending,정산 대기 중
+trade.claims,Collection box,trade,Collection box,수령함
+trade.project,Workshop teamwork,trade,Workshop teamwork,협동 제작 프로젝트
+audio.muted,Audio muted,audio settings,Audio muted,오디오 음소거
+audio.unavailable,Audio unavailable,audio settings,Audio unavailable,오디오를 사용할 수 없습니다
+audio.music,Music volume,audio settings,Music volume,음악 음량
+audio.sfx,Sound effects volume,audio settings,Sound effects volume,효과음 음량
+audio.ensemble,Ensemble volume,audio settings,Ensemble volume,합주 음량
+trade.journey,Next expedition objective,trade,Next expedition objective,다음 탐험 목표
+shop_effect_unavailable,This product is unavailable until its benefit is ready.,shop,This product is unavailable until its benefit is ready.,혜택이 준비될 때까지 이 상품을 구매할 수 없어요.
+shop_skin_select,Select appearance,shop,Select appearance,외형 선택
+shop_skin_not_owned,You do not own this appearance.,shop,You do not own this appearance.,보유하지 않은 외형이에요.
+home_overflow_withdraw_only,Storage is over capacity. Withdraw items before depositing.,home,Storage is over capacity. Withdraw items before depositing.,창고 용량을 초과했어요. 물품을 꺼낸 뒤 보관하세요.
+brawl_queue,Join brawl,brawl queue,Join brawl,난투 참가
+brawl_leave,Leave match,brawl leave,Leave match,난투 나가기
+brawl_snapshot,Your real equipment will not be consumed.,brawl entry,Your real equipment will not be consumed.,원본 장비는 소모되지 않습니다.
+brawl_level,Level 60 required,brawl refusal,Level 60 required,레벨 60 필요
+brawl_full,The queue is full.,brawl refusal,The queue is full.,난투 대기열이 가득 찼습니다.
+brawl_draw,Draw,brawl result,Draw,무승부
+brawl_rain,Wet ground increases sprint stamina cost.,brawl weather,Wet ground increases sprint stamina cost.,젖은 지면에서는 질주 기력 소모가 증가합니다.
+brawl_fog,Ranged attacks are limited to 20 studs.,brawl weather,Ranged attacks are limited to 20 studs.,원거리 공격 사거리가 20스터드로 제한됩니다.
+brawl_storm,Mounting is unavailable during the storm.,brawl weather,Mounting is unavailable during the storm.,폭풍 중에는 탑승할 수 없습니다.
+music_title,Music,music workspace,Music,음악
+music_import,Import score,music action,Import score,악보 가져오기
+music_save,Save revision,music action,Save revision,악보 버전 저장
+music_share,Share score,music action,Share score,악보 공유
+music_ready,Ready,music action,Ready,준비
+music_start,Start ensemble,music action,Start ensemble,합주 시작
+music_leave,Leave ensemble,music action,Leave ensemble,합주 나가기
+music_full,Ensemble is full,music refusal,Ensemble is full,합주는 최대 6명까지 참여할 수 있습니다
+music_range,Move within 16 studs of the fire,music refusal,Move within 16 studs of the fire,모닥불이나 벽난로에서 16 스터드 이내로 이동하세요
+music_invalid,Check the highlighted score field,music refusal,Check the highlighted score field,표시된 악보 항목을 확인하세요
+music_oversized,Score exceeds 256 KiB,music refusal,Score exceeds 256 KiB,악보는 256 KiB를 초과할 수 없습니다
+music_discard,Discard unsaved score changes?,music confirmation,Discard unsaved score changes?,저장하지 않은 악보 변경 사항을 버릴까요?
+journal_open,Open journal,journal navigation,Open journal,일지 열기
+journal_claim,Complete chapter,journal action,Complete chapter,챕터 완료
+journal_level_gate,Requires level 20,journal locked,Requires level 20,레벨 20 필요
+journal_chapter_order,Complete the previous chapter first,journal locked,Complete the previous chapter first,이전 챕터를 먼저 완료하세요
+build_support_required,An upper floor needs this support,build refusal,An upper floor needs this support,위층을 지지하는 기둥입니다
+build_stairs_required,Keep a stair route to the upper floor,build refusal,Keep a stair route to the upper floor,위층으로 가는 계단을 유지하세요
+build_floor,Floor,build selector,Floor,층
+aerial_open,Aerial view,camera navigation,Aerial view,항공뷰
+aerial_return,Return,camera action,Return,돌아가기
+aerial_hide_ui,Hide UI,camera action,Hide UI,화면 메뉴 숨기기
+aerial_capture,Save local capture,camera action,Save local capture,기기에 사진 저장
+hud_nearest_gather,Gather: %s (%dm),nearest resource tracker,Gather: %s (%dm),채집: %s (%dm)
+clan.title,Clan,clan and outpost interface,Clan,부족
+clan.research,Shared research,clan and outpost interface,Shared research,공동 연구
+clan.withdraw,Withdraw,clan and outpost interface,Withdraw,출금
+clan.relocated,Territory relocated; permissions preserved.,clan and outpost interface,Territory relocated; permissions preserved.,영토를 이전했습니다. 권한은 유지됩니다.
+clan.not_member,You are no longer a clan member.,clan and outpost interface,You are no longer a clan member.,더 이상 부족원이 아닙니다.
+outpost.title,Team outpost,clan and outpost interface,Team outpost,팀 거점
+outpost.opt_in,Join the team siege,clan and outpost interface,Join the team siege,팀 거점전에 참가
+outpost.tie,Draw. Ownership expiry is unchanged.,clan and outpost interface,Draw. Ownership expiry is unchanged.,무승부입니다. 소유권 만료 시각은 유지됩니다.
+outpost.captured,Your clan captured the outpost.,clan and outpost interface,Your clan captured the outpost.,부족이 거점을 점령했습니다.
 combat_dodge,Dodge [Q],combat action,Dodge [Q],회피 [Q]
 combat_guard,Guard [G],combat action,Guard [G],방어 [G]
 progression_skills,Skills,progression sheet,Skills,기술

@@ -5,6 +5,7 @@
 -- Packs only call `start`; panel code lives in this genre.
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
+local HUDModel = require("./SurvivalHUDModel")
 
 export type Context = {
 	ui: any,
@@ -106,6 +107,8 @@ function M.start(options: {
 	names: { [string]: string }?,
 	factories: { Factory }?,
 	onOpen: (() -> ())?,
+	contextual: boolean?,
+	launchers: { { id: string, label: string, open: () -> () } }?,
 }): Started
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
@@ -185,6 +188,7 @@ function M.start(options: {
 	}
 	local players = game:GetService("Players")
 	local input = game:GetService("UserInputService")
+	local contextual = options.contextual == true
 	local dockGui = Instance.new("ScreenGui")
 	dockGui.Name, dockGui.ResetOnSpawn, dockGui.DisplayOrder = "ForgePanelDock", false, 16
 	dockGui.ZIndexBehavior, dockGui.ScreenInsets = Enum.ZIndexBehavior.Sibling, Enum.ScreenInsets.CoreUISafeInsets
@@ -199,12 +203,18 @@ function M.start(options: {
 	objectiveSlot.Name, objectiveSlot.BackgroundTransparency, objectiveSlot.LayoutOrder = "Objective", 1, 0
 	objectiveSlot.Size, objectiveSlot.AutomaticSize = UDim2.fromScale(1, 0), Enum.AutomaticSize.Y
 	objectiveSlot.Parent = column
+	if contextual then
+		objectiveSlot.Parent = dockGui
+		objectiveSlot.Position = UDim2.fromOffset(12, 72)
+		objectiveSlot.Size = UDim2.new(1, -24, 0, 56)
+		objectiveSlot.AutomaticSize = Enum.AutomaticSize.None
+	end
 	local slotLayout = Instance.new("UIListLayout")
 	slotLayout.Padding, slotLayout.SortOrder = UDim.new(0, 6), Enum.SortOrder.LayoutOrder
 	slotLayout.Parent = objectiveSlot
 	-- Docked launchers sit in their own list under a Menu toggle. A phone starts collapsed so
 	-- the column never covers the avatar; a desktop starts expanded.
-	local menuList = Instance.new("Frame")
+	local menuList = Instance.new(if contextual then "ScrollingFrame" else "Frame")
 	menuList.Name, menuList.BackgroundTransparency, menuList.LayoutOrder = "Menu", 1, 2
 	menuList.Size, menuList.AutomaticSize = UDim2.fromOffset(176, 0), Enum.AutomaticSize.Y
 	menuList.Parent = column
@@ -215,6 +225,13 @@ function M.start(options: {
 	menuLayout.CellPadding, menuLayout.SortOrder = UDim2.fromOffset(6, 6), Enum.SortOrder.LayoutOrder
 	menuLayout.CellSize = UDim2.fromOffset(176, 44)
 	menuLayout.Parent = menuList
+	if contextual then
+		menuList.AutomaticSize = Enum.AutomaticSize.None
+		menuList.ClipsDescendants = true
+		menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		menuList.CanvasSize = UDim2.fromOffset(0, 0)
+		menuList.ScrollBarThickness = 6
+	end
 	local entries: { DockEntry } = {}
 	local sheets: { any } = {}
 	local ui = options.ui
@@ -320,6 +337,33 @@ function M.start(options: {
 	local function place()
 		local size = viewport()
 		local isCompact = compact()
+		if contextual then
+			menuToggle.Visible = true
+			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 8)
+			column.Size = UDim2.fromOffset(64, 0)
+			menuList.Parent = dockGui
+			menuList.Position = UDim2.fromOffset(8, 64)
+			menuList.Size = UDim2.fromOffset(size.X - 16, math.max(0, size.Y - 192))
+			menuLayout.CellSize = UDim2.fromOffset(math.floor((size.X - 24) / 2), 48)
+			objectiveSlot.Visible = not menuList.Visible
+				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
+			local open = false
+			for _, entry in entries do
+				open = open or entry.isOpen()
+			end
+			objectiveSlot.Visible = objectiveSlot.Visible and not open
+			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
+			local width, height, top, right = HUDModel.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
+			for _, frame in sheets do
+				local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
+				if owner then
+					owner.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+				end
+				frame.AnchorPoint, frame.Position = Vector2.new(1, 0), UDim2.new(1, -right, 0, top)
+				frame.Size = UDim2.fromOffset(width, height)
+			end
+			return
+		end
 		if lastCompact ~= isCompact then
 			lastCompact = isCompact
 			menuList.Visible = not isCompact
@@ -363,7 +407,61 @@ function M.start(options: {
 	-- The chat settles over the first seconds and the open menu changes the column height, so
 	-- placement follows both each frame and re-runs only when one changes.
 	local lastChatRight, lastChat, lastHeight = -1, -1, -1
+	local arrivalSent = false
 	local followConnection = game:GetService("RunService").Heartbeat:Connect(function()
+		if contextual then
+			place()
+			local tutorial = latest.contracts and latest.contracts.tutorial
+			local character = players.LocalPlayer.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if
+				tutorial
+				and tutorial.step == "arrive"
+				and not arrivalSent
+				and humanoid
+				and humanoid.FloorMaterial ~= Enum.Material.Air
+			then
+				local actionId = "survival-coop:tutorial-skip-arrival"
+				if CommandTransport.durable(durable, actionId) then
+					arrivalSent = true
+					task.spawn(function()
+						context.send(actionId, {})
+					end)
+				end
+			end
+			if tutorial and tutorial.step == "gather" then
+				local pivot = character and character:FindFirstChild("HumanoidRootPart")
+				local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
+				if pivot and tracker then
+					local candidates = {}
+					for _, node in game:GetService("CollectionService"):GetTagged("ForgeSurvivalNode") do
+						if
+							node:IsA("BasePart")
+							and node:IsDescendantOf(game:GetService("Workspace"))
+							and node:GetAttribute("ForgeNodeDepleted") == false
+						then
+							table.insert(candidates, {
+								target = node,
+								distance = (node.Position - pivot.Position).Magnitude,
+								available = (node:GetAttribute("ForgeNodeCount") or 0) > 0,
+							})
+						end
+					end
+					local nearest = HUDModel.nearestGatherable(candidates)
+					if nearest then
+						local target = nearest.target
+						local kind = target:GetAttribute("ForgeNodeKind")
+						local label = if options.names then options.names[kind] else nil
+						tracker.Text = string.format(
+							if string.sub(options.locale, 1, 2) == "ko" then "채집: %s (%dm)" else "Gather: %s (%dm)",
+							label or kind,
+							math.ceil(nearest.distance)
+						)
+					end
+				end
+			end
+			return
+		end
 		local chatRight, chat = chatEdges()
 		local height = column.AbsoluteSize.Y
 		if chatRight ~= lastChatRight or chat ~= lastChat or height ~= lastHeight then
@@ -391,6 +489,9 @@ function M.start(options: {
 				end
 			end
 			entry.setOpen(target)
+			if contextual then
+				menuList.Visible = false
+			end
 			if target and options.onOpen then
 				options.onOpen()
 			end
@@ -415,7 +516,20 @@ function M.start(options: {
 		}
 	end
 	place()
-	menuList.Visible = not compact()
+	menuList.Visible = not contextual and not compact()
+	local launchers: { { id: string, label: string, open: () -> () } } = options.launchers or {}
+	for index, launcher in launchers do
+		local button = ui.components.button(theme, {
+			text = launcher.label,
+			size = UDim2.fromOffset(132, 48),
+			parent = menuList,
+			onClick = function()
+				menuList.Visible = false
+				launcher.open()
+			end,
+		})
+		button.Name, button.LayoutOrder = "Dock-" .. launcher.id, -10 + index
+	end
 	local panels: { Panel } = {}
 	for _, factory in options.factories or M.factories do
 		local panel = factory(context)
@@ -427,6 +541,9 @@ function M.start(options: {
 	return {
 		-- Closes every open panel sheet (the survival HUD opening its own sheet calls this).
 		closeAll = function()
+			if contextual then
+				menuList.Visible = false
+			end
 			for _, entry in entries do
 				if entry.isOpen() then
 					entry.setOpen(false)

@@ -52,6 +52,14 @@ local function rejected(change: (any) -> (), fragment: string)
 end
 
 return {
+	["weather canonical order follows elapsed time rather than identity"] = function()
+		local chronological =
+			V2.canonical({ { id = "fog", at = 240 }, { id = "clear", at = 0 }, { id = "cold", at = 120 } }, "weather")
+		assert(
+			chronological[1].at == 0 and chronological[2].at == 120 and chronological[3].at == 240,
+			"weather follows elapsed time"
+		)
+	end,
 	["v2 policy rejects missing tree fields and unknown item policy references"] = function()
 		rejected(function(raw)
 			raw.progressionPolicy = { tree = {} }

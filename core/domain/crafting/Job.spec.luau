@@ -70,6 +70,7 @@ return {
 		source.version = 2
 		source.layouts = { { id = "unrelated-world" } }
 		source.missions = { { id = "unrelated-mission" } }
+		source.brawlPolicy = { layout = "unrelated-world" }
 		table.insert(source.recipes, {
 			id = "unused",
 			craftMillis = 2000,
@@ -78,6 +79,7 @@ return {
 		})
 		local job, bag = reserve(content, original)
 		assert((job.content :: any).layouts == nil and (job.content :: any).missions == nil, "world data is not pinned")
+		assert((job.content :: any).brawlPolicy == nil, "world policy is not pinned")
 		assert(#job.content.recipes == 1 and job.content.recipes[1].id == "rope", "only selected recipe is pinned")
 		job, bag = reconnect(job, bag)
 		job = Job.start(job, 0)

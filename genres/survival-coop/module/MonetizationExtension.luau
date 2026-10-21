@@ -12,6 +12,7 @@ local MarketplacePort = require("../../../core/infra/monetization/MarketplacePor
 local PolicyPort = require("../../../core/infra/monetization/PolicyPort")
 local Receipts = require("../../../core/infra/monetization/Receipts")
 local Subscription = require("../../../core/infra/monetization/Subscription")
+local Effects = require("./EntitlementEffects")
 
 local Session = require("../../../core/infra/genre/Session")
 local M = {}
@@ -19,6 +20,7 @@ local M = {}
 M.SAVE_VERSION = 1
 local PROMPT = "survival-coop:shop-prompt"
 local SYNC = "survival-coop:shop-sync"
+local SELECT = "survival-coop:skin-select"
 
 export type Listing = { key: string, name: string, price: number, id: any, grant: Catalog.Grant }
 export type Listings = { gamepasses: { Listing }?, products: { Listing }?, subscriptions: { Listing }? }
@@ -27,6 +29,9 @@ export type Hooks = {
 	warehouseSlots: ((actor: string, bonus: number) -> ())?,
 	-- A cosmetic skin id (a Mounts skin id) the actor now owns; re-applied on load.
 	skinUnlocked: ((actor: string, skinId: string) -> ())?,
+	skinSupported: ((skinId: string) -> boolean)?,
+	skinSelect: ((actor: string, skinId: string) -> Shared.Result)?,
+	skinResync: ((actor: string) -> Shared.Result)?,
 }
 export type Config = {
 	catalog: Listings,
@@ -94,6 +99,15 @@ function M.migrate(data: Fenced.Data): Fenced.Data
 	end
 	assert(data.saveVersion == M.SAVE_VERSION, "UNSUPPORTED_MONETIZATION_SAVE")
 	assert(type(data.purchases) == "table" and type(data.skins) == "table", "INVALID_MONETIZATION_SAVE")
+	local subscriptions: { Listing } = if configured
+		then configured.catalog.subscriptions or NO_LISTINGS
+		else NO_LISTINGS
+	for _, listing in subscriptions do
+		local skin = listing.grant.cosmeticSetId
+		if skin then
+			data.skins[skin] = nil
+		end
+	end
 	return data
 end
 
@@ -112,6 +126,14 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	end
 	local catalog, marketplace, policy = config.catalog, config.marketplace, config.policy
 	local hooks: Hooks = config.hooks or NO_HOOKS
+	local function supported(listing: Listing): boolean
+		return Effects.supported(listing, {
+			warehouseSlots = hooks.warehouseSlots,
+			skinSupported = hooks.skinSupported or function(_skin)
+				return false
+			end,
+		})
+	end
 	local store = ctx.store()
 	local entries: { [string]: Entry } = {}
 	local departed: { [string]: boolean } = {}
@@ -147,6 +169,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			for skin in state.skins do
 				hooks.skinUnlocked(actor, skin)
 			end
+		end
+		if hooks.skinResync then
+			hooks.skinResync(actor)
 		end
 	end
 	local function load(actor: string): Entry?
@@ -247,6 +272,10 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	end)
 
 	local function view(entry: Entry): { [string]: any }
+		local eligibleSkins = clone(entry.state.skins)
+		if entry.state.subscription.active and entry.state.subscription.setId then
+			eligibleSkins[entry.state.subscription.setId] = true
+		end
 		local rows: { any } = {}
 		for _, section in sections(catalog) do
 			for _, listing in section.list do
@@ -260,6 +289,10 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 					name = listing.name,
 					price = listing.price,
 					configured = isConfigured(listing.id),
+					effectImplemented = supported(listing),
+					skin = listing.grant.cosmeticSetId,
+					eligible = listing.grant.cosmeticSetId ~= nil
+						and eligibleSkins[listing.grant.cosmeticSetId] == true,
 					owned = owned,
 				})
 			end
@@ -267,6 +300,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 		return {
 			saveVersion = entry.state.saveVersion,
 			skins = clone(entry.state.skins),
+			eligibleSkins = eligibleSkins,
 			passes = clone(entry.state.passes),
 			subscription = clone(entry.state.subscription),
 			storageBonus = storageBonus(entry.state),
@@ -279,7 +313,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	local extension = {
 		id = "monetization",
 		handles = function(action: string): boolean
-			return action == PROMPT or action == SYNC
+			return action == PROMPT or action == SYNC or action == SELECT
 		end,
 		command = function(actor, action, args, _context, _origin, admit): Shared.Result
 			local admitted = admit()
@@ -291,11 +325,25 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			if userId == nil or entry == nil then
 				return { ok = false, reason = "SHOP_UNAVAILABLE" }
 			end
+			if action == SELECT then
+				local skin = args[1]
+				local owned = type(skin) == "string"
+					and (
+						entry.state.skins[skin] == true
+						or (entry.state.subscription.active and entry.state.subscription.setId == skin)
+					)
+				if not owned then
+					return { ok = false, reason = "SKIN_NOT_OWNED" }
+				end
+				return if hooks.skinSelect
+					then hooks.skinSelect(actor, skin)
+					else { ok = false, reason = "PRODUCT_EFFECT_UNAVAILABLE" }
+			end
 			if action == SYNC then
 				local ok = pcall(function()
 					for _, listing in (catalog.gamepasses or NO_LISTINGS) :: { Listing } do
-						if isConfigured(listing.id) and marketplace.ownsGamePass(userId, listing.id) then
-							entry.state.passes[listing.key] = true
+						if isConfigured(listing.id) then
+							entry.state.passes[listing.key] = marketplace.ownsGamePass(userId, listing.id)
 						end
 					end
 					local subscription = ((catalog.subscriptions or NO_LISTINGS) :: { Listing })[1]
@@ -306,9 +354,6 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 							setId = subscription.grant.cosmeticSetId,
 							slots = subscription.grant.storageSlots or 0,
 						}
-						if active and subscription.grant.cosmeticSetId ~= nil then
-							entry.state.skins[subscription.grant.cosmeticSetId] = true
-						end
 					end
 				end)
 				if not ok then
@@ -330,6 +375,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			end
 			if not isConfigured(listing.id) then
 				return { ok = false, reason = "PRODUCT_NOT_CONFIGURED" }
+			end
+			if not supported(listing) then
+				return { ok = false, reason = "PRODUCT_EFFECT_UNAVAILABLE" }
 			end
 			if kind == "subscription" then
 				local result = Subscription.promptIfEligible(policy, {

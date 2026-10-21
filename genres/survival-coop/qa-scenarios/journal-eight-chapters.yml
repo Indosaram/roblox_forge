@@ -1,0 +1,12 @@
+name: journal-eight-chapters
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 217
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/journal-eight-chapters]
+steps:
+  - {op: journal_chapters, player: owner}
+  - {op: expect_result, player: owner, field: ok, equals: true}

@@ -11027,6 +11027,7 @@ wildlifeDetails:
   -
     id: "compsognathus"
     level: 10
+    renderEnvelope: {x: 1, y: 1.5, z: 3}
     health: 52
     damage: 4
     walkSpeed: 7
@@ -11075,6 +11076,7 @@ wildlifeDetails:
   -
     id: "oviraptor"
     level: 10
+    renderEnvelope: {x: 1.5, y: 3, z: 3}
     health: 75
     damage: 5
     walkSpeed: 6
@@ -11127,6 +11129,8 @@ wildlifeDetails:
   -
     id: "protoceratops"
     level: 10
+    renderEnvelope: {x: 2.5, y: 3, z: 4}
+    riderHeight: 3.5
     health: 135
     damage: 8
     walkSpeed: 5
@@ -11183,6 +11187,8 @@ wildlifeDetails:
   -
     id: "gallimimus"
     level: 30
+    renderEnvelope: {x: 2, y: 6, z: 5}
+    riderHeight: 4.5
     health: 297
     damage: 0
     walkSpeed: 9
@@ -11229,6 +11235,8 @@ wildlifeDetails:
   -
     id: "parasaurolophus"
     level: 20
+    renderEnvelope: {x: 3, y: 7, z: 7}
+    riderHeight: 5
     health: 325
     damage: 17
     walkSpeed: 6
@@ -11285,6 +11293,8 @@ wildlifeDetails:
   -
     id: "stegosaurus"
     level: 30
+    renderEnvelope: {x: 5, y: 6, z: 9}
+    riderHeight: 5
     health: 630
     damage: 38
     walkSpeed: 4
@@ -11345,6 +11355,8 @@ wildlifeDetails:
   -
     id: "ankylosaurus"
     level: 40
+    renderEnvelope: {x: 4, y: 4, z: 7}
+    riderHeight: 4.5
     health: 990
     damage: 49
     walkSpeed: 4
@@ -11405,6 +11417,8 @@ wildlifeDetails:
   -
     id: "triceratops"
     level: 30
+    renderEnvelope: {x: 5, y: 5, z: 8}
+    riderHeight: 5.5
     health: 700
     damage: 42
     walkSpeed: 5
@@ -11465,6 +11479,7 @@ wildlifeDetails:
   -
     id: "brachiosaurus"
     level: 50
+    renderEnvelope: {x: 8, y: 24, z: 18}
     health: 2200
     damage: 71
     walkSpeed: 4
@@ -11517,6 +11532,8 @@ wildlifeDetails:
   -
     id: "utahraptor"
     level: 40
+    renderEnvelope: {x: 3, y: 6, z: 6}
+    riderHeight: 4.5
     health: 517
     damage: 51
     walkSpeed: 8
@@ -11577,6 +11594,8 @@ wildlifeDetails:
   -
     id: "velociraptor"
     level: 20
+    renderEnvelope: {x: 2, y: 4, z: 4}
+    riderHeight: 3.5
     health: 187
     damage: 20
     walkSpeed: 8
@@ -11637,6 +11656,8 @@ wildlifeDetails:
   -
     id: "dilophosaurus"
     level: 30
+    renderEnvelope: {x: 3, y: 6, z: 6}
+    riderHeight: 4.5
     health: 350
     damage: 33
     walkSpeed: 6
@@ -11697,6 +11718,8 @@ wildlifeDetails:
   -
     id: "allosaurus"
     level: 50
+    renderEnvelope: {x: 5, y: 9, z: 12}
+    riderHeight: 7
     health: 1210
     damage: 71
     walkSpeed: 6
@@ -11757,6 +11780,7 @@ wildlifeDetails:
   -
     id: "tyrannosaurus"
     level: 60
+    renderEnvelope: {x: 7, y: 12, z: 16}
     health: 2600
     damage: 97
     walkSpeed: 5
@@ -11817,6 +11841,8 @@ wildlifeDetails:
   -
     id: "smilodon"
     level: 50
+    renderEnvelope: {x: 3, y: 4, z: 5}
+    riderHeight: 4.5
     health: 742
     damage: 66
     walkSpeed: 7
@@ -11877,6 +11903,8 @@ wildlifeDetails:
   -
     id: "tropicalSmilodon"
     level: 40
+    renderEnvelope: {x: 2.5, y: 3.5, z: 5}
+    riderHeight: 4
     health: 517
     damage: 49
     walkSpeed: 7
@@ -11937,6 +11965,8 @@ wildlifeDetails:
   -
     id: "direWolf"
     level: 40
+    renderEnvelope: {x: 2.5, y: 3.5, z: 5}
+    riderHeight: 4
     health: 450
     damage: 42
     walkSpeed: 8
@@ -11997,6 +12027,8 @@ wildlifeDetails:
   -
     id: "mammoth"
     level: 50
+    renderEnvelope: {x: 7, y: 10, z: 12}
+    riderHeight: 10.5
     health: 1650
     damage: 66
     walkSpeed: 4
@@ -12061,6 +12093,8 @@ wildlifeDetails:
   -
     id: "boar"
     level: 10
+    renderEnvelope: {x: 2.5, y: 3, z: 4}
+    riderHeight: 3.5
     health: 120
     damage: 8
     walkSpeed: 5
@@ -12121,6 +12155,8 @@ wildlifeDetails:
   -
     id: "deer"
     level: 10
+    renderEnvelope: {x: 2, y: 5, z: 4}
+    riderHeight: 3.5
     health: 90
     damage: 0
     walkSpeed: 7
@@ -12170,6 +12206,8 @@ wildlifeDetails:
   -
     id: "elephant"
     level: 30
+    renderEnvelope: {x: 6, y: 9, z: 10}
+    riderHeight: 9.5
     health: 875
     damage: 35
     walkSpeed: 4
@@ -12230,6 +12268,7 @@ wildlifeDetails:
   -
     id: "crocodile"
     level: 40
+    renderEnvelope: {x: 3, y: 2, z: 7}
     health: 720
     damage: 56
     walkSpeed: 3
@@ -12286,6 +12325,7 @@ wildlifeDetails:
   -
     id: "turtle"
     level: 10
+    renderEnvelope: {x: 1.5, y: 1, z: 2}
     health: 97
     damage: 0
     walkSpeed: 2
@@ -12324,6 +12364,7 @@ wildlifeDetails:
   -
     id: "dodo"
     level: 10
+    renderEnvelope: {x: 1.5, y: 2, z: 2}
     health: 45
     damage: 0
     walkSpeed: 4
@@ -12359,6 +12400,97 @@ wildlifeDetails:
         unit: "F 3-5/10/4/1"
     provenance:
       classification: "RECONSTRUCTED"
+music:
+  maxBytes: 262144
+  tempoMin: 40
+  tempoMax: 200
+  maxParts: 6
+  maxPerformers: 6
+  maxNotesPerPart: 16384
+  ticksPerQuarter: 480
+  maxDurationSeconds: 180
+  maxPolyphony: 8
+  pitchMin: 21
+  pitchMax: 108
+  velocityMin: 1
+  velocityMax: 127
+  radiusStuds: 16
+  countdownSeconds: 2
+  instruments:
+    piano: {id: piano, assetKey: audio.instrument.piano, attack: 0.004, release: 0.25, decay: 4, harmonics: [1, 0.35, 0.12], noise: 0, gain: 0.2, placed: true}
+    guitar: {id: guitar, assetKey: audio.instrument.guitar, attack: 0.002, release: 0.18, decay: 6, harmonics: [1, 0.5, 0.25, 0.1], noise: 0, gain: 0.18}
+    bass: {id: bass, assetKey: audio.instrument.bass, attack: 0.008, release: 0.15, decay: 3, harmonics: [1, 0.15], noise: 0, gain: 0.25}
+    violin: {id: violin, assetKey: audio.instrument.violin, attack: 0.08, release: 0.18, decay: 0.2, harmonics: [1, 0.5, 0.333, 0.25, 0.2], noise: 0, gain: 0.14}
+    flute: {id: flute, assetKey: audio.instrument.flute, attack: 0.04, release: 0.12, decay: 0.15, harmonics: [1, 0.04, 0.02], noise: 0.01, gain: 0.2}
+    clarinet: {id: clarinet, assetKey: audio.instrument.clarinet, attack: 0.025, release: 0.1, decay: 0.1, harmonics: [1, 0, 0.333, 0, 0.2], noise: 0, gain: 0.16}
+    trumpet: {id: trumpet, assetKey: audio.instrument.trumpet, attack: 0.02, release: 0.08, decay: 0.15, harmonics: [1, 0.7, 0.55, 0.4], noise: 0, gain: 0.12}
+    drums:
+      id: drums
+      assetKey: audio.instrument.drums
+      pitchMin: 21
+      placed: true
+      drums:
+        - {id: kick, frequency: 65, attack: 0.001, release: 0.08, decay: 18, harmonics: [1], noise: 0.02, gain: 0.4}
+        - {id: snare, frequency: 180, attack: 0.001, release: 0.1, decay: 22, harmonics: [1, 0.2], noise: 0.8, gain: 0.25}
+        - {id: closedhat, frequency: 6000, attack: 0.001, release: 0.03, decay: 60, harmonics: [0.1], noise: 1, gain: 0.15}
+        - {id: openhat, frequency: 6000, attack: 0.001, release: 0.2, decay: 12, harmonics: [0.1], noise: 1, gain: 0.15}
+        - {id: tomlow, frequency: 100, attack: 0.001, release: 0.15, decay: 12, harmonics: [1, 0.2], noise: 0.05, gain: 0.3}
+        - {id: tomhigh, frequency: 160, attack: 0.001, release: 0.12, decay: 14, harmonics: [1, 0.2], noise: 0.05, gain: 0.3}
+        - {id: crash, frequency: 3400, attack: 0.001, release: 0.5, decay: 4, harmonics: [0.15, 0.1], noise: 1, gain: 0.15}
+        - {id: ride, frequency: 4500, attack: 0.001, release: 0.3, decay: 8, harmonics: [0.3, 0.1], noise: 0.6, gain: 0.15}
+clanPolicy:
+  provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
+  maxMembers: 50
+  maxLevel: 20
+  missionExperience: 100
+  levelExperience: 500
+  hallLevel: 5
+  cancelRefund: 0.5
+outpostPolicy:
+  provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
+  minTeam: 3
+  maxTeam: 8
+  matchSeconds: 600
+  captureSeconds: 180
+  ownershipSeconds: 86400
+brawlPolicy:
+  provenance: {classification: RECONSTRUCTED, sourceId: C04-R04}
+  layout: rw.brawl
+  minimumLevel: 60
+  minimumPlayers: 2
+  maximumPlayers: 15
+  preparationSeconds: 30
+  durationSeconds: 600
+  collapseAt: 480
+  initialRadius: 120
+  outsideDamageFraction: 0.2
+  daySeconds: 86400
+  dailySettlements: 5
+  participationReward: 50
+  winReward: 100
+  maximumBalance: 1000000000
+  weather:
+    - {at: 0, id: clear}
+    - {at: 120, id: rain, sprintMultiplier: 1.25}
+    - {at: 240, id: fog, rangeCap: 20}
+    - {at: 360, id: storm, noMount: true}
+    - {at: 480, id: collapse}
+  spawns:
+    - {x: 0, y: 2, z: -96}
+    - {x: 40, y: 2, z: -88}
+    - {x: 72, y: 2, z: -64}
+    - {x: 92, y: 2, z: -24}
+    - {x: 92, y: 2, z: 24}
+    - {x: 72, y: 2, z: 64}
+    - {x: 40, y: 2, z: 88}
+    - {x: 0, y: 2, z: 96}
+    - {x: -40, y: 2, z: 88}
+    - {x: -72, y: 2, z: 64}
+    - {x: -92, y: 2, z: 24}
+    - {x: -92, y: 2, z: -24}
+    - {x: -72, y: 2, z: -64}
+    - {x: -40, y: 2, z: -88}
+    - {x: 0, y: 2, z: -72}
 missionPolicy:
   provenance:
     classification: "RECONSTRUCTED"
@@ -12388,10 +12520,16 @@ homePolicy:
   structureSize: {x: 4, y: 2, z: 4}
   baseSlots: 20
   labRank: 3
-  floors: [0, 8, 16]
+  floors: [0, 12, 24]
 layouts:
   -
     id: "rw.a1.s1"
+    art:
+      landmark:
+        id: watchtree
+        kind: tree
+        position: {x: 240, y: 8, z: 100}
+        size: {x: 24, y: 36, z: 24}
     bounds:
       min:
         x: -384
@@ -12971,6 +13109,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a1.s2"
+    art:
+      landmark:
+        id: fallenarch
+        kind: rock
+        position: {x: 220, y: 8, z: -160}
+        size: {x: 40, y: 20, z: 16}
     bounds:
       min:
         x: -320
@@ -13523,6 +13667,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a1.s3"
+    art:
+      landmark:
+        id: stonefan
+        kind: rock
+        position: {x: 220, y: 8, z: 160}
+        size: {x: 32, y: 18, z: 32}
     bounds:
       min:
         x: -384
@@ -14101,6 +14251,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a1.s4"
+    art:
+      landmark:
+        id: sandspires
+        kind: rock
+        position: {x: 240, y: 10, z: 120}
+        size: {x: 32, y: 28, z: 32}
     bounds:
       min:
         x: -320
@@ -14680,6 +14836,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a2.s1"
+    art:
+      landmark:
+        id: canopytower
+        kind: tree
+        position: {x: 220, y: 12, z: -160}
+        size: {x: 48, y: 48, z: 48}
     bounds:
       min:
         x: -320
@@ -15206,6 +15368,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a2.s2"
+    art:
+      landmark:
+        id: rootarch
+        kind: rock
+        position: {x: 240, y: 8, z: 160}
+        size: {x: 40, y: 20, z: 24}
     bounds:
       min:
         x: -384
@@ -15706,6 +15874,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a2.s3"
+    art:
+      landmark:
+        id: stiltwreck
+        kind: rock
+        position: {x: 220, y: 8, z: -180}
+        size: {x: 40, y: 16, z: 24}
     bounds:
       min:
         x: -320
@@ -16206,6 +16380,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a2.s4"
+    art:
+      landmark:
+        id: windcarvedmesa
+        kind: rock
+        position: {x: 240, y: 12, z: 160}
+        size: {x: 48, y: 32, z: 32}
     bounds:
       min:
         x: -384
@@ -16732,6 +16912,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a3.s1"
+    art:
+      landmark:
+        id: splitmonolith
+        kind: rock
+        position: {x: 220, y: 12, z: -180}
+        size: {x: 32, y: 32, z: 32}
     bounds:
       min:
         x: -384
@@ -17262,6 +17448,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a3.s2"
+    art:
+      landmark:
+        id: deadcedar
+        kind: tree
+        position: {x: 220, y: 8, z: 160}
+        size: {x: 24, y: 28, z: 24}
     bounds:
       min:
         x: -320
@@ -17762,6 +17954,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a3.s3"
+    art:
+      landmark:
+        id: hangingroots
+        kind: tree
+        position: {x: 240, y: 16, z: -160}
+        size: {x: 40, y: 36, z: 32}
     bounds:
       min:
         x: -384
@@ -18288,6 +18486,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a3.s4"
+    art:
+      landmark:
+        id: giantfernstand
+        kind: tree
+        position: {x: 240, y: 16, z: 160}
+        size: {x: 48, y: 30, z: 48}
     bounds:
       min:
         x: -320
@@ -18844,6 +19048,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a4.s1"
+    art:
+      landmark:
+        id: blueicewall
+        kind: rock
+        position: {x: 220, y: 20, z: -180}
+        size: {x: 48, y: 36, z: 24}
     bounds:
       min:
         x: -320
@@ -19443,6 +19653,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a4.s2"
+    art:
+      landmark:
+        id: icearch
+        kind: rock
+        position: {x: 240, y: 20, z: 160}
+        size: {x: 40, y: 32, z: 24}
     bounds:
       min:
         x: -384
@@ -19943,6 +20159,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a4.s3"
+    art:
+      landmark:
+        id: weatherstation
+        kind: rock
+        position: {x: 220, y: 20, z: -180}
+        size: {x: 32, y: 24, z: 32}
     bounds:
       min:
         x: -320
@@ -20525,6 +20747,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a4.s4"
+    art:
+      landmark:
+        id: aurorastones
+        kind: rock
+        position: {x: 220, y: 20, z: 160}
+        size: {x: 40, y: 28, z: 40}
     bounds:
       min:
         x: -384
@@ -21051,6 +21279,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a5.s1"
+    art:
+      landmark:
+        id: ventchimneys
+        kind: rock
+        position: {x: 240, y: 24, z: -180}
+        size: {x: 40, y: 44, z: 40}
     bounds:
       min:
         x: -384
@@ -21652,6 +21886,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a5.s2"
+    art:
+      landmark:
+        id: obsidianfin
+        kind: rock
+        position: {x: 240, y: 24, z: 160}
+        size: {x: 32, y: 40, z: 40}
     bounds:
       min:
         x: -320
@@ -22141,6 +22381,12 @@ layouts:
     mirrorX: true
   -
     id: "rw.a5.s3"
+    art:
+      landmark:
+        id: ashspire
+        kind: rock
+        position: {x: 240, y: 28, z: -180}
+        size: {x: 40, y: 48, z: 40}
     bounds:
       min:
         x: -384
@@ -22734,6 +22980,12 @@ layouts:
     mirrorX: false
   -
     id: "rw.a5.s4"
+    art:
+      landmark:
+        id: brokenbeacon
+        kind: rock
+        position: {x: 240, y: 28, z: 160}
+        size: {x: 32, y: 36, z: 32}
     bounds:
       min:
         x: -320

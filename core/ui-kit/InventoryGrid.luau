@@ -32,6 +32,26 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 					buttons[id] = button
 				end
 				button.Text = row.text
+				local icon = button:FindFirstChild("ItemIcon") :: ImageLabel?
+				if row.image and not icon then
+					local created = Instance.new("ImageLabel")
+					created.Name, created.BackgroundTransparency = "ItemIcon", 1
+					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(4, 14)
+					created.Parent = button
+					icon = created
+				end
+				if icon then
+					icon.Image, icon.Visible = row.image or "", row.image ~= nil
+				end
+				local padding = button:FindFirstChild("IconPadding") :: UIPadding?
+				if row.image and not padding then
+					local created = Instance.new("UIPadding")
+					created.Name, created.Parent = "IconPadding", button
+					padding = created
+				end
+				if padding then
+					padding.PaddingLeft = UDim.new(0, if row.image then 44 else 0)
+				end
 				button.Name, button.LayoutOrder = row.id, index
 				button.TextWrapped, button.TextSize = true, 15
 				button.BackgroundTransparency = if row.id == selected then 0 else 0.4

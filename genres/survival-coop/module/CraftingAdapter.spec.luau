@@ -99,6 +99,33 @@ local function run(instance: Shared.Instance, action: string, args: { any }, ctx
 end
 
 return {
+	["v2 join migrates a persisted twenty slot bag without changing its items"] = function()
+		local legacy = setup()
+		local saved: any = legacy.save("alice")
+		saved.inventory.bag.limits.slots = 20
+		local cfg = config()
+		cfg.contentVersion = 2
+		cfg.inventory.content.survival_content = 2
+		cfg.inventory.content.limits.slots = 30
+		local instance = CraftingAdapter.new(cfg, {
+			now = function()
+				return 0
+			end,
+			roll = function()
+				return 0
+			end,
+			emit = function(_) end,
+		})
+		local joined = instance.join("alice", saved)
+		assert(joined.ok, tostring(joined.reason))
+		local migrated: any = instance.save("alice")
+		assert(
+			migrated.inventory.bag.limits.slots == 30 and migrated.inventory.bag.limits.kind == "bag",
+			"v2 bag capacity"
+		)
+		assert(migrated.inventory.bag.items.fiber.quantity == 30, "persisted items survive join")
+		assert(saved.inventory.bag.limits.slots == 20, "join does not mutate persisted input")
+	end,
 	["empty death ledgers follow role travel without accepting foreign bundles"] = function()
 		local instance = setup(true)
 		local saved: any = instance.save("alice")

@@ -6,8 +6,15 @@
     "../../core/domain/procgen/Icons.luau",
     "../../core/domain/procgen/Music.luau",
     "../../core/domain/procgen/Synth.luau",
+    "../../core/domain/music/Timbre.luau",
+    "../../core/domain/music/TestCatalog.luau",
     "../../core/domain/procgen/Textures.luau",
     "../../core/domain/procgen/Pixels.luau",
+    "../../core/ui-kit/genre/WorldKit.luau",
+    "../../core/ui-kit/genre/HudKit.luau",
+    "../../core/ui-kit/genre/HudText.luau",
+    "../../core/ui-kit/genre/WorldFeedback.luau",
+    "../../core/ui-kit/genre/WorldFeedbackRuntime.luau",
     "**/*.md",
     "**/.gitkeep",
     "**/*.yml"
@@ -119,6 +126,12 @@
       }
     },
     "ServerScriptService": {
+      "BrawlWorld": {
+        "$path": "src/server/BrawlWorld.luau"
+      },
+      "WorldDressing": {
+        "$path": "src/server/WorldDressing.luau"
+      },
       "HomeWorld": {
         "$path": "src/server/HomeWorld.luau"
       },
@@ -152,6 +165,12 @@
     },
     "StarterPlayer": {
       "StarterPlayerScripts": {
+        "CreaturePose": {
+          "$path": "src/client/CreaturePose.luau"
+        },
+        "RobangoAudio": {
+          "$path": "src/client/RobangoAudio.luau"
+        },
         "RobangoIslandClient": {
           "$path": "src/client/RobangoIslandClient.client.luau"
         }

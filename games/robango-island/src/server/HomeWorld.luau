@@ -1,6 +1,7 @@
 --!strict
 -- Server role builder. The renderer port owns Roblox Instances; plan() is also
 -- usable by headless QA without loading game or touching a desktop window.
+local Dressing = require("./WorldDressing")
 local M = {}
 function M.plan(content: any, home: any, rules: any): { any }
 	local layout: any = nil
@@ -40,6 +41,7 @@ function M.plan(content: any, home: any, rules: any): { any }
 		local record = home.structures[id]
 		table.insert(parts, { id = id, kind = record.kind, position = record.position, size = rules.structureSize })
 	end
+	Dressing.home(parts, home, rules)
 	return parts
 end
 

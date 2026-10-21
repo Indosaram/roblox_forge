@@ -1,0 +1,13 @@
+name: ensemble-sync
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 1605
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/ensemble-sync]
+steps:
+  - {op: join, player: owner}
+  - {op: ensemble_run, player: owner}
+  - {op: expect_result, player: owner, field: ok, equals: true}

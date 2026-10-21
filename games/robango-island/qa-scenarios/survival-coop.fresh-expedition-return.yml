@@ -1,0 +1,20 @@
+name: fresh-expedition-return
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 91
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/fresh-expedition-return]
+steps:
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner]}
+  - {op: fresh_stage_table, player: owner}
+  - {op: world_join, player: owner}
+  - {op: world_home, player: owner}
+  - {op: world_onboarding, player: owner}
+  - {op: world_expedition, player: owner}
+  - {op: world_gather, player: owner}
+  - {op: world_survey, player: owner}
+  - {op: world_return_reload, player: owner}

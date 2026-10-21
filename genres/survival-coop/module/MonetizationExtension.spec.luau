@@ -47,6 +47,9 @@ local function build(catalog: any, eligible: { [string]: boolean }, backend: any
 		marketplace = fake.port,
 		policy = PolicyPort.fake(eligible),
 		hooks = {
+			skinSupported = function(_skin)
+				return true
+			end,
 			warehouseSlots = function(actor, bonus)
 				slots[actor] = bonus
 			end,
@@ -225,7 +228,18 @@ return {
 		assert(command(extension, "survival-coop:shop-sync", {}).ok, "sync")
 		assert(slots["7"] == 15, "pass 10 + subscription 5 slots: " .. tostring(slots["7"]))
 		local snapshot = extension.snapshot("7")
-		assert(snapshot.skins["voyager-monthly"] == true and snapshot.subscription.active, "subscription cosmetic")
+		assert(
+			snapshot.eligibleSkins["voyager-monthly"] == true and snapshot.subscription.active,
+			"subscription cosmetic"
+		)
+		assert(snapshot.skins["voyager-monthly"] == nil, "subscription does not grant permanent ownership")
+		fake.subscribed["7:22"] = false
+		assert(command(extension, "survival-coop:shop-sync", {}).ok, "expired subscription sync")
+		local expired = extension.snapshot("7")
+		assert(expired.eligibleSkins["voyager-monthly"] == nil, "expired cosmetic access revoked")
+		assert(slots["7"] == 10, "subscription storage revoked but pass retained")
+		local selected = command(extension, "survival-coop:skin-select", { "voyager-monthly" })
+		assert(not selected.ok and selected.reason == "SKIN_NOT_OWNED", "expired skin selection refused")
 		assert(extension.close().ok, "close")
 	end,
 	["a refused admission never reaches the marketplace"] = function()

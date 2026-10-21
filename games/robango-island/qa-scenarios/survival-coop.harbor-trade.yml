@@ -1,0 +1,19 @@
+name: harbor-trade
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 92
+timeout_seconds: 120
+players: [seller, buyer]
+fixtures: [cli/forge/fixtures/harbor-trade]
+data:
+  durable:
+    actions: ["survival-coop:market-list", "survival-coop:market-buy", "survival-coop:market-cancel"]
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: seller}
+  - {op: join, player: buyer}
+  - {op: trade_roundtrip, player: seller}
+  - {op: expect_result, player: seller, field: data.escrowSettled, equals: true}
+  - {op: trade_project, player: seller}

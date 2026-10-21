@@ -1,0 +1,23 @@
+name: entitlement-effects
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: ["1"]
+fixtures: [cli/forge/fixtures/entitlement-effects]
+data:
+  durable:
+    actions: ["survival-coop:shop-prompt", "survival-coop:shop-sync"]
+steps:
+  - {op: join, player: "1"}
+  - {op: entitle_select, player: "1", skin: ridge-strider-gold, expect: refused}
+  - {op: expect_result, player: "1", field: reason, equals: SKIN_NOT_OWNED}
+  - {op: command, player: "1", requestId: gold, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [skinRidgeStriderGold]}
+  - {op: entitle_select, player: "1", skin: ridge-strider-gold}
+  - {op: command, player: "1", requestId: pass-one, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [routeGuildPatron]}
+  - {op: command, player: "1", requestId: pass-two, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [wideWarehouse]}
+  - {op: command, player: "1", requestId: monthly, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [routeGuildMonthly]}
+  - {op: command, player: "1", requestId: sync, sessionEpoch: current, action: "survival-coop:shop-sync", args: []}
+  - {op: entitle_verify, player: "1"}
+  - {op: close, player: "1"}

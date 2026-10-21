@@ -20,6 +20,13 @@ local contract: Shared.RuntimeContract = {
 	configVersion = 1,
 	saveVersion = 1,
 	actions = {
+		{ id = "skin-select", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "brawl-queue", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "brawl-leave", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "brawl-action", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "brawl-reward", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
+		{ id = "journal-open", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "journal-claim", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "mission-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "home-deposit",
@@ -307,6 +314,12 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"brawl-queue",
+		"brawl-leave",
+		"brawl-action",
+		"brawl-reward",
+		"journal-open",
+		"journal-claim",
 		"mission-action",
 		"home-deposit",
 		"home-withdraw",
@@ -335,6 +348,7 @@ local contract: Shared.RuntimeContract = {
 		"camp-visit-help",
 		"shop-prompt",
 		"shop-sync",
+		"skin-select",
 		"market-list",
 		"market-buy",
 		"market-cancel",
@@ -347,4 +361,10 @@ local contract: Shared.RuntimeContract = {
 	recipe = GardenDefense.recipe,
 	create = Mode.create,
 }
+for _, actions in { require("./ClanExtension").actions(), require("./OutpostExtension").actions() } do
+	for _, action in actions do
+		table.insert(contract.actions, action)
+		table.insert(assert(contract.extensionActions, "extension actions configured"), action.id)
+	end
+end
 return contract

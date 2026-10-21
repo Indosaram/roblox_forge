@@ -202,6 +202,7 @@ export type Document = {
 	nodes: { Node },
 	structures: { Structure },
 	wildlife: { Wildlife },
+	wildlifeDetails: { any }?,
 	skills: Skills?,
 }
 

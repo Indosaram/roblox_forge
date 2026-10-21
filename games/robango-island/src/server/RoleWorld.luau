@@ -5,6 +5,9 @@ local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
 local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
+local Dressing = require("./WorldDressing")
+local materials: any = Enum.Material
+local shapes: any = Enum.PartType
 local M = {}
 
 function M.build(content: any, source: any, policy: any, nowMillis: any, layoutId: string, seed: number): any
@@ -26,12 +29,84 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		value.Parent = root
 		return value
 	end
-	local columns: { any } = if layoutId == "rw.home" then {} else Terrain.columns(layout, seed, 32)
+	local columns: { any } = if layoutId == "rw.home"
+		then {}
+		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
+	local dressing = Dressing.plan(layout, columns, Terrain)
+	workspace:SetAttribute("ForgeWorldBiome", layout.biomes[1])
+	local function style(value: any, definition: any)
+		value.Material = materials[definition.material or dressing.palette.ground]
+		if definition.color then
+			value.Color = Color3.fromRGB(table.unpack(definition.color))
+		end
+		if definition.shape then
+			value.Shape = shapes[definition.shape]
+		end
+		value.CFrame = CFrame.new(definition.position.x, definition.position.y, definition.position.z)
+			* CFrame.Angles(0, math.rad(definition.yaw or 0), math.rad(definition.roll or 0))
+		if definition.decorative then
+			value.CanCollide, value.CanTouch, value.CanQuery = false, false, false
+		end
+		if definition.effect and not value:FindFirstChild("ForgeEffect") then
+			local effect = Instance.new("Folder")
+			effect.Name, effect.Parent = "ForgeEffect", value
+			if definition.effect == "lava" or definition.effect == "fire" then
+				local light = Instance.new("PointLight")
+				light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 2, 28, value
+			end
+			if definition.effect == "fire" then
+				local fire = Instance.new("Fire")
+				fire.Size, fire.Heat, fire.Parent = 5, 7, value
+			end
+			if definition.effect ~= "lava" then
+				local smoke = Instance.new("Smoke")
+				smoke.Color = if definition.effect == "steam"
+					then Color3.fromRGB(224, 234, 230)
+					else Color3.fromRGB(95, 91, 85)
+				smoke.Size, smoke.RiseVelocity, smoke.Opacity, smoke.Parent =
+					if definition.effect == "ash" then 22 else 7, 9, 0.35, value
+			end
+			if definition.effect == "ash" then
+				local ash = Instance.new("ParticleEmitter")
+				ash.Texture, ash.Rate = "rbxasset://textures/particles/smoke_main.dds", 12
+				ash.Lifetime, ash.Speed = NumberRange.new(3, 5), NumberRange.new(7, 12)
+				ash.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(1, 12) })
+				ash.Transparency =
+					NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) })
+				ash.Color, ash.Parent = ColorSequence.new(Color3.fromRGB(87, 81, 74)), value
+			end
+		end
+	end
+	for _, definition in dressing.parts do
+		style(part(definition.id, definition.position, definition.size), definition)
+	end
+	local Proc = require(Forge.core.infra.render.ProcAssets)
+	local specs = require(Forge.games["robango-island"].src.shared.ProcAssets)
+	-- One cached mesh key is reserved for nearby mineral outcrops, not one mesh per node.
+	for index, prop in dressing.props do
+		if prop.kind == "rock" and index <= 24 then
+			local model = assert(Proc.build(specs, "survival-coop-starter-prop", "ShoreOutcrop"))
+			model:ScaleTo(2)
+			model:PivotTo(CFrame.new(prop.position.x, prop.position.y + 1, prop.position.z))
+			model.Parent = root
+		end
+	end
+	local lighting = game:GetService("Lighting")
+	lighting.ClockTime, lighting.Brightness = 9.5, 2
+	lighting.Ambient = Color3.fromRGB(111, 123, 127)
+	lighting.OutdoorAmbient = Color3.fromRGB(148, 157, 150)
+	local atmosphere = Instance.new("Atmosphere")
+	atmosphere.Name = "ForgeBiomeAtmosphere"
+	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
+	atmosphere.Density, atmosphere.Haze, atmosphere.Parent = 0.12, 0.5, lighting
+	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
+	workspace.Terrain.WaterTransparency = 0.35
+	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	for _, column in columns do
 		workspace.Terrain:FillBlock(
 			CFrame.new(column.x, (column.top - 16) / 2, column.z),
 			Vector3.new(column.cell, column.top + 16, column.cell),
-			Enum.Material.Grass
+			materials[column.material]
 		)
 	end
 	-- The coarse seeded columns are scenery. Authored navigation is a continuous
@@ -46,6 +121,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local ribbon =
 					part(path.id .. "." .. tostring(index), a, { x = path.width, y = 1, z = delta.Magnitude + 1 })
 				ribbon.CFrame = CFrame.lookAt((from + to) / 2 - Vector3.new(0, 0.5, 0), to - Vector3.new(0, 0.5, 0))
+				ribbon.Material = Enum.Material.Ground
+				ribbon.Color = Color3.fromRGB(169, 145, 102)
 			end
 		end
 	end
@@ -65,6 +142,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local runtimeContent: any = table.clone(content)
 	runtimeContent.nodes = table.clone(content.nodes)
 	local nodes, spawns = {}, {}
+	local nodeItems: any = {}
 	for _, node in layout.resourceNodes do
 		-- Quest cargo is a mission ledger, never a generic inventory mint.
 		local item: any = nil
@@ -74,6 +152,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		if item and not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
+			nodeItems[node.id] = item
 			local catalogId = string.gsub(node.id, "[._]", "-")
 			table.insert(runtimeContent.nodes, {
 				id = catalogId,
@@ -97,6 +176,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				catalogId = authored.speciesId,
 				position = authored.position,
 			})
+		end
+	end
+	if layoutId == "rw.onboarding" then
+		-- Distant, noninteractive silhouettes establish the era without adding
+		-- predators or changing the tutorial's authored wildlife encounters.
+		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+		for index, offset in { -36, 32 } do
+			local position = Vector3.new(entry.x + offset, entry.y, entry.z - 58 - index * 12)
+			workspace.Terrain:FillBall(position - Vector3.new(0, 6, 0), 12, Enum.Material.Sand)
+			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root)
+			animal:ScaleTo(1.4)
+			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))
+			for _, piece in animal:GetDescendants() do
+				if piece:IsA("BasePart") then
+					piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
+				end
+			end
 		end
 	end
 	local wildlife = table.clone(policy)
@@ -171,6 +267,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			{ x = 16, y = 1, z = 16 }
 		)
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })
+		target.Material, target.Color = Enum.Material.Rock, Color3.fromRGB(117, 119, 112)
+		local family = Dressing.resource(nodeItems[node.id])
+		if family == "water" then
+			target.Size, target.Material, target.Color =
+				Vector3.new(5, 0.5, 5), Enum.Material.Glass, Color3.fromRGB(69, 139, 153)
+		elseif family == "wood" then
+			target.Size, target.Material, target.Color =
+				Vector3.new(5, 1.5, 1.5), Enum.Material.Wood, Color3.fromRGB(112, 78, 48)
+			target.Shape = Enum.PartType.Cylinder
+		elseif family == "plant" or family == "food" then
+			target.Size, target.Material, target.Color =
+				Vector3.new(3, 2.5, 3), Enum.Material.Grass, Color3.fromRGB(82, 114, 71)
+			target.Shape = Enum.PartType.Ball
+		else
+			target.Shape = Enum.PartType.Ball
+		end
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
 	end
 	for _, anchor in layout.anchors do
@@ -340,6 +452,25 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				end
 			end
 			value.Size = Vector3.new(definition.size.x, definition.size.y, definition.size.z)
+			style(value, definition)
+			if definition.kind == "land" then
+				value.Transparency, value.CanCollide = 1, false
+				local half = definition.size.x / 2
+				workspace.Terrain:FillBall(Vector3.new(0, -half - 2, 0), half + 7, Enum.Material.Sand)
+				workspace.Terrain:FillBlock(
+					CFrame.new(0, -3, 0),
+					Vector3.new(half * 2, 8, half * 2),
+					Enum.Material.Grass
+				)
+				for i = 1, 8 do
+					local angle = i * math.pi / 4
+					workspace.Terrain:FillBall(
+						Vector3.new(math.cos(angle) * half * 0.8, -half * 0.45, math.sin(angle) * half * 0.8),
+						half * 0.55,
+						Enum.Material.Sand
+					)
+				end
+			end
 		end
 		for id, value in homeParts do
 			if not present[id] then
@@ -352,6 +483,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local destroy = world.destroy
 	world.destroy = function()
 		destroy()
+		atmosphere:Destroy()
 		root:Destroy()
 	end
 	return world

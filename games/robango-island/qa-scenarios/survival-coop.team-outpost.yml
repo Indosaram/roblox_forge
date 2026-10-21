@@ -1,0 +1,23 @@
+name: team-outpost
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 815
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/team-outpost]
+steps:
+  - {op: join, player: owner}
+  - {op: outpost_command, player: owner, action: start, match: siege}
+  - {op: outpost_command, player: owner, action: advance, match: siege, seconds: 100, occupants: [owner, enemy]}
+  - {op: outpost_check, player: owner, match: siege, check: contested}
+  - {op: outpost_command, player: owner, action: advance, match: siege, seconds: 180, occupants: [owner, helper], request: winning-tick}
+  - {op: outpost_check, player: owner, match: siege, check: captured}
+  - {op: outpost_command, player: owner, action: advance, match: siege, request: winning-tick}
+  - {op: outpost_check, player: owner, match: siege, check: captured}
+  - {op: outpost_reconnect, player: owner}
+  - {op: outpost_command, player: owner, action: advance, match: siege, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: MATCH_SETTLED}
+  - {op: outpost_check, player: owner, match: siege, check: captured}
+  - {op: close, player: owner}

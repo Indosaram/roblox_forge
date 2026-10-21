@@ -1,6 +1,10 @@
 version: 1
 defaults: { source: original, author: "agent:claude-5.5/robango-g1" }
 entries:
+  "sections/music": { source: original, author: "agent:hephaestus/RECONSTRUCTED-C05-R05", created: 2026-10-21 }
+  "sections/clanPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-R04-C08", created: 2026-10-21 }
+  "sections/outpostPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-R04-C08", created: 2026-10-21 }
+  "sections/brawlPolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-C04-R04", created: 2026-10-21 }
   "sections/homePolicy": { source: original, author: "agent:hephaestus/RECONSTRUCTED-home-tier-decision", created: 2026-10-21 }
   "items/berry": { created: 2026-10-16 }
   "items/capture-bola": { created: 2026-10-17 }

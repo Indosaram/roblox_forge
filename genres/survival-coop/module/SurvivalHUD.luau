@@ -69,11 +69,14 @@ end
 export type Options = {
 	ui: { components: any, grid: any, theme: any },
 	content: any,
+	icons: any?,
 	locale: string?,
 	-- Replicated settlement origin from the same config used by the world owner.
 	settlementOrigin: Vector3,
 	-- Pack translations keyed by catalog ID; genre copy is supplied in en/ko here.
 	names: { [string]: string }?,
+	-- Opt-in for packs using the shared collapsible menu and world-target controls.
+	contextual: boolean?,
 }
 
 function M.start(options: Options)
@@ -90,6 +93,7 @@ function M.start(options: Options)
 	local state = storage:WaitForChild("ForgeState") :: RemoteEvent
 	local locale = options.locale or player.LocaleId
 	local content = options.content
+	local contextual = options.contextual == true
 	-- A touch-only device has no keyboard: key hints like " [R]" only crowd the buttons.
 	-- Read live: an emulated or convertible device can switch after the HUD starts.
 	local function t(key: string): string
@@ -198,6 +202,7 @@ function M.start(options: Options)
 	highlight.Name, highlight.FillTransparency, highlight.OutlineColor =
 		"ForgeTarget", 0.85, Color3.fromRGB(219, 229, 155)
 	highlight.DepthMode, highlight.Parent = Enum.HighlightDepthMode.Occluded, world
+	highlight.Enabled = false
 	local resultEvent = Instance.new("BindableEvent")
 	resultEvent.Name, resultEvent.Parent = "ForgeHUDResult", player
 	local requestEvent = Instance.new("BindableEvent")
@@ -458,6 +463,9 @@ function M.start(options: Options)
 			)
 			else ""
 		status.Text = t(model.status) .. (if model.reason then "\n" .. Locale.refusal(locale, model.reason) else "")
+		if contextual then
+			status.Visible = model.status == "conflict" or model.status == "pending"
+		end
 		local scrollPosition = sheet.scroll.CanvasPosition
 		controls.begin(section)
 		noteUsed = 0
@@ -498,6 +506,7 @@ function M.start(options: Options)
 				for _, row in rows do
 					table.insert(display, {
 						id = row.item.itemId,
+						image = if options.icons then options.icons.item(row.item.catalogId).image else nil,
 						text = name(row.item.catalogId)
 							.. " x"
 							.. row.item.quantity
@@ -834,7 +843,7 @@ function M.start(options: Options)
 		sheet.scroll.CanvasPosition = Vector2.zero
 		render()
 	end
-	if content.progressionPolicy then
+	if content.progressionPolicy and not contextual then
 		local skillsButton = Components.button(theme, {
 			text = t("skills"),
 			parent = root,
@@ -879,6 +888,7 @@ function M.start(options: Options)
 	attackButton.Name, attackButton.AnchorPoint = "Attack", Vector2.new(1, 0)
 	fitText(attackButton)
 	attackButton.Visible = false
+	local defenseButtons: { [string]: TextButton } = {}
 	for index, defenseAction in { "dodge", "guard" } do
 		local defenseButton = Components.button(theme, {
 			text = t(defenseAction),
@@ -891,6 +901,34 @@ function M.start(options: Options)
 		})
 		defenseButton.Name = defenseAction
 		defenseButton.Visible = content.progressionPolicy ~= nil and content.progressionPolicy.combat ~= nil
+		defenseButtons[defenseAction] = defenseButton
+	end
+	local restPrompt: BillboardGui? = nil
+	local combatPrompt: BillboardGui? = nil
+	if contextual then
+		local restCard = Instance.new("BillboardGui")
+		restCard.Name, restCard.Size = "RestInteraction", UDim2.fromOffset(132, 48)
+		restCard.Active = true
+		restCard.StudsOffset, restCard.AlwaysOnTop = Vector3.new(0, 3, 0), true
+		restCard.Parent = gui
+		restButton.Parent, restButton.AnchorPoint = restCard, Vector2.zero
+		restButton.Position, restButton.Size = UDim2.fromOffset(0, 0), UDim2.fromScale(1, 1)
+		restPrompt = restCard
+		local combatCard = Instance.new("BillboardGui")
+		combatCard.Name, combatCard.Size = "CombatInteraction", UDim2.fromOffset(216, 104)
+		combatCard.Active = true
+		combatCard.StudsOffset, combatCard.AlwaysOnTop = Vector3.new(0, 4, 0), true
+		combatCard.Parent = gui
+		attackButton.Parent, attackButton.AnchorPoint = combatCard, Vector2.zero
+		attackButton.Position, attackButton.Size = UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 48)
+		for index, key in { "dodge", "guard" } do
+			local defenseControl = defenseButtons[key]
+			defenseControl.Parent = combatCard
+			defenseControl.Position, defenseControl.Size =
+				UDim2.fromOffset((index - 1) * 112, 56), UDim2.fromOffset(104, 48)
+		end
+		combatPrompt = combatCard
+		toolbar.Visible = false
 	end
 
 	-- The chat window's live right edge in screen space, or the documented reserve when the
@@ -917,6 +955,15 @@ function M.start(options: Options)
 
 	local function resize()
 		local size = root.AbsoluteSize
+		if contextual then
+			local width, height, top, right = Model.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
+			sheet.frame.Position, sheet.frame.Size = UDim2.new(1, -right, 0, top), UDim2.fromOffset(width, height)
+			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(0, 0)
+			vitals.Size, vitals.TextWrapped = UDim2.fromOffset(math.min(216, size.X - 80), 56), true
+			status.AnchorPoint, status.Position = Vector2.new(1, 0), UDim2.new(1, -80, 0, 0)
+			status.Size = UDim2.fromOffset(math.min(312, size.X - 80), 56)
+			return
+		end
 		local portrait = size.Y > size.X
 		-- The Roblox chat window owns the top-left corner on every surface. These elements
 		-- are top-anchored and right-aligned, so on a portrait phone the stack must not run
@@ -997,23 +1044,38 @@ function M.start(options: Options)
 		end)
 	)
 	local promptService = game:GetService("ProximityPromptService")
+	local visibleGather: { [ProximityPrompt]: boolean } = {}
+	local function nearestGather()
+		local character = player.Character
+		local origin = if character then character:FindFirstChild("HumanoidRootPart") else nil
+		local closest: BasePart? = nil
+		local distance = math.huge
+		for prompt in visibleGather do
+			local anchor = prompt.Parent
+			local target = if anchor and anchor:IsA("Attachment") then anchor.Parent else anchor
+			if origin and target and target:IsA("BasePart") then
+				local d = (target.Position - (origin :: BasePart).Position).Magnitude
+				if d < distance then
+					closest, distance = target, d
+				end
+			end
+		end
+		highlight.Adornee, highlight.Enabled = closest, closest ~= nil
+	end
 	table.insert(
 		connections,
 		promptService.PromptShown:Connect(function(prompt: ProximityPrompt)
 			if prompt.Name == "ForgeGather" then
-				local anchor = prompt.Parent
-				highlight.Adornee = if anchor and anchor:IsA("Attachment") then anchor.Parent else anchor
+				visibleGather[prompt] = true
+				nearestGather()
 			end
 		end)
 	)
 	table.insert(
 		connections,
 		promptService.PromptHidden:Connect(function(prompt)
-			local anchor = prompt.Parent
-			local target = if anchor and anchor:IsA("Attachment") then anchor.Parent else anchor
-			if highlight.Adornee == target then
-				highlight.Adornee = nil
-			end
+			visibleGather[prompt] = nil
+			nearestGather()
 		end)
 	)
 	local receivedAt = os.clock()
@@ -1026,6 +1088,7 @@ function M.start(options: Options)
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function()
+			nearestGather()
 			-- Key hints follow the live input mode (t drops them on touch-only devices).
 			for key, tab in tabs do
 				tab.Text = t(key)
@@ -1033,6 +1096,51 @@ function M.start(options: Options)
 			restButton.Text, attackButton.Text = t("rest"), t("attack")
 			attackButton.Visible = model.durable ~= nil
 				and table.find(model.durable.actions, "survival-coop:attack") ~= nil
+			if contextual then
+				local modal = sheet.frame.Visible or player:GetAttribute("ForgeExtensionSheetOpen") == true
+				vitals.Visible = not modal and model.snapshot.vitals ~= nil
+				local restTarget = nearest("campfire")
+				local character = player.Character
+				local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
+				local attackTarget: BasePart? = nil
+				local distance = 8
+				local wildlife = world:FindFirstChild("ForgeWildlife")
+				if pivot and pivot:IsA("BasePart") and wildlife then
+					for _, animal in wildlife:GetChildren() do
+						local anchor = animal:FindFirstChild("HumanoidRootPart")
+						local hp = animal:GetAttribute("ForgeWildlifeHealthMilli")
+						if anchor and anchor:IsA("BasePart") and type(hp) == "number" and hp > 0 then
+							local d = (anchor.Position - pivot.Position).Magnitude
+							if d < distance then
+								attackTarget, distance = anchor, d
+							end
+						end
+					end
+				end
+				local actions = Model.contextActions(model.durable, model.pending, modal, restTarget, attackTarget)
+				restButton.Visible, attackButton.Visible = actions.rest, actions.attack
+				for key, defenseControl in defenseButtons do
+					defenseControl.Visible = actions[key]
+				end
+				if restPrompt then
+					restPrompt.Enabled = actions.rest
+					if restTarget then
+						restPrompt.Adornee = restTarget
+					end
+				end
+				if combatPrompt then
+					combatPrompt.Enabled = actions.attack
+					if attackTarget then
+						combatPrompt.Adornee = attackTarget
+					end
+				end
+				player:SetAttribute("ForgeSurvivalSheetOpen", sheet.frame.Visible)
+				local gatherGui = player.PlayerGui:FindFirstChild("ForgeGatherTouch")
+				promptService.Enabled = not modal
+				if gatherGui and gatherGui:IsA("ScreenGui") then
+					gatherGui.Enabled = not modal
+				end
+			end
 			for item, verb in { [restButton] = "rest", [attackButton] = "attack" } do
 				local enabled = model.pending == nil
 					and model.durable ~= nil
@@ -1060,6 +1168,10 @@ function M.start(options: Options)
 			return
 		end
 		disposed = true
+		if contextual then
+			promptService.Enabled = true
+			player:SetAttribute("ForgeSurvivalSheetOpen", nil)
+		end
 		for _, connection in connections do
 			connection:Disconnect()
 		end

@@ -88,6 +88,7 @@ function M.new(): any
 	end
 	local workspace = instance("Workspace")
 	workspace.Terrain = { FillBlock = function() end }
+	workspace.Terrain.FillBall = function() end
 	workspace.Raycast = function(_, origin: any, direction: any): any
 		if direction.Y < 0 and direction.X == 0 and direction.Z == 0 then
 			return { Position = origin + direction, Normal = roblox.Vector3.yAxis }
@@ -133,6 +134,7 @@ function M.new(): any
 			end,
 		},
 		ServerStorage = instance("Folder"),
+		Lighting = instance("Lighting"),
 		HttpService = {
 			GenerateGUID = function()
 				return "engine-event"
@@ -169,6 +171,10 @@ function M.new(): any
 				Vector3 = roblox.Vector3,
 				CFrame = roblox.CFrame,
 				Color3 = roblox.Color3,
+				NumberRange = roblox.NumberRange,
+				NumberSequence = roblox.NumberSequence,
+				NumberSequenceKeypoint = roblox.NumberSequenceKeypoint,
+				ColorSequence = roblox.ColorSequence,
 				Enum = roblox.Enum,
 				RaycastParams = {
 					new = function()
@@ -241,8 +247,19 @@ function M.new(): any
 			end,
 		},
 	}, nil)
-	local role = load("games/robango-island/src/server/RoleWorld.luau", {}, nil)
-	local home = load("games/robango-island/src/server/HomeWorld.luau", {}, nil)
+	local dressing = load("games/robango-island/src/server/WorldDressing.luau", {}, nil)
+	forge.core.infra = {
+		render = {
+			ProcAssets = {
+				build = function()
+					return { ScaleTo = function() end, PivotTo = function() end }
+				end,
+			},
+		},
+	}
+	forge.games = { ["robango-island"] = { src = { shared = { ProcAssets = {} } } } }
+	local role = load("games/robango-island/src/server/RoleWorld.luau", { ["./WorldDressing"] = dressing }, nil)
+	local home = load("games/robango-island/src/server/HomeWorld.luau", { ["./WorldDressing"] = dressing }, nil)
 	local archipelago = require("../../../../games/robango-island/src/server/ArchipelagoWorld")
 	return {
 		forge = forge,

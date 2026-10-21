@@ -10,5 +10,5 @@ assets:
   # recipe.id values written by forge gen procedural / gen audio
   allowRecipes:
     forge-procgen: [gen-procedural, gen-audio]
-  licensedKinds: [sfx]
+  licensedKinds: [sfx, image]
   denyTools: [audiocraft, roblox-cube, hunyuan3d-2]

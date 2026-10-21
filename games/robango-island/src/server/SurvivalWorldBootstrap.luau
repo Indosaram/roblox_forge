@@ -111,6 +111,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		configured.renderRole = require(script.Parent.RoleWorld).build
 		configured.roleBuilders = table.clone(source.roleBuilders or {})
 		configured.roleBuilders.home = require(script.Parent.HomeWorld).live
+		configured.roleBuilders.brawl = require(script.Parent.BrawlWorld).live
 		configured.roleBuilders.archipelago = function(c, s, w, now)
 			local state: any = assert(s.expedition, "PERSISTED_EXPEDITION_REQUIRED")
 			assert(state.status == "active", "EXPEDITION_INACTIVE")

@@ -28,7 +28,7 @@ steps:
   - {op: command, player: "1", requestId: sub1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [voyagerMonthly]}
   - {op: command, player: "1", requestId: sync1, sessionEpoch: current, action: "survival-coop:shop-sync", args: []}
   - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.storageBonus, equals: 15}
-  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.skins.voyager-monthly, equals: true}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.monetization.eligibleSkins.voyager-monthly, equals: true}
   - {op: command, player: "2", requestId: inelig1, sessionEpoch: current, action: "survival-coop:shop-prompt", args: [voyagerMonthly], expect: refused}
   - {op: expect_result, player: "2", field: reason, equals: SUBSCRIPTION_INELIGIBLE}
   - {op: expect_snapshot, player: "2", scope: session, field: survivalExtensions.monetization.promptsIssued, equals: 0}

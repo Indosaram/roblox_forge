@@ -14,7 +14,7 @@ local roleEnv = {
 	placeId = game.PlaceId,
 	privateServerId = game.PrivateServerId,
 	isStudio = RunService:IsStudio(),
-	studioRole = "onboarding",
+	studioRole = if RunService:IsStudio() then workspace:GetAttribute("ForgeStudioRole") or "onboarding" else nil,
 }
 local worldRole, routingOnly = IslandBootstrap.select(roleEnv)
 workspace:SetAttribute("ForgeWorldRole", worldRole)
@@ -71,6 +71,14 @@ end
 local content = require(Shared.SurvivalContent)
 local source: any = table.clone(require(Shared.SurvivalWorldConfig))
 local wildlifePolicy = require(Shared.WildlifePolicy)
+if RunService:IsStudio() and workspace:GetAttribute("ForgeStudioLayout") then
+	source.expedition = {
+		status = "active",
+		templateId = workspace:GetAttribute("ForgeStudioTemplate"),
+		stage = workspace:GetAttribute("ForgeStudioStage"),
+		seed = source.seed or 1776,
+	}
+end
 -- Taming/mounts: the pack only supplies the policy; the extension registry builds the system.
 require(Forge.genres["survival-coop"].module.TamingExtension).configure(require(Shared.TamingConfig))
 local Players = game:GetService("Players")
@@ -161,7 +169,7 @@ end
 -- END persisted role layout selection.
 local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wildlifePolicy, function()
 	return Clock.millis(clock.now())
-end, worldRole, RunService:IsStudio())
+end, worldRole, RunService:IsStudio() and workspace:GetAttribute("ForgeStudioRole") == nil)
 -- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
 local visitWorld: any = world
 visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({

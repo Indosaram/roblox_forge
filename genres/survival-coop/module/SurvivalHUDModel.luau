@@ -173,6 +173,39 @@ end
 -- above this line.
 M.STACK_BOTTOM = 180
 
+-- Coordinates are relative to a CoreUISafeInsets container, not the physical screen.
+-- Sheets reserve the bottom 128 pixels for movement/jump and the top menu target.
+function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
+	local top = 64
+	local bottom = if touch or width < 700 then 128 else 16
+	return math.min(896, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
+end
+
+function M.contextActions(policy: any, pending: any, modal: boolean, restTarget: any, attackTarget: any): any
+	local function allowed(verb: string): boolean
+		return not modal
+			and pending == nil
+			and policy ~= nil
+			and table.find(policy.actions, "survival-coop:" .. verb) ~= nil
+	end
+	return {
+		rest = restTarget ~= nil and allowed("rest"),
+		attack = attackTarget ~= nil and allowed("attack"),
+		dodge = attackTarget ~= nil and allowed("dodge"),
+		guard = attackTarget ~= nil and allowed("guard"),
+	}
+end
+
+function M.nearestGatherable(nodes: { any }): any
+	local best = nil
+	for _, node in nodes do
+		if node.available and (best == nil or node.distance < best.distance) then
+			best = node
+		end
+	end
+	return best
+end
+
 -- Returns width, height, top and the gap kept free at the right edge. A short landscape
 -- viewport has no room below the stack, and a sheet starting at the top covered the
 -- section tabs (live 819x295 capture: no way from the bag to the build tab), so there the

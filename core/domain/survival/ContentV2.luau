@@ -13,6 +13,8 @@ local schemas: { [string]: { [string]: string } } = {
 	point = { x = "number", y = "number", z = "number" },
 	bounds = { min = "point", max = "point" },
 	anchor = { id = "id", position = "point" },
+	landmark = { id = "id", kind = "text", position = "point", size = "point" },
+	art = { landmark = "landmark" },
 	gate = {
 		characterLevel = "?level",
 		developmentRank = "?integer",
@@ -155,6 +157,101 @@ local schemas: { [string]: { [string]: string } } = {
 		seed = "integer",
 	},
 	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
+	clanPolicy = {
+		-- Shared policies remain opt-in for other packs.
+		provenance = "provenance",
+		maxMembers = "positive",
+		maxLevel = "positive",
+		missionExperience = "positive",
+		levelExperience = "positive",
+		hallLevel = "positive",
+		cancelRefund = "number",
+	},
+	outpostPolicy = {
+		provenance = "provenance",
+		minTeam = "positive",
+		maxTeam = "positive",
+		matchSeconds = "positive",
+		captureSeconds = "positive",
+		ownershipSeconds = "positive",
+	},
+	musicVoice = {
+		id = "id",
+		frequency = "number",
+		attack = "number",
+		release = "number",
+		decay = "number",
+		harmonics = "[]number",
+		noise = "number",
+		gain = "number",
+	},
+	musicInstrument = {
+		id = "id",
+		assetKey = "text",
+		attack = "?number",
+		release = "?number",
+		decay = "?number",
+		harmonics = "?[]number",
+		noise = "?number",
+		gain = "?number",
+		placed = "?boolean",
+		pitchMin = "?positive",
+		drums = "?[]musicVoice",
+	},
+	musicInstruments = {
+		piano = "musicInstrument",
+		guitar = "musicInstrument",
+		bass = "musicInstrument",
+		violin = "musicInstrument",
+		flute = "musicInstrument",
+		clarinet = "musicInstrument",
+		trumpet = "musicInstrument",
+		drums = "musicInstrument",
+	},
+	music = {
+		maxBytes = "positive",
+		tempoMin = "positive",
+		tempoMax = "positive",
+		maxParts = "positive",
+		maxPerformers = "positive",
+		maxNotesPerPart = "positive",
+		ticksPerQuarter = "positive",
+		maxDurationSeconds = "positive",
+		maxPolyphony = "positive",
+		pitchMin = "positive",
+		pitchMax = "positive",
+		velocityMin = "positive",
+		velocityMax = "positive",
+		radiusStuds = "positive",
+		countdownSeconds = "positive",
+		instruments = "musicInstruments",
+	},
+	brawlWeather = {
+		at = "integer",
+		id = "id",
+		sprintMultiplier = "?number",
+		rangeCap = "?positive",
+		noMount = "?boolean",
+	},
+	brawlPolicy = {
+		provenance = "provenance",
+		layout = "@layouts",
+		minimumLevel = "level",
+		minimumPlayers = "positive",
+		maximumPlayers = "positive",
+		preparationSeconds = "positive",
+		durationSeconds = "positive",
+		collapseAt = "positive",
+		initialRadius = "positive",
+		outsideDamageFraction = "number",
+		daySeconds = "positive",
+		dailySettlements = "positive",
+		participationReward = "integer",
+		winReward = "integer",
+		maximumBalance = "positive",
+		weather = "[]brawlWeather",
+		spawns = "[]point",
+	},
 	missionPolicy = {
 		provenance = "provenance",
 		surveySeconds = "positive",
@@ -235,6 +332,8 @@ local schemas: { [string]: { [string]: string } } = {
 	},
 	wildlifeDetails = {
 		id = "@wildlife",
+		renderEnvelope = "?point",
+		riderHeight = "?number",
 		provenance = "provenance",
 		level = "level",
 		health = "positive",
@@ -253,6 +352,7 @@ local schemas: { [string]: { [string]: string } } = {
 	},
 	layouts = {
 		id = "id",
+		art = "?art",
 		provenance = "provenance",
 		bounds = "bounds",
 		biomes = "[]id",
@@ -313,7 +413,8 @@ M.SECTIONS = {
 	"guides",
 	"chapters",
 }
-M.POLICIES = { "progressionPolicy", "homePolicy", "missionPolicy" }
+M.POLICIES =
+	{ "progressionPolicy", "homePolicy", "missionPolicy", "clanPolicy", "outpostPolicy", "brawlPolicy", "music" }
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },
 	operationKind = {
@@ -676,7 +777,11 @@ function M.canonical(value: any, field: string?): any
 		result[key] = M.canonical(entry, tostring(key))
 	end
 	if #result > 0 and field ~= "points" and field ~= "dialogueKeys" then
-		if type(result[1]) == "table" and (result[1].id or result[1].item) then
+		if field == "weather" then
+			table.sort(result, function(a: any, b: any)
+				return a.at < b.at
+			end)
+		elseif type(result[1]) == "table" and (result[1].id or result[1].item) then
 			table.sort(result, function(a: any, b: any)
 				return (a.id or a.item) < (b.id or b.item)
 			end)

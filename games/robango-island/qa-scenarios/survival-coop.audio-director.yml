@@ -1,0 +1,15 @@
+name: audio-director
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 4100
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/robango-audio]
+steps:
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner]}
+  - {op: audio_refused_command, player: owner}
+  - {op: audio_presentation, player: owner}
+  - {op: close, player: owner}

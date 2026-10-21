@@ -54,6 +54,12 @@ function M.skipArrival(session: Session): boolean
 	return M.observe(session, "ArrivalDone")
 end
 
+-- The world owner supplies the landing observation; joining or being airborne is
+-- not proof of arrival. Repeated landing callbacks never advance the gather step.
+function M.landed(session: Session, grounded: boolean): boolean
+	return grounded and M.observe(session, "ArrivalDone")
+end
+
 function M.save(session: Session): Tutorial.Save
 	return Tutorial.toSave(session.state)
 end

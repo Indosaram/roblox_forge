@@ -71,6 +71,7 @@ function M.new(ctx: any): any
 	forge.core.domain.command = { Journal = require("../../../../core/domain/command/Journal") }
 	forge.core.domain.island.Archipelago = require("../../../../core/domain/island/Archipelago")
 	forge.core.infra = {
+		render = forge.core.infra.render,
 		genre = { Clock = require("../../../../core/infra/genre/Clock"), Session = Session },
 		data = { ActorDocumentStore = require("../../../../core/infra/data/ActorDocumentStore") },
 	}

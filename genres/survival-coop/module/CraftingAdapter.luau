@@ -14,6 +14,7 @@ local Vitals = require("../../../core/domain/survival/Vitals")
 local Consumption = require("../../../core/domain/survival/Consumption")
 local DeathBundle = require("../../../core/domain/survival/DeathBundle")
 local Inventory = require("../../../core/domain/inventory/Inventory")
+local EntitlementEffects = require("./EntitlementEffects")
 local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
@@ -364,13 +365,18 @@ function M.new(
 		for id, items in inventoryConfig.containers do
 			local state = Inventory.new(id, {
 				contentVersion = if content.version == 2 then 2 else nil,
+				kind = if content.version == 2 and id == "bag" then "bag" else nil,
 				slots = content.limits.slots,
 				softWeightMilli = content.limits.softWeightMilli,
 				hardWeightMilli = content.limits.hardWeightMilli,
 				speedPenaltyMilli = inventoryConfig.speedPenaltyMilli,
 			})
 			if saved then
-				local restored = Inventory.fromSave(saved.inventory[id], catalog)
+				local raw = saved.inventory[id]
+				if content.version == 2 and id == "bag" then
+					raw = EntitlementEffects.migrateBag(raw, content.version, content.limits.slots)
+				end
+				local restored = Inventory.fromSave(raw, catalog)
 				assert(restored.id == id, "container identity mismatch")
 				for key, value in state.limits do
 					assert(restored.limits[key] == value, "container limit mismatch")

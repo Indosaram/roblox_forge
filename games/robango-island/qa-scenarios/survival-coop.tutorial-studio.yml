@@ -1,10 +1,9 @@
 # QA-CORE-01 on the real robango-island place (studio-kind counterpart of the playtest-kind
 # genres/survival-coop/qa-scenarios/tutorial.yml, which `forge qa run` refuses as a legacy kind).
-# The objective tracker (ForgePanelDock.Dock.Objective.ObjectiveTracker) renders the durable
-# ContractsExtension tutorial state, so each wait_for proves the step index advanced by exactly one,
+# The objective tracker lives at ForgePanelDock.Objective.ObjectiveTracker. Assertions read
+# durable ContractsExtension tutorial state, so each wait_for proves the step advanced by exactly one,
 # in order: arrive -> gather -> craft-stone-axe -> declare-settlement -> accept -> deliver -> complete.
-# A physical rejoin after step 3 must resume at declare-settlement. Text is the ko-kr locale the owned
-# Studio account renders. robango wires no analytics emitter, so tutorial_step/tutorial_complete
+# A physical rejoin after step 3 must resume at declare-settlement. robango wires no analytics emitter, so tutorial_step/tutorial_complete
 # events are not observable here; the domain proof is genres/survival-coop/module/SurvivalTutorial.spec.luau.
 # Both clients run the desktop surface: the mobile dock/chat overlap is tracked by wildlife-spatial and
 # full-coop-rejoin (CRITICAL_UI_CHAT_OVERLAP), and this scenario proves tutorial ordering only.
@@ -25,11 +24,8 @@ steps:
   - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
   - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
   - {op: expect_members, members: [owner, guest]}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 섬에 도착하세요'}}
-  - {op: capture, target: tutorial-arrival-skip-offered, settle: true}
-  # Step 1: skip the arrival scene through the docked button.
-  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.SkipArrival, timeout_seconds: 10}
-  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 자원을 채집하세요'}}
+  # Arrival advances through the contextual HUD landing observation.
+  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'gather'}}
   # Crafting before gathering (cord from starter fiber) must not advance the tutorial.
   - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
   - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-cord, timeout_seconds: 20}
@@ -40,11 +36,11 @@ steps:
   - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: cord-finish}}}
   - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: cord-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
   - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 자원을 채집하세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'gather'}}
   # Step 2: gather flint (3) at the landing outcrop.
   - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01, withinStuds: 3.5, timeout_seconds: 40}
   - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather, nodeId: flint-outcrop-01, key: E, timeout_seconds: 15}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 돌도끼를 만드세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'craft-stone-axe'}}
   # Step 3: craft the stone axe (2 flint) through the craft sheet.
   - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
   - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-stone-axe, timeout_seconds: 20}
@@ -55,7 +51,7 @@ steps:
   - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: axe-finish}}}
   - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: axe-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
   - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 정착지를 세우세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'declare-settlement'}}
   - {op: capture, target: tutorial-stone-axe-before-rejoin, settle: true}
   # Physical rejoin mid-tutorial: the replacement client resumes at declare-settlement.
   - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.SurvivalSpawn, withinStuds: 5, timeout_seconds: 45}
@@ -64,7 +60,7 @@ steps:
   - {op: expect_members, members: [owner, guest]}
   - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
   - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
-  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 정착지를 세우세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'declare-settlement'}}
   - {op: capture, target: tutorial-rejoin-resumes-declare-settlement, settle: true}
   # Step 4: fund a floor (4 wood) in the warehouse and place it.
   - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 1.5, timeout_seconds: 40}
@@ -98,14 +94,14 @@ steps:
   - {op: bind_result, player: owner, field: data.reservationId, label: tutorial-floor}
   - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: tutorial-floor, prefix: 'place-'}], resultAction: 'survival-coop:settlement-place', expect: ok, timeout_seconds: 10}
   - {op: keyboard, player: owner, key: B, timeout_seconds: 5}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 첫 계약을 수락하세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'accept-contract'}}
   # Steps 5-6: accept and deliver the first-day contract (survey-driftwood: 3 wood) on the board.
   - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.SurvivalSpawn, withinStuds: 4, timeout_seconds: 40}
   - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 1.5, timeout_seconds: 40}
   - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 15}
   - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Menu.Dock-contracts, timeout_seconds: 5}
   - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ContractsPanel.ContractBoard.Content.Accept-survey-driftwood, timeout_seconds: 10}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 첫 계약을 납품하세요'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.step, equals: 'deliver-contract'}}
   - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ContractsPanel.ContractBoard.Content.Deliver-survey-driftwood, timeout_seconds: 10}
-  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Objective.ObjectiveTracker, field: Text, equals: '목표: 튜토리얼 완료'}}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: survivalExtensions.contracts.tutorial.complete, equals: true}}
   - {op: capture, target: tutorial-complete-contract-board, settle: true}

@@ -13,6 +13,8 @@ local serde = require("@lune/serde")
 local M = {}
 function M.new(_config: Contract.PackConfig, backend: ProfileStore.Backend, now: () -> number)
 	local marketplace = MarketplacePort.fake()
+	local capacities: { [string]: number } = {}
+	local unlocked: { [string]: { [string]: boolean } } = {}
 	marketplace.redeliveries = 5
 	local catalog: any = {
 		gamepasses = {
@@ -54,6 +56,18 @@ function M.new(_config: Contract.PackConfig, backend: ProfileStore.Backend, now:
 		catalog = catalog,
 		marketplace = marketplace.port,
 		policy = PolicyPort.fake({ ["1"] = true }),
+		hooks = {
+			skinSupported = function(skin)
+				return skin == "reef-runner" or skin == "voyager-monthly"
+			end,
+			warehouseSlots = function(actor, bonus)
+				capacities[actor] = bonus
+			end,
+			skinUnlocked = function(actor, skin)
+				unlocked[actor] = unlocked[actor] or {}
+				unlocked[actor][skin] = true
+			end,
+		},
 	})
 	local extension = assert(Monetization.factory({
 		store = function()

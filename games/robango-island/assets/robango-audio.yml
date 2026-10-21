@@ -1,0 +1,223 @@
+version: 1
+sampleRate: 22050
+cues:
+  - key: bgm-onboarding
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4100
+  - key: bgm-home
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4101
+  - key: bgm-forest
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4102
+  - key: bgm-grassland
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4103
+  - key: bgm-tropical
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4104
+  - key: bgm-snow
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4105
+  - key: bgm-volcano
+    kind: music
+    mood: siege
+    duration: 48
+    seed: 4106
+  - key: bgm-brawl
+    kind: music
+    mood: siege
+    duration: 48
+    seed: 4107
+  - key: bgm-market
+    kind: music
+    mood: explore
+    duration: 48
+    seed: 4108
+  - key: combat-stinger
+    kind: sfx
+    type: raid
+    duration: 1.2
+    seed: 4200
+  - key: gather-wood
+    kind: sfx
+    type: wood
+    duration: 0.22
+    seed: 4201
+  - key: gather-stone
+    kind: sfx
+    type: stone
+    duration: 0.25
+    seed: 4202
+  - key: gather-plant
+    kind: sfx
+    type: plant
+    duration: 0.3
+    seed: 4203
+  - key: craft-complete
+    kind: sfx
+    type: rare
+    duration: 0.8
+    seed: 4204
+  - key: build-place
+    kind: sfx
+    type: wood
+    duration: 0.45
+    seed: 4205
+  - key: campfire
+    kind: sfx
+    type: fire
+    duration: 4
+    seed: 4206
+  - key: footstep-grass
+    kind: sfx
+    type: plant
+    duration: 0.16
+    seed: 4207
+  - key: footstep-sand
+    kind: sfx
+    type: sand
+    duration: 0.18
+    seed: 4208
+  - key: footstep-stone
+    kind: sfx
+    type: stone
+    duration: 0.14
+    seed: 4209
+  - key: attack
+    kind: sfx
+    type: swing
+    duration: 0.3
+    seed: 4210
+  - key: hit
+    kind: sfx
+    type: impact
+    duration: 0.22
+    seed: 4211
+  - key: dodge
+    kind: sfx
+    type: swing
+    duration: 0.2
+    seed: 4212
+  - key: guard
+    kind: sfx
+    type: stone
+    duration: 0.35
+    seed: 4213
+  - key: tame-success
+    kind: sfx
+    type: rare
+    duration: 1.1
+    seed: 4214
+  - key: mount
+    kind: sfx
+    type: wood
+    duration: 0.5
+    seed: 4215
+  - key: ui-open
+    kind: sfx
+    type: click
+    duration: 0.12
+    seed: 4216
+  - key: ui-close
+    kind: sfx
+    type: click
+    duration: 0.1
+    seed: 4217
+  - key: ui-confirm
+    kind: sfx
+    type: coin
+    duration: 0.45
+    seed: 4218
+  - key: ui-error
+    kind: sfx
+    type: error
+    duration: 0.22
+    seed: 4219
+  - key: level-up
+    kind: sfx
+    type: rare
+    duration: 1.2
+    seed: 4220
+  - key: reward
+    kind: sfx
+    type: coin
+    duration: 0.6
+    seed: 4221
+  - key: travel-horn
+    kind: sfx
+    type: horn
+    duration: 1.8
+    seed: 4222
+  - key: call-theropod
+    kind: sfx
+    type: call
+    duration: 1.2
+    seed: 4300
+    frequency: 180
+  - key: call-ceratopsian
+    kind: sfx
+    type: call
+    duration: 1.29
+    seed: 4301
+    frequency: 120
+  - key: call-hadrosaur
+    kind: sfx
+    type: call
+    duration: 1.38
+    seed: 4302
+    frequency: 240
+  - key: call-armored
+    kind: sfx
+    type: call
+    duration: 1.47
+    seed: 4303
+    frequency: 80
+  - key: call-sauropod
+    kind: sfx
+    type: call
+    duration: 1.56
+    seed: 4304
+    frequency: 50
+  - key: call-mammal
+    kind: sfx
+    type: call
+    duration: 1.65
+    seed: 4305
+    frequency: 155
+  - key: call-elephant
+    kind: sfx
+    type: call
+    duration: 1.74
+    seed: 4306
+    frequency: 320
+  - key: call-crocodilian
+    kind: sfx
+    type: call
+    duration: 1.83
+    seed: 4307
+    frequency: 65
+  - key: call-turtle
+    kind: sfx
+    type: call
+    duration: 1.92
+    seed: 4308
+    frequency: 440
+  - key: call-bird
+    kind: sfx
+    type: call
+    duration: 2.01
+    seed: 4309
+    frequency: 650

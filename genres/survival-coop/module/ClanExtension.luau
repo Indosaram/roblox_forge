@@ -1,0 +1,181 @@
+--!strict
+local Clan = require("../../../core/domain/settlement/Clan")
+local Data = require("../../../core/domain/genre/SerializedData")
+local Session = require("../../../core/infra/genre/Session")
+local Schema = require("../../../core/infra/net/Schema")
+local M = {}
+
+function M.actions(): { any }
+	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	local revision = Schema.number({ min = 0, max = 2 ^ 53 - 2, integer = true })
+	local definitions: any = {
+		invite = { target = id },
+		join = {},
+		leave = {},
+		role = { target = id, role = id },
+		capability = { target = id, enabled = Schema.boolean() },
+		transfer = { target = id },
+		deposit = { amount = Schema.number({ min = 1, max = 2 ^ 31, integer = true }) },
+		withdraw = { amount = Schema.number({ min = 1, max = 2 ^ 31, integer = true }) },
+		contribute = {},
+		["research-start"] = { id = id },
+		["research-complete"] = { jobId = id },
+		["research-cancel"] = { jobId = id },
+		relocate = { territory = id },
+		dissolve = {},
+	}
+	local actions = {}
+	for operation, fields in definitions do
+		fields.expectedRevision = Schema.optional(revision)
+		table.insert(actions, {
+			id = "clan-" .. operation,
+			args = { id, Schema.object(fields) },
+			origin = if operation == "contribute"
+					or operation == "deposit"
+					or operation == "withdraw"
+				then "server"
+				else "client",
+			rate = { capacity = 50, refillPerSecond = 10 },
+		})
+	end
+	table.sort(actions, function(a: any, b: any): boolean
+		return a.id < b.id
+	end)
+	return actions
+end
+
+-- Shared aggregate adapter. Every command reacquires/refreshes the fence, then
+-- checks membership inside the same transform as the balance/permission mutation.
+function M.aggregate(config: any, domain: any, prefix: string, actions: { string }): any
+	local store = config.store()
+	local tokens: any = {}
+	local departed: any = {}
+	local extension: any = { id = prefix }
+	local function open(id: string): (any?, string?)
+		local token, reason
+		if tokens[id] then
+			token, reason = store:refresh(tokens[id])
+		else
+			token, reason = store:acquire(prefix .. ":" .. id, function(data: any): any
+				return if next(data) == nil then domain.new(id, config.owner(id)) else data
+			end)
+		end
+		tokens[id] = token
+		return token, reason
+	end
+	function extension.handles(action: string): boolean
+		local normalized = string.gsub(action, "^survival%-coop:" .. prefix .. "%-", "")
+		return table.find(actions, normalized) ~= nil
+	end
+	function extension.command(actor: string, action: string, args: any, context: any, origin: string, admit: any): any
+		if departed[actor] or context.actorId ~= actor then
+			return { ok = false, reason = "ACTOR_LEFT_OR_FORBIDDEN" }
+		end
+		if not extension.handles(action) then
+			return { ok = false, reason = "UNKNOWN_ACTION" }
+		end
+		local admitted = admit()
+		if not admitted.ok then
+			return admitted
+		end
+		local operation = string.gsub(action, "^survival%-coop:" .. prefix .. "%-", "")
+		local id = config.identity(actor, args[1])
+		if not id then
+			return { ok = false, reason = "WRONG_IDENTITY" }
+		end
+		local token, reason = open(id)
+		if not token then
+			return { ok = false, reason = reason }
+		end
+		local receipt = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId
+		local facts = config.facts(actor, id, operation, args[2] or {}, origin)
+		local result: any = nil
+		local committed, err = store:update(token, function(data: any): any
+			local nextState, refused = domain.apply(data, actor, operation, args[2] or {}, receipt, config.now(), facts)
+			result =
+				{ ok = nextState ~= nil, reason = refused, data = if nextState then { operationId = receipt } else nil }
+			return nextState or data
+		end)
+		if not committed then
+			return { ok = false, reason = err }
+		end
+		tokens[id] = committed
+		return result
+	end
+	function extension.snapshot(actor: string): (any?, string?)
+		if departed[actor] then
+			return nil, "ACTOR_LEFT"
+		end
+		local id = config.identity(actor, nil)
+		if not id then
+			return nil, "WRONG_IDENTITY"
+		end
+		local token, reason = open(id)
+		if not token then
+			return nil, reason
+		end
+		if config.visible and not config.visible(token.data, actor) then
+			return nil, "FORBIDDEN"
+		end
+		return Data.clone(token.data), nil
+	end
+	function extension.releaseActor(actor: string): any
+		-- Aggregates are shared by online members. Release all fences; later members
+		-- reopen from durable state rather than holding an actor-owned stale token.
+		for id, token in tokens do
+			local ok, reason = store:release(token)
+			if not ok then
+				return { ok = false, reason = reason }
+			end
+			tokens[id] = nil
+		end
+		departed[actor] = true
+		return { ok = true }
+	end
+	function extension.resumeActor(actor: string): any
+		departed[actor] = nil
+		return { ok = true }
+	end
+	function extension.drain(_actor: string): any
+		return { ok = true }
+	end
+	function extension.recover(_actor: string, _maximum: number): any
+		return { status = "confirmed", pending = 0 }
+	end
+	function extension.close(): any
+		for id, token in tokens do
+			local ok, reason = store:release(token)
+			if not ok then
+				return { ok = false, reason = reason }
+			end
+			tokens[id] = nil
+		end
+		return { ok = true }
+	end
+	return Session.registerLifecycle(extension)
+end
+
+function M.new(config: any): any
+	return M.aggregate(config, Clan, "clan", {
+		"invite",
+		"join",
+		"leave",
+		"role",
+		"capability",
+		"transfer",
+		"deposit",
+		"withdraw",
+		"contribute",
+		"research-start",
+		"research-complete",
+		"research-cancel",
+		"relocate",
+		"dissolve",
+	})
+end
+
+function M.factory(ctx: any): any
+	return if ctx.world and ctx.world.clan then M.new(ctx.world.clan) else nil
+end
+
+return M

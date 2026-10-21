@@ -22,6 +22,14 @@ local function fixture(source: string): any
 			end
 			return children
 		end
+		function value:FindFirstChild(name: string): any
+			for _, child in self:GetChildren() do
+				if child.Name == name then
+					return child
+				end
+			end
+			return nil
+		end
 		table.insert(created, value)
 		return value
 	end
@@ -39,12 +47,17 @@ local function fixture(source: string): any
 				return components
 			end,
 			Instance = { new = instance },
-			UDim2 = {
-				new = function(...)
-					return { ... }
+			UDim = {
+				new = function(scale, offset)
+					return { Scale = scale, Offset = offset }
 				end,
-				fromOffset = function(...)
-					return { ... }
+			},
+			UDim2 = {
+				new = function(xs, xo, ys, yo)
+					return { X = { Scale = xs, Offset = xo }, Y = { Scale = ys, Offset = yo } }
+				end,
+				fromOffset = function(x, y)
+					return { X = { Scale = 0, Offset = x }, Y = { Scale = 0, Offset = y } }
 				end,
 			},
 			Enum = { AutomaticSize = { Y = "Y" }, SortOrder = { LayoutOrder = "LayoutOrder" } },
@@ -82,15 +95,32 @@ end
 
 local function regression(source: string): boolean
 	local f = fixture(source)
-	f.grid.update({ { id = "spear", text = "Spear 100%" }, { id = "berry", text = "Berry x3" } }, "berry")
+	local rows: { { id: string, text: string, image: string? } } = {
+		{ id = "spear", text = "Spear 100%", image = "rbxassetid://123" },
+		{ id = "berry", text = "Berry x3" },
+	}
+	f.grid.update(rows, "berry")
 	local spear, berry = f.button("spear"), f.button("berry")
 	assert(
 		spear and berry and spear.BackgroundTransparency == 0.4 and berry.BackgroundTransparency == 0,
 		"initial selection"
 	)
+	local icon = spear:FindFirstChild("ItemIcon")
+	assert(
+		icon and icon.ClassName == "ImageLabel" and icon.Image == "rbxassetid://123" and icon.Visible,
+		"item icon created"
+	)
+	assert(icon.Size.X.Offset == 36 and icon.Position.Y.Offset == 14, "icon dimensions")
+	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 44, "icon reserves text padding")
+	assert(berry:FindFirstChild("ItemIcon") == nil, "imageless row needs no icon")
 	local callback = spear.callback
 	f.down(spear)
 	f.grid.update({ { id = "berry", text = "Berry x2" }, { id = "spear", text = "Spear 99%" } }, "spear")
+	assert(
+		spear:FindFirstChild("ItemIcon") == icon and not icon.Visible and tostring(icon.Image) == "",
+		"imageless update hides retained icon"
+	)
+	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 0, "imageless update resets padding")
 	assert(f.release(spear), "snapshot during press must activate the original live button")
 	assert(f.button("spear") == spear and spear.callback == callback, "same identity preserves object and handler")
 	assert(f.selected[1] == "spear" and #f.selected == 1, "press targets original item exactly once")

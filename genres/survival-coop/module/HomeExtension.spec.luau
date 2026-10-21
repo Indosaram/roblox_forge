@@ -11,7 +11,15 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 -- These pack-only modules are intentionally absent from other packs' sourcemaps.
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
-local World: any = luau.load(fs.readFile("games/robango-island/src/server/HomeWorld.luau"))()
+local Dressing: any = luau.load(fs.readFile("games/robango-island/src/server/WorldDressing.luau"))()
+local World: any = luau.load(fs.readFile("games/robango-island/src/server/HomeWorld.luau"), {
+	environment = {
+		require = function(key)
+			assert(key == "./WorldDressing", "unexpected home dependency")
+			return Dressing
+		end,
+	},
+})()
 
 return {
 	["home content uses all eight generated planting operations including flaxseed output"] = function()
@@ -161,7 +169,13 @@ return {
 		}
 		local home = Home.new("owner", rules, 74)
 		local parts = World.plan(Content, home, rules)
-		assert(#parts == 6 and parts[1].size.x == 64, "home invariant: 77")
+		local gameplayParts = 0
+		for _, part in parts do
+			if not part.decorative then
+				gameplayParts += 1
+			end
+		end
+		assert(gameplayParts == 6 and parts[1].size.x == 64, "home invariant: 77")
 		local rendered: { any } = {}
 		assert(not pcall(World.build, {
 			isServer = function()
@@ -191,6 +205,12 @@ return {
 			end
 		end
 		home.developmentRank = 3
-		assert(#World.plan(Content, home, rules) == 7, "home invariant: 90")
+		local developed = 0
+		for _, part in World.plan(Content, home, rules) do
+			if not part.decorative then
+				developed += 1
+			end
+		end
+		assert(developed == 7, "home invariant: 90")
 	end,
 }

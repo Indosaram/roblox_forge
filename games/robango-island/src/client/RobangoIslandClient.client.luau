@@ -3,8 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Forge = ReplicatedStorage:WaitForChild("Forge")
 local Shared = Forge.games["robango-island"].src.shared
 
-local SurvivalAudio = require(Forge.genres["survival-coop"].module.SurvivalAudio)
-local audio = SurvivalAudio.start(require(Shared.AudioConfig))
+local audio = require(script.Parent.RobangoAudio).start(
+	require(Forge.core.infra.audio.SoundBank),
+	require(Forge.genres["survival-coop"].module.AudioDirector),
+	require(Shared.Assets),
+	require(Shared.RobangoAudioCatalog)
+)
 script.Destroying:Connect(audio.destroy)
 
 local Client = require(Forge.core.infra.genre.Client)
@@ -25,6 +29,8 @@ local worldConfig = require(Shared.SurvivalWorldConfig)
 local origin = worldConfig.tribe.origin
 gui.Enabled = false
 local hud = SurvivalHUD.start({
+	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),
+	contextual = true,
 	content = content,
 	ui = {
 		components = require(Forge.core["ui-kit"].Components),
@@ -76,6 +82,37 @@ local panels = ExtensionPanels.start({
 	names = names,
 	-- One sheet at a time: a panel opening closes the HUD sheet, and the reverse below.
 	onOpen = hud.close,
+	contextual = true,
+	launchers = {
+		{
+			id = "bag",
+			label = if string.sub(locale, 1, 2) == "ko" then "가방" else "Bag",
+			open = function()
+				hud.open("bag")
+			end,
+		},
+		{
+			id = "craft",
+			label = if string.sub(locale, 1, 2) == "ko" then "제작" else "Craft",
+			open = function()
+				hud.open("craft")
+			end,
+		},
+		{
+			id = "build",
+			label = if string.sub(locale, 1, 2) == "ko" then "건설" else "Build",
+			open = function()
+				hud.open("build")
+			end,
+		},
+		{
+			id = "skills",
+			label = if string.sub(locale, 1, 2) == "ko" then "스킬" else "Skills",
+			open = function()
+				hud.open("skills")
+			end,
+		},
+	},
 })
 hud.opened:Connect(function()
 	if hud.isOpen() then
@@ -89,8 +126,23 @@ local QuarterView = require(Forge.core.infra.camera.QuarterView)
 local camera = QuarterView.start()
 gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
+if game:GetService("RunService"):IsStudio() then
+	game:GetService("RunService"):BindToRenderStep("ForgeStudioCapture", Enum.RenderPriority.Last.Value, function()
+		local position = workspace:GetAttribute("ForgeStudioCameraPosition")
+		local target = workspace:GetAttribute("ForgeStudioCameraTarget")
+		if typeof(position) == "Vector3" and typeof(target) == "Vector3" then
+			camera.stop()
+			workspace.CurrentCamera.CFrame = CFrame.lookAt(position, target)
+			workspace.CurrentCamera.FieldOfView = 60
+		end
+	end)
+	script.Destroying:Connect(function()
+		game:GetService("RunService"):UnbindFromRenderStep("ForgeStudioCapture")
+	end)
+end
 
 local DinosaurRig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+local CreaturePose = require(script.Parent.CreaturePose)
 local function startCreatureAnimation(rigPose: (Model, string, number, number) -> ()): { destroy: () -> () }
 	local RunService = game:GetService("RunService")
 	local registry: { [Model]: { state: string, elapsed: number } } = {}
@@ -122,18 +174,19 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 		)
 	end
 	for _, child in workspace:GetChildren() do
-		if child.Name == "Wildlife" or child.Name == "OwnedCreatures" then
+		if child.Name == "Wildlife" or child.Name == "OwnedCreatures" or child.Name == "ForgeWildlife" then
 			bind(child)
 		end
 	end
 	table.insert(
 		connections,
 		workspace.ChildAdded:Connect(function(child)
-			if child.Name == "Wildlife" or child.Name == "OwnedCreatures" then
+			if child.Name == "Wildlife" or child.Name == "OwnedCreatures" or child.Name == "ForgeWildlife" then
 				bind(child)
 			end
 		end)
 	)
+	table.insert(connections, workspace.DescendantAdded:Connect(discover))
 	table.insert(
 		connections,
 		RunService.RenderStepped:Connect(function(dt)
@@ -150,21 +203,27 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				local distance = if viewCamera then (viewCamera.CFrame.Position - root.Position).Magnitude else 0
 				local humanoid = model:FindFirstChildOfClass("Humanoid")
 				local speed = root.AssemblyLinearVelocity.Magnitude
-				local explicit = model:GetAttribute("AnimationState") or model:GetAttribute("Mode")
-				local state = if humanoid and humanoid.Health <= 0
-					then "dead"
-					elseif type(explicit) == "string" then explicit
-					elseif model:GetAttribute("Rider") then "ridden"
-					elseif speed > 14 then "run"
-					elseif speed > 0.5 then "walk"
-					else "idle"
-				if state ~= animation.state then
-					animation.state, animation.elapsed = state, 0
+				local serverState = model:GetAttribute("ForgeWildlifeState")
+				if humanoid and humanoid.Health <= 0 then
+					serverState = "dead"
 				end
-				animation.elapsed += dt
+				local state, elapsed = CreaturePose.sample(
+					animation,
+					if type(serverState) == "string" then serverState else nil,
+					speed,
+					model:GetAttribute("Rider") ~= nil or model:GetAttribute("ForgeMountSpecies") ~= nil,
+					dt
+				)
 				-- At long range hold the articulated silhouette. Telegraphs remain active.
-				if distance <= 100 or state == "telegraph" or state == "windup" or state == "warn" then
-					rigPose(model, state, animation.elapsed, speed)
+				if
+					distance <= 100
+					or state == "warning"
+					or state == "windup"
+					or state == "attack"
+					or state == "dead"
+					or state == "stun"
+				then
+					rigPose(model, state, elapsed, speed)
 				end
 			end
 		end)

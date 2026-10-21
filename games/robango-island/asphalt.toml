@@ -8,6 +8,1942 @@ id = 0
 [codegen]
 style = "flat"
 
+[inputs.item-icon-animal-pen]
+path = "assets/icons/item.icon.animal-pen.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-antler]
+path = "assets/icons/item.icon.antler.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-antler-profile]
+path = "assets/icons/item.icon.antler-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-apple]
+path = "assets/icons/item.icon.apple.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-apple-profile]
+path = "assets/icons/item.icon.apple-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-apple-seed]
+path = "assets/icons/item.icon.apple-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-apple-seed-profile]
+path = "assets/icons/item.icon.apple-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-axe-t1]
+path = "assets/icons/item.icon.axe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-axe-t2]
+path = "assets/icons/item.icon.axe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-axe-t3]
+path = "assets/icons/item.icon.axe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-baked-apple]
+path = "assets/icons/item.icon.baked-apple.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-baked-potato]
+path = "assets/icons/item.icon.baked-potato.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana]
+path = "assets/icons/item.icon.banana.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana-mash]
+path = "assets/icons/item.icon.banana-mash.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana-profile]
+path = "assets/icons/item.icon.banana-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana-seed]
+path = "assets/icons/item.icon.banana-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana-seed-profile]
+path = "assets/icons/item.icon.banana-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bandage]
+path = "assets/icons/item.icon.bandage.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-basalt]
+path = "assets/icons/item.icon.basalt.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-basalt-profile]
+path = "assets/icons/item.icon.basalt-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bed-kit]
+path = "assets/icons/item.icon.bed-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-berry]
+path = "assets/icons/item.icon.berry.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-berry-compost]
+path = "assets/icons/item.icon.berry-compost.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-berry-meal]
+path = "assets/icons/item.icon.berry-meal.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-berry-profile]
+path = "assets/icons/item.icon.berry-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-birch-bark]
+path = "assets/icons/item.icon.birch-bark.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bone]
+path = "assets/icons/item.icon.bone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bone-profile]
+path = "assets/icons/item.icon.bone-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bow-t1]
+path = "assets/icons/item.icon.bow-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bow-t2]
+path = "assets/icons/item.icon.bow-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-bow-t3]
+path = "assets/icons/item.icon.bow-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-branch]
+path = "assets/icons/item.icon.branch.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-branch-profile]
+path = "assets/icons/item.icon.branch-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-brick-floor-kit]
+path = "assets/icons/item.icon.brick-floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-brick-roof-kit]
+path = "assets/icons/item.icon.brick-roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-brick-wall-kit]
+path = "assets/icons/item.icon.brick-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-campfire-kit]
+path = "assets/icons/item.icon.campfire-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-capture-bola]
+path = "assets/icons/item.icon.capture-bola.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-capture-rope]
+path = "assets/icons/item.icon.capture-rope.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-carnivore-feed]
+path = "assets/icons/item.icon.carnivore-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cattail-flatbread]
+path = "assets/icons/item.icon.cattail-flatbread.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cattail-root]
+path = "assets/icons/item.icon.cattail-root.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-chanterelle]
+path = "assets/icons/item.icon.chanterelle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-chapter]
+path = "assets/icons/item.icon.chapter.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-charcoal]
+path = "assets/icons/item.icon.charcoal.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-charcoal-profile]
+path = "assets/icons/item.icon.charcoal-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clam]
+path = "assets/icons/item.icon.clam.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clam-bake]
+path = "assets/icons/item.icon.clam-bake.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clam-profile]
+path = "assets/icons/item.icon.clam-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clam-soup]
+path = "assets/icons/item.icon.clam-soup.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clan-hall-kit]
+path = "assets/icons/item.icon.clan-hall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-claw]
+path = "assets/icons/item.icon.claw.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-claw-profile]
+path = "assets/icons/item.icon.claw-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clay]
+path = "assets/icons/item.icon.clay.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clay-profile]
+path = "assets/icons/item.icon.clay-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-club-t1]
+path = "assets/icons/item.icon.club-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-club-t2]
+path = "assets/icons/item.icon.club-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-club-t3]
+path = "assets/icons/item.icon.club-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-bag]
+path = "assets/icons/item.icon.cold-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-bottom]
+path = "assets/icons/item.icon.cold-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-gloves]
+path = "assets/icons/item.icon.cold-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-head]
+path = "assets/icons/item.icon.cold-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-shoes]
+path = "assets/icons/item.icon.cold-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cold-top]
+path = "assets/icons/item.icon.cold-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cooked-meat]
+path = "assets/icons/item.icon.cooked-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-copper]
+path = "assets/icons/item.icon.copper.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-copper-ore]
+path = "assets/icons/item.icon.copper-ore.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-copper-ore-profile]
+path = "assets/icons/item.icon.copper-ore-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-cord]
+path = "assets/icons/item.icon.cord.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn]
+path = "assets/icons/item.icon.corn.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn-porridge]
+path = "assets/icons/item.icon.corn-porridge.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn-profile]
+path = "assets/icons/item.icon.corn-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn-seed]
+path = "assets/icons/item.icon.corn-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn-seed-profile]
+path = "assets/icons/item.icon.corn-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-crossbow-t1]
+path = "assets/icons/item.icon.crossbow-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-crossbow-t2]
+path = "assets/icons/item.icon.crossbow-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-crossbow-t3]
+path = "assets/icons/item.icon.crossbow-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-door-kit]
+path = "assets/icons/item.icon.door-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-dried-fiber]
+path = "assets/icons/item.icon.dried-fiber.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-dried-hide]
+path = "assets/icons/item.icon.dried-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-dried-meat]
+path = "assets/icons/item.icon.dried-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-dried-wood]
+path = "assets/icons/item.icon.dried-wood.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fang]
+path = "assets/icons/item.icon.fang.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fang-profile]
+path = "assets/icons/item.icon.fang-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-feather]
+path = "assets/icons/item.icon.feather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-feather-profile]
+path = "assets/icons/item.icon.feather-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fermented-banana]
+path = "assets/icons/item.icon.fermented-banana.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fermented-corn]
+path = "assets/icons/item.icon.fermented-corn.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fermented-fig]
+path = "assets/icons/item.icon.fermented-fig.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fermented-wheat]
+path = "assets/icons/item.icon.fermented-wheat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fiber]
+path = "assets/icons/item.icon.fiber.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fiber-compost]
+path = "assets/icons/item.icon.fiber-compost.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fiber-profile]
+path = "assets/icons/item.icon.fiber-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fieldstone]
+path = "assets/icons/item.icon.fieldstone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig]
+path = "assets/icons/item.icon.fig.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig-profile]
+path = "assets/icons/item.icon.fig-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig-seed]
+path = "assets/icons/item.icon.fig-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig-seed-profile]
+path = "assets/icons/item.icon.fig-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig-stew]
+path = "assets/icons/item.icon.fig-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fish]
+path = "assets/icons/item.icon.fish.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fish-profile]
+path = "assets/icons/item.icon.fish-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax]
+path = "assets/icons/item.icon.flax.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax-profile]
+path = "assets/icons/item.icon.flax-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax-seed]
+path = "assets/icons/item.icon.flax-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax-seed-crisp]
+path = "assets/icons/item.icon.flax-seed-crisp.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax-seed-profile]
+path = "assets/icons/item.icon.flax-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flaxseed]
+path = "assets/icons/item.icon.flaxseed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flaxseed-profile]
+path = "assets/icons/item.icon.flaxseed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flint]
+path = "assets/icons/item.icon.flint.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flint-knife]
+path = "assets/icons/item.icon.flint-knife.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flint-profile]
+path = "assets/icons/item.icon.flint-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-floor-kit]
+path = "assets/icons/item.icon.floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-food-compost]
+path = "assets/icons/item.icon.food-compost.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fragment]
+path = "assets/icons/item.icon.fragment.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fruit-fertilizer]
+path = "assets/icons/item.icon.fruit-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fur]
+path = "assets/icons/item.icon.fur.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fur-leather]
+path = "assets/icons/item.icon.fur-leather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fur-profile]
+path = "assets/icons/item.icon.fur-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-granite]
+path = "assets/icons/item.icon.granite.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-granite-profile]
+path = "assets/icons/item.icon.granite-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-grilled-fish]
+path = "assets/icons/item.icon.grilled-fish.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hammer-t1]
+path = "assets/icons/item.icon.hammer-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hammer-t2]
+path = "assets/icons/item.icon.hammer-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hammer-t3]
+path = "assets/icons/item.icon.hammer-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hazelnut]
+path = "assets/icons/item.icon.hazelnut.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-heat-brace]
+path = "assets/icons/item.icon.heat-brace.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-herbivore-feed]
+path = "assets/icons/item.icon.herbivore-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hide]
+path = "assets/icons/item.icon.hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hide-profile]
+path = "assets/icons/item.icon.hide-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hoe-t1]
+path = "assets/icons/item.icon.hoe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hoe-t2]
+path = "assets/icons/item.icon.hoe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-hoe-t3]
+path = "assets/icons/item.icon.hoe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-horn]
+path = "assets/icons/item.icon.horn.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-horn-profile]
+path = "assets/icons/item.icon.horn-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-bass]
+path = "assets/icons/item.icon.instrument-bass.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-clarinet]
+path = "assets/icons/item.icon.instrument-clarinet.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-drums]
+path = "assets/icons/item.icon.instrument-drums.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-flute]
+path = "assets/icons/item.icon.instrument-flute.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-guitar]
+path = "assets/icons/item.icon.instrument-guitar.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-piano]
+path = "assets/icons/item.icon.instrument-piano.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-trumpet]
+path = "assets/icons/item.icon.instrument-trumpet.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-violin]
+path = "assets/icons/item.icon.instrument-violin.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-iron]
+path = "assets/icons/item.icon.iron.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-iron-ore]
+path = "assets/icons/item.icon.iron-ore.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-iron-ore-profile]
+path = "assets/icons/item.icon.iron-ore-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-kiln-kit]
+path = "assets/icons/item.icon.kiln-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-knife-t1]
+path = "assets/icons/item.icon.knife-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-knife-t2]
+path = "assets/icons/item.icon.knife-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-knife-t3]
+path = "assets/icons/item.icon.knife-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-laboratory-kit]
+path = "assets/icons/item.icon.laboratory-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-lava-protection-boots]
+path = "assets/icons/item.icon.lava-protection-boots.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-leaf-compost]
+path = "assets/icons/item.icon.leaf-compost.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-leather]
+path = "assets/icons/item.icon.leather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-leaves]
+path = "assets/icons/item.icon.leaves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-leaves-profile]
+path = "assets/icons/item.icon.leaves-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-liquid-fertilizer]
+path = "assets/icons/item.icon.liquid-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-marsh-clay]
+path = "assets/icons/item.icon.marsh-clay.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-meat]
+path = "assets/icons/item.icon.meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-meat-potato-stew]
+path = "assets/icons/item.icon.meat-potato-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-meat-profile]
+path = "assets/icons/item.icon.meat-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-mud-brick]
+path = "assets/icons/item.icon.mud-brick.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion]
+path = "assets/icons/item.icon.onion.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-meat-skewer]
+path = "assets/icons/item.icon.onion-meat-skewer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-profile]
+path = "assets/icons/item.icon.onion-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-seed]
+path = "assets/icons/item.icon.onion-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-seed-profile]
+path = "assets/icons/item.icon.onion-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-soup]
+path = "assets/icons/item.icon.onion-soup.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-pickaxe-t1]
+path = "assets/icons/item.icon.pickaxe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-pickaxe-t2]
+path = "assets/icons/item.icon.pickaxe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-pickaxe-t3]
+path = "assets/icons/item.icon.pickaxe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-pillar]
+path = "assets/icons/item.icon.pillar.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-plank]
+path = "assets/icons/item.icon.plank.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-plate]
+path = "assets/icons/item.icon.plate.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-plate-profile]
+path = "assets/icons/item.icon.plate-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-polished-basalt]
+path = "assets/icons/item.icon.polished-basalt.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-polished-bone]
+path = "assets/icons/item.icon.polished-bone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-polished-flint]
+path = "assets/icons/item.icon.polished-flint.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-polished-stone]
+path = "assets/icons/item.icon.polished-stone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-potato]
+path = "assets/icons/item.icon.potato.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-potato-profile]
+path = "assets/icons/item.icon.potato-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-potato-seed]
+path = "assets/icons/item.icon.potato-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-potato-seed-profile]
+path = "assets/icons/item.icon.potato-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-practice-seedbed]
+path = "assets/icons/item.icon.practice-seedbed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-practice-stitch]
+path = "assets/icons/item.icon.practice-stitch.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-recovery-feed]
+path = "assets/icons/item.icon.recovery-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-reed]
+path = "assets/icons/item.icon.reed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-refrigerator-kit]
+path = "assets/icons/item.icon.refrigerator-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-relief-unit]
+path = "assets/icons/item.icon.relief-unit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rescue-marker]
+path = "assets/icons/item.icon.rescue-marker.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rescue-transponder]
+path = "assets/icons/item.icon.rescue-transponder.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-research-bundle]
+path = "assets/icons/item.icon.research-bundle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rex-leather]
+path = "assets/icons/item.icon.rex-leather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rex-meat-stew]
+path = "assets/icons/item.icon.rex-meat-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-roast-meat]
+path = "assets/icons/item.icon.roast-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-roasted-hazelnuts]
+path = "assets/icons/item.icon.roasted-hazelnuts.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-roof]
+path = "assets/icons/item.icon.roof.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-roof-kit]
+path = "assets/icons/item.icon.roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-1]
+path = "assets/icons/item.icon.rw-journal-seal-1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-2]
+path = "assets/icons/item.icon.rw-journal-seal-2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-3]
+path = "assets/icons/item.icon.rw-journal-seal-3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-4]
+path = "assets/icons/item.icon.rw-journal-seal-4.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-5]
+path = "assets/icons/item.icon.rw-journal-seal-5.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-6]
+path = "assets/icons/item.icon.rw-journal-seal-6.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-7]
+path = "assets/icons/item.icon.rw-journal-seal-7.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-8]
+path = "assets/icons/item.icon.rw-journal-seal-8.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-saddle]
+path = "assets/icons/item.icon.saddle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-samphire]
+path = "assets/icons/item.icon.samphire.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sample-case]
+path = "assets/icons/item.icon.sample-case.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-shell-fragment]
+path = "assets/icons/item.icon.shell-fragment.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-shell-fragment-profile]
+path = "assets/icons/item.icon.shell-fragment-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-shelter-liner]
+path = "assets/icons/item.icon.shelter-liner.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-signal-fragment]
+path = "assets/icons/item.icon.signal-fragment.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-signal-lens]
+path = "assets/icons/item.icon.signal-lens.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-signal-relay-kit]
+path = "assets/icons/item.icon.signal-relay-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sinew]
+path = "assets/icons/item.icon.sinew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sinew-profile]
+path = "assets/icons/item.icon.sinew-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-skull]
+path = "assets/icons/item.icon.skull.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-skull-profile]
+path = "assets/icons/item.icon.skull-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spear]
+path = "assets/icons/item.icon.spear.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spear-t1]
+path = "assets/icons/item.icon.spear-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spear-t2]
+path = "assets/icons/item.icon.spear-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spear-t3]
+path = "assets/icons/item.icon.spear-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spoiled-food]
+path = "assets/icons/item.icon.spoiled-food.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spoiled-food-profile]
+path = "assets/icons/item.icon.spoiled-food-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sprinkler]
+path = "assets/icons/item.icon.sprinkler.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stairs-kit]
+path = "assets/icons/item.icon.stairs-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-starter-axe]
+path = "assets/icons/item.icon.starter-axe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-starter-club]
+path = "assets/icons/item.icon.starter-club.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-starter-pickaxe]
+path = "assets/icons/item.icon.starter-pickaxe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-steel]
+path = "assets/icons/item.icon.steel.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stem-fertilizer]
+path = "assets/icons/item.icon.stem-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone]
+path = "assets/icons/item.icon.stone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-axe]
+path = "assets/icons/item.icon.stone-axe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-block]
+path = "assets/icons/item.icon.stone-block.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-floor-kit]
+path = "assets/icons/item.icon.stone-floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-maul]
+path = "assets/icons/item.icon.stone-maul.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-pick]
+path = "assets/icons/item.icon.stone-pick.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-profile]
+path = "assets/icons/item.icon.stone-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-roof-kit]
+path = "assets/icons/item.icon.stone-roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-stone-wall-kit]
+path = "assets/icons/item.icon.stone-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-storage-kit]
+path = "assets/icons/item.icon.storage-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-survey-sample]
+path = "assets/icons/item.icon.survey-sample.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sword-t1]
+path = "assets/icons/item.icon.sword-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sword-t2]
+path = "assets/icons/item.icon.sword-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-sword-t3]
+path = "assets/icons/item.icon.sword-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tanning-frame-kit]
+path = "assets/icons/item.icon.tanning-frame-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-bag]
+path = "assets/icons/item.icon.temperate-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-bottom]
+path = "assets/icons/item.icon.temperate-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-gloves]
+path = "assets/icons/item.icon.temperate-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-head]
+path = "assets/icons/item.icon.temperate-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-shoes]
+path = "assets/icons/item.icon.temperate-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-temperate-top]
+path = "assets/icons/item.icon.temperate-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tent-kit]
+path = "assets/icons/item.icon.tent-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-thatch-bundle]
+path = "assets/icons/item.icon.thatch-bundle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-thick-leather]
+path = "assets/icons/item.icon.thick-leather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-timber-beam]
+path = "assets/icons/item.icon.timber-beam.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-timber-wall-kit]
+path = "assets/icons/item.icon.timber-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tooth]
+path = "assets/icons/item.icon.tooth.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tooth-profile]
+path = "assets/icons/item.icon.tooth-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-bag]
+path = "assets/icons/item.icon.tropical-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-bottom]
+path = "assets/icons/item.icon.tropical-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-gloves]
+path = "assets/icons/item.icon.tropical-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-head]
+path = "assets/icons/item.icon.tropical-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-shoes]
+path = "assets/icons/item.icon.tropical-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tropical-top]
+path = "assets/icons/item.icon.tropical-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tusk]
+path = "assets/icons/item.icon.tusk.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-tusk-profile]
+path = "assets/icons/item.icon.tusk-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-alloy]
+path = "assets/icons/item.icon.volcanic-alloy.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-ash]
+path = "assets/icons/item.icon.volcanic-ash.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-bone]
+path = "assets/icons/item.icon.volcanic-bone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-bone-profile]
+path = "assets/icons/item.icon.volcanic-bone-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-ore]
+path = "assets/icons/item.icon.volcanic-ore.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-ore-profile]
+path = "assets/icons/item.icon.volcanic-ore-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-wall]
+path = "assets/icons/item.icon.volcanic-wall.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wall-kit]
+path = "assets/icons/item.icon.wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-water]
+path = "assets/icons/item.icon.water.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-water-profile]
+path = "assets/icons/item.icon.water-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-well-kit]
+path = "assets/icons/item.icon.well-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wheat]
+path = "assets/icons/item.icon.wheat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wheat-flatbread]
+path = "assets/icons/item.icon.wheat-flatbread.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wheat-profile]
+path = "assets/icons/item.icon.wheat-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wheat-seed]
+path = "assets/icons/item.icon.wheat-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wheat-seed-profile]
+path = "assets/icons/item.icon.wheat-seed-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wood]
+path = "assets/icons/item.icon.wood.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wood-profile]
+path = "assets/icons/item.icon.wood-profile.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-woodland-skewer]
+path = "assets/icons/item.icon.woodland-skewer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-workbench-kit]
+path = "assets/icons/item.icon.workbench-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-animal-pen]
+path = "assets/icons/recipe.icon.animal-pen.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-axe-t1]
+path = "assets/icons/recipe.icon.axe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-axe-t2]
+path = "assets/icons/recipe.icon.axe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-axe-t3]
+path = "assets/icons/recipe.icon.axe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-baked-apple]
+path = "assets/icons/recipe.icon.baked-apple.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-baked-potato]
+path = "assets/icons/recipe.icon.baked-potato.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-banana-mash]
+path = "assets/icons/recipe.icon.banana-mash.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-bed-kit]
+path = "assets/icons/recipe.icon.bed-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-berry-meal]
+path = "assets/icons/recipe.icon.berry-meal.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-bow-t1]
+path = "assets/icons/recipe.icon.bow-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-bow-t2]
+path = "assets/icons/recipe.icon.bow-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-bow-t3]
+path = "assets/icons/recipe.icon.bow-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-brick-floor-kit]
+path = "assets/icons/recipe.icon.brick-floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-brick-roof-kit]
+path = "assets/icons/recipe.icon.brick-roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-brick-wall-kit]
+path = "assets/icons/recipe.icon.brick-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-campfire-kit]
+path = "assets/icons/recipe.icon.campfire-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-capture-bola]
+path = "assets/icons/recipe.icon.capture-bola.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-capture-rope]
+path = "assets/icons/recipe.icon.capture-rope.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-carnivore-feed]
+path = "assets/icons/recipe.icon.carnivore-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cattail-flatbread]
+path = "assets/icons/recipe.icon.cattail-flatbread.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-clam-bake]
+path = "assets/icons/recipe.icon.clam-bake.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-clam-soup]
+path = "assets/icons/recipe.icon.clam-soup.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-clan-hall-kit]
+path = "assets/icons/recipe.icon.clan-hall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-club-t1]
+path = "assets/icons/recipe.icon.club-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-club-t2]
+path = "assets/icons/recipe.icon.club-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-club-t3]
+path = "assets/icons/recipe.icon.club-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-bag]
+path = "assets/icons/recipe.icon.cold-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-bottom]
+path = "assets/icons/recipe.icon.cold-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-gloves]
+path = "assets/icons/recipe.icon.cold-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-head]
+path = "assets/icons/recipe.icon.cold-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-shoes]
+path = "assets/icons/recipe.icon.cold-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-top]
+path = "assets/icons/recipe.icon.cold-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-berry]
+path = "assets/icons/recipe.icon.compost-berry.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-fiber]
+path = "assets/icons/recipe.icon.compost-fiber.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-leaves]
+path = "assets/icons/recipe.icon.compost-leaves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-spoiled-food]
+path = "assets/icons/recipe.icon.compost-spoiled-food.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cooked-meat]
+path = "assets/icons/recipe.icon.cooked-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cord]
+path = "assets/icons/recipe.icon.cord.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-corn-porridge]
+path = "assets/icons/recipe.icon.corn-porridge.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-crossbow-t1]
+path = "assets/icons/recipe.icon.crossbow-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-crossbow-t2]
+path = "assets/icons/recipe.icon.crossbow-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-crossbow-t3]
+path = "assets/icons/recipe.icon.crossbow-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-door-kit]
+path = "assets/icons/recipe.icon.door-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-dry-fiber]
+path = "assets/icons/recipe.icon.dry-fiber.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-dry-hide]
+path = "assets/icons/recipe.icon.dry-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-dry-meat]
+path = "assets/icons/recipe.icon.dry-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-dry-twig]
+path = "assets/icons/recipe.icon.dry-twig.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-apple-seed]
+path = "assets/icons/recipe.icon.extract-apple-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-banana-seed]
+path = "assets/icons/recipe.icon.extract-banana-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-corn-seed]
+path = "assets/icons/recipe.icon.extract-corn-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-fig-seed]
+path = "assets/icons/recipe.icon.extract-fig-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-flax-seed]
+path = "assets/icons/recipe.icon.extract-flax-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-onion-seed]
+path = "assets/icons/recipe.icon.extract-onion-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-potato-seed]
+path = "assets/icons/recipe.icon.extract-potato-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-wheat-seed]
+path = "assets/icons/recipe.icon.extract-wheat-seed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-banana]
+path = "assets/icons/recipe.icon.ferment-banana.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-corn]
+path = "assets/icons/recipe.icon.ferment-corn.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-fig]
+path = "assets/icons/recipe.icon.ferment-fig.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-wheat]
+path = "assets/icons/recipe.icon.ferment-wheat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-fig-stew]
+path = "assets/icons/recipe.icon.fig-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-flax-seed-crisp]
+path = "assets/icons/recipe.icon.flax-seed-crisp.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-flint-knife]
+path = "assets/icons/recipe.icon.flint-knife.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-floor-kit]
+path = "assets/icons/recipe.icon.floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-fruit-fertilizer]
+path = "assets/icons/recipe.icon.fruit-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-grilled-fish]
+path = "assets/icons/recipe.icon.grilled-fish.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hammer-t1]
+path = "assets/icons/recipe.icon.hammer-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hammer-t2]
+path = "assets/icons/recipe.icon.hammer-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hammer-t3]
+path = "assets/icons/recipe.icon.hammer-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-herbivore-feed]
+path = "assets/icons/recipe.icon.herbivore-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hoe-t1]
+path = "assets/icons/recipe.icon.hoe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hoe-t2]
+path = "assets/icons/recipe.icon.hoe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hoe-t3]
+path = "assets/icons/recipe.icon.hoe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-kiln-kit]
+path = "assets/icons/recipe.icon.kiln-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-knife-t1]
+path = "assets/icons/recipe.icon.knife-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-knife-t2]
+path = "assets/icons/recipe.icon.knife-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-knife-t3]
+path = "assets/icons/recipe.icon.knife-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-laboratory-kit]
+path = "assets/icons/recipe.icon.laboratory-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-lava-protection-boots]
+path = "assets/icons/recipe.icon.lava-protection-boots.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-legacy-campfire-kit]
+path = "assets/icons/recipe.icon.legacy-campfire-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-legacy-floor-kit]
+path = "assets/icons/recipe.icon.legacy-floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-legacy-storage-kit]
+path = "assets/icons/recipe.icon.legacy-storage-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-legacy-workbench-kit]
+path = "assets/icons/recipe.icon.legacy-workbench-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-liquid-fertilizer]
+path = "assets/icons/recipe.icon.liquid-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-meat-potato-stew]
+path = "assets/icons/recipe.icon.meat-potato-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-mud-brick]
+path = "assets/icons/recipe.icon.mud-brick.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-onion-meat-skewer]
+path = "assets/icons/recipe.icon.onion-meat-skewer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-onion-soup]
+path = "assets/icons/recipe.icon.onion-soup.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-pickaxe-t1]
+path = "assets/icons/recipe.icon.pickaxe-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-pickaxe-t2]
+path = "assets/icons/recipe.icon.pickaxe-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-pickaxe-t3]
+path = "assets/icons/recipe.icon.pickaxe-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-plank]
+path = "assets/icons/recipe.icon.plank.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-basalt]
+path = "assets/icons/recipe.icon.polish-basalt.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-bone]
+path = "assets/icons/recipe.icon.polish-bone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-flint]
+path = "assets/icons/recipe.icon.polish-flint.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-stone]
+path = "assets/icons/recipe.icon.polish-stone.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-rawhide-lashing]
+path = "assets/icons/recipe.icon.rawhide-lashing.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-recovery-feed]
+path = "assets/icons/recipe.icon.recovery-feed.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-refrigerator-kit]
+path = "assets/icons/recipe.icon.refrigerator-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-rex-meat-stew]
+path = "assets/icons/recipe.icon.rex-meat-stew.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-roast-meat]
+path = "assets/icons/recipe.icon.roast-meat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-roasted-hazelnuts]
+path = "assets/icons/recipe.icon.roasted-hazelnuts.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-roof-kit]
+path = "assets/icons/recipe.icon.roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-saddle]
+path = "assets/icons/recipe.icon.saddle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-signal-relay-kit]
+path = "assets/icons/recipe.icon.signal-relay-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-copper]
+path = "assets/icons/recipe.icon.smelt-copper.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-iron]
+path = "assets/icons/recipe.icon.smelt-iron.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-steel]
+path = "assets/icons/recipe.icon.smelt-steel.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-volcanic-alloy]
+path = "assets/icons/recipe.icon.smelt-volcanic-alloy.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-spear]
+path = "assets/icons/recipe.icon.spear.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-spear-t1]
+path = "assets/icons/recipe.icon.spear-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-spear-t2]
+path = "assets/icons/recipe.icon.spear-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-spear-t3]
+path = "assets/icons/recipe.icon.spear-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-sprinkler]
+path = "assets/icons/recipe.icon.sprinkler.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stairs-kit]
+path = "assets/icons/recipe.icon.stairs-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-starter-axe]
+path = "assets/icons/recipe.icon.starter-axe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-starter-club]
+path = "assets/icons/recipe.icon.starter-club.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-starter-pickaxe]
+path = "assets/icons/recipe.icon.starter-pickaxe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stem-fertilizer]
+path = "assets/icons/recipe.icon.stem-fertilizer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-axe]
+path = "assets/icons/recipe.icon.stone-axe.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-block]
+path = "assets/icons/recipe.icon.stone-block.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-floor-kit]
+path = "assets/icons/recipe.icon.stone-floor-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-maul]
+path = "assets/icons/recipe.icon.stone-maul.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-pick]
+path = "assets/icons/recipe.icon.stone-pick.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-roof-kit]
+path = "assets/icons/recipe.icon.stone-roof-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-wall-kit]
+path = "assets/icons/recipe.icon.stone-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-storage-kit]
+path = "assets/icons/recipe.icon.storage-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-sword-t1]
+path = "assets/icons/recipe.icon.sword-t1.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-sword-t2]
+path = "assets/icons/recipe.icon.sword-t2.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-sword-t3]
+path = "assets/icons/recipe.icon.sword-t3.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tan-fur-hide]
+path = "assets/icons/recipe.icon.tan-fur-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tan-hide]
+path = "assets/icons/recipe.icon.tan-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tan-rex-hide]
+path = "assets/icons/recipe.icon.tan-rex-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tan-thick-hide]
+path = "assets/icons/recipe.icon.tan-thick-hide.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tanning-frame-kit]
+path = "assets/icons/recipe.icon.tanning-frame-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-bag]
+path = "assets/icons/recipe.icon.temperate-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-bottom]
+path = "assets/icons/recipe.icon.temperate-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-gloves]
+path = "assets/icons/recipe.icon.temperate-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-head]
+path = "assets/icons/recipe.icon.temperate-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-shoes]
+path = "assets/icons/recipe.icon.temperate-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-top]
+path = "assets/icons/recipe.icon.temperate-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tent-kit]
+path = "assets/icons/recipe.icon.tent-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-thatch-bundle]
+path = "assets/icons/recipe.icon.thatch-bundle.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-timber-beam]
+path = "assets/icons/recipe.icon.timber-beam.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-timber-wall-kit]
+path = "assets/icons/recipe.icon.timber-wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-bag]
+path = "assets/icons/recipe.icon.tropical-bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-bottom]
+path = "assets/icons/recipe.icon.tropical-bottom.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-gloves]
+path = "assets/icons/recipe.icon.tropical-gloves.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-head]
+path = "assets/icons/recipe.icon.tropical-head.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-shoes]
+path = "assets/icons/recipe.icon.tropical-shoes.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-top]
+path = "assets/icons/recipe.icon.tropical-top.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-wall-kit]
+path = "assets/icons/recipe.icon.wall-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-well-kit]
+path = "assets/icons/recipe.icon.well-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-wheat-flatbread]
+path = "assets/icons/recipe.icon.wheat-flatbread.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-woodland-skewer]
+path = "assets/icons/recipe.icon.woodland-skewer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-workbench-kit]
+path = "assets/icons/recipe.icon.workbench-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-attack]
+path = "assets/audio/robango-attack.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-brawl]
+path = "assets/audio/robango-bgm-brawl.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-forest]
+path = "assets/audio/robango-bgm-forest.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-grassland]
+path = "assets/audio/robango-bgm-grassland.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-home]
+path = "assets/audio/robango-bgm-home.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-market]
+path = "assets/audio/robango-bgm-market.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-onboarding]
+path = "assets/audio/robango-bgm-onboarding.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-snow]
+path = "assets/audio/robango-bgm-snow.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-tropical]
+path = "assets/audio/robango-bgm-tropical.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-bgm-volcano]
+path = "assets/audio/robango-bgm-volcano.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-build-place]
+path = "assets/audio/robango-build-place.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-armored]
+path = "assets/audio/robango-call-armored.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-bird]
+path = "assets/audio/robango-call-bird.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-ceratopsian]
+path = "assets/audio/robango-call-ceratopsian.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-crocodilian]
+path = "assets/audio/robango-call-crocodilian.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-elephant]
+path = "assets/audio/robango-call-elephant.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-hadrosaur]
+path = "assets/audio/robango-call-hadrosaur.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-mammal]
+path = "assets/audio/robango-call-mammal.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-sauropod]
+path = "assets/audio/robango-call-sauropod.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-theropod]
+path = "assets/audio/robango-call-theropod.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-call-turtle]
+path = "assets/audio/robango-call-turtle.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-campfire]
+path = "assets/audio/robango-campfire.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-combat-stinger]
+path = "assets/audio/robango-combat-stinger.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-craft-complete]
+path = "assets/audio/robango-craft-complete.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-dodge]
+path = "assets/audio/robango-dodge.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-footstep-grass]
+path = "assets/audio/robango-footstep-grass.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-footstep-sand]
+path = "assets/audio/robango-footstep-sand.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-footstep-stone]
+path = "assets/audio/robango-footstep-stone.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-gather-plant]
+path = "assets/audio/robango-gather-plant.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-gather-stone]
+path = "assets/audio/robango-gather-stone.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-gather-wood]
+path = "assets/audio/robango-gather-wood.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-guard]
+path = "assets/audio/robango-guard.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-hit]
+path = "assets/audio/robango-hit.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-level-up]
+path = "assets/audio/robango-level-up.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-mount]
+path = "assets/audio/robango-mount.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-reward]
+path = "assets/audio/robango-reward.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-tame-success]
+path = "assets/audio/robango-tame-success.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-travel-horn]
+path = "assets/audio/robango-travel-horn.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-ui-close]
+path = "assets/audio/robango-ui-close.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-ui-confirm]
+path = "assets/audio/robango-ui-confirm.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-ui-error]
+path = "assets/audio/robango-ui-error.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-ui-open]
+path = "assets/audio/robango-ui-open.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.survival-coop-action]
 path = "assets/audio/survival-coop-action.wav"
 output_path = "games/robango-island/src/shared"
@@ -30,4 +1966,308 @@ output_path = "games/robango-island/src/shared"
 
 [inputs.survival-coop-rest]
 path = "assets/audio/survival-coop-rest.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-back]
+path = "assets/icons/ui.icon.back.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-bag]
+path = "assets/icons/ui.icon.bag.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-block]
+path = "assets/icons/ui.icon.block.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-build]
+path = "assets/icons/ui.icon.build.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-capacity]
+path = "assets/icons/ui.icon.capacity.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-capture]
+path = "assets/icons/ui.icon.capture.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-claim]
+path = "assets/icons/ui.icon.claim.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-clan]
+path = "assets/icons/ui.icon.clan.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-clock]
+path = "assets/icons/ui.icon.clock.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-close]
+path = "assets/icons/ui.icon.close.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-craft]
+path = "assets/icons/ui.icon.craft.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-currency]
+path = "assets/icons/ui.icon.currency.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-dodge]
+path = "assets/icons/ui.icon.dodge.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-durability]
+path = "assets/icons/ui.icon.durability.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-empty]
+path = "assets/icons/ui.icon.empty.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-energy]
+path = "assets/icons/ui.icon.energy.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-error]
+path = "assets/icons/ui.icon.error.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-escrow]
+path = "assets/icons/ui.icon.escrow.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-exploration-rank]
+path = "assets/icons/ui.icon.exploration-rank.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-explore]
+path = "assets/icons/ui.icon.explore.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-fatigue]
+path = "assets/icons/ui.icon.fatigue.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-favorite]
+path = "assets/icons/ui.icon.favorite.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-fertility]
+path = "assets/icons/ui.icon.fertility.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-filter]
+path = "assets/icons/ui.icon.filter.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-flexibility]
+path = "assets/icons/ui.icon.flexibility.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hardness]
+path = "assets/icons/ui.icon.hardness.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-health]
+path = "assets/icons/ui.icon.health.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-help]
+path = "assets/icons/ui.icon.help.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-inbox]
+path = "assets/icons/ui.icon.inbox.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-insulation]
+path = "assets/icons/ui.icon.insulation.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-invite]
+path = "assets/icons/ui.icon.invite.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-journal]
+path = "assets/icons/ui.icon.journal.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-leader]
+path = "assets/icons/ui.icon.leader.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-loading]
+path = "assets/icons/ui.icon.loading.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-locked]
+path = "assets/icons/ui.icon.locked.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-market]
+path = "assets/icons/ui.icon.market.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-member]
+path = "assets/icons/ui.icon.member.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-music]
+path = "assets/icons/ui.icon.music.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-nutrition]
+path = "assets/icons/ui.icon.nutrition.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-officer]
+path = "assets/icons/ui.icon.officer.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-offline]
+path = "assets/icons/ui.icon.offline.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-owner]
+path = "assets/icons/ui.icon.owner.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-party]
+path = "assets/icons/ui.icon.party.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-pending]
+path = "assets/icons/ui.icon.pending.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-permission]
+path = "assets/icons/ui.icon.permission.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-processing-budget]
+path = "assets/icons/ui.icon.processing-budget.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-quality]
+path = "assets/icons/ui.icon.quality.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-ready]
+path = "assets/icons/ui.icon.ready.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-refresh]
+path = "assets/icons/ui.icon.refresh.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-refund]
+path = "assets/icons/ui.icon.refund.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-search]
+path = "assets/icons/ui.icon.search.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-settings]
+path = "assets/icons/ui.icon.settings.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-sharpness]
+path = "assets/icons/ui.icon.sharpness.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-skill-point]
+path = "assets/icons/ui.icon.skill-point.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-skills]
+path = "assets/icons/ui.icon.skills.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-social]
+path = "assets/icons/ui.icon.social.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-sort]
+path = "assets/icons/ui.icon.sort.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stale]
+path = "assets/icons/ui.icon.stale.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-attack]
+path = "assets/icons/ui.icon.stance.attack.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-charge]
+path = "assets/icons/ui.icon.stance.charge.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-counter]
+path = "assets/icons/ui.icon.stance.counter.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-defense]
+path = "assets/icons/ui.icon.stance.defense.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-onslaught]
+path = "assets/icons/ui.icon.stance.onslaught.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-stance-shoot]
+path = "assets/icons/ui.icon.stance.shoot.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-subdue]
+path = "assets/icons/ui.icon.subdue.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-success]
+path = "assets/icons/ui.icon.success.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-todo]
+path = "assets/icons/ui.icon.todo.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-visitor]
+path = "assets/icons/ui.icon.visitor.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weather-clear]
+path = "assets/icons/ui.icon.weather.clear.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weather-collapse]
+path = "assets/icons/ui.icon.weather.collapse.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weather-fog]
+path = "assets/icons/ui.icon.weather.fog.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weather-rain]
+path = "assets/icons/ui.icon.weather.rain.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weather-storm]
+path = "assets/icons/ui.icon.weather.storm.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-weight]
+path = "assets/icons/ui.icon.weight.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-withdraw-capability]
+path = "assets/icons/ui.icon.withdraw-capability.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-xp]
+path = "assets/icons/ui.icon.xp.png"
 output_path = "games/robango-island/src/shared"

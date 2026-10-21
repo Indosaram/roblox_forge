@@ -1,0 +1,26 @@
+name: clan-governance
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 814
+timeout_seconds: 120
+players: [owner, helper]
+fixtures: [cli/forge/fixtures/clan-governance]
+steps:
+  - {op: join, player: owner}
+  - {op: clan_command, player: owner, action: invite, args: {target: helper}}
+  - {op: clan_command, player: helper, action: join}
+  - {op: clan_command, player: helper, action: capability, args: {target: helper, enabled: true}, expect: refused}
+  - {op: expect_result, player: helper, field: reason, equals: FORBIDDEN}
+  - {op: clan_command, player: owner, action: role, args: {target: helper, role: officer}}
+  - {op: clan_command, player: owner, action: capability, args: {target: helper, enabled: true}}
+  - {op: clan_command, player: helper, action: relocate, args: {territory: north}}
+  - {op: clan_reconnect, player: owner}
+  - {op: clan_check, player: owner, check: relocated}
+  - {op: clan_command, player: helper, action: leave}
+  - {op: clan_command, player: helper, action: research-start, args: {id: clan-research-advanced-capture}, expect: refused}
+  - {op: expect_result, player: helper, field: reason, equals: NOT_MEMBER}
+  - {op: clan_command, player: helper, action: withdraw, args: {amount: 1}, expect: refused}
+  - {op: clan_check, player: owner, check: departed}
+  - {op: close, player: owner}

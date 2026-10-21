@@ -198,6 +198,10 @@ function M.render(document: Content.Document, mode: string): string
 	}
 	local source = HEADER
 	local typeSource = types(extended, skilled, hasContracts, hasCamp)
+	if document.version == 1 then
+		-- Luau requires the optional domain field in the generated sealed table type.
+		typeSource = typeSource:sub(1, -2) .. "\twildlifeDetails: nil,\n}"
+	end
 	if document.version == 2 then
 		typeSource = typeSource:gsub(
 			"export type Wildlife = {",
@@ -226,7 +230,9 @@ function M.render(document: Content.Document, mode: string): string
 	if document.version == 2 then
 		typeSource ..= "\n" .. ContentV2.constructors(used)
 	end
-	source ..= typeSource .. "\nlocal content: Content = " .. serialized .. "\nreturn content\n"
+	-- V2 catalogs are large data literals; keep their deterministic compact form
+	-- rather than shipping hundreds of kilobytes of formatter-only whitespace.
+	source ..= typeSource .. (if document.version == 2 then "\n-- stylua: ignore\n" else "\n") .. "local content: Content = " .. serialized .. "\nreturn content\n"
 	if extended or hasContracts or hasCamp or document.version == 2 then
 		for _ = 1, 2 do
 			local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })

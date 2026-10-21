@@ -8,11 +8,13 @@ local M = {}
 -- Durable ids are namespaced: the server's action list carries "survival-coop:<id>".
 local PROMPT = "survival-coop:shop-prompt"
 local SYNC = "survival-coop:shop-sync"
+local SELECT = "survival-coop:skin-select"
 
 local strings: { [string]: { string } } = {
 	shop_title = { "Shop", "상점" },
 	shop_buy = { "Buy", "구매" },
 	shop_owned = { "Owned", "보유 중" },
+	shop_skin_select = { "Select appearance", "외형 선택" },
 	shop_price = { "%d Robux", "%d 로벅스" },
 	shop_unavailable = { "Not available yet", "아직 구매할 수 없어요" },
 	shop_ineligible = {
@@ -25,9 +27,11 @@ local strings: { [string]: { string } } = {
 	},
 }
 local refusals: { [string]: string } = {
+	PRODUCT_EFFECT_UNAVAILABLE = "shop_unavailable",
 	PRODUCT_NOT_CONFIGURED = "shop_unavailable",
 	SUBSCRIPTION_INELIGIBLE = "shop_ineligible",
 	ALREADY_OWNED = "shop_owned",
+	SKIN_NOT_OWNED = "shop_unavailable",
 }
 
 --- Pure text lookup (specced): `key` falls back to English; `%d` is filled with `amount`.
@@ -118,7 +122,15 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					parent = line,
 					onClick = function()
 						local current = created.row
+						if current.effectImplemented ~= true or not current.configured then
+							status.Text = M.refusal(ctx.locale, "PRODUCT_EFFECT_UNAVAILABLE")
+							return
+						end
 						if current.owned then
+							if current.eligible and current.skin then
+								local result = ctx.send(SELECT, { current.skin })
+								status.Text = if result.ok then "" else M.refusal(ctx.locale, result.reason)
+							end
 							return
 						end
 						local result = ctx.send(PROMPT, { current.key })
@@ -139,7 +151,14 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			)
 				.. "  "
 				.. M.text(ctx.locale, "shop_price", row.price)
-			current.button.Text = M.text(ctx.locale, if row.owned then "shop_owned" else "shop_buy")
+			current.button.Text = M.text(
+				ctx.locale,
+				if row.eligible then "shop_skin_select" elseif row.owned then "shop_owned" else "shop_buy"
+			)
+			current.button.Interactable = row.effectImplemented == true
+				and row.configured == true
+				and (not row.owned or row.eligible == true)
+			current.button.BackgroundTransparency = if current.button.Interactable then 0 else 0.7
 		end
 		for key, entry in built do
 			if not seen[key] then

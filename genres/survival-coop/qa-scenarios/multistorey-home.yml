@@ -1,0 +1,12 @@
+name: multistorey-home
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 218
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/multistorey-home]
+steps:
+  - {op: multistorey_home, player: owner}
+  - {op: expect_result, player: owner, field: ok, equals: true}

@@ -184,7 +184,7 @@ function M.start(options: Options?)
 				pending[id] = nil
 			end
 			if resultEvent then
-				resultEvent:Fire({ nodeId = id, requestId = request.requestId, result = result })
+				resultEvent:Fire({ nodeId = id, requestId = request.requestId, request = request, result = result })
 			end
 			if type(result) == "table" and result.reason == "REQUEST_EXPIRED" then
 				durable = nil
