@@ -18,7 +18,7 @@ function M.rules(content: any): any
 		baseSlots = policy.baseSlots,
 		labRank = policy.labRank,
 		floors = policy.floors,
-		storageGrants = {},
+		storageGrants = { routeGuildPatron = 10, wideWarehouse = 10, routeGuildMonthly = 5 },
 	}
 end
 function M.crops(content: any): any

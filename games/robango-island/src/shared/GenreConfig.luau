@@ -585,7 +585,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Axe",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "tool" },
 			["weightMilli"] = 500,
 		},
 		[186] = {

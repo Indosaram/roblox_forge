@@ -204,6 +204,8 @@ return {
 	["without a configured policy the factory stays disabled"] = function()
 		TamingExtension.configure(nil)
 		assert(TamingExtension.factory({}) == nil, "disabled")
+		assert(TamingExtension.factory({ content = {} }) == nil, "legacy content without progression stays disabled")
+		assert(TamingExtension.factory({ content = { progressionPolicy = {} } }) == nil, "no companion policy")
 	end,
 	["only declared tame actions are handled"] = function()
 		local rig = build()

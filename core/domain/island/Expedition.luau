@@ -21,7 +21,7 @@ function Expedition.admitStage(facts: any, now: number): (boolean, string?)
 	if type(facts) ~= "table" then
 		return false, "missing_expedition"
 	end
-	local levels = { 30, 35, 40, 50, 60 }
+	local levels = { 2, 35, 40, 50, 60 }
 	local minimum = levels[facts.index]
 	if minimum == nil then
 		return false, "invalid_index"

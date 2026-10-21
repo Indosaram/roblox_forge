@@ -99,6 +99,21 @@ local function run(instance: Shared.Instance, action: string, args: { any }, ctx
 end
 
 return {
+	["empty death ledgers follow role travel without accepting foreign bundles"] = function()
+		local instance = setup(true)
+		local saved: any = instance.save("alice")
+		assert(saved.death == nil or next(saved.death.bundles.bundles) == nil, "fresh actor has no dropped bag")
+		-- An ordinary damage transition initializes the world-owned death ledger.
+		local ctx: any = context("tick", 0)
+		ctx.serverId = "server-1"
+		assert(run(instance, "vitals-damage", { 1000 }, ctx).ok, "damage commits")
+		saved = instance.save("alice")
+		assert(saved.death, "tick records the source world")
+		saved.death.worldRevision = "previous-role"
+		instance.leave("alice")
+		assert(instance.join("alice", saved).ok, "empty source ledger can enter the destination role")
+		assert((instance.save("alice") :: any).death.worldRevision == "world-1", "destination revision persisted")
+	end,
 	["legacy items keep missing provenance and material state roundtrips without aliasing"] = function()
 		local instance = setup()
 		local saved: any = instance.save("alice")

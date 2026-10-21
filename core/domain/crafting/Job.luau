@@ -4,6 +4,7 @@ local Content = require("../survival/Content")
 local Catalog = require("../inventory/ItemCatalog")
 local Inventory = require("../inventory/Inventory")
 local Rng = require("../random/Rng")
+local MaterialGrowth = require("./MaterialGrowth")
 local M = {}
 
 --- Free-play roll odds (permille). Purchases never change these: rolls read
@@ -143,6 +144,23 @@ local function outputs(job: Job): ({ Inventory.Item }, boolean)
 		end
 	end
 	local catalog = M.catalog(job.content)
+	local material: any = nil
+	if (job.content :: any).progressionPolicy then
+		local inputs = {}
+		local recorded = true
+		for _, input in job.inputs do
+			if not input.material then
+				recorded = false
+				break
+			end
+			local value = MaterialGrowth.copy(input.material)
+			value.quantity = input.quantity
+			table.insert(inputs, value)
+		end
+		if recorded then
+			material = MaterialGrowth.craft(job.content, job.recipeId, inputs)
+		end
+	end
 	local result: { Inventory.Item } = {}
 	for _, output in selected.outputs do
 		local definition = catalog[output.item]
@@ -157,6 +175,7 @@ local function outputs(job: Job): ({ Inventory.Item }, boolean)
 				durabilityMilli = math.floor((definition.maxDurabilityMilli or 0) * quality / 1000),
 				latent = latent,
 				attributes = copy(attributes),
+				material = if material and material.item == output.item then MaterialGrowth.copy(material) else nil,
 			})
 			remaining -= quantity
 		end

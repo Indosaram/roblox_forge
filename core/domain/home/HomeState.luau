@@ -133,10 +133,11 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		end
 		out.developmentRank = ctx.developmentRank
 	elseif action == "expand" then
-		if args.atDock ~= true or state.landRank >= state.developmentRank then
+		local rank = ctx.developmentRank or state.developmentRank
+		if args.atDock ~= true or state.landRank >= rank or not ctx.rules.landSizes[rank] then
 			return nil, "EXPANSION_LOCKED"
 		end
-		out.landRank = state.developmentRank
+		out.developmentRank, out.landRank = rank, rank
 	elseif action == "capacity" then
 		local slots = ctx.rules.baseSlots
 		for id, extra in ctx.rules.storageGrants do

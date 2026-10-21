@@ -117,11 +117,14 @@ return {
 		local servicesCaptured: Contract.Services? = nil
 		local runtime = fixture()
 		local original = runtime.create
+		local authored = { version = 2 }
 		runtime.create = function(config, services)
 			servicesCaptured = services
+			assert(services.survivalContent == authored, "authoritative content reaches the adapter unchanged")
 			return original(config, services)
 		end
 		Executor.new(pack(), { runtime }, {
+			survivalContent = authored,
 			now = function()
 				return 0
 			end,

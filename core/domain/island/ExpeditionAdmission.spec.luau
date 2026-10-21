@@ -2,7 +2,7 @@
 local Expedition = require("./Expedition")
 return {
 	["stage admission checks index level development expiry and exact prior objectives"] = function()
-		for index, minimum in { 30, 35, 40, 50, 60 } do
+		for index, minimum in { 2, 35, 40, 50, 60 } do
 			local facts = {
 				index = index,
 				level = minimum,

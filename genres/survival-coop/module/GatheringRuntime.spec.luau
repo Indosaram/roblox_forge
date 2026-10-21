@@ -243,6 +243,65 @@ local function savedSkills(c: any): any
 end
 
 return {
+	["catalog resource nodes mint authored material provenance through durable transfer"] = function()
+		local c = fixture()
+		c.content.layouts = { { resourceNodes = { { id = "bush-1", item = "fiber", level = 30 } } } }
+		c.content.materials = {
+			{
+				item = "fiber",
+				levels = { 30 },
+				quality = 0,
+				processingBudget = 3,
+				attributes = { flexibility = 4 },
+				sources = {},
+			},
+		}
+		c.open("same-session")
+		assert(c.runtime.command(c.request).status ~= "rejected", "gather accepted")
+		finish(c)
+		local inventory = c.read("personal-v1:alice").data.envelope.bag
+		local found = false
+		for _, item in inventory.items do
+			if item.catalogId == "fiber" then
+				found = true
+				assert(
+					item.material.level == 30 and item.material.budget == 3,
+					"authored material level and budget persisted"
+				)
+				assert(item.material.attributes.flexibility == 4, "raw attributes persisted")
+			end
+		end
+		assert(found, "transferred material exists")
+	end,
+	["specialization receipts survive recovery without awarding twice"] = function()
+		local c = fixture(true)
+		c.content.progressionPolicy = {
+			tree = { maxLevel = 60, spPerLevel = 3, maxMastery = 60, actionXP = 10, xpBase = 50, xpStep = 10 },
+		}
+		c.token = assert(c.personal:update(c.token, function(view)
+			view.envelope.genres["survival-coop"].data.progression = {
+				level = 1,
+				xp = 0,
+				sp = 3,
+				paid = {},
+				receipts = {},
+				version = 0,
+				mastery = { gathering = { level = 0, xp = 0 } },
+			}
+			return view
+		end))
+		c.open("same-session")
+		c.runtime.command(c.request)
+		assert(c.runtime.recover("alice", 8).status == "confirmed", "finalization recovery retains binding")
+		local state = c.token.data.envelope.genres["survival-coop"].data.progression
+		assert(state.xp == 10, "one character award across recovery")
+		local count = 0
+		for receipt in state.receipts do
+			assert(#receipt <= 64, "receipt remains a serialized envelope key")
+			count += 1
+		end
+		assert(count == 1, "one stable receipt")
+	end,
 	["mission receipt requires finalized destination credit and exact actor identity"] = function()
 		local c = fixture()
 		assert(c.runtime.receipt("alice", 0, "harvest") == nil, "unissued gather cannot complete mission")

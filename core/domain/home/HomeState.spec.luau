@@ -228,11 +228,10 @@ return {
 				"home invariant: 100"
 			)
 		end
-		assert(not apply(f, "expand", { atDock = true }), "home invariant: 102")
-		f.state = assert(apply(f, "rank", {}))
 		assert(not apply(f, "expand", { atDock = false }), "home invariant: 104")
 		f.state = assert(apply(f, "expand", { atDock = true }))
 		assert(f.state.landRank == 3 and f.state.dock.z == 144, "home invariant: 106")
+		assert(not apply(f, "expand", { atDock = true }), "same earned rank expands only once")
 	end,
 	["skill seed water placement and unknown actions refuse atomically"] = function()
 		local f = M.fixture()

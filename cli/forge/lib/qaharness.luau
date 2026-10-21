@@ -68,6 +68,7 @@ export type Target = {
 	lifecycle: { bind: (any) -> (), close: () -> Contract.Result }?,
 	starterWorld: boolean?,
 	services: {
+		survivalContent: any?,
 		survivalSpatial: any?,
 		survivalDeath: any?,
 		survivalSettlement: any?,
@@ -333,6 +334,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	local transferAccess: { [string]: Session.PersonalTransfer } = {}
 	local actualTarget = table.clone(target)
 	local trustedServices: {
+		survivalContent: any?,
 		survivalSpatial: any?,
 		survivalDeath: any?,
 		survivalSettlement: any?,

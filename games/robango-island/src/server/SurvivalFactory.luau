@@ -79,7 +79,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local extensionFactories = table.clone(Extensions.factories)
 	local expeditionStore = ActorDocuments.new(backend, options, "robango-exp-v1")
 	local activeSession: any = nil
+	local monetization: any = nil
 	local gatherReceipt: any = nil
+	local commandReceipts: any = {}
 	-- BEGIN authoritative home owner. Personal profile and server spatial ports supply facts.
 	local HomeContent = require(Forge.core.domain.home.HomeContent)
 	local homeOwner: any = nil
@@ -110,6 +112,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 				end
 			end
 		end
+		structures["farm-plot"] =
+			{ kit = "practice-seedbed", halfSize = content.homePolicy.structureSize.x / 2, rank = 1 }
 		world.home = {
 			rules = rules,
 			structures = structures,
@@ -134,6 +138,11 @@ return function(content: any, source, world, backend, clock, options, provision,
 					then body.position
 					else if state and body then (state.structures[body.id or body.plot] or {}).position else nil
 				local inReach = target == nil or (spatial ~= nil and spatial.reachable(actor, target))
+				local shop = if monetization then monetization.snapshot(owner) else nil
+				local entitlements: { [string]: boolean } = if shop then table.clone(shop.passes) else {}
+				if shop and shop.subscription.active then
+					entitlements.routeGuildMonthly = true
+				end
 				return {
 					reachable = inReach
 						and position ~= nil
@@ -142,10 +151,11 @@ return function(content: any, source, world, backend, clock, options, provision,
 						and math.abs(position.x) <= half
 						and math.abs(position.z) <= half,
 					atDock = spatial ~= nil and spatial.reachable(actor, rules.dock),
-					ownerOnline = actor == owner,
+					ownerOnline = personalData(owner) ~= nil,
+					friend = if world.isFriend then world.isFriend(owner, actor) else false,
 					developmentRank = development.homeRank,
-					nodes = if data and data.progression then data.progression.nodes or {} else {},
-					entitlements = {},
+					nodes = if data and data.progression then data.progression.paid or {} else {},
+					entitlements = entitlements,
 				}
 			end,
 			publish = function(_owner, state)
@@ -168,14 +178,59 @@ return function(content: any, source, world, backend, clock, options, provision,
 			instabilityAccess = if development then development.instabilityAccess else 1,
 		}
 	end
+	-- BEGIN provision receipt resolver. The operation id resolves a binding that
+	-- Session has already committed, never client-provided completion facts.
+	provision.archipelagoReceipt = function(actor: string, operationId: string, current: any): any
+		local binding = commandReceipts[actor .. ":" .. operationId]
+		if
+			not binding
+			or not activeSession.committedReceipt(
+				actor,
+				binding.epoch,
+				binding.requestId,
+				binding.action,
+				binding.args,
+				binding.origin
+			)
+		then
+			return nil
+		end
+		local document = current or expeditionStore.snapshot(actor)
+		local state = if document then document.archipelago else nil
+		if not state then
+			return nil
+		end
+		for _, stage in content.stages do
+			if stage.layout == Archipelago.layout(state) then
+				for _, objective in stage.objectives do
+					if objective.action == "craft" and objective.target == binding.target then
+						return {
+							id = "command:" .. operationId,
+							actor = actor,
+							expedition = state.id,
+							revision = state.revision,
+							objective = objective.id,
+							action = "craft",
+							target = binding.target,
+							quantity = 1,
+						}
+					end
+				end
+			end
+		end
+		return nil
+	end
+	-- END provision receipt resolver.
 	local archipelago = ArchipelagoExtension.new({
 		content = content,
 		entryBuffer = source.archipelago.entryBufferSeconds,
 		now = seconds,
 		store = expeditionStore,
 		facts = expeditionFacts,
-		verify = function(actor, operationId)
-			return if provision.archipelagoReceipt then provision.archipelagoReceipt(actor, operationId) else nil
+		verify = function(actor, operationId, document)
+			return if provision.archipelagoReceipt
+				then provision.archipelagoReceipt(actor, operationId, document)
+				else nil
 		end,
 		gatherReceipt = function(actor, epoch, requestId)
 			return if gatherReceipt then gatherReceipt(actor, epoch, requestId) else nil
@@ -299,6 +354,11 @@ return function(content: any, source, world, backend, clock, options, provision,
 		return factory, err
 	end
 	local factoryPorts: any = factory
+	for _, extension in factoryPorts.services.survivalExtensions or {} do
+		if extension.id == "monetization" then
+			monetization = extension
+		end
+	end
 	factoryPorts.homeOwner = function()
 		return homeOwner
 	end
@@ -306,6 +366,43 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local roleWorld: any = world
 	roleWorld.surveyObjective = archipelago.survey
 	factoryPorts.expeditionStore = expeditionStore
+	-- BEGIN authored guide progress. Only trusted finalized event callers below
+	-- can reach this port; clients cannot supply a completion or award amount.
+	factoryPorts.recordDevelopment = function(actor, receiptId, event)
+		return expeditionStore.transaction(actor, function(document)
+			local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
+			development.events = development.events or {}
+			development.progress = development.progress or {}
+			if development.events[receiptId] then
+				return { ok = true }
+			end
+			development.events[receiptId] = true
+			for _, guide in content.guides or {} do
+				if
+					(guide.gates.characterLevel or 1)
+						<= ((personalData(actor) or {}).progression or { level = 1 }).level
+					and (guide.gates.developmentRank or 0) <= developmentFacts(document).grade
+					and not development.definitions[guide.id]
+				then
+					local complete = true
+					for _, objective in guide.objectives do
+						if objective.action == event.action and objective.target == event.target then
+							development.progress[objective.id] =
+								math.min(objective.quantity, (development.progress[objective.id] or 0) + event.quantity)
+						end
+						complete = complete and (development.progress[objective.id] or 0) >= objective.quantity
+					end
+					if complete then
+						development.definitions[guide.id] = true
+						development.points += guide.rewards.development or 0
+					end
+				end
+			end
+			document.development = development
+			return { ok = true }
+		end)
+	end
+	-- END authored guide progress.
 	factoryPorts.gatherReceipt = function(actor, epoch, requestId)
 		local port = factory.services.survivalGathering
 		return if port and port.receipt then port.receipt(actor, epoch, requestId) else nil
@@ -313,10 +410,88 @@ return function(content: any, source, world, backend, clock, options, provision,
 	gatherReceipt = factoryPorts.gatherReceipt
 	local gatheringPort = factory.services.survivalGathering
 	if gatheringPort then
+		local awaiting: any = {}
+		local function creditGather(actor, epoch, requestId)
+			local grant = factoryPorts.gatherReceipt(actor, epoch, requestId)
+			if not grant then
+				return false
+			end
+			for item, quantity in grant.items do
+				factoryPorts.recordDevelopment(
+					actor,
+					"g:" .. tostring(epoch) .. ":" .. requestId .. ":" .. item,
+					{ action = "gather", target = item, quantity = quantity }
+				)
+			end
+			local credited = archipelago.gatherObjective(actor, epoch, requestId)
+			return credited.ok
+				or credited.reason == "missing_expedition"
+				or credited.reason == "objective_mismatch"
+				or credited.reason == "receipt_scope"
+				or credited.reason == "duplicate_receipt"
+		end
+		local recoverGather = gatheringPort.recover
+		gatheringPort.recover = function(actor, maximum)
+			local result = recoverGather(actor, maximum)
+			for id, binding in awaiting[actor] or {} do
+				if creditGather(actor, binding.epoch, binding.requestId) then
+					awaiting[actor][id] = nil
+				end
+			end
+			return result
+		end
 		local command = gatheringPort.command
 		gatheringPort.command = function(actor, args, context, expiresAt, admit)
-			local result = command(actor, args, context, expiresAt, admit)
-			if result.ok then
+			local function resourceAdmission()
+				local node: any = nil
+				for _, candidate in source.resourceNodes or {} do
+					if candidate.id == args[1] then
+						node = candidate
+					end
+				end
+				if node then
+					local data = personalData(actor)
+					local progression = if data then data.progression else nil
+					if
+						not progression
+						or progression.level < (if node.gates then node.gates.characterLevel or 1 else 1)
+					then
+						return { ok = false, reason = "LEVEL_LOCKED" }
+					end
+					for _, skill in if node.gates then node.gates.skillNodes or {} else {} do
+						if not progression.paid[skill] then
+							return { ok = false, reason = "SKILL_LOCKED" }
+						end
+					end
+					if node.tool then
+						local equipped = world.services.survivalDeath.equipment(actor) or {}
+						local found = false
+						for id, item in data.inventory.bag.items do
+							found = found
+								or (equipped[id] == true and item.catalogId == node.tool and item.durabilityMilli > 0)
+						end
+						if not found then
+							return { ok = false, reason = "TOOL_UNAVAILABLE" }
+						end
+					end
+				end
+				return admit()
+			end
+			local result = command(actor, args, context, expiresAt, resourceAdmission)
+			if result.ok or (result.data and result.data.status == "pending") then
+				awaiting[actor] = awaiting[actor] or {}
+				awaiting[actor][tostring(context.sessionEpoch) .. ":" .. context.requestId] =
+					{ epoch = context.sessionEpoch, requestId = context.requestId }
+				local grant = factoryPorts.gatherReceipt(actor, context.sessionEpoch, context.requestId)
+				if grant then
+					for item, quantity in grant.items do
+						factoryPorts.recordDevelopment(
+							actor,
+							"g:" .. tostring(context.sessionEpoch) .. ":" .. context.requestId .. ":" .. item,
+							{ action = "gather", target = item, quantity = quantity }
+						)
+					end
+				end
 				local credited = archipelago.gatherObjective(actor, context.sessionEpoch, context.requestId)
 				if
 					not credited.ok
@@ -351,6 +526,77 @@ return function(content: any, source, world, backend, clock, options, provision,
 	factory.bind = function(session)
 		activeSession = session
 		bindSession(session)
+		-- BEGIN finalized command development receipts. No request fact is credited
+		-- until Session proves the exact durable binding succeeded.
+		for _, method in { "command", "commandServer" } do
+			local command = session[method]
+			session[method] = function(actor, request)
+				local data = personalData(actor)
+				local action = string.gsub(request.action, "^survival%-coop:", "")
+				local recipe: string? = nil
+				if action == "craft-complete" and data and data.workshop then
+					local entry = data.workshop.entries[request.args[1]]
+					recipe = if entry then entry.job.recipeId else nil
+				end
+				local result = command(actor, request)
+				if result.ok and action == "settlement-place" then
+					local shared = session.snapshot(actor).survivalSettlement
+					local placed = if shared
+						then shared.settlement.structures[shared.settlement.config.tribeId .. ":" .. request.args[1]]
+						else nil
+					if placed and placed.actorId == actor then
+						factoryPorts.recordDevelopment(actor, "place:" .. placed.id, {
+							action = "place",
+							target = placed.definition.id,
+							quantity = 1,
+						})
+					end
+				end
+				local commandOrigin = if method == "commandServer" then "server" else "client"
+				if
+					not result.ok
+					or not session.committedReceipt(
+						actor,
+						request.sessionEpoch,
+						request.requestId,
+						request.action,
+						request.args,
+						commandOrigin
+					)
+				then
+					return result
+				end
+				local event: any = nil
+				if action == "craft-complete" and recipe then
+					event = { action = "craft", target = recipe, quantity = 1 }
+				elseif action == "rest" then
+					event = { action = "rest", target = "rw.onboarding.rest-mat", quantity = 1 }
+				elseif action == "home-place" then
+					event = { action = "place", target = request.args[2].kind, quantity = 1 }
+				end
+				if event then
+					factoryPorts.recordDevelopment(
+						actor,
+						tostring(request.sessionEpoch) .. ":" .. request.requestId,
+						event
+					)
+				end
+				if recipe then
+					local operation = tostring(request.sessionEpoch) .. ":" .. request.requestId
+					commandReceipts[actor .. ":" .. operation] = {
+						epoch = request.sessionEpoch,
+						requestId = request.requestId,
+						action = request.action,
+						args = table.clone(request.args),
+						origin = commandOrigin,
+						target = recipe,
+					}
+					archipelago.objective(actor, operation)
+				end
+				return result
+			end
+		end
+		-- END finalized command development receipts.
 	end
 	-- Session asks for a command epoch for every durable action on every state push. The runtime
 	-- answers a non-member (a visitor, or anyone routed here without a seat) only after a durable

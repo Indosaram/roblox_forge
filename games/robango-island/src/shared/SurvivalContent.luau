@@ -1443,7 +1443,7 @@ local content: Content = {
 		}),
 	},
 	homePolicy = {
-		baseSlots = 40,
+		baseSlots = 20,
 		dock = { x = 0, y = 2, z = 28 },
 		dockSize = { x = 12, y = 1, z = 8 },
 		floors = { 0, 8, 16 },
@@ -1933,7 +1933,7 @@ local content: Content = {
 			maxDurabilityMilli = 100000,
 			name = "Starter Axe",
 			stackMax = 1,
-			tags = {},
+			tags = { "tool" },
 			weightMilli = 500,
 		},
 		{
@@ -12280,22 +12280,22 @@ local content: Content = {
 		v2_layouts({
 			anchors = {
 				v2_anchor({ id = "campfire-pad", position = v2_point({ x = 16, y = 2, z = -16 }) }),
-				v2_anchor({ id = "entry", position = v2_point({ x = 0, y = 2, z = 136 }) }),
-				v2_anchor({ id = "exit", position = v2_point({ x = 0, y = 2, z = 144 }) }),
+				v2_anchor({ id = "entry", position = v2_point({ x = 0, y = 2, z = 28 }) }),
+				v2_anchor({ id = "exit", position = v2_point({ x = 0, y = 2, z = 28 }) }),
 				v2_anchor({ id = "farm-pad", position = v2_point({ x = 16, y = 2, z = 16 }) }),
-				v2_anchor({ id = "hazard", position = v2_point({ x = 144, y = 2, z = -120 }) }),
+				v2_anchor({ id = "hazard", position = v2_point({ x = 24, y = 2, z = -24 }) }),
 				v2_anchor({ id = "laboratory-pad", position = v2_point({ x = -16, y = 2, z = -16 }) }),
 				v2_anchor({ id = "objective", position = v2_point({ x = 0, y = 2, z = 0 }) }),
 				v2_anchor({ id = "pen-pad", position = v2_point({ x = -16, y = 2, z = 16 }) }),
-				v2_anchor({ id = "resources", position = v2_point({ x = -132, y = 2, z = 80 }) }),
+				v2_anchor({ id = "resources", position = v2_point({ x = -12, y = 2, z = 8 }) }),
 				v2_anchor({ id = "station-pad", position = v2_point({ x = 0, y = 2, z = -16 }) }),
-				v2_anchor({ id = "station.campfire.t1", position = v2_point({ x = -132, y = 2, z = 52 }) }),
-				v2_anchor({ id = "station.workbench.t1", position = v2_point({ x = -116, y = 2, z = 52 }) }),
+				v2_anchor({ id = "station.campfire.t1", position = v2_point({ x = -12, y = 2, z = -16 }) }),
+				v2_anchor({ id = "station.workbench.t1", position = v2_point({ x = 0, y = 2, z = -16 }) }),
 			},
 			biomes = { "grassland" },
 			bounds = v2_bounds({
-				max = v2_point({ x = 160, y = 28, z = 160 }),
-				min = v2_point({ x = -160, y = 0, z = -160 }),
+				max = v2_point({ x = 32, y = 28, z = 32 }),
+				min = v2_point({ x = -32, y = 0, z = -32 }),
 			}),
 			hazards = {},
 			id = "rw.home",
@@ -12303,8 +12303,8 @@ local content: Content = {
 				v2_path({
 					id = "rw.home.dock-home",
 					points = {
-						v2_point({ x = 0, y = 2, z = 136 }),
-						v2_point({ x = 0, y = 2, z = 120 }),
+						v2_point({ x = 0, y = 2, z = 28 }),
+						v2_point({ x = 0, y = 2, z = 20 }),
 						v2_point({
 							x = 0,
 							y = 2,
@@ -12316,68 +12316,96 @@ local content: Content = {
 				v2_path({
 					id = "rw.home.main",
 					points = {
-						v2_point({ x = 0, y = 2, z = 136 }),
+						v2_point({ x = 0, y = 2, z = 28 }),
 						v2_point({ x = 0, y = 2, z = 24 }),
-						v2_point({ x = -132, y = 2, z = 80 }),
+						v2_point({ x = -12, y = 2, z = 8 }),
 						v2_point({ x = 0, y = 2, z = 0 }),
-						v2_point({ x = 0, y = 2, z = 144 }),
+						v2_point({ x = 0, y = 2, z = 28 }),
 					},
 					width = 16,
 				}),
 				v2_path({
 					id = "rw.home.resource-10",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -114, y = 2, z = 80 }) },
+					points = {
+						v2_point({ x = -12, y = 2, z = 8 }),
+						v2_point({
+							x = 0,
+							y = 2,
+							z = 8,
+						}),
+					},
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-11",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -138, y = 2, z = 92 }) },
+					points = { v2_point({ x = -12, y = 2, z = 8 }), v2_point({ x = -16, y = 2, z = 16 }) },
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-3",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -150, y = 2, z = 68 }) },
+					points = { v2_point({ x = -12, y = 2, z = 8 }), v2_point({ x = -24, y = 2, z = 0 }) },
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-4",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -138, y = 2, z = 68 }) },
+					points = { v2_point({ x = -12, y = 2, z = 8 }), v2_point({ x = -16, y = 2, z = 0 }) },
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-5",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -126, y = 2, z = 68 }) },
+					points = {
+						v2_point({ x = -12, y = 2, z = 8 }),
+						v2_point({
+							x = -8,
+							y = 2,
+							z = 0,
+						}),
+					},
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-6",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -114, y = 2, z = 68 }) },
+					points = {
+						v2_point({ x = -12, y = 2, z = 8 }),
+						v2_point({
+							x = 0,
+							y = 2,
+							z = 0,
+						}),
+					},
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-7",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -150, y = 2, z = 80 }) },
+					points = { v2_point({ x = -12, y = 2, z = 8 }), v2_point({ x = -24, y = 2, z = 8 }) },
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-8",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -138, y = 2, z = 80 }) },
+					points = { v2_point({ x = -12, y = 2, z = 8 }), v2_point({ x = -16, y = 2, z = 8 }) },
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-9",
-					points = { v2_point({ x = -132, y = 2, z = 80 }), v2_point({ x = -126, y = 2, z = 80 }) },
+					points = {
+						v2_point({ x = -12, y = 2, z = 8 }),
+						v2_point({
+							x = -8,
+							y = 2,
+							z = 8,
+						}),
+					},
 					width = 8,
 				}),
 				v2_path({
 					id = "rw.home.resource-link",
 					points = {
-						v2_point({ x = 0, y = 2, z = 136 }),
-						v2_point({ x = -132, y = 2, z = 120 }),
+						v2_point({ x = 0, y = 2, z = 28 }),
+						v2_point({ x = -12, y = 2, z = 20 }),
 						v2_point({
-							x = -132,
+							x = -12,
 							y = 2,
-							z = 80,
+							z = 8,
 						}),
 					},
 					width = 16,
@@ -12390,7 +12418,7 @@ local content: Content = {
 					id = "rw.home.berry",
 					item = "berry",
 					level = 1,
-					position = v2_point({ x = -114, y = 2, z = 68 }),
+					position = v2_point({ x = 0, y = 2, z = 0 }),
 					respawnSeconds = 120,
 					stock = 20,
 					yield = 3,
@@ -12399,7 +12427,7 @@ local content: Content = {
 					id = "rw.home.branch",
 					item = "branch",
 					level = 1,
-					position = v2_point({ x = -150, y = 2, z = 68 }),
+					position = v2_point({ x = -24, y = 2, z = 0 }),
 					respawnSeconds = 120,
 					stock = 60,
 					yield = 3,
@@ -12408,7 +12436,7 @@ local content: Content = {
 					id = "rw.home.extra-0",
 					item = "wood",
 					level = 1,
-					position = v2_point({ x = -138, y = 2, z = 80 }),
+					position = v2_point({ x = -16, y = 2, z = 8 }),
 					respawnSeconds = 120,
 					stock = 20,
 					tool = "starter-axe",
@@ -12419,7 +12447,7 @@ local content: Content = {
 					id = "rw.home.extra-1",
 					item = "flint",
 					level = 1,
-					position = v2_point({ x = -126, y = 2, z = 80 }),
+					position = v2_point({ x = -8, y = 2, z = 8 }),
 					respawnSeconds = 120,
 					stock = 12,
 					tool = "starter-pickaxe",
@@ -12429,7 +12457,7 @@ local content: Content = {
 					id = "rw.home.extra-2",
 					item = "corn-seed",
 					level = 1,
-					position = v2_point({ x = -114, y = 2, z = 80 }),
+					position = v2_point({ x = 0, y = 2, z = 8 }),
 					respawnSeconds = 120,
 					stock = 2,
 					yield = 3,
@@ -12438,7 +12466,7 @@ local content: Content = {
 					id = "rw.home.extra-3",
 					item = "potato-seed",
 					level = 1,
-					position = v2_point({ x = -138, y = 2, z = 92 }),
+					position = v2_point({ x = -16, y = 2, z = 16 }),
 					respawnSeconds = 120,
 					stock = 2,
 					yield = 3,
@@ -12447,7 +12475,7 @@ local content: Content = {
 					id = "rw.home.fiber",
 					item = "fiber",
 					level = 1,
-					position = v2_point({ x = -126, y = 2, z = 68 }),
+					position = v2_point({ x = -8, y = 2, z = 0 }),
 					respawnSeconds = 120,
 					stock = 40,
 					yield = 3,
@@ -12456,7 +12484,7 @@ local content: Content = {
 					id = "rw.home.stone",
 					item = "stone",
 					level = 1,
-					position = v2_point({ x = -138, y = 2, z = 68 }),
+					position = v2_point({ x = -16, y = 2, z = 0 }),
 					respawnSeconds = 120,
 					stock = 40,
 					yield = 3,
@@ -12465,7 +12493,7 @@ local content: Content = {
 					id = "rw.home.water",
 					item = "water",
 					level = 1,
-					position = v2_point({ x = -150, y = 2, z = 80 }),
+					position = v2_point({ x = -24, y = 2, z = 8 }),
 					respawnSeconds = 120,
 					stock = 30,
 					yield = 3,
@@ -13966,7 +13994,7 @@ local content: Content = {
 	missions = {
 		v2_missions({
 			dialogueKeys = { "rw.m1.craft.offer", "rw.m1.craft.complete" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.craft",
 			objectives = {
 				v2_objective({
@@ -13987,7 +14015,7 @@ local content: Content = {
 		}),
 		v2_missions({
 			dialogueKeys = { "rw.m1.gather.offer", "rw.m1.gather.complete" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.gather",
 			objectives = {
 				v2_objective({
@@ -14008,7 +14036,7 @@ local content: Content = {
 		}),
 		v2_missions({
 			dialogueKeys = { "rw.m1.hunt.offer", "rw.m1.hunt.complete", "rw.m1.hunt.offer.s3", "rw.m1.hunt.offer.s4" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.hunt",
 			objectives = {
 				v2_objective({
@@ -14036,7 +14064,7 @@ local content: Content = {
 		}),
 		v2_missions({
 			dialogueKeys = { "rw.m1.rescue.offer", "rw.m1.rescue.complete" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.rescue",
 			objectives = {
 				v2_objective({
@@ -14057,7 +14085,7 @@ local content: Content = {
 		}),
 		v2_missions({
 			dialogueKeys = { "rw.m1.survey.offer", "rw.m1.survey.complete" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.survey",
 			objectives = {
 				v2_objective({
@@ -14085,7 +14113,7 @@ local content: Content = {
 		}),
 		v2_missions({
 			dialogueKeys = { "rw.m1.transport.offer", "rw.m1.transport.complete" },
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.m1.transport",
 			objectives = {
 				v2_objective({
@@ -19368,14 +19396,14 @@ local content: Content = {
 	},
 	stages = {
 		v2_stages({
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.a1.s1.gather",
 			layout = "rw.a1.s1",
 			objectives = { v2_objective({ action = "gather", id = "rw.a1.s1.gather", quantity = 5, target = "wood" }) },
 			provenance = v2_provenance({ classification = "RECONSTRUCTED" }),
 		}),
 		v2_stages({
-			gates = v2_gate({ characterLevel = 30, developmentRank = 2 }),
+			gates = v2_gate({ characterLevel = 2, developmentRank = 2 }),
 			id = "rw.a1.s1.survey",
 			layout = "rw.a1.s1",
 			objectives = {
@@ -19385,7 +19413,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s1.gather", "rw.a1.s1.survey" },
 				developmentRank = 2,
 			}),
@@ -19398,7 +19426,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s1.gather", "rw.a1.s1.survey" },
 				developmentRank = 2,
 			}),
@@ -19411,7 +19439,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s2.craft", "rw.a1.s2.rescue" },
 				developmentRank = 2,
 			}),
@@ -19422,7 +19450,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s2.craft", "rw.a1.s2.rescue" },
 				developmentRank = 2,
 			}),
@@ -19435,7 +19463,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s3.hunt", "rw.a1.s3.transport" },
 				developmentRank = 2,
 			}),
@@ -19448,7 +19476,7 @@ local content: Content = {
 		}),
 		v2_stages({
 			gates = v2_gate({
-				characterLevel = 30,
+				characterLevel = 2,
 				completed = { "rw.a1.s3.hunt", "rw.a1.s3.transport" },
 				developmentRank = 2,
 			}),

@@ -189,6 +189,7 @@ function M.new(
 		return result
 	end
 	local services = table.clone(world.services)
+	services.survivalContent = config.content
 	services.survivalSettlement = settlement.services.survivalSettlement
 	services.survivalTransfer = settlement.services.survivalTransfer
 	services.survivalGathering = gathering

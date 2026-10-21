@@ -26,7 +26,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		value.Parent = root
 		return value
 	end
-	for _, column in Terrain.columns(layout, seed, 32) do
+	local columns: { any } = if layoutId == "rw.home" then {} else Terrain.columns(layout, seed, 32)
+	for _, column in columns do
 		workspace.Terrain:FillBlock(
 			CFrame.new(column.x, (column.top - 16) / 2, column.z),
 			Vector3.new(column.cell, column.top + 16, column.cell),
@@ -35,7 +36,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	-- The coarse seeded columns are scenery. Authored navigation is a continuous
 	-- dry ribbon with the catalog's slope, including each node's approach branch.
-	for _, path in layout.paths do
+	local paths: { any } = if layoutId == "rw.home" then {} else layout.paths
+	for _, path in paths do
 		for index = 2, #path.points do
 			local a, b = path.points[index - 1], path.points[index]
 			local from, to = Vector3.new(a.x, a.y, a.z), Vector3.new(b.x, b.y, b.z)
@@ -84,6 +86,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				position = node.position,
 				charges = node.stock,
 				qualityMilli = 1000,
+				level = node.level,
 			})
 		end
 	end
@@ -144,11 +147,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 	})
 	for _, node in nodes do
-		workspace.Terrain:FillBlock(
-			CFrame.new(node.position.x, node.position.y + 8, node.position.z),
-			Vector3.new(16, 16, 16),
-			Enum.Material.Air
-		)
+		if layoutId ~= "rw.home" then
+			workspace.Terrain:FillBlock(
+				CFrame.new(node.position.x, node.position.y + 8, node.position.z),
+				Vector3.new(16, 16, 16),
+				Enum.Material.Air
+			)
+		end
 		part(
 			node.id .. ".ground",
 			{ x = node.position.x, y = node.position.y - 2, z = node.position.z },
@@ -189,11 +194,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			dock(
 				anchor.id,
 				if layoutId == "rw.home" then content.homePolicy.dock else anchor.position,
-				if layoutId == "rw.onboarding" then "home" elseif layoutId == "rw.home" then "archipelago" else "home"
+				if layoutId == "rw.onboarding"
+					then "home"
+					elseif layoutId == "rw.home" then "archipelago"
+					elseif string.match(layoutId, "^rw%.a%d+%.s%d+$") and anchor.id == "exit" then "next-island"
+					else "home"
 			)
 		end
 	end
 	world.roleSource = table.clone(source)
+	world.roleSource.resourceNodes = layout.resourceNodes
 	world.roleSource.nodes, world.roleSource.worldRevision = nodes, revision
 	world.roleSource.persistencePrefix = "s:" .. Journal.fnv1a64(source.persistencePrefix .. ":" .. revision)
 	world.roleSource.sourceKey = "n"
@@ -211,6 +221,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					end
 					for index = 1, objective.quantity do
 						local position = { x = origin.x + (index - 1) * 12 - 12, y = origin.y, z = origin.z - 12 }
+						if index > 3 then
+							position.x, position.z = origin.x + (index - 4) * 12 - 6, origin.z - 24
+						end
 						local id = objective.id .. "." .. tostring(index)
 						world.surveyMarkers[id] = { position = position, objective = objective.id, layout = layoutId }
 						local target = part(id, position, { x = 2, y = 3, z = 2 })
@@ -226,16 +239,36 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
-	world.renderHome = function(parts)
-		local previous = root:FindFirstChild("HomeStructures")
-		if previous then
-			previous:Destroy()
+	local homeParts: any = {}
+	local stationKinds = {}
+	for _, recipe in content.recipes do
+		if recipe.station then
+			stationKinds[recipe.station] = true
 		end
-		local folder = Instance.new("Folder")
-		folder.Name, folder.Parent = "HomeStructures", root
+	end
+	local folder = Instance.new("Folder")
+	folder.Name, folder.Parent = "HomeStructures", root
+	world.renderHome = function(parts)
+		local present = {}
 		for _, definition in parts do
-			local value = part(definition.id, definition.position, definition.size)
-			value.Parent = folder
+			present[definition.id] = true
+			local value = homeParts[definition.id]
+			if not value then
+				value = part(definition.id, definition.position, definition.size)
+				value.Parent = folder
+				homeParts[definition.id] = value
+				if stationKinds[definition.kind] then
+					world.registerStation(value, "home:" .. Journal.fnv1a64(definition.id), definition.kind)
+				end
+			end
+			value.Size = Vector3.new(definition.size.x, definition.size.y, definition.size.z)
+		end
+		for id, value in homeParts do
+			if not present[id] then
+				world.unregisterStation(value)
+				value:Destroy()
+				homeParts[id] = nil
+			end
 		end
 	end
 	local destroy = world.destroy

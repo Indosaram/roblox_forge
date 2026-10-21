@@ -1,0 +1,85 @@
+--!strict
+local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+local Content = require("./src/shared/SurvivalContent")
+local Source = require("./src/shared/SurvivalWorldConfig")
+local Policy = require("./src/shared/WildlifePolicy")
+local HomeContent = require("../../core/domain/home/HomeContent")
+local Home = require("../../core/domain/home/HomeState")
+
+return {
+	["production home projects catalog nodes and tier-sized durable land"] = function()
+		local engine = Engine.new()
+		local source: any = table.clone(Source)
+		source.seed, source.renderRole = 79, engine.role.build
+		local world = engine.home.live(Content, source, Policy, function()
+			return 0
+		end)
+		local rules = HomeContent.rules(Content)
+		assert(
+			rules.baseSlots == 20
+				and rules.storageGrants.routeGuildPatron == 10
+				and rules.storageGrants.wideWarehouse == 10
+				and rules.storageGrants.routeGuildMonthly == 5,
+			"home entitlements grant 20/30/40/45 without changing bag policy"
+		)
+		local state = Home.new("11734795308", rules, 79)
+		world.publishHome(state, rules)
+		local land: any = nil
+		for _, part in engine.parts do
+			if part.Name == "home-land" and not part.destroyed then
+				land = part
+			end
+		end
+		assert(land and land.Size.X == 64 and land.Size.Z == 64, "fresh land is 64 square")
+		for _, node in world.roleSource.nodes do
+			assert(math.abs(node.position.x) <= 32 and math.abs(node.position.z) <= 32, "home nodes fit starting land")
+		end
+		state.landRank = 5
+		world.publishHome(state, rules)
+		assert(land.Size.X == 224 and land.Size.Z == 224, "same durable land part expands to endpoint")
+		state.structures.fire = { kind = "campfire", position = { x = 8, y = 0, z = 0 }, owner = state.owner }
+		world.publishHome(state, rules)
+		engine.move(state.owner, { x = 8, y = 0, z = 0 })
+		local station: any = nil
+		for _, part in engine.parts do
+			if part.Name == "fire" and not part.destroyed then
+				station = part
+			end
+		end
+		local handle = station:GetAttribute("ForgeStationId")
+		assert(
+			world.services.survivalSpatial.campfire(state.owner, handle).reachable,
+			"durable fire is a reachable station"
+		)
+		world.publishHome(state, rules)
+		state.structures.fire = nil
+		world.publishHome(state, rules)
+		assert(
+			world.services.survivalSpatial.campfire(state.owner, handle) == nil,
+			"recovered fire loses station capability"
+		)
+		state.structures.fire = { kind = "campfire", position = { x = 8, y = 0, z = 0 }, owner = state.owner }
+		world.publishHome(state, rules)
+		assert(
+			world.services.survivalSpatial.campfire(state.owner, handle).reachable,
+			"replaced fire reuses stable handle safely"
+		)
+		world.destroy()
+	end,
+	["production archipelago derives rendered layout and nodes from persisted route"] = function()
+		local engine = Engine.new()
+		local source: any = table.clone(Source)
+		source.seed, source.renderRole = 79, engine.role.build
+		source.expedition = { status = "active", templateId = "rw.a1", stage = 1, seed = 79 }
+		local world = engine.archipelago.live(Content, source, Policy, function()
+			return 0
+		end)
+		assert(world.layout.id == "rw.a1.s1", "persisted route picks first island")
+		local found = false
+		for _, node in world.roleSource.nodes do
+			found = found or node.id == "rw.a1.s1.material.wood"
+		end
+		assert(found and next(world.surveyMarkers) ~= nil, "real gather and spatial survey bindings exist")
+		world.destroy()
+	end,
+}

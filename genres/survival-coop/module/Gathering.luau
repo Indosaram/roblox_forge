@@ -15,6 +15,7 @@ export type Node = {
 	position: Position,
 	charges: number,
 	qualityMilli: number,
+	level: number?,
 	requiredToolTag: string?,
 }
 export type State = { worldRevision: string, version: number, nodes: { [string]: Node } }
@@ -57,6 +58,7 @@ function M.new(worldRevision: string, content: Content.Document, nodes: { Node }
 			"INVALID_QUALITY"
 		)
 		assert(not node.requiredToolTag or table.find(content.tags, node.requiredToolTag), "INVALID_TOOL_TAG")
+		assert(node.level == nil or Catalog.integer(node.level, 1, 60), "INVALID_NODE_LEVEL")
 		local found = false
 		for _, definition in content.nodes do
 			if definition.id == node.catalogId then
@@ -158,7 +160,7 @@ function M.gather(
 			quantity = output.quantity,
 			qualityMilli = node.qualityMilli,
 			durabilityMilli = math.floor((catalog[output.item].maxDurabilityMilli or 0) * node.qualityMilli / 1000),
-			attributes = {},
+			attributes = if node.level then { level = node.level } else {},
 		}, bag.version)
 		if not added then
 			return nil, err

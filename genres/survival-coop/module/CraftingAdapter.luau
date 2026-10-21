@@ -343,7 +343,9 @@ function M.new(
 	}
 	local players: { [string]: Player } = {}
 	local inventoryConfig = config.inventory
-	local content = if inventoryConfig then Content.canonicalize(inventoryConfig.content) else nil
+	local content = if inventoryConfig
+		then services.survivalContent or Content.canonicalize(inventoryConfig.content)
+		else nil
 	local catalog = if content then catalogOf(content) else {}
 	local mastery = if content then Skills.catalog(content) else nil
 	local function inventories(saved: Shared.StateData?): { [string]: Inventory.State }?
@@ -1127,8 +1129,11 @@ function M.new(
 				return nil
 			end
 			assert(config.survivalDeath and services.survivalDeath, "death config missing")
-			assert(saved.death.worldRevision == services.survivalDeath.worldRevision, "WORLD_REVISION_MISMATCH")
 			local bundles = DeathBundle.fromSave(saved.death.bundles, catalog)
+			assert(
+				saved.death.worldRevision == services.survivalDeath.worldRevision or next(bundles.bundles) == nil,
+				"WORLD_REVISION_MISMATCH"
+			)
 			assert(
 				bundles.ownerId == id and inventoryConfig and bundles.carriedId == inventoryConfig.carriedContainer,
 				"death ownership mismatch"
@@ -1145,7 +1150,7 @@ function M.new(
 				end
 				locations[deathId] = table.clone(position)
 			end
-			return { bundles = bundles, worldRevision = saved.death.worldRevision, locations = locations }
+			return { bundles = bundles, worldRevision = services.survivalDeath.worldRevision, locations = locations }
 		end)
 		if not validDeath then
 			return { ok = false, reason = tostring(death) }

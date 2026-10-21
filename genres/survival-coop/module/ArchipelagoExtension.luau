@@ -13,13 +13,13 @@ function M.new(env: any): any
 				local state = document.archipelago
 				local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
 				for _, mission in env.content.missions do
-					local completed = false
+					local completed = true
 					for _, objective in mission.objectives do
-						completed = completed or state.completed[objective.id] == true
+						completed = completed and state.completed[objective.id] == true
 					end
 					if completed and not development.definitions[mission.id] then
 						development.definitions[mission.id] = true
-						development.points += mission.rewards.development or 0
+						development.points += if mission.rewards then mission.rewards.development or 0 else 0
 					end
 				end
 				if state.status == "complete" then
@@ -62,7 +62,7 @@ function M.new(env: any): any
 		end,
 		objective = function(actor: string, operationId: string): any
 			return change(actor, function(document): any
-				local receipt = env.verify(actor, operationId)
+				local receipt = env.verify(actor, operationId, document)
 				if not receipt then
 					return { ok = false, reason = "unverified_objective" }
 				end

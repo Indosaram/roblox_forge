@@ -567,6 +567,13 @@ function M.new(config: Config)
 		part:SetAttribute("ForgeStationKind", kind)
 		tags:AddTag(part, "ForgeSurvivalStation")
 	end
+	function api.unregisterStation(part: BasePart)
+		local id = part:GetAttribute("ForgeStationId")
+		if type(id) == "string" and stations[id] == part then
+			stations[id] = nil
+			tags:RemoveTag(part, "ForgeSurvivalStation")
+		end
+	end
 	function api.registerTool(tool: Tool, id: string, itemId: string)
 		assert(#itemId > 0 and #itemId <= 128 and owned(id, itemId), "tool item must be owned")
 		local actor = assert(player(id), "missing player")

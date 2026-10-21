@@ -62,6 +62,7 @@ function M.new(
 		)
 	end
 	local wrapped: Contract.Services = {
+		survivalContent = services.survivalContent,
 		survivalSpatial = services.survivalSpatial,
 		survivalDeath = services.survivalDeath,
 		survivalSettlement = services.survivalSettlement,

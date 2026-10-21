@@ -393,7 +393,7 @@ function M.render(
 	local startAt, endAt = string.find(worldSource, '["nodes"]=' .. nodeSource, 1, true)
 	assert(startAt and endAt, "world nodes field")
 	worldSource = string.sub(worldSource, 1, startAt - 1) .. '["nodes"]=nodes' .. string.sub(worldSource, endAt + 1)
-	files["src/shared/SurvivalWorldConfig.luau"] = "--!strict\nexport type Node = {id:string,catalogId:string,position:{x:number,y:number,z:number},charges:number,qualityMilli:number,requiredToolTag:string?}\nlocal nodes: {Node} = "
+	files["src/shared/SurvivalWorldConfig.luau"] = "--!strict\nexport type Node = {id:string,catalogId:string,position:{x:number,y:number,z:number},charges:number,qualityMilli:number,requiredToolTag:string?,level:number?}\nlocal nodes: {Node} = "
 		.. nodeSource
 		.. "\nreturn "
 		.. worldSource

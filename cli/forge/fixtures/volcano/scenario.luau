@@ -90,10 +90,12 @@ end
 
 local function equipment(): any
 	local policy = Policy
-	local tree = Tree.level(Tree.new(Content, policy.tree), policy.tree, 59)
+	local tree = Tree.new(Content, policy.tree)
 	for i = 1, 1500 do
 		tree = Tree.award(tree, policy.tree, "tailoring", "tailoring" .. tostring(i))
 	end
+	assert(tree.level < 59, "mastery training stays below the support character gate")
+	tree = Tree.level(tree, policy.tree, 59)
 	for rank = 1, 4 do
 		tree = assert(Tree.learn(Content, tree, "tailoring_" .. tostring(rank)))
 	end

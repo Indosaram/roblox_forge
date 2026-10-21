@@ -7,6 +7,7 @@ local Content = require("../../../core/domain/survival/Content")
 local Job = require("../../../core/domain/crafting/Job")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Ledger = require("../../../core/domain/command/Ledger")
+local Journal = require("../../../core/domain/command/Journal")
 local Transfer = require("../../../core/infra/data/ItemTransfer")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
@@ -188,7 +189,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 						slice.progression,
 						(content :: any).progressionPolicy.tree,
 						"gathering",
-						grant.binding
+						"gather:" .. Journal.fnv1a64(grant.binding)
 					)
 					local committed, commitError =
 						personal.personal:commit(current, current.data.stateRevision, envelope, nil)
@@ -324,7 +325,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				-- New acquisition records its authored source; old inventory stays unclassified.
 				local detailed: any = content
 				for _, layout in detailed.layouts or {} do
-					for _, resource in layout.resources or {} do
+					for _, resource in layout.resourceNodes or {} do
 						if resource.id == req.nodeId and resource.item == item.catalogId then
 							for _, profile in detailed.materials or {} do
 								if profile.item == item.catalogId then
@@ -514,7 +515,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				if not receipt or (receipt.phase == "FINALIZED" and config.now() >= byId[id].request.expiresAt) then
 					table.insert(retiring, { mint = copy(byId[id]), grantId = owners[id] })
 				else
-					table.insert(selected, { mints = { copy(byId[id]) } })
+					table.insert(selected, { binding = data.grants[owners[id]].binding, mints = { copy(byId[id]) } })
 				end
 				data.cursors[destinationKey] = id
 			end

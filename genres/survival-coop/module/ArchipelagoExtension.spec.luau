@@ -4,6 +4,80 @@ local Content = require("../../../games/robango-island/src/shared/SurvivalConten
 local World = require("../../../games/robango-island/src/server/ArchipelagoWorld")
 local serde = require("@lune/serde")
 return {
+	["mission development awards once and a completed route unlocks the next instability"] = function()
+		local document: any = {}
+		local receipt: any = nil
+		local extension = Extension.new({
+			content = Content,
+			entryBuffer = 30,
+			now = function()
+				return 10
+			end,
+			facts = function()
+				return { level = 60, developmentRank = 10, instabilityAccess = 5 }
+			end,
+			verify = function()
+				return receipt
+			end,
+			store = {
+				transaction = function(_actor, transform)
+					local candidate = serde.decode("json", serde.encode("json", document))
+					local result = transform(candidate)
+					if result.ok then
+						document = candidate
+					end
+					return result
+				end,
+			},
+		})
+		assert(
+			extension.open(
+				"owner",
+				{ id = "trip", index = 1, seed = 74, ttl = 1000, revision = "v2", entryBuffer = 30 }
+			).ok,
+			"route opened"
+		)
+		local sequence = 0
+		for stageNumber = 1, 4 do
+			local layoutId = "rw.a1.s" .. tostring(stageNumber)
+			for _, stage in Content.stages :: any do
+				if stage.layout == layoutId then
+					for _, objective in stage.objectives do
+						sequence += 1
+						receipt = {
+							id = "verified:" .. tostring(sequence),
+							actor = "owner",
+							expedition = "trip",
+							revision = "v2",
+							objective = objective.id,
+							action = objective.action,
+							target = objective.target,
+							quantity = objective.quantity,
+						}
+						assert(extension.objective("owner", receipt.id).ok, "verified objective settles")
+						local points = document.development.points
+						assert(
+							extension.objective("owner", receipt.id).reason == "duplicate_receipt",
+							"objective replay refused"
+						)
+						assert(document.development.points == points, "objective replay cannot award development")
+					end
+				end
+			end
+			assert(extension.nextIsland("owner").ok, "completed island advances")
+		end
+		local expected = 0
+		for _, mission in Content.missions :: any do
+			if document.development.definitions[mission.id] then
+				expected += mission.rewards.development or 0
+			end
+		end
+		assert(expected > 0 and document.development.points == expected, "only completed mission definitions award")
+		assert(
+			document.development.instabilityAccess == 2 and document.archipelago.status == "complete",
+			"route completion unlocks index two"
+		)
+	end,
 	["gather objectives consume only current route finalized node receipts once"] = function()
 		local document: any = {}
 		local grant: any = nil

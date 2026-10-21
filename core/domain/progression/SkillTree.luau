@@ -59,16 +59,17 @@ function M.award(state: State, policy: Policy, category: string, receipt: string
 	result.receipts[receipt] = true
 	-- Character experience is earned by the same finalized action as mastery.
 	-- Older saves start at zero remaining XP; replayed receipts award neither.
-	result.xp = (result.xp or 0) + policy.actionXP
+	local characterXP = (result.xp or 0) + policy.actionXP
 	while result.level < policy.maxLevel do
 		local required = policy.xpBase + policy.xpStep * result.level
-		if result.xp < required then
+		if characterXP < required then
 			break
 		end
-		result.xp -= required
+		characterXP -= required
 		result.sp += policy.spPerLevel
 		result.level += 1
 	end
+	result.xp = characterXP
 	local mastery = result.mastery[category]
 	if mastery.level == 0 then
 		mastery.level = 1

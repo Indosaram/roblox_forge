@@ -22,6 +22,7 @@ export type Extension = {
 	observe: ((string, string, { any }, Result) -> ())?,
 }
 export type Services = {
+	survivalContent: any?,
 	survivalExtensions: { Extension }?,
 	survivalWildlife: {
 		handles: (string) -> boolean,

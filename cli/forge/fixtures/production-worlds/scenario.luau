@@ -25,6 +25,9 @@ M.operations = {
 	world_expedition = function(ctx, step): string?
 		return ctx.fixture.expedition(actorOf(ctx, step))
 	end,
+	world_onboarding = function(ctx, step): string?
+		return ctx.fixture.onboarding(actorOf(ctx, step))
+	end,
 	world_gather = function(ctx, step): string?
 		return ctx.fixture.gather(actorOf(ctx, step))
 	end,
@@ -93,17 +96,26 @@ function M.new(ctx: any): any
 		factory = assert(factoryBuilder(Content, source, world, ctx.backend, ctx.clock, options, provision, Policy))
 		local services = table.clone(factory.services)
 		services.now = ctx.clock.now
-		services.roll = function() return 0 end
+		services.roll = function()
+			return 0
+		end
 		services.emit = function() end
-		services.encode = function(value) return require("@lune/serde").encode("json", value) end
-		session = Session.new({
-			packConfig = require("../../../../games/robango-island/src/shared/GenreConfig"),
-			contracts = { require("../../../../genres/survival-coop/module/Contract") },
-			durable = require("../../../../games/robango-island/src/shared/GenreDurable"),
-			controls = {},
-			storeName = "worlds-personal",
-		}, ctx.backend, {sessionId = options.sessionId, lockTimeout = 120, retries = 0, now = ctx.now}, services,
-			require("../../../../games/robango-island/src/shared/GenreDurable"))
+		services.encode = function(value)
+			return require("@lune/serde").encode("json", value)
+		end
+		session = Session.new(
+			{
+				packConfig = require("../../../../games/robango-island/src/shared/GenreConfig"),
+				contracts = { require("../../../../genres/survival-coop/module/Contract") },
+				durable = require("../../../../games/robango-island/src/shared/GenreDurable"),
+				controls = {},
+				storeName = "worlds-personal",
+			},
+			ctx.backend,
+			{ sessionId = options.sessionId, lockTimeout = 120, retries = 0, now = ctx.now },
+			services,
+			require("../../../../games/robango-island/src/shared/GenreDurable")
+		)
 		factory.bind(session)
 		actorId = actor
 	end
@@ -127,7 +139,13 @@ function M.new(ctx: any): any
 				return closed.reason
 			end
 		end
-		create(role, actor)
+		local created, failure = xpcall(function()
+			create(role, actor)
+		end, debug.traceback)
+		if not created then
+			print(failure)
+			return "world_create_failed"
+		end
 		local joined = session.join(actor)
 		if not joined.ok then
 			return joined.reason
@@ -152,7 +170,124 @@ function M.new(ctx: any): any
 		source.expedition = factory.expeditionStore.snapshot(actor).archipelago
 		return api.enter("archipelago", actor)
 	end
+	local commandSequence = 0
+	local function command(actor: string, action: string, args: { any }): any
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		session.advance(ctx.clock.now())
+		commandSequence += 1
+		local qualified = "survival-coop:" .. action
+		local result = session.command(actor, {
+			requestId = "onboarding-" .. tostring(commandSequence),
+			sessionEpoch = session.commandEpoch(actor, qualified),
+			action = qualified,
+			args = args,
+		})
+		assert(result.ok or (result.data and result.data.status == "pending"), action .. ":" .. tostring(result.reason))
+		return result
+	end
+	local function gather(actor, item, count)
+		local node
+		for _, candidate in world.roleSource.nodes do
+			if candidate.id == "rw.home." .. item then
+				node = candidate
+			end
+		end
+		assert(node, "onboarding node missing: " .. item)
+		engine.move(actor, node.position)
+		for _ = 1, count do
+			local snapshot = factory.services.survivalGathering.snapshot(actor)
+			command(actor, "gather", { node.id, snapshot.version })
+			local settled = factory.services.survivalGathering.recover(actor, 8)
+			assert(settled.status == "confirmed", settled.error)
+		end
+	end
+	local function personal(actor)
+		return session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
+	end
+	local function craft(actor: string, recipeId: string, station: string?)
+		local recipe
+		for _, row in Content.recipes do
+			if row.id == recipeId then
+				recipe = row
+			end
+		end
+		assert(recipe, "onboarding recipe missing")
+		if station then
+			for _, anchor in world.layout.anchors do
+				if anchor.id == station then
+					engine.move(actor, anchor.position)
+				end
+			end
+		end
+		local result = command(actor, "craft-reserve", { recipeId, station or "hand" })
+		local job = result.data.jobId
+		command(actor, "craft-start", { job })
+		ctx.clock.advanceTo(ctx.clock.now() + recipe.craftMillis / 1000)
+		command(actor, "craft-complete", { job })
+	end
+	function api.onboarding(actor)
+		local refused = api.expedition(actor)
+		if refused ~= "level_gate" then
+			return "fresh_entry_gate_missing"
+		end
+		gather(actor, "branch", 4)
+		gather(actor, "stone", 2)
+		gather(actor, "fiber", 1)
+		craft(actor, "campfire-kit", nil)
+		craft(actor, "dry-twig", "station.campfire.t1")
+		craft(actor, "starter-axe", "station.workbench.t1")
+		for id, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "starter-axe" then
+				api.axe = id
+			end
+		end
+		assert(api.axe, "starter axe was not crafted")
+		engine.equip(world, actor, api.axe)
+		local wood
+		for _, node in world.roleSource.nodes do
+			if node.id == "rw.home.extra-0" then
+				wood = node
+			end
+		end
+		engine.move(actor, wood.position)
+		for _ = 1, 2 do
+			command(actor, "gather", { wood.id, factory.services.survivalGathering.snapshot(actor).version })
+			assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", "wood recovery")
+		end
+		engine.move(actor, source.tribe.warehousePosition)
+		for id, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "wood" then
+				command(actor, "transfer-deposit", { id, item.quantity })
+			end
+		end
+		assert(session.recoverTransfers(actor, 8).ok, "deposit recovery")
+		engine.move(actor, { x = 2, y = 2, z = -14 })
+		local shared = session.snapshot(actor).survivalSettlement
+		local reservation = command(actor, "settlement-reserve", {
+			"campfire",
+			8,
+			1,
+			0,
+			shared.settlement.version,
+			shared.warehouse.version,
+			shared.settlement.membershipRevision,
+		})
+		shared = session.snapshot(actor).survivalSettlement
+		command(
+			actor,
+			"settlement-place",
+			{ reservation.data.reservationId, shared.settlement.version, shared.warehouse.version }
+		)
+		engine.move(actor, { x = -12, y = 2, z = -16 })
+		command(actor, "rest", { "station.campfire.t1" })
+		local development = factory.expeditionStore.snapshot(actor).development
+		if development.points < 200 or personal(actor).progression.level < 2 then
+			return "onboarding_progress_missing"
+		end
+		return nil
+	end
 	function api.gather(actor)
+		engine.equip(world, actor, api.axe)
 		local node = world.roleSource.nodes[1]
 		for _, candidate in world.roleSource.nodes do
 			if candidate.id == "rw.a1.s1.material.wood" then
@@ -164,14 +299,18 @@ function M.new(ctx: any): any
 			local action = "survival-coop:gather"
 			local epoch = session.commandEpoch(actor, action)
 			local snapshot = factory.services.survivalGathering.snapshot(actor)
-			local result = session.commandServer(actor, {
+			local result = session.command(actor, {
 				requestId = "world-gather-" .. tostring(index),
 				sessionEpoch = epoch,
 				action = action,
-				args = { node.id, snapshot.nodes[node.id].version },
+				args = { node.id, snapshot.version },
 			})
-			if not result.ok then
-				return result.reason
+			if not result.ok and (not result.data or result.data.status ~= "pending") then
+				return result.reason or "gather_failed"
+			end
+			local settled = factory.services.survivalGathering.recover(actor, 8)
+			if settled.status ~= "confirmed" then
+				return settled.error or "gather_not_finalized"
 			end
 		end
 		return nil
@@ -187,6 +326,10 @@ function M.new(ctx: any): any
 		return nil
 	end
 	function api.returnReload(actor)
+		local expedition = factory.expeditionStore.snapshot(actor).archipelago
+		if not expedition.completed["rw.a1.s1.gather"] or not expedition.completed["rw.a1.s1.survey"] then
+			return "objectives_not_persisted"
+		end
 		local before =
 			Data.clone(session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.inventory)
 		local home = factory.homeOwner().snapshot(actor)
@@ -203,8 +346,8 @@ function M.new(ctx: any): any
 			return reason
 		end
 		local after = session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.inventory
-		local serde = require("@lune/serde")
-		if serde.encode("json", before) ~= serde.encode("json", after) then
+		local Journal = require("../../../../core/domain/command/Journal")
+		if Journal.hash(before) ~= Journal.hash(after) then
 			return "inventory_changed"
 		end
 		local loaded = factory.homeOwner().snapshot(actor)

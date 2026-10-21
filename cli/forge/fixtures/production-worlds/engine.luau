@@ -88,7 +88,10 @@ function M.new(): any
 	end
 	local workspace = instance("Workspace")
 	workspace.Terrain = { FillBlock = function() end }
-	workspace.Raycast = function()
+	workspace.Raycast = function(_, origin: any, direction: any): any
+		if direction.Y < 0 and direction.X == 0 and direction.Z == 0 then
+			return { Position = origin + direction, Normal = roblox.Vector3.yAxis }
+		end
 		return nil
 	end
 	workspace.GetPartBoundsInBox = function()
@@ -157,34 +160,32 @@ function M.new(): any
 		end,
 	}
 	local function load(path: string, dependencies: any, scriptObject: any): any
-		return luau.load(
-			fs.readFile(path),
-			{
-				environment = {
-					game = game,
-					workspace = workspace,
-					Instance = { new = instance },
-					Vector3 = roblox.Vector3,
-					CFrame = roblox.CFrame,
-					Color3 = roblox.Color3,
-					Enum = roblox.Enum,
-					RaycastParams = {
-						new = function()
-							return {}
-						end,
-					},
-					OverlapParams = {
-						new = function()
-							return {}
-						end,
-					},
-					script = scriptObject,
-					require = function(key)
-						return if type(key) ~= "string" then key else dependencies[key] or {}
+		return luau.load(fs.readFile(path), {
+			environment = {
+				task = require("@lune/task"),
+				game = game,
+				workspace = workspace,
+				Instance = { new = instance },
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Color3 = roblox.Color3,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
 					end,
 				},
-			}
-		)()
+				OverlapParams = {
+					new = function()
+						return {}
+					end,
+				},
+				script = scriptObject,
+				require = function(key)
+					return if type(key) ~= "string" then key else dependencies[key] or {}
+				end,
+			},
+		})()
 	end
 	local module = forge.genres["survival-coop"].module
 	module.SurvivalWorld = load("genres/survival-coop/module/SurvivalWorld.luau", {
@@ -195,6 +196,7 @@ function M.new(): any
 			new = function()
 				return {
 					register = function() end,
+					publish = function() end,
 					destroy = function() end,
 					access = function()
 						return nil
@@ -228,6 +230,11 @@ function M.new(): any
 		role = role,
 		home = home,
 		archipelago = archipelago,
+		equip = function(world, actor, itemId)
+			local tool = instance("Tool")
+			tool.Parent = actors[actor].Character
+			world.registerTool(tool, actor, itemId)
+		end,
 		move = function(actor, position)
 			local player = actors[actor]
 			if not player then

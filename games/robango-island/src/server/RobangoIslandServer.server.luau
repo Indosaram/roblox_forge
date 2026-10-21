@@ -294,6 +294,15 @@ liveWorld.travel = function(player: Player, destination: string)
 		if not opened.ok and opened.reason ~= "expedition_active" then
 			return false, opened.reason
 		end
+	elseif destination == "next-island" then
+		local advanced = (factory :: any).archipelago.nextIsland(tostring(player.UserId))
+		if not advanced.ok then
+			return false, advanced.reason
+		end
+		local document = (factory :: any).expeditionStore.snapshot(tostring(player.UserId))
+		destination = if document.archipelago.status == "complete" then "home" else "archipelago"
+	elseif destination == "home" and worldRole == "archipelago" then
+		return (factory :: any).archipelago.recover(tostring(player.UserId), "return")
 	end
 	return if routing.travel then routing.travel(player, destination) else false
 end

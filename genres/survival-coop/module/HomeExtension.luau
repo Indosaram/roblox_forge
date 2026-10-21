@@ -131,8 +131,34 @@ function M.new(config: any): any
 		if not token then
 			return nil, reason
 		end
-		if not Home.allowed(token.data.home, actor, "visit", config.facts(actor, owner)) then
+		local facts = config.facts(actor, owner)
+		if not Home.allowed(token.data.home, actor, "visit", facts) then
 			return nil, "FORBIDDEN"
+		end
+		if actor == owner then
+			local slots = config.rules.baseSlots
+			for id, extra in config.rules.storageGrants do
+				if (facts.entitlements or {})[id] == true then
+					slots += extra
+				end
+			end
+			if slots ~= token.data.home.storageSlots then
+				local updated, updateError = store:update(token, function(data)
+					local home, capacityError = Home.apply(data.home, actor, Home.identity(owner), "capacity", {}, {
+						rules = config.rules,
+						facts = facts,
+						entitlements = facts.entitlements or {},
+					})
+					assert(home, capacityError)
+					data.home = home
+					return data
+				end)
+				if not updated then
+					return nil, updateError
+				end
+				token = updated
+				tokens[owner] = updated
+			end
 		end
 		attached[actor] = owner
 		if config.publish then

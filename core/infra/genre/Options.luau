@@ -14,6 +14,7 @@ export type Control = {
 	kind: "button" | "prompt" | "player-button",
 }
 export type Services = {
+	survivalContent: any?,
 	survivalSpatial: any?,
 	survivalDeath: any?,
 	survivalSettlement: any?,
@@ -198,6 +199,13 @@ function M.validate(options: Options): ()
 	if options.services then
 		local ports: { [string]: any } = options.services :: any
 		for name, port in ports do
+			if name == "survivalContent" then
+				assert(
+					type(port) == "table" and (port.version == 1 or port.version == 2),
+					"services: invalid survival content"
+				)
+				continue
+			end
 			if name == "survivalExtensions" then
 				M.validateExtensions(port)
 				continue

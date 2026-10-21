@@ -70,7 +70,7 @@ local FILES: { [string]: string } = {
 M.FILES = FILES
 
 local CONTENT_CATALOGS = { "items", "recipes", "nodes", "structures", "wildlife" }
-local CONTENT_SCALARS = { "rules", "limits", "vitals", "tags" }
+local CONTENT_SCALARS = { "rules", "limits", "vitals", "tags", "homePolicy" }
 local LOCALE_PROV_HEADER = { "Key", "source", "author", "created" }
 
 local ZERO_WIDTH: { [number]: boolean } = {

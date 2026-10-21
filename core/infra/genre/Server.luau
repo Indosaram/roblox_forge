@@ -44,6 +44,7 @@ function M.start(options: Options): ServerSession
 			encode = function(value)
 				return HttpService:JSONEncode(value)
 			end,
+			survivalContent = if options.services then options.services.survivalContent else nil,
 			survivalSpatial = if options.services then options.services.survivalSpatial else nil,
 			survivalDeath = if options.services then options.services.survivalDeath else nil,
 			survivalSettlement = if options.services then options.services.survivalSettlement else nil,

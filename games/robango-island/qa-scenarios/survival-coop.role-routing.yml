@@ -15,9 +15,11 @@ steps:
   - {op: expect_result, player: owner, field: reason, equals: level_gate}
   - {op: role_travel, player: owner, from: harbor, destination: invalid, level: 60, objectives: 2, expect: refused}
   - {op: expect_result, player: owner, field: reason, equals: unknown_target_role}
-  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 30, objectives: 1, expect: refused}
+  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 1, objectives: 2, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: level_gate}
+  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 2, objectives: 1, expect: refused}
   - {op: expect_result, player: owner, field: reason, equals: mission_gate}
-  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 30, objectives: 2}
+  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 2, objectives: 2}
   - {op: expect_result, player: owner, field: data.teleports, equals: 1}
   - {op: resume_handoff, player: owner}
   - {op: close, player: owner}

@@ -117,7 +117,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			return configured.renderRole(c, s, w, now, state.templateId .. ".s" .. tostring(state.stage), state.seed)
 		end
 		for _, region in content.supportRegions or {} do
-			if region.role ~= "home" then
+			if region.role ~= "home" and configured.roleBuilders[region.role] == nil then
 				configured.roleBuilders[region.role] = function(c, s, w, now)
 					return require(script.Parent.RoleWorld).build(c, s, w, now, region.layout, configured.seed)
 				end

@@ -1280,7 +1280,8 @@ items:
     name: "Starter Axe"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "tool"
     maxDurabilityMilli: 100000
   -
     id: "starter-pickaxe"
@@ -12369,7 +12370,7 @@ homePolicy:
   dockSize: {x: 12, y: 1, z: 8}
   padSize: {x: 6, y: 1, z: 6}
   structureSize: {x: 4, y: 2, z: 4}
-  baseSlots: 40
+  baseSlots: 20
   labRank: 3
   floors: [0, 8, 16]
 layouts:
@@ -23858,13 +23859,13 @@ layouts:
     id: "rw.home"
     bounds:
       min:
-        x: -160
+        x: -32
         y: 0
-        z: -160
+        z: -32
       max:
-        x: 160
+        x: 32
         y: 28
-        z: 160
+        z: 32
     biomes:
       - "grassland"
     anchors:
@@ -23873,19 +23874,19 @@ layouts:
         position:
           x: 0
           y: 2
-          z: 136
+          z: 28
       -
         id: "resources"
         position:
-          x: -132
+          x: -12
           y: 2
-          z: 80
+          z: 8
       -
         id: "hazard"
         position:
-          x: 144
+          x: 24
           y: 2
-          z: -120
+          z: -24
       -
         id: "objective"
         position:
@@ -23897,7 +23898,7 @@ layouts:
         position:
           x: 0
           y: 2
-          z: 144
+          z: 28
       -
         id: "station-pad"
         position:
@@ -23931,23 +23932,23 @@ layouts:
       -
         id: "station.campfire.t1"
         position:
-          x: -132
+          x: -12
           y: 2
-          z: 52
+          z: -16
       -
         id: "station.workbench.t1"
         position:
-          x: -116
+          x: 0
           y: 2
-          z: 52
+          z: -16
     resourceNodes:
       -
         id: "rw.home.branch"
         item: "branch"
         position:
-          x: -150
+          x: -24
           y: 2
-          z: 68
+          z: 0
         stock: 60
         level: 1
         yield: 3
@@ -23956,9 +23957,9 @@ layouts:
         id: "rw.home.stone"
         item: "stone"
         position:
-          x: -138
+          x: -16
           y: 2
-          z: 68
+          z: 0
         stock: 40
         level: 1
         yield: 3
@@ -23967,9 +23968,9 @@ layouts:
         id: "rw.home.fiber"
         item: "fiber"
         position:
-          x: -126
+          x: -8
           y: 2
-          z: 68
+          z: 0
         stock: 40
         level: 1
         yield: 3
@@ -23978,9 +23979,9 @@ layouts:
         id: "rw.home.berry"
         item: "berry"
         position:
-          x: -114
+          x: 0
           y: 2
-          z: 68
+          z: 0
         stock: 20
         level: 1
         yield: 3
@@ -23989,9 +23990,9 @@ layouts:
         id: "rw.home.water"
         item: "water"
         position:
-          x: -150
+          x: -24
           y: 2
-          z: 80
+          z: 8
         stock: 30
         level: 1
         yield: 3
@@ -24000,9 +24001,9 @@ layouts:
         id: "rw.home.extra-0"
         item: "wood"
         position:
-          x: -138
+          x: -16
           y: 2
-          z: 80
+          z: 8
         stock: 20
         level: 1
         yield: 3
@@ -24012,9 +24013,9 @@ layouts:
         id: "rw.home.extra-1"
         item: "flint"
         position:
-          x: -126
+          x: -8
           y: 2
-          z: 80
+          z: 8
         stock: 12
         level: 1
         yield: 3
@@ -24027,9 +24028,9 @@ layouts:
         id: "rw.home.extra-2"
         item: "corn-seed"
         position:
-          x: -114
+          x: 0
           y: 2
-          z: 80
+          z: 8
         stock: 2
         level: 1
         yield: 3
@@ -24038,9 +24039,9 @@ layouts:
         id: "rw.home.extra-3"
         item: "potato-seed"
         position:
-          x: -138
+          x: -16
           y: 2
-          z: 92
+          z: 16
         stock: 2
         level: 1
         yield: 3
@@ -24055,15 +24056,15 @@ layouts:
           -
             x: 0
             y: 2
-            z: 136
+            z: 28
           -
             x: 0
             y: 2
             z: 24
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
             x: 0
             y: 2
@@ -24071,7 +24072,7 @@ layouts:
           -
             x: 0
             y: 2
-            z: 144
+            z: 28
         width: 16
       -
         id: "rw.home.dock-home"
@@ -24079,11 +24080,11 @@ layouts:
           -
             x: 0
             y: 2
-            z: 136
+            z: 28
           -
             x: 0
             y: 2
-            z: 120
+            z: 20
           -
             x: 0
             y: 2
@@ -24095,123 +24096,123 @@ layouts:
           -
             x: 0
             y: 2
-            z: 136
+            z: 28
           -
-            x: -132
+            x: -12
             y: 2
-            z: 120
+            z: 20
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
         width: 16
       -
         id: "rw.home.resource-3"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -150
+            x: -24
             y: 2
-            z: 68
+            z: 0
         width: 8
       -
         id: "rw.home.resource-4"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -138
+            x: -16
             y: 2
-            z: 68
+            z: 0
         width: 8
       -
         id: "rw.home.resource-5"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -126
+            x: -8
             y: 2
-            z: 68
+            z: 0
         width: 8
       -
         id: "rw.home.resource-6"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -114
+            x: 0
             y: 2
-            z: 68
+            z: 0
         width: 8
       -
         id: "rw.home.resource-7"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -150
+            x: -24
             y: 2
-            z: 80
+            z: 8
         width: 8
       -
         id: "rw.home.resource-8"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -138
+            x: -16
             y: 2
-            z: 80
+            z: 8
         width: 8
       -
         id: "rw.home.resource-9"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -126
+            x: -8
             y: 2
-            z: 80
+            z: 8
         width: 8
       -
         id: "rw.home.resource-10"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -114
+            x: 0
             y: 2
-            z: 80
+            z: 8
         width: 8
       -
         id: "rw.home.resource-11"
         points:
           -
-            x: -132
+            x: -12
             y: 2
-            z: 80
+            z: 8
           -
-            x: -138
+            x: -16
             y: 2
-            z: 92
+            z: 16
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -29143,7 +29144,7 @@ stages:
     id: "rw.a1.s1.gather"
     layout: "rw.a1.s1"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29157,7 +29158,7 @@ stages:
     id: "rw.a1.s1.survey"
     layout: "rw.a1.s1"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29171,7 +29172,7 @@ stages:
     id: "rw.a1.s2.craft"
     layout: "rw.a1.s2"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s1.gather"
@@ -29188,7 +29189,7 @@ stages:
     id: "rw.a1.s2.rescue"
     layout: "rw.a1.s2"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s1.gather"
@@ -29205,7 +29206,7 @@ stages:
     id: "rw.a1.s3.hunt"
     layout: "rw.a1.s3"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s2.craft"
@@ -29222,7 +29223,7 @@ stages:
     id: "rw.a1.s3.transport"
     layout: "rw.a1.s3"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s2.craft"
@@ -29239,7 +29240,7 @@ stages:
     id: "rw.a1.s4.survey"
     layout: "rw.a1.s4"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s3.hunt"
@@ -29256,7 +29257,7 @@ stages:
     id: "rw.a1.s4.hunt"
     layout: "rw.a1.s4"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
       completed:
         - "rw.a1.s3.hunt"
@@ -29888,7 +29889,7 @@ missions:
   -
     id: "rw.m1.gather"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29914,7 +29915,7 @@ missions:
   -
     id: "rw.m1.craft"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29940,7 +29941,7 @@ missions:
   -
     id: "rw.m1.survey"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29972,7 +29973,7 @@ missions:
   -
     id: "rw.m1.rescue"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -29998,7 +29999,7 @@ missions:
   -
     id: "rw.m1.hunt"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -
@@ -30032,7 +30033,7 @@ missions:
   -
     id: "rw.m1.transport"
     gates:
-      characterLevel: 30
+      characterLevel: 2
       developmentRank: 2
     objectives:
       -

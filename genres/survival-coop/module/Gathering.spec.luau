@@ -70,6 +70,20 @@ end
 local context = { actorId = "alice", sessionEpoch = 0, requestId = "gather" }
 
 return {
+	["authored resource level survives harvest and inventory restoration"] = function()
+		local content, nodes, bag, access = fixture()
+		local node = table.clone(nodes.nodes["bush-1"])
+		node.level = 30
+		local state = Gathering.new("world-1", content, { node })
+		local candidate, reason = Gathering.gather(state, bag, context, content, "bush-1", 0, access)
+		assert(candidate, reason)
+		local saved = Inventory.fromSave(Inventory.save(candidate.inventory), Job.catalog(content))
+		for _, id in candidate.itemIds do
+			assert(saved.items[id].attributes.level == 30, "gathered seeds and materials retain authored level")
+		end
+		node.level = 0
+		assert(not pcall(Gathering.new, "world-1", content, { node }), "invalid authored level rejected")
+	end,
 	["durable harvest uses the native quality scaled maximum"] = function()
 		local content, nodes, bag, access = fixture()
 		content.nodes[1].harvest = { { item = "knife", quantity = 1 } }
