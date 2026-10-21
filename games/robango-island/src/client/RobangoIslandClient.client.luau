@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Forge = ReplicatedStorage:WaitForChild("Forge")
 local Shared = Forge.games["robango-island"].src.shared
 
-local audio = require(script.Parent.RobangoAudio).start(
+local audio = require(script.Parent:WaitForChild("RobangoAudio")).start(
 	require(Forge.core.infra.audio.SoundBank),
 	require(Forge.genres["survival-coop"].module.AudioDirector),
 	require(Shared.Assets),
@@ -18,6 +18,19 @@ gui.Destroying:Connect(audio.destroy)
 -- The pack ships en-us and ko-kr; every survival-coop view picks Korean from a "ko" prefix.
 local locale = game:GetService("Players").LocalPlayer.LocaleId
 local names = require(Shared.EntityNames)(locale)
+local function localizeJournal(object: Instance)
+	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
+		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "일지 확인" else "Journal checkpoint"
+		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "일지" else "Journal"
+	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgePanel") then
+		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "대화 / 이용" else "Talk / use"
+		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "항구 안내" else "Harbor guide"
+	end
+end
+workspace.DescendantAdded:Connect(localizeJournal)
+for _, object in workspace:GetDescendants() do
+	localizeJournal(object)
+end
 
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
 local gathering = GatheringClient.start({ locale = locale, names = names })
@@ -209,6 +222,13 @@ table.insert(panelFactories, function(ctx)
 			["clan.withdraw"] = { "Withdraw", "출금" },
 			["clan.level"] = { "Level", "레벨" },
 			["clan.territory"] = { "Territory", "영토" },
+			["ui.outpost"] = { "Team outpost", "팀 거점" },
+			["outpost.owner"] = { "Owner", "소유 부족" },
+			["outpost.remaining"] = { "Seconds remaining", "남은 시간" },
+			["outpost.active"] = { "Capture in progress", "점령 진행 중" },
+			["outpost.settled"] = { "Match finished", "경기 종료" },
+			["outpost.winner"] = { "Winner", "승리 부족" },
+			["outpost.opt-in"] = { "Join team queue", "팀 대기열 참가" },
 		}
 		local row = labels[key]
 		return if row then row[if korean then 2 else 1] else key
@@ -284,6 +304,10 @@ table.insert(panelFactories, function(ctx)
 		return ctx.send("survival-coop:clan-" .. operation, { id, { amount = amount } })
 	end
 	local clanPanel = require(Forge.genres["survival-coop"].module.ClanPanel).factory(social)
+	social.outpostOptIn = function()
+		return ctx.send("survival-coop:outpost-queue", { "rw.team-outpost", { enabled = true } })
+	end
+	local outpostPanel = require(Forge.genres["survival-coop"].module.OutpostPanel).factory(social)
 	local create = ctx.ui.components.button(ctx.ui.theme.default, {
 		text = if korean then "부족 생성" else "Create clan",
 		size = UDim2.new(1, 0, 0, 48),
@@ -319,6 +343,7 @@ table.insert(panelFactories, function(ctx)
 			createConnection:Disconnect()
 			joinConnection:Disconnect()
 			clanPanel.destroy()
+			outpostPanel.destroy()
 			promptGui:Destroy()
 		end,
 	}

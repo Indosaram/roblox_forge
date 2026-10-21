@@ -1,24 +1,4 @@
 --!strict
--- TamingExtension: durable wiring of TamingRuntime into the running survival-coop game.
---
--- A pack supplies its policy through `configure` (no policy: the factory stays disabled).
--- Actions (declared in module/Contract.luau, served through Session's extension seam):
---   tame-hit {wildId}        fill the stun gauge of a present, tameable wild animal
---   tame-capture {wildId}    capture it with the capture tool held in the bag
---   tame-feed {animalId, feedId}   feed a penned animal one food item (by catalog id) from the bag
---   tame-mount {animalId} / tame-dismount {}
---
--- Persistence: one Fenced record per owner ("taming-v1:<actor>") holding the penned animals,
--- the active ride, a bounded request-receipt table and the record revision `rev` (also the
--- command result stateVersion). The record is the source of truth; TamingRuntime is a cache
--- that is rebuilt whenever `rev` moves. Wild gauges are ephemeral server state (they decay).
---
--- Bag charges (tool wear, one food item) touch the personal aggregate, which is a different
--- key, so they are two-phase: the receipt (with the charge descriptor and the bag version it
--- was staged against) commits first, then the bag is charged and the receipt marked charged.
--- A retry or `recover` resumes an uncharged receipt. The personal aggregate writes
--- the material debit and its receipt atomically, independent of unrelated bag revisions.
--- Randomness is TamingRuntime's recorded seed; time is the injected ctx.nowMillis.
 local Taming = require("../../../core/domain/taming/Taming")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local Job = require("../../../core/domain/crafting/Job")
@@ -65,14 +45,11 @@ local function fresh(): any
 end
 
 local function reject(reason: string, rev: number?): Shared.Result
-	-- A stateVersion settles the client's retained request; without one it is retried forever.
 	return { ok = false, reason = reason, stateVersion = rev, data = { status = "rejected" } }
 end
 
 local configured: Policy? = nil
 
---- A pack calls this once (before the bootstrap builds its extensions) with its taming policy;
---- without one the factory stays disabled.
 function M.configure(policy: Policy?)
 	if policy ~= nil then
 		assert(policy.version == 1, "TAMING_POLICY_VERSION")
@@ -141,7 +118,6 @@ function M.factory(ctx: any): any
 		return token, err
 	end
 
-	--- Reads the current committed record, (re)acquiring the lease when it was lost.
 	local function current(actor: string): (Fenced.Profile?, string?)
 		local token = tokens[actor]
 		if not token then
@@ -179,7 +155,6 @@ function M.factory(ctx: any): any
 		return updated, err
 	end
 
-	--- A receipt still owes work: an uncharged bag charge or an unapplied wild release.
 	local function open(receipt: any): boolean
 		return receipt ~= nil and (not receipt.charged or receipt.released == false)
 	end
@@ -222,7 +197,6 @@ function M.factory(ctx: any): any
 		return profile, err
 	end
 
-	-- Bag access -------------------------------------------------------------------------
 	local function bagOf(actor: string): (any?, Inventory.State?, string?)
 		local access = ctx.personalTransfer(actor)
 		if not access then
@@ -294,7 +268,6 @@ function M.factory(ctx: any): any
 		return if not saved then commitError or "PERSONAL_UNKNOWN" else reason or commitError
 	end
 
-	--- Charges one uncharged receipt and marks it. Returns an error reason on failure.
 	local function settle(actor: string, requestId: string): string?
 		local profile, readError = current(actor)
 		if not profile then
@@ -304,8 +277,6 @@ function M.factory(ctx: any): any
 		if not receipt then
 			return nil
 		end
-		-- A captured wild animal leaves the world through the wildlife owner (idempotent by
-		-- captureId), then the receipt records it so a replay never touches the world again.
 		if receipt.release and not receipt.released then
 			local release = receipt.release
 			local captureWild = ctx.captureWild
@@ -343,7 +314,6 @@ function M.factory(ctx: any): any
 		return if marked then nil else markError or "TAMING_UNAVAILABLE"
 	end
 
-	-- Commit helper: state change + receipt in one fenced update ------------------------
 	local function commit(
 		actor: string,
 		requestId: string,
@@ -394,7 +364,6 @@ function M.factory(ctx: any): any
 			local err = settle(actor, requestId)
 			if err then
 				unsettled[actor] = true
-				-- Receipt and state are durable; the charge resumes on retry or recover.
 				return { ok = false, reason = "CHARGE_PENDING", data = { status = "pending", detail = err } }
 			end
 			unsettled[actor] = nil
@@ -402,7 +371,6 @@ function M.factory(ctx: any): any
 		return result
 	end
 
-	-- Wild presence and reach --------------------------------------------------------------
 	local function wildState(wildId: string): (string?, string?)
 		local state = if ctx.wildlife then ctx.wildlife(wildId) else nil
 		if not state or state.healthMilli <= 0 then
@@ -447,7 +415,6 @@ function M.factory(ctx: any): any
 		return nil
 	end
 
-	-- Command handlers -----------------------------------------------------------------------
 	local handlers: { [string]: (string, string, { any }, Fenced.Profile) -> Shared.Result } = {}
 
 	handlers["tame-hit"] = function(actor, requestId, args, profile)
@@ -515,7 +482,6 @@ function M.factory(ctx: any): any
 		end
 		local animal = if attempt.animalId then runtime.animal(attempt.animalId) else nil
 		if attempt.captured and not animal and attempt.animalId then
-			-- A stored receipt replayed after a failed commit: rebuild the animal from it.
 			animal = {
 				id = attempt.animalId,
 				species = wildState(wildId) or "",
@@ -555,7 +521,6 @@ function M.factory(ctx: any): any
 					if not outcome.data.captured then
 						return nil
 					end
-					-- Fixed at commit time, so every retry or replay applies the same window.
 					return {
 						wildId = wildId,
 						captureId = actor .. ":" .. requestId,
@@ -673,8 +638,6 @@ function M.factory(ctx: any): any
 			end
 			return finish(actor, requestId, copy(known.result))
 		end
-		-- A committed animal/pen is not usable until its material debt settles.
-		-- A different request must never ride or feed around a failed charge.
 		for _, receipt in profile.data.receipts do
 			if open(receipt) then
 				return { ok = false, reason = "CHARGE_PENDING", data = { status = "pending" } }
@@ -683,8 +646,6 @@ function M.factory(ctx: any): any
 		return handlers[name](actor, requestId, args, profile)
 	end
 
-	--- Speed multiplier (permille) the rider's bag load gives while mounted: the species carry
-	--- raises the soft-weight threshold the existing speed penalty is measured against.
 	local function loadMilli(actor: string, carryMilli: number): number
 		local access = ctx.personalTransfer(actor)
 		local data = if access then access.profile().data.envelope.genres["survival-coop"].data else nil
@@ -698,8 +659,6 @@ function M.factory(ctx: any): any
 	end
 
 	function extension.snapshot(actor: string): (any?, string?)
-		-- Single owner per actor: the cached record is the truth, so a per-frame snapshot
-		-- never costs a backend read. Only the first read (or a lost cache) acquires.
 		local profile = tokens[actor]
 		if not profile or synced[actor] ~= profile.data.rev then
 			local ensured = ensure(actor)
@@ -750,7 +709,6 @@ function M.factory(ctx: any): any
 			animals = animals,
 			feeds = feeds,
 			captureTool = config.captureTool,
-			-- Read by the client stun/capture prompts: which wild species get a prompt, and its reach.
 			tameable = table.clone(config.tameable),
 			reachStuds = config.reachStuds,
 			ride = if ride
@@ -761,7 +719,6 @@ function M.factory(ctx: any): any
 					carryMilli = ride.carryMilli,
 				}
 				else nil,
-			-- Read by the world's Heartbeat: the server, never the client, sets WalkSpeed.
 			walkSpeedStuds = if ride then ride.speedStuds else nil,
 			loadMilli = if ride then loadMilli(actor, ride.carryMilli) else nil,
 		},

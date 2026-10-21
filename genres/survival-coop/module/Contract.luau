@@ -76,6 +76,7 @@ local contract: Shared.RuntimeContract = {
 		{ id = "brawl-reward", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
 		{ id = "journal-open", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "journal-claim", args = {}, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "journal-interact", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "mission-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "home-deposit",
@@ -383,6 +384,7 @@ local contract: Shared.RuntimeContract = {
 		"brawl-reward",
 		"journal-open",
 		"journal-claim",
+		"journal-interact",
 		"audio-settings",
 		"score-share",
 		"ensemble-join",

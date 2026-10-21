@@ -1,8 +1,4 @@
 --!strict
--- Registry of client panels for survival-coop extensions. Each factory receives
--- the shared UI kit, a durable `send`, a snapshot subscription delivering
--- snapshot.survivalExtensions, and the locale; it returns { destroy }.
--- Packs only call `start`; panel code lives in this genre.
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
 local HUDModel = require("./SurvivalHUDModel")
@@ -11,16 +7,9 @@ export type Context = {
 	ui: any,
 	locale: string,
 	send: (string, { any }) -> any,
-	-- The listener gets snapshot.survivalExtensions and, second, the whole packet
-	-- (snapshots, roster, ...) for panels that also read another snapshot slice.
 	onSnapshot: (({ [string]: any }, { [string]: any }) -> ()) -> () -> (),
-	-- Registers a launcher button in the shared panel dock. Opening one docked panel closes
-	-- the others, so two sheets never stack. `available` hides the button while the panel
-	-- has nothing to show. Absent in headless contexts; panels must tolerate nil.
 	dock: ((DockEntry) -> DockHandle)?,
-	-- Sizes and centers a modal sheet frame for the live viewport (phone and desktop).
 	fitSheet: ((any) -> ())?,
-	-- The dock column's objective slot: panels may parent one tracker label here.
 	objectiveSlot: any?,
 }
 export type DockEntry = {
@@ -37,7 +26,6 @@ export type DockHandle = {
 export type Panel = { destroy: () -> () }
 export type Factory = (Context) -> Panel?
 
--- Roblox globals are read from the environment so this module also type-checks under lune.
 local env: any = getfenv()
 local game: any = env.game
 local task: any = env.task
@@ -46,20 +34,14 @@ local Enum: any = env.Enum
 local UDim: any = env.UDim
 local UDim2: any = env.UDim2
 local Vector2: any = env.Vector2
+local RaycastParams: any = env.RaycastParams
 
 local M = {}
--- Pure placement of the docked panel sheet for a viewport (specced): never wider than 440 or
--- taller than 520, always inside a 12px margin, centered.
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
 	return math.min(440, size.x), math.min(520, math.floor(height * 0.7), size.y)
 end
 
--- Pure placement of a sheet (specced): its top-left corner and height. Centered unless that covers
--- the chat window in the top-left corner. Then the sheet keeps its centered column and starts below
--- the chat, shortened to fit, when at least 240 px remain; the right side belongs to the survival HUD
--- stack, so moving sideways would trade the chat overlap for a HUD overlap. Only when the space below
--- is too short does it move beside the chat, and a viewport too small for both keeps it centered.
 function M.sheetPosition(
 	width: number,
 	height: number,
@@ -83,15 +65,11 @@ function M.sheetPosition(
 	return x, y, sheetHeight
 end
 
--- Pure dock placement (specced): a portrait or short phone viewport puts the column at the
--- left edge's vertical center, clear of the chat (top) and the thumbstick (bottom); a desktop
--- viewport anchors it bottom-left where no touch controls exist.
 function M.dockPlacement(width: number, height: number, touch: boolean): string
 	return if touch or height > width then "left-center" else "bottom-left"
 end
 
 M.factories = {
-	-- Append panel factories here (one require of ./<Name>Panel per line, then .factory).
 	require("./ContractsPanel").factory,
 	require("./TamingPanel").factory,
 	require("./CampPanel").factory,
@@ -132,10 +110,6 @@ function M.start(options: {
 		if type(packet.snapshots) == "table" then
 			latest = packet.snapshots.survivalExtensions or {}
 			latestPacket = packet
-			-- The server republishes about once a second even when nothing changed, and every
-			-- panel rebuilds its buttons on delivery; a tap whose press and release straddled a
-			-- rebuild landed on a destroyed button and did nothing (live shop/camp captures).
-			-- Panels are re-rendered only when the snapshots they read actually changed.
 			local ok, encoded = pcall(http.JSONEncode, http, packet.snapshots)
 			if ok and encoded == lastEncoded then
 				return
@@ -164,9 +138,6 @@ function M.start(options: {
 			if not ok then
 				return { ok = false, reason = "TRANSPORT_FAILED: " .. tostring(result) }
 			end
-			-- An accepted command or a definitive refusal is a settled outcome even when the extension
-			-- returns no stateVersion (zone-set, contract and camp actions); keeping a settled request
-			-- pending made the next press replay its old args forever.
 			local inFlight = type(result) == "table"
 				and (
 					result.reason == "COMMAND_PENDING"
@@ -213,15 +184,10 @@ function M.start(options: {
 	local slotLayout = Instance.new("UIListLayout")
 	slotLayout.Padding, slotLayout.SortOrder = UDim.new(0, 6), Enum.SortOrder.LayoutOrder
 	slotLayout.Parent = objectiveSlot
-	-- Docked launchers sit in their own list under a Menu toggle. A phone starts collapsed so
-	-- the column never covers the avatar; a desktop starts expanded.
 	local menuList = Instance.new(if contextual then "ScrollingFrame" else "Frame")
 	menuList.Name, menuList.BackgroundTransparency, menuList.LayoutOrder = "Menu", 1, 2
 	menuList.Size, menuList.AutomaticSize = UDim2.fromOffset(176, 0), Enum.AutomaticSize.Y
 	menuList.Parent = column
-	-- A grid, not a list: one launcher per row ran six launchers 276 px tall, past the bottom
-	-- of a landscape phone (843x369 capture: Camp and below unreachable). The cell width
-	-- follows the column, two per row when compact.
 	local menuLayout = Instance.new("UIGridLayout")
 	menuLayout.CellPadding, menuLayout.SortOrder = UDim2.fromOffset(6, 6), Enum.SortOrder.LayoutOrder
 	menuLayout.CellSize = UDim2.fromOffset(176, 44)
@@ -236,8 +202,6 @@ function M.start(options: {
 	local entries: { DockEntry } = {}
 	local sheets: { any } = {}
 	local ui = options.ui
-	-- The dock and every extension panel share the survival HUD's forest-and-sage palette so
-	-- launchers and modal sheets read as one cohesive interface.
 	local theme = ui
 		and ui.theme
 		and ui.theme.merge(ui.theme.default, {
@@ -280,8 +244,6 @@ function M.start(options: {
 		local size = viewport()
 		return input.TouchEnabled or size.X < 700
 	end
-	-- Bottom edge (in dock coordinates) of the visible Roblox chat window, 0 when absent.
-	-- The chat window's right and bottom edges in dock space (0, 0 when no chat is shown).
 	local function actuallyVisible(item: any, stopAt: any): boolean
 		local current: any = item
 		while current ~= nil and current ~= stopAt do
@@ -369,25 +331,16 @@ function M.start(options: {
 			lastCompact = isCompact
 			menuList.Visible = not isCompact
 		end
-		-- Compact phone viewports get a two-wide launcher grid (three rows for six panels)
-		-- so even an open menu fits between the chat and the bottom safe area.
 		local twoWide = isCompact
-		-- Cells are absolute pixels: the launchers carry a 44 px minimum-size constraint that
-		-- collapses scale-sized grid cells to zero width.
 		local columnWidth = if isCompact then 132 else 176
 		column.Size = UDim2.fromOffset(columnWidth, 0)
 		menuList.Size = UDim2.fromOffset(if twoWide then columnWidth * 2 + 6 else columnWidth, 0)
 		menuLayout.CellSize = UDim2.fromOffset(columnWidth, 44)
 		menuToggle.Visible = isCompact
 		if M.dockPlacement(size.X, size.Y, input.TouchEnabled) == "left-center" then
-			-- The Roblox chat owns the top-left corner. Centering alone put the open menu's first
-			-- launcher under a tall chat window (Studio scenario, mobile: chat bottom y 379 vs
-			-- Dock-contracts y 376), so the column starts below the chat's live footprint.
 			local chatBottom = chatBottomEdge()
 			local totalH = dockHeight()
 			local centered = math.floor(size.Y / 2 - totalH / 2)
-			-- Reserve the bottom-left thumbstick area on touch screens when it fits; never push
-			-- the last launcher past the bottom edge.
 			local reserve = if input.TouchEnabled then 116 else 8
 			local aboveStick = math.max(8, size.Y - totalH - reserve)
 			local lowest = math.min(math.max(chatBottom, aboveStick), math.max(0, size.Y - totalH - 8))
@@ -405,8 +358,6 @@ function M.start(options: {
 		end
 	end
 	local resizeConnection = dockGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
-	-- The chat settles over the first seconds and the open menu changes the column height, so
-	-- placement follows both each frame and re-runs only when one changes.
 	local lastChatRight, lastChat, lastHeight = -1, -1, -1
 	local arrivalSent = false
 	local followConnection = game:GetService("RunService").Heartbeat:Connect(function()
@@ -435,23 +386,30 @@ function M.start(options: {
 				local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
 				if pivot and tracker then
 					local candidates = {}
+					local params = RaycastParams.new()
+					params.FilterType = Enum.RaycastFilterType.Exclude
+					params.FilterDescendantsInstances = { character }
+					params.RespectCanCollide = true
 					for _, node in game:GetService("CollectionService"):GetTagged("ForgeSurvivalNode") do
 						if
 							node:IsA("BasePart")
 							and node:IsDescendantOf(game:GetService("Workspace"))
 							and node:GetAttribute("ForgeNodeDepleted") == false
 						then
+							local hit = game:GetService("Workspace")
+								:Raycast(pivot.Position, node.Position - pivot.Position, params)
 							table.insert(candidates, {
 								target = node,
 								distance = (node.Position - pivot.Position).Magnitude,
 								available = (node:GetAttribute("ForgeNodeCount") or 0) > 0,
+								reachable = hit == nil or hit.Instance == node,
 							})
 						end
 					end
 					local nearest = HUDModel.nearestGatherable(candidates)
 					if nearest then
 						local target = nearest.target
-						local kind = target:GetAttribute("ForgeNodeKind")
+						local kind = target:GetAttribute("ForgeNodeItem") or target:GetAttribute("ForgeNodeKind")
 						local label = if options.names then options.names[kind] else nil
 						tracker.Text = string.format(
 							if string.sub(options.locale, 1, 2) == "ko" then "채집: %s (%dm)" else "Gather: %s (%dm)",
@@ -472,7 +430,6 @@ function M.start(options: {
 	end)
 	context.objectiveSlot = objectiveSlot
 	context.fitSheet = function(frame: any)
-		-- An open sheet is modal: its ScreenGui draws above the survival HUD (15) and the dock (16).
 		local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 		if owner then
 			owner.DisplayOrder = 20
@@ -539,8 +496,36 @@ function M.start(options: {
 		end
 	end
 	local destroyed = false
+	local harborConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, player)
+		if player and player ~= players.LocalPlayer then
+			return
+		end
+		local panel = prompt:GetAttribute("ForgePanel")
+		if type(panel) ~= "string" then
+			return
+		end
+		for _, entry in entries do
+			if entry.id == panel then
+				for _, other in entries do
+					if other.isOpen() then
+						other.setOpen(false)
+					end
+				end
+				entry.setOpen(true)
+				if options.onOpen then
+					options.onOpen()
+				end
+				return
+			end
+		end
+		for _, launcher in launchers do
+			if launcher.id == panel then
+				launcher.open()
+				return
+			end
+		end
+	end)
 	return {
-		-- Closes every open panel sheet (the survival HUD opening its own sheet calls this).
 		closeAll = function()
 			if contextual then
 				menuList.Visible = false
@@ -556,6 +541,7 @@ function M.start(options: {
 				return
 			end
 			destroyed = true
+			harborConnection:Disconnect()
 			connection:Disconnect()
 			resizeConnection:Disconnect()
 			followConnection:Disconnect()

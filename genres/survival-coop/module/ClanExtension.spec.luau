@@ -7,6 +7,50 @@ local Session = require("../../../core/infra/genre/Session")
 local Clan = require("../../../core/domain/settlement/Clan")
 local Ecology = require("./CombatEcology")
 return {
+	["fresh clan owner completes durable research without a wallet port"] = function()
+		local backend = Memory.new()
+		local now = 0
+		local store = Fenced.new(backend, {
+			sessionId = "research",
+			leaseSeconds = 10,
+			now = function(): number
+				return now
+			end,
+		})
+		local token = assert(store:acquire("clan:alpha", function(): any
+			local data = Clan.new("alpha", "owner")
+			data.jobs.job = { jobId = "job", definition = "advanced", finishAt = 20, cost = 100, status = "pending" }
+			return data
+		end))
+		assert(store:release(token), "release initial research fence")
+		now = 20
+		local extension = Extension.new({
+			store = function(): any
+				return store
+			end,
+			now = function(): number
+				return now
+			end,
+			owner = function(): string
+				return "owner"
+			end,
+			identity = function(): string
+				return "alpha"
+			end,
+			facts = function(): any
+				return { operations = { advanced = { effects = { { id = "advanced-capture", value = 1 } } } } }
+			end,
+		})
+		assert(extension.recover("owner", 8).pending == 0, "overdue research recovered")
+		local state = extension.snapshot("owner")
+		assert(
+			state.jobs.job.status == "completed" and state.research["advanced-capture"] == 1,
+			"research effect installed"
+		)
+		assert(extension.recover("owner", 8).pending == 0, "repeated recovery confirmed")
+		assert(extension.snapshot("owner").revision == state.revision, "completion is not paid twice")
+		assert(extension.close().ok, "release recovered research fence")
+	end,
 	["shared clan research changes the real capture eligibility outcome"] = function()
 		local clan = Clan.new("alpha", "owner")
 		clan.research["advanced-capture"] = 1

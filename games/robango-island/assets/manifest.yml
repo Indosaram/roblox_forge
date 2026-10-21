@@ -4,8 +4,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/bass.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83759716516280
+    moderation: Approved
     provenance:
       digest: sha256:336bf740612d9200f1d29326863ca108a36efc24a38f2edb4fb1cea47cde9a6c
       recipe:
@@ -26,8 +26,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/clarinet.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106396017898658
+    moderation: Approved
     provenance:
       digest: sha256:3b24cb226272bcda70320881c70454814fb912b8afec9f9fd3c4692115366fa4
       recipe:
@@ -48,8 +48,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/drums.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132500849580702
+    moderation: Approved
     provenance:
       digest: sha256:7f18ea99e9cc92794e8765a05723cc9815bd2d11623be483158bb11fe0174d73
       recipe:
@@ -70,8 +70,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/flute.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 138209911905116
+    moderation: Approved
     provenance:
       digest: sha256:3940a4eb696fa4dce46b2255723b9199c6b75a67d48810f814ba172f2a65f2fe
       recipe:
@@ -92,8 +92,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/guitar.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 99319584822835
+    moderation: Approved
     provenance:
       digest: sha256:c366f81998809cf88e1777522b303ad9d57b7197d11a0b2c90949e647a2e6463
       recipe:
@@ -114,8 +114,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/piano.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 93723238152989
+    moderation: Approved
     provenance:
       digest: sha256:9c35cbed0bbd7ddc889a40e42b472d8cbe3daf036e152ef9b4251fa73c96c263
       recipe:
@@ -136,8 +136,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/trumpet.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127116142720176
+    moderation: Approved
     provenance:
       digest: sha256:3ad855a6b929fda0fddd5f5a1c06d8166b33bc77429c71533de2b65da20e5841
       recipe:
@@ -158,8 +158,8 @@ assets:
     tool: forge-procgen
     source: "first-party deterministic instrument synthesis"
     path: assets/audio/instruments/violin.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128907182514898
+    moderation: Approved
     provenance:
       digest: sha256:d75dff6015cfdae75420753ca597290baf077b2d5f02547983d0d10373228fde
       recipe:
@@ -201,7 +201,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-action"
     path: assets/audio/survival-coop-action.wav
-    assetId: 0
+    assetId: 100703666653763
     moderation: Approved
     provenance:
       digest: sha256:cb84021766a3d733d806ff519cfad5f36fb54a2616263046858222f0719de731
@@ -223,7 +223,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-gather"
     path: assets/audio/survival-coop-gather.wav
-    assetId: 0
+    assetId: 104513343472594
     moderation: Approved
     provenance:
       digest: sha256:3c5acc932a3154a5c87c99a843f8a5d22c83403c442372ac1ba0d478f99342cf
@@ -245,7 +245,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-craft"
     path: assets/audio/survival-coop-craft.wav
-    assetId: 0
+    assetId: 78830475893867
     moderation: Approved
     provenance:
       digest: sha256:02ffff3bdc14a240b30d5dc37bd7fb491406562c3f74ba65f31adefcb6cc755a
@@ -267,7 +267,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-eat"
     path: assets/audio/survival-coop-eat.wav
-    assetId: 0
+    assetId: 121163369371430
     moderation: Approved
     provenance:
       digest: sha256:146622103f052a0c8203db7627f8f53df3952106ae98780bd7fcc464f081703a
@@ -289,7 +289,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-rest"
     path: assets/audio/survival-coop-rest.wav
-    assetId: 0
+    assetId: 110675272440079
     moderation: Approved
     provenance:
       digest: sha256:befe76d37e5f7e2bd27a91f33351c67c3ed5ddbbd1c8445e3ea6f259609d8236
@@ -311,7 +311,7 @@ assets:
     tool: forge-procgen
     source: "procedural audio/survival-coop-ambient"
     path: assets/audio/survival-coop-ambient.wav
-    assetId: 0
+    assetId: 98957834724705
     moderation: Approved
     provenance:
       digest: sha256:e70687415893238ef5fe284e64bf9ac8fb42cc122633aab7db595230ad9706c2
@@ -438,8 +438,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-onboarding"
     path: assets/audio/robango-bgm-onboarding.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130902558696165
+    moderation: Approved
     provenance:
       digest: sha256:82238541f6d925656e226eec8953b766916839f46ed0a8a67e69f765228ec7e7
       recipe:
@@ -13928,8 +13928,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-home"
     path: assets/audio/robango-bgm-home.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 89851069479425
+    moderation: Approved
     provenance:
       digest: sha256:b88560381d20828b602eaf2ec96ea1af53e075235d2f3f47f389bffba50e1b3d
       recipe:
@@ -13950,8 +13950,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-forest"
     path: assets/audio/robango-bgm-forest.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 121145434189412
+    moderation: Approved
     provenance:
       digest: sha256:06dfa334cc6703a72479ed4de2b84a0de1ad6fb6ff294fe718dbcff8ca47ced7
       recipe:
@@ -13972,8 +13972,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-grassland"
     path: assets/audio/robango-bgm-grassland.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97083562905981
+    moderation: Approved
     provenance:
       digest: sha256:bc75c39c5b17c1d21f7594da0a74be89d3db9d5161fba78f0a5885f58d77f31c
       recipe:
@@ -13994,8 +13994,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-tropical"
     path: assets/audio/robango-bgm-tropical.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92218992277738
+    moderation: Approved
     provenance:
       digest: sha256:a3c32f150000ea74252f7bd5a34504b20ab55239020900fb20854d9ccd345415
       recipe:
@@ -14016,8 +14016,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-snow"
     path: assets/audio/robango-bgm-snow.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115273497542725
+    moderation: Approved
     provenance:
       digest: sha256:2305ff1d17759037421c77162ce50e73f815937984be8650b9ecec8272099562
       recipe:
@@ -14038,8 +14038,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-volcano"
     path: assets/audio/robango-bgm-volcano.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 105350649376200
+    moderation: Approved
     provenance:
       digest: sha256:155498e4d5757f4a983ec38f8e93af9a1f51b8630fe66c362204266bd4bd3aee
       recipe:
@@ -14060,8 +14060,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-brawl"
     path: assets/audio/robango-bgm-brawl.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 91440307955112
+    moderation: Approved
     provenance:
       digest: sha256:5647086ba1e491561cd2d101d996012f669a8c0437e7d76d9e4f18e25f69d129
       recipe:
@@ -14082,8 +14082,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango bgm-market"
     path: assets/audio/robango-bgm-market.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 124584931521117
+    moderation: Approved
     provenance:
       digest: sha256:6b11211de92b35f52f2ac2b2bab5d747dcd5a31c7d7d706ef95a773299b9ec56
       recipe:
@@ -14104,8 +14104,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango combat-stinger"
     path: assets/audio/robango-combat-stinger.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118899076653999
+    moderation: Approved
     provenance:
       digest: sha256:b5a8d303a6f7b46b0c5139c00ff6f57dcca6435ac76ebe1c14b88707e7972853
       recipe:
@@ -14126,8 +14126,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango gather-wood"
     path: assets/audio/robango-gather-wood.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79316499934720
+    moderation: Approved
     provenance:
       digest: sha256:822dbb0dd224ebb8425b01b30779aa8f5c1dd80a0ca7fe2f6fdbe4a51595a338
       recipe:
@@ -14148,8 +14148,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango gather-stone"
     path: assets/audio/robango-gather-stone.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112010435820678
+    moderation: Approved
     provenance:
       digest: sha256:4677aee344ac691d09a664c158c54880fcd637f2159a77ab0b9b986dd83810bd
       recipe:
@@ -14170,8 +14170,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango gather-plant"
     path: assets/audio/robango-gather-plant.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 74924107630387
+    moderation: Approved
     provenance:
       digest: sha256:3e744b37e9657f66a4b79d72bd2348a4b36a1276c3d258b0fa0b9a4acbab731f
       recipe:
@@ -14192,8 +14192,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango craft-complete"
     path: assets/audio/robango-craft-complete.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136792153289265
+    moderation: Approved
     provenance:
       digest: sha256:43f6a7fa5e07b36228cae6b78c0abf2942c74aea026d46badbb98867930f76c2
       recipe:
@@ -14214,8 +14214,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango build-place"
     path: assets/audio/robango-build-place.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135469254957676
+    moderation: Approved
     provenance:
       digest: sha256:18b06abfbafa6f2def8bb5632b373948c94bee00962a25db5383bfd9246ddaff
       recipe:
@@ -14236,8 +14236,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango campfire"
     path: assets/audio/robango-campfire.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 104831568379670
+    moderation: Approved
     provenance:
       digest: sha256:5601e8c4ed7a85a10c6714add08ff4204dda4a60ad2a18b41f4823abac8997ff
       recipe:
@@ -14258,8 +14258,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango footstep-grass"
     path: assets/audio/robango-footstep-grass.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112376678796358
+    moderation: Approved
     provenance:
       digest: sha256:fc5ecad294f9cb8ec6691887ca096787527aa9f548e32e1d1c5704a4fca072e7
       recipe:
@@ -14280,8 +14280,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango footstep-sand"
     path: assets/audio/robango-footstep-sand.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139090850564313
+    moderation: Approved
     provenance:
       digest: sha256:1e59471c3166fdec0624754490ddb67a4e6326e006fad39b384aab5723c28408
       recipe:
@@ -14302,8 +14302,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango footstep-stone"
     path: assets/audio/robango-footstep-stone.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83835409871277
+    moderation: Approved
     provenance:
       digest: sha256:c95c6d681714a2582b59df492d85180a7db9cef744e9200f421d1b0d8e90f149
       recipe:
@@ -14324,8 +14324,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango attack"
     path: assets/audio/robango-attack.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 99772181882255
+    moderation: Approved
     provenance:
       digest: sha256:8186b1896858a5f62bd5cc376f5d28b76ea6d35815dd16efe044b3884801d675
       recipe:
@@ -14346,8 +14346,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango hit"
     path: assets/audio/robango-hit.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79316499934720
+    moderation: Approved
     provenance:
       digest: sha256:822dbb0dd224ebb8425b01b30779aa8f5c1dd80a0ca7fe2f6fdbe4a51595a338
       recipe:
@@ -14368,8 +14368,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango dodge"
     path: assets/audio/robango-dodge.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 95747560328996
+    moderation: Approved
     provenance:
       digest: sha256:fb8c69f8ef8d2daf3cdbee0422257eda1a8b56d3e6e02d216bfd41c02d270350
       recipe:
@@ -14390,8 +14390,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango guard"
     path: assets/audio/robango-guard.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139205491807900
+    moderation: Approved
     provenance:
       digest: sha256:54788e58716ce11cf8bb4823649df425b62eed8241e86ecddcb5b32819c56c1e
       recipe:
@@ -14412,8 +14412,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango tame-success"
     path: assets/audio/robango-tame-success.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132227824823805
+    moderation: Approved
     provenance:
       digest: sha256:993ba14f74035d4d39c2ac1d05ed5b27e9a06d4c79b2e5272617936519154cf5
       recipe:
@@ -14434,8 +14434,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango mount"
     path: assets/audio/robango-mount.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 104810645735651
+    moderation: Approved
     provenance:
       digest: sha256:637c4d0a7a477726f265b83d31c442e26908edff2cdb06a46b588c7ce0f0c47e
       recipe:
@@ -14456,8 +14456,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango ui-open"
     path: assets/audio/robango-ui-open.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80860347167934
+    moderation: Approved
     provenance:
       digest: sha256:79ffb951022559d47ae4b1777e72b8bb6cf491a558af7aad7233a8a8cf518cdd
       recipe:
@@ -14478,8 +14478,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango ui-close"
     path: assets/audio/robango-ui-close.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 101757647762518
+    moderation: Approved
     provenance:
       digest: sha256:7cfa376046d9c13d2f22ea7130e5164ea91d4f7d7a070f0b60a9c7e700a258ac
       recipe:
@@ -14500,8 +14500,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango ui-confirm"
     path: assets/audio/robango-ui-confirm.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 140071037166740
+    moderation: PendingModeration
     provenance:
       digest: sha256:f9a8e79c33dd6b9ca8f87a6f9437ea52e7d161385332c605837e17014747508d
       recipe:
@@ -14522,8 +14522,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango ui-error"
     path: assets/audio/robango-ui-error.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 121563236780057
+    moderation: PendingModeration
     provenance:
       digest: sha256:6463ad7ec11a113b2cd5645c3adede30681b3f9ce119f4cfed970ec04ed20035
       recipe:
@@ -14544,8 +14544,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango level-up"
     path: assets/audio/robango-level-up.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 110021116520036
+    moderation: PendingModeration
     provenance:
       digest: sha256:9722dd7d55e527d199c5ee6d6a1ca9a32d0b64d22f6c70aafa0861ad5cfc86de
       recipe:
@@ -14566,8 +14566,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango reward"
     path: assets/audio/robango-reward.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 101247016926748
+    moderation: PendingModeration
     provenance:
       digest: sha256:b8313b5f974cecb040fffa87238aa1b89429bfb99f8db997cf3b1f73ace581c7
       recipe:
@@ -14588,8 +14588,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango travel-horn"
     path: assets/audio/robango-travel-horn.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97828324739733
+    moderation: PendingModeration
     provenance:
       digest: sha256:62540fa54bb79e38e96b8793cfe4b486863c253da36cd032123db77950d61761
       recipe:
@@ -14610,8 +14610,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-theropod"
     path: assets/audio/robango-call-theropod.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90513943673865
+    moderation: PendingModeration
     provenance:
       digest: sha256:b3ba7f742da23afdb307b0b52fc365d4fec035b9de98c5bcd7a5e609b559e80f
       recipe:
@@ -14632,8 +14632,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-ceratopsian"
     path: assets/audio/robango-call-ceratopsian.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 126755222692380
+    moderation: PendingModeration
     provenance:
       digest: sha256:19579027af1c091e99b8b76ff8b2de4a9bbb96959164c752cbe01610e99aa6f1
       recipe:
@@ -14654,8 +14654,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-hadrosaur"
     path: assets/audio/robango-call-hadrosaur.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 98663443383106
+    moderation: PendingModeration
     provenance:
       digest: sha256:279e3c5c52d74965da46557479b7d315c2b0c2644448f9571f0d65b98e266f2b
       recipe:
@@ -14676,8 +14676,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-armored"
     path: assets/audio/robango-call-armored.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80320568685505
+    moderation: PendingModeration
     provenance:
       digest: sha256:9d4628c876d4f052222024c9f64aed759ea59e63e464207f05d4e247c30861c4
       recipe:
@@ -14698,8 +14698,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-sauropod"
     path: assets/audio/robango-call-sauropod.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 78999845622851
+    moderation: PendingModeration
     provenance:
       digest: sha256:f6781b5b4d20d9155fafda51d38f7e279409c0be8595c454d96edf80ed20670b
       recipe:
@@ -14720,8 +14720,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-mammal"
     path: assets/audio/robango-call-mammal.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 106863547309673
+    moderation: PendingModeration
     provenance:
       digest: sha256:5c41d2671cece6c48a45d0e35766b0cd9e6b3d63dacd96926ef3ac248bd4c3da
       recipe:
@@ -14742,8 +14742,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-elephant"
     path: assets/audio/robango-call-elephant.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 95659206114140
+    moderation: PendingModeration
     provenance:
       digest: sha256:99d70c0577fe3536ec5ea44622c3d34b793e2b07f9935919f5dbed945d6938bd
       recipe:
@@ -14764,8 +14764,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-crocodilian"
     path: assets/audio/robango-call-crocodilian.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108857799438414
+    moderation: PendingModeration
     provenance:
       digest: sha256:98028737624628ad0ed994466528bc60511220771aecdfc1b00707a08c1b7380
       recipe:
@@ -14786,8 +14786,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-turtle"
     path: assets/audio/robango-call-turtle.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 85861384224199
+    moderation: PendingModeration
     provenance:
       digest: sha256:f7a475094d1d72b07f9e5d2fdd89807c84ffe4d680414d6f315d03c713238171
       recipe:
@@ -14808,8 +14808,8 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango call-bird"
     path: assets/audio/robango-call-bird.wav
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 128357137302752
+    moderation: PendingModeration
     provenance:
       digest: sha256:688d9d6112ad7c0d69aa71bb2c2a7c8012163524f634f6038ebf4e0a2005a5a1
       recipe:

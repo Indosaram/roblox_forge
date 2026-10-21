@@ -4320,6 +4320,7 @@ structures:
 survival_content: 2
 progressionPolicy:
   combat: {windupMillis: 600, dodgeMillis: 350, guardMillis: 1000, guardPermille: 500, defenseRecoveryMillis: 2000}
+  journalRemedy: "onion-soup"
   companion: {capacity: 8, feedItem: herbivore-feed, feedCount: 3, trainingMillis: 300000, maxSatiety: 100, feedSatiety: 30, hungerMillis: 60000, downMillis: 60000, ropeItem: capture-rope, stunMillis: 3000, stunRecoveryMillis: 8000, stunRange: 6, basePermille: 650, levelPermille: 10, bonusPermille: 50, minPermille: 200, maxPermille: 900, seed: 314159}
   volcano:
     clearSeconds: 300
@@ -12459,6 +12460,13 @@ outpostPolicy:
   captureSeconds: 180
   ownershipSeconds: 86400
 brawlPolicy:
+  weapons:
+    - {item: "bow-t1", ammunition: "branch", damageMilli: 18000, rangeStuds: 40, cooldownMillis: 1800, facingDot: 0.5}
+    - {item: "crossbow-t1", ammunition: "branch", damageMilli: 24000, rangeStuds: 48, cooldownMillis: 2400, facingDot: 0.5}
+    - {item: "bow-t2", ammunition: "branch", damageMilli: 24000, rangeStuds: 44, cooldownMillis: 1800, facingDot: 0.5}
+    - {item: "crossbow-t2", ammunition: "branch", damageMilli: 30000, rangeStuds: 52, cooldownMillis: 2400, facingDot: 0.5}
+    - {item: "bow-t3", ammunition: "branch", damageMilli: 30000, rangeStuds: 48, cooldownMillis: 1800, facingDot: 0.5}
+    - {item: "crossbow-t3", ammunition: "branch", damageMilli: 36000, rangeStuds: 56, cooldownMillis: 2400, facingDot: 0.5}
   provenance: {classification: RECONSTRUCTED, sourceId: C04-R04}
   layout: rw.brawl
   minimumLevel: 60

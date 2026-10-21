@@ -284,6 +284,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			target.Shape = Enum.PartType.Ball
 		end
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
+		target:SetAttribute("ForgeNodeItem", nodeItems[node.id])
 	end
 	local musicVenues = {}
 	for _, anchor in layout.anchors do
@@ -310,6 +311,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				prompt.ActionText = if facility.kind == "market" then "Market" else "Interact"
 				prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent = facility.anchor, 8, target
 				prompt:SetAttribute("ForgeMarket", facility.kind == "market" or facility.anchor == "npc.sella")
+				prompt:SetAttribute("ForgePanel", facility.panel)
+				prompt.Triggered:Connect(function(player)
+					if
+						facility.destination
+						and world.travel
+						and world.services.survivalDeath.reachable(tostring(player.UserId), facility.position)
+					then
+						world.travel(player, facility.destination)
+					end
+				end)
 			end
 		end
 	end
@@ -352,7 +363,93 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	world.roleSource.persistencePrefix = "s:" .. Journal.fnv1a64(source.persistencePrefix .. ":" .. revision)
 	world.roleSource.sourceKey = "n"
 	world.roleContent, world.roleWildlife, world.layout = runtimeContent, wildlife, layout
+	if layoutId == "rw.team-outpost" then
+		local center: any = nil
+		for _, anchor in layout.anchors do
+			if anchor.id == "objective" then
+				center = anchor.position
+			end
+		end
+		world.outpostOccupying = function(actor)
+			local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
+			local character = if player then player.Character else nil
+			local rigRoot = if character then character:FindFirstChild("HumanoidRootPart") else nil
+			local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+			return center ~= nil
+				and rigRoot ~= nil
+				and humanoid ~= nil
+				and humanoid.Health > 0
+				and (rigRoot.Position - Vector3.new(center.x, center.y, center.z)).Magnitude <= 12
+		end
+	end
 	world.surveyMarkers = {}
+	world.journalTargets = {}
+	local physical = {
+		survey = true,
+		inspect = true,
+		activate = true,
+		speak = true,
+		tune = true,
+		assemble = true,
+		deposit = true,
+		administer = true,
+		install = true,
+		submit = true,
+		deploy = true,
+		eat = true,
+		escort = true,
+		["return"] = true,
+	}
+	for _, chapter in content.chapters do
+		for _, objective in chapter.objectives do
+			if not physical[objective.action] then
+				continue
+			end
+			local anchorId: string? = nil
+			if objective.action == "speak" then
+				if layoutId == "rw.harbor" then
+					anchorId = "npc." .. objective.target
+				end
+			elseif string.sub(objective.target, 1, #layoutId + 1) == layoutId .. "." then
+				anchorId = string.sub(objective.target, #layoutId + 2)
+				if anchorId == "survey" or anchorId == "wreck" or anchorId == "beacon" or anchorId == "survivor" then
+					anchorId = "objective"
+				end
+				if anchorId == "relay" then
+					anchorId = "station.signal-relay.t1"
+				end
+			elseif layoutId == "rw.home" and (objective.target == "signal-relay" or objective.action == "install") then
+				anchorId = "objective"
+			elseif layoutId == "rw.harbor" and objective.action == "assemble" then
+				anchorId = "station.workbench.t1"
+			elseif layoutId == "rw.harbor" and (objective.action == "administer" or objective.action == "eat") then
+				anchorId = "npc.ines"
+			elseif layoutId == "rw.harbor" and (objective.action == "deposit" or objective.action == "submit") then
+				anchorId = "npc.bram"
+			end
+			for _, anchor in layout.anchors do
+				if anchor.id ~= anchorId then
+					continue
+				end
+				for index = 1, objective.quantity do
+					local position =
+						{ x = anchor.position.x + (index - 1) * 8, y = anchor.position.y, z = anchor.position.z }
+					local id = objective.id .. ":" .. tostring(index)
+					world.journalTargets[id] = { position = position, objective = objective.id, marker = id }
+					local target = part(id, position, { x = 2, y = 3, z = 2 })
+					local prompt = Instance.new("ProximityPrompt")
+					prompt.ActionText, prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent =
+						"Journal checkpoint", "Journal", 8, target
+					prompt:SetAttribute("ForgeJournal", true)
+					prompt.Triggered:Connect(function(player)
+						if world.journalAction then
+							world.journalAction(tostring(player.UserId), id)
+						end
+					end)
+				end
+			end
+		end
+	end
 	for _, stage in content.stages do
 		if stage.layout == layoutId then
 			for _, objective in stage.objectives do
@@ -389,6 +486,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		anchors[anchor.id] = anchor.position
 	end
 	local escorts: any = {}
+	local journalEscorts: any = {}
+	world.renderJournalEscort = function(actor, position)
+		local npc = journalEscorts[actor]
+		if not position then
+			if npc then
+				npc:Destroy()
+				journalEscorts[actor] = nil
+			end
+			return
+		end
+		if not npc then
+			npc = part("JournalCastaway-" .. actor, position, { x = 2, y = 5, z = 2 })
+			npc.CanCollide = false
+			journalEscorts[actor] = npc
+		end
+		npc.Position = Vector3.new(position.x, position.y, position.z)
+	end
 	world.publishEscort = function(actor, state)
 		local npc = escorts[actor]
 		if not state or state.stage ~= tonumber(string.match(layoutId, "%.s(%d+)$")) or state.status ~= "active" then

@@ -11,6 +11,47 @@ local Fenced = require("../../../core/infra/data/FencedStore")
 local Memory = require("../../../core/infra/data/MemoryBackend")
 
 return {
+	["pending objective survives a fresh feed and delivery acknowledgement loss"] = function()
+		local document: any = {
+			journal = { version = 1, active = Catalog[1].id, completed = {}, counts = {}, receipts = {}, markers = {} },
+		}
+		local failRemoval = false
+		local port = {
+			read = function(): any
+				return Data.clone(document)
+			end,
+			update = function(_actor: string, transform: any): (boolean, string?)
+				local candidate = transform(Data.clone(document))
+				if failRemoval and candidate.journalPending and not candidate.journalPending.job then
+					failRemoval = false
+					return false, "ACK_LOST"
+				end
+				document = candidate
+				return true, nil
+			end,
+		}
+		local feed = Feed.new(port, Content, {})
+		assert(feed.stage("owner", "job", { chapterId = Catalog[1].id }).ok, "stage objective before command")
+		feed.close()
+		feed = Feed.new(port, Content, {})
+		local function resolve(): any
+			return {
+				{
+					receiptId = "survey-job",
+					action = "survey",
+					target = "rw.explore20.objective",
+					quantity = 1,
+					marker = "marker",
+				},
+			}
+		end
+		failRemoval = true
+		assert(not feed.recover("owner", resolve).ok, "lost delivery acknowledgement remains pending")
+		assert(document.journalPending.job ~= nil, "pending receipt retained")
+		assert(feed.recover("owner", resolve).ok, "fresh retry settles pending event")
+		assert(document.journal.counts[Catalog[1].objectives[1].id] == 1, "exactly one checkpoint credit")
+		assert(document.journalPending.job == nil, "acknowledged delivery removed")
+	end,
 	["Session bridge shares the existing personal aggregate and installs only committed tokens"] = function()
 		local memory = Memory.new()
 		local store = Fenced.new(memory, {

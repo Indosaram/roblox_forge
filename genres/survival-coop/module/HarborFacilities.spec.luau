@@ -10,10 +10,18 @@ return {
 		local data = content()
 		local facilities = Harbor.describe(data)
 		local kinds = {}
+		local panels = {}
 		for _, facility in facilities do
 			assert(facility.role == "harbor" and facility.position.x ~= nil, "trade invariant")
 			kinds[facility.kind] = (kinds[facility.kind] or 0) + 1
+			panels[facility.anchor] = facility.panel or facility.destination
 		end
+		assert(
+			panels["npc.bram"] == "clan-membership" and panels["npc.hop"] == "journal",
+			"social and journal launchers"
+		)
+		assert(panels["npc.tuck"] == "craft" and panels["npc.ines"] == "craft", "craft and remedy interaction")
+		assert(panels["visitor-portal"] == "home", "server travel destination")
 		assert(kinds.npc == 7 and kinds.dock == 2 and kinds.market == 1 and kinds.station == 6, "trade invariant")
 		assert(not pcall(Harbor.describe, { layouts = {} }), "trade invariant")
 	end,

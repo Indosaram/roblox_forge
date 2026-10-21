@@ -1,7 +1,4 @@
 --!strict
--- Descriptors only: the world builder owns Instances, prompts and authority.
--- Coordinates, material identities, level gates and objectives are read from
--- generated content; no second gameplay catalog is embedded here.
 local M = {}
 function M.describe(content: any): { any }
 	local layout = nil
@@ -26,6 +23,17 @@ function M.describe(content: any): { any }
 			kind = kind,
 			position = table.clone(anchor.position),
 			role = "harbor",
+			panel = if anchor.id == "npc.marit"
+				then "contracts"
+				elseif anchor.id == "npc.tuck" then "craft"
+				elseif anchor.id == "npc.hop" then "journal"
+				elseif anchor.id == "npc.bram" then "clan-membership"
+				elseif anchor.id == "npc.ines" then "craft"
+				elseif anchor.id == "npc.pip" then "shop"
+				elseif anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch" then "craft"
+				elseif anchor.id == "rescue-beacon" then "journal"
+				else nil,
+			destination = if anchor.id == "visitor-portal" then "home" else nil,
 		})
 	end
 	return result

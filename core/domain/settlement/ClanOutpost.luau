@@ -15,14 +15,25 @@ function M.apply(
 	now: number,
 	ctx: any
 ): (any?, string?)
-	if not ctx.server then
+	if operation ~= "queue" and not ctx.server then
 		return nil, "SERVER_ONLY"
 	end
 	if state.receipts[receipt] then
 		return Data.clone(state), nil
 	end
 	local out = Data.clone(state)
-	if operation == "start" then
+	if operation == "queue" then
+		if ctx.role ~= "team-outpost" or not ctx.clanId or not ctx.eligible(actor, ctx.clanId) then
+			return nil, "NOT_TEAM_MEMBER"
+		end
+		for _, match in state.matches do
+			if match.status == "active" and match.actors[actor] then
+				return nil, "MATCH_ACTIVE"
+			end
+		end
+		out.queue = out.queue or {}
+		out.queue[actor] = if args.enabled then ctx.clanId else nil
+	elseif operation == "start" then
 		if ctx.role ~= "team-outpost" then
 			return nil, "NOT_TEAM_OUTPOST"
 		end
@@ -64,6 +75,11 @@ function M.apply(
 			finishAt = now + ctx.rules.matchSeconds,
 			winner = "",
 		}
+		for player in seen do
+			if out.queue then
+				out.queue[player] = nil
+			end
+		end
 	elseif operation == "advance" then
 		local match = out.matches[args.matchId]
 		if not match or match.status ~= "active" then

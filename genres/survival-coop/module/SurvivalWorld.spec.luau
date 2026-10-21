@@ -197,9 +197,15 @@ return {
 	["settlement ports enforce reach support obstruction and publish only confirmed structures"] = function()
 		local module, _, world, _, root, spawn = fixture()
 		local obstructed, supported = false, true
-		raycastHandler = function(_, _, delta)
-			if delta.Y == -1 then
-				return if supported then { Instance = spawn, Normal = roblox.Vector3.new(0, 1, 0) } else nil
+		raycastHandler = function(_, rayOrigin, delta)
+			if delta.Y == -64 then
+				return if supported
+					then {
+						Instance = spawn,
+						Normal = roblox.Vector3.new(0, 1, 0),
+						Position = roblox.Vector3.new(rayOrigin.X, 4, rayOrigin.Z),
+					}
+					else nil
 			end
 			return if obstructed then { Instance = spawn } else nil
 		end
@@ -254,6 +260,7 @@ return {
 		state = assert(Settlement.commit(state, "1", 1, "build"))
 		ports.publish(state)
 		local part = assert(world:FindFirstChild("bench"))
+		assert(part.Position.Y == 4.5, "placed structure rests on raised terrain rather than plot origin")
 		ports.publish(state)
 		assert(world:FindFirstChild("bench") == part, "republication preserves instance")
 		root.Position = roblox.Vector3.new(6, 2, 2)
@@ -674,6 +681,12 @@ return {
 		assert(not api.services.survivalSpatial.campfire("1", "fire-1").reachable, "obstruction denies")
 		blocked = false
 		assert(api.services.survivalSpatial.station("1", "unregistered") == nil, "no fabricated station")
+		fire.Size, fire.Position = roblox.Vector3.new(4, 2, 3), roblox.Vector3.new(-32, 2, -4)
+		root.Position = roblox.Vector3.new(-32.08, 7.83, -8.45)
+		assert(api.services.survivalSpatial.station("1", "fire-1").reachable, "Studio workbench coordinates in reach")
+		fire.Position, root.Position = roblox.Vector3.new(-48, 2, -4), roblox.Vector3.new(-46.779, 7.130, -8.345)
+		assert(api.services.survivalSpatial.campfire("1", "fire-1").reachable, "Studio campfire coordinates in reach")
+		root.Position = roblox.Vector3.new(0, 0, 0)
 		fire:SetAttribute("ForgeStationKind", "unknown")
 		assert(api.services.survivalSpatial.station("1", "fire-1") == nil, "catalog mismatch denies")
 		local position = api.services.survivalDeath.position("1")

@@ -38,6 +38,23 @@ local function model(): any
 end
 
 return {
+	["Studio station coordinates aim above embedded station geometry"] = function()
+		local target = Model.stationTarget({ x = -32, y = 2, z = -4 }, { x = 4, y = 2, z = 3 })
+		local player = { x = -32.08, y = 7.83, z = -8.45 }
+		local distance = math.sqrt((target.x - player.x) ^ 2 + (target.y - player.y) ^ 2 + (target.z - player.z) ^ 2)
+		assert(target.y == 5 and distance < 6, "workbench interaction ray stays above terrain")
+		player = { x = -46.779, y = 7.130, z = -8.345 }
+		target = Model.stationTarget({ x = -48, y = 2, z = -4 }, { x = 4, y = 2, z = 3 })
+		distance = math.sqrt((target.x - player.x) ^ 2 + (target.y - player.y) ^ 2 + (target.z - player.z) ^ 2)
+		assert(distance < 6, "campfire interaction ray stays above terrain")
+	end,
+	["gather guidance skips unreachable nodes before choosing nearest"] = function()
+		local far = { distance = 8, available = true, reachable = true }
+		assert(
+			Model.nearestGatherable({ { distance = 1, available = true, reachable = false }, far }) == far,
+			"blocked nearby resource cannot displace reachable guidance"
+		)
+	end,
 	["a handshake refusal clears once the server's policy arrives (rejoin swaps the server)"] = function()
 		local state: any = Model.new("bob", function()
 			return "r"

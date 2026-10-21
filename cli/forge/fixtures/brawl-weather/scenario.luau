@@ -21,6 +21,37 @@ M.operations = {
 	end,
 }
 function M.new(ctx: any): any
+	local fs = require("@lune/fs")
+	local combat = require("../../../../genres/survival-coop/module/Combat")
+	local runtime = require("@lune/luau").load(fs.readFile("games/robango-island/src/server/BrawlRuntime.luau"), {
+		environment = {
+			game = {
+				GetService = function()
+					return {
+						WaitForChild = function()
+							return {
+								genres = {
+									["survival-coop"] = {
+										module = {
+											BrawlController = Controller,
+											Combat = combat,
+											JournalPorts = require(
+												"../../../../genres/survival-coop/module/JournalPorts"
+											),
+										},
+									},
+								},
+								core = { domain = { brawl = { Match = Match } } },
+							}
+						end,
+					}
+				end,
+			},
+			require = function(value)
+				return value
+			end,
+		},
+	})()
 	local clock = ctx.now()
 	local session: any = nil
 	local controller: any = nil
@@ -56,15 +87,38 @@ function M.new(ctx: any): any
 			end,
 		},
 		facts = function()
-			return { level = 60, maxHealth = 100, equipment = { durability = 10 } }
+			return {
+				level = 60,
+				maxHealth = 100,
+				equipment = { durability = 10, items = { ammo = { catalogId = "branch", quantity = 1 } } },
+			}
 		end,
 		action = function(_, token)
 			return {
 				kind = if token == "shot" then "ranged" elseif token == "mount" then "mount" else "sprint",
 				range = if token == "shot" then 40 else 0,
+				ammunition = if token == "shot" then "branch" else nil,
+				id = "shot",
+				target = "rival",
+				millis = clock * 1000,
+				origin = positions.owner,
+				direction = { x = 1, y = 0, z = 0 },
+				rule = {
+					mode = "ranged",
+					windupMillis = 600,
+					recoveryMillis = 1000,
+					range = 40,
+					facingDot = 0.5,
+					damageMilli = 18000,
+					ammo = 1,
+				},
 			}
 		end,
-		apply = function(_, _, _, allowed)
+		apply = function(state, actor, fact, allowed)
+			if fact.kind == "ranged" then
+				state.actors[actor].combat = state.actors[actor].combat or { attacks = {}, readyAt = 0 }
+				return runtime.attack(state.actors[actor], fact)
+			end
 			return allowed
 		end,
 		frame = function()
@@ -126,6 +180,11 @@ function M.new(ctx: any): any
 		end,
 		check = function(check)
 			local state = controller.snapshot()
+			if check == "ammunition" then
+				return if state.actors.owner.equipment.items.ammo == nil
+					then nil
+					else "snapshot ammunition not consumed"
+			end
 			if check == "draw" then
 				-- A single authoritative boundary frame eliminates both snapshot actors.
 				for _ = 1, 5 do

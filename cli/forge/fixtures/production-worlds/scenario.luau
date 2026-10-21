@@ -84,6 +84,7 @@ function M.new(ctx: any): any
 	local engine = Engine.new()
 	local forge = engine.forge
 	local module = forge.genres["survival-coop"].module
+	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
 	module.SurvivalBootstrap = require("../../../../genres/survival-coop/module/SurvivalBootstrap")
 	module.Gathering = require("../../../../genres/survival-coop/module/Gathering")
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
@@ -135,6 +136,10 @@ function M.new(ctx: any): any
 			world = engine.home.live(Content, source, Policy, function()
 				return ctx.now() * 1000
 			end)
+		elseif string.sub(role, 1, 3) == "rw." then
+			world = engine.role.build(Content, source, Policy, function()
+				return ctx.now() * 1000
+			end, role, ctx.scenario.seed)
 		else
 			world = engine.archipelago.live(Content, source, Policy, function()
 				return ctx.now() * 1000
@@ -390,6 +395,183 @@ function M.new(ctx: any): any
 			end
 		end
 		assert(count == 1, "exact kit refund after place/remove")
+		port = session.personalTransfer(actor)
+		local progressed = assert(
+			port.personal:update(port.profile(), function(raw)
+				raw.envelope.genres["survival-coop"].data.progression.level = 20
+				return raw
+			end),
+			"journal level fixture"
+		)
+		port.install(progressed)
+		command(actor, "journal-open", { "rw.c01.signal-trace" })
+		assert(api.enter("rw.explore20", actor) == nil, "exploration role")
+		local marker = world.journalTargets["rw.c01.signal-trace.1:1"]
+		assert(marker, "authored journal marker")
+		engine.move(actor, marker.position)
+		command(actor, "journal-interact", { "rw.c01.signal-trace.1:1" })
+		assert(api.enter("home", actor) == nil, "journal fresh owner")
+		assert(
+			session.snapshot(actor).survivalExtensions.journal.counts["rw.c01.signal-trace.1"] == 1,
+			"durable survey credit"
+		)
+		port = session.personalTransfer(actor)
+		local materials = assert(
+			port.personal:update(port.profile(), function(raw)
+				local saved = raw.envelope.genres["survival-coop"].data.inventory.bag
+				for _, item in { "stone", "fiber" } do
+					saved.items["journal-" .. item] = {
+						itemId = "journal-" .. item,
+						catalogId = item,
+						quantity = 2,
+						qualityMilli = 1000,
+						durabilityMilli = 0,
+						attributes = {},
+					}
+				end
+				return raw
+			end),
+			"journal materials fixture"
+		)
+		port.install(materials)
+		assert(api.enter("rw.harbor", actor) == nil, "harbor journal workbench")
+		engine.move(actor, world.journalTargets["rw.c01.signal-trace.2:1"].position)
+		command(actor, "journal-interact", { "rw.c01.signal-trace.2:1" })
+		assert(api.enter("rw.harbor", actor) == nil, "assembly crash recovery")
+		engine.move(actor, world.journalTargets["rw.c01.signal-trace.2:1"].position)
+		ctx.clock.advanceTo(ctx.clock.now() + 6)
+		command(actor, "journal-interact", { "rw.c01.signal-trace.2:1" })
+		for _, index in { 3, 4 } do
+			local id = "rw.c01.signal-trace." .. tostring(index) .. ":1"
+			engine.move(actor, world.journalTargets[id].position)
+			command(actor, "journal-interact", { id })
+		end
+		command(actor, "journal-claim", {})
+		assert(
+			session.snapshot(actor).survivalExtensions.journal.completed["rw.c01.signal-trace"],
+			"production chapter complete"
+		)
+		local function checkpoint(chapterId, checkpointCount)
+			local owner = session.personalTransfer(actor)
+			local updated = assert(
+				owner.personal:update(owner.profile(), function(raw)
+					local data = raw.envelope.genres["survival-coop"].data
+					data.progression.level = 60
+					data.journal =
+						{ version = 1, completed = {}, counts = {}, markers = {}, receipts = {}, active = chapterId }
+					for _, chapter in Content.chapters do
+						if chapter.id == chapterId then
+							for index = 1, checkpointCount do
+								local objective = chapter.objectives[index]
+								data.journal.counts[objective.id] = objective.quantity
+							end
+							break
+						end
+						data.journal.completed[chapter.id] = true
+					end
+					data.journalOpenedAt = ctx.clock.now()
+					data.inventory.bag.items["remedy"] = {
+						itemId = "remedy",
+						catalogId = "onion-soup",
+						quantity = 1,
+						qualityMilli = 1000,
+						durabilityMilli = 0,
+						attributes = {},
+					}
+					return raw
+				end),
+				"checkpoint fixture"
+			)
+			owner.install(updated)
+		end
+		checkpoint("rw.c04.marsh-remedy", 4)
+		assert(api.enter("rw.harbor", actor) == nil, "remedy role")
+		local remedy = "rw.c04.marsh-remedy.5:1"
+		engine.move(actor, world.journalTargets[remedy].position)
+		command(actor, "journal-interact", { remedy })
+		assert(
+			session
+				.personalTransfer(actor)
+				.profile().data.envelope.genres["survival-coop"].data.inventory.bag.items.remedy == nil,
+			"remedy consumed atomically"
+		)
+		checkpoint("rw.c08.collapse-return", 3)
+		assert(api.enter("rw.a5.s4", actor) == nil, "journal escort role")
+		local rescue = "rw.c08.collapse-return.4:1"
+		local position = world.journalTargets[rescue].position
+		engine.move(actor, position)
+		command(actor, "journal-interact", { rescue })
+		assert(api.enter("rw.a5.s4", actor) == nil, "escort restart")
+		local exit = world.journalTargets["rw.c08.collapse-return.5:1"].position
+		local length = math.sqrt((exit.x - position.x) ^ 2 + (exit.z - position.z) ^ 2)
+		for index = 1, math.ceil(length / 4) do
+			local t = math.min(1, index * 4 / length)
+			engine.move(
+				actor,
+				{ x = position.x + (exit.x - position.x) * t, y = exit.y, z = position.z + (exit.z - position.z) * t }
+			)
+			ctx.clock.advanceTo(ctx.clock.now() + 1)
+			assert(session.recoverTransfers(actor, 8).ok, "escort movement recovery")
+		end
+		command(actor, "journal-interact", { "rw.c08.collapse-return.5:1" })
+		assert(
+			session.snapshot(actor).survivalExtensions.journal.counts["rw.c08.collapse-return.4"] == 1,
+			"escort arrival credited"
+		)
+		checkpoint("rw.c07.tyrant-material", 1)
+		port = session.personalTransfer(actor)
+		local armed = assert(
+			port.personal:update(port.profile(), function(raw)
+				raw.envelope.genres["survival-coop"].data.inventory.bag.items["biology-weapon"] = {
+					itemId = "biology-weapon",
+					catalogId = Content.missionPolicy.starterWeapon,
+					quantity = 1,
+					qualityMilli = 1000,
+					durabilityMilli = 100000,
+					attributes = {},
+				}
+				return raw
+			end),
+			"biology weapon fixture"
+		)
+		port.install(armed)
+		assert(api.enter("rw.a5.s3", actor) == nil, "tyrannosaurus role")
+		local target: any = nil
+		for _, spawn in world.roleWildlife.spawns do
+			if spawn.catalogId == "tyrannosaurus" then
+				target = spawn
+				break
+			end
+		end
+		assert(target, "authored tyrannosaurus")
+		engine.move(actor, { x = target.position.x, y = target.position.y, z = target.position.z + 2 })
+		engine.equip(world, actor, "biology-weapon")
+		for _ = 1, 400 do
+			if factory.services.survivalWildlife.snapshot(actor)[target.id].healthMilli == 0 then
+				break
+			end
+			if _ % 90 == 0 then
+				local owner = session.personalTransfer(actor)
+				local repaired = assert(
+					owner.personal:update(owner.profile(), function(raw)
+						raw.envelope.genres["survival-coop"].data.inventory.bag.items["biology-weapon"].durabilityMilli =
+							100000
+						return raw
+					end),
+					"between-hit fixture repair"
+				)
+				owner.install(repaired)
+			end
+			command(actor, "attack", { target.id })
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			assert(session.recoverTransfers(actor, 64).ok, "biology kill recovery")
+		end
+		assert(session.recoverTransfers(actor, 64).ok, "biology committed receipt delivery")
+		assert(factory.services.survivalWildlife.snapshot(actor)[target.id].healthMilli == 0, "real tyrannosaurus kill")
+		assert(
+			session.snapshot(actor).survivalExtensions.journal.counts["rw.c07.tyrant-material.2"] == 1,
+			"fresh biological kill credit"
+		)
 		return nil
 	end
 	function api.clan(actor)
@@ -430,6 +612,88 @@ function M.new(ctx: any): any
 		assert(
 			session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.balance == 75,
 			"same personal wallet debited"
+		)
+		command(actor, "clan-relocate", { "native-clan", { territory = "rw.home" } })
+		assert(close().ok, "release clan before fixture progression")
+		local clanStore = clanDirectory.store
+		local clanToken = assert(
+			clanStore:acquire("clan:native-clan", function(data)
+				return data
+			end),
+			"fixture clan fence"
+		)
+		clanToken = assert(
+			clanStore:update(clanToken, function(data)
+				data.level, data.funds = 16, 5000
+				return data
+			end),
+			"fixture research progression"
+		)
+		assert(clanStore:release(clanToken), "release fixture clan fence")
+		-- Existing extension tokens are deliberately invalidated by the fixture
+		-- setup, as they would be after a crashed owner. Reopen the real world.
+		assert(api.enter("home", actor) == nil, "reload progressed clan")
+		local port = session.personalTransfer(actor)
+		local itemId = "fixture-clan-hall"
+		local bagCatalog = require("../../../../core/domain/inventory/ItemCatalog").new(Content.items)
+		local inventory = require("../../../../core/domain/inventory/Inventory")
+		local saved = assert(
+			port.personal:update(port.profile(), function(raw)
+				local slice = raw.envelope.genres["survival-coop"].data
+				local bag = inventory.fromSave(slice.inventory.bag, bagCatalog)
+				bag = assert(
+					inventory.add(bag, bagCatalog, {
+						itemId = itemId,
+						catalogId = "clan-hall-kit",
+						quantity = 1,
+						qualityMilli = 1000,
+						durabilityMilli = 0,
+						attributes = {},
+					}, bag.version),
+					"fixture hall kit"
+				)
+				slice.inventory.bag = inventory.save(bag)
+				return raw
+			end),
+			"save hall kit"
+		)
+		port.install(saved)
+		engine.move(actor, source.tribe.warehousePosition)
+		command(actor, "transfer-deposit", { itemId, 1 })
+		assert(session.recoverTransfers(actor, 8).ok, "hall deposit recovery")
+		local shared = session.snapshot(actor).survivalSettlement
+		engine.move(actor, { x = 2, y = 2, z = -14 })
+		local reserved = command(actor, "settlement-reserve", {
+			"clan-hall",
+			8,
+			1,
+			0,
+			shared.settlement.version,
+			shared.warehouse.version,
+			shared.settlement.membershipRevision,
+		})
+		shared = session.snapshot(actor).survivalSettlement
+		command(
+			actor,
+			"settlement-place",
+			{ reserved.data.reservationId, shared.settlement.version, shared.warehouse.version }
+		)
+		command(actor, "clan-research-start", { "native-clan", { id = "clan-research-advanced-capture" } })
+		local research = session.snapshot(actor).survivalExtensions.clan
+		local jobId, finishAt
+		for id, job in research.jobs do
+			jobId, finishAt = id, job.finishAt
+		end
+		assert(jobId ~= nil and research.funds == 0, "durable research input escrow")
+		assert(api.enter("home", actor) == nil, "restart pending research owner")
+		ctx.clock.advanceTo(finishAt)
+		for _ = 1, 4 do
+			assert(session.recoverTransfers(actor, 8).ok, "research recovery pass")
+		end
+		research = session.snapshot(actor).survivalExtensions.clan
+		assert(
+			research.jobs[jobId].status == "completed" and research.research["advanced-capture"] == 1,
+			"fresh Session finishes durable research"
 		)
 		return nil
 	end

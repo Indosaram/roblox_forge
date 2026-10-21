@@ -152,6 +152,8 @@ function M.factory(ctx: any): any
 					for _ in current.pets do
 						occupied += 1
 					end
+					local eligibility = ctx.world.captureEligibility
+					local advanced = eligibility ~= nil and eligibility(actor)
 					local success, _, reason = Ecology.rollCapture(species, {
 						survival3 = tree.paid.survival_3 ~= nil,
 						survival6 = tree.paid.survival_6 ~= nil,
@@ -160,8 +162,8 @@ function M.factory(ctx: any): any
 						capacity = rules.capacity,
 						rope = rope,
 						survivalSkill = tree.mastery.survival.level,
-						clanResearch = false,
-						stronghold = false,
+						clanResearch = advanced,
+						stronghold = advanced,
 					}, rules, Rng.new(rules.seed):fork(actor .. ":" .. receipt):nextInteger(0, 2147483646))
 					if reason then
 						return { ok = false, reason = reason }

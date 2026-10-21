@@ -1,14 +1,4 @@
 --!strict
--- Content: the versioned survival content catalog shared by survival packs.
---
--- This module validates and canonicalises catalog DATA only. It deliberately
--- implements no inventory, crafting job, placement, vitals or wildlife
--- behaviour -- those are separate domain modules owned by later tasks, and a
--- catalog that merely *declares* a quantity must never read as a working
--- mechanism. Every quantity a later rule has to compare, sum or scale is a
--- finite integral fixed-point value (milli-units for weight/durability/quality
--- and milliseconds for durations), so catalog maths never depends on float
--- formatting or accumulated rounding.
 
 local Validation = require("../genre/Validation")
 local Vitals = require("./Vitals")
@@ -18,13 +8,8 @@ local CapacityPolicy = require("./CapacityPolicy")
 
 local M = {}
 
---- Catalog envelope version. A document declaring a *newer* version is refused
---- rather than downgraded: an old reader must never reinterpret new content.
 M.VERSION = 2
 
---- Pinned rule identities. A catalog names the exact rule revision it was
---- authored against, so changing a rule is a visible versioned migration
---- instead of a silent reinterpretation of already-shipped content.
 local RULES: { [string]: string } = {
 	inheritance = "avg-quality-v1",
 	durability = "quality-scaled-v1",
@@ -44,9 +29,6 @@ local LIMIT_NAMES = {
 	"tribeMaxMembers",
 }
 
---- Inbound inventory bounds every survival pack starts from. `softWeightMilli`
---- is the penalty threshold, `hardWeightMilli` the refusal threshold; reserved
---- quantity counts against both. Packs may tighten these, never exceed policy.
 local DEFAULT_LIMITS: { [string]: number } = {
 	slots = CapacityPolicy.forVersion(1).bagSlots,
 	hardWeightMilli = 90000,
@@ -66,8 +48,6 @@ local POLICY_MAXIMA: { [string]: number } = {
 	tribeMaxMembers = CapacityPolicy.forVersion(1).clanMembers,
 }
 
---- Absolute caps. They keep a canonical document inside the serialized-data
---- bounds the genre Executor already enforces (<=1024 entries, depth <=16).
 local CAPS: { [string]: number } = {
 	list = 256,
 	tagsPerEntry = 16,
@@ -85,8 +65,6 @@ local CAPS: { [string]: number } = {
 }
 M.CAPS = CAPS
 
---- Sensing defaults from the approved wildlife contract. A catalog entry may
---- restate them, but never silently inherit a different number.
 local WILDLIFE_DEFAULTS: { [string]: { [string]: number } } = {
 	grazer = { senseStuds = 12, fleeStuds = 24 },
 	hunter = {
@@ -100,8 +78,6 @@ local WILDLIFE_DEFAULTS: { [string]: { [string]: number } } = {
 M.WILDLIFE_DEFAULTS = WILDLIFE_DEFAULTS
 
 export type Quantity = { item: string, quantity: number }
--- Catalog lookup data only: restoration for hunger/health, reduction for fatigue.
--- Applying it and debiting inventory are the authoritative command's job.
 export type FoodEffects = { hungerMilli: number, healthMilli: number, fatigueMilli: number }
 export type VitalsConfig = Vitals.Config
 export type Item = {
@@ -115,9 +91,6 @@ export type Item = {
 }
 --- Action XP a recipe or node awards to one craft discipline on success.
 export type SkillGrant = { id: string, xp: number }
--- Crafting: a tag slot accepts any item carrying `tag` whose grade (1..5 stars)
--- is at least `minGrade`. `tier` is the minimum workbench tier; `latents` is
--- the declared-tag pool a latent attribute roll draws from.
 export type Slot = { tag: string, minGrade: number, quantity: number }
 export type Recipe = {
 	id: string,
@@ -132,13 +105,8 @@ export type Recipe = {
 	latents: { string }?,
 }
 export type Node = { id: string, harvest: { Quantity }, respawnMillis: number, skill: SkillGrant? }
---- A tool item and the tier it lends a discipline's level cap.
 export type SkillTool = { item: string, tier: number }
---- One craft discipline. `thresholds[n]` is the cumulative XP that reaches
---- level n; the list is strictly ascending, so level is a pure count.
 export type Discipline = { id: string, thresholds: { number }, tools: { SkillTool } }
---- Craft mastery catalog. `baseStep` is every discipline's starting mastery
---- step; a discipline's level cap is tool tier + mastery step.
 export type Skills = { baseStep: number, disciplines: { Discipline } }
 export type Structure = {
 	id: string,
@@ -163,8 +131,6 @@ export type Wildlife = {
 	flag: string?,
 	dangerBand: number?,
 }
--- Contracts section (plan §9.3): fixed first-day contracts, a seeded daily
--- pool, five faction trust tiers and fixed-composition sponsor bundles.
 export type SponsorBundle = { tier: number, items: { Quantity } }
 export type Faction = { id: string, name: string, trustThresholds: { number }, bundles: { SponsorBundle } }
 export type ContractEntry = {
@@ -185,7 +151,6 @@ export type ContractCatalog = {
 	swapCooldownMillis: number,
 	dayMillis: number,
 }
--- Camp section: the shared project ladder (genres/survival-coop/module/Camp).
 export type CampRung = { rung: number, completions: number, facility: string }
 export type CampProject = { id: string, rung: number, cost: { Quantity } }
 export type CampCatalog = { leagueRung: number, rungs: { CampRung }, projects: { CampProject } }
@@ -221,7 +186,6 @@ export type DetailedDocument = Document & {
 	chapters: { any }?,
 }
 
---- The approved mastery design has exactly six craft disciplines (plan §4.4).
 M.SKILL_DISCIPLINES = 6
 local SKILL_CAPS = { steps = 64, xp = 1000000000, grant = 100000, tier = 64 }
 M.SKILL_CAPS = SKILL_CAPS
@@ -259,7 +223,6 @@ local function unknown(errors: { string }, prefix: string, source: any, allowed:
 	end
 end
 
---- Validates a `{item, quantity}` list against the declared item catalog.
 local function quantities(errors: { string }, prefix: string, raw: any, items: { [string]: boolean })
 	if not Validation.dense(raw, CAPS.list) or #raw == 0 then
 		table.insert(errors, prefix .. ": expected nonempty dense list")
@@ -288,10 +251,6 @@ local function quantities(errors: { string }, prefix: string, raw: any, items: {
 	end
 end
 
---- Reports a recipe dependency cycle: a recipe whose input is produced by a
---- recipe that (transitively) consumes one of this recipe's outputs can never
---- be crafted from gathered inputs, so it is malformed content rather than a
---- runtime failure.
 local function cycles(errors: { string }, recipes: { any })
 	local producers: { [string]: { string } } = {}
 	for _, recipe in recipes do
@@ -639,7 +598,6 @@ local function validateSkills(errors: { string }, raw: any, items: { [string]: b
 	return ids
 end
 
---- A recipe/node skill grant must name a declared discipline.
 local function validateGrant(errors: { string }, at: string, raw: any, disciplines: { [string]: boolean }?)
 	if raw == nil then
 		return
@@ -818,8 +776,6 @@ local function validateNodes(
 	end
 end
 
---- Camp section: dense rungs 1..N with strictly increasing completion counts and
---- one unique facility each, plus projects that cost declared items.
 local CAMP_MAX_RUNGS = 16
 local function validateCamp(errors: { string }, raw: any, items: { [string]: boolean })
 	if raw == nil then
@@ -890,9 +846,6 @@ local function validateCamp(errors: { string }, raw: any, items: { [string]: boo
 	end
 end
 
---- Contracts section. Trust has exactly five tiers; tier 1 starts at 0 and
---- every later threshold is strictly higher. Sponsor bundles are fixed item
---- lists keyed by tier: there is no weight, chance or roll field to declare.
 local CONTRACT_TIERS = 5
 local CONTRACT_POOLS = { "first-day", "daily" }
 local CONTRACT_FIRST_DAY = 3
@@ -1157,9 +1110,6 @@ local function validateWildlife(errors: { string }, raw: any, version: number)
 	end
 end
 
---- Returns every schema or policy violation in a decoded content document, in
---- sorted order. An empty list means the document is a valid catalog; it does
---- NOT mean any mechanism that consumes the catalog is implemented.
 function M.validate(raw: any): { string }
 	if type(raw) ~= "table" then
 		return { "content: expected mapping" }
@@ -1294,9 +1244,6 @@ local function canonicalSlots(raw: any): { Slot }?
 	return list
 end
 
---- Validates `raw` and returns its canonical form: defaults resolved, every
---- catalog sorted by id and every quantity list sorted by item id. Two runs
---- over the same source always produce byte-identical rendered output.
 function M.canonicalize(raw: any): (Document?, { string })
 	local errors = M.validate(raw)
 	if #errors > 0 then
@@ -1495,8 +1442,6 @@ function M.canonicalize(raw: any): (Document?, { string })
 	return document, {}
 end
 
---- Runtime payload without detailed catalogs. Preserve the policy opt-in:
---- v2 limits and identities must never be reinterpreted as v1 data.
 function M.projectV1(document: Document): any
 	local projected: any = table.clone(document :: any)
 	projected.survival_content = document.version
@@ -1510,8 +1455,6 @@ function M.projectV1(document: Document): any
 	return projected
 end
 
---- The catalog names a later mechanism is allowed to reference. Nothing here
---- asserts that the mechanism exists.
 function M.catalogNames(): { string }
 	return table.clone(CATALOGS)
 end

@@ -2,7 +2,6 @@
 local Match = require("../../../core/domain/brawl/Match")
 local M = {}
 
--- Geometry is viewport-relative and all controls remain at least 44px high.
 function M.layout(width: number, height: number): any
 	return { width = math.min(440, width - 24), height = math.min(480, height - 96), controlHeight = 44 }
 end
@@ -56,8 +55,6 @@ function M.model(state: any, actor: string, now: number, receipt: any): any
 	}
 end
 
--- ctx.ui is the Roblox datatype/Instance namespace (injectable for engine tests).
--- ctx.text owns localization; server refusals are rendered, never swallowed.
 function M.mount(ctx: any): any
 	local ui = ctx.ui
 	local connections = {}
@@ -119,13 +116,13 @@ function M.mount(ctx: any): any
 		labels.brawl_weather.Text = ctx.text("brawl_weather", model)
 		labels.brawl_rewards.Text = ctx.text("brawl_rewards", model)
 		for name, button in buttons do
-			local combat = name == "attack" or name == "dodge" or name == "guard"
+			local combat = name == "attack" or name == "ranged" or name == "dodge" or name == "guard"
 			local participant = state.actors[ctx.actor]
 			button.Visible = model[name] == true
 				or (combat and participant ~= nil and participant.alive and state.phase == "active")
 		end
 	end
-	for index, name in { "join", "leave", "claim", "attack", "dodge", "guard" } do
+	for index, name in { "join", "leave", "claim", "attack", "ranged", "dodge", "guard" } do
 		local button = make("TextButton", {
 			Name = name,
 			LayoutOrder = 10 + index,
@@ -142,7 +139,7 @@ function M.mount(ctx: any): any
 					return
 				end
 				local model = M.model(state, ctx.actor, ctx.now(), receipt)
-				local combat = name == "attack" or name == "dodge" or name == "guard"
+				local combat = name == "attack" or name == "ranged" or name == "dodge" or name == "guard"
 				local participant = state.actors[ctx.actor]
 				if
 					not model[name] and not (combat and participant and participant.alive and state.phase == "active")
@@ -153,12 +150,12 @@ function M.mount(ctx: any): any
 				local args = {}
 				if combat then
 					local token = name
-					if name == "attack" then
+					if name == "attack" or name == "ranged" then
 						local target = if ctx.target then ctx.target(state) else nil
 						if not target then
 							return
 						end
-						token = "melee:" .. target
+						token = (if name == "ranged" then "ranged:" else "melee:") .. target
 					end
 					args = { token }
 				end
@@ -201,6 +198,8 @@ function M.factory(ctx: any): any
 		brawl_feedback = { "", "" },
 		brawl_ok = { "Confirmed", "확인됨" },
 		brawl_attack = { "Attack nearest rival", "가까운 상대 공격" },
+		brawl_ranged = { "Shoot nearest rival", "가까운 상대 사격" },
+		NO_AMMO = { "No snapshot ammunition", "복제 탄약이 없습니다" },
 		brawl_dodge = { "Dodge", "회피" },
 		brawl_guard = { "Guard", "방어" },
 		LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },

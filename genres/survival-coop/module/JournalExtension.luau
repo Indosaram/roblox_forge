@@ -33,7 +33,9 @@ function M.factory(ctx: any): any
 	return {
 		id = "journal",
 		handles = function(action: string): boolean
-			return action == "survival-coop:journal-open" or action == "survival-coop:journal-claim"
+			return action == "survival-coop:journal-open"
+				or action == "survival-coop:journal-claim"
+				or (action == "survival-coop:journal-interact" and port.interact ~= nil)
 		end,
 		command = function(actor, action, args, context, _origin, admit)
 			local admission = admit()
@@ -55,6 +57,19 @@ function M.factory(ctx: any): any
 				local nextState, detail
 				if action == "survival-coop:journal-open" then
 					nextState, detail = Chapters.open(state, catalog, args[1], port.level(document))
+					if nextState and ctx.now then
+						document.journalOpenedAt = ctx.now()
+					end
+				elseif action == "survival-coop:journal-interact" then
+					local evidence, refusal = port.interact(actor, document, args[1], context.requestId)
+					if not evidence then
+						return nil, refusal
+					end
+					if evidence.pending then
+						nextState = state
+					else
+						nextState, detail = Chapters.observe(state, catalog, evidence)
+					end
 				else
 					nextState, detail = Chapters.claim(state, catalog)
 					if nextState then

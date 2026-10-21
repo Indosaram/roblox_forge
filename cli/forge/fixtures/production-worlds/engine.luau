@@ -91,7 +91,9 @@ function M.new(): any
 	workspace.Terrain.FillBall = function() end
 	workspace.Raycast = function(_, origin: any, direction: any): any
 		if direction.Y < 0 and direction.X == 0 and direction.Z == 0 then
-			return { Position = origin + direction, Normal = roblox.Vector3.yAxis }
+			if origin.Y >= 0 and origin.Y + direction.Y <= 0 then
+				return { Position = roblox.Vector3.new(origin.X, 0, origin.Z), Normal = roblox.Vector3.yAxis }
+			end
 		end
 		return nil
 	end

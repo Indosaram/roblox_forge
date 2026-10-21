@@ -109,6 +109,7 @@ local schemas: { [string]: { [string]: string } } = {
 	},
 	progressionPolicy = {
 		combat = "?combatPolicy",
+		journalRemedy = "?@items",
 		companion = "?companionPolicy",
 		volcano = "?volcano",
 		tree = "progressionTree",
@@ -251,6 +252,15 @@ local schemas: { [string]: { [string]: string } } = {
 		maximumBalance = "positive",
 		weather = "[]brawlWeather",
 		spawns = "[]point",
+		weapons = "?[]brawlWeapon",
+	},
+	brawlWeapon = {
+		item = "@items",
+		ammunition = "@items",
+		damageMilli = "positive",
+		rangeStuds = "positive",
+		cooldownMillis = "positive",
+		facingDot = "number",
 	},
 	missionPolicy = {
 		provenance = "provenance",

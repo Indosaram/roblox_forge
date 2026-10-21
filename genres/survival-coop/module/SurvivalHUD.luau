@@ -3,11 +3,6 @@ local Model = require("./SurvivalHUDModel")
 local Locale = require("./SurvivalHUDLocale")
 local M = {}
 
--- Keep the input object alive across snapshots, but dispatch its current action.
---
--- `fit` is the constraint factory the runtime supplies (see `fitText` in
--- `M.start`). It is injected rather than called here so this module still names
--- no engine global and its specs run under Lune with the kit's own fakes.
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
 	local entries: { [string]: any } = {}
 	local present: { [string]: boolean } = {}
@@ -40,11 +35,6 @@ function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -
 		end
 		entry.callback, entry.enabled = callback, enabled
 		local item = entry.item
-		-- A label scales inside its control rather than running past it: the navigation
-		-- tabs are a third of a phone-width bar, and the same string is longer in one
-		-- language than another. A scaled label must be capped, or it grows to fill the
-		-- whole control: the bag sheet's "Refresh supplies" and "Camera controls" buttons
-		-- rendered their text at the full 48px button height before `fit` existed.
 		item.Name, item.Text, item.TextWrapped, item.TextScaled = id, text, true, true
 		if fit ~= nil then
 			fit(item)
@@ -71,11 +61,8 @@ export type Options = {
 	content: any,
 	icons: any?,
 	locale: string?,
-	-- Replicated settlement origin from the same config used by the world owner.
 	settlementOrigin: Vector3,
-	-- Pack translations keyed by catalog ID; genre copy is supplied in en/ko here.
 	names: { [string]: string }?,
-	-- Opt-in for packs using the shared collapsible menu and world-target controls.
 	contextual: boolean?,
 }
 
@@ -94,8 +81,6 @@ function M.start(options: Options)
 	local locale = options.locale or player.LocaleId
 	local content = options.content
 	local contextual = options.contextual == true
-	-- A touch-only device has no keyboard: key hints like " [R]" only crowd the buttons.
-	-- Read live: an emulated or convertible device can switch after the HUD starts.
 	local function t(key: string): string
 		local text = Locale.text(locale, key)
 		local touchOnly = input.TouchEnabled and not input.KeyboardEnabled
@@ -126,7 +111,6 @@ function M.start(options: Options)
 	root.Position, root.Size, root.Parent = UDim2.fromOffset(12, 8), UDim2.new(1, -24, 1, -16), gui
 	local vitals =
 		Components.label(theme, { text = t("loading"), size = UDim2.new(1, 0, 0, 52), parent = root, textSize = 15 })
-	-- Sibling names must stay unique: capture validation reads GetFullName paths.
 	vitals.Name = "Vitals"
 	vitals.BackgroundColor3, vitals.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
 	pcall(function()
@@ -145,8 +129,6 @@ function M.start(options: Options)
 		textSize = 14,
 	})
 	status.Name = "Status"
-	-- A status plus its refusal sentence runs two or three lines; at phone widths the 36 px bar
-	-- clipped it. Scale the text down to fit, never above the authored size.
 	status.TextScaled = true
 	local statusLimit = Instance.new("UITextSizeConstraint")
 	statusLimit.MaxTextSize, statusLimit.MinTextSize, statusLimit.Parent = 14, 8, status
@@ -163,12 +145,6 @@ function M.start(options: Options)
 	toolbar.Name, toolbar.BackgroundTransparency = "Navigation", 1
 	toolbar.Position, toolbar.Size, toolbar.Parent = UDim2.fromOffset(0, 124), UDim2.new(1, 0, 0, 48), root
 	local sheet = Components.modalSheet(theme, { name = "SurvivalSheet", title = "", parent = root })
-	-- A control's label scales inside it, down to a readable floor: the navigation
-	-- tabs are a third of a phone-width bar, and English copy is longer than Korean.
-	-- `MaxTextSize` is what stops a scaled label filling its control: without it the
-	-- text grows to the button's own height, which is the bag-sheet defect this
-	-- constraint fixes. One factory, shared by the tabs and the sheet's controls, so
-	-- every scaled label in this module is capped by the same numbers.
 	local function fitText(item: Instance): ()
 		local existing = item:FindFirstChild("ForgeTextFit")
 		local constraint: UITextSizeConstraint
@@ -183,9 +159,6 @@ function M.start(options: Options)
 		end
 		constraint.MinTextSize, constraint.MaxTextSize = 10, 15
 	end
-	-- The sheet is a modal a player opens, never a panel that covers the world at
-	-- spawn: it is created hidden and only `open` (a tab, or a keyboard shortcut)
-	-- shows it. A capture that opens it is driving the bag, not showing the start.
 	sheet.frame.Visible = false
 	local controls = M.controls(Components, theme, sheet.scroll, fitText)
 	sheet.frame.AnchorPoint, sheet.frame.Position = Vector2.new(1, 0), UDim2.new(1, 0, 0, 178)
@@ -251,7 +224,6 @@ function M.start(options: Options)
 			model.finish(ok, result)
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()
-			-- Refusals do not broadcast. Refresh to expose Ready/full-bag and conflicts.
 			refresh()
 		end)
 	end
@@ -282,9 +254,6 @@ function M.start(options: Options)
 	end
 	local function rest()
 		if model.pending then
-			-- A transient refusal (COMMAND_PENDING while another command settles) keeps the request.
-			-- Pressing the key again retries it under the same identity; before, the key went dead
-			-- until the player found the Retry button inside the sheet (Studio, 2026-10-19).
 			send(model.retry())
 			return
 		end
@@ -303,9 +272,6 @@ function M.start(options: Options)
 	end
 	local function attack()
 		if model.pending then
-			-- A transient refusal (COMMAND_PENDING while another command settles) keeps the request.
-			-- Pressing the key again retries it under the same identity; before, the key went dead
-			-- until the player found the Retry button inside the sheet (Studio, 2026-10-19).
 			send(model.retry())
 			return
 		end
@@ -345,18 +311,10 @@ function M.start(options: Options)
 			render()
 		end
 	end
-	-- Note labels are pooled by slot so a re-render reuses the same instances under
-	-- the same names. Destroying and recreating them gave every render a fresh name,
-	-- so the HUD's instance identities churned on each server push and a capture
-	-- spanning a push could not observe a stable geometry.
 	local notePool: { TextLabel } = {}
 	local noteUsed = 0
 	local function label(text: string, height: number?): TextLabel
 		noteUsed += 1
-		-- `notePool[slot]` is typed `TextLabel` by the array indexer even when the slot
-		-- is empty, so the pooled read is taken as optional and the two branches
-		-- produce one non-optional value: the strict `item == nil` guard cannot narrow
-		-- a value the indexer already calls non-nil.
 		local pooled: TextLabel? = notePool[noteUsed]
 		local item: TextLabel
 		if pooled == nil then
@@ -374,8 +332,6 @@ function M.start(options: Options)
 		item.Size = UDim2.new(1, -8, 0, height or 48)
 		item.LayoutOrder = controls.order()
 		item.Visible = true
-		-- A reused slot must not keep the previous render's job-timer bindings: the
-		-- heartbeat loop rewrites the text of any label carrying FinishAt.
 		item:SetAttribute("FinishAt", nil)
 		item:SetAttribute("JobLabel", nil)
 		return item
@@ -406,7 +362,6 @@ function M.start(options: Options)
 		end
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 		local cells = if placement then placement.cells else {}
-		-- Invalid previews still show the exact rotated footprint in red.
 		if not placement then
 			for dx = 0, definition.footprintX - 1 do
 				for dz = 0, definition.footprintZ - 1 do
@@ -443,11 +398,6 @@ function M.start(options: Options)
 			return
 		end
 		local v = model.snapshot.vitals
-		-- A pack whose snapshot carries no vitals - the generic survival pack's adapter
-		-- publishes balance and upgrade state, not vitals - must not sit on the loading
-		-- line forever: the row is hidden and the status line carries the state. A live
-		-- capture of the generic pack showed "보급품을 불러오는 중..." stuck above a HUD
-		-- that had already handshaked.
 		vitals.Visible = v ~= nil
 		vitals.Text = if v
 			then string.format(
@@ -458,7 +408,6 @@ function M.start(options: Options)
 				v.hungerMilli / 1000,
 				t("fatigue"),
 				v.fatigueMilli / 1000,
-				-- The status row already says "ready"; repeating it here was a visible duplicate.
 				if v.resting then t("resting") elseif model.status == "ready" then "" else t("ready")
 			)
 			else ""
@@ -470,9 +419,6 @@ function M.start(options: Options)
 		controls.begin(section)
 		noteUsed = 0
 		if inventoryGrid then
-			-- Hidden, not destroyed. Destroying it on every section change replaced every inventory
-			-- button instance, so a click subscribed before the switch fired on a dead button while the
-			-- injected mouse click hit the new one. Keeping the frame alive keeps the instances stable.
 			inventoryGrid.frame.Visible = section == "bag"
 		end
 		if model.pending then
@@ -519,8 +465,6 @@ function M.start(options: Options)
 				if not inventoryGrid then
 					inventoryGrid = Grid.new(sheet.scroll, theme, function(id)
 						selected = id
-						-- The detail and its Deposit/Eat buttons render below the grid; on a short
-						-- landscape phone they were below the fold, so the selection pulls them in.
 						focusBottom = "Deposit-" .. id
 						render()
 					end)
@@ -634,7 +578,6 @@ function M.start(options: Options)
 			for _, recipe in orderedRecipes do
 				button("Recipe-" .. recipe.id, name(recipe.id), function()
 					recipeId = recipe.id
-					-- Reserve renders right under the selected recipe; bring it into view.
 					focusBottom = "Reserve-" .. recipe.id
 					render()
 				end)
@@ -699,14 +642,17 @@ function M.start(options: Options)
 			for _, definition in orderedStructures do
 				button("Structure-" .. definition.id, name(definition.id), function()
 					structureId = definition.id
-					-- The detail, arrows and Reserve render after the whole structure list (17 in
-					-- the island pack), so the selection pulls Reserve into view, not the row.
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
 				end)
 			end
 			local definition = selectedDefinition()
 			if definition then
+				label(
+					if string.sub(locale, 1, 2) == "ko"
+						then "Enter 키로 예약한 건축물 배치"
+						else "Press Enter to place the reserved structure"
+				)
 				local _, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 				label(
 					name(definition.id)
@@ -755,6 +701,17 @@ function M.start(options: Options)
 						render()
 					end
 				end)
+				local reservations = Model.placements(model.snapshot.settlement, model.actor)
+				for _, entry in reservations do
+					if entry.placement.definition.id == definition.id then
+						mutation("BuildPlaceSelected-" .. entry.id, t("place"), "settlement-place", function()
+							command(
+								"settlement-place",
+								{ entry.id, model.snapshot.settlement.version, model.snapshot.warehouse.version }
+							)
+						end)
+					end
+				end
 			end
 			local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
 			if settlement and warehouse then
@@ -782,8 +739,6 @@ function M.start(options: Options)
 			notePool[index].Visible = false
 		end
 		sheet.scroll.CanvasPosition = scrollPosition
-		-- A fresh selection scrolls its row to the top so the detail and its action buttons
-		-- below it are on screen; otherwise Reserve sat below the fold on every screen size.
 		local focused = if focusId then sheet.scroll:FindFirstChild(focusId) else nil
 		focusId = nil
 		if focused and focused:IsA("GuiObject") then
@@ -822,8 +777,6 @@ function M.start(options: Options)
 				model.receive(result)
 				handshakeRetries = 0
 			elseif model.durable == nil and handshakeRetries < 8 then
-				-- The first handshake can run before the server session is bound (Studio play
-				-- showed the conflict banner stuck from spawn). Retry quietly with backoff.
 				handshakeRetries += 1
 				task.delay(math.min(8, handshakeRetries), function()
 					refresh()
@@ -931,11 +884,7 @@ function M.start(options: Options)
 		toolbar.Visible = false
 	end
 
-	-- The chat window's live right edge in screen space, or the documented reserve when the
-	-- chat is absent. Recomputed on demand and on every chat layout change, never guessed
-	-- once: the chat's message area appears only after the first measure.
 	local CHAT_RESERVE_WIDTH = 240
-	-- Never squeeze the top stack below a usable width, even if the chat is unusually wide.
 	local MIN_STACK_WIDTH = 160
 	local function chatRightEdge(): number
 		local chat = player.PlayerGui:FindFirstChild("Chat")
@@ -965,11 +914,6 @@ function M.start(options: Options)
 			return
 		end
 		local portrait = size.Y > size.X
-		-- The Roblox chat window owns the top-left corner on every surface. These elements
-		-- are top-anchored and right-aligned, so on a portrait phone the stack must not run
-		-- the full width: it is capped to the room right of the chat's live footprint (and a
-		-- documented reserve when the chat is absent). A live 390x844 capture caught the
-		-- navigation tabs under the chat.
 		local chatRight = chatRightEdge()
 		local width = if portrait
 			then math.max(MIN_STACK_WIDTH, math.floor(size.X - chatRight - 12))
@@ -990,9 +934,6 @@ function M.start(options: Options)
 			UDim2.new(1, -math.floor(width / 2) - 4, 0, 132), UDim2.fromOffset(math.floor(width / 2) - 4, 48)
 	end
 	table.insert(connections, root:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize))
-	-- The stack's width depends on the chat's footprint, and the chat's layout settles over the
-	-- first seconds and can change at any time. The measured right edge is compared each frame
-	-- and the stack re-laid-out only when it changes.
 	local RunService = game:GetService("RunService")
 	local lastChatRight: number? = nil
 	local function followChat(): ()
@@ -1020,6 +961,16 @@ function M.start(options: Options)
 			end
 			if key.KeyCode == Enum.KeyCode.I then
 				open("bag")
+			elseif key.KeyCode == Enum.KeyCode.Return and section == "build" then
+				local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
+				if settlement and warehouse then
+					for _, entry in Model.placements(settlement, model.actor) do
+						if entry.placement.definition.id == structureId then
+							command("settlement-place", { entry.id, settlement.version, warehouse.version })
+							break
+						end
+					end
+				end
 			elseif key.KeyCode == Enum.KeyCode.C then
 				open("craft")
 			elseif key.KeyCode == Enum.KeyCode.B then
@@ -1089,7 +1040,6 @@ function M.start(options: Options)
 		connections,
 		run.Heartbeat:Connect(function()
 			nearestGather()
-			-- Key hints follow the live input mode (t drops them on touch-only devices).
 			for key, tab in tabs do
 				tab.Text = t(key)
 			end
@@ -1190,7 +1140,6 @@ function M.start(options: Options)
 		destroy = destroy,
 		open = open,
 		gui = gui,
-		-- Closes the open sheet; a pack calls this when an extension panel takes the screen.
 		close = function()
 			section = ""
 			sheet.frame.Visible = false
@@ -1198,7 +1147,6 @@ function M.start(options: Options)
 		isOpen = function(): boolean
 			return sheet.frame.Visible
 		end,
-		-- Fires when the HUD sheet shows or hides, so a pack can close extension panels.
 		opened = sheet.frame:GetPropertyChangedSignal("Visible"),
 	}
 end

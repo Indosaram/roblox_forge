@@ -56,6 +56,36 @@ local function fixture(): any
 end
 
 return {
+	["physical interaction commits materials and checkpoint atomically"] = function()
+		local f = fixture()
+		f.context.now = function()
+			return 12
+		end
+		f.context.journal.interact = function(
+			_actor: string,
+			document: any,
+			target: string,
+			request: string
+		): (any, string?)
+			if target ~= "node" then
+				return nil, "OUT_OF_REACH"
+			end
+			document.coins += 2
+			return { id = request, action = "gather", target = "wood", quantity = 1 }, nil
+		end
+		f.extension = Journal.factory(f.context)
+		assert(f.command("open", { "first" }, "open").ok and f.document.journalOpenedAt == 12, "chapter clock")
+		assert(not f.command("interact", { "wrong" }, "denied").ok, "range refusal")
+		f.writesFail = true
+		assert(
+			not f.command("interact", { "node" }, "physical").ok and f.document.coins == 0,
+			"write failure atomicity"
+		)
+		f.writesFail = false
+		assert(f.command("interact", { "node" }, "physical").ok and f.document.coins == 2, "material commit")
+		f.extension = Journal.factory(f.context)
+		assert(f.command("interact", { "node" }, "physical").ok and f.document.coins == 2, "reconnect replay")
+	end,
 	["failed commands cannot supply journal evidence"] = function()
 		local f = fixture()
 		assert(f.command("open", { "first" }, "open").ok, "open")

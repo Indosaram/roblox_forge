@@ -15,6 +15,11 @@ steps:
   - {op: brawl_command, player: owner, action: start}
   - {op: brawl_command, player: owner, action: action, token: shot, expect: refused}
   - {op: brawl_frame, player: owner, elapsed: 120}
+  - {op: brawl_command, player: owner, action: action, token: shot}
+  - {op: brawl_assert, player: owner, check: ammunition}
+  - {op: brawl_frame, player: owner, elapsed: 122}
+  - {op: brawl_command, player: owner, action: action, token: shot, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: NO_AMMO}
   - {op: brawl_command, player: owner, action: action, token: sprint}
   - {op: expect_result, player: owner, field: staminaMultiplier, equals: 1.25}
   - {op: brawl_frame, player: owner, elapsed: 240}

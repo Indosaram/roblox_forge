@@ -35,11 +35,6 @@ export type Config = {
 	}?,
 }
 
--- A failed durable command keeps its queue head and exact request identity, but the
--- Heartbeat drain must not re-attempt it every frame: an unpaced failure loop
--- re-issues the same durable command hundreds of times per second and starves the
--- shared backend for every other key. Only the cadence is bounded; retry count,
--- request identity and the existing terminal conditions are unchanged.
 M.RETRY_INTERVAL_SECONDS = 1
 
 function M.new(config: Config)
@@ -155,7 +150,13 @@ function M.new(config: Config)
 		if type(kind) ~= "string" or not kinds[kind] or part:GetAttribute("ForgeStationId") ~= key then
 			return nil
 		end
-		return { kind = kind, reachable = reachable(id, part.Position, part) }
+		local from = root(id)
+		return {
+			kind = kind,
+			reachable = from ~= nil
+				and (from.Position - part.Position).Magnitude <= 12
+				and reachable(id, part.Position + Vector3.new(0, part.Size.Y / 2 + 2, 0), part, 16),
+		}
 	end
 	local services: Options.Services = {
 		survivalSpatial = {
@@ -211,7 +212,11 @@ function M.new(config: Config)
 			verify = function(actor: string, placement: Settlement.Placement, state: Settlement.State): boolean
 				local size = state.config.cellStuds
 				local entry = center(placement.entry, size)
-				if not reachable(actor, entry + Vector3.new(0, 2, 0), nil) then
+				local ground = world:Raycast(entry + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0))
+				if ground and ground.Position then
+					entry = Vector3.new(entry.X, ground.Position.Y, entry.Z)
+				end
+				if not reachable(actor, entry + Vector3.new(0, 3, 0), nil, 12) then
 					return false
 				end
 				local params = RaycastParams.new()
@@ -234,9 +239,12 @@ function M.new(config: Config)
 				table.insert(cells, placement.entry)
 				for _, cell in cells do
 					local position = center(cell, size)
-					local support = world:Raycast(position + Vector3.new(0, 0.25, 0), Vector3.new(0, -1, 0), params)
+					local support = world:Raycast(position + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0), params)
 					if not support or support.Normal.Y < 0.9 then
 						return false
+					end
+					if support.Position then
+						position = Vector3.new(position.X, support.Position.Y, position.Z)
 					end
 					local overlap = OverlapParams.new()
 					overlap.FilterType = Enum.RaycastFilterType.Exclude
@@ -284,6 +292,10 @@ function M.new(config: Config)
 					part.Size = Vector3.new((highX - lowX + 1) * size - 0.2, 1, (highZ - lowZ + 1) * size - 0.2)
 					part.Position = origin
 						+ Vector3.new((lowX + highX + 1) * size / 2, 0.5, (lowZ + highZ + 1) * size / 2)
+					local support = world:Raycast(part.Position + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0))
+					if support and support.Position then
+						part.Position = Vector3.new(part.Position.X, support.Position.Y + 0.5, part.Position.Z)
+					end
 					part.Color = Color3.fromRGB(116, 77, 45)
 					part:SetAttribute("ForgeTribeId", tribe)
 					part:SetAttribute("ForgeStructureId", id)

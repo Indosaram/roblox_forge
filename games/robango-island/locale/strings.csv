@@ -1,4 +1,18 @@
 Key,Source,Context,en-us,ko-kr
+harbor.use,Talk / use,harbor facility prompt,Talk / use,대화 / 이용
+harbor.guide,Harbor guide,harbor facility prompt,Harbor guide,항구 안내
+build.keyboard,Press Enter to place the reserved structure,build keyboard action,Press Enter to place the reserved structure,Enter 키로 예약한 건축물 배치
+brawl_ranged,Shoot nearest rival,brawl snapshot ranged action,Shoot nearest rival,가까운 상대 사격
+NO_AMMO,No snapshot ammunition,brawl snapshot ranged action,No snapshot ammunition,복제 탄약이 없습니다
+journal.checkpoint,Journal checkpoint,journal world interaction,Journal checkpoint,일지 확인
+journal.world,Journal,journal world interaction,Journal,일지
+ui.outpost,Team outpost,clan and outpost interface,Team outpost,팀 거점
+outpost.owner,Owner,clan and outpost interface,Owner,소유 부족
+outpost.remaining,Seconds remaining,clan and outpost interface,Seconds remaining,남은 시간
+outpost.active,Capture in progress,clan and outpost interface,Capture in progress,점령 진행 중
+outpost.settled,Match finished,clan and outpost interface,Match finished,경기 종료
+outpost.winner,Winner,clan and outpost interface,Winner,승리 부족
+outpost.opt-in,Join team queue,clan and outpost interface,Join team queue,팀 대기열 참가
 trade.facility.market,Harbor market,harbor facility,Harbor market,항구 장터
 trade.facility.dock,Departure dock,harbor facility,Departure dock,출항 부두
 trade.bundle,Whole bundle,trade,Whole bundle,묶음 전체

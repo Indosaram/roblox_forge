@@ -1,8 +1,4 @@
 --!strict
--- CraftingAdapter: the survival-coop `crafting` mode instance.
---
--- Personal inventory is backed by the pure Inventory transitions. Other
--- crafting features continue to fail closed until their mechanisms are bound.
 
 local Shared = require("../../../core/domain/genre/Contract")
 local Data = require("../../../core/domain/genre/SerializedData")
@@ -49,7 +45,6 @@ export type Config = {
 	startingBalance: number,
 	contentVersion: number,
 	survivalDeath: boolean?,
-	-- Recorded seed for free craft-crit/latent rolls; absent keeps rolls off.
 	craftSeed: number?,
 	inventory: {
 		content: any,
@@ -105,9 +100,6 @@ local function copyVitals(raw: any): Vitals.State
 	return copied
 end
 
---- Crafting config surface. Deliberately disjoint from the wave tuning fields:
---- a config carrying wave numbers in crafting mode is a selection mistake, not
---- a silently ignored leftover.
 function M.validateConfig(data: Shared.ConfigData): { string }
 	local errors: { string } = {}
 	local allowed = {
@@ -203,14 +195,8 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 	return errors
 end
 
---- The previous crafting slice marker. A v2 save predates craft mastery: it
---- carries no `skills` field and upgrades losslessly to the current marker.
 M.PREVIOUS_SAVE_VERSION = 2
 
---- Pure upgrade step: reads a v2 crafting save and yields the current (v3)
---- shape. Mastery starts empty (filled from content at load). A current save is
---- returned as an isolated copy; any other marker is returned unchanged so the
---- validator refuses it by name.
 function M.upgradeSave(data: Shared.StateData): Shared.StateData
 	local copy = table.clone(data)
 	if data.saveVersion == M.PREVIOUS_SAVE_VERSION and data.skills == nil then
@@ -219,10 +205,6 @@ function M.upgradeSave(data: Shared.StateData): Shared.StateData
 	return copy
 end
 
---- Crafting saves carry their own `saveVersion`. A wave save (no marker) and a
---- crafting save can never be read as each other, and a save from a newer
---- crafting writer is refused rather than downgraded. A v2 save is read
---- through `upgradeSave`.
 function M.validateSave(raw: Shared.StateData): { string }
 	local errors: { string } = {}
 	local descriptor = Capability.describe("crafting")
@@ -307,6 +289,10 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "journal"
 			and key ~= "journalOutcomes"
 			and key ~= "journalGrants"
+			and key ~= "journalPending"
+			and key ~= "journalOpenedAt"
+			and key ~= "journalJobs"
+			and key ~= "journalEscort"
 			and key ~= "missionItems"
 			and key ~= "multistorey"
 			and key ~= "buildOutcomes"
@@ -321,15 +307,11 @@ function M.validateSave(raw: Shared.StateData): { string }
 	return errors
 end
 
---- Maps a wave-mode action id to the crafting feature that would own it, so a
---- refusal names the missing mechanism instead of a bare "unknown action".
 local ACTION_FEATURE: { [string]: string } = {
 	["buy-defense"] = "placement",
 	["defend-active"] = "wildlife",
 }
 
--- analytics is optional: when supplied, committed craft completions and
--- survival deaths emit core analytics events after apply/notify.
 function M.new(
 	config: Config,
 	services: Shared.Services,
@@ -421,7 +403,6 @@ function M.new(
 		}
 	local lastAt = services.now()
 	assert(type(lastAt) == "number" and lastAt == lastAt and math.abs(lastAt) < math.huge, "invalid initial clock")
-	-- Events observed while staging one command; emitted only once it commits.
 	local observed: { { name: string, fields: Events.Fields } } = {}
 	local function savePlayer(
 		id: string,
@@ -564,7 +545,6 @@ function M.new(
 								stationKind = if station then station.kind else nil,
 								inReach = station ~= nil and station.reachable,
 							},
-							-- Rolls read only the recorded seed and job inputs, never ownership.
 							if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
 						)
 					end
@@ -614,8 +594,6 @@ function M.new(
 					and player.vitals
 				then Vitals.action(player.vitals)
 				else player.vitals
-			-- Craft mastery: a completion that commits its job earns the recipe's
-			-- content-declared XP, capped by the best usable tool in the bag.
 			local skills = player.skills
 			if
 				candidate
@@ -835,7 +813,6 @@ function M.new(
 		end
 		if nextState then
 			states[args[1]] = nextState
-			-- Stable identities are unique across this player's personal containers.
 			local seen: { [string]: boolean } = {}
 			for _, state in states do
 				for itemId in state.items do
@@ -903,8 +880,6 @@ function M.new(
 				locations[key] = table.clone(position)
 			end
 		end
-		-- Session supplies this identity only after the profile ownership lock.
-		-- Same revision preserves world coordinates; mismatches never discard data.
 		bundles.serverId = context.serverId
 		local authority = { ownerId = id, serverId = context.serverId }
 		local advanced = Vitals.advance(live.vitals, now)
@@ -1012,8 +987,6 @@ function M.new(
 			end,
 		}
 	end
-	-- Emits what one staged command observed exactly once, after Session commits
-	-- it (apply on the legacy lane, notify on the fenced personal lane).
 	local function tracked(
 		id: string,
 		action: string,
@@ -1104,8 +1077,6 @@ function M.new(
 			for field, value in content.vitals do
 				assert(restored.config[field] == value, "vitals config mismatch")
 			end
-			-- A saved monotonic origin belongs to its old process. Preserve the
-			-- remaining combat cooldown, never simulate unobserved offline time.
 			if rebase then
 				restored.combatUntilMillis = nowMillis + math.max(0, restored.combatUntilMillis - restored.clockMillis)
 				restored.clockMillis = nowMillis
@@ -1198,6 +1169,10 @@ function M.new(
 				"journal",
 				"journalOutcomes",
 				"journalGrants",
+				"journalPending",
+				"journalOpenedAt",
+				"journalJobs",
+				"journalEscort",
 				"missionItems",
 				"multistorey",
 				"buildOutcomes",
@@ -1266,9 +1241,6 @@ function M.new(
 			if not supported then
 				return { ok = false, reason = reason }
 			end
-			-- Unreachable while `implemented` is empty. When a later task lands a
-			-- mechanism it replaces this branch with the real dispatch; it must
-			-- never return ok = true from here.
 			return { ok = false, reason = "crafting: action has no implementation bound" }
 		end,
 		advance = function(now)

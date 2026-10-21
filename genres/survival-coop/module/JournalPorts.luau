@@ -1,11 +1,7 @@
 --!strict
--- documents is the authoritative PERSONAL ActorDocumentStore, not a second ledger.
--- Its document contains journal, progression, balance and missionItems together.
 local Data = require("../../../core/domain/genre/SerializedData")
 local M = {}
 
--- Bridge the live Session personal fence to the ActorDocumentStore interface.
--- Never create a second actor namespace for balance/progression/inventory.
 function M.personal(session: any): any
 	return {
 		transaction = function(actor: string, transform: any): any

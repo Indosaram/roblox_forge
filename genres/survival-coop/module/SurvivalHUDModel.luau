@@ -4,6 +4,10 @@ local Transport = require("../../../core/infra/genre/CommandTransport")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local M = {}
 
+function M.stationTarget(position: any, size: any): any
+	return { x = position.x, y = position.y + size.y / 2 + 2, z = position.z }
+end
+
 function M.new(actor: string, newId: () -> string): any
 	local model: any = {
 		actor = actor,
@@ -167,14 +171,8 @@ function M.placements(settlement: any, actor: string): { any }
 	return rows
 end
 
--- The HUD's top-right stack ends here: vitals 0..36, tabs 40..88, status 92..128 and
--- the rest control 132..180. A sheet whose top starts any higher overlaps the last
--- control, which the capture geometry contract rejects, so the sheet never starts
--- above this line.
 M.STACK_BOTTOM = 180
 
--- Coordinates are relative to a CoreUISafeInsets container, not the physical screen.
--- Sheets reserve the bottom 128 pixels for movement/jump and the top menu target.
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
 	local top = 64
 	local bottom = if touch or width < 700 then 128 else 16
@@ -199,23 +197,17 @@ end
 function M.nearestGatherable(nodes: { any }): any
 	local best = nil
 	for _, node in nodes do
-		if node.available and (best == nil or node.distance < best.distance) then
+		if node.available and node.reachable ~= false and (best == nil or node.distance < best.distance) then
 			best = node
 		end
 	end
 	return best
 end
 
--- Returns width, height, top and the gap kept free at the right edge. A short landscape
--- viewport has no room below the stack, and a sheet starting at the top covered the
--- section tabs (live 819x295 capture: no way from the bag to the build tab), so there the
--- sheet sits left of the `stackWidth`-wide control stack instead.
 function M.sheetBounds(width: number, height: number, stackWidth: number?): (number, number, number, number)
 	local portrait = height > width
 	if height < 500 and not portrait and stackWidth then
 		local right = stackWidth + 8
-		-- The Roblox chat owns the top-left corner; keep its usual 160 px clear when the
-		-- viewport allows, but never squeeze the sheet below 240 px.
 		local room = width - right - 8
 		return math.max(math.min(240, room), math.min(400, room - 160)), math.max(0, height - 60), 0, right
 	end

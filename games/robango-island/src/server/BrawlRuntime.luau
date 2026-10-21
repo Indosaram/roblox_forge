@@ -6,6 +6,46 @@ local Match = require(Forge.core.domain.brawl.Match)
 local Personal = require(Forge.genres["survival-coop"].module.JournalPorts)
 local M = {}
 
+function M.attack(participant: any, fact: any): any
+	local ammoId: string? = nil
+	local ids = {}
+	for id in participant.equipment.items or {} do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	for _, id in ids do
+		local item = participant.equipment.items[id]
+		if item.catalogId == fact.ammunition and item.quantity > 0 then
+			ammoId = id
+			break
+		end
+	end
+	local attack, remaining, reason = Combat.begin(
+		fact.id,
+		fact.target,
+		fact.rule,
+		fact.millis,
+		participant.combat.readyAt,
+		fact.origin,
+		fact.direction,
+		if ammoId then participant.equipment.items[ammoId].quantity else 0,
+		participant.mounted == true
+	)
+	if not attack then
+		return { ok = false, reason = reason }
+	end
+	if ammoId then
+		if remaining == 0 then
+			participant.equipment.items[ammoId] = nil
+		else
+			participant.equipment.items[ammoId].quantity = remaining
+		end
+	end
+	participant.combat.readyAt = attack.recoveryUntil
+	table.insert(participant.combat.attacks, attack)
+	return { ok = true }
+end
+
 function M.new(content: any, _world: any, options: any, session: any, seconds: any, wildlife: any): any
 	local combat = content.progressionPolicy.combat
 	local players = game:GetService("Players")
@@ -62,7 +102,7 @@ function M.new(content: any, _world: any, options: any, session: any, seconds: a
 			if token == "dodge" or token == "guard" then
 				return { kind = token, range = 0, millis = math.floor(seconds() * 1000) }
 			end
-			if kind ~= "melee" then
+			if kind ~= "melee" and kind ~= "ranged" then
 				return nil
 			end
 			if not target or not state.actors[target] or target == actor then
@@ -73,8 +113,23 @@ function M.new(content: any, _world: any, options: any, session: any, seconds: a
 				return nil
 			end
 			local weapon: any = nil
-			for _, item in participant.equipment.items or {} do
-				local rule = wildlife.catalog.weapons[item.catalogId]
+			local ammunition: string? = nil
+			local ids = {}
+			for id in participant.equipment.items or {} do
+				table.insert(ids, id)
+			end
+			table.sort(ids)
+			for _, id in ids do
+				local item = participant.equipment.items[id]
+				local rule: any = if kind == "melee" then wildlife.catalog.weapons[item.catalogId] else nil
+				if kind == "ranged" then
+					for _, row in content.brawlPolicy.weapons or {} do
+						if row.item == item.catalogId then
+							rule, ammunition = row, row.ammunition
+							break
+						end
+					end
+				end
 				if rule then
 					weapon = rule
 					break
@@ -86,19 +141,30 @@ function M.new(content: any, _world: any, options: any, session: any, seconds: a
 			return {
 				kind = kind,
 				target = target,
-				range = weapon.rangeStuds,
+				range = math.min(
+					weapon.rangeStuds,
+					if kind == "ranged"
+						then Match.weather(state, seconds()).rangeCap or weapon.rangeStuds
+						else weapon.rangeStuds
+				),
 				millis = math.floor(seconds() * 1000),
 				id = http:GenerateGUID(false),
+				ammunition = ammunition,
 				origin = origin,
 				direction = { x = destination.x - origin.x, y = destination.y - origin.y, z = destination.z - origin.z },
 				rule = {
 					mode = kind,
 					windupMillis = combat.windupMillis,
 					recoveryMillis = weapon.cooldownMillis,
-					range = weapon.rangeStuds,
+					range = math.min(
+						weapon.rangeStuds,
+						if kind == "ranged"
+							then Match.weather(state, seconds()).rangeCap or weapon.rangeStuds
+							else weapon.rangeStuds
+					),
 					facingDot = weapon.facingDot,
 					damageMilli = weapon.damageMilli,
-					ammo = 0,
+					ammo = if kind == "ranged" then 1 else 0,
 				},
 			}
 		end,
@@ -112,23 +178,7 @@ function M.new(content: any, _world: any, options: any, session: any, seconds: a
 				participant.defense.guardPermille = combat.guardPermille
 				return { ok = true }
 			end
-			local attack, _, reason = Combat.begin(
-				fact.id,
-				fact.target,
-				fact.rule,
-				fact.millis,
-				participant.combat.readyAt,
-				fact.origin,
-				fact.direction,
-				0,
-				participant.mounted == true
-			)
-			if not attack then
-				return { ok = false, reason = reason }
-			end
-			participant.combat.readyAt = attack.recoveryUntil
-			table.insert(participant.combat.attacks, attack)
-			return { ok = true }
+			return M.attack(participant, fact)
 		end,
 		frame = function(state: any): any
 			local frame: any = { connected = {}, positions = {}, sight = {} }

@@ -13,11 +13,8 @@ local ActorDocuments = require(Forge.core.infra.data.ActorDocumentStore)
 local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.ArchipelagoExtension)
 local Archipelago = require(Forge.core.domain.island.Archipelago)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
-	-- BEGIN production role projection. Geometry and durable gathering share one layout.
 	content, source, wildlifePolicy =
 		world.roleContent or content, world.roleSource or source, world.roleWildlife or wildlifePolicy
-	-- END production role projection.
-	-- The rendered module also carries capability metadata, not domain content.
 	content = table.clone(content)
 	content.capability = nil
 	require(script.Parent.LateEquipmentPorts).bind(world)
@@ -40,7 +37,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 		Vector3.new(origin.x, origin.y, origin.z),
 		Vector3.new(warehouse.x, warehouse.y, warehouse.z)
 	)
-	-- The provision may scope the tribe identity (a per-server camp); the grid policy is unchanged.
 	local tribeConfig: Settlement.Config = {
 		tribeId = tribe.config.tribeId,
 		width = tribe.config.width,
@@ -52,7 +48,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 		tribeConfig.contentVersion = 2
 	end
 	tribeConfig.tribeId = provision.tribeId or tribeConfig.tribeId
-	-- Last confirmed settlement, recorded from the runtime's post-commit publication.
 	local confirmed: any = nil
 	local function publish(state)
 		confirmed = state
@@ -78,7 +73,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 	end
 	local extensionFactories = table.clone(Extensions.factories)
 	if world.clanDirectory then
-		local directory = world.clanDirectory
+		local directory: any = world.clanDirectory
+		local occupying: { string } = {}
 		local operations = {}
 		for _, operation in content.operations do
 			operations[operation.id] = operation
@@ -110,10 +106,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 				end
 				local state = directory.read("clan:" .. _id)
 				local hall = false
-				local anchors: { any } = if world.layout then world.layout.anchors else {}
-				for _, anchor in anchors do
+				for _, placed in if confirmed then confirmed.structures else {} do
 					hall = hall
-						or (anchor.id == "station.clan-hall.t1" and state and state.territory == world.layout.id)
+						or (
+							placed.definition.id == "clan-hall"
+							and state ~= nil
+							and state.members[placed.actorId] ~= nil
+							and world.layout ~= nil
+							and state.territory == world.layout.id
+						)
 				end
 				return {
 					rules = content.clanPolicy,
@@ -125,9 +126,138 @@ return function(content: any, source, world, backend, clock, options, provision,
 				}
 			end,
 		}
+		world.captureEligibility = function(actor: string)
+			local id = directory.membership(actor)
+			local state = if id then directory.read("clan:" .. id) else nil
+			local outpost = directory.read("outpost:rw.team-outpost")
+			return state ~= nil
+				and require(Forge.core.domain.settlement.Clan).effect(
+					state,
+					actor,
+					"advanced-capture",
+					seconds(),
+					outpost
+				)
+		end
+		world.outpost = {
+			store = world.clan.store,
+			now = seconds,
+			owner = function()
+				return ""
+			end,
+			identity = function(_actor, requested)
+				return if requested == nil or requested == "rw.team-outpost" then "rw.team-outpost" else nil
+			end,
+			facts = function(actor: string, _id: string, _operation: string, _args: any, commandOrigin: string)
+				local state = directory.read("outpost:rw.team-outpost")
+				local byClan: { [string]: { string } } = {}
+				local occupants: { string } = {}
+				local function eligible(player: string, clanId: string): boolean
+					local current = directory.membership(player)
+					return current == clanId
+				end
+				for player, clanId in if state then state.queue or {} else {} do
+					if eligible(player, clanId) then
+						byClan[clanId] = byClan[clanId] or {}
+						table.insert(byClan[clanId], player)
+					end
+				end
+				local teams: { any } = {}
+				local ids: { string } = {}
+				for clanId in byClan do
+					table.insert(ids, clanId)
+				end
+				table.sort(ids)
+				for _, clanId in ids do
+					local actors = byClan[clanId]
+					table.sort(actors)
+					if #actors >= content.outpostPolicy.minTeam and #teams < 2 then
+						while #actors > content.outpostPolicy.maxTeam do
+							table.remove(actors)
+						end
+						table.insert(teams, { clanId = clanId, actors = actors })
+					end
+				end
+				occupants = table.clone(occupying)
+				return {
+					server = commandOrigin == "server",
+					role = if world.layout and world.layout.id == "rw.team-outpost" then "team-outpost" else "",
+					rules = content.outpostPolicy,
+					teams = teams,
+					occupants = occupants,
+					clanId = directory.membership(actor),
+					eligible = eligible,
+					optedIn = function(player: string)
+						return state ~= nil and state.queue ~= nil and state.queue[player] ~= nil
+					end,
+				}
+			end,
+			sampleOccupancy = function(state: any)
+				occupying = {}
+				for _, match in state.matches do
+					if match.status == "active" then
+						for player in match.actors do
+							if world.outpostOccupying and world.outpostOccupying(player) then
+								table.insert(occupying, player)
+							end
+						end
+					end
+				end
+			end,
+		}
 	end
 	local expeditionStore = ActorDocuments.new(backend, options, "robango-exp-v1")
 	local activeSession: any = nil
+	if world.outpost then
+		local sequence = 0
+		world.outpost.drive = function(actor: string, extension: any)
+			if not world.layout or world.layout.id ~= "rw.team-outpost" then
+				return { status = "confirmed", pending = 0 }
+			end
+			local state = extension.snapshot(actor)
+			if not state then
+				return { status = "recovering", pending = 1 }
+			end
+			local operation: string = "start"
+			local body: any = nil
+			for id, match in state.matches do
+				if match.status == "active" then
+					operation, body = "advance", { matchId = id }
+				end
+			end
+			if not body then
+				local facts = world.outpost.facts(actor, "rw.team-outpost", "start", {}, "server")
+				if #facts.teams ~= 2 then
+					return { status = "confirmed", pending = 0 }
+				end
+				body = { matchId = "match:" .. tostring(state.revision) }
+			end
+			sequence += 1
+			local action = "survival-coop:outpost-" .. operation
+			local result = extension.command(
+				actor,
+				action,
+				{ "rw.team-outpost", body },
+				{
+					actorId = actor,
+					requestId = "outpost-tick:" .. tostring(seconds()) .. ":" .. tostring(sequence),
+					sessionEpoch = 0,
+				},
+				"server",
+				function()
+					return { ok = true }
+				end
+			)
+			if result.ok then
+				world.outpost.sampleOccupancy(extension.snapshot(actor))
+			end
+			return {
+				status = if result.ok then "confirmed" else "recovering",
+				pending = if result.ok then 0 else 1,
+				reason = result.reason,
+			}
+		end
+	end
 	local monetization: any = nil
 	local gatherReceipt: any = nil
 	local wildlifeSnapshot: any = nil
@@ -276,15 +406,12 @@ return function(content: any, source, world, backend, clock, options, provision,
 			}
 		end
 	end
-	-- BEGIN authoritative home owner. Personal profile and server spatial ports supply facts.
 	local HomeContent = require(Forge.core.domain.home.HomeContent)
 	local homeOwner: any = nil
 	local function personalData(actor)
 		local port = if activeSession then activeSession.personalTransfer(actor) else nil
 		return if port then port.profile().data.envelope.genres["survival-coop"].data else nil
 	end
-	-- The repository is composed only by the Roblox entrypoint. Native fixtures
-	-- retain their injected service boundary rather than acquiring cloud services.
 	if world.musicRepository then
 		local MusicRange = require(Forge.genres["survival-coop"].module.EnsembleRange)
 		local range = MusicRange.new({
@@ -399,7 +526,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			end,
 		}
 	end
-	-- END authoritative home owner.
 	local function expeditionFacts(actor, document: any?)
 		local port = if activeSession then activeSession.personalTransfer(actor) else nil
 		local envelope = if port then port.profile().data.envelope else nil
@@ -411,8 +537,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			instabilityAccess = if development then development.instabilityAccess else 1,
 		}
 	end
-	-- BEGIN provision receipt resolver. The operation id resolves a binding that
-	-- Session has already committed, never client-provided completion facts.
 	provision.archipelagoReceipt = function(actor: string, operationId: string, current: any): any
 		local binding = commandReceipts[actor .. ":" .. operationId]
 		if
@@ -453,7 +577,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end
 		return nil
 	end
-	-- END provision receipt resolver.
 	local archipelago = ArchipelagoExtension.new({
 		content = content,
 		entryBuffer = source.archipelago.entryBufferSeconds,
@@ -558,7 +681,288 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}),
 		content
 	)
+	journalPort.interact = function(
+		actor: string,
+		document: any,
+		objectiveId: string,
+		receiptId: string
+	): (any, string?)
+		local target = if world.journalTargets then world.journalTargets[objectiveId] else nil
+		objectiveId = if target then target.objective else objectiveId
+		local chapter: any = nil
+		for _, row in content.chapters do
+			if document.journal and row.id == document.journal.active then
+				chapter = row
+			end
+		end
+		if not chapter then
+			return nil, "NO_ACTIVE_CHAPTER"
+		end
+		local objective: any = nil
+		for _, row in chapter.objectives do
+			if row.id == objectiveId then
+				objective = row
+			end
+		end
+		if not objective then
+			return nil, "WRONG_OBJECTIVE"
+		end
+		local current: any = nil
+		for _, row in chapter.objectives do
+			if (document.journal.counts[row.id] or 0) < row.quantity then
+				current = row
+				break
+			end
+		end
+		if not current or current.id ~= objectiveId then
+			return nil, "WRONG_OBJECTIVE"
+		end
+		local death: any = world.services.survivalDeath
+		if not target or not death.reachable(actor, target.position) then
+			return nil, "OUT_OF_REACH"
+		end
+		local physical = { survey = true, inspect = true, activate = true, speak = true, tune = true }
+		if objective.action == "escort" then
+			document.journalEscort = document.journalEscort
+				or {
+					objective = objective.id,
+					chapter = chapter.id,
+					position = table.clone(target.position),
+					lastAt = seconds(),
+					marker = target.marker,
+					target = objective.target,
+					layout = world.layout.id,
+				}
+			return { pending = true }, nil
+		elseif objective.action == "return" then
+			if not document.journalEscort or not document.journalEscort.arrived then
+				return nil, "ESCORT_REQUIRED"
+			end
+			physical["return"] = true
+		end
+		local consumed = { deposit = true, administer = true, install = true, submit = true, deploy = true, eat = true }
+		local catalog = require(Forge.core.domain.crafting.Job).catalog(content)
+		local bag = Inventory.fromSave(document.inventory.bag, catalog)
+		local function consume(item: string, amount: number): boolean
+			local ids = {}
+			for id, row in bag.items do
+				if row.catalogId == item then
+					table.insert(ids, id)
+				end
+			end
+			table.sort(ids)
+			for _, id in ids do
+				local quantity = math.min(amount, Inventory.available(bag, id))
+				if quantity > 0 then
+					bag = assert(Inventory.consume(bag, id, quantity, bag.version), "journal material debit")
+					amount -= quantity
+				end
+			end
+			return amount == 0
+		end
+		if objective.action == "assemble" then
+			local operation: any = nil
+			for _, row in content.operations do
+				if row.id == "assemble-" .. objective.target then
+					operation = row
+				end
+			end
+			if not operation then
+				return nil, "UNKNOWN_OPERATION"
+			end
+			document.journalJobs = document.journalJobs or {}
+			local job = document.journalJobs[objective.id]
+			if not job then
+				for _, input in operation.inputs do
+					if not consume(input.item, input.quantity) then
+						return nil, "MATERIALS_REQUIRED"
+					end
+				end
+				document.journalJobs[objective.id] =
+					{ jobId = receiptId, finishAt = seconds() + operation.seconds, status = "pending" }
+				document.inventory.bag = Inventory.save(bag)
+				return { pending = true }, nil
+			end
+			if seconds() < job.finishAt then
+				return nil, "NOT_READY"
+			end
+			job.status = "completed"
+			document.missionItems = document.missionItems or {}
+			for _, output in operation.outputs do
+				document.missionItems[output.item] = (document.missionItems[output.item] or 0) + output.quantity
+			end
+		elseif consumed[objective.action] then
+			local item = if objective.action == "administer"
+				then content.progressionPolicy.journalRemedy
+				elseif objective.target == "signal-relay" then "signal-relay-kit"
+				else objective.target
+			local reserved = if document.missionItems then document.missionItems[item] or 0 else 0
+			if reserved >= objective.quantity then
+				document.missionItems[item] -= objective.quantity
+			elseif not consume(item, objective.quantity) then
+				return nil, "MATERIALS_REQUIRED"
+			end
+		elseif not physical[objective.action] then
+			return nil, "OBJECTIVE_REQUIRES_RECEIPT"
+		end
+		document.inventory.bag = Inventory.save(bag)
+		return {
+			id = "interact:" .. receiptId,
+			action = objective.action,
+			target = objective.target,
+			quantity = if objective.action == "survey" then 1 else objective.quantity,
+			marker = target.marker,
+		},
+			nil
+	end
 	local journalFeed = require(Forge.genres["survival-coop"].module.JournalObjectiveFeed).new(journalPort, content, {})
+	local function recoverJournal(actor: string)
+		local document = journalPort.read(actor)
+		if document and document.journal and document.journal.active then
+			local escort = document.journalEscort
+			if
+				escort
+				and escort.chapter == document.journal.active
+				and escort.layout == world.layout.id
+				and not escort.arrived
+			then
+				local spatial: any = world.services.survivalDeath
+				local actorPosition: any = spatial.position(actor)
+				local exit: any = nil
+				for _, anchor in world.layout.anchors do
+					if anchor.id == "exit" then
+						exit = anchor.position
+					end
+				end
+				if actorPosition and exit then
+					local function distance(a: any, b: any): number
+						return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
+					end
+					local length = distance(escort.position, actorPosition)
+					local policy = content.missionPolicy
+					local step = if length <= policy.stopStuds
+						then math.min(
+							math.max(0, seconds() - escort.lastAt) * policy.escortSpeed,
+							math.max(0, length - policy.followStuds)
+						)
+						else 0
+					local saved, reason = journalPort.update(actor, function(current: any)
+						local npc: any = current.journalEscort
+						if step > 0 then
+							for _, axis in { "x", "y", "z" } do
+								npc.position[axis] += (actorPosition[axis] - npc.position[axis]) * step / length
+							end
+						end
+						npc.lastAt = seconds()
+						npc.arrived = distance(npc.position, exit) <= policy.followStuds
+							and distance(actorPosition, exit) <= policy.interactionStuds
+						return current
+					end)
+					if not saved then
+						return { ok = false, reason = reason }
+					end
+					document = journalPort.read(actor)
+					escort = document.journalEscort
+					if world.renderJournalEscort then
+						world.renderJournalEscort(actor, escort.position)
+					end
+				end
+			end
+			if escort and escort.arrived and escort.chapter == document.journal.active then
+				local result = journalFeed.accept({
+					actor = actor,
+					chapterId = escort.chapter,
+					receiptId = "escort:" .. escort.objective,
+					committed = true,
+					ok = true,
+					action = "escort",
+					target = escort.target,
+					quantity = 1,
+				})
+				if not result.ok and result.reason ~= "WRONG_OBJECTIVE" then
+					return result
+				end
+			end
+			for id, npc in if wildlifeSnapshot then wildlifeSnapshot(actor) or {} else {} do
+				if
+					npc.healthMilli == 0
+					and npc.killer == actor
+					and npc.killedAt
+					and document.journalOpenedAt
+					and npc.killedAt >= document.journalOpenedAt
+				then
+					journalFeed.accept({
+						actor = actor,
+						chapterId = document.journal.active,
+						receiptId = "biology:" .. id .. ":" .. tostring(npc.killedAt),
+						committed = true,
+						ok = true,
+						action = "fresh-kill",
+						target = npc.catalogId,
+						quantity = 1,
+					})
+				end
+			end
+		end
+		return journalFeed.recover(actor, function(binding: any): any
+			if binding.action == "survival-coop:gather" then
+				local grant = if gatherReceipt then gatherReceipt(actor, binding.epoch, binding.requestId) else nil
+				if not grant then
+					return nil
+				end
+				local events = {}
+				for item, quantity in grant.items do
+					table.insert(events, {
+						receiptId = "g:" .. tostring(binding.epoch) .. ":" .. binding.requestId .. ":" .. item,
+						action = "gather",
+						target = item,
+						quantity = quantity,
+					})
+				end
+				return events
+			end
+			local port = activeSession.personalTransfer(actor)
+			local commands = if port then port.profile().data.envelope.commands else nil
+			local epoch = if commands then commands.epochs[tostring(binding.epoch)] else nil
+			local receipt = if epoch then epoch.outcomes[binding.requestId] else nil
+			if not receipt then
+				return nil
+			end
+			local canonical = require(Forge.core.domain.command.Ledger).canonical
+			local expected = (if binding.origin == "server" then "S" else "")
+				.. canonical({ action = binding.action, args = binding.args })
+			if receipt.binding ~= expected or not receipt.result.ok then
+				return {}
+			end
+			return {
+				{
+					receiptId = tostring(binding.epoch) .. ":" .. binding.requestId,
+					action = binding.event.action,
+					target = binding.event.target,
+					quantity = binding.event.quantity,
+				},
+			}
+		end)
+	end
+	table.insert(extensionFactories, function(): any
+		return require(Forge.core.infra.genre.Session).registerLifecycle({
+			id = "journal-delivery",
+			handles = function()
+				return false
+			end,
+			command = function()
+				return { ok = false, reason = "UNKNOWN_ACTION" }
+			end,
+			recover = function(actor)
+				local result = recoverJournal(actor)
+				return {
+					status = if result.ok then "confirmed" else "recovering",
+					pending = if result.ok then 0 else 1,
+					reason = result.reason,
+				}
+			end,
+		})
+	end)
 	if content.buildingPolicy and world.layout and world.layout.id == "rw.home" then
 		local ItemCatalog = require(Forge.core.domain.inventory.ItemCatalog)
 		local catalog = ItemCatalog.new(content.items)
@@ -791,8 +1195,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 	factoryPorts.archipelago = archipelago
 	local roleWorld: any = world
 	factoryPorts.expeditionStore = expeditionStore
-	-- BEGIN authored guide progress. Only trusted finalized event callers below
-	-- can reach this port; clients cannot supply a completion or award amount.
 	factoryPorts.recordDevelopment = function(actor, receiptId, event)
 		return expeditionStore.transaction(actor, function(document)
 			local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
@@ -827,7 +1229,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			return { ok = true }
 		end)
 	end
-	-- END authored guide progress.
 	factoryPorts.gatherReceipt = function(actor, epoch, requestId)
 		local port = factory.services.survivalGathering
 		return if port and port.receipt then port.receipt(actor, epoch, requestId) else nil
@@ -986,11 +1387,19 @@ return function(content: any, source, world, backend, clock, options, provision,
 				args = { operation, target },
 			})
 		end
-		-- BEGIN finalized command development receipts. No request fact is credited
-		-- until Session proves the exact durable binding succeeded.
+		roleWorld.journalAction = function(actor: string, objective: string)
+			missionSequence += 1
+			local action = "survival-coop:journal-interact"
+			return session.command(actor, {
+				requestId = "journal-world:" .. tostring(missionSequence),
+				sessionEpoch = session.commandEpoch(actor, action),
+				action = action,
+				args = { objective },
+			})
+		end
 		for _, method in { "command", "commandServer" } do
 			local command = session[method]
-			session[method] = function(actor, request)
+			session[method] = function(actor: string, request: any)
 				local data = personalData(actor)
 				local chapterId = if data and data.journal then data.journal.active else nil
 				local action = string.gsub(request.action, "^survival%-coop:", "")
@@ -999,7 +1408,33 @@ return function(content: any, source, world, backend, clock, options, provision,
 					local entry = data.workshop.entries[request.args[1]]
 					recipe = if entry then entry.job.recipeId else nil
 				end
+				local event: any = nil
+				if action == "craft-complete" and recipe then
+					event = { action = "craft", target = recipe, quantity = 1 }
+				elseif action == "rest" then
+					event = { action = "rest", target = "rw.onboarding.rest-mat", quantity = 1 }
+				elseif action == "home-place" then
+					event = { action = "place", target = request.args[2].kind, quantity = 1 }
+				end
+				if chapterId and (event or action == "gather") then
+					local staged =
+						journalFeed.stage(actor, tostring(request.sessionEpoch) .. ":" .. request.requestId, {
+							chapterId = chapterId,
+							epoch = request.sessionEpoch,
+							requestId = request.requestId,
+							action = request.action,
+							args = request.args,
+							origin = if method == "commandServer" then "server" else "client",
+							event = event,
+						})
+					if not staged.ok then
+						return staged
+					end
+				end
 				local result = command(actor, request)
+				if chapterId then
+					recoverJournal(actor)
+				end
 				if result.ok and action == "settlement-place" then
 					local shared = session.snapshot(actor).survivalSettlement
 					local placed = if shared
@@ -1026,14 +1461,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 					)
 				then
 					return result
-				end
-				local event: any = nil
-				if action == "craft-complete" and recipe then
-					event = { action = "craft", target = recipe, quantity = 1 }
-				elseif action == "rest" then
-					event = { action = "rest", target = "rw.onboarding.rest-mat", quantity = 1 }
-				elseif action == "home-place" then
-					event = { action = "place", target = request.args[2].kind, quantity = 1 }
 				end
 				if event then
 					factoryPorts.recordDevelopment(
@@ -1069,13 +1496,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 				return result
 			end
 		end
-		-- END finalized command development receipts.
 	end
-	-- Session asks for a command epoch for every durable action on every state push. The runtime
-	-- answers a non-member (a visitor, or anyone routed here without a seat) only after a durable
-	-- read-modify-write that refuses and changes nothing, so idle visitors rewrote the camp record
-	-- hundreds of times a minute. Refuse them from the last confirmed settlement instead, with the
-	-- runtime's own membership rule; members and the owner-reclaim case still reach the runtime.
 	local function seated(actor: string): boolean
 		local state = confirmed
 		return state == nil or state.roles[actor] ~= nil or (actor == state.ownerId and next(state.roles) == nil)
@@ -1090,14 +1511,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			return epoch(actor, ...)
 		end
 	end
-	-- Extensions keep one lazily acquired lease token per record and are not re-entrant: while a
-	-- slow durable call is in flight, the next per-frame snapshot (or a heartbeat, or a command) finds
-	-- no token yet, or a token another caller is about to replace, and acquires again. Every acquire
-	-- bumps the record generation and invalidates the other caller's token, so a slow transport turned
-	-- an idle player into a re-acquire loop (live: contracts:-1 at generation 57 in about a minute).
-	-- Each extension therefore runs one call at a time; concurrent snapshots of one actor coalesce
-	-- onto a single queued read (per-frame readers must never pile up behind the transport), every
-	-- other entry point waits its turn, and a nested call on the owning thread proceeds.
 	local function serialized(extension: any): any
 		local owner: thread? = nil
 		local depth = 0
@@ -1115,7 +1528,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			local results = table.pack(pcall(method, ...))
 			depth -= 1
 			if depth == 0 then
-				-- Hand ownership straight to the next live waiter so no newcomer can slip in between.
 				local nextThread = table.remove(waiting, 1)
 				while nextThread and coroutine.status(nextThread) == "dead" do
 					nextThread = table.remove(waiting, 1)
@@ -1143,9 +1555,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 		if snapshot then
 			local reading: { [string]: boolean } = {}
 			port.snapshot = function(actor: string, ...)
-				-- Coalesce, never starve: while one snapshot of this actor is queued or running, the
-				-- others serve its last result. One real read always gets through, and that read is
-				-- what renews the record's lease.
 				local cached = last[actor]
 				if reading[actor] and owner ~= coroutine.running() then
 					if cached then
@@ -1181,8 +1590,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 	for index, extension in extensions or {} do
 		extensions[index] = serialized(extension)
 		if extension.id == "monetization" then
-			-- Home entitlement reads must use the same serialized owner as
-			-- Session snapshots, including when the backend yields on renew.
 			monetization = extensions[index]
 		end
 		if extension.id == "home" then
@@ -1195,8 +1602,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 	if not provision.admit then
 		return factory, err
 	end
-	-- Join admission: after a player's profile joins, the provision admits them to this server's
-	-- camp through the server-origin settlement path (authorize + consent + domain owner check).
 	local settlement = factory.services.survivalSettlement :: any
 	local port = {
 		state = function()
@@ -1217,8 +1622,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			)
 		end,
 	}
-	-- Admissions run one at a time: the backend can yield, and concurrent joins must not race the
-	-- owner's invite ledger or read the same settlement version.
 	local admitting = false
 	local waiting: { thread } = {}
 	local function admit(actor: string): any
@@ -1249,7 +1652,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 			if admitted.ok then
 				return result
 			end
-			-- The profile is loaded; only the camp seat failed. Report it, never kick the player.
 			local noted = table.clone(result)
 			local message = "SETTLEMENT_ADMISSION:" .. tostring(admitted.reason)
 			noted.notificationError = if noted.notificationError

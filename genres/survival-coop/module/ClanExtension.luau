@@ -46,8 +46,6 @@ function M.actions(): { any }
 	return actions
 end
 
--- Shared aggregate adapter. Every command reacquires/refreshes the fence, then
--- checks membership inside the same transform as the balance/permission mutation.
 function M.aggregate(config: any, domain: any, prefix: string, actions: { string }): any
 	local store = config.store()
 	local tokens: any = {}
@@ -135,8 +133,6 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 		return Data.clone(token.data), nil
 	end
 	function extension.releaseActor(actor: string): any
-		-- Aggregates are shared by online members. Release all fences; later members
-		-- reopen from durable state rather than holding an actor-owned stale token.
 		for id, token in tokens do
 			local ok, reason = store:release(token)
 			if not ok then
@@ -156,7 +152,7 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 	end
 	function extension.recover(actor: string, maximum: number): any
 		local id = config.identity(actor, nil)
-		if not id or not config.wallet then
+		if not id then
 			return { status = "confirmed", pending = 0 }
 		end
 		local token, reason = open(id)
@@ -164,8 +160,35 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 			return { status = "recovering", pending = 1, reason = reason }
 		end
 		local pending, driven = 0, 0
+		-- Research input and completion share the clan fence.
+		if prefix == "clan" then
+			local facts = config.facts(actor, id, "research-complete", {}, "server")
+			local completed, err = store:update(token, function(data: any): any
+				for jobId, job in data.jobs do
+					if job.status == "pending" and config.now() >= job.finishAt then
+						local nextState = domain.apply(
+							data,
+							data.owner,
+							"research-complete",
+							{ jobId = jobId },
+							"research-recovery:" .. jobId,
+							config.now(),
+							facts
+						)
+						if nextState then
+							data = nextState
+						end
+					end
+				end
+				return data
+			end)
+			if not completed then
+				return { status = "recovering", pending = 1, reason = err }
+			end
+			token, tokens[id] = completed, completed
+		end
 		for _, row in token.data.walletOperations or {} do
-			if row.request.actor == actor and not row.result then
+			if config.wallet and row.request.actor == actor and not row.result then
 				if driven < maximum then
 					driven += 1
 					local request = row.request
