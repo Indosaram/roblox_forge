@@ -15,6 +15,52 @@ local function validate(layout: any, plan: any)
 end
 
 return {
+	["art kits have pitched thatch rounded foliage and grounded supports within budget"] = function()
+		local palette = Dressing.palette({ biomes = { "grassland" } })
+		for _, kind in { "shelter", "bush", "fern", "rock", "workbench", "campfire" } do
+			local parts = {}
+			Dressing.kit(parts, kind, { x = 0, y = 0, z = 0 }, kind, palette)
+			assert(#parts > 0 and #parts <= 90, "kit part budget: " .. kind)
+			local roof, lash, ring = 0, 0, 0
+			for _, p in parts do
+				if string.find(p.id, ".roof", 1, true) then
+					roof += 1
+					assert(p.shape == "Wedge" and math.abs(p.roll) >= 45, "steep layered thatch")
+				elseif string.find(p.id, ".lash", 1, true) then
+					lash += 1
+				elseif string.find(p.id, ".ring", 1, true) then
+					ring += 1
+				end
+				if kind == "bush" then
+					assert(p.shape == "Ball", "rounded bush lobes")
+				elseif kind == "fern" then
+					assert(p.shape == "Wedge" and p.size.x <= 0.35, "thin fan fronds")
+				elseif kind == "rock" then
+					assert(p.material == "Slate" and p.yaw ~= 0, "irregular slate cluster")
+				end
+				if
+					string.find(p.id, ".post", 1, true)
+					or string.find(p.id, ".leg", 1, true)
+					or string.find(p.id, ".skirt", 1, true)
+					or string.find(p.id, ".ring", 1, true)
+					or kind == "rock"
+					or kind == "bush"
+					or kind == "fern"
+				then
+					local roll = math.rad(p.roll or 0)
+					local height = math.abs(math.sin(roll)) * p.size.x + math.abs(math.cos(roll)) * p.size.y
+					assert(p.position.y - height / 2 <= 0.5, "ground contact: " .. p.id)
+				end
+			end
+			if kind == "shelter" then
+				assert(roof == 60 and lash == 12, "complete thatched frame")
+			elseif kind == "workbench" then
+				assert(lash == 6, "lashed workbench logs")
+			elseif kind == "campfire" then
+				assert(ring == 8, "stone fire ring")
+			end
+		end
+	end,
 	["kit roots ground independently and canopy clusters never stack"] = function()
 		for _, layout in Content.layouts :: any do
 			local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)

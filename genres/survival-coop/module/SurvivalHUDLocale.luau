@@ -1,6 +1,12 @@
 --!strict
 local M = {}
 local strings: { [string]: { string } } = {
+	menu_survival = { "Survival", "생존" },
+	menu_world = { "World", "세계" },
+	menu_social = { "Social", "함께" },
+	menu_shop = { "Shop", "상점" },
+	menu_settings = { "Settings", "설정" },
+	music = { "Music", "연주" },
 	dodge = { "Dodge [Q]", "회피 [Q]" },
 	guard = { "Guard [G]", "방어 [G]" },
 	skills = { "Skills", "기술" },

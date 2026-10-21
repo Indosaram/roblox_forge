@@ -8,6 +8,16 @@ local function place(state: Building.State, id: string, kind: string, floor: num
 	)
 end
 return {
+	["upper floors accept continuous wall support and refuse its removal"] = function()
+		local state = Building.new()
+		state = place(state, "ground", "floor", 1)
+		state = place(state, "wall", "wall", 1)
+		state = place(state, "upper", "floor", 2)
+		local removed, reason = Building.remove(state, "wall", state.version)
+		assert(removed == nil and reason == "SUPPORT_REQUIRED", "wall support cannot be removed under upper floor")
+		state = assert(Building.remove(state, "upper", state.version), "remove upper before its support")
+		assert(Building.remove(state, "wall", state.version), "wall can be reclaimed after upper removal")
+	end,
 	["three floors have support stair access and collision geometry"] = function()
 		local state = Building.new()
 		assert(

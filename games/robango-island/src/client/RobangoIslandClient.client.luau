@@ -594,6 +594,7 @@ table.insert(panelFactories, function(ctx)
 		end,
 	}
 end)
+local aerial: any = nil
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
 	ui = {
@@ -605,7 +606,17 @@ local panels = ExtensionPanels.start({
 	-- One sheet at a time: a panel opening closes the HUD sheet, and the reverse below.
 	onOpen = hud.close,
 	contextual = true,
+	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),
 	launchers = {
+		{
+			id = "explore",
+			label = if string.sub(locale, 1, 2) == "ko" then "섬 전경" else "Island view",
+			open = function()
+				if aerial then
+					aerial.toggle()
+				end
+			end,
+		},
 		{
 			id = "bag",
 			label = if string.sub(locale, 1, 2) == "ko" then "가방" else "Bag",
@@ -650,12 +661,23 @@ gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
 local aerialGui = Instance.new("ScreenGui")
 aerialGui.Name, aerialGui.ResetOnSpawn = "ForgeAerial", false
+aerialGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+aerialGui.DisplayOrder = 30
 aerialGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 local aerialControls = Instance.new("Frame")
-aerialControls.Size, aerialControls.Position = UDim2.new(1, -24, 0, 92), UDim2.new(0, 12, 1, -104)
-aerialControls.BackgroundTransparency, aerialControls.Parent = 0.2, aerialGui
+aerialControls.Name, aerialControls.Visible = "PhotoControls", false
+aerialControls.AnchorPoint = Vector2.new(0.5, 0)
+aerialControls.Size, aerialControls.Position = UDim2.new(1, -24, 0, 92), UDim2.new(0.5, 0, 0, 64)
+aerialControls.BackgroundColor3 = Color3.fromRGB(18, 28, 26)
+aerialControls.BackgroundTransparency, aerialControls.Parent = 0.08, aerialGui
+local aerialCorner = Instance.new("UICorner")
+aerialCorner.CornerRadius, aerialCorner.Parent = UDim.new(0, 10), aerialControls
+local aerialLimit = Instance.new("UISizeConstraint")
+aerialLimit.MaxSize, aerialLimit.Parent = Vector2.new(520, 92), aerialControls
 local aerialLayout = Instance.new("UIGridLayout")
-aerialLayout.CellSize, aerialLayout.CellPadding = UDim2.new(0.24, 0, 0, 40), UDim2.fromOffset(4, 4)
+aerialLayout.CellSize, aerialLayout.CellPadding = UDim2.new(1 / 3, -6, 0, 40), UDim2.fromOffset(6, 4)
+aerialLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+aerialLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 aerialLayout.Parent = aerialControls
 local aerialButtons: any = {}
 local aerialLabels = {
@@ -671,6 +693,14 @@ for index, name in { "Toggle", "Return", "OrbitLeft", "OrbitRight", "HideUI", "S
 	local button = Instance.new("TextButton")
 	button.Text, button.LayoutOrder, button.Parent =
 		aerialLabels[name][if string.sub(locale, 1, 2) == "ko" then 2 else 1], index, aerialControls
+	button.BackgroundColor3, button.TextColor3 = Color3.fromRGB(40, 76, 66), Color3.fromRGB(240, 244, 240)
+	button.Font, button.TextSize = Enum.Font.GothamMedium, 12
+	button.TextWrapped = true
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius, corner.Parent = UDim.new(0, 8), button
+	if name == "Toggle" then
+		button.Visible = false
+	end
 	aerialButtons[name] = button
 end
 local aerialGuis: { ScreenGui } = {}
@@ -679,7 +709,7 @@ for _, child in game:GetService("Players").LocalPlayer.PlayerGui:GetChildren() d
 		table.insert(aerialGuis, child)
 	end
 end
-local aerial = require(script.Parent.AerialCamera).new({
+aerial = require(script.Parent.AerialCamera).new({
 	aerial = require(Forge.genres["survival-coop"].module.AerialView),
 	workspace = workspace,
 	quarterView = camera,

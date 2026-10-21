@@ -327,10 +327,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 			}
 			local sourceToken = if operation == "deposit" then actorToken else clanToken
 			local destinationToken = if operation == "deposit" then clanToken else actorToken
-			local id = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId
 			local request = retained
 				or {
-					id = id,
+					id = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId,
 					actor = actor,
 					operation = operation,
 					amount = body.amount,
@@ -1391,7 +1390,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 			missionSequence += 1
 			local action = "survival-coop:journal-interact"
 			return session.command(actor, {
-				requestId = "journal-world:" .. tostring(missionSequence),
+				requestId = "journal-world:" .. objective .. ":" .. tostring(seconds()) .. ":" .. tostring(
+					missionSequence
+				),
 				sessionEpoch = session.commandEpoch(actor, action),
 				action = action,
 				args = { objective },

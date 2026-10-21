@@ -30,6 +30,7 @@ function M.new(): any
 			attributes = {},
 			Position = roblox.Vector3.zero,
 			CFrame = roblox.CFrame.identity,
+			Health = if className == "Humanoid" then 100 else nil,
 		}
 		function value:IsA(kind)
 			return kind == self.ClassName
@@ -270,6 +271,16 @@ function M.new(): any
 		role = role,
 		home = home,
 		archipelago = archipelago,
+		interact = function(actor, target)
+			for index = #callbacks, 1, -1 do
+				local value = callbacks[index]
+				if value.ClassName == "ProximityPrompt" and value.Parent and value.Parent.Name == target then
+					value.Triggered:Fire(actors[actor])
+					return
+				end
+			end
+			error("missing physical interaction: " .. target)
+		end,
 		equip = function(world, actor, itemId)
 			local tool = instance("Tool")
 			tool.Parent = actors[actor].Character

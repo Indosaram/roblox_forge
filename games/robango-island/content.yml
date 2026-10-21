@@ -12443,7 +12443,7 @@ buildingPolicy:
   provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
   cellStuds: 4
   stairSteps: 24
-  kits: {floor: floor-kit, pillar: pillar, stairs: stairs-kit}
+  kits: {floor: floor-kit, pillar: pillar, stairs: stairs-kit, wall: wall-kit, door: door-kit, roof: roof}
 clanPolicy:
   provenance: {classification: RECONSTRUCTED, sourceId: R04-C08}
   maxMembers: 50

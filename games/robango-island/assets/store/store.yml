@@ -1,0 +1,119 @@
+# Local store-art manifest stub. No assets have been uploaded to Roblox.
+schemaVersion: 1
+game: Robango Island
+created: 2026-10-21
+status: local-reviewed
+uploadStatus: not-uploaded
+provider: gpt-image
+providerVersion: Responses-API
+generationRoute: bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs
+rights:
+  source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+  ownership: licensed
+  evidence:
+    document: https://openai.com/policies/services-agreement/
+    version: "2026-01-01"
+    verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+  inheritedFrom: assets/manifest.yml#ui-icon-bag
+contactSheet: .omo/evidence/robango-recovery/p7/store/contact-sheet.png
+assets:
+  - key: icon
+    kind: game-icon
+    path: assets/store/icon.png
+    size: { width: 512, height: 512 }
+    bytes: 518130
+    sha256: 68b8c59e460b35e4718b812c83eff72b28c458a409a8f52b617901bea2390e0a
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: none
+    promptFile: .omo/evidence/robango-recovery/p7/store/icon.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/icon-source.png
+    prompt: >-
+      Square game icon for Robango Island, premium vibrant stylized 3D Roblox front-page art.
+      One friendly emerald-green baby dinosaur with a rounded snout, big warm expressive eyes,
+      small ivory teeth and orange back plates dominates the frame, standing on a tiny lush
+      tropical home island with sandy rim in bright turquoise water. A single palm and distant
+      miniature volcano establish the island setting. Three-quarter portrait, dinosaur head
+      very large and instantly readable at 64 pixels, bold simple silhouette, rich clean colors,
+      sunlight, polished toy-like materials, charming adventurous expression. Edge-to-edge
+      composition, no frame. No text or letters anywhere, no logo, no watermark. Strict
+      family-friendly moderation: no weapons, blood, skulls, bones, ropes, loops, nooses, flags,
+      religious symbols or political symbols. Output exactly one square image.
+  - key: rider-no-text
+    kind: thumbnail
+    path: assets/store/rider-no-text.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3535043
+    sha256: 6f7e4f4b64dd812740de6d0aad4280c76546e244f1478bdeceae676982f0dbc6
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: none
+    promptFile: .omo/evidence/robango-recovery/p7/store/rider.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/rider-no-text-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/icon-source.png
+    prompt: "Landscape 16:9 release thumbnail for Robango Island, premium vibrant stylized 3D Roblox front-page key art. A cheerful blocky Roblox-style explorer with tan skin, dark brown hair, teal shirt and simple brown outdoor clothes rides a friendly emerald-green dinosaur with a rounded snout, warm expressive eyes and orange back plates. The explorer sits on a simple leather saddle, hands empty, no reins or ropes. They stand at the sandy entrance to their welcoming thatched tropical camp on a lush home island. A majestic distant volcano rises behind palm trees across turquoise water, a small golden glow at the summit with soft clouds, no danger to people. Dynamic low three-quarter camera, dinosaur and rider dominate the right center, clear thatched shelter at left, clean open blue sky in upper left. Warm sunlight, saturated emerald, turquoise and orange palette, polished toy-like materials, crisp shapes, joyful co-op survival adventure. No text, letters, logos, UI or watermark anywhere. Strict safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. One image, fill the entire 16:9 frame."
+  - key: rider-title
+    kind: thumbnail
+    path: assets/store/rider-title.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3314096
+    sha256: 0e95e57aae7883109e7445938591ac53f90a0bf7236f9b97d11d75dab1d6eec8
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: ROBANGO ISLAND
+    promptFile: .omo/evidence/robango-recovery/p7/store/title.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/rider-title-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/rider-no-text-source.png
+    prompt: "Edit the supplied Robango Island store thumbnail to create its English-title variant. Preserve the entire illustrated scene, characters, dinosaur, colors, lighting, camera and 16:9 composition. Add only the exact title \"ROBANGO ISLAND\" once in the open upper-left sky, on two stacked lines, large bold rounded adventurous 3D lettering with warm golden-yellow fill, dark teal outline and a subtle clean shadow. Spell R O B A N G O and I S L A N D exactly. Keep the whole title inside generous safe margins and do not cover any face. No other text or symbols, no logo or watermark. Preserve strict safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. Output one landscape image."
+  - key: crafting-no-text
+    kind: thumbnail
+    path: assets/store/crafting-no-text.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3296873
+    sha256: 2a05d2c1ebd3acef5d0b65614597bd90d3e12c47c85151c1f741d77e25f61045
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: none
+    promptFile: .omo/evidence/robango-recovery/p7/store/crafting.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/crafting-no-text-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/icon-source.png
+    prompt: "Landscape 16:9 release thumbnail for Robango Island, premium vibrant stylized 3D Roblox front-page key art. Three cheerful blocky Roblox-style friends cooperate at a home-island camp at golden sunset. A tan explorer in teal with short brown hair fits wooden planks together at a low crafting bench, a dark-skinned friend in an orange shirt carries a small stack of wooden blocks, and a light-skinned friend in a purple shirt shapes a clay pot beside them. A small cozy campfire in a stone ring glows safely in the foreground, away from clothing and the bench. A friendly emerald-green dinosaur with orange back plates watches beside a thatched shelter. Tropical palms and turquoise ocean in the background, spacious clean sky in upper left for potential title. Focus on teamwork, hands making things, a warm welcoming handmade home. Beautiful cinematic lighting, crisp polished toy-like shapes, saturated colors, inviting composition. No text, letters, logos, UI or watermark anywhere. No tools resembling weapons, no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious symbols or political symbols. One image, fill the entire 16:9 frame."
+  - key: crafting-title
+    kind: thumbnail
+    path: assets/store/crafting-title.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3287818
+    sha256: 645c61e6189dd5c48cd7fafd733891670475ca7f7dc0ff305e9ab37483a2e7f7
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: ROBANGO ISLAND
+    promptFile: .omo/evidence/robango-recovery/p7/store/title.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/crafting-title-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/crafting-no-text-source.png
+    prompt: "Edit the supplied Robango Island store thumbnail to create its English-title variant. Preserve the entire illustrated scene, characters, dinosaur, colors, lighting, camera and 16:9 composition. Add only the exact title \"ROBANGO ISLAND\" once in the open upper-left sky, on two stacked lines, large bold rounded adventurous 3D lettering with warm golden-yellow fill, dark teal outline and a subtle clean shadow. Spell R O B A N G O and I S L A N D exactly. Keep the whole title inside generous safe margins and do not cover any face. No other text or symbols, no logo or watermark. Preserve strict safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. Output one landscape image."
+  - key: exploration-no-text
+    kind: thumbnail
+    path: assets/store/exploration-no-text.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3383368
+    sha256: 1493f17ff5854ac3794259aedd774d2073b5b9dd9e3effdcdf5a36fec6949f53
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: none
+    promptFile: .omo/evidence/robango-recovery/p7/store/exploration.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/exploration-no-text-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/icon-source.png
+    prompt: "Landscape 16:9 release thumbnail for Robango Island, premium vibrant stylized 3D Roblox front-page key art. A sweeping playful tropical archipelago adventure viewed from a slightly elevated three-quarter camera behind and beside two simple wooden motorboats with smooth low hulls, no sails or masts. Two cheerful blocky Roblox-style explorer friends in teal and orange ride in the nearest boat; a friendly small emerald-green dinosaur with orange back plates sits happily as a passenger in the second boat. Boats travel across sparkling turquoise water toward a lush chain of palm-covered islands, sandy beaches, dramatic green cliffs and a majestic distant volcano. Distinct clear boat silhouettes and joyous faces in foreground, sparkling curved white wakes guide the eye into the islands. Sunny azure sky with clean open space upper left. Saturated bright turquoise and emerald palette, polished toy-like 3D materials, crisp cinematic adventure composition, premium Roblox discovery quality. No text, letters, logos, UI or watermark anywhere. Strict family-friendly safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious symbols or political symbols. One image, fill the entire 16:9 frame."
+  - key: exploration-title
+    kind: thumbnail
+    path: assets/store/exploration-title.png
+    size: { width: 1920, height: 1080 }
+    bytes: 3360559
+    sha256: ef6b413cd738b74b419cfc333a00d365927a706dddff72f3f93a7fb96f81a17c
+    provider: gpt-image
+    rights: inherited-from-manifest-rights
+    text: ROBANGO ISLAND
+    promptFile: .omo/evidence/robango-recovery/p7/store/title.prompt.txt
+    source: .omo/evidence/robango-recovery/p7/store/exploration-title-source.png
+    referenceImage: .omo/evidence/robango-recovery/p7/store/exploration-no-text-source.png
+    prompt: "Edit the supplied Robango Island store thumbnail to create its English-title variant. Preserve the entire illustrated scene, characters, dinosaur, colors, lighting, camera and 16:9 composition. Add only the exact title \"ROBANGO ISLAND\" once in the open upper-left sky, on two stacked lines, large bold rounded adventurous 3D lettering with warm golden-yellow fill, dark teal outline and a subtle clean shadow. Spell R O B A N G O and I S L A N D exactly. Keep the whole title inside generous safe margins and do not cover any face. No other text or symbols, no logo or watermark. Preserve strict safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. Output one landscape image."

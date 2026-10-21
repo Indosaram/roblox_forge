@@ -2,6 +2,7 @@
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
 local HUDModel = require("./SurvivalHUDModel")
+local Locale = require("./SurvivalHUDLocale")
 
 export type Context = {
 	ui: any,
@@ -34,9 +35,42 @@ local Enum: any = env.Enum
 local UDim: any = env.UDim
 local UDim2: any = env.UDim2
 local Vector2: any = env.Vector2
+local Color3: any = env.Color3
 local RaycastParams: any = env.RaycastParams
 
 local M = {}
+local categories: { [string]: { number | string } } = {
+	bag = { 1, "bag" },
+	craft = { 1, "craft" },
+	build = { 1, "build" },
+	skills = { 1, "skills" },
+	journal = { 2, "journal" },
+	contracts = { 2, "todo" },
+	explore = { 2, "explore" },
+	["death-zone"] = { 2, "explore" },
+	taming = { 2, "capture" },
+	clan = { 3, "clan" },
+	tribe = { 3, "social" },
+	outpost = { 3, "build" },
+	camp = { 3, "party" },
+	market = { 3, "market" },
+	["clan-join"] = { 3, "invite" },
+	construction = { 3, "build" },
+	building = { 1, "build" },
+	["clan-membership"] = { 3, "invite" },
+	brawl = { 3, "party" },
+	shop = { 4, "currency" },
+	music = { 5, "music" },
+	audio = { 5, "settings" },
+	sound = { 5, "settings" },
+}
+local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
+
+function M.menuBounds(width: number, height: number): (number, number, number, number)
+	local landscape = width > height
+	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
+	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 56
+end
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
 	return math.min(440, size.x), math.min(520, math.floor(height * 0.7), size.y)
@@ -87,6 +121,7 @@ function M.start(options: {
 	factories: { Factory }?,
 	onOpen: (() -> ())?,
 	contextual: boolean?,
+	icons: any?,
 	launchers: { { id: string, label: string, open: () -> () } }?,
 }): Started
 	local storage = game:GetService("ReplicatedStorage")
@@ -177,8 +212,9 @@ function M.start(options: {
 	objectiveSlot.Parent = column
 	if contextual then
 		objectiveSlot.Parent = dockGui
-		objectiveSlot.Position = UDim2.fromOffset(12, 72)
-		objectiveSlot.Size = UDim2.new(1, -24, 0, 56)
+		objectiveSlot.AnchorPoint = Vector2.new(1, 0)
+		objectiveSlot.Position = UDim2.new(1, -12, 0, 148)
+		objectiveSlot.Size = UDim2.fromOffset(216, 56)
 		objectiveSlot.AutomaticSize = Enum.AutomaticSize.None
 	end
 	local slotLayout = Instance.new("UIListLayout")
@@ -302,12 +338,19 @@ function M.start(options: {
 		local isCompact = compact()
 		if contextual then
 			menuToggle.Visible = true
+			local objective = HUDModel.contextHudBounds(size.X, size.Y).objective
+			objectiveSlot.AnchorPoint = Vector2.zero
+			objectiveSlot.Position = UDim2.fromOffset(objective.x, objective.y)
+			objectiveSlot.Size = UDim2.fromOffset(objective.width, objective.height)
 			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 8)
 			column.Size = UDim2.fromOffset(64, 0)
 			menuList.Parent = dockGui
-			menuList.Position = UDim2.fromOffset(8, 64)
-			menuList.Size = UDim2.fromOffset(size.X - 16, math.max(0, size.Y - 192))
-			menuLayout.CellSize = UDim2.fromOffset(math.floor((size.X - 24) / 2), 48)
+			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
+			menuList.AnchorPoint = Vector2.new(0.5, 0)
+			menuList.Position = UDim2.new(0.5, 0, 0, menuTop)
+			menuList.Size =
+				UDim2.fromOffset(menuWidth, math.max(0, size.Y - menuTop - (if size.X > size.Y then 96 else 128)))
+			menuLayout.CellSize = UDim2.fromOffset(math.floor((menuWidth - (columns - 1) * 6) / columns), tileHeight)
 			objectiveSlot.Visible = not menuList.Visible
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			local open = false
@@ -437,6 +480,43 @@ function M.start(options: {
 		table.insert(sheets, frame)
 		place()
 	end
+	local function styleTile(button: any, entry: any)
+		button.Name, button.LayoutOrder = "Dock-" .. entry.id, entry.order
+		if contextual then
+			local info: { number | string } = categories[entry.id] or { 3, "social" }
+			local category, iconId = info[1] :: number, info[2] :: string
+			button.LayoutOrder = category * 100 + entry.order
+			button.Text = ""
+			local heading = ui.components.label(theme, {
+				text = Locale.text(options.locale, categoryKeys[category]),
+				parent = button,
+				size = UDim2.new(1, 0, 0, 12),
+				textSize = 9,
+			})
+			heading.TextColor3 = Color3.fromRGB(157, 195, 175)
+			local icon = if options.icons then options.icons.ui(iconId) else nil
+			local image = Instance.new(if icon and icon.image then "ImageLabel" else "TextLabel")
+			image.Name, image.BackgroundTransparency = "MenuIcon", 1
+			image.Size, image.Position = UDim2.fromOffset(24, 24), UDim2.new(0.5, -12, 0, 12)
+			if icon and icon.image then
+				image.Image = icon.image
+			else
+				image.Text, image.TextColor3, image.TextSize =
+					string.upper(string.sub(iconId, 1, 1)), Color3.fromRGB(240, 244, 240), 20
+			end
+			image.Parent = button
+			local caption = ui.components.label(theme, {
+				text = if entry.id == "music" then Locale.text(options.locale, "music") else entry.label,
+				parent = button,
+				size = UDim2.new(1, -4, 0, 16),
+				position = UDim2.new(0, 2, 1, -17),
+				textSize = 11,
+			})
+			caption.TextScaled, caption.TextWrapped = true, true
+			local limit = Instance.new("UITextSizeConstraint")
+			limit.MinTextSize, limit.MaxTextSize, limit.Parent = 8, 12, caption
+		end
+	end
 	context.dock = function(entry: DockEntry): DockHandle
 		table.insert(entries, entry)
 		local function open()
@@ -465,7 +545,7 @@ function M.start(options: {
 				end
 			end,
 		})
-		button.Name, button.LayoutOrder = "Dock-" .. entry.id, entry.order
+		styleTile(button, entry)
 		return {
 			open = open,
 			setAvailable = function(available: boolean)
@@ -486,7 +566,7 @@ function M.start(options: {
 				launcher.open()
 			end,
 		})
-		button.Name, button.LayoutOrder = "Dock-" .. launcher.id, -10 + index
+		styleTile(button, { id = launcher.id, label = launcher.label, order = index })
 	end
 	local panels: { Panel } = {}
 	for _, factory in options.factories or M.factories do

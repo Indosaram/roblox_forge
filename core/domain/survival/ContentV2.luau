@@ -281,6 +281,9 @@ local schemas: { [string]: { [string]: string } } = {
 		floor = "@items",
 		pillar = "@items",
 		stairs = "@items",
+		wall = "?@items",
+		door = "?@items",
+		roof = "?@items",
 	},
 	buildingPolicy = {
 		provenance = "provenance",

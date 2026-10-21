@@ -4,6 +4,7 @@ local M = {}
 
 function M.new(ctx: any): any
 	local Aerial = ctx.aerial
+	ctx.controls.Visible = false
 	local active: any = nil
 	local camera: any = nil
 	local saved: any = nil
@@ -27,6 +28,9 @@ function M.new(ctx: any): any
 				local visibility = {}
 				for _, gui in ctx.guis do
 					visibility[gui] = gui.Enabled
+					if gui.Name == "ForgeSurvivalHUD" or gui.Name == "ForgePanelDock" then
+						gui.Enabled = false
+					end
 				end
 				saved = {
 					CameraType = camera.CameraType,
@@ -49,7 +53,10 @@ function M.new(ctx: any): any
 			end,
 			hideUI = function(hidden)
 				for gui, enabled in saved.visibility do
-					gui.Enabled = not hidden and enabled
+					gui.Enabled = not hidden
+						and enabled
+						and gui.Name ~= "ForgeSurvivalHUD"
+						and gui.Name ~= "ForgePanelDock"
 				end
 			end,
 			captureLocal = ctx.captureLocal,

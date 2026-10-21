@@ -120,6 +120,32 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
+	["neck and tail cores overlap continuously with feet on the envelope floor"] = function()
+		local module = loadRig()
+		local world = roblox.Instance.new("Workspace")
+		for _, species in { "brachiosaurus", "tyrannosaurus", "triceratops", "stegosaurus", "velociraptor" } do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			for _, chain in
+				{ { name = "Neck", count = if species == "brachiosaurus" then 6 else 0 }, { name = "Tail", count = 4 } }
+			do
+				for i = 2, chain.count do
+					local a, b = model[chain.name .. (i - 1)], model[chain.name .. i]
+					assert(a.Shape == roblox.Enum.PartType.Cylinder and b.Size.Y < a.Size.Y, "continuous taper")
+					local gap = (a.CFrame.Position - b.CFrame.Position).Magnitude - (a.Size.X + b.Size.X) / 2
+					assert(gap < 0.1, "adjacent segment gap: " .. species)
+				end
+			end
+			for _, side in { -1, 1 } do
+				local foot = model["Foot" .. side]
+				assert(
+					math.abs(foot.CFrame.Position.Y - foot.Size.Y / 2 + model.PrimaryPart.Size.Y / 2) <= 0.5,
+					"foot grounding"
+				)
+			end
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["species skin has distinct pigments countershade markings and pupils"] = function()
 		local module = loadRig()
 		local world = roblox.Instance.new("Workspace")
@@ -238,7 +264,7 @@ return {
 				end
 			end
 			assert(joints >= 20, "bounded multi-part anatomy")
-			assert(root.HeadJoint.Part0.Name == (if kind == "grazer" then "Neck3" else "Neck"), "head follows neck")
+			assert(root.HeadJoint.Part0.Name == (if kind == "grazer" then "Neck6" else "Neck"), "head follows neck")
 			assert(
 				root.JawJoint.Part0.Name == "Head" and root.Tail4Joint.Part0.Name == "Tail3",
 				"articulated jaw and tail"

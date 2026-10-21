@@ -173,10 +173,57 @@ end
 
 M.STACK_BOTTOM = 180
 
+function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) -> boolean, items: { any }?): { any }
+	local rows = {}
+	for _, recipe in recipes do
+		local ready = recipe.station == nil or stationAvailable(recipe.station)
+		for _, ingredient in M.ingredients(bag, recipe) do
+			ready = ready and ingredient.available >= ingredient.needed
+		end
+		if recipe.requiredToolTag then
+			local tool = false
+			for _, row in M.items(bag) do
+				for _, definition in (items or {}) :: { any } do
+					tool = tool
+						or (
+							definition.id == row.item.catalogId
+							and row.available > 0
+							and row.item.durabilityMilli > 0
+							and table.find(definition.tags, recipe.requiredToolTag) ~= nil
+						)
+				end
+			end
+			ready = ready and tool
+		end
+		table.insert(rows, { recipe = recipe, ready = ready, station = recipe.station or "" })
+	end
+	table.sort(rows, function(a, b)
+		if a.station ~= b.station then
+			return a.station < b.station
+		end
+		if a.ready ~= b.ready then
+			return a.ready
+		end
+		return a.recipe.id < b.recipe.id
+	end)
+	return rows
+end
+
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
 	local top = 64
 	local bottom = if touch or width < 700 then 128 else 16
 	return math.min(896, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
+end
+
+function M.contextHudBounds(width: number, height: number?): any
+	local w = math.min(216, width - 24)
+	local short = height ~= nil and height < 400
+	return {
+		vitals = { x = width - w - 12, y = if short then 56 else 64, width = w, height = 76 },
+		objective = { x = width - w - 12, y = if short then 140 else 148, width = w, height = if short then 32 else 56 },
+		menu = { x = width - 76, y = 8, width = 64, height = 40 },
+		photo = { x = (width - math.min(520, width - 24)) / 2, y = 64, width = math.min(520, width - 24), height = 92 },
+	}
 end
 
 function M.contextActions(policy: any, pending: any, modal: boolean, restTarget: any, attackTarget: any): any

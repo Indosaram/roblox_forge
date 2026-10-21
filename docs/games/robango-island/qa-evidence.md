@@ -1,5 +1,79 @@
 # robango-island QA evidence
 
+## Current recovery evidence (2026-10-21)
+
+This section supersedes old blanket readiness claims and the fidelity matrix's
+pre-implementation default labels; that matrix still defines target scope, not
+a fresh execution ledger. Baseline inspected: local main/origin main `d1f13db`.
+The history since `690ac33` adds P1 content/routing, P2 homes/archipelagos and
+progression, P3 late/social systems and presentation, P5 production adapters,
+then `ecc3260` startup/P1 fixes and audio upload and `d1f13db` Studio services,
+art, icon upload/screening and asset compaction. Concurrent P7 changes are not
+promoted to verified behavior merely because their source is present.
+
+**Demonstrated** below means the named evidence layer only, never complete
+end-to-end acceptance. **Implemented but unverified** means an implementation
+or integration is recorded but the specified real-use acceptance is not proven.
+**Absent** means a named deliverable is missing from this evidence, not that an
+unrelated module with a similar name cannot exist. These distinctions prevent
+both the old "everything passes" claim and the stale "nothing implemented"
+default from describing current work.
+
+| Feature | Demonstrated | Implemented but unverified | Absent / remaining evidence |
+|---|---|---|---|
+| Fresh player / HUD / gather / station craft / rest / placement | P5 Studio real input demonstrated walking and gather; craft and rest failed (`p5/studio.md`). | Station reach, terrain placement, target localization, docks and startup/service fixes recorded in `p5/wire.md`, `p6/studio-services.md`. | Current-build uninterrupted fresh survival-loop pass. P6 recheck failed before ForgeState/HUD; it does not prove each downstream feature broken. |
+| Personal island / storage / development | Native `home-return`, `home-permissions`, `home-storage-transfer`, `fresh-home-archipelago-return` recordings in p5/p6. | Live actor-stable home routing, storage and development implemented. | Published TeleportService round trip and current phone usability evidence. |
+| Archipelago / missions / rewards | Native `archipelago-chain`, `archipelago-four-island-rewards`, `fresh-expedition-return` journals. | Role worlds and fresh-player route integrated. | New-design published multi-Place journey, actors/JobIds and return proof. |
+| Instability / expiry | Native `archipelago-expiry`, `volcano-progression` journals. | Clock/expiry policies and world adapters. | Published expiry-safe evacuation and real-player recovery. |
+| Materials / processing / skills | Native `bootstrap-crafting`, `material-to-equipment`, `equipment-support`; P1/P2 regression evidence. | Generated content and progression hooks. | Current-build real-input material-to-equipment completion across the full target scope. |
+| Farming / tailoring / cooking | Native home/progression/equipment scenarios cover their asserted recipe/crop/equipment behavior. | Catalog-driven production adapters. | Full authored farming, clothing and cooking UX acceptance on desktop/phone; native assertions are not complete content coverage. |
+| Wildlife / butchering / combat | Native `combat-tame-ride`, `volcano-progression`; P5 production-building includes real Session tyrannosaurus combat with fixture durability repairs. | Server combat/provenance and creature rig integration. | Current real-input hunt/extraction acceptance; fixture repairs are not ordinary survival play. |
+| Taming / mounts / cargo | Native `taming-mounts`, `combat-tame-ride`, `handoff-conservation` journals. | Production companion/capture/ride hooks. | Current-build real players capturing, riding and transferring cargo across published travel. |
+| Contracts / support / rescue / escort | Native `contracts-tutorial`, `rescue-escort-cargo`, `equipment-support` and progression journals. | Mission, remedy and persisted escort producers recorded in `p5/wire.md`. | Full real-input mission and support loop on the current build. |
+| Clans / research / outposts | Production-clan native scenario proves create/invite/join/deposit, hall/research and fresh-owner recovery; `p5/wire.md`, p6 journals. | Fenced directory, treasury, queue/occupancy and panels integrated. | Actual multi-account governance, live outpost teams/occupancy and reconnect evidence. |
+| Cross-server market / harbor | Native cross-server-market uses two Session owners/shared backend, offline seller, claims and conservation; replay hashes in p5/wire and p6/studio-services. | Durable listing/claim services and production panel/harbor prompts. | Two real accounts in different live JobIds settling an actual trade and failure recovery. Headless renderer widths are not screenshots. |
+| Volcano / late equipment | Native volcano-progression and equipment-support journals. | Hazard, boots, materials and technical-support paths. | Published real-input late progression and physical-device acceptance. |
+| Brawl | Native real Session BrawlRuntime scenario covers weather, ranged ammunition, elimination and duplicate settlement (`p5/wire.md`, p6 journals). | Durable arena, client controls and production panels. | Real two-player match, maximum-client load and current screenshots. |
+| Instruments / score editor / ensemble | Chunk/ACL/durability specs and native production-score/ensemble-sync (`p5/musiclive.md`, `p5/wire.md`, p6 journals). | Score transport/library/editor, range authority and scheduled sample-bank playback. | Real multi-client audible synchronization and listening acceptance; full timeline/library/recipient-selection parity is not demonstrated. |
+| Eight-chapter journal | Native journal-eight-chapters plus production-building command/checkpoint/remedy/escort/restart evidence. | Production panel, chapter-bound durable outcomes, dialogue/survey/assembly/escort producers. | Real-input completion of all eight chapters. A catalog or native journal is not that completion. |
+| Multistorey homes / aerial view | Native multistorey-home/production-building and camera adapter specs. | Place/remove topology, inventory, camera/GUI restoration and capture controls. | Humanoid stair traversal and current PC/phone floor/aerial/capture acceptance. |
+| Monetization / entitlements | Historical staging product registration and native prompts; native receipt/entitlement/handoff contracts. | Registered catalog and benefit integration. | Authorized actual charge, receipt settlement and current benefit verification; prompt visibility is not payment success. |
+| Art / UI icons | P5 world/species/UI captures exist with failed visual acceptance; P6 art budgets and local icon screening are recorded. | P6 role dressing/rig improvements; P7 shelter revision in `p7/art2.md`. | Fresh complete visual sign-off after the final art changes, actual GPU triangle/draw-call measurements. |
+| Audio assets / event wiring | Local WAV banks, native production-audio and AudioDirector scenarios; upload history exists. | Audio settings/director and event producers. | Moderation-approved playback/listening for all cues; 55 audio remain pending moderation. |
+| Persistence / crash / load | Native qa-save-01 and local service/store recovery specs. | Published-service adapters and Studio-memory-only service selection. | Current published crash/rejoin/Teleport proof and real MemoryStore load. Local services are not cloud evidence. |
+| QA-PERF-01 layer 2 | Historical Studio/Android measurements below apply only to their older content. P6 static future-published asset budget passed (`p6/assets-compact.md`). | Maintained probe `cli/forge/qa/robango-performance.luau` and runbook prepared for Level01, 360x640, 120-second sampling. | No new performance run was executed here. Current low-end real-device results and an uncensored startup timing are absent. |
+
+Evidence paths in this table are under `.omo/evidence/robango-recovery/` and
+remain gitignored local artifacts. The table summarizes recorded scope, not a
+new run of every scenario. P5 lane integration snippets describe earlier missing
+wiring; the later `p5/wire.md` ledger and P6 service recovery supersede those
+particular gaps only where explicitly recorded.
+
+### Current Studio and moderation limits
+
+`p5/studio.md` is FAIL/incomplete visual and fresh-loop acceptance.
+`p6/studio-p1.md` is also FAIL: three Plays lacked ForgeState/HUD because startup
+failed. The later service fix has deterministic boot proof but was not Studio
+verified by that lane. P7 screenshots and console files are partial observations,
+not a signed-off replacement report. In particular,
+`p7/studio/authored-onboarding-console.txt` records
+`Dictionary is not a supported attribute type` in RoleWorld.build;
+`p7/studio/phone-console-history.txt` records `User is moderated` sound failures,
+and `p7/studio/play1-console-mcp.txt` explicitly contains truncated HTTP 403
+asset output. Do not claim zero errors or a fresh startup/art pass from these.
+
+The account moderation warning blocks further external asset work. The recovery
+status is **253 icons not yet uploaded** and **55 audio pending moderation**.
+P6 local review replaced ambiguous artwork but cannot clear Roblox moderation.
+Do not publish or resume uploads while that blocker remains unresolved.
+
+Staging remains Universe `10771918494` / Place `95467272687768`; no new published
+version was read back in this task. The authoritative local variable names,
+Open Cloud deploy/upload scopes, Game Pass/Developer Product mapping paths,
+and staging/production commands are in
+[user-actions.md](user-actions.md#현재-운영-상태와-다음-행동-2026-10-21).
+Production is not established by staging registration or historical deployment.
+
 ## Readiness correction (2026-10-20)
 
 Earlier **release-ready** and **full-functionality** claims are withdrawn. The records below concern the earlier single-island prototype and the specific builds/scenarios recorded at the time; they do not prove the recovery design in `.omo/plans/robango-recovery-world-audit.md` or the catalogs indexed by `.omo/drafts/robango-spec-index.md`. Robango Island does not claim 100% original parity. The current system-by-system scope and remaining implementation acceptance are recorded in [fidelity-matrix.md](fidelity-matrix.md).

@@ -89,6 +89,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				y = definition.position.y - definition.size.y / 2,
 				z = definition.position.z,
 			}
+		local roll = math.rad(definition.roll or 0)
+		local bottom = definition.position.y
+			- (math.abs(math.sin(roll)) * definition.size.x + math.abs(math.cos(roll)) * definition.size.y) / 2
+		if bottom <= ground.y + 0.5 then
+			ground = { x = definition.position.x, y = bottom, z = definition.position.z }
+		end
 		local hit = workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
 		if not hit then
 			return nil
@@ -120,6 +126,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
 	atmosphere.Density, atmosphere.Haze, atmosphere.Glare, atmosphere.Parent = 0.035, 0.08, 0.05, lighting
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
+	workspace.Terrain.Decoration = true
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	for _, column in columns do
@@ -304,10 +311,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				Enum.Material.Air
 			)
 		end
-		part(
-			node.id .. ".ground",
-			{ x = node.position.x, y = node.position.y - 2, z = node.position.z },
-			{ x = 16, y = 1, z = 16 }
+		workspace.Terrain:FillBall(
+			Vector3.new(node.position.x, node.position.y - 8, node.position.z),
+			7,
+			Enum.Material.Grass
 		)
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })
 		target.Material, target.Color = Enum.Material.Rock, Color3.fromRGB(117, 119, 112)
@@ -673,15 +680,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						Enum.Material.Sand
 					)
 				end
-				for x = -half - 8, half + 8, 8 do
-					for z = -half - 8, half + 8, 8 do
+				for x = -half - 8, half + 8, 4 do
+					for z = -half - 8, half + 8, 4 do
 						local angle = math.atan2(z, x)
 						local edge = math.sqrt(x * x + z * z) / half
-						if edge < 1.12 + 0.08 * math.sin(angle * 3) then
+						local coast = 1.12 + 0.08 * math.sin(angle * 3) + 0.045 * math.cos(angle * 7)
+						if edge < coast then
+							local top = 1 + math.sin(x / 13) * math.sin(z / 17) * math.clamp(edge - 0.55, 0, 0.6) * 3
 							workspace.Terrain:FillBlock(
-								CFrame.new(x, -2, z),
-								Vector3.new(8, 6, 8),
-								if edge > 0.91 then Enum.Material.Sand else Enum.Material.Grass
+								CFrame.new(x, (top - 5) / 2, z),
+								Vector3.new(4, top + 5, 4),
+								if edge > coast - 0.17
+									then Enum.Material.Sand
+									elseif math.abs(x - math.sin(z / 16) * 2) < 3 then Enum.Material.Ground
+									else Enum.Material.Grass
 							)
 						end
 					end
@@ -698,6 +710,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Land must exist before ray queries; home kits retain their authored offsets.
 		for _, definition in parts do
 			if definition.decorative then
+				if definition.id == "home.path" then
+					homeParts[definition.id].Transparency = 1
+					continue
+				end
 				local placed = grounded(definition)
 				local value = homeParts[definition.id]
 				if placed then

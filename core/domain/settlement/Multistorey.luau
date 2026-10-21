@@ -23,7 +23,7 @@ local function supported(state: State, part: Part): boolean
 	if part.floor == 1 and part.kind == "floor" then
 		return true
 	elseif part.kind == "floor" then
-		return at(state, "pillar", part.floor - 1, part.x, part.z)
+		return at(state, "pillar", part.floor - 1, part.x, part.z) or at(state, "wall", part.floor - 1, part.x, part.z)
 	end
 	return at(state, "floor", part.floor, part.x, part.z)
 end

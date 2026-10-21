@@ -138,24 +138,25 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		for i = 0, 5 do
 			local leaf = piece(
 				"leaf" .. i,
-				math.cos(i * 1.57) * 2,
-				if tall then 3 else 1.4,
-				math.sin(i * 1.57) * 2,
-				6,
+				math.cos(i * math.pi / 3) * 1.5,
+				if tall then 3 elseif kind == "bush" then 1.2 else 0.2,
+				math.sin(i * math.pi / 3) * 1.5,
+				if kind == "bush" then 3.8 else 0.3,
 				if kind == "bush" then 2 else 0.35,
-				if kind == "bush" then 3 else 1.5,
+				if kind == "bush" then 3.5 else 4.2,
 				"Grass",
 				palette.leaf,
 				if kind == "bush" then "Ball" else "Wedge"
 			)
-			leaf.yaw, leaf.roll = i * 60, if kind == "grass" or kind == "horsetail" then 65 else 24
+			leaf.yaw, leaf.roll =
+				i * 60, if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
 		end
 	elseif kind == "rock" then
 		for i = 1, 3 do
 			local rock = piece(
 				"rock" .. i,
 				(i - 2) * 2,
-				1 + i * 0.4,
+				(3 + i) / 2 - 0.25,
 				(i % 2) * 2,
 				7 - i,
 				3 + i,
@@ -216,37 +217,60 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 	elseif kind == "shelter" then
 		for _, x in { -5, 5 } do
 			for _, z in { -4, 4 } do
-				piece("post" .. x .. "." .. z, x, 4, z, 8, 0.85, 0.85, "Wood", wood, "Cylinder").roll = 90
-				piece("lash" .. x .. "." .. z, x, 7.2, z, 1.05, 0.5, 1.05, "Fabric", sand, "Ball")
+				piece("post" .. x .. "." .. z, x, 1.5, z, 3.2, 0.85, 0.85, "Wood", wood, "Cylinder").roll = 90
+				local rafter = piece("rafter" .. x .. "." .. z, x / 2, 5, z, 8, 0.65, 0.65, "Wood", wood, "Cylinder")
+				rafter.roll = if x < 0 then 51 else -51
+				for band = 1, 3 do
+					piece(
+						"lash" .. x .. "." .. z .. "." .. band,
+						x,
+						2.5 + band * 0.16,
+						z,
+						1.03,
+						0.12,
+						1.03,
+						"Fabric",
+						sand
+					)
+				end
 			end
 		end
-		for _, x in { -3, 3 } do
-			for row = 1, 4 do
-				local roof = piece(
-					"roof" .. x .. "." .. row,
-					x,
-					9,
-					(row - 2.5) * 2.8,
-					7.8,
-					0.65,
-					3.4,
-					"Grass",
-					{ 166 + row * 5, 137 + row * 4, 79 },
-					"Wedge"
-				)
-				roof.roll = if x < 0 then 32 else -32
+		for _, side in { -1, 1 } do
+			for course = 1, 5 do
+				for strip = 1, 6 do
+					local x = course * 1.05 - 0.45
+					local roof = piece(
+						"roof" .. side .. "." .. course .. "." .. strip,
+						side * x,
+						8.3 - x * 1.22,
+						(strip - 3.5) * 1.9,
+						1.95,
+						0.28,
+						2.15,
+						"Grass",
+						{ 184 + strip * 4, 155 + course * 5, 89 + strip * 3 },
+						"Wedge"
+					)
+					roof.roll = side * -51
+				end
 			end
+			piece("skirt" .. side, side * 5.3, 0.6, 0, 0.8, 1.2, 11.8, "Grass", sand)
 		end
-		piece("ridge", 0, 11, 0, 0.9, 0.9, 12.5, "Wood", wood, "Ball")
-		piece("hide.back", 0, 4, 3.9, 9.8, 6, 0.2, "Fabric", { 150, 116, 75 })
-		piece("hide.side", -4.9, 3, 0, 0.2, 4, 7, "Fabric", { 169, 137, 91 })
-		piece("bedroll", 2, 0.6, 0, 3, 0.6, 6, "Fabric", palette.leaf)
+		piece("ridge", 0, 8.2, 0, 12.5, 0.7, 0.7, "Wood", wood, "Cylinder").yaw = 90
+		piece("hide.back", 0, 1.6, 3.9, 9.8, 3.2, 0.2, "Fabric", { 150, 116, 75 })
+		piece("hide.side", -4.9, 1.5, 0, 0.2, 3, 7, "Fabric", { 169, 137, 91 })
+		piece("bedroll", 2, 0.3, 0, 3, 0.6, 6, "Fabric", palette.leaf)
 	elseif kind == "workbench" or kind == "drying-rack" then
 		for _, x in { -3, 3 } do
 			piece("leg" .. x, x, 2.5, 0, 5, 0.7, 0.7, "Wood", wood, "Cylinder").roll = 90
-			piece("lash" .. x, x, 4.7, 0, 0.9, 0.5, 0.9, "Fabric", sand, "Ball")
+			for band = 1, 3 do
+				piece("lash" .. x .. "." .. band, x, 2.7 + band * 0.16, 0, 0.92, 0.13, 0.92, "Fabric", sand)
+			end
+			if kind == "workbench" then
+				piece("foot" .. x, x, 0.35, 0, 4, 0.7, 0.7, "Wood", wood, "Cylinder").yaw = 90
+			end
 		end
-		piece("beam", 0, 5, 0, 8, 0.8, 0.8, "Wood", wood, "Cylinder")
+		piece("beam", 0, if kind == "drying-rack" then 5 else 2.85, 0, 8, 0.8, 0.8, "Wood", wood, "Cylinder")
 		if kind == "drying-rack" then
 			for i = 1, 3 do
 				piece("hide" .. i, (i - 2) * 2, 3.7, 0, 1.7, 2.6, 0.2, "Fabric", { 151, 107 + i * 8, 71 }, "Ball")
@@ -286,7 +310,7 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 	for index, column in columns do
 		if
 			index % stride == 0
-			and #props < 30
+			and #props < 16
 			and column.top > 0
 			and not terrain.protected(layout, column.x, column.z, 16)
 		then

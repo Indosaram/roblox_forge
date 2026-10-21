@@ -8,6 +8,7 @@ local CollectionService = game:GetService("CollectionService")
 local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
 local Rng = require(Forge.core.domain.random.Rng)
 local IslandTerrain = require(Forge.games["robango-island"].src.shared.IslandTerrain)
+local Dressing = require("./WorldDressing")
 
 local DECOR_SEED = 20261018
 type Sign = { text: string, x: number, z: number }
@@ -28,6 +29,7 @@ local CLEARING_STUDS = 16
 
 local function buildTerrain()
 	local terrain = workspace.Terrain
+	terrain.Decoration = true
 	local cell = IslandTerrain.CELL
 	local bottom = IslandTerrain.BOTTOM
 	local sea = IslandTerrain.SEA_LEVEL
@@ -171,9 +173,35 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	local function ground(x: number, z: number): number
 		return IslandTerrain.sample(x, z).top
 	end
+	local function kit(id: string, at: Vector3, kind: string)
+		local definitions = {}
+		Dressing.kit(
+			definitions,
+			id,
+			{ x = at.X, y = at.Y, z = at.Z },
+			kind,
+			Dressing.palette({ biomes = { "grassland" } })
+		)
+		for _, d in definitions do
+			local value = part(
+				d.id,
+				Vector3.new(d.size.x, d.size.y, d.size.z),
+				Vector3.new(d.position.x, d.position.y, d.position.z),
+				rgb(table.unpack(d.color)),
+				if d.shape == "Wedge" then "WedgePart" else nil
+			)
+			value.Material = (Enum.Material :: any)[d.material]
+			value.CFrame *= CFrame.Angles(0, math.rad(d.yaw or 0), math.rad(d.roll or 0))
+			if value:IsA("Part") and d.shape and d.shape ~= "Wedge" then
+				value.Shape = (Enum.PartType :: any)[d.shape]
+			end
+			value.CanCollide, value.CanQuery, value.CanTouch = false, false, false
+		end
+	end
 
 	local islandFloor = part("IslandFloor", Vector3.new(64, 2, 48), Vector3.new(0, -1, 8), rgb(82, 118, 64))
 	islandFloor.Material = Enum.Material.LeafyGrass
+	islandFloor.Transparency, islandFloor.CanCollide = 1, false
 	local warehouse: { x: number, y: number, z: number } = source.tribe.warehousePosition
 	local warehouseFloor = part(
 		"WarehouseApproach",
@@ -182,10 +210,17 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		rgb(86, 114, 68)
 	)
 	warehouseFloor.Material = Enum.Material.LeafyGrass
-	-- Voxels round a fractional surface up to whole cells, so the plateau reached y = 0 and
-	-- z-fought with these floor tops. Clear the voxel layer the authored floors occupy.
-	workspace.Terrain:FillBlock(CFrame.new(0, -1, 8), Vector3.new(64, 4, 48), Enum.Material.Air)
-	workspace.Terrain:FillBlock(CFrame.new(warehouse.x, -1, warehouse.z + 4), Vector3.new(12, 4, 16), Enum.Material.Air)
+	warehouseFloor.Transparency, warehouseFloor.CanCollide = 1, false
+	for x = -32, 32, 4 do
+		for z = -16, 32, 4 do
+			local edge = math.max(math.abs(x) / 32, math.abs(z - 8) / 24)
+			local top = if edge < 0.65 then 0 else math.sin(x * 0.18) * math.cos(z * 0.15) * 1.4
+			workspace.Terrain:FillBlock(CFrame.new(x, top / 2 - 2, z), Vector3.new(4, top + 4, 4), Enum.Material.Grass)
+		end
+	end
+	for step = -8, 8 do
+		workspace.Terrain:FillBall(Vector3.new(step * 4, -2.8, 8 + math.sin(step * 0.4)), 3.2, Enum.Material.Ground)
+	end
 	local wx, wz = warehouse.x + 3, warehouse.z
 	local marker = part("Warehouse", Vector3.new(3, 2, 2), Vector3.new(wx, 1, wz), rgb(124, 84, 50))
 	marker.Material = Enum.Material.WoodPlanks
@@ -288,6 +323,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	})
 	local campfire = part("campfire", Vector3.new(3, 1, 3), Vector3.new(-6, 0.5, 0), rgb(96, 92, 86))
 	campfire.Material = Enum.Material.Cobblestone
+	campfire.Transparency = 1
 	for i = 1, 8 do
 		local ang = math.rad(i * 45)
 		decor(
@@ -350,18 +386,12 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 
 	local bench = part("workbench", Vector3.new(4, 2, 2), Vector3.new(6, 1, 0), rgb(134, 92, 54))
 	bench.Material = Enum.Material.WoodPlanks
-	decor(
-		"WorkbenchTop",
-		Vector3.new(4.4, 0.3, 2.4),
-		CFrame.new(6, 2.05, 0),
-		rgb(152, 106, 62),
-		nil,
-		Enum.Material.WoodPlanks
-	)
+	bench.Transparency = 1
+	kit("WorkbenchFrame", Vector3.new(6, 0, 0), "workbench")
 	decor(
 		"WorkbenchAnvil",
 		Vector3.new(1.1, 0.65, 0.8),
-		CFrame.new(4.8, 2.45, -0.2),
+		CFrame.new(4.8, 3.75, -0.2),
 		rgb(92, 98, 106),
 		nil,
 		Enum.Material.Metal
@@ -369,7 +399,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	decor(
 		"WorkbenchMalletHead",
 		Vector3.new(0.7, 0.4, 0.4),
-		CFrame.new(6.8, 2.35, 0.3) * CFrame.Angles(0, math.rad(28), 0),
+		CFrame.new(6.8, 3.65, 0.3) * CFrame.Angles(0, math.rad(28), 0),
 		rgb(108, 112, 118),
 		nil,
 		Enum.Material.Slate
@@ -377,7 +407,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	decor(
 		"WorkbenchMalletHandle",
 		Vector3.new(0.18, 0.9, 0.18),
-		CFrame.new(6.5, 2.25, 0.5) * CFrame.Angles(math.rad(82), math.rad(20), 0),
+		CFrame.new(6.5, 3.55, 0.5) * CFrame.Angles(math.rad(82), math.rad(20), 0),
 		rgb(168, 126, 78),
 		nil,
 		Enum.Material.Wood
@@ -385,7 +415,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	decor(
 		"WorkbenchRack",
 		Vector3.new(4.2, 1.8, 0.22),
-		CFrame.new(6, 2.9, -1.05),
+		CFrame.new(6, 4.3, -1.7),
 		rgb(112, 76, 44),
 		nil,
 		Enum.Material.WoodPlanks
@@ -456,6 +486,8 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		["flint-outcrop"] = function(id, p)
 			local rock = part(id, Vector3.new(4, 4, 3), p, rgb(92, 100, 114), "WedgePart")
 			rock.Material = Enum.Material.Slate
+			rock.Transparency = 1
+			kit(id .. ".cluster", p - Vector3.new(0, 2, 0), "rock")
 			decor(
 				id .. "-spire1",
 				Vector3.new(2.2, 3.2, 2.0),
@@ -493,22 +525,13 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		["fiber-bush"] = function(id, p)
 			local shape = part(id, Vector3.new(1, 4, 2), p, rgb(122, 152, 64))
 			shape.Material = Enum.Material.Grass
+			shape.Transparency = 1
+			kit(id .. ".fern", p - Vector3.new(0, 2, 0), "fern")
 			-- Accent parts never collide or answer queries: a colliding blade blocked the reach ray.
 			local blade = part(id .. "-blade", Vector3.new(3, 3, 0.5), p, rgb(104, 138, 54))
 			blade.Material = Enum.Material.Grass
 			blade.CanCollide, blade.CanQuery = false, false
-			for i = 1, 6 do
-				local ang = math.rad(i * 60)
-				decor(
-					id .. "-frond" .. i,
-					Vector3.new(0.28, 3.4, 1.1),
-					CFrame.new(p + Vector3.new(math.cos(ang) * 0.9, -0.2, math.sin(ang) * 0.9))
-						* CFrame.Angles(0, -ang, math.rad(34)),
-					rgb(134, 168, 72),
-					nil,
-					Enum.Material.Grass
-				)
-			end
+			blade.Transparency = 1
 			return shape
 		end,
 		["berry-bush"] = function(id, p)
@@ -820,6 +843,11 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			Vector3.new(CLEARING_STUDS, 16, CLEARING_STUDS),
 			Enum.Material.Air
 		)
+		workspace.Terrain:FillBlock(
+			CFrame.new(position.X, base - 2, position.Z),
+			Vector3.new(CLEARING_STUDS, 4, CLEARING_STUDS),
+			Enum.Material.Grass
+		)
 		local shape = build(node.id, position, height)
 		world.registerNode(shape, node.id, node.catalogId, 0, source.worldRevision)
 	end
@@ -844,17 +872,9 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	)
 	local roof = part("CameraTestRoof", Vector3.new(12, 1, 8), Vector3.new(-16, 9, 0), rgb(134, 92, 54))
 	roof.Material = Enum.Material.WoodPlanks
+	roof.Transparency = 1
 	CollectionService:AddTag(roof, "ForgeCameraOccluder")
-	for _, corner in
-		{
-			Vector3.new(-21.4, 4.25, -3.4),
-			Vector3.new(-10.6, 4.25, -3.4),
-			Vector3.new(-21.4, 4.25, 3.4),
-			Vector3.new(-10.6, 4.25, 3.4),
-		}
-	do
-		decor("ShelterPost", Vector3.new(0.55, 8.5, 0.55), CFrame.new(corner), rgb(96, 66, 40), nil, Enum.Material.Wood)
-	end
+	kit("Shelter", Vector3.new(-16, 0, 0), "shelter")
 	-- QA standing marks: non-colliding, flat. wildlife-approach-01 sits in the lane between
 	-- fallen-tree-01 and flint-outcrop-01, inside grazer-01's 12-stud sense radius (its home is
 	-- -20,4,24). BuildApproach stands on the entry cell of the release-first-play floor preview

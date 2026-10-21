@@ -132,11 +132,27 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	)
 		return part(name, Vector3.new(sx, sy, sz), Vector3.new(x, y, z), parentName, form, color)
 	end
+	-- Cylindrical cores overlap at their end planes, rather than touching the
+	-- tips of isolated ellipsoids. Closely spaced decreasing radii form a taper.
+	local function segment(name: string, a: Vector3, b: Vector3, radius: number, parentName: string)
+		local scale = Vector3.new(w, h, l)
+		local from, to = a * scale, b * scale
+		local delta = to - from
+		local p = part(name, Vector3.new(1, 1, 1), (a + b) / 2, parentName, "cylinder")
+		p.Size = Vector3.new(delta.Magnitude + 0.18, radius * w, radius * w)
+		p.CFrame = root.CFrame * CFrame.lookAt((from + to) / 2, to) * CFrame.Angles(0, math.pi / 2, 0)
+		local joint = root:FindFirstChild(name .. "Joint") :: Motor6D
+		local frame = root.CFrame * CFrame.new(from)
+		joint.C0, joint.C1 =
+			assert(joint.Part0, "MISSING_SEGMENT_PARENT").CFrame:ToObjectSpace(frame), p.CFrame:ToObjectSpace(frame)
+		return p
+	end
 	local biped = family == "theropod" or family == "bird"
 	local low = family == "crocodilian" or family == "turtle"
 	local torsoY = if family == "sauropod" then -0.2 elseif low then -0.05 elseif biped then -0.02 else 0
 	local torsoH = if family == "bird" then 0.57 elseif family == "elephant" then 0.57 elseif low then 0.47 else 0.36
 	add("Torso", 0, torsoY, 0.05, 0.72, torsoH, if family == "bird" then 0.5 else 0.48, "HumanoidRootPart")
+	add("Shoulders", 0, torsoY + torsoH * 0.12, -0.1, 0.65, torsoH * 0.9, 0.32, "Torso")
 	add("Countershade", 0, torsoY - torsoH * 0.27, 0.04, 0.63, torsoH * 0.5, 0.43, "Torso", nil, underside)
 	for side = -1, 1, 2 do
 		local stripe = add(
@@ -158,15 +174,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	end
 	local hy, hz, headW, headH, headL = 0.14, -0.34, 0.37, 0.23, 0.23
 	if family == "sauropod" then
-		for i = 1, 3 do
-			add(
+		for i = 1, 6 do
+			segment(
 				"Neck" .. i,
-				0,
-				-0.16 + i * 0.18,
-				-0.16 - i * 0.055,
-				0.22 - i * 0.025,
-				0.23,
-				0.13,
+				Vector3.new(0, -0.16 + (i - 1) * 0.095, -0.16 - (i - 1) * 0.035),
+				Vector3.new(0, -0.16 + i * 0.095, -0.16 - i * 0.035),
+				0.26 - i * 0.02,
 				if i == 1 then "Torso" else "Neck" .. (i - 1)
 			)
 		end
@@ -188,7 +201,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		hy = 0.28
 		add("Neck", 0, 0.15, -0.22, 0.29, 0.32, 0.2, "Torso")
 	end
-	local neckParent = if family == "sauropod" then "Neck3" elseif parts.Neck then "Neck" else "Torso"
+	local neckParent = if family == "sauropod" then "Neck6" elseif parts.Neck then "Neck" else "Torso"
 	part(
 		"Head",
 		Vector3.new(headW, headH, headL),
@@ -230,14 +243,22 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		local legW = if feature == "antlers" or feature == "longlegs" then 0.1 else 0.18
 		part(
 			"Thigh" .. side,
-			Vector3.new(legW, legH * 0.6, 0.14),
-			Vector3.new(side * lx, -0.16, 0.19),
+			Vector3.new(legW * 1.2, legH * 0.85, 0.19),
+			Vector3.new(side * lx, -0.19, 0.19),
 			"Torso",
 			nil,
 			nil,
 			Vector3.new(side * lx, -0.05, 0.19)
 		)
-		add("Shin" .. side, side * lx, -0.23 - legH * 0.3, 0.19, legW * 0.65, legH * 0.55, 0.08, "Thigh" .. side)
+		add("Shin" .. side, side * lx, -0.34, 0.19, legW * 0.72, 0.25, 0.1, "Thigh" .. side, "cylinder").CFrame *= CFrame.Angles(
+			0,
+			0,
+			math.pi / 2
+		)
+		local shin = parts["Shin" .. side]
+		shin.Size = Vector3.new(h * 0.25, w * legW * 0.72, l * 0.1)
+		local shinJoint = root:FindFirstChild(shin.Name .. "Joint") :: Motor6D
+		shinJoint.C1 = shin.CFrame:ToObjectSpace(assert(shinJoint.Part0).CFrame * shinJoint.C0)
 		add("Foot" .. side, side * lx, -0.45, 0.14, legW, 0.08, 0.16, "Shin" .. side, nil, accent)
 		if not biped then
 			part(
@@ -275,16 +296,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local dinosaurTail = not mammal and family ~= "bird" and family ~= "turtle"
 	if dinosaurTail then
 		for i = 1, 4 do
-			add(
+			segment(
 				"Tail" .. i,
-				0,
-				-0.02,
-				0.22 + i * 0.115,
-				0.26 - i * 0.048,
-				0.2 - i * 0.035,
-				0.19,
-				if i == 1 then "Torso" else "Tail" .. (i - 1),
-				"wedge"
+				Vector3.new(0, torsoY, 0.22 + (i - 1) * 0.13),
+				Vector3.new(0, torsoY - 0.015, 0.22 + i * 0.13),
+				0.28 - i * 0.055,
+				if i == 1 then "Torso" else "Tail" .. (i - 1)
 			)
 		end
 	elseif family == "mammal" then

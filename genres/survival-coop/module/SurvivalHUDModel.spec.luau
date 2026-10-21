@@ -38,6 +38,23 @@ local function model(): any
 end
 
 return {
+	["recipes group by station with available materials first and reservations excluded"] = function()
+		local bag = {
+			items = { wood = { itemId = "wood", catalogId = "wood", quantity = 3, tags = {}, durabilityMilli = 1000 } },
+			reservations = { held = { wood = 1 } },
+		}
+		local recipes: { any } = {
+			{ id = "a-missing", inputs = { { item = "wood", quantity = 3 } }, station = nil },
+			{ id = "z-ready", inputs = { { item = "wood", quantity = 2 } }, station = nil },
+			{ id = "c-fire", inputs = {}, station = "campfire" },
+		}
+		local rows = Model.recipeOrder(bag, recipes, function()
+			return false
+		end)
+		assert(rows[1].recipe.id == "z-ready" and rows[1].ready, "craftable hand recipe first")
+		assert(rows[2].recipe.id == "a-missing" and not rows[2].ready, "reserved materials cannot craft")
+		assert(rows[3].station == "campfire" and not rows[3].ready, "unreachable station cannot craft")
+	end,
 	["Studio station coordinates aim above embedded station geometry"] = function()
 		local target = Model.stationTarget({ x = -32, y = 2, z = -4 }, { x = 4, y = 2, z = 3 })
 		local player = { x = -32.08, y = 7.83, z = -8.45 }

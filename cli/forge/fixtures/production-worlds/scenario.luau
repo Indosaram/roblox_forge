@@ -95,6 +95,7 @@ function M.new(ctx: any): any
 			require("../../../../genres/survival-coop/module/ScoreTransport").factory,
 			require("../../../../genres/survival-coop/module/EnsembleExtension").factory,
 			require("../../../../genres/survival-coop/module/ClanExtension").factory,
+			require("../../../../genres/survival-coop/module/OutpostExtension").factory,
 		},
 	}
 	module.JournalPorts = require("../../../../genres/survival-coop/module/JournalPorts")
@@ -367,14 +368,20 @@ function M.new(ctx: any): any
 		local port = session.personalTransfer(actor)
 		local token = assert(port.personal:update(port.profile(), function(data)
 			local bag = data.envelope.genres["survival-coop"].data.inventory.bag
-			bag.items["fixture-floor"] = {
-				itemId = "fixture-floor",
-				catalogId = "floor-kit",
-				quantity = 1,
-				qualityMilli = 1000,
-				durabilityMilli = 0,
-				attributes = {},
-			}
+			local kits: { [string]: number } = { floor = 3, pillar = 2, stairs = 2, wall = 1, door = 1, roof = 1 }
+			for kind, quantity in kits do
+				for index = 1, quantity do
+					local id = "fixture-" .. kind .. index
+					bag.items[id] = {
+						itemId = id,
+						catalogId = Content.buildingPolicy.kits[kind],
+						quantity = 1,
+						qualityMilli = 1000,
+						durabilityMilli = 0,
+						attributes = {},
+					}
+				end
+			end
 			return data
 		end))
 		port.install(token)
@@ -386,7 +393,60 @@ function M.new(ctx: any): any
 			{ { version = 0, part = { id = "floor1", kind = "floor", x = 0, z = 0, floor = 1 } } }
 		)
 		assert(session.snapshot(actor).survivalExtensions.building.parts.floor1, "committed floor snapshot")
-		command(actor, "building-remove", { { version = 1, id = "floor1" } })
+		local version = 1
+		for floor = 1, 3 do
+			engine.move(actor, { x = 0, y = Content.homePolicy.dock.y + Content.homePolicy.floors[floor], z = 0 })
+			local kinds: { string } = if floor == 3
+				then { "floor" }
+				elseif floor == 1 then { "pillar", "stairs" }
+				else { "floor", "pillar", "stairs" }
+			for _, kind in kinds do
+				command(
+					actor,
+					"building-place",
+					{ { version = version, part = { id = kind .. floor, kind = kind, x = 0, z = 0, floor = floor } } }
+				)
+				version += 1
+			end
+		end
+		assert(api.enter("home", actor) == nil, "upper floors survive a fresh owner")
+		local topology = session.snapshot(actor).survivalExtensions.building
+		assert(topology.parts.floor3 and topology.version == version, "three-floor topology restored")
+		local collidable = 0
+		for _, part in engine.parts do
+			if not part.destroyed and string.sub(part.Name, 1, 9) == "Building:" and part.CanCollide then
+				collidable += 1
+			end
+		end
+		assert(
+			collidable >= 2 * Content.buildingPolicy.stairSteps + 5,
+			"fresh home publishes collidable stairs supports and upper landings"
+		)
+		engine.move(actor, { x = 0, y = Content.homePolicy.dock.y, z = 0 })
+		refused(actor, "building-remove", { { version = version, id = "pillar1" } }, "SUPPORT_REQUIRED")
+		for _, id in { "floor3", "stairs2", "pillar2", "floor2", "stairs1", "pillar1", "floor1" } do
+			local part = session.snapshot(actor).survivalExtensions.building.parts[id]
+			engine.move(actor, { x = 0, y = Content.homePolicy.dock.y + Content.homePolicy.floors[part.floor], z = 0 })
+			command(actor, "building-remove", { { version = version, id = id } })
+			version += 1
+		end
+		command(
+			actor,
+			"building-place",
+			{ { version = version, part = { id = "base", kind = "floor", x = 0, z = 0, floor = 1 } } }
+		)
+		version += 1
+		for _, kind in { "wall", "door", "roof" } do
+			command(
+				actor,
+				"building-place",
+				{ { version = version, part = { id = kind, kind = kind, x = 0, z = 0, floor = 1 } } }
+			)
+			version += 1
+			command(actor, "building-remove", { { version = version, id = kind } })
+			version += 1
+		end
+		command(actor, "building-remove", { { version = version, id = "base" } })
 		local bag = session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.inventory.bag
 		local count = 0
 		for _, item in bag.items do
@@ -394,7 +454,7 @@ function M.new(ctx: any): any
 				count += item.quantity
 			end
 		end
-		assert(count == 1, "exact kit refund after place/remove")
+		assert(count == 3, "exact kit refunds after three-floor place/reload/remove")
 		port = session.personalTransfer(actor)
 		local progressed = assert(
 			port.personal:update(port.profile(), function(raw)
@@ -444,7 +504,13 @@ function M.new(ctx: any): any
 		for _, index in { 3, 4 } do
 			local id = "rw.c01.signal-trace." .. tostring(index) .. ":1"
 			engine.move(actor, world.journalTargets[id].position)
-			command(actor, "journal-interact", { id })
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			engine.interact(actor, id)
+			assert(
+				session.snapshot(actor).survivalExtensions.journal.counts["rw.c01.signal-trace." .. tostring(index)]
+					== 1,
+				"physical harbor prompt committed Session checkpoint"
+			)
 		end
 		command(actor, "journal-claim", {})
 		assert(
@@ -488,13 +554,27 @@ function M.new(ctx: any): any
 		assert(api.enter("rw.harbor", actor) == nil, "remedy role")
 		local remedy = "rw.c04.marsh-remedy.5:1"
 		engine.move(actor, world.journalTargets[remedy].position)
-		command(actor, "journal-interact", { remedy })
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		engine.interact(actor, remedy)
 		assert(
 			session
 				.personalTransfer(actor)
 				.profile().data.envelope.genres["survival-coop"].data.inventory.bag.items.remedy == nil,
 			"remedy consumed atomically"
 		)
+		for _, chapter in Content.chapters do
+			local objective = chapter.objectives[#chapter.objectives]
+			checkpoint(chapter.id, #chapter.objectives - 1)
+			assert(api.enter("rw.harbor", actor) == nil, "harbor chapter dialogue role")
+			local markerId = objective.id .. ":1"
+			engine.move(actor, world.journalTargets[markerId].position)
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			engine.interact(actor, markerId)
+			assert(
+				session.snapshot(actor).survivalExtensions.journal.counts[objective.id] == objective.quantity,
+				"every chapter dialogue producer commits through its physical NPC prompt"
+			)
+		end
 		checkpoint("rw.c08.collapse-return", 3)
 		assert(api.enter("rw.a5.s4", actor) == nil, "journal escort role")
 		local rescue = "rw.c08.collapse-return.4:1"
@@ -546,11 +626,11 @@ function M.new(ctx: any): any
 		assert(target, "authored tyrannosaurus")
 		engine.move(actor, { x = target.position.x, y = target.position.y, z = target.position.z + 2 })
 		engine.equip(world, actor, "biology-weapon")
-		for _ = 1, 400 do
+		for hit = 1, 400 do
 			if factory.services.survivalWildlife.snapshot(actor)[target.id].healthMilli == 0 then
 				break
 			end
-			if _ % 90 == 0 then
+			if hit % 90 == 0 then
 				local owner = session.personalTransfer(actor)
 				local repaired = assert(
 					owner.personal:update(owner.profile(), function(raw)
@@ -576,11 +656,25 @@ function M.new(ctx: any): any
 	end
 	function api.clan(actor)
 		local serde = require("@lune/serde")
+		local loseCreditAck = false
 		clanDirectory = require("../../../../core/infra/data/ClanStore").new({
 			dataStore = {
 				UpdateAsync = function(_, key, transform)
 					local ok, result = ctx.backend.update("clan-directory:" .. key, transform)
 					assert(ok, result)
+					local record = result.records["clan:native-clan"]
+					if loseCreditAck and record then
+						local credits = 0
+						for _, receipt in (record.data.itemTransfers or {}).receipts or {} do
+							if receipt.phase == "CREDITED" then
+								credits += 1
+							end
+						end
+						if credits == 2 then
+							loseCreditAck = false
+							error("native lost clan credit acknowledgement")
+						end
+					end
 					return result
 				end,
 			},
@@ -613,6 +707,21 @@ function M.new(ctx: any): any
 			session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.balance == 75,
 			"same personal wallet debited"
 		)
+		loseCreditAck = true
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		local interrupted = session.command(actor, request(actor, "clan-deposit", { "native-clan", { amount = 10 } }))
+		assert(not interrupted.ok and not loseCreditAck, "credit committed but acknowledgement lost")
+		assert(api.enter("home", actor) == nil, "fresh Session recovers retained treasury request")
+		assert(session.recoverTransfers(actor, 8).ok, "treasury recovery confirmed")
+		state = session.snapshot(actor).survivalExtensions.clan
+		assert(state.funds == 35, "credit not repeated after lost acknowledgement")
+		assert(
+			session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data.balance == 65,
+			"recovered treasury conserves personal plus clan currency"
+		)
+		for _, row in state.walletOperations do
+			assert(row.result and row.result.ok, "fresh owner finalizes every retained treasury request")
+		end
 		command(actor, "clan-relocate", { "native-clan", { territory = "rw.home" } })
 		assert(close().ok, "release clan before fixture progression")
 		local clanStore = clanDirectory.store
@@ -694,6 +803,53 @@ function M.new(ctx: any): any
 		assert(
 			research.jobs[jobId].status == "completed" and research.research["advanced-capture"] == 1,
 			"fresh Session finishes durable research"
+		)
+		assert(api.enter("rw.team-outpost", actor) == nil, "production outpost role")
+		local teams = { { actor, other, "11734795310" }, { "11734795311", "11734795312", "11734795313" } }
+		for index, team in teams do
+			local leader = team[1]
+			if leader ~= actor then
+				assert(session.join(leader).ok, "join second clan leader")
+				command(leader, "clan-create", { "native-rivals" })
+			end
+			local clanId = if index == 1 then "native-clan" else "native-rivals"
+			for slot, player in team do
+				if slot > 1 then
+					assert(session.join(player).ok, "join queued Session actor")
+					if player ~= other then
+						command(leader, "clan-invite", { clanId, { target = player } })
+						command(player, "clan-join", { clanId, {} })
+					end
+				end
+				engine.move(player, Content.homePolicy.dock)
+				command(player, "outpost-queue", { "rw.team-outpost", { enabled = true } })
+			end
+		end
+		assert(session.recoverTransfers(actor, 8).ok, "server forms two queued teams")
+		local outpost = session.snapshot(actor).survivalExtensions.outpost
+		local matchId: string? = nil
+		for id, match in outpost.matches do
+			assert(#match.teams == 2 and #match.teams[1].actors == 3, "authoritative three versus three")
+			matchId = id
+		end
+		assert(matchId, "automatic match created")
+		local center: any = nil
+		for _, anchor in world.layout.anchors do
+			if anchor.id == "objective" then
+				center = anchor.position
+			end
+		end
+		engine.move(actor, center)
+		assert(session.recoverTransfers(actor, 8).ok, "sample live Humanoid occupancy")
+		ctx.clock.advanceTo(ctx.clock.now() + Content.outpostPolicy.captureSeconds)
+		assert(session.recoverTransfers(actor, 8).ok, "server settles capture interval")
+		outpost = session.snapshot(actor).survivalExtensions.outpost
+		assert(outpost.owner == "native-clan", "live occupancy wins durable ownership")
+		local expiresAt = outpost.expiresAt
+		assert(api.enter("rw.team-outpost", actor) == nil, "restart settled outpost owner")
+		assert(
+			session.snapshot(actor).survivalExtensions.outpost.expiresAt == expiresAt,
+			"reconnect cannot extend ownership"
 		)
 		return nil
 	end

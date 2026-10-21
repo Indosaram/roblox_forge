@@ -7,6 +7,40 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["home renders Terrain coast and grass instead of visible square ground"] = function()
+		local engine = Engine.new()
+		local workspace = engine.game:GetService("Workspace")
+		local grass, sand, dirt = 0, 0, 0
+		workspace.Terrain.FillBlock = function(_, _frame, _size, material)
+			if material.Name == "Grass" then
+				grass += 1
+			elseif material.Name == "Sand" then
+				sand += 1
+			elseif material.Name == "Ground" then
+				dirt += 1
+			end
+		end
+		local source: any = table.clone(Source)
+		source.seed, source.renderRole = 79, engine.role.build
+		local world = engine.home.live(Content, source, Policy, function()
+			return 0
+		end)
+		local rules = HomeContent.rules(Content)
+		world.publishHome(Home.new("owner", rules, 79), rules)
+		assert(
+			workspace.Terrain.Decoration and grass > 0 and sand > 0 and dirt > 0,
+			"Terrain grass coast and dirt trail"
+		)
+		for _, p in engine.parts do
+			if p.Name == "home-land" or p.Name == "home.path" then
+				assert(p.Transparency == 1 and p.CanCollide == false, "hidden ground capability")
+			end
+			if string.find(p.Name, "home.shelter.post", 1, true) then
+				assert(math.abs(p.CFrame.Position.Y - p.Size.X / 2) < 0.5, "post bottom follows terrain ray")
+			end
+		end
+		world.destroy()
+	end,
 	["production home projects catalog nodes and tier-sized durable land"] = function()
 		local engine = Engine.new()
 		local source: any = table.clone(Source)

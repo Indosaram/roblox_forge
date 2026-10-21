@@ -121,6 +121,45 @@ function M.start(options: Options)
 		vs.Color, vs.Thickness, vs.Transparency = Color3.fromRGB(88, 138, 114), 1.2, 0.25
 		vs.Parent = vitals
 	end)
+	local statBars: { [string]: any } = {}
+	for index, stat in { "health", "hunger", "fatigue" } do
+		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
+		local symbol = Instance.new(if icon and icon.image then "ImageLabel" else "TextLabel") :: GuiObject
+		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
+		symbol.Position, symbol.Size = UDim2.fromOffset(6, 4 + (index - 1) * 23), UDim2.fromOffset(20, 20)
+		if icon and icon.image then
+			(symbol :: ImageLabel).Image = icon.image
+		else
+			local fallback = symbol :: TextLabel
+			fallback.Text, fallback.TextColor3 =
+				({ health = "+", hunger = "E", fatigue = "Z" })[stat], Color3.fromRGB(240, 244, 240)
+		end
+		symbol.Parent = vitals
+		local track = Instance.new("Frame")
+		track.Name, track.BorderSizePixel, track.BackgroundColor3 = stat .. "Track", 0, Color3.fromRGB(45, 62, 56)
+		track.Position, track.Size, track.Parent =
+			UDim2.fromOffset(32, 10 + (index - 1) * 23), UDim2.new(1, -78, 0, 8), vitals
+		local fill = Instance.new("Frame")
+		fill.Name, fill.BorderSizePixel = "Fill", 0
+		fill.BackgroundColor3 = ({
+			health = Color3.fromRGB(107, 207, 142),
+			hunger = Color3.fromRGB(232, 190, 97),
+			fatigue = Color3.fromRGB(119, 181, 220),
+		})[stat]
+		fill.Size, fill.Parent = UDim2.fromScale(1, 1), track
+		for _, frame in { track, fill } do
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius, corner.Parent = UDim.new(0, 4), frame
+		end
+		local value = Components.label(theme, {
+			text = "",
+			textSize = 11,
+			parent = vitals,
+			size = UDim2.fromOffset(38, 20),
+			position = UDim2.new(1, -42, 0, 4 + (index - 1) * 23),
+		})
+		statBars[stat] = { fill = fill, value = value }
+	end
 	local status = Components.label(theme, {
 		text = t("loading"),
 		size = UDim2.new(1, 0, 0, 64),
@@ -334,6 +373,14 @@ function M.start(options: Options)
 		item.Visible = true
 		item:SetAttribute("FinishAt", nil)
 		item:SetAttribute("JobLabel", nil)
+		local icon = item:FindFirstChild("ItemIcon")
+		if icon then
+			(icon :: ImageLabel).Visible = false
+		end
+		local padding = item:FindFirstChild("IconPadding")
+		if padding then
+			(padding :: UIPadding).PaddingLeft = UDim.new(0, 0)
+		end
 		return item
 	end
 	local focusId: string? = nil
@@ -345,6 +392,22 @@ function M.start(options: Options)
 		local policy = model.durable
 		local enabled = policy and table.find(policy.actions, "survival-coop:" .. verb) ~= nil and model.pending == nil
 		return button(id, text, callback, enabled == true)
+	end
+	local function itemIcon(item: any, icon: any)
+		if not icon then
+			return
+		end
+		local image = item:FindFirstChild("ItemIcon")
+		if not image then
+			image = Instance.new("ImageLabel")
+			image.Name, image.BackgroundTransparency = "ItemIcon", 1
+			image.Size, image.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(6, 6)
+			image.Parent = item
+			local padding = Instance.new("UIPadding")
+			padding.Name, padding.Parent = "IconPadding", item
+		end
+		item:FindFirstChild("IconPadding").PaddingLeft = UDim.new(0, if icon.image then 48 else 0)
+		image.Image, image.Visible = icon.image or "", icon.image ~= nil
 	end
 	local function selectedDefinition(): any
 		for _, definition in options.content.structures do
@@ -399,18 +462,14 @@ function M.start(options: Options)
 		end
 		local v = model.snapshot.vitals
 		vitals.Visible = v ~= nil
-		vitals.Text = if v
-			then string.format(
-				"%s %d   %s %d   %s %d\n%s",
-				t("health"),
-				v.healthMilli / 1000,
-				t("hunger"),
-				v.hungerMilli / 1000,
-				t("fatigue"),
-				v.fatigueMilli / 1000,
-				if v.resting then t("resting") elseif model.status == "ready" then "" else t("ready")
-			)
-			else ""
+		vitals.Text = ""
+		if v then
+			for stat, bar in statBars do
+				local amount = v[stat .. "Milli"] / 1000
+				bar.fill.Size = UDim2.fromScale(math.clamp(amount / 100, 0, 1), 1)
+				bar.value.Text = tostring(math.floor(amount))
+			end
+		end
 		status.Text = t(model.status) .. (if model.reason then "\n" .. Locale.refusal(locale, model.reason) else "")
 		if contextual then
 			status.Visible = model.status == "conflict" or model.status == "pending"
@@ -529,25 +588,9 @@ function M.start(options: Options)
 				end
 			end
 		elseif section == "craft" then
-			local RECIPE_PRIORITY: { [string]: number } = {
-				["cord"] = 1,
-				["stone-axe"] = 2,
-				["berry-meal"] = 3,
-				["capture-bola"] = 4,
-				["stone-pickaxe"] = 5,
-				["wooden-spear"] = 6,
-			}
-			local orderedRecipes: { any } = table.clone(options.content.recipes)
-			table.sort(orderedRecipes, function(a: any, b: any)
-				local pa = RECIPE_PRIORITY[a.id]
-					or (if a.station == nil then 10 elseif a.station == "campfire" then 20 else 30)
-				local pb = RECIPE_PRIORITY[b.id]
-					or (if b.station == nil then 10 elseif b.station == "campfire" then 20 else 30)
-				if pa ~= pb then
-					return pa < pb
-				end
-				return a.id < b.id
-			end)
+			local orderedRecipes = Model.recipeOrder(bag, options.content.recipes, function(station)
+				return nearest(station) ~= nil
+			end, options.content.items)
 			local activeJobs = Model.jobs(model.snapshot, model.actor)
 			local renderedJobs = false
 			local function renderJobs()
@@ -575,16 +618,32 @@ function M.start(options: Options)
 			if recipeId == nil and #activeJobs > 0 then
 				renderJobs()
 			end
-			for _, recipe in orderedRecipes do
-				button("Recipe-" .. recipe.id, name(recipe.id), function()
-					recipeId = recipe.id
-					focusBottom = "Reserve-" .. recipe.id
-					render()
-				end)
+			local lastStation = nil
+			for _, row in orderedRecipes do
+				local recipe = row.recipe
+				if lastStation ~= row.station then
+					lastStation = row.station
+					label(if recipe.station then name(recipe.station) else t("hand"), 32)
+				end
+				local recipeButton = button(
+					"Recipe-" .. recipe.id,
+					name(recipe.id) .. (if row.ready then " +" else ""),
+					function()
+						recipeId = recipe.id
+						focusBottom = "Reserve-" .. recipe.id
+						render()
+					end
+				)
+				if options.icons then
+					local icon = options.icons.recipe(recipe.id)
+					itemIcon(recipeButton, if icon.image then icon else options.icons.item(recipe.outputs[1].item))
+				end
 				if recipe.id == recipeId then
 					label(t("inputs"))
 					for _, ingredient in Model.ingredients(bag, recipe) do
-						label(name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
+						local ingredientRow =
+							label(name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
+						itemIcon(ingredientRow, if options.icons then options.icons.item(ingredient.id) else nil)
 					end
 					local output = {}
 					for _, item in recipe.outputs do
@@ -907,8 +966,9 @@ function M.start(options: Options)
 		if contextual then
 			local width, height, top, right = Model.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
 			sheet.frame.Position, sheet.frame.Size = UDim2.new(1, -right, 0, top), UDim2.fromOffset(width, height)
-			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(0, 0)
-			vitals.Size, vitals.TextWrapped = UDim2.fromOffset(math.min(216, size.X - 80), 56), true
+			local bounds = Model.contextHudBounds(size.X + 24, size.Y + 16).vitals
+			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
+			vitals.Size = UDim2.fromOffset(bounds.width, bounds.height)
 			status.AnchorPoint, status.Position = Vector2.new(1, 0), UDim2.new(1, -80, 0, 0)
 			status.Size = UDim2.fromOffset(math.min(312, size.X - 80), 56)
 			return
@@ -926,7 +986,8 @@ function M.start(options: Options)
 		vitals.Position, toolbar.Position, status.Position, restButton.Position =
 			UDim2.fromScale(1, 0), UDim2.new(1, 0, 0, 40), UDim2.new(1, 0, 0, 92), UDim2.new(1, 0, 0, 132)
 		vitals.Size, status.Size, toolbar.Size =
-			UDim2.fromOffset(width, 36), UDim2.fromOffset(width, 36), UDim2.fromOffset(width, 48)
+			UDim2.fromOffset(width, 76), UDim2.fromOffset(width, 36), UDim2.fromOffset(width, 48)
+		toolbar.Position, status.Position = UDim2.new(1, 0, 0, 80), UDim2.new(1, 0, 0, 132)
 		restButton.Size = UDim2.fromOffset(width, 48)
 		attackButton.Position, attackButton.Size =
 			UDim2.new(1, 0, 0, 132), UDim2.fromOffset(math.floor(width / 2) - 4, 48)
