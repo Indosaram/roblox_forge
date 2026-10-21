@@ -1,5 +1,4 @@
 --!strict
--- Presentation state only. All mutations go through the existing command ingress.
 local Transport = require("../../../core/infra/genre/CommandTransport")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local M = {}
@@ -233,8 +232,6 @@ function M.contextSheetBounds(width: number, height: number, touch: boolean): (n
 	return math.min(720, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
 end
 
--- Desktop chat may be implemented by CoreGui instead of a PlayerGui Chat tree.
--- Reserve its known rectangle even when that tree cannot be inspected.
 function M.chatSafe(
 	width: number,
 	height: number,
@@ -254,15 +251,20 @@ function M.chatSafe(
 	return x, y, w, h
 end
 
-function M.contextHudBounds(width: number, height: number?): any
-	local w = math.min(216, width - 24)
-	local short = height ~= nil and height < 400
+function M.contextHudBounds(width: number, _height: number?): any
+	local w = math.min(216, width - 100)
 	return {
-		vitals = { x = width - w - 12, y = if short then 56 else 64, width = w, height = 76 },
-		objective = { x = width - w - 12, y = if short then 140 else 148, width = w, height = if short then 32 else 56 },
-		menu = { x = width - 76, y = 8, width = 64, height = 40 },
+		vitals = { x = width - w - 12, y = 64, width = w, height = 76 },
+		objective = { x = width - w - 12, y = 144, width = w, height = 28 },
+		menu = { x = width - w - 84, y = 64, width = 64, height = 44 },
+		biome = { x = (width - 192) / 2, y = 24, width = 192, height = 32 },
 		photo = { x = (width - math.min(520, width - 24)) / 2, y = 64, width = math.min(520, width - 24), height = 92 },
 	}
+end
+
+function M.biomeToast(previous: string, current: string, remaining: number, dt: number): (number, number)
+	local left = math.max(0, (if current ~= previous then 3 else remaining) - dt)
+	return left, 1 - math.min(1, left)
 end
 
 function M.contextActions(policy: any, pending: any, modal: boolean, restTarget: any, attackTarget: any): any

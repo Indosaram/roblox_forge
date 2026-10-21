@@ -357,15 +357,14 @@ function M.start(options: {
 		local isCompact = compact()
 		if contextual then
 			menuToggle.Visible = true
-			local objective = HUDModel.contextHudBounds(size.X, size.Y).objective
+			local bounds = HUDModel.contextHudBounds(size.X, size.Y)
+			local objective = bounds.objective
 			objectiveSlot.AnchorPoint = Vector2.zero
 			objectiveSlot.Position = UDim2.fromOffset(objective.x, objective.y)
 			objectiveSlot.Size = UDim2.fromOffset(objective.width, objective.height)
-			-- Keep the activation rectangle below Roblox's reserved topbar band.
-			-- A GUI hit-test can report the button inside that band even though
-			-- Roblox consumes the mouse press before GuiButton activation.
-			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 66)
-			column.Size = UDim2.fromOffset(64, 44)
+			local menu = bounds.menu
+			column.AnchorPoint, column.Position = Vector2.zero, UDim2.fromOffset(menu.x, menu.y)
+			column.Size = UDim2.fromOffset(menu.width, menu.height)
 			menuList.Parent = dockGui
 			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
 			menuList.AnchorPoint = Vector2.new(0.5, 0)

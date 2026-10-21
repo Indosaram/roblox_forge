@@ -15,47 +15,36 @@ local Client = require(Forge.core.infra.genre.Client)
 local gui = Client.start({ controls = require(Shared.GenreUI) })
 gui.Destroying:Connect(audio.destroy)
 
--- The pack ships en-us and ko-kr; every survival-coop view picks Korean from a "ko" prefix.
-local locale = game:GetService("Players").LocalPlayer.LocaleId
+local player = game:GetService("Players").LocalPlayer
+local locale = player.LocaleId
+local korean = string.sub(locale, 1, 2) == "ko"
 local names = require(Shared.EntityNames)(locale)
-local biomeSigns: { BillboardGui } = {}
+local biomeNames: { [string]: string } = {}
 local function localizeJournal(object: Instance)
-	if object:IsA("BillboardGui") and object.Parent and object.Parent.Name == "SignBoard" then
-		table.insert(biomeSigns, object)
+	if object:IsA("TextLabel") and object.Parent and object.Parent:IsA("BillboardGui") then
+		local sign = object.Parent
+		local board = sign.Parent
+		if board and board:IsA("BasePart") and board.Name == "SignBoard" then
+			local rows = string.split(object.Text, "\n")
+			biomeNames[if board.Position.X < 0 then "forest" else "marsh"] = rows[if korean then 1 else 2]
+			sign:Destroy()
+		end
 	end
 	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeWarehouse") then
-		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "창고 열기" else "Open warehouse"
-		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "창고" else "Warehouse"
+		object.ActionText = if korean then "창고 열기" else "Open warehouse"
+		object.ObjectText = if korean then "창고" else "Warehouse"
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
-		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "일지 확인" else "Journal checkpoint"
-		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "일지" else "Journal"
+		object.ActionText = if korean then "일지 확인" else "Journal checkpoint"
+		object.ObjectText = if korean then "일지" else "Journal"
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgePanel") then
-		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "대화 / 이용" else "Talk / use"
-		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "항구 안내" else "Harbor guide"
+		object.ActionText = if korean then "대화 / 이용" else "Talk / use"
+		object.ObjectText = if korean then "항구 안내" else "Harbor guide"
 	end
 end
 workspace.DescendantAdded:Connect(localizeJournal)
 for _, object in workspace:GetDescendants() do
 	localizeJournal(object)
 end
-local signVisibility = game:GetService("RunService").RenderStepped:Connect(function()
-	local camera = workspace.CurrentCamera
-	if not camera then
-		return
-	end
-	for _, sign in biomeSigns do
-		local board = sign.Parent
-		if board and board:IsA("BasePart") then
-			local point, visible = camera:WorldToViewportPoint(board.Position + sign.StudsOffset)
-			-- World labels cannot cover Roblox's chat window or its input hint.
-			sign.Enabled = not (visible and point.X - 90 < 420 and point.Y - 28 < 260)
-		end
-	end
-end)
-script.Destroying:Connect(function()
-	signVisibility:Disconnect()
-end)
-
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
 local gathering = GatheringClient.start({ locale = locale, names = names })
 gui.Destroying:Connect(gathering.destroy)
@@ -78,15 +67,39 @@ local hud = SurvivalHUD.start({
 	locale = locale,
 	names = names,
 })
-local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, player)
-	if player == game:GetService("Players").LocalPlayer and prompt:GetAttribute("ForgeWarehouse") then
+local toastGui = Instance.new("ScreenGui")
+toastGui.Name, toastGui.ResetOnSpawn = "BiomeToast", false
+toastGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+toastGui.Parent = player.PlayerGui
+local toast = Instance.new("TextLabel")
+toast.Name, toast.BackgroundTransparency, toast.TextScaled = "Biome", 1, true
+toast.TextColor3, toast.TextStrokeTransparency = Color3.fromRGB(240, 244, 240), 0.4
+toast.Parent = toastGui
+local terrain = require(Shared.IslandTerrain)
+local hudModel = require(Forge.genres["survival-coop"].module.SurvivalHUDModel)
+local biome, remaining = "", 0
+local biomeConnection = game:GetService("RunService").RenderStepped:Connect(function(dt)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local current = if root and root:IsA("BasePart") then terrain.sample(root.Position.X, root.Position.Z).biome else ""
+	remaining, toast.TextTransparency = hudModel.biomeToast(biome, current, remaining, dt)
+	biome = current
+	local rect = hudModel.contextHudBounds(toastGui.AbsoluteSize.X).biome
+	toast.Position, toast.Size = UDim2.fromOffset(rect.x, rect.y), UDim2.fromOffset(rect.width, rect.height)
+	toast.Text, toast.Visible = biomeNames[biome] or "", remaining > 0
+end)
+gui.Destroying:Connect(function()
+	biomeConnection:Disconnect()
+	toastGui:Destroy()
+end)
+local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, actor)
+	if actor == player and prompt:GetAttribute("ForgeWarehouse") then
 		hud.open("bag")
 	end
 end)
 gui.Destroying:Connect(function()
 	warehouseConnection:Disconnect()
 end)
--- Server-published attack intent only: no client prediction can confirm a hit.
 local telegraphs: { [Model]: Highlight } = {}
 local telegraphConnection = game:GetService("RunService").Heartbeat:Connect(function()
 	local folder = workspace:FindFirstChild("ForgeWildlife")
@@ -131,13 +144,12 @@ end
 table.insert(panelFactories, function(ctx)
 	local buildingPolicy = assert(content.buildingPolicy, "BUILDING_POLICY_REQUIRED")
 	local homePolicy = assert(content.homePolicy, "HOME_POLICY_REQUIRED")
-	local player = game:GetService("Players").LocalPlayer
 	local buildingGui = Instance.new("ScreenGui")
 	buildingGui.Name, buildingGui.ResetOnSpawn = "ForgeBuilding", false
 	buildingGui.Parent = player:WaitForChild("PlayerGui")
 	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
 		name = "Building",
-		title = if string.sub(locale, 1, 2) == "ko" then "다층 건축" else "Multistorey building",
+		title = if korean then "다층 건축" else "Multistorey building",
 		parent = buildingGui,
 	})
 	sheet.frame.Visible = false
@@ -147,7 +159,7 @@ table.insert(panelFactories, function(ctx)
 	local status = Instance.new("TextLabel")
 	status.Size, status.TextWrapped, status.Parent = UDim2.new(1, 0, 0, 64), true, sheet.scroll
 	local function render()
-		status.Text = (if string.sub(locale, 1, 2) == "ko" then "층 " else "Floor ") .. floor
+		status.Text = (if korean then "층 " else "Floor ") .. floor
 	end
 	local connections = {}
 	local function button(label, callback)
@@ -158,13 +170,13 @@ table.insert(panelFactories, function(ctx)
 		})
 		table.insert(connections, control.Activated:Connect(callback))
 	end
-	button(if string.sub(locale, 1, 2) == "ko" then "다음 층" else "Next floor", function()
+	button(if korean then "다음 층" else "Next floor", function()
 		floor = floor % #homePolicy.floors + 1
 		render()
 	end)
 	for _, kind in { "floor", "pillar", "stairs" } do
 		local labels = { floor = "바닥", pillar = "기둥", stairs = "계단" }
-		button(if string.sub(locale, 1, 2) == "ko" then labels[kind] else kind, function()
+		button(if korean then labels[kind] else kind, function()
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			if not root or not root:IsA("BasePart") then
@@ -188,7 +200,7 @@ table.insert(panelFactories, function(ctx)
 			end
 		end)
 	end
-	button(if string.sub(locale, 1, 2) == "ko" then "현재 칸 회수" else "Remove part at current cell", function()
+	button(if korean then "현재 칸 회수" else "Remove part at current cell", function()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if not root or not root:IsA("BasePart") then
@@ -214,7 +226,7 @@ table.insert(panelFactories, function(ctx)
 	end)
 	assert(ctx.dock, "BUILDING_DOCK_REQUIRED")({
 		id = "building",
-		label = if string.sub(locale, 1, 2) == "ko" then "건축" else "Building",
+		label = if korean then "건축" else "Building",
 		order = 9,
 		setOpen = function(open)
 			sheet.frame.Visible = open
@@ -236,8 +248,6 @@ table.insert(panelFactories, function(ctx)
 end)
 table.insert(panelFactories, function(ctx)
 	local social: any = table.clone(ctx)
-	local korean = string.sub(locale, 1, 2) == "ko"
-	local player = game:GetService("Players").LocalPlayer
 	social.content, social.actorId = content, tostring(player.UserId)
 	social.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
 	social.encode = function(value)
@@ -402,12 +412,11 @@ table.insert(panelFactories, function(ctx)
 	}
 end)
 table.insert(panelFactories, function(ctx)
-	local playerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+	local playerGui = player:WaitForChild("PlayerGui")
 	local audioGui = Instance.new("ScreenGui")
 	audioGui.Name, audioGui.ResetOnSpawn, audioGui.DisplayOrder, audioGui.Enabled =
 		"ForgeAudioSettings", false, 24, false
 	audioGui.Parent = playerGui
-	local korean = string.sub(locale, 1, 2) == "ko"
 	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
 		name = "AudioSettings",
 		title = if korean then "소리" else "Audio",
@@ -585,8 +594,7 @@ end)
 table.insert(panelFactories, function(ctx)
 	local journalContext: any = table.clone(ctx)
 	local journalText = require(Shared.JournalText)
-	local playerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-	local korean = string.sub(locale, 1, 2) == "ko"
+	local playerGui = player:WaitForChild("PlayerGui")
 	local labels = {
 		journal_open = { "Open journal", "일지 열기" },
 		journal_claim = { "Complete chapter", "챕터 완료" },
@@ -664,7 +672,7 @@ local panels = ExtensionPanels.start({
 	launchers = {
 		{
 			id = "explore",
-			label = if string.sub(locale, 1, 2) == "ko" then "섬 전경" else "Island view",
+			label = if korean then "섬 전경" else "Island view",
 			open = function()
 				if aerial then
 					aerial.toggle()
@@ -673,28 +681,28 @@ local panels = ExtensionPanels.start({
 		},
 		{
 			id = "bag",
-			label = if string.sub(locale, 1, 2) == "ko" then "가방" else "Bag",
+			label = if korean then "가방" else "Bag",
 			open = function()
 				hud.open("bag")
 			end,
 		},
 		{
 			id = "craft",
-			label = if string.sub(locale, 1, 2) == "ko" then "제작" else "Craft",
+			label = if korean then "제작" else "Craft",
 			open = function()
 				hud.open("craft")
 			end,
 		},
 		{
 			id = "build",
-			label = if string.sub(locale, 1, 2) == "ko" then "건설" else "Build",
+			label = if korean then "건설" else "Build",
 			open = function()
 				hud.open("build")
 			end,
 		},
 		{
 			id = "skills",
-			label = if string.sub(locale, 1, 2) == "ko" then "스킬" else "Skills",
+			label = if korean then "스킬" else "Skills",
 			open = function()
 				hud.open("skills")
 			end,
@@ -717,7 +725,7 @@ local aerialGui = Instance.new("ScreenGui")
 aerialGui.Name, aerialGui.ResetOnSpawn = "ForgeAerial", false
 aerialGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 aerialGui.DisplayOrder = 30
-aerialGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+aerialGui.Parent = player:WaitForChild("PlayerGui")
 local aerialControls = Instance.new("Frame")
 aerialControls.Name, aerialControls.Visible = "PhotoControls", false
 aerialControls.AnchorPoint = Vector2.new(0.5, 0)
@@ -745,8 +753,7 @@ local aerialLabels = {
 }
 for index, name in { "Toggle", "Return", "OrbitLeft", "OrbitRight", "HideUI", "ShowUI", "Capture" } do
 	local button = Instance.new("TextButton")
-	button.Text, button.LayoutOrder, button.Parent =
-		aerialLabels[name][if string.sub(locale, 1, 2) == "ko" then 2 else 1], index, aerialControls
+	button.Text, button.LayoutOrder, button.Parent = aerialLabels[name][if korean then 2 else 1], index, aerialControls
 	button.BackgroundColor3, button.TextColor3 = Color3.fromRGB(40, 76, 66), Color3.fromRGB(240, 244, 240)
 	button.Font, button.TextSize = Enum.Font.GothamMedium, 12
 	button.TextWrapped = true
@@ -758,7 +765,7 @@ for index, name in { "Toggle", "Return", "OrbitLeft", "OrbitRight", "HideUI", "S
 	aerialButtons[name] = button
 end
 local aerialGuis: { ScreenGui } = {}
-for _, child in game:GetService("Players").LocalPlayer.PlayerGui:GetChildren() do
+for _, child in player.PlayerGui:GetChildren() do
 	if child:IsA("ScreenGui") and child ~= aerialGui then
 		table.insert(aerialGuis, child)
 	end
@@ -807,8 +814,8 @@ aerial = require(script.Parent.AerialCamera).new({
 	end,
 	captureResult = function(result)
 		aerialButtons.Capture.Text = if result.ok
-			then (if string.sub(locale, 1, 2) == "ko" then "저장 완료" else "Saved")
-			else (if string.sub(locale, 1, 2) == "ko" then "저장 취소" else "Not saved")
+			then (if korean then "저장 완료" else "Saved")
+			else (if korean then "저장 취소" else "Not saved")
 	end,
 })
 local aerialBack = game:GetService("UserInputService").InputBegan:Connect(function(input, processed)

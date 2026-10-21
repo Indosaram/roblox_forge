@@ -9,6 +9,53 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["SurvivalWorldBootstrap clears every gather reach ray after overlapping approach paths"] = function()
+		local engine = Engine.new()
+		local fills = {}
+		local workspace = engine.game:GetService("Workspace")
+		workspace.Terrain.FillBlock = function(_, frame, size, material)
+			table.insert(fills, { position = frame.Position, size = size, material = material.Name })
+		end
+		engine.preview(Content, Source, nil, nil, "onboarding", true)
+		for _, part in workspace:FindFirstChild("IslandScenery"):GetChildren() do
+			if part:IsA("BasePart") then
+				assert(part.CanQuery == false and part.CanCollide == false, part.Name .. " dressing blocks reach")
+			end
+		end
+		-- Resolve the last write to each four-stud voxel along a real root-to-node ray.
+		-- A partial Ground fill still occupies that voxel, even when its nominal top
+		-- is below the ray. This is the mechanism the native gather scenario omitted.
+		for _, node in Source.nodes do
+			for _, offset in { { 5, 0 }, { -5, 0 }, { 0, 5 }, { 0, -5 } } do
+				for step = 0, 10 do
+					local t = step / 10
+					local p = node.position
+					local point = {
+						X = p.x + offset[1] * (1 - t),
+						Y = p.y + 2 * (1 - t),
+						Z = p.z + offset[2] * (1 - t),
+					}
+					local material = "Air"
+					for _, fill in fills do
+						local overlaps = true
+						for _, axis in { "X", "Y", "Z" } do
+							local low = math.floor((point[axis] - (if axis == "Y" then 2 else 0)) / 4) * 4
+							if
+								fill.position[axis] + fill.size[axis] / 2 <= low
+								or fill.position[axis] - fill.size[axis] / 2 >= low + 4
+							then
+								overlaps = false
+							end
+						end
+						if overlaps then
+							material = fill.material
+						end
+					end
+					assert(material == "Air", node.id .. " gather ray intersects " .. material)
+				end
+			end
+		end
+	end,
 	["Terrain decoration is authored in the place and forbidden at runtime"] = function()
 		local project = serde.decode("json", fs.readFile("games/robango-island/default.project.json"))
 		assert(project.tree.Workspace.Terrain["$properties"].Decoration == true, "place enables grass decoration")

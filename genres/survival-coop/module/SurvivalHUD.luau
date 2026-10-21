@@ -575,10 +575,18 @@ function M.start(options: Options)
 			part.Transparency, part.Material, part.Parent = 0.4, Enum.Material.Neon, ghost
 		end
 	end
+	-- ZIndex only orders siblings inside one ScreenGui. Placement must also sit
+	-- above the dock (DisplayOrder 30) and extension sheets (DisplayOrder 20).
+	local placementGui = Instance.new("ScreenGui")
+	placementGui.Name, placementGui.ResetOnSpawn, placementGui.DisplayOrder = "ForgePlacementHUD", false, 40
+	placementGui.ScreenInsets, placementGui.ZIndexBehavior = gui.ScreenInsets, gui.ZIndexBehavior
+	placementGui.Parent = player:WaitForChild("PlayerGui")
 	local placementBar = Instance.new("Frame")
 	placementBar.Name, placementBar.BackgroundTransparency = "PlacementControls", 1
+	-- The placement overlay must win hit testing over the modal sheet (50..52).
+	placementBar.ZIndex = sheet.frame.ZIndex + 3
 	placementBar.Size, placementBar.Position = UDim2.fromOffset(272, 48), UDim2.new(0.5, -136, 1, -72)
-	placementBar.Parent, placementBar.Visible = gui, false
+	placementBar.Parent, placementBar.Visible = placementGui, false
 	local function placeSelected()
 		local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
 		if not settlement or not warehouse or model.pending then
@@ -622,6 +630,8 @@ function M.start(options: Options)
 			structureId = nil
 			preview()
 			placementBar.Visible = false
+			sheet.frame.Visible = true
+			render()
 		end,
 	})
 	cancelPlacement.Name = "CancelPlacement"
@@ -636,6 +646,9 @@ function M.start(options: Options)
 		end,
 	})
 	rotatePlacement.Name = "RotatePlacement"
+	for _, control in { confirmPlacement, cancelPlacement, rotatePlacement } do
+		control.ZIndex = placementBar.ZIndex + 1
+	end
 	placementBar.Size, placementBar.Position = UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -72)
 	confirmPlacement.Size, confirmPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(88, 0)
 	cancelPlacement.Size, cancelPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(212, 0)
@@ -688,6 +701,11 @@ function M.start(options: Options)
 			return
 		end
 		placementBar.Visible = section == "build" and structureId ~= nil
+		-- Placement is a world interaction, not a control floating over the scrolling
+		-- catalog. Remove the catalog from input routing for the entire placement phase.
+		if section == "build" then
+			sheet.frame.Visible = structureId == nil
+		end
 		confirmPlacement.Interactable = model.pending == nil
 		local reservedPlacement = false
 		if model.snapshot.settlement then
@@ -1419,6 +1437,7 @@ function M.start(options: Options)
 		highlight:Destroy()
 		resultEvent:Destroy()
 		requestEvent:Destroy()
+		placementGui:Destroy()
 		gui:Destroy()
 	end
 	table.insert(connections, gui.Destroying:Connect(destroy))
@@ -1437,7 +1456,7 @@ function M.start(options: Options)
 			preview()
 		end,
 		isOpen = function(): boolean
-			return sheet.frame.Visible
+			return sheet.frame.Visible or placementBar.Visible
 		end,
 		opened = sheet.frame:GetPropertyChangedSignal("Visible"),
 	}

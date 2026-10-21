@@ -23,6 +23,18 @@ local function overlaps(a: any, b: any): boolean
 end
 
 return {
+	["biome entry toast fades after three seconds and reentry restarts it"] = function()
+		local left, alpha = Model.biomeToast("landing", "forest", 0, 0)
+		assert(left == 3 and alpha == 0, "entry starts visible")
+		left, alpha = Model.biomeToast("forest", "forest", left, 2.5)
+		assert(left == 0.5 and alpha == 0.5, "last second fades")
+		left, alpha = Model.biomeToast("forest", "forest", left, 0.5)
+		assert(left == 0 and alpha == 1, "three seconds expires")
+		left, alpha = Model.biomeToast("forest", "forest", left, 10)
+		assert(left == 0 and alpha == 1, "staying does not restart")
+		left, alpha = Model.biomeToast("forest", "marsh", left, 0)
+		assert(left == 3 and alpha == 0, "next biome restarts")
+	end,
 	["sheet close and build action surfaces stay separate at all target sizes"] = function()
 		for _, size in { { 360, 640 }, { 640, 360 }, { 1280, 720 }, { 1920, 1080 } } do
 			local width, height = size[1], size[2] - 56
@@ -216,10 +228,15 @@ return {
 			assert(menu.y + menu.height <= height - 128, "all tiles fit above movement controls without scrolling")
 			assert(not overlaps(menu, stick) and not overlaps(menu, jump), "menu clears movement zones")
 			local hud = Model.contextHudBounds(width, height)
-			assert(
-				not overlaps(hud.vitals, hud.objective) and not overlaps(hud.vitals, hud.menu),
-				"HUD cards remain separate"
-			)
+			local chat = { x = 0, y = 0, width = 540, height = 320 }
+			for _, key in { "vitals", "objective", "menu", "biome" } do
+				for _, other in { "vitals", "objective", "menu", "biome" } do
+					assert(key == other or not overlaps(hud[key], hud[other]), key .. " overlaps " .. other)
+				end
+				assert(width < 1000 or not overlaps(hud[key], chat), key .. " overlaps desktop chat")
+			end
+			assert(hud.objective.y >= hud.vitals.y + hud.vitals.height, "objective below vitals")
+			assert(hud.objective.y >= hud.menu.y + hud.menu.height, "objective below menu")
 			for _, rect in hud do
 				assert(rect.y >= 0 and rect.x >= 0 and rect.x + rect.width <= width, "HUD within topbar safe area")
 				assert(not overlaps(rect, stick) and not overlaps(rect, jump), "HUD clears joystick and jump")

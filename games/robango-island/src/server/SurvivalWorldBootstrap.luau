@@ -812,21 +812,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		local position = Vector3.new(node.position.x, node.position.y, node.position.z)
 		local build = assert(builders[node.catalogId], "NODE_VISUAL_MISSING")
 		local height = IslandTerrain.NODE_HEIGHT[node.catalogId] or 2
-		-- Hill and bank voxels rose over node parts set on a slope, so the server's reach ray
-		-- hit Terrain from every side (Studio, 2026-10-18: 19 of 20 nodes unreachable from at
-		-- least one side, forest-oak-windfall from all four). Level a clearing around each
-		-- node at its base so the ray from a player standing beside it is clear.
 		local base = position.Y - height / 2
-		workspace.Terrain:FillBlock(
-			CFrame.new(position.X, base + 8, position.Z),
-			Vector3.new(CLEARING_STUDS, 16, CLEARING_STUDS),
-			Enum.Material.Air
-		)
-		workspace.Terrain:FillBlock(
-			CFrame.new(position.X, base - 2, position.Z),
-			Vector3.new(CLEARING_STUDS, 4, CLEARING_STUDS),
-			Enum.Material.Ground
-		)
 		-- Worn approaches follow the heightfield, rather than disappearing under grass.
 		for step = 0, 8 do
 			local x, z = position.X * step / 8, 8 + (position.Z - 8) * step / 8
@@ -835,6 +821,27 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		end
 		local shape = build(node.id, position, height)
 		world.registerNode(shape, node.id, node.catalogId, 0, source.worldRevision)
+	end
+	-- FillBlock rasterizes on four-stud voxels. Fractional clearing planes left occupied
+	-- voxels above the canonical gather target; later nodes' paths also refilled earlier
+	-- clearings. Cut aligned clearings LAST, with their ground plane below each target.
+	for _, node in source.nodes do
+		local p = node.position
+		local height = IslandTerrain.NODE_HEIGHT[node.catalogId] or 2
+		-- Terrain's smoothed collision surface extends above the filled voxel plane.
+		-- Keep one empty voxel below the node as well, not merely below its centre.
+		local base = math.floor((p.y - height / 2) / 4) * 4 - 4
+		local x, z = math.floor(p.x / 4) * 4, math.floor(p.z / 4) * 4
+		workspace.Terrain:FillBlock(
+			CFrame.new(x, base + 8, z),
+			Vector3.new(CLEARING_STUDS, 16, CLEARING_STUDS),
+			Enum.Material.Air
+		)
+		workspace.Terrain:FillBlock(
+			CFrame.new(x, base - 2, z),
+			Vector3.new(CLEARING_STUDS, 4, CLEARING_STUDS),
+			Enum.Material.Ground
+		)
 	end
 	-- Approach the nodes from z=8 for clear reach; the wall blocks the berry lane.
 	local losWall = part("GatherLOSWall", Vector3.new(6, 7, 1), Vector3.new(10, 3.5, 10), rgb(118, 120, 112))
@@ -961,7 +968,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	end
 	scatter("forest-trees", 26, -118, -50, function(x, z, y)
 		local tall = 9 + (x * 7 + z * 3) % 5
-		local trunk = decor(
+		decor(
 			"OakTrunk",
 			Vector3.new(1.6, tall, 1.6),
 			CFrame.new(x, y + tall / 2, z),
@@ -969,7 +976,6 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			nil,
 			Enum.Material.Wood
 		)
-		trunk.CanCollide, trunk.CanQuery = true, true
 		decor(
 			"OakCrown",
 			Vector3.new(8, 7, 8),
