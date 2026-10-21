@@ -135,6 +135,8 @@ function M.advance(state: any, content: any, facts: any, now: number, entryBuffe
 	state.questCargo = nil
 	state.treated = false
 	state.escortAtStart = true
+	state.escort, state.surveyHold = nil, nil
+	state.bandage, state.bandageClaimed, state.cargoClaimed = nil, nil, nil
 	return true, nil
 end
 
@@ -142,6 +144,7 @@ end
 -- the bag, equipment, earned rewards, node deltas or completed checkpoints.
 function M.recover(state: any, now: number, cause: string): string
 	state.escortAtStart = true
+	state.escort, state.surveyHold = nil, nil
 	if now >= state.expiresAt then
 		state.status = "expired"
 	elseif cause == "abandon" or cause == "fail" or cause == "return" then

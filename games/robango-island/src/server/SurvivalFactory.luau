@@ -81,6 +81,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local activeSession: any = nil
 	local monetization: any = nil
 	local gatherReceipt: any = nil
+	local wildlifeSnapshot: any = nil
 	local commandReceipts: any = {}
 	-- BEGIN authoritative home owner. Personal profile and server spatial ports supply facts.
 	local HomeContent = require(Forge.core.domain.home.HomeContent)
@@ -115,6 +116,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 		structures["farm-plot"] =
 			{ kit = "practice-seedbed", halfSize = content.homePolicy.structureSize.x / 2, rank = 1 }
 		world.home = {
+			personal = function(actor)
+				return if activeSession then activeSession.personalTransfer(actor) else nil
+			end,
 			rules = rules,
 			structures = structures,
 			seed = function(actor)
@@ -227,6 +231,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 		now = seconds,
 		store = expeditionStore,
 		facts = expeditionFacts,
+		position = function(actor)
+			return world.services.survivalDeath.position(actor)
+		end,
+		personal = function(actor)
+			return if activeSession then activeSession.personalTransfer(actor) else nil
+		end,
+		wildlife = function(actor)
+			return if wildlifeSnapshot then wildlifeSnapshot(actor) else nil
+		end,
 		verify = function(actor, operationId, document)
 			return if provision.archipelagoReceipt
 				then provision.archipelagoReceipt(actor, operationId, document)
@@ -235,27 +248,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 		gatherReceipt = function(actor, epoch, requestId)
 			return if gatherReceipt then gatherReceipt(actor, epoch, requestId) else nil
 		end,
-		-- BEGIN finalized spatial survey receipts. Identity derives from server markers.
-		surveyReceipt = function(actor, state, objectiveId, markerId): any
-			local marker = if world.surveyMarkers then world.surveyMarkers[markerId] else nil
-			if not marker or marker.objective ~= objectiveId or marker.layout ~= Archipelago.layout(state) then
-				return nil
-			end
-			if not world.services.survivalDeath.reachable(actor, marker.position) then
-				return nil
-			end
-			return {
-				id = state.id .. ":survey:" .. markerId,
-				actor = actor,
-				expedition = state.id,
-				revision = state.revision,
-				objective = objectiveId,
-				action = "survey",
-				target = objectiveId,
-				quantity = 1,
-			}
-		end,
-		-- END finalized spatial survey receipts.
 		returnHome = function(actor)
 			return if provision.returnHome
 				then provision.returnHome(actor)
@@ -265,18 +257,54 @@ return function(content: any, source, world, backend, clock, options, provision,
 	table.insert(extensionFactories, function()
 		return require(Forge.core.infra.genre.Session).registerLifecycle({
 			id = "archipelago",
-			handles = function()
-				return false
+			handles = function(action)
+				return action == "survival-coop:mission-action"
 			end,
-			command = function()
-				return { ok = false, reason = "SERVER_ONLY" }
+			command = function(actor, _action, args, context, _origin, admit)
+				if context.actorId ~= actor then
+					return { ok = false, reason = "FORBIDDEN" }
+				end
+				local allowed = admit()
+				if not allowed.ok then
+					return allowed
+				end
+				if args[1] == "next-island" then
+					return archipelago.nextIsland(actor)
+				elseif args[1] == "return" then
+					return archipelago.recover(actor, "return")
+				end
+				return archipelago.mission(actor, args[1], args[2])
+			end,
+			recover = function(actor)
+				local result = archipelago.tick(actor)
+				if result.ok then
+					result = archipelago.settleRewards(actor)
+				end
+				if world.publishEscort then
+					local document = expeditionStore.snapshot(actor)
+					world.publishEscort(actor, if document then document.archipelago else nil)
+				end
+				return {
+					status = if result.ok then "confirmed" else "recovering",
+					pending = if result.ok then 0 else 1,
+					reason = result.reason,
+				}
 			end,
 			snapshot = function(actor)
 				local document, reason = expeditionStore.snapshot(actor)
 				return if document then document.archipelago else nil, reason
 			end,
 			drain = expeditionStore.drain,
-			releaseActor = expeditionStore.releaseActor,
+			releaseActor = function(actor)
+				local reset = expeditionStore.transaction(actor, function(document)
+					if document.archipelago then
+						document.archipelago.escortAtStart = true
+						document.archipelago.escort, document.archipelago.surveyHold = nil, nil
+					end
+					return { ok = true }
+				end)
+				return if reset.ok then expeditionStore.releaseActor(actor) else reset
+			end,
 			resumeActor = expeditionStore.resumeActor,
 			close = expeditionStore.close,
 		})
@@ -354,6 +382,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 		return factory, err
 	end
 	local factoryPorts: any = factory
+	if factoryPorts.services.survivalWildlife then
+		wildlifeSnapshot = factoryPorts.services.survivalWildlife.snapshot
+	end
 	for _, extension in factoryPorts.services.survivalExtensions or {} do
 		if extension.id == "monetization" then
 			monetization = extension
@@ -364,7 +395,6 @@ return function(content: any, source, world, backend, clock, options, provision,
 	end
 	factoryPorts.archipelago = archipelago
 	local roleWorld: any = world
-	roleWorld.surveyObjective = archipelago.survey
 	factoryPorts.expeditionStore = expeditionStore
 	-- BEGIN authored guide progress. Only trusted finalized event callers below
 	-- can reach this port; clients cannot supply a completion or award amount.
@@ -526,6 +556,17 @@ return function(content: any, source, world, backend, clock, options, provision,
 	factory.bind = function(session)
 		activeSession = session
 		bindSession(session)
+		local missionSequence = 0
+		roleWorld.missionAction = function(actor, operation, target)
+			missionSequence += 1
+			local action = "survival-coop:mission-action"
+			return session.command(actor, {
+				requestId = "world-mission-" .. tostring(missionSequence),
+				sessionEpoch = session.commandEpoch(actor, action),
+				action = action,
+				args = { operation, target },
+			})
+		end
 		-- BEGIN finalized command development receipts. No request fact is credited
 		-- until Session proves the exact durable binding succeeded.
 		for _, method in { "command", "commandServer" } do
@@ -707,6 +748,11 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local extensions = (factory.services :: any).survivalExtensions
 	for index, extension in extensions or {} do
 		extensions[index] = serialized(extension)
+		if extension.id == "monetization" then
+			-- Home entitlement reads must use the same serialized owner as
+			-- Session snapshots, including when the backend yields on renew.
+			monetization = extensions[index]
+		end
 	end
 	if not provision.admit then
 		return factory, err

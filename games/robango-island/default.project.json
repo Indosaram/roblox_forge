@@ -6,6 +6,8 @@
     "../../core/domain/procgen/Icons.luau",
     "../../core/domain/procgen/Music.luau",
     "../../core/domain/procgen/Synth.luau",
+    "../../core/domain/procgen/Textures.luau",
+    "../../core/domain/procgen/Pixels.luau",
     "**/*.md",
     "**/.gitkeep",
     "**/*.yml"

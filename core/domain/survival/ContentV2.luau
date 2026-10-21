@@ -155,6 +155,21 @@ local schemas: { [string]: { [string]: string } } = {
 		seed = "integer",
 	},
 	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
+	missionPolicy = {
+		provenance = "provenance",
+		surveySeconds = "positive",
+		interactionStuds = "positive",
+		escortSpeed = "positive",
+		followStuds = "positive",
+		stopStuds = "positive",
+		cargoSlots = "positive",
+		bandageOffset = "point",
+		starterWeapon = "@items",
+		weaponDamageMilli = "positive",
+		weaponWearMilli = "positive",
+		weaponRangeStuds = "positive",
+		weaponCooldownMillis = "positive",
+	},
 	homePolicy = {
 		provenance = "provenance",
 		tiers = "[]homeTier",
@@ -298,7 +313,7 @@ M.SECTIONS = {
 	"guides",
 	"chapters",
 }
-M.POLICIES = { "progressionPolicy", "homePolicy" }
+M.POLICIES = { "progressionPolicy", "homePolicy", "missionPolicy" }
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },
 	operationKind = {

@@ -191,6 +191,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				intent.mints = {}
 				if npc.healthMilli == 0 then
 					npc.mode, npc.killer = "dead", intent.request.actorId
+					npc.killedAt = config.now()
 					for index, drop in intent.drops do
 						local mintId = id .. ":" .. tostring(index)
 						local req = {

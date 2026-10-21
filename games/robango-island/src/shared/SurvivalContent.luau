@@ -118,6 +118,21 @@ export type V2_materials = {
 	quality: number,
 	sources: { string },
 }
+export type V2_missionPolicy = {
+	bandageOffset: V2_point,
+	cargoSlots: number,
+	escortSpeed: number,
+	followStuds: number,
+	interactionStuds: number,
+	provenance: V2_provenance,
+	starterWeapon: string,
+	stopStuds: number,
+	surveySeconds: number,
+	weaponCooldownMillis: number,
+	weaponDamageMilli: number,
+	weaponRangeStuds: number,
+	weaponWearMilli: number,
+}
 export type V2_missions = {
 	dialogueKeys: { string },
 	gates: V2_gate,
@@ -392,6 +407,7 @@ export type Content = {
 	chapters: { V2_chapters }?,
 	progressionPolicy: V2_progressionPolicy?,
 	homePolicy: V2_homePolicy?,
+	missionPolicy: V2_missionPolicy?,
 }
 local function v2_anchor(value: V2_anchor): V2_anchor
 	return value
@@ -1941,7 +1957,7 @@ local content: Content = {
 			maxDurabilityMilli = 100000,
 			name = "Starter Club",
 			stackMax = 1,
-			tags = {},
+			tags = { "tool" },
 			weightMilli = 500,
 		},
 		{
@@ -13990,6 +14006,21 @@ local content: Content = {
 				"rw.onboarding",
 			},
 		}),
+	},
+	missionPolicy = {
+		bandageOffset = { x = 12, y = 0, z = 8 },
+		cargoSlots = 1,
+		escortSpeed = 10,
+		followStuds = 8,
+		interactionStuds = 8,
+		provenance = { classification = "RECONSTRUCTED" },
+		starterWeapon = "starter-club",
+		stopStuds = 24,
+		surveySeconds = 2,
+		weaponCooldownMillis = 1000,
+		weaponDamageMilli = 8000,
+		weaponRangeStuds = 5,
+		weaponWearMilli = 1000,
 	},
 	missions = {
 		v2_missions({

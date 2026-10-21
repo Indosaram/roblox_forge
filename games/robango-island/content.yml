@@ -1295,7 +1295,8 @@ items:
     name: "Starter Club"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "tool"
     maxDurabilityMilli: 100000
   -
     id: "practice-stitch"
@@ -12358,6 +12359,21 @@ wildlifeDetails:
         unit: "F 3-5/10/4/1"
     provenance:
       classification: "RECONSTRUCTED"
+missionPolicy:
+  provenance:
+    classification: "RECONSTRUCTED"
+  surveySeconds: 2
+  interactionStuds: 8
+  escortSpeed: 10
+  followStuds: 8
+  stopStuds: 24
+  cargoSlots: 1
+  bandageOffset: {x: 12, y: 0, z: 8}
+  starterWeapon: "starter-club"
+  weaponDamageMilli: 8000
+  weaponWearMilli: 1000
+  weaponRangeStuds: 5
+  weaponCooldownMillis: 1000
 homePolicy:
   provenance: {classification: "RECONSTRUCTED", sourceId: "lead-home-tier-decision"}
   tiers:

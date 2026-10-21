@@ -32,6 +32,7 @@ export type State = {
 	strike: number,
 	version: number,
 	killer: string?,
+	killedAt: number?,
 	-- Actor that provoked this creature (damage or herd alarm); cleared on disengage.
 	provoker: string?,
 	-- Last clock at which the engagement made progress (new target, in strike range).

@@ -64,6 +64,26 @@ local function reconnect(job: Job.Job, bag: Inventory.State): (Job.Job, Inventor
 end
 
 return {
+	["v2 retained jobs pin crafting data without unrelated world catalogs"] = function()
+		local content, original = fixture()
+		local source: any = content
+		source.version = 2
+		source.layouts = { { id = "unrelated-world" } }
+		source.missions = { { id = "unrelated-mission" } }
+		table.insert(source.recipes, {
+			id = "unused",
+			craftMillis = 2000,
+			inputs = { { item = "fiber", quantity = 1 } },
+			outputs = { { item = "rope", quantity = 1 } },
+		})
+		local job, bag = reserve(content, original)
+		assert((job.content :: any).layouts == nil and (job.content :: any).missions == nil, "world data is not pinned")
+		assert(#job.content.recipes == 1 and job.content.recipes[1].id == "rope", "only selected recipe is pinned")
+		job, bag = reconnect(job, bag)
+		job = Job.start(job, 0)
+		local completed, _, reason = Job.complete(job, bag, 1000)
+		assert(completed.state == "Committed" and reason == nil, "compact catalog completes after reconnect")
+	end,
 	["quantity weighted inheritance pins inputs catalog rules and deterministic IDs"] = function()
 		local content, original = fixture()
 		local job, bag = reserve(content, original)

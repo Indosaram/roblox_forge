@@ -20,6 +20,19 @@ local contract: Shared.RuntimeContract = {
 	configVersion = 1,
 	saveVersion = 1,
 	actions = {
+		{ id = "mission-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{
+			id = "home-deposit",
+			args = { id, Schema.object({ itemId = id, quantity = quantity }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "home-withdraw",
+			args = { id, Schema.object({ itemId = id, quantity = quantity }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{
 			id = "home-expand",
 			args = { id, Schema.object({}) },
@@ -294,6 +307,9 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"mission-action",
+		"home-deposit",
+		"home-withdraw",
 		"companion-action",
 		"home-expand",
 		"home-place",

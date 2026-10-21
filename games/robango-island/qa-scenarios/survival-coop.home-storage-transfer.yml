@@ -1,0 +1,14 @@
+name: home-storage-transfer
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 181
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/production-worlds]
+steps:
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner]}
+  - {op: world_join, player: owner}
+  - {op: world_storage_transfer, player: owner}

@@ -3,6 +3,7 @@ local Home = require("../../../core/domain/home/HomeState")
 local HomeContent = require("../../../core/domain/home/HomeContent")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Session = require("../../../core/infra/genre/Session")
+local HomeTransfer = require("./HomeTransfer")
 local M = {}
 
 -- store is the existing FencedStore factory. Trusted ports provide ownership,
@@ -40,6 +41,25 @@ function M.new(config: any): any
 		tokens[owner] = token
 		return token, reason
 	end
+	local transfer = if config.personal
+		then HomeTransfer.new({
+			catalog = catalog,
+			now = config.now,
+			personal = config.personal,
+			open = open,
+			update = function(actor, transform)
+				local token, reason = open(actor)
+				if not token then
+					return nil, reason
+				end
+				local updated, err = store:update(token, transform)
+				if updated then
+					tokens[actor] = updated
+				end
+				return updated, err
+			end,
+		})
+		else nil
 	function extension.handles(action: string): boolean
 		action = string.gsub(action, "^survival%-coop:", "")
 		return table.find({
@@ -51,6 +71,8 @@ function M.new(config: any): any
 			"home-recover",
 			"home-plant",
 			"home-harvest",
+			"home-deposit",
+			"home-withdraw",
 		}, action) ~= nil
 	end
 	function extension.command(actor: string, action: string, args: any, context: any, origin: string, admit: any): any
@@ -64,6 +86,22 @@ function M.new(config: any): any
 		local operation = string.sub(action, 6)
 		if (operation == "rank" or operation == "capacity") and origin ~= "server" then
 			return { ok = false, reason = "SERVER_ONLY" }
+		end
+		if operation == "deposit" or operation == "withdraw" then
+			if not transfer or args[1] ~= Home.identity(actor) then
+				return { ok = false, reason = "WRONG_HOME_TOKEN" }
+			end
+			local home = extension.snapshot(actor)
+			if not home or not config.facts(actor, actor, operation, {}).reachable then
+				return { ok = false, reason = "OUT_OF_RANGE" }
+			end
+			return transfer.command(actor, operation == "deposit", args[2].itemId, args[2].quantity, context, admit)
+		end
+		if transfer then
+			local recovered = transfer.recover(actor)
+			if not recovered.ok then
+				return recovered
+			end
 		end
 		local admitted = admit()
 		if not admitted.ok then
@@ -168,10 +206,18 @@ function M.new(config: any): any
 	end
 	function extension.recover(_actor: string, _maximum: number): any
 		-- Growth is represented by readyAt; reconnect never ticks or rerolls crops.
+		if transfer then
+			local result = transfer.recover(_actor)
+			return {
+				status = if result.ok then "confirmed" else "pending",
+				pending = if result.ok then 0 else 1,
+				reason = result.reason,
+			}
+		end
 		return { status = "confirmed", pending = 0 }
 	end
 	function extension.drain(_actor: string): any
-		return { ok = true }
+		return if transfer then transfer.recover(_actor) else { ok = true }
 	end
 	function extension.releaseActor(actor: string): any
 		local owner = attached[actor] or actor

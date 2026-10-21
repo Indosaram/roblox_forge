@@ -593,7 +593,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Club",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "tool" },
 			["weightMilli"] = 500,
 		},
 		[187] = {

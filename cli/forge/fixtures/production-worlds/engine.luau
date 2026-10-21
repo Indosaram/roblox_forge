@@ -193,13 +193,34 @@ function M.new(): any
 		["../../../core/domain/settlement/Settlement"] = require("../../../../core/domain/settlement/Settlement"),
 		["../../../core/domain/survival/Archetype"] = require("../../../../core/domain/survival/Archetype"),
 		["./WildlifeWorld"] = {
-			new = function()
+			new = function(config)
+				local states: any = {}
 				return {
-					register = function() end,
-					publish = function() end,
+					register = function(model, id, _catalogId)
+						states[id] = { home = { x = model.Position.X, y = model.Position.Y, z = model.Position.Z } }
+					end,
+					publish = function(state)
+						states[state.id] = state
+					end,
 					destroy = function() end,
-					access = function()
-						return nil
+					access = function(actor, target): any
+						local state, player = states[target], actors[actor]
+						if not state or not player then
+							return nil
+						end
+						local position = player.Character:FindFirstChild("HumanoidRootPart").Position
+						local point = { x = position.X, y = position.Y, z = position.Z }
+						local delta =
+							{ x = state.home.x - point.x, y = state.home.y - point.y, z = state.home.z - point.z }
+						return {
+							actorId = actor,
+							alive = config.alive(actor),
+							position = point,
+							facing = delta,
+							targetPosition = state.home,
+							lineOfSight = true,
+							equipped = config.equipment(actor) or {},
+						}
 					end,
 				}
 			end,

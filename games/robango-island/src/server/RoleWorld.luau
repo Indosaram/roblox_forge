@@ -73,7 +73,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				item = definition
 			end
 		end
-		if item then
+		if item and not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
 			local catalogId = string.gsub(node.id, "[._]", "-")
 			table.insert(runtimeContent.nodes, {
 				id = catalogId,
@@ -133,6 +133,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	wildlife.spawns = spawns
+	if content.missionPolicy then
+		local combat = content.missionPolicy
+		wildlife.catalog.weapons = table.clone(wildlife.catalog.weapons)
+		wildlife.catalog.weapons[combat.starterWeapon] = {
+			damageMilli = combat.weaponDamageMilli,
+			wearMilli = combat.weaponWearMilli,
+			rangeStuds = combat.weaponRangeStuds,
+			cooldownMillis = combat.weaponCooldownMillis,
+			facingDot = 0,
+		}
+	end
 	wildlife.maximum = math.max(policy.maximum, #spawns)
 	wildlife.sourceKey = "w"
 	local revision = layoutId .. ":" .. tostring(seed)
@@ -228,13 +239,80 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						world.surveyMarkers[id] = { position = position, objective = objective.id, layout = layoutId }
 						local target = part(id, position, { x = 2, y = 3, z = 2 })
 						local prompt = Instance.new("ProximityPrompt")
-						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent = "Survey", 8, target
+						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
+							"Survey", content.missionPolicy.interactionStuds, target
 						prompt.Triggered:Connect(function(player)
-							if world.surveyObjective then
-								world.surveyObjective(tostring(player.UserId), objective.id, id)
+							if world.missionAction then
+								world.missionAction(tostring(player.UserId), "survey-start", id)
 							end
 						end)
 					end
+				end
+			end
+		end
+	end
+	local anchors = {}
+	for _, anchor in layout.anchors do
+		anchors[anchor.id] = anchor.position
+	end
+	local escorts: any = {}
+	world.publishEscort = function(actor, state)
+		local npc = escorts[actor]
+		if not state or state.stage ~= tonumber(string.match(layoutId, "%.s(%d+)$")) or state.status ~= "active" then
+			if npc then
+				npc:Destroy()
+				escorts[actor] = nil
+			end
+			return
+		end
+		local rescue = false
+		for _, stage in content.stages do
+			if stage.layout == layoutId then
+				for _, objective in stage.objectives do
+					rescue = rescue or (objective.action == "rescue" and not state.completed[objective.id])
+				end
+			end
+		end
+		if not rescue then
+			if npc then
+				npc:Destroy()
+				escorts[actor] = nil
+			end
+			return
+		end
+		local position = if state.escort then state.escort.position else anchors.objective
+		if not npc then
+			npc = part("Castaway-" .. actor, position, { x = 2, y = 5, z = 2 })
+			npc.CanCollide = false
+			escorts[actor] = npc
+		end
+		npc.Position = Vector3.new(position.x, position.y, position.z)
+		npc:SetAttribute("Treated", state.treated)
+	end
+	local function missionPrompt(operation, position)
+		local target = part(operation, position, { x = 2, y = 3, z = 2 })
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
+			operation, content.missionPolicy.interactionStuds, target
+		prompt.Triggered:Connect(function(player)
+			if world.missionAction then
+				world.missionAction(tostring(player.UserId), operation, layoutId)
+			end
+		end)
+	end
+	for _, stage in content.stages do
+		if stage.layout == layoutId then
+			for _, objective in stage.objectives do
+				if objective.action == "rescue" then
+					local origin, offset = anchors.objective, content.missionPolicy.bandageOffset
+					missionPrompt(
+						"bandage-claim",
+						{ x = origin.x + offset.x, y = origin.y + offset.y, z = origin.z + offset.z }
+					)
+					missionPrompt("rescue-treat", origin)
+				elseif objective.action == "transport" then
+					missionPrompt("cargo-claim", anchors.resources)
+					missionPrompt("cargo-deliver", anchors.objective)
 				end
 			end
 		end

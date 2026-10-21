@@ -1,5 +1,7 @@
 --!strict
 local Archipelago = require("../../../core/domain/island/Archipelago")
+local Objectives = require("../../../core/domain/island/MissionObjectives")
+local Rewards = require("./MissionRewards")
 local M = {}
 
 -- store.transaction(actor, transform) must fence the actor lease and durably
@@ -10,6 +12,7 @@ function M.new(env: any): any
 		return env.store.transaction(actor, function(document)
 			local result = transform(document)
 			if result.ok and document.archipelago then
+				Rewards.enqueue(document, env.content)
 				local state = document.archipelago
 				local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
 				for _, mission in env.content.missions do
@@ -32,6 +35,63 @@ function M.new(env: any): any
 		end)
 	end
 	return {
+		settleRewards = function(actor: string): any
+			return Rewards.settle(actor, env)
+		end,
+		mission = function(actor: string, operation: string, target: string): any
+			return change(actor, function(document): any
+				local state = document.archipelago
+				if not state then
+					return { ok = false, reason = "missing_expedition" }
+				end
+				local ok, reason =
+					Objectives.apply(state, env.content, operation, target, env.position(actor), env.now())
+				return { ok = ok, reason = reason }
+			end)
+		end,
+		tick = function(actor: string): any
+			local current, reason = env.store.snapshot(actor)
+			if not current then
+				return { ok = false, reason = reason }
+			end
+			if not current.archipelago or current.archipelago.status ~= "active" then
+				return { ok = true }
+			end
+			return change(actor, function(document): any
+				local state = document.archipelago
+				if state then
+					Objectives.tick(state, env.content, env.position(actor), env.now())
+					for id, npc in if env.wildlife then env.wildlife(actor) or {} else {} do
+						if
+							npc.healthMilli == 0
+							and npc.killer == actor
+							and npc.killedAt
+							and npc.killedAt >= state.openedAt
+						then
+							for _, stage in env.content.stages do
+								if stage.layout == Archipelago.layout(state) then
+									for _, objective in stage.objectives do
+										if objective.action == "hunt" and objective.target == npc.catalogId then
+											Archipelago.record(state, env.content, {
+												id = "hunt:" .. id,
+												actor = actor,
+												expedition = state.id,
+												revision = state.revision,
+												objective = objective.id,
+												action = "hunt",
+												target = npc.catalogId,
+												quantity = 1,
+											}, env.now())
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				return { ok = true }
+			end)
+		end,
 		survey = function(actor: string, objectiveId: string, markerId: string): any
 			return change(actor, function(document): any
 				local state = document.archipelago
@@ -51,11 +111,17 @@ function M.new(env: any): any
 				if document.archipelago and document.archipelago.status == "active" then
 					return { ok = false, reason = "expedition_active" }
 				end
+				if document.expeditionIds and document.expeditionIds[options.id] then
+					return { ok = false, reason = "duplicate_expedition" }
+				end
 				local input = table.clone(options)
 				input.actor = actor
 				local state, reason = Archipelago.open(env.content, input, env.facts(actor, document), env.now())
 				if state then
 					document.archipelago = state
+					local ids = document.expeditionIds or {}
+					ids[options.id] = true
+					document.expeditionIds = ids
 				end
 				return { ok = state ~= nil, reason = reason }
 			end)

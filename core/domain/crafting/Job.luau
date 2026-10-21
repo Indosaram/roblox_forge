@@ -251,7 +251,114 @@ function M.reserve(
 		assert(Catalog.integer(cap, 1, 5000), "INVALID_MASTERY_CAP")
 		roll = { seed = options.seed, masteryCapMilli = cap }
 	end
-	local pinned = canonical(content)
+	-- Pin only the catalogs a job can consume. World geometry and mission rows
+	-- otherwise get copied into every retained job and revalidated on every
+	-- personal inventory refresh, making a short craft grow with the whole world.
+	local source: any = content
+	if content.version == 2 then
+		source = table.clone(content)
+		for _, key in
+			{
+				"layouts",
+				"stages",
+				"supportRegions",
+				"missions",
+				"guides",
+				"chapters",
+				"wildlifeDetails",
+				"homePolicy",
+				"missionPolicy",
+				"contracts",
+				"camp",
+				"nodes",
+				"skills",
+				"vitals",
+			}
+		do
+			source[key] = nil
+		end
+		source.recipes = { recipe(content, recipeId) }
+		source.recipeDetails = {}
+		for _, detail in (content :: any).recipeDetails or {} do
+			if detail.id == recipeId then
+				table.insert(source.recipeDetails, detail)
+			end
+		end
+		local needed = {}
+		local function include(id: string)
+			if needed[id] then
+				return
+			end
+			needed[id] = true
+			for _, node in (content :: any).skillNodes or {} do
+				if node.id == id then
+					for _, prerequisite in node.prerequisites do
+						include(prerequisite)
+					end
+				end
+			end
+		end
+		for _, detail in source.recipeDetails do
+			for _, id in detail.skillNodes do
+				include(id)
+			end
+		end
+		source.skillNodes = {}
+		for _, node in (content :: any).skillNodes or {} do
+			if needed[node.id] then
+				table.insert(source.skillNodes, node)
+			end
+		end
+		source.skillCategories = {}
+		for _, category in (content :: any).skillCategories or {} do
+			for _, node in source.skillNodes do
+				if node.category == category.id then
+					table.insert(source.skillCategories, category)
+					break
+				end
+			end
+		end
+		source.operations = {}
+		local process = string.match(recipeId, "^([a-z]+)%-")
+		for _, operation in (content :: any).operations or {} do
+			if operation.id == "processing-policy-" .. tostring(process) then
+				table.insert(source.operations, operation)
+			end
+		end
+		source.materials = {}
+		for _, material in (content :: any).materials or {} do
+			for _, input in source.recipes[1].inputs do
+				if material.item == input.item then
+					table.insert(source.materials, material)
+				end
+			end
+		end
+		source.structures = {}
+		for _, structure in content.structures do
+			if structure.id == source.recipes[1].station then
+				table.insert(source.structures, structure)
+			end
+		end
+		source.wildlife = {}
+		local wildlife: { Content.Wildlife } = content.wildlife or {}
+		for _, species in wildlife do
+			for _, detail in source.recipeDetails do
+				if detail.sourceSpeciesId == species.id then
+					table.insert(source.wildlife, species)
+				end
+			end
+		end
+		-- Completion measures the entire bag, including items acquired while
+		-- the job runs, so the item catalog must remain complete.
+		if source.progressionPolicy then
+			source.progressionPolicy = table.clone(source.progressionPolicy)
+			source.progressionPolicy.companion, source.progressionPolicy.volcano = nil, nil
+			source.progressionPolicy.feed = {}
+			source.progressionPolicy.foodFamilies = {}
+			source.progressionPolicy.clothing = {}
+		end
+	end
+	local pinned = canonical(source)
 	local selected = recipe(pinned, recipeId)
 	local ids: { string } = {}
 	for id in inventory.items do

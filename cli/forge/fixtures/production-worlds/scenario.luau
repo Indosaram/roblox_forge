@@ -37,6 +37,22 @@ M.operations = {
 	world_return_reload = function(ctx, step): string?
 		return ctx.fixture.returnReload(actorOf(ctx, step))
 	end,
+	world_storage_transfer = function(ctx, step): string?
+		return ctx.fixture.storageTransfer(actorOf(ctx, step))
+	end,
+	world_rescue_cargo = function(ctx, step): string?
+		return ctx.fixture.rescueCargo(actorOf(ctx, step), false)
+	end,
+	world_four_rewards = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.rescueCargo(actorOf(ctx, step), true)
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "four_island_exception"
+		end
+		return result
+	end,
 }
 function M.new(ctx: any): any
 	local engine = Engine.new()
@@ -171,6 +187,24 @@ function M.new(ctx: any): any
 		return api.enter("archipelago", actor)
 	end
 	local commandSequence = 0
+	local function request(actor: string, action: string, args: { any }): any
+		commandSequence += 1
+		local qualified = "survival-coop:" .. action
+		return {
+			requestId = "world-command-" .. tostring(commandSequence),
+			sessionEpoch = session.commandEpoch(actor, qualified),
+			action = qualified,
+			args = args,
+		}
+	end
+	local function refused(actor: string, action: string, args: { any }, reason: string)
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		local result = session.command(actor, request(actor, action, args))
+		assert(
+			not result.ok and result.reason == reason,
+			action .. ": expected " .. reason .. " got " .. tostring(result.reason)
+		)
+	end
 	local function command(actor: string, action: string, args: { any }): any
 		ctx.clock.advanceTo(ctx.clock.now() + 3)
 		session.advance(ctx.clock.now())
@@ -225,9 +259,202 @@ function M.new(ctx: any): any
 		ctx.clock.advanceTo(ctx.clock.now() + recipe.craftMillis / 1000)
 		command(actor, "craft-complete", { job })
 	end
+	function api.storageTransfer(actor)
+		gather(actor, "branch", 2)
+		local id, quantity
+		for key, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "branch" then
+				id, quantity = key, item.quantity
+			end
+		end
+		assert(id and quantity, "gathered owned branch")
+		engine.move(actor, Content.homePolicy.dock)
+		refused(actor, "home-deposit", { "home:other", { itemId = id, quantity = 1 } }, "WRONG_HOME_TOKEN")
+		refused(
+			actor,
+			"home-deposit",
+			{ "home:" .. actor, { itemId = id, quantity = quantity + 1 } },
+			"INSUFFICIENT_ITEMS"
+		)
+		local deposit = request(actor, "home-deposit", { "home:" .. actor, { itemId = id, quantity = quantity } })
+		assert(session.command(actor, deposit).ok, "deposit commits")
+		assert(session.command(actor, deposit).ok, "deposit replay")
+		assert(personal(actor).inventory.bag.items[id] == nil, "bag debited once")
+		local home = factory.homeOwner().snapshot(actor)
+		assert(home.storage.items[id].quantity == quantity, "home credited once")
+		assert(api.enter("home", actor) == nil, "reconnect")
+		command(actor, "home-withdraw", { "home:" .. actor, { itemId = id, quantity = quantity } })
+		assert(personal(actor).inventory.bag.items[id].quantity == quantity, "same identity and quantity returned")
+		refused(actor, "home-withdraw", { "home:" .. actor, { itemId = id, quantity = 1 } }, "INSUFFICIENT_ITEMS")
+		return nil
+	end
+	local function anchor(id)
+		for _, row in world.layout.anchors do
+			if row.id == id then
+				return row.position
+			end
+		end
+		error("missing anchor " .. id)
+	end
+	local function reloadStage(actor)
+		source.expedition = factory.expeditionStore.snapshot(actor).archipelago
+		assert(api.enter("archipelago", actor) == nil, "enter stage")
+	end
+	local function mission(actor, action)
+		return command(actor, "mission-action", { action, world.layout.id })
+	end
+	local function recover(actor)
+		assert(session.recoverTransfers(actor, 64).ok, "production recovery")
+	end
+	local function hunt(actor)
+		local objective
+		for _, row in Content.stages do
+			if row.layout == world.layout.id then
+				for _, candidate in row.objectives do
+					if candidate.action == "hunt" then
+						objective = candidate
+					end
+				end
+			end
+		end
+		for _, spawn in world.roleWildlife.spawns do
+			if spawn.catalogId == objective.target then
+				local target = { x = spawn.position.x, y = spawn.position.y, z = spawn.position.z + 2 }
+				engine.move(actor, target)
+				engine.equip(world, actor, api.spear)
+				for _ = 1, 100 do
+					local npcs = factory.services.survivalWildlife.snapshot(actor)
+					if npcs[spawn.id].healthMilli == 0 then
+						break
+					end
+					command(actor, "attack", { spawn.id })
+					ctx.clock.advanceTo(ctx.clock.now() + Content.progressionPolicy.combat.windupMillis / 1000)
+					recover(actor)
+				end
+				recover(actor)
+				local state = factory.expeditionStore.snapshot(actor).archipelago
+				if state.completed[objective.id] then
+					return
+				end
+			end
+		end
+		error("hunt objective not completed")
+	end
+	function api.rescueCargo(actor, finish)
+		assert(api.onboarding(actor) == nil, "legitimate onboarding")
+		local initialBalance = personal(actor).balance
+		gather(actor, "branch", 3)
+		gather(actor, "stone", 2)
+		craft(actor, "starter-club", "station.workbench.t1")
+		for id, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "starter-club" then
+				api.spear = id
+			end
+		end
+		assert(api.spear, "owned crafted club")
+		assert(api.expedition(actor) == nil, "eligible expedition")
+		refused(actor, "mission-action", { "next-island", "none" }, "mission_gate")
+		assert(api.gather(actor) == nil, "stage one gather")
+		assert(api.survey(actor) == nil, "stage one survey")
+		mission(actor, "next-island")
+		reloadStage(actor)
+		engine.move(actor, anchor("objective"))
+		refused(actor, "mission-action", { "rescue-treat", world.layout.id }, "BANDAGE_REQUIRED")
+		local origin, offset = anchor("objective"), Content.missionPolicy.bandageOffset
+		engine.move(actor, { x = origin.x + offset.x, y = origin.y + offset.y, z = origin.z + offset.z })
+		mission(actor, "bandage-claim")
+		refused(actor, "mission-action", { "bandage-claim", world.layout.id }, "already_claimed")
+		engine.move(actor, origin)
+		mission(actor, "rescue-treat")
+		local state = factory.expeditionStore.snapshot(actor).archipelago
+		assert(
+			state.treated and state.bandage == 0 and not state.completed["rw.a1.s2.rescue"],
+			"treatment consumes reserve, not completion"
+		)
+		engine.move(actor, anchor("entry"))
+		ctx.clock.advanceTo(ctx.clock.now() + 10)
+		recover(actor)
+		state = factory.expeditionStore.snapshot(actor).archipelago
+		assert(state.escort.position.x == origin.x, "escort stops beyond 24")
+		reloadStage(actor)
+		state = factory.expeditionStore.snapshot(actor).archipelago
+		assert(
+			state.treated and (not state.escort or state.escort.position.x == origin.x),
+			"disconnect retains treatment and resets NPC"
+		)
+		local destination = anchor("entry")
+		local dx, dy, dz = destination.x - origin.x, destination.y - origin.y, destination.z - origin.z
+		local length = math.sqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
+		engine.move(actor, origin)
+		recover(actor)
+		local steps = math.ceil(length / Content.missionPolicy.followStuds)
+		for index = 1, steps do
+			local alpha = index / steps
+			engine.move(actor, { x = origin.x + dx * alpha, y = origin.y + dy * alpha, z = origin.z + dz * alpha })
+			ctx.clock.advanceTo(ctx.clock.now() + 1)
+			recover(actor)
+		end
+		assert(factory.expeditionStore.snapshot(actor).archipelago.completed["rw.a1.s2.rescue"], "escort arrival")
+		-- The real hand recipe consumes bag branch and runs at the rendered campfire.
+		craft(actor, "dry-twig", "station.campfire.t1")
+		mission(actor, "next-island")
+		reloadStage(actor)
+		engine.move(actor, anchor("objective"))
+		refused(actor, "mission-action", { "cargo-deliver", world.layout.id }, "COMPLETE_CARGO_REQUIRED")
+		engine.move(actor, anchor("resources"))
+		mission(actor, "cargo-claim")
+		refused(actor, "mission-action", { "cargo-claim", world.layout.id }, "MISSION_SLOT_FULL")
+		state = factory.expeditionStore.snapshot(actor).archipelago
+		assert(state.questCargo.slots == 1 and state.questCargo.quantity == 5, "separate complete bundle")
+		engine.move(actor, anchor("objective"))
+		mission(actor, "cargo-deliver")
+		assert(factory.expeditionStore.snapshot(actor).archipelago.questCargo == nil, "cargo consumed")
+		refused(actor, "mission-action", { "cargo-deliver", world.layout.id }, "objective_mismatch")
+		if not finish then
+			return nil
+		end
+		hunt(actor)
+		mission(actor, "next-island")
+		reloadStage(actor)
+		assert(api.survey(actor) == nil, "last survey")
+		hunt(actor)
+		mission(actor, "next-island")
+		recover(actor)
+		local document = factory.expeditionStore.snapshot(actor)
+		assert(
+			document.archipelago.status == "complete" and document.development.instabilityAccess == 2,
+			"four island clear"
+		)
+		local expected, actual = 0, 0
+		for _, entry in document.missionRewards do
+			expected += entry.rewards.coins
+			assert(entry.settled, "all outbox rewards acknowledged")
+			actual += 1
+		end
+		assert(
+			actual == 8 and personal(actor).balance == initialBalance + expected,
+			"eight catalog objective settlements: "
+				.. tostring(actual)
+				.. ":"
+				.. tostring(personal(actor).balance)
+				.. ":"
+				.. tostring(initialBalance + expected)
+		)
+		local beforeBalance = personal(actor).balance
+		local beforeProgression = require("../../../../core/domain/command/Journal").hash(personal(actor).progression)
+		recover(actor)
+		assert(api.enter("home", actor) == nil, "reward reconnect")
+		recover(actor)
+		assert(personal(actor).balance == beforeBalance, "no reconnect coin award")
+		assert(
+			require("../../../../core/domain/command/Journal").hash(personal(actor).progression) == beforeProgression,
+			"no reconnect XP award"
+		)
+		return nil
+	end
 	function api.onboarding(actor)
-		local refused = api.expedition(actor)
-		if refused ~= "level_gate" then
+		local refusal = api.expedition(actor)
+		if refusal ~= "level_gate" then
 			return "fresh_entry_gate_missing"
 		end
 		gather(actor, "branch", 4)
@@ -316,12 +543,20 @@ function M.new(ctx: any): any
 		return nil
 	end
 	function api.survey(actor)
-		for id, marker in world.surveyMarkers do
+		local ids = {}
+		for id in world.surveyMarkers do
+			table.insert(ids, id)
+		end
+		table.sort(ids)
+		for _, id in ids do
+			local marker = world.surveyMarkers[id]
 			engine.move(actor, marker.position)
-			local result = factory.archipelago.survey(actor, marker.objective, id)
+			local result = command(actor, "mission-action", { "survey-start", id })
 			if not result.ok then
 				return result.reason
 			end
+			ctx.clock.advanceTo(ctx.clock.now() + Content.missionPolicy.surveySeconds)
+			assert(session.recoverTransfers(actor, 64).ok, "survey recovery")
 		end
 		return nil
 	end
