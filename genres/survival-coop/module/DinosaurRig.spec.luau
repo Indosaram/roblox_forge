@@ -120,6 +120,45 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
+	["skin luminance feet contact and curved frill reject black disconnected primitives"] = function()
+		local world = roblox.Instance.new("Workspace")
+		local module = loadRig()
+		local function linear(c: number): number
+			return if c <= 0.04045 then c / 12.92 else ((c + 0.055) / 1.055) ^ 2.4
+		end
+		for species in envelopes do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			for _, p in model:GetChildren() do
+				if not p:IsA("BasePart") or p == model.PrimaryPart then
+					continue
+				end
+				if not string.find(p.Name, "Eye") and not string.find(p.Name, "Pupil") then
+					local c = p.Color
+					assert(
+						0.2126 * linear(c.R) + 0.7152 * linear(c.G) + 0.0722 * linear(c.B) >= 0.08,
+						"skin luminance: " .. species .. "/" .. p.Name
+					)
+				end
+				if string.match(p.Name, "^Foot") or string.match(p.Name, "^Forefoot") then
+					local joint = model.PrimaryPart[p.Name .. "Joint"]
+					local shin = joint.Part0
+					local extent = if shin.Name:find("Shin") then shin.Size.X else shin.Size.Y
+					local gap = math.abs(p.CFrame.Position.Y + p.Size.Y / 2 - (shin.CFrame.Position.Y - extent / 2))
+					assert(gap < 0.05, "foot touches shin: " .. species .. "/" .. p.Name)
+					assert(p.Color == model.Torso.Color and p.Size.Y < p.Size.Z, "flattened skin foot")
+				end
+			end
+			if model:GetAttribute("BodyPlan") == "ceratopsian" then
+				assert(model.Frill:IsA("Part") and model.Frill.Shape == roblox.Enum.PartType.Ball, "curved frill")
+				assert(
+					model:FindFirstChild("FrillLobe1") and model:FindFirstChild("FrillFace0"),
+					"fan lobes and inset rim"
+				)
+			end
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["neck and tail cores overlap continuously with feet on the envelope floor"] = function()
 		local module = loadRig()
 		local world = roblox.Instance.new("Workspace")
@@ -130,7 +169,7 @@ return {
 			do
 				for i = 2, chain.count do
 					local a, b = model[chain.name .. (i - 1)], model[chain.name .. i]
-					assert(a.Shape == roblox.Enum.PartType.Cylinder and b.Size.Y < a.Size.Y, "continuous taper")
+					assert(a.Shape == roblox.Enum.PartType.Ball and b.Size.Y < a.Size.Y, "rounded continuous taper")
 					local gap = (a.CFrame.Position - b.CFrame.Position).Magnitude - (a.Size.X + b.Size.X) / 2
 					assert(gap < 0.1, "adjacent segment gap: " .. species)
 				end
@@ -155,7 +194,10 @@ return {
 			local body = model.Torso
 			assert(not colors[tostring(body.Color)], "species pigment must differ")
 			colors[tostring(body.Color)] = true
-			assert(body.Material ~= roblox.Enum.Material.SmoothPlastic, "matte skin")
+			assert(
+				body.Material == roblox.Enum.Material.SmoothPlastic or body.Material == roblox.Enum.Material.Slate,
+				"skin material"
+			)
 			assert(
 				model.Countershade.Color ~= body.Color and model.FlankPattern1.Color ~= body.Color,
 				"pattern contrast"

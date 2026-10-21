@@ -29,7 +29,6 @@ local CLEARING_STUDS = 16
 
 local function buildTerrain()
 	local terrain = workspace.Terrain
-	terrain.Decoration = true
 	local cell = IslandTerrain.CELL
 	local bottom = IslandTerrain.BOTTOM
 	local sea = IslandTerrain.SEA_LEVEL

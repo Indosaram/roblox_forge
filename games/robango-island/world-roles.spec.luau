@@ -1,5 +1,7 @@
 --!strict
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+local fs = require("@lune/fs")
+local serde = require("@lune/serde")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
@@ -7,6 +9,23 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["Terrain decoration is authored in the place and forbidden at runtime"] = function()
+		local project = serde.decode("json", fs.readFile("games/robango-island/default.project.json"))
+		assert(project.tree.Workspace.Terrain["$properties"].Decoration == true, "place enables grass decoration")
+		local engine = Engine.new()
+		local terrain = engine.game:GetService("Workspace").Terrain
+		for _, property in { "Decoration", "GrassLength", "UnknownProperty" } do
+			local ok = pcall(function()
+				terrain[property] = true
+			end)
+			assert(not ok, property .. " must reject runtime writes")
+		end
+		for _, property in { "WaterTransparency", "WaterWaveSize", "WaterWaveSpeed", "WaterReflectance" } do
+			terrain[property] = 0.2
+			terrain[property] = 0.4
+			assert(terrain[property] == 0.4, "water settings remain script-writable")
+		end
+	end,
 	["home renders Terrain coast and grass instead of visible square ground"] = function()
 		local engine = Engine.new()
 		local workspace = engine.game:GetService("Workspace")
@@ -27,10 +46,7 @@ return {
 		end)
 		local rules = HomeContent.rules(Content)
 		world.publishHome(Home.new("owner", rules, 79), rules)
-		assert(
-			workspace.Terrain.Decoration and grass > 0 and sand > 0 and dirt > 0,
-			"Terrain grass coast and dirt trail"
-		)
+		assert(grass > 0 and sand > 0 and dirt > 0, "Terrain grass coast and dirt trail")
 		for _, p in engine.parts do
 			if p.Name == "home-land" or p.Name == "home.path" then
 				assert(p.Transparency == 1 and p.CanCollide == false, "hidden ground capability")

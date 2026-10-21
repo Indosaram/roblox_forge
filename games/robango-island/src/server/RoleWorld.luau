@@ -126,7 +126,6 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
 	atmosphere.Density, atmosphere.Haze, atmosphere.Glare, atmosphere.Parent = 0.035, 0.08, 0.05, lighting
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
-	workspace.Terrain.Decoration = true
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	for _, column in columns do

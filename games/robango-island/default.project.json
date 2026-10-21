@@ -33,6 +33,15 @@
   "name": "robango-island",
   "tree": {
     "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "Terrain": {
+        "$className": "Terrain",
+        "$properties": {
+          "Decoration": true
+        }
+      }
+    },
     "Lighting": {
       "$className": "Lighting",
       "$properties": {

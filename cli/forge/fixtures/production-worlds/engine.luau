@@ -22,7 +22,30 @@ function M.new(physicalWarehouse: boolean?): any
 			end,
 		}
 	end
-	local function instance(className)
+	local function instance(className): any
+		if className == "Terrain" then
+			local properties: any = {
+				FillBlock = function() end,
+				FillBall = function() end,
+			}
+			local writable = {
+				WaterColor = true,
+				WaterTransparency = true,
+				WaterWaveSize = true,
+				WaterWaveSpeed = true,
+				WaterReflectance = true,
+				FillBlock = true,
+				FillBall = true,
+			}
+			-- Keep every value behind a proxy so repeated writes also hit __newindex.
+			return setmetatable({}, {
+				__index = properties,
+				__newindex = function(_, key, data)
+					assert(writable[key], tostring(key) .. " is not a script-writable Terrain property")
+					properties[key] = data
+				end,
+			})
+		end
 		local value: any = {
 			ClassName = className,
 			Name = className,
@@ -89,8 +112,7 @@ function M.new(physicalWarehouse: boolean?): any
 		return value
 	end
 	local workspace = instance("Workspace")
-	workspace.Terrain = { FillBlock = function() end }
-	workspace.Terrain.FillBall = function() end
+	workspace.Terrain = instance("Terrain")
 	workspace.Raycast = function(_, origin: any, direction: any): any
 		-- The preview depot is a real collidable box, not an always-clear reach mock.
 		if physicalWarehouse then

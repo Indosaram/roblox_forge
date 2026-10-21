@@ -80,7 +80,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local mammal = family == "mammal" or family == "elephant"
 	local pigment = assert(pigments[species], "MISSING_SPECIES_PIGMENT")
 	local bodyColor = Color3.fromRGB(pigment[1], pigment[2], pigment[3])
-	local accent = Color3.fromRGB(pigment[1] * 0.55, pigment[2] * 0.55, pigment[3] * 0.55)
+	local accent = Color3.fromRGB(
+		math.max(90, pigment[1] * 0.78),
+		math.max(90, pigment[2] * 0.78),
+		math.max(90, pigment[3] * 0.78)
+	)
 	local underside =
 		Color3.fromRGB(math.min(225, pigment[1] + 49), math.min(219, pigment[2] + 43), math.min(189, pigment[3] + 38))
 	local ivory = Color3.fromRGB(225, 216, 177)
@@ -99,12 +103,15 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	): BasePart
 		local p: BasePart = if form == "wedge" then Instance.new("WedgePart") else Instance.new("Part")
 		if p:IsA("Part") then
-			p.Shape = if form == "cylinder" then Enum.PartType.Cylinder else Enum.PartType.Ball
+			p.Shape = if form == "cylinder"
+				then Enum.PartType.Cylinder
+				elseif form == "block" then Enum.PartType.Block
+				else Enum.PartType.Ball
 		end
 		local localAt = Vector3.new(at.X * w, at.Y * h, at.Z * l)
 		p.Name, p.Size = name, Vector3.new(size.X * w, size.Y * h, size.Z * l)
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		p.Material, p.CanCollide, p.Massless = if mammal then Enum.Material.Fabric else Enum.Material.Slate, false, true
+		p.Material, p.CanCollide, p.Massless = Enum.Material.SmoothPlastic, false, true
 		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
 		p.Parent = model
 		local parentPart = assert(parts[parentName], "MISSING_ANATOMICAL_PARENT")
@@ -132,14 +139,14 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	)
 		return part(name, Vector3.new(sx, sy, sz), Vector3.new(x, y, z), parentName, form, color)
 	end
-	-- Cylindrical cores overlap at their end planes, rather than touching the
-	-- tips of isolated ellipsoids. Closely spaced decreasing radii form a taper.
+	-- Long overlapping tapered lobes bury their narrow tips inside the next core;
+	-- unlike end-to-end cylinders they expose no flat annular end planes.
 	local function segment(name: string, a: Vector3, b: Vector3, radius: number, parentName: string)
 		local scale = Vector3.new(w, h, l)
 		local from, to = a * scale, b * scale
 		local delta = to - from
-		local p = part(name, Vector3.new(1, 1, 1), (a + b) / 2, parentName, "cylinder")
-		p.Size = Vector3.new(delta.Magnitude + 0.18, radius * w, radius * w)
+		local p = part(name, Vector3.new(1, 1, 1), (a + b) / 2, parentName)
+		p.Size = Vector3.new(delta.Magnitude * 1.85 + 0.18, radius * w, radius * w)
 		p.CFrame = root.CFrame * CFrame.lookAt((from + to) / 2, to) * CFrame.Angles(0, math.pi / 2, 0)
 		local joint = root:FindFirstChild(name .. "Joint") :: Motor6D
 		local frame = root.CFrame * CFrame.new(from)
@@ -151,20 +158,38 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local low = family == "crocodilian" or family == "turtle"
 	local torsoY = if family == "sauropod" then -0.2 elseif low then -0.05 elseif biped then -0.02 else 0
 	local torsoH = if family == "bird" then 0.57 elseif family == "elephant" then 0.57 elseif low then 0.47 else 0.36
-	add("Torso", 0, torsoY, 0.05, 0.72, torsoH, if family == "bird" then 0.5 else 0.48, "HumanoidRootPart")
-	add("Shoulders", 0, torsoY + torsoH * 0.12, -0.1, 0.65, torsoH * 0.9, 0.32, "Torso")
+	add(
+		"Torso",
+		0,
+		torsoY,
+		0.05,
+		if family == "theropod" then 0.58 else 0.72,
+		torsoH,
+		if family == "theropod" then 0.65 elseif family == "bird" then 0.5 else 0.48,
+		"HumanoidRootPart"
+	)
+	add(
+		"Shoulders",
+		0,
+		torsoY + torsoH * 0.12,
+		-0.1,
+		if family == "theropod" then 0.48 else 0.65,
+		torsoH * 0.9,
+		0.32,
+		"Torso"
+	)
 	add("Countershade", 0, torsoY - torsoH * 0.27, 0.04, 0.63, torsoH * 0.5, 0.43, "Torso", nil, underside)
 	for side = -1, 1, 2 do
 		local stripe = add(
 			"FlankPattern" .. side,
-			side * 0.32,
+			side * (if family == "theropod" then 0.272 else 0.34),
 			torsoY + 0.03,
 			0.08,
-			0.045,
-			torsoH * 0.72,
-			0.26,
+			0.015,
+			torsoH * 0.36,
+			0.18,
 			"Torso",
-			"wedge",
+			nil,
 			accent
 		)
 		stripe.CFrame *= CFrame.Angles(0, 0, math.rad(side * 18))
@@ -184,11 +209,14 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			)
 		end
 		hy, hz, headW, headH, headL = 0.43, -0.39, 0.17, 0.09, 0.14
+		add("NostrilCrest", 0, hy + 0.045, hz + 0.015, 0.12, 0.07, 0.09, "Neck6", nil, underside)
 	elseif family == "theropod" then
-		hy = if feature == "longlegs" then 0.32 else 0.2
-		headW = if feature == "heavyjaw" then 0.54 else 0.3
-		headH = if feature == "heavyjaw" then 0.28 else 0.18
-		add("Neck", 0, hy - 0.09, -0.22, 0.26, 0.29, 0.18, "Torso")
+		hy = if feature == "longlegs" then 0.32 else 0.18
+		hz, headL = -0.4, 0.3
+		headW = if feature == "heavyjaw" then 0.42 else 0.28
+		headH = if feature == "heavyjaw" then 0.25 else 0.2
+		add("NeckBase", 0, hy - 0.13, -0.2, 0.29, 0.28, 0.22, "Torso")
+		add("Neck", 0, hy - 0.015, -0.28, 0.22, 0.23, 0.2, "NeckBase")
 	elseif family == "crocodilian" then
 		hy, hz, headW, headH, headL = -0.06, -0.32, 0.47, 0.19, 0.38
 	elseif family == "elephant" then
@@ -207,12 +235,49 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		Vector3.new(headW, headH, headL),
 		Vector3.new(0, hy, hz),
 		neckParent,
-		nil,
+		if family == "theropod" then "block" else nil,
 		nil,
 		Vector3.new(0, hy, hz + headL * 0.4)
 	)
-	add("Jaw", 0, hy - headH * 0.38, hz - headL * 0.12, headW * 0.85, headH * 0.27, headL, "Head", nil, ivory)
-	add("Snout", 0, hy - headH * 0.1, hz - headL * 0.48, headW * 0.75, headH * 0.62, headL * 0.55, "Head", "wedge")
+	add(
+		"Jaw",
+		0,
+		hy - headH * 0.42,
+		hz - headL * 0.12,
+		headW * 0.85,
+		headH * 0.22,
+		headL * 1.2,
+		"Head",
+		if family == "theropod" then "block" else nil,
+		underside
+	)
+	add(
+		"Snout",
+		0,
+		hy - headH * 0.1,
+		hz - headL * 0.4,
+		headW * 0.8,
+		headH * 0.62,
+		headL * 0.7,
+		"Head",
+		if family == "theropod" then "block" else nil
+	)
+	if family == "theropod" then
+		for side = -1, 1, 2 do
+			add(
+				"TeethRow" .. side,
+				side * headW * 0.4,
+				hy - headH * 0.34,
+				hz - headL * 0.17,
+				0.025,
+				headH * 0.09,
+				headL,
+				"Jaw",
+				"wedge",
+				ivory
+			)
+		end
+	end
 	for side = -1, 1, 2 do
 		add(
 			"Eye" .. side,
@@ -256,24 +321,37 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			math.pi / 2
 		)
 		local shin = parts["Shin" .. side]
-		shin.Size = Vector3.new(h * 0.25, w * legW * 0.72, l * 0.1)
+		shin.Size = Vector3.new(h * 0.18, w * legW * 0.72, l * 0.1)
 		local shinJoint = root:FindFirstChild(shin.Name .. "Joint") :: Motor6D
 		shinJoint.C1 = shin.CFrame:ToObjectSpace(assert(shinJoint.Part0).CFrame * shinJoint.C0)
-		add("Foot" .. side, side * lx, -0.45, 0.14, legW, 0.08, 0.16, "Shin" .. side, nil, accent)
+		add("Foot" .. side, side * lx, -0.465, 0.15, legW * 1.15, 0.07, 0.18, "Shin" .. side)
+		add("ToeClaw" .. side, side * lx, -0.475, 0.065, legW * 0.65, 0.035, 0.06, "Foot" .. side, "wedge", ivory)
 		if not biped then
 			part(
 				"Foreleg" .. side,
-				Vector3.new(legW, if family == "sauropod" then 0.51 else legH, 0.13),
-				Vector3.new(side * lx, -0.23, -0.15),
+				Vector3.new(legW, if family == "sauropod" then 0.51 else 0.39, 0.13),
+				Vector3.new(side * lx, if family == "sauropod" then -0.175 else -0.235, -0.15),
 				"Torso",
 				nil,
 				nil,
 				Vector3.new(side * lx, -0.04, -0.15)
 			)
-			add("Forefoot" .. side, side * lx, -0.45, -0.18, legW, 0.08, 0.13, "Foreleg" .. side, nil, accent)
+			add("Forefoot" .. side, side * lx, -0.465, -0.17, legW * 1.15, 0.07, 0.16, "Foreleg" .. side)
+			add(
+				"Foreclaw" .. side,
+				side * lx,
+				-0.475,
+				-0.25,
+				legW * 0.65,
+				0.035,
+				0.06,
+				"Forefoot" .. side,
+				"wedge",
+				ivory
+			)
 		else
-			local armSize = if feature == "heavyjaw" then 0.08 else 0.23
-			add("Arm" .. side, side * 0.34, -0.07, -0.17, 0.09, armSize, 0.12, "Torso")
+			local armSize = if feature == "heavyjaw" then 0.08 else 0.16
+			add("Arm" .. side, side * 0.24, -0.07, -0.2, 0.07, armSize, 0.09, "Torso")
 			if feature == "feathers" or feature == "sickle" or family == "bird" then
 				add("Wing" .. side, side * 0.4, -0.01, 0, 0.16, 0.2, 0.35, "Arm" .. side, "wedge", accent)
 			end
@@ -300,7 +378,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 				"Tail" .. i,
 				Vector3.new(0, torsoY, 0.22 + (i - 1) * 0.13),
 				Vector3.new(0, torsoY - 0.015, 0.22 + i * 0.13),
-				0.28 - i * 0.055,
+				(if family == "theropod" then 0.38 else 0.28) - i * (if family == "theropod" then 0.077 else 0.055),
 				if i == 1 then "Torso" else "Tail" .. (i - 1)
 			)
 		end
@@ -319,18 +397,14 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		)
 	end
 	if feature == "frill" or feature == "horns" then
-		add(
-			"Frill",
-			0,
-			hy + 0.09,
-			hz + 0.08,
-			0.83,
-			0.42,
-			0.07,
-			"Head",
-			if feature == "horns" then "wedge" else nil,
-			accent
-		)
+		-- Three overlapping curved lobes form a scalloped fan, with the inset
+		-- lighter face leaving a narrow dark skin rim rather than a black slab.
+		for i = -1, 1 do
+			local x, y = i * 0.21, hy + (if i == 0 then 0.16 else 0.09)
+			local name = if i == 0 then "Frill" else "FrillLobe" .. i
+			add(name, x, y, hz + 0.08, 0.4, 0.36, 0.09, "Head", nil, accent)
+			add("FrillFace" .. i, x, y, hz + 0.045, 0.35, 0.31, 0.055, name, nil, underside)
+		end
 	end
 	if
 		feature == "horns"
