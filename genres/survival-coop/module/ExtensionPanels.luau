@@ -66,6 +66,16 @@ local categories: { [string]: { number | string } } = {
 }
 local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
+function M.activate(entries: { DockEntry }, entry: DockEntry)
+	for _, other in entries do
+		if other ~= entry and other.isOpen() then
+			other.setOpen(false)
+		end
+	end
+	-- Launchers open, rather than toggle: a repeated activation must not close its sheet.
+	entry.setOpen(true)
+end
+
 function M.menuBounds(width: number, height: number): (number, number, number, number)
 	local landscape = width > height
 	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
@@ -197,7 +207,7 @@ function M.start(options: {
 	local input = game:GetService("UserInputService")
 	local contextual = options.contextual == true
 	local dockGui = Instance.new("ScreenGui")
-	dockGui.Name, dockGui.ResetOnSpawn, dockGui.DisplayOrder = "ForgePanelDock", false, 16
+	dockGui.Name, dockGui.ResetOnSpawn, dockGui.DisplayOrder = "ForgePanelDock", false, 30
 	dockGui.ZIndexBehavior, dockGui.ScreenInsets = Enum.ZIndexBehavior.Sibling, Enum.ScreenInsets.CoreUISafeInsets
 	dockGui.Parent = players.LocalPlayer:WaitForChild("PlayerGui")
 	local column = Instance.new("Frame")
@@ -520,18 +530,12 @@ function M.start(options: {
 	context.dock = function(entry: DockEntry): DockHandle
 		table.insert(entries, entry)
 		local function open()
-			local target = not entry.isOpen()
-			for _, other in entries do
-				if other ~= entry and other.isOpen() then
-					other.setOpen(false)
-				end
+			if options.onOpen then
+				options.onOpen()
 			end
-			entry.setOpen(target)
+			M.activate(entries, entry)
 			if contextual then
 				menuList.Visible = false
-			end
-			if target and options.onOpen then
-				options.onOpen()
 			end
 		end
 		local button = ui.components.button(theme, {
@@ -563,6 +567,9 @@ function M.start(options: {
 			parent = menuList,
 			onClick = function()
 				menuList.Visible = false
+				for _, entry in entries do
+					entry.setOpen(false)
+				end
 				launcher.open()
 			end,
 		})
@@ -586,15 +593,10 @@ function M.start(options: {
 		end
 		for _, entry in entries do
 			if entry.id == panel then
-				for _, other in entries do
-					if other.isOpen() then
-						other.setOpen(false)
-					end
-				end
-				entry.setOpen(true)
 				if options.onOpen then
 					options.onOpen()
 				end
+				M.activate(entries, entry)
 				return
 			end
 		end

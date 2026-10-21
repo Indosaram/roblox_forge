@@ -224,6 +224,8 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	local wx, wz = warehouse.x + 3, warehouse.z
 	local marker = part("Warehouse", Vector3.new(3, 2, 2), Vector3.new(wx, 1, wz), rgb(124, 84, 50))
 	marker.Material = Enum.Material.WoodPlanks
+	-- The depot is a visual marker, not a wall between the player and the server reach target.
+	marker.CanCollide, marker.CanQuery, marker.CanTouch = false, false, false
 	marker:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
 	-- Warehouse timber depot frame, pitched roof, crates and signboard (all non-colliding decor).
 	decor(

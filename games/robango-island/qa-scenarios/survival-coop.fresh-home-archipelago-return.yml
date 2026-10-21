@@ -11,6 +11,7 @@ steps:
   - {op: join, player: owner}
   - {op: expect_members, members: [owner]}
   - {op: world_join, player: owner}
+  - {op: world_warehouse_campfire, player: owner}
   - {op: world_home, player: owner}
   - {op: world_onboarding, player: owner}
   - {op: world_expedition, player: owner}

@@ -4,7 +4,30 @@ local Panel = require("./JournalPanel")
 local Chapters = require("../../../core/domain/journal/Chapters")
 local Content = require("../../../games/robango-island/src/shared/SurvivalContent")
 local Catalog = assert(Content.chapters, "journal catalog required")
+local Text = require("../../../games/robango-island/src/shared/JournalText")
+local Locale = require("../../../cli/forge/lib/localesync")
+local fs = require("@lune/fs")
 return {
+	["authored journal keys resolve in both locales without raw identifiers"] = function()
+		local payload = assert(Locale.buildPayload(fs.readFile("games/robango-island/locale/strings.csv")))
+		local entries = {}
+		for _, entry in payload.entries do
+			entries[entry.key] = entry.translations
+		end
+		for _, locale in { "ko-kr", "en-us" } do
+			for _, chapter in Panel.model(Content, Chapters.new(), 1) do
+				local keys = { chapter.titleKey, chapter.summaryKey }
+				for _, objective in chapter.objectives do
+					table.insert(keys, objective.textKey)
+				end
+				for _, key in keys do
+					local text = assert(Text(locale, key), "missing authored copy: " .. key)
+					assert(text == entries[key][locale], "shipped copy matches locale table")
+					assert(not text:match("rw[%.%-]") and not text:match("chapter%-%d"), "no journal IDs")
+				end
+			end
+		end
+	end,
 	["journal renders every generated objective and respects server gates at phone and PC widths"] = function()
 		local initial = Chapters.new()
 		local rows = Panel.model(Content, initial, 19)
@@ -14,7 +37,7 @@ return {
 		rows = Panel.model(Content, initial, 60)
 		assert(not rows[1].canClaim and not rows[2].canOpen, "incomplete claim and future chapter disabled")
 		assert(#rows[1].objectives == #Catalog[1].objectives, "no objective truncation")
-		for _, width in { 360, 1280 } do
+		for _, width in { 360, 1920 } do
 			local close: any = nil
 			local sheet: any = {
 				frame = { Visible = true },
@@ -35,7 +58,7 @@ return {
 			local panel = Panel.factory({
 				content = Content,
 				text = function(key)
-					return key
+					return Text("ko-kr", key) or "일지"
 				end,
 				createGui = function()
 					return node()
@@ -59,7 +82,11 @@ return {
 						modalSheet = function()
 							return sheet
 						end,
-						label = function()
+						label = function(_theme, props)
+							assert(
+								not props.text:match("rw[%.%-]") and not props.text:match("chapter%-%d"),
+								"no rendered IDs"
+							)
 							return node()
 						end,
 						button = function()

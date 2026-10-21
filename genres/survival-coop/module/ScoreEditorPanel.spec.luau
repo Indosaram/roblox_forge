@@ -22,6 +22,16 @@ local function signal(): any
 	}
 end
 return {
+	["score workspace is bounded on desktop and a full-width bottom sheet on phone"] = function()
+		for _, viewport in { { 360, 640 }, { 1920, 1080 } } do
+			local bounds = Editor.bounds(viewport[1], viewport[2])
+			assert(bounds.width <= 720 and bounds.height <= 560, "bounded editor")
+			assert(bounds.height <= viewport[2] * 0.75, "at most three quarters high")
+			if viewport[1] < 700 then
+				assert(bounds.width == viewport[1] and bounds.y + bounds.height == viewport[2], "bottom sheet")
+			end
+		end
+	end,
 	["GUI controls edit touch sized grid save share preview stop and preserve invalid draft"] = function()
 		local objects: { [string]: any } = {}
 		local created = {}
@@ -121,6 +131,8 @@ return {
 		assert(not panel.controller.close(), "unsaved close refused")
 		objects.Instrument.Activated.fire()
 		objects.Part2.Activated.fire()
+		objects.Close.Activated.fire()
+		assert(panel.gui.Enabled == false, "persistent close button hides unsaved draft")
 		objects.ImportText.Text = "{"
 		objects.Import.Activated.fire()
 		assert(not panel.controller.toggle(-1, 60, 480, 100), "invalid grid update refused")

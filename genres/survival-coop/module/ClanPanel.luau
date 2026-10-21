@@ -55,7 +55,10 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 		sheet.frame.Position = dim.fromOffset(bounds.x, bounds.y)
 		sheet.frame.AnchorPoint = (ctx.vector2 or env.Vector2).new(0, 0)
 	end
-	local unfit = ctx.onViewport(fit)
+	local unfit = if ctx.fitSheet then function() end else ctx.onViewport(fit)
+	if ctx.fitSheet then
+		ctx.fitSheet(sheet.frame)
+	end
 	sheet.close.Activated:Connect(function()
 		sheet.frame.Visible = false
 	end)

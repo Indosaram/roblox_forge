@@ -95,11 +95,7 @@ local environment: any = {
 			return task.defer(thread, ...)
 		end,
 	}, { __index = task }),
-	Vector3 = {
-		new = function(x, y, z)
-			return { X = x, Y = y, Z = z }
-		end,
-	},
+	Vector3 = require("@lune/roblox").Vector3,
 	require = function(value)
 		return value
 	end,
@@ -114,7 +110,7 @@ type Server = { session: any, factory: any, provision: any, now: () -> number }
 local reach = { warehouse = true }
 -- live = true wires what RobangoIslandServer configures: wildlife, taming, shop and market (whose
 -- tutorial gate reads the contracts snapshot, as the server script does).
-local function boot(backend: any, server: string, clockAt: { value: number }, live: boolean?): Server
+local function boot(backend: any, server: string, clockAt: { value: number }, live: boolean?, preview: boolean?): Server
 	local bound: any = nil
 	local contracts: any = nil
 	if live then
@@ -191,6 +187,35 @@ local function boot(backend: any, server: string, clockAt: { value: number }, li
 		end,
 		publishWildlife = function() end,
 	}
+	if preview then
+		local engine = require("../../cli/forge/fixtures/production-worlds/engine").new(true)
+		world = engine.preview(content, source, nil, nil, "onboarding", true)
+		engine.move(FIRST, { x = 6, y = 2, z = -22 })
+		-- Keep gathering deterministic; transfers still use the real character/raycast ports.
+		world.gatheringAccess = function(authorize)
+			return function(request, bag)
+				if not authorize(active, request, bag) then
+					return nil
+				end
+				return {
+					actorId = request.actorId,
+					carriedContainer = bag.id,
+					worldRevision = source.worldRevision,
+					equipment = function()
+						return {}
+					end,
+					reachable = function()
+						return true
+					end,
+				}
+			end
+		end
+		local bind = world.bind
+		world.bind = function(value)
+			active = value
+			bind(value)
+		end
+	end
 	local clock = Clock.new(function()
 		return clockAt.value
 	end)
@@ -363,6 +388,16 @@ local function idleRun(ids: { string }, heartbeats: number): ({ [string]: number
 end
 
 return {
+	["fresh preview owner deposits immediately through physical warehouse reach"] = function()
+		local server = boot(Memory.new(), "job:preview", { value = 1000 }, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "fresh admission")
+		assert(session.snapshot(FIRST).survivalSettlement.settlement.roles[FIRST] == "owner", "owner")
+		assert(command(session, FIRST, "g1", "gather", { "fallen-tree-01", 0 }).ok, "gather")
+		local result = command(session, FIRST, "d1", "transfer-deposit", { woodStacks(session, FIRST)[1], 1 })
+		assert(result.ok, "physical warehouse deposit: " .. serde.encode("json", result))
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
 	["idle players on a slow transport never re-acquire or rewrite their extension records"] = function()
 		-- One player alone, then four seated members plus a visitor.
 		for _, ids in { { FIRST }, { FIRST, SECOND, THIRD, FOURTH, EXTRA } } do

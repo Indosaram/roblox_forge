@@ -8,6 +8,18 @@ local game: any = env.game
 local Instance: any = env.Instance
 local UDim2: any = env.UDim2
 local M = {}
+function M.bounds(width: number, height: number): any
+	local phone = width < 700
+	local w = if phone then width else math.min(720, width - 32)
+	local h = math.min(560, math.floor(height * 0.75))
+	return {
+		x = math.floor((width - w) / 2),
+		y = if phone then height - h else math.floor((height - h) / 2),
+		width = w,
+		height = h,
+	}
+end
+
 function M.new(ctx: any): any
 	local instruments = {}
 	for id in ctx.rules.instruments do
@@ -150,17 +162,45 @@ function M.factory(ctx: any): any
 	gui.Parent = ctx.playerGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local sheet = ports.new("Frame")
 	sheet.Name = "Workspace"
-	sheet.Size = ports.size(1, 1, -32, -96)
-	sheet.Position = ports.position(0, 0, 16, 56)
 	sheet.Parent = gui
+	local function resize(width: number, height: number)
+		local bounds = M.bounds(width, height)
+		sheet.Size = ports.size(0, 0, bounds.width, bounds.height)
+		sheet.Position = ports.position(0, 0, bounds.x, bounds.y)
+	end
+	local unfit: any = nil
+	if ctx.onViewport then
+		unfit = ctx.onViewport(resize)
+	elseif not ctx.view then
+		local function fit()
+			resize(gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
+		end
+		table.insert(connections, gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit))
+		fit()
+	else
+		resize(800, 600)
+	end
 	local scroll = ports.new("ScrollingFrame")
 	scroll.Name = "Controls"
-	scroll.Size = ports.size(1, 1, 0, 0)
+	scroll.Size = ports.size(1, 1, 0, -48)
+	scroll.Position = ports.position(0, 0, 0, 48)
 	scroll.CanvasSize = ports.size(0, 0, 0, 1500)
 	scroll.Parent = sheet
 	local row = 0
 	local api: any
 	local status: any
+	local close = ports.new("TextButton")
+	close.Name, close.Text = "Close", if string.sub(ctx.locale or "en", 1, 2) == "ko" then "닫기" else "Close"
+	close.Size, close.Position = ports.size(0, 0, 88, 44), ports.position(1, 0, -92, 2)
+	close.Parent = sheet
+	table.insert(
+		connections,
+		close.Activated:Connect(function()
+			-- Hiding preserves the draft, so closing never requires discarding unsaved notes.
+			api.stop()
+			gui.Enabled = false
+		end)
+	)
 	local function control(class: string, name: string, text: string, action: (() -> ())?): any
 		local item = ports.new(class)
 		item.Name, item.Text = name, text
@@ -257,11 +297,6 @@ function M.factory(ctx: any): any
 	control("TextButton", "Leave", "Leave ensemble", function()
 		result(ctx.send("survival-coop:ensemble-leave", {}))
 	end)
-	control("TextButton", "Close", "Close", function()
-		if api.close() then
-			gui.Enabled = false
-		end
-	end)
 	status = control("TextLabel", "Status", "", nil)
 	scroll.CanvasSize = ports.size(0, 0, 0, row * 56)
 	local model = table.clone(ctx)
@@ -298,6 +333,9 @@ function M.factory(ctx: any): any
 		gui = gui,
 		destroy = function()
 			api.stop()
+			if unfit then
+				unfit()
+			end
 			for _, connection in connections do
 				connection:Disconnect()
 			end

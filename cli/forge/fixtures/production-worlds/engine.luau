@@ -4,7 +4,7 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
 local M = {}
-function M.new(): any
+function M.new(physicalWarehouse: boolean?): any
 	local callbacks: { any } = {}
 	local actors: any = {}
 	local tags: any = {}
@@ -30,6 +30,7 @@ function M.new(): any
 			attributes = {},
 			Position = roblox.Vector3.zero,
 			CFrame = roblox.CFrame.identity,
+			CanCollide = className == "Part" or className == "SpawnLocation",
 			Health = if className == "Humanoid" then 100 else nil,
 		}
 		function value:IsA(kind)
@@ -91,6 +92,30 @@ function M.new(): any
 	workspace.Terrain = { FillBlock = function() end }
 	workspace.Terrain.FillBall = function() end
 	workspace.Raycast = function(_, origin: any, direction: any): any
+		-- The preview depot is a real collidable box, not an always-clear reach mock.
+		if physicalWarehouse then
+			for _, value in callbacks do
+				if value.Name == "Warehouse" and value.CanCollide and value.CanQuery ~= false and value.Parent then
+					local low, high = 0, 1
+					for _, axis in { "X", "Y", "Z" } do
+						local minimum = value.Position[axis] - value.Size[axis] / 2
+						local maximum = value.Position[axis] + value.Size[axis] / 2
+						if direction[axis] == 0 then
+							if origin[axis] < minimum or origin[axis] > maximum then
+								low = 2
+							end
+						else
+							local a = (minimum - origin[axis]) / direction[axis]
+							local b = (maximum - origin[axis]) / direction[axis]
+							low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
+						end
+					end
+					if low <= high then
+						return { Instance = value, Position = origin + direction * low }
+					end
+				end
+			end
+		end
 		if direction.Y < 0 and direction.X == 0 and direction.Z == 0 then
 			if origin.Y >= 0 and origin.Y + direction.Y <= 0 then
 				return { Position = roblox.Vector3.new(origin.X, 0, origin.Z), Normal = roblox.Vector3.yAxis }
@@ -174,6 +199,7 @@ function M.new(): any
 				Vector3 = roblox.Vector3,
 				CFrame = roblox.CFrame,
 				Color3 = roblox.Color3,
+				UDim2 = roblox.UDim2,
 				NumberRange = roblox.NumberRange,
 				NumberSequence = roblox.NumberSequence,
 				NumberSequenceKeypoint = roblox.NumberSequenceKeypoint,
@@ -261,6 +287,11 @@ function M.new(): any
 		},
 	}
 	forge.games = { ["robango-island"] = { src = { shared = { ProcAssets = {} } } } }
+	forge.games["robango-island"].src.shared.IslandTerrain =
+		require("../../../../games/robango-island/src/shared/IslandTerrain")
+	local preview = load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
+		["./WorldDressing"] = dressing,
+	}, nil)
 	local role = load("games/robango-island/src/server/RoleWorld.luau", { ["./WorldDressing"] = dressing }, nil)
 	local home = load("games/robango-island/src/server/HomeWorld.luau", { ["./WorldDressing"] = dressing }, nil)
 	local archipelago = require("../../../../games/robango-island/src/server/ArchipelagoWorld")
@@ -271,6 +302,7 @@ function M.new(): any
 		role = role,
 		home = home,
 		archipelago = archipelago,
+		preview = preview,
 		interact = function(actor, target)
 			for index = #callbacks, 1, -1 do
 				local value = callbacks[index]

@@ -300,18 +300,36 @@ function M.factory(ctx: any): any
 			end,
 		})
 		else nil
-	if dock then
-		dock.setAvailable(false)
+	-- Keep the launcher usable outside the brawl role and explain the restriction in its sheet.
+	local root = gui:FindFirstChild("BrawlPanel")
+	if ctx.fitSheet then
+		ctx.fitSheet(root)
 	end
+	local unavailable = env.Instance.new("TextLabel")
+	unavailable.Name, unavailable.TextWrapped = "Unavailable", true
+	unavailable.Size = env.UDim2.new(1, -24, 0, 88)
+	unavailable.Position = env.UDim2.fromOffset(12, 12)
+	unavailable.Text = if korean
+		then "난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요."
+		else "Brawl is available on a brawl server. Travel there from the harbor."
+	unavailable.Parent = root
+	local close = env.Instance.new("TextButton")
+	close.Name, close.Text = "Close", if korean then "닫기" else "Close"
+	close.Size, close.Position = env.UDim2.fromOffset(88, 44), env.UDim2.new(1, -100, 1, -56)
+	close.Parent = root
+	local closeConnection = close.Activated:Connect(function()
+		gui.Enabled = false
+	end)
 	local unsubscribe = ctx.onSnapshot(function(snapshots)
 		local state = snapshots.brawl
-		if dock then
-			dock.setAvailable(state ~= nil)
+		unavailable.Visible = state == nil
+		for _, child in root:GetChildren() do
+			if child:IsA("ScrollingFrame") then
+				child.Visible = state ~= nil
+			end
 		end
 		if state then
 			panel.update(state, now())
-		else
-			gui.Enabled = false
 		end
 	end)
 	local resize = gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -319,6 +337,10 @@ function M.factory(ctx: any): any
 	end)
 	return {
 		destroy = function()
+			closeConnection:Disconnect()
+			if dock then
+				dock.setAvailable(false)
+			end
 			unsubscribe()
 			resize:Disconnect()
 			panel.destroy()

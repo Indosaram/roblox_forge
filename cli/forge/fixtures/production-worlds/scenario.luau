@@ -28,6 +28,9 @@ M.operations = {
 	world_onboarding = function(ctx, step): string?
 		return ctx.fixture.onboarding(actorOf(ctx, step))
 	end,
+	world_warehouse_campfire = function(ctx, step): string?
+		return ctx.fixture.warehouseCampfire(actorOf(ctx, step))
+	end,
 	world_gather = function(ctx, step): string?
 		return ctx.fixture.gather(actorOf(ctx, step))
 	end,
@@ -81,7 +84,7 @@ M.operations = {
 	end,
 }
 function M.new(ctx: any): any
-	local engine = Engine.new()
+	local engine = Engine.new(true)
 	local forge = engine.forge
 	local module = forge.genres["survival-coop"].module
 	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
@@ -133,7 +136,9 @@ function M.new(ctx: any): any
 	local actorId: string? = nil
 	local function create(role: string, actor: string)
 		sequence += 1
-		if role == "home" then
+		if role == "preview" then
+			world = engine.preview(Content, source, nil, nil, "onboarding", true)
+		elseif role == "home" then
 			world = engine.home.live(Content, source, Policy, function()
 				return ctx.now() * 1000
 			end)
@@ -163,7 +168,18 @@ function M.new(ctx: any): any
 			{ studio = false, server = "worlds:" .. tostring(sequence) }
 		)
 		world.clanDirectory = clanDirectory
-		factory = assert(factoryBuilder(Content, source, world, ctx.backend, ctx.clock, options, provision, Policy))
+		factory = assert(
+			factoryBuilder(
+				Content,
+				source,
+				world,
+				ctx.backend,
+				ctx.clock,
+				options,
+				provision,
+				if role == "preview" then nil else Policy
+			)
+		)
 		local services = table.clone(factory.services)
 		services.now = ctx.clock.now
 		services.roll = function()
@@ -871,6 +887,62 @@ function M.new(ctx: any): any
 	end
 	local function personal(actor)
 		return session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
+	end
+	function api.warehouseCampfire(actor)
+		assert(api.enter("preview", actor) == nil, "fresh preview admission")
+		local camp = session.snapshot(actor).survivalSettlement
+		assert(camp.settlement.roles[actor] == "owner", "fresh owner")
+		local node = source.nodes[1]
+		for _, candidate in source.nodes do
+			if candidate.id == "fallen-tree-01" then
+				node = candidate
+			end
+		end
+		engine.move(actor, { x = node.position.x, y = node.position.y + 3, z = node.position.z })
+		for _ = 1, 2 do
+			command(actor, "gather", { node.id, factory.services.survivalGathering.snapshot(actor).version })
+			assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", "gather recovery")
+		end
+		-- Stand beyond the visual depot: its old collidable box blocked the reach ray.
+		engine.move(actor, { x = 6, y = 2, z = -22 })
+		local remaining = 4
+		for id, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "wood" and remaining > 0 then
+				local quantity = math.min(remaining, item.quantity)
+				local deposited = command(actor, "transfer-deposit", { id, quantity })
+				assert(deposited.ok and deposited.data.phase == "FINALIZED", "deposit confirms immediately")
+				remaining -= quantity
+			end
+		end
+		assert(remaining == 0, "four gathered wood deposited")
+		engine.move(actor, { x = -6, y = 3, z = -10 })
+		camp = session.snapshot(actor).survivalSettlement
+		local reserved = command(actor, "settlement-reserve", {
+			"campfire",
+			6,
+			1,
+			0,
+			camp.settlement.version,
+			camp.warehouse.version,
+			camp.settlement.membershipRevision,
+		})
+		camp = session.snapshot(actor).survivalSettlement
+		command(
+			actor,
+			"settlement-place",
+			{ reserved.data.reservationId, camp.settlement.version, camp.warehouse.version }
+		)
+		assert(next(session.snapshot(actor).survivalSettlement.warehouse.items) == nil, "warehouse paid campfire cost")
+		local station
+		for _, value in engine.parts do
+			if value:GetAttribute("ForgeStructureId") then
+				station = value:GetAttribute("ForgeStationId")
+				engine.move(actor, { x = value.Position.X, y = value.Position.Y + 3, z = value.Position.Z })
+			end
+		end
+		assert(station, "new campfire published")
+		assert(command(actor, "rest", { station }).ok, "rest at new campfire")
+		return nil
 	end
 	local function craft(actor: string, recipeId: string, station: string?)
 		local recipe

@@ -13,6 +13,7 @@ function M.model(content: any, state: any, level: number): any
 			complete = complete and count >= objective.quantity
 			table.insert(objectives, {
 				id = objective.id,
+				textKey = objective.id .. ".text",
 				action = objective.action,
 				target = objective.target,
 				count = count,
@@ -21,6 +22,8 @@ function M.model(content: any, state: any, level: number): any
 		end
 		table.insert(rows, {
 			id = chapter.id,
+			titleKey = chapter.id .. ".title",
+			summaryKey = chapter.id .. ".summary",
 			textKey = chapter.dialogueKeys[1],
 			objectives = objectives,
 			rewards = Chapters.copy(chapter.rewards),
@@ -59,17 +62,11 @@ function M.factory(ctx: any): any
 	render = function()
 		clear()
 		for index, chapter in M.model(ctx.content, state, level) do
-			local lines = { ctx.text(chapter.textKey) }
+			local lines = { ctx.text(chapter.titleKey), ctx.text(chapter.summaryKey) }
 			for _, objective in chapter.objectives do
 				table.insert(
 					lines,
-					string.format(
-						"%s %s %d/%d",
-						ctx.text(objective.action),
-						ctx.text(objective.target),
-						objective.count,
-						objective.quantity
-					)
+					string.format("%s %d/%d", ctx.text(objective.textKey), objective.count, objective.quantity)
 				)
 			end
 			if chapter.reason then

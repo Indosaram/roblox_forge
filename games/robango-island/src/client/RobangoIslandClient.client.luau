@@ -531,6 +531,7 @@ table.insert(panelFactories, function(ctx)
 end)
 table.insert(panelFactories, function(ctx)
 	local journalContext: any = table.clone(ctx)
+	local journalText = require(Shared.JournalText)
 	local playerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local korean = string.sub(locale, 1, 2) == "ko"
 	local labels = {
@@ -545,7 +546,7 @@ table.insert(panelFactories, function(ctx)
 	journalContext.content = content
 	journalContext.text = function(key)
 		local row = labels[key]
-		return if row then row[if korean then 2 else 1] else names[key] or key
+		return if row then row[if korean then 2 else 1] else journalText(locale, key) or names[key] or key
 	end
 	local journalGui: ScreenGui? = nil
 	journalContext.createGui = function(name)

@@ -114,6 +114,17 @@ return {
 			)
 			panel.destroy()
 			assert(destroyed and unsubscribed and unfit, "all subscriptions released")
+			local fitted = false
+			ctx.fitSheet = function(actual)
+				assert(actual == frame, "shared coordinator receives the visible clan sheet")
+				fitted = true
+			end
+			ctx.onViewport = function()
+				error("shared sheet must not retain a competing resize owner")
+			end
+			panel = Panel.factory(ctx)
+			assert(fitted, "clan participates in shared display order and viewport fitting")
+			panel.destroy()
 			widgets = {}
 			panel = Outpost.factory(ctx)
 			callback({ outpost = { owner = "a", expiresAt = 20, matches = {} } })

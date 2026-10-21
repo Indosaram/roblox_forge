@@ -1007,3 +1007,61 @@ structure_volcanic_wall,Volcanic Wall,entity volcanic-wall,Volcanic Wall,화산 
 archipelago_expiry_imminent,This island will expire soon. Choose another expedition.,archipelago entry refusal,This island will expire soon. Choose another expedition.,이 섬은 곧 소멸합니다. 다른 탐험을 선택하세요.
 archipelago_mission_gate,Finish both objectives before departing. You can return home at any time.,archipelago departure refusal,Finish both objectives before departing. You can return home at any time.,목표 두 개를 끝내야 다음 항로가 열려요. 귀가 항로는 항상 이용할 수 있어요.
 archipelago_evacuated,The island expired. Your carried items are safe on your return home.,archipelago expiry evacuation,The island expired. Your carried items are safe on your return home.,섬이 소멸했습니다. 소지품을 그대로 가지고 집으로 돌아갑니다.
+rw.c01.signal-trace.title,Signal trace,authored journal and panel copy,Signal trace,신호의 흔적
+rw.c01.signal-trace.summary,The relay repeats a pattern. Read the inland signal and test a lens.,authored journal and panel copy,The relay repeats a pattern. Read the inland signal and test a lens.,중계기가 같은 신호를 반복해요. 내륙 신호를 조사하고 렌즈를 시험하세요.
+rw.c01.signal-trace.1.text,Survey the inland signal,authored journal and panel copy,Survey the inland signal,내륙 신호 조사
+rw.c01.signal-trace.2.text,Assemble a signal lens,authored journal and panel copy,Assemble a signal lens,신호 렌즈 조립
+rw.c01.signal-trace.3.text,Activate the harbor relay,authored journal and panel copy,Activate the harbor relay,항구 중계기 작동
+rw.c01.signal-trace.4.text,Speak with Bram,authored journal and panel copy,Speak with Bram,브램과 대화
+rw.c02.home-station.title,Home station,authored journal and panel copy,Home station,우리 집 기지
+rw.c02.home-station.summary,Recover the wreck components and tune your home station.,authored journal and panel copy,Recover the wreck components and tune your home station.,난파선 부품을 회수하고 집의 중계기를 조율하세요.
+rw.c02.home-station.1.text,Inspect the wreck,authored journal and panel copy,Inspect the wreck,난파선 조사
+rw.c02.home-station.2.text,Craft a signal relay kit,authored journal and panel copy,Craft a signal relay kit,신호 중계기 꾸러미 제작
+rw.c02.home-station.3.text,Deploy a signal relay,authored journal and panel copy,Deploy a signal relay,신호 중계기 설치
+rw.c02.home-station.4.text,Tune the signal relay,authored journal and panel copy,Tune the signal relay,신호 중계기 조율
+rw.c02.home-station.5.text,Speak with Hop,authored journal and panel copy,Speak with Hop,홉과 대화
+rw.c03.grassland-samples.title,Grassland samples,authored journal and panel copy,Grassland samples,초원의 표본
+rw.c03.grassland-samples.summary,Gather readings from the grassland route and bring three samples.,authored journal and panel copy,Gather readings from the grassland route and bring three samples.,초원 항로를 조사하고 표본 세 개를 가져오세요.
+rw.c03.grassland-samples.1.text,Survey the first grassland stage,authored journal and panel copy,Survey the first grassland stage,초원 첫 구역 조사
+rw.c03.grassland-samples.2.text,Survey the fourth grassland stage,authored journal and panel copy,Survey the fourth grassland stage,초원 네 번째 구역 조사
+rw.c03.grassland-samples.3.text,Assemble a sample case,authored journal and panel copy,Assemble a sample case,표본 상자 조립
+rw.c03.grassland-samples.4.text,Deposit survey samples,authored journal and panel copy,Deposit survey samples,조사 표본 기탁
+rw.c03.grassland-samples.5.text,Speak with Bram,authored journal and panel copy,Speak with Bram,브램과 대화
+rw.c04.marsh-remedy.title,Marsh remedy,authored journal and panel copy,Marsh remedy,습지의 치료제
+rw.c04.marsh-remedy.summary,Read the marsh markers and bring soup and medicine to the refuge.,authored journal and panel copy,Read the marsh markers and bring soup and medicine to the refuge.,습지 표식을 조사하고 대피소에 수프와 치료제를 가져가세요.
+rw.c04.marsh-remedy.1.text,Survey the second marsh stage,authored journal and panel copy,Survey the second marsh stage,습지 두 번째 구역 조사
+rw.c04.marsh-remedy.2.text,Survey the third marsh stage,authored journal and panel copy,Survey the third marsh stage,습지 세 번째 구역 조사
+rw.c04.marsh-remedy.3.text,Cook onion soup,authored journal and panel copy,Cook onion soup,양파 수프 요리
+rw.c04.marsh-remedy.4.text,Eat onion soup,authored journal and panel copy,Eat onion soup,양파 수프 먹기
+rw.c04.marsh-remedy.5.text,Administer the remedy,authored journal and panel copy,Administer the remedy,치료제 투여
+rw.c04.marsh-remedy.6.text,Speak with Ines,authored journal and panel copy,Speak with Ines,이네스와 대화
+rw.c05.shared-research.title,Shared research,authored journal and panel copy,Shared research,공동 연구
+rw.c05.shared-research.summary,Survey the desert and neutral outpost and contribute your research.,authored journal and panel copy,Survey the desert and neutral outpost and contribute your research.,사막과 중립 거점을 조사하고 연구 자료를 기여하세요.
+rw.c05.shared-research.1.text,Survey the desert marker,authored journal and panel copy,Survey the desert marker,사막 표식 조사
+rw.c05.shared-research.2.text,Inspect the neutral outpost,authored journal and panel copy,Inspect the neutral outpost,중립 거점 조사
+rw.c05.shared-research.3.text,Assemble a research bundle,authored journal and panel copy,Assemble a research bundle,연구 자료 묶음 조립
+rw.c05.shared-research.4.text,Submit the research bundle,authored journal and panel copy,Submit the research bundle,연구 자료 묶음 제출
+rw.c05.shared-research.5.text,Speak with Marit,authored journal and panel copy,Speak with Marit,마리트와 대화
+rw.c06.snow-protection.title,Snow protection,authored journal and panel copy,Snow protection,설원의 방한 준비
+rw.c06.snow-protection.summary,Protect the relay shelter with a liner made from real fur.,authored journal and panel copy,Protect the relay shelter with a liner made from real fur.,모피로 안감을 만들어 중계기 대피소를 보호하세요.
+rw.c06.snow-protection.1.text,Survey the first snow stage,authored journal and panel copy,Survey the first snow stage,설원 첫 구역 조사
+rw.c06.snow-protection.2.text,Survey the fourth snow stage,authored journal and panel copy,Survey the fourth snow stage,설원 네 번째 구역 조사
+rw.c06.snow-protection.3.text,Assemble a shelter liner,authored journal and panel copy,Assemble a shelter liner,대피소 안감 조립
+rw.c06.snow-protection.4.text,Install the shelter liner,authored journal and panel copy,Install the shelter liner,대피소 안감 설치
+rw.c06.snow-protection.5.text,Speak with Ines,authored journal and panel copy,Speak with Ines,이네스와 대화
+rw.c07.tyrant-material.title,Tyrant material,authored journal and panel copy,Tyrant material,폭군의 재료
+rw.c07.tyrant-material.summary,Read the volcanic marker and reinforce the station with a fresh tyrannosaurus bone.,authored journal and panel copy,Read the volcanic marker and reinforce the station with a fresh tyrannosaurus bone.,화산 표식을 조사하고 갓 얻은 티라노사우루스 뼈로 기지를 보강하세요.
+rw.c07.tyrant-material.1.text,Survey the volcanic marker,authored journal and panel copy,Survey the volcanic marker,화산 표식 조사
+rw.c07.tyrant-material.2.text,Hunt a tyrannosaurus,authored journal and panel copy,Hunt a tyrannosaurus,갓 처치한 티렉스의 뼈 확보
+rw.c07.tyrant-material.3.text,Assemble a heat brace,authored journal and panel copy,Assemble a heat brace,내열 지지대 조립
+rw.c07.tyrant-material.4.text,Install the heat brace,authored journal and panel copy,Install the heat brace,내열 지지대 설치
+rw.c07.tyrant-material.5.text,Speak with Bram,authored journal and panel copy,Speak with Bram,브램과 대화
+rw.c08.collapse-return.title,Collapse and return,authored journal and panel copy,Collapse and return,붕괴와 귀환
+rw.c08.collapse-return.summary,Build the transponder and bring the survivor home through the refuges.,authored journal and panel copy,Build the transponder and bring the survivor home through the refuges.,구조 송신기를 만들고 대피소를 거쳐 생존자를 귀환시키세요.
+rw.c08.collapse-return.1.text,Survey the five final markers,authored journal and panel copy,Survey the five final markers,마지막 표식 다섯 개 조사
+rw.c08.collapse-return.2.text,Assemble a rescue transponder,authored journal and panel copy,Assemble a rescue transponder,구조 송신기 조립
+rw.c08.collapse-return.3.text,Activate the rescue beacon,authored journal and panel copy,Activate the rescue beacon,구조 신호기 작동
+rw.c08.collapse-return.4.text,Escort the survivor,authored journal and panel copy,Escort the survivor,생존자 호위
+rw.c08.collapse-return.5.text,Return through the exit,authored journal and panel copy,Return through the exit,출구를 통해 귀환
+rw.c08.collapse-return.6.text,Speak with Marit,authored journal and panel copy,Speak with Marit,마리트와 대화
+brawl_unavailable,Brawl is available on a brawl server. Travel there from the harbor.,authored journal and panel copy,Brawl is available on a brawl server. Travel there from the harbor.,난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요.
