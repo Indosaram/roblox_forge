@@ -112,6 +112,9 @@
       }
     },
     "ServerScriptService": {
+      "LateEquipmentPorts": {
+        "$path": "src/server/LateEquipmentPorts.luau"
+      },
       "GenreHooks": {
         "$path": "src/server/GenreHooks.luau"
       },

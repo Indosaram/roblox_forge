@@ -1,0 +1,24 @@
+name: home-return
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/home]
+steps:
+  - {op: join, player: owner}
+  - {op: home_action, player: owner, action: place, args: {id: bench, kind: workbench, position: {x: 0, y: 2, z: -16}}}
+  - {op: home_action, player: owner, action: plant, args: {plot: p1, crop: corn, seedItem: seed}}
+  - {op: home_action, player: owner, action: harvest, args: {plot: p1}, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: NOT_GROWN}
+  - {op: home_reconnect, player: owner}
+  - {op: home_assert, player: owner, check: planted}
+  - {op: home_action, player: owner, action: harvest, token: 'home:other', args: {plot: p1}, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: WRONG_HOME_TOKEN}
+  - {op: home_action, player: owner, action: harvest, args: {plot: p1}}
+  - {op: home_assert, player: owner, check: harvested}
+  - {op: home_action, player: owner, action: harvest, args: {plot: p1}, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: EMPTY_PLOT}
+  - {op: close, player: owner}

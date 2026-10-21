@@ -8,7 +8,7 @@ local M = {}
 M.schemaVersion = 1
 
 export type Kind = "command" | "advance" | "join" | "leave" | "save" | "reload"
-export type Meta = { seed: number, genre: string?, scenario: string? }
+export type Meta = { seed: number, genre: string?, scenario: string?, pack: string? }
 export type Entry = {
 	kind: Kind,
 	actor: string?,
@@ -27,7 +27,7 @@ export type Journal = {
 
 local KINDS = { command = true, advance = true, join = true, leave = true, save = true, reload = true }
 local ENTRY_FIELDS = { kind = true, actor = true, action = true, args = true, requestId = true, atMillis = true }
-local META_FIELDS = { seed = true, genre = true, scenario = true }
+local META_FIELDS = { seed = true, genre = true, scenario = true, pack = true }
 local TWO32 = 4294967296
 
 -- FNV-1a 64 over two 32-bit lanes; returns 16 lowercase hex digits.
@@ -76,8 +76,8 @@ local function validateMeta(meta: any)
 	if not SerializedData.finite(meta.seed) or meta.seed % 1 ~= 0 then
 		error("journal: meta.seed must be a finite integer", 0)
 	end
-	if not optionalString(meta.genre) or not optionalString(meta.scenario) then
-		error("journal: meta.genre and meta.scenario must be short strings", 0)
+	if not optionalString(meta.genre) or not optionalString(meta.scenario) or not optionalString(meta.pack) then
+		error("journal: meta.genre, meta.scenario and meta.pack must be short strings", 0)
 	end
 end
 

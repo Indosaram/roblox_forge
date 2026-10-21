@@ -20,6 +20,51 @@ local contract: Shared.RuntimeContract = {
 	configVersion = 1,
 	saveVersion = 1,
 	actions = {
+		{
+			id = "home-expand",
+			args = { id, Schema.object({}) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "home-place",
+			args = {
+				id,
+				Schema.object({
+					id = id,
+					kind = id,
+					position = Schema.object({ x = Schema.number(), y = Schema.number(), z = Schema.number() }),
+				}),
+			},
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "home-recover",
+			args = { id, Schema.object({ id = id }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "home-plant",
+			args = { id, Schema.object({ crop = id, plot = id, seedItem = id }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "home-harvest",
+			args = { id, Schema.object({ plot = id }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
+			id = "equipment-start",
+			args = { id, id, version },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{ id = "equipment-complete", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "equipment-cancel", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "attack", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "gather", args = { id, version }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
@@ -233,6 +278,14 @@ local contract: Shared.RuntimeContract = {
 	-- Action ids served by module/Extensions factories. Each id must also be declared in
 	-- `actions` above; `forge codegen <pack> --durable` adds it to the pack's durable policy.
 	extensionActions = {
+		"home-expand",
+		"home-place",
+		"home-recover",
+		"home-plant",
+		"home-harvest",
+		"equipment-start",
+		"equipment-complete",
+		"equipment-cancel",
 		"contract-accept",
 		"contract-deliver",
 		"contract-swap",

@@ -3,6 +3,25 @@ local Schema = require("./Schema")
 
 local tests = {}
 
+tests["closed objects validate nested fields and refuse unknown authority fields"] = function()
+	local descriptor = Schema.tuple({
+		Schema.object({
+			plot = Schema.string({ maxLen = 128 }),
+			position = Schema.optional(
+				Schema.object({ x = Schema.number(), y = Schema.number(), z = Schema.number() })
+			),
+		}),
+	})
+	assert(Schema.check(descriptor, { { plot = "plot-1" } }), "optional position")
+	assert(Schema.check(descriptor, { { plot = "plot-1", position = { x = 0, y = 2, z = 0 } } }), "nested position")
+	assert(not Schema.check(descriptor, { { plot = "plot-1", owner = "forged" } }), "unknown owner refused")
+	assert(not Schema.check(descriptor, { { position = { x = 0, y = 2, z = 0 } } }), "required field refused")
+	assert(
+		not Schema.check(descriptor, { { plot = "plot-1", position = { x = 0, y = 2, z = math.huge } } }),
+		"infinite coordinate refused"
+	)
+end
+
 tests["number accepts number"] = function()
 	local t = Schema.tuple({ Schema.number() })
 	assert(Schema.check(t, { 1 }), "1 should be a valid number")

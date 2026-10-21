@@ -1,0 +1,15 @@
+name: equipment-support
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 114
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/volcano]
+steps:
+  - {op: join, player: owner}
+  - {op: equipment_support, player: owner}
+  - {op: expect_result, player: owner, field: data.level59Refused, equals: true}
+  - {op: expect_result, player: owner, field: data.supportTier, equals: 3}
+  - {op: close, player: owner}

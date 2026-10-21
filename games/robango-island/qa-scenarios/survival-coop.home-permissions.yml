@@ -1,0 +1,27 @@
+name: home-permissions
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner, helper, intruder]
+fixtures: [cli/forge/fixtures/home]
+steps:
+  - {op: join, player: owner}
+  - {op: join, player: helper}
+  - {op: join, player: intruder}
+  - {op: home_action, player: owner, action: place, args: {id: bench, kind: workbench, position: {x: 0, y: 2, z: -16}}}
+  - {op: home_action, player: owner, action: plant, args: {plot: p1, crop: corn, seedItem: seed}}
+  - {op: home_action, player: owner, action: permissions, args: {permissions: {visit: friend, cooperate: friend, friends: {helper: true}, clanId: '', offlineCoop: true}}}
+  - {op: home_reconnect, player: owner}
+  - {op: home_action, player: intruder, action: harvest, args: {plot: p1}, expect: refused}
+  - {op: expect_result, player: intruder, field: reason, equals: FORBIDDEN}
+  - {op: home_action, player: intruder, action: recover, args: {id: bench}, expect: refused}
+  - {op: expect_result, player: intruder, field: reason, equals: FORBIDDEN}
+  - {op: home_assert, player: owner, check: permissions}
+  - {op: home_action, player: helper, action: harvest, args: {plot: p1}}
+  - {op: home_assert, player: owner, check: harvested}
+  - {op: close, player: owner}
+  - {op: close, player: helper}
+  - {op: close, player: intruder}

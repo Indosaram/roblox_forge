@@ -11,6 +11,9 @@ local task = require("@lune/task")
 local Bootstrap = require("../../genres/survival-coop/module/SurvivalBootstrap")
 local Gathering = require("../../genres/survival-coop/module/Gathering")
 local Wildlife = require("../../genres/survival-coop/module/Wildlife")
+local Extensions = require("../../genres/survival-coop/module/Extensions")
+local HomeExtension = require("../../genres/survival-coop/module/HomeExtension")
+local LateEquipmentPorts = require("./src/server/LateEquipmentPorts")
 local TamingExtension = require("../../genres/survival-coop/module/TamingExtension")
 local Contract = require("../../genres/survival-coop/module/Contract")
 local Settlement = require("../../core/domain/settlement/Settlement")
@@ -28,7 +31,15 @@ local tamingPolicy = require("./src/shared/TamingConfig")
 local PACK = "games/robango-island"
 local forge = {
 	genres = {
-		["survival-coop"] = { module = { SurvivalBootstrap = Bootstrap, Gathering = Gathering, Wildlife = Wildlife } },
+		["survival-coop"] = {
+			module = {
+				SurvivalBootstrap = Bootstrap,
+				Gathering = Gathering,
+				Wildlife = Wildlife,
+				Extensions = Extensions,
+				HomeExtension = HomeExtension,
+			},
+		},
 	},
 	core = {
 		domain = {
@@ -41,6 +52,7 @@ local forge = {
 	},
 }
 local environment: any = {
+	script = { Parent = { LateEquipmentPorts = LateEquipmentPorts } },
 	game = {
 		GetService = function()
 			return {

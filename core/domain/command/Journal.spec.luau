@@ -28,6 +28,19 @@ local function rejects(fn: () -> ...any, pattern: string): ()
 end
 
 return {
+	["recorded pack binding survives serialization while old journals remain valid"] = function()
+		local journal = Journal.new({
+			seed = 74,
+			genre = "survival-coop",
+			scenario = "bootstrap-crafting",
+			pack = "robango-island",
+		})
+		assert(Journal.decode(Journal.encode(journal)).meta.pack == "robango-island", "target pack preserved")
+		assert(Journal.decode(Journal.encode(sample())).meta.pack == nil, "old metadata remains valid")
+		rejects(function()
+			Journal.new({ seed = 74, pack = 12 } :: any)
+		end, "must be short strings")
+	end,
 	["fnv1a64 matches the reference vectors"] = function()
 		assert(Journal.fnv1a64("") == "cbf29ce484222325", Journal.fnv1a64(""))
 		assert(Journal.fnv1a64("a") == "af63dc4c8601ec8c", Journal.fnv1a64("a"))

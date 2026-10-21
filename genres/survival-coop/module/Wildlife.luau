@@ -45,6 +45,28 @@ export type State = {
 function M.captured(state: { capturedUntil: number? }, now: number): boolean
 	return state.capturedUntil ~= nil and now < state.capturedUntil
 end
+-- Copy-on-write compare-and-swap shared by capture and lethal damage owners.
+-- A captured identity is terminal; a population spawner may create a NEW id.
+function M.capture(state: State, expectedVersion: number, captureId: string): (State?, string?)
+	if state.captureId == captureId then
+		return state, nil
+	end
+	if state.version ~= expectedVersion then
+		return nil, "STALE_WILDLIFE"
+	end
+	if state.healthMilli <= 0 then
+		return nil, "ALREADY_DEAD"
+	end
+	if state.captureId then
+		return nil, "ALREADY_CAPTURED"
+	end
+	local captured = table.clone(state)
+	captured.home = table.clone(state.home)
+	captured.captureId, captured.capturedUntil = captureId, 2 ^ 53 - 1
+	captured.mode, captured.target = "captured", nil
+	captured.version += 1
+	return captured, nil
+end
 export type Observation = {
 	position: Position,
 	actors: { Actor },
@@ -156,6 +178,10 @@ function M.step(
 	nextState.home = table.clone(state.home)
 	nextState.lastMillis = now
 	local intent: Intent = {}
+	if state.mode == "captured" then
+		nextState.mode, nextState.target = "captured", nil
+		return nextState, intent
+	end
 	if state.healthMilli == 0 then
 		nextState.mode = "dead"
 		return nextState, intent
@@ -330,6 +356,9 @@ function M.attack(
 	end
 	if not access.alive then
 		return nil, "NOT_ALIVE"
+	end
+	if state.mode == "captured" then
+		return nil, "ALREADY_CAPTURED"
 	end
 	if state.healthMilli == 0 then
 		return nil, "ALREADY_DEAD"

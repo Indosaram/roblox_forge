@@ -123,7 +123,14 @@ local function reachable(document: Content.Document, drops: { [string]: any }): 
 end
 
 local function species(): { [string]: any }
-	return luau.load(fs.readFile(PACK .. "/src/shared/WildlifePolicy.luau"))().catalog.species
+	return luau.load(fs.readFile(PACK .. "/src/shared/WildlifePolicy.luau"), {
+		environment = {
+			require = function(dependency)
+				assert(dependency == "./SurvivalContent", "unexpected wildlife policy dependency")
+				return luau.load(fs.readFile(PACK .. "/src/shared/SurvivalContent.luau"))()
+			end,
+		},
+	})().catalog.species
 end
 
 local function prefixed(list: { any }, prefix: string): number

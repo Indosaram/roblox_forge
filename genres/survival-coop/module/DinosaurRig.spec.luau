@@ -3,6 +3,44 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
 return {
+	["every catalog species has bounded articulated geometry and sampled poses"] = function()
+		local module = luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), {
+			environment = {
+				Instance = roblox.Instance,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Color3 = roblox.Color3,
+				Enum = roblox.Enum,
+			},
+		})()
+		local content = require("../../../games/robango-island/src/shared/SurvivalContent")
+		local world = roblox.Instance.new("Workspace")
+		local signatures: { [string]: boolean } = {}
+		for _, species in assert(content.wildlifeDetails, "species catalog") do
+			local model = module.new(species.id, species.id, roblox.Vector3.new(0, 4, 0), world)
+			local feature = model:GetAttribute("Silhouette")
+			assert(type(feature) == "string" and not signatures[feature], "distinct authored anatomy")
+			signatures[feature] = true
+			local count = 0
+			for _, part in model:GetChildren() do
+				if part:IsA("BasePart") then
+					count += 1
+				end
+			end
+			assert(count * 12 < 600, "far silhouette triangle budget")
+			for _, pose in { "idle", "walk", "run", "attack", "hurt", "stun", "dead", "ridden", "rest" } do
+				module.pose(model, pose, 0.1, 20)
+			end
+			module.pose(model, "walk", 0.1, 20)
+			assert(model.PrimaryPart.Thigh1Joint.Transform ~= roblox.CFrame.identity, "sampled pose")
+			model:Destroy()
+		end
+		local count = 0
+		for _ in signatures do
+			count += 1
+		end
+		assert(count == 24, "all catalog species")
+	end,
 	["procedural dinosaur rigs have connected distinctive anatomy and collision root"] = function()
 		local module = luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), {
 			environment = {

@@ -4316,6 +4316,61 @@ structures:
         item: "volcanic-wall"
         quantity: 1
 survival_content: 2
+progressionPolicy:
+  volcano:
+    clearSeconds: 300
+    stormSeconds: 120
+    stormMultiplier: 2
+    healthPerSecond: 1
+    fatiguePerSecond: 2
+    springRecovery: 5
+    bootsItem: lava-protection-boots
+    bootsMultiplier: 0.5
+    lavaMaxHealthFraction: 0.25
+  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 50, xpStep: 10}
+  sharpnessPerPoint: 0.02
+  insulationCold: 0.1
+  minimumWear: 0.5
+  flexibilityWear: 0.03
+  precision: 1000
+  maxVital: 100
+  energyBase: 10
+  energyNutrition: 2
+  healthBase: 5
+  exposureHealth: 0.2
+  exposureFatigue: 0.4
+  buffSeconds: 300
+  buffStrength: {resistance: 2, stamina: 0.05, recovery: 1}
+  feed: {herbivore-feed: true, carnivore-feed: true, recovery-feed: true}
+  foodFamilies:
+    corn-porridge: stamina
+    wheat-flatbread: stamina
+    banana-mash: stamina
+    onion-meat-skewer: stamina
+    onion-soup: recovery
+    fig-stew: recovery
+    meat-potato-stew: recovery
+    baked-apple: resistance
+    rex-meat-stew: resistance
+  clothing:
+    temperate-head: {cold: 1, heat: 1}
+    temperate-top: {cold: 1, heat: 1}
+    temperate-bottom: {cold: 1, heat: 1}
+    temperate-shoes: {cold: 1, heat: 1}
+    temperate-gloves: {cold: 1, heat: 1}
+    temperate-bag: {cold: 1, heat: 1}
+    tropical-head: {cold: 0, heat: 2}
+    tropical-top: {cold: 0, heat: 2}
+    tropical-bottom: {cold: 0, heat: 2}
+    tropical-shoes: {cold: 0, heat: 2}
+    tropical-gloves: {cold: 0, heat: 2}
+    tropical-bag: {cold: 0, heat: 2}
+    cold-head: {cold: 2, heat: 0}
+    cold-top: {cold: 2, heat: 0}
+    cold-bottom: {cold: 2, heat: 0}
+    cold-shoes: {cold: 2, heat: 0}
+    cold-gloves: {cold: 2, heat: 0}
+    cold-bag: {cold: 2, heat: 0}
 tags:
   - "building-part"
   - "cutting"
@@ -8180,6 +8235,7 @@ operations:
     seconds: 10
     gates:
       characterLevel: 30
+      skillNodes: [tailoring_4]
     effects:
       -
         id: "hardness"
@@ -8206,6 +8262,7 @@ operations:
     seconds: 10
     gates:
       characterLevel: 30
+      skillNodes: [tailoring_4]
     effects:
       -
         id: "flexibility"
@@ -8219,6 +8276,7 @@ operations:
     targetConsumed: false
     eligibleTags:
       - "clothing"
+      - "saddle"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -8232,6 +8290,7 @@ operations:
     seconds: 10
     gates:
       characterLevel: 30
+      skillNodes: [weapon_tool_4]
     effects:
       -
         id: "sharpness"
@@ -8258,6 +8317,7 @@ operations:
     seconds: 10
     gates:
       characterLevel: 30
+      skillNodes: [tailoring_4]
     effects:
       -
         id: "insulation"

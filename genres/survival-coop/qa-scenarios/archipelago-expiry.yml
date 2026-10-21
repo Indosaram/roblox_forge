@@ -1,0 +1,19 @@
+name: archipelago-expiry
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/archipelago]
+steps:
+  - {op: join, player: owner}
+  - {op: archi_open, player: owner}
+  - {op: archi_settle, player: owner}
+  - {op: archi_expire, player: owner}
+  - {op: expect_result, player: owner, field: data.status, equals: expired}
+  - {op: expect_result, player: owner, field: data.owned, equals: owned-pick}
+  - {op: expect_result, player: owner, field: data.durability, equals: 27}
+  - {op: expect_result, player: owner, field: data.cargoCleared, equals: true}
+  - {op: close, player: owner}

@@ -84,6 +84,47 @@ local schemas: { [string]: { [string]: string } } = {
 		nutrition = "attribute",
 		fertility = "attribute",
 	},
+	progressionTree = {
+		maxLevel = "level",
+		spPerLevel = "positive",
+		maxMastery = "level",
+		actionXP = "positive",
+		xpBase = "positive",
+		xpStep = "positive",
+	},
+	climateResistance = { cold = "number", heat = "number" },
+	buffStrength = { resistance = "number", stamina = "number", recovery = "number" },
+	volcano = {
+		clearSeconds = "positive",
+		stormSeconds = "positive",
+		stormMultiplier = "positive",
+		healthPerSecond = "number",
+		fatiguePerSecond = "number",
+		springRecovery = "number",
+		bootsItem = "@items",
+		bootsMultiplier = "number",
+		lavaMaxHealthFraction = "number",
+	},
+	progressionPolicy = {
+		volcano = "?volcano",
+		tree = "progressionTree",
+		sharpnessPerPoint = "number",
+		insulationCold = "number",
+		minimumWear = "number",
+		flexibilityWear = "number",
+		precision = "positive",
+		maxVital = "positive",
+		energyBase = "number",
+		energyNutrition = "number",
+		healthBase = "number",
+		exposureHealth = "number",
+		exposureFatigue = "number",
+		buffSeconds = "positive",
+		buffStrength = "buffStrength",
+		feed = "mapBoolean",
+		foodFamilies = "mapFamily",
+		clothing = "mapClimate",
+	},
 	skillCategories = { id = "id", provenance = "provenance", entryActions = "[]id", nameKey = "text" },
 	skillNodes = {
 		id = "id",
@@ -216,6 +257,7 @@ M.SECTIONS = {
 	"guides",
 	"chapters",
 }
+M.POLICIES = { "progressionPolicy" }
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },
 	operationKind = {
@@ -248,6 +290,12 @@ function M.types(): string
 			return resolve(descriptor:sub(2)) .. "?"
 		elseif descriptor:sub(1, 2) == "[]" then
 			return "{ " .. resolve(descriptor:sub(3)) .. " }"
+		elseif descriptor == "mapBoolean" then
+			return "{ [string]: boolean }"
+		elseif descriptor == "mapFamily" then
+			return "{ [string]: string }"
+		elseif descriptor == "mapClimate" then
+			return "{ [string]: V2_climateResistance }"
 		elseif schemas[descriptor] then
 			return "V2_" .. descriptor
 		elseif descriptor:sub(1, 1) == "@" or enums[descriptor] or descriptor == "id" or descriptor == "text" then
@@ -323,6 +371,25 @@ function M.validate(raw: any): { string }
 		if descriptor:sub(1, 1) == "?" then
 			if value ~= nil then
 				check(value, descriptor:sub(2), at)
+			end
+			return
+		end
+		if descriptor == "mapBoolean" or descriptor == "mapFamily" or descriptor == "mapClimate" then
+			if type(value) ~= "table" then
+				reject(at, "expected item policy mapping")
+				return
+			end
+			for item, entry in value do
+				if not catalogs.items[item] then
+					reject(at, "unknown item reference " .. tostring(item))
+				end
+				if descriptor == "mapBoolean" then
+					check(entry, "boolean", at .. "." .. tostring(item))
+				elseif descriptor == "mapClimate" then
+					check(entry, "climateResistance", at .. "." .. tostring(item))
+				elseif entry ~= "stamina" and entry ~= "recovery" and entry ~= "resistance" then
+					reject(at .. "." .. tostring(item), "expected stamina, recovery or resistance")
+				end
 			end
 			return
 		end
@@ -446,6 +513,11 @@ function M.validate(raw: any): { string }
 	for _, section in M.SECTIONS do
 		if raw[section] ~= nil then
 			check(raw[section], "[]" .. section, section)
+		end
+	end
+	for _, policy in M.POLICIES do
+		if raw[policy] ~= nil then
+			check(raw[policy], policy, policy)
 		end
 	end
 	-- Node prerequisite graphs must be acyclic, including self-dependencies.

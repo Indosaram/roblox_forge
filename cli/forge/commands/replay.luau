@@ -115,7 +115,7 @@ function M.replay(journal: Journal.Journal, packsRoot: string?, context: cliutil
 	if not okGenre or type(genreRaw) ~= "table" or type(genreRaw.pack) ~= "string" then
 		return nil, "scenario declares no pack: " .. genrePath
 	end
-	local pack: string = genreRaw.pack
+	local pack: string = journal.meta.pack or genreRaw.pack
 	local packsDir = packsDirFor(pack, name :: string, packsRoot)
 	if packsDir == nil then
 		return nil, "no target found for pack '" .. pack .. "'; pass --packs-root"
@@ -142,7 +142,7 @@ function M.replay(journal: Journal.Journal, packsRoot: string?, context: cliutil
 	local expected = journal.stateHash :: string
 	local actual = outcome.stateHash or "none"
 	return {
-		match = outcome.diverged == nil and actual == expected,
+		match = outcome.ok and outcome.diverged == nil and actual == expected,
 		expected = expected,
 		actual = actual,
 		scenario = reference,

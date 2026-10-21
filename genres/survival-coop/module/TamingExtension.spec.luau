@@ -100,6 +100,18 @@ local function build(existing: any?, captureWild: any?): Rig
 			return { data = { envelope = envelope, stateRevision = revision } }, nil
 		end,
 	}
+	local chargeReceipts: any = {}
+	personal.update = function(_self, profile, transform)
+		local view = transform({
+			envelope = serde.decode("json", serde.encode("json", envelope)),
+			itemTransfers = { version = 1, receipts = table.clone(chargeReceipts) },
+		})
+		local saved, err = personal:commit(profile, revision, view.envelope)
+		if saved then
+			chargeReceipts = view.itemTransfers.receipts
+		end
+		return saved, err
+	end
 	local access: any = {
 		personal = personal,
 		profile = function()
@@ -176,6 +188,19 @@ local function tame(rig: Rig)
 end
 
 return {
+	["a pending material charge cannot be bypassed by riding or a new feed request"] = function()
+		local rig = build()
+		local animalId = tame(rig)
+		rig.failCommits(1)
+		assert(send(rig, "f1", "tame-feed", { animalId, "berry" }).reason == "CHARGE_PENDING", "charge pending")
+		rig.clock.now = 60000
+		assert(send(rig, "m1", "tame-mount", { animalId }).reason == "CHARGE_PENDING", "unpaid pen cannot ride")
+		assert(send(rig, "f2", "tame-feed", { animalId, "berry" }).reason == "CHARGE_PENDING", "cannot overwrite debt")
+		assert(rig.extension.snapshot("p1").walkSpeedStuds == nil, "no unpaid ride")
+		assert(rig.extension.recover("p1", 8).ok, "recovered")
+		assert(rig.bag().items["berry-1"].quantity == 4, "one feed consumed")
+		assert(send(rig, "m1", "tame-mount", { animalId }).ok, "paid pen can ride")
+	end,
 	["without a configured policy the factory stays disabled"] = function()
 		TamingExtension.configure(nil)
 		assert(TamingExtension.factory({}) == nil, "disabled")

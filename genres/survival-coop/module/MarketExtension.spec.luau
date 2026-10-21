@@ -13,7 +13,8 @@ local Market = require("./MarketExtension")
 local DAY = 86400
 local PATH = { "genres", "survival-coop", "data", "inventory", "bag" }
 
-local content = assert(Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))))
+local canonical, errors = Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml")))
+local content = assert(canonical, table.concat(errors, "; "))
 local budget = {
 	encode = function(value: any): string
 		return serde.encode("json", value)

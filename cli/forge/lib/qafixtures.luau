@@ -12,13 +12,40 @@
 --   end },
 --   new = function(_ctx) return {} end,
 -- }
--- services, bind(session), and close() -> {ok, reason?} on the instance are
+-- services, bind(session), snapshot() -> serializable table, and
+-- close() -> {ok, reason?} on the instance are
 -- optional. Core operation names cannot be overridden; duplicate declarations
 -- are rejected. Older fixture directories without operations remain legacy
 -- data/service fixtures until migrated; they cannot declare custom operations.
 
 local fs = require("@lune/fs")
+local SerializedData = require("../../../core/domain/genre/SerializedData")
 local M = {}
+
+-- Fixture entries use the existing command envelope so core-only journals keep
+-- their exact wire format. args holds the declarative step and observed result.
+M.JOURNAL_PREFIX = "fixture:"
+
+function M.result(value: any, detail: string?): any
+	local result = if type(value) == "table" and type(value.ok) == "boolean"
+		then { ok = value.ok, reason = value.reason, data = value.data }
+		else { ok = detail == nil, reason = detail }
+	assert(SerializedData.data(result), "fixture result must be serializable")
+	return SerializedData.clone(result)
+end
+
+function M.snapshots(modules: { any }, instances: any): any
+	local snapshots = {}
+	for index, module in modules do
+		local instance = instances[module]
+		if instance.snapshot then
+			local value = instance.snapshot()
+			assert(type(value) == "table" and SerializedData.data(value), "fixture snapshot must be serializable")
+			table.insert(snapshots, { module = index, state = SerializedData.clone(value) })
+		end
+	end
+	return snapshots
+end
 
 function M.load(paths: { string }?, coreOperations: { string }): (any, { string })
 	local registry: any = { modules = {}, operations = {} }

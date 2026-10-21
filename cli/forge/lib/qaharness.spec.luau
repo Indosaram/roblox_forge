@@ -5,6 +5,8 @@ local qastudio = require("./qastudio")
 local Survival = require("../../../genres/survival-coop/module/Contract")
 local Fixture = require("../../../genres/survival-coop/module/Adapter.fixture")
 local Rng = require("../../../core/domain/random/Rng")
+local Journal = require("../../../core/domain/command/Journal")
+local qafixtures = require("./qafixtures")
 
 local function target(): qaharness.Target
 	return {
@@ -60,6 +62,54 @@ local function winningSteps(): { any }
 end
 
 return {
+	["fixture journals distinguish operations and detect mutated results"] = function()
+		local function run(destination: string): (any, any, any)
+			local raw = scenario({
+				{ op = "join", player = "1" },
+				{
+					op = "role_travel",
+					player = "1",
+					from = "home",
+					destination = destination,
+					level = 60,
+					objectives = 2,
+					expect = "refused",
+				},
+				{ op = "expect_result", player = "1", field = "ok", equals = false },
+				{ op = "close", player = "1" },
+			}, { pack = "robango-island", fixtures = { "cli/forge/fixtures/role-routing" } })
+			local journal = Journal.new({ seed = 0 })
+			local outcome = qaharness.runNative(raw, target(), nil, { journal = journal })
+			assert(outcome.ok, table.concat(outcome.failures, "; "))
+			return raw, Journal.decode(Journal.encode(journal)), outcome
+		end
+		local raw, journal, outcome = run("frontier60")
+		local _, _, different = run("archipelago")
+		assert(outcome.stateHash ~= different.stateHash, "different fixture inputs change final hash")
+		local entry = journal.entries[2]
+		assert(entry.action == "fixture:role_travel" and entry.actor == "1", "fixture identity recorded")
+		assert(entry.args[1].destination == "frontier60" and entry.args[2].ok == false, "inputs and result recorded")
+		assert(qaharness.runNative(raw, target(), nil, { replay = journal }).diverged == nil, "original matches")
+		entry.args[2].reason = "mutated"
+		local replayed = qaharness.runNative(raw, target(), nil, { replay = journal })
+		assert(replayed.diverged ~= nil, "mutated result diverges even with unchanged final state")
+	end,
+	["optional fixture snapshots are cloned deterministic state"] = function()
+		local module = {}
+		local state = { count = 1 }
+		local instances = { [module] = {
+			snapshot = function()
+				return state
+			end,
+		} }
+		local first = qafixtures.snapshots({ module }, instances)
+		state.count = 2
+		local second = qafixtures.snapshots({ module }, instances)
+		assert(first[1].state.count == 1, "snapshot does not retain mutable fixture state")
+		assert(Journal.hash(first) ~= Journal.hash(second), "snapshot changes affect hash")
+		local noSnapshot = {}
+		assert(#qafixtures.snapshots({ noSnapshot }, { [noSnapshot] = {} }) == 0, "snapshot hook is optional")
+	end,
 	["declared fixture dispatch works without a scenario name binding"] = function()
 		local raw = scenario({
 			{ op = "join", player = "1" },
@@ -117,6 +167,14 @@ return {
 		assert(config.survivalDeath, "real death mechanism enabled")
 		local valid = qaharness.runNative(raw, actual)
 		assert(valid.ok, table.concat(valid.failures, "; "))
+		local journal = Journal.new({ seed = 0 })
+		local recorded = qaharness.runNative(raw, actual, nil, { journal = journal })
+		assert(recorded.stateHash == valid.stateHash, "recording does not alter non-fixture state")
+		local replayed = qaharness.runNative(raw, actual, nil, { replay = Journal.decode(Journal.encode(journal)) })
+		assert(
+			replayed.ok and replayed.stateHash == valid.stateHash and replayed.diverged == nil,
+			"bootstrap-crafting retains its core-only hash on replay"
+		)
 		local noAuthority = serde.decode("json", serde.encode("json", raw))
 		noAuthority.data.nativeDeath = nil
 		assert(not qaharness.runNative(noAuthority, actual).ok, "missing death services refuse")

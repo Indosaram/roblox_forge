@@ -1183,6 +1183,9 @@ function M.validate(raw: any): { string }
 		for _, section in ContentV2.SECTIONS do
 			table.insert(allowed, section)
 		end
+		for _, policy in ContentV2.POLICIES do
+			table.insert(allowed, policy)
+		end
 		for _, message in ContentV2.validate(raw) do
 			table.insert(errors, message)
 		end
@@ -1484,6 +1487,9 @@ function M.canonicalize(raw: any): (Document?, { string })
 		for _, section in ContentV2.SECTIONS do
 			(document :: any)[section] = ContentV2.canonical(raw[section], section)
 		end
+		for _, policy in ContentV2.POLICIES do
+			(document :: any)[policy] = ContentV2.canonical(raw[policy], policy)
+		end
 	end
 	return document, {}
 end
@@ -1496,6 +1502,9 @@ function M.projectV1(document: Document): any
 	projected.version = nil
 	for _, section in ContentV2.SECTIONS do
 		projected[section] = nil
+	end
+	for _, policy in ContentV2.POLICIES do
+		projected[policy] = nil
 	end
 	return projected
 end

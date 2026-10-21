@@ -880,3 +880,6 @@ structure_door,original,agent:omo/robango-pack-recovery,2026-10-21
 structure_roof,original,agent:omo/robango-pack-recovery,2026-10-21
 structure_pillar,original,agent:omo/robango-pack-recovery,2026-10-21
 structure_volcanic_wall,original,agent:omo/robango-pack-recovery,2026-10-21
+archipelago_expiry_imminent,original,agent:omo/robango-p2-integrate,2026-10-21
+archipelago_mission_gate,original,agent:omo/robango-p2-integrate,2026-10-21
+archipelago_evacuated,original,agent:omo/robango-p2-integrate,2026-10-21

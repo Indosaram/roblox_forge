@@ -1,0 +1,18 @@
+name: combat-tame-ride
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 4242
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/combat-tame-ride]
+steps:
+  - {op: join, player: owner}
+  - {op: creature_combat, player: owner, late: false}
+  - {op: expect_result, player: owner, field: data.outcome, equals: DODGE}
+  - {op: creature_combat, player: owner, late: true}
+  - {op: expect_result, player: owner, field: data.outcome, equals: HIT}
+  - {op: creature_tame_ride, player: owner}
+  - {op: expect_result, player: owner, field: data.ride, equals: protoceratops}
+  - {op: close, player: owner}

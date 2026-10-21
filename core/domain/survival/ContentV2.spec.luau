@@ -52,6 +52,17 @@ local function rejected(change: (any) -> (), fragment: string)
 end
 
 return {
+	["v2 policy rejects missing tree fields and unknown item policy references"] = function()
+		rejected(function(raw)
+			raw.progressionPolicy = { tree = {} }
+		end, "progressionPolicy.tree.maxLevel")
+		rejected(function(raw)
+			raw.progressionPolicy = { feed = { missing = true } }
+		end, "unknown item reference missing")
+		rejected(function(raw)
+			raw.progressionPolicy = { foodFamilies = { fiber = "unknown" } }
+		end, "expected stamina, recovery or resistance")
+	end,
 	["v2 carries every detailed catalog and validates recipe projection constraints"] = function()
 		local raw = fixture()
 		local p = { classification = "RECONSTRUCTED" }

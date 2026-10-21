@@ -880,3 +880,6 @@ structure_door,Door,entity door,Door,문
 structure_roof,Roof,entity roof,Roof,지붕
 structure_pillar,Pillar,entity pillar,Pillar,기둥
 structure_volcanic_wall,Volcanic Wall,entity volcanic-wall,Volcanic Wall,화산 벽
+archipelago_expiry_imminent,This island will expire soon. Choose another expedition.,archipelago entry refusal,This island will expire soon. Choose another expedition.,이 섬은 곧 소멸합니다. 다른 탐험을 선택하세요.
+archipelago_mission_gate,Finish both objectives before departing. You can return home at any time.,archipelago departure refusal,Finish both objectives before departing. You can return home at any time.,목표 두 개를 끝내야 다음 항로가 열려요. 귀가 항로는 항상 이용할 수 있어요.
+archipelago_evacuated,The island expired. Your carried items are safe on your return home.,archipelago expiry evacuation,The island expired. Your carried items are safe on your return home.,섬이 소멸했습니다. 소지품을 그대로 가지고 집으로 돌아갑니다.

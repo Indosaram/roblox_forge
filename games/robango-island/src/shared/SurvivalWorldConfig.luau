@@ -150,6 +150,7 @@ local nodes: { Node } = {
 	},
 }
 return {
+	["archipelago"] = { ["entryBufferSeconds"] = 30 },
 	["nodes"] = nodes,
 	["persistencePrefix"] = "s:24ec98ed6876c584",
 	["sourceKey"] = "nodes-v2",

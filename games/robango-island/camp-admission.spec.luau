@@ -13,6 +13,9 @@ local task = require("@lune/task")
 local Bootstrap = require("../../genres/survival-coop/module/SurvivalBootstrap")
 local Gathering = require("../../genres/survival-coop/module/Gathering")
 local Wildlife = require("../../genres/survival-coop/module/Wildlife")
+local Extensions = require("../../genres/survival-coop/module/Extensions")
+local HomeExtension = require("../../genres/survival-coop/module/HomeExtension")
+local LateEquipmentPorts = require("./src/server/LateEquipmentPorts")
 local Contract = require("../../genres/survival-coop/module/Contract")
 local Settlement = require("../../core/domain/settlement/Settlement")
 local Inventory = require("../../core/domain/inventory/Inventory")
@@ -42,7 +45,15 @@ local FIRST, SECOND, THIRD, FOURTH, EXTRA = "11734795308", "2001", "2002", "2003
 
 local forge = {
 	genres = {
-		["survival-coop"] = { module = { SurvivalBootstrap = Bootstrap, Gathering = Gathering, Wildlife = Wildlife } },
+		["survival-coop"] = {
+			module = {
+				SurvivalBootstrap = Bootstrap,
+				Gathering = Gathering,
+				Wildlife = Wildlife,
+				Extensions = Extensions,
+				HomeExtension = HomeExtension,
+			},
+		},
 	},
 	core = {
 		domain = {
@@ -56,6 +67,7 @@ local forge = {
 }
 local manualScheduling = false
 local environment: any = {
+	script = { Parent = { LateEquipmentPorts = LateEquipmentPorts } },
 	game = {
 		GetService = function()
 			return {

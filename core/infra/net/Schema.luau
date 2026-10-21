@@ -17,6 +17,7 @@ export type Validator = {
 	values: { [string]: boolean }?,
 	inner: Validator?,
 	fields: { Validator }?,
+	properties: { [string]: Validator }?,
 }
 
 export type Registry = {
@@ -34,6 +35,23 @@ local function validateValue(v: Validator, value: any): (boolean, string?)
 			return true, nil
 		end
 		return validateValue(inner, value)
+	elseif kind == "object" then
+		if type(value) ~= "table" or getmetatable(value) ~= nil then
+			return false, "expected object"
+		end
+		for key in value do
+			if not v.properties or v.properties[key] == nil then
+				return false, "unknown field"
+			end
+		end
+		local properties: { [string]: Validator } = v.properties or {}
+		for key, descriptor in properties do
+			local ok, reason = validateValue(descriptor, value[key])
+			if not ok then
+				return false, key .. ": " .. tostring(reason)
+			end
+		end
+		return true, nil
 	elseif kind == "number" then
 		if type(value) ~= "number" then
 			return false, "expected number"
@@ -106,6 +124,10 @@ end
 
 function Schema.boolean(): Validator
 	return { kind = "boolean" }
+end
+
+function Schema.object(properties: { [string]: Validator }): Validator
+	return { kind = "object", properties = properties }
 end
 
 function Schema.enum(values: { string }): Validator

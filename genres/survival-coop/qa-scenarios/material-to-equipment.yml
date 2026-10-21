@@ -1,0 +1,15 @@
+name: material-to-equipment
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/material-to-equipment]
+steps:
+  - {op: join, player: owner}
+  - {op: material_progression, player: owner}
+  - {op: expect_result, player: owner, field: data.armorChanged, equals: true}
+  - {op: expect_result, player: owner, field: data.readinessImproved, equals: true}
+  - {op: close, player: owner}

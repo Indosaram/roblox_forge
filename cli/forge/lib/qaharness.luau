@@ -541,6 +541,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	local fixture: any = nil
 	local registry = qafixtures.load(scenario.fixtures, qascenario.OPERATIONS)
 	local fixtureInstances: { any } = {}
+	local fixtureJournal = {}
 	local fixtureContext: any = {
 		backend = gate.backend,
 		clock = clock,
@@ -655,7 +656,14 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		if not tamingFixture then
 			return nil
 		end
-		local policy: any = luau.load(fs.readFile("games/" .. scenario.pack .. "/src/shared/TamingConfig.luau"))()
+		local policy: any = luau.load(fs.readFile("games/" .. scenario.pack .. "/src/shared/TamingConfig.luau"), {
+			environment = {
+				require = function(path)
+					assert(path == "./SurvivalContent", "UNSUPPORTED_POLICY_IMPORT")
+					return luau.load(fs.readFile("games/" .. scenario.pack .. "/src/shared/SurvivalContent.luau"))()
+				end,
+			},
+		})()
 		for key, value in tamingFixture.policy or {} do
 			if key == "taming" then
 				for inner, innerValue in value do
@@ -1083,8 +1091,46 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 			end
 			local module = registry.operations[op]
 			if module then
+				local entry: Journal.Entry = {
+					kind = "command",
+					action = qafixtures.JOURNAL_PREFIX .. op,
+					actor = playerOf(step),
+					atMillis = nowMillis(),
+					args = { deepClone(step) },
+				}
+				local expected = if replaying then journalStep(entry) else nil
+				if
+					expected
+					and (
+						expected.action ~= entry.action
+						or expected.actor ~= entry.actor
+						or expected.atMillis ~= entry.atMillis
+						or not expected.args
+						or Journal.hash(expected.args[1]) ~= Journal.hash(step)
+					)
+				then
+					outcome.diverged = outcome.diverged or string.format("fixture entry %d: inputs differ", cursor)
+					return outcome.diverged
+				end
+				local input = if expected then deepClone((expected.args :: { any })[1]) else step
+				local actor = playerOf(input)
+				local previous = results[actor]
+				local previousHash = Journal.hash(previous or {})
 				fixtureContext.fixture = fixtureInstances[module]
-				return module.operations[op](fixtureContext, step)
+				local passed, failure = pcall(module.operations[op], fixtureContext, input)
+				local fixtureDetail = if passed then failure else tostring(failure)
+				local changed = results[actor] ~= previous or Journal.hash(results[actor] or {}) ~= previousHash
+				local result = qafixtures.result(if passed and changed then results[actor] else nil, fixtureDetail)
+				entry.args = { deepClone(input), result }
+				table.insert(fixtureJournal, deepClone(entry))
+				if expected then
+					if Journal.hash(expected) ~= Journal.hash(entry) then
+						outcome.diverged = outcome.diverged or string.format("fixture entry %d: result differs", cursor)
+					end
+				else
+					journalStep(entry)
+				end
+				return fixtureDetail
 			end
 			return string.format("operation '%s' has no native driver", tostring(op))
 		end)
@@ -1112,7 +1158,12 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	for _, id in session.members() do
 		snapshots[id] = session.snapshot(id)
 	end
-	outcome.stateHash = Journal.hash({ store = gate.snapshot(), snapshots = snapshots })
+	local state: any = { store = gate.snapshot(), snapshots = snapshots }
+	if #fixtureJournal > 0 then
+		state.fixtures =
+			{ operations = fixtureJournal, snapshots = qafixtures.snapshots(registry.modules, fixtureInstances) }
+	end
+	outcome.stateHash = Journal.hash(state)
 	if recording then
 		recording:finish(outcome.stateHash :: string)
 	end

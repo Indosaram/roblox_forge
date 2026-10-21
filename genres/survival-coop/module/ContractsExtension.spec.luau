@@ -11,7 +11,8 @@ local PersonalAggregate = require("../../../core/infra/data/PersonalAggregate")
 
 local function content(): any
 	local document = serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))
-	return assert(Content.canonicalize(document))
+	local canonical, errors = Content.canonicalize(document)
+	return assert(canonical, table.concat(errors, "; "))
 end
 
 local function bagWith(document: any, items: { { string | number } }): any

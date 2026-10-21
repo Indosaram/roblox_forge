@@ -1,0 +1,28 @@
+name: archipelago-chain
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/archipelago]
+steps:
+  - {op: join, player: owner}
+  - {op: archi_open, player: owner}
+  - {op: archi_next, player: owner, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: mission_gate}
+  - {op: archi_settle, player: owner}
+  - {op: archi_next, player: owner}
+  - {op: archi_next, player: owner, expect: refused}
+  - {op: archi_settle, player: owner}
+  - {op: archi_next, player: owner}
+  - {op: archi_next, player: owner, expect: refused}
+  - {op: archi_settle, player: owner}
+  - {op: archi_next, player: owner}
+  - {op: archi_next, player: owner, expect: refused}
+  - {op: archi_settle, player: owner}
+  - {op: archi_next, player: owner}
+  - {op: archi_next, player: owner, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: expedition_inactive}
+  - {op: close, player: owner}

@@ -6,7 +6,8 @@ local CampPanel = require("./CampPanelModel")
 local Content = require("../../../core/domain/survival/Content")
 
 local function content(): Content.Document
-	return assert(Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))))
+	local document, errors = Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml")))
+	return assert(document, table.concat(errors, "; "))
 end
 
 return {

@@ -534,9 +534,14 @@ function M.runScenario(args: { string }, registry: registryLib.Registry, context
 			return false
 		end
 		-- The journal names the scenario as <genre>:<name> so replay resolves it
-		-- the same way; the pack comes from the scenario's own binding.
+		-- the same way; bind reusable scenarios to the target actually executed.
 		local journal = if recordPath ~= nil
-			then Journal.new({ seed = raw.seed or 0, genre = raw.genre, scenario = raw.genre .. ":" .. raw.name })
+			then Journal.new({
+				seed = raw.seed or 0,
+				genre = raw.genre,
+				scenario = raw.genre .. ":" .. raw.name,
+				pack = pack,
+			})
 			else nil
 		local nativeOutcome = qaharness.runNative(raw, target :: qaharness.Target, nil, { journal = journal })
 		for _, failure in nativeOutcome.failures do

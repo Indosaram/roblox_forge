@@ -7,10 +7,13 @@ local Inventory = require(Forge.core.domain.inventory.Inventory)
 local Job = require(Forge.core.domain.crafting.Job)
 local Clock = require(Forge.core.infra.genre.Clock)
 local Wildlife = require(Forge.genres["survival-coop"].module.Wildlife)
+local HomeExtension = require(Forge.genres["survival-coop"].module.HomeExtension)
+local Extensions = require(Forge.genres["survival-coop"].module.Extensions)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	-- The rendered module also carries capability metadata, not domain content.
 	content = table.clone(content)
 	content.capability = nil
+	require(script.Parent.LateEquipmentPorts).bind(world)
 	local definitions = {}
 	for _, definition in content.structures do
 		definitions[definition.id] = {
@@ -66,10 +69,19 @@ return function(content: any, source, world, backend, clock, options, provision,
 			maxReceipts = wildlifePolicy.maxReceipts,
 		}
 	end
+	local extensionFactories = table.clone(Extensions.factories)
+	if world.home then
+		table.insert(extensionFactories, function(ctx)
+			local config = table.clone(world.home)
+			config.content, config.store, config.now = ctx.content, ctx.store, ctx.now
+			return HomeExtension.new(config)
+		end)
+	end
 	local factory, err = Bootstrap.new({
 		sourceKey = prefix .. ":" .. source.sourceKey,
 		initial = Gathering.new(source.worldRevision, content, source.nodes),
 		content = content,
+		extensions = extensionFactories,
 		now = seconds,
 		nowMillis = function()
 			return Clock.millis(clock.now())

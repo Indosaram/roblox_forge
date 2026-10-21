@@ -1,0 +1,14 @@
+name: volcano-progression
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 113
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/volcano]
+steps:
+  - {op: join, player: owner}
+  - {op: volcano_progression, player: owner}
+  - {op: expect_result, player: owner, field: data.boots, equals: lava-protection-boots}
+  - {op: close, player: owner}

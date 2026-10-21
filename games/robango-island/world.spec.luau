@@ -11,7 +11,14 @@ local IslandTerrain = require("./src/shared/IslandTerrain")
 local PACK = "games/robango-island"
 
 local function load(path: string): any
-	return luau.load(fs.readFile(PACK .. "/" .. path))()
+	return luau.load(fs.readFile(PACK .. "/" .. path), {
+		environment = {
+			require = function(dependency)
+				assert(dependency == "./SurvivalContent", "unexpected world policy dependency")
+				return luau.load(fs.readFile(PACK .. "/src/shared/SurvivalContent.luau"))()
+			end,
+		},
+	})()
 end
 
 local function contentIds(kind: string): { string }

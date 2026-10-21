@@ -18,6 +18,7 @@ export type V2_attributes = {
 	sharpness: number,
 }
 export type V2_bounds = { max: V2_point, min: V2_point }
+export type V2_buffStrength = { recovery: number, resistance: number, stamina: number }
 export type V2_chapters = {
 	dialogueKeys: { string },
 	gates: V2_gate,
@@ -26,6 +27,7 @@ export type V2_chapters = {
 	provenance: V2_provenance,
 	rewards: V2_rewards,
 }
+export type V2_climateResistance = { cold: number, heat: number }
 export type V2_drop = { item: string, quantity: number, skillNode: string? }
 export type V2_effect = { id: string, unit: string, value: number }
 export type V2_gate = {
@@ -115,6 +117,34 @@ export type V2_operations = {
 }
 export type V2_path = { id: string, points: { V2_point }, width: number }
 export type V2_point = { x: number, y: number, z: number }
+export type V2_progressionPolicy = {
+	buffSeconds: number,
+	buffStrength: V2_buffStrength,
+	clothing: { [string]: V2_climateResistance },
+	energyBase: number,
+	energyNutrition: number,
+	exposureFatigue: number,
+	exposureHealth: number,
+	feed: { [string]: boolean },
+	flexibilityWear: number,
+	foodFamilies: { [string]: string },
+	healthBase: number,
+	insulationCold: number,
+	maxVital: number,
+	minimumWear: number,
+	precision: number,
+	sharpnessPerPoint: number,
+	tree: V2_progressionTree,
+	volcano: V2_volcano?,
+}
+export type V2_progressionTree = {
+	actionXP: number,
+	maxLevel: number,
+	maxMastery: number,
+	spPerLevel: number,
+	xpBase: number,
+	xpStep: number,
+}
 export type V2_provenance = { classification: string, sourceId: string? }
 export type V2_quantity = { item: string, quantity: number }
 export type V2_recipeDetails = {
@@ -170,6 +200,17 @@ export type V2_stages = {
 	provenance: V2_provenance,
 }
 export type V2_supportRegions = { gates: V2_gate, id: string, layout: string, provenance: V2_provenance, role: string }
+export type V2_volcano = {
+	bootsItem: string,
+	bootsMultiplier: number,
+	clearSeconds: number,
+	fatiguePerSecond: number,
+	healthPerSecond: number,
+	lavaMaxHealthFraction: number,
+	springRecovery: number,
+	stormMultiplier: number,
+	stormSeconds: number,
+}
 export type V2_wildlifeDetails = {
 	attacks: { V2_attack },
 	behaviour: string,
@@ -308,6 +349,7 @@ export type Content = {
 	missions: { V2_missions }?,
 	guides: { V2_guides }?,
 	chapters: { V2_chapters }?,
+	progressionPolicy: V2_progressionPolicy?,
 }
 local function v2_anchor(value: V2_anchor): V2_anchor
 	return value
@@ -15093,8 +15135,8 @@ local content: Content = {
 		v2_operations({
 			auxiliaryInputs = {},
 			effects = { v2_effect({ id = "flexibility", unit = "attribute", value = 2 }) },
-			eligibleTags = { "clothing" },
-			gates = v2_gate({ characterLevel = 30 }),
+			eligibleTags = { "clothing", "saddle" },
+			gates = v2_gate({ characterLevel = 30, skillNodes = { "tailoring_4" } }),
 			id = "modify-flexibility",
 			inputs = { v2_quantity({ item = "thick-leather", quantity = 2 }) },
 			kind = "modifier",
@@ -15110,7 +15152,7 @@ local content: Content = {
 			auxiliaryInputs = {},
 			effects = { v2_effect({ id = "hardness", unit = "attribute", value = 2 }) },
 			eligibleTags = { "clothing" },
-			gates = v2_gate({ characterLevel = 30 }),
+			gates = v2_gate({ characterLevel = 30, skillNodes = { "tailoring_4" } }),
 			id = "modify-hardness",
 			inputs = { v2_quantity({ item = "iron", quantity = 2 }) },
 			kind = "modifier",
@@ -15126,7 +15168,7 @@ local content: Content = {
 			auxiliaryInputs = {},
 			effects = { v2_effect({ id = "insulation", unit = "attribute", value = 2 }) },
 			eligibleTags = { "clothing" },
-			gates = v2_gate({ characterLevel = 30 }),
+			gates = v2_gate({ characterLevel = 30, skillNodes = { "tailoring_4" } }),
 			id = "modify-insulation",
 			inputs = { v2_quantity({ item = "fur-leather", quantity = 2 }) },
 			kind = "modifier",
@@ -15142,7 +15184,7 @@ local content: Content = {
 			auxiliaryInputs = {},
 			effects = { v2_effect({ id = "sharpness", unit = "attribute", value = 2 }) },
 			eligibleTags = { "weapon-tool" },
-			gates = v2_gate({ characterLevel = 30 }),
+			gates = v2_gate({ characterLevel = 30, skillNodes = { "weapon_tool_4" } }),
 			id = "modify-sharpness",
 			inputs = { v2_quantity({ item = "polished-bone", quantity = 2 }) },
 			kind = "modifier",
@@ -15690,6 +15732,65 @@ local content: Content = {
 			stationTier = 2,
 			tier = 3,
 		}),
+	},
+	progressionPolicy = {
+		buffSeconds = 300,
+		buffStrength = { recovery = 1, resistance = 2, stamina = 0.05 },
+		clothing = {
+			["cold-bag"] = { cold = 2, heat = 0 },
+			["cold-bottom"] = { cold = 2, heat = 0 },
+			["cold-gloves"] = { cold = 2, heat = 0 },
+			["cold-head"] = { cold = 2, heat = 0 },
+			["cold-shoes"] = { cold = 2, heat = 0 },
+			["cold-top"] = { cold = 2, heat = 0 },
+			["temperate-bag"] = { cold = 1, heat = 1 },
+			["temperate-bottom"] = { cold = 1, heat = 1 },
+			["temperate-gloves"] = { cold = 1, heat = 1 },
+			["temperate-head"] = { cold = 1, heat = 1 },
+			["temperate-shoes"] = { cold = 1, heat = 1 },
+			["temperate-top"] = { cold = 1, heat = 1 },
+			["tropical-bag"] = { cold = 0, heat = 2 },
+			["tropical-bottom"] = { cold = 0, heat = 2 },
+			["tropical-gloves"] = { cold = 0, heat = 2 },
+			["tropical-head"] = { cold = 0, heat = 2 },
+			["tropical-shoes"] = { cold = 0, heat = 2 },
+			["tropical-top"] = { cold = 0, heat = 2 },
+		},
+		energyBase = 10,
+		energyNutrition = 2,
+		exposureFatigue = 0.4,
+		exposureHealth = 0.2,
+		feed = { ["carnivore-feed"] = true, ["herbivore-feed"] = true, ["recovery-feed"] = true },
+		flexibilityWear = 0.03,
+		foodFamilies = {
+			["baked-apple"] = "resistance",
+			["banana-mash"] = "stamina",
+			["corn-porridge"] = "stamina",
+			["fig-stew"] = "recovery",
+			["meat-potato-stew"] = "recovery",
+			["onion-meat-skewer"] = "stamina",
+			["onion-soup"] = "recovery",
+			["rex-meat-stew"] = "resistance",
+			["wheat-flatbread"] = "stamina",
+		},
+		healthBase = 5,
+		insulationCold = 0.1,
+		maxVital = 100,
+		minimumWear = 0.5,
+		precision = 1000,
+		sharpnessPerPoint = 0.02,
+		tree = { actionXP = 10, maxLevel = 60, maxMastery = 60, spPerLevel = 3, xpBase = 50, xpStep = 10 },
+		volcano = {
+			bootsItem = "lava-protection-boots",
+			bootsMultiplier = 0.5,
+			clearSeconds = 300,
+			fatiguePerSecond = 2,
+			healthPerSecond = 1,
+			lavaMaxHealthFraction = 0.25,
+			springRecovery = 5,
+			stormMultiplier = 2,
+			stormSeconds = 120,
+		},
 	},
 	recipeDetails = {
 		v2_recipeDetails({

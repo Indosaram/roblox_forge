@@ -62,6 +62,103 @@ local camera = QuarterView.start()
 gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
 
+local DinosaurRig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+local function startCreatureAnimation(rigPose: (Model, string, number, number) -> ()): { destroy: () -> () }
+	local RunService = game:GetService("RunService")
+	local registry: { [Model]: { state: string, elapsed: number } } = {}
+	local connections: { RBXScriptConnection } = {}
+	local destroyed = false
+	local function discover(instance: Instance)
+		local model = if instance:IsA("Model") then instance else instance:FindFirstAncestorOfClass("Model")
+		if
+			model
+			and model:IsA("Model")
+			and model:FindFirstChild("Torso")
+			and model:FindFirstChild("HumanoidRootPart")
+		then
+			registry[model] = registry[model] or { state = "idle", elapsed = 0 }
+		end
+	end
+	local function bind(folder: Instance)
+		for _, child in folder:GetDescendants() do
+			discover(child)
+		end
+		table.insert(connections, folder.DescendantAdded:Connect(discover))
+		table.insert(
+			connections,
+			folder.DescendantRemoving:Connect(function(child)
+				if child:IsA("Model") then
+					registry[child] = nil
+				end
+			end)
+		)
+	end
+	for _, child in workspace:GetChildren() do
+		if child.Name == "Wildlife" or child.Name == "OwnedCreatures" then
+			bind(child)
+		end
+	end
+	table.insert(
+		connections,
+		workspace.ChildAdded:Connect(function(child)
+			if child.Name == "Wildlife" or child.Name == "OwnedCreatures" then
+				bind(child)
+			end
+		end)
+	)
+	table.insert(
+		connections,
+		RunService.RenderStepped:Connect(function(dt)
+			local viewCamera = workspace.CurrentCamera
+			for model, animation in registry do
+				local root = model.PrimaryPart
+				if not model:IsDescendantOf(workspace) then
+					registry[model] = nil
+					continue
+				end
+				if not root then
+					continue
+				end
+				local distance = if viewCamera then (viewCamera.CFrame.Position - root.Position).Magnitude else 0
+				local humanoid = model:FindFirstChildOfClass("Humanoid")
+				local speed = root.AssemblyLinearVelocity.Magnitude
+				local explicit = model:GetAttribute("AnimationState") or model:GetAttribute("Mode")
+				local state = if humanoid and humanoid.Health <= 0
+					then "dead"
+					elseif type(explicit) == "string" then explicit
+					elseif model:GetAttribute("Rider") then "ridden"
+					elseif speed > 14 then "run"
+					elseif speed > 0.5 then "walk"
+					else "idle"
+				if state ~= animation.state then
+					animation.state, animation.elapsed = state, 0
+				end
+				animation.elapsed += dt
+				-- At long range hold the articulated silhouette. Telegraphs remain active.
+				if distance <= 100 or state == "telegraph" or state == "windup" or state == "warn" then
+					rigPose(model, state, animation.elapsed, speed)
+				end
+			end
+		end)
+	)
+	return {
+		destroy = function()
+			if destroyed then
+				return
+			end
+			destroyed = true
+			for _, connection in connections do
+				connection:Disconnect()
+			end
+			table.clear(connections)
+			table.clear(registry)
+		end,
+	}
+end
+local creatureAnimation = startCreatureAnimation(DinosaurRig.pose)
+gui.Destroying:Connect(creatureAnimation.destroy)
+script.Destroying:Connect(creatureAnimation.destroy)
+
 local ProcAssets = require(Forge.core.infra.render.ProcAssets)
 local ProcAssetsSpecs = require(Shared.ProcAssets)
 task.spawn(function()
@@ -89,49 +186,5 @@ task.spawn(function()
 				built.Parent = island
 			end
 		end
-	end
-	local wildlife = workspace:WaitForChild("Wildlife", 15)
-	if wildlife then
-		local function attachCreatureMesh(rig: Instance)
-			if not rig:IsA("Model") or rig:FindFirstChild("ProcCreatureMesh") then
-				return
-			end
-			local torso = rig:FindFirstChild("Torso")
-			if not torso or not torso:IsA("BasePart") then
-				return
-			end
-			local isHunter = rig:FindFirstChild("Arm1") ~= nil
-			local key = if isHunter then "robango-amber-hunter" else "robango-crest-grazer"
-			local built = ProcAssets.build(ProcAssetsSpecs, key, "ProcCreatureMesh")
-			if built and built.PrimaryPart then
-				for _, d in built:GetDescendants() do
-					if d:IsA("BasePart") then
-						d.Anchored = false
-						d.CanCollide = false
-						d.CanQuery = false
-						d.CanTouch = false
-						d.Massless = true
-						if d ~= built.PrimaryPart then
-							local w = Instance.new("WeldConstraint")
-							w.Part0 = built.PrimaryPart
-							w.Part1 = d
-							w.Parent = d
-						end
-					end
-				end
-				built:PivotTo(torso.CFrame * CFrame.new(0, 0.2, 0))
-				local weld = Instance.new("WeldConstraint")
-				weld.Part0 = torso
-				weld.Part1 = built.PrimaryPart
-				weld.Parent = built.PrimaryPart
-				built.Parent = rig
-			end
-		end
-		for _, child in wildlife:GetChildren() do
-			task.spawn(attachCreatureMesh, child)
-		end
-		wildlife.ChildAdded:Connect(function(child)
-			task.defer(attachCreatureMesh, child)
-		end)
 	end
 end)

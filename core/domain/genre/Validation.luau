@@ -139,6 +139,16 @@ function M.validateValidator(v: any, depth: number): boolean
 	if v.kind == "boolean" then
 		return true
 	end
+	if v.kind == "object" and type(v.properties) == "table" then
+		local count = 0
+		for key, descriptor in v.properties do
+			if type(key) ~= "string" or #key == 0 or #key > 128 or not M.validateValidator(descriptor, depth + 1) then
+				return false
+			end
+			count += 1
+		end
+		return count <= 64
+	end
 	if v.kind == "number" then
 		return (v.min == nil or M.finite(v.min))
 			and (v.max == nil or M.finite(v.max))

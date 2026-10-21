@@ -16,8 +16,8 @@
 -- Bag charges (tool wear, one food item) touch the personal aggregate, which is a different
 -- key, so they are two-phase: the receipt (with the charge descriptor and the bag version it
 -- was staged against) commits first, then the bag is charged and the receipt marked charged.
--- A retry or `recover` resumes an uncharged receipt. A charge is applied only while the bag is
--- still at the staged version, so a charge can be lost to a crash but is never applied twice.
+-- A retry or `recover` resumes an uncharged receipt. The personal aggregate writes
+-- the material debit and its receipt atomically, independent of unrelated bag revisions.
 -- Randomness is TamingRuntime's recorded seed; time is the injected ctx.nowMillis.
 local Taming = require("../../../core/domain/taming/Taming")
 local Inventory = require("../../../core/domain/inventory/Inventory")
@@ -247,7 +247,7 @@ function M.factory(ctx: any): any
 		return list
 	end
 
-	local function applyCharge(actor: string, charge: any): string?
+	local function applyCharge(actor: string, requestId: string, charge: any): string?
 		local access, _, err = bagOf(actor)
 		if not access then
 			return err
@@ -256,28 +256,39 @@ function M.factory(ctx: any): any
 		if not profile then
 			return "PERSONAL_UNKNOWN"
 		end
-		local envelope = copy(profile.data.envelope)
-		local data = envelope.genres["survival-coop"].data
-		local bag = Inventory.fromSave(data.inventory[config.carriedContainer], items)
-		if bag.version ~= charge.bagVersion or not bag.items[charge.itemId] then
-			return nil -- already applied (or the item is gone): never charge twice
-		end
-		if charge.kind == "tool" then
-			bag.items[charge.itemId].durabilityMilli = charge.durabilityMilli
-			bag.version += 1
-		else
-			local updated, reason = Inventory.consume(bag, charge.itemId, 1, bag.version)
-			if not updated then
-				return reason
+		local reason: string? = nil
+		local saved, commitError = access.personal:update(profile, function(view)
+			local receiptKey = "taming:" .. actor .. ":" .. requestId
+			local receipts = view.itemTransfers.receipts
+			if receipts[receiptKey] then
+				return view
 			end
-			bag = updated
-		end
-		data.inventory[config.carriedContainer] = Inventory.save(bag)
-		local saved, commitError = access.personal:commit(profile, profile.data.stateRevision, envelope, nil)
+			local data = view.envelope.genres["survival-coop"].data
+			local bag = Inventory.fromSave(data.inventory[config.carriedContainer], items)
+			local item = bag.items[charge.itemId]
+			if not item or Inventory.available(bag, charge.itemId) < 1 then
+				reason = "CHARGE_ITEM_MISSING"
+				return view
+			end
+			if charge.kind == "tool" then
+				item.durabilityMilli = math.min(item.durabilityMilli, charge.durabilityMilli)
+				bag.version += 1
+			else
+				local updated, consumeError = Inventory.consume(bag, charge.itemId, 1, bag.version)
+				if not updated then
+					reason = consumeError
+					return view
+				end
+				bag = updated
+			end
+			data.inventory[config.carriedContainer] = Inventory.save(bag)
+			receipts[receiptKey] = { kind = "taming-charge", requestId = requestId }
+			return view
+		end)
 		if saved then
 			access.install(saved)
 		end
-		return if not saved then commitError or "PERSONAL_UNKNOWN" else commitError
+		return if not saved then commitError or "PERSONAL_UNKNOWN" else reason or commitError
 	end
 
 	--- Charges one uncharged receipt and marks it. Returns an error reason on failure.
@@ -316,7 +327,7 @@ function M.factory(ctx: any): any
 		if not receipt or receipt.charged then
 			return nil
 		end
-		local err = applyCharge(actor, receipt.charge)
+		local err = applyCharge(actor, requestId, receipt.charge)
 		if err then
 			return err
 		end
@@ -659,6 +670,13 @@ function M.factory(ctx: any): any
 			end
 			return finish(actor, requestId, copy(known.result))
 		end
+		-- A committed animal/pen is not usable until its material debt settles.
+		-- A different request must never ride or feed around a failed charge.
+		for _, receipt in profile.data.receipts do
+			if open(receipt) then
+				return { ok = false, reason = "CHARGE_PENDING", data = { status = "pending" } }
+			end
+		end
 		return handlers[name](actor, requestId, args, profile)
 	end
 
@@ -704,6 +722,12 @@ function M.factory(ctx: any): any
 		end
 		table.sort(feeds)
 		local ride = runtime.recorded(actor)
+		for _, receipt in profile.data.receipts do
+			if open(receipt) then
+				ride = nil
+				break
+			end
+		end
 		local gauge = nil
 		local targetId = lastTarget[actor]
 		local level = if targetId then runtime.gaugeLevel(targetId) else nil

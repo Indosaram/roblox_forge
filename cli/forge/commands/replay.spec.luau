@@ -68,6 +68,39 @@ local function rewrite(path: string, mutate: (any) -> ())
 end
 
 return {
+	["a mutated fixture result replays to MISMATCH"] = function()
+		local root = tempdir.path("forge-fixture-replay")
+		local ok, reason = xpcall(function()
+			fs.writeDir(root)
+			local path = root .. "/journal.json"
+			local registry = assert(registryLib.discover(nil))
+			assert(
+				qa.runScenario(
+					{ "qa", "run", "--pack", "robango-island", "--scenario", "archipelago-chain", "--record", path },
+					registry,
+					nil
+				)
+			)
+			local io = capture()
+			assert(replay.run({ "replay", path }, io) == 0, "fixture journal MATCHes")
+			local mutated = false
+			rewrite(path, function(slot)
+				if slot.entry.action == "fixture:archi_open" then
+					slot.entry.args[2] = { ok = false, reason = "mutated-result" }
+					mutated = true
+				end
+			end)
+			assert(mutated, "fixture result changed")
+			local mismatch, out, err = capture()
+			assert(replay.run({ "replay", path }, mismatch) == 1, "result mutation exits MISMATCH")
+			assert(string.find(table.concat(out), "replay: MISMATCH", 1, true))
+			assert(string.find(table.concat(err), "result differs", 1, true))
+		end, debug.traceback)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
 	["a recorded native run replays to MATCH"] = function()
 		withJournal("command-replay", function(path)
 			local journal = Journal.decode(fs.readFile(path))

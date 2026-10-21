@@ -209,9 +209,15 @@ function M.render(document: Content.Document, mode: string): string
 		for _, section in ContentV2.SECTIONS do
 			(payload :: any)[section] = (document :: any)[section]
 		end
+		for _, policy in ContentV2.POLICIES do
+			(payload :: any)[policy] = (document :: any)[policy]
+		end
 		local extra = ""
 		for _, section in ContentV2.SECTIONS do
 			extra ..= "\t" .. section .. ": { V2_" .. section .. " }?,\n"
+		end
+		for _, policy in ContentV2.POLICIES do
+			extra ..= "\t" .. policy .. ": V2_" .. policy .. "?,\n"
 		end
 		typeSource = ContentV2.types() .. "\n" .. typeSource:sub(1, -2) .. extra .. "}"
 	end

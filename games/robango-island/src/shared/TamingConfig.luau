@@ -37,47 +37,16 @@ local policy = {
 	hitCooldownMillis = 500,
 	wildRespawnMillis = 300000,
 }
--- V2 cargo is slot-based; do not turn slots into a player weight bonus.
-table.insert(policy.tameable, "compsognathus")
-policy.mounts.species["compsognathus"] = { rideable = false, rideSpeedStuds = 0, carryMilli = 0 }
-table.insert(policy.tameable, "oviraptor")
-policy.mounts.species["oviraptor"] = { rideable = false, rideSpeedStuds = 0, carryMilli = 0 }
-table.insert(policy.tameable, "protoceratops")
-policy.mounts.species["protoceratops"] = { rideable = true, rideSpeedStuds = 13, carryMilli = 0 }
-table.insert(policy.tameable, "gallimimus")
-policy.mounts.species["gallimimus"] = { rideable = true, rideSpeedStuds = 30, carryMilli = 0 }
-table.insert(policy.tameable, "parasaurolophus")
-policy.mounts.species["parasaurolophus"] = { rideable = true, rideSpeedStuds = 20, carryMilli = 0 }
-table.insert(policy.tameable, "stegosaurus")
-policy.mounts.species["stegosaurus"] = { rideable = true, rideSpeedStuds = 12, carryMilli = 0 }
-table.insert(policy.tameable, "ankylosaurus")
-policy.mounts.species["ankylosaurus"] = { rideable = true, rideSpeedStuds = 10, carryMilli = 0 }
-table.insert(policy.tameable, "triceratops")
-policy.mounts.species["triceratops"] = { rideable = true, rideSpeedStuds = 18, carryMilli = 0 }
-table.insert(policy.tameable, "utahraptor")
-policy.mounts.species["utahraptor"] = { rideable = true, rideSpeedStuds = 25, carryMilli = 0 }
-table.insert(policy.tameable, "velociraptor")
-policy.mounts.species["velociraptor"] = { rideable = true, rideSpeedStuds = 24, carryMilli = 0 }
-table.insert(policy.tameable, "dilophosaurus")
-policy.mounts.species["dilophosaurus"] = { rideable = true, rideSpeedStuds = 20, carryMilli = 0 }
-table.insert(policy.tameable, "allosaurus")
-policy.mounts.species["allosaurus"] = { rideable = true, rideSpeedStuds = 23, carryMilli = 0 }
-table.insert(policy.tameable, "smilodon")
-policy.mounts.species["smilodon"] = { rideable = true, rideSpeedStuds = 26, carryMilli = 0 }
-table.insert(policy.tameable, "tropicalSmilodon")
-policy.mounts.species["tropicalSmilodon"] = { rideable = true, rideSpeedStuds = 27, carryMilli = 0 }
-table.insert(policy.tameable, "direWolf")
-policy.mounts.species["direWolf"] = { rideable = true, rideSpeedStuds = 25, carryMilli = 0 }
-table.insert(policy.tameable, "mammoth")
-policy.mounts.species["mammoth"] = { rideable = true, rideSpeedStuds = 16, carryMilli = 0 }
-table.insert(policy.tameable, "boar")
-policy.mounts.species["boar"] = { rideable = true, rideSpeedStuds = 17, carryMilli = 0 }
-table.insert(policy.tameable, "deer")
-policy.mounts.species["deer"] = { rideable = true, rideSpeedStuds = 25, carryMilli = 0 }
-table.insert(policy.tameable, "elephant")
-policy.mounts.species["elephant"] = { rideable = true, rideSpeedStuds = 16, carryMilli = 0 }
-table.insert(policy.tameable, "turtle")
-policy.mounts.species["turtle"] = { rideable = false, rideSpeedStuds = 0, carryMilli = 0 }
-table.insert(policy.tameable, "dodo")
-policy.mounts.species["dodo"] = { rideable = false, rideSpeedStuds = 0, carryMilli = 0 }
+local content = require("./SurvivalContent")
+for _, species in assert(content.wildlifeDetails, "species catalog") do
+	if species.captureClass ~= "never" then
+		table.insert(policy.tameable, species.id)
+	end
+	policy.mounts.species[species.id] = {
+		rideable = species.mount.enabled,
+		rideSpeedStuds = if species.mount.enabled then species.mount.runSpeed else 0,
+		carryMilli = 0,
+	}
+end
+policy.maxAnimalsPerOwner = 8
 return policy
