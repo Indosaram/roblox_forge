@@ -360,7 +360,10 @@ function M.start(options: {
 			objectiveSlot.AnchorPoint = Vector2.zero
 			objectiveSlot.Position = UDim2.fromOffset(objective.x, objective.y)
 			objectiveSlot.Size = UDim2.fromOffset(objective.width, objective.height)
-			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 8)
+			-- Keep the activation rectangle below Roblox's reserved topbar band.
+			-- A GUI hit-test can report the button inside that band even though
+			-- Roblox consumes the mouse press before GuiButton activation.
+			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 66)
 			column.Size = UDim2.fromOffset(64, 44)
 			menuList.Parent = dockGui
 			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)

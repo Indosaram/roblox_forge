@@ -1,6 +1,7 @@
 --!strict
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local roblox: any = require("@lune/roblox")
 local Transport = require("../../../../core/infra/genre/CommandTransport")
 local function event(): any
 	local listeners: { { connection: any, callback: (...any) -> () } } = {}
@@ -193,7 +194,12 @@ local client = luau.load(fs.readFile("genres/survival-coop/module/GatheringClien
 			end,
 		},
 		Instance = { new = instance },
-		Enum = { KeyCode = { E = "E" }, ScreenInsets = { CoreUISafeInsets = "CoreUISafeInsets" } },
+		Color3 = roblox.Color3,
+		Enum = {
+			KeyCode = { E = "E" },
+			ScreenInsets = { CoreUISafeInsets = "CoreUISafeInsets" },
+			Font = { GothamBold = "GothamBold" },
+		},
 		UDim2 = {
 			fromOffset = function(x, y)
 				return { X = x, Y = y }
@@ -221,12 +227,7 @@ local resource = client.start({
 })
 local function prompt(part): any
 	for _, object in objects do
-		if
-			object.ClassName == "ProximityPrompt"
-			and object.Parent
-			and object.Parent.Parent == part
-			and object ~= authored
-		then
+		if object.ClassName == "ProximityPrompt" and object.Parent and object.Parent == part and object ~= authored then
 			return object
 		end
 	end
@@ -242,12 +243,8 @@ assert(
 	input.Name == "ForgeGather" and input.KeyboardKeyCode == "E" and input.ClickablePrompt,
 	"keyboard and touch input"
 )
-assert(input.MaxActivationDistance == 8 and input.RequiresLineOfSight and input.Enabled, "prompt range and sight")
-assert(
-	input.Parent.ClassName == "Attachment" and input.Parent.Position.Y == 3,
-	"prompt anchored above resource geometry"
-)
-local ownedAnchor = input.Parent
+assert(input.MaxActivationDistance == 8 and not input.RequiresLineOfSight and input.Enabled, "prompt range and sight")
+assert(input.Parent == tree and input.Parent:IsA("BasePart"), "prompt stays at the server reach point")
 assert(handshakes == 1 and broadcasts == 1 and #calls == 0, "initial handshake only")
 input.Triggered:Fire({ UserId = 2 })
 assert(#calls == 0, "other player ignored")
@@ -378,7 +375,7 @@ input.Triggered:Fire(player)
 added:Fire(node("after-dispose"))
 assert(#calls == 14, "disposed input ignored")
 assert(resultEvent.destroyed, "owned result event disposed")
-assert(ownedAnchor.destroyed, "owned prompt anchor disposed")
+assert(not tree.destroyed, "registered gather part preserved")
 local userEvent = instance("BindableEvent")
 userEvent.Name, userEvent.Parent = "ForgeGatherResult", player
 local second = client.start()

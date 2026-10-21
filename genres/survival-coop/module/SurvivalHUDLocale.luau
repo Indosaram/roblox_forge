@@ -74,6 +74,11 @@ local strings: { [string]: { string } } = {
 	withdraw = { "Take one", "하나 꺼내기" },
 	warehouse = { "Shared storage", "공용 창고" },
 	reserve = { "Reserve ingredients", "재료 예약" },
+	missing = { "Missing", "부족한 재료" },
+	placementHint = {
+		"Point at the ground, then confirm placement",
+		"바닥을 가리킨 뒤 배치를 확정하세요",
+	},
 	inputs = { "Ingredients (available / needed)", "재료 (사용 가능 / 필요)" },
 	outputs = { "Makes", "결과" },
 	station = { "Station", "제작 시설" },

@@ -1,4 +1,6 @@
 Key,Source,Context,en-us,ko-kr
+survival.missing,Missing,reserve material feedback,Missing,부족한 재료
+survival.placementHint,"Point at the ground, then confirm placement",pointer construction,"Point at the ground, then confirm placement",바닥을 가리킨 뒤 배치를 확정하세요
 harbor.use,Talk / use,harbor facility prompt,Talk / use,대화 / 이용
 harbor.guide,Harbor guide,harbor facility prompt,Harbor guide,항구 안내
 build.keyboard,Press Enter to place the reserved structure,build keyboard action,Press Enter to place the reserved structure,Enter 키로 예약한 건축물 배치

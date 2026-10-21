@@ -38,6 +38,27 @@ local function model(): any
 end
 
 return {
+	["reserve feedback reports missing available quantities for bag and warehouse"] = function()
+		local bag = {
+			items = { wood = { itemId = "wood", catalogId = "wood", quantity = 4 } },
+			reservations = { held = { wood = 1 } },
+		}
+		local missing =
+			Model.missingMaterials(bag, { { item = "wood", quantity = 4 }, { item = "flint", quantity = 2 } })
+		assert(#missing == 2 and missing[1].available == 3 and missing[1].needed == 4, "reserved stock excluded")
+		assert(
+			missing[2].id == "flint" and missing[2].available == 0 and missing[2].needed == 2,
+			"absent stock reported"
+		)
+		assert(#Model.missingMaterials(bag, { { item = "wood", quantity = 3 } }) == 0, "enough stock accepted")
+	end,
+	["pointer placement maps world ground to bounded settlement cells"] = function()
+		local config = { width = 8, depth = 6, cellStuds = 4 }
+		local x, z = Model.pointerCell(-7, 29, -16, 20, config)
+		assert(x == 2 and z == 2, "ground hit maps relative to settlement origin")
+		x, z = Model.pointerCell(-100, 100, -16, 20, config)
+		assert(x == 0 and z == 5, "pointer remains in settlement bounds")
+	end,
 	["recipes group by station with available materials first and reservations excluded"] = function()
 		local bag = {
 			items = { wood = { itemId = "wood", catalogId = "wood", quantity = 3, tags = {}, durabilityMilli = 1000 } },

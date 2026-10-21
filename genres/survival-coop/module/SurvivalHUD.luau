@@ -213,6 +213,25 @@ function M.start(options: Options)
 	sheet.frame.AnchorPoint, sheet.frame.Position = Vector2.new(1, 0), UDim2.new(1, 0, 0, 178)
 	sheet.close.Text = "X"
 	local section, selected, recipeId, structureId = "", nil, nil, nil
+	local missingText: string? = nil
+	local toast = Components.label(theme, {
+		text = "",
+		size = UDim2.new(1, -24, 0, 64),
+		position = UDim2.new(0, 12, 1, -140),
+		parent = gui,
+	})
+	toast.Name, toast.Visible = "MaterialToast", false
+	toast.BackgroundColor3, toast.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
+	local function suppliesAvailable(bag: any, inputs: { any }): boolean
+		local missing = Model.missingMaterials(bag, inputs)
+		local details = {}
+		for _, ingredient in missing do
+			table.insert(details, name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
+		end
+		missingText = if #details > 0 then t("missing") .. ": " .. table.concat(details, ", ") else nil
+		toast.Text, toast.Visible = missingText or "", missingText ~= nil
+		return missingText == nil
+	end
 	local helpVisible = false
 	local inventoryGrid: any = nil
 	local x, z, rotation = 1, 1, 0
@@ -433,6 +452,12 @@ function M.start(options: Options)
 		if section ~= "build" or not definition or not settlement then
 			return
 		end
+		for _, entry in Model.placements(settlement, model.actor) do
+			if entry.placement.definition.id == structureId then
+				x, z, rotation = entry.placement.x, entry.placement.z, entry.placement.rotation
+				break
+			end
+		end
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 		local cells = if placement then placement.cells else {}
 		if not placement then
@@ -466,10 +491,112 @@ function M.start(options: Options)
 			part.Transparency, part.Material, part.Parent = 0.4, Enum.Material.Neon, ghost
 		end
 	end
+	local placementBar = Instance.new("Frame")
+	placementBar.Name, placementBar.BackgroundTransparency = "PlacementControls", 1
+	placementBar.Size, placementBar.Position = UDim2.fromOffset(272, 48), UDim2.new(0.5, -136, 1, -72)
+	placementBar.Parent, placementBar.Visible = gui, false
+	local function placeSelected()
+		local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
+		if not settlement or not warehouse or model.pending then
+			return
+		end
+		for _, entry in Model.placements(settlement, model.actor) do
+			if entry.placement.definition.id == structureId then
+				command("settlement-place", { entry.id, settlement.version, warehouse.version })
+				return
+			end
+		end
+		local definition = selectedDefinition()
+		if definition and suppliesAvailable(warehouse, definition.cost) then
+			local args = Model.buildArgs(model.snapshot, definition, x, z, rotation)
+			if args then
+				command("settlement-reserve", args)
+			end
+		end
+	end
+	local confirmPlacement = Components.button(theme, {
+		text = t("place"),
+		parent = placementBar,
+		size = UDim2.fromOffset(132, 48),
+		onClick = placeSelected,
+	})
+	confirmPlacement.Name = "ConfirmPlacement"
+	local cancelPlacement = Components.button(theme, {
+		text = t("cancel"),
+		parent = placementBar,
+		size = UDim2.fromOffset(132, 48),
+		position = UDim2.fromOffset(140, 0),
+		onClick = function()
+			local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
+			if settlement and warehouse and not model.pending then
+				for _, entry in Model.placements(settlement, model.actor) do
+					if entry.placement.definition.id == structureId then
+						command("settlement-cancel", { entry.id, settlement.version, warehouse.version })
+					end
+				end
+			end
+			structureId = nil
+			preview()
+			placementBar.Visible = false
+		end,
+	})
+	cancelPlacement.Name = "CancelPlacement"
+	table.insert(
+		connections,
+		input.InputChanged:Connect(function(event, processed)
+			if processed or section ~= "build" or not structureId then
+				return
+			end
+			if
+				event.UserInputType ~= Enum.UserInputType.MouseMovement
+				and event.UserInputType ~= Enum.UserInputType.Touch
+			then
+				return
+			end
+			local camera, settlement = world.CurrentCamera, model.snapshot.settlement
+			if not camera or not settlement then
+				return
+			end
+			for _, entry in Model.placements(settlement, model.actor) do
+				if entry.placement.definition.id == structureId then
+					return
+				end
+			end
+			local ray = camera:ScreenPointToRay(event.Position.X, event.Position.Y)
+			if math.abs(ray.Direction.Y) < 0.001 then
+				return
+			end
+			local distance = (options.settlementOrigin.Y - ray.Origin.Y) / ray.Direction.Y
+			if distance < 0 then
+				return
+			end
+			local hit = ray.Origin + ray.Direction * distance
+			local nextX, nextZ = Model.pointerCell(
+				hit.X,
+				hit.Z,
+				options.settlementOrigin.X,
+				options.settlementOrigin.Z,
+				settlement.config
+			)
+			if nextX ~= x or nextZ ~= z then
+				x, z = nextX, nextZ
+				preview()
+			end
+		end)
+	)
 	render = function()
 		if disposed then
 			return
 		end
+		placementBar.Visible = section == "build" and structureId ~= nil
+		confirmPlacement.Interactable = model.pending == nil
+		local reservedPlacement = false
+		if model.snapshot.settlement then
+			for _, entry in Model.placements(model.snapshot.settlement, model.actor) do
+				reservedPlacement = reservedPlacement or entry.placement.definition.id == structureId
+			end
+		end
+		confirmPlacement.Text = t(if reservedPlacement then "place" else "reserve")
 		local v = model.snapshot.vitals
 		vitals.Visible = v ~= nil
 		vitals.Text = ""
@@ -675,6 +802,9 @@ function M.start(options: Options)
 						64
 					)
 					mutation("Reserve-" .. recipe.id, t("reserve"), "craft-reserve", function()
+						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
+							return
+						end
 						local station = if recipe.station then nearest(recipe.station) else nil
 						if recipe.station and not station then
 							model.status, model.reason = "conflict", "STATION_UNAVAILABLE"
@@ -717,11 +847,7 @@ function M.start(options: Options)
 			end
 			local definition = selectedDefinition()
 			if definition then
-				label(
-					if string.sub(locale, 1, 2) == "ko"
-						then "Enter 키로 예약한 건축물 배치"
-						else "Press Enter to place the reserved structure"
-				)
+				label(t("placementHint"))
 				local _, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 				label(
 					name(definition.id)
@@ -762,6 +888,9 @@ function M.start(options: Options)
 					render()
 				end)
 				mutation("BuildReserve-" .. definition.id, t("reserve"), "settlement-reserve", function()
+					if not suppliesAvailable(model.snapshot.warehouse, definition.cost) then
+						return
+					end
 					local args, err = Model.buildArgs(model.snapshot, definition, x, z, rotation)
 					if args then
 						command("settlement-reserve", args)
@@ -1021,6 +1150,7 @@ function M.start(options: Options)
 		sheet.close.Activated:Connect(function()
 			section = ""
 			sheet.frame.Visible = false
+			placementBar.Visible, toast.Visible = false, false
 			preview()
 		end)
 	)
@@ -1214,6 +1344,8 @@ function M.start(options: Options)
 		close = function()
 			section = ""
 			sheet.frame.Visible = false
+			placementBar.Visible, toast.Visible = false, false
+			preview()
 		end,
 		isOpen = function(): boolean
 			return sheet.frame.Visible

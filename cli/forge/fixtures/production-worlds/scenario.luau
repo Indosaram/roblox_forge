@@ -31,6 +31,16 @@ M.operations = {
 	world_warehouse_campfire = function(ctx, step): string?
 		return ctx.fixture.warehouseCampfire(actorOf(ctx, step))
 	end,
+	world_prompt_campfire = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.warehouseCampfire(actorOf(ctx, step), true)
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "prompt_campfire_exception"
+		end
+		return result
+	end,
 	world_gather = function(ctx, step): string?
 		return ctx.fixture.gather(actorOf(ctx, step))
 	end,
@@ -888,8 +898,39 @@ function M.new(ctx: any): any
 	local function personal(actor)
 		return session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
 	end
-	function api.warehouseCampfire(actor)
+	function api.warehouseCampfire(actor, clientPrompts)
 		assert(api.enter("preview", actor) == nil, "fresh preview admission")
+		local gatherClient
+		if clientPrompts then
+			gatherClient = engine.gatherClient(actor, function(verb, payload)
+				if verb == nil then
+					return {
+						ok = true,
+						durable = {
+							actions = { "survival-coop:gather" },
+							epochs = { ["survival-coop:gather"] = session.commandEpoch(actor, "survival-coop:gather") },
+						},
+					}
+				end
+				assert(verb == "command", "same client command ingress")
+				return session.command(actor, payload)
+			end)
+		end
+		local function gatherNode(node: any)
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			session.advance(ctx.clock.now())
+			engine.move(actor, { x = node.position.x + 3, y = node.position.y + 3, z = node.position.z })
+			if clientPrompts then
+				engine.interact(actor, node.id)
+			else
+				command(actor, "gather", { node.id, factory.services.survivalGathering.snapshot(actor).version })
+			end
+			assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", "gather recovery")
+			if gatherClient and gatherClient.result().data.status == "pending" then
+				engine.interact(actor, node.id)
+				assert(gatherClient.result().ok, "same prompt confirms recovered gather")
+			end
+		end
 		local camp = session.snapshot(actor).survivalSettlement
 		assert(camp.settlement.roles[actor] == "owner", "fresh owner")
 		local node = source.nodes[1]
@@ -898,10 +939,30 @@ function M.new(ctx: any): any
 				node = candidate
 			end
 		end
-		engine.move(actor, { x = node.position.x, y = node.position.y + 3, z = node.position.z })
+		if clientPrompts then
+			for _, kind in { "fiber", "flint" } do
+				local target
+				for _, candidate in source.nodes do
+					for _, definition in Content.nodes do
+						if definition.id == candidate.catalogId and definition.harvest[1].item == kind then
+							target = candidate
+						end
+					end
+				end
+				assert(target, kind .. " starter node")
+				gatherNode(target)
+			end
+		end
 		for _ = 1, 2 do
-			command(actor, "gather", { node.id, factory.services.survivalGathering.snapshot(actor).version })
-			assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", "gather recovery")
+			gatherNode(node)
+		end
+		if clientPrompts then
+			local reserved = command(actor, "craft-reserve", { "stone-axe", "hand" })
+			assert(reserved.ok, "gathered materials reserve stone axe")
+			local job = reserved.data.jobId
+			assert(command(actor, "craft-start", { job }).ok, "axe starts")
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			assert(command(actor, "craft-complete", { job }).ok, "axe completes")
 		end
 		-- Stand beyond the visual depot: its old collidable box blocked the reach ray.
 		engine.move(actor, { x = 6, y = 2, z = -22 })
@@ -942,6 +1003,9 @@ function M.new(ctx: any): any
 		end
 		assert(station, "new campfire published")
 		assert(command(actor, "rest", { station }).ok, "rest at new campfire")
+		if gatherClient then
+			gatherClient.destroy()
+		end
 		return nil
 	end
 	local function craft(actor: string, recipeId: string, station: string?)
@@ -1299,7 +1363,7 @@ function M.new(ctx: any): any
 	end
 	api.close = close
 	api.snapshot = function()
-		return { actor = actorId, layout = if world then world.layout.id else nil, sequence = sequence }
+		return { actor = actorId, layout = if world and world.layout then world.layout.id else nil, sequence = sequence }
 	end
 	-- A production session is constructed by the first world operation, not a fixture profile.
 	api.session = {

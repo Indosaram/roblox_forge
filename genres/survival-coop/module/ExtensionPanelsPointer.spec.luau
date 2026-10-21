@@ -329,6 +329,7 @@ return {
 				local rect = bounds(button)
 				local x, y = rect.x + rect.w / 2, rect.y + rect.h / 2
 				assert(hit(x, y) == button, "pointer intercepted: " .. button.Name)
+				assert(y >= 58, "Roblox topbar consumes pointer before GuiButton activation")
 				assert(button.Interactable, "button disabled")
 				button.InputBegan:fire({})
 				button.MouseButton1Down:fire(x, y)

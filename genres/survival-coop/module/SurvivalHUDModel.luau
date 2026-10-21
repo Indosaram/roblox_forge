@@ -158,6 +158,21 @@ function M.ingredients(bag: any, recipe: any): { any }
 	return rows
 end
 
+function M.missingMaterials(bag: any, inputs: { any }): { any }
+	local missing = {}
+	for _, ingredient in M.ingredients(bag, { inputs = inputs }) do
+		if ingredient.available < ingredient.needed then
+			table.insert(missing, ingredient)
+		end
+	end
+	return missing
+end
+
+function M.pointerCell(hitX: number, hitZ: number, originX: number, originZ: number, config: any): (number, number)
+	return math.clamp(math.floor((hitX - originX) / config.cellStuds), 0, config.width - 1),
+		math.clamp(math.floor((hitZ - originZ) / config.cellStuds), 0, config.depth - 1)
+end
+
 function M.placements(settlement: any, actor: string): { any }
 	local rows = {}
 	for id, placement in settlement.reservations do

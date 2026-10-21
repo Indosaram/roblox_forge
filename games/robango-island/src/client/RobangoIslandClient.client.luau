@@ -19,7 +19,10 @@ gui.Destroying:Connect(audio.destroy)
 local locale = game:GetService("Players").LocalPlayer.LocaleId
 local names = require(Shared.EntityNames)(locale)
 local function localizeJournal(object: Instance)
-	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
+	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeWarehouse") then
+		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "창고 열기" else "Open warehouse"
+		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "창고" else "Warehouse"
+	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
 		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "일지 확인" else "Journal checkpoint"
 		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "일지" else "Journal"
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgePanel") then
@@ -54,6 +57,14 @@ local hud = SurvivalHUD.start({
 	locale = locale,
 	names = names,
 })
+local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, player)
+	if player == game:GetService("Players").LocalPlayer and prompt:GetAttribute("ForgeWarehouse") then
+		hud.open("bag")
+	end
+end)
+gui.Destroying:Connect(function()
+	warehouseConnection:Disconnect()
+end)
 -- Server-published attack intent only: no client prediction can confirm a hit.
 local telegraphs: { [Model]: Highlight } = {}
 local telegraphConnection = game:GetService("RunService").Heartbeat:Connect(function()

@@ -64,8 +64,7 @@ function M.start(options: Options?)
 	touchGui.Parent = player:WaitForChild("PlayerGui")
 	local shown: { [ProximityPrompt]: BasePart } = {}
 	local selected: BasePart? = nil
-	local nodes: { [BasePart]: { prompt: ProximityPrompt, anchor: Attachment, connections: { RBXScriptConnection } } } =
-		{}
+	local nodes: { [BasePart]: { prompt: ProximityPrompt, connections: { RBXScriptConnection } } } = {}
 	local function report(result: any, diagnostic: any?)
 		if not disposed and options and options.onResult then
 			options.onResult(result, diagnostic)
@@ -208,22 +207,19 @@ function M.start(options: Options?)
 				connection:Disconnect()
 			end
 			entry.prompt:Destroy()
-			entry.anchor:Destroy()
 		end
 	end
 	local function add(instance: Instance)
 		if disposed or not instance:IsA("BasePart") or nodes[instance] then
 			return
 		end
-		local anchor = Instance.new("Attachment")
-		anchor.Name = "ForgeGatherAnchor"
-		anchor.Position = Vector3.new(0, instance.Size.Y / 2 + 1, 0)
-		anchor.Parent = instance
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name, prompt.ActionText = "ForgeGather", actionText
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.MaxActivationDistance, prompt.HoldDuration = 8, 0
-		prompt.RequiresLineOfSight, prompt.ClickablePrompt, prompt.Enabled = true, true, false
+		-- Use the registered node's server reach point, not the top of its visual canopy.
+		-- Dressing can occlude the trunk; server spatial validation still enforces reach.
+		prompt.RequiresLineOfSight, prompt.ClickablePrompt, prompt.Enabled = false, true, false
 		local owned = {
 			prompt.Triggered:Connect(function(actor)
 				activate(instance, actor)
@@ -235,8 +231,8 @@ function M.start(options: Options?)
 				update(instance)
 			end),
 		}
-		nodes[instance] = { prompt = prompt, anchor = anchor, connections = owned }
-		prompt.Parent = anchor
+		nodes[instance] = { prompt = prompt, connections = owned }
+		prompt.Parent = instance
 		update(instance)
 	end
 	local prompts = game:GetService("ProximityPromptService")

@@ -226,6 +226,14 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	-- The depot is a visual marker, not a wall between the player and the server reach target.
 	marker.CanCollide, marker.CanQuery, marker.CanTouch = false, false, false
 	marker:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
+	local warehousePrompt = Instance.new("ProximityPrompt")
+	warehousePrompt.Name, warehousePrompt.ActionText, warehousePrompt.ObjectText =
+		"ForgeWarehouse", "Open warehouse", "Warehouse"
+	warehousePrompt.KeyboardKeyCode = Enum.KeyCode.E
+	warehousePrompt.MaxActivationDistance, warehousePrompt.HoldDuration = 8, 0
+	warehousePrompt.RequiresLineOfSight, warehousePrompt.Enabled = false, true
+	warehousePrompt:SetAttribute("ForgeWarehouse", true)
+	warehousePrompt.Parent = marker
 	-- Warehouse timber depot frame, pitched roof, crates and signboard (all non-colliding decor).
 	decor(
 		"WarehousePlatform",

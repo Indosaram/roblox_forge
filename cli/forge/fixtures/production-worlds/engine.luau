@@ -58,7 +58,10 @@ function M.new(physicalWarehouse: boolean?): any
 		}
 		function value:IsA(kind)
 			return kind == self.ClassName
-				or (kind == "BasePart" and (self.ClassName == "Part" or self.ClassName == "SpawnLocation"))
+				or (
+					kind == "BasePart"
+					and (self.ClassName == "Part" or self.ClassName == "SpawnLocation" or self.ClassName == "WedgePart")
+				)
 		end
 		function value:IsDescendantOf(parent)
 			local current = self.Parent
@@ -95,8 +98,12 @@ function M.new(physicalWarehouse: boolean?): any
 			end
 			return result
 		end
+		function value:WaitForChild(name)
+			return assert(self:FindFirstChild(name), name)
+		end
 		function value:SetAttribute(key, data)
 			self.attributes[key] = data
+			self.AttributeChanged:Fire(key)
 		end
 		function value:GetAttribute(key)
 			return self.attributes[key]
@@ -107,11 +114,15 @@ function M.new(physicalWarehouse: boolean?): any
 		function value:Fire(...)
 			self.Event:Fire(...)
 		end
-		value.Triggered, value.Event = signal(), signal()
+		value.Triggered, value.Event, value.Activated = signal(), signal(), signal()
+		value.AttributeChanged, value.AncestryChanged = signal(), signal()
 		table.insert(callbacks, value)
 		return value
 	end
 	local workspace = instance("Workspace")
+	function workspace:GetServerTimeNow()
+		return 0
+	end
 	workspace.Terrain = instance("Terrain")
 	workspace.Raycast = function(_, origin: any, direction: any): any
 		-- The preview depot is a real collidable box, not an always-clear reach mock.
@@ -149,6 +160,8 @@ function M.new(physicalWarehouse: boolean?): any
 		return {}
 	end
 	local heartbeat = signal()
+	local added, removed = signal(), signal()
+	local guid = 0
 	local services: any = {
 		Workspace = workspace,
 		Players = {
@@ -164,6 +177,21 @@ function M.new(physicalWarehouse: boolean?): any
 			end,
 		},
 		CollectionService = {
+			GetTagged = function(_, tag)
+				local result = {}
+				for target, labels in tags do
+					if labels[tag] then
+						table.insert(result, target)
+					end
+				end
+				return result
+			end,
+			GetInstanceAddedSignal = function()
+				return added
+			end,
+			GetInstanceRemovedSignal = function()
+				return removed
+			end,
 			AddTag = function(_, target, tag)
 				tags[target] = tags[target] or {}
 				tags[target][tag] = true
@@ -179,15 +207,19 @@ function M.new(physicalWarehouse: boolean?): any
 		},
 		RunService = {
 			Heartbeat = heartbeat,
+			RenderStepped = signal(),
 			IsStudio = function()
 				return false
 			end,
 		},
+		ProximityPromptService = { PromptShown = signal(), PromptHidden = signal() },
+		UserInputService = { TouchEnabled = false },
 		ServerStorage = instance("Folder"),
 		Lighting = instance("Lighting"),
 		HttpService = {
 			GenerateGUID = function()
-				return "engine-event"
+				guid += 1
+				return "engine-event-" .. guid
 			end,
 		},
 	}
@@ -222,6 +254,7 @@ function M.new(physicalWarehouse: boolean?): any
 				CFrame = roblox.CFrame,
 				Color3 = roblox.Color3,
 				UDim2 = roblox.UDim2,
+				UDim = roblox.UDim,
 				NumberRange = roblox.NumberRange,
 				NumberSequence = roblox.NumberSequence,
 				NumberSequenceKeypoint = roblox.NumberSequenceKeypoint,
@@ -325,6 +358,48 @@ function M.new(physicalWarehouse: boolean?): any
 		home = home,
 		archipelago = archipelago,
 		preview = preview,
+		gatherClient = function(actor, invoke)
+			local player = assert(actors[actor], "client actor joined")
+			services.Players.LocalPlayer = player
+			local gui = instance("PlayerGui")
+			gui.Name, gui.Parent = "PlayerGui", player
+			local state = signal()
+			local storage = services.ReplicatedStorage
+			local original = storage.WaitForChild
+			storage.WaitForChild = function(_, name): any
+				if name == "ForgeAction" then
+					return {
+						InvokeServer = function(_, ...)
+							return invoke(...)
+						end,
+					}
+				elseif name == "ForgeState" then
+					return { OnClientEvent = state }
+				end
+				return original(storage, name)
+			end
+			local lastResult: any = nil
+			local client = load("genres/survival-coop/module/GatheringClient.luau", {
+				["../../../core/infra/genre/CommandTransport"] = require(
+					"../../../../core/infra/genre/CommandTransport"
+				),
+			}, nil).start({
+				onResult = function(result, diagnostic)
+					lastResult = result
+					assert(
+						result.ok or (result.data and result.data.status == "pending"),
+						tostring(result.reason) .. ": " .. tostring(diagnostic)
+					)
+				end,
+			})
+			storage.WaitForChild = original
+			return {
+				destroy = client.destroy,
+				result = function()
+					return lastResult
+				end,
+			}
+		end,
 		interact = function(actor, target)
 			for index = #callbacks, 1, -1 do
 				local value = callbacks[index]
@@ -355,7 +430,16 @@ function M.new(physicalWarehouse: boolean?): any
 					FindFirstChildOfClass = function()
 						return nil
 					end,
+					FindFirstChild = function(self, name)
+						for _, value in callbacks do
+							if value.Parent == self and value.Name == name then
+								return value
+							end
+						end
+						return nil
+					end,
 				}
+				player.WaitForChild = player.FindFirstChild
 				actors[actor] = player
 			end
 			player.Character:FindFirstChild("HumanoidRootPart").Position =
