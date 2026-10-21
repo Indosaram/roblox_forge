@@ -124,21 +124,31 @@ function M.start(options: Options)
 	local statBars: { [string]: any } = {}
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
-		local symbol = Instance.new(if icon and icon.image then "ImageLabel" else "TextLabel") :: GuiObject
+		-- Keep a localized label underneath the optional asset. Moderated or
+		-- unavailable images must not leave the status row unidentified.
+		local symbol = Instance.new("TextLabel")
 		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
-		symbol.Position, symbol.Size = UDim2.fromOffset(6, 4 + (index - 1) * 23), UDim2.fromOffset(20, 20)
+		symbol.Position, symbol.Size = UDim2.fromOffset(4, 4 + (index - 1) * 23), UDim2.fromOffset(42, 20)
+		symbol.Text, symbol.TextColor3, symbol.TextSize = t(stat), Color3.fromRGB(240, 244, 240), 10
+		symbol.TextScaled = true
+		local textLimit = Instance.new("UITextSizeConstraint")
+		textLimit.MinTextSize, textLimit.MaxTextSize, textLimit.Parent = 8, 10, symbol
 		if icon and icon.image then
-			(symbol :: ImageLabel).Image = icon.image
-		else
-			local fallback = symbol :: TextLabel
-			fallback.Text, fallback.TextColor3 =
-				({ health = "+", hunger = "E", fatigue = "Z" })[stat], Color3.fromRGB(240, 244, 240)
+			local image = Instance.new("ImageLabel")
+			image.Name, image.BackgroundTransparency = "Asset", 1
+			image.Size, image.Position = UDim2.fromOffset(20, 20), UDim2.fromOffset(11, 0)
+			image.Image, image.Parent = icon.image, symbol
+			local function loaded()
+				symbol.TextTransparency = if image.IsLoaded then 1 else 0
+			end
+			image:GetPropertyChangedSignal("IsLoaded"):Connect(loaded)
+			loaded()
 		end
 		symbol.Parent = vitals
 		local track = Instance.new("Frame")
 		track.Name, track.BorderSizePixel, track.BackgroundColor3 = stat .. "Track", 0, Color3.fromRGB(45, 62, 56)
 		track.Position, track.Size, track.Parent =
-			UDim2.fromOffset(32, 10 + (index - 1) * 23), UDim2.new(1, -78, 0, 8), vitals
+			UDim2.fromOffset(50, 10 + (index - 1) * 23), UDim2.new(1, -96, 0, 8), vitals
 		local fill = Instance.new("Frame")
 		fill.Name, fill.BorderSizePixel = "Fill", 0
 		fill.BackgroundColor3 = ({

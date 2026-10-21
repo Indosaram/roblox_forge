@@ -18,6 +18,7 @@
     "../../core/domain/progression/DailyQuest.luau",
     "../../core/domain/progression/Merge.luau",
     "../../core/domain/state/Siege.luau",
+    "../../core/infra/liveops/Broadcast.luau",
     "../../core/ui-kit/genre/WorldKit.luau",
     "../../core/ui-kit/genre/HudKit.luau",
     "../../core/ui-kit/genre/HudText.luau",

@@ -216,6 +216,14 @@ function M.start(options: {
 	local columnLayout = Instance.new("UIListLayout")
 	columnLayout.Padding, columnLayout.SortOrder = UDim.new(0, 6), Enum.SortOrder.LayoutOrder
 	columnLayout.Parent = column
+	if contextual then
+		-- This is a single fixed hit target, not an automatically sized list. In
+		-- particular, do not collapse its ancestor to zero height every Heartbeat:
+		-- input must see the same bounds from pointer down through activation.
+		column.AutomaticSize = Enum.AutomaticSize.None
+		column.Size = UDim2.fromOffset(64, 44)
+		columnLayout:Destroy()
+	end
 	local objectiveSlot = Instance.new("Frame")
 	objectiveSlot.Name, objectiveSlot.BackgroundTransparency, objectiveSlot.LayoutOrder = "Objective", 1, 0
 	objectiveSlot.Size, objectiveSlot.AutomaticSize = UDim2.fromScale(1, 0), Enum.AutomaticSize.Y
@@ -353,7 +361,7 @@ function M.start(options: {
 			objectiveSlot.Position = UDim2.fromOffset(objective.x, objective.y)
 			objectiveSlot.Size = UDim2.fromOffset(objective.width, objective.height)
 			column.AnchorPoint, column.Position = Vector2.new(1, 0), UDim2.new(1, -12, 0, 8)
-			column.Size = UDim2.fromOffset(64, 0)
+			column.Size = UDim2.fromOffset(64, 44)
 			menuList.Parent = dockGui
 			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
 			menuList.AnchorPoint = Vector2.new(0.5, 0)
