@@ -3,8 +3,64 @@ local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Gathering = require("../../genres/survival-coop/module/Gathering")
+local Policy = require("./src/shared/WildlifePolicy")
+local Taming = require("./src/shared/TamingConfig")
 
 return {
+	["onboarding census has five species safe tameable herbivores and edge predators"] = function()
+		local engine = Engine.new(true)
+		local world = engine.preview(Content, Source, Policy, function()
+			return 0
+		end, "onboarding", true)
+		local species, safe, predators = {}, false, 0
+		local details = {}
+		for _, detail in Content.wildlifeDetails do
+			details[detail.id] = detail
+		end
+		for _, spawn in world.roleWildlife.spawns do
+			species[spawn.catalogId] = true
+			local p = spawn.position
+			local distance = math.sqrt((p.x + 6) ^ 2 + p.z ^ 2)
+			local detail = assert(details[spawn.catalogId], "real species, not behavior stand-in")
+			-- Grassland/forest/beach carry no catalog predator; the edge threat is the
+			-- territorial boar, which attacks players who come close.
+			if detail.behaviour == "predator" or detail.behaviour == "territorial" then
+				predators += 1
+				assert(distance >= 30, "threat outside camp")
+			elseif
+				table.find({ "dodo", "turtle", "protoceratops", "parasaurolophus", "triceratops" }, spawn.catalogId)
+				and table.find(Taming.tameable, spawn.catalogId)
+				and distance <= 40
+			then
+				safe = true
+			end
+		end
+		local count = 0
+		for _ in species do
+			count += 1
+		end
+		assert(count >= 5 and safe and predators >= 1 and predators <= 2, "readable initial census")
+		local crowns, tiers, fronds, rocks = 0, 0, 0, 0
+		for _, part in engine.parts do
+			if part.Name:find("Forest", 1, true) then
+				assert(not part.CanQuery and not part.CanCollide, "foliage never blocks reach")
+				if part.Name:find("canopy", 1, true) then
+					if part:IsA("WedgePart") then
+						tiers += 1
+					else
+						crowns += 1
+					end
+				elseif part.Name:find("frond", 1, true) then
+					fronds += 1
+				end
+			elseif part.Name:find("flint-outcrop-01.cluster.rock", 1, true) then
+				rocks += 1
+			end
+		end
+		assert(crowns >= 4 and tiers >= 4 and fronds >= 6, "three forest archetypes")
+		assert(rocks >= 3 and rocks <= 5, "faceted camp rock cluster")
+		world.destroy()
+	end,
 	["onboarding gather prompts are enabled at walkable server reach points"] = function()
 		local engine = Engine.new(true)
 		local world = engine.preview(Content, Source, nil, nil, "onboarding", true)

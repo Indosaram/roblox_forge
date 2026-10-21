@@ -120,21 +120,32 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
-	["all body families avoid balloon cores and use columnar limbs"] = function()
+	["all body families avoid balloon cores and use rounded tapered limbs"] = function()
 		local world = roblox.Instance.new("Workspace")
 		local module = loadRig()
 		for species, dims in envelopes do
 			local model = module.new(species, species, roblox.Vector3.zero, world)
 			for _, p in model:GetChildren() do
 				if p:IsA("Part") and p ~= model.PrimaryPart and p.Name ~= "Head" then
-					if p.Shape == roblox.Enum.PartType.Ball then
+					if
+						p.Shape == roblox.Enum.PartType.Ball
+						and not p.Name:match("^Thigh")
+						and not p.Name:match("^Foreleg")
+						and not p.Name:match("^ForeShin")
+						and not p.Name:match("^Arm")
+						and not p.Name:match("^Shin")
+					then
 						assert(
 							math.max(p.Size.X, p.Size.Y, p.Size.Z) <= dims[3] * 0.4,
 							"balloon: " .. species .. "/" .. p.Name
 						)
 					end
 					if p.Name:match("^Thigh") or p.Name:match("^Foreleg") then
-						assert(p.Shape == roblox.Enum.PartType.Cylinder, "columnar limb")
+						assert(p.Shape == roblox.Enum.PartType.Ball, "rounded limb")
+						local shin = model[if p.Name:match("^Thigh")
+							then p.Name:gsub("Thigh", "Shin")
+							else p.Name:gsub("Foreleg", "ForeShin")]
+						assert(p.Size.Y > shin.Size.Y, "thigh wider than shin")
 					end
 				end
 			end
@@ -162,6 +173,7 @@ return {
 					)
 				end
 				if string.match(p.Name, "^Foot") or string.match(p.Name, "^Forefoot") then
+					assert(p.Shape == roblox.Enum.PartType.Ball, "elliptical foot, never block")
 					local joint = model.PrimaryPart[p.Name .. "Joint"]
 					local shin = joint.Part0
 					local extent = shin.Size.X

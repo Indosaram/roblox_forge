@@ -115,14 +115,14 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 				Vector3.new(math.min(p.Size.X, l * 0.39), math.min(p.Size.Y, l * 0.39), math.min(p.Size.Z, l * 0.39))
 		end
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		-- Limbs are load-bearing columns, with the cylinder's long X axis upright.
+		-- Overlapping ellipsoids taper toward the lower leg without flat joint caps.
 		if
 			string.match(name, "^Thigh")
 			or string.match(name, "^Foreleg")
 			or string.match(name, "^ForeShin")
 			or string.match(name, "^Arm")
 		then
-			(p :: Part).Shape = Enum.PartType.Cylinder
+			(p :: Part).Shape = Enum.PartType.Ball
 			p.Size = Vector3.new(size.Y * h, size.X * w, size.Z * l)
 			p.CFrame *= CFrame.Angles(0, 0, math.pi / 2)
 		end
@@ -211,11 +211,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	end
 	local hy, hz, headW, headH, headL = 0.14, -0.34, 0.37, 0.23, 0.23
 	if family == "sauropod" then
+		local curve = { -0.16, -0.185, -0.19, -0.22, -0.28, -0.35, -0.39 }
 		for i = 1, 6 do
 			segment(
 				"Neck" .. i,
-				Vector3.new(0, -0.16 + (i - 1) * 0.095, -0.16 - (i - 1) * 0.035),
-				Vector3.new(0, -0.16 + i * 0.095, -0.16 - i * 0.035),
+				Vector3.new(0, -0.16 + (i - 1) * 0.095, curve[i]),
+				Vector3.new(0, -0.16 + i * 0.095, curve[i + 1]),
 				0.26 - i * 0.02,
 				if i == 1 then "Torso" else "Neck" .. (i - 1)
 			)
@@ -247,33 +248,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		Vector3.new(headW, headH, headL),
 		Vector3.new(0, hy, hz),
 		neckParent,
-		if family == "theropod" then "block" else nil,
+		nil,
 		nil,
 		Vector3.new(0, hy, hz + headL * 0.4)
 	)
-	add(
-		"Jaw",
-		0,
-		hy - headH * 0.42,
-		hz - headL * 0.12,
-		headW * 0.85,
-		headH * 0.22,
-		headL * 1.2,
-		"Head",
-		if family == "theropod" then "block" else nil,
-		underside
-	)
-	add(
-		"Snout",
-		0,
-		hy - headH * 0.1,
-		hz - headL * 0.4,
-		headW * 0.8,
-		headH * 0.62,
-		headL * 0.7,
-		"Head",
-		if family == "theropod" then "block" else nil
-	)
+	add("Jaw", 0, hy - headH * 0.42, hz - headL * 0.12, headW * 0.85, headH * 0.22, headL * 1.2, "Head", nil, underside)
+	add("Snout", 0, hy - headH * 0.1, hz - headL * 0.4, headW * 0.8, headH * 0.62, headL * 0.7, "Head", nil)
 	if family == "theropod" then
 		for side = -1, 1, 2 do
 			add(
@@ -339,7 +319,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			nil,
 			Vector3.new(side * lx, -0.05, 0.19)
 		)
-		add("Shin" .. side, side * lx, -0.34, 0.19, legW * 0.72, 0.25, 0.1, "Thigh" .. side, "cylinder").CFrame *= CFrame.Angles(
+		add("Shin" .. side, side * lx, -0.34, 0.19, legW * 0.72, 0.25, 0.1, "Thigh" .. side).CFrame *= CFrame.Angles(
 			0,
 			0,
 			math.pi / 2
@@ -348,7 +328,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		shin.Size = Vector3.new(h * 0.18, w * legW * 0.72, l * 0.1)
 		local shinJoint = root:FindFirstChild(shin.Name .. "Joint") :: Motor6D
 		shinJoint.C1 = shin.CFrame:ToObjectSpace(assert(shinJoint.Part0).CFrame * shinJoint.C0)
-		add("Foot" .. side, side * lx, -0.465, 0.15, legW * 1.15, 0.07, 0.18, "Shin" .. side, "block")
+		add("Foot" .. side, side * lx, -0.465, 0.15, legW * 1.15, 0.07, 0.18, "Shin" .. side)
 		add("ToeClaw" .. side, side * lx, -0.475, 0.065, legW * 0.65, 0.035, 0.06, "Foot" .. side, "wedge", ivory)
 		if not biped then
 			part(
@@ -361,7 +341,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 				Vector3.new(side * lx, -0.04, -0.15)
 			)
 			add("ForeShin" .. side, side * lx, -0.34, -0.15, legW * 0.8, 0.18, 0.1, "Foreleg" .. side, "cylinder")
-			add("Forefoot" .. side, side * lx, -0.465, -0.17, legW * 1.15, 0.07, 0.16, "ForeShin" .. side, "block")
+			add("Forefoot" .. side, side * lx, -0.465, -0.17, legW * 1.15, 0.07, 0.16, "ForeShin" .. side)
 			add(
 				"Foreclaw" .. side,
 				side * lx,

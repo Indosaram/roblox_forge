@@ -23702,6 +23702,8 @@ layouts:
         z: 96
     biomes:
       - "beach"
+      - "grassland"
+      - "forest"
     anchors:
       -
         id: "entry"
@@ -23874,24 +23876,24 @@ layouts:
         speciesId: "dodo"
         level: 10
         position:
-          x: -64
+          x: -12
           y: 2
-          z: -8
+          z: 60
         count: 1
         radius: 8
       -
-        id: "rw.onboarding.dodo.02"
-        speciesId: "dodo"
+        id: "rw.onboarding.protoceratops.01"
+        speciesId: "protoceratops"
         level: 10
         position:
-          x: -80
+          x: -36
           y: 2
-          z: -8
+          z: 40
         count: 1
         radius: 8
       -
-        id: "rw.onboarding.dodo.03"
-        speciesId: "dodo"
+        id: "rw.onboarding.parasaurolophus.01"
+        speciesId: "parasaurolophus"
         level: 10
         position:
           x: -64
@@ -23910,8 +23912,8 @@ layouts:
         count: 1
         radius: 8
       -
-        id: "rw.onboarding.turtle.02"
-        speciesId: "turtle"
+        id: "rw.onboarding.triceratops.01"
+        speciesId: "triceratops"
         level: 10
         position:
           x: -96
@@ -23919,6 +23921,7 @@ layouts:
           z: 32
         count: 1
         radius: 8
+      - {id: "rw.onboarding.boar.01", speciesId: "boar", level: 20, position: {x: -94, y: 2, z: -50}, count: 1, radius: 8}
     hazards: []
     refuges: []
     paths:

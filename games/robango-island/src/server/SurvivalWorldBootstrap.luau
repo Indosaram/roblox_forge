@@ -136,6 +136,35 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		return builder(content, source, wildlifePolicy, epochMillis)
 	end
 	assert(role == "onboarding", "studio_preview_requires_onboarding")
+	if wildlifePolicy then
+		wildlifePolicy = table.clone(wildlifePolicy)
+		wildlifePolicy.sourceKey = "wildlife-onboarding-v3"
+		wildlifePolicy.spawns = {}
+		for _, layout in content.layouts do
+			if layout.id == "rw.onboarding" then
+				for _, spawn in layout.spawns do
+					local p = spawn.position
+					local x, z = (p.x - 12) * 0.7, (p.z - 62) * 0.55
+					local floor = if math.abs(x) <= 32
+							and z >= -16
+							and z <= 32
+						then 0
+						else IslandTerrain.sample(x, z).top
+					local height = 2
+					for _, detail in content.wildlifeDetails do
+						if detail.id == spawn.speciesId then
+							height = detail.renderEnvelope.y
+						end
+					end
+					table.insert(wildlifePolicy.spawns, {
+						id = spawn.id,
+						catalogId = spawn.speciesId,
+						position = { x = x, y = floor + height / 2, z = z },
+					})
+				end
+			end
+		end
+	end
 	setupAtmosphere()
 	buildTerrain()
 	local geometry = Instance.new("Folder")
@@ -298,6 +327,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			else nil,
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 	})
+	world.roleWildlife = wildlifePolicy
 	local campfire = part("campfire", Vector3.new(3, 1, 3), Vector3.new(-6, 0.5, 0), rgb(96, 92, 86))
 	campfire.Material = Enum.Material.Cobblestone
 	campfire.Transparency = 1
@@ -967,23 +997,8 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		end
 	end
 	scatter("forest-trees", 26, -118, -50, function(x, z, y)
-		local tall = 9 + (x * 7 + z * 3) % 5
-		decor(
-			"OakTrunk",
-			Vector3.new(1.6, tall, 1.6),
-			CFrame.new(x, y + tall / 2, z),
-			rgb(88, 62, 40),
-			nil,
-			Enum.Material.Wood
-		)
-		decor(
-			"OakCrown",
-			Vector3.new(8, 7, 8),
-			CFrame.new(x, y + tall + 2, z),
-			rgb(62, 108, 48),
-			Enum.PartType.Ball,
-			Enum.Material.Grass
-		)
+		local kind = if math.abs(z) > 55 then "palm" elseif math.floor(x) % 2 == 0 then "conifer" else "tree"
+		kit("Forest" .. x .. "." .. z, Vector3.new(x, y, z), kind)
 	end)
 	scatter("marsh-reeds", 18, 56, 112, function(x, z, y)
 		decor(

@@ -86,7 +86,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				5,
 				17 - i * 2.5,
 				"Grass",
-				palette.leaf,
+				{ palette.leaf[1] + i * 2, palette.leaf[2] + i * 3, palette.leaf[3] },
 				if kind == "conifer" then "Wedge" else "Ball"
 			)
 			crown.yaw, crown.roll = i * 37, if kind == "conifer" then 0 else i * 3
@@ -152,18 +152,18 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				i * 60, if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
 		end
 	elseif kind == "rock" then
-		for i = 1, 3 do
+		for i = 1, 4 do
 			local rock = piece(
 				"rock" .. i,
-				(i - 2) * 2,
-				(3 + i) / 2 - 1.4,
-				(i % 2) * 2,
-				7 - i,
-				3 + i,
-				6,
+				math.cos(i * 2) * 1.2,
+				1.2,
+				math.sin(i * 2) * 1.2,
+				4.5 - i * 0.3,
+				3.4 - i * 0.25,
+				3.8,
 				"Slate",
 				{ palette.rock[1] - 20 + i * 3, palette.rock[2] - 20, palette.rock[3] - 20 },
-				"Wedge"
+				if i % 2 == 0 then "Wedge" else nil
 			)
 			rock.yaw, rock.roll = i * 35, i * 9
 		end
