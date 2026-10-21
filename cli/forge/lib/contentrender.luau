@@ -13,6 +13,7 @@
 
 local contract = require("./genrecontract")
 local Content = require("../../../core/domain/survival/Content")
+local ContentV2 = require("../../../core/domain/survival/ContentV2")
 local Capability = require("../../../core/domain/survival/Capability")
 local process = require("@lune/process")
 
@@ -115,6 +116,45 @@ end
 
 export type Rendered = { path: string, content: string }
 
+-- List literals propagate their declared element type into every row. Explicit
+-- numeric keys instead infer an exact first-row shape before checking the list.
+local function serializeV2(value: any, used: { [string]: boolean }, descriptor: string?): string
+	if descriptor and descriptor:sub(1, 1) == "?" then
+		descriptor = descriptor:sub(2)
+	end
+	if type(value) ~= "table" then
+		return contract.serialize(value)
+	end
+	local fields = {}
+	if #value > 0 then
+		for _, entry in value do
+			local element = if descriptor and descriptor:sub(1, 2) == "[]" then descriptor:sub(3) else nil
+			table.insert(fields, serializeV2(entry, used, element))
+		end
+	else
+		local keys = {}
+		for key in value do
+			table.insert(keys, key)
+		end
+		table.sort(keys)
+		for _, key in keys do
+			local field = if key:match("^[%a_][%w_]*$") then key else "[" .. contract.serialize(key) .. "]"
+			local child = if descriptor then ContentV2.descriptor(descriptor, key) else nil
+			if descriptor == nil and table.find(ContentV2.SECTIONS, key) then
+				child = "[]" .. key
+			end
+			table.insert(fields, field .. "=" .. serializeV2(value[key], used, child))
+		end
+	end
+	local literal = "{" .. table.concat(fields, ",") .. "}"
+	if descriptor and ContentV2.isObject(descriptor) then
+		used[descriptor] = true
+	end
+	return if descriptor and ContentV2.isObject(descriptor)
+		then "v2_" .. descriptor .. "(" .. literal .. ")"
+		else literal
+end
+
 --- Renders the canonical document plus the resolved capability descriptor.
 --- `mode` selects which descriptor is embedded, so generated source always
 --- states which features are actually backed by a mechanism.
@@ -157,11 +197,31 @@ function M.render(document: Content.Document, mode: string): string
 		},
 	}
 	local source = HEADER
-		.. types(extended, skilled, hasContracts, hasCamp)
-		.. "\nlocal content: Content = "
-		.. contract.serialize(payload)
-		.. "\nreturn content\n"
-	if extended or hasContracts or hasCamp then
+	local typeSource = types(extended, skilled, hasContracts, hasCamp)
+	if document.version == 2 then
+		typeSource = typeSource:gsub(
+			"export type Wildlife = {",
+			"export type Wildlife = { mount: { enabled: boolean, cargoSlots: number, walkSpeed: number, runSpeed: number, stamina: number }?,",
+			1
+		)
+	end
+	if document.version == 2 then
+		for _, section in ContentV2.SECTIONS do
+			(payload :: any)[section] = (document :: any)[section]
+		end
+		local extra = ""
+		for _, section in ContentV2.SECTIONS do
+			extra ..= "\t" .. section .. ": { V2_" .. section .. " }?,\n"
+		end
+		typeSource = ContentV2.types() .. "\n" .. typeSource:sub(1, -2) .. extra .. "}"
+	end
+	local used: { [string]: boolean } = {}
+	local serialized = if document.version == 2 then serializeV2(payload, used) else contract.serialize(payload)
+	if document.version == 2 then
+		typeSource ..= "\n" .. ContentV2.constructors(used)
+	end
+	source ..= typeSource .. "\nlocal content: Content = " .. serialized .. "\nreturn content\n"
+	if extended or hasContracts or hasCamp or document.version == 2 then
 		for _ = 1, 2 do
 			local formatter = process.create("stylua", { "--config-path", "stylua.toml", "-" })
 			formatter.stdin:write(source)

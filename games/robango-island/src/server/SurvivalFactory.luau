@@ -7,7 +7,7 @@ local Inventory = require(Forge.core.domain.inventory.Inventory)
 local Job = require(Forge.core.domain.crafting.Job)
 local Clock = require(Forge.core.infra.genre.Clock)
 local Wildlife = require(Forge.genres["survival-coop"].module.Wildlife)
-return function(content, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
+return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	-- The rendered module also carries capability metadata, not domain content.
 	content = table.clone(content)
 	content.capability = nil
@@ -31,7 +31,16 @@ return function(content, source, world, backend, clock, options, provision, wild
 		Vector3.new(warehouse.x, warehouse.y, warehouse.z)
 	)
 	-- The provision may scope the tribe identity (a per-server camp); the grid policy is unchanged.
-	local tribeConfig = table.clone(tribe.config)
+	local tribeConfig: Settlement.Config = {
+		tribeId = tribe.config.tribeId,
+		width = tribe.config.width,
+		depth = tribe.config.depth,
+		cellStuds = tribe.config.cellStuds,
+		maxMembers = tribe.config.maxMembers,
+	}
+	if content.version == 2 then
+		tribeConfig.contentVersion = 2
+	end
 	tribeConfig.tribeId = provision.tribeId or tribeConfig.tribeId
 	-- Last confirmed settlement, recorded from the runtime's post-commit publication.
 	local confirmed: any = nil

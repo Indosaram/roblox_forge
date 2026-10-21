@@ -1,11 +1,19 @@
 --!strict
 -- Pure candidates only: publish alongside inventory and receipts in one durable commit.
 local Settlement = {}
+local CapacityPolicy = require("../survival/CapacityPolicy")
 
 export type Cell = { x: number, z: number }
 export type Cost = { item: string, quantity: number }
 export type Definition = { id: string, footprintX: number, footprintZ: number, cost: { Cost } }
-export type Config = { tribeId: string, width: number, depth: number, cellStuds: number, maxMembers: number }
+export type Config = {
+	tribeId: string,
+	width: number,
+	depth: number,
+	cellStuds: number,
+	maxMembers: number,
+	contentVersion: number?,
+}
 export type Placement = {
 	id: string,
 	actorId: string,
@@ -60,7 +68,8 @@ local MAX_CLOCK = 2 ^ 53 - 1
 function Settlement.new(config: Config, ownerId: string, now: number?): State
 	assert(config.tribeId ~= "" and ownerId ~= "", "identity required")
 	assert(integer(config.width, 1, 32) and integer(config.depth, 1, 32), "grid exceeds bounds")
-	assert(integer(config.cellStuds, 1, 128) and integer(config.maxMembers, 1, 4), "invalid policy")
+	local policy = CapacityPolicy.forVersion(config.contentVersion)
+	assert(integer(config.cellStuds, 1, 128) and integer(config.maxMembers, 1, policy.clanMembers), "invalid policy")
 	local created = now or 0
 	assert(integer(created, 0, MAX_CLOCK), "invalid clock")
 	return {

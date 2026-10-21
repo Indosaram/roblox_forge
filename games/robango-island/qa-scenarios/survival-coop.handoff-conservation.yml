@@ -1,0 +1,39 @@
+name: handoff-conservation
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 73
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/handoff-conservation]
+data:
+  durable:
+    actions: ["survival-coop:camp-contribute"]
+    personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
+steps:
+  - {op: join, player: owner}
+  - {op: command, player: owner, requestId: delivery, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 0]}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalExtensions.camp.active.windbreak.delivered.fiber, equals: 4}
+  - {op: commit_barrier, mode: fail, key: "personal:owner", count: 1}
+  - {op: prepare_handoff, player: owner, expect: refused}
+  - {op: resume_handoff, player: owner}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
+  - {op: prepare_handoff, player: owner}
+  - {op: prepare_handoff, player: owner}
+  # A teleport failure before destination claim restores fenced source control.
+  - {op: resume_handoff, player: owner}
+  - {op: command, player: owner, requestId: delivery, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 0]}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalExtensions.camp.active.windbreak.delivered.fiber, equals: 4}
+  - {op: prepare_handoff, player: owner}
+  - {op: recover_transfers, player: owner, maximum: 8}
+  - {op: complete_handoff, player: owner}
+  - {op: complete_handoff, player: owner}
+  - {op: expect_members, members: []}
+  - {op: reload}
+  - {op: join, player: owner}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalExtensions.camp.active.windbreak.delivered.fiber, equals: 4}
+  - {op: close, player: owner}

@@ -266,7 +266,7 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "content",
 		text = [=[
-  content check --file <path>
+  content check --file <path> | --pack <slug>
                             Validate a versioned survival content catalog (items, recipes,
                             nodes, structures, wildlife) and print every violation with its
                             field path. Catalog refs, caps, cycles and fixed-point
@@ -278,7 +278,10 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
   content codegen --pack <slug>
                             Write games/<pack>/src/shared/SurvivalContent.luau from the
                             pack's content.yml. Deterministic: identical input always
-                            produces byte-identical output]=],
+                            produces byte-identical output. Refuses econ.yml content drift.
+  content sync-econ --pack <slug>
+                            Rewrite only embedded survival-coop inventory content in econ.yml
+                            from the canonical content.yml v1 projection]=],
 	},
 	{
 		name = "provenance",

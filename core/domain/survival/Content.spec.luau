@@ -215,7 +215,7 @@ return {
 			"nonmapping rejected"
 		)
 		local raw = valid()
-		raw.survival_content = 2
+		raw.survival_content = 3
 		raw.vitals = {}
 		raw.items[1].foodEffects = { hungerMilli = 1, healthMilli = 0, fatigueMilli = 0 }
 		assert(Content.canonicalize(raw) == nil, "optional fields never downgrade newer content")
@@ -365,9 +365,9 @@ return {
 
 	["a newer envelope version is refused rather than downgraded"] = function()
 		local errors = mutate(function(document)
-			document.survival_content = 2
+			document.survival_content = 3
 		end)
-		assert(hasError(errors, "survival_content: unsupported version 2"), table.concat(errors, "; "))
+		assert(hasError(errors, "survival_content: unsupported version 3"), table.concat(errors, "; "))
 		assert(hasError(Content.validate({}), "survival_content"), "a missing version is refused too")
 	end,
 

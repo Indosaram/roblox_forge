@@ -248,6 +248,29 @@ return {
 		assert(found, "offers carry their coin reward")
 		assert(h.extension.close().ok, "close")
 	end,
+	["actor handoff drains pending contract consumption and releases recovery ownership"] = function()
+		for _, fault in { "fail", "lost" } do
+			local h = harness(0)
+			h.reopen("origin")
+			assert(h.command("tutorial-skip-arrival", {}, "skip").ok, "skip")
+			assert(h.command("contract-accept", { "survey-driftwood" }, "accept").ok, "accept")
+			h.faults.next = fault
+			assert(not h.command("contract-deliver", { "survey-driftwood" }, "deliver").ok, "grant barrier")
+			assert(h.extension.drain("1").ok, "pending consumption drained")
+			assert(
+				h.held("wood") + 2 == 5 and h.held("cord") == 1 and h.balance() == 10,
+				"inventory plus consumption and rewards conserved"
+			)
+			assert(h.extension.releaseActor("1").ok, "release actor")
+			assert(h.extension.releaseActor("1").ok, "duplicate release")
+			assert(h.extension.recover("1", 8).status == "confirmed", "departed recovery idle")
+			assert(h.extension.snapshot("1") == nil, "departed snapshot cannot reload")
+			assert(h.extension.resumeActor("1").ok, "explicit origin resume")
+			assert(h.command("contract-deliver", { "survey-driftwood" }, "deliver").ok, "receipt replay")
+			assert(h.held("cord") == 1 and h.balance() == 10, "duplicate receipt grants zero extra")
+			assert(h.extension.close().ok, "close")
+		end
+	end,
 	["a crash between contract completion and the grant recovers exactly once"] = function()
 		for _, fault in { "fail", "lost" } do
 			local h = harness(0)

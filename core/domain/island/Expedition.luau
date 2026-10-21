@@ -15,6 +15,35 @@ local Rng = require("../random/Rng")
 
 local Expedition = {}
 
+-- Facts are loaded by the server from the actor's current expedition, never
+-- accepted from a travel remote or TeleportData.
+function Expedition.admitStage(facts: any, now: number): (boolean, string?)
+	if type(facts) ~= "table" then
+		return false, "missing_expedition"
+	end
+	local levels = { 30, 35, 40, 50, 60 }
+	local minimum = levels[facts.index]
+	if minimum == nil then
+		return false, "invalid_index"
+	end
+	if type(facts.level) ~= "number" or facts.level < minimum then
+		return false, "level_gate"
+	end
+	if type(facts.developmentGrade) ~= "number" or facts.developmentGrade < facts.index * 2 then
+		return false, "development_gate"
+	end
+	if type(facts.expiresAt) ~= "number" or now >= facts.expiresAt then
+		return false, "route_expired"
+	end
+	if type(facts.stage) ~= "number" or facts.stage < 1 or facts.stage > 4 or facts.stage % 1 ~= 0 then
+		return false, "invalid_stage"
+	end
+	if facts.stage > 1 and (facts.completedStage ~= facts.stage - 1 or facts.completedObjectives ~= 2) then
+		return false, "mission_gate"
+	end
+	return true, nil
+end
+
 Expedition.DEFAULT_TTL_SECONDS = 24 * 60 * 60 -- ADR-05: 24 h rotation
 Expedition.DATASTORE_KEY_LIMIT = 4194304
 Expedition.DELTA_BUDGET = Expedition.DATASTORE_KEY_LIMIT // 2

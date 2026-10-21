@@ -104,7 +104,16 @@ local function setupAtmosphere()
 	end)
 end
 
-return function(content, source, wildlifePolicy, epochMillis)
+return function(content, source: any, wildlifePolicy, epochMillis, role: string, studioSingle: boolean)
+	-- World geometry is supplied by the pack's role builders. The legacy island
+	-- remains an explicitly labeled Studio preview, never a live-role fallback.
+	if not studioSingle then
+		local builders = source.roleBuilders
+		local builder = if builders then builders[role] else nil
+		assert(type(builder) == "function", "missing_world_builder:" .. tostring(role))
+		return builder(content, source, wildlifePolicy, epochMillis)
+	end
+	assert(role == "onboarding", "studio_preview_requires_onboarding")
 	setupAtmosphere()
 	buildTerrain()
 	local geometry = Instance.new("Folder")

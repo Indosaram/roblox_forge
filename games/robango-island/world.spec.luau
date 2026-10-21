@@ -92,9 +92,14 @@ local function placementErrors(world: any, policy: any): { string }
 			table.insert(errors, spawn.id .. " is in " .. sample.biome .. ", expected " .. biome)
 		end
 	end
-	for _, kind in contentIds("wildlife") do
+	for _, kind in { "grazer", "hunter" } do
 		if not spawned[kind] then
 			table.insert(errors, "species " .. kind .. " never spawns")
+		end
+	end
+	for kind in SPECIES_BIOME do
+		if not spawned[kind] then
+			table.insert(errors, "landing species " .. kind .. " never spawns")
 		end
 	end
 	if #policy.spawns > policy.maximum or policy.maximum > 32 then
@@ -103,7 +108,73 @@ local function placementErrors(world: any, policy: any): { string }
 	return errors
 end
 
+local function catalogPlacementErrors(document: any): { string }
+	local errors: { string } = {}
+	local placed: { [string]: boolean } = {}
+	local biomes: { [string]: { string } } = {}
+	for _, species in document.wildlifeDetails do
+		biomes[species.id] = species.biomes
+	end
+	for _, layout in document.layouts do
+		for _, spawn in layout.spawns do
+			placed[spawn.speciesId] = true
+			local allowed = biomes[spawn.speciesId]
+			if allowed then
+				local compatible = false
+				for _, biome in layout.biomes do
+					if table.find(allowed, biome) then
+						compatible = true
+					end
+				end
+				if not compatible then
+					table.insert(errors, spawn.id .. " has no compatible biome in " .. layout.id)
+				end
+			end
+			local p, bounds = spawn.position, layout.bounds
+			if
+				p.x < bounds.min.x
+				or p.x > bounds.max.x
+				or p.y < bounds.min.y
+				or p.y > bounds.max.y
+				or p.z < bounds.min.z
+				or p.z > bounds.max.z
+			then
+				table.insert(errors, spawn.id .. " is outside its layout")
+			end
+		end
+	end
+	for _, species in document.wildlife do
+		if not placed[species.id] then
+			table.insert(errors, "catalog species " .. species.id .. " never spawns")
+		end
+	end
+	return errors
+end
+
 return {
+	["every catalog species has a bounded v2 placement in an allowed biome"] = function()
+		local document = serde.decode("yaml", fs.readFile(PACK .. "/content.yml"))
+		local errors = catalogPlacementErrors(document)
+		assert(#errors == 0, table.concat(errors, "; "))
+	end,
+
+	["NEGATIVE: missing v2 species and incompatible habitat are reported"] = function()
+		local document = serde.decode("yaml", fs.readFile(PACK .. "/content.yml"))
+		local missing = document.wildlifeDetails[1].id
+		for _, layout in document.layouts do
+			local kept = {}
+			for _, spawn in layout.spawns do
+				if spawn.speciesId ~= missing then
+					table.insert(kept, spawn)
+				end
+			end
+			layout.spawns = kept
+		end
+		document.wildlifeDetails[2].biomes = { "invalid-habitat" }
+		local errors = catalogPlacementErrors(document)
+		assert(#errors >= 2, table.concat(errors, "; "))
+	end,
+
 	["every node kind and species is placed on dry land inside its biome"] = function()
 		local errors =
 			placementErrors(load("src/shared/SurvivalWorldConfig.luau"), load("src/shared/WildlifePolicy.luau"))

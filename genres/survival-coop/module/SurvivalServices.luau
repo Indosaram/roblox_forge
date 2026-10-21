@@ -10,6 +10,7 @@ local Fenced = require("../../../core/infra/data/FencedStore")
 local ProfileStore = require("../../../core/infra/data/ProfileStore")
 local Shared = require("../../../core/domain/genre/Contract")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
+local CapacityPolicy = require("../../../core/domain/survival/CapacityPolicy")
 local M = {}
 export type Config = {
 	tribes: { Settlement.Config },
@@ -39,7 +40,14 @@ function M.new(config: Config, backend: ProfileStore.Backend, options: Fenced.Op
 	for _, entry in config.tribes do
 		local id = entry.initial.settlement.config.tribeId
 		assert(not settings[id] and not keys[entry.key], "DUPLICATE_TRIBE_OWNER")
-		assert(Catalog.integer(entry.initial.settlement.config.maxMembers, 1, 4), "INVALID_MEMBER_LIMIT")
+		assert(
+			Catalog.integer(
+				entry.initial.settlement.config.maxMembers,
+				1,
+				CapacityPolicy.forVersion(entry.initial.settlement.config.contentVersion).clanMembers
+			),
+			"INVALID_MEMBER_LIMIT"
+		)
 		settings[id], keys[entry.key] = entry, true
 	end
 	for _, entry in config.tribes do

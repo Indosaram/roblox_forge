@@ -600,6 +600,26 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
+		if scenario.name == "handoff-conservation" then
+			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
+			fixture = require("../fixtures/handoff-conservation/scenario").new(
+				"games/robango-island",
+				gate.backend,
+				function()
+					return math.floor(wall)
+				end
+			)
+			for key, service in fixture.services do
+				(trustedServices :: any)[key] = service
+			end
+		end
+		if scenario.name == "role-routing" then
+			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
+			assert(table.find(scenario.fixtures, "cli/forge/fixtures/role-routing"), "routing fixture binding")
+			fixture = require("../fixtures/role-routing/scenario").new(function()
+				return math.floor(wall)
+			end)
+		end
 	end
 	openFixture()
 	-- Genre extensions (taming): built from the real registry factory over the run's backend,
@@ -758,6 +778,26 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					return "join refused: " .. tostring(result.reason)
 				end
 				transferOwner(actor)
+				return nil
+			elseif op == "role_travel" then
+				assert(scenario.kind == "native" and fixture and fixture.travel, "role travel requires native fixture")
+				local actor = playerOf(step)
+				local result = fixture.travel(actor, step.from, step.destination, step.level, step.objectives)
+				results[actor] = result
+				if (step.expect == "refused") == result.ok then
+					return "unexpected role travel result"
+				end
+				return nil
+			elseif op == "prepare_handoff" or op == "resume_handoff" or op == "complete_handoff" then
+				local actor = playerOf(step)
+				local result = if op == "prepare_handoff"
+					then session.prepareHandoff(actor)
+					elseif op == "resume_handoff" then session.resumeHandoff(actor)
+					else session.completeHandoff(actor)
+				results[actor] = result
+				if (step.expect == "refused") == result.ok then
+					return "handoff unexpected result: " .. tostring(result.reason)
+				end
 				return nil
 			elseif op == "leave" or op == "close" then
 				local actor =

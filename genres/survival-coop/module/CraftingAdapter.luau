@@ -139,7 +139,7 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 	if not bounded(data.startingBalance, 0, LIMIT, true) then
 		table.insert(errors, "startingBalance: invalid bounded integer")
 	end
-	if data.contentVersion ~= 1 then
+	if data.contentVersion ~= 1 and data.contentVersion ~= 2 then
 		table.insert(errors, "contentVersion: unsupported content version")
 	end
 	if data.inventory ~= nil then
@@ -154,6 +154,7 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 			end
 			local content, contentErrors = Content.canonicalize(input.content)
 			assert(content ~= nil, table.concat(contentErrors, "; "))
+			assert(content.version == data.contentVersion, "contentVersion: catalog version mismatch")
 			assert(ItemCatalog.integer(input.speedPenaltyMilli, 0, 1000), "invalid speed penalty")
 			local catalog = catalogOf(content)
 			assert(type(input.containers) == "table", "containers: expected mapping")
@@ -166,8 +167,9 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 			for id, items in input.containers do
 				count += 1
 				assert(count <= 8 and ItemCatalog.identity(id), "invalid personal containers")
-				assert(Validation.dense(items, 20), "initial items: expected dense list")
+				assert(Validation.dense(items, content.limits.slots), "initial items: expected dense list")
 				local state = Inventory.new(id, {
+					contentVersion = if content.version == 2 then 2 else nil,
 					slots = content.limits.slots,
 					softWeightMilli = content.limits.softWeightMilli,
 					hardWeightMilli = content.limits.hardWeightMilli,
@@ -348,6 +350,7 @@ function M.new(
 		end
 		for id, items in inventoryConfig.containers do
 			local state = Inventory.new(id, {
+				contentVersion = if content.version == 2 then 2 else nil,
 				slots = content.limits.slots,
 				softWeightMilli = content.limits.softWeightMilli,
 				hardWeightMilli = content.limits.hardWeightMilli,

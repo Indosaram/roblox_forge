@@ -4,6 +4,7 @@
 local Content = require("../../../core/domain/survival/Content")
 local Archetype = require("../../../core/domain/survival/Archetype")
 local Inventory = require("../../../core/domain/inventory/Inventory")
+local CapacityPolicy = require("../../../core/domain/survival/CapacityPolicy")
 local M = {}
 --- Observer radius used by the world binding for hibernation LOD.
 M.HIBERNATE_STUDS = Archetype.HIBERNATE_STUDS
@@ -89,7 +90,11 @@ function M.catalog(content: Content.Document, catalog: Catalog): Catalog
 	end
 	for _, definition in content.wildlife do
 		local rule = assert(catalog.species[definition.id], "MISSING_SPECIES")
-		assert(integer(rule.healthMilli, 1, 1000000) and integer(rule.damageMilli, 0, 100000), "INVALID_SPECIES")
+		assert(
+			integer(rule.healthMilli, 1, CapacityPolicy.forVersion(content.version).healthMilli)
+				and integer(rule.damageMilli, 0, 100000),
+			"INVALID_SPECIES"
+		)
 		local drops = {}
 		for _, drop in rule.drops do
 			assert(items[drop.item] and integer(drop.quantity, 1, 1000), "INVALID_DROP")

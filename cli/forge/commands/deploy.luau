@@ -23,6 +23,25 @@ local opencloud = require("../lib/opencloud")
 
 local M = {}
 
+function M.roleTarget(deploy: any, environment: string, role: string): (any?, string?)
+	local Topology = require("../../../core/domain/island/Topology")
+	if Topology.ROLES[role] == nil then
+		return nil, "unknown_role"
+	end
+	local selected = deploy.environments and deploy.environments[environment]
+	local roles = selected and selected.roles
+	if type(roles) ~= "table" then
+		return nil, "missing_role_config"
+	end
+	local resolved, reason = Topology.resolveRole(roles, roles[role] or 0)
+	if resolved ~= role then
+		return nil, reason or "unconfigured_role"
+	end
+	local result = table.clone(selected)
+	result.placeId = roles[role]
+	return { environments = { [environment] = result } }, nil
+end
+
 local DEFAULT_PACK = "kaiju-egg-raiders"
 local ENVS = { "staging", "production" }
 
@@ -107,6 +126,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 	local development = false
 	local out: string? = nil
 	local packDirOverride: string? = nil
+	local role: string? = nil
 	local index = if args[2] == "plan" then 3 else 2
 	if args[2] == "plan" then
 		dryRun = true
@@ -125,13 +145,15 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 				development = true
 			end
 			index += 1
-		elseif flag == "--env" or flag == "--pack" or flag == "--out" or flag == "--pack-dir" then
+		elseif flag == "--env" or flag == "--pack" or flag == "--out" or flag == "--pack-dir" or flag == "--role" then
 			local value = args[index + 1]
 			if value == nil or value == "" or string.sub(value, 1, 2) == "--" then
 				stdio.ewrite("Error: " .. flag .. " requires a value\n")
 				return false
 			end
-			if flag == "--env" then
+			if flag == "--role" then
+				role = value
+			elseif flag == "--env" then
 				env = value
 			elseif flag == "--out" then
 				out = value
@@ -207,7 +229,19 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 	-- The selected environment's ids are literal integers or `${NAME}`
 	-- references resolved from the operator's environment; an unset reference is
 	-- refused by name so a missing variable never becomes a wrong target.
-	local target, targetError = deploytarget.target(deploy, env, variables)
+	local selectedDeploy = deploy
+	if role then
+		local roleDeploy, roleError = M.roleTarget(deploy, env, role)
+		if roleDeploy == nil then
+			stdio.ewrite("invalid role deploy target: " .. tostring(roleError) .. "\n")
+			return false
+		end
+		selectedDeploy = roleDeploy
+	elseif deploy.environments[env].roles ~= nil then
+		stdio.ewrite("role-configured deploy requires --role\n")
+		return false
+	end
+	local target, targetError = deploytarget.target(selectedDeploy, env, variables)
 	if target == nil then
 		stdio.ewrite("invalid deploy target: " .. deployPath .. " " .. tostring(targetError) .. "\n")
 		return false
@@ -251,10 +285,40 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 			return false
 		end
 		stdio.write("deploy: built " .. outputPath .. "\n")
+		if role then
+			local roblox = require("@lune/roblox")
+			local place = roblox.deserializePlace(fs.readFile(outputPath))
+			local storage = place:FindFirstChild("ServerStorage")
+			if storage == nil then
+				local created = roblox.Instance.new("ServerStorage")
+				created.Parent = place
+				storage = created
+			end
+			local config = roblox.Instance.new("StringValue")
+			config.Name = "ForgePlaceRoles"
+			config.Value = serde.encode("json", deploy.environments[env].roles)
+			config.Parent = storage
+			fs.writeFile(outputPath, roblox.serializePlace(place))
+		end
 	end
 	-- Release publishes the assessed artifact, never an unassessed rebuild.
 	-- Hold the upload bytes across the final gate to detect artifact replacement.
 	local artifact = fs.readFile(outputPath)
+	if role then
+		-- The same assessed bytes serve every role. Refuse a mismatched map instead
+		-- of silently rewriting an approved artifact during publication.
+		local place = require("@lune/roblox").deserializePlace(artifact)
+		local storage = place:FindFirstChild("ServerStorage")
+		local config = if storage then storage:FindFirstChild("ForgePlaceRoles") else nil
+		local expected = deploy.environments[env].roles
+		local actual = if config and config:IsA("StringValue") then serde.decode("json", (config :: any).Value) else nil
+		for name, id in expected do
+			if actual == nil or actual[name] ~= id then
+				stdio.ewrite("role artifact configuration mismatch: " .. name .. "\n")
+				return false
+			end
+		end
+	end
 	quality = checkQuality()
 	if not quality.ok or (not development and not quality.releaseApproved) then
 		stdio.ewrite("deploy quality: " .. quality.code .. "\n" .. table.concat(quality.errors, "\n") .. "\n")

@@ -21,13 +21,19 @@ data:
     positions: {owner: {x: 16, y: 0, z: 16}}
     items: []
 steps:
+  - {op: begin_clock}
   - {op: join, player: owner}
   # A deposit settles in its own command; fail the escrow write so the crash lands right after PREPARED.
   - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 2}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
   - {op: expect_result, player: owner, field: data.phase, equals: SOURCE_UNKNOWN}
-  - {op: close, player: owner}
+  # Abandon the personal session without graceful close (which drains transfers).
+  # Advance only the restarted, empty session so the crashed owner's lease expires.
+  # Reopen the warehouse midway so its independent lease remains live for recovery.
   - {op: reload}
+  - {op: advance_elapsed, seconds: 60}
+  - {op: reload}
+  - {op: advance_elapsed, seconds: 121}
   - {op: join, player: owner}
   - {op: recover_transfers, player: owner, maximum: 1}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.wood.quantity, equals: 7}
@@ -37,8 +43,10 @@ steps:
   - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 4}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], expect: refused}
   - {op: expect_result, player: owner, field: data.phase, equals: FINALIZE_UNKNOWN}
-  - {op: close, player: owner}
   - {op: reload}
+  - {op: advance_elapsed, seconds: 181}
+  - {op: reload}
+  - {op: advance_elapsed, seconds: 242}
   - {op: join, player: owner}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [wood, 3], times: 20}
   - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
@@ -49,8 +57,10 @@ steps:
   - {op: commit_barrier, mode: fail, count: 1, key: transfer-tribe, skip: 3}
   - {op: command, player: owner, requestId: Withdraw101, sessionEpoch: current, action: "survival-coop:transfer-withdraw", args: ["transfer:owner:0:Transfer101:output", 3], expect: refused}
   - {op: expect_result, player: owner, field: data.phase, equals: SOURCE_UNKNOWN}
-  - {op: close, player: owner}
   - {op: reload}
+  - {op: advance_elapsed, seconds: 302}
+  - {op: reload}
+  - {op: advance_elapsed, seconds: 363}
   - {op: join, player: owner}
   - {op: recover_transfers, player: owner, maximum: 8}
   - {op: recover_transfers, player: owner, maximum: 8}

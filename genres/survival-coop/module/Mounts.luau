@@ -55,9 +55,15 @@ function M.catalog(content: Content.Document, rules: Rules): Catalog
 	assert(type(rules.species) == "table", "INVALID_MOUNT_SPECIES")
 	local known: { [string]: boolean } = {}
 	local flags: { [string]: string } = {}
+	local mounts: { [string]: any } = {}
 	for _, entry in content.wildlife do
 		-- Only archetype wildlife (which always publish a flag) can be ridden.
 		known[entry.id] = Archetype.isArchetype(entry.behavior)
+		local mount = (entry :: any).mount
+		if content.version == 2 and mount then
+			known[entry.id] = mount.enabled
+			mounts[entry.id] = entry
+		end
 		if entry.flag ~= nil then
 			flags[entry.id] = entry.flag
 		end
@@ -68,6 +74,11 @@ function M.catalog(content: Content.Document, rules: Rules): Catalog
 		exact(rule, { "rideable", "rideSpeedStuds", "carryMilli" }, "INVALID_SPECIES_RULE")
 		assert(type(rule.rideable) == "boolean", "INVALID_RIDEABLE")
 		assert(not rule.rideable or known[id], "RIDEABLE_NEEDS_ARCHETYPE")
+		local definition = mounts[id]
+		if definition and definition.mount then
+			assert(rule.rideable == definition.mount.enabled, "MOUNT_POLICY_MISMATCH")
+			assert(not rule.rideable or rule.rideSpeedStuds == definition.mount.runSpeed, "MOUNT_SPEED_MISMATCH")
+		end
 		assert(integer(rule.carryMilli, 0, M.MAX_CARRY_MILLI), "INVALID_CARRY")
 		if rule.rideable then
 			assert(integer(rule.rideSpeedStuds, 1, M.MAX_SPEED_STUDS), "INVALID_RIDE_SPEED")

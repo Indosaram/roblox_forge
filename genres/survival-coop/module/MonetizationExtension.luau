@@ -13,6 +13,7 @@ local PolicyPort = require("../../../core/infra/monetization/PolicyPort")
 local Receipts = require("../../../core/infra/monetization/Receipts")
 local Subscription = require("../../../core/infra/monetization/Subscription")
 
+local Session = require("../../../core/infra/genre/Session")
 local M = {}
 
 M.SAVE_VERSION = 1
@@ -113,6 +114,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	local hooks: Hooks = config.hooks or NO_HOOKS
 	local store = ctx.store()
 	local entries: { [string]: Entry } = {}
+	local departed: { [string]: boolean } = {}
 	local closed = false
 
 	local function find(key: any): (Listing?, string?)
@@ -148,6 +150,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 		end
 	end
 	local function load(actor: string): Entry?
+		if departed[actor] then
+			return nil
+		end
 		local existing = entries[actor]
 		if existing then
 			-- Keep the lease alive (a no-op write while healthy); a lost lease reloads durable state.
@@ -177,6 +182,14 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			return snapshot
 		end)
 		if not updated then
+			-- A failed or ambiguous commit must not leave the in-memory purchase
+			-- marker authoritative. Redelivery reloads the durable receipt before
+			-- deciding whether to grant or acknowledge it.
+			for actor, held in entries do
+				if held == entry then
+					entries[actor] = nil
+				end
+			end
 			return false
 		end
 		entry.profile = updated
@@ -351,6 +364,26 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			end
 			return view(entry) :: any, nil
 		end,
+		drain = function(_actor: string): Shared.Result
+			-- Receipts commit before returning PurchaseGranted; no local grant queue.
+			return { ok = true }
+		end,
+		releaseActor = function(actor: string): Shared.Result
+			local entry = entries[actor]
+			if entry then
+				local released, err = store:release(entry.profile)
+				if not released and err ~= "lease lost" then
+					return { ok = false, reason = err }
+				end
+			end
+			entries[actor] = nil
+			departed[actor] = true
+			return { ok = true }
+		end,
+		resumeActor = function(actor: string): Shared.Result
+			departed[actor] = nil
+			return { ok = load(actor) ~= nil, reason = nil }
+		end,
 		close = function(): Shared.Result
 			closed = true
 			for actor, entry in entries do
@@ -363,7 +396,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			return { ok = true }
 		end,
 	}
-	return extension :: any
+	return Session.registerLifecycle(extension)
 end
 
 return M

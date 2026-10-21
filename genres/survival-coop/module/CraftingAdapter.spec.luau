@@ -99,6 +99,24 @@ local function run(instance: Shared.Instance, action: string, args: { any }, ctx
 end
 
 return {
+	["v2 explicitly opts into larger bags and clans while v1 keeps its caps"] = function()
+		local cfg = config()
+		cfg.inventory.content.limits.slots = 30
+		cfg.inventory.content.limits.tribeMaxMembers = 50
+		cfg.inventory.content.wildlife = { { id = "direWolf", behavior = "hunter" } }
+		assert(#CraftingAdapter.validateConfig(cfg) > 0, "v1 rejects v2 limits and identities")
+		cfg.contentVersion = 2
+		assert(#CraftingAdapter.validateConfig(cfg) > 0, "outer version alone cannot upgrade legacy content")
+		cfg.inventory.content.survival_content = 2
+		local errors = CraftingAdapter.validateConfig(cfg)
+		assert(#errors == 0, table.concat(errors, "; "))
+		cfg.inventory.content.limits.slots = 31
+		assert(#CraftingAdapter.validateConfig(cfg) > 0, "v2 bag maximum remains bounded")
+		cfg.inventory.content.limits.slots = 30
+		cfg.inventory.content.limits.tribeMaxMembers = 51
+		assert(#CraftingAdapter.validateConfig(cfg) > 0, "v2 clan maximum remains bounded")
+	end,
+
 	["committed craft-complete emits one craft event after apply"] = function()
 		local instance, seen = setup()
 		local reserved = run(instance, "craft-reserve", { "cord", "" }, context("r1", 0))

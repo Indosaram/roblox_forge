@@ -1,0 +1,23 @@
+name: role-routing
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+seed: 74
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/role-routing]
+steps:
+  - {op: join, player: owner}
+  - {op: role_travel, player: owner, from: home, destination: frontier60, level: 60, objectives: 2, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: transition_not_allowed}
+  - {op: role_travel, player: owner, from: harbor, destination: frontier60, level: 59, objectives: 2, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: level_gate}
+  - {op: role_travel, player: owner, from: harbor, destination: invalid, level: 60, objectives: 2, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: unknown_target_role}
+  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 30, objectives: 1, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: mission_gate}
+  - {op: role_travel, player: owner, from: harbor, destination: archipelago, level: 30, objectives: 2}
+  - {op: expect_result, player: owner, field: data.teleports, equals: 1}
+  - {op: resume_handoff, player: owner}
+  - {op: close, player: owner}

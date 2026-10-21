@@ -5,7 +5,33 @@ environments:
   staging:
     universeId: ${FORGE_STAGING_UNIVERSE_ID}
     placeId: ${FORGE_STAGING_PLACE_ID}
+    roles:
+      onboarding: 0
+      home: 0
+      harbor: 0
+      archipelago: 0
+      explore10: 0
+      explore20: 0
+      frontier30: 0
+      frontier40: 0
+      frontier50: 0
+      frontier60: 0
+      brawl: 0
+      team-outpost: 0
   production:
     universeId: ${FORGE_PRODUCTION_UNIVERSE_ID}
     placeId: ${FORGE_PRODUCTION_PLACE_ID}
     requiresHumanMerge: true
+    roles:
+      onboarding: 0
+      home: 0
+      harbor: 0
+      archipelago: 0
+      explore10: 0
+      explore20: 0
+      frontier30: 0
+      frontier40: 0
+      frontier50: 0
+      frontier60: 0
+      brawl: 0
+      team-outpost: 0

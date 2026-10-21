@@ -1,5 +1,19 @@
 # robango-island QA evidence
 
+## Readiness correction (2026-10-20)
+
+Earlier **release-ready** and **full-functionality** claims are withdrawn. The records below concern the earlier single-island prototype and the specific builds/scenarios recorded at the time; they do not prove the recovery design in `.omo/plans/robango-recovery-world-audit.md` or the catalogs indexed by `.omo/drafts/robango-spec-index.md`. Robango Island does not claim 100% original parity. The current system-by-system scope and remaining implementation acceptance are recorded in [fidelity-matrix.md](fidelity-matrix.md).
+
+What was actually recorded: deterministic local/spec checks; three Studio scenario runs (`survival-coop:wildlife-spatial`, `survival-coop:full-coop-rejoin`, `survival-coop:tutorial-studio`); private staging deployments and cloud storage probes; and an Android run of the older content with native commerce prompts. Historical rows, failed attempts, device measurements and deployment notes are retained below rather than rewritten as new evidence. This correction does not freshly rerun those sessions or read back the current published version.
+
+What has **not** been proven for the new design: a mission-linked archipelago journey; travel to and return from an actor-stable personal home; real two-account live trade, including cross-server listing/settlement and failure recovery; and real-device execution/performance of the new world, progression, combat, farming, journal, brawl and ensemble content. Studio guest/fixture actors do not substitute for two real live accounts. Old phone measurements do not certify new content. A local transfer-crash fixture does not prove published TeleportService travel.
+
+Evidence layers must remain separate: source/code inspection establishes only what was inspected; deterministic tests establish their asserted contracts; Studio scenarios establish only their recorded Studio scope; published staging sessions establish only their recorded version and actions; settled commerce requires an authorized actual charge/receipt and effect verification. Registered IDs and a visible purchase prompt are not proof of paid benefit application or billing settlement. No new charge or public release is authorized by this document.
+
+Accordingly, every PASS below is a historical, scoped result, not a blanket current readiness gate. The old QA-ID table and numbered notes remain intact for traceability. Completion requires new-design code and actual-play evidence for every applicable fidelity row, with commit/build digest, place/version, actor IDs, JobIds and invocation as required by recovery tasks 2 and 12. Unknown or unavailable live evidence stays unverified; it cannot be replaced by document review or a green spec suite.
+
+## Historical QA-ID map
+
 Maps every QA ID in section 12 of the port plan to the local command that proves it, the spec or scenario that holds the check, and its status. Run all commands from the repository root with `forge` = `lune run cli/forge`.
 
 Status values: **local PASS** (runs here, deterministic), **needs Studio** (cannot be measured without Roblox Studio or a device), **needs staging** (needs a staging Universe and a human), **gap** (a local check exists but does not yet cover robango-island).

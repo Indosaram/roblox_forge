@@ -4,8 +4,8 @@ coin_label,Shellmoney,hud resource balance,Shellmoney,조개돈
 structure_campfire,Campfire,entity campfire,Campfire,모닥불
 structure_workbench,Workbench,entity workbench,Workbench,작업대
 item_starter_fiber,Fiber,entity starter-fiber,Fiber,섬유
-item_cord,Twisted Cord,entity cord,Twisted Cord,꼰 끈
-recipe_cord,Twisted Cord recipe,entity cord-recipe,Twisted Cord recipe,꼰 끈 제작법
+item_cord,Cord,entity cord,Cord,꼰 끈
+recipe_cord,Cord recipe,entity cord-recipe,Cord recipe,꼰 끈 제작법
 wildlife_boar,Boar,entity boar,Boar,멧돼지
 defense_wave,Wave,entity wave-defense,Wave,웨이브
 buy_defense,Buy defense,control survival-coop:buy-defense,Buy defense,방어 구매
@@ -18,75 +18,75 @@ hud_menu,Menu,hud kit string,Menu,메뉴
 currency_name,Shellmoney,soft currency display name (id Coins),Shellmoney,조개돈
 biome_temperate_forest,Temperate Forest,biome temperate-forest,Temperate Forest,온대 숲
 biome_coastal_marsh,Coastal Marsh,biome coastal-marsh,Coastal Marsh,해안 습지
-item_wood,Windfall Log,entity wood,Windfall Log,쓰러진 통나무
-item_flint,Knapping Flint,entity flint,Knapping Flint,뗀석기 부싯돌
-item_fiber,Bracken Fiber,entity fiber,Bracken Fiber,고사리 섬유
-item_berry,Bramble Berry,entity berry,Bramble Berry,덤불딸기
-item_meat,Raw Game Meat,entity meat,Raw Game Meat,날고기
-item_stone_axe,Flint Hatchet,entity stone-axe,Flint Hatchet,부싯돌 손도끼
-item_stone_pick,Flint Pick,entity stone-pick,Flint Pick,부싯돌 곡괭이
-item_spear,Fire-hardened Spear,entity spear,Fire-hardened Spear,불에 단련한 창
-item_cooked_meat,Ember-roast Meat,entity cooked-meat,Ember-roast Meat,잉걸불 구이
-item_berry_meal,Berry Mash,entity berry-meal,Berry Mash,으깬 딸기죽
-item_plank,Split Plank,entity plank,Split Plank,쪼갠 판자
-item_campfire_kit,Hearth Bundle,entity campfire-kit,Hearth Bundle,화덕 꾸러미
-item_workbench_kit,Bench Bundle,entity workbench-kit,Bench Bundle,작업대 꾸러미
-item_storage_kit,Crate Bundle,entity storage-kit,Crate Bundle,상자 꾸러미
-item_floor_kit,Plank Floor Kit,entity floor-kit,Plank Floor Kit,판자 바닥 부재
-item_roof_kit,Plank Roof Kit,entity roof-kit,Plank Roof Kit,판자 지붕 부재
-item_birch_bark,Birch Bark Curl,entity birch-bark,Birch Bark Curl,자작나무 껍질
+item_wood,Wood,entity wood,Wood,쓰러진 통나무
+item_flint,Flint,entity flint,Flint,뗀석기 부싯돌
+item_fiber,Fiber,entity fiber,Fiber,고사리 섬유
+item_berry,Berry,entity berry,Berry,덤불딸기
+item_meat,Meat,entity meat,Meat,날고기
+item_stone_axe,Stone Axe,entity stone-axe,Stone Axe,부싯돌 손도끼
+item_stone_pick,Stone Pick,entity stone-pick,Stone Pick,부싯돌 곡괭이
+item_spear,Spear,entity spear,Spear,불에 단련한 창
+item_cooked_meat,Cooked Meat,entity cooked-meat,Cooked Meat,잉걸불 구이
+item_berry_meal,Berry Meal,entity berry-meal,Berry Meal,으깬 딸기죽
+item_plank,Plank,entity plank,Plank,쪼갠 판자
+item_campfire_kit,Campfire Kit,entity campfire-kit,Campfire Kit,화덕 꾸러미
+item_workbench_kit,Workbench Kit,entity workbench-kit,Workbench Kit,작업대 꾸러미
+item_storage_kit,Storage Kit,entity storage-kit,Storage Kit,상자 꾸러미
+item_floor_kit,Floor Kit,entity floor-kit,Floor Kit,판자 바닥 부재
+item_roof_kit,Roof Kit,entity roof-kit,Roof Kit,판자 지붕 부재
+item_birch_bark,Birch Bark,entity birch-bark,Birch Bark,자작나무 껍질
 item_hazelnut,Hazelnut,entity hazelnut,Hazelnut,개암
-item_chanterelle,Golden Chanterelle,entity chanterelle,Golden Chanterelle,꾀꼬리버섯
+item_chanterelle,Chanterelle,entity chanterelle,Chanterelle,꾀꼬리버섯
 item_fieldstone,Fieldstone,entity fieldstone,Fieldstone,들돌
-item_reed,Common Reed Stalk,entity reed,Common Reed Stalk,갈대 줄기
-item_cattail_root,Cattail Rhizome,entity cattail-root,Cattail Rhizome,부들 뿌리줄기
-item_marsh_clay,Saltmarsh Clay,entity marsh-clay,Saltmarsh Clay,갯벌 점토
-item_samphire,Glasswort Sprig,entity samphire,Glasswort Sprig,퉁퉁마디 순
-item_clam,Mud Clam,entity clam,Mud Clam,갯벌 조개
-item_shell_fragment,Shell Shard,entity shell-fragment,Shell Shard,조개껍데기 조각
-item_hide,Tough Hide,entity hide,Tough Hide,질긴 가죽
+item_reed,Reed,entity reed,Reed,갈대 줄기
+item_cattail_root,Cattail Root,entity cattail-root,Cattail Root,부들 뿌리줄기
+item_marsh_clay,Marsh Clay,entity marsh-clay,Marsh Clay,갯벌 점토
+item_samphire,Samphire,entity samphire,Samphire,퉁퉁마디 순
+item_clam,Clam,entity clam,Clam,갯벌 조개
+item_shell_fragment,Shell Fragment,entity shell-fragment,Shell Fragment,조개껍데기 조각
+item_hide,Hide,entity hide,Hide,질긴 가죽
 item_flint_knife,Flint Knife,entity flint-knife,Flint Knife,부싯돌 칼
 item_stone_maul,Stone Maul,entity stone-maul,Stone Maul,돌 메
 item_thatch_bundle,Thatch Bundle,entity thatch-bundle,Thatch Bundle,이엉 다발
 item_timber_beam,Timber Beam,entity timber-beam,Timber Beam,각재
-item_stone_block,Dressed Stone Block,entity stone-block,Dressed Stone Block,다듬은 돌
-item_mud_brick,Fired Mud Brick,entity mud-brick,Fired Mud Brick,구운 흙벽돌
+item_stone_block,Stone Block,entity stone-block,Stone Block,다듬은 돌
+item_mud_brick,Mud Brick,entity mud-brick,Mud Brick,구운 흙벽돌
 item_timber_wall_kit,Timber Wall Kit,entity timber-wall-kit,Timber Wall Kit,목재 벽 부재
 item_stone_floor_kit,Stone Floor Kit,entity stone-floor-kit,Stone Floor Kit,석재 바닥 부재
 item_stone_wall_kit,Stone Wall Kit,entity stone-wall-kit,Stone Wall Kit,석재 벽 부재
 item_stone_roof_kit,Stone Roof Kit,entity stone-roof-kit,Stone Roof Kit,석재 지붕 부재
 item_brick_floor_kit,Brick Floor Kit,entity brick-floor-kit,Brick Floor Kit,벽돌 바닥 부재
 item_brick_wall_kit,Brick Wall Kit,entity brick-wall-kit,Brick Wall Kit,벽돌 벽 부재
-item_brick_roof_kit,Brick-and-Thatch Roof Kit,entity brick-roof-kit,Brick-and-Thatch Roof Kit,벽돌 이엉 지붕 부재
+item_brick_roof_kit,Brick Roof Kit,entity brick-roof-kit,Brick Roof Kit,벽돌 이엉 지붕 부재
 item_roasted_hazelnuts,Roasted Hazelnuts,entity roasted-hazelnuts,Roasted Hazelnuts,볶은 개암
 item_woodland_skewer,Woodland Skewer,entity woodland-skewer,Woodland Skewer,숲 꼬치
 item_clam_bake,Clam Bake,entity clam-bake,Clam Bake,조개 구이
 item_cattail_flatbread,Cattail Flatbread,entity cattail-flatbread,Cattail Flatbread,부들 납작빵
-recipe_stone_axe,Flint Hatchet recipe,entity stone-axe-recipe,Flint Hatchet recipe,부싯돌 손도끼 제작법
-recipe_stone_pick,Flint Pick recipe,entity stone-pick-recipe,Flint Pick recipe,부싯돌 곡괭이 제작법
-recipe_spear,Fire-hardened Spear recipe,entity spear-recipe,Fire-hardened Spear recipe,불에 단련한 창 제작법
-recipe_cooked_meat,Ember-roast Meat recipe,entity cooked-meat-recipe,Ember-roast Meat recipe,잉걸불 구이 제작법
-recipe_berry_meal,Berry Mash recipe,entity berry-meal-recipe,Berry Mash recipe,으깬 딸기죽 제작법
-recipe_plank,Split Plank recipe,entity plank-recipe,Split Plank recipe,쪼갠 판자 제작법
-recipe_campfire_kit,Hearth Bundle recipe,entity campfire-kit-recipe,Hearth Bundle recipe,화덕 꾸러미 제작법
-recipe_workbench_kit,Bench Bundle recipe,entity workbench-kit-recipe,Bench Bundle recipe,작업대 꾸러미 제작법
-recipe_storage_kit,Crate Bundle recipe,entity storage-kit-recipe,Crate Bundle recipe,상자 꾸러미 제작법
-recipe_floor_kit,Plank Floor Kit recipe,entity floor-kit-recipe,Plank Floor Kit recipe,판자 바닥 부재 제작법
-recipe_roof_kit,Plank Roof Kit recipe,entity roof-kit-recipe,Plank Roof Kit recipe,판자 지붕 부재 제작법
+recipe_stone_axe,Stone Axe recipe,entity stone-axe-recipe,Stone Axe recipe,부싯돌 손도끼 제작법
+recipe_stone_pick,Stone Pick recipe,entity stone-pick-recipe,Stone Pick recipe,부싯돌 곡괭이 제작법
+recipe_spear,Spear recipe,entity spear-recipe,Spear recipe,불에 단련한 창 제작법
+recipe_cooked_meat,Cooked Meat recipe,entity cooked-meat-recipe,Cooked Meat recipe,잉걸불 구이 제작법
+recipe_berry_meal,Berry Meal recipe,entity berry-meal-recipe,Berry Meal recipe,으깬 딸기죽 제작법
+recipe_plank,Plank recipe,entity plank-recipe,Plank recipe,쪼갠 판자 제작법
+recipe_campfire_kit,Campfire Kit recipe,entity campfire-kit-recipe,Campfire Kit recipe,화덕 꾸러미 제작법
+recipe_workbench_kit,Workbench Kit recipe,entity workbench-kit-recipe,Workbench Kit recipe,작업대 꾸러미 제작법
+recipe_storage_kit,Storage Kit recipe,entity storage-kit-recipe,Storage Kit recipe,상자 꾸러미 제작법
+recipe_floor_kit,Floor Kit recipe,entity floor-kit-recipe,Floor Kit recipe,판자 바닥 부재 제작법
+recipe_roof_kit,Roof Kit recipe,entity roof-kit-recipe,Roof Kit recipe,판자 지붕 부재 제작법
 recipe_flint_knife,Flint Knife recipe,entity flint-knife-recipe,Flint Knife recipe,부싯돌 칼 제작법
 recipe_stone_maul,Stone Maul recipe,entity stone-maul-recipe,Stone Maul recipe,돌 메 제작법
 recipe_thatch_bundle,Thatch Bundle recipe,entity thatch-bundle-recipe,Thatch Bundle recipe,이엉 다발 제작법
-recipe_rawhide_lashing,Rawhide Lashing,entity rawhide-lashing-recipe,Rawhide Lashing,생가죽 끈 제작법
+recipe_rawhide_lashing,Rawhide Lashing recipe,entity rawhide-lashing-recipe,Rawhide Lashing recipe,생가죽 끈 제작법
 recipe_timber_beam,Timber Beam recipe,entity timber-beam-recipe,Timber Beam recipe,각재 제작법
 recipe_timber_wall_kit,Timber Wall Kit recipe,entity timber-wall-kit-recipe,Timber Wall Kit recipe,목재 벽 부재 제작법
-recipe_stone_block,Dressed Stone Block recipe,entity stone-block-recipe,Dressed Stone Block recipe,다듬은 돌 제작법
+recipe_stone_block,Stone Block recipe,entity stone-block-recipe,Stone Block recipe,다듬은 돌 제작법
 recipe_stone_floor_kit,Stone Floor Kit recipe,entity stone-floor-kit-recipe,Stone Floor Kit recipe,석재 바닥 부재 제작법
 recipe_stone_wall_kit,Stone Wall Kit recipe,entity stone-wall-kit-recipe,Stone Wall Kit recipe,석재 벽 부재 제작법
 recipe_stone_roof_kit,Stone Roof Kit recipe,entity stone-roof-kit-recipe,Stone Roof Kit recipe,석재 지붕 부재 제작법
-recipe_mud_brick,Fired Mud Brick recipe,entity mud-brick-recipe,Fired Mud Brick recipe,구운 흙벽돌 제작법
+recipe_mud_brick,Mud Brick recipe,entity mud-brick-recipe,Mud Brick recipe,구운 흙벽돌 제작법
 recipe_brick_floor_kit,Brick Floor Kit recipe,entity brick-floor-kit-recipe,Brick Floor Kit recipe,벽돌 바닥 부재 제작법
 recipe_brick_wall_kit,Brick Wall Kit recipe,entity brick-wall-kit-recipe,Brick Wall Kit recipe,벽돌 벽 부재 제작법
-recipe_brick_roof_kit,Brick-and-Thatch Roof Kit recipe,entity brick-roof-kit-recipe,Brick-and-Thatch Roof Kit recipe,벽돌 이엉 지붕 부재 제작법
+recipe_brick_roof_kit,Brick Roof Kit recipe,entity brick-roof-kit-recipe,Brick Roof Kit recipe,벽돌 이엉 지붕 부재 제작법
 recipe_roasted_hazelnuts,Roasted Hazelnuts recipe,entity roasted-hazelnuts-recipe,Roasted Hazelnuts recipe,볶은 개암 제작법
 recipe_woodland_skewer,Woodland Skewer recipe,entity woodland-skewer-recipe,Woodland Skewer recipe,숲 꼬치 제작법
 recipe_clam_bake,Clam Bake recipe,entity clam-bake-recipe,Clam Bake recipe,조개 구이 제작법
@@ -111,10 +111,10 @@ node_marsh_samphire_flat,Samphire Flat,entity marsh-samphire-flat,Samphire Flat,
 node_marsh_clay_bank,Clay Bank,entity marsh-clay-bank,Clay Bank,점토 둔덕
 node_marsh_clam_bed,Clam Bed,entity marsh-clam-bed,Clam Bed,조개밭
 node_marsh_driftwood_line,Driftwood Line,entity marsh-driftwood-line,Driftwood Line,표류목 띠
-structure_storage,Storage Crate,entity storage,Storage Crate,보관 상자
-structure_floor,Plank Floor,entity floor,Plank Floor,판자 바닥
-structure_joiner_bench,Joiner's Bench,entity joiner-bench,Joiner's Bench,목공대
-structure_mason_bench,Mason's Bench,entity mason-bench,Mason's Bench,석공대
+structure_storage,Storage,entity storage,Storage,보관 상자
+structure_floor,Floor,entity floor,Floor,판자 바닥
+structure_joiner_bench,Joiner Bench,entity joiner-bench,Joiner Bench,목공대
+structure_mason_bench,Mason Bench,entity mason-bench,Mason Bench,석공대
 structure_mud_kiln,Mud Kiln,entity mud-kiln,Mud Kiln,흙가마
 structure_timber_wall,Timber Wall,entity timber-wall,Timber Wall,목재 벽
 structure_timber_roof,Timber Roof,entity timber-roof,Timber Roof,목재 지붕
@@ -123,7 +123,7 @@ structure_stone_wall,Stone Wall,entity stone-wall,Stone Wall,석재 벽
 structure_stone_roof,Stone Roof,entity stone-roof,Stone Roof,석재 지붕
 structure_brick_floor,Brick Floor,entity brick-floor,Brick Floor,벽돌 바닥
 structure_brick_wall,Brick Wall,entity brick-wall,Brick Wall,벽돌 벽
-structure_brick_roof,Brick-and-Thatch Roof,entity brick-roof,Brick-and-Thatch Roof,벽돌 이엉 지붕
+structure_brick_roof,Brick Roof,entity brick-roof,Brick Roof,벽돌 이엉 지붕
 wildlife_grazer,Meadow Plodder,entity grazer,Meadow Plodder,풀밭느림보
 wildlife_hunter,Brush Stalker,entity hunter,Brush Stalker,덤불살금이
 wildlife_leaper_fernhop,Fernhopper,entity leaper-fernhop,Fernhopper,고사리뜀이
@@ -192,7 +192,7 @@ ct_contracts_coins,Shellmoney %d,contracts and tutorial panel,Shellmoney %d,조�
 ct_contracts_trust,Trust,contracts and tutorial panel,Trust,신뢰도
 ct_contracts_tier,Tier,contracts and tutorial panel,Tier,단계
 ct_contracts_empty,No contracts available,contracts and tutorial panel,No contracts available,받을 수 있는 계약이 없어요
-ct_contracts_refused,Refused: ,contracts and tutorial panel,Refused: ,거절됨: 
+ct_contracts_refused,"Refused: ",contracts and tutorial panel,"Refused: ","거절됨: "
 ct_contracts_reason_insufficient,Not enough items to deliver yet.,contracts and tutorial panel,Not enough items to deliver yet.,납품할 아이템이 아직 부족해요.
 ct_contracts_reason_bag_full,Your bag is full. Make room first.,contracts and tutorial panel,Your bag is full. Make room first.,가방이 가득 찼어요. 공간을 비우세요.
 ct_contracts_reason_pending,Saving... try again in a moment.,contracts and tutorial panel,Saving... try again in a moment.,저장 중이에요. 잠시 후 다시 시도하세요.
@@ -211,8 +211,8 @@ ct_faction_artisan_guilds,Artisan Guild Union,contracts and tutorial panel,Artis
 ct_faction_island_ecology,Island Ecology Trust,contracts and tutorial panel,Island Ecology Trust,섬 생태 신탁
 island_route_failed,Couldn't reach another island. You'll stay here for now.,island travel failure notice,Couldn't reach another island. You'll stay here for now.,다른 섬으로 이동하지 못했어요. 지금은 이 섬에 머무릅니다.
 island_route_retry,Travel is taking longer than expected. Trying again shortly.,island travel retry notice,Travel is taking longer than expected. Trying again shortly.,이동이 지연되고 있어요. 잠시 후 다시 시도합니다.
-item_capture_bola,Hobble Bola,entity capture-bola,Hobble Bola,속박 볼라
-recipe_capture_bola,Hobble Bola recipe,entity capture-bola-recipe,Hobble Bola recipe,속박 볼라 제작법
+item_capture_bola,Capture Bola,entity capture-bola,Capture Bola,속박 볼라
+recipe_capture_bola,Capture Bola recipe,entity capture-bola-recipe,Capture Bola recipe,속박 볼라 제작법
 wildlife_ridge_strider,Ridge Strider,entity ridge-strider,Ridge Strider,능선걸음이
 wildlife_fen_trotter,Fen Trotter,entity fen-trotter,Fen Trotter,늪종종이
 wildlife_bluff_bounder,Bluff Bounder,entity bluff-bounder,Bluff Bounder,벼랑깡충이
@@ -306,3 +306,577 @@ market_gate_age,Your account is too new to trade yet,market gate account age,You
 market_gate_playtime,Play a little longer to unlock trading,market gate play time,Play a little longer to unlock trading,조금 더 플레이하면 거래할 수 있어요
 market_gate_cap,Daily trade limit reached. Come back tomorrow,market gate daily cap,Daily trade limit reached. Come back tomorrow,오늘 거래 한도를 다 썼어요. 내일 다시 오세요
 market_failed,Trade could not complete. Try again later,market generic failure,Trade could not complete. Try again later,거래를 완료하지 못했어요. 잠시 후 다시 시도하세요
+item_kiln_kit,Kiln Kit,entity kiln-kit,Kiln Kit,가마 제작 꾸러미
+item_tanning_frame_kit,Tanning Frame Kit,entity tanning-frame-kit,Tanning Frame Kit,무두질 틀 제작 꾸러미
+item_refrigerator_kit,Refrigerator Kit,entity refrigerator-kit,Refrigerator Kit,냉장고 제작 꾸러미
+item_tent_kit,Tent Kit,entity tent-kit,Tent Kit,천막 제작 꾸러미
+item_bed_kit,Bed Kit,entity bed-kit,Bed Kit,침대 제작 꾸러미
+item_well_kit,Well Kit,entity well-kit,Well Kit,우물 제작 꾸러미
+item_signal_relay_kit,Signal Relay Kit,entity signal-relay-kit,Signal Relay Kit,신호 중계기 제작 꾸러미
+item_laboratory_kit,Laboratory Kit,entity laboratory-kit,Laboratory Kit,연구실 제작 꾸러미
+item_clan_hall_kit,Clan Hall Kit,entity clan-hall-kit,Clan Hall Kit,부족 회관 제작 꾸러미
+item_animal_pen,Animal Pen,entity animal-pen,Animal Pen,동물 우리
+item_wall_kit,Wall Kit,entity wall-kit,Wall Kit,벽 제작 꾸러미
+item_stairs_kit,Stairs Kit,entity stairs-kit,Stairs Kit,계단 제작 꾸러미
+item_door_kit,Door Kit,entity door-kit,Door Kit,문 제작 꾸러미
+item_roof,Roof,entity roof,Roof,지붕
+item_pillar,Pillar,entity pillar,Pillar,기둥
+item_volcanic_wall,Volcanic Wall,entity volcanic-wall,Volcanic Wall,화산 벽
+item_branch,Branch,entity branch,Branch,나뭇가지
+item_dried_wood,Dried Wood,entity dried-wood,Dried Wood,말린 나무
+recipe_dry_twig,Dry Twig recipe,entity dry-twig-recipe,Dry Twig recipe,말리기 잔가지 제작법
+item_dried_fiber,Dried Fiber,entity dried-fiber,Dried Fiber,말린 섬유
+recipe_dry_fiber,Dry Fiber recipe,entity dry-fiber-recipe,Dry Fiber recipe,말리기 섬유 제작법
+item_dried_hide,Dried Hide,entity dried-hide,Dried Hide,말린 가죽
+recipe_dry_hide,Dry Hide recipe,entity dry-hide-recipe,Dry Hide recipe,말리기 가죽 제작법
+item_dried_meat,Dried Meat,entity dried-meat,Dried Meat,말린 고기
+recipe_dry_meat,Dry Meat recipe,entity dry-meat-recipe,Dry Meat recipe,말리기 고기 제작법
+item_leather,Leather,entity leather,Leather,무두질 가죽
+recipe_tan_hide,Tan Hide recipe,entity tan-hide-recipe,Tan Hide recipe,무두질 가죽 제작법
+item_thick_leather,Thick Leather,entity thick-leather,Thick Leather,두꺼운 무두질 가죽
+recipe_tan_thick_hide,Tan Thick Hide recipe,entity tan-thick-hide-recipe,Tan Thick Hide recipe,무두질 두꺼운 가죽 제작법
+item_fur,Fur,entity fur,Fur,모피
+item_fur_leather,Fur Leather,entity fur-leather,Fur Leather,모피 무두질 가죽
+recipe_tan_fur_hide,Tan Fur Hide recipe,entity tan-fur-hide-recipe,Tan Fur Hide recipe,무두질 모피 가죽 제작법
+item_rex_leather,Rex Leather,entity rex-leather,Rex Leather,폭군룡 무두질 가죽
+recipe_tan_rex_hide,Tan Rex Hide recipe,entity tan-rex-hide-recipe,Tan Rex Hide recipe,무두질 폭군룡 가죽 제작법
+item_stone,Stone,entity stone,Stone,돌
+item_polished_stone,Polished Stone,entity polished-stone,Polished Stone,연마한 돌
+recipe_polish_stone,Polish Stone recipe,entity polish-stone-recipe,Polish Stone recipe,연마 돌 제작법
+item_polished_flint,Polished Flint,entity polished-flint,Polished Flint,연마한 부싯돌
+recipe_polish_flint,Polish Flint recipe,entity polish-flint-recipe,Polish Flint recipe,연마 부싯돌 제작법
+item_bone,Bone,entity bone,Bone,뼈
+item_polished_bone,Polished Bone,entity polished-bone,Polished Bone,연마한 뼈
+recipe_polish_bone,Polish Bone recipe,entity polish-bone-recipe,Polish Bone recipe,연마 뼈 제작법
+item_basalt,Basalt,entity basalt,Basalt,현무암
+item_polished_basalt,Polished Basalt,entity polished-basalt,Polished Basalt,연마한 현무암
+recipe_polish_basalt,Polish Basalt recipe,entity polish-basalt-recipe,Polish Basalt recipe,연마 현무암 제작법
+item_copper_ore,Copper Ore,entity copper-ore,Copper Ore,구리 광석
+item_copper,Copper,entity copper,Copper,구리
+recipe_smelt_copper,Smelt Copper recipe,entity smelt-copper-recipe,Smelt Copper recipe,제련 구리 제작법
+item_iron_ore,Iron Ore,entity iron-ore,Iron Ore,철 광석
+item_iron,Iron,entity iron,Iron,철
+recipe_smelt_iron,Smelt Iron recipe,entity smelt-iron-recipe,Smelt Iron recipe,제련 철 제작법
+item_charcoal,Charcoal,entity charcoal,Charcoal,숯
+item_steel,Steel,entity steel,Steel,강철
+recipe_smelt_steel,Smelt Steel recipe,entity smelt-steel-recipe,Smelt Steel recipe,제련 강철 제작법
+item_volcanic_ore,Volcanic Ore,entity volcanic-ore,Volcanic Ore,화산 광석
+item_volcanic_alloy,Volcanic Alloy,entity volcanic-alloy,Volcanic Alloy,화산 합금
+recipe_smelt_volcanic_alloy,Smelt Volcanic Alloy recipe,entity smelt-volcanic-alloy-recipe,Smelt Volcanic Alloy recipe,제련 화산 합금 제작법
+item_corn,Corn,entity corn,Corn,옥수수
+item_fermented_corn,Fermented Corn,entity fermented-corn,Fermented Corn,발효한 옥수수
+recipe_ferment_corn,Ferment Corn recipe,entity ferment-corn-recipe,Ferment Corn recipe,발효 옥수수 제작법
+item_wheat,Wheat,entity wheat,Wheat,밀
+item_fermented_wheat,Fermented Wheat,entity fermented-wheat,Fermented Wheat,발효한 밀
+recipe_ferment_wheat,Ferment Wheat recipe,entity ferment-wheat-recipe,Ferment Wheat recipe,발효 밀 제작법
+item_banana,Banana,entity banana,Banana,바나나
+item_fermented_banana,Fermented Banana,entity fermented-banana,Fermented Banana,발효한 바나나
+recipe_ferment_banana,Ferment Banana recipe,entity ferment-banana-recipe,Ferment Banana recipe,발효 바나나 제작법
+item_fig,Fig,entity fig,Fig,무화과
+item_fermented_fig,Fermented Fig,entity fermented-fig,Fermented Fig,발효한 무화과
+recipe_ferment_fig,Ferment Fig recipe,entity ferment-fig-recipe,Ferment Fig recipe,발효 무화과 제작법
+item_fiber_compost,Fiber Compost,entity fiber-compost,Fiber Compost,섬유 퇴비
+recipe_compost_fiber,Compost Fiber recipe,entity compost-fiber-recipe,Compost Fiber recipe,퇴비 섬유 제작법
+item_berry_compost,Berry Compost,entity berry-compost,Berry Compost,산딸기 퇴비
+recipe_compost_berry,Compost Berry recipe,entity compost-berry-recipe,Compost Berry recipe,퇴비 산딸기 제작법
+item_leaves,Leaves,entity leaves,Leaves,나뭇잎
+item_leaf_compost,Leaf Compost,entity leaf-compost,Leaf Compost,잎 퇴비
+recipe_compost_leaves,Compost Leaves recipe,entity compost-leaves-recipe,Compost Leaves recipe,퇴비 나뭇잎 제작법
+item_spoiled_food,Spoiled Food,entity spoiled-food,Spoiled Food,상한 음식
+item_food_compost,Food Compost,entity food-compost,Food Compost,음식 퇴비
+recipe_compost_spoiled_food,Compost Spoiled Food recipe,entity compost-spoiled-food-recipe,Compost Spoiled Food recipe,퇴비 상한 음식 제작법
+item_axe_t1,Axe T1,entity axe-t1,Axe T1,도끼 1단계
+recipe_axe_t1,Axe T1 recipe,entity axe-t1-recipe,Axe T1 recipe,도끼 1단계 제작법
+item_pickaxe_t1,Pickaxe T1,entity pickaxe-t1,Pickaxe T1,곡괭이 1단계
+recipe_pickaxe_t1,Pickaxe T1 recipe,entity pickaxe-t1-recipe,Pickaxe T1 recipe,곡괭이 1단계 제작법
+item_knife_t1,Knife T1,entity knife-t1,Knife T1,칼 1단계
+recipe_knife_t1,Knife T1 recipe,entity knife-t1-recipe,Knife T1 recipe,칼 1단계 제작법
+item_hoe_t1,Hoe T1,entity hoe-t1,Hoe T1,괭이 1단계
+recipe_hoe_t1,Hoe T1 recipe,entity hoe-t1-recipe,Hoe T1 recipe,괭이 1단계 제작법
+item_axe_t2,Axe T2,entity axe-t2,Axe T2,도끼 2단계
+recipe_axe_t2,Axe T2 recipe,entity axe-t2-recipe,Axe T2 recipe,도끼 2단계 제작법
+item_pickaxe_t2,Pickaxe T2,entity pickaxe-t2,Pickaxe T2,곡괭이 2단계
+recipe_pickaxe_t2,Pickaxe T2 recipe,entity pickaxe-t2-recipe,Pickaxe T2 recipe,곡괭이 2단계 제작법
+item_knife_t2,Knife T2,entity knife-t2,Knife T2,칼 2단계
+recipe_knife_t2,Knife T2 recipe,entity knife-t2-recipe,Knife T2 recipe,칼 2단계 제작법
+item_hoe_t2,Hoe T2,entity hoe-t2,Hoe T2,괭이 2단계
+recipe_hoe_t2,Hoe T2 recipe,entity hoe-t2-recipe,Hoe T2 recipe,괭이 2단계 제작법
+item_axe_t3,Axe T3,entity axe-t3,Axe T3,도끼 3단계
+recipe_axe_t3,Axe T3 recipe,entity axe-t3-recipe,Axe T3 recipe,도끼 3단계 제작법
+item_pickaxe_t3,Pickaxe T3,entity pickaxe-t3,Pickaxe T3,곡괭이 3단계
+recipe_pickaxe_t3,Pickaxe T3 recipe,entity pickaxe-t3-recipe,Pickaxe T3 recipe,곡괭이 3단계 제작법
+item_knife_t3,Knife T3,entity knife-t3,Knife T3,칼 3단계
+recipe_knife_t3,Knife T3 recipe,entity knife-t3-recipe,Knife T3 recipe,칼 3단계 제작법
+item_hoe_t3,Hoe T3,entity hoe-t3,Hoe T3,괭이 3단계
+recipe_hoe_t3,Hoe T3 recipe,entity hoe-t3-recipe,Hoe T3 recipe,괭이 3단계 제작법
+item_club_t1,Club T1,entity club-t1,Club T1,곤봉 1단계
+recipe_club_t1,Club T1 recipe,entity club-t1-recipe,Club T1 recipe,곤봉 1단계 제작법
+item_spear_t1,Spear T1,entity spear-t1,Spear T1,창 1단계
+recipe_spear_t1,Spear T1 recipe,entity spear-t1-recipe,Spear T1 recipe,창 1단계 제작법
+item_sword_t1,Sword T1,entity sword-t1,Sword T1,검 1단계
+recipe_sword_t1,Sword T1 recipe,entity sword-t1-recipe,Sword T1 recipe,검 1단계 제작법
+item_hammer_t1,Hammer T1,entity hammer-t1,Hammer T1,망치 1단계
+recipe_hammer_t1,Hammer T1 recipe,entity hammer-t1-recipe,Hammer T1 recipe,망치 1단계 제작법
+item_bow_t1,Bow T1,entity bow-t1,Bow T1,활 1단계
+recipe_bow_t1,Bow T1 recipe,entity bow-t1-recipe,Bow T1 recipe,활 1단계 제작법
+item_crossbow_t1,Crossbow T1,entity crossbow-t1,Crossbow T1,석궁 1단계
+recipe_crossbow_t1,Crossbow T1 recipe,entity crossbow-t1-recipe,Crossbow T1 recipe,석궁 1단계 제작법
+item_club_t2,Club T2,entity club-t2,Club T2,곤봉 2단계
+recipe_club_t2,Club T2 recipe,entity club-t2-recipe,Club T2 recipe,곤봉 2단계 제작법
+item_spear_t2,Spear T2,entity spear-t2,Spear T2,창 2단계
+recipe_spear_t2,Spear T2 recipe,entity spear-t2-recipe,Spear T2 recipe,창 2단계 제작법
+item_sword_t2,Sword T2,entity sword-t2,Sword T2,검 2단계
+recipe_sword_t2,Sword T2 recipe,entity sword-t2-recipe,Sword T2 recipe,검 2단계 제작법
+item_hammer_t2,Hammer T2,entity hammer-t2,Hammer T2,망치 2단계
+recipe_hammer_t2,Hammer T2 recipe,entity hammer-t2-recipe,Hammer T2 recipe,망치 2단계 제작법
+item_bow_t2,Bow T2,entity bow-t2,Bow T2,활 2단계
+recipe_bow_t2,Bow T2 recipe,entity bow-t2-recipe,Bow T2 recipe,활 2단계 제작법
+item_crossbow_t2,Crossbow T2,entity crossbow-t2,Crossbow T2,석궁 2단계
+recipe_crossbow_t2,Crossbow T2 recipe,entity crossbow-t2-recipe,Crossbow T2 recipe,석궁 2단계 제작법
+item_club_t3,Club T3,entity club-t3,Club T3,곤봉 3단계
+recipe_club_t3,Club T3 recipe,entity club-t3-recipe,Club T3 recipe,곤봉 3단계 제작법
+item_spear_t3,Spear T3,entity spear-t3,Spear T3,창 3단계
+recipe_spear_t3,Spear T3 recipe,entity spear-t3-recipe,Spear T3 recipe,창 3단계 제작법
+item_sword_t3,Sword T3,entity sword-t3,Sword T3,검 3단계
+recipe_sword_t3,Sword T3 recipe,entity sword-t3-recipe,Sword T3 recipe,검 3단계 제작법
+item_hammer_t3,Hammer T3,entity hammer-t3,Hammer T3,망치 3단계
+recipe_hammer_t3,Hammer T3 recipe,entity hammer-t3-recipe,Hammer T3 recipe,망치 3단계 제작법
+item_bow_t3,Bow T3,entity bow-t3,Bow T3,활 3단계
+recipe_bow_t3,Bow T3 recipe,entity bow-t3-recipe,Bow T3 recipe,활 3단계 제작법
+item_crossbow_t3,Crossbow T3,entity crossbow-t3,Crossbow T3,석궁 3단계
+recipe_crossbow_t3,Crossbow T3 recipe,entity crossbow-t3-recipe,Crossbow T3 recipe,석궁 3단계 제작법
+item_temperate_head,Temperate Head,entity temperate-head,Temperate Head,온대 모자
+recipe_temperate_head,Temperate Head recipe,entity temperate-head-recipe,Temperate Head recipe,온대 모자 제작법
+item_temperate_top,Temperate Top,entity temperate-top,Temperate Top,온대 상의
+recipe_temperate_top,Temperate Top recipe,entity temperate-top-recipe,Temperate Top recipe,온대 상의 제작법
+item_temperate_bottom,Temperate Bottom,entity temperate-bottom,Temperate Bottom,온대 하의
+recipe_temperate_bottom,Temperate Bottom recipe,entity temperate-bottom-recipe,Temperate Bottom recipe,온대 하의 제작법
+item_temperate_shoes,Temperate Shoes,entity temperate-shoes,Temperate Shoes,온대 신발
+recipe_temperate_shoes,Temperate Shoes recipe,entity temperate-shoes-recipe,Temperate Shoes recipe,온대 신발 제작법
+item_temperate_gloves,Temperate Gloves,entity temperate-gloves,Temperate Gloves,온대 장갑
+recipe_temperate_gloves,Temperate Gloves recipe,entity temperate-gloves-recipe,Temperate Gloves recipe,온대 장갑 제작법
+item_temperate_bag,Temperate Bag,entity temperate-bag,Temperate Bag,온대 가방
+recipe_temperate_bag,Temperate Bag recipe,entity temperate-bag-recipe,Temperate Bag recipe,온대 가방 제작법
+item_flax,Flax,entity flax,Flax,아마
+item_tropical_head,Tropical Head,entity tropical-head,Tropical Head,열대 모자
+recipe_tropical_head,Tropical Head recipe,entity tropical-head-recipe,Tropical Head recipe,열대 모자 제작법
+item_tropical_top,Tropical Top,entity tropical-top,Tropical Top,열대 상의
+recipe_tropical_top,Tropical Top recipe,entity tropical-top-recipe,Tropical Top recipe,열대 상의 제작법
+item_tropical_bottom,Tropical Bottom,entity tropical-bottom,Tropical Bottom,열대 하의
+recipe_tropical_bottom,Tropical Bottom recipe,entity tropical-bottom-recipe,Tropical Bottom recipe,열대 하의 제작법
+item_tropical_shoes,Tropical Shoes,entity tropical-shoes,Tropical Shoes,열대 신발
+recipe_tropical_shoes,Tropical Shoes recipe,entity tropical-shoes-recipe,Tropical Shoes recipe,열대 신발 제작법
+item_tropical_gloves,Tropical Gloves,entity tropical-gloves,Tropical Gloves,열대 장갑
+recipe_tropical_gloves,Tropical Gloves recipe,entity tropical-gloves-recipe,Tropical Gloves recipe,열대 장갑 제작법
+item_tropical_bag,Tropical Bag,entity tropical-bag,Tropical Bag,열대 가방
+recipe_tropical_bag,Tropical Bag recipe,entity tropical-bag-recipe,Tropical Bag recipe,열대 가방 제작법
+item_cold_head,Cold Head,entity cold-head,Cold Head,방한 모자
+recipe_cold_head,Cold Head recipe,entity cold-head-recipe,Cold Head recipe,방한 모자 제작법
+item_cold_top,Cold Top,entity cold-top,Cold Top,방한 상의
+recipe_cold_top,Cold Top recipe,entity cold-top-recipe,Cold Top recipe,방한 상의 제작법
+item_cold_bottom,Cold Bottom,entity cold-bottom,Cold Bottom,방한 하의
+recipe_cold_bottom,Cold Bottom recipe,entity cold-bottom-recipe,Cold Bottom recipe,방한 하의 제작법
+item_cold_shoes,Cold Shoes,entity cold-shoes,Cold Shoes,방한 신발
+recipe_cold_shoes,Cold Shoes recipe,entity cold-shoes-recipe,Cold Shoes recipe,방한 신발 제작법
+item_cold_gloves,Cold Gloves,entity cold-gloves,Cold Gloves,방한 장갑
+recipe_cold_gloves,Cold Gloves recipe,entity cold-gloves-recipe,Cold Gloves recipe,방한 장갑 제작법
+item_cold_bag,Cold Bag,entity cold-bag,Cold Bag,방한 가방
+recipe_cold_bag,Cold Bag recipe,entity cold-bag-recipe,Cold Bag recipe,방한 가방 제작법
+item_water,Water,entity water,Water,물
+item_corn_porridge,Corn Porridge,entity corn-porridge,Corn Porridge,옥수수 죽
+recipe_corn_porridge,Corn Porridge recipe,entity corn-porridge-recipe,Corn Porridge recipe,옥수수 죽 제작법
+item_potato,Potato,entity potato,Potato,감자
+item_baked_potato,Baked Potato,entity baked-potato,Baked Potato,구운 감자
+recipe_baked_potato,Baked Potato recipe,entity baked-potato-recipe,Baked Potato recipe,구운 감자 제작법
+item_wheat_flatbread,Wheat Flatbread,entity wheat-flatbread,Wheat Flatbread,밀 납작빵
+recipe_wheat_flatbread,Wheat Flatbread recipe,entity wheat-flatbread-recipe,Wheat Flatbread recipe,밀 납작빵 제작법
+item_onion,Onion,entity onion,Onion,양파
+item_onion_soup,Onion Soup,entity onion-soup,Onion Soup,양파 수프
+recipe_onion_soup,Onion Soup recipe,entity onion-soup-recipe,Onion Soup recipe,양파 수프 제작법
+item_flaxseed,Flaxseed,entity flaxseed,Flaxseed,아마씨
+item_flax_seed_crisp,Flax Seed Crisp,entity flax-seed-crisp,Flax Seed Crisp,아마 씨앗 전병
+recipe_flax_seed_crisp,Flax Seed Crisp recipe,entity flax-seed-crisp-recipe,Flax Seed Crisp recipe,아마 씨앗 전병 제작법
+item_banana_mash,Banana Mash,entity banana-mash,Banana Mash,바나나 으깬 죽
+recipe_banana_mash,Banana Mash recipe,entity banana-mash-recipe,Banana Mash recipe,바나나 으깬 죽 제작법
+item_fig_stew,Fig Stew,entity fig-stew,Fig Stew,무화과 스튜
+recipe_fig_stew,Fig Stew recipe,entity fig-stew-recipe,Fig Stew recipe,무화과 스튜 제작법
+item_apple,Apple,entity apple,Apple,사과
+item_baked_apple,Baked Apple,entity baked-apple,Baked Apple,구운 사과
+recipe_baked_apple,Baked Apple recipe,entity baked-apple-recipe,Baked Apple recipe,구운 사과 제작법
+item_roast_meat,Roast Meat,entity roast-meat,Roast Meat,구이 고기
+recipe_roast_meat,Roast Meat recipe,entity roast-meat-recipe,Roast Meat recipe,구이 고기 제작법
+item_meat_potato_stew,Meat Potato Stew,entity meat-potato-stew,Meat Potato Stew,고기 감자 스튜
+recipe_meat_potato_stew,Meat Potato Stew recipe,entity meat-potato-stew-recipe,Meat Potato Stew recipe,고기 감자 스튜 제작법
+item_onion_meat_skewer,Onion Meat Skewer,entity onion-meat-skewer,Onion Meat Skewer,양파 고기 꼬치
+recipe_onion_meat_skewer,Onion Meat Skewer recipe,entity onion-meat-skewer-recipe,Onion Meat Skewer recipe,양파 고기 꼬치 제작법
+item_rex_meat_stew,Rex Meat Stew,entity rex-meat-stew,Rex Meat Stew,폭군룡 고기 스튜
+recipe_rex_meat_stew,Rex Meat Stew recipe,entity rex-meat-stew-recipe,Rex Meat Stew recipe,폭군룡 고기 스튜 제작법
+item_fish,Fish,entity fish,Fish,물고기
+item_grilled_fish,Grilled Fish,entity grilled-fish,Grilled Fish,구운 물고기
+recipe_grilled_fish,Grilled Fish recipe,entity grilled-fish-recipe,Grilled Fish recipe,구운 물고기 제작법
+item_clam_soup,Clam Soup,entity clam-soup,Clam Soup,조개 수프
+recipe_clam_soup,Clam Soup recipe,entity clam-soup-recipe,Clam Soup recipe,조개 수프 제작법
+item_herbivore_feed,Herbivore Feed,entity herbivore-feed,Herbivore Feed,초식동물 사료
+recipe_herbivore_feed,Herbivore Feed recipe,entity herbivore-feed-recipe,Herbivore Feed recipe,풀먹이 배합법
+item_carnivore_feed,Carnivore Feed,entity carnivore-feed,Carnivore Feed,육식동물 사료
+recipe_carnivore_feed,Carnivore Feed recipe,entity carnivore-feed-recipe,Carnivore Feed recipe,고기먹이 배합법
+item_corn_seed,Corn Seed,entity corn-seed,Corn Seed,옥수수 씨앗
+recipe_extract_corn_seed,Extract Corn Seed recipe,entity extract-corn-seed-recipe,Extract Corn Seed recipe,추출 옥수수 씨앗 제작법
+item_potato_seed,Potato Seed,entity potato-seed,Potato Seed,감자 씨앗
+recipe_extract_potato_seed,Extract Potato Seed recipe,entity extract-potato-seed-recipe,Extract Potato Seed recipe,추출 감자 씨앗 제작법
+item_wheat_seed,Wheat Seed,entity wheat-seed,Wheat Seed,밀 씨앗
+recipe_extract_wheat_seed,Extract Wheat Seed recipe,entity extract-wheat-seed-recipe,Extract Wheat Seed recipe,추출 밀 씨앗 제작법
+item_onion_seed,Onion Seed,entity onion-seed,Onion Seed,양파 씨앗
+recipe_extract_onion_seed,Extract Onion Seed recipe,entity extract-onion-seed-recipe,Extract Onion Seed recipe,추출 양파 씨앗 제작법
+item_flax_seed,Flax Seed,entity flax-seed,Flax Seed,아마 씨앗
+recipe_extract_flax_seed,Extract Flax Seed recipe,entity extract-flax-seed-recipe,Extract Flax Seed recipe,추출 아마 씨앗 제작법
+item_banana_seed,Banana Seed,entity banana-seed,Banana Seed,바나나 씨앗
+recipe_extract_banana_seed,Extract Banana Seed recipe,entity extract-banana-seed-recipe,Extract Banana Seed recipe,추출 바나나 씨앗 제작법
+item_fig_seed,Fig Seed,entity fig-seed,Fig Seed,무화과 씨앗
+recipe_extract_fig_seed,Extract Fig Seed recipe,entity extract-fig-seed-recipe,Extract Fig Seed recipe,추출 무화과 씨앗 제작법
+item_apple_seed,Apple Seed,entity apple-seed,Apple Seed,사과 씨앗
+recipe_extract_apple_seed,Extract Apple Seed recipe,entity extract-apple-seed-recipe,Extract Apple Seed recipe,추출 사과 씨앗 제작법
+item_liquid_fertilizer,Liquid Fertilizer,entity liquid-fertilizer,Liquid Fertilizer,액상 비료
+recipe_liquid_fertilizer,Liquid Fertilizer recipe,entity liquid-fertilizer-recipe,Liquid Fertilizer recipe,액상 비료 제작법
+item_fruit_fertilizer,Fruit Fertilizer,entity fruit-fertilizer,Fruit Fertilizer,과일 비료
+recipe_fruit_fertilizer,Fruit Fertilizer recipe,entity fruit-fertilizer-recipe,Fruit Fertilizer recipe,과일 비료 제작법
+item_stem_fertilizer,Stem Fertilizer,entity stem-fertilizer,Stem Fertilizer,줄기 비료
+recipe_stem_fertilizer,Stem Fertilizer recipe,entity stem-fertilizer-recipe,Stem Fertilizer recipe,줄기 비료 제작법
+item_sprinkler,Sprinkler,entity sprinkler,Sprinkler,물뿌리개
+recipe_sprinkler,Sprinkler recipe,entity sprinkler-recipe,Sprinkler recipe,물뿌리개 제작법
+item_capture_rope,Capture Rope,entity capture-rope,Capture Rope,포획 밧줄
+recipe_capture_rope,Capture Rope recipe,entity capture-rope-recipe,Capture Rope recipe,포획 밧줄 제작법
+recipe_animal_pen,Animal Pen recipe,entity animal-pen-recipe,Animal Pen recipe,동물 우리 제작법
+item_saddle,Saddle,entity saddle,Saddle,안장
+recipe_saddle,Saddle recipe,entity saddle-recipe,Saddle recipe,안장 제작법
+item_recovery_feed,Recovery Feed,entity recovery-feed,Recovery Feed,회복 사료
+recipe_recovery_feed,Recovery Feed recipe,entity recovery-feed-recipe,Recovery Feed recipe,회복 사료 제작법
+item_clay,Clay,entity clay,Clay,점토
+recipe_kiln_kit,Kiln Kit recipe,entity kiln-kit-recipe,Kiln Kit recipe,가마 제작 꾸러미 제작법
+recipe_tanning_frame_kit,Tanning Frame Kit recipe,entity tanning-frame-kit-recipe,Tanning Frame Kit recipe,무두질 틀 제작 꾸러미 제작법
+recipe_refrigerator_kit,Refrigerator Kit recipe,entity refrigerator-kit-recipe,Refrigerator Kit recipe,냉장고 제작 꾸러미 제작법
+recipe_tent_kit,Tent Kit recipe,entity tent-kit-recipe,Tent Kit recipe,천막 제작 꾸러미 제작법
+recipe_bed_kit,Bed Kit recipe,entity bed-kit-recipe,Bed Kit recipe,침대 제작 꾸러미 제작법
+recipe_well_kit,Well Kit recipe,entity well-kit-recipe,Well Kit recipe,우물 제작 꾸러미 제작법
+recipe_signal_relay_kit,Signal Relay Kit recipe,entity signal-relay-kit-recipe,Signal Relay Kit recipe,신호 중계기 제작 꾸러미 제작법
+recipe_laboratory_kit,Laboratory Kit recipe,entity laboratory-kit-recipe,Laboratory Kit recipe,연구실 제작 꾸러미 제작법
+recipe_clan_hall_kit,Clan Hall Kit recipe,entity clan-hall-kit-recipe,Clan Hall Kit recipe,부족 회관 제작 꾸러미 제작법
+recipe_wall_kit,Wall Kit recipe,entity wall-kit-recipe,Wall Kit recipe,벽 제작 꾸러미 제작법
+recipe_stairs_kit,Stairs Kit recipe,entity stairs-kit-recipe,Stairs Kit recipe,계단 제작 꾸러미 제작법
+recipe_door_kit,Door Kit recipe,entity door-kit-recipe,Door Kit recipe,문 제작 꾸러미 제작법
+item_volcanic_bone,Volcanic Bone,entity volcanic-bone,Volcanic Bone,화산 뼈
+item_lava_protection_boots,Lava Protection Boots,entity lava-protection-boots,Lava Protection Boots,용암 보호 장화
+recipe_lava_protection_boots,Lava Protection Boots recipe,entity lava-protection-boots-recipe,Lava Protection Boots recipe,용암 보호 장화 제작법
+item_starter_axe,Starter Axe,entity starter-axe,Starter Axe,입문용 도끼
+recipe_starter_axe,Starter Axe recipe,entity starter-axe-recipe,Starter Axe recipe,입문용 도끼 제작법
+item_starter_pickaxe,Starter Pickaxe,entity starter-pickaxe,Starter Pickaxe,입문용 곡괭이
+recipe_starter_pickaxe,Starter Pickaxe recipe,entity starter-pickaxe-recipe,Starter Pickaxe recipe,입문용 곡괭이 제작법
+item_starter_club,Starter Club,entity starter-club,Starter Club,입문용 곤봉
+recipe_starter_club,Starter Club recipe,entity starter-club-recipe,Starter Club recipe,입문용 곤봉 제작법
+item_practice_stitch,Practice Stitch,entity practice-stitch,Practice Stitch,연습용 바느질
+item_practice_seedbed,Practice Seedbed,entity practice-seedbed,Practice Seedbed,연습용 모판
+item_instrument_piano,Instrument Piano,entity instrument-piano,Instrument Piano,악기 피아노
+item_instrument_guitar,Instrument Guitar,entity instrument-guitar,Instrument Guitar,악기 기타
+item_instrument_bass,Instrument Bass,entity instrument-bass,Instrument Bass,악기 베이스
+item_instrument_violin,Instrument Violin,entity instrument-violin,Instrument Violin,악기 바이올린
+item_instrument_flute,Instrument Flute,entity instrument-flute,Instrument Flute,악기 플루트
+item_instrument_clarinet,Instrument Clarinet,entity instrument-clarinet,Instrument Clarinet,악기 클라리넷
+item_instrument_trumpet,Instrument Trumpet,entity instrument-trumpet,Instrument Trumpet,악기 트럼펫
+item_instrument_drums,Instrument Drums,entity instrument-drums,Instrument Drums,악기 드럼
+item_granite,Granite,entity granite,Granite,화강암
+item_bandage,Bandage,entity bandage,Bandage,붕대
+item_signal_lens,Signal Lens,entity signal-lens,Signal Lens,신호 렌즈
+item_sample_case,Sample Case,entity sample-case,Sample Case,표본 상자
+item_research_bundle,Research Bundle,entity research-bundle,Research Bundle,연구 꾸러미
+item_shelter_liner,Shelter Liner,entity shelter-liner,Shelter Liner,쉼터 안감
+item_heat_brace,Heat Brace,entity heat-brace,Heat Brace,방열 보강대
+item_signal_fragment,Signal Fragment,entity signal-fragment,Signal Fragment,신호 조각
+item_rescue_transponder,Rescue Transponder,entity rescue-transponder,Rescue Transponder,구조 응답기
+skills.survival,Survival,RECONSTRUCTED Robango catalog source,Survival,Survival
+skills.survival_1,maxHP+10,RECONSTRUCTED Robango catalog source,maxHP+10,maxHP+10
+skills.survival_2,stealth toggle: speed0.6x and detection0.6x,RECONSTRUCTED Robango catalog source,stealth toggle: speed0.6x and detection0.6x,stealth toggle: speed0.6x and detection0.6x
+skills.survival_3,ordinary capture access,RECONSTRUCTED Robango catalog source,ordinary capture access,ordinary capture access
+skills.survival_4,pet cargo+2 slots,RECONSTRUCTED Robango catalog source,pet cargo+2 slots,pet cargo+2 slots
+skills.survival_5,maxHP+20,RECONSTRUCTED Robango catalog source,maxHP+20,maxHP+20
+skills.survival_6,capture probability+0.05 before clamp,RECONSTRUCTED Robango catalog source,capture probability+0.05 before clamp,capture probability+0.05 before clamp
+skills.butchering,Butchering,RECONSTRUCTED Robango catalog source,Butchering,Butchering
+skills.butchering_1,carcass meat extraction,RECONSTRUCTED Robango catalog source,carcass meat extraction,carcass meat extraction
+skills.butchering_2,hide extraction,RECONSTRUCTED Robango catalog source,hide extraction,hide extraction
+skills.butchering_3,bone extraction,RECONSTRUCTED Robango catalog source,bone extraction,bone extraction
+skills.butchering_4,tooth extraction,RECONSTRUCTED Robango catalog source,tooth extraction,tooth extraction
+skills.butchering_5,skull extraction,RECONSTRUCTED Robango catalog source,skull extraction,skull extraction
+skills.butchering_6,each primary meat yield+1,RECONSTRUCTED Robango catalog source,each primary meat yield+1,each primary meat yield+1
+skills.gathering,Gathering,RECONSTRUCTED Robango catalog source,Gathering,Gathering
+skills.gathering_1,mineral tier1,RECONSTRUCTED Robango catalog source,mineral tier1,mineral tier1
+skills.gathering_2,seed extraction,RECONSTRUCTED Robango catalog source,seed extraction,seed extraction
+skills.gathering_3,mineral tier2,RECONSTRUCTED Robango catalog source,mineral tier2,mineral tier2
+skills.gathering_4,mineral tier3,RECONSTRUCTED Robango catalog source,mineral tier3,mineral tier3
+skills.gathering_5,quality roll: transfer5 percentage points quality0 to1,RECONSTRUCTED Robango catalog source,quality roll: transfer5 percentage points quality0 to1,quality roll: transfer5 percentage points quality0 to1
+skills.gathering_6,primary raw yield+1,RECONSTRUCTED Robango catalog source,primary raw yield+1,primary raw yield+1
+skills.processing,Processing,RECONSTRUCTED Robango catalog source,Processing,Processing
+skills.processing_1,drying,RECONSTRUCTED Robango catalog source,drying,drying
+skills.processing_2,tanning,RECONSTRUCTED Robango catalog source,tanning,tanning
+skills.processing_3,polishing,RECONSTRUCTED Robango catalog source,polishing,polishing
+skills.processing_4,smelting,RECONSTRUCTED Robango catalog source,smelting,smelting
+skills.processing_5,fermentation and compost,RECONSTRUCTED Robango catalog source,fermentation and compost,fermentation and compost
+skills.processing_6,main-material refund10% on processing recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on processing recipes,main-material refund10% on processing recipes
+skills.weapon_tool,Weapon Tool,RECONSTRUCTED Robango catalog source,Weapon Tool,Weapon Tool
+skills.weapon_tool_1,tier1 tool/weapon recipes,RECONSTRUCTED Robango catalog source,tier1 tool/weapon recipes,tier1 tool/weapon recipes
+skills.weapon_tool_2,repair,RECONSTRUCTED Robango catalog source,repair,repair
+skills.weapon_tool_3,tier2 recipes,RECONSTRUCTED Robango catalog source,tier2 recipes,tier2 recipes
+skills.weapon_tool_4,Unlock equipment adjustments,RECONSTRUCTED Robango catalog source,Unlock equipment adjustments,장비 조정 기능 해금
+skills.weapon_tool_5,tier3 recipes,RECONSTRUCTED Robango catalog source,tier3 recipes,tier3 recipes
+skills.weapon_tool_6,main-material refund10% on weapon/tool recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on weapon/tool recipes,main-material refund10% on weapon/tool recipes
+skills.ranged,Ranged,RECONSTRUCTED Robango catalog source,Ranged,Ranged
+skills.ranged_1,shooting stance,RECONSTRUCTED Robango catalog source,shooting stance,shooting stance
+skills.ranged_2,"quick draw: next shot windup0.2s, cooldown8s",RECONSTRUCTED Robango catalog source,"quick draw: next shot windup0.2s, cooldown8s","quick draw: next shot windup0.2s, cooldown8s"
+skills.ranged_3,range+8stud,RECONSTRUCTED Robango catalog source,range+8stud,range+8stud
+skills.ranged_4,"barrage:3shots damage0.5x each,cost30stamina,cooldown12s",RECONSTRUCTED Robango catalog source,"barrage:3shots damage0.5x each,cost30stamina,cooldown12s","barrage:3shots damage0.5x each,cost30stamina,cooldown12s"
+skills.ranged_5,ranged damage+5%,RECONSTRUCTED Robango catalog source,ranged damage+5%,ranged damage+5%
+skills.ranged_6,ranged stamina cost-10%,RECONSTRUCTED Robango catalog source,ranged stamina cost-10%,ranged stamina cost-10%
+skills.melee,Melee,RECONSTRUCTED Robango catalog source,Melee,Melee
+skills.melee_1,attack stance,RECONSTRUCTED Robango catalog source,attack stance,attack stance
+skills.melee_2,suppression club stun,RECONSTRUCTED Robango catalog source,suppression club stun,suppression club stun
+skills.melee_3,counter stance,RECONSTRUCTED Robango catalog source,counter stance,counter stance
+skills.melee_4,onslaught stance,RECONSTRUCTED Robango catalog source,onslaught stance,onslaught stance
+skills.melee_5,charge stance,RECONSTRUCTED Robango catalog source,charge stance,charge stance
+skills.melee_6,melee damage+10%,RECONSTRUCTED Robango catalog source,melee damage+10%,melee damage+10%
+skills.construction,Construction,RECONSTRUCTED Robango catalog source,Construction,Construction
+skills.construction_1,tier1 kits excluding default bonfire/workbench,RECONSTRUCTED Robango catalog source,tier1 kits excluding default bonfire/workbench,tier1 kits excluding default bonfire/workbench
+skills.construction_2,container craft,RECONSTRUCTED Robango catalog source,container craft,container craft
+skills.construction_3,tier2 station upgrade,RECONSTRUCTED Robango catalog source,tier2 station upgrade,tier2 station upgrade
+skills.construction_4,multistorey parts,RECONSTRUCTED Robango catalog source,multistorey parts,multistorey parts
+skills.construction_5,tier3 station upgrade,RECONSTRUCTED Robango catalog source,tier3 station upgrade,tier3 station upgrade
+skills.construction_6,main-material refund10% on construction recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on construction recipes,main-material refund10% on construction recipes
+skills.farming,Farming,RECONSTRUCTED Robango catalog source,Farming,Farming
+skills.farming_1,corn/potato,RECONSTRUCTED Robango catalog source,corn/potato,corn/potato
+skills.farming_2,wheat/onion,RECONSTRUCTED Robango catalog source,wheat/onion,wheat/onion
+skills.farming_3,flax,RECONSTRUCTED Robango catalog source,flax,flax
+skills.farming_4,banana/fig,RECONSTRUCTED Robango catalog source,banana/fig,banana/fig
+skills.farming_5,apple and watering tool,RECONSTRUCTED Robango catalog source,apple and watering tool,apple and watering tool
+skills.farming_6,crop base yield+1,RECONSTRUCTED Robango catalog source,crop base yield+1,crop base yield+1
+skills.tailoring,Tailoring,RECONSTRUCTED Robango catalog source,Tailoring,Tailoring
+skills.tailoring_1,temperate recipes,RECONSTRUCTED Robango catalog source,temperate recipes,temperate recipes
+skills.tailoring_2,repair apparel,RECONSTRUCTED Robango catalog source,repair apparel,repair apparel
+skills.tailoring_3,tropical recipes,RECONSTRUCTED Robango catalog source,tropical recipes,tropical recipes
+skills.tailoring_4,modify apparel,RECONSTRUCTED Robango catalog source,modify apparel,modify apparel
+skills.tailoring_5,cold recipes and volcanic boots,RECONSTRUCTED Robango catalog source,cold recipes and volcanic boots,cold recipes and volcanic boots
+skills.tailoring_6,main-material refund10% on tailoring recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on tailoring recipes,main-material refund10% on tailoring recipes
+skills.cooking,Cooking,RECONSTRUCTED Robango catalog source,Cooking,Cooking
+skills.cooking_1,basic plant/meat recipes,RECONSTRUCTED Robango catalog source,basic plant/meat recipes,basic plant/meat recipes
+skills.cooking_2,boiled food,RECONSTRUCTED Robango catalog source,boiled food,boiled food
+skills.cooking_3,grilled food,RECONSTRUCTED Robango catalog source,grilled food,grilled food
+skills.cooking_4,fermented dishes,RECONSTRUCTED Robango catalog source,fermented dishes,fermented dishes
+skills.cooking_5,pet feed/recovery feed,RECONSTRUCTED Robango catalog source,pet feed/recovery feed,pet feed/recovery feed
+skills.cooking_6,main-material refund10% on cooking recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on cooking recipes,main-material refund10% on cooking recipes
+skills.defense,Defense,RECONSTRUCTED Robango catalog source,Defense,Defense
+skills.defense_1,defense stance,RECONSTRUCTED Robango catalog source,defense stance,defense stance
+skills.defense_2,dodge stamina-2,RECONSTRUCTED Robango catalog source,dodge stamina-2,dodge stamina-2
+skills.defense_3,block stamina drain-1/s,RECONSTRUCTED Robango catalog source,block stamina drain-1/s,block stamina drain-1/s
+skills.defense_4,counter followup cost-2,RECONSTRUCTED Robango catalog source,counter followup cost-2,counter followup cost-2
+skills.defense_5,stamina recovery+2/s,RECONSTRUCTED Robango catalog source,stamina recovery+2/s,stamina recovery+2/s
+skills.defense_6,incoming damage0.95x,RECONSTRUCTED Robango catalog source,incoming damage0.95x,incoming damage0.95x
+item_skull,Skull,entity skull,Skull,두개골
+wildlife_compsognathus,Compsognathus,entity compsognathus,Compsognathus,Compsognathus
+item_feather,Feather,entity feather,Feather,깃털
+wildlife_oviraptor,Oviraptor,entity oviraptor,Oviraptor,Oviraptor
+wildlife_protoceratops,Protoceratops,entity protoceratops,Protoceratops,Protoceratops
+wildlife_gallimimus,Gallimimus,entity gallimimus,Gallimimus,Gallimimus
+wildlife_parasaurolophus,Parasaurolophus,entity parasaurolophus,Parasaurolophus,Parasaurolophus
+item_plate,Plate,entity plate,Plate,골판
+wildlife_stegosaurus,Stegosaurus,entity stegosaurus,Stegosaurus,Stegosaurus
+wildlife_ankylosaurus,Ankylosaurus,entity ankylosaurus,Ankylosaurus,Ankylosaurus
+item_horn,Horn,entity horn,Horn,뿔
+wildlife_triceratops,Triceratops,entity triceratops,Triceratops,Triceratops
+wildlife_brachiosaurus,Brachiosaurus,entity brachiosaurus,Brachiosaurus,Brachiosaurus
+item_claw,Claw,entity claw,Claw,발톱
+wildlife_utahraptor,Utahraptor,entity utahraptor,Utahraptor,Utahraptor
+wildlife_velociraptor,Velociraptor,entity velociraptor,Velociraptor,Velociraptor
+item_tooth,Tooth,entity tooth,Tooth,이빨
+wildlife_dilophosaurus,Dilophosaurus,entity dilophosaurus,Dilophosaurus,Dilophosaurus
+wildlife_allosaurus,Allosaurus,entity allosaurus,Allosaurus,Allosaurus
+wildlife_tyrannosaurus,Tyrannosaurus,entity tyrannosaurus,Tyrannosaurus,Tyrannosaurus
+item_fang,Fang,entity fang,Fang,송곳니
+wildlife_smilodon,Smilodon,entity smilodon,Smilodon,Smilodon
+item_sinew,Sinew,entity sinew,Sinew,힘줄
+wildlife_tropicalSmilodon,Tropical Smilodon,entity tropicalSmilodon,Tropical Smilodon,Tropical Smilodon
+wildlife_direWolf,Dire Wolf,entity direWolf,Dire Wolf,Dire Wolf
+item_tusk,Tusk,entity tusk,Tusk,엄니
+wildlife_mammoth,Mammoth,entity mammoth,Mammoth,Mammoth
+item_antler,Antler,entity antler,Antler,사슴뿔
+wildlife_deer,Deer,entity deer,Deer,Deer
+wildlife_elephant,Elephant,entity elephant,Elephant,Elephant
+wildlife_crocodile,Crocodile,entity crocodile,Crocodile,Crocodile
+wildlife_turtle,Turtle,entity turtle,Turtle,Turtle
+wildlife_dodo,Dodo,entity dodo,Dodo,Dodo
+item_relief_unit,Relief Unit,entity relief-unit,Relief Unit,구호 물자
+item_survey_sample,Survey Sample,entity survey-sample,Survey Sample,탐사 표본
+item_volcanic_ash,Volcanic Ash,entity volcanic-ash,Volcanic Ash,화산 재
+item_rescue_marker,Rescue Marker,entity rescue-marker,Rescue Marker,구조 표식
+item_chapter,Chapter,entity chapter,Chapter,장
+item_fragment,Fragment,entity fragment,Fragment,조각
+item_dodo,Dodo,entity dodo,Dodo,Dodo
+item_rw_journal_seal_1,Rw Journal Seal 1,entity rw-journal-seal-1,Rw Journal Seal 1,로방고 일지 인장 1
+item_rw_journal_seal_2,Rw Journal Seal 2,entity rw-journal-seal-2,Rw Journal Seal 2,로방고 일지 인장 2
+item_rw_journal_seal_3,Rw Journal Seal 3,entity rw-journal-seal-3,Rw Journal Seal 3,로방고 일지 인장 3
+item_rw_journal_seal_4,Rw Journal Seal 4,entity rw-journal-seal-4,Rw Journal Seal 4,로방고 일지 인장 4
+item_rw_journal_seal_5,Rw Journal Seal 5,entity rw-journal-seal-5,Rw Journal Seal 5,로방고 일지 인장 5
+item_rw_journal_seal_6,Rw Journal Seal 6,entity rw-journal-seal-6,Rw Journal Seal 6,로방고 일지 인장 6
+item_rw_journal_seal_7,Rw Journal Seal 7,entity rw-journal-seal-7,Rw Journal Seal 7,로방고 일지 인장 7
+item_rw_journal_seal_8,Rw Journal Seal 8,entity rw-journal-seal-8,Rw Journal Seal 8,로방고 일지 인장 8
+rw.m1.gather.offer,Collect five wood from the marked deposit. Leave the return path clear.,RECONSTRUCTED Robango catalog source,Collect five wood from the marked deposit. Leave the return path clear.,Collect five wood from the marked deposit. Leave the return path clear.
+rw.m1.gather.complete,Five wood recorded. Your supply claim is complete.,RECONSTRUCTED Robango catalog source,Five wood recorded. Your supply claim is complete.,Five wood recorded. Your supply claim is complete.
+npc.marit,Marit,RECONSTRUCTED Robango catalog source,Marit,Marit
+rw.m1.craft.offer,Dry one branch at the campfire. Keep the finished wood.,RECONSTRUCTED Robango catalog source,Dry one branch at the campfire. Keep the finished wood.,Dry one branch at the campfire. Keep the finished wood.
+rw.m1.craft.complete,Your first batch has dried. Take the finished wood.,RECONSTRUCTED Robango catalog source,Your first batch has dried. Take the finished wood.,첫 나무 묶음이 말랐어요. 완성된 목재를 가져가세요.
+npc.bram,Bram,RECONSTRUCTED Robango catalog source,Bram,Bram
+rw.m1.survey.offer,Read this island's marked survey point. A reading from another island will not count.,RECONSTRUCTED Robango catalog source,Read this island's marked survey point. A reading from another island will not count.,Read this island's marked survey point. A reading from another island will not count.
+rw.m1.survey.complete,This island's reading is recorded.,RECONSTRUCTED Robango catalog source,This island's reading is recorded.,This island's reading is recorded.
+rw.m1.rescue.offer,"Use the bandage beside the castaway, then escort them to the arrival dock.",RECONSTRUCTED Robango catalog source,"Use the bandage beside the castaway, then escort them to the arrival dock.","Use the bandage beside the castaway, then escort them to the arrival dock."
+rw.m1.rescue.complete,The castaway reached the dock safely.,RECONSTRUCTED Robango catalog source,The castaway reached the dock safely.,The castaway reached the dock safely.
+npc.ines,Ines,RECONSTRUCTED Robango catalog source,Ines,Ines
+rw.m1.hunt.offer,Defeat one boar in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat one boar in the western habitat.,Defeat one boar in the western habitat.
+rw.m1.hunt.complete,The required animal has been defeated. The return route remains open.,RECONSTRUCTED Robango catalog source,The required animal has been defeated. The return route remains open.,The required animal has been defeated. The return route remains open.
+rw.m1.hunt.offer.s3,Defeat one boar in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat one boar in the western habitat.,Defeat one boar in the western habitat.
+rw.m1.hunt.offer.s4,Defeat one velociraptor in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat one velociraptor in the western habitat.,Defeat one velociraptor in the western habitat.
+rw.m1.transport.offer,Take five relief units from the supply yard to this island's receiver.,RECONSTRUCTED Robango catalog source,Take five relief units from the supply yard to this island's receiver.,Take five relief units from the supply yard to this island's receiver.
+rw.m1.transport.complete,Five relief units delivered. The cargo receipt is closed.,RECONSTRUCTED Robango catalog source,Five relief units delivered. The cargo receipt is closed.,Five relief units delivered. The cargo receipt is closed.
+npc.pip,Pip,RECONSTRUCTED Robango catalog source,Pip,Pip
+rw.m2.gather.offer,Collect ten fiber from the marked deposit.,RECONSTRUCTED Robango catalog source,Collect ten fiber from the marked deposit.,Collect ten fiber from the marked deposit.
+rw.m2.gather.complete,Ten fiber recorded. The supply claim is complete.,RECONSTRUCTED Robango catalog source,Ten fiber recorded. The supply claim is complete.,Ten fiber recorded. The supply claim is complete.
+rw.m2.craft.offer,Dry two branches at the campfire. Both finished pieces remain yours.,RECONSTRUCTED Robango catalog source,Dry two branches at the campfire. Both finished pieces remain yours.,Dry two branches at the campfire. Both finished pieces remain yours.
+rw.m2.craft.complete,Both batches are dry and ready to collect.,RECONSTRUCTED Robango catalog source,Both batches are dry and ready to collect.,두 묶음 모두 건조가 끝났어요. 가져가세요.
+rw.m2.survey.offer,Read both marked survey points on this island.,RECONSTRUCTED Robango catalog source,Read both marked survey points on this island.,Read both marked survey points on this island.
+rw.m2.survey.complete,Both readings are recorded for this stage.,RECONSTRUCTED Robango catalog source,Both readings are recorded for this stage.,Both readings are recorded for this stage.
+rw.m2.rescue.offer,"Treat the castaway with the local bandage, then escort them to the arrival dock.",RECONSTRUCTED Robango catalog source,"Treat the castaway with the local bandage, then escort them to the arrival dock.","Treat the castaway with the local bandage, then escort them to the arrival dock."
+rw.m2.rescue.complete,Treatment and evacuation are confirmed.,RECONSTRUCTED Robango catalog source,Treatment and evacuation are confirmed.,Treatment and evacuation are confirmed.
+rw.m2.hunt.offer,Defeat two dilophosaurus in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat two dilophosaurus in the western habitat.,Defeat two dilophosaurus in the western habitat.
+rw.m2.hunt.complete,Both required defeats are recorded.,RECONSTRUCTED Robango catalog source,Both required defeats are recorded.,Both required defeats are recorded.
+rw.m2.hunt.offer.s3,Defeat two dilophosaurus in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat two dilophosaurus in the western habitat.,Defeat two dilophosaurus in the western habitat.
+rw.m2.hunt.offer.s4,Defeat two velociraptor in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat two velociraptor in the western habitat.,Defeat two velociraptor in the western habitat.
+rw.m2.transport.offer,Deliver ten relief units from the supply yard to the receiver.,RECONSTRUCTED Robango catalog source,Deliver ten relief units from the supply yard to the receiver.,Deliver ten relief units from the supply yard to the receiver.
+rw.m2.transport.complete,Ten relief units delivered without loss.,RECONSTRUCTED Robango catalog source,Ten relief units delivered without loss.,Ten relief units delivered without loss.
+rw.m3.gather.offer,Mine fifteen iron ore. You need the third gathering node and a tier-one pick or better.,RECONSTRUCTED Robango catalog source,Mine fifteen iron ore. You need the third gathering node and a tier-one pick or better.,Mine fifteen iron ore. You need the third gathering node and a tier-one pick or better.
+rw.m3.gather.complete,Fifteen iron ore recorded.,RECONSTRUCTED Robango catalog source,Fifteen iron ore recorded.,Fifteen iron ore recorded.
+rw.m3.craft.offer,Dry three branches at the campfire.,RECONSTRUCTED Robango catalog source,Dry three branches at the campfire.,Dry three branches at the campfire.
+rw.m3.craft.complete,Three finished pieces verified. Keep them.,RECONSTRUCTED Robango catalog source,Three finished pieces verified. Keep them.,Three finished pieces verified. Keep them.
+rw.m3.survey.offer,Read all three marked survey points on this island.,RECONSTRUCTED Robango catalog source,Read all three marked survey points on this island.,Read all three marked survey points on this island.
+rw.m3.survey.complete,Three distinct readings are recorded.,RECONSTRUCTED Robango catalog source,Three distinct readings are recorded.,Three distinct readings are recorded.
+rw.m3.rescue.offer,Bandage the castaway and bring them back along the safe path.,RECONSTRUCTED Robango catalog source,Bandage the castaway and bring them back along the safe path.,Bandage the castaway and bring them back along the safe path.
+rw.m3.rescue.complete,The castaway is safe at the arrival dock.,RECONSTRUCTED Robango catalog source,The castaway is safe at the arrival dock.,The castaway is safe at the arrival dock.
+rw.m3.hunt.offer,Defeat three utahraptor in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat three utahraptor in the western habitat.,Defeat three utahraptor in the western habitat.
+rw.m3.hunt.complete,Three required defeats are recorded.,RECONSTRUCTED Robango catalog source,Three required defeats are recorded.,Three required defeats are recorded.
+rw.m3.hunt.offer.s3,Defeat three utahraptor in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat three utahraptor in the western habitat.,Defeat three utahraptor in the western habitat.
+rw.m3.hunt.offer.s4,Defeat three allosaurus in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat three allosaurus in the western habitat.,Defeat three allosaurus in the western habitat.
+rw.m3.transport.offer,Deliver fifteen relief units to the receiver. They travel in one mission slot.,RECONSTRUCTED Robango catalog source,Deliver fifteen relief units to the receiver. They travel in one mission slot.,Deliver fifteen relief units to the receiver. They travel in one mission slot.
+rw.m3.transport.complete,All fifteen units are accounted for.,RECONSTRUCTED Robango catalog source,All fifteen units are accounted for.,All fifteen units are accounted for.
+rw.m4.gather.offer,Mine twenty iron ore from the marked deposit. The sheltered route stays open.,RECONSTRUCTED Robango catalog source,Mine twenty iron ore from the marked deposit. The sheltered route stays open.,Mine twenty iron ore from the marked deposit. The sheltered route stays open.
+rw.m4.gather.complete,Twenty iron ore recorded.,RECONSTRUCTED Robango catalog source,Twenty iron ore recorded.,Twenty iron ore recorded.
+rw.m4.craft.offer,Dry four branches at the campfire inside the refuge.,RECONSTRUCTED Robango catalog source,Dry four branches at the campfire inside the refuge.,Dry four branches at the campfire inside the refuge.
+rw.m4.craft.complete,All four batches have finished drying.,RECONSTRUCTED Robango catalog source,All four batches have finished drying.,네 묶음의 건조 작업이 모두 끝났어요.
+rw.m4.survey.offer,Read the four marked survey points. You can reach them without entering a habitat.,RECONSTRUCTED Robango catalog source,Read the four marked survey points. You can reach them without entering a habitat.,Read the four marked survey points. You can reach them without entering a habitat.
+rw.m4.survey.complete,All four readings are recorded.,RECONSTRUCTED Robango catalog source,All four readings are recorded.,All four readings are recorded.
+rw.m4.rescue.offer,"Treat the castaway, then use the sheltered route to the arrival dock.",RECONSTRUCTED Robango catalog source,"Treat the castaway, then use the sheltered route to the arrival dock.","Treat the castaway, then use the sheltered route to the arrival dock."
+rw.m4.rescue.complete,The evacuation is complete.,RECONSTRUCTED Robango catalog source,The evacuation is complete.,The evacuation is complete.
+rw.m4.hunt.offer,Defeat four dire wolves in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat four dire wolves in the western habitat.,Defeat four dire wolves in the western habitat.
+rw.m4.hunt.complete,Four required defeats are recorded.,RECONSTRUCTED Robango catalog source,Four required defeats are recorded.,Four required defeats are recorded.
+rw.m4.hunt.offer.s3,Defeat four dire wolves in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat four dire wolves in the western habitat.,Defeat four dire wolves in the western habitat.
+rw.m4.hunt.offer.s4,Defeat four smilodon in the western habitat.,RECONSTRUCTED Robango catalog source,Defeat four smilodon in the western habitat.,Defeat four smilodon in the western habitat.
+rw.m4.transport.offer,Carry twenty relief units from the supply yard to the receiver.,RECONSTRUCTED Robango catalog source,Carry twenty relief units from the supply yard to the receiver.,Carry twenty relief units from the supply yard to the receiver.
+rw.m4.transport.complete,Twenty units delivered. Nothing remains in mission cargo.,RECONSTRUCTED Robango catalog source,Twenty units delivered. Nothing remains in mission cargo.,Twenty units delivered. Nothing remains in mission cargo.
+rw.m5.gather.offer,Mine twenty-five basalt. The fourth gathering node and a tier-two pick are required.,RECONSTRUCTED Robango catalog source,Mine twenty-five basalt. The fourth gathering node and a tier-two pick are required.,Mine twenty-five basalt. The fourth gathering node and a tier-two pick are required.
+rw.m5.gather.complete,Twenty-five basalt recorded.,RECONSTRUCTED Robango catalog source,Twenty-five basalt recorded.,Twenty-five basalt recorded.
+rw.m5.craft.offer,Dry five branches at the sheltered campfire.,RECONSTRUCTED Robango catalog source,Dry five branches at the sheltered campfire.,Dry five branches at the sheltered campfire.
+rw.m5.craft.complete,Five finished pieces verified.,RECONSTRUCTED Robango catalog source,Five finished pieces verified.,Five finished pieces verified.
+rw.m5.survey.offer,Read all five marked points. Stay on the sheltered path between them.,RECONSTRUCTED Robango catalog source,Read all five marked points. Stay on the sheltered path between them.,Read all five marked points. Stay on the sheltered path between them.
+rw.m5.survey.complete,The five readings are secure.,RECONSTRUCTED Robango catalog source,The five readings are secure.,The five readings are secure.
+rw.m5.rescue.offer,Bandage the castaway and escort them through the refuges to the arrival dock.,RECONSTRUCTED Robango catalog source,Bandage the castaway and escort them through the refuges to the arrival dock.,Bandage the castaway and escort them through the refuges to the arrival dock.
+rw.m5.rescue.complete,The castaway is aboard. Evacuation is confirmed.,RECONSTRUCTED Robango catalog source,The castaway is aboard. Evacuation is confirmed.,The castaway is aboard. Evacuation is confirmed.
+rw.m5.hunt.offer,Defeat five tyrannosaurus in the western basins.,RECONSTRUCTED Robango catalog source,Defeat five tyrannosaurus in the western basins.,Defeat five tyrannosaurus in the western basins.
+rw.m5.hunt.complete,Five required defeats are recorded.,RECONSTRUCTED Robango catalog source,Five required defeats are recorded.,Five required defeats are recorded.
+rw.m5.hunt.offer.s3,Defeat five tyrannosaurus in the western basins.,RECONSTRUCTED Robango catalog source,Defeat five tyrannosaurus in the western basins.,Defeat five tyrannosaurus in the western basins.
+rw.m5.hunt.offer.s4,Defeat five utahraptor in the tropical district.,RECONSTRUCTED Robango catalog source,Defeat five utahraptor in the tropical district.,Defeat five utahraptor in the tropical district.
+rw.m5.transport.offer,Deliver all twenty-five relief units to the receiver.,RECONSTRUCTED Robango catalog source,Deliver all twenty-five relief units to the receiver.,Deliver all twenty-five relief units to the receiver.
+rw.m5.transport.complete,All twenty-five units are delivered.,RECONSTRUCTED Robango catalog source,All twenty-five units are delivered.,All twenty-five units are delivered.
+rw.g01.hand-gather.offer,"Start with your hands: gather five branches, three stones, and three fiber.",RECONSTRUCTED Robango catalog source,"Start with your hands: gather five branches, three stones, and three fiber.","Start with your hands: gather five branches, three stones, and three fiber."
+rw.g01.hand-gather.complete,You have enough to begin without a tool.,RECONSTRUCTED Robango catalog source,You have enough to begin without a tool.,You have enough to begin without a tool.
+rw.g02.campfire.offer,Use these five branches and three stones to make a campfire kit. Place it in the marked clearing.,RECONSTRUCTED Robango catalog source,Use these five branches and three stones to make a campfire kit. Place it in the marked clearing.,Use these five branches and three stones to make a campfire kit. Place it in the marked clearing.
+rw.g02.campfire.complete,Your first campfire is standing. A kit is consumed only when it is placed.,RECONSTRUCTED Robango catalog source,Your first campfire is standing. A kit is consumed only when it is placed.,Your first campfire is standing. A kit is consumed only when it is placed.
+npc.hop,Hop,RECONSTRUCTED Robango catalog source,Hop,Hop
+rw.g03.rest.offer,Try the rest mat. Watch the fatigue panel when you begin resting.,RECONSTRUCTED Robango catalog source,Try the rest mat. Watch the fatigue panel when you begin resting.,Try the rest mat. Watch the fatigue panel when you begin resting.
+rw.g03.rest.complete,Rest is available before you have a house or a bed.,RECONSTRUCTED Robango catalog source,Rest is available before you have a house or a bed.,Rest is available before you have a house or a bed.
+rw.g04.first-processing.offer,Dry this branch at the campfire. Compare its properties before and after.,RECONSTRUCTED Robango catalog source,Dry this branch at the campfire. Compare its properties before and after.,Dry this branch at the campfire. Compare its properties before and after.
+rw.g04.first-processing.complete,That action begins your processing practice. Other processes retain their own skill requirements.,RECONSTRUCTED Robango catalog source,That action begins your processing practice. Other processes retain their own skill requirements.,That action begins your processing practice. Other processes retain their own skill requirements.
+rw.g05.home-expansion.offer,Your development has earned more land. Apply the new boundary at your dock.,RECONSTRUCTED Robango catalog source,Your development has earned more land. Apply the new boundary at your dock.,Your development has earned more land. Apply the new boundary at your dock.
+rw.g05.home-expansion.complete,The boundary is expanded. Existing buildings and permissions remain yours.,RECONSTRUCTED Robango catalog source,The boundary is expanded. Existing buildings and permissions remain yours.,The boundary is expanded. Existing buildings and permissions remain yours.
+rw.g06.visit.offer,Visit the public demonstration home. Its owner has already permitted visitors.,RECONSTRUCTED Robango catalog source,Visit the public demonstration home. Its owner has already permitted visitors.,Visit the public demonstration home. Its owner has already permitted visitors.
+rw.g06.visit.complete,A visit does not grant building or recovery permission.,RECONSTRUCTED Robango catalog source,A visit does not grant building or recovery permission.,A visit does not grant building or recovery permission.
+rw.g07.food.offer,"Mash and cook these berries, then eat the meal.",RECONSTRUCTED Robango catalog source,"Mash and cook these berries, then eat the meal.","Mash and cook these berries, then eat the meal."
+rw.g07.food.complete,Food effects come from the finished item. Keep an eye on spoilage.,RECONSTRUCTED Robango catalog source,Food effects come from the finished item. Keep an eye on spoilage.,Food effects come from the finished item. Keep an eye on spoilage.
+rw.g08.market.offer,"List this fiber for one Coin, cancel the listing, and collect it from returns.",RECONSTRUCTED Robango catalog source,"List this fiber for one Coin, cancel the listing, and collect it from returns.","List this fiber for one Coin, cancel the listing, and collect it from returns."
+rw.g08.market.complete,The item stayed in escrow until cancellation. A full bag would leave it safely in returns.,RECONSTRUCTED Robango catalog source,The item stayed in escrow until cancellation. A full bag would leave it safely in returns.,The item stayed in escrow until cancellation. A full bag would leave it safely in returns.
+npc.sella,Sella,RECONSTRUCTED Robango catalog source,Sella,Sella
+rw.g09.farming.offer,"Practice a seedbed, learn the first farming node, then plant, water, and harvest one corn.",RECONSTRUCTED Robango catalog source,"Practice a seedbed, learn the first farming node, then plant, water, and harvest one corn.","Practice a seedbed, learn the first farming node, then plant, water, and harvest one corn."
+rw.g09.farming.complete,One harvest is recorded. Farming proficiency and the crop encyclopedia are separate records.,RECONSTRUCTED Robango catalog source,One harvest is recorded. Farming proficiency and the crop encyclopedia are separate records.,One harvest is recorded. Farming proficiency and the crop encyclopedia are separate records.
+rw.g10.clothing.offer,"Practice a fiber stitch, learn the first tailoring node, and make temperate gloves from these materials.",RECONSTRUCTED Robango catalog source,"Practice a fiber stitch, learn the first tailoring node, and make temperate gloves from these materials.","Practice a fiber stitch, learn the first tailoring node, and make temperate gloves from these materials."
+rw.g10.clothing.complete,The gloves are yours. Their crafting gate remains required for future pairs.,RECONSTRUCTED Robango catalog source,The gloves are yours. Their crafting gate remains required for future pairs.,The gloves are yours. Their crafting gate remains required for future pairs.
+rw.g11.skill-reclaim.offer,Check which learned skills a refund would remove. Close the preview without confirming.,RECONSTRUCTED Robango catalog source,Check which learned skills a refund would remove. Close the preview without confirming.,"환급하면 어떤 기술이 사라지는지 확인하고, 확정하지 말고 미리보기를 닫으세요."
+rw.g11.skill-reclaim.complete,Only points actually paid are refundable. Your proficiency stays.,RECONSTRUCTED Robango catalog source,Only points actually paid are refundable. Your proficiency stays.,Only points actually paid are refundable. Your proficiency stays.
+rw.g12.route-share.offer,"Create a training route invitation, inspect its destination, and revoke it.",RECONSTRUCTED Robango catalog source,"Create a training route invitation, inspect its destination, and revoke it.","Create a training route invitation, inspect its destination, and revoke it."
+rw.g12.route-share.complete,"A route invitation grants travel access, not ownership of a home or its contents.",RECONSTRUCTED Robango catalog source,"A route invitation grants travel access, not ownership of a home or its contents.","A route invitation grants travel access, not ownership of a home or its contents."
+rw.g13.lab.offer,Inspect the research terminal. You do not need to spend research funds for this lesson.,RECONSTRUCTED Robango catalog source,Inspect the research terminal. You do not need to spend research funds for this lesson.,Inspect the research terminal. You do not need to spend research funds for this lesson.
+rw.g13.lab.complete,A real project escrows its inputs and keeps running after you leave.,RECONSTRUCTED Robango catalog source,A real project escrows its inputs and keeps running after you leave.,A real project escrows its inputs and keeps running after you leave.
+rw.g14.taming.offer,This dodo is already captured. Place it in the training pen and begin taming with three feed.,RECONSTRUCTED Robango catalog source,This dodo is already captured. Place it in the training pen and begin taming with three feed.,This dodo is already captured. Place it in the training pen and begin taming with three feed.
+rw.g14.taming.complete,The dodo is now owned. This lesson did not grant permission to capture a new wild animal.,RECONSTRUCTED Robango catalog source,The dodo is now owned. This lesson did not grant permission to capture a new wild animal.,The dodo is now owned. This lesson did not grant permission to capture a new wild animal.
+rw.g15.clan.offer,"Read the clan roles, then open and cancel a membership draft.",RECONSTRUCTED Robango catalog source,"Read the clan roles, then open and cancel a membership draft.","Read the clan roles, then open and cancel a membership draft."
+rw.g15.clan.complete,A clan is not an expedition party. Its storage and building permissions are separate.,RECONSTRUCTED Robango catalog source,A clan is not an expedition party. Its storage and building permissions are separate.,A clan is not an expedition party. Its storage and building permissions are separate.
+rw.g16.refrigeration.offer,"Put this berry in the training refrigerator, inspect its spoilage rate, then take it back.",RECONSTRUCTED Robango catalog source,"Put this berry in the training refrigerator, inspect its spoilage rate, then take it back.","Put this berry in the training refrigerator, inspect its spoilage rate, then take it back."
+rw.g16.refrigeration.complete,Cold storage slows spoilage. Moving food does not reset its age.,RECONSTRUCTED Robango catalog source,Cold storage slows spoilage. Moving food does not reset its age.,Cold storage slows spoilage. Moving food does not reset its age.
+rw.g17.snow-preparation.offer,"Try this loaned cold hood, inspect its insulation, and return it.",RECONSTRUCTED Robango catalog source,"Try this loaned cold hood, inspect its insulation, and return it.","Try this loaned cold hood, inspect its insulation, and return it."
+rw.g17.snow-preparation.complete,"For your own clothing, hunt snow animals for fur and follow the tailoring requirements.",RECONSTRUCTED Robango catalog source,"For your own clothing, hunt snow animals for fur and follow the tailoring requirements.","For your own clothing, hunt snow animals for fur and follow the tailoring requirements."
+rw.g18.technical-support.offer,"Inspect technical support. You may preview it now, but execution opens at level sixty.",RECONSTRUCTED Robango catalog source,"Inspect technical support. You may preview it now, but execution opens at level sixty.","Inspect technical support. You may preview it now, but execution opens at level sixty."
+rw.g18.technical-support.complete,The preview spent nothing and performed no upgrade.,RECONSTRUCTED Robango catalog source,The preview spent nothing and performed no upgrade.,The preview spent nothing and performed no upgrade.
+rw.g19.volcano-preparation.offer,"Try these loaned volcanic boots, inspect the exposure reduction, then return them.",RECONSTRUCTED Robango catalog source,"Try these loaned volcanic boots, inspect the exposure reduction, then return them.","Try these loaned volcanic boots, inspect the exposure reduction, then return them."
+rw.g19.volcano-preparation.complete,Boots reduce exposure; refuges stop it. Neither makes lava safe.,RECONSTRUCTED Robango catalog source,Boots reduce exposure; refuges stop it. Neither makes lava safe.,Boots reduce exposure; refuges stop it. Neither makes lava safe.
+rw.g20.rescue-preparation.offer,Make two bandages from these four fiber and activate the practice rescue beacon.,RECONSTRUCTED Robango catalog source,Make two bandages from these four fiber and activate the practice rescue beacon.,Make two bandages from these four fiber and activate the practice rescue beacon.
+rw.g20.rescue-preparation.complete,"Treat first, escort along the safe route, and confirm arrival before leaving.",RECONSTRUCTED Robango catalog source,"Treat first, escort along the safe route, and confirm arrival before leaving.","Treat first, escort along the safe route, and confirm arrival before leaving."
+rw.c01.signal-trace.offer,"The relay is repeating a pattern. Read the inland signal, assemble a lens, and test it here.",RECONSTRUCTED Robango catalog source,"The relay is repeating a pattern. Read the inland signal, assemble a lens, and test it here.","The relay is repeating a pattern. Read the inland signal, assemble a lens, and test it here."
+rw.c01.signal-trace.complete,"That pattern is a distress call, not weather noise. We have a direction to follow.",RECONSTRUCTED Robango catalog source,"That pattern is a distress call, not weather noise. We have a direction to follow.","That pattern is a distress call, not weather noise. We have a direction to follow."
+rw.c02.home-station.offer,"The wreck has the components for your station. Recover them, build the kit, and tune the station at home.",RECONSTRUCTED Robango catalog source,"The wreck has the components for your station. Recover them, build the kit, and tune the station at home.","The wreck has the components for your station. Recover them, build the kit, and tune the station at home."
+rw.c02.home-station.complete,Your station can now keep the journal connected. Technical support still waits until level sixty.,RECONSTRUCTED Robango catalog source,Your station can now keep the journal connected. Technical support still waits until level sixty.,Your station can now keep the journal connected. Technical support still waits until level sixty.
+rw.c03.grassland-samples.offer,"Bring readings from the first and fourth grassland stages, with three samples in a case.",RECONSTRUCTED Robango catalog source,"Bring readings from the first and fourth grassland stages, with three samples in a case.","Bring readings from the first and fourth grassland stages, with three samples in a case."
+rw.c03.grassland-samples.complete,"The samples carry the same trace. The signal crossed the whole route, not just one island.",RECONSTRUCTED Robango catalog source,"The samples carry the same trace. The signal crossed the whole route, not just one island.","The samples carry the same trace. The signal crossed the whole route, not just one island."
+rw.c04.marsh-remedy.offer,"Read the marsh markers, make onion soup, and take this remedy to the refuge.",RECONSTRUCTED Robango catalog source,"Read the marsh markers, make onion soup, and take this remedy to the refuge.","Read the marsh markers, make onion soup, and take this remedy to the refuge."
+rw.c04.marsh-remedy.complete,The explorer is stable. The soup was food; the supplied remedy was treatment. Do not confuse either with immunity.,RECONSTRUCTED Robango catalog source,The explorer is stable. The soup was food; the supplied remedy was treatment. Do not confuse either with immunity.,The explorer is stable. The soup was food; the supplied remedy was treatment. Do not confuse either with immunity.
+rw.c05.shared-research.offer,"Survey the desert marker and the neutral outpost, then contribute a research bundle to the public ledger.",RECONSTRUCTED Robango catalog source,"Survey the desert marker and the neutral outpost, then contribute a research bundle to the public ledger.","Survey the desert marker and the neutral outpost, then contribute a research bundle to the public ledger."
+rw.c05.shared-research.complete,Your contribution is recorded. You can continue alone; clan research and outpost ownership remain separate choices.,RECONSTRUCTED Robango catalog source,Your contribution is recorded. You can continue alone; clan research and outpost ownership remain separate choices.,Your contribution is recorded. You can continue alone; clan research and outpost ownership remain separate choices.
+rw.c06.snow-protection.offer,The snow readings need a protected relay shelter. Obtain real fur and assemble its liner.,RECONSTRUCTED Robango catalog source,The snow readings need a protected relay shelter. Obtain real fur and assemble its liner.,The snow readings need a protected relay shelter. Obtain real fur and assemble its liner.
+rw.c06.snow-protection.complete,"The shelter is protected. The fur came from snow animals, and the route remains open without a full outfit.",RECONSTRUCTED Robango catalog source,"The shelter is protected. The fur came from snow animals, and the route remains open without a full outfit.","The shelter is protected. The fur came from snow animals, and the route remains open without a full outfit."
+rw.c07.tyrant-material.offer,Read the volcanic marker. A fresh tyrannosaurus bone can brace the station against the interference.,RECONSTRUCTED Robango catalog source,Read the volcanic marker. A fresh tyrannosaurus bone can brace the station against the interference.,Read the volcanic marker. A fresh tyrannosaurus bone can brace the station against the interference.
+rw.c07.tyrant-material.complete,"The brace is installed. The source record matches your kill, and the final survivor signal is clear.",RECONSTRUCTED Robango catalog source,"The brace is installed. The source record matches your kill, and the final survivor signal is clear.","The brace is installed. The source record matches your kill, and the final survivor signal is clear."
+rw.c08.collapse-return.offer,"Build the transponder, read all five final markers, and bring the survivor back through the refuges.",RECONSTRUCTED Robango catalog source,"Build the transponder, read all five final markers, and bring the survivor back through the refuges.","Build the transponder, read all five final markers, and bring the survivor back through the refuges."
+rw.c08.collapse-return.complete,"Our passenger reached home. The passage is sealed, and your journal now records the whole journey. You can sail again whenever you wish.",RECONSTRUCTED Robango catalog source,"Our passenger reached home. The passage is sealed, and your journal now records the whole journey. You can sail again whenever you wish.",구조한 사람이 집에 도착했고 통로도 봉쇄했어요. 일지에 여정이 모두 남았네요. 원할 때 다시 출항하세요.
+rw.c08.survivor.before,I can hear your signal. Activate the beacon so I can find the marked route.,RECONSTRUCTED Robango catalog source,I can hear your signal. Activate the beacon so I can find the marked route.,I can hear your signal. Activate the beacon so I can find the marked route.
+rw.c08.survivor.follow,The route is visible. I will follow you to the arrival dock.,RECONSTRUCTED Robango catalog source,The route is visible. I will follow you to the arrival dock.,The route is visible. I will follow you to the arrival dock.
+rw.c08.survivor.aboard,I am aboard. Return home when you are ready.,RECONSTRUCTED Robango catalog source,I am aboard. Return home when you are ready.,I am aboard. Return home when you are ready.
+npc.tuck,Tuck,RECONSTRUCTED Robango catalog source,Tuck,Tuck
+recipe_legacy_campfire_kit,Legacy Campfire Kit recipe,entity legacy-campfire-kit-recipe,Legacy Campfire Kit recipe,구형 모닥불 제작 꾸러미 제작법
+recipe_legacy_floor_kit,Legacy Floor Kit recipe,entity legacy-floor-kit-recipe,Legacy Floor Kit recipe,구형 바닥 제작 꾸러미 제작법
+recipe_legacy_storage_kit,Legacy Storage Kit recipe,entity legacy-storage-kit-recipe,Legacy Storage Kit recipe,구형 보관함 제작 꾸러미 제작법
+recipe_legacy_workbench_kit,Legacy Workbench Kit recipe,entity legacy-workbench-kit-recipe,Legacy Workbench Kit recipe,구형 작업대 제작 꾸러미 제작법
+structure_kiln,Kiln,entity kiln,Kiln,가마
+structure_tanning_frame,Tanning Frame,entity tanning-frame,Tanning Frame,무두질 틀
+structure_refrigerator,Refrigerator,entity refrigerator,Refrigerator,냉장고
+structure_tent,Tent,entity tent,Tent,천막
+structure_bed,Bed,entity bed,Bed,침대
+structure_well,Well,entity well,Well,우물
+structure_signal_relay,Signal Relay,entity signal-relay,Signal Relay,신호 중계기
+structure_laboratory,Laboratory,entity laboratory,Laboratory,연구실
+structure_clan_hall,Clan Hall,entity clan-hall,Clan Hall,부족 회관
+structure_animal_pen,Animal Pen,entity animal-pen,Animal Pen,동물 우리
+structure_wall,Wall,entity wall,Wall,벽
+structure_stairs,Stairs,entity stairs,Stairs,계단
+structure_door,Door,entity door,Door,문
+structure_roof,Roof,entity roof,Roof,지붕
+structure_pillar,Pillar,entity pillar,Pillar,기둥
+structure_volcanic_wall,Volcanic Wall,entity volcanic-wall,Volcanic Wall,화산 벽

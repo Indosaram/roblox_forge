@@ -205,6 +205,29 @@ local function standard()
 end
 
 return {
+	["actor handoff settles ambiguous buyer payment and conserves seller buyer fee and escrow"] = function()
+		for _, fault in { "fail", "lost" } do
+			local w = standard()
+			local market = w.open("origin")
+			assert(w.command("1", "list", { "wood", 4, 25 }, "list").ok, "escrow listing")
+			w.faults["2"] = fault
+			assert(not w.command("2", "buy", { "mk:1:1" }, "buy").ok, "payment barrier")
+			assert(market.drain("2").ok, "handoff drains pending purchase")
+			assert(w.held("1", "wood") + w.held("2", "wood") == 10, "bag plus settled escrow item conservation")
+			assert(w.balance("1") + w.balance("2") + 5 == 250, "buyer plus seller plus explicit fee conservation")
+			assert(market.releaseActor("2").ok, "buyer release")
+			assert(market.releaseActor("2").ok, "duplicate buyer release")
+			assert(market.recover("2", 8).status == "confirmed", "old sweep does not reacquire")
+			assert(market.snapshot("2") == nil, "departed buyer cannot load through snapshot")
+			assert(market.resumeActor("2").ok, "origin reacquisition")
+			assert(w.command("2", "buy", { "mk:1:1" }, "buy").ok, "replay purchase")
+			assert(
+				w.balance("1") + w.balance("2") + 5 == 250 and w.held("2", "wood") == 4,
+				"duplicate receipt grants zero extra"
+			)
+			assert(market.close().ok, "close")
+		end
+	end,
 	["factory stays disabled without configuration"] = function()
 		Market.configure(nil)
 		assert(Market.factory({} :: any) == nil, "disabled")

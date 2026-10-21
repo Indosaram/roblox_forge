@@ -4,10 +4,13 @@ local Options = require("./Options")
 local Memory = require("../data/MemoryBackend")
 local Survival = require("../../../genres/survival-coop/module/Contract")
 local Fixture = require("../../../genres/survival-coop/module/Adapter.fixture")
+local serde = require("@lune/serde")
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 
 local ACTION = "survival-coop:defend-active"
 
-local function fixture(extensions: { any }?)
+local function fixture(extensions: { any }?, backend: any?, owner: string?, personal: boolean?)
 	local calls: { any } = {}
 	local extension = {
 		id = "fixture",
@@ -29,7 +32,11 @@ local function fixture(extensions: { any }?)
 			return 7
 		end,
 	}
-	local policy = { actions = { ACTION, "survival-coop:buy-defense" } }
+	local policy: any = { actions = { ACTION, "survival-coop:buy-defense" } }
+	if personal then
+		policy.personal =
+			{ namespace = "personal", inventoryPath = { "genres", "survival-coop", "data", "inventory", "bag" } }
+	end
 	local options = {
 		packConfig = { api = 1, order = { Survival.id }, configs = { [Survival.id] = Fixture.config } },
 		contracts = { Survival },
@@ -38,8 +45,17 @@ local function fixture(extensions: { any }?)
 		durable = policy,
 		services = { survivalExtensions = extensions or { extension } },
 	}
-	local session = Session.new(options :: any, Memory.new(), {
-		sessionId = "host",
+	if personal then
+		options.packConfig = luau.load(fs.readFile("games/robango-island/src/shared/GenreConfig.luau"))()
+	end
+	local ports: { any } = extensions or {}
+	for _, port in ports do
+		if port.drain or port.releaseActor or port.resumeActor then
+			Session.registerLifecycle(port)
+		end
+	end
+	local session = Session.new(options :: any, backend or Memory.new(), {
+		sessionId = owner or "host",
 		lockTimeout = 120,
 		retries = 0,
 		now = function()
@@ -53,12 +69,101 @@ local function fixture(extensions: { any }?)
 			return 0
 		end,
 		emit = function() end,
+		encode = function(value)
+			return serde.encode("json", value)
+		end,
 		survivalExtensions = (extensions or { extension }) :: { any },
 	}, policy)
 	return session, calls, options
 end
 
 return {
+	["handoff drains saves and releases every actor before travel and blocks old callbacks"] = function()
+		local order = {}
+		local backend = Memory.new()
+		local blocked = false
+		local failSave = false
+		local durableBackend = {
+			update = function(key, transform)
+				if failSave then
+					return false, "FLUSH_FAILED"
+				end
+				table.insert(order, "commit:" .. key)
+				return backend.update(key, transform)
+			end,
+		}
+		local extensions = {}
+		local session: any
+		for _, id in { "taming", "market", "contracts", "monetization", "camp" } do
+			table.insert(extensions, {
+				id = id,
+				handles = function()
+					return false
+				end,
+				command = function()
+					return { ok = true, data = { extension = id } }
+				end,
+				drain = function()
+					blocked = session.dispatch("1", ACTION, {}).reason == "ACTOR_LEAVING"
+					table.insert(order, "drain:" .. id)
+					return { ok = true }
+				end,
+				releaseActor = function()
+					table.insert(order, "release:" .. id)
+					return { ok = true }
+				end,
+				resumeActor = function()
+					table.insert(order, "resume:" .. id)
+					return { ok = true }
+				end,
+				recover = function()
+					table.insert(order, "recover:" .. id)
+					return { ok = true }
+				end,
+			})
+		end
+		session = fixture(extensions, durableBackend, "origin", true)
+		assert(session.join("1").ok, "join origin")
+		table.clear(order)
+		failSave = true
+		assert(not session.prepareHandoff("1").ok, "flush failure prohibits travel")
+		assert(blocked and #order == 5, "commands blocked before all drains; no lease release on failed flush")
+		failSave = false
+		assert(session.resumeHandoff("1").ok, "failed departure resumes origin")
+		table.clear(order)
+		assert(session.prepareHandoff("1").ok, "durable handoff")
+		assert(order[1] == "drain:taming" and order[5] == "drain:camp", "all extensions drained first")
+		assert(
+			string.sub(order[6], 1, 7) == "commit:" and order[7] == "release:taming",
+			"save committed before leases release"
+		)
+		assert(order[11] == "release:camp", "every actor lease released")
+		local before = #order
+		assert(session.prepareHandoff("1").ok and #order == before, "duplicate departure performs no writes")
+		session.advance(0)
+		assert(session.recoverTransfers("1", 8).ok and #order == before, "old server sweep cannot reacquire")
+		assert(session.completeHandoff("1").ok, "completion")
+		assert(session.completeHandoff("1").ok, "duplicate completion is idempotent")
+		assert(
+			session.resumeHandoff("1").reason == "ACTOR_LEFT",
+			"late failed callback cannot reacquire completed departure"
+		)
+	end,
+	["handoff destination failure reacquires origin but destination claim forbids rollback"] = function()
+		local backend = Memory.new()
+		local origin = fixture({}, backend, "origin", true)
+		assert(origin.join("1").ok, "origin joins")
+		assert(origin.prepareHandoff("1").ok, "departure")
+		assert(origin.resumeHandoff("1").ok, "unclaimed destination failure resumes")
+		assert(origin.commandEpoch("1") ~= nil, "commands reenabled only after reacquisition")
+		assert(origin.prepareHandoff("1").ok, "second departure")
+		local destination = fixture({}, backend, "destination", true)
+		assert(destination.join("1").ok, "destination claims released actor")
+		assert(not origin.resumeHandoff("1").ok, "origin cannot reacquire claimed actor")
+		assert(origin.commandEpoch("1") == nil, "origin remains fenced")
+		assert(origin.completeHandoff("1").ok, "origin discards only local state")
+		assert(destination.save("1").ok and destination.close("1").ok, "destination remains authoritative")
+	end,
 	["session routes a durable action to the registered extension"] = function()
 		local session, calls = fixture()
 		assert(session.join("1").ok, "join")

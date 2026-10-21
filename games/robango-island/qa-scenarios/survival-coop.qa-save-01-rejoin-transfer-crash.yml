@@ -23,13 +23,16 @@ data:
     positions: {owner: {x: 16, y: 0, z: 16}}
     items: []
 steps:
+  - {op: begin_clock}
   - {op: join, player: owner}
   # A deposit settles in its own command; fail the escrow write so the crash lands right after PREPARED.
   - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 2}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [starter-fiber, 3], expect: refused}
   - {op: expect_result, player: owner, field: data.phase, equals: SOURCE_UNKNOWN}
-  - {op: close, player: owner}
   - {op: reload}
+  - {op: advance_elapsed, seconds: 60}
+  - {op: reload}
+  - {op: advance_elapsed, seconds: 121}
   - {op: join, player: owner}
   - {op: recover_transfers, player: owner, maximum: 1}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
@@ -39,8 +42,10 @@ steps:
   - {op: commit_barrier, mode: fail, count: 1, key: "transfer-personal:owner", skip: 4}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [starter-fiber, 3], expect: refused}
   - {op: expect_result, player: owner, field: data.phase, equals: FINALIZE_UNKNOWN}
-  - {op: close, player: owner}
   - {op: reload}
+  - {op: advance_elapsed, seconds: 181}
+  - {op: reload}
+  - {op: advance_elapsed, seconds: 242}
   - {op: join, player: owner}
   - {op: command, player: owner, requestId: Transfer101, sessionEpoch: current, action: "survival-coop:transfer-deposit", args: [starter-fiber, 3], times: 20}
   - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}

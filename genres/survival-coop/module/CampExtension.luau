@@ -46,8 +46,9 @@ export type Config = {
 	-- Trusted friendship source (for example a Players:IsFriendsWithAsync cache).
 	isFriend: ((string, string) -> boolean)?,
 	visitSeconds: number?,
+	legacyCamp: ((string) -> { source: any, sourceVersion: string }?)?,
 }
-export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
+export type Built = Shared.Extension & Session.ActorLifecycle & { close: (() -> Shared.Result)? }
 
 local function copy(value: any): any
 	if type(value) ~= "table" then
@@ -62,6 +63,34 @@ end
 
 local function failure(reason: string): Shared.Result
 	return { ok = false, reason = reason }
+end
+
+-- Import is a pure, replayable record transform. Preserve the complete source
+-- before publishing an upgraded camp; an uncertain owner never becomes a fresh
+-- empty camp. The caller retains the source key until this receipt is committed.
+function M.importLegacy(destination: any, source: any, sourceVersion: string, tribeId: string): any
+	assert(type(sourceVersion) == "string" and #sourceVersion > 0, "LEGACY_SOURCE_VERSION_REQUIRED")
+	local result = copy(destination)
+	result.imports = result.imports or {}
+	local known = result.imports[sourceVersion]
+	if known then
+		assert(Ledger.canonical(known.source) == Ledger.canonical(source), "LEGACY_IMPORT_CONFLICT")
+		return result
+	end
+	local verified = type(source) == "table" and type(source.camp) == "table" and source.camp.tribeId == tribeId
+	local occupied = next(result.camp.active or {}) ~= nil or next(result.camp.completed or {}) ~= nil
+	local receipt = {
+		sourceVersion = sourceVersion,
+		source = copy(source),
+		status = if verified and not occupied then "IMPORTED" else "QUARANTINED",
+	}
+	result.imports[sourceVersion] = receipt
+	if receipt.status == "IMPORTED" then
+		result.camp = copy(source.camp)
+		result.receipts = copy(source.receipts or {})
+		result.passes = copy(source.passes or {})
+	end
+	return result
 end
 
 function M.ladder(content: Content.Document): Camp.Ladder?
@@ -98,6 +127,7 @@ function M.new(config: Config): Built?
 	local store = config.store()
 	local tokens: { [string]: Fenced.Profile } = {}
 	local visits: { [string]: string } = {}
+	local departed: { [string]: boolean } = {}
 	local isFriend = config.isFriend or function()
 		return false
 	end
@@ -146,7 +176,12 @@ function M.new(config: Config): Built?
 		end
 		local acquired, err = store:acquire(keyFor(tribeId), function(data)
 			if next(data) == nil then
-				return initial(tribeId)
+				local destination = initial(tribeId)
+				local legacy = if config.legacyCamp then config.legacyCamp(tribeId) else nil
+				if legacy then
+					destination = M.importLegacy(destination, legacy.source, legacy.sourceVersion, tribeId)
+				end
+				return destination
 			end
 			assert(data.version == M.SAVE_VERSION, "UNSUPPORTED_CAMP_AGGREGATE")
 			assert(Camp.fromSave(data.camp, ladder).tribeId == tribeId, "CAMP_TRIBE_MISMATCH")
@@ -181,10 +216,10 @@ function M.new(config: Config): Built?
 	end
 	local function cooldowns(settlement: Settlement.State, now: number): { [string]: number }
 		local result: { [string]: number } = {}
-		for departed, at in settlement.departedAt do
+		for formerMember, at in settlement.departedAt do
 			local remaining = at + Settlement.REJOIN_COOLDOWN_SECONDS - now
 			if remaining > 0 then
-				result[departed] = remaining
+				result[formerMember] = remaining
 			end
 		end
 		return result
@@ -512,6 +547,9 @@ function M.new(config: Config): Built?
 		return ACTIONS[action] ~= nil
 	end
 	function extension.command(actor, action, args, context, _origin, admit)
+		if departed[actor] then
+			return failure("ACTOR_LEFT")
+		end
 		local mapped = ACTIONS[action]
 		if mapped == nil then
 			return failure("UNKNOWN_ACTION")
@@ -533,6 +571,9 @@ function M.new(config: Config): Built?
 		return help(actor, args, context)
 	end
 	function extension.snapshot(actor)
+		if departed[actor] then
+			return nil, "ACTOR_LEFT"
+		end
 		local now = config.now()
 		local settlement = member(actor)
 		local tribeId = if settlement then settlement.config.tribeId else visits[actor]
@@ -576,6 +617,9 @@ function M.new(config: Config): Built?
 		return view :: any, nil
 	end
 	function extension.recover(actor, maximum)
+		if departed[actor] then
+			return { status = "confirmed", settled = 0 }
+		end
 		local personal = config.personalTransfer(actor)
 		if not personal then
 			return { status = "recovering", error = "PERSONAL_UNAVAILABLE" }
@@ -632,6 +676,45 @@ function M.new(config: Config): Built?
 		end
 		return { status = "confirmed", settled = settled }
 	end
+	function extension.drain(actor: string): Shared.Result
+		local result = (extension.recover :: (string, number) -> any)(actor, 64)
+		return { ok = result.status == "confirmed", reason = result.error }
+	end
+	function extension.releaseActor(actor: string): Shared.Result
+		-- Camp records belong to a tribe, not an actor. Keep a shared lease while
+		-- another active member needs it; release the last member's lease only.
+		local roster: { string } = if config.members then (config.members :: () -> { string })() else {}
+		for tribeId, token in tokens do
+			local needed = false
+			for _, other in roster do
+				if other ~= actor and not departed[other] then
+					local state = member(other)
+					if state and state.config.tribeId == tribeId then
+						needed = true
+					end
+				end
+			end
+			if not needed then
+				local released, err = store:release(token)
+				if not released and err ~= "lease lost" then
+					return failure(err or "CAMP_RELEASE_FAILED")
+				end
+				tokens[tribeId] = nil
+			end
+		end
+		visits[actor] = nil
+		departed[actor] = true
+		return { ok = true }
+	end
+	function extension.resumeActor(actor: string): Shared.Result
+		departed[actor] = nil
+		local state = member(actor)
+		if state then
+			local token, err = open(state.config.tribeId)
+			return { ok = token ~= nil, reason = err }
+		end
+		return { ok = true }
+	end
 	function extension.close()
 		for tribeId, token in tokens do
 			local released, err = store:release(token)
@@ -642,7 +725,7 @@ function M.new(config: Config): Built?
 		end
 		return { ok = true }
 	end
-	return extension
+	return Session.registerLifecycle(extension)
 end
 
 -- Registry entry: the bootstrap context supplies every trusted port.
@@ -655,6 +738,7 @@ function M.factory(ctx: any): Built?
 		personalTransfer = ctx.personalTransfer,
 		members = ctx.members,
 		isFriend = if ctx.world then (ctx.world :: any).isFriend else nil,
+		legacyCamp = ctx.legacyCamp,
 	})
 end
 

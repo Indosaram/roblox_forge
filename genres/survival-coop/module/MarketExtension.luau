@@ -31,6 +31,7 @@ local Inventory = require("../../../core/domain/inventory/Inventory")
 local Job = require("../../../core/domain/crafting/Job")
 local Ledger = require("../../../core/domain/command/Ledger")
 
+local Session = require("../../../core/infra/genre/Session")
 local M = {}
 
 M.SAVE_VERSION = 2
@@ -200,6 +201,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	local itemCatalog = Job.catalog(ctx.content)
 	local listingSeconds = config.listingSeconds or M.DEFAULT_LISTING_SECONDS
 	local entries: { [string]: Entry } = {}
+	local departed: { [string]: boolean } = {}
 	local closed = false
 	local known: { [string]: boolean } = {}
 	for _, catalogId in config.catalogIds do
@@ -226,6 +228,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 	local settings = market:settings()
 
 	local function load(actor: string): Entry?
+		if departed[actor] then
+			return nil
+		end
 		local existing = entries[actor]
 		if existing then
 			-- Keep the lease alive (a no-op write while healthy); a lost lease reloads durable state.
@@ -947,6 +952,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			return snapshot :: any, nil
 		end,
 		recover = function(actor: string, _maximum: number): any
+			if departed[actor] then
+				return { status = "confirmed", transfers = {} }
+			end
 			-- Release leases of actors who left so another server can take their market over.
 			if ctx.members then
 				local members = ctx.members()
@@ -981,6 +989,36 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 				then { status = "confirmed", transfers = {} }
 				else { status = "recovering", error = problem }
 		end,
+		drain = function(actor: string): Shared.Result
+			local entry = entries[actor]
+			if entry == nil then
+				return { ok = true }
+			end
+			if entry.state.pending then
+				local resumed, err = resolve(actor, entry)
+				if not resumed then
+					return { ok = false, reason = err }
+				end
+			end
+			local err = sweep(actor, entry)
+			return { ok = err == nil or err == "BAG_FULL", reason = if err == "BAG_FULL" then nil else err }
+		end,
+		releaseActor = function(actor: string): Shared.Result
+			local entry = entries[actor]
+			if entry then
+				local released, err = store:release(entry.profile)
+				if not released and err ~= "lease lost" then
+					return { ok = false, reason = err }
+				end
+			end
+			entries[actor] = nil
+			departed[actor] = true
+			return { ok = true }
+		end,
+		resumeActor = function(actor: string): Shared.Result
+			departed[actor] = nil
+			return { ok = load(actor) ~= nil }
+		end,
 		close = function(): Shared.Result
 			closed = true
 			for actor, entry in entries do
@@ -993,7 +1031,7 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			return { ok = true }
 		end,
 	}
-	return extension :: any
+	return Session.registerLifecycle(extension)
 end
 
 return M

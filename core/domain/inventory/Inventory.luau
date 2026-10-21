@@ -1,6 +1,7 @@
 --!strict
 -- Copy-on-write domain transitions. Persistence and authorization belong to callers.
 local Catalog = require("./ItemCatalog")
+local CapacityPolicy = require("../survival/CapacityPolicy")
 local M = {}
 
 export type Item = {
@@ -16,6 +17,8 @@ export type Item = {
 	attributes: { [string]: string | number | boolean },
 }
 export type Limits = {
+	contentVersion: number?,
+	kind: string?,
 	slots: number,
 	softWeightMilli: number,
 	hardWeightMilli: number,
@@ -51,7 +54,12 @@ end
 
 function M.new(id: string, limits: Limits): State
 	assert(Catalog.identity(id), "INVALID_CONTAINER_ID")
-	assert(Catalog.integer(limits.slots, 1, 20), "INVALID_SLOTS")
+	local policy = CapacityPolicy.forVersion(limits.contentVersion)
+	assert(limits.kind == nil or limits.kind == "bag" or limits.kind == "home", "INVALID_CONTAINER_KIND")
+	assert(
+		Catalog.integer(limits.slots, 1, if limits.kind == "home" then policy.homeSlots else policy.bagSlots),
+		"INVALID_SLOTS"
+	)
 	assert(Catalog.integer(limits.softWeightMilli, 0, 90000), "INVALID_SOFT_WEIGHT")
 	assert(Catalog.integer(limits.hardWeightMilli, limits.softWeightMilli, 90000), "INVALID_HARD_WEIGHT")
 	assert(limits.speedPenaltyMilli == nil or Catalog.integer(limits.speedPenaltyMilli, 0, 1000), "INVALID_PENALTY")

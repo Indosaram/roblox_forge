@@ -5,6 +5,25 @@ local Server = require(Forge.core.infra.genre.Server)
 local RuntimeBackend = require(Forge.core.infra.data.RuntimeBackend)
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
+local IslandBootstrap = require(Forge.genres["survival-coop"].module.IslandBootstrap)
+local ServerStorage = game:GetService("ServerStorage")
+local roleConfig = ServerStorage:FindFirstChild("ForgePlaceRoles")
+local roles = if roleConfig and roleConfig:IsA("StringValue") then HttpService:JSONDecode(roleConfig.Value) else nil
+local roleEnv = {
+	roles = roles,
+	placeId = game.PlaceId,
+	privateServerId = game.PrivateServerId,
+	isStudio = RunService:IsStudio(),
+	studioRole = "onboarding",
+}
+local worldRole, routingOnly = IslandBootstrap.select(roleEnv)
+workspace:SetAttribute("ForgeWorldRole", worldRole)
+workspace:SetAttribute("ForgeTravelMode", if RunService:IsStudio() then "studio-single" else "live")
+if routingOnly then
+	-- This server is not an island host. It must never construct SurvivalFactory
+	-- or Server.start (which would claim gameplay leases for routing arrivals).
+	error("home_entry_requires_stable_home_resolver")
+end
 local Clock = require(Forge.core.infra.genre.Clock)
 local content = require(Shared.SurvivalContent)
 local source = require(Shared.SurvivalWorldConfig)
@@ -77,7 +96,7 @@ require(Forge.genres["survival-coop"].module.MarketExtension).configure(require(
 local backend = RuntimeBackend.new(require(script.Parent.PersistenceConfig), "SurvivalShared")
 local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wildlifePolicy, function()
 	return Clock.millis(clock.now())
-end)
+end, worldRole, RunService:IsStudio())
 -- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
 local visitWorld: any = world
 visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
@@ -111,7 +130,7 @@ for _, extension in (factory.services.survivalExtensions or {}) :: { any } do
 		tutorialSource = extension
 	end
 end
-Server.start({
+local session = Server.start({
 	backend = backend,
 	clock = clock,
 	starterWorld = false,
@@ -125,8 +144,18 @@ Server.start({
 	hooks = require(script.Parent.GenreHooks),
 	storeName = "robango-island-genre-v1",
 })
--- Island routing: a no-op `single` mode in Studio, placeId 0 or when a service is missing.
-require(Forge.genres["survival-coop"].module.IslandBootstrap).start({
+local routing = IslandBootstrap.start({
+	roles = roles,
+	studioRole = "onboarding",
+	prepareHandoff = session.prepareHandoff,
+	resumeHandoff = session.resumeHandoff,
+	completeHandoff = session.completeHandoff,
+	facts = function(userId, _destination)
+		local snapshot: any = session.snapshot(tostring(userId))
+		local state = snapshot and snapshot["survival-coop"]
+		local data = state and state.data
+		return if data then { level = data.level, expedition = data.expedition } else nil
+	end,
 	players = game:GetService("Players"),
 	teleportService = game:GetService("TeleportService"),
 	memoryStoreService = game:GetService("MemoryStoreService"),
@@ -176,3 +205,11 @@ require(Forge.genres["survival-coop"].module.IslandBootstrap).start({
 		player:SetAttribute("IslandNoticeKey", key)
 	end,
 })
+-- Only server code may request travel. A gameplay interaction must resolve the
+-- destination role here; there is deliberately no client-controlled teleport remote.
+if routing.travel then
+	local travel = Instance.new("BindableFunction")
+	travel.Name = "ForgeTravel"
+	travel.OnInvoke = routing.travel
+	travel.Parent = ServerStorage
+end

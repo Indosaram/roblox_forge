@@ -79,6 +79,7 @@
    5000
   
 'qa_scenarios':
+  - 'survival-coop:role-routing'
   - 
    'survival-coop:bootstrap-crafting'
   - 
@@ -96,5 +97,19 @@
   
 'runtime_mode':
   'crafting'
+'place_roles':
+  # Zero is unconfigured. Live startup and deployment refuse it.
+  'onboarding': 0
+  'home': 0
+  'harbor': 0
+  'archipelago': 0
+  'explore10': 0
+  'explore20': 0
+  'frontier30': 0
+  'frontier40': 0
+  'frontier50': 0
+  'frontier60': 0
+  'brawl': 0
+  'team-outpost': 0
 'slug':
   'robango-island'

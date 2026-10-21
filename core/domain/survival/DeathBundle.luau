@@ -121,7 +121,12 @@ function M.drop(
 		if #ids(nextState.bundles) >= 8 then
 			return nil, nil, "FULL_BUNDLES"
 		end
-		local bundle = Inventory.new(deathId, { slots = 20, softWeightMilli = 90000, hardWeightMilli = 90000 })
+		local bundle = Inventory.new(deathId, {
+			slots = if carried.limits.contentVersion == 2 then carried.limits.slots else 20,
+			contentVersion = carried.limits.contentVersion,
+			softWeightMilli = 90000,
+			hardWeightMilli = 90000,
+		})
 		for index, id in ids(carried.items) do
 			local quantity = Inventory.available(carried, id)
 			if not equippedIds[id] and quantity > 0 then

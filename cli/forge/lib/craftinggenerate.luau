@@ -249,14 +249,15 @@ end
 
 function M.generate(base: contract.Generated): contract.Generated
 	local generated = table.clone(base)
+	local content = M.content()
 	generated.config = {
 		mode = "crafting",
 		currency = "Coins",
 		startingBalance = 0,
-		contentVersion = Content.VERSION,
+		contentVersion = content.survival_content,
 		survivalDeath = true,
 		inventory = {
-			content = M.content(),
+			content = content,
 			carriedContainer = "bag",
 			speedPenaltyMilli = 300,
 			containers = {
@@ -624,6 +625,8 @@ definitions[definition.id] = {id=definition.id,footprintX=definition.footprintX,
 end
 local function seconds() return math.floor(clock.now()) end
 local tribe=source.tribe
+local tribeConfig: Settlement.Config={tribeId=tribe.config.tribeId,width=tribe.config.width,depth=tribe.config.depth,cellStuds=tribe.config.cellStuds,maxMembers=tribe.config.maxMembers}
+if content.version==2 then tribeConfig.contentVersion=2 end
 local origin=tribe.origin
 local warehouse=tribe.warehousePosition
 local ports=world.settlementPorts(Vector3.new(origin.x,origin.y,origin.z),Vector3.new(warehouse.x,warehouse.y,warehouse.z))
@@ -647,7 +650,7 @@ settlements={maxServerPlayers=8,maxPlots=1,maxReceipts=4096,
 tribeFor=provision.tribeFor, authorize=provision.authorize, consent=provision.consent, proof=provision.proof,
 tribes={{key=prefix..":"..tribe.key,now=seconds,catalog=Job.catalog(content),definitions=definitions,
 acceptedMembers=provision.acceptedMembers,verifyPlacement=ports.verify,publish=ports.publish,
-initial={settlement=Settlement.new(tribe.config,provision.ownerId),
+initial={settlement=Settlement.new(tribeConfig,provision.ownerId),
 warehouse=Inventory.new(tribe.warehouseId,{slots=20,softWeightMilli=60000,hardWeightMilli=90000})},
 verifyTransfer=function(actor,proof) if provision.verifyTransfer(actor,proof) and ports.warehouse(actor) then return true end return false end,
 workshop={content=content,revision=tribe.workshopRevision,verifyStation=function(actor,id,state)

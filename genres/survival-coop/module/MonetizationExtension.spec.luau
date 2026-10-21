@@ -91,6 +91,77 @@ local function command(extension: any, action: string, args: { any }): any
 end
 
 return {
+	["failed receipt commit never acknowledges a local marker and redelivery grants once"] = function()
+		for _, lost in { false, true } do
+			local memory = Memory.new()
+			local failAt = 0
+			local backend = {
+				update = function(key, transform)
+					if failAt > 0 then
+						failAt -= 1
+						if failAt > 0 then
+							return memory.update(key, transform)
+						end
+						if lost then
+							memory.update(key, transform)
+						end
+						return false, "RECEIPT_COMMIT_FAILED"
+					end
+					return memory.update(key, transform)
+				end,
+			}
+			local extension, fake = build(listings(11, 22), { ["7"] = true }, backend)
+			assert(extension.snapshot("7").grants == 0, "load receipt owner")
+			local handler: any
+			-- The configured marketplace owns the real handler. Capture it by
+			-- replacing only its registration port before rebuilding the extension.
+			assert(extension.close().ok, "release initial owner")
+			Monetization.configure({
+				catalog = listings(11, 22),
+				marketplace = {
+					onReceipt = function(callback)
+						handler = callback
+					end,
+				} :: any,
+				policy = PolicyPort.fake({ ["7"] = true }),
+			})
+			extension = assert(Monetization.factory({
+				store = function()
+					return Fenced.new(backend, {
+						sessionId = "receipt",
+						leaseSeconds = 120,
+						now = function()
+							return 0
+						end,
+					})
+				end,
+				now = function()
+					return 0
+				end,
+			})) :: any
+			assert(extension.snapshot("7").grants == 0, "fresh owner")
+			local receipt = { PlayerId = 7, ProductId = 11, PurchaseId = "commit-barrier" }
+			failAt = 2 -- authoritative renew, then receipt commit
+			assert(handler(receipt) == "NotProcessedYet", "failed commit stays pending")
+			assert(handler(receipt) == "PurchaseGranted", "redelivery resolves durable grant")
+			assert(handler(receipt) == "PurchaseGranted", "duplicate acknowledges committed receipt")
+			assert(extension.snapshot("7").grants == 1 and #fake.prompts == 0, "one grant and no platform prompt")
+			assert(extension.close().ok, "close")
+		end
+	end,
+	["actor release defers late receipts and explicit resume grants duplicate zero extra"] = function()
+		local extension, fake = build(listings(11, 22), { ["7"] = true })
+		assert(command(extension, "survival-coop:shop-prompt", { "skinReefRunner" }).ok, "first grant")
+		assert(extension.snapshot("7").grants == 1, "one committed grant")
+		assert(extension.drain("7").ok and extension.releaseActor("7").ok, "drain and release")
+		assert(extension.releaseActor("7").ok, "duplicate actor release")
+		fake.port.promptProduct(7, 11)
+		assert(fake.decisions[#fake.decisions] == "NotProcessedYet", "late receipt must not reacquire departed actor")
+		assert(extension.snapshot("7") == nil, "snapshot cannot reacquire departed actor")
+		assert(extension.resumeActor("7").ok, "explicit origin recovery")
+		assert(extension.snapshot("7").grants == 1, "late callback granted zero extra")
+		assert(extension.close().ok, "close")
+	end,
 	["factory stays disabled without configuration"] = function()
 		Monetization.configure(nil)
 		assert(Monetization.factory({

@@ -426,7 +426,12 @@ specs["Session scheduler success retains visible bridge unavailability"] = funct
 	)
 	assert(batch[1].id == nil and batch[1].source == nil and batch[1].destination == nil, "no invented identity")
 	assert(Fixture.encode(session.envelope("owner")) == before, "unavailable recovery cannot mint")
-	assert(session.close("owner").ok, "release actual Session")
+	local closed = session.close("owner")
+	assert(
+		not closed.ok and closed.reason == "TRANSFER_UNAVAILABLE",
+		"close must preserve unresolved transfer ownership"
+	)
+	assert(#session.members() == 1, "failed drain keeps origin actor for recovery")
 end
 if process.args[1] == "--run-recovery-unavailable" then
 	specs["unavailable recovery discovery is visible and preserves durable pending work"]()

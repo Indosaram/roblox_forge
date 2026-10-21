@@ -31,6 +31,7 @@ local Ledger = require("../../../core/domain/command/Ledger")
 local Shared = require("../../../core/domain/genre/Contract")
 local Fenced = require("../../../core/infra/data/FencedStore")
 
+local Session = require("../../../core/infra/genre/Session")
 local M = {}
 M.SAVE_VERSION = 1
 
@@ -213,8 +214,12 @@ function M.factory(ctx: any): any
 	local itemCatalog = Job.catalog(content)
 	local store = ctx.store() :: Fenced.Store
 	local tokens: { [string]: Fenced.Profile } = {}
+	local departed: { [string]: boolean } = {}
 
 	local function load(actor: string): (Fenced.Profile?, string?)
+		if departed[actor] then
+			return nil, "ACTOR_LEFT"
+		end
 		local held = tokens[actor]
 		if held then
 			return held, nil
@@ -628,6 +633,9 @@ function M.factory(ctx: any): any
 	end
 
 	local function recover(actor: string, _maximum: number): any
+		if departed[actor] then
+			return { status = "confirmed", transfers = {} }
+		end
 		-- Release leases of actors who left so another server can take them over.
 		local members = ctx.members()
 		for held, token in tokens do
@@ -647,7 +655,7 @@ function M.factory(ctx: any): any
 		return if finished then { status = "confirmed", transfers = {} } else { status = "recovering", error = err }
 	end
 
-	return {
+	return Session.registerLifecycle({
 		id = "contracts",
 		handles = function(action: string): boolean
 			return string.sub(action, 1, #PREFIX) == PREFIX and ACTIONS[string.sub(action, #PREFIX + 1)] == true
@@ -656,6 +664,30 @@ function M.factory(ctx: any): any
 		snapshot = snapshot,
 		recover = recover,
 		observe = observe,
+		drain = function(actor: string): Shared.Result
+			if tokens[actor] == nil then
+				return { ok = true }
+			end
+			local finished, err = finish(actor)
+			return { ok = finished == true, reason = err }
+		end,
+		releaseActor = function(actor: string): Shared.Result
+			local token = tokens[actor]
+			if token then
+				local released, err = store:release(token)
+				if not released and err ~= "lease lost" then
+					return { ok = false, reason = err }
+				end
+			end
+			tokens[actor] = nil
+			departed[actor] = true
+			return { ok = true }
+		end,
+		resumeActor = function(actor: string): Shared.Result
+			departed[actor] = nil
+			local token, err = load(actor)
+			return { ok = token ~= nil, reason = err }
+		end,
 		close = function(): Shared.Result
 			for actor, token in tokens do
 				local released, err = store:release(token)
@@ -666,7 +698,7 @@ function M.factory(ctx: any): any
 			end
 			return { ok = true }
 		end,
-	}
+	})
 end
 
 return M

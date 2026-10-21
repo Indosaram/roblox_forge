@@ -8,6 +8,27 @@ local Ledger = require("../../domain/command/Ledger")
 local PersonalAggregate = require("../data/PersonalAggregate")
 local FencedStore = require("../data/FencedStore")
 local M = {}
+export type ActorLifecycle = {
+	drain: ((string) -> Contract.Result)?,
+	releaseActor: ((string) -> Contract.Result)?,
+	resumeActor: ((string) -> Contract.Result)?,
+}
+-- Bootstrap clones extension ports before validation. Key the lifecycle by the
+-- command capability (which survives a clone), not by that transient table.
+local actorLifecycles: { [any]: ActorLifecycle } = setmetatable({}, { __mode = "k" }) :: any
+function M.registerLifecycle(extension: any): any
+	local lifecycle: ActorLifecycle = {
+		drain = extension.drain,
+		releaseActor = extension.releaseActor,
+		resumeActor = extension.resumeActor,
+	}
+	actorLifecycles[extension.command] = lifecycle
+	extension.drain, extension.releaseActor, extension.resumeActor = nil, nil, nil
+	return setmetatable(extension, { __index = lifecycle })
+end
+function M.lifecycle(extension: Contract.Extension): ActorLifecycle
+	return actorLifecycles[extension.command] or {}
+end
 export type LifecycleResult = Executor.LifecycleResult
 export type PersonalTransfer = {
 	personal: PersonalAggregate.Store,
@@ -17,6 +38,9 @@ export type PersonalTransfer = {
 export type Session = {
 	join: (string) -> LifecycleResult,
 	close: (string) -> LifecycleResult,
+	prepareHandoff: (string) -> LifecycleResult,
+	resumeHandoff: (string) -> LifecycleResult,
+	completeHandoff: (string) -> LifecycleResult,
 	save: (string) -> Contract.Result,
 	dispatch: (string, any, any) -> Contract.Result,
 	dispatchServer: (string, any, any) -> Contract.Result,
@@ -96,6 +120,9 @@ function M.new(
 	end
 	local profiles: { [string]: ProfileStore.Profile } = {}
 	local joined: { [string]: boolean } = {}
+	local leaving: { [string]: boolean } = {}
+	local departed: { [string]: boolean } = {}
+	local releasedActors: { [string]: { [string]: boolean } } = {}
 	local busy: { [string]: boolean } = {}
 	local captureErrors: { [string]: string } = {}
 	local ledgers: { [string]: Ledger.Ledger } = {}
@@ -156,7 +183,7 @@ function M.new(
 		executor.hydrate(id, token.data.envelope)
 	end
 	function session.personalTransfer(id)
-		if not personal or not joined[id] or pending[id] then
+		if not personal or not joined[id] or pending[id] or departed[id] then
 			return nil
 		end
 		local owner = personal
@@ -164,11 +191,11 @@ function M.new(
 		return {
 			personal = owner,
 			profile = function()
-				assert(joined[id] and not pending[id], "personal transfer actor unavailable")
+				assert(joined[id] and not pending[id] and not departed[id], "personal transfer actor unavailable")
 				return tokens[id]
 			end,
 			install = function(token)
-				assert(joined[id] and not pending[id], "personal transfer actor unavailable")
+				assert(joined[id] and not pending[id] and not departed[id], "personal transfer actor unavailable")
 				assert(
 					token.key == key and token.sessionId == storeOptions.sessionId,
 					"foreign personal transfer token"
@@ -180,6 +207,9 @@ function M.new(
 	local recoveryTurn: { [string]: number } = {}
 	function session.recoverTransfers(id, maximum)
 		assert(maximum % 1 == 0 and maximum >= 1 and maximum <= 64, "invalid transfer recovery bound")
+		if departed[id] then
+			return { ok = true, data = { results = {} } }
+		end
 		local transfer = services.survivalTransfer
 		local gathering = services.survivalGathering
 		local wildlife = services.survivalWildlife
@@ -232,6 +262,9 @@ function M.new(
 		if profiles[id] or busy[id] then
 			return failure("profile already active/loading")
 		end
+		local rejoining = departed[id] == true
+		departed[id] = nil
+		leaving[id], releasedActors[id] = nil, nil
 		busy[id] = true
 		local ok, profile, err = pcall(function(): (ProfileStore.Profile?, string?)
 			local function migrate(raw: any)
@@ -290,6 +323,15 @@ function M.new(
 			hydrate(id, committed)
 			joined[id] = true
 			busy[id] = nil
+			for _, extension in extensions do
+				local lifecycle = M.lifecycle(extension)
+				if rejoining and lifecycle.resumeActor then
+					local resumed = lifecycle.resumeActor(id)
+					if not resumed.ok then
+						return failure(resumed.reason)
+					end
+				end
+			end
 			if services.survivalTransfer or services.survivalGathering then
 				session.recoverTransfers(id, 8)
 			end
@@ -297,6 +339,15 @@ function M.new(
 		end
 		if result.ok then
 			joined[id] = true
+			for _, extension in extensions do
+				local lifecycle = M.lifecycle(extension)
+				if rejoining and lifecycle.resumeActor then
+					local resumed = lifecycle.resumeActor(id)
+					if not resumed.ok then
+						return failure(resumed.reason)
+					end
+				end
+			end
 		else
 			local released, releaseErr = store:release(profile)
 			if released then
@@ -354,9 +405,181 @@ function M.new(
 		return { ok = true }
 	end
 	function session.save(id)
+		if departed[id] then
+			return failure("ACTOR_LEFT")
+		end
 		return write(id, false)
 	end
+	local function drainActor(id: string): LifecycleResult
+		local ports: { any } = {}
+		for _, name in { "survivalTransfer", "survivalGathering", "survivalWildlife" } do
+			local port = (services :: any)[name]
+			if port then
+				table.insert(ports, port)
+			end
+		end
+		for _, port in ports do
+			local settled = false
+			for _ = 1, 64 do
+				local result = (port :: any).recover(id, 64)
+				if result.ok == false or result.status == "recovering" then
+					return failure(result.reason or result.error or "TRANSFER_PENDING")
+				end
+				local transfers = if result[1] ~= nil
+					then result
+					elseif result.data then result.data.transfers
+					else result.transfers
+				local unfinished = false
+				for _, transfer in transfers or {} do
+					if transfer.status == "recovering" or transfer.ok == false then
+						return failure(transfer.error or transfer.reason or "TRANSFER_PENDING")
+					end
+					if
+						transfer.phase ~= "FINALIZED"
+						and transfer.phase ~= "CANCELLED"
+						and transfer.phase ~= "RETIRED"
+					then
+						unfinished = true
+					end
+				end
+				if not unfinished then
+					settled = true
+					break
+				end
+			end
+			if not settled then
+				return failure("TRANSFER_PENDING")
+			end
+		end
+		for _, extension in extensions do
+			local lifecycle = M.lifecycle(extension)
+			if lifecycle.drain then
+				local drained = lifecycle.drain(id)
+				if not drained.ok then
+					return failure(drained.reason)
+				end
+			end
+		end
+		return { ok = true }
+	end
+	local function releaseActor(id: string): LifecycleResult
+		local released = releasedActors[id] or {}
+		releasedActors[id] = released
+		for _, extension in extensions do
+			local lifecycle = M.lifecycle(extension)
+			if lifecycle.releaseActor and not released[extension.id] then
+				local result = lifecycle.releaseActor(id)
+				if not result.ok then
+					return failure(result.reason)
+				end
+				released[extension.id] = true
+			end
+		end
+		return { ok = true }
+	end
+	function session.prepareHandoff(id)
+		if departed[id] then
+			return { ok = true }
+		end
+		if not joined[id] or busy[id] or pending[id] then
+			return failure("COMMAND_PENDING")
+		end
+		local eventResult = flushServerEvent(id)
+		if not eventResult.ok then
+			return eventResult
+		end
+		leaving[id] = true
+		local drained = drainActor(id)
+		if not drained.ok then
+			return drained
+		end
+		local saved = write(id, false)
+		if not saved.ok then
+			return saved
+		end
+		local released = releaseActor(id)
+		if not released.ok then
+			return released
+		end
+		if personal then
+			local ok, reason = personal:release(tokens[id])
+			if not ok then
+				return failure(reason)
+			end
+		else
+			local ok, reason = store:release(profiles[id])
+			if not ok then
+				return failure(reason)
+			end
+		end
+		departed[id] = true
+		executor.discard(id)
+		return { ok = true }
+	end
+	function session.resumeHandoff(id)
+		if departed[id] and profiles[id] == nil then
+			return failure("ACTOR_LEFT")
+		end
+		if not leaving[id] then
+			return { ok = joined[id] == true }
+		end
+		if departed[id] then
+			-- Reacquisition is fenced by the durable owner. If the destination has
+			-- claimed it, this fails without unlocking or rolling it back.
+			if personal then
+				local token, reason = personal:load(id, function()
+					error("handoff profile missing")
+				end)
+				if not token then
+					return failure(reason)
+				end
+				local restored = executor.join(id, token.data.envelope, true)
+				if not restored.ok then
+					return restored
+				end
+				hydrate(id, token)
+			else
+				local profile, reason = store:load("player-" .. id, function(raw)
+					return M.migrate(raw, options.contracts)
+				end)
+				if not profile then
+					return failure(reason)
+				end
+				profiles[id] = profile
+				local restored = executor.join(id, profile.data)
+				if not restored.ok then
+					return restored
+				end
+			end
+		end
+		for _, extension in extensions do
+			local lifecycle = M.lifecycle(extension)
+			if lifecycle.resumeActor then
+				local result = lifecycle.resumeActor(id)
+				if not result.ok then
+					return failure(result.reason)
+				end
+			end
+		end
+		leaving[id], departed[id], releasedActors[id] = nil, nil, nil
+		return { ok = true, notificationError = executor.flushCommand() }
+	end
+	function session.completeHandoff(id)
+		if profiles[id] == nil then
+			return { ok = true }
+		end
+		if not departed[id] then
+			return failure("HANDOFF_NOT_READY")
+		end
+		local notification = executor.leave(id)
+		joined[id], profiles[id], tokens[id], ledgers[id] = nil, nil, nil, nil
+		leaving[id] = nil
+		return { ok = true, notificationError = notification }
+	end
 	function session.close(id)
+		if departed[id] then
+			return session.completeHandoff(id)
+		end
 		local eventResult = flushServerEvent(id)
 		if not eventResult.ok then
 			return eventResult
@@ -371,10 +594,19 @@ function M.new(
 			if busy[id] then
 				return failure("profile operation in progress")
 			end
+			leaving[id] = true
+			local drained = drainActor(id)
+			if not drained.ok then
+				return drained
+			end
 			local prepared = executor.prepareLeave(id)
 			local saved = write(id, false)
 			if not saved.ok then
 				return saved
+			end
+			local extensionRelease = releaseActor(id)
+			if not extensionRelease.ok then
+				return extensionRelease
 			end
 			local released, reason = personal:release(tokens[id])
 			if not released then
@@ -382,12 +614,15 @@ function M.new(
 			end
 			local notification = executor.leave(id)
 			joined[id], profiles[id], tokens[id], ledgers[id] = nil, nil, nil, nil
-			for _, extension in extensions do
-				if extension.recover then
-					pcall(extension.recover, id, 1)
-				end
-			end
+			departed[id] = true
 			return { ok = true, notificationError = notification or prepared }
+		end
+		if #extensions > 0 then
+			local ready = session.prepareHandoff(id)
+			if not ready.ok then
+				return ready
+			end
+			return session.completeHandoff(id)
 		end
 		-- Capture before detaching even if a backend write is suspended. The
 		-- in-flight write owns a separate profile object; retry releases this
@@ -434,6 +669,9 @@ function M.new(
 		return result
 	end
 	function session.dispatch(id, action, args)
+		if leaving[id] then
+			return failure("ACTOR_LEAVING")
+		end
 		if next(pending) then
 			return failure("COMMAND_PENDING")
 		end
@@ -455,6 +693,9 @@ function M.new(
 		return executor.dispatchClient(id, action, args)
 	end
 	function session.dispatchServer(id, action, args)
+		if leaving[id] then
+			return failure("ACTOR_LEAVING")
+		end
 		if next(pending) then
 			return failure("COMMAND_PENDING")
 		end
@@ -474,7 +715,7 @@ function M.new(
 	end
 	local lastCommandRecovery: { [string]: number } = {}
 	function session.commandEpoch(id, action)
-		if not durable or not joined[id] or busy[id] or pending[id] then
+		if not durable or not joined[id] or leaving[id] or busy[id] or pending[id] then
 			return nil
 		end
 		if services.survivalWildlife then
@@ -563,6 +804,9 @@ function M.new(
 		request: any,
 		origin: "client" | "server"
 	): (Contract.Result, { notificationError: string }?)
+		if leaving[id] then
+			return failure("ACTOR_LEAVING")
+		end
 		if not joined[id] then
 			return failure("player not joined")
 		end
@@ -917,6 +1161,9 @@ function M.new(
 		end
 		if durable and durable.tickAction then
 			for id in joined do
+				if leaving[id] then
+					continue
+				end
 				local result = flushServerEvent(id)
 				if not result.ok then
 					return
@@ -932,6 +1179,9 @@ function M.new(
 		executor.advance(math.max(epoch, services.now()))
 		if services.survivalTransfer or services.survivalGathering or #extensions > 0 then
 			for id in joined do
+				if leaving[id] then
+					continue
+				end
 				if personal and tokens[id] then
 					local renewed = personal:renew(tokens[id])
 					if renewed then
@@ -944,6 +1194,9 @@ function M.new(
 	end
 	function session.snapshot(id)
 		local snapshot = executor.snapshot(id)
+		if leaving[id] then
+			return snapshot
+		end
 		if services.survivalGathering then
 			local shared = services.survivalGathering.snapshot(id)
 			if shared then

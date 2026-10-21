@@ -272,7 +272,7 @@ return {
 		mixed.waveInterval = 2
 		assert(hasError(Mode.validateConfig(mixed), "unknown config key"), "wave keys are not silently ignored")
 		local stale = craftingConfig()
-		stale.contentVersion = 2
+		stale.contentVersion = 3
 		assert(hasError(Mode.validateConfig(stale), "unsupported content version"), "content version is pinned")
 	end,
 }

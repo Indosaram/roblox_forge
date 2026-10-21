@@ -1,0 +1,13 @@
+# Replay discovers the pack binding here, then resolves the pack-local scenario.
+name: handoff-conservation
+genre: survival-coop
+pack: robango-island
+kind: native
+contract_api: 1
+timeout_seconds: 120
+players: [owner]
+fixtures: [cli/forge/fixtures/handoff-conservation]
+steps:
+  - {op: join, player: owner}
+  - {op: close, player: owner}
+  - {op: expect_members, members: []}

@@ -26,6 +26,7 @@ local Shared = require("../../../core/domain/genre/Contract")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Mounts = require("./Mounts")
 local TamingRuntime = require("./TamingRuntime")
+local Session = require("../../../core/infra/genre/Session")
 local M = {}
 
 M.SAVE_VERSION = 1
@@ -104,6 +105,7 @@ function M.factory(ctx: any): any
 	end
 	local store = ctx.store()
 	local tokens: { [string]: Fenced.Profile } = {}
+	local departed: { [string]: boolean } = {}
 	local synced: { [string]: number } = {}
 	local unsettled: { [string]: boolean } = {}
 	local lastHit: { [string]: number } = {}
@@ -117,6 +119,9 @@ function M.factory(ctx: any): any
 	end
 
 	local function acquire(actor: string): (Fenced.Profile?, string?)
+		if departed[actor] then
+			return nil, "ACTOR_LEFT"
+		end
 		if #actor == 0 or #key(actor) > 50 then
 			return nil, "INVALID_ACTOR"
 		end
@@ -737,6 +742,9 @@ function M.factory(ctx: any): any
 	end
 
 	function extension.recover(actor: string, _max: number): Shared.Result
+		if departed[actor] then
+			return { ok = true, data = { status = "idle" } }
+		end
 		if synced[actor] == nil then
 			local _, err = ensure(actor)
 			if err then
@@ -758,6 +766,29 @@ function M.factory(ctx: any): any
 		unsettled[actor] = nil
 		return { ok = true, data = { status = "settled" } }
 	end
+	function extension.drain(actor: string): Shared.Result
+		if tokens[actor] == nil then
+			return { ok = true }
+		end
+		return extension.recover(actor, 64)
+	end
+	function extension.releaseActor(actor: string): Shared.Result
+		local token = tokens[actor]
+		if token then
+			local released, err = store:release(token)
+			if not released and err ~= "lease lost" then
+				return { ok = false, reason = err }
+			end
+		end
+		tokens[actor], synced[actor], unsettled[actor] = nil, nil, nil
+		departed[actor] = true
+		return { ok = true }
+	end
+	function extension.resumeActor(actor: string): Shared.Result
+		departed[actor] = nil
+		local token, err = current(actor)
+		return { ok = token ~= nil, reason = err }
+	end
 
 	function extension.close(): Shared.Result
 		for actor, token in tokens do
@@ -770,7 +801,7 @@ function M.factory(ctx: any): any
 		return { ok = true }
 	end
 
-	return extension
+	return Session.registerLifecycle(extension)
 end
 
 return M

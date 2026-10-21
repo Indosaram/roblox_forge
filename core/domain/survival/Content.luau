@@ -13,12 +13,14 @@
 local Validation = require("../genre/Validation")
 local Vitals = require("./Vitals")
 local Archetype = require("./Archetype")
+local ContentV2 = require("./ContentV2")
+local CapacityPolicy = require("./CapacityPolicy")
 
 local M = {}
 
 --- Catalog envelope version. A document declaring a *newer* version is refused
 --- rather than downgraded: an old reader must never reinterpret new content.
-M.VERSION = 1
+M.VERSION = 2
 
 --- Pinned rule identities. A catalog names the exact rule revision it was
 --- authored against, so changing a rule is a visible versioned migration
@@ -46,22 +48,22 @@ local LIMIT_NAMES = {
 --- is the penalty threshold, `hardWeightMilli` the refusal threshold; reserved
 --- quantity counts against both. Packs may tighten these, never exceed policy.
 local DEFAULT_LIMITS: { [string]: number } = {
-	slots = 20,
+	slots = CapacityPolicy.forVersion(1).bagSlots,
 	hardWeightMilli = 90000,
 	softWeightMilli = 60000,
 	qualityMilliMin = 1,
 	qualityMilliMax = 5000,
-	tribeMaxMembers = 4,
+	tribeMaxMembers = CapacityPolicy.forVersion(1).clanMembers,
 }
 M.DEFAULT_LIMITS = DEFAULT_LIMITS
 
 local POLICY_MAXIMA: { [string]: number } = {
-	slots = 20,
+	slots = CapacityPolicy.forVersion(1).bagSlots,
 	hardWeightMilli = 90000,
 	softWeightMilli = 90000,
 	qualityMilliMin = 5000,
 	qualityMilliMax = 5000,
-	tribeMaxMembers = 4,
+	tribeMaxMembers = CapacityPolicy.forVersion(1).clanMembers,
 }
 
 --- Absolute caps. They keep a canonical document inside the serialized-data
@@ -203,6 +205,21 @@ export type Document = {
 	skills: Skills?,
 }
 
+export type DetailedDocument = Document & {
+	skillCategories: { any }?,
+	skillNodes: { any }?,
+	materials: { any }?,
+	operations: { any }?,
+	recipeDetails: { any }?,
+	wildlifeDetails: { any }?,
+	layouts: { any }?,
+	stages: { any }?,
+	supportRegions: { any }?,
+	missions: { any }?,
+	guides: { any }?,
+	chapters: { any }?,
+}
+
 --- The approved mastery design has exactly six craft disciplines (plan §4.4).
 M.SKILL_DISCIPLINES = 6
 local SKILL_CAPS = { steps = 64, xp = 1000000000, grant = 100000, tier = 64 }
@@ -334,7 +351,7 @@ local function cycles(errors: { string }, recipes: { any })
 	end
 end
 
-local function validateLimits(errors: { string }, raw: any)
+local function validateLimits(errors: { string }, raw: any, version: number)
 	if type(raw) ~= "table" then
 		table.insert(errors, "limits: expected mapping")
 		return
@@ -346,13 +363,14 @@ local function validateLimits(errors: { string }, raw: any)
 	-- contract (20 slots, 90 hard weight including reserved quantity, quality
 	-- clamped to 5000 milliunits, 4 tribe members) is rejected here, before
 	-- anything is written.
+	local policy = CapacityPolicy.forVersion(if version == 2 then 2 else 1)
 	local bounds: { [string]: { number } } = {
-		slots = { 1, POLICY_MAXIMA.slots },
+		slots = { 1, policy.bagSlots },
 		hardWeightMilli = { 1, POLICY_MAXIMA.hardWeightMilli },
 		softWeightMilli = { 1, POLICY_MAXIMA.softWeightMilli },
 		qualityMilliMin = { 1, POLICY_MAXIMA.qualityMilliMin },
 		qualityMilliMax = { 1, POLICY_MAXIMA.qualityMilliMax },
-		tribeMaxMembers = { 1, POLICY_MAXIMA.tribeMaxMembers },
+		tribeMaxMembers = { 1, policy.clanMembers },
 	}
 	for _, key in LIMIT_NAMES do
 		local bound = bounds[key]
@@ -1037,7 +1055,7 @@ end
 local GRAZER_FIELDS: { string } = { "senseStuds", "fleeStuds" }
 local HUNTER_FIELDS: { string } = { "warnStuds", "attackStuds", "leashStuds", "telegraphMillis", "cooldownMillis" }
 
-local function validateWildlife(errors: { string }, raw: any)
+local function validateWildlife(errors: { string }, raw: any, version: number)
 	if raw == nil then
 		return
 	end
@@ -1053,6 +1071,32 @@ local function validateWildlife(errors: { string }, raw: any)
 			continue
 		end
 		local allowed = { "id", "behavior", "flag", "dangerBand" }
+		if version == 2 then
+			table.insert(allowed, "mount")
+			if entry.mount ~= nil then
+				local mount = entry.mount
+				if type(mount) ~= "table" then
+					table.insert(errors, at .. ".mount: expected mapping")
+				else
+					unknown(
+						errors,
+						at .. ".mount",
+						mount,
+						{ "enabled", "cargoSlots", "walkSpeed", "runSpeed", "stamina" }
+					)
+					if
+						type(mount.enabled) ~= "boolean"
+						or not isInt(mount.cargoSlots, 0, CapacityPolicy.forVersion(version).homeSlots)
+						or not isInt(mount.walkSpeed, 0, 200)
+						or not isInt(mount.runSpeed, 1, 200)
+						or mount.runSpeed < mount.walkSpeed
+						or not isInt(mount.stamina, 1, 1000000)
+					then
+						table.insert(errors, at .. ".mount: invalid mount policy")
+					end
+				end
+			end
+		end
 		for _, field in GRAZER_FIELDS do
 			table.insert(allowed, field)
 		end
@@ -1060,7 +1104,7 @@ local function validateWildlife(errors: { string }, raw: any)
 			table.insert(allowed, field)
 		end
 		unknown(errors, at, entry, allowed)
-		if not isId(entry.id) then
+		if not isId(entry.id) and not (version == 2 and ContentV2.identity(entry.id)) then
 			table.insert(errors, at .. ".id: invalid id")
 		elseif ids[entry.id] then
 			table.insert(errors, at .. ".id: duplicate wildlife " .. entry.id)
@@ -1120,7 +1164,7 @@ function M.validate(raw: any): { string }
 		return { "content: expected mapping" }
 	end
 	local errors: { string } = {}
-	unknown(errors, "content", raw, {
+	local allowed = {
 		"survival_content",
 		"rules",
 		"limits",
@@ -1134,8 +1178,17 @@ function M.validate(raw: any): { string }
 		"skills",
 		"contracts",
 		"camp",
-	})
-	if raw.survival_content ~= M.VERSION then
+	}
+	if raw.survival_content == 2 then
+		for _, section in ContentV2.SECTIONS do
+			table.insert(allowed, section)
+		end
+		for _, message in ContentV2.validate(raw) do
+			table.insert(errors, message)
+		end
+	end
+	unknown(errors, "content", raw, allowed)
+	if raw.survival_content ~= 1 and raw.survival_content ~= M.VERSION then
 		table.insert(
 			errors,
 			string.format(
@@ -1158,7 +1211,7 @@ function M.validate(raw: any): { string }
 			end
 		end
 	end
-	validateLimits(errors, raw.limits)
+	validateLimits(errors, raw.limits, raw.survival_content)
 	validateVitals(errors, raw.vitals)
 	local tags = validateTags(errors, if raw.tags == nil then {} else raw.tags)
 	local items = validateItems(errors, raw.items, tags)
@@ -1166,7 +1219,7 @@ function M.validate(raw: any): { string }
 	local disciplines = validateSkills(errors, raw.skills, items)
 	validateRecipes(errors, raw.recipes, items, tags, stations, disciplines)
 	validateNodes(errors, raw.nodes, items, disciplines)
-	validateWildlife(errors, raw.wildlife)
+	validateWildlife(errors, raw.wildlife, raw.survival_content)
 	validateContracts(errors, raw.contracts, items)
 	validateCamp(errors, raw.camp, items)
 	table.sort(errors)
@@ -1307,9 +1360,25 @@ function M.canonicalize(raw: any): (Document?, { string })
 	end
 	sortById(structures)
 	local wildlife: { Wildlife } = {}
+	local mounts: { [string]: any } = {}
+	if raw.survival_content == 2 then
+		for _, detail in raw.wildlifeDetails or {} do
+			mounts[detail.id] = detail.mount
+		end
+	end
 	local rawWildlife: { any } = raw.wildlife or {}
 	for _, entry in rawWildlife do
 		local resolved: Wildlife = { id = entry.id, behavior = entry.behavior }
+		local mount = mounts[entry.id] or entry.mount
+		if raw.survival_content == 2 and mount then
+			(resolved :: any).mount = {
+				enabled = mount.enabled,
+				cargoSlots = mount.cargoSlots,
+				walkSpeed = mount.walkSpeed,
+				runSpeed = mount.runSpeed,
+				stamina = mount.stamina,
+			}
+		end
 		local archetype = assert(Archetype.get(entry.behavior), "validated behavior")
 		local fields: { string } = if archetype.engine == "grazer" then GRAZER_FIELDS else HUNTER_FIELDS
 		for _, field in fields do
@@ -1396,8 +1465,8 @@ function M.canonicalize(raw: any): (Document?, { string })
 		end
 		camp = { leagueRung = raw.camp.leagueRung, rungs = rungs, projects = projects }
 	end
-	return {
-		version = M.VERSION,
+	local document: Document = {
+		version = raw.survival_content,
 		contracts = contracts,
 		camp = camp,
 		rules = rules,
@@ -1410,7 +1479,25 @@ function M.canonicalize(raw: any): (Document?, { string })
 		structures = structures,
 		wildlife = wildlife,
 		skills = canonicalSkills(raw.skills),
-	}, {}
+	}
+	if raw.survival_content == 2 then
+		for _, section in ContentV2.SECTIONS do
+			(document :: any)[section] = ContentV2.canonical(raw[section], section)
+		end
+	end
+	return document, {}
+end
+
+--- Runtime payload without detailed catalogs. Preserve the policy opt-in:
+--- v2 limits and identities must never be reinterpreted as v1 data.
+function M.projectV1(document: Document): any
+	local projected: any = table.clone(document :: any)
+	projected.survival_content = document.version
+	projected.version = nil
+	for _, section in ContentV2.SECTIONS do
+		projected[section] = nil
+	end
+	return projected
 end
 
 --- The catalog names a later mechanism is allowed to reference. Nothing here

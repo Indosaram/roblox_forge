@@ -10,6 +10,49 @@ local function content(): Content.Document
 end
 
 return {
+	["legacy camp import keeps source version receipt and lossless rollback snapshot"] = function()
+		local destination =
+			{ version = 1, camp = { tribeId = "tribe", rung = 0, active = {} }, receipts = {}, passes = {} }
+		local source = {
+			camp = { tribeId = "tribe", rung = 1, active = { project = { delivered = { fiber = 4 } } } },
+			receipts = { delivery = { quantity = 4 } },
+			legacyUnknown = { itemId = "old-item", quantity = 9, attributes = { original = true } },
+		}
+		local imported = CampExtension.importLegacy(destination, source, "legacy-key:revision-7", "tribe")
+		assert(
+			imported.camp.rung == 1 and imported.camp.active.project.delivered.fiber == 4,
+			"project consumption conserved"
+		)
+		local receipt = imported.imports["legacy-key:revision-7"]
+		assert(
+			receipt.status == "IMPORTED" and receipt.sourceVersion == "legacy-key:revision-7",
+			"source revision receipt"
+		)
+		assert(
+			receipt.source.legacyUnknown.quantity == 9 and receipt.source.legacyUnknown.attributes.original,
+			"unknown items preserved for rollback"
+		)
+		local replayed = CampExtension.importLegacy(imported, source, "legacy-key:revision-7", "tribe")
+		assert(replayed.camp.active.project.delivered.fiber == 4, "duplicate import adds no consumption")
+		assert(source.camp.rung == 1 and destination.camp.rung == 0, "dual-read leaves both source snapshots untouched")
+		local changed = table.clone(source)
+		changed.legacyUnknown = { itemId = "old-item", quantity = 10, attributes = { original = true } }
+		assert(
+			not pcall(CampExtension.importLegacy, imported, changed, "legacy-key:revision-7", "tribe"),
+			"same revision with different payload conflicts"
+		)
+	end,
+	["legacy ambiguous camp ownership is quarantined without deleting assets"] = function()
+		local destination = { version = 1, camp = { tribeId = "tribe", rung = 0, active = {} }, receipts = {} }
+		local source = { camp = { rung = 2, storage = { legacy = { quantity = 17 } } } }
+		local result = CampExtension.importLegacy(destination, source, "legacy:1", "tribe")
+		assert(result.camp.rung == 0, "ambiguous owner cannot claim camp")
+		assert(result.imports["legacy:1"].status == "QUARANTINED", "quarantine receipt")
+		assert(
+			result.imports["legacy:1"].source.camp.storage.legacy.quantity == 17,
+			"all unknown-owner assets retained"
+		)
+	end,
 	["the pack ladder is built from content.yml camp section"] = function()
 		local ladder = assert(CampExtension.ladder(content()), "pack declares a camp")
 		assert(#ladder.rungs == 2 and ladder.leagueRung == 2, "rungs and league rung")

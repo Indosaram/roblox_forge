@@ -58,7 +58,7 @@ function M.renderConfig(pack: any): string
 		pack.configs = table.clone(pack.configs)
 		survival = table.clone(survival)
 		survival.inventory = table.clone(survival.inventory)
-		local externalContent: any = canonical
+		local externalContent: any = if canonical.version == 2 then Content.projectV1(canonical) else canonical
 		externalContent.survival_content = canonical.version
 		externalContent.version = nil
 		survival.inventory.content = externalContent
@@ -74,8 +74,16 @@ function M.renderConfig(pack: any): string
 			recipes = "{ {id:string,craftMillis:number,inputs:{{item:string,quantity:number}},outputs:{{item:string,quantity:number}},station:string?,requiredToolTag:string?} }",
 			wildlife = "{ {id:string,behavior:string,senseStuds:number?,fleeStuds:number?,warnStuds:number?,attackStuds:number?,leashStuds:number?,telegraphMillis:number?,cooldownMillis:number?} }",
 		}
+		local catalogs = { "items", "recipes", "wildlife" }
+		if canonical.version == 2 then
+			declarations.wildlife =
+				"{ {id:string,behavior:string,senseStuds:number?,fleeStuds:number?,warnStuds:number?,attackStuds:number?,leashStuds:number?,telegraphMillis:number?,cooldownMillis:number?,flag:string?,dangerBand:number?,mount:{enabled:boolean,cargoSlots:number,walkSpeed:number,runSpeed:number,stamina:number}?} }"
+			declarations.structures =
+				"{ {id:string,footprintX:number,footprintZ:number,station:boolean,cost:{{item:string,quantity:number}},tier:number?} }"
+			table.insert(catalogs, "structures")
+		end
 		local serialized = contract.serialize(pack)
-		for _, key in { "items", "recipes", "wildlife" } do
+		for _, key in catalogs do
 			local value = contract.serialize(content[key])
 			table.insert(lines, "local " .. key .. ": " .. declarations[key] .. " = " .. value)
 			local startAt, endAt = string.find(serialized, '["' .. key .. '"]=' .. value, 1, true)

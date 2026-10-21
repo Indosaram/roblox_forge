@@ -61,9 +61,39 @@ local function reachable(document: Content.Document, drops: { [string]: any }): 
 		end
 	end
 	local built: { [string]: boolean } = {}
+	-- V2 acquisition also includes authored layout resources and public stations.
+	-- Retired aliases remain covered by the legacy node checks above, including
+	-- the negative marsh-clay dependency regression.
+	local authored = load()
+	for _, layout in authored.layouts do
+		for _, node in layout.resourceNodes do
+			if not string.find(node.id, ".legacy-", 1, true) then
+				have[node.item] = true
+			end
+		end
+		for _, anchor in layout.anchors do
+			local station = string.match(anchor.id, "^station%.(.+)%.t%d+$")
+			if station then
+				built[station] = true
+			end
+		end
+	end
 	local changed = true
 	while changed do
 		changed = false
+		for _, operation in authored.operations do
+			local ok = operation.station == nil or built[operation.station] == true
+			for _, entry in operation.inputs do
+				ok = ok and have[entry.item] == true
+			end
+			if ok then
+				for _, entry in operation.outputs do
+					if not have[entry.item] then
+						have[entry.item], changed = true, true
+					end
+				end
+			end
+		end
 		for _, structure in document.structures do
 			if not built[structure.id] then
 				local ok = true

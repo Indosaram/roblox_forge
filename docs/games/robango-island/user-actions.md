@@ -2,7 +2,7 @@
 
 원본은 로컬 연구 세션 폴더(`.omo/ulw-research/…/preprod/user-actions.md`, gitignore)에 있으며, 이 사본이 저장소 기준본입니다.
 
-에이전트가 할 수 있는 착수 전 작업은 모두 끝났습니다(근거: `ADR-preprod.md`). 아래 항목은 사용자 승인이나 계정, 비용, 외부 기관이 필요해서 에이전트가 대신할 수 없습니다.
+아래 목록은 이전 단일 섬 프로토타입의 사용자 결정·검증 이력입니다. 에이전트 작업이 모두 끝났다는 주장은 철회합니다. 새 후기 온라인 재현 설계의 구현과 검증은 별도이며, 현재 범위는 `fidelity-matrix.md`, 증거 한계는 `qa-evidence.md`의 Readiness correction을 따릅니다. 이력의 완료 표시는 당시 기록된 동작만 뜻하며 새 콘텐츠의 출시 준비 완료를 뜻하지 않습니다.
 
 ## 지금 결정하면 M0를 바로 시작할 수 있는 것
 | # | 항목 | 권고 | 필요한 시점 | 근거 |
@@ -34,13 +34,13 @@
 | U13 | 라이브 서버 QA 2층 | Studio 시나리오 wildlife-spatial·full-coop-rejoin·tutorial(QA-CORE-01)은 2026-10-19 Windows Studio에서 통과했습니다(qa-evidence.md 주 7). 실제 TeleportService 왕복(QA-TP-01의 2층)과 실제 MemoryStore 부하(QA-SPIKE-01의 2층)는 라이브 서버가 필요해 아직 실행하지 않았습니다 | 무료 | 계획 §12 |
 | U14 | 스테이징 배포 | 완료(2026-10-19): 비공개 체험 `Robango Staging`(universeId `10771918494`, placeId `95467272687768`)을 생성하고 Open Cloud API 키를 `.env.local`(gitignore)에 설정해 `forge deploy --env staging --pack robango-island --development`로 버전 2를 게시·검증했습니다(qa-evidence.md 주 8). 프로덕션 배포만 별도 Universe/Place·승인이 필요합니다 | 무료 | deploy.yml |
 | U15 | Robux 상품 등록 | 완료(2026-10-19, 스테이징): `Robango Staging` Universe(`10771918494`)에 Game Pass 2종(`routeGuildPatron` `2040232413`, `wideWarehouse` `2037904759`), Developer Product 1종(`skinRidgeStriderGold` `3720013569`), Experience Subscription 1종(`routeGuildMonthly` `EXP-4461467833720767028`)을 원가 그대로 등록·활성화하고 `game.yml`과 `MonetizationCatalog.luau`에 반영했습니다. 프로덕션 Universe를 따로 만들 경우 그 Universe의 ID로 교체해야 합니다 | 무료(등록) | AGENTS.md, QA-BM-01 |
-| U16 | 오디오·3D 애셋 제작 확정 | 스펙·정적 예산(QA-PERF-01) 안에서 3D 월드(Atmosphere/Bloom/ColorCorrection, 모닥불 화덕·삼각대·불꽃·광원, 작업대 모루·망치, 창고 지붕·상자·배럴, 지붕 기둥, 채집 노드 5종 입체 디테일)와 공룡 리그(초식·육식 등판 가시·주둥이·볏·황금 눈) 및 스토어 아이콘(512×512)·썸네일(1920×1080)을 제작·적용했습니다(2026-10-20) | 완료 | AGENTS.md, qa-evidence.md 주 8 |
+| U16 | 오디오·3D 애셋 제작 확정 | 이전 프로토타입의 3D 월드·공룡 리그 및 스토어 이미지 제작·적용 이력은 qa-evidence.md 주 8에 보존합니다(2026-10-20). 새 설계의 24종 실루엣·리그·동작, 지역·시설, 악기·합주 오디오를 모두 제작·검증했다는 뜻이 아닙니다 | 새 설계 미검증 | AGENTS.md, qa-evidence.md 주 8 |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 이 커밋들은 이미 공개 원격의 `durango/integration`에 올라가 있고, main fast-forward 로 main 히스토리에도 포함됩니다. 지우려면 히스토리 재작성(squash 또는 filter-repo) 후 main·integration 둘 다 force-push 해야 하며, 이미 받아 간 사본은 회수할 수 없습니다. force-push 라 에이전트는 하지 않았습니다 | 무료 | QA-NAME-01 |
-| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | 완료(2026-10-18~20): Studio 최저 품질(Level01)에서 첫 상호작용 2.86초, 월드 생성 0.24초, Studio 최대 메모리 2,639MB(LuaHeap 806MB)를 실측했고, 안드로이드 실기기(`SM-N981N` Galaxy Note 20 5G, Snapdragon 865+, Android 13, 2400x1080)에서 `com.roblox.client` PSS 704.0MB(RSS 848.6MB, Private Dirty 575.7MB, Native Heap 50.1MB, Graphics 34.9MB), 프레임 시간 p50 12ms(GPU p50 9ms), p90 23ms, p95 36ms를 실측했습니다 | 무료 | qa-evidence.md 주 3·8 |
-| U20 | 스테이징 QA 2층 확인 | 스테이징 클라우드 및 안드로이드 실기기 검증 완료(2026-10-19~20, 주 8): 게시된 스테이징 플레이스에서 Open Cloud Luau Execution 및 안드로이드 실기기(`SM-N981N`) 접속으로 `DataStoreService`/`MemoryStoreService` 읽기·쓰기, 한국 계정 `PolicyService` 통과 및 구독·상품 네이티브 프롬프트(QA-BM-04 2층), 채집·제작·섭취·계약·캠프 기부·데스 존 전환 및 재접속 영속성을 모두 확인했습니다. 64인 동시 접속 MemoryStore 부하(QA-SPIKE-01 2층)만 다인 부하 테스트가 필요합니다 | 무료 | qa-evidence.md 주 8 |
+| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | 이전 콘텐츠 실측 이력(2026-10-18~20): Studio 첫 상호작용 2.86초·월드 생성 0.24초·최대 메모리 2,639MB, 안드로이드 `SM-N981N`의 PSS 704.0MB·프레임 p50 12ms/p90 23ms/p95 36ms입니다(상세는 주 3·8). 새 콘텐츠의 실기기 성능·조작 검증은 아직 완료되지 않았습니다 | 무료 | qa-evidence.md 주 3·8 |
+| U20 | 스테이징 QA 2층 확인 | 이전 콘텐츠의 클라우드 저장소 검사·안드로이드 접속·한국 계정 PolicyService·네이티브 결제 프롬프트·일부 플레이 및 재접속 기록은 주 8에 보존합니다(2026-10-19~20). 새 설계의 군도 여행·개인섬 왕복·실제 두 계정 거래(서버 간 정산 포함)·새 콘텐츠 실기기 검증은 미확인입니다. 64인 MemoryStore 부하만 남았다는 주장은 철회하며, 전체 검증 완료로 해석하지 않습니다 | 무료 | qa-evidence.md Readiness correction, 주 8 |
 | U21 | 배포 대상·키 입력 | 완료(2026-10-19, 스테이징): `.env.local`(gitignore)에 `FORGE_STAGING_UNIVERSE_ID=10771918494`, `FORGE_STAGING_PLACE_ID=95467272687768`, `ROBLOX_STAGING_API_KEY`, `ROBLOX_API_KEY`를 구성해 `forge deploy --env staging --pack robango-island --development`가 동작합니다. 프로덕션(`FORGE_PROD_UNIVERSE_ID`, `FORGE_PROD_PLACE_ID`, `ROBLOX_PROD_API_KEY`)만 출시 시점에 입력하면 됩니다 | 무료 | .env.example |
 | U22 | Roblox Studio 설치·실행 | 완료(2026-10-18~19): Windows Studio에서 데스크톱·모바일 첫 플레이 캡처, 전체 흐름 플레이 점검(주 6), Studio 시나리오 3종(주 7)을 실행했습니다. 다시 돌릴 때만 Studio 실행 승인이 필요합니다 | 무료 | docs/release/studio-qa.md |
 | U23 | 품질 등급 승격 | `quality.yml` 등급이 starter입니다. release-candidate로 올리려면 실제 첫 플레이 캡처(데스크톱·모바일), 독립 레퍼런스, 평가자(FORGE_QUALITY_EVALUATOR) 승인 영수증이 필요합니다. 에이전트가 스스로 승인할 수 없습니다 | 무료 | forge quality --help |
 
-결정안: 착수에 필요한 사용자 결정은 모두 끝났고, 나머지는 M7 출시 준비까지 처리하면 된다.
+현재 판단: 기존 결정·배포 이력은 보존하되, 새 설계의 구현과 실제 플레이 검증이 남아 있습니다. 출시 준비 완료나 완전한 원작 재현으로 보고하지 않습니다.

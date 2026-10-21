@@ -4,6 +4,90 @@
 
 local Topology = {}
 
+-- Place roles are separate from the legacy allocation kinds below. A zero id
+-- is an authored placeholder, never an alias for the onboarding world.
+Topology.ROLES = {
+	onboarding = "onboarding",
+	home = "home",
+	harbor = "harbor",
+	archipelago = "archipelago",
+	explore10 = "explore10",
+	explore20 = "explore20",
+	frontier30 = "frontier30",
+	frontier40 = "frontier40",
+	frontier50 = "frontier50",
+	frontier60 = "frontier60",
+	brawl = "brawl",
+	["team-outpost"] = "team-outpost",
+}
+local ROLE_EDGES: { [string]: { [string]: boolean } } = {
+	onboarding = { home = true },
+	home = { harbor = true },
+	harbor = {
+		home = true,
+		archipelago = true,
+		explore10 = true,
+		explore20 = true,
+		frontier30 = true,
+		frontier40 = true,
+		frontier50 = true,
+		frontier60 = true,
+		brawl = true,
+		["team-outpost"] = true,
+	},
+	archipelago = { archipelago = true, home = true, harbor = true },
+	explore10 = { harbor = true, home = true },
+	explore20 = { harbor = true, home = true },
+	frontier30 = { harbor = true, home = true },
+	frontier40 = { harbor = true, home = true },
+	frontier50 = { harbor = true, home = true },
+	frontier60 = { harbor = true, home = true },
+	brawl = { harbor = true },
+	["team-outpost"] = { harbor = true },
+}
+
+function Topology.resolveRole(places: { [string]: number }, placeId: number): (string?, string?)
+	if type(places) ~= "table" then
+		return nil, "missing_role_config"
+	end
+	local selected: string? = nil
+	for role, id in places do
+		if Topology.ROLES[role] == nil then
+			return nil, "unknown_role:" .. role
+		end
+		if type(id) ~= "number" or id < 0 or id ~= math.floor(id) then
+			return nil, "invalid_place_id:" .. role
+		end
+		if id > 0 and id == placeId then
+			if selected then
+				return nil, "duplicate_place_id"
+			end
+			selected = role
+		end
+	end
+	if selected == nil then
+		return nil, "unconfigured_place_id:" .. tostring(placeId)
+	end
+	return selected, nil
+end
+
+function Topology.validateRoleTransition(from: string, to: string, level: number): (boolean, string?)
+	if ROLE_EDGES[from] == nil then
+		return false, "unknown_source_role"
+	end
+	if ROLE_EDGES[to] == nil then
+		return false, "unknown_target_role"
+	end
+	if not ROLE_EDGES[from][to] then
+		return false, "transition_not_allowed"
+	end
+	local minimum = tonumber(string.match(to, "^frontier(%d+)$") or string.match(to, "^explore(%d+)$")) or 1
+	if level < minimum then
+		return false, "level_gate"
+	end
+	return true, nil
+end
+
 -- One of "landing" | "homestead" | "harbor" | "expedition" | "contested";
 -- kept as string because kinds arrive from data and are checked by isKind.
 export type Kind = string
