@@ -8,7 +8,7 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 	frame.Name, frame.BackgroundTransparency = "InventoryGrid", 1
 	frame.Size, frame.AutomaticSize = UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y
 	local layout = Instance.new("UIGridLayout")
-	layout.CellSize, layout.CellPadding = UDim2.new(0.5, -4, 0, 64), UDim2.fromOffset(8, 8)
+	layout.CellSize, layout.CellPadding = UDim2.new(0.333, -6, 0, 92), UDim2.fromOffset(8, 8)
 	layout.SortOrder, layout.Parent = Enum.SortOrder.LayoutOrder, frame
 	frame.Parent = parent
 	local buttons: { [string]: TextButton } = {}
@@ -31,17 +31,45 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 					})
 					buttons[id] = button
 				end
-				button.Text = row.text
+				button.Text = ""
+				local caption = button:FindFirstChild("Caption") :: TextLabel?
+				if not caption then
+					local created = Instance.new("TextLabel")
+					created.Name, created.BackgroundTransparency = "Caption", 1
+					created.Size, created.Position = UDim2.new(1, -8, 0, 42), UDim2.fromOffset(4, 46)
+					created.TextColor3, created.TextSize, created.TextWrapped = Color3.fromRGB(240, 244, 240), 12, true
+					created.Parent = button
+					caption = created
+				end
+				assert(caption, "SLOT_CAPTION_REQUIRED")
+				caption.Text = row.text
 				local icon = button:FindFirstChild("ItemIcon") :: ImageLabel?
+				local fallback = button:FindFirstChild("IconFallback") :: TextLabel?
+				if not fallback then
+					local created = Instance.new("TextLabel")
+					created.Name = "IconFallback"
+					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.new(0.5, -18, 0, 6)
+					created.BackgroundColor3, created.TextColor3 =
+						Color3.fromRGB(67, 112, 93), Color3.fromRGB(240, 244, 240)
+					created.TextSize, created.Parent = 16, button
+					fallback = created
+				end
+				assert(fallback, "SLOT_FALLBACK_REQUIRED")
+				fallback.Text = row.fallback or string.upper(string.sub(row.id, 1, 2))
 				if row.image and not icon then
 					local created = Instance.new("ImageLabel")
 					created.Name, created.BackgroundTransparency = "ItemIcon", 1
-					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(4, 14)
+					created.Size, created.Position = UDim2.fromOffset(36, 36), UDim2.new(0.5, -18, 0, 6)
 					created.Parent = button
 					icon = created
+					local badge = fallback
+					created:GetPropertyChangedSignal("IsLoaded"):Connect(function()
+						badge.TextTransparency = if created.IsLoaded then 1 else 0
+					end)
 				end
 				if icon then
 					icon.Image, icon.Visible = row.image or "", row.image ~= nil
+					fallback.TextTransparency = if icon.IsLoaded and row.image then 1 else 0
 				end
 				local padding = button:FindFirstChild("IconPadding") :: UIPadding?
 				if row.image and not padding then
@@ -50,10 +78,22 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 					padding = created
 				end
 				if padding then
-					padding.PaddingLeft = UDim.new(0, if row.image then 44 else 0)
+					padding.PaddingLeft = UDim.new(0, 0)
 				end
+				local quantity = button:FindFirstChild("Quantity") :: TextLabel?
+				if not quantity then
+					local created = Instance.new("TextLabel")
+					created.Name, created.BackgroundTransparency = "Quantity", 0.1
+					created.BackgroundColor3, created.TextColor3 =
+						Color3.fromRGB(18, 28, 26), Color3.fromRGB(240, 244, 240)
+					created.Size, created.Position = UDim2.fromOffset(32, 20), UDim2.new(1, -34, 0, 6)
+					created.Parent = button
+					quantity = created
+				end
+				assert(quantity, "SLOT_QUANTITY_REQUIRED")
+				quantity.Text = tostring(row.quantity or "")
 				button.Name, button.LayoutOrder = row.id, index
-				button.TextWrapped, button.TextSize = true, 15
+				button.TextWrapped, button.TextSize = true, 12
 				button.BackgroundTransparency = if row.id == selected then 0 else 0.4
 			end
 			for id, button in buttons do

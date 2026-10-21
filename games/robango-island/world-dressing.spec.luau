@@ -32,7 +32,7 @@ return {
 					ring += 1
 				end
 				if kind == "bush" then
-					assert(p.shape == "Ball", "rounded bush lobes")
+					assert(p.shape == "Wedge", "layered bush leaf cards")
 				elseif kind == "fern" then
 					assert(p.shape == "Wedge" and p.size.x <= 0.35, "thin fan fronds")
 				elseif kind == "rock" then
@@ -53,7 +53,15 @@ return {
 				end
 			end
 			if kind == "shelter" then
-				assert(roof == 60 and lash == 12, "complete thatched frame")
+				assert(roof == 40 and lash == 12, "complete thatched frame")
+				for _, p in parts do
+					local roll = math.rad(p.roll or 0)
+					assert(
+						p.position.y + (math.abs(math.sin(roll)) * p.size.x + math.abs(math.cos(roll)) * p.size.y) / 2
+							<= 15,
+						"shelter under three humanoid heights"
+					)
+				end
 			elseif kind == "workbench" then
 				assert(lash == 6, "lashed workbench logs")
 			elseif kind == "campfire" then
@@ -133,7 +141,7 @@ return {
 			assert(not string.find(part.id, ".awning", 1, true), "duplicated starter shelters")
 		end
 		assert(
-			ids["home.fire.embers"] and ids["home.farm.soil"] and ids["home.storage.body"] and ids["home.path"],
+			ids["home.fire.embers"] and ids["home.farm.soil"] and ids["home.storage.basket0"] and ids["home.path"],
 			"home camp components missing"
 		)
 	end,

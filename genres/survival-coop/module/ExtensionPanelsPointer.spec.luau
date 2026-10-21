@@ -356,11 +356,22 @@ return {
 					end
 				end
 				assert(tile, "launcher exists: " .. id)
+				local fallback
+				for _, item in nodes do
+					if item.Parent == tile and item.Name == "MenuIconFallback" then
+						fallback = item
+					end
+				end
+				assert(fallback and fallback.Text ~= "", "every menu tile has an asset-independent fallback")
 				click(tile)
 				assert(not menu.Visible and visible[id], "tile opens sheet: " .. id)
 				heartbeat:fire()
 				assert(visible[id], "sheet stays open next frame: " .. id)
+				if not table.find({ "bag", "craft", "build", "skills", "explore" }, id) then
+					assert(toggle.Parent.Visible == false, "sheet hides dock so close target is unobstructed")
+				end
 				visible[id] = false
+				heartbeat:fire()
 			end
 		end
 	end,

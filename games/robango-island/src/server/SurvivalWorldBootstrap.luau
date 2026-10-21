@@ -214,15 +214,49 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		for z = -16, 32, 4 do
 			local edge = math.max(math.abs(x) / 32, math.abs(z - 8) / 24)
 			local top = if edge < 0.65 then 0 else math.sin(x * 0.18) * math.cos(z * 0.15) * 1.4
-			workspace.Terrain:FillBlock(CFrame.new(x, top / 2 - 2, z), Vector3.new(4, top + 4, 4), Enum.Material.Grass)
+			local material = if ((x + 12) / 21) ^ 2 + (z / 14) ^ 2 < 1
+				then Enum.Material.Ground
+				elseif (x + z) % 20 < 5 then Enum.Material.LeafyGrass
+				elseif x % 28 == 0 then Enum.Material.Mud
+				else Enum.Material.Grass
+			workspace.Terrain:FillBlock(CFrame.new(x, top / 2 - 2, z), Vector3.new(4, top + 4, 4), material)
 		end
 	end
 	for step = -8, 8 do
 		workspace.Terrain:FillBall(Vector3.new(step * 4, -2.8, 8 + math.sin(step * 0.4)), 3.2, Enum.Material.Ground)
+		local x, z = step * 3, -12 + (step % 3) * 3
+		decor(
+			"CampScatter" .. step,
+			Vector3.new(0.6, 0.25, 0.45),
+			CFrame.new(x, 0.08, z) * CFrame.Angles(0, step, 0),
+			rgb(94, 89, 70),
+			nil,
+			Enum.Material.Slate
+		)
+		decor(
+			"CampTwig" .. step,
+			Vector3.new(1.1, 0.12, 0.12),
+			CFrame.new(x + 1, 0.12, z + 0.7) * CFrame.Angles(0, step * 2, 0),
+			rgb(95, 65, 41),
+			Enum.PartType.Cylinder,
+			Enum.Material.Wood
+		)
+		if step % 3 == 0 then
+			decor(
+				"CampFlower" .. step,
+				Vector3.new(0.45, 0.3, 0.45),
+				CFrame.new(x, 0.3, z - 1),
+				rgb(203, 172, 86),
+				Enum.PartType.Ball,
+				Enum.Material.Grass
+			)
+		end
 	end
 	local wx, wz = warehouse.x + 3, warehouse.z
 	local marker = part("Warehouse", Vector3.new(3, 2, 2), Vector3.new(wx, 1, wz), rgb(124, 84, 50))
 	marker.Material = Enum.Material.WoodPlanks
+	marker.Transparency = 1
+	kit("WarehouseBaskets", Vector3.new(wx, 0, wz), "chest")
 	-- The depot is a visual marker, not a wall between the player and the server reach target.
 	marker.CanCollide, marker.CanQuery, marker.CanTouch = false, false, false
 	marker:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
@@ -234,72 +268,6 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	warehousePrompt.RequiresLineOfSight, warehousePrompt.Enabled = false, true
 	warehousePrompt:SetAttribute("ForgeWarehouse", true)
 	warehousePrompt.Parent = marker
-	-- Warehouse timber depot frame, pitched roof, crates and signboard (all non-colliding decor).
-	decor(
-		"WarehousePlatform",
-		Vector3.new(7.5, 0.3, 5.5),
-		CFrame.new(wx, 0.15, wz),
-		rgb(104, 74, 48),
-		nil,
-		Enum.Material.WoodPlanks
-	)
-	for _, corner in
-		{
-			Vector3.new(-3.2, 2.4, -2.2),
-			Vector3.new(3.2, 2.4, -2.2),
-			Vector3.new(-3.2, 2.4, 2.2),
-			Vector3.new(3.2, 2.4, 2.2),
-		}
-	do
-		decor(
-			"WarehousePost",
-			Vector3.new(0.45, 4.8, 0.45),
-			CFrame.new(Vector3.new(wx, 0, wz) + corner),
-			rgb(88, 58, 36),
-			nil,
-			Enum.Material.Wood
-		)
-	end
-	decor(
-		"WarehouseRoofL",
-		Vector3.new(8.2, 0.35, 3.2),
-		CFrame.new(wx, 5.1, wz - 1.2) * CFrame.Angles(math.rad(18), 0, 0),
-		rgb(138, 92, 48),
-		nil,
-		Enum.Material.WoodPlanks
-	)
-	decor(
-		"WarehouseRoofR",
-		Vector3.new(8.2, 0.35, 3.2),
-		CFrame.new(wx, 5.1, wz + 1.2) * CFrame.Angles(math.rad(-18), 0, 0),
-		rgb(138, 92, 48),
-		nil,
-		Enum.Material.WoodPlanks
-	)
-	decor(
-		"WarehouseCrate1",
-		Vector3.new(1.6, 1.5, 1.6),
-		CFrame.new(wx - 2.1, 0.9, wz + 0.5) * CFrame.Angles(0, math.rad(12), 0),
-		rgb(156, 112, 64),
-		nil,
-		Enum.Material.WoodPlanks
-	)
-	decor(
-		"WarehouseCrate2",
-		Vector3.new(1.3, 1.3, 1.3),
-		CFrame.new(wx + 2.1, 0.8, wz - 0.4) * CFrame.Angles(0, math.rad(-15), 0),
-		rgb(142, 98, 54),
-		nil,
-		Enum.Material.WoodPlanks
-	)
-	decor(
-		"WarehouseBarrel",
-		Vector3.new(1.6, 1.3, 1.3),
-		CFrame.new(wx - 2.0, 0.95, wz - 1.1) * CFrame.Angles(0, 0, math.rad(90)),
-		rgb(112, 76, 46),
-		Enum.PartType.Cylinder,
-		Enum.Material.Wood
-	)
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name, spawn.Anchored, spawn.Position, spawn.Size =
 		"SurvivalSpawn", true, Vector3.new(0, 0.5, 0), Vector3.new(4, 1, 4)
@@ -510,7 +478,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				Vector3.new(1.8, 2.6, 1.8),
 				CFrame.new(p + Vector3.new(1.5, -0.7, -0.3)) * CFrame.Angles(0, math.rad(-28), math.rad(12)),
 				rgb(110, 116, 128),
-				Enum.PartType.Ball,
+				nil,
 				Enum.Material.Rock
 			)
 			decor(
@@ -546,12 +514,14 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		["berry-bush"] = function(id, p)
 			local bush = part(id, Vector3.new(4, 4, 4), p, rgb(49, 112, 59)) :: Part
 			bush.Shape, bush.Material = Enum.PartType.Ball, Enum.Material.Grass
+			bush.Transparency = 1
+			kit(id .. ".foliage", p - Vector3.new(0, 2, 0), "bush")
 			decor(
 				id .. "-lobe1",
 				Vector3.new(3.1, 2.8, 3.1),
 				CFrame.new(p + Vector3.new(-1.1, -0.4, 0.6)),
 				rgb(42, 98, 52),
-				Enum.PartType.Ball,
+				nil,
 				Enum.Material.Grass
 			)
 			decor(
@@ -559,7 +529,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				Vector3.new(2.9, 2.7, 2.9),
 				CFrame.new(p + Vector3.new(1.1, -0.3, -0.5)),
 				rgb(58, 124, 66),
-				Enum.PartType.Ball,
+				nil,
 				Enum.Material.Grass
 			)
 			local berries =
@@ -855,8 +825,14 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		workspace.Terrain:FillBlock(
 			CFrame.new(position.X, base - 2, position.Z),
 			Vector3.new(CLEARING_STUDS, 4, CLEARING_STUDS),
-			Enum.Material.Grass
+			Enum.Material.Ground
 		)
+		-- Worn approaches follow the heightfield, rather than disappearing under grass.
+		for step = 0, 8 do
+			local x, z = position.X * step / 8, 8 + (position.Z - 8) * step / 8
+			local y = if step == 8 then base else ground(x, z)
+			workspace.Terrain:FillBlock(CFrame.new(x, y - 1.8, z), Vector3.new(4, 4, 4), Enum.Material.Ground)
+		end
 		local shape = build(node.id, position, height)
 		world.registerNode(shape, node.id, node.catalogId, 0, source.worldRevision)
 	end

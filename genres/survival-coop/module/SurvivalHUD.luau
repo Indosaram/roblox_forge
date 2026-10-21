@@ -7,7 +7,7 @@ function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -
 	local entries: { [string]: any } = {}
 	local present: { [string]: boolean } = {}
 	local order, scope = 0, ""
-	local controls = {}
+	local controls = { parent = parent }
 	function controls.begin(section: string)
 		present, order, scope = {}, 0, section
 	end
@@ -35,6 +35,7 @@ function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -
 		end
 		entry.callback, entry.enabled = callback, enabled
 		local item = entry.item
+		item.Parent = controls.parent or parent
 		item.Name, item.Text, item.TextWrapped, item.TextScaled = id, text, true, true
 		if fit ~= nil then
 			fit(item)
@@ -212,6 +213,35 @@ function M.start(options: Options)
 	local controls = M.controls(Components, theme, sheet.scroll, fitText)
 	sheet.frame.AnchorPoint, sheet.frame.Position = Vector2.new(1, 0), UDim2.new(1, 0, 0, 178)
 	sheet.close.Text = "X"
+	local panes = Instance.new("Frame")
+	panes.Name, panes.BackgroundTransparency = "PanelPanes", 1
+	panes.Size, panes.AutomaticSize, panes.Parent = UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, sheet.scroll
+	local listPane, detailPane = Instance.new("Frame"), Instance.new("Frame")
+	for _, pane in { listPane, detailPane } do
+		pane.BackgroundTransparency, pane.AutomaticSize, pane.Parent = 1, Enum.AutomaticSize.Y, panes
+		local layout = Instance.new("UIListLayout")
+		layout.Padding, layout.SortOrder, layout.Parent = UDim.new(0, 6), Enum.SortOrder.LayoutOrder, pane
+	end
+	listPane.Name, detailPane.Name = "ItemList", "ItemDetails"
+	local function fitPanes()
+		local wide = sheet.frame.AbsoluteSize.X >= 600
+		listPane.Size = UDim2.new(if wide then 0.52 else 1, if wide then -8 else 0, 0, 0)
+		detailPane.Size = UDim2.new(if wide then 0.48 else 1, if wide then -8 else 0, 0, 0)
+		detailPane.Position = if wide
+			then UDim2.new(0.52, 8, 0, 0)
+			else UDim2.fromOffset(0, listPane.AbsoluteSize.Y + 12)
+	end
+	listPane:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitPanes)
+	sheet.frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitPanes)
+	fitPanes()
+	local contentParent = sheet.scroll
+	local capacityTrack = Instance.new("Frame")
+	capacityTrack.Name, capacityTrack.BorderSizePixel = "CapacityBar", 0
+	capacityTrack.Size, capacityTrack.BackgroundColor3 = UDim2.new(1, -8, 0, 8), Color3.fromRGB(45, 62, 56)
+	capacityTrack.Parent = listPane
+	local capacityFill = Instance.new("Frame")
+	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
+	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
 	local missingText: string? = nil
 	local toast = Components.label(theme, {
@@ -396,6 +426,7 @@ function M.start(options: Options)
 			item = pooled
 		end
 		item.Name = "Note" .. noteUsed
+		item.Parent = contentParent
 		item.Text = text
 		item.Size = UDim2.new(1, -8, 0, height or 48)
 		item.LayoutOrder = controls.order()
@@ -405,6 +436,10 @@ function M.start(options: Options)
 		local icon = item:FindFirstChild("ItemIcon")
 		if icon then
 			(icon :: ImageLabel).Visible = false
+		end
+		local fallback = item:FindFirstChild("IconFallback")
+		if fallback then
+			(fallback :: TextLabel).Visible = false
 		end
 		local padding = item:FindFirstChild("IconPadding")
 		if padding then
@@ -423,20 +458,32 @@ function M.start(options: Options)
 		return button(id, text, callback, enabled == true)
 	end
 	local function itemIcon(item: any, icon: any)
-		if not icon then
-			return
+		icon = icon or {}
+		local badge = item:FindFirstChild("IconFallback")
+		if not badge then
+			badge = Instance.new("TextLabel")
+			badge.Name, badge.BackgroundColor3 = "IconFallback", Color3.fromRGB(67, 112, 93)
+			badge.Size, badge.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(-42, 6)
+			badge.TextColor3, badge.TextSize, badge.Parent = Color3.fromRGB(240, 244, 240), 14, item
 		end
+		local monogram = string.match(icon.key or "", "[^.]+$") or "IT"
+		badge.Text, badge.Visible = string.upper(string.sub(monogram, 1, 2)), true
 		local image = item:FindFirstChild("ItemIcon")
 		if not image then
 			image = Instance.new("ImageLabel")
 			image.Name, image.BackgroundTransparency = "ItemIcon", 1
-			image.Size, image.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(6, 6)
+			image.Size, image.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(-42, 6)
 			image.Parent = item
+			local asset = image
+			image:GetPropertyChangedSignal("IsLoaded"):Connect(function()
+				badge.TextTransparency = if asset.IsLoaded then 1 else 0
+			end)
 			local padding = Instance.new("UIPadding")
 			padding.Name, padding.Parent = "IconPadding", item
 		end
-		item:FindFirstChild("IconPadding").PaddingLeft = UDim.new(0, if icon.image then 48 else 0)
+		item:FindFirstChild("IconPadding").PaddingLeft = UDim.new(0, 48)
 		image.Image, image.Visible = icon.image or "", icon.image ~= nil
+		badge.TextTransparency = if image.IsLoaded and icon.image then 1 else 0
 	end
 	local function selectedDefinition(): any
 		for _, definition in options.content.structures do
@@ -541,6 +588,21 @@ function M.start(options: Options)
 		end,
 	})
 	cancelPlacement.Name = "CancelPlacement"
+	local rotatePlacement = Components.button(theme, {
+		text = t("rotate"),
+		parent = placementBar,
+		size = UDim2.fromOffset(80, 48),
+		position = UDim2.fromOffset(0, 0),
+		onClick = function()
+			rotation = (rotation + 1) % 4
+			render()
+		end,
+	})
+	rotatePlacement.Name = "RotatePlacement"
+	placementBar.Size, placementBar.Position = UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -72)
+	confirmPlacement.Size, confirmPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(88, 0)
+	cancelPlacement.Size, cancelPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(212, 0)
+	toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -184)
 	table.insert(
 		connections,
 		input.InputChanged:Connect(function(event, processed)
@@ -614,6 +676,11 @@ function M.start(options: Options)
 		local scrollPosition = sheet.scroll.CanvasPosition
 		controls.begin(section)
 		noteUsed = 0
+		panes.Visible = section == "bag" or section == "craft"
+		capacityTrack.Visible = section == "bag"
+		panes.LayoutOrder = 1
+		contentParent = if panes.Visible then listPane else sheet.scroll
+		controls.parent = contentParent
 		if inventoryGrid then
 			inventoryGrid.frame.Visible = section == "bag"
 		end
@@ -629,6 +696,11 @@ function M.start(options: Options)
 		if section == "bag" then
 			if bag then
 				local slots, maximum, weight, hard = Model.capacity(bag)
+				capacityFill.Size = UDim2.fromScale(
+					math.clamp(math.max(slots / math.max(1, maximum), weight / math.max(1, hard)), 0, 1),
+					1
+				)
+				capacityTrack.LayoutOrder = controls.order()
 				label(
 					string.format(
 						"%s %d/%d   %s %.1f/%.1f",
@@ -644,22 +716,21 @@ function M.start(options: Options)
 					label(t("slow"))
 				end
 				local rows = Model.items(bag)
+				if selected == nil or bag.items[selected] == nil then
+					selected = if rows[1] then rows[1].item.itemId else nil
+				end
 				local display = {}
 				for _, row in rows do
 					table.insert(display, {
 						id = row.item.itemId,
 						image = if options.icons then options.icons.item(row.item.catalogId).image else nil,
-						text = name(row.item.catalogId)
-							.. " x"
-							.. row.item.quantity
-							.. "\n"
-							.. t("reserved")
-							.. " "
-							.. row.reserved,
+						text = name(row.item.catalogId),
+						fallback = string.upper(string.sub(row.item.catalogId, 1, 2)),
+						quantity = row.item.quantity,
 					})
 				end
 				if not inventoryGrid then
-					inventoryGrid = Grid.new(sheet.scroll, theme, function(id)
+					inventoryGrid = Grid.new(listPane, theme, function(id)
 						selected = id
 						focusBottom = "Deposit-" .. id
 						render()
@@ -672,6 +743,7 @@ function M.start(options: Options)
 					label(t("empty"))
 				end
 				local item = if selected then bag.items[selected] else nil
+				contentParent, controls.parent = detailPane, detailPane
 				if item then
 					label(
 						name(item.catalogId)
@@ -729,6 +801,9 @@ function M.start(options: Options)
 				return nearest(station) ~= nil
 			end, options.content.items)
 			local activeJobs = Model.jobs(model.snapshot, model.actor)
+			if recipeId == nil and orderedRecipes[1] then
+				recipeId = orderedRecipes[1].recipe.id
+			end
 			local renderedJobs = false
 			local function renderJobs()
 				if renderedJobs then
@@ -757,6 +832,7 @@ function M.start(options: Options)
 			end
 			local lastStation = nil
 			for _, row in orderedRecipes do
+				contentParent, controls.parent = listPane, listPane
 				local recipe = row.recipe
 				if lastStation ~= row.station then
 					lastStation = row.station
@@ -764,7 +840,7 @@ function M.start(options: Options)
 				end
 				local recipeButton = button(
 					"Recipe-" .. recipe.id,
-					name(recipe.id) .. (if row.ready then " +" else ""),
+					name(recipe.id) .. "\n" .. (if row.ready then t("reserve") .. " +" else t("missing")),
 					function()
 						recipeId = recipe.id
 						focusBottom = "Reserve-" .. recipe.id
@@ -776,11 +852,16 @@ function M.start(options: Options)
 					itemIcon(recipeButton, if icon.image then icon else options.icons.item(recipe.outputs[1].item))
 				end
 				if recipe.id == recipeId then
+					contentParent, controls.parent = detailPane, detailPane
+					label(name(recipe.id), 36)
 					label(t("inputs"))
 					for _, ingredient in Model.ingredients(bag, recipe) do
 						local ingredientRow =
 							label(name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
 						itemIcon(ingredientRow, if options.icons then options.icons.item(ingredient.id) else nil)
+						ingredientRow.TextColor3 = if ingredient.available >= ingredient.needed
+							then Color3.fromRGB(127, 224, 156)
+							else Color3.fromRGB(255, 155, 132)
 					end
 					local output = {}
 					for _, item in recipe.outputs do
@@ -788,7 +869,7 @@ function M.start(options: Options)
 					end
 					label(
 						t("outputs") .. ": " .. table.concat(output, ", ") .. "\n" .. recipe.craftMillis / 1000 .. "s",
-						64
+						48
 					)
 					label(
 						t("station")
@@ -799,7 +880,7 @@ function M.start(options: Options)
 									then "\n" .. t("tool") .. ": " .. name(recipe.requiredToolTag)
 									else ""
 							),
-						64
+						48
 					)
 					mutation("Reserve-" .. recipe.id, t("reserve"), "craft-reserve", function()
 						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
@@ -821,7 +902,7 @@ function M.start(options: Options)
 			end
 			renderJobs()
 		elseif section == "build" then
-			label(t("buildHint"), 80)
+			label(t("buildHint"), 48)
 			local STRUCTURE_PRIORITY: { [string]: number } = {
 				["floor"] = 1,
 				["campfire"] = 2,
@@ -859,56 +940,10 @@ function M.start(options: Options)
 						.. rotation * 90
 						.. "\n"
 						.. (if reason then Locale.refusal(locale, reason) else t("preview")),
-					96
+					48
 				)
 				for _, cost in definition.cost do
 					label(name(cost.item) .. " x" .. cost.quantity)
-				end
-				for _, move in
-					{
-						{ id = "X-", dx = -1, dz = 0 },
-						{ id = "X+", dx = 1, dz = 0 },
-						{ id = "Z-", dx = 0, dz = -1 },
-						{ id = "Z+", dx = 0, dz = 1 },
-					}
-				do
-					button(move.id, t(move.id), function()
-						local settlement = model.snapshot.settlement
-						if not settlement then
-							return
-						end
-						x, z =
-							math.clamp(x + move.dx, 0, settlement.config.width - 1),
-							math.clamp(z + move.dz, 0, settlement.config.depth - 1)
-						render()
-					end)
-				end
-				button("Rotate", t("rotate"), function()
-					rotation = (rotation + 1) % 4
-					render()
-				end)
-				mutation("BuildReserve-" .. definition.id, t("reserve"), "settlement-reserve", function()
-					if not suppliesAvailable(model.snapshot.warehouse, definition.cost) then
-						return
-					end
-					local args, err = Model.buildArgs(model.snapshot, definition, x, z, rotation)
-					if args then
-						command("settlement-reserve", args)
-					else
-						model.status, model.reason = "conflict", err
-						render()
-					end
-				end)
-				local reservations = Model.placements(model.snapshot.settlement, model.actor)
-				for _, entry in reservations do
-					if entry.placement.definition.id == definition.id then
-						mutation("BuildPlaceSelected-" .. entry.id, t("place"), "settlement-place", function()
-							command(
-								"settlement-place",
-								{ entry.id, model.snapshot.settlement.version, model.snapshot.warehouse.version }
-							)
-						end)
-					end
 				end
 			end
 			local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
@@ -924,14 +959,17 @@ function M.start(options: Options)
 				end
 			end
 		end
-		button("Refresh", t("refresh"), refresh)
-		button("CameraHelp", t("cameraHelp"), function()
-			helpVisible = not helpVisible
-			render()
-		end)
-		if helpVisible then
-			label(t("cameraHint"), 100)
+		if section ~= "bag" then
+			button("Refresh", t("refresh"), refresh)
+			button("CameraHelp", t("cameraHelp"), function()
+				helpVisible = not helpVisible
+				render()
+			end)
+			if helpVisible then
+				label(t("cameraHint"), 100)
+			end
 		end
+		fitPanes()
 		controls.finish()
 		for index = noteUsed + 1, #notePool do
 			notePool[index].Visible = false

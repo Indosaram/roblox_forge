@@ -104,8 +104,8 @@ local strings: { [string]: { string } } = {
 	place = { "Place", "설치" },
 	preview = { "Preview only - server validates placement", "미리보기 - 서버가 설치 위치를 확인해요" },
 	buildHint = {
-		"Move grid origin with arrows; rotate, then reserve. Costs use shared storage.",
-		"화살표로 위치를 옮기고 회전한 뒤 예약하세요. 공용 창고 재료를 사용해요.",
+		"Point at the ground; rotate, then reserve. Costs use shared storage.",
+		"바닥을 가리키고 회전한 뒤 예약하세요. 공용 창고 재료를 사용해요.",
 	},
 	select = { "Select an item for details", "아이템을 선택하면 정보가 나와요" },
 	TRANSPORT_FAILED = {

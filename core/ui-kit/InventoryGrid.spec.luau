@@ -13,6 +13,9 @@ local function fixture(source: string): any
 			self.destroyed = true
 			self.Parent = nil
 		end
+		function value:GetPropertyChangedSignal(_property: string): any
+			return { Connect = function() end }
+		end
 		function value:GetChildren()
 			local children = {}
 			for _, child in created do
@@ -47,6 +50,11 @@ local function fixture(source: string): any
 				return components
 			end,
 			Instance = { new = instance },
+			Color3 = {
+				fromRGB = function(...: number): any
+					return { ... }
+				end,
+			},
 			UDim = {
 				new = function(scale, offset)
 					return { Scale = scale, Offset = offset }
@@ -110,8 +118,13 @@ local function regression(source: string): boolean
 		icon and icon.ClassName == "ImageLabel" and icon.Image == "rbxassetid://123" and icon.Visible,
 		"item icon created"
 	)
-	assert(icon.Size.X.Offset == 36 and icon.Position.Y.Offset == 14, "icon dimensions")
-	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 44, "icon reserves text padding")
+	assert(icon.Size.X.Offset == 36 and icon.Position.Y.Offset == 6, "icon dimensions")
+	assert(spear:FindFirstChild("IconPadding").PaddingLeft.Offset == 0, "slot text sits below icon")
+	assert(
+		spear:FindFirstChild("IconFallback").Text ~= "" and spear:FindFirstChild("IconFallback").TextTransparency == 0,
+		"unloaded asset retains readable fallback"
+	)
+	assert(berry:FindFirstChild("IconFallback").Text ~= "", "imageless slot has fallback")
 	assert(berry:FindFirstChild("ItemIcon") == nil, "imageless row needs no icon")
 	local callback = spear.callback
 	f.down(spear)
@@ -125,11 +138,15 @@ local function regression(source: string): boolean
 	assert(f.button("spear") == spear and spear.callback == callback, "same identity preserves object and handler")
 	assert(f.selected[1] == "spear" and #f.selected == 1, "press targets original item exactly once")
 	assert(
-		spear.Text == "Spear 99%" and spear.LayoutOrder == 2 and spear.BackgroundTransparency == 0,
+		spear:FindFirstChild("Caption").Text == "Spear 99%"
+			and spear.LayoutOrder == 2
+			and spear.BackgroundTransparency == 0,
 		"text order and selection updated"
 	)
 	assert(
-		f.button("berry") == berry and berry.Text == "Berry x2" and berry.BackgroundTransparency == 0.4,
+		f.button("berry") == berry
+			and berry:FindFirstChild("Caption").Text == "Berry x2"
+			and berry.BackgroundTransparency == 0.4,
 		"other retained item updated"
 	)
 	f.down(spear)

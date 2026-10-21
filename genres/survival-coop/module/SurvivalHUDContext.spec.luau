@@ -59,8 +59,18 @@ return {
 				local touch = viewport[1] < 700
 				local width, height, top, right = Model.contextSheetBounds(w, h, touch)
 				assert(width > 0 and height >= 100, "usable scroll body")
-				assert(width + right <= w and right >= 8, "sheet stays inside horizontal safe area")
-				assert(top >= 64 and top + height <= h - (if touch then 128 else 16), "menu and movement remain clear")
+				local phone = w < 600 and h > w
+				assert(
+					width + right <= w and right >= (if phone then 0 else 8),
+					"sheet stays inside horizontal safe area"
+				)
+				assert(
+					top >= 64 and top + height <= h - (if touch and not phone then 128 else 16),
+					"sheet fits its reserved bottom edge"
+				)
+				if phone then
+					assert(width == w and right == 0, "phone uses full-width bottom sheet")
+				end
 			end
 		end
 	end,

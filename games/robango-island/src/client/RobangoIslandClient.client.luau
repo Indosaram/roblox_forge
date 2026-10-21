@@ -18,7 +18,11 @@ gui.Destroying:Connect(audio.destroy)
 -- The pack ships en-us and ko-kr; every survival-coop view picks Korean from a "ko" prefix.
 local locale = game:GetService("Players").LocalPlayer.LocaleId
 local names = require(Shared.EntityNames)(locale)
+local biomeSigns: { BillboardGui } = {}
 local function localizeJournal(object: Instance)
+	if object:IsA("BillboardGui") and object.Parent and object.Parent.Name == "SignBoard" then
+		table.insert(biomeSigns, object)
+	end
 	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeWarehouse") then
 		object.ActionText = if string.sub(locale, 1, 2) == "ko" then "창고 열기" else "Open warehouse"
 		object.ObjectText = if string.sub(locale, 1, 2) == "ko" then "창고" else "Warehouse"
@@ -34,6 +38,23 @@ workspace.DescendantAdded:Connect(localizeJournal)
 for _, object in workspace:GetDescendants() do
 	localizeJournal(object)
 end
+local signVisibility = game:GetService("RunService").RenderStepped:Connect(function()
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+	for _, sign in biomeSigns do
+		local board = sign.Parent
+		if board and board:IsA("BasePart") then
+			local point, visible = camera:WorldToViewportPoint(board.Position + sign.StudsOffset)
+			-- World labels cannot cover Roblox's chat window or its input hint.
+			sign.Enabled = not (visible and point.X - 90 < 420 and point.Y - 28 < 260)
+		end
+	end
+end)
+script.Destroying:Connect(function()
+	signVisibility:Disconnect()
+end)
 
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
 local gathering = GatheringClient.start({ locale = locale, names = names })
@@ -228,6 +249,12 @@ table.insert(panelFactories, function(ctx)
 	social.text = function(key)
 		local labels = {
 			["ui.clan"] = { "Clan", "부족" },
+			["clan.empty"] = {
+				"Create a clan or join by invitation to share funds and capture team outposts.",
+				"부족을 만들거나 초대로 가입하여 자금을 모으고 팀 거점을 점령하세요.",
+			},
+			["clan.create"] = { "Create clan", "부족 생성" },
+			["clan.join"] = { "Join invited clan", "초대받은 부족 가입" },
 			["clan.invite"] = { "Invite", "초대" },
 			["clan.deposit"] = { "Deposit", "입금" },
 			["clan.withdraw"] = { "Withdraw", "출금" },
@@ -314,11 +341,26 @@ table.insert(panelFactories, function(ctx)
 	social.clanWallet = function(id, operation, amount)
 		return ctx.send("survival-coop:clan-" .. operation, { id, { amount = amount } })
 	end
+	social.openMembership = function()
+		inputSheet.frame.Visible = true
+	end
+	local openOutpost: (() -> ())? = nil
+	social.openOutposts = function()
+		if openOutpost then
+			openOutpost()
+		end
+	end
 	local clanPanel = require(Forge.genres["survival-coop"].module.ClanPanel).factory(social)
 	social.outpostOptIn = function()
 		return ctx.send("survival-coop:outpost-queue", { "rw.team-outpost", { enabled = true } })
 	end
-	local outpostPanel = require(Forge.genres["survival-coop"].module.OutpostPanel).factory(social)
+	local outpostContext = table.clone(social)
+	outpostContext.dock = function(entry)
+		local handle = assert(ctx.dock, "OUTPOST_DOCK_REQUIRED")(entry)
+		openOutpost = handle.open
+		return handle
+	end
+	local outpostPanel = require(Forge.genres["survival-coop"].module.OutpostPanel).factory(outpostContext)
 	local create = ctx.ui.components.button(ctx.ui.theme.default, {
 		text = if korean then "부족 생성" else "Create clan",
 		size = UDim2.new(1, 0, 0, 48),

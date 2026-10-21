@@ -91,6 +91,7 @@ return {
 				end,
 			}
 			local panel = Panel.factory(ctx)
+			assert(#widgets == 3, "no-clan state is visible before snapshot")
 			local state = Clan.new("a", "owner")
 			state.members.helper = { role = "member", withdraw = false }
 			callback({ clan = state })

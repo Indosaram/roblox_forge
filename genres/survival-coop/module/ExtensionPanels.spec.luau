@@ -23,6 +23,19 @@ local function overlaps(a: any, b: any): boolean
 end
 
 return {
+	["sheet close and build action surfaces stay separate at all target sizes"] = function()
+		for _, size in { { 360, 640 }, { 640, 360 }, { 1280, 720 }, { 1920, 1080 } } do
+			local width, height = size[1], size[2] - 56
+			local w, h, top, right = Model.contextSheetBounds(width, height, width < 700)
+			local close = { x = width - right - 50, y = top, width = 44, height = 44 }
+			local bar = { x = (width - 328) / 2, y = height - 72, width = 328, height = 48 }
+			local toast = { x = 12, y = height - 184, width = width - 24, height = 52 }
+			assert(w <= 720 and h >= 44 and top >= 0, "sheet bounded and header visible")
+			assert(close.x >= 0 and close.x + close.width <= width, "44 pixel close within viewport")
+			assert(not overlaps(close, bar) and not overlaps(close, toast), "close clears actions and toast")
+			assert(not overlaps(bar, toast), "shortage toast clears bottom actions")
+		end
+	end,
 	["every registered menu activation opens exactly its sheet at phone and desktop sizes"] = function()
 		local registered = {}
 		local sources = { "games/robango-island/src/client/RobangoIslandClient.client.luau" }

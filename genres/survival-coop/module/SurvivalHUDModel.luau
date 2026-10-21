@@ -227,7 +227,10 @@ end
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
 	local top = 64
 	local bottom = if touch or width < 700 then 128 else 16
-	return math.min(896, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
+	if width < 600 and height > width then
+		return width, math.max(44, height - top - 16), top, 0
+	end
+	return math.min(720, math.max(0, width - 16)), math.max(0, math.min(576, height - top - bottom)), top, 8
 end
 
 function M.contextHudBounds(width: number, height: number?): any

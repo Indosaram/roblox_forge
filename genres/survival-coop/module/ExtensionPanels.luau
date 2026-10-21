@@ -378,6 +378,7 @@ function M.start(options: {
 			for _, entry in entries do
 				open = open or entry.isOpen()
 			end
+			column.Visible = not open and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			objectiveSlot.Visible = objectiveSlot.Visible and not open
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
 			local width, height, top, right = HUDModel.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
@@ -511,21 +512,29 @@ function M.start(options: {
 			local heading = ui.components.label(theme, {
 				text = Locale.text(options.locale, categoryKeys[category]),
 				parent = button,
-				size = UDim2.new(1, 0, 0, 12),
-				textSize = 9,
+				size = UDim2.new(1, 0, 0, 16),
+				textSize = 11,
 			})
-			heading.TextColor3 = Color3.fromRGB(157, 195, 175)
+			heading.TextColor3 = Color3.fromRGB(224, 241, 229)
+			heading.TextXAlignment = Enum.TextXAlignment.Center
 			local icon = if options.icons then options.icons.ui(iconId) else nil
-			local image = Instance.new(if icon and icon.image then "ImageLabel" else "TextLabel")
-			image.Name, image.BackgroundTransparency = "MenuIcon", 1
-			image.Size, image.Position = UDim2.fromOffset(24, 24), UDim2.new(0.5, -12, 0, 12)
+			local badge = Instance.new("TextLabel")
+			badge.Name, badge.BackgroundColor3 = "MenuIconFallback", Color3.fromRGB(67, 112, 93)
+			badge.Size, badge.Position = UDim2.fromOffset(20, 20), UDim2.new(0.5, -10, 0, 17)
+			badge.Text, badge.TextColor3, badge.TextSize =
+				string.upper(string.sub(iconId, 1, 2)), Color3.fromRGB(240, 244, 240), 14
+			badge.Parent = button
 			if icon and icon.image then
+				local image = Instance.new("ImageLabel")
+				image.Name, image.BackgroundTransparency = "MenuIcon", 1
+				image.Size, image.Parent = UDim2.fromScale(1, 1), badge
 				image.Image = icon.image
-			else
-				image.Text, image.TextColor3, image.TextSize =
-					string.upper(string.sub(iconId, 1, 1)), Color3.fromRGB(240, 244, 240), 20
+				local function loaded()
+					badge.TextTransparency = if image.IsLoaded then 1 else 0
+				end
+				image:GetPropertyChangedSignal("IsLoaded"):Connect(loaded)
+				loaded()
 			end
-			image.Parent = button
 			local caption = ui.components.label(theme, {
 				text = if entry.id == "music" then Locale.text(options.locale, "music") else entry.label,
 				parent = button,
@@ -534,6 +543,7 @@ function M.start(options: {
 				textSize = 11,
 			})
 			caption.TextScaled, caption.TextWrapped = true, true
+			caption.TextXAlignment = Enum.TextXAlignment.Center
 			local limit = Instance.new("UITextSizeConstraint")
 			limit.MinTextSize, limit.MaxTextSize, limit.Parent = 8, 12, caption
 		end

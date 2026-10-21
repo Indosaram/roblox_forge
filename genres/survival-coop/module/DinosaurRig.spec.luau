@@ -120,6 +120,28 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
+	["all body families avoid balloon cores and use columnar limbs"] = function()
+		local world = roblox.Instance.new("Workspace")
+		local module = loadRig()
+		for species, dims in envelopes do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			for _, p in model:GetChildren() do
+				if p:IsA("Part") and p ~= model.PrimaryPart and p.Name ~= "Head" then
+					if p.Shape == roblox.Enum.PartType.Ball then
+						assert(
+							math.max(p.Size.X, p.Size.Y, p.Size.Z) <= dims[3] * 0.4,
+							"balloon: " .. species .. "/" .. p.Name
+						)
+					end
+					if p.Name:match("^Thigh") or p.Name:match("^Foreleg") then
+						assert(p.Shape == roblox.Enum.PartType.Cylinder, "columnar limb")
+					end
+				end
+			end
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["skin luminance feet contact and curved frill reject black disconnected primitives"] = function()
 		local world = roblox.Instance.new("Workspace")
 		local module = loadRig()
@@ -142,7 +164,7 @@ return {
 				if string.match(p.Name, "^Foot") or string.match(p.Name, "^Forefoot") then
 					local joint = model.PrimaryPart[p.Name .. "Joint"]
 					local shin = joint.Part0
-					local extent = if shin.Name:find("Shin") then shin.Size.X else shin.Size.Y
+					local extent = shin.Size.X
 					local gap = math.abs(p.CFrame.Position.Y + p.Size.Y / 2 - (shin.CFrame.Position.Y - extent / 2))
 					assert(gap < 0.05, "foot touches shin: " .. species .. "/" .. p.Name)
 					assert(p.Color == model.Torso.Color and p.Size.Y < p.Size.Z, "flattened skin foot")

@@ -45,6 +45,9 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 	local theme = ctx.ui.theme.default
 	local gui = (ctx.instance or env.Instance).new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn = id .. "Panel", false
+	if env.Enum then
+		gui.ZIndexBehavior = env.Enum.ZIndexBehavior.Sibling
+	end
 	gui.Parent = ctx.playerGui or env.game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local sheet = ui.modalSheet(theme, { name = id, title = title })
 	sheet.frame.Parent = gui
@@ -87,11 +90,16 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 		local widget = if action then ui.button(theme, props) else ui.label(theme, props)
 		widget.LayoutOrder, widget.TextWrapped = order, true
 	end
+	local function empty()
+		if id == "clan" then
+			add(ctx.text("clan.empty"))
+			add(ctx.text("clan.create"), ctx.openMembership)
+			add(ctx.text("clan.join"), ctx.openMembership)
+		end
+	end
+	empty()
 	local unsubscribe = ctx.onSnapshot(function(snapshot: any)
 		local state = snapshot[id]
-		if not state then
-			return
-		end
 		local key = ctx.encode(state)
 		if key == rendered then
 			return
@@ -103,7 +111,11 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 			end
 		end
 		order = 0
-		render(state, add)
+		if state then
+			render(state, add)
+		else
+			empty()
+		end
 	end)
 	return {
 		destroy = function()
@@ -123,6 +135,9 @@ function M.factory(ctx: any): any
 		end
 		add(ctx.text("clan.level") .. ": " .. state.level .. " / " .. state.funds)
 		add(ctx.text("clan.territory") .. ": " .. state.territory)
+		if ctx.openOutposts then
+			add(ctx.text("ui.outpost"), ctx.openOutposts)
+		end
 		for _, row in view.members do
 			add(row.text)
 			if row.canManage then

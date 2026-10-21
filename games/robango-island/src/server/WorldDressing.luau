@@ -145,8 +145,8 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				if kind == "bush" then 2 else 0.35,
 				if kind == "bush" then 3.5 else 4.2,
 				"Grass",
-				palette.leaf,
-				if kind == "bush" then "Ball" else "Wedge"
+				{ palette.leaf[1] + i * 3, palette.leaf[2] + i * 2, palette.leaf[3] },
+				"Wedge"
 			)
 			leaf.yaw, leaf.roll =
 				i * 60, if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
@@ -156,14 +156,14 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			local rock = piece(
 				"rock" .. i,
 				(i - 2) * 2,
-				(3 + i) / 2 - 0.25,
+				(3 + i) / 2 - 1.4,
 				(i % 2) * 2,
 				7 - i,
 				3 + i,
 				6,
 				"Slate",
-				palette.rock,
-				"Ball"
+				{ palette.rock[1] - 20 + i * 3, palette.rock[2] - 20, palette.rock[3] - 20 },
+				"Wedge"
 			)
 			rock.yaw, rock.roll = i * 35, i * 9
 		end
@@ -190,9 +190,17 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		local ember = piece("embers", 0, 1, 0, 2.5, 0.5, 2.5, "Neon", { 255, 106, 24 })
 		ember.effect = "fire"
 	elseif kind == "chest" then
-		piece("body", 0, 1.5, 0, 5, 3, 3, "WoodPlanks", wood)
-		piece("lid", 0, 3.2, 0, 5.3, 0.6, 3.3, "Wood", sand)
-		piece("clasp", 0, 2.6, 1.6, 0.6, 1, 0.3, "Metal", { 87, 81, 66 })
+		for level = 0, 1 do
+			local x = level * 1.3
+			piece("basket" .. level, x, 1.2 + level * 2.5, 0, 3.5, 2.4, 2.8, "Fabric", wood)
+			piece("lid" .. level, x, 2.5 + level * 2.5, 0, 3.8, 0.25, 3, "WoodPlanks", sand)
+			for band = 1, 3 do
+				piece("weave" .. level .. band, x, level * 2.5 + band * 0.65, 0, 3.65, 0.15, 2.95, "Fabric", sand)
+			end
+			for _, side in { -1, 1 } do
+				piece("rope" .. level .. side, x + side, 1.3 + level * 2.5, 0, 0.15, 2.7, 3.05, "Fabric", sand)
+			end
+		end
 	elseif kind == "farm" then
 		piece("soil", 0, 0.2, 0, 12, 0.5, 10, "Ground", { 76, 54, 34 })
 		for i = 1, 3 do
@@ -215,10 +223,11 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		piece("mast", 7, 6, 0, 0.7, 12, 0.7, "Wood", wood)
 		piece("sail", 7, 9, 0, 0.3, 4, 5, "Fabric", sand)
 	elseif kind == "shelter" then
-		for _, x in { -5, 5 } do
-			for _, z in { -4, 4 } do
+		for _, x in { -4, 4 } do
+			for _, z in { -3, 3 } do
 				piece("post" .. x .. "." .. z, x, 1.5, z, 3.2, 0.85, 0.85, "Wood", wood, "Cylinder").roll = 90
-				local rafter = piece("rafter" .. x .. "." .. z, x / 2, 5, z, 8, 0.65, 0.65, "Wood", wood, "Cylinder")
+				local rafter =
+					piece("rafter" .. x .. "." .. z, x / 2, 4.8, z, 6.4, 0.45, 0.45, "Wood", wood, "Cylinder")
 				rafter.roll = if x < 0 then 51 else -51
 				for band = 1, 3 do
 					piece(
@@ -236,29 +245,29 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			end
 		end
 		for _, side in { -1, 1 } do
-			for course = 1, 5 do
-				for strip = 1, 6 do
-					local x = course * 1.05 - 0.45
+			for course = 1, 4 do
+				for strip = 1, 5 do
+					local x = course * 0.95 - 0.45
 					local roof = piece(
 						"roof" .. side .. "." .. course .. "." .. strip,
 						side * x,
-						8.3 - x * 1.22,
-						(strip - 3.5) * 1.9,
-						1.95,
+						7.2 - x * 1.22,
+						(strip - 3) * 1.5,
+						1.7,
 						0.28,
-						2.15,
+						1.75,
 						"Grass",
-						{ 184 + strip * 4, 155 + course * 5, 89 + strip * 3 },
+						{ 143 + strip * 8, 116 + course * 8, 63 + strip * 4 },
 						"Wedge"
 					)
 					roof.roll = side * -51
 				end
 			end
-			piece("skirt" .. side, side * 5.3, 0.6, 0, 0.8, 1.2, 11.8, "Grass", sand)
+			piece("skirt" .. side, side * 4, 0.3, 0, 0.5, 0.5, 8, "Grass", sand)
 		end
-		piece("ridge", 0, 8.2, 0, 12.5, 0.7, 0.7, "Wood", wood, "Cylinder").yaw = 90
-		piece("hide.back", 0, 1.6, 3.9, 9.8, 3.2, 0.2, "Fabric", { 150, 116, 75 })
-		piece("hide.side", -4.9, 1.5, 0, 0.2, 3, 7, "Fabric", { 169, 137, 91 })
+		piece("ridge", 0, 7.3, 0, 8.8, 0.55, 0.55, "Wood", wood, "Cylinder").yaw = 90
+		piece("hide.back", 0, 1.6, 3, 7.8, 3.2, 0.2, "Fabric", { 150, 116, 75 })
+		piece("hide.side", -3.9, 1.5, 0, 0.2, 3, 5, "Fabric", { 169, 137, 91 })
 		piece("bedroll", 2, 0.3, 0, 3, 0.6, 6, "Fabric", palette.leaf)
 	elseif kind == "workbench" or kind == "drying-rack" then
 		for _, x in { -3, 3 } do
