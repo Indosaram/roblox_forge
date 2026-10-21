@@ -15,6 +15,7 @@
 
 local Validation = require("../../../core/domain/genre/Validation")
 local SerializedData = require("../../../core/domain/genre/SerializedData")
+local qafixtures = require("./qafixtures")
 
 local M = {}
 
@@ -30,10 +31,6 @@ M.OPERATIONS = {
 	"join",
 	"leave",
 	"close",
-	"prepare_handoff",
-	"role_travel",
-	"resume_handoff",
-	"complete_handoff",
 	"dispatch",
 	"server_dispatch",
 	"command",
@@ -169,15 +166,31 @@ local function comparatorsOf(step: any): { string }
 	return present
 end
 
-local function validateStep(errors: { string }, index: number, step: any, scenario: any, players: { [string]: boolean })
+local function validateStep(
+	errors: { string },
+	index: number,
+	step: any,
+	scenario: any,
+	players: { [string]: boolean },
+	fixtureOps: any
+)
 	local label = string.format("steps[%d]", index)
 	if type(step) ~= "table" then
 		table.insert(errors, label .. ": expected mapping")
 		return
 	end
 	local op = step.op
-	if type(op) ~= "string" or table.find(M.OPERATIONS, op) == nil then
+	if type(op) ~= "string" or (table.find(M.OPERATIONS, op) == nil and fixtureOps[op] == nil) then
 		table.insert(errors, string.format("%s.op: unknown operation %s", label, tostring(op)))
+		return
+	end
+	if fixtureOps[op] ~= nil then
+		if scenario.kind ~= "native" then
+			table.insert(errors, label .. ".op: fixture operations are native-only")
+		end
+		if step.player ~= nil and not players[M.playerId(step.player) or ""] then
+			table.insert(errors, label .. ".player: expected a declared player id")
+		end
 		return
 	end
 	if scenario.kind == "native" and table.find(M.STUDIO_ONLY_OPERATIONS, op) ~= nil then
@@ -209,10 +222,6 @@ local function validateStep(errors: { string }, index: number, step: any, scenar
 		"path_begin",
 		"path_end",
 		"recover_transfers",
-		"prepare_handoff",
-		"role_travel",
-		"resume_handoff",
-		"complete_handoff",
 		"expect_result",
 		"save",
 		"restore",
@@ -723,13 +732,14 @@ function M.validate(raw: any): { string }
 			end
 		end
 	end
+	local fixtureOps = {}
 	if raw.fixtures ~= nil and not Validation.dense(raw.fixtures, 64) then
 		table.insert(errors, "fixtures: expected a dense list of task-owned fixture paths")
 	else
-		for index, path in raw.fixtures or {} do
-			if type(path) ~= "string" or #path == 0 or string.find(path, "..", 1, true) ~= nil then
-				table.insert(errors, string.format("fixtures[%d]: unsafe fixture path", index))
-			end
+		local registry, fixtureErrors = qafixtures.load(raw.fixtures, M.OPERATIONS)
+		fixtureOps = registry.operations
+		for _, err in fixtureErrors do
+			table.insert(errors, err)
 		end
 	end
 	if raw.data ~= nil and type(raw.data) ~= "table" then
@@ -858,7 +868,7 @@ function M.validate(raw: any): { string }
 	else
 		local asserted = false
 		for index, step in raw.steps do
-			validateStep(errors, index, step, raw, players)
+			validateStep(errors, index, step, raw, players, fixtureOps)
 			if type(step) == "table" and table.find(ASSERTIONS, step.op) ~= nil then
 				asserted = true
 			end

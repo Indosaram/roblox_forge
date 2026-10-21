@@ -3,7 +3,19 @@
 -- only place services and durable progression facts are fixture ports.
 local Bootstrap = require("../../../../genres/survival-coop/module/IslandBootstrap")
 local M = {}
-function M.new(now: () -> number): any
+local Handoff = require("../handoff-conservation/scenario")
+M.operations = {
+	resume_handoff = Handoff.operations.resume_handoff,
+	role_travel = function(ctx, step): string?
+		local actor = ctx.playerOf(step)
+		local result = ctx.fixture.travel(actor, step.from, step.destination, step.level, step.objectives)
+		ctx.results[actor] = result
+		return if (step.expect == "refused") == result.ok then "unexpected role travel result" else nil
+	end,
+}
+function M.new(ctx): any
+	assert(ctx.scenario.genre == "survival-coop" and ctx.scenario.pack == "robango-island", "fixture pack binding")
+	local now: () -> number = ctx.now
 	local session: any = nil
 	local teleports = 0
 	local places = { onboarding = 1, home = 2, harbor = 3, archipelago = 4, frontier60 = 5 }

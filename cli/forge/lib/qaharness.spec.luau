@@ -60,6 +60,41 @@ local function winningSteps(): { any }
 end
 
 return {
+	["declared fixture dispatch works without a scenario name binding"] = function()
+		local raw = scenario({
+			{ op = "join", player = "1" },
+			{
+				op = "role_travel",
+				player = "1",
+				from = "home",
+				destination = "frontier60",
+				level = 60,
+				objectives = 2,
+				expect = "refused",
+			},
+			{ op = "expect_result", player = "1", field = "reason", equals = "transition_not_allowed" },
+			{ op = "close", player = "1" },
+			{ op = "reload" },
+			{ op = "join", player = "1" },
+			{
+				op = "role_travel",
+				player = "1",
+				from = "home",
+				destination = "frontier60",
+				level = 60,
+				objectives = 2,
+				expect = "refused",
+			},
+			{ op = "expect_result", player = "1", field = "reason", equals = "transition_not_allowed" },
+			{ op = "close", player = "1" },
+		}, { pack = "robango-island", fixtures = { "cli/forge/fixtures/role-routing" } })
+		local outcome = qaharness.runNative(raw, target())
+		assert(outcome.ok, table.concat(outcome.failures, "; "))
+		raw.steps[3].equals = "wrong-result"
+		assert(not qaharness.runNative(raw, target()).ok, "fixture results reach real harness assertions")
+		raw.fixtures = {}
+		assert(not qaharness.runNative(raw, target()).ok, "undeclared operation never dispatched")
+	end,
 	["generated native death authority preserves real crafting and refuses missing or Studio authority"] = function()
 		local fs = require("@lune/fs")
 		local serde = require("@lune/serde")

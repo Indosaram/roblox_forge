@@ -6,6 +6,26 @@ local function scenario(): any
 	return serde.decode("yaml", fs.readFile("genres/survival-coop/qa-scenarios/bootstrap-crafting-studio.yml"))
 end
 return {
+	["fixture operations require their declared module metadata"] = function()
+		local raw = serde.decode("yaml", fs.readFile("genres/survival-coop/qa-scenarios/role-routing.yml"))
+		raw.name = "new-routing-scenario"
+		assert(#schema.validate(raw) == 0, "fixture declaration is independent of scenario name")
+		raw.fixtures = {}
+		assert(#schema.validate(raw) > 0, "undeclared custom operations rejected")
+		raw.fixtures = { "cli/forge/fixtures/role-routing" }
+		local module: any = require("../fixtures/role-routing/scenario")
+		local handler = module.operations.role_travel
+		module.operations.role_travel = nil
+		local errors = schema.validate(raw)
+		module.operations.role_travel = handler
+		assert(
+			string.find(table.concat(errors, "; "), "unknown operation role_travel", 1, true),
+			"metadata mutation rejected"
+		)
+		assert(#schema.validate(raw) == 0, "restored declaration accepted")
+		raw.steps[2].op = "undeclared_operation"
+		assert(string.find(table.concat(schema.validate(raw), "; "), "unknown operation undeclared_operation", 1, true))
+	end,
 	["touch declares actual modality and rejects keyboard relabeling"] = function()
 		local raw = scenario()
 		local step: any = {

@@ -17,6 +17,7 @@ local MemoryBackend = require("../../../core/infra/data/MemoryBackend")
 local Clock = require("../../../core/infra/genre/Clock")
 local Contract = require("../../../core/domain/genre/Contract")
 local qascenario = require("./qascenario")
+local qafixtures = require("./qafixtures")
 local serde = require("@lune/serde")
 local SettlementRuntime = require("../../../genres/survival-coop/module/SettlementRuntime")
 local SettlementBridge = require("../../../genres/survival-coop/module/SettlementBridge")
@@ -538,6 +539,19 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 	end
 	settlementOwner()
 	local fixture: any = nil
+	local registry = qafixtures.load(scenario.fixtures, qascenario.OPERATIONS)
+	local fixtureInstances: { any } = {}
+	local fixtureContext: any = {
+		backend = gate.backend,
+		clock = clock,
+		now = function()
+			return math.floor(wall)
+		end,
+		results = {},
+		playerOf = playerOf,
+		packPath = "games/" .. scenario.pack,
+		scenario = scenario,
+	}
 	local function openFixture()
 		if scenario.name == "contracts-tutorial" then
 			assert(scenario.genre == "survival-coop", "contracts-tutorial binds the survival-coop genre")
@@ -600,26 +614,36 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				(trustedServices :: any)[key] = service
 			end
 		end
-		if scenario.name == "handoff-conservation" then
-			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
-			fixture = require("../fixtures/handoff-conservation/scenario").new(
-				"games/robango-island",
-				gate.backend,
-				function()
-					return math.floor(wall)
-				end
-			)
-			for key, service in fixture.services do
+		table.clear(fixtureInstances)
+		fixtureContext.backend = gate.backend
+		for _, module in registry.modules do
+			local instance = module.new(fixtureContext)
+			fixtureInstances[module] = instance
+			for key, service in instance.services or {} do
 				(trustedServices :: any)[key] = service
 			end
 		end
-		if scenario.name == "role-routing" then
-			assert(scenario.genre == "survival-coop" and scenario.pack == "robango-island", "fixture pack binding")
-			assert(table.find(scenario.fixtures, "cli/forge/fixtures/role-routing"), "routing fixture binding")
-			fixture = require("../fixtures/role-routing/scenario").new(function()
-				return math.floor(wall)
-			end)
+	end
+	local function bindFixtures(value)
+		fixtureContext.session = value
+		for _, module in registry.modules do
+			local instance = fixtureInstances[module]
+			if instance.bind then
+				instance.bind(value)
+			end
 		end
+	end
+	local function closeFixtures()
+		for _, module in registry.modules do
+			local instance = fixtureInstances[module]
+			if instance.close then
+				local released = instance.close()
+				if not released.ok then
+					return released
+				end
+			end
+		end
+		return { ok = true }
 	end
 	openFixture()
 	-- Genre extensions (taming): built from the real registry factory over the run's backend,
@@ -715,6 +739,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		emit = function(_event) end,
 	}, if scenario.data then scenario.data.durable else nil)
 	liveSession = session
+	bindFixtures(session)
 	if fixture then
 		fixture.bind(session)
 	end
@@ -740,7 +765,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		})
 	end
 	local saves: { [string]: any } = {}
-	local results: { [string]: any } = {}
+	local results: { [string]: any } = fixtureContext.results
 	-- A session call parked at a commit barrier. The scenario resumes it with
 	-- an explicit `resume_commit` step; nothing here ever sleeps or polls.
 	local suspendedCall: thread? = nil
@@ -778,26 +803,6 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					return "join refused: " .. tostring(result.reason)
 				end
 				transferOwner(actor)
-				return nil
-			elseif op == "role_travel" then
-				assert(scenario.kind == "native" and fixture and fixture.travel, "role travel requires native fixture")
-				local actor = playerOf(step)
-				local result = fixture.travel(actor, step.from, step.destination, step.level, step.objectives)
-				results[actor] = result
-				if (step.expect == "refused") == result.ok then
-					return "unexpected role travel result"
-				end
-				return nil
-			elseif op == "prepare_handoff" or op == "resume_handoff" or op == "complete_handoff" then
-				local actor = playerOf(step)
-				local result = if op == "prepare_handoff"
-					then session.prepareHandoff(actor)
-					elseif op == "resume_handoff" then session.resumeHandoff(actor)
-					else session.completeHandoff(actor)
-				results[actor] = result
-				if (step.expect == "refused") == result.ok then
-					return "handoff unexpected result: " .. tostring(result.reason)
-				end
 				return nil
 			elseif op == "leave" or op == "close" then
 				local actor =
@@ -1035,6 +1040,7 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 				if fixture then
 					assert(fixture.close().ok, "fixture release before reload")
 				end
+				assert(closeFixtures().ok, "registered fixture release before reload")
 				for closer = #extensionClosers, 1, -1 do
 					assert(extensionClosers[closer]().ok, "extension release before reload")
 					table.remove(extensionClosers, closer)
@@ -1069,10 +1075,16 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 					emit = function(_event) end,
 				}, if scenario.data then scenario.data.durable else nil)
 				liveSession = session
+				bindFixtures(session)
 				if fixture then
 					fixture.bind(session)
 				end
 				return nil
+			end
+			local module = registry.operations[op]
+			if module then
+				fixtureContext.fixture = fixtureInstances[module]
+				return module.operations[op](fixtureContext, step)
 			end
 			return string.format("operation '%s' has no native driver", tostring(op))
 		end)
@@ -1113,6 +1125,13 @@ function M.runNative(scenario: qascenario.Scenario, target: Target, barrier: Bar
 		if not released.ok then
 			outcome.ok = false
 			table.insert(outcome.failures, "settlement cleanup: " .. tostring(released.reason))
+		end
+	end
+	if suspendedCall == nil then
+		local released = closeFixtures()
+		if not released.ok then
+			outcome.ok = false
+			table.insert(outcome.failures, "fixture cleanup: " .. tostring(released.reason))
 		end
 	end
 	if fixture and suspendedCall == nil then
