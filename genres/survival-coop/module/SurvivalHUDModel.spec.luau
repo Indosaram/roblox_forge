@@ -38,6 +38,14 @@ local function model(): any
 end
 
 return {
+	["placement action bar retains target through padded pointer bounds"] = function()
+		local p, s = { X = 16, Y = 540 }, { X = 328, Y = 48 }
+		for _, point in { { 20, 550 }, { 170, 560 }, { 340, 580 }, { 8, 535 } } do
+			assert(Model.overPlacementBar(point[1], point[2], p, s), "action bar must lock target")
+		end
+		assert(not Model.overPlacementBar(170, 510, p, s), "world pointer updates target")
+		assert(not Model.overPlacementBar(400, 560, p, s), "beside bar updates target")
+	end,
 	["reserve feedback reports missing available quantities for bag and warehouse"] = function()
 		local bag = {
 			items = { wood = { itemId = "wood", catalogId = "wood", quantity = 4 } },
@@ -345,6 +353,18 @@ return {
 		assert(
 			settlement.version == 0 and next(settlement.reservations) == nil,
 			"settlement.version == 0 and next(settlement.reservations) == nil"
+		)
+		local reserved = assert(Settlement.reserve(settlement, "alice", 0, 0, {
+			id = "actual",
+			definition = definition,
+			x = 2,
+			z = 2,
+			rotation = 1,
+		}))
+		local retained, refusal = Model.preview({ settlement = reserved }, "alice", definition, 2, 2, 1)
+		assert(
+			retained == reserved.reservations.actual and refusal == nil,
+			"own reservation remains valid green preview"
 		)
 	end,
 }

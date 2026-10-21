@@ -530,8 +530,10 @@ function M.start(options: Options)
 		end
 		return nil
 	end
+	local placementReason: string? = nil
 	local function preview()
 		ghost:ClearAllChildren()
+		placementReason = nil
 		local definition, settlement = selectedDefinition(), model.snapshot.settlement
 		if section ~= "build" or not definition or not settlement then
 			return
@@ -543,7 +545,8 @@ function M.start(options: Options)
 			end
 		end
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
-		local cells = if placement then placement.cells else {}
+		placementReason = reason
+		local cells: { any } = if placement then table.clone(placement.cells) else {}
 		if not placement then
 			for dx = 0, definition.footprintX - 1 do
 				for dz = 0, definition.footprintZ - 1 do
@@ -556,6 +559,39 @@ function M.start(options: Options)
 			end
 		end
 		local size = settlement.config.cellStuds
+		local lowX, lowZ, highX, highZ = math.huge, math.huge, -math.huge, -math.huge
+		for _, cell in cells do
+			lowX, lowZ = math.min(lowX, cell.x), math.min(lowZ, cell.z)
+			highX, highZ = math.max(highX, cell.x), math.max(highZ, cell.z)
+		end
+		local at = options.settlementOrigin
+			+ Vector3.new((lowX + highX + 1) * size / 2, 0, (lowZ + highZ + 1) * size / 2)
+		local params = RaycastParams.new()
+		params.FilterType, params.FilterDescendantsInstances = Enum.RaycastFilterType.Include, { world.Terrain }
+		local hit = world:Raycast(at + Vector3.new(0, 128, 0), Vector3.new(0, -256, 0), params)
+		if hit then
+			at = Vector3.new(at.X, hit.Position.Y + 0.2, at.Z)
+		end
+		local kits = storage:FindFirstChild("ForgeStructureKits")
+		local kit = if kits then kits:FindFirstChild(definition.id) else nil
+		if kit then
+			local visual = kit:Clone()
+			for _, item in visual:GetDescendants() do
+				if item:IsA("BasePart") then
+					item.Color = if reason then Color3.fromRGB(240, 72, 65) else Color3.fromRGB(65, 230, 120)
+					item.Transparency, item.Material = 0.45, Enum.Material.Neon
+					item.CanCollide, item.CanTouch, item.CanQuery = false, false, false
+				elseif item:IsA("Fire") or item:IsA("Light") then
+					item:Destroy()
+				end
+			end
+			visual:PivotTo(CFrame.new(at) * CFrame.Angles(0, -rotation * math.pi / 2, 0))
+			visual.Parent = ghost
+			local outline = Instance.new("Highlight")
+			outline.Adornee, outline.FillTransparency, outline.OutlineTransparency = visual, 0.7, 0
+			outline.FillColor = if reason then Color3.fromRGB(240, 72, 65) else Color3.fromRGB(65, 230, 120)
+			outline.OutlineColor, outline.Parent = outline.FillColor, visual
+		end
 		local entryX, entryZ = 0, -1
 		for _ = 1, rotation do
 			entryX, entryZ = -entryZ, entryX
@@ -570,7 +606,11 @@ function M.start(options: Options)
 				part.Name = "Entry"
 				part.Size *= 0.6
 			end
-			part.Position = options.settlementOrigin + Vector3.new((cell.x + 0.5) * size, 0.15, (cell.z + 0.5) * size)
+			part.Position = Vector3.new(
+				options.settlementOrigin.X + (cell.x + 0.5) * size,
+				at.Y + 0.15,
+				options.settlementOrigin.Z + (cell.z + 0.5) * size
+			)
 			part.Color = if reason then Color3.fromRGB(223, 99, 85) else Color3.fromRGB(141, 201, 149)
 			part.Transparency, part.Material, part.Parent = 0.4, Enum.Material.Neon, ghost
 		end
@@ -587,6 +627,14 @@ function M.start(options: Options)
 	placementBar.ZIndex = sheet.frame.ZIndex + 3
 	placementBar.Size, placementBar.Position = UDim2.fromOffset(272, 48), UDim2.new(0.5, -136, 1, -72)
 	placementBar.Parent, placementBar.Visible = placementGui, false
+	local blocked = Components.label(theme, {
+		text = "",
+		parent = placementBar,
+		size = UDim2.fromOffset(328, 52),
+		position = UDim2.fromOffset(0, -60),
+		textSize = 14,
+	})
+	blocked.Name, blocked.TextWrapped = "PlacementReason", true
 	local function placeSelected()
 		local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
 		if not settlement or not warehouse or model.pending then
@@ -659,6 +707,10 @@ function M.start(options: Options)
 			if processed or section ~= "build" or not structureId then
 				return
 			end
+			local p, s = placementBar.AbsolutePosition, placementBar.AbsoluteSize
+			if Model.overPlacementBar(event.Position.X, event.Position.Y, p, s) then
+				return
+			end
 			if
 				event.UserInputType ~= Enum.UserInputType.MouseMovement
 				and event.UserInputType ~= Enum.UserInputType.Touch
@@ -693,6 +745,7 @@ function M.start(options: Options)
 			if nextX ~= x or nextZ ~= z then
 				x, z = nextX, nextZ
 				preview()
+				blocked.Text = if placementReason then Locale.refusal(locale, placementReason) else ""
 			end
 		end)
 	)
@@ -970,12 +1023,11 @@ function M.start(options: Options)
 			end)
 			for _, definition in orderedStructures do
 				controls.parent = buildCards
-				local affordable = #Model.missingMaterials(model.snapshot.warehouse, definition.cost) == 0
 				local card = button("Structure-" .. definition.id, "", function()
 					structureId = definition.id
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
-				end, affordable)
+				end, true)
 				IconFallback.mount(card, "building", UDim2.fromOffset(28, 28), UDim2.fromOffset(6, 6), nil)
 				local title = card:FindFirstChild("StructureName")
 					or Components.label(
@@ -1062,6 +1114,7 @@ function M.start(options: Options)
 			end
 		end
 		preview()
+		blocked.Text = if placementReason then Locale.refusal(locale, placementReason) else ""
 	end
 	refresh = function()
 		if disposed or refreshing then

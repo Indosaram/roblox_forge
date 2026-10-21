@@ -106,6 +106,11 @@ local function setupAtmosphere()
 end
 
 return function(content: any, source: any, wildlifePolicy, epochMillis, role: string, studioSingle: boolean)
+	local kits = Instance.new("Folder")
+	kits.Name, kits.Parent = "ForgeStructureKits", game:GetService("ReplicatedStorage")
+	for _, definition in content.structures do
+		Dressing.structure(kits, definition, source.tribe.config.cellStuds)
+	end
 	if not studioSingle then
 		local configured = table.clone(source)
 		configured.seed = source.seed or DECOR_SEED
@@ -133,12 +138,14 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		local builders = source.roleBuilders
 		local builder = if builders then builders[role] else nil
 		assert(type(builder) == "function", "missing_world_builder:" .. tostring(role))
-		return builder(content, source, wildlifePolicy, epochMillis)
+		local world = builder(content, source, wildlifePolicy, epochMillis)
+		world.structureKits = kits
+		return world
 	end
 	assert(role == "onboarding", "studio_preview_requires_onboarding")
 	if wildlifePolicy then
 		wildlifePolicy = table.clone(wildlifePolicy)
-		wildlifePolicy.sourceKey = "wildlife-onboarding-v3"
+		wildlifePolicy.sourceKey = "w-preview-v3"
 		wildlifePolicy.spawns = {}
 		for _, layout in content.layouts do
 			if layout.id == "rw.onboarding" then
@@ -224,6 +231,11 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				value.Shape = (Enum.PartType :: any)[d.shape]
 			end
 			value.CanCollide, value.CanQuery, value.CanTouch = false, false, false
+			if d.effect == "fire" then
+				local fire, light = Instance.new("Fire"), Instance.new("PointLight")
+				fire.Size, fire.Heat, fire.Parent = 5, 7, value
+				light.Color, light.Range, light.Brightness, light.Parent = value.Color, 20, 2, value
+			end
 		end
 	end
 
@@ -331,65 +343,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	local campfire = part("campfire", Vector3.new(3, 1, 3), Vector3.new(-6, 0.5, 0), rgb(96, 92, 86))
 	campfire.Material = Enum.Material.Cobblestone
 	campfire.Transparency = 1
-	for i = 1, 8 do
-		local ang = math.rad(i * 45)
-		decor(
-			"CampfireStone" .. i,
-			Vector3.new(0.95, 0.7, 0.85),
-			CFrame.new(-6 + math.cos(ang) * 1.65, 0.35, math.sin(ang) * 1.65) * CFrame.Angles(0, ang, 0),
-			rgb(122, 118, 110),
-			Enum.PartType.Ball,
-			Enum.Material.Rock
-		)
-	end
-	for i = 1, 4 do
-		local ang = math.rad(i * 45)
-		decor(
-			"CampfireLog" .. i,
-			Vector3.new(2.6, 0.42, 0.42),
-			CFrame.new(-6, 0.95, 0) * CFrame.Angles(0, ang, math.rad(14)),
-			rgb(78, 52, 32),
-			Enum.PartType.Cylinder,
-			Enum.Material.Wood
-		)
-	end
-	local flameCore = decor(
-		"CampfireFlameCore",
-		Vector3.new(1.3, 1.5, 1.3),
-		CFrame.new(-6, 1.45, 0),
-		rgb(255, 136, 36),
-		Enum.PartType.Ball,
-		Enum.Material.Neon
-	)
-	decor(
-		"CampfireFlameTip",
-		Vector3.new(0.75, 1.9, 0.75),
-		CFrame.new(-6, 1.95, 0),
-		rgb(255, 208, 74),
-		Enum.PartType.Ball,
-		Enum.Material.Neon
-	)
-	pcall(function()
-		local light = Instance.new("PointLight")
-		light.Color = rgb(255, 168, 72)
-		light.Brightness = 2.2
-		light.Range = 22
-		light.Shadows = true
-		light.Parent = flameCore
-	end)
-	for i = 1, 3 do
-		local ang = math.rad(i * 120 + 20)
-		decor(
-			"CampfireTripod" .. i,
-			Vector3.new(0.18, 4.4, 0.18),
-			CFrame.new(-6 + math.cos(ang) * 0.95, 2.1, math.sin(ang) * 0.95)
-				* CFrame.Angles(0, -ang, 0)
-				* CFrame.Angles(0, 0, math.rad(22)),
-			rgb(92, 64, 40),
-			nil,
-			Enum.Material.Wood
-		)
-	end
+	kit("Campfire", Vector3.new(-6, 0, 0), "campfire")
 
 	local bench = part("workbench", Vector3.new(4, 2, 2), Vector3.new(6, 1, 0), rgb(134, 92, 54))
 	bench.Material = Enum.Material.WoodPlanks
@@ -551,7 +505,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				Vector3.new(3.1, 2.8, 3.1),
 				CFrame.new(p + Vector3.new(-1.1, -0.4, 0.6)),
 				rgb(42, 98, 52),
-				nil,
+				Enum.PartType.Ball,
 				Enum.Material.Grass
 			)
 			decor(
@@ -559,7 +513,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				Vector3.new(2.9, 2.7, 2.9),
 				CFrame.new(p + Vector3.new(1.1, -0.3, -0.5)),
 				rgb(58, 124, 66),
-				nil,
+				Enum.PartType.Ball,
 				Enum.Material.Grass
 			)
 			local berries =
@@ -1011,5 +965,6 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		)
 		decor("ReedTip", Vector3.new(0.4, 2, 0.4), CFrame.new(x + 0.6, y + 4, z), rgb(120, 86, 52))
 	end)
+	world.structureKits = kits
 	return world
 end

@@ -146,7 +146,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				if kind == "bush" then 3.5 else 4.2,
 				"Grass",
 				{ palette.leaf[1] + i * 3, palette.leaf[2] + i * 2, palette.leaf[3] },
-				"Wedge"
+				if kind == "bush" then "Ball" else "Wedge"
 			)
 			leaf.yaw, leaf.roll =
 				i * 60, if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
@@ -302,7 +302,115 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		for _, y in { 1.2, 2.8 } do
 			piece("rail" .. y, 0, y, 0, 8, 0.4, 0.4, "Wood", wood)
 		end
+	elseif string.find(kind, "floor", 1, true) then
+		for i = 1, 6 do
+			piece("board" .. i, (i - 3.5) * 1.3, 0.3, 0, 1.2, 0.6, 8, "WoodPlanks", wood)
+		end
+		for _, z in { -3, 3 } do
+			piece("joist" .. z, 0, 0.7, z, 8, 0.4, 0.6, "Wood", wood)
+		end
+	elseif string.find(kind, "wall", 1, true) or kind == "door" then
+		for i = 1, 6 do
+			if kind ~= "door" or i == 1 or i == 6 then
+				piece("board" .. i, (i - 3.5) * 1.3, 3, 0, 1.2, 6, 0.5, "WoodPlanks", wood)
+			end
+		end
+		piece("lintel", 0, 6, 0, 8, 0.6, 0.8, "Wood", wood)
+	elseif string.find(kind, "roof", 1, true) then
+		for _, side in { -1, 1 } do
+			piece("slope" .. side, side * 2, 2, 0, 5.6, 0.5, 8, "Grass", sand).roll = side * -45
+		end
+		piece("ridge", 0, 4, 0, 0.5, 0.5, 8, "Wood", wood)
+	elseif kind == "stairs" then
+		for i = 1, 6 do
+			piece("step" .. i, 0, i * 0.7, (i - 3.5) * 1.3, 6, 0.7, 1.3, "WoodPlanks", wood)
+		end
+	elseif kind == "pillar" then
+		piece("post", 0, 3, 0, 1, 6, 1, "Wood", wood)
+		piece("cap", 0, 6, 0, 2, 0.5, 2, "Wood", sand)
+	elseif kind == "well" or kind == "kiln" or kind == "mud-kiln" then
+		for i = 1, 10 do
+			local angle = i * math.pi / 5
+			piece(
+				"stone" .. i,
+				math.cos(angle) * 2,
+				1.5,
+				math.sin(angle) * 2,
+				1.5,
+				3,
+				1.5,
+				"Slate",
+				palette.rock,
+				"Ball"
+			)
+		end
+		if kind ~= "well" then
+			piece("coals", 0, 0.6, 0, 2, 0.4, 2, "Neon", { 255, 106, 24 }).effect = "fire"
+		end
+	elseif kind == "bed" then
+		piece("frame", 0, 0.5, 0, 4, 1, 7, "Wood", wood)
+		piece("blanket", 0, 1.2, 0, 3.7, 0.5, 6.5, "Fabric", palette.leaf)
+		piece("pillow", 0, 1.6, -2, 3, 0.5, 1.5, "Fabric", sand)
 	end
+end
+
+-- The same kit is cloned for authored structures, committed builds and ghosts.
+function M.structure(parent: any, definition: any, cellStuds: number): any
+	local env: any = getfenv()
+	local Instance, Vector3, CFrame, Color3, Enum = env.Instance, env.Vector3, env.CFrame, env.Color3, env.Enum
+	local kind = definition.id
+	local aliases = {
+		storage = "chest",
+		tent = "shelter",
+		["clan-hall"] = "shelter",
+		["joiner-bench"] = "workbench",
+		["mason-bench"] = "workbench",
+		laboratory = "workbench",
+		["tanning-frame"] = "drying-rack",
+		["animal-pen"] = "fence",
+		["signal-relay"] = "beacon",
+		refrigerator = "chest",
+	}
+	local parts = {}
+	M.kit(parts, kind, { x = 0, y = 0, z = 0 }, aliases[kind] or kind, palettes.grassland)
+	assert(#parts > 1, "STRUCTURE_KIT_MISSING:" .. kind)
+	local halfX, halfZ = 0, 0
+	for _, d in parts do
+		local yaw, roll = math.rad(d.yaw or 0), math.rad(d.roll or 0)
+		local sx = math.abs(math.cos(roll)) * d.size.x + math.abs(math.sin(roll)) * d.size.y
+		halfX = math.max(
+			halfX,
+			math.abs(d.position.x) + (math.abs(math.cos(yaw)) * sx + math.abs(math.sin(yaw)) * d.size.z) / 2
+		)
+		halfZ = math.max(
+			halfZ,
+			math.abs(d.position.z) + (math.abs(math.sin(yaw)) * sx + math.abs(math.cos(yaw)) * d.size.z) / 2
+		)
+	end
+	local sx, sz = definition.footprintX * cellStuds / (2 * halfX), definition.footprintZ * cellStuds / (2 * halfZ)
+	local sy = math.min(sx, sz)
+	local model = Instance.new("Model")
+	model.Name = kind
+	for _, d in parts do
+		local value = Instance.new(if d.shape == "Wedge" then "WedgePart" else "Part")
+		value.Name, value.Anchored = d.id, true
+		value.Size = Vector3.new(d.size.x * sx, d.size.y * sy, d.size.z * sz)
+		value.CFrame = CFrame.new(d.position.x * sx, d.position.y * sy, d.position.z * sz)
+			* CFrame.Angles(0, math.rad(d.yaw or 0), math.rad(d.roll or 0))
+		value.Color, value.Material = Color3.fromRGB(table.unpack(d.color)), Enum.Material[d.material]
+		if d.shape and d.shape ~= "Wedge" then
+			value.Shape = Enum.PartType[d.shape]
+		end
+		value.CanTouch, value.Parent = false, model
+		if d.effect == "fire" then
+			local fire, light = Instance.new("Fire"), Instance.new("PointLight")
+			fire.Size, fire.Heat, fire.Parent = 5, 7, value
+			light.Color, light.Range, light.Brightness, light.Parent = value.Color, 20, 2, value
+		end
+	end
+	model.WorldPivot = CFrame.new()
+	model.Parent = parent
+	return model
 end
 
 function M.palette(layout: any): any

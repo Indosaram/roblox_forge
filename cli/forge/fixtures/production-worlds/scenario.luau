@@ -105,6 +105,7 @@ function M.new(ctx: any): any
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
 	module.Extensions = {
 		factories = {
+			require("../../../../genres/survival-coop/module/ContractsExtension").factory,
 			require("../../../../genres/survival-coop/module/ScoreTransport").factory,
 			require("../../../../genres/survival-coop/module/EnsembleExtension").factory,
 			require("../../../../genres/survival-coop/module/ClanExtension").factory,
@@ -136,7 +137,10 @@ function M.new(ctx: any): any
 	forge.genres["survival-coop"].module.MultistoreyCommands =
 		require("../../../../genres/survival-coop/module/MultistoreyCommands")
 	local factoryBuilder = engine.load("games/robango-island/src/server/SurvivalFactory.luau", {}, {
-		Parent = { LateEquipmentPorts = require("../../../../games/robango-island/src/server/LateEquipmentPorts") },
+		Parent = {
+			LateEquipmentPorts = require("../../../../games/robango-island/src/server/LateEquipmentPorts"),
+			WorldDressing = engine.dressing,
+		},
 	})
 	local source: any = table.clone(Source)
 	source.seed, source.renderRole = ctx.scenario.seed, engine.role.build
@@ -963,6 +967,10 @@ function M.new(ctx: any): any
 			assert(command(actor, "craft-start", { job }).ok, "axe starts")
 			ctx.clock.advanceTo(ctx.clock.now() + 3)
 			assert(command(actor, "craft-complete", { job }).ok, "axe completes")
+			assert(
+				session.snapshot(actor).survivalExtensions.contracts.tutorial.step == "declare-settlement",
+				"real craft feed advances axe objective"
+			)
 		end
 		-- Stand beyond the visual depot: its old collidable box blocked the reach ray.
 		engine.move(actor, { x = 6, y = 2, z = -22 })
@@ -976,6 +984,12 @@ function M.new(ctx: any): any
 			end
 		end
 		assert(remaining == 0, "four gathered wood deposited")
+		if clientPrompts then
+			assert(
+				session.snapshot(actor).survivalExtensions.contracts.tutorial.step == "declare-settlement",
+				"deposit preserves next unmet tutorial objective"
+			)
+		end
 		engine.move(actor, { x = -6, y = 3, z = -10 })
 		camp = session.snapshot(actor).survivalSettlement
 		local reserved = command(actor, "settlement-reserve", {
@@ -997,12 +1011,34 @@ function M.new(ctx: any): any
 		local station
 		for _, value in engine.parts do
 			if value:GetAttribute("ForgeStructureId") then
+				local visual = assert(value:FindFirstChild("campfire"), "built campfire uses authored kit")
+				local flame, light, pieces = false, false, 0
+				for _, piece in visual:GetDescendants() do
+					flame = flame or piece:IsA("Fire")
+					light = light or piece:IsA("PointLight")
+					if piece:IsA("BasePart") then
+						pieces += 1
+					end
+				end
+				assert(pieces > 8 and flame and light, "built fire has stone ring logs flame and light")
 				station = value:GetAttribute("ForgeStationId")
 				engine.move(actor, { x = value.Position.X, y = value.Position.Y + 3, z = value.Position.Z })
 			end
 		end
 		assert(station, "new campfire published")
+		if clientPrompts then
+			assert(
+				session.snapshot(actor).survivalExtensions.contracts.tutorial.step ~= "declare-settlement",
+				"real placement feed advances settlement objective"
+			)
+		end
 		assert(command(actor, "rest", { station }).ok, "rest at new campfire")
+		if clientPrompts then
+			assert(
+				session.snapshot(actor).survivalExtensions.contracts.tutorial.step == "accept-contract",
+				"rest preserves the contract objective after building"
+			)
+		end
 		if gatherClient then
 			gatherClient.destroy()
 		end

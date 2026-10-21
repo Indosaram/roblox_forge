@@ -98,6 +98,46 @@ function M.new(physicalWarehouse: boolean?): any
 			end
 			return result
 		end
+		function value:GetDescendants()
+			local result = {}
+			for _, child in callbacks do
+				if child:IsDescendantOf(self) and not child.destroyed then
+					table.insert(result, child)
+				end
+			end
+			return result
+		end
+		function value:PivotTo(cf)
+			local previous = self.WorldPivot or roblox.CFrame.identity
+			for _, child in self:GetDescendants() do
+				if child:IsA("BasePart") then
+					child.CFrame = cf * previous:ToObjectSpace(child.CFrame)
+					child.Position = child.CFrame.Position
+				end
+			end
+			self.WorldPivot = cf
+		end
+		function value:ScaleTo(scale)
+			for _, child in self:GetDescendants() do
+				if child:IsA("BasePart") then
+					child.Size *= scale
+					child.CFrame = roblox.CFrame.new(child.CFrame.Position * scale) * child.CFrame.Rotation
+					child.Position = child.CFrame.Position
+				end
+			end
+		end
+		function value:Clone()
+			local clone = instance(self.ClassName)
+			for key, data in self do
+				if type(data) ~= "function" and key ~= "Parent" and key ~= "children" then
+					clone[key] = data
+				end
+			end
+			for _, child in self:GetChildren() do
+				child:Clone().Parent = clone
+			end
+			return clone
+		end
 		function value:WaitForChild(name)
 			return assert(self:FindFirstChild(name), name)
 		end
@@ -233,11 +273,10 @@ function M.new(physicalWarehouse: boolean?): any
 		},
 		genres = { ["survival-coop"] = { module = {} } },
 	}
-	services.ReplicatedStorage = {
-		WaitForChild = function()
-			return forge
-		end,
-	}
+	services.ReplicatedStorage = instance("Folder")
+	services.ReplicatedStorage.WaitForChild = function()
+		return forge
+	end
 	local game = {
 		GetService = function(_, key)
 			return services[key]
@@ -351,6 +390,7 @@ function M.new(physicalWarehouse: boolean?): any
 	local home = load("games/robango-island/src/server/HomeWorld.luau", { ["./WorldDressing"] = dressing }, nil)
 	local archipelago = require("../../../../games/robango-island/src/server/ArchipelagoWorld")
 	return {
+		dressing = dressing,
 		forge = forge,
 		game = game,
 		load = load,

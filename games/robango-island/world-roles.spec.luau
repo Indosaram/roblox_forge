@@ -9,6 +9,45 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["live role bootstrap receives the same structure templates as Studio preview"] = function()
+		local engine = Engine.new()
+		local bootstrap = engine.load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
+			["./WorldDressing"] = engine.dressing,
+		}, { Parent = { RoleWorld = engine.role, HomeWorld = engine.home, BrawlWorld = {} } })
+		local world = bootstrap(Content, Source, Policy, function()
+			return 0
+		end, "home", false)
+		assert(
+			world.structureKits == engine.game:GetService("ReplicatedStorage"):FindFirstChild("ForgeStructureKits"),
+			"live world owns replicated templates"
+		)
+		for _, definition in Content.structures do
+			assert(world.structureKits:FindFirstChild(definition.id), "live kit missing: " .. definition.id)
+		end
+		world.destroy()
+	end,
+	["starter camp berry shrub is rounded and storage uses woven stacked baskets"] = function()
+		local engine = Engine.new()
+		local world = engine.game:GetService("Workspace")
+		engine.preview(Content, Source, nil, nil, "onboarding", true)
+		local lobes, berries, baskets, weave = 0, 0, 0, 0
+		for _, item in world:GetDescendants() do
+			if item:IsA("BasePart") then
+				if string.find(item.Name, "-lobe", 1, true) then
+					lobes += 1
+					assert(item.Shape == require("@lune/roblox").Enum.PartType.Ball, "berry lobe must be rounded")
+				elseif string.find(item.Name, "-berry", 1, true) then
+					berries += 1
+				elseif string.find(item.Name, "WarehouseBaskets.basket", 1, true) then
+					baskets += 1
+				elseif string.find(item.Name, "WarehouseBaskets.weave", 1, true) then
+					weave += 1
+				end
+			end
+		end
+		assert(lobes >= 2 and berries >= 5, "multi-lobe shrub with visible berries")
+		assert(baskets == 2 and weave == 6, "woven two-basket storage stack")
+	end,
 	["SurvivalWorldBootstrap clears every gather reach ray after overlapping approach paths"] = function()
 		local engine = Engine.new()
 		local fills = {}

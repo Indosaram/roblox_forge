@@ -172,6 +172,10 @@ function M.pointerCell(hitX: number, hitZ: number, originX: number, originZ: num
 		math.clamp(math.floor((hitZ - originZ) / config.cellStuds), 0, config.depth - 1)
 end
 
+function M.overPlacementBar(x: number, y: number, p: any, s: any): boolean
+	return x >= p.X - 12 and x <= p.X + s.X + 12 and y >= p.Y - 12 and y <= p.Y + s.Y + 12
+end
+
 function M.placements(settlement: any, actor: string): { any }
 	local rows = {}
 	for id, placement in settlement.reservations do
@@ -325,6 +329,17 @@ function M.preview(
 	local state = snapshot.settlement
 	if not state then
 		return nil, "SETTLEMENT_UNAVAILABLE"
+	end
+	for _, placement in state.reservations do
+		if
+			placement.actorId == actor
+			and placement.definition.id == definition.id
+			and placement.x == x
+			and placement.z == z
+			and placement.rotation == rotation
+		then
+			return placement, nil
+		end
 	end
 	-- Reuse authoritative pure footprint/entry rules, without publishing the candidate.
 	local id = "hud-preview"

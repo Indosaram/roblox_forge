@@ -15,6 +15,27 @@ local function validate(layout: any, plan: any)
 end
 
 return {
+	["every buildable structure has a volumetric kit and campfire emits fire and light"] = function()
+		local engine = require("../../cli/forge/fixtures/production-worlds/engine").new()
+		for _, definition in Content.structures do
+			local model = engine.dressing.structure(nil, definition, 4)
+			local count, height, flame, light = 0, 0, false, false
+			for _, part in model:GetDescendants() do
+				if part:IsA("BasePart") then
+					count += 1
+					height = math.max(height, part.CFrame.Position.Y + part.Size.Y / 2)
+				elseif part:IsA("Fire") then
+					flame = true
+				elseif part:IsA("PointLight") then
+					light = true
+				end
+			end
+			assert(count > 1 and height > 0.5, definition.id .. " must not be a flat slab")
+			if definition.id == "campfire" then
+				assert(count > 8 and flame and light, "stone ring logs fire and light")
+			end
+		end
+	end,
 	["art kits have pitched thatch rounded foliage and grounded supports within budget"] = function()
 		local palette = Dressing.palette({ biomes = { "grassland" } })
 		for _, kind in { "shelter", "bush", "fern", "rock", "workbench", "campfire" } do
@@ -32,7 +53,7 @@ return {
 					ring += 1
 				end
 				if kind == "bush" then
-					assert(p.shape == "Wedge", "layered bush leaf cards")
+					assert(p.shape == "Ball", "rounded bush lobes")
 				elseif kind == "fern" then
 					assert(p.shape == "Wedge" and p.size.x <= 0.35, "thin fan fronds")
 				elseif kind == "rock" then

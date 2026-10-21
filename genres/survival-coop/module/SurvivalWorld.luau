@@ -196,7 +196,8 @@ function M.new(config: Config)
 		},
 	}
 	-- isFriend is declared so the table satisfies SurvivalBootstrap.World; hosts assign the trusted friendship source.
-	local api = { services = services, isFriend = nil :: ((string, string) -> boolean)? }
+	local api =
+		{ services = services, isFriend = nil :: ((string, string) -> boolean)?, structureKits = nil :: Folder? }
 	local built: { [string]: BasePart } = {}
 	local builtVersion: { [string]: number } = {}
 	-- The host supplies a trusted plot origin and warehouse position. These ports
@@ -300,6 +301,18 @@ function M.new(config: Config)
 					part:SetAttribute("ForgeTribeId", tribe)
 					part:SetAttribute("ForgeStructureId", id)
 					part.Parent = world
+					local kit = if api.structureKits
+						then api.structureKits:FindFirstChild(placement.definition.id)
+						else nil
+					if kit and kit:IsA("Model") then
+						local visual = kit:Clone()
+						visual:PivotTo(
+							CFrame.new(part.Position - Vector3.new(0, 0.5, 0))
+								* CFrame.Angles(0, -placement.rotation * math.pi / 2, 0)
+						)
+						visual.Parent = part
+						part.Transparency, part.CanCollide = 1, false
+					end
 					built[id] = part
 					if kinds[placement.definition.id] then
 						-- Station handles are ephemeral world identity, not inventory or
