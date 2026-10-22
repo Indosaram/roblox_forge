@@ -1,6 +1,7 @@
 --!strict
 local M = {}
 local strings: { [string]: { string } } = {
+	["trade.bundle.list"] = { "List bundle", "묶음 등록" },
 	menu_survival = { "Survival", "생존" },
 	menu_world = { "World", "세계" },
 	menu_social = { "Social", "함께" },

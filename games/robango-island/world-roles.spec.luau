@@ -9,6 +9,37 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["a missing terrain ray never aborts a live role boot"] = function()
+		local engine = Engine.new()
+		engine.game:GetService("Workspace").Raycast = function()
+			return nil
+		end
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.a1.s1", 1776)
+		world.bind({} :: any)
+		assert(world.roleSource.worldRevision == "rw.a1.s1:1776", "boot continues after missing support")
+	end,
+	["every authored wildlife spawn in every layout has a dry terrain column"] = function()
+		local terrain = require("../../core/domain/island/ArchipelagoTerrain")
+		local document = serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))
+		for _, layout in document.layouts do
+			local cell = if layout.id == "rw.onboarding" then 16 else 32
+			local columns = terrain.columns(layout, 1776, cell)
+			for _, spawn in layout.spawns do
+				local supported = false
+				for _, column in columns do
+					if
+						math.abs(column.x - spawn.position.x) <= cell / 2
+						and math.abs(column.z - spawn.position.z) <= cell / 2
+					then
+						supported = supported or column.top >= 0
+					end
+				end
+				assert(supported, layout.id .. ":" .. spawn.id .. " has no dry terrain")
+			end
+		end
+	end,
 	["every onboarding spawn has an immediately reachable gather prompt"] = function()
 		local roblox = require("@lune/roblox")
 		for _, preview in { true, false } do
@@ -66,7 +97,7 @@ return {
 						)
 					end
 				end
-				assert(lowest >= 0 and lowest <= 1, model.Name .. " is not grounded")
+				assert(lowest >= -0.001 and lowest <= 0.101, model.Name .. " is not grounded: " .. lowest)
 				count += 1
 			end
 		end

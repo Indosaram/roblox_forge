@@ -548,7 +548,10 @@ function M.ground(model: Model)
 	params.FilterDescendantsInstances = { workspace.Terrain }
 	params.IgnoreWater = true
 	local hit = workspace:Raycast(Vector3.new(root.Position.X, 512, root.Position.Z), Vector3.new(0, -1024, 0), params)
-	assert(hit, "CREATURE_SPAWN_WITHOUT_TERRAIN:" .. model.Name)
+	if not hit then
+		warn("CREATURE_SPAWN_WITHOUT_TERRAIN:" .. model.Name)
+		return
+	end
 	local lowest = math.huge
 	for _, piece in model:GetDescendants() do
 		if piece:IsA("BasePart") then
@@ -561,7 +564,7 @@ function M.ground(model: Model)
 			lowest = math.min(lowest, cf.Position.Y - half)
 		end
 	end
-	model:PivotTo(model:GetPivot() + Vector3.new(0, hit.Position.Y + 0.1 - lowest, 0))
+	model:PivotTo(model:GetPivot() + Vector3.new(0, hit.Position.Y - lowest, 0))
 end
 
 -- Pure sampling: no connections, wall clock, random motion or client damage.

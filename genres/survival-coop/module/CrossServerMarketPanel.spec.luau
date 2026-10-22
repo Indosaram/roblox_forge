@@ -97,7 +97,7 @@ return {
 			assert(#widgets == count, "unchanged snapshots preserve input focus")
 			for _, props in widgets do
 				assert(props.size[4] == 48, "touch target height")
-				if props.text == "Buy bundle" or props.text == "List bundle" then
+				if props.text == "Buy bundle" or string.sub(props.text, 1, 12) == "List bundle:" then
 					props.onClick()
 				end
 			end

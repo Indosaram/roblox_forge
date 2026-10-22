@@ -37,7 +37,7 @@ local wildlifePolicy = require("./src/shared/WildlifePolicy")
 local tamingPolicy = require("./src/shared/TamingConfig")
 local monetizationCatalog = require("./src/shared/MonetizationCatalog")
 local content = require("./src/shared/SurvivalContent")
-local source = require("./src/shared/SurvivalWorldConfig")
+local defaultSource = require("./src/shared/SurvivalWorldConfig")
 local pack = require("./src/shared/GenreConfig")
 local policy = require("./src/shared/GenreDurable")
 
@@ -106,11 +106,21 @@ end
 local Provision = module("SurvivalProvision")
 local Factory = module("SurvivalFactory")
 
-type Server = { session: any, factory: any, provision: any, now: () -> number }
+type Server = { session: any, factory: any, provision: any, now: () -> number, move: any, equip: any }
 local reach = { warehouse = true }
 -- live = true wires what RobangoIslandServer configures: wildlife, taming, shop and market (whose
 -- tutorial gate reads the contracts snapshot, as the server script does).
-local function boot(backend: any, server: string, clockAt: { value: number }, live: boolean?, preview: boolean?): Server
+local function boot(
+	backend: any,
+	server: string,
+	clockAt: { value: number },
+	live: boolean?,
+	preview: boolean?,
+	realRole: boolean?
+): Server
+	local source = defaultSource
+	local move: any = nil
+	local equip: any = nil
 	local bound: any = nil
 	local contracts: any = nil
 	if live then
@@ -187,10 +197,22 @@ local function boot(backend: any, server: string, clockAt: { value: number }, li
 		end,
 		publishWildlife = function() end,
 	}
-	if preview then
+	if preview or realRole then
 		local engine = require("../../cli/forge/fixtures/production-worlds/engine").new(true)
-		world = engine.preview(content, source, nil, nil, "onboarding", true)
-		engine.move(FIRST, { x = 6, y = 2, z = -22 })
+		move = engine.move
+		equip = function(actor, itemId)
+			engine.equip(world, actor, itemId)
+		end
+		if realRole then
+			world = engine.role.build(content, source, wildlifePolicy, function()
+				return clockAt.value
+			end, "rw.onboarding", 1776)
+			source = world.roleSource
+			engine.move(FIRST, { x = -16, y = 7, z = -4 })
+		else
+			world = engine.preview(content, source, nil, nil, "onboarding", true)
+			engine.move(FIRST, { x = 6, y = 2, z = -22 })
+		end
 		-- Keep gathering deterministic; transfers still use the real character/raycast ports.
 		world.gatheringAccess = function(authorize)
 			return function(request, bag)
@@ -263,7 +285,7 @@ local function boot(backend: any, server: string, clockAt: { value: number }, li
 	)
 	bound = session
 	factory.bind(session)
-	return { session = session, factory = factory, provision = provision, now = now }
+	return { session = session, factory = factory, provision = provision, now = now, move = move, equip = equip }
 end
 
 local function command(session: any, actor: string, id: string, action: string, args: { any }): any
@@ -388,6 +410,72 @@ local function idleRun(ids: { string }, heartbeats: number): ({ [string]: number
 end
 
 return {
+	["real onboarding owner crafts the starter axe, chops wood and deposits through the elevated depot"] = function()
+		local at = { value = 1000 }
+		local server = boot(Memory.new(), "job:real-role", at, nil, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "real role admission")
+		assert(command(session, FIRST, "real-branch", "gather", { "rw.onboarding.branch", 0 }).ok, "real branch gather")
+		at.value += 1
+		local stone = command(session, FIRST, "real-stone", "gather", { "rw.onboarding.stone", 1 })
+		assert(stone.ok, "real stone gather: " .. serde.encode("json", stone))
+		server.move(FIRST, { x = -32, y = 5, z = -2 })
+		local craft = command(session, FIRST, "real-axe", "craft-reserve", { "starter-axe", "station.workbench.t1" })
+		assert(craft.ok, "real axe reserve: " .. serde.encode("json", craft))
+		assert(command(session, FIRST, "real-start", "craft-start", { craft.data.jobId }).ok, "start axe")
+		at.value += 4
+		session.advance(at.value)
+		local complete = command(session, FIRST, "real-complete", "craft-complete", { craft.data.jobId })
+		assert(complete.ok, "complete axe: " .. serde.encode("json", complete))
+		local axe
+		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
+			if item.catalogId == "starter-axe" then
+				axe = id
+			end
+		end
+		assert(axe, "crafted starter axe in bag")
+		server.equip(FIRST, axe)
+		server.move(FIRST, { x = -54, y = 5, z = 22 })
+		local wood = command(session, FIRST, "real-wood", "gather", { "rw.onboarding.extra-0", 2 })
+		assert(wood.ok, "axe-gated wood: " .. serde.encode("json", wood))
+		assert(command(session, FIRST, "real-wood2", "gather", { "rw.onboarding.extra-0", 3 }).ok, "more wood")
+		server.move(FIRST, { x = -16, y = 7, z = -4 })
+		local stacks = woodStacks(session, FIRST)
+		assert(#stacks > 0, "canonical wood available to recipes")
+		for index, id in stacks do
+			local item = session.snapshot(FIRST)["survival-coop"].inventory.bag.items[id]
+			assert(
+				command(session, FIRST, "real-deposit" .. index, "transfer-deposit", { id, item.quantity }).ok,
+				"real depot transfer"
+			)
+		end
+		local camp = session.snapshot(FIRST).survivalSettlement
+		local reserved = command(session, FIRST, "real-build", "settlement-reserve", {
+			"campfire",
+			4,
+			4,
+			0,
+			camp.settlement.version,
+			camp.warehouse.version,
+			camp.settlement.membershipRevision,
+		})
+		assert(reserved.ok, "real campfire reserve: " .. serde.encode("json", reserved))
+		camp = session.snapshot(FIRST).survivalSettlement
+		assert(
+			command(
+				session,
+				FIRST,
+				"real-place",
+				"settlement-place",
+				{ reserved.data.reservationId, camp.settlement.version, camp.warehouse.version }
+			).ok,
+			"real place"
+		)
+		server.move(FIRST, { x = -48, y = 5, z = -4 })
+		local rest = command(session, FIRST, "real-rest", "rest", { "station.campfire.t1" })
+		assert(rest.ok, "real rest: " .. serde.encode("json", rest))
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release real role")
+	end,
 	["fresh preview owner deposits immediately through physical warehouse reach"] = function()
 		local server = boot(Memory.new(), "job:preview", { value = 1000 }, nil, true)
 		local session = server.session
@@ -677,7 +765,7 @@ return {
 			again.id == Provision(PUBLIC, "camp", { studio = false, server = "private:island-7" }).id,
 			"a reserved server keeps its camp scope across restarts"
 		)
-		local prefix = source.persistencePrefix .. ":" .. a.id .. ":" .. source.tribe.key
+		local prefix = defaultSource.persistencePrefix .. ":" .. a.id .. ":" .. defaultSource.tribe.key
 		assert(#prefix <= 50 and #("camp:" .. a.tribeId) <= 50, "scoped keys fit the leased key limit")
 		assert(not pcall(Provision, PUBLIC, "camp", { studio = false }), "a public server needs a scope")
 		local seeded = table.clone(PUBLIC)

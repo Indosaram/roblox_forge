@@ -10988,6 +10988,16 @@ recipeDetails:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    id: "stone-axe"
+    minCharacterLevel: 1
+    primaryMaterialLevel: 0
+    primaryInputs: ["flint"]
+    auxiliaryInputs: []
+    skillNodes: []
+    seconds: 3
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
     id: "starter-pickaxe"
     minCharacterLevel: 1
     primaryMaterialLevel: 0
@@ -12716,7 +12726,7 @@ layouts:
         speciesId: "compsognathus"
         level: 10
         position:
-          x: -280
+          x: -256
           y: 4
           z: -96
         count: 1
@@ -12726,7 +12736,7 @@ layouts:
         speciesId: "compsognathus"
         level: 10
         position:
-          x: -296
+          x: -240
           y: 4
           z: -96
         count: 1
@@ -12736,7 +12746,7 @@ layouts:
         speciesId: "compsognathus"
         level: 10
         position:
-          x: -280
+          x: -256
           y: 4
           z: -112
         count: 1

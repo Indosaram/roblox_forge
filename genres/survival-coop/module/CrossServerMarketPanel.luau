@@ -2,6 +2,7 @@
 -- Bundle prices and exact item ids match the durable market command contract.
 local M = {}
 local Ledger = require("../../../core/domain/command/Ledger")
+local Locale = require("./SurvivalHUDLocale")
 local env: any = getfenv()
 function M.factory(ctx: any): any
 	local Instance = ctx.instance or env.Instance
@@ -115,9 +116,16 @@ function M.factory(ctx: any): any
 			input(draft.price, function(value)
 				draft.price = math.clamp(math.floor(value or 1), 1, 1000000)
 			end)
-			button(text("List bundle", "묶음 등록"), function()
-				send("list", { id, draft.quantity, draft.price })
-			end)
+			button(
+				Locale.text(ctx.locale, "trade.bundle.list")
+					.. ": "
+					.. ctx.icons.item(item.catalogId).text
+					.. " x"
+					.. tostring(draft.quantity),
+				function()
+					send("list", { id, draft.quantity, draft.price })
+				end
+			)
 		end
 		if sellable == 0 then
 			label(

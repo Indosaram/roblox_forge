@@ -33,6 +33,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		then {}
 		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
 	local dressing = Dressing.plan(layout, columns, Terrain)
+	-- Roblox's animated terrain grass is avatar-height and cannot be trimmed per voxel.
+	-- Keep the tutorial's camp and approaches as low ground cover instead.
 	workspace:SetAttribute("ForgeWorldBiome", layout.biomes[1])
 	local function style(value: any, definition: any)
 		value.Material = materials[definition.material or dressing.palette.ground]
@@ -131,6 +133,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	for _, column in columns do
 		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
 		local material = column.material
+		if layoutId == "rw.onboarding" and material == "Grass" then
+			material = "Ground"
+		end
 		local top = column.top
 		if not protected and top > 0 then
 			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
@@ -227,6 +232,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			})
 		end
 	end
+	local arrivalGrazers = {}
 	if layoutId == "rw.onboarding" then
 		-- Distant, noninteractive silhouettes establish the era without adding
 		-- predators or changing the tutorial's authored wildlife encounters.
@@ -236,6 +242,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			workspace.Terrain:FillBall(position - Vector3.new(0, 6, 0), 12, Enum.Material.Sand)
 			game:GetService("RunService").Heartbeat:Wait()
 			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root)
+			table.insert(arrivalGrazers, animal)
 			animal:ScaleTo(1.4)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))
 			rig.ground(animal)
@@ -316,7 +323,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		workspace.Terrain:FillBall(
 			Vector3.new(node.position.x, node.position.y - 8, node.position.z),
 			7,
-			Enum.Material.Grass
+			if layoutId == "rw.onboarding" then Enum.Material.Ground else Enum.Material.Grass
 		)
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })
 		target.Material, target.Color = Enum.Material.Rock, Color3.fromRGB(117, 119, 112)
@@ -411,6 +418,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	world.roleSource = table.clone(source)
+	world.roleSource.tribe = table.clone(source.tribe)
+	if layoutId == "rw.onboarding" then
+		-- The live island is elevated; the preview's depot target is below its terrain.
+		world.roleSource.tribe.warehousePosition = { x = -16, y = 5, z = -4 }
+		world.roleSource.tribe.origin = { x = -32, y = 4, z = -16 }
+		local depot = part("Warehouse", world.roleSource.tribe.warehousePosition, { x = 3, y = 2, z = 2 })
+		depot.Transparency, depot.CanCollide, depot.CanQuery, depot.CanTouch = 1, false, false, false
+		depot:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeWarehouse", "Open warehouse", "Warehouse"
+		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, depot
+		prompt:SetAttribute("ForgeWarehouse", true)
+	end
 	world.roleSource.resourceNodes = layout.resourceNodes
 	world.roleSource.nodes, world.roleSource.worldRevision = nodes, revision
 	world.roleSource.persistencePrefix = "s:" .. Journal.fnv1a64(source.persistencePrefix .. ":" .. revision)
@@ -743,6 +763,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	local destroy = world.destroy
+	-- Terrain writes settle on the engine step before bind spawns and grounds wildlife.
+	game:GetService("RunService").Heartbeat:Wait()
+	if #arrivalGrazers > 0 then
+		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+		for _, animal in arrivalGrazers do
+			rig.ground(animal)
+		end
+	end
 	world.destroy = function()
 		destroy()
 		atmosphere:Destroy()

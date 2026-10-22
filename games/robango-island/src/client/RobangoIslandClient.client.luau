@@ -137,6 +137,10 @@ for index, factory in panelFactories do
 		panelFactories[index] = function(ctx)
 			local trade: any = table.clone(ctx)
 			trade.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+			local itemIcon = trade.icons.item
+			trade.icons.item = function(id, label)
+				return itemIcon(id, label or names[id])
+			end
 			return require(Forge.genres["survival-coop"].module.CrossServerMarketPanel).factory(trade)
 		end
 	end
