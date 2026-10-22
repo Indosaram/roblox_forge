@@ -15,6 +15,18 @@ local M = {}
 -- development.definitions after this runs, so that ledger marks a prior clear.
 M.REPEAT_PERMILLE = 200
 
+--- Mid-game XP for a repeat clear: missionPolicy.repeatXPPerLevel per character level while
+--- the level is inside [repeatXPMinLevel, repeatXPMaxLevel]; 0 outside it or when unset.
+--- Read at settlement from the committed level, so a replay settles nothing new.
+function M.repeatBonus(content: any, level: number): number
+	local policy = content.missionPolicy or {}
+	local perLevel = policy.repeatXPPerLevel or 0
+	if level < (policy.repeatXPMinLevel or 1) or level > (policy.repeatXPMaxLevel or 0) then
+		return 0
+	end
+	return perLevel * level
+end
+
 local function share(rewards: any, permille: number): any
 	if permille == 1000 then
 		return rewards
@@ -30,6 +42,30 @@ local function share(rewards: any, permille: number): any
 		coins = ((rewards.coins or 0) * permille) // 1000,
 		reputation = reputation,
 	}
+end
+
+-- Guide completion rewards (xp, coins) ride the same outbox: one entry per guide
+-- definition keyed "guide:<id>", settled under the personal receipt of that id, so a
+-- replayed or re-enqueued guide pays nothing. Guide items are not paid here.
+function M.guideId(guideId: string): string
+	return "guide:" .. guideId
+end
+
+function M.enqueueGuide(document: any, guide: any)
+	local rewards = guide.rewards or {}
+	if (rewards.xp or 0) == 0 and (rewards.coins or 0) == 0 then
+		return
+	end
+	document.missionRewards = document.missionRewards or {}
+	local id = M.guideId(guide.id)
+	if document.missionRewards[id] == nil then
+		document.missionRewards[id] = {
+			rewards = { xp = rewards.xp or 0, coins = rewards.coins or 0, reputation = {} },
+			mission = guide.id,
+			repeatClear = false,
+			settled = false,
+		}
+	end
 end
 
 function M.enqueue(document: any, content: any)
@@ -96,7 +132,8 @@ function M.settle(actor: string, env: any): any
 				data.balance += rewards.coins or 0
 				local progression = SkillTree.copy(data.progression)
 				local policy = env.content.progressionPolicy.tree
-				local xp = (progression.xp or 0) + (rewards.xp or 0)
+				local bonus = if entry.repeatClear then M.repeatBonus(env.content, progression.level) else 0
+				local xp = (progression.xp or 0) + (rewards.xp or 0) + bonus
 				while progression.level < policy.maxLevel do
 					local required = policy.xpBase + policy.xpStep * progression.level
 					if xp < required then

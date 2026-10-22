@@ -852,6 +852,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				if stationKinds[definition.kind] then
 					world.registerStation(value, "home:" .. Journal.fnv1a64(definition.id), definition.kind)
 				end
+				if definition.kind == "farm-plot" then
+					local prompt = Instance.new("ProximityPrompt")
+					prompt.ActionText, prompt.ObjectText, prompt.MaxActivationDistance = "Farm", "farm-plot", 8
+					prompt:SetAttribute("ForgePanel", "farm")
+					prompt.Parent = value
+				end
 			end
 			value.Size = Vector3.new(definition.size.x, definition.size.y, definition.size.z)
 			style(value, definition)

@@ -103,6 +103,7 @@ function M.new(ctx: any): any
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
+	module.ExpeditionExtension = require("../../../../genres/survival-coop/module/ExpeditionExtension")
 	module.ProgressionExtension = require("../../../../genres/survival-coop/module/ProgressionExtension")
 	module.Extensions = {
 		factories = {
@@ -1233,9 +1234,14 @@ function M.new(ctx: any): any
 			"four island clear"
 		)
 		-- One settlement per completed mission (six a1 missions, eight objectives),
-		-- each a first clear at the full catalog reward.
+		-- each a first clear at the full catalog reward. Guide rewards share the outbox
+		-- (keyed "guide:") and were settled during onboarding, before initialBalance.
 		local expected, actual = 0, 0
-		for _, entry in document.missionRewards do
+		for id, entry in document.missionRewards do
+			if string.sub(id, 1, 6) == "guide:" then
+				assert(entry.settled, "guide rewards acknowledged")
+				continue
+			end
 			expected += entry.rewards.coins
 			assert(entry.settled, "all outbox rewards acknowledged")
 			assert(not entry.repeatClear, "first route clear pays full reward")
@@ -1263,8 +1269,9 @@ function M.new(ctx: any): any
 		return nil
 	end
 	function api.onboarding(actor)
+		-- Paid guide XP can lift a fresh player past the level gate; the development gate still holds.
 		local refusal = api.expedition(actor)
-		if refusal ~= "level_gate" then
+		if refusal ~= "level_gate" and refusal ~= "development_gate" then
 			return "fresh_entry_gate_missing"
 		end
 		gather(actor, "branch", 4)

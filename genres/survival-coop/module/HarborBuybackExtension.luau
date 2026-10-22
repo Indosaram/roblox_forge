@@ -1,6 +1,7 @@
 --!strict
 -- harborPolicy: the harbor buys raw units for Coins (daily cap); a repair operation enables
--- item-repair at Job.repairCost. One atomic bag+Coins write each.
+-- item-repair at Job.repairCost for items carrying one of the operation's eligibleTags.
+-- One atomic bag+Coins write each.
 local Shared = require("../../../core/domain/genre/Contract")
 local Buyback = require("../../../core/domain/market/Buyback")
 local Inventory = require("../../../core/domain/inventory/Inventory")
@@ -56,6 +57,22 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 		return nil
 	end
 	local catalog = Job.catalog(ctx.content)
+	local tagsOf: { [string]: { string } } = {}
+	for _, item in ctx.content.items or {} do
+		tagsOf[item.id] = item.tags or {}
+	end
+	-- A repair operation without eligibleTags repairs any durable item.
+	local function eligible(catalogId: string): boolean
+		if repair.eligibleTags == nil then
+			return true
+		end
+		for _, tag in repair.eligibleTags do
+			if table.find(tagsOf[catalogId] or {}, tag) then
+				return true
+			end
+		end
+		return false
+	end
 	local function atHarbor(): boolean
 		local layout = if ctx.world then ctx.world.layout else nil
 		return layout == nil or layout.id == HARBOR_LAYOUT
@@ -94,6 +111,9 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 				if repairing then
 					local bag = Inventory.fromSave(saved, catalog)
 					local fixed, refused = Job.repair(bag, catalog, catalogId, bag.version)
+					if fixed and not eligible(bag.items[catalogId].catalogId) then
+						fixed, refused = nil, "INELIGIBLE_REPAIR"
+					end
 					local cost = if fixed then Job.repairCost(repair, bag.items[catalogId].catalogId) else 0
 					outcome = { ok = fixed ~= nil and slice.balance >= cost, reason = refused or "INSUFFICIENT_FUNDS" }
 					if not outcome.ok then

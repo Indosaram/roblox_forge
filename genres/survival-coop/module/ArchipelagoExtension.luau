@@ -4,6 +4,9 @@ local Objectives = require("../../../core/domain/island/MissionObjectives")
 local Rewards = require("./MissionRewards")
 local M = {}
 
+-- Guide xp/coins share the mission reward outbox (MissionRewards.enqueueGuide).
+M.enqueueGuide = Rewards.enqueueGuide
+
 -- store.transaction(actor, transform) must fence the actor lease and durably
 -- commit before returning. verify resolves an opaque operation ID, not remote
 -- supplied facts. returnHome uses Session's durable handoff, leaving bag intact.

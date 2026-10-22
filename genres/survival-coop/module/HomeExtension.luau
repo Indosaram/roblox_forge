@@ -74,6 +74,9 @@ function M.new(config: any): any
 			"home-harvest",
 			"home-deposit",
 			"home-withdraw",
+			"home-fertilize",
+			"home-area",
+			"home-specialize",
 		}, action) ~= nil
 	end
 	function extension.command(actor: string, action: string, args: any, context: any, origin: string, admit: any): any

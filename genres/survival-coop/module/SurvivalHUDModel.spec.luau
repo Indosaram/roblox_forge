@@ -55,6 +55,13 @@ return {
 			"raw"
 		)
 		assert(Model.repairCost(item, { items = content.items }) == nil, "no repair operation")
+		local tagged: any = {
+			operations = { { kind = "repair", cost = 10, eligibleTags = { "weapon-tool" } } },
+			items = { { id = "axe-t3", maxDurabilityMilli = 100000, tags = {} } },
+		}
+		assert(Model.repairCost(item, tagged) == nil, "ineligible item hides repair")
+		tagged.items[1].tags = { "weapon-tool" }
+		assert(Model.repairCost(item, tagged) == 30, "eligible item shows repair")
 		local source = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
 		local anchor = 'mutation("Repair-" .. item.itemId, string.format(t("repair"), cost), "item-repair", function()'
 		assert(string.find(source, anchor, 1, true), "bag detail renders the repair button")

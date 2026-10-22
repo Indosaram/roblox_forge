@@ -21,7 +21,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hoe T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[102] = {
@@ -29,7 +29,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hoe T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[103] = {
@@ -37,7 +37,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hoe T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[104] = { ["id"] = "horn", ["name"] = "Horn", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -46,7 +46,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Bass",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[106] = {
@@ -54,7 +54,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Clarinet",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[107] = {
@@ -62,7 +62,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Drums",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[108] = {
@@ -70,7 +70,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Flute",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[109] = {
@@ -78,7 +78,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Guitar",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[11] = {
@@ -93,7 +93,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Piano",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[111] = {
@@ -101,7 +101,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Trumpet",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[112] = {
@@ -109,7 +109,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Instrument Violin",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "instrument" },
 			["weightMilli"] = 500,
 		},
 		[113] = { ["id"] = "iron", ["name"] = "Iron", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -120,7 +120,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Knife T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[117] = {
@@ -128,7 +128,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Knife T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[118] = {
@@ -136,7 +136,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Knife T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[119] = {
@@ -227,7 +227,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[134] = {
@@ -235,7 +235,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[135] = {
@@ -243,7 +243,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[136] = { ["id"] = "pillar", ["name"] = "Pillar", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -457,7 +457,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Saddle",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "saddle" },
 			["weightMilli"] = 500,
 		},
 		[169] = {
@@ -524,7 +524,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Fire-hardened Spear",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "tool" },
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 2500,
 		},
 		[179] = {
@@ -532,7 +532,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Spear T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[18] = {
@@ -548,7 +548,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Spear T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[181] = {
@@ -556,7 +556,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Spear T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[182] = {
@@ -570,7 +570,7 @@ local items: {
 			["id"] = "sprinkler",
 			["name"] = "Sprinkler",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "sprinkler" },
 			["weightMilli"] = 500,
 		},
 		[184] = {
@@ -585,7 +585,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Axe",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "tool" },
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[186] = {
@@ -593,7 +593,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Club",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "tool" },
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[187] = {
@@ -601,7 +601,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Pickaxe",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[188] = { ["id"] = "steel", ["name"] = "Steel", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -625,7 +625,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Flint Hatchet",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "tool" },
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 2500,
 		},
 		[192] = {
@@ -647,7 +647,7 @@ local items: {
 			["maxDurabilityMilli"] = 140000,
 			["name"] = "Stone Maul",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "masonry", [2] = "tool" },
+			["tags"] = { [1] = "masonry", [2] = "tool", [3] = "weapon-tool" },
 			["weightMilli"] = 3500,
 		},
 		[195] = {
@@ -655,7 +655,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Flint Pick",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "tool" },
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 2500,
 		},
 		[196] = {
@@ -693,7 +693,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[201] = {
@@ -701,7 +701,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[202] = {
@@ -709,7 +709,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[203] = {
@@ -724,7 +724,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Bag",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[205] = {
@@ -732,7 +732,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Bottom",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[206] = {
@@ -740,7 +740,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Gloves",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[207] = {
@@ -748,7 +748,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Head",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[208] = {
@@ -756,7 +756,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Shoes",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[209] = {
@@ -764,7 +764,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Top",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[21] = {
@@ -772,7 +772,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Bow T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[210] = { ["id"] = "tent-kit", ["name"] = "Tent Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -810,7 +810,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Bag",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[217] = {
@@ -818,7 +818,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Bottom",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[218] = {
@@ -826,7 +826,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Gloves",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[219] = {
@@ -834,7 +834,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Head",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[22] = {
@@ -842,7 +842,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Bow T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[220] = {
@@ -850,7 +850,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Shoes",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[221] = {
@@ -858,7 +858,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Top",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[222] = { ["id"] = "tusk", ["name"] = "Tusk", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -904,7 +904,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Bow T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[230] = { ["id"] = "well-kit", ["name"] = "Well Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -1056,7 +1056,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Club T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[44] = {
@@ -1064,7 +1064,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Club T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[45] = {
@@ -1072,7 +1072,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Club T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[46] = {
@@ -1080,7 +1080,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Bag",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[47] = {
@@ -1088,7 +1088,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Bottom",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[48] = {
@@ -1096,7 +1096,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Gloves",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[49] = {
@@ -1104,7 +1104,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Head",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[5] = {
@@ -1112,7 +1112,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Axe T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[50] = {
@@ -1120,7 +1120,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Shoes",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[51] = {
@@ -1128,7 +1128,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Cold Top",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
 		[52] = {
@@ -1162,7 +1162,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Crossbow T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[6] = {
@@ -1170,7 +1170,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Axe T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[60] = {
@@ -1178,7 +1178,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Crossbow T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[61] = {
@@ -1186,7 +1186,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Crossbow T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[62] = { ["id"] = "door-kit", ["name"] = "Door Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
@@ -1232,7 +1232,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Axe T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[70] = {
@@ -1304,7 +1304,7 @@ local items: {
 			["maxDurabilityMilli"] = 60000,
 			["name"] = "Flint Knife",
 			["stackMax"] = 1,
-			["tags"] = { [1] = "cutting", [2] = "tool" },
+			["tags"] = { [1] = "cutting", [2] = "tool", [3] = "weapon-tool" },
 			["weightMilli"] = 600,
 		},
 		[86] = {
@@ -1357,7 +1357,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hammer T1",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[95] = {
@@ -1365,7 +1365,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hammer T2",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[96] = {
@@ -1373,7 +1373,7 @@ local items: {
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Hammer T3",
 			["stackMax"] = 1,
-			["tags"] = {},
+			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
 		[97] = {
@@ -3773,7 +3773,7 @@ local config: PackConfig = {
 							},
 							[12] = {
 								["coins"] = 15,
-								["deliver"] = { [1] = { ["item"] = "reed", ["quantity"] = 8 } },
+								["deliver"] = { [1] = { ["item"] = "branch", ["quantity"] = 12 } },
 								["faction"] = "route-surveyors",
 								["id"] = "daily-survey-reeds",
 								["pool"] = "daily",
@@ -3809,7 +3809,7 @@ local config: PackConfig = {
 							},
 							[2] = {
 								["coins"] = 30,
-								["deliver"] = { [1] = { ["item"] = "clam-bake", ["quantity"] = 2 } },
+								["deliver"] = { [1] = { ["item"] = "capture-bola", ["quantity"] = 1 } },
 								["faction"] = "island-ecology",
 								["id"] = "daily-eco-clambake",
 								["pool"] = "daily",
@@ -3821,7 +3821,7 @@ local config: PackConfig = {
 							},
 							[3] = {
 								["coins"] = 15,
-								["deliver"] = { [1] = { ["item"] = "hazelnut", ["quantity"] = 8 } },
+								["deliver"] = { [1] = { ["item"] = "water", ["quantity"] = 6 } },
 								["faction"] = "island-ecology",
 								["id"] = "daily-eco-hazelnuts",
 								["pool"] = "daily",
@@ -3839,7 +3839,7 @@ local config: PackConfig = {
 							},
 							[5] = {
 								["coins"] = 35,
-								["deliver"] = { [1] = { ["item"] = "mud-brick", ["quantity"] = 4 } },
+								["deliver"] = { [1] = { ["item"] = "flint-knife", ["quantity"] = 1 } },
 								["faction"] = "artisan-guilds",
 								["id"] = "daily-guild-bricks",
 								["pool"] = "daily",
@@ -3866,7 +3866,7 @@ local config: PackConfig = {
 							},
 							[8] = {
 								["coins"] = 40,
-								["deliver"] = { [1] = { ["item"] = "stone-block", ["quantity"] = 2 } },
+								["deliver"] = { [1] = { ["item"] = "stone-pick", ["quantity"] = 1 } },
 								["faction"] = "artisan-guilds",
 								["id"] = "daily-guild-stone",
 								["pool"] = "daily",
@@ -3875,7 +3875,7 @@ local config: PackConfig = {
 							},
 							[9] = {
 								["coins"] = 35,
-								["deliver"] = { [1] = { ["item"] = "timber-beam", ["quantity"] = 2 } },
+								["deliver"] = { [1] = { ["item"] = "plank", ["quantity"] = 6 } },
 								["faction"] = "route-surveyors",
 								["id"] = "daily-survey-beams",
 								["pool"] = "daily",
@@ -4082,13 +4082,18 @@ local config: PackConfig = {
 					["survival_content"] = 2,
 					["tags"] = {
 						[1] = "building-part",
-						[2] = "cutting",
-						[3] = "fuel",
-						[4] = "masonry",
-						[5] = "material-brick",
-						[6] = "material-stone",
-						[7] = "material-timber",
-						[8] = "tool",
+						[10] = "saddle",
+						[11] = "sprinkler",
+						[12] = "tool",
+						[13] = "weapon-tool",
+						[2] = "clothing",
+						[3] = "cutting",
+						[4] = "fuel",
+						[5] = "instrument",
+						[6] = "masonry",
+						[7] = "material-brick",
+						[8] = "material-stone",
+						[9] = "material-timber",
 					},
 					["vitals"] = {
 						["fatigueMilliPerAction"] = 500,

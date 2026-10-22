@@ -455,6 +455,8 @@ for _, actions in
 		require("./ClanExtension").actions(),
 		require("./OutpostExtension").actions(),
 		require("./ScoreTransport").actions(),
+		require("./FarmActions").actions(),
+		require("./ExpeditionExtension").actions(),
 	}
 do
 	for _, action in actions do

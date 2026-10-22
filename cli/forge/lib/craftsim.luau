@@ -2,7 +2,7 @@
 -- Deterministic single-player pacing driver for survival-coop `crafting` packs (robango).
 -- A scripted new player gathers at authored layout nodes (stock = charges, yield per gather,
 -- respawn to full stock), crafts by recipe inputs and craftMillis, places station kits,
--- clears guides (development only, as SurvivalFactory.recordDevelopment does), delivers
+-- clears guides (development plus the declared xp/coins once per guide), delivers
 -- first-day and daily contracts, runs archipelago index-1 expeditions whose missions pay
 -- through the MissionRewards rule (first clear full, repeat REPEAT_PERMILLE), sells surplus raw
 -- at the harbor buyback (core Buyback, shared daily cap) and pays Job.repairCost for weapon
@@ -63,7 +63,7 @@ function M.simulate(content: any, options: Options): { [string]: any }
 	local tools: { [string]: { durability: number, maximum: number } } = {}
 	local level, xp, totalXP = 1, 0, 0
 	local balance = options.startingBalance or 0
-	local faucets = { starting = balance, missions = 0, contracts = 0, buyback = 0 }
+	local faucets = { starting = balance, missions = 0, contracts = 0, buyback = 0, guides = 0 }
 	local sinks = { repair = 0 }
 	local counts = {
 		gathers = 0,
@@ -122,6 +122,12 @@ function M.simulate(content: any, options: Options): { [string]: any }
 		end
 		if level >= 10 then
 			mark("level10")
+		end
+		if level >= 20 then
+			mark("level20")
+		end
+		if level >= 30 then
+			mark("level30")
 		end
 	end
 
@@ -297,12 +303,17 @@ function M.simulate(content: any, options: Options): { [string]: any }
 		end
 	end
 
+	-- Guide completion: development (SurvivalFactory.recordDevelopment) plus the declared
+	-- xp/coins once per guide (MissionRewards.enqueueGuide outbox).
 	local function guideDone(id: string)
 		if not devDefinitions[id] then
 			devDefinitions[id] = true
 			for _, guide in content.guides do
 				if guide.id == id then
 					devPoints += guide.rewards.development or 0
+					balance += guide.rewards.coins or 0
+					faucets.guides += guide.rewards.coins or 0
+					grantXP(guide.rewards.xp or 0)
 				end
 			end
 		end
@@ -367,11 +378,18 @@ function M.simulate(content: any, options: Options): { [string]: any }
 			repairOperation = operation
 		end
 	end
-	-- item-repair (HarborBuybackExtension -> Job.repair -> ItemCatalog.repaired) accepts any item
-	-- with a durability maximum; it does not check the operation's eligibleTags.
+	-- item-repair (HarborBuybackExtension) repairs a durable item only when it carries one of
+	-- the repair operation's eligibleTags.
 	local repairEligible = repairOperation ~= nil
 		and itemDefs[M.WEAPON] ~= nil
 		and (itemDefs[M.WEAPON].maxDurabilityMilli or 0) > 0
+	if repairEligible and repairOperation.eligibleTags ~= nil then
+		local matched = false
+		for _, tag in repairOperation.eligibleTags do
+			matched = matched or table.find(itemDefs[M.WEAPON].tags or {}, tag) ~= nil
+		end
+		repairEligible = matched
+	end
 
 	local function maybeRepair()
 		local tool = tools[M.WEAPON]
@@ -434,8 +452,9 @@ function M.simulate(content: any, options: Options): { [string]: any }
 					advance(missionPolicy.weaponCooldownMillis / 1000)
 					local tool = tools[M.WEAPON]
 					tool.durability = math.max(0, tool.durability - missionPolicy.weaponWearMilli)
-					grantXP(tree.actionXP) -- WildlifeRuntime awards melee per confirmed hit
 				end
+				-- WildlifeRuntime awards melee (actionXP) plus killXP once per kill, never per hit.
+				grantXP(tree.actionXP + (tree.killXP or 0))
 			else
 				advance(A.stageMoveSeconds)
 			end
@@ -468,7 +487,8 @@ function M.simulate(content: any, options: Options): { [string]: any }
 			local coins = ((mission.rewards.coins or 0) * permille) // 1000
 			balance += coins
 			faucets.missions += coins
-			grantXP(((mission.rewards.xp or 0) * permille) // 1000)
+			local bonus = if repeatClear then MissionRewards.repeatBonus(content, level) else 0
+			grantXP(((mission.rewards.xp or 0) * permille) // 1000 + bonus)
 			if not repeatClear then
 				devDefinitions[mission.id] = true
 				devPoints += mission.rewards.development or 0
@@ -554,7 +574,7 @@ function M.simulate(content: any, options: Options): { [string]: any }
 	local lastFaucets = last.faucets
 
 	local outMilestones: { [string]: any } = {}
-	for _, name in { "stoneAxe", "campfire", "windbreak", "firstMission", "level5", "level10" } do
+	for _, name in { "stoneAxe", "campfire", "windbreak", "firstMission", "level5", "level10", "level20", "level30" } do
 		local at = milestones[name]
 		outMilestones[name] = if at ~= nil and at <= limit then { seconds = at, minutes = at / 60 } else nil
 	end
@@ -593,7 +613,11 @@ function M.simulate(content: any, options: Options): { [string]: any }
 		final = { coins = last.coins, xp = last.xp, level = last.level, developmentPoints = devPoints },
 		faucets = lastFaucets,
 		sinks = last.sinks,
-		faucetTotal = lastFaucets.starting + lastFaucets.missions + lastFaucets.contracts + lastFaucets.buyback,
+		faucetTotal = lastFaucets.starting
+			+ lastFaucets.missions
+			+ lastFaucets.contracts
+			+ lastFaucets.buyback
+			+ lastFaucets.guides,
 		sinkTotal = last.sinks.repair,
 		repairEligible = repairEligible,
 		counts = counts,

@@ -8,6 +8,7 @@ local strings: { [string]: { string } } = {
 	NOT_AT_HARBOR = { "Only at the harbor", "항구에서만 가능" },
 	repair = { "Repair (%d coins)", "수리 (%d 조개돈)" },
 	INSUFFICIENT_FUNDS = { "Not enough coins", "조개돈 부족" },
+	INELIGIBLE_REPAIR = { "This item cannot be repaired", "수리할 수 없는 물건" },
 	preset = { "Terrain %d", "지형 %d" },
 	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
 	preset_applied = { "Terrain preset %d applied", "지형 %d 적용됨" },

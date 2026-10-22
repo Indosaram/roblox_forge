@@ -150,6 +150,7 @@ items:
     tags:
       - "cutting"
       - "tool"
+      - "weapon-tool"
     weightMilli: 600
   -
     id: "floor-kit"
@@ -244,6 +245,7 @@ items:
     stackMax: 1
     tags:
       - "tool"
+      - "weapon-tool"
     weightMilli: 2500
   -
     id: "stone-axe"
@@ -252,6 +254,7 @@ items:
     stackMax: 1
     tags:
       - "tool"
+      - "weapon-tool"
     weightMilli: 2500
   -
     id: "stone-block"
@@ -276,6 +279,7 @@ items:
     tags:
       - "masonry"
       - "tool"
+      - "weapon-tool"
     weightMilli: 3500
   -
     id: "stone-pick"
@@ -284,6 +288,7 @@ items:
     stackMax: 1
     tags:
       - "tool"
+      - "weapon-tool"
     weightMilli: 2500
   -
     id: "stone-roof-kit"
@@ -694,252 +699,288 @@ items:
     name: "Axe T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "pickaxe-t1"
     name: "Pickaxe T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "knife-t1"
     name: "Knife T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hoe-t1"
     name: "Hoe T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "axe-t2"
     name: "Axe T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "pickaxe-t2"
     name: "Pickaxe T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "knife-t2"
     name: "Knife T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hoe-t2"
     name: "Hoe T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "axe-t3"
     name: "Axe T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "pickaxe-t3"
     name: "Pickaxe T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "knife-t3"
     name: "Knife T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hoe-t3"
     name: "Hoe T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "club-t1"
     name: "Club T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "spear-t1"
     name: "Spear T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "sword-t1"
     name: "Sword T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hammer-t1"
     name: "Hammer T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "bow-t1"
     name: "Bow T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "crossbow-t1"
     name: "Crossbow T1"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "club-t2"
     name: "Club T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "spear-t2"
     name: "Spear T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "sword-t2"
     name: "Sword T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hammer-t2"
     name: "Hammer T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "bow-t2"
     name: "Bow T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "crossbow-t2"
     name: "Crossbow T2"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "club-t3"
     name: "Club T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "spear-t3"
     name: "Spear T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "sword-t3"
     name: "Sword T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "hammer-t3"
     name: "Hammer T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "bow-t3"
     name: "Bow T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "crossbow-t3"
     name: "Crossbow T3"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "temperate-head"
     name: "Temperate Head"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "temperate-top"
     name: "Temperate Top"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "temperate-bottom"
     name: "Temperate Bottom"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "temperate-shoes"
     name: "Temperate Shoes"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "temperate-gloves"
     name: "Temperate Gloves"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "temperate-bag"
     name: "Temperate Bag"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "flax"
@@ -952,84 +993,96 @@ items:
     name: "Tropical Head"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "tropical-top"
     name: "Tropical Top"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "tropical-bottom"
     name: "Tropical Bottom"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "tropical-shoes"
     name: "Tropical Shoes"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "tropical-gloves"
     name: "Tropical Gloves"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "tropical-bag"
     name: "Tropical Bag"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-head"
     name: "Cold Head"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-top"
     name: "Cold Top"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-bottom"
     name: "Cold Bottom"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-shoes"
     name: "Cold Shoes"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-gloves"
     name: "Cold Gloves"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "cold-bag"
     name: "Cold Bag"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "clothing"
     maxDurabilityMilli: 100000
   -
     id: "water"
@@ -1234,7 +1287,8 @@ items:
     name: "Sprinkler"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "sprinkler"
   -
     id: "capture-rope"
     name: "Capture Rope"
@@ -1247,7 +1301,8 @@ items:
     name: "Saddle"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "saddle"
     maxDurabilityMilli: 100000
   -
     id: "recovery-feed"
@@ -1282,13 +1337,15 @@ items:
     weightMilli: 500
     tags:
       - "tool"
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "starter-pickaxe"
     name: "Starter Pickaxe"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "starter-club"
@@ -1297,6 +1354,7 @@ items:
     weightMilli: 500
     tags:
       - "tool"
+      - "weapon-tool"
     maxDurabilityMilli: 100000
   -
     id: "practice-stitch"
@@ -1315,56 +1373,64 @@ items:
     name: "Instrument Piano"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-guitar"
     name: "Instrument Guitar"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-bass"
     name: "Instrument Bass"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-violin"
     name: "Instrument Violin"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-flute"
     name: "Instrument Flute"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-clarinet"
     name: "Instrument Clarinet"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-trumpet"
     name: "Instrument Trumpet"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "instrument-drums"
     name: "Instrument Drums"
     stackMax: 1
     weightMilli: 500
-    tags: []
+    tags:
+      - "instrument"
     maxDurabilityMilli: 100000
   -
     id: "granite"
@@ -4332,7 +4398,8 @@ progressionPolicy:
     bootsItem: lava-protection-boots
     bootsMultiplier: 0.5
     lavaMaxHealthFraction: 0.25
-  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 20, xpStep: 80}
+  # Robango redesign (p31): melee XP per kill (actionXP + killXP), not per hit.
+  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 20, xpStep: 80, killXP: 60}
   sharpnessPerPoint: 0.02
   insulationCold: 0.1
   minimumWear: 0.5
@@ -4385,6 +4452,11 @@ tags:
   - "material-stone"
   - "material-timber"
   - "tool"
+  - "weapon-tool"
+  - "clothing"
+  - "saddle"
+  - "instrument"
+  - "sprinkler"
 vitals:
   fatigueMilliPerAction: 500
   hungerMillisPerUnit: 18000
@@ -4901,8 +4973,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "reed"
-          quantity: 8
+          item: "branch"
+          quantity: 12
       reward:
         -
           item: "plank"
@@ -4915,8 +4987,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "timber-beam"
-          quantity: 2
+          item: "plank"
+          quantity: 6
       reward:
         -
           item: "cord"
@@ -4932,8 +5004,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "mud-brick"
-          quantity: 4
+          item: "flint-knife"
+          quantity: 1
       reward:
         -
           item: "timber-beam"
@@ -4946,8 +5018,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "stone-block"
-          quantity: 2
+          item: "stone-pick"
+          quantity: 1
       reward:
         -
           item: "thatch-bundle"
@@ -4960,8 +5032,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "hazelnut"
-          quantity: 8
+          item: "water"
+          quantity: 6
       reward:
         -
           item: "berry-meal"
@@ -4974,8 +5046,8 @@ contracts:
       pool: "daily"
       deliver:
         -
-          item: "clam-bake"
-          quantity: 2
+          item: "capture-bola"
+          quantity: 1
       reward:
         -
           item: "roasted-hazelnuts"
@@ -12548,6 +12620,10 @@ missionPolicy:
   weaponWearMilli: 1000
   weaponRangeStuds: 5
   weaponCooldownMillis: 1000
+  # Robango redesign (p31): repeat clears pay repeatXPPerLevel x character level from L10 to L30.
+  repeatXPPerLevel: 7
+  repeatXPMinLevel: 10
+  repeatXPMaxLevel: 30
 homePolicy:
   provenance: {classification: "RECONSTRUCTED", sourceId: "lead-home-tier-decision"}
   tiers:

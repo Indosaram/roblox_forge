@@ -236,4 +236,29 @@ return {
 			"reputation once"
 		)
 	end,
+	["guide rewards pay declared xp and coins once; a repeat pays nothing"] = function()
+		local document, env, wallet = harness()
+		local guide = Content.guides[1]
+		assert(guide.rewards.xp > 0 and guide.rewards.coins > 0, "g01 declares xp and coins")
+		Rewards.enqueueGuide(document, guide)
+		assert(Rewards.settle("owner", env).ok, "settle")
+		local paid = wallet()
+		assert(paid.balance == guide.rewards.coins, "coins once: " .. paid.balance)
+		local xp, level = paid.progression.xp, paid.progression.level
+		assert(level > 1 or xp == guide.rewards.xp, "xp applied")
+		Rewards.enqueueGuide(document, guide)
+		document.missionRewards[Rewards.guideId(guide.id)].settled = false
+		assert(Rewards.settle("owner", env).ok, "repeat settle")
+		local after = wallet()
+		assert(
+			after.balance == paid.balance and after.progression.xp == xp and after.progression.level == level,
+			"repeat pays nothing"
+		)
+	end,
+	["repeat clears add the level-scaled bonus only between the policy levels"] = function()
+		local policy = Content.missionPolicy
+		local low, high = policy.repeatXPMinLevel, policy.repeatXPMaxLevel
+		assert(Rewards.repeatBonus(Content, low - 1) == 0 and Rewards.repeatBonus(Content, high + 1) == 0, "outside")
+		assert(Rewards.repeatBonus(Content, low) == policy.repeatXPPerLevel * low, "inside")
+	end,
 }

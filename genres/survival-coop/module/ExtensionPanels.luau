@@ -64,6 +64,9 @@ local categories: { [string]: { number | string } } = {
 	building = { 1, "build" },
 	["clan-membership"] = { 3, "invite" },
 	brawl = { 3, "party" },
+	routes = { 2, "explore" },
+	party = { 3, "party" },
+	expedition = { 2, "explore" },
 	shop = { 4, "currency" },
 	music = { 5, "music" },
 	navigator = { 1, "todo" },
@@ -72,6 +75,11 @@ local categories: { [string]: { number | string } } = {
 	["ensemble-lobby"] = { 5, "music" },
 	audio = { 5, "settings" },
 	sound = { 5, "settings" },
+	farm = { 1, "skills" },
+	["crop-book"] = { 1, "journal" },
+	processing = { 1, "craft" },
+	["craft-preview"] = { 1, "craft" },
+	inbox = { 1, "inbox" },
 }
 local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
@@ -139,6 +147,7 @@ M.factories = {
 	require("./MarketPanel").factory,
 	require("./DeathZonePanel").factory,
 	require("./BrawlPanel").factory,
+	require("./ExpeditionPanels").factory,
 } :: { Factory }
 
 export type Started = { destroy: () -> (), closeAll: () -> () }
@@ -565,6 +574,7 @@ function M.start(options: {
 				journal = "wood",
 				todo = "wood",
 				market = "food",
+				inbox = "item",
 			}
 			IconFallback.mount(
 				button,

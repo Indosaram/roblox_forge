@@ -93,6 +93,7 @@ local schemas: { [string]: { [string]: string } } = {
 		actionXP = "positive",
 		xpBase = "positive",
 		xpStep = "positive",
+		killXP = "?positive",
 	},
 	climateResistance = { cold = "number", heat = "number" },
 	buffStrength = { resistance = "number", stamina = "number", recovery = "number" },
@@ -283,6 +284,9 @@ local schemas: { [string]: { [string]: string } } = {
 		weaponWearMilli = "positive",
 		weaponRangeStuds = "positive",
 		weaponCooldownMillis = "positive",
+		repeatXPPerLevel = "?positive",
+		repeatXPMinLevel = "?level",
+		repeatXPMaxLevel = "?level",
 	},
 	buildingKits = {
 		floor = "@items",

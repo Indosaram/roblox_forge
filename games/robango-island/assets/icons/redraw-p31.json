@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-22",
+  "route": "bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs --size 1024x1024 --quality high --background transparent --ref assets/icons/atlas-01.png",
+  "postprocess": "alpha<8 cleared, tight crop centred at 90% fill, Bun.Image resize to 96x96",
+  "reason": "p26 screen high-risk redraw (noose/hanging loop, hammer-and-sickle, hood readings)",
+  "icons": {
+    "item.icon.capture-bola": {
+      "source": "p31/gen/item.icon.capture-bola.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a small box-shaped animal snare cage trap made of straight wooden slats (like a little wooden crate with vertical bars), seen at a 3/4 angle, front gate propped open on a short straight stick, with a bright red berry and a green leaf as bait inside. Only straight wooden bars. No rope, no cord, no loops, no knots, no hanging elements, no animals, no people."
+    },
+    "item.icon.capture-rope": {
+      "source": "p31/gen/item.icon.capture-rope.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a flat rectangular net trap lying on the ground at a slight 3/4 angle: a square frame of four straight wooden sticks with a tan woven grid mesh of straight crossing strips stretched inside like a basket weave panel. Straight lines only. No rope coils, no loops, no knots, no dangling ends, nothing hanging, no animals, no people."
+    },
+    "recipe.icon.capture-bola": {
+      "source": "p31/gen/recipe.icon.capture-bola.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a small box-shaped wooden slat snare cage trap with an open front gate and a red berry bait inside, standing on a small flat cream crafting cloth, seen at a 3/4 angle. Only straight wooden bars. No rope, no cord, no loops, no knots, no hanging elements, no animals, no people."
+    },
+    "recipe.icon.capture-rope": {
+      "source": "p31/gen/recipe.icon.capture-rope.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a flat rectangular woven net trap panel (square wooden stick frame with a tan basket-weave grid of straight strips) lying on a small flat cream crafting cloth, with two small loose wooden sticks beside it. Straight lines only. No rope coils, no loops, no knots, no dangling ends, nothing hanging, no animals, no people."
+    },
+    "ui.icon.stance.attack": {
+      "source": "p31/gen/ui.icon.stance.attack.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a cartoon monster paw seen from the side in profile, swiping sideways from left to right, with three parallel straight gold diagonal claw-slash streaks beside it and a small gold star-shaped impact burst. Friendly cartoon look, rounded green paw with short cream claws. No weapon, no hammer, no blade, no crescent, no sickle, no curved swoosh, no fist, no human hand, no blood."
+    },
+    "ui.icon.visitor": {
+      "source": "p31/gen/ui.icon.visitor.v1.png",
+      "prompt": "Single game UI icon for an original stylized island survival game. Match the attached reference sheet style exactly: flat cartoon icon, thick dark charcoal (#26343B) outline around every shape, broad matte flat-shaded fills, palette warm sand #D9BD83, foliage green #527247, water teal #458B99, accent gold #EBC16A, cream #F5F1E5, wood brown. One centered object filling about 85% of the square canvas, fully TRANSPARENT background, no drop shadow, no background shape. Absolutely no text, letters, numbers, logo, watermark or frame. Subject: a friendly open wooden front door in a simple door frame, the door swung partly open showing warm gold light inside, with a small green welcome mat in front and two small sand-colored footprints walking toward the door. No people, no faces, no hood, no figures, no arrows, no text."
+    }
+  }
+}

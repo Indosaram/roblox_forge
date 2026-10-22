@@ -1835,17 +1835,17 @@ assets:
   - key: ui-icon-stance-attack
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-04.png cell 4"
+    source: "gpt-image redraw-p31.json ui.icon.stance.attack"
     path: assets/icons/ui.icon.stance.attack.png
-    assetId: 114426356296456
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
-      digest: sha256:566db64af5b3b12e24a05b7794a87643ef1521b3dd4940a304142fe91f6592b9
+      digest: sha256:c8aaab0e98635d5b3fa3cc29fd949ae7e9f45986ebec082105a2de5cc0196ba5
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#4"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p31.json#ui.icon.stance.attack"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -1857,8 +1857,8 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
-    decalAssetId: 87765783418368
+      created: 2026-10-22
+    decalAssetId: 0
   - key: ui-icon-stance-defense
     kind: image
     tool: gpt-image
@@ -2321,17 +2321,17 @@ assets:
   - key: ui-icon-visitor
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-05.png cell 6"
+    source: "gpt-image redraw-p31.json ui.icon.visitor"
     path: assets/icons/ui.icon.visitor.png
-    assetId: 127226616506637
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
-      digest: sha256:836e669fe04f6f805fce874e8ca09d950cc49711d9d14d1328a380ee08730e83
+      digest: sha256:6a363864221be8f7a912778221bda44ad651af271b185abbe7497b4b4d1fe7af
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#5"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p31.json#ui.icon.visitor"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -2343,8 +2343,8 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
-    decalAssetId: 77913806981103
+      created: 2026-10-22
+    decalAssetId: 0
   - key: ui-icon-withdraw-capability
     kind: image
     tool: gpt-image
@@ -3725,17 +3725,17 @@ assets:
   - key: item-icon-capture-bola
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-08.png cell 10"
+    source: "gpt-image redraw-p31.json item.icon.capture-bola"
     path: assets/icons/item.icon.capture-bola.png
-    assetId: 78864726345768
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
-      digest: sha256:a775652f17e2d47586d207c77e4a53d612a0f7df92182688aee70e5111974fe9
+      digest: sha256:8fdef8fc2003c7cb85b2550f69f51d67f42f381aa232db6fc1422c2845b1b5f3
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#8"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p31.json#item.icon.capture-bola"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -3747,8 +3747,8 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
-    decalAssetId: 71761604649118
+      created: 2026-10-22
+    decalAssetId: 0
   - key: item-icon-kiln-kit
     kind: image
     tool: gpt-image
@@ -7478,17 +7478,17 @@ assets:
   - key: item-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 4"
+    source: "gpt-image redraw-p31.json item.icon.capture-rope"
     path: assets/icons/item.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:7544911988aefb6164cdc79a895e99d50650ff11ecb08f26003f7ce5d4fa14f4
+      digest: sha256:29804db086ad342d3b99757add07de4128f4fb53c78d5af8594f0716602878f8
       recipe:
-        id: robango-icon-recovery
-        version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p31.json#item.icon.capture-rope"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -7500,7 +7500,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-22
     decalAssetId: 0
   - key: item-icon-saddle
     kind: image
@@ -10947,17 +10947,17 @@ assets:
   - key: recipe-icon-capture-bola
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 10"
+    source: "gpt-image redraw-p31.json recipe.icon.capture-bola"
     path: assets/icons/recipe.icon.capture-bola.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:037cba14d9202d9c6c83aca5290e7aaf71395b5fd7435d07386ef8caa0e04ca8
+      digest: sha256:ad8fa8a984e9d2994ab86b02b0dbc7efca5040fb70be0624070304d613f684a0
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p31.json#recipe.icon.capture-bola"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -10969,7 +10969,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-22
   - key: recipe-icon-dry-twig
     kind: image
     tool: gpt-image
@@ -13573,18 +13573,18 @@ assets:
   - key: recipe-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 5"
+    source: "gpt-image redraw-p31.json recipe.icon.capture-rope"
     path: assets/icons/recipe.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:a908de255073062fc2a7a54ea851918c836bbc082873b4315bac82bd4f9d85df
+      digest: sha256:4e64283ff2647da6903c07c25efa0b19e6d2954857cb0f27a8190305434dd960
       recipe:
-        id: robango-icon-recovery
-        version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p31.json#recipe.icon.capture-rope"
+        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
       provider:
         name: gpt-image
         version: Responses-API
@@ -13596,7 +13596,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-22
   - key: recipe-icon-animal-pen
     kind: image
     tool: gpt-image

@@ -294,9 +294,6 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.capture-bola.png"
 output_path = "games/robango-island/src/shared"
 
-[inputs.item-icon-capture-bola.web]
-"item.icon.capture-bola.png" = { id = 78864726345768 }
-
 [inputs.item-icon-capture-rope]
 path = "assets/icons/item.icon.capture-rope.png"
 output_path = "games/robango-island/src/shared"
@@ -3133,9 +3130,6 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/ui.icon.stance.attack.png"
 output_path = "games/robango-island/src/shared"
 
-[inputs.ui-icon-stance-attack.web]
-"ui.icon.stance.attack.png" = { id = 114426356296456 }
-
 [inputs.ui-icon-stance-charge]
 path = "assets/icons/ui.icon.stance.charge.png"
 output_path = "games/robango-island/src/shared"
@@ -3195,9 +3189,6 @@ output_path = "games/robango-island/src/shared"
 [inputs.ui-icon-visitor]
 path = "assets/icons/ui.icon.visitor.png"
 output_path = "games/robango-island/src/shared"
-
-[inputs.ui-icon-visitor.web]
-"ui.icon.visitor.png" = { id = 127226616506637 }
 
 [inputs.ui-icon-weather-clear]
 path = "assets/icons/ui.icon.weather.clear.png"

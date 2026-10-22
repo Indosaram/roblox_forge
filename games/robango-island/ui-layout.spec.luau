@@ -262,7 +262,17 @@ return {
 		local sources = {
 			"games/robango-island/src/client/RobangoIslandClient.client.luau",
 		}
-		for _, name in { "ShopPanel", "TamingPanel", "DeathZonePanel", "MarketPanel", "CampPanelModel", "BrawlPanel" } do
+		for _, name in
+			{
+				"ShopPanel",
+				"TamingPanel",
+				"DeathZonePanel",
+				"MarketPanel",
+				"CampPanelModel",
+				"BrawlPanel",
+				"FarmCraftText",
+			}
+		do
 			table.insert(sources, "genres/survival-coop/module/" .. name .. ".luau")
 		end
 		local count = 0

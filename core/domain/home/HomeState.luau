@@ -4,6 +4,7 @@
 local Inventory = require("../inventory/Inventory")
 local CapacityPolicy = require("../survival/CapacityPolicy")
 local Rng = require("../random/Rng")
+local Farming = require("./Farming")
 local M = {}
 
 function M.copy(value: any): any
@@ -115,6 +116,7 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		or action == "rank"
 		or action == "capacity"
 		or action == "preset"
+		or action == "specialize"
 	if (ownerOnly and actor ~= state.owner) or not M.allowed(state, actor, "cooperate", ctx.facts) then
 		return nil, "FORBIDDEN"
 	end
@@ -287,9 +289,9 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		out.plots[args.plot] = {
 			crop = args.crop,
 			plantedAt = ctx.now,
-			readyAt = ctx.now + crop.seconds,
+			readyAt = ctx.now + Farming.growSeconds(state, args.crop, crop.seconds),
 			level = level,
-			quantity = crop.quantity,
+			quantity = Farming.yield(state, args.crop, crop.quantity),
 			roll = rng:nextU32(),
 			sequence = out.plantSequence,
 		}
@@ -314,7 +316,7 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 			itemId = state.homeId .. ":crop:" .. tostring(planted.sequence),
 			catalogId = crop.output,
 			quantity = planted.quantity,
-			qualityMilli = 1000,
+			qualityMilli = Farming.quality(state, planted.crop),
 			durabilityMilli = 0,
 			attributes = { level = planted.level, origin = state.homeId, roll = planted.roll },
 		}, bag.version)
@@ -323,6 +325,12 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		end
 		out.storage = Inventory.save(added)
 		out.plots[args.plot] = nil
+		Farming.recordHarvest(out, planted.crop)
+	elseif Farming.handles(action) then
+		local farmed, refused = Farming.apply(out, action, args, ctx, take)
+		if not farmed then
+			return nil, refused
+		end
 	elseif action == "recover" then
 		local placed = state.structures[args.id]
 		if not placed then

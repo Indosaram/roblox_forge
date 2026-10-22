@@ -192,6 +192,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				intent.mints = {}
 				if npc.healthMilli == 0 then
 					npc.mode, npc.killer = "dead", intent.request.actorId
+					intent.killed = true
 					npc.killedAt = config.now()
 					for index, drop in intent.drops do
 						local mintId = id .. ":" .. tostring(index)
@@ -302,9 +303,13 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		ledger.stateVersion += 1
 		local player = envelope.genres["survival-coop"].data
+		-- Melee proficiency and character XP are earned per kill, never per hit.
+		if player.progression and intent.phase ~= "REJECTED" and intent.killed then
+			local tree = (config.content :: any).progressionPolicy.tree
+			player.progression = SkillTree.award(player.progression, tree, "melee", id)
+			player.progression = SkillTree.grantXP(player.progression, tree, tree.killXP or 0)
+		end
 		if player.progression and intent.phase ~= "REJECTED" and damage > 0 then
-			player.progression =
-				SkillTree.award(player.progression, (config.content :: any).progressionPolicy.tree, "melee", id)
 			player.progression = Award(config.content, player.progression, intent.mints[1] and "carcass" or "", id)
 		end
 		local result: Shared.Result = {

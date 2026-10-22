@@ -50,6 +50,26 @@ function M.level(state: State, policy: Policy, level: number): State
 	return result
 end
 
+--- Character experience only (no mastery), for rewards that are not one finalized action.
+--- The caller owns idempotency: it must apply this inside the commit that records its receipt.
+function M.grantXP(state: State, policy: Policy, amount: number): State
+	assert(amount % 1 == 0 and amount >= 0, "INVALID_XP")
+	local result = M.copy(state)
+	local xp = (result.xp or 0) + amount
+	while result.level < policy.maxLevel do
+		local required = policy.xpBase + policy.xpStep * result.level
+		if xp < required then
+			break
+		end
+		xp -= required
+		result.sp += policy.spPerLevel
+		result.level += 1
+	end
+	result.xp = xp
+	result.version += 1
+	return result
+end
+
 function M.award(state: State, policy: Policy, category: string, receipt: string): State
 	assert(state.mastery[category] ~= nil and #receipt > 0, "INVALID_PROFICIENCY_EVENT")
 	if state.receipts[receipt] then

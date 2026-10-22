@@ -384,12 +384,12 @@ local routing = IslandBootstrap.start({
 })
 -- BEGIN production world interactions.
 local liveWorld: any = world
-liveWorld.travel = function(player: Player, destination: string)
+liveWorld.travel = function(player: Player, destination: string, route: number?)
 	if destination == "archipelago" then
 		local actor = tostring(player.UserId)
 		local opened = (factory :: any).archipelago.open(actor, {
 			id = HttpService:GenerateGUID(false),
-			index = 1,
+			index = route or 1,
 			seed = 20261018,
 			revision = "robango-route-v1",
 			ttl = 1800,

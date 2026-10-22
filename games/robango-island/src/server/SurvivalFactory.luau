@@ -661,6 +661,46 @@ return function(content: any, source, world, backend, clock, options, provision,
 			close = expeditionStore.close,
 		})
 	end)
+	-- Expedition crew (party) and route departure; travel stays on the server's own port.
+	table.insert(extensionFactories, function()
+		local crew = require(Forge.genres["survival-coop"].module.ExpeditionExtension)
+		return require(Forge.core.infra.genre.Session).registerLifecycle(crew.new({
+			content = content,
+			now = seconds,
+			facts = function(actor)
+				return expeditionFacts(actor, expeditionStore.snapshot(actor))
+			end,
+			document = function(actor)
+				return (expeditionStore.snapshot(actor))
+			end,
+			layoutId = function()
+				return if world.layout then world.layout.id else nil
+			end,
+			position = function(actor)
+				local spatial = world.services.survivalDeath
+				return if spatial then spatial.position(actor) else nil
+			end,
+			online = function(actor)
+				return game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0) ~= nil
+			end,
+			onExpedition = function()
+				return workspace:GetAttribute("ForgeWorldRole") == "archipelago"
+			end,
+			travel = function(actor, destination, route)
+				local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
+				if not player or not world.travel then
+					local unavailable: any = { ok = false, reason = "travel_unavailable" }
+					return unavailable
+				end
+				local ok: any, reason = world.travel(player, destination, route)
+				if type(ok) == "table" then
+					return ok
+				end
+				local result: any = { ok = ok == true, reason = if ok then nil else reason or "travel_failed" }
+				return result
+			end,
+		}))
+	end)
 	if world.home then
 		table.insert(extensionFactories, function(ctx)
 			local config = table.clone(world.home)
@@ -1196,7 +1236,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local roleWorld: any = world
 	factoryPorts.expeditionStore = expeditionStore
 	factoryPorts.recordDevelopment = function(actor, receiptId, event)
-		return expeditionStore.transaction(actor, function(document)
+		local guideCompleted = false
+		local recorded = expeditionStore.transaction(actor, function(document)
 			local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
 			development.events = development.events or {}
 			development.progress = development.progress or {}
@@ -1222,12 +1263,19 @@ return function(content: any, source, world, backend, clock, options, provision,
 					if complete then
 						development.definitions[guide.id] = true
 						development.points += guide.rewards.development or 0
+						ArchipelagoExtension.enqueueGuide(document, guide)
+						guideCompleted = true
 					end
 				end
 			end
 			document.development = development
 			return { ok = true }
 		end)
+		-- Guide xp/coins settle through the mission reward outbox (once per guide receipt).
+		if recorded.ok and guideCompleted then
+			archipelago.settleRewards(actor)
+		end
+		return recorded
 	end
 	factoryPorts.gatherReceipt = function(actor, epoch, requestId)
 		local port = factory.services.survivalGathering

@@ -296,4 +296,60 @@ return {
 		local injected = forbiddenHits("Welcome to " .. "Dur" .. "ango")
 		assert(#injected == 1, "the naming gate must flag an injected forbidden name")
 	end,
+	["every daily contract is deliverable at level 1-3 from home and onboarding resources"] = function()
+		local document = load()
+		local available: { [string]: string? } = {} -- item -> required tool (or "" for none)
+		for _, layout in document.layouts do
+			if layout.id == "rw.home" or layout.id == "rw.onboarding" then
+				for _, node in layout.resourceNodes or {} do
+					available[node.item] = node.tool or ""
+				end
+			end
+		end
+		local details = {}
+		for _, detail in document.recipeDetails do
+			details[detail.id] = detail
+		end
+		local function obtainable(item: string, depth: number): boolean
+			if depth > 10 then
+				return false
+			elseif available[item] ~= nil then
+				return available[item] == "" or obtainable(available[item] :: string, depth + 1)
+			end
+			for _, recipe in document.recipes do
+				local detail = details[recipe.id]
+				local makes = false
+				for _, output in recipe.outputs do
+					makes = makes or output.item == item
+				end
+				if
+					makes
+					and string.sub(recipe.id, 1, 7) ~= "legacy-"
+					and (detail == nil or (detail.minCharacterLevel <= 3 and #detail.skillNodes == 0))
+					and (recipe.station == nil or obtainable(recipe.station .. "-kit", depth + 1))
+				then
+					local ok = true
+					for _, input in recipe.inputs do
+						ok = ok and obtainable(input.item, depth + 1)
+					end
+					if ok then
+						return true
+					end
+				end
+			end
+			return false
+		end
+		local count = 0
+		for _, entry in document.contracts.entries do
+			if entry.pool == "daily" then
+				count += 1
+				for _, need in entry.deliver do
+					assert(obtainable(need.item, 0), entry.id .. " needs unreachable " .. need.item)
+				end
+			end
+		end
+		assert(count >= document.contracts.dailyCount, "daily pool covers a full board")
+		-- Witness: an item only found off the home island is rejected by the same check.
+		assert(not obtainable("reed", 0), "reed is not a home resource")
+	end,
 }

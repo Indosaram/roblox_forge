@@ -117,7 +117,11 @@ end
 function M.repairCost(item: any, content: any): number?
 	for _, op in content.operations or {} do
 		for _, def in if op.kind == "repair" then content.items else {} do
-			if def.id == item.catalogId and item.durabilityMilli < Catalog.maxDurability(def, item) then
+			local eligible = op.eligibleTags == nil
+			for _, tag in op.eligibleTags or {} do
+				eligible = eligible or table.find(def.tags or {}, tag) ~= nil
+			end
+			if def.id == item.catalogId and eligible and item.durabilityMilli < Catalog.maxDurability(def, item) then
 				return Job.repairCost(op, item.catalogId)
 			end
 		end

@@ -195,6 +195,24 @@ return {
 		local poor = world({ fixed }, nil, nil, 19).repair("axe")
 		assert(not poor.ok and poor.reason == "INSUFFICIENT_FUNDS", "cannot afford: " .. tostring(poor.reason))
 	end,
+	["item-repair refuses items without an eligible tag, with a localized reason"] = function()
+		local Locale = require("./SurvivalHUDLocale")
+		-- capture-bola is a durable tool without a repair tag (repair-equipment.eligibleTags).
+		local worn = stack("bola", "capture-bola", 1)
+		worn.durabilityMilli = 1000
+		local w = world({ worn }, "rw.home", nil, 100)
+		local before = serde.encode("json", w.data())
+		local refused = w.repair("bola")
+		assert(not refused.ok and refused.reason == "INELIGIBLE_REPAIR", "ineligible: " .. tostring(refused.reason))
+		assert(serde.encode("json", w.data()) == before, "refusal leaves bag and Coins intact")
+		for _, locale in { "en-us", "ko-kr" } do
+			local text = Locale.refusal(locale, refused.reason)
+			assert(text ~= Locale.refusal(locale, "unknown") and text ~= refused.reason, locale .. " localized")
+		end
+		local club = stack("club", "starter-club", 1)
+		club.durabilityMilli = 1000
+		assert(world({ club }, "rw.home", nil, 100).repair("club").ok, "starter club carries weapon-tool")
+	end,
 	["only the harbor buys"] = function()
 		local w = world({ stack("w", "wood", 5) }, "rw.home")
 		local result = w.sell("wood", 1)

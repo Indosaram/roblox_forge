@@ -152,6 +152,12 @@ for index, factory in panelFactories do
 		end
 	end
 end
+-- Farming and crafting screens (farm plot, sprayer, crop book, processing, recipe preview, inbox).
+table.insert(panelFactories, function(ctx)
+	local farm: any = table.clone(ctx)
+	farm.content = content
+	return require(Forge.genres["survival-coop"].module.FarmCraftPanels).factory(farm)
+end)
 table.insert(panelFactories, function(ctx)
 	local buildingPolicy = assert(content.buildingPolicy, "BUILDING_POLICY_REQUIRED")
 	local homePolicy = assert(content.homePolicy, "HOME_POLICY_REQUIRED")
