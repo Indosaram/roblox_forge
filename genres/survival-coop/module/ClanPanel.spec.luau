@@ -9,6 +9,7 @@ return {
 			local widgets, sends = {}, {}
 			local callback: any = nil
 			local destroyed, unsubscribed, unfit = false, false, false
+			local membership = false
 			local frame: any = {}
 			local components = {}
 			function components.modalSheet(): any
@@ -77,6 +78,10 @@ return {
 				text = function(key: string): string
 					return key
 				end,
+				openMembership = function()
+					assert(frame.Visible == false, "clan must not cover membership input")
+					membership = true
+				end,
 				encode = function(value: any): string
 					return serde.encode("json", value)
 				end,
@@ -92,6 +97,12 @@ return {
 			}
 			local panel = Panel.factory(ctx)
 			assert(#widgets == 3, "no-clan state is visible before snapshot")
+			frame.Visible = true
+			widgets[2].onClick()
+			assert(membership, "create opens membership")
+			frame.Visible = true
+			widgets[3].onClick()
+			assert(frame.Visible == false, "join also clears the clan sheet")
 			local state = Clan.new("a", "owner")
 			state.members.helper = { role = "member", withdraw = false }
 			callback({ clan = state })

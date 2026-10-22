@@ -202,6 +202,7 @@ return {
 				"shop",
 				"death-zone",
 				"clan",
+				"brawl",
 				"outpost",
 				"journal",
 				"music",

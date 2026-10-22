@@ -9,6 +9,149 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["every live layout grounds resource nodes and keeps standing reach rays clear"] = function()
+		local roblox = require("@lune/roblox")
+		local terrain = require("../../core/domain/island/ArchipelagoTerrain")
+		local total, interactions = 0, 0
+		for _, layout in Content.layouts do
+			local engine = Engine.new(nil, true)
+			local workspace = engine.game:GetService("Workspace")
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layout.id, 1776)
+			if layout.id == "rw.home" then
+				local rules = HomeContent.rules(Content)
+				world.renderHome(engine.home.plan(Content, Home.new("owner", rules, 1776), rules))
+			end
+			for _, node in world.roleSource.nodes do
+				local target = workspace:FindFirstChild("ForgeRoleWorld"):FindFirstChild(node.id)
+				local p = target.Position
+				local hit = workspace:Raycast(
+					p + roblox.Vector3.new(0, 64, 0),
+					roblox.Vector3.new(0, -128, 0),
+					{ IgnoreWater = true }
+				)
+				assert(hit, layout.id .. ":" .. node.id .. " lacks terrain")
+				assert(p.Y - target.Size.Y / 2 >= hit.Position.Y, node.id .. " is buried")
+				assert(node.position.y == p.Y, node.id .. " authority differs from prompt anchor")
+				for _, offset in { { 5, 0 }, { -5, 0 }, { 0, 5 }, { 0, -5 } } do
+					local x, z = p.X + offset[1], p.Z + offset[2]
+					local support = workspace:Raycast(
+						roblox.Vector3.new(x, 512, z),
+						roblox.Vector3.new(0, -1024, 0),
+						{ IgnoreWater = true }
+					)
+					if support then
+						local from = roblox.Vector3.new(x, support.Position.Y + 3.2, z)
+						assert(
+							not workspace:Raycast(from, p - from, { IgnoreWater = true }),
+							node.id .. " terrain blocks standing reach"
+						)
+					end
+				end
+				total += 1
+			end
+			world.bind({} :: any)
+			for _, target in workspace:FindFirstChild("ForgeRoleWorld"):GetChildren() do
+				local prompt = target:FindFirstChild("ForgeDock")
+				if not prompt and target:GetAttribute("ForgeHarborFacility") then
+					prompt = target:FindFirstChildOfClass("ProximityPrompt")
+				end
+				if not prompt then
+					continue
+				end
+				local p = target.Position
+				local support = workspace:Raycast(
+					p + roblox.Vector3.new(0, 64, 0),
+					roblox.Vector3.new(0, -128, 0),
+					{ IgnoreWater = true }
+				)
+				assert(
+					support and p.Y - target.Size.Y / 2 >= support.Position.Y,
+					layout.id .. ":" .. target.Name .. " interactable buried"
+				)
+				for _, offset in { { 5, 0 }, { -5, 0 }, { 0, 5 }, { 0, -5 } } do
+					local x, z = p.X + offset[1], p.Z + offset[2]
+					local ground = workspace:Raycast(
+						roblox.Vector3.new(x, 512, z),
+						roblox.Vector3.new(0, -1024, 0),
+						{ IgnoreWater = true }
+					)
+					if ground then
+						local from = roblox.Vector3.new(x, ground.Position.Y + 3.2, z)
+						assert(
+							(p - from).Magnitude <= prompt.MaxActivationDistance,
+							target.Name .. " prompt out of range"
+						)
+						assert(
+							not workspace:Raycast(from, p - from, { IgnoreWater = true }),
+							target.Name .. " prompt terrain obstruction"
+						)
+					end
+				end
+				local destination = if prompt.Name == "ForgeDock" then prompt.ObjectText else nil
+				for _, facility in world.harborFacilities or {} do
+					if facility.id == target.Name then
+						assert(facility.position.y == p.Y, "harbor authority position")
+						destination = facility.destination
+					end
+				end
+				if destination then
+					local checked, traveled = false, false
+					world.services.survivalDeath.reachable = function(_, position)
+						assert(
+							position.x == p.X and position.y == p.Y and position.z == p.Z,
+							target.Name .. " travel authority position"
+						)
+						checked = true
+						return true
+					end
+					world.travel = function(_, actual)
+						assert(actual == destination, "travel destination")
+						traveled = true
+					end
+					prompt.Triggered:Fire({ UserId = 1 })
+					assert(checked and traveled, target.Name .. " prompt failed to travel")
+				end
+				interactions += 1
+			end
+			for _, fill in engine.terrainWrites do
+				if fill.material == roblox.Enum.Material.Grass or fill.material == roblox.Enum.Material.LeafyGrass then
+					for _, node in layout.resourceNodes do
+						assert(
+							(fill.position.X - node.position.x) ^ 2 + (fill.position.Z - node.position.z) ^ 2 > 24 ^ 2,
+							node.id .. " animated grass at node"
+						)
+					end
+					for _, path in layout.paths do
+						for index = 2, #path.points do
+							assert(
+								terrain.distance(
+									fill.position.X,
+									fill.position.Z,
+									path.points[index - 1],
+									path.points[index]
+								) > path.width / 2 + 24,
+								path.id .. " animated grass on approach"
+							)
+						end
+					end
+					for _, spawn in layout.spawns do
+						assert(
+							(fill.position.X - spawn.position.x) ^ 2 + (fill.position.Z - spawn.position.z) ^ 2
+								> (spawn.radius + 24) ^ 2,
+							spawn.id .. " animated grass at spawn"
+						)
+					end
+				end
+			end
+			world.destroy()
+		end
+		assert(total > 100, "all live role nodes covered")
+		print("grounded role nodes with unobstructed standing reach: " .. total)
+		assert(interactions > 20, "all live role docks and harbor interactions covered")
+		print("grounded role docks and harbor interactables: " .. interactions)
+	end,
 	["onboarding station anchors sit above terrain rather than inside it"] = function()
 		local engine = Engine.new()
 		local workspace = engine.game:GetService("Workspace")
@@ -282,14 +425,12 @@ return {
 			assert(terrain[property] == 0.4, "water settings remain script-writable")
 		end
 	end,
-	["home renders Terrain coast and grass instead of visible square ground"] = function()
+	["home renders Terrain coast and clear interaction ground instead of visible square ground"] = function()
 		local engine = Engine.new()
 		local workspace = engine.game:GetService("Workspace")
-		local grass, sand, dirt = 0, 0, 0
+		local sand, dirt = 0, 0
 		workspace.Terrain.FillBlock = function(_, _frame, _size, material)
-			if material.Name == "Grass" then
-				grass += 1
-			elseif material.Name == "Sand" then
+			if material.Name == "Sand" then
 				sand += 1
 			elseif material.Name == "Ground" then
 				dirt += 1
@@ -302,7 +443,7 @@ return {
 		end)
 		local rules = HomeContent.rules(Content)
 		world.publishHome(Home.new("owner", rules, 79), rules)
-		assert(grass > 0 and sand > 0 and dirt > 0, "Terrain grass coast and dirt trail")
+		assert(sand > 0 and dirt > 0, "Terrain coast and clear interaction ground")
 		for _, p in engine.parts do
 			if p.Name == "home-land" or p.Name == "home.path" then
 				assert(p.Transparency == 1 and p.CanCollide == false, "hidden ground capability")

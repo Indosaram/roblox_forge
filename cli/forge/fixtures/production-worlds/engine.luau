@@ -4,10 +4,11 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
 local M = {}
-function M.new(physicalWarehouse: boolean?): any
+function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	local callbacks: { any } = {}
 	local actors: any = {}
 	local tags: any = {}
+	local terrainWrites: { any } = {}
 	local function signal()
 		local handlers: { (...any) -> () } = {}
 		return {
@@ -26,8 +27,16 @@ function M.new(physicalWarehouse: boolean?): any
 	local function instance(className): any
 		if className == "Terrain" then
 			local properties: any = {
-				FillBlock = function() end,
-				FillBall = function() end,
+				FillBlock = function(_, frame, size, material)
+					if physicalTerrain then
+						table.insert(terrainWrites, { position = frame.Position, size = size, material = material })
+					end
+				end,
+				FillBall = function(_, position, radius, material)
+					if physicalTerrain then
+						table.insert(terrainWrites, { position = position, radius = radius, material = material })
+					end
+				end,
 			}
 			local writable = {
 				WaterColor = true,
@@ -174,7 +183,67 @@ function M.new(physicalWarehouse: boolean?): any
 		return 0
 	end
 	workspace.Terrain = instance("Terrain")
-	workspace.Raycast = function(_, origin: any, direction: any): any
+	workspace.Raycast = function(_, origin: any, direction: any, params: any): any
+		if physicalTerrain then
+			local intervals, boundaries = {}, { 0, 1 }
+			for index, fill in terrainWrites do
+				local low, high = 0, 1
+				if fill.radius then
+					local offset = origin - fill.position
+					local a, b = direction:Dot(direction), 2 * offset:Dot(direction)
+					local c = offset:Dot(offset) - fill.radius ^ 2
+					local discriminant = b * b - 4 * a * c
+					if discriminant < 0 then
+						low = 2
+					else
+						low = math.max(low, (-b - math.sqrt(discriminant)) / (2 * a))
+						high = math.min(high, (-b + math.sqrt(discriminant)) / (2 * a))
+					end
+				else
+					for _, axis in { "X", "Y", "Z" } do
+						local minimum = fill.position[axis] - fill.size[axis] / 2
+						local maximum = fill.position[axis] + fill.size[axis] / 2
+						if direction[axis] == 0 then
+							if origin[axis] < minimum or origin[axis] > maximum then
+								low = 2
+							end
+						else
+							local a = (minimum - origin[axis]) / direction[axis]
+							local b = (maximum - origin[axis]) / direction[axis]
+							low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
+						end
+					end
+				end
+				if low < high then
+					table.insert(intervals, { low = low, high = high, index = index })
+					table.insert(boundaries, low)
+					table.insert(boundaries, high)
+				end
+			end
+			table.sort(boundaries)
+			for index = 2, #boundaries do
+				local t = (boundaries[index - 1] + boundaries[index]) / 2
+				local latest = 0
+				for _, interval in intervals do
+					if interval.low <= t and interval.high >= t then
+						latest = math.max(latest, interval.index)
+					end
+				end
+				local fill = terrainWrites[latest]
+				if
+					fill
+					and fill.material ~= roblox.Enum.Material.Air
+					and not (params and params.IgnoreWater and fill.material == roblox.Enum.Material.Water)
+				then
+					return {
+						Instance = workspace.Terrain,
+						Position = origin + direction * boundaries[index - 1],
+						Normal = roblox.Vector3.yAxis,
+					}
+				end
+			end
+			return nil
+		end
 		-- The preview depot is a real collidable box, not an always-clear reach mock.
 		if physicalWarehouse then
 			for _, value in callbacks do
@@ -375,6 +444,7 @@ function M.new(physicalWarehouse: boolean?): any
 		},
 	}, nil)
 	module.DinosaurRig = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil)
+	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
 	local dressing = load("games/robango-island/src/server/WorldDressing.luau", {}, nil)
 	forge.core.infra = {
 		render = {
@@ -491,6 +561,7 @@ function M.new(physicalWarehouse: boolean?): any
 				roblox.Vector3.new(position.x, position.y, position.z)
 		end,
 		parts = callbacks,
+		terrainWrites = terrainWrites,
 	}
 end
 return M

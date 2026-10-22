@@ -33,8 +33,37 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		then {}
 		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
 	local dressing = Dressing.plan(layout, columns, Terrain)
-	-- Roblox's animated terrain grass is avatar-height and cannot be trimmed per voxel.
-	-- Keep the tutorial's camp and approaches as low ground cover instead.
+	-- Roblox's animated grass is avatar-height. Keep interaction approaches clear.
+	local function interactionGround(x: number, z: number, margin: number): boolean
+		for _, node in layout.resourceNodes do
+			if (x - node.position.x) ^ 2 + (z - node.position.z) ^ 2 <= (24 + margin) ^ 2 then
+				return true
+			end
+		end
+		for _, path in layout.paths do
+			for index = 2, #path.points do
+				if
+					Terrain.distance(x, z, path.points[index - 1], path.points[index])
+					<= path.width / 2 + 24 + margin
+				then
+					return true
+				end
+			end
+		end
+		for _, spawn in layout.spawns do
+			if (x - spawn.position.x) ^ 2 + (z - spawn.position.z) ^ 2 <= (spawn.radius + 24 + margin) ^ 2 then
+				return true
+			end
+		end
+		for _, anchor in layout.anchors do
+			if
+				anchor.id == "entry" and (x - anchor.position.x) ^ 2 + (z - anchor.position.z) ^ 2 <= (24 + margin) ^ 2
+			then
+				return true
+			end
+		end
+		return false
+	end
 	workspace:SetAttribute("ForgeWorldBiome", layout.biomes[1])
 	local function style(value: any, definition: any)
 		value.Material = materials[definition.material or dressing.palette.ground]
@@ -133,7 +162,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	for _, column in columns do
 		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
 		local material = column.material
-		if layoutId == "rw.onboarding" and material == "Grass" then
+		if
+			(material == "Grass" or material == "LeafyGrass")
+			and (layoutId == "rw.onboarding" or interactionGround(column.x, column.z, column.cell))
+		then
 			material = "Ground"
 		end
 		local top = column.top
@@ -195,6 +227,36 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	spawn.Parent = root
 	local runtimeContent: any = table.clone(content)
 	runtimeContent.nodes = table.clone(content.nodes)
+	if layoutId == "rw.home" then
+		-- Home land is published after role construction. Sample its starting surface
+		-- now as well, so gather authority is grounded before the factory copies it.
+		local half = content.homePolicy.tiers[1].sideStuds / 2
+		workspace.Terrain:FillBall(Vector3.new(0, -half - 8, 0), half + 7, Enum.Material.Sand)
+		for index = 1, 7 do
+			local angle = index * math.pi * 2 / 7
+			local radius = half * (0.6 + (index % 3) * 0.055)
+			workspace.Terrain:FillBall(
+				Vector3.new(math.cos(angle) * half * 0.65, -radius + 0.5, math.sin(angle) * half * 0.65),
+				radius + 3,
+				Enum.Material.Sand
+			)
+		end
+		for x = -half - 8, half + 8, 4 do
+			for z = -half - 8, half + 8, 4 do
+				local angle = math.atan2(z, x)
+				local edge = math.sqrt(x * x + z * z) / half
+				local coast = 1.12 + 0.08 * math.sin(angle * 3) + 0.045 * math.cos(angle * 7)
+				if edge < coast then
+					local top = 1 + math.sin(x / 13) * math.sin(z / 17) * math.clamp(edge - 0.55, 0, 0.6) * 3
+					workspace.Terrain:FillBlock(
+						CFrame.new(x, (top - 5) / 2, z),
+						Vector3.new(4, top + 5, 4),
+						Enum.Material.Ground
+					)
+				end
+			end
+		end
+	end
 	local nodes, spawns = {}, {}
 	local nodeItems: any = {}
 	for _, node in layout.resourceNodes do
@@ -207,6 +269,18 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		if item and not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
 			nodeItems[node.id] = item
+			local position = table.clone(node.position)
+			local hit =
+				workspace:Raycast(Vector3.new(position.x, 512, position.z), Vector3.new(0, -1024, 0), groundParams)
+			if hit then
+				local family = Dressing.resource(item)
+				local height = if family == "water"
+					then 0.5
+					elseif family == "wood" then 1.5
+					elseif family == "plant" or family == "food" then 2.5
+					else 2
+				position.y = hit.Position.Y + height / 2 + 0.25
+			end
 			local catalogId = string.gsub(node.id, "[._]", "-")
 			table.insert(runtimeContent.nodes, {
 				id = catalogId,
@@ -216,7 +290,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			table.insert(nodes, {
 				id = node.id,
 				catalogId = catalogId,
-				position = node.position,
+				position = position,
 				charges = node.stock,
 				qualityMilli = 1000,
 				level = node.level,
@@ -313,18 +387,6 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 	})
 	for _, node in nodes do
-		if layoutId ~= "rw.home" then
-			workspace.Terrain:FillBlock(
-				CFrame.new(node.position.x, node.position.y + 8, node.position.z),
-				Vector3.new(16, 16, 16),
-				Enum.Material.Air
-			)
-		end
-		workspace.Terrain:FillBall(
-			Vector3.new(node.position.x, node.position.y - 8, node.position.z),
-			7,
-			if layoutId == "rw.onboarding" then Enum.Material.Ground else Enum.Material.Grass
-		)
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })
 		target.Material, target.Color = Enum.Material.Rock, Color3.fromRGB(117, 119, 112)
 		local family = Dressing.resource(nodeItems[node.id])
@@ -368,11 +430,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	world.musicVenues = function()
 		return musicVenues
 	end
+	local function interactionPosition(position: any, height: number): any
+		local result = table.clone(position)
+		local hit = workspace:Raycast(Vector3.new(position.x, 512, position.z), Vector3.new(0, -1024, 0), groundParams)
+		if hit then
+			result.y = hit.Position.Y + height / 2 + 0.25
+		end
+		return result
+	end
 	if layoutId == "rw.harbor" then
 		local Harbor = require(Forge.genres["survival-coop"].module.HarborFacilities)
 		world.harborFacilities = Harbor.describe(content)
 		for _, facility in world.harborFacilities do
 			if facility.kind == "npc" or facility.kind == "market" or facility.kind == "interaction" then
+				facility.position = interactionPosition(facility.position, 4)
 				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
 				target:SetAttribute("ForgeHarborFacility", facility.anchor)
 				local prompt = Instance.new("ProximityPrompt")
@@ -399,6 +470,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		bind(session)
 	end
 	local function dock(id: string, position: any, destination: string)
+		position = interactionPosition(position, 1)
 		local target = part(id, position, { x = 10, y = 1, z = 8 })
 		target.Material = Enum.Material.WoodPlanks
 		local prompt = Instance.new("ProximityPrompt")
@@ -723,7 +795,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 								Vector3.new(4, top + 5, 4),
 								if edge > coast - 0.17
 									then Enum.Material.Sand
-									elseif math.abs(x - math.sin(z / 16) * 2) < 3 then Enum.Material.Ground
+									elseif
+										interactionGround(x, z, 4) or math.abs(x - math.sin(z / 16) * 2) < 3
+									then Enum.Material.Ground
 									else Enum.Material.Grass
 							)
 						end

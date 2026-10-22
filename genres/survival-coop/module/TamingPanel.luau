@@ -118,17 +118,33 @@ local REFUSALS: { [string]: string } = {
 	WILD_GONE = "tame_gone",
 	WILD_ABSENT = "tame_gone",
 	COOLDOWN = "",
+	TOO_FAR = "tame_too_far",
+	TARGET_UNAVAILABLE = "tame_gone",
+}
+local requirements = {
+	SUBDUE_GATED = {
+		"Learn melee_2; weaken it to 25% health",
+		"근접 전투 2를 배우고 체력을 25% 이하로 낮추세요",
+	},
+	CLUB_REQUIRED = { "Bring a usable club", "사용 가능한 몽둥이가 필요해요" },
+	CAPTURE_GATED = { "Learn survival_3 and stun it", "생존 3을 배우고 기절시키세요" },
+	NO_ROPE = { "Bring Capture Rope", "포획 밧줄이 필요해요" },
+	NO_FEED_ITEM = { "Bring Herbivore Feed", "초식동물 사료가 필요해요" },
 }
 
 function M.refusal(locale: string, result: { ok: boolean?, reason: string? }): string
 	if result.ok then
 		return ""
 	end
+	local requirement = result.reason and requirements[result.reason]
+	if requirement then
+		return pick(locale, requirement)
+	end
 	local key = if result.reason then REFUSALS[result.reason] else nil
 	if key == "" then
 		return ""
 	end
-	return M.text(locale, key or "tame_failed")
+	return if key then M.text(locale, key) else M.text(locale, "tame_failed") .. " [" .. (result.reason or "?") .. "]"
 end
 
 export type Gauge = { wildId: string?, level: number, max: number, full: boolean? }

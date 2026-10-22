@@ -502,7 +502,8 @@ function M.start(options: {
 	context.fitSheet = function(frame: any)
 		local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 		if owner then
-			owner.DisplayOrder = 20
+			owner.DisplayOrder = math.max(20, owner.DisplayOrder)
+			owner.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 		end
 		table.insert(sheets, frame)
 		place()

@@ -602,11 +602,11 @@ function M.factory(ctx: any): any
 		elseif action == PREFIX .. "settlement-place" then
 			event = "SettlementDeclared"
 		elseif action == PREFIX .. "craft-complete" or action == PREFIX .. "settlement-workshop-complete" then
-			-- The real bag decides: the step needs an actual stone axe, not a claim.
+			-- Both the onboarding axe and its stone upgrade satisfy the first tool step.
 			local port, view = bagOf(actor)
 			if port and view then
 				for _, item in view.inventory.items do
-					if item.catalogId == "stone-axe" then
+					if item.catalogId == "stone-axe" or item.catalogId == "starter-axe" then
 						event = "CraftedStoneAxe"
 						break
 					end

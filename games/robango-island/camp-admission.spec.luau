@@ -415,7 +415,17 @@ return {
 		local server = boot(Memory.new(), "job:real-role", at, nil, nil, true)
 		local session = server.session
 		assert(session.join(FIRST).ok, "real role admission")
+		local sequence = {}
+		local function tutorial(expected: string)
+			local step = session.snapshot(FIRST).survivalExtensions.contracts.tutorial.step
+			assert(step == expected, "tutorial expected " .. expected .. ", got " .. tostring(step))
+			table.insert(sequence, step)
+		end
+		tutorial("arrive")
+		assert(command(session, FIRST, "real-arrive", "tutorial-skip-arrival", {}).ok, "finish arrival")
+		tutorial("gather")
 		assert(command(session, FIRST, "real-branch", "gather", { "rw.onboarding.branch", 0 }).ok, "real branch gather")
+		tutorial("craft-stone-axe")
 		at.value += 1
 		local stone = command(session, FIRST, "real-stone", "gather", { "rw.onboarding.stone", 1 })
 		assert(stone.ok, "real stone gather: " .. serde.encode("json", stone))
@@ -427,6 +437,7 @@ return {
 		session.advance(at.value)
 		local complete = command(session, FIRST, "real-complete", "craft-complete", { craft.data.jobId })
 		assert(complete.ok, "complete axe: " .. serde.encode("json", complete))
+		tutorial("declare-settlement")
 		local axe
 		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
 			if item.catalogId == "starter-axe" then
@@ -471,6 +482,8 @@ return {
 			).ok,
 			"real place"
 		)
+		tutorial("accept-contract")
+		print("real onboarding tutorial: " .. table.concat(sequence, " -> "))
 		server.move(FIRST, { x = -48, y = 5, z = -4 })
 		local rest = command(session, FIRST, "real-rest", "rest", { "station.campfire.t1" })
 		assert(rest.ok, "real rest: " .. serde.encode("json", rest))

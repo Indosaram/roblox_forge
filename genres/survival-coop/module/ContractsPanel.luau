@@ -42,7 +42,7 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 	tutorial_done = { en = "Tutorial complete", ko = "튜토리얼 완료" },
 	["tutorial.arrive"] = { en = "Arrive on the island", ko = "섬에 도착하세요" },
 	["tutorial.gather"] = { en = "Gather a resource", ko = "자원을 채집하세요" },
-	["tutorial.craft-stone-axe"] = { en = "Craft a stone axe", ko = "돌도끼를 만드세요" },
+	["tutorial.craft-stone-axe"] = { en = "Craft an axe", ko = "도끼를 만드세요" },
 	["tutorial.declare-settlement"] = { en = "Place your settlement", ko = "정착지를 세우세요" },
 	["tutorial.accept-contract"] = { en = "Accept the first contract", ko = "첫 계약을 수락하세요" },
 	["tutorial.deliver-contract"] = { en = "Deliver the first contract", ko = "첫 계약을 납품하세요" },

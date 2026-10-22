@@ -26,10 +26,16 @@ return {
 	end,
 	["refusals map to localized messages and success is empty"] = function()
 		assert(TamingPanel.refusal("en", { ok = true }) == "", "ok")
-		assert(
-			TamingPanel.refusal("en", { ok = false, reason = "NO_FEED_ITEM" }) == "That did not work. Try again.",
-			"failure"
-		)
+		for _, reason in { "SUBDUE_GATED", "CLUB_REQUIRED", "CAPTURE_GATED", "NO_ROPE", "NO_FEED_ITEM" } do
+			for _, locale in { "en", "ko" } do
+				assert(
+					TamingPanel.refusal(locale, { reason = reason }) ~= TamingPanel.text(locale, "tame_failed"),
+					reason
+				)
+			end
+		end
+		assert(TamingPanel.refusal("en", { reason = "NEW_GATE" }):find("NEW_GATE", 1, true), "unknown code retained")
+		assert(TamingPanel.refusal("ko", { reason = "CLUB_REQUIRED" }):find("몽둥이", 1, true), "required tool")
 		assert(TamingPanel.refusal("en", { ok = false, reason = "CHARGE_PENDING" }):find("Saving") ~= nil, "pending")
 		assert(
 			TamingPanel.refusal("en", { ok = false, reason = "NO_CAPTURE_TOOL" }) == "Craft a Hobble Bola first",

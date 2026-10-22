@@ -102,7 +102,7 @@ return {
 				RunService = { Heartbeat = signal() },
 				ProximityPromptService = { PromptTriggered = signal() },
 			}
-			local enum = setmetatable({}, {
+			local enum: any = setmetatable({}, {
 				__index = function()
 					return {}
 				end,
@@ -138,6 +138,19 @@ return {
 			setfenv(chunk, environment)
 			local runtime = chunk()
 			local factories = {}
+			table.insert(factories, function(ctx: any)
+				local owner: any = { DisplayOrder = 25 }
+				ctx.fitSheet({
+					FindFirstAncestorWhichIsA = function()
+						return owner
+					end,
+				})
+				assert(owner.DisplayOrder == 25, "membership input retains priority above clan and brawl sheets")
+				assert(
+					owner.ZIndexBehavior == enum.ZIndexBehavior.Sibling,
+					"sheet controls render above their scroll parent"
+				)
+			end)
 			for id in registered do
 				if table.find({ "bag", "craft", "build", "skills", "explore" }, id) then
 					visibility[id] = false
