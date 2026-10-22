@@ -90,7 +90,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		else nil
 	local indicator = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 36) })
 	indicator.Name, indicator.LayoutOrder, indicator.Parent = "ZoneIndicator", 1, sheet.scroll
-	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 32) })
+	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 40) })
 	status.Name, status.LayoutOrder, status.Visible, status.Parent = "ZoneStatus", 2, false, sheet.scroll
 	local warning = ui.components.label(theme, {
 		text = M.text(ctx.locale, "zone_warning"),

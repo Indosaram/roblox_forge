@@ -368,10 +368,45 @@ return {
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		local send = 'ctx.send("survival-coop:home-preset", { presets.id, { preset = preset } })'
 		assert(string.find(client, send, 1, true), "preset button sends home-preset with the home id")
+		-- Preset buttons are the sheet's first children (LayoutOrder -3..-1; every other child is 0).
+		assert(string.find(client, "presets[preset].LayoutOrder = preset - 4", 1, true), "preset buttons first")
+		local first = assert(string.find(client, "\tfor preset = 1, 3 do\n\t\tpresets[preset] = button(", 1, true))
+		local last = assert(string.find(client, "\n\tend\n", first, true))
+		for _, case in { { true, "ko-kr", "지형 2 적용됨" }, { false, "en-us", "Terrain 2: Patron Pass" } } do
+			local status, presets, clicks = {}, {}, {}
+			luau.load(string.sub(client, first, last + 5), {
+				environment = {
+					presets = presets,
+					status = status,
+					locale = case[2],
+					HudLocale = Locale,
+					button = function(_, fn)
+						table.insert(clicks, fn)
+						return {}
+					end,
+					ctx = {
+						send = function(action)
+							assert(action == "survival-coop:home-preset", action)
+							return { ok = case[1], reason = "PRESET_LOCKED" }
+						end,
+					},
+				},
+			})()
+			clicks[2]()
+			assert(status.Text == case[3], "preset status: " .. tostring(status.Text))
+		end
 		local longestRaw = longest({ "wood", "stone", "fiber", "meat" })
 		for _, viewport in { HUD_VIEWPORTS[1], HUD_VIEWPORTS[2], HUD_VIEWPORTS[3] } do
 			local rect = sheet(viewport[1], viewport[2], viewport[3])
 			inside(rect, viewport[1], viewport[2], "harbor/home sheet")
+			-- Preset buttons: header 44 + top padding 8 + three 48px rows (6px gaps), no scrolling.
+			inside(
+				{ x = rect.x + 8, y = rect.y + 52, width = rect.width - 16, height = 48 },
+				viewport[1],
+				viewport[2],
+				"preset row"
+			)
+			assert(52 + 156 <= rect.height, "preset buttons above the fold")
 			-- Header plus the cap line, quantity box and Sell button (48px rows) at least scroll into view.
 			assert(rect.height >= 44 + 48 * 2, "harbor cap and one sell row visible")
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])
@@ -386,6 +421,7 @@ return {
 				fits(fmt("sell", name(longestRaw), 2), rect.width - 16, 48, 15, 10, "harbor sell")
 				fits(fmt("preset", 3) .. " *", rect.width - 16, 48, 15, 10, "preset")
 				fits(fmt("PRESET_LOCKED", 3), rect.width - 16, 48, 15, 10, "locked preset")
+				fits(fmt("preset_applied", 3), rect.width - 16, 64, 15, 10, "preset applied")
 				for _, reason in { "DAILY_CAP", "NOT_AT_HARBOR", "INSUFFICIENT_ITEMS", "INSUFFICIENT_FUNDS" } do
 					fits(Locale.refusal(locale, reason), rect.width - 16, 48, 15, 10, reason)
 				end

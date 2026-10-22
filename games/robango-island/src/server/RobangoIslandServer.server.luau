@@ -271,6 +271,22 @@ local session = Server.start({
 	hooks = require(script.Parent.GenreHooks),
 	storeName = "robango-island-genre-v1",
 })
+if RunService:IsStudio() then -- QA: ForgeQASeedDamaged=<id>
+	local I, c =
+		require(Forge.core.domain.inventory.Inventory), require(Forge.core.domain.crafting.Job).catalog(content :: any)
+	workspace:GetAttributeChangedSignal("ForgeQASeedDamaged"):Connect(function()
+		local id = workspace:GetAttribute("ForgeQASeedDamaged")
+		for _, p in if id then Players:GetPlayers() else {} do
+			session.personalTransaction(tostring(p.UserId), function(raw)
+				local inv, item = raw.envelope.genres["survival-coop"].data.inventory, { quantity = 1, attributes = {} }
+				local b = I.fromSave(inv.bag, c)
+				item.itemId, item.catalogId, item.qualityMilli, item.durabilityMilli = "qa" .. b.version, id, 1000, 1
+				inv.bag = I.save((assert(I.add(b, c, item, b.version))))
+				return raw
+			end)
+		end
+	end)
+end
 -- Recover durable listing barriers even when no seller is online. The extension
 -- wrapper serializes this worker with market commands and Session fences value.
 local tradeRecovery: any = nil

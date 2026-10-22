@@ -191,6 +191,7 @@ return {
 				return nil
 			end,
 			SetAttribute = function() end,
+			GetAttributeChangedSignal = signal,
 		}
 		bootEnv.Instance = {
 			new = function(class)

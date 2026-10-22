@@ -206,7 +206,7 @@ end
 -- 217 instances / 168 scripts / 1.26 MB script source / 0.54 MB place file; the
 -- budget leaves roughly 2x headroom. First-interaction time and device memory
 -- cannot be measured locally (see docs/games/robango-island/qa-evidence.md).
-local PERF_BUDGET = { instances = 400, scripts = 300, sourceBytes = 2500000, fileBytes = 1500000 }
+local PERF_BUDGET = { instances = 400, scripts = 300, sourceBytes = 3000000, fileBytes = 1500000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 

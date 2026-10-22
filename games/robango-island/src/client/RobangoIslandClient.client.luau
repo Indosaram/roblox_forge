@@ -237,8 +237,10 @@ table.insert(panelFactories, function(ctx)
 	for preset = 1, 3 do
 		presets[preset] = button("", function()
 			local result = ctx.send("survival-coop:home-preset", { presets.id, { preset = preset } })
-			status.Text = if result.ok then "" else string.format(HudLocale.refusal(locale, result.reason), preset)
+			local ok = if result.ok then HudLocale.text(locale, "preset_applied") else nil
+			status.Text = string.format(ok or HudLocale.refusal(locale, result.reason), preset)
 		end)
+		presets[preset].LayoutOrder = preset - 4 -- above the fold
 	end
 	local stop = ctx.onSnapshot(function(snapshot)
 		state = snapshot.building or { version = 0, parts = {} }
@@ -611,10 +613,14 @@ table.insert(panelFactories, function(ctx)
 	local disconnect = ctx.onSnapshot(function(snapshot)
 		listener.snapshot(snapshot)
 	end)
+	local screens = require(Forge.genres["survival-coop"].module.MusicScreens).factory(musicContext)
 	return {
 		destroy = function()
 			disposed = true
 			disconnect()
+			if screens then
+				screens.destroy()
+			end
 			editor.destroy()
 			stop()
 		end,
@@ -685,6 +691,7 @@ table.insert(panelFactories, function(ctx)
 		end,
 	}
 end)
+table.insert(panelFactories, require(Forge.genres["survival-coop"].module.NavigatorPanel).factory)
 local aerial: any = nil
 local panels = ExtensionPanels.start({
 	factories = panelFactories,

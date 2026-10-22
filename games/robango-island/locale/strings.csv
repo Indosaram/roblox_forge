@@ -1079,3 +1079,99 @@ repair,Repair (%d coins),bag detail repair button,Repair (%d coins),수리 (%d �
 INSUFFICIENT_FUNDS,Not enough coins,repair refusal,Not enough coins,조개돈 부족
 preset,Terrain %d,home terrain preset button,Terrain %d,지형 %d
 PRESET_LOCKED,Terrain %d: Patron Pass,locked home terrain preset,Terrain %d: Patron Pass,지형 %d: 후원 패스
+preset_applied,Terrain preset %d applied,home terrain preset confirmation,Terrain preset %d applied,지형 %d 적용됨
+music.nav_title,Menu,music and navigator screens (MusicText),Menu,메뉴
+music.nav_open,Open menu,music and navigator screens (MusicText),Open menu,메뉴 열기
+music.nav_survival,Survival,music and navigator screens (MusicText),Survival,생존
+music.nav_craft,Craft,music and navigator screens (MusicText),Craft,제작
+music.nav_build,Build,music and navigator screens (MusicText),Build,건설
+music.nav_skills,Skills,music and navigator screens (MusicText),Skills,기술
+music.nav_journal,Journal,music and navigator screens (MusicText),Journal,일지
+music.nav_explore,Explore,music and navigator screens (MusicText),Explore,탐험
+music.nav_social,Social,music and navigator screens (MusicText),Social,함께
+music.nav_market,Market,music and navigator screens (MusicText),Market,장터
+music.nav_music,Music,music and navigator screens (MusicText),Music,연주
+music.nav_import,Import score,music and navigator screens (MusicText),Import score,악보 가져오기
+music.nav_share,Share score,music and navigator screens (MusicText),Share score,악보 공유
+music.nav_ensemble,Ensemble,music and navigator screens (MusicText),Ensemble,합주
+music.nav_inbox,Inbox,music and navigator screens (MusicText),Inbox,수령함
+music.nav_settings,Settings,music and navigator screens (MusicText),Settings,설정
+music.nav_locked,%s: %s,music and navigator screens (MusicText),%s: %s,%s: %s
+music.lock_unknown,Not on this island,music and navigator screens (MusicText),Not on this island,이 섬에는 없어요
+music.lock_unavailable,Not available right now,music and navigator screens (MusicText),Not available right now,지금은 쓸 수 없어요
+music.lock_inbox,Coming later: receipts go to your bag,music and navigator screens (MusicText),Coming later: receipts go to your bag,준비 중: 받은 물건은 가방으로 가요
+music.lock_unsaved,Save a score first,music and navigator screens (MusicText),Save a score first,먼저 악보를 저장하세요
+music.import_title,Import score,music and navigator screens (MusicText),Import score,악보 가져오기
+music.import_hint,"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)",music and navigator screens (MusicText),"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)","악보 JSON을 붙여 넣으세요 (버전 1, 박당 480틱, 최대 256 KiB)"
+music.import_check,Check score,music and navigator screens (MusicText),Check score,악보 확인
+music.import_save,Save score,music and navigator screens (MusicText),Save score,악보 저장
+music.import_preview,"Tempo %d, %d parts, %d notes, %ds",music and navigator screens (MusicText),"Tempo %d, %d parts, %d notes, %ds","템포 %d, 파트 %d개, 음표 %d개, %d초"
+music.import_saved,Saved %s,music and navigator screens (MusicText),Saved %s,저장됨 %s
+music.import_lookup,Score ID (like 123:score:1#2),music and navigator screens (MusicText),Score ID (like 123:score:1#2),악보 ID (예: 123:score:1#2)
+music.import_use,Use this score ID,music and navigator screens (MusicText),Use this score ID,이 악보 ID 사용
+music.import_selected,Selected %s,music and navigator screens (MusicText),Selected %s,선택됨 %s
+music.share_title,Share score,music and navigator screens (MusicText),Share score,악보 공유
+music.share_ref,Score ID: %s,music and navigator screens (MusicText),Score ID: %s,악보 ID: %s
+music.share_note,Copy the ID above. Nothing is posted or opened for you.,music and navigator screens (MusicText),Copy the ID above. Nothing is posted or opened for you.,위 ID를 복사하세요. 자동으로 게시하거나 열지 않아요.
+music.share_recipient,Player user ID,music and navigator screens (MusicText),Player user ID,플레이어 사용자 ID
+music.share_send,Share with player,music and navigator screens (MusicText),Share with player,플레이어와 공유
+music.share_done,Shared %s,music and navigator screens (MusicText),Shared %s,공유됨 %s
+music.lobby_title,Ensemble,music and navigator screens (MusicText),Ensemble,합주
+music.lobby_score,Score %s (locked revision),music and navigator screens (MusicText),Score %s (locked revision),악보 %s (고정된 판)
+music.lobby_none,No score selected,music and navigator screens (MusicText),No score selected,선택한 악보 없음
+music.lobby_slot,%d. %s - part %d%s,music and navigator screens (MusicText),%d. %s - part %d%s,%d. %s - 파트 %d%s
+music.lobby_empty,%d. Open,music and navigator screens (MusicText),%d. Open,%d. 빈 자리
+music.lobby_ready_tag, (ready),music and navigator screens (MusicText), (ready), (준비)
+music.lobby_host_tag, (host),music and navigator screens (MusicText), (host), (방장)
+music.lobby_part,Part %d,music and navigator screens (MusicText),Part %d,파트 %d
+music.lobby_in_range,Near a fire: you can join,music and navigator screens (MusicText),Near a fire: you can join,모닥불 근처: 참여할 수 있어요
+music.lobby_out_range,Stand within 16 studs of a campfire,music and navigator screens (MusicText),Stand within 16 studs of a campfire,모닥불 16스터드 안에 서세요
+music.lobby_join,Join with part %d,music and navigator screens (MusicText),Join with part %d,파트 %d로 참여
+music.lobby_ready,Ready,music and navigator screens (MusicText),Ready,준비
+music.lobby_unready,Not ready,music and navigator screens (MusicText),Not ready,준비 취소
+music.lobby_start,Start (host),music and navigator screens (MusicText),Start (host),시작 (방장)
+music.lobby_leave,Leave,music and navigator screens (MusicText),Leave,나가기
+music.lobby_prompt,Ensemble,music and navigator screens (MusicText),Ensemble,합주
+music.play_countdown,Starting in %.1f s,music and navigator screens (MusicText),Starting in %.1f s,%.1f초 후 시작
+music.play_progress,Part %d: %d/%d notes,music and navigator screens (MusicText),Part %d: %d/%d notes,파트 %d: 음표 %d/%d
+music.play_sync,In sync with the server clock,music and navigator screens (MusicText),In sync with the server clock,서버 시계에 맞춰 연주 중
+music.play_late,Joined late: finished notes skipped,music and navigator screens (MusicText),Joined late: finished notes skipped,늦게 합류: 지난 음표는 건너뜀
+music.play_rejoin,Rejoin part %d,music and navigator screens (MusicText),Rejoin part %d,파트 %d로 재합류
+music.play_leave,Leave ensemble,music and navigator screens (MusicText),Leave ensemble,합주 나가기
+music.score.bytes,Too large: the limit is 256 KiB,music and navigator screens (MusicText),Too large: the limit is 256 KiB,너무 커요: 최대 256 KiB
+music.score.utf8,Text must be UTF-8,music and navigator screens (MusicText),Text must be UTF-8,UTF-8 텍스트여야 해요
+music.score.json,Not valid JSON,music and navigator screens (MusicText),Not valid JSON,올바른 JSON이 아니에요
+music.score.version,"Needs version 1 and only version, tempo, parts",music and navigator screens (MusicText),"Needs version 1 and only version, tempo, parts","버전 1과 version, tempo, parts만 필요해요"
+music.score.tempo,Tempo must be a whole number from 40 to 200,music and navigator screens (MusicText),Tempo must be a whole number from 40 to 200,템포는 40~200 정수여야 해요
+music.score.parts,Needs 1 to 6 parts,music and navigator screens (MusicText),Needs 1 to 6 parts,파트는 1~6개여야 해요
+music.score.field,Part %d note %d: %s,music and navigator screens (MusicText),Part %d note %d: %s,파트 %d 음표 %d: %s
+music.score.partfield,Part %d: %s,music and navigator screens (MusicText),Part %d: %s,파트 %d: %s
+music.f_instrumentId,unknown instrument,music and navigator screens (MusicText),unknown instrument,알 수 없는 악기
+music.f_notes,too many notes or bad list,music and navigator screens (MusicText),too many notes or bad list,음표가 너무 많거나 목록이 잘못됨
+music.f_polyphony,more than 8 notes at once,music and navigator screens (MusicText),more than 8 notes at once,동시에 8음 초과
+music.f_startTick,start is outside the 3 minute score,music and navigator screens (MusicText),start is outside the 3 minute score,시작이 3분 범위를 벗어남
+music.f_durationTicks,length runs past the end,music and navigator screens (MusicText),length runs past the end,길이가 끝을 넘음
+music.f_pitch,pitch must be 21 to 108,music and navigator screens (MusicText),pitch must be 21 to 108,음높이는 21~108
+music.f_velocity,velocity must be 1 to 127,music and navigator screens (MusicText),velocity must be 1 to 127,세기는 1~127
+music.f_note,unexpected note fields,music and navigator screens (MusicText),unexpected note fields,음표 항목이 잘못됨
+music.score.ref,Enter an ID like 123:score:1#2,music and navigator screens (MusicText),Enter an ID like 123:score:1#2,123:score:1#2 형식의 ID를 입력하세요
+music.score.ref_url,"That is a link. Enter the score ID, not a URL",music and navigator screens (MusicText),"That is a link. Enter the score ID, not a URL",링크예요. URL이 아니라 악보 ID를 입력하세요
+music.score.recipient,Enter the player's numeric user ID,music and navigator screens (MusicText),Enter the player's numeric user ID,플레이어의 숫자 사용자 ID를 입력하세요
+music.score.self,You already own this score,music and navigator screens (MusicText),You already own this score,이미 내 악보예요
+music.score.owner,Only the owner can share this revision,music and navigator screens (MusicText),Only the owner can share this revision,이 판은 주인만 공유할 수 있어요
+music.score.private,This score has not been shared with you,music and navigator screens (MusicText),This score has not been shared with you,공유받지 않은 악보예요
+music.score.missing,That score revision does not exist,music and navigator screens (MusicText),That score revision does not exist,그 악보 판이 없어요
+music.score.unsaved,Save a score first,music and navigator screens (MusicText),Save a score first,먼저 악보를 저장하세요
+music.score.store_unavailable,Score storage is busy. Try again soon,music and navigator screens (MusicText),Score storage is busy. Try again soon,악보 저장소가 바빠요. 잠시 후 다시
+music.score.library_full,Your score library is full,music and navigator screens (MusicText),Your score library is full,악보 보관함이 가득 찼어요
+music.ensemble.range,Stand within 16 studs of a campfire with an instrument,music and navigator screens (MusicText),Stand within 16 studs of a campfire with an instrument,악기를 들고 모닥불 16스터드 안에 서세요
+music.ensemble.part,That part is not in this score,music and navigator screens (MusicText),That part is not in this score,이 악보에 없는 파트예요
+music.ensemble.revision,The ensemble is playing a different score,music and navigator screens (MusicText),The ensemble is playing a different score,합주가 다른 악보를 쓰고 있어요
+music.ensemble.full,All six places are taken,music and navigator screens (MusicText),All six places are taken,여섯 자리가 모두 찼어요
+music.ensemble.part_taken,Someone already plays that part,music and navigator screens (MusicText),Someone already plays that part,다른 사람이 그 파트를 맡았어요
+music.ensemble.playing,The performance has started,music and navigator screens (MusicText),The performance has started,연주가 이미 시작됐어요
+music.ensemble.lobby,Join the ensemble first,music and navigator screens (MusicText),Join the ensemble first,먼저 합주에 참여하세요
+music.ensemble.host,Only the host can start,music and navigator screens (MusicText),Only the host can start,방장만 시작할 수 있어요
+music.ensemble.not_ready,Everyone must be ready and near the fire,music and navigator screens (MusicText),Everyone must be ready and near the fire,모두 준비하고 모닥불 근처에 있어야 해요
+music.ensemble.member,You are not in the ensemble,music and navigator screens (MusicText),You are not in the ensemble,합주에 참여하지 않았어요
+music.failed,That did not work. Try again,music and navigator screens (MusicText),That did not work. Try again,실패했어요. 다시 시도하세요

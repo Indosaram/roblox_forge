@@ -7,6 +7,9 @@ local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Taming = require("../../genres/survival-coop/module/TamingPanel")
 local Zone = require("../../genres/survival-coop/module/DeathZonePanel")
+local MusicText = require("../../genres/survival-coop/module/MusicText")
+local Music = require("../../genres/survival-coop/module/MusicScreens")
+local Navigator = require("../../genres/survival-coop/module/NavigatorPanel")
 
 -- PC, portrait phone and the Studio short-landscape phone (device simulator 640x339).
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true }, { 640, 339, true } }
@@ -222,6 +225,133 @@ return {
 				for _, pair in labels do
 					single(pair[index], width, "audio/clan " .. at(viewport, locale))
 				end
+			end
+		end
+	end,
+	["death zone refusal status line holds every refusal at every target viewport"] = function()
+		-- The generic refusal wraps to two lines at 360x640 (EN and KO); the label holds both.
+		local status = rowHeight(read("DeathZonePanel"), "local status = ui.components.label")
+		for _, viewport in VIEWPORTS do
+			local width = content(viewport)
+			for _, locale in LOCALES do
+				local where = at(viewport, locale)
+				wraps(Zone.refusal(locale, "NOT_ALIVE"), width, status, BODY, "zone dead " .. where)
+				wraps(Zone.refusal(locale, nil), width, status, BODY, "zone failed " .. where)
+			end
+		end
+	end,
+	["navigator rows show every destination and lock reason at every target viewport"] = function()
+		local source = read("MusicSheet")
+		assert(rowHeight(source, "function api.button") == 48, "music sheet button row moved")
+		assert(rowHeight(source, "function api.label") == 48, "music sheet label row moved")
+		for _, viewport in VIEWPORTS do
+			local width = content(viewport)
+			for _, locale in LOCALES do
+				local where = at(viewport, locale)
+				-- Locked: every row shows "Label: reason"; unlocked: the label alone.
+				for _, open in { false, true } do
+					local rows = Navigator.model(locale, function()
+						return true, open, if open then nil else "lock_unsaved"
+					end)
+					assert(#rows == #Navigator.ROWS, "every destination listed")
+					for _, row in rows do
+						wraps(row.text, width, 48, BODY, "navigator " .. where)
+					end
+				end
+				for _, key in { "lock_unknown", "lock_unavailable", "lock_inbox", "lock_unsaved" } do
+					wraps(MusicText.text(locale, key), width, 48, BODY, key .. " " .. where)
+				end
+			end
+		end
+	end,
+	["score import, share and ensemble sheets fit labels, buttons and refusals at every target viewport"] = function()
+		local refusals = {}
+		for key in MusicText.strings do
+			if string.find(key, "^score%.") or string.find(key, "^ensemble%.") then
+				table.insert(refusals, key)
+			end
+		end
+		assert(#refusals >= 20, "music refusals discovered")
+		local name = string.rep("W", 20)
+		for _, viewport in VIEWPORTS do
+			local width = content(viewport)
+			for _, locale in LOCALES do
+				local where = at(viewport, locale)
+				local function text(key: string, ...: any): string
+					return MusicText.text(locale, key, ...)
+				end
+				for _, key in refusals do
+					wraps(MusicText.refusal(locale, key), width, 48, BODY, key .. " " .. where)
+				end
+				local field = MusicText.refusal(locale, "score.parts[6].notes[16384].durationTicks")
+				wraps(field, width, 48, BODY, "field refusal " .. where)
+				for _, line in
+					{
+						text("import_hint"),
+						text("import_preview", 200, 6, 98304, 180),
+						text("import_saved", "12345678901:score:123#456"),
+						text("import_selected", "12345678901:score:123#456"),
+						text("share_ref", "12345678901:score:123#456"),
+						text("share_note"),
+						text("share_done", "12345678901:score:123#456"),
+						text("lobby_score", "12345678901:score:123#456"),
+						text("lobby_none"),
+						text("lobby_slot", 6, name, 6, text("lobby_ready_tag") .. text("lobby_host_tag")),
+						text("lobby_in_range"),
+						text("lobby_out_range"),
+					}
+				do
+					wraps(line, width, 48, BODY, "music label " .. where)
+				end
+				for _, line in
+					{
+						text("import_check"),
+						text("import_save"),
+						text("import_use"),
+						text("share_send"),
+						text("lobby_part", 6),
+						text("lobby_join", 6),
+						text("lobby_ready"),
+						text("lobby_unready"),
+						text("lobby_start"),
+						text("lobby_leave"),
+					}
+				do
+					single(line, width, "music button " .. where)
+				end
+			end
+		end
+	end,
+	["ensemble play overlay stays clear of the HUD, chat and thumb zones and fits its text"] = function()
+		for _, viewport in VIEWPORTS do
+			local width, height = viewport[1], viewport[2]
+			local x, y, w, h = Music.playBounds(width, height)
+			local overlay = { x = x, y = y, width = w, height = h }
+			local where = width .. "x" .. height
+			assert(
+				x >= 0 and y >= 64 and x + w <= width and y + h <= height - 128,
+				"overlay inside safe area " .. where
+			)
+			local hud = Model.contextHudBounds(width, height)
+			for _, key in { "vitals", "objective", "menu", "biome" } do
+				local rect = hud[key]
+				local hit = overlay.x < rect.x + rect.width
+					and rect.x < overlay.x + overlay.width
+					and overlay.y < rect.y + rect.height
+					and rect.y < overlay.y + overlay.height
+				assert(not hit, "overlay overlaps " .. key .. " at " .. where)
+			end
+			assert(width < 1000 or x >= 548 or y >= 328, "overlay clears desktop chat")
+			assert(h >= 4 + 32 + 32 + 4 + 48, "overlay rows fit")
+			for _, locale in LOCALES do
+				local label = at(viewport, locale)
+				wraps(MusicText.text(locale, "play_countdown", 2), w - 16, 32, BODY, "countdown " .. label)
+				wraps(MusicText.text(locale, "play_progress", 6, 16384, 16384), w - 16, 32, BODY, "progress " .. label)
+				for _, key in { "play_sync", "play_late" } do
+					wraps(MusicText.text(locale, key), w - 16, 32, 13, key .. " " .. label)
+				end
+				single(MusicText.text(locale, "play_leave"), w - 16, "leave " .. label)
+				single(MusicText.text(locale, "play_rejoin", 6), w - 16, "rejoin " .. label)
 			end
 		end
 	end,

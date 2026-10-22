@@ -37,4 +37,52 @@ return {
 			)
 		end
 	end,
+	["score share refuses a non-numeric or self recipient before the fence and repository"] = function()
+		local calls = 0
+		local extension = Extension.new({
+			rules = Rules,
+			decode = function(text)
+				return serde.decode("json", text)
+			end,
+			now = function()
+				return 0
+			end,
+			inRange = function()
+				return true
+			end,
+			repository = {
+				share = function(_actor, _id, _revision, recipient)
+					calls += 1
+					return { ok = true, data = { recipient = recipient } }
+				end,
+				load = function()
+					return nil
+				end,
+			},
+		})
+		local function fence()
+			calls += 1
+			return { ok = true }
+		end
+		for _, case in { { "abc", "score.recipient" }, { "7", "score.self" }, { "", "score.recipient" } } do
+			local result = extension.command(
+				"7",
+				"survival-coop:score-share",
+				{ "7:score:1", 1 :: any, case[1] },
+				{},
+				"client",
+				fence
+			)
+			assert(not result.ok and result.reason == case[2] and calls == 0, case[1] .. " refused")
+		end
+		local shared = extension.command(
+			"7",
+			"survival-coop:score-share",
+			{ "7:score:1", 1 :: any, " 42 " },
+			{},
+			"client",
+			fence
+		)
+		assert(shared.ok and shared.data.recipient == "42" and calls == 2, "trimmed numeric recipient shared")
+	end,
 }

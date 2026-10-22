@@ -10,6 +10,7 @@ local strings: { [string]: { string } } = {
 	INSUFFICIENT_FUNDS = { "Not enough coins", "조개돈 부족" },
 	preset = { "Terrain %d", "지형 %d" },
 	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
+	preset_applied = { "Terrain preset %d applied", "지형 %d 적용됨" },
 	menu_survival = { "Survival", "생존" },
 	menu_world = { "World", "세계" },
 	menu_social = { "Social", "함께" },

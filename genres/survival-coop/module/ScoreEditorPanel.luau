@@ -2,6 +2,7 @@
 -- Real Roblox GUI; the injected view ports also permit deterministic interaction specs.
 local Score = require("../../../core/domain/music/Score")
 local Transport = require("./ScoreTransport")
+local Selection = require("./MusicSelection")
 -- Roblox globals are read from the environment so this module also type-checks under lune.
 local env: any = getfenv()
 local game: any = env.game
@@ -103,6 +104,7 @@ function M.new(ctx: any): any
 		local result = Transport.send(ctx, ctx.encode(draft), if saved then saved.scoreId else nil, pendingId :: string)
 		if result.ok then
 			saved, dirty, pendingId = result.data, false, nil
+			Selection.set({ scoreId = saved.scoreId, revision = saved.revision, parts = #draft.parts, owned = true })
 			render()
 		end
 		return result

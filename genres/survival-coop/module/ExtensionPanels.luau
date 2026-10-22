@@ -13,6 +13,8 @@ export type Context = {
 	dock: ((DockEntry) -> DockHandle)?,
 	fitSheet: ((any) -> ())?,
 	objectiveSlot: any?,
+	open: ((string) -> boolean)?,
+	availability: ((string) -> (boolean, boolean, string?))?,
 }
 export type DockEntry = {
 	id: string,
@@ -20,10 +22,12 @@ export type DockEntry = {
 	order: number,
 	setOpen: (boolean) -> (),
 	isOpen: () -> boolean,
+	-- Hidden entries have no menu tile; they open through ctx.open (navigator, world prompts).
+	hidden: boolean?,
 }
 export type DockHandle = {
 	open: () -> (),
-	setAvailable: (boolean) -> (),
+	setAvailable: (boolean, string?) -> (),
 }
 export type Panel = { destroy: () -> () }
 export type Factory = (Context) -> Panel?
@@ -62,6 +66,10 @@ local categories: { [string]: { number | string } } = {
 	brawl = { 3, "party" },
 	shop = { 4, "currency" },
 	music = { 5, "music" },
+	navigator = { 1, "todo" },
+	["score-import"] = { 5, "music" },
+	["score-share"] = { 5, "music" },
+	["ensemble-lobby"] = { 5, "music" },
 	audio = { 5, "settings" },
 	sound = { 5, "settings" },
 }
@@ -579,8 +587,10 @@ function M.start(options: {
 			limit.MinTextSize, limit.MaxTextSize, limit.Parent = 8, 12, caption
 		end
 	end
+	local locks: { [string]: { any } } = {}
 	context.dock = function(entry: DockEntry): DockHandle
 		table.insert(entries, entry)
+		locks[entry.id] = { true }
 		local function open()
 			if options.onOpen then
 				options.onOpen()
@@ -602,10 +612,12 @@ function M.start(options: {
 			end,
 		})
 		styleTile(button, entry)
+		button.Visible = entry.hidden ~= true
 		return {
 			open = open,
-			setAvailable = function(available: boolean)
-				button.Visible = available
+			setAvailable = function(available: boolean, reason: string?)
+				button.Visible = available and entry.hidden ~= true
+				locks[entry.id] = { available, reason }
 			end,
 		}
 	end
@@ -626,6 +638,39 @@ function M.start(options: {
 			end,
 		})
 		styleTile(button, { id = launcher.id, label = launcher.label, order = index })
+	end
+	-- Navigator ports: open any entry or launcher by id; report (known, available, lock reason).
+	context.open = function(id: string): boolean
+		for _, entry in entries do
+			if entry.id == id and (locks[id] or { true })[1] then
+				if options.onOpen then
+					options.onOpen()
+				end
+				M.activate(entries, entry)
+				menuList.Visible = false
+				return true
+			end
+		end
+		for _, launcher in launchers do
+			if launcher.id == id then
+				menuList.Visible = false
+				for _, entry in entries do
+					entry.setOpen(false)
+				end
+				launcher.open()
+				return true
+			end
+		end
+		return false
+	end
+	context.availability = function(id: string): (boolean, boolean, string?)
+		for _, launcher in launchers do
+			if launcher.id == id then
+				return true, true, nil
+			end
+		end
+		local lock = locks[id]
+		return lock ~= nil, lock ~= nil and lock[1] == true, if lock then lock[2] else nil
 	end
 	local panels: { Panel } = {}
 	for _, factory in options.factories or M.factories do

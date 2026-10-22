@@ -1,6 +1,7 @@
 --!strict
 local Score = require("../../../core/domain/music/Score")
 local Ensemble = require("../../../core/domain/music/Ensemble")
+local ScoreRef = require("../../../core/domain/music/ScoreRef")
 local M = {}
 local configured: any = nil
 local actions = {
@@ -37,6 +38,13 @@ function M.new(config: any): any
 	): any
 		action = string.gsub(action, "^survival%-coop:", "")
 		local value: any = nil
+		if action == "score-share" then
+			local recipient, refused = ScoreRef.recipient(actor, args[3])
+			if not recipient then
+				return { ok = false, reason = refused }
+			end
+			args = { args[1], args[2], recipient }
+		end
 		if action == "score-import" then
 			local reason
 			value, reason = Score.import(args[1], config.rules, config.decode)
