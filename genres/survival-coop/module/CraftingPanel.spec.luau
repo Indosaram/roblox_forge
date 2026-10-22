@@ -17,12 +17,39 @@ return {
 		end
 		local filter: { pin: string, jobs: { [string]: boolean? }, all: boolean? } = { pin = "starter-axe", jobs = {} }
 		local rows = Model.recipeOrder(nil, recipes, station, {}, filter)
-		assert(#rows == 3 and rows[1].recipe.id == "starter-axe", "tutorial pinned before station groups")
+		assert(#rows == 2 and rows[1].recipe.id == "starter-axe", "in-range station without held input hidden")
 		filter.jobs.remote = true
-		assert(#Model.recipeOrder(nil, recipes, station, {}, filter) == 4, "job remains claimable away from station")
+		assert(#Model.recipeOrder(nil, recipes, station, {}, filter) == 3, "job remains claimable away from station")
 		filter.jobs.remote = nil
 		filter.all = true
 		assert(#Model.recipeOrder(nil, recipes, station, {}, filter) == 4, "all shows unavailable recipes")
+	end,
+	["fresh player default filter stays short while all keeps the catalog"] = function()
+		local recipes = require("../../../games/robango-island/src/shared/SurvivalContent").recipes
+		local items = { club = { itemId = "club", catalogId = "starter-club", quantity = 1, durabilityMilli = 1 } }
+		local bag, filter = { items = items, reservations = {} }, { pin = "starter-axe", jobs = {}, all = false }
+		local function ids()
+			local out = {}
+			for _, row in
+				Model.recipeOrder(bag, recipes, function()
+					return true
+				end, {}, filter)
+			do
+				out[row.recipe.id] = true
+				table.insert(out, row.recipe.id)
+			end
+			return out
+		end
+		local fresh = ids()
+		assert(#fresh <= 8 and fresh["starter-axe"], "fresh list is short and pins the axe")
+		local target = recipes[#recipes]
+		assert(not fresh[target.id], "unheld recipe hidden")
+		for i, input in target.inputs do
+			items["in" .. i] = { itemId = "in" .. i, catalogId = input.item, quantity = input.quantity }
+		end
+		assert(ids()[target.id], "held inputs reveal recipe")
+		filter.all = true
+		assert(#ids() == #recipes, "all shows full catalog")
 	end,
 	["crafting panes and fixed actions fit phone and desktop without scrolling"] = function()
 		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")

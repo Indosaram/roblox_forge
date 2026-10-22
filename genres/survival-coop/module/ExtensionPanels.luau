@@ -454,7 +454,7 @@ function M.start(options: {
 			if tutorial and tutorial.step == "gather" then
 				local pivot = character and character:FindFirstChild("HumanoidRootPart")
 				local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
-				if pivot and tracker then
+				if pivot and tracker and not tracker:GetAttribute("ForgeContractsNotice") then
 					local candidates = {}
 					local params = RaycastParams.new()
 					params.FilterType = Enum.RaycastFilterType.Exclude

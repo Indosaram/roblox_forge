@@ -870,6 +870,7 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 		if
 			model
 			and model:IsA("Model")
+			and model:GetAttribute("Species") ~= nil
 			and model:FindFirstChild("Torso")
 			and model:FindFirstChild("HumanoidRootPart")
 		then

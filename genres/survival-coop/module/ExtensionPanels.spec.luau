@@ -22,7 +22,348 @@ local function overlaps(a: any, b: any): boolean
 	return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
 end
 
+-- Real ContractsPanel inside the real contextual dock, on a minimal fake engine.
+local function contractsDock(locale: string, width: number, height: number): any
+	local nodes: { any } = {}
+	local attributes: { [string]: any } = {}
+	local heartbeat, stateEvent = signal(), { handlers = {} :: { any } }
+	function stateEvent.OnClientEvent_Connect(callback)
+		table.insert(stateEvent.handlers, callback)
+	end
+	local dimension = {
+		new = function(xs, xo, ys, yo)
+			return { xs or 0, xo or 0, ys or 0, yo or 0 }
+		end,
+		fromOffset = function(x, y)
+			return { 0, x, 0, y }
+		end,
+		fromScale = function(x, y)
+			return { x, 0, y, 0 }
+		end,
+	}
+	local methods: any = {}
+	methods.__index = methods
+	function methods:IsA(kind)
+		return kind == "GuiObject" or kind == "BasePart" or self.ClassName == kind
+	end
+	function methods:Destroy()
+		self.Parent = nil
+	end
+	function methods:GetChildren()
+		local out = {}
+		for _, item in nodes do
+			if item.Parent == self then
+				table.insert(out, item)
+			end
+		end
+		return out
+	end
+	function methods:FindFirstChild(name)
+		for _, item in nodes do
+			if item.Parent == self and item.Name == name then
+				return item
+			end
+		end
+		return nil
+	end
+	function methods:FindFirstChildOfClass(): any
+		return nil
+	end
+	function methods:FindFirstAncestorWhichIsA(kind)
+		local current = self.Parent
+		while current and current.ClassName ~= kind do
+			current = current.Parent
+		end
+		return current
+	end
+	function methods:SetAttribute(key, value)
+		self.attributes[key] = value
+	end
+	function methods:GetAttribute(key)
+		return self.attributes[key]
+	end
+	function methods:IsDescendantOf()
+		return true
+	end
+	methods.GetPropertyChangedSignal = signal
+	local function node(class: string?): any
+		local item = setmetatable({
+			ClassName = class or "Frame",
+			Name = class or "Frame",
+			Visible = true,
+			DisplayOrder = 0,
+			attributes = {},
+			AbsoluteSize = { X = width, Y = height },
+			AbsoluteContentSize = { X = 0, Y = 0 },
+			Activated = signal(),
+		}, methods)
+		table.insert(nodes, item)
+		return item
+	end
+	local function vec(x: number, y: number, z: number?): any
+		local depth: number = z or 0
+		return setmetatable({ X = x, Y = y, Z = depth, Magnitude = math.sqrt(x * x + y * y + depth * depth) }, {
+			__sub = function(a: any, b: any)
+				return vec(a.X - b.X, a.Y - b.Y, a.Z - b.Z)
+			end,
+		})
+	end
+	local root = node("Part")
+	root.Name, root.Position = "HumanoidRootPart", vec(0, 0, 0)
+	local character = node("Model")
+	root.Parent = character
+	local fern = node("Part")
+	fern.Position = vec(6, 0, 0)
+	fern.attributes = { ForgeNodeDepleted = false, ForgeNodeCount = 2, ForgeNodeItem = "fiber" }
+	local playerGui = node("PlayerGui")
+	local player: any = { Character = character, PlayerGui = playerGui }
+	function player:WaitForChild()
+		return playerGui
+	end
+	function player:GetAttribute(key)
+		return attributes[key]
+	end
+	function player:SetAttribute(key, value)
+		attributes[key] = value
+	end
+	local services = {
+		Players = { LocalPlayer = player },
+		ReplicatedStorage = {
+			WaitForChild = function(_self, name): any
+				if name == "ForgeState" then
+					return {
+						OnClientEvent = {
+							Connect = function(_s, callback)
+								stateEvent.OnClientEvent_Connect(callback)
+								return { Disconnect = function() end }
+							end,
+						},
+					}
+				end
+				return {
+					InvokeServer = function()
+						return {
+							ok = false,
+							reason = "INSUFFICIENT_ITEMS",
+							data = { item = "wood", need = 3, have = 0 },
+							stateVersion = 1,
+						}
+					end,
+				}
+			end,
+		},
+		HttpService = {
+			JSONEncode = function(_self, value)
+				return tostring(value)
+			end,
+			GenerateGUID = function()
+				return "request"
+			end,
+		},
+		UserInputService = { TouchEnabled = width < 700 },
+		RunService = { Heartbeat = heartbeat },
+		ProximityPromptService = { PromptTriggered = signal() },
+		CollectionService = {
+			GetTagged = function()
+				return { fern }
+			end,
+		},
+		Workspace = {
+			Raycast = function(): any
+				return nil
+			end,
+		},
+	}
+	local enum: any = setmetatable({}, {
+		__index = function(_self, key: string)
+			return setmetatable({}, {
+				__index = function(_group, value: string)
+					return key .. "." .. value
+				end,
+			})
+		end,
+	})
+	local environment: any = table.clone(getfenv())
+	environment.game = {
+		GetService = function(_self, name)
+			return services[name]
+		end,
+	}
+	environment.task = {
+		spawn = function(callback, ...)
+			callback(...)
+		end,
+	}
+	environment.Instance, environment.Enum = { new = node }, enum
+	environment.UDim, environment.UDim2 = dimension, dimension
+	environment.Vector2 = { new = vec, zero = vec(0, 0, 0) }
+	environment.Color3 = { fromRGB = function() end }
+	environment.RaycastParams = { new = node }
+	local function load(path: string): any
+		local chunk = assert(loadstring(fs.readFile(path)))
+		setfenv(chunk, environment)
+		return chunk()
+	end
+	local contracts
+	environment.require = function(path): any
+		if path == "./SurvivalHUDModel" then
+			return Model
+		elseif path == "./SurvivalHUDLocale" then
+			return require("./SurvivalHUDLocale")
+		elseif path == "../../../core/ui-kit/Layout" then
+			return require("../../../core/ui-kit/Layout")
+		elseif path == "../../../core/infra/genre/CommandTransport" then
+			return require("../../../core/infra/genre/CommandTransport")
+		elseif path == "./ContractsPanel" then
+			return contracts
+		end
+		return { factory = function() end, mount = function() end }
+	end
+	contracts = load("genres/survival-coop/module/ContractsPanel.luau")
+	local clicks: { [string]: () -> () } = {}
+	local function make(props: any): any
+		local item = node("TextLabel")
+		item.Text, item.Size, item.Position, item.Parent = props.text, props.size, props.position, props.parent
+		return item
+	end
+	local components = {
+		label = function(_theme, props)
+			return make(props)
+		end,
+		button = function(_theme, props)
+			local item = make(props)
+			item.ClassName = "TextButton"
+			clicks[item] = props.onClick
+			return item
+		end,
+		modalSheet = function(_theme, props)
+			local frame = node()
+			frame.Name, frame.Visible = props.name, false
+			local scroll = node("ScrollingFrame")
+			scroll.Name, scroll.Parent = "Content", frame
+			scroll.Position, scroll.Size = dimension.fromOffset(0, 44), dimension.new(1, 0, 1, -44)
+			return { frame = frame, scroll = scroll, close = node("TextButton") }
+		end,
+	}
+	load("genres/survival-coop/module/ExtensionPanels.luau").start({
+		contextual = true,
+		locale = locale,
+		names = { wood = if locale == "en-us" then "Driftwood" else "쓰러진 통나무" },
+		factories = { contracts.factory },
+		ui = {
+			components = components,
+			theme = {
+				default = {},
+				merge = function()
+					return {}
+				end,
+			},
+		},
+	})
+	local function find(name: string): any
+		for _, item in nodes do
+			if item.Name == name and item.Parent then
+				return item
+			end
+		end
+		return nil
+	end
+	local function push(step: string)
+		local offer = {
+			id = "survey-driftwood",
+			accepted = true,
+			reward = {},
+			trust = 10,
+			deliver = { { item = "wood", quantity = 3 } },
+		}
+		for _, callback in stateEvent.handlers do
+			callback({
+				durable = {
+					actions = { "survival-coop:contract-deliver" },
+					epochs = { ["survival-coop:contract-deliver"] = 1 },
+				},
+				snapshots = {
+					survivalExtensions = {
+						contracts = {
+							offers = { offer },
+							trust = {},
+							tutorial = { step = step, hint = "tutorial." .. step },
+						},
+					},
+				},
+			})
+		end
+	end
+	local function shown(item: any): boolean
+		while item and item ~= playerGui do
+			if item.Visible == false then
+				return false
+			end
+			item = item.Parent
+		end
+		return item == playerGui
+	end
+	return {
+		find = find,
+		push = push,
+		shown = shown,
+		tick = function()
+			heartbeat:fire()
+		end,
+		click = function(item)
+			clicks[item]()
+		end,
+	}
+end
+
+-- Offset rect of a {xs, xo, ys, yo} UDim2 pair inside a parent rect.
+local function resolve(parent: any, position: any, size: any): any
+	local w, h = size[1] * parent.width + size[2], size[3] * parent.height + size[4]
+	return {
+		x = position[1] * parent.width + position[2],
+		y = position[3] * parent.height + position[4],
+		width = w,
+		height = h,
+	}
+end
+
 return {
+	["a short delivery refusal shows inside the open contracts sheet and survives gather hints"] = function()
+		local cases: { { any } } = {
+			{ "ko-kr", 360, 640, "가방에 쓰러진 통나무 3개를 들고 오세요 (현재 0개)." },
+			{ "en-us", 1280, 720, "Carry Driftwood x3 in your bag (have 0)." },
+		}
+		for _, case in cases do
+			local locale, width, height, expected =
+				case[1] :: string, case[2] :: number, (case[3] :: number) - 56, case[4] :: string
+			local dock = contractsDock(locale, width, height)
+			dock.push("gather")
+			local board = assert(dock.find("ContractBoard"), "contracts sheet")
+			board.Visible = true
+			dock.tick()
+			local tracker = assert(dock.find("ObjectiveTracker"), "tracker")
+			assert(not dock.shown(tracker), "open sheet hides the dock tracker")
+			assert(string.find(tracker.Text, "fiber (6m)", 1, true), "gather hint active: " .. tracker.Text)
+			dock.click(assert(dock.find("Deliver-survey-driftwood"), "deliver button"))
+			local notice = dock.find("Notice")
+			assert(notice and notice.Parent == board, "refusal lives in the sheet")
+			assert(dock.shown(notice) and notice.Text == expected, tostring(notice.Text))
+			dock.push("gather")
+			dock.tick()
+			assert(tracker.Text == expected, "gather hint kept the refusal: " .. tracker.Text)
+			assert(dock.shown(notice) and notice.Text == expected, "equal snapshot keeps the notice")
+			-- Fitted geometry: the notice sits inside the sheet and below the scrolling rows.
+			local sheet = { x = 0, y = 0, width = board.Size[2], height = board.Size[4] }
+			local rect = resolve(sheet, notice.Position, notice.Size)
+			local scroll = dock.find("Content")
+			local rows = resolve(sheet, scroll.Position, scroll.Size)
+			assert(rect.x >= 0 and rect.y >= 0, "notice inside sheet")
+			assert(rect.x + rect.width <= sheet.width and rect.y + rect.height <= sheet.height, "notice clipped")
+			assert(rect.height >= 40 and rect.width >= 200, "notice readable")
+			assert(not overlaps(rect, rows), "notice clears the Deliver row area")
+			assert(rows.height >= 44 * 2, "Deliver row still visible")
+		end
+	end,
 	["biome entry toast fades after three seconds and reentry restarts it"] = function()
 		local left, alpha = Model.biomeToast("landing", "forest", 0, 0)
 		assert(left == 3 and alpha == 0, "entry starts visible")

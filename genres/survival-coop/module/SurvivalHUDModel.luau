@@ -207,10 +207,12 @@ function M.recipeOrder(
 	local rows = {}
 	for _, recipe in recipes do
 		local stationReady = recipe.station == nil or stationAvailable(recipe.station)
-		local ready = stationReady
+		local ready, complete, held = stationReady, true, false
 		for _, ingredient in M.ingredients(bag, recipe) do
-			ready = ready and ingredient.available >= ingredient.needed
+			complete = complete and ingredient.available >= ingredient.needed
+			held = held or ingredient.available > 0
 		end
+		ready = ready and complete
 		if recipe.requiredToolTag then
 			local tool = false
 			for _, row in M.items(bag) do
@@ -231,8 +233,9 @@ function M.recipeOrder(
 			or filter.all
 			or recipe.id == filter.pin
 			or (filter.jobs and filter.jobs[recipe.id])
-			or stationReady
-			or #M.missingMaterials(bag, recipe.inputs) == 0
+			or complete
+			-- Station recipes surface in range only once an input is held; bare hand recipes never do.
+			or (recipe.station ~= nil and stationReady and held)
 		then
 			table.insert(
 				rows,

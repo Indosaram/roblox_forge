@@ -230,13 +230,29 @@ function M.factory(ctx: any): any
 	toggle.Visible = ctx.dock == nil
 
 	-- Rebuild only on content change (a rebuild ate a mid-click press, QA step 74).
-	local rendered: string?, notice: string? = nil, nil
+	local rendered: string?, notice: string?, objective = nil, nil, ""
+	-- Refusals also show in the open sheet: the dock tracker is hidden under it.
+	local status = components.label(theme, {
+		text = "",
+		size = UDim2.new(1, -16, 0, 44),
+		position = UDim2.new(0, 8, 1, -52),
+		parent = sheet.frame,
+		chip = true,
+		textSize = 13,
+	})
+	status.Name, status.Visible, status.ZIndex = "Notice", false, 53
+	local function setNotice(text: string?)
+		notice, status.Text, status.Visible = text, text or "", text ~= nil
+		sheet.scroll.Size = UDim2.new(1, 0, 1, if text then -100 else -44)
+		tracker:SetAttribute("ForgeContractsNotice", text ~= nil)
+		tracker.Text = text or objective
+	end
 	local function render(state: any)
 		local view = M.model(locale, state, ctx.names)
 		local key = M.renderKey(view)
+		objective = M.text(locale, "tutorial_title") .. ": " .. view.objective
 		-- A refusal stays until the board changes (vitals ticks erased it).
-		notice = if key == rendered then notice else nil
-		tracker.Text = notice or (M.text(locale, "tutorial_title") .. ": " .. view.objective)
+		setNotice(if key == rendered then notice else nil)
 		skip.Visible = view.canSkip
 		if key == rendered then
 			return
@@ -281,10 +297,11 @@ function M.factory(ctx: any): any
 				parent = sheet.scroll,
 				onClick = function()
 					local result = ctx.send(PREFIX .. row.action, { row.id })
-					if type(result) == "table" and result.ok == false then
-						notice = M.refusal(locale, result.reason, result.data, ctx.names)
-						tracker.Text = notice
-					end
+					setNotice(
+						if type(result) == "table" and result.ok == false
+							then M.refusal(locale, result.reason, result.data, ctx.names)
+							else nil
+					)
 				end,
 			})
 			-- Unique names: QA addresses rows and lines by name.
