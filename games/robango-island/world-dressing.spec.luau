@@ -25,9 +25,9 @@ return {
 					count += 1
 					height = math.max(height, part.CFrame.Position.Y + part.Size.Y / 2)
 				elseif part:IsA("Fire") then
-					flame = true
+					flame = part.Size <= 3 and part.Heat <= 5
 				elseif part:IsA("PointLight") then
-					light = true
+					light = part.Range <= 12 and part.Brightness <= 1
 				end
 			end
 			assert(count > 1 and height > 0.5, definition.id .. " must not be a flat slab")
@@ -210,6 +210,11 @@ return {
 				fence = fence or string.find(part.id, "home.fence.", 1, true) ~= nil
 			end
 			assert(shelter and fence and parts[1].size.x == rules.landSizes[rank], "home visual rank projection")
+			for _, part in parts do
+				if string.find(part.id, "home.tree", 1, true) then
+					assert(math.sqrt(part.position.x ^ 2 + part.position.z ^ 2) >= 24, "tall prop inside camp radius")
+				end
+			end
 		end
 	end,
 }

@@ -41,7 +41,7 @@ default from describing current work.
 | Art / UI icons | P5 world/species/UI captures exist with failed visual acceptance; P6 art budgets and local icon screening are recorded. | P6 role dressing/rig improvements; P7 shelter revision in `p7/art2.md`. | Fresh complete visual sign-off after the final art changes, actual GPU triangle/draw-call measurements. |
 | Audio assets / event wiring | Local WAV banks, native production-audio and AudioDirector scenarios; upload history exists. | Audio settings/director and event producers. | Moderation-approved playback/listening for all cues; 55 audio remain pending moderation. |
 | Persistence / crash / load | Native qa-save-01 and local service/store recovery specs. | Published-service adapters and Studio-memory-only service selection. | Current published crash/rejoin/Teleport proof and real MemoryStore load. Local services are not cloud evidence. |
-| QA-PERF-01 layer 2 | Historical Studio/Android measurements below apply only to their older content. P6 static future-published asset budget passed (`p6/assets-compact.md`). | Maintained probe `cli/forge/qa/robango-performance.luau` and runbook prepared for Level01, 360x640, 120-second sampling. | No new performance run was executed here. Current low-end real-device results and an uncensored startup timing are absent. |
+| QA-PERF-01 layer 2 | 2026-10-21 isolated revision `9db8e04` Studio phone-content viewport 360x640 / Level01, three accepted cold Play starts (A, B, D) recorded in `p13/perf.md`; the probe subscribed from ReplicatedFirst before startup readiness, replacing the earlier left-censored method. P6 static future-published asset budget passed (`p6/assets-compact.md`). | `c6dec48` moved onboarding `fiber-bush-01` from z=14 to z=5 beside the spawn, with a spec asserting every onboarding spawn has a gather prompt within its activation distance. Not re-measured under the QA-PERF-01 protocol. | **FAIL for initial first interaction at `9db8e04`:** ForgeState and visible HUD existed, but the nearest enabled gather prompt was 14.17 studs from spawn with an 8-stud activation range; no player movement was injected, so TTFI was not observed (no finite median/max). **TTFI must be re-measured on a build containing the fix.** Studio-process memory (not device memory): pooled median 2355.383 MB, max 3257.449 MB; no runtime-memory threshold is defined, so no memory PASS/FAIL. Physical low-end-device acceptance remains open. |
 
 Evidence paths in this table are under `.omo/evidence/robango-recovery/` and
 remain gitignored local artifacts. The table summarizes recorded scope, not a
@@ -66,6 +66,23 @@ The account moderation warning blocks further external asset work. The recovery
 status is **253 icons not yet uploaded** and **55 audio pending moderation**.
 P6 local review replaced ambiguous artwork but cannot clear Roblox moderation.
 Do not publish or resume uploads while that blocker remains unresolved.
+
+**Studio real-input journey on `97e6a3e` (2026-10-22, `p24/a.md`).** In Windows
+Studio, real input completed the onboarding chain from first gather through
+stone-axe craft, equip, two wood chops, warehouse deposit, campfire
+reserve/place, rest, contract accept and deliver to tutorial complete. Two
+refusals happened on the way: `PLACEMENT_UNREACHABLE` until the player walked
+within 12 studs of the ghost, with no UX hint; and a first deliver that did
+nothing because the contract counts bag wood only after the tutorial had the
+player deposit wood. Filtered client/server console errors were 0 in
+onboarding, a1.s1 and home. The run also logged 259 excluded
+`AnimationTrack limit of 64` messages, a track leak candidate. Visual
+acceptance is **not** passed: the a1.s1 overview FAILs readability (flat
+monotone ground, nothing in frame); the home and onboarding camp have
+over-strong orange campfire glow and palm occlusion; the creature close-up is
+PARTIAL. Those fixes are pending. The PC 1920x1080 and phone 360x640 captures
+could not be set through the available product APIs. This is a scoped Studio
+result, not release readiness.
 
 Staging remains Universe `10771918494` / Place `95467272687768`; no new published
 version was read back in this task. The authoritative local variable names,
@@ -139,6 +156,16 @@ Status values: **local PASS** (runs here, deterministic), **needs Studio** (cann
 Client memory by tag after the fix: LuaHeap 806 MB, Script 268 MB, Instances 103 MB, Gui 36 MB, GraphicsTexture 28 MB, TerrainVoxels 0.8 MB; 50,929 instances. Studio adds its own editor, plugins and the server DataModel to the process figure, so this is an upper bound, not a phone number.
 
 Fix: the terrain fill yielded once per column (about 85 frames), so the world took 4.4 s to appear. It now yields only after 50 ms of work (`SurvivalWorldBootstrap.buildTerrain`), and no Script-timeout appears in the console. The cold-start row is Studio's own first-launch cost; the warm rows show the game's boot.
+
+**Recovery layer 2 (2026-10-21, `p13/perf.md`).** Isolated revision `9db8e04` was built with a temporary ReplicatedFirst observer before Play. The final series uses custom Phone `KC_Mobile_360x640`, portrait / ActualResolution, simulated surface 660x360 (the 20-pixel inset leaves an exact 360x640 client content viewport), rendering QualityLevel and EditQualityLevel Level01, and FRM false. Studio resets these settings at Play startup, so they were applied through the Client MCP context before the 120-second memory window; startup readiness was observed independently from the earliest client frames. There was no player movement or remote invocation. ForgeState and visible HUD appeared, but every initial gather prompt was outside activation range (nearest 14.17 studs, max 8). TTFI was not observed and has no finite median/max. Do not replace it with attachment latency or report a startup pass. The memory figures include Studio's editor/server/client process overhead and are not a phone RAM measurement. The documented numeric budgets are static-build budgets only, and the historical 2.86 s / 2,639 MB figures are comparisons, not runtime limits.
+
+| Cold Play run | Observer attached (simulation s) | Exact-profile sample window (simulation s) | Samples | TTFI | Median Studio-process memory MB | Sampled max MB | Peak instances | Workspace parts |
+| --- | ---: | --- | ---: | --- | ---: | ---: | ---: | ---: |
+| A | 0.100 | 10.300..130.138 | 121 | not observed | 3165.645 | 3181.695 | 54,439 | 906 |
+| B | 0.079 | 4.292..124.304 | 121 | not observed | 2355.383 | 3257.449 | 54,317 | 906 |
+| D | 0.092 | 26.404..146.417 | 121 | not observed | 1795.762 | 1871.828 | 54,315 | 906 |
+
+All 363 samples had a 360x640 content viewport. Pooled Studio-process memory median **2355.383 MB**, max **3257.449 MB**; no runtime-memory threshold is defined, so this is neither a pass nor a breach. A rejected Attachment-only run and an interrupted run C are excluded. Since then `c6dec48` moved onboarding `fiber-bush-01` beside the spawn (z 14 -> 5) and added a spec asserting every onboarding spawn has a gather prompt within its activation distance. **TTFI has not been re-measured after that fix and must be re-measured** with the same protocol (`cli/forge/qa/robango-performance.luau`, `robango-performance.md`) before any startup-readiness claim. Physical low-end-device performance remains unverified.
 
 **Android real-device run (2026-10-20, `SM-N981N` Galaxy Note 20 5G, Snapdragon 865+, Android 13, 2400x1080):** `com.roblox.client` PSS 704.0 MB (RSS 848.6 MB, Private Dirty 575.7 MB, Native Heap 50.1 MB, Java Heap 24.3 MB, Graphics 34.9 MB, Code 115.7 MB); frame times (`dumpsys gfxinfo`) p50 12 ms (GPU p50 9 ms), p90 23 ms, p95 36 ms.
 4. **QA-ERR-01 scope.** The scan covers every value in `locale/strings.csv` (Source, en-us, ko-kr; the Context column is a developer note) and every message the island allocator can build (`Allocation.playerMessage`). No other player message builder exists in the survival-coop modules at this commit; a new one should be added to the `playerStrings` list in `qa-evidence.spec.luau`.

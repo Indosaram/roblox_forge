@@ -151,8 +151,8 @@ local strings: { [string]: { string } } = {
 	},
 	-- The server checks the actor can reach the preview's entry tile (the small marker).
 	PLACEMENT_UNREACHABLE = {
-		"Walk up to the build preview's entry marker, then try again.",
-		"건설 미리보기의 입구 표시 가까이 가서 다시 시도하세요.",
+		"Move closer to place (max 12 studs from the preview's entry marker).",
+		"더 가까이 가서 설치하세요 (미리보기 입구 표시에서 최대 12스터드).",
 	},
 	ITEM_RESERVED = {
 		"That item is held by a reserved job. Cancel the job first.",

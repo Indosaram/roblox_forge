@@ -68,6 +68,14 @@ return {
 				end
 				total += 1
 			end
+			if string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+				local at = workspace:FindFirstChild("ForgeRoleWorld"):FindFirstChild("SurvivalSpawn").Position
+				local nearest = math.huge
+				for _, node in world.roleSource.nodes do
+					nearest = math.min(nearest, math.sqrt((node.position.x - at.X) ^ 2 + (node.position.z - at.Z) ^ 2))
+				end
+				assert(nearest <= 40, layout.id .. " spawn is " .. nearest .. " studs from nearest node")
+			end
 			world.bind({} :: any)
 			for _, target in workspace:FindFirstChild("ForgeRoleWorld"):GetChildren() do
 				local prompt = target:FindFirstChild("ForgeDock")

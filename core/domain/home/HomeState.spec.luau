@@ -97,6 +97,15 @@ end
 
 return {
 	["placed farm plots use stable identities and enforce tier cap"] = M.placedPlotCap,
+	["home storage steps 20 30 40 45 as entitlements are added"] = function()
+		local f = M.fixture()
+		for index, id in { "", "patron", "warehouse", "monthly" } do
+			f.ctx.entitlements[id] = true
+			f.state = assert(apply(f, "capacity", {}))
+			local want = ({ 20, 30, 40, 45 })[index]
+			assert(f.state.storageSlots == want and f.state.storage.limits.slots == want, "slots " .. want)
+		end
+	end,
 	["expiry overflow remains loadable and refuses harvest until space exists"] = function()
 		local f = M.fixture()
 		f.ctx.entitlements = { patron = true, warehouse = true, monthly = true }

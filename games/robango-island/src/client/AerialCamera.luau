@@ -47,7 +47,7 @@ function M.new(ctx: any): any
 			end,
 			apply = function(frame)
 				camera.CameraType = ctx.scriptable
-				camera.CFrame = ctx.lookAt(frame.position, frame.focus)
+				camera.CFrame = ctx.qaCamera and ctx.qaCamera() or ctx.lookAt(frame.position, frame.focus)
 				camera.Focus = ctx.focusAt(frame.focus)
 				camera.FieldOfView = frame.fieldOfView
 			end,

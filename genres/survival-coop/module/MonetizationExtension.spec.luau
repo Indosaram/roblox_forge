@@ -247,6 +247,28 @@ return {
 		assert(not selected.ok and selected.reason == "SKIN_NOT_OWNED", "expired skin selection refused")
 		assert(extension.close().ok, "close")
 	end,
+	["a failed storage receipt save grants no home capacity"] = function()
+		local memory = Memory.new()
+		local failAt = 0
+		local backend = {
+			update = function(key, transform)
+				if failAt > 0 then
+					failAt -= 1
+					if failAt == 0 then
+						return false, "RECEIPT_COMMIT_FAILED"
+					end
+				end
+				return memory.update(key, transform)
+			end,
+		}
+		local extension, _fake, slots = build(listings(11, 22), { ["7"] = true }, backend)
+		assert(command(extension, "survival-coop:shop-prompt", { "wideWarehouse" }).ok, "pass prompt")
+		failAt = 2 -- authoritative renew, then the grant commit
+		assert(command(extension, "survival-coop:shop-sync", {}).reason == "SAVE_FAILED", "save failed")
+		assert((slots["7"] or 0) == 0, "no capacity without a durable grant")
+		assert(command(extension, "survival-coop:shop-sync", {}).ok and slots["7"] == 10, "retry grants 10")
+		assert(extension.close().ok, "close")
+	end,
 	["a refused admission never reaches the marketplace"] = function()
 		local extension, fake = build(listings(11, 22), { ["7"] = true })
 		local result = extension.command(

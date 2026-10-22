@@ -83,13 +83,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			effect.Name, effect.Parent = "ForgeEffect", value
 			if definition.effect == "lava" or definition.effect == "fire" then
 				local light = Instance.new("PointLight")
-				light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 2, 28, value
+				light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 0.8, 10, value
 			end
 			if definition.effect == "fire" then
 				local fire = Instance.new("Fire")
-				fire.Size, fire.Heat, fire.Parent = 5, 7, value
-			end
-			if definition.effect ~= "lava" then
+				fire.Size, fire.Heat, fire.Parent = 2, 4, value
+			elseif definition.effect ~= "lava" then
 				local smoke = Instance.new("Smoke")
 				smoke.Color = if definition.effect == "steam"
 					then Color3.fromRGB(224, 234, 230)
@@ -171,14 +170,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			(material == "Grass" or material == "LeafyGrass")
 			and (layoutId == "rw.onboarding" or interactionGround(column.x, column.z, column.cell))
 		then
-			material = "Ground"
+			local n = math.noise(column.x / 70, column.z / 70, 0.5)
+			material = if n > 0.25 then "Mud" elseif n < -0.25 then "Pebble" else "Ground"
 		end
 		local top = column.top
 		if not protected and top > 0 then
 			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
 			if river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
 				top, material = -5, "Sand"
-			elseif top < 6 then
+			elseif top < 8 then
 				material = "Sand"
 			elseif table.find(layout.biomes, "volcano") and column.x < -32 then
 				material = if column.x % 96 < 32 then "CrackedLava" else "Basalt"
@@ -267,6 +267,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- Voxel writes are not raycastable until the engine steps; without this the
 	-- node rays below miss and nodes stay at their authored, buried height.
 	game:GetService("RunService").Heartbeat:Wait()
+	for _, path in layout.paths do
+		if string.match(layoutId, "^rw%.a%d+%.s%d+$") and string.sub(path.id, -5) == ".main" then
+			-- Spawn on the trail 32 studs short of the resource yard, not at the far dock.
+			local y, q = path.points[3], path.points[2]
+			local at = Vector3.new(y.x, 512, y.z) + (Vector3.new(q.x, 512, q.z) - Vector3.new(y.x, 512, y.z)).Unit * 32
+			local hit = workspace:Raycast(at, Vector3.new(0, -1024, 0), groundParams)
+			spawn.Position = Vector3.new(at.X, if hit then hit.Position.Y + 0.5 else y.y + 1, at.Z)
+		end
+	end
 	for _, node in layout.resourceNodes do
 		-- Quest cargo is a mission ledger, never a generic inventory mint.
 		local item: any = nil
@@ -418,7 +427,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			dressing.parts,
 			node.id .. ".kit",
 			{ x = p.x + 8, y = p.y, z = p.z + 6 },
-			if family == "wood"
+			if family == "wood" and layoutId ~= "rw.home"
 				then "tree"
 				elseif family == "water" then "grass"
 				elseif family == "mineral" then "rock"

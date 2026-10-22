@@ -1,7 +1,8 @@
 --!strict
 -- `forge assets check|codegen|status|upload-audio|upload-images [--pack <slug>] [--env staging|production]
 --   [--manifest <path>] [--quality-profile <path>] [--pack-dir <dir>]
---   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]`:
+--   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
+--   upload-images additionally takes [--limit <n>] [--only <key1,key2,...>]`:
 --   check        - gate a manifest's provenance (lawful tool/provider, recorded
 --                  recipe and rights, digest matching the artifact bytes on disk)
 --                  and its moderation state. With --quality-profile it additionally
@@ -719,18 +720,96 @@ local function runUploadAudio(options: {
 	return true
 end
 
-local function runUploadImages(options: any): boolean
+--- Injectable transport for upload-images: specs pass a mocked `request`,
+--- a no-op `wait`, and a synthetic `env` so no Open Cloud call is ever made.
+export type UploadDeps = {
+	request: ((any) -> any)?,
+	wait: ((number) -> ())?,
+	env: { [string]: string? }?,
+}
+
+local UPLOAD_IMAGES_USAGE = "Usage: lune run cli/forge assets upload-images [--pack <slug> | --pack-dir <dir>]"
+	.. " [--creator-group <id> | --creator-user <id>] [--cache <path>] [--limit <n>] [--only <key1,key2,...>] [--dry-run]\n"
+
+local function runUploadImages(options: any, deps: UploadDeps): boolean
 	local entries = loadCache(options.cachePath)
 	local count, failures, approved = 0, 0, 0
-	local apiKey = process.env.ROBLOX_API_KEY
+	local env = deps.env or process.env
+	local apiKey = env.ROBLOX_API_KEY
 	if not options.dryRun and (apiKey == nil or apiKey == "") then
 		stdio.ewrite("Error: ROBLOX_API_KEY is not set; assets upload-images needs Open Cloud access\n")
 		return false
 	end
+	local creator = creatorKey(options.creator)
+	-- A dry run never reaches the transport; this guard proves it rather than
+	-- trusting imageassets.publish's early return.
+	local request = if options.dryRun
+		then function(_params: any): any
+			error("assets upload-images: network request attempted during --dry-run")
+		end
+		else deps.request or net.request
+	local wait = deps.wait or function(seconds: number)
+		task.wait(seconds)
+	end
+
+	-- Batch selection (--only / --limit). Codegen below always renders the full
+	-- manifest, so a partial run never drops an entry from Assets.luau.
+	local batched = options.limit ~= nil or options.only ~= nil
+	local onlySet: { [string]: boolean }? = nil
+	if options.only ~= nil then
+		local images: { [string]: boolean } = {}
+		for _, asset in options.manifest.assets do
+			if asset.kind == "image" then
+				images[asset.key] = true
+			end
+		end
+		local set: { [string]: boolean } = {}
+		for _, key in options.only do
+			if not images[key] then
+				stdio.ewrite(
+					"Error: --only key '" .. key .. "' is not an image entry in " .. options.manifestPath .. "\n"
+				)
+				return false
+			end
+			set[key] = true
+		end
+		onlySet = set
+	end
+	-- An image counts as uploaded once the manifest records its id or the cache
+	-- holds a created Decal for this creator; an in-flight operation does not.
+	local function isUploaded(asset: any): boolean
+		if asset.assetId > 0 then
+			return true
+		end
+		local ok, hex = pcall(function(): string
+			return serde.hash("sha256", fs.readFile(options.packDir .. "/" .. asset.path))
+		end)
+		local cached = if ok then entries[hex] else nil
+		return cached ~= nil and cached.creator == creator and cached.decalAssetId ~= nil
+	end
+	local selected: { any } = {}
+	local pendingKeys: { [string]: boolean } = {}
+	local pendingTotal = 0
 	for _, asset in options.manifest.assets do
-		if asset.kind ~= "image" then
+		if asset.kind ~= "image" or (onlySet ~= nil and not onlySet[asset.key]) then
 			continue
 		end
+		if not batched then
+			table.insert(selected, asset)
+			continue
+		end
+		local pending = asset.path == nil or not isUploaded(asset)
+		if pending then
+			pendingTotal += 1
+			pendingKeys[asset.key] = true
+		end
+		if options.limit == nil or (pending and #selected < options.limit) then
+			table.insert(selected, asset)
+		end
+	end
+	local batchDone = 0
+
+	for _, asset in selected do
 		count += 1
 		local ok, err = pcall(function(): string?
 			assert(asset.path ~= nil and string.match(asset.path, "%.png$"), "image requires a local PNG path")
@@ -741,23 +820,27 @@ local function runUploadImages(options: any): boolean
 				bytes = bytes,
 				sha256 = hex,
 				cached = entries[hex],
-				creator = creatorKey(options.creator),
+				creator = creator,
 				creatorFields = creatorFields(options.creator),
 				apiKey = apiKey,
 				dryRun = options.dryRun,
 			}, {
-				request = net.request,
-				wait = function(seconds)
-					task.wait(seconds)
-				end,
+				request = request,
+				wait = wait,
 				checkpoint = function(updated)
 					entries[hex] = table.clone(updated)
 					saveCache(options.cachePath, entries)
 				end,
 			})
 			if options.dryRun then
+				if pendingKeys[asset.key] then
+					batchDone += 1
+				end
 				stdio.write(string.format("image %s: would publish sha256=%s\n", asset.key, hex))
-				return
+				return nil
+			end
+			if pendingKeys[asset.key] and entry.decalAssetId ~= nil then
+				batchDone += 1
 			end
 			local update =
 				{ assetId = entry.assetId or 0, moderation = entry.moderation, decalAssetId = entry.decalAssetId }
@@ -789,8 +872,20 @@ local function runUploadImages(options: any): boolean
 			break
 		end
 	end
+	local remaining = pendingTotal - batchDone
 	if options.dryRun then
-		stdio.write(string.format("assets upload-images: DRY-RUN (%d images) for %s\n", count, options.pack))
+		if batched then
+			stdio.write(
+				string.format(
+					"assets upload-images: DRY-RUN (%d planned, %d not yet uploaded would remain) for %s\n",
+					count,
+					remaining,
+					options.pack
+				)
+			)
+		else
+			stdio.write(string.format("assets upload-images: DRY-RUN (%d images) for %s\n", count, options.pack))
+		end
 	else
 		if fs.isDir(options.packDir .. "/src/shared") then
 			fs.writeFile(
@@ -799,13 +894,24 @@ local function runUploadImages(options: any): boolean
 			)
 		end
 		stdio.write(string.format("image playable: %d of %d images approved and resolved\n", approved, count))
+		if batched then
+			stdio.write(
+				string.format(
+					"assets upload-images: batch %d processed, %d uploaded, %d not yet uploaded remain\n",
+					count,
+					batchDone,
+					remaining
+				)
+			)
+		end
 	end
 	return failures == 0
 end
 
 --- Dispatches one of the assets subcommands. Returns false with a printed
---- reason on any refusal so the CLI can exit 1.
-function M.run(args: { string }, context: cliutil.CommandContext?): boolean
+--- reason on any refusal so the CLI can exit 1; a usage error also returns
+--- exit code 2 as the second value. `deps` injects the upload-images transport.
+function M.run(args: { string }, context: cliutil.CommandContext?, deps: UploadDeps?): (boolean, number?)
 	local sub = args[2]
 	if sub == nil or not isIn(SUBS, sub) then
 		stdio.ewrite("Error: forge assets requires a subcommand (" .. table.concat(SUBS, "|") .. ")\n")
@@ -821,12 +927,46 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local creatorUserArg: number? = nil
 	local cachePath = if sub == "upload-images" then "build/image-upload-cache.json" else DEFAULT_CACHE_PATH
 	local dryRun = false
+	local limit: number? = nil
+	local only: { string }? = nil
+	local function usageError(message: string): (boolean, number?)
+		stdio.ewrite("Error: " .. message .. "\n" .. UPLOAD_IMAGES_USAGE)
+		return false, 2
+	end
 	local index = 3
 	while index <= #args do
 		local flag = args[index]
 		if flag == "--dry-run" then
 			dryRun = true
 			index += 1
+		elseif flag == "--limit" or flag == "--only" then
+			if sub ~= "upload-images" then
+				return usageError(flag .. " is only valid for forge assets upload-images")
+			end
+			local value = args[index + 1]
+			if value == nil or value == "" then
+				return usageError(flag .. " requires a value")
+			end
+			if flag == "--limit" then
+				local parsed = cliutil.parseFiniteInt(value)
+				if parsed == nil or parsed <= 0 then
+					return usageError("--limit requires a positive integer (got '" .. value .. "')")
+				end
+				limit = parsed
+			else
+				local keys: { string } = {}
+				for part in string.gmatch(value, "[^,]+") do
+					local key = string.match(part, "^%s*(.-)%s*$") or ""
+					if key ~= "" then
+						table.insert(keys, key)
+					end
+				end
+				if #keys == 0 then
+					return usageError("--only requires at least one asset key")
+				end
+				only = keys
+			end
+			index += 2
 		elseif
 			flag == "--pack"
 			or flag == "--env"
@@ -891,7 +1031,11 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			stdio.ewrite((uploadErr or "Error: invalid manifest") .. "\n")
 			return false
 		end
-		local creator, creatorErr = M.resolveCreator(creatorGroupArg, creatorUserArg, process.env)
+		local creator, creatorErr = M.resolveCreator(
+			creatorGroupArg,
+			creatorUserArg,
+			if deps ~= nil and deps.env ~= nil then deps.env else process.env
+		)
 		if creator == nil then
 			stdio.ewrite("Error: " .. tostring(creatorErr) .. "\n")
 			return false
@@ -904,9 +1048,11 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 			creator = creator :: Creator,
 			cachePath = cachePath,
 			dryRun = dryRun,
+			limit = limit,
+			only = only,
 		}
 		if sub == "upload-images" then
-			return runUploadImages(uploadOptions)
+			return runUploadImages(uploadOptions, deps or {})
 		end
 		return runUploadAudio(uploadOptions)
 	end

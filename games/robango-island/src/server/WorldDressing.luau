@@ -404,8 +404,8 @@ function M.structure(parent: any, definition: any, cellStuds: number): any
 		value.CanTouch, value.Parent = false, model
 		if d.effect == "fire" then
 			local fire, light = Instance.new("Fire"), Instance.new("PointLight")
-			fire.Size, fire.Heat, fire.Parent = 5, 7, value
-			light.Color, light.Range, light.Brightness, light.Parent = value.Color, 20, 2, value
+			fire.Size, fire.Heat, fire.Parent = 2, 4, value
+			light.Color, light.Range, light.Brightness, light.Parent = value.Color, 10, 0.8, value
 		end
 	end
 	model.WorldPivot = CFrame.new()
@@ -648,8 +648,10 @@ function M.home(parts: { any }, home: any, rules: any)
 	M.kit(parts, "home.storage", { x = -half + 17, y = 1, z = -half + 19 }, "chest", palette)
 	M.kit(parts, "home.farm", { x = half - 12, y = 1, z = -half + 14 }, "farm", palette)
 	add(parts, "home.path", { x = 0, y = 1.05, z = 0 }, { x = 7, y = 0.2, z = half * 2 }, "Ground", { 167, 142, 98 })
+	-- Palms stay on the east coast, clear of the camp.
 	for i = 1, 4 do
-		M.kit(parts, "home.tree" .. i, { x = -half + i * 8, y = 0, z = half - 5 }, "palm", palette)
+		local a = math.rad(i * 20 - 40)
+		M.kit(parts, "home.tree" .. i, { x = math.cos(a) * half, y = 0, z = math.sin(a) * half }, "palm", palette)
 	end
 end
 

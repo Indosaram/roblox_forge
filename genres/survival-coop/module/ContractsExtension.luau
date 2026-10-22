@@ -466,9 +466,9 @@ function M.factory(ctx: any): any
 			held[item.catalogId] = (held[item.catalogId] or 0) + Inventory.available(bag, itemId)
 		end
 		local marker = "ct:" .. requestId
-		local pendingRecord: any = nil
+		local pendingRecord: any, short: any = nil, nil
 		local updated, err = update(actor, function(data)
-			reason, emits, result, pendingRecord = nil, {}, nil, nil
+			reason, emits, result, pendingRecord, short = nil, {}, nil, nil, nil
 			local state = Contracts.fromSave(data.contracts)
 			local consume: { any }, reward: { any } = {}, {}
 			local coins = 0
@@ -477,6 +477,13 @@ function M.factory(ctx: any): any
 				local delivery, why = Contracts.deliver(state, catalog, args[1], held, now)
 				if not delivery then
 					reason = why or "REJECTED"
+					for _, e in catalog.entries do -- name the bag shortfall (warehouse never counts)
+						for _, n in e.deliver do
+							if e.id == args[1] and (held[n.item] or 0) < n.quantity then
+								short = { item = n.item, have = held[n.item] or 0, need = n.quantity }
+							end
+						end
+					end
 					return data
 				end
 				consume, reward, event = delivery.consume, delivery.reward, "ContractDelivered"
@@ -528,7 +535,7 @@ function M.factory(ctx: any): any
 			return fail(err or "CONTRACTS_UNAVAILABLE")
 		end
 		if reason then
-			return fail(reason)
+			return { ok = false, reason = reason, data = short }
 		end
 		local finished, finishError = finish(actor)
 		if not finished then

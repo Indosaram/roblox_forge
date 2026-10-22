@@ -62,13 +62,15 @@ return {
 	end,
 	["missing weapon refusal is surfaced on closed HUD for both locales"] = function()
 		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
-		local first = assert(source:find('if model.reason == "WEAPON_UNAVAILABLE"', 1, true))
+		local first = assert(source:find("if M.toasted[model.reason]", 1, true))
 		local last = assert(source:find("resultEvent:Fire", first, true))
 		for _, locale in { "ko-KR", "en-US" } do
 			local toast: any = { Visible = false }
 			luau.load(source:sub(first, last - 1), {
 				environment = {
 					model = { reason = "WEAPON_UNAVAILABLE" },
+					-- The real toast table, read from source (SurvivalHUD needs Roblox globals).
+					M = { toasted = luau.load("return " .. assert(source:match("M%.toasted = (%b{})")))() },
 					toast = toast,
 					Locale = Locale,
 					locale = locale,

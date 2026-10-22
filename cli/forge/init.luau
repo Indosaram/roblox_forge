@@ -143,9 +143,14 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "assets",
 		text = [=[
-  assets upload-images [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
+  assets upload-images [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>]
+                       [--limit <n>] [--only <key1,key2,...>] [--dry-run]
                             Publish PNG icons as Decals, resolve image content ids, and checkpoint
-                            operations in build/image-upload-cache.json. Dry run never uploads.
+                            operations in build/image-upload-cache.json. --limit <n> uploads at most n
+                            not-yet-uploaded images in manifest order, then stops and reports how many
+                            remain; --only restricts the run to the listed image keys. Assets.luau is
+                            always regenerated from the full manifest. An invalid --limit (0, negative,
+                            non-integer) exits 2. Dry run prints the planned batch and never uploads.
   assets upload-audio [--pack <slug> | --pack-dir <dir>] [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
                             Publish a pack's synthesised WAV cues (sfx/bgm) through the Open Cloud
                             Assets API, poll each operation, and record the returned rbxassetid plus
@@ -483,7 +488,9 @@ local function main()
 		stdio.write(section)
 		process.exit(0)
 	end
-	if isHelpFlag(args[2]) then
+	-- `assets <sub> --help` also prints the assets section.
+	local helpRequested = isHelpFlag(args[2]) or (args[1] == "assets" and isHelpFlag(args[3]))
+	if helpRequested then
 		-- `specs-run` is the hidden alias of `test` and shares its usage.
 		local section = commandUsage(if cmd == "specs-run" then "test" else cmd)
 		if section ~= nil then
@@ -514,8 +521,9 @@ local function main()
 			process.exit(1)
 		end
 	elseif cmd == "assets" then
-		if not assetsCommand.run(args) then
-			process.exit(1)
+		local ok, code = assetsCommand.run(args)
+		if not ok then
+			process.exit(code or 1)
 		end
 	elseif cmd == "deploy" then
 		if not deployCommand.run(args) then

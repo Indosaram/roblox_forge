@@ -1,14 +1,11 @@
 --!strict
--- ContractsPanel: contract board (accept, deliver, reward preview, trust per
--- faction) plus the tutorial objective tracker (current step, skip arrival).
--- Pure view over snapshot.survivalExtensions.contracts; every button issues a
--- durable command through ctx.send and the server stays authoritative.
+-- ContractsPanel: contract board + tutorial tracker; buttons send durable commands.
 local HudLocale = require("./SurvivalHUDLocale")
 local M = {}
 
 local PREFIX = "survival-coop:"
 
--- Mirrors the `ct_*` rows in the pack's locale/strings.csv (key with "." and "-" as "_").
+-- Mirrors the pack's `ct_*` locale rows.
 local STRINGS: { [string]: { en: string, ko: string } } = {
 	contracts_title = { en = "Contracts", ko = "계약" },
 	contracts_accept = { en = "Accept", ko = "수락" },
@@ -23,6 +20,10 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 	contracts_reason_insufficient = {
 		en = "Not enough items to deliver yet.",
 		ko = "납품할 아이템이 아직 부족해요.",
+	},
+	contracts_reason_carry = {
+		en = "Carry %s x%d in your bag (have %d).",
+		ko = "가방에 %s %d개를 들고 오세요 (현재 %d개).",
 	},
 	contracts_reason_bag_full = {
 		en = "Your bag is full. Make room first.",
@@ -51,8 +52,12 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 	["faction.island-ecology"] = { en = "Island Ecology Trust", ko = "섬 생태 신탁" },
 }
 
---- Player-facing message for a refused contract command; never shows the raw reason code.
-function M.refusal(locale: string, reason: string?): string
+--- Player sentence for a refusal (never the raw code).
+function M.refusal(locale: string, reason: string?, short: any?, names: { [string]: string }?): string
+	if reason == "INSUFFICIENT_ITEMS" and type(short) == "table" then
+		local name = names and names[short.item] or HudLocale.text(locale, short.item)
+		return string.format(M.text(locale, "contracts_reason_carry"), name, short.need, short.have)
+	end
 	local key = if reason == "INSUFFICIENT_ITEMS"
 		then "contracts_reason_insufficient"
 		elseif reason == "BAG_FULL" then "contracts_reason_bag_full"
@@ -95,7 +100,6 @@ function M.model(locale: string, state: any, names: { [string]: string }?): any
 			action = if offer.accepted then "contract-deliver" else "contract-accept",
 			label = if offer.accepted then M.text(locale, "contracts_deliver") else M.text(locale, "contracts_accept"),
 			reward = table.concat(reward, ", "),
-			-- What the player hands in, by item name: the row a player reads (never the raw id).
 			goal = table.concat(deliver, ", "),
 			faction = if offer.faction then M.text(locale, "faction." .. offer.faction) else nil,
 			trust = offer.trust,
@@ -129,7 +133,7 @@ function M.model(locale: string, state: any, names: { [string]: string }?): any
 	}
 end
 
---- Identity of everything the board renders; the panel rebuilds its rows only when this changes.
+--- Identity of what the board renders.
 function M.renderKey(view: any): string
 	local parts = { view.objective, tostring(view.canSkip) }
 	for _, faction in view.factions do
@@ -170,8 +174,7 @@ function M.factory(ctx: any): any
 	sheet.close.Activated:Connect(function()
 		sheet.frame.Visible = false
 	end)
-	-- The objective tracker and the skip button live in the shared dock column when one
-	-- exists (never over the survival HUD); headless contexts keep the legacy corner.
+	-- Tracker and skip sit in the dock column when one exists.
 	local slot: Instance = ctx.objectiveSlot or gui
 	local docked = ctx.objectiveSlot ~= nil
 	local tracker = components.label(theme, {
@@ -226,16 +229,15 @@ function M.factory(ctx: any): any
 	toggle.Name = "ContractsToggle"
 	toggle.Visible = ctx.dock == nil
 
-	-- Snapshots arrive for every durable change (vitals ticks, gathers, other players), and the board
-	-- used to rebuild its buttons on each one: a press that began on Accept- ended on a destroyed
-	-- button and the click was lost (Studio tutorial QA, step 74). Rebuild only when the rendered
-	-- content changes; the tracker text is cheap to set and reflects refusals.
-	local rendered: string? = nil
+	-- Rebuild only on content change (a rebuild ate a mid-click press, QA step 74).
+	local rendered: string?, notice: string? = nil, nil
 	local function render(state: any)
 		local view = M.model(locale, state, ctx.names)
-		tracker.Text = M.text(locale, "tutorial_title") .. ": " .. view.objective
-		skip.Visible = view.canSkip
 		local key = M.renderKey(view)
+		-- A refusal stays until the board changes (vitals ticks erased it).
+		notice = if key == rendered then notice else nil
+		tracker.Text = notice or (M.text(locale, "tutorial_title") .. ": " .. view.objective)
+		skip.Visible = view.canSkip
 		if key == rendered then
 			return
 		end
@@ -252,7 +254,6 @@ function M.factory(ctx: any): any
 				theme,
 				{ text = text, size = UDim2.new(1, -16, 0, 20 * (lines or 1) + 4), parent = sheet.scroll }
 			)
-			-- Unique per row: the capture audit (and any GUI path) addresses each line by its full name.
 			line.Name = "Line-" .. order
 			line.TextWrapped, line.LayoutOrder = true, order
 		end
@@ -281,11 +282,12 @@ function M.factory(ctx: any): any
 				onClick = function()
 					local result = ctx.send(PREFIX .. row.action, { row.id })
 					if type(result) == "table" and result.ok == false then
-						tracker.Text = M.refusal(locale, result.reason)
+						notice = M.refusal(locale, result.reason, result.data, ctx.names)
+						tracker.Text = notice
 					end
 				end,
 			})
-			-- Unique per contract so QA scenarios and captures can address each row.
+			-- Unique names: QA addresses rows and lines by name.
 			button.Name = (if row.accepted then "Deliver-" else "Accept-") .. row.id
 			button.LayoutOrder = order
 		end

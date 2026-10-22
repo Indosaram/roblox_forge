@@ -1,8 +1,7 @@
 --!strict
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local M = {}
--- `locale` picks the action label (Korean on a "ko" prefix); `names` maps a node kind or catalog id
--- to its display name, so prompts never show a raw id. Both are optional.
+-- Optional `locale` (label) and `names` (kind/catalog id -> display name).
 export type Options = { onResult: ((any, any?) -> ())?, locale: string?, names: { [string]: string }? }
 local TAG = "ForgeSurvivalNode"
 local ACTION = "survival-coop:gather"
@@ -11,9 +10,10 @@ local function integer(value: any): boolean
 	return type(value) == "number" and value >= 0 and value <= 2 ^ 53 - 2 and value % 1 == 0
 end
 
---- Gather action label for a locale (specced).
-function M.actionText(locale: string?): string
-	return if locale and string.sub(locale, 1, 2) == "ko" then "채집하기" else "Gather"
+--- Gather action label for a locale (specced); `busy` while a request is pending.
+function M.actionText(locale: string?, busy: boolean?): string
+	local ko = locale and string.sub(locale, 1, 2) == "ko"
+	return if busy then (if ko then "채집 중..." else "Collecting...") elseif ko then "채집하기" else "Gather"
 end
 
 function M.start(options: Options?)
@@ -103,6 +103,9 @@ function M.start(options: Options?)
 		if entry then
 			local id, kind = registered(part)
 			entry.prompt.Enabled = not disposed and id ~= nil and (pending[id] ~= nil or harvestable(part))
+			-- E on a pending node replays it (no new items): label it so.
+			entry.prompt.ActionText =
+				M.actionText(options and options.locale, id ~= nil and (pending[id] ~= nil or busy[id] == true))
 			if kind then
 				local item = part:GetAttribute("ForgeNodeItem")
 				local key = if type(item) == "string" then item else kind
@@ -152,6 +155,7 @@ function M.start(options: Options?)
 			table.freeze(pending[id])
 		end
 		busy[id] = true
+		update(part)
 		local request = pending[id]
 		local ok, result, diagnostic = pcall(function()
 			requestEvent:Fire(table.freeze({
@@ -176,12 +180,8 @@ function M.start(options: Options?)
 				and result.data.status == "confirmed"
 			local refused = type(result) == "table" and result.ok == false and result.reason == "STALE_VERSION"
 			if confirmed or refused then
-				-- A confirmed outcome and a refusal that decided against the frozen payload
-				-- both end this request: the source persisted a grant for the former and
-				-- writes no grant and no outcome for the latter, so neither leaves a pending
-				-- settlement to honour. Settling here lets the next activation read the
-				-- published version under a fresh identity; every other refusal keeps the
-				-- frozen identity for the source's dedupe.
+				-- Confirmed or STALE_VERSION ends the request (nothing left to settle); other
+				-- refusals keep the frozen identity for the source's dedupe.
 				pending[id] = nil
 			end
 			if resultEvent then
@@ -219,8 +219,7 @@ function M.start(options: Options?)
 		prompt.Name, prompt.ActionText = "ForgeGather", actionText
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.MaxActivationDistance, prompt.HoldDuration = 8, 0
-		-- Use the registered node's server reach point, not the top of its visual canopy.
-		-- Dressing can occlude the trunk; server spatial validation still enforces reach.
+		-- At the server reach point; dressing may occlude it, the server enforces reach.
 		prompt.RequiresLineOfSight, prompt.ClickablePrompt, prompt.Enabled = false, true, false
 		local owned = {
 			prompt.Triggered:Connect(function(actor)
@@ -282,7 +281,7 @@ function M.start(options: Options?)
 			end
 		end)
 	)
-	-- Preserve the shared client handshake's broadcast side effects; subscribe first.
+	-- Subscribe before the handshake.
 	table.insert(
 		connections,
 		state.OnClientEvent:Connect(function(packet)

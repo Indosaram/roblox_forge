@@ -74,14 +74,10 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local family, feature = s.family, s.feature
 	local mammal = family == "mammal" or family == "elephant"
 	local pigment = assert(pigments[species], "MISSING_SPECIES_PIGMENT")
-	local bodyColor = Color3.fromRGB(pigment[1], pigment[2], pigment[3])
-	local accent = Color3.fromRGB(
-		math.max(90, pigment[1] * 0.78),
-		math.max(90, pigment[2] * 0.78),
-		math.max(90, pigment[3] * 0.78)
-	)
-	local underside =
-		Color3.fromRGB(math.min(225, pigment[1] + 49), math.min(219, pigment[2] + 43), math.min(189, pigment[3] + 38))
+	local bodyColor = Color3.fromRGB(table.unpack(pigment))
+	local p1, p2, p3 = pigment[1], pigment[2], pigment[3]
+	local accent = Color3.fromRGB(math.max(90, p1 * 0.78), math.max(90, p2 * 0.78), math.max(90, p3 * 0.78))
+	local underside = Color3.fromRGB(math.min(225, p1 + 49), math.min(219, p2 + 43), math.min(189, p3 + 38))
 	local ivory = Color3.fromRGB(225, 216, 177)
 	local skin = if mammal or family == "bird"
 		then Enum.Material.Fabric
@@ -108,16 +104,10 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		local localAt = Vector3.new(at.X * w, at.Y * h, at.Z * l)
 		p.Name, p.Size = name, Vector3.new(size.X * w, size.Y * h, size.Z * l)
 		if p:IsA("Part") and p.Shape == Enum.PartType.Ball and name ~= "Head" and name ~= "Shell" then
-			p.Size =
-				Vector3.new(math.min(p.Size.X, l * 0.39), math.min(p.Size.Y, l * 0.39), math.min(p.Size.Z, l * 0.39))
+			p.Size = p.Size:Min(Vector3.one * l * 0.39)
 		end
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		if
-			string.match(name, "^Thigh")
-			or string.match(name, "^Foreleg")
-			or string.match(name, "^ForeShin")
-			or string.match(name, "^Arm")
-		then
+		if string.match(name, "^Thigh") or string.match(name, "^Fore[lS]") or string.match(name, "^Arm") then
 			(p :: Part).Shape = Enum.PartType.Ball
 			p.Size = Vector3.new(size.Y * h, size.X * w, size.Z * l)
 			p.CFrame *= CFrame.Angles(0, 0, math.pi / 2)
@@ -258,6 +248,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		Vector3.new(0, hy, hz + headL * 0.4)
 	)
 	add("Jaw", 0, hy - headH * 0.42, hz - headL * 0.12, headW * 0.85, headH * 0.22, headL * 1.2, "Head", nil, underside)
+	local jj, f =
+		root:FindFirstChild("JawJoint") :: Motor6D, CFrame.new(0, 0, l * headL * 0.52) * CFrame.Angles(0, math.pi, 0)
+	jj.C0, jj.C1 = jj.C0 * f, jj.C1 * f
 	add("Snout", 0, hy - headH * 0.1, hz - headL * 0.4, headW * 0.8, headH * 0.62, headL * 0.7, "Head", nil)
 	if family == "theropod" then
 		for side = -1, 1, 2 do
@@ -276,35 +269,14 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		end
 	end
 	for side = -1, 1, 2 do
-		add(
-			"EyeSocket" .. side,
-			side * headW * 0.455,
-			hy + headH * 0.13,
-			hz - headL * 0.2,
-			0.04,
-			0.045,
-			0.04,
-			"Head",
-			nil,
-			accent
-		)
-		add(
-			"Eye" .. side,
-			side * headW * 0.46,
-			hy + headH * 0.13,
-			hz - headL * 0.2,
-			0.035,
-			0.033,
-			0.025,
-			"Head",
-			nil,
-			Color3.fromRGB(238, 192, 61)
-		)
+		local ey, ez = hy + headH * 0.13, hz - headL * 0.2
+		add("EyeSocket" .. side, side * headW * 0.455, ey, ez, 0.04, 0.045, 0.04, "Head", nil, accent)
+		add("Eye" .. side, side * headW * 0.46, ey, ez, 0.035, 0.033, 0.025, "Head", nil, Color3.fromRGB(238, 192, 61))
 		add(
 			"Pupil" .. side,
 			side * headW * 0.477,
-			hy + headH * 0.13,
-			hz - headL * 0.205,
+			ey,
+			ez - headL * 0.005,
 			0.014,
 			0.024,
 			0.015,
@@ -313,8 +285,8 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			Color3.fromRGB(24, 29, 26)
 		)
 		local lx = if low then 0.4 else 0.28
-		local legH = if low then 0.18 elseif feature == "antlers" or feature == "longlegs" then 0.49 else 0.36
-		local legW = if feature == "antlers" or feature == "longlegs" then 0.1 else 0.18
+		local tall = feature == "antlers" or feature == "longlegs"
+		local legH, legW = if low then 0.18 elseif tall then 0.49 else 0.36, if tall then 0.1 else 0.18
 		part(
 			"Thigh" .. side,
 			Vector3.new(legW * 1.2, legH * 0.85, 0.19),
@@ -324,12 +296,8 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			nil,
 			Vector3.new(side * lx, -0.05, 0.19)
 		)
-		add("Shin" .. side, side * lx, -0.34, 0.19, legW * 0.72, 0.25, 0.1, "Thigh" .. side).CFrame *= CFrame.Angles(
-			0,
-			0,
-			math.pi / 2
-		)
-		local shin = parts["Shin" .. side]
+		local shin = add("Shin" .. side, side * lx, -0.34, 0.19, legW * 0.72, 0.25, 0.1, "Thigh" .. side)
+		shin.CFrame *= CFrame.Angles(0, 0, math.pi / 2)
 		shin.Size = Vector3.new(h * 0.18, w * legW * 0.72, l * 0.1)
 		local shinJoint = root:FindFirstChild(shin.Name .. "Joint") :: Motor6D
 		shinJoint.C1 = shin.CFrame:ToObjectSpace(assert(shinJoint.Part0).CFrame * shinJoint.C0)
@@ -443,10 +411,10 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add(
 				name .. side,
 				side * headW * 0.35,
-				hy + (if down then -0.18 elseif feature == "bristles" then -0.07 else 0.12),
-				hz - headL * 0.5,
+				hy + (if down then -0.18 elseif name == "Tusk" then -0.07 else 0.12),
+				hz - headL * (if name == "Antler" then 0 else 0.5),
 				0.065,
-				if name == "Antler" then 0.35 elseif down then 0.27 elseif feature == "bristles" then 0.12 else 0.16,
+				if name == "Antler" then 0.18 elseif down then 0.2 elseif feature == "bristles" then 0.12 else 0.16,
 				if family == "elephant" then 0.35 elseif feature == "horns" then 0.24 else 0.12,
 				"Head",
 				if feature == "bristles" then nil else "wedge",
@@ -455,9 +423,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			if name == "Antler" or (name == "Tusk" and family == "elephant") then
 				add(
 					name .. "Tip" .. side,
-					side * (if name == "Antler" then 0.33 else 0.23),
-					hy + 0.29,
-					hz - (if name == "Antler" then 0.02 else 0.31),
+					side * (if name == "Antler" then 0.19 else 0.17),
+					hy + (if name == "Antler" then 0.2 else -0.06),
+					hz + (if name == "Antler" then 0.06 else -0.245),
 					0.06,
 					0.18,
 					0.09,
@@ -492,7 +460,8 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add("WoolDome", 0, 0.25, 0.01, 0.65, 0.38, 0.38, "Torso", nil, accent)
 		end
 	elseif family == "turtle" or feature == "club" then
-		add("Shell", 0, 0.12, 0.04, 0.86, 0.68, 0.62, "Torso", if family == "turtle" then nil else "wedge", accent)
+		local a = if family == "turtle" then 1 else 0.6
+		add("Shell", 0, 0.12, 0.04, 0.86 * a, 0.68 * a * a, 0.62 * a, "Torso", nil, accent)
 		if family == "turtle" then
 			for i = -1, 1 do
 				add(
@@ -655,7 +624,7 @@ function M.pose(model: Model, state: string, elapsed: number, speed: number)
 				x = pulse * (if style == "charge" then 0.65 else 0.3)
 				forward = if style == "withdraw" then pulse * root.Size.Z * 0.15 else 0
 			elseif name == "Jaw" then
-				x = pulse * (if style == "bite" or style == "lunge" then 0.85 else 0.25)
+				x = pulse * (if style == "bite" or style == "lunge" then 0.7 else 0.25)
 			elseif string.find(name, "Tail") and style == "tail" then
 				y = pulse * 0.65
 			elseif string.find(name, "Thigh") and (style == "kick" or style == "stomp") then

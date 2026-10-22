@@ -76,6 +76,9 @@ return {
 		assert(not Outpost.apply(state, "a", "start", { matchId = "one" }, "s", 0, ctx), "clan invariant: 25")
 		ctx.teams = { { clanId = "alpha", actors = { "a" } }, teams[2] }
 		assert(not Outpost.apply(state, "a", "start", { matchId = "one" }, "s", 0, ctx), "clan invariant: 27")
+		ctx.teams = { { clanId = "alpha", actors = { "a", "b", "c", "g", "h", "i", "j", "k", "l" } }, teams[2] }
+		local nine, reason = Outpost.apply(state, "a", "start", { matchId = "one" }, "s", 0, ctx)
+		assert(nine == nil and reason == "INVALID_TEAMS", "a team of 9 exceeds maxTeam 8")
 	end,
 	["outpost contested capture and duplicate settlement never extend ownership"] = function()
 		local ctx = facts()

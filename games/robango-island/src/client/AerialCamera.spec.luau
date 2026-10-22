@@ -92,4 +92,54 @@ return {
 		end
 		assert(disconnected == 28, "all controls disconnected")
 	end,
+	["a Studio QA camera pin wins over the aerial frame"] = function()
+		local button = {
+			Activated = {
+				Connect = function(_self, callback)
+					return { Disconnect = function() end, callback = callback }
+				end,
+			},
+		}
+		local toggle: any
+		local buttons = setmetatable({}, {
+			__index = function(_, name)
+				return if name == "Toggle"
+					then {
+						Activated = {
+							Connect = function(_self, callback)
+								toggle = callback
+								return { Disconnect = function() end }
+							end,
+						},
+					}
+					else button
+			end,
+		})
+		local camera: any =
+			{ CameraType = "Custom", CFrame = "original", FieldOfView = 70, ViewportSize = { X = 1920, Y = 1080 } }
+		local pinned: any = "qa-pin"
+		Camera.new({
+			aerial = require("../../../../genres/survival-coop/module/AerialView"),
+			workspace = { CurrentCamera = camera },
+			guis = {},
+			buttons = buttons,
+			controls = { Visible = false },
+			quarterView = { suspend = function() end },
+			bounds = function()
+				return { x = -100, y = 0, z = -100 }, { x = 100, y = 20, z = 100 }
+			end,
+			scriptable = "Scriptable",
+			qaCamera = function()
+				return pinned
+			end,
+			lookAt = function()
+				return "aerial"
+			end,
+			focusAt = function(point)
+				return point
+			end,
+		})
+		toggle()
+		assert(camera.CFrame == "qa-pin", "pinned CFrame kept: " .. tostring(camera.CFrame))
+	end,
 }

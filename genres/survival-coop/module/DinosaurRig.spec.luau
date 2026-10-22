@@ -301,6 +301,86 @@ return {
 		end
 		world:Destroy()
 	end,
+	["tusks antlers jaw and armor stay attached to the head and back in idle and attack"] = function()
+		local module = loadRig()
+		local world = roblox.Instance.new("Workspace")
+		local function bounds(p: any)
+			local lo, hi = roblox.Vector3.one * math.huge, -roblox.Vector3.one * math.huge
+			for _, sx in { -1, 1 } do
+				for _, sy in { -1, 1 } do
+					for _, sz in { -1, 1 } do
+						local z = if p:IsA("WedgePart") and sy == 1 then 1 else sz
+						local v = p.CFrame:PointToWorldSpace(p.Size / 2 * roblox.Vector3.new(sx, sy, z))
+						lo, hi = lo:Min(v), hi:Max(v)
+					end
+				end
+			end
+			return lo, hi
+		end
+		local function touches(a: any, b: any, slack: number): boolean
+			local a0, a1 = bounds(a)
+			local b0, b1 = bounds(b)
+			for _, k in { "X", "Y", "Z" } do
+				if a0[k] > b1[k] + slack or b0[k] > a1[k] + slack then
+					return false
+				end
+			end
+			return true
+		end
+		local attached: { [string]: { string } } = {
+			mammoth = { "Tusk-1", "Tusk1", "TuskTip-1", "TuskTip1", "Jaw" },
+			elephant = { "Tusk-1", "Tusk1", "TuskTip-1", "TuskTip1", "Jaw" },
+			deer = { "Antler-1", "Antler1", "AntlerTip-1", "AntlerTip1", "Jaw" },
+			compsognathus = { "Jaw", "TeethRow-1", "TeethRow1" },
+			tyrannosaurus = { "Jaw", "TeethRow-1", "TeethRow1" },
+			boar = { "Tusk-1", "Tusk1", "Jaw" },
+		}
+		for species, names in attached do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			local root = model.PrimaryPart
+			local tips = {}
+			for _, state in { "idle", "attack" } do
+				module.pose(model, state, 0.25, 0)
+				local done = { [root] = true }
+				local progress = true
+				while progress do
+					progress = false
+					for _, j in root:GetChildren() do
+						if j:IsA("Motor6D") and done[j.Part0] and not done[j.Part1] then
+							j.Part1.CFrame = j.Part0.CFrame * j.C0 * j.Transform * j.C1:Inverse()
+							done[j.Part1], progress = true, true
+						end
+					end
+				end
+				for _, name in names do
+					local p = model[name]
+					local parent = root[name .. "Joint"].Part0
+					assert(
+						(
+							parent == model.Head
+							or parent.Parent == model.Head.Parent
+								and root[parent.Name .. "Joint"].Part0 == model.Head
+						) and touches(p, parent, root.Size.Magnitude * 0.01),
+						"detached from head: " .. species .. "/" .. state .. "/" .. name
+					)
+				end
+				local tip = model.Head.CFrame:PointToObjectSpace(
+					model.Jaw.CFrame:PointToWorldSpace(roblox.Vector3.new(0, 0, -model.Jaw.Size.Z / 2))
+				)
+				tips[state] = tip.Y
+			end
+			assert(tips.attack < tips.idle - model.Head.Size.Y * 0.1, "attack drops the jaw tip: " .. species)
+			if species == "deer" then
+				assert(model["Antler1"].Size.Y < root.Size.Y * 0.2, "antlers are not oversized blades")
+			end
+			model:Destroy()
+		end
+		local anky = module.new("ankylosaurus", "anky", roblox.Vector3.zero, world)
+		local shell, torso = anky.Shell, anky.Torso
+		assert(shell.Size.X <= torso.Size.X * 1.1 and shell.Size.Y <= torso.Size.Y * 1.1, "armor sized to the back")
+		assert(shell.CFrame.Position.Y > torso.CFrame.Position.Y and touches(shell, torso, 0), "armor sits on the back")
+		world:Destroy()
+	end,
 	["catalog body plans use exact clearance and real distinct geometry"] = function()
 		verifyAnatomy(loadRig())
 	end,

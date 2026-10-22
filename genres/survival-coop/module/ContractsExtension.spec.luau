@@ -52,7 +52,7 @@ local budget = {
 -- Real ContractsExtension over a real PersonalAggregate on one MemoryBackend. `faults.next`
 -- injects one failure on the next personal write: "fail" (nothing written) or "lost" (written,
 -- acknowledgement lost). `reopen()` simulates a server restart (fresh extension and leases).
-local function harness(balance: number)
+local function harness(balance: number, wood: number?)
 	local document = content()
 	local backend = Memory.new()
 	local clock = { millis = 0 }
@@ -67,7 +67,7 @@ local function harness(balance: number)
 		end,
 		store = { sessionId = "players", leaseSeconds = 120, now = now, budget = budget },
 	})
-	local start = bagWith(document, { { "wood", 6 } }).inventory
+	local start = bagWith(document, { { "wood", wood or 6 } }).inventory
 	local token: any = assert(personal:load("1", function()
 		return {
 			version = 1,
@@ -239,6 +239,17 @@ return {
 		ext.observe("1", "survival-coop:gather", {}, { ok = false, data = { status = "pending" } })
 		assert(ext.snapshot("1").tutorial.step == "craft-stone-axe", ext.snapshot("1").tutorial.step)
 		assert(ext.close().ok, "close")
+	end,
+	["a short delivery refuses with the bag shortfall instead of a silent no-op"] = function()
+		local h = harness(0, 1)
+		h.reopen("srv-a")
+		assert(h.command("tutorial-skip-arrival", {}, "skip").ok, "skip")
+		assert(h.command("contract-accept", { "survey-driftwood" }, "a1").ok, "accept")
+		local refused = h.command("contract-deliver", { "survey-driftwood" }, "d1")
+		assert(not refused.ok and refused.reason == "INSUFFICIENT_ITEMS", tostring(refused.reason))
+		local short = refused.data
+		assert(short and short.item == "wood" and short.have == 1 and short.need == 3, "shortfall named")
+		assert(h.held("wood") == 1 and h.extension.snapshot("1").delivered == 0, "nothing moved")
 	end,
 	["a contract coin reward is credited once under replay"] = function()
 		local h = harness(5)

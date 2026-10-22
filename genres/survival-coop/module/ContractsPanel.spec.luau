@@ -61,4 +61,11 @@ return {
 			assert(not string.find(text, "%u%u%u"), "raw code leaked: " .. text)
 		end
 	end,
+	["a short delivery names what to carry in the bag in both languages"] = function()
+		local short = { item = "wood", have = 1, need = 3 }
+		local en = ContractsPanel.refusal("en-us", "INSUFFICIENT_ITEMS", short, { wood = "Driftwood" })
+		assert(en == "Carry Driftwood x3 in your bag (have 1).", en)
+		local ko = ContractsPanel.refusal("ko-kr", "INSUFFICIENT_ITEMS", short, { wood = "쓰러진 통나무" })
+		assert(ko == "가방에 쓰러진 통나무 3개를 들고 오세요 (현재 1개).", ko)
+	end,
 }

@@ -3,6 +3,8 @@ local Model = require("./SurvivalHUDModel")
 local Locale = require("./SurvivalHUDLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local M = {}
+-- Refusals that also raise the toast.
+M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true }
 
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
 	local entries: { [string]: any } = {}
@@ -126,8 +128,7 @@ function M.start(options: Options)
 	local statBars: { [string]: any } = {}
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
-		-- Keep a localized label underneath the optional asset. Moderated or
-		-- unavailable images must not leave the status row unidentified.
+		-- Localized label under the optional (maybe moderated) image.
 		local symbol = Instance.new("TextLabel")
 		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
 		symbol.Position, symbol.Size = UDim2.fromOffset(4, 4 + (index - 1) * 23), UDim2.fromOffset(42, 20)
@@ -362,7 +363,7 @@ function M.start(options: Options)
 				return
 			end
 			model.finish(ok, result)
-			if model.reason == "WEAPON_UNAVAILABLE" then
+			if M.toasted[model.reason] then
 				toast.Text, toast.Visible = Locale.refusal(locale, model.reason), true
 			end
 			resultEvent:Fire({ request = request, result = result, status = model.status })
@@ -642,8 +643,7 @@ function M.start(options: Options)
 			part.Transparency, part.Material, part.Parent = 0.4, Enum.Material.Neon, ghost
 		end
 	end
-	-- ZIndex only orders siblings inside one ScreenGui. Placement must also sit
-	-- above the dock (DisplayOrder 30) and extension sheets (DisplayOrder 20).
+	-- Own ScreenGui: above the dock (30) and extension sheets (20).
 	local placementGui = Instance.new("ScreenGui")
 	placementGui.Name, placementGui.ResetOnSpawn, placementGui.DisplayOrder = "ForgePlacementHUD", false, 40
 	placementGui.ScreenInsets, placementGui.ZIndexBehavior = gui.ScreenInsets, gui.ZIndexBehavior
@@ -791,8 +791,7 @@ function M.start(options: Options)
 			return
 		end
 		placementBar.Visible = section == "build" and structureId ~= nil
-		-- Placement is a world interaction, not a control floating over the scrolling
-		-- catalog. Remove the catalog from input routing for the entire placement phase.
+		-- Placement is a world interaction: the catalog takes no input meanwhile.
 		if section == "build" then
 			sheet.frame.Visible = structureId == nil
 		end

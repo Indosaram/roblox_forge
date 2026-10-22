@@ -1,8 +1,4 @@
 --!strict
--- Robango Island world: a deterministic terrain island (landing plateau, temperate forest to the
--- west, coastal marsh to the east) with every content node kind placed once and wildlife homes in
--- each biome. Geometry is built at runtime so the static place budget (QA-PERF-01) is unaffected;
--- every height comes from IslandTerrain and every scatter from a fixed-seed Rng.
 local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local CollectionService = game:GetService("CollectionService")
 local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
@@ -233,8 +229,8 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			value.CanCollide, value.CanQuery, value.CanTouch = false, false, false
 			if d.effect == "fire" then
 				local fire, light = Instance.new("Fire"), Instance.new("PointLight")
-				fire.Size, fire.Heat, fire.Parent = 5, 7, value
-				light.Color, light.Range, light.Brightness, light.Parent = value.Color, 20, 2, value
+				fire.Size, fire.Heat, fire.Parent = 2, 4, value
+				light.Color, light.Range, light.Brightness, light.Parent = value.Color, 10, 0.8, value
 			end
 		end
 	end
@@ -851,10 +847,6 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	roof.Transparency = 1
 	CollectionService:AddTag(roof, "ForgeCameraOccluder")
 	kit("Shelter", Vector3.new(-16, 0, 0), "shelter")
-	-- QA standing marks: non-colliding, flat. wildlife-approach-01 sits in the lane between
-	-- fallen-tree-01 and flint-outcrop-01, inside grazer-01's 12-stud sense radius (its home is
-	-- -20,4,24). BuildApproach stands on the entry cell of the release-first-play floor preview
-	-- (settlement cell 6,1 from origin -32,-16 with 4-stud cells -> world -6,-10).
 	local marks: { Mark } = {
 		{ name = "wildlife-approach-01", position = Vector3.new(-19, 0.1, 19) },
 		{ name = "WildlifeApproach", position = Vector3.new(-19, 0.1, 19) },

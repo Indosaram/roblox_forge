@@ -200,6 +200,17 @@ return {
 		assert(have["stone-wall-kit"], "stone parts do not depend on clay")
 	end,
 
+	["20 guides in 5 bands of 4 each award 50 development"] = function()
+		local guides = load().guides
+		assert(#guides == 20, "20 guides")
+		for i, guide in guides do
+			local first = guides[i - (i - 1) % 4]
+			assert(guide.rewards.development == 50, "50 development " .. guide.id)
+			assert(guide.gates.developmentRank == ((i - 1) // 4) * 2, "band rank " .. guide.id)
+			assert(guide.gates.characterLevel == first.gates.characterLevel, "band level " .. guide.id)
+		end
+	end,
+
 	["every catalog id has an English and Korean locale string"] = function()
 		local document = canonical()
 		local parsed = Strings.parseCsv(fs.readFile(PACK .. "/locale/strings.csv"))

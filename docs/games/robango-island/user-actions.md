@@ -8,7 +8,25 @@
 
 스테이징 대상은 Universe `10771918494`, Place `95467272687768`입니다. 이 문서의 예전 배포 버전과 모바일 수치는 당시 콘텐츠의 이력이며, 현재 `d1f13db` 또는 진행 중인 P7 변경의 배포·합격 증거가 아닙니다. `690ac33` 이후 P1~P6에서 개인섬·군도·재료/성장·전투·저널·부족·난투·합주·서버 간 시장의 구현과 네이티브 검증이 추가되었습니다. 기능별 실제 입증 범위는 [qa-evidence.md](qa-evidence.md)의 2026-10-21 표를 따릅니다.
 
-현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 아이콘 **253개가 아직 업로드되지 않았고**, 오디오 **55개는 moderation 대기**입니다. 숫자는 이번 복구 작업의 보고 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
+현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 아이콘 **253개가 아직 업로드되지 않았고**, 오디오 **55개는 moderation 대기**입니다. 숫자는 이번 복구 작업의 보고 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다.
+
+### 소유자만 할 수 있는 행동 (2026-10-22 기준, 순서대로)
+
+1. **계정 `indosaram5`의 moderation warning 해제.** Roblox 계정에서 경고를 확인·수락하거나 이의를 제기해 해제합니다. 에이전트는 이 단계를 대신할 수 없고, 해제 전에는 Roblox 웹·Open Cloud 호출(업로드·배포·상태 조회)을 하지 않습니다.
+2. **아이콘 업로드 재개(해제 확인 후).** `.env.local`의 `ROBLOX_API_KEY`(asset read/write + `legacy-asset:manage`)와 `FORGE_ROBLOX_CREATOR_USER_ID` 또는 `FORGE_ROBLOX_CREATOR_GROUP_ID` 하나를 프로세스 환경에 넣고 저장소 루트에서 실행합니다.
+   ```text
+   forge assets upload-images --pack robango-island --dry-run
+   forge assets upload-images --pack robango-island
+   forge assets status --pack robango-island
+   ```
+   먼저 `--dry-run`으로 대상과 sha256을 확인합니다. 이 명령에는 **배치 크기 옵션이 없습니다**. manifest의 모든 `kind: image` 행(현재 518개)을 순서대로 처리하고, `build/image-upload-cache.json`에 sha256별 체크포인트를 남기며, 첫 실패(429 재시도 소진 포함)에서 멈춥니다. 같은 명령을 다시 실행하면 완료된 항목은 재사용하고 이어서 진행합니다. "작은 검토 배치"로 나누는 옵션은 현재 CLI에 없습니다. `--manifest <path>`로 부분 manifest를 주면 업로드 후 `src/shared/Assets.luau`가 그 부분 manifest 기준으로 다시 생성되므로 쓰지 않습니다. 실행 전 `.omo/evidence/robango-recovery/p6/icon-screen.md` 검토 결과를 확인하고, 배치 단위 업로드가 필요하면 `--limit` 같은 옵션을 core CLI 변경(human-merged PR)으로 먼저 추가해야 합니다. 실행 뒤 `assets status`로 moderation 결과를 확인하고, 거절이 나오면 재실행을 멈춥니다. 오디오 재시도는 `forge assets upload-audio --pack robango-island`입니다.
+3. **스테이징 배포.** `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(현재 `10771918494`/`95467272687768`)와 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, 그리고 `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣습니다. `games/robango-island/deploy.yml`의 `staging.universeId`/`placeId`가 이 변수를 참조합니다. 먼저 오프라인 계획을 확인한 뒤 게시합니다.
+   ```text
+   forge deploy plan --env staging --pack robango-island --development
+   forge deploy --env staging --pack robango-island --dry-run --development
+   forge deploy --env staging --pack robango-island --development
+   ```
+4. **상품 ID 매핑.** Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`의 `monetization.gamepasses`·`products`·`subscriptions` 항목의 `id`와 런타임 사본 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 둘의 일치를 검사합니다). 현재 값은 스테이징 Universe에 등록한 U15의 ID입니다. 가격·확률 변경은 human-merged PR이 필요합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
 
 ### 로컬 설정 위치와 키 권한
 
@@ -39,7 +57,9 @@ forge deploy --env production --pack robango-island
 
 두 번째 명령은 사용자 승인·human-merged PR·프로덕션 대상/키·`FORGE_ALLOW_PRODUCTION` 게이트와 release quality 승인이 모두 갖춰진 후에만 실행합니다. `--development`는 스테이징 전용이며 프로덕션 우회 옵션이 아닙니다. 현재 `starter` 등급과 moderation 차단을 출시 승인으로 바꾸지 않습니다. `deploy.yml`의 역할별 place ID가 0인 상태는 실제 다중 Place 여행 배치 완료가 아닙니다.
 
-새 콘텐츠의 실제 개인섬/군도 Teleport 왕복, 서로 다른 실제 계정·JobId의 시장 정산, 다인원 난투/합주, 휴대폰 조작과 성능은 아직 합격으로 기록하지 않습니다. QA-PERF-01 2층 준비 스크립트와 실행법은 `cli/forge/qa/robango-performance.luau`, `cli/forge/qa/robango-performance.md`입니다. 이번 문서 작업에서는 실행하지 않았습니다. 최신 Studio 결과는 별도 캡처 작업의 revision/build 증거가 있어야 갱신합니다.
+새 콘텐츠의 실제 개인섬/군도 Teleport 왕복, 서로 다른 실제 계정·JobId의 시장 정산, 다인원 난투/합주, 휴대폰 조작과 성능은 아직 합격으로 기록하지 않습니다. QA-PERF-01 2층은 2026-10-21 `9db8e04`에서 측정했습니다(U19, `p13/perf.md`). 초기 상호작용은 실패했고, 그 뒤 `c6dec48`에서 채집 노드를 스폰 옆으로 옮겼으므로 **TTFI는 수정 후 빌드에서 다시 측정해야 합니다**. 프로브와 실행법은 `cli/forge/qa/robango-performance.luau`, `cli/forge/qa/robango-performance.md`입니다.
+
+최신 Studio 실입력 여정(2026-10-22, `97e6a3e`, `p24/a.md`): 채집 → 돌도끼 제작 → 장착 → 벌목 → 창고 보관 → 모닥불 예약·설치 → 휴식 → 계약 수락·납품까지 실제 입력으로 진행해 튜토리얼 완료에 도달했습니다. 도중에 `PLACEMENT_UNREACHABLE` 거절(12 studs 밖, UX 안내 없음)이 있었고, 계약은 가방의 나무만 세기 때문에 창고에 먼저 보관하면 첫 납품이 무반응이었습니다. 필터한 콘솔 오류는 0건입니다. 시각 검수는 실패 상태입니다: a1.s1 전경은 가독성 FAIL(평평한 단색 지면)이고, 홈·온보딩 캠프의 모닥불 주황빛이 과합니다. 수정 대기 중이며, 출시 준비 완료를 뜻하지 않습니다.
 
 ## 이전 결정·실행 이력
 
@@ -78,7 +98,7 @@ forge deploy --env production --pack robango-island
 | U16 | 오디오·3D 애셋 제작 확정 | 이전 프로토타입의 3D 월드·공룡 리그 및 스토어 이미지 제작·적용 이력은 qa-evidence.md 주 8에 보존합니다(2026-10-20). 새 설계의 24종 실루엣·리그·동작, 지역·시설, 악기·합주 오디오를 모두 제작·검증했다는 뜻이 아닙니다 | 새 설계 미검증 | AGENTS.md, qa-evidence.md 주 8 |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 이 커밋들은 이미 공개 원격의 `durango/integration`에 올라가 있고, main fast-forward 로 main 히스토리에도 포함됩니다. 지우려면 히스토리 재작성(squash 또는 filter-repo) 후 main·integration 둘 다 force-push 해야 하며, 이미 받아 간 사본은 회수할 수 없습니다. force-push 라 에이전트는 하지 않았습니다 | 무료 | QA-NAME-01 |
-| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | 이전 콘텐츠 실측 이력(2026-10-18~20): Studio 첫 상호작용 2.86초·월드 생성 0.24초·최대 메모리 2,639MB, 안드로이드 `SM-N981N`의 PSS 704.0MB·프레임 p50 12ms/p90 23ms/p95 36ms입니다(상세는 주 3·8). 새 콘텐츠의 실기기 성능·조작 검증은 아직 완료되지 않았습니다 | 무료 | qa-evidence.md 주 3·8 |
+| U19 | 저사양 실기기 성능 확인(QA-PERF-01 2층) | 2026-10-21 `9db8e04`의 Studio 360x640·Level01 콜드 Play 3회(각 120초 표본)에서 초기 상호작용 조건이 실패했습니다. ForgeState와 HUD는 준비되지만 가장 가까운 채집 프롬프트가 14.17 studs 거리이고 작동 범위는 8 studs여서, 이동 없이는 상호작용 가능 상태를 관측하지 못했습니다(TTFI 미관측). 이후 `c6dec48`에서 채집 노드를 스폰 옆으로 옮겼으므로 **TTFI를 수정 후 빌드에서 다시 측정해야 합니다**. Studio 프로세스 메모리는 중앙값 2,355.383MB, 최대 3,257.449MB입니다. 이는 휴대폰 메모리가 아니며, 런타임 메모리 기준이 정의돼 있지 않아 합격/불합격 판정이 없습니다. 이전 콘텐츠 이력(2026-10-18~20): Studio 첫 상호작용 2.86초·최대 메모리 2,639MB, 안드로이드 `SM-N981N` PSS 704.0MB·프레임 p50 12ms/p90 23ms/p95 36ms. 새 콘텐츠의 저사양 실기기 성능·조작 검증은 미완료입니다 | 무료 | qa-evidence.md 주 3·8, `.omo/evidence/robango-recovery/p13/perf.md` |
 | U20 | 스테이징 QA 2층 확인 | 이전 콘텐츠의 클라우드 저장소 검사·안드로이드 접속·한국 계정 PolicyService·네이티브 결제 프롬프트·일부 플레이 및 재접속 기록은 주 8에 보존합니다(2026-10-19~20). 새 설계의 군도 여행·개인섬 왕복·실제 두 계정 거래(서버 간 정산 포함)·새 콘텐츠 실기기 검증은 미확인입니다. 64인 MemoryStore 부하만 남았다는 주장은 철회하며, 전체 검증 완료로 해석하지 않습니다 | 무료 | qa-evidence.md Readiness correction, 주 8 |
 | U21 | 배포 대상·키 입력 | 완료 이력(2026-10-19, 스테이징). 현재 변수 이름·환경별 대상 바인딩·필수 키 권한은 위 로컬 설정 표를 따릅니다. 프로덕션은 `FORGE_PRODUCTION_UNIVERSE_ID`, `FORGE_PRODUCTION_PLACE_ID`, `ROBLOX_PRODUCTION_API_KEY` 및 대응 `ROBLOX_PRODUCTION_UNIVERSE_ID`, `ROBLOX_PRODUCTION_PLACE_ID`가 필요합니다 | 무료 | .env.example |
 | U22 | Roblox Studio 설치·실행 | 완료(2026-10-18~19): Windows Studio에서 데스크톱·모바일 첫 플레이 캡처, 전체 흐름 플레이 점검(주 6), Studio 시나리오 3종(주 7)을 실행했습니다. 다시 돌릴 때만 Studio 실행 승인이 필요합니다 | 무료 | docs/release/studio-qa.md |

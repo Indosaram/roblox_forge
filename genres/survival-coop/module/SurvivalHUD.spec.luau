@@ -74,4 +74,17 @@ return {
 		controls.finish()
 		assert(replacement.destroyed and other ~= replacement, "section change retires old controls")
 	end,
+	["an unreachable placement toasts how close to stand in both languages"] = function()
+		local hud = luau.load(fs.readFile("genres/survival-coop/module/SurvivalHUD.luau"), {
+			environment = {
+				require = function()
+					return {}
+				end,
+			},
+		})()
+		assert(hud.toasted.PLACEMENT_UNREACHABLE, "server refusal reaches the toast")
+		local Locale = require("./SurvivalHUDLocale")
+		assert(string.find(Locale.refusal("en-us", "PLACEMENT_UNREACHABLE"), "max 12 studs", 1, true), "en")
+		assert(string.find(Locale.refusal("ko-kr", "PLACEMENT_UNREACHABLE"), "최대 12스터드", 1, true), "ko")
+	end,
 }

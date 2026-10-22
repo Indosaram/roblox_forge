@@ -805,6 +805,9 @@ aerial = require(script.Parent.AerialCamera).new({
 		return { x = minimum.X, y = minimum.Y, z = minimum.Z }, { x = maximum.X, y = maximum.Y, z = maximum.Z }
 	end,
 	scriptable = Enum.CameraType.Scriptable,
+	qaCamera = function() -- Studio QA pin: AerialCamera keeps the ForgeQACamera CFrame.
+		return game:GetService("RunService"):IsStudio() and workspace:GetAttribute("ForgeQACamera")
+	end,
 	lookAt = function(position, focus)
 		return CFrame.lookAt(Vector3.new(position.x, position.y, position.z), Vector3.new(focus.x, focus.y, focus.z))
 	end,
@@ -840,7 +843,11 @@ if game:GetService("RunService"):IsStudio() then
 	game:GetService("RunService"):BindToRenderStep("ForgeStudioCapture", Enum.RenderPriority.Last.Value, function()
 		local position = workspace:GetAttribute("ForgeStudioCameraPosition")
 		local target = workspace:GetAttribute("ForgeStudioCameraTarget")
-		if typeof(position) == "Vector3" and typeof(target) == "Vector3" then
+		local pinned = workspace:GetAttribute("ForgeQACamera")
+		if typeof(pinned) == "CFrame" then
+			camera.stop()
+			workspace.CurrentCamera.CFrame = pinned
+		elseif typeof(position) == "Vector3" and typeof(target) == "Vector3" then
 			camera.stop()
 			workspace.CurrentCamera.CFrame = CFrame.lookAt(position, target)
 			workspace.CurrentCamera.FieldOfView = 60
