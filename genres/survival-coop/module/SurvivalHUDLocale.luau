@@ -2,6 +2,14 @@
 local M = {}
 local strings: { [string]: { string } } = {
 	["trade.bundle.list"] = { "List bundle", "묶음 등록" },
+	harbor = { "Harbor buys %d/%d today", "항구 매입 %d/%d" },
+	sell = { "Sell %s (%d each)", "%s 팔기 (개당 %d)" },
+	DAILY_CAP = { "Daily limit reached", "오늘 한도 도달" },
+	NOT_AT_HARBOR = { "Only at the harbor", "항구에서만 가능" },
+	repair = { "Repair (%d coins)", "수리 (%d 조개돈)" },
+	INSUFFICIENT_FUNDS = { "Not enough coins", "조개돈 부족" },
+	preset = { "Terrain %d", "지형 %d" },
+	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
 	menu_survival = { "Survival", "생존" },
 	menu_world = { "World", "세계" },
 	menu_social = { "Social", "함께" },
@@ -155,8 +163,7 @@ local strings: { [string]: { string } } = {
 		"Not enough free materials. Gather more, or cancel a reserved job to free them.",
 		"쓸 수 있는 재료가 모자라요. 더 채집하거나 예약한 작업을 취소해 재료를 풀어 주세요.",
 	},
-	-- Inventory/Transaction refuse a cost they cannot cover with "UNAVAILABLE" (a live
-	-- campfire reserve with 3 of 4 wood in the warehouse read "refresh and retry").
+	-- Inventory/Transaction refuse an uncoverable cost with "UNAVAILABLE".
 	UNAVAILABLE = {
 		"The camp warehouse lacks the materials. Store more from your bag, then reserve again.",
 		"공용 창고에 재료가 모자라요. 가방에서 재료를 더 보관한 뒤 다시 예약하세요.",
@@ -211,8 +218,7 @@ function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key
 end
--- Skills sheet row: localized category name, rank and cost; an unknown category
--- falls back to its id with spaces so a raw node id never reaches the player.
+-- Skills row: category name, rank and cost; an unknown category shows its id with spaces.
 function M.skill(locale: string, node: { category: string, rank: number?, cost: number }): string
 	local key = "skills." .. node.category
 	local name = if strings[key] then M.text(locale, key) else (string.gsub(node.category, "_", " "))
@@ -224,7 +230,12 @@ function M.refusal(locale: string, reason: string): string
 		key = "capacity"
 	elseif string.find(reason, "STALE") then
 		key = "stale"
-	elseif string.find(reason, "INGREDIENT") or string.find(reason, "RESERVED") or string.find(reason, "QUANTITY") then
+	elseif
+		string.find(reason, "INGREDIENT")
+		or reason == "INSUFFICIENT_ITEMS"
+		or string.find(reason, "RESERVED")
+		or string.find(reason, "QUANTITY")
+	then
 		key = "materials"
 	end
 	return M.text(locale, if strings[key] then key else "unknown")

@@ -29,7 +29,7 @@ local function stack(itemId: string, catalogId: string, quantity: number, attrib
 	}
 end
 
-local function world(items: { any }, layout: string?, sold: number?)
+local function world(items: { any }, layout: string?, sold: number?, balance: number?)
 	-- 30 s before a UTC midnight, so a day rollover stays inside the personal lease.
 	local clock = { now = 31 * DAY - 30 }
 	local now = function()
@@ -54,7 +54,7 @@ local function world(items: { any }, layout: string?, sold: number?)
 				["survival-coop"] = {
 					version = 1,
 					data = {
-						balance = 5,
+						balance = balance or 5,
 						harborBuyback = if sold then { day = 30, sold = sold } else nil,
 						inventory = {
 							bag = {
@@ -97,6 +97,18 @@ local function world(items: { any }, layout: string?, sold: number?)
 			Harbor.SELL,
 			{ catalogId, quantity },
 			{ actorId = "1", requestId = "r", sessionEpoch = 0 },
+			"client",
+			function()
+				return { ok = true }
+			end
+		)
+	end
+	function self.repair(itemId: string): any
+		return extension.command(
+			"1",
+			Harbor.REPAIR,
+			{ itemId },
+			{ actorId = "1", requestId = itemId, sessionEpoch = 0 },
 			"client",
 			function()
 				return { ok = true }
@@ -164,6 +176,24 @@ return {
 		assert(not capped.ok and capped.reason == "DAILY_CAP" and w.held("wood") == 50, "cap holds for the day")
 		w.clock.now += 60
 		assert(w.sell("wood", 1).ok and w.data().balance == 16, "next UTC day sells again")
+	end,
+	["item-repair charges Job.repairCost Coins and refusals change nothing"] = function()
+		local worn = stack("axe", "axe-t2", 1)
+		worn.durabilityMilli = 40000
+		local w = world({ worn, stack("w", "wood", 5) }, "rw.home", nil, 25)
+		assert((Harbor.factory({ content = content }) :: any).handles(Harbor.REPAIR), "repair op enables item-repair")
+		local before = serde.encode("json", w.data())
+		for itemId, reason in { w = "NOT_REPAIRABLE", ghost = "UNKNOWN_ITEM" } :: { [string]: string } do
+			local refused = w.repair(itemId)
+			assert(not refused.ok and refused.reason == reason, itemId .. ": " .. tostring(refused.reason))
+		end
+		assert(serde.encode("json", w.data()) == before, "refusals leave state intact")
+		assert(w.repair("axe").ok and w.data().balance == 5, "tier 2 repair costs 20 Coins away from the harbor")
+		local fixed = w.data().inventory.bag.items.axe
+		assert(fixed.durabilityMilli == fixed.maxDurabilityMilli and fixed.maxDurabilityMilli < 100000, "refilled")
+		fixed.durabilityMilli = 1
+		local poor = world({ fixed }, nil, nil, 19).repair("axe")
+		assert(not poor.ok and poor.reason == "INSUFFICIENT_FUNDS", "cannot afford: " .. tostring(poor.reason))
 	end,
 	["only the harbor buys"] = function()
 		local w = world({ stack("w", "wood", 5) }, "rw.home")

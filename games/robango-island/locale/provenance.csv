@@ -1071,3 +1071,11 @@ rw.c08.collapse-return.4.text,original,agent:hephaestus/robango-panel-recovery,2
 rw.c08.collapse-return.5.text,original,agent:hephaestus/robango-panel-recovery,2026-10-21
 rw.c08.collapse-return.6.text,original,agent:hephaestus/robango-panel-recovery,2026-10-21
 brawl_unavailable,original,agent:hephaestus/robango-panel-recovery,2026-10-21
+harbor,original,agent:hephaestus/p28-wire,2026-10-22
+sell,original,agent:hephaestus/p28-wire,2026-10-22
+DAILY_CAP,original,agent:hephaestus/p28-wire,2026-10-22
+NOT_AT_HARBOR,original,agent:hephaestus/p28-wire,2026-10-22
+repair,original,agent:hephaestus/p28-wire,2026-10-22
+INSUFFICIENT_FUNDS,original,agent:hephaestus/p28-wire,2026-10-22
+preset,original,agent:hephaestus/p28-wire,2026-10-22
+PRESET_LOCKED,original,agent:hephaestus/p28-wire,2026-10-22

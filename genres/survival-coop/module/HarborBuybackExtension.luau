@@ -1,10 +1,6 @@
 --!strict
--- Harbor raw-material buyback for survival-coop. A pack enables it by declaring
--- `content.harborPolicy` (fixed raw ids and Coin prices, shared daily unit cap); the harbor NPC
--- then buys those raw units for Coins. It anchors player market prices from below and is a
--- Coins-only faucet with a hard daily cap. One atomic personal write takes the units, credits
--- the Coins and records the day's sold count (`harborBuyback` in the personal slice), so a
--- refusal changes nothing. Time comes only from `ctx.now`; nothing here rolls dice.
+-- harborPolicy: the harbor buys raw units for Coins (daily cap); a repair operation enables
+-- item-repair at Job.repairCost. One atomic bag+Coins write each.
 local Shared = require("../../../core/domain/genre/Contract")
 local Buyback = require("../../../core/domain/market/Buyback")
 local Inventory = require("../../../core/domain/inventory/Inventory")
@@ -13,6 +9,7 @@ local Data = require("../../../core/domain/genre/SerializedData")
 
 local M = {}
 M.SELL = "survival-coop:harbor-sell"
+M.REPAIR = "survival-coop:item-repair"
 local GENRE = "survival-coop"
 local HARBOR_LAYOUT = "rw.harbor"
 local MAX_BALANCE = 1e9
@@ -51,7 +48,11 @@ end
 
 function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)? })?
 	local policy = M.policy(ctx.content)
-	if policy == nil then
+	local repair: any = nil
+	for _, operation in ctx.content.operations or {} do
+		repair = if operation.kind == "repair" then operation else repair
+	end
+	if policy == nil and repair == nil then
 		return nil
 	end
 	local catalog = Job.catalog(ctx.content)
@@ -62,14 +63,13 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 	local extension = {
 		id = "harbor-buyback",
 		handles = function(action: string): boolean
-			return action == M.SELL
+			return action == M.SELL and policy ~= nil or action == M.REPAIR and repair ~= nil
 		end,
-		command = function(actor, _action, args, _context, _origin, admit): Shared.Result
-			local catalogId, quantity = args[1], args[2]
-			if type(catalogId) ~= "string" or policy.prices[catalogId] == nil then
+		command = function(actor, action, args, _context, _origin, admit): Shared.Result
+			local catalogId: any, quantity: any, repairing = args[1], args[2], action == M.REPAIR
+			if not repairing and (policy :: any).prices[catalogId] == nil then
 				return { ok = false, reason = "NOT_BOUGHT" }
-			end
-			if not atHarbor() then
+			elseif not repairing and not atHarbor() then
 				return { ok = false, reason = "NOT_AT_HARBOR" }
 			end
 			local admitted = admit()
@@ -91,7 +91,20 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 					outcome = { ok = false, reason = "WALLET_UNAVAILABLE" }
 					return view
 				end
-				local coins, nextState, refused = Buyback.sell(policy, slice.harborBuyback, catalogId, quantity, now)
+				if repairing then
+					local bag = Inventory.fromSave(saved, catalog)
+					local fixed, refused = Job.repair(bag, catalog, catalogId, bag.version)
+					local cost = if fixed then Job.repairCost(repair, bag.items[catalogId].catalogId) else 0
+					outcome = { ok = fixed ~= nil and slice.balance >= cost, reason = refused or "INSUFFICIENT_FUNDS" }
+					if not outcome.ok then
+						return view
+					end
+					setBag(work.envelope, path, Inventory.save(fixed :: any))
+					slice.balance -= cost
+					return work
+				end
+				local coins, nextState, refused =
+					Buyback.sell(policy :: any, slice.harborBuyback, catalogId, quantity, now)
 				if coins == nil or nextState == nil then
 					outcome = { ok = false, reason = refused }
 					return view
@@ -130,7 +143,7 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 						catalogId = catalogId,
 						quantity = quantity,
 						coins = coins,
-						remaining = policy.dailyUnits - nextState.sold,
+						remaining = (policy :: any).dailyUnits - nextState.sold,
 					},
 				}
 				return work
@@ -143,7 +156,7 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 		end,
 		snapshot = function(actor: string): (Shared.StateData?, string?)
 			local port = ctx.personalTransfer(actor)
-			if not port then
+			if not port or not policy then
 				return nil, "PERSONAL_UNAVAILABLE"
 			end
 			local slice = port.profile().data.envelope.genres[GENRE].data

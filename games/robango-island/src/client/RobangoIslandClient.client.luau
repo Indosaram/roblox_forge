@@ -173,6 +173,7 @@ table.insert(panelFactories, function(ctx)
 			parent = sheet.scroll,
 		})
 		table.insert(connections, control.Activated:Connect(callback))
+		return control
 	end
 	button(if korean then "다음 층" else "Next floor", function()
 		floor = floor % #homePolicy.floors + 1
@@ -225,8 +226,25 @@ table.insert(panelFactories, function(ctx)
 			end
 		end
 	end)
+	local HudLocale, presets: any = require(Forge.genres["survival-coop"].module.SurvivalHUDLocale), {}
+	for preset = 1, 3 do
+		presets[preset] = button("", function()
+			local result = ctx.send("survival-coop:home-preset", { presets.id, { preset = preset } })
+			status.Text = if result.ok then "" else string.format(HudLocale.refusal(locale, result.reason), preset)
+		end)
+	end
 	local stop = ctx.onSnapshot(function(snapshot)
 		state = snapshot.building or { version = 0, parts = {} }
+		local home = snapshot.home or {}
+		presets.id = home.homeId
+		for preset = 1, 3 do
+			local key = if preset > (home.presetSlots or 1) then "PRESET_LOCKED" else "preset"
+			presets[preset].Visible, presets[preset].Text =
+				home.homeId ~= nil,
+				string.format(HudLocale.text(locale, key), preset) .. (if preset == (home.terrainPreset or 1)
+					then " *"
+					else "")
+		end
 	end)
 	assert(ctx.dock, "BUILDING_DOCK_REQUIRED")({
 		id = "building",

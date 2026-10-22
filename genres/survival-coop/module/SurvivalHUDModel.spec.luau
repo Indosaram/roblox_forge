@@ -38,6 +38,28 @@ local function model(): any
 end
 
 return {
+	["repair button shows Job.repairCost only for damaged gear and sends item-repair"] = function()
+		local content: any = {
+			operations = { { kind = "repair", cost = 10 } },
+			items = {
+				{ id = "axe-t3", maxDurabilityMilli = 100000 } :: any,
+				{ id = "wood" },
+			},
+		}
+		local item = { catalogId = "axe-t3", qualityMilli = 1000, durabilityMilli = 100000 }
+		assert(Model.repairCost(item, content) == nil, "full durability hides repair")
+		item.durabilityMilli = 5
+		assert(Model.repairCost(item, content) == 30, "tier 3 costs 30")
+		assert(
+			Model.repairCost({ catalogId = "wood", qualityMilli = 1000, durabilityMilli = 0 }, content) == nil,
+			"raw"
+		)
+		assert(Model.repairCost(item, { items = content.items }) == nil, "no repair operation")
+		local source = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		local anchor = 'mutation("Repair-" .. item.itemId, string.format(t("repair"), cost), "item-repair", function()'
+		assert(string.find(source, anchor, 1, true), "bag detail renders the repair button")
+		assert(string.find(source, 'command("item-repair", { item.itemId })', 1, true), "button sends item-repair")
+	end,
 	["placement controls clear equipped tool hotbar at every viewport height"] = function()
 		for _, height in { 320, 632, 640, 1080 } do
 			local top = height - Model.PLACEMENT_BOTTOM

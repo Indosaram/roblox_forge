@@ -378,6 +378,7 @@ local contract: Shared.RuntimeContract = {
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
+		{ id = "item-repair", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "zone-set",
 			args = { id },
@@ -440,6 +441,7 @@ local contract: Shared.RuntimeContract = {
 		"zone-set",
 		"home-preset",
 		"harbor-sell",
+		"item-repair",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },

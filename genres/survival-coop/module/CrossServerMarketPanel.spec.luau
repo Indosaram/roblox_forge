@@ -23,7 +23,8 @@ return {
 			local sheet = { frame = node(), scroll = node(), close = { Activated = signal() } }
 			local function widget(_theme, props): any
 				table.insert(widgets, props)
-				return node()
+				props.node = node()
+				return props.node
 			end
 			local player = {
 				UserId = 1,
@@ -73,7 +74,7 @@ return {
 				end,
 				send = function(action, args)
 					table.insert(sends, { action = action, args = args })
-					return { ok = true }
+					return { ok = action ~= "survival-coop:harbor-sell", reason = "DAILY_CAP" }
 				end,
 			}
 			local panel = Panel.factory(ctx)
@@ -90,6 +91,7 @@ return {
 					pages = 0,
 				},
 			}
+			state["harbor-buyback"] = { prices = { wood = 1, meat = 2 }, dailyUnits = 200, remaining = 7 }
 			listener(state)
 			assert(sheet.frame.width <= width - 24, "fitted sheet width")
 			local count = #widgets
@@ -103,6 +105,23 @@ return {
 			end
 			assert(sends[1].args[1] == "exact", "exact inventory id")
 			assert(sends[2].args[1] == "seller:list" and sends[2].args[2] == 21, "agreed bundle price")
+			assert(#sends == 2, "no harbor sell before its button")
+			local cap, sell = false, nil
+			for _, props in widgets do
+				cap = cap or props.text == "Harbor buys 7/200 today"
+				sell = if props.text == "Sell wood (1 each)" then props else sell
+			end
+			assert(cap and sell, "harbor cap and wood sell row shown")
+			sell.onClick()
+			local sent = sends[#sends]
+			assert(
+				sent.action == "survival-coop:harbor-sell" and sent.args[1] == "wood" and sent.args[2] == 1,
+				"sell args"
+			)
+			assert(
+				widgets[1].node.Text == "Daily limit reached",
+				"refusal visible in the sheet: " .. tostring(widgets[1].node.Text)
+			)
 			panel.destroy()
 		end
 	end,

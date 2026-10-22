@@ -1071,3 +1071,11 @@ rw.c08.collapse-return.4.text,Escort the survivor,authored journal and panel cop
 rw.c08.collapse-return.5.text,Return through the exit,authored journal and panel copy,Return through the exit,출구를 통해 귀환
 rw.c08.collapse-return.6.text,Speak with Marit,authored journal and panel copy,Speak with Marit,마리트와 대화
 brawl_unavailable,Brawl is available on a brawl server. Travel there from the harbor.,authored journal and panel copy,Brawl is available on a brawl server. Travel there from the harbor.,난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요.
+harbor,Harbor buys %d/%d today,harbor buyback daily cap,Harbor buys %d/%d today,항구 매입 %d/%d
+sell,Sell %s (%d each),harbor buyback sell button,Sell %s (%d each),%s 팔기 (개당 %d)
+DAILY_CAP,Daily limit reached,harbor buyback refusal,Daily limit reached,오늘 한도 도달
+NOT_AT_HARBOR,Only at the harbor,harbor buyback refusal,Only at the harbor,항구에서만 가능
+repair,Repair (%d coins),bag detail repair button,Repair (%d coins),수리 (%d 조개돈)
+INSUFFICIENT_FUNDS,Not enough coins,repair refusal,Not enough coins,조개돈 부족
+preset,Terrain %d,home terrain preset button,Terrain %d,지형 %d
+PRESET_LOCKED,Terrain %d: Patron Pass,locked home terrain preset,Terrain %d: Patron Pass,지형 %d: 후원 패스

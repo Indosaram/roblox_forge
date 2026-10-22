@@ -1,10 +1,11 @@
 --!strict
 local Transport = require("../../../core/infra/genre/CommandTransport")
 local Settlement = require("../../../core/domain/settlement/Settlement")
+local Job = require("../../../core/domain/crafting/Job")
+local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local M = {}
 
--- The equipped-tool CoreGui hotbar occupies the bottom 70 pixels and wins
--- input routing over every PlayerGui DisplayOrder.
+-- The CoreGui tool hotbar (bottom 70px) wins input over every PlayerGui DisplayOrder.
 M.PLACEMENT_BOTTOM = 152
 
 function M.stationTarget(position: any, size: any): any
@@ -28,8 +29,7 @@ function M.new(actor: string, newId: () -> string): any
 		end
 		if packet.durable then
 			model.durable = packet.durable
-			-- A handshake that failed while the server was swapping (a rejoin restarts it) is over once a
-			-- policy arrives; without this the refusal banner stayed up for the rest of the session.
+			-- A policy ends a handshake failure from a server swap (else the banner stuck all session).
 			if model.status == "conflict" and model.reason == "HANDSHAKE_FAILED" then
 				model.status, model.reason = if model.pending then "pending" else "ready", nil
 			end
@@ -82,9 +82,8 @@ function M.new(actor: string, newId: () -> string): any
 			return
 		end
 		model.pending = Transport.settle(model.pending, result)
-		-- Transfer completes in another durable owner and exposes its phase instead. A rejected
-		-- grant is final too: replaying it returns the same refusal, and keeping it pending
-		-- locked every later HUD action behind "waiting for the server" (Studio, 2026-10-18).
+		-- Transfer settles in another owner and exposes its phase. A rejected grant is final
+		-- (a replay refuses again); keeping it pending locked every HUD action (2026-10-18).
 		if
 			result.data
 			and (
@@ -110,6 +109,17 @@ function M.bag(snapshot: any): any
 	for _, bag in snapshot.inventory or {} do
 		if bag.kind == "carried" then
 			return bag
+		end
+	end
+	return nil
+end
+
+function M.repairCost(item: any, content: any): number?
+	for _, op in content.operations or {} do
+		for _, def in if op.kind == "repair" then content.items else {} do
+			if def.id == item.catalogId and item.durabilityMilli < Catalog.maxDurability(def, item) then
+				return Job.repairCost(op, item.catalogId)
+			end
 		end
 	end
 	return nil
@@ -291,9 +301,8 @@ function M.chatSafe(
 	return x, y, w, h
 end
 
--- Contextual sheet rect shared by SurvivalHUD and ExtensionPanels. Short touch landscape (phones
--- 320-430 tall): the 128px movement reserve leaves no row, so the sheet takes the full height in
--- the column between the thumbstick and the jump button.
+-- Contextual sheet rect (SurvivalHUD, ExtensionPanels). Short touch landscape (320-430 tall)
+-- takes the full height between the thumbstick and the jump button.
 M.THUMB_GUTTER = 104
 function M.contextSheet(width: number, height: number, touch: boolean): (number, number, number, number)
 	if (touch or width < 700) and width > height and height < 480 then

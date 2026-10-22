@@ -1,5 +1,5 @@
 --!strict
--- Bundle prices and exact item ids match the durable market command contract.
+-- Exact item ids and prices match the market and harbor-sell command contracts.
 local M = {}
 local Ledger = require("../../../core/domain/command/Ledger")
 local Locale = require("./SurvivalHUDLocale")
@@ -88,7 +88,8 @@ function M.factory(ctx: any): any
 			)
 			return
 		end
-		local signature = Ledger.canonical(state)
+		local harbor = snapshot["harbor-buyback"]
+		local signature = Ledger.canonical({ state, harbor })
 		if signature == lastRender then
 			return
 		end
@@ -134,6 +135,24 @@ function M.factory(ctx: any): any
 					"판매할 재료가 없습니다. 재료를 채집하여 항구로 가져오세요."
 				)
 			)
+		end
+		if harbor then
+			label(string.format(Locale.text(ctx.locale, "harbor"), harbor.remaining, harbor.dailyUnits))
+		end
+		for id, item in if harbor then state.items else {} do
+			local price, draft = harbor.prices[item.catalogId], drafts[id] or { quantity = 1 }
+			if price then
+				input(draft.quantity, function(value)
+					draft.quantity = math.clamp(math.floor(value or 1), 1, item.quantity)
+				end)
+				button(
+					string.format(Locale.text(ctx.locale, "sell"), ctx.icons.item(item.catalogId).text, price),
+					function()
+						local result = ctx.send("survival-coop:harbor-sell", { item.catalogId, draft.quantity })
+						status.Text = if result.ok then "" else Locale.refusal(ctx.locale, result.reason)
+					end
+				)
+			end
 		end
 		label(text("Your listings", "내 판매 목록"))
 		for _, listing in state.listed do

@@ -364,6 +364,35 @@ return {
 			end
 		end
 	end,
+	["harbor sell, repair and home preset controls fit at 1280x720, 360x640 and 640x339"] = function()
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		local send = 'ctx.send("survival-coop:home-preset", { presets.id, { preset = preset } })'
+		assert(string.find(client, send, 1, true), "preset button sends home-preset with the home id")
+		local longestRaw = longest({ "wood", "stone", "fiber", "meat" })
+		for _, viewport in { HUD_VIEWPORTS[1], HUD_VIEWPORTS[2], HUD_VIEWPORTS[3] } do
+			local rect = sheet(viewport[1], viewport[2], viewport[3])
+			inside(rect, viewport[1], viewport[2], "harbor/home sheet")
+			-- Header plus the cap line, quantity box and Sell button (48px rows) at least scroll into view.
+			assert(rect.height >= 44 + 48 * 2, "harbor cap and one sell row visible")
+			local s = hudSheet(viewport[1], viewport[2], viewport[3])
+			local panes = s.width - 16 - 8
+			local detail = if s.width >= 600 then 0.48 * panes - 8 else panes
+			for _, locale in LOCALES do
+				local name = namer(locale)
+				local function fmt(key: string, ...): string
+					return string.format(Locale.text(locale, key), ...)
+				end
+				fits(fmt("harbor", 200, 200), rect.width - 16, 48, 15, 10, "harbor cap")
+				fits(fmt("sell", name(longestRaw), 2), rect.width - 16, 48, 15, 10, "harbor sell")
+				fits(fmt("preset", 3) .. " *", rect.width - 16, 48, 15, 10, "preset")
+				fits(fmt("PRESET_LOCKED", 3), rect.width - 16, 48, 15, 10, "locked preset")
+				for _, reason in { "DAILY_CAP", "NOT_AT_HARBOR", "INSUFFICIENT_ITEMS", "INSUFFICIENT_FUNDS" } do
+					fits(Locale.refusal(locale, reason), rect.width - 16, 48, 15, 10, reason)
+				end
+				fits(fmt("repair", 30), detail - 8, 48, 15, 10, "repair")
+			end
+		end
+	end,
 	["bag sheet grid detail and warehouse rows fit both target viewports"] = function()
 		for _, viewport in HUD_VIEWPORTS do
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])

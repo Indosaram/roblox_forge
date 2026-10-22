@@ -30,6 +30,60 @@ local World: any = luau.load(fs.readFile("games/robango-island/src/server/HomeWo
 })()
 
 return {
+	["home-preset from the panel picks a slot within the Patron Pass cap"] = function()
+		local patron = false
+		local rules = HomeContent.rules(Content)
+		local extension = HomeExtension.new({
+			content = Content,
+			rules = rules,
+			structures = {},
+			seed = function()
+				return 1
+			end,
+			now = function()
+				return 0
+			end,
+			store = function()
+				return Fenced.new(Memory.new(), {
+					sessionId = "s",
+					now = function()
+						return 0
+					end,
+					leaseSeconds = 30,
+				})
+			end,
+			ownerOf = function(actor, token)
+				return if token == "home:" .. actor then actor else nil
+			end,
+			facts = function()
+				return { reachable = true, entitlements = { routeGuildPatron = patron } }
+			end,
+		})
+		local function pick(preset: number, id: string): any
+			local home = extension.snapshot("owner")
+			-- Exactly the args the building sheet's preset button sends.
+			return extension.command(
+				"owner",
+				"survival-coop:home-preset",
+				{ home.homeId, { preset = preset } },
+				{
+					actorId = "owner",
+					requestId = id,
+					sessionEpoch = 1,
+				},
+				"client",
+				function()
+					return { ok = true }
+				end
+			)
+		end
+		assert(extension.snapshot("owner").presetSlots == nil, "one free slot")
+		assert(pick(2, "a").reason == "PRESET_LOCKED", "slot 2 locked without the pass")
+		patron = true
+		assert(pick(3, "b").ok, "Patron Pass unlocks slot 3")
+		local home = extension.snapshot("owner")
+		assert(home.presetSlots == 3 and home.terrainPreset == 3, "snapshot drives the picker")
+	end,
 	["home content uses all eight generated planting operations including flaxseed output"] = function()
 		local crops = HomeContent.crops(Content)
 		local count = 0

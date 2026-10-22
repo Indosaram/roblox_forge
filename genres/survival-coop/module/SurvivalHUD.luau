@@ -922,6 +922,12 @@ function M.start(options: Options)
 					mutation("Deposit-" .. item.itemId, t("deposit"), "transfer-deposit", function()
 						command("transfer-deposit", { item.itemId, 1 })
 					end)
+					local cost = Model.repairCost(item, options.content)
+					if cost then
+						mutation("Repair-" .. item.itemId, string.format(t("repair"), cost), "item-repair", function()
+							command("item-repair", { item.itemId })
+						end)
+					end
 				else
 					label(t("select"))
 				end
