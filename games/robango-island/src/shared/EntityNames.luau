@@ -243,6 +243,22 @@ local names: { [string]: { en: string, ko: string } } = {
 	["shop:routeGuildPatron"] = { en = "Route Guild Patron Pass", ko = "항로 길드 후원 패스" },
 	["shop:skinRidgeStriderGold"] = { en = "Ridge Strider Gold Skin", ko = "능선걸음이 황금 스킨" },
 	["shop:wideWarehouse"] = { en = "Wide Warehouse", ko = "넓은 창고" },
+	["shopdesc:routeGuildPatron"] = {
+		en = "Home terrain-preset slots +2 and home warehouse +10 slots. Permanent.",
+		ko = "본거지 지형 프리셋 슬롯 +2, 창고 칸 +10. 영구 적용.",
+	},
+	["shopdesc:wideWarehouse"] = {
+		en = "Home warehouse +10 slots. Permanent.",
+		ko = "본거지 창고 칸 +10. 영구 적용.",
+	},
+	["shopdesc:skinRidgeStriderGold"] = {
+		en = "Gold look for your Ridge Strider mount. Cosmetic only, no stats.",
+		ko = "능선걸음이 탈것의 황금 외형. 외형만 바뀌고 능력치는 없어요.",
+	},
+	["shopdesc:routeGuildMonthly"] = {
+		en = "Monthly cosmetic set and home warehouse +5 while subscribed. No coins.",
+		ko = "구독 중 월간 외형 세트와 창고 칸 +5. 조개돈 지급 없음.",
+	},
 	["signal-fragment"] = { en = "Signal Fragment", ko = "신호 조각" },
 	["signal-lens"] = { en = "Signal Lens", ko = "신호 렌즈" },
 	["signal-relay"] = { en = "Signal Relay", ko = "신호 중계기" },

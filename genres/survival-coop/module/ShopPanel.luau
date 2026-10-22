@@ -1,7 +1,8 @@
 --!strict
 -- Client shop panel: lists the monetization catalog from snapshot.survivalExtensions.monetization
 -- and sends the server-side prompt action on Buy. The server owns every prompt/grant decision;
--- this panel only renders rows (price text + buy button) and a localized refusal message.
+-- this panel only renders rows (price text + buy button + what the purchase gives) and a
+-- localized refusal message.
 -- Strings mirror games/robango-island/locale/strings.csv keys (shop_*).
 local M = {}
 
@@ -9,6 +10,11 @@ local M = {}
 local PROMPT = "survival-coop:shop-prompt"
 local SYNC = "survival-coop:shop-sync"
 local SELECT = "survival-coop:skin-select"
+-- Row geometry (ui-layout.spec mirrors these): a 48px name/price + buy strip, then a
+-- full-width description line of what the purchase grants.
+M.ROW_HEIGHT = 48
+M.DESCRIPTION_HEIGHT = 40
+M.DESCRIPTION_TEXT_SIZE = 14
 
 local strings: { [string]: { string } } = {
 	shop_title = { "Shop", "상점" },
@@ -95,7 +101,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	-- Rows are kept and updated in place. Rebuilding them on every snapshot replaced the Buy
 	-- button between a player's press and release (snapshots arrive several times a second),
 	-- so a tap could land on a destroyed button and nothing happened (live Studio capture).
-	local built: { [string]: { line: Frame, label: TextLabel, button: TextButton, row: any } } = {}
+	local built: {
+		[string]: { line: Frame, label: TextLabel, detail: TextLabel, button: TextButton, row: any },
+	} =
+		{}
 	local function render(snapshot: { [string]: any })
 		local shop = snapshot.monetization
 		if type(shop) ~= "table" then
@@ -107,17 +116,26 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			local entry = built[row.key]
 			if entry == nil then
 				local line = Instance.new("Frame")
-				line.Name, line.BackgroundTransparency, line.Size = "Row" .. index, 1, UDim2.new(1, 0, 0, 48)
+				line.Name, line.BackgroundTransparency = "Row" .. index, 1
+				line.Size = UDim2.new(1, 0, 0, M.ROW_HEIGHT + M.DESCRIPTION_HEIGHT)
 				line.Parent = rows
 				local label = ui.components.label(theme, {
 					text = "",
-					size = UDim2.fromScale(0.62, 1),
+					size = UDim2.new(0.62, 0, 0, M.ROW_HEIGHT),
 					parent = line,
 				})
+				local detail = ui.components.label(theme, {
+					text = "",
+					size = UDim2.new(1, 0, 0, M.DESCRIPTION_HEIGHT),
+					position = UDim2.fromOffset(0, M.ROW_HEIGHT),
+					textSize = M.DESCRIPTION_TEXT_SIZE,
+					parent = line,
+				})
+				detail.Name = "Description"
 				local created: any = nil
 				local button = ui.components.button(theme, {
 					text = "",
-					size = UDim2.fromScale(0.36, 1),
+					size = UDim2.new(0.36, 0, 0, M.ROW_HEIGHT),
 					position = UDim2.fromScale(0.64, 0),
 					parent = line,
 					onClick = function()
@@ -138,7 +156,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					end,
 				})
 				button.Name = "Buy-" .. row.key
-				created = { line = line, label = label, button = button, row = row }
+				created = { line = line, label = label, detail = detail, button = button, row = row }
 				entry = created
 				built[row.key] = created
 			end
@@ -151,6 +169,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			)
 				.. "  "
 				.. M.text(ctx.locale, "shop_price", row.price)
+			-- What the purchase gives ("shopdesc:<key>", locale/strings.csv shop_desc_*).
+			current.detail.Text = if ctx.names then ctx.names["shopdesc:" .. row.key] or "" else ""
 			current.button.Text = M.text(
 				ctx.locale,
 				if row.eligible then "shop_skin_select" elseif row.owned then "shop_owned" else "shop_buy"

@@ -298,6 +298,7 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "buildOutcomes"
 			and key ~= "audioSettings"
 			and key ~= "market"
+			and key ~= "harborBuyback"
 			and key ~= "brawl"
 		then
 			table.insert(errors, key .. ": unknown save key")
@@ -1178,6 +1179,7 @@ function M.new(
 				"buildOutcomes",
 				"audioSettings",
 				"market",
+				"harborBuyback",
 				"brawl",
 			}
 		do

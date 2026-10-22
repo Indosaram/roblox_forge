@@ -12,6 +12,8 @@ local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
 local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Content: any = require("./src/shared/SurvivalContent")
 local EntityNames = require("./src/shared/EntityNames")
+local Shop = require("../../genres/survival-coop/module/ShopPanel")
+local Catalog: any = require("./src/shared/MonetizationCatalog")
 
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true } }
 -- SurvivalHUD sheets also cover short landscape phones (Studio device-simulator 640x339).
@@ -195,6 +197,24 @@ return {
 				rect.x >= Model.THUMB_GUTTER and rect.x + rect.width <= width - Model.THUMB_GUTTER,
 				"extension sheet clears thumb gutters at " .. at
 			)
+		end
+	end,
+	["shop rows show every SKU description inside the row at every HUD viewport"] = function()
+		for _, viewport in HUD_VIEWPORTS do
+			local rect = sheet(viewport[1], viewport[2], viewport[3])
+			local content = rect.width - 16 - 6
+			assert(rect.height >= 44 + Shop.ROW_HEIGHT + Shop.DESCRIPTION_HEIGHT, "one full shop row visible")
+			for _, locale in LOCALES do
+				local names = EntityNames(locale)
+				for _, section in { Catalog.gamepasses, Catalog.products, Catalog.subscriptions } do
+					for _, listing in section do
+						local text = names["shopdesc:" .. listing.key]
+						assert(text ~= nil and text ~= "", locale .. " description missing: " .. listing.key)
+						local size = Shop.DESCRIPTION_TEXT_SIZE
+						fits(text, content, Shop.DESCRIPTION_HEIGHT, size, size, "shop description " .. listing.key)
+					end
+				end
+			end
 		end
 	end,
 	["standalone panels fit both target viewports"] = function()

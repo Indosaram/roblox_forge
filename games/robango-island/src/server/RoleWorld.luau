@@ -169,9 +169,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
-	-- Mossy trampled earth and sparse pebbles sit close to the grass value, never dark stains.
+	-- Mossy trampled earth and sparse light stone sit close to the grass value, never dark stains.
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(98, 116, 60))
-	workspace.Terrain:SetMaterialColor(Enum.Material.Pebble, Color3.fromRGB(122, 126, 92))
+	workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(122, 126, 92))
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
 	for _, column in columns do
 		tops[column.x .. "," .. column.z] = column.top
@@ -184,7 +184,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			and (layoutId == "rw.onboarding" or interactionGround(column.x, column.z, column.cell))
 		then
 			local n = math.noise(column.x / 70, column.z / 70, 0.5)
-			material = if n < -0.45 then "Pebble" else "Ground"
+			material = if n < -0.45 then "Limestone" else "Ground"
 		end
 		local top = column.top
 		if not protected and top > 0 then
@@ -857,6 +857,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			if definition.kind == "land" then
 				value.Transparency, value.CanCollide = 1, false
 				local half = definition.size.x / 2
+				-- Terrain preset 1 is the original coast; presets 2-3 change the lobe count and tilt.
+				local preset = definition.preset or 1
 				workspace.Terrain:FillBall(Vector3.new(0, -half - 8, 0), half + 7, Enum.Material.Sand)
 				-- The durable rectangular land envelope remains a hidden capability;
 				-- visible terrain is an asymmetric overlapping set of low islands.
@@ -873,7 +875,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					for z = -half - 8, half + 8, 4 do
 						local angle = math.atan2(z, x)
 						local edge = math.sqrt(x * x + z * z) / half
-						local coast = 1.12 + 0.08 * math.sin(angle * 3) + 0.045 * math.cos(angle * 7)
+						local coast = 1.12
+							+ 0.08 * math.sin(angle * (2 + preset) + (preset - 1) * 0.7)
+							+ 0.045 * math.cos(angle * 7)
 						if edge < coast then
 							local top = 1 + math.sin(x / 13) * math.sin(z / 17) * math.clamp(edge - 0.55, 0, 0.6) * 3
 							workspace.Terrain:FillBlock(

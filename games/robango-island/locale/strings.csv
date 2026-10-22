@@ -403,6 +403,10 @@ shop_route_guild_patron,Route Guild Patron Pass,shop listing routeGuildPatron,Ro
 shop_wide_warehouse,Wide Warehouse,shop listing wideWarehouse,Wide Warehouse,넓은 창고
 shop_skin_ridge_strider_gold,Ridge Strider Gold Skin,shop listing skinRidgeStriderGold,Ridge Strider Gold Skin,능선걸음이 황금 스킨
 shop_route_guild_monthly,Route Guild Monthly,shop listing routeGuildMonthly,Route Guild Monthly,항로 길드 월간 회원
+shop_desc_route_guild_patron,Home terrain-preset slots +2 and home warehouse +10 slots. Permanent.,shop description routeGuildPatron,Home terrain-preset slots +2 and home warehouse +10 slots. Permanent.,"본거지 지형 프리셋 슬롯 +2, 창고 칸 +10. 영구 적용."
+shop_desc_wide_warehouse,Home warehouse +10 slots. Permanent.,shop description wideWarehouse,Home warehouse +10 slots. Permanent.,본거지 창고 칸 +10. 영구 적용.
+shop_desc_skin_ridge_strider_gold,"Gold look for your Ridge Strider mount. Cosmetic only, no stats.",shop description skinRidgeStriderGold,"Gold look for your Ridge Strider mount. Cosmetic only, no stats.",능선걸음이 탈것의 황금 외형. 외형만 바뀌고 능력치는 없어요.
+shop_desc_route_guild_monthly,Monthly cosmetic set and home warehouse +5 while subscribed. No coins.,shop description routeGuildMonthly,Monthly cosmetic set and home warehouse +5 while subscribed. No coins.,구독 중 월간 외형 세트와 창고 칸 +5. 조개돈 지급 없음.
 camp_project_windbreak,Windbreak,camp project windbreak,Windbreak,바람막이
 camp_project_drying_rack,Drying Rack,camp project drying-rack,Drying Rack,건조대
 market_title,Market,market panel title,Market,시장

@@ -27,6 +27,8 @@ export type Grant = {
 	cosmeticSetId: string?,
 	-- subscriptionMonthly: storage slots that stay writable while subscribed.
 	storageSlots: number?,
+	-- storageSlots (game pass): optional extra home terrain-preset slots granted alongside.
+	presetSlots: number?,
 }
 
 export type Entry = {
@@ -107,6 +109,9 @@ local function validateGrant(key: string, grant: any, allowedKinds: { [string]: 
 	end
 	if kind == "subscriptionMonthly" and not isPositiveInteger(grant.storageSlots) then
 		return "subscriptionMonthly grant requires positive integer storageSlots: " .. key
+	end
+	if grant.presetSlots ~= nil and (grant.kind ~= "storageSlots" or not isPositiveInteger(grant.presetSlots)) then
+		return "presetSlots requires a storageSlots grant and a positive integer: " .. key
 	end
 	return nil
 end

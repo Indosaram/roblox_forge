@@ -76,6 +76,7 @@ local CONTENT_SCALARS = {
 	"vitals",
 	"tags",
 	"homePolicy",
+	"harborPolicy",
 	"buildingPolicy",
 	"brawlPolicy",
 	"clanPolicy",

@@ -18,6 +18,8 @@ function M.plan(content: any, home: any, rules: any): { any }
 			kind = "land",
 			position = { x = 0, y = 0, z = 0 },
 			size = { x = rules.landSizes[home.landRank], y = 2, z = rules.landSizes[home.landRank] },
+			-- Chosen terrain preset (home-preset, capped by HomeState.presetSlots); 1 by default.
+			preset = home.terrainPreset or 1,
 		},
 		{ id = "home-dock", kind = "dock", position = home.dock, size = rules.dockSize },
 	}

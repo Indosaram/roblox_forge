@@ -56,13 +56,19 @@
             'item':
              'berry'
             'quantity':
-             3
+             15
+            
+           - 
+            'item':
+             'branch'
+            'quantity':
+             30
             
            - 
             'item':
              'fiber'
             'quantity':
-             4
+             30
             
            
           'id':
@@ -74,9 +80,15 @@
           'cost':
            - 
             'item':
+             'branch'
+            'quantity':
+             30
+            
+           - 
+            'item':
              'fiber'
             'quantity':
-             8
+             40
             
            
           'id':
@@ -1089,7 +1101,7 @@
          'stackMax':
           1
          'tags':
-          -
+          - 
            'tool'
           
          'weightMilli':
@@ -3131,7 +3143,7 @@
          'stackMax':
           1
          'tags':
-          -
+          - 
            'tool'
           
          'weightMilli':
@@ -3147,7 +3159,7 @@
          'stackMax':
           1
          'tags':
-          -
+          - 
            'tool'
           
          'weightMilli':
@@ -4677,15 +4689,15 @@
          'inputs':
           - 
            'item':
-            'dried-fiber'
+            'cord'
            'quantity':
-            6
+            1
            
           - 
            'item':
-            'leather'
+            'fiber'
            'quantity':
-            1
+            6
            
           
          'outputs':
@@ -6091,7 +6103,7 @@
          'inputs':
           - 
            'item':
-            'corn'
+            'berry'
            'quantity':
             2
            
@@ -10266,7 +10278,7 @@
     'mode':
      'crafting'
     'startingBalance':
-     0
+     100
     'survivalDeath':
      true
     

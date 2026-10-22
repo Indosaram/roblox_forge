@@ -97,6 +97,12 @@ local contract: Shared.RuntimeContract = {
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
 		{
+			id = "home-preset",
+			args = { id, Schema.object({ preset = Schema.number({ min = 1, max = 16, integer = true }) }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
 			id = "home-place",
 			args = {
 				id,
@@ -367,6 +373,12 @@ local contract: Shared.RuntimeContract = {
 		},
 		{ id = "market-claim", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
+			id = "harbor-sell",
+			args = { id, quantity },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+		{
 			id = "zone-set",
 			args = { id },
 			origin = "client",
@@ -426,6 +438,8 @@ local contract: Shared.RuntimeContract = {
 		"market-browse",
 		"market-claim",
 		"zone-set",
+		"home-preset",
+		"harbor-sell",
 	},
 	events = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },
 	hooks = { "OnWaveSpawn", "OnWaveResolved", "DefenseBought" },

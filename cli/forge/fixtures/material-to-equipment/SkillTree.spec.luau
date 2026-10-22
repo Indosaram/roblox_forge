@@ -48,7 +48,8 @@ return {
 		for _, node in nodes do
 			total += node.cost
 		end
-		assert(total == 504, "progression contract 46")
+		-- survival_2/3 cost 2/4 since the p27 economy pass; still far above level-60 SP.
+		assert(total == 500 and total > 180, "progression contract 46")
 		state.sp = 1
 		local _, funds = Tree.learn(Content, state, "processing_1")
 		assert(funds == "INSUFFICIENT_SP", "progression contract 49")

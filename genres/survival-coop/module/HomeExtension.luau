@@ -67,6 +67,7 @@ function M.new(config: any): any
 			"home-rank",
 			"home-expand",
 			"home-capacity",
+			"home-preset",
 			"home-place",
 			"home-recover",
 			"home-plant",
@@ -180,7 +181,9 @@ function M.new(config: any): any
 					slots += extra
 				end
 			end
-			if slots ~= token.data.home.storageSlots then
+			local presets = Home.presetSlots(config.rules, facts.entitlements)
+			local stored = token.data.home
+			if slots ~= stored.storageSlots or presets ~= (stored.presetSlots or config.rules.basePresetSlots or 1) then
 				local updated, updateError = store:update(token, function(data)
 					local home, capacityError = Home.apply(data.home, actor, Home.identity(owner), "capacity", {}, {
 						rules = config.rules,

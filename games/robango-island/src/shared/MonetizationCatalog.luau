@@ -14,7 +14,8 @@ local catalog = {
 			name = "Route Guild Patron Pass",
 			price = 299,
 			id = 2040232413,
-			grant = { kind = "storageSlots", amount = 10 },
+			-- design.md section 8: home terrain-preset slots +2 on top of warehouse +10.
+			grant = { kind = "storageSlots", amount = 10, presetSlots = 2 } :: any,
 		},
 		{
 			key = "wideWarehouse",

@@ -32,27 +32,67 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			end,
 		}
 	end
+	-- Terrain accepts only these materials; Roblox throws "Invalid terrain material" otherwise.
+	local terrainMaterials = {}
+	for _, name in
+		{
+			"Air",
+			"Water",
+			"Grass",
+			"LeafyGrass",
+			"Sand",
+			"Rock",
+			"Slate",
+			"Ground",
+			"Mud",
+			"Snow",
+			"Ice",
+			"Glacier",
+			"Basalt",
+			"CrackedLava",
+			"Sandstone",
+			"Limestone",
+			"Asphalt",
+			"Concrete",
+			"Brick",
+			"Cobblestone",
+			"Pavement",
+			"Salt",
+			"WoodPlanks",
+		}
+	do
+		terrainMaterials[name] = true
+	end
+	local function terrainMaterial(material)
+		local name = if type(material) == "string" then material else tostring(material and material.Name or material)
+		assert(terrainMaterials[name], "Invalid terrain material " .. name)
+	end
 	local function instance(className): any
 		if className == "Terrain" then
 			local properties: any = {
 				FillBlock = function(_, frame, size, material)
+					terrainMaterial(material)
 					if physicalTerrain then
 						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
 					end
 				end,
 				FillBall = function(_, position, radius, material)
+					terrainMaterial(material)
 					if physicalTerrain then
 						table.insert(pendingTerrain, { position = position, radius = radius, material = material })
 					end
 				end,
 				FillCylinder = function(_, frame, height: number, radius: number, material)
+					terrainMaterial(material)
 					if physicalTerrain then
 						-- Upright cylinder; its bounding box is close enough for downward ground rays.
 						local size = roblox.Vector3.new(radius * 2, height, radius * 2)
 						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
 					end
 				end,
-				SetMaterialColor = function() end,
+				SetMaterialColor = function(_, material)
+					terrainMaterial(material)
+				end,
 			}
 			local writable = {
 				WaterColor = true,

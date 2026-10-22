@@ -53,6 +53,10 @@ local function expected(): { [string]: { en: string, ko: string } }
 		if listing ~= nil and string.sub(key, 1, 5) == "shop_" then
 			names["shop:" .. listing] = { en = en, ko = ko }
 		end
+		local described = string.match(context, "^shop description (.+)$")
+		if described ~= nil and string.sub(key, 1, 10) == "shop_desc_" then
+			names["shopdesc:" .. described] = { en = en, ko = ko }
+		end
 		local project = string.match(context, "^camp project (.+)$")
 		if project ~= nil and string.sub(key, 1, 13) == "camp_project_" then
 			names["camp:" .. project] = { en = en, ko = ko }

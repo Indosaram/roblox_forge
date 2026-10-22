@@ -3438,7 +3438,7 @@ recipes:
     craftMillis: 10000
     inputs:
       -
-        item: "corn"
+        item: "berry"
         quantity: 2
       -
         item: "fiber"
@@ -3619,10 +3619,10 @@ recipes:
     craftMillis: 10000
     inputs:
       -
-        item: "dried-fiber"
+        item: "fiber"
         quantity: 6
       -
-        item: "leather"
+        item: "cord"
         quantity: 1
     outputs:
       -
@@ -5002,18 +5002,24 @@ camp:
       rung: 1
       cost:
         -
+          item: "branch"
+          quantity: 30
+        -
           item: "fiber"
-          quantity: 8
+          quantity: 40
     -
       id: "drying-rack"
       rung: 2
       cost:
         -
           item: "berry"
-          quantity: 3
+          quantity: 15
+        -
+          item: "branch"
+          quantity: 30
         -
           item: "fiber"
-          quantity: 4
+          quantity: 30
 skillCategories:
   -
     id: "survival"
@@ -5021,6 +5027,13 @@ skillCategories:
     entryActions:
       - "feeding"
       - "firstjourney"
+      - "campfire-kit"
+      - "workbench-kit"
+      - "cord"
+      - "capture-bola"
+      - "cooked-meat"
+      - "roasted-hazelnuts"
+      - "cattail-flatbread"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5119,8 +5132,8 @@ skillNodes:
     id: "survival_2"
     category: "survival"
     rank: 2
-    cost: 4
-    proficiency: 10
+    cost: 2
+    proficiency: 2
     prerequisites:
       - "survival_1"
     effects:
@@ -5134,8 +5147,8 @@ skillNodes:
     id: "survival_3"
     category: "survival"
     rank: 3
-    cost: 6
-    proficiency: 20
+    cost: 4
+    proficiency: 3
     prerequisites:
       - "survival_2"
     effects:
@@ -5654,7 +5667,7 @@ skillNodes:
     category: "melee"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 2
     prerequisites:
       - "melee_1"
     effects:
@@ -8505,6 +8518,8 @@ operations:
     primaryInputs: []
     auxiliaryInputs: []
     station: "workbench"
+    # Recurring Coin sink: cost x item tier (the -tN suffix; untiered gear counts as tier 1).
+    cost: 10
     targetConsumed: false
     eligibleTags:
       - "weapon-tool"
@@ -10488,14 +10503,14 @@ recipeDetails:
       classification: "RECONSTRUCTED"
   -
     id: "herbivore-feed"
-    minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    minCharacterLevel: 5
+    primaryMaterialLevel: 1
     primaryInputs:
-      - "corn"
+      - "berry"
       - "fiber"
     auxiliaryInputs: []
     skillNodes:
-      - "cooking_5"
+      - "cooking_1"
     seconds: 10
     provenance:
       classification: "RECONSTRUCTED"
@@ -10675,12 +10690,12 @@ recipeDetails:
       classification: "RECONSTRUCTED"
   -
     id: "capture-rope"
-    minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    minCharacterLevel: 5
+    primaryMaterialLevel: 1
     primaryInputs:
-      - "dried-fiber"
+      - "fiber"
     auxiliaryInputs:
-      - "leather"
+      - "cord"
     skillNodes:
       - "survival_3"
     seconds: 10
@@ -12544,6 +12559,17 @@ homePolicy:
   baseSlots: 20
   labRank: 3
   floors: [0, 12, 24]
+harborPolicy:
+  # Harbor raw buyback (auxiliary-material spec, Coins acquisition): fixed low Coin prices anchor
+  # player market prices; one shared cap of 200 raw units per UTC day. Coins only, never Robux.
+  provenance: {classification: "RECONSTRUCTED", sourceId: "auxiliary-material-spec-coins"}
+  buyback:
+    - {item: "wood", price: 1}
+    - {item: "stone", price: 1}
+    - {item: "fiber", price: 1}
+    - {item: "meat", price: 2}
+  dailyUnits: 200
+  daySeconds: 86400
 layouts:
   -
     id: "rw.a1.s1"

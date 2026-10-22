@@ -19,6 +19,9 @@ function M.rules(content: any): any
 		labRank = policy.labRank,
 		floors = policy.floors,
 		storageGrants = { routeGuildPatron = 10, wideWarehouse = 10, routeGuildMonthly = 5 },
+		-- design.md section 8: P0 ships 3 terrain presets; one slot is free, the Patron Pass adds 2.
+		basePresetSlots = 1,
+		presetGrants = { routeGuildPatron = 2 },
 	}
 end
 function M.crops(content: any): any

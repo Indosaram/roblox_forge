@@ -2094,11 +2094,8 @@ local recipes: {
 			["craftMillis"] = 10000,
 			["id"] = "capture-rope",
 			["inputs"] = {
-				[1] = { ["item"] = "dried-fiber", ["quantity"] = 6 },
-				[2] = {
-					["item"] = "leather",
-					["quantity"] = 1,
-				},
+				[1] = { ["item"] = "cord", ["quantity"] = 1 },
+				[2] = { ["item"] = "fiber", ["quantity"] = 6 },
 			},
 			["outputs"] = { [1] = { ["item"] = "capture-rope", ["quantity"] = 1 } },
 			["station"] = "workbench",
@@ -2606,7 +2603,7 @@ local recipes: {
 			["craftMillis"] = 10000,
 			["id"] = "herbivore-feed",
 			["inputs"] = {
-				[1] = { ["item"] = "corn", ["quantity"] = 2 },
+				[1] = { ["item"] = "berry", ["quantity"] = 2 },
 				[2] = { ["item"] = "fiber", ["quantity"] = 3 },
 			},
 			["outputs"] = { [1] = { ["item"] = "herbivore-feed", ["quantity"] = 3 } },
@@ -3722,14 +3719,18 @@ local config: PackConfig = {
 						["projects"] = {
 							[1] = {
 								["cost"] = {
-									[1] = { ["item"] = "berry", ["quantity"] = 3 },
-									[2] = { ["item"] = "fiber", ["quantity"] = 4 },
+									[1] = { ["item"] = "berry", ["quantity"] = 15 },
+									[2] = { ["item"] = "branch", ["quantity"] = 30 },
+									[3] = { ["item"] = "fiber", ["quantity"] = 30 },
 								},
 								["id"] = "drying-rack",
 								["rung"] = 2,
 							},
 							[2] = {
-								["cost"] = { [1] = { ["item"] = "fiber", ["quantity"] = 8 } },
+								["cost"] = {
+									[1] = { ["item"] = "branch", ["quantity"] = 30 },
+									[2] = { ["item"] = "fiber", ["quantity"] = 40 },
+								},
 								["id"] = "windbreak",
 								["rung"] = 1,
 							},
@@ -4101,7 +4102,7 @@ local config: PackConfig = {
 				["speedPenaltyMilli"] = 300,
 			},
 			["mode"] = "crafting",
-			["startingBalance"] = 0,
+			["startingBalance"] = 100,
 			["survivalDeath"] = true,
 		},
 	},

@@ -31,6 +31,7 @@ local factories: { Factory } = {
 	require("./CampExtension").factory,
 	require("./MonetizationExtension").factory,
 	require("./MarketExtension").factory,
+	require("./HarborBuybackExtension").factory,
 	require("./DeathZoneExtension").factory,
 	require("./LateEquipmentExtension").factory,
 	require("./BrawlExtension").factory,

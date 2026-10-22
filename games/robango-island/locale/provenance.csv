@@ -389,6 +389,10 @@ shop_route_guild_monthly,original,agent:claude-5.5/robango-release,2026-10-18
 shop_route_guild_patron,original,agent:claude-5.5/robango-release,2026-10-18
 shop_skin_ridge_strider_gold,original,agent:claude-5.5/robango-release,2026-10-18
 shop_wide_warehouse,original,agent:claude-5.5/robango-release,2026-10-18
+shop_desc_route_guild_patron,original,agent:hephaestus/p27-econC,2026-10-22
+shop_desc_wide_warehouse,original,agent:hephaestus/p27-econC,2026-10-22
+shop_desc_skin_ridge_strider_gold,original,agent:hephaestus/p27-econC,2026-10-22
+shop_desc_route_guild_monthly,original,agent:hephaestus/p27-econC,2026-10-22
 tame_capture,original,agent:claude-5.5/robango-release,2026-10-18
 tame_captured,original,agent:claude-5.5/robango-release,2026-10-18
 tame_escaped,original,agent:claude-5.5/robango-release,2026-10-18

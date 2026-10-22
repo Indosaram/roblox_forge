@@ -273,6 +273,21 @@ return {
 		assert((rendered :: any).content == shipped, "SurvivalContent.luau is stale; run forge content codegen")
 	end,
 
+	["repair-equipment charges a recurring Coin cost scaled to item tier"] = function()
+		local Job = require("../../core/domain/crafting/Job")
+		local repair: any = nil
+		for _, row in (canonical() :: any).operations do
+			if row.id == "repair-equipment" then
+				repair = row
+			end
+		end
+		assert(repair and repair.kind == "repair" and repair.cost == 10, "repair base cost is 10 Coins")
+		assert(Job.repairCost(repair, "starter-club") == 10, "untiered gear is tier 1")
+		assert(Job.repairCost(repair, "axe-t1") == 10, "tier 1 costs 10")
+		assert(Job.repairCost(repair, "sword-t2") == 20, "tier 2 costs 20")
+		assert(Job.repairCost(repair, "hammer-t3") == 30, "tier 3 costs 30")
+	end,
+
 	["shipped pack text uses original names only"] = function()
 		for _, path in { "content.yml", "econ.yml", "locale/strings.csv", "design/content-p0.md" } do
 			local hits = forbiddenHits(fs.readFile(PACK .. "/" .. path))

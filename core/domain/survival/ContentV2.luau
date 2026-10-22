@@ -158,6 +158,13 @@ local schemas: { [string]: { [string]: string } } = {
 		seed = "integer",
 	},
 	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
+	buybackRow = { item = "@items", price = "positive" },
+	harborPolicy = {
+		provenance = "provenance",
+		buyback = "[]buybackRow",
+		dailyUnits = "positive",
+		daySeconds = "positive",
+	},
 	clanPolicy = {
 		-- Shared policies remain opt-in for other packs.
 		provenance = "provenance",
@@ -440,6 +447,7 @@ M.SECTIONS = {
 M.POLICIES = {
 	"progressionPolicy",
 	"homePolicy",
+	"harborPolicy",
 	"buildingPolicy",
 	"missionPolicy",
 	"clanPolicy",

@@ -49,6 +49,17 @@ function M.new(actor: string, rules: any, seed: number): any
 	}
 end
 
+--- Terrain-preset slots: the free base plus every owned entitlement's preset grant.
+function M.presetSlots(rules: any, entitlements: { [string]: boolean }?): number
+	local slots = rules.basePresetSlots or 1
+	for id, extra in rules.presetGrants or {} do
+		if (entitlements or {})[id] == true then
+			slots += extra
+		end
+	end
+	return slots
+end
+
 function M.load(saved: any, owner: string, catalog: any): any
 	assert(saved.schemaVersion == 1 and saved.homeId == M.identity(owner) and saved.owner == owner, "WRONG_HOME")
 	local out = M.copy(saved)
@@ -99,7 +110,11 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 	if homeId ~= state.homeId then
 		return nil, "WRONG_HOME_TOKEN"
 	end
-	local ownerOnly = action == "permissions" or action == "expand" or action == "rank" or action == "capacity"
+	local ownerOnly = action == "permissions"
+		or action == "expand"
+		or action == "rank"
+		or action == "capacity"
+		or action == "preset"
 	if (ownerOnly and actor ~= state.owner) or not M.allowed(state, actor, "cooperate", ctx.facts) then
 		return nil, "FORBIDDEN"
 	end
@@ -156,6 +171,25 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		end
 		out.storageSlots = slots
 		out.storage.limits.slots = math.max(slots, occupied)
+		-- Written only when it moves off the stored value, so a home without preset grants keeps
+		-- its existing byte shape.
+		local presets = M.presetSlots(ctx.rules, ctx.entitlements)
+		if presets ~= (state.presetSlots or ctx.rules.basePresetSlots or 1) then
+			out.presetSlots = presets
+		end
+	elseif action == "preset" then
+		-- Terrain presets are numbered 1..presetSlots; a lapsed slot keeps the chosen preset
+		-- until the owner picks again (no destructive reset), but new picks obey the cap.
+		local preset = args.preset
+		local slots = M.presetSlots(ctx.rules, ctx.entitlements)
+		if type(preset) ~= "number" or preset % 1 ~= 0 or preset < 1 then
+			return nil, "INVALID_PRESET"
+		end
+		if preset > slots then
+			return nil, "PRESET_LOCKED"
+		end
+		out.presetSlots = slots
+		out.terrainPreset = preset
 	elseif action == "place" then
 		local definition = ctx.structures[args.kind]
 		local position = args.position

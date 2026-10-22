@@ -514,6 +514,13 @@ function M.save(job: Job): any
 	return result
 end
 
+--- Coin cost of one repair: the operation's base `cost` times the item tier (the `-tN` id
+--- suffix; untiered gear counts as tier 1). A recurring Coin sink, never Robux.
+function M.repairCost(operation: any, catalogId: string): number
+	local tier = tonumber(string.match(catalogId, "%-t(%d+)$")) or 1
+	return (operation.cost or 0) * tier
+end
+
 --- Repairs one unreserved item in place: durability refills to a permanently
 --- lowered maximum (ItemCatalog.REPAIR_LOSS_PERMILLE per repair).
 function M.repair(

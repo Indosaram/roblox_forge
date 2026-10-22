@@ -9,7 +9,7 @@ kind: native
 contract_api: 1
 timeout_seconds: 120
 players: [owner, member, guest, stranger]
-fixtures: [cli/forge/fixtures/camp-ladder]
+fixtures: [cli/forge/fixtures/camp-ladder, cli/forge/fixtures/camp-seed]
 data:
   durable:
     actions: ["survival-coop:settlement-leave", "survival-coop:camp-contribute", "survival-coop:camp-complete", "survival-coop:camp-visit-open", "survival-coop:camp-visit-help"]
@@ -25,15 +25,21 @@ steps:
   - {op: command, player: stranger, requestId: sneak, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 0], expect: refused}
   - {op: expect_result, player: stranger, field: reason, equals: FORBIDDEN}
   - {op: expect_snapshot, player: stranger, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 12}
-  # Joint project: two members split the 8 fiber; one delivery alone is not joint.
+  # Joint project: windbreak costs 40 fiber + 30 branch, above the 12-fiber starter kit, so
+  # the owner tops up with gathered stacks (seed_bag stands in for the gathering) and a
+  # second member delivers too; one delivery alone is not joint.
   - {op: command, player: owner, requestId: c1, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 0]}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
   - {op: command, player: owner, requestId: c1, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 0]}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
   - {op: command, player: owner, requestId: early, sessionEpoch: current, action: "survival-coop:camp-complete", args: [windbreak, 1], expect: refused}
   - {op: expect_result, player: owner, field: reason, equals: INCOMPLETE}
-  - {op: command, player: member, requestId: c2, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 4, 1]}
-  - {op: command, player: owner, requestId: done, sessionEpoch: current, action: "survival-coop:camp-complete", args: [windbreak, 2]}
+  - {op: command, player: member, requestId: c2, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, starter-fiber, 10, 1]}
+  - {op: seed_bag, player: owner, item: fiber, itemId: gathered-fiber, quantity: 26}
+  - {op: seed_bag, player: owner, item: branch, itemId: gathered-branch, quantity: 30}
+  - {op: command, player: owner, requestId: c3, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, gathered-fiber, 26, 2]}
+  - {op: command, player: owner, requestId: c4, sessionEpoch: current, action: "survival-coop:camp-contribute", args: [windbreak, gathered-branch, 30, 3]}
+  - {op: command, player: owner, requestId: done, sessionEpoch: current, action: "survival-coop:camp-complete", args: [windbreak, 4]}
   - {op: expect_snapshot, player: member, scope: session, field: survivalExtensions.camp.rung, equals: 1}
   - {op: expect_snapshot, player: member, scope: session, field: survivalExtensions.camp.facilities.camp-cache, equals: true}
   # The visit candidates are the tribe members present; they are shown to a non-member.
@@ -43,18 +49,18 @@ steps:
   # stranger cannot open one; the visitor never completes and never touches host items.
   - {op: command, player: stranger, requestId: visit, sessionEpoch: current, action: "survival-coop:camp-visit-open", args: [owner], expect: refused}
   - {op: expect_result, player: stranger, field: reason, equals: NOT_FRIEND}
-  - {op: command, player: guest, requestId: nopass, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 3], expect: refused}
+  - {op: command, player: guest, requestId: nopass, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 5], expect: refused}
   - {op: expect_result, player: guest, field: reason, equals: NO_PASS}
   - {op: expect_snapshot, player: guest, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 12}
   - {op: command, player: guest, requestId: pass, sessionEpoch: current, action: "survival-coop:camp-visit-open", args: [owner]}
-  - {op: command, player: guest, requestId: help, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 3]}
+  - {op: command, player: guest, requestId: help, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 5]}
   - {op: expect_snapshot, player: guest, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 10}
   - {op: expect_snapshot, player: owner, scope: session, field: survivalExtensions.camp.active.drying-rack.delivered.fiber, equals: 2}
   - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 8}
-  - {op: command, player: guest, requestId: finish, sessionEpoch: current, action: "survival-coop:camp-complete", args: [drying-rack, 4], expect: refused}
+  - {op: command, player: guest, requestId: finish, sessionEpoch: current, action: "survival-coop:camp-complete", args: [drying-rack, 6], expect: refused}
   - {op: expect_result, player: guest, field: reason, equals: FORBIDDEN}
   - {op: advance_to, seconds: 40}
-  - {op: command, player: guest, requestId: late, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 4], expect: refused}
+  - {op: command, player: guest, requestId: late, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 6], expect: refused}
   - {op: expect_result, player: guest, field: reason, equals: VISIT_EXPIRED}
   - {op: expect_snapshot, player: guest, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 10}
   # Rejoin cooldown wired into the game: a departed member cannot be re-invited.
