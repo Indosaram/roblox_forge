@@ -152,6 +152,18 @@ local strings: { [string]: { string } } = {
 		"Pip: Passes and kits are fixed; you always know what you get.",
 		"핍: 패스와 키트는 정해져 있어요. 무엇을 받을지 늘 알 수 있죠.",
 	},
+	["npc.station.workbench"] = {
+		"Workbench: Clamps, a vise and a tray of loose fittings. Assembly work starts here.",
+		"작업대: 죔쇠와 바이스, 부품 접시가 놓여 있어요. 조립은 여기서 시작해요.",
+	},
+	["npc.station.relay"] = {
+		"Radio hut: Static crackles in the headset. A lens would sharpen it.",
+		"무전 오두막: 헤드셋에서 잡음이 지직거려요. 렌즈가 있으면 또렷해질 거예요.",
+	},
+	["npc.station.market"] = {
+		"Market board: Islanders pin their offers here. Every price is set by a player.",
+		"시장 게시판: 섬 사람들이 내놓은 물건이 붙어 있어요. 가격은 모두 플레이어가 정해요.",
+	},
 	["npc.default"] = { "The harbor keeper nods at you.", "항구 관리인이 고개를 끄덕입니다." },
 	["service.contracts"] = { "Contracts", "계약" },
 	["service.craft"] = { "Crafting", "제작" },
@@ -197,6 +209,10 @@ local strings: { [string]: { string } } = {
 	["refuse.TRADE_CLOSED"] = { "This trade is closed.", "이 거래는 닫혔습니다." },
 	["refuse.COUNTERPART_LEFT"] = { "The other player left.", "상대가 떠났습니다." },
 	["refuse.NO_TRADE"] = { "No open trade.", "열린 거래가 없습니다." },
+	["refuse.UNKNOWN_OPERATION"] = {
+		"The server has no record of this yet. Check again shortly.",
+		"서버에 아직 기록이 없습니다. 잠시 뒤 다시 확인하세요.",
+	},
 	["refuse.WRONG_OBJECTIVE"] = { "Nothing to report here yet.", "아직 여기서 보고할 것이 없습니다." },
 	["refuse.OUT_OF_REACH"] = { "Step closer first.", "더 가까이 가세요." },
 	["refuse.COMMAND_UNAVAILABLE"] = { "Not available right now.", "지금은 사용할 수 없습니다." },

@@ -27,6 +27,7 @@ local policy: Policy = {
 		[112] = "survival-coop:trade-offer",
 		[113] = "survival-coop:trade-confirm",
 		[114] = "survival-coop:trade-cancel",
+		[115] = "survival-coop:operation-status",
 		[12] = "survival-coop:settlement-rejoin",
 		[13] = "survival-coop:settlement-reserve",
 		[14] = "survival-coop:settlement-place",

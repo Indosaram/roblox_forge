@@ -302,6 +302,12 @@ function M.new(
 		personalTransfer = function(actor)
 			return if active and not closed then active.personalTransfer(actor) else nil
 		end,
+		personalTransaction = function(actor, transform)
+			if not active or closed then
+				return false, "PERSONAL_UNAVAILABLE"
+			end
+			return active.personalTransaction(actor, transform)
+		end,
 		wildlife = function(id)
 			local owner = wildlifeOwner
 			local states = if owner and not closed then owner.snapshot() else nil

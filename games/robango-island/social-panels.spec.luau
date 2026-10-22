@@ -457,7 +457,7 @@ cases["siege results open on settlement with ownership and research consequence"
 	assert(not win.frame.Visible, "continue closes")
 end
 
-cases["transaction resends the same pending request and never a fresh debit"] = function()
+cases["transaction checks status with the read-only server query and never a fresh debit"] = function()
 	local h = harness("en-us", 360, 640, true)
 	local observe: any = nil
 	h.ctx.onSend = function(callback: any)
@@ -465,12 +465,26 @@ cases["transaction resends the same pending request and never a fresh debit"] = 
 		return function() end
 	end
 	Panels.transaction.factory(h.ctx)
-	observe("survival-coop:market-buy", { "listing", 1 }, { ok = true })
+	observe("survival-coop:market-buy", { "listing", 1 }, { ok = true }, "req-0")
 	assert(not h.frame.Visible, "ordinary success shows nothing")
-	observe("survival-coop:market-buy", { "listing", 1 }, { ok = false, reason = "COMMAND_PENDING" })
+	observe("survival-coop:market-buy", { "listing", 1 }, { ok = false, reason = "COMMAND_PENDING" }, "req-1")
 	assert(h.frame.Visible and h.has("Settling. Nothing is charged twice."), "settling surfaced")
+	assert(h.has("Ref req-1"), "operationId is the durable request id")
+	h.replies = { { ok = true, data = { operationId = "req-1", status = "settling" } } }
 	h.press("Check status")
-	assert(h.sends[1].action == "survival-coop:market-buy" and h.sends[1].args[1] == "listing", "same action and args")
+	assert(#h.sends == 1, "status check sends exactly one command")
+	assert(h.sends[1].action == "survival-coop:operation-status" and h.sends[1].args[1] == "req-1", "query by id")
+	assert(Durable.actions and table.find(Durable.actions, "survival-coop:operation-status"), "query is durable-routed")
+	h.replies = { { ok = true, data = { operationId = "req-1", status = "delivered" } } }
+	h.press("Check status")
+	assert(#h.sends == 2 and h.has("Delivered."), "server delivered state shown")
+	observe("survival-coop:market-buy", { "listing", 1 }, { ok = false, reason = "COMMAND_PENDING" }, "req-2")
+	-- Unknown to the server: refused; only the SAME pending request is re-sent (its id reused).
+	h.replies = { { ok = false, reason = "UNKNOWN_OPERATION" }, { ok = false, reason = "COMMAND_PENDING" } }
+	h.press("Check status")
+	assert(h.sends[3].action == "survival-coop:operation-status", "query first")
+	assert(h.sends[4].action == "survival-coop:market-buy" and h.sends[4].args[1] == "listing", "same pending request")
+	assert(h.has("The server has no record of this yet."), "unknown refusal shown")
 	observe("survival-coop:market-buy", { "listing", 1 }, { ok = false, reason = "INSUFFICIENT_FUNDS" })
 	assert(h.has("Rejected: Not enough shellmoney."), "rejection localized")
 	observe("survival-coop:market-buy", { "listing", 1 }, { ok = true, data = { operationId = "op-1" } })
@@ -547,7 +561,81 @@ cases["dialogue offers objective dependent complete and service choices"] = func
 	panel.talk("pip", "shop")
 	assert(not other.has("완료:"), "no complete choice when objective is for another npc")
 	local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
-	assert(string.find(source, "context.dialogue(string.sub(facility, 5)", 1, true), "npc prompt opens dialogue")
+	assert(string.find(source, 'prompt:GetAttribute("ForgeDialogue")', 1, true), "station prompt opens dialogue")
+end
+
+-- Station dialogue and authored lines: Continue shows the chapter's authored offer line in the
+-- player's language, Complete on the last objective shows the authored complete line.
+cases["station dialogue shows authored offer and complete lines in KO and EN"] = function()
+	local Harbor = require("../../genres/survival-coop/module/HarborFacilities")
+	local talk = {}
+	for _, facility in Harbor.describe(Content) do
+		talk[facility.anchor] = facility.talk
+	end
+	assert(talk["station.workbench.t1"] == "station.workbench", "workbench talks")
+	assert(talk["station.signal-relay.t1"] == "station.relay", "communication station talks")
+	assert(talk.objective == "station.market", "market board talks")
+	for _, locale in LOCALES do
+		local ko = locale == "ko-kr"
+		local h = harness(locale, 360, 640, true)
+		local panel = Panels.dialogue.factory(h.ctx)
+		h.push({
+			journal = {
+				active = "rw.c01.signal-trace",
+				counts = { ["rw.c01.signal-trace.1"] = 1, ["rw.c01.signal-trace.2"] = 1 },
+				completed = {},
+			},
+		})
+		panel.talk("station.relay", "journal")
+		assert(h.has(if ko then "무전 오두막:" else "Radio hut:"), locale .. " station line")
+		h.press(L.text(locale, "dialogue.continue"))
+		local offer = if ko
+			then "중계기가 같은 패턴을 되풀이하고 있어요"
+			else "The relay is repeating a pattern."
+		assert(h.has(offer), locale .. " authored offer line")
+		assert(
+			not h.has(if ko then "The relay is repeating" else "중계기가 같은"),
+			locale .. " no other language"
+		)
+		h.press(L.text(locale, "dialogue.complete", JournalText(locale, "rw.c01.signal-trace.3.text")))
+		assert(h.sends[1].args[1] == "rw.c01.signal-trace.3:1", "relay checkpoint")
+		-- Last objective (speak with Bram) completes with the authored complete line.
+		h.push({
+			journal = {
+				active = "rw.c01.signal-trace",
+				counts = { ["rw.c01.signal-trace.1"] = 1, ["rw.c01.signal-trace.2"] = 1, ["rw.c01.signal-trace.3"] = 1 },
+				completed = {},
+			},
+		})
+		panel.talk("bram", "clan-membership")
+		h.press(L.text(locale, "dialogue.continue"))
+		h.press(L.text(locale, "dialogue.complete", JournalText(locale, "rw.c01.signal-trace.4.text")))
+		local complete = if ko
+			then "날씨 잡음이 아니라 조난 신호예요"
+			else "That pattern is a distress call"
+		assert(h.has(complete), locale .. " authored complete line")
+		-- Market board shows its authored guide line; workbench offers the assemble objective.
+		panel.talk("station.market", "market")
+		assert(h.has(if ko then "1코인에 등록했다가" else "List this fiber for one Coin"), locale .. " market")
+		assert(h.has(L.text(locale, "dialogue.service", L.text(locale, "service.market"))), "market choice")
+		h.push({
+			journal = { active = "rw.c01.signal-trace", counts = { ["rw.c01.signal-trace.1"] = 1 }, completed = {} },
+		})
+		panel.talk("station.workbench", "craft")
+		assert(h.has(L.text(locale, "dialogue.continue")), locale .. " workbench objective")
+	end
+	-- Every authored offer/complete row has a real Korean column, distinct from English.
+	local csv = fs.readFile("games/robango-island/locale/strings.csv")
+	local count = 0
+	for _, line in string.split(csv, "\n") do
+		local key = string.match(line, "^(rw%.[%w%.%-]+%.offer[%.%w]*),")
+			or string.match(line, "^(rw%.[%w%.%-]+%.complete),")
+		if key then
+			count += 1
+			assert(string.find(line, "[\234-\237][\128-\191][\128-\191]"), key .. " has Korean text")
+		end
+	end
+	assert(count >= 120, "authored rows checked")
 end
 
 return cases

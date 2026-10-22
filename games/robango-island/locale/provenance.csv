@@ -1404,3 +1404,7 @@ station.open,original,agent:hephaestus,2026-10-22
 station.modify,original,agent:hephaestus,2026-10-22
 station.support,original,agent:hephaestus,2026-10-22
 station.rank,original,agent:hephaestus,2026-10-22
+social.npc.station.market,original,agent:hephaestus/p31-socialtrade,2026-10-22
+social.npc.station.relay,original,agent:hephaestus/p31-socialtrade,2026-10-22
+social.npc.station.workbench,original,agent:hephaestus/p31-socialtrade,2026-10-22
+social.refuse.UNKNOWN_OPERATION,original,agent:hephaestus/p31-socialtrade,2026-10-22

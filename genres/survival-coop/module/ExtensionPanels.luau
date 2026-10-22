@@ -15,7 +15,7 @@ export type Context = {
 	objectiveSlot: any?,
 	open: ((string) -> boolean)?,
 	availability: ((string) -> (boolean, boolean, string?))?,
-	onSend: (((string, { any }, any) -> ()) -> () -> ())?,
+	onSend: (((string, { any }, any, string?) -> ()) -> () -> ())?,
 	openPanel: ((string) -> ())?,
 	dialogue: ((string, string?) -> ())?,
 }
@@ -274,6 +274,7 @@ function M.start(options: {
 			pending[actionId] = CommandTransport.request(pending[actionId], actionId, args, epoch, function()
 				return http:GenerateGUID(false)
 			end)
+			local requestId = pending[actionId].requestId
 			local ok, result = pcall(function()
 				return action:InvokeServer("command", pending[actionId])
 			end)
@@ -289,7 +290,7 @@ function M.start(options: {
 				then nil
 				else CommandTransport.settle(pending[actionId], result)
 			for _, listener in sendListeners do
-				task.spawn(listener, actionId, args, result)
+				task.spawn(listener, actionId, args, result, requestId)
 			end
 			return result
 		end,
@@ -814,12 +815,18 @@ function M.start(options: {
 		local panel = prompt:GetAttribute("ForgePanel")
 		local holder = prompt.Parent
 		local facility = if holder then holder:GetAttribute("ForgeHarborFacility") else nil
-		if type(facility) == "string" and string.sub(facility, 1, 4) == "npc." and context.dialogue then
+		-- Stations (workbench, communication station, market board) carry ForgeDialogue.
+		local talk = prompt:GetAttribute("ForgeDialogue")
+		local speaker = if type(talk) == "string"
+			then talk
+			elseif type(facility) == "string" and string.sub(facility, 1, 4) == "npc." then string.sub(facility, 5)
+			else nil
+		if speaker and context.dialogue then
 			if options.onOpen then
 				options.onOpen()
 			end
-			-- NPCs speak first; their service panel is one of the dialogue choices.
-			context.dialogue(string.sub(facility, 5), if type(panel) == "string" then panel else nil)
+			-- NPCs and stations speak first; their service panel is one of the dialogue choices.
+			context.dialogue(speaker, if type(panel) == "string" then panel else nil)
 			return
 		end
 		if type(panel) ~= "string" then

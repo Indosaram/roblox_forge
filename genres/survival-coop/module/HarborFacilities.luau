@@ -32,8 +32,17 @@ function M.describe(content: any): { any }
 				elseif anchor.id == "npc.pip" then "shop"
 				elseif anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch" then "craft"
 				elseif anchor.id == "rescue-beacon" then "journal"
+				elseif anchor.id == "station.workbench.t1" then "craft"
+				elseif anchor.id == "station.signal-relay.t1" then "journal"
+				elseif anchor.id == "objective" then "market"
 				else nil,
 			destination = if anchor.id == "visitor-portal" then "home" else nil,
+			-- Stations that talk first (ui.dialogue): workbench, communication station, market board.
+			talk = if anchor.id == "station.workbench.t1"
+				then "station.workbench"
+				elseif anchor.id == "station.signal-relay.t1" then "station.relay"
+				elseif anchor.id == "objective" then "station.market"
+				else nil,
 		})
 	end
 	return result

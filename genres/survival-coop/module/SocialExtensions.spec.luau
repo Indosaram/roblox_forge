@@ -163,21 +163,24 @@ return {
 		assert(send("a", "confirm", { id, 2 }).ok, "a confirms")
 		failB(true)
 		local stuck = send("b", "confirm", { id, 2 })
-		assert(not stuck.ok and dataA().balance == 100, "failed second debit refunds before any credit")
-		local bagA = dataA().inventory.bag.items
-		assert(bagA.p1.quantity == 2 and bagA["trade:" .. id .. ":a"].quantity == 3, "escrowed stack refunded")
-		assert(bagA["trade:" .. id .. ":a"].attributes.level == 7, "refund keeps attributes")
+		-- An unavailable store is ambiguous: keep A's escrow and recover, never refund blindly.
+		assert(not stuck.ok and stuck.data.status == "recovering", "store failure stays recovering")
+		assert(dataA().inventory.bag.items.p1.quantity == 2 and dataB().balance == 40, "escrow held")
 		failB(false)
+		assert(extension.recover("a", 8).pending == 0, "recovery completes the trade")
+		local bagB = dataB().inventory.bag.items["trade:" .. id .. ":a"]
+		assert(bagB.quantity == 3 and bagB.attributes.level == 7, "exact stack delivered")
+		assert(dataA().balance == 130 and dataB().balance == 10, "coins delivered once")
 		-- Fresh trade completes.
 		local again = send("a", "open", { "b" }).data.tradeId
-		assert(send("b", "offer", { again, { revision = 0, coins = 30 } }).ok, "b offers")
+		assert(send("b", "offer", { again, { revision = 0, coins = 10 } }).ok, "b offers")
 		assert(send("a", "confirm", { again, 1 }).ok, "a confirms")
 		n += 1
 		local request = { actorId = "b", requestId = "final", sessionEpoch = 1 }
 		local done = extension.command("b", "survival-coop:trade-confirm", { again, 1 }, request, "client", admit)
 		assert(done.ok and done.data.status == "delivered", "settled")
 		local replay = extension.command("b", "survival-coop:trade-confirm", { again, 1 }, request, "client", admit)
-		assert(replay.ok and dataB().balance == 10 and dataA().balance == 130, "replay does not settle twice")
+		assert(replay.ok and dataB().balance == 0 and dataA().balance == 140, "replay does not settle twice")
 		assert(extension.snapshot("a").last.status == "settled", "result reflected")
 	end,
 }

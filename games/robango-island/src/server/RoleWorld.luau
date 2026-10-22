@@ -577,8 +577,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local prompt = Instance.new("ProximityPrompt")
 				prompt.ActionText = if facility.kind == "market" then "Market" else "Interact"
 				prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent = facility.anchor, 8, target
-				prompt:SetAttribute("ForgeMarket", facility.kind == "market" or facility.anchor == "npc.sella")
+				-- The market board talks first; its Market choice opens the market panel.
+				prompt:SetAttribute("ForgeMarket", facility.anchor == "npc.sella")
 				prompt:SetAttribute("ForgePanel", facility.panel)
+				prompt:SetAttribute("ForgeDialogue", facility.talk)
 				prompt.Triggered:Connect(function(player)
 					if
 						facility.destination
@@ -588,6 +590,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						world.travel(player, facility.destination)
 					end
 				end)
+			elseif facility.talk then
+				-- Station dialogue prompt on the registered station part.
+				local station = root:FindFirstChild(facility.anchor)
+				if station then
+					local prompt = Instance.new("ProximityPrompt")
+					prompt.ActionText, prompt.ObjectText = "Interact", facility.anchor
+					prompt.MaxActivationDistance, prompt.Parent = 8, station
+					prompt:SetAttribute("ForgePanel", facility.panel)
+					prompt:SetAttribute("ForgeDialogue", facility.talk)
+				end
 			end
 		end
 	end

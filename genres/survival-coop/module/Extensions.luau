@@ -18,6 +18,7 @@ export type Context = {
 	members: () -> { string },
 	settlement: { snapshot: (string) -> (Shared.StateData?, string?) }?,
 	personalTransfer: (string) -> Session.PersonalTransfer?,
+	personalTransaction: ((string, (any) -> any) -> (boolean, any))?,
 	analytics: Events.Emitter?,
 	wildlife: ((string) -> { catalogId: string, healthMilli: number }?)?,
 	captureWild: ((wildId: string, captureId: string, untilMillis: number) -> string?)?,
