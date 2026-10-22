@@ -351,6 +351,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		local station = string.match(anchor.id, "^station%.(.+)%.t%d+$")
 		if station then
 			local target = part(anchor.id, anchor.position, { x = 4, y = 2, z = 3 })
+			local hit = workspace:Raycast(
+				Vector3.new(anchor.position.x, 512, anchor.position.z),
+				Vector3.new(0, -1024, 0),
+				groundParams
+			)
+			if hit then
+				target.Position = Vector3.new(anchor.position.x, hit.Position.Y + target.Size.Y / 2, anchor.position.z)
+			end
 			world.registerStation(target, anchor.id, station)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })

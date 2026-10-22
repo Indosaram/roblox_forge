@@ -38,6 +38,34 @@ local function model(): any
 end
 
 return {
+	["recipe availability distinguishes station reach from carried materials"] = function()
+		local bag = {
+			items = {
+				branch = { itemId = "branch", catalogId = "branch", quantity = 3 },
+				stone = { itemId = "stone", catalogId = "stone", quantity = 3 },
+			},
+			reservations = {},
+		}
+		local recipes = {
+			{
+				id = "starter-axe",
+				station = "workbench",
+				inputs = {
+					{ item = "branch", quantity = 3 },
+					{ item = "stone", quantity = 2 },
+				},
+			},
+		}
+		local away = Model.recipeOrder(bag, recipes, function()
+			return false
+		end)[1]
+		assert(not away.ready and not away.stationReady, "station reach is missing, not materials")
+		assert(#Model.missingMaterials(bag, recipes[1].inputs) == 0, "carried supplies are sufficient")
+		local nearby = Model.recipeOrder(bag, recipes, function()
+			return true
+		end)[1]
+		assert(nearby.ready and nearby.stationReady, "same supplies become ready at workbench")
+	end,
 	["placement action bar retains target through padded pointer bounds"] = function()
 		local p, s = { X = 16, Y = 540 }, { X = 328, Y = 48 }
 		for _, point in { { 20, 550 }, { 170, 560 }, { 340, 580 }, { 8, 535 } } do

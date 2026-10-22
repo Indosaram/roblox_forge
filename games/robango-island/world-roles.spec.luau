@@ -9,6 +9,27 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["onboarding station anchors sit above terrain rather than inside it"] = function()
+		local engine = Engine.new()
+		local workspace = engine.game:GetService("Workspace")
+		local original = workspace.Raycast
+		workspace.Raycast = function(self, origin, direction, params)
+			local hit = original(self, origin, direction, params)
+			if hit then
+				hit.Position = require("@lune/roblox").Vector3.new(origin.X, 8, origin.Z)
+			end
+			return hit
+		end
+		engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.onboarding", 79)
+		local count = 0
+		for _, part in engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation") do
+			assert(part.Position.Y - part.Size.Y / 2 >= 8, "station is buried")
+			count += 1
+		end
+		assert(count >= 2, "onboarding workbench and campfire")
+	end,
 	["a missing terrain ray never aborts a live role boot"] = function()
 		local engine = Engine.new()
 		engine.game:GetService("Workspace").Raycast = function()

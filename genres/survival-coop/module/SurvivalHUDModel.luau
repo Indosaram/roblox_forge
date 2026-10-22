@@ -194,7 +194,8 @@ M.STACK_BOTTOM = 180
 function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) -> boolean, items: { any }?): { any }
 	local rows = {}
 	for _, recipe in recipes do
-		local ready = recipe.station == nil or stationAvailable(recipe.station)
+		local stationReady = recipe.station == nil or stationAvailable(recipe.station)
+		local ready = stationReady
 		for _, ingredient in M.ingredients(bag, recipe) do
 			ready = ready and ingredient.available >= ingredient.needed
 		end
@@ -213,7 +214,10 @@ function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) ->
 			end
 			ready = ready and tool
 		end
-		table.insert(rows, { recipe = recipe, ready = ready, station = recipe.station or "" })
+		table.insert(
+			rows,
+			{ recipe = recipe, ready = ready, stationReady = stationReady, station = recipe.station or "" }
+		)
 	end
 	table.sort(rows, function(a, b)
 		if a.station ~= b.station then

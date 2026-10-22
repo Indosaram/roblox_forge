@@ -949,7 +949,14 @@ function M.start(options: Options)
 				end
 				local recipeButton = button(
 					"Recipe-" .. recipe.id,
-					name(recipe.id) .. "\n" .. (if row.ready then t("reserve") .. " +" else t("missing")),
+					name(recipe.id)
+						.. "\n"
+						.. (
+							if row.ready
+								then t("reserve") .. " +"
+								elseif not row.stationReady then t("station") .. ": " .. name(row.station)
+								else t("missing")
+						),
 					function()
 						recipeId = recipe.id
 						focusBottom = "Reserve-" .. recipe.id
