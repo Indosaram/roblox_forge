@@ -277,7 +277,11 @@ function M.start(options: Options)
 	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
 		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
 	local function fitBuildCards()
-		local columns = if sheet.frame.AbsoluteSize.X >= 600 then 3 else 2
+		-- Cost chips need ~100px for a name beside the count: phones get one column.
+		local columns = if sheet.frame.AbsoluteSize.X >= 600
+			then 3
+			elseif sheet.frame.AbsoluteSize.X >= 480 then 2
+			else 1
 		local rows = 1
 		for _, definition in content.structures do
 			rows = math.max(rows, #definition.cost)

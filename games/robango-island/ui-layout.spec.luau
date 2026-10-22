@@ -7,6 +7,10 @@ local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 local Clan = require("../../genres/survival-coop/module/ClanPanel")
 local Editor = require("../../genres/survival-coop/module/ScoreEditorPanel")
 local Brawl = require("../../genres/survival-coop/module/BrawlPanel")
+local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+local HudFit = require("../../core/ui-kit/genre/HudFit")
+local Content: any = require("./src/shared/SurvivalContent")
+local EntityNames = require("./src/shared/EntityNames")
 
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true } }
 
@@ -37,6 +41,66 @@ local ROWS: { [string]: { { number } } } = {
 	camp = { { 0, 0.52 }, { 0.54, 0.14 }, { 0.69, 0.14 }, { 0.84, 0.14 } },
 	tamingActions = { { 0, 0.5 }, { 0.5, 0.5 } },
 }
+
+-- SurvivalHUD (contextual) sheet in viewport space: resize() feeds the SafeArea root
+-- (viewport inset 12,8 and -24,-16) into contextSheetBounds + chatSafe.
+local function hudSheet(width: number, height: number, touch: boolean): any
+	local rw, rh = width - 24, height - 16
+	local w, h, top, right = Model.contextSheetBounds(rw, rh, touch)
+	local x, y, sw, sh = Model.chatSafe(rw, rh, rw - right - w, top, w, h)
+	return { x = x + 12, y = y + 8, width = sw, height = sh }
+end
+
+-- Estimated text fit with HudFit.textWidth: every line wraps into width minus padding and the
+-- wrapped lines (1.2 line height) fit height at some size between maxSize and minSize.
+local function fits(text: string, width: number, height: number, maxSize: number, minSize: number, label: string)
+	assert(text ~= "", label .. " blank")
+	for size = maxSize, minSize, -1 do
+		local lines = 0
+		for _, line in string.split(text, "\n") do
+			lines += math.max(1, math.ceil(HudFit.textWidth(line, size) / (width - HudFit.PADDING * 2)))
+		end
+		if lines * size * 1.2 <= height then
+			return
+		end
+	end
+	error(string.format("%s overflows %dx%d: %q", label, width, height, text))
+end
+
+local function disjoint(rects: { any }, label: string)
+	for i, a in rects do
+		assert(a.width >= 44 and a.height >= 40, label .. " control under touch size")
+		for j = i + 1, #rects do
+			assert(not overlaps(a, rects[j]), label .. " controls overlap")
+		end
+	end
+end
+
+-- Longest localized string of a list, by estimated width.
+local function longest(list: { string }): string
+	local best = ""
+	for _, text in list do
+		if HudFit.textWidth(text, 15) > HudFit.textWidth(best, 15) then
+			best = text
+		end
+	end
+	return best
+end
+
+local LOCALES = { "en-us", "ko-kr" }
+local function namer(locale: string): (string) -> string
+	local names = EntityNames(locale)
+	return function(id: string): string
+		return names[id] or Locale.text(locale, id)
+	end
+end
+local function ids(list: { any }, name: (string) -> string): { string }
+	local out = {}
+	for _, entry in list do
+		table.insert(out, name(entry.id))
+	end
+	return out
+end
 
 return {
 	["every fitted sheet stays inside the viewport with a reachable header close"] = function()
@@ -135,5 +199,219 @@ return {
 			end
 		end
 		assert(count > 100, "string tables discovered")
+	end,
+	["survival HUD sheets keep header and close inside both target viewports"] = function()
+		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		-- Mirrored constants below; fail loudly if SurvivalHUD drifts from them.
+		for _, anchor in
+			{
+				"UDim2.new(0, 8, 1, -56), UDim2.new(1, -16, 0, 48)",
+				"UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)",
+				"child.Size = UDim2.new(1 / 3, -6, 0, 48)",
+				"UDim2.new(1 / columns, -8, 0, 44 + rows * 40)",
+				"elseif sheet.frame.AbsoluteSize.X >= 480 then 2",
+				"UDim2.new(if wide then 0.52 else 1, if wide then -8 else 0, 0, 0)",
+				"UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -Model.PLACEMENT_BOTTOM)",
+				'{ "RowName", name(id), UDim2.new(1, -72, 1, 0)',
+				"UDim2.fromOffset(68, 40),",
+			}
+		do
+			assert(string.find(source, anchor, 1, true), "SurvivalHUD layout constant moved: " .. anchor)
+		end
+		assert(
+			string.find(fs.readFile("core/ui-kit/InventoryGrid.luau"), "UDim2.new(0.333, -6, 0, 92)", 1, true),
+			"inventory cell constant moved"
+		)
+		for _, viewport in VIEWPORTS do
+			local width, height, touch = viewport[1], viewport[2], viewport[3]
+			local s = hudSheet(width, height, touch)
+			inside(s, width, height, "survival sheet")
+			assert(not overlaps(s, Model.contextHudBounds(width, height).biome), "survival sheet clears biome toast")
+			local close = { x = s.width - 50, y = 0, width = 44, height = 44 }
+			local title = { x = 14, y = 0, width = s.width - 70, height = 44 }
+			inside(close, s.width, 44, "survival close")
+			assert(not overlaps(close, title), "survival title clears close")
+			for _, locale in LOCALES do
+				for _, key in { "bag", "craft", "build", "skills" } do
+					local text = Locale.text(locale, key)
+					fits(if touch then (string.gsub(text, " %[%u%]$", "")) else text, title.width, 44, 18, 18, key)
+				end
+			end
+		end
+	end,
+	["craft sheet keeps filter toggle pinned axe list detail and fixed footer apart"] = function()
+		local rows = Model.recipeOrder({ items = {}, reservations = {} }, Content.recipes, function()
+			return false
+		end, Content.items, { pin = "starter-axe", jobs = {} })
+		assert(rows[1] and rows[1].recipe.id == "starter-axe", "tutorial axe pinned first in filtered list")
+		assert(#rows < #Content.recipes, "nearby filter narrows the list")
+		for _, viewport in VIEWPORTS do
+			local s = hudSheet(viewport[1], viewport[2], viewport[3])
+			local b = Model.craftPanes(s.width, s.height)
+			local list = { x = 8, y = 44, width = s.width - 20, height = b.listHeight }
+			local detail = { x = 8, y = 52 + b.listHeight, width = s.width - 20, height = b.height - b.listHeight - 8 }
+			local footer = { x = 8, y = s.height - 56, width = s.width - 16, height = 48 }
+			for _, rect in { list, detail, footer } do
+				inside(rect, s.width, s.height, "craft pane")
+			end
+			disjoint({ list, detail, footer }, "craft panes")
+			-- Filter toggle row then the pinned first recipe row, both without scrolling.
+			assert(list.height >= 48 + 6 + 48, "filter toggle and pinned recipe visible")
+			local buttons = {}
+			for i = 0, 2 do
+				table.insert(buttons, { x = i * footer.width / 3, y = 0, width = footer.width / 3 - 6, height = 48 })
+			end
+			disjoint(buttons, "craft footer")
+			inside(buttons[3], footer.width, 48, "craft footer button")
+			for _, locale in LOCALES do
+				local name, t = namer(locale), function(key)
+					return Locale.text(locale, key)
+				end
+				for _, key in { "craft_nearby", "craft_all" } do
+					fits(t(key), list.width - 8, 48, 15, 10, "filter toggle")
+				end
+				local statuses = { t("reserve") .. " +", t("missing") }
+				for _, recipe in Content.recipes do
+					table.insert(statuses, t("station") .. ": " .. name(recipe.station or "hand"))
+				end
+				local recipe = longest(ids(Content.recipes, name)) .. "\n" .. longest(statuses)
+				fits(recipe, list.width - 8 - 40, 48, 15, 10, "recipe row")
+				for _, label in
+					{
+						t("reserve"),
+						t("cancel"),
+						t("Reserved") .. " / " .. t("start"),
+						t("Running") .. " / " .. t("complete"),
+						t("Ready") .. " / " .. t("complete"),
+					}
+				do
+					fits(label, buttons[1].width, 48, 15, 10, "craft footer")
+				end
+				fits(longest(ids(Content.items, name)), detail.width - 8 - 40 - 72, 40, 15, 10, "ingredient name")
+			end
+		end
+	end,
+	["bag sheet grid detail and warehouse rows fit both target viewports"] = function()
+		for _, viewport in VIEWPORTS do
+			local s = hudSheet(viewport[1], viewport[2], viewport[3])
+			local panes = s.width - 16 - 8
+			local wide = s.width >= 600
+			local list = { x = 0, y = 0, width = if wide then 0.52 * panes - 8 else panes, height = 300 }
+			local detail = if wide
+				then { x = 0.52 * panes + 8, y = 0, width = 0.48 * panes - 8, height = 300 }
+				else { x = 0, y = 312, width = panes, height = 300 }
+			inside(list, panes, 612, "bag list")
+			inside(detail, panes, 612, "bag detail")
+			disjoint({ list, detail }, "bag panes")
+			local grid = list.width - 8
+			local cell = grid * 0.333 - 6
+			local cells = {}
+			for i = 0, 2 do
+				table.insert(cells, { x = i * (cell + 8), y = 0, width = cell, height = 92 })
+			end
+			disjoint(cells, "inventory grid")
+			inside(cells[3], grid, 92, "inventory cell")
+			for _, locale in LOCALES do
+				local name = namer(locale)
+				local item = longest(ids(Content.items, name))
+				fits(item, cell - 8 + HudFit.PADDING * 2, 42, 12, 12, "inventory caption")
+				for _, key in { "eat", "deposit" } do
+					fits(Locale.text(locale, key), detail.width - 8, 48, 15, 10, key)
+				end
+				fits(
+					Locale.text(locale, "withdraw") .. " - " .. item .. " x999",
+					detail.width - 8,
+					48,
+					15,
+					10,
+					"withdraw"
+				)
+				fits(Locale.text(locale, "select"), detail.width - 8, 48, 15, 15, "select hint")
+			end
+		end
+	end,
+	["build sheet cards chips and placement bar fit both target viewports"] = function()
+		local costRows = 1
+		for _, definition in Content.structures do
+			costRows = math.max(costRows, #definition.cost)
+		end
+		for _, viewport in VIEWPORTS do
+			local width, height = viewport[1], viewport[2]
+			local s = hudSheet(width, height, viewport[3])
+			local cards = s.width - 16 - 8
+			local columns = if s.width >= 600 then 3 elseif s.width >= 480 then 2 else 1
+			local cell = { width = cards / columns - 8, height = 44 + costRows * 40 }
+			local row = {}
+			for i = 0, columns - 1 do
+				table.insert(row, { x = i * (cell.width + 8), y = 0, width = cell.width, height = cell.height })
+			end
+			disjoint(row, "build cards")
+			inside(row[columns], cards, cell.height, "build card")
+			local title = { x = 40, y = 0, width = cell.width - 44, height = 40 }
+			local parts = { { x = 6, y = 6, width = 28, height = 28 }, title }
+			for i = 1, costRows do
+				table.insert(parts, { x = 4, y = 42 + (i - 1) * 40, width = cell.width - 8, height = 40 })
+			end
+			for i, a in parts do
+				inside(a, cell.width, cell.height, "card part")
+				for j = i + 1, #parts do
+					assert(not overlaps(a, parts[j]), "card parts overlap")
+				end
+			end
+			local bar = { x = width / 2 - 164, y = height - Model.PLACEMENT_BOTTOM, width = 328, height = 48 }
+			inside(bar, width, height, "placement bar")
+			local placement = {
+				{ x = 0, y = 0, width = 80, height = 48 },
+				{ x = 88, y = 0, width = 116, height = 48 },
+				{ x = 212, y = 0, width = 116, height = 48 },
+			}
+			disjoint(placement, "placement bar")
+			for _, locale in LOCALES do
+				local name, t = namer(locale), function(key)
+					return Locale.text(locale, key)
+				end
+				fits(longest(ids(Content.structures, name)), title.width, 40, 15, 10, "structure title")
+				local costs = {}
+				for _, definition in Content.structures do
+					for _, cost in definition.cost do
+						table.insert(costs, name(cost.item))
+					end
+				end
+				fits(longest(costs), cell.width - 8 - 40 - 72, 40, 15, 10, "cost chip name")
+				fits(t("buildHint"), s.width - 24, 48, 15, 15, "build hint")
+				fits(t("rotate"), 80, 48, 15, 10, "rotate")
+				for _, key in { "place", "reserve", "cancel" } do
+					fits(t(key), 116, 48, 15, 10, "placement " .. key)
+				end
+			end
+		end
+	end,
+	["skills sheet buttons are full width touch rows with fitting labels"] = function()
+		assert(#Content.skillNodes > 0, "skill nodes present")
+		for _, viewport in VIEWPORTS do
+			local s = hudSheet(viewport[1], viewport[2], viewport[3])
+			local width = s.width - 16 - 8
+			disjoint(
+				{ { x = 0, y = 0, width = width, height = 48 }, { x = 0, y = 54, width = width, height = 48 } },
+				"skills"
+			)
+			local nodes = {}
+			for _, node in Content.skillNodes do
+				table.insert(nodes, node.id .. " / " .. tostring(node.cost) .. " SP")
+			end
+			for _, locale in LOCALES do
+				for _, label in
+					{
+						longest(nodes),
+						Locale.text(locale, "skill_reset"),
+						Locale.text(locale, "refresh"),
+						Locale.text(locale, "cameraHelp"),
+					}
+				do
+					fits(label, width, 48, 15, 10, "skills button")
+				end
+				fits("Level 100 / SP 999", width, 40, 15, 15, "skills level")
+			end
+		end
 	end,
 }
