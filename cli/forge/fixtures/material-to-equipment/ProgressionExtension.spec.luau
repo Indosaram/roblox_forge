@@ -4,6 +4,7 @@ local Materials = require("../../../../core/domain/crafting/MaterialGrowth")
 local Tree = require("../../../../core/domain/progression/SkillTree")
 local Content = require("../../../../games/robango-island/src/shared/SurvivalContent")
 local Policy = require("./policy")
+local serde = require("@lune/serde")
 
 local function equipment(): any
 	local material = Materials.raw(Content, "hide", 10, 0, nil)
@@ -55,14 +56,33 @@ return {
 		local _, duplicate = Progression.upgrade(Content, state, { ["support-tier-1"] = true }, "support-tier-1", facts)
 		assert(duplicate == "ALREADY_COMPLETED", "no repeat settlement")
 		state.level = 59
-		local _, level = Progression.upgrade(Content, state, {}, "support-tier-1", facts)
-		assert(level == "CHARACTER_LEVEL_GATE", "support requires level sixty")
+		local completed = {}
+		local before = serde.encode("json", { state = state, completed = completed, facts = facts })
+		local refused, level = Progression.upgrade(Content, state, completed, "support-tier-1", facts)
+		assert(refused == nil and level == "CHARACTER_LEVEL_GATE", "support requires level sixty")
+		assert(
+			serde.encode("json", { state = state, completed = completed, facts = facts }) == before,
+			"level59 support preserves coins upgrades and version"
+		)
+		state.level = 60
+		before = serde.encode("json", { state = state, completed = completed, facts = facts })
+		assert(Progression.upgrade(Content, state, completed, "support-tier-1", facts), "level60 support allowed")
+		assert(
+			serde.encode("json", { state = state, completed = completed, facts = facts }) == before,
+			"allowed support is an uncommitted candidate"
+		)
 	end,
 	["missing purchased skill refuses actual craft learning enables it and gathering uses the same gate"] = function()
 		local state = Tree.level(Tree.new(Content, Policy.tree), Policy.tree, 10)
 		local hide = Materials.raw(Content, "hide", 10, 0, nil)
-		local _, missing = Progression.craft(Content, state, "tan-hide", { hide })
-		assert(missing == "SKILL_GATE", "progression contract 19")
+		local inputs = { hide }
+		local before = serde.encode("json", { state = state, inputs = inputs })
+		local refused, missing = Progression.craft(Content, state, "tan-hide", inputs)
+		assert(refused == nil and missing == "SKILL_GATE", "progression contract 19")
+		assert(
+			serde.encode("json", { state = state, inputs = inputs }) == before,
+			"missing skill preserves material quantities SP and version"
+		)
 		state.mastery.processing.level = 10
 		state = assert(Tree.learn(Content, state, "processing_1"), "progression contract 21")
 		state = assert(Tree.learn(Content, state, "processing_2"), "progression contract 22")

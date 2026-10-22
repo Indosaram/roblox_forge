@@ -2,6 +2,7 @@
 local Wildlife = require("./Wildlife")
 local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")
+local serde = require("@lune/serde")
 local function fixture()
 	local items: { any } = {
 		{ id = "spear", name = "Spear", stackMax = 1, weightMilli = 100, maxDurabilityMilli = 1000 },
@@ -48,8 +49,12 @@ return {
 		local captured = assert(Wildlife.capture(state, 0, "capture-1"))
 		assert(state.captureId == nil and captured.version == 1, "copy on write")
 		assert(Wildlife.capture(captured, 0, "capture-1") == captured, "idempotent receipt")
+		local before = serde.encode("json", captured)
 		assert(select(2, Wildlife.capture(captured, 1, "capture-2")) == "ALREADY_CAPTURED", "duplicate capture")
+		assert(serde.encode("json", captured) == before, "duplicate capture preserves terminal owner and CAS version")
+		before = serde.encode("json", state)
 		assert(select(2, Wildlife.capture(state, 1, "capture-2")) == "STALE_WILDLIFE", "stale version")
+		assert(serde.encode("json", state) == before, "stale capture preserves wildlife and CAS version")
 		local after, intent = Wildlife.step(captured, content.wildlife[2], catalog.species.hunter, 9999999, observation)
 		assert(after.mode == "captured" and not intent.damage and not intent.destination, "never timed reappearance")
 		local dead = table.clone(state)

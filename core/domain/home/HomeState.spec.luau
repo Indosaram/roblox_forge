@@ -2,6 +2,7 @@
 local Home = require("./HomeState")
 local Inventory = require("../inventory/Inventory")
 local Catalog = require("../inventory/ItemCatalog")
+local serde = require("@lune/serde")
 local M = {}
 
 function M.placedPlotCap()
@@ -152,12 +153,18 @@ return {
 		f.state = assert(apply(f, "plant", { plot = "p1", crop = "corn", seedItem = "seed" }))
 		f.ctx.now = 610
 		local revision = f.state.revision
+		local before = serde.encode("json", f.state)
 		for _, action in { "harvest", "recover" } do
 			local out, reason = apply(f, action, { plot = "p1", id = "bench" }, "intruder")
 			assert(out == nil and reason == "FORBIDDEN", "home invariant: 53")
+			assert(
+				serde.encode("json", f.state) == before,
+				"nonmember refusal preserves entire home and storage version"
+			)
 		end
 		local out, reason = Home.apply(f.state, "owner", "home:other", "harvest", { plot = "p1" }, f.ctx)
 		assert(out == nil and reason == "WRONG_HOME_TOKEN", "home invariant: 56")
+		assert(serde.encode("json", f.state) == before, "wrong token preserves entire home and storage version")
 		assert(f.state.revision == revision and f.state.plots.p1 and f.state.structures.bench, "home invariant: 57")
 	end,
 	["explicit growth clock reconnect recovery and double harvest"] = function()
@@ -176,8 +183,10 @@ return {
 			crop.quantity == 3 and crop.attributes.level == 30 and crop.attributes.roll == saved.plots.p1.roll,
 			"home invariant: 71"
 		)
+		local before = serde.encode("json", f.state)
 		local twice, twiceReason = apply(f, "harvest", { plot = "p1" })
 		assert(twice == nil and twiceReason == "EMPTY_PLOT", "second harvest refused")
+		assert(serde.encode("json", f.state) == before, "double harvest preserves entire home and storage version")
 		local same = M.fixture()
 		same.state = assert(apply(same, "plant", { plot = "p1", crop = "corn", seedItem = "seed" }))
 		assert(same.state.plots.p1.roll == saved.plots.p1.roll, "home invariant: 76")

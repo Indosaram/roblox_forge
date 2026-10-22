@@ -1,6 +1,7 @@
 --!strict
 local Materials = require("../../../../core/domain/crafting/MaterialGrowth")
 local Content = require("../../../../games/robango-island/src/shared/SurvivalContent")
+local serde = require("@lune/serde")
 
 local function raw(item: string, level: number, quantity: number): Materials.Material
 	local material = Materials.raw(Content, item, level, 0, nil)
@@ -78,8 +79,11 @@ return {
 		assert(level == "INPUT_MISMATCH", "progression contract 44")
 		local low = raw("hide", 10, 1)
 		low.level = 1
-		local _, gate = Materials.craft(Content, "tan-hide", { low })
-		assert(gate == "MATERIAL_LEVEL_GATE", "progression contract 48")
+		local inputs = { low }
+		local before = serde.encode("json", inputs)
+		local result, gate = Materials.craft(Content, "tan-hide", inputs)
+		assert(result == nil and gate == "MATERIAL_LEVEL_GATE", "progression contract 48")
+		assert(serde.encode("json", inputs) == before, "wrong material level consumes no quantity budget or attributes")
 	end,
 	["refunds are seeded primary unit trials and never touch auxiliary inputs"] = function()
 		local inputs = { raw("branch", 10, 3), raw("fiber", 10, 4) }

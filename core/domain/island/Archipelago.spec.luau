@@ -2,6 +2,7 @@
 local M = require("./Archipelago")
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local serde = require("@lune/serde")
 -- Other packs do not mount Robango; this spec runs its catalog under Lune.
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
 local facts = { level = 60, developmentRank = 10, instabilityAccess = 5 }
@@ -45,8 +46,13 @@ return {
 		local state = open()
 		for stage = 1, 4 do
 			assert(state.stage == stage, "archipelago invariant")
+			local before = serde.encode("json", state)
 			local ok, reason = M.advance(state, Content, facts, 10, 30)
 			assert(not ok and reason == "mission_gate", "archipelago invariant")
+			assert(
+				serde.encode("json", state) == before,
+				"incomplete departure preserves all progress cargo and revision"
+			)
 			settle(state)
 			assert(M.advance(state, Content, facts, 10, 30), "archipelago invariant")
 		end
@@ -66,8 +72,10 @@ return {
 		assert(M.admit(state, Content, facts, 969, 30), "archipelago invariant")
 		local ok, reason = M.admit(state, Content, facts, 970, 30)
 		assert(not ok and reason == "expiry_imminent", "archipelago invariant")
+		local before = serde.encode("json", state)
 		local expired, expiredReason = M.admit(state, Content, facts, 1000, 0)
 		assert(not expired and expiredReason == "route_expired", "archipelago invariant")
+		assert(serde.encode("json", state) == before, "expired admission preserves all progress cargo and revision")
 	end,
 	["foreign stale duplicate and wrong target receipts cannot advance"] = function()
 		local state = open()

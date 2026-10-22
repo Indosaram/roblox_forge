@@ -147,7 +147,12 @@ return {
 			failAt = 2 -- authoritative renew, then receipt commit
 			assert(handler(receipt) == "NotProcessedYet", "failed commit stays pending")
 			assert(handler(receipt) == "PurchaseGranted", "redelivery resolves durable grant")
+			local before = serde.encode("json", extension.snapshot("7"))
 			assert(handler(receipt) == "PurchaseGranted", "duplicate acknowledges committed receipt")
+			assert(
+				serde.encode("json", extension.snapshot("7")) == before,
+				"duplicate receipt preserves grants skins and version"
+			)
 			assert(extension.snapshot("7").grants == 1 and #fake.prompts == 0, "one grant and no platform prompt")
 			assert(extension.close().ok, "close")
 		end
