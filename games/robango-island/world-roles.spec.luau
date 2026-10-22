@@ -551,6 +551,74 @@ return {
 		)
 		world.destroy()
 	end,
+	["station and boundary prompts open modify, technical support and island rank"] = function()
+		local function prompts(layoutId: string, home: boolean?): { [string]: any }
+			local engine = Engine.new()
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layoutId, 1776)
+			if home then
+				local rules = HomeContent.rules(Content)
+				local state = Home.new("owner", rules, 1776)
+				state.structures.bench2 = { kind = "workbench-t2", position = { x = 8, y = 0, z = 8 }, owner = "owner" }
+				world.renderHome(engine.home.plan(Content, state, rules))
+			end
+			local out = {}
+			for _, part in engine.parts do
+				for _, child in part:GetChildren() do
+					if child.ClassName == "ProximityPrompt" and child:GetAttribute("ForgeStationPanel") then
+						out[part.Name] = child
+					end
+				end
+			end
+			world.destroy()
+			return out
+		end
+		local harbor = prompts("rw.harbor")
+		assert(
+			harbor["station.signal-relay.t1"]
+				and harbor["station.signal-relay.t1"]:GetAttribute("ForgePanel") == "technical-support",
+			"harbor communication station opens technical support"
+		)
+		local home = prompts("rw.home", true)
+		assert(
+			home["station.workbench.t2"] and home["station.workbench.t2"]:GetAttribute("ForgePanel") == "modify",
+			"home tier-2 workbench opens modify"
+		)
+		assert(home.bench2 and home.bench2:GetAttribute("ForgePanel") == "modify", "placed tier-2 bench opens modify")
+		assert(not home["station.workbench.t1"], "a tier-1 workbench has no modify prompt")
+		local island = prompts("rw.a1.s1")
+		local marker = island.IslandBoundary
+		assert(marker and marker:GetAttribute("ForgePanel") == "island-rank", "boundary marker opens island rank")
+		local at, low, high =
+			marker.Parent.Position,
+			marker.Parent:GetAttribute("ForgeCellMin"),
+			marker.Parent:GetAttribute("ForgeCellMax")
+		assert(at.X >= low.X and at.X <= high.X and at.Z >= low.Z and at.Z <= high.Z, "marker inside its cell bounds")
+		assert(marker.Parent:GetAttribute("ForgeCell") == "rw.a1.s1", "marker names its cell")
+	end,
+	["home world exposes station.workbench.t2 and a placed tier-2 bench serves the workbench kind"] = function()
+		local engine = Engine.new()
+		local source: any = table.clone(Source)
+		source.seed, source.renderRole = 79, engine.role.build
+		local world = engine.home.live(Content, source, Policy, function()
+			return 0
+		end)
+		local rules = HomeContent.rules(Content)
+		local state = Home.new("11734795308", rules, 79)
+		state.structures.bench2 = { kind = "workbench-t2", position = { x = 8, y = 0, z = 8 }, owner = state.owner }
+		world.publishHome(state, rules)
+		local bench: any = nil
+		for _, part in engine.parts do
+			if part.Name == "bench2" and not part.destroyed then
+				bench = part
+			end
+		end
+		assert(bench and bench:GetAttribute("ForgeStationKind") == "workbench", "serves the workbench kind")
+		local fixed = world.services.survivalSpatial.station(state.owner, "station.workbench.t2")
+		assert(fixed and fixed.kind == "workbench", "home world registers station.workbench.t2")
+		world.destroy()
+	end,
 	["every archipelago island puts its first survey target on land near the spawn"] = function()
 		local roblox = require("@lune/roblox")
 		local checked = 0

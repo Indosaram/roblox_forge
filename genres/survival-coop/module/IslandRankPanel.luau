@@ -28,6 +28,20 @@ function M.model(locale: string, data: any): { Sheet.Row }
 		},
 		{ name = "Guide", text = Text.text(locale, "rank_guide") },
 	}
+	for _, cell in Rules.cells(content, rank) do
+		table.insert(rows, {
+			name = "Cell-" .. cell.id,
+			text = Text.format(
+				locale,
+				if cell.open then "rank_cell_open" else "rank_cell_locked",
+				cell.island,
+				cell.stage,
+				cell.width,
+				cell.depth,
+				cell.rank
+			),
+		})
+	end
 	local names = data.names or {}
 	for index, award in Rules.awards(content, if character then character.definitions else nil) do
 		if index > 40 then

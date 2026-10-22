@@ -173,6 +173,17 @@ return {
 		assert(h.slice().gear.equipment.a.support == "support-tier-1", "support recorded on the worn record")
 		assert(h.character.snapshot("1").gear.equipment.a.completed["support-tier-1"], "snapshot shows tier")
 	end,
+	["modify is refused at a tier-1 workbench and allowed at a tier-2 workbench"] = function()
+		local h = harness(30, { item("c", "cold-top"), item("i", "iron", 10) })
+		h.slice().progression.paid.tailoring_4 = 1
+		assert(h.run(Character.EQUIP, { "c" }).ok, "equip")
+		h.station = "station.workbench.t1"
+		local refused = h.run("survival-coop:equipment-start", { "modify-hardness", "c", 1 } :: { any }, "m1")
+		assert(refused.reason == "STATION_GATE", "tier 1: " .. tostring(refused.reason))
+		h.station = "station.workbench.t2"
+		local started = h.run("survival-coop:equipment-start", { "modify-hardness", "c", 1 } :: { any }, "m2")
+		assert(started.ok, "tier 2: " .. tostring(started.reason))
+	end,
 	["actions are declared, durable and served by a registered factory"] = function()
 		for _, id in { "gear-equip", "gear-unequip" } do
 			assert(table.find(Contract.extensionActions :: { string }, id), "extension action " .. id)

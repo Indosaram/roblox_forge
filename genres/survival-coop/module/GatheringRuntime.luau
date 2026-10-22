@@ -4,6 +4,7 @@
 local Gathering = require("./Gathering")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local Content = require("../../../core/domain/survival/Content")
+local CharacterRules = require("./CharacterRules")
 local Job = require("../../../core/domain/crafting/Job")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Ledger = require("../../../core/domain/command/Ledger")
@@ -307,14 +308,26 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			-- Only equipped, available tools are transient evidence. Personal items
 			-- are never persisted at source. Destination capacity is checked later.
 			local staging = Inventory.new(bag.id, { slots = 20, softWeightMilli = 90000, hardWeightMilli = 90000 })
-			local equipped = access.equipment(req.actorId)
+			-- The worn weapon/tool slot counts as equipped as well as a tool held in hand.
+			local owner = personal.profile()
+			local envelope = owner and owner.data and owner.data.envelope
+			local slice = envelope and envelope.genres and envelope.genres["survival-coop"]
+			local equipped = CharacterRules.toolEvidence(
+				if slice and slice.data then slice.data.gear else nil,
+				bag,
+				access.equipment(req.actorId)
+			)
+			local scoped = table.clone(access)
+			scoped.equipment = function(actorId: string): { [string]: boolean }?
+				return if actorId == req.actorId then table.clone(equipped) else nil
+			end
 			for itemId, item in bag.items do
-				if equipped and equipped[itemId] and Inventory.available(bag, itemId) > 0 then
+				if equipped[itemId] and Inventory.available(bag, itemId) > 0 then
 					staging.items[itemId] = copy(item)
 				end
 			end
 			local candidate, gatherError =
-				Gathering.gather(data.nodes, staging, req, content, req.nodeId, req.nodeVersion, access)
+				Gathering.gather(data.nodes, staging, req, content, req.nodeId, req.nodeVersion, scoped)
 			if not candidate then
 				reason = gatherError
 				return data

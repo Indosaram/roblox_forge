@@ -148,6 +148,9 @@ local function fixture(dependencies: any?)
 				if name == "./MountVisual" then
 					return MountVisual :: any
 				end
+				if name == "./CharacterRules" then
+					return require("./CharacterRules") :: any
+				end
 				return if dependencies then dependencies[name] or {} else {}
 			end,
 			Instance = roblox.Instance,

@@ -344,6 +344,8 @@ local names: { [string]: { en: string, ko: string } } = {
 	["wood"] = { en = "Wood", ko = "쓰러진 통나무" },
 	["woodland-skewer"] = { en = "Woodland Skewer", ko = "숲 꼬치" },
 	["workbench"] = { en = "Workbench", ko = "작업대" },
+	["workbench-t2"] = { en = "Reinforced Workbench", ko = "강화 작업대" },
+	["workbench-t2-kit"] = { en = "Reinforced Bench Kit", ko = "강화 작업대 꾸러미" },
 	["workbench-kit"] = { en = "Workbench Kit", ko = "작업대 꾸러미" },
 }
 

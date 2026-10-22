@@ -1397,3 +1397,10 @@ ko_cargo,Cargo kept: %s x%d,expedition lane,Cargo kept: %s x%d,지킨 화물: %s
 reason_ledger_claimed,Already claimed,expedition lane,Already claimed,이미 받았어요
 reason_ledger_missing,Nothing to claim,expedition lane,Nothing to claim,받을 것이 없어요
 reason_party_reservation_failed,Could not reserve a server for your party. Try again.,expedition lane,Could not reserve a server for your party. Try again.,파티 서버를 잡지 못했어요. 다시 시도하세요.
+item_workbench_t2_kit,Reinforced Bench Kit,entity workbench-t2-kit,Reinforced Bench Kit,강화 작업대 꾸러미
+recipe_workbench_t2_kit,Reinforced Bench Kit recipe,entity workbench-t2-kit-recipe,Reinforced Bench Kit recipe,강화 작업대 꾸러미 제작법
+structure_workbench_t2,Reinforced Workbench,entity workbench-t2,Reinforced Workbench,강화 작업대
+station.open,Open,station panel prompt,Open,열기
+station.modify,Modify,station panel prompt,Modify,개조
+station.support,Technical support,station panel prompt,Technical support,기술 지원
+station.rank,Island rank,boundary marker prompt,Island rank,섬 등급

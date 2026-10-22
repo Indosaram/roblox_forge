@@ -141,6 +141,9 @@ entries:
   "sections/limits": { created: 2026-10-16 }
   "sections/vitals": { created: 2026-10-16 }
   "sections/tags": { created: 2026-10-16 }
+  "items/workbench-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
+  "recipes/workbench-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
+  "structures/workbench-t2": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
   "items/kiln-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/tanning-frame-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/refrigerator-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }

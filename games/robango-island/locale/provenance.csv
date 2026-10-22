@@ -1397,3 +1397,10 @@ ko_cargo,original,agent:hephaestus/p31,2026-10-22
 reason_ledger_claimed,original,agent:hephaestus/p31,2026-10-22
 reason_ledger_missing,original,agent:hephaestus/p31,2026-10-22
 reason_party_reservation_failed,original,agent:hephaestus/p31,2026-10-22
+item_workbench_t2_kit,original,agent:hephaestus,2026-10-22
+recipe_workbench_t2_kit,original,agent:hephaestus,2026-10-22
+structure_workbench_t2,original,agent:hephaestus,2026-10-22
+station.open,original,agent:hephaestus,2026-10-22
+station.modify,original,agent:hephaestus,2026-10-22
+station.support,original,agent:hephaestus,2026-10-22
+station.rank,original,agent:hephaestus,2026-10-22

@@ -18,6 +18,7 @@ local Skills = require("./Skills")
 local Combat = require("./Combat")
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Progression = require("./ProgressionExtension")
+local CharacterRules = require("./CharacterRules")
 local Events = require("../../../core/infra/analytics/Events")
 
 local M = {}
@@ -443,7 +444,8 @@ function M.new(
 		context: Shared.CommandContext?,
 		player: Player
 	): Shared.CommandStage?
-		if action == "combat-damage" then
+		local strike = action == "combat-damage"
+		if strike then
 			action = "vitals-damage"
 		end
 		if not player or not player.inventory then
@@ -708,6 +710,15 @@ function M.new(
 								damage = damage * defense.guardPermille // 1000
 							end
 						end
+						if strike and content then
+							-- Worn armor only; carried gear never mitigates.
+							damage = CharacterRules.mitigate(
+								content,
+								((player.personalExtensions or {}) :: any).gear,
+								player.inventory[inventoryConfig.carriedContainer],
+								damage
+							)
+						end
 						nextVitals = if action == "vitals-damage"
 							then Vitals.damage(advanced, damage)
 							else Vitals.stopRest(advanced)
@@ -852,7 +863,8 @@ function M.new(
 			return stageRaw(id, action, args, context, live)
 		end
 		local port = services.survivalDeath
-		if action == "combat-damage" then
+		local strike = action == "combat-damage"
+		if strike then
 			action = "vitals-damage"
 		end
 		if
@@ -902,6 +914,15 @@ function M.new(
 							Progression.award(content :: any, live.progression, "guard-block", now .. context.requestId)
 						damage = damage * defense.guardPermille // 1000
 					end
+				end
+				if strike and content then
+					-- Worn armor only; carried gear never mitigates.
+					damage = CharacterRules.mitigate(
+						content,
+						((live.personalExtensions or {}) :: any).gear,
+						live.inventory[inventoryConfig.carriedContainer],
+						damage
+					)
 				end
 				advanced = Vitals.damage(advanced, damage)
 				damageResult = { ok = true }

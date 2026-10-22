@@ -357,6 +357,13 @@ items:
     tags: []
     weightMilli: 500
   -
+    # RECONSTRUCTED Robango redesign: tier-2 workbench kit (auxiliary-material spec upgrade-workbench-t2 inputs).
+    id: "workbench-t2-kit"
+    name: "Reinforced Bench Kit"
+    stackMax: 1
+    tags: []
+    weightMilli: 1500
+  -
     id: "capture-bola"
     maxDurabilityMilli: 100000
     name: "Hobble Bola"
@@ -3778,6 +3785,21 @@ recipes:
         item: "workbench-kit"
         quantity: 1
   -
+    id: "workbench-t2-kit"
+    craftMillis: 20000
+    inputs:
+      -
+        item: "polished-bone"
+        quantity: 6
+      -
+        item: "thick-leather"
+        quantity: 3
+    outputs:
+      -
+        item: "workbench-t2-kit"
+        quantity: 1
+    station: "workbench"
+  -
     id: "kiln-kit"
     craftMillis: 20000
     inputs:
@@ -4229,6 +4251,17 @@ structures:
     footprintZ: 2
     id: "workbench"
     station: true
+  -
+    # RECONSTRUCTED Robango redesign: home-placed tier-2 workbench (serves workbench tier 2).
+    id: "workbench-t2"
+    footprintX: 2
+    footprintZ: 2
+    station: true
+    cost:
+      -
+        item: "workbench-t2-kit"
+        quantity: 1
+    tier: 2
   -
     id: "kiln"
     footprintX: 2
@@ -10847,6 +10880,19 @@ recipeDetails:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    id: "workbench-t2-kit"
+    minCharacterLevel: 30
+    primaryMaterialLevel: 30
+    primaryInputs:
+      - "polished-bone"
+      - "thick-leather"
+    auxiliaryInputs: []
+    skillNodes:
+      - "construction_3"
+    seconds: 20
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
     id: "kiln-kit"
     minCharacterLevel: 10
     primaryMaterialLevel: 10
@@ -12729,10 +12775,11 @@ layouts:
       -
         id: "rw.a1.s1.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -46
           y: 4
-          z: 88
+          z: 108
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12741,10 +12788,11 @@ layouts:
       -
         id: "rw.a1.s1.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -58
           y: 4
-          z: 88
+          z: 95
         stock: 24
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12753,10 +12801,11 @@ layouts:
       -
         id: "rw.a1.s1.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -57
           y: 4
-          z: 88
+          z: 112
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12765,10 +12814,11 @@ layouts:
       -
         id: "rw.a1.s1.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -69
           y: 4
-          z: 88
+          z: 100
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12777,10 +12827,11 @@ layouts:
       -
         id: "rw.a1.s1.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -68
           y: 4
-          z: 100
+          z: 117
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12789,10 +12840,11 @@ layouts:
       -
         id: "rw.a1.s1.material.wood"
         item: "wood"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -46
           y: 4
-          z: 100
+          z: 91
         stock: 10
         # Robango redesign value: a1 is the first route (stage gate level 2), so its objective wood is level 1.
         level: 1
@@ -12802,10 +12854,11 @@ layouts:
       -
         id: "rw.a1.s1.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -79
           y: 4
-          z: 100
+          z: 122
         stock: 5
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12814,10 +12867,11 @@ layouts:
       -
         id: "rw.a1.s1.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -91
           y: 4
-          z: 100
+          z: 109
         stock: 8
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -12826,10 +12880,11 @@ layouts:
       -
         id: "rw.a1.s1.seed.corn-seed"
         item: "corn-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -80
           y: 4
-          z: 112
+          z: 105
         stock: 2
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13141,9 +13196,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -66
+            x: -46
             y: 4
-            z: 88
+            z: 108
         width: 8
       -
         id: "rw.a1.s1.resource-11"
@@ -13153,9 +13208,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -54
+            x: -58
             y: 4
-            z: 88
+            z: 95
         width: 8
       -
         id: "rw.a1.s1.resource-12"
@@ -13165,9 +13220,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -42
+            x: -57
             y: 4
-            z: 88
+            z: 112
         width: 8
       -
         id: "rw.a1.s1.resource-13"
@@ -13177,9 +13232,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -30
+            x: -69
             y: 4
-            z: 88
+            z: 100
         width: 8
       -
         id: "rw.a1.s1.resource-14"
@@ -13189,9 +13244,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -66
+            x: -68
             y: 4
-            z: 100
+            z: 117
         width: 8
       -
         id: "rw.a1.s1.resource-15"
@@ -13201,9 +13256,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -54
+            x: -46
             y: 4
-            z: 100
+            z: 91
         width: 8
       -
         id: "rw.a1.s1.resource-16"
@@ -13213,9 +13268,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -42
+            x: -79
             y: 4
-            z: 100
+            z: 122
         width: 8
       -
         id: "rw.a1.s1.resource-17"
@@ -13225,9 +13280,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -30
+            x: -91
             y: 4
-            z: 100
+            z: 109
         width: 8
       -
         id: "rw.a1.s1.resource-18"
@@ -13237,9 +13292,9 @@ layouts:
             y: 4
             z: 100
           -
-            x: -54
+            x: -80
             y: 4
-            z: 112
+            z: 105
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -13323,10 +13378,11 @@ layouts:
       -
         id: "rw.a1.s2.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -108
           y: 6
-          z: -66
+          z: -46
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13335,10 +13391,11 @@ layouts:
       -
         id: "rw.a1.s2.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -95
           y: 6
-          z: -54
+          z: -58
         stock: 24
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13347,10 +13404,11 @@ layouts:
       -
         id: "rw.a1.s2.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -112
           y: 6
-          z: -42
+          z: -57
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13359,10 +13417,11 @@ layouts:
       -
         id: "rw.a1.s2.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -100
           y: 6
-          z: -30
+          z: -69
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13371,10 +13430,11 @@ layouts:
       -
         id: "rw.a1.s2.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -117
           y: 6
-          z: -66
+          z: -68
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13383,10 +13443,11 @@ layouts:
       -
         id: "rw.a1.s2.material.hide"
         item: "hide"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -91
           y: 6
-          z: -54
+          z: -46
         stock: 10
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 10
@@ -13395,10 +13456,11 @@ layouts:
       -
         id: "rw.a1.s2.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -122
           y: 6
-          z: -42
+          z: -79
         stock: 5
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13407,10 +13469,11 @@ layouts:
       -
         id: "rw.a1.s2.chapter.birch-bark"
         item: "birch-bark"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -109
           y: 6
-          z: -30
+          z: -91
         stock: 8
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13419,10 +13482,11 @@ layouts:
       -
         id: "rw.a1.s2.seed.potato-seed"
         item: "potato-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -112
+          x: -105
           y: 6
-          z: -54
+          z: -80
         stock: 2
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13708,9 +13772,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -88
+            x: -108
             y: 6
-            z: -66
+            z: -46
         width: 8
       -
         id: "rw.a1.s2.resource-10"
@@ -13720,9 +13784,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -88
+            x: -95
             y: 6
-            z: -54
+            z: -58
         width: 8
       -
         id: "rw.a1.s2.resource-11"
@@ -13732,9 +13796,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -88
+            x: -112
             y: 6
-            z: -42
+            z: -57
         width: 8
       -
         id: "rw.a1.s2.resource-12"
@@ -13744,9 +13808,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -88
+            x: -100
             y: 6
-            z: -30
+            z: -69
         width: 8
       -
         id: "rw.a1.s2.resource-13"
@@ -13756,9 +13820,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -100
+            x: -117
             y: 6
-            z: -66
+            z: -68
         width: 8
       -
         id: "rw.a1.s2.resource-14"
@@ -13768,9 +13832,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -100
+            x: -91
             y: 6
-            z: -54
+            z: -46
         width: 8
       -
         id: "rw.a1.s2.resource-15"
@@ -13780,9 +13844,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -100
+            x: -122
             y: 6
-            z: -42
+            z: -79
         width: 8
       -
         id: "rw.a1.s2.resource-16"
@@ -13792,9 +13856,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -100
+            x: -109
             y: 6
-            z: -30
+            z: -91
         width: 8
       -
         id: "rw.a1.s2.resource-17"
@@ -13804,9 +13868,9 @@ layouts:
             y: 6
             z: -48
           -
-            x: -112
+            x: -105
             y: 6
-            z: -54
+            z: -80
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -13890,10 +13954,11 @@ layouts:
       -
         id: "rw.a1.s3.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -52
           y: 6
-          z: -88
+          z: -93
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13902,10 +13967,11 @@ layouts:
       -
         id: "rw.a1.s3.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -51
           y: 6
-          z: -88
+          z: -110
         stock: 24
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13914,10 +13980,11 @@ layouts:
       -
         id: "rw.a1.s3.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -63
           y: 6
-          z: -88
+          z: -98
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13926,10 +13993,11 @@ layouts:
       -
         id: "rw.a1.s3.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -62
           y: 6
-          z: -88
+          z: -115
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13938,10 +14006,11 @@ layouts:
       -
         id: "rw.a1.s3.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -74
           y: 6
-          z: -100
+          z: -102
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13950,10 +14019,11 @@ layouts:
       -
         id: "rw.a1.s3.material.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -40
           y: 6
-          z: -100
+          z: -105
         stock: 10
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13962,10 +14032,11 @@ layouts:
       -
         id: "rw.a1.s3.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -85
           y: 6
-          z: -100
+          z: -107
         stock: 5
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -13974,10 +14045,11 @@ layouts:
       -
         id: "rw.a1.s3.chapter.bone"
         item: "bone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -85
           y: 6
-          z: -100
+          z: -124
         stock: 8
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 10
@@ -13986,10 +14058,11 @@ layouts:
       -
         id: "rw.a1.s3.seed.wheat-seed"
         item: "wheat-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -74
           y: 6
-          z: -112
+          z: -119
         stock: 2
         level: 30
         yield: 3
@@ -14300,9 +14373,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -66
+            x: -52
             y: 6
-            z: -88
+            z: -93
         width: 8
       -
         id: "rw.a1.s3.resource-11"
@@ -14312,9 +14385,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -54
+            x: -51
             y: 6
-            z: -88
+            z: -110
         width: 8
       -
         id: "rw.a1.s3.resource-12"
@@ -14324,9 +14397,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -42
+            x: -63
             y: 6
-            z: -88
+            z: -98
         width: 8
       -
         id: "rw.a1.s3.resource-13"
@@ -14336,9 +14409,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -30
+            x: -62
             y: 6
-            z: -88
+            z: -115
         width: 8
       -
         id: "rw.a1.s3.resource-14"
@@ -14348,9 +14421,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -66
+            x: -74
             y: 6
-            z: -100
+            z: -102
         width: 8
       -
         id: "rw.a1.s3.resource-15"
@@ -14360,9 +14433,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -54
+            x: -40
             y: 6
-            z: -100
+            z: -105
         width: 8
       -
         id: "rw.a1.s3.resource-16"
@@ -14372,9 +14445,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -42
+            x: -85
             y: 6
-            z: -100
+            z: -107
         width: 8
       -
         id: "rw.a1.s3.resource-17"
@@ -14384,9 +14457,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -30
+            x: -85
             y: 6
-            z: -100
+            z: -124
         width: 8
       -
         id: "rw.a1.s3.resource-18"
@@ -14396,9 +14469,9 @@ layouts:
             y: 6
             z: -100
           -
-            x: -54
+            x: -74
             y: 6
-            z: -112
+            z: -119
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -14482,10 +14555,11 @@ layouts:
       -
         id: "rw.a1.s4.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 108
           y: 8
-          z: 66
+          z: 46
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14494,10 +14568,11 @@ layouts:
       -
         id: "rw.a1.s4.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 95
           y: 8
-          z: 54
+          z: 58
         stock: 24
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14506,10 +14581,11 @@ layouts:
       -
         id: "rw.a1.s4.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 112
           y: 8
-          z: 42
+          z: 57
         stock: 40
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14518,10 +14594,11 @@ layouts:
       -
         id: "rw.a1.s4.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 100
           y: 8
-          z: 30
+          z: 69
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14530,10 +14607,11 @@ layouts:
       -
         id: "rw.a1.s4.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 117
           y: 8
-          z: 66
+          z: 68
         stock: 12
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14542,10 +14620,11 @@ layouts:
       -
         id: "rw.a1.s4.material.wood"
         item: "wood"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 91
           y: 8
-          z: 54
+          z: 46
         stock: 10
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14555,10 +14634,11 @@ layouts:
       -
         id: "rw.a1.s4.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 122
           y: 8
-          z: 42
+          z: 79
         stock: 5
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14567,10 +14647,11 @@ layouts:
       -
         id: "rw.a1.s4.chapter.signal-fragment"
         item: "signal-fragment"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 109
           y: 8
-          z: 30
+          z: 91
         stock: 8
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
         level: 1
@@ -14579,10 +14660,11 @@ layouts:
       -
         id: "rw.a1.s4.seed.onion-seed"
         item: "onion-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 112
+          x: 105
           y: 8
-          z: 54
+          z: 80
         stock: 2
         level: 30
         yield: 3
@@ -14896,9 +14978,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 88
+            x: 108
             y: 8
-            z: 66
+            z: 46
         width: 8
       -
         id: "rw.a1.s4.resource-11"
@@ -14908,9 +14990,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 88
+            x: 95
             y: 8
-            z: 54
+            z: 58
         width: 8
       -
         id: "rw.a1.s4.resource-12"
@@ -14920,9 +15002,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 88
+            x: 112
             y: 8
-            z: 42
+            z: 57
         width: 8
       -
         id: "rw.a1.s4.resource-13"
@@ -14932,9 +15014,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 88
+            x: 100
             y: 8
-            z: 30
+            z: 69
         width: 8
       -
         id: "rw.a1.s4.resource-14"
@@ -14944,9 +15026,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 100
+            x: 117
             y: 8
-            z: 66
+            z: 68
         width: 8
       -
         id: "rw.a1.s4.resource-15"
@@ -14956,9 +15038,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 100
+            x: 91
             y: 8
-            z: 54
+            z: 46
         width: 8
       -
         id: "rw.a1.s4.resource-16"
@@ -14968,9 +15050,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 100
+            x: 122
             y: 8
-            z: 42
+            z: 79
         width: 8
       -
         id: "rw.a1.s4.resource-17"
@@ -14980,9 +15062,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 100
+            x: 109
             y: 8
-            z: 30
+            z: 91
         width: 8
       -
         id: "rw.a1.s4.resource-18"
@@ -14992,9 +15074,9 @@ layouts:
             y: 8
             z: 48
           -
-            x: 112
+            x: 105
             y: 8
-            z: 54
+            z: 80
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -15078,10 +15160,11 @@ layouts:
       -
         id: "rw.a2.s1.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 110
           y: 8
-          z: -66
+          z: -51
         stock: 40
         level: 30
         yield: 3
@@ -15089,10 +15172,11 @@ layouts:
       -
         id: "rw.a2.s1.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 98
           y: 8
-          z: -54
+          z: -63
         stock: 24
         level: 30
         yield: 3
@@ -15100,10 +15184,11 @@ layouts:
       -
         id: "rw.a2.s1.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 105
           y: 8
-          z: -42
+          z: -40
         stock: 40
         level: 30
         yield: 3
@@ -15111,10 +15196,11 @@ layouts:
       -
         id: "rw.a2.s1.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 115
           y: 8
-          z: -30
+          z: -62
         stock: 12
         level: 30
         yield: 3
@@ -15122,10 +15208,11 @@ layouts:
       -
         id: "rw.a2.s1.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 102
           y: 8
-          z: -66
+          z: -74
         stock: 12
         level: 30
         yield: 3
@@ -15133,10 +15220,11 @@ layouts:
       -
         id: "rw.a2.s1.material.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 93
           y: 8
-          z: -54
+          z: -52
         stock: 20
         level: 30
         yield: 3
@@ -15144,10 +15232,11 @@ layouts:
       -
         id: "rw.a2.s1.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 107
           y: 8
-          z: -42
+          z: -85
         stock: 10
         level: 30
         yield: 3
@@ -15155,10 +15244,11 @@ layouts:
       -
         id: "rw.a2.s1.chapter.flax"
         item: "flax"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 124
           y: 8
-          z: -30
+          z: -85
         stock: 8
         level: 30
         yield: 3
@@ -15166,10 +15256,11 @@ layouts:
       -
         id: "rw.a2.s1.seed.flax-seed"
         item: "flax-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 112
+          x: 119
           y: 8
-          z: -54
+          z: -74
         stock: 2
         level: 30
         yield: 3
@@ -15428,9 +15519,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 88
+            x: 110
             y: 8
-            z: -66
+            z: -51
         width: 8
       -
         id: "rw.a2.s1.resource-9"
@@ -15440,9 +15531,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 88
+            x: 98
             y: 8
-            z: -54
+            z: -63
         width: 8
       -
         id: "rw.a2.s1.resource-10"
@@ -15452,9 +15543,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 88
+            x: 105
             y: 8
-            z: -42
+            z: -40
         width: 8
       -
         id: "rw.a2.s1.resource-11"
@@ -15464,9 +15555,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 88
+            x: 115
             y: 8
-            z: -30
+            z: -62
         width: 8
       -
         id: "rw.a2.s1.resource-12"
@@ -15476,9 +15567,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 100
+            x: 102
             y: 8
-            z: -66
+            z: -74
         width: 8
       -
         id: "rw.a2.s1.resource-13"
@@ -15488,9 +15579,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 100
+            x: 93
             y: 8
-            z: -54
+            z: -52
         width: 8
       -
         id: "rw.a2.s1.resource-14"
@@ -15500,9 +15591,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 100
+            x: 107
             y: 8
-            z: -42
+            z: -85
         width: 8
       -
         id: "rw.a2.s1.resource-15"
@@ -15512,9 +15603,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 100
+            x: 124
             y: 8
-            z: -30
+            z: -85
         width: 8
       -
         id: "rw.a2.s1.resource-16"
@@ -15524,9 +15615,9 @@ layouts:
             y: 8
             z: -48
           -
-            x: 112
+            x: 119
             y: 8
-            z: -54
+            z: -74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -15610,10 +15701,11 @@ layouts:
       -
         id: "rw.a2.s2.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 46
           y: 4
-          z: -88
+          z: -108
         stock: 40
         level: 30
         yield: 3
@@ -15621,10 +15713,11 @@ layouts:
       -
         id: "rw.a2.s2.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 58
           y: 4
-          z: -88
+          z: -95
         stock: 24
         level: 30
         yield: 3
@@ -15632,10 +15725,11 @@ layouts:
       -
         id: "rw.a2.s2.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 57
           y: 4
-          z: -88
+          z: -112
         stock: 40
         level: 30
         yield: 3
@@ -15643,10 +15737,11 @@ layouts:
       -
         id: "rw.a2.s2.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 69
           y: 4
-          z: -88
+          z: -100
         stock: 12
         level: 30
         yield: 3
@@ -15654,10 +15749,11 @@ layouts:
       -
         id: "rw.a2.s2.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 68
           y: 4
-          z: -100
+          z: -117
         stock: 12
         level: 30
         yield: 3
@@ -15665,10 +15761,11 @@ layouts:
       -
         id: "rw.a2.s2.material.clay"
         item: "clay"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 46
           y: 4
-          z: -100
+          z: -91
         stock: 20
         level: 30
         yield: 3
@@ -15676,10 +15773,11 @@ layouts:
       -
         id: "rw.a2.s2.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 79
           y: 4
-          z: -100
+          z: -122
         stock: 10
         level: 30
         yield: 3
@@ -15687,10 +15785,11 @@ layouts:
       -
         id: "rw.a2.s2.chapter.onion"
         item: "onion"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 91
           y: 4
-          z: -100
+          z: -109
         stock: 8
         level: 30
         yield: 3
@@ -15698,10 +15797,11 @@ layouts:
       -
         id: "rw.a2.s2.seed.banana-seed"
         item: "banana-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 80
           y: 4
-          z: -112
+          z: -105
         stock: 2
         level: 30
         yield: 3
@@ -15934,9 +16034,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 66
+            x: 46
             y: 4
-            z: -88
+            z: -108
         width: 8
       -
         id: "rw.a2.s2.resource-8"
@@ -15946,9 +16046,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 54
+            x: 58
             y: 4
-            z: -88
+            z: -95
         width: 8
       -
         id: "rw.a2.s2.resource-9"
@@ -15958,9 +16058,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 42
+            x: 57
             y: 4
-            z: -88
+            z: -112
         width: 8
       -
         id: "rw.a2.s2.resource-10"
@@ -15970,9 +16070,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 30
+            x: 69
             y: 4
-            z: -88
+            z: -100
         width: 8
       -
         id: "rw.a2.s2.resource-11"
@@ -15982,9 +16082,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 66
+            x: 68
             y: 4
-            z: -100
+            z: -117
         width: 8
       -
         id: "rw.a2.s2.resource-12"
@@ -15994,9 +16094,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 54
+            x: 46
             y: 4
-            z: -100
+            z: -91
         width: 8
       -
         id: "rw.a2.s2.resource-13"
@@ -16006,9 +16106,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 42
+            x: 79
             y: 4
-            z: -100
+            z: -122
         width: 8
       -
         id: "rw.a2.s2.resource-14"
@@ -16018,9 +16118,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 30
+            x: 91
             y: 4
-            z: -100
+            z: -109
         width: 8
       -
         id: "rw.a2.s2.resource-15"
@@ -16030,9 +16130,9 @@ layouts:
             y: 4
             z: -100
           -
-            x: 54
+            x: 80
             y: 4
-            z: -112
+            z: -105
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -16116,10 +16216,11 @@ layouts:
       -
         id: "rw.a2.s3.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -93
           y: 4
-          z: 66
+          z: 52
         stock: 40
         level: 30
         yield: 3
@@ -16127,10 +16228,11 @@ layouts:
       -
         id: "rw.a2.s3.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -110
           y: 4
-          z: 54
+          z: 51
         stock: 24
         level: 30
         yield: 3
@@ -16138,10 +16240,11 @@ layouts:
       -
         id: "rw.a2.s3.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -98
           y: 4
-          z: 42
+          z: 63
         stock: 40
         level: 30
         yield: 3
@@ -16149,10 +16252,11 @@ layouts:
       -
         id: "rw.a2.s3.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -115
           y: 4
-          z: 30
+          z: 62
         stock: 12
         level: 30
         yield: 3
@@ -16160,10 +16264,11 @@ layouts:
       -
         id: "rw.a2.s3.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -102
           y: 4
-          z: 66
+          z: 74
         stock: 12
         level: 30
         yield: 3
@@ -16171,10 +16276,11 @@ layouts:
       -
         id: "rw.a2.s3.material.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -105
           y: 4
-          z: 54
+          z: 40
         stock: 20
         level: 30
         yield: 3
@@ -16182,10 +16288,11 @@ layouts:
       -
         id: "rw.a2.s3.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -107
           y: 4
-          z: 42
+          z: 85
         stock: 10
         level: 30
         yield: 3
@@ -16193,10 +16300,11 @@ layouts:
       -
         id: "rw.a2.s3.chapter.clam"
         item: "clam"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -124
           y: 4
-          z: 30
+          z: 85
         stock: 8
         level: 30
         yield: 3
@@ -16204,10 +16312,11 @@ layouts:
       -
         id: "rw.a2.s3.seed.fig-seed"
         item: "fig-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -112
+          x: -119
           y: 4
-          z: 54
+          z: 74
         stock: 2
         level: 30
         yield: 3
@@ -16440,9 +16549,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -88
+            x: -93
             y: 4
-            z: 66
+            z: 52
         width: 8
       -
         id: "rw.a2.s3.resource-8"
@@ -16452,9 +16561,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -88
+            x: -110
             y: 4
-            z: 54
+            z: 51
         width: 8
       -
         id: "rw.a2.s3.resource-9"
@@ -16464,9 +16573,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -88
+            x: -98
             y: 4
-            z: 42
+            z: 63
         width: 8
       -
         id: "rw.a2.s3.resource-10"
@@ -16476,9 +16585,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -88
+            x: -115
             y: 4
-            z: 30
+            z: 62
         width: 8
       -
         id: "rw.a2.s3.resource-11"
@@ -16488,9 +16597,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -100
+            x: -102
             y: 4
-            z: 66
+            z: 74
         width: 8
       -
         id: "rw.a2.s3.resource-12"
@@ -16500,9 +16609,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -100
+            x: -105
             y: 4
-            z: 54
+            z: 40
         width: 8
       -
         id: "rw.a2.s3.resource-13"
@@ -16512,9 +16621,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -100
+            x: -107
             y: 4
-            z: 42
+            z: 85
         width: 8
       -
         id: "rw.a2.s3.resource-14"
@@ -16524,9 +16633,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -100
+            x: -124
             y: 4
-            z: 30
+            z: 85
         width: 8
       -
         id: "rw.a2.s3.resource-15"
@@ -16536,9 +16645,9 @@ layouts:
             y: 4
             z: 48
           -
-            x: -112
+            x: -119
             y: 4
-            z: 54
+            z: 74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -16622,10 +16731,11 @@ layouts:
       -
         id: "rw.a2.s4.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 52
           y: 10
-          z: 88
+          z: 93
         stock: 40
         level: 30
         yield: 3
@@ -16633,10 +16743,11 @@ layouts:
       -
         id: "rw.a2.s4.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 51
           y: 10
-          z: 88
+          z: 110
         stock: 24
         level: 30
         yield: 3
@@ -16644,10 +16755,11 @@ layouts:
       -
         id: "rw.a2.s4.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 63
           y: 10
-          z: 88
+          z: 98
         stock: 40
         level: 30
         yield: 3
@@ -16655,10 +16767,11 @@ layouts:
       -
         id: "rw.a2.s4.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 62
           y: 10
-          z: 88
+          z: 115
         stock: 12
         level: 30
         yield: 3
@@ -16666,10 +16779,11 @@ layouts:
       -
         id: "rw.a2.s4.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 74
           y: 10
-          z: 100
+          z: 102
         stock: 12
         level: 30
         yield: 3
@@ -16677,10 +16791,11 @@ layouts:
       -
         id: "rw.a2.s4.material.hide"
         item: "hide"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 40
           y: 10
-          z: 100
+          z: 105
         stock: 20
         level: 30
         yield: 3
@@ -16688,10 +16803,11 @@ layouts:
       -
         id: "rw.a2.s4.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 85
           y: 10
-          z: 100
+          z: 107
         stock: 10
         level: 30
         yield: 3
@@ -16699,10 +16815,11 @@ layouts:
       -
         id: "rw.a2.s4.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 85
           y: 10
-          z: 100
+          z: 124
         stock: 8
         level: 30
         yield: 3
@@ -16710,10 +16827,11 @@ layouts:
       -
         id: "rw.a2.s4.seed.banana-seed"
         item: "banana-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 74
           y: 10
-          z: 112
+          z: 119
         stock: 2
         level: 30
         yield: 3
@@ -16972,9 +17090,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 66
+            x: 52
             y: 10
-            z: 88
+            z: 93
         width: 8
       -
         id: "rw.a2.s4.resource-9"
@@ -16984,9 +17102,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 54
+            x: 51
             y: 10
-            z: 88
+            z: 110
         width: 8
       -
         id: "rw.a2.s4.resource-10"
@@ -16996,9 +17114,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 42
+            x: 63
             y: 10
-            z: 88
+            z: 98
         width: 8
       -
         id: "rw.a2.s4.resource-11"
@@ -17008,9 +17126,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 30
+            x: 62
             y: 10
-            z: 88
+            z: 115
         width: 8
       -
         id: "rw.a2.s4.resource-12"
@@ -17020,9 +17138,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 66
+            x: 74
             y: 10
-            z: 100
+            z: 102
         width: 8
       -
         id: "rw.a2.s4.resource-13"
@@ -17032,9 +17150,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 54
+            x: 40
             y: 10
-            z: 100
+            z: 105
         width: 8
       -
         id: "rw.a2.s4.resource-14"
@@ -17044,9 +17162,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 42
+            x: 85
             y: 10
-            z: 100
+            z: 107
         width: 8
       -
         id: "rw.a2.s4.resource-15"
@@ -17056,9 +17174,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 30
+            x: 85
             y: 10
-            z: 100
+            z: 124
         width: 8
       -
         id: "rw.a2.s4.resource-16"
@@ -17068,9 +17186,9 @@ layouts:
             y: 10
             z: 100
           -
-            x: 54
+            x: 74
             y: 10
-            z: 112
+            z: 119
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -17154,10 +17272,11 @@ layouts:
       -
         id: "rw.a3.s1.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -52
           y: 10
-          z: -88
+          z: -93
         stock: 40
         level: 40
         yield: 3
@@ -17165,10 +17284,11 @@ layouts:
       -
         id: "rw.a3.s1.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -51
           y: 10
-          z: -88
+          z: -110
         stock: 24
         level: 40
         yield: 3
@@ -17176,10 +17296,11 @@ layouts:
       -
         id: "rw.a3.s1.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -63
           y: 10
-          z: -88
+          z: -98
         stock: 40
         level: 40
         yield: 3
@@ -17187,10 +17308,11 @@ layouts:
       -
         id: "rw.a3.s1.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -62
           y: 10
-          z: -88
+          z: -115
         stock: 12
         level: 40
         yield: 3
@@ -17198,10 +17320,11 @@ layouts:
       -
         id: "rw.a3.s1.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -74
           y: 10
-          z: -100
+          z: -102
         stock: 12
         level: 40
         yield: 3
@@ -17209,10 +17332,11 @@ layouts:
       -
         id: "rw.a3.s1.material.iron-ore"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -40
           y: 10
-          z: -100
+          z: -105
         stock: 30
         level: 40
         yield: 3
@@ -17224,10 +17348,11 @@ layouts:
       -
         id: "rw.a3.s1.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -85
           y: 10
-          z: -100
+          z: -107
         stock: 15
         level: 40
         yield: 3
@@ -17235,10 +17360,11 @@ layouts:
       -
         id: "rw.a3.s1.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -85
           y: 10
-          z: -100
+          z: -124
         stock: 8
         level: 40
         yield: 3
@@ -17246,10 +17372,11 @@ layouts:
       -
         id: "rw.a3.s1.seed.onion-seed"
         item: "onion-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -74
           y: 10
-          z: -112
+          z: -119
         stock: 2
         level: 40
         yield: 3
@@ -17508,9 +17635,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -66
+            x: -52
             y: 10
-            z: -88
+            z: -93
         width: 8
       -
         id: "rw.a3.s1.resource-9"
@@ -17520,9 +17647,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -54
+            x: -51
             y: 10
-            z: -88
+            z: -110
         width: 8
       -
         id: "rw.a3.s1.resource-10"
@@ -17532,9 +17659,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -42
+            x: -63
             y: 10
-            z: -88
+            z: -98
         width: 8
       -
         id: "rw.a3.s1.resource-11"
@@ -17544,9 +17671,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -30
+            x: -62
             y: 10
-            z: -88
+            z: -115
         width: 8
       -
         id: "rw.a3.s1.resource-12"
@@ -17556,9 +17683,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -66
+            x: -74
             y: 10
-            z: -100
+            z: -102
         width: 8
       -
         id: "rw.a3.s1.resource-13"
@@ -17568,9 +17695,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -54
+            x: -40
             y: 10
-            z: -100
+            z: -105
         width: 8
       -
         id: "rw.a3.s1.resource-14"
@@ -17580,9 +17707,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -42
+            x: -85
             y: 10
-            z: -100
+            z: -107
         width: 8
       -
         id: "rw.a3.s1.resource-15"
@@ -17592,9 +17719,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -30
+            x: -85
             y: 10
-            z: -100
+            z: -124
         width: 8
       -
         id: "rw.a3.s1.resource-16"
@@ -17604,9 +17731,9 @@ layouts:
             y: 10
             z: -100
           -
-            x: -54
+            x: -74
             y: 10
-            z: -112
+            z: -119
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -17690,10 +17817,11 @@ layouts:
       -
         id: "rw.a3.s2.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 108
           y: 6
-          z: 66
+          z: 46
         stock: 40
         level: 40
         yield: 3
@@ -17701,10 +17829,11 @@ layouts:
       -
         id: "rw.a3.s2.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 95
           y: 6
-          z: 54
+          z: 58
         stock: 24
         level: 40
         yield: 3
@@ -17712,10 +17841,11 @@ layouts:
       -
         id: "rw.a3.s2.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 112
           y: 6
-          z: 42
+          z: 57
         stock: 40
         level: 40
         yield: 3
@@ -17723,10 +17853,11 @@ layouts:
       -
         id: "rw.a3.s2.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 100
           y: 6
-          z: 30
+          z: 69
         stock: 12
         level: 40
         yield: 3
@@ -17734,10 +17865,11 @@ layouts:
       -
         id: "rw.a3.s2.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 117
           y: 6
-          z: 66
+          z: 68
         stock: 12
         level: 40
         yield: 3
@@ -17745,10 +17877,11 @@ layouts:
       -
         id: "rw.a3.s2.material.clay"
         item: "clay"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 91
           y: 6
-          z: 54
+          z: 46
         stock: 30
         level: 40
         yield: 3
@@ -17756,10 +17889,11 @@ layouts:
       -
         id: "rw.a3.s2.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 122
           y: 6
-          z: 42
+          z: 79
         stock: 15
         level: 40
         yield: 3
@@ -17767,10 +17901,11 @@ layouts:
       -
         id: "rw.a3.s2.chapter.onion"
         item: "onion"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 109
           y: 6
-          z: 30
+          z: 91
         stock: 8
         level: 40
         yield: 3
@@ -17778,10 +17913,11 @@ layouts:
       -
         id: "rw.a3.s2.seed.flax-seed"
         item: "flax-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 112
+          x: 105
           y: 6
-          z: 54
+          z: 80
         stock: 2
         level: 40
         yield: 3
@@ -18014,9 +18150,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 88
+            x: 108
             y: 6
-            z: 66
+            z: 46
         width: 8
       -
         id: "rw.a3.s2.resource-8"
@@ -18026,9 +18162,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 88
+            x: 95
             y: 6
-            z: 54
+            z: 58
         width: 8
       -
         id: "rw.a3.s2.resource-9"
@@ -18038,9 +18174,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 88
+            x: 112
             y: 6
-            z: 42
+            z: 57
         width: 8
       -
         id: "rw.a3.s2.resource-10"
@@ -18050,9 +18186,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 88
+            x: 100
             y: 6
-            z: 30
+            z: 69
         width: 8
       -
         id: "rw.a3.s2.resource-11"
@@ -18062,9 +18198,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 100
+            x: 117
             y: 6
-            z: 66
+            z: 68
         width: 8
       -
         id: "rw.a3.s2.resource-12"
@@ -18074,9 +18210,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 100
+            x: 91
             y: 6
-            z: 54
+            z: 46
         width: 8
       -
         id: "rw.a3.s2.resource-13"
@@ -18086,9 +18222,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 100
+            x: 122
             y: 6
-            z: 42
+            z: 79
         width: 8
       -
         id: "rw.a3.s2.resource-14"
@@ -18098,9 +18234,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 100
+            x: 109
             y: 6
-            z: 30
+            z: 91
         width: 8
       -
         id: "rw.a3.s2.resource-15"
@@ -18110,9 +18246,9 @@ layouts:
             y: 6
             z: 48
           -
-            x: 112
+            x: 105
             y: 6
-            z: 54
+            z: 80
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -18196,10 +18332,11 @@ layouts:
       -
         id: "rw.a3.s3.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 52
           y: 12
-          z: 88
+          z: 93
         stock: 40
         level: 40
         yield: 3
@@ -18207,10 +18344,11 @@ layouts:
       -
         id: "rw.a3.s3.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 51
           y: 12
-          z: 88
+          z: 110
         stock: 24
         level: 40
         yield: 3
@@ -18218,10 +18356,11 @@ layouts:
       -
         id: "rw.a3.s3.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 63
           y: 12
-          z: 88
+          z: 98
         stock: 40
         level: 40
         yield: 3
@@ -18229,10 +18368,11 @@ layouts:
       -
         id: "rw.a3.s3.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 62
           y: 12
-          z: 88
+          z: 115
         stock: 12
         level: 40
         yield: 3
@@ -18240,10 +18380,11 @@ layouts:
       -
         id: "rw.a3.s3.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 74
           y: 12
-          z: 100
+          z: 102
         stock: 12
         level: 40
         yield: 3
@@ -18251,10 +18392,11 @@ layouts:
       -
         id: "rw.a3.s3.material.hide"
         item: "hide"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 40
           y: 12
-          z: 100
+          z: 105
         stock: 30
         level: 40
         yield: 3
@@ -18262,10 +18404,11 @@ layouts:
       -
         id: "rw.a3.s3.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 85
           y: 12
-          z: 100
+          z: 107
         stock: 15
         level: 40
         yield: 3
@@ -18273,10 +18416,11 @@ layouts:
       -
         id: "rw.a3.s3.chapter.bone"
         item: "bone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 85
           y: 12
-          z: 100
+          z: 124
         stock: 8
         level: 40
         yield: 3
@@ -18284,10 +18428,11 @@ layouts:
       -
         id: "rw.a3.s3.seed.fig-seed"
         item: "fig-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 74
           y: 12
-          z: 112
+          z: 119
         stock: 2
         level: 40
         yield: 3
@@ -18546,9 +18691,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 66
+            x: 52
             y: 12
-            z: 88
+            z: 93
         width: 8
       -
         id: "rw.a3.s3.resource-9"
@@ -18558,9 +18703,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 54
+            x: 51
             y: 12
-            z: 88
+            z: 110
         width: 8
       -
         id: "rw.a3.s3.resource-10"
@@ -18570,9 +18715,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 42
+            x: 63
             y: 12
-            z: 88
+            z: 98
         width: 8
       -
         id: "rw.a3.s3.resource-11"
@@ -18582,9 +18727,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 30
+            x: 62
             y: 12
-            z: 88
+            z: 115
         width: 8
       -
         id: "rw.a3.s3.resource-12"
@@ -18594,9 +18739,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 66
+            x: 74
             y: 12
-            z: 100
+            z: 102
         width: 8
       -
         id: "rw.a3.s3.resource-13"
@@ -18606,9 +18751,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 54
+            x: 40
             y: 12
-            z: 100
+            z: 105
         width: 8
       -
         id: "rw.a3.s3.resource-14"
@@ -18618,9 +18763,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 42
+            x: 85
             y: 12
-            z: 100
+            z: 107
         width: 8
       -
         id: "rw.a3.s3.resource-15"
@@ -18630,9 +18775,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 30
+            x: 85
             y: 12
-            z: 100
+            z: 124
         width: 8
       -
         id: "rw.a3.s3.resource-16"
@@ -18642,9 +18787,9 @@ layouts:
             y: 12
             z: 100
           -
-            x: 54
+            x: 74
             y: 12
-            z: 112
+            z: 119
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -18728,10 +18873,11 @@ layouts:
       -
         id: "rw.a3.s4.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -108
           y: 12
-          z: -66
+          z: -46
         stock: 40
         level: 40
         yield: 3
@@ -18739,10 +18885,11 @@ layouts:
       -
         id: "rw.a3.s4.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -95
           y: 12
-          z: -54
+          z: -58
         stock: 24
         level: 40
         yield: 3
@@ -18750,10 +18897,11 @@ layouts:
       -
         id: "rw.a3.s4.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -112
           y: 12
-          z: -42
+          z: -57
         stock: 40
         level: 40
         yield: 3
@@ -18761,10 +18909,11 @@ layouts:
       -
         id: "rw.a3.s4.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -100
           y: 12
-          z: -30
+          z: -69
         stock: 12
         level: 40
         yield: 3
@@ -18772,10 +18921,11 @@ layouts:
       -
         id: "rw.a3.s4.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -117
           y: 12
-          z: -66
+          z: -68
         stock: 12
         level: 40
         yield: 3
@@ -18783,10 +18933,11 @@ layouts:
       -
         id: "rw.a3.s4.material.iron-ore"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -91
           y: 12
-          z: -54
+          z: -46
         stock: 30
         level: 40
         yield: 3
@@ -18798,10 +18949,11 @@ layouts:
       -
         id: "rw.a3.s4.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -122
           y: 12
-          z: -42
+          z: -79
         stock: 15
         level: 40
         yield: 3
@@ -18809,10 +18961,11 @@ layouts:
       -
         id: "rw.a3.s4.chapter.signal-fragment"
         item: "signal-fragment"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -109
           y: 12
-          z: -30
+          z: -91
         stock: 8
         level: 40
         yield: 3
@@ -18820,10 +18973,11 @@ layouts:
       -
         id: "rw.a3.s4.seed.wheat-seed"
         item: "wheat-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -112
+          x: -105
           y: 12
-          z: -54
+          z: -80
         stock: 2
         level: 40
         yield: 3
@@ -19108,9 +19262,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -88
+            x: -108
             y: 12
-            z: -66
+            z: -46
         width: 8
       -
         id: "rw.a3.s4.resource-10"
@@ -19120,9 +19274,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -88
+            x: -95
             y: 12
-            z: -54
+            z: -58
         width: 8
       -
         id: "rw.a3.s4.resource-11"
@@ -19132,9 +19286,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -88
+            x: -112
             y: 12
-            z: -42
+            z: -57
         width: 8
       -
         id: "rw.a3.s4.resource-12"
@@ -19144,9 +19298,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -88
+            x: -100
             y: 12
-            z: -30
+            z: -69
         width: 8
       -
         id: "rw.a3.s4.resource-13"
@@ -19156,9 +19310,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -100
+            x: -117
             y: 12
-            z: -66
+            z: -68
         width: 8
       -
         id: "rw.a3.s4.resource-14"
@@ -19168,9 +19322,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -100
+            x: -91
             y: 12
-            z: -54
+            z: -46
         width: 8
       -
         id: "rw.a3.s4.resource-15"
@@ -19180,9 +19334,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -100
+            x: -122
             y: 12
-            z: -42
+            z: -79
         width: 8
       -
         id: "rw.a3.s4.resource-16"
@@ -19192,9 +19346,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -100
+            x: -109
             y: 12
-            z: -30
+            z: -91
         width: 8
       -
         id: "rw.a3.s4.resource-17"
@@ -19204,9 +19358,9 @@ layouts:
             y: 12
             z: -48
           -
-            x: -112
+            x: -105
             y: 12
-            z: -54
+            z: -80
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -19290,10 +19444,11 @@ layouts:
       -
         id: "rw.a4.s1.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -93
           y: 14
-          z: 66
+          z: 52
         stock: 40
         level: 50
         yield: 3
@@ -19301,10 +19456,11 @@ layouts:
       -
         id: "rw.a4.s1.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -110
           y: 14
-          z: 54
+          z: 51
         stock: 24
         level: 50
         yield: 3
@@ -19312,10 +19468,11 @@ layouts:
       -
         id: "rw.a4.s1.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -98
           y: 14
-          z: 42
+          z: 63
         stock: 40
         level: 50
         yield: 3
@@ -19323,10 +19480,11 @@ layouts:
       -
         id: "rw.a4.s1.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -115
           y: 14
-          z: 30
+          z: 62
         stock: 12
         level: 50
         yield: 3
@@ -19334,10 +19492,11 @@ layouts:
       -
         id: "rw.a4.s1.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -102
           y: 14
-          z: 66
+          z: 74
         stock: 12
         level: 50
         yield: 3
@@ -19345,10 +19504,11 @@ layouts:
       -
         id: "rw.a4.s1.material.iron-ore"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -105
           y: 14
-          z: 54
+          z: 40
         stock: 40
         level: 50
         yield: 3
@@ -19360,10 +19520,11 @@ layouts:
       -
         id: "rw.a4.s1.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -107
           y: 14
-          z: 42
+          z: 85
         stock: 20
         level: 50
         yield: 3
@@ -19371,10 +19532,11 @@ layouts:
       -
         id: "rw.a4.s1.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -124
           y: 14
-          z: 30
+          z: 85
         stock: 8
         level: 50
         yield: 3
@@ -19382,10 +19544,11 @@ layouts:
       -
         id: "rw.a4.s1.seed.potato-seed"
         item: "potato-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -112
+          x: -119
           y: 14
-          z: 54
+          z: 74
         stock: 2
         level: 50
         yield: 3
@@ -19713,9 +19876,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -88
+            x: -93
             y: 14
-            z: 66
+            z: 52
         width: 8
       -
         id: "rw.a4.s1.resource-12"
@@ -19725,9 +19888,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -88
+            x: -110
             y: 14
-            z: 54
+            z: 51
         width: 8
       -
         id: "rw.a4.s1.resource-13"
@@ -19737,9 +19900,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -88
+            x: -98
             y: 14
-            z: 42
+            z: 63
         width: 8
       -
         id: "rw.a4.s1.resource-14"
@@ -19749,9 +19912,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -88
+            x: -115
             y: 14
-            z: 30
+            z: 62
         width: 8
       -
         id: "rw.a4.s1.resource-15"
@@ -19761,9 +19924,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -100
+            x: -102
             y: 14
-            z: 66
+            z: 74
         width: 8
       -
         id: "rw.a4.s1.resource-16"
@@ -19773,9 +19936,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -100
+            x: -105
             y: 14
-            z: 54
+            z: 40
         width: 8
       -
         id: "rw.a4.s1.resource-17"
@@ -19785,9 +19948,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -100
+            x: -107
             y: 14
-            z: 42
+            z: 85
         width: 8
       -
         id: "rw.a4.s1.resource-18"
@@ -19797,9 +19960,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -100
+            x: -124
             y: 14
-            z: 30
+            z: 85
         width: 8
       -
         id: "rw.a4.s1.resource-19"
@@ -19809,9 +19972,9 @@ layouts:
             y: 14
             z: 48
           -
-            x: -112
+            x: -119
             y: 14
-            z: 54
+            z: 74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -19895,10 +20058,11 @@ layouts:
       -
         id: "rw.a4.s2.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -46
           y: 14
-          z: 88
+          z: 108
         stock: 40
         level: 50
         yield: 3
@@ -19906,10 +20070,11 @@ layouts:
       -
         id: "rw.a4.s2.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -58
           y: 14
-          z: 88
+          z: 95
         stock: 24
         level: 50
         yield: 3
@@ -19917,10 +20082,11 @@ layouts:
       -
         id: "rw.a4.s2.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -57
           y: 14
-          z: 88
+          z: 112
         stock: 40
         level: 50
         yield: 3
@@ -19928,10 +20094,11 @@ layouts:
       -
         id: "rw.a4.s2.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -69
           y: 14
-          z: 88
+          z: 100
         stock: 12
         level: 50
         yield: 3
@@ -19939,10 +20106,11 @@ layouts:
       -
         id: "rw.a4.s2.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -68
           y: 14
-          z: 100
+          z: 117
         stock: 12
         level: 50
         yield: 3
@@ -19950,10 +20118,11 @@ layouts:
       -
         id: "rw.a4.s2.material.hide"
         item: "hide"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -46
           y: 14
-          z: 100
+          z: 91
         stock: 40
         level: 50
         yield: 3
@@ -19961,10 +20130,11 @@ layouts:
       -
         id: "rw.a4.s2.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -79
           y: 14
-          z: 100
+          z: 122
         stock: 20
         level: 50
         yield: 3
@@ -19972,10 +20142,11 @@ layouts:
       -
         id: "rw.a4.s2.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -91
           y: 14
-          z: 100
+          z: 109
         stock: 8
         level: 50
         yield: 3
@@ -19983,10 +20154,11 @@ layouts:
       -
         id: "rw.a4.s2.seed.apple-seed"
         item: "apple-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -80
           y: 14
-          z: 112
+          z: 105
         stock: 2
         level: 50
         yield: 3
@@ -20219,9 +20391,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -66
+            x: -46
             y: 14
-            z: 88
+            z: 108
         width: 8
       -
         id: "rw.a4.s2.resource-8"
@@ -20231,9 +20403,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -54
+            x: -58
             y: 14
-            z: 88
+            z: 95
         width: 8
       -
         id: "rw.a4.s2.resource-9"
@@ -20243,9 +20415,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -42
+            x: -57
             y: 14
-            z: 88
+            z: 112
         width: 8
       -
         id: "rw.a4.s2.resource-10"
@@ -20255,9 +20427,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -30
+            x: -69
             y: 14
-            z: 88
+            z: 100
         width: 8
       -
         id: "rw.a4.s2.resource-11"
@@ -20267,9 +20439,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -66
+            x: -68
             y: 14
-            z: 100
+            z: 117
         width: 8
       -
         id: "rw.a4.s2.resource-12"
@@ -20279,9 +20451,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -54
+            x: -46
             y: 14
-            z: 100
+            z: 91
         width: 8
       -
         id: "rw.a4.s2.resource-13"
@@ -20291,9 +20463,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -42
+            x: -79
             y: 14
-            z: 100
+            z: 122
         width: 8
       -
         id: "rw.a4.s2.resource-14"
@@ -20303,9 +20475,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -30
+            x: -91
             y: 14
-            z: 100
+            z: 109
         width: 8
       -
         id: "rw.a4.s2.resource-15"
@@ -20315,9 +20487,9 @@ layouts:
             y: 14
             z: 100
           -
-            x: -54
+            x: -80
             y: 14
-            z: 112
+            z: 105
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -20401,10 +20573,11 @@ layouts:
       -
         id: "rw.a4.s3.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 93
           y: 16
-          z: -66
+          z: -52
         stock: 40
         level: 50
         yield: 3
@@ -20412,10 +20585,11 @@ layouts:
       -
         id: "rw.a4.s3.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 110
           y: 16
-          z: -54
+          z: -51
         stock: 24
         level: 50
         yield: 3
@@ -20423,10 +20597,11 @@ layouts:
       -
         id: "rw.a4.s3.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 98
           y: 16
-          z: -42
+          z: -63
         stock: 40
         level: 50
         yield: 3
@@ -20434,10 +20609,11 @@ layouts:
       -
         id: "rw.a4.s3.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 115
           y: 16
-          z: -30
+          z: -62
         stock: 12
         level: 50
         yield: 3
@@ -20445,10 +20621,11 @@ layouts:
       -
         id: "rw.a4.s3.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 102
           y: 16
-          z: -66
+          z: -74
         stock: 12
         level: 50
         yield: 3
@@ -20456,10 +20633,11 @@ layouts:
       -
         id: "rw.a4.s3.material.iron-ore"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 105
           y: 16
-          z: -54
+          z: -40
         stock: 40
         level: 50
         yield: 3
@@ -20471,10 +20649,11 @@ layouts:
       -
         id: "rw.a4.s3.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 107
           y: 16
-          z: -42
+          z: -85
         stock: 20
         level: 50
         yield: 3
@@ -20482,10 +20661,11 @@ layouts:
       -
         id: "rw.a4.s3.chapter.survey-sample"
         item: "survey-sample"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 124
           y: 16
-          z: -30
+          z: -85
         stock: 8
         level: 50
         yield: 3
@@ -20493,10 +20673,11 @@ layouts:
       -
         id: "rw.a4.s3.seed.apple-seed"
         item: "apple-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 112
+          x: 119
           y: 16
-          z: -54
+          z: -74
         stock: 2
         level: 50
         yield: 3
@@ -20807,9 +20988,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 88
+            x: 93
             y: 16
-            z: -66
+            z: -52
         width: 8
       -
         id: "rw.a4.s3.resource-11"
@@ -20819,9 +21000,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 88
+            x: 110
             y: 16
-            z: -54
+            z: -51
         width: 8
       -
         id: "rw.a4.s3.resource-12"
@@ -20831,9 +21012,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 88
+            x: 98
             y: 16
-            z: -42
+            z: -63
         width: 8
       -
         id: "rw.a4.s3.resource-13"
@@ -20843,9 +21024,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 88
+            x: 115
             y: 16
-            z: -30
+            z: -62
         width: 8
       -
         id: "rw.a4.s3.resource-14"
@@ -20855,9 +21036,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 100
+            x: 102
             y: 16
-            z: -66
+            z: -74
         width: 8
       -
         id: "rw.a4.s3.resource-15"
@@ -20867,9 +21048,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 100
+            x: 105
             y: 16
-            z: -54
+            z: -40
         width: 8
       -
         id: "rw.a4.s3.resource-16"
@@ -20879,9 +21060,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 100
+            x: 107
             y: 16
-            z: -42
+            z: -85
         width: 8
       -
         id: "rw.a4.s3.resource-17"
@@ -20891,9 +21072,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 100
+            x: 124
             y: 16
-            z: -30
+            z: -85
         width: 8
       -
         id: "rw.a4.s3.resource-18"
@@ -20903,9 +21084,9 @@ layouts:
             y: 16
             z: -48
           -
-            x: 112
+            x: 119
             y: 16
-            z: -54
+            z: -74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -20989,10 +21170,11 @@ layouts:
       -
         id: "rw.a4.s4.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 46
           y: 16
-          z: -88
+          z: -108
         stock: 40
         level: 50
         yield: 3
@@ -21000,10 +21182,11 @@ layouts:
       -
         id: "rw.a4.s4.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 58
           y: 16
-          z: -88
+          z: -95
         stock: 24
         level: 50
         yield: 3
@@ -21011,10 +21194,11 @@ layouts:
       -
         id: "rw.a4.s4.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 57
           y: 16
-          z: -88
+          z: -112
         stock: 40
         level: 50
         yield: 3
@@ -21022,10 +21206,11 @@ layouts:
       -
         id: "rw.a4.s4.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 69
           y: 16
-          z: -88
+          z: -100
         stock: 12
         level: 50
         yield: 3
@@ -21033,10 +21218,11 @@ layouts:
       -
         id: "rw.a4.s4.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 68
           y: 16
-          z: -100
+          z: -117
         stock: 12
         level: 50
         yield: 3
@@ -21044,10 +21230,11 @@ layouts:
       -
         id: "rw.a4.s4.material.hide"
         item: "hide"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 46
           y: 16
-          z: -100
+          z: -91
         stock: 40
         level: 50
         yield: 3
@@ -21055,10 +21242,11 @@ layouts:
       -
         id: "rw.a4.s4.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 79
           y: 16
-          z: -100
+          z: -122
         stock: 20
         level: 50
         yield: 3
@@ -21066,10 +21254,11 @@ layouts:
       -
         id: "rw.a4.s4.chapter.signal-fragment"
         item: "signal-fragment"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 91
           y: 16
-          z: -100
+          z: -109
         stock: 8
         level: 50
         yield: 3
@@ -21077,10 +21266,11 @@ layouts:
       -
         id: "rw.a4.s4.seed.apple-seed"
         item: "apple-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 80
           y: 16
-          z: -112
+          z: -105
         stock: 2
         level: 50
         yield: 3
@@ -21339,9 +21529,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 66
+            x: 46
             y: 16
-            z: -88
+            z: -108
         width: 8
       -
         id: "rw.a4.s4.resource-9"
@@ -21351,9 +21541,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 54
+            x: 58
             y: 16
-            z: -88
+            z: -95
         width: 8
       -
         id: "rw.a4.s4.resource-10"
@@ -21363,9 +21553,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 42
+            x: 57
             y: 16
-            z: -88
+            z: -112
         width: 8
       -
         id: "rw.a4.s4.resource-11"
@@ -21375,9 +21565,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 30
+            x: 69
             y: 16
-            z: -88
+            z: -100
         width: 8
       -
         id: "rw.a4.s4.resource-12"
@@ -21387,9 +21577,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 66
+            x: 68
             y: 16
-            z: -100
+            z: -117
         width: 8
       -
         id: "rw.a4.s4.resource-13"
@@ -21399,9 +21589,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 54
+            x: 46
             y: 16
-            z: -100
+            z: -91
         width: 8
       -
         id: "rw.a4.s4.resource-14"
@@ -21411,9 +21601,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 42
+            x: 79
             y: 16
-            z: -100
+            z: -122
         width: 8
       -
         id: "rw.a4.s4.resource-15"
@@ -21423,9 +21613,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 30
+            x: 91
             y: 16
-            z: -100
+            z: -109
         width: 8
       -
         id: "rw.a4.s4.resource-16"
@@ -21435,9 +21625,9 @@ layouts:
             y: 16
             z: -100
           -
-            x: 54
+            x: 80
             y: 16
-            z: -112
+            z: -105
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -21521,10 +21711,11 @@ layouts:
       -
         id: "rw.a5.s1.material.basalt"
         item: "basalt"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -46
           y: 18
-          z: 100
+          z: 91
         stock: 50
         level: 60
         yield: 3
@@ -21536,10 +21727,11 @@ layouts:
       -
         id: "rw.a5.s1.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -90
           y: 18
-          z: 100
+          z: 126
         stock: 25
         level: 60
         yield: 3
@@ -21547,10 +21739,11 @@ layouts:
       -
         id: "rw.a5.s1.chapter.volcanic-ash"
         item: "volcanic-ash"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
+          x: -102
           y: 18
-          z: 100
+          z: 114
         stock: 8
         level: 60
         yield: 3
@@ -21558,10 +21751,11 @@ layouts:
       -
         id: "rw.a5.s1.seed.corn-seed"
         item: "corn-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -91
           y: 18
-          z: 112
+          z: 109
         stock: 2
         level: 60
         yield: 3
@@ -21569,10 +21763,11 @@ layouts:
       -
         id: "rw.a5.s1.fringe-basalt.01"
         item: "basalt"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -66
+          x: -46
           y: 18
-          z: 88
+          z: 108
         stock: 12
         level: 60
         yield: 3
@@ -21584,10 +21779,11 @@ layouts:
       -
         id: "rw.a5.s1.fringe-volcanic-ore.01"
         item: "volcanic-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -54
+          x: -58
           y: 18
-          z: 88
+          z: 95
         stock: 8
         level: 60
         yield: 3
@@ -21599,10 +21795,11 @@ layouts:
       -
         id: "rw.a5.s1.fringe-iron-ore.01"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -42
+          x: -57
           y: 18
-          z: 88
+          z: 112
         stock: 20
         level: 60
         yield: 3
@@ -21614,19 +21811,9 @@ layouts:
       -
         id: "rw.a5.s1.fringe-branch.01"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -30
-          y: 18
-          z: 88
-        stock: 20
-        level: 60
-        yield: 3
-        respawnSeconds: 120
-      -
-        id: "rw.a5.s1.fringe-fiber.01"
-        item: "fiber"
-        position:
-          x: -66
+          x: -69
           y: 18
           z: 100
         stock: 20
@@ -21634,12 +21821,25 @@ layouts:
         yield: 3
         respawnSeconds: 120
       -
+        id: "rw.a5.s1.fringe-fiber.01"
+        item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
+        position:
+          x: -68
+          y: 18
+          z: 117
+        stock: 20
+        level: 60
+        yield: 3
+        respawnSeconds: 120
+      -
         id: "rw.a5.s1.fringe-charcoal"
         item: "charcoal"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -48
+          x: -80
           y: 18
-          z: 140
+          z: 105
         stock: 7
         level: 60
         yield: 3
@@ -21647,10 +21847,11 @@ layouts:
       -
         id: "rw.a5.s1.fringe-water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -48
+          x: -79
           y: 18
-          z: 140
+          z: 122
         stock: 12
         level: 60
         yield: 3
@@ -21922,9 +22123,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -54
+            x: -46
             y: 18
-            z: 100
+            z: 91
         width: 8
       -
         id: "rw.a5.s1.resource-9"
@@ -21934,9 +22135,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -42
+            x: -90
             y: 18
-            z: 100
+            z: 126
         width: 8
       -
         id: "rw.a5.s1.resource-10"
@@ -21946,9 +22147,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -30
+            x: -102
             y: 18
-            z: 100
+            z: 114
         width: 8
       -
         id: "rw.a5.s1.resource-11"
@@ -21958,9 +22159,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -54
+            x: -91
             y: 18
-            z: 112
+            z: 109
         width: 8
       -
         id: "rw.a5.s1.resource-12"
@@ -21970,9 +22171,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -66
+            x: -46
             y: 18
-            z: 88
+            z: 108
         width: 8
       -
         id: "rw.a5.s1.resource-13"
@@ -21982,9 +22183,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -54
+            x: -58
             y: 18
-            z: 88
+            z: 95
         width: 8
       -
         id: "rw.a5.s1.resource-14"
@@ -21994,9 +22195,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -42
+            x: -57
             y: 18
-            z: 88
+            z: 112
         width: 8
       -
         id: "rw.a5.s1.resource-15"
@@ -22006,9 +22207,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -30
+            x: -69
             y: 18
-            z: 88
+            z: 100
         width: 8
       -
         id: "rw.a5.s1.resource-16"
@@ -22018,9 +22219,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -66
+            x: -68
             y: 18
-            z: 100
+            z: 117
         width: 8
       -
         id: "rw.a5.s1.resource-17"
@@ -22030,9 +22231,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -48
+            x: -80
             y: 18
-            z: 140
+            z: 105
         width: 8
       -
         id: "rw.a5.s1.resource-18"
@@ -22042,9 +22243,9 @@ layouts:
             y: 18
             z: 100
           -
-            x: -48
+            x: -79
             y: 18
-            z: 140
+            z: 122
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -22128,10 +22329,11 @@ layouts:
       -
         id: "rw.a5.s2.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 93
           y: 18
-          z: -66
+          z: -52
         stock: 40
         level: 60
         yield: 3
@@ -22139,10 +22341,11 @@ layouts:
       -
         id: "rw.a5.s2.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 110
           y: 18
-          z: -54
+          z: -51
         stock: 24
         level: 60
         yield: 3
@@ -22150,10 +22353,11 @@ layouts:
       -
         id: "rw.a5.s2.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 98
           y: 18
-          z: -42
+          z: -63
         stock: 40
         level: 60
         yield: 3
@@ -22161,10 +22365,11 @@ layouts:
       -
         id: "rw.a5.s2.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 88
+          x: 115
           y: 18
-          z: -30
+          z: -62
         stock: 12
         level: 60
         yield: 3
@@ -22172,10 +22377,11 @@ layouts:
       -
         id: "rw.a5.s2.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 102
           y: 18
-          z: -66
+          z: -74
         stock: 12
         level: 60
         yield: 3
@@ -22183,10 +22389,11 @@ layouts:
       -
         id: "rw.a5.s2.material.iron-ore"
         item: "iron-ore"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 105
           y: 18
-          z: -54
+          z: -40
         stock: 50
         level: 60
         yield: 3
@@ -22198,10 +22405,11 @@ layouts:
       -
         id: "rw.a5.s2.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 107
           y: 18
-          z: -42
+          z: -85
         stock: 25
         level: 60
         yield: 3
@@ -22209,10 +22417,11 @@ layouts:
       -
         id: "rw.a5.s2.chapter.volcanic-ash"
         item: "volcanic-ash"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 100
+          x: 124
           y: 18
-          z: -30
+          z: -85
         stock: 8
         level: 60
         yield: 3
@@ -22220,10 +22429,11 @@ layouts:
       -
         id: "rw.a5.s2.seed.onion-seed"
         item: "onion-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 112
+          x: 119
           y: 18
-          z: -54
+          z: -74
         stock: 2
         level: 60
         yield: 3
@@ -22441,9 +22651,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 88
+            x: 93
             y: 18
-            z: -66
+            z: -52
         width: 8
       -
         id: "rw.a5.s2.resource-7"
@@ -22453,9 +22663,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 88
+            x: 110
             y: 18
-            z: -54
+            z: -51
         width: 8
       -
         id: "rw.a5.s2.resource-8"
@@ -22465,9 +22675,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 88
+            x: 98
             y: 18
-            z: -42
+            z: -63
         width: 8
       -
         id: "rw.a5.s2.resource-9"
@@ -22477,9 +22687,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 88
+            x: 115
             y: 18
-            z: -30
+            z: -62
         width: 8
       -
         id: "rw.a5.s2.resource-10"
@@ -22489,9 +22699,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 100
+            x: 102
             y: 18
-            z: -66
+            z: -74
         width: 8
       -
         id: "rw.a5.s2.resource-11"
@@ -22501,9 +22711,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 100
+            x: 105
             y: 18
-            z: -54
+            z: -40
         width: 8
       -
         id: "rw.a5.s2.resource-12"
@@ -22513,9 +22723,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 100
+            x: 107
             y: 18
-            z: -42
+            z: -85
         width: 8
       -
         id: "rw.a5.s2.resource-13"
@@ -22525,9 +22735,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 100
+            x: 124
             y: 18
-            z: -30
+            z: -85
         width: 8
       -
         id: "rw.a5.s2.resource-14"
@@ -22537,9 +22747,9 @@ layouts:
             y: 18
             z: -48
           -
-            x: 112
+            x: 119
             y: 18
-            z: -54
+            z: -74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -22623,10 +22833,11 @@ layouts:
       -
         id: "rw.a5.s3.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 46
           y: 20
-          z: -88
+          z: -108
         stock: 40
         level: 60
         yield: 3
@@ -22634,10 +22845,11 @@ layouts:
       -
         id: "rw.a5.s3.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 58
           y: 20
-          z: -88
+          z: -95
         stock: 24
         level: 60
         yield: 3
@@ -22645,10 +22857,11 @@ layouts:
       -
         id: "rw.a5.s3.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 57
           y: 20
-          z: -88
+          z: -112
         stock: 40
         level: 60
         yield: 3
@@ -22656,10 +22869,11 @@ layouts:
       -
         id: "rw.a5.s3.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 69
           y: 20
-          z: -88
+          z: -100
         stock: 12
         level: 60
         yield: 3
@@ -22667,10 +22881,11 @@ layouts:
       -
         id: "rw.a5.s3.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 66
+          x: 68
           y: 20
-          z: -100
+          z: -117
         stock: 12
         level: 60
         yield: 3
@@ -22678,10 +22893,11 @@ layouts:
       -
         id: "rw.a5.s3.material.basalt"
         item: "basalt"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 46
           y: 20
-          z: -100
+          z: -91
         stock: 50
         level: 60
         yield: 3
@@ -22693,10 +22909,11 @@ layouts:
       -
         id: "rw.a5.s3.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 42
+          x: 79
           y: 20
-          z: -100
+          z: -122
         stock: 25
         level: 60
         yield: 3
@@ -22704,10 +22921,11 @@ layouts:
       -
         id: "rw.a5.s3.chapter.volcanic-ash"
         item: "volcanic-ash"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 30
+          x: 91
           y: 20
-          z: -100
+          z: -109
         stock: 8
         level: 60
         yield: 3
@@ -22715,10 +22933,11 @@ layouts:
       -
         id: "rw.a5.s3.seed.flax-seed"
         item: "flax-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: 54
+          x: 80
           y: 20
-          z: -112
+          z: -105
         stock: 2
         level: 60
         yield: 3
@@ -23040,9 +23259,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 66
+            x: 46
             y: 20
-            z: -88
+            z: -108
         width: 8
       -
         id: "rw.a5.s3.resource-11"
@@ -23052,9 +23271,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 54
+            x: 58
             y: 20
-            z: -88
+            z: -95
         width: 8
       -
         id: "rw.a5.s3.resource-12"
@@ -23064,9 +23283,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 42
+            x: 57
             y: 20
-            z: -88
+            z: -112
         width: 8
       -
         id: "rw.a5.s3.resource-13"
@@ -23076,9 +23295,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 30
+            x: 69
             y: 20
-            z: -88
+            z: -100
         width: 8
       -
         id: "rw.a5.s3.resource-14"
@@ -23088,9 +23307,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 66
+            x: 68
             y: 20
-            z: -100
+            z: -117
         width: 8
       -
         id: "rw.a5.s3.resource-15"
@@ -23100,9 +23319,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 54
+            x: 46
             y: 20
-            z: -100
+            z: -91
         width: 8
       -
         id: "rw.a5.s3.resource-16"
@@ -23112,9 +23331,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 42
+            x: 79
             y: 20
-            z: -100
+            z: -122
         width: 8
       -
         id: "rw.a5.s3.resource-17"
@@ -23124,9 +23343,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 30
+            x: 91
             y: 20
-            z: -100
+            z: -109
         width: 8
       -
         id: "rw.a5.s3.resource-18"
@@ -23136,9 +23355,9 @@ layouts:
             y: 20
             z: -100
           -
-            x: 54
+            x: 80
             y: 20
-            z: -112
+            z: -105
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -23223,10 +23442,11 @@ layouts:
       -
         id: "rw.a5.s4.branch"
         item: "branch"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -93
           y: 20
-          z: 66
+          z: 52
         stock: 40
         level: 60
         yield: 3
@@ -23234,10 +23454,11 @@ layouts:
       -
         id: "rw.a5.s4.stone"
         item: "stone"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -110
           y: 20
-          z: 54
+          z: 51
         stock: 24
         level: 60
         yield: 3
@@ -23245,10 +23466,11 @@ layouts:
       -
         id: "rw.a5.s4.fiber"
         item: "fiber"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -98
           y: 20
-          z: 42
+          z: 63
         stock: 40
         level: 60
         yield: 3
@@ -23256,10 +23478,11 @@ layouts:
       -
         id: "rw.a5.s4.berry"
         item: "berry"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -88
+          x: -115
           y: 20
-          z: 30
+          z: 62
         stock: 12
         level: 60
         yield: 3
@@ -23267,10 +23490,11 @@ layouts:
       -
         id: "rw.a5.s4.water"
         item: "water"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -102
           y: 20
-          z: 66
+          z: 74
         stock: 12
         level: 60
         yield: 3
@@ -23278,10 +23502,11 @@ layouts:
       -
         id: "rw.a5.s4.material.basalt"
         item: "basalt"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -105
           y: 20
-          z: 54
+          z: 40
         stock: 50
         level: 60
         yield: 3
@@ -23293,10 +23518,11 @@ layouts:
       -
         id: "rw.a5.s4.cargo.relief-unit"
         item: "relief-unit"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -107
           y: 20
-          z: 42
+          z: 85
         stock: 25
         level: 60
         yield: 3
@@ -23304,10 +23530,11 @@ layouts:
       -
         id: "rw.a5.s4.chapter.rescue-marker"
         item: "rescue-marker"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -124
           y: 20
-          z: 30
+          z: 85
         stock: 8
         level: 60
         yield: 3
@@ -23315,10 +23542,11 @@ layouts:
       -
         id: "rw.a5.s4.chapter.chapter"
         item: "chapter"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -111
           y: 20
-          z: 30
+          z: 96
         stock: 8
         level: 60
         yield: 3
@@ -23326,10 +23554,11 @@ layouts:
       -
         id: "rw.a5.s4.chapter.fragment"
         item: "fragment"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -100
+          x: -129
           y: 20
-          z: 30
+          z: 96
         stock: 1
         level: 60
         yield: 3
@@ -23337,10 +23566,11 @@ layouts:
       -
         id: "rw.a5.s4.seed.apple-seed"
         item: "apple-seed"
+        # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
-          x: -112
+          x: -119
           y: 20
-          z: 54
+          z: 74
         stock: 2
         level: 60
         yield: 3
@@ -23714,9 +23944,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -88
+            x: -93
             y: 20
-            z: 66
+            z: 52
         width: 8
       -
         id: "rw.a5.s4.resource-13"
@@ -23726,9 +23956,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -88
+            x: -110
             y: 20
-            z: 54
+            z: 51
         width: 8
       -
         id: "rw.a5.s4.resource-14"
@@ -23738,9 +23968,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -88
+            x: -98
             y: 20
-            z: 42
+            z: 63
         width: 8
       -
         id: "rw.a5.s4.resource-15"
@@ -23750,9 +23980,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -88
+            x: -115
             y: 20
-            z: 30
+            z: 62
         width: 8
       -
         id: "rw.a5.s4.resource-16"
@@ -23762,9 +23992,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -102
             y: 20
-            z: 66
+            z: 74
         width: 8
       -
         id: "rw.a5.s4.resource-17"
@@ -23774,9 +24004,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -105
             y: 20
-            z: 54
+            z: 40
         width: 8
       -
         id: "rw.a5.s4.resource-18"
@@ -23786,9 +24016,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -107
             y: 20
-            z: 42
+            z: 85
         width: 8
       -
         id: "rw.a5.s4.resource-19"
@@ -23798,9 +24028,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -124
             y: 20
-            z: 30
+            z: 85
         width: 8
       -
         id: "rw.a5.s4.resource-20"
@@ -23810,9 +24040,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -111
             y: 20
-            z: 30
+            z: 96
         width: 8
       -
         id: "rw.a5.s4.resource-21"
@@ -23822,9 +24052,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -100
+            x: -129
             y: 20
-            z: 30
+            z: 96
         width: 8
       -
         id: "rw.a5.s4.resource-22"
@@ -23834,9 +24064,9 @@ layouts:
             y: 20
             z: 48
           -
-            x: -112
+            x: -119
             y: 20
-            z: 54
+            z: 74
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
@@ -24378,6 +24608,13 @@ layouts:
           x: 0
           y: 2
           z: -16
+      -
+        # RECONSTRUCTED Robango redesign: fixed home tier-2 workbench for modification.
+        id: "station.workbench.t2"
+        position:
+          x: -8
+          y: 2
+          z: -24
     resourceNodes:
       -
         id: "rw.home.branch"

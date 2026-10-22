@@ -939,6 +939,13 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
+		[237] = {
+			["id"] = "workbench-t2-kit",
+			["name"] = "Reinforced Bench Kit",
+			["stackMax"] = 1,
+			["tags"] = {},
+			["weightMilli"] = 1500,
+		},
 		[24] = { ["id"] = "branch", ["name"] = "Branch", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
 		[25] = {
 			["id"] = "brick-floor-kit",
@@ -2074,6 +2081,19 @@ local recipes: {
 				[2] = { ["item"] = "fiber", ["quantity"] = 5 },
 			},
 			["outputs"] = { [1] = { ["item"] = "workbench-kit", ["quantity"] = 1 } },
+		},
+		[156] = {
+			["craftMillis"] = 20000,
+			["id"] = "workbench-t2-kit",
+			["inputs"] = {
+				[1] = { ["item"] = "polished-bone", ["quantity"] = 6 },
+				[2] = {
+					["item"] = "thick-leather",
+					["quantity"] = 3,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "workbench-t2-kit", ["quantity"] = 1 } },
+			["station"] = "workbench",
 		},
 		[16] = {
 			["craftMillis"] = 3000,
@@ -3640,6 +3660,14 @@ local structures: {
 			["footprintZ"] = 2,
 			["id"] = "workbench",
 			["station"] = true,
+		},
+		[32] = {
+			["cost"] = { [1] = { ["item"] = "workbench-t2-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "workbench-t2",
+			["station"] = true,
+			["tier"] = 2,
 		},
 		[4] = {
 			["cost"] = { [1] = { ["item"] = "brick-roof-kit", ["quantity"] = 1 } },

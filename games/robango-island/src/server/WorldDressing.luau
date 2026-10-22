@@ -443,6 +443,7 @@ function M.structure(parent: any, definition: any, cellStuds: number): any
 		["clan-hall"] = "shelter",
 		["joiner-bench"] = "workbench",
 		["mason-bench"] = "workbench",
+		["workbench-t2"] = "workbench",
 		laboratory = "workbench",
 		["tanning-frame"] = "drying-rack",
 		["animal-pen"] = "fence",
@@ -497,15 +498,81 @@ function M.palette(layout: any): any
 		else palettes[layout.biomes[1]] or palettes.grassland
 end
 
+-- Archipelago arrival point: on the main trail 32 studs short of the resource yard.
+-- `forward` is the unit XZ direction from that point toward the yard.
+function M.trailhead(layout: any): any?
+	if not string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+		return nil
+	end
+	for _, path in layout.paths do
+		if string.sub(path.id, -5) == ".main" then
+			local yard, before = path.points[3], path.points[2]
+			local dx, dz = before.x - yard.x, before.z - yard.z
+			local length = math.sqrt(dx * dx + dz * dz)
+			return {
+				position = { x = yard.x + dx / length * 32, y = yard.y, z = yard.z + dz / length * 32 },
+				forward = { x = -dx / length, z = -dz / length },
+			}
+		end
+	end
+	return nil
+end
+
+-- Passive, biome-plausible silhouettes for the arrival view; never interactive wildlife.
+local fauna: any = {
+	grassland = "dodo",
+	forest = "deer",
+	tropical = "turtle",
+	swamp = "turtle",
+	desert = "gallimimus",
+	snow = "mammoth",
+	volcano = "turtle",
+}
+
+-- Arrival dressing: a landmark, rock outcrops, tree clusters and one grazing creature
+-- framed around the trail, so the spawn camera never faces an empty field.
+function M.arrival(parts: { any }, layout: any, palette: any): { any }
+	local head = M.trailhead(layout)
+	if not head then
+		return {}
+	end
+	local s, f = head.position, head.forward
+	local function at(along: number, side: number): any
+		return { x = s.x + f.x * along - f.z * side, y = s.y, z = s.z + f.z * along + f.x * side }
+	end
+	local p = at(6, 18)
+	local base = add(parts, "trailhead.landmark.base", { x = p.x, y = p.y + 4, z = p.z }, {
+		x = 9,
+		y = 8,
+		z = 9,
+	}, "Rock", palette.rock, "Ball")
+	base.ground = p
+	M.kit(parts, "trailhead.landmark", at(14, 15), "beacon", palette)
+	local woody = not (table.find(layout.biomes, "volcano") or layout.biomes[1] == "desert")
+	local tree = if layout.biomes[1] == "snow"
+		then "conifer"
+		elseif layout.biomes[1] == "tropical" or layout.biomes[1] == "swamp" then "palm"
+		else "tree"
+	for i, spot in { { 30, -24 }, { 58, 24 }, { 84, -24 } } do
+		M.kit(parts, "trailhead.outcrop" .. i, at(spot[1], spot[2]), "rock", palette)
+		M.kit(parts, "trailhead.cluster" .. i, at(spot[1] + 8, spot[2] * 1.4), if woody then tree else "rock", palette)
+		M.kit(parts, "trailhead.understory" .. i, at(spot[1] - 6, spot[2] * 1.2), "bush", palette)
+	end
+	local species = if table.find(layout.biomes, "volcano") then fauna.volcano else fauna[layout.biomes[1]]
+	return { { id = "trailhead.grazer", species = species or "dodo", position = at(22, -34) } }
+end
+
 function M.plan(layout: any, columns: { any }, terrain: any): any
 	local palette = M.palette(layout)
 	local parts: { any } = {}
 	local props: { any } = {}
+	-- Archipelago stages spend part of the scatter budget on the arrival dressing instead.
+	local scatter = if M.trailhead(layout) then 11 else 16
 	local stride = math.max(1, math.ceil(#columns / 120))
 	for index, column in columns do
 		if
 			index % stride == 0
-			and #props < 16
+			and #props < scatter
 			and column.top > 0
 			and not terrain.protected(layout, column.x, column.z, 16)
 		then
@@ -690,8 +757,9 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 			)
 		end
 	end
+	local arrival = M.arrival(parts, layout, palette)
 	assert(#parts <= 768, "WORLD_DRESSING_PART_BUDGET")
-	return { parts = parts, props = props, palette = palette }
+	return { parts = parts, props = props, palette = palette, fauna = arrival }
 end
 
 function M.resource(item: any): string

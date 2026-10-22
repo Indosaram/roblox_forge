@@ -14,6 +14,7 @@ local DinosaurRig = require("./DinosaurRig")
 local MountVisual = require("./MountVisual")
 local Archetype = require("../../../core/domain/survival/Archetype")
 local Settlement = require("../../../core/domain/settlement/Settlement")
+local CharacterRules = require("./CharacterRules")
 local M = {}
 export type GatherAuthority = (Session.Session, GatheringRuntime.Request, Inventory.State) -> boolean
 export type Config = {
@@ -688,6 +689,58 @@ function M.new(config: Config)
 			end
 		end
 	end
+	-- Worn gear is shown with one light welded part per slot (CharacterRules.dressing).
+	-- The folder is rebuilt only when the worn set changes; it is presentation only.
+	local function projectGear()
+		local active = assert(session, "world not bound")
+		for _, id in active.members() do
+			local actor = player(id)
+			local character = if actor then actor.Character else nil
+			local personal = active.personalTransfer(id)
+			local profile = if personal then personal.profile() else nil
+			local envelope = if profile and profile.data then profile.data.envelope else nil
+			local slice = if envelope and envelope.genres then envelope.genres["survival-coop"] else nil
+			local state = if slice then slice.data else nil
+			if not character or not state then
+				continue
+			end
+			local bag = if state.inventory then state.inventory[config.carriedContainer] else nil
+			local plan = CharacterRules.dressing(state.gear, bag)
+			local keys = {}
+			for _, entry in plan do
+				table.insert(keys, entry.slot .. "=" .. entry.itemId)
+			end
+			local signature = table.concat(keys, ",")
+			local folder = character:FindFirstChild("ForgeGear")
+			if (folder and folder:GetAttribute("ForgeGearSignature") == signature) or (not folder and #plan == 0) then
+				continue
+			end
+			if folder then
+				folder:Destroy()
+			end
+			local fresh = Instance.new("Folder")
+			fresh.Name = "ForgeGear"
+			fresh:SetAttribute("ForgeGearSignature", signature)
+			for _, entry in plan do
+				local body = character:FindFirstChild(entry.part) or character:FindFirstChild(entry.fallback)
+				if not body or not body:IsA("BasePart") then
+					continue
+				end
+				local piece = Instance.new("Part")
+				piece.Name = "Gear-" .. entry.slot
+				piece.Size = Vector3.new(entry.size.x, entry.size.y, entry.size.z)
+				piece.Color = Color3.fromRGB(entry.color[1], entry.color[2], entry.color[3])
+				piece.Material = if entry.slot == "weapon" then Enum.Material.Wood else Enum.Material.Fabric
+				piece.CanCollide, piece.CanQuery, piece.CanTouch, piece.Massless = false, false, false, true
+				piece.CFrame = body.CFrame * CFrame.new(entry.offset.x, entry.offset.y, entry.offset.z)
+				piece:SetAttribute("ForgeGearItem", entry.catalogId)
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0, weld.Part1, weld.Parent = body, piece, piece
+				piece.Parent = fresh
+			end
+			fresh.Parent = character
+		end
+	end
 	local function observeHealth(id: string, humanoid: Humanoid)
 		-- Signals may resume after Heartbeat or a later authored write. Sample the
 		-- current property, not the historical signal argument, and also sample
@@ -771,6 +824,7 @@ function M.new(config: Config)
 			connections,
 			heartbeat:Connect(function()
 				projectTools()
+				projectGear()
 				local members = active.members()
 				for id in retryAfter do
 					if not table.find(members, id) then

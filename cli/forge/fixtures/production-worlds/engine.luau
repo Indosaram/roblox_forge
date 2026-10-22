@@ -473,6 +473,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		["../../../core/domain/inventory/Inventory"] = require("../../../../core/domain/inventory/Inventory"),
 		["../../../core/domain/settlement/Settlement"] = require("../../../../core/domain/settlement/Settlement"),
 		["../../../core/domain/survival/Archetype"] = require("../../../../core/domain/survival/Archetype"),
+		["./CharacterRules"] = require("../../../../genres/survival-coop/module/CharacterRules"),
 		["./WildlifeWorld"] = {
 			new = function(config)
 				local states: any = {}
@@ -518,6 +519,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	}, nil)
 	module.DinosaurRig = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil)
 	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
+	module.CharacterRules = require("../../../../genres/survival-coop/module/CharacterRules")
 	local dressing = load("games/robango-island/src/server/WorldDressing.luau", {}, nil)
 	forge.core.infra = {
 		render = {

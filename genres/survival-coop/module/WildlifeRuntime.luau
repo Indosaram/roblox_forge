@@ -4,6 +4,7 @@
 -- never a bag snapshot; an NPC is locked until its accepted intent resolves.
 local Wildlife = require("./Wildlife")
 local Combat = require("./Combat")
+local CharacterRules = require("./CharacterRules")
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Award = require("./ProgressionExtension").award
 local GatheringRuntime = require("./GatheringRuntime")
@@ -453,6 +454,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			end
 			local bag = Inventory.fromSave(player.inventory[config.carriedContainer], items)
 			local at = config.nowMillis()
+			-- A worn weapon/tool is usable like one held in hand.
+			access = table.clone(access)
+			access.equipped = CharacterRules.toolEvidence(player.gear, bag, access.equipped)
 			local candidate, reason =
 				Wildlife.attack(npc, bag, policy, at, if player.combat then player.combat.nextAttack else 0, access)
 			if not candidate then
@@ -468,6 +472,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			end
 			local selected = bag.items[assert(itemId, "MISSING_WEAR")]
 			local weapon = policy.weapons[selected.catalogId]
+			-- Worn weapon performance adds to the authored strike; a carried-only weapon does not.
+			local strike =
+				CharacterRules.weaponDamage(config.content, player.gear, bag, selected.itemId, weapon.damageMilli)
 			local combatPolicy = (config.content :: any).progressionPolicy
 			local attack = nil
 			if combatPolicy and combatPolicy.combat then
@@ -477,7 +484,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 					recoveryMillis = weapon.cooldownMillis,
 					range = weapon.rangeStuds,
 					facingDot = weapon.facingDot,
-					damageMilli = weapon.damageMilli,
+					damageMilli = strike,
 					ammo = 0,
 				}, at, if player.combat then player.combat.nextAttack else 0, access.position, access.facing, 0, false)
 				if not attack then
@@ -497,7 +504,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				at = at,
 				itemId = selected.itemId,
 				weaponId = selected.catalogId,
-				damage = weapon.damageMilli,
+				damage = strike,
 				wear = weapon.wearMilli,
 				cooldown = weapon.cooldownMillis + (if attack then combatPolicy.combat.windupMillis else 0),
 				drops = copy(policy.species[npc.catalogId].drops),

@@ -131,6 +131,174 @@ function M.compare(content: any, current: any?, candidate: any): any
 	}
 end
 
+-- RECONSTRUCTED Robango redesign values for worn gear (carried-but-unworn gear has no effect):
+-- one climate point = 100 milli exposure resistance (10%), capped at full resistance;
+-- one armor point = 10 permille (1%) less incoming damage, capped at 600 permille (60%);
+-- one weapon performance point = +1000 milli (one whole damage point) on that weapon's strike.
+M.CLIMATE_MILLI_PER_POINT = 100
+M.ARMOR_PERMILLE_PER_POINT = 10
+M.MAX_ARMOR_PERMILLE = 600
+M.WEAPON_MILLI_PER_POINT = 1000
+
+--- Worn records in slot order (the gear list the climate/readiness calculation consumes).
+function M.wornList(gear: any?, bag: any?): { any }
+	local worn = M.worn(gear or {}, bag)
+	local out = {}
+	for _, slot in M.SLOTS do
+		if worn[slot] then
+			table.insert(out, worn[slot])
+		end
+	end
+	return out
+end
+
+--- Summed effect of worn gear: armor/cold/heat over every slot, performance of the worn weapon only.
+function M.wornStats(content: any, gear: any?, bag: any?): any
+	local total: any = { performance = 0, armor = 0, cold = 0, heat = 0, weapon = nil }
+	if not content.progressionPolicy then
+		return total
+	end
+	for slot, record in M.worn(gear or {}, bag) do
+		local stats = M.stats(content, record)
+		total.armor += stats.armor
+		total.cold += stats.cold
+		total.heat += stats.heat
+		if slot == "weapon" then
+			total.performance, total.weapon = stats.performance, record.itemId
+		end
+	end
+	return total
+end
+
+--- Exposure resistance (Exposure/Vitals milli scale) from worn clothing for one climate.
+function M.resistanceMilli(content: any, gear: any?, bag: any?, climate: string): number
+	local stats = M.wornStats(content, gear, bag)
+	local points = if climate == "cold" then stats.cold elseif climate == "heat" then stats.heat else 0
+	return math.clamp(math.floor(points * M.CLIMATE_MILLI_PER_POINT + 0.5), 0, 1000)
+end
+
+--- The existing climate readiness calculation, fed only with worn gear.
+function M.climate(
+	content: any,
+	gear: any?,
+	bag: any?,
+	vitals: any,
+	from: number,
+	now: number,
+	climate: string,
+	intensity: number,
+	resting: boolean
+): any
+	return Progression.readiness(
+		content,
+		vitals,
+		M.wornList(gear, bag),
+		from,
+		now,
+		climate,
+		intensity,
+		resting,
+		content.progressionPolicy
+	)
+end
+
+--- Incoming damage after worn armor (integer milli in, integer milli out).
+function M.mitigate(content: any, gear: any?, bag: any?, damage: number): number
+	local armor = M.wornStats(content, gear, bag).armor
+	local permille = math.clamp(math.floor(armor * M.ARMOR_PERMILLE_PER_POINT), 0, M.MAX_ARMOR_PERMILLE)
+	return damage - damage * permille // 1000
+end
+
+--- Strike damage for `itemId`: the authored base, plus the worn weapon's performance when it is the worn one.
+function M.weaponDamage(content: any, gear: any?, bag: any?, itemId: string, base: number): number
+	local stats = M.wornStats(content, gear, bag)
+	if stats.weapon ~= itemId then
+		return base
+	end
+	return base + math.floor(stats.performance * M.WEAPON_MILLI_PER_POINT + 0.5)
+end
+
+--- Gather tool evidence: tools held in hand plus the worn weapon/tool slot (usable, owned, unbroken).
+function M.toolEvidence(gear: any?, bag: any?, held: { [string]: boolean }?): { [string]: boolean }
+	local out = table.clone(held or {})
+	local itemId = ((gear or {}).equipped or {}).weapon
+	local item = if itemId and bag and bag.items then bag.items[itemId] else nil
+	if item and (item.quantity or 0) > 0 and (item.durabilityMilli or 0) > 0 and not reserved(bag, itemId) then
+		out[itemId] = true
+	end
+	return out
+end
+
+-- Visual attachment per slot: R15 body part (R6 fallback), size and offset in that part's space.
+local ATTACH: { [string]: { any } } = {
+	head = { "Head", "Head", { 1.3, 0.5, 1.3 }, { 0, 0.55, 0 } },
+	top = { "UpperTorso", "Torso", { 2.1, 1.2, 1.2 }, { 0, 0, 0 } },
+	bottom = { "LowerTorso", "Torso", { 2.05, 0.5, 1.15 }, { 0, -0.2, 0 } },
+	shoes = { "RightFoot", "Right Leg", { 0.9, 0.4, 1.1 }, { 0, -0.3, 0 } },
+	gloves = { "RightHand", "Right Arm", { 0.6, 0.5, 0.6 }, { 0, -0.2, 0 } },
+	bag = { "UpperTorso", "Torso", { 1.4, 1.4, 0.6 }, { 0, 0, 0.9 } },
+	weapon = { "RightHand", "Right Arm", { 0.25, 2.2, 0.25 }, { 0, -0.4, -0.6 } },
+}
+local PALETTE = {
+	cold = { 196, 220, 236 },
+	tropical = { 230, 186, 92 },
+	temperate = { 146, 116, 78 },
+}
+
+--- Pure dressing plan for worn gear (engine adapters weld one light part per entry).
+function M.dressing(gear: any?, bag: any?): { any }
+	local worn = M.worn(gear or {}, bag)
+	local out = {}
+	for _, slot in M.SLOTS do
+		local record = worn[slot]
+		if record then
+			local attach = ATTACH[slot]
+			local family = string.match(record.catalogId, "^(%a+)%-")
+			table.insert(out, {
+				slot = slot,
+				itemId = record.itemId,
+				catalogId = record.catalogId,
+				part = attach[1],
+				fallback = attach[2],
+				size = { x = attach[3][1], y = attach[3][2], z = attach[3][3] },
+				offset = { x = attach[4][1], y = attach[4][2], z = attach[4][3] },
+				color = if slot == "weapon" then { 113, 77, 43 } else PALETTE[family or ""] or { 128, 122, 112 },
+			})
+		end
+	end
+	return out
+end
+
+--- Archipelago rank cells: one per island layout, bounds from the layout data, rank from its stage gates.
+function M.cells(content: any, rank: number?): { any }
+	local gates: { [string]: number } = {}
+	for _, stage in content.stages or {} do
+		local need = (stage.gates or {}).developmentRank or 0
+		gates[stage.layout] = math.min(gates[stage.layout] or math.huge, need)
+	end
+	local out = {}
+	for _, layout in content.layouts or {} do
+		local island, stage = string.match(layout.id, "^rw%.a(%d+)%.s(%d+)$")
+		if island and layout.bounds then
+			local need = gates[layout.id] or 0
+			table.insert(out, {
+				id = layout.id,
+				island = tonumber(island),
+				stage = tonumber(stage),
+				bounds = Data.clone(layout.bounds),
+				width = layout.bounds.max.x - layout.bounds.min.x,
+				depth = layout.bounds.max.z - layout.bounds.min.z,
+				rank = if need == math.huge then 0 else need,
+				open = (rank or 0) >= (if need == math.huge then 0 else need),
+			})
+		end
+	end
+	table.sort(out, function(a, b)
+		return if a.island ~= b.island then a.island < b.island else a.stage < b.stage
+	end)
+	return out
+end
+
 function M.rank(points: number): number
 	return math.clamp(math.floor(points / M.RANK_POINTS), 0, M.MAX_RANK)
 end

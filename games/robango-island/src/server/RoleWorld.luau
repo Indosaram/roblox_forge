@@ -7,6 +7,7 @@ local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
 local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
+local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local materials: any = Enum.Material
 local shapes: any = Enum.PartType
 local M = {}
@@ -384,6 +385,24 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	local arrivalGrazers = {}
+	if #dressing.fauna > 0 then
+		-- Arrival-view creature: decorative and anchored, never an interactive wildlife spawn.
+		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+		for _, creature in dressing.fauna do
+			local p = creature.position
+			local hit = workspace:Raycast(Vector3.new(p.x, 512, p.z), Vector3.new(0, -1024, 0), groundParams)
+			local position = Vector3.new(p.x, if hit then hit.Position.Y + 2 else p.y + 2, p.z)
+			local animal = rig.new(creature.species, "ArrivalFauna", position, root)
+			table.insert(arrivalGrazers, animal)
+			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(140), 0))
+			for _, piece in animal:GetDescendants() do
+				if piece:IsA("BasePart") then
+					piece.Anchored = true
+					piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
+				end
+			end
+		end
+	end
 	if layoutId == "rw.onboarding" then
 		-- Distant, noninteractive silhouettes establish the era without adding
 		-- predators or changing the tutorial's authored wildlife encounters.
@@ -498,6 +517,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Attributes cannot hold tables; the HUD tracker resolves the item id to a localized name.
 		target:SetAttribute("ForgeNodeItem", nodeItems[node.id].id)
 	end
+	-- Station panels: a tier-2+ workbench opens ui.modify, a signal relay opens ui.technical-support.
+	-- The server still gates every command on station kind, tier and reach.
+	world.tieredStations = {}
+	local function stationPanel(target: BasePart, kind: string, tier: number)
+		local panel = if kind == "workbench" and tier >= 2
+			then "modify"
+			elseif kind == "signal-relay" then "technical-support"
+			else nil
+		if not panel then
+			return
+		end
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeStationPanel", "Open", panel
+		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, target
+		prompt:SetAttribute("ForgePanel", panel)
+		prompt:SetAttribute("ForgeStationPanel", panel)
+	end
 	local musicVenues = {}
 	for _, anchor in layout.anchors do
 		local station = string.match(anchor.id, "^station%.(.+)%.t%d+$")
@@ -512,6 +548,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				target.Position = Vector3.new(anchor.position.x, hit.Position.Y + target.Size.Y / 2, anchor.position.z)
 			end
 			world.registerStation(target, anchor.id, station)
+			world.tieredStations[anchor.id] = target
+			stationPanel(target, station, tonumber(string.match(anchor.id, "%.t(%d+)$")) or 1)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })
 			end
@@ -593,6 +631,34 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					elseif string.match(layoutId, "^rw%.a%d+%.s%d+$") and anchor.id == "exit" then "next-island"
 					else "home"
 			)
+		end
+	end
+	-- Archipelago cells: a boundary marker at the island edge beside the entry dock opens
+	-- ui.island-rank. Its cell bounds and required rank come from the layout data.
+	for _, cell in CharacterRules.cells(content) do
+		if cell.id ~= layoutId then
+			continue
+		end
+		for _, anchor in layout.anchors do
+			if anchor.id == "entry" then
+				local b = cell.bounds
+				local position = interactionPosition({
+					x = math.clamp(anchor.position.x + 10, b.min.x + 2, b.max.x - 2),
+					y = anchor.position.y,
+					z = math.clamp(anchor.position.z, b.min.z + 2, b.max.z - 2),
+				}, 6)
+				local marker = part("IslandBoundary", position, { x = 1, y = 6, z = 1 })
+				marker.Color = Color3.fromRGB(214, 170, 72)
+				marker:SetAttribute("ForgeCell", cell.id)
+				marker:SetAttribute("ForgeCellRank", cell.rank)
+				marker:SetAttribute("ForgeCellMin", Vector3.new(b.min.x, b.min.y, b.min.z))
+				marker:SetAttribute("ForgeCellMax", Vector3.new(b.max.x, b.max.y, b.max.z))
+				local prompt = Instance.new("ProximityPrompt")
+				prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeIslandRank", "Island rank", cell.id
+				prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, marker
+				prompt:SetAttribute("ForgePanel", "island-rank")
+				prompt:SetAttribute("ForgeStationPanel", "island-rank")
+			end
 		end
 	end
 	world.roleSource = table.clone(source)
@@ -866,7 +932,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				end
 				value.Parent = folder
 				homeParts[definition.id] = value
-				if stationKinds[definition.kind] then
+				local base, tier = string.match(definition.kind or "", "^(.+)%-t(%d)$")
+				if base and stationKinds[base] then
+					-- A placed tier-N bench serves its base station kind; the first one in this
+					-- world takes the anchor id the progression owner resolves (station.<kind>.tN).
+					local anchorId = "station." .. base .. ".t" .. tostring(tier)
+					world.registerStation(
+						value,
+						if world.tieredStations[anchorId] then "home:" .. Journal.fnv1a64(definition.id) else anchorId,
+						base
+					)
+					world.tieredStations[anchorId] = world.tieredStations[anchorId] or value
+					stationPanel(value, base, tonumber(tier) or 1)
+				elseif stationKinds[definition.kind] then
 					world.registerStation(value, "home:" .. Journal.fnv1a64(definition.id), definition.kind)
 				end
 				if definition.kind == "farm-plot" then
@@ -921,6 +999,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		for id, value in homeParts do
 			if not present[id] then
+				for anchorId, held in world.tieredStations do
+					if held == value then
+						world.tieredStations[anchorId] = nil
+					end
+				end
 				world.unregisterStation(value)
 				value:Destroy()
 				homeParts[id] = nil
