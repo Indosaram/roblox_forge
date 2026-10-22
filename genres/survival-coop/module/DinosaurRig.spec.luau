@@ -120,6 +120,55 @@ local function verifyPoses(module: any)
 	world:Destroy()
 end
 return {
+	["onboarding species have defining anatomy within bounded part counts"] = function()
+		local module = loadRig()
+		local world = roblox.Instance.new("Workspace")
+		local features: { [string]: { string } } = {
+			dodo = { "HookBeak", "BeakHook", "TailFan", "Wing1", "Neck" },
+			turtle = { "Shell", "Scute0", "Scute-1", "Scute1", "SideScute-1", "SideScute1" },
+			protoceratops = { "Frill", "FrillLobe1", "Beak", "BeakHook" },
+			parasaurolophus = { "BackwardCrest", "CrestTip", "DuckBill" },
+			triceratops = { "Frill", "FrillLobe1", "Horn-1", "Horn1", "NoseHorn", "Beak" },
+			boar = { "Tusk-1", "Tusk1", "Dorsal1", "Dorsal5", "Ear1" },
+		}
+		for species, names in features do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			local count = 0
+			for _, p in model:GetChildren() do
+				if p:IsA("BasePart") then
+					count += 1
+				end
+			end
+			assert(count <= 48 and count == model:GetAttribute("PartCount"), species .. " part budget")
+			for _, name in names do
+				assert(model:FindFirstChild(name), species .. " defining feature: " .. name)
+			end
+			assert(model.Countershade.Color.R > model.Torso.Color.R, "lighter belly")
+			if species == "turtle" then
+				assert(model.Shell.Shape == roblox.Enum.PartType.Ball, "domed shell")
+				assert(
+					model.Shell.Size.X > model.Torso.Size.X and model.Shell.Size.Z > model.Torso.Size.Z,
+					"shell covers torso"
+				)
+			elseif species == "parasaurolophus" then
+				assert(
+					model.CrestTip.CFrame.Position.Y > model.Head.CFrame.Position.Y
+						and model.CrestTip.CFrame.Position.Z > model.Head.CFrame.Position.Z,
+					"backward rising crest"
+				)
+			elseif species == "dodo" then
+				assert(
+					model.BeakHook.CFrame.Position.Y < model.HookBeak.CFrame.Position.Y
+						and model.BeakHook.CFrame.Position.Z < model.HookBeak.CFrame.Position.Z,
+					"downturned beak"
+				)
+			elseif species == "boar" then
+				assert(not model:FindFirstChild("Horn1"), "tusks not brow horns")
+			end
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["all body families avoid balloon cores and use rounded tapered limbs"] = function()
 		local world = roblox.Instance.new("Workspace")
 		local module = loadRig()
@@ -134,6 +183,7 @@ return {
 						and not p.Name:match("^ForeShin")
 						and not p.Name:match("^Arm")
 						and not p.Name:match("^Shin")
+						and p.Name ~= "Shell"
 					then
 						assert(
 							math.max(p.Size.X, p.Size.Y, p.Size.Z) <= dims[3] * 0.4,

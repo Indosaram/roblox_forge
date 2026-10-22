@@ -1,5 +1,4 @@
 --!strict
--- Art-only proportions. Gameplay speed, attack timing and ownership stay in the catalog.
 local M = {}
 type Shape = { family: string, feature: string, size: Vector3, attack: string }
 local function shape(family: string, feature: string, w: number, h: number, l: number, attack: string): Shape
@@ -32,7 +31,6 @@ local silhouettes = {
 	dodo = shape("bird", "roundbeak", 1.5, 2, 2, "flutter"),
 }
 
--- Natural pigment families are explicit art data, independent of gameplay RNG.
 local pigments: { [string]: { number } } = {
 	compsognathus = { 129, 145, 66 },
 	oviraptor = { 139, 86, 67 },
@@ -60,22 +58,19 @@ local pigments: { [string]: { number } } = {
 	dodo = { 122, 141, 151 },
 }
 
--- The optional envelope port lets a pack supply generated catalog render metadata.
--- Legacy archetypes retain their public names for other survival packs.
 function M.new(kind: string, id: string, position: Vector3, parent: Instance, envelope: Vector3?): Model
 	local species = if kind == "grazer" then "brachiosaurus" elseif kind == "hunter" then "allosaurus" else kind
 	local spec: Shape? = (silhouettes :: { [string]: Shape })[species]
 	assert(spec, "UNKNOWN_DINOSAUR")
 	local s = spec :: Shape
-	local dimensions = envelope or s.size
-	assert(dimensions.X > 0 and dimensions.Y > 0 and dimensions.Z > 0, "INVALID_RIG_ENVELOPE")
+	local dims = envelope or s.size
+	assert(dims.X > 0 and dims.Y > 0 and dims.Z > 0, "INVALID_RIG_ENVELOPE")
 	local model = Instance.new("Model")
 	model.Name = id
 	local root = Instance.new("Part")
 	root.Name, root.Transparency, root.CanCollide = "HumanoidRootPart", 1, true
-	-- Root position is the collision-envelope center, as in the existing spawn port.
-	root.Size, root.CFrame, root.Parent = dimensions, CFrame.new(position), model
-	local w, h, l = dimensions.X, dimensions.Y, dimensions.Z
+	root.Size, root.CFrame, root.Parent = dims, CFrame.new(position), model
+	local w, h, l = dims.X, dims.Y, dims.Z
 	local family, feature = s.family, s.feature
 	local mammal = family == "mammal" or family == "elephant"
 	local pigment = assert(pigments[species], "MISSING_SPECIES_PIGMENT")
@@ -90,8 +85,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local ivory = Color3.fromRGB(225, 216, 177)
 	local parts: { [string]: BasePart } = { HumanoidRootPart = root }
 	local count = 1
-	-- Coordinates are normalized against the authored clearance envelope, not one
-	-- scaled dinosaur. Each builder chooses its own torso, neck, limbs and tail.
 	local function part(
 		name: string,
 		size: Vector3,
@@ -110,12 +103,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		end
 		local localAt = Vector3.new(at.X * w, at.Y * h, at.Z * l)
 		p.Name, p.Size = name, Vector3.new(size.X * w, size.Y * h, size.Z * l)
-		if p:IsA("Part") and p.Shape == Enum.PartType.Ball and name ~= "Head" then
+		if p:IsA("Part") and p.Shape == Enum.PartType.Ball and name ~= "Head" and name ~= "Shell" then
 			p.Size =
 				Vector3.new(math.min(p.Size.X, l * 0.39), math.min(p.Size.Y, l * 0.39), math.min(p.Size.Z, l * 0.39))
 		end
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		-- Overlapping ellipsoids taper toward the lower leg without flat joint caps.
 		if
 			string.match(name, "^Thigh")
 			or string.match(name, "^Foreleg")
@@ -154,8 +146,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	)
 		return part(name, Vector3.new(sx, sy, sz), Vector3.new(x, y, z), parentName, form, color)
 	end
-	-- Long overlapping tapered lobes bury their narrow tips inside the next core;
-	-- unlike end-to-end cylinders they expose no flat annular end planes.
 	local function segment(name: string, a: Vector3, b: Vector3, radius: number, parentName: string)
 		local scale = Vector3.new(w, h, l)
 		local from, to = a * scale, b * scale
@@ -174,11 +164,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local torsoY = if family == "sauropod" then -0.2 elseif low then -0.05 elseif biped then -0.02 else 0
 	local torsoH = if family == "sauropod"
 		then 0.28
-		elseif family == "bird" then 0.38
+		elseif family == "bird" then 0.48
 		elseif family == "elephant" then 0.44
 		elseif low then 0.38
 		else 0.36
-	add("Torso", 0, torsoY, 0.05, if family == "theropod" then 0.58 else 0.52, torsoH, 0.39, "HumanoidRootPart")
+	add("Torso", 0, torsoY, 0.05, if biped then 0.58 else 0.52, torsoH, 0.39, "HumanoidRootPart")
 	add(
 		"Shoulders",
 		0,
@@ -205,7 +195,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			accent
 		)
 		stripe.CFrame *= CFrame.Angles(0, 0, math.rad(side * 18))
-		-- Restore the rest attachment after authoring the local stripe rotation.
 		local joint = root:FindFirstChild(stripe.Name .. "Joint") :: Motor6D
 		joint.C1 = stripe.CFrame:ToObjectSpace(assert(joint.Part0).CFrame * joint.C0)
 	end
@@ -237,10 +226,16 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	elseif family == "turtle" then
 		hy, hz, headW, headH, headL = -0.14, -0.37, 0.24, 0.24, 0.2
 	elseif family == "bird" then
-		hy, hz, headW, headH, headL = 0.25, -0.23, 0.4, 0.3, 0.25
+		hy, hz, headW, headH, headL = 0.28, -0.25, 0.33, 0.27, 0.22
+		add("Neck", 0, 0.17, -0.16, 0.26, 0.28, 0.19, "Torso", nil, underside)
 	elseif family == "hadrosaur" then
 		hy = 0.28
+		headW, headH, headL = 0.29, 0.2, 0.27
 		add("Neck", 0, 0.15, -0.22, 0.29, 0.32, 0.2, "Torso")
+	elseif family == "ceratopsian" then
+		hy, hz, headW, headH, headL = 0.09, -0.33, 0.38, 0.26, 0.25
+	elseif species == "boar" then
+		hy, hz, headW, headH, headL = 0.06, -0.32, 0.33, 0.29, 0.28
 	end
 	local neckParent = if family == "sauropod" then "Neck6" elseif parts.Neck then "Neck" else "Torso"
 	part(
@@ -358,7 +353,18 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			local armSize = if feature == "heavyjaw" then 0.08 else 0.16
 			add("Arm" .. side, side * 0.24, -0.07, -0.2, 0.07, armSize, 0.09, "Torso")
 			if feature == "feathers" or feature == "sickle" or family == "bird" then
-				add("Wing" .. side, side * 0.4, -0.01, 0, 0.16, 0.2, 0.35, "Arm" .. side, "wedge", accent)
+				add(
+					"Wing" .. side,
+					side * 0.26,
+					0.02,
+					0.05,
+					0.16,
+					0.22,
+					0.31,
+					"Arm" .. side,
+					if family == "bird" then nil else "wedge",
+					accent
+				)
 			end
 		end
 		if mammal then
@@ -402,8 +408,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		)
 	end
 	if feature == "frill" or feature == "horns" then
-		-- Three overlapping curved lobes form a scalloped fan, with the inset
-		-- lighter face leaving a narrow dark skin rim rather than a black slab.
 		for i = -1, 1 do
 			local x, y = i * 0.21, hy + (if i == 0 then 0.16 else 0.09)
 			local name = if i == 0 then "Frill" else "FrillLobe" .. i
@@ -420,7 +424,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		or family == "elephant"
 	then
 		for side = -1, 1, 2 do
-			local name = if family == "elephant"
+			local name = if family == "elephant" or feature == "bristles"
 				then "Tusk"
 				elseif feature == "saber" or feature == "cat" then "Saber"
 				elseif feature == "antlers" then "Antler"
@@ -429,16 +433,16 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add(
 				name .. side,
 				side * headW * 0.35,
-				hy + (if down then -0.18 else 0.12),
+				hy + (if down then -0.18 elseif feature == "bristles" then -0.07 else 0.12),
 				hz - headL * 0.5,
 				0.065,
-				if name == "Antler" then 0.35 elseif down then 0.27 else 0.16,
-				if name == "Tusk" then 0.35 else 0.12,
+				if name == "Antler" then 0.35 elseif down then 0.27 elseif feature == "bristles" then 0.12 else 0.16,
+				if family == "elephant" then 0.35 elseif feature == "horns" then 0.24 else 0.12,
 				"Head",
-				"wedge",
+				if feature == "bristles" then nil else "wedge",
 				ivory
 			)
-			if name == "Antler" or name == "Tusk" then
+			if name == "Antler" or (name == "Tusk" and family == "elephant") then
 				add(
 					name .. "Tip" .. side,
 					side * (if name == "Antler" then 0.33 else 0.23),
@@ -457,6 +461,10 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add("NoseHorn", 0, hy + 0.09, hz - 0.17, 0.08, 0.18, 0.12, "Head", "wedge", ivory)
 		end
 	end
+	if family == "ceratopsian" then
+		add("Beak", 0, hy - 0.035, hz - 0.18, 0.22, 0.14, 0.14, "Head", "wedge", ivory)
+		add("BeakHook", 0, hy - 0.085, hz - 0.23, 0.13, 0.13, 0.06, "Beak", nil, ivory)
+	end
 	if family == "elephant" then
 		for i = 1, 3 do
 			add(
@@ -474,7 +482,26 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add("WoolDome", 0, 0.25, 0.01, 0.65, 0.38, 0.38, "Torso", nil, accent)
 		end
 	elseif family == "turtle" or feature == "club" then
-		add("Shell", 0, 0.12, 0.04, 0.94, 0.68, 0.62, "Torso", "wedge", accent)
+		add("Shell", 0, 0.12, 0.04, 0.86, 0.68, 0.62, "Torso", if family == "turtle" then nil else "wedge", accent)
+		if family == "turtle" then
+			for i = -1, 1 do
+				add(
+					"Scute" .. i,
+					0,
+					0.43 - math.abs(i) * 0.06,
+					0.04 + i * 0.17,
+					0.32,
+					0.08,
+					0.2,
+					"Shell",
+					nil,
+					bodyColor
+				)
+			end
+			for side = -1, 1, 2 do
+				add("SideScute" .. side, side * 0.27, 0.34, 0.04, 0.22, 0.09, 0.28, "Shell", nil, bodyColor)
+			end
+		end
 		if feature == "club" then
 			add("TailClub", 0, -0.01, 0.74, 0.4, 0.24, 0.19, "Tail4", nil, ivory)
 		end
@@ -488,9 +515,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 				-0.22 + i * 0.09,
 				if feature == "plates" then 0.1 else 0.18,
 				if feature == "plates" then 0.36 else 0.12,
-				0.11,
+				if feature == "bristles" then 0.18 else 0.11,
 				"Torso",
-				"wedge",
+				if feature == "bristles" then nil else "wedge",
 				accent
 			)
 		end
@@ -503,7 +530,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	if feature == "feathers" then
 		add("Crest", 0, hy + 0.15, hz, 0.1, 0.24, 0.16, "Head", "wedge", accent)
 	elseif feature == "backcrest" then
-		add("BackwardCrest", 0, hy + 0.1, hz + 0.12, 0.12, 0.12, 0.36, "Head", nil, accent)
+		add("BackwardCrest", 0, hy + 0.09, hz + 0.12, 0.13, 0.13, 0.37, "Head", nil, accent)
+		add("CrestTip", 0, hy + 0.09, hz + 0.28, 0.12, 0.11, 0.11, "BackwardCrest", nil, accent)
+		add("DuckBill", 0, hy - 0.04, hz - 0.18, 0.34, 0.065, 0.16, "Head", nil, underside)
 	elseif feature == "twincrest" or feature == "brow" then
 		for side = -1, 1, 2 do
 			add(
@@ -524,7 +553,9 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			add("Sickle" .. side, side * 0.28, -0.42, 0.03, 0.05, 0.14, 0.12, "Foot" .. side, "wedge", ivory)
 		end
 	elseif family == "bird" then
-		add("HookBeak", 0, hy - 0.03, hz - 0.21, 0.3, 0.21, 0.23, "Head", "wedge", ivory)
+		add("HookBeak", 0, hy - 0.025, hz - 0.16, 0.23, 0.15, 0.22, "Head", nil, ivory)
+		add("BeakHook", 0, hy - 0.095, hz - 0.245, 0.16, 0.17, 0.08, "HookBeak", nil, accent)
+		add("TailFan", 0, 0.1, 0.29, 0.35, 0.22, 0.2, "Torso", "wedge", underside)
 	end
 	local humanoid = Instance.new("Humanoid")
 	humanoid.RequiresNeck, humanoid.HipHeight = false, 0
@@ -540,7 +571,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	return model
 end
 
--- Spawn against Terrain only: foliage and another creature are not support.
 function M.ground(model: Model)
 	local root = assert(model.PrimaryPart, "CREATURE_ROOT_REQUIRED")
 	local params = RaycastParams.new()
@@ -567,7 +597,6 @@ function M.ground(model: Model)
 	model:PivotTo(model:GetPivot() + Vector3.new(0, hit.Position.Y - lowest, 0))
 end
 
--- Pure sampling: no connections, wall clock, random motion or client damage.
 function M.pose(model: Model, state: string, elapsed: number, speed: number)
 	local root = model.PrimaryPart
 	if not root then
