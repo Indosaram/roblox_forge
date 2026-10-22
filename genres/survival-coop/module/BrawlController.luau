@@ -193,6 +193,7 @@ function M.new(env: any): any
 									target.defense or Combat.defense()
 								)
 								player.combat.attacks[index] = nextAttack
+								player.combat.attacks[index].hit = milli > 0
 								damage[attack.target] = (damage[attack.target] or 0) + milli / 1000
 							else
 								attack.resolved = true

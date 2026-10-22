@@ -12,6 +12,7 @@ local Extensions = require(Forge.genres["survival-coop"].module.Extensions)
 local ActorDocuments = require(Forge.core.infra.data.ActorDocumentStore)
 local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.ArchipelagoExtension)
 local Archipelago = require(Forge.core.domain.island.Archipelago)
+local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	content, source, wildlifePolicy =
 		world.roleContent or content, world.roleSource or source, world.roleWildlife or wildlifePolicy
@@ -1448,6 +1449,14 @@ return function(content: any, source, world, backend, clock, options, provision,
 							quantity = 1,
 						})
 					end
+				end
+				local id = request.sessionEpoch .. ":" .. request.requestId
+				if result.ok and data and Award(content, data.progression, action, id) ~= data.progression then
+					session.personalTransaction(actor, function(raw)
+						local d = raw.envelope.genres["survival-coop"].data
+						d.progression = Award(content, d.progression, action, id)
+						return raw
+					end)
 				end
 				local commandOrigin = if method == "commandServer" then "server" else "client"
 				if

@@ -125,7 +125,7 @@ export function buildCatalog(snapshot) {
     operation(`eat-${food}`, 'food', `${food}×1`, '', 1, {}, {}, { effects: [effect('duration', 300, 'seconds'), effect(family, family === 'stamina' ? -5 : family === 'recovery' ? 1 : 2, family === 'stamina' ? 'percent-cost' : family === 'recovery' ? 'hp-per-second' : 'heat-and-cold-resistance')] });
   }
 
-  const entryActions = { survival: ['feeding', 'firstjourney'], butchering: ['defaultmeat'], gathering: ['hand'], processing: ['dry-twig'], weapon_tool: ['starter-axe'], ranged: ['basicbowhit'], melee: ['basicclubhit'], construction: ['starterplacement'], farming: ['practice-seedbed'], tailoring: ['practice-fiber-stitch'], cooking: ['berry-meal'], defense: ['basicblock'] };
+  const entryActions = { survival: ['feeding', 'firstjourney'], butchering: ['carcass'], gathering: ['hand'], processing: ['dry-twig'], weapon_tool: ['starter-axe'], ranged: ['ranged-hit'], melee: ['basicclubhit'], construction: ['settlement-place', 'home-place'], farming: ['practice-seedbed', 'home-plant', 'home-harvest'], tailoring: ['practice-fiber-stitch', 'cord'], cooking: ['berry-meal'], defense: ['guard-block'] };
   const skillRows = tables['skill-node'].filter(r => Object.hasOwn(entryActions, r[0]));
   for (const r of skillRows) {
     const id = r[0];

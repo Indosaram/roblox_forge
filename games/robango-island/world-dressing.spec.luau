@@ -115,6 +115,43 @@ return {
 			end
 		end
 	end,
+	["palm trunk segments chain and carry the crown in every role"] = function()
+		-- Cylinder axis is local X after CFrame.Angles(0, yaw, roll).
+		local function axis(part: any, sign: number): any
+			local r, y, h = math.rad(part.roll or 0), math.rad(part.yaw or 0), sign * part.size.x / 2
+			local x = math.cos(r) * h
+			return {
+				x = part.position.x + x * math.cos(y),
+				y = part.position.y + math.sin(r) * h,
+				z = part.position.z - x * math.sin(y),
+			}
+		end
+		local function gap(a: any, b: any): number
+			return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
+		end
+		local palms, coastal = 0, false
+		for _, layout in Content.layouts :: any do
+			local byId, plan = {}, Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
+			for _, part in plan.parts do
+				byId[part.id] = part
+			end
+			for _, part in plan.parts do
+				local kit = string.match(part.id, "^(.+)%.trunk4$")
+				if kit and byId[kit .. ".frond0.1-1"] then
+					palms += 1
+					coastal = coastal or layout.id == "rw.a1.s1"
+					for i = 2, 4 do
+						local d = gap(axis(byId[kit .. ".trunk" .. (i - 1)], 1), axis(byId[kit .. ".trunk" .. i], -1))
+						assert(d <= 0.1, "palm trunk gap " .. kit .. " " .. d)
+					end
+					local crown = byId[kit .. ".crown"]
+					local base = { x = crown.position.x, y = crown.position.y - crown.size.y / 2, z = crown.position.z }
+					assert(gap(base, axis(part, 1)) <= 0.3, "floating palm crown " .. kit)
+				end
+			end
+		end
+		assert(palms > 0 and coastal, "coastal grassland palms use the frond kit")
+	end,
 	["authored landmarks reach the production dressing plan"] = function()
 		local count = 0
 		for _, layout in Content.layouts :: any do

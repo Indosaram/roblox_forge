@@ -126,13 +126,16 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			root.yaw, root.roll = math.deg(i * 2), 12
 		end
 	elseif kind == "palm" then
+		-- Chain each segment from the previous end along its own leaning axis.
+		local tx, ty = 0, 0
 		for i = 1, 4 do
+			local r = math.rad(90 - i * 4.5)
 			local trunk = piece(
 				"trunk" .. i,
-				(i / 4) ^ 2 * 3,
-				i * 3.75 - 1.9,
+				tx + math.cos(r) * 2,
+				ty + math.sin(r) * 2,
 				0,
-				4.3,
+				4,
 				1.8 - i * 0.15,
 				1.8 - i * 0.15,
 				"Wood",
@@ -140,8 +143,9 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				"Cylinder"
 			)
 			trunk.roll = 90 - i * 4.5
+			tx, ty = tx + math.cos(r) * 4, ty + math.sin(r) * 4
 		end
-		piece("crown", 3, 15.4, 0, 1.6, 1.6, 1.6, "Wood", { 92, 70, 42 }, "Ball")
+		piece("crown", tx, ty + 0.6, 0, 1.6, 1.6, 1.6, "Wood", { 92, 70, 42 }, "Ball")
 		-- Each frond is two drooping, narrowing segments; each segment is a pair of mirrored
 		-- wedges whose slopes fall away from the midrib, so leaflets hang in a shallow tent.
 		for i = 0, 6 do
@@ -154,8 +158,8 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				for side = -1, 1, 2 do
 					local frond = piece(
 						"frond" .. i .. "." .. tier .. side,
-						3 + math.cos(angle) * cx + side * sx * w / 2,
-						15.6 + cy,
+						tx + math.cos(angle) * cx + side * sx * w / 2,
+						ty + 0.6 + cy,
 						math.sin(angle) * cx + side * sz * w / 2,
 						length,
 						0.55 - tier * 0.15,
@@ -512,6 +516,7 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 					layout.id == "rw.onboarding"
 					or layout.biomes[1] == "tropical"
 					or layout.biomes[1] == "swamp"
+					or (column.top < 8 and layout.biomes[1] ~= "snow")
 				then "palm"
 				elseif layout.biomes[1] == "snow" then "conifer"
 				else "tree"
@@ -537,7 +542,8 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 				value.position.z = p.z + (dx * math.sin(angle) + dz * math.cos(angle)) * scale
 				value.position.y = p.y + (value.position.y - p.y) * scale
 				value.size = { x = value.size.x * scale, y = value.size.y * scale, z = value.size.z * scale }
-				value.yaw = (value.yaw or 0) + math.deg(angle)
+				-- CFrame yaw turns +X toward -Z, so it must negate the position rotation.
+				value.yaw = (value.yaw or 0) - math.deg(angle)
 				value.color = {
 					math.clamp(value.color[1] + index % 13 - 6, 0, 255),
 					math.clamp(value.color[2] + index % 17 - 8, 0, 255),

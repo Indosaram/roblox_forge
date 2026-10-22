@@ -704,6 +704,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						local prompt = Instance.new("ProximityPrompt")
 						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
 							"Survey", content.missionPolicy.interactionStuds, target
+						prompt:SetAttribute("ForgeSurvey", true)
 						prompt.Triggered:Connect(function(player)
 							if world.missionAction then
 								world.missionAction(tostring(player.UserId), "survey-start", id)

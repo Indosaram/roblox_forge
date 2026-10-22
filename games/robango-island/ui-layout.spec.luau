@@ -544,4 +544,55 @@ return {
 			end
 		end
 	end,
+	["context menu shows a full tile row and scrolls to every tile at every HUD viewport"] = function()
+		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
+		assert(string.find(source, "M.menuRect(size.X, size.Y, input.TouchEnabled)", 1, true), "dock uses menuRect")
+		-- The grid's canvas grows with its rows, so every launcher scrolls into the viewport.
+		assert(string.find(source, "menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y", 1, true), "menu scrolls")
+		for _, viewport in HUD_VIEWPORTS do
+			-- The dock ScreenGui uses CoreUISafeInsets: touch phones lose the 56px topbar.
+			local width, height, touch = viewport[1], viewport[2] - (if viewport[3] then 56 else 0), viewport[3]
+			local x, y, w, h, columns, tile = Panels.menuRect(width, height, touch)
+			x, y, w, h = Model.chatSafe(width, height, x, y, w, h)
+			local at = width .. "x" .. height
+			inside({ x = x, y = y, width = w, height = h }, width, height, "menu " .. at)
+			assert(h >= tile, "menu shows one full " .. tile .. "px tile row at " .. at)
+			local cell = math.floor((w - (columns - 1) * 6) / columns)
+			assert(cell >= 44, "menu tile under 44px at " .. at)
+		end
+	end,
+	["HUD coin chip fits beside vitals at every HUD viewport"] = function()
+		for _, viewport in HUD_VIEWPORTS do
+			local width, height = viewport[1], viewport[2]
+			local hud = Model.contextHudBounds(width, height)
+			-- SurvivalHUD places the 100x28 chip in SafeArea space (viewport minus 12,8), left of vitals.
+			local hudSource = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+			assert(string.find(hudSource, "UDim2.fromOffset(bounds.x - 116, 104)", 1, true), "HUD chip anchor moved")
+			hud.coins = { x = hud.vitals.x - 104, y = 112, width = 100, height = 28 }
+			inside(hud.coins, width, height, "coins")
+			for _, key in { "vitals", "objective", "menu", "biome" } do
+				assert(not overlaps(hud.coins, hud[key]), "coins overlap " .. key .. " at " .. width)
+			end
+			for _, locale in LOCALES do
+				fits(string.format(Locale.text(locale, "coins"), 999999), hud.coins.width, 28, 13, 10, "coins")
+			end
+		end
+	end,
+	["camp cost line fits under its project label"] = function()
+		local Camp = require("../../genres/survival-coop/module/CampPanelModel")
+		for _, viewport in HUD_VIEWPORTS do
+			local content = sheet(viewport[1], viewport[2], viewport[3]).width - 16 - 6
+			for _, locale in LOCALES do
+				for _, project in Content.camp.projects do
+					local costs = {}
+					for _, cost in project.cost do
+						table.insert(costs, { item = cost.item, delivered = cost.quantity, need = cost.quantity })
+					end
+					local line = Camp.costLine(locale, { costs = costs } :: any, EntityNames(locale))
+					-- Full row width, below the 44px give button.
+					fits(line, content, 18, 12, 9, "camp cost " .. project.id)
+				end
+			end
+		end
+	end,
 }

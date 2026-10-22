@@ -5,6 +5,7 @@
 local Wildlife = require("./Wildlife")
 local Combat = require("./Combat")
 local SkillTree = require("../../../core/domain/progression/SkillTree")
+local Award = require("./ProgressionExtension").award
 local GatheringRuntime = require("./GatheringRuntime")
 local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")
@@ -304,6 +305,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		if player.progression and intent.phase ~= "REJECTED" and damage > 0 then
 			player.progression =
 				SkillTree.award(player.progression, (config.content :: any).progressionPolicy.tree, "melee", id)
+			player.progression = Award(config.content, player.progression, intent.mints[1] and "carcass" or "", id)
 		end
 		local result: Shared.Result = {
 			ok = intent.phase ~= "REJECTED",

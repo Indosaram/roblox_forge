@@ -261,7 +261,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end
 		end
 		for _, row in orderedRows do
-			local holder = add(48)
+			local holder = add(66)
 			local label = if ctx.names and ctx.names["camp:" .. row.id] then ctx.names["camp:" .. row.id] else row.label
 			components.label(theme, {
 				text = label .. "  " .. row.delivered .. "/" .. row.need,
@@ -275,6 +275,13 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			})
 			setProgress(if row.need > 0 then row.delivered / row.need else 0)
 			bar.Name = "Progress_" .. row.id
+			components.label(theme, {
+				text = Model.costLine(ctx.locale, row, ctx.names),
+				size = UDim2.new(1, 0, 0, 18),
+				position = UDim2.fromOffset(0, 48),
+				parent = holder,
+				textSize = 12,
+			})
 			if canGive and choice and not row.locked then
 				local helping = model.role ~= "member"
 				components.button(theme, {

@@ -38,6 +38,9 @@ function M.new(ctx: any): any
 											JournalPorts = require(
 												"../../../../genres/survival-coop/module/JournalPorts"
 											),
+											ProgressionExtension = require(
+												"../../../../genres/survival-coop/module/ProgressionExtension"
+											),
 										},
 									},
 								},

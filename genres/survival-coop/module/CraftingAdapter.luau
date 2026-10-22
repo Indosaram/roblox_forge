@@ -896,6 +896,8 @@ function M.new(
 					if defense.dodgeStart and strikeAt >= defense.dodgeStart and strikeAt < defense.dodgeEnd then
 						damage = 0
 					elseif defense.guardStart and strikeAt >= defense.guardStart and strikeAt < defense.guardEnd then
+						candidate.progression =
+							Progression.award(content :: any, live.progression, "guard-block", now .. context.requestId)
 						damage = damage * defense.guardPermille // 1000
 					end
 				end
@@ -977,6 +979,7 @@ function M.new(
 			then inner.data
 			else savePlayer(id, candidate.inventory, candidate.vitals, candidate.workshop, candidate.skills)
 		data.death = { bundles = DeathBundle.save(bundles), worldRevision = port.worldRevision, locations = locations }
+		data.progression = (inner and data or candidate).progression
 		return {
 			result = if inner then inner.result else result :: Shared.Result,
 			data = data,

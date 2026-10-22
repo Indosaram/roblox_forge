@@ -82,6 +82,15 @@ function M.menuBounds(width: number, height: number): (number, number, number, n
 	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
 	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 116
 end
+-- Short landscape: contextSheet's thumb-gutter rule.
+function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
+	local w, columns, tile, top = M.menuBounds(width, height)
+	local x, h = (width - w) / 2, math.max(0, height - top - 128)
+	if (touch or width < 700) and width > height and height < 480 then
+		x, w, h = HUDModel.THUMB_GUTTER, width - 2 * HUDModel.THUMB_GUTTER, height - top - 8
+	end
+	return x, top, w, h, math.min(columns, math.floor((w + 6) / 50)), tile
+end
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
 	return math.min(440, size.x), math.min(520, math.floor(height * 0.7), size.y)
@@ -366,13 +375,9 @@ function M.start(options: {
 			column.AnchorPoint, column.Position = Vector2.zero, UDim2.fromOffset(menu.x, menu.y)
 			column.Size = UDim2.fromOffset(menu.width, menu.height)
 			menuList.Parent = dockGui
-			local menuWidth, columns, tileHeight, menuTop = M.menuBounds(size.X, size.Y)
-			menuList.AnchorPoint = Vector2.new(0.5, 0)
-			menuList.Position = UDim2.new(0.5, 0, 0, menuTop)
-			local menuHeight = math.max(0, size.Y - menuTop - 128)
-			menuList.Size = UDim2.fromOffset(menuWidth, menuHeight)
-			local mx, my, mw, mh =
-				HUDModel.chatSafe(size.X, size.Y, (size.X - menuWidth) / 2, menuTop, menuWidth, menuHeight)
+			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
+				M.menuRect(size.X, size.Y, input.TouchEnabled)
+			local mx, my, mw, mh = HUDModel.chatSafe(size.X, size.Y, menuX, menuTop, menuWidth, menuHeight)
 			menuList.AnchorPoint, menuList.Position, menuList.Size =
 				Vector2.zero, UDim2.fromOffset(mx, my), UDim2.fromOffset(mw, mh)
 			menuLayout.CellSize = UDim2.fromOffset(math.floor((menuWidth - (columns - 1) * 6) / columns), tileHeight)

@@ -36,6 +36,13 @@ local function localizeJournal(object: Instance)
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
 		object.ActionText = if korean then "일지 확인" else "Journal checkpoint"
 		object.ObjectText = if korean then "일지" else "Journal"
+	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeSurvey") then
+		object.ActionText = if korean then "조사" else "Survey"
+		local label = object.Parent and object.Parent:FindFirstChildWhichIsA("BillboardGui")
+		local text = label and label:FindFirstChildWhichIsA("TextLabel")
+		if text then
+			text.Text = object.ActionText
+		end
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgePanel") then
 		object.ActionText = if korean then "대화 / 이용" else "Talk / use"
 		object.ObjectText = if korean then "항구 안내" else "Harbor guide"

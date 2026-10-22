@@ -103,6 +103,7 @@ function M.new(ctx: any): any
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
+	module.ProgressionExtension = require("../../../../genres/survival-coop/module/ProgressionExtension")
 	module.Extensions = {
 		factories = {
 			require("../../../../genres/survival-coop/module/ContractsExtension").factory,
@@ -1319,6 +1320,9 @@ function M.new(ctx: any): any
 		local development = factory.expeditionStore.snapshot(actor).development
 		if development.points < 200 or personal(actor).progression.level < 2 then
 			return "onboarding_progress_missing"
+		end
+		if personal(actor).progression.mastery.construction.level ~= 1 then
+			return "placement_proficiency_missing"
 		end
 		return nil
 	end

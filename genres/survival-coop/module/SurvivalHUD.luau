@@ -173,6 +173,8 @@ function M.start(options: Options)
 		})
 		statBars[stat] = { fill = fill, value = value }
 	end
+	local coins = Components.label(theme, { text = "", size = UDim2.fromOffset(100, 28), parent = root, textSize = 13 })
+	coins.Name, coins.Visible, coins.BackgroundColor3 = "Coins", false, Color3.fromRGB(22, 36, 33)
 	local status = Components.label(theme, {
 		text = t("loading"),
 		size = UDim2.new(1, 0, 0, 64),
@@ -946,7 +948,7 @@ function M.start(options: Options)
 		elseif section == "skills" then
 			local progression = model.snapshot.progression
 			if progression then
-				label("Level " .. tostring(progression.level) .. " / SP " .. tostring(progression.sp), 40)
+				label(string.format(t("level_sp"), progression.level, progression.sp), 40)
 				button("skill-reset", t("skill_reset"), function()
 					command("skill-reset", { progression.version })
 				end, true)
@@ -1331,6 +1333,7 @@ function M.start(options: Options)
 			local bounds = Model.contextHudBounds(size.X + 24, size.Y + 16).vitals
 			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
 			vitals.Size = UDim2.fromOffset(bounds.width, bounds.height)
+			coins.Position = UDim2.fromOffset(bounds.x - 116, 104)
 			status.AnchorPoint, status.Position = Vector2.new(1, 0), UDim2.new(1, -80, 0, 0)
 			status.Size = UDim2.fromOffset(math.min(312, size.X - 80), 56)
 			return
@@ -1466,6 +1469,8 @@ function M.start(options: Options)
 			if contextual then
 				local modal = sheet.frame.Visible or player:GetAttribute("ForgeExtensionSheetOpen") == true
 				vitals.Visible = not modal and model.snapshot.vitals ~= nil
+				local balance = tonumber(model.snapshot.balance)
+				coins.Visible, coins.Text = not modal and balance ~= nil, string.format(t("coins"), balance or 0)
 				local restTarget = nearest("campfire")
 				local character = player.Character
 				local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil

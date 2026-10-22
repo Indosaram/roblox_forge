@@ -59,6 +59,7 @@ local forge = {
 				JournalPorts = require("../../genres/survival-coop/module/JournalPorts"),
 				JournalObjectiveFeed = require("../../genres/survival-coop/module/JournalObjectiveFeed"),
 				JournalExtension = require("../../genres/survival-coop/module/JournalExtension"),
+				ProgressionExtension = require("../../genres/survival-coop/module/ProgressionExtension"),
 			},
 		},
 	},

@@ -5040,7 +5040,7 @@ skillCategories:
     id: "butchering"
     nameKey: "skills.butchering"
     entryActions:
-      - "defaultmeat"
+      - "carcass"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5068,7 +5068,7 @@ skillCategories:
     id: "ranged"
     nameKey: "skills.ranged"
     entryActions:
-      - "basicbowhit"
+      - "ranged-hit"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5082,7 +5082,8 @@ skillCategories:
     id: "construction"
     nameKey: "skills.construction"
     entryActions:
-      - "starterplacement"
+      - "settlement-place"
+      - "home-place"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5090,6 +5091,8 @@ skillCategories:
     nameKey: "skills.farming"
     entryActions:
       - "practice-seedbed"
+      - "home-plant"
+      - "home-harvest"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5097,6 +5100,7 @@ skillCategories:
     nameKey: "skills.tailoring"
     entryActions:
       - "practice-fiber-stitch"
+      - "cord"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -5110,7 +5114,7 @@ skillCategories:
     id: "defense"
     nameKey: "skills.defense"
     entryActions:
-      - "basicblock"
+      - "guard-block"
     provenance:
       classification: "RECONSTRUCTED"
 skillNodes:

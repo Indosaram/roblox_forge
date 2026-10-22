@@ -7,7 +7,7 @@ local HudModel = require("./SurvivalHUDModel")
 local HudLocale = require("./SurvivalHUDLocale")
 local M = {}
 
-export type Row = { id: string, label: string, delivered: number, need: number, locked: boolean }
+export type Row = { id: string, label: string, delivered: number, need: number, locked: boolean, costs: { any } }
 export type Host = { id: string, name: string }
 export type Choice = { itemId: string, label: string, available: number }
 export type Model = {
@@ -119,6 +119,15 @@ function M.clamp(quantity: number, available: number): number
 	return math.clamp(math.floor(quantity), 1, math.max(1, math.min(available, M.MAX_QUANTITY)))
 end
 
+function M.costLine(locale: string, row: Row, names: { [string]: string }?): string
+	local parts = {}
+	for _, cost in row.costs do
+		local name = names and names[cost.item] or HudLocale.text(locale, cost.item)
+		table.insert(parts, `{name} {cost.delivered}/{cost.need}`)
+	end
+	return table.concat(parts, " · ")
+end
+
 -- Pure view model; `now` only decides pass status, the packet only names hosts.
 function M.model(slice: any, now: number, packet: any?): Model?
 	if type(slice) ~= "table" then
@@ -159,10 +168,12 @@ function M.model(slice: any, now: number, packet: any?): Model?
 	end)
 	for _, project in projects do
 		local progress = slice.active[project.id]
-		local delivered, need = 0, 0
+		local delivered, need, costs = 0, 0, {}
 		for _, cost in project.cost do
+			local given = if progress then math.min(progress.delivered[cost.item] or 0, cost.quantity) else 0
 			need += cost.quantity
-			delivered += if progress then math.min(progress.delivered[cost.item] or 0, cost.quantity) else 0
+			delivered += given
+			table.insert(costs, { item = cost.item, delivered = given, need = cost.quantity })
 		end
 		table.insert(rows, {
 			id = project.id,
@@ -170,6 +181,7 @@ function M.model(slice: any, now: number, packet: any?): Model?
 			delivered = delivered,
 			need = need,
 			locked = slice.rung < project.rung - 1,
+			costs = costs,
 		})
 	end
 	local facilities: { string } = {}

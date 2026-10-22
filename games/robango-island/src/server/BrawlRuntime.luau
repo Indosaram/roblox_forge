@@ -4,6 +4,7 @@ local Controller = require(Forge.genres["survival-coop"].module.BrawlController)
 local Combat = require(Forge.genres["survival-coop"].module.Combat)
 local Match = require(Forge.core.domain.brawl.Match)
 local Personal = require(Forge.genres["survival-coop"].module.JournalPorts)
+local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
 local M = {}
 
 function M.attack(participant: any, fact: any): any
@@ -79,7 +80,11 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 			claim = function(actor: string, state: any, utc: number): any
 				local result: any = nil
 				local ok, reason = session.personalTransaction(actor, function(raw)
-					result = Match.reward(raw.envelope.genres["survival-coop"].data, state, actor, utc)
+					local data = raw.envelope.genres["survival-coop"].data
+					result = Match.reward(data, state, actor, utc)
+					for _, a in if result.ok then (state.actors[actor].combat or {}).attacks or {} else {} do
+						data.progression = Award(content, data.progression, a.hit and a.mode .. "-hit" or "", a.id)
+					end
 					return raw
 				end)
 				return if ok then result else { ok = false, reason = reason }

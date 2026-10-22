@@ -309,12 +309,12 @@ function M.check(document: any): any
 	local engineActions = {
 		["feeding"] = true,
 		["firstjourney"] = true,
-		["defaultmeat"] = true,
+		["carcass"] = true,
 		["hand"] = true,
-		["basicbowhit"] = true,
+		["ranged-hit"] = true,
 		["basicclubhit"] = true,
-		["starterplacement"] = true,
-		["basicblock"] = true,
+		["settlement-place"] = true,
+		["guard-block"] = true,
 	}
 	local categories = index(document.skillCategories or {})
 	for _, category in CATEGORIES do

@@ -70,6 +70,15 @@ function M.craft(
 	return Materials.craft(content, id, inputs)
 end
 
+function M.award(content: any, state: any, event: string, id: string): any
+	for _, row in if state then content.skillCategories else {} do
+		if table.find(row.entryActions, event) then
+			state = Tree.award(state, content.progressionPolicy.tree, row.id, id .. ":" .. row.id)
+		end
+	end
+	return state
+end
+
 function M.gather(state: Tree.State, resource: any): string?
 	return Tree.gate(state, resource.gates or {})
 end
