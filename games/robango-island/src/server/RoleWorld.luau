@@ -638,20 +638,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if stage.layout == layoutId then
 			for _, objective in stage.objectives do
 				if objective.action == "survey" then
-					local origin: any = nil
-					for _, anchor in layout.anchors do
-						if anchor.id == "objective" then
-							origin = anchor.position
-						end
-					end
 					for index = 1, objective.quantity do
-						local position = { x = origin.x + (index - 1) * 12 - 12, y = origin.y, z = origin.z - 12 }
-						if index > 3 then
-							position.x, position.z = origin.x + (index - 4) * 12 - 6, origin.z - 24
-						end
+						local position = Terrain.survey(layout, index)
 						local id = objective.id .. "." .. tostring(index)
 						world.surveyMarkers[id] = { position = position, objective = objective.id, layout = layoutId }
 						local target = part(id, interactionPosition(position, 3), { x = 2, y = 3, z = 2 })
+						local gui = Instance.new("BillboardGui")
+						gui.Size, gui.StudsOffset, gui.AlwaysOnTop =
+							UDim2.fromOffset(120, 32), Vector3.new(0, 4, 0), true
+						local label = Instance.new("TextLabel")
+						label.Size, label.BackgroundTransparency, label.TextScaled = UDim2.fromScale(1, 1), 1, true
+						label.Text, label.TextColor3, label.Parent = "Survey", Color3.fromRGB(255, 220, 90), gui
+						gui.Parent = target
+						game:GetService("CollectionService"):AddTag(target, "ForgeSurvey")
 						local prompt = Instance.new("ProximityPrompt")
 						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
 							"Survey", content.missionPolicy.interactionStuds, target
@@ -687,7 +686,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		npc.Position = Vector3.new(position.x, position.y, position.z)
 	end
-	world.publishEscort = function(actor, state)
+	world.publishEscort = function(actor, state: any)
+		for id in world.surveyMarkers do
+			local mark = state and root:FindFirstChild(id)
+			if mark then
+				mark:SetAttribute("ForgeSurveyed" .. actor, state.receipts[state.id .. ":survey:" .. id])
+			end
+		end
 		local npc = escorts[actor]
 		if not state or state.stage ~= tonumber(string.match(layoutId, "%.s(%d+)$")) or state.status ~= "active" then
 			if npc then

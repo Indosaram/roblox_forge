@@ -31,8 +31,11 @@ end
 return {
 	["survey requires a continuous two second hold and distinct server markers"] = function()
 		local state = open(1)
-		local origin = anchors(state).objective
-		local position = { x = origin.x - 12, y = origin.y, z = origin.z - 12 }
+		local layout: any = nil
+		for _, row in Content.layouts do
+			layout = if row.id == Archipelago.layout(state) then row else layout
+		end
+		local position = require("./ArchipelagoTerrain").survey(layout, 1)
 		local marker = "rw.a1.s1.survey.1"
 		assert(not Missions.apply(state, Content, "survey-start", "foreign", position, 1), "foreign marker refused")
 		assert(Missions.apply(state, Content, "survey-start", marker, position, 1))

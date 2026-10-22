@@ -23,7 +23,7 @@ local function overlaps(a: any, b: any): boolean
 end
 
 -- Real ContractsPanel inside the real contextual dock, on a minimal fake engine.
-local function contractsDock(locale: string, width: number, height: number): any
+local function contractsDock(locale: string, width: number, height: number, surveys: { number }?): any
 	local nodes: { any } = {}
 	local attributes: { [string]: any } = {}
 	local heartbeat, stateEvent = signal(), { handlers = {} :: { any } }
@@ -115,8 +115,14 @@ local function contractsDock(locale: string, width: number, height: number): any
 	local fern = node("Part")
 	fern.Position = vec(6, 0, 0)
 	fern.attributes = { ForgeNodeDepleted = false, ForgeNodeCount = 2, ForgeNodeItem = "fiber" }
+	local targets = {}
+	for _, distance in (surveys or {}) :: { number } do
+		local target = node("Part")
+		target.Position = vec(0, 0, distance)
+		table.insert(targets, target)
+	end
 	local playerGui = node("PlayerGui")
-	local player: any = { Character = character, PlayerGui = playerGui }
+	local player: any = { Character = character, PlayerGui = playerGui, UserId = 7 }
 	function player:WaitForChild()
 		return playerGui
 	end
@@ -164,8 +170,8 @@ local function contractsDock(locale: string, width: number, height: number): any
 		RunService = { Heartbeat = heartbeat },
 		ProximityPromptService = { PromptTriggered = signal() },
 		CollectionService = {
-			GetTagged = function()
-				return { fern }
+			GetTagged = function(_self, tag)
+				return if tag == "ForgeSurvey" then targets else { fern }
 			end,
 		},
 		Workspace = {
@@ -305,6 +311,7 @@ local function contractsDock(locale: string, width: number, height: number): any
 	end
 	return {
 		find = find,
+		targets = targets,
 		push = push,
 		shown = shown,
 		tick = function()
@@ -362,6 +369,27 @@ return {
 			assert(rect.height >= 40 and rect.width >= 200, "notice readable")
 			assert(not overlaps(rect, rows), "notice clears the Deliver row area")
 			assert(rows.height >= 44 * 2, "Deliver row still visible")
+		end
+	end,
+	["survey target distance shows outside the gather step and yields to contract notices"] = function()
+		for _, case in { { "ko-kr", "조사: 50m" }, { "en-us", "Survey: 50m" } } do
+			local dock = contractsDock(case[1], 1280, 664, { 80, 50 })
+			dock.push("settle")
+			dock.tick()
+			local tracker = assert(dock.find("ObjectiveTracker"), "tracker")
+			assert(tracker.Text == case[2], "survey hint: " .. tracker.Text)
+			dock.targets[2]:SetAttribute("ForgeSurveyed7", true)
+			dock.tick()
+			assert(tracker.Text == string.gsub(case[2], "50", "80"), "completed target skipped: " .. tracker.Text)
+			dock.click(assert(dock.find("Deliver-survey-driftwood"), "deliver button"))
+			local notice = assert(dock.find("Notice"), "notice").Text
+			dock.tick()
+			assert(tracker.Text == notice and notice ~= "", "contract notice wins: " .. tracker.Text)
+			local bare = contractsDock(case[1], 1280, 664)
+			bare.push("settle")
+			bare.tick()
+			local text = assert(bare.find("ObjectiveTracker"), "tracker").Text
+			assert(not string.find(text, "m$") and not string.find(text, "Survey", 1, true), "no hint: " .. text)
 		end
 	end,
 	["biome entry toast fades after three seconds and reentry restarts it"] = function()

@@ -40,6 +40,23 @@ function M.protected(layout: any, x: number, z: number, margin: number): boolean
 	end
 	return false
 end
+-- Survey markers start on the dry main trail 64 studs past the resource yard,
+-- toward the objective, so the first one is in sight of the trail spawn.
+function M.survey(layout: any, index: number): any
+	for _, path in layout.paths do
+		if string.sub(path.id, -5) == ".main" then
+			local a, b = path.points[3], path.points[4]
+			local dx, dz = b.x - a.x, b.z - a.z
+			local t = 64 / math.sqrt(dx * dx + dz * dz)
+			local x, z = a.x + dx * t + (index - 1) * 12, a.z + dz * t
+			if index > 3 then
+				x, z = a.x + dx * t + (index - 4) * 12 + 6, z - 12
+			end
+			return { x = x, y = a.y + (b.y - a.y) * t, z = z }
+		end
+	end
+	error("SURVEY_TRAIL_MISSING:" .. layout.id)
+end
 -- Catalog navigation and habitat clearings override the seeded high ground.
 -- Returns square terrain columns; adapters materialize columns before ribbons.
 function M.columns(layout: any, seed: number, cell: number): { any }

@@ -451,9 +451,10 @@ function M.start(options: {
 					end)
 				end
 			end
+			local pivot = character and character:FindFirstChild("HumanoidRootPart")
+			local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
+			local ko = string.sub(options.locale, 1, 2) == "ko"
 			if tutorial and tutorial.step == "gather" then
-				local pivot = character and character:FindFirstChild("HumanoidRootPart")
-				local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
 				if pivot and tracker and not tracker:GetAttribute("ForgeContractsNotice") then
 					local candidates = {}
 					local params = RaycastParams.new()
@@ -482,11 +483,21 @@ function M.start(options: {
 						local kind = target:GetAttribute("ForgeNodeItem") or target:GetAttribute("ForgeNodeKind")
 						local label = if options.names then options.names[kind] else nil
 						tracker.Text = string.format(
-							if string.sub(options.locale, 1, 2) == "ko" then "채집: %s (%dm)" else "Gather: %s (%dm)",
+							if ko then "채집: %s (%dm)" else "Gather: %s (%dm)",
 							label or kind,
 							math.ceil(nearest.distance)
 						)
 					end
+				end
+			elseif pivot and tracker and not tracker:GetAttribute("ForgeContractsNotice") then
+				local gap = math.huge
+				for _, mark in game:GetService("CollectionService"):GetTagged("ForgeSurvey") do
+					if not mark:GetAttribute("ForgeSurveyed" .. players.LocalPlayer.UserId) then
+						gap = math.min(gap, (mark.Position - pivot.Position).Magnitude)
+					end
+				end
+				if gap < math.huge then
+					tracker.Text = string.format(if ko then "조사: %dm" else "Survey: %dm", math.ceil(gap))
 				end
 			end
 			return

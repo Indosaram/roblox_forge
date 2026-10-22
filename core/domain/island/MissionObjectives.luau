@@ -2,6 +2,7 @@
 -- Mission-only reserves never enter the tradeable bag. Positions and clocks
 -- are supplied by the authoritative world; remote arguments name an operation.
 local Archipelago = require("./Archipelago")
+local Terrain = require("./ArchipelagoTerrain")
 local M = {}
 local function copy(point: any): any
 	return { x = point.x, y = point.y, z = point.z }
@@ -29,6 +30,14 @@ local function geometry(state: any, content: any): any
 				anchors[anchor.id] = anchor.position
 			end
 			return anchors
+		end
+	end
+	return nil
+end
+local function layoutOf(state: any, content: any): any
+	for _, layout in content.layouts do
+		if layout.id == Archipelago.layout(state) then
+			return layout
 		end
 	end
 	return nil
@@ -73,11 +82,7 @@ function M.apply(
 		local marker: any = nil
 		for index = 1, objective.quantity do
 			if target == objective.id .. "." .. tostring(index) then
-				local origin = anchors.objective
-				marker = { x = origin.x + (index - 1) * 12 - 12, y = origin.y, z = origin.z - 12 }
-				if index > 3 then
-					marker.x, marker.z = origin.x + (index - 4) * 12 - 6, origin.z - 24
-				end
+				marker = Terrain.survey(layoutOf(state, content), index)
 			end
 		end
 		if not marker or not near(marker) then

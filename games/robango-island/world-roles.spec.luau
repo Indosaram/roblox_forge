@@ -543,6 +543,40 @@ return {
 		)
 		world.destroy()
 	end,
+	["every archipelago island puts its first survey target on land near the spawn"] = function()
+		local roblox = require("@lune/roblox")
+		local checked = 0
+		for _, layout in Content.layouts do
+			if not string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+				continue
+			end
+			local engine = Engine.new(nil, true)
+			local workspace = engine.game:GetService("Workspace")
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layout.id, 1776)
+			local target = require("../../core/domain/island/ArchipelagoTerrain").survey(layout, 1)
+			for _, stage in Content.stages do
+				for _, objective in if stage.layout == layout.id then stage.objectives else {} do
+					if objective.action == "survey" then
+						target = world.surveyMarkers[objective.id .. ".1"].position
+					end
+				end
+			end
+			local at = workspace:FindFirstChild("ForgeRoleWorld"):FindFirstChild("SurvivalSpawn").Position
+			local d = math.sqrt((target.x - at.X) ^ 2 + (target.z - at.Z) ^ 2)
+			assert(d >= 40 and d <= 70, layout.id .. " first survey is " .. d .. " studs from spawn")
+			local ground = workspace:Raycast(
+				roblox.Vector3.new(target.x, 512, target.z),
+				roblox.Vector3.new(0, -1024, 0),
+				{ IgnoreWater = true }
+			)
+			assert(ground and ground.Position.Y >= 1, layout.id .. " first survey is not on land")
+			checked += 1
+			world.destroy()
+		end
+		assert(checked == 20, "all 20 archipelago islands checked")
+	end,
 	["production archipelago derives rendered layout and nodes from persisted route"] = function()
 		local engine = Engine.new()
 		local source: any = table.clone(Source)
