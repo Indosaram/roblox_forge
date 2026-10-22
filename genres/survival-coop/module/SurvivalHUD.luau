@@ -637,7 +637,11 @@ function M.start(options: Options)
 	blocked.Name, blocked.TextWrapped = "PlacementReason", true
 	local function placeSelected()
 		local settlement, warehouse = model.snapshot.settlement, model.snapshot.warehouse
-		if not settlement or not warehouse or model.pending then
+		if model.pending then
+			return
+		end
+		if not settlement or not warehouse then
+			toast.Text, toast.Visible = Locale.refusal(locale, "SETTLEMENT_UNAVAILABLE"), true
 			return
 		end
 		for _, entry in Model.placements(settlement, model.actor) do
@@ -648,10 +652,15 @@ function M.start(options: Options)
 		end
 		local definition = selectedDefinition()
 		if definition and suppliesAvailable(warehouse, definition.cost) then
-			local args = Model.buildArgs(model.snapshot, definition, x, z, rotation)
+			local args, reason = Model.buildArgs(model.snapshot, definition, x, z, rotation)
 			if args then
 				command("settlement-reserve", args)
+			else
+				toast.Text, toast.Visible = Locale.refusal(locale, reason or "SETTLEMENT_UNAVAILABLE"), true
 			end
+		else
+			local reason = if definition then "MISSING_INPUTS" else "SETTLEMENT_UNAVAILABLE"
+			toast.Text, toast.Visible = Locale.refusal(locale, reason), true
 		end
 	end
 	local confirmPlacement = Components.button(theme, {
@@ -697,10 +706,11 @@ function M.start(options: Options)
 	for _, control in { confirmPlacement, cancelPlacement, rotatePlacement } do
 		control.ZIndex = placementBar.ZIndex + 1
 	end
-	placementBar.Size, placementBar.Position = UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -72)
+	placementBar.Size, placementBar.Position =
+		UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -Model.PLACEMENT_BOTTOM)
 	confirmPlacement.Size, confirmPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(88, 0)
 	cancelPlacement.Size, cancelPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(212, 0)
-	toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -184)
+	toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -264)
 	table.insert(
 		connections,
 		input.InputChanged:Connect(function(event, processed)

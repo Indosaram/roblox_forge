@@ -38,6 +38,15 @@ local function model(): any
 end
 
 return {
+	["placement controls clear equipped tool hotbar at every viewport height"] = function()
+		for _, height in { 320, 632, 640, 1080 } do
+			local top = height - Model.PLACEMENT_BOTTOM
+			local bottom = top + 48
+			assert(top >= 0, "placement stays on the viewport")
+			assert(bottom < height - 70, "CoreGui tool slots must not intercept placement clicks")
+			assert(Model.overPlacementBar(164, top + 24, { X = 0, Y = top }, { X = 328, Y = 48 }))
+		end
+	end,
 	["recipe availability distinguishes station reach from carried materials"] = function()
 		local bag = {
 			items = {

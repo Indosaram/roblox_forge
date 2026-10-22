@@ -3,6 +3,10 @@ local Transport = require("../../../core/infra/genre/CommandTransport")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local M = {}
 
+-- The equipped-tool CoreGui hotbar occupies the bottom 70 pixels and wins
+-- input routing over every PlayerGui DisplayOrder.
+M.PLACEMENT_BOTTOM = 152
+
 function M.stationTarget(position: any, size: any): any
 	return { x = position.x, y = position.y + size.y / 2 + 2, z = position.z }
 end
