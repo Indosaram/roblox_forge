@@ -40,6 +40,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local view: { kind: string, route: number?, failure: string?, verb: string? } = { kind = "list" }
 	local popupKind: string? = nil
 	local seenResults: string? = nil
+	local seenArrival: string? = nil
 	local seenInvites: { [string]: boolean } = {}
 	local render: () -> ()
 
@@ -60,7 +61,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		if type(latest) ~= "table" then
 			return
 		end
-		if view.kind == "confirm" and view.route then
+		local arrival = latest.arrival
+		local arrivalKey = if arrival then arrival.id .. ":" .. arrival.stage else nil
+		if view.kind == "list" and arrivalKey and seenArrival ~= arrivalKey then
+			routes.render(Models.travel(locale, arrival.route, nil, function() end, function()
+				seenArrival = arrivalKey
+				routes.open(false)
+				render()
+			end, arrival))
+			if seenArrival ~= arrivalKey and not routes.gui.Enabled then
+				routes.open(true)
+			end
+		elseif view.kind == "confirm" and view.route then
 			local route = view.route :: number
 			routes.render(Models.confirm(locale, latest, route, {
 				confirm = function()
@@ -157,9 +169,32 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local results = latest.results
 		if Models.downed(vitals, taming) then
 			popupKind = "knockout"
-			popup.render(Models.knockout(locale, vitals or {}, zone, taming, latest.now * 1000, function(id)
-				ctx.send(Models.COMPANION_ACTION, { "feed", id })
-			end))
+			popup.render(Models.knockout(
+				locale,
+				vitals or {},
+				zone,
+				taming,
+				latest.now * 1000,
+				function(id)
+					ctx.send(Models.COMPANION_ACTION, { "feed", id })
+				end,
+				if latest.tracker
+					then function()
+						local result = act("home", "")
+						if not result.ok then
+							popup.render(Text.text(locale, "ko_title"), {
+								{
+									kind = "label",
+									text = Text.reason(locale, result.reason),
+									height = 56,
+									name = "KnockoutRefusal",
+								},
+							})
+						end
+					end
+					else nil,
+				latest.cargo
+			))
 			popup.open(true)
 		elseif invite and not seenInvites[invite.from .. ":" .. invite.expiresAt] then
 			popupKind = "invite"
@@ -185,6 +220,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			popup.render(Models.results(locale, results, ctx.names, function()
 				seenResults = results.id
 				popup.open(false)
+			end, function()
+				local result = act("claim", results.id)
+				if not result.ok then
+					popup.render(Text.text(locale, "exp_results"), {
+						{
+							kind = "label",
+							text = Text.reason(locale, result.reason),
+							height = 56,
+							name = "ClaimRefusal",
+						},
+					})
+				end
 			end))
 			popup.open(true)
 		elseif latest.hazard then
@@ -193,7 +240,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				popup.open(true)
 			end
 			popup.render(Models.hazard(locale, latest.hazard, ctx.names))
-		elseif popupKind == "knockout" or popupKind == "hazard" then
+		elseif popupKind == "knockout" or popupKind == "hazard" or popupKind == "results" then
 			popupKind = nil
 			popup.open(false)
 		end

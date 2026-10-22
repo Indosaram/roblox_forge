@@ -12734,7 +12734,8 @@ layouts:
           y: 4
           z: 88
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12745,7 +12746,8 @@ layouts:
           y: 4
           z: 88
         stock: 24
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12756,7 +12758,8 @@ layouts:
           y: 4
           z: 88
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12767,7 +12770,8 @@ layouts:
           y: 4
           z: 88
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12778,7 +12782,8 @@ layouts:
           y: 4
           z: 100
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12789,7 +12794,8 @@ layouts:
           y: 4
           z: 100
         stock: 10
-        level: 30
+        # Robango redesign value: a1 is the first route (stage gate level 2), so its objective wood is level 1.
+        level: 1
         yield: 3
         respawnSeconds: 120
         tool: "starter-axe"
@@ -12801,7 +12807,8 @@ layouts:
           y: 4
           z: 100
         stock: 5
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12812,7 +12819,8 @@ layouts:
           y: 4
           z: 100
         stock: 8
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -12823,7 +12831,8 @@ layouts:
           y: 4
           z: 112
         stock: 2
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
     spawns:
@@ -13319,7 +13328,8 @@ layouts:
           y: 6
           z: -66
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13330,7 +13340,8 @@ layouts:
           y: 6
           z: -54
         stock: 24
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13341,7 +13352,8 @@ layouts:
           y: 6
           z: -42
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13352,7 +13364,8 @@ layouts:
           y: 6
           z: -30
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13363,7 +13376,8 @@ layouts:
           y: 6
           z: -66
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13374,7 +13388,8 @@ layouts:
           y: 6
           z: -54
         stock: 10
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 10
         yield: 3
         respawnSeconds: 120
       -
@@ -13385,7 +13400,8 @@ layouts:
           y: 6
           z: -42
         stock: 5
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13396,7 +13412,8 @@ layouts:
           y: 6
           z: -30
         stock: 8
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13407,7 +13424,8 @@ layouts:
           y: 6
           z: -54
         stock: 2
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
     spawns:
@@ -13877,7 +13895,8 @@ layouts:
           y: 6
           z: -88
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13888,7 +13907,8 @@ layouts:
           y: 6
           z: -88
         stock: 24
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13899,7 +13919,8 @@ layouts:
           y: 6
           z: -88
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13910,7 +13931,8 @@ layouts:
           y: 6
           z: -88
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13921,7 +13943,8 @@ layouts:
           y: 6
           z: -100
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13932,7 +13955,8 @@ layouts:
           y: 6
           z: -100
         stock: 10
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13943,7 +13967,8 @@ layouts:
           y: 6
           z: -100
         stock: 5
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -13954,7 +13979,8 @@ layouts:
           y: 6
           z: -100
         stock: 8
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 10
         yield: 3
         respawnSeconds: 120
       -
@@ -14461,7 +14487,8 @@ layouts:
           y: 8
           z: 66
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14472,7 +14499,8 @@ layouts:
           y: 8
           z: 54
         stock: 24
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14483,7 +14511,8 @@ layouts:
           y: 8
           z: 42
         stock: 40
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14494,7 +14523,8 @@ layouts:
           y: 8
           z: 30
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14505,7 +14535,8 @@ layouts:
           y: 8
           z: 66
         stock: 12
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14516,7 +14547,8 @@ layouts:
           y: 8
           z: 54
         stock: 10
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
         tool: "starter-axe"
@@ -14528,7 +14560,8 @@ layouts:
           y: 8
           z: 42
         stock: 5
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14539,7 +14572,8 @@ layouts:
           y: 8
           z: 30
         stock: 8
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         yield: 3
         respawnSeconds: 120
       -
@@ -14587,7 +14621,8 @@ layouts:
       -
         id: "rw.a1.s4.gallimimus.01"
         speciesId: "gallimimus"
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         position:
           x: 96
           y: 8
@@ -14597,7 +14632,8 @@ layouts:
       -
         id: "rw.a1.s4.gallimimus.02"
         speciesId: "gallimimus"
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         position:
           x: 96
           y: 8
@@ -14607,7 +14643,8 @@ layouts:
       -
         id: "rw.a1.s4.gallimimus.03"
         speciesId: "gallimimus"
-        level: 30
+        # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
+        level: 1
         position:
           x: 120
           y: 8

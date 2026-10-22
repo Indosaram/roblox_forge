@@ -24,7 +24,10 @@ function M.start(env: any): any
 	end
 	assert(env.teleportService and env.players, "missing_travel_services")
 	local departing: { [string]: boolean } = {}
-	local function travel(player: any, destination: string): (boolean, string?)
+	-- Party-shared travel token -> reserved access code. Every member departs from this
+	-- server (leader last), so a server-local map lands the whole crew on one reserved server.
+	local shared: { [string]: string } = {}
+	local function travel(player: any, destination: string, token: string?): (boolean, string?)
 		if Topology.ROLES[destination] == nil then
 			return false, "unknown_target_role"
 		end
@@ -65,6 +68,19 @@ function M.start(env: any): any
 				return false, "missing_home_reservation"
 			end
 			options.ReservedServerAccessCode = facts.homeAccessCode
+		elseif destination == "archipelago" and token then
+			if not shared[token] then
+				local reserved, code = pcall(function()
+					return env.teleportService:ReserveServerAsync(id)
+				end)
+				if not reserved or type(code) ~= "string" then
+					env.resumeHandoff(actor)
+					departing[actor] = nil
+					return false, "party_reservation_failed"
+				end
+				shared[token] = code
+			end
+			options.ReservedServerAccessCode = shared[token]
 		end
 		local ok = pcall(function()
 			env.teleportService:TeleportAsync(id, { player }, options)

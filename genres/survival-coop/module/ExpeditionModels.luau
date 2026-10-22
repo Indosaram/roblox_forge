@@ -76,7 +76,56 @@ function M.confirm(locale: string, state: any, route: number, actions: any): (st
 end
 
 -- ui.travel: connecting state; a refusal or failure keeps the same operation for Retry.
-function M.travel(locale: string, route: number, failure: string?, retry: () -> (), back: () -> ()): (string, { any })
+-- After arrival the restored expedition identity and a left/arrived reconciliation show.
+function M.travel(
+	locale: string,
+	route: number,
+	failure: string?,
+	retry: () -> (),
+	back: () -> (),
+	arrival: any?
+): (string, { any })
+	if arrival then
+		local items = {
+			label(
+				Text.text(locale, "travel_arrived", arrival.route, arrival.stage, arrival.id),
+				BODY,
+				"TravelIdentity"
+			),
+		}
+		if arrival.party then
+			table.insert(items, label(Text.text(locale, "travel_crew", #arrival.party.members), LINE, "TravelCrew"))
+		end
+		local left, came = arrival.left, arrival.arrived
+		if left and came then
+			table.insert(
+				items,
+				label(
+					Text.text(locale, "travel_reconcile", left.items, left.coins, came.items, came.coins),
+					BODY,
+					"TravelReconcile"
+				)
+			)
+			local refund = math.max(0, came.coins - left.coins)
+			table.insert(
+				items,
+				label(
+					if refund > 0
+						then Text.text(locale, "travel_refund", refund)
+						elseif came.items < left.items then Text.text(
+							locale,
+							"travel_missing",
+							left.items - came.items
+						)
+						else Text.text(locale, "travel_match"),
+					LINE,
+					"TravelRefund"
+				)
+			)
+		end
+		table.insert(items, button(Text.text(locale, "exp_stay"), "TravelBack", back))
+		return Text.text(locale, "exp_routes"), items
+	end
 	local items = { label(Text.text(locale, "exp_travel", route), LINE, "TravelState") }
 	if failure then
 		table.insert(items, button(Text.text(locale, "exp_retry"), "TravelRetry", retry))
@@ -229,7 +278,7 @@ function M.expedition(locale: string, state: any, names: any, ask: (string) -> (
 end
 
 -- ui.expedition-results: per-mission XP, coins, trust, first vs repeat, delivery, return.
-function M.results(locale: string, results: any, names: any, close: () -> ()): (string, { any })
+function M.results(locale: string, results: any, names: any, close: () -> (), claim: (() -> ())?): (string, { any })
 	local status = if results.status == "complete"
 		then "exp_status_complete"
 		elseif results.status == "expired" then "exp_status_expired"
@@ -263,6 +312,22 @@ function M.results(locale: string, results: any, names: any, close: () -> ()): (
 			label(Text.text(locale, if delivered then "exp_delivered" else "exp_pending"), LINE, "ResultDelivery")
 		)
 	end
+	local ledger = results.ledger
+	if ledger and claim and not ledger.claimed then
+		table.insert(items, button(Text.text(locale, "exp_claim", ledger.coins, ledger.xp), "ResultsClaim", claim))
+	elseif ledger then
+		table.insert(items, label(Text.text(locale, "exp_claimed"), LINE, "ResultsClaimed"))
+	end
+	for _, row in results.contributors or {} do
+		table.insert(
+			items,
+			label(
+				Text.text(locale, "exp_contrib", names and names[row.id] or row.id, row.points),
+				LINE,
+				"Contrib-" .. row.id
+			)
+		)
+	end
 	table.insert(items, button(Text.text(locale, "exp_home"), "ResultsClose", close))
 	return Text.text(locale, "exp_results"), items
 end
@@ -271,7 +336,21 @@ end
 function M.hazard(locale: string, hazard: any, names: any): (string, { any })
 	local kind = if names and names["hazard_" .. hazard.kind] then names["hazard_" .. hazard.kind] else hazard.kind
 	local items = { label(Text.text(locale, "hazard_body", hazard.intensity), BODY, "HazardBody") }
+	if hazard.resist ~= nil then
+		table.insert(
+			items,
+			label(Text.text(locale, "hazard_resist", hazard.resist, hazard.exposure), LINE, "HazardResist")
+		)
+	end
 	if hazard.volcano then
+		table.insert(
+			items,
+			label(
+				Text.text(locale, if hazard.boots then "hazard_boots_on" else "hazard_boots_off"),
+				LINE,
+				"HazardBoots"
+			)
+		)
 		table.insert(
 			items,
 			label(
@@ -294,12 +373,23 @@ function M.knockout(
 	zone: string?,
 	taming: any,
 	nowMillis: number,
-	feed: (string) -> ()
+	feed: (string) -> (),
+	home: (() -> ())?,
+	cargo: any?
 ): (string, { any })
 	local items = {
 		label(Text.text(locale, "ko_wait", math.ceil((vitals.respawnWaitMillis or 0) / 1000)), LINE, "KnockoutWait"),
-		label(Text.text(locale, if zone == "danger" then "ko_danger" else "ko_safe"), BODY, "KnockoutZone"),
 	}
+	if home and vitals.healthMilli == 0 then
+		table.insert(items, button(Text.text(locale, "exp_home"), "KnockoutHome", home))
+	end
+	table.insert(
+		items,
+		label(Text.text(locale, if zone == "danger" then "ko_danger" else "ko_safe"), BODY, "KnockoutZone")
+	)
+	if cargo then
+		table.insert(items, label(Text.text(locale, "ko_cargo", cargo.item, cargo.quantity), LINE, "KnockoutCargo"))
+	end
 	local companions = taming and taming.companions
 	local ids = {}
 	for id, pet in (companions and companions.pets) or {} do

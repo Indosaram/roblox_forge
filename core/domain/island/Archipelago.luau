@@ -69,6 +69,9 @@ function M.open(content: any, options: any, facts: any, now: number): (any?, str
 		questCargo = nil,
 		treated = false,
 		escortAtStart = true,
+		-- Party-shared travel token/leader and the carried summary at departure (ui.travel).
+		party = options.party,
+		departure = options.departure,
 	}
 	local ok, reason = M.admit(state, content, facts, now, options.entryBuffer)
 	return if ok then state else nil, reason

@@ -11,6 +11,15 @@ local materials: any = Enum.Material
 local shapes: any = Enum.PartType
 local M = {}
 
+M.travelSerial = 0
+--- Publishes a dock travel result to the player as "<outcome>|<serial>"; the HUD
+--- tracker shows each new value for a few seconds. Also logged for Studio QA.
+function M.publishTravel(player: any, outcome: string)
+	M.travelSerial += 1
+	print("ForgeTravel " .. tostring(player.UserId) .. " " .. outcome)
+	player:SetAttribute("ForgeTravelResult", outcome .. "|" .. tostring(M.travelSerial))
+end
+
 function M.build(content: any, source: any, policy: any, nowMillis: any, layoutId: string, seed: number): any
 	local layout: any = nil
 	for _, candidate in content.layouts do
@@ -560,9 +569,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local actor = tostring(player.UserId)
 			local reach = world.services.survivalDeath
 			local approach = { x = position.x, y = position.y + 2, z = position.z }
-			if bound and reach.reachable(actor, approach) and world.travel then
-				world.travel(player, destination)
+			local outcome: string
+			if not (bound and world.travel) then
+				outcome = "expedition_inactive"
+			elseif not reach.reachable(actor, approach) then
+				outcome = "dock_unreachable"
+			else
+				local ok, reason = world.travel(player, destination)
+				outcome = if ok then "travelling" else tostring(reason or "travel_refused")
 			end
+			-- The server's result is always shown: refusal reason or the travelling notice.
+			M.publishTravel(player, outcome)
 		end)
 	end
 	for _, anchor in layout.anchors do

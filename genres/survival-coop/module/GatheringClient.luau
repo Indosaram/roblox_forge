@@ -16,6 +16,43 @@ function M.actionText(locale: string?, busy: boolean?): string
 	return if busy then (if ko then "채집 중..." else "Collecting...") elseif ko then "채집하기" else "Gather"
 end
 
+--- Localized, player-visible text for a refused gather (never a silent no-op).
+--- `result.data.requirement` carries the server's admission detail when known.
+function M.refusalText(locale: string?, result: any, names: { [string]: string }?): string?
+	if type(result) ~= "table" or result.ok ~= false or type(result.reason) ~= "string" then
+		return nil
+	end
+	local ko = locale and string.sub(locale, 1, 2) == "ko"
+	local need = if type(result.data) == "table" and type(result.data.requirement) == "table"
+		then result.data.requirement
+		else {}
+	local reason = result.reason
+	if reason == "LEVEL_LOCKED" then
+		local level = tostring(need.level or "?")
+		return if ko then "레벨 " .. level .. " 필요" else "Requires level " .. level
+	elseif reason == "TOOL_UNAVAILABLE" then
+		local tool = if type(need.tool) == "string" then (names and names[need.tool]) or need.tool else nil
+		if tool then
+			return if ko then tool .. " 장착 필요" else "Requires " .. tool .. " (equip it)"
+		end
+		return if ko then "맞는 도구를 장착하세요" else "Equip the right tool"
+	elseif reason == "SKILL_LOCKED" then
+		local skill = if type(need.skill) == "string" then (names and names[need.skill]) or need.skill else nil
+		return if ko
+			then "기술 필요" .. (if skill then ": " .. skill else "")
+			else "Requires skill" .. (if skill then ": " .. skill else "")
+	elseif reason == "NODE_DEPLETED" then
+		return if ko then "자원이 고갈되었습니다" else "This node is depleted"
+	elseif reason == "NODE_UNREACHABLE" then
+		return if ko then "너무 멉니다. 더 가까이 가세요" else "Too far away, move closer"
+	elseif string.find(reason, "WEIGHT") or string.find(reason, "SLOTS") or string.find(reason, "CAPACITY") then
+		return if ko then "가방이 가득 찼습니다" else "Your bag is full"
+	elseif reason == "STALE_VERSION" then
+		return nil -- the node changed under the request; the next press uses the new version
+	end
+	return if ko then "채집할 수 없습니다 (" .. reason .. ")" else "Cannot gather (" .. reason .. ")"
+end
+
 function M.start(options: Options?)
 	local actionText = M.actionText(options and options.locale)
 	local names: { [string]: string } = options and options.names or {}
@@ -61,12 +98,36 @@ function M.start(options: Options?)
 		s.Parent = touch
 	end)
 	touch.Parent = touchGui
+	local notice = Instance.new("TextLabel")
+	notice.Name, notice.Visible, notice.Text = "GatherNotice", false, ""
+	notice.Size, notice.Position = UDim2.fromOffset(320, 36), UDim2.new(0.5, -160, 1, -160)
+	notice.BackgroundColor3, notice.BackgroundTransparency = Color3.fromRGB(58, 32, 28), 0.15
+	notice.BorderSizePixel = 0
+	notice.Font = Enum.Font.GothamBold
+	notice.TextSize = 15
+	notice.TextColor3 = Color3.fromRGB(250, 236, 226)
+	notice.Parent = touchGui
+	local noticeSerial = 0
 	touchGui.Parent = player:WaitForChild("PlayerGui")
 	local shown: { [ProximityPrompt]: BasePart } = {}
 	local selected: BasePart? = nil
 	local nodes: { [BasePart]: { prompt: ProximityPrompt, connections: { RBXScriptConnection } } } = {}
 	local function report(result: any, diagnostic: any?)
-		if not disposed and options and options.onResult then
+		if disposed then
+			return
+		end
+		local text = M.refusalText(options and options.locale, result, names)
+		if text then
+			noticeSerial += 1
+			local serial = noticeSerial
+			notice.Text, notice.Visible = text, true
+			task.delay(3, function()
+				if serial == noticeSerial then
+					notice.Visible = false
+				end
+			end)
+		end
+		if options and options.onResult then
 			options.onResult(result, diagnostic)
 		end
 	end

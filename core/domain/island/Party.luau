@@ -190,6 +190,30 @@ function M.share(state: State, leader: string, route: number): (boolean, string?
 end
 
 -- Route gates come from the authored first-stage definitions of rw.a<index>.s1.
+-- Re-forms a crew on the arrival server from the durable departure record; the id is the
+-- party-shared travel token, so members landing one by one rejoin the same party.
+function M.restore(state: State, token: string, leader: string, actor: string): (boolean, string?)
+	if state.memberOf[actor] then
+		return false, "party_member_busy"
+	end
+	local party = state.parties[token]
+	if party and #party.members >= M.CAPACITY then
+		return false, "party_full"
+	end
+	if not party then
+		local created: PartyRecord = { id = token, leader = actor, members = {}, route = nil }
+		state.parties[token] = created
+		party = created
+	end
+	local record = party :: PartyRecord
+	table.insert(record.members, actor)
+	state.memberOf[actor] = token
+	if actor == leader then
+		record.leader = actor
+	end
+	return true, nil
+end
+
 function M.gates(content: any, route: number): (number, number)
 	local layout = "rw.a" .. route .. ".s1"
 	local level, rank = 1, 0

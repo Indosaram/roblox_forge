@@ -50,7 +50,8 @@ function M.new(config: Config)
 		local result = locked(runtime, function()
 			local admission = admit()
 			if not admission.ok then
-				return { status = "rejected", error = admission.reason }
+				-- Admission detail (required level/tool/skill) lets the client explain the refusal.
+				return { status = "rejected", error = admission.reason, requirement = admission.data }
 			end
 			return runtime.command({
 				actorId = actor,
@@ -61,7 +62,11 @@ function M.new(config: Config)
 				expiresAt = expiresAt,
 			})
 		end)
-		return { ok = result.status == "confirmed", reason = result.error, data = { status = result.status } }
+		return {
+			ok = result.status == "confirmed",
+			reason = result.error,
+			data = { status = result.status, requirement = result.requirement },
+		}
 	end
 	function bridge.recover(actor: string, maximum: number): any
 		local runtime = config.resolve(actor)

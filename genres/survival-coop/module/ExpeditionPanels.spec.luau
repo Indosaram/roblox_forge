@@ -300,4 +300,57 @@ return {
 		h.click("KnockoutFeed-p1")
 		assert(h.sent[1] == Models.COMPANION_ACTION .. ":feed,p1", "one feed recovers the pet")
 	end,
+	["finished travel results hazard and knockout screens"] = function()
+		local h = mount(
+			"en-us",
+			{ claim = { ok = false, reason = "ledger_claimed" }, home = { ok = false, reason = "route_expired" } }
+		)
+		local arrival = {
+			id = "trip",
+			route = 1,
+			stage = 2,
+			party = { token = "tok", leader = "7", members = { "7", "8" } },
+			left = { items = 5, coins = 40 },
+			arrived = { items = 5, coins = 55 },
+		}
+		h.push(state({ arrival = arrival }))
+		assert(h.find("TravelIdentity").Text == Text.text("en-us", "travel_arrived", 1, 2, "trip"), "identity")
+		assert(h.find("TravelCrew") and h.find("TravelReconcile"), "crew and reconciliation")
+		assert(h.find("TravelRefund").Text == Text.text("en-us", "travel_refund", 15), "refund line")
+		h.click("TravelBack")
+		assert(h.find("Route-1"), "back to the route list after acknowledging arrival")
+		local results = {
+			id = "trip",
+			status = "complete",
+			rows = {},
+			ledger = { id = "trip", source = "expedition:rw.a1", items = {}, coins = 30, xp = 120, claimed = false },
+			contributors = { { id = "7", points = 3 }, { id = "8", points = 1 } },
+		}
+		h.push(state({ results = results }))
+		assert(h.find("Contrib-7") and h.find("Contrib-8"), "per-player contribution")
+		h.click("ResultsClaim")
+		assert(h.sent[1] == Models.PARTY_ACTION .. ":claim,trip", "claim sent")
+		assert(h.find("ClaimRefusal").Text == Text.reason("en-us", "ledger_claimed"), "claim refusal shown")
+		h.push(state({
+			hazard = {
+				kind = "lava",
+				intensity = 2,
+				refuge = false,
+				boots = true,
+				resist = 0,
+				exposure = 2,
+				volcano = { health = 0.5, fatigue = 1 },
+			},
+		}))
+		assert(h.find("HazardBoots").Text == Text.text("en-us", "hazard_boots_on"), "worn boots shown")
+		assert(h.find("HazardResist"), "worn resistance shown")
+		local packet =
+			{ snapshots = { ["survival-coop"] = { vitals = { healthMilli = 0, respawnWaitMillis = 2000 } } } }
+		local tracker = { route = 1, stage = 2, expiresAt = 1800, unlocked = false, objectives = {} }
+		h.push(state({ tracker = tracker, cargo = { item = "crate", quantity = 2 } }), packet)
+		assert(h.find("KnockoutCargo").Text == Text.text("en-us", "ko_cargo", "crate", 2), "retained cargo listed")
+		h.click("KnockoutHome")
+		assert(h.sent[2] == Models.PARTY_ACTION .. ":home,", "return home while downed")
+		assert(h.find("KnockoutRefusal").Text == Text.reason("en-us", "route_expired"), "home refusal shown")
+	end,
 }

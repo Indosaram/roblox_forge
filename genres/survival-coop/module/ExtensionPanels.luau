@@ -88,6 +88,68 @@ local categories: { [string]: { number | string } } = {
 }
 local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
+local ACTION_LABELS: { [string]: { string } } = {
+	survey = { "Survey", "조사" },
+	rescue = { "Rescue", "구조" },
+	transport = { "Transport", "운송" },
+}
+
+--- Current archipelago stage objectives with progress, e.g. "Wood 0/5 · Survey 0/1".
+--- `state` is the archipelago extension snapshot; nil when no active stage applies.
+function M.stageObjectiveText(state: any, content: any, locale: string, names: { [string]: string }?): string?
+	if type(state) ~= "table" or state.status ~= "active" or type(content) ~= "table" then
+		return nil
+	end
+	local ko = string.sub(locale, 1, 2) == "ko"
+	local layout = tostring(state.templateId) .. ".s" .. tostring(state.stage)
+	local parts = {}
+	for _, stage in content.stages or {} do
+		if stage.layout == layout then
+			for _, objective in stage.objectives do
+				local row = ACTION_LABELS[objective.action]
+				local label = if row
+					then row[if ko then 2 else 1]
+					else (names and names[objective.target]) or objective.target
+				local done = if state.completed and state.completed[objective.id]
+					then objective.quantity
+					else math.min(objective.quantity, (state.progress and state.progress[objective.id]) or 0)
+				table.insert(parts, string.format("%s %d/%d", label, done, objective.quantity))
+			end
+		end
+	end
+	return if #parts > 0 then table.concat(parts, " · ") else nil
+end
+
+local TRAVEL_REASONS: { [string]: { string } } = {
+	mission_gate = { "Finish this island's objectives first", "이 섬의 목표를 먼저 완료하세요" },
+	route_expired = { "This route has expired", "항로가 만료되었습니다" },
+	expiry_imminent = {
+		"The route expires too soon to travel",
+		"항로 만료가 임박해 이동할 수 없습니다",
+	},
+	expedition_inactive = { "No active route", "진행 중인 항로가 없습니다" },
+	missing_expedition = { "No active route", "진행 중인 항로가 없습니다" },
+	level_gate = { "Your level is too low for this route", "항로 레벨이 부족합니다" },
+	development_gate = { "Raise your island development first", "개발 등급을 먼저 올리세요" },
+	instability_gate = { "This route is not unlocked yet", "아직 열리지 않은 항로입니다" },
+	dock_unreachable = { "Move closer to the dock", "부두에 더 가까이 가세요" },
+	studio_no_teleport = {
+		"Accepted. Teleport is unavailable in Studio",
+		"승인됨. Studio에서는 섬 이동이 불가합니다",
+	},
+	travelling = { "Travelling...", "이동 중..." },
+}
+
+--- Player-visible text for the server's dock travel result (`travelling` or a refusal reason).
+function M.travelText(locale: string, result: string): string
+	local ko = string.sub(locale, 1, 2) == "ko"
+	local row = TRAVEL_REASONS[result]
+	if row then
+		return row[if ko then 2 else 1]
+	end
+	return (if ko then "이동할 수 없습니다 (" else "Cannot travel (") .. result .. ")"
+end
+
 function M.activate(entries: { DockEntry }, entry: DockEntry)
 	for _, other in entries do
 		if other ~= entry and other.isOpen() then
@@ -165,6 +227,7 @@ function M.start(options: {
 	contextual: boolean?,
 	icons: any?,
 	launchers: { { id: string, label: string, open: () -> () } }?,
+	content: any?,
 }): Started
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
@@ -470,6 +533,7 @@ function M.start(options: {
 	local resizeConnection = dockGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
 	local lastChatRight, lastChat, lastHeight = -1, -1, -1
 	local arrivalSent = false
+	local travelSeen: string?, travelUntil = nil, 0
 	local followConnection = game:GetService("RunService").Heartbeat:Connect(function()
 		if contextual then
 			place()
@@ -494,7 +558,23 @@ function M.start(options: {
 			local pivot = character and character:FindFirstChild("HumanoidRootPart")
 			local tracker = objectiveSlot:FindFirstChild("ObjectiveTracker")
 			local ko = string.sub(options.locale, 1, 2) == "ko"
-			if tutorial and tutorial.step == "gather" then
+			local free = pivot ~= nil and tracker ~= nil and not tracker:GetAttribute("ForgeContractsNotice")
+			-- Server dock result "<outcome>|<serial>": shown for a few seconds after each change.
+			local travel = if free then players.LocalPlayer:GetAttribute("ForgeTravelResult") else nil
+			if type(travel) == "string" and travel ~= travelSeen then
+				travelSeen, travelUntil = travel, os.clock() + 4
+			end
+			local stageText = if free
+					and options.content
+					and game:GetService("Workspace"):GetAttribute("ForgeWorldRole") == "archipelago"
+				then M.stageObjectiveText(latest.archipelago, options.content, options.locale, options.names)
+				else nil
+			if free and travelSeen and os.clock() < travelUntil then
+				tracker.Text = M.travelText(options.locale, string.match(travelSeen, "^[^|]+") or travelSeen)
+			elseif stageText then
+				-- Archipelago roles: the onboarding tutorial does not apply; show the stage.
+				tracker.Text = (if ko then "목표: " else "Objective: ") .. stageText
+			elseif tutorial and tutorial.step == "gather" then
 				if pivot and tracker and not tracker:GetAttribute("ForgeContractsNotice") then
 					local candidates = {}
 					local params = RaycastParams.new()

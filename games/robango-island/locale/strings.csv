@@ -1381,3 +1381,19 @@ social.tx.settling,Settling. Nothing is charged twice.,social home and trade she
 social.tx.title,Transactions,social home and trade sheets,Transactions,거래 정산
 social.tx.verifying,Verifying...,social home and trade sheets,Verifying...,확인 중...
 social.yes,yes,social home and trade sheets,yes,예
+travel_arrived,"Arrived: route %d, stage %d of 4 (trip %s)",expedition lane,"Arrived: route %d, stage %d of 4 (trip %s)","도착: 항로 %d, 4단계 중 %d단계 (탐험 %s)"
+travel_crew,Your party landed together: %d players,expedition lane,Your party landed together: %d players,파티가 함께 도착했어요: %d명
+travel_reconcile,Left with %d items and %d coins. Arrived with %d items and %d coins.,expedition lane,Left with %d items and %d coins. Arrived with %d items and %d coins.,"출발: 아이템 %d개, 코인 %d. 도착: 아이템 %d개, 코인 %d."
+travel_refund,Refunded on arrival: %d coins,expedition lane,Refunded on arrival: %d coins,도착 시 환불: 코인 %d
+travel_missing,%d items did not arrive. Ask support with your trip code.,expedition lane,%d items did not arrive. Ask support with your trip code.,아이템 %d개가 도착하지 않았어요. 탐험 코드로 문의하세요.
+travel_match,Everything you carried arrived,expedition lane,Everything you carried arrived,가져온 것이 모두 도착했어요
+exp_claim,Claim %d coins and %d XP,expedition lane,Claim %d coins and %d XP,"코인 %d, 경험치 %d 받기"
+exp_claimed,Claimed,expedition lane,Claimed,받음
+exp_contrib,%s: %d objective points,expedition lane,%s: %d objective points,%s: 목표 점수 %d
+hazard_resist,Worn gear resists %d. Exposure %d.,expedition lane,Worn gear resists %d. Exposure %d.,착용 장비 저항 %d. 노출 %d.
+hazard_boots_on,Lava boots worn: heat halved,expedition lane,Lava boots worn: heat halved,용암 장화 착용 중: 열기 절반
+hazard_boots_off,No lava boots worn,expedition lane,No lava boots worn,용암 장화를 신지 않았어요
+ko_cargo,Cargo kept: %s x%d,expedition lane,Cargo kept: %s x%d,지킨 화물: %s x%d
+reason_ledger_claimed,Already claimed,expedition lane,Already claimed,이미 받았어요
+reason_ledger_missing,Nothing to claim,expedition lane,Nothing to claim,받을 것이 없어요
+reason_party_reservation_failed,Could not reserve a server for your party. Try again.,expedition lane,Could not reserve a server for your party. Try again.,파티 서버를 잡지 못했어요. 다시 시도하세요.

@@ -753,6 +753,7 @@ local panels = ExtensionPanels.start({
 	-- One sheet at a time: a panel opening closes the HUD sheet, and the reverse below.
 	onOpen = hud.close,
 	contextual = true,
+	content = content,
 	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),
 	launchers = {
 		{

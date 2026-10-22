@@ -18,12 +18,20 @@ return {
 		local traveled = false
 		world.travel = function()
 			traveled = true
+			return false, "mission_gate"
 		end
 		local dock = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld"):FindFirstChild("entry")
 		local p = dock.Position
 		engine.move("1", { x = p.X + 4, y = p.Y + 3, z = p.Z })
-		dock:FindFirstChild("ForgeDock").Triggered:Fire({ UserId = 1 })
+		local shown: any = nil
+		dock:FindFirstChild("ForgeDock").Triggered:Fire({
+			UserId = 1,
+			SetAttribute = function(_self, key, value)
+				shown = if key == "ForgeTravelResult" then value else shown
+			end,
+		})
 		assert(traveled, "dock must not block its own travel authority ray")
+		assert(type(shown) == "string" and string.match(shown, "^mission_gate|"), "dock publishes the server result")
 		world.destroy()
 	end,
 	["every live layout grounds resource nodes and keeps standing reach rays clear"] = function()
@@ -140,7 +148,7 @@ return {
 						assert(actual == destination, "travel destination")
 						traveled = true
 					end
-					prompt.Triggered:Fire({ UserId = 1 })
+					prompt.Triggered:Fire({ UserId = 1, SetAttribute = function() end })
 					assert(checked and traveled, target.Name .. " prompt failed to travel")
 				end
 				interactions += 1

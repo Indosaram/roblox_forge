@@ -16,6 +16,7 @@ function M.new(env: any): any
 			local result = transform(document)
 			if result.ok and document.archipelago then
 				Rewards.enqueue(document, env.content)
+				Rewards.ledger(document, env.content)
 				local state = document.archipelago
 				local development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
 				for _, mission in env.content.missions do

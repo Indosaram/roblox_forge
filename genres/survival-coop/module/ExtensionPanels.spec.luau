@@ -178,6 +178,9 @@ local function contractsDock(locale: string, width: number, height: number, surv
 			Raycast = function(): any
 				return nil
 			end,
+			GetAttribute = function(): any
+				return nil
+			end,
 		},
 	}
 	local enum: any = setmetatable({}, {
@@ -452,12 +455,14 @@ return {
 					Destroy = function() end,
 				}
 			end
-			local player: any =
-				{ WaitForChild = node, PlayerGui = {
+			local player: any = {
+				WaitForChild = node,
+				PlayerGui = {
 					FindFirstChild = function()
 						return nil
 					end,
-				} }
+				},
+			}
 			local storage = {
 				WaitForChild = function(_self, name)
 					return if name == "ForgeState" then { OnClientEvent = signal() } else {}
@@ -627,5 +632,33 @@ return {
 			-- Opening any sheet/photo mode hides vitals/objective; they are mutually exclusive surfaces.
 			assert(hud.photo.y + hud.photo.height <= height - 128, "photo controls fit above movement zones")
 		end
+	end,
+	["stage objective text lists the current stage objectives with progress"] = function()
+		local content = {
+			stages = {
+				{
+					layout = "rw.a1.s1",
+					objectives = { { id = "g", action = "gather", target = "wood", quantity = 5 } },
+				},
+				{ layout = "rw.a1.s1", objectives = { { id = "s", action = "survey", target = "m", quantity = 1 } } },
+				{
+					layout = "rw.a1.s2",
+					objectives = { { id = "c", action = "craft", target = "dry-twig", quantity = 1 } },
+				},
+			},
+		}
+		local state = { status = "active", templateId = "rw.a1", stage = 1, progress = { g = 2 }, completed = {} }
+		local ko = Panels.stageObjectiveText(state, content, "ko-kr", { wood = "나무" })
+		assert(ko == "나무 2/5 · 조사 0/1", tostring(ko))
+		state.completed.s = true
+		assert(Panels.stageObjectiveText(state, content, "en-us", { wood = "Wood" }) == "Wood 2/5 · Survey 1/1", "en")
+		state.status = "complete"
+		assert(Panels.stageObjectiveText(state, content, "en-us", nil) == nil, "no active stage")
+	end,
+	["dock travel result is always shown, refusals with a reason"] = function()
+		assert(Panels.travelText("en-us", "mission_gate") == "Finish this island's objectives first", "gate")
+		assert(Panels.travelText("ko-kr", "travelling") == "이동 중...", "travelling")
+		assert(string.find(Panels.travelText("en-us", "studio_no_teleport"), "Studio", 1, true) ~= nil, "studio")
+		assert(Panels.travelText("en-us", "weird") == "Cannot travel (weird)", "unknown reason still visible")
 	end,
 }

@@ -93,6 +93,58 @@ function M.enqueue(document: any, content: any)
 	end
 end
 
+-- Results ledger (inbox-compatible): one entry per finished expedition with the totals its
+-- missions paid. Settlement above already applies the rewards; Claim acknowledges the entry.
+M.LEDGER_LIMIT = 10
+function M.ledger(document: any, content: any)
+	local state = document.archipelago
+	if not state or state.status == "active" then
+		return
+	end
+	local ledger = document.resultsLedger or {}
+	document.resultsLedger = ledger
+	if ledger[state.id] then
+		return
+	end
+	local coins, xp = 0, 0
+	for _, mission in content.missions do
+		local entry = (document.missionRewards or {})["mission:" .. Journal.fnv1a64(
+			state.id .. ":" .. state.revision .. ":" .. mission.id
+		)]
+		if entry then
+			coins += entry.rewards.coins or 0
+			xp += entry.rewards.xp or 0
+		end
+	end
+	local count = 0
+	for id, row in ledger do
+		count += 1
+		if count >= M.LEDGER_LIMIT and row.claimed then
+			ledger[id] = nil
+		end
+	end
+	ledger[state.id] = {
+		id = state.id,
+		source = "expedition:" .. state.templateId,
+		items = {},
+		coins = coins,
+		xp = xp,
+		claimed = false,
+	}
+end
+
+function M.claim(document: any, id: string): (boolean, string?)
+	local row = if document and document.resultsLedger then document.resultsLedger[id] else nil
+	if not row then
+		return false, "ledger_missing"
+	end
+	if row.claimed then
+		return false, "ledger_claimed"
+	end
+	row.claimed = true
+	return true, nil
+end
+
 function M.settle(actor: string, env: any): any
 	local document, reason = env.store.snapshot(actor)
 	if not document then

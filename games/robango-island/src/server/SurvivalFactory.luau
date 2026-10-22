@@ -688,13 +688,35 @@ return function(content: any, source, world, backend, clock, options, provision,
 			onExpedition = function()
 				return workspace:GetAttribute("ForgeWorldRole") == "archipelago"
 			end,
-			travel = function(actor, destination, route)
+			personal = personalData,
+			worn = function(actor)
+				local spatial = world.services.survivalDeath
+				local equipped = (if spatial then spatial.equipment(actor) else nil) or {}
+				local data = personalData(actor)
+				local ids = {}
+				for id, item in if data then data.inventory.bag.items else {} do
+					if equipped[id] == true and item.durabilityMilli > 0 then
+						table.insert(ids, item.catalogId)
+					end
+				end
+				return ids
+			end,
+			token = function()
+				return game:GetService("HttpService"):GenerateGUID(false)
+			end,
+			claim = function(actor, id)
+				return expeditionStore.transaction(actor, function(document)
+					local ok, reason = require(Forge.genres["survival-coop"].module.MissionRewards).claim(document, id)
+					return { ok = ok, reason = reason }
+				end)
+			end,
+			travel = function(actor, destination, route, extra)
 				local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
 				if not player or not world.travel then
 					local unavailable: any = { ok = false, reason = "travel_unavailable" }
 					return unavailable
 				end
-				local ok: any, reason = world.travel(player, destination, route)
+				local ok: any, reason = world.travel(player, destination, route, extra)
 				if type(ok) == "table" then
 					return ok
 				end
@@ -1353,15 +1375,13 @@ return function(content: any, source, world, backend, clock, options, provision,
 				if node then
 					local data = personalData(actor)
 					local progression = if data then data.progression else nil
-					if
-						not progression
-						or progression.level < (if node.gates then node.gates.characterLevel or 1 else 1)
-					then
-						return { ok = false, reason = "LEVEL_LOCKED" }
+					local required = if node.gates then node.gates.characterLevel or 1 else 1
+					if not progression or progression.level < required then
+						return { ok = false, reason = "LEVEL_LOCKED", data = { level = required } }
 					end
 					for _, skill in if node.gates then node.gates.skillNodes or {} else {} do
 						if not progression.paid[skill] then
-							return { ok = false, reason = "SKILL_LOCKED" }
+							return { ok = false, reason = "SKILL_LOCKED", data = { skill = skill } }
 						end
 					end
 					if node.tool then
@@ -1372,7 +1392,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 								or (equipped[id] == true and item.catalogId == node.tool and item.durabilityMilli > 0)
 						end
 						if not found then
-							return { ok = false, reason = "TOOL_UNAVAILABLE" }
+							return { ok = false, reason = "TOOL_UNAVAILABLE", data = { tool = node.tool } }
 						end
 					end
 				end

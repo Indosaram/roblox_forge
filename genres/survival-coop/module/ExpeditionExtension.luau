@@ -21,6 +21,7 @@ local VERBS = {
 	depart = true,
 	next = true,
 	home = true,
+	claim = true,
 }
 
 -- Declared through Contract's trailing action loop, so existing durable indices never shift.
@@ -57,8 +58,65 @@ function M.results(content: any, document: any?): any?
 			})
 		end
 	end
-	return { id = state.id, index = state.index, stage = state.stage, status = state.status, rows = rows }
+	local ledger = document and document.resultsLedger and document.resultsLedger[state.id]
+	return {
+		id = state.id,
+		index = state.index,
+		stage = state.stage,
+		status = state.status,
+		rows = rows,
+		ledger = ledger,
+	}
 end
+
+-- Carried summary (ui.travel reconciliation): total bag quantity and coins.
+function M.carried(data: any?): any?
+	if not data then
+		return nil
+	end
+	local items = 0
+	for _, item in (data.inventory and data.inventory.bag.items) or {} do
+		items += item.quantity or 1
+	end
+	return { items = items, coins = data.balance or 0 }
+end
+
+-- Objective points per party member present on this server who shares the travel token.
+function M.contributors(token: string?, members: { string }, documentOf: (string) -> any?): { any }
+	local rows = {}
+	for _, member in members do
+		local document = documentOf(member)
+		local own = document and document.archipelago
+		if own and token and own.party and own.party.token == token then
+			local points = 0
+			for _, count in own.progress do
+				points += count
+			end
+			table.insert(rows, { id = member, points = points })
+		end
+	end
+	table.sort(rows, function(a, b)
+		return if a.points == b.points then a.id < b.id else a.points > b.points
+	end)
+	return rows
+end
+
+-- Worn protection: only items equipped right now count, never items merely owned.
+function M.worn(content: any, items: { string }): any
+	local policy = content.progressionPolicy
+	local boots, cold, heat = false, 0, 0
+	for _, id in items do
+		boots = boots or (policy.volcano ~= nil and id == policy.volcano.bootsItem)
+		local climate = policy.clothing and policy.clothing[id]
+		if climate then
+			cold += climate.cold
+			heat += climate.heat
+		end
+	end
+	return { boots = boots, cold = cold, heat = heat }
+end
+
+local CLIMATE = { heat = "heat", steam = "heat", lava = "heat", cold = "cold", whiteout = "cold", ice = "cold" }
 
 -- Current-stage objectives of an active expedition (catalog ui.expedition).
 function M.tracker(content: any, document: any?): any?
@@ -92,7 +150,7 @@ function M.tracker(content: any, document: any?): any?
 end
 
 -- Hazard under the actor (catalog ui.hazard): authored hazard radius plus the volcano policy.
-function M.hazard(content: any, layoutId: string?, position: any?): any?
+function M.hazard(content: any, layoutId: string?, position: any?, worn: any?): any?
 	if not layoutId or not position then
 		return nil
 	end
@@ -122,8 +180,17 @@ function M.hazard(content: any, layoutId: string?, position: any?): any?
 		return nil
 	end
 	found.refuge = not zone.exposed or zone.spring
+	found.layout = layoutId
+	local protection = worn or { boots = false, cold = 0, heat = 0 }
 	if volcanic then
-		found.volcano = { health = policy.healthPerSecond, fatigue = policy.fatiguePerSecond }
+		local factor = if protection.boots then policy.bootsMultiplier else 1
+		found.volcano = { health = policy.healthPerSecond * factor, fatigue = policy.fatiguePerSecond * factor }
+		found.boots = protection.boots
+	end
+	local climate = CLIMATE[found.kind]
+	if climate then
+		found.resist = protection[climate]
+		found.exposure = math.max(0, found.intensity - found.resist)
 	end
 	return found
 end
@@ -161,8 +228,17 @@ function M.new(env: any): any
 			return { ok = false, reason = reason }
 		end
 		local result: any = { ok = true }
+		-- One party-shared token routes every member to the same reserved expedition server.
+		local crewInfo = if party
+			then {
+				token = if env.token then env.token() else party.id .. ":" .. now,
+				leader = actor,
+				members = table.clone(members),
+			}
+			else nil
 		for _, member in members do
-			local moved = env.travel(member, "archipelago", route)
+			local departure = M.carried(if env.personal then env.personal(member) else nil)
+			local moved = env.travel(member, "archipelago", route, { party = crewInfo, departure = departure })
 			if member == actor then
 				result = moved
 			end
@@ -200,6 +276,8 @@ function M.new(env: any): any
 				ok, reason = Party.remove(state, actor, arg)
 			elseif verb == "share" then
 				ok, reason = Party.share(state, actor, tonumber(arg) or 0)
+			elseif verb == "claim" then
+				return env.claim(actor, arg)
 			elseif verb == "next" or verb == "home" then
 				if not env.onExpedition() then
 					return { ok = false, reason = "missing_expedition" }
@@ -213,19 +291,55 @@ function M.new(env: any): any
 		snapshot = function(actor: string): any
 			local now = env.now()
 			Party.prune(state, now)
+			local document = env.document(actor)
+			local trip = document and document.archipelago
+			-- Arrival: re-form the crew from the durable travel token on this server.
+			if
+				trip
+				and trip.status == "active"
+				and trip.party
+				and env.onExpedition()
+				and not Party.partyOf(state, actor)
+			then
+				Party.restore(state, trip.party.token, trip.party.leader, actor)
+			end
 			local view = Party.view(state, actor, now)
 			local party = Party.partyOf(state, actor)
 			if party then
 				view.roster = Party.readiness(env.content, party, party.route, env.facts)
 			end
-			local document = env.document(actor)
+			local results = M.results(env.content, document)
+			if results and trip then
+				results.contributors = M.contributors(
+					trip.party and trip.party.token,
+					if trip.party then trip.party.members else { actor },
+					env.document
+				)
+			end
+			local data = env.personal and env.personal(actor)
 			return {
+				arrival = if trip and trip.status == "active"
+					then {
+						id = trip.id,
+						route = trip.index,
+						stage = trip.stage,
+						party = trip.party,
+						left = trip.departure,
+						arrived = M.carried(data),
+					}
+					else nil,
+				cargo = if trip and trip.status == "active" then trip.questCargo else nil,
 				now = now,
 				tracker = M.tracker(env.content, document),
-				hazard = M.hazard(env.content, env.layoutId(), env.position(actor)),
+				hazard = M.hazard(
+					env.content,
+					env.layoutId(),
+					env.position(actor),
+					M.worn(env.content, if env.worn then env.worn(actor) else {})
+				),
 				party = view,
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
-				results = M.results(env.content, document),
+				results = results,
 			}
 		end,
 		releaseActor = function(actor: string): any

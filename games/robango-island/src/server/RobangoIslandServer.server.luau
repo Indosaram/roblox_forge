@@ -384,7 +384,8 @@ local routing = IslandBootstrap.start({
 })
 -- BEGIN production world interactions.
 local liveWorld: any = world
-liveWorld.travel = function(player: Player, destination: string, route: number?)
+liveWorld.travel = function(player: Player, destination: string, route: number?, extra: any?)
+	local token: string? = nil
 	if destination == "archipelago" then
 		local actor = tostring(player.UserId)
 		local opened = (factory :: any).archipelago.open(actor, {
@@ -394,10 +395,15 @@ liveWorld.travel = function(player: Player, destination: string, route: number?)
 			revision = "robango-route-v1",
 			ttl = 1800,
 			entryBuffer = source.archipelago.entryBufferSeconds,
+			party = extra and extra.party,
+			departure = extra and extra.departure,
 		})
 		if not opened.ok and opened.reason ~= "expedition_active" then
 			return false, opened.reason
 		end
+		local document = (factory :: any).expeditionStore.snapshot(actor)
+		local trip = if document then document.archipelago else nil
+		token = if trip and trip.party then trip.party.token .. ":" .. trip.stage else nil
 	elseif destination == "next-island" then
 		local advanced = (factory :: any).archipelago.nextIsland(tostring(player.UserId))
 		if not advanced.ok then
@@ -405,10 +411,16 @@ liveWorld.travel = function(player: Player, destination: string, route: number?)
 		end
 		local document = (factory :: any).expeditionStore.snapshot(tostring(player.UserId))
 		destination = if document.archipelago.status == "complete" then "home" else "archipelago"
+		local party = document.archipelago.party
+		token = if party then party.token .. ":" .. document.archipelago.stage else nil
 	elseif destination == "home" and worldRole == "archipelago" then
 		return (factory :: any).archipelago.recover(tostring(player.UserId), "return")
 	end
-	return if routing.travel then routing.travel(player, destination) else false
+	if not routing.travel then
+		-- Studio single-role: the server result (an accepted advance) is still reported.
+		return false, "studio_no_teleport"
+	end
+	return routing.travel(player, destination, token)
 end
 -- END production world interactions.
 if RunService:IsStudio() and worldRole == "archipelago" and source.expedition then

@@ -50,6 +50,16 @@ M.operations = {
 	world_return_reload = function(ctx, step): string?
 		return ctx.fixture.returnReload(actorOf(ctx, step))
 	end,
+	world_first_stage = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.firstStage(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "first_stage_exception"
+		end
+		return result
+	end,
 	world_storage_transfer = function(ctx, step): string?
 		return ctx.fixture.storageTransfer(actorOf(ctx, step))
 	end,
@@ -1378,6 +1388,67 @@ function M.new(ctx: any): any
 			end
 			ctx.clock.advanceTo(ctx.clock.now() + Content.missionPolicy.surveySeconds)
 			assert(session.recoverTransfers(actor, 64).ok, "survey recovery")
+		end
+		return nil
+	end
+	-- Fresh-ish player (a1 entry level, own crafted starter axe) clears a1.s1 and departs.
+	function api.firstStage(actor)
+		assert(api.onboarding(actor) == nil, "legitimate onboarding")
+		local level = personal(actor).progression.level
+		if level >= 30 then
+			return "not_fresh:" .. tostring(level)
+		end
+		local initialBalance = personal(actor).balance
+		local opened = api.expedition(actor)
+		if opened then
+			return "expedition:" .. opened
+		end
+		refused(actor, "mission-action", { "next-island", "none" }, "mission_gate")
+		local gathered = api.gather(actor)
+		if gathered then
+			return "gather:" .. gathered
+		end
+		local state = factory.expeditionStore.snapshot(actor).archipelago
+		if not state.completed["rw.a1.s1.gather"] then
+			return "wood_objective_incomplete:" .. tostring(state.progress["rw.a1.s1.gather"])
+		end
+		-- Node level is the minted material level: first-route wood must match the route.
+		for _, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "wood" and item.material and item.material.level > state.index * 10 then
+				return "first_route_wood_level:" .. tostring(item.material.level)
+			end
+		end
+		local surveyed = api.survey(actor)
+		if surveyed then
+			return "survey:" .. surveyed
+		end
+		local departed = command(actor, "mission-action", { "next-island", world.layout.id })
+		if not departed.ok then
+			return "depart:" .. tostring(departed.reason)
+		end
+		assert(session.recoverTransfers(actor, 64).ok, "reward recovery")
+		assert(session.recoverTransfers(actor, 64).ok, "reward replay")
+		local document = factory.expeditionStore.snapshot(actor)
+		if document.archipelago.stage ~= 2 then
+			return "stage_not_advanced"
+		end
+		local paid = 0
+		for _, entry in document.missionRewards or {} do
+			if entry.mission == "rw.m1.gather" then
+				paid += 1
+				if not entry.settled then
+					return "reward_unsettled"
+				end
+			end
+		end
+		local reward = 0
+		for _, row in Content.missions do
+			if row.id == "rw.m1.gather" then
+				reward = row.rewards.coins
+			end
+		end
+		if paid ~= 1 or personal(actor).balance ~= initialBalance + reward then
+			return "reward_not_once:" .. tostring(paid) .. ":" .. tostring(personal(actor).balance - initialBalance)
 		end
 		return nil
 	end
