@@ -104,7 +104,9 @@ function M.start(options: Options?)
 			local id, kind = registered(part)
 			entry.prompt.Enabled = not disposed and id ~= nil and (pending[id] ~= nil or harvestable(part))
 			if kind then
-				entry.prompt.ObjectText = names[kind] or kind
+				local item = part:GetAttribute("ForgeNodeItem")
+				local key = if type(item) == "string" then item else kind
+				entry.prompt.ObjectText = names[kind] or names[key] or key
 			end
 		end
 	end

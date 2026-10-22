@@ -83,6 +83,10 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	local underside =
 		Color3.fromRGB(math.min(225, pigment[1] + 49), math.min(219, pigment[2] + 43), math.min(189, pigment[3] + 38))
 	local ivory = Color3.fromRGB(225, 216, 177)
+	local skin = if mammal or family == "bird"
+		then Enum.Material.Fabric
+		elseif family == "turtle" or family == "armored" then Enum.Material.Slate
+		else Enum.Material.Leather
 	local parts: { [string]: BasePart } = { HumanoidRootPart = root }
 	local count = 1
 	local function part(
@@ -118,7 +122,13 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			p.Size = Vector3.new(size.Y * h, size.X * w, size.Z * l)
 			p.CFrame *= CFrame.Angles(0, 0, math.pi / 2)
 		end
-		p.Material, p.CanCollide, p.Massless = Enum.Material.SmoothPlastic, false, true
+		p.Material = if color
+				and color ~= accent
+				and color ~= underside
+				and color ~= bodyColor
+			then Enum.Material.SmoothPlastic
+			else skin
+		p.CanCollide, p.Massless = false, true
 		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
 		p.Parent = model
 		local parentPart = assert(parts[parentName], "MISSING_ANATOMICAL_PARENT")

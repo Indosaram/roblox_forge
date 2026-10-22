@@ -395,6 +395,51 @@ liveWorld.travel = function(player: Player, destination: string)
 	return if routing.travel then routing.travel(player, destination) else false
 end
 -- END production world interactions.
+if RunService:IsStudio() and worldRole == "archipelago" and source.expedition then
+	-- Studio layout: seed the durable expedition through the real departure API.
+	local function depart(player: Player)
+		local actor, port: any = tostring(player.UserId), nil
+		while player.Parent and not port do
+			task.wait(1)
+			port = session.personalTransfer(actor)
+		end
+		-- A fresh Studio profile misses the stage gate (level 2, development rank 2): raise it.
+		local raised = port
+			and port.personal:update(port.profile(), function(view)
+				local data = view.envelope.genres["survival-coop"].data
+				local tree = require(Forge.core.domain.progression.SkillTree)
+				local policy = (content :: any).progressionPolicy.tree
+				local state = data.progression or tree.new(content, policy)
+				data.progression = tree.level(state, policy, math.max(2, state.level))
+				return view
+			end)
+		if raised then
+			port.install(raised)
+		end
+		(factory :: any).expeditionStore.transaction(actor, function(document)
+			document.development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
+			document.development.points = math.max(document.development.points, 200)
+			return { ok = true }
+		end)
+		local options = {
+			id = HttpService:GenerateGUID(false),
+			index = tonumber(string.match(source.expedition.templateId, "%d+$")) or 1,
+			seed = source.expedition.seed,
+			revision = "robango-route-v1",
+			ttl = 1800,
+			entryBuffer = source.archipelago.entryBufferSeconds,
+			actor = tostring(player.UserId),
+		}
+		local opened = (factory :: any).archipelago.open(actor, options)
+		if not opened.ok and opened.reason ~= "expedition_active" then
+			warn("STUDIO_EXPEDITION:" .. tostring(opened.reason))
+		end
+	end
+	Players.PlayerAdded:Connect(depart)
+	for _, player in Players:GetPlayers() do
+		task.spawn(depart, player)
+	end
+end
 provision.returnHome = function(actor: string)
 	local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
 	if not player or not routing.travel then

@@ -279,9 +279,19 @@ return {
 			assert(not colors[tostring(body.Color)], "species pigment must differ")
 			colors[tostring(body.Color)] = true
 			assert(
-				body.Material == roblox.Enum.Material.SmoothPlastic or body.Material == roblox.Enum.Material.Slate,
-				"skin material"
+				body.Material
+					== roblox.Enum.Material[if model:GetAttribute("BodyPlan") == "mammal"
+							or model:GetAttribute("BodyPlan") == "elephant"
+							or model:GetAttribute("BodyPlan") == "bird"
+						then "Fabric"
+						elseif
+							model:GetAttribute("BodyPlan") == "turtle"
+							or model:GetAttribute("BodyPlan") == "armored"
+						then "Slate"
+						else "Leather"],
+				"skin material by class"
 			)
+			assert(model.Pupil1.Material == roblox.Enum.Material.SmoothPlastic, "glossy eyes")
 			assert(
 				model.Countershade.Color ~= body.Color and model.FlankPattern1.Color ~= body.Color,
 				"pattern contrast"

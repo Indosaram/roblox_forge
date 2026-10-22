@@ -36,6 +36,8 @@ function M.new(actor: string, newId: () -> string): any
 		end
 		if packet.snapshots and packet.snapshots["survival-coop"] then
 			model.snapshot = table.clone(packet.snapshots["survival-coop"])
+			model.snapshot.contracts = packet.snapshots.survivalExtensions
+				and packet.snapshots.survivalExtensions.contracts
 			local shared = packet.snapshots.survivalSettlement
 			if shared then
 				model.snapshot.settlement, model.snapshot.warehouse = shared.settlement, shared.warehouse
@@ -195,7 +197,13 @@ end
 
 M.STACK_BOTTOM = 180
 
-function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) -> boolean, items: { any }?): { any }
+function M.recipeOrder(
+	bag: any,
+	recipes: { any },
+	stationAvailable: (string) -> boolean,
+	items: { any }?,
+	filter: any?
+): { any }
 	local rows = {}
 	for _, recipe in recipes do
 		local stationReady = recipe.station == nil or stationAvailable(recipe.station)
@@ -218,12 +226,24 @@ function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) ->
 			end
 			ready = ready and tool
 		end
-		table.insert(
-			rows,
-			{ recipe = recipe, ready = ready, stationReady = stationReady, station = recipe.station or "" }
-		)
+		if
+			not filter
+			or filter.all
+			or recipe.id == filter.pin
+			or (filter.jobs and filter.jobs[recipe.id])
+			or stationReady
+			or #M.missingMaterials(bag, recipe.inputs) == 0
+		then
+			table.insert(
+				rows,
+				{ recipe = recipe, ready = ready, stationReady = stationReady, station = recipe.station or "" }
+			)
+		end
 	end
 	table.sort(rows, function(a, b)
+		if filter and (a.recipe.id == filter.pin) ~= (b.recipe.id == filter.pin) then
+			return a.recipe.id == filter.pin
+		end
 		if a.station ~= b.station then
 			return a.station < b.station
 		end
@@ -233,6 +253,11 @@ function M.recipeOrder(bag: any, recipes: { any }, stationAvailable: (string) ->
 		return a.recipe.id < b.recipe.id
 	end)
 	return rows
+end
+
+function M.craftPanes(_width: number, height: number): any
+	local h = math.max(0, height - 108)
+	return { height = h, listHeight = math.floor(h * 0.4) }
 end
 
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)

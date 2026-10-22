@@ -230,6 +230,16 @@ return {
 		end
 		assert(not built.handles("survival-coop:gather") and not built.handles("contract-accept"), "foreign ids")
 	end,
+	["an escrowed pending gather advances the tutorial but a rejected one does not"] = function()
+		local h = harness(0)
+		h.reopen("srv-a")
+		local ext = h.extension
+		ext.observe("1", "survival-coop:gather", {}, { ok = false, data = { status = "rejected" } })
+		assert(ext.snapshot("1").tutorial.step == "arrive", "rejected gather ignored")
+		ext.observe("1", "survival-coop:gather", {}, { ok = false, data = { status = "pending" } })
+		assert(ext.snapshot("1").tutorial.step == "craft-stone-axe", ext.snapshot("1").tutorial.step)
+		assert(ext.close().ok, "close")
+	end,
 	["a contract coin reward is credited once under replay"] = function()
 		local h = harness(5)
 		h.reopen("srv-a")

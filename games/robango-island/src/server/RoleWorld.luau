@@ -146,16 +146,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	lighting.ClockTime, lighting.Brightness = 16.2, 2.3
 	lighting.Ambient = Color3.fromRGB(108, 113, 119)
 	lighting.OutdoorAmbient = Color3.fromRGB(151, 151, 137)
-	lighting.FogStart, lighting.FogEnd = 1800, 6000
+	-- Atmosphere supplies depth haze (Fog* is ignored with it). No DepthOfField: a full-screen
+	-- blur costs low-end mobile fill rate and would smear distant nodes under the aerial camera.
+	local rays = lighting:FindFirstChild("ForgeSunRays") or Instance.new("SunRaysEffect")
+	rays.Name, rays.Intensity, rays.Spread, rays.Parent = "ForgeSunRays", 0.04, 0.5, lighting
 	local correction = Instance.new("ColorCorrectionEffect")
-	correction.Name, correction.Brightness, correction.Contrast = "ForgeWarmGrade", 0.015, 0.08
-	correction.Saturation, correction.TintColor, correction.Parent = 0.06, Color3.fromRGB(255, 248, 234), lighting
+	correction.Name, correction.Brightness, correction.Contrast = "ForgeWarmGrade", 0.02, 0.13
+	correction.Saturation, correction.TintColor, correction.Parent = 0.12, Color3.fromRGB(255, 246, 228), lighting
 	local bloom = Instance.new("BloomEffect")
 	bloom.Name, bloom.Intensity, bloom.Size, bloom.Threshold, bloom.Parent = "ForgeEmberBloom", 0.08, 14, 1.8, lighting
 	local atmosphere = Instance.new("Atmosphere")
 	atmosphere.Name = "ForgeBiomeAtmosphere"
 	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
-	atmosphere.Density, atmosphere.Haze, atmosphere.Glare, atmosphere.Parent = 0.035, 0.08, 0.05, lighting
+	atmosphere.Decay = Color3.fromRGB(120, 140, 160)
+	atmosphere.Density, atmosphere.Offset, atmosphere.Haze, atmosphere.Glare = 0.26, 0.12, 1.1, 0.25
+	atmosphere.Parent = lighting
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
@@ -407,6 +412,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		else
 			target.Shape = Enum.PartType.Ball
 		end
+		-- Decorative family kit beside the target; rendered with the dressing pass below.
+		local p: any = node.position
+		Dressing.kit(
+			dressing.parts,
+			node.id .. ".kit",
+			{ x = p.x + 8, y = p.y, z = p.z + 6 },
+			if family == "wood"
+				then "tree"
+				elseif family == "water" then "grass"
+				elseif family == "mineral" then "rock"
+				else "bush",
+			dressing.palette
+		)
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
 		-- Attributes cannot hold tables; the HUD tracker resolves the item id to a localized name.
 		target:SetAttribute("ForgeNodeItem", nodeItems[node.id].id)
@@ -482,7 +500,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		prompt.Triggered:Connect(function(player)
 			local actor = tostring(player.UserId)
 			local reach = world.services.survivalDeath
-			if bound and reach.reachable(actor, position) and world.travel then
+			local approach = { x = position.x, y = position.y + 2, z = position.z }
+			if bound and reach.reachable(actor, approach) and world.travel then
 				world.travel(player, destination)
 			end
 		end)
@@ -623,7 +642,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						end
 						local id = objective.id .. "." .. tostring(index)
 						world.surveyMarkers[id] = { position = position, objective = objective.id, layout = layoutId }
-						local target = part(id, position, { x = 2, y = 3, z = 2 })
+						local target = part(id, interactionPosition(position, 3), { x = 2, y = 3, z = 2 })
 						local prompt = Instance.new("ProximityPrompt")
 						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
 							"Survey", content.missionPolicy.interactionStuds, target

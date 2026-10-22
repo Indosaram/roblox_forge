@@ -39,6 +39,12 @@ local strings: { [string]: { string } } = {
 	craft = { "Craft [C]", "제작 [C]" },
 	build = { "Build [B]", "건설 [B]" },
 	attack = { "Attack [F]", "공격 [F]" },
+	WEAPON_UNAVAILABLE = {
+		"Craft a Starter Club at a workbench, then equip it from your bag before attacking.",
+		"작업대에서 입문용 곤봉을 제작한 뒤 가방에서 장착하고 공격하세요.",
+	},
+	craft_nearby = { "Nearby / materials", "주변 시설 / 보유 재료" },
+	craft_all = { "All recipes", "모든 레시피" },
 	WILDLIFE_UNREACHABLE = {
 		"Move within range and face a dinosaur",
 		"공룡 가까이 이동하고 공룡을 바라보세요",

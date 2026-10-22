@@ -85,7 +85,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				19 - i * 3,
 				5,
 				17 - i * 2.5,
-				"Grass",
+				"LeafyGrass",
 				{ palette.leaf[1] + i * 2, palette.leaf[2] + i * 3, palette.leaf[3] },
 				if kind == "conifer" then "Wedge" else "Ball"
 			)
@@ -123,7 +123,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 					5.8,
 					0.45,
 					3.2 - tier * 0.8,
-					"Grass",
+					"LeafyGrass",
 					palette.leaf,
 					"Wedge"
 				)
@@ -144,7 +144,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 				if kind == "bush" then 3.8 else 0.3,
 				if kind == "bush" then 2 else 0.35,
 				if kind == "bush" then 3.5 else 4.2,
-				"Grass",
+				"LeafyGrass",
 				{ palette.leaf[1] + i * 3, palette.leaf[2] + i * 2, palette.leaf[3] },
 				if kind == "bush" then "Ball" else "Wedge"
 			)
@@ -291,7 +291,7 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			piece("tool", 1, 3.7, 0, 1.2, 0.6, 2, "Slate", palette.rock, "Wedge")
 		end
 	elseif kind == "beacon" then
-		piece("foot", 0, 1, 0, 7, 2, 7, "Rock", palette.rock)
+		piece("foot", 0, 1, 0, 7, 2, 7, "Cobblestone", palette.rock)
 		piece("shaft", 0, 7, 0, 1, 12, 1, "Wood", wood)
 		piece("flag", 2, 11, 0, 4, 3, 0.3, "Fabric", { 235, 193, 106 })
 	elseif kind == "fence" then

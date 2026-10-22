@@ -593,7 +593,9 @@ function M.factory(ctx: any): any
 	end
 
 	local function observe(actor: string, action: string, _args: { any }, result: Shared.Result)
-		if not result.ok then
+		-- A pending gather already consumed the node into irrevocable escrow.
+		local escrowed = action == PREFIX .. "gather" and result.data and result.data.status == "pending"
+		if not result.ok and not escrowed then
 			return
 		end
 		local event: string? = nil

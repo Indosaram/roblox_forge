@@ -255,7 +255,16 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		-- The preview depot is a real collidable box, not an always-clear reach mock.
 		if physicalWarehouse then
 			for _, value in callbacks do
-				if value.Name == "Warehouse" and value.CanCollide and value.CanQuery ~= false and value.Parent then
+				if
+					-- Name first: FindFirstChild on every ray candidate made long scenarios crawl.
+					(
+						value.Name == "Warehouse"
+						or ((value.Name == "entry" or value.Name == "exit") and value:FindFirstChild("ForgeDock"))
+					)
+					and value.CanCollide
+					and value.CanQuery ~= false
+					and value.Parent
+				then
 					local low, high = 0, 1
 					for _, axis in { "X", "Y", "Z" } do
 						local minimum = value.Position[axis] - value.Size[axis] / 2

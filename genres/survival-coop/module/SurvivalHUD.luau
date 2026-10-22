@@ -217,14 +217,37 @@ function M.start(options: Options)
 	local panes = Instance.new("Frame")
 	panes.Name, panes.BackgroundTransparency = "PanelPanes", 1
 	panes.Size, panes.AutomaticSize, panes.Parent = UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, sheet.scroll
-	local listPane, detailPane = Instance.new("Frame"), Instance.new("Frame")
+	local listPane, detailPane = Instance.new("ScrollingFrame"), Instance.new("ScrollingFrame")
 	for _, pane in { listPane, detailPane } do
 		pane.BackgroundTransparency, pane.AutomaticSize, pane.Parent = 1, Enum.AutomaticSize.Y, panes
+		pane.BorderSizePixel, pane.ScrollBarThickness, pane.CanvasSize = 0, 6, UDim2.new()
+		pane.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		local layout = Instance.new("UIListLayout")
 		layout.Padding, layout.SortOrder, layout.Parent = UDim.new(0, 6), Enum.SortOrder.LayoutOrder, pane
 	end
 	listPane.Name, detailPane.Name = "ItemList", "ItemDetails"
+	local craftActions = Instance.new("Frame")
+	panes.ZIndex, craftActions.ZIndex = 52, 52
+	craftActions.Name, craftActions.BackgroundTransparency, craftActions.Parent = "CraftActions", 1, sheet.frame
+	craftActions.Position, craftActions.Size = UDim2.new(0, 8, 1, -56), UDim2.new(1, -16, 0, 48)
+	local actionLayout = Instance.new("UIListLayout")
+	actionLayout.FillDirection, actionLayout.Padding, actionLayout.Parent =
+		Enum.FillDirection.Horizontal, UDim.new(0, 6), craftActions
 	local function fitPanes()
+		if craftActions.Visible then
+			local bounds = Model.craftPanes(sheet.frame.AbsoluteSize.X, sheet.frame.AbsoluteSize.Y)
+			panes.Parent, panes.Position, panes.Size =
+				sheet.frame, UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)
+			panes.AutomaticSize = Enum.AutomaticSize.None
+			listPane.AutomaticSize, detailPane.AutomaticSize = Enum.AutomaticSize.None, Enum.AutomaticSize.None
+			listPane.Size = UDim2.new(1, -4, 0, bounds.listHeight)
+			detailPane.Size = UDim2.new(1, -4, 0, bounds.height - bounds.listHeight - 8)
+			detailPane.Position = UDim2.fromOffset(0, bounds.listHeight + 8)
+			return
+		end
+		panes.Parent, panes.Position, panes.Size = sheet.scroll, UDim2.new(), UDim2.new(1, -8, 0, 0)
+		panes.AutomaticSize, listPane.AutomaticSize, detailPane.AutomaticSize =
+			Enum.AutomaticSize.Y, Enum.AutomaticSize.Y, Enum.AutomaticSize.Y
 		local wide = sheet.frame.AbsoluteSize.X >= 600
 		listPane.Size = UDim2.new(if wide then 0.52 else 1, if wide then -8 else 0, 0, 0)
 		detailPane.Size = UDim2.new(if wide then 0.48 else 1, if wide then -8 else 0, 0, 0)
@@ -244,6 +267,7 @@ function M.start(options: Options)
 	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
 	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
+	local allRecipes = false
 	local buildCards = Instance.new("Frame")
 	buildCards.Name, buildCards.BackgroundTransparency = "BuildCards", 1
 	buildCards.Size, buildCards.AutomaticSize, buildCards.Parent =
@@ -338,6 +362,9 @@ function M.start(options: Options)
 				return
 			end
 			model.finish(ok, result)
+			if model.reason == "WEAPON_UNAVAILABLE" then
+				toast.Text, toast.Visible = Locale.refusal(locale, model.reason), true
+			end
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()
 			refresh()
@@ -795,6 +822,8 @@ function M.start(options: Options)
 		controls.begin(section)
 		noteUsed = 0
 		panes.Visible = section == "bag" or section == "craft"
+		craftActions.Visible = section == "craft"
+		fitPanes()
 		buildCards.Visible = section == "build"
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
@@ -916,47 +945,50 @@ function M.start(options: Options)
 				end
 			end
 		elseif section == "craft" then
+			local tutorial = model.snapshot.contracts and model.snapshot.contracts.tutorial
+			local pin = if tutorial and tutorial.step == "craft-stone-axe"
+				then (if content.version == 2 then "starter-axe" else "stone-axe")
+				else nil
+			local activeJobs = Model.jobs(model.snapshot, model.actor)
+			local jobs = {}
+			for _, entry in activeJobs do
+				jobs[entry.job.recipeId] = true
+			end
 			local orderedRecipes = Model.recipeOrder(bag, options.content.recipes, function(station)
 				return nearest(station) ~= nil
-			end, options.content.items)
-			local activeJobs = Model.jobs(model.snapshot, model.actor)
-			if recipeId == nil and orderedRecipes[1] then
+			end, options.content.items, { all = allRecipes, pin = pin, jobs = jobs })
+			button("RecipeFilter", t(if allRecipes then "craft_nearby" else "craft_all"), function()
+				allRecipes = not allRecipes
+				recipeId = nil
+				render()
+			end)
+			local visible = false
+			for _, row in orderedRecipes do
+				visible = visible or row.recipe.id == recipeId
+			end
+			if not visible and orderedRecipes[1] then
 				recipeId = orderedRecipes[1].recipe.id
 			end
-			local renderedJobs = false
 			local function renderJobs()
-				if renderedJobs then
-					return
-				end
-				renderedJobs = true
-				label(t("jobs"))
 				for _, entry in activeJobs do
 					local job = entry.job
-					local timer = label(name(job.recipeId) .. " - " .. t(job.state), 64)
-					if job.finishAt then
-						timer:SetAttribute("FinishAt", job.finishAt)
-						timer:SetAttribute("JobLabel", timer.Text)
+					if job.recipeId ~= recipeId then
+						continue
 					end
 					local verb = if job.state == "Reserved" then "start" else "complete"
-					mutation(verb .. "-" .. entry.id, t(verb), "craft-" .. verb, function()
+					controls.parent = craftActions
+					mutation(verb .. "-" .. entry.id, t(job.state) .. " / " .. t(verb), "craft-" .. verb, function()
 						command("craft-" .. verb, { entry.id })
 					end)
 					mutation("cancel-" .. entry.id, t("cancel"), "craft-cancel", function()
 						command("craft-cancel", { entry.id })
 					end)
+					break
 				end
 			end
-			if recipeId == nil and #activeJobs > 0 then
-				renderJobs()
-			end
-			local lastStation = nil
 			for _, row in orderedRecipes do
 				contentParent, controls.parent = listPane, listPane
 				local recipe = row.recipe
-				if lastStation ~= row.station then
-					lastStation = row.station
-					label(if recipe.station then name(recipe.station) else t("hand"), 32)
-				end
 				local recipeButton = button(
 					"Recipe-" .. recipe.id,
 					name(recipe.id)
@@ -984,22 +1016,20 @@ function M.start(options: Options)
 					for _, ingredient in Model.ingredients(bag, recipe) do
 						materialRow(ingredient.id, ingredient.available, ingredient.needed)
 					end
-					label(t("outputs"), 32)
 					for _, item in recipe.outputs do
 						materialRow(item.item, nil, item.quantity)
 					end
-					label(recipe.craftMillis / 1000 .. "s", 24)
 					label(
-						t("station")
-							.. ": "
-							.. (if recipe.station then name(recipe.station) else t("hand"))
-							.. (
-								if recipe.requiredToolTag
-									then "\n" .. t("tool") .. ": " .. name(recipe.requiredToolTag)
-									else ""
-							),
-						48
+						(if recipe.station then name(recipe.station) else t("hand"))
+							.. " / "
+							.. recipe.craftMillis / 1000
+							.. "s",
+						32
 					)
+					if recipe.requiredToolTag then
+						label(t("tool") .. ": " .. name(recipe.requiredToolTag), 32)
+					end
+					controls.parent = craftActions
 					mutation("Reserve-" .. recipe.id, t("reserve"), "craft-reserve", function()
 						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
 							return
@@ -1015,7 +1045,6 @@ function M.start(options: Options)
 							{ recipe.id, if station then station:GetAttribute("ForgeStationId") else "hand" }
 						)
 					end)
-					renderJobs()
 				end
 			end
 			renderJobs()
@@ -1095,7 +1124,7 @@ function M.start(options: Options)
 				end
 			end
 		end
-		if section ~= "bag" then
+		if section ~= "bag" and section ~= "craft" then
 			button("Refresh", t("refresh"), refresh)
 			button("CameraHelp", t("cameraHelp"), function()
 				helpVisible = not helpVisible
@@ -1107,6 +1136,11 @@ function M.start(options: Options)
 		end
 		fitPanes()
 		controls.finish()
+		for _, child in craftActions:GetChildren() do
+			if child:IsA("GuiButton") then
+				child.Size = UDim2.new(1 / 3, -6, 0, 48)
+			end
+		end
 		for index = noteUsed + 1, #notePool do
 			notePool[index].Visible = false
 		end
@@ -1407,13 +1441,6 @@ function M.start(options: Options)
 			nearestGather()
 		end)
 	)
-	local receivedAt = os.clock()
-	table.insert(
-		connections,
-		state.OnClientEvent:Connect(function()
-			receivedAt = os.clock()
-		end)
-	)
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function()
@@ -1475,19 +1502,6 @@ function M.start(options: Options)
 					and table.find(model.durable.actions, "survival-coop:" .. verb) ~= nil
 				item.Active, item.Selectable, item.Interactable = enabled, enabled, enabled
 				item.BackgroundTransparency = if enabled then 0 else 0.7
-			end
-			local v = model.snapshot.vitals
-			if not v then
-				return
-			end
-			local now = v.clockMillis + (os.clock() - receivedAt) * 1000
-			for _, child in sheet.scroll:GetChildren() do
-				if child:IsA("TextLabel") and child:GetAttribute("FinishAt") then
-					child.Text = tostring(child:GetAttribute("JobLabel"))
-						.. "\n"
-						.. math.ceil(math.max(0, child:GetAttribute("FinishAt") - now) / 1000)
-						.. "s"
-				end
 			end
 		end)
 	)

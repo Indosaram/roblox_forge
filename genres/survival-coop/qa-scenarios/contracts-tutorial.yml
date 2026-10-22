@@ -1,5 +1,6 @@
 # New-player golden path on the real Session: the tutorial advances only on settled gameplay
-# (gather confirmed, stone axe crafted, settlement placed) and the real contract commands.
+# (gather credited into irrevocable escrow, stone axe crafted, settlement placed) and the real
+# contract commands. The real client never re-sends a pending gather, so a credited gather counts.
 # Negative steps: delivering before accepting is refused, a replayed request id returns the stored
 # outcome without a second reward, and the tutorial never advances on a refused command.
 # Earn-then-spend: the first delivery's Coins reward (10) is the buyer's only money; it buys a
@@ -33,7 +34,7 @@ steps:
   - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.market.ineligibleReason, equals: INELIGIBLE_TUTORIAL}
   - {op: command, player: "1", requestId: harvest1, sessionEpoch: current, action: "survival-coop:gather", args: [tree-1, 0], expect: refused}
   - {op: expect_result, player: "1", field: data.status, equals: pending}
-  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.index, equals: 1}
+  - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: craft-stone-axe}
   - {op: recover_transfers, player: "1", maximum: 8}
   - {op: command, player: "1", requestId: harvest1, sessionEpoch: current, action: "survival-coop:gather", args: [tree-1, 0]}
   - {op: expect_snapshot, player: "1", scope: session, field: survivalExtensions.contracts.tutorial.step, equals: craft-stone-axe}

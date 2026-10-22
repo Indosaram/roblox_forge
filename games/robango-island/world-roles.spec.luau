@@ -9,6 +9,23 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["dock authority does not raycast into its own collidable platform"] = function()
+		local engine = Engine.new(true)
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.a1.s1", 1776)
+		world.bind({} :: any)
+		local traveled = false
+		world.travel = function()
+			traveled = true
+		end
+		local dock = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld"):FindFirstChild("entry")
+		local p = dock.Position
+		engine.move("1", { x = p.X + 4, y = p.Y + 3, z = p.Z })
+		dock:FindFirstChild("ForgeDock").Triggered:Fire({ UserId = 1 })
+		assert(traveled, "dock must not block its own travel authority ray")
+		world.destroy()
+	end,
 	["every live layout grounds resource nodes and keeps standing reach rays clear"] = function()
 		local roblox = require("@lune/roblox")
 		local terrain = require("../../core/domain/island/ArchipelagoTerrain")
@@ -54,6 +71,9 @@ return {
 			world.bind({} :: any)
 			for _, target in workspace:FindFirstChild("ForgeRoleWorld"):GetChildren() do
 				local prompt = target:FindFirstChild("ForgeDock")
+				if not prompt and world.surveyMarkers[target.Name] then
+					prompt = target:FindFirstChildOfClass("ProximityPrompt")
+				end
 				if not prompt and target:GetAttribute("ForgeHarborFacility") then
 					prompt = target:FindFirstChildOfClass("ProximityPrompt")
 				end
@@ -100,7 +120,9 @@ return {
 					local checked, traveled = false, false
 					world.services.survivalDeath.reachable = function(_, position)
 						assert(
-							position.x == p.X and position.y == p.Y and position.z == p.Z,
+							position.x == p.X
+								and position.y == p.Y + (if prompt.Name == "ForgeDock" then 2 else 0)
+								and position.z == p.Z,
 							target.Name .. " travel authority position"
 						)
 						checked = true
