@@ -22,6 +22,8 @@ function M.rules(content: any): any
 		-- design.md section 8: P0 ships 3 terrain presets; one slot is free, the Patron Pass adds 2.
 		basePresetSlots = 1,
 		presetGrants = { routeGuildPatron = 2 },
+		-- RECONSTRUCTED: personal-island spots a home may move between (HomeMove).
+		moveDestinations = { "cove-north", "cove-east", "cove-south" },
 	}
 end
 function M.crops(content: any): any

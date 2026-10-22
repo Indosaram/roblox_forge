@@ -73,9 +73,13 @@ function M.allowed(state: any, actor: string, operation: string, facts: any): bo
 		return true
 	end
 	local acl = state.permissions
-	local mode = if operation == "visit" then acl.visit else acl.cooperate
-	local member = (mode == "friend" and acl.friends[actor] == true and facts.friend == true)
-		or (mode == "clan" and acl.clanId ~= "" and facts.clanId == acl.clanId)
+	-- Optional per-category grants (use/build/recover); a home without them keeps cooperate.
+	local category = if operation == "place" then "build" elseif operation == "recover" then "recover" else "use"
+	local mode = if operation == "visit"
+		then acl.visit
+		else (if acl.grants and acl.grants[category] then acl.grants[category] else acl.cooperate)
+	local friend = facts.friend == true and (acl.friends[actor] == true or acl.anyFriend == true)
+	local member = (mode == "friend" and friend) or (mode == "clan" and acl.clanId ~= "" and facts.clanId == acl.clanId)
 	if operation == "visit" then
 		return member
 	end
@@ -117,13 +121,17 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		or action == "capacity"
 		or action == "preset"
 		or action == "specialize"
-	if (ownerOnly and actor ~= state.owner) or not M.allowed(state, actor, "cooperate", ctx.facts) then
+	if (ownerOnly and actor ~= state.owner) or not M.allowed(state, actor, action, ctx.facts) then
 		return nil, "FORBIDDEN"
 	end
 	local out = M.copy(state)
 	if action == "permissions" then
-		local acl = args.permissions
+		local acl = M.copy(args.permissions)
 		local modes = { owner = true, friend = true, clan = true, none = true }
+		-- Clients without the friend list keep the stored one.
+		if type(acl) == "table" and acl.friends == nil then
+			acl.friends = M.copy(state.permissions.friends)
+		end
 		if
 			type(acl) ~= "table"
 			or not modes[acl.visit]
@@ -138,6 +146,22 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 			if type(id) ~= "string" or enabled ~= true then
 				return nil, "INVALID_PERMISSIONS"
 			end
+		end
+		local grants = acl.grants or {}
+		for key, value in grants do
+			if (key ~= "use" and key ~= "build" and key ~= "recover") or not modes[value] then
+				return nil, "INVALID_PERMISSIONS"
+			end
+		end
+		if acl.anyFriend ~= nil and type(acl.anyFriend) ~= "boolean" then
+			return nil, "INVALID_PERMISSIONS"
+		end
+		local clanMode = acl.visit == "clan" or acl.cooperate == "clan"
+		for _, value in grants do
+			clanMode = clanMode or value == "clan"
+		end
+		if clanMode and acl.clanId == "" then
+			return nil, "CLAN_REQUIRED"
 		end
 		out.permissions = M.copy(acl)
 	elseif action == "rank" then

@@ -105,6 +105,7 @@ function M.new(ctx: any): any
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
 	module.ExpeditionExtension = require("../../../../genres/survival-coop/module/ExpeditionExtension")
 	module.ProgressionExtension = require("../../../../genres/survival-coop/module/ProgressionExtension")
+	module.ProgressionPorts = require("../../../../genres/survival-coop/module/ProgressionPorts")
 	module.Extensions = {
 		factories = {
 			require("../../../../genres/survival-coop/module/ContractsExtension").factory,

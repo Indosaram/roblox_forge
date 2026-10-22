@@ -15,6 +15,9 @@ export type Context = {
 	objectiveSlot: any?,
 	open: ((string) -> boolean)?,
 	availability: ((string) -> (boolean, boolean, string?))?,
+	onSend: (((string, { any }, any) -> ()) -> () -> ())?,
+	openPanel: ((string) -> ())?,
+	dialogue: ((string, string?) -> ())?,
 }
 export type DockEntry = {
 	id: string,
@@ -49,6 +52,8 @@ local categories: { [string]: { number | string } } = {
 	craft = { 1, "craft" },
 	build = { 1, "build" },
 	skills = { 1, "skills" },
+	character = { 1, "skills" },
+	equipment = { 1, "bag" },
 	journal = { 2, "journal" },
 	contracts = { 2, "todo" },
 	explore = { 2, "explore" },
@@ -171,6 +176,8 @@ function M.start(options: {
 	local listeners: { [number]: ({ [string]: any }, { [string]: any }) -> () } = {}
 	local nextListener = 0
 	local pending: { [string]: any } = {}
+	local sendListeners: { [number]: (string, any, any) -> () } = {}
+	local nextSendListener = 0
 	local lastEncoded: string? = nil
 	local connection = state.OnClientEvent:Connect(function(packet)
 		if type(packet) ~= "table" then
@@ -218,7 +225,19 @@ function M.start(options: {
 			pending[actionId] = if type(result) == "table" and not inFlight
 				then nil
 				else CommandTransport.settle(pending[actionId], result)
+			for _, listener in sendListeners do
+				task.spawn(listener, actionId, args, result)
+			end
 			return result
+		end,
+		-- Settlement observers (ui.transaction); the same pending request is reused on retry.
+		onSend = function(callback)
+			nextSendListener += 1
+			local key = nextSendListener
+			sendListeners[key] = callback
+			return function()
+				sendListeners[key] = nil
+			end
 		end,
 		onSnapshot = function(callback)
 			nextListener += 1
@@ -683,21 +702,7 @@ function M.start(options: {
 		return lock ~= nil, lock ~= nil and lock[1] == true, if lock then lock[2] else nil
 	end
 	local panels: { Panel } = {}
-	for _, factory in options.factories or M.factories do
-		local panel = factory(context)
-		if panel then
-			table.insert(panels, panel)
-		end
-	end
-	local destroyed = false
-	local harborConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, player)
-		if player and player ~= players.LocalPlayer then
-			return
-		end
-		local panel = prompt:GetAttribute("ForgePanel")
-		if type(panel) ~= "string" then
-			return
-		end
+	local function openPanel(panel: string)
 		for _, entry in entries do
 			if entry.id == panel then
 				if options.onOpen then
@@ -713,6 +718,34 @@ function M.start(options: {
 				return
 			end
 		end
+	end
+	context.openPanel = openPanel
+	for _, factory in options.factories or M.factories do
+		local panel = factory(context)
+		if panel then
+			table.insert(panels, panel)
+		end
+	end
+	local destroyed = false
+	local harborConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, player)
+		if player and player ~= players.LocalPlayer then
+			return
+		end
+		local panel = prompt:GetAttribute("ForgePanel")
+		local holder = prompt.Parent
+		local facility = if holder then holder:GetAttribute("ForgeHarborFacility") else nil
+		if type(facility) == "string" and string.sub(facility, 1, 4) == "npc." and context.dialogue then
+			if options.onOpen then
+				options.onOpen()
+			end
+			-- NPCs speak first; their service panel is one of the dialogue choices.
+			context.dialogue(string.sub(facility, 5), if type(panel) == "string" then panel else nil)
+			return
+		end
+		if type(panel) ~= "string" then
+			return
+		end
+		openPanel(panel)
 	end)
 	return {
 		closeAll = function()

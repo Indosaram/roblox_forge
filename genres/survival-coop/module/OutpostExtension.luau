@@ -26,8 +26,20 @@ function M.actions(): { any }
 		},
 	}
 end
+-- Registered after the original outpost actions so existing durable indices stay stable.
+function M.leaveActions(): { any }
+	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	return {
+		{
+			id = "outpost-leave",
+			args = { id, Schema.object({ matchId = id }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 1 },
+		},
+	}
+end
 function M.new(config: any): any
-	local extension = Aggregate.aggregate(config, Outpost, "outpost", { "queue", "start", "advance" })
+	local extension = Aggregate.aggregate(config, Outpost, "outpost", { "queue", "leave", "start", "advance" })
 	if config.drive then
 		extension.recover = function(actor: string, _maximum: number): any
 			return config.drive(actor, extension)

@@ -300,6 +300,8 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "market"
 			and key ~= "harborBuyback"
 			and key ~= "brawl"
+			and key ~= "gear"
+			and key ~= "lateEquipment"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -1184,6 +1186,8 @@ function M.new(
 				"market",
 				"harborBuyback",
 				"brawl",
+				"gear",
+				"lateEquipment",
 			}
 		do
 			if saved and saved[key] ~= nil then

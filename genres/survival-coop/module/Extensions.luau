@@ -40,6 +40,8 @@ local factories: { Factory } = {
 	require("./EnsembleExtension").factory,
 	require("./ScoreTransport").factory,
 	require("./JournalExtension").factory,
+	require("./CharacterExtension").factory,
+	require("./DirectTradeExtension").factory,
 }
 
 return { factories = factories }

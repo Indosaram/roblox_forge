@@ -15,7 +15,7 @@ function M.apply(
 	now: number,
 	ctx: any
 ): (any?, string?)
-	if operation ~= "queue" and not ctx.server then
+	if operation ~= "queue" and operation ~= "leave" and not ctx.server then
 		return nil, "SERVER_ONLY"
 	end
 	if state.receipts[receipt] then
@@ -33,6 +33,15 @@ function M.apply(
 		end
 		out.queue = out.queue or {}
 		out.queue[actor] = if args.enabled then ctx.clanId else nil
+	elseif operation == "leave" then
+		-- Explicit, confirmed leave: the actor stops counting toward control; the team plays on.
+		local match = out.matches[args.matchId]
+		if not match or match.status ~= "active" or not match.actors[actor] then
+			return nil, "NOT_IN_MATCH"
+		end
+		match.actors[actor] = nil
+		match.left = match.left or {}
+		match.left[actor] = now
 	elseif operation == "start" then
 		if ctx.role ~= "team-outpost" then
 			return nil, "NOT_TEAM_OUTPOST"
@@ -68,6 +77,9 @@ function M.apply(
 		end
 		out.matches[args.matchId] = {
 			status = "active",
+			-- Ownership in force at kick-off, so results can say retained or expired.
+			previousOwner = if now < state.expiresAt then state.owner else "",
+			previousExpiresAt = state.expiresAt,
 			teams = Data.clone(teams),
 			actors = seen,
 			score = { 0, 0 },

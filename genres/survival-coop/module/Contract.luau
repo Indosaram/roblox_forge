@@ -457,6 +457,10 @@ for _, actions in
 		require("./ScoreTransport").actions(),
 		require("./FarmActions").actions(),
 		require("./ExpeditionExtension").actions(),
+		require("./CharacterExtension").actions(),
+		require("./HomeExtension").actions(),
+		require("./OutpostExtension").leaveActions(),
+		require("./DirectTradeExtension").actions(),
 	}
 do
 	for _, action in actions do

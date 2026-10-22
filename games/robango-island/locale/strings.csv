@@ -1249,3 +1249,135 @@ reason_invite_missing,The invite is no longer valid,expedition lane,The invite i
 reason_player_offline,That player is not on this server,expedition lane,That player is not on this server,그 플레이어는 이 서버에 없어요
 reason_mission_gate,Finish both objectives first,expedition lane,Finish both objectives first,목표 두 개를 먼저 마치세요
 reason_missing_expedition,You are not on an expedition,expedition lane,You are not on an expedition,탐험 중이 아니에요
+social.back,Back,social home and trade sheets,Back,뒤로
+social.dest.cove-east,East cove,social home and trade sheets,East cove,동쪽 만
+social.dest.cove-north,North cove,social home and trade sheets,North cove,북쪽 만
+social.dest.cove-south,South cove,social home and trade sheets,South cove,남쪽 만
+social.dialogue.bye,Goodbye,social home and trade sheets,Goodbye,작별 인사
+social.dialogue.complete,Complete: %s,social home and trade sheets,Complete: %s,완료: %s
+social.dialogue.continue,Continue,social home and trade sheets,Continue,계속
+social.dialogue.done,Checkpoint saved.,social home and trade sheets,Checkpoint saved.,체크포인트를 저장했습니다.
+social.dialogue.service,Open: %s,social home and trade sheets,Open: %s,열기: %s
+social.dialogue.title,Talk,social home and trade sheets,Talk,대화
+social.match.confirm,Leave? You stop counting toward control; your team plays on.,social home and trade sheets,Leave? You stop counting toward control; your team plays on.,나갈까요? 점령에 더 이상 기여하지 않고 팀은 계속합니다.
+social.match.leave,Leave match,social home and trade sheets,Leave match,경기 나가기
+social.match.leave_yes,"Yes, leave match",social home and trade sheets,"Yes, leave match","네, 나가기"
+social.match.stay,Stay,social home and trade sheets,Stay,남기
+social.match.team,"%s: %d players, control %d/%d s",social home and trade sheets,"%s: %d players, control %d/%d s","%s: %d명, 점령 %d/%d초"
+social.match.timer,Time left %s,social home and trade sheets,Time left %s,남은 시간 %s
+social.match.title,Siege match,social home and trade sheets,Siege match,공성전 경기
+social.mode.clan,Clan,social home and trade sheets,Clan,부족
+social.mode.friend,Friends,social home and trade sheets,Friends,친구
+social.mode.none,Nobody else,social home and trade sheets,Nobody else,다른 사람 없음
+social.mode.owner,Only me,social home and trade sheets,Only me,나만
+social.move.confirm_head,Move to %s?,social home and trade sheets,Move to %s?,%s(으)로 이전할까요?
+social.move.current,Current spot: %s,social home and trade sheets,Current spot: %s,현재 위치: %s
+social.move.do,Confirm move,social home and trade sheets,Confirm move,이전 확인
+social.move.done,Home moved. Grants kept.,social home and trade sheets,Home moved. Grants kept.,집을 옮겼습니다. 권한은 유지됩니다.
+social.move.history,Moves so far: %d,social home and trade sheets,Moves so far: %d,지금까지 이전: %d회
+social.move.kept,Access grants and property history are kept.,social home and trade sheets,Access grants and property history are kept.,출입 권한과 소유 기록은 유지됩니다.
+social.move.lock,Storage transfers in progress lock the move.,social home and trade sheets,Storage transfers in progress lock the move.,보관 이동이 진행 중이면 이전할 수 없습니다.
+social.move.packed,"Packed: %d stored stacks, %d structures",social home and trade sheets,"Packed: %d stored stacks, %d structures","포장: 보관 묶음 %d개, 구조물 %d개"
+social.move.pick,Move to %s,social home and trade sheets,Move to %s,%s(으)로 이전
+social.move.title,Move home,social home and trade sheets,Move home,집 이전
+social.no,no,social home and trade sheets,no,아니요
+social.npc.bram,Bram: A clan shares funds and research. Outposts are a separate contest.,social home and trade sheets,Bram: A clan shares funds and research. Outposts are a separate contest.,브램: 부족은 자금과 연구를 나눠요. 거점은 별개의 경쟁이에요.
+social.npc.default,The harbor keeper nods at you.,social home and trade sheets,The harbor keeper nods at you.,항구 관리인이 고개를 끄덕입니다.
+social.npc.hop,Hop: Every page of your journal is a place you have been.,social home and trade sheets,Hop: Every page of your journal is a place you have been.,홉: 일지의 한 장 한 장이 당신이 다녀온 곳이에요.
+social.npc.ines,"Ines: Rest, eat, and patch yourself up before the next crossing.",social home and trade sheets,"Ines: Rest, eat, and patch yourself up before the next crossing.","이네스: 다음 항해 전에 쉬고, 먹고, 몸을 추스르세요."
+social.npc.marit,Marit: Contracts come and go with the tide. Pick one you can finish.,social home and trade sheets,Marit: Contracts come and go with the tide. Pick one you can finish.,마리트: 계약은 물때처럼 오가요. 끝낼 수 있는 걸 고르세요.
+social.npc.pip,Pip: Passes and kits are fixed; you always know what you get.,social home and trade sheets,Pip: Passes and kits are fixed; you always know what you get.,핍: 패스와 키트는 정해져 있어요. 무엇을 받을지 늘 알 수 있죠.
+social.npc.sella,"Sella: Prices here are set by islanders, not by me.",social home and trade sheets,"Sella: Prices here are set by islanders, not by me.",셀라: 여기 가격은 제가 아니라 섬 사람들이 정해요.
+social.npc.tuck,Tuck: Bring sound materials and the bench will do the rest.,social home and trade sheets,Tuck: Bring sound materials and the bench will do the rest.,턱: 좋은 재료만 가져오면 작업대가 나머지를 해요.
+social.off,Off,social home and trade sheets,Off,꺼짐
+social.on,On,social home and trade sheets,On,켜짐
+social.perm.build,Build: %s,social home and trade sheets,Build: %s,건설: %s
+social.perm.hint,Tap a row to change who may do it.,social home and trade sheets,Tap a row to change who may do it.,줄을 눌러 허용 대상을 바꾸세요.
+social.perm.move,Move home...,social home and trade sheets,Move home...,집 이전...
+social.perm.offline,Help while I am offline: %s,social home and trade sheets,Help while I am offline: %s,오프라인 중 도움: %s
+social.perm.owner,Owner: %s,social home and trade sheets,Owner: %s,소유자: %s
+social.perm.recover,Recover: %s,social home and trade sheets,Recover: %s,회수: %s
+social.perm.title,Home access,social home and trade sheets,Home access,집 출입 권한
+social.perm.use,Use: %s,social home and trade sheets,Use: %s,사용: %s
+social.perm.version,Save version %d,social home and trade sheets,Save version %d,저장 버전 %d
+social.perm.visit,Visit: %s,social home and trade sheets,Visit: %s,방문: %s
+social.refuse.CLAN_REQUIRED,Join a clan before granting clan access.,social home and trade sheets,Join a clan before granting clan access.,부족 권한을 주려면 먼저 부족에 가입하세요.
+social.refuse.COMMAND_UNAVAILABLE,Not available right now.,social home and trade sheets,Not available right now.,지금은 사용할 수 없습니다.
+social.refuse.COUNTERPART_LEFT,The other player left.,social home and trade sheets,The other player left.,상대가 떠났습니다.
+social.refuse.DIFFERENT_SERVER,That player is not on this server.,social home and trade sheets,That player is not on this server.,그 플레이어는 이 서버에 없습니다.
+social.refuse.EMPTY_TRADE,Offer something first.,social home and trade sheets,Offer something first.,먼저 무언가를 제안하세요.
+social.refuse.FORBIDDEN,Only the owner may do that.,social home and trade sheets,Only the owner may do that.,소유자만 할 수 있습니다.
+social.refuse.INSUFFICIENT_FUNDS,Not enough shellmoney.,social home and trade sheets,Not enough shellmoney.,조개돈이 부족합니다.
+social.refuse.INSUFFICIENT_ITEMS,You no longer have those items.,social home and trade sheets,You no longer have those items.,그 물건이 더 이상 없습니다.
+social.refuse.INVALID_PERMISSIONS,That access setting is not allowed.,social home and trade sheets,That access setting is not allowed.,허용되지 않는 권한 설정입니다.
+social.refuse.MATCH_ACTIVE,You are already in a match.,social home and trade sheets,You are already in a match.,이미 경기 중입니다.
+social.refuse.NOT_IN_MATCH,You are not in this match.,social home and trade sheets,You are not in this match.,이 경기에 참가하고 있지 않습니다.
+social.refuse.NOT_TEAM_MEMBER,Only clan members can queue for the siege.,social home and trade sheets,Only clan members can queue for the siege.,부족원만 공성전 대기열에 들어갈 수 있습니다.
+social.refuse.NO_TRADE,No open trade.,social home and trade sheets,No open trade.,열린 거래가 없습니다.
+social.refuse.OUT_OF_RANGE,Go to your own island first.,social home and trade sheets,Go to your own island first.,먼저 내 섬으로 가세요.
+social.refuse.OUT_OF_REACH,Step closer first.,social home and trade sheets,Step closer first.,더 가까이 가세요.
+social.refuse.SAME_DESTINATION,Your home is already there.,social home and trade sheets,Your home is already there.,집이 이미 그곳에 있습니다.
+social.refuse.SELF_TRADE,You cannot trade with yourself.,social home and trade sheets,You cannot trade with yourself.,자신과는 거래할 수 없습니다.
+social.refuse.STALE_REVISION,The offer changed. Review it again.,social home and trade sheets,The offer changed. Review it again.,제안이 바뀌었습니다. 다시 확인하세요.
+social.refuse.TRADE_BUSY,That player is already trading.,social home and trade sheets,That player is already trading.,그 플레이어는 이미 거래 중입니다.
+social.refuse.TRADE_CLOSED,This trade is closed.,social home and trade sheets,This trade is closed.,이 거래는 닫혔습니다.
+social.refuse.TRANSFER_LOCKED,A storage transfer is still settling. Try again after it finishes.,social home and trade sheets,A storage transfer is still settling. Try again after it finishes.,보관 이동이 아직 정산 중입니다. 끝난 뒤 다시 시도하세요.
+social.refuse.UNKNOWN_DESTINATION,That spot is not available.,social home and trade sheets,That spot is not available.,그 위치는 사용할 수 없습니다.
+social.refuse.WRONG_OBJECTIVE,Nothing to report here yet.,social home and trade sheets,Nothing to report here yet.,아직 여기서 보고할 것이 없습니다.
+social.refuse.unknown,Could not complete. Check status and try again.,social home and trade sheets,Could not complete. Check status and try again.,완료하지 못했습니다. 상태를 확인하세요.
+social.result.continue,Continue,social home and trade sheets,Continue,계속
+social.result.own,Owned for 24 hours (%s left).,social home and trade sheets,Owned for 24 hours (%s left).,24시간 소유 (남은 시간 %s).
+social.result.prev_ended,Previous owner %s lost the outpost.,social home and trade sheets,Previous owner %s lost the outpost.,이전 소유 부족 %s의 소유가 끝났습니다.
+social.result.prev_kept,Previous owner %s keeps its original expiry (%s left).,social home and trade sheets,Previous owner %s keeps its original expiry (%s left).,이전 소유 부족 %s의 기존 만료가 유지됩니다 (남은 시간 %s).
+social.result.prev_none,There was no previous owner.,social home and trade sheets,There was no previous owner.,이전 소유자가 없었습니다.
+social.result.research_off,Advanced capture needs clan research and outpost ownership.,social home and trade sheets,Advanced capture needs clan research and outpost ownership.,고급 포획에는 부족 연구와 거점 소유가 필요합니다.
+social.result.research_on,Your clan's advanced capture research is active while it owns the outpost.,social home and trade sheets,Your clan's advanced capture research is active while it owns the outpost.,거점을 소유한 동안 부족의 고급 포획 연구가 적용됩니다.
+social.result.tie,Draw. No new owner.,social home and trade sheets,Draw. No new owner.,무승부. 새 소유자가 없습니다.
+social.result.title,Siege result,social home and trade sheets,Siege result,공성전 결과
+social.result.win,%s won the outpost.,social home and trade sheets,%s won the outpost.,%s 부족이 거점을 차지했습니다.
+social.service.clan-membership,Clan membership,social home and trade sheets,Clan membership,부족 가입
+social.service.contracts,Contracts,social home and trade sheets,Contracts,계약
+social.service.craft,Crafting,social home and trade sheets,Crafting,제작
+social.service.journal,Journal,social home and trade sheets,Journal,일지
+social.service.market,Market,social home and trade sheets,Market,시장
+social.service.shop,Shop,social home and trade sheets,Shop,상점
+social.siege.empty,No clan is queued yet.,social home and trade sheets,No clan is queued yet.,아직 대기 중인 부족이 없습니다.
+social.siege.leave_queue,Leave queue,social home and trade sheets,Leave queue,대기열 나가기
+social.siege.no_owner,Outpost owner: none,social home and trade sheets,Outpost owner: none,거점 소유: 없음
+social.siege.owner,Outpost owner: %s (%s left),social home and trade sheets,Outpost owner: %s (%s left),거점 소유: %s (남은 시간 %s)
+social.siege.queue,Join queue,social home and trade sheets,Join queue,대기열 참가
+social.siege.ready,ready,social home and trade sheets,ready,준비 완료
+social.siege.roster,%s: %d queued (%s),social home and trade sheets,%s: %d queued (%s),%s: 대기 %d명 (%s)
+social.siege.rules,"%d-%d vs %d-%d clan members, %d minutes. Hold the centre %d seconds in total.",social home and trade sheets,"%d-%d vs %d-%d clan members, %d minutes. Hold the centre %d seconds in total.","부족원 %d-%d 대 %d-%d, %d분. 중앙을 총 %d초 점령하세요."
+social.siege.title,Team siege,social home and trade sheets,Team siege,팀 공성전
+social.siege.waiting,needs %d,social home and trade sheets,needs %d,%d명 필요
+social.siege.you_queued,You are in the queue.,social home and trade sheets,You are in the queue.,대기열에 있습니다.
+social.trade.cancel,Cancel trade,social home and trade sheets,Cancel trade,거래 취소
+social.trade.cancelled,Trade cancelled: %s,social home and trade sheets,Trade cancelled: %s,거래 취소됨: %s
+social.trade.changes,Any change clears both confirmations.,social home and trade sheets,Any change clears both confirmations.,변경하면 양쪽 확인이 모두 해제됩니다.
+social.trade.coins,%d shellmoney,social home and trade sheets,%d shellmoney,조개돈 %d
+social.trade.coins_step,Coins %d (tap +10),social home and trade sheets,Coins %d (tap +10),조개돈 %d (눌러서 +10)
+social.trade.confirm,Confirm trade,social home and trade sheets,Confirm trade,거래 확인
+social.trade.confirmed,"Confirmed: you %s, them %s",social home and trade sheets,"Confirmed: you %s, them %s","확인: 나 %s, 상대 %s"
+social.trade.invite,Trade with %s,social home and trade sheets,Trade with %s,%s님과 거래
+social.trade.item,"%s x%d (Q%d, dur %d, Lv%d)",social home and trade sheets,"%s x%d (Q%d, dur %d, Lv%d)","%s x%d (품질%d, 내구%d, Lv%d)"
+social.trade.nobody,No other player on this server.,social home and trade sheets,No other player on this server.,이 서버에 다른 플레이어가 없습니다.
+social.trade.nothing,nothing,social home and trade sheets,nothing,없음
+social.trade.pick,Item: %s,social home and trade sheets,Item: %s,물건: %s
+social.trade.qty,Quantity %d (tap +1),social home and trade sheets,Quantity %d (tap +1),수량 %d (눌러서 +1)
+social.trade.settled,Trade complete.,social home and trade sheets,Trade complete.,거래 완료.
+social.trade.theirs,You get: %s,social home and trade sheets,You get: %s,내가 받음: %s
+social.trade.title,Direct trade,social home and trade sheets,Direct trade,직접 거래
+social.trade.update,Update my offer,social home and trade sheets,Update my offer,내 제안 갱신
+social.trade.with,Trading with %s (offer %d),social home and trade sheets,Trading with %s (offer %d),%s님과 거래 중 (제안 %d)
+social.trade.yours,You give: %s,social home and trade sheets,You give: %s,내가 줌: %s
+social.tx.check,Check status,social home and trade sheets,Check status,상태 확인
+social.tx.close,Close (keeps settling),social home and trade sheets,Close (keeps settling),닫기 (정산은 계속)
+social.tx.delivered,Delivered.,social home and trade sheets,Delivered.,전달 완료.
+social.tx.none,No settlement in progress.,social home and trade sheets,No settlement in progress.,진행 중인 정산이 없습니다.
+social.tx.op,Ref %s,social home and trade sheets,Ref %s,참조 %s
+social.tx.rejected,Rejected: %s,social home and trade sheets,Rejected: %s,거절됨: %s
+social.tx.settling,Settling. Nothing is charged twice.,social home and trade sheets,Settling. Nothing is charged twice.,정산 중. 두 번 청구되지 않습니다.
+social.tx.title,Transactions,social home and trade sheets,Transactions,거래 정산
+social.tx.verifying,Verifying...,social home and trade sheets,Verifying...,확인 중...
+social.yes,yes,social home and trade sheets,yes,예

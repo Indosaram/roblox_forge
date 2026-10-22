@@ -3,8 +3,38 @@ local Home = require("../../../core/domain/home/HomeState")
 local HomeContent = require("../../../core/domain/home/HomeContent")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Session = require("../../../core/infra/genre/Session")
+local Schema = require("../../../core/infra/net/Schema")
 local HomeTransfer = require("./HomeTransfer")
+local HomeMove = require("../../../core/domain/home/HomeMove")
 local M = {}
+
+-- Client actions this extension adds beyond the base contract list.
+function M.actions(): { any }
+	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	local mode = Schema.enum({ "owner", "friend", "clan", "none" })
+	local rate = { capacity = 5, refillPerSecond = 2 }
+	return {
+		{
+			id = "home-permissions",
+			args = {
+				id,
+				Schema.object({
+					permissions = Schema.object({
+						visit = mode,
+						cooperate = mode,
+						grants = Schema.optional(Schema.object({ use = mode, build = mode, recover = mode })),
+						clanId = Schema.string({ maxLen = 128 }),
+						offlineCoop = Schema.boolean(),
+						anyFriend = Schema.optional(Schema.boolean()),
+					}),
+				}),
+			},
+			origin = "client",
+			rate = rate,
+		},
+		{ id = "home-move", args = { id, Schema.object({ destination = id }) }, origin = "client", rate = rate },
+	}
+end
 
 -- store is the existing FencedStore factory. Trusted ports provide ownership,
 -- world reachability, node purchases, entitlements and development; no GUI/API calls.
@@ -77,6 +107,7 @@ function M.new(config: any): any
 			"home-fertilize",
 			"home-area",
 			"home-specialize",
+			"home-move",
 		}, action) ~= nil
 	end
 	function extension.command(actor: string, action: string, args: any, context: any, origin: string, admit: any): any
@@ -134,17 +165,34 @@ function M.new(config: any): any
 				result = data.receipts[receipt]
 				return data
 			end
-			local nextHome, refused = Home.apply(data.home, actor, args[1], operation, body, {
-				now = now,
-				facts = facts,
-				rules = config.rules,
-				catalog = catalog,
-				crops = crops,
-				structures = config.structures,
-				nodes = facts.nodes or {},
-				entitlements = facts.entitlements or {},
-				developmentRank = facts.developmentRank,
-			})
+			local nextHome: any, refused: string?
+			if operation == "move" then
+				local pending = 0
+				for _, request: any in data.transfers or {} do
+					if not request.result then
+						pending += 1
+					end
+				end
+				nextHome, refused = HomeMove.apply(
+					data.home,
+					actor,
+					args[1],
+					body,
+					{ rules = config.rules, now = now, pendingTransfers = pending }
+				)
+			else
+				nextHome, refused = Home.apply(data.home, actor, args[1], operation, body, {
+					now = now,
+					facts = facts,
+					rules = config.rules,
+					catalog = catalog,
+					crops = crops,
+					structures = config.structures,
+					nodes = facts.nodes or {},
+					entitlements = facts.entitlements or {},
+					developmentRank = facts.developmentRank,
+				})
+			end
 			result = { ok = nextHome ~= nil, reason = refused }
 			if not nextHome then
 				return data

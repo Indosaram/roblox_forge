@@ -402,12 +402,13 @@ table.insert(panelFactories, function(ctx)
 		return ctx.send("survival-coop:outpost-queue", { "rw.team-outpost", { enabled = true } })
 	end
 	local outpostContext = table.clone(social)
+	outpostContext.outpostPolicy = content.outpostPolicy
 	outpostContext.dock = function(entry)
 		local handle = assert(ctx.dock, "OUTPOST_DOCK_REQUIRED")(entry)
 		openOutpost = handle.open
 		return handle
 	end
-	local outpostPanel = require(Forge.genres["survival-coop"].module.OutpostPanel).factory(outpostContext)
+	local outpostPanel = require(Forge.genres["survival-coop"].module.SiegeLobbyPanel).factory(outpostContext)
 	local create = ctx.ui.components.button(ctx.ui.theme.default, {
 		text = if korean then "부족 생성" else "Create clan",
 		size = UDim2.new(1, 0, 0, 48),
@@ -698,7 +699,49 @@ table.insert(panelFactories, function(ctx)
 	}
 end)
 table.insert(panelFactories, require(Forge.genres["survival-coop"].module.NavigatorPanel).factory)
+for _, factory in require(Forge.genres["survival-coop"].module.CharacterPanels).factories do
+	table.insert(panelFactories, function(ctx)
+		local scoped: any = table.clone(ctx)
+		scoped.content = content
+		return factory(scoped)
+	end)
+end
 local aerial: any = nil
+-- Social / home / trade sheets (ui.home-permissions, ui.home-move, ui.siege-*, ui.transaction,
+-- ui.direct-trade, ui.dialogue). Each screen is its own module; this only supplies ports.
+table.insert(panelFactories, function(ctx)
+	local social: any = table.clone(ctx)
+	social.actorId, social.content = tostring(player.UserId), content
+	social.outpostPolicy = content.outpostPolicy
+	social.destinations = require(Forge.core.domain.home.HomeContent).rules(content).moveDestinations
+	social.serverNow = function()
+		return workspace:GetServerTimeNow()
+	end
+	social.journalText = function(key)
+		return require(Shared.JournalText)(locale, key)
+	end
+	local module = Forge.genres["survival-coop"].module
+	local move = require(module.HomeMovePanel).factory(social)
+	social.openHomeMove = move.show
+	local list = {
+		move,
+		require(module.HomePermissionsPanel).factory(social),
+		require(module.SiegeMatchPanel).factory(social),
+		require(module.SiegeResultsPanel).factory(social),
+		require(module.TransactionPanel).factory(social),
+		require(module.DirectTradePanel).factory(social),
+	}
+	local dialogue = require(module.DialoguePanel).factory(social)
+	table.insert(list, dialogue)
+	ctx.dialogue = dialogue.talk
+	return {
+		destroy = function()
+			for _, panel in list do
+				panel.destroy()
+			end
+		end,
+	}
+end)
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
 	ui = {

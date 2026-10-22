@@ -208,6 +208,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}
 	end
 	local expeditionStore = ActorDocuments.new(backend, options, "robango-exp-v1")
+	require(Forge.genres["survival-coop"].module.ProgressionPorts).bind(world, content, expeditionStore, seconds)
+	require(script.Parent.LateEquipmentPorts).bind(world)
 	local activeSession: any = nil
 	if world.outpost then
 		local sequence = 0
@@ -702,6 +704,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}))
 	end)
 	if world.home then
+		-- Same-server direct trade is served wherever players meet (DirectTradeExtension).
+		world.directTrade = true
 		table.insert(extensionFactories, function(ctx)
 			local config = table.clone(world.home)
 			config.content, config.store, config.now = ctx.content, ctx.store, ctx.now
