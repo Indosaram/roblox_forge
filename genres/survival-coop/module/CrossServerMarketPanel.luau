@@ -33,7 +33,7 @@ function M.factory(ctx: any): any
 	body.Size, body.AutomaticSize, body.BackgroundTransparency, body.Parent =
 		UDim2.fromScale(1, 0), Enum.AutomaticSize.Y, 1, sheet.scroll
 	local layout = Instance.new("UIListLayout")
-	layout.Parent = body
+	layout.SortOrder, layout.Parent = Enum.SortOrder.LayoutOrder, body
 	local order = 0
 	local drafts: { [string]: any } = {}
 	local lastRender: string? = nil
@@ -140,10 +140,14 @@ function M.factory(ctx: any): any
 			label(string.format(Locale.text(ctx.locale, "harbor"), harbor.remaining, harbor.dailyUnits))
 		end
 		for id, item in if harbor then state.items else {} do
-			local price, draft = harbor.prices[item.catalogId], drafts[id] or { quantity = 1 }
+			local price = harbor.prices[item.catalogId]
 			if price then
+				-- Own draft: the server refuses an oversell visibly, so only the floor is enforced here.
+				local draft = drafts["harbor:" .. id] or { quantity = 1 }
+				drafts["harbor:" .. id] = draft
+				itemLabel(item.catalogId, item.quantity, string.format(text("· %d each", "· 개당 %d"), price))
 				input(draft.quantity, function(value)
-					draft.quantity = math.clamp(math.floor(value or 1), 1, item.quantity)
+					draft.quantity = math.max(math.floor(value or 1), 1)
 				end)
 				button(
 					string.format(Locale.text(ctx.locale, "sell"), ctx.icons.item(item.catalogId).text, price),
