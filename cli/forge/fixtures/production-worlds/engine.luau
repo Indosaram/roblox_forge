@@ -9,6 +9,14 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	local actors: any = {}
 	local tags: any = {}
 	local terrainWrites: { any } = {}
+	-- Like Roblox, voxel writes become raycastable only after the engine steps.
+	local pendingTerrain: { any } = {}
+	local function settleTerrain()
+		for _, write in pendingTerrain do
+			table.insert(terrainWrites, write)
+		end
+		table.clear(pendingTerrain)
+	end
 	local function signal()
 		local handlers: { (...any) -> () } = {}
 		return {
@@ -29,12 +37,12 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			local properties: any = {
 				FillBlock = function(_, frame, size, material)
 					if physicalTerrain then
-						table.insert(terrainWrites, { position = frame.Position, size = size, material = material })
+						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
 					end
 				end,
 				FillBall = function(_, position, radius, material)
 					if physicalTerrain then
-						table.insert(terrainWrites, { position = position, radius = radius, material = material })
+						table.insert(pendingTerrain, { position = position, radius = radius, material = material })
 					end
 				end,
 			}
@@ -278,7 +286,15 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	workspace.GetPartBoundsInBox = function()
 		return {}
 	end
-	local heartbeat = signal()
+	local heartbeat: any = signal()
+	local heartbeatFire: any = heartbeat.Fire
+	heartbeat.Wait = function()
+		settleTerrain()
+	end
+	heartbeat.Fire = function(self, ...)
+		settleTerrain()
+		return heartbeatFire(self, ...)
+	end
 	local added, removed = signal(), signal()
 	local guid = 0
 	local services: any = {

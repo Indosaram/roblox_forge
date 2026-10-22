@@ -259,6 +259,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	local nodes, spawns = {}, {}
 	local nodeItems: any = {}
+	-- Voxel writes are not raycastable until the engine steps; without this the
+	-- node rays below miss and nodes stay at their authored, buried height.
+	game:GetService("RunService").Heartbeat:Wait()
 	for _, node in layout.resourceNodes do
 		-- Quest cargo is a mission ledger, never a generic inventory mint.
 		local item: any = nil
