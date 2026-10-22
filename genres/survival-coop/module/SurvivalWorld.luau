@@ -28,6 +28,9 @@ export type Config = {
 	-- os.clock(); specs inject a deterministic one so no test waits on wall time.
 	now: (() -> number)?,
 	respawnValues: { healthMilli: number, hungerMilli: number, fatigueMilli: number },
+	-- Archipelago hazard zones: the layout whose hazards tick, and the seeded world-clock
+	-- origin (seconds) its storm timeline starts from. Omitted on worlds without hazards.
+	hazards: { layout: any, origin: number? }?,
 	wildlife: {
 		catalog: Wildlife.Catalog,
 		spawns: { { id: string, catalogId: string, position: Wildlife.Position } },
@@ -318,10 +321,19 @@ function M.new(config: Config)
 					if kinds[placement.definition.id] then
 						-- Station handles are ephemeral world identity, not inventory or
 						-- job identity. Keep them within the rest command's 64-byte cap.
-						local stationId = "built:" .. game:GetService("HttpService"):GenerateGUID(false)
+						-- A tiered bench (<kind>-tN) serves its base kind under the anchor id the
+						-- progression owner resolves (station.<kind>.tN) while that id is free.
+						local base, tier = CharacterRules.tieredKind(placement.definition.id, kinds)
+						local anchorId = if base and tier then "station." .. base .. ".t" .. tier else nil
+						local stationId = if anchorId and not stations[anchorId]
+							then anchorId
+							else "built:" .. game:GetService("HttpService"):GenerateGUID(false)
 						stations[stationId] = part
 						part:SetAttribute("ForgeStationId", stationId)
-						part:SetAttribute("ForgeStationKind", placement.definition.id)
+						part:SetAttribute(
+							"ForgeStationKind",
+							if stationId == anchorId then base else placement.definition.id
+						)
 						tags:AddTag(part, "ForgeSurvivalStation")
 					end
 				end
@@ -741,6 +753,40 @@ function M.new(config: Config)
 			fresh.Parent = character
 		end
 	end
+	-- Live hazard-zone exposure: the world clock (config.now, seconds) drives it; positions are the
+	-- server-observed root. A downed actor resets its clock, so nothing accrues while down.
+	local exposureFrom: { [string]: number? } = {}
+	-- Without an injected origin the storm timeline starts when the world is built.
+	local hazardOrigin = now()
+	local function exposeHazards(id: string, state: any)
+		local hazards = config.hazards
+		local part = root(id)
+		if not hazards or not session or #(pending[id] or {}) > 0 then
+			-- A queued command keeps the exposure clock; the interval is applied once it drains.
+			return
+		end
+		local active = session :: Session.Session
+		local personal = active.personalTransfer(id)
+		local profile = if personal then personal.profile() else nil
+		local slice = if profile and profile.data then profile.data.envelope.genres["survival-coop"] else nil
+		local data = if slice then slice.data else nil
+		local alive = state.vitals ~= nil and state.vitals.healthMilli > 0
+		local args, from = CharacterRules.hazardTick(
+			config.content,
+			hazards.layout,
+			alive,
+			if part then { x = part.Position.X, y = part.Position.Y, z = part.Position.Z } else nil,
+			if data then data.gear else nil,
+			if data and data.inventory then data.inventory[config.carriedContainer] else nil,
+			exposureFrom[id],
+			now(),
+			hazards.origin or hazardOrigin
+		)
+		exposureFrom[id] = from
+		if args then
+			enqueue(id, "hazard-exposure", args)
+		end
+	end
 	local function observeHealth(id: string, humanoid: Humanoid)
 		-- Signals may resume after Heartbeat or a later authored write. Sample the
 		-- current property, not the historical signal argument, and also sample
@@ -862,6 +908,7 @@ function M.new(config: Config)
 								config.respawnValues.fatigueMilli,
 							}, nil, true)
 						end
+						exposeHazards(id, state)
 						local part = root(id)
 						if part then
 							local previous = positions[id]
@@ -1042,6 +1089,7 @@ function M.new(config: Config)
 		table.clear(busy)
 		table.clear(retryAfter)
 		table.clear(positions)
+		table.clear(exposureFrom)
 		session = nil
 	end
 	return api

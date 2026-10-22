@@ -481,6 +481,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		baseWalkSpeed = 16,
 		wildlife = { catalog = wildlife.catalog, spawns = spawns, maximum = wildlife.maximum, nowMillis = nowMillis },
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).
+		hazards = if string.match(layoutId, "^rw%.a%d+%.s%d+$") then { layout = layout } else nil,
 	})
 	for _, node in nodes do
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })

@@ -678,6 +678,7 @@ function M.new(
 			or action == "rest"
 			or action == "respawn"
 			or action == "vitals-damage"
+			or action == "hazard-exposure"
 			or action == "rest-stop"
 		then
 			local nextVitals: Vitals.State? = nil
@@ -688,7 +689,21 @@ function M.new(
 			else
 				local nowMillis = if context and context.nowMillis then context.nowMillis else Clock.millis(lastAt)
 				local advanced = Vitals.advance(player.vitals, nowMillis)
-				if action == "vitals-damage" or action == "rest-stop" then
+				if action == "hazard-exposure" then
+					-- A downed actor never keeps ticking: exposure is refused once health is zero.
+					if not advanced.online or advanced.healthMilli == 0 then
+						err = "NOT_ALIVE"
+					else
+						local exposed = Vitals.hazard(advanced, args[1], args[2], args[3])
+						nextVitals = exposed
+						if exposed.healthMilli == 0 then
+							table.insert(observed, {
+								name = "death",
+								fields = { actorId = id, cause = action, atMillis = nowMillis },
+							})
+						end
+					end
+				elseif action == "vitals-damage" or action == "rest-stop" then
 					if not advanced.online or advanced.healthMilli == 0 then
 						err = "NOT_ALIVE"
 					else
@@ -899,7 +914,14 @@ function M.new(
 		local authority = { ownerId = id, serverId = context.serverId }
 		local advanced = Vitals.advance(live.vitals, now)
 		local damageResult: Shared.Result? = nil
-		if action == "vitals-damage" then
+		if action == "hazard-exposure" then
+			if not advanced.online or advanced.healthMilli == 0 then
+				damageResult = { ok = false, reason = "NOT_ALIVE" }
+			else
+				advanced = Vitals.hazard(advanced, args[1], args[2], args[3])
+				damageResult = { ok = true }
+			end
+		elseif action == "vitals-damage" then
 			if not advanced.online or advanced.healthMilli == 0 then
 				damageResult = { ok = false, reason = "NOT_ALIVE" }
 			else

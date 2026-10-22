@@ -337,6 +337,25 @@ function M.damage(state: State, healthMilli: number): State
 	return s
 end
 
+--- Server-observed hazard-zone exposure (integer milli): health loss, fatigue gain and
+--- hot-spring fatigue recovery. Unlike a strike it does not start the combat window.
+function M.hazard(state: State, healthMilli: number, fatigueMilli: number, recoverMilli: number): State
+	alive(state)
+	for _, value in { healthMilli, fatigueMilli, recoverMilli } do
+		assert(integer(value, MAX), "invalid hazard exposure")
+	end
+	local s = table.clone(state)
+	s.healthMilli = math.max(0, s.healthMilli - healthMilli)
+	s.fatigueMilli = math.clamp(s.fatigueMilli + fatigueMilli - recoverMilli, 0, MAX)
+	if healthMilli > 0 or fatigueMilli > 0 then
+		s.resting = false
+	end
+	if s.healthMilli == 0 and s.respawnWaitMillis ~= nil then
+		s.respawnWaitMillis = s.config.respawnDelayMillis :: number
+	end
+	return s
+end
+
 function M.stopRest(state: State): State
 	alive(state)
 	local s = table.clone(state)

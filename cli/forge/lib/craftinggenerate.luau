@@ -156,6 +156,7 @@ function M.policy(): Ledger.Policy
 			"survival-coop:server-vitals-tick",
 			"survival-coop:vitals-damage",
 			"survival-coop:combat-damage",
+			"survival-coop:hazard-exposure",
 			"survival-coop:rest-stop",
 			"survival-coop:respawn",
 		},

@@ -5,6 +5,7 @@ local Combat = require(Forge.genres["survival-coop"].module.Combat)
 local Match = require(Forge.core.domain.brawl.Match)
 local Personal = require(Forge.genres["survival-coop"].module.JournalPorts)
 local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
+local Rules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local M = {}
 
 function M.attack(participant: any, fact: any): any
@@ -119,12 +120,13 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 				return nil
 			end
 			local weapon: any = nil
+			local weaponId: string? = nil
 			local ammunition: string? = nil
-			local ids = {}
-			for id in participant.equipment.items or {} do
-				table.insert(ids, id)
-			end
-			table.sort(ids)
+			-- Worn gear counts the same way as in wildlife combat: the worn weapon is tried first and
+			-- adds its performance; the target's worn armor reduces the strike (carried gear does not).
+			local gear = personal.snapshot(actor)
+			local targetGear = personal.snapshot(target)
+			local ids = Rules.brawlOrder(gear and gear.gear, participant.equipment)
 			for _, id in ids do
 				local item = participant.equipment.items[id]
 				local rule: any = if kind == "melee" then wildlife.catalog.weapons[item.catalogId] else nil
@@ -137,7 +139,7 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 					end
 				end
 				if rule then
-					weapon = rule
+					weapon, weaponId = rule, id
 					break
 				end
 			end
@@ -155,6 +157,11 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 				),
 				millis = math.floor(seconds() * 1000),
 				id = http:GenerateGUID(false),
+				targetArmor = Rules.armorPermille(
+					content,
+					targetGear and targetGear.gear,
+					targetGear and targetGear.inventory and targetGear.inventory.bag
+				),
 				ammunition = ammunition,
 				origin = origin,
 				direction = { x = destination.x - origin.x, y = destination.y - origin.y, z = destination.z - origin.z },
@@ -169,7 +176,13 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 							else weapon.rangeStuds
 					),
 					facingDot = weapon.facingDot,
-					damageMilli = weapon.damageMilli,
+					damageMilli = Rules.weaponDamage(
+						content,
+						gear and gear.gear,
+						participant.equipment,
+						weaponId :: string,
+						weapon.damageMilli
+					),
 					ammo = if kind == "ranged" then 1 else 0,
 				},
 			}
@@ -183,6 +196,11 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 				participant.defense = Combat.window(participant.defense, fact.kind, fact.millis, duration)
 				participant.defense.guardPermille = combat.guardPermille
 				return { ok = true }
+			end
+			local target = state.actors[fact.target]
+			if target and fact.targetArmor then
+				target.defense = table.clone(target.defense or Combat.defense())
+				target.defense.armorPermille = fact.targetArmor
 			end
 			return M.attack(participant, fact)
 		end,

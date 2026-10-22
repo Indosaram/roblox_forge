@@ -5,6 +5,7 @@ local roblox: any = require("@lune/roblox")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local MountVisual = require("./MountVisual")
+local CharacterRules = require("./CharacterRules")
 local healthSignals: { [any]: any } = {}
 local healthValues: { [any]: number } = {}
 local deferredHealth: { () -> () }? = nil
@@ -149,7 +150,7 @@ local function fixture(dependencies: any?)
 					return MountVisual :: any
 				end
 				if name == "./CharacterRules" then
-					return require("./CharacterRules") :: any
+					return CharacterRules :: any
 				end
 				return if dependencies then dependencies[name] or {} else {}
 			end,

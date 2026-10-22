@@ -88,6 +88,7 @@ local CRAFTING: Descriptor = {
 		"rest",
 		"respawn",
 		"vitals-damage",
+		"hazard-exposure",
 		"rest-stop",
 		"server-vitals-tick",
 		"death-drop",

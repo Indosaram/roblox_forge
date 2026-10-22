@@ -6,6 +6,7 @@ local Tree = require("../../../core/domain/progression/SkillTree")
 local Late = require("../../../core/domain/survival/LateEquipment")
 local Progression = require("./ProgressionExtension")
 local Data = require("../../../core/domain/genre/SerializedData")
+local Volcano = require("../../../core/domain/survival/Volcano")
 local M = {}
 
 M.CLOTHING = { "head", "top", "bottom", "shoes", "gloves", "bag" }
@@ -20,6 +21,10 @@ local ATTRIBUTES = { "sharpness", "hardness", "insulation", "flexibility" }
 
 --- Gear slot a catalog item occupies, or nil when it is not wearable/wieldable.
 function M.slotOf(catalogId: string): string?
+	-- Boots (lava-protection-boots) are worn in the shoes slot.
+	if string.sub(catalogId, -6) == "-boots" then
+		return "shoes"
+	end
 	for _, slot in M.CLOTHING do
 		if string.sub(catalogId, -(#slot + 1)) == "-" .. slot then
 			return slot
@@ -204,9 +209,120 @@ end
 
 --- Incoming damage after worn armor (integer milli in, integer milli out).
 function M.mitigate(content: any, gear: any?, bag: any?, damage: number): number
+	return damage - damage * (1000 - M.armorPermille(content, gear, bag)) // 1000
+end
+
+--- Combat.defense armorPermille (damage kept, per mille) from worn armor; 1000 when nothing is worn.
+function M.armorPermille(content: any, gear: any?, bag: any?): number
 	local armor = M.wornStats(content, gear, bag).armor
-	local permille = math.clamp(math.floor(armor * M.ARMOR_PERMILLE_PER_POINT), 0, M.MAX_ARMOR_PERMILLE)
-	return damage - damage * permille // 1000
+	return 1000 - math.clamp(math.floor(armor * M.ARMOR_PERMILLE_PER_POINT), 0, M.MAX_ARMOR_PERMILLE)
+end
+
+-- RECONSTRUCTED Robango redesign: hazard-zone rates parsed from the authored layout effect
+-- ("health-N/s", "fatigue+N/s", "percent-per-second" lava, "per-second" spring recovery).
+-- Heat/steam hazards are mitigated by worn heat resistance, cold/whiteout/ice by worn cold
+-- resistance (resistanceMilli). Standing lava ignores boots; worn lava boots halve volcanic
+-- ground exposure (volcano.bootsMultiplier). A hot spring stops all exposure and recovers fatigue.
+local CLIMATE = { heat = "heat", steam = "heat", cold = "cold", whiteout = "cold", ice = "cold" }
+local function inside(hazard: any, position: any): boolean
+	return (position.x - hazard.position.x) ^ 2 + (position.z - hazard.position.z) ^ 2 <= hazard.radius ^ 2
+end
+
+--- Exposure over [from, now] seconds for a position (all integer milli). Pure; the caller owns the clock.
+function M.hazardExposure(
+	content: any,
+	layout: any,
+	position: any,
+	gear: any?,
+	bag: any?,
+	from: number,
+	now: number,
+	origin: number
+): { healthMilli: number, fatigueMilli: number, recoverMilli: number, refuge: boolean }
+	assert(now >= from, "INVALID_CLOCK")
+	local dt = now - from
+	local out = { healthMilli = 0, fatigueMilli = 0, recoverMilli = 0, refuge = false }
+	local volcano = (content.progressionPolicy or {}).volcano
+	local health, fatigue = 0, 0
+	local lava = false
+	for _, hazard in layout.hazards or {} do
+		if not inside(hazard, position) then
+			continue
+		end
+		if hazard.kind == "hot-spring" then
+			out.refuge = true
+			for _, effect in hazard.effects do
+				if effect.unit == "per-second" then
+					out.recoverMilli += effect.value * dt * 1000
+				end
+			end
+			continue
+		end
+		local keep = 1
+		if CLIMATE[hazard.kind] then
+			keep = 1 - M.resistanceMilli(content, gear, bag, CLIMATE[hazard.kind]) / 1000
+		end
+		for _, effect in hazard.effects do
+			if effect.unit == "percent-per-second" then
+				lava = true
+				health += 100 * effect.value / 100 * dt
+			else
+				local h = tonumber(string.match(effect.unit, "health%-(%d+)/s"))
+				local f = tonumber(string.match(effect.unit, "fatigue%+(%d+)/s"))
+				health += (h or 0) * dt * keep
+				fatigue += (f or 0) * dt * keep
+			end
+		end
+	end
+	if out.refuge and not lava then
+		out.recoverMilli = math.floor(out.recoverMilli + 0.5)
+		return out
+	end
+	out.recoverMilli = 0
+	if volcano and not lava then
+		local zone = Volcano.zone(layout, position)
+		if zone.exposed then
+			local boots = false
+			for _, record in M.worn(gear or {}, bag) do
+				boots = boots or record.catalogId == volcano.bootsItem
+			end
+			local seconds = Volcano.exposureSeconds(from, now, origin, volcano)
+			local scale = if boots then volcano.bootsMultiplier else 1
+			health += volcano.healthPerSecond * seconds * scale
+			fatigue += volcano.fatiguePerSecond * seconds * scale
+		end
+	end
+	out.healthMilli = math.clamp(math.floor(health * 1000 + 0.5), 0, 100000)
+	out.fatigueMilli = math.clamp(math.floor(fatigue * 1000 + 0.5), 0, 100000)
+	return out
+end
+
+--- One server hazard tick decision. A downed or absent actor resets its exposure clock (nothing
+--- accrues while down); exposure is applied at most once per whole second of world time.
+--- Returns the server command args (or nil) and the next exposure clock start.
+function M.hazardTick(
+	content: any,
+	layout: any,
+	alive: boolean,
+	position: any?,
+	gear: any?,
+	bag: any?,
+	from: number?,
+	now: number,
+	origin: number
+): ({ number }?, number?)
+	if not alive or not position then
+		return nil, nil
+	elseif from == nil or now < from then
+		return nil, now
+	elseif now - from < 1 then
+		return nil, from
+	end
+	local e = M.hazardExposure(content, layout, position, gear, bag, from, now, origin)
+	if e.healthMilli == 0 and e.fatigueMilli == 0 and e.recoverMilli == 0 then
+		return nil, now
+	end
+	return { e.healthMilli, e.fatigueMilli, math.min(e.recoverMilli, 100000) }, now
 end
 
 --- Strike damage for `itemId`: the authored base, plus the worn weapon's performance when it is the worn one.
@@ -216,6 +332,31 @@ function M.weaponDamage(content: any, gear: any?, bag: any?, itemId: string, bas
 		return base
 	end
 	return base + math.floor(stats.performance * M.WEAPON_MILLI_PER_POINT + 0.5)
+end
+
+--- "<kind>-tN" whose base kind is itself a station kind -> (base, "N"); otherwise nil.
+--- A placed tier-N bench then serves station.<kind>.tN for tier-gated operations (modify).
+function M.tieredKind(id: string, kinds: { [string]: boolean }): (string?, string?)
+	local base, tier = string.match(id, "^(.+)%-t(%d)$")
+	if base and kinds[base] then
+		return base, tier
+	end
+	return nil, nil
+end
+
+--- Brawl weapon candidates: the worn weapon first, then the remaining bag ids in sorted order.
+function M.brawlOrder(gear: any?, bag: any?): { string }
+	local ids = {}
+	for id in (bag and bag.items) or {} do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	local worn = M.worn(gear or {}, bag).weapon
+	local index = if worn then table.find(ids, worn.itemId) else nil
+	if index then
+		table.insert(ids, 1, table.remove(ids, index) :: string)
+	end
+	return ids
 end
 
 --- Gather tool evidence: tools held in hand plus the worn weapon/tool slot (usable, owned, unbroken).

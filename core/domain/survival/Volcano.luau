@@ -44,6 +44,16 @@ function M.zone(layout: any, position: any): any
 	return result
 end
 
+--- Exposure seconds over [from, now]: elapsed time with storm stretches weighted by stormMultiplier.
+function M.exposureSeconds(from: number, now: number, origin: number, policy: any): number
+	local period = policy.clearSeconds + policy.stormSeconds
+	local function storms(t: number): number
+		local elapsed = t - origin
+		return math.floor(elapsed / period) * policy.stormSeconds + math.max(0, elapsed % period - policy.clearSeconds)
+	end
+	return (now - from) + (storms(now) - storms(from)) * (policy.stormMultiplier - 1)
+end
+
 function M.storm(now: number, origin: number, policy: any): boolean
 	return (now - origin) % (policy.clearSeconds + policy.stormSeconds) >= policy.clearSeconds
 end
@@ -60,13 +70,8 @@ function M.advance(
 	lifeMultiplier: number
 ): any
 	assert(now >= from, "INVALID_CLOCK")
-	local period = policy.clearSeconds + policy.stormSeconds
-	local function storms(t: number): number
-		local elapsed = t - origin
-		return math.floor(elapsed / period) * policy.stormSeconds + math.max(0, elapsed % period - policy.clearSeconds)
-	end
 	local dt = now - from
-	local exposureSeconds = dt + (storms(now) - storms(from)) * (policy.stormMultiplier - 1)
+	local exposureSeconds = M.exposureSeconds(from, now, origin, policy)
 	local protection = if boots then policy.bootsMultiplier else 1
 	local result: any = table.clone(vitals)
 	if zone.lava then

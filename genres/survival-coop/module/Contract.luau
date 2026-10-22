@@ -172,6 +172,12 @@ local contract: Shared.RuntimeContract = {
 			origin = "server",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},
+		{
+			id = "hazard-exposure",
+			args = { vital, vital, vital },
+			origin = "server",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{ id = "rest-stop", args = {}, origin = "server", rate = { capacity = 5, refillPerSecond = 2 } },
 		{
 			id = "settlement-invite",
