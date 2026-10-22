@@ -11,6 +11,7 @@ function M.rules(content: any): any
 		landSizes = landSizes,
 		plotCaps = plotCaps,
 		placedPlots = true,
+		starterFarmPlot = policy.starterFarmPlot,
 		dock = policy.dock,
 		dockSize = policy.dockSize,
 		padSize = policy.padSize,

@@ -2,8 +2,10 @@
 local Panel = require("./CrossServerMarketPanel")
 local Locale = require("./SurvivalHUDLocale")
 -- Mounts the panel against recording fakes: every created node, widget props and harbor-sell result.
-local function mount(harborResult: any): any
+local function mount(harborResult: any, locale: string?): any
 	local nodes: { any } = {}
+	local promptSignal: any = nil
+	local gui: any = nil
 	local widgets: { any } = {}
 	local sends: { any } = {}
 	local listener: any = nil
@@ -16,7 +18,7 @@ local function mount(harborResult: any): any
 		return value
 	end
 	local function node(): any
-		local value: any = { FocusLost = signal(), Destroy = function() end }
+		local value: any = { Focused = signal(), FocusLost = signal(), Destroy = function() end }
 		function value:GetChildren(): any
 			return {}
 		end
@@ -36,13 +38,19 @@ local function mount(harborResult: any): any
 		end,
 	}
 	local panel = Panel.factory({
-		locale = "en-us",
+		locale = locale or "en-us",
 		icons = {
 			item = function(id)
 				return { text = id }
 			end,
 		},
-		instance = { new = node },
+		instance = {
+			new = function(class: string): any
+				local made = node()
+				gui = if class == "ScreenGui" then made else gui
+				return made
+			end,
+		},
 		enum = {
 			AutomaticSize = { Y = "Y" },
 			ZIndexBehavior = { Sibling = "Sibling" },
@@ -61,7 +69,11 @@ local function mount(harborResult: any): any
 		},
 		game = {
 			GetService = function(_, name)
-				return if name == "Players" then { LocalPlayer = player } else { PromptTriggered = signal() }
+				if name == "Players" then
+					return { LocalPlayer = player }
+				end
+				promptSignal = promptSignal or { PromptTriggered = signal() }
+				return promptSignal
 			end,
 		},
 		ui = {
@@ -113,7 +125,17 @@ local function mount(harborResult: any): any
 	for _, value in nodes do
 		layout = if value.SortOrder ~= nil then value else layout
 	end
-	return { panel = panel, rows = rows, widgets = widgets, sends = sends, layout = layout, status = widgets[1].node }
+	return {
+		panel = panel,
+		rows = rows,
+		widgets = widgets,
+		sends = sends,
+		layout = layout,
+		status = widgets[1].node,
+		gui = gui,
+		player = player,
+		prompt = promptSignal.PromptTriggered,
+	}
 end
 local function sellRow(rows: { any }): number
 	for index, row in rows do
@@ -150,13 +172,99 @@ return {
 		end
 		local sent = ui.sends[#ui.sends]
 		assert(sent.action == "survival-coop:harbor-sell" and sent.args[2] == 201, "typed quantity sent unclamped")
-		assert(ui.status.Text == Locale.refusal("en-us", "INSUFFICIENT_ITEMS"), "refusal reason in status label")
+		assert(ui.status.Text == "You cannot sell more than you hold (held 2)", "refusal reason in status label")
 		for _, props in ui.widgets do
 			if string.sub(props.text, 1, 12) == "List bundle:" then
 				props.onClick()
 			end
 		end
 		assert(ui.sends[#ui.sends].args[2] == 1, "market listing draft untouched by harbor quantity")
+		ui.panel.destroy()
+	end,
+	["harbor oversell refusal shows under the pressed Sell row with the held count, EN and KO"] = function()
+		for locale, expected in
+			{
+				["en-us"] = "You cannot sell more than you hold (held 2)",
+				["ko-kr"] = "보유 수량보다 많이 팔 수 없어요 (보유 2)",
+			} :: { [string]: string }
+		do
+			local ui = mount({ ok = false, reason = "INSUFFICIENT_ITEMS" }, locale)
+			local sell = nil
+			for _, props in ui.widgets do
+				sell = if props.text == string.format(Locale.text(locale, "sell"), "wood", 1) then props else sell
+			end
+			assert(sell, "sell button")
+			local box = nil
+			for index, row in ui.rows do
+				if row == sell.node then
+					box = ui.rows[index - 1]
+					local below = ui.rows[index + 1]
+					sell.onClick()
+					assert(
+						below.Name == "SellStatus" and below.Visible == true,
+						locale .. ": row status right below Sell"
+					)
+					assert(below.Text == expected, locale .. ": oversell text: " .. tostring(below.Text))
+				end
+			end
+			assert(box and box.ClearTextOnFocus == false, "quantity box found")
+			ui.panel.destroy()
+		end
+		assert(
+			Locale.refusal("ko-kr", "INSUFFICIENT_ITEMS") ~= Locale.refusal("ko-kr", "INGREDIENT_MISSING"),
+			"INSUFFICIENT_ITEMS has its own text, not the generic supplies bucket"
+		)
+	end,
+	["quantity box selects its whole value on focus so Backspace and typing replace it"] = function()
+		local ui = mount({ ok = true })
+		local sell = sellRow(ui.rows)
+		local box = ui.rows[sell - 1]
+		assert(box.Focused.callback, "focus handler wired")
+		box.Text = "12"
+		box.SelectionStart, box.CursorPosition = -1, 1
+		box.Focused.callback()
+		assert(box.SelectionStart == 1 and box.CursorPosition == 3, "whole text selected on focus")
+		box.Text = ""
+		assert(box.Text == "", "clearing does not immediately put a number back")
+		box.FocusLost.callback()
+		assert(box.Text == "", "an empty field remains editable after blur")
+		box.Text = "3"
+		box.FocusLost.callback()
+		for _, props in ui.widgets do
+			if props.node == ui.rows[sell] then
+				props.onClick()
+			end
+		end
+		assert(ui.sends[#ui.sends].args[2] == 3, "typing after clear replaces the quantity")
+		ui.panel.destroy()
+	end,
+	["an NPC prompt opens dialogue only; a plain market prompt still opens the market"] = function()
+		local ui = mount({ ok = true })
+		local function prompt(attributes: { [string]: any }, holder: { [string]: any }?): any
+			return {
+				GetAttribute = function(_, key)
+					return attributes[key]
+				end,
+				Parent = if holder
+					then {
+						GetAttribute = function(_, key)
+							return holder[key]
+						end,
+					}
+					else nil,
+			}
+		end
+		local gui: any = ui.gui
+		local function enabled(): any
+			return gui.Enabled
+		end
+		gui.Enabled = false
+		ui.prompt.callback(prompt({ ForgeMarket = true }, { ForgeHarborFacility = "npc.sella" }), ui.player)
+		assert(enabled() == false, "npc.sella prompt must not stack the market over its dialogue")
+		ui.prompt.callback(prompt({ ForgeMarket = true, ForgeDialogue = "station.market" }), ui.player)
+		assert(enabled() == false, "talking market board opens dialogue first")
+		ui.prompt.callback(prompt({ ForgeMarket = true }), ui.player)
+		assert(enabled() == true, "a non-talking market prompt opens the market")
 		ui.panel.destroy()
 	end,
 	["production market controls fit phone and desktop and bind exact item and agreed price"] = function()
@@ -172,7 +280,7 @@ return {
 				}
 			end
 			local function node(): any
-				local value: any = { FocusLost = signal(), Destroy = function() end }
+				local value: any = { Focused = signal(), FocusLost = signal(), Destroy = function() end }
 				function value:GetChildren(): any
 					return {}
 				end

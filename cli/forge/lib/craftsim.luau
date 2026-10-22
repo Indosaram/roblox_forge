@@ -2,7 +2,7 @@
 -- Deterministic single-player pacing driver for survival-coop `crafting` packs (robango).
 -- A scripted new player gathers at authored layout nodes (stock = charges, yield per gather,
 -- respawn to full stock), crafts by recipe inputs and craftMillis, places station kits,
--- clears guides (development plus the declared xp/coins once per guide), delivers
+-- clears guides (development plus the declared xp/coins/items once per guide), delivers
 -- first-day and daily contracts, runs archipelago index-1 expeditions whose missions pay
 -- through the MissionRewards rule (first clear full, repeat REPEAT_PERMILLE), sells surplus raw
 -- at the harbor buyback (core Buyback, shared daily cap) and pays Job.repairCost for weapon
@@ -304,7 +304,7 @@ function M.simulate(content: any, options: Options): { [string]: any }
 	end
 
 	-- Guide completion: development (SurvivalFactory.recordDevelopment) plus the declared
-	-- xp/coins once per guide (MissionRewards.enqueueGuide outbox).
+	-- xp/coins/items once per guide (MissionRewards.enqueueGuide outbox).
 	local function guideDone(id: string)
 		if not devDefinitions[id] then
 			devDefinitions[id] = true
@@ -313,6 +313,9 @@ function M.simulate(content: any, options: Options): { [string]: any }
 					devPoints += guide.rewards.development or 0
 					balance += guide.rewards.coins or 0
 					faucets.guides += guide.rewards.coins or 0
+					for _, stack in guide.rewards.items or {} do
+						bag[stack.item] = (bag[stack.item] or 0) + stack.quantity
+					end
 					grantXP(guide.rewards.xp or 0)
 				end
 			end

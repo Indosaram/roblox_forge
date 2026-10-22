@@ -564,6 +564,37 @@ cases["dialogue offers objective dependent complete and service choices"] = func
 	assert(string.find(source, 'prompt:GetAttribute("ForgeDialogue")', 1, true), "station prompt opens dialogue")
 end
 
+cases["npc dialogue sits above the market sheet and offers the market as its choice"] = function()
+	local h = harness("ko-kr", 640, 339, true)
+	local guis: { any } = {}
+	h.ctx.instance = {
+		new = function(class: string): any
+			local made = { Destroy = function() end, class = class }
+			table.insert(guis, made)
+			return made
+		end,
+	}
+	local opened: string? = nil
+	h.ctx.openPanel = function(id: string)
+		opened = id
+	end
+	local panel = Panels.dialogue.factory(h.ctx)
+	assert(guis[1] and guis[1].class == "ScreenGui", "dialogue owns a ScreenGui")
+	-- Placement is the highest other interactive overlay at 40.
+	assert(guis[1].DisplayOrder > 40, "dialogue above every interactive sheet: " .. tostring(guis[1].DisplayOrder))
+	local Harbor = require("../../genres/survival-coop/module/HarborFacilities")
+	local service = nil
+	for _, facility in Harbor.describe(Content) do
+		service = if facility.anchor == "npc.sella" then facility.panel else service
+	end
+	assert(service == "market", "Sella's dialogue carries the market choice")
+	h.push({})
+	panel.talk("sella", service)
+	assert(h.frame.Visible and h.has("셀라:"), "Sella talks first")
+	h.press(L.text("ko-kr", "dialogue.service", L.text("ko-kr", "service.market")))
+	assert(opened == "market" and not h.frame.Visible, "market opens only from the dialogue choice")
+end
+
 -- Station dialogue and authored lines: Continue shows the chapter's authored offer line in the
 -- player's language, Complete on the last objective shows the authored complete line.
 cases["station dialogue shows authored offer and complete lines in KO and EN"] = function()

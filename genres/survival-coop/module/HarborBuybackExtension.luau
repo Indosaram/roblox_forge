@@ -115,7 +115,8 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 						fixed, refused = nil, "INELIGIBLE_REPAIR"
 					end
 					local cost = if fixed then Job.repairCost(repair, bag.items[catalogId].catalogId) else 0
-					outcome = { ok = fixed ~= nil and slice.balance >= cost, reason = refused or "INSUFFICIENT_FUNDS" }
+					local ok = fixed ~= nil and slice.balance >= cost
+					outcome = { ok = ok, reason = if ok then nil else refused or "INSUFFICIENT_FUNDS" }
 					if not outcome.ok then
 						return view
 					end

@@ -8,6 +8,12 @@ local strings: { [string]: { string } } = {
 	NOT_AT_HARBOR = { "Only at the harbor", "항구에서만 가능" },
 	repair = { "Repair (%d coins)", "수리 (%d 조개돈)" },
 	INSUFFICIENT_FUNDS = { "Not enough coins", "조개돈 부족" },
+	repaired = { "Repaired", "수리 완료" },
+	INSUFFICIENT_ITEMS = { "You do not hold that many", "보유 수량이 부족해요" },
+	oversell = {
+		"You cannot sell more than you hold (held %d)",
+		"보유 수량보다 많이 팔 수 없어요 (보유 %d)",
+	},
 	INELIGIBLE_REPAIR = { "This item cannot be repaired", "수리할 수 없는 물건" },
 	preset = { "Terrain %d", "지형 %d" },
 	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
@@ -234,12 +240,7 @@ function M.refusal(locale: string, reason: string): string
 		key = "capacity"
 	elseif string.find(reason, "STALE") then
 		key = "stale"
-	elseif
-		string.find(reason, "INGREDIENT")
-		or reason == "INSUFFICIENT_ITEMS"
-		or string.find(reason, "RESERVED")
-		or string.find(reason, "QUANTITY")
-	then
+	elseif string.find(reason, "INGREDIENT") or string.find(reason, "RESERVED") or string.find(reason, "QUANTITY") then
 		key = "materials"
 	end
 	return M.text(locale, if strings[key] then key else "unknown")

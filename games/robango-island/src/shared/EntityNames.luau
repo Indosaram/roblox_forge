@@ -75,7 +75,7 @@ local names: { [string]: { en: string, ko: string } } = {
 	["crossbow-t1"] = { en = "Crossbow T1", ko = "석궁 1단계" },
 	["crossbow-t2"] = { en = "Crossbow T2", ko = "석궁 2단계" },
 	["crossbow-t3"] = { en = "Crossbow T3", ko = "석궁 3단계" },
-	["dodo"] = { en = "Dodo", ko = "Dodo" },
+	["dodo"] = { en = "Dodo", ko = "도도" },
 	["door"] = { en = "Door", ko = "문" },
 	["door-kit"] = { en = "Door Kit", ko = "문 제작 꾸러미" },
 	["dried-fiber"] = { en = "Dried Fiber", ko = "말린 섬유" },

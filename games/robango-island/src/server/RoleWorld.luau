@@ -7,6 +7,7 @@ local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
 local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
+local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local materials: any = Enum.Material
 local shapes: any = Enum.PartType
@@ -531,7 +532,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			return
 		end
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeStationPanel", "Open", panel
+		prompt.Name = "ForgeStationPanel"
+		WorldText.bind(prompt, "open", panel)
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, target
 		prompt:SetAttribute("ForgePanel", panel)
 		prompt:SetAttribute("ForgeStationPanel", panel)
@@ -577,8 +579,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
 				target:SetAttribute("ForgeHarborFacility", facility.anchor)
 				local prompt = Instance.new("ProximityPrompt")
-				prompt.ActionText = if facility.kind == "market" then "Market" else "Interact"
-				prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent = facility.anchor, 8, target
+				WorldText.bind(prompt, if facility.kind == "market" then "market" else "interact", facility.anchor)
+				prompt.MaxActivationDistance, prompt.Parent = 8, target
 				-- The market board talks first; its Market choice opens the market panel.
 				prompt:SetAttribute("ForgeMarket", facility.anchor == "npc.sella")
 				prompt:SetAttribute("ForgePanel", facility.panel)
@@ -597,7 +599,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local station = root:FindFirstChild(facility.anchor)
 				if station then
 					local prompt = Instance.new("ProximityPrompt")
-					prompt.ActionText, prompt.ObjectText = "Interact", facility.anchor
+					WorldText.bind(prompt, "interact", facility.anchor)
 					prompt.MaxActivationDistance, prompt.Parent = 8, station
 					prompt:SetAttribute("ForgePanel", facility.panel)
 					prompt:SetAttribute("ForgeDialogue", facility.talk)
@@ -615,7 +617,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		position = interactionPosition(position, 1)
 		local target = part(id, position, { x = 10, y = 1, z = 8 })
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeDock", "Travel", destination
+		prompt.Name = "ForgeDock"
+		WorldText.bind(prompt, "travel", destination)
+		prompt:SetAttribute("ForgeDestination", destination)
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, true, target
 		prompt.Triggered:Connect(function(player)
 			local actor = tostring(player.UserId)
@@ -668,7 +672,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				marker:SetAttribute("ForgeCellMin", Vector3.new(b.min.x, b.min.y, b.min.z))
 				marker:SetAttribute("ForgeCellMax", Vector3.new(b.max.x, b.max.y, b.max.z))
 				local prompt = Instance.new("ProximityPrompt")
-				prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeIslandRank", "Island rank", cell.id
+				prompt.Name = "ForgeIslandRank"
+				WorldText.bind(prompt, "open", "island-rank")
 				prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, marker
 				prompt:SetAttribute("ForgePanel", "island-rank")
 				prompt:SetAttribute("ForgeStationPanel", "island-rank")
@@ -685,7 +690,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		depot.Transparency, depot.CanCollide, depot.CanQuery, depot.CanTouch = 1, false, false, false
 		depot:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeWarehouse", "Open warehouse", "Warehouse"
+		prompt.Name = "ForgeWarehouse"
+		WorldText.bind(prompt, "warehouse_open", "warehouse")
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, depot
 		prompt:SetAttribute("ForgeWarehouse", true)
 	end
@@ -769,8 +775,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					world.journalTargets[id] = { position = position, objective = objective.id, marker = id }
 					local target = part(id, position, { x = 2, y = 3, z = 2 })
 					local prompt = Instance.new("ProximityPrompt")
-					prompt.ActionText, prompt.ObjectText, prompt.MaxActivationDistance, prompt.Parent =
-						"Journal checkpoint", "Journal", 8, target
+					WorldText.bind(prompt, "journal_checkpoint", "journal")
+					prompt.MaxActivationDistance, prompt.Parent = 8, target
 					prompt:SetAttribute("ForgeJournal", true)
 					prompt.Triggered:Connect(function(player)
 						if world.journalAction then
@@ -795,12 +801,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 							UDim2.fromOffset(120, 32), Vector3.new(0, 4, 0), true
 						local label = Instance.new("TextLabel")
 						label.Size, label.BackgroundTransparency, label.TextScaled = UDim2.fromScale(1, 1), 1, true
-						label.Text, label.TextColor3, label.Parent = "Survey", Color3.fromRGB(255, 220, 90), gui
+						label.Text, label.TextColor3, label.Parent =
+							WorldText.text("en-us", "survey"), Color3.fromRGB(255, 220, 90), gui
 						gui.Parent = target
 						game:GetService("CollectionService"):AddTag(target, "ForgeSurvey")
 						local prompt = Instance.new("ProximityPrompt")
-						prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
-							"Survey", content.missionPolicy.interactionStuds, target
+						WorldText.bind(prompt, "survey")
+						prompt.MaxActivationDistance, prompt.Parent = content.missionPolicy.interactionStuds, target
 						prompt:SetAttribute("ForgeSurvey", true)
 						prompt.Triggered:Connect(function(player)
 							if world.missionAction then
@@ -876,8 +883,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local function missionPrompt(operation, position)
 		local target = part(operation, position, { x = 2, y = 3, z = 2 })
 		local prompt = Instance.new("ProximityPrompt")
-		prompt.ActionText, prompt.MaxActivationDistance, prompt.Parent =
-			operation, content.missionPolicy.interactionStuds, target
+		WorldText.bind(prompt, operation)
+		prompt.MaxActivationDistance, prompt.Parent = content.missionPolicy.interactionStuds, target
 		prompt.Triggered:Connect(function(player)
 			if world.missionAction then
 				world.missionAction(tostring(player.UserId), operation, layoutId)
@@ -963,7 +970,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				end
 				if definition.kind == "farm-plot" then
 					local prompt = Instance.new("ProximityPrompt")
-					prompt.ActionText, prompt.ObjectText, prompt.MaxActivationDistance = "Farm", "farm-plot", 8
+					WorldText.bind(prompt, "farm", "farm-plot")
+					prompt.MaxActivationDistance = 8
 					prompt:SetAttribute("ForgePanel", "farm")
 					prompt.Parent = value
 				end
@@ -1025,7 +1033,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		-- Land must exist before ray queries; home kits retain their authored offsets.
 		for _, definition in parts do
-			if definition.decorative then
+			if definition.kind == "farm-plot" then
+				local position = interactionPosition(definition.position, definition.size.y)
+				homeParts[definition.id].Position = Vector3.new(position.x, position.y, position.z)
+			elseif definition.decorative then
 				if definition.id == "home.path" then
 					homeParts[definition.id].Transparency = 1
 					continue

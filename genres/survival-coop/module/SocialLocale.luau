@@ -5,6 +5,7 @@ local M = {}
 local strings: { [string]: { string } } = {
 	["perm.title"] = { "Home access", "집 출입 권한" },
 	["perm.owner"] = { "Owner: %s", "소유자: %s" },
+	["perm.me"] = { "Me", "나" },
 	["perm.version"] = { "Save version %d", "저장 버전 %d" },
 	["perm.visit"] = { "Visit: %s", "방문: %s" },
 	["perm.use"] = { "Use: %s", "사용: %s" },

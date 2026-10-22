@@ -823,9 +823,15 @@ function M.start(options: Options)
 				bar.value.Text = tostring(math.floor(amount))
 			end
 		end
-		status.Text = t(model.status) .. (if model.reason then "\n" .. Locale.refusal(locale, model.reason) else "")
+		status.Text = t(model.status)
+			.. (
+				if model.reason
+					then "\n" .. Locale.refusal(locale, model.reason)
+					elseif model.notice then "\n" .. t(model.notice)
+					else ""
+			)
 		if contextual then
-			status.Visible = model.status == "conflict" or model.status == "pending"
+			status.Visible = model.status == "conflict" or model.status == "pending" or model.notice ~= nil
 		end
 		local scrollPosition = sheet.scroll.CanvasPosition
 		controls.begin(section)
@@ -848,6 +854,8 @@ function M.start(options: Options)
 		end
 		if model.reason then
 			label(Locale.refusal(locale, model.reason), 100)
+		elseif model.notice then
+			label(t(model.notice), 48)
 		end
 		local bag = Model.bag(model.snapshot)
 		if section == "bag" then

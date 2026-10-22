@@ -1297,7 +1297,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 			document.development = development
 			return { ok = true }
 		end)
-		-- Guide xp/coins settle through the mission reward outbox (once per guide receipt).
+		-- Guide xp/coins/items settle through the mission reward outbox (once per guide receipt).
 		if recorded.ok and guideCompleted then
 			archipelago.settleRewards(actor)
 		end

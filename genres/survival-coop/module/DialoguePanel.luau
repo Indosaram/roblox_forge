@@ -9,6 +9,7 @@
 local Sheet = require("./SocialSheet")
 local L = require("./SocialLocale")
 local M = {}
+M.DISPLAY_ORDER = 50
 
 -- Objectives a station owns; NPCs own "speak" objectives that name them.
 local STATIONS: { [string]: (any) -> boolean } = {
@@ -99,6 +100,8 @@ function M.factory(ctx: any): any
 		name = "Dialogue",
 		title = L.text(ctx.locale, "dialogue.title"),
 		order = 15,
+		-- Dialogue takes priority over docked sheets, the menu (30), and placement (40).
+		displayOrder = M.DISPLAY_ORDER,
 		select = function(extensions: any): any
 			return extensions.journal
 		end,

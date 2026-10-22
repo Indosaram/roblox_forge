@@ -17,15 +17,14 @@ local function button(text: string, name: string, onClick: (() -> ())?): any
 	return { kind = "button", text = text, height = ROW, name = name, onClick = onClick }
 end
 
-local function biome(names: any, id: string?): string
-	return if id and names and names["biome_" .. id] then names["biome_" .. id] else id or "?"
-end
-
 -- ui.routes: five route cards with gates, stages, missions, capacity and expiry.
 function M.routes(locale: string, state: any, names: any, choose: (number) -> ()): (string, { any })
 	local items = {}
 	for _, card in state.routes do
-		table.insert(items, label(Text.text(locale, "exp_route", card.route, biome(names, card.biome)), LINE))
+		table.insert(
+			items,
+			label(Text.text(locale, "exp_route", card.route, Text.biome(locale, names, card.biome)), LINE)
+		)
 		table.insert(
 			items,
 			label(Text.text(locale, "exp_route_gate", card.level, card.rank, card.stages, card.missions), LINE)
@@ -88,7 +87,13 @@ function M.travel(
 	if arrival then
 		local items = {
 			label(
-				Text.text(locale, "travel_arrived", arrival.route, arrival.stage, arrival.id),
+				Text.text(
+					locale,
+					"travel_arrived",
+					arrival.route,
+					Text.biome(locale, nil, arrival.biome),
+					arrival.stage
+				),
 				BODY,
 				"TravelIdentity"
 			),

@@ -64,6 +64,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local arrival = latest.arrival
 		local arrivalKey = if arrival then arrival.id .. ":" .. arrival.stage else nil
 		if view.kind == "list" and arrivalKey and seenArrival ~= arrivalKey then
+			-- The arrival names its route's biome (never the raw expedition id).
+			local card = (latest.routes or {})[arrival.route]
+			arrival = table.clone(arrival)
+			arrival.biome = arrival.biome or (if card then card.biome else nil)
 			routes.render(Models.travel(locale, arrival.route, nil, function() end, function()
 				seenArrival = arrivalKey
 				routes.open(false)

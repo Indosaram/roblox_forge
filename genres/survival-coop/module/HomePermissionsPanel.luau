@@ -48,7 +48,11 @@ function M.rows(locale: string, state: any, act: any): { any }
 	end
 	local grants = M.grants(home)
 	local rows: { any } = {
-		{ text = L.text(locale, "perm.owner", home.owner) .. "  " .. L.text(locale, "perm.version", home.revision) },
+		{
+			text = L.text(locale, "perm.owner", L.text(locale, "perm.me"))
+				.. "  "
+				.. L.text(locale, "perm.version", home.revision),
+		},
 		{ text = L.text(locale, "perm.hint") },
 	}
 	for _, category in { "visit", "use", "build", "recover" } do

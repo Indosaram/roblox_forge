@@ -272,12 +272,14 @@
 
 | id | 세력 | 납품 | 보상 | 신뢰 |
 |---|---|---|---|---|
-| daily-survey-reeds | 항로 측량회 | reed×8 | plank×3 | 20 |
-| daily-survey-beams | 항로 측량회 | timber-beam×2 | cord×4, flint×2 | 40 |
-| daily-guild-bricks | 장인 길드 연합 | mud-brick×4 | timber-beam×1 | 35 |
-| daily-guild-stone | 장인 길드 연합 | stone-block×2 | thatch-bundle×2 | 35 |
-| daily-eco-hazelnuts | 섬 생태 신탁 | hazelnut×8 | berry-meal×2 | 20 |
-| daily-eco-clambake | 섬 생태 신탁 | clam-bake×2 | roasted-hazelnuts×2, hide×1 | 30 |
+| daily-survey-reeds | 항로 측량회 | branch×12 | plank×3 | 20 |
+| daily-survey-beams | 항로 측량회 | plank×6 | cord×4, flint×2 | 40 |
+| daily-guild-bricks | 장인 길드 연합 | flint-knife×1 | timber-beam×1 | 35 |
+| daily-guild-stone | 장인 길드 연합 | stone-pick×1 | thatch-bundle×2 | 35 |
+| daily-eco-hazelnuts | 섬 생태 신탁 | water×6 | berry-meal×2 | 20 |
+| daily-eco-clambake | 섬 생태 신탁 | capture-bola×1 | roasted-hazelnuts×2, hide×1 | 30 |
+
+(p33: 납품 열은 content.yml 실제 값으로 고쳤다. 의뢰 id는 저장 키라 그대로 두며, id 이름과 납품물이 다른 것은 bricks/stone/hazelnuts/clambake/reeds다.)
 
 어느 보상도 추가 재료 없이 같은 의뢰의 납품물로 되돌아가지 않으므로, 의뢰만 반복해 소재를 불리는 순환은 없다. 보상은 다음 단계 제작에 쓰는 중간재 위주다.
 

@@ -3,6 +3,9 @@
 -- aggregate records the reward and its receipt in the same update.
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Journal = require("../../../core/domain/command/Journal")
+local Inventory = require("../../../core/domain/inventory/Inventory")
+local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
+local Job = require("../../../core/domain/crafting/Job")
 local M = {}
 
 -- A mission pays once when every one of its objectives is complete in an
@@ -44,23 +47,30 @@ local function share(rewards: any, permille: number): any
 	}
 end
 
--- Guide completion rewards (xp, coins) ride the same outbox: one entry per guide
+-- Guide completion rewards (xp, coins, items) ride the same outbox: one entry per guide
 -- definition keyed "guide:<id>", settled under the personal receipt of that id, so a
--- replayed or re-enqueued guide pays nothing. Guide items are not paid here.
+-- replayed or re-enqueued guide pays nothing. Items land in the personal bag in the same
+-- personal write as the xp/coins receipt.
 function M.guideId(guideId: string): string
 	return "guide:" .. guideId
 end
 
 function M.enqueueGuide(document: any, guide: any)
 	local rewards = guide.rewards or {}
-	if (rewards.xp or 0) == 0 and (rewards.coins or 0) == 0 then
+	local items = {}
+	for _, stack in rewards.items or {} do
+		if stack.quantity > 0 then
+			table.insert(items, { item = stack.item, quantity = stack.quantity })
+		end
+	end
+	if (rewards.xp or 0) == 0 and (rewards.coins or 0) == 0 and #items == 0 then
 		return
 	end
 	document.missionRewards = document.missionRewards or {}
 	local id = M.guideId(guide.id)
 	if document.missionRewards[id] == nil then
 		document.missionRewards[id] = {
-			rewards = { xp = rewards.xp or 0, coins = rewards.coins or 0, reputation = {} },
+			rewards = { xp = rewards.xp or 0, coins = rewards.coins or 0, reputation = {}, items = items },
 			mission = guide.id,
 			repeatClear = false,
 			settled = false,
@@ -145,6 +155,75 @@ function M.claim(document: any, id: string): (boolean, string?)
 	return true, nil
 end
 
+-- Adds reward stacks to the bag at `path` inside a personal view (copy-on-write).
+-- Item ids derive from the receipt id, so one receipt can never mint the same stack twice.
+local function grantItems(view: any, path: { string }, content: any, id: string, items: { any }): string?
+	local parent = view.envelope
+	for index = 1, #path - 1 do
+		parent = parent[path[index]]
+	end
+	local catalog = Job.catalog(content)
+	local loaded, bag = pcall(Inventory.fromSave, parent[path[#path]], catalog)
+	if not loaded then
+		return "BAG_UNAVAILABLE"
+	end
+	local inventory = bag :: Inventory.State
+	for index, granted in items do
+		local definition = catalog[granted.item]
+		if not definition then
+			return "UNKNOWN_ITEM"
+		end
+		local remaining, part = granted.quantity, 0
+		-- Top up an existing plain stack first so a reward does not cost a bag slot it can share.
+		local stackIds: { string } = {}
+		for itemId, item in inventory.items do
+			-- A plain stack (no material, latent or repair history) of the same item takes reward units.
+			local plain = item.catalogId == granted.item
+				and item.material == nil
+				and item.latent == nil
+				and item.maxDurabilityMilli == nil
+				and (definition.maxDurabilityMilli or 0) == 0
+			if
+				plain
+				and item.quantity < definition.stackMax
+				and Inventory.available(inventory, itemId) == item.quantity
+			then
+				table.insert(stackIds, itemId)
+			end
+		end
+		table.sort(stackIds)
+		for _, stackId in stackIds do
+			local room = math.min(definition.stackMax - inventory.items[stackId].quantity, remaining)
+			if room > 0 then
+				local topped = Inventory.snapshot(inventory)
+				topped.items[stackId].quantity += room
+				topped.version += 1
+				inventory = topped
+				remaining -= room
+			end
+		end
+		while remaining > 0 do
+			part += 1
+			local count = math.min(definition.stackMax, remaining)
+			local added, err = Inventory.add(inventory, catalog, {
+				itemId = string.format("%s:%d:%d", id, index, part),
+				catalogId = granted.item,
+				quantity = count,
+				qualityMilli = 1000,
+				durabilityMilli = ItemCatalog.durabilityCeiling(definition, 1000),
+				attributes = {},
+			}, inventory.version)
+			if not added then
+				return if err == "INVALID_ITEM" or err == "DUPLICATE_ITEM_ID" then err else "BAG_FULL"
+			end
+			inventory = added
+			remaining -= count
+		end
+	end
+	parent[path[#path]] = Inventory.save(inventory)
+	return nil
+end
+
 function M.settle(actor: string, env: any): any
 	local document, reason = env.store.snapshot(actor)
 	if not document then
@@ -180,6 +259,13 @@ function M.settle(actor: string, env: any): any
 				if data.balance + (rewards.coins or 0) > 1000000000 then
 					refused = "WALLET_FULL"
 					return view
+				end
+				if rewards.items and #rewards.items > 0 then
+					-- The bag is written only after every stack fits, so a refusal keeps the view intact.
+					refused = grantItems(view, port.personal:inventoryPath(), env.content, id, rewards.items)
+					if refused then
+						return view
+					end
 				end
 				data.balance += rewards.coins or 0
 				local progression = SkillTree.copy(data.progression)

@@ -19,6 +19,7 @@ local player = game:GetService("Players").LocalPlayer
 local locale = player.LocaleId
 local korean = string.sub(locale, 1, 2) == "ko"
 local names = require(Shared.EntityNames)(locale)
+local WorldText = require(Shared.WorldText)
 local biomeNames: { [string]: string } = {}
 local function localizeJournal(object: Instance)
 	if object:IsA("TextLabel") and object.Parent and object.Parent:IsA("BillboardGui") then
@@ -30,14 +31,23 @@ local function localizeJournal(object: Instance)
 			sign:Destroy()
 		end
 	end
-	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeWarehouse") then
-		object.ActionText = if korean then "창고 열기" else "Open warehouse"
-		object.ObjectText = if korean then "창고" else "Warehouse"
+	if object:IsA("ProximityPrompt") and object:GetAttribute("ForgeActionKey") then
+		WorldText.localize(object, locale)
+		if object:GetAttribute("ForgeSurvey") then
+			local label = object.Parent and object.Parent:FindFirstChildWhichIsA("BillboardGui")
+			local text = label and label:FindFirstChildWhichIsA("TextLabel")
+			if text then
+				text.Text = object.ActionText
+			end
+		end
+	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeWarehouse") then
+		object.ActionText = WorldText.text(locale, "warehouse_open")
+		object.ObjectText = WorldText.text(locale, "warehouse")
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeJournal") then
-		object.ActionText = if korean then "일지 확인" else "Journal checkpoint"
-		object.ObjectText = if korean then "일지" else "Journal"
+		object.ActionText = WorldText.text(locale, "journal_checkpoint")
+		object.ObjectText = WorldText.text(locale, "journal")
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeSurvey") then
-		object.ActionText = if korean then "조사" else "Survey"
+		object.ActionText = WorldText.text(locale, "survey")
 		local label = object.Parent and object.Parent:FindFirstChildWhichIsA("BillboardGui")
 		local text = label and label:FindFirstChildWhichIsA("TextLabel")
 		if text then
@@ -45,14 +55,12 @@ local function localizeJournal(object: Instance)
 		end
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgeStationPanel") then
 		local panel = object:GetAttribute("ForgeStationPanel")
-		object.ActionText = if korean then "열기" else "Open"
-		object.ObjectText = if panel == "modify"
-			then (if korean then "개조" else "Modify")
-			elseif panel == "technical-support" then (if korean then "기술 지원" else "Technical support")
-			else (if korean then "섬 등급" else "Island rank")
+		object.ActionText = WorldText.text(locale, "open")
+		object.ObjectText =
+			WorldText.text(locale, if panel == "modify" or panel == "technical-support" then panel else "island-rank")
 	elseif object:IsA("ProximityPrompt") and object:GetAttribute("ForgePanel") then
-		object.ActionText = if korean then "대화 / 이용" else "Talk / use"
-		object.ObjectText = if korean then "항구 안내" else "Harbor guide"
+		object.ActionText = WorldText.text(locale, "interact")
+		object.ObjectText = WorldText.text(locale, "guide")
 	end
 end
 workspace.DescendantAdded:Connect(localizeJournal)
@@ -185,7 +193,11 @@ table.insert(panelFactories, function(ctx)
 	local function render()
 		status.Text = (if korean then "층 " else "Floor ") .. floor
 	end
-	local connections = {}
+	local connections = {
+		sheet.close.Activated:Connect(function()
+			sheet.frame.Visible = false
+		end),
+	}
 	local function button(label, callback)
 		local control = ctx.ui.components.button(ctx.ui.theme.default, {
 			text = label,

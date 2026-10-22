@@ -124,6 +124,24 @@ local strings: { [string]: { string } } = {
 	},
 	["ensemble.member"] = { "You are not in the ensemble", "합주에 참여하지 않았어요" },
 	failed = { "That did not work. Try again", "실패했어요. 다시 시도하세요" },
+	editor_title = { "Score editor", "악보 편집" },
+	editor_close = { "Close", "닫기" },
+	editor_tempo = { "Tempo (40-200)", "템포 (40~200)" },
+	editor_instrument = { "Next instrument", "다음 악기" },
+	editor_play = { "Play preview", "미리 듣기" },
+	editor_stop = { "Stop", "정지" },
+	editor_join = { "Join ensemble", "합주 참여" },
+	editor_saved = { "Saved", "저장됨" },
+	editor_imported = { "Score loaded", "악보를 불러왔어요" },
+	editor_status = { "%s / part %d%s", "%s / 파트 %d%s" },
+	instrument_piano = { "Piano", "피아노" },
+	instrument_guitar = { "Guitar", "기타" },
+	instrument_bass = { "Bass", "베이스" },
+	instrument_violin = { "Violin", "바이올린" },
+	instrument_flute = { "Flute", "플루트" },
+	instrument_clarinet = { "Clarinet", "클라리넷" },
+	instrument_trumpet = { "Trumpet", "트럼펫" },
+	instrument_drums = { "Drums", "드럼" },
 }
 
 M.strings = strings
@@ -139,6 +157,11 @@ function M.text(locale: string, key: string, ...: any): string
 	end
 	local template = if ko(locale) then entry[2] else entry[1]
 	return if select("#", ...) > 0 then string.format(template, ...) else template
+end
+
+--- Localized instrument name; an unknown id falls back to the id itself.
+function M.instrument(locale: string, id: string): string
+	return if strings["instrument_" .. id] then M.text(locale, "instrument_" .. id) else id
 end
 
 function M.refusal(locale: string, reason: string?): string

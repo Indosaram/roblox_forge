@@ -12666,12 +12666,16 @@ missionPolicy:
   weaponWearMilli: 1000
   weaponRangeStuds: 5
   weaponCooldownMillis: 1000
-  # Robango redesign (p31): repeat clears pay repeatXPPerLevel x character level from L10 to L30.
-  repeatXPPerLevel: 7
-  repeatXPMinLevel: 10
+  # Robango redesign (p33, was p31 7/L10): repeat clears pay repeatXPPerLevel x character level from L6 to L30
+  # so the lower onboarding xp still reaches L10 near 64 min and L30 near 5 h (forge econ sim --crafting).
+  repeatXPPerLevel: 9
+  repeatXPMinLevel: 6
   repeatXPMaxLevel: 30
 homePolicy:
   provenance: {classification: "RECONSTRUCTED", sourceId: "lead-home-tier-decision"}
+  # Robango redesign value: one free starter plot makes farming reachable on a new home.
+  # It counts toward the normal plot cap and persists as an owned structure, not decoration.
+  starterFarmPlot: {x: 12, y: 0, z: 12}
   tiers:
     - {rank: 1, sideStuds: 64, plotCap: 4, development: 0}
     - {rank: 2, sideStuds: 96, plotCap: 6, development: 200}
@@ -30573,7 +30577,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s1.gather"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -30599,7 +30604,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.craft"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -30631,7 +30637,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.survey"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -30657,7 +30664,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.rescue"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -30689,7 +30697,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.hunt"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -30717,7 +30726,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s3.transport"
     rewards:
-      xp: 120
+      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
+      xp: 30
       coins: 30
       development: 50
       reputation:
@@ -31433,7 +31443,8 @@ guides:
         target: "fiber"
         quantity: 3
     rewards:
-      xp: 120
+      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
+      xp: 10
       coins: 25
       development: 50
       items:
@@ -31462,7 +31473,8 @@ guides:
         target: "campfire"
         quantity: 1
     rewards:
-      xp: 120
+      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
+      xp: 10
       coins: 25
       development: 50
       items:
@@ -31486,7 +31498,8 @@ guides:
         target: "rw.onboarding.rest-mat"
         quantity: 1
     rewards:
-      xp: 120
+      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
+      xp: 10
       coins: 25
       development: 50
       items:
@@ -31510,7 +31523,8 @@ guides:
         target: "dry-twig"
         quantity: 1
     rewards:
-      xp: 120
+      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
+      xp: 10
       coins: 25
       development: 50
       items:

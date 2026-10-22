@@ -4,6 +4,29 @@ local M = {}
 local Ledger = require("../../../core/domain/command/Ledger")
 local Locale = require("./SurvivalHUDLocale")
 local env: any = getfenv()
+
+--- True when a world prompt opens ui.dialogue first (ExtensionPanels' speaker rule).
+function M.talksFirst(prompt: any): boolean
+	if type(prompt:GetAttribute("ForgeDialogue")) == "string" then
+		return true
+	end
+	local holder = prompt.Parent
+	local facility = if holder then holder:GetAttribute("ForgeHarborFacility") else nil
+	return type(facility) == "string" and string.sub(facility, 1, 4) == "npc."
+end
+
+--- Harbor sell refusal text; an oversell names how many units of that item the bag holds.
+function M.sellRefusal(locale: string, reason: string?, items: { [string]: any }, catalogId: string): string
+	if reason ~= "INSUFFICIENT_ITEMS" then
+		return Locale.refusal(locale, reason or "unknown")
+	end
+	local held = 0
+	for _, item in items do
+		held += if item.catalogId == catalogId then item.quantity else 0
+	end
+	return string.format(Locale.text(locale, "oversell"), held)
+end
+
 function M.factory(ctx: any): any
 	local Instance = ctx.instance or env.Instance
 	local Enum = ctx.enum or env.Enum
@@ -65,9 +88,16 @@ function M.factory(ctx: any): any
 		local row = Instance.new("TextBox")
 		row.Size, row.Text, row.ClearTextOnFocus = UDim2.new(1, 0, 0, 48), tostring(value), false
 		row.TextSize, row.LayoutOrder, row.Parent = 18, order, body
+		-- Focus selects the whole number: typing replaces it and Backspace clears it, wherever the
+		-- tap lands (a caret left before "1" made Backspace a no-op and "999" read "9991").
+		row.Focused:Connect(function()
+			row.CursorPosition = #row.Text + 1
+			row.SelectionStart = 1
+		end)
 		row.FocusLost:Connect(function()
 			changed(tonumber(row.Text))
 		end)
+		return row
 	end
 	local function itemLabel(id, quantity, suffix)
 		local icon = ctx.icons.item(id)
@@ -146,16 +176,24 @@ function M.factory(ctx: any): any
 				local draft = drafts["harbor:" .. id] or { quantity = 1 }
 				drafts["harbor:" .. id] = draft
 				itemLabel(item.catalogId, item.quantity, string.format(text("· %d each", "· 개당 %d"), price))
-				input(draft.quantity, function(value)
+				local box = input(draft.quantity, function(value)
 					draft.quantity = math.max(math.floor(value or 1), 1)
 				end)
+				local rowStatus: any = nil
 				button(
 					string.format(Locale.text(ctx.locale, "sell"), ctx.icons.item(item.catalogId).text, price),
 					function()
 						local result = ctx.send("survival-coop:harbor-sell", { item.catalogId, draft.quantity })
-						status.Text = if result.ok then "" else Locale.refusal(ctx.locale, result.reason)
+						local message = if result.ok
+							then ""
+							else M.sellRefusal(ctx.locale, result.reason, state.items, item.catalogId)
+						box.Text = tostring(draft.quantity)
+						-- Shown under the pressed Sell button; the sheet-top status may be scrolled off.
+						status.Text, rowStatus.Text, rowStatus.Visible = message, message, message ~= ""
 					end
 				)
+				rowStatus = label("")
+				rowStatus.Name, rowStatus.Visible = "SellStatus", false
 			end
 		end
 		label(text("Your listings", "내 판매 목록"))
@@ -229,7 +267,13 @@ function M.factory(ctx: any): any
 		end,
 	})
 	local prompt = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(value, player)
-		if player == game:GetService("Players").LocalPlayer and value:GetAttribute("ForgeMarket") then
+		-- A prompt that talks first (NPC, market board) opens ui.dialogue; its Market choice opens
+		-- this sheet. Opening here too stacked both sheets at once.
+		if
+			player == game:GetService("Players").LocalPlayer
+			and value:GetAttribute("ForgeMarket")
+			and not M.talksFirst(value)
+		then
 			gui.Enabled = true
 		end
 	end)

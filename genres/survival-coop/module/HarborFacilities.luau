@@ -30,6 +30,7 @@ function M.describe(content: any): { any }
 				elseif anchor.id == "npc.bram" then "clan-membership"
 				elseif anchor.id == "npc.ines" then "craft"
 				elseif anchor.id == "npc.pip" then "shop"
+				elseif anchor.id == "npc.sella" then "market"
 				elseif anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch" then "craft"
 				elseif anchor.id == "rescue-beacon" then "journal"
 				elseif anchor.id == "station.workbench.t1" then "craft"

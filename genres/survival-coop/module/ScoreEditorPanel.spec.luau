@@ -112,7 +112,7 @@ return {
 			objects[node.Name] = node
 		end
 		objects.Note_0_0.Activated.fire()
-		assert(string.find(objects.Note_0_0.Text, "[x]", 1, true), "grid reflects selected note")
+		assert(objects.Note_0_0.Text == Editor.noteLabel(60, true), "grid reflects selected note")
 		assert(objects.Note_0_0.Size.dx == 48 and objects.Note_0_0.Size.dy == 48, "phone touch target")
 		objects.Share.Activated.fire()
 		assert(shares == 0, "unsaved share refused")
@@ -138,5 +138,113 @@ return {
 		assert(not panel.controller.toggle(-1, 60, 480, 100), "invalid grid update refused")
 		panel.destroy()
 		assert(destroyed, "destroy GUI")
+	end,
+	["docked editor mounts the shared themed sheet with every label localized and fitted"] = function()
+		local fs = require("@lune/fs")
+		local Text = require("./MusicText")
+		local HudFit = require("../../../core/ui-kit/genre/HudFit")
+		local Model = require("./SurvivalHUDModel")
+		for _, locale in { "en-us", "ko-kr" } do
+			local nodes: { any } = {}
+			local function node(class: string): any
+				local item: any = { ClassName = class, Activated = signal(), FocusLost = signal(), Text = "" }
+				function item.Destroy() end
+				table.insert(nodes, item)
+				return item
+			end
+			local dim = function(...)
+				return { ... }
+			end
+			local sheets, fitted = {}, 0
+			local ui = {
+				theme = { default = {} },
+				components = {
+					modalSheet = function(_theme, props)
+						table.insert(sheets, props.title)
+						return { frame = node("Frame"), scroll = node("ScrollingFrame"), close = node("TextButton") }
+					end,
+					button = function(_theme, props)
+						local button = node("TextButton")
+						button.Text = props.text
+						return button
+					end,
+					label = function(_theme, props)
+						local label = node("TextLabel")
+						label.Text = props.text
+						return label
+					end,
+				},
+			}
+			local chunk = assert(loadstring(fs.readFile("genres/survival-coop/module/ScoreEditorPanel.luau")))
+			local scope: any = setmetatable({
+				Instance = { new = node },
+				UDim2 = { new = dim },
+				Color3 = { fromRGB = dim },
+				require = function(path: string): any
+					local modules: { [string]: any } = {
+						["../../../core/domain/music/Score"] = require("../../../core/domain/music/Score"),
+						["./ScoreTransport"] = Transport,
+						["./MusicSelection"] = require("./MusicSelection"),
+						["./MusicText"] = Text,
+					}
+					return assert(modules[path], "unexpected require " .. path)
+				end,
+			}, { __index = getfenv() })
+			setfenv(chunk, scope)
+			local Module = chunk()
+			local docked: any = nil
+			Module.factory({
+				rules = Rules,
+				locale = locale,
+				ui = ui,
+				playerGui = {},
+				fitSheet = function()
+					fitted += 1
+				end,
+				dock = function(entry)
+					docked = entry
+					return { setAvailable = function() end }
+				end,
+				requestId = function()
+					return "r"
+				end,
+				serverNow = function()
+					return 0
+				end,
+				stop = function() end,
+				playAt = function() end,
+				send = function()
+					return { ok = true }
+				end,
+			})
+			assert(#sheets == 1 and sheets[1] == Text.text(locale, "editor_title"), "themed modal sheet mounted")
+			assert(fitted == 1, "sheet fitted by the shared ExtensionPanels fit")
+			assert(docked.label == Text.text(locale, "nav_music"), "dock label localized")
+			for _, item in nodes do
+				local text = item.Text
+				if type(text) == "string" and text ~= "" then
+					if string.sub(locale, 1, 2) == "ko" then
+						assert(not string.find(text, "Next instrument", 1, true), "untranslated instrument button")
+						assert(not string.match(text, "^Part %d"), "untranslated part button: " .. text)
+					end
+					assert(not string.match(text, "^%[[ x]%] "), "raw note cell: " .. text)
+					if
+						string.sub(locale, 1, 2) == "ko"
+						and item.ClassName == "TextButton"
+						and not string.find(text, "%d")
+					then
+						assert(not string.find(text, "%a%a%a"), "English button in Korean: " .. text)
+					end
+					-- Buttons do not wrap: one line fits the fitted sheet at both phone viewports.
+					if item.ClassName == "TextButton" then
+						for _, viewport in { { 640, 339 }, { 360, 640 } } do
+							local _, _, width = Model.contextSheet(viewport[1], viewport[2], true)
+							local need = math.ceil(HudFit.textWidth(text, 15))
+							assert(need <= width - 16 - 6, text .. " clipped at " .. viewport[1] .. "x" .. viewport[2])
+						end
+					end
+				end
+			end
+		end
 	end,
 }

@@ -188,7 +188,9 @@ return {
 			assert(not refused.ok and refused.reason == reason, itemId .. ": " .. tostring(refused.reason))
 		end
 		assert(serde.encode("json", w.data()) == before, "refusals leave state intact")
-		assert(w.repair("axe").ok and w.data().balance == 5, "tier 2 repair costs 20 Coins away from the harbor")
+		local repaired = w.repair("axe")
+		assert(repaired.ok and w.data().balance == 5, "tier 2 repair costs 20 Coins away from the harbor")
+		assert(repaired.reason == nil, "an accepted repair carries no refusal reason: " .. tostring(repaired.reason))
 		local fixed = w.data().inventory.bag.items.axe
 		assert(fixed.durabilityMilli == fixed.maxDurabilityMilli and fixed.maxDurabilityMilli < 100000, "refilled")
 		fixed.durabilityMilli = 1

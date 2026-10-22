@@ -7,6 +7,8 @@ local M = {}
 
 -- The CoreGui tool hotbar (bottom 70px) wins input over every PlayerGui DisplayOrder.
 M.PLACEMENT_BOTTOM = 152
+-- Success line (SurvivalHUDLocale key) shown after a confirmed action.
+M.SUCCESS = { ["survival-coop:item-repair"] = "repaired" } :: { [string]: string }
 
 function M.stationTarget(position: any, size: any): any
 	return { x = position.x, y = position.y + size.y / 2 + 2, z = position.z }
@@ -66,6 +68,7 @@ function M.new(actor: string, newId: () -> string): any
 		table.freeze(request.args)
 		table.freeze(request)
 		model.pending, model.busy, model.status, model.reason = request, true, "pending", nil
+		model.notice = nil
 		return request
 	end
 	function model.retry(): any
@@ -77,11 +80,19 @@ function M.new(actor: string, newId: () -> string): any
 	end
 	function model.finish(ok: boolean, result: any)
 		model.busy = false
+		model.notice = nil
 		if not ok or type(result) ~= "table" then
 			model.status, model.reason = "pending", "TRANSPORT_FAILED"
 			return
 		end
+		local action = if model.pending then model.pending.action else nil
 		model.pending = Transport.settle(model.pending, result)
+		-- A personal extension (repair) commits without a stateVersion: an accepted result that
+		-- is not an in-flight phase is final, so a retry cannot replay it into a refusal.
+		local phase = if type(result.data) == "table" then result.data.status else nil
+		if result.ok and action == "survival-coop:item-repair" and phase ~= "pending" and phase ~= "recovering" then
+			model.pending = nil
+		end
 		-- Transfer settles in another owner and exposes its phase. A rejected grant is final
 		-- (a replay refuses again); keeping it pending locked every HUD action (2026-10-18).
 		if
@@ -93,7 +104,10 @@ function M.new(actor: string, newId: () -> string): any
 		then
 			model.pending = nil
 		end
-		model.reason = result.reason
+		model.reason = if result.ok then nil else result.reason
+		if result.ok and not model.pending then
+			model.notice = M.SUCCESS[action]
+		end
 		if result.ok and result.data and result.data.notificationError then
 			model.reason = "SETTLEMENT_PUBLICATION_FAILED"
 		end

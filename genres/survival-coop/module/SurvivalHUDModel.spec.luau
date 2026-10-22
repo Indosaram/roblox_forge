@@ -259,6 +259,32 @@ return {
 			'state.begin("craft-start", { "job-1" }).requestId == "request-2"'
 		)
 	end,
+	["accepted repair without stateVersion settles with a success line, no refusal and no retry"] = function()
+		local state = model()
+		state.receive({ durable = { actions = { "survival-coop:item-repair" }, sessionEpoch = 4 } })
+		state.begin("item-repair", { "axe" })
+		-- Personal extension result as returned before the fix (reason leaked on success).
+		state.finish(true, { ok = true, reason = "INSUFFICIENT_FUNDS" })
+		assert(state.status == "confirmed", "confirmed: " .. tostring(state.status))
+		assert(state.reason == nil, "no refusal on success: " .. tostring(state.reason))
+		assert(state.pending == nil and state.retry() == nil, "nothing left to retry")
+		assert(state.notice == "repaired" and Model.SUCCESS["survival-coop:item-repair"] == "repaired", "success line")
+		local Locale = require("./SurvivalHUDLocale")
+		assert(Locale.text("ko-kr", "repaired") == "수리 완료", "KO success text")
+		state.begin("item-repair", { "axe" })
+		assert(state.notice == nil, "a new request clears the previous confirmation")
+		state.finish(true, { ok = false, reason = "NOTHING_TO_REPAIR" })
+		assert(state.notice == nil and state.reason == "NOTHING_TO_REPAIR", "a later refusal replaces the line")
+	end,
+	["non-repair acceptance without a persisted outcome keeps its request"] = function()
+		local state = model()
+		local request = state.begin("craft-reserve", { "cord", "hand" })
+		state.finish(true, { ok = true })
+		assert(
+			state.pending == request and state.retry() == request,
+			"only repair has the final personal outcome contract"
+		)
+	end,
 	["committed refusal clears pending while expired epoch requires handshake"] = function()
 		local state = model()
 		state.begin("craft-complete", { "job-1" })

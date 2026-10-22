@@ -8,6 +8,15 @@ local strings: { [string]: { string } } = {
 	exp_routes = { "Routes", "항로" },
 	exp_party = { "Party", "파티" },
 	exp_route = { "Route %d: %s", "항로 %d: %s" },
+	biome_grassland = { "Grassland", "초원" },
+	biome_tropical = { "Tropical Isle", "열대 섬" },
+	biome_desert = { "Desert", "사막" },
+	biome_snow = { "Snowfield", "설원" },
+	biome_volcano = { "Volcano", "화산" },
+	biome_swamp = { "Swamp", "늪지" },
+	biome_beach = { "Beach", "해변" },
+	biome_forest = { "Forest", "숲" },
+	biome_unknown = { "Uncharted", "미지의 바다" },
 	exp_route_gate = { "Level %d, rank %d, %d stages, %d missions", "레벨 %d, 등급 %d, %d단계, 미션 %d개" },
 	exp_route_cap = { "Up to %d players. Closes in %s", "최대 %d명. %s 후 마감" },
 	exp_choose = { "Choose", "선택" },
@@ -87,8 +96,8 @@ local strings: { [string]: { string } } = {
 	ko_pet = { "%s is resting: %ds, or feed it once", "%s 휴식 중: %d초, 또는 먹이 한 번" },
 	ko_feed = { "Feed", "먹이 주기" },
 	travel_arrived = {
-		"Arrived: route %d, stage %d of 4 (trip %s)",
-		"도착: 항로 %d, 4단계 중 %d단계 (탐험 %s)",
+		"Arrived: route %d (%s), stage %d of 4",
+		"도착: 항로 %d (%s), 4단계 중 %d단계",
 	},
 	travel_crew = { "Your party landed together: %d players", "파티가 함께 도착했어요: %d명" },
 	travel_reconcile = {
@@ -147,6 +156,15 @@ function M.text(locale: string, key: string, ...: any): string
 	end
 	local template = if string.sub(locale, 1, 2) == "ko" then entry[2] else entry[1]
 	return if select("#", ...) > 0 then string.format(template, ...) else template
+end
+
+--- Localized biome (route) name; the pack's names table wins, then the genre table, never a raw id.
+function M.biome(locale: string, names: any, id: string?): string
+	local key = "biome_" .. tostring(id)
+	if id and names and names[key] then
+		return names[key]
+	end
+	return M.text(locale, if strings[key] then key else "biome_unknown")
 end
 
 function M.reason(locale: string, reason: string?): string

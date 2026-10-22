@@ -2,6 +2,7 @@
 local Rewards = require("./MissionRewards")
 local Personal = require("../../../core/infra/data/PersonalAggregate")
 local Memory = require("../../../core/infra/data/MemoryBackend")
+local Inventory = require("../../../core/domain/inventory/Inventory")
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
@@ -28,6 +29,9 @@ local function harness()
 	})
 	local token = assert(store:load("owner", function()
 		return {
+			bag = Inventory.save(
+				Inventory.new("bag", { slots = 20, softWeightMilli = 60000, hardWeightMilli = 90000 })
+			),
 			genres = {
 				["survival-coop"] = {
 					data = {
@@ -61,9 +65,20 @@ local function harness()
 			end,
 		},
 	}
-	return document, env, function()
-		return token.data.envelope.genres["survival-coop"].data
-	end
+	return document,
+		env,
+		function()
+			return token.data.envelope.genres["survival-coop"].data
+		end,
+		function(catalogId: string): number
+			local total = 0
+			for _, item in token.data.envelope.bag.items do
+				if item.catalogId == catalogId then
+					total += item.quantity
+				end
+			end
+			return total
+		end
 end
 
 -- Mirrors ArchipelagoExtension.change: rewards enqueue, then the definition is
@@ -254,6 +269,35 @@ return {
 			after.balance == paid.balance and after.progression.xp == xp and after.progression.level == level,
 			"repeat pays nothing"
 		)
+	end,
+	["guide item rewards land in the bag once under guide:<id>; a second settlement is refused"] = function()
+		local document, env, wallet, held = harness()
+		local guide = Content.guides[1]
+		local stack = guide.rewards.items[1]
+		assert(stack and stack.quantity > 0, "g01 declares an item reward")
+		Rewards.enqueueGuide(document, guide)
+		local entry = document.missionRewards[Rewards.guideId(guide.id)]
+		assert(entry and entry.rewards.items[1].item == stack.item, "outbox keyed guide:<id> carries the items")
+		assert(Rewards.settle("owner", env).ok, "settle")
+		assert(held(stack.item) == stack.quantity, "items paid once: " .. held(stack.item))
+		local balance = wallet().balance
+		-- Second enqueue keeps the one entry; a forced re-settlement hits the receipt.
+		Rewards.enqueueGuide(document, guide)
+		document.missionRewards[Rewards.guideId(guide.id)].settled = false
+		assert(Rewards.settle("owner", env).ok, "repeat settle")
+		assert(held(stack.item) == stack.quantity, "second settlement refused: " .. held(stack.item))
+		assert(wallet().balance == balance, "no second coins")
+	end,
+	["every authored guide item reward is a catalog item"] = function()
+		local ids = {}
+		for _, item in Content.items do
+			ids[item.id] = true
+		end
+		for _, guide in Content.guides do
+			for _, stack in guide.rewards.items or {} do
+				assert(ids[stack.item] and stack.quantity > 0, guide.id .. " pays unknown item " .. stack.item)
+			end
+		end
 	end,
 	["repeat clears add the level-scaled bonus only between the policy levels"] = function()
 		local policy = Content.missionPolicy

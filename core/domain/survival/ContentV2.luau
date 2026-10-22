@@ -304,6 +304,7 @@ local schemas: { [string]: { [string]: string } } = {
 	},
 	homePolicy = {
 		provenance = "provenance",
+		starterFarmPlot = "?point",
 		tiers = "[]homeTier",
 		dock = "point",
 		dockSize = "point",

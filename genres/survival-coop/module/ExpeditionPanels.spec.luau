@@ -314,7 +314,8 @@ return {
 			arrived = { items = 5, coins = 55 },
 		}
 		h.push(state({ arrival = arrival }))
-		assert(h.find("TravelIdentity").Text == Text.text("en-us", "travel_arrived", 1, 2, "trip"), "identity")
+		assert(h.find("TravelIdentity").Text == Text.text("en-us", "travel_arrived", 1, "Grassland", 2), "identity")
+		assert(not string.find(h.find("TravelIdentity").Text, "trip", 1, true), "raw expedition id hidden")
 		assert(h.find("TravelCrew") and h.find("TravelReconcile"), "crew and reconciliation")
 		assert(h.find("TravelRefund").Text == Text.text("en-us", "travel_refund", 15), "refund line")
 		h.click("TravelBack")
@@ -352,5 +353,38 @@ return {
 		h.click("KnockoutHome")
 		assert(h.sent[2] == Models.PARTY_ACTION .. ":home,", "return home while downed")
 		assert(h.find("KnockoutRefusal").Text == Text.reason("en-us", "route_expired"), "home refusal shown")
+	end,
+	["route rows and the arrival line show localized biome names, never raw ids"] = function()
+		for _, locale in { "en-us", "ko-kr" } do
+			local cards = {}
+			for route, id in { "grassland", "tropical", "desert", "snow", "volcano" } do
+				table.insert(cards, {
+					route = route,
+					biome = id,
+					level = 1,
+					rank = 1,
+					stages = 4,
+					missions = 8,
+					capacity = 8,
+					expiresAt = 1800,
+					ok = true,
+				})
+			end
+			local _, items = Models.routes(locale, { now = 0, routes = cards }, {}, function() end)
+			for _, item in items do
+				for _, id in { "grassland", "tropical", "desert", "snow", "volcano" } do
+					assert(not string.find(item.text, id, 1, true), locale .. " raw biome id shown: " .. item.text)
+				end
+			end
+			assert(string.find(items[1].text, Text.text(locale, "biome_grassland"), 1, true), "localized biome name")
+			local _, arrived = Models.travel(locale, 1, nil, function() end, function() end, {
+				id = "b3da0de5-5842-4c1e-9d55-000000000000",
+				route = 1,
+				stage = 2,
+				biome = "tropical",
+			})
+			assert(not string.find(arrived[1].text, "b3da0de5", 1, true), "raw expedition id shown")
+			assert(string.find(arrived[1].text, Text.text(locale, "biome_tropical"), 1, true), "arrival names biome")
+		end
 	end,
 }

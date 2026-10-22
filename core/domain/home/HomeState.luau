@@ -36,7 +36,9 @@ function M.new(actor: string, rules: any, seed: number): any
 		landRank = 1,
 		dock = M.copy(rules.dock),
 		permissions = { visit = "owner", cooperate = "none", friends = {}, clanId = "", offlineCoop = false },
-		structures = {},
+		structures = if rules.starterFarmPlot
+			then { ["starter-farm"] = { kind = "farm-plot", position = M.copy(rules.starterFarmPlot), owner = actor } }
+			else {},
 		plots = {},
 		plantSequence = 0,
 		storageSlots = rules.baseSlots,

@@ -3,11 +3,13 @@
 local Score = require("../../../core/domain/music/Score")
 local Transport = require("./ScoreTransport")
 local Selection = require("./MusicSelection")
+local Text = require("./MusicText")
 -- Roblox globals are read from the environment so this module also type-checks under lune.
 local env: any = getfenv()
 local game: any = env.game
 local Instance: any = env.Instance
 local UDim2: any = env.UDim2
+local Color3: any = env.Color3
 local M = {}
 function M.bounds(width: number, height: number): any
 	local phone = width < 700
@@ -145,7 +147,15 @@ function M.new(ctx: any): any
 	return api
 end
 
+--- Note label: pitch class plus octave (MIDI 60 = C4), a filled dot when selected.
+local NOTE_NAMES = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }
+function M.noteLabel(pitch: number, selected: boolean): string
+	local name = NOTE_NAMES[pitch % 12 + 1] .. tostring(pitch // 12 - 1)
+	return if selected then "● " .. name else name
+end
+
 function M.factory(ctx: any): any
+	local locale = ctx.locale or "en"
 	local ports = ctx.view
 		or {
 			new = function(class: string)
@@ -158,43 +168,61 @@ function M.factory(ctx: any): any
 				return UDim2.new(x, dx, y, dy)
 			end,
 		}
+	-- Docked under ExtensionPanels the editor is the shared themed sheet (dark panel, accent
+	-- header, red close) fitted by ctx.fitSheet like every other menu sheet.
+	local ui = ctx.ui
+	local theme = if ui then ui.theme.default else nil
 	local connections = {}
 	local gui = ports.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = "ScoreEditorPanel", false, 24
 	gui.Parent = ctx.playerGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-	local sheet = ports.new("Frame")
-	sheet.Name = "Workspace"
-	sheet.Parent = gui
-	local function resize(width: number, height: number)
-		local bounds = M.bounds(width, height)
-		sheet.Size = ports.size(0, 0, bounds.width, bounds.height)
-		sheet.Position = ports.position(0, 0, bounds.x, bounds.y)
-	end
+	local sheet: any, scroll: any, close: any
 	local unfit: any = nil
-	if ctx.onViewport then
-		unfit = ctx.onViewport(resize)
-	elseif not ctx.view then
-		local function fit()
-			resize(gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
+	if ui then
+		local mounted = ui.components.modalSheet(theme, {
+			name = "ScoreEditor",
+			title = Text.text(locale, "editor_title"),
+			parent = gui,
+		})
+		sheet, scroll, close = mounted.frame, mounted.scroll, mounted.close
+		sheet.Visible = true
+		if ctx.fitSheet then
+			ctx.fitSheet(sheet)
 		end
-		table.insert(connections, gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit))
-		fit()
 	else
-		resize(800, 600)
+		sheet = ports.new("Frame")
+		sheet.Name = "Workspace"
+		sheet.Parent = gui
+		local function resize(width: number, height: number)
+			local bounds = M.bounds(width, height)
+			sheet.Size = ports.size(0, 0, bounds.width, bounds.height)
+			sheet.Position = ports.position(0, 0, bounds.x, bounds.y)
+		end
+		if ctx.onViewport then
+			unfit = ctx.onViewport(resize)
+		elseif not ctx.view then
+			local function fit()
+				resize(gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
+			end
+			table.insert(connections, gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit))
+			fit()
+		else
+			resize(800, 600)
+		end
+		scroll = ports.new("ScrollingFrame")
+		scroll.Name = "Controls"
+		scroll.Size = ports.size(1, 1, 0, -48)
+		scroll.Position = ports.position(0, 0, 0, 48)
+		scroll.CanvasSize = ports.size(0, 0, 0, 1500)
+		scroll.Parent = sheet
+		close = ports.new("TextButton")
+		close.Name, close.Text = "Close", Text.text(locale, "editor_close")
+		close.Size, close.Position = ports.size(0, 0, 88, 44), ports.position(1, 0, -92, 2)
+		close.Parent = sheet
 	end
-	local scroll = ports.new("ScrollingFrame")
-	scroll.Name = "Controls"
-	scroll.Size = ports.size(1, 1, 0, -48)
-	scroll.Position = ports.position(0, 0, 0, 48)
-	scroll.CanvasSize = ports.size(0, 0, 0, 1500)
-	scroll.Parent = sheet
 	local row = 0
 	local api: any
 	local status: any
-	local close = ports.new("TextButton")
-	close.Name, close.Text = "Close", if string.sub(ctx.locale or "en", 1, 2) == "ko" then "닫기" else "Close"
-	close.Size, close.Position = ports.size(0, 0, 88, 44), ports.position(1, 0, -92, 2)
-	close.Parent = sheet
 	table.insert(
 		connections,
 		close.Activated:Connect(function()
@@ -203,37 +231,58 @@ function M.factory(ctx: any): any
 			gui.Enabled = false
 		end)
 	)
-	local function control(class: string, name: string, text: string, action: (() -> ())?): any
-		local item = ports.new(class)
-		item.Name, item.Text = name, text
-		item.TextSize = 16
-		item.Size = ports.size(1, 0, -16, 48)
-		item.Position = ports.position(0, 0, 8, row * 56)
+	local function place(item: any, name: string, height: number)
+		item.Name = name
+		item.LayoutOrder = row
+		if not ui then
+			item.Size = ports.size(1, 0, -16, height)
+			item.Position = ports.position(0, 0, 8, row * 56)
+		end
 		item.Parent = scroll
 		row += 1
-		if action then
-			table.insert(connections, item.Activated:Connect(action))
+	end
+	local function control(class: string, name: string, text: string, action: (() -> ())?): any
+		local item: any
+		if ui and class == "TextButton" then
+			item = ui.components.button(theme, { text = text, size = UDim2.new(1, 0, 0, 48), onClick = action })
+		elseif ui and class == "TextLabel" then
+			item = ui.components.label(theme, { text = text, size = UDim2.new(1, 0, 0, 48) })
+		else
+			item = ports.new(class)
+			item.Text = text
+			item.TextSize = 16
+			if ui then
+				-- Same dark input box as MusicSheet.box.
+				item.Size = UDim2.new(1, 0, 0, 48)
+				item.ClearTextOnFocus, item.TextWrapped = false, true
+				item.BackgroundColor3, item.TextColor3 = Color3.fromRGB(18, 28, 26), Color3.fromRGB(240, 244, 240)
+			end
+			if action then
+				table.insert(connections, item.Activated:Connect(action))
+			end
 		end
+		place(item, name, 48)
 		return item
 	end
 	local function result(value: any)
-		status.Text = if value.ok then "Saved" else tostring(value.reason)
+		status.Text = if value.ok then Text.text(locale, "editor_saved") else Text.refusal(locale, value.reason)
 	end
 	local tempo = control("TextBox", "Tempo", tostring(ctx.rules.tempoMin), nil)
+	tempo.PlaceholderText = Text.text(locale, "editor_tempo")
 	table.insert(
 		connections,
 		tempo.FocusLost:Connect(function()
 			local ok, reason = api.tempo(tonumber(tempo.Text) or 0)
 			if not ok then
-				status.Text = tostring(reason)
+				status.Text = Text.refusal(locale, reason)
 			end
 		end)
 	)
-	control("TextButton", "Instrument", "Next instrument", function()
+	control("TextButton", "Instrument", Text.text(locale, "editor_instrument"), function()
 		api.nextInstrument()
 	end)
 	for index = 1, ctx.rules.maxParts do
-		control("TextButton", "Part" .. index, "Part " .. index, function()
+		control("TextButton", "Part" .. index, Text.text(locale, "lobby_part", index), function()
 			api.selectPart(index)
 		end)
 	end
@@ -242,69 +291,85 @@ function M.factory(ctx: any): any
 	local cells: { any } = {}
 	-- Horizontal scrolling preserves 48px note targets on a narrow phone rather than shrinking.
 	local grid = ports.new("ScrollingFrame")
-	grid.Name = "NoteGrid"
-	grid.Size = ports.size(1, 0, -16, 224)
-	grid.Position = ports.position(0, 0, 8, row * 56)
 	grid.CanvasSize = ports.size(0, 0, 8 * 56, 4 * 56)
-	grid.Parent = scroll
-	row += 4
+	if ui then
+		grid.Size = UDim2.new(1, 0, 0, 224)
+		grid.BackgroundTransparency, grid.BorderSizePixel = 1, 0
+	end
+	place(grid, "NoteGrid", 224)
+	row += 3
 	for pitchOffset = 0, 3 do
 		for beat = 0, 7 do
+			local pitch = firstPitch + pitchOffset
 			local cell = ports.new("TextButton")
 			cell.Name = "Note_" .. pitchOffset .. "_" .. beat
-			cell.Text = tostring(firstPitch + pitchOffset)
+			cell.Text = M.noteLabel(pitch, false)
 			cell.TextSize = 16
 			cell.Size = ports.size(0, 0, 48, 48)
 			cell.Position = ports.position(0, 0, beat * 56, pitchOffset * 56)
+			if ui then
+				cell.BackgroundColor3, cell.TextColor3 = Color3.fromRGB(18, 28, 26), Color3.fromRGB(240, 244, 240)
+				cell.BorderSizePixel = 0
+			end
 			cell.Parent = grid
-			table.insert(cells, { ui = cell, tick = beat * step, pitch = firstPitch + pitchOffset })
+			table.insert(cells, { ui = cell, tick = beat * step, pitch = pitch })
 			table.insert(
 				connections,
 				cell.Activated:Connect(function()
-					local ok, reason = api.toggle(beat * step, firstPitch + pitchOffset, step, ctx.rules.velocityMax)
+					local ok, reason = api.toggle(beat * step, pitch, step, ctx.rules.velocityMax)
 					if not ok then
-						status.Text = tostring(reason)
+						status.Text = Text.refusal(locale, reason)
 					end
 				end)
 			)
 		end
 	end
 	local json = control("TextBox", "ImportText", "", nil)
-	control("TextButton", "Import", "Import JSON", function()
+	json.PlaceholderText = "{ }"
+	control("TextButton", "Import", Text.text(locale, "import_check"), function()
 		local ok, reason = api.import(json.Text)
-		status.Text = if ok then "Imported" else tostring(reason)
+		status.Text = if ok then Text.text(locale, "editor_imported") else Text.refusal(locale, reason)
 	end)
-	control("TextButton", "Save", "Save revision", function()
+	control("TextButton", "Save", Text.text(locale, "import_save"), function()
 		result(api.save())
 	end)
-	control("TextButton", "Play", "Play", function()
+	control("TextButton", "Play", Text.text(locale, "editor_play"), function()
 		api.play()
 	end)
-	control("TextButton", "Stop", "Stop", function()
+	control("TextButton", "Stop", Text.text(locale, "editor_stop"), function()
 		api.stop()
 	end)
 	local recipient = control("TextBox", "Recipient", "", nil)
-	control("TextButton", "Share", "Share saved revision", function()
+	recipient.PlaceholderText = Text.text(locale, "share_recipient")
+	control("TextButton", "Share", Text.text(locale, "share_send"), function()
 		result(api.share(recipient.Text))
 	end)
-	control("TextButton", "Join", "Join ensemble", function()
+	control("TextButton", "Join", Text.text(locale, "editor_join"), function()
 		result(api.join())
 	end)
-	control("TextButton", "Ready", "Ready", function()
+	control("TextButton", "Ready", Text.text(locale, "lobby_ready"), function()
 		result(ctx.send("survival-coop:ensemble-ready", { true }))
 	end)
-	control("TextButton", "Start", "Start ensemble", function()
+	control("TextButton", "Start", Text.text(locale, "lobby_start"), function()
 		result(ctx.send("survival-coop:ensemble-start", {}))
 	end)
-	control("TextButton", "Leave", "Leave ensemble", function()
+	control("TextButton", "Leave", Text.text(locale, "play_leave"), function()
 		result(ctx.send("survival-coop:ensemble-leave", {}))
 	end)
 	status = control("TextLabel", "Status", "", nil)
-	scroll.CanvasSize = ports.size(0, 0, 0, row * 56)
+	if not ui then
+		scroll.CanvasSize = ports.size(0, 0, 0, row * 56)
+	end
 	local model = table.clone(ctx)
 	model.render = function(value: any)
 		local current = value.score.parts[value.part]
-		status.Text = current.instrumentId .. " / part " .. value.part .. (if value.dirty then " *" else "")
+		status.Text = Text.text(
+			locale,
+			"editor_status",
+			Text.instrument(locale, current.instrumentId),
+			value.part,
+			if value.dirty then " *" else ""
+		)
 		for _, cell in cells do
 			local selected = false
 			for _, note in current.notes do
@@ -312,14 +377,14 @@ function M.factory(ctx: any): any
 					selected = true
 				end
 			end
-			cell.ui.Text = (if selected then "[x] " else "[ ] ") .. cell.pitch
+			cell.ui.Text = M.noteLabel(cell.pitch, selected)
 		end
 	end
 	api = M.new(model)
 	local dock = if ctx.dock
 		then ctx.dock({
 			id = "music",
-			label = "Music",
+			label = Text.text(locale, "nav_music"),
 			order = 9,
 			setOpen = function(open: boolean)
 				gui.Enabled = open

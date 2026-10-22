@@ -1,4 +1,61 @@
 Key,Source,Context,en-us,ko-kr
+world.open,"Open",world prompt,"Open","열기"
+world.interact,"Interact",world prompt,"Interact","대화 / 이용"
+world.market,"Market",world prompt,"Market","장터"
+world.travel,"Travel",world prompt,"Travel","이동"
+world.home,"Home",world prompt,"Home","개인 섬"
+world.archipelago,"Archipelago",world prompt,"Archipelago","군도"
+world.next-island,"Next island",world prompt,"Next island","다음 섬"
+world.island-rank,"Island rank",world prompt,"Island rank","섬 등급"
+world.modify,"Modify",world prompt,"Modify","개조"
+world.technical-support,"Technical support",world prompt,"Technical support","기술 지원"
+world.warehouse_open,"Open warehouse",world prompt,"Open warehouse","창고 열기"
+world.warehouse,"Warehouse",world prompt,"Warehouse","창고"
+world.journal_checkpoint,"Journal checkpoint",world prompt,"Journal checkpoint","일지 확인"
+world.journal,"Journal",world prompt,"Journal","일지"
+world.survey,"Survey",world prompt,"Survey","조사"
+world.farm,"Farm",world prompt,"Farm","농사"
+world.farm-plot,"Farm plot",world prompt,"Farm plot","밭"
+world.bandage-claim,"Take bandage",world prompt,"Take bandage","붕대 받기"
+world.rescue-treat,"Treat castaway",world prompt,"Treat castaway","표류자 치료"
+world.cargo-claim,"Pick up cargo",world prompt,"Pick up cargo","화물 받기"
+world.cargo-deliver,"Deliver cargo",world prompt,"Deliver cargo","화물 전달"
+world.npc.marit,"Marit",world prompt,"Marit","마릿"
+world.npc.tuck,"Tuck",world prompt,"Tuck","턱"
+world.npc.hop,"Hop",world prompt,"Hop","홉"
+world.npc.sella,"Sella",world prompt,"Sella","셀라"
+world.npc.bram,"Bram",world prompt,"Bram","브램"
+world.npc.ines,"Ines",world prompt,"Ines","이네스"
+world.npc.pip,"Pip",world prompt,"Pip","핍"
+world.station.workbench.t1,"Workbench",world prompt,"Workbench","작업대"
+world.station.campfire.t1,"Campfire",world prompt,"Campfire","모닥불"
+world.guide,"Harbor guide",world prompt,"Harbor guide","항구 안내"
+world.hazard,"Harbor lookout",world prompt,"Harbor lookout","항구 전망대"
+world.resources,"Supplies",world prompt,"Supplies","보급품"
+world.objective,"Market board",world prompt,"Market board","장터 게시판"
+world.practice-seedbed,"Practice seedbed",world prompt,"Practice seedbed","연습용 모판"
+world.practice-fiber-stitch,"Weaving practice",world prompt,"Weaving practice","섬유 엮기 연습"
+world.visitor-portal,"Home portal",world prompt,"Home portal","개인 섬 이동문"
+world.rescue-beacon,"Rescue beacon",world prompt,"Rescue beacon","구조 신호기"
+world.station.signal-relay.t1,"Signal relay",world prompt,"Signal relay","신호 중계기"
+music.editor_title,"Score editor",music editor,"Score editor","악보 편집"
+music.editor_close,"Close",music editor,"Close","닫기"
+music.editor_tempo,"Tempo (40-200)",music editor,"Tempo (40-200)","템포 (40~200)"
+music.editor_instrument,"Next instrument",music editor,"Next instrument","다음 악기"
+music.editor_play,"Play preview",music editor,"Play preview","미리 듣기"
+music.editor_stop,"Stop",music editor,"Stop","정지"
+music.editor_join,"Join ensemble",music editor,"Join ensemble","합주 참여"
+music.editor_saved,"Saved",music editor,"Saved","저장됨"
+music.editor_imported,"Score loaded",music editor,"Score loaded","악보를 불러왔어요"
+music.editor_status,"%s / part %d%s",music editor,"%s / part %d%s","%s / 파트 %d%s"
+music.instrument_piano,"Piano",music editor,"Piano","피아노"
+music.instrument_guitar,"Guitar",music editor,"Guitar","기타"
+music.instrument_bass,"Bass",music editor,"Bass","베이스"
+music.instrument_violin,"Violin",music editor,"Violin","바이올린"
+music.instrument_flute,"Flute",music editor,"Flute","플루트"
+music.instrument_clarinet,"Clarinet",music editor,"Clarinet","클라리넷"
+music.instrument_trumpet,"Trumpet",music editor,"Trumpet","트럼펫"
+music.instrument_drums,"Drums",music editor,"Drums","드럼"
 survival.missing,Missing,reserve material feedback,Missing,부족한 재료
 survival.placementHint,"Point at the ground, then confirm placement",pointer construction,"Point at the ground, then confirm placement",바닥을 가리킨 뒤 배치를 확정하세요
 harbor.use,Talk / use,harbor facility prompt,Talk / use,대화 / 이용
@@ -292,9 +349,9 @@ npc_liaison_craft_greet,"Good material, honest work. Show me what this island ca
 npc_liaison_ecology_greet,"Watch first, touch later. The island remembers who was gentle.",npc line,"Watch first, touch later. The island remembers who was gentle.","먼저 지켜보고, 손은 나중에. 섬은 누가 조심스러웠는지 기억해."
 npc_shipwright_greet,"Hull's patched, sails are dry. Where to this time?",npc line,"Hull's patched, sails are dry. Where to this time?","선체 수리 끝, 돛도 말랐어. 이번엔 어디로 가나?"
 npc_board_keeper_greet,"Three fresh contracts on the board today. First come, first paid.",npc line,"Three fresh contracts on the board today. First come, first paid.",오늘 게시판에 새 의뢰가 셋. 먼저 온 사람이 먼저 받아 가지.
-contract_day1_gather,Gather 6 Windfall Logs,first-day contract,Gather 6 Windfall Logs,쓰러진 통나무 6개 모으기
-contract_day1_craft,Craft a Flint Hatchet,first-day contract,Craft a Flint Hatchet,부싯돌 손도끼 만들기
-contract_day1_settle,Claim a settlement plot and place a Workbench,first-day contract,Claim a settlement plot and place a Workbench,정착지 구획을 정하고 작업대 놓기
+contract_day1_gather,Deliver 3 Wood,first-day contract,Deliver 3 Wood,쓰러진 통나무 3개 납품하기
+contract_day1_craft,Deliver a Stone Axe,first-day contract,Deliver a Stone Axe,부싯돌 손도끼 납품하기
+contract_day1_settle,Deliver 4 Fiber,first-day contract,Deliver 4 Fiber,고사리 섬유 4개 납품하기
 contract_daily_header,Daily contracts,contract board header,Daily contracts,오늘의 의뢰
 contract_trust_level,Trust,faction trust label,Trust,신뢰도
 tutorial_arrival,The tide carried you here. Skip any time.,tutorial step 1,The tide carried you here. Skip any time.,물때가 당신을 이곳에 데려왔다. 언제든 건너뛸 수 있다.
@@ -807,45 +864,45 @@ skills.defense_4,counter followup cost-2,RECONSTRUCTED Robango catalog source,co
 skills.defense_5,stamina recovery+2/s,RECONSTRUCTED Robango catalog source,stamina recovery+2/s,stamina recovery+2/s
 skills.defense_6,incoming damage0.95x,RECONSTRUCTED Robango catalog source,incoming damage0.95x,incoming damage0.95x
 item_skull,Skull,entity skull,Skull,두개골
-wildlife_compsognathus,Compsognathus,entity compsognathus,Compsognathus,Compsognathus
+wildlife_compsognathus,Compsognathus,entity compsognathus,Compsognathus,콤프소그나투스
 item_feather,Feather,entity feather,Feather,깃털
-wildlife_oviraptor,Oviraptor,entity oviraptor,Oviraptor,Oviraptor
-wildlife_protoceratops,Protoceratops,entity protoceratops,Protoceratops,Protoceratops
-wildlife_gallimimus,Gallimimus,entity gallimimus,Gallimimus,Gallimimus
+wildlife_oviraptor,Oviraptor,entity oviraptor,Oviraptor,오비랍토르
+wildlife_protoceratops,Protoceratops,entity protoceratops,Protoceratops,프로토케라톱스
+wildlife_gallimimus,Gallimimus,entity gallimimus,Gallimimus,갈리미무스
 wildlife_parasaurolophus,Parasaurolophus,entity parasaurolophus,Parasaurolophus,Parasaurolophus
 item_plate,Plate,entity plate,Plate,골판
-wildlife_stegosaurus,Stegosaurus,entity stegosaurus,Stegosaurus,Stegosaurus
-wildlife_ankylosaurus,Ankylosaurus,entity ankylosaurus,Ankylosaurus,Ankylosaurus
+wildlife_stegosaurus,Stegosaurus,entity stegosaurus,Stegosaurus,스테고사우루스
+wildlife_ankylosaurus,Ankylosaurus,entity ankylosaurus,Ankylosaurus,안킬로사우루스
 item_horn,Horn,entity horn,Horn,뿔
-wildlife_triceratops,Triceratops,entity triceratops,Triceratops,Triceratops
+wildlife_triceratops,Triceratops,entity triceratops,Triceratops,트리케라톱스
 wildlife_brachiosaurus,Brachiosaurus,entity brachiosaurus,Brachiosaurus,Brachiosaurus
 item_claw,Claw,entity claw,Claw,발톱
-wildlife_utahraptor,Utahraptor,entity utahraptor,Utahraptor,Utahraptor
-wildlife_velociraptor,Velociraptor,entity velociraptor,Velociraptor,Velociraptor
+wildlife_utahraptor,Utahraptor,entity utahraptor,Utahraptor,유타랍토르
+wildlife_velociraptor,Velociraptor,entity velociraptor,Velociraptor,벨로키랍토르
 item_tooth,Tooth,entity tooth,Tooth,이빨
-wildlife_dilophosaurus,Dilophosaurus,entity dilophosaurus,Dilophosaurus,Dilophosaurus
-wildlife_allosaurus,Allosaurus,entity allosaurus,Allosaurus,Allosaurus
-wildlife_tyrannosaurus,Tyrannosaurus,entity tyrannosaurus,Tyrannosaurus,Tyrannosaurus
+wildlife_dilophosaurus,Dilophosaurus,entity dilophosaurus,Dilophosaurus,딜로포사우루스
+wildlife_allosaurus,Allosaurus,entity allosaurus,Allosaurus,알로사우루스
+wildlife_tyrannosaurus,Tyrannosaurus,entity tyrannosaurus,Tyrannosaurus,티라노사우루스
 item_fang,Fang,entity fang,Fang,송곳니
-wildlife_smilodon,Smilodon,entity smilodon,Smilodon,Smilodon
+wildlife_smilodon,Smilodon,entity smilodon,Smilodon,스밀로돈
 item_sinew,Sinew,entity sinew,Sinew,힘줄
-wildlife_tropicalSmilodon,Tropical Smilodon,entity tropicalSmilodon,Tropical Smilodon,Tropical Smilodon
-wildlife_direWolf,Dire Wolf,entity direWolf,Dire Wolf,Dire Wolf
+wildlife_tropicalSmilodon,Tropical Smilodon,entity tropicalSmilodon,Tropical Smilodon,열대 스밀로돈
+wildlife_direWolf,Dire Wolf,entity direWolf,Dire Wolf,다이어울프
 item_tusk,Tusk,entity tusk,Tusk,엄니
-wildlife_mammoth,Mammoth,entity mammoth,Mammoth,Mammoth
+wildlife_mammoth,Mammoth,entity mammoth,Mammoth,매머드
 item_antler,Antler,entity antler,Antler,사슴뿔
-wildlife_deer,Deer,entity deer,Deer,Deer
-wildlife_elephant,Elephant,entity elephant,Elephant,Elephant
-wildlife_crocodile,Crocodile,entity crocodile,Crocodile,Crocodile
-wildlife_turtle,Turtle,entity turtle,Turtle,Turtle
-wildlife_dodo,Dodo,entity dodo,Dodo,Dodo
+wildlife_deer,Deer,entity deer,Deer,사슴
+wildlife_elephant,Elephant,entity elephant,Elephant,코끼리
+wildlife_crocodile,Crocodile,entity crocodile,Crocodile,악어
+wildlife_turtle,Turtle,entity turtle,Turtle,거북
+wildlife_dodo,Dodo,entity dodo,Dodo,도도
 item_relief_unit,Relief Unit,entity relief-unit,Relief Unit,구호 물자
 item_survey_sample,Survey Sample,entity survey-sample,Survey Sample,탐사 표본
 item_volcanic_ash,Volcanic Ash,entity volcanic-ash,Volcanic Ash,화산 재
 item_rescue_marker,Rescue Marker,entity rescue-marker,Rescue Marker,구조 표식
 item_chapter,Chapter,entity chapter,Chapter,장
 item_fragment,Fragment,entity fragment,Fragment,조각
-item_dodo,Dodo,entity dodo,Dodo,Dodo
+item_dodo,Dodo,entity dodo,Dodo,도도
 item_rw_journal_seal_1,Rw Journal Seal 1,entity rw-journal-seal-1,Rw Journal Seal 1,로방고 일지 인장 1
 item_rw_journal_seal_2,Rw Journal Seal 2,entity rw-journal-seal-2,Rw Journal Seal 2,로방고 일지 인장 2
 item_rw_journal_seal_3,Rw Journal Seal 3,entity rw-journal-seal-3,Rw Journal Seal 3,로방고 일지 인장 3
@@ -1078,6 +1135,9 @@ NOT_AT_HARBOR,Only at the harbor,harbor buyback refusal,Only at the harbor,항�
 repair,Repair (%d coins),bag detail repair button,Repair (%d coins),수리 (%d 조개돈)
 INSUFFICIENT_FUNDS,Not enough coins,repair refusal,Not enough coins,조개돈 부족
 INELIGIBLE_REPAIR,This item cannot be repaired,repair refusal,This item cannot be repaired,수리할 수 없는 물건
+repaired,Repaired,repair confirmation,Repaired,수리 완료
+INSUFFICIENT_ITEMS,You do not hold that many,harbor sell refusal,You do not hold that many,보유 수량이 부족해요
+oversell,You cannot sell more than you hold (held %d),harbor sell refusal with held count,You cannot sell more than you hold (held %d),보유 수량보다 많이 팔 수 없어요 (보유 %d)
 preset,Terrain %d,home terrain preset button,Terrain %d,지형 %d
 PRESET_LOCKED,Terrain %d: Patron Pass,locked home terrain preset,Terrain %d: Patron Pass,지형 %d: 후원 패스
 preset_applied,Terrain preset %d applied,home terrain preset confirmation,Terrain preset %d applied,지형 %d 적용됨
@@ -1296,6 +1356,7 @@ social.perm.hint,Tap a row to change who may do it.,social home and trade sheets
 social.perm.move,Move home...,social home and trade sheets,Move home...,집 이전...
 social.perm.offline,Help while I am offline: %s,social home and trade sheets,Help while I am offline: %s,오프라인 중 도움: %s
 social.perm.owner,Owner: %s,social home and trade sheets,Owner: %s,소유자: %s
+social.perm.me,Me,social home and trade sheets,Me,나
 social.perm.recover,Recover: %s,social home and trade sheets,Recover: %s,회수: %s
 social.perm.title,Home access,social home and trade sheets,Home access,집 출입 권한
 social.perm.use,Use: %s,social home and trade sheets,Use: %s,사용: %s

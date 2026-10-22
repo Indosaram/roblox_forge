@@ -50,7 +50,7 @@ function M.mount(ctx: any, spec: any): any
 	local components, theme = ctx.ui.components, ctx.ui.theme.default
 	local udim2 = ctx.udim2 or env.UDim2
 	local gui = (ctx.instance or env.Instance).new("ScreenGui")
-	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = "Forge" .. spec.name, false, 20
+	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = "Forge" .. spec.name, false, spec.displayOrder or 20
 	gui.Parent = ctx.playerGui or env.game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local sheet = components.modalSheet(theme, { name = spec.name, title = spec.title, parent = gui })
 	sheet.frame.Visible = false

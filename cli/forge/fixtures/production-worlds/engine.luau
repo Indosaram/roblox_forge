@@ -531,6 +531,8 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		},
 	}
 	forge.games = { ["robango-island"] = { src = { shared = { ProcAssets = {} } } } }
+	forge.games["robango-island"].src.shared.WorldText =
+		require("../../../../games/robango-island/src/shared/WorldText")
 	forge.games["robango-island"].src.shared.IslandTerrain =
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
 	local preview = load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {

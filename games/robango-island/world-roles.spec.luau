@@ -125,7 +125,7 @@ return {
 						)
 					end
 				end
-				local destination = if prompt.Name == "ForgeDock" then prompt.ObjectText else nil
+				local destination = if prompt.Name == "ForgeDock" then prompt:GetAttribute("ForgeDestination") else nil
 				for _, facility in world.harborFacilities or {} do
 					if facility.id == target.Name then
 						assert(facility.position.y == p.Y, "harbor authority position")
