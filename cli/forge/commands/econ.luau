@@ -3,12 +3,15 @@
 -- simulate a pack's free-currency economy with the pure econsim engine and write
 -- a markdown report (default reports/econ-sim-<pack>.md), and with --json a
 -- schemaVersion 1 JSON result. No network calls.
+-- `--crafting [--hours H]` instead runs the single-player survival-coop crafting-loop pacing
+-- driver (lib/craftsim) on the pack's content.yml.
 
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
 local econsim = require("../lib/econsim")
+local craftsim = require("../lib/craftsim")
 local cliutil = require("../lib/cliutil")
 local registryLib = require("../lib/genreregistry")
 local genrecontract = require("../lib/genrecontract")
@@ -23,10 +26,13 @@ local DEFAULT_DAYS = 7
 local DEFAULT_SEED = 1
 local MAX_PLAYERS = 1000000
 local MAX_DAYS = 3650
+local DEFAULT_HOURS = 10
+local MAX_HOURS = 1000
 
 local function printUsage()
 	stdio.ewrite(
 		[[Usage: lune run cli/forge econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]
+       lune run cli/forge econ sim --crafting [--pack <slug>] [--hours H] [--seed S] [--out <path>] [--json <path>]
 
   sim    Simulate a game pack's free-currency economy and write a markdown report.
          Flags:
@@ -36,6 +42,11 @@ local function printUsage()
            --seed S       deterministic PRNG seed (default: 1)
            --out <path>   report path (default: reports/econ-sim-<pack>.md)
            --json <path>  also write a versioned machine-readable result (schemaVersion 1)
+           --crafting     survival-coop crafting packs (content.yml): one scripted free player
+                          gathers, crafts, clears guides/contracts/missions, sells at the harbor
+                          buyback and pays repairs on an explicit clock. Reports per-hour Coins,
+                          XP/level, first-time milestones and faucets vs sinks. No Robux.
+           --hours H      simulated hours for --crafting (default: 10)
 ]]
 	)
 end
@@ -122,6 +133,78 @@ local function loadMonetization(path: string): { econsim.MonetizationEntry }
 	return entries
 end
 
+--- `--crafting`: run the survival-coop crafting-loop driver on content.yml and write the
+--- markdown table plus the optional schemaVersion 1 JSON.
+local function runCrafting(
+	pack: string,
+	packDir: string,
+	seed: number,
+	hours: number,
+	out: string?,
+	jsonPath: string?,
+	context: cliutil.CommandContext?
+): boolean
+	local contentPath = packDir .. "/content.yml"
+	local econPath = packDir .. "/econ.yml"
+	if not fs.isFile(contentPath) or not fs.isFile(econPath) then
+		stdio.ewrite("Error: --crafting needs " .. contentPath .. " and " .. econPath .. "\n")
+		return false
+	end
+	local ok, result = pcall(function()
+		local content = serde.decode("yaml", fs.readFile(contentPath))
+		local econ = serde.decode("yaml", fs.readFile(econPath))
+		local survival = econ.genre_contract.configs["survival-coop"]
+		assert(survival and survival.mode == "crafting", "pack is not a survival-coop crafting pack")
+		local inventory = survival.inventory
+		return craftsim.simulate(content, {
+			seed = seed,
+			hours = hours,
+			startingBalance = survival.startingBalance,
+			starter = inventory.containers[inventory.carriedContainer],
+		})
+	end)
+	if not ok then
+		stdio.ewrite("Error: crafting simulation: " .. tostring(result) .. "\n")
+		return false
+	end
+	result.pack = pack
+	local outPath = if out ~= nil and out ~= ""
+		then out
+		else (if context and context.reportsDir then context.reportsDir else "reports")
+			.. "/econ-sim-"
+			.. pack
+			.. "-crafting.md"
+	local lines = {
+		"# Crafting-loop sim: " .. pack,
+		"",
+		string.format("Seed: %d, hours: %d, Robux spent: 0", seed, hours),
+		"",
+		"| hour | coins | xp | level |",
+		"|---|---|---|---|",
+	}
+	for _, row in result.hourly do
+		table.insert(lines, string.format("| %d | %d | %d | %d |", row.hour, row.coins, row.xp, row.level))
+	end
+	table.insert(lines, "")
+	table.insert(lines, string.format("Faucets %d, sinks %d", result.faucetTotal, result.sinkTotal))
+	ensureParentDir(outPath)
+	fs.writeFile(outPath, table.concat(lines, "\n") .. "\n")
+	if jsonPath ~= nil then
+		writeJson(jsonPath, result)
+	end
+	stdio.write(
+		string.format(
+			"econ sim: crafting %s %dh coins=%d level=%d; wrote %s\n",
+			pack,
+			hours,
+			result.final.coins,
+			result.final.level,
+			outPath
+		)
+	)
+	return true
+end
+
 --- Parses flags, runs the simulation, and writes the report. Returns false with a
 --- stderr message on usage errors; never touches the network.
 function M.run(args: { string }, context: cliutil.CommandContext?): boolean
@@ -136,13 +219,19 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 	local seed = DEFAULT_SEED
 	local out: string? = nil
 	local jsonPath: string? = nil
+	local crafting = false
+	local hours = DEFAULT_HOURS
 	local index = 3
 	while index <= #args do
 		local flag = args[index]
-		if
+		if flag == "--crafting" then
+			crafting = true
+			index += 1
+		elseif
 			flag == "--pack"
 			or flag == "--players"
 			or flag == "--days"
+			or flag == "--hours"
 			or flag == "--seed"
 			or flag == "--out"
 			or flag == "--json"
@@ -168,6 +257,8 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 					players = number
 				elseif flag == "--days" then
 					days = number
+				elseif flag == "--hours" then
+					hours = number
 				else
 					seed = number
 				end
@@ -191,8 +282,15 @@ function M.run(args: { string }, context: cliutil.CommandContext?): boolean
 		stdio.ewrite("Error: --seed must be >= 0\n")
 		return false
 	end
+	if hours < 1 or hours > MAX_HOURS then
+		stdio.ewrite(string.format("Error: --hours must be between 1 and %d\n", MAX_HOURS))
+		return false
+	end
 
 	local packDir = (if context and context.packsDir then context.packsDir else "games") .. "/" .. pack
+	if crafting then
+		return runCrafting(pack, packDir, seed, hours, out, jsonPath, context)
+	end
 	local econPath = packDir .. "/econ.yml"
 	if not fs.isDir(packDir) or not fs.isFile(econPath) then
 		stdio.ewrite("Error: missing " .. econPath .. "\n")

@@ -218,7 +218,10 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 		text = [=[
   econ sim [--pack <slug>] [--players N] [--days D] [--seed S] [--out <path>] [--json <path>]
                             Simulate a pack's free-currency economy and write reports/econ-sim-<pack>.md
-                            (--json also writes a schemaVersion 1 machine-readable result)]=],
+                            (--json also writes a schemaVersion 1 machine-readable result)
+  econ sim --crafting [--pack <slug>] [--hours H] [--seed S] [--out <path>] [--json <path>]
+                            Survival-coop crafting-loop pacing: one scripted free player, per-hour
+                            Coins/XP/level, first-time milestones, faucets vs sinks (default 10 h)]=],
 	},
 	{
 		name = "spike",

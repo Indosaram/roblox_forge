@@ -47,6 +47,34 @@ return {
 			assert(not reopened and refusal == "ALREADY_COMPLETED", "completed chapter cannot reopen " .. index)
 		end
 	end,
+	["catalog order alone locks later chapters without explicit prerequisites"] = function()
+		local catalog = {}
+		for index = 1, 3 do
+			table.insert(catalog, {
+				id = "chapter-" .. index,
+				gates = { characterLevel = 1 },
+				objectives = { { id = "gather-" .. index, action = "gather", target = "wood", quantity = 1 } },
+				rewards = {},
+			})
+		end
+		local state = Chapters.new()
+		for _, later in { 2, 3 } do
+			local locked, reason = Chapters.open(state, catalog, catalog[later].id, math.huge)
+			assert(not locked and reason == "CHAPTER_ORDER", "chapter " .. later .. " locked before chapter 1")
+		end
+		state = assert(Chapters.open(state, catalog, catalog[1].id, 1))
+		state = assert(Chapters.observe(state, catalog, {
+			id = "g1",
+			action = "gather",
+			target = "wood",
+			quantity = 1,
+			marker = "1",
+		}))
+		state = assert(Chapters.claim(state, catalog))
+		local skipped, order = Chapters.open(state, catalog, catalog[3].id, math.huge)
+		assert(not skipped and order == "CHAPTER_ORDER", "chapter 3 locked until chapter 2 completes")
+		assert(Chapters.open(state, catalog, catalog[2].id, 1), "chapter 2 opens after chapter 1")
+	end,
 	["survey requires distinct markers even with different receipts"] = function()
 		local catalog = {
 			{

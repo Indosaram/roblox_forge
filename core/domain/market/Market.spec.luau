@@ -220,6 +220,21 @@ return {
 		assert(c.stored("L1").status == "sold" and c.stored("L1").buyer == "buyer", "store records the winner")
 	end,
 
+	["a refused double buy spends no daily trade or throttle allowance"] = function()
+		local c = fixture({ dailyTradeCap = 1, throttle = { capacity = 1, refillPerSecond = 0 } })
+		c.profile("seller2", { stack("wood-2", "wood", 10) })
+		c.profile("third")
+		assert(c.market:list(account("seller"), stack("wood-1", "wood", 10), 4, 50, "L1", NOW).ok, "list L1")
+		assert(c.market:buy(account("buyer"), "L1", NOW + 1).ok, "first buyer wins L1")
+		assert(c.market:list(account("seller2"), stack("wood-2", "wood", 10), 2, 50, "L2", NOW + 2).ok, "list L2")
+		local coins = c.wallet("third"):balance("coins")
+		local again = c.market:buy(account("third"), "L1", NOW + 3)
+		assert(not again.ok and again.code == "LISTING_UNAVAILABLE", "sold listing refused: " .. tostring(again.code))
+		assert(c.wallet("third"):balance("coins") == coins and c.items("third")["L1"] == nil, "refusal moves nothing")
+		local other = c.market:buy(account("third"), "L2", NOW + 4)
+		assert(other.ok, "refused double buy must not consume the allowance: " .. tostring(other.code))
+	end,
+
 	["lowest-price ordering is total and deterministic"] = function()
 		local c = fixture()
 		local seller = account("seller")
