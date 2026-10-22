@@ -385,8 +385,7 @@ function M.start(options: {
 			column.Visible = not open and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			objectiveSlot.Visible = objectiveSlot.Visible and not open
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
-			local width, height, top, right = HUDModel.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
-			local sx, sy, sw, sh = HUDModel.chatSafe(size.X, size.Y, size.X - right - width, top, width, height)
+			local sx, sy, sw, sh = HUDModel.contextSheet(size.X, size.Y, input.TouchEnabled)
 			for _, frame in sheets do
 				local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 				if owner then

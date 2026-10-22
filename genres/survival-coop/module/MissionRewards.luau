@@ -4,18 +4,55 @@
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Journal = require("../../../core/domain/command/Journal")
 local M = {}
+
+-- A mission pays once when every one of its objectives is complete in an
+-- expedition (never once per objective). The document is the player's own
+-- expedition record, so the outbox key (expedition, revision, mission) is
+-- idempotent per player and mission run. The first clear of a mission
+-- definition pays the full catalog reward; later clears in new expeditions pay
+-- REPEAT_PERMILLE (20%) of xp, coins and reputation, floored. Development is
+-- once per definition and owned by ArchipelagoExtension, which records it in
+-- development.definitions after this runs, so that ledger marks a prior clear.
+M.REPEAT_PERMILLE = 200
+
+local function share(rewards: any, permille: number): any
+	if permille == 1000 then
+		return rewards
+	end
+	local reputation = {}
+	for _, entry in rewards.reputation or {} do
+		local scaled = table.clone(entry)
+		scaled.value = (entry.value * permille) // 1000
+		table.insert(reputation, scaled)
+	end
+	return {
+		xp = ((rewards.xp or 0) * permille) // 1000,
+		coins = ((rewards.coins or 0) * permille) // 1000,
+		reputation = reputation,
+	}
+end
+
 function M.enqueue(document: any, content: any)
 	local state = document.archipelago
 	if not state then
 		return
 	end
 	document.missionRewards = document.missionRewards or {}
+	local cleared = if document.development then document.development.definitions else {}
 	for _, mission in content.missions do
+		local completed = #mission.objectives > 0
 		for _, objective in mission.objectives do
-			local id = "mission:" .. Journal.fnv1a64(state.id .. ":" .. state.revision .. ":" .. objective.id)
-			if state.completed[objective.id] and not document.missionRewards[id] then
-				document.missionRewards[id] = { rewards = mission.rewards, objective = objective.id, settled = false }
-			end
+			completed = completed and state.completed[objective.id] == true
+		end
+		local id = "mission:" .. Journal.fnv1a64(state.id .. ":" .. state.revision .. ":" .. mission.id)
+		if completed and mission.rewards and not document.missionRewards[id] then
+			local repeatClear = cleared[mission.id] == true
+			document.missionRewards[id] = {
+				rewards = share(mission.rewards, if repeatClear then M.REPEAT_PERMILLE else 1000),
+				mission = mission.id,
+				repeatClear = repeatClear,
+				settled = false,
+			}
 		end
 	end
 end

@@ -226,6 +226,10 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 			if value:IsA("Part") and d.shape and d.shape ~= "Wedge" then
 				value.Shape = (Enum.PartType :: any)[d.shape]
 			end
+			if d.ellipsoid then
+				local mesh = Instance.new("SpecialMesh")
+				mesh.MeshType, mesh.Parent = Enum.MeshType.Sphere, value
+			end
 			value.CanCollide, value.CanQuery, value.CanTouch = false, false, false
 			if d.effect == "fire" then
 				local fire, light = Instance.new("Fire"), Instance.new("PointLight")

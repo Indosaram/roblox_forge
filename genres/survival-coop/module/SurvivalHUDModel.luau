@@ -291,6 +291,18 @@ function M.chatSafe(
 	return x, y, w, h
 end
 
+-- Contextual sheet rect shared by SurvivalHUD and ExtensionPanels. Short touch landscape (phones
+-- 320-430 tall): the 128px movement reserve leaves no row, so the sheet takes the full height in
+-- the column between the thumbstick and the jump button.
+M.THUMB_GUTTER = 104
+function M.contextSheet(width: number, height: number, touch: boolean): (number, number, number, number)
+	if (touch or width < 700) and width > height and height < 480 then
+		return M.THUMB_GUTTER, 64, width - 2 * M.THUMB_GUTTER, height - 72
+	end
+	local w, h, top, right = M.contextSheetBounds(width, height, touch)
+	return M.chatSafe(width, height, width - right - w, top, w, h)
+end
+
 function M.contextHudBounds(width: number, _height: number?): any
 	local w = math.min(216, width - 100)
 	return {

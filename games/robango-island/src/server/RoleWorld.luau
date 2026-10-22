@@ -5,6 +5,7 @@ local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
 local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
+local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
 local materials: any = Enum.Material
 local shapes: any = Enum.PartType
@@ -25,7 +26,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		value.Name, value.Anchored = id, true
 		value.Size = Vector3.new(size.x, size.y, size.z)
 		value.Position = Vector3.new(position.x, position.y, position.z)
-		value.Material = Enum.Material.Grass
+		-- Untinted markers (survey, journal, mission) read as crates, not grey plates.
+		value.Material, value.Color = Enum.Material.WoodPlanks, Color3.fromRGB(150, 110, 70)
 		value.Parent = root
 		return value
 	end
@@ -72,6 +74,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		if definition.shape and definition.shape ~= "Wedge" then
 			value.Shape = shapes[definition.shape]
+		end
+		if definition.ellipsoid and not value:FindFirstChild("Ellipsoid") then
+			local mesh = Instance.new("SpecialMesh")
+			mesh.Name, mesh.MeshType, mesh.Parent = "Ellipsoid", Enum.MeshType.Sphere, value
 		end
 		value.CFrame = CFrame.new(definition.position.x, definition.position.y, definition.position.z)
 			* CFrame.Angles(0, math.rad(definition.yaw or 0), math.rad(definition.roll or 0))
@@ -163,6 +169,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
+	-- Mossy trampled earth and sparse pebbles sit close to the grass value, never dark stains.
+	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(98, 116, 60))
+	workspace.Terrain:SetMaterialColor(Enum.Material.Pebble, Color3.fromRGB(122, 126, 92))
+	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
+	for _, column in columns do
+		tops[column.x .. "," .. column.z] = column.top
+	end
 	for _, column in columns do
 		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
 		local material = column.material
@@ -171,7 +184,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			and (layoutId == "rw.onboarding" or interactionGround(column.x, column.z, column.cell))
 		then
 			local n = math.noise(column.x / 70, column.z / 70, 0.5)
-			material = if n > 0.25 then "Mud" elseif n < -0.25 then "Pebble" else "Ground"
+			material = if n < -0.45 then "Pebble" else "Ground"
 		end
 		local top = column.top
 		if not protected and top > 0 then
@@ -191,6 +204,18 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			Vector3.new(column.cell, top + 16, column.cell),
 			materials[material]
 		)
+		if top > 0 then
+			-- Seeded discs spill each column's surface into its neighbours below their own
+			-- surface height, so material borders are round and never a square tile grid.
+			local floor = top
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					floor =
+						math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or top)
+				end
+			end
+			table.insert(blobs, { column, floor, material })
+		end
 		if not protected and top > 8 then
 			-- Overlapping rounded shoulders soften the coarse column horizon.
 			workspace.Terrain:FillBall(
@@ -200,13 +225,37 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			)
 		end
 	end
+	for _, blob in blobs do
+		local column, floor = blob[1], blob[2]
+		for _ = 1, 2 do
+			workspace.Terrain:FillCylinder(
+				CFrame.new(
+					column.x + (blobRng:nextNumber() - 0.5) * column.cell * 0.6,
+					floor - 2.5,
+					column.z + (blobRng:nextNumber() - 0.5) * column.cell * 0.6
+				),
+				5,
+				column.cell * (0.22 + blobRng:nextNumber() * 0.18),
+				materials[blob[3]]
+			)
+		end
+	end
 	-- The coarse seeded columns are scenery. Authored navigation is a continuous
 	-- dry ribbon with the catalog's slope, including each node's approach branch.
 	local paths: { any } = if layoutId == "rw.home" then {} else layout.paths
+	local low, high = layout.bounds.min, layout.bounds.max
+	local function inside(p: any): boolean
+		return p.x >= low.x and p.x <= high.x and p.z >= low.z and p.z <= high.z
+	end
 	for _, path in paths do
 		for index = 2, #path.points do
 			local a, b = path.points[index - 1], path.points[index]
-			local from, to = Vector3.new(a.x, a.y, a.z), Vector3.new(b.x, b.y, b.z)
+			-- Habitat approaches start offshore; a ribbon there read as a concrete frame in the sea.
+			if not inside(a) and not inside(b) then
+				continue
+			end
+			local from = Vector3.new(math.clamp(a.x, low.x, high.x), a.y, math.clamp(a.z, low.z, high.z))
+			local to = Vector3.new(math.clamp(b.x, low.x, high.x), b.y, math.clamp(b.z, low.z, high.z))
 			local delta = to - from
 			if delta.Magnitude > 0 then
 				local ribbon =
@@ -229,6 +278,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name, spawn.Anchored, spawn.Neutral, spawn.Duration = "SurvivalSpawn", true, true, 0
 	spawn.Position, spawn.Size = Vector3.new(entry.x, entry.y + 1, entry.z), Vector3.new(4, 1, 4)
+	-- The default studded white pad read as a stray plate beside the spawn rocks.
+	spawn.Transparency = 1
 	spawn.Parent = root
 	local runtimeContent: any = table.clone(content)
 	runtimeContent.nodes = table.clone(content.nodes)
@@ -502,7 +553,6 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local function dock(id: string, position: any, destination: string)
 		position = interactionPosition(position, 1)
 		local target = part(id, position, { x = 10, y = 1, z = 8 })
-		target.Material = Enum.Material.WoodPlanks
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name, prompt.ActionText, prompt.ObjectText = "ForgeDock", "Travel", destination
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, true, target

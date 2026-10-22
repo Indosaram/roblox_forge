@@ -57,7 +57,7 @@ return {
 				elseif kind == "fern" then
 					assert(p.shape == "Wedge" and p.size.x <= 0.35, "thin fan fronds")
 				elseif kind == "rock" then
-					assert(p.material == "Slate" and p.yaw ~= 0, "irregular slate cluster")
+					assert((p.material == "Slate" or p.material == "Rock") and p.yaw ~= 0, "irregular stone cluster")
 				end
 				if
 					string.find(p.id, ".post", 1, true)

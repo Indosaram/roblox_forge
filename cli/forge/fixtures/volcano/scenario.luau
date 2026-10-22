@@ -60,7 +60,7 @@ local function volcano(): any
 	local tree = Tree.level(Tree.new(Content, Policy.tree), Policy.tree, 60)
 	-- Test setup buys actual nodes with earned proficiency rather than bypassing gates.
 	for _, category in { "processing", "tailoring" } do
-		for i = 1, 1500 do
+		for i = 1, 8100 do
 			tree = Tree.award(tree, Policy.tree, category, category .. tostring(i))
 		end
 		for rank = 1, if category == "processing" then 4 else 5 do
@@ -91,7 +91,7 @@ end
 local function equipment(): any
 	local policy = Policy
 	local tree = Tree.new(Content, policy.tree)
-	for i = 1, 1500 do
+	for i = 1, 8100 do
 		tree = Tree.award(tree, policy.tree, "tailoring", "tailoring" .. tostring(i))
 	end
 	assert(tree.level < 59, "mastery training stays below the support character gate")

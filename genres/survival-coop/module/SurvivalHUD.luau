@@ -241,9 +241,13 @@ function M.start(options: Options)
 				sheet.frame, UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)
 			panes.AutomaticSize = Enum.AutomaticSize.None
 			listPane.AutomaticSize, detailPane.AutomaticSize = Enum.AutomaticSize.None, Enum.AutomaticSize.None
-			listPane.Size = UDim2.new(1, -4, 0, bounds.listHeight)
-			detailPane.Size = UDim2.new(1, -4, 0, bounds.height - bounds.listHeight - 8)
-			detailPane.Position = UDim2.fromOffset(0, bounds.listHeight + 8)
+			-- Short landscape: list beside detail once the stack cannot show toggle plus one recipe.
+			local side = bounds.listHeight < 102 and sheet.frame.AbsoluteSize.X >= 400
+			local listHeight = if side then bounds.height else bounds.listHeight
+			listPane.Size = UDim2.new(if side then 0.5 else 1, -4, 0, listHeight)
+			detailPane.Size =
+				UDim2.new(if side then 0.5 else 1, -4, 0, bounds.height - (if side then 0 else listHeight + 8))
+			detailPane.Position = if side then UDim2.new(0.5, 4, 0, 0) else UDim2.fromOffset(0, listHeight + 8)
 			return
 		end
 		panes.Parent, panes.Position, panes.Size = sheet.scroll, UDim2.new(), UDim2.new(1, -8, 0, 0)
@@ -942,7 +946,7 @@ function M.start(options: Options)
 				end, true)
 				for _, node in content.skillNodes or {} do
 					local learned = progression.paid[node.id] ~= nil
-					button("learn-" .. node.id, node.id .. " / " .. tostring(node.cost) .. " SP", function()
+					button("learn-" .. node.id, Locale.skill(locale, node), function()
 						command("skill-learn", { node.id })
 					end, not learned)
 				end
@@ -1315,8 +1319,7 @@ function M.start(options: Options)
 	local function resize()
 		local size = root.AbsoluteSize
 		if contextual then
-			local width, height, top, right = Model.contextSheetBounds(size.X, size.Y, input.TouchEnabled)
-			local sx, sy, sw, sh = Model.chatSafe(size.X, size.Y, size.X - right - width, top, width, height)
+			local sx, sy, sw, sh = Model.contextSheet(size.X, size.Y, input.TouchEnabled)
 			sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
 				Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
 			local bounds = Model.contextHudBounds(size.X + 24, size.Y + 16).vitals

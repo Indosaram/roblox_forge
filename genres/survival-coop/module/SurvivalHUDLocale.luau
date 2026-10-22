@@ -12,6 +12,18 @@ local strings: { [string]: { string } } = {
 	guard = { "Guard [G]", "방어 [G]" },
 	skills = { "Skills", "기술" },
 	learn = { "Learn", "배우기" },
+	["skills.survival"] = { "Survival", "생존" },
+	["skills.butchering"] = { "Butchering", "도축" },
+	["skills.gathering"] = { "Gathering", "채집" },
+	["skills.processing"] = { "Processing", "가공" },
+	["skills.weapon_tool"] = { "Weapons & Tools", "무기·도구" },
+	["skills.ranged"] = { "Ranged", "원거리" },
+	["skills.melee"] = { "Melee", "근접" },
+	["skills.construction"] = { "Construction", "건축" },
+	["skills.farming"] = { "Farming", "농사" },
+	["skills.tailoring"] = { "Tailoring", "재봉" },
+	["skills.cooking"] = { "Cooking", "요리" },
+	["skills.defense"] = { "Defense", "방어" },
 	skill_reset = { "Reset specializations", "전문 기술 초기화" },
 	wood = { "Wood", "목재" },
 	fiber = { "Fiber", "섬유" },
@@ -198,6 +210,13 @@ local strings: { [string]: { string } } = {
 function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key
+end
+-- Skills sheet row: localized category name, rank and cost; an unknown category
+-- falls back to its id with spaces so a raw node id never reaches the player.
+function M.skill(locale: string, node: { category: string, rank: number?, cost: number }): string
+	local key = "skills." .. node.category
+	local name = if strings[key] then M.text(locale, key) else (string.gsub(node.category, "_", " "))
+	return name .. (if node.rank then " " .. tostring(node.rank) else "") .. " · " .. tostring(node.cost) .. " SP"
 end
 function M.refusal(locale: string, reason: string): string
 	local key = reason

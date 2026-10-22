@@ -11,7 +11,15 @@ local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 -- These pack-only modules are intentionally absent from other packs' sourcemaps.
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
-local Dressing: any = luau.load(fs.readFile("games/robango-island/src/server/WorldDressing.luau"))()
+local Rng = require("../../../core/domain/random/Rng")
+local Dressing: any = luau.load(fs.readFile("games/robango-island/src/server/WorldDressing.luau"), {
+	environment = {
+		require = function(key)
+			assert(key == "../../../../core/domain/random/Rng", "unexpected dressing dependency")
+			return Rng
+		end,
+	},
+})()
 local World: any = luau.load(fs.readFile("games/robango-island/src/server/HomeWorld.luau"), {
 	environment = {
 		require = function(key)

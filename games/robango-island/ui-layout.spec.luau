@@ -2,6 +2,7 @@
 -- G004 layout audit: every robango-island screen at PC 1280x720 and mobile 360x640.
 -- Geometry comes from the same pure functions the client places frames with.
 local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 local Clan = require("../../genres/survival-coop/module/ClanPanel")
@@ -13,6 +14,8 @@ local Content: any = require("./src/shared/SurvivalContent")
 local EntityNames = require("./src/shared/EntityNames")
 
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true } }
+-- SurvivalHUD sheets also cover short landscape phones (Studio device-simulator 640x339).
+local HUD_VIEWPORTS = { VIEWPORTS[1], VIEWPORTS[2], { 640, 339, true }, { 740, 360, true }, { 932, 430, true } }
 
 local function overlaps(a: any, b: any): boolean
 	return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
@@ -26,10 +29,10 @@ local function inside(rect: any, width: number, height: number, label: string)
 	assert(rect.width > 0 and rect.height > 0, label .. " blank at " .. width .. "x" .. height)
 end
 
--- Fitted sheet rect exactly as ExtensionPanels.place computes it for contextual packs.
+-- Fitted sheet rect exactly as ExtensionPanels.place computes it for contextual packs (dockGui
+-- is a full-viewport ScreenGui with CoreUISafeInsets, so no SafeArea offset).
 local function sheet(width: number, height: number, touch: boolean): any
-	local w, h, top, right = Model.contextSheetBounds(width, height, touch)
-	local x, y, sw, sh = Model.chatSafe(width, height, width - right - w, top, w, h)
+	local x, y, sw, sh = Model.contextSheet(width, height, touch)
 	return { x = x, y = y, width = sw, height = sh }
 end
 
@@ -43,12 +46,48 @@ local ROWS: { [string]: { { number } } } = {
 }
 
 -- SurvivalHUD (contextual) sheet in viewport space: resize() feeds the SafeArea root
--- (viewport inset 12,8 and -24,-16) into contextSheetBounds + chatSafe.
+-- (viewport inset 12,8 and -24,-16) into SurvivalHUDModel.contextSheet.
 local function hudSheet(width: number, height: number, touch: boolean): any
-	local rw, rh = width - 24, height - 16
-	local w, h, top, right = Model.contextSheetBounds(rw, rh, touch)
-	local x, y, sw, sh = Model.chatSafe(rw, rh, rw - right - w, top, w, h)
+	local x, y, sw, sh = Model.contextSheet(width - 24, height - 16, touch)
 	return { x = x + 12, y = y + 8, width = sw, height = sh }
+end
+
+-- Craft list/detail rects in sheet space, from SurvivalHUD's own fitPanes source.
+local function craftPanes(width: number, height: number): (any, any)
+	local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+	local first = assert(source:find("local function fitPanes()", 1, true))
+	local last = assert(source:find("listPane:GetPropertyChangedSignal", first, true))
+	local function dim(xs, xo, ys, yo)
+		return { xs = xs, xo = xo, ys = ys, yo = yo }
+	end
+	local list: any, detail: any = { Position = dim(0, 0, 0, 0) }, {}
+	luau.load(source:sub(first, last - 1) .. "fitPanes()", {
+		environment = {
+			Model = Model,
+			sheet = { frame = { AbsoluteSize = { X = width, Y = height } } },
+			panes = {},
+			listPane = list,
+			detailPane = detail,
+			craftActions = { Visible = true },
+			UDim2 = {
+				new = dim,
+				fromOffset = function(x, y)
+					return dim(0, x, 0, y)
+				end,
+			},
+			Enum = { AutomaticSize = { None = "None" } },
+		},
+	})()
+	local function rect(pane: any): any
+		local p = width - 16
+		return {
+			x = 8 + pane.Position.xs * p + pane.Position.xo,
+			y = 44 + pane.Position.yo,
+			width = pane.Size.xs * p + pane.Size.xo,
+			height = pane.Size.yo,
+		}
+	end
+	return rect(list), rect(detail)
 end
 
 -- Estimated text fit with HudFit.textWidth: every line wraps into width minus padding and the
@@ -104,7 +143,7 @@ end
 
 return {
 	["every fitted sheet stays inside the viewport with a reachable header close"] = function()
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local width, height, touch = viewport[1], viewport[2], viewport[3]
 			local rect = sheet(width, height, touch)
 			-- shop, taming, camp, death-zone, market, journal, building, audio, clan input, clan,
@@ -125,7 +164,7 @@ return {
 		end
 	end,
 	["row controls in every sheet are disjoint and touch sized"] = function()
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local rect = sheet(viewport[1], viewport[2], viewport[3])
 			local content = rect.width - 16 - 6
 			for name, splits in ROWS do
@@ -140,6 +179,22 @@ return {
 					table.insert(controls, control)
 				end
 			end
+		end
+	end,
+	["short landscape phones keep header and a full row in every extension sheet"] = function()
+		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
+		local anchor = "HUDModel.contextSheet(size.X, size.Y, input.TouchEnabled)"
+		assert(string.find(source, anchor, 1, true), "ExtensionPanels places sheets with the shared contextSheet")
+		for i = 3, #HUD_VIEWPORTS do
+			local width, height = HUD_VIEWPORTS[i][1], HUD_VIEWPORTS[i][2]
+			local rect, at = sheet(width, height, true), width .. "x" .. height
+			inside(rect, width, height, "sheet")
+			-- Header 44 + one 48px row; contracts adds its 56px notice strip (scroll -100).
+			assert(rect.height >= 44 + 48 and rect.height >= 100 + 48, "contracts notice plus one row at " .. at)
+			assert(
+				rect.x >= Model.THUMB_GUTTER and rect.x + rect.width <= width - Model.THUMB_GUTTER,
+				"extension sheet clears thumb gutters at " .. at
+			)
 		end
 	end,
 	["standalone panels fit both target viewports"] = function()
@@ -222,7 +277,7 @@ return {
 			string.find(fs.readFile("core/ui-kit/InventoryGrid.luau"), "UDim2.new(0.333, -6, 0, 92)", 1, true),
 			"inventory cell constant moved"
 		)
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local width, height, touch = viewport[1], viewport[2], viewport[3]
 			local s = hudSheet(width, height, touch)
 			inside(s, width, height, "survival sheet")
@@ -245,11 +300,9 @@ return {
 		end, Content.items, { pin = "starter-axe", jobs = {} })
 		assert(rows[1] and rows[1].recipe.id == "starter-axe", "tutorial axe pinned first in filtered list")
 		assert(#rows < #Content.recipes, "nearby filter narrows the list")
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])
-			local b = Model.craftPanes(s.width, s.height)
-			local list = { x = 8, y = 44, width = s.width - 20, height = b.listHeight }
-			local detail = { x = 8, y = 52 + b.listHeight, width = s.width - 20, height = b.height - b.listHeight - 8 }
+			local list, detail = craftPanes(s.width, s.height)
 			local footer = { x = 8, y = s.height - 56, width = s.width - 16, height = 48 }
 			for _, rect in { list, detail, footer } do
 				inside(rect, s.width, s.height, "craft pane")
@@ -292,7 +345,7 @@ return {
 		end
 	end,
 	["bag sheet grid detail and warehouse rows fit both target viewports"] = function()
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])
 			local panes = s.width - 16 - 8
 			local wide = s.width >= 600
@@ -335,7 +388,7 @@ return {
 		for _, definition in Content.structures do
 			costRows = math.max(costRows, #definition.cost)
 		end
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local width, height = viewport[1], viewport[2]
 			local s = hudSheet(width, height, viewport[3])
 			local cards = s.width - 16 - 8
@@ -386,9 +439,37 @@ return {
 			end
 		end
 	end,
+	["short landscape phones show one full row or card in every survival sheet"] = function()
+		local costRows = 1
+		for _, definition in Content.structures do
+			costRows = math.max(costRows, #definition.cost)
+		end
+		for _, viewport in HUD_VIEWPORTS do
+			local width, height, touch = viewport[1], viewport[2], viewport[3]
+			local s = hudSheet(width, height, touch)
+			inside(s, width, height, "survival sheet")
+			-- Scroll body below the 44px header with 8px padding; first rows as each section renders them.
+			local body = s.height - 44 - 8
+			local at = width .. "x" .. height
+			-- One whole build card fits the body once the hint scrolls away (cell 44 + rows * 40).
+			assert(body >= 44 + costRows * 40, "one full build card at " .. at)
+			assert(body >= 8 + 6 + 92, "bag capacity bar plus one inventory row at " .. at)
+			assert(body >= 48 + 6 + 48, "skills level plus one skill row at " .. at)
+			local list, detail = craftPanes(s.width, s.height)
+			assert(list.height >= 48 + 6 + 48 and detail.height >= 48, "craft rows at " .. at)
+			assert(math.max(list.y + list.height, detail.y + detail.height) <= s.height - 56, "craft footer " .. at)
+			if touch and width > height then
+				-- Thumbstick and jump button stay uncovered beside the sheet.
+				assert(
+					s.x >= 12 + Model.THUMB_GUTTER and s.x + s.width <= width - 12 - Model.THUMB_GUTTER,
+					"gutters " .. at
+				)
+			end
+		end
+	end,
 	["skills sheet buttons are full width touch rows with fitting labels"] = function()
 		assert(#Content.skillNodes > 0, "skill nodes present")
-		for _, viewport in VIEWPORTS do
+		for _, viewport in HUD_VIEWPORTS do
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])
 			local width = s.width - 16 - 8
 			disjoint(

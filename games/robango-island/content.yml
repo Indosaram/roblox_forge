@@ -4332,7 +4332,7 @@ progressionPolicy:
     bootsItem: lava-protection-boots
     bootsMultiplier: 0.5
     lavaMaxHealthFraction: 0.25
-  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 50, xpStep: 10}
+  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 20, xpStep: 80}
   sharpnessPerPoint: 0.02
   insulationCold: 0.1
   minimumWear: 0.5
@@ -30193,8 +30193,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s1.gather"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30219,8 +30219,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.craft"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30251,8 +30251,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.survey"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30277,8 +30277,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.rescue"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30309,8 +30309,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.hunt"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30337,8 +30337,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s3.transport"
     rewards:
-      xp: 700
-      coins: 170
+      xp: 120
+      coins: 30
       development: 50
       reputation:
         -
@@ -30363,7 +30363,7 @@ missions:
         quantity: 10
         stageId: "rw.a2.s1.gather"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30389,7 +30389,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s2.craft"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30421,7 +30421,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s4.survey"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30447,7 +30447,7 @@ missions:
         quantity: 1
         stageId: "rw.a2.s2.rescue"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30479,7 +30479,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s4.hunt"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30507,7 +30507,7 @@ missions:
         quantity: 10
         stageId: "rw.a2.s3.transport"
     rewards:
-      xp: 800
+      xp: 450
       coins: 195
       development: 50
       reputation:
@@ -30533,7 +30533,7 @@ missions:
         quantity: 15
         stageId: "rw.a3.s1.gather"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30559,7 +30559,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s2.craft"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30591,7 +30591,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s4.survey"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30617,7 +30617,7 @@ missions:
         quantity: 1
         stageId: "rw.a3.s2.rescue"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30649,7 +30649,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s4.hunt"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30677,7 +30677,7 @@ missions:
         quantity: 15
         stageId: "rw.a3.s3.transport"
     rewards:
-      xp: 900
+      xp: 500
       coins: 220
       development: 50
       reputation:
@@ -30703,7 +30703,7 @@ missions:
         quantity: 20
         stageId: "rw.a4.s1.gather"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30729,7 +30729,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s2.craft"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30761,7 +30761,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s4.survey"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30787,7 +30787,7 @@ missions:
         quantity: 1
         stageId: "rw.a4.s2.rescue"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30819,7 +30819,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s4.hunt"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30847,7 +30847,7 @@ missions:
         quantity: 20
         stageId: "rw.a4.s3.transport"
     rewards:
-      xp: 1100
+      xp: 600
       coins: 270
       development: 50
       reputation:
@@ -30873,7 +30873,7 @@ missions:
         quantity: 25
         stageId: "rw.a5.s1.gather"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:
@@ -30899,7 +30899,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s2.craft"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:
@@ -30931,7 +30931,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s4.survey"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:
@@ -30957,7 +30957,7 @@ missions:
         quantity: 1
         stageId: "rw.a5.s2.rescue"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:
@@ -30989,7 +30989,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s4.hunt"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:
@@ -31017,7 +31017,7 @@ missions:
         quantity: 25
         stageId: "rw.a5.s3.transport"
     rewards:
-      xp: 1300
+      xp: 700
       coins: 320
       development: 50
       reputation:

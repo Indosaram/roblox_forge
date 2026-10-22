@@ -718,84 +718,84 @@ item_shelter_liner,Shelter Liner,entity shelter-liner,Shelter Liner,쉼터 안�
 item_heat_brace,Heat Brace,entity heat-brace,Heat Brace,방열 보강대
 item_signal_fragment,Signal Fragment,entity signal-fragment,Signal Fragment,신호 조각
 item_rescue_transponder,Rescue Transponder,entity rescue-transponder,Rescue Transponder,구조 응답기
-skills.survival,Survival,RECONSTRUCTED Robango catalog source,Survival,Survival
+skills.survival,Survival,RECONSTRUCTED Robango catalog source,Survival,생존
 skills.survival_1,maxHP+10,RECONSTRUCTED Robango catalog source,maxHP+10,maxHP+10
 skills.survival_2,stealth toggle: speed0.6x and detection0.6x,RECONSTRUCTED Robango catalog source,stealth toggle: speed0.6x and detection0.6x,stealth toggle: speed0.6x and detection0.6x
 skills.survival_3,ordinary capture access,RECONSTRUCTED Robango catalog source,ordinary capture access,ordinary capture access
 skills.survival_4,pet cargo+2 slots,RECONSTRUCTED Robango catalog source,pet cargo+2 slots,pet cargo+2 slots
 skills.survival_5,maxHP+20,RECONSTRUCTED Robango catalog source,maxHP+20,maxHP+20
 skills.survival_6,capture probability+0.05 before clamp,RECONSTRUCTED Robango catalog source,capture probability+0.05 before clamp,capture probability+0.05 before clamp
-skills.butchering,Butchering,RECONSTRUCTED Robango catalog source,Butchering,Butchering
+skills.butchering,Butchering,RECONSTRUCTED Robango catalog source,Butchering,도축
 skills.butchering_1,carcass meat extraction,RECONSTRUCTED Robango catalog source,carcass meat extraction,carcass meat extraction
 skills.butchering_2,hide extraction,RECONSTRUCTED Robango catalog source,hide extraction,hide extraction
 skills.butchering_3,bone extraction,RECONSTRUCTED Robango catalog source,bone extraction,bone extraction
 skills.butchering_4,tooth extraction,RECONSTRUCTED Robango catalog source,tooth extraction,tooth extraction
 skills.butchering_5,skull extraction,RECONSTRUCTED Robango catalog source,skull extraction,skull extraction
 skills.butchering_6,each primary meat yield+1,RECONSTRUCTED Robango catalog source,each primary meat yield+1,each primary meat yield+1
-skills.gathering,Gathering,RECONSTRUCTED Robango catalog source,Gathering,Gathering
+skills.gathering,Gathering,RECONSTRUCTED Robango catalog source,Gathering,채집
 skills.gathering_1,mineral tier1,RECONSTRUCTED Robango catalog source,mineral tier1,mineral tier1
 skills.gathering_2,seed extraction,RECONSTRUCTED Robango catalog source,seed extraction,seed extraction
 skills.gathering_3,mineral tier2,RECONSTRUCTED Robango catalog source,mineral tier2,mineral tier2
 skills.gathering_4,mineral tier3,RECONSTRUCTED Robango catalog source,mineral tier3,mineral tier3
 skills.gathering_5,quality roll: transfer5 percentage points quality0 to1,RECONSTRUCTED Robango catalog source,quality roll: transfer5 percentage points quality0 to1,quality roll: transfer5 percentage points quality0 to1
 skills.gathering_6,primary raw yield+1,RECONSTRUCTED Robango catalog source,primary raw yield+1,primary raw yield+1
-skills.processing,Processing,RECONSTRUCTED Robango catalog source,Processing,Processing
+skills.processing,Processing,RECONSTRUCTED Robango catalog source,Processing,가공
 skills.processing_1,drying,RECONSTRUCTED Robango catalog source,drying,drying
 skills.processing_2,tanning,RECONSTRUCTED Robango catalog source,tanning,tanning
 skills.processing_3,polishing,RECONSTRUCTED Robango catalog source,polishing,polishing
 skills.processing_4,smelting,RECONSTRUCTED Robango catalog source,smelting,smelting
 skills.processing_5,fermentation and compost,RECONSTRUCTED Robango catalog source,fermentation and compost,fermentation and compost
 skills.processing_6,main-material refund10% on processing recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on processing recipes,main-material refund10% on processing recipes
-skills.weapon_tool,Weapon Tool,RECONSTRUCTED Robango catalog source,Weapon Tool,Weapon Tool
+skills.weapon_tool,Weapon Tool,RECONSTRUCTED Robango catalog source,Weapon Tool,무기·도구
 skills.weapon_tool_1,tier1 tool/weapon recipes,RECONSTRUCTED Robango catalog source,tier1 tool/weapon recipes,tier1 tool/weapon recipes
 skills.weapon_tool_2,repair,RECONSTRUCTED Robango catalog source,repair,repair
 skills.weapon_tool_3,tier2 recipes,RECONSTRUCTED Robango catalog source,tier2 recipes,tier2 recipes
 skills.weapon_tool_4,Unlock equipment adjustments,RECONSTRUCTED Robango catalog source,Unlock equipment adjustments,장비 조정 기능 해금
 skills.weapon_tool_5,tier3 recipes,RECONSTRUCTED Robango catalog source,tier3 recipes,tier3 recipes
 skills.weapon_tool_6,main-material refund10% on weapon/tool recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on weapon/tool recipes,main-material refund10% on weapon/tool recipes
-skills.ranged,Ranged,RECONSTRUCTED Robango catalog source,Ranged,Ranged
+skills.ranged,Ranged,RECONSTRUCTED Robango catalog source,Ranged,원거리
 skills.ranged_1,shooting stance,RECONSTRUCTED Robango catalog source,shooting stance,shooting stance
 skills.ranged_2,"quick draw: next shot windup0.2s, cooldown8s",RECONSTRUCTED Robango catalog source,"quick draw: next shot windup0.2s, cooldown8s","quick draw: next shot windup0.2s, cooldown8s"
 skills.ranged_3,range+8stud,RECONSTRUCTED Robango catalog source,range+8stud,range+8stud
 skills.ranged_4,"barrage:3shots damage0.5x each,cost30stamina,cooldown12s",RECONSTRUCTED Robango catalog source,"barrage:3shots damage0.5x each,cost30stamina,cooldown12s","barrage:3shots damage0.5x each,cost30stamina,cooldown12s"
 skills.ranged_5,ranged damage+5%,RECONSTRUCTED Robango catalog source,ranged damage+5%,ranged damage+5%
 skills.ranged_6,ranged stamina cost-10%,RECONSTRUCTED Robango catalog source,ranged stamina cost-10%,ranged stamina cost-10%
-skills.melee,Melee,RECONSTRUCTED Robango catalog source,Melee,Melee
+skills.melee,Melee,RECONSTRUCTED Robango catalog source,Melee,근접
 skills.melee_1,attack stance,RECONSTRUCTED Robango catalog source,attack stance,attack stance
 skills.melee_2,suppression club stun,RECONSTRUCTED Robango catalog source,suppression club stun,suppression club stun
 skills.melee_3,counter stance,RECONSTRUCTED Robango catalog source,counter stance,counter stance
 skills.melee_4,onslaught stance,RECONSTRUCTED Robango catalog source,onslaught stance,onslaught stance
 skills.melee_5,charge stance,RECONSTRUCTED Robango catalog source,charge stance,charge stance
 skills.melee_6,melee damage+10%,RECONSTRUCTED Robango catalog source,melee damage+10%,melee damage+10%
-skills.construction,Construction,RECONSTRUCTED Robango catalog source,Construction,Construction
+skills.construction,Construction,RECONSTRUCTED Robango catalog source,Construction,건축
 skills.construction_1,tier1 kits excluding default bonfire/workbench,RECONSTRUCTED Robango catalog source,tier1 kits excluding default bonfire/workbench,tier1 kits excluding default bonfire/workbench
 skills.construction_2,container craft,RECONSTRUCTED Robango catalog source,container craft,container craft
 skills.construction_3,tier2 station upgrade,RECONSTRUCTED Robango catalog source,tier2 station upgrade,tier2 station upgrade
 skills.construction_4,multistorey parts,RECONSTRUCTED Robango catalog source,multistorey parts,multistorey parts
 skills.construction_5,tier3 station upgrade,RECONSTRUCTED Robango catalog source,tier3 station upgrade,tier3 station upgrade
 skills.construction_6,main-material refund10% on construction recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on construction recipes,main-material refund10% on construction recipes
-skills.farming,Farming,RECONSTRUCTED Robango catalog source,Farming,Farming
+skills.farming,Farming,RECONSTRUCTED Robango catalog source,Farming,농사
 skills.farming_1,corn/potato,RECONSTRUCTED Robango catalog source,corn/potato,corn/potato
 skills.farming_2,wheat/onion,RECONSTRUCTED Robango catalog source,wheat/onion,wheat/onion
 skills.farming_3,flax,RECONSTRUCTED Robango catalog source,flax,flax
 skills.farming_4,banana/fig,RECONSTRUCTED Robango catalog source,banana/fig,banana/fig
 skills.farming_5,apple and watering tool,RECONSTRUCTED Robango catalog source,apple and watering tool,apple and watering tool
 skills.farming_6,crop base yield+1,RECONSTRUCTED Robango catalog source,crop base yield+1,crop base yield+1
-skills.tailoring,Tailoring,RECONSTRUCTED Robango catalog source,Tailoring,Tailoring
+skills.tailoring,Tailoring,RECONSTRUCTED Robango catalog source,Tailoring,재봉
 skills.tailoring_1,temperate recipes,RECONSTRUCTED Robango catalog source,temperate recipes,temperate recipes
 skills.tailoring_2,repair apparel,RECONSTRUCTED Robango catalog source,repair apparel,repair apparel
 skills.tailoring_3,tropical recipes,RECONSTRUCTED Robango catalog source,tropical recipes,tropical recipes
 skills.tailoring_4,modify apparel,RECONSTRUCTED Robango catalog source,modify apparel,modify apparel
 skills.tailoring_5,cold recipes and volcanic boots,RECONSTRUCTED Robango catalog source,cold recipes and volcanic boots,cold recipes and volcanic boots
 skills.tailoring_6,main-material refund10% on tailoring recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on tailoring recipes,main-material refund10% on tailoring recipes
-skills.cooking,Cooking,RECONSTRUCTED Robango catalog source,Cooking,Cooking
+skills.cooking,Cooking,RECONSTRUCTED Robango catalog source,Cooking,요리
 skills.cooking_1,basic plant/meat recipes,RECONSTRUCTED Robango catalog source,basic plant/meat recipes,basic plant/meat recipes
 skills.cooking_2,boiled food,RECONSTRUCTED Robango catalog source,boiled food,boiled food
 skills.cooking_3,grilled food,RECONSTRUCTED Robango catalog source,grilled food,grilled food
 skills.cooking_4,fermented dishes,RECONSTRUCTED Robango catalog source,fermented dishes,fermented dishes
 skills.cooking_5,pet feed/recovery feed,RECONSTRUCTED Robango catalog source,pet feed/recovery feed,pet feed/recovery feed
 skills.cooking_6,main-material refund10% on cooking recipes,RECONSTRUCTED Robango catalog source,main-material refund10% on cooking recipes,main-material refund10% on cooking recipes
-skills.defense,Defense,RECONSTRUCTED Robango catalog source,Defense,Defense
+skills.defense,Defense,RECONSTRUCTED Robango catalog source,Defense,방어
 skills.defense_1,defense stance,RECONSTRUCTED Robango catalog source,defense stance,defense stance
 skills.defense_2,dodge stamina-2,RECONSTRUCTED Robango catalog source,dodge stamina-2,dodge stamina-2
 skills.defense_3,block stamina drain-1/s,RECONSTRUCTED Robango catalog source,block stamina drain-1/s,block stamina drain-1/s

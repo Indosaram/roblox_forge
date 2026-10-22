@@ -1231,15 +1231,18 @@ function M.new(ctx: any): any
 			document.archipelago.status == "complete" and document.development.instabilityAccess == 2,
 			"four island clear"
 		)
+		-- One settlement per completed mission (six a1 missions, eight objectives),
+		-- each a first clear at the full catalog reward.
 		local expected, actual = 0, 0
 		for _, entry in document.missionRewards do
 			expected += entry.rewards.coins
 			assert(entry.settled, "all outbox rewards acknowledged")
+			assert(not entry.repeatClear, "first route clear pays full reward")
 			actual += 1
 		end
 		assert(
-			actual == 8 and personal(actor).balance == initialBalance + expected,
-			"eight catalog objective settlements: "
+			actual == 6 and personal(actor).balance == initialBalance + expected,
+			"six catalog mission settlements: "
 				.. tostring(actual)
 				.. ":"
 				.. tostring(personal(actor).balance)

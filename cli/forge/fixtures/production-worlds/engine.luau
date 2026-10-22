@@ -45,6 +45,14 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 						table.insert(pendingTerrain, { position = position, radius = radius, material = material })
 					end
 				end,
+				FillCylinder = function(_, frame, height: number, radius: number, material)
+					if physicalTerrain then
+						-- Upright cylinder; its bounding box is close enough for downward ground rays.
+						local size = roblox.Vector3.new(radius * 2, height, radius * 2)
+						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
+					end
+				end,
+				SetMaterialColor = function() end,
 			}
 			local writable = {
 				WaterColor = true,

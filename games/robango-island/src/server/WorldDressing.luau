@@ -2,6 +2,13 @@
 -- Pure visual plan; gameplay positions, hazards and stock come only from content.
 -- Budget: at most 96 scattered props and 768 authored kit parts per loaded role.
 local M = {}
+local runtime: any, load: any = getfenv(), require
+-- Roblox resolves the shared module through ReplicatedStorage; Lune resolves the file.
+local Rng = load(
+	if runtime.game
+		then runtime.game:GetService("ReplicatedStorage"):WaitForChild("Forge").core.domain.random.Rng
+		else "../../../../core/domain/random/Rng"
+)
 local palettes: any = {
 	grassland = { ground = "Grass", leaf = { 82, 114, 71 }, rock = { 110, 117, 103 }, fog = { 192, 215, 205 } },
 	forest = { ground = "LeafyGrass", leaf = { 61, 100, 62 }, rock = { 97, 110, 101 }, fog = { 175, 202, 185 } },
@@ -60,74 +67,107 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		return value
 	end
 	local wood, sand = { 112, 78, 48 }, { 217, 189, 131 }
+	-- Seeded per kit id: identical layouts dress identically on every server.
+	local seed = 0
+	for i = 1, #id do
+		seed = (seed * 31 + string.byte(id, i)) % 2147483647
+	end
+	local rng = Rng.new(seed)
+	local function leaf(lift: number): any
+		local tone = rng:nextInteger(-16, 20) + lift
+		return {
+			math.clamp(palette.leaf[1] + tone, 0, 235),
+			math.clamp(palette.leaf[2] + tone + rng:nextInteger(0, 12), 0, 235),
+			math.clamp(palette.leaf[3] + tone // 2, 0, 235),
+		}
+	end
 	if kind == "tree" or kind == "conifer" then
-		for i = 1, 5 do
+		for i = 1, 3 do
 			local trunk = piece(
 				"trunk" .. i,
-				math.sin(i * 0.4) * 1.4,
-				i * 2.6 - 1.3,
+				math.sin(i * 0.6) * 1.4,
+				i * 3.9 - 1.9,
 				0,
-				3.3,
-				2.6 - i * 0.25,
-				2.6 - i * 0.25,
+				4.6,
+				2.5 - i * 0.35,
+				2.5 - i * 0.35,
 				"Wood",
 				wood,
 				"Cylinder"
 			)
-			trunk.roll = 84 + i * 2
+			trunk.roll = 84 + i * 3
 		end
-		for i = 1, 4 do
+		-- Flattened ellipsoid lobes in three tiers: dark wide base, lighter small top, plus one
+		-- offset side cluster that breaks the round silhouette.
+		for i = 1, if kind == "conifer" then 4 else 9 do
+			local tier = if i <= 4 then 1 elseif i <= 7 then 2 else 3
+			local a, s = i * 2.4 + rng:nextNumber() * 0.6, (9 - tier * 1.8) * (0.75 + rng:nextNumber() * 0.4)
+			local r = if i == 4 then 6 else ({ 3.8, 2.6, 1.2 })[tier]
 			local crown = piece(
 				"canopy" .. i,
-				if kind == "conifer" then 0 else math.cos(i * 2) * 4,
-				10 + i * 2.4,
-				if kind == "conifer" then 0 else math.sin(i * 2) * 4,
-				19 - i * 3,
-				5,
-				17 - i * 2.5,
-				"LeafyGrass",
-				{ palette.leaf[1] + i * 2, palette.leaf[2] + i * 3, palette.leaf[3] },
-				if kind == "conifer" then "Wedge" else "Ball"
+				if kind == "conifer" then 0 else 1.3 + math.cos(a) * r,
+				if kind == "conifer"
+					then 10 + i * 2.4
+					else 9.5 + tier * 2.3 + rng:nextNumber() - (if i == 4 then 2 else 0),
+				if kind == "conifer" then 0 else math.sin(a) * r,
+				if kind == "conifer" then 19 - i * 3 else s,
+				if kind == "conifer" then 5 else s * (0.55 + rng:nextNumber() * 0.2),
+				if kind == "conifer" then 17 - i * 2.5 else s * (0.8 + rng:nextNumber() * 0.2),
+				if i % 3 == 0 then "LeafyGrass" else "Grass",
+				leaf(tier * 16 - 24),
+				if kind == "conifer" then "Wedge" else nil
 			)
-			crown.yaw, crown.roll = i * 37, if kind == "conifer" then 0 else i * 3
+			-- Tree lobes are blocks rendered through a sphere mesh, so they keep flattened sizes.
+			crown.yaw, crown.ellipsoid = i * 37 + rng:nextInteger(-15, 15), kind == "tree" or nil
 		end
-		for i = 1, 3 do
+		for i = 1, 2 do
 			local root =
 				piece("root" .. i, math.cos(i * 2) * 1.5, 0.7, math.sin(i * 2) * 1.5, 4, 1.4, 1.2, "Wood", wood)
 			root.yaw, root.roll = math.deg(i * 2), 12
 		end
 	elseif kind == "palm" then
-		for i = 1, 6 do
+		for i = 1, 4 do
 			local trunk = piece(
 				"trunk" .. i,
-				(i / 6) ^ 2 * 3,
-				i * 2.5 - 1.25,
+				(i / 4) ^ 2 * 3,
+				i * 3.75 - 1.9,
 				0,
-				3,
-				1.8 - i * 0.1,
-				1.8 - i * 0.1,
+				4.3,
+				1.8 - i * 0.15,
+				1.8 - i * 0.15,
 				"Wood",
 				wood,
 				"Cylinder"
 			)
-			trunk.roll = 90 - i * 3
+			trunk.roll = 90 - i * 4.5
 		end
-		for i = 0, 5 do
-			local angle = i * math.pi / 3
+		piece("crown", 3, 15.4, 0, 1.6, 1.6, 1.6, "Wood", { 92, 70, 42 }, "Ball")
+		-- Each frond is two drooping, narrowing segments; each segment is a pair of mirrored
+		-- wedges whose slopes fall away from the midrib, so leaflets hang in a shallow tent.
+		for i = 0, 6 do
+			local angle = i * math.pi * 2 / 7 + rng:nextNumber() * 0.4
+			local x, y, droop = 0, 0, rng:nextInteger(0, 10)
+			local sx, sz = -math.sin(angle), math.cos(angle)
 			for tier = 1, 2 do
-				local leaf = piece(
-					"frond" .. i .. "." .. tier,
-					3 + math.cos(angle) * (tier * 3 - 1),
-					16 - tier * 0.9,
-					math.sin(angle) * (tier * 3 - 1),
-					5.8,
-					0.45,
-					3.2 - tier * 0.8,
-					"LeafyGrass",
-					palette.leaf,
-					"Wedge"
-				)
-				leaf.yaw, leaf.roll = -math.deg(angle), if tier == 1 then 16 else -23
+				local length, pitch, w = 4 - tier * 0.6, math.rad(8 - droop - tier * 26), 1.3 - tier * 0.45
+				local cx, cy = x + math.cos(pitch) * length / 2, y + math.sin(pitch) * length / 2
+				for side = -1, 1, 2 do
+					local frond = piece(
+						"frond" .. i .. "." .. tier .. side,
+						3 + math.cos(angle) * cx + side * sx * w / 2,
+						15.6 + cy,
+						math.sin(angle) * cx + side * sz * w / 2,
+						length,
+						0.55 - tier * 0.15,
+						w,
+						if side > 0 then "LeafyGrass" else "Grass",
+						leaf(tier * 10 + side * 6),
+						"Wedge"
+					)
+					-- A wedge is tallest at local +Z; the mirrored half turns 180 degrees.
+					frond.yaw, frond.roll = -math.deg(angle) + (if side < 0 then 0 else 180), side * -math.deg(pitch)
+				end
+				x, y = x + math.cos(pitch) * length, y + math.sin(pitch) * length
 			end
 		end
 	elseif kind == "fern" or kind == "cycad" or kind == "grass" or kind == "horsetail" or kind == "bush" then
@@ -136,36 +176,54 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			piece("stem", 0, 1.5, 0, 3, 0.8, 0.8, "Wood", wood, "Cylinder").roll = 90
 		end
 		for i = 0, 5 do
-			local leaf = piece(
+			local s = 2.3 + rng:nextNumber() * 1.3
+			local value = piece(
 				"leaf" .. i,
 				math.cos(i * math.pi / 3) * 1.5,
-				if tall then 3 elseif kind == "bush" then 1.2 else 0.2,
+				if tall then 3 elseif kind == "bush" then s / 2 - 0.3 else 0.2,
 				math.sin(i * math.pi / 3) * 1.5,
-				if kind == "bush" then 3.8 else 0.3,
-				if kind == "bush" then 2 else 0.35,
-				if kind == "bush" then 3.5 else 4.2,
-				"LeafyGrass",
-				{ palette.leaf[1] + i * 3, palette.leaf[2] + i * 2, palette.leaf[3] },
+				if kind == "bush" then s else 0.3,
+				if kind == "bush" then s else 0.35,
+				if kind == "bush" then s else 3.6 + rng:nextNumber(),
+				if i % 2 == 0 then "Grass" else "LeafyGrass",
+				leaf(8),
 				if kind == "bush" then "Ball" else "Wedge"
 			)
-			leaf.yaw, leaf.roll =
-				i * 60, if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
+			value.yaw, value.roll =
+				i * 60 + rng:nextInteger(-14, 14),
+				if kind == "bush" then 0 elseif kind == "grass" or kind == "horsetail" then 65 else 24
 		end
 	elseif kind == "rock" then
-		for i = 1, 4 do
+		-- A tilted core block hidden behind outward-sloping wedge bevels, so no flat cube face
+		-- meets the eye; the exposed core top carries a muted moss tone. Bases sink below grade.
+		local stone = {
+			(palette.rock[1] + 118) // 2,
+			(palette.rock[2] + 114) // 2,
+			(palette.rock[3] + 104) // 2,
+		}
+		local turn = rng:nextNumber() * math.pi * 2
+		for i = 1, 5 do
+			local tone, a = rng:nextInteger(-12, 12), turn + i * 1.57
+			local sx, sy = if i == 1 then 4.2 else 2.8, if i == 1 then 3.4 else 2.2 + rng:nextNumber()
+			local roll = if i == 1 then rng:nextInteger(-14, 14) else 0
+			local height = math.abs(math.sin(math.rad(roll))) * sx + math.abs(math.cos(math.rad(roll))) * sy
 			local rock = piece(
 				"rock" .. i,
-				math.cos(i * 2) * 1.2,
-				1.2,
-				math.sin(i * 2) * 1.2,
-				4.5 - i * 0.3,
-				3.4 - i * 0.25,
-				3.8,
-				"Slate",
-				{ palette.rock[1] - 20 + i * 3, palette.rock[2] - 20, palette.rock[3] - 20 },
-				if i % 2 == 0 then "Wedge" else nil
+				if i == 1 then 0 else math.cos(a) * 2.2,
+				height / 2 - 0.5,
+				if i == 1 then 0 else math.sin(a) * 2.2,
+				sx,
+				sy,
+				if i == 1 then 3.6 else 2 + rng:nextNumber(),
+				if i % 2 == 0 then "Slate" else "Rock",
+				if i == 1
+					then { stone[1] - 4 + tone, stone[2] + 6 + tone, stone[3] - 14 + tone }
+					else { stone[1] + tone, stone[2] + tone, stone[3] + tone },
+				if i == 1 then nil else "Wedge"
 			)
-			rock.yaw, rock.roll = i * 35, i * 9
+			-- A wedge's tall face is local +Z: turn it to the core so the slope faces outward.
+			rock.yaw, rock.roll =
+				if i == 1 then math.deg(turn) + 45 else math.deg(math.atan2(-math.cos(a), -math.sin(a))), roll
 		end
 	elseif kind == "campfire" then
 		for i = 1, 8 do
@@ -291,9 +349,25 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			piece("tool", 1, 3.7, 0, 1.2, 0.6, 2, "Slate", palette.rock, "Wedge")
 		end
 	elseif kind == "beacon" then
-		piece("foot", 0, 1, 0, 7, 2, 7, "Cobblestone", palette.rock)
-		piece("shaft", 0, 7, 0, 1, 12, 1, "Wood", wood)
-		piece("flag", 2, 11, 0, 4, 3, 0.3, "Fabric", { 235, 193, 106 })
+		-- Wayfinding signpost on a small stone cairn.
+		for i = 1, 3 do
+			piece(
+				"foot" .. i,
+				math.cos(i * 2.1) * 0.9,
+				0.5,
+				math.sin(i * 2.1) * 0.9,
+				1.8,
+				1.3,
+				1.6,
+				"Rock",
+				palette.rock
+			).yaw = i
+				* 50
+		end
+		piece("shaft", 0, 3.5, 0, 7, 0.6, 0.6, "Wood", wood, "Cylinder").roll = 90
+		piece("sign", 1.4, 5.6, 0, 3.4, 1.2, 0.25, "WoodPlanks", { 196, 158, 102 }).yaw = 8
+		piece("sign2", -1.1, 4.4, 0, 2.8, 1, 0.25, "WoodPlanks", { 178, 140, 90 }).yaw = -20
+		piece("flag", 0.8, 6.9, 0, 1.4, 0.9, 0.12, "Fabric", { 235, 193, 106 })
 	elseif kind == "fence" then
 		for x = -3, 3, 2 do
 			piece("post" .. x, x, 2.2, 0, 4.5, 0.8, 0.8, "Wood", wood, "Cylinder").roll = 90

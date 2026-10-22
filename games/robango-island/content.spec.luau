@@ -245,6 +245,27 @@ return {
 		assert(rows.currency_name[4] == "Shellmoney" and rows.currency_name[5] == "조개돈", "currency name")
 	end,
 
+	["every skill node has a localized Skills sheet label with its cost"] = function()
+		local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+		local nodes = load().skillNodes
+		assert(#nodes == 72, "expected 72 skill nodes")
+		for _, locale in { "en-us", "ko-kr" } do
+			for _, node in nodes do
+				local text = HudLocale.skill(locale, node)
+				assert(
+					text ~= "" and text ~= node.id and not string.find(text, node.id, 1, true),
+					locale .. " raw " .. node.id
+				)
+				assert(string.find(text, tostring(node.cost) .. " SP", 1, true), locale .. " cost " .. node.id)
+			end
+		end
+		local sample = { category = "construction", rank = 5, cost = 10 }
+		assert(HudLocale.skill("ko-kr", sample) == "건축 5 · 10 SP", "ko label")
+		assert(HudLocale.skill("en-us", sample) == "Construction 5 · 10 SP", "en label")
+		local unknown = HudLocale.skill("ko-kr", { category = "deep_sea", rank = 1, cost = 2 })
+		assert(unknown == "deep sea 1 · 2 SP", "unknown category falls back without underscores")
+	end,
+
 	["generated SurvivalContent.luau matches content.yml"] = function()
 		local rendered, errors = contentrender.build(load(), "crafting")
 		assert(rendered, table.concat(errors, "; "))
