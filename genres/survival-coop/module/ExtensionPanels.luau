@@ -434,6 +434,9 @@ function M.start(options: {
 		parent = column,
 		onClick = function()
 			menuList.Visible = not menuList.Visible
+			if contextual then
+				menuList.CanvasPosition = Vector2.zero
+			end
 		end,
 	})
 	menuToggle.Name, menuToggle.LayoutOrder = "MenuToggle", 1

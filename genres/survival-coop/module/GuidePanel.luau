@@ -87,7 +87,7 @@ function M.factory(ctx: any): any
 	return Sheet.mount(ctx, {
 		id = "guides",
 		title = "guide_title",
-		order = 0,
+		order = -1,
 		menu = true,
 		model = function(l, d)
 			d.content, d.names = ctx.content, ctx.names

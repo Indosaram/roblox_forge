@@ -539,6 +539,19 @@ return {
 		assert(cycle(h, "audio"), "audio settings sheet opens")
 		assert(#h.errors == 0, table.concat(h.errors, "\n"))
 	end,
+	["p56: the menu reopens scrolled to the top with the guide tile first"] = function()
+		local h = harness()
+		h.step()
+		assert(string.sub(h.tiles()[1].Name, 6) == "guides", "first tile: " .. h.tiles()[1].Name)
+		h.click(h.toggle)
+		assert(h.menu.Visible, "menu opens")
+		h.menu.CanvasPosition = roblox.Vector2.new(0, 400)
+		h.click(h.toggle)
+		assert(not h.menu.Visible, "menu closes")
+		h.click(h.toggle)
+		assert(h.menu.Visible and h.menu.CanvasPosition.Y == 0, "menu reopens at canvas " .. h.menu.CanvasPosition.Y)
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
+	end,
 	["every dock entry opened from its tile closes by X and returns the menu column"] = function()
 		local h = harness()
 		local opened, ids = 0, {}

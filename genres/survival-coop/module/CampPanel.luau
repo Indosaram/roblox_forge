@@ -1,10 +1,6 @@
 --!strict
--- Client panel for the camp ladder: current rung, project progress bars, an item +
--- quantity picker built from the player's own inventory snapshot, contribute buttons,
--- visit-open (guests) and visit-help (visitors) buttons, and the visitor pass status.
--- State comes from snapshot.survivalExtensions.camp plus the packet's survival-coop
--- inventory; every action is a durable command through `send`. The view model and
--- strings live in CampPanelModel (specced under Lune).
+-- Camp ladder panel: rung, project bars, item picker, contribute/visit buttons, pass status.
+-- Every action is a durable `send`; the view model lives in CampPanelModel.
 local Model = require("./CampPanelModel")
 local Text = require("./CharacterText")
 local M = {}
@@ -100,8 +96,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		return table.concat(parts, "|")
 	end
 	local function act(action: string, args: { any }, success: string?)
+		status = ""
 		local result = ctx.send(action, args)
-		status = if result.ok then success or "" else Model.refusal(ctx.locale, result.reason)
+		-- The push (guide line) lands before send returns.
+		local own = if result.ok then success or "" else Model.refusal(ctx.locale, result.reason)
+		status = if own ~= "" and status ~= "" then own .. "\n" .. status else own .. status
 		render(true)
 	end
 	function render(force: boolean?)

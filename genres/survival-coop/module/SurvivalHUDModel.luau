@@ -447,7 +447,7 @@ function M.contextHudBounds(width: number, height: number?): any
 	local w = math.min(216, width - 100)
 	return {
 		vitals = { x = width - w - 12, y = 64, width = w, height = 76 },
-		objective = { x = width - w - 12, y = 144, width = w, height = 28 },
+		objective = { x = width - w - 12, y = 144, width = w, height = math.clamp((height or 720) - 418, 28, 64) },
 		menu = { x = width - w - 84, y = 64, width = 64, height = 44 },
 		coins = { x = width - w - 116, y = 112, width = 100, height = 28 },
 		biome = { x = (width - 192) / 2, y = 24, width = 192, height = 32 },

@@ -106,7 +106,7 @@ return {
 			assert(string.find(csv, "\n" .. key .. ",", 1, true), key .. " missing from strings.csv")
 		end
 	end,
-	["the guide tile sits on the first menu row at 1076x632, 1280x700 and 360x640"] = function()
+	["the guide tile is the first menu tile and on the first row at 1076x632, 1280x700 and 360x640"] = function()
 		local source = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		local ids: { { any } } = {}
 		local factories = fs.readFile(MODULE .. "ExtensionPanels.luau") .. fs.readFile(MODULE .. "CharacterPanels.luau")
@@ -119,14 +119,28 @@ return {
 		for id in string.gmatch(source, '\n\t\t{\n\t\t\tid = "([%w-]+)"') do
 			table.insert(ids, { id, 1 })
 		end
-		assert(#ids > 20, "tile ids parsed: " .. #ids)
-		local guide = Panels.tileOrder("guides", 0)
-		local before = 0
-		for _, entry in ids do
-			if entry[1] ~= "guides" and Panels.tileOrder(entry[1], entry[2]) < guide then
-				before += 1
+		-- Positional mounts (navigator "메뉴" tile, music screens): Sheet.mount(ctx, id, title, hidden, order).
+		for _, name in { "NavigatorPanel", "MusicScreens" } do
+			local text = fs.readFile(MODULE .. name .. ".luau")
+			for id, order in string.gmatch(text, 'Sheet%.mount%(ctx, "([%w-]+)", "[%w_]+", %a+, (%-?%d+)%)') do
+				table.insert(ids, { id, tonumber(order) })
 			end
 		end
+		local navigator = false
+		for _, entry in ids do
+			navigator = navigator or entry[1] == "navigator"
+		end
+		assert(#ids > 20 and navigator, "tile ids parsed: " .. #ids)
+		local guides = string.match(fs.readFile(MODULE .. "GuidePanel.luau"), 'id = "guides",[^}]-order = (%-?%d+)')
+		local guide = Panels.tileOrder("guides", assert(tonumber(guides), "guide order"))
+		-- The guide tile is the first tile: strictly lower LayoutOrder than every other tile.
+		for _, entry in ids do
+			assert(
+				entry[1] == "guides" or Panels.tileOrder(entry[1], entry[2]) > guide,
+				`{entry[1]} tile sorts at or before the guide tile`
+			)
+		end
+		local before = 0
 		for _, viewport in { { 1076, 632, false }, { 1280, 700, false }, { 360, 640, true } } do
 			local width, height = viewport[1], viewport[2] - (if viewport[3] then 56 else 0)
 			local x, y, w, h, columns, tile = Panels.menuRect(width, height, viewport[3])
