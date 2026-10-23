@@ -279,9 +279,7 @@ function M.new(config: Config)
 			equipped = table.clone(config.equipment(actorId) or {}),
 		}
 	end
-	-- Maintained Studio probe of this instance's real registration gate. The
-	-- non-yielding operation removes every temporary rig before Heartbeat can
-	-- step it; it cannot attack, mint drops, or publish a durable NPC candidate.
+	-- Studio probe of the registration gate; its temporary rigs are removed before any Heartbeat.
 	function api.probeCapacity()
 		assert(game:GetService("RunService"):IsStudio(), "STUDIO_ONLY")
 		assert(not stopped, "WILDLIFE_STOPPED")
@@ -361,10 +359,7 @@ function M.new(config: Config)
 	end
 	-- Commit publication only; callers must not publish a staged/failed candidate.
 	function api.publish(confirmed: Wildlife.State)
-		-- A rig whose root left the world (fell off the map, was destroyed) is disposed by the
-		-- Heartbeat sweep while the durable owner still holds its confirmed state. That state
-		-- has no physical body left to update, so it is skipped instead of failing every
-		-- later publish (and with it every session advance).
+		-- A rig whose root left the world is skipped, not failed (that stalled every session advance).
 		local entry = entries[confirmed.id]
 		if entry == nil then
 			return
@@ -440,9 +435,7 @@ function M.new(config: Config)
 				count -= 1
 				continue
 			end
-			-- A creature that slipped off the island (a flee or path past the shoreline) would fall
-			-- until the engine destroys it, losing that spawn for the whole server. Far below its home
-			-- it is put back there as an idle creature instead.
+			-- A creature that fell off the island is put back home idle, not lost for the server.
 			local home = entry.state.home
 			if entry.root.Position.Y < home.y - FALL_RECOVERY_STUDS then
 				cancel(entry)
@@ -450,14 +443,8 @@ function M.new(config: Config)
 				entry.root.CFrame = CFrame.new(home.x, home.y, home.z)
 				entry.root.AssemblyLinearVelocity = Vector3.zero
 			end
-			-- Home is the physical resting root coordinate at the spawn location, not the spawn placement.
-			-- A rig is created above the floor and falls onto it, so a home taken from the placement carries
-			-- a permanent vertical error; the domain's own one-stud arrival is then spent on that error and
-			-- the NPC can never report idle again. Measured: the hunter rested exactly one stud below its
-			-- spawn and its return stalled at 1.32 instead of converging. The horizontal axes stay the
-			-- authored spawn, so a frame of horizontal motion before the rig lands cannot move its home; only
-			-- the resting height is taken from the settled root. A rig placed already resting never falls, so
-			-- its placement is already the resting coordinate and home is left as it was.
+			-- Home height is the settled root (a rig falls onto the floor, and a placement-height home never
+			-- reaches idle); x/z stay the authored spawn. A rig placed already resting keeps its home.
 			if entry.settle ~= "done" then
 				local fallSpeed = entry.root.AssemblyLinearVelocity.Y
 				if fallSpeed < -0.1 then
@@ -503,10 +490,7 @@ function M.new(config: Config)
 			entry.model:SetAttribute("ForgeWildlifeTarget", state.target)
 			entry.model:SetAttribute("ForgeWildlifeHealthMilli", state.healthMilli)
 			entry.model:SetAttribute("ForgeWildlifeDeadline", state.deadline)
-			-- The home this instance's own idle/leash rules measure against. Publishing it lets a QA
-			-- observer measure the same reference instead of re-authoring the coordinate, which
-			-- drifts: the authored spawn y and the rig's registered home differ by a stud, and a
-			-- 3D distance from the wrong one can never satisfy a one-stud bound.
+			-- Published so QA measures idle/leash against the registered home, not the authored spawn.
 			entry.model:SetAttribute("ForgeWildlifeHome", Vector3.new(state.home.x, state.home.y, state.home.z))
 			entry.motion.update(state, config.nowMillis(), entry.root.AssemblyLinearVelocity)
 			local hit = intent.damage

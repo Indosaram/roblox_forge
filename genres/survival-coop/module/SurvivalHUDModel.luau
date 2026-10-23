@@ -10,6 +10,33 @@ M.PLACEMENT_BOTTOM = 152
 -- Success line (SurvivalHUDLocale key) shown after a confirmed action.
 M.SUCCESS = { ["survival-coop:item-repair"] = "repaired" } :: { [string]: string }
 
+-- One-click hand craft: the next verb, args and delay after a HUD craft result (reserve -> start -> collect).
+function M.handChain(
+	request: any,
+	result: any,
+	hand: { [string]: number? },
+	recipes: { any }
+): (string?, { any }?, number?)
+	local action, id = string.sub(request.action, 15), request.args[1]
+	if action == "craft-reserve" then
+		id = request.args[2] == "hand" and result and result.ok and result.data.jobId
+		for _, r in recipes do
+			if id and r.id == request.args[1] then
+				hand[id] = r.craftMillis / 1000 + 0.5
+				return "craft-start", { id }, 0
+			end
+		end
+	elseif hand[id] and result then
+		local wait: number? = if action == "craft-start" and result.ok
+			then hand[id]
+			elseif action == "craft-complete" and result.reason == "NOT_READY" then 1
+			else nil
+		hand[id] = if wait then hand[id] else nil
+		return if wait then "craft-complete" else nil, { id }, wait
+	end
+	return nil
+end
+
 function M.stationTarget(position: any, size: any): any
 	return { x = position.x, y = position.y + size.y / 2 + 2, z = position.z }
 end
@@ -127,10 +154,7 @@ function M.new(actor: string, newId: () -> string): any
 		model.notice = nil
 		return true
 	end
-	--- Clears a finished refusal line once its display time has passed, unless a newer result or an
-	--- in-flight request replaced it. A refusal left up for the session sat over every later sheet
-	--- and read as that sheet's refusal (2026-10-23 Studio: a bag deposit refusal showed over the
-	--- camp donation that had succeeded). Returns whether the line was cleared.
+	--- Clears an expired refusal line unless a newer result or request replaced it; true if cleared.
 	function model.expireRefusal(reason: string): boolean
 		if model.status ~= "conflict" or model.reason ~= reason or model.pending or model.busy then
 			return false
@@ -256,9 +280,7 @@ function M.hungry(vitals: any): boolean
 		and vitals.hungerMilli / 1000 < M.HUNGRY_BELOW
 end
 
---- The tutorial's axe pin: the Flint Hatchet (stone-axe, flint by hand) unless the bag already
---- holds what the starter axe needs (branch + stone). The p43 preview island has flint but no
---- branch or stone, and pinning the starter axe there showed an unreachable recipe first.
+--- The tutorial's axe pin: the Flint Hatchet unless the bag holds the starter axe's branch + stone.
 function M.axePin(bag: any, recipes: { any }): string
 	local starter, hatchet = nil, nil
 	for _, recipe in recipes do

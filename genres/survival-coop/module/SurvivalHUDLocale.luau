@@ -198,6 +198,7 @@ local strings: { [string]: { string } } = {
 	withdraw = { "Take one", "하나 꺼내기" },
 	warehouse = { "Shared storage", "공용 창고" },
 	reserve = { "Reserve ingredients", "재료 예약" },
+	make = { "Make (auto-collect)", "만들기 (자동 수령)" },
 	missing = { "Missing", "부족한 재료" },
 	placementHint = {
 		"Point at the ground, then confirm placement",

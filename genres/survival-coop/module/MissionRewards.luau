@@ -8,14 +8,8 @@ local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Job = require("../../../core/domain/crafting/Job")
 local M = {}
 
--- A mission pays once when every one of its objectives is complete in an
--- expedition (never once per objective). The document is the player's own
--- expedition record, so the outbox key (expedition, revision, mission) is
--- idempotent per player and mission run. The first clear of a mission
--- definition pays the full catalog reward; later clears in new expeditions pay
--- REPEAT_PERMILLE (20%) of xp, coins and reputation, floored. Development is
--- once per definition and owned by ArchipelagoExtension, which records it in
--- development.definitions after this runs, so that ledger marks a prior clear.
+-- A mission pays once when all its objectives complete (outbox key: expedition, revision, mission).
+-- First clear pays the catalog reward, repeats REPEAT_PERMILLE; development is once per definition.
 M.REPEAT_PERMILLE = 200
 
 --- Mid-game XP for a repeat clear: missionPolicy.repeatXPPerLevel per character level while

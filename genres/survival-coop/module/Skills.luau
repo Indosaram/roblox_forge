@@ -6,12 +6,8 @@
 -- module never invents a number. XP is earned only from server-confirmed
 -- actions (gather and craft completion), so no client action names an XP value.
 --
---   * level(d)     = count of thresholds[d] reached by the discipline's XP
---   * cap(d, tier) = min(#thresholds[d], toolTier + masteryStep[d])
---   * XP beyond the cap's threshold is not banked: it is simply not gained
---   * displayLevel = sum of discipline levels (display only, gates nothing)
---   * respec       = full deterministic refund of every earned XP into an
---                    unspent pool; nothing is lost and nothing is rerolled
+--   level(d) = thresholds reached; cap(d, tier) = min(#thresholds[d], toolTier + masteryStep[d]);
+--   XP past the cap is not gained; displayLevel gates nothing; respec refunds all XP.
 
 local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")

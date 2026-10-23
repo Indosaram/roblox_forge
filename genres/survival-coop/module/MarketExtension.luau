@@ -18,10 +18,8 @@
 --             marker) -> seller settled -> buyer done; a refused payment reverts sold -> active
 --     cancel/expiry: market returning -> personal (add units back, marker) -> market returned
 --     proceeds: seller settled&unpaid -> seller personal (credit price, marker) -> market paid
--- * Scope: the book is every active listing held by THIS server, i.e. listings of sellers who are
---   in this server. A seller's listings survive restarts and rejoin anywhere (they reappear when
---   the seller is back); cross-server browsing is out of scope. Expired listings and unsold
---   cancellations return to the bag on the seller's next load/recovery sweep.
+-- * Scope: listings of sellers in THIS server; they survive restarts and return on the seller's
+--   next load. Expired and cancelled listings return to the bag on the next recovery sweep.
 -- Eligibility, daily cap, throttle, fee and outlier rules come from core Market; Robux-bought
 -- items are never tradeable. Time comes only from `ctx.now`; nothing here rolls dice.
 local Shared = require("../../../core/domain/genre/Contract")
@@ -299,10 +297,8 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 		end
 	end
 
-	-- One atomic personal write: `apply(view, bag)` mutates the detached view and returns a refusal
-	-- reason (nothing is written then). Installs the committed token into the live session.
-	-- Third return: true when `apply` refused (definitive), false for a storage failure (ambiguous:
-	-- the write may or may not have committed, so callers resume from the marker instead).
+	-- One atomic personal write; `apply` returns a refusal (nothing written). Third return: true =
+	-- apply refused, false = storage failure (ambiguous; callers resume from the marker).
 	local function mutate(
 		actor: string,
 		apply: (view: any, bag: any, path: { string }) -> string?

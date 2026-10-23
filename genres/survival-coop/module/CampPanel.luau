@@ -6,6 +6,7 @@
 -- inventory; every action is a durable command through `send`. The view model and
 -- strings live in CampPanelModel (specced under Lune).
 local Model = require("./CampPanelModel")
+local Text = require("./CharacterText")
 local M = {}
 
 function M.factory(ctx: any): { destroy: () -> () }?
@@ -98,9 +99,9 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		return table.concat(parts, "|")
 	end
-	local function act(action: string, args: { any })
+	local function act(action: string, args: { any }, success: string?)
 		local result = ctx.send(action, args)
-		status = if result.ok then "" else Model.refusal(ctx.locale, result.reason)
+		status = if result.ok then success or "" else Model.refusal(ctx.locale, result.reason)
 		render(true)
 	end
 	function render(force: boolean?)
@@ -300,7 +301,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 								model.version,
 							})
 						else
-							act("survival-coop:camp-contribute", { row.id, current.itemId, quantity, model.version })
+							act(
+								"survival-coop:camp-contribute",
+								{ row.id, current.itemId, quantity, model.version },
+								Model.given(ctx.locale, current.label, quantity, label, row)
+							)
 						end
 					end,
 				})
@@ -325,13 +330,19 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end
 		end
 		if status ~= "" then
-			local note = add(22)
-			components.label(theme, { text = status, size = UDim2.fromScale(1, 1), parent = note })
+			local note = add(44)
+			local text = components.label(theme, { text = status, size = UDim2.fromScale(1, 1), parent = note })
+			text.Name, text.TextWrapped = "CampNotice", true
 		end
 	end
+	local seen = {}
 	local unsubscribe = ctx.onSnapshot(function(extensions, whole)
 		slice, packet = extensions.camp, whole
-		render()
+		local done = Text.newGuides(ctx.locale, seen, extensions.character)
+		if done then
+			status = if status ~= "" then status .. "\n" .. done else done
+		end
+		render(done ~= nil)
 	end)
 	return {
 		destroy = function()

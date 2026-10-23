@@ -322,10 +322,7 @@ function M.new(config: Config)
 					end
 					built[id] = part
 					if kinds[placement.definition.id] then
-						-- Station handles are ephemeral world identity, not inventory or
-						-- job identity. Keep them within the rest command's 64-byte cap.
-						-- A tiered bench (<kind>-tN) serves its base kind under the anchor id the
-						-- progression owner resolves (station.<kind>.tN) while that id is free.
+						-- Ephemeral handles within the 64-byte cap; a tiered bench (<kind>-tN) uses station.<kind>.tN.
 						local base, tier = CharacterRules.tieredKind(placement.definition.id, kinds)
 						local anchorId = if base and tier then "station." .. base .. ".t" .. tier else nil
 						local stationId = if anchorId and not stations[anchorId]
@@ -488,9 +485,7 @@ function M.new(config: Config)
 		end
 		return part
 	end
-	-- The factory installs this port on its shared source runtime. authorize must
-	-- inspect the bound Session's current admitted request while its busy gate is
-	-- held; commandEpoch is deliberately unsuitable there. Neither callback may yield.
+	-- authorize reads the Session's admitted request under its busy gate; neither callback may yield.
 	function api.gatheringAccess(authorize: GatherAuthority)
 		return function(
 			request: GatheringRuntime.Request,
@@ -507,10 +502,7 @@ function M.new(config: Config)
 				return nil
 			end
 			local source: Gathering.State = currentSource.nodes
-			-- World revision gates membership here; node-version staleness is
-			-- Gathering.gather's contract, which refuses with STALE_VERSION.
-			-- Refusing here first turned every concurrent gather race into an
-			-- opaque UNAUTHORIZED that workload retries treated as terminal.
+			-- Node-version staleness is Gathering.gather's STALE_VERSION, not an UNAUTHORIZED here.
 			if source.worldRevision ~= config.worldRevision then
 				return nil
 			end
@@ -591,10 +583,7 @@ function M.new(config: Config)
 	local function enqueue(id: string, action: string, args: { any }, stableId: string?, retain: boolean?)
 		local active = assert(session, "world not bound")
 		local epoch = active.commandEpoch(id, "survival-coop:" .. action)
-		-- A dropped observation is safe when the same state re-queues it later. An
-		-- engine-driven reconciliation (respawn) is not re-derived from a later event,
-		-- so it must be retained until the drain resolves a command epoch instead of
-		-- discarding the death silently.
+		-- A respawn is never re-derived from a later event, so it is retained until an epoch resolves.
 		if epoch == nil and not stableId and not retain then
 			return
 		end
@@ -807,9 +796,7 @@ function M.new(config: Config)
 		end
 	end
 	local function observeHealth(id: string, humanoid: Humanoid)
-		-- Signals may resume after Heartbeat or a later authored write. Sample the
-		-- current property, not the historical signal argument, and also sample
-		-- before projecting vitals so undelivered damage cannot be overwritten.
+		-- Sample the current property (not the signal argument), also before projecting vitals.
 		local health = humanoid.Health
 		local previous = observed[humanoid]
 		if previous == nil then
@@ -969,10 +956,7 @@ function M.new(config: Config)
 								table.remove(queue, 1)
 								retryAfter[id] = nil
 							elseif result.reason == "REQUEST_EXPIRED" then
-								-- A stale window drops the head, and the death re-enqueues with a
-								-- fresh identity on the next frame. Pace that re-enqueued attempt:
-								-- clearing the window here lets a stale epoch drive one attempt
-								-- and one epoch resolution per frame.
+								-- Stale window: drop the head and pace the re-enqueued death (not one per frame).
 								table.remove(queue, 1)
 								retryAfter[id] = now() + M.RETRY_INTERVAL_SECONDS
 							else

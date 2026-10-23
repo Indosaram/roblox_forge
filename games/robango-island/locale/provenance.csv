@@ -1569,3 +1569,14 @@ recipe_kiln_t3_kit,original,agent:hephaestus/p45,2026-10-23
 structure_kiln_t3,original,agent:hephaestus/p45,2026-10-23
 hud_freshness,original,agent:hephaestus/p45,2026-10-23
 hud_freshness_spoiling,original,agent:hephaestus/p45,2026-10-23
+camp_given,original,agent:hephaestus/p53,2026-10-23
+ct_contracts_delivered,original,agent:hephaestus/p53,2026-10-23
+guide_complete,original,agent:hephaestus/p53,2026-10-23
+guide_next,original,agent:hephaestus/p53,2026-10-23
+guide_go_gather,original,agent:hephaestus/p53,2026-10-23
+guide_go_craft,original,agent:hephaestus/p53,2026-10-23
+guide_go_deliver,original,agent:hephaestus/p53,2026-10-23
+guide_go_donate,original,agent:hephaestus/p53,2026-10-23
+guide_route_level,original,agent:hephaestus/p53,2026-10-23
+guide_route_open,original,agent:hephaestus/p53,2026-10-23
+hud_make,original,agent:hephaestus/p53,2026-10-23

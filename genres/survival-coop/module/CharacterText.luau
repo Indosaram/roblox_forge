@@ -1,6 +1,8 @@
 --!strict
 -- EN/KO text for the character/progression screens. Keys mirror games/robango-island/locale/strings.csv
 -- (char_*). Refusal reasons map to sentences; a raw reason code is never shown.
+local Party = require("../../../core/domain/island/Party")
+local Guide = require("./GuideEvents")
 local M = {}
 
 local strings: { [string]: { string } } = {
@@ -71,6 +73,17 @@ local strings: { [string]: { string } } = {
 	guide_g18 = { "Technical support", "기술 지원" },
 	guide_g19 = { "Volcano preparation", "화산 준비" },
 	guide_g20 = { "Rescue preparation", "구조 준비" },
+	guide_next = { "%s: %s %d/%d", "%s: %s %d/%d" },
+	guide_go_gather = { "gather %s (walk up, press E)", "%s 채집 (다가가서 E)" },
+	guide_go_craft = { "craft %s (C key, Menu > Craft)", "%s 제작 (C 키, 메뉴 > 제작)" },
+	guide_go_deliver = { "deliver %s (Menu > Contracts)", "%s 납품 (메뉴 > 계약)" },
+	guide_go_donate = { "give to %s (Menu > Camp > Give)", "%s에 기부 (메뉴 > 캠프 > 기부)" },
+	guide_route_level = {
+		"Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes",
+		"등급 %d 달성. 항로 1은 레벨 %d에 열려요 (현재 %d): 메뉴 > 항로",
+	},
+	guide_route_open = { "Route 1 is open: Menu > Routes", "항로 1이 열렸어요: 메뉴 > 항로" },
+	guide_complete = { "Guide complete: %s", "안내 완료: %s" },
 	guide_target_axe = { "any axe", "아무 도끼" },
 	guide_target_contract = { "any contract", "아무 계약" },
 	guide_target_camp = { "a camp project", "캠프 공사" },
@@ -190,6 +203,45 @@ end
 
 function M.format(locale: string, key: string, ...: any): string
 	return string.format(M.text(locale, key), ...)
+end
+
+-- HUD objective after the first tutorial steps: next open start guide, then route 1's gate.
+function M.guideObjective(locale: string, content: any, ch: any, names: any): string?
+	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
+	local needLevel, needRank = Party.gates(content, 1)
+	for _, g in if grade < needRank then content.guides or {} else {} do
+		local o, go = g.objectives[1], "guide_go_" .. g.objectives[1].action
+		if not done[g.id] and Guide.open(g, level, grade) and strings[go] then
+			local t = "guide_target_" .. o.target
+			local what = M.format(locale, go, if strings[t] then M.text(locale, t) else names[o.target] or o.target)
+			local have = math.min((ch.progress or {})[o.id] or 0, o.quantity)
+			return M.format(
+				locale,
+				"guide_next",
+				M.text(locale, "guide_" .. string.sub(g.id, 4, 6)),
+				what,
+				have,
+				o.quantity
+			)
+		end
+	end
+	return if grade < needRank
+		then nil
+		elseif level >= needLevel then M.text(locale, "guide_route_open")
+		else M.format(locale, "guide_route_level", grade, needLevel, level)
+end
+
+-- "Guide complete" line for guides finished since the previous snapshot.
+function M.newGuides(locale: string, seen: any, ch: any): string?
+	local new = {}
+	for id in type(ch) == "table" and ch.definitions or {} do
+		if seen.ready and not seen[id] then
+			table.insert(new, M.text(locale, "guide_" .. string.sub(id, 4, 6)))
+		end
+		seen[id] = true
+	end
+	seen.ready = seen.ready or type(ch) == "table"
+	return if #new > 0 then M.format(locale, "guide_complete", table.concat(new, ", ")) else nil
 end
 
 function M.refusal(locale: string, reason: string?): string

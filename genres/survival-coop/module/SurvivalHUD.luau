@@ -353,7 +353,7 @@ function M.start(options: Options)
 	requestEvent.Name, requestEvent.Parent = "ForgeHUDRequested", player
 	local render: () -> ()
 	local refresh: () -> ()
-	local handshakeRetries = 0
+	local handshakeRetries, hand = 0, {}
 	local function send(request: any)
 		if not request then
 			render()
@@ -425,6 +425,20 @@ function M.start(options: Options)
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()
 			refresh()
+			local verb, args, wait = Model.handChain(request, ok and result, hand, content.recipes)
+			if verb then
+				task.delay(wait, function()
+					local function go(tries: number)
+						local next = not disposed and model.begin(verb, args :: any)
+						if next then
+							send(next)
+						elseif not disposed and tries < 10 then
+							task.delay(1, go, tries + 1)
+						end
+					end
+					go(0)
+				end)
+			end
 		end)
 	end
 	local function command(verb: string, args: { any })
@@ -1179,7 +1193,8 @@ function M.start(options: Options)
 						end
 					)
 					controls.parent = craftActions
-					mutation("Reserve-" .. recipe.id, t("reserve"), "craft-reserve", function()
+					local make = t(if recipe.station then "reserve" else "make")
+					mutation("Reserve-" .. recipe.id, make, "craft-reserve", function()
 						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
 							return
 						end

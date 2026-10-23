@@ -18,6 +18,7 @@ export type Context = {
 	onSend: (((string, { any }, any, string?) -> ()) -> () -> ())?,
 	openPanel: ((string) -> ())?,
 	dialogue: ((string, string?) -> ())?,
+	content: any?,
 }
 export type DockEntry = {
 	id: string,
@@ -86,7 +87,11 @@ local categories: { [string]: { number | string } } = {
 	["craft-preview"] = { 1, "craft" },
 	inbox = { 1, "inbox" },
 	operations = { 1, "craft" },
+	guides = { 1, "journal" },
 }
+function M.tileOrder(id: string, order: number): number
+	return ((categories[id] or { 3 })[1] :: number) * 100 + order
+end
 local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
 local ACTION_LABELS: { [string]: { string } } = {
@@ -174,16 +179,12 @@ M.MENU_GAP, M.MENU_SCROLLBAR, M.MENU_MIN_TILE = 6, 6, 44
 function M.menuCell(menuWidth: number, columns: number): number
 	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
 end
--- Canvas height: top gap (first header unclipped), rows, bottom gap (last row reachable).
--- The dock sets this explicitly; AutomaticCanvasSize with the UIGridLayout came out one row
--- short in Studio (p36: 414px canvas for 7 rows, last row unreachable at 1076x634).
+-- Canvas height: top gap, rows, bottom gap (AutomaticCanvasSize came out one row short, p36).
 function M.menuCanvas(count: number, columns: number, tile: number): number
 	local rows = math.ceil(count / math.max(1, columns))
 	return M.MENU_GAP + rows * (tile + M.MENU_GAP)
 end
--- Short landscape: contextSheet's thumb-gutter rule. The column count is the design count
--- capped by how many touch-sized tiles fit the width left of the scrollbar. The grid always
--- starts one gap below the HUD menu button and, on a portrait phone, below Roblox's chat.
+-- Columns: design count capped by touch-sized tiles; the grid starts below the menu button and chat.
 function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
 	local w, columns, tile, top = M.menuBounds(width, height)
 	local button = HUDModel.contextHudBounds(width, height).menu
@@ -292,6 +293,7 @@ function M.start(options: {
 		ui = options.ui,
 		locale = options.locale,
 		names = options.names,
+		content = options.content,
 		send = function(actionId, args)
 			local epoch = if durable and durable.epochs then durable.epochs[actionId] else nil
 			if not CommandTransport.durable(durable, actionId) or (pending[actionId] == nil and epoch == nil) then
@@ -698,7 +700,7 @@ function M.start(options: {
 		if contextual then
 			local info: { number | string } = categories[entry.id] or { 3, "social" }
 			local category, iconId = info[1] :: number, info[2] :: string
-			button.LayoutOrder = category * 100 + entry.order
+			button.LayoutOrder = M.tileOrder(entry.id, entry.order)
 			button.Text = ""
 			local heading = ui.components.label(theme, {
 				text = Locale.text(options.locale, categoryKeys[category]),

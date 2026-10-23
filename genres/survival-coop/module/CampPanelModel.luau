@@ -30,6 +30,7 @@ local STRINGS: { [string]: { string } } = {
 	camp_title = { "Camp", "캠프" },
 	camp_rung = { "Rung", "단계" },
 	camp_contribute = { "Give", "기부" },
+	camp_given = { "Gave %s x%d: %s %d/%d", "%s %d개 기부: %s %d/%d" },
 	camp_complete = { "Finish project", "프로젝트 완료" },
 	camp_locked = { "Locked", "잠김" },
 	camp_visitor = { "Visitor pass", "방문 허가" },
@@ -259,6 +260,12 @@ function M.cycle(choices: { Choice }, current: string?, step: number): string?
 		end
 	end
 	return choices[(index - 1 + step) % #choices + 1].itemId
+end
+
+--- Success line after a donation: item x quantity and the project's new progress.
+function M.given(locale: string, item: string, quantity: number, project: string, row: Row): string
+	local total = math.min(row.need, row.delivered + quantity)
+	return string.format(M.text(locale, "camp_given"), item, quantity, project, total, row.need)
 end
 
 function M.clamp(quantity: number, available: number): number

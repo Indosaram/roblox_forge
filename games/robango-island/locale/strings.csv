@@ -1569,3 +1569,14 @@ recipe_kiln_t3_kit,Blast Kiln Kit recipe,entity kiln-t3-kit-recipe,Blast Kiln Ki
 structure_kiln_t3,Blast Kiln,entity kiln-t3,Blast Kiln,용광 가마
 hud_freshness,Freshness %d%%,bag item detail food freshness,Freshness %d%%,신선도 %d%%
 hud_freshness_spoiling,Freshness %d%% - eat or cool it soon,bag item detail food freshness warning,Freshness %d%% - eat or cool it soon,신선도 %d%% - 곧 먹거나 냉장고에 넣으세요
+camp_given,Gave %s x%d: %s %d/%d,camp donation success,Gave %s x%d: %s %d/%d,%s %d개 기부: %s %d/%d
+ct_contracts_delivered,Delivered. Reward: %s,contracts delivery success,Delivered. Reward: %s,납품 완료. 보상: %s
+guide_complete,Guide complete: %s,guide completion notice,Guide complete: %s,안내 완료: %s
+guide_next,%s: %s %d/%d,HUD objective next start guide,%s: %s %d/%d,%s: %s %d/%d
+guide_go_gather,"gather %s (walk up, press E)",HUD objective guide action,"gather %s (walk up, press E)",%s 채집 (다가가서 E)
+guide_go_craft,"craft %s (C key, Menu > Craft)",HUD objective guide action,"craft %s (C key, Menu > Craft)","%s 제작 (C 키, 메뉴 > 제작)"
+guide_go_deliver,deliver %s (Menu > Contracts),HUD objective guide action,deliver %s (Menu > Contracts),%s 납품 (메뉴 > 계약)
+guide_go_donate,give to %s (Menu > Camp > Give),HUD objective guide action,give to %s (Menu > Camp > Give),%s에 기부 (메뉴 > 캠프 > 기부)
+guide_route_level,Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes,HUD objective route gate,Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes,등급 %d 달성. 항로 1은 레벨 %d에 열려요 (현재 %d): 메뉴 > 항로
+guide_route_open,Route 1 is open: Menu > Routes,HUD objective route gate,Route 1 is open: Menu > Routes,항로 1이 열렸어요: 메뉴 > 항로
+hud_make,Make (auto-collect),hand craft one-click button,Make (auto-collect),만들기 (자동 수령)

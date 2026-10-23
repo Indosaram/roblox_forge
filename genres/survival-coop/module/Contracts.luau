@@ -11,9 +11,7 @@
 -- * Trust: integer per faction, five tiers from the catalog thresholds.
 -- * Sponsor bundles: fixed item lists per tier, claimable once. No chance.
 --
--- Time is always a parameter (`nowMillis`). The module never debits or credits
--- inventory: `deliver` and `claimBundle` return the exact quantities for the
--- authoritative command to apply.
+-- Time is a parameter; `deliver`/`claimBundle` return quantities, never touching inventory.
 
 local Content = require("../../../core/domain/survival/Content")
 local Rng = require("../../../core/domain/random/Rng")

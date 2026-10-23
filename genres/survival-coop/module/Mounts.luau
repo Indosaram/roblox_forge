@@ -4,11 +4,8 @@
 -- Pure and clock-free. Whether a species can be ridden, its ride speed and its
 -- carry capacity are species values authored in the pack and validated against
 -- the canonical wildlife content (species ids and their archetype flag). A
--- skin is cosmetic: it names a species and a paid marker and nothing else, so
--- a paid skin resolves to exactly the free same-species speed and carry in
--- every zone, and no skin can ever add carry capacity. In a PvP opt-in zone
--- the ride speed is clamped to one shared cap, so paid and free mounts of any
--- species are bounded identically.
+-- skin is cosmetic (species + paid marker): it never changes speed or carry, and a PvP
+-- zone clamps every ride to one shared speed cap.
 local Content = require("../../../core/domain/survival/Content")
 local Archetype = require("../../../core/domain/survival/Archetype")
 local M = {}

@@ -1,7 +1,9 @@
 --!strict
 -- ContractsPanel: contract board + tutorial tracker; buttons send durable commands.
 local HudLocale = require("./SurvivalHUDLocale")
+local Text = require("./CharacterText")
 local M = {}
+local EARLY = { arrive = true, gather = true, ["craft-stone-axe"] = true }
 
 local PREFIX = "survival-coop:"
 
@@ -38,6 +40,7 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 		ko = "앞선 첫날 계약을 먼저 완료하세요.",
 	},
 	contracts_reason_other = { en = "That did not work. Try again.", ko = "잘 안 됐어요. 다시 시도하세요." },
+	contracts_delivered = { en = "Delivered. Reward: %s", ko = "납품 완료. 보상: %s" },
 	tutorial_title = { en = "Objective", ko = "목표" },
 	tutorial_skip = { en = "Skip arrival", ko = "도착 장면 건너뛰기" },
 	tutorial_done = { en = "Tutorial complete", ko = "튜토리얼 완료" },
@@ -97,7 +100,7 @@ end
 M.STRINGS = STRINGS
 
 --- Pure view model so the layout is testable without Instances.
-function M.model(locale: string, state: any, names: { [string]: string }?): any
+function M.model(locale: string, state: any, names: { [string]: string }?, guide: string?): any
 	local function itemName(id: string): string
 		return if names and names[id] then names[id] else HudLocale.text(locale, id)
 	end
@@ -146,8 +149,9 @@ function M.model(locale: string, state: any, names: { [string]: string }?): any
 	return {
 		rows = rows,
 		factions = factions,
-		objective = if tutorial.complete
-			then M.text(locale, "tutorial.next-route")
+		objective = if guide and not EARLY[tutorial.step]
+			then guide
+			elseif tutorial.complete then M.text(locale, "tutorial.next-route")
 			else M.text(locale, tutorial.hint or "tutorial.arrive"),
 		canSkip = tutorial.complete ~= true and tutorial.step == "arrive",
 	}
@@ -250,7 +254,7 @@ function M.factory(ctx: any): any
 	toggle.Visible = ctx.dock == nil
 
 	-- Rebuild only on content change (a rebuild ate a mid-click press, QA step 74).
-	local rendered: string?, notice: string?, objective = nil, nil, ""
+	local rendered: string?, notice: string?, objective, flash: string? = nil, nil, "", nil
 	-- Refusals also show in the open sheet: the dock tracker is hidden under it.
 	local status = components.label(theme, {
 		text = "",
@@ -262,13 +266,27 @@ function M.factory(ctx: any): any
 	})
 	status.Name, status.Visible, status.ZIndex = "Notice", false, 53
 	local function setNotice(text: string?)
-		notice, status.Text, status.Visible = text, text or "", text ~= nil
-		sheet.scroll.Size = UDim2.new(1, 0, 1, if text then -100 else -44)
-		tracker:SetAttribute("ForgeContractsNotice", text ~= nil)
-		tracker.Text = text or objective
+		notice = text
+		local line = text or flash
+		status.Text, status.Visible = line or "", line ~= nil
+		sheet.scroll.Size = UDim2.new(1, 0, 1, if line then -100 else -44)
+		tracker:SetAttribute("ForgeContractsNotice", line ~= nil)
+		tracker.Text = line or objective
 	end
+	-- Success lines (delivery, guide complete) show for a few seconds.
+	local function flashFor(text: string)
+		flash = text
+		setNotice(notice)
+		task.delay(5, function()
+			if flash == text then
+				flash = nil
+				setNotice(notice)
+			end
+		end)
+	end
+	local guide: string?, seen = nil, {}
 	local function render(state: any)
-		local view = M.model(locale, state, ctx.names)
+		local view = M.model(locale, state, ctx.names, guide)
 		local key = M.renderKey(view)
 		objective = M.text(locale, "tutorial_title") .. ": " .. view.objective
 		-- A refusal stays until the board changes (vitals ticks erased it).
@@ -317,11 +335,11 @@ function M.factory(ctx: any): any
 				parent = sheet.scroll,
 				onClick = function()
 					local result = ctx.send(PREFIX .. row.action, { row.id })
-					setNotice(
-						if type(result) == "table" and result.ok == false
-							then M.refusal(locale, result.reason, result.data, ctx.names)
-							else nil
-					)
+					local ok = type(result) ~= "table" or result.ok ~= false
+					setNotice(if ok then nil else M.refusal(locale, result.reason, result.data, ctx.names))
+					if ok and row.accepted then
+						flashFor(string.format(M.text(locale, "contracts_delivered"), row.reward))
+					end
 				end,
 			})
 			-- Unique names: QA addresses rows and lines by name.
@@ -334,7 +352,12 @@ function M.factory(ctx: any): any
 	end
 
 	local unsubscribe = ctx.onSnapshot(function(snapshot)
-		local state = snapshot.contracts
+		local state, ch = snapshot.contracts, snapshot.character
+		guide = if ctx.content and ch then Text.guideObjective(locale, ctx.content, ch, ctx.names or {}) else nil
+		local done = Text.newGuides(locale, seen, ch)
+		if done then
+			flashFor(done)
+		end
 		if type(state) == "table" then
 			render(state)
 		end

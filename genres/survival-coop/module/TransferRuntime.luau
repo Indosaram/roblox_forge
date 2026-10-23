@@ -98,11 +98,7 @@ function M.new(config: Config): Runtime
 			destination = destination,
 		}
 	end
-	-- Grants this process has already driven to FINALIZED. FINALIZED is terminal: advancing it again
-	-- only re-reads both records and answers "confirmed". Such a grant stays in the tribe record until
-	-- its request expires and is then retired, so without this memo every heartbeat sweep re-advanced
-	-- every finished transfer of the player (three personal and two tribe requests each), which in
-	-- Studio exhausted the HttpService request quota within two minutes of warehouse use.
+	-- Grants already driven to FINALIZED; without this memo every sweep re-advanced them (Studio quota).
 	local finalized: { [string]: boolean } = config.finalized or {}
 	local function advance(req: Transfer.Request, acceptedBinding: string, origin: string): Transfer.Result
 		-- This closure is the capability. It is minted only after a confirmed

@@ -7,15 +7,9 @@
 -- * State lives in its own Fenced aggregate `contracts:<actor>` with explicit
 --   `version`; the personal inventory is only ever changed through the personal
 --   aggregate's inventory lens.
--- * A delivery or bundle claim is crash-safe across the two aggregates: the
---   contract transition is committed first together with a `pending` record,
---   the bag exchange is applied exactly once through a marker receipt in the
---   personal `itemTransfers`, and only then is `pending` cleared. `recover`
---   resumes an interrupted exchange.
--- * An optional contract `coins` reward is credited to the persisted soft-currency balance
---   (envelope genres["survival-coop"].data.balance, the same wallet the Market settles) in the
---   SAME atomic personal write as the bag exchange and its marker receipt, so a retried or
---   crash-resumed delivery grants items and coins exactly once.
+-- * Deliveries are crash-safe: the transition commits with a `pending` record, the bag exchange
+--   (and any `coins` reward, same atomic personal write) applies once via a marker receipt, then
+--   `pending` clears; `recover` resumes an interrupted exchange.
 -- * Tutorial steps are never client claims. Gather/craft/settlement steps are
 --   observed from real settled Session command results (`observe`); only the
 --   arrival skip and the contract steps are direct commands.

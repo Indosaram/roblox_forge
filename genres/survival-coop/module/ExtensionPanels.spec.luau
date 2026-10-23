@@ -225,6 +225,8 @@ local function contractsDock(locale: string, width: number, height: number, surv
 			return require("../../../core/infra/genre/CommandTransport")
 		elseif path == "./ContractsPanel" then
 			return contracts
+		elseif path == "./CharacterText" then
+			return require("./CharacterText")
 		end
 		return { factory = function() end, mount = function() end }
 	end
