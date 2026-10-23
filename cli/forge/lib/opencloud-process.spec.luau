@@ -50,7 +50,8 @@ return {
 		}
 		local state = lifecycle.exchange(observed, "fixture input", function(trigger)
 			expire = trigger
-			return Deadline.arm(5, trigger)
+			-- Hang guard only: the READY barrier fires the deadline; a loaded host can take >5 s to start bun.
+			return Deadline.arm(120, trigger)
 		end)
 		assert(string.find(seen, "READY\n", 1, true), "deadline must follow barrier, not timing luck")
 		assert(
