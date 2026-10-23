@@ -41,6 +41,7 @@ function M.new(ctx: any): any
 											ProgressionExtension = require(
 												"../../../../genres/survival-coop/module/ProgressionExtension"
 											),
+											ToolTiers = require("../../../../genres/survival-coop/module/ToolTiers"),
 										},
 									},
 								},

@@ -11176,6 +11176,14 @@ wildlifeDetails:
     id: "compsognathus"
     level: 10
     renderEnvelope: {x: 1, y: 1.5, z: 3}
+    visual:
+      plan: "theropod"
+      feature: "scuttle"
+      skin: "leather"
+      body: {r: 126, g: 170, b: 72}
+      accent: {r: 86, g: 120, b: 52}
+      belly: {r: 226, g: 222, b: 160}
+      marking: {r: 70, g: 96, b: 44}
     health: 52
     damage: 4
     walkSpeed: 7
@@ -11225,6 +11233,14 @@ wildlifeDetails:
     id: "oviraptor"
     level: 10
     renderEnvelope: {x: 1.5, y: 3, z: 3}
+    visual:
+      plan: "theropod"
+      feature: "feathers"
+      skin: "feathers"
+      body: {r: 176, g: 92, b: 64}
+      accent: {r: 64, g: 120, b: 160}
+      belly: {r: 238, g: 212, b: 170}
+      marking: {r: 120, g: 58, b: 40}
     health: 75
     damage: 5
     walkSpeed: 6
@@ -11278,6 +11294,14 @@ wildlifeDetails:
     id: "protoceratops"
     level: 10
     renderEnvelope: {x: 2.5, y: 3, z: 4}
+    visual:
+      plan: "ceratopsian"
+      feature: "frill"
+      skin: "leather"
+      body: {r: 204, g: 160, b: 96}
+      accent: {r: 178, g: 92, b: 60}
+      belly: {r: 240, g: 220, b: 176}
+      marking: {r: 150, g: 104, b: 64}
     riderHeight: 3.5
     health: 135
     damage: 8
@@ -11336,6 +11360,15 @@ wildlifeDetails:
     id: "gallimimus"
     level: 30
     renderEnvelope: {x: 2, y: 6, z: 5}
+    visual:
+      plan: "theropod"
+      feature: "longlegs"
+      skin: "leather"
+      body: {r: 196, g: 140, b: 82}
+      accent: {r: 120, g: 92, b: 60}
+      belly: {r: 240, g: 222, b: 186}
+      marking: {r: 150, g: 96, b: 56}
+      parts: ["stripes"]
     riderHeight: 4.5
     health: 297
     damage: 0
@@ -11384,6 +11417,15 @@ wildlifeDetails:
     id: "parasaurolophus"
     level: 20
     renderEnvelope: {x: 3, y: 7, z: 7}
+    visual:
+      plan: "hadrosaur"
+      feature: "backcrest"
+      skin: "leather"
+      body: {r: 64, g: 140, b: 138}
+      accent: {r: 214, g: 108, b: 60}
+      belly: {r: 214, g: 232, b: 210}
+      marking: {r: 40, g: 96, b: 96}
+      parts: ["stripes"]
     riderHeight: 5
     health: 325
     damage: 17
@@ -11442,6 +11484,14 @@ wildlifeDetails:
     id: "stegosaurus"
     level: 30
     renderEnvelope: {x: 5, y: 6, z: 9}
+    visual:
+      plan: "armored"
+      feature: "plates"
+      skin: "plates"
+      body: {r: 124, g: 146, b: 92}
+      accent: {r: 196, g: 96, b: 64}
+      belly: {r: 214, g: 222, b: 170}
+      marking: {r: 88, g: 104, b: 64}
     riderHeight: 5
     health: 630
     damage: 38
@@ -11504,6 +11554,15 @@ wildlifeDetails:
     id: "ankylosaurus"
     level: 40
     renderEnvelope: {x: 4, y: 4, z: 7}
+    visual:
+      plan: "armored"
+      feature: "club"
+      skin: "plates"
+      body: {r: 150, g: 128, b: 90}
+      accent: {r: 104, g: 88, b: 64}
+      belly: {r: 220, g: 204, b: 166}
+      marking: {r: 96, g: 80, b: 56}
+      parts: ["sideSpikes"]
     riderHeight: 4.5
     health: 990
     damage: 49
@@ -11566,6 +11625,14 @@ wildlifeDetails:
     id: "triceratops"
     level: 30
     renderEnvelope: {x: 5, y: 5, z: 8}
+    visual:
+      plan: "ceratopsian"
+      feature: "horns"
+      skin: "leather"
+      body: {r: 158, g: 106, b: 74}
+      accent: {r: 196, g: 140, b: 84}
+      belly: {r: 226, g: 198, b: 160}
+      marking: {r: 112, g: 72, b: 50}
     riderHeight: 5.5
     health: 700
     damage: 42
@@ -11628,6 +11695,15 @@ wildlifeDetails:
     id: "brachiosaurus"
     level: 50
     renderEnvelope: {x: 8, y: 24, z: 18}
+    visual:
+      plan: "sauropod"
+      feature: "highneck"
+      skin: "leather"
+      body: {r: 122, g: 138, b: 104}
+      accent: {r: 90, g: 104, b: 78}
+      belly: {r: 214, g: 214, b: 180}
+      marking: {r: 92, g: 104, b: 76}
+      parts: ["stripes"]
     health: 2200
     damage: 71
     walkSpeed: 4
@@ -11681,6 +11757,15 @@ wildlifeDetails:
     id: "utahraptor"
     level: 40
     renderEnvelope: {x: 3, y: 6, z: 6}
+    visual:
+      plan: "theropod"
+      feature: "sickle"
+      skin: "feathers"
+      body: {r: 150, g: 90, b: 58}
+      accent: {r: 226, g: 180, b: 90}
+      belly: {r: 232, g: 206, b: 170}
+      marking: {r: 96, g: 56, b: 36}
+      parts: ["mane"]
     riderHeight: 4.5
     health: 517
     damage: 51
@@ -11743,6 +11828,15 @@ wildlifeDetails:
     id: "velociraptor"
     level: 20
     renderEnvelope: {x: 2, y: 4, z: 4}
+    visual:
+      plan: "theropod"
+      feature: "slender"
+      skin: "feathers"
+      body: {r: 184, g: 150, b: 92}
+      accent: {r: 124, g: 72, b: 48}
+      belly: {r: 240, g: 226, b: 190}
+      marking: {r: 116, g: 80, b: 48}
+      parts: ["stripes"]
     riderHeight: 3.5
     health: 187
     damage: 20
@@ -11805,6 +11899,15 @@ wildlifeDetails:
     id: "dilophosaurus"
     level: 30
     renderEnvelope: {x: 3, y: 6, z: 6}
+    visual:
+      plan: "theropod"
+      feature: "twincrest"
+      skin: "leather"
+      body: {r: 82, g: 140, b: 118}
+      accent: {r: 220, g: 170, b: 64}
+      belly: {r: 210, g: 228, b: 196}
+      marking: {r: 48, g: 92, b: 78}
+      parts: ["stripes"]
     riderHeight: 4.5
     health: 350
     damage: 33
@@ -11867,6 +11970,15 @@ wildlifeDetails:
     id: "allosaurus"
     level: 50
     renderEnvelope: {x: 5, y: 9, z: 12}
+    visual:
+      plan: "theropod"
+      feature: "brow"
+      skin: "leather"
+      body: {r: 140, g: 120, b: 84}
+      accent: {r: 176, g: 80, b: 56}
+      belly: {r: 220, g: 206, b: 168}
+      marking: {r: 96, g: 80, b: 56}
+      parts: ["stripes"]
     riderHeight: 7
     health: 1210
     damage: 71
@@ -11929,6 +12041,14 @@ wildlifeDetails:
     id: "tyrannosaurus"
     level: 60
     renderEnvelope: {x: 7, y: 12, z: 16}
+    visual:
+      plan: "theropod"
+      feature: "heavyjaw"
+      skin: "leather"
+      body: {r: 104, g: 118, b: 88}
+      accent: {r: 150, g: 92, b: 64}
+      belly: {r: 204, g: 200, b: 164}
+      marking: {r: 72, g: 82, b: 60}
     health: 2600
     damage: 97
     walkSpeed: 5
@@ -11990,6 +12110,15 @@ wildlifeDetails:
     id: "smilodon"
     level: 50
     renderEnvelope: {x: 3, y: 4, z: 5}
+    visual:
+      plan: "mammal"
+      feature: "saber"
+      skin: "fur"
+      body: {r: 196, g: 150, b: 90}
+      accent: {r: 150, g: 108, b: 62}
+      belly: {r: 240, g: 226, b: 196}
+      marking: {r: 120, g: 84, b: 50}
+      parts: ["mane"]
     riderHeight: 4.5
     health: 742
     damage: 66
@@ -12052,6 +12181,15 @@ wildlifeDetails:
     id: "tropicalSmilodon"
     level: 40
     renderEnvelope: {x: 2.5, y: 3.5, z: 5}
+    visual:
+      plan: "mammal"
+      feature: "cat"
+      skin: "fur"
+      body: {r: 210, g: 146, b: 66}
+      accent: {r: 136, g: 90, b: 44}
+      belly: {r: 244, g: 226, b: 190}
+      marking: {r: 60, g: 40, b: 26}
+      parts: ["stripes"]
     riderHeight: 4
     health: 517
     damage: 49
@@ -12114,6 +12252,15 @@ wildlifeDetails:
     id: "direWolf"
     level: 40
     renderEnvelope: {x: 2.5, y: 3.5, z: 5}
+    visual:
+      plan: "mammal"
+      feature: "muzzle"
+      skin: "fur"
+      body: {r: 128, g: 134, b: 140}
+      accent: {r: 90, g: 94, b: 100}
+      belly: {r: 226, g: 226, b: 222}
+      marking: {r: 70, g: 72, b: 78}
+      parts: ["bushyTail", "mane"]
     riderHeight: 4
     health: 450
     damage: 42
@@ -12176,6 +12323,15 @@ wildlifeDetails:
     id: "mammoth"
     level: 50
     renderEnvelope: {x: 7, y: 10, z: 12}
+    visual:
+      plan: "elephant"
+      feature: "wool"
+      skin: "fur"
+      body: {r: 128, g: 86, b: 60}
+      accent: {r: 96, g: 62, b: 42}
+      belly: {r: 176, g: 140, b: 110}
+      marking: {r: 80, g: 52, b: 36}
+      parts: ["hump"]
     riderHeight: 10.5
     health: 1650
     damage: 66
@@ -12242,6 +12398,15 @@ wildlifeDetails:
     id: "boar"
     level: 10
     renderEnvelope: {x: 2.5, y: 3, z: 4}
+    visual:
+      plan: "mammal"
+      feature: "bristles"
+      skin: "fur"
+      body: {r: 132, g: 100, b: 76}
+      accent: {r: 86, g: 64, b: 48}
+      belly: {r: 200, g: 176, b: 150}
+      marking: {r: 70, g: 50, b: 38}
+      parts: ["hump"]
     riderHeight: 3.5
     health: 120
     damage: 8
@@ -12304,6 +12469,14 @@ wildlifeDetails:
     id: "deer"
     level: 10
     renderEnvelope: {x: 2, y: 5, z: 4}
+    visual:
+      plan: "mammal"
+      feature: "antlers"
+      skin: "fur"
+      body: {r: 182, g: 130, b: 82}
+      accent: {r: 130, g: 92, b: 60}
+      belly: {r: 244, g: 232, b: 214}
+      marking: {r: 236, g: 224, b: 204}
     riderHeight: 3.5
     health: 90
     damage: 0
@@ -12355,6 +12528,14 @@ wildlifeDetails:
     id: "elephant"
     level: 30
     renderEnvelope: {x: 6, y: 9, z: 10}
+    visual:
+      plan: "elephant"
+      feature: "trunk"
+      skin: "leather"
+      body: {r: 150, g: 146, b: 140}
+      accent: {r: 118, g: 114, b: 108}
+      belly: {r: 196, g: 190, b: 180}
+      marking: {r: 112, g: 108, b: 102}
     riderHeight: 9.5
     health: 875
     damage: 35
@@ -12417,6 +12598,15 @@ wildlifeDetails:
     id: "crocodile"
     level: 40
     renderEnvelope: {x: 3, y: 2, z: 7}
+    visual:
+      plan: "crocodilian"
+      feature: "flatjaw"
+      skin: "plates"
+      body: {r: 94, g: 120, b: 76}
+      accent: {r: 70, g: 92, b: 56}
+      belly: {r: 206, g: 200, b: 150}
+      marking: {r: 60, g: 78, b: 48}
+      parts: ["sideSpikes"]
     health: 720
     damage: 56
     walkSpeed: 3
@@ -12474,6 +12664,14 @@ wildlifeDetails:
     id: "turtle"
     level: 10
     renderEnvelope: {x: 1.5, y: 1, z: 2}
+    visual:
+      plan: "turtle"
+      feature: "shell"
+      skin: "plates"
+      body: {r: 112, g: 148, b: 92}
+      accent: {r: 132, g: 96, b: 58}
+      belly: {r: 214, g: 206, b: 150}
+      marking: {r: 86, g: 112, b: 70}
     health: 97
     damage: 0
     walkSpeed: 2
@@ -12513,6 +12711,14 @@ wildlifeDetails:
     id: "dodo"
     level: 10
     renderEnvelope: {x: 1.5, y: 2, z: 2}
+    visual:
+      plan: "bird"
+      feature: "roundbeak"
+      skin: "feathers"
+      body: {r: 140, g: 152, b: 170}
+      accent: {r: 238, g: 196, b: 96}
+      belly: {r: 226, g: 226, b: 220}
+      marking: {r: 96, g: 106, b: 122}
     health: 45
     damage: 0
     walkSpeed: 4
@@ -12671,6 +12877,29 @@ missionPolicy:
   repeatXPPerLevel: 9
   repeatXPMinLevel: 6
   repeatXPMaxLevel: 30
+# Lead decision (p38): a node requiring a tool accepts any owned axe/pick of the same family at the
+# same or a higher tier, so the tutorial's Flint Hatchet (stone-axe) cuts first-route wood.
+toolPolicy:
+  provenance:
+    classification: "RECONSTRUCTED"
+    sourceId: "lead-p38-axe-tier"
+  families:
+    -
+      id: "axe"
+      members:
+        - {item: "stone-axe", tier: 1}
+        - {item: "starter-axe", tier: 1}
+        - {item: "axe-t1", tier: 2}
+        - {item: "axe-t2", tier: 3}
+        - {item: "axe-t3", tier: 4}
+    -
+      id: "pickaxe"
+      members:
+        - {item: "stone-pick", tier: 1}
+        - {item: "starter-pickaxe", tier: 1}
+        - {item: "pickaxe-t1", tier: 2}
+        - {item: "pickaxe-t2", tier: 3}
+        - {item: "pickaxe-t3", tier: 4}
 homePolicy:
   provenance: {classification: "RECONSTRUCTED", sourceId: "lead-home-tier-decision"}
   # Robango redesign value: one free starter plot makes farming reachable on a new home.

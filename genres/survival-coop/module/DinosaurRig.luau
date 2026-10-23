@@ -31,6 +31,30 @@ local silhouettes = {
 	dodo = shape("bird", "roundbeak", 1.5, 2, 2, "flutter"),
 }
 
+export type Rgb = { r: number, g: number, b: number }
+--- Authored per-species look (content wildlifeDetails[].visual). Without it the built-in
+--- silhouette and pigment tables below stay the defaults.
+export type Visual = {
+	plan: string,
+	feature: string,
+	skin: string?,
+	body: Rgb,
+	accent: Rgb?,
+	belly: Rgb?,
+	marking: Rgb?,
+	parts: { string }?,
+}
+local SKINS: { [string]: Enum.Material } = {
+	leather = Enum.Material.Leather,
+	plates = Enum.Material.Slate,
+	-- Fabric renders near black on creature-sized parts; fur and feathers use plastic.
+	fur = Enum.Material.Plastic,
+	feathers = Enum.Material.SmoothPlastic,
+}
+local function rgb(c: Rgb): Color3
+	return Color3.fromRGB(c.r, c.g, c.b)
+end
+
 local pigments: { [string]: { number } } = {
 	compsognathus = { 129, 145, 66 },
 	oviraptor = { 139, 86, 67 },
@@ -58,31 +82,53 @@ local pigments: { [string]: { number } } = {
 	dodo = { 122, 141, 151 },
 }
 
-function M.new(kind: string, id: string, position: Vector3, parent: Instance, envelope: Vector3?): Model
+function M.new(
+	kind: string,
+	id: string,
+	position: Vector3,
+	parent: Instance,
+	envelope: Vector3?,
+	visual: Visual?
+): Model
 	local species = if kind == "grazer" then "brachiosaurus" elseif kind == "hunter" then "allosaurus" else kind
 	local spec: Shape? = (silhouettes :: { [string]: Shape })[species]
-	assert(spec, "UNKNOWN_DINOSAUR")
-	local s = spec :: Shape
-	local dims = envelope or s.size
-	assert(dims.X > 0 and dims.Y > 0 and dims.Z > 0, "INVALID_RIG_ENVELOPE")
+	assert(spec or visual, "UNKNOWN_DINOSAUR")
+	local dims = envelope or (if spec then spec.size else nil)
+	assert(dims and dims.X > 0 and dims.Y > 0 and dims.Z > 0, "INVALID_RIG_ENVELOPE")
 	local model = Instance.new("Model")
 	model.Name = id
 	local root = Instance.new("Part")
 	root.Name, root.Transparency, root.CanCollide = "HumanoidRootPart", 1, true
 	root.Size, root.CFrame, root.Parent = dims, CFrame.new(position), model
 	local w, h, l = dims.X, dims.Y, dims.Z
-	local family, feature = s.family, s.feature
+	local family = if visual then visual.plan else (spec :: Shape).family
+	local feature = if visual then visual.feature else (spec :: Shape).feature
+	local attackStyle = if spec then spec.attack else "bite"
 	local mammal = family == "mammal" or family == "elephant"
-	local pigment = assert(pigments[species], "MISSING_SPECIES_PIGMENT")
+	local pigment = if visual
+		then { visual.body.r, visual.body.g, visual.body.b }
+		else assert(pigments[species], "MISSING_SPECIES_PIGMENT")
 	local bodyColor = Color3.fromRGB(table.unpack(pigment))
 	local p1, p2, p3 = pigment[1], pigment[2], pigment[3]
-	local accent = Color3.fromRGB(math.max(90, p1 * 0.78), math.max(90, p2 * 0.78), math.max(90, p3 * 0.78))
-	local underside = Color3.fromRGB(math.min(225, p1 + 49), math.min(219, p2 + 43), math.min(189, p3 + 38))
+	local accent = if visual and visual.accent
+		then rgb(visual.accent)
+		else Color3.fromRGB(math.max(90, p1 * 0.78), math.max(90, p2 * 0.78), math.max(90, p3 * 0.78))
+	local underside = if visual and visual.belly
+		then rgb(visual.belly)
+		else Color3.fromRGB(math.min(225, p1 + 49), math.min(219, p2 + 43), math.min(189, p3 + 38))
+	local marking = if visual and visual.marking then rgb(visual.marking) else accent
 	local ivory = Color3.fromRGB(225, 216, 177)
-	local skin = if mammal or family == "bird"
-		then Enum.Material.Fabric
-		elseif family == "turtle" or family == "armored" then Enum.Material.Slate
-		else Enum.Material.Leather
+	local skin = if visual and visual.skin
+		then assert(SKINS[visual.skin], "UNKNOWN_CREATURE_SKIN")
+		elseif mammal then SKINS.fur
+		elseif family == "bird" then SKINS.feathers
+		elseif family == "turtle" or family == "armored" then SKINS.plates
+		else SKINS.leather
+	local extras: { [string]: boolean } = {}
+	local tokens: { string } = if visual and visual.parts then visual.parts else {}
+	for _, token in tokens do
+		extras[token] = true
+	end
 	local parts: { [string]: BasePart } = { HumanoidRootPart = root }
 	local count = 1
 	local function part(
@@ -94,23 +140,28 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		color: Color3?,
 		pivot: Vector3?
 	): BasePart
+		local limb = string.match(name, "^Thigh") or string.match(name, "^Fore[lS]") or string.match(name, "^Arm")
+		-- A Ball part always renders as a sphere of its smallest axis, so rounded anatomy is a
+		-- block carrying a Sphere SpecialMesh: a true ellipsoid filling Size.
+		local round = form == nil or limb ~= nil
 		local p: BasePart = if form == "wedge" then Instance.new("WedgePart") else Instance.new("Part")
 		if p:IsA("Part") then
-			p.Shape = if form == "cylinder"
-				then Enum.PartType.Cylinder
-				elseif form == "block" then Enum.PartType.Block
-				else Enum.PartType.Ball
+			p.Shape = if form == "cylinder" and not round then Enum.PartType.Cylinder else Enum.PartType.Block
 		end
 		local localAt = Vector3.new(at.X * w, at.Y * h, at.Z * l)
 		p.Name, p.Size = name, Vector3.new(size.X * w, size.Y * h, size.Z * l)
-		if p:IsA("Part") and p.Shape == Enum.PartType.Ball and name ~= "Head" and name ~= "Shell" then
+		if round and name ~= "Head" and name ~= "Shell" then
 			p.Size = p.Size:Min(Vector3.one * l * 0.39)
 		end
 		p.CFrame, p.Color = root.CFrame * CFrame.new(localAt), color or bodyColor
-		if string.match(name, "^Thigh") or string.match(name, "^Fore[lS]") or string.match(name, "^Arm") then
-			(p :: Part).Shape = Enum.PartType.Ball
+		if limb then
 			p.Size = Vector3.new(size.Y * h, size.X * w, size.Z * l)
 			p.CFrame *= CFrame.Angles(0, 0, math.pi / 2)
+		end
+		if round then
+			local mesh = Instance.new("SpecialMesh")
+			mesh.Name, mesh.MeshType = "Ellipsoid", Enum.MeshType.Sphere
+			mesh.Parent = p
 		end
 		p.Material = if color
 				and color ~= accent
@@ -158,6 +209,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		joint.C0, joint.C1 =
 			assert(joint.Part0, "MISSING_SEGMENT_PARENT").CFrame:ToObjectSpace(frame), p.CFrame:ToObjectSpace(frame)
 		return p
+	end
+	-- Re-orients an attached part about its own centre and keeps its joint at rest.
+	local function tilt(p: BasePart, rotation: CFrame)
+		p.CFrame *= rotation
+		local joint = root:FindFirstChild(p.Name .. "Joint") :: Motor6D
+		joint.C1 = p.CFrame:ToObjectSpace(assert(joint.Part0).CFrame * joint.C0)
 	end
 	local biped = family == "theropod" or family == "bird"
 	local low = family == "crocodilian" or family == "turtle"
@@ -213,12 +270,13 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		hy, hz, headW, headH, headL = 0.43, -0.39, 0.17, 0.09, 0.14
 		add("NostrilCrest", 0, hy + 0.045, hz + 0.015, 0.12, 0.07, 0.09, "Neck6", nil, underside)
 	elseif family == "theropod" then
-		hy = if feature == "longlegs" then 0.32 else 0.18
-		hz, headL = -0.4, 0.3
+		-- Raised head on an S-neck over the hips: reads as a biped, not a four-legged body.
+		hy = if feature == "longlegs" or feature == "scuttle" then 0.4 elseif feature == "heavyjaw" then 0.3 else 0.32
+		hz, headL = -0.42, 0.3
 		headW = if feature == "heavyjaw" then 0.42 else 0.28
 		headH = if feature == "heavyjaw" then 0.25 else 0.2
-		add("NeckBase", 0, hy - 0.13, -0.2, 0.29, 0.28, 0.22, "Torso")
-		add("Neck", 0, hy - 0.015, -0.28, 0.22, 0.23, 0.2, "NeckBase")
+		add("NeckBase", 0, (hy + torsoY) / 2 - 0.04, -0.22, 0.29, hy - torsoY, 0.22, "Torso")
+		add("Neck", 0, hy - 0.06, -0.3, 0.22, 0.23, 0.2, "NeckBase")
 	elseif family == "crocodilian" then
 		hy, hz, headW, headH, headL = -0.06, -0.32, 0.47, 0.19, 0.38
 	elseif family == "elephant" then
@@ -234,8 +292,12 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		add("Neck", 0, 0.15, -0.22, 0.29, 0.32, 0.2, "Torso")
 	elseif family == "ceratopsian" then
 		hy, hz, headW, headH, headL = 0.09, -0.33, 0.38, 0.26, 0.25
-	elseif species == "boar" then
-		hy, hz, headW, headH, headL = 0.06, -0.32, 0.33, 0.29, 0.28
+	elseif feature == "bristles" then
+		hy, hz, headW, headH, headL = -0.02, -0.38, 0.33, 0.29, 0.28
+	elseif family == "mammal" then
+		-- Head carried level and forward of the shoulders, ears up: a quadruped hunter's profile.
+		hy, hz, headW, headH, headL = 0.12, -0.42, 0.3, 0.24, 0.26
+		add("Neck", 0, 0.08, -0.3, 0.26, 0.26, 0.2, "Torso")
 	end
 	local neckParent = if family == "sauropod" then "Neck6" elseif parts.Neck then "Neck" else "Torso"
 	part(
@@ -270,7 +332,6 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	end
 	for side = -1, 1, 2 do
 		local ey, ez = hy + headH * 0.13, hz - headL * 0.2
-		add("EyeSocket" .. side, side * headW * 0.455, ey, ez, 0.04, 0.045, 0.04, "Head", nil, accent)
 		add("Eye" .. side, side * headW * 0.46, ey, ez, 0.035, 0.033, 0.025, "Head", nil, Color3.fromRGB(238, 192, 61))
 		add(
 			"Pupil" .. side,
@@ -284,7 +345,8 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 			nil,
 			Color3.fromRGB(24, 29, 26)
 		)
-		local lx = if low then 0.4 else 0.28
+		-- Low sprawlers and the club-tailed tank stand on splayed legs.
+		local lx = if low or feature == "club" then 0.4 else 0.28
 		local tall = feature == "antlers" or feature == "longlegs"
 		local legH, legW = if low then 0.18 elseif tall then 0.49 else 0.36, if tall then 0.1 else 0.18
 		part(
@@ -313,7 +375,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 				nil,
 				Vector3.new(side * lx, -0.04, -0.15)
 			)
-			add("ForeShin" .. side, side * lx, -0.34, -0.15, legW * 0.8, 0.18, 0.1, "Foreleg" .. side, "cylinder")
+			add("ForeShin" .. side, side * lx, -0.34, -0.15, legW * 0.8, 0.18, 0.1, "Foreleg" .. side)
 			add("Forefoot" .. side, side * lx, -0.465, -0.17, legW * 1.15, 0.07, 0.16, "ForeShin" .. side)
 			add(
 				"Foreclaw" .. side,
@@ -361,16 +423,26 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		end
 	end
 	local dinosaurTail = not mammal and family ~= "bird" and family ~= "turtle"
+	local tailStep = if family == "theropod" or family == "sauropod" then 0.16 else 0.13
 	if dinosaurTail then
 		for i = 1, 4 do
 			segment(
 				"Tail" .. i,
-				Vector3.new(0, torsoY, 0.22 + (i - 1) * 0.13),
-				Vector3.new(0, torsoY - 0.015, 0.22 + i * 0.13),
+				Vector3.new(
+					0,
+					torsoY + (if family == "theropod" then 0.05 - (i - 1) * 0.03 else 0),
+					0.22 + (i - 1) * tailStep
+				),
+				Vector3.new(0, torsoY + (if family == "theropod" then 0.05 - i * 0.03 else -0.015), 0.22 + i * tailStep),
 				(if family == "theropod" then 0.38 else 0.28) - i * (if family == "theropod" then 0.077 else 0.055),
 				if i == 1 then "Torso" else "Tail" .. (i - 1)
 			)
 		end
+	elseif family == "mammal" and extras.bushyTail then
+		-- Long low brush carried behind the haunches (wolf), not a stub.
+		local brush = add("MammalTail", 0, torsoY - 0.16, 0.4, 0.15, 0.3, 0.16, "Torso", nil, accent)
+		brush:SetAttribute("VisualPart", "bushyTail")
+		tilt(brush, CFrame.Angles(math.rad(-25), 0, 0))
 	elseif family == "mammal" then
 		add(
 			"MammalTail",
@@ -461,7 +533,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		end
 	elseif family == "turtle" or feature == "club" then
 		local a = if family == "turtle" then 1 else 0.6
-		add("Shell", 0, 0.12, 0.04, 0.86 * a, 0.68 * a * a, 0.62 * a, "Torso", nil, accent)
+		local shell = add("Shell", 0, 0.12, 0.04, 0.86 * a, 0.68 * a * a, 0.62 * a, "Torso", nil, accent)
+		if family ~= "turtle" then
+			-- Ankylosaur armour is a broad low dome that overhangs the legs.
+			shell.Size = Vector3.new(w * 0.98, h * 0.32, l * 0.44)
+		end
 		if family == "turtle" then
 			for i = -1, 1 do
 				add(
@@ -509,8 +585,11 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	if feature == "feathers" then
 		add("Crest", 0, hy + 0.15, hz, 0.1, 0.24, 0.16, "Head", "wedge", accent)
 	elseif feature == "backcrest" then
-		add("BackwardCrest", 0, hy + 0.09, hz + 0.12, 0.13, 0.13, 0.37, "Head", nil, accent)
-		add("CrestTip", 0, hy + 0.09, hz + 0.28, 0.12, 0.11, 0.11, "BackwardCrest", nil, accent)
+		-- The long tube crest sweeps up and back well past the skull.
+		local crest = add("BackwardCrest", 0, hy + 0.13, hz + 0.16, 0.12, 0.12, 0.42, "Head", nil, accent)
+		-- Negative pitch lifts the +Z (rear) end: the crest rises behind the skull into CrestTip.
+		tilt(crest, CFrame.Angles(math.rad(-28), 0, 0))
+		add("CrestTip", 0, hy + 0.22, hz + 0.33, 0.13, 0.13, 0.13, "BackwardCrest", nil, accent)
 		add("DuckBill", 0, hy - 0.04, hz - 0.18, 0.34, 0.065, 0.16, "Head", nil, underside)
 	elseif feature == "twincrest" or feature == "brow" then
 		for side = -1, 1, 2 do
@@ -536,6 +615,49 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 		add("BeakHook", 0, hy - 0.095, hz - 0.245, 0.16, 0.17, 0.08, "HookBeak", nil, accent)
 		add("TailFan", 0, 0.1, 0.29, 0.35, 0.22, 0.2, "Torso", "wedge", underside)
 	end
+	-- Authored silhouette parts (content visual.parts), each tagged with its token.
+	local function extra(token: string, p: BasePart): BasePart
+		p:SetAttribute("VisualPart", token)
+		return p
+	end
+	if extras.stripes then
+		-- Bands that wrap the torso: an ellipsoid slice a little larger than the body there.
+		local torso = parts.Torso
+		for i = 1, 3 do
+			local z = -0.06 + i * 0.07
+			local girth = math.sqrt(math.max(0, 1 - ((z - 0.05) / 0.195) ^ 2)) * 1.05
+			local band = extra("stripes", add("Stripe" .. i, 0, torsoY, z, 0.5, torsoH, 0.035, "Torso", nil, marking))
+			band.Size = Vector3.new(torso.Size.X * girth, torso.Size.Y * girth, l * 0.035)
+		end
+	end
+	if extras.mane then
+		extra("mane", add("Mane", 0, torsoY + torsoH * 0.12, -0.17, 0.5, torsoH * 1.15, 0.2, "Torso", nil, accent))
+	end
+	if extras.hump then
+		extra("hump", add("Hump", 0, torsoY + torsoH * 0.5, -0.1, 0.34, torsoH * 0.55, 0.24, "Torso", nil, accent))
+	end
+	if extras.sideSpikes then
+		for side = -1, 1, 2 do
+			for i = 1, 2 do
+				local spike = extra(
+					"sideSpikes",
+					add(
+						"SideSpike" .. side .. "_" .. i,
+						side * 0.33,
+						torsoY + 0.04,
+						-0.06 + i * 0.12,
+						0.1,
+						0.13,
+						0.1,
+						"Torso",
+						"wedge",
+						ivory
+					)
+				)
+				tilt(spike, CFrame.Angles(0, 0, -side * math.pi / 2))
+			end
+		end
+	end
 	local humanoid = Instance.new("Humanoid")
 	humanoid.RequiresNeck, humanoid.HipHeight = false, 0
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
@@ -543,7 +665,7 @@ function M.new(kind: string, id: string, position: Vector3, parent: Instance, en
 	model:SetAttribute("Species", species)
 	model:SetAttribute("Silhouette", feature)
 	model:SetAttribute("BodyPlan", family)
-	model:SetAttribute("AttackStyle", s.attack)
+	model:SetAttribute("AttackStyle", attackStyle)
 	model:SetAttribute("PartCount", count)
 	model:SetAttribute("PartBudget", 48)
 	model.PrimaryPart, model.Parent = root, parent

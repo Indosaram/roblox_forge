@@ -88,14 +88,19 @@ function M.coast(layout: any, seed: number): any
 		local nx, nz = p.x / hx, p.z / hz
 		table.insert(discs, { rho = math.sqrt(nx * nx + nz * nz), phi = math.atan2(nz, nx), r = margin / unit })
 	end
+	-- High authored points keep room to ramp down to the beach at COAST_SLOPE, so their
+	-- ground never ends in a wall at the coast.
+	local function rise(p: any): number
+		return 16 + math.max(0, p.y - M.BEACH_TOP) / M.COAST_SLOPE
+	end
 	for _, node in layout.resourceNodes do
-		keep(node.position, 48)
+		keep(node.position, math.max(48, rise(node.position)))
 	end
 	for _, anchor in layout.anchors do
-		keep(anchor.position, if anchor.id == "objective" then 96 else 56)
+		keep(anchor.position, math.max(if anchor.id == "objective" then 96 else 56, rise(anchor.position)))
 	end
 	for _, spawn in layout.spawns do
-		keep(spawn.position, spawn.radius + 48)
+		keep(spawn.position, math.max(spawn.radius + 48, rise(spawn.position)))
 	end
 	for _, hazard in layout.hazards or {} do
 		keep(hazard.position, (hazard.radius or 8) + 40)
@@ -148,6 +153,22 @@ end
 -- grass/sand boundary is the inset coast curve rather than the column grid.
 M.GRASS_EDGE = 0.09
 M.BEACH_TOP = 2
+
+-- Height gained per stud inland from the coast (studs/stud) where authored ground meets the beach.
+M.COAST_SLOPE = 0.33
+
+-- True when the square column at (x, z) contains an authored node, anchor or spawn point.
+function M.pinned(layout: any, x: number, z: number, cell: number): boolean
+	for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+		for _, item in list do
+			local p = item.position
+			if math.abs(p.x - x) <= cell / 2 and math.abs(p.z - z) <= cell / 2 then
+				return true
+			end
+		end
+	end
+	return false
+end
 
 function M.band(coast: any, cell: number): number
 	return M.GRASS_EDGE + cell * 1.5 / coast.unit
@@ -269,6 +290,14 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 					blend(math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2), cell * 0.75, p.y)
 				end
 				top = exact or top
+				-- Authored clearings can reach the beach band; near the coast the ground ramps down
+				-- to BEACH_TOP over at least two cells instead of ending in a wall at the last column.
+				-- M.coast widens the island around high authored ground to make room for the ramp;
+				-- the column holding an authored point always keeps its exact height.
+				local cap = M.BEACH_TOP + math.max(0, coast.depth(x, z) * coast.unit - cell / 2) * M.COAST_SLOPE
+				if top > cap and not M.pinned(layout, x, z, cell) then
+					top = cap
+				end
 			end
 			for _, path in if coast then {} else layout.paths do
 				for i = 2, #path.points do

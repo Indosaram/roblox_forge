@@ -371,10 +371,10 @@ function M.new(config: Config)
 				engine = Archetype.engine(entry.behavior) or engine
 			end
 		end
-		local envelope: Vector3? = nil
+		local envelope: Vector3?, visual: any = nil, nil
 		for _, detail in (config.content.wildlifeDetails or {}) :: { any } do
 			if detail.id == species then
-				engine = detail.id
+				engine, visual = detail.id, detail.visual
 				local size = detail.renderEnvelope
 				if size then
 					envelope = Vector3.new(size.x, size.y, size.z)
@@ -382,8 +382,9 @@ function M.new(config: Config)
 				break
 			end
 		end
-		local model =
-			MountVisual.dress(DinosaurRig.new(engine, MountVisual.MODEL_NAME, rider.Position, character, envelope))
+		local model = MountVisual.dress(
+			DinosaurRig.new(engine, MountVisual.MODEL_NAME, rider.Position, character, envelope, visual)
+		)
 		local body = model:FindFirstChild("MountRoot") :: BasePart
 		body.CFrame = rider.CFrame * CFrame.new(0, MountVisual.SEAT.offsetStuds, 0)
 		local weld = Instance.new("WeldConstraint")
@@ -850,10 +851,10 @@ function M.new(config: Config)
 						engine = Archetype.engine(entry.behavior) or "hunter"
 					end
 				end
-				local envelope: Vector3? = nil
+				local envelope: Vector3?, visual: any = nil, nil
 				for _, detail in (config.content.wildlifeDetails or {}) :: { any } do
 					if detail.id == spawn.catalogId then
-						engine = detail.id
+						engine, visual = detail.id, detail.visual
 						local size = detail.renderEnvelope
 						if size then
 							envelope = Vector3.new(size.x, size.y, size.z)
@@ -861,7 +862,7 @@ function M.new(config: Config)
 						break
 					end
 				end
-				local model = DinosaurRig.new(engine, spawn.id, Vector3.new(p.x, p.y, p.z), folder, envelope)
+				local model = DinosaurRig.new(engine, spawn.id, Vector3.new(p.x, p.y, p.z), folder, envelope, visual)
 				DinosaurRig.ground(model)
 				wildlife.register(model, spawn.id, spawn.catalogId)
 			end

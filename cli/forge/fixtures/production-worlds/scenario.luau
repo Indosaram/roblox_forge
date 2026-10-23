@@ -52,7 +52,7 @@ M.operations = {
 	end,
 	world_first_stage = function(ctx, step): string?
 		local ok, result = xpcall(function()
-			return ctx.fixture.firstStage(actorOf(ctx, step))
+			return ctx.fixture.firstStage(actorOf(ctx, step), step.axe)
 		end, debug.traceback)
 		if not ok then
 			print(result)
@@ -110,6 +110,7 @@ function M.new(ctx: any): any
 	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
 	module.SurvivalBootstrap = require("../../../../genres/survival-coop/module/SurvivalBootstrap")
 	module.Gathering = require("../../../../genres/survival-coop/module/Gathering")
+	module.ToolTiers = require("../../../../genres/survival-coop/module/ToolTiers")
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
@@ -1392,8 +1393,19 @@ function M.new(ctx: any): any
 		return nil
 	end
 	-- Fresh-ish player (a1 entry level, own crafted starter axe) clears a1.s1 and departs.
-	function api.firstStage(actor)
+	-- `onsite`: the player never kept an axe; a1.s1's own branch/stone and workbench make one.
+	-- `stone`: the player holds only the tutorial's Flint Hatchet (stone-axe), crafted from flint.
+	function api.firstStage(actor, axe: string?)
 		assert(api.onboarding(actor) == nil, "legitimate onboarding")
+		local onsite = axe == "onsite"
+		if onsite or axe == "stone" then
+			local port = session.personalTransfer(actor)
+			port.install(assert(port.personal:update(port.profile(), function(raw)
+				raw.envelope.genres["survival-coop"].data.inventory.bag.items[api.axe] = nil
+				return raw
+			end)))
+			api.axe = nil
+		end
 		local level = personal(actor).progression.level
 		if level >= 30 then
 			return "not_fresh:" .. tostring(level)
@@ -1404,6 +1416,60 @@ function M.new(ctx: any): any
 			return "expedition:" .. opened
 		end
 		refused(actor, "mission-action", { "next-island", "none" }, "mission_gate")
+		if axe == "stone" then
+			local port = session.personalTransfer(actor)
+			port.install(assert(port.personal:update(port.profile(), function(raw)
+				raw.envelope.genres["survival-coop"].data.inventory.bag.items["tutorial-flint"] = {
+					itemId = "tutorial-flint",
+					catalogId = "flint",
+					quantity = 2,
+					qualityMilli = 1000,
+					durabilityMilli = 0,
+					attributes = {},
+				}
+				return raw
+			end)))
+			craft(actor, "stone-axe", nil)
+			for id, item in personal(actor).inventory.bag.items do
+				if item.catalogId == "starter-axe" then
+					return "unexpected_starter_axe"
+				elseif item.catalogId == "stone-axe" then
+					api.axe = id
+				end
+			end
+			if not api.axe then
+				return "stone_axe_not_crafted"
+			end
+		end
+		if onsite then
+			local function node(id)
+				for _, candidate in world.roleSource.nodes do
+					if candidate.id == id then
+						return candidate
+					end
+				end
+				error("missing a1.s1 node " .. id)
+			end
+			local wood = node("rw.a1.s1.material.wood")
+			engine.move(actor, wood.position)
+			local version = factory.services.survivalGathering.snapshot(actor).version
+			refused(actor, "gather", { wood.id, version }, "TOOL_UNAVAILABLE")
+			for _, item in { "branch", "stone" } do
+				local resource = node("rw.a1.s1." .. item)
+				engine.move(actor, resource.position)
+				command(actor, "gather", { resource.id, factory.services.survivalGathering.snapshot(actor).version })
+				assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", item .. " recovery")
+			end
+			craft(actor, "starter-axe", "station.workbench.t1")
+			for id, item in personal(actor).inventory.bag.items do
+				if item.catalogId == "starter-axe" then
+					api.axe = id
+				end
+			end
+			if not api.axe then
+				return "onsite_axe_not_crafted"
+			end
+		end
 		local gathered = api.gather(actor)
 		if gathered then
 			return "gather:" .. gathered

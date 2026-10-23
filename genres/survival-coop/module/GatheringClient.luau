@@ -32,7 +32,9 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		return if ko then "레벨 " .. level .. " 필요" else "Requires level " .. level
 	elseif reason == "TOOL_UNAVAILABLE" then
 		local tool = if type(need.tool) == "string" then (names and names[need.tool]) or need.tool else nil
-		if tool then
+		if tool and need.orBetter == true then
+			return if ko then tool .. " 이상 도구 장착 필요" else "Requires " .. tool .. " or better (equip it)"
+		elseif tool then
 			return if ko then tool .. " 장착 필요" else "Requires " .. tool .. " (equip it)"
 		end
 		return if ko then "맞는 도구를 장착하세요" else "Equip the right tool"
@@ -58,6 +60,19 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		return nil -- the node changed under the request; the next press uses the new version
 	end
 	return if ko then "채집할 수 없습니다 (" .. reason .. ")" else "Cannot gather (" .. reason .. ")"
+end
+
+--- A final refusal ends the frozen request: the source kept no grant, so the prompt returns
+--- to a fresh gather. STALE_VERSION/NODE_DEPLETED and every `rejected` answer (tool, level,
+--- skill admission) are final; transient answers (pending, recovering, transport) keep the
+--- frozen identity for the source's dedupe.
+function M.final(result: any): boolean
+	if type(result) ~= "table" or result.ok ~= false then
+		return false
+	end
+	return result.reason == "STALE_VERSION"
+		or result.reason == "NODE_DEPLETED"
+		or (type(result.data) == "table" and result.data.status == "rejected")
 end
 
 --- Sends one frozen gather request until it leaves the durable transfer's `pending` phase.
@@ -275,12 +290,7 @@ function M.start(options: Options?)
 				and result.ok == true
 				and type(result.data) == "table"
 				and result.data.status == "confirmed"
-			local refused = type(result) == "table"
-				and result.ok == false
-				and (result.reason == "STALE_VERSION" or result.reason == "NODE_DEPLETED")
-			if confirmed or refused then
-				-- Confirmed, STALE_VERSION or NODE_DEPLETED ends the request (the source kept no
-				-- grant); other refusals keep the frozen identity for the source's dedupe.
+			if confirmed or M.final(result) then
 				pending[id] = nil
 			end
 			if resultEvent then

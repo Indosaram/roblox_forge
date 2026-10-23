@@ -27,6 +27,18 @@ return {
 		local names = { ["starter-axe"] = "Starter Axe" }
 		local tool = GatheringClient.refusalText("en-us", refused("TOOL_UNAVAILABLE", { tool = "starter-axe" }), names)
 		assert(tool == "Requires Starter Axe (equip it)", tostring(tool))
+		local better = GatheringClient.refusalText(
+			"ko-kr",
+			refused("TOOL_UNAVAILABLE", { tool = "starter-axe", orBetter = true }),
+			{ ["starter-axe"] = "입문용 도끼" }
+		)
+		assert(better == "입문용 도끼 이상 도구 장착 필요", tostring(better))
+		local betterEn = GatheringClient.refusalText(
+			"en-us",
+			refused("TOOL_UNAVAILABLE", { tool = "starter-axe", orBetter = true }),
+			names
+		)
+		assert(betterEn == "Requires Starter Axe or better (equip it)", tostring(betterEn))
 		assert(GatheringClient.refusalText("en-us", refused("TOOL_UNAVAILABLE")) == "Equip the right tool", "no detail")
 		assert(GatheringClient.refusalText("en-us", refused("ODD")) == "Cannot gather (ODD)", "unknown still visible")
 		assert(GatheringClient.refusalText("en-us", { ok = true, data = { status = "confirmed" } }) == nil, "success")
@@ -107,5 +119,21 @@ return {
 			GatheringClient.refusalText("ko-kr", result) == "아직 다시 채집할 수 없어요 (5초)",
 			"end to end"
 		)
+	end,
+	["final refusals end the request; transient answers keep it"] = function()
+		for _, reason in { "TOOL_UNAVAILABLE", "LEVEL_LOCKED", "SKILL_LOCKED", "NODE_UNREACHABLE" } do
+			assert(GatheringClient.final({ ok = false, reason = reason, data = { status = "rejected" } }), reason)
+		end
+		assert(GatheringClient.final({ ok = false, reason = "STALE_VERSION" }), "stale")
+		assert(GatheringClient.final({ ok = false, reason = "NODE_DEPLETED" }), "depleted")
+		local transients: { any } = {
+			{ ok = false, reason = "COMMAND_PENDING" },
+			{ ok = false, data = { status = "pending" } },
+			{ ok = false, reason = "SOURCE_BUSY", data = { status = "recovering" } },
+			{ ok = true, data = { status = "confirmed" } },
+		}
+		for _, transient in transients do
+			assert(not GatheringClient.final(transient), tostring(transient.reason))
+		end
 	end,
 }

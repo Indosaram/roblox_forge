@@ -92,6 +92,149 @@ local function greenAt(engine: any, roblox: any): (number, number) -> boolean
 	end
 end
 
+-- Highest solid surface at (x, z) from the recorded fills, binned by 32-stud tiles.
+local function topAt(engine: any, roblox: any): (number, number) -> number?
+	local bins: { [number]: { any } } = {}
+	for _, fill in engine.terrainWrites do
+		if fill.material == roblox.Enum.Material.Water or fill.material == roblox.Enum.Material.Air then
+			continue
+		end
+		local hx = if fill.radius then fill.radius else fill.size.X / 2
+		local hz = if fill.radius then fill.radius else fill.size.Z / 2
+		for bx = math.floor((fill.position.X - hx) / 32), math.floor((fill.position.X + hx) / 32) do
+			for bz = math.floor((fill.position.Z - hz) / 32), math.floor((fill.position.Z + hz) / 32) do
+				local key = bx * 4096 + bz
+				bins[key] = bins[key] or {}
+				table.insert(bins[key], fill)
+			end
+		end
+	end
+	return function(x: number, z: number): number?
+		local best: number? = nil
+		for _, fill in bins[math.floor(x / 32) * 4096 + math.floor(z / 32)] or {} do
+			local d2 = (x - fill.position.X) ^ 2 + (z - fill.position.Z) ^ 2
+			local high: number? = nil
+			if fill.height then
+				high = if d2 <= fill.radius ^ 2 then fill.position.Y + fill.height / 2 else nil
+			elseif fill.radius then
+				high = if d2 < fill.radius ^ 2 then fill.position.Y + math.sqrt(fill.radius ^ 2 - d2) else nil
+			elseif
+				math.abs(x - fill.position.X) <= fill.size.X / 2
+				and math.abs(z - fill.position.Z) <= fill.size.Z / 2
+			then
+				high = fill.position.Y + fill.size.Y / 2
+			end
+			if high and (best == nil or high > best) then
+				best = high
+			end
+		end
+		return best
+	end
+end
+
+-- Largest height step between 8-stud neighbours on dry land within 32 studs of the sea.
+-- Measured at 1776: 813fb07 reached 10 on a3.s3/a3.s4 (the east slab ending in a wall on the
+-- beach) and 12-18 on a4/a5; with the coastal ramp every layout stays at or below 9 (a rounded
+-- cap plus beach dome over one sample). 9.5 keeps that margin and rejects a 10-stud wall.
+local COAST_STEP = 9.5
+local function coastStep(engine: any, layout: any, roblox: any): (number, string)
+	local top = topAt(engine, roblox)
+	local S = 8
+	local heights: { [string]: number } = {}
+	local low, high = layout.bounds.min, layout.bounds.max
+	for x = low.x - 64, high.x + 64, S do
+		for z = low.z - 64, high.z + 64, S do
+			heights[x .. "," .. z] = top(x, z) or -20
+		end
+	end
+	local worst, at = 0, ""
+	for x = low.x - 64, high.x + 64, S do
+		for z = low.z - 64, high.z + 64, S do
+			local v = heights[x .. "," .. z]
+			if v <= SEA + 1 then
+				continue
+			end
+			local coastal = false
+			for dx = -4, 4 do
+				for dz = -4, 4 do
+					local n = heights[x + dx * S .. "," .. z + dz * S]
+					coastal = coastal or (n ~= nil and n <= SEA + 1)
+				end
+			end
+			if coastal then
+				for _, d in { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } } do
+					local n = heights[x + d[1] * S .. "," .. z + d[2] * S]
+					if n and n > SEA + 1 and math.abs(n - v) > worst then
+						worst, at = math.abs(n - v), x .. "," .. z
+					end
+				end
+			end
+		end
+	end
+	return worst, at
+end
+
+-- Share of the high flat ground's boundary that runs straight along x or z. Samples above 12
+-- studs whose four 8-stud neighbours are within 0.5 are flat; a boundary sample is straight when
+-- it is open on one axis only and both neighbours along the edge are boundary samples open the
+-- same way. Square columns cleared along straight catalog paths give 0.64 (a3.s3) and 0.67
+-- (a3.s4) at seed 1776; round-lobed cap edges stay near 0.25.
+local FLAT_AXIS_SHARE = 0.5
+local function flatAxisShare(engine: any, layout: any, roblox: any): (number, number)
+	local top = topAt(engine, roblox)
+	local S = 8
+	local low, high = layout.bounds.min, layout.bounds.max
+	local heights: { [string]: number } = {}
+	for x = low.x - 64, high.x + 64, S do
+		for z = low.z - 64, high.z + 64, S do
+			heights[x .. "," .. z] = top(x, z) or -20
+		end
+	end
+	local flat: { [string]: boolean } = {}
+	for x = low.x - 64, high.x + 64, S do
+		for z = low.z - 64, high.z + 64, S do
+			local v = heights[x .. "," .. z]
+			if v > 12 then
+				local ok = true
+				for _, d in { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } } do
+					local n = heights[x + d[1] * S .. "," .. z + d[2] * S]
+					ok = ok and n ~= nil and math.abs(n - v) <= 0.5
+				end
+				flat[x .. "," .. z] = ok
+			end
+		end
+	end
+	local function at(x: number, z: number): boolean
+		return flat[x .. "," .. z] == true
+	end
+	local edges, straight = 0, 0
+	for x = low.x - 64, high.x + 64, S do
+		for z = low.z - 64, high.z + 64, S do
+			if not at(x, z) then
+				continue
+			end
+			local openX = (if at(x + S, z) then 0 else 1) + (if at(x - S, z) then 0 else 1)
+			local openZ = (if at(x, z + S) then 0 else 1) + (if at(x, z - S) then 0 else 1)
+			if openX + openZ == 0 then
+				continue
+			end
+			edges += 1
+			if openX == 1 and openZ == 0 then
+				local side = if at(x + S, z) then -S else S
+				if at(x, z + S) and not at(x + side, z + S) and at(x, z - S) and not at(x + side, z - S) then
+					straight += 1
+				end
+			elseif openZ == 1 and openX == 0 then
+				local side = if at(x, z + S) then -S else S
+				if at(x + S, z) and not at(x + S, z + side) and at(x - S, z) and not at(x - S, z + side) then
+					straight += 1
+				end
+			end
+		end
+	end
+	return if edges > 0 then straight / edges else 0, edges
+end
+
 return {
 	["organic coast radius varies with angle on harbor and stage islands"] = function()
 		for _, layout in Content.layouts do
@@ -154,6 +297,18 @@ return {
 				end
 			end
 			assert(sand >= 60, layout.id .. " lacks a round beach rim: " .. sand)
+			-- High authored ground ramps down to the beach instead of ending in a wall.
+			local step, at = coastStep(engine, layout, roblox)
+			assert(
+				step <= COAST_STEP,
+				string.format("%s coast drops %.1f studs in one 8-stud step at %s", layout.id, step, at)
+			)
+			-- High flat ground beside straight catalog paths ends in round lobes, not square terraces.
+			local share, edges = flatAxisShare(engine, layout, roblox)
+			assert(
+				share <= FLAT_AXIS_SHARE,
+				string.format("%s high flat edge is %.2f axis-aligned over %d samples", layout.id, share, edges)
+			)
 			if layout.biomes[1] == "grassland" or layout.biomes[1] == "beach" then
 				assert(green > 0, layout.id .. " lacks a green interior")
 			end

@@ -28,16 +28,16 @@ local DinosaurRig = luau.load(fs.readFile("genres/survival-coop/module/DinosaurR
 -- The root size SurvivalWorld gives this species' rig: its render envelope, else the archetype rig.
 local function rootSize(content: any, id: string, behavior: string): Wildlife.Position
 	local engine = Archetype.engine(behavior) or "hunter"
-	local envelope: any = nil
+	local envelope: any, visual: any = nil, nil
 	for _, detail in content.wildlifeDetails or {} do
 		if detail.id == id then
-			engine = detail.id
+			engine, visual = detail.id, detail.visual
 			local size = detail.renderEnvelope
 			envelope = if size then roblox.Vector3.new(size.x, size.y, size.z) else nil
 			break
 		end
 	end
-	local model = DinosaurRig.new(engine, id, roblox.Vector3.zero, roblox.Instance.new("Folder"), envelope)
+	local model = DinosaurRig.new(engine, id, roblox.Vector3.zero, roblox.Instance.new("Folder"), envelope, visual)
 	local size = model:FindFirstChild("HumanoidRootPart").Size
 	return { x = size.X, y = size.Y, z = size.Z }
 end

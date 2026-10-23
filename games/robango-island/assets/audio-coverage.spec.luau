@@ -111,6 +111,26 @@ return {
 			assert(Catalog.gather[node.id], node.id .. " has no gather cue")
 		end
 	end,
+	["every role-world gather node resolves a material cue"] = function()
+		-- RoleWorld registers node kind gsub(id, "[._]", "-") (rw-a1-s1-material-wood) and publishes
+		-- ForgeNodeItem; Studio p37 found every expedition gather silent.
+		local doc = serde.decode("yaml", fs.readFile(ROOT .. "content.yml"))
+		local confirmed = { ok = true, data = { status = "confirmed" } }
+		local checked = 0
+		for _, layout in doc.layouts do
+			for _, node in layout.resourceNodes or {} do
+				if not string.find(node.id, ".cargo.", 1, true) and not string.find(node.id, ".chapter.", 1, true) then
+					local kind = string.gsub(node.id, "[._]", "-")
+					local got = Audio.commandEvent(Catalog, req("gather"), confirmed, kind, node.item)
+					assert(got and Catalog.events[got], node.id .. " (" .. node.item .. ") has no gather cue")
+					checked += 1
+				end
+			end
+		end
+		assert(checked >= 200, "role-world nodes checked: " .. checked)
+		local wood = Audio.commandEvent(Catalog, req("gather"), confirmed, "rw-a1-s1-material-wood", "wood")
+		assert(wood == "gather-wood", "a1.s1 wood -> " .. tostring(wood))
+	end,
 	["command results route to the expected cues"] = function()
 		local function E(_config: any, request: any, result: any, kind: string?, want: string?)
 			local got = Audio.commandEvent(Catalog, request, result, kind)

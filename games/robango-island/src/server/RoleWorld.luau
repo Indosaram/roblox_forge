@@ -222,9 +222,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		local floor = top
+		-- On organic islands a missing neighbour is the beach, so a high coastal column gets a
+		-- round cap instead of a square block edge dropping to the sand.
+		local outside = if coastline then Terrain.BEACH_TOP else top
 		for dx = -1, 1 do
 			for dz = -1, 1 do
-				floor = math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or top)
+				floor =
+					math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or outside)
 			end
 		end
 		-- Organic islands: a step above the lowest neighbour is a round cap (radius covers the
@@ -247,9 +251,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					materials[material]
 				)
 			end
+			-- The top disc stays inside the cell (corners left out) and a full-width ring sits one
+			-- stud lower, so the edge of high flat ground is a chain of round lobes rather than the
+			-- square column outline that runs straight along the catalog paths. A column holding an
+			-- authored point keeps a full-width top so that point stays at its exact height.
+			local pinned = Terrain.pinned(layout, column.x, column.z, column.cell)
 			workspace.Terrain:FillCylinder(
 				CFrame.new(column.x, (base + top) / 2 - 2, column.z),
 				top - base + 4,
+				column.cell * (if pinned then 0.72 else 0.62),
+				materials[material]
+			)
+			workspace.Terrain:FillCylinder(
+				CFrame.new(column.x, (base + top - 1) / 2 - 2, column.z),
+				top - base + 3,
 				column.cell * 0.72,
 				materials[material]
 			)
@@ -469,6 +484,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	local arrivalGrazers = {}
+	-- Decorative rigs use the same authored species look as live wildlife.
+	local function looks(species: string): any
+		for _, detail in content.wildlifeDetails or {} do
+			if detail.id == species then
+				return detail.visual
+			end
+		end
+		return nil
+	end
 	if #dressing.fauna > 0 then
 		-- Arrival-view creature: decorative and anchored, never an interactive wildlife spawn.
 		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
@@ -476,7 +500,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local p = creature.position
 			local hit = workspace:Raycast(Vector3.new(p.x, 512, p.z), Vector3.new(0, -1024, 0), groundParams)
 			local position = Vector3.new(p.x, if hit then hit.Position.Y + 2 else p.y + 2, p.z)
-			local animal = rig.new(creature.species, "ArrivalFauna", position, root)
+			local animal = rig.new(creature.species, "ArrivalFauna", position, root, nil, looks(creature.species))
 			table.insert(arrivalGrazers, animal)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(140), 0))
 			for _, piece in animal:GetDescendants() do
@@ -495,7 +519,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local position = Vector3.new(entry.x + offset, entry.y, entry.z - 58 - index * 12)
 			workspace.Terrain:FillBall(position - Vector3.new(0, 6, 0), 12, Enum.Material.Sand)
 			game:GetService("RunService").Heartbeat:Wait()
-			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root)
+			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root, nil, looks("triceratops"))
 			table.insert(arrivalGrazers, animal)
 			animal:ScaleTo(1.4)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))

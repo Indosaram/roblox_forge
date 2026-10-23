@@ -13,6 +13,7 @@ local ActorDocuments = require(Forge.core.infra.data.ActorDocumentStore)
 local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.ArchipelagoExtension)
 local Archipelago = require(Forge.core.domain.island.Archipelago)
 local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
+local ToolTiers = require(Forge.genres["survival-coop"].module.ToolTiers)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	content, source, wildlifePolicy =
 		world.roleContent or content, world.roleSource or source, world.roleWildlife or wildlifePolicy
@@ -1389,10 +1390,18 @@ return function(content: any, source, world, backend, clock, options, provision,
 						local found = false
 						for id, item in data.inventory.bag.items do
 							found = found
-								or (equipped[id] == true and item.catalogId == node.tool and item.durabilityMilli > 0)
+								or (
+									equipped[id] == true
+									and item.durabilityMilli > 0
+									and ToolTiers.accepts(content, node.tool, item.catalogId)
+								)
 						end
 						if not found then
-							return { ok = false, reason = "TOOL_UNAVAILABLE", data = { tool = node.tool } }
+							return {
+								ok = false,
+								reason = "TOOL_UNAVAILABLE",
+								data = { tool = node.tool, orBetter = ToolTiers.hasFamily(content, node.tool) },
+							}
 						end
 					end
 				end

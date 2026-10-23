@@ -13,6 +13,12 @@ local function loadRig(source: string?): any
 		},
 	})()
 end
+-- Rounded anatomy is a block carrying a Sphere SpecialMesh (a Ball part is always a sphere of
+-- its smallest axis, so it cannot render an ellipsoid).
+local function rounded(p: any): boolean
+	local mesh = p:FindFirstChildOfClass("SpecialMesh")
+	return mesh ~= nil and mesh.MeshType == roblox.Enum.MeshType.Sphere
+end
 local envelopes: { [string]: { number } } = {
 	compsognathus = { 1, 1.5, 3 },
 	oviraptor = { 1.5, 3, 3 },
@@ -145,7 +151,7 @@ return {
 			end
 			assert(model.Countershade.Color.R > model.Torso.Color.R, "lighter belly")
 			if species == "turtle" then
-				assert(model.Shell.Shape == roblox.Enum.PartType.Ball, "domed shell")
+				assert(rounded(model.Shell), "domed shell")
 				assert(
 					model.Shell.Size.X > model.Torso.Size.X and model.Shell.Size.Z > model.Torso.Size.Z,
 					"shell covers torso"
@@ -177,7 +183,7 @@ return {
 			for _, p in model:GetChildren() do
 				if p:IsA("Part") and p ~= model.PrimaryPart and p.Name ~= "Head" then
 					if
-						p.Shape == roblox.Enum.PartType.Ball
+						rounded(p)
 						and not p.Name:match("^Thigh")
 						and not p.Name:match("^Foreleg")
 						and not p.Name:match("^ForeShin")
@@ -191,7 +197,7 @@ return {
 						)
 					end
 					if p.Name:match("^Thigh") or p.Name:match("^Foreleg") then
-						assert(p.Shape == roblox.Enum.PartType.Ball, "rounded limb")
+						assert(rounded(p), "rounded limb")
 						local shin = model[if p.Name:match("^Thigh")
 							then p.Name:gsub("Thigh", "Shin")
 							else p.Name:gsub("Foreleg", "ForeShin")]
@@ -223,7 +229,7 @@ return {
 					)
 				end
 				if string.match(p.Name, "^Foot") or string.match(p.Name, "^Forefoot") then
-					assert(p.Shape == roblox.Enum.PartType.Ball, "elliptical foot, never block")
+					assert(rounded(p), "elliptical foot, never block")
 					local joint = model.PrimaryPart[p.Name .. "Joint"]
 					local shin = joint.Part0
 					local extent = shin.Size.X
@@ -233,7 +239,7 @@ return {
 				end
 			end
 			if model:GetAttribute("BodyPlan") == "ceratopsian" then
-				assert(model.Frill:IsA("Part") and model.Frill.Shape == roblox.Enum.PartType.Ball, "curved frill")
+				assert(model.Frill:IsA("Part") and rounded(model.Frill), "curved frill")
 				assert(
 					model:FindFirstChild("FrillLobe1") and model:FindFirstChild("FrillFace0"),
 					"fan lobes and inset rim"
@@ -253,7 +259,7 @@ return {
 			do
 				for i = 2, chain.count do
 					local a, b = model[chain.name .. (i - 1)], model[chain.name .. i]
-					assert(a.Shape == roblox.Enum.PartType.Ball and b.Size.Y < a.Size.Y, "rounded continuous taper")
+					assert(rounded(a) and b.Size.Y < a.Size.Y, "rounded continuous taper")
 					local gap = (a.CFrame.Position - b.CFrame.Position).Magnitude - (a.Size.X + b.Size.X) / 2
 					assert(gap < 0.1, "adjacent segment gap: " .. species)
 				end
@@ -282,14 +288,14 @@ return {
 				body.Material
 					== roblox.Enum.Material[if model:GetAttribute("BodyPlan") == "mammal"
 							or model:GetAttribute("BodyPlan") == "elephant"
-							or model:GetAttribute("BodyPlan") == "bird"
-						then "Fabric"
+						then "Plastic"
+						elseif model:GetAttribute("BodyPlan") == "bird" then "SmoothPlastic"
 						elseif
 							model:GetAttribute("BodyPlan") == "turtle"
 							or model:GetAttribute("BodyPlan") == "armored"
 						then "Slate"
 						else "Leather"],
-				"skin material by class"
+				"skin material by class (fur is plastic: fabric renders near black)"
 			)
 			assert(model.Pupil1.Material == roblox.Enum.Material.SmoothPlastic, "glossy eyes")
 			assert(
@@ -377,7 +383,11 @@ return {
 		end
 		local anky = module.new("ankylosaurus", "anky", roblox.Vector3.zero, world)
 		local shell, torso = anky.Shell, anky.Torso
-		assert(shell.Size.X <= torso.Size.X * 1.1 and shell.Size.Y <= torso.Size.Y * 1.1, "armor sized to the back")
+		-- A broad low dome over splayed legs: wider than the torso, never wider than the envelope.
+		assert(
+			shell.Size.X <= anky.PrimaryPart.Size.X and shell.Size.Y <= torso.Size.Y * 1.1,
+			"armor sized to the back"
+		)
 		assert(shell.CFrame.Position.Y > torso.CFrame.Position.Y and touches(shell, torso, 0), "armor sits on the back")
 		world:Destroy()
 	end,

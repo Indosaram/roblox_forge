@@ -11,7 +11,7 @@ local SILENT_REASONS = {
 }
 
 -- Engine-free: committed/refused command -> catalog event (nil = silent).
-function M.commandEvent(config: any, request: any, result: any, nodeKind: string?): string?
+function M.commandEvent(config: any, request: any, result: any, nodeKind: string?, nodeItem: string?): string?
 	if type(request) ~= "table" or type(result) ~= "table" or type(request.action) ~= "string" then
 		return nil
 	end
@@ -24,7 +24,8 @@ function M.commandEvent(config: any, request: any, result: any, nodeKind: string
 	end
 	local data = if type(result.data) == "table" then result.data else {}
 	if action == "survival-coop:gather" then
-		return if nodeKind then config.gather[nodeKind] else nil
+		local byKind = if nodeKind then config.gather[nodeKind] else nil
+		return byKind or (if nodeItem and config.gatherItems then config.gatherItems[nodeItem] else nil)
 	elseif action == "survival-coop:tame-capture" then
 		return if data.captured == true then config.signals.tameSuccess else config.signals.tameFail
 	elseif action == "survival-coop:party-action" and type(request.args) == "table" then
@@ -155,8 +156,8 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	-- Refusals bypass director.result (ok-only); dedupe them on the same request identity.
 	local refused: { [string]: boolean } = {}
 	local refusedOrder: { string } = {}
-	local function command(request: any, result: any, nodeKind: string?)
-		local event = M.commandEvent(config, request, result, nodeKind)
+	local function command(request: any, result: any, nodeKind: string?, nodeItem: string?)
+		local event = M.commandEvent(config, request, result, nodeKind, nodeItem)
 		if not event then
 			return
 		end
@@ -175,14 +176,14 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 		end
 		director.event(event)
 	end
-	local function nodeKind(nodeId: any): string?
+	local function nodeKind(nodeId: any): (string?, string?)
 		for _, part in game:GetService("CollectionService"):GetTagged("ForgeSurvivalNode") do
 			if part:GetAttribute("ForgeNodeId") == nodeId then
-				local kind = part:GetAttribute("ForgeNodeKind")
-				return if type(kind) == "string" then kind else nil
+				local kind, item = part:GetAttribute("ForgeNodeKind"), part:GetAttribute("ForgeNodeItem")
+				return if type(kind) == "string" then kind else nil, if type(item) == "string" then item else nil
 			end
 		end
-		return nil
+		return nil, nil
 	end
 	local function attach(child: Instance)
 		if attached[child] or not child:IsA("BindableEvent") then
@@ -195,7 +196,11 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 				connections,
 				child.Event:Connect(function(packet)
 					if type(packet) == "table" then
-						command(packet.request, packet.result, if gather then nodeKind(packet.nodeId) else nil)
+						if gather then
+							command(packet.request, packet.result, nodeKind(packet.nodeId))
+						else
+							command(packet.request, packet.result)
+						end
 					end
 				end)
 			)

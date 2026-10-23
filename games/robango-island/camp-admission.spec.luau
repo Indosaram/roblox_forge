@@ -60,6 +60,7 @@ local forge = {
 				JournalObjectiveFeed = require("../../genres/survival-coop/module/JournalObjectiveFeed"),
 				JournalExtension = require("../../genres/survival-coop/module/JournalExtension"),
 				ProgressionExtension = require("../../genres/survival-coop/module/ProgressionExtension"),
+				ToolTiers = require("../../genres/survival-coop/module/ToolTiers"),
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
 			},

@@ -11,6 +11,18 @@ local schemas: { [string]: { [string]: string } } = {
 	effect = { id = "id", value = "number", unit = "text" },
 	quantity = { item = "@items", quantity = "positive" },
 	point = { x = "number", y = "number", z = "number" },
+	rgb = { r = "channel", g = "channel", b = "channel" },
+	-- Presentation only: body plan, silhouette feature, skin and palette of a species rig.
+	visual = {
+		plan = "visualPlan",
+		feature = "id",
+		skin = "?visualSkin",
+		body = "rgb",
+		accent = "?rgb",
+		belly = "?rgb",
+		marking = "?rgb",
+		parts = "?[]visualPart",
+	},
 	bounds = { min = "point", max = "point" },
 	anchor = { id = "id", position = "point" },
 	landmark = { id = "id", kind = "text", position = "point", size = "point" },
@@ -270,6 +282,11 @@ local schemas: { [string]: { [string]: string } } = {
 		cooldownMillis = "positive",
 		facingDot = "number",
 	},
+	-- Gather tool acceptance: a node requiring a family member accepts any owned member of
+	-- the same family at the same or a higher tier (a Flint Hatchet cuts starter-axe wood).
+	toolRank = { item = "@items", tier = "positive" },
+	toolFamily = { id = "id", members = "[]toolRank" },
+	toolPolicy = { provenance = "provenance", families = "[]toolFamily" },
 	missionPolicy = {
 		provenance = "provenance",
 		surveySeconds = "positive",
@@ -369,6 +386,7 @@ local schemas: { [string]: { [string]: string } } = {
 	wildlifeDetails = {
 		id = "@wildlife",
 		renderEnvelope = "?point",
+		visual = "?visual",
 		riderHeight = "?number",
 		provenance = "provenance",
 		level = "level",
@@ -455,6 +473,7 @@ M.POLICIES = {
 	"harborPolicy",
 	"buildingPolicy",
 	"missionPolicy",
+	"toolPolicy",
 	"clanPolicy",
 	"outpostPolicy",
 	"brawlPolicy",
@@ -476,6 +495,20 @@ local enums: { [string]: { string } } = {
 	},
 	wildlifeBehaviour = { "flee", "retaliate", "territorial", "predator" },
 	captureClass = { "basic", "advanced", "never" },
+	visualPlan = {
+		"theropod",
+		"ceratopsian",
+		"hadrosaur",
+		"armored",
+		"sauropod",
+		"mammal",
+		"elephant",
+		"crocodilian",
+		"turtle",
+		"bird",
+	},
+	visualSkin = { "leather", "plates", "fur", "feathers" },
+	visualPart = { "stripes", "mane", "hump", "sideSpikes", "bushyTail" },
 }
 
 --- Render contextual row types from the same descriptors used by validation.
@@ -694,6 +727,7 @@ function M.validate(raw: any): { string }
 				then 60
 				elseif descriptor == "rank" then 6
 				elseif descriptor == "attribute" then 10
+				elseif descriptor == "channel" then 255
 				else 1000000000
 			local low = if descriptor == "positive"
 					or descriptor == "duration"
