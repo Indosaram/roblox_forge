@@ -32,7 +32,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	assert(layout, "UNKNOWN_ROLE_LAYOUT:" .. layoutId)
 	local root = Instance.new("Folder")
-	root.Name, root.Parent = "ForgeRoleWorld", workspace
+	root.Name = "ForgeRoleWorld"
+	-- Clients re-derive the ProcProps decor plan from these before it replicates.
+	root:SetAttribute("ForgeLayoutId", layoutId)
+	root:SetAttribute("ForgeWorldSeed", seed)
+	root.Parent = workspace
 	local function part(id: string, position: any, size: any): any
 		local value = Instance.new("Part")
 		value.Name, value.Anchored = id, true

@@ -43,3 +43,201 @@ assets:
     accent: [236, 184, 78]
     eye: [255, 224, 92]
     seed: 205
+  - key: robango-meadow-oak
+    kind: prop
+    archetype: tree
+    scale: 1.6
+    body: [104, 78, 52]
+    accent: [214, 72, 64]
+    foliage: [96, 168, 72]
+    seed: 301
+  - key: robango-meadow-boulder
+    kind: prop
+    archetype: rock
+    scale: 1.3
+    body: [128, 124, 112]
+    accent: [118, 170, 84]
+    seed: 302
+  - key: robango-meadow-orchard
+    kind: prop
+    archetype: tree
+    scale: 1.3
+    body: [118, 86, 58]
+    accent: [246, 190, 72]
+    foliage: [132, 188, 86]
+    seed: 303
+  - key: robango-forest-pine
+    kind: prop
+    archetype: tree
+    scale: 1.9
+    body: [82, 60, 42]
+    accent: [150, 96, 60]
+    foliage: [44, 104, 62]
+    seed: 311
+  - key: robango-forest-mossrock
+    kind: prop
+    archetype: rock
+    scale: 1.1
+    body: [92, 98, 96]
+    accent: [70, 132, 60]
+    seed: 312
+  - key: robango-jungle-tree
+    kind: prop
+    archetype: tree
+    scale: 1.8
+    body: [124, 92, 60]
+    accent: [250, 120, 64]
+    foliage: [52, 170, 84]
+    seed: 321
+  - key: robango-jungle-bloom
+    kind: prop
+    archetype: crystal
+    scale: 0.9
+    body: [208, 72, 128]
+    accent: [255, 188, 96]
+    seed: 322
+  - key: robango-jungle-mossrock
+    kind: prop
+    archetype: rock
+    scale: 1.2
+    body: [84, 96, 82]
+    accent: [60, 160, 72]
+    seed: 323
+  - key: robango-marsh-cypress
+    kind: prop
+    archetype: tree
+    scale: 1.7
+    body: [70, 58, 44]
+    accent: [148, 160, 84]
+    foliage: [88, 112, 58]
+    seed: 331
+  - key: robango-marsh-stone
+    kind: prop
+    archetype: rock
+    scale: 1
+    body: [70, 74, 66]
+    accent: [96, 124, 62]
+    seed: 332
+  - key: robango-marsh-glowshard
+    kind: prop
+    archetype: crystal
+    scale: 0.8
+    body: [64, 112, 84]
+    accent: [168, 236, 148]
+    seed: 333
+  - key: robango-desert-sandstone
+    kind: prop
+    archetype: rock
+    scale: 1.4
+    body: [196, 150, 96]
+    accent: [226, 196, 140]
+    seed: 341
+  - key: robango-desert-mesa
+    kind: prop
+    archetype: rock
+    scale: 1.9
+    body: [176, 104, 66]
+    accent: [214, 160, 104]
+    seed: 342
+  - key: robango-desert-amber
+    kind: prop
+    archetype: crystal
+    scale: 1
+    body: [214, 142, 52]
+    accent: [255, 212, 120]
+    seed: 343
+  - key: robango-desert-acacia
+    kind: prop
+    archetype: tree
+    scale: 1.4
+    body: [120, 90, 62]
+    accent: [226, 200, 120]
+    foliage: [146, 150, 74]
+    seed: 344
+  - key: robango-snow-pine
+    kind: prop
+    archetype: tree
+    scale: 1.9
+    body: [78, 62, 50]
+    accent: [236, 244, 250]
+    foliage: [70, 112, 96]
+    seed: 351
+  - key: robango-snow-boulder
+    kind: prop
+    archetype: rock
+    scale: 1.3
+    body: [120, 132, 146]
+    accent: [236, 242, 248]
+    seed: 352
+  - key: robango-ice-crystal
+    kind: prop
+    archetype: crystal
+    scale: 1.2
+    body: [136, 196, 232]
+    accent: [226, 248, 255]
+    seed: 353
+  - key: robango-basalt-rock
+    kind: prop
+    archetype: rock
+    scale: 1.4
+    body: [52, 50, 52]
+    accent: [232, 98, 36]
+    seed: 361
+  - key: robango-ember-crystal
+    kind: prop
+    archetype: crystal
+    scale: 1.1
+    body: [176, 52, 32]
+    accent: [255, 168, 60]
+    seed: 362
+  - key: robango-ash-tree
+    kind: prop
+    archetype: tree
+    scale: 1.5
+    body: [54, 48, 46]
+    accent: [232, 112, 48]
+    foliage: [96, 98, 90]
+    seed: 363
+  - key: robango-coast-palm
+    kind: prop
+    archetype: tree
+    scale: 1.7
+    body: [150, 112, 72]
+    accent: [228, 196, 92]
+    foliage: [76, 176, 96]
+    seed: 371
+  - key: robango-coast-driftrock
+    kind: prop
+    archetype: rock
+    scale: 1
+    body: [188, 180, 160]
+    accent: [72, 128, 92]
+    seed: 372
+  - key: robango-coast-shellstone
+    kind: prop
+    archetype: egg
+    scale: 0.9
+    body: [238, 222, 196]
+    accent: [226, 140, 124]
+    seed: 373
+  - key: robango-harbor-cargo
+    kind: prop
+    archetype: crate
+    scale: 1.3
+    body: [72, 104, 140]
+    accent: [196, 170, 110]
+    seed: 381
+  - key: robango-camp-crate
+    kind: prop
+    archetype: crate
+    scale: 0.8
+    body: [164, 120, 72]
+    accent: [96, 70, 46]
+    seed: 382
+  - key: robango-camp-egg-cache
+    kind: prop
+    archetype: egg
+    scale: 1
+    body: [224, 196, 146]
+    accent: [132, 186, 88]
+    seed: 383

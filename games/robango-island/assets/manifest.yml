@@ -15097,3 +15097,570 @@ assets:
         ownership: first-party
       author: agent:omo/hephaestus
       created: 2026-10-21
+  - key: robango-meadow-oak
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:94c63504c6acd8a718e2dea8ca63bf8fc57f00bcf296bb34b37080ebc1b3e07d
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-meadow-oak"
+        inputVersion: sha256:7cb77278997e2b361e52ecca96090cc550d5df1cbb54ecefec0b92f28c04e50f
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-meadow-boulder
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:4f25caf6aeffd3d5f27851927931fee2771d3a4218840b194e5cbdb307cec3f3
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-meadow-boulder"
+        inputVersion: sha256:3397a60a1f85c51d04b8ce602f9319b11904fe51301f81aa9fbf1231874e141d
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-meadow-orchard
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:0d1961d2902a50ad45a4b9089426826a1227858b105afb1aadb6d507ca4f95b3
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-meadow-orchard"
+        inputVersion: sha256:4bf51ac94140b0e3dc70f3b46e20fa1135c56ffa1974c89f3849e3c9545fd8f7
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-forest-pine
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:6cfc46adf9a235342a07bf41317d49514663c7073500ef9f7b334e5b10fd2611
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-forest-pine"
+        inputVersion: sha256:8a023e3bb9e116a72f66607948cf75b95ac74c6153377279190f4596f0544776
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-forest-mossrock
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:6efda545b3f7f7431bd3c8d39562b402b9507e019a0a0273c97ed4ac9aefe570
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-forest-mossrock"
+        inputVersion: sha256:bad67dd666c1340db5e43542bd0d2514e3fe9b27f70b073789f8f5fa5a25653b
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-jungle-tree
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:621e335407069b458aab36da66a46aa54a5b346d8fdb332ce4c92a86c7b65788
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-jungle-tree"
+        inputVersion: sha256:4d96a254bf649e70d1a02420f966dd75f4d427a2c9545a961832d09759999cb9
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-jungle-bloom
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:7e4a91954409ef44709c1f00417c33213adc588b0640eb8412b4e0800c19b5bc
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-jungle-bloom"
+        inputVersion: sha256:8904bfd55b956f03e7ee2289cc4dbf72c544a55d8933e3ed61ffbee25f84be7a
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-jungle-mossrock
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:d701b66a7c4f21138841d39f5f11f73edf44272a08a0a9ffd56d9bb28061c758
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-jungle-mossrock"
+        inputVersion: sha256:82321d65225ce8c423503dbeae572995650bd09ca55a003901ea9e464057de98
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-marsh-cypress
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:025a721af2c3ddff38ed260de8443e72ba1517dd1148b4ea09958a63eb8db4f4
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-marsh-cypress"
+        inputVersion: sha256:0fc6e39df087daf8d4388aad97e4ceca23e90c9033c967e4b910478b217391f0
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-marsh-stone
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:101c8280bb7f548da48c14d28a0fed2599fd11936daa35252787118b4a8b0531
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-marsh-stone"
+        inputVersion: sha256:73b6e9386c882bbfdeef5b0baa1c92bfcf426be2d6ec579f527f9a7a7ada8e89
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-marsh-glowshard
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:59ff0a9d8278031ab1b72bb397d696e7ea81bef68395cda49868dd00104901dc
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-marsh-glowshard"
+        inputVersion: sha256:aa1da5b8ea8e91873c500cfd5114fa97739e604fcc81aa62bb7c29808ee4b4c4
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-desert-sandstone
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:6efc78139f7502719f01a014e65b6f5921384e4ecbf9f2a58c63cbe0f3846469
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-desert-sandstone"
+        inputVersion: sha256:0d1a3123351c2ab17345e504629e1d7ba923876bf6d4201533888d5c5bd7963f
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-desert-mesa
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:057e2cf4213df44632807bf9da400a4fc4749bd819b7fd2e0a480f7814d8ae1d
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-desert-mesa"
+        inputVersion: sha256:58ce4633d51ca4221350242c04b7c3d54c3fae541ba8bc1de01ba5576be5c4a6
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-desert-amber
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:a4b2ab08efbb22128e876236e58c6a4f83baafaf70d4214df5f1809e8bfaaba8
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-desert-amber"
+        inputVersion: sha256:b1d633272d1b3908c954600f2f5ab2c6b207650da50b1b17c7be830b7b9d2e55
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-desert-acacia
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:1a0bf477124fe0b79eab4aa5701643c2f64dc6f587127bde579478ab8b6e4ad3
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-desert-acacia"
+        inputVersion: sha256:e245a56ff09f88b61366e2e7eaf32bd72ce3cbf506411170d560f7df1d878977
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-snow-pine
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:dc6fba5d22912f56f0777a2feafb10648c11e46eed011ae704dede09c53ab243
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-snow-pine"
+        inputVersion: sha256:220c0c93555cd8deeddddc648f1fe554d3e2663dfed64983cf569b061e182ded
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-snow-boulder
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:eca50bce55e4e5a2edd54e1b2f9affd812b4fc9d4b92c6caef679d5d71e361d4
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-snow-boulder"
+        inputVersion: sha256:6156f1610763f74eca1c47532bc48fb173de544a74fccf01c9d18c7913c487d5
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-ice-crystal
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:024b25e285c5b18c44cc843cb607d3c5eee1c1a788f5037468cbafa5e30ae084
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-ice-crystal"
+        inputVersion: sha256:2769da044258002a437bab63dca36a27d996827ed9ee2ee5192e6d59ed2e5f5a
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-basalt-rock
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:3235876ba5736a8634e5113ef776b9c7ca751b76c92b5caccb3b63324a69eee3
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-basalt-rock"
+        inputVersion: sha256:b39ae7e552afbb2d04da7f16a6c3f46dccb632a60f1ee3fe107686e8df1609b2
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-ember-crystal
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crystal"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:c4f2e0346cbd07fc5573e9e571461433f0a8e3943372e7e69a971f0bc82f4e73
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-ember-crystal"
+        inputVersion: sha256:d2c4e0cf5c45aed32cc89d2efeceb98e26d3675b00ba22b968fcd9e74cb79f05
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-ash-tree
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:bba32801a96b7f47d38d29f0c0a7d8430bdbaf01f7926c6aa2d9e184650af7e7
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-ash-tree"
+        inputVersion: sha256:93a172b560c9297e0747158c4f9c5adc460b70e59bcc3d90522e9fa7f9200851
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-coast-palm
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/tree"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:0b1949289d3017a4da3acce3c039245c78231742ab55e49702ac36191116ac4b
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-coast-palm"
+        inputVersion: sha256:26c5110ea09010f415655d4d17630e0d9390f0215598d92a3a9043f928b4234b
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-coast-driftrock
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/rock"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:cf58f4006cf13933774665a7dc57e3de57835cbe6f8ae059fc159471f3a4a00d
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-coast-driftrock"
+        inputVersion: sha256:bd3b85aeb5abf5b5ab8eb4fc34020df9b55fb20ca7049ca882b13faf453a4690
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-coast-shellstone
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/egg"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:cbb6110dcf6846ed78b5b9b2f8d85776d136cb356284b47c9ba7ead73ed18560
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-coast-shellstone"
+        inputVersion: sha256:3541a12aad1f74fc261e534cb7df6142833b37c0fc1f3dcb9e273eac3b925680
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-harbor-cargo
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crate"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:f2315fbc8abd3919936259190c46e5ea7679e0e80cb88a547b73948029460ff2
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-harbor-cargo"
+        inputVersion: sha256:8d9f46721dd211bf9ca94f6f98caa523cb4acbf0882d9f23650803605ab57887
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-camp-crate
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/crate"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:6caafe485ac13dea7810f03f1c3983d00e9bb2aac895f39c13aa016d936f9fd7
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-camp-crate"
+        inputVersion: sha256:90091dde22ee3c099e4d4a9c33f13e20f60bed95c66e0cc5c5bf77427da4a73d
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20
+  - key: robango-camp-egg-cache
+    kind: model
+    tool: forge-procgen
+    source: "procedural prop/egg"
+    assetId: 0
+    moderation: Approved
+    provenance:
+      digest: sha256:b1b65eaef3b42da646cf05c852cf8c0766ca6d69f29ed0b355448f997c797287
+      recipe:
+        id: gen-procedural
+        version: 1
+        input: "assets/procgen.yml#robango-camp-egg-cache"
+        inputVersion: sha256:ccb1c6b3b2f398089375dadb72657e96f25350f17ee7b31039620033cb88177e
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-20

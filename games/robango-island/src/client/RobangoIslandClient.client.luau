@@ -1136,6 +1136,88 @@ script.Destroying:Connect(creatureAnimation.destroy)
 
 local ProcAssets = require(Forge.core.infra.render.ProcAssets)
 local ProcAssetsSpecs = require(Shared.ProcAssets)
+local ProcProps = require(Shared.ProcProps)
+-- Generated props are decor only: never collide, answer queries or fire touches.
+local function decorProp(key: string, name: string, cf: CFrame, scale: number, parts: boolean?): Model?
+	local built = ProcAssets.build(ProcAssetsSpecs, key, name, { forceParts = parts })
+	if not (built and built.PrimaryPart) then
+		return nil
+	end
+	for _, d in built:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+	if scale ~= 1 then
+		built:ScaleTo(scale)
+	end
+	built:PivotTo(cf)
+	return built
+end
+-- Every role world (harbor, archipelago stages, home) gets the deterministic ProcProps plan,
+-- re-derived from the layout id and seed the server stamps on ForgeRoleWorld.
+local function dressRoleWorld(root: Instance)
+	local layoutId, seed = root:GetAttribute("ForgeLayoutId"), root:GetAttribute("ForgeWorldSeed")
+	if type(layoutId) ~= "string" or type(seed) ~= "number" then
+		return
+	end
+	local layout: any = nil
+	for _, candidate in content.layouts :: any do
+		if candidate.id == layoutId then
+			layout = candidate
+		end
+	end
+	if not layout then
+		return
+	end
+	local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
+	local columns = if layoutId == "rw.home"
+		then {}
+		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
+	local placements = ProcProps.limit(ProcProps.plan(layout, columns, seed), profile)
+	local folder = Instance.new("Folder")
+	folder.Name = "ForgeProcProps"
+	local ray = RaycastParams.new()
+	ray.FilterType = Enum.RaycastFilterType.Include
+	ray.FilterDescendantsInstances = { workspace.Terrain }
+	ray.IgnoreWater = true
+	-- Only the first meshBuildsMax distinct keys may take the EditableMesh path.
+	local meshKeys: { string } = {}
+	for _, item in placements do
+		if root.Parent == nil then
+			return
+		end
+		local p = item.position
+		local hit = workspace:Raycast(Vector3.new(p.x, p.y + 60, p.z), Vector3.new(0, -160, 0), ray)
+		local y = if hit then hit.Position.Y else p.y
+		if not table.find(meshKeys, item.key) and #meshKeys < profile.meshBuildsMax then
+			table.insert(meshKeys, item.key)
+		end
+		local built = decorProp(
+			item.key,
+			item.name,
+			CFrame.new(p.x, y, p.z) * CFrame.Angles(0, math.rad(item.yaw), 0),
+			item.scale,
+			not table.find(meshKeys, item.key)
+		)
+		if built then
+			built.Parent = folder
+		end
+	end
+	folder.Parent = root
+end
+local function watchRoleWorld(child: Instance)
+	if child.Name == "ForgeRoleWorld" and not child:FindFirstChild("ForgeProcProps") then
+		task.spawn(dressRoleWorld, child)
+	end
+end
+workspace.ChildAdded:Connect(watchRoleWorld)
+for _, child in workspace:GetChildren() do
+	watchRoleWorld(child)
+end
 task.spawn(function()
 	local island = workspace:WaitForChild("DevelopmentIsland", 15)
 	if island then
@@ -1147,16 +1229,8 @@ task.spawn(function()
 			{ key = "robango-forest-tree", name = "CampTreeMeshSW", cf = CFrame.new(-24, 3.2, 22) },
 		}
 		for _, item in RenderBudget.meshes(propPlacements, profile) do
-			local built = ProcAssets.build(ProcAssetsSpecs, item.key, item.name)
-			if built and built.PrimaryPart then
-				for _, d in built:GetDescendants() do
-					if d:IsA("BasePart") then
-						d.CanCollide = false
-						d.CanQuery = false
-						d.CanTouch = false
-					end
-				end
-				built:PivotTo(item.cf)
+			local built = decorProp(item.key, item.name, item.cf, 1)
+			if built then
 				built.Parent = island
 			end
 		end
