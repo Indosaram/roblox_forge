@@ -784,7 +784,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end)
 	end
 	for _, anchor in layout.anchors do
-		if anchor.id == "entry" or anchor.id == "exit" then
+		if anchor.id == "entry" or (anchor.id == "exit" and layoutId ~= "rw.home") then
 			dock(
 				anchor.id,
 				if layoutId == "rw.home" then content.homePolicy.dock else anchor.position,

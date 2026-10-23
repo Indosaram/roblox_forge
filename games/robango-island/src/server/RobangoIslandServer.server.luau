@@ -7,6 +7,7 @@ local RuntimeServices = require(Forge.core.infra.data.RuntimeServices)
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local IslandBootstrap = require(Forge.genres["survival-coop"].module.IslandBootstrap)
+local Topology = require(Forge.core.domain.island.Topology)
 local ServerStorage = game:GetService("ServerStorage")
 local roleConfig = ServerStorage:FindFirstChild("ForgePlaceRoles")
 local roles = if roleConfig and roleConfig:IsA("StringValue") then HttpService:JSONDecode(roleConfig.Value) else nil
@@ -85,10 +86,7 @@ end
 -- Taming/mounts: the pack only supplies the policy; the extension registry builds the system.
 require(Forge.genres["survival-coop"].module.TamingExtension).configure(require(Shared.TamingConfig))
 local Players = game:GetService("Players")
--- Shop: the pack catalog (runtime mirror of game.yml `monetization`) over the real engine ports.
--- The extension factory installs MarketplaceService.ProcessReceipt exactly once (via
--- MarketplacePort.onReceipt) when SurvivalFactory builds the extensions below; nothing else in this
--- place assigns ProcessReceipt. No grant hooks yet: see MonetizationCatalog for the open effects.
+-- Shop: ProcessReceipt is installed once, by MarketplacePort.onReceipt in SurvivalFactory.
 local MarketplacePort = require(Forge.core.infra.monetization.MarketplacePort)
 local PolicyPort = require(Forge.core.infra.monetization.PolicyPort)
 local entitlementFactory: any = nil
@@ -245,10 +243,7 @@ world.clanDirectory = clanDirectory
 local factory, err = require(script.Parent.SurvivalFactory)(content, source, visitWorld, backend, clock, {
 	sessionId = game.JobId .. HttpService:GenerateGUID(false),
 	leaseSeconds = 120,
-	-- Transfer admission, grant discovery and recovery sweeps read through identity updates every
-	-- heartbeat. Without this opt-in each of those became a durable write: a Studio co-op run wrote
-	-- the camp record 131 times in 90 s and starved the persistence transport
-	-- (COMMIT_FAILED:LOCAL_TRANSPORT_UNAVAILABLE on the next build reserve).
+	-- Heartbeat identity reads must not become durable writes (131 camp writes in 90 s starved transport).
 	suppressIdentityUpdates = true,
 	now = function()
 		return math.floor(DateTime.now().UnixTimestampMillis / 1000)
@@ -322,6 +317,19 @@ end)
 script.Destroying:Connect(function()
 	tradeWorker:Disconnect()
 end)
+local function routingFacts(userId, _destination)
+	local port = session.personalTransfer(tostring(userId))
+	local envelope = if port then port.profile().data.envelope else nil
+	local data = envelope and envelope.genres["survival-coop"].data
+	local document = (factory :: any).expeditionStore.snapshot(tostring(userId))
+	return if data
+		then {
+			level = if data.progression then data.progression.level else 1,
+			expedition = if document then document.archipelago else nil,
+			homeAccessCode = if provision.homeAccessCode then provision.homeAccessCode(tostring(userId)) else nil,
+		}
+		else nil
+end
 local routing = IslandBootstrap.start({
 	roles = roles,
 	studioRole = "onboarding",
@@ -329,19 +337,7 @@ local routing = IslandBootstrap.start({
 	resumeHandoff = session.resumeHandoff,
 	completeHandoff = session.completeHandoff,
 	admitExpedition = (factory :: any).admitExpedition,
-	facts = function(userId, _destination)
-		local port = session.personalTransfer(tostring(userId))
-		local envelope = if port then port.profile().data.envelope else nil
-		local data = envelope and envelope.genres["survival-coop"].data
-		local document = (factory :: any).expeditionStore.snapshot(tostring(userId))
-		return if data
-			then {
-				level = if data.progression then data.progression.level else 1,
-				expedition = if document then document.archipelago else nil,
-				homeAccessCode = if provision.homeAccessCode then provision.homeAccessCode(tostring(userId)) else nil,
-			}
-			else nil
-	end,
+	facts = routingFacts,
 	players = game:GetService("Players"),
 	teleportService = game:GetService("TeleportService"),
 	memoryStoreService = runtimeServices.memoryStoreService,
@@ -426,8 +422,10 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 		return (factory :: any).archipelago.recover(tostring(player.UserId), "return")
 	end
 	if not routing.travel then
-		-- Studio single-role: the server result (an accepted advance) is still reported.
-		return false, "studio_no_teleport"
+		local facts = routingFacts(player.UserId, destination)
+		local ok, reason = Topology.validateRoleTransition(worldRole, destination, facts and facts.level or 1)
+		return false,
+			if ok or destination == "next-island" or destination == "archipelago" then "studio_no_teleport" else reason
 	end
 	return routing.travel(player, destination, token)
 end

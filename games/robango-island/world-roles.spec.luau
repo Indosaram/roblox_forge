@@ -100,6 +100,25 @@ return {
 		end
 		world.destroy()
 	end,
+	["home has one dock prompt (two at one spot blocked each other's line of sight, p55)"] = function()
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.home", 1776)
+		local docks = {}
+		for _, prompt in engine.game:GetService("Workspace"):GetDescendants() do
+			if prompt:IsA("ProximityPrompt") and prompt.Name == "ForgeDock" then
+				table.insert(docks, prompt:GetAttribute("ForgeDestination"))
+			end
+		end
+		world.destroy()
+		assert(#docks == 1 and docks[1] == "harbor", "home docks: " .. table.concat(docks, ","))
+		local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
+		assert(
+			string.find(server, "Topology.validateRoleTransition(worldRole, destination", 1, true),
+			"Studio travel applies the live role/level gate before studio_no_teleport"
+		)
+	end,
 	["dock authority does not raycast into its own collidable platform"] = function()
 		local engine = Engine.new(true)
 		local world = engine.role.build(Content, Source, Policy, function()
