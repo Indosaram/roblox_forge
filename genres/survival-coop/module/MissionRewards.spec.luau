@@ -103,6 +103,28 @@ local function multiObjective(): any
 end
 
 return {
+	["results ledger lists the items its missions paid, merged per item"] = function()
+		local document: any = {
+			archipelago = { id = "trip-9", revision = "v2", status = "complete", completed = {}, templateId = "rw.a1" },
+		}
+		local content = {
+			missions = {
+				{ id = "m.a", objectives = { { id = "o.a" } } },
+				{ id = "m.b", objectives = { { id = "o.b" } } },
+			},
+		}
+		local Journal = require("../../../core/domain/command/Journal")
+		document.missionRewards = {}
+		for _, pair in { { id = "m.a", quantity = 2 }, { id = "m.b", quantity = 3 } } do
+			document.missionRewards["mission:" .. Journal.fnv1a64("trip-9:v2:" .. pair.id)] = {
+				rewards = { xp = 5, coins = 7, items = { { item = "plank", quantity = pair.quantity } } },
+			}
+		end
+		Rewards.ledger(document, content)
+		local row = document.resultsLedger["trip-9"]
+		assert(row.coins == 14 and row.xp == 10, "totals")
+		assert(#row.items == 1 and row.items[1].item == "plank" and row.items[1].quantity == 5, "items merged")
+	end,
 	["mission pays once per completion, not once per objective"] = function()
 		local document, env, wallet = harness()
 		local mission = multiObjective()

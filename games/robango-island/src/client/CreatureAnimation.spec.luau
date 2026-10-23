@@ -15,8 +15,10 @@ local function signal()
 	}
 end
 
+local RenderBudget = (require :: any)("../shared/RenderBudget")
+
 local function model(name: string, attributes: { [string]: any })
-	local root = { Position = 0, AssemblyLinearVelocity = { Magnitude = 0 } }
+	local root = { Position = { X = 0, Y = 0, Z = 0 }, AssemblyLinearVelocity = { Magnitude = 0 } }
 	local self: any = { Name = name, PrimaryPart = root }
 	function self.IsA(_, class)
 		return class == "Model"
@@ -59,9 +61,22 @@ return {
 					GetChildren = function()
 						return { wildlife }
 					end,
+					CurrentCamera = {
+						CFrame = {
+							Position = setmetatable({}, {
+								__sub = function()
+									return { Magnitude = 0 }
+								end,
+							}),
+						},
+					},
 					ChildAdded = signal(),
 					DescendantAdded = descendantAdded,
 				},
+				-- Upvalues the client chunk defines before this function: the render profile
+				-- (high keeps every pose) and a camera at the creature.
+				RenderBudget = RenderBudget,
+				profile = RenderBudget.profiles.high,
 				CreaturePose = {
 					sample = function()
 						return "idle", 0

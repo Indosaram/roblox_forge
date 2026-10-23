@@ -535,6 +535,8 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		require("../../../../games/robango-island/src/shared/WorldText")
 	forge.games["robango-island"].src.shared.IslandTerrain =
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
+	forge.games["robango-island"].src.shared.RenderBudget =
+		require("../../../../games/robango-island/src/shared/RenderBudget")
 	local preview = load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
 		["./WorldDressing"] = dressing,
 	}, nil)

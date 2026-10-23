@@ -36,6 +36,7 @@ function M.mount(ctx: any, hub: any): any
 	end
 	local unsubscribe = ctx.onSnapshot(function(extensions: any, packet: any)
 		hub.state.home, hub.state.market, hub.state.packet = extensions.home, extensions.market, packet
+		hub.state.expedition = extensions.expedition
 		for _, sheet in sheets do
 			sheet.render()
 		end

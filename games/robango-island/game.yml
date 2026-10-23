@@ -97,6 +97,26 @@
   
 'runtime_mode':
   'crafting'
+# Client render caps per device profile. Low applies at SavedQualityLevel 1..qualityLevelMax,
+# or Automatic on a touch device. High equals the uncapped behaviour. Runtime mirror:
+# src/shared/RenderBudget.luau (render-budget.spec.luau asserts equality).
+'render_profiles':
+  'low':
+    'qualityLevelMax': 3
+    'decorPartsMax': 160
+    'effectsMax': 2
+    'decorShadows': false
+    'wildlifePoseStuds': 60
+    'wildlifePoseMax': 6
+    'meshBuildsMax': 2
+  'high':
+    'qualityLevelMax': 10
+    'decorPartsMax': 100000
+    'effectsMax': 100000
+    'decorShadows': true
+    'wildlifePoseStuds': 100
+    'wildlifePoseMax': 1000
+    'meshBuildsMax': 6
 'place_roles':
   # Zero is unconfigured. Live startup and deployment refuse it.
   'onboarding': 0

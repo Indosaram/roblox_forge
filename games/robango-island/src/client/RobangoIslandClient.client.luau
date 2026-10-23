@@ -67,6 +67,29 @@ workspace.DescendantAdded:Connect(localizeJournal)
 for _, object in workspace:GetDescendants() do
 	localizeJournal(object)
 end
+-- Render profile: low on SavedQualityLevel <= low.qualityLevelMax (Automatic on touch).
+local RenderBudget = require(Shared.RenderBudget)
+local userSettings: any = UserSettings():GetService("UserGameSettings")
+local function renderProfile(): RenderBudget.Profile
+	local level = tonumber(string.match(tostring(userSettings.SavedQualityLevel), "(%d+)$")) or 0
+	return RenderBudget.profiles[RenderBudget.select(level, game:GetService("UserInputService").TouchEnabled)]
+end
+local profile = renderProfile()
+local function applyRender(object: Instance)
+	if object:IsA("BasePart") then
+		RenderBudget.applyPart(object, profile)
+	end
+end
+workspace.DescendantAdded:Connect(applyRender)
+for _, object in workspace:GetDescendants() do
+	applyRender(object)
+end
+userSettings:GetPropertyChangedSignal("SavedQualityLevel"):Connect(function()
+	profile = renderProfile()
+	for _, object in workspace:GetDescendants() do
+		applyRender(object)
+	end
+end)
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
 local gathering = GatheringClient.start({ locale = locale, names = names })
 gui.Destroying:Connect(gathering.destroy)
@@ -1010,6 +1033,19 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 		connections,
 		RunService.RenderStepped:Connect(function(dt)
 			local viewCamera = workspace.CurrentCamera
+			local entries = {}
+			for model in registry do
+				local root = model.PrimaryPart
+				if root and viewCamera then
+					local state = model:GetAttribute("ForgeWildlifeState")
+					table.insert(entries, {
+						key = model,
+						distance = (viewCamera.CFrame.Position - root.Position).Magnitude,
+						urgent = state == "warning" or state == "windup" or state == "attack" or state == "stun",
+					})
+				end
+			end
+			local posed = RenderBudget.poses(entries, profile)
 			for model, animation in registry do
 				local root = model.PrimaryPart
 				if not model:IsDescendantOf(workspace) then
@@ -1019,7 +1055,6 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				if not root then
 					continue
 				end
-				local distance = if viewCamera then (viewCamera.CFrame.Position - root.Position).Magnitude else 0
 				local humanoid = model:FindFirstChildOfClass("Humanoid")
 				local speed = root.AssemblyLinearVelocity.Magnitude
 				local serverState = model:GetAttribute("ForgeWildlifeState")
@@ -1033,9 +1068,11 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 					model:GetAttribute("Rider") ~= nil or model:GetAttribute("ForgeMountSpecies") ~= nil,
 					dt
 				)
-				-- At long range hold the articulated silhouette. Telegraphs remain active.
+				-- Beyond the profile's pose range or cap hold the articulated silhouette.
+				-- Telegraphs and death remain active.
 				if
-					distance <= 100
+					posed[model]
+					or not viewCamera
 					or state == "warning"
 					or state == "windup"
 					or state == "attack"
@@ -1077,7 +1114,7 @@ task.spawn(function()
 			{ key = "robango-forest-tree", name = "CampTreeMeshNE", cf = CFrame.new(22, 3.2, 8) },
 			{ key = "robango-forest-tree", name = "CampTreeMeshSW", cf = CFrame.new(-24, 3.2, 22) },
 		}
-		for _, item in propPlacements do
+		for _, item in RenderBudget.meshes(propPlacements, profile) do
 			local built = ProcAssets.build(ProcAssetsSpecs, item.key, item.name)
 			if built and built.PrimaryPart then
 				for _, d in built:GetDescendants() do

@@ -117,6 +117,7 @@ function M.ledger(document: any, content: any)
 		return
 	end
 	local coins, xp = 0, 0
+	local items, slot = {}, {}
 	for _, mission in content.missions do
 		local entry = (document.missionRewards or {})["mission:" .. Journal.fnv1a64(
 			state.id .. ":" .. state.revision .. ":" .. mission.id
@@ -124,6 +125,17 @@ function M.ledger(document: any, content: any)
 		if entry then
 			coins += entry.rewards.coins or 0
 			xp += entry.rewards.xp or 0
+			for _, stack in entry.rewards.items or {} do
+				if (stack.quantity or 0) > 0 then
+					local at = slot[stack.item]
+					if at then
+						items[at].quantity += stack.quantity
+					else
+						table.insert(items, { item = stack.item, quantity = stack.quantity })
+						slot[stack.item] = #items
+					end
+				end
+			end
 		end
 	end
 	local count = 0
@@ -136,7 +148,11 @@ function M.ledger(document: any, content: any)
 	ledger[state.id] = {
 		id = state.id,
 		source = "expedition:" .. state.templateId,
-		items = {},
+		-- Route index, last stage and open time (explicit clock) let the inbox name and order rows.
+		index = state.index,
+		stage = state.stage,
+		openedAt = state.openedAt,
+		items = items,
 		coins = coins,
 		xp = xp,
 		claimed = false,

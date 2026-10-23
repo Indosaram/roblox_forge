@@ -69,6 +69,19 @@ function M.results(content: any, document: any?): any?
 	}
 end
 
+-- Inbox rows (ui.inbox): every results-ledger entry, newest first (open time, then id).
+function M.ledger(document: any?): { any }
+	local rows = {}
+	for _, row in (document and document.resultsLedger) or {} do
+		table.insert(rows, table.clone(row))
+	end
+	table.sort(rows, function(a: any, b: any): boolean
+		local x: number, y: number = a.openedAt or 0, b.openedAt or 0
+		return if x == y then a.id > b.id else x > y
+	end)
+	return rows
+end
+
 -- Carried summary (ui.travel reconciliation): total bag quantity and coins.
 function M.carried(data: any?): any?
 	if not data then
@@ -340,6 +353,7 @@ function M.new(env: any): any
 				party = view,
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
 				results = results,
+				ledger = M.ledger(document),
 			}
 		end,
 		releaseActor = function(actor: string): any

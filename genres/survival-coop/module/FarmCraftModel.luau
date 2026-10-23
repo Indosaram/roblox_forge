@@ -223,8 +223,21 @@ end
 
 -- Inbox ledger: market claims (returned listings, bought items, sale proceeds) and
 -- crafting results (ready output to collect, committed output, cancelled refunds).
-function M.inbox(packet: any, market: any): { any }
-	local rows = {}
+-- Expedition results (the expedition snapshot's results ledger) come first, newest first.
+function M.inbox(packet: any, market: any, expedition: any?): { any }
+	local rows: { any } = {}
+	for _, entry in (type(expedition) == "table" and expedition.ledger) or {} do
+		table.insert(rows, {
+			id = "expedition:" .. entry.id,
+			kind = "expedition",
+			ledger = entry.id,
+			route = entry.index or tonumber(string.match(entry.source or "", "rw%.a(%d+)")),
+			items = entry.items or {},
+			coins = entry.coins or 0,
+			xp = entry.xp or 0,
+			claimed = entry.claimed == true,
+		})
+	end
 	local claims = (market and market.claims) or {}
 	for _, claim in claims do
 		local value = claim.value or {}

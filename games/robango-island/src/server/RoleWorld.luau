@@ -8,6 +8,7 @@ local Journal = require(Forge.core.domain.command.Journal)
 local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
+local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local materials: any = Enum.Material
 local shapes: any = Enum.PartType
@@ -1052,6 +1053,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	-- Render after terrain, ribbons and catalog clearings have reached final shape.
+	-- Ranks from the spawn let each client's render profile drop far decor and effects.
+	local origin = { x = spawn.Position.X, z = spawn.Position.Z }
+	local decorRanks = RenderBudget.rank(dressing.parts, origin)
+	local effectRanks = RenderBudget.rank(dressing.parts, origin, function(definition: any): boolean
+		return definition.effect ~= nil
+	end)
 	for _, definition in dressing.parts do
 		local placed = grounded(definition)
 		if placed then
@@ -1064,6 +1071,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				value = part(placed.id, placed.position, placed.size)
 			end
 			style(value, placed)
+			value:SetAttribute("ForgeDecorRank", decorRanks[placed.id])
+			value:SetAttribute("ForgeEffectRank", effectRanks[placed.id])
 		end
 	end
 	local destroy = world.destroy
