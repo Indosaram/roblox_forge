@@ -6,6 +6,8 @@ local M = {}
 -- Refusals that also raise the toast.
 -- Seconds a success line (repair done, saved) stays on the contextual status.
 M.NOTICE_SECONDS = 5
+-- Seconds a finished refusal stays on the contextual status before it clears.
+M.REFUSAL_SECONDS = 8
 
 M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true }
 
@@ -388,6 +390,15 @@ function M.start(options: Options)
 			end
 			if M.toasted[model.reason] then
 				toast.Text, toast.Visible = Locale.refusal(locale, model.reason), true
+			end
+			-- The contextual status floats over every sheet: a refusal there expires like a notice.
+			local refused = if contextual and model.status == "conflict" then model.reason else nil
+			if refused then
+				task.delay(M.REFUSAL_SECONDS, function()
+					if not disposed and model.expireRefusal(refused) then
+						render()
+					end
+				end)
 			end
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()

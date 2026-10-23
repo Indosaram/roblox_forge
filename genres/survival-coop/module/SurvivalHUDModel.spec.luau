@@ -291,6 +291,22 @@ return {
 		state.finish(true, { ok = true })
 		assert(not state.expireNotice("stale") and state.notice ~= nil, "an older timer never clears a newer line")
 	end,
+	["p45 a finished refusal expires from the contextual status, but never a newer one or an in-flight request"] = function()
+		local state: any = model()
+		local deposit: { any } = { "wood", 1 }
+		state.receive({ durable = { actions = { "survival-coop:transfer-deposit" }, sessionEpoch = 4 } })
+		state.begin("transfer-deposit", deposit)
+		state.finish(true, { ok = false, reason = "UNAUTHORIZED", stateVersion = 2 })
+		assert(state.status == "conflict" and state.reason == "UNAUTHORIZED" and state.pending == nil, "refused")
+		assert(not state.expireRefusal("OTHER"), "an older timer never clears a newer refusal")
+		assert(state.expireRefusal("UNAUTHORIZED"), "the refusal line clears after its display time")
+		local cleared: string = state.status
+		assert(cleared == "ready" and state.reason == nil, "the banner is gone")
+		state.begin("transfer-deposit", deposit)
+		state.finish(true, { ok = false, reason = "UNAUTHORIZED", stateVersion = 3 })
+		state.begin("transfer-deposit", deposit)
+		assert(not state.expireRefusal("UNAUTHORIZED"), "an in-flight request keeps the HUD state")
+	end,
 	["non-repair acceptance without a persisted outcome keeps its request"] = function()
 		local state = model()
 		local request = state.begin("craft-reserve", { "cord", "hand" })

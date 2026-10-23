@@ -33,6 +33,8 @@ local MarketExtension = require("../../genres/survival-coop/module/MarketExtensi
 local MarketplacePort = require("../../core/infra/monetization/MarketplacePort")
 local PolicyPort = require("../../core/infra/monetization/PolicyPort")
 local MarketPorts = require("./src/shared/MarketPorts")
+local CampPanelModel = require("../../genres/survival-coop/module/CampPanelModel")
+local MarketPanel = require("../../genres/survival-coop/module/CrossServerMarketPanel")
 local wildlifePolicy = require("./src/shared/WildlifePolicy")
 local tamingPolicy = require("./src/shared/TamingConfig")
 local monetizationCatalog = require("./src/shared/MonetizationCatalog")
@@ -413,7 +415,98 @@ local function idleRun(ids: { string }, heartbeats: number): ({ [string]: number
 	return writes, generations
 end
 
+-- Seeds the bag like the p43 Studio journey (fiber, fallen logs x3); fiber x50 so an
+-- over-delivery is reachable without first running short.
+local function seedBag(session: any, actor: string)
+	local catalog = Job.catalog(content)
+	local ok, why = session.personalTransaction(actor, function(raw)
+		local data = raw.envelope.genres["survival-coop"].data
+		local bag = Inventory.fromSave(data.inventory.bag, catalog)
+		for _, seed in { { "fiber-stack", "fiber", 50 }, { "wood-stack", "wood", 3 } } do
+			bag = assert(Inventory.add(bag, catalog, {
+				itemId = seed[1],
+				catalogId = seed[2],
+				quantity = seed[3],
+				qualityMilli = 1000,
+				durabilityMilli = 0,
+				attributes = {},
+			}, bag.version))
+		end
+		data.inventory.bag = Inventory.save(bag)
+		return raw
+	end)
+	assert(ok, tostring(why))
+end
+
 return {
+
+	["p45 camp Give sends the panel's args and every refusal it can hit has its own KO/EN line"] = function()
+		local clockAt = { value = 1000 }
+		local server = boot(Memory.new(), "job:p45-camp", clockAt, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "join")
+		seedBag(session, FIRST)
+		local camp = session.snapshot(FIRST).survivalExtensions.camp
+		assert(camp and camp.role == "member", "the first player is a camp member")
+		-- CampPanel: act("survival-coop:camp-contribute", { row.id, current.itemId, quantity, model.version })
+		local given =
+			command(session, FIRST, "give", "camp-contribute", { "windbreak", "fiber-stack", 1, camp.version })
+		assert(given.ok, "donation accepted: " .. serde.encode("json", given))
+		camp = session.snapshot(FIRST).survivalExtensions.camp
+		assert(camp.active.windbreak.delivered.fiber == 1, "1/40 fern fiber delivered")
+		local refusals = {
+			{ "stale", { "windbreak", "fiber-stack", 1, camp.version - 1 } },
+			{ "over", { "windbreak", "fiber-stack", 40, camp.version } },
+			{ "short", { "windbreak", "fiber-stack", 50, camp.version } },
+			{ "missing", { "windbreak", "gone-stack", 1, camp.version } },
+			{ "locked", { "drying-rack", "fiber-stack", 1, camp.version } },
+			{ "unknown", { "no-such-project", "fiber-stack", 1, camp.version } },
+		}
+		local seen: { [string]: boolean } = {}
+		for _, case in refusals do
+			clockAt.value += 3 -- refill the command rate limiter, which is not what this case tests
+			local refused = command(session, FIRST, "r-" .. case[1], "camp-contribute", case[2])
+			assert(not refused.ok and type(refused.reason) == "string", case[1] .. " refused")
+			seen[refused.reason] = true
+			for _, locale in { "en-us", "ko-kr" } do
+				local line = CampPanelModel.refusal(locale, refused.reason)
+				assert(
+					line ~= CampPanelModel.text(locale, "camp_refused"),
+					case[1] .. " " .. refused.reason .. " has its own " .. locale .. " line"
+				)
+			end
+		end
+		local codes = {}
+		for code in seen do
+			table.insert(codes, code)
+		end
+		table.sort(codes)
+		assert(
+			seen.OVER_DELIVERY and seen.STALE_VERSION and seen.UNAVAILABLE,
+			"domain codes: " .. table.concat(codes, ",")
+		)
+		assert(
+			session.snapshot(FIRST).survivalExtensions.camp.active.windbreak.delivered.fiber == 1,
+			"refusals move nothing"
+		)
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p45 harbor market List sends the panel's args; the eligibility refusal names its gate in KO/EN"] = function()
+		local server = boot(Memory.new(), "job:p45-market", { value = 1000 }, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "join")
+		seedBag(session, FIRST)
+		local market = session.snapshot(FIRST).survivalExtensions.market
+		assert(market and market.eligible == false, "a fresh session is not yet eligible to list")
+		-- CrossServerMarketPanel: ctx.send("survival-coop:market-list", { id, draft.quantity, draft.price })
+		local listed = command(session, FIRST, "list", "market-list", { "wood-stack", 1, 10 })
+		assert(not listed.ok and listed.reason == market.ineligibleReason, "refusal code: " .. tostring(listed.reason))
+		assert(listed.reason == "INELIGIBLE_PLAYTIME", "the 2h play gate refuses: " .. tostring(listed.reason))
+		local en, ko = MarketPanel.listRefusal("en-us", listed.reason), MarketPanel.listRefusal("ko-kr", listed.reason)
+		assert(string.find(en, "2 hours", 1, true) and string.find(ko, "2시간", 1, true), "names the play-time gate")
+		assert(en ~= MarketPanel.listRefusal("en-us", "SOMETHING_NEW"), "not the fallback line")
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
 	["real onboarding owner crafts the starter axe, chops wood and deposits through the elevated depot"] = function()
 		local at = { value = 1000 }
 		local server = boot(Memory.new(), "job:real-role", at, nil, nil, true)

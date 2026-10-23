@@ -215,7 +215,11 @@ function M.new(ports: Ports): any
 			return { ok = false, reason = "pending" }
 		end
 		ports.index("universe:" .. listing.catalogId, copy(listing))
-		return { ok = listing.state ~= "ABORTED", data = listing }
+		-- A declined escrow (units gone, reserved, paid or 20 listings up) names its refusal.
+		if listing.state == "ABORTED" then
+			return { ok = false, reason = "listing_declined", data = listing }
+		end
+		return { ok = true, data = listing }
 	end
 	function api.list(
 		actor: string,
@@ -237,6 +241,10 @@ function M.new(ports: Ports): any
 		local id = actor .. ":" .. requestId
 		local seller = read("player:" .. actor)
 		local item = if seller then seller.items[itemId] else nil
+		-- A readable account without that (unreserved, tradeable) stack is a refusal, not a retry.
+		if seller and not item and read("listing:" .. id) == nil then
+			return { ok = false, reason = "item_unavailable" }
+		end
 		local binding = Ledger.canonical({
 			actor = actor,
 			requestId = requestId,

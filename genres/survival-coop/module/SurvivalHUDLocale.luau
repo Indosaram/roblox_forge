@@ -14,6 +14,63 @@ local strings: { [string]: { string } } = {
 		"You cannot sell more than you hold (held %d)",
 		"보유 수량보다 많이 팔 수 없어요 (보유 %d)",
 	},
+	["market.account"] = {
+		"Market trading is unavailable for this account right now.",
+		"지금은 이 계정으로 장터 거래를 할 수 없어요.",
+	},
+	["market.age"] = {
+		"Market listing opens once your Roblox account is 7 days old.",
+		"로블록스 계정이 7일 이상 되어야 장터에 등록할 수 있어요.",
+	},
+	["market.playtime"] = {
+		"Market listing opens after 2 hours of play. Keep exploring and come back.",
+		"2시간 이상 플레이해야 장터에 등록할 수 있어요. 더 탐험한 뒤 다시 오세요.",
+	},
+	["market.tutorial"] = {
+		"Finish the first-day tutorial to open market listing.",
+		"첫날 튜토리얼을 마치면 장터에 등록할 수 있어요.",
+	},
+	["market.invalid"] = {
+		"Enter a quantity you carry and a price of at least 1.",
+		"가진 만큼의 수량과 1 이상의 가격을 입력하세요.",
+	},
+	["market.declined"] = {
+		"Those goods could not be escrowed (reserved, equipped, or 20 listings up). Check your bag.",
+		"재료를 맡길 수 없어요 (예약·장착 중이거나 등록 20개 초과). 가방을 확인하세요.",
+	},
+	["market.pending"] = {
+		"Listing is still settling. Press List again in a moment; it will not list twice.",
+		"등록을 정산하는 중이에요. 잠시 뒤 다시 누르세요. 두 번 등록되지 않아요.",
+	},
+	["market.conflict"] = {
+		"That request already listed different goods. Change the amount or price and list again.",
+		"같은 요청으로 다른 묶음이 이미 등록됐어요. 수량이나 가격을 바꿔 다시 등록하세요.",
+	},
+	["market.expired"] = {
+		"Session refreshed. Reopen the market and list again.",
+		"세션이 새로 고쳐졌어요. 장터를 다시 열고 등록하세요.",
+	},
+	["market.combat"] = {
+		"A wildlife fight is still settling. Wait a moment, then list again.",
+		"야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 등록하세요.",
+	},
+	["market.rate"] = {
+		"Too fast. Wait a moment, then list again.",
+		"너무 빨라요. 잠시 뒤 다시 등록하세요.",
+	},
+	["market.left"] = {
+		"You left this server. Rejoin to list.",
+		"서버를 떠났어요. 다시 접속한 뒤 등록하세요.",
+	},
+	["market.unavailable"] = {
+		"The market is still connecting. Wait a moment and try again.",
+		"장터에 연결하는 중이에요. 잠시 뒤 다시 시도하세요.",
+	},
+	["market.transport"] = {
+		"Connection uncertain. Press List again; it will not list twice.",
+		"연결이 불확실해요. 다시 누르세요. 두 번 등록되지 않아요.",
+	},
+	["market.refused"] = { "The market refused this listing.", "장터가 이 등록을 거절했어요." },
 	INELIGIBLE_REPAIR = { "This item cannot be repaired", "수리할 수 없는 물건" },
 	preset = { "Terrain %d", "지형 %d" },
 	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },

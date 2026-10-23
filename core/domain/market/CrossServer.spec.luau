@@ -179,4 +179,18 @@ return {
 		end
 		assert(not f.serverA.list("seller", "limit", "twig", 1, 1, 0).ok, "trade invariant")
 	end,
+	["p45 a list of goods the seller does not hold or cannot escrow names its refusal"] = function()
+		local f = fixture()
+		local missing = f.serverA.list("seller", "gone", "no-such-stack", 1, 10, 0)
+		assert(not missing.ok and missing.reason == "item_unavailable", "missing stack: " .. tostring(missing.reason))
+		assert(f.records["listing:seller:gone"] == nil, "no listing record for a missing stack")
+		local seller = f.records["player:seller"]
+		seller.market = { markers = {}, escrow = {}, active = {}, claims = {} }
+		for i = 1, 20 do
+			seller.market.active[tostring(i)] = true
+		end
+		local capped = f.serverA.list("seller", "capped", "twig", 1, 10, 0)
+		assert(not capped.ok and capped.reason == "listing_declined", "declined escrow: " .. tostring(capped.reason))
+		assert(seller.items.twig.quantity == 10, "nothing moved")
+	end,
 }

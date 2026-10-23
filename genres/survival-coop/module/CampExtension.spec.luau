@@ -150,6 +150,22 @@ return {
 		)
 		assert(CampPanel.clamp(5, 5000) == 5 and CampPanel.clamp(5000, 5000) == CampPanel.MAX_QUANTITY, "server cap")
 	end,
+	["p45 every camp refusal code has its own KO/EN line"] = function()
+		for _, code in CampPanel.refusalCodes() do
+			for _, locale in { "en", "ko" } do
+				assert(CampPanel.refusal(locale, code) ~= CampPanel.text(locale, "camp_refused"), code .. " " .. locale)
+			end
+		end
+		for _, code in
+			{ "FORBIDDEN", "STALE_VERSION", "OVER_DELIVERY", "ITEM_NOT_NEEDED", "UNAVAILABLE", "PROJECT_LOCKED" }
+		do
+			assert(table.find(CampPanel.refusalCodes(), code), code .. " mapped")
+		end
+		assert(
+			CampPanel.refusal("ko", "TRANSPORT_FAILED: x") == CampPanel.refusal("ko", "TRANSPORT_FAILED"),
+			"transport"
+		)
+	end,
 	["every camp panel string has en-us and ko-kr locale rows"] = function()
 		local csv = fs.readFile("games/robango-island/locale/strings.csv")
 		for _, key in CampPanel.keys() do

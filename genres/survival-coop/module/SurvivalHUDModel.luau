@@ -125,6 +125,17 @@ function M.new(actor: string, newId: () -> string): any
 		model.notice = nil
 		return true
 	end
+	--- Clears a finished refusal line once its display time has passed, unless a newer result or an
+	--- in-flight request replaced it. A refusal left up for the session sat over every later sheet
+	--- and read as that sheet's refusal (2026-10-23 Studio: a bag deposit refusal showed over the
+	--- camp donation that had succeeded). Returns whether the line was cleared.
+	function model.expireRefusal(reason: string): boolean
+		if model.status ~= "conflict" or model.reason ~= reason or model.pending or model.busy then
+			return false
+		end
+		model.status, model.reason = "ready", nil
+		return true
+	end
 	return model
 end
 
