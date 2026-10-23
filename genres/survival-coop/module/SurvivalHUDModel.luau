@@ -384,12 +384,50 @@ function M.contextSheet(width: number, height: number, touch: boolean): (number,
 	return M.chatSafe(width, height, width - right - w, top, w, h)
 end
 
-function M.contextHudBounds(width: number, _height: number?): any
+-- Roblox chat on a portrait phone (Studio 360x640: log 0,5 140x145, bar 12,167) plus margin.
+M.PHONE_CHAT = { x = 0, y = 0, width = 160, height = 212 }
+function M.phoneChat(width: number, height: number?): any
+	if height ~= nil and height > width and width < 1000 then
+		return M.PHONE_CHAT
+	end
+	return nil
+end
+
+-- Vitals row geometry (SurvivalHUD): localized stat label, bar track, value. Labels never
+-- drop under 11px text.
+M.VITALS = { labelX = 4, labelWidth = 48, rowStep = 23, textSize = 11, trackX = 54, trackRight = 46 }
+
+function M.contextHudBounds(width: number, height: number?): any
+	local chat = M.phoneChat(width, height)
+	if chat then
+		-- Portrait phone: every HUD rect sits in the column right of the chat window. The menu
+		-- button (with the coin chip beside it) heads the column, vitals and objective follow.
+		local left = chat.x + chat.width + 8
+		local w = width - left - 12
+		local menu = { x = width - 76, y = 64, width = 64, height = 44 }
+		local vitals = { x = left, y = menu.y + menu.height + 8, width = w, height = 76 }
+		local objective = { x = left, y = vitals.y + vitals.height + 8, width = w, height = 44 }
+		return {
+			vitals = vitals,
+			objective = objective,
+			menu = menu,
+			coins = { x = menu.x - 108, y = menu.y + 8, width = 100, height = 28 },
+			biome = { x = left, y = 24, width = w, height = 32 },
+			status = { x = left, y = objective.y + objective.height + 8, width = w, height = 56 },
+			photo = {
+				x = (width - math.min(520, width - 24)) / 2,
+				y = 64,
+				width = math.min(520, width - 24),
+				height = 92,
+			},
+		}
+	end
 	local w = math.min(216, width - 100)
 	return {
 		vitals = { x = width - w - 12, y = 64, width = w, height = 76 },
 		objective = { x = width - w - 12, y = 144, width = w, height = 28 },
 		menu = { x = width - w - 84, y = 64, width = 64, height = 44 },
+		coins = { x = width - w - 116, y = 112, width = 100, height = 28 },
 		biome = { x = (width - 192) / 2, y = 24, width = 192, height = 32 },
 		photo = { x = (width - math.min(520, width - 24)) / 2, y = 64, width = math.min(520, width - 24), height = 92 },
 	}

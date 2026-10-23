@@ -155,6 +155,8 @@ local function engine(): any
 				return Text
 			elseif path == "./MusicSelection" then
 				return Selection
+			elseif path == "./SurvivalHUDModel" then
+				return require("./SurvivalHUDModel")
 			end
 			local domain: { [string]: any } = {
 				["../../../core/domain/music/Score"] = require("../../../core/domain/music/Score"),

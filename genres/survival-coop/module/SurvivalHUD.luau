@@ -140,11 +140,13 @@ function M.start(options: Options)
 		-- Localized label under the optional (maybe moderated) image.
 		local symbol = Instance.new("TextLabel")
 		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
-		symbol.Position, symbol.Size = UDim2.fromOffset(4, 4 + (index - 1) * 23), UDim2.fromOffset(42, 20)
-		symbol.Text, symbol.TextColor3, symbol.TextSize = t(stat), Color3.fromRGB(240, 244, 240), 10
+		symbol.Position = UDim2.fromOffset(Model.VITALS.labelX, 4 + (index - 1) * Model.VITALS.rowStep)
+		symbol.Size = UDim2.fromOffset(Model.VITALS.labelWidth, 20)
+		symbol.Text, symbol.TextColor3, symbol.TextSize = t(stat), Color3.fromRGB(240, 244, 240), Model.VITALS.textSize
 		symbol.TextScaled = true
 		local textLimit = Instance.new("UITextSizeConstraint")
-		textLimit.MinTextSize, textLimit.MaxTextSize, textLimit.Parent = 8, 10, symbol
+		textLimit.MinTextSize, textLimit.MaxTextSize, textLimit.Parent =
+			Model.VITALS.textSize, Model.VITALS.textSize, symbol
 		if icon and icon.image then
 			local image = Instance.new("ImageLabel")
 			image.Name, image.BackgroundTransparency = "Asset", 1
@@ -160,7 +162,9 @@ function M.start(options: Options)
 		local track = Instance.new("Frame")
 		track.Name, track.BorderSizePixel, track.BackgroundColor3 = stat .. "Track", 0, Color3.fromRGB(45, 62, 56)
 		track.Position, track.Size, track.Parent =
-			UDim2.fromOffset(50, 10 + (index - 1) * 23), UDim2.new(1, -96, 0, 8), vitals
+			UDim2.fromOffset(Model.VITALS.trackX, 10 + (index - 1) * Model.VITALS.rowStep),
+			UDim2.new(1, -(Model.VITALS.trackX + Model.VITALS.trackRight), 0, 8),
+			vitals
 		local fill = Instance.new("Frame")
 		fill.Name, fill.BorderSizePixel = "Fill", 0
 		fill.BackgroundColor3 = ({
@@ -1487,10 +1491,18 @@ function M.start(options: Options)
 			local sx, sy, sw, sh = Model.contextSheet(size.X, size.Y, input.TouchEnabled)
 			sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
 				Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
-			local bounds = Model.contextHudBounds(size.X + 24, size.Y + 16).vitals
+			local hud = Model.contextHudBounds(size.X + 24, size.Y + 16)
+			local bounds = hud.vitals
 			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
 			vitals.Size = UDim2.fromOffset(bounds.width, bounds.height)
-			coins.Position = UDim2.fromOffset(bounds.x - 116, 104)
+			coins.Position = UDim2.fromOffset(hud.coins.x - 12, hud.coins.y - 8)
+			if hud.status then
+				-- Portrait phone: the sync status stays in the HUD column, right of Roblox's chat.
+				status.AnchorPoint, status.Position =
+					Vector2.zero, UDim2.fromOffset(hud.status.x - 12, hud.status.y - 8)
+				status.Size = UDim2.fromOffset(hud.status.width, hud.status.height)
+				return
+			end
 			status.AnchorPoint, status.Position = Vector2.new(1, 0), UDim2.new(1, -80, 0, 0)
 			status.Size = UDim2.fromOffset(math.min(312, size.X - 80), 56)
 			return

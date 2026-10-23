@@ -39,7 +39,7 @@ return {
 		assert(
 			string.find(
 				source,
-				"menuLayout.CellSize = UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight)",
+				'set(menuLayout, "CellSize", UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight))',
 				1,
 				true
 			),
@@ -82,7 +82,7 @@ return {
 		)
 		assert(
 			string.find(source, "M.menuCanvas(shownTiles, columns, tileHeight)", 1, true)
-				and string.find(source, "menuList.CanvasSize = UDim2.fromOffset(0, canvas)", 1, true),
+				and string.find(source, 'set(menuList, "CanvasSize", UDim2.fromOffset(0, canvas))', 1, true),
 			"dock sets the canvas from menuCanvas"
 		)
 		assert(type(Panels.menuCanvas) == "function", "menuCanvas exported")

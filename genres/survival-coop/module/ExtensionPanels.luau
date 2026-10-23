@@ -173,18 +173,24 @@ M.MENU_GAP, M.MENU_SCROLLBAR, M.MENU_MIN_TILE = 6, 6, 44
 function M.menuCell(menuWidth: number, columns: number): number
 	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
 end
--- Canvas height for `count` visible tiles in `columns` columns of `tile`-high rows: every row
--- plus one MENU_GAP of bottom padding, so the wheel can bring the last row fully into view.
+-- Canvas height: top gap (first header unclipped), rows, bottom gap (last row reachable).
 -- The dock sets this explicitly; AutomaticCanvasSize with the UIGridLayout came out one row
 -- short in Studio (p36: 414px canvas for 7 rows, last row unreachable at 1076x634).
 function M.menuCanvas(count: number, columns: number, tile: number): number
 	local rows = math.ceil(count / math.max(1, columns))
-	return rows * (tile + M.MENU_GAP)
+	return M.MENU_GAP + rows * (tile + M.MENU_GAP)
 end
 -- Short landscape: contextSheet's thumb-gutter rule. The column count is the design count
--- capped by how many touch-sized tiles fit the width left of the scrollbar.
+-- capped by how many touch-sized tiles fit the width left of the scrollbar. The grid always
+-- starts one gap below the HUD menu button and, on a portrait phone, below Roblox's chat.
 function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
 	local w, columns, tile, top = M.menuBounds(width, height)
+	local button = HUDModel.contextHudBounds(width, height).menu
+	top = math.max(top, button.y + button.height + M.MENU_GAP)
+	local chat = HUDModel.phoneChat(width, height)
+	if chat then
+		top = math.max(top, chat.y + chat.height + M.MENU_GAP)
+	end
 	local x, h = (width - w) / 2, math.max(0, height - top - 128)
 	if (touch or width < 700) and width > height and height < 480 then
 		x, w, h = HUDModel.THUMB_GUTTER, width - 2 * HUDModel.THUMB_GUTTER, height - top - 8
@@ -382,6 +388,10 @@ function M.start(options: {
 		menuList.AutomaticCanvasSize = Enum.AutomaticSize.None
 		menuList.CanvasSize = UDim2.fromOffset(0, 0)
 		menuList.ScrollBarThickness = 6
+		-- Vertical only, so wheel and drag in either direction always move the rows.
+		menuList.ScrollingDirection = Enum.ScrollingDirection.Y
+		local menuPad = Instance.new("UIPadding")
+		menuPad.PaddingTop, menuPad.Parent = UDim.new(0, M.MENU_GAP), menuList
 		-- The canvas stops left of the scrollbar, so the bar never covers the last tile column.
 		menuList.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 	end
@@ -484,6 +494,12 @@ function M.start(options: {
 		return h
 	end
 	local lastCompact: boolean? = nil
+	-- place() runs every Heartbeat: write only changed values so a scroll is never reset.
+	local function set(item: any, key: string, value: any)
+		if item[key] ~= value then
+			item[key] = value
+		end
+	end
 	local function place()
 		local size = viewport()
 		local isCompact = compact()
@@ -497,13 +513,14 @@ function M.start(options: {
 			local menu = bounds.menu
 			column.AnchorPoint, column.Position = Vector2.zero, UDim2.fromOffset(menu.x, menu.y)
 			column.Size = UDim2.fromOffset(menu.width, menu.height)
-			menuList.Parent = dockGui
+			set(menuList, "Parent", dockGui)
 			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
 				M.menuRect(size.X, size.Y, input.TouchEnabled)
 			local mx, my, mw, mh = HUDModel.chatSafe(size.X, size.Y, menuX, menuTop, menuWidth, menuHeight)
-			menuList.AnchorPoint, menuList.Position, menuList.Size =
-				Vector2.zero, UDim2.fromOffset(mx, my), UDim2.fromOffset(mw, mh)
-			menuLayout.CellSize = UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight)
+			set(menuList, "AnchorPoint", Vector2.zero)
+			set(menuList, "Position", UDim2.fromOffset(mx, my))
+			set(menuList, "Size", UDim2.fromOffset(mw, mh))
+			set(menuLayout, "CellSize", UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight))
 			local shownTiles = 0
 			for _, tile in tiles do
 				if tile.Visible then
@@ -511,9 +528,11 @@ function M.start(options: {
 				end
 			end
 			-- The layout's own content height wins if it wraps into more rows than predicted.
-			local canvas =
-				math.max(M.menuCanvas(shownTiles, columns, tileHeight), menuLayout.AbsoluteContentSize.Y + M.MENU_GAP)
-			menuList.CanvasSize = UDim2.fromOffset(0, canvas)
+			local canvas = math.max(
+				M.menuCanvas(shownTiles, columns, tileHeight),
+				menuLayout.AbsoluteContentSize.Y + 2 * M.MENU_GAP
+			)
+			set(menuList, "CanvasSize", UDim2.fromOffset(0, canvas))
 			objectiveSlot.Visible = not menuList.Visible
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			local open = false

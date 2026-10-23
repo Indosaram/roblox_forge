@@ -594,7 +594,7 @@ return {
 		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
 		assert(string.find(source, "M.menuRect(size.X, size.Y, input.TouchEnabled)", 1, true), "dock uses menuRect")
 		-- The canvas grows with the tile rows (menuCanvas), so every launcher scrolls into the viewport.
-		assert(string.find(source, "menuList.CanvasSize = UDim2.fromOffset(0, canvas)", 1, true), "menu scrolls")
+		assert(string.find(source, 'set(menuList, "CanvasSize", UDim2.fromOffset(0, canvas))', 1, true), "menu scrolls")
 		for _, viewport in HUD_VIEWPORTS do
 			-- The dock ScreenGui uses CoreUISafeInsets: touch phones lose the 56px topbar.
 			local width, height, touch = viewport[1], viewport[2] - (if viewport[3] then 56 else 0), viewport[3]
@@ -613,8 +613,11 @@ return {
 			local hud = Model.contextHudBounds(width, height)
 			-- SurvivalHUD places the 100x28 chip in SafeArea space (viewport minus 12,8), left of vitals.
 			local hudSource = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
-			assert(string.find(hudSource, "UDim2.fromOffset(bounds.x - 116, 104)", 1, true), "HUD chip anchor moved")
-			hud.coins = { x = hud.vitals.x - 104, y = 112, width = 100, height = 28 }
+			assert(
+				string.find(hudSource, "UDim2.fromOffset(hud.coins.x - 12, hud.coins.y - 8)", 1, true),
+				"HUD chip anchor moved"
+			)
+			hud.coins = { x = hud.coins.x, y = hud.coins.y, width = 100, height = 28 }
 			inside(hud.coins, width, height, "coins")
 			for _, key in { "vitals", "objective", "menu", "biome" } do
 				assert(not overlaps(hud.coins, hud[key]), "coins overlap " .. key .. " at " .. width)
