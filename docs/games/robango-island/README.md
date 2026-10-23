@@ -10,6 +10,7 @@
 | [maturity-questionnaire-draft.md](maturity-questionnaire-draft.md) | Maturity & Compliance 설문 15개 카테고리 답변 초안(목표 Mild). **DRAFT, 사용자가 직접 제출** | §6, §8, §15 | 빌드 확인 후 제출 |
 | [legal-review-packet.md](legal-review-packet.md) | 변호사·변리사 검토 패킷: IP 트랙, 차별화 표, 이름 위험, 게임산업법 요약, 질문 22개 | §0, §2, §3, §16 | 검토 의뢰와 비용 승인(U3, U4) |
 | [liveops-season1.md](liveops-season1.md) | 시즌 1(M9) 초안: 신규 바이옴, 보스형, 스토리 비트, 4대4 옵트인 공성 암초, 6주 캘린더 템플릿 | §5, §6, §7, §13, §14 | 가격·수치 PR 머지 |
+| [ADR-preprod.md](ADR-preprod.md) | 2026-10-23 이후 결정 기록: 도끼·곡괭이 도구 등급 정책(ADR-09), 소유자 지시로 PR 없이 main에 들어간 core/genre 변경 목록(ADR-10) | §11.1 | 없음(기록) |
 | [kr-launch-checklist.md](kr-launch-checklist.md) | 한국 전용 단계: GRAC 질의문, PolicyService 실측 절차, Kids/Select 요건 일정 | §15, ADR-07, ADR-08 | 질의 발송, KR 계정 접속, 비용 항목 승인(U5~U9) |
 
 ## 이름 관련 주의

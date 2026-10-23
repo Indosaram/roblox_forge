@@ -274,6 +274,50 @@ return {
 			client.destroy()
 		end
 	end,
+	["decorative arrival fauna is a seeded anchored ghost rig the client can pose"] = function()
+		local function decor(layoutId: string): { [string]: any }
+			local engine = Engine.new()
+			engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layoutId, 79)
+			local found = {}
+			for _, model in engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld"):GetChildren() do
+				if model:IsA("Model") and model:GetAttribute("Species") then
+					found[model.Name] = model
+				end
+			end
+			return found
+		end
+		for _, layoutId in { "rw.onboarding", "rw.a1.s1" } do
+			local first, again = decor(layoutId), decor(layoutId)
+			local phases, count = {}, 0
+			for name, model in first do
+				count += 1
+				assert(model:GetAttribute("ForgeDecorFauna") == true, name .. " is tagged for the client graze idle")
+				local phase, period = model:GetAttribute("ForgeGrazePhase"), model:GetAttribute("ForgeGrazePeriod")
+				assert(type(phase) == "number" and phase >= 0 and phase < 1, name .. " graze phase")
+				assert(type(period) == "number" and period >= 6 and period <= 14, name .. " graze period")
+				local twin = again[name]
+				assert(
+					twin:GetAttribute("ForgeGrazePhase") == phase and twin:GetAttribute("ForgeGrazePeriod") == period,
+					name .. " phase is deterministic per rig"
+				)
+				assert(not phases[phase], name .. " shares a phase with another rig")
+				phases[phase] = true
+				for _, part in model:GetDescendants() do
+					if part:IsA("BasePart") then
+						assert(
+							not part.CanCollide and not part.CanTouch and not part.CanQuery,
+							name .. " part is interactive: " .. part.Name
+						)
+						-- Only the root is anchored: the assembly stays fixed while Motor6D poses move limbs.
+						assert(part.Anchored == (part == model.PrimaryPart), name .. " anchoring: " .. part.Name)
+					end
+				end
+			end
+			assert(count >= 1, layoutId .. " has decorative fauna")
+		end
+	end,
 	["production onboarding creatures spawn with their lowest part on terrain"] = function()
 		local engine = Engine.new()
 		local world = engine.role.build(Content, Source, Policy, function()

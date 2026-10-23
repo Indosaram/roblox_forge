@@ -57,6 +57,7 @@ local PROP_ARCHETYPES: { [string]: boolean } = {
 	crystal = true,
 	rock = true,
 	tree = true,
+	palm = true,
 	crate = true,
 }
 

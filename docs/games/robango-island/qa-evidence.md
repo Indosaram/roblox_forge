@@ -1,5 +1,57 @@
 # robango-island QA evidence
 
+## Studio real-input evidence and gates (2026-10-23)
+
+Current `main` is `23f5e8c`. The Studio runs below used local builds of an
+earlier commit plus the uncommitted batch that later landed. No Studio run used
+exactly `23f5e8c`. Each row names its build. Evidence paths are under
+`.omo/evidence/robango-recovery/` and are gitignored local files. "Real input"
+means real E/F key presses, mouse clicks and wheel steps sent through Studio
+MCP. Camera pins and listener probes were temporary, client-only and
+unsaved.
+
+### Verified in Studio by real input
+
+| Item | Result | Build | Evidence |
+|---|---|---|---|
+| Creature strike | PASS. A real F press provoked compsognathus. Feedback went telegraph -> strike, and player HP dropped 4 per strike. In p35 no strike landed. | `5bcb0e6` + batch (landed as `5c9f574`) | `p36/s.md` section 1 "Strike" |
+| Expedition results popup | PASS. With no input it stayed open about 115 s. A real click on X closed it, and it stayed closed for 10 s or more. The reward-row text was not seen, because no mission reward had been earned. | `5bcb0e6` + batch | `p36/s.md` section 1 "Results popup" |
+| Gather with one press | PASS on hand-gatherable nodes: one real E on branch and on fiber was confirmed in 0.11-0.13 s, and the label returned to 채집하기. In p37, a refused E on wood left the label stuck on 채집 중...; p40 shows that fixed (next row). | `da51791` + batch (landed as `6d8fef3`) | `p37/s.md` section 2 "One E on wood" |
+| Axe refusal notice and prompt reset | PASS with no tool equipped. Four real E presses on a1.s1 wood each showed `입문용 도끼 이상 도구 장착 필요` for 3.0 s, and the label went back to 채집하기 within 0.06 s. | `6d8fef3` + uncommitted batch | `p40/s.md` section 3 "Axe notice" |
+| Arrival sheet X | PASS. A real click on X closed the a1.s1 arrival sheet, and it stayed closed for more than 10 min. The p36 reopen is gone. | `da51791` + batch | `p37/s.md` section 2 "Arrival sheet X" |
+| 연주 menu tile | PASS. Real wheel steps reached the true bottom of the menu canvas (560 px, previously 414 px). A real click on 연주 opened the score editor. | `da51791` + batch | `p37/s.md` section 3 |
+| Creature lineup, 24 species | All 24 PASS on grounding, silhouette, part budget of 48 or fewer, and no z-fighting. The parasaurolophus crest failed and was then fixed. Its after-shot used the patched module loaded only into the Play datamodel. This was a scripted showcase spawn, not real input. Live a1.s1 and onboarding wildlife still animated. | `6d8fef3` + creature patch (landed in `23f5e8c`) | `p39/s.md` |
+| ProcProps | p37: a1.s1, harbor and a3.s3 each had 24 props, grounded within 0.05 studs and clear of every prompt. Home had 10 props instead of 8, and the a1.s1 palm lay flat. p40, with the uncommitted props patch: a1.s1 bboxes sit on the terrain (dBottom 0.00) and trees are 5.6-8.9 studs tall, but **the palm still lies flat (FAIL)**. Home had 7 props, the nearest 14.2 studs from a prompt. That patch is not committed. | p37: `da51791` + batch; p40: `6d8fef3` + uncommitted batch | `p37/s.md`, `p40/s.md` section 1, `p40/s/props_home.txt`, `p40/s/clear_home.txt` |
+| Console | 0 game errors after excluding asset HTTP 403 noise. p36: a1.s1, onboarding, harbor and a3.s3. p37: a1.s1, harbor and a3.s3. p39: a1.s1 and onboarding. p40: a1.s1. | as above | `p36/s/console_*.txt`, `p37/s/console_*.txt`, `p39/s/console_*.txt`, `p40/s/console_a1s1.txt` |
+
+The axe-tier journey ends with the tutorial Flint Hatchet (`stone-axe`) gathering a1.s1
+wood and settling the first mission. It is verified only by native
+scenarios: `archipelago-first-stage-stone-axe` and `-onsite-axe` both record PASS
+and replay MATCH (`p38/wood.md`). In Studio, only the refusal path above was
+exercised. A Studio walk with the Flint Hatchet has not been recorded. The
+22 new SFX cues are silent in Studio because they are local fallbacks
+(`p37/s.md` section 4).
+
+### Not verified
+
+- No live staging deploy since the owner account was moderated. No published
+  version of these builds exists.
+- No real phone run of these builds. Portrait 360x640 can be checked only on
+  a phone. In p35 the Studio portrait override did not apply, and the device emulator
+  was unreachable (`p35/s.md` section 4).
+- No two-account live trade or camp.
+- The 22 new SFX are not uploaded. `assets/manifest.yml` lists them as
+  `NotUploaded`, so they are silent in live play.
+
+### Gate results for `23f5e8c` (lead-run)
+
+The lead ran these gates and reported the results. This lane found no log file
+for them under `.omo/evidence/`.
+
+- `forge check`: 13/13 stages PASS.
+- Command exit gate: 79/79 commands exited 0.
+- Native scenarios: all 38 recorded and replayed MATCH.
+
 ## Current recovery evidence (2026-10-21)
 
 This section supersedes old blanket readiness claims and the fidelity matrix's

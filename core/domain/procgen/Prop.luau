@@ -1,5 +1,5 @@
 --!strict
--- Prop: deterministic procedural prop meshes (egg, crystal, rock, tree, crate).
+-- Prop: deterministic procedural prop meshes (egg, crystal, rock, tree, palm, crate).
 -- Pure Luau (no Roblox APIs, no math.random). Uses MeshBuilder and reduces the
 -- tessellation density until the mesh fits the spec's polyBudget.
 
@@ -7,7 +7,7 @@ local MeshBuilder = require("./MeshBuilder")
 
 local Prop = {}
 
-export type Kind = "egg" | "crystal" | "rock" | "tree" | "crate"
+export type Kind = "egg" | "crystal" | "rock" | "tree" | "palm" | "crate"
 
 export type Spec = {
 	scale: number,
@@ -220,6 +220,53 @@ local function buildTree(b: Builder, spec: Spec, seg: number, rng: Rng): ()
 	end
 end
 
+-- An upright palm: a slender trunk of two chained capsules that bends gently to
+-- one side (top within ~12 degrees of vertical), a foliage heart at the top, four
+-- drooping frond cones radiating from it and two coconuts underneath. The Part
+-- fallback stays within ~21 parts.
+local function buildPalm(b: Builder, spec: Spec, seg: number, rng: Rng): ()
+	local s = spec.scale
+	local foliage = spec.foliage or DEFAULT_FOLIAGE
+	local heading = rng() * math.pi * 2
+	local dx, dz = math.cos(heading), math.sin(heading)
+	local height = (2.3 + rng() * 0.3) * s
+	local bend = (0.3 + rng() * 0.15) * s
+	local function trunkAt(t: number): MeshBuilder.Vec3
+		local off = bend * t * t
+		return vec(dx * off, height * t, dz * off)
+	end
+	local trunkSeg = math.max(4, math.floor(seg / 2))
+	local segments = 2
+	for i = 1, segments do
+		local radius = (0.15 - 0.035 * (i - 1)) * s
+		b:addCapsule(trunkAt((i - 1) / segments), trunkAt(i / segments), radius, spec.body, trunkSeg)
+	end
+	local top = trunkAt(1)
+	b:addEllipsoid(top, vec(0.26 * s, 0.2 * s, 0.26 * s), foliage, math.max(4, seg - 4))
+	local fronds = 4
+	local phase = rng() * math.pi * 2
+	local frondSeg = math.max(4, math.floor(seg / 3))
+	for i = 1, fronds do
+		local angle = phase + (i - 1) / fronds * math.pi * 2 + (rng() - 0.5) * 0.3
+		local fx, fz = math.cos(angle), math.sin(angle)
+		local reach = (1.15 + rng() * 0.25) * s
+		local droop = (0.45 + rng() * 0.2) * s
+		local base = vec(top.x + fx * 0.12 * s, top.y + 0.05 * s, top.z + fz * 0.12 * s)
+		local tip = vec(top.x + fx * reach, top.y - droop, top.z + fz * reach)
+		local tone = if i % 2 == 0 then lighten(foliage, 0.08) else darken(foliage, 0.08)
+		b:addCone(base, tip, 0.2 * s, tone, frondSeg)
+	end
+	for i = 1, 2 do
+		local angle = phase + i * math.pi
+		b:addEllipsoid(
+			vec(top.x + math.cos(angle) * 0.14 * s, top.y - 0.2 * s, top.z + math.sin(angle) * 0.14 * s),
+			vec(0.1 * s, 0.1 * s, 0.1 * s),
+			spec.accent,
+			4
+		)
+	end
+end
+
 -- A closed wooden crate: a solid body box wearing four proud side panels with
 -- vertical plank grooves, dark corner posts and a two-tone plank lid.
 local function buildCrate(b: Builder, spec: Spec, _seg: number, rng: Rng): ()
@@ -287,6 +334,7 @@ local BUILDERS: { [string]: (Builder, Spec, number, Rng) -> () } = {
 	crystal = buildCrystal,
 	rock = buildRock,
 	tree = buildTree,
+	palm = buildPalm,
 	crate = buildCrate,
 }
 

@@ -200,7 +200,7 @@ assets:
     seed: 363
   - key: robango-coast-palm
     kind: prop
-    archetype: tree
+    archetype: palm
     scale: 1.7
     body: [150, 112, 72]
     accent: [228, 196, 92]

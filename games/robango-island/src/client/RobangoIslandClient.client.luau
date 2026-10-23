@@ -1001,7 +1001,7 @@ local DinosaurRig = require(Forge.genres["survival-coop"].module.DinosaurRig)
 local CreaturePose = require(script.Parent.CreaturePose)
 local function startCreatureAnimation(rigPose: (Model, string, number, number) -> ()): { destroy: () -> () }
 	local RunService = game:GetService("RunService")
-	local registry: { [Model]: { state: string, elapsed: number } } = {}
+	local registry: { [Model]: { state: string, elapsed: number, offset: number? } } = {}
 	local connections: { RBXScriptConnection } = {}
 	local destroyed = false
 	-- Overhead species name (client-side, per-client locale), shown only up close so a herd
@@ -1032,9 +1032,24 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			and model:FindFirstChild("HumanoidRootPart")
 		then
 			if registry[model] == nil then
-				nameplate(model)
+				-- Decorative role-world fauna idles on its server-seeded graze phase and wears no
+				-- nameplate: it is scenery, not a creature the player can interact with.
+				local phase, period = model:GetAttribute("ForgeGrazePhase"), model:GetAttribute("ForgeGrazePeriod")
+				local decor = model:GetAttribute("ForgeDecorFauna") == true
+				if not decor then
+					nameplate(model)
+				end
+				registry[model] = {
+					state = "idle",
+					elapsed = 0,
+					offset = if decor
+							and type(phase) == "number"
+							and type(period) == "number"
+						then phase * period
+						elseif decor then 0
+						else nil,
+				}
 			end
-			registry[model] = registry[model] or { state = "idle", elapsed = 0 }
 		end
 	end
 	local function bind(folder: Instance)
@@ -1051,15 +1066,18 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			end)
 		)
 	end
+	local function animated(name: string): boolean
+		return name == "Wildlife" or name == "OwnedCreatures" or name == "ForgeWildlife" or name == "ForgeRoleWorld"
+	end
 	for _, child in workspace:GetChildren() do
-		if child.Name == "Wildlife" or child.Name == "OwnedCreatures" or child.Name == "ForgeWildlife" then
+		if animated(child.Name) then
 			bind(child)
 		end
 	end
 	table.insert(
 		connections,
 		workspace.ChildAdded:Connect(function(child)
-			if child.Name == "Wildlife" or child.Name == "OwnedCreatures" or child.Name == "ForgeWildlife" then
+			if animated(child.Name) then
 				bind(child)
 			end
 		end)
@@ -1097,13 +1115,19 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				if humanoid and humanoid.Health <= 0 then
 					serverState = "dead"
 				end
-				local state, elapsed = CreaturePose.sample(
-					animation,
-					if type(serverState) == "string" then serverState else nil,
-					speed,
-					model:GetAttribute("Rider") ~= nil or model:GetAttribute("ForgeMountSpecies") ~= nil,
-					dt
-				)
+				local state, elapsed
+				if animation.offset then
+					animation.elapsed += dt
+					state, elapsed = "graze", animation.elapsed + animation.offset
+				else
+					state, elapsed = CreaturePose.sample(
+						animation,
+						if type(serverState) == "string" then serverState else nil,
+						speed,
+						model:GetAttribute("Rider") ~= nil or model:GetAttribute("ForgeMountSpecies") ~= nil,
+						dt
+					)
+				end
 				-- Beyond the profile's pose range or cap hold the articulated silhouette.
 				-- Telegraphs and death remain active.
 				if
@@ -1142,7 +1166,8 @@ local ProcAssets = require(Forge.core.infra.render.ProcAssets)
 local ProcAssetsSpecs = require(Shared.ProcAssets)
 local ProcProps = require(Shared.ProcProps)
 -- Generated props are decor only: never collide, answer queries or fire touches.
-local function decorProp(key: string, name: string, cf: CFrame, scale: number, parts: boolean?): Model?
+-- With `ground` the prop is then lifted or lowered so its bounding-box bottom sits on it.
+local function decorProp(key: string, name: string, cf: CFrame, scale: number, parts: boolean?, ground: number?): Model?
 	local built = ProcAssets.build(ProcAssetsSpecs, key, name, { forceParts = parts })
 	if not (built and built.PrimaryPart) then
 		return nil
@@ -1159,6 +1184,15 @@ local function decorProp(key: string, name: string, cf: CFrame, scale: number, p
 		built:ScaleTo(scale)
 	end
 	built:PivotTo(cf)
+	if ground then
+		local pieces = {}
+		for _, d in built:GetDescendants() do
+			if d:IsA("BasePart") then
+				table.insert(pieces, d)
+			end
+		end
+		built:PivotTo(built:GetPivot() + Vector3.new(0, ProcProps.seat(ground, ProcProps.bottom(pieces)), 0))
+	end
 	return built
 end
 -- Every role world (harbor, archipelago stages, home) gets the deterministic ProcProps plan,
@@ -1181,7 +1215,7 @@ local function dressRoleWorld(root: Instance)
 	local columns = if layoutId == "rw.home"
 		then {}
 		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
-	local placements = ProcProps.limit(ProcProps.plan(layout, columns, seed), profile)
+	local placements = ProcProps.limit(ProcProps.plan(layout, columns, seed, content.homePolicy), profile)
 	local folder = Instance.new("Folder")
 	folder.Name = "ForgeProcProps"
 	local ray = RaycastParams.new()
@@ -1205,7 +1239,8 @@ local function dressRoleWorld(root: Instance)
 			item.name,
 			CFrame.new(p.x, y, p.z) * CFrame.Angles(0, math.rad(item.yaw), 0),
 			item.scale,
-			not table.find(meshKeys, item.key)
+			not table.find(meshKeys, item.key),
+			y
 		)
 		if built then
 			built.Parent = folder

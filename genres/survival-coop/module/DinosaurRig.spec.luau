@@ -391,6 +391,37 @@ return {
 		assert(shell.CFrame.Position.Y > torso.CFrame.Position.Y and touches(shell, torso, 0), "armor sits on the back")
 		world:Destroy()
 	end,
+	["graze idle breathes sways and periodically dips the head deterministically"] = function()
+		local module = loadRig()
+		local world = roblox.Instance.new("Workspace")
+		for _, species in { "triceratops", "dodo", "deer", "turtle", "gallimimus", "mammoth" } do
+			local model = module.new(species, species, roblox.Vector3.zero, world)
+			model:SetAttribute("ForgeGrazePeriod", 10)
+			local root = model.PrimaryPart
+			local function sample(t: number): { [string]: any }
+				module.pose(model, "graze", t, 0)
+				local out = {}
+				for _, j in root:GetChildren() do
+					if j:IsA("Motor6D") then
+						out[j.Part1.Name] = j.Transform
+					end
+				end
+				return out
+			end
+			local a, b = sample(1), sample(2.3)
+			assert(a.Torso ~= roblox.CFrame.identity and a.Torso ~= b.Torso, "breathing: " .. species)
+			assert(a.Head ~= b.Head, "head sway over time: " .. species)
+			local rest = sample(1)
+			assert(rest.Head == a.Head and rest.Torso == a.Torso, "same clock, same pose: " .. species)
+			-- The dip peaks at 75% of the period: the head pitches nose-down (negative X rotation).
+			local dip = sample(7.5)
+			local pitch = dip.Head:ToEulerAnglesXYZ()
+			local idlePitch = a.Head:ToEulerAnglesXYZ()
+			assert(pitch < idlePitch - 0.3, "graze head-dip: " .. species)
+			model:Destroy()
+		end
+		world:Destroy()
+	end,
 	["catalog body plans use exact clearance and real distinct geometry"] = function()
 		verifyAnatomy(loadRig())
 	end,

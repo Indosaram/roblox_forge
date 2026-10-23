@@ -6,27 +6,36 @@
 
 ## 현재 운영 상태와 다음 행동 (2026-10-21)
 
-스테이징 대상은 Universe `10771918494`, Place `95467272687768`입니다. 이 문서의 예전 배포 버전과 모바일 수치는 당시 콘텐츠의 이력이며, 현재 `d1f13db` 또는 진행 중인 P7 변경의 배포·합격 증거가 아닙니다. `690ac33` 이후 P1~P6에서 개인섬·군도·재료/성장·전투·저널·부족·난투·합주·서버 간 시장의 구현과 네이티브 검증이 추가되었습니다. 기능별 실제 입증 범위는 [qa-evidence.md](qa-evidence.md)의 2026-10-21 표를 따릅니다.
+스테이징 대상은 Universe `10771918494`, Place `95467272687768`입니다. 이 문서의 예전 배포 버전과 모바일 수치는 당시 콘텐츠의 이력이며, 현재 `d1f13db` 또는 진행 중인 P7 변경의 배포·합격 증거가 아닙니다. `690ac33` 이후 P1~P6에서 개인섬·군도·재료/성장·전투·저널·부족·난투·합주·서버 간 시장의 구현과 네이티브 검증이 추가되었습니다. 기능별 실제 입증 범위는 [qa-evidence.md](qa-evidence.md)의 2026-10-21 표를 따르고, `5bcb0e6`~`23f5e8c`의 Studio 실제 입력 결과와 미검증 항목은 같은 문서의 2026-10-23 절을 따릅니다.
 
-현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 아이콘 **253개가 아직 업로드되지 않았고**, 오디오 **55개는 moderation 대기**입니다. 숫자는 이번 복구 작업의 보고 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다.
+현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 2026-10-23 `23f5e8c`의 `games/robango-island/assets/manifest.yml` 기준으로 이미지 **260개가 `NotUploaded`**, sfx **15개가 `PendingModeration`**, sfx **22개가 `NotUploaded`**(6d8fef3에서 추가한 새 효과음, 라이브에서는 무음)입니다. 이전 보고 수치(아이콘 253, 오디오 55 대기)는 당시 상태입니다. 숫자는 manifest 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다.
 
-### 소유자만 할 수 있는 행동 (2026-10-22 기준, 순서대로)
+### 소유자만 할 수 있는 행동 (2026-10-23 기준, 순서대로)
 
-1. **계정 `indosaram5`의 moderation warning 해제.** Roblox 계정에서 경고를 확인·수락하거나 이의를 제기해 해제합니다. 에이전트는 이 단계를 대신할 수 없고, 해제 전에는 Roblox 웹·Open Cloud 호출(업로드·배포·상태 조회)을 하지 않습니다.
-2. **아이콘 업로드 재개(해제 확인 후).** `.env.local`의 `ROBLOX_API_KEY`(asset read/write + `legacy-asset:manage`)와 `FORGE_ROBLOX_CREATOR_USER_ID` 또는 `FORGE_ROBLOX_CREATOR_GROUP_ID` 하나를 프로세스 환경에 넣고 저장소 루트에서 실행합니다.
+1. **소유자 계정 `indosaram5`(user id `11734795308`)의 moderation warning 확인.** 소유자가 직접 roblox.com에 로그인해 경고를 확인(acknowledge)합니다. 확인 전에는 Open Cloud 호출이 403을 반환하므로 업로드·배포·상태 조회가 모두 막힙니다. 에이전트는 이 단계를 대신할 수 없고 로그인 정보도 입력하지 않습니다.
+
+아래 2~4는 경고 확인 뒤 리드가 저장소 루트에서 실행합니다. `forge`는 `C:/Users/sook/.rokit/bin/lune.exe run cli/forge`(즉 `lune run cli/forge`)입니다. 업로드에는 `.env.local`의 `ROBLOX_API_KEY`(asset read/write + `legacy-asset:manage`)를 프로세스 환경에 넣습니다. 소유자는 `--creator-user 11734795308`로 지정합니다.
+
+2. **아이콘 업로드(작은 배치).** 각 배치 전에 올릴 아이콘에서 올가미(noose)나 무기처럼 보이는 도형이 없는지 확인합니다(이전 검토: `.omo/evidence/robango-recovery/p6/icon-screen.md`). 먼저 `--dry-run`으로 배치를 확인한 뒤 올립니다.
    ```text
-   forge assets upload-images --pack robango-island --dry-run
-   forge assets upload-images --pack robango-island
-   forge assets status --pack robango-island
+   lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n> --dry-run
+   lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n>
+   lune run cli/forge assets status --pack robango-island
    ```
-   먼저 `--dry-run`으로 대상과 sha256을 확인합니다. 이 명령에는 **배치 크기 옵션이 없습니다**. manifest의 모든 `kind: image` 행(현재 518개)을 순서대로 처리하고, `build/image-upload-cache.json`에 sha256별 체크포인트를 남기며, 첫 실패(429 재시도 소진 포함)에서 멈춥니다. 같은 명령을 다시 실행하면 완료된 항목은 재사용하고 이어서 진행합니다. "작은 검토 배치"로 나누는 옵션은 현재 CLI에 없습니다. `--manifest <path>`로 부분 manifest를 주면 업로드 후 `src/shared/Assets.luau`가 그 부분 manifest 기준으로 다시 생성되므로 쓰지 않습니다. 실행 전 `.omo/evidence/robango-recovery/p6/icon-screen.md` 검토 결과를 확인하고, 배치 단위 업로드가 필요하면 `--limit` 같은 옵션을 core CLI 변경(human-merged PR)으로 먼저 추가해야 합니다. 실행 뒤 `assets status`로 moderation 결과를 확인하고, 거절이 나오면 재실행을 멈춥니다. 오디오 재시도는 `forge assets upload-audio --pack robango-island`입니다.
-3. **스테이징 배포.** `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(현재 `10771918494`/`95467272687768`)와 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, 그리고 `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣습니다. `games/robango-island/deploy.yml`의 `staging.universeId`/`placeId`가 이 변수를 참조합니다. 먼저 오프라인 계획을 확인한 뒤 게시합니다.
+   `--limit <n>`은 아직 올리지 않은 이미지를 manifest 순서로 최대 n개만 올리고 멈춘 뒤 남은 수를 보고합니다. `--only <key1,key2,...>`로 특정 키만 올릴 수도 있습니다. 진행 상황은 `build/image-upload-cache.json`에 sha256별로 기록되므로 같은 명령을 다시 실행하면 이어서 진행합니다. `src/shared/Assets.luau`는 항상 전체 manifest 기준으로 다시 생성됩니다. 배치마다 `assets status`로 moderation 결과를 확인하고, 거절이 나오면 멈춥니다.
+3. **오디오 업로드.** 새 효과음 22개(`NotUploaded`)를 올리고 대기 중인 항목을 다시 확인합니다.
    ```text
-   forge deploy plan --env staging --pack robango-island --development
-   forge deploy --env staging --pack robango-island --dry-run --development
-   forge deploy --env staging --pack robango-island --development
+   lune run cli/forge assets upload-audio --pack robango-island --creator-user 11734795308 --dry-run
+   lune run cli/forge assets upload-audio --pack robango-island --creator-user 11734795308
    ```
-4. **상품 ID 매핑.** Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`의 `monetization.gamepasses`·`products`·`subscriptions` 항목의 `id`와 런타임 사본 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 둘의 일치를 검사합니다). 현재 값은 스테이징 Universe에 등록한 U15의 ID입니다. 가격·확률 변경은 human-merged PR이 필요합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
+   artifact sha256 기준으로 멱등이며 `build/audio-upload-cache.json`에 기록합니다. moderation 대기 상태는 재생 가능으로 취급하지 않습니다.
+4. **스테이징 배포.** `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(현재 `10771918494`/`95467272687768`)와 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, 그리고 `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣습니다. `games/robango-island/deploy.yml`의 `environments.staging.universeId`/`placeId`가 `${FORGE_STAGING_UNIVERSE_ID}`/`${FORGE_STAGING_PLACE_ID}`를 참조합니다. 형식은 `deploy --env <staging|production> [--pack <slug>] [--dry-run] [--development]`와 `deploy plan --env ... [--out <path>] [--development]`입니다(`forge deploy --help`). 오프라인 계획과 dry-run을 확인한 뒤 게시합니다.
+   ```text
+   lune run cli/forge deploy plan --env staging --pack robango-island --development
+   lune run cli/forge deploy --env staging --pack robango-island --dry-run --development
+   lune run cli/forge deploy --env staging --pack robango-island --development
+   ```
+5. **상품 ID 매핑.** Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`의 `monetization.gamepasses`·`products`·`subscriptions` 항목의 `id`와 런타임 사본 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 둘의 일치를 검사합니다). 현재 값은 스테이징 Universe에 등록한 U15의 ID입니다. 가격·확률 변경은 human-merged PR이 필요합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
 
 ### 로컬 설정 위치와 키 권한
 

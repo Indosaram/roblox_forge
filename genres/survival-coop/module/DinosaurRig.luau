@@ -709,6 +709,12 @@ function M.pose(model: Model, state: string, elapsed: number, speed: number)
 	local preparing = state == "windup" or state == "telegraph" or state == "warning"
 	local pulse = if attacking then math.sin(math.clamp(elapsed / 0.5, 0, 1) * math.pi) else 0
 	local style = model:GetAttribute("AttackStyle")
+	-- Decorative grazers: slow head sway plus one nose-down dip per seeded period (peak at 75%).
+	local grazing = state == "graze"
+	local authored = model:GetAttribute("ForgeGrazePeriod")
+	local period = if type(authored) == "number" and authored > 0 then authored else 10
+	local cycle = (elapsed % period) / period
+	local dip = if grazing and cycle > 0.6 and cycle < 0.9 then math.sin((cycle - 0.6) / 0.3 * math.pi) else 0
 	for _, joint in root:GetChildren() do
 		if not joint:IsA("Motor6D") or not joint.Part1 then
 			continue
@@ -721,6 +727,16 @@ function M.pose(model: Model, state: string, elapsed: number, speed: number)
 			x = math.sin(elapsed * 1.5) * 0.025
 		elseif string.find(name, "Tail") then
 			y = math.sin(elapsed * 2) * 0.06
+		end
+		if grazing then
+			if name == "Head" then
+				x = math.sin(elapsed * 1.1) * 0.04 - dip * 0.45
+				y = math.sin(elapsed * 0.7) * 0.12
+			elseif string.find(name, "Neck") then
+				x -= dip * 0.2
+			elseif name == "Jaw" then
+				x = dip * 0.12 * math.abs(math.sin(elapsed * 6))
+			end
 		end
 		if moving then
 			local side = if string.find(name, "-1", 1, true) then -1 else 1

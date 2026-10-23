@@ -493,6 +493,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		return nil
 	end
+	-- Decorative fauna is a ghost: no collision, touch or queries. Only the root is anchored so
+	-- client Motor6D poses can move the limbs; the graze phase is seeded from the rig id.
+	local function decorate(animal: Model, id: string)
+		for _, piece in animal:GetDescendants() do
+			if piece:IsA("BasePart") then
+				piece.Anchored = piece == animal.PrimaryPart
+				piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
+			end
+		end
+		local stream = Rng.new(seed):fork("decor-fauna:" .. layoutId .. ":" .. id)
+		animal:SetAttribute("ForgeDecorFauna", true)
+		animal:SetAttribute("ForgeGrazePhase", stream:nextNumber())
+		animal:SetAttribute("ForgeGrazePeriod", 6 + stream:nextNumber() * 8)
+	end
 	if #dressing.fauna > 0 then
 		-- Arrival-view creature: decorative and anchored, never an interactive wildlife spawn.
 		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
@@ -503,12 +517,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local animal = rig.new(creature.species, "ArrivalFauna", position, root, nil, looks(creature.species))
 			table.insert(arrivalGrazers, animal)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(140), 0))
-			for _, piece in animal:GetDescendants() do
-				if piece:IsA("BasePart") then
-					piece.Anchored = true
-					piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
-				end
-			end
+			decorate(animal, creature.id)
 		end
 	end
 	if layoutId == "rw.onboarding" then
@@ -524,12 +533,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			animal:ScaleTo(1.4)
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))
 			rig.ground(animal)
-			for _, piece in animal:GetDescendants() do
-				if piece:IsA("BasePart") then
-					piece.Anchored = true
-					piece.CanCollide, piece.CanTouch, piece.CanQuery = false, false, false
-				end
-			end
+			decorate(animal, "ArrivalGrazer" .. index)
 		end
 	end
 	local wildlife = table.clone(policy)

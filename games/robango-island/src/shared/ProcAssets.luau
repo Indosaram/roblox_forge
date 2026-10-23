@@ -80,7 +80,7 @@ local ProcAssetsSpecs: { [string]: any } = {
 	},
 	["robango-coast-palm"] = {
 		kind = "prop",
-		archetype = "tree",
+		archetype = "palm",
 		spec = {
 			scale = 1.7,
 			polyBudget = 800,
@@ -89,7 +89,7 @@ local ProcAssetsSpecs: { [string]: any } = {
 			foliage = { r = 0.2980392156862745, g = 0.6901960784313725, b = 0.3764705882352941 },
 		},
 		seed = 371,
-		triangleCount = 756,
+		triangleCount = 800,
 	},
 	["robango-coast-shellstone"] = {
 		kind = "prop",

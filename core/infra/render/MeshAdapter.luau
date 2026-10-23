@@ -78,12 +78,18 @@ local function finish(part: BasePart, color: Color3): BasePart
 end
 
 -- Cylinder Parts run along their local X axis, so a segment between two points
--- is centered on them and yawed 90 degrees into place.
+-- is centered on them with its X axis on the segment. An explicit basis keeps a
+-- vertical segment (a tree trunk) upright: CFrame.lookAt is degenerate when the
+-- direction is parallel to its up vector and laid trunks flat along world X.
 local function segmentCFrame(a: Vector3, b: Vector3): CFrame
-	if (b - a).Magnitude < 1e-6 then
+	local axis = b - a
+	if axis.Magnitude < 1e-6 then
 		return CFrame.new(a)
 	end
-	return CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.rad(90), 0)
+	local x = axis.Unit
+	local reference = if math.abs(x.Y) < 0.99 then Vector3.new(0, 1, 0) else Vector3.new(1, 0, 0)
+	local z = x:Cross(reference).Unit
+	return CFrame.fromMatrix((a + b) / 2, x, z:Cross(x), z)
 end
 
 local function cylinderBetween(a: Vector3, b: Vector3, radius: number, color: Color3): BasePart
@@ -244,6 +250,9 @@ local function buildFallback(meshData: MeshData, name: string): Model
 		primary = part
 	end
 	model.PrimaryPart = primary :: BasePart
+	-- Part fallbacks build in mesh space (Y up). A segment part's own CFrame is rotated along its
+	-- axis, so pivot the model on an axis-aligned frame or PivotTo would tip the whole prop over.
+	model.WorldPivot = CFrame.new((primary :: BasePart).CFrame.Position)
 	return model
 end
 

@@ -6,7 +6,7 @@ local Prop = require("./Prop")
 local BODY = { r = 0.55, g = 0.45, b = 0.35 }
 local ACCENT = { r = 0.9, g = 0.75, b = 0.2 }
 
-local KINDS: { Prop.Kind } = { "egg", "crystal", "rock", "tree", "crate" }
+local KINDS: { Prop.Kind } = { "egg", "crystal", "rock", "tree", "palm", "crate" }
 
 local function spec(budget: number): Prop.Spec
 	return { scale = 1, body = BODY, accent = ACCENT, polyBudget = budget }

@@ -15541,16 +15541,16 @@ assets:
   - key: robango-coast-palm
     kind: model
     tool: forge-procgen
-    source: "procedural prop/tree"
+    source: "procedural prop/palm"
     assetId: 0
     moderation: Approved
     provenance:
-      digest: sha256:0b1949289d3017a4da3acce3c039245c78231742ab55e49702ac36191116ac4b
+      digest: sha256:60778c002b47229a9c6595e201024f27893ef59453ec2c47f2e4e4d8e24144a9
       recipe:
         id: gen-procedural
         version: 1
         input: "assets/procgen.yml#robango-coast-palm"
-        inputVersion: sha256:26c5110ea09010f415655d4d17630e0d9390f0215598d92a3a9043f928b4234b
+        inputVersion: sha256:a66d4d2b1bbf513542cf9fda44572bef450bbc4f8845cda1f864240cf60ccc3e
       provider:
         name: forge-procgen
         version: 1

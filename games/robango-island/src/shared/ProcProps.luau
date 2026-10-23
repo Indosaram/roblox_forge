@@ -25,10 +25,46 @@ M.MARGIN = 8
 M.NODE_CLEARANCE = 16
 M.SPACING = 16
 -- The home camp is a compact plot; Terrain.protected's 40-stud objective clearing covers
--- all of it, so the home uses tight footprint clearances and a ring past the tree radius.
-M.HOME_CLEARANCE = 6
-M.HOME_RING = { 25, 30 }
-M.HOME_SPACING = 7
+-- all of it, so the home scatters a few props over the free ground between the camp and
+-- the shore. HOME_MAX is the designed home count. HOME_CLEARANCE keeps every prop that far
+-- from each prompt/interactable (anchors, resource nodes, the travel dock, the starter
+-- farm plot) and from each camp kit in HOME_CAMP.
+M.HOME_MAX = 8
+M.HOME_CLEARANCE = 14
+M.HOME_SPACING = 6
+-- Flat radius band the home scan covers, and the grid step of its candidates.
+M.HOME_RING = { 12, 36 }
+M.HOME_STEP = 1
+-- Studs a home prop keeps inside the shore and beside a path edge.
+M.HOME_SHORE = 2
+M.HOME_PATH = 2
+-- Camp kit centres WorldDressing.home places on the rank-1 plot (shelter, fire, workbench,
+-- drying rack, storage, farm). procprops.spec.luau re-derives them from WorldDressing.
+M.HOME_CAMP = {
+	{ x = -20, z = -20 },
+	{ x = -8, z = 4 },
+	{ x = -14, z = 10 },
+	{ x = -20, z = 4 },
+	{ x = -14.35, z = -13 },
+	{ x = 20, z = -18 },
+} :: { { x: number, z: number } }
+-- WorldDressing.home's shore palms: props keep HOME_PALM studs from their roots.
+M.HOME_PALM = 6
+M.HOME_PALM_RADIUS = 32
+-- Rank-1 home land: RoleWorld renders the coast at 1.12 + 0.08 sin(a(2+p) + (p-1)0.7)
+-- + 0.045 cos(7a) times the half side for terrain presets 1-3; the plan keeps to the
+-- narrowest of them so a prop stands on land under every preset.
+M.HOME_HALF = 32
+M.HOME_PRESETS = 3
+
+-- Per-role prop scale: props grow with the layout's terrain relief (the highest land
+-- column above the beach) so they read beside its mounds at gameplay camera distance.
+-- The home keeps authored camp scale. Camp-set crates and caches stay smaller than trees.
+M.SCALE_BASE = 1.3
+M.SCALE_PER_STUD = 0.12
+M.SCALE_MAX = 3
+M.HOME_SCALE = 1
+M.SET_SCALE = { camp = 0.8 } :: { [string]: number }
 
 -- Biome art sets: 2-4 distinct generated props each.
 M.SETS = {
@@ -67,20 +103,61 @@ function M.allowed(layout: any): { string }
 	return list
 end
 
+--- The home interactables a prop keeps HOME_CLEARANCE from: every anchor and resource
+--- node, the travel dock and starter farm plot (when `policy` is the homePolicy), and the
+--- camp kits.
+function M.homeInteractables(layout: any, policy: any?): { { x: number, z: number } }
+	local list = {}
+	for _, items in { layout.anchors, layout.resourceNodes } do
+		for _, item in items do
+			table.insert(list, { x = item.position.x, z = item.position.z })
+		end
+	end
+	if policy then
+		for _, item in { policy.dock, policy.starterFarmPlot } do
+			if item then
+				table.insert(list, { x = item.x, z = item.z })
+			end
+		end
+	end
+	for _, kit in M.HOME_CAMP do
+		table.insert(list, kit)
+	end
+	return list
+end
+
+--- Narrowest rank-1 home shore radius at angle `a` across the terrain presets.
+function M.homeShore(a: number): number
+	local edge = math.huge
+	for preset = 1, M.HOME_PRESETS do
+		edge = math.min(edge, 1.12 + 0.08 * math.sin(a * (2 + preset) + (preset - 1) * 0.7) + 0.045 * math.cos(a * 7))
+	end
+	return edge * M.HOME_HALF
+end
+
 --- True when a prop footprint at (x, z) keeps clear of objectives, paths, spawns and nodes.
-function M.clear(layout: any, x: number, z: number): boolean
+--- On the home `policy` (content.homePolicy) adds the dock and starter farm plot.
+function M.clear(layout: any, x: number, z: number, policy: any?): boolean
 	if isHome(layout) then
+		if math.sqrt(x * x + z * z) > M.homeShore(math.atan2(z, x)) - M.HOME_SHORE then
+			return false
+		end
 		local r = M.HOME_CLEARANCE
-		for _, list in { layout.anchors, layout.resourceNodes } do
-			for _, item in list do
-				if (x - item.position.x) ^ 2 + (z - item.position.z) ^ 2 < r * r then
-					return false
-				end
+		for _, item in M.homeInteractables(layout, policy) do
+			if (x - item.x) ^ 2 + (z - item.z) ^ 2 < r * r then
+				return false
+			end
+		end
+		for i = 1, 4 do
+			local a = math.rad(i * 20 - 40)
+			local px, pz = math.cos(a) * M.HOME_PALM_RADIUS, math.sin(a) * M.HOME_PALM_RADIUS
+			if (x - px) ^ 2 + (z - pz) ^ 2 < M.HOME_PALM ^ 2 then
+				return false
 			end
 		end
 		for _, path in layout.paths do
 			for i = 2, #path.points do
-				if Terrain.distance(x, z, path.points[i - 1], path.points[i]) < path.width / 2 + r / 2 then
+				if Terrain.distance(x, z, path.points[i - 1], path.points[i]) < path.width / 2 + M.HOME_PATH then
 					return false
 				end
 			end
@@ -124,24 +201,56 @@ local function arrival(layout: any): { x: number, z: number }
 	return { x = 0, z = 0 }
 end
 
---- Plans up to MAX_PER_ROLE props, nearest to the arrival dock first so capped profiles
---- keep the props in the opening view. `columns` is Terrain.columns for the layout ({} for home).
-function M.plan(layout: any, columns: { any }, seed: number): { Placement }
+--- The role's prop scale from its terrain relief (`columns` as for plan).
+function M.roleScale(layout: any, columns: { any }): number
+	if isHome(layout) then
+		return M.HOME_SCALE
+	end
+	local top = 0
+	for _, column in columns do
+		if column.top > 0 then
+			top = math.max(top, column.top)
+		end
+	end
+	local relief = math.max(0, top - Terrain.BEACH_TOP)
+	return math.min(M.SCALE_MAX, M.SCALE_BASE + relief * M.SCALE_PER_STUD)
+end
+
+--- Plans up to MAX_PER_ROLE props (HOME_MAX on the home), nearest to the arrival dock
+--- first so capped profiles keep the props in the opening view. `columns` is
+--- Terrain.columns for the layout ({} for home); `policy` is content.homePolicy.
+function M.plan(layout: any, columns: { any }, seed: number, policy: any?): { Placement }
 	local rng = Rng.new(seed):fork(layout.id .. ":procprops")
 	local candidates: { any } = {}
 	if isHome(layout) then
-		local count = 32
+		-- A jittered grid over the free ground between camp and shore, swept by angle from a
+		-- seeded phase so the greedy spacing packs the narrow free band densely.
+		local step = M.HOME_STEP
 		local phase = rng:nextNumber() * math.pi * 2
-		for i = 1, count do
-			local angle = phase + (i - 1) / count * math.pi * 2
-			local radius = M.HOME_RING[1] + rng:nextNumber() * (M.HOME_RING[2] - M.HOME_RING[1])
-			table.insert(candidates, {
-				x = math.cos(angle) * radius,
-				y = 2,
-				z = math.sin(angle) * radius,
-				set = if i % 2 == 0 then "grassland" else "camp",
-			})
+		local index = 0
+		for x = -M.HOME_RING[2], M.HOME_RING[2], step do
+			for z = -M.HOME_RING[2], M.HOME_RING[2], step do
+				local px = x + (rng:nextNumber() - 0.5) * step * 0.5
+				local pz = z + (rng:nextNumber() - 0.5) * step * 0.5
+				local radius = math.sqrt(px * px + pz * pz)
+				if radius >= M.HOME_RING[1] and radius <= M.HOME_RING[2] then
+					index += 1
+					table.insert(candidates, {
+						x = px,
+						y = 2,
+						z = pz,
+						set = if index % 2 == 0 then "grassland" else "camp",
+						sweep = (math.atan2(pz, px) - phase) % (math.pi * 2),
+					})
+				end
+			end
 		end
+		table.sort(candidates, function(a, b)
+			if a.sweep ~= b.sweep then
+				return a.sweep < b.sweep
+			end
+			return a.x < b.x
+		end)
 	else
 		for _, column in columns do
 			if column.top > 0 then
@@ -161,16 +270,18 @@ function M.plan(layout: any, columns: { any }, seed: number): { Placement }
 		end
 	end
 	local spacing = if isHome(layout) then M.HOME_SPACING else M.SPACING
+	local cap = if isHome(layout) then M.HOME_MAX else M.MAX_PER_ROLE
+	local roleScale = M.roleScale(layout, columns)
 	local turns: { [string]: number } = {}
 	for name in M.SETS do
 		turns[name] = rng:fork(name):nextInteger(0, 3)
 	end
 	local chosen: { Placement } = {}
 	for _, candidate in candidates do
-		if #chosen >= M.MAX_PER_ROLE then
+		if #chosen >= cap then
 			break
 		end
-		if not M.clear(layout, candidate.x, candidate.z) then
+		if not M.clear(layout, candidate.x, candidate.z, policy) then
 			continue
 		end
 		local spaced = true
@@ -192,7 +303,7 @@ function M.plan(layout: any, columns: { any }, seed: number): { Placement }
 			biome = candidate.set,
 			position = { x = candidate.x, y = candidate.y, z = candidate.z },
 			yaw = math.floor(rng:nextNumber() * 360),
-			scale = 0.85 + math.floor(rng:nextNumber() * 40) / 100,
+			scale = (0.85 + math.floor(rng:nextNumber() * 40) / 100) * roleScale * (M.SET_SCALE[candidate.set] or 1),
 		})
 	end
 	local origin = arrival(layout)
@@ -210,6 +321,28 @@ function M.plan(layout: any, columns: { any }, seed: number): { Placement }
 		placement.name = string.format("ProcProp%02d_%s", index, placement.key)
 	end
 	return chosen
+end
+
+--- Lowest world Y of a set of parts (anything with .CFrame and .Size): each part's
+--- oriented box bottom. A MeshPart's box is its mesh bounds, so this is the prop's
+--- bounding-box bottom on both the MeshPart and the Part-fallback paths.
+function M.bottom(parts: { any }): number
+	local lowest = math.huge
+	for _, part in parts do
+		local cf, size = part.CFrame, part.Size
+		local half = (
+			math.abs(cf.RightVector.Y) * size.X
+			+ math.abs(cf.UpVector.Y) * size.Y
+			+ math.abs(cf.LookVector.Y) * size.Z
+		) / 2
+		lowest = math.min(lowest, cf.Position.Y - half)
+	end
+	return lowest
+end
+
+--- Vertical offset that seats a prop whose bounding-box bottom is `bottom` on `ground`.
+function M.seat(ground: number, bottom: number): number
+	return ground - bottom
 end
 
 --- The placements a render profile builds: RenderBudget.meshes on the low profile
