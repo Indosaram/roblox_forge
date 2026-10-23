@@ -218,6 +218,25 @@ return {
 				end,
 			})
 			assert(#sheets == 1 and sheets[1] == Text.text(locale, "editor_title"), "themed modal sheet mounted")
+			-- The tempo box carries a visible label row directly above it, inside the phone sheet.
+			local tempoLabel, tempoBox = nil, nil
+			for _, item in nodes do
+				if item.Name == "TempoLabel" then
+					tempoLabel = item
+				elseif item.Name == "Tempo" then
+					tempoBox = item
+				end
+			end
+			assert(tempoLabel and tempoLabel.ClassName == "TextLabel", "tempo label exists")
+			assert(tempoLabel.Text == Text.text(locale, "editor_tempo_label"), "tempo label localized")
+			assert(
+				tempoLabel.Text == (if string.sub(locale, 1, 2) == "ko" then "템포" else "Tempo"),
+				"tempo label copy"
+			)
+			assert(tempoBox and tempoLabel.LayoutOrder + 1 == tempoBox.LayoutOrder, "label sits right above the box")
+			local _, _, phoneWidth = Model.contextSheet(360, 640, true)
+			assert(phoneWidth <= 360, "sheet inside 360 wide")
+			assert(math.ceil(HudFit.textWidth(tempoLabel.Text, 15)) <= phoneWidth - 16, "tempo label fits 360 wide")
 			assert(fitted == 1, "sheet fitted by the shared ExtensionPanels fit")
 			assert(docked.label == Text.text(locale, "nav_music"), "dock label localized")
 			for _, item in nodes do

@@ -384,6 +384,11 @@ return {
 		local nextRequest = table.clone(c.request)
 		nextRequest.requestId, nextRequest.nodeVersion = "next", 1
 		assert(c.runtime.command(nextRequest).error == "NODE_DEPLETED", "cannot gather before deadline")
+		local cooling = c.runtime.command(nextRequest)
+		assert(
+			cooling.requirement and cooling.requirement.retryMillis == 1,
+			"cooldown refusal reports the remaining regrow time"
+		)
 		c.millis = 1000
 		c.restart()
 		c.runtime.recover("alice", 1)

@@ -77,6 +77,10 @@ export type Observation = {
 	observerStuds: number?, -- no living actor this close: hibernate
 	resting: boolean?, -- caller's clock-derived rest window: an undisturbed creature sleeps
 	provokedBy: string?, -- actor that damaged it (or alarmed its herd) since the last step
+	-- Full size of the creature's collision root. A strike range is then measured from the body
+	-- surface, not the root centre: two colliding bodies can never bring their root centres
+	-- closer than the creature's own half extents, so a centre-to-centre range is unreachable.
+	body: Position?,
 }
 export type Intent = {
 	destination: Position?,
@@ -104,6 +108,15 @@ local function integer(n: number, low: number, high: number): boolean
 end
 function M.distance(a: Position, b: Position): number
 	return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
+end
+--- Distance from `point` to a body of full size `body` centred at `centre`. The body is an
+--- upright cylinder inscribed in it (radius: half the shortest horizontal extent, so no yaw can
+--- claim reach outside the real body); a point inside or touching it is at distance 0.
+function M.bodyDistance(centre: Position, body: Position, point: Position): number
+	local horizontal = math.sqrt((point.x - centre.x) ^ 2 + (point.z - centre.z) ^ 2)
+	local across = math.max(0, horizontal - math.min(body.x, body.z) / 2)
+	local up = math.max(0, math.abs(point.y - centre.y) - body.y / 2)
+	return math.sqrt(across * across + up * up)
 end
 function M.catalog(content: Content.Document, catalog: Catalog): Catalog
 	local result: Catalog = { species = {}, weapons = {} }
@@ -302,7 +315,11 @@ function M.step(
 		return nextState, intent
 	end
 	local attackStuds = assert(definition.attackStuds, "MISSING_BEHAVIOR_FIELD")
-	if candidateDistance <= attackStuds then
+	local body = observation.body
+	local strikeDistance = if body
+		then M.bodyDistance(observation.position, body, candidate.position)
+		else candidateDistance
+	if strikeDistance <= attackStuds then
 		nextState.engagedAt = now
 	end
 	-- A changed target must receive its own full warning, never inherit a strike.
@@ -323,7 +340,7 @@ function M.step(
 		end
 		nextState.mode, nextState.nextAttack =
 			"chase", now + assert(definition.cooldownMillis, "MISSING_BEHAVIOR_FIELD")
-		if candidateDistance <= attackStuds and observation.lineOfSight(candidate.id) then
+		if strikeDistance <= attackStuds and observation.lineOfSight(candidate.id) then
 			nextState.strike += 1
 			intent.damage = {
 				actorId = candidate.id,
@@ -333,7 +350,7 @@ function M.step(
 		end
 		return nextState, intent
 	end
-	if candidateDistance <= attackStuds and now >= state.nextAttack then
+	if strikeDistance <= attackStuds and now >= state.nextAttack then
 		nextState.mode, nextState.deadline =
 			"telegraph", now + assert(definition.telegraphMillis, "MISSING_BEHAVIOR_FIELD")
 	else

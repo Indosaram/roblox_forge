@@ -267,6 +267,10 @@ function M.factory(ctx: any): any
 	local function result(value: any)
 		status.Text = if value.ok then Text.text(locale, "editor_saved") else Text.refusal(locale, value.reason)
 	end
+	local tempoLabel = control("TextLabel", "TempoLabel", Text.text(locale, "editor_tempo_label"), nil)
+	if not ui then
+		tempoLabel.BackgroundTransparency = 1
+	end
 	local tempo = control("TextBox", "Tempo", tostring(ctx.rules.tempoMin), nil)
 	tempo.PlaceholderText = Text.text(locale, "editor_tempo")
 	table.insert(

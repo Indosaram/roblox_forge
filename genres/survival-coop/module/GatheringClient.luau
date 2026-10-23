@@ -42,6 +42,13 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 			then "기술 필요" .. (if skill then ": " .. skill else "")
 			else "Requires skill" .. (if skill then ": " .. skill else "")
 	elseif reason == "NODE_DEPLETED" then
+		-- The server reports how long until the node regrows; show it instead of a silent press.
+		if type(need.retryMillis) == "number" and need.retryMillis >= 0 then
+			local seconds = math.max(1, math.ceil(need.retryMillis / 1000))
+			return if ko
+				then "아직 다시 채집할 수 없어요 (" .. seconds .. "초)"
+				else "Not ready to gather again (" .. seconds .. "s)"
+		end
 		return if ko then "자원이 고갈되었습니다" else "This node is depleted"
 	elseif reason == "NODE_UNREACHABLE" then
 		return if ko then "너무 멉니다. 더 가까이 가세요" else "Too far away, move closer"
@@ -159,11 +166,18 @@ function M.start(options: Options?)
 			and count ~= 0
 			and part:GetAttribute("ForgeNodeDepleted") == false
 	end
+	-- A published node on cooldown keeps its prompt: E asks the server, whose refusal
+	-- carries the remaining regrow time for the notice.
+	local function published(part: BasePart): boolean
+		return integer(part:GetAttribute("ForgeNodeVersion"))
+			and integer(part:GetAttribute("ForgeNodeCount"))
+			and type(part:GetAttribute("ForgeNodeDepleted")) == "boolean"
+	end
 	local function update(part: BasePart)
 		local entry = nodes[part]
 		if entry then
 			local id, kind = registered(part)
-			entry.prompt.Enabled = not disposed and id ~= nil and (pending[id] ~= nil or harvestable(part))
+			entry.prompt.Enabled = not disposed and id ~= nil and (pending[id] ~= nil or published(part))
 			-- E on a pending node replays it (no new items): label it so.
 			entry.prompt.ActionText =
 				M.actionText(options and options.locale, id ~= nil and (pending[id] ~= nil or busy[id] == true))
@@ -198,7 +212,7 @@ function M.start(options: Options?)
 			return
 		end
 		if pending[id] == nil then
-			if not harvestable(part) then
+			if not published(part) then
 				return
 			end
 			local version = part:GetAttribute("ForgeNodeVersion")
@@ -239,10 +253,12 @@ function M.start(options: Options?)
 				and result.ok == true
 				and type(result.data) == "table"
 				and result.data.status == "confirmed"
-			local refused = type(result) == "table" and result.ok == false and result.reason == "STALE_VERSION"
+			local refused = type(result) == "table"
+				and result.ok == false
+				and (result.reason == "STALE_VERSION" or result.reason == "NODE_DEPLETED")
 			if confirmed or refused then
-				-- Confirmed or STALE_VERSION ends the request (nothing left to settle); other
-				-- refusals keep the frozen identity for the source's dedupe.
+				-- Confirmed, STALE_VERSION or NODE_DEPLETED ends the request (the source kept no
+				-- grant); other refusals keep the frozen identity for the source's dedupe.
 				pending[id] = nil
 			end
 			if resultEvent then

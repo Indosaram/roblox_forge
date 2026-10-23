@@ -246,6 +246,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				popup.open(true)
 			end
 			popup.render(Models.hazard(locale, latest.hazard, ctx.names))
+		elseif popupKind == "results" and results and results.id == seenResults then
+			-- The shown results stay up until the player closes them (X, return, claim); a later
+			-- snapshot of the same trip must not dismiss them on its own.
+			return
 		elseif popupKind == "knockout" or popupKind == "hazard" or popupKind == "results" then
 			popupKind = nil
 			popup.open(false)

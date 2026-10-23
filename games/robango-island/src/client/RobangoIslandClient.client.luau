@@ -861,11 +861,14 @@ aerialGui.DisplayOrder = 30
 aerialGui.Parent = player:WaitForChild("PlayerGui")
 local aerialControls = Instance.new("Frame")
 aerialControls.Name, aerialControls.Visible = "PhotoControls", false
-aerialControls.AnchorPoint = Vector2.new(0.5, 0)
+-- Bottom centre: the top-left belongs to the Roblox chat window, which sat over 돌아가기 and ate
+-- its clicks in Studio (p35); the bottom centre stays clear between the thumbstick and jump.
+aerialControls.AnchorPoint = Vector2.new(0.5, 1)
 -- Height follows the visible button rows (AutomaticSize), so a narrow phone that wraps the
 -- buttons into three rows never stacks one control over another (2026-10-23 Studio: Capture
 -- covered Return at 360 wide and trapped the player in the aerial view).
-aerialControls.Size, aerialControls.Position = UDim2.new(1, -24, 0, 0), UDim2.new(0.5, 0, 0, 64)
+-- Width leaves ~120 px each side for the touch thumbstick (bottom-left) and jump (bottom-right).
+aerialControls.Size, aerialControls.Position = UDim2.new(1, -240, 0, 0), UDim2.new(0.5, 0, 1, -16)
 aerialControls.AutomaticSize = Enum.AutomaticSize.Y
 local aerialPadding = Instance.new("UIPadding")
 aerialPadding.PaddingTop, aerialPadding.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)

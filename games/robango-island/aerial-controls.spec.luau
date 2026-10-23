@@ -16,6 +16,15 @@ return {
 			"frame grows with rows"
 		)
 		assert(not string.find(block, "UDim2.new(1, -24, 0, 92)", 1, true), "no fixed 92 px frame")
+		assert(
+			string.find(block, "UDim2.new(1, -240, 0, 0)", 1, true),
+			"120 px kept clear each side for touch controls"
+		)
 		assert(not string.find(block, "Vector2.new(520, 92)", 1, true), "no 92 px height cap")
+		assert(
+			string.find(block, "aerialControls.AnchorPoint = Vector2.new(0.5, 1)", 1, true)
+				and string.find(block, "UDim2.new(0.5, 0, 1, -16)", 1, true),
+			"controls sit at the bottom centre, clear of the top-left chat window"
+		)
 	end,
 }

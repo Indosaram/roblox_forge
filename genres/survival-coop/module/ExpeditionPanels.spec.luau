@@ -283,6 +283,8 @@ return {
 		assert(string.find(row.Text, Text.text("ko-kr", "mission_gather"), 1, true), "localized mission kind")
 		local popup = assert(h.find("ForgeExpeditionPopup"), "popup gui")
 		assert(popup.Enabled, "results popup opens")
+		h.push(state({ results = results }))
+		assert(popup.Enabled, "a later snapshot of the same trip keeps the results up until the player closes them")
 		h.closes.ForgeExpeditionPopupSheet.Activated.fire()
 		assert(not popup.Enabled, "header X closes")
 		h.push(state({ results = results }))

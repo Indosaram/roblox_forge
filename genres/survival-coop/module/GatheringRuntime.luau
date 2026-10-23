@@ -47,7 +47,14 @@ export type Config = {
 	-- source commit (never for idempotent replays or rejections).
 	analytics: Events.Emitter?,
 }
-export type Result = { status: string, error: string?, transfers: { Transfer.Result }, skillError: string? }
+export type Result = {
+	status: string,
+	error: string?,
+	transfers: { Transfer.Result },
+	skillError: string?,
+	-- Refusal detail the client shows (NODE_DEPLETED: milliseconds until the node regrows).
+	requirement: { retryMillis: number }?,
+}
 export type Runtime = {
 	command: (Request) -> Result,
 	recover: (string, number) -> Result,
@@ -274,8 +281,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local accepted: any = nil
 		local fresh: { grant: Content.SkillGrant, tools: Inventory.State }? = nil
 		local gathered: number? = nil
+		local retryMillis: number? = nil
 		local updated, err = store:update(source, function(data)
-			reason, accepted, fresh, gathered = nil, nil, nil, nil
+			reason, accepted, fresh, gathered, retryMillis = nil, nil, nil, nil, nil
 			local known = data.grants[id]
 			if known then
 				if known.binding ~= binding then
@@ -330,6 +338,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				Gathering.gather(data.nodes, staging, req, content, req.nodeId, req.nodeVersion, scoped)
 			if not candidate then
 				reason = gatherError
+				local timer = data.respawns[req.nodeId]
+				if gatherError == "NODE_DEPLETED" and timer and timer.deadline then
+					retryMillis = math.max(0, timer.deadline - config.nowMillis())
+				end
 				return data
 			end
 			local mints: { Transfer.Mint } = {}
@@ -419,7 +431,11 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		source = updated
 		if reason then
-			return failed(reason, if reason == "REQUEST_CONFLICT" then "conflict" else nil)
+			local refused = failed(reason, if reason == "REQUEST_CONFLICT" then "conflict" else nil)
+			if retryMillis then
+				refused.requirement = { retryMillis = retryMillis }
+			end
+			return refused
 		end
 		local progressed = advance(personal, { accepted })
 		if gathered and config.analytics then

@@ -482,6 +482,7 @@ function M.new(config: Config)
 					end,
 					observerStuds = Wildlife.HIBERNATE_STUDS,
 					provokedBy = entry.provokedBy,
+					body = point(entry.root.Size),
 				}
 			)
 			entry.state, entry.failed, entry.provokedBy = state, false, nil

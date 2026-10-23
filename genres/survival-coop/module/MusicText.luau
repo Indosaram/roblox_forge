@@ -127,6 +127,7 @@ local strings: { [string]: { string } } = {
 	editor_title = { "Score editor", "악보 편집" },
 	editor_close = { "Close", "닫기" },
 	editor_tempo = { "Tempo (40-200)", "템포 (40~200)" },
+	editor_tempo_label = { "Tempo", "템포" },
 	editor_instrument = { "Next instrument", "다음 악기" },
 	editor_play = { "Play preview", "미리 듣기" },
 	editor_stop = { "Stop", "정지" },
