@@ -217,7 +217,8 @@ table.insert(panelFactories, function(ctx)
 	local state: any = { version = 0, parts = {} }
 	local floor = 1
 	local status = Instance.new("TextLabel")
-	status.Size, status.TextWrapped, status.Parent = UDim2.new(1, 0, 0, 64), true, sheet.scroll
+	status.Size, status.TextWrapped, status.TextSize = UDim2.new(1, 0, 0, 64), true, 15
+	status.Parent = sheet.scroll
 	local function render()
 		status.Text = (if korean then "층 " else "Floor ") .. floor
 	end

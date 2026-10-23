@@ -6,6 +6,7 @@ local HudModel = require("./SurvivalHUDModel")
 local Model = require("./FarmCraftModel")
 local Text = require("./FarmCraftText")
 local Sheet = require("./FarmCraftSheet")
+local CharacterText = require("./CharacterText")
 local M = {}
 
 function M.mount(ctx: any, hub: any): any
@@ -42,7 +43,9 @@ function M.mount(ctx: any, hub: any): any
 			)
 			local deltas = {}
 			for _, delta in row.deltas do
-				table.insert(deltas, t("proc_delta", hub.name(delta.id), delta.before, delta.after))
+				local key = "attr_" .. delta.id
+				local name = if CharacterText.has(key) then CharacterText.text(ctx.locale, key) else hub.name(delta.id)
+				table.insert(deltas, t("proc_delta", name, delta.before, delta.after))
 			end
 			sheet.label(table.concat(deltas, "  "))
 			sheet.button("Start-" .. recipe.id, t("proc_start", hub.name(recipe.id)), function()

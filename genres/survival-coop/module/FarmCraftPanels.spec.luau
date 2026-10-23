@@ -447,6 +447,18 @@ return {
 		)
 		assert(ui.has("processing", Text.refusal("en-us", "PROCESSING_BUDGET")), "refusal visible")
 	end,
+	["processing names attribute deltas in Korean, never the raw attribute id"] = function()
+		local ui = harness("ko-kr", refused("PROCESSING_BUDGET"))
+		ui.open("processing")
+		local attributes = { hardness = 2, flexibility = 3 }
+		ui.push(
+			{},
+			packet({ item("f", "fiber", 3, { material = { level = 10, budget = 1, attributes = attributes } }) })
+		)
+		local joined = table.concat(ui.texts("processing"), "\n")
+		assert(string.find(joined, "유연성 3>2", 1, true), "flexibility in Korean: " .. joined)
+		assert(not string.find(joined, "flexibility", 1, true) and not string.find(joined, "hardness", 1, true), joined)
+	end,
 	["recipe preview assigns stacks and queues count reservations"] = function()
 		local calls = 0
 		local ui = harness("en-us", function(): any

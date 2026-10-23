@@ -58,6 +58,8 @@ local function harness(): any
 		ViewportSize = viewport,
 		DisplayOrder = 0,
 		ZIndex = 1,
+		TextSize = 8, -- the engine default an unstyled label renders at
+		TextScaled = false,
 	}
 	local function node(class: string, name: string?): any
 		local data: any = { ClassName = class, Name = name or class, children = {}, signals = {} }
@@ -511,6 +513,18 @@ local function cycle(h: any, id: string): boolean
 		return false
 	end
 	assert(#open == 1, string.format("%s hides the menu with %d sheets on screen (wedge)", id, #open))
+	local function small(item: any)
+		for _, child in item:GetChildren() do
+			if (child.ClassName == "TextLabel" or child.ClassName == "TextButton") and child.Text ~= "" then
+				assert(
+					not child.Visible or child.TextScaled or child.TextSize >= 11,
+					id .. " text under 11 px: " .. child.Text
+				)
+			end
+			small(child)
+		end
+	end
+	small(open[1].frame)
 	h.click(open[1].close)
 	assert(#h.sheets() == 0, id .. " sheet still on screen after its X")
 	assert(h.column.Visible and h.toggle.Visible, id .. " X left the menu column hidden")

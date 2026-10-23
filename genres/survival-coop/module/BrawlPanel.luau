@@ -306,7 +306,7 @@ function M.factory(ctx: any): any
 		ctx.fitSheet(root)
 	end
 	local unavailable = env.Instance.new("TextLabel")
-	unavailable.Name, unavailable.TextWrapped = "Unavailable", true
+	unavailable.Name, unavailable.TextWrapped, unavailable.TextSize = "Unavailable", true, 18
 	unavailable.Size = env.UDim2.new(1, -24, 0, 88)
 	unavailable.Position = env.UDim2.fromOffset(12, 12)
 	unavailable.Text = if korean
@@ -316,6 +316,7 @@ function M.factory(ctx: any): any
 	local close = env.Instance.new("TextButton")
 	close.Name, close.Text = "Close", if korean then "닫기" else "Close"
 	close.Size, close.Position = env.UDim2.fromOffset(88, 44), env.UDim2.new(1, -100, 1, -56)
+	close.TextSize = 18
 	close.Parent = root
 	local closeConnection = close.Activated:Connect(function()
 		gui.Enabled = false
