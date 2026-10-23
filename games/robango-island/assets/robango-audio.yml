@@ -221,3 +221,118 @@ cues:
     duration: 2.01
     seed: 4309
     frequency: 650
+  - key: gather-shell
+    kind: sfx
+    type: click
+    duration: 0.14
+    seed: 4223
+  - key: gather-clay
+    kind: sfx
+    type: sand
+    duration: 0.24
+    seed: 4224
+  - key: gather-meat
+    kind: sfx
+    type: impact
+    duration: 0.26
+    seed: 4225
+  - key: gather-refused
+    kind: sfx
+    type: error
+    duration: 0.2
+    seed: 4226
+  - key: craft-start
+    kind: sfx
+    type: wood
+    duration: 0.3
+    seed: 4227
+  - key: build-complete
+    kind: sfx
+    type: stone
+    duration: 0.6
+    seed: 4228
+  - key: repair
+    kind: sfx
+    type: stone
+    duration: 0.4
+    seed: 4229
+  - key: market-buy
+    kind: sfx
+    type: coin
+    duration: 0.4
+    seed: 4230
+  - key: market-sell
+    kind: sfx
+    type: coin
+    duration: 0.5
+    seed: 4231
+  - key: shop-purchase
+    kind: sfx
+    type: click
+    duration: 0.14
+    seed: 4232
+  - key: shop-receipt
+    kind: sfx
+    type: rare
+    duration: 1
+    seed: 4233
+  - key: tame-fail
+    kind: sfx
+    type: error
+    duration: 0.35
+    seed: 4234
+  - key: dismount
+    kind: sfx
+    type: wood
+    duration: 0.35
+    seed: 4235
+  - key: creature-telegraph
+    kind: sfx
+    type: call
+    duration: 0.7
+    seed: 4236
+    frequency: 95
+  - key: creature-strike
+    kind: sfx
+    type: impact
+    duration: 0.27
+    seed: 4237
+  - key: knockout
+    kind: sfx
+    type: raid
+    duration: 1
+    seed: 4238
+  - key: respawn
+    kind: sfx
+    type: rare
+    duration: 0.9
+    seed: 4239
+  - key: contract-complete
+    kind: sfx
+    type: horn
+    duration: 0.9
+    seed: 4240
+    frequency: 392
+  - key: expedition-arrive
+    kind: sfx
+    type: horn
+    duration: 1.4
+    seed: 4241
+    frequency: 233
+  - key: expedition-results
+    kind: sfx
+    type: horn
+    duration: 1.1
+    seed: 4242
+    frequency: 294
+  - key: hazard-enter
+    kind: sfx
+    type: call
+    duration: 0.8
+    seed: 4243
+    frequency: 70
+  - key: ui-click
+    kind: sfx
+    type: click
+    duration: 0.08
+    seed: 4244

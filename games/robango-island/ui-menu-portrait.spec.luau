@@ -10,6 +10,8 @@ local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 -- { width, height, touch }: the Studio portrait viewport, the short-landscape device
 -- simulator and PC.
 local VIEWPORTS = { { 360, 620, true }, { 640, 339, true }, { 1280, 720, false } }
+-- p36 Studio viewport: 1076x634 with the 58px CoreUISafeInsets topbar removed.
+local CANVAS_VIEWPORTS = { { 1076, 634 - 58, false }, { 1280, 720, false }, { 640, 339, true }, { 360, 620, true } }
 -- More launchers than robango registers (19 at p34), so every column is filled.
 local TILES = 24
 
@@ -68,6 +70,37 @@ return {
 				end
 			end
 			assert(tiles[1].y + tiles[1].height <= frame.y + frame.height, "first row fully visible at " .. at)
+		end
+	end,
+	["menu canvas reaches the last tile row plus padding at every target viewport"] = function()
+		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
+		-- p36: AutomaticCanvasSize gave a 414px canvas for 7 rows at 1076x634, so the last row
+		-- (Music, Sound, Shop, ...) stayed under the window bottom at maximum scroll.
+		assert(
+			not string.find(source, "menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y", 1, true),
+			"menu canvas must not rely on AutomaticCanvasSize"
+		)
+		assert(
+			string.find(source, "M.menuCanvas(shownTiles, columns, tileHeight)", 1, true)
+				and string.find(source, "menuList.CanvasSize = UDim2.fromOffset(0, canvas)", 1, true),
+			"dock sets the canvas from menuCanvas"
+		)
+		assert(type(Panels.menuCanvas) == "function", "menuCanvas exported")
+		for _, viewport in CANVAS_VIEWPORTS do
+			local width, height, touch = viewport[1], viewport[2], viewport[3]
+			for _, count in { 19, 24, 37, 40 } do
+				local at = width .. "x" .. height .. " with " .. count .. " tiles"
+				local x, y, w, h, columns, tile = Panels.menuRect(width, height, touch)
+				x, y, w, h = Model.chatSafe(width, height, x, y, w, h)
+				local last = count - 1
+				local lastBottom = (last // columns) * (tile + Panels.MENU_GAP) + tile
+				local canvas = Panels.menuCanvas(count, columns, tile)
+				assert(canvas >= lastBottom + Panels.MENU_GAP, "canvas " .. canvas .. " short of last tile at " .. at)
+				-- At maximum scroll the last row sits fully inside the window.
+				local scroll = math.max(0, canvas - h)
+				local top = y + (last // columns) * (tile + Panels.MENU_GAP) - scroll
+				assert(top >= y and top + tile <= y + h, "last row clipped at max scroll at " .. at)
+			end
 		end
 	end,
 	["menu keeps its design column count where it fits"] = function()

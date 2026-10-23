@@ -785,6 +785,7 @@ table.insert(panelFactories, function(ctx)
 		end,
 	}
 end)
+table.insert(panelFactories, audio.panel)
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
 	ui = {
@@ -794,7 +795,10 @@ local panels = ExtensionPanels.start({
 	locale = locale,
 	names = names,
 	-- One sheet at a time: a panel opening closes the HUD sheet, and the reverse below.
-	onOpen = hud.close,
+	onOpen = function()
+		audio.signal("uiOpen")
+		hud.close()
+	end,
 	contextual = true,
 	content = content,
 	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),

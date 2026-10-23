@@ -41,6 +41,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local popupKind: string? = nil
 	local seenResults: string? = nil
 	local seenArrival: string? = nil
+	local shownArrival: string? = nil
 	local seenInvites: { [string]: boolean } = {}
 	local render: () -> ()
 
@@ -63,7 +64,9 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		local arrival = latest.arrival
 		local arrivalKey = if arrival then arrival.id .. ":" .. arrival.stage else nil
+		shownArrival = nil
 		if view.kind == "list" and arrivalKey and seenArrival ~= arrivalKey then
+			shownArrival = arrivalKey
 			-- The arrival names its route's biome (never the raw expedition id).
 			local card = (latest.routes or {})[arrival.route]
 			arrival = table.clone(arrival)
@@ -253,6 +256,14 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		elseif popupKind == "knockout" or popupKind == "hazard" or popupKind == "results" then
 			popupKind = nil
 			popup.open(false)
+		end
+	end
+	-- Closing the arrival sheet with its header X acknowledges the arrival exactly like Stay,
+	-- so the next snapshot of the same arrival does not reopen it (p36 Studio: X reopened 0.6 s later).
+	routes.onClose = function()
+		if shownArrival then
+			seenArrival = shownArrival
+			render()
 		end
 	end
 	local unsubscribe = ctx.onSnapshot(function(snapshot, full)

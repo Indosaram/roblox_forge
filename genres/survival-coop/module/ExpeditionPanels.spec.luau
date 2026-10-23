@@ -344,6 +344,17 @@ return {
 		assert(h.find("TravelRefund").Text == Text.text("en-us", "travel_refund", 15), "refund line")
 		h.click("TravelBack")
 		assert(h.find("Route-1"), "back to the route list after acknowledging arrival")
+		-- A new arrival closed with the header X is acknowledged too: the next snapshot keeps it shut.
+		local routesGui = assert(h.find("ForgeRoutes"), "routes gui")
+		local second = table.clone(arrival)
+		second.stage = 3
+		h.push(state({ arrival = second }))
+		assert(routesGui.Enabled and h.find("TravelIdentity"), "next arrival opens the sheet")
+		h.closes.ForgeRoutesSheet.Activated.fire()
+		assert(not routesGui.Enabled, "header X closes the arrival")
+		h.push(state({ arrival = second }))
+		assert(not routesGui.Enabled, "a later snapshot of the same arrival does not reopen it")
+		assert(h.find("Route-1") and not h.find("TravelIdentity"), "X acknowledged the arrival like Stay")
 		local results = {
 			id = "trip",
 			status = "complete",

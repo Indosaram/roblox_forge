@@ -44,6 +44,39 @@ return {
 		cooling.data.requirement.retryMillis = 0
 		assert(GatheringClient.refusalText("en-us", cooling) == "Not ready to gather again (1s)", "never 0s")
 	end,
+	["a gather credited but pending finalization is replayed until it settles"] = function()
+		-- Studio p36: the first answer is { ok = false, data = { status = "pending" } } (one durable
+		-- transfer step); without a replay the prompt stayed '채집 중...' forever.
+		local answers: { any } = {
+			{ ok = false, data = { status = "pending", objectiveError = "unverified_objective" } },
+			{ ok = true, stateVersion = 3, data = { status = "confirmed" } },
+		}
+		local calls = 0
+		local result = GatheringClient.drive(function()
+			calls += 1
+			return answers[calls]
+		end)
+		assert(calls == 2 and result.ok == true and result.data.status == "confirmed", "settled, calls=" .. calls)
+		local finals: { any } = {
+			{ ok = false, reason = "NODE_DEPLETED", data = { status = "rejected" } },
+			{ ok = false, reason = "COMMAND_PENDING" },
+			{ ok = true, data = { status = "confirmed" } },
+		}
+		for _, final in finals do
+			calls = 0
+			GatheringClient.drive(function()
+				calls += 1
+				return final
+			end)
+			assert(calls == 1, "settled or refused answers are not replayed")
+		end
+		calls = 0
+		local stuck = GatheringClient.drive(function()
+			calls += 1
+			return answers[1]
+		end)
+		assert(calls == 5 and stuck.data.status == "pending", "bounded replays, calls=" .. calls)
+	end,
 	["the server bridge forwards the cooldown detail to the client result"] = function()
 		local Bridge = require("./GatheringBridge")
 		local runtime: any = {

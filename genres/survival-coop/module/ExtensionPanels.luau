@@ -172,6 +172,14 @@ M.MENU_GAP, M.MENU_SCROLLBAR, M.MENU_MIN_TILE = 6, 6, 44
 function M.menuCell(menuWidth: number, columns: number): number
 	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
 end
+-- Canvas height for `count` visible tiles in `columns` columns of `tile`-high rows: every row
+-- plus one MENU_GAP of bottom padding, so the wheel can bring the last row fully into view.
+-- The dock sets this explicitly; AutomaticCanvasSize with the UIGridLayout came out one row
+-- short in Studio (p36: 414px canvas for 7 rows, last row unreachable at 1076x634).
+function M.menuCanvas(count: number, columns: number, tile: number): number
+	local rows = math.ceil(count / math.max(1, columns))
+	return rows * (tile + M.MENU_GAP)
+end
 -- Short landscape: contextSheet's thumb-gutter rule. The column count is the design count
 -- capped by how many touch-sized tiles fit the width left of the scrollbar.
 function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
@@ -368,7 +376,8 @@ function M.start(options: {
 	if contextual then
 		menuList.AutomaticSize = Enum.AutomaticSize.None
 		menuList.ClipsDescendants = true
-		menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		-- place() sizes the canvas from the tile rows (menuCanvas); no AutomaticCanvasSize.
+		menuList.AutomaticCanvasSize = Enum.AutomaticSize.None
 		menuList.CanvasSize = UDim2.fromOffset(0, 0)
 		menuList.ScrollBarThickness = 6
 		-- The canvas stops left of the scrollbar, so the bar never covers the last tile column.
@@ -376,6 +385,7 @@ function M.start(options: {
 	end
 	local entries: { DockEntry } = {}
 	local sheets: { any } = {}
+	local tiles: { any } = {}
 	local ui = options.ui
 	local theme = ui
 		and ui.theme
@@ -492,6 +502,16 @@ function M.start(options: {
 			menuList.AnchorPoint, menuList.Position, menuList.Size =
 				Vector2.zero, UDim2.fromOffset(mx, my), UDim2.fromOffset(mw, mh)
 			menuLayout.CellSize = UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight)
+			local shownTiles = 0
+			for _, tile in tiles do
+				if tile.Visible then
+					shownTiles += 1
+				end
+			end
+			-- The layout's own content height wins if it wraps into more rows than predicted.
+			local canvas =
+				math.max(M.menuCanvas(shownTiles, columns, tileHeight), menuLayout.AbsoluteContentSize.Y + M.MENU_GAP)
+			menuList.CanvasSize = UDim2.fromOffset(0, canvas)
 			objectiveSlot.Visible = not menuList.Visible
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			local open = false
@@ -734,6 +754,7 @@ function M.start(options: {
 		})
 		styleTile(button, entry)
 		button.Visible = entry.hidden ~= true
+		table.insert(tiles, button)
 		return {
 			open = open,
 			setAvailable = function(available: boolean, reason: string?)
@@ -759,6 +780,7 @@ function M.start(options: {
 			end,
 		})
 		styleTile(button, { id = launcher.id, label = launcher.label, order = index })
+		table.insert(tiles, button)
 	end
 	-- Navigator ports: open any entry or launcher by id; report (known, available, lock reason).
 	context.open = function(id: string): boolean

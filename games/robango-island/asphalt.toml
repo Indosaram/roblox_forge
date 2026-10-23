@@ -2460,6 +2460,10 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-bgm-volcano.web]
 "robango-bgm-volcano.wav" = { id = 105350649376200 }
 
+[inputs.robango-build-complete]
+path = "assets/audio/robango-build-complete.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-build-place]
 path = "assets/audio/robango-build-place.wav"
 output_path = "games/robango-island/src/shared"
@@ -2551,6 +2555,10 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-combat-stinger.web]
 "robango-combat-stinger.wav" = { id = 118899076653999 }
 
+[inputs.robango-contract-complete]
+path = "assets/audio/robango-contract-complete.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-craft-complete]
 path = "assets/audio/robango-craft-complete.wav"
 output_path = "games/robango-island/src/shared"
@@ -2558,12 +2566,36 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-craft-complete.web]
 "robango-craft-complete.wav" = { id = 136792153289265 }
 
+[inputs.robango-craft-start]
+path = "assets/audio/robango-craft-start.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-creature-strike]
+path = "assets/audio/robango-creature-strike.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-creature-telegraph]
+path = "assets/audio/robango-creature-telegraph.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-dismount]
+path = "assets/audio/robango-dismount.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-dodge]
 path = "assets/audio/robango-dodge.wav"
 output_path = "games/robango-island/src/shared"
 
 [inputs.robango-dodge.web]
 "robango-dodge.wav" = { id = 95747560328996 }
+
+[inputs.robango-expedition-arrive]
+path = "assets/audio/robango-expedition-arrive.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-expedition-results]
+path = "assets/audio/robango-expedition-results.wav"
+output_path = "games/robango-island/src/shared"
 
 [inputs.robango-footstep-grass]
 path = "assets/audio/robango-footstep-grass.wav"
@@ -2586,12 +2618,28 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-footstep-stone.web]
 "robango-footstep-stone.wav" = { id = 83835409871277 }
 
+[inputs.robango-gather-clay]
+path = "assets/audio/robango-gather-clay.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-gather-meat]
+path = "assets/audio/robango-gather-meat.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-gather-plant]
 path = "assets/audio/robango-gather-plant.wav"
 output_path = "games/robango-island/src/shared"
 
 [inputs.robango-gather-plant.web]
 "robango-gather-plant.wav" = { id = 74924107630387 }
+
+[inputs.robango-gather-refused]
+path = "assets/audio/robango-gather-refused.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-gather-shell]
+path = "assets/audio/robango-gather-shell.wav"
+output_path = "games/robango-island/src/shared"
 
 [inputs.robango-gather-stone]
 path = "assets/audio/robango-gather-stone.wav"
@@ -2614,12 +2662,20 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-guard.web]
 "robango-guard.wav" = { id = 139205491807900 }
 
+[inputs.robango-hazard-enter]
+path = "assets/audio/robango-hazard-enter.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-hit]
 path = "assets/audio/robango-hit.wav"
 output_path = "games/robango-island/src/shared"
 
 [inputs.robango-hit.web]
 "robango-hit.wav" = { id = 79316499934720 }
+
+[inputs.robango-knockout]
+path = "assets/audio/robango-knockout.wav"
+output_path = "games/robango-island/src/shared"
 
 [inputs.robango-level-up]
 path = "assets/audio/robango-level-up.wav"
@@ -2628,6 +2684,14 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-level-up.web]
 "robango-level-up.wav" = { id = 110021116520036 }
 
+[inputs.robango-market-buy]
+path = "assets/audio/robango-market-buy.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-market-sell]
+path = "assets/audio/robango-market-sell.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-mount]
 path = "assets/audio/robango-mount.wav"
 output_path = "games/robango-island/src/shared"
@@ -2635,12 +2699,32 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-mount.web]
 "robango-mount.wav" = { id = 104810645735651 }
 
+[inputs.robango-repair]
+path = "assets/audio/robango-repair.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-respawn]
+path = "assets/audio/robango-respawn.wav"
+output_path = "games/robango-island/src/shared"
+
 [inputs.robango-reward]
 path = "assets/audio/robango-reward.wav"
 output_path = "games/robango-island/src/shared"
 
 [inputs.robango-reward.web]
 "robango-reward.wav" = { id = 101247016926748 }
+
+[inputs.robango-shop-purchase]
+path = "assets/audio/robango-shop-purchase.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-shop-receipt]
+path = "assets/audio/robango-shop-receipt.wav"
+output_path = "games/robango-island/src/shared"
+
+[inputs.robango-tame-fail]
+path = "assets/audio/robango-tame-fail.wav"
+output_path = "games/robango-island/src/shared"
 
 [inputs.robango-tame-success]
 path = "assets/audio/robango-tame-success.wav"
@@ -2655,6 +2739,10 @@ output_path = "games/robango-island/src/shared"
 
 [inputs.robango-travel-horn.web]
 "robango-travel-horn.wav" = { id = 97828324739733 }
+
+[inputs.robango-ui-click]
+path = "assets/audio/robango-ui-click.wav"
+output_path = "games/robango-island/src/shared"
 
 [inputs.robango-ui-close]
 path = "assets/audio/robango-ui-close.wav"

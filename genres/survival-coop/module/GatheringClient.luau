@@ -60,6 +60,26 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 	return if ko then "채집할 수 없습니다 (" .. reason .. ")" else "Cannot gather (" .. reason .. ")"
 end
 
+--- Sends one frozen gather request until it leaves the durable transfer's `pending` phase.
+--- The server advances one crash-safe transfer step per call (the first answer is credited
+--- but not finalized), so replaying the same identity finishes it; it never mints again.
+function M.drive(send: () -> (any, any?)): (any, any?)
+	local result, diagnostic = send()
+	for _ = 1, 4 do
+		if
+			type(result) ~= "table"
+			or result.ok ~= false
+			or result.reason ~= nil
+			or type(result.data) ~= "table"
+			or result.data.status ~= "pending"
+		then
+			break
+		end
+		result, diagnostic = send()
+	end
+	return result, diagnostic
+end
+
 function M.start(options: Options?)
 	local actionText = M.actionText(options and options.locale)
 	local names: { [string]: string } = options and options.names or {}
@@ -241,7 +261,9 @@ function M.start(options: Options?)
 				serverTime = world:GetServerTimeNow(),
 				inputSource = inputSource or "prompt",
 			}))
-			return action:InvokeServer("command", request)
+			return M.drive(function()
+				return action:InvokeServer("command", request)
+			end)
 		end)
 		busy[id] = nil
 		if disposed then

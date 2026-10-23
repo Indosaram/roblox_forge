@@ -15664,3 +15664,487 @@ assets:
         ownership: first-party
       author: "agent:omo"
       created: 2026-10-20
+  - key: robango-gather-shell
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango gather-shell"
+    path: assets/audio/robango-gather-shell.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:3a40f859aaf665756f0300957372f74c9656ac0e0c4b2c66c81e678af98b7d4b
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#gather-shell"
+        inputVersion: sha256:52d08ff961dad9ac2f760c243b82a2ecef90c636a2bf239ea6ff8751e432adcc
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-gather-clay
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango gather-clay"
+    path: assets/audio/robango-gather-clay.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:08951d5445440230df50e7ee6d09a91828702cf7ad3bb0be32765209fd22b5ed
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#gather-clay"
+        inputVersion: sha256:c784524f7a22f4d803d4fb492c162d879c5b6d33f7bc4d1423ac917b5be30133
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-gather-meat
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango gather-meat"
+    path: assets/audio/robango-gather-meat.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:2e07769615e7f6da96139466839463920ff5ce405fcba70794b482fdf958d86d
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#gather-meat"
+        inputVersion: sha256:e43cbe14c5abd72eb44dd5d8905d11f9a1234cbe856197f93328126e5f83cc34
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-gather-refused
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango gather-refused"
+    path: assets/audio/robango-gather-refused.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:3bb4c276d9b9f2a8a64032c6de576939488d54951a04d0dd03dbb16e420d05e0
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#gather-refused"
+        inputVersion: sha256:fbfdc2ada3fbdd4287c7cfa57aba09956c7e534a3baddd3155df0186e926e715
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-craft-start
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango craft-start"
+    path: assets/audio/robango-craft-start.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:fa40835aaeb4b642c2444df8c6165322c934e0725f549721435aad610d6a1380
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#craft-start"
+        inputVersion: sha256:9d5eba3d2cf270a2a437d3e4b1ccc4f704d13b9ce879b4e78b703f1660437e12
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-build-complete
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango build-complete"
+    path: assets/audio/robango-build-complete.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:a0d42b49dee8a483e9f62ad6b20232ecf44948e241faebe5b2daf3f4f316c48d
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#build-complete"
+        inputVersion: sha256:307a942bba86f1ca693b30bba0296082f51bd7228e1c0e213b95489be783b535
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-repair
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango repair"
+    path: assets/audio/robango-repair.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:50f5dc620f059f1c892c717883047d02a209d4f4d42a1196e29d3398f9186d42
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#repair"
+        inputVersion: sha256:1942986d52b14b329a46a9dfb117f10f9aca9273ed1c4c56d9ce81cbf1491d23
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-market-buy
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango market-buy"
+    path: assets/audio/robango-market-buy.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:4ab3d4de10817a488ad6a3742e0906f93a93a0bc5404ff8558e09e5e94cdc968
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#market-buy"
+        inputVersion: sha256:f18a398e84b8a9e8b54209240637b77147319ca4f103fa1eb92dce8c97f2ab62
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-market-sell
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango market-sell"
+    path: assets/audio/robango-market-sell.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:8893b87da38ede89b6ed9d7dab29ae26da84cd54931091f205539436e0f7e57f
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#market-sell"
+        inputVersion: sha256:42dcf55395bb53d7d2ff4438f6dfbefdd3d60d70cd6c53f25ad04093de69ee90
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-shop-purchase
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango shop-purchase"
+    path: assets/audio/robango-shop-purchase.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:f3453780520f0bcc5cf39e431b8f27debdac694514201951245780ae2390f7c8
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#shop-purchase"
+        inputVersion: sha256:58c09a439d3cf9840740df83795c408ada58585842457ffbebd5d115b7d95691
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-shop-receipt
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango shop-receipt"
+    path: assets/audio/robango-shop-receipt.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:28eaf1f6c4c923bb14835b03334758e2047bcbab3560dbf655eefa0ce116e1e4
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#shop-receipt"
+        inputVersion: sha256:3fe82405efa9886bbdb1b1cbfb3aa5550ba38f6739ee949ce5dc79bd8230b6c4
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-tame-fail
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango tame-fail"
+    path: assets/audio/robango-tame-fail.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:661a20512bd5bea5aaa455903419745879f2b24b34c778485756e6c556765bf2
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#tame-fail"
+        inputVersion: sha256:4262915376280c1e7740d678634f0841c908c4c6367d5724a6c837e47a3004d4
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-dismount
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango dismount"
+    path: assets/audio/robango-dismount.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:51820bed0739f7479606c47d5f854d854e8774102b093559b9b4ad83a7224d7d
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#dismount"
+        inputVersion: sha256:a8a41a370daff5dfe314cd27c91b45aa5cea1a599df6c52a3914627bbe69f585
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-creature-telegraph
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango creature-telegraph"
+    path: assets/audio/robango-creature-telegraph.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:9da85826c357f8e6b1bba75657116642a96e24458b0b6bcca01e2ed2db78e4a6
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#creature-telegraph"
+        inputVersion: sha256:3667cd332a3aeb736a54eca1a057293fee227ef1a58d323fa8153b6a53456bf6
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-creature-strike
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango creature-strike"
+    path: assets/audio/robango-creature-strike.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:250f5ec5ff7565ec592a35292452a7d544203a9114bea38659fede7682d7d30b
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#creature-strike"
+        inputVersion: sha256:748a32ec92aa6ad0e6392e8137815a1db4d610fae1234a9b583d60a587bc8a09
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-knockout
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango knockout"
+    path: assets/audio/robango-knockout.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:a58cbf6ea5feaebc9cda842db25c28ba28819a6f11238915ff9d30931ad1d98b
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#knockout"
+        inputVersion: sha256:925a51c0b127c31d33ce01bdb8c6c316cdfe41b20f0a5f1e10cedc59ed314f34
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-respawn
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango respawn"
+    path: assets/audio/robango-respawn.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:9be3270b92172ef378c4155b66930c48329947803fab6dc701b3622e37c380e0
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#respawn"
+        inputVersion: sha256:8f36edf6814c3f7163869eb4facf00e8a205dc6293e5889e4877668581c2055a
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-contract-complete
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango contract-complete"
+    path: assets/audio/robango-contract-complete.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:7ef26fd905a2c75ced58b15badfc234ef56ccb249688447157eeb3d6b7389dda
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#contract-complete"
+        inputVersion: sha256:cafc2821c366f1887fc558904a22b0f3473196f18ef0ad9d004d9505b8adf12d
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-expedition-arrive
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango expedition-arrive"
+    path: assets/audio/robango-expedition-arrive.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:caee040d03a149781091f24d3c4a064ce497ec0bafe101304a54c9877ce91b0c
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#expedition-arrive"
+        inputVersion: sha256:dc6e7889f1951dfe80885fe3d98dff77e63315012e15ea98d7a03ec73db2dc9e
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-expedition-results
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango expedition-results"
+    path: assets/audio/robango-expedition-results.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:d5c512dfd00638588e7633cf31d9c70c4c274f1dba303196aae939cf0720fa84
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#expedition-results"
+        inputVersion: sha256:1f16b13f042ba62f85513dafc07b8a7c6b35f119c27014555fadfbbd7623ed45
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-hazard-enter
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango hazard-enter"
+    path: assets/audio/robango-hazard-enter.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:935dfe4a9526a11a2975d9e2e6893f2366489d7225ecfe7c7f2642f00f647d73
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#hazard-enter"
+        inputVersion: sha256:de58f576ea18a8e29e7c4b29835ce8648aa3aafc4b35eadd4d6e09793b212088
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23
+  - key: robango-ui-click
+    kind: sfx
+    tool: forge-procgen
+    source: "first-party procedural Robango ui-click"
+    path: assets/audio/robango-ui-click.wav
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:a2a48f9113602b2c16a629049ffdf396e0402ce02308008d57ceab16628ede39
+      recipe:
+        id: gen-audio
+        version: 1
+        input: "assets/robango-audio.yml#ui-click"
+        inputVersion: sha256:2d60f21792c4b7a3bf8df04c058d90faa3a4605fe06f881f4bcf91acbfd681d1
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: first-party generator in this repository
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-23

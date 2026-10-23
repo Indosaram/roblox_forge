@@ -36,10 +36,14 @@ function M.mount(ctx: any, options: { name: string, title: string, dock: string?
 			end,
 		})
 		else nil
+	local shell: any = { gui = gui, sheet = sheet, dock = dock, onClose = nil }
 	sheet.close.Activated:Connect(function()
 		gui.Enabled = false
+		-- The header X is a real dismissal: the panel acknowledges whatever it was showing.
+		if shell.onClose then
+			shell.onClose()
+		end
 	end)
-	local shell = { gui = gui, sheet = sheet, dock = dock }
 	local lastKey = ""
 	function shell.render(title: string, items: { Item })
 		local key = title

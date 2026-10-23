@@ -593,8 +593,8 @@ return {
 	["context menu shows a full tile row and scrolls to every tile at every HUD viewport"] = function()
 		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
 		assert(string.find(source, "M.menuRect(size.X, size.Y, input.TouchEnabled)", 1, true), "dock uses menuRect")
-		-- The grid's canvas grows with its rows, so every launcher scrolls into the viewport.
-		assert(string.find(source, "menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y", 1, true), "menu scrolls")
+		-- The canvas grows with the tile rows (menuCanvas), so every launcher scrolls into the viewport.
+		assert(string.find(source, "menuList.CanvasSize = UDim2.fromOffset(0, canvas)", 1, true), "menu scrolls")
 		for _, viewport in HUD_VIEWPORTS do
 			-- The dock ScreenGui uses CoreUISafeInsets: touch phones lose the 56px topbar.
 			local width, height, touch = viewport[1], viewport[2] - (if viewport[3] then 56 else 0), viewport[3]

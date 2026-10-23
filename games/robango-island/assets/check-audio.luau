@@ -3,6 +3,7 @@
 local suites: { { [string]: () -> () } } = {
 	require("../../../genres/survival-coop/module/AudioDirector.spec"),
 	require("./render-audio.spec"),
+	require("./audio-coverage.spec"),
 	require("../../../genres/survival-coop/module/SurvivalAudio.spec"),
 	require("../../../core/infra/audio/SoundBank.spec"),
 }
