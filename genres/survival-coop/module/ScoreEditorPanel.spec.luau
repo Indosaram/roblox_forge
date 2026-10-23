@@ -22,6 +22,135 @@ local function signal(): any
 	}
 end
 return {
+	["p62 preview shows a playing state with a Stop toggle and reverts when it ends or stops (EN/KO)"] = function()
+		local Text = require("./MusicText")
+		for _, locale in { "en-us", "ko-kr" } do
+			local objects: { [string]: any } = {}
+			local timers: { { seconds: number, callback: () -> () } } = {}
+			local stopped = 0
+			local panel = Editor.factory({
+				rules = Rules,
+				locale = locale,
+				playerGui = {},
+				view = {
+					new = function(class)
+						local node: any = { class = class, Activated = signal(), FocusLost = signal() }
+						function node.Destroy() end
+						table.insert(objects :: any, node)
+						return node
+					end,
+					size = function(x, y, dx, dy)
+						return { x = x, y = y, dx = dx, dy = dy }
+					end,
+					position = function(x, y, dx, dy)
+						return { x = x, y = y, dx = dx, dy = dy }
+					end,
+				},
+				after = function(seconds, callback)
+					table.insert(timers, { seconds = seconds, callback = callback })
+				end,
+				requestId = function()
+					return "r"
+				end,
+				serverNow = function()
+					return 10
+				end,
+				stop = function()
+					stopped += 1
+				end,
+				playAt = function() end,
+				send = function()
+					return { ok = true }
+				end,
+			})
+			for _, node in objects :: any do
+				objects[node.Name] = node
+			end
+			local playing = Text.text(locale, "editor_playing")
+			assert(playing == (if locale == "ko-kr" then "재생 중" else "Playing"), "playing copy")
+			local play, status = objects.Play, objects.Status
+			objects.Note_0_0.Activated.fire()
+			assert(play.Text == Text.text(locale, "editor_play"), "idle reads Play")
+			assert(not string.find(status.Text, playing, 1, true), "idle status has no playing tag")
+			play.Activated.fire()
+			assert(string.find(status.Text, playing, 1, true), locale .. ": status while playing: " .. status.Text)
+			assert(play.Text == Text.text(locale, "editor_stop"), "Play turns into Stop while playing")
+			assert(#timers == 1 and timers[1].seconds > 0, "end timer covers the last note")
+			timers[1].callback()
+			assert(not string.find(status.Text, playing, 1, true), "status reverts when the preview ends")
+			assert(play.Text == Text.text(locale, "editor_play"), "button reverts when the preview ends")
+			play.Activated.fire()
+			local before = stopped
+			play.Activated.fire()
+			assert(stopped == before + 1, "pressing the toggle while playing stops the preview")
+			assert(not string.find(status.Text, playing, 1, true), "status reverts on stop")
+			assert(play.Text == Text.text(locale, "editor_play"), "button reverts on stop")
+			play.Activated.fire()
+			timers[2].callback()
+			assert(string.find(status.Text, playing, 1, true), "a stale end timer never clears a newer preview")
+			panel.destroy()
+		end
+	end,
+	["p62 every note label fits its 48 px cell at >= 11 px on phone and desktop"] = function()
+		local HudFit = require("../../../core/ui-kit/genre/HudFit")
+		local function width(text: string, size: number): number
+			-- The filled dot renders about one em wide in Roblox fonts; count it as wide.
+			local bare, dots = string.gsub(text, "●", "")
+			return HudFit.textWidth(bare, size) + dots * size
+		end
+		local cells: { any } = {}
+		Editor.factory({
+			rules = Rules,
+			playerGui = {},
+			view = {
+				new = function(class)
+					local node: any = { class = class, Activated = signal(), FocusLost = signal() }
+					table.insert(cells, node)
+					return node
+				end,
+				size = function(x, y, dx, dy)
+					return { x = x, y = y, dx = dx, dy = dy }
+				end,
+				position = function(x, y, dx, dy)
+					return { x = x, y = y, dx = dx, dy = dy }
+				end,
+			},
+			requestId = function()
+				return "r"
+			end,
+			serverNow = function()
+				return 0
+			end,
+			stop = function() end,
+			playAt = function() end,
+			send = function()
+				return { ok = true }
+			end,
+		})
+		local size: any = (Editor :: any).NOTE_TEXT_SIZE
+		assert(type(size) == "number" and size >= 11, "note text size at least 11 px")
+		local checked = 0
+		for _, cell in cells do
+			if type(cell.Name) == "string" and string.sub(cell.Name, 1, 5) == "Note_" then
+				-- Offset-only size: the same 48 px cell at 360x640 and 1280x700.
+				assert(cell.Size.x == 0 and cell.Size.y == 0 and cell.Size.dx == 48, "fixed 48 px cell")
+				assert(cell.TextSize == size, "cell renders at the fitted size")
+				checked += 1
+			end
+		end
+		assert(checked == 32, "all note cells")
+		for _, viewport in { { 360, 640 }, { 1280, 700 } } do
+			for pitch = Rules.pitchMin, Rules.pitchMax do
+				for _, selected in { false, true } do
+					local text = Editor.noteLabel(pitch, selected)
+					assert(
+						width(text, size) <= 48 - 8,
+						text .. " overflows its cell at " .. viewport[1] .. "x" .. viewport[2]
+					)
+				end
+			end
+		end
+	end,
 	["score workspace is bounded on desktop and a full-width bottom sheet on phone"] = function()
 		for _, viewport in { { 360, 640 }, { 1920, 1080 } } do
 			local bounds = Editor.bounds(viewport[1], viewport[2])

@@ -2,6 +2,7 @@
 -- Exact item ids and prices match the market and harbor-sell command contracts.
 local M = {}
 local Ledger = require("../../../core/domain/command/Ledger")
+local CrossServer = require("../../../core/domain/market/CrossServer")
 local Locale = require("./SurvivalHUDLocale")
 local env: any = getfenv()
 
@@ -134,6 +135,15 @@ function M.listRefusalCodes(): { string }
 	return codes
 end
 
+--- Listing fee line: the same fee the server books (CrossServer.fee), and what the seller collects.
+function M.feeText(locale: string, price: number): string
+	local fee = CrossServer.fee(price)
+	local template = if string.sub(locale, 1, 2) == "ko"
+		then "수수료 %d%%: %d · 판매 시 받는 조개돈 %d"
+		else "Fee %d%%: %d · you receive %d when sold"
+	return string.format(template, CrossServer.FEE_PERCENT, fee, price - fee)
+end
+
 function M.factory(ctx: any): any
 	local Instance = ctx.instance or env.Instance
 	local Enum = ctx.enum or env.Enum
@@ -248,6 +258,10 @@ function M.factory(ctx: any): any
 			status.Name = "MarketUnavailable"
 			return
 		end
+		if status.Name == "MarketUnavailable" then
+			-- A later snapshot carries the market: the stale 'unavailable' header goes.
+			status.Text, status.Name = "", "MarketStatus"
+		end
 		local harbor = snapshot["harbor-buyback"]
 		local signature = Ledger.canonical({ state, harbor, browse })
 		if signature == lastRender then
@@ -278,8 +292,10 @@ function M.factory(ctx: any): any
 			input(draft.quantity, function(value)
 				draft.quantity = math.clamp(math.floor(value or 1), 1, item.quantity)
 			end, text("Quantity", "수량"))
+			local feeLine: any = nil
 			input(draft.price, function(value)
 				draft.price = math.clamp(math.floor(value or 1), 1, 1000000)
+				feeLine.Text = M.feeText(ctx.locale, draft.price)
 			end, text("Whole bundle price (shellmoney)", "묶음 전체 가격 (조개돈)"))
 			local listStatus: any = nil
 			button(
@@ -299,6 +315,8 @@ function M.factory(ctx: any): any
 			)
 			listStatus = label("")
 			listStatus.Name, listStatus.Visible = "ListStatus", false
+			feeLine = label(M.feeText(ctx.locale, draft.price))
+			feeLine.Name = "ListFee"
 		end
 		if sellable == 0 then
 			label(

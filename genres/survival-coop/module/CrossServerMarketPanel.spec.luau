@@ -121,6 +121,7 @@ local function mount(harborResult: any, locale: string?, listResult: any?, gate:
 		},
 	}
 	state["harbor-buyback"] = { prices = { wood = 1 }, dailyUnits = 200, remaining = 7 }
+	local withMarket = table.clone(state)
 	if noMarket then
 		(state :: any).market = nil
 	end
@@ -145,6 +146,8 @@ local function mount(harborResult: any, locale: string?, listResult: any?, gate:
 		sends = sends,
 		layout = layout,
 		status = widgets[1].node,
+		listener = listener,
+		state = withMarket,
 		gui = gui,
 		player = player,
 		prompt = promptSignal.PromptTriggered,
@@ -159,6 +162,58 @@ local function sellRow(rows: { any }): number
 	error("harbor sell button missing")
 end
 return {
+	["p62 a market slice arriving after an unavailable snapshot clears the unavailable header"] = function()
+		local ui = mount({ ok = true }, "ko-kr", nil, nil, true)
+		assert(ui.status.Name == "MarketUnavailable", "no slice: unavailable")
+		local listener = ui.listener
+		listener(ui.state)
+		assert(ui.status.Name ~= "MarketUnavailable", "header renamed once the market arrives")
+		assert(
+			not string.find(ui.status.Text, "쓸 수 없어요", 1, true),
+			"stale header cleared: " .. ui.status.Text
+		)
+		ui.panel.destroy()
+	end,
+	["p62 the listing shows the server fee and net proceeds, updated with the price (EN/KO)"] = function()
+		local CrossServer = require("../../../core/domain/market/CrossServer")
+		assert(CrossServer.FEE_PERCENT == 5 and CrossServer.fee(25) == 1, "server fee source")
+		for locale, expected in
+			{
+				["en-us"] = { "Fee 5%: 0", "receive 10", "Fee 5%: 1", "receive 24" },
+				["ko-kr"] = { "수수료 5%: 0", "조개돈 10", "수수료 5%: 1", "조개돈 24" },
+			} :: { [string]: { string } }
+		do
+			local ui = mount({ ok = true }, locale)
+			local fee, price = nil, nil
+			for index, row in ui.rows do
+				if row.Name == "ListFee" then
+					fee = row
+				end
+				if
+					row.Name == "InputCaption"
+					and row.Text
+						== (if locale == "ko-kr"
+							then "묶음 전체 가격 (조개돈)"
+							else "Whole bundle price (shellmoney)")
+				then
+					price = ui.rows[index + 1]
+				end
+			end
+			assert(fee and price, locale .. ": fee line and price box")
+			assert(
+				string.find(fee.Text, expected[1], 1, true) and string.find(fee.Text, expected[2], 1, true),
+				fee.Text
+			)
+			price.Text = "25"
+			price.FocusLost.callback()
+			assert(
+				string.find(fee.Text, expected[3], 1, true) and string.find(fee.Text, expected[4], 1, true),
+				fee.Text
+			)
+			assert(fee.Text == Panel.feeText(locale, 25), "same text as the pure helper")
+			ui.panel.destroy()
+		end
+	end,
 	["p45 a server without a market slice says the market is unavailable, never loading (EN/KO)"] = function()
 		for locale, word in { ["en-us"] = "unavailable", ["ko-kr"] = "쓸 수 없어요" } :: { [string]: string } do
 			local ui = mount({ ok = true }, locale, nil, nil, true)

@@ -134,6 +134,7 @@ local strings: { [string]: { string } } = {
 	editor_instrument = { "Next instrument", "다음 악기" },
 	editor_play = { "Play preview", "미리 듣기" },
 	editor_stop = { "Stop", "정지" },
+	editor_playing = { "Playing", "재생 중" },
 	editor_join = { "Join ensemble", "합주 참여" },
 	editor_saved = { "Saved", "저장됨" },
 	editor_imported = { "Score loaded", "악보를 불러왔어요" },

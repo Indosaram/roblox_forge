@@ -35,6 +35,8 @@ function M.new(ctx: any): any
 	local dirty, playing = false, false
 	local saved: any = nil
 	local pendingId: string? = nil
+	-- Bumped by every play/stop so a stale end timer never clears a newer preview.
+	local generation = 0
 	local api = {}
 	local function render()
 		ctx.render({
@@ -125,16 +127,34 @@ function M.new(ctx: any): any
 	end
 	function api.play()
 		ctx.stop()
+		generation += 1
+		local token = generation
+		local now = ctx.serverNow()
+		local ends = now
 		playing = true
-		for _, event in Score.schedule(draft, ctx.rules, ctx.serverNow()) do
+		for _, event in Score.schedule(draft, ctx.rules, now) do
+			ends = math.max(ends, event.untilAt)
 			ctx.playAt(event, ctx.rules.instruments[event.instrumentId])
 		end
 		render()
+		-- The preview reverts to idle once its last note ends (ctx.after is a delay port).
+		if ctx.after then
+			ctx.after(ends - now, function()
+				if token == generation and playing then
+					playing = false
+					render()
+				end
+			end)
+		end
 	end
 	function api.stop()
 		ctx.stop()
+		generation += 1
 		playing = false
 		render()
+	end
+	function api.playing(): boolean
+		return playing
 	end
 	function api.close(): boolean
 		if dirty and not ctx.confirmDiscard() then
@@ -147,11 +167,14 @@ function M.new(ctx: any): any
 	return api
 end
 
---- Note label: pitch class plus octave (MIDI 60 = C4), a filled dot when selected.
+--- Note label: pitch class plus octave (MIDI 60 = C4), a filled dot when selected. No space
+--- after the dot: "● D#4" at 16 px overflowed the 48 px cell in Studio (p60).
 local NOTE_NAMES = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }
+M.NOTE_CELL = 48
+M.NOTE_TEXT_SIZE = 14
 function M.noteLabel(pitch: number, selected: boolean): string
 	local name = NOTE_NAMES[pitch % 12 + 1] .. tostring(pitch // 12 - 1)
-	return if selected then "● " .. name else name
+	return if selected then "●" .. name else name
 end
 
 function M.factory(ctx: any): any
@@ -308,8 +331,8 @@ function M.factory(ctx: any): any
 			local cell = ports.new("TextButton")
 			cell.Name = "Note_" .. pitchOffset .. "_" .. beat
 			cell.Text = M.noteLabel(pitch, false)
-			cell.TextSize = 16
-			cell.Size = ports.size(0, 0, 48, 48)
+			cell.TextSize = M.NOTE_TEXT_SIZE
+			cell.Size = ports.size(0, 0, M.NOTE_CELL, M.NOTE_CELL)
 			cell.Position = ports.position(0, 0, beat * 56, pitchOffset * 56)
 			if ui then
 				cell.BackgroundColor3, cell.TextColor3 = Color3.fromRGB(18, 28, 26), Color3.fromRGB(240, 244, 240)
@@ -337,8 +360,13 @@ function M.factory(ctx: any): any
 	control("TextButton", "Save", Text.text(locale, "import_save"), function()
 		result(api.save())
 	end)
-	control("TextButton", "Play", Text.text(locale, "editor_play"), function()
-		api.play()
+	-- Play toggles: while the preview sounds it reads Stop and stops it.
+	local playButton = control("TextButton", "Play", Text.text(locale, "editor_play"), function()
+		if api.playing() then
+			api.stop()
+		else
+			api.play()
+		end
 	end)
 	control("TextButton", "Stop", Text.text(locale, "editor_stop"), function()
 		api.stop()
@@ -365,6 +393,11 @@ function M.factory(ctx: any): any
 		scroll.CanvasSize = ports.size(0, 0, 0, row * 56)
 	end
 	local model = table.clone(ctx)
+	if not model.after and env.task then
+		model.after = function(seconds: number, callback: () -> ())
+			env.task.delay(math.max(0, seconds), callback)
+		end
+	end
 	model.render = function(value: any)
 		local current = value.score.parts[value.part]
 		status.Text = Text.text(
@@ -373,7 +406,8 @@ function M.factory(ctx: any): any
 			Text.instrument(locale, current.instrumentId),
 			value.part,
 			if value.dirty then " *" else ""
-		)
+		) .. (if value.playing then " · " .. Text.text(locale, "editor_playing") else "")
+		playButton.Text = Text.text(locale, if value.playing then "editor_stop" else "editor_play")
 		for _, cell in cells do
 			local selected = false
 			for _, note in current.notes do

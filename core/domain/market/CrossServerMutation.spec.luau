@@ -10,7 +10,7 @@ return {
 		local tests = fs.readFile("core/domain/market/CrossServer.spec.luau")
 		local mutations = {
 			{ "old.coins -= listing.price", "old.coins -= 0" },
-			{ "math.floor(price * 5 / 100)", "0" },
+			{ "math.floor(price * M.FEE_PERCENT / 100)", "0" },
 			{ "item.quantity -= listing.quantity", "item.quantity -= 0" },
 			{ "old.price == price", "true" },
 			{ "old.seller ~= actor", "true" },

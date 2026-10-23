@@ -4,6 +4,11 @@
 -- callback may yield or perform another record transaction.
 local Ledger = require("../command/Ledger")
 local M = {}
+-- Listing fee in whole percent of the bundle price; the seller's claim is price - fee.
+M.FEE_PERCENT = 5
+function M.fee(price: number): number
+	return math.floor(price * M.FEE_PERCENT / 100)
+end
 export type Ports = {
 	update: (string, (any) -> any) -> (boolean, any),
 	index: (string, any) -> (),
@@ -266,7 +271,7 @@ function M.new(ports: Ports): any
 				catalogId = item.catalogId,
 				quantity = quantity,
 				price = price,
-				fee = math.floor(price * 5 / 100),
+				fee = M.fee(price),
 				expiresAt = now + 86400,
 				binding = binding,
 				state = "PREPARED",
