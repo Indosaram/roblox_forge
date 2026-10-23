@@ -249,10 +249,13 @@ local function buildFallback(meshData: MeshData, name: string): Model
 		part.Parent = model
 		primary = part
 	end
-	model.PrimaryPart = primary :: BasePart
 	-- Part fallbacks build in mesh space (Y up). A segment part's own CFrame is rotated along its
-	-- axis, so pivot the model on an axis-aligned frame or PivotTo would tip the whole prop over.
-	model.WorldPivot = CFrame.new((primary :: BasePart).CFrame.Position)
+	-- axis, and with a PrimaryPart set Studio's pivot is PrimaryPart.CFrame * PivotOffset (it
+	-- ignores Model.WorldPivot), so offset the pivot back to an axis-aligned frame at the
+	-- primary's position or PivotTo would tip the whole prop over.
+	local root = primary :: BasePart
+	root.PivotOffset = root.CFrame:Inverse() * CFrame.new(root.CFrame.Position)
+	model.PrimaryPart = root
 	return model
 end
 
@@ -485,6 +488,13 @@ function MeshAdapter.toInstance(meshData: MeshData, name: string, opts: ToInstan
 				-- Clones share the cached mesh; the original is never parented.
 				instance = meshPart:Clone() :: MeshPart
 			end
+			-- Measured in Studio (p42): the MeshPart's CFrame sits at the EditableMesh origin and
+			-- its Size spans the vertex bounds, so the rendered geometry is NOT centred in the
+			-- Size box. Record the mesh-space bounds so callers can find the visible extent
+			-- (Size / (max - min) is the current scale, which ScaleTo keeps up to date).
+			local bounds = meshData.bounds
+			instance:SetAttribute("ForgeMeshMin", toVector(bounds.min))
+			instance:SetAttribute("ForgeMeshMax", toVector(bounds.max))
 			instance.Name = name .. "_Mesh"
 			instance.Anchored = true
 			instance.CanCollide = false

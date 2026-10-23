@@ -240,9 +240,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			Vector3.new(column.cell, base + 16, column.cell),
 			materials[material]
 		)
+		-- A rise within Terrain.GRADE is walked up through terraces (below); a deeper drop keeps
+		-- the wider half-height skirt that splits it into two rounded shoulders.
+		local graded = top - base <= Terrain.GRADE * column.cell + 0.01
 		if cap then
-			if top - base > 4 then
-				-- A wider half-height skirt splits a tall rise into two rounded shoulders.
+			if top - base > 4 and not graded then
 				local mid = (base + top) / 2
 				workspace.Terrain:FillCylinder(
 					CFrame.new(column.x, (base + mid) / 2 - 2, column.z),
@@ -268,6 +270,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				column.cell * 0.72,
 				materials[material]
 			)
+			if graded then
+				-- A graded rise steps down in wider, lower terraces of at most 2 studs, so a character
+				-- walks up it without jumping.
+				local upper = if pinned then top else top - 1
+				local terraces = math.ceil((upper - base) / 2) - 1
+				for index = 1, terraces do
+					local height = upper - (upper - base) * index / (terraces + 1)
+					workspace.Terrain:FillCylinder(
+						CFrame.new(column.x, (base + height) / 2 - 2, column.z),
+						height - base + 4,
+						column.cell * (0.72 + 0.23 * index / terraces),
+						materials[material]
+					)
+				end
+			end
 		end
 		if top > 0 then
 			-- Seeded discs spill each column's surface into its neighbours below their own

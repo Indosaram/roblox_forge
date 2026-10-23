@@ -170,6 +170,67 @@ function M.pinned(layout: any, x: number, z: number, cell: number): boolean
 	return false
 end
 
+-- Largest height difference between 8-neighbouring organic columns, as a fraction of the cell:
+-- 6 studs per 32-stud column (0.19 studs/stud). Adapters draw a graded rise as concentric
+-- terraces of at most 2 studs, so a character walks it without jumping.
+M.GRADE = 6 / 32
+
+-- Grades the organic height field toward 8-neighbouring columns differing by at most
+-- GRADE * cell. It only raises: low ground beside higher ground becomes a ramp, never above the
+-- coastal ramp cap, while the beach band and authored points keep their height.
+local function grade(layout: any, coast: any, columns: { any }, cell: number)
+	local step = M.GRADE * cell
+	local byKey: { [string]: any } = {}
+	for _, column in columns do
+		byKey[column.x .. "," .. column.z] = column
+	end
+	local band = M.band(coast, cell)
+	-- The ceiling grows from the beach band, the coastal ramp cap and authored points by one step
+	-- per cell, so raised ground never walls off the beach; it never cuts below original ground.
+	local ceiling: { [any]: number } = {}
+	for _, column in columns do
+		local depth = coast.depth(column.x, column.z)
+		ceiling[column] = if M.pinned(layout, column.x, column.z, cell)
+			then column.top
+			elseif depth < band and column.top <= M.BEACH_TOP + 0.01 then M.BEACH_TOP
+			else M.BEACH_TOP + math.max(0, depth * coast.unit - cell / 2) * M.COAST_SLOPE
+	end
+	local function relax(value: { [any]: number }, toward: (any, any) -> number?)
+		local changed = true
+		while changed do
+			changed = false
+			for _, column in columns do
+				for dx = -1, 1 do
+					for dz = -1, 1 do
+						local other = byKey[column.x + dx * cell .. "," .. column.z + dz * cell]
+						local target = if other then toward(column, other) else nil
+						if target and math.abs(target - value[column]) > 1e-6 then
+							value[column] = target
+							changed = true
+						end
+					end
+				end
+			end
+		end
+	end
+	relax(ceiling, function(column, other)
+		return if ceiling[other] + step < ceiling[column] then ceiling[other] + step else nil
+	end)
+	local tops: { [any]: number } = {}
+	for _, column in columns do
+		ceiling[column] = math.max(ceiling[column], column.top)
+		tops[column] = column.top
+	end
+	relax(tops, function(column, other)
+		local target = math.min(tops[other] - step, ceiling[column])
+		return if target > tops[column] then target else nil
+	end)
+	for _, column in columns do
+		column.top = tops[column]
+		column.material = if column.top < 0 or column.beach then "Sand" else M.ground(layout, column.x)
+	end
+end
+
 function M.band(coast: any, cell: number): number
 	return M.GRASS_EDGE + cell * 1.5 / coast.unit
 end
@@ -334,6 +395,9 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 				material = if top < 0 or beach then "Sand" else M.ground(layout, x),
 			})
 		end
+	end
+	if coast then
+		grade(layout, coast, result, cell)
 	end
 	return result
 end

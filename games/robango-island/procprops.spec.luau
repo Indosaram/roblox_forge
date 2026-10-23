@@ -77,6 +77,22 @@ local function fallback(key: string): ({ any }, any)
 	return parts, model
 end
 
+-- Studio's Model:GetPivot() once a PrimaryPart is set: PrimaryPart.CFrame * PrimaryPart.PivotOffset
+-- (Model.WorldPivot is ignored, measured in p41). Lune has no GetPivot, so compose it here.
+local function pivotOf(model: any): any
+	local primary = model.PrimaryPart
+	assert(primary, model.Name .. " has no PrimaryPart")
+	return primary.CFrame * primary.PivotOffset
+end
+
+-- Studio's Model:PivotTo(target): every part keeps its offset from the current pivot.
+local function pivotTo(model: any, parts: { any }, target: any)
+	local pivot = pivotOf(model)
+	for _, part in parts do
+		part.CFrame = target * pivot:ToObjectSpace(part.CFrame)
+	end
+end
+
 local function tilt(axis: any): number
 	return math.deg(math.acos(math.clamp(math.abs(axis.Unit.Y), 0, 1)))
 end
@@ -204,7 +220,7 @@ return {
 			assert(#parts > 0, key .. " builds no fallback parts")
 			-- Studio p40: the client places props with model:PivotTo(cf). A pivot that inherits the
 			-- trunk part's rotated frame laid the palm on its side, so the pivot must be axis-aligned.
-			local pivot = model.WorldPivot
+			local pivot = pivotOf(model)
 			assert(
 				pivot.UpVector.Y > 0.999 and pivot.RightVector.X > 0.999,
 				key .. " fallback pivot is rotated, so PivotTo would tip the prop over"
@@ -235,13 +251,17 @@ return {
 	["props seat their bounding-box bottom on the ground"] = function()
 		local CFrame, Vector3 = roblox.CFrame, roblox.Vector3
 		for _, key in { "robango-camp-egg-cache", "robango-supply-crate", "robango-harbor-cargo", "robango-coast-palm" } do
-			local parts = fallback(key)
+			local parts, model = fallback(key)
 			local ground = 3.09
 			-- The client pivots the model onto the terrain hit, then applies the seat offset.
-			local pivot = parts[1].CFrame
 			local place = CFrame.new(10, ground, -4) * CFrame.Angles(0, math.rad(37), 0)
-			for _, part in parts do
-				part.CFrame = place * pivot:ToObjectSpace(part.CFrame)
+			pivotTo(model, parts, place)
+			if key == "robango-coast-palm" then
+				local degrees = tilt(parts[1].CFrame.RightVector)
+				assert(
+					degrees <= UPRIGHT_DEGREES,
+					string.format("palm trunk lies %.1f degrees off vertical after PivotTo", degrees)
+				)
 			end
 			local sunk = ground - ProcProps.bottom(parts)
 			local offset = ProcProps.seat(ground, ProcProps.bottom(parts))
@@ -253,6 +273,36 @@ return {
 			assert(
 				math.abs(bottom - ground) < 0.05,
 				string.format("%s bottom %.2f vs ground %.2f", key, bottom, ground)
+			)
+		end
+		-- MeshAdapter MeshParts (Studio p42): CFrame is the mesh origin and Size spans the mesh
+		-- bounds, so the visible geometry runs from CFrame.Y + min.Y * k to CFrame.Y + max.Y * k.
+		for _, key in { "robango-jungle-tree", "robango-jungle-mossrock", "robango-coast-palm" } do
+			local entry = (ProcAssets :: any)[key]
+			local mesh = Prop.generate(entry.archetype, entry.spec, entry.seed)
+			local lo, hi = mesh.bounds.min, mesh.bounds.max
+			local k = 2.7
+			local attributes = {
+				ForgeMeshMin = Vector3.new(lo.x, lo.y, lo.z),
+				ForgeMeshMax = Vector3.new(hi.x, hi.y, hi.z),
+			}
+			local part = {
+				CFrame = CFrame.new(5, 20, -3) * CFrame.Angles(0, math.rad(41), 0),
+				Size = Vector3.new(hi.x - lo.x, hi.y - lo.y, hi.z - lo.z) * k,
+				GetAttribute = function(_, name: string): any
+					return attributes[name]
+				end,
+			}
+			local geometryBottom = math.huge
+			for _, v in mesh.vertices do
+				geometryBottom = math.min(geometryBottom, (part.CFrame * (Vector3.new(v.x, v.y, v.z) * k)).Y)
+			end
+			local ground = 7.25
+			part.CFrame = part.CFrame + Vector3.new(0, ProcProps.seat(ground, ProcProps.bottom({ part })), 0)
+			geometryBottom += part.CFrame.Position.Y - 20
+			assert(
+				math.abs(geometryBottom - ground) < 0.05,
+				string.format("%s visible mesh bottom %.2f vs ground %.2f", key, geometryBottom, ground)
 			)
 		end
 		-- A tilted block's oriented bottom, not its centre minus half height.
