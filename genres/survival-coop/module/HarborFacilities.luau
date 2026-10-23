@@ -50,6 +50,20 @@ function M.describe(content: any): { any }
 				else nil,
 		})
 	end
+	local x = -56
+	for _, region in content.supportRegions do
+		if not string.find("onboarding home harbor", region.role, 1, true) then
+			x += 16
+			table.insert(result, {
+				id = layout.id .. "." .. region.role,
+				anchor = region.role,
+				kind = "departure",
+				position = { x = x, y = 2, z = -108 },
+				role = "harbor",
+				destination = region.role,
+			})
+		end
+	end
 	return result
 end
 function M.stages(content: any): { any }

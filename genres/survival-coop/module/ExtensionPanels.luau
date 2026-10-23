@@ -134,6 +134,7 @@ local TRAVEL_REASONS: { [string]: { string } } = {
 	development_gate = { "Raise your island development first", "개발 등급을 먼저 올리세요" },
 	instability_gate = { "This route is not unlocked yet", "아직 열리지 않은 항로입니다" },
 	dock_unreachable = { "Move closer to the dock", "부두에 더 가까이 가세요" },
+	transition_not_allowed = { "Depart from the harbor", "항구에서 출발하세요" },
 	studio_no_teleport = {
 		"Accepted. Teleport is unavailable in Studio",
 		"승인됨. Studio에서는 섬 이동이 불가합니다",

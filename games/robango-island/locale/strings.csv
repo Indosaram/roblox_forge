@@ -38,6 +38,15 @@ world.practice-fiber-stitch,"Weaving practice",world prompt,"Weaving practice","
 world.visitor-portal,"Home portal",world prompt,"Home portal","개인 섬 이동문"
 world.rescue-beacon,"Rescue beacon",world prompt,"Rescue beacon","구조 신호기"
 world.station.signal-relay.t1,"Signal relay",world prompt,"Signal relay","신호 중계기"
+world.harbor,"Harbor",world prompt,"Harbor","항구"
+world.explore10,"Wilds (Lv 10)",world prompt,"Wilds (Lv 10)","야생 지대 (레벨 10)"
+world.explore20,"Deep wilds (Lv 20)",world prompt,"Deep wilds (Lv 20)","깊은 야생 지대 (레벨 20)"
+world.frontier30,"Frontier (Lv 30)",world prompt,"Frontier (Lv 30)","외곽 섬 (레벨 30)"
+world.frontier40,"Snow frontier (Lv 40)",world prompt,"Snow frontier (Lv 40)","설원 외곽 섬 (레벨 40)"
+world.frontier50,"Volcanic frontier (Lv 50)",world prompt,"Volcanic frontier (Lv 50)","화산 외곽 섬 (레벨 50)"
+world.frontier60,"Rex frontier (Lv 60)",world prompt,"Rex frontier (Lv 60)","티라노 외곽 섬 (레벨 60)"
+world.brawl,"Brawl arena",world prompt,"Brawl arena","난투장"
+world.team-outpost,"Team outpost",world prompt,"Team outpost","팀 전초기지"
 music.editor_title,"Score editor",music editor,"Score editor","악보 편집"
 music.editor_close,"Close",music editor,"Close","닫기"
 music.editor_tempo,"Tempo (40-200)",music editor,"Tempo (40-200)","템포 (40~200)"
@@ -1342,6 +1351,7 @@ reason_invite_missing,The invite is no longer valid,expedition lane,The invite i
 reason_player_offline,That player is not on this server,expedition lane,That player is not on this server,그 플레이어는 이 서버에 없어요
 reason_mission_gate,Finish both objectives first,expedition lane,Finish both objectives first,목표 두 개를 먼저 마치세요
 reason_missing_expedition,You are not on an expedition,expedition lane,You are not on an expedition,탐험 중이 아니에요
+reason_transition_not_allowed,Depart from the harbor,expedition lane,Depart from the harbor,항구에서 출발하세요
 social.back,Back,social home and trade sheets,Back,뒤로
 social.dest.cove-east,East cove,social home and trade sheets,East cove,동쪽 만
 social.dest.cove-north,North cove,social home and trade sheets,North cove,북쪽 만

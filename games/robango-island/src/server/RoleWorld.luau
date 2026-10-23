@@ -167,8 +167,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	lighting.ClockTime, lighting.Brightness = 16.2, 2.3
 	lighting.Ambient = Color3.fromRGB(108, 113, 119)
 	lighting.OutdoorAmbient = Color3.fromRGB(151, 151, 137)
-	-- Atmosphere supplies depth haze (Fog* is ignored with it). No DepthOfField: a full-screen
-	-- blur costs low-end mobile fill rate and would smear distant nodes under the aerial camera.
+	-- Atmosphere gives depth haze; no DepthOfField (mobile fill rate).
 	local rays = lighting:FindFirstChild("ForgeSunRays") or Instance.new("SunRaysEffect")
 	rays.Name, rays.Intensity, rays.Spread, rays.Parent = "ForgeSunRays", 0.04, 0.5, lighting
 	local correction = Instance.new("ColorCorrectionEffect")
@@ -233,8 +232,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		local floor = top
-		-- On organic islands a missing neighbour is the beach, so a high coastal column gets a
-		-- round cap instead of a square block edge dropping to the sand.
+		-- Organic coast: a high coastal column gets a round cap.
 		local outside = if coastline then Terrain.BEACH_TOP else top
 		for dx = -1, 1 do
 			for dz = -1, 1 do
@@ -242,11 +240,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or outside)
 			end
 		end
-		-- Organic islands: a step above the lowest neighbour is a round cap (radius covers the
-		-- cell's corners), so authored height changes read as rounded rises, not square terraces.
+		-- Organic islands: a step above the lowest neighbour gets a round cap.
 		local cap = coastline ~= nil and top > 0 and top - math.max(floor, 0) > 1
-			-- Graded square-column regions (frontiers) round only an inland rise too high to step that
-			-- a catalog path crosses, which keeps the extra fills within budget.
+			-- Graded frontiers round only a too-high inland rise a catalog path crosses.
 			or gradedInland
 				and top - floor > 2.5
 				and floor >= 0
@@ -258,8 +254,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			Vector3.new(column.cell, base + 16, column.cell),
 			materials[material]
 		)
-		-- A rise within Terrain.GRADE is walked up through terraces (below); a deeper drop keeps
-		-- the wider half-height skirt that splits it into two rounded shoulders.
+		-- A walkable rise terraces down; a deeper drop keeps a half-height skirt.
 		local graded = top - base <= Terrain.GRADE * column.cell + 0.01
 		if cap then
 			if top - base > 4 and not graded then
@@ -271,11 +266,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					materials[material]
 				)
 			end
-			-- The top disc stays inside the cell (corners left out) and a full-width ring sits one
-			-- stud lower, so the edge of high flat ground is a chain of round lobes rather than the
-			-- square column outline that runs straight along the catalog paths. A column holding an
-			-- authored point keeps a full-width top so that point stays at its exact height; so does a
-			-- graded inland column, whose square neighbours have no lower ring to meet.
+			-- Round top lobes; authored points and graded inland columns keep a full top.
 			local pinned = Terrain.pinned(layout, column.x, column.z, column.cell) or gradedInland
 			workspace.Terrain:FillCylinder(
 				CFrame.new(column.x, (base + top) / 2 - 2, column.z),
@@ -290,8 +281,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				materials[material]
 			)
 			if graded then
-				-- A graded rise steps down in wider, lower terraces of at most 2 studs, so a character
-				-- walks up it without jumping.
+				-- Graded rises step down at most 2 studs, walkable without jumping.
 				local upper = if pinned then top else top - 1
 				local terraces = math.ceil((upper - base) / 2) - 1
 				for index = 1, terraces do
@@ -306,8 +296,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		if top > 0 then
-			-- Seeded discs spill each column's surface into its neighbours below their own
-			-- surface height, so material borders are round and never a square tile grid.
+			-- Seeded discs round material borders.
 			table.insert(blobs, { column, floor, material })
 		end
 		if not protected and top > 8 then
@@ -335,8 +324,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	if coastline then
-		-- Square land columns stop inside the coast; two rings of low sand domes walked along the
-		-- seeded lobed coastline draw a round beach that slopes under the water line.
+		-- Two rings of low sand domes along the seeded coastline draw a round beach.
 		local ring: { { number } } = {}
 		local px, pz = math.huge, math.huge
 		for step = 0, 720 do
@@ -357,9 +345,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				)
 			end
 		end
-		-- Sand discs cover the band from the coast to M.band, hiding the square column edges;
-		-- grass discs then repaint GRASS_EDGE..band, so the grass edge is the inset coast curve.
-		-- Columns in the band sit at BEACH_TOP, so the discs only change surface material.
+		-- Sand then grass discs hide square column edges; band columns sit at BEACH_TOP.
 		local band = Terrain.band(coastline, 32)
 		for _, pass in { { 0, band }, { Terrain.GRASS_EDGE, band } } do
 			local last: { number }? = nil
@@ -385,8 +371,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
-	-- The coarse seeded columns are scenery. Authored navigation is a continuous
-	-- dry ribbon with the catalog's slope, including each node's approach branch.
+	-- Authored navigation is a continuous dry ribbon with the catalog slope.
 	local paths: { any } = if layoutId == "rw.home" then {} else layout.paths
 	local low, high = layout.bounds.min, layout.bounds.max
 	local function inside(p: any): boolean
@@ -429,8 +414,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local runtimeContent: any = table.clone(content)
 	runtimeContent.nodes = table.clone(content.nodes)
 	if layoutId == "rw.home" then
-		-- Home land is published after role construction. Sample its starting surface
-		-- now as well, so gather authority is grounded before the factory copies it.
+		-- Sample the home surface now so gather authority is grounded.
 		local half = content.homePolicy.tiers[1].sideStuds / 2
 		workspace.Terrain:FillBall(Vector3.new(0, -half - 8, 0), half + 7, Enum.Material.Sand)
 		for index = 1, 7 do
@@ -460,13 +444,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	local nodes, spawns = {}, {}
 	local nodeItems: any = {}
-	-- Voxel writes are not raycastable until the engine steps; without this the
-	-- node rays below miss and nodes stay at their authored, buried height.
+	-- Voxel writes are raycastable only after an engine step.
 	game:GetService("RunService").Heartbeat:Wait()
 	for _, path in layout.paths do
 		if string.match(layoutId, "^rw%.a%d+%.s%d+$") and string.sub(path.id, -5) == ".main" then
-			-- Arrive on the trail beside the yard's nearest gather node, inside its prompt range
-			-- (8 studs): 32 studs short of the yard left no prompt usable from the arrival point.
+			-- Arrive beside the nearest yard gather node, inside its 8-stud prompt range.
 			local y, q = path.points[3], path.points[2]
 			local at = Vector3.new(y.x, 512, y.z) + (Vector3.new(q.x, 512, q.z) - Vector3.new(y.x, 512, y.z)).Unit * 32
 			local nearest, best = nil, math.huge
@@ -545,8 +527,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		return nil
 	end
-	-- Decorative fauna is a ghost: no collision, touch or queries. Only the root is anchored so
-	-- client Motor6D poses can move the limbs; the graze phase is seeded from the rig id.
+	-- Decorative fauna is a ghost; only the root is anchored for client poses.
 	local function decorate(animal: Model, id: string)
 		for _, piece in animal:GetDescendants() do
 			if piece:IsA("BasePart") then
@@ -573,8 +554,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	if layoutId == "rw.onboarding" then
-		-- Distant, noninteractive silhouettes establish the era without adding
-		-- predators or changing the tutorial's authored wildlife encounters.
+		-- Distant noninteractive silhouettes set the era.
 		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
 		for index, offset in { -36, 32 } do
 			local position = Vector3.new(entry.x + offset, entry.y, entry.z - 58 - index * 12)
@@ -808,12 +788,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			dock(
 				anchor.id,
 				if layoutId == "rw.home" then content.homePolicy.dock else anchor.position,
-				if layoutId == "rw.onboarding"
+				if layoutId == "rw.onboarding" or layoutId == "rw.harbor"
 					then "home"
-					elseif layoutId == "rw.home" then "archipelago"
-					elseif string.match(layoutId, "^rw%.a%d+%.s%d+$") and anchor.id == "exit" then "next-island"
-					else "home"
+					elseif string.match(layoutId, "^rw%.a%d+%.s%d+$") then (if anchor.id == "exit"
+						then "next-island"
+						else "home")
+					else "harbor"
 			)
+		end
+	end
+	for _, facility in world.harborFacilities or {} do
+		if facility.kind == "departure" then
+			facility.position = interactionPosition(facility.position, 1)
+			dock(facility.id, facility.position, facility.destination)
 		end
 	end
 	-- Archipelago cells: a boundary marker at the island edge beside the entry dock opens
@@ -1120,8 +1107,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				homeParts[definition.id] = value
 				local base, tier = string.match(definition.kind or "", "^(.+)%-t(%d)$")
 				if base and stationKinds[base] then
-					-- A placed tier-N bench serves its base station kind; the first one in this
-					-- world takes the anchor id the progression owner resolves (station.<kind>.tN).
+					-- The first placed tier-N bench takes the anchor id station.<kind>.tN.
 					local anchorId = "station." .. base .. ".t" .. tostring(tier)
 					world.registerStation(
 						value,
@@ -1149,8 +1135,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				-- Terrain preset 1 is the original coast; presets 2-3 change the lobe count and tilt.
 				local preset = definition.preset or 1
 				workspace.Terrain:FillBall(Vector3.new(0, -half - 8, 0), half + 7, Enum.Material.Sand)
-				-- The durable rectangular land envelope remains a hidden capability;
-				-- visible terrain is an asymmetric overlapping set of low islands.
+				-- The rectangular land envelope stays hidden behind organic low islands.
 				for i = 1, 7 do
 					local angle = i * math.pi * 2 / 7
 					local radius = half * (0.6 + (i % 3) * 0.055)
@@ -1216,8 +1201,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
-	-- Render after terrain, ribbons and catalog clearings have reached final shape.
-	-- Ranks from the spawn let each client's render profile drop far decor and effects.
+	-- Render after terrain is final; ranks from spawn drive client decor culling.
 	local origin = { x = spawn.Position.X, z = spawn.Position.Z }
 	local decorRanks = RenderBudget.rank(dressing.parts, origin)
 	local effectRanks = RenderBudget.rank(dressing.parts, origin, function(definition: any): boolean

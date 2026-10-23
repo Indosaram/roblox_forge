@@ -162,6 +162,7 @@ local strings: { [string]: { string } } = {
 	reason_player_offline = { "That player is not on this server", "그 플레이어는 이 서버에 없어요" },
 	reason_mission_gate = { "Finish both objectives first", "목표 두 개를 먼저 마치세요" },
 	reason_missing_expedition = { "You are not on an expedition", "탐험 중이 아니에요" },
+	reason_transition_not_allowed = { "Depart from the harbor", "항구에서 출발하세요" },
 }
 
 M.strings = strings

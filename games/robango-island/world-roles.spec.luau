@@ -9,6 +9,97 @@ local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
 
 return {
+	["every role is reachable from onboarding through in-game travel and gates show their refusal"] = function()
+		local Topology = require("../../core/domain/island/Topology")
+		local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
+		local Expedition = require("../../genres/survival-coop/module/ExpeditionExtension")
+		local function exits(role: string): { [string]: boolean }
+			local found = {}
+			Expedition.new({
+				content = Content,
+				now = function()
+					return 0
+				end,
+				facts = function()
+					return { level = 60, developmentRank = 9, instabilityAccess = 9 }
+				end,
+				onExpedition = function()
+					return false
+				end,
+				travel = function(_, destination)
+					found[destination] = true
+					return { ok = true }
+				end,
+			}).command("1", Expedition.ACTION, { "depart", "1" }, {}, "client", function()
+				return { ok = true }
+			end)
+			local engine = Engine.new()
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, if role == "archipelago" then "rw.a1.s1" else "rw." .. role, 1776)
+			world.bind({} :: any)
+			world.services.survivalDeath.reachable = function()
+				return true
+			end
+			world.travel = function(_, destination)
+				found[destination] = true
+				return false, "studio_no_teleport"
+			end
+			for _, prompt in engine.game:GetService("Workspace"):GetDescendants() do
+				if prompt:IsA("ProximityPrompt") then
+					prompt.Triggered:Fire({ UserId = 1, SetAttribute = function() end })
+				end
+			end
+			world.destroy()
+			if found["next-island"] then
+				found["next-island"], found.archipelago, found.home = nil, true, true
+			end
+			for destination in found do
+				found[destination] = Topology.validateRoleTransition(role, destination, 60) or nil
+			end
+			return found
+		end
+		local reached, queue = { onboarding = true }, { "onboarding" }
+		while #queue > 0 do
+			for destination in exits(table.remove(queue, 1) :: string) do
+				if not reached[destination] then
+					reached[destination] = true
+					table.insert(queue, destination)
+				end
+			end
+		end
+		for role in Topology.ROLES do
+			assert(reached[role], role .. " is unreachable through live travel")
+		end
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.harbor", 1776)
+		world.bind({} :: any)
+		world.services.survivalDeath.reachable = function()
+			return true
+		end
+		local post =
+			engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld"):FindFirstChild("rw.harbor.frontier60")
+		for _, case in { { 59, "level_gate" }, { 60, "studio_no_teleport" } } do
+			world.travel = function(_, destination)
+				local ok, reason = Topology.validateRoleTransition("harbor", destination, case[1])
+				return false, if ok then "studio_no_teleport" else reason
+			end
+			local shown: any = nil
+			post:FindFirstChild("ForgeDock").Triggered:Fire({
+				UserId = 1,
+				SetAttribute = function(_self, key, value)
+					shown = if key == "ForgeTravelResult" then value else shown
+				end,
+			})
+			assert(string.match(shown, "^" .. case[2] .. "|"), "frontier60 post publishes " .. case[2])
+			for _, locale in { "en-us", "ko-kr" } do
+				assert(not string.find(Panels.travelText(locale, case[2]), case[2], 1, true), locale .. " reason text")
+			end
+		end
+		world.destroy()
+	end,
 	["dock authority does not raycast into its own collidable platform"] = function()
 		local engine = Engine.new(true)
 		local world = engine.role.build(Content, Source, Policy, function()

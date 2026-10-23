@@ -38,6 +38,15 @@ world.practice-fiber-stitch,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 world.visitor-portal,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 world.rescue-beacon,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 world.station.signal-relay.t1,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
+world.harbor,original,agent:hephaestus/p52,2026-10-23
+world.explore10,original,agent:hephaestus/p52,2026-10-23
+world.explore20,original,agent:hephaestus/p52,2026-10-23
+world.frontier30,original,agent:hephaestus/p52,2026-10-23
+world.frontier40,original,agent:hephaestus/p52,2026-10-23
+world.frontier50,original,agent:hephaestus/p52,2026-10-23
+world.frontier60,original,agent:hephaestus/p52,2026-10-23
+world.brawl,original,agent:hephaestus/p52,2026-10-23
+world.team-outpost,original,agent:hephaestus/p52,2026-10-23
 music.editor_title,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 music.editor_close,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 music.editor_tempo,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
@@ -1343,6 +1352,7 @@ reason_invite_missing,original,agent:hephaestus/p31,2026-10-22
 reason_player_offline,original,agent:hephaestus/p31,2026-10-22
 reason_mission_gate,original,agent:hephaestus/p31,2026-10-22
 reason_missing_expedition,original,agent:hephaestus/p31,2026-10-22
+reason_transition_not_allowed,original,agent:hephaestus/p52,2026-10-23
 social.back,original,agent:hephaestus/p31-socialtrade,2026-10-22
 social.dest.cove-east,original,agent:hephaestus/p31-socialtrade,2026-10-22
 social.dest.cove-north,original,agent:hephaestus/p31-socialtrade,2026-10-22
