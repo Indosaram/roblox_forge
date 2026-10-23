@@ -1,6 +1,7 @@
 --!strict
 local Shared = require("../../../core/domain/genre/Contract")
 local M = {}
+M.RANGED = "survival-coop:attack-ranged"
 function M.new(config: { resolve: (string) -> any })
 	local busy: { [any]: boolean } = {}
 	local admissions: { [string]: string } = {}
@@ -18,14 +19,16 @@ function M.new(config: { resolve: (string) -> any })
 	end
 	local bridge = {}
 	function bridge.handles(action: string): boolean
-		return action == "survival-coop:attack"
+		return action == "survival-coop:attack" or action == M.RANGED
 	end
+	-- `action` is the routed durable action id (Session passes it last); attack-ranged fires a bow.
 	function bridge.command(
 		actor: string,
 		args: { any },
 		context: Shared.CommandContext,
 		expiresAt: number,
-		admit: () -> Shared.Result
+		admit: () -> Shared.Result,
+		action: string?
 	): Shared.Result
 		if actor ~= context.actorId then
 			return { ok = false, reason = "UNAUTHORIZED" }
@@ -36,12 +39,16 @@ function M.new(config: { resolve: (string) -> any })
 		end
 		return locked(runtime, function()
 			local key = tostring(context.sessionEpoch) .. ":" .. context.requestId .. ":" .. tostring(args[1])
+			if action == M.RANGED then
+				key ..= ":ranged"
+			end
 			local result = runtime.command({
 				actorId = actor,
 				sessionEpoch = context.sessionEpoch,
 				requestId = context.requestId,
 				targetId = args[1],
 				expiresAt = expiresAt,
+				mode = if action == M.RANGED then "ranged" else nil,
 			}, function()
 				if admissions[actor] then
 					return {

@@ -184,6 +184,7 @@ return {
 	-- Confirmed gather -> per-material event, keyed by the node kind (content.yml nodes).
 	gather = {
 		["berry-bush"] = "gather-plant",
+		["branch-pile"] = "gather-wood",
 		["fallen-tree"] = "gather-wood",
 		["fiber-bush"] = "gather-plant",
 		["flint-outcrop"] = "gather-stone",
@@ -203,6 +204,7 @@ return {
 		["marsh-reed-bed"] = "gather-plant",
 		["marsh-samphire-flat"] = "gather-plant",
 		["meat-cache"] = "gather-meat",
+		["stone-pile"] = "gather-stone",
 	},
 	-- Role-world nodes (rw-a1-s1-material-wood, ...) are keyed by the item they yield
 	-- (ForgeNodeItem); used when the node kind has no entry above. Water has no splash cue yet

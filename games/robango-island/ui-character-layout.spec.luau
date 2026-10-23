@@ -10,7 +10,7 @@ local Sheet = require("../../genres/survival-coop/module/CharacterSheet")
 local Text = require("../../genres/survival-coop/module/CharacterText")
 local Panels = require("../../genres/survival-coop/module/CharacterPanels")
 local Content: any = require("./src/shared/SurvivalContent")
-local EntityNames = require("./src/shared/EntityNames")
+local EntityNames = require("./PackText.fixture").names
 
 local SCREENS = {
 	character = require("../../genres/survival-coop/module/CharacterPanel"),
@@ -20,6 +20,7 @@ local SCREENS = {
 	["technical-support"] = require("../../genres/survival-coop/module/TechnicalSupportPanel"),
 	modify = require("../../genres/survival-coop/module/ModifyPanel"),
 	equipment = require("../../genres/survival-coop/module/EquipmentPanel"),
+	guides = require("../../genres/survival-coop/module/GuidePanel"),
 }
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true }, { 640, 339, true } }
 local LOCALES = { "en-us", "ko-kr" }
@@ -58,7 +59,14 @@ local function data(locale: string, level: number): any
 		content = Content,
 		names = EntityNames(locale),
 		survival = { balance = 1234, progression = tree, inventory = { bag = bag } },
-		character = { gear = gear, points = 340, definitions = { ["rw.m1.gather"] = true }, now = 10 },
+		character = {
+			gear = gear,
+			points = 340,
+			definitions = { ["rw.m1.gather"] = true, ["rw.g01.first-gather"] = true },
+			progress = { ["rw.g08.market.1"] = 1, ["rw.g14.taming.2"] = 2 },
+			level = level,
+			now = 10,
+		},
 		late = {
 			version = 1,
 			completed = { ["research-light-1"] = true },
@@ -133,7 +141,7 @@ return {
 			local en, ko = Text.text("en-us", key), Text.text("ko-kr", key)
 			assert(en ~= key and ko ~= key and en ~= "" and ko ~= "", key)
 		end
-		assert(#Panels.factories == 7, "seven screens registered")
+		assert(#Panels.factories == 8, "eight screens registered")
 	end,
 	["skill reset confirm sends the quoted version; a stale quote shows a localized refusal"] = function()
 		local d = data("ko-kr", 30)
@@ -223,6 +231,37 @@ return {
 		Sheet.activate("en-us", find(rows, "Mod-modify-sharpness-2"), send)
 		assert(log[1].action == "survival-coop:equipment-start", "modify start")
 		assert(log[1].args[1] == "modify-sharpness" and log[1].args[2] == "a" and log[1].args[3] == 2, "args")
+	end,
+	["guides show grade progress, open guides with objective progress and rewards, and missing actions"] = function()
+		local fresh = data("ko-kr", 1)
+		fresh.character.points, fresh.character.definitions, fresh.character.progress =
+			50, { ["rw.g01.first-gather"] = true }, {}
+		local rows = SCREENS.guides.model("ko-kr", fresh)
+		assert(
+			find(rows, "Grade").text == "섬 개발 등급 0: 개발 점수 50 / 100 (등급 1)",
+			find(rows, "Grade").text
+		)
+		assert(find(rows, "Done").text == "마친 안내 1 / 20", "done count")
+		assert(
+			find(rows, "Objective-rw.g02.first-axe.1").text == "제작 아무 도끼: 0 / 1",
+			find(rows, "Objective-rw.g02.first-axe.1").text
+		)
+		assert(string.find(find(rows, "Guide-rw.g03.first-contract").text, "개발 +50", 1, true), "reward shown")
+		assert(
+			find(rows, "Locked").text == "레벨 30, 섬 등급 2에 안내가 더 열려요",
+			find(rows, "Locked").text
+		)
+		local late = data("en-us", 60)
+		late.character.points = 900
+		rows = SCREENS.guides.model("en-us", late)
+		assert(
+			find(rows, "Objective-rw.g08.market.1").text == "List Fiber: 1 / 1",
+			find(rows, "Objective-rw.g08.market.1").text
+		)
+		assert(
+			string.find(find(rows, "Objective-rw.g06.visit.1").text, "(coming later)", 1, true),
+			"a guide action with no command is labeled, not faked"
+		)
 	end,
 	["character and island rank reflect level, SP, rank and the award checklist"] = function()
 		local d = data("en-us", 30)

@@ -116,6 +116,20 @@ local items: {
 		[114] = { ["id"] = "iron-ore", ["name"] = "Iron Ore", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
 		[115] = { ["id"] = "kiln-kit", ["name"] = "Kiln Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
 		[116] = {
+			["id"] = "kiln-t2-kit",
+			["name"] = "Fired Kiln Kit",
+			["stackMax"] = 1,
+			["tags"] = {},
+			["weightMilli"] = 1500,
+		},
+		[117] = {
+			["id"] = "kiln-t3-kit",
+			["name"] = "Blast Kiln Kit",
+			["stackMax"] = 1,
+			["tags"] = {},
+			["weightMilli"] = 1500,
+		},
+		[118] = {
 			["id"] = "knife-t1",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Knife T1",
@@ -123,27 +137,12 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[117] = {
+		[119] = {
 			["id"] = "knife-t2",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Knife T2",
 			["stackMax"] = 1,
 			["tags"] = { [1] = "weapon-tool" },
-			["weightMilli"] = 500,
-		},
-		[118] = {
-			["id"] = "knife-t3",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Knife T3",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "weapon-tool" },
-			["weightMilli"] = 500,
-		},
-		[119] = {
-			["id"] = "laboratory-kit",
-			["name"] = "Laboratory Kit",
-			["stackMax"] = 1,
-			["tags"] = {},
 			["weightMilli"] = 500,
 		},
 		[12] = {
@@ -154,6 +153,21 @@ local items: {
 			["weightMilli"] = 500,
 		},
 		[120] = {
+			["id"] = "knife-t3",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Knife T3",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "weapon-tool" },
+			["weightMilli"] = 500,
+		},
+		[121] = {
+			["id"] = "laboratory-kit",
+			["name"] = "Laboratory Kit",
+			["stackMax"] = 1,
+			["tags"] = {},
+			["weightMilli"] = 500,
+		},
+		[122] = {
 			["id"] = "lava-protection-boots",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Lava Protection Boots",
@@ -161,68 +175,74 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[121] = {
+		[123] = {
 			["id"] = "leaf-compost",
 			["name"] = "Leaf Compost",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[122] = { ["id"] = "leather", ["name"] = "Leather", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[123] = { ["id"] = "leaves", ["name"] = "Leaves", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[124] = {
+		[124] = { ["id"] = "leather", ["name"] = "Leather", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[125] = { ["id"] = "leaves", ["name"] = "Leaves", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[126] = {
 			["id"] = "liquid-fertilizer",
 			["name"] = "Liquid Fertilizer",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[125] = {
+		[127] = {
 			["id"] = "marsh-clay",
 			["name"] = "Saltmarsh Clay",
 			["stackMax"] = 30,
 			["tags"] = { [1] = "material-brick" },
 			["weightMilli"] = 1200,
 		},
-		[126] = { ["id"] = "meat", ["name"] = "Raw Game Meat", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[127] = {
+		[128] = { ["id"] = "meat", ["name"] = "Raw Game Meat", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[129] = {
 			["id"] = "meat-potato-stew",
 			["name"] = "Meat Potato Stew",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[128] = {
+		[13] = {
+			["id"] = "bandage",
+			["name"] = "Bandage",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[130] = {
 			["id"] = "mud-brick",
 			["name"] = "Fired Mud Brick",
 			["stackMax"] = 20,
 			["tags"] = { [1] = "material-brick" },
 			["weightMilli"] = 1500,
 		},
-		[129] = { ["id"] = "onion", ["name"] = "Onion", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[13] = { ["id"] = "bandage", ["name"] = "Bandage", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[130] = {
+		[131] = { ["id"] = "onion", ["name"] = "Onion", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[132] = {
 			["id"] = "onion-meat-skewer",
 			["name"] = "Onion Meat Skewer",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[131] = {
+		[133] = {
 			["id"] = "onion-seed",
 			["name"] = "Onion Seed",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[132] = {
+		[134] = {
 			["id"] = "onion-soup",
 			["name"] = "Onion Soup",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[133] = {
+		[135] = {
 			["id"] = "pickaxe-t1",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T1",
@@ -230,7 +250,7 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[134] = {
+		[136] = {
 			["id"] = "pickaxe-t2",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T2",
@@ -238,7 +258,7 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[135] = {
+		[137] = {
 			["id"] = "pickaxe-t3",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Pickaxe T3",
@@ -246,61 +266,61 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[136] = { ["id"] = "pillar", ["name"] = "Pillar", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
-		[137] = { ["id"] = "plank", ["name"] = "Split Plank", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[138] = { ["id"] = "plate", ["name"] = "Plate", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[139] = {
+		[138] = { ["id"] = "pillar", ["name"] = "Pillar", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[139] = { ["id"] = "plank", ["name"] = "Split Plank", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[14] = { ["id"] = "basalt", ["name"] = "Basalt", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[140] = { ["id"] = "plate", ["name"] = "Plate", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[141] = {
 			["id"] = "polished-basalt",
 			["name"] = "Polished Basalt",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[14] = { ["id"] = "basalt", ["name"] = "Basalt", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[140] = {
+		[142] = {
 			["id"] = "polished-bone",
 			["name"] = "Polished Bone",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[141] = {
+		[143] = {
 			["id"] = "polished-flint",
 			["name"] = "Polished Flint",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[142] = {
+		[144] = {
 			["id"] = "polished-stone",
 			["name"] = "Polished Stone",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[143] = { ["id"] = "potato", ["name"] = "Potato", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[144] = {
+		[145] = { ["id"] = "potato", ["name"] = "Potato", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[146] = {
 			["id"] = "potato-seed",
 			["name"] = "Potato Seed",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[145] = {
+		[147] = {
 			["id"] = "practice-seedbed",
 			["name"] = "Practice Seedbed",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "bound" },
 			["weightMilli"] = 500,
 		},
-		[146] = {
+		[148] = {
 			["id"] = "practice-stitch",
 			["name"] = "Practice Stitch",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "bound" },
 			["weightMilli"] = 500,
 		},
-		[147] = {
+		[149] = {
 			["id"] = "recovery-feed",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Recovery Feed",
@@ -308,85 +328,77 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[148] = {
+		[15] = { ["id"] = "bed-kit", ["name"] = "Bed Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[150] = {
 			["id"] = "reed",
 			["name"] = "Common Reed Stalk",
 			["stackMax"] = 80,
-			["tags"] = {},
+			["tags"] = { [1] = "retired" },
 			["weightMilli"] = 200,
 		},
-		[149] = {
+		[151] = {
 			["id"] = "refrigerator-kit",
 			["name"] = "Refrigerator Kit",
 			["stackMax"] = 1,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[15] = { ["id"] = "bed-kit", ["name"] = "Bed Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
-		[150] = {
+		[152] = {
 			["id"] = "relief-unit",
 			["name"] = "Relief Unit",
 			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
-		},
-		[151] = {
-			["id"] = "rescue-marker",
-			["name"] = "Rescue Marker",
-			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
-		},
-		[152] = {
-			["id"] = "rescue-transponder",
-			["name"] = "Rescue Transponder",
-			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[153] = {
-			["id"] = "research-bundle",
-			["name"] = "Research Bundle",
+			["id"] = "rescue-marker",
+			["name"] = "Rescue Marker",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[154] = {
+			["id"] = "rescue-transponder",
+			["name"] = "Rescue Transponder",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[155] = {
+			["id"] = "research-bundle",
+			["name"] = "Research Bundle",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[156] = {
 			["id"] = "rex-leather",
 			["name"] = "Rex Leather",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[155] = {
+		[157] = {
 			["id"] = "rex-meat-stew",
 			["name"] = "Rex Meat Stew",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[156] = {
+		[158] = {
 			["id"] = "roast-meat",
 			["name"] = "Roast Meat",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[157] = {
+		[159] = {
 			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 2000, ["hungerMilli"] = 12000 },
 			["id"] = "roasted-hazelnuts",
 			["name"] = "Roasted Hazelnuts",
 			["stackMax"] = 30,
 			["tags"] = {},
 			["weightMilli"] = 200,
-		},
-		[158] = { ["id"] = "roof", ["name"] = "Roof", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
-		[159] = {
-			["id"] = "roof-kit",
-			["name"] = "Plank Roof Kit",
-			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
 		},
 		[16] = {
 			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 0, ["hungerMilli"] = 5000 },
@@ -396,77 +408,69 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[160] = {
-			["id"] = "rw-journal-seal-1",
-			["name"] = "Rw Journal Seal 1",
-			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
-		},
+		[160] = { ["id"] = "roof", ["name"] = "Roof", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
 		[161] = {
-			["id"] = "rw-journal-seal-2",
-			["name"] = "Rw Journal Seal 2",
+			["id"] = "roof-kit",
+			["name"] = "Plank Roof Kit",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
 		[162] = {
-			["id"] = "rw-journal-seal-3",
-			["name"] = "Rw Journal Seal 3",
+			["id"] = "rw-journal-seal-1",
+			["name"] = "Rw Journal Seal 1",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[163] = {
-			["id"] = "rw-journal-seal-4",
-			["name"] = "Rw Journal Seal 4",
+			["id"] = "rw-journal-seal-2",
+			["name"] = "Rw Journal Seal 2",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[164] = {
-			["id"] = "rw-journal-seal-5",
-			["name"] = "Rw Journal Seal 5",
+			["id"] = "rw-journal-seal-3",
+			["name"] = "Rw Journal Seal 3",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[165] = {
-			["id"] = "rw-journal-seal-6",
-			["name"] = "Rw Journal Seal 6",
+			["id"] = "rw-journal-seal-4",
+			["name"] = "Rw Journal Seal 4",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[166] = {
-			["id"] = "rw-journal-seal-7",
-			["name"] = "Rw Journal Seal 7",
+			["id"] = "rw-journal-seal-5",
+			["name"] = "Rw Journal Seal 5",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[167] = {
-			["id"] = "rw-journal-seal-8",
-			["name"] = "Rw Journal Seal 8",
+			["id"] = "rw-journal-seal-6",
+			["name"] = "Rw Journal Seal 6",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[168] = {
-			["id"] = "saddle",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Saddle",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "saddle" },
+			["id"] = "rw-journal-seal-7",
+			["name"] = "Rw Journal Seal 7",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[169] = {
-			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 0, ["hungerMilli"] = 2000 },
-			["id"] = "samphire",
-			["name"] = "Glasswort Sprig",
-			["stackMax"] = 60,
-			["tags"] = {},
-			["weightMilli"] = 100,
+			["id"] = "rw-journal-seal-8",
+			["name"] = "Rw Journal Seal 8",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
 		},
 		[17] = {
 			["id"] = "berry-compost",
@@ -476,65 +480,65 @@ local items: {
 			["weightMilli"] = 500,
 		},
 		[170] = {
-			["id"] = "sample-case",
-			["name"] = "Sample Case",
-			["stackMax"] = 50,
-			["tags"] = {},
+			["id"] = "saddle",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Saddle",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "saddle" },
 			["weightMilli"] = 500,
 		},
 		[171] = {
+			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 0, ["hungerMilli"] = 2000 },
+			["id"] = "samphire",
+			["name"] = "Glasswort Sprig",
+			["stackMax"] = 60,
+			["tags"] = { [1] = "retired" },
+			["weightMilli"] = 100,
+		},
+		[172] = {
+			["id"] = "sample-case",
+			["name"] = "Sample Case",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[173] = {
 			["id"] = "shell-fragment",
 			["name"] = "Shell Shard",
 			["stackMax"] = 80,
 			["tags"] = {},
 			["weightMilli"] = 100,
 		},
-		[172] = {
+		[174] = {
 			["id"] = "shelter-liner",
 			["name"] = "Shelter Liner",
 			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
-		},
-		[173] = {
-			["id"] = "signal-fragment",
-			["name"] = "Signal Fragment",
-			["stackMax"] = 50,
-			["tags"] = {},
-			["weightMilli"] = 500,
-		},
-		[174] = {
-			["id"] = "signal-lens",
-			["name"] = "Signal Lens",
-			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[175] = {
+			["id"] = "signal-fragment",
+			["name"] = "Signal Fragment",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[176] = {
+			["id"] = "signal-lens",
+			["name"] = "Signal Lens",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
+		[177] = {
 			["id"] = "signal-relay-kit",
 			["name"] = "Signal Relay Kit",
 			["stackMax"] = 1,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[176] = { ["id"] = "sinew", ["name"] = "Sinew", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[177] = { ["id"] = "skull", ["name"] = "Skull", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[178] = {
-			["id"] = "spear",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Fire-hardened Spear",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
-			["weightMilli"] = 2500,
-		},
-		[179] = {
-			["id"] = "spear-t1",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Spear T1",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "weapon-tool" },
-			["weightMilli"] = 500,
-		},
+		[178] = { ["id"] = "sinew", ["name"] = "Sinew", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[179] = { ["id"] = "skull", ["name"] = "Skull", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
 		[18] = {
 			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 0, ["hungerMilli"] = 15000 },
 			["id"] = "berry-meal",
@@ -544,6 +548,22 @@ local items: {
 			["weightMilli"] = 500,
 		},
 		[180] = {
+			["id"] = "spear",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Fire-hardened Spear",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
+			["weightMilli"] = 2500,
+		},
+		[181] = {
+			["id"] = "spear-t1",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Spear T1",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "weapon-tool" },
+			["weightMilli"] = 500,
+		},
+		[182] = {
 			["id"] = "spear-t2",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Spear T2",
@@ -551,7 +571,7 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[181] = {
+		[183] = {
 			["id"] = "spear-t3",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Spear T3",
@@ -559,28 +579,28 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[182] = {
+		[184] = {
 			["id"] = "spoiled-food",
 			["name"] = "Spoiled Food",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[183] = {
+		[185] = {
 			["id"] = "sprinkler",
 			["name"] = "Sprinkler",
 			["stackMax"] = 50,
 			["tags"] = { [1] = "sprinkler" },
 			["weightMilli"] = 500,
 		},
-		[184] = {
+		[186] = {
 			["id"] = "stairs-kit",
 			["name"] = "Stairs Kit",
 			["stackMax"] = 1,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[185] = {
+		[187] = {
 			["id"] = "starter-axe",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Axe",
@@ -588,7 +608,7 @@ local items: {
 			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[186] = {
+		[188] = {
 			["id"] = "starter-club",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Club",
@@ -596,7 +616,7 @@ local items: {
 			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[187] = {
+		[189] = {
 			["id"] = "starter-pickaxe",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Starter Pickaxe",
@@ -604,23 +624,23 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[188] = { ["id"] = "steel", ["name"] = "Steel", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[189] = {
+		[19] = {
+			["id"] = "birch-bark",
+			["name"] = "Birch Bark Curl",
+			["stackMax"] = 80,
+			["tags"] = { [1] = "fuel", [2] = "quest-bound" },
+			["weightMilli"] = 150,
+		},
+		[190] = { ["id"] = "steel", ["name"] = "Steel", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[191] = {
 			["id"] = "stem-fertilizer",
 			["name"] = "Stem Fertilizer",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[19] = {
-			["id"] = "birch-bark",
-			["name"] = "Birch Bark Curl",
-			["stackMax"] = 80,
-			["tags"] = { [1] = "fuel" },
-			["weightMilli"] = 150,
-		},
-		[190] = { ["id"] = "stone", ["name"] = "Stone", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[191] = {
+		[192] = { ["id"] = "stone", ["name"] = "Stone", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[193] = {
 			["id"] = "stone-axe",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Flint Hatchet",
@@ -628,21 +648,21 @@ local items: {
 			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 2500,
 		},
-		[192] = {
+		[194] = {
 			["id"] = "stone-block",
 			["name"] = "Dressed Stone Block",
 			["stackMax"] = 10,
 			["tags"] = { [1] = "material-stone" },
 			["weightMilli"] = 3000,
 		},
-		[193] = {
+		[195] = {
 			["id"] = "stone-floor-kit",
 			["name"] = "Stone Floor Kit",
 			["stackMax"] = 5,
 			["tags"] = { [1] = "building-part", [2] = "material-stone" },
 			["weightMilli"] = 6000,
 		},
-		[194] = {
+		[196] = {
 			["id"] = "stone-maul",
 			["maxDurabilityMilli"] = 140000,
 			["name"] = "Stone Maul",
@@ -650,7 +670,7 @@ local items: {
 			["tags"] = { [1] = "masonry", [2] = "tool", [3] = "weapon-tool" },
 			["weightMilli"] = 3500,
 		},
-		[195] = {
+		[197] = {
 			["id"] = "stone-pick",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Flint Pick",
@@ -658,37 +678,37 @@ local items: {
 			["tags"] = { [1] = "tool", [2] = "weapon-tool" },
 			["weightMilli"] = 2500,
 		},
-		[196] = {
+		[198] = {
 			["id"] = "stone-roof-kit",
 			["name"] = "Stone Roof Kit",
 			["stackMax"] = 5,
 			["tags"] = { [1] = "building-part", [2] = "material-stone" },
 			["weightMilli"] = 8000,
 		},
-		[197] = {
+		[199] = {
 			["id"] = "stone-wall-kit",
 			["name"] = "Stone Wall Kit",
 			["stackMax"] = 5,
 			["tags"] = { [1] = "building-part", [2] = "material-stone" },
 			["weightMilli"] = 9000,
 		},
-		[198] = {
+		[2] = { ["id"] = "antler", ["name"] = "Antler", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[20] = { ["id"] = "bone", ["name"] = "Bone", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[200] = {
 			["id"] = "storage-kit",
 			["name"] = "Crate Bundle",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[199] = {
+		[201] = {
 			["id"] = "survey-sample",
 			["name"] = "Survey Sample",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
-		[2] = { ["id"] = "antler", ["name"] = "Antler", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[20] = { ["id"] = "bone", ["name"] = "Bone", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[200] = {
+		[202] = {
 			["id"] = "sword-t1",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T1",
@@ -696,7 +716,7 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[201] = {
+		[203] = {
 			["id"] = "sword-t2",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T2",
@@ -704,7 +724,7 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[202] = {
+		[204] = {
 			["id"] = "sword-t3",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Sword T3",
@@ -712,14 +732,14 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[203] = {
+		[205] = {
 			["id"] = "tanning-frame-kit",
 			["name"] = "Tanning Frame Kit",
 			["stackMax"] = 1,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[204] = {
+		[206] = {
 			["id"] = "temperate-bag",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Bag",
@@ -727,7 +747,7 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[205] = {
+		[207] = {
 			["id"] = "temperate-bottom",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Bottom",
@@ -735,7 +755,7 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[206] = {
+		[208] = {
 			["id"] = "temperate-gloves",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Gloves",
@@ -743,26 +763,10 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[207] = {
+		[209] = {
 			["id"] = "temperate-head",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Temperate Head",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "clothing" },
-			["weightMilli"] = 500,
-		},
-		[208] = {
-			["id"] = "temperate-shoes",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Temperate Shoes",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "clothing" },
-			["weightMilli"] = 500,
-		},
-		[209] = {
-			["id"] = "temperate-top",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Temperate Top",
 			["stackMax"] = 1,
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
@@ -775,37 +779,53 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[210] = { ["id"] = "tent-kit", ["name"] = "Tent Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[210] = {
+			["id"] = "temperate-shoes",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Temperate Shoes",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "clothing" },
+			["weightMilli"] = 500,
+		},
 		[211] = {
+			["id"] = "temperate-top",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Temperate Top",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "clothing" },
+			["weightMilli"] = 500,
+		},
+		[212] = { ["id"] = "tent-kit", ["name"] = "Tent Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[213] = {
 			["id"] = "thatch-bundle",
 			["name"] = "Thatch Bundle",
 			["stackMax"] = 20,
 			["tags"] = { [1] = "material-brick" },
 			["weightMilli"] = 800,
 		},
-		[212] = {
+		[214] = {
 			["id"] = "thick-leather",
 			["name"] = "Thick Leather",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[213] = {
+		[215] = {
 			["id"] = "timber-beam",
 			["name"] = "Timber Beam",
 			["stackMax"] = 10,
 			["tags"] = { [1] = "material-timber" },
 			["weightMilli"] = 2500,
 		},
-		[214] = {
+		[216] = {
 			["id"] = "timber-wall-kit",
 			["name"] = "Timber Wall Kit",
 			["stackMax"] = 5,
 			["tags"] = { [1] = "building-part", [2] = "material-timber" },
 			["weightMilli"] = 5000,
 		},
-		[215] = { ["id"] = "tooth", ["name"] = "Tooth", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[216] = {
+		[217] = { ["id"] = "tooth", ["name"] = "Tooth", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[218] = {
 			["id"] = "tropical-bag",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Bag",
@@ -813,26 +833,10 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[217] = {
+		[219] = {
 			["id"] = "tropical-bottom",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Bottom",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "clothing" },
-			["weightMilli"] = 500,
-		},
-		[218] = {
-			["id"] = "tropical-gloves",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Tropical Gloves",
-			["stackMax"] = 1,
-			["tags"] = { [1] = "clothing" },
-			["weightMilli"] = 500,
-		},
-		[219] = {
-			["id"] = "tropical-head",
-			["maxDurabilityMilli"] = 100000,
-			["name"] = "Tropical Head",
 			["stackMax"] = 1,
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
@@ -846,6 +850,22 @@ local items: {
 			["weightMilli"] = 500,
 		},
 		[220] = {
+			["id"] = "tropical-gloves",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Tropical Gloves",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "clothing" },
+			["weightMilli"] = 500,
+		},
+		[221] = {
+			["id"] = "tropical-head",
+			["maxDurabilityMilli"] = 100000,
+			["name"] = "Tropical Head",
+			["stackMax"] = 1,
+			["tags"] = { [1] = "clothing" },
+			["weightMilli"] = 500,
+		},
+		[222] = {
 			["id"] = "tropical-shoes",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Shoes",
@@ -853,7 +873,7 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[221] = {
+		[223] = {
 			["id"] = "tropical-top",
 			["maxDurabilityMilli"] = 100000,
 			["name"] = "Tropical Top",
@@ -861,44 +881,42 @@ local items: {
 			["tags"] = { [1] = "clothing" },
 			["weightMilli"] = 500,
 		},
-		[222] = { ["id"] = "tusk", ["name"] = "Tusk", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[223] = {
+		[224] = { ["id"] = "tusk", ["name"] = "Tusk", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[225] = {
 			["id"] = "volcanic-alloy",
 			["name"] = "Volcanic Alloy",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[224] = {
+		[226] = {
 			["id"] = "volcanic-ash",
 			["name"] = "Volcanic Ash",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
-		[225] = {
+		[227] = {
 			["id"] = "volcanic-bone",
 			["name"] = "Volcanic Bone",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[226] = {
+		[228] = {
 			["id"] = "volcanic-ore",
 			["name"] = "Volcanic Ore",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[227] = {
+		[229] = {
 			["id"] = "volcanic-wall",
 			["name"] = "Volcanic Wall",
 			["stackMax"] = 1,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[228] = { ["id"] = "wall-kit", ["name"] = "Wall Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
-		[229] = { ["id"] = "water", ["name"] = "Water", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
 		[23] = {
 			["id"] = "bow-t3",
 			["maxDurabilityMilli"] = 100000,
@@ -907,24 +925,26 @@ local items: {
 			["tags"] = { [1] = "weapon-tool" },
 			["weightMilli"] = 500,
 		},
-		[230] = { ["id"] = "well-kit", ["name"] = "Well Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
-		[231] = { ["id"] = "wheat", ["name"] = "Wheat", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[232] = {
+		[230] = { ["id"] = "wall-kit", ["name"] = "Wall Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[231] = { ["id"] = "water", ["name"] = "Water", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[232] = { ["id"] = "well-kit", ["name"] = "Well Kit", ["stackMax"] = 1, ["tags"] = {}, ["weightMilli"] = 500 },
+		[233] = { ["id"] = "wheat", ["name"] = "Wheat", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[234] = {
 			["id"] = "wheat-flatbread",
 			["name"] = "Wheat Flatbread",
 			["stackMax"] = 20,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[233] = {
+		[235] = {
 			["id"] = "wheat-seed",
 			["name"] = "Wheat Seed",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[234] = { ["id"] = "wood", ["name"] = "Windfall Log", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
-		[235] = {
+		[236] = { ["id"] = "wood", ["name"] = "Windfall Log", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[237] = {
 			["foodEffects"] = { ["fatigueMilli"] = 0, ["healthMilli"] = 5000, ["hungerMilli"] = 25000 },
 			["id"] = "woodland-skewer",
 			["name"] = "Woodland Skewer",
@@ -932,14 +952,14 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 400,
 		},
-		[236] = {
+		[238] = {
 			["id"] = "workbench-kit",
 			["name"] = "Bench Bundle",
 			["stackMax"] = 50,
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[237] = {
+		[239] = {
 			["id"] = "workbench-t2-kit",
 			["name"] = "Reinforced Bench Kit",
 			["stackMax"] = 1,
@@ -947,6 +967,13 @@ local items: {
 			["weightMilli"] = 1500,
 		},
 		[24] = { ["id"] = "branch", ["name"] = "Branch", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[240] = {
+			["id"] = "workbench-t3-kit",
+			["name"] = "Ironbound Bench Kit",
+			["stackMax"] = 1,
+			["tags"] = {},
+			["weightMilli"] = 1500,
+		},
 		[25] = {
 			["id"] = "brick-floor-kit",
 			["name"] = "Brick Floor Kit",
@@ -1154,7 +1181,13 @@ local items: {
 			["tags"] = {},
 			["weightMilli"] = 500,
 		},
-		[55] = { ["id"] = "cord", ["name"] = "Twisted Cord", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
+		[55] = {
+			["id"] = "cord",
+			["name"] = "Twisted Cord",
+			["stackMax"] = 50,
+			["tags"] = { [1] = "quest-bound" },
+			["weightMilli"] = 500,
+		},
 		[56] = { ["id"] = "corn", ["name"] = "Corn", ["stackMax"] = 50, ["tags"] = {}, ["weightMilli"] = 500 },
 		[57] = {
 			["id"] = "corn-porridge",
@@ -1395,7 +1428,7 @@ local items: {
 			["id"] = "heat-brace",
 			["name"] = "Heat Brace",
 			["stackMax"] = 50,
-			["tags"] = {},
+			["tags"] = { [1] = "quest-bound" },
 			["weightMilli"] = 500,
 		},
 		[99] = {
@@ -1427,6 +1460,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "animal-pen", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[10] = {
 			["craftMillis"] = 12000,
@@ -1440,29 +1474,54 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "bow-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[100] = {
+			["craftMillis"] = 40000,
+			["id"] = "refrigerator-kit",
+			["inputs"] = {
+				[1] = { ["item"] = "copper", ["quantity"] = 4 },
+				[2] = { ["item"] = "iron", ["quantity"] = 8 },
+				[3] = { ["item"] = "leather", ["quantity"] = 4 },
+				[4] = { ["item"] = "polished-stone", ["quantity"] = 6 },
+			},
+			["outputs"] = { [1] = { ["item"] = "refrigerator-kit", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 2,
+		},
+		[101] = {
+			["craftMillis"] = 20000,
+			["id"] = "rex-meat-stew",
+			["inputs"] = {
+				[1] = { ["item"] = "meat", ["quantity"] = 2 },
+				[2] = { ["item"] = "onion", ["quantity"] = 1 },
+				[3] = { ["item"] = "water", ["quantity"] = 1 },
+			},
+			["outputs"] = { [1] = { ["item"] = "rex-meat-stew", ["quantity"] = 1 } },
+			["station"] = "campfire",
+		},
+		[102] = {
 			["craftMillis"] = 10000,
 			["id"] = "roast-meat",
 			["inputs"] = { [1] = { ["item"] = "meat", ["quantity"] = 2 } },
 			["outputs"] = { [1] = { ["item"] = "roast-meat", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[101] = {
+		[103] = {
 			["craftMillis"] = 4000,
 			["id"] = "roasted-hazelnuts",
 			["inputs"] = { [1] = { ["item"] = "hazelnut", ["quantity"] = 4 } },
 			["outputs"] = { [1] = { ["item"] = "roasted-hazelnuts", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[102] = {
+		[104] = {
 			["craftMillis"] = 3000,
 			["id"] = "roof-kit",
 			["inputs"] = { [1] = { ["item"] = "plank", ["quantity"] = 3 } },
 			["outputs"] = { [1] = { ["item"] = "roof-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[103] = {
+		[105] = {
 			["craftMillis"] = 20000,
 			["id"] = "saddle",
 			["inputs"] = {
@@ -1472,8 +1531,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "saddle", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
-		[104] = {
+		[106] = {
 			["craftMillis"] = 30000,
 			["id"] = "signal-relay-kit",
 			["inputs"] = {
@@ -1483,22 +1543,25 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "signal-relay-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[105] = {
+		[107] = {
 			["craftMillis"] = 10000,
 			["id"] = "smelt-copper",
 			["inputs"] = { [1] = { ["item"] = "copper-ore", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "copper", ["quantity"] = 1 } },
 			["station"] = "kiln",
+			["tier"] = 1,
 		},
-		[106] = {
+		[108] = {
 			["craftMillis"] = 10000,
 			["id"] = "smelt-iron",
 			["inputs"] = { [1] = { ["item"] = "iron-ore", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "iron", ["quantity"] = 1 } },
 			["station"] = "kiln",
+			["tier"] = 2,
 		},
-		[107] = {
+		[109] = {
 			["craftMillis"] = 10000,
 			["id"] = "smelt-steel",
 			["inputs"] = {
@@ -1510,25 +1573,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "steel", ["quantity"] = 1 } },
 			["station"] = "kiln",
-		},
-		[108] = {
-			["craftMillis"] = 10000,
-			["id"] = "smelt-volcanic-alloy",
-			["inputs"] = {
-				[1] = { ["item"] = "charcoal", ["quantity"] = 1 },
-				[2] = {
-					["item"] = "volcanic-ore",
-					["quantity"] = 1,
-				},
-			},
-			["outputs"] = { [1] = { ["item"] = "volcanic-alloy", ["quantity"] = 1 } },
-			["station"] = "kiln",
-		},
-		[109] = {
-			["craftMillis"] = 3000,
-			["id"] = "spear",
-			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
-			["outputs"] = { [1] = { ["item"] = "spear", ["quantity"] = 1 } },
+			["tier"] = 3,
 		},
 		[11] = {
 			["craftMillis"] = 18000,
@@ -1540,8 +1585,29 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "bow-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[110] = {
+			["craftMillis"] = 10000,
+			["id"] = "smelt-volcanic-alloy",
+			["inputs"] = {
+				[1] = { ["item"] = "charcoal", ["quantity"] = 1 },
+				[2] = {
+					["item"] = "volcanic-ore",
+					["quantity"] = 1,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "volcanic-alloy", ["quantity"] = 1 } },
+			["station"] = "kiln",
+			["tier"] = 3,
+		},
+		[111] = {
+			["craftMillis"] = 3000,
+			["id"] = "spear",
+			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
+			["outputs"] = { [1] = { ["item"] = "spear", ["quantity"] = 1 } },
+		},
+		[112] = {
 			["craftMillis"] = 10000,
 			["id"] = "spear-t1",
 			["inputs"] = {
@@ -1551,8 +1617,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "spear-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[111] = {
+		[113] = {
 			["craftMillis"] = 15000,
 			["id"] = "spear-t2",
 			["inputs"] = {
@@ -1562,8 +1629,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "spear-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
-		[112] = {
+		[114] = {
 			["craftMillis"] = 20000,
 			["id"] = "spear-t3",
 			["inputs"] = {
@@ -1573,8 +1641,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "spear-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
-		[113] = {
+		[115] = {
 			["craftMillis"] = 20000,
 			["id"] = "sprinkler",
 			["inputs"] = {
@@ -1584,8 +1653,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "sprinkler", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[114] = {
+		[116] = {
 			["craftMillis"] = 15000,
 			["id"] = "stairs-kit",
 			["inputs"] = {
@@ -1597,8 +1667,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "stairs-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[115] = {
+		[117] = {
 			["craftMillis"] = 3000,
 			["id"] = "starter-axe",
 			["inputs"] = {
@@ -1607,8 +1678,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "starter-axe", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[116] = {
+		[118] = {
 			["craftMillis"] = 3000,
 			["id"] = "starter-club",
 			["inputs"] = {
@@ -1617,8 +1689,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "starter-club", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[117] = {
+		[119] = {
 			["craftMillis"] = 3000,
 			["id"] = "starter-pickaxe",
 			["inputs"] = {
@@ -1627,25 +1700,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "starter-pickaxe", ["quantity"] = 1 } },
 			["station"] = "workbench",
-		},
-		[118] = {
-			["craftMillis"] = 10000,
-			["id"] = "stem-fertilizer",
-			["inputs"] = {
-				[1] = { ["item"] = "leaf-compost", ["quantity"] = 2 },
-				[2] = {
-					["item"] = "water",
-					["quantity"] = 1,
-				},
-			},
-			["outputs"] = { [1] = { ["item"] = "stem-fertilizer", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[119] = {
-			["craftMillis"] = 3000,
-			["id"] = "stone-axe",
-			["inputs"] = { [1] = { ["item"] = "flint", ["quantity"] = 2 } },
-			["outputs"] = { [1] = { ["item"] = "stone-axe", ["quantity"] = 1 } },
+			["tier"] = 1,
 		},
 		[12] = {
 			["craftMillis"] = 25000,
@@ -1657,8 +1712,29 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "bow-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[120] = {
+			["craftMillis"] = 10000,
+			["id"] = "stem-fertilizer",
+			["inputs"] = {
+				[1] = { ["item"] = "leaf-compost", ["quantity"] = 2 },
+				[2] = {
+					["item"] = "water",
+					["quantity"] = 1,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "stem-fertilizer", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 1,
+		},
+		[121] = {
+			["craftMillis"] = 3000,
+			["id"] = "stone-axe",
+			["inputs"] = { [1] = { ["item"] = "flint", ["quantity"] = 2 } },
+			["outputs"] = { [1] = { ["item"] = "stone-axe", ["quantity"] = 1 } },
+		},
+		[122] = {
 			["craftMillis"] = 8000,
 			["id"] = "stone-block",
 			["inputs"] = { [1] = { ["item"] = "fieldstone", ["quantity"] = 3 } },
@@ -1666,14 +1742,14 @@ local recipes: {
 			["requiredToolTag"] = "masonry",
 			["station"] = "mason-bench",
 		},
-		[121] = {
+		[123] = {
 			["craftMillis"] = 10000,
 			["id"] = "stone-floor-kit",
 			["inputs"] = { [1] = { ["item"] = "stone-block", ["quantity"] = 2 } },
 			["outputs"] = { [1] = { ["item"] = "stone-floor-kit", ["quantity"] = 1 } },
 			["station"] = "mason-bench",
 		},
-		[122] = {
+		[124] = {
 			["craftMillis"] = 6000,
 			["id"] = "stone-maul",
 			["inputs"] = {
@@ -1684,13 +1760,13 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "stone-maul", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[123] = {
+		[125] = {
 			["craftMillis"] = 3000,
 			["id"] = "stone-pick",
 			["inputs"] = { [1] = { ["item"] = "flint", ["quantity"] = 3 } },
 			["outputs"] = { [1] = { ["item"] = "stone-pick", ["quantity"] = 1 } },
 		},
-		[124] = {
+		[126] = {
 			["craftMillis"] = 12000,
 			["id"] = "stone-roof-kit",
 			["inputs"] = {
@@ -1703,7 +1779,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "stone-roof-kit", ["quantity"] = 1 } },
 			["station"] = "mason-bench",
 		},
-		[125] = {
+		[127] = {
 			["craftMillis"] = 12000,
 			["id"] = "stone-wall-kit",
 			["inputs"] = {
@@ -1716,7 +1792,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "stone-wall-kit", ["quantity"] = 1 } },
 			["station"] = "mason-bench",
 		},
-		[126] = {
+		[128] = {
 			["craftMillis"] = 15000,
 			["id"] = "storage-kit",
 			["inputs"] = {
@@ -1728,8 +1804,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "storage-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[127] = {
+		[129] = {
 			["craftMillis"] = 12000,
 			["id"] = "sword-t1",
 			["inputs"] = {
@@ -1739,28 +1816,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "sword-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
-		},
-		[128] = {
-			["craftMillis"] = 18000,
-			["id"] = "sword-t2",
-			["inputs"] = {
-				[1] = { ["item"] = "dried-fiber", ["quantity"] = 2 },
-				[2] = { ["item"] = "polished-bone", ["quantity"] = 6 },
-				[3] = { ["item"] = "thick-leather", ["quantity"] = 2 },
-			},
-			["outputs"] = { [1] = { ["item"] = "sword-t2", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[129] = {
-			["craftMillis"] = 25000,
-			["id"] = "sword-t3",
-			["inputs"] = {
-				[1] = { ["item"] = "leather", ["quantity"] = 2 },
-				[2] = { ["item"] = "steel", ["quantity"] = 6 },
-				[3] = { ["item"] = "volcanic-alloy", ["quantity"] = 2 },
-			},
-			["outputs"] = { [1] = { ["item"] = "sword-t3", ["quantity"] = 1 } },
-			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[13] = {
 			["craftMillis"] = 10000,
@@ -1770,34 +1826,58 @@ local recipes: {
 			["station"] = "mason-bench",
 		},
 		[130] = {
+			["craftMillis"] = 18000,
+			["id"] = "sword-t2",
+			["inputs"] = {
+				[1] = { ["item"] = "dried-fiber", ["quantity"] = 2 },
+				[2] = { ["item"] = "polished-bone", ["quantity"] = 6 },
+				[3] = { ["item"] = "thick-leather", ["quantity"] = 2 },
+			},
+			["outputs"] = { [1] = { ["item"] = "sword-t2", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 2,
+		},
+		[131] = {
+			["craftMillis"] = 25000,
+			["id"] = "sword-t3",
+			["inputs"] = {
+				[1] = { ["item"] = "leather", ["quantity"] = 2 },
+				[2] = { ["item"] = "steel", ["quantity"] = 6 },
+				[3] = { ["item"] = "volcanic-alloy", ["quantity"] = 2 },
+			},
+			["outputs"] = { [1] = { ["item"] = "sword-t3", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 3,
+		},
+		[132] = {
 			["craftMillis"] = 5000,
 			["id"] = "tan-fur-hide",
 			["inputs"] = { [1] = { ["item"] = "fur", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "fur-leather", ["quantity"] = 1 } },
 			["station"] = "tanning-frame",
 		},
-		[131] = {
+		[133] = {
 			["craftMillis"] = 5000,
 			["id"] = "tan-hide",
 			["inputs"] = { [1] = { ["item"] = "hide", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "leather", ["quantity"] = 1 } },
 			["station"] = "tanning-frame",
 		},
-		[132] = {
+		[134] = {
 			["craftMillis"] = 5000,
 			["id"] = "tan-rex-hide",
 			["inputs"] = { [1] = { ["item"] = "hide", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "rex-leather", ["quantity"] = 1 } },
 			["station"] = "tanning-frame",
 		},
-		[133] = {
+		[135] = {
 			["craftMillis"] = 5000,
 			["id"] = "tan-thick-hide",
 			["inputs"] = { [1] = { ["item"] = "hide", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "thick-leather", ["quantity"] = 1 } },
 			["station"] = "tanning-frame",
 		},
-		[134] = {
+		[136] = {
 			["craftMillis"] = 15000,
 			["id"] = "tanning-frame-kit",
 			["inputs"] = {
@@ -1807,8 +1887,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tanning-frame-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[135] = {
+		[137] = {
 			["craftMillis"] = 20000,
 			["id"] = "temperate-bag",
 			["inputs"] = {
@@ -1820,8 +1901,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "temperate-bag", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[136] = {
+		[138] = {
 			["craftMillis"] = 15000,
 			["id"] = "temperate-bottom",
 			["inputs"] = {
@@ -1833,8 +1915,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "temperate-bottom", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[137] = {
+		[139] = {
 			["craftMillis"] = 10000,
 			["id"] = "temperate-gloves",
 			["inputs"] = {
@@ -1846,32 +1929,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "temperate-gloves", ["quantity"] = 1 } },
 			["station"] = "workbench",
-		},
-		[138] = {
-			["craftMillis"] = 10000,
-			["id"] = "temperate-head",
-			["inputs"] = {
-				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
-				[2] = {
-					["item"] = "leather",
-					["quantity"] = 2,
-				},
-			},
-			["outputs"] = { [1] = { ["item"] = "temperate-head", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[139] = {
-			["craftMillis"] = 10000,
-			["id"] = "temperate-shoes",
-			["inputs"] = {
-				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
-				[2] = {
-					["item"] = "leather",
-					["quantity"] = 3,
-				},
-			},
-			["outputs"] = { [1] = { ["item"] = "temperate-shoes", ["quantity"] = 1 } },
-			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[14] = {
 			["craftMillis"] = 12000,
@@ -1887,6 +1945,34 @@ local recipes: {
 			["station"] = "mason-bench",
 		},
 		[140] = {
+			["craftMillis"] = 10000,
+			["id"] = "temperate-head",
+			["inputs"] = {
+				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
+				[2] = {
+					["item"] = "leather",
+					["quantity"] = 2,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "temperate-head", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 1,
+		},
+		[141] = {
+			["craftMillis"] = 10000,
+			["id"] = "temperate-shoes",
+			["inputs"] = {
+				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
+				[2] = {
+					["item"] = "leather",
+					["quantity"] = 3,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "temperate-shoes", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 1,
+		},
+		[142] = {
 			["craftMillis"] = 15000,
 			["id"] = "temperate-top",
 			["inputs"] = {
@@ -1898,8 +1984,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "temperate-top", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[141] = {
+		[143] = {
 			["craftMillis"] = 20000,
 			["id"] = "tent-kit",
 			["inputs"] = {
@@ -1909,15 +1996,16 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tent-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[142] = {
+		[144] = {
 			["craftMillis"] = 4000,
 			["id"] = "thatch-bundle",
 			["inputs"] = { [1] = { ["item"] = "reed", ["quantity"] = 4 } },
 			["outputs"] = { [1] = { ["item"] = "thatch-bundle", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[143] = {
+		[145] = {
 			["craftMillis"] = 8000,
 			["id"] = "timber-beam",
 			["inputs"] = {
@@ -1928,7 +2016,7 @@ local recipes: {
 			["requiredToolTag"] = "cutting",
 			["station"] = "joiner-bench",
 		},
-		[144] = {
+		[146] = {
 			["craftMillis"] = 10000,
 			["id"] = "timber-wall-kit",
 			["inputs"] = {
@@ -1941,7 +2029,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "timber-wall-kit", ["quantity"] = 1 } },
 			["station"] = "joiner-bench",
 		},
-		[145] = {
+		[147] = {
 			["craftMillis"] = 20000,
 			["id"] = "tropical-bag",
 			["inputs"] = {
@@ -1950,8 +2038,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tropical-bag", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[146] = {
+		[148] = {
 			["craftMillis"] = 15000,
 			["id"] = "tropical-bottom",
 			["inputs"] = {
@@ -1963,8 +2052,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tropical-bottom", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[147] = {
+		[149] = {
 			["craftMillis"] = 10000,
 			["id"] = "tropical-gloves",
 			["inputs"] = {
@@ -1973,29 +2063,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tropical-gloves", ["quantity"] = 1 } },
 			["station"] = "workbench",
-		},
-		[148] = {
-			["craftMillis"] = 10000,
-			["id"] = "tropical-head",
-			["inputs"] = {
-				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
-				[2] = {
-					["item"] = "flax",
-					["quantity"] = 3,
-				},
-			},
-			["outputs"] = { [1] = { ["item"] = "tropical-head", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[149] = {
-			["craftMillis"] = 10000,
-			["id"] = "tropical-shoes",
-			["inputs"] = {
-				[1] = { ["item"] = "flax", ["quantity"] = 4 },
-				[2] = { ["item"] = "leather", ["quantity"] = 1 },
-			},
-			["outputs"] = { [1] = { ["item"] = "tropical-shoes", ["quantity"] = 1 } },
-			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[15] = {
 			["craftMillis"] = 12000,
@@ -2011,6 +2079,31 @@ local recipes: {
 			["station"] = "mason-bench",
 		},
 		[150] = {
+			["craftMillis"] = 10000,
+			["id"] = "tropical-head",
+			["inputs"] = {
+				[1] = { ["item"] = "dried-fiber", ["quantity"] = 1 },
+				[2] = {
+					["item"] = "flax",
+					["quantity"] = 3,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "tropical-head", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 1,
+		},
+		[151] = {
+			["craftMillis"] = 10000,
+			["id"] = "tropical-shoes",
+			["inputs"] = {
+				[1] = { ["item"] = "flax", ["quantity"] = 4 },
+				[2] = { ["item"] = "leather", ["quantity"] = 1 },
+			},
+			["outputs"] = { [1] = { ["item"] = "tropical-shoes", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 1,
+		},
+		[152] = {
 			["craftMillis"] = 15000,
 			["id"] = "tropical-top",
 			["inputs"] = {
@@ -2022,8 +2115,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "tropical-top", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[151] = {
+		[153] = {
 			["craftMillis"] = 10000,
 			["id"] = "wall-kit",
 			["inputs"] = {
@@ -2035,8 +2129,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "wall-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[152] = {
+		[154] = {
 			["craftMillis"] = 30000,
 			["id"] = "well-kit",
 			["inputs"] = {
@@ -2046,8 +2141,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "well-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[153] = {
+		[155] = {
 			["craftMillis"] = 10000,
 			["id"] = "wheat-flatbread",
 			["inputs"] = {
@@ -2060,7 +2156,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "wheat-flatbread", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[154] = {
+		[156] = {
 			["craftMillis"] = 5000,
 			["id"] = "woodland-skewer",
 			["inputs"] = {
@@ -2073,7 +2169,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "woodland-skewer", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[155] = {
+		[157] = {
 			["craftMillis"] = 3000,
 			["id"] = "workbench-kit",
 			["inputs"] = {
@@ -2082,7 +2178,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "workbench-kit", ["quantity"] = 1 } },
 		},
-		[156] = {
+		[158] = {
 			["craftMillis"] = 20000,
 			["id"] = "workbench-t2-kit",
 			["inputs"] = {
@@ -2094,6 +2190,20 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "workbench-t2-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+		},
+		[159] = {
+			["craftMillis"] = 30000,
+			["id"] = "workbench-t3-kit",
+			["inputs"] = {
+				[1] = { ["item"] = "iron", ["quantity"] = 8 },
+				[2] = {
+					["item"] = "polished-stone",
+					["quantity"] = 6,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "workbench-t3-kit", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[16] = {
 			["craftMillis"] = 3000,
@@ -2119,6 +2229,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "capture-rope", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[19] = {
 			["craftMillis"] = 10000,
@@ -2140,6 +2251,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "axe-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[20] = {
 			["craftMillis"] = 5000,
@@ -2178,6 +2290,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "clan-hall-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[24] = {
 			["craftMillis"] = 10000,
@@ -2189,6 +2302,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "club-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[25] = {
 			["craftMillis"] = 15000,
@@ -2200,6 +2314,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "club-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[26] = {
 			["craftMillis"] = 20000,
@@ -2211,6 +2326,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "club-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[27] = {
 			["craftMillis"] = 25000,
@@ -2224,6 +2340,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-bag", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[28] = {
 			["craftMillis"] = 20000,
@@ -2237,6 +2354,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-bottom", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[29] = {
 			["craftMillis"] = 15000,
@@ -2250,6 +2368,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-gloves", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[3] = {
 			["craftMillis"] = 15000,
@@ -2261,6 +2380,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "axe-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[30] = {
 			["craftMillis"] = 15000,
@@ -2274,6 +2394,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-head", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[31] = {
 			["craftMillis"] = 15000,
@@ -2287,6 +2408,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-shoes", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[32] = {
 			["craftMillis"] = 20000,
@@ -2300,6 +2422,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "cold-top", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[33] = {
 			["craftMillis"] = 5000,
@@ -2365,6 +2488,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "axe-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[40] = {
 			["craftMillis"] = 15000,
@@ -2376,6 +2500,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "crossbow-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[41] = {
 			["craftMillis"] = 20000,
@@ -2387,6 +2512,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "crossbow-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[42] = {
 			["craftMillis"] = 30000,
@@ -2398,6 +2524,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "crossbow-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[43] = {
 			["craftMillis"] = 10000,
@@ -2411,6 +2538,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "door-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[44] = {
 			["craftMillis"] = 5000,
@@ -2565,6 +2693,7 @@ local recipes: {
 			["inputs"] = { [1] = { ["item"] = "dried-wood", ["quantity"] = 4 } },
 			["outputs"] = { [1] = { ["item"] = "floor-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[64] = {
 			["craftMillis"] = 10000,
@@ -2578,6 +2707,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "fruit-fertilizer", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[65] = {
 			["craftMillis"] = 10000,
@@ -2596,6 +2726,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hammer-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[67] = {
 			["craftMillis"] = 18000,
@@ -2607,6 +2738,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hammer-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[68] = {
 			["craftMillis"] = 25000,
@@ -2618,6 +2750,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hammer-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[69] = {
 			["craftMillis"] = 10000,
@@ -2646,6 +2779,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hoe-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[71] = {
 			["craftMillis"] = 15000,
@@ -2657,6 +2791,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hoe-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
 		[72] = {
 			["craftMillis"] = 20000,
@@ -2668,6 +2803,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "hoe-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
 		[73] = {
 			["craftMillis"] = 20000,
@@ -2679,6 +2815,31 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "kiln-kit", ["quantity"] = 1 } },
 		},
 		[74] = {
+			["craftMillis"] = 20000,
+			["id"] = "kiln-t2-kit",
+			["inputs"] = {
+				[1] = { ["item"] = "clay", ["quantity"] = 6 },
+				[2] = {
+					["item"] = "polished-stone",
+					["quantity"] = 8,
+				},
+			},
+			["outputs"] = { [1] = { ["item"] = "kiln-t2-kit", ["quantity"] = 1 } },
+			["station"] = "kiln",
+			["tier"] = 1,
+		},
+		[75] = {
+			["craftMillis"] = 30000,
+			["id"] = "kiln-t3-kit",
+			["inputs"] = {
+				[1] = { ["item"] = "clay", ["quantity"] = 8 },
+				[2] = { ["item"] = "iron", ["quantity"] = 6 },
+			},
+			["outputs"] = { [1] = { ["item"] = "kiln-t3-kit", ["quantity"] = 1 } },
+			["station"] = "kiln",
+			["tier"] = 2,
+		},
+		[76] = {
 			["craftMillis"] = 8000,
 			["id"] = "knife-t1",
 			["inputs"] = {
@@ -2688,8 +2849,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "knife-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[75] = {
+		[77] = {
 			["craftMillis"] = 12000,
 			["id"] = "knife-t2",
 			["inputs"] = {
@@ -2699,8 +2861,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "knife-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
-		[76] = {
+		[78] = {
 			["craftMillis"] = 16000,
 			["id"] = "knife-t3",
 			["inputs"] = {
@@ -2710,8 +2873,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "knife-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
-		[77] = {
+		[79] = {
 			["craftMillis"] = 40000,
 			["id"] = "laboratory-kit",
 			["inputs"] = {
@@ -2721,24 +2885,7 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "laboratory-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
-		},
-		[78] = {
-			["craftMillis"] = 30000,
-			["id"] = "lava-protection-boots",
-			["inputs"] = {
-				[1] = { ["item"] = "rex-leather", ["quantity"] = 4 },
-				[2] = { ["item"] = "thick-leather", ["quantity"] = 2 },
-				[3] = { ["item"] = "volcanic-alloy", ["quantity"] = 3 },
-				[4] = { ["item"] = "volcanic-bone", ["quantity"] = 2 },
-			},
-			["outputs"] = { [1] = { ["item"] = "lava-protection-boots", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[79] = {
-			["craftMillis"] = 3000,
-			["id"] = "legacy-campfire-kit",
-			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 4 } },
-			["outputs"] = { [1] = { ["item"] = "campfire-kit", ["quantity"] = 1 } },
+			["tier"] = 2,
 		},
 		[8] = {
 			["craftMillis"] = 20000,
@@ -2750,28 +2897,48 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "bed-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
 		[80] = {
+			["craftMillis"] = 30000,
+			["id"] = "lava-protection-boots",
+			["inputs"] = {
+				[1] = { ["item"] = "rex-leather", ["quantity"] = 4 },
+				[2] = { ["item"] = "thick-leather", ["quantity"] = 2 },
+				[3] = { ["item"] = "volcanic-alloy", ["quantity"] = 3 },
+				[4] = { ["item"] = "volcanic-bone", ["quantity"] = 2 },
+			},
+			["outputs"] = { [1] = { ["item"] = "lava-protection-boots", ["quantity"] = 1 } },
+			["station"] = "workbench",
+			["tier"] = 3,
+		},
+		[81] = {
+			["craftMillis"] = 3000,
+			["id"] = "legacy-campfire-kit",
+			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 4 } },
+			["outputs"] = { [1] = { ["item"] = "campfire-kit", ["quantity"] = 1 } },
+		},
+		[82] = {
 			["craftMillis"] = 3000,
 			["id"] = "legacy-floor-kit",
 			["inputs"] = { [1] = { ["item"] = "plank", ["quantity"] = 2 } },
 			["outputs"] = { [1] = { ["item"] = "floor-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[81] = {
+		[83] = {
 			["craftMillis"] = 3000,
 			["id"] = "legacy-storage-kit",
 			["inputs"] = { [1] = { ["item"] = "plank", ["quantity"] = 4 } },
 			["outputs"] = { [1] = { ["item"] = "storage-kit", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[82] = {
+		[84] = {
 			["craftMillis"] = 3000,
 			["id"] = "legacy-workbench-kit",
 			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 6 } },
 			["outputs"] = { [1] = { ["item"] = "workbench-kit", ["quantity"] = 1 } },
 		},
-		[83] = {
+		[85] = {
 			["craftMillis"] = 10000,
 			["id"] = "liquid-fertilizer",
 			["inputs"] = {
@@ -2783,8 +2950,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "liquid-fertilizer", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[84] = {
+		[86] = {
 			["craftMillis"] = 15000,
 			["id"] = "meat-potato-stew",
 			["inputs"] = {
@@ -2795,7 +2963,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "meat-potato-stew", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[85] = {
+		[87] = {
 			["craftMillis"] = 10000,
 			["id"] = "mud-brick",
 			["inputs"] = {
@@ -2808,7 +2976,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "mud-brick", ["quantity"] = 2 } },
 			["station"] = "mud-kiln",
 		},
-		[86] = {
+		[88] = {
 			["craftMillis"] = 12000,
 			["id"] = "onion-meat-skewer",
 			["inputs"] = {
@@ -2819,7 +2987,7 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "onion-meat-skewer", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[87] = {
+		[89] = {
 			["craftMillis"] = 10000,
 			["id"] = "onion-soup",
 			["inputs"] = {
@@ -2829,7 +2997,14 @@ local recipes: {
 			["outputs"] = { [1] = { ["item"] = "onion-soup", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
-		[88] = {
+		[9] = {
+			["craftMillis"] = 3000,
+			["id"] = "berry-meal",
+			["inputs"] = { [1] = { ["item"] = "berry", ["quantity"] = 3 } },
+			["outputs"] = { [1] = { ["item"] = "berry-meal", ["quantity"] = 1 } },
+			["station"] = "campfire",
+		},
+		[90] = {
 			["craftMillis"] = 10000,
 			["id"] = "pickaxe-t1",
 			["inputs"] = {
@@ -2839,8 +3014,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "pickaxe-t1", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[89] = {
+		[91] = {
 			["craftMillis"] = 15000,
 			["id"] = "pickaxe-t2",
 			["inputs"] = {
@@ -2850,15 +3026,9 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "pickaxe-t2", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 2,
 		},
-		[9] = {
-			["craftMillis"] = 3000,
-			["id"] = "berry-meal",
-			["inputs"] = { [1] = { ["item"] = "berry", ["quantity"] = 3 } },
-			["outputs"] = { [1] = { ["item"] = "berry-meal", ["quantity"] = 1 } },
-			["station"] = "campfire",
-		},
-		[90] = {
+		[92] = {
 			["craftMillis"] = 20000,
 			["id"] = "pickaxe-t3",
 			["inputs"] = {
@@ -2868,43 +3038,48 @@ local recipes: {
 			},
 			["outputs"] = { [1] = { ["item"] = "pickaxe-t3", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
-		[91] = {
+		[93] = {
 			["craftMillis"] = 3000,
 			["id"] = "plank",
 			["inputs"] = { [1] = { ["item"] = "wood", ["quantity"] = 2 } },
 			["outputs"] = { [1] = { ["item"] = "plank", ["quantity"] = 1 } },
 			["station"] = "workbench",
 		},
-		[92] = {
+		[94] = {
 			["craftMillis"] = 5000,
 			["id"] = "polish-basalt",
 			["inputs"] = { [1] = { ["item"] = "basalt", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "polished-basalt", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 3,
 		},
-		[93] = {
+		[95] = {
 			["craftMillis"] = 5000,
 			["id"] = "polish-bone",
 			["inputs"] = { [1] = { ["item"] = "bone", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "polished-bone", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[94] = {
+		[96] = {
 			["craftMillis"] = 5000,
 			["id"] = "polish-flint",
 			["inputs"] = { [1] = { ["item"] = "flint", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "polished-flint", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[95] = {
+		[97] = {
 			["craftMillis"] = 5000,
 			["id"] = "polish-stone",
 			["inputs"] = { [1] = { ["item"] = "stone", ["quantity"] = 1 } },
 			["outputs"] = { [1] = { ["item"] = "polished-stone", ["quantity"] = 1 } },
 			["station"] = "workbench",
+			["tier"] = 1,
 		},
-		[96] = {
+		[98] = {
 			["craftMillis"] = 4000,
 			["id"] = "rawhide-lashing",
 			["inputs"] = { [1] = { ["item"] = "hide", ["quantity"] = 1 } },
@@ -2912,7 +3087,7 @@ local recipes: {
 			["requiredToolTag"] = "cutting",
 			["station"] = "workbench",
 		},
-		[97] = {
+		[99] = {
 			["craftMillis"] = 15000,
 			["id"] = "recovery-feed",
 			["inputs"] = {
@@ -2921,29 +3096,6 @@ local recipes: {
 				[3] = { ["item"] = "water", ["quantity"] = 1 },
 			},
 			["outputs"] = { [1] = { ["item"] = "recovery-feed", ["quantity"] = 1 } },
-			["station"] = "campfire",
-		},
-		[98] = {
-			["craftMillis"] = 40000,
-			["id"] = "refrigerator-kit",
-			["inputs"] = {
-				[1] = { ["item"] = "copper", ["quantity"] = 4 },
-				[2] = { ["item"] = "iron", ["quantity"] = 8 },
-				[3] = { ["item"] = "leather", ["quantity"] = 4 },
-				[4] = { ["item"] = "polished-stone", ["quantity"] = 6 },
-			},
-			["outputs"] = { [1] = { ["item"] = "refrigerator-kit", ["quantity"] = 1 } },
-			["station"] = "workbench",
-		},
-		[99] = {
-			["craftMillis"] = 20000,
-			["id"] = "rex-meat-stew",
-			["inputs"] = {
-				[1] = { ["item"] = "meat", ["quantity"] = 2 },
-				[2] = { ["item"] = "onion", ["quantity"] = 1 },
-				[3] = { ["item"] = "water", ["quantity"] = 1 },
-			},
-			["outputs"] = { [1] = { ["item"] = "rex-meat-stew", ["quantity"] = 1 } },
 			["station"] = "campfire",
 		},
 	}
@@ -3489,6 +3641,22 @@ local structures: {
 			["tier"] = 1,
 		},
 		[12] = {
+			["cost"] = { [1] = { ["item"] = "kiln-t2-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "kiln-t2",
+			["station"] = true,
+			["tier"] = 2,
+		},
+		[13] = {
+			["cost"] = { [1] = { ["item"] = "kiln-t3-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "kiln-t3",
+			["station"] = true,
+			["tier"] = 3,
+		},
+		[14] = {
 			["cost"] = { [1] = { ["item"] = "laboratory-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
@@ -3496,7 +3664,7 @@ local structures: {
 			["station"] = true,
 			["tier"] = 1,
 		},
-		[13] = {
+		[15] = {
 			["cost"] = {
 				[1] = { ["item"] = "fieldstone", ["quantity"] = 6 },
 				[2] = {
@@ -3509,7 +3677,7 @@ local structures: {
 			["id"] = "mason-bench",
 			["station"] = true,
 		},
-		[14] = {
+		[16] = {
 			["cost"] = {
 				[1] = { ["item"] = "marsh-clay", ["quantity"] = 6 },
 				[2] = {
@@ -3522,14 +3690,14 @@ local structures: {
 			["id"] = "mud-kiln",
 			["station"] = true,
 		},
-		[15] = {
+		[17] = {
 			["cost"] = { [1] = { ["item"] = "pillar", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "pillar",
 			["station"] = false,
 		},
-		[16] = {
+		[18] = {
 			["cost"] = { [1] = { ["item"] = "refrigerator-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
@@ -3537,26 +3705,11 @@ local structures: {
 			["station"] = true,
 			["tier"] = 1,
 		},
-		[17] = {
+		[19] = {
 			["cost"] = { [1] = { ["item"] = "roof", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "roof",
-			["station"] = false,
-		},
-		[18] = {
-			["cost"] = { [1] = { ["item"] = "signal-relay-kit", ["quantity"] = 1 } },
-			["footprintX"] = 2,
-			["footprintZ"] = 2,
-			["id"] = "signal-relay",
-			["station"] = true,
-			["tier"] = 1,
-		},
-		[19] = {
-			["cost"] = { [1] = { ["item"] = "stairs-kit", ["quantity"] = 1 } },
-			["footprintX"] = 2,
-			["footprintZ"] = 2,
-			["id"] = "stairs",
 			["station"] = false,
 		},
 		[2] = {
@@ -3568,34 +3721,49 @@ local structures: {
 			["tier"] = 1,
 		},
 		[20] = {
+			["cost"] = { [1] = { ["item"] = "signal-relay-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "signal-relay",
+			["station"] = true,
+			["tier"] = 1,
+		},
+		[21] = {
+			["cost"] = { [1] = { ["item"] = "stairs-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "stairs",
+			["station"] = false,
+		},
+		[22] = {
 			["cost"] = { [1] = { ["item"] = "stone-floor-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "stone-floor",
 			["station"] = false,
 		},
-		[21] = {
+		[23] = {
 			["cost"] = { [1] = { ["item"] = "stone-roof-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "stone-roof",
 			["station"] = false,
 		},
-		[22] = {
+		[24] = {
 			["cost"] = { [1] = { ["item"] = "stone-wall-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 1,
 			["id"] = "stone-wall",
 			["station"] = false,
 		},
-		[23] = {
+		[25] = {
 			["cost"] = { [1] = { ["item"] = "wood", ["quantity"] = 4 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "storage",
 			["station"] = false,
 		},
-		[24] = {
+		[26] = {
 			["cost"] = { [1] = { ["item"] = "tanning-frame-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
@@ -3603,7 +3771,7 @@ local structures: {
 			["station"] = true,
 			["tier"] = 1,
 		},
-		[25] = {
+		[27] = {
 			["cost"] = { [1] = { ["item"] = "tent-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
@@ -3611,32 +3779,18 @@ local structures: {
 			["station"] = true,
 			["tier"] = 1,
 		},
-		[26] = {
+		[28] = {
 			["cost"] = { [1] = { ["item"] = "roof-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "timber-roof",
 			["station"] = false,
 		},
-		[27] = {
+		[29] = {
 			["cost"] = { [1] = { ["item"] = "timber-wall-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 1,
 			["id"] = "timber-wall",
-			["station"] = false,
-		},
-		[28] = {
-			["cost"] = { [1] = { ["item"] = "volcanic-wall", ["quantity"] = 1 } },
-			["footprintX"] = 2,
-			["footprintZ"] = 2,
-			["id"] = "volcanic-wall",
-			["station"] = false,
-		},
-		[29] = {
-			["cost"] = { [1] = { ["item"] = "wall-kit", ["quantity"] = 1 } },
-			["footprintX"] = 2,
-			["footprintZ"] = 2,
-			["id"] = "wall",
 			["station"] = false,
 		},
 		[3] = {
@@ -3647,6 +3801,20 @@ local structures: {
 			["station"] = false,
 		},
 		[30] = {
+			["cost"] = { [1] = { ["item"] = "volcanic-wall", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "volcanic-wall",
+			["station"] = false,
+		},
+		[31] = {
+			["cost"] = { [1] = { ["item"] = "wall-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "wall",
+			["station"] = false,
+		},
+		[32] = {
 			["cost"] = { [1] = { ["item"] = "well-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
@@ -3654,20 +3822,28 @@ local structures: {
 			["station"] = true,
 			["tier"] = 1,
 		},
-		[31] = {
+		[33] = {
 			["cost"] = { [1] = { ["item"] = "wood", ["quantity"] = 4 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "workbench",
 			["station"] = true,
 		},
-		[32] = {
+		[34] = {
 			["cost"] = { [1] = { ["item"] = "workbench-t2-kit", ["quantity"] = 1 } },
 			["footprintX"] = 2,
 			["footprintZ"] = 2,
 			["id"] = "workbench-t2",
 			["station"] = true,
 			["tier"] = 2,
+		},
+		[35] = {
+			["cost"] = { [1] = { ["item"] = "workbench-t3-kit", ["quantity"] = 1 } },
+			["footprintX"] = 2,
+			["footprintZ"] = 2,
+			["id"] = "workbench-t3",
+			["station"] = true,
+			["tier"] = 3,
 		},
 		[4] = {
 			["cost"] = { [1] = { ["item"] = "brick-roof-kit", ["quantity"] = 1 } },
@@ -3986,6 +4162,11 @@ local config: PackConfig = {
 							["respawnMillis"] = 120000,
 						},
 						[10] = {
+							["harvest"] = { [1] = { ["item"] = "chanterelle", ["quantity"] = 2 } },
+							["id"] = "forest-chanterelle-log",
+							["respawnMillis"] = 240000,
+						},
+						[11] = {
 							["harvest"] = {
 								[1] = { ["item"] = "fieldstone", ["quantity"] = 1 },
 								[2] = { ["item"] = "flint", ["quantity"] = 2 },
@@ -3993,17 +4174,17 @@ local config: PackConfig = {
 							["id"] = "forest-flint-scree",
 							["respawnMillis"] = 180000,
 						},
-						[11] = {
+						[12] = {
 							["harvest"] = { [1] = { ["item"] = "hazelnut", ["quantity"] = 3 } },
 							["id"] = "forest-hazel-thicket",
 							["respawnMillis"] = 180000,
 						},
-						[12] = {
+						[13] = {
 							["harvest"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
 							["id"] = "forest-oak-windfall",
 							["respawnMillis"] = 150000,
 						},
-						[13] = {
+						[14] = {
 							["harvest"] = {
 								[1] = { ["item"] = "cattail-root", ["quantity"] = 2 },
 								[2] = { ["item"] = "fiber", ["quantity"] = 1 },
@@ -4011,7 +4192,7 @@ local config: PackConfig = {
 							["id"] = "marsh-cattail-stand",
 							["respawnMillis"] = 180000,
 						},
-						[14] = {
+						[15] = {
 							["harvest"] = {
 								[1] = { ["item"] = "clam", ["quantity"] = 2 },
 								[2] = { ["item"] = "shell-fragment", ["quantity"] = 1 },
@@ -4019,12 +4200,12 @@ local config: PackConfig = {
 							["id"] = "marsh-clam-bed",
 							["respawnMillis"] = 240000,
 						},
-						[15] = {
+						[16] = {
 							["harvest"] = { [1] = { ["item"] = "marsh-clay", ["quantity"] = 3 } },
 							["id"] = "marsh-clay-bank",
 							["respawnMillis"] = 240000,
 						},
-						[16] = {
+						[17] = {
 							["harvest"] = {
 								[1] = { ["item"] = "fiber", ["quantity"] = 2 },
 								[2] = {
@@ -4035,42 +4216,52 @@ local config: PackConfig = {
 							["id"] = "marsh-cordgrass-tussock",
 							["respawnMillis"] = 150000,
 						},
-						[17] = {
+						[18] = {
 							["harvest"] = { [1] = { ["item"] = "wood", ["quantity"] = 2 } },
 							["id"] = "marsh-driftwood-line",
 							["respawnMillis"] = 180000,
 						},
-						[18] = {
+						[19] = {
 							["harvest"] = { [1] = { ["item"] = "reed", ["quantity"] = 3 } },
 							["id"] = "marsh-reed-bed",
 							["respawnMillis"] = 120000,
 						},
-						[19] = {
+						[2] = {
+							["harvest"] = { [1] = { ["item"] = "branch", ["quantity"] = 3 } },
+							["id"] = "branch-pile",
+							["respawnMillis"] = 120000,
+						},
+						[20] = {
 							["harvest"] = { [1] = { ["item"] = "samphire", ["quantity"] = 3 } },
 							["id"] = "marsh-samphire-flat",
 							["respawnMillis"] = 180000,
 						},
-						[2] = {
-							["harvest"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
-							["id"] = "fallen-tree",
-							["respawnMillis"] = 120000,
-						},
-						[20] = {
+						[21] = {
 							["harvest"] = { [1] = { ["item"] = "meat", ["quantity"] = 3 } },
 							["id"] = "meat-cache",
 							["respawnMillis"] = 120000,
 						},
+						[22] = {
+							["harvest"] = { [1] = { ["item"] = "stone", ["quantity"] = 3 } },
+							["id"] = "stone-pile",
+							["respawnMillis"] = 120000,
+						},
 						[3] = {
+							["harvest"] = { [1] = { ["item"] = "wood", ["quantity"] = 3 } },
+							["id"] = "fallen-tree",
+							["respawnMillis"] = 120000,
+						},
+						[4] = {
 							["harvest"] = { [1] = { ["item"] = "fiber", ["quantity"] = 3 } },
 							["id"] = "fiber-bush",
 							["respawnMillis"] = 120000,
 						},
-						[4] = {
+						[5] = {
 							["harvest"] = { [1] = { ["item"] = "flint", ["quantity"] = 3 } },
 							["id"] = "flint-outcrop",
 							["respawnMillis"] = 120000,
 						},
-						[5] = {
+						[6] = {
 							["harvest"] = {
 								[1] = { ["item"] = "birch-bark", ["quantity"] = 2 },
 								[2] = { ["item"] = "wood", ["quantity"] = 1 },
@@ -4078,25 +4269,20 @@ local config: PackConfig = {
 							["id"] = "forest-birch-stand",
 							["respawnMillis"] = 150000,
 						},
-						[6] = {
+						[7] = {
 							["harvest"] = { [1] = { ["item"] = "fieldstone", ["quantity"] = 3 } },
 							["id"] = "forest-boulder-field",
 							["respawnMillis"] = 240000,
 						},
-						[7] = {
+						[8] = {
 							["harvest"] = { [1] = { ["item"] = "fiber", ["quantity"] = 3 } },
 							["id"] = "forest-bracken-bed",
 							["respawnMillis"] = 120000,
 						},
-						[8] = {
+						[9] = {
 							["harvest"] = { [1] = { ["item"] = "berry", ["quantity"] = 3 } },
 							["id"] = "forest-bramble-patch",
 							["respawnMillis"] = 150000,
-						},
-						[9] = {
-							["harvest"] = { [1] = { ["item"] = "chanterelle", ["quantity"] = 2 } },
-							["id"] = "forest-chanterelle-log",
-							["respawnMillis"] = 240000,
 						},
 					},
 					["recipes"] = recipes,
@@ -4109,19 +4295,22 @@ local config: PackConfig = {
 					["structures"] = structures,
 					["survival_content"] = 2,
 					["tags"] = {
-						[1] = "building-part",
-						[10] = "saddle",
-						[11] = "sprinkler",
-						[12] = "tool",
-						[13] = "weapon-tool",
-						[2] = "clothing",
-						[3] = "cutting",
-						[4] = "fuel",
-						[5] = "instrument",
-						[6] = "masonry",
-						[7] = "material-brick",
-						[8] = "material-stone",
-						[9] = "material-timber",
+						[1] = "bound",
+						[10] = "material-timber",
+						[11] = "quest-bound",
+						[12] = "retired",
+						[13] = "saddle",
+						[14] = "sprinkler",
+						[15] = "tool",
+						[16] = "weapon-tool",
+						[2] = "building-part",
+						[3] = "clothing",
+						[4] = "cutting",
+						[5] = "fuel",
+						[6] = "instrument",
+						[7] = "masonry",
+						[8] = "material-brick",
+						[9] = "material-stone",
 					},
 					["vitals"] = {
 						["fatigueMilliPerAction"] = 500,

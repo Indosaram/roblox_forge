@@ -68,4 +68,26 @@ return {
 		local ko = ContractsPanel.refusal("ko-kr", "INSUFFICIENT_ITEMS", short, { wood = "쓰러진 통나무" })
 		assert(ko == "가방에 쓰러진 통나무 3개를 들고 오세요 (현재 1개).", ko)
 	end,
+	["p45 objectives name the key or menu tile, and a finished tutorial points at route 1"] = function()
+		for _, locale in { "en-us", "ko-kr" } do
+			local axe = ContractsPanel.model(
+				locale,
+				{ tutorial = { step = "craft-stone-axe", hint = "tutorial.craft-stone-axe" } },
+				{}
+			)
+			assert(string.find(axe.objective, "C", 1, true), locale .. " axe hint names the C key")
+			local settle = ContractsPanel.model(
+				locale,
+				{ tutorial = { step = "declare-settlement", hint = "tutorial.declare-settlement" } },
+				{}
+			)
+			assert(string.find(settle.objective, "B", 1, true), locale .. " settlement hint names the B key")
+			local done = ContractsPanel.model(locale, { tutorial = { complete = true } }, {})
+			local routes = if locale == "ko-kr" then "항로" else "Routes"
+			assert(
+				string.find(done.objective, routes, 1, true),
+				locale .. " next step names Routes: " .. done.objective
+			)
+		end
+	end,
 }

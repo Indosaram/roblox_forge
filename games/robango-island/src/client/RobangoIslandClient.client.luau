@@ -18,7 +18,10 @@ gui.Destroying:Connect(audio.destroy)
 local player = game:GetService("Players").LocalPlayer
 local locale = player.LocaleId
 local korean = string.sub(locale, 1, 2) == "ko"
-local names = require(Shared.EntityNames)(locale)
+local PackText = require(Shared.PackText)
+local packRows = PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
+local names = PackText.names(packRows)(locale)
+local authoredText = PackText.authored(packRows)
 local WorldText = require(Shared.WorldText)
 local TamingText = require(Forge.genres["survival-coop"].module.TamingPanel)
 local biomeNames: { [string]: string } = {}
@@ -182,6 +185,7 @@ for index, factory in panelFactories do
 	if factory == require(Forge.genres["survival-coop"].module.MarketPanel).factory then
 		panelFactories[index] = function(ctx)
 			local trade: any = table.clone(ctx)
+			trade.content = content
 			trade.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
 			local itemIcon = trade.icons.item
 			trade.icons.item = function(id, label)
@@ -678,7 +682,6 @@ table.insert(panelFactories, function(ctx)
 end)
 table.insert(panelFactories, function(ctx)
 	local journalContext: any = table.clone(ctx)
-	local journalText = require(Shared.JournalText)
 	local playerGui = player:WaitForChild("PlayerGui")
 	local labels = {
 		journal_open = { "Open journal", "일지 열기" },
@@ -692,7 +695,7 @@ table.insert(panelFactories, function(ctx)
 	journalContext.content = content
 	journalContext.text = function(key)
 		local row = labels[key]
-		return if row then row[if korean then 2 else 1] else journalText(locale, key) or names[key] or key
+		return if row then row[if korean then 2 else 1] else authoredText(locale, key) or names[key] or key
 	end
 	local journalGui: ScreenGui? = nil
 	journalContext.createGui = function(name)
@@ -761,7 +764,7 @@ table.insert(panelFactories, function(ctx)
 		return workspace:GetServerTimeNow()
 	end
 	social.journalText = function(key)
-		return require(Shared.JournalText)(locale, key)
+		return authoredText(locale, key)
 	end
 	local module = Forge.genres["survival-coop"].module
 	local move = require(module.HomeMovePanel).factory(social)
@@ -773,6 +776,7 @@ table.insert(panelFactories, function(ctx)
 		require(module.SiegeResultsPanel).factory(social),
 		require(module.TransactionPanel).factory(social),
 		require(module.DirectTradePanel).factory(social),
+		require(module.OrganizationsPanel).factory(social),
 	}
 	local dialogue = require(module.DialoguePanel).factory(social)
 	table.insert(list, dialogue)
@@ -1090,7 +1094,7 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			local entries = {}
 			for model in registry do
 				local root = model.PrimaryPart
-				if root and viewCamera then
+				if root and viewCamera and not (registry[model].offset and not profile.decorFaunaPose) then
 					local state = model:GetAttribute("ForgeWildlifeState")
 					table.insert(entries, {
 						key = model,
@@ -1107,6 +1111,11 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 					continue
 				end
 				if not root then
+					continue
+				end
+				-- Scenery idles cost a pose per frame for nothing the player can act on: the low
+				-- profile holds decorative fauna in its rest pose.
+				if animation.offset and not profile.decorFaunaPose then
 					continue
 				end
 				local humanoid = model:FindFirstChildOfClass("Humanoid")

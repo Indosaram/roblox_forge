@@ -101,6 +101,8 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 				gear = Data.clone(slice.gear or { equipped = {}, equipment = {} }),
 				points = dev.points or 0,
 				definitions = Data.clone(dev.definitions or {}),
+				progress = Data.clone(dev.progress or {}),
+				level = if slice.progression then slice.progression.level else 1,
 				now = ctx.now(),
 			} :: any,
 				nil

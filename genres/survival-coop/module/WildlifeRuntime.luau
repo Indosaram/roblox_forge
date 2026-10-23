@@ -4,6 +4,7 @@
 -- never a bag snapshot; an NPC is locked until its accepted intent resolves.
 local Wildlife = require("./Wildlife")
 local Combat = require("./Combat")
+local Stance = require("./Stance")
 local CharacterRules = require("./CharacterRules")
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Award = require("./ProgressionExtension").award
@@ -16,7 +17,26 @@ local Shared = require("../../../core/domain/genre/Contract")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Transfer = require("../../../core/infra/data/ItemTransfer")
 local M = {}
-export type Request = { actorId: string, sessionEpoch: number, requestId: string, targetId: string, expiresAt: number }
+export type Request = {
+	actorId: string,
+	sessionEpoch: number,
+	requestId: string,
+	targetId: string,
+	expiresAt: number,
+	-- "ranged" fires an equipped bow/crossbow (content.brawlPolicy.weapons rows); nil is melee.
+	mode: string?,
+}
+-- Auxiliary material spec: every bow/crossbow draws for 0.4 s; ammunition is durability-backed.
+M.RANGED_WINDUP_MILLIS = 400
+M.RANGED_WEAR_MILLI = 1000
+local function rangedRule(content: any, catalogId: string): any?
+	for _, row in (content.brawlPolicy and content.brawlPolicy.weapons) or {} do
+		if row.item == catalogId then
+			return row
+		end
+	end
+	return nil
+end
 export type Config = {
 	key: string,
 	content: Content.Document,
@@ -140,6 +160,8 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			bag.version += 1
 			data.inventory[config.carriedContainer] = Inventory.save(bag)
 			combat.nextAttack = intent.at + intent.cooldown
+			-- Windup end, so a stance switch can be refused while this strike is drawn.
+			combat.windupUntil = if intent.attack then intent.attack.resolveAt else nil
 		end
 		combat.receipts[id] = { charged = reason == nil, reason = reason, binding = intent.binding }
 		data.combat = combat
@@ -312,6 +334,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		if player.progression and intent.phase ~= "REJECTED" and damage > 0 then
 			player.progression = Award(config.content, player.progression, intent.mints[1] and "carcass" or "", id)
+			-- A landed shot is the ranged proficiency event (skill-node spec), no node required.
+			if intent.mode == "ranged" then
+				player.progression = Award(config.content, player.progression, "ranged-hit", id)
+			end
 		end
 		local result: Shared.Result = {
 			ok = intent.phase ~= "REJECTED",
@@ -355,7 +381,14 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		if not current then
 			return pending(err)
 		end
-		local binding = Ledger.canonical({ action = "survival-coop:attack", args = { req.targetId } })
+		if req.mode ~= nil and req.mode ~= "ranged" then
+			return rejected("INVALID_MODE")
+		end
+		-- Each mode binds its own durable action id; melee keeps its original binding.
+		local binding = Ledger.canonical({
+			action = if req.mode == "ranged" then "survival-coop:attack-ranged" else "survival-coop:attack",
+			args = { req.targetId },
+		})
 		local epoch = current.data.envelope.commands.epochs[tostring(req.sessionEpoch)]
 		local known = epoch and epoch.outcomes[req.requestId]
 		if known then
@@ -457,36 +490,95 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			-- A worn weapon/tool is usable like one held in hand.
 			access = table.clone(access)
 			access.equipped = CharacterRules.toolEvidence(player.gear, bag, access.equipped)
-			local candidate, reason =
-				Wildlife.attack(npc, bag, policy, at, if player.combat then player.combat.nextAttack else 0, access)
-			if not candidate then
-				refusal = reason
-				return data
-			end
-			local itemId: string? = nil
-			for key, item in candidate.inventory.items do
-				if item.durabilityMilli ~= bag.items[key].durabilityMilli then
-					itemId = key
-					break
+			local nextAttack = if player.combat then player.combat.nextAttack else 0
+			local selected: any, weapon: any = nil, nil
+			if req.mode == "ranged" then
+				-- Ranged: the first equipped, available, unbroken bow/crossbow; range, sight and
+				-- facing are rechecked here and again when the shot resolves.
+				local ids = {}
+				for key, held in access.equipped do
+					if held then
+						table.insert(ids, key)
+					end
 				end
+				table.sort(ids)
+				for _, key in ids do
+					local item = bag.items[key]
+					local row = if item then rangedRule(config.content, item.catalogId) else nil
+					if row and Inventory.available(bag, key) > 0 and item.durabilityMilli > 0 then
+						selected = item
+						weapon = {
+							damageMilli = row.damageMilli,
+							wearMilli = M.RANGED_WEAR_MILLI,
+							rangeStuds = row.rangeStuds,
+							facingDot = row.facingDot,
+							cooldownMillis = row.cooldownMillis,
+						}
+						break
+					end
+				end
+				local distance = Wildlife.distance(access.position, access.targetPosition)
+				local length = Wildlife.distance(access.facing, { x = 0, y = 0, z = 0 })
+				local dot = if length > 0 and distance > 0
+					then (
+						(access.targetPosition.x - access.position.x) * access.facing.x
+						+ (access.targetPosition.y - access.position.y) * access.facing.y
+						+ (access.targetPosition.z - access.position.z) * access.facing.z
+					)
+						/ length
+						/ distance
+					else 1
+				refusal = if at < nextAttack
+					then "COOLDOWN"
+					elseif not access.alive then "NOT_ALIVE"
+					elseif npc.healthMilli == 0 then "ALREADY_DEAD"
+					elseif not selected then "WEAPON_UNAVAILABLE"
+					elseif distance > weapon.rangeStuds then "OUT_OF_RANGE"
+					elseif not access.lineOfSight then "BLOCKED"
+					elseif dot < weapon.facingDot then "NOT_FACING"
+					else nil
+				if refusal then
+					return data
+				end
+			else
+				local candidate, reason = Wildlife.attack(npc, bag, policy, at, nextAttack, access)
+				if not candidate then
+					refusal = reason
+					return data
+				end
+				local itemId: string? = nil
+				for key, item in candidate.inventory.items do
+					if item.durabilityMilli ~= bag.items[key].durabilityMilli then
+						itemId = key
+						break
+					end
+				end
+				selected = bag.items[assert(itemId, "MISSING_WEAR")]
+				weapon = policy.weapons[selected.catalogId]
 			end
-			local selected = bag.items[assert(itemId, "MISSING_WEAR")]
-			local weapon = policy.weapons[selected.catalogId]
+			local mode = req.mode or "melee"
 			-- Worn weapon performance adds to the authored strike; a carried-only weapon does not.
 			local strike =
 				CharacterRules.weaponDamage(config.content, player.gear, bag, selected.itemId, weapon.damageMilli)
+			-- The actor's selected stance scales the strike (no stance is exactly 1x).
+			local defense = if player.combat then player.combat.defense else nil
+			strike = strike * Stance.damagePermille(player.stance, mode, Stance.counterReady(defense, at)) // 1000
 			local combatPolicy = (config.content :: any).progressionPolicy
 			local attack = nil
+			local windup = if mode == "ranged"
+				then M.RANGED_WINDUP_MILLIS
+				elseif combatPolicy and combatPolicy.combat then combatPolicy.combat.windupMillis
+				else 0
 			if combatPolicy and combatPolicy.combat then
 				attack = Combat.begin(id, req.targetId, {
-					mode = "melee",
-					windupMillis = combatPolicy.combat.windupMillis,
+					mode = mode,
+					windupMillis = windup,
 					recoveryMillis = weapon.cooldownMillis,
 					range = weapon.rangeStuds,
 					facingDot = weapon.facingDot,
 					damageMilli = strike,
 					ammo = 0,
-				}, at, if player.combat then player.combat.nextAttack else 0, access.position, access.facing, 0, false)
+				}, at, nextAttack, access.position, access.facing, 0, false)
 				if not attack then
 					refusal = "RECOVERY"
 					return data
@@ -506,7 +598,8 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				weaponId = selected.catalogId,
 				damage = strike,
 				wear = weapon.wearMilli,
-				cooldown = weapon.cooldownMillis + (if attack then combatPolicy.combat.windupMillis else 0),
+				mode = if req.mode then req.mode else nil,
+				cooldown = weapon.cooldownMillis + (if attack then windup else 0),
 				drops = copy(policy.species[npc.catalogId].drops),
 			}
 			data.locks[req.targetId], data.actors[req.actorId] = id, id

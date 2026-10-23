@@ -8,6 +8,7 @@ local Capability = require("../../../core/domain/survival/Capability")
 local Content = require("../../../core/domain/survival/Content")
 local Vitals = require("../../../core/domain/survival/Vitals")
 local Consumption = require("../../../core/domain/survival/Consumption")
+local Spoilage = require("../../../core/domain/survival/Spoilage")
 local DeathBundle = require("../../../core/domain/survival/DeathBundle")
 local Inventory = require("../../../core/domain/inventory/Inventory")
 local EntitlementEffects = require("./EntitlementEffects")
@@ -16,10 +17,12 @@ local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
 local Skills = require("./Skills")
 local Combat = require("./Combat")
+local Stance = require("./Stance")
 local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Progression = require("./ProgressionExtension")
 local CharacterRules = require("./CharacterRules")
 local Events = require("../../../core/infra/analytics/Events")
+local RecipeMarks = require("./RecipeMarks")
 
 local M = {}
 
@@ -272,6 +275,11 @@ function M.validateSave(raw: Shared.StateData): { string }
 			end
 		end
 	end
+	if data.recipeMarks ~= nil then
+		for _, problem in RecipeMarks.validate(data.recipeMarks) do
+			table.insert(errors, problem)
+		end
+	end
 	if data.progression ~= nil and (type(data.progression) ~= "table" or type(data.progression.mastery) ~= "table") then
 		table.insert(errors, "progression: invalid specialization state")
 	end
@@ -303,6 +311,8 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "brawl"
 			and key ~= "gear"
 			and key ~= "lateEquipment"
+			and key ~= "recipeMarks"
+			and key ~= "stance"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -344,6 +354,8 @@ function M.new(
 		then services.survivalContent or Content.canonicalize(inventoryConfig.content)
 		else nil
 	local catalog = if content then catalogOf(content) else {}
+	-- Carried food ages on the command clock; only content with a food-spoilage operation spoils.
+	local spoilage = if content then Spoilage.policy(content) else nil
 	local mastery = if content then Skills.catalog(content) else nil
 	local function inventories(saved: Shared.StateData?): { [string]: Inventory.State }?
 		if not inventoryConfig or not content then
@@ -535,6 +547,11 @@ function M.new(
 					end
 					local port = services.survivalSpatial
 					local station = if port and port.station then port.station(id, args[2]) else nil
+					-- A server-registered tier anchor (station.<kind>.tN) declares its tier; other
+					-- handles fall back to the tier their structure kind declares in content.
+					local anchorTier = if station and type(args[2]) == "string"
+						then string.match(args[2], "^station%." .. string.gsub(station.kind, "%-", "%%-") .. "%.t(%d)$")
+						else nil
 					if not err then
 						candidate, err = Workshop.reserve(
 							jobs,
@@ -548,6 +565,7 @@ function M.new(
 								carriedContainer = inventoryConfig.carriedContainer,
 								stationId = if station then args[2] else nil,
 								stationKind = if station then station.kind else nil,
+								stationTier = tonumber(anchorTier),
 								inReach = station ~= nil and station.reachable,
 							},
 							if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
@@ -733,6 +751,9 @@ function M.new(
 								player.inventory[inventoryConfig.carriedContainer],
 								damage
 							)
+							damage = damage
+								* Stance.incomingPermille(((player.personalExtensions or {}) :: any).stance)
+								// 1000
 						end
 						nextVitals = if action == "vitals-damage"
 							then Vitals.damage(advanced, damage)
@@ -945,12 +966,17 @@ function M.new(
 						live.inventory[inventoryConfig.carriedContainer],
 						damage
 					)
+					damage = damage * Stance.incomingPermille(((live.personalExtensions or {}) :: any).stance) // 1000
 				end
 				advanced = Vitals.damage(advanced, damage)
 				damageResult = { ok = true }
 			end
 		end
 		local bag = live.inventory[inventoryConfig.carriedContainer]
+		if spoilage then
+			-- The bag is never refrigerated; expired stacks become spoiled food before the command runs.
+			bag = Spoilage.settle(bag, spoilage, now, false)
+		end
 		if live.vitals.healthMilli > 0 and advanced.healthMilli == 0 then
 			local equipment, position = port.equipment(id), port.position(id)
 			if not equipment or not position then
@@ -1231,6 +1257,8 @@ function M.new(
 				"brawl",
 				"gear",
 				"lateEquipment",
+				"recipeMarks",
+				"stance",
 			}
 		do
 			if saved and saved[key] ~= nil then
@@ -1351,7 +1379,10 @@ function M.new(
 				end
 			end
 			if players[id].vitals then
+				-- The selected stance (defense 0.9x, charge 1.15x) scales movement with vitals.
 				snapshot.vitalsMovementMilli = Vitals.movementMilli(players[id].vitals :: Vitals.State)
+					* Stance.speedPermille(((players[id].personalExtensions or {}) :: any).stance)
+					// 1000
 			end
 			return snapshot
 		end,

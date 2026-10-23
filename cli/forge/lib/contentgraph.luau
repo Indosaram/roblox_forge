@@ -1,6 +1,14 @@
 --!strict
 -- Static supply-path proof, not a simulation of simultaneous island stock.
+local Operations = require("../../../genres/survival-coop/module/OperationExtension")
+local MissionRewards = require("../../../genres/survival-coop/module/MissionRewards")
 local M = {}
+
+-- levelReachability budget: every character-level route gate must be reached within this many
+-- runs of the content open before it. One run is one full clear of one destination (a support
+-- region's wildlife, or a route's stages plus its missions). 12 runs is one 6-hour instability
+-- index window (robango-fidelity-contracts R01) at about 30 minutes per run.
+M.RUN_BUDGET = 12
 
 local CATEGORIES = {
 	"survival",
@@ -70,8 +78,10 @@ function M.check(document: any): any
 		stationCycles = {},
 		skillCycles = {},
 		missingEntryActions = {},
+		unhandledEntryActions = {},
 		rankPrefix = {},
 		unplacedSpecies = {},
+		levelReachability = {},
 		ok = true,
 	}
 	for _, name in
@@ -315,7 +325,13 @@ function M.check(document: any): any
 		["basicclubhit"] = true,
 		["settlement-place"] = true,
 		["guard-block"] = true,
+		-- Home commands award their action id after commit (SurvivalFactory session wrapper).
+		["home-place"] = true,
+		["home-plant"] = true,
+		["home-harvest"] = true,
 	}
+	local recipeIds = index(document.recipes or {})
+	local operationRows = index(document.operations or {})
 	local categories = index(document.skillCategories or {})
 	for _, category in CATEGORIES do
 		local valid = false
@@ -330,6 +346,18 @@ function M.check(document: any): any
 		end
 		if not valid then
 			table.insert(result.missingEntryActions, category)
+		end
+		-- Every entry action must be something the runtime can actually emit: an engine event,
+		-- a recipe (craft-complete) or an operation of a kind OperationExtension executes.
+		for _, id in (categories[category] or {}).entryActions or {} do
+			local operation = operationRows[id]
+			if
+				not engineActions[id]
+				and not recipeIds[id]
+				and not (operation and Operations.KINDS[operation.kind or ""])
+			then
+				table.insert(result.unhandledEntryActions, { category = category, action = id })
+			end
 		end
 	end
 	local ranks = {}
@@ -380,13 +408,146 @@ function M.check(document: any): any
 			table.insert(result.unplacedSpecies, species.id)
 		end
 	end
+	result.levelReachability = M.levelReachability(document)
 	for _, name in
-		{ "unresolved", "levelFailures", "stationCycles", "skillCycles", "missingEntryActions", "unplacedSpecies" }
+		{
+			"unresolved",
+			"levelFailures",
+			"stationCycles",
+			"skillCycles",
+			"missingEntryActions",
+			"unhandledEntryActions",
+			"unplacedSpecies",
+		}
 	do
 		result.ok = result.ok and #result[name] == 0
 	end
 	for _, prefix in result.rankPrefix do
 		result.ok = result.ok and prefix.ok
+	end
+	for _, gate in result.levelReachability do
+		result.ok = result.ok and gate.ok
+	end
+	return result
+end
+
+--- Runs needed to reach each route character gate from level 1, greedily taking the richest
+--- destination open at the current level. XP counts kills (actionXP + killXP per placed spawn),
+--- missions (first clear in full, later clears at MissionRewards.REPEAT_PERMILLE plus the
+--- repeat bonus) and one-shot guides and chapters once their level gate opens. Gathering XP is
+--- left out, so the bound is conservative. Stages sharing a character gate form one route.
+function M.levelReachability(document: any): { any }
+	local tree = (document.progressionPolicy or {}).tree
+	if not tree or #(document.stages or {}) == 0 then
+		return {}
+	end
+	local layouts = index(document.layouts or {})
+	local killXP = tree.actionXP + (tree.killXP or 0)
+	local function kills(layoutId: string): number
+		local total = 0
+		for _, spawn in (layouts[layoutId] or {}).spawns or {} do
+			total += (spawn.count or 1) * killXP
+		end
+		return total
+	end
+	local destinations: { any } = {}
+	for _, region in document.supportRegions or {} do
+		table.insert(
+			destinations,
+			{ level = (region.gates or {}).characterLevel or 1, base = kills(region.layout), missions = {} }
+		)
+	end
+	local stages = index(document.stages)
+	local routes: { [number]: any } = {}
+	local gates = {}
+	for _, stage in document.stages do
+		local level = (stage.gates or {}).characterLevel or 1
+		if not routes[level] then
+			routes[level] = { level = level, base = 0, missions = {}, layouts = {} }
+			table.insert(destinations, routes[level])
+			table.insert(gates, level)
+		end
+		local route = routes[level]
+		if not route.layouts[stage.layout] then
+			route.layouts[stage.layout] = true
+			route.base += kills(stage.layout)
+		end
+	end
+	table.sort(gates)
+	for _, mission in document.missions or {} do
+		local level = 0
+		for _, objective in mission.objectives do
+			local stage = stages[objective.stageId or ""]
+			level = math.max(level, if stage then (stage.gates or {}).characterLevel or 1 else 0)
+		end
+		if routes[level] then
+			table.insert(routes[level].missions, mission)
+		end
+	end
+	local oneShots: { any } = {}
+	for _, section in { "guides", "chapters" } do
+		for _, row in document[section] or {} do
+			table.insert(oneShots, row)
+		end
+	end
+	local level, xp = 1, 0
+	local cleared, claimed = {}, {}
+	local function add(amount: number)
+		xp += amount
+		while level < tree.maxLevel and xp >= tree.xpBase + tree.xpStep * level do
+			xp -= tree.xpBase + tree.xpStep * level
+			level += 1
+		end
+	end
+	local result = {}
+	for _, gate in gates do
+		local from, runs = level, 0
+		while level < gate and runs <= M.RUN_BUDGET do
+			for _, row in oneShots do
+				if not claimed[row.id] and ((row.gates or {}).characterLevel or 1) <= level then
+					claimed[row.id] = true
+					add((row.rewards or {}).xp or 0)
+				end
+			end
+			if level >= gate then
+				break
+			end
+			local best, bestXP = nil, 0
+			for _, destination in destinations do
+				if destination.level <= level then
+					local total = destination.base
+					for _, mission in destination.missions do
+						local reward = (mission.rewards or {}).xp or 0
+						total += if cleared[mission.id]
+							then reward * MissionRewards.REPEAT_PERMILLE // 1000 + MissionRewards.repeatBonus(
+								document,
+								level
+							)
+							else reward
+					end
+					if total > bestXP then
+						best, bestXP = destination, total
+					end
+				end
+			end
+			if not best then
+				runs = M.RUN_BUDGET + 1
+				break
+			end
+			runs += 1
+			add(bestXP)
+			for _, mission in best.missions do
+				cleared[mission.id] = true
+			end
+		end
+		table.insert(result, {
+			gate = gate,
+			from = from,
+			reached = level,
+			runs = runs,
+			budget = M.RUN_BUDGET,
+			ok = level >= gate and runs <= M.RUN_BUDGET,
+		})
 	end
 	return result
 end

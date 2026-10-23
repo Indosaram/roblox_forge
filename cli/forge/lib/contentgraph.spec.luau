@@ -159,6 +159,19 @@ local tests = {
 		table.remove(doc.skillCategories)
 		assert(#graph.check(doc).missingEntryActions == 1, "graph invariant")
 	end,
+	["every entry action is an engine event, a recipe or an executable operation kind"] = function()
+		local doc = fixture()
+		assert(#graph.check(doc).unhandledEntryActions == 0, "practice operations are executable")
+		doc.operations[2].kind = "upgrade"
+		local result = graph.check(doc)
+		assert(not result.ok and #result.unhandledEntryActions == 12, "an upgrade row has no executor")
+		assert(result.unhandledEntryActions[1].action == "practice", "graph invariant")
+		doc = fixture()
+		table.insert(doc.skillCategories[1].entryActions, "never-emitted")
+		result = graph.check(doc)
+		assert(not result.ok and result.unhandledEntryActions[1].category == "survival", "unknown event reported")
+		assert(#result.missingEntryActions == 0, "the category itself still has a valid entry")
+	end,
 	["rank prefix excludes awards behind their own rank and stage gates"] = function()
 		local doc = fixture()
 		doc.guides[1].gates.developmentRank = 2
@@ -228,6 +241,10 @@ tests["deliberate diagnostic mutations are killed by failure fixtures"] = functi
 		{ field = "skillCycles", test = "skill prerequisite cycle is reported with path" },
 		{ field = "missingEntryActions", test = "all twelve categories need a resolvable ungated entry action" },
 		{ field = "rankPrefix", test = "rank prefix excludes awards behind their own rank and stage gates" },
+		{
+			field = "unhandledEntryActions",
+			test = "every entry action is an engine event, a recipe or an executable operation kind",
+		},
 		{ field = "unplacedSpecies", test = "wildlife must be placed and unplaced drops cannot seed materials" },
 	}
 	for _, case in cases do

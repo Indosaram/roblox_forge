@@ -12,7 +12,8 @@ local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Home = require("../../core/domain/home/HomeState")
 local HomeContent = require("../../core/domain/home/HomeContent")
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
-local JournalText: any = luau.load(fs.readFile("games/robango-island/src/shared/JournalText.luau"))()
+local PackText = require("./PackText.fixture")
+local JournalText, MissionText = PackText.authored, PackText.authored
 local Durable: any = luau.load(fs.readFile("games/robango-island/src/shared/GenreDurable.luau"))()
 
 local M = "../../genres/survival-coop/module/"
@@ -25,6 +26,7 @@ local Panels: { [string]: any } = {
 	transaction = require(M .. "TransactionPanel"),
 	trade = require(M .. "DirectTradePanel"),
 	dialogue = require(M .. "DialoguePanel"),
+	organizations = require(M .. "OrganizationsPanel"),
 }
 
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true }, { 640, 339, true } }
@@ -101,7 +103,7 @@ local function harness(locale: string, width: number, height: number, touch: boo
 			return NOW
 		end,
 		journalText = function(key: string): string?
-			return JournalText(locale, key)
+			return PackText.authored(locale, key)
 		end,
 	}
 	h.push = function(extensions: any, packet: any?)
@@ -272,6 +274,8 @@ local function open(name: string, h: any): any
 		})
 		panel.talk("bram", "clan-membership")
 		return panel
+	elseif name == "organizations" then
+		h.push({ archipelago = { reputation = { wayfarers = 260, scholars = 40, wardens = 1500, traders = 0 } } })
 	end
 	panel.open()
 	return panel
@@ -313,6 +317,10 @@ local function checkLayout(h: any, label: string)
 end
 
 local cases: { [string]: () -> () } = {}
+-- Services reachable from a harbor NPC dialogue (DialoguePanel extra choices).
+local function HarborOrgs(): { string }
+	return Panels.dialogue.EXTRA_SERVICES.marit or {}
+end
 for name in Panels do
 	cases[name .. " layout fits PC portrait and landscape in EN and KO"] = function()
 		for _, viewport in VIEWPORTS do
@@ -323,6 +331,65 @@ for name in Panels do
 			end
 		end
 	end
+end
+
+local function stage(objective: string, progress: number, completed: boolean): any
+	return {
+		archipelago = {
+			status = "active",
+			index = 1,
+			templateId = string.match(objective, "^(rw%.a%d+)"),
+			stage = tonumber(string.match(objective, "%.s(%d+)%.")),
+			progress = { [objective] = progress },
+			completed = { [objective] = completed or nil },
+			reputation = {},
+		},
+	}
+end
+
+cases["mission NPCs speak the authored offer on accept and the complete line on turn-in"] = function()
+	for _, locale in LOCALES do
+		local h = harness(locale, 360, 640, true)
+		local panel = Panels.dialogue.factory(h.ctx)
+		-- Active a1.s1 gather objective: Marit offers rw.m1.gather.offer.
+		h.push(stage("rw.a1.s1.gather", 0, false))
+		panel.talk("marit", "contracts")
+		assert(h.has(MissionText(locale, "rw.m1.gather.offer")), locale .. " marit offer line")
+		assert(not h.has(MissionText(locale, "rw.m1.gather.complete")), locale .. " not yet complete")
+		-- Other mission NPCs keep their own greeting for an objective they do not own.
+		panel.talk("pip", "shop")
+		assert(not h.has(MissionText(locale, "rw.m1.gather.offer")), locale .. " pip does not own gather")
+		-- Turn-in: the completed objective shows the authored complete line.
+		h.push(stage("rw.a1.s1.gather", 5, true))
+		panel.talk("marit", "contracts")
+		assert(h.has(MissionText(locale, "rw.m1.gather.complete")), locale .. " marit complete line")
+	end
+	-- Hunt S3/S4 variants pick the stage-specific offer.
+	local h = harness("en-us", 1280, 720, false)
+	local panel = Panels.dialogue.factory(h.ctx)
+	h.push(stage("rw.a1.s4.hunt", 0, false))
+	panel.talk("ines", "craft")
+	assert(h.has(MissionText("en-us", "rw.m1.hunt.offer.s4")), "stage four hunt variant")
+end
+
+cases["organizations view shows four orgs, trust rank 0-5 and the next threshold"] = function()
+	local Orgs = Panels.organizations
+	local row = Orgs.rank(260)
+	assert(row.rank == 1 and row.into == 160 and row.next == 200, "rank 1 needs 100, rank 2 another 200")
+	assert(Orgs.rank(0).rank == 0 and Orgs.rank(0).next == 100, "rank 0")
+	local top = Orgs.rank(1500)
+	assert(top.rank == 5 and top.next == nil, "rank 5 is the cap (100+200+300+400+500)")
+	for _, locale in LOCALES do
+		local h = harness(locale, 360, 640, true)
+		open("organizations", h)
+		for _, id in Orgs.IDS do
+			assert(h.has(L.text(locale, "org." .. id)), locale .. " org row " .. id)
+		end
+		assert(h.has(L.text(locale, "org.rank", 1)), locale .. " wayfarers rank shown")
+		assert(h.has(L.text(locale, "org.next", 160, 200)), locale .. " progress to next rank")
+		assert(h.has(L.text(locale, "org.max")), locale .. " capped org")
+	end
+	assert(table.find(HarborOrgs(), "organizations"), "reachable from Marit's dialogue choices")
 end
 
 cases["sheet width estimate never under-measures ui-kit HudFit"] = function()

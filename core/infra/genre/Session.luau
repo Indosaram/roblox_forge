@@ -913,7 +913,14 @@ function M.new(
 		local transfer = services.survivalTransfer
 		local gathering: {
 			handles: (string) -> boolean,
-			command: (string, { any }, Contract.CommandContext, number, () -> Contract.Result) -> Contract.Result,
+			command: (
+				string,
+				{ any },
+				Contract.CommandContext,
+				number,
+				() -> Contract.Result,
+				string?
+			) -> Contract.Result,
 		}? =
 			services.survivalGathering
 		local wildlife = services.survivalWildlife
@@ -947,7 +954,8 @@ function M.new(
 				if epoch then math.floor(epoch.expiresAt) else 0,
 				function()
 					return executor.admit(id, request.action, request.args, origin)
-				end
+				end,
+				request.action
 			)
 			busy[id] = nil
 			if not ok then

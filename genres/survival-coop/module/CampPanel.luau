@@ -110,7 +110,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		if dock then
 			dock.setAvailable(available)
 		end
-		local choices = Model.choices(ctx.locale, packet)
+		local choices = Model.choices(ctx.locale, packet, ctx.names)
 		if selected == nil then
 			for _, c in choices do
 				if string.find(c.itemId, "fiber", 1, true) or string.find(c.itemId, "wood", 1, true) then

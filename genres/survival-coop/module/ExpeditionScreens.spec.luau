@@ -9,7 +9,7 @@ local Party = require("../../../core/domain/island/Party")
 local _host = require("@lune/process")
 local Content: any = require("../../../games/robango-island/src/shared/SurvivalContent")
 
-local READY = { level = 2, developmentRank = 2, instabilityAccess = 1 }
+local READY = { level = 30, developmentRank = 2, instabilityAccess = 1 }
 
 local function harness(onExpedition: boolean): any
 	local h: any = { travels = {}, extras = {}, documents = {}, personal = {}, worn = {}, claims = {} }

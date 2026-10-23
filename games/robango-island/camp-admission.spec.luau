@@ -33,6 +33,8 @@ local MarketExtension = require("../../genres/survival-coop/module/MarketExtensi
 local MarketplacePort = require("../../core/infra/monetization/MarketplacePort")
 local PolicyPort = require("../../core/infra/monetization/PolicyPort")
 local MarketPorts = require("./src/shared/MarketPorts")
+local CampPanelModel = require("../../genres/survival-coop/module/CampPanelModel")
+local MarketPanel = require("../../genres/survival-coop/module/CrossServerMarketPanel")
 local wildlifePolicy = require("./src/shared/WildlifePolicy")
 local tamingPolicy = require("./src/shared/TamingConfig")
 local monetizationCatalog = require("./src/shared/MonetizationCatalog")
@@ -59,8 +61,10 @@ local forge = {
 				JournalPorts = require("../../genres/survival-coop/module/JournalPorts"),
 				JournalObjectiveFeed = require("../../genres/survival-coop/module/JournalObjectiveFeed"),
 				JournalExtension = require("../../genres/survival-coop/module/JournalExtension"),
+				RecipeMarks = require("../../genres/survival-coop/module/RecipeMarks"),
 				ProgressionExtension = require("../../genres/survival-coop/module/ProgressionExtension"),
 				ToolTiers = require("../../genres/survival-coop/module/ToolTiers"),
+				GuideEvents = require("../../genres/survival-coop/module/GuideEvents"),
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
 			},
@@ -413,7 +417,258 @@ local function idleRun(ids: { string }, heartbeats: number): ({ [string]: number
 	return writes, generations
 end
 
+-- Seeds the bag like the p43 Studio journey (fiber, fallen logs x3); fiber x50 so an
+-- over-delivery is reachable without first running short.
+local function seedBag(session: any, actor: string)
+	local catalog = Job.catalog(content)
+	local ok, why = session.personalTransaction(actor, function(raw)
+		local data = raw.envelope.genres["survival-coop"].data
+		local bag = Inventory.fromSave(data.inventory.bag, catalog)
+		for _, seed in { { "fiber-stack", "fiber", 50 }, { "wood-stack", "wood", 3 } } do
+			bag = assert(Inventory.add(bag, catalog, {
+				itemId = seed[1],
+				catalogId = seed[2],
+				quantity = seed[3],
+				qualityMilli = 1000,
+				durabilityMilli = 0,
+				attributes = {},
+			}, bag.version))
+		end
+		data.inventory.bag = Inventory.save(bag)
+		return raw
+	end)
+	assert(ok, tostring(why))
+end
+
 return {
+
+	["p45 camp Give sends the panel's args and every refusal it can hit has its own KO/EN line"] = function()
+		local clockAt = { value = 1000 }
+		local server = boot(Memory.new(), "job:p45-camp", clockAt, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "join")
+		seedBag(session, FIRST)
+		local camp = session.snapshot(FIRST).survivalExtensions.camp
+		assert(camp and camp.role == "member", "the first player is a camp member")
+		-- CampPanel: act("survival-coop:camp-contribute", { row.id, current.itemId, quantity, model.version })
+		local given =
+			command(session, FIRST, "give", "camp-contribute", { "windbreak", "fiber-stack", 1, camp.version })
+		assert(given.ok, "donation accepted: " .. serde.encode("json", given))
+		camp = session.snapshot(FIRST).survivalExtensions.camp
+		assert(camp.active.windbreak.delivered.fiber == 1, "1/40 fern fiber delivered")
+		-- The donation completes guide g04, whose reward (fiber x3) tops this stack back up, so ask
+		-- for one more than the stack now holds to hit the bag's own shortage refusal.
+		local held = session.snapshot(FIRST)["survival-coop"].inventory.bag.items["fiber-stack"].quantity
+		local refusals = {
+			{ "stale", { "windbreak", "fiber-stack", 1, camp.version - 1 } },
+			{ "over", { "windbreak", "fiber-stack", 40, camp.version } },
+			{ "short", { "windbreak", "fiber-stack", held + 1, camp.version } },
+			{ "missing", { "windbreak", "gone-stack", 1, camp.version } },
+			{ "locked", { "drying-rack", "fiber-stack", 1, camp.version } },
+			{ "unknown", { "no-such-project", "fiber-stack", 1, camp.version } },
+		}
+		local seen: { [string]: boolean } = {}
+		for _, case in refusals do
+			clockAt.value += 3 -- refill the command rate limiter, which is not what this case tests
+			local refused = command(session, FIRST, "r-" .. case[1], "camp-contribute", case[2])
+			assert(not refused.ok and type(refused.reason) == "string", case[1] .. " refused")
+			seen[refused.reason] = true
+			for _, locale in { "en-us", "ko-kr" } do
+				local line = CampPanelModel.refusal(locale, refused.reason)
+				assert(
+					line ~= CampPanelModel.text(locale, "camp_refused"),
+					case[1] .. " " .. refused.reason .. " has its own " .. locale .. " line"
+				)
+			end
+		end
+		local codes = {}
+		for code in seen do
+			table.insert(codes, code)
+		end
+		table.sort(codes)
+		assert(
+			seen.OVER_DELIVERY and seen.STALE_VERSION and seen.UNAVAILABLE,
+			"domain codes: " .. table.concat(codes, ",")
+		)
+		assert(
+			session.snapshot(FIRST).survivalExtensions.camp.active.windbreak.delivered.fiber == 1,
+			"refusals move nothing"
+		)
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p45 harbor market List sends the panel's args; the eligibility refusal names its gate in KO/EN"] = function()
+		local server = boot(Memory.new(), "job:p45-market", { value = 1000 }, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "join")
+		seedBag(session, FIRST)
+		local market = session.snapshot(FIRST).survivalExtensions.market
+		assert(market and market.eligible == false, "a fresh session is not yet eligible to list")
+		-- CrossServerMarketPanel: ctx.send("survival-coop:market-list", { id, draft.quantity, draft.price })
+		local listed = command(session, FIRST, "list", "market-list", { "wood-stack", 1, 10 })
+		assert(not listed.ok and listed.reason == market.ineligibleReason, "refusal code: " .. tostring(listed.reason))
+		assert(listed.reason == "INELIGIBLE_PLAYTIME", "the 2h play gate refuses: " .. tostring(listed.reason))
+		local en, ko = MarketPanel.listRefusal("en-us", listed.reason), MarketPanel.listRefusal("ko-kr", listed.reason)
+		assert(string.find(en, "2 hours", 1, true) and string.find(ko, "2시간", 1, true), "names the play-time gate")
+		assert(en ~= MarketPanel.listRefusal("en-us", "SOMETHING_NEW"), "not the fallback line")
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p45 a fresh onboarding player unlocks route 1 through guides using only player commands"] = function()
+		local at = { value = 1000 }
+		local server = boot(Memory.new(), "job:p45-route", at, nil, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "fresh admission")
+		local sequence = 0
+		local function act(action: string, args: { any }): any
+			sequence += 1
+			at.value += 3
+			session.advance(at.value)
+			local result = command(session, FIRST, "p45-" .. sequence, action, args)
+			assert(result.ok, action .. ": " .. serde.encode("json", result))
+			return result
+		end
+		local Models = require("../../genres/survival-coop/module/ExpeditionModels")
+		local function card(): (any, any)
+			local state = session.snapshot(FIRST).survivalExtensions.expedition
+			local opened = false
+			local _, items = Models.routes("ko-kr", state, {}, function() end, function()
+				opened = true
+			end)
+			local gate, guides
+			for _, item in items do
+				gate = gate or (if item.name == "RouteGate-1" then item.text else nil)
+				guides = guides or (if item.name == "RouteGuides-1" then item else nil)
+			end
+			if guides then
+				guides.onClick()
+			end
+			return state, { gate = gate, guides = guides ~= nil and opened }
+		end
+		local fresh, view = card()
+		assert(fresh.routes[1].ok == false, "route 1 starts locked")
+		assert(view.gate and view.guides, "the locked card names its gate and opens the guides")
+		local function gather(node: string)
+			act("gather", { node, server.factory.services.survivalGathering.snapshot(FIRST).version })
+		end
+		local function craft(recipe: string, station: string?)
+			local reserved = act("craft-reserve", { recipe, station or "hand" })
+			act("craft-start", { reserved.data.jobId })
+			at.value += 30
+			act("craft-complete", { reserved.data.jobId })
+		end
+		act("tutorial-skip-arrival", {})
+		-- g01 first-gather: fiber x3 (one gather yields 3).
+		gather("rw.onboarding.fiber")
+		-- g02 first-axe: any axe. On rw.onboarding flint needs a pickaxe and gathering_1, so the
+		-- first axe here is the starter axe (branch 3 + stone 2) at the workbench; it also chops the
+		-- contract's wood.
+		gather("rw.onboarding.branch")
+		gather("rw.onboarding.stone")
+		server.move(FIRST, { x = -32, y = 5, z = -2 })
+		craft("starter-axe", "station.workbench.t1")
+		local axe
+		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
+			axe = if item.catalogId == "starter-axe" then id else axe
+		end
+		server.equip(FIRST, assert(axe, "starter axe crafted"))
+		-- g03 first-contract: survey-driftwood delivers wood x3.
+		server.move(FIRST, { x = -54, y = 5, z = 22 })
+		gather("rw.onboarding.extra-0")
+		act("contract-accept", { "survey-driftwood" })
+		act("contract-deliver", { "survey-driftwood" })
+		-- g04 camp-donation: one fiber to the windbreak, as the camp panel sends it.
+		local fiber
+		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
+			fiber = if item.catalogId == "fiber" then id else fiber
+		end
+		local camp = session.snapshot(FIRST).survivalExtensions.camp
+		act("camp-contribute", { "windbreak", assert(fiber, "gathered fiber"), 1, camp.version })
+		local document = server.factory.expeditionStore.snapshot(FIRST)
+		for _, guide in { "rw.g01.first-gather", "rw.g02.first-axe", "rw.g03.first-contract", "rw.g04.camp-donation" } do
+			assert(document.development.definitions[guide], guide .. " completed")
+		end
+		-- Grade 2 meets route 1's development gate; its level gate (30) still holds a fresh player.
+		local unlocked = session.snapshot(FIRST).survivalExtensions.expedition
+		assert(unlocked.facts.developmentRank >= 2, "grade " .. tostring(unlocked.facts.developmentRank))
+		assert(unlocked.facts.developmentRank >= unlocked.routes[1].rank, "route 1 grade met")
+		assert(unlocked.routes[1].reason == "level_gate", "route 1 reason: " .. tostring(unlocked.routes[1].reason))
+		local _, after = card()
+		local prefix = string.format("레벨 %d/30", unlocked.facts.level)
+		assert(after.gate and string.sub(after.gate, 1, #prefix) == prefix, "level gate line: " .. tostring(after.gate))
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p45 the default Studio preview island lets a fresh player finish g01-g04 and unlock route 1"] = function()
+		local at = { value = 1000 }
+		local server = boot(Memory.new(), "job:p45-preview", at, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "fresh admission")
+		local sequence = 0
+		local function act(action: string, args: { any }): any
+			sequence += 1
+			at.value += 3
+			session.advance(at.value)
+			local result = command(session, FIRST, "p45p-" .. sequence, action, args)
+			assert(result.ok, action .. ": " .. serde.encode("json", result))
+			return result
+		end
+		local version = 0 -- the gather source version advances once per accepted gather
+		local function gather(node: string, times: number)
+			for _ = 1, times do
+				act("gather", { node, version })
+				version += 1
+			end
+		end
+		local function craft(recipe: string, station: string)
+			local reserved = act("craft-reserve", { recipe, station })
+			act("craft-start", { reserved.data.jobId })
+			at.value += 30
+			act("craft-complete", { reserved.data.jobId })
+		end
+		act("tutorial-skip-arrival", {})
+		-- g01 first-gather: fiber x3.
+		gather("fiber-bush-01", 1)
+		-- g02 first-axe: the Flint Hatchet (flint x2, by hand).
+		gather("flint-outcrop-01", 1)
+		craft("stone-axe", "hand")
+		-- g03 first-contract: survey-driftwood delivers wood x3 from the fallen tree.
+		gather("fallen-tree-01", 1)
+		act("contract-accept", { "survey-driftwood" })
+		act("contract-deliver", { "survey-driftwood" })
+		-- g04 camp-donation: one fiber to the windbreak.
+		local fiber
+		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
+			fiber = if item.catalogId == "fiber" then id else fiber
+		end
+		local camp = session.snapshot(FIRST).survivalExtensions.camp
+		act("camp-contribute", { "windbreak", assert(fiber, "gathered fiber"), 1, camp.version })
+		local done = server.factory.expeditionStore.snapshot(FIRST).development.definitions
+		for _, guide in { "rw.g01.first-gather", "rw.g02.first-axe", "rw.g03.first-contract", "rw.g04.camp-donation" } do
+			assert(done[guide], guide .. " completed on the preview island")
+		end
+		local unlocked = session.snapshot(FIRST).survivalExtensions.expedition
+		assert(unlocked.facts.developmentRank >= 2, "grade " .. tostring(unlocked.facts.developmentRank))
+		assert(unlocked.routes[1].reason ~= "development_gate", "route 1 grade gate met")
+		assert(unlocked.routes[1].reason == "level_gate", "route 1 reason: " .. tostring(unlocked.routes[1].reason))
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p45 a deposit out of warehouse reach names the reach, not a generic refusal"] = function()
+		local server = boot(Memory.new(), "job:p45-reach", { value = 1000 }, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "fresh admission")
+		assert(command(session, FIRST, "g1", "gather", { "fallen-tree-01", 0 }).ok, "gather")
+		server.move(FIRST, { x = 60, y = 2, z = 40 })
+		local refused = command(session, FIRST, "d1", "transfer-deposit", { woodStacks(session, FIRST)[1], 1 })
+		assert(not refused.ok and refused.reason == "WAREHOUSE_UNREACHABLE", "reason: " .. tostring(refused.reason))
+		local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+		for _, locale in { "en-us", "ko-kr" } do
+			assert(
+				HudLocale.refusal(locale, refused.reason) ~= HudLocale.text(locale, "unknown"),
+				locale .. " names the warehouse"
+			)
+		end
+		server.move(FIRST, { x = 6, y = 2, z = -22 })
+		assert(command(session, FIRST, "d2", "transfer-deposit", { woodStacks(session, FIRST)[1], 1 }).ok, "in reach")
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
 	["real onboarding owner crafts the starter axe, chops wood and deposits through the elevated depot"] = function()
 		local at = { value = 1000 }
 		local server = boot(Memory.new(), "job:real-role", at, nil, nil, true)
@@ -667,7 +922,8 @@ return {
 			args = { stack, 1 },
 		})
 		reach.warehouse = true
-		assert(not far.ok and far.reason == "UNAUTHORIZED" and far.data.phase == "GRANT", "reach gate")
+		-- p45: the refusal names the reach (it was the generic UNAUTHORIZED the HUD could not explain).
+		assert(not far.ok and far.reason == "WAREHOUSE_UNREACHABLE" and far.data.phase == "GRANT", "reach gate")
 		-- The HUD deposits one at a time: four single deposits pay for the campfire (wood x4).
 		local count = 0
 		for _, itemId in woodStacks(session, FIRST) do

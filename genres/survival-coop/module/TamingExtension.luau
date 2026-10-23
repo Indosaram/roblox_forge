@@ -60,7 +60,7 @@ end
 
 function M.factory(ctx: any): any
 	if ctx.content and ctx.content.progressionPolicy and ctx.content.progressionPolicy.companion then
-		return require("./PersonalCompanionExtension").factory(ctx)
+		return require("./PersonalCompanionExtension").factory(ctx, if configured then configured.mounts.skins else nil)
 	end
 	local config = configured
 	if config == nil then
@@ -96,6 +96,19 @@ function M.factory(ctx: any): any
 
 	local function key(actor: string): string
 		return "taming-v1:" .. actor
+	end
+
+	-- The paid skin the actor wears for this species (cosmetic only: Mounts resolves the same ride).
+	local function skinFor(actor: string, animalId: string): string?
+		local animal = runtime.animal(animalId)
+		local worn = if animal and ctx.appearance then ctx.appearance(actor) else nil
+		for skin in worn or {} do
+			local rule = (config.mounts.skins or {})[skin]
+			if rule and animal and rule.species == animal.species then
+				return skin
+			end
+		end
+		return nil
 	end
 
 	local function acquire(actor: string): (Fenced.Profile?, string?)
@@ -179,7 +192,7 @@ function M.factory(ctx: any): any
 		end)
 		assert(runtime.restore(actor, saved) == nil, "TAMING_RESTORE_FAILED")
 		if data.ride then
-			runtime.mount(actor, data.ride.animalId, nil, { pvp = false })
+			runtime.mount(actor, data.ride.animalId, skinFor(actor, data.ride.animalId), { pvp = false })
 		end
 		synced[actor] = data.rev
 		for _, receipt in data.receipts do
@@ -581,7 +594,7 @@ function M.factory(ctx: any): any
 
 	handlers["tame-mount"] = function(actor, requestId, args, profile)
 		local animalId = args[1]
-		local recorded, reason = runtime.mount(actor, animalId, nil, { pvp = false })
+		local recorded, reason = runtime.mount(actor, animalId, skinFor(actor, animalId), { pvp = false })
 		if not recorded then
 			return reject(reason or "MOUNT_REFUSED", profile.data.rev)
 		end
@@ -715,6 +728,7 @@ function M.factory(ctx: any): any
 				then {
 					animalId = ride.animalId,
 					species = ride.species,
+					skin = ride.skin,
 					speedStuds = ride.speedStuds,
 					carryMilli = ride.carryMilli,
 				}

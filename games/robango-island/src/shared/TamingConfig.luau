@@ -27,8 +27,9 @@ local policy = {
 			["fen-trotter"] = { rideable = true, rideSpeedStuds = 24, carryMilli = 20000 },
 			["bluff-bounder"] = { rideable = true, rideSpeedStuds = 32, carryMilli = 10000 },
 		},
-		-- Cosmetic only: a skin names a species and a paid marker, nothing else.
-		skins = { ["ridge-strider-gold"] = { species = "ridge-strider", paid = true } },
+		-- Cosmetic only: a skin names a species and a paid marker, nothing else. Its look lives in
+		-- CosmeticConfig; "Ridge Strider" is the gold Gallimimus breed (a rideable of the 24).
+		skins = { ["ridge-strider-gold"] = { species = "gallimimus", paid = true } },
 	},
 	maxWild = 8,
 	maxAnimalsPerOwner = 6,

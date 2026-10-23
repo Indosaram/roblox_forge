@@ -322,9 +322,11 @@ return {
 		end
 	end,
 	["repeat clears add the level-scaled bonus only between the policy levels"] = function()
-		local policy = Content.missionPolicy
-		local low, high = policy.repeatXPMinLevel, policy.repeatXPMaxLevel
-		assert(Rewards.repeatBonus(Content, low - 1) == 0 and Rewards.repeatBonus(Content, high + 1) == 0, "outside")
-		assert(Rewards.repeatBonus(Content, low) == policy.repeatXPPerLevel * low, "inside")
+		local policy = { repeatXPPerLevel = 9, repeatXPMinLevel = 6, repeatXPMaxLevel = 30 }
+		local content = { missionPolicy = policy }
+		assert(Rewards.repeatBonus(content, 5) == 0 and Rewards.repeatBonus(content, 31) == 0, "outside")
+		assert(Rewards.repeatBonus(content, 6) == 54 and Rewards.repeatBonus(content, 30) == 270, "inside")
+		-- Robango restores the spec curve (owner decision 2026-10-23): no repeat-clear level bonus.
+		assert(Rewards.repeatBonus(Content, 30) == 0, "robango pays no repeat bonus")
 	end,
 }

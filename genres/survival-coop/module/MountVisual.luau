@@ -46,6 +46,20 @@ function M.species(taming: any): string?
 	return if type(species) == "string" and #species > 0 then species else nil
 end
 
+--- The plan key of the actor's ride: the species, plus "@<skin>" when a paid skin dresses it,
+--- so a skin change re-attaches the body like a species change does.
+function M.look(taming: any): string?
+	local species = M.species(taming)
+	local skin = if species then taming.ride.skin else nil
+	return if type(skin) == "string" and #skin > 0 then (species :: string) .. "@" .. skin else species
+end
+
+--- Splits a plan key back into species and optional skin.
+function M.parse(key: string): (string, string?)
+	local species, skin = string.match(key, "^([^@]+)@(.+)$")
+	return species or key, skin
+end
+
 --- Makes a wildlife rig a decoration: no Humanoid, scripts or joints to the world, and every
 --- part non-colliding, massless and unqueryable so it cannot change the rider's physics.
 function M.dress(model: any): any

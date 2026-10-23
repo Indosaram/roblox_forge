@@ -31,13 +31,17 @@ function M.describe(content: any): { any }
 				elseif anchor.id == "npc.ines" then "craft"
 				elseif anchor.id == "npc.pip" then "shop"
 				elseif anchor.id == "npc.sella" then "market"
-				elseif anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch" then "craft"
+				elseif anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch" then "operations"
 				elseif anchor.id == "rescue-beacon" then "journal"
 				elseif anchor.id == "station.workbench.t1" then "craft"
 				elseif anchor.id == "station.signal-relay.t1" then "journal"
 				elseif anchor.id == "objective" then "market"
 				else nil,
 			destination = if anchor.id == "visitor-portal" then "home" else nil,
+			-- Practice stands run their content operation (operation-run) when used.
+			operation = if anchor.id == "practice-seedbed" or anchor.id == "practice-fiber-stitch"
+				then anchor.id
+				else nil,
 			-- Stations that talk first (ui.dialogue): workbench, communication station, market board.
 			talk = if anchor.id == "station.workbench.t1"
 				then "station.workbench"

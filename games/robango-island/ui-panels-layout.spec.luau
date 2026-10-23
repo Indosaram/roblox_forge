@@ -258,7 +258,7 @@ return {
 						wraps(row.text, width, 48, BODY, "navigator " .. where)
 					end
 				end
-				for _, key in { "lock_unknown", "lock_unavailable", "lock_inbox", "lock_unsaved" } do
+				for _, key in { "lock_unknown", "lock_unavailable", "lock_unsaved" } do
 					wraps(MusicText.text(locale, key), width, 48, BODY, key .. " " .. where)
 				end
 			end

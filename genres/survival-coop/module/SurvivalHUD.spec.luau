@@ -7,10 +7,14 @@ return {
 		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
 		local hud = luau.load(source, {
 			environment = {
-				require = function(path)
+				require = function(path): any
+					if path == "../../../core/domain/survival/Spoilage" then
+						return require("../../../core/domain/survival/Spoilage")
+					end
 					assert(
 						path == "./SurvivalHUDModel"
 							or path == "./SurvivalHUDLocale"
+							or path == "./RecipeMarks"
 							or path == "../../../core/ui-kit/IconFallback",
 						"HUD dependencies"
 					)
@@ -86,5 +90,21 @@ return {
 		local Locale = require("./SurvivalHUDLocale")
 		assert(string.find(Locale.refusal("en-us", "PLACEMENT_UNREACHABLE"), "max 12 studs", 1, true), "en")
 		assert(string.find(Locale.refusal("ko-kr", "PLACEMENT_UNREACHABLE"), "최대 12스터드", 1, true), "ko")
+	end,
+	["p45 a refusal toast has a display time and the warehouse reach refusal is toasted"] = function()
+		local hud = luau.load(fs.readFile("genres/survival-coop/module/SurvivalHUD.luau"), {
+			environment = {
+				require = function()
+					return {}
+				end,
+			},
+		})()
+		assert(
+			type(hud.TOAST_SECONDS) == "number" and hud.TOAST_SECONDS > 0 and hud.TOAST_SECONDS <= 10,
+			"toast expires"
+		)
+		assert(hud.toasted.WAREHOUSE_UNREACHABLE, "a deposit out of reach raises the toast")
+		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(source, "task.delay(M.TOAST_SECONDS", 1, true), "the toast is cleared after TOAST_SECONDS")
 	end,
 }

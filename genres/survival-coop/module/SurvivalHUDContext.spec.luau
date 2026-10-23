@@ -1,4 +1,5 @@
 --!strict
+local Locale = require("./SurvivalHUDLocale")
 local Model = require("./SurvivalHUDModel")
 local Tutorial = require("./SurvivalTutorial")
 local fs = require("@lune/fs")
@@ -103,6 +104,25 @@ return {
 				"unavailable controls disappear"
 			)
 		end
+	end,
+	["shoot and stance controls appear for a ranged target and cycle only unlocked stances"] = function()
+		local policy = { actions = { "survival-coop:attack-ranged", "survival-coop:stance-set" } }
+		local far = {}
+		local actions = Model.contextActions(policy, nil, false, nil, nil, far)
+		assert(actions.shoot and actions.stance and not actions.attack, "a 30 stud target offers Shoot, not melee")
+		assert(not Model.contextActions(policy, nil, true, nil, nil, far).shoot, "modal hides Shoot")
+		assert(not Model.contextActions({ actions = {} }, nil, false, nil, nil, far).stance, "undeclared hidden")
+		local view = { current = "none", unlocked = { attack = false, shoot = true, defense = true } }
+		assert(Model.nextStance(view) == "defense", "skips locked attack")
+		view.current = "defense"
+		assert(Model.nextStance(view) == "shoot", "next unlocked")
+		view.current = "shoot"
+		assert(Model.nextStance(view) == "none", "wraps to none")
+		assert(Model.nextStance({ current = "none", unlocked = {} }) == nil, "nothing to switch to")
+		local function t(key: string): string
+			return Locale.text("ko-kr", key)
+		end
+		assert(Model.stanceLabel("ko-kr", { current = "counter" }, t) == "태세: 역습 [X]", "ko stance label")
 	end,
 	["landing advances arrival once but airborne and later landings never skip gathering"] = function()
 		local count = 0

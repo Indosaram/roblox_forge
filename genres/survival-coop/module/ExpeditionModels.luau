@@ -18,25 +18,48 @@ local function button(text: string, name: string, onClick: (() -> ())?): any
 end
 
 -- ui.routes: five route cards with gates, stages, missions, capacity and expiry.
-function M.routes(locale: string, state: any, names: any, choose: (number) -> ()): (string, { any })
+function M.routes(
+	locale: string,
+	state: any,
+	names: any,
+	choose: (number) -> (),
+	openGuides: (() -> ())?
+): (string, { any })
 	local items = {}
+	local facts = state.facts or {}
 	for _, card in state.routes do
+		-- A level or grade lock names current vs required and how to earn it.
+		local gated = not card.ok and (card.reason == "level_gate" or card.reason == "development_gate")
+		local requirement = Text.text(locale, "exp_route_gate", card.level, card.rank, card.stages, card.missions)
 		table.insert(
 			items,
 			label(Text.text(locale, "exp_route", card.route, Text.biome(locale, names, card.biome)), LINE)
 		)
-		table.insert(
-			items,
-			label(Text.text(locale, "exp_route_gate", card.level, card.rank, card.stages, card.missions), LINE)
-		)
+		if not gated then
+			table.insert(items, label(requirement, LINE))
+		end
 		table.insert(
 			items,
 			label(
 				Text.text(locale, "exp_route_cap", card.capacity, Text.duration(card.expiresAt - state.now))
-					.. if card.ok then "" else " - " .. Text.reason(locale, card.reason),
-				BODY
+					.. if card.ok or gated then "" else " - " .. Text.reason(locale, card.reason),
+				if gated then LINE else BODY
 			)
 		)
+		if gated then
+			local gate = if card.reason == "level_gate"
+				then Text.text(locale, "exp_gate_level", facts.level or 1, card.level)
+				else Text.text(locale, "exp_gate_rank", facts.developmentRank or 0, card.rank)
+			-- The gate line already names the binding requirement, so the card's requirement row
+			-- rides with it: on a short landscape sheet the Locked button must stay above the fold.
+			table.insert(items, label(gate .. "\n" .. requirement, BODY, "RouteGate-" .. card.route))
+			if openGuides then
+				table.insert(
+					items,
+					button(Text.text(locale, "exp_open_guides"), "RouteGuides-" .. card.route, openGuides)
+				)
+			end
+		end
 		table.insert(
 			items,
 			button(Text.text(locale, if card.ok then "exp_choose" else "exp_locked"), "Route-" .. card.route, function()

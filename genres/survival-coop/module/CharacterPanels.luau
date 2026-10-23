@@ -3,6 +3,7 @@
 return {
 	factories = {
 		require("./CharacterPanel").factory,
+		require("./GuidePanel").factory,
 		require("./EquipmentPanel").factory,
 		require("./SkillResetPanel").factory,
 		require("./IslandRankPanel").factory,

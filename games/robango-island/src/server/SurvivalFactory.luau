@@ -14,6 +14,7 @@ local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.Archip
 local Archipelago = require(Forge.core.domain.island.Archipelago)
 local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
 local ToolTiers = require(Forge.genres["survival-coop"].module.ToolTiers)
+local GuideEvents = require(Forge.genres["survival-coop"].module.GuideEvents)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	content, source, wildlifePolicy =
 		world.roleContent or content, world.roleSource or source, world.roleWildlife or wildlifePolicy
@@ -436,6 +437,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 			repository = world.musicRepository,
 			decode = world.musicDecode,
 			inRange = range.inRange,
+			owns = function(actor: string, instrumentId: string): boolean
+				local data = personalData(actor)
+				for _, item in if data then data.inventory.bag.items else {} do
+					if item.catalogId == "instrument-" .. instrumentId and item.quantity > 0 then
+						return true
+					end
+				end
+				return false
+			end,
 			serverNow = function()
 				return workspace:GetServerTimeNow()
 			end,
@@ -647,7 +657,14 @@ return function(content: any, source, world, backend, clock, options, provision,
 			end,
 			snapshot = function(actor)
 				local document, reason = expeditionStore.snapshot(actor)
-				return if document then document.archipelago else nil, reason
+				if not document then
+					return nil, reason
+				end
+				-- Mission reputation (four organizations) rides along for ui.organizations; it is
+				-- an expedition-owned ledger kept beside, not inside, the active expedition.
+				local view: any = if document.archipelago then table.clone(document.archipelago) else {}
+				view.reputation = table.clone(document.reputation or {})
+				return view, nil
 			end,
 			drain = expeditionStore.drain,
 			releaseActor = function(actor)
@@ -1160,6 +1177,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 			end,
 		}
 	end)
+	table.insert(extensionFactories, function(): any
+		return require(Forge.genres["survival-coop"].module.RecipeMarks).factory(journalPort, content.recipes)
+	end)
 	table.insert(extensionFactories, function(ctx)
 		local journalContext = table.clone(ctx)
 		journalContext.journal = journalPort
@@ -1272,28 +1292,14 @@ return function(content: any, source, world, backend, clock, options, provision,
 				return { ok = true }
 			end
 			development.events[receiptId] = true
-			for _, guide in content.guides or {} do
-				if
-					(guide.gates.characterLevel or 1)
-						<= ((personalData(actor) or {}).progression or { level = 1 }).level
-					and (guide.gates.developmentRank or 0) <= developmentFacts(document).grade
-					and not development.definitions[guide.id]
-				then
-					local complete = true
-					for _, objective in guide.objectives do
-						if objective.action == event.action and objective.target == event.target then
-							development.progress[objective.id] =
-								math.min(objective.quantity, (development.progress[objective.id] or 0) + event.quantity)
-						end
-						complete = complete and (development.progress[objective.id] or 0) >= objective.quantity
-					end
-					if complete then
-						development.definitions[guide.id] = true
-						development.points += guide.rewards.development or 0
-						ArchipelagoExtension.enqueueGuide(document, guide)
-						guideCompleted = true
-					end
-				end
+			local level = ((personalData(actor) or {}).progression or { level = 1 }).level
+			for _, guide in
+				GuideEvents.apply(content, development, level, function(points)
+					return developmentFacts({ development = { points = points } }).grade
+				end, event)
+			do
+				ArchipelagoExtension.enqueueGuide(document, guide)
+				guideCompleted = true
 			end
 			document.development = development
 			return { ok = true }
@@ -1491,14 +1497,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 					local entry = data.workshop.entries[request.args[1]]
 					recipe = if entry then entry.job.recipeId else nil
 				end
-				local event: any = nil
-				if action == "craft-complete" and recipe then
-					event = { action = "craft", target = recipe, quantity = 1 }
-				elseif action == "rest" then
-					event = { action = "rest", target = "rw.onboarding.rest-mat", quantity = 1 }
-				elseif action == "home-place" then
-					event = { action = "place", target = request.args[2].kind, quantity = 1 }
-				end
+				-- Guide facts are read before the command consumes or moves what the event names.
+				local guideFacts = {
+					recipe = recipe,
+					content = content,
+					bag = if data then data.inventory.bag.items else nil,
+					market = if data then data.market else nil,
+					home = if homeOwner and string.sub(action, 1, 5) == "home-" then homeOwner.snapshot(actor) else nil,
+				}
+				local event: any = GuideEvents.event(action, request.args, guideFacts, { ok = true })
 				if chapterId and (event or action == "gather") then
 					local staged =
 						journalFeed.stage(actor, tostring(request.sessionEpoch) .. ":" .. request.requestId, {
@@ -1515,6 +1522,17 @@ return function(content: any, source, world, backend, clock, options, provision,
 					end
 				end
 				local result = command(actor, request)
+				-- The transfer authority folds warehouse reach into UNAUTHORIZED; name the reach so the
+				-- player sees "walk to the warehouse" (p43 Studio: bag deposit showed a generic refusal).
+				if
+					(action == "transfer-deposit" or action == "transfer-withdraw")
+					and not result.ok
+					and result.reason == "UNAUTHORIZED"
+					and not ports.warehouse(actor)
+				then
+					result = table.clone(result)
+					result.reason = "WAREHOUSE_UNREACHABLE"
+				end
 				if chapterId then
 					recoverJournal(actor)
 				end
@@ -1540,6 +1558,17 @@ return function(content: any, source, world, backend, clock, options, provision,
 					end)
 				end
 				local commandOrigin = if method == "commandServer" then "server" else "client"
+				-- Extension actions settle in their own aggregates (and replay from their own receipts);
+				-- only personal-executor actions leave a personal ledger receipt to check here.
+				event = GuideEvents.event(action, request.args, guideFacts, result)
+				if event and result.ok and not GuideEvents.ledgered(action) then
+					factoryPorts.recordDevelopment(
+						actor,
+						tostring(request.sessionEpoch) .. ":" .. request.requestId,
+						event
+					)
+					return result
+				end
 				if
 					not result.ok
 					or not session.committedReceipt(

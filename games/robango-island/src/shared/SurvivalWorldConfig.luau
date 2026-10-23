@@ -148,12 +148,28 @@ local nodes: { Node } = {
 		["position"] = { ["x"] = 86, ["y"] = -2.25, ["z"] = -36 },
 		["qualityMilli"] = 1000,
 	},
+	-- p45: branch and stone for guides g01/g02 and the starter axe (the p43 preview had neither).
+	[21] = {
+		["catalogId"] = "branch-pile",
+		["charges"] = 3,
+		["id"] = "branch-pile-01",
+		["position"] = { ["x"] = -14, ["y"] = 2, ["z"] = 4 },
+		["qualityMilli"] = 1000,
+	},
+	[22] = {
+		["catalogId"] = "stone-pile",
+		["charges"] = 3,
+		["id"] = "stone-pile-01",
+		["position"] = { ["x"] = 14, ["y"] = 2, ["z"] = 4 },
+		["qualityMilli"] = 1000,
+	},
 }
 return {
 	["archipelago"] = { ["entryBufferSeconds"] = 30 },
 	["nodes"] = nodes,
 	["persistencePrefix"] = "s:24ec98ed6876c584",
-	["sourceKey"] = "nodes-v2",
+	-- nodes-v3: two nodes were added; a v2 save has no respawn timers for them (see content-p0.md).
+	["sourceKey"] = "nodes-v3",
 	["tribe"] = {
 		["config"] = { ["cellStuds"] = 4, ["depth"] = 12, ["maxMembers"] = 4, ["tribeId"] = "camp", ["width"] = 16 },
 		["key"] = "camp-v1",

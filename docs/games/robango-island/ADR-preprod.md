@@ -62,8 +62,46 @@ Core and genre files changed per commit (`git show --name-only -- core genres`):
   - `genres/survival-coop/module/DinosaurRig.luau`, `DinosaurRig.spec.luau`
   - `genres/survival-coop/module/GatheringClient.luau`, `GatheringClient.spec.luau`, `GatheringClientPrompt.spec.luau`
   - `genres/survival-coop/module/SurvivalWorld.luau`, `ToolTiers.luau`, `ToolTiers.spec.luau`
+- `0a85071`: none.
+- `e00b1c2`:
+  - `core/domain/island/ArchipelagoTerrain.luau`, `core/infra/render/MeshAdapter.luau`
+- `ba14665`: none (CLI only).
+- The 2026-10-23 late-service batch (the commit this note ships in) is the
+  largest of these: 7 core files and 66 `genres/survival-coop` files. New genre
+  modules are `Stance.luau`, `StanceExtension.luau`, `GuideEvents.luau`,
+  `GuidePanel.luau`, `OperationExtension.luau`, `OperationPanel.luau`,
+  `OrganizationsPanel.luau`, `RecipeMarks.luau` and `CosmeticVisual.luau`; new
+  core files are `core/domain/survival/Spoilage.luau` and its spec. Run
+  `git show --name-only -- core genres` on that commit for the full list.
 
 **Not landed.** The ProcProps patch is still uncommitted. It touches
-`core/infra/render/MeshAdapter.luau`, `core/domain/procgen/Prop.luau`,
-`core/domain/procgen/Prop.spec.luau` and `cli/forge/lib/procgen.luau`, and it
-is not covered by this note.
+`core/domain/procgen/Prop.luau`, `core/domain/procgen/Prop.spec.luau` and
+`cli/forge/lib/procgen.luau`, and it is not covered by this note.
+
+## ADR-11: `locale/strings.csv` ships as a LocalizationTable, not as Luau tables (2026-10-23)
+
+**Decision.** The pack's authored text reaches the client through a single
+LocalizationTable built from `games/robango-island/locale/strings.csv`, mounted
+at `Forge.games["robango-island"].Strings` by `default.project.json`. The three
+modules that hand-copied those rows — `EntityNames.luau` (23.5 KB),
+`JournalText.luau` (11.1 KB) and `MissionText.luau` (11.9 KB) — are deleted, and
+a 2.9 KB `src/shared/PackText.luau` rebuilds the entity names and the authored
+journal and mission lines from the table at runtime.
+
+**Why.** The QA-PERF-01 static source budget (`qa-evidence.spec.luau`) caps the
+built place at 3,000,000 source bytes and the batch had crossed it at 3,009,159.
+A LocalizationTable is not a script, so the CSV no longer counts against source
+bytes; it costs 66 KB of place file instead, which has its own, looser budget.
+
+**Consequences.**
+- `strings.csv` is the single source of this text. Adding a row is enough; there
+  is no Luau copy to keep in step, and no codegen step either.
+- Specs read the same builder over the real CSV through
+  `games/robango-island/PackText.fixture.luau`, which is not built into the place.
+- A pack that wants pack text on the client follows the same shape; nothing in
+  `core` or `genres` changed for it.
+
+**Evidence.** `entity-names.spec.luau`, `mission-text.spec.luau` (EN and KO for
+every mission `dialogueKeys` entry, plus a case asserting the project ships the
+table and the client reads it), `social-panels.spec.luau`, and QA-PERF-01 itself,
+which now measures 2,959,389 source bytes and 1,250,997 place bytes.

@@ -467,6 +467,10 @@ for _, actions in
 		require("./HomeExtension").actions(),
 		require("./OutpostExtension").leaveActions(),
 		require("./DirectTradeExtension").actions(),
+		-- Appended last: earlier durable action indices stay put.
+		require("./RecipeMarks").actions(),
+		require("./OperationExtension").actions(),
+		require("./StanceExtension").actions(),
 	}
 do
 	for _, action in actions do

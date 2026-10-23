@@ -53,7 +53,8 @@ local SPECIES_BIOME: { [string]: string } = {
 	["fen-trotter"] = "marsh",
 }
 
-local LANDING_NODES = { "fallen-tree", "flint-outcrop", "fiber-bush", "berry-bush", "meat-cache" }
+local LANDING_NODES =
+	{ "fallen-tree", "flint-outcrop", "fiber-bush", "berry-bush", "meat-cache", "branch-pile", "stone-pile" }
 
 local function placementErrors(world: any, policy: any): { string }
 	local errors: { string } = {}

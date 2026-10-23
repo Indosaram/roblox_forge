@@ -242,6 +242,66 @@ return {
 			end
 		end
 	end,
+	["home republishing an unchanged state does no render work"] = function()
+		local engine = Engine.new()
+		local workspace = engine.game:GetService("Workspace")
+		local fills = 0
+		workspace.Terrain.FillBlock = function()
+			fills += 1
+		end
+		local source: any = table.clone(Source)
+		source.seed, source.renderRole = 79, engine.role.build
+		local world = engine.home.live(Content, source, Policy, function()
+			return 0
+		end)
+		local rules = HomeContent.rules(Content)
+		local state = Home.new("owner", rules, 79)
+		world.publishHome(state, rules)
+		local first = fills
+		assert(first > 0, "the first publish renders the land")
+		-- Snapshot reads publish a fresh copy every server frame; none of them may re-render.
+		for _ = 1, 5 do
+			world.publishHome(Home.copy(state), rules)
+		end
+		assert(fills == first, "unchanged home re-rendered " .. (fills - first) .. " terrain blocks")
+		state.landRank = 2
+		world.publishHome(state, rules)
+		assert(fills > first, "a changed home still renders")
+		world.destroy()
+	end,
+	["every archipelago stage arrival is inside a gather prompt's activation range"] = function()
+		local roblox = require("@lune/roblox")
+		local checked = 0
+		for _, layout in Content.layouts do
+			if not string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+				continue
+			end
+			local engine = Engine.new(nil, true)
+			local workspace = engine.game:GetService("Workspace")
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layout.id, 1776)
+			world.bind({} :: any)
+			engine.move("1", { x = 0, y = 0, z = 0 })
+			local client = engine.gatherClient("1", function()
+				return { ok = true }
+			end)
+			local root = workspace:FindFirstChild("ForgeRoleWorld")
+			-- SurvivalWorld places an arriving character at the spawn + 4 studs.
+			local at = root:FindFirstChild("SurvivalSpawn").Position + roblox.Vector3.new(0, 4, 0)
+			local best = math.huge
+			for _, prompt in root:GetDescendants() do
+				if prompt:IsA("ProximityPrompt") and prompt.Name == "ForgeGather" then
+					best = math.min(best, (prompt.Parent.Position - at).Magnitude - prompt.MaxActivationDistance)
+				end
+			end
+			assert(best <= 0, layout.id .. " arrival is " .. best .. " studs outside every gather prompt")
+			client.destroy()
+			world.destroy()
+			checked += 1
+		end
+		assert(checked == 20, "all 20 archipelago stages checked")
+	end,
 	["every onboarding spawn has an immediately reachable gather prompt"] = function()
 		local roblox = require("@lune/roblox")
 		for _, preview in { true, false } do
@@ -420,6 +480,42 @@ return {
 			assert(world.structureKits:FindFirstChild(definition.id), "live kit missing: " .. definition.id)
 		end
 		world.destroy()
+	end,
+	["every live Topology role boots through SurvivalWorldBootstrap with a world builder"] = function()
+		local Topology = require("../../core/domain/island/Topology")
+		local roles = {}
+		for role in Topology.ROLES do
+			if role ~= "onboarding" then
+				table.insert(roles, role)
+			end
+		end
+		table.sort(roles)
+		assert(#roles == 11, "every non-onboarding role covered")
+		for _, region in Content.supportRegions do
+			assert(Topology.ROLES[region.role], region.id .. " names unknown live role " .. tostring(region.role))
+		end
+		for _, role in roles do
+			local engine = Engine.new()
+			local bootstrap = engine.load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
+				["./WorldDressing"] = engine.dressing,
+			}, {
+				Parent = {
+					RoleWorld = engine.role,
+					HomeWorld = engine.home,
+					BrawlWorld = require("./src/server/BrawlWorld"),
+				},
+			})
+			local source: any = table.clone(Source)
+			if role == "archipelago" then
+				source.expedition = { status = "active", templateId = "rw.a1", stage = 1, seed = 79 }
+			end
+			local ok, world = pcall(bootstrap, Content, source, Policy, function()
+				return 0
+			end, role, false)
+			assert(ok, role .. " boot failed: " .. tostring(world))
+			assert(world.roleSource and #world.roleSource.nodes >= 0, role .. " world has a role source")
+			world.destroy()
+		end
 	end,
 	["starter camp berry shrub is rounded and storage uses woven stacked baskets"] = function()
 		local engine = Engine.new()

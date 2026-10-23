@@ -12,6 +12,7 @@ local Wildlife = require("./Wildlife")
 local WildlifeWorld = require("./WildlifeWorld")
 local DinosaurRig = require("./DinosaurRig")
 local MountVisual = require("./MountVisual")
+local CosmeticVisual = require("./CosmeticVisual")
 local Archetype = require("../../../core/domain/survival/Archetype")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local CharacterRules = require("./CharacterRules")
@@ -24,6 +25,8 @@ export type Config = {
 	carriedContainer: string,
 	reachStuds: number,
 	baseWalkSpeed: number,
+	-- Paid cosmetic looks (mount skins, worn sets); absent means cosmetics render nothing.
+	cosmetics: CosmeticVisual.Config?,
 	-- Retry pacing needs a monotonic seconds clock. Production omits it and gets
 	-- os.clock(); specs inject a deterministic one so no test waits on wall time.
 	now: (() -> number)?,
@@ -357,7 +360,8 @@ function M.new(config: Config)
 		end
 		mount.model:Destroy()
 	end
-	local function attachMount(id: string, species: string)
+	local function attachMount(id: string, key: string)
+		local species, skin = MountVisual.parse(key)
 		local actor = player(id)
 		local character = if actor then actor.Character else nil
 		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
@@ -382,6 +386,9 @@ function M.new(config: Config)
 				break
 			end
 		end
+		if skin and config.cosmetics then
+			visual = CosmeticVisual.mount(visual, config.cosmetics.mountSkins[skin])
+		end
 		local model = MountVisual.dress(
 			DinosaurRig.new(engine, MountVisual.MODEL_NAME, rider.Position, character, envelope, visual)
 		)
@@ -390,7 +397,8 @@ function M.new(config: Config)
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0, weld.Part1, weld.Parent = rider, body, body
 		model:SetAttribute("ForgeMountSpecies", species)
-		mounts[id] = { species = species, model = model, humanoid = humanoid, hip = humanoid.HipHeight }
+		model:SetAttribute("ForgeMountSkin", skin)
+		mounts[id] = { species = key, model = model, humanoid = humanoid, hip = humanoid.HipHeight }
 		humanoid.HipHeight += MountVisual.SEAT.liftStuds
 	end
 	local function syncMounts(active: Session.Session, members: { string })
@@ -414,7 +422,17 @@ function M.new(config: Config)
 				continue
 			end
 			local shared = active.snapshot(id).survivalExtensions
-			local species = MountVisual.species(if type(shared) == "table" then shared.taming else nil)
+			local extensions = if type(shared) == "table" then shared else nil
+			-- Worn paid cosmetics (cloak/banner sets) follow the monetization appearance.
+			local actor = player(id)
+			if config.cosmetics and actor and actor.Character then
+				local shop = if extensions then extensions.monetization else nil
+				CosmeticVisual.dressWear(
+					actor.Character,
+					CosmeticVisual.wear(config.cosmetics, if type(shop) == "table" then shop.appearance else nil)
+				)
+			end
+			local species = MountVisual.look(if extensions then extensions.taming else nil)
 			if species then
 				wanted[id] = species
 			end

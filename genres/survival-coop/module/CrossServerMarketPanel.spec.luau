@@ -2,7 +2,7 @@
 local Panel = require("./CrossServerMarketPanel")
 local Locale = require("./SurvivalHUDLocale")
 -- Mounts the panel against recording fakes: every created node, widget props and harbor-sell result.
-local function mount(harborResult: any, locale: string?): any
+local function mount(harborResult: any, locale: string?, listResult: any?, gate: string?, noMarket: boolean?): any
 	local nodes: { any } = {}
 	local promptSignal: any = nil
 	local gui: any = nil
@@ -39,6 +39,11 @@ local function mount(harborResult: any, locale: string?): any
 	}
 	local panel = Panel.factory({
 		locale = locale or "en-us",
+		color3 = {
+			fromRGB = function(r, g, b)
+				return { r = r, g = g, b = b }
+			end,
+		},
 		icons = {
 			item = function(id)
 				return { text = id }
@@ -94,6 +99,9 @@ local function mount(harborResult: any, locale: string?): any
 		end,
 		send = function(action, args)
 			table.insert(sends, { action = action, args = args })
+			if action == "survival-coop:market-list" and listResult then
+				return listResult
+			end
 			return if action == "survival-coop:harbor-sell" then harborResult else { ok = true }
 		end,
 	})
@@ -108,9 +116,14 @@ local function mount(harborResult: any, locale: string?): any
 			claims = {},
 			page = 1,
 			pages = 0,
+			eligible = gate == nil,
+			ineligibleReason = gate,
 		},
 	}
 	state["harbor-buyback"] = { prices = { wood = 1 }, dailyUnits = 200, remaining = 7 }
+	if noMarket then
+		(state :: any).market = nil
+	end
 	listener(state)
 	local rows: { any } = {}
 	for _, value in nodes do
@@ -146,6 +159,15 @@ local function sellRow(rows: { any }): number
 	error("harbor sell button missing")
 end
 return {
+	["p45 a server without a market slice says the market is unavailable, never loading (EN/KO)"] = function()
+		for locale, word in { ["en-us"] = "unavailable", ["ko-kr"] = "쓸 수 없어요" } :: { [string]: string } do
+			local ui = mount({ ok = true }, locale, nil, nil, true)
+			assert(string.find(ui.status.Text, word, 1, true), locale .. ": " .. tostring(ui.status.Text))
+			assert(not string.find(ui.status.Text, "loading", 1, true), "no loading claim")
+			assert(not string.find(ui.status.Text, "불러오는 중", 1, true), "no loading claim (ko)")
+			ui.panel.destroy()
+		end
+	end,
 	["harbor rows read in LayoutOrder sequence: label, quantity box, then Sell"] = function()
 		local ui = mount({ ok = true })
 		assert(ui.layout and ui.layout.SortOrder == "LayoutOrder", "list layout sorts by LayoutOrder")
@@ -394,5 +416,74 @@ return {
 			)
 			panel.destroy()
 		end
+	end,
+	["p45 market list inputs are labelled, dark-themed, and a refusal names its gate under List (EN/KO)"] = function()
+		for locale, expected in
+			{
+				["en-us"] = { "Quantity", "Whole bundle price (shellmoney)", "2 hours" },
+				["ko-kr"] = { "수량", "묶음 전체 가격 (조개돈)", "2시간" },
+			} :: { [string]: { string } }
+		do
+			local ui = mount(
+				{ ok = true },
+				locale,
+				{ ok = false, reason = "INELIGIBLE_PLAYTIME" },
+				"INELIGIBLE_PLAYTIME"
+			)
+			local list, listIndex = nil, nil
+			for index, row in ui.rows do
+				if string.find(tostring(row.Text), Locale.text(locale, "trade.bundle.list") .. ":", 1, true) then
+					list, listIndex = row, index
+				end
+			end
+			assert(list and listIndex, "list button")
+			local price, priceCaption = ui.rows[listIndex - 1], ui.rows[listIndex - 2]
+			local quantity, quantityCaption = ui.rows[listIndex - 3], ui.rows[listIndex - 4]
+			assert(quantity.Text == "1" and price.Text == "10", "quantity and price boxes precede List")
+			assert(quantityCaption.Text == expected[1] and quantityCaption.Name == "InputCaption", "quantity caption")
+			assert(priceCaption.Text == expected[2] and priceCaption.Name == "InputCaption", "price caption")
+			for _, box in { quantity, price } do
+				assert(box.PlaceholderText ~= nil and box.BorderSizePixel == 0, "labelled placeholder, no border")
+				assert(box.BackgroundColor3.r < 40 and box.TextColor3.r > 200, "dark field with light text")
+			end
+			local blocked = false
+			for _, row in ui.rows do
+				blocked = blocked or (row.Name == "ListBlocked" and string.find(row.Text, expected[3], 1, true) ~= nil)
+			end
+			assert(blocked, locale .. ": the eligibility gate is shown before a press")
+			for _, props in ui.widgets do
+				if props.node == list then
+					props.onClick()
+				end
+			end
+			local sent = ui.sends[#ui.sends]
+			assert(sent.action == "survival-coop:market-list", "list command")
+			assert(sent.args[1] == "exact" and sent.args[2] == 1 and sent.args[3] == 10, "panel args")
+			local below = ui.rows[listIndex + 1]
+			assert(below.Name == "ListStatus" and below.Visible == true, "status row right below List")
+			assert(string.find(below.Text, expected[3], 1, true), locale .. ": refusal names the gate: " .. below.Text)
+			assert(not string.find(below.Text, "INELIGIBLE", 1, true), "never the raw code")
+			ui.panel.destroy()
+		end
+	end,
+	["p45 every market-list refusal code has its own KO/EN line"] = function()
+		for _, code in Panel.listRefusalCodes() do
+			for _, locale in { "en-us", "ko-kr" } do
+				local line = Panel.listRefusal(locale, code)
+				assert(line ~= Panel.listRefusal(locale, "NEVER_A_CODE"), code .. " " .. locale .. " is specific")
+				assert(not string.find(line, "_", 1, true) and line ~= code, code .. " is a sentence")
+			end
+		end
+		for _, code in { "INELIGIBLE_ACCOUNT_AGE", "INELIGIBLE_PLAYTIME", "INELIGIBLE_TUTORIAL", "INVALID_ACCOUNT" } do
+			assert(table.find(Panel.listRefusalCodes(), code), code .. " mapped")
+		end
+		assert(
+			Panel.listRefusal("en-us", "TRANSPORT_FAILED: timeout") == Panel.listRefusal("en-us", "TRANSPORT_FAILED"),
+			"transport prefix"
+		)
+		assert(
+			Panel.listRefusal("ko-kr", "INELIGIBLE_PLAYTIME") ~= Panel.listRefusal("ko-kr", "INELIGIBLE_TUTORIAL"),
+			"distinct gates"
+		)
 	end,
 }

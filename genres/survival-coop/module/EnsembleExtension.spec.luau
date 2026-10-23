@@ -37,6 +37,52 @@ return {
 			)
 		end
 	end,
+	["ensemble join is refused unless the actor owns the part's instrument"] = function()
+		local owned: { [string]: boolean } = {}
+		local score = { version = 1, tempo = 120, parts = { { instrumentId = "flute", notes = {} } } }
+		local extension = Extension.new({
+			rules = Rules,
+			decode = function(text)
+				return serde.decode("json", text)
+			end,
+			now = function()
+				return 0
+			end,
+			inRange = function()
+				return true
+			end,
+			owns = function(actor: string, instrumentId: string): boolean
+				return owned[actor .. ":" .. instrumentId] == true
+			end,
+			repository = {
+				canRead = function()
+					return true
+				end,
+				load = function()
+					return score
+				end,
+			},
+		})
+		local function join(actor: string): any
+			return extension.command(
+				actor,
+				"survival-coop:ensemble-join",
+				{ "s", 1, 1 } :: { any },
+				{},
+				"client",
+				function()
+					return { ok = true }
+				end
+			)
+		end
+		local refused = join("7")
+		assert(not refused.ok and refused.reason == "ensemble.instrument", "no flute: " .. tostring(refused.reason))
+		assert(extension.snapshot("7").room == nil, "a refused join opens no room")
+		owned["7:piano"] = true
+		assert(join("7").reason == "ensemble.instrument", "another instrument does not play the flute part")
+		owned["7:flute"] = true
+		assert(join("7").ok and extension.snapshot("7").room.members["7"], "the flute owner joins")
+	end,
 	["score share refuses a non-numeric or self recipient before the fence and repository"] = function()
 		local calls = 0
 		local extension = Extension.new({

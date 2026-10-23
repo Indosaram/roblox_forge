@@ -92,6 +92,8 @@ local Players = game:GetService("Players")
 local MarketplacePort = require(Forge.core.infra.monetization.MarketplacePort)
 local PolicyPort = require(Forge.core.infra.monetization.PolicyPort)
 local entitlementFactory: any = nil
+local Cosmetics = require(Shared.CosmeticConfig)
+local CosmeticVisual = require(Forge.genres["survival-coop"].module.CosmeticVisual)
 require(Forge.genres["survival-coop"].module.MonetizationExtension).configure({
 	catalog = require(Shared.MonetizationCatalog) :: any,
 	marketplace = MarketplacePort.roblox(game:GetService("MarketplaceService"), Players, Enum.ProductPurchaseDecision),
@@ -103,6 +105,13 @@ require(Forge.genres["survival-coop"].module.MonetizationExtension).configure({
 					entitlementFactory.refreshWarehouse(actor)
 				end
 			end)
+		end,
+		-- Every sold cosmetic renders (CosmeticConfig): mount skins on the ride, worn sets on the rider.
+		skinSupported = function(skin)
+			return CosmeticVisual.supported(Cosmetics, skin)
+		end,
+		skinSlot = function(skin)
+			return CosmeticVisual.slot(Cosmetics, skin)
 		end,
 	},
 })

@@ -110,7 +110,7 @@ local function harness(locale: string): any
 		content = Content,
 		state = {},
 		name = function(id: string): string
-			return require("../../../games/robango-island/src/shared/EntityNames")(locale)[id] or id
+			return require("../../../games/robango-island/PackText.fixture").names(locale)[id] or id
 		end,
 	}
 	local ctx: any = {
@@ -226,7 +226,7 @@ return {
 		assert(first and second and first < second, "newest first: " .. table.concat(texts, " | "))
 		assert(h.find("ClaimExpedition-new"), "unclaimed row has Claim")
 		assert(h.find("ClaimExpedition-old") == nil, "claimed row has no Claim")
-		local wood = require("../../../games/robango-island/src/shared/EntityNames")("en-us").wood
+		local wood = require("../../../games/robango-island/PackText.fixture").names("en-us").wood
 		assert(table.find(texts, Text.text("en-us", "inbox_expedition_items", wood .. " x3")), "items listed")
 	end,
 	["claim from the inbox goes through the expedition claim verb once"] = function()

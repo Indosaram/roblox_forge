@@ -8,15 +8,16 @@ local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
+local Terrain = require("../../core/domain/island/ArchipelagoTerrain")
 
 -- Roblox auto-steps about 2 studs; 0.75 studs/stud is about 37 degrees.
 local MAX_STEP = 2.5
 local MAX_SLOPE = 0.75
 local SPACING = 2
-
-local function organic(id: string): boolean
-	return id == "rw.harbor" or string.match(id, "^rw%.a%d+%.s%d+$") ~= nil
-end
+-- An authored point is reached when a flood-filled walk sample within REACH studs stands
+-- within MAX_STEP of its height. The water surface is y = -4; drier samples are walkable.
+local REACH = 12
+local DRY = -3.5
 
 -- Highest solid surface at (x, z) from the recorded fills, binned by 32-stud tiles.
 local function topAt(engine: any, roblox: any): (number, number) -> number
@@ -128,12 +129,87 @@ local function measure(engine: any, layout: any, roblox: any): (number, string, 
 	return step, stepAt, slope, slopeAt
 end
 
+-- Flood-fills the walk surface on a SPACING grid from the entry dock: a move between 4-neighbours
+-- is allowed when both are dry and the step is at most MAX_STEP. Returns authored points that no
+-- reached sample within REACH studs (and within MAX_STEP of the point's height) supports.
+local function unreachable(engine: any, layout: any, roblox: any): { string }
+	local top, ribbon = topAt(engine, roblox), ribbonAt(layout)
+	local low, high = layout.bounds.min, layout.bounds.max
+	local heights: { [number]: number } = {}
+	local function key(i: number, j: number): number
+		return i * 65536 + j
+	end
+	local function height(i: number, j: number): number
+		local k = key(i, j)
+		local y = heights[k]
+		if y == nil then
+			y = math.max(top(i * SPACING, j * SPACING), ribbon(i * SPACING, j * SPACING))
+			heights[k] = y
+		end
+		return y
+	end
+	local entry = layout.anchors[1].position
+	for _, anchor in layout.anchors do
+		if anchor.id == "entry" then
+			entry = anchor.position
+		end
+	end
+	local margin = 64 / SPACING
+	local i0, i1 = math.floor(low.x / SPACING) - margin, math.ceil(high.x / SPACING) + margin
+	local j0, j1 = math.floor(low.z / SPACING) - margin, math.ceil(high.z / SPACING) + margin
+	local start = { math.round(entry.x / SPACING), math.round(entry.z / SPACING) }
+	local reached: { [number]: boolean } = { [key(start[1], start[2])] = true }
+	local queue, head = { start }, 1
+	while head <= #queue do
+		local at = queue[head]
+		head += 1
+		local y = height(at[1], at[2])
+		for _, d in { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } do
+			local i, j = at[1] + d[1], at[2] + d[2]
+			local k = key(i, j)
+			if not reached[k] and i >= i0 and i <= i1 and j >= j0 and j <= j1 then
+				local n = height(i, j)
+				if n > DRY and math.abs(n - y) <= MAX_STEP then
+					reached[k] = true
+					table.insert(queue, { i, j })
+				end
+			end
+		end
+	end
+	local missing = {}
+	local r = math.ceil(REACH / SPACING)
+	for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+		for _, item in list do
+			local p = item.position
+			local ci, cj = math.round(p.x / SPACING), math.round(p.z / SPACING)
+			local best = math.huge
+			for i = ci - r, ci + r do
+				for j = cj - r, cj + r do
+					local distance = math.sqrt((i * SPACING - p.x) ^ 2 + (j * SPACING - p.z) ^ 2)
+					if
+						distance < best
+						and distance <= REACH
+						and reached[key(i, j)]
+						and math.abs(height(i, j) - p.y) <= MAX_STEP
+					then
+						best = distance
+					end
+				end
+			end
+			if best == math.huge then
+				table.insert(missing, string.format("%s (%.0f,%.0f,%.0f)", item.id, p.x, p.y, p.z))
+			end
+		end
+	end
+	return missing
+end
+
 return {
-	["every path on harbor and stage islands is walkable without jumping"] = function()
+	["every path on harbor, stage and frontier islands is walkable without jumping"] = function()
 		local roblox = require("@lune/roblox")
 		local checked, failures = 0, {}
 		for _, layout in Content.layouts do
-			if not organic(layout.id) then
+			if not Terrain.graded(layout) then
 				continue
 			end
 			local engine = Engine.new(nil, true)
@@ -147,10 +223,13 @@ return {
 			if slope > MAX_SLOPE then
 				table.insert(failures, string.format("%s slope %.2f at %s", layout.id, slope, slopeAt))
 			end
+			for _, missing in unreachable(engine, layout, roblox) do
+				table.insert(failures, string.format("%s unreachable %s", layout.id, missing))
+			end
 			checked += 1
 			world.destroy()
 		end
 		assert(#failures == 0, table.concat(failures, "\n"))
-		assert(checked >= 21, "harbor and stage layouts measured: " .. checked)
+		assert(checked >= 25, "harbor, stage and frontier layouts measured: " .. checked)
 	end,
 }

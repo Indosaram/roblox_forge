@@ -56,9 +56,45 @@ function M.build(config: any): any
 	return parts
 end
 
+local function copy(value: any): any
+	if type(value) ~= "table" then
+		return value
+	end
+	local out = {}
+	for key, child in value do
+		out[key] = copy(child)
+	end
+	return out
+end
+
+local function same(a: any, b: any): boolean
+	if type(a) ~= "table" or type(b) ~= "table" then
+		return a == b
+	end
+	for key, value in a do
+		if not same(value, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
+end
+
 function M.live(content: any, source: any, wildlife: any, nowMillis: any): any
 	local world = source.renderRole(content, source, wildlife, nowMillis, "rw.home", source.seed)
+	-- Every durable home snapshot publishes, and the survival/wildlife Heartbeats read snapshots
+	-- each server frame. The plan is pure in (home, rules), so an unchanged state re-renders
+	-- nothing: renderHome rewrites the whole land's Terrain, which halved the home frame rate.
+	local lastHome, lastRules = nil, nil
 	world.publishHome = function(home: any, rules: any)
+		if rules == lastRules and same(home, lastHome) then
+			return
+		end
+		lastHome, lastRules = copy(home), rules
 		world.renderHome(M.plan(content, home, rules))
 	end
 	return world

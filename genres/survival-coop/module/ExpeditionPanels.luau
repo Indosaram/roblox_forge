@@ -102,6 +102,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			routes.render(Models.routes(locale, latest, ctx.names, function(route)
 				view = { kind = "confirm", route = route }
 				render()
+			end, function()
+				-- Guides raise the island grade; the rank sheet lists them (contracts give XP).
+				if ctx.open and not ctx.open("guides") and not ctx.open("island-rank") then
+					ctx.open("contracts")
+				end
 			end))
 		end
 		party.render(Models.party(locale, latest, me, others(), function(verb, arg)

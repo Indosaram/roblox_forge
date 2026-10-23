@@ -246,6 +246,36 @@ local SCORE = '{"version":1,"tempo":120,"parts":[{"instrumentId":"piano","notes"
 	.. '{"startTick":0,"durationTicks":480,"pitch":60,"velocity":90}]}]}'
 
 return {
+	["navigator routes Inbox to the registered inbox panel"] = function()
+		for _, locale in { "en-us", "ko-kr" } do
+			local function availability(id: string): (boolean, boolean, string?)
+				return id == "inbox", id == "inbox", nil
+			end
+			local inbox: any = nil
+			for _, row in Navigator.model(locale, availability) do
+				if row.text == Text.text(locale, "nav_inbox") then
+					inbox = row
+				end
+			end
+			assert(inbox and inbox.open and inbox.id == "inbox", locale .. " inbox row opens the inbox panel")
+			local opened: string? = nil
+			assert(Navigator.press(inbox, function(id)
+				opened = id
+				return true
+			end) == nil and opened == "inbox", "press opens inbox")
+			local function missing(_id: string): (boolean, boolean, string?)
+				return false, false, nil
+			end
+			for _, row in Navigator.model(locale, missing) do
+				if row.id == "inbox" then
+					assert(
+						not row.open and row.reason == Text.text(locale, "lock_unknown"),
+						"unregistered inbox stays locked"
+					)
+				end
+			end
+		end
+	end,
 	["navigator lists locked screens with their reason and opens unlocked ones"] = function()
 		for _, locale in { "en-us", "ko-kr" } do
 			Selection.set(nil)
@@ -254,7 +284,7 @@ return {
 			local screens = world.load("MusicScreens").factory(ctx)
 			world.load("NavigatorPanel").factory(ctx)
 			docks.navigator.entry.setOpen(true)
-			-- Share is registered but locked until a score is saved; inbox has no screen yet.
+			-- Share is registered but locked until a score is saved; inbox is not mounted in this harness.
 			local share = world.find("Nav-score-share")
 			assert(
 				share.Text
@@ -270,18 +300,19 @@ return {
 			local status = world.find("NavigatorStatus")
 			assert(status.Visible and status.Text == Text.text(locale, "lock_unsaved"), "lock reason shown")
 			assert(not docks["score-share"].entry.isOpen(), "locked screen stays closed")
-			world
-				.find(
-					"Nav-"
-						.. Text.text(
-							locale,
-							"nav_locked",
-							Text.text(locale, "nav_inbox"),
-							Text.text(locale, "lock_inbox")
-						)
-				).Activated
-				.fire()
-			assert(textOf(status) == Text.text(locale, "lock_inbox"), "inbox reason")
+			local inboxButton = world.find("Nav-inbox")
+			assert(
+				inboxButton.Text
+					== Text.text(
+						locale,
+						"nav_locked",
+						Text.text(locale, "nav_inbox"),
+						Text.text(locale, "lock_unknown")
+					),
+				inboxButton.Text
+			)
+			inboxButton.Activated.fire()
+			assert(textOf(status) == Text.text(locale, "lock_unknown"), "unmounted inbox reason")
 			world.find("Nav-ensemble-lobby").Activated.fire()
 			assert(docks["ensemble-lobby"].entry.isOpen() and not status.Visible, "unlocked screen opens")
 			local missing = Navigator.model(locale, ctx.availability)

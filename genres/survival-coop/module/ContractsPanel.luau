@@ -42,11 +42,31 @@ local STRINGS: { [string]: { en: string, ko: string } } = {
 	tutorial_skip = { en = "Skip arrival", ko = "도착 장면 건너뛰기" },
 	tutorial_done = { en = "Tutorial complete", ko = "튜토리얼 완료" },
 	["tutorial.arrive"] = { en = "Arrive on the island", ko = "섬에 도착하세요" },
-	["tutorial.gather"] = { en = "Gather a resource", ko = "자원을 채집하세요" },
-	["tutorial.craft-stone-axe"] = { en = "Craft an axe", ko = "도끼를 만드세요" },
-	["tutorial.declare-settlement"] = { en = "Place your settlement", ko = "정착지를 세우세요" },
-	["tutorial.accept-contract"] = { en = "Accept the first contract", ko = "첫 계약을 수락하세요" },
-	["tutorial.deliver-contract"] = { en = "Deliver the first contract", ko = "첫 계약을 납품하세요" },
+	["tutorial.gather"] = {
+		en = "Gather a resource: walk up and press E",
+		ko = "자원을 채집하세요: 다가가서 E",
+	},
+	["tutorial.craft-stone-axe"] = {
+		en = "Craft an axe: press C (Menu > Craft); the pinned recipe is first",
+		ko = "도끼를 만드세요: C 키 (메뉴 > 제작), 고정된 제작법이 맨 위",
+	},
+	["tutorial.declare-settlement"] = {
+		en = "Place your settlement: store wood in the warehouse (I), then press B to build",
+		ko = "정착지를 세우세요: 가방(I)에서 창고에 나무 보관 후 B 키로 건설",
+	},
+	["tutorial.accept-contract"] = {
+		en = "Accept the first contract: Menu > Contracts",
+		ko = "첫 계약을 수락하세요: 메뉴 > 계약",
+	},
+	["tutorial.deliver-contract"] = {
+		en = "Deliver the first contract: Menu > Contracts > Deliver",
+		ko = "첫 계약을 납품하세요: 메뉴 > 계약 > 납품",
+	},
+	-- After the tutorial the onboarding chain points at route 1 (spec: guides raise the grade).
+	["tutorial.next-route"] = {
+		en = "Next: raise island grade with guides (Menu > Island rank), then open Menu > Routes",
+		ko = "다음: 가이드로 섬 개발 등급 올리기 (메뉴 > 섬 등급), 그다음 메뉴 > 항로",
+	},
 	["faction.route-surveyors"] = { en = "Route Survey Society", ko = "노선 측량 협회" },
 	["faction.artisan-guilds"] = { en = "Artisan Guild Union", ko = "장인 길드 연합" },
 	["faction.island-ecology"] = { en = "Island Ecology Trust", ko = "섬 생태 신탁" },
@@ -127,7 +147,7 @@ function M.model(locale: string, state: any, names: { [string]: string }?): any
 		rows = rows,
 		factions = factions,
 		objective = if tutorial.complete
-			then M.text(locale, "tutorial_done")
+			then M.text(locale, "tutorial.next-route")
 			else M.text(locale, tutorial.hint or "tutorial.arrive"),
 		canSkip = tutorial.complete ~= true and tutorial.step == "arrive",
 	}

@@ -65,18 +65,18 @@ return {
 			end
 		end
 	end,
-	["the gate rejects the pre-redesign a1.s1 wood (level 30)"] = function()
+	["the gate rejects a1.s1 wood above the route entry level"] = function()
 		local document = load()
 		for _, layout in document.layouts do
 			if layout.id == "rw.a1.s1" then
 				for _, node in layout.resourceNodes do
 					if node.id == "rw.a1.s1.material.wood" then
-						node.level = 30
+						node.level = 31
 					end
 				end
 			end
 		end
 		local failures = violations(document)
-		assert(table.find(failures, "rw.a1.s1.gather:wood@2") ~= nil, "old content must fail the gate")
+		assert(table.find(failures, "rw.a1.s1.gather:wood@30") ~= nil, "old content must fail the gate")
 	end,
 }

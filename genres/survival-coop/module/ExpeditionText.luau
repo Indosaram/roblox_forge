@@ -29,6 +29,15 @@ local strings: { [string]: { string } } = {
 	exp_route_cap = { "Up to %d players. Closes in %s", "최대 %d명. %s 후 마감" },
 	exp_choose = { "Choose", "선택" },
 	exp_locked = { "Locked", "잠김" },
+	exp_gate_level = {
+		"Level %d/%d: guides, contracts and missions give XP",
+		"레벨 %d/%d: 가이드·계약·미션으로 경험치를 얻어요",
+	},
+	exp_gate_rank = {
+		"Island development grade %d/%d: complete guides to raise it (+50 each, 100 per grade)",
+		"섬 개발 등급 %d/%d: 가이드 완료로 등급 상승 (가이드당 +50, 100마다 1등급)",
+	},
+	exp_open_guides = { "Open guides", "가이드 열기" },
 	exp_depart_title = { "Depart to route %d?", "항로 %d로 출발할까요?" },
 	exp_depart_body = {
 		"Stage 1 of 4. Party ready: %s. Closes in %s. You return to your home island.",

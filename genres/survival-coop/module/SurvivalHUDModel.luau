@@ -40,6 +40,8 @@ function M.new(actor: string, newId: () -> string): any
 			model.snapshot = table.clone(packet.snapshots["survival-coop"])
 			model.snapshot.contracts = packet.snapshots.survivalExtensions
 				and packet.snapshots.survivalExtensions.contracts
+			model.snapshot.recipeMarks = packet.snapshots.survivalExtensions
+				and packet.snapshots.survivalExtensions["recipe-marks"]
 			local shared = packet.snapshots.survivalSettlement
 			if shared then
 				model.snapshot.settlement, model.snapshot.warehouse = shared.settlement, shared.warehouse
@@ -123,6 +125,17 @@ function M.new(actor: string, newId: () -> string): any
 			return false
 		end
 		model.notice = nil
+		return true
+	end
+	--- Clears a finished refusal line once its display time has passed, unless a newer result or an
+	--- in-flight request replaced it. A refusal left up for the session sat over every later sheet
+	--- and read as that sheet's refusal (2026-10-23 Studio: a bag deposit refusal showed over the
+	--- camp donation that had succeeded). Returns whether the line was cleared.
+	function model.expireRefusal(reason: string): boolean
+		if model.status ~= "conflict" or model.reason ~= reason or model.pending or model.busy then
+			return false
+		end
+		model.status, model.reason = "ready", nil
 		return true
 	end
 	return model
@@ -234,6 +247,30 @@ end
 
 M.STACK_BOTTOM = 180
 
+-- Fullness (hungerMilli / 1000) below this shows the eat prompt.
+M.HUNGRY_BELOW = 30
+--- True when the vitals call for a food prompt.
+function M.hungry(vitals: any): boolean
+	return type(vitals) == "table"
+		and type(vitals.hungerMilli) == "number"
+		and vitals.hungerMilli / 1000 < M.HUNGRY_BELOW
+end
+
+--- The tutorial's axe pin: the Flint Hatchet (stone-axe, flint by hand) unless the bag already
+--- holds what the starter axe needs (branch + stone). The p43 preview island has flint but no
+--- branch or stone, and pinning the starter axe there showed an unreachable recipe first.
+function M.axePin(bag: any, recipes: { any }): string
+	local starter, hatchet = nil, nil
+	for _, recipe in recipes do
+		starter = if recipe.id == "starter-axe" then recipe else starter
+		hatchet = if recipe.id == "stone-axe" then recipe else hatchet
+	end
+	if starter and (not hatchet or #M.missingMaterials(bag, starter.inputs) == 0) then
+		return "starter-axe"
+	end
+	return "stone-axe"
+end
+
 function M.recipeOrder(
 	bag: any,
 	recipes: { any },
@@ -265,24 +302,32 @@ function M.recipeOrder(
 			end
 			ready = ready and tool
 		end
+		local favorite = filter ~= nil and filter.favorites ~= nil and filter.favorites[recipe.id] == true
 		if
 			not filter
 			or filter.all
+			or favorite
 			or recipe.id == filter.pin
 			or (filter.jobs and filter.jobs[recipe.id])
 			or complete
 			-- Station recipes surface in range only once an input is held; bare hand recipes never do.
 			or (recipe.station ~= nil and stationReady and held)
 		then
-			table.insert(
-				rows,
-				{ recipe = recipe, ready = ready, stationReady = stationReady, station = recipe.station or "" }
-			)
+			table.insert(rows, {
+				recipe = recipe,
+				ready = ready,
+				stationReady = stationReady,
+				station = recipe.station or "",
+				favorite = favorite,
+			})
 		end
 	end
 	table.sort(rows, function(a, b)
 		if filter and (a.recipe.id == filter.pin) ~= (b.recipe.id == filter.pin) then
 			return a.recipe.id == filter.pin
+		end
+		if a.favorite ~= b.favorite then
+			return a.favorite
 		end
 		if a.station ~= b.station then
 			return a.station < b.station
@@ -350,12 +395,57 @@ function M.contextHudBounds(width: number, _height: number?): any
 	}
 end
 
+--- ui.recipe-tracker: read-only HUD rows under the objective line; on short landscape
+--- phones it sits left of the menu toggle so the thumb gutters and jump zone stay clear.
+function M.trackerBounds(width: number, height: number, rows: number): any
+	local hud = M.contextHudBounds(width, height)
+	local h = 28 + rows * 22
+	if width > height and height < 480 then
+		local w = math.min(200, hud.menu.x - 8 - M.THUMB_GUTTER)
+		return { x = hud.menu.x - 8 - w, y = hud.menu.y, width = w, height = h }
+	end
+	local column = hud.objective
+	return { x = column.x, y = column.y + column.height + 8, width = column.width, height = h }
+end
+
 function M.biomeToast(previous: string, current: string, remaining: number, dt: number): (number, number)
 	local left = math.max(0, (if current ~= previous then 3 else remaining) - dt)
 	return left, 1 - math.min(1, left)
 end
 
-function M.contextActions(policy: any, pending: any, modal: boolean, restTarget: any, attackTarget: any): any
+-- Client search radius for a ranged target; the server rechecks the weapon's own range.
+M.RANGED_STUDS = 40
+M.STANCE_ORDER = { "none", "attack", "defense", "counter", "onslaught", "charge", "shoot" }
+
+--- Next unlocked stance after the current one (cycling; "none" is always available).
+function M.nextStance(view: any?): string?
+	if not view then
+		return nil
+	end
+	local start = table.find(M.STANCE_ORDER, view.current or "none") or 1
+	for step = 1, #M.STANCE_ORDER do
+		local id = M.STANCE_ORDER[(start + step - 1) % #M.STANCE_ORDER + 1]
+		if id == "none" or (view.unlocked and view.unlocked[id]) then
+			return if id == (view.current or "none") then nil else id
+		end
+	end
+	return nil
+end
+
+--- Stance button text: "Stance: <name>" with the localized stance name.
+function M.stanceLabel(_locale: string, view: any?, t: (string) -> string): string
+	local current = if view then view.current or "none" else "none"
+	return string.format(t("stance"), t("stance." .. current))
+end
+
+function M.contextActions(
+	policy: any,
+	pending: any,
+	modal: boolean,
+	restTarget: any,
+	attackTarget: any,
+	rangedTarget: any?
+): any
 	local function allowed(verb: string): boolean
 		return not modal
 			and pending == nil
@@ -367,6 +457,8 @@ function M.contextActions(policy: any, pending: any, modal: boolean, restTarget:
 		attack = attackTarget ~= nil and allowed("attack"),
 		dodge = attackTarget ~= nil and allowed("dodge"),
 		guard = attackTarget ~= nil and allowed("guard"),
+		shoot = rangedTarget ~= nil and allowed("attack-ranged"),
+		stance = (attackTarget ~= nil or rangedTarget ~= nil) and allowed("stance-set"),
 	}
 end
 

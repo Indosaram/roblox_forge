@@ -43,6 +43,8 @@ export type Visual = {
 	belly: Rgb?,
 	marking: Rgb?,
 	parts: { string }?,
+	-- Paid cosmetic skins only (CosmeticVisual.mount): reflectance of the body-coloured parts.
+	sheen: number?,
 }
 local SKINS: { [string]: Enum.Material } = {
 	leather = Enum.Material.Leather,
@@ -655,6 +657,24 @@ function M.new(
 					)
 				)
 				tilt(spike, CFrame.Angles(0, 0, -side * math.pi / 2))
+			end
+		end
+	end
+	if extras.saddle then
+		-- Paid-skin trim: a saddle pad and seat on the back, in the skin's accent and marking.
+		extra(
+			"saddle",
+			add("SaddlePad", 0, torsoY + torsoH * 0.42, 0.03, 0.46, torsoH * 0.16, 0.2, "Torso", nil, accent)
+		)
+		extra(
+			"saddle",
+			add("SaddleSeat", 0, torsoY + torsoH * 0.55, 0.03, 0.3, torsoH * 0.14, 0.13, "Torso", nil, marking)
+		)
+	end
+	if visual and visual.sheen then
+		for _, p in model:GetChildren() do
+			if p:IsA("BasePart") and p.Color == bodyColor then
+				p.Reflectance = visual.sheen
 			end
 		end
 	end

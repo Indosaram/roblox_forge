@@ -6,7 +6,18 @@ local Inventory = require("../../../core/domain/inventory/Inventory")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Ledger = require("../../../core/domain/command/Ledger")
 local Home = require("../../../core/domain/home/HomeState")
+local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
+
+-- A placed refrigerator makes home storage a cold container (food ages at the policy rate).
+function M.refrigerated(home: any): boolean
+	for _, placed in home.structures or {} do
+		if placed.kind == "refrigerator" then
+			return true
+		end
+	end
+	return false
+end
 
 function M.new(config: any): any
 	local api = {}
@@ -59,9 +70,24 @@ function M.new(config: any): any
 			end
 		end
 		if result.status == "confirmed" or result.status == "rejected" then
-			local updated, reason = config.update(actor, function(data)
+			local updated, reason = config.update(actor, function(data: any)
 				data.transfers[request.transfer.id].result =
 					{ ok = result.status == "confirmed", reason = result.error }
+				-- Deposited food keeps the age it reached in the bag; from here it ages at the home rate.
+				local stored = data.home.storage.items[request.transfer.outputId]
+				if
+					result.status == "confirmed"
+					and request.deposit
+					and request.agedAt
+					and stored
+					and config.spoilage
+				then
+					local rebased = Spoilage.rebase(stored, config.spoilage, request.agedAt, false)
+					if rebased ~= stored then
+						data.home.storage.items[request.transfer.outputId] = Home.copy(rebased)
+						data.home.storage.version += 1
+					end
+				end
 				return data
 			end)
 			if not updated then
@@ -134,6 +160,25 @@ function M.new(config: any): any
 		if not item or Inventory.available(Inventory.fromSave(source, config.catalog), itemId) < quantity then
 			return { ok = false, reason = "INSUFFICIENT_ITEMS" }
 		end
+		local agedAt = if config.spoilage and config.nowMillis then config.nowMillis() else nil
+		if agedAt and not deposit then
+			-- Withdrawn food leaves with the age it reached in storage (an expired stack leaves spoiled).
+			local rebased = Spoilage.rebase(item, config.spoilage, agedAt, M.refrigerated(home))
+			if rebased ~= item then
+				local aged, agedError = config.update(actor, function(data: any)
+					data.home.storage.items[itemId] = Home.copy(rebased)
+					data.home.storage.version += 1
+					return data
+				end)
+				if not aged then
+					return { ok = false, reason = agedError }
+				end
+				token = aged
+				home = token.data.home
+				source = home.storage
+				item = source.items[itemId]
+			end
+		end
 		if deposit then
 			local occupied = 0
 			for _ in destination.items do
@@ -157,6 +202,7 @@ function M.new(config: any): any
 		local request = {
 			binding = binding,
 			deposit = deposit,
+			agedAt = agedAt,
 			homeKey = token.key,
 			transfer = {
 				id = id,

@@ -352,6 +352,8 @@ function M.new(env: any): any
 				),
 				party = view,
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
+				-- The player's own level and island grade, so a locked route can say what is missing.
+				facts = env.facts(actor),
 				results = results,
 				ledger = M.ledger(document),
 			}

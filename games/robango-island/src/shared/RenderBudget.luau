@@ -8,6 +8,7 @@ export type Profile = {
 	decorShadows: boolean,
 	wildlifePoseStuds: number,
 	wildlifePoseMax: number,
+	decorFaunaPose: boolean,
 	meshBuildsMax: number,
 }
 local M = {}
@@ -20,6 +21,7 @@ M.profiles = {
 		decorShadows = false,
 		wildlifePoseStuds = 60,
 		wildlifePoseMax = 6,
+		decorFaunaPose = false,
 		meshBuildsMax = 2,
 	} :: Profile,
 	high = {
@@ -29,6 +31,7 @@ M.profiles = {
 		decorShadows = true,
 		wildlifePoseStuds = 100,
 		wildlifePoseMax = 1000,
+		decorFaunaPose = true,
 		meshBuildsMax = 6,
 	} :: Profile,
 }

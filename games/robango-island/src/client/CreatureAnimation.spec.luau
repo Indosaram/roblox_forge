@@ -61,7 +61,7 @@ local function folder(name: string, children: { any }): any
 end
 
 -- Loads the client's startCreatureAnimation against fake workspace folders present at start.
-local function harness(folders: { any }): (any, any, any)
+local function harness(folders: { any }, profile: any?): (any, any, any)
 	local source = fs.readFile(SOURCE)
 	local first = assert(string.find(source, "local function startCreatureAnimation", 1, true))
 	local last = assert(string.find(source, "local creatureAnimation = startCreatureAnimation", 1, true))
@@ -114,7 +114,7 @@ local function harness(folders: { any }): (any, any, any)
 			Vector3 = { new = function() end },
 			Color3 = { fromRGB = function() end },
 			Enum = { Font = {} },
-			profile = RenderBudget.profiles.high,
+			profile = profile or RenderBudget.profiles.high,
 			CreaturePose = {
 				sample = function(_clock, _state, _speed, _mounted, dt)
 					return "idle", dt
@@ -168,5 +168,30 @@ return {
 		assert(calls[1].state == "graze", "decorative fauna uses the graze idle")
 		assert(math.abs(calls[1].elapsed - (0.5 + 0.25 * 8)) < 1e-9, "clock offset by the seeded phase")
 		assert(#grazer.head.plates == 0, "a decorative silhouette gets no species nameplate")
+	end,
+	["the low profile holds decorative fauna still and still poses live wildlife"] = function()
+		local grazer = model("ArrivalGrazer1", {
+			Species = "triceratops",
+			ForgeDecorFauna = true,
+			ForgeGrazePhase = 0.25,
+			ForgeGrazePeriod = 8,
+		})
+		local creature = model("Dodo1", { Species = "dodo" })
+		local start, renderStepped = harness(
+			{ folder("ForgeRoleWorld", { grazer }), folder("Wildlife", { creature }) },
+			RenderBudget.profiles.low
+		)
+		local posed = {}
+		start(function(target)
+			posed[target] = (posed[target] or 0) + 1
+		end)
+		for _ = 1, 3 do
+			for _, handler in renderStepped.handlers do
+				handler(1 / 60)
+			end
+		end
+		assert(posed[grazer] == nil, "low profile spends no per-frame pose on decorative fauna")
+		assert(posed[creature] == 3, "live wildlife is still posed every frame")
+		assert(RenderBudget.profiles.high.decorFaunaPose, "high keeps the graze idle")
 	end,
 }

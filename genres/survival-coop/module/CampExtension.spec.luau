@@ -139,6 +139,9 @@ return {
 		assert(choices[2].itemId == "b" and choices[2].available == 3, "second stack")
 		assert(CampPanel.choices("ko", packet)[1].label == "섬유", "labels follow the locale")
 		assert(#CampPanel.choices("en", {}) == 0 and #CampPanel.choices("en", nil) == 0, "no snapshot, no choices")
+		-- p45: the picker uses the pack name the requirement row uses.
+		local named = CampPanel.choices("ko", packet, { fiber = "고사리 섬유" })
+		assert(named[1].label == "고사리 섬유", "picker and requirement share the pack name: " .. named[1].label)
 		assert(assert(CampPanel.select(choices, "b")).itemId == "b", "kept pick")
 		assert(assert(CampPanel.select(choices, "gone")).itemId == "a", "stale pick falls back")
 		assert(CampPanel.select({}, nil) == nil, "empty bag selects nothing")
@@ -149,6 +152,22 @@ return {
 			"quantity clamps"
 		)
 		assert(CampPanel.clamp(5, 5000) == 5 and CampPanel.clamp(5000, 5000) == CampPanel.MAX_QUANTITY, "server cap")
+	end,
+	["p45 every camp refusal code has its own KO/EN line"] = function()
+		for _, code in CampPanel.refusalCodes() do
+			for _, locale in { "en", "ko" } do
+				assert(CampPanel.refusal(locale, code) ~= CampPanel.text(locale, "camp_refused"), code .. " " .. locale)
+			end
+		end
+		for _, code in
+			{ "FORBIDDEN", "STALE_VERSION", "OVER_DELIVERY", "ITEM_NOT_NEEDED", "UNAVAILABLE", "PROJECT_LOCKED" }
+		do
+			assert(table.find(CampPanel.refusalCodes(), code), code .. " mapped")
+		end
+		assert(
+			CampPanel.refusal("ko", "TRANSPORT_FAILED: x") == CampPanel.refusal("ko", "TRANSPORT_FAILED"),
+			"transport"
+		)
 	end,
 	["every camp panel string has en-us and ko-kr locale rows"] = function()
 		local csv = fs.readFile("games/robango-island/locale/strings.csv")

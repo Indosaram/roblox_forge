@@ -4,8 +4,10 @@
 -- globals or a wall clock and runs under Lune specs.
 --
 -- What is real:
---   * catalogIds: raw gathered materials and foods from content.yml (no tools, kits or anything a
---     Robux product grants; MarketPorts.spec.luau asserts every id exists in content.yml).
+--   * catalogIds: every content.yml item (raw, processed, food, gear, kits) except the ones tagged
+--     quest-bound (mission ledger tokens), bound (practice receipts) or retired (reed/samphire
+--     aliases); derived from the generated content, never a hand list. Robux grants are cosmetic
+--     sets, not items, and the escrow still refuses robuxPurchased/equipped stacks.
 --   * account: Player.AccountAge (createdAt), play seconds of the CURRENT session only (no durable
 --     cumulative play-time source exists; this under-reports, never over-reports) and the
 --     Contracts tutorial completion.
@@ -13,31 +15,27 @@
 -- live personal aggregate (see its header for the durability model and scope); the pack only
 -- configures which goods trade and who may trade. Fee and caps are core Market defaults.
 local Market = require("../../../../core/domain/market/Market")
+local content: any = require("./SurvivalContent")
 
 local M = {}
 
 M.CURRENCY = "Coins"
 local DAY = 86400
 
--- Tradeable: gathered raw materials and raw foods only.
-M.CATALOG_IDS = table.freeze({
-	"wood",
-	"fiber",
-	"flint",
-	"fieldstone",
-	"birch-bark",
-	"reed",
-	"marsh-clay",
-	"hide",
-	"shell-fragment",
-	"meat",
-	"berry",
-	"hazelnut",
-	"chanterelle",
-	"clam",
-	"samphire",
-	"cattail-root",
-})
+-- Item tags that keep an item out of the market (content.yml `tags`).
+M.UNTRADEABLE_TAGS = table.freeze({ ["quest-bound"] = true, bound = true, retired = true })
+
+local tradeable: { string } = {}
+for _, item in content.items do
+	local blocked = false
+	for _, tag in item.tags or {} do
+		blocked = blocked or M.UNTRADEABLE_TAGS[tag] == true
+	end
+	if not blocked then
+		table.insert(tradeable, item.id)
+	end
+end
+M.CATALOG_IDS = table.freeze(tradeable)
 
 export type Deps = {
 	-- Player.AccountAge in days; nil when the player is not in this server.

@@ -877,6 +877,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -967,6 +969,8 @@
          'tags':
           - 
            'fuel'
+          - 
+           'quest-bound'
           
          'weightMilli':
           150
@@ -1513,6 +1517,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2071,6 +2077,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2322,6 +2330,30 @@
           
          'weightMilli':
           500
+         
+        - 
+         'id':
+          'kiln-t2-kit'
+         'name':
+          'Fired Kiln Kit'
+         'stackMax':
+          1
+         'tags':
+          
+         'weightMilli':
+          1500
+         
+        - 
+         'id':
+          'kiln-t3-kit'
+         'name':
+          'Blast Kiln Kit'
+         'stackMax':
+          1
+         'tags':
+          
+         'weightMilli':
+          1500
          
         - 
          'id':
@@ -2709,6 +2741,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'bound'
           
          'weightMilli':
           500
@@ -2721,6 +2755,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'bound'
           
          'weightMilli':
           500
@@ -2747,6 +2783,8 @@
          'stackMax':
           80
          'tags':
+          - 
+           'retired'
           
          'weightMilli':
           200
@@ -2771,6 +2809,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2783,6 +2823,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2795,6 +2837,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2807,6 +2851,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2899,6 +2945,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2911,6 +2959,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2923,6 +2973,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2935,6 +2987,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2947,6 +3001,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2959,6 +3015,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2971,6 +3029,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -2983,6 +3043,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3019,6 +3081,8 @@
          'stackMax':
           60
          'tags':
+          - 
+           'retired'
           
          'weightMilli':
           100
@@ -3031,6 +3095,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3055,6 +3121,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3067,6 +3135,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3079,6 +3149,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3449,6 +3521,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3817,6 +3891,8 @@
          'stackMax':
           50
          'tags':
+          - 
+           'quest-bound'
           
          'weightMilli':
           500
@@ -3985,6 +4061,18 @@
          'weightMilli':
           1500
          
+        - 
+         'id':
+          'workbench-t3-kit'
+         'name':
+          'Ironbound Bench Kit'
+         'stackMax':
+          1
+         'tags':
+          
+         'weightMilli':
+          1500
+         
         
       'limits':
         'hardWeightMilli':
@@ -4012,6 +4100,20 @@
           
          'id':
           'berry-bush'
+         'respawnMillis':
+          120000
+         
+        - 
+         'harvest':
+          - 
+           'item':
+            'branch'
+           'quantity':
+            3
+           
+          
+         'id':
+          'branch-pile'
          'respawnMillis':
           120000
          
@@ -4311,6 +4413,20 @@
          'respawnMillis':
           120000
          
+        - 
+         'harvest':
+          - 
+           'item':
+            'stone'
+           'quantity':
+            3
+           
+          
+         'id':
+          'stone-pile'
+         'respawnMillis':
+          120000
+         
         
       'recipes':
         - 
@@ -4348,6 +4464,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -4384,6 +4502,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -4420,6 +4540,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -4456,6 +4578,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -4564,6 +4688,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -4618,6 +4744,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -4654,6 +4782,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -4690,6 +4820,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -4854,6 +4986,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -5004,6 +5138,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5040,6 +5176,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -5076,6 +5214,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5112,6 +5252,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -5142,6 +5284,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5172,6 +5316,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5202,6 +5348,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5232,6 +5380,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5262,6 +5412,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5292,6 +5444,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5500,6 +5654,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -5536,6 +5692,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -5572,6 +5730,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -5602,6 +5762,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6076,6 +6238,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6106,6 +6270,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6166,6 +6332,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6202,6 +6370,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6238,6 +6408,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -6304,6 +6476,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6340,6 +6514,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6376,6 +6552,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -6404,6 +6582,70 @@
             1
            
           
+         
+        - 
+         'craftMillis':
+          20000
+         'id':
+          'kiln-t2-kit'
+         'inputs':
+          - 
+           'item':
+            'clay'
+           'quantity':
+            6
+           
+          - 
+           'item':
+            'polished-stone'
+           'quantity':
+            8
+           
+          
+         'outputs':
+          - 
+           'item':
+            'kiln-t2-kit'
+           'quantity':
+            1
+           
+          
+         'station':
+          'kiln'
+         'tier':
+          1
+         
+        - 
+         'craftMillis':
+          30000
+         'id':
+          'kiln-t3-kit'
+         'inputs':
+          - 
+           'item':
+            'clay'
+           'quantity':
+            8
+           
+          - 
+           'item':
+            'iron'
+           'quantity':
+            6
+           
+          
+         'outputs':
+          - 
+           'item':
+            'kiln-t3-kit'
+           'quantity':
+            1
+           
+          
+         'station':
+          'kiln'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6440,6 +6682,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6476,6 +6720,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6512,6 +6758,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -6548,6 +6796,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6590,6 +6840,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -6712,6 +6964,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6880,6 +7134,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -6916,6 +7172,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -6952,6 +7210,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -7000,6 +7260,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -7024,6 +7286,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7048,6 +7312,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7072,6 +7338,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7176,6 +7444,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -7320,6 +7590,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -7356,6 +7628,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7380,6 +7654,8 @@
           
          'station':
           'kiln'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7404,6 +7680,8 @@
           
          'station':
           'kiln'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -7434,6 +7712,8 @@
           
          'station':
           'kiln'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -7464,6 +7744,8 @@
           
          'station':
           'kiln'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -7522,6 +7804,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7558,6 +7842,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -7594,6 +7880,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -7630,6 +7918,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7660,6 +7950,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7690,6 +7982,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7720,6 +8014,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7750,6 +8046,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -7780,6 +8078,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8000,6 +8300,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8036,6 +8338,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8072,6 +8376,8 @@
           
          'station':
           'workbench'
+         'tier':
+          2
          
         - 
          'craftMillis':
@@ -8108,6 +8414,8 @@
           
          'station':
           'workbench'
+         'tier':
+          3
          
         - 
          'craftMillis':
@@ -8240,6 +8548,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8270,6 +8580,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8300,6 +8612,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8330,6 +8644,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8360,6 +8676,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8390,6 +8708,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8420,6 +8740,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8456,6 +8778,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8572,6 +8896,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8602,6 +8928,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8632,6 +8960,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8662,6 +8992,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8692,6 +9024,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8722,6 +9056,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8752,6 +9088,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8788,6 +9126,8 @@
           
          'station':
           'workbench'
+         'tier':
+          1
          
         - 
          'craftMillis':
@@ -8906,6 +9246,38 @@
           
          'station':
           'workbench'
+         
+        - 
+         'craftMillis':
+          30000
+         'id':
+          'workbench-t3-kit'
+         'inputs':
+          - 
+           'item':
+            'iron'
+           'quantity':
+            8
+           
+          - 
+           'item':
+            'polished-stone'
+           'quantity':
+            6
+           
+          
+         'outputs':
+          - 
+           'item':
+            'workbench-t3-kit'
+           'quantity':
+            1
+           
+          
+         'station':
+          'workbench'
+         'tier':
+          2
          
         
       'rules':
@@ -9136,6 +9508,46 @@
           true
          'tier':
           1
+         
+        - 
+         'cost':
+          - 
+           'item':
+            'kiln-t2-kit'
+           'quantity':
+            1
+           
+          
+         'footprintX':
+          2
+         'footprintZ':
+          2
+         'id':
+          'kiln-t2'
+         'station':
+          true
+         'tier':
+          2
+         
+        - 
+         'cost':
+          - 
+           'item':
+            'kiln-t3-kit'
+           'quantity':
+            1
+           
+          
+         'footprintX':
+          2
+         'footprintZ':
+          2
+         'id':
+          'kiln-t3'
+         'station':
+          true
+         'tier':
+          3
          
         - 
          'cost':
@@ -9541,10 +9953,32 @@
          'tier':
           2
          
+        - 
+         'cost':
+          - 
+           'item':
+            'workbench-t3-kit'
+           'quantity':
+            1
+           
+          
+         'footprintX':
+          2
+         'footprintZ':
+          2
+         'id':
+          'workbench-t3'
+         'station':
+          true
+         'tier':
+          3
+         
         
       'survival_content':
         2
       'tags':
+        - 
+         'bound'
         - 
          'building-part'
         - 
@@ -9563,6 +9997,10 @@
          'material-stone'
         - 
          'material-timber'
+        - 
+         'quest-bound'
+        - 
+         'retired'
         - 
          'saddle'
         - 

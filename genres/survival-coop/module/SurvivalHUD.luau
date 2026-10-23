@@ -1,13 +1,19 @@
 --!strict
 local Model = require("./SurvivalHUDModel")
+local RecipeMarks = require("./RecipeMarks")
 local Locale = require("./SurvivalHUDLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
+local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
 -- Refusals that also raise the toast.
 -- Seconds a success line (repair done, saved) stays on the contextual status.
 M.NOTICE_SECONDS = 5
+-- Seconds a finished refusal stays on the contextual status before it clears.
+M.REFUSAL_SECONDS = 8
 
-M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true }
+M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true, WAREHOUSE_UNREACHABLE = true }
+-- Seconds a refusal toast stays up (p43 Studio: one stayed ~18 minutes).
+M.TOAST_SECONDS = 6
 
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
 	local entries: { [string]: any } = {}
@@ -201,6 +207,13 @@ function M.start(options: Options)
 	local toolbar = Instance.new("Frame")
 	toolbar.Name, toolbar.BackgroundTransparency = "Navigation", 1
 	toolbar.Position, toolbar.Size, toolbar.Parent = UDim2.fromOffset(0, 124), UDim2.new(1, 0, 0, 48), root
+	-- ui.recipe-tracker: read-only to-do rows; geometry from Model.trackerBounds (PC and portrait).
+	local tracker =
+		Components.label(theme, { text = "", size = UDim2.fromOffset(216, 50), parent = root, textSize = 13 })
+	tracker.Name, tracker.Visible = "RecipeTracker", false
+	tracker.TextXAlignment, tracker.TextYAlignment, tracker.TextWrapped =
+		Enum.TextXAlignment.Left, Enum.TextYAlignment.Top, true
+	tracker.BackgroundColor3, tracker.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.15
 	local sheet = Components.modalSheet(theme, { name = "SurvivalSheet", title = "", parent = root })
 	local function fitText(item: Instance): ()
 		local existing = item:FindFirstChild("ForgeTextFit")
@@ -387,7 +400,23 @@ function M.start(options: Options)
 				end)
 			end
 			if M.toasted[model.reason] then
-				toast.Text, toast.Visible = Locale.refusal(locale, model.reason), true
+				local line = Locale.refusal(locale, model.reason)
+				toast.Text, toast.Visible = line, true
+				task.delay(M.TOAST_SECONDS, function()
+					-- Only this refusal's line clears; a newer toast or missing-materials line stays.
+					if not disposed and toast.Text == line then
+						toast.Visible = false
+					end
+				end)
+			end
+			-- The contextual status floats over every sheet: a refusal there expires like a notice.
+			local refused = if contextual and model.status == "conflict" then model.reason else nil
+			if refused then
+				task.delay(M.REFUSAL_SECONDS, function()
+					if not disposed and model.expireRefusal(refused) then
+						render()
+					end
+				end)
 			end
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()
@@ -437,12 +466,13 @@ function M.start(options: Options)
 			render()
 		end
 	end
-	local function attack()
+	local function attack(ranged: boolean?)
 		if model.pending then
 			send(model.retry())
 			return
 		end
-		if not model.durable or not table.find(model.durable.actions, "survival-coop:attack") then
+		local verb = if ranged then "attack-ranged" else "attack"
+		if not model.durable or not table.find(model.durable.actions, "survival-coop:" .. verb) then
 			return
 		end
 		local character = player.Character
@@ -452,7 +482,8 @@ function M.start(options: Options)
 		end
 		local target: string? = nil
 		local targetPos: Vector3? = nil
-		local distance = 8
+		-- A bow reaches 40 studs (server rechecks range, sight and facing); melee stays at 8.
+		local distance = if ranged then Model.RANGED_STUDS else 8
 		for _, instance in world:GetDescendants() do
 			local id = instance:GetAttribute("ForgeWildlifeId")
 			local hp = instance:GetAttribute("ForgeWildlifeHealthMilli")
@@ -472,7 +503,7 @@ function M.start(options: Options)
 			if flat.Magnitude > 0.001 then
 				pivot.CFrame = CFrame.lookAt(pivot.Position, pivot.Position + flat)
 			end
-			command("attack", { target })
+			command(verb, { target })
 		else
 			model.status, model.reason = "conflict", "WILDLIFE_UNREACHABLE"
 			render()
@@ -809,6 +840,45 @@ function M.start(options: Options)
 			end
 		end)
 	)
+	local function renderTracker()
+		local rows = RecipeMarks.tracker(
+			Model.bag(model.snapshot),
+			model.snapshot.warehouse,
+			content.recipes,
+			model.snapshot.recipeMarks
+		)
+		local sheetOpen = sheet.frame.Visible and section ~= ""
+		tracker.Visible = #rows > 0 and not sheetOpen
+		if not tracker.Visible then
+			return
+		end
+		local lines = { t("tracker_title") }
+		for _, row in rows do
+			local parts = {}
+			for _, need in row.inputs do
+				table.insert(
+					parts,
+					string.format(
+						"%s %d/%d",
+						name(need.id),
+						math.min(need.needed, need.bag + need.warehouse),
+						need.needed
+					)
+				)
+			end
+			table.insert(
+				lines,
+				name(row.recipeId) .. ": " .. (if row.ready then t("tracker_ready") else table.concat(parts, ", "))
+			)
+		end
+		tracker.Text = table.concat(lines, "\n")
+		local size = root.AbsoluteSize
+		-- Same viewport frame as the vitals card: root is inset 12/8 inside the safe area.
+		local bounds = Model.trackerBounds(size.X + 24, size.Y + 16, #rows)
+		tracker.AnchorPoint = Vector2.zero
+		tracker.Position = UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
+		tracker.Size = UDim2.fromOffset(bounds.width, bounds.height)
+	end
 	render = function()
 		if disposed then
 			return
@@ -836,15 +906,17 @@ function M.start(options: Options)
 				bar.value.Text = tostring(math.floor(amount))
 			end
 		end
+		local hungry = Model.hungry(v)
 		status.Text = t(model.status)
 			.. (
 				if model.reason
 					then "\n" .. Locale.refusal(locale, model.reason)
 					elseif model.notice then "\n" .. t(model.notice)
+					elseif hungry then "\n" .. t("hungry")
 					else ""
 			)
 		if contextual then
-			status.Visible = model.status == "conflict" or model.status == "pending" or model.notice ~= nil
+			status.Visible = model.status == "conflict" or model.status == "pending" or model.notice ~= nil or hungry
 		end
 		local scrollPosition = sheet.scroll.CanvasPosition
 		controls.begin(section)
@@ -923,6 +995,11 @@ function M.start(options: Options)
 				local item = if selected then bag.items[selected] else nil
 				contentParent, controls.parent = detailPane, detailPane
 				if item then
+					-- Carried food shows its remaining freshness on the server clock (the bag is never cold).
+					local policy = Spoilage.policy(options.content)
+					local fresh = if policy
+						then Spoilage.freshness(item, policy, math.floor(world:GetServerTimeNow() * 1000), false)
+						else nil
 					label(
 						name(item.catalogId)
 							.. "\n"
@@ -932,8 +1009,9 @@ function M.start(options: Options)
 							.. "  "
 							.. t("durability")
 							.. " "
-							.. item.durabilityMilli / 1000,
-						64
+							.. item.durabilityMilli / 1000
+							.. (if fresh then "\n" .. Locale.freshness(locale, fresh) else ""),
+						if fresh then 84 else 64
 					)
 					for _, definition in options.content.items do
 						if definition.id == item.catalogId and definition.foodEffects then
@@ -983,16 +1061,27 @@ function M.start(options: Options)
 		elseif section == "craft" then
 			local tutorial = model.snapshot.contracts and model.snapshot.contracts.tutorial
 			local pin = if tutorial and tutorial.step == "craft-stone-axe"
-				then (if content.version == 2 then "starter-axe" else "stone-axe")
+				then Model.axePin(bag, options.content.recipes)
 				else nil
 			local activeJobs = Model.jobs(model.snapshot, model.actor)
 			local jobs = {}
 			for _, entry in activeJobs do
 				jobs[entry.job.recipeId] = true
 			end
-			local orderedRecipes = Model.recipeOrder(bag, options.content.recipes, function(station)
-				return nearest(station) ~= nil
-			end, options.content.items, { all = allRecipes, pin = pin, jobs = jobs })
+			local orderedRecipes = Model.recipeOrder(
+				bag,
+				options.content.recipes,
+				function(station)
+					return nearest(station) ~= nil
+				end,
+				options.content.items,
+				{
+					all = allRecipes,
+					pin = pin,
+					jobs = jobs,
+					favorites = if model.snapshot.recipeMarks then model.snapshot.recipeMarks.favorites else nil,
+				}
+			)
 			button("RecipeFilter", t(if allRecipes then "craft_nearby" else "craft_all"), function()
 				allRecipes = not allRecipes
 				recipeId = nil
@@ -1027,7 +1116,8 @@ function M.start(options: Options)
 				local recipe = row.recipe
 				local recipeButton = button(
 					"Recipe-" .. recipe.id,
-					name(recipe.id)
+					(if row.favorite then "* " else "")
+						.. name(recipe.id)
 						.. "\n"
 						.. (
 							if row.ready
@@ -1065,6 +1155,25 @@ function M.start(options: Options)
 					if recipe.requiredToolTag then
 						label(t("tool") .. ": " .. name(recipe.requiredToolTag), 32)
 					end
+					local marks = model.snapshot.recipeMarks
+					local favorite = marks ~= nil and marks.favorites[recipe.id] == true
+					local tracked = marks ~= nil and marks.todo[recipe.id] == true
+					mutation(
+						"Favorite-" .. recipe.id,
+						t(if favorite then "craft_unfavorite" else "craft_favorite"),
+						"recipe-mark",
+						function()
+							command("recipe-mark", { recipe.id, "favorite", not favorite })
+						end
+					)
+					mutation(
+						"Todo-" .. recipe.id,
+						t(if tracked then "craft_untrack" else "craft_track"),
+						"recipe-mark",
+						function()
+							command("recipe-mark", { recipe.id, "todo", not tracked })
+						end
+					)
 					controls.parent = craftActions
 					mutation("Reserve-" .. recipe.id, t("reserve"), "craft-reserve", function()
 						if not suppliesAvailable(Model.bag(model.snapshot), recipe.inputs) then
@@ -1202,6 +1311,7 @@ function M.start(options: Options)
 		end
 		preview()
 		blocked.Text = if placementReason then Locale.refusal(locale, placementReason) else ""
+		renderTracker()
 	end
 	refresh = function()
 		if disposed or refreshing then
@@ -1284,7 +1394,33 @@ function M.start(options: Options)
 	attackButton.Name, attackButton.AnchorPoint = "Attack", Vector2.new(1, 0)
 	fitText(attackButton)
 	attackButton.Visible = false
+	-- Ranged shot and stance selector (catalog ui.combat): touch buttons on the combat card, V / X on PC.
+	local function cycleStance()
+		local view = model.snapshot.contracts and model.snapshot.contracts.stance
+		local nextId = Model.nextStance(view)
+		if nextId then
+			command("stance-set", { nextId })
+		end
+	end
 	local defenseButtons: { [string]: TextButton } = {}
+	for index, combatAction in { "shoot", "stance" } do
+		local combatButton = Components.button(theme, {
+			text = t(combatAction),
+			size = UDim2.fromOffset(76, 48),
+			position = UDim2.new(1, -(index + 2) * 84, 0, 184),
+			parent = root,
+			onClick = function()
+				if combatAction == "shoot" then
+					attack(true)
+				else
+					cycleStance()
+				end
+			end,
+		})
+		combatButton.Name = combatAction
+		combatButton.Visible = false
+		defenseButtons[combatAction] = combatButton
+	end
 	for index, defenseAction in { "dodge", "guard" } do
 		local defenseButton = Components.button(theme, {
 			text = t(defenseAction),
@@ -1311,17 +1447,17 @@ function M.start(options: Options)
 		restButton.Position, restButton.Size = UDim2.fromOffset(0, 0), UDim2.fromScale(1, 1)
 		restPrompt = restCard
 		local combatCard = Instance.new("BillboardGui")
-		combatCard.Name, combatCard.Size = "CombatInteraction", UDim2.fromOffset(216, 104)
+		combatCard.Name, combatCard.Size = "CombatInteraction", UDim2.fromOffset(216, 160)
 		combatCard.Active = true
 		combatCard.StudsOffset, combatCard.AlwaysOnTop = Vector3.new(0, 4, 0), true
 		combatCard.Parent = gui
 		attackButton.Parent, attackButton.AnchorPoint = combatCard, Vector2.zero
 		attackButton.Position, attackButton.Size = UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 48)
-		for index, key in { "dodge", "guard" } do
+		for index, key in { "dodge", "guard", "shoot", "stance" } do
 			local defenseControl = defenseButtons[key]
 			defenseControl.Parent = combatCard
 			defenseControl.Position, defenseControl.Size =
-				UDim2.fromOffset((index - 1) * 112, 56), UDim2.fromOffset(104, 48)
+				UDim2.fromOffset(((index - 1) % 2) * 112, 56 * (1 + (index - 1) // 2)), UDim2.fromOffset(104, 48)
 		end
 		combatPrompt = combatCard
 		toolbar.Visible = false
@@ -1427,6 +1563,10 @@ function M.start(options: Options)
 				rest()
 			elseif key.KeyCode == Enum.KeyCode.F then
 				attack()
+			elseif key.KeyCode == Enum.KeyCode.V then
+				attack(true)
+			elseif key.KeyCode == Enum.KeyCode.X and content.progressionPolicy and content.progressionPolicy.combat then
+				cycleStance()
 			elseif key.KeyCode == Enum.KeyCode.Q and content.progressionPolicy and content.progressionPolicy.combat then
 				command("dodge", {})
 			elseif key.KeyCode == Enum.KeyCode.G and content.progressionPolicy and content.progressionPolicy.combat then
@@ -1496,7 +1636,9 @@ function M.start(options: Options)
 				local character = player.Character
 				local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
 				local attackTarget: BasePart? = nil
+				local rangedTarget: BasePart? = nil
 				local distance = 8
+				local rangedDistance = Model.RANGED_STUDS
 				local wildlife = world:FindFirstChild("ForgeWildlife")
 				if pivot and pivot:IsA("BasePart") and wildlife then
 					for _, animal in wildlife:GetChildren() do
@@ -1507,14 +1649,21 @@ function M.start(options: Options)
 							if d < distance then
 								attackTarget, distance = anchor, d
 							end
+							if d < rangedDistance then
+								rangedTarget, rangedDistance = anchor, d
+							end
 						end
 					end
 				end
-				local actions = Model.contextActions(model.durable, model.pending, modal, restTarget, attackTarget)
+				local actions =
+					Model.contextActions(model.durable, model.pending, modal, restTarget, attackTarget, rangedTarget)
 				restButton.Visible, attackButton.Visible = actions.rest, actions.attack
 				for key, defenseControl in defenseButtons do
 					defenseControl.Visible = actions[key]
 				end
+				local stanceView = model.snapshot.contracts and model.snapshot.contracts.stance
+				defenseButtons.stance.Text = Model.stanceLabel(locale, stanceView, t)
+				defenseButtons.shoot.Text = t("shoot")
 				if restPrompt then
 					restPrompt.Enabled = actions.rest
 					if restTarget then
@@ -1522,9 +1671,10 @@ function M.start(options: Options)
 					end
 				end
 				if combatPrompt then
-					combatPrompt.Enabled = actions.attack
-					if attackTarget then
-						combatPrompt.Adornee = attackTarget
+					combatPrompt.Enabled = actions.attack or actions.shoot
+					local adornee: BasePart? = attackTarget or rangedTarget
+					if adornee then
+						combatPrompt.Adornee = adornee
 					end
 				end
 				player:SetAttribute("ForgeSurvivalSheetOpen", sheet.frame.Visible)

@@ -8,7 +8,7 @@ local Job = require("../../../core/domain/crafting/Job")
 local Data = require("../../../core/domain/genre/SerializedData")
 local M = {}
 
-function M.factory(ctx: any): any
+function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean } }?): any
 	local rules = ctx.content.progressionPolicy.companion
 	local catalog = Job.catalog(ctx.content)
 	local function state(slice: any): any
@@ -268,7 +268,15 @@ function M.factory(ctx: any): any
 				end
 				local pet = if companions.ride then companions.pets[companions.ride] else nil
 				if pet and pet.species == row.id and row.mount.enabled then
-					ride = { species = row.id, id = pet.id }
+					-- A worn paid skin of this species dresses the ride; speed stays the species value.
+					local skin = nil
+					for id in (if ctx.appearance then ctx.appearance(actor) else nil) or {} do
+						local rule = (skins or {})[id]
+						if rule and rule.species == row.id then
+							skin = id
+						end
+					end
+					ride = { species = row.id, id = pet.id, skin = skin }
 					speed = row.mount.walkSpeed
 				end
 			end

@@ -98,7 +98,8 @@
 'runtime_mode':
   'crafting'
 # Client render caps per device profile. Low applies at SavedQualityLevel 1..qualityLevelMax,
-# or Automatic on a touch device. High equals the uncapped behaviour. Runtime mirror:
+# or Automatic on a touch device. High equals the uncapped behaviour. decorFaunaPose: whether
+# decorative arrival fauna plays its graze idle (low holds the rest pose). Runtime mirror:
 # src/shared/RenderBudget.luau (render-budget.spec.luau asserts equality).
 'render_profiles':
   'low':
@@ -108,6 +109,7 @@
     'decorShadows': false
     'wildlifePoseStuds': 60
     'wildlifePoseMax': 6
+    'decorFaunaPose': false
     'meshBuildsMax': 2
   'high':
     'qualityLevelMax': 10
@@ -116,6 +118,7 @@
     'decorShadows': true
     'wildlifePoseStuds': 100
     'wildlifePoseMax': 1000
+    'decorFaunaPose': true
     'meshBuildsMax': 6
 'place_roles':
   # Zero is unconfigured. Live startup and deployment refuse it.

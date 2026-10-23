@@ -1,5 +1,5 @@
 --!strict
--- The player-facing entity names (src/shared/EntityNames.luau) must equal the
+-- The player-facing entity names (PackText.names over the shipped strings.csv) must equal the
 -- `entity <id>` rows of locale/strings.csv, and every item, recipe output and
 -- structure in the content document must have a name: a missing row shows a raw
 -- id such as "brick-floor-kit" in the craft and build sheets, or "berry-bush" on a
@@ -87,8 +87,7 @@ local function expected(): { [string]: { en: string, ko: string } }
 end
 
 local function load(locale: string): { [string]: string }
-	local chunk = assert(loadstring(fs.readFile(PACK .. "/src/shared/EntityNames.luau")))
-	return (chunk() :: any)(locale)
+	return require("./PackText.fixture").names(locale)
 end
 
 return {
@@ -100,7 +99,7 @@ return {
 			assert(ko[id] == entry.ko, "ko name drifted for " .. id .. ": " .. tostring(ko[id]))
 		end
 		for id in en do
-			assert(want[id] ~= nil, "EntityNames has an id strings.csv does not: " .. id)
+			assert(want[id] ~= nil, "PackText.names has an id strings.csv does not: " .. id)
 		end
 	end,
 

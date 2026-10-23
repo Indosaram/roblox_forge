@@ -329,6 +329,7 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		carriedContainer = "bag",
 		reachStuds = 8,
 		baseWalkSpeed = 16,
+		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
 		wildlife = if wildlifePolicy
 			then {
 				catalog = wildlifePolicy.catalog,
@@ -583,6 +584,34 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				Enum.PartType.Ball
 			)
 			return shape
+		end,
+		["branch-pile"] = function(id, p)
+			local pile = part(id, Vector3.new(3, 1, 2), p, rgb(120, 86, 52))
+			pile.Material = Enum.Material.Wood
+			for index = 1, 3 do
+				decor(
+					id .. "-stick" .. index,
+					Vector3.new(3.4, 0.3, 0.3),
+					CFrame.new(p + Vector3.new(0, 0.6, (index - 2) * 0.5)) * CFrame.Angles(0, math.rad(index * 25), 0),
+					rgb(104, 72, 44),
+					nil,
+					Enum.Material.Wood
+				)
+			end
+			return pile
+		end,
+		["stone-pile"] = function(id, p)
+			local pile = part(id, Vector3.new(3, 1.5, 3), p, rgb(128, 128, 122))
+			pile.Material = Enum.Material.Slate
+			decor(
+				id .. "-top",
+				Vector3.new(1.4, 1, 1.2),
+				CFrame.new(p + Vector3.new(0.4, 1, 0.2)),
+				rgb(146, 144, 136),
+				Enum.PartType.Ball,
+				Enum.Material.Slate
+			)
+			return pile
 		end,
 		["forest-oak-windfall"] = function(id, p, h)
 			local log = part(id, Vector3.new(9, h, h), p, rgb(92, 64, 40)) :: Part

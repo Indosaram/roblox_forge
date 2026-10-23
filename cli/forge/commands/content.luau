@@ -251,8 +251,10 @@ function M.check(path: string, graphJson: string?): boolean
 				"stationCycles",
 				"skillCycles",
 				"missingEntryActions",
+				"unhandledEntryActions",
 				"rankPrefix",
 				"unplacedSpecies",
+				"levelReachability",
 			}
 		do
 			json = json:gsub('("' .. field .. '"%s*:%s*){}', "%1[]")

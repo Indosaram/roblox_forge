@@ -21,7 +21,6 @@ local strings: { [string]: { string } } = {
 	nav_locked = { "%s: %s", "%s: %s" },
 	lock_unknown = { "Not on this island", "이 섬에는 없어요" },
 	lock_unavailable = { "Not available right now", "지금은 쓸 수 없어요" },
-	lock_inbox = { "Coming later: receipts go to your bag", "준비 중: 받은 물건은 가방으로 가요" },
 	lock_unsaved = { "Save a score first", "먼저 악보를 저장하세요" },
 	import_title = { "Import score", "악보 가져오기" },
 	import_hint = {
@@ -123,6 +122,10 @@ local strings: { [string]: { string } } = {
 		"모두 준비하고 모닥불 근처에 있어야 해요",
 	},
 	["ensemble.member"] = { "You are not in the ensemble", "합주에 참여하지 않았어요" },
+	["ensemble.instrument"] = {
+		"Craft this part's instrument at a workbench first",
+		"이 파트의 악기를 작업대에서 먼저 만드세요",
+	},
 	failed = { "That did not work. Try again", "실패했어요. 다시 시도하세요" },
 	editor_title = { "Score editor", "악보 편집" },
 	editor_close = { "Close", "닫기" },

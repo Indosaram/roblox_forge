@@ -285,7 +285,7 @@ end
 local function filled(locale: string): any
 	local ui = harness(locale, refused("NOT_GROWN"))
 	-- Real localized entity names: the longest strings a player sees in these rows.
-	local names = require("../../../games/robango-island/src/shared/EntityNames")(locale)
+	local names = require("../../../games/robango-island/PackText.fixture").names(locale)
 	ui.mounted.hub.name = function(id: string): string
 		return names[id] or Text.text(locale, id)
 	end

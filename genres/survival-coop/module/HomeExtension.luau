@@ -6,6 +6,8 @@ local Session = require("../../../core/infra/genre/Session")
 local Schema = require("../../../core/infra/net/Schema")
 local HomeTransfer = require("./HomeTransfer")
 local HomeMove = require("../../../core/domain/home/HomeMove")
+local Spoilage = require("../../../core/domain/survival/Spoilage")
+local Clock = require("../../../core/infra/genre/Clock")
 local M = {}
 
 -- Client actions this extension adds beyond the base contract list.
@@ -75,6 +77,10 @@ function M.new(config: any): any
 		then HomeTransfer.new({
 			catalog = catalog,
 			now = config.now,
+			spoilage = Spoilage.policy(config.content),
+			nowMillis = function()
+				return Clock.millis(config.now())
+			end,
 			personal = config.personal,
 			open = open,
 			update = function(actor, transform)
@@ -188,7 +194,14 @@ function M.new(config: any): any
 					catalog = catalog,
 					crops = crops,
 					structures = config.structures,
-					nodes = facts.nodes or {},
+					-- Learned nodes arrive as SkillTree.paid (node -> SP cost); Home gates test `== true`.
+					nodes = (function()
+						local learned = {}
+						for node, value in facts.nodes or {} do
+							learned[node] = value ~= nil and value ~= false
+						end
+						return learned
+					end)(),
 					entitlements = facts.entitlements or {},
 					developmentRank = facts.developmentRank,
 				})

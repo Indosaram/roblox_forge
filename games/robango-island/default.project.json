@@ -143,6 +143,9 @@
           "$className": "Folder",
           "robango-island": {
             "$className": "Folder",
+            "Strings": {
+              "$path": "locale/strings.csv"
+            },
             "src": {
               "$className": "Folder",
               "shared": {

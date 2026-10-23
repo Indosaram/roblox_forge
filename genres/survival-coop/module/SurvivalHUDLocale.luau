@@ -14,6 +14,63 @@ local strings: { [string]: { string } } = {
 		"You cannot sell more than you hold (held %d)",
 		"보유 수량보다 많이 팔 수 없어요 (보유 %d)",
 	},
+	["market.account"] = {
+		"Market trading is unavailable for this account right now.",
+		"지금은 이 계정으로 장터 거래를 할 수 없어요.",
+	},
+	["market.age"] = {
+		"Market listing opens once your Roblox account is 7 days old.",
+		"로블록스 계정이 7일 이상 되어야 장터에 등록할 수 있어요.",
+	},
+	["market.playtime"] = {
+		"Market listing opens after 2 hours of play. Keep exploring and come back.",
+		"2시간 이상 플레이해야 장터에 등록할 수 있어요. 더 탐험한 뒤 다시 오세요.",
+	},
+	["market.tutorial"] = {
+		"Finish the first-day tutorial to open market listing.",
+		"첫날 튜토리얼을 마치면 장터에 등록할 수 있어요.",
+	},
+	["market.invalid"] = {
+		"Enter a quantity you carry and a price of at least 1.",
+		"가진 만큼의 수량과 1 이상의 가격을 입력하세요.",
+	},
+	["market.declined"] = {
+		"Those goods could not be escrowed (reserved, equipped, or 20 listings up). Check your bag.",
+		"재료를 맡길 수 없어요 (예약·장착 중이거나 등록 20개 초과). 가방을 확인하세요.",
+	},
+	["market.pending"] = {
+		"Listing is still settling. Press List again in a moment; it will not list twice.",
+		"등록을 정산하는 중이에요. 잠시 뒤 다시 누르세요. 두 번 등록되지 않아요.",
+	},
+	["market.conflict"] = {
+		"That request already listed different goods. Change the amount or price and list again.",
+		"같은 요청으로 다른 묶음이 이미 등록됐어요. 수량이나 가격을 바꿔 다시 등록하세요.",
+	},
+	["market.expired"] = {
+		"Session refreshed. Reopen the market and list again.",
+		"세션이 새로 고쳐졌어요. 장터를 다시 열고 등록하세요.",
+	},
+	["market.combat"] = {
+		"A wildlife fight is still settling. Wait a moment, then list again.",
+		"야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 등록하세요.",
+	},
+	["market.rate"] = {
+		"Too fast. Wait a moment, then list again.",
+		"너무 빨라요. 잠시 뒤 다시 등록하세요.",
+	},
+	["market.left"] = {
+		"You left this server. Rejoin to list.",
+		"서버를 떠났어요. 다시 접속한 뒤 등록하세요.",
+	},
+	["market.unavailable"] = {
+		"The market is still connecting. Wait a moment and try again.",
+		"장터에 연결하는 중이에요. 잠시 뒤 다시 시도하세요.",
+	},
+	["market.transport"] = {
+		"Connection uncertain. Press List again; it will not list twice.",
+		"연결이 불확실해요. 다시 누르세요. 두 번 등록되지 않아요.",
+	},
+	["market.refused"] = { "The market refused this listing.", "장터가 이 등록을 거절했어요." },
 	INELIGIBLE_REPAIR = { "This item cannot be repaired", "수리할 수 없는 물건" },
 	preset = { "Terrain %d", "지형 %d" },
 	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
@@ -26,6 +83,15 @@ local strings: { [string]: { string } } = {
 	music = { "Music", "연주" },
 	dodge = { "Dodge [Q]", "회피 [Q]" },
 	guard = { "Guard [G]", "방어 [G]" },
+	shoot = { "Shoot [V]", "사격 [V]" },
+	stance = { "Stance: %s [X]", "태세: %s [X]" },
+	["stance.none"] = { "None", "없음" },
+	["stance.attack"] = { "Attack", "공격" },
+	["stance.defense"] = { "Defense", "방어" },
+	["stance.counter"] = { "Counter", "역습" },
+	["stance.onslaught"] = { "Onslaught", "맹공" },
+	["stance.charge"] = { "Charge", "돌격" },
+	["stance.shoot"] = { "Shooting", "사격" },
 	skills = { "Skills", "기술" },
 	coins = { "Shellmoney %d", "조개돈 %d" },
 	level_sp = { "Level %d / SP %d", "레벨 %d / SP %d" },
@@ -75,6 +141,18 @@ local strings: { [string]: { string } } = {
 	},
 	craft_nearby = { "Nearby / materials", "주변 시설 / 보유 재료" },
 	craft_all = { "All recipes", "모든 레시피" },
+	craft_favorite = { "Favorite", "즐겨찾기" },
+	craft_unfavorite = { "Unfavorite", "즐겨찾기 해제" },
+	craft_track = { "Track (to-do)", "할 일 추적" },
+	craft_untrack = { "Untrack", "추적 해제" },
+	tracker_title = { "To-do recipes", "할 일 레시피" },
+	tracker_ready = { "Ready", "준비됨" },
+	TODO_LIMIT = { "You can track up to 5 recipes.", "레시피는 최대 5개까지 추적할 수 있어요." },
+	INVALID_MARK = { "That mark is not available.", "그 표시는 쓸 수 없어요." },
+	FAVORITE_LIMIT = {
+		"Too many favorites. Remove one first.",
+		"즐겨찾기가 너무 많아요. 하나를 먼저 해제하세요.",
+	},
 	WILDLIFE_UNREACHABLE = {
 		"Move within range and face a dinosaur",
 		"공룡 가까이 이동하고 공룡을 바라보세요",
@@ -103,10 +181,19 @@ local strings: { [string]: { string } } = {
 	reserved = { "Reserved", "예약됨" },
 	quality = { "Quality", "품질" },
 	durability = { "Durability", "내구도" },
+	freshness = { "Freshness %d%%", "신선도 %d%%" },
+	freshness_spoiling = {
+		"Freshness %d%% - eat or cool it soon",
+		"신선도 %d%% - 곧 먹거나 냉장고에 넣으세요",
+	},
 	weight = { "Weight", "무게" },
 	slots = { "Slots", "칸" },
 	slow = { "Heavy load: movement reduced", "짐이 무거워 이동 속도가 줄었어요" },
 	eat = { "Eat one", "하나 먹기" },
+	hungry = {
+		"You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.",
+		"배가 고파요: 가방(I)을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.",
+	},
 	deposit = { "Store one", "하나 보관" },
 	withdraw = { "Take one", "하나 꺼내기" },
 	warehouse = { "Shared storage", "공용 창고" },
@@ -195,6 +282,14 @@ local strings: { [string]: { string } } = {
 		"Move closer to the required station, then reserve again.",
 		"필요한 제작 시설(모닥불·작업대 등) 가까이 이동한 뒤 다시 예약하세요.",
 	},
+	WAREHOUSE_UNREACHABLE = {
+		"Walk to the camp warehouse (the storage crate) to store or take items.",
+		"공용 창고(보관 상자) 가까이 가서 보관하거나 꺼내세요.",
+	},
+	TRANSFER_UNAVAILABLE = {
+		"Camp storage is not connected yet. Wait a moment, then try again.",
+		"공용 창고가 아직 연결되지 않았어요. 잠시 뒤 다시 시도하세요.",
+	},
 	CAMPFIRE_UNREACHABLE = {
 		"Move closer to a campfire to rest.",
 		"모닥불 가까이 이동하면 쉴 수 있어요.",
@@ -227,6 +322,10 @@ local strings: { [string]: { string } } = {
 function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key
+end
+-- Food freshness line from remaining permille; under a quarter left it warns to eat or refrigerate.
+function M.freshness(locale: string, permille: number): string
+	return string.format(M.text(locale, if permille < 250 then "freshness_spoiling" else "freshness"), permille // 10)
 end
 -- Skills row: category name, rank and cost; an unknown category shows its id with spaces.
 function M.skill(locale: string, node: { category: string, rank: number?, cost: number }): string

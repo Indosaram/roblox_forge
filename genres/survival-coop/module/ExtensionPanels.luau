@@ -85,6 +85,7 @@ local categories: { [string]: { number | string } } = {
 	processing = { 1, "craft" },
 	["craft-preview"] = { 1, "craft" },
 	inbox = { 1, "inbox" },
+	operations = { 1, "craft" },
 }
 local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
@@ -232,6 +233,7 @@ M.factories = {
 	require("./DeathZonePanel").factory,
 	require("./BrawlPanel").factory,
 	require("./ExpeditionPanels").factory,
+	require("./OperationPanel").factory,
 } :: { Factory }
 
 export type Started = { destroy: () -> (), closeAll: () -> () }
@@ -847,6 +849,15 @@ function M.start(options: {
 		end
 		local panel = prompt:GetAttribute("ForgePanel")
 		local holder = prompt.Parent
+		-- Practice stands run their content operation; the sheet then shows the outcome.
+		local operation = prompt:GetAttribute("ForgeOperation")
+		if type(operation) == "string" then
+			context.send("survival-coop:operation-run", { operation, "hand" })
+			if type(panel) == "string" then
+				openPanel(panel)
+			end
+			return
+		end
 		local facility = if holder then holder:GetAttribute("ForgeHarborFacility") else nil
 		-- Stations (workbench, communication station, market board) carry ForgeDialogue.
 		local talk = prompt:GetAttribute("ForgeDialogue")

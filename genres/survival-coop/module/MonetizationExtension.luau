@@ -32,6 +32,8 @@ export type Hooks = {
 	skinSupported: ((skinId: string) -> boolean)?,
 	skinSelect: ((actor: string, skinId: string) -> Shared.Result)?,
 	skinResync: ((actor: string) -> Shared.Result)?,
+	-- Selection slot of a cosmetic (one selected cosmetic per slot); defaults to the id itself.
+	skinSlot: ((skinId: string) -> string)?,
 }
 export type Config = {
 	catalog: Listings,
@@ -48,10 +50,13 @@ type State = {
 	skins: { [string]: boolean },
 	passes: { [string]: boolean },
 	subscription: { active: boolean, setId: string?, slots: number },
+	-- Selected cosmetic per slot (absent in saves that never selected one).
+	appearance: { [string]: string }?,
 }
 type Entry = { profile: Fenced.Profile, state: State, prompts: number }
 
 local configured: Config? = nil
+local wearers: { [any]: (string) -> { [string]: boolean } } = setmetatable({}, { __mode = "k" }) :: any
 local NO_LISTINGS: { Listing } = {}
 local NO_HOOKS: Hooks = {}
 
@@ -271,6 +276,20 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 		return processor:process(receipt)
 	end)
 
+	local function eligible(state: State, skin: string): boolean
+		return state.skins[skin] == true or (state.subscription.active and state.subscription.setId == skin)
+	end
+	-- Selected cosmetics the actor may still wear: an expired subscription set drops out here.
+	local function wearing(state: State): { [string]: boolean }
+		local result = {}
+		local selected: { [string]: string } = state.appearance or {}
+		for _, skin in selected do
+			if eligible(state, skin) then
+				result[skin] = true
+			end
+		end
+		return result
+	end
 	local function view(entry: Entry): { [string]: any }
 		local eligibleSkins = clone(entry.state.skins)
 		if entry.state.subscription.active and entry.state.subscription.setId then
@@ -297,7 +316,9 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 				})
 			end
 		end
+		local worn = wearing(entry.state)
 		return {
+			appearance = if next(worn) then worn else nil,
 			saveVersion = entry.state.saveVersion,
 			skins = clone(entry.state.skins),
 			eligibleSkins = eligibleSkins,
@@ -327,17 +348,24 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			end
 			if action == SELECT then
 				local skin = args[1]
-				local owned = type(skin) == "string"
-					and (
-						entry.state.skins[skin] == true
-						or (entry.state.subscription.active and entry.state.subscription.setId == skin)
-					)
-				if not owned then
+				if type(skin) ~= "string" or not eligible(entry.state, skin) then
 					return { ok = false, reason = "SKIN_NOT_OWNED" }
 				end
-				return if hooks.skinSelect
-					then hooks.skinSelect(actor, skin)
-					else { ok = false, reason = "PRODUCT_EFFECT_UNAVAILABLE" }
+				if hooks.skinSelect then
+					return hooks.skinSelect(actor, skin)
+				end
+				if not (hooks.skinSupported and hooks.skinSupported(skin)) then
+					return { ok = false, reason = "PRODUCT_EFFECT_UNAVAILABLE" }
+				end
+				-- The selection persists with the entitlements; renderers read it via `appearance`.
+				local slot = if hooks.skinSlot then hooks.skinSlot(skin) else skin
+				local appearance = table.clone(entry.state.appearance or {})
+				appearance[slot] = skin
+				entry.state.appearance = appearance
+				if not persist(entry) then
+					return { ok = false, reason = "SAVE_FAILED" }
+				end
+				return { ok = true, stateVersion = entry.state.version, data = { skin = skin } }
 			end
 			if action == SYNC then
 				local ok = pcall(function()
@@ -444,7 +472,19 @@ function M.factory(ctx: Context): (Shared.Extension & { close: (() -> Shared.Res
 			return { ok = true }
 		end,
 	}
+	-- Cosmetics the actor currently wears (selected and still owned), as a set of ids. Kept off the
+	-- port (Session accepts only contract callbacks) and found through M.appearance.
+	wearers[extension.command] = function(actor: string): { [string]: boolean }
+		local entry = load(actor)
+		return if entry then wearing(entry.state) else {}
+	end
 	return Session.registerLifecycle(extension)
+end
+
+--- The cosmetics `actor` wears according to a built monetization extension (or its port copy).
+function M.appearance(extension: any, actor: string): { [string]: boolean }?
+	local read = wearers[extension.command]
+	return if read then read(actor) else nil
 end
 
 return M

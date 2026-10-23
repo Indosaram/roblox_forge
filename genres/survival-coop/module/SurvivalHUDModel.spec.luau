@@ -10,6 +10,14 @@ local function status(state: any): string
 	return state.status
 end
 
+local function bagOf(stacks: { [string]: number }): any
+	local items = {}
+	for catalogId, quantity in stacks do
+		items[catalogId .. "-1"] = { itemId = catalogId .. "-1", catalogId = catalogId, quantity = quantity }
+	end
+	return { items = items, reservations = {} }
+end
+
 local function model(): any
 	local count = 0
 	local state = Model.new("alice", function()
@@ -291,6 +299,22 @@ return {
 		state.finish(true, { ok = true })
 		assert(not state.expireNotice("stale") and state.notice ~= nil, "an older timer never clears a newer line")
 	end,
+	["p45 a finished refusal expires from the contextual status, but never a newer one or an in-flight request"] = function()
+		local state: any = model()
+		local deposit: { any } = { "wood", 1 }
+		state.receive({ durable = { actions = { "survival-coop:transfer-deposit" }, sessionEpoch = 4 } })
+		state.begin("transfer-deposit", deposit)
+		state.finish(true, { ok = false, reason = "UNAUTHORIZED", stateVersion = 2 })
+		assert(state.status == "conflict" and state.reason == "UNAUTHORIZED" and state.pending == nil, "refused")
+		assert(not state.expireRefusal("OTHER"), "an older timer never clears a newer refusal")
+		assert(state.expireRefusal("UNAUTHORIZED"), "the refusal line clears after its display time")
+		local cleared: string = state.status
+		assert(cleared == "ready" and state.reason == nil, "the banner is gone")
+		state.begin("transfer-deposit", deposit)
+		state.finish(true, { ok = false, reason = "UNAUTHORIZED", stateVersion = 3 })
+		state.begin("transfer-deposit", deposit)
+		assert(not state.expireRefusal("UNAUTHORIZED"), "an in-flight request keeps the HUD state")
+	end,
 	["non-repair acceptance without a persisted outcome keeps its request"] = function()
 		local state = model()
 		local request = state.begin("craft-reserve", { "cord", "hand" })
@@ -473,5 +497,34 @@ return {
 			retained == reserved.reservations.actual and refusal == nil,
 			"own reservation remains valid green preview"
 		)
+	end,
+	["p45 the tutorial pins the axe the bag can make: Flint Hatchet unless branch and stone are held"] = function()
+		local recipes: { any } = {
+			{
+				id = "starter-axe",
+				station = "workbench",
+				inputs = { { item = "branch", quantity = 3 }, { item = "stone", quantity = 2 } },
+			},
+			{ id = "stone-axe", inputs = { { item = "flint", quantity = 2 } } },
+		}
+		assert(Model.axePin(bagOf({ flint = 3 }), recipes) == "stone-axe", "flint only: the hatchet")
+		assert(Model.axePin(bagOf({}), recipes) == "stone-axe", "empty bag: the hatchet (flint is on every island)")
+		assert(Model.axePin(bagOf({ branch = 3, stone = 2 }), recipes) == "starter-axe", "branch+stone: starter axe")
+		assert(Model.axePin(bagOf({}), { recipes[1] }) == "starter-axe", "no hatchet recipe: starter axe")
+		local rows = Model.recipeOrder(bagOf({ flint = 3 }), {
+			{ id = "a-early", inputs = { { item = "flint", quantity = 1 } } } :: any,
+			recipes[1],
+			recipes[2],
+		}, function()
+			return true
+		end, {}, { pin = Model.axePin(bagOf({ flint = 3 }), recipes), jobs = {} })
+		assert(rows[1].recipe.id == "stone-axe", "pinned recipe is first in the craft list: " .. rows[1].recipe.id)
+	end,
+	["p45 low fullness raises the eat prompt"] = function()
+		assert(Model.hungry({ hungerMilli = 23000 }), "23 fullness prompts")
+		assert(not Model.hungry({ hungerMilli = 51000 }), "51 fullness does not")
+		assert(not Model.hungry(nil), "no vitals, no prompt")
+		local Locale = require("./SurvivalHUDLocale")
+		assert(string.find(Locale.text("ko-kr", "hungry"), "(I)", 1, true), "names the bag key")
 	end,
 }

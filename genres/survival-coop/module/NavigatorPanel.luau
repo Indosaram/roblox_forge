@@ -22,7 +22,7 @@ M.ROWS = {
 	{ "nav_import", "score-import" },
 	{ "nav_share", "score-share" },
 	{ "nav_ensemble", "ensemble-lobby" },
-	{ "nav_inbox", false, "lock_inbox" },
+	{ "nav_inbox", "inbox" },
 	{ "nav_settings", "audio" },
 } :: { { any } }
 

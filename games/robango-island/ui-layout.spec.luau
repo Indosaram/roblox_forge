@@ -11,7 +11,7 @@ local Brawl = require("../../genres/survival-coop/module/BrawlPanel")
 local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
 local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Content: any = require("./src/shared/SurvivalContent")
-local EntityNames = require("./src/shared/EntityNames")
+local EntityNames = require("./PackText.fixture").names
 local Shop = require("../../genres/survival-coop/module/ShopPanel")
 local Catalog: any = require("./src/shared/MonetizationCatalog")
 

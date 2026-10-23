@@ -101,6 +101,8 @@ return {
 					toast = toast,
 					Locale = Locale,
 					locale = locale,
+					-- The snippet schedules its own expiry; the toast under test is the immediate line.
+					task = { delay = function() end },
 				},
 			})()
 			assert(

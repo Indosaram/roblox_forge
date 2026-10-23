@@ -44,7 +44,7 @@ local function harness(facts: { [string]: any }, now: number?, onExpedition: boo
 	return h
 end
 
-local READY = { level = 2, developmentRank = 2, instabilityAccess = 1 }
+local READY = { level = 30, developmentRank = 2, instabilityAccess = 1 }
 
 return {
 	["party-action is declared, published and handled"] = function()

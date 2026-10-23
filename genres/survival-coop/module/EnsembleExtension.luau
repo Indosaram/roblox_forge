@@ -64,6 +64,14 @@ function M.new(config: any): any
 			if not config.repository.canRead(actor, args[1], args[2]) then
 				return { ok = false, reason = "score.private" }
 			end
+			-- A performer plays only a part whose instrument they own (server-owned port).
+			if config.owns then
+				local saved = config.repository.load(args[1], args[2])
+				local part = if saved and type(args[3]) == "number" then saved.parts[args[3]] else nil
+				if part and not config.owns(actor, part.instrumentId) then
+					return { ok = false, reason = "ensemble.instrument" }
+				end
+			end
 			local ok, reason = rooms.join(actor, args[1], args[2], args[3])
 			return { ok = ok, reason = reason }
 		elseif action == "ensemble-ready" then

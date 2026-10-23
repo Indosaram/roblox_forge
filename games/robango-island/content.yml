@@ -25,6 +25,7 @@ items:
     name: "Birch Bark Curl"
     stackMax: 80
     tags:
+      - "quest-bound"
       - "fuel"
     weightMilli: 150
   -
@@ -121,7 +122,8 @@ items:
     id: "cord"
     name: "Twisted Cord"
     stackMax: 50
-    tags: []
+    tags:
+      - "quest-bound"
     weightMilli: 500
   -
     id: "fiber"
@@ -204,7 +206,8 @@ items:
     id: "reed"
     name: "Common Reed Stalk"
     stackMax: 80
-    tags: []
+    tags:
+      - "retired"
     weightMilli: 200
   -
     foodEffects:
@@ -230,7 +233,8 @@ items:
     id: "samphire"
     name: "Glasswort Sprig"
     stackMax: 60
-    tags: []
+    tags:
+      - "retired"
     weightMilli: 100
   -
     id: "shell-fragment"
@@ -360,6 +364,27 @@ items:
     # RECONSTRUCTED Robango redesign: tier-2 workbench kit (auxiliary-material spec upgrade-workbench-t2 inputs).
     id: "workbench-t2-kit"
     name: "Reinforced Bench Kit"
+    stackMax: 1
+    tags: []
+    weightMilli: 1500
+  -
+    # RECONSTRUCTED Robango redesign: workbench-t3 kit (auxiliary-material spec upgrade-workbench-t3 inputs).
+    id: "workbench-t3-kit"
+    name: "Ironbound Bench Kit"
+    stackMax: 1
+    tags: []
+    weightMilli: 1500
+  -
+    # RECONSTRUCTED Robango redesign: kiln-t2 kit (auxiliary-material spec upgrade-kiln-t2 inputs).
+    id: "kiln-t2-kit"
+    name: "Fired Kiln Kit"
+    stackMax: 1
+    tags: []
+    weightMilli: 1500
+  -
+    # RECONSTRUCTED Robango redesign: kiln-t3 kit (auxiliary-material spec upgrade-kiln-t3 inputs).
+    id: "kiln-t3-kit"
+    name: "Blast Kiln Kit"
     stackMax: 1
     tags: []
     weightMilli: 1500
@@ -1368,13 +1393,15 @@ items:
     name: "Practice Stitch"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "bound"
   -
     id: "practice-seedbed"
     name: "Practice Seedbed"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "bound"
   -
     id: "instrument-piano"
     name: "Instrument Piano"
@@ -1450,49 +1477,57 @@ items:
     name: "Bandage"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "signal-lens"
     name: "Signal Lens"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "sample-case"
     name: "Sample Case"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "research-bundle"
     name: "Research Bundle"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "shelter-liner"
     name: "Shelter Liner"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "heat-brace"
     name: "Heat Brace"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "signal-fragment"
     name: "Signal Fragment"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rescue-transponder"
     name: "Rescue Transponder"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "skull"
     name: "Skull"
@@ -1558,25 +1593,29 @@ items:
     name: "Relief Unit"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "survey-sample"
     name: "Survey Sample"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "volcanic-ash"
     name: "Volcanic Ash"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rescue-marker"
     name: "Rescue Marker"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "chapter"
     name: "Chapter"
@@ -1594,49 +1633,57 @@ items:
     name: "Rw Journal Seal 1"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-2"
     name: "Rw Journal Seal 2"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-3"
     name: "Rw Journal Seal 3"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-4"
     name: "Rw Journal Seal 4"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-5"
     name: "Rw Journal Seal 5"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-6"
     name: "Rw Journal Seal 6"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-7"
     name: "Rw Journal Seal 7"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
   -
     id: "rw-journal-seal-8"
     name: "Rw Journal Seal 8"
     stackMax: 50
     weightMilli: 500
-    tags: []
+    tags:
+      - "quest-bound"
 limits:
   hardWeightMilli: 90000
   qualityMilliMax: 5000
@@ -1651,6 +1698,22 @@ nodes:
         item: "berry"
         quantity: 3
     id: "berry-bush"
+    respawnMillis: 120000
+  # p45: the Studio preview island had no branch or stone, so guides g01/g02 and the starter
+  # axe were unreachable there (p43 journey). Hand-gatherable piles, as on rw.onboarding.
+  -
+    harvest:
+      -
+        item: "branch"
+        quantity: 3
+    id: "branch-pile"
+    respawnMillis: 120000
+  -
+    harvest:
+      -
+        item: "stone"
+        quantity: 3
+    id: "stone-pile"
     respawnMillis: 120000
   -
     harvest:
@@ -3800,6 +3863,51 @@ recipes:
         quantity: 1
     station: "workbench"
   -
+    id: "workbench-t3-kit"
+    craftMillis: 30000
+    inputs:
+      -
+        item: "iron"
+        quantity: 8
+      -
+        item: "polished-stone"
+        quantity: 6
+    outputs:
+      -
+        item: "workbench-t3-kit"
+        quantity: 1
+    station: "workbench"
+  -
+    id: "kiln-t2-kit"
+    craftMillis: 20000
+    inputs:
+      -
+        item: "polished-stone"
+        quantity: 8
+      -
+        item: "clay"
+        quantity: 6
+    outputs:
+      -
+        item: "kiln-t2-kit"
+        quantity: 1
+    station: "kiln"
+  -
+    id: "kiln-t3-kit"
+    craftMillis: 30000
+    inputs:
+      -
+        item: "iron"
+        quantity: 6
+      -
+        item: "clay"
+        quantity: 8
+    outputs:
+      -
+        item: "kiln-t3-kit"
+        quantity: 1
+    station: "kiln"
+  -
     id: "kiln-kit"
     craftMillis: 20000
     inputs:
@@ -4263,6 +4371,17 @@ structures:
         quantity: 1
     tier: 2
   -
+    # RECONSTRUCTED Robango redesign: home-placed tier-3 workbench (serves workbench tier 3).
+    id: "workbench-t3"
+    footprintX: 2
+    footprintZ: 2
+    station: true
+    cost:
+      -
+        item: "workbench-t3-kit"
+        quantity: 1
+    tier: 3
+  -
     id: "kiln"
     footprintX: 2
     footprintZ: 2
@@ -4272,6 +4391,28 @@ structures:
         item: "kiln-kit"
         quantity: 1
     tier: 1
+  -
+    # RECONSTRUCTED Robango redesign: home-placed tier-2 kiln (serves kiln tier 2).
+    id: "kiln-t2"
+    footprintX: 2
+    footprintZ: 2
+    station: true
+    cost:
+      -
+        item: "kiln-t2-kit"
+        quantity: 1
+    tier: 2
+  -
+    # RECONSTRUCTED Robango redesign: home-placed tier-3 kiln (serves kiln tier 3).
+    id: "kiln-t3"
+    footprintX: 2
+    footprintZ: 2
+    station: true
+    cost:
+      -
+        item: "kiln-t3-kit"
+        quantity: 1
+    tier: 3
   -
     id: "tanning-frame"
     footprintX: 2
@@ -4431,8 +4572,10 @@ progressionPolicy:
     bootsItem: lava-protection-boots
     bootsMultiplier: 0.5
     lavaMaxHealthFraction: 0.25
-  # Robango redesign (p31): melee XP per kill (actionXP + killXP), not per hit.
-  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 20, xpStep: 80, killXP: 60}
+  # Spec restored by owner decision 2026-10-23 (robango-fidelity-contracts R01): next level needs
+  # 100+25*(L-1) = xpBase+xpStep*L. Melee XP is per kill (actionXP + killXP), not per hit; actionXP+killXP = 70
+  # is the spec 20+5*creatureLevel at the level-10 tier (flat until kills know the creature level).
+  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 75, xpStep: 25, killXP: 60}
   sharpnessPerPoint: 0.02
   insulationCold: 0.1
   minimumWear: 0.5
@@ -4477,6 +4620,9 @@ progressionPolicy:
     cold-gloves: {cold: 2, heat: 0}
     cold-bag: {cold: 2, heat: 0}
 tags:
+  - "bound"
+  - "quest-bound"
+  - "retired"
   - "building-part"
   - "cutting"
   - "fuel"
@@ -10893,6 +11039,48 @@ recipeDetails:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    id: "workbench-t3-kit"
+    minCharacterLevel: 50
+    primaryMaterialLevel: 50
+    primaryInputs:
+      - "iron"
+      - "polished-stone"
+    auxiliaryInputs: []
+    skillNodes:
+      - "construction_5"
+    seconds: 30
+    stationTier: 2
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "kiln-t2-kit"
+    minCharacterLevel: 30
+    primaryMaterialLevel: 30
+    primaryInputs:
+      - "polished-stone"
+      - "clay"
+    auxiliaryInputs: []
+    skillNodes:
+      - "construction_3"
+    seconds: 20
+    stationTier: 1
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "kiln-t3-kit"
+    minCharacterLevel: 50
+    primaryMaterialLevel: 50
+    primaryInputs:
+      - "iron"
+      - "clay"
+    auxiliaryInputs: []
+    skillNodes:
+      - "construction_5"
+    seconds: 30
+    stationTier: 2
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
     id: "kiln-kit"
     minCharacterLevel: 10
     primaryMaterialLevel: 10
@@ -12872,11 +13060,7 @@ missionPolicy:
   weaponWearMilli: 1000
   weaponRangeStuds: 5
   weaponCooldownMillis: 1000
-  # Robango redesign (p33, was p31 7/L10): repeat clears pay repeatXPPerLevel x character level from L6 to L30
-  # so the lower onboarding xp still reaches L10 near 64 min and L30 near 5 h (forge econ sim --crafting).
-  repeatXPPerLevel: 9
-  repeatXPMinLevel: 6
-  repeatXPMaxLevel: 30
+  # Spec restored by owner decision 2026-10-23: no p33 repeat-clear level bonus (repeatXPPerLevel removed).
 # Lead decision (p38): a node requiring a tool accepts any owned axe/pick of the same family at the
 # same or a higher tier, so the tutorial's Flint Hatchet (stone-axe) cuts first-route wood.
 toolPolicy:
@@ -30051,7 +30235,7 @@ stages:
     id: "rw.a1.s1.gather"
     layout: "rw.a1.s1"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30065,7 +30249,7 @@ stages:
     id: "rw.a1.s1.survey"
     layout: "rw.a1.s1"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30079,7 +30263,7 @@ stages:
     id: "rw.a1.s2.craft"
     layout: "rw.a1.s2"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s1.gather"
@@ -30096,7 +30280,7 @@ stages:
     id: "rw.a1.s2.rescue"
     layout: "rw.a1.s2"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s1.gather"
@@ -30113,7 +30297,7 @@ stages:
     id: "rw.a1.s3.hunt"
     layout: "rw.a1.s3"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s2.craft"
@@ -30130,7 +30314,7 @@ stages:
     id: "rw.a1.s3.transport"
     layout: "rw.a1.s3"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s2.craft"
@@ -30147,7 +30331,7 @@ stages:
     id: "rw.a1.s4.survey"
     layout: "rw.a1.s4"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s3.hunt"
@@ -30164,7 +30348,7 @@ stages:
     id: "rw.a1.s4.hunt"
     layout: "rw.a1.s4"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
       completed:
         - "rw.a1.s3.hunt"
@@ -30765,7 +30949,7 @@ supportRegions:
     layout: "rw.frontier30"
     gates:
       characterLevel: 30
-    role: "frontier"
+    role: "frontier30"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -30773,7 +30957,7 @@ supportRegions:
     layout: "rw.frontier40"
     gates:
       characterLevel: 40
-    role: "frontier"
+    role: "frontier40"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -30781,7 +30965,7 @@ supportRegions:
     layout: "rw.frontier50"
     gates:
       characterLevel: 50
-    role: "frontier"
+    role: "frontier50"
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -30789,14 +30973,14 @@ supportRegions:
     layout: "rw.frontier60"
     gates:
       characterLevel: 60
-    role: "frontier"
+    role: "frontier60"
     provenance:
       classification: "RECONSTRUCTED"
 missions:
   -
     id: "rw.m1.gather"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30806,9 +30990,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s1.gather"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30823,7 +31006,7 @@ missions:
   -
     id: "rw.m1.craft"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30833,9 +31016,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.craft"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30850,7 +31032,7 @@ missions:
   -
     id: "rw.m1.survey"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30866,9 +31048,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.survey"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30883,7 +31064,7 @@ missions:
   -
     id: "rw.m1.rescue"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30893,9 +31074,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s2.rescue"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30910,7 +31090,7 @@ missions:
   -
     id: "rw.m1.hunt"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30926,9 +31106,8 @@ missions:
         quantity: 1
         stageId: "rw.a1.s4.hunt"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30945,7 +31124,7 @@ missions:
   -
     id: "rw.m1.transport"
     gates:
-      characterLevel: 2
+      characterLevel: 30
       developmentRank: 2
     objectives:
       -
@@ -30955,9 +31134,8 @@ missions:
         quantity: 5
         stageId: "rw.a1.s3.transport"
     rewards:
-      # Robango redesign (p33): first-clear xp 120 -> 30 (first expedition was front-loaded).
-      xp: 30
-      coins: 30
+      xp: 700
+      coins: 170
       development: 50
       reputation:
         -
@@ -30982,7 +31160,7 @@ missions:
         quantity: 10
         stageId: "rw.a2.s1.gather"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31008,7 +31186,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s2.craft"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31040,7 +31218,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s4.survey"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31066,7 +31244,7 @@ missions:
         quantity: 1
         stageId: "rw.a2.s2.rescue"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31098,7 +31276,7 @@ missions:
         quantity: 2
         stageId: "rw.a2.s4.hunt"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31126,7 +31304,7 @@ missions:
         quantity: 10
         stageId: "rw.a2.s3.transport"
     rewards:
-      xp: 450
+      xp: 800
       coins: 195
       development: 50
       reputation:
@@ -31152,7 +31330,7 @@ missions:
         quantity: 15
         stageId: "rw.a3.s1.gather"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31178,7 +31356,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s2.craft"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31210,7 +31388,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s4.survey"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31236,7 +31414,7 @@ missions:
         quantity: 1
         stageId: "rw.a3.s2.rescue"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31268,7 +31446,7 @@ missions:
         quantity: 3
         stageId: "rw.a3.s4.hunt"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31296,7 +31474,7 @@ missions:
         quantity: 15
         stageId: "rw.a3.s3.transport"
     rewards:
-      xp: 500
+      xp: 900
       coins: 220
       development: 50
       reputation:
@@ -31322,7 +31500,7 @@ missions:
         quantity: 20
         stageId: "rw.a4.s1.gather"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31348,7 +31526,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s2.craft"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31380,7 +31558,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s4.survey"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31406,7 +31584,7 @@ missions:
         quantity: 1
         stageId: "rw.a4.s2.rescue"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31438,7 +31616,7 @@ missions:
         quantity: 4
         stageId: "rw.a4.s4.hunt"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31466,7 +31644,7 @@ missions:
         quantity: 20
         stageId: "rw.a4.s3.transport"
     rewards:
-      xp: 600
+      xp: 1100
       coins: 270
       development: 50
       reputation:
@@ -31492,7 +31670,7 @@ missions:
         quantity: 25
         stageId: "rw.a5.s1.gather"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31518,7 +31696,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s2.craft"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31550,7 +31728,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s4.survey"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31576,7 +31754,7 @@ missions:
         quantity: 1
         stageId: "rw.a5.s2.rescue"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31608,7 +31786,7 @@ missions:
         quantity: 5
         stageId: "rw.a5.s4.hunt"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31636,7 +31814,7 @@ missions:
         quantity: 25
         stageId: "rw.a5.s3.transport"
     rewards:
-      xp: 700
+      xp: 1300
       coins: 320
       development: 50
       reputation:
@@ -31650,30 +31828,22 @@ missions:
     provenance:
       classification: "RECONSTRUCTED"
 guides:
+  # p45 G3: the first band follows the real first-session actions on every onboarding island
+  # (fiber by hand, the first axe of any tier, the first contract, the first camp donation), so
+  # development grade 2 (route 1) is reachable from the tutorial path.
   -
-    id: "rw.g01.hand-gather"
+    id: "rw.g01.first-gather"
     gates:
       characterLevel: 1
       developmentRank: 0
     objectives:
       -
-        id: "rw.g01.hand-gather.1"
-        action: "gather"
-        target: "branch"
-        quantity: 5
-      -
-        id: "rw.g01.hand-gather.2"
-        action: "gather"
-        target: "stone"
-        quantity: 3
-      -
-        id: "rw.g01.hand-gather.3"
+        id: "rw.g01.first-gather.1"
         action: "gather"
         target: "fiber"
         quantity: 3
     rewards:
-      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
-      xp: 10
+      xp: 120
       coins: 25
       development: 50
       items:
@@ -31681,79 +31851,23 @@ guides:
           item: "berry"
           quantity: 3
     dialogueKeys:
-      - "rw.g01.hand-gather.offer"
-      - "rw.g01.hand-gather.complete"
+      - "rw.g01.first-gather.offer"
+      - "rw.g01.first-gather.complete"
     provenance:
       classification: "RECONSTRUCTED"
   -
-    id: "rw.g02.campfire"
+    id: "rw.g02.first-axe"
     gates:
       characterLevel: 1
       developmentRank: 0
     objectives:
       -
-        id: "rw.g02.campfire.1"
+        id: "rw.g02.first-axe.1"
         action: "craft"
-        target: "campfire-kit"
-        quantity: 1
-      -
-        id: "rw.g02.campfire.2"
-        action: "place"
-        target: "campfire"
+        target: "axe"
         quantity: 1
     rewards:
-      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
-      xp: 10
-      coins: 25
-      development: 50
-      items:
-        -
-          item: "branch"
-          quantity: 5
-    dialogueKeys:
-      - "rw.g02.campfire.offer"
-      - "rw.g02.campfire.complete"
-    provenance:
-      classification: "RECONSTRUCTED"
-  -
-    id: "rw.g03.rest"
-    gates:
-      characterLevel: 1
-      developmentRank: 0
-    objectives:
-      -
-        id: "rw.g03.rest.1"
-        action: "rest"
-        target: "rw.onboarding.rest-mat"
-        quantity: 1
-    rewards:
-      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
-      xp: 10
-      coins: 25
-      development: 50
-      items:
-        -
-          item: "berry"
-          quantity: 3
-    dialogueKeys:
-      - "rw.g03.rest.offer"
-      - "rw.g03.rest.complete"
-    provenance:
-      classification: "RECONSTRUCTED"
-  -
-    id: "rw.g04.first-processing"
-    gates:
-      characterLevel: 1
-      developmentRank: 0
-    objectives:
-      -
-        id: "rw.g04.first-processing.1"
-        action: "craft"
-        target: "dry-twig"
-        quantity: 1
-    rewards:
-      # Robango redesign (p33): onboarding guide xp 120 -> 10 so level 5 lands near 15 min.
-      xp: 10
+      xp: 120
       coins: 25
       development: 50
       items:
@@ -31761,8 +31875,56 @@ guides:
           item: "fiber"
           quantity: 3
     dialogueKeys:
-      - "rw.g04.first-processing.offer"
-      - "rw.g04.first-processing.complete"
+      - "rw.g02.first-axe.offer"
+      - "rw.g02.first-axe.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g03.first-contract"
+    gates:
+      characterLevel: 1
+      developmentRank: 0
+    objectives:
+      -
+        id: "rw.g03.first-contract.1"
+        action: "deliver"
+        target: "contract"
+        quantity: 1
+    rewards:
+      xp: 120
+      coins: 25
+      development: 50
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g03.first-contract.offer"
+      - "rw.g03.first-contract.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g04.camp-donation"
+    gates:
+      characterLevel: 1
+      developmentRank: 0
+    objectives:
+      -
+        id: "rw.g04.camp-donation.1"
+        action: "donate"
+        target: "camp"
+        quantity: 1
+    rewards:
+      xp: 120
+      coins: 25
+      development: 50
+      items:
+        -
+          item: "fiber"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g04.camp-donation.offer"
+      - "rw.g04.camp-donation.complete"
     provenance:
       classification: "RECONSTRUCTED"
   -

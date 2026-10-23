@@ -18,6 +18,7 @@ local EnvelopeBudget = require("../../../core/infra/data/EnvelopeBudget")
 local Workshop = require("./Workshop")
 local Events = require("../../../core/infra/analytics/Events")
 local Extensions = require("./Extensions")
+local Monetization = require("./MonetizationExtension")
 local M = {}
 export type World = {
 	services: Options.Services,
@@ -319,6 +320,15 @@ function M.new(
 			return { catalogId = state.catalogId, healthMilli = state.healthMilli }
 		end,
 		captureWild = captureWild,
+		-- Late-bound: the monetization extension is built after taming in the factory list.
+		appearance = function(actor)
+			for _, port in built do
+				if port.id == "monetization" then
+					return Monetization.appearance(port, actor)
+				end
+			end
+			return nil
+		end,
 	}
 	for _, factory in config.extensions or Extensions.factories do
 		local extension = factory(extensionContext)

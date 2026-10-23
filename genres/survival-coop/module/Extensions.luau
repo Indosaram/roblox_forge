@@ -22,6 +22,8 @@ export type Context = {
 	analytics: Events.Emitter?,
 	wildlife: ((string) -> { catalogId: string, healthMilli: number }?)?,
 	captureWild: ((wildId: string, captureId: string, untilMillis: number) -> string?)?,
+	-- Paid cosmetics the actor currently wears (MonetizationExtension.appearance), as a set of ids.
+	appearance: ((actor: string) -> { [string]: boolean }?)?,
 }
 export type Built = Shared.Extension & { close: (() -> Shared.Result)? }
 export type Factory = (Context) -> Built?
@@ -43,6 +45,8 @@ local factories: { Factory } = {
 	require("./JournalExtension").factory,
 	require("./CharacterExtension").factory,
 	require("./DirectTradeExtension").factory,
+	require("./OperationExtension").factory,
+	require("./StanceExtension").factory,
 }
 
 return { factories = factories }

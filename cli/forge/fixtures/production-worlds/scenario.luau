@@ -23,7 +23,7 @@ M.operations = {
 		return ctx.fixture.enter("home", actorOf(ctx, step))
 	end,
 	world_expedition = function(ctx, step): string?
-		return ctx.fixture.expedition(actorOf(ctx, step))
+		return ctx.fixture.expedition(actorOf(ctx, step), true)
 	end,
 	world_onboarding = function(ctx, step): string?
 		return ctx.fixture.onboarding(actorOf(ctx, step))
@@ -111,6 +111,7 @@ function M.new(ctx: any): any
 	module.SurvivalBootstrap = require("../../../../genres/survival-coop/module/SurvivalBootstrap")
 	module.Gathering = require("../../../../genres/survival-coop/module/Gathering")
 	module.ToolTiers = require("../../../../genres/survival-coop/module/ToolTiers")
+	module.GuideEvents = require("../../../../genres/survival-coop/module/GuideEvents")
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")
 	module.ArchipelagoExtension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
@@ -120,6 +121,7 @@ function M.new(ctx: any): any
 	module.Extensions = {
 		factories = {
 			require("../../../../genres/survival-coop/module/ContractsExtension").factory,
+			require("../../../../genres/survival-coop/module/CampExtension").factory,
 			require("../../../../genres/survival-coop/module/ScoreTransport").factory,
 			require("../../../../genres/survival-coop/module/EnsembleExtension").factory,
 			require("../../../../genres/survival-coop/module/ClanExtension").factory,
@@ -129,6 +131,7 @@ function M.new(ctx: any): any
 	module.JournalPorts = require("../../../../genres/survival-coop/module/JournalPorts")
 	module.JournalObjectiveFeed = require("../../../../genres/survival-coop/module/JournalObjectiveFeed")
 	module.JournalExtension = require("../../../../genres/survival-coop/module/JournalExtension")
+	module.RecipeMarks = require("../../../../genres/survival-coop/module/RecipeMarks")
 	forge.core.domain.home = { HomeContent = HomeContent }
 	forge.core.domain.settlement = { Settlement = require("../../../../core/domain/settlement/Settlement") }
 	forge.core.domain.settlement.Clan = require("../../../../core/domain/settlement/Clan")
@@ -269,7 +272,30 @@ function M.new(ctx: any): any
 		local home, reason = factory.homeOwner().snapshot(actor)
 		return if home and home.owner == actor then nil else reason or "home_missing"
 	end
-	function api.expedition(actor)
+	local function personal(actor)
+		return session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
+	end
+	-- `reachRoute`: the spec route-1 gate is character level 30 (owner decision 2026-10-23), which a
+	-- fresh player earns over many support-region runs (levelReachability). The journey first proves
+	-- the gate refuses, then stands in for those runs by raising only the level to the gate.
+	function api.expedition(actor, reachRoute: boolean?)
+		local gate = 1
+		for _, stage in Content.stages do
+			if string.match(stage.id, "^rw%.a1%.") then
+				gate = math.max(gate, stage.gates.characterLevel or 1)
+			end
+		end
+		if reachRoute and personal(actor).progression.level < gate then
+			local refusal = api.expedition(actor)
+			if refusal ~= "level_gate" then
+				return "route_gate_missing:" .. tostring(refusal)
+			end
+			local port = session.personalTransfer(actor)
+			port.install(assert(port.personal:update(port.profile(), function(raw)
+				raw.envelope.genres["survival-coop"].data.progression.level = gate
+				return raw
+			end)))
+		end
 		local opened = factory.archipelago.open(actor, {
 			id = "production-expedition",
 			index = 1,
@@ -913,9 +939,6 @@ function M.new(ctx: any): any
 			assert(settled.status == "confirmed", settled.error)
 		end
 	end
-	local function personal(actor)
-		return session.personalTransfer(actor).profile().data.envelope.genres["survival-coop"].data
-	end
 	function api.warehouseCampfire(actor, clientPrompts)
 		assert(api.enter("preview", actor) == nil, "fresh preview admission")
 		local gatherClient
@@ -1172,7 +1195,7 @@ function M.new(ctx: any): any
 			end
 		end
 		assert(api.spear, "owned crafted club")
-		assert(api.expedition(actor) == nil, "eligible expedition")
+		assert(api.expedition(actor, true) == nil, "eligible expedition")
 		refused(actor, "mission-action", { "next-island", "none" }, "mission_gate")
 		assert(api.gather(actor) == nil, "stage one gather")
 		assert(api.survey(actor) == nil, "stage one survey")
@@ -1306,9 +1329,20 @@ function M.new(ctx: any): any
 			end
 		end
 		engine.move(actor, wood.position)
-		for _ = 1, 2 do
+		-- Three charges: three logs go to the first contract, the rest pay for the campfire.
+		for _ = 1, 3 do
 			command(actor, "gather", { wood.id, factory.services.survivalGathering.snapshot(actor).version })
 			assert(factory.services.survivalGathering.recover(actor, 8).status == "confirmed", "wood recovery")
+		end
+		-- First contract and first camp donation (guides g03/g04) on the way to the depot.
+		command(actor, "contract-accept", { "survey-driftwood" })
+		command(actor, "contract-deliver", { "survey-driftwood" })
+		for id, item in personal(actor).inventory.bag.items do
+			if item.catalogId == "fiber" then
+				local camp = session.snapshot(actor).survivalExtensions.camp
+				command(actor, "camp-contribute", { "windbreak", id, 1, camp.version })
+				break
+			end
 		end
 		engine.move(actor, source.tribe.warehousePosition)
 		for id, item in personal(actor).inventory.bag.items do
@@ -1411,7 +1445,7 @@ function M.new(ctx: any): any
 			return "not_fresh:" .. tostring(level)
 		end
 		local initialBalance = personal(actor).balance
-		local opened = api.expedition(actor)
+		local opened = api.expedition(actor, true)
 		if opened then
 			return "expedition:" .. opened
 		end

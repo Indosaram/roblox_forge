@@ -279,6 +279,8 @@ node_fallen_tree,Fallen Trunk,entity fallen-tree,Fallen Trunk,쓰러진 나무
 node_flint_outcrop,Flint Outcrop,entity flint-outcrop,Flint Outcrop,부싯돌 노두
 node_fiber_bush,Fiber Tuft,entity fiber-bush,Fiber Tuft,섬유 덤불
 node_berry_bush,Berry Bush,entity berry-bush,Berry Bush,딸기 덤불
+node_branch_pile,Branch Pile,entity branch-pile,Branch Pile,나뭇가지 더미
+node_stone_pile,Stone Pile,entity stone-pile,Stone Pile,돌무더기
 node_meat_cache,Hunter's Cache,entity meat-cache,Hunter's Cache,사냥감 보관더미
 node_forest_oak_windfall,Oak Windfall,entity forest-oak-windfall,Oak Windfall,참나무 풍도목
 node_forest_birch_stand,Birch Stand,entity forest-birch-stand,Birch Stand,자작나무 숲
@@ -447,6 +449,29 @@ camp_not_friend,Only friends can visit,camp visit refusal not friend,Only friend
 camp_no_pass,Ask to visit first,camp help refusal no pass,Ask to visit first,먼저 방문을 요청하세요
 camp_expired,Visit pass expired,camp visit pass expired,Visit pass expired,방문 허가가 만료됐어요
 camp_refused,Camp action refused,camp generic refusal,Camp action refused,캠프 작업이 거절됐어요
+camp_forbidden,Only camp members can give to camp projects,camp panel refusal,Only camp members can give to camp projects,캠프 구성원만 프로젝트에 기부할 수 있어요
+camp_stale,The camp or your bag just changed. Check the new amounts and give again.,camp panel refusal,The camp or your bag just changed. Check the new amounts and give again.,캠프나 가방이 방금 바뀌었어요. 수량을 확인하고 다시 기부하세요.
+camp_not_needed,This project does not need that item,camp panel refusal,This project does not need that item,이 프로젝트에는 필요 없는 재료예요
+camp_over,That is more than the project still needs. Lower the amount.,camp panel refusal,That is more than the project still needs. Lower the amount.,프로젝트에 남은 필요량보다 많아요. 수량을 줄이세요.
+camp_locked_project,Finish the previous rung before giving to this project,camp panel refusal,Finish the previous rung before giving to this project,이전 단계를 먼저 완성해야 기부할 수 있어요
+camp_unknown_project,That project no longer exists. Reopen the camp.,camp panel refusal,That project no longer exists. Reopen the camp.,없는 프로젝트예요. 캠프를 다시 여세요.
+camp_bad_quantity,Choose an amount between 1 and what you carry,camp panel refusal,Choose an amount between 1 and what you carry,"1개 이상, 가진 만큼만 고르세요"
+camp_short,You no longer carry that many (some may be reserved). Pick again.,camp panel refusal,You no longer carry that many (some may be reserved). Pick again.,그만큼 가지고 있지 않아요 (예약된 재료 제외). 다시 고르세요.
+camp_missing_item,That item is no longer in your bag,camp panel refusal,That item is no longer in your bag,그 아이템이 가방에 없어요
+camp_busy,Camp storage is busy. Wait a moment and give again; nothing was lost.,camp panel refusal,Camp storage is busy. Wait a moment and give again; nothing was lost.,캠프 저장소가 바빠요. 잠시 뒤 다시 기부하세요. 잃은 재료는 없어요.
+camp_receipts,Too many recent camp deliveries. Try again later.,camp panel refusal,Too many recent camp deliveries. Try again later.,최근 캠프 기부가 너무 많아요. 나중에 다시 시도하세요.
+camp_retry,Connection uncertain. Press Give again; it will not give twice.,camp panel refusal,Connection uncertain. Press Give again; it will not give twice.,연결이 불확실해요. 다시 기부를 누르세요. 두 번 기부되지 않아요.
+camp_expired_session,Session expired. Reopen the camp and try again.,camp panel refusal,Session expired. Reopen the camp and try again.,세션이 만료됐어요. 캠프를 다시 열고 시도하세요.
+camp_left,You left the camp server. Rejoin to give.,camp panel refusal,You left the camp server. Rejoin to give.,캠프 서버를 떠났어요. 다시 접속한 뒤 기부하세요.
+camp_rate,"Too fast. Wait a moment, then give again.",camp panel refusal,"Too fast. Wait a moment, then give again.",너무 빨라요. 잠시 뒤 다시 기부하세요.
+camp_tribe,This camp could not be found. Reopen the camp.,camp panel refusal,This camp could not be found. Reopen the camp.,캠프를 찾을 수 없어요. 캠프를 다시 여세요.
+camp_host,That camp's host is not here right now,camp panel refusal,That camp's host is not here right now,그 캠프 주인이 지금 없어요
+camp_member_already,You are already in this camp. Use Give.,camp panel refusal,You are already in this camp. Use Give.,이미 이 캠프 구성원이에요. 기부를 사용하세요.
+camp_pass_limit,This camp has too many visitors right now,camp panel refusal,This camp has too many visitors right now,지금 이 캠프에 방문자가 너무 많아요
+camp_incomplete,Deliver every material before finishing,camp panel refusal,Deliver every material before finishing,모든 재료를 기부해야 완료할 수 있어요
+camp_not_joint,Two different members must give before finishing,camp panel refusal,Two different members must give before finishing,서로 다른 구성원 두 명이 기부해야 완료할 수 있어요
+camp_combat,"A wildlife fight is still settling. Wait a moment, then give again.",camp panel refusal,"A wildlife fight is still settling. Wait a moment, then give again.",야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 기부하세요.
+camp_not_started,Nobody has given to this project yet,camp panel refusal,Nobody has given to this project yet,아직 아무도 이 프로젝트에 기부하지 않았어요
 zone_title,Death zone,death zone panel title,Death zone,데스 존
 zone_safe,Safe zone: you keep your bag when you fall,"death zone indicator, safe",Safe zone: you keep your bag when you fall,안전 구역: 쓰러져도 가방을 지켜요
 zone_danger,Danger zone: your bag drops when you fall,"death zone indicator, danger",Danger zone: your bag drops when you fall,위험 구역: 쓰러지면 가방을 떨어뜨려요
@@ -463,8 +488,8 @@ shop_skin_ridge_strider_gold,Ridge Strider Gold Skin,shop listing skinRidgeStrid
 shop_route_guild_monthly,Route Guild Monthly,shop listing routeGuildMonthly,Route Guild Monthly,항로 길드 월간 회원
 shop_desc_route_guild_patron,Home terrain-preset slots +2 and home warehouse +10 slots. Permanent.,shop description routeGuildPatron,Home terrain-preset slots +2 and home warehouse +10 slots. Permanent.,"본거지 지형 프리셋 슬롯 +2, 창고 칸 +10. 영구 적용."
 shop_desc_wide_warehouse,Home warehouse +10 slots. Permanent.,shop description wideWarehouse,Home warehouse +10 slots. Permanent.,본거지 창고 칸 +10. 영구 적용.
-shop_desc_skin_ridge_strider_gold,"Gold look for your Ridge Strider mount. Cosmetic only, no stats.",shop description skinRidgeStriderGold,"Gold look for your Ridge Strider mount. Cosmetic only, no stats.",능선걸음이 탈것의 황금 외형. 외형만 바뀌고 능력치는 없어요.
-shop_desc_route_guild_monthly,Monthly cosmetic set and home warehouse +5 while subscribed. No coins.,shop description routeGuildMonthly,Monthly cosmetic set and home warehouse +5 while subscribed. No coins.,구독 중 월간 외형 세트와 창고 칸 +5. 조개돈 지급 없음.
+shop_desc_skin_ridge_strider_gold,"Gold Gallimimus mount skin with saddle. Cosmetic only.",shop description skinRidgeStriderGold,"Gold Gallimimus mount skin with saddle. Cosmetic only.",갈리미무스 황금 외형과 안장. 외형만 바뀌어요.
+shop_desc_route_guild_monthly,"Guild cloak, back banner and warehouse +5 while subscribed.",shop description routeGuildMonthly,"Guild cloak, back banner and warehouse +5 while subscribed.","구독 중 길드 망토·등 깃발, 창고 칸 +5."
 camp_project_windbreak,Windbreak,camp project windbreak,Windbreak,바람막이
 camp_project_drying_rack,Drying Rack,camp project drying-rack,Drying Rack,건조대
 market_title,Market,market panel title,Market,시장
@@ -986,15 +1011,15 @@ rw.m5.hunt.offer.s3,Defeat five tyrannosaurus in the western basins.,RECONSTRUCT
 rw.m5.hunt.offer.s4,Defeat five utahraptor in the tropical district.,RECONSTRUCTED Robango catalog source,Defeat five utahraptor in the tropical district.,열대 지구에서 유타랍토르 다섯 마리를 쓰러뜨리세요.
 rw.m5.transport.offer,Deliver all twenty-five relief units to the receiver.,RECONSTRUCTED Robango catalog source,Deliver all twenty-five relief units to the receiver.,구호 물자 스물다섯 개를 남김없이 수령소로 배달하세요.
 rw.m5.transport.complete,All twenty-five units are delivered.,RECONSTRUCTED Robango catalog source,All twenty-five units are delivered.,스물다섯 개 모두 배달했어요.
-rw.g01.hand-gather.offer,"Start with your hands: gather five branches, three stones, and three fiber.",RECONSTRUCTED Robango catalog source,"Start with your hands: gather five branches, three stones, and three fiber.","우선 맨손으로 시작해요. 나뭇가지 다섯 개, 돌 세 개, 섬유 세 개를 모으세요."
-rw.g01.hand-gather.complete,You have enough to begin without a tool.,RECONSTRUCTED Robango catalog source,You have enough to begin without a tool.,이만하면 도구 없이도 시작할 수 있어요.
-rw.g02.campfire.offer,Use these five branches and three stones to make a campfire kit. Place it in the marked clearing.,RECONSTRUCTED Robango catalog source,Use these five branches and three stones to make a campfire kit. Place it in the marked clearing.,"나뭇가지 다섯 개와 돌 세 개로 모닥불 꾸러미를 만들어, 표시된 빈터에 놓으세요."
-rw.g02.campfire.complete,Your first campfire is standing. A kit is consumed only when it is placed.,RECONSTRUCTED Robango catalog source,Your first campfire is standing. A kit is consumed only when it is placed.,첫 모닥불이 섰어요. 꾸러미는 실제로 설치할 때만 소모돼요.
+rw.g01.first-gather.offer,Start with your hands: gather three fiber from a fiber bush.,RECONSTRUCTED Robango catalog source,Start with your hands: gather three fiber from a fiber bush.,우선 맨손으로 시작해요. 섬유 덤불에서 섬유 세 개를 모으세요.
+rw.g01.first-gather.complete,Good. Hands are enough for your first materials.,RECONSTRUCTED Robango catalog source,Good. Hands are enough for your first materials.,좋아요. 첫 재료는 맨손으로도 충분해요.
+rw.g02.first-axe.offer,Craft your first axe. A Flint Hatchet made by hand counts.,RECONSTRUCTED Robango catalog source,Craft your first axe. A Flint Hatchet made by hand counts.,첫 도끼를 만드세요. 손으로 만든 부싯돌 손도끼도 인정돼요.
+rw.g02.first-axe.complete,An axe opens the windfall logs. Keep it equipped when you chop.,RECONSTRUCTED Robango catalog source,An axe opens the windfall logs. Keep it equipped when you chop.,도끼가 있으면 쓰러진 통나무를 벨 수 있어요. 벨 때는 손에 들고 있으세요.
 npc.hop,Hop,RECONSTRUCTED Robango catalog source,Hop,Hop
-rw.g03.rest.offer,Try the rest mat. Watch the fatigue panel when you begin resting.,RECONSTRUCTED Robango catalog source,Try the rest mat. Watch the fatigue panel when you begin resting.,휴식 매트를 써 보세요. 쉬기 시작하면 피로도 창이 어떻게 바뀌는지 보시고요.
-rw.g03.rest.complete,Rest is available before you have a house or a bed.,RECONSTRUCTED Robango catalog source,Rest is available before you have a house or a bed.,집이나 침대가 없어도 쉴 수 있어요.
-rw.g04.first-processing.offer,Dry this branch at the campfire. Compare its properties before and after.,RECONSTRUCTED Robango catalog source,Dry this branch at the campfire. Compare its properties before and after.,이 나뭇가지를 모닥불에 말려 보세요. 말리기 전과 후의 속성을 비교해 보고요.
-rw.g04.first-processing.complete,That action begins your processing practice. Other processes retain their own skill requirements.,RECONSTRUCTED Robango catalog source,That action begins your processing practice. Other processes retain their own skill requirements.,이걸로 가공 숙련이 시작됐어요. 다른 가공법은 각자 필요한 기술 조건이 그대로예요.
+rw.g03.first-contract.offer,Open the contract board and deliver any contract.,RECONSTRUCTED Robango catalog source,Open the contract board and deliver any contract.,계약 게시판을 열고 아무 계약이나 납품하세요.
+rw.g03.first-contract.complete,Contracts pay coins and build trust with the factions.,RECONSTRUCTED Robango catalog source,Contracts pay coins and build trust with the factions.,계약을 마치면 조개돈과 세력 신뢰를 얻어요.
+rw.g04.camp-donation.offer,Donate any material to a camp project.,RECONSTRUCTED Robango catalog source,Donate any material to a camp project.,캠프 공사에 재료를 하나라도 기부하세요.
+rw.g04.camp-donation.complete,Every donation moves the camp toward its next facility.,RECONSTRUCTED Robango catalog source,Every donation moves the camp toward its next facility.,기부할 때마다 캠프가 다음 시설에 가까워져요.
 rw.g05.home-expansion.offer,Your development has earned more land. Apply the new boundary at your dock.,RECONSTRUCTED Robango catalog source,Your development has earned more land. Apply the new boundary at your dock.,개발 실적 덕분에 땅을 더 받을 수 있어요. 부두에서 새 경계를 적용하세요.
 rw.g05.home-expansion.complete,The boundary is expanded. Existing buildings and permissions remain yours.,RECONSTRUCTED Robango catalog source,The boundary is expanded. Existing buildings and permissions remain yours.,경계가 넓어졌어요. 기존 건물과 권한은 그대로 당신 것이에요.
 rw.g06.visit.offer,Visit the public demonstration home. Its owner has already permitted visitors.,RECONSTRUCTED Robango catalog source,Visit the public demonstration home. Its owner has already permitted visitors.,공개 시범 주택에 들러 보세요. 집주인이 이미 방문을 허락해 뒀어요.
@@ -1161,7 +1186,6 @@ music.nav_settings,Settings,music and navigator screens (MusicText),Settings,설
 music.nav_locked,%s: %s,music and navigator screens (MusicText),%s: %s,%s: %s
 music.lock_unknown,Not on this island,music and navigator screens (MusicText),Not on this island,이 섬에는 없어요
 music.lock_unavailable,Not available right now,music and navigator screens (MusicText),Not available right now,지금은 쓸 수 없어요
-music.lock_inbox,Coming later: receipts go to your bag,music and navigator screens (MusicText),Coming later: receipts go to your bag,준비 중: 받은 물건은 가방으로 가요
 music.lock_unsaved,Save a score first,music and navigator screens (MusicText),Save a score first,먼저 악보를 저장하세요
 music.import_title,Import score,music and navigator screens (MusicText),Import score,악보 가져오기
 music.import_hint,"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)",music and navigator screens (MusicText),"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)","악보 JSON을 붙여 넣으세요 (버전 1, 박당 480틱, 최대 256 KiB)"
@@ -1479,3 +1503,59 @@ social.npc.station.relay,"Radio hut: Static crackles in the headset. A lens woul
 social.npc.station.workbench,"Workbench: Clamps, a vise and a tray of loose fittings. Assembly work starts here.",social home and trade sheets,"Workbench: Clamps, a vise and a tray of loose fittings. Assembly work starts here.","작업대: 죔쇠와 바이스, 부품 접시가 놓여 있어요. 조립은 여기서 시작해요."
 social.refuse.UNKNOWN_OPERATION,The server has no record of this yet. Check again shortly.,social home and trade sheets,The server has no record of this yet. Check again shortly.,서버에 아직 기록이 없습니다. 잠시 뒤 다시 확인하세요.
 gather_cooldown,"Not ready to gather again (%ds)",gather node cooldown notice,"Not ready to gather again (%ds)","아직 다시 채집할 수 없어요 (%d초)"
+operation_title,"Practice and instruments",operations sheet (OperationPanel),"Practice and instruments","연습과 악기"
+operation_make,"Make",operations sheet (OperationPanel),"Make","만들기"
+operation_done,"Made",operations sheet (OperationPanel),"Made","만들었어요"
+operation_hand,"By hand",operations sheet (OperationPanel),"By hand","맨손"
+operation_station,"Workbench nearby",operations sheet (OperationPanel),"Workbench nearby","근처 작업대"
+operation_level,"Character level too low",operations sheet (OperationPanel),"Character level too low","캐릭터 레벨이 부족해요"
+operation_skill,"Learn the required skill first",operations sheet (OperationPanel),"Learn the required skill first","필요한 기술을 먼저 배우세요"
+operation_items,"Not enough materials",operations sheet (OperationPanel),"Not enough materials","재료가 부족해요"
+operation_away,"Stand next to a workbench",operations sheet (OperationPanel),"Stand next to a workbench","작업대 옆에 서세요"
+operation_failed,"That did not work. Try again",operations sheet (OperationPanel),"That did not work. Try again","실패했어요. 다시 시도하세요"
+music.ensemble.instrument,"Craft this part's instrument at a workbench first",music and navigator screens (MusicText),"Craft this part's instrument at a workbench first","이 파트의 악기를 작업대에서 먼저 만드세요"
+combat_shoot,Shoot [V],combat stance and ranged controls,Shoot [V],사격 [V]
+combat_stance,Stance: %s [X],combat stance and ranged controls,Stance: %s [X],태세: %s [X]
+combat_stance_none,None,combat stance and ranged controls,None,없음
+combat_stance_attack,Attack,combat stance and ranged controls,Attack,공격
+combat_stance_defense,Defense,combat stance and ranged controls,Defense,방어
+combat_stance_counter,Counter,combat stance and ranged controls,Counter,역습
+combat_stance_onslaught,Onslaught,combat stance and ranged controls,Onslaught,맹공
+combat_stance_charge,Charge,combat stance and ranged controls,Charge,돌격
+combat_stance_shoot,Shooting,combat stance and ranged controls,Shooting,사격
+social.service.organizations,Organizations,organizations view and mission dialogue,Organizations,조직
+social.org.title,Organizations,organizations view and mission dialogue,Organizations,조직
+social.org.intro,Each finished mission objective earns 20 trust with its organization.,organizations view and mission dialogue,Each finished mission objective earns 20 trust with its organization.,임무 목표를 하나 마칠 때마다 해당 조직의 신뢰가 20 오릅니다.
+social.org.wayfarers,Wayfarers,organizations view and mission dialogue,Wayfarers,길잡이회
+social.org.scholars,Scholars,organizations view and mission dialogue,Scholars,학자회
+social.org.wardens,Wardens,organizations view and mission dialogue,Wardens,수호대
+social.org.traders,Traders,organizations view and mission dialogue,Traders,상인회
+social.org.wayfarers.missions,Gather missions (Marit),organizations view and mission dialogue,Gather missions (Marit),채집 임무 (마리트)
+social.org.scholars.missions,Craft and survey missions (Bram),organizations view and mission dialogue,Craft and survey missions (Bram),제작·조사 임무 (브램)
+social.org.wardens.missions,Rescue and hunt missions (Ines),organizations view and mission dialogue,Rescue and hunt missions (Ines),구조·사냥 임무 (이네스)
+social.org.traders.missions,Transport missions (Pip),organizations view and mission dialogue,Transport missions (Pip),운송 임무 (핍)
+social.org.rank,Trust rank %d/5,organizations view and mission dialogue,Trust rank %d/5,신뢰 등급 %d/5
+social.org.next,%d/%d to next rank,organizations view and mission dialogue,%d/%d to next rank,다음 등급까지 %d/%d
+social.org.max,Highest rank reached,organizations view and mission dialogue,Highest rank reached,최고 등급 달성
+market.search,"Find an item: name, then category",harbor market item search,"Find an item: name, then category","품목 찾기: 이름, 종류"
+market.search.placeholder,Search items,harbor market item search,Search items,품목 검색
+market.cat.all,All items,harbor market item search,All items,전체
+market.cat.material,Materials,harbor market item search,Materials,재료
+market.cat.food,Food,harbor market item search,Food,음식
+market.cat.gear,Gear,harbor market item search,Gear,장비
+market.cat.building,Building,harbor market item search,Building,건축
+market.search.none,No item matches this search.,harbor market item search,No item matches this search.,검색과 맞는 품목이 없습니다.
+market.items.page,Items page ,harbor market item search,Items page ,품목 쪽 
+market.items.prev,Previous items,harbor market item search,Previous items,이전 품목
+market.items.next,More items,harbor market item search,More items,다음 품목
+item_workbench_t3_kit,Ironbound Bench Kit,entity workbench-t3-kit,Ironbound Bench Kit,철제 작업대 꾸러미
+recipe_workbench_t3_kit,Ironbound Bench Kit recipe,entity workbench-t3-kit-recipe,Ironbound Bench Kit recipe,철제 작업대 꾸러미 제작법
+structure_workbench_t3,Ironbound Workbench,entity workbench-t3,Ironbound Workbench,철제 작업대
+item_kiln_t2_kit,Fired Kiln Kit,entity kiln-t2-kit,Fired Kiln Kit,구운 가마 꾸러미
+recipe_kiln_t2_kit,Fired Kiln Kit recipe,entity kiln-t2-kit-recipe,Fired Kiln Kit recipe,구운 가마 꾸러미 제작법
+structure_kiln_t2,Fired Kiln,entity kiln-t2,Fired Kiln,구운 가마
+item_kiln_t3_kit,Blast Kiln Kit,entity kiln-t3-kit,Blast Kiln Kit,용광 가마 꾸러미
+recipe_kiln_t3_kit,Blast Kiln Kit recipe,entity kiln-t3-kit-recipe,Blast Kiln Kit recipe,용광 가마 꾸러미 제작법
+structure_kiln_t3,Blast Kiln,entity kiln-t3,Blast Kiln,용광 가마
+hud_freshness,Freshness %d%%,bag item detail food freshness,Freshness %d%%,신선도 %d%%
+hud_freshness_spoiling,Freshness %d%% - eat or cool it soon,bag item detail food freshness warning,Freshness %d%% - eat or cool it soon,신선도 %d%% - 곧 먹거나 냉장고에 넣으세요

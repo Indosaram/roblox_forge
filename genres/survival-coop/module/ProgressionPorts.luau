@@ -23,8 +23,12 @@ function M.bind(world: any, content: any, expeditionStore: any, seconds: () -> n
 		local value = if ok
 				and document
 				and document.development
-			then { points = document.development.points or 0, definitions = document.development.definitions or {} }
-			else if hit then hit.value else { points = 0, definitions = {} }
+			then {
+				points = document.development.points or 0,
+				definitions = document.development.definitions or {},
+				progress = document.development.progress or {},
+			}
+			else if hit then hit.value else { points = 0, definitions = {}, progress = {} }
 		cache[actor] = { at = seconds(), value = value }
 		return value
 	end

@@ -31,6 +31,20 @@ Source IDs refer to `.omo/drafts/robango-late-service-source-ledger.md`. URLs be
 
 The lead-approved home land tiers are a RECONSTRUCTED Robango redesign, not recovered original dimensions: development ranks 1 through 5 use square sides 64, 96, 128, 176 and 224 studs, with player-placed farm-plot caps 4, 6, 9, 12 and 16. Expansion applies once at the home dock; plot identities are durable placement identities. `content.yml` homePolicy is the authoring source. Starter pads retain the binding quest/support positions.
 
+**Progression curve: spec restored by owner decision 2026-10-23.** The p31/p33 redesign of the character curve is withdrawn, and `content.yml` again carries the RECONSTRUCTED spec values (`robango-world-spec.md` §4 index table, `robango-quests-support-spec.md` §1/§2, `robango-fidelity-contracts.md` R01):
+
+| Value | p33 redesign (withdrawn) | Spec restored |
+| --- | --- | --- |
+| Route index 1-5 character gates | 2 / 35 / 40 / 50 / 60 | 30 / 35 / 40 / 50 / 60 |
+| Mission XP per definition, index 1-5 | 30 / 450 / 500 / 600 / 700 | 700 / 800 / 900 / 1100 / 1300 |
+| Mission Coins, index 1 | 30 | 170 (20+5x recommended level) |
+| Onboarding guide XP (g01-g04) | 10 | 120 |
+| Next-level XP from level L (`xpBase + xpStep*L`) | 20 + 80L | 75 + 25L = 100 + 25(L-1) |
+| Repeat-clear level bonus (`repeatXPPerLevel`, L6-L30) | 9 x level | none |
+| Kill XP (`actionXP + killXP`) | 70 | 70, unchanged: the spec's 20 + 5 x creature level at the level-10 tier, flat because kills do not yet carry creature level |
+
+The `levelReachability` contentgraph check (`forge content check`) and `level-reachability.spec.luau` require every route gate to be reachable from level 1 within 12 runs of the kills, missions, guides and chapters open before it. 12 runs is one 6-hour instability window at about 30 minutes per run. The p33 values fail it (index 2, 4 and 5 gates are not reached in 12 runs); the spec values reach L30 in 11 runs and each later gate in 0-1 runs. Development ranks 2/4/6/8/10 are unchanged.
+
 The source links in each row resolve to the exact register above. Plan numbers refer to the numbered implementation tasks, not completion receipts. QA names are **planned acceptance scenarios**, not claims that these commands already exist or pass; additional acceptance checks are named as checks rather than fabricated scenarios. All systems also require task 12 live acceptance and F1-F4 review.
 
 | Major system | Original evidence | Status | Robango design reference (catalog + section) and declared difference | Implementing plan task number | QA scenario name | Current implementation state |

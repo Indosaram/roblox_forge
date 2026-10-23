@@ -63,6 +63,12 @@ function M.organic(layout: any): boolean
 	return layout.id == "rw.harbor" or string.match(layout.id, "^rw%.a%d+%.s%d+$") ~= nil
 end
 
+-- Frontier regions keep their square-column world but get the same graded height field, so
+-- their bypass ramps beside the high station yard are walkable.
+function M.graded(layout: any): boolean
+	return M.organic(layout) or string.match(layout.id, "^rw%.frontier%d+$") ~= nil
+end
+
 local function smooth(edge0: number, edge1: number, value: number): number
 	local t = math.clamp((value - edge0) / (edge1 - edge0), 0, 1)
 	return t * t * (3 - 2 * t)
@@ -177,21 +183,23 @@ M.GRADE = 6 / 32
 
 -- Grades the organic height field toward 8-neighbouring columns differing by at most
 -- GRADE * cell. It only raises: low ground beside higher ground becomes a ramp, never above the
--- coastal ramp cap, while the beach band and authored points keep their height.
-local function grade(layout: any, coast: any, columns: { any }, cell: number)
+-- coastal ramp cap, while the beach band and authored points keep their height. Without a coast
+-- (frontiers) only land columns are graded and the ceiling comes from authored points alone.
+local function grade(layout: any, coast: any?, columns: { any }, cell: number)
 	local step = M.GRADE * cell
 	local byKey: { [string]: any } = {}
 	for _, column in columns do
 		byKey[column.x .. "," .. column.z] = column
 	end
-	local band = M.band(coast, cell)
+	local band = if coast then M.band(coast, cell) else 0
 	-- The ceiling grows from the beach band, the coastal ramp cap and authored points by one step
 	-- per cell, so raised ground never walls off the beach; it never cuts below original ground.
 	local ceiling: { [any]: number } = {}
 	for _, column in columns do
-		local depth = coast.depth(column.x, column.z)
+		local depth = if coast then coast.depth(column.x, column.z) else math.huge
 		ceiling[column] = if M.pinned(layout, column.x, column.z, cell)
 			then column.top
+			elseif not coast then math.huge
 			elseif depth < band and column.top <= M.BEACH_TOP + 0.01 then M.BEACH_TOP
 			else M.BEACH_TOP + math.max(0, depth * coast.unit - cell / 2) * M.COAST_SLOPE
 	end
@@ -216,9 +224,37 @@ local function grade(layout: any, coast: any, columns: { any }, cell: number)
 	relax(ceiling, function(column, other)
 		return if ceiling[other] + step < ceiling[column] then ceiling[other] + step else nil
 	end)
+	if not coast then
+		-- A raised column's outer terraces reach 0.95 cell from its centre; a lower authored point
+		-- in that reach caps the column at the point's height, so the terraces never bury it.
+		-- The cap grows one step per cell; unlike organic grading this may lower unpinned ground.
+		for _, column in columns do
+			for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+				for _, item in list do
+					local p = item.position
+					local inside = math.abs(p.x - column.x) <= cell / 2 and math.abs(p.z - column.z) <= cell / 2
+					if not inside and (p.x - column.x) ^ 2 + (p.z - column.z) ^ 2 <= (cell * 0.95) ^ 2 then
+						ceiling[column] = math.min(ceiling[column], p.y)
+					end
+				end
+			end
+		end
+		relax(ceiling, function(column, other)
+			return if ceiling[other] + step < ceiling[column] then ceiling[other] + step else nil
+		end)
+	end
 	local tops: { [any]: number } = {}
+	local original: { [any]: number } = {}
 	for _, column in columns do
-		ceiling[column] = math.max(ceiling[column], column.top)
+		original[column] = column.top
+		if not coast then
+			-- Square-column shore and sea are never raised; pinned columns keep their height.
+			local pinned = M.pinned(layout, column.x, column.z, cell)
+			ceiling[column] = if column.top <= 0 or pinned then column.top else ceiling[column]
+			column.top = math.min(column.top, ceiling[column])
+		else
+			ceiling[column] = math.max(ceiling[column], column.top)
+		end
 		tops[column] = column.top
 	end
 	relax(tops, function(column, other)
@@ -226,8 +262,10 @@ local function grade(layout: any, coast: any, columns: { any }, cell: number)
 		return if target > tops[column] then target else nil
 	end)
 	for _, column in columns do
-		column.top = tops[column]
-		column.material = if column.top < 0 or column.beach then "Sand" else M.ground(layout, column.x)
+		if coast or original[column] ~= tops[column] then
+			column.top = tops[column]
+			column.material = if column.top < 0 or column.beach then "Sand" else M.ground(layout, column.x)
+		end
 	end
 end
 
@@ -396,7 +434,7 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 			})
 		end
 	end
-	if coast then
+	if M.graded(layout) then
 		grade(layout, coast, result, cell)
 	end
 	return result

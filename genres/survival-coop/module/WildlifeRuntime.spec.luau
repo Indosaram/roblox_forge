@@ -12,11 +12,14 @@ local process = require("@lune/process")
 local function encode(value: any): string
 	return serde.encode("json", value)
 end
-local function fixture(windup: boolean?): any
+local Robango = require("../../../games/robango-island/src/shared/SurvivalContent")
+local Tree = require("../../../core/domain/progression/SkillTree")
+local function fixture(windup: boolean?, progression: boolean?): any
 	local c: any = { now = 0, calls = 0, failAt = 0, lost = false, capacity = 32 }
 	local definitions: { any } = {
 		{ id = "spear", name = "Spear", stackMax = 1, weightMilli = 100, maxDurabilityMilli = 1000 },
 		{ id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 },
+		{ id = "bow", name = "Bow", stackMax = 1, weightMilli = 100, maxDurabilityMilli = 1000 },
 	}
 	local raw: any = {
 		survival_content = 1,
@@ -31,6 +34,27 @@ local function fixture(windup: boolean?): any
 	if windup then
 		(c.content :: any).progressionPolicy = { combat = { windupMillis = 600 } }
 	end
+	if progression then
+		-- Real skill categories and tree so a landed shot can award ranged mastery.
+		(c.content :: any).progressionPolicy = {
+			combat = { windupMillis = 600 },
+			tree = (Robango :: any).progressionPolicy.tree,
+		}
+		(c.content :: any).skillCategories = (Robango :: any).skillCategories
+	end
+	-- Ranged rules come from the authored bow rows (brawlPolicy.weapons), shared with brawl.
+	(c.content :: any).brawlPolicy = {
+		weapons = {
+			{
+				item = "bow",
+				ammunition = "branch",
+				damageMilli = 18000,
+				rangeStuds = 40,
+				cooldownMillis = 1800,
+				facingDot = 0.5,
+			},
+		},
+	}
 	c.policy = Wildlife.catalog(content, {
 		species = {
 			hunter = { healthMilli = 20000, damageMilli = 1000, drops = { { item = "meat", quantity = 2 } } },
@@ -88,7 +112,7 @@ local function fixture(windup: boolean?): any
 			end
 		end
 		local durable = {
-			actions = { "survival-coop:attack", "survival-coop:inventory-split" },
+			actions = { "survival-coop:attack", "survival-coop:attack-ranged", "survival-coop:inventory-split" },
 			windowSeconds = 86400,
 			maxOutcomes = c.capacity,
 			personal = {
@@ -115,6 +139,14 @@ local function fixture(windup: boolean?): any
 									{
 										itemId = "spear",
 										catalogId = "spear",
+										quantity = 1,
+										qualityMilli = 1000,
+										durabilityMilli = 1000,
+										attributes = {},
+									},
+									{
+										itemId = "bow",
+										catalogId = "bow",
 										quantity = 1,
 										qualityMilli = 1000,
 										durabilityMilli = 1000,
@@ -185,9 +217,9 @@ local function fixture(windup: boolean?): any
 					alive = true,
 					position = { x = 0, y = 0, z = 0 },
 					facing = { x = 1, y = 0, z = 0 },
-					targetPosition = { x = if c.outOfRange then 40 else 4, y = 0, z = 0 },
+					targetPosition = { x = if c.outOfRange then 40 elseif c.far then 30 else 4, y = 0, z = 0 },
 					lineOfSight = true,
-					equipped = { spear = true },
+					equipped = { spear = true, bow = c.bow == true },
 				}
 			end,
 		}, store))
@@ -203,8 +235,9 @@ local function fixture(windup: boolean?): any
 		c.memory = fresh
 		c.open()
 	end
-	c.request = function(target: string, id: string): any
-		return { action = "survival-coop:attack", args = { target }, requestId = id, sessionEpoch = 0 }
+	c.request = function(target: string, id: string, mode: string?): any
+		local action = if mode == "ranged" then "survival-coop:attack-ranged" else "survival-coop:attack"
+		return { action = action, args = { target }, requestId = id, sessionEpoch = 0 }
 	end
 	c.open()
 	return c
@@ -225,6 +258,39 @@ local function check(c: any, charged: boolean)
 	assert(source.npcs.hunter.healthMilli == (if charged then 0 else 20000), "exactly one lethal hit")
 end
 local specs: { [string]: () -> () } = {
+	["a ranged shot hits wildlife beyond melee reach with an equipped bow"] = function()
+		local c = fixture(true, true)
+		local seeded = c.session.personalTransfer("alice")
+		local token = assert(seeded.personal:update(seeded.profile(), function(view)
+			view.envelope.genres["survival-coop"].data.progression =
+				Tree.new(Robango, (Robango :: any).progressionPolicy.tree)
+			return view
+		end))
+		seeded.install(token)
+		c.far = true
+		local melee = c.session.command("alice", c.request("grazer", "reach"))
+		assert(not melee.ok and melee.reason == "OUT_OF_RANGE", "melee cannot reach 30 studs")
+		local unarmed = c.session.command("alice", c.request("grazer", "nobow", "ranged"))
+		assert(
+			not unarmed.ok and unarmed.reason == "WEAPON_UNAVAILABLE",
+			"ranged needs an equipped bow: " .. tostring(unarmed.reason)
+		)
+		c.bow = true
+		local shot = c.session.command("alice", c.request("grazer", "shot", "ranged"))
+		assert(not shot.ok and shot.reason == "WINDUP", "0.4 s draw before the arrow lands")
+		c.now = 1
+		assert(c.runtime.recover("alice", 8).ok, "shot resolves")
+		assert(c.read("wildlife:one").data.npcs.grazer.healthMilli == 22000, "bow damage 18 lands at 30 studs")
+		local bag = c.read("combat:alice").data.envelope.genres["survival-coop"].data.inventory.bag
+		assert(bag.items.bow.durabilityMilli < 1000 and bag.items.spear.durabilityMilli == 1000, "bow wears, not spear")
+		local progression = c.read("combat:alice").data.envelope.genres["survival-coop"].data.progression
+		assert(progression.mastery.ranged.level == 1, "a landed shot is the ranged proficiency event")
+		assert(progression.mastery.melee.level == 0, "a shot is not a melee event")
+		local replay = c.session.command("alice", c.request("grazer", "shot", "ranged"))
+		assert(replay.ok, "the same shot replays its confirmed result: " .. tostring(replay.reason))
+		local source = c.read("wildlife:one").data
+		assert(source.npcs.grazer.healthMilli == 22000, "replay never lands a second arrow")
+	end,
 	["server windup defers damage and rechecks geometry at strike"] = function()
 		local c = fixture(true)
 		local result = c.session.command("alice", c.request("hunter", "windup"))

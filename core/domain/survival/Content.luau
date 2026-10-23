@@ -1273,6 +1273,13 @@ function M.canonicalize(raw: any): (Document?, { string })
 	end
 	sortById(items)
 	local recipes: { Recipe } = {}
+	-- v2 recipeDetails.stationTier (catalog B1-B3 / K1-K3) is the station tier the craft gate reads.
+	local stationTiers: { [string]: number } = {}
+	if raw.survival_content == 2 then
+		for _, detail in raw.recipeDetails or {} do
+			stationTiers[detail.id] = detail.stationTier
+		end
+	end
 	for _, recipe in raw.recipes or {} do
 		table.insert(recipes, {
 			id = recipe.id,
@@ -1283,7 +1290,7 @@ function M.canonicalize(raw: any): (Document?, { string })
 			requiredToolTag = recipe.requiredToolTag,
 			skill = canonicalGrant(recipe.skill),
 			slots = canonicalSlots(recipe.slots),
-			tier = recipe.tier,
+			tier = recipe.tier or stationTiers[recipe.id],
 			latents = if recipe.latents == nil then nil else sortedStrings(recipe.latents),
 		})
 	end

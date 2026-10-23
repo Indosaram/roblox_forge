@@ -186,6 +186,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	local coastline = if Terrain.organic(layout) then Terrain.coast(layout, seed) else nil
+	local gradedInland = coastline == nil and Terrain.graded(layout)
+	local function nearPath(x: number, z: number, reach: number): boolean
+		for _, path in layout.paths do
+			for index = 2, #path.points do
+				if Terrain.distance(x, z, path.points[index - 1], path.points[index]) <= path.width / 2 + reach then
+					return true
+				end
+			end
+		end
+		return false
+	end
 	if coastline then
 		-- Organic islands keep only land columns; a single sand floor stands in for the seabed.
 		workspace.Terrain:FillBlock(CFrame.new(0, -14, 0), Vector3.new(1400, 4, 1400), Enum.Material.Sand)
@@ -234,6 +245,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Organic islands: a step above the lowest neighbour is a round cap (radius covers the
 		-- cell's corners), so authored height changes read as rounded rises, not square terraces.
 		local cap = coastline ~= nil and top > 0 and top - math.max(floor, 0) > 1
+			-- Graded square-column regions (frontiers) round only an inland rise too high to step that
+			-- a catalog path crosses, which keeps the extra fills within budget.
+			or gradedInland
+				and top - floor > 2.5
+				and floor >= 0
+				and top - floor <= Terrain.GRADE * column.cell + 0.01
+				and nearPath(column.x, column.z, column.cell * 0.95)
 		local base = if cap then math.max(floor, 0) else top
 		workspace.Terrain:FillBlock(
 			CFrame.new(column.x, (base - 16) / 2, column.z),
@@ -256,8 +274,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			-- The top disc stays inside the cell (corners left out) and a full-width ring sits one
 			-- stud lower, so the edge of high flat ground is a chain of round lobes rather than the
 			-- square column outline that runs straight along the catalog paths. A column holding an
-			-- authored point keeps a full-width top so that point stays at its exact height.
-			local pinned = Terrain.pinned(layout, column.x, column.z, column.cell)
+			-- authored point keeps a full-width top so that point stays at its exact height; so does a
+			-- graded inland column, whose square neighbours have no lower ring to meet.
+			local pinned = Terrain.pinned(layout, column.x, column.z, column.cell) or gradedInland
 			workspace.Terrain:FillCylinder(
 				CFrame.new(column.x, (base + top) / 2 - 2, column.z),
 				top - base + 4,
@@ -446,9 +465,25 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	game:GetService("RunService").Heartbeat:Wait()
 	for _, path in layout.paths do
 		if string.match(layoutId, "^rw%.a%d+%.s%d+$") and string.sub(path.id, -5) == ".main" then
-			-- Spawn on the trail 32 studs short of the resource yard, not at the far dock.
+			-- Arrive on the trail beside the yard's nearest gather node, inside its prompt range
+			-- (8 studs): 32 studs short of the yard left no prompt usable from the arrival point.
 			local y, q = path.points[3], path.points[2]
 			local at = Vector3.new(y.x, 512, y.z) + (Vector3.new(q.x, 512, q.z) - Vector3.new(y.x, 512, y.z)).Unit * 32
+			local nearest, best = nil, math.huge
+			for _, node in layout.resourceNodes do
+				local d = (Vector3.new(node.position.x, 512, node.position.z) - at).Magnitude
+				if
+					d < best
+					and not string.find(node.id, ".cargo.", 1, true)
+					and not string.find(node.id, ".chapter.", 1, true)
+				then
+					nearest, best = node, d
+				end
+			end
+			if nearest then
+				local p = Vector3.new(nearest.position.x, 512, nearest.position.z)
+				at = p + (at - p).Unit * 5
+			end
 			local hit = workspace:Raycast(at, Vector3.new(0, -1024, 0), groundParams)
 			spawn.Position = Vector3.new(at.X, if hit then hit.Position.Y + 0.5 else y.y + 1, at.Z)
 		end
@@ -608,6 +643,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		carriedContainer = "bag",
 		reachStuds = 8,
 		baseWalkSpeed = 16,
+		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
 		wildlife = { catalog = wildlife.catalog, spawns = spawns, maximum = wildlife.maximum, nowMillis = nowMillis },
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).
@@ -713,6 +749,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				prompt:SetAttribute("ForgeMarket", facility.anchor == "npc.sella")
 				prompt:SetAttribute("ForgePanel", facility.panel)
 				prompt:SetAttribute("ForgeDialogue", facility.talk)
+				prompt:SetAttribute("ForgeOperation", facility.operation)
 				prompt.Triggered:Connect(function(player)
 					if
 						facility.destination

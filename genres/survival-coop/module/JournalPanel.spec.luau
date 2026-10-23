@@ -4,7 +4,7 @@ local Panel = require("./JournalPanel")
 local Chapters = require("../../../core/domain/journal/Chapters")
 local Content = require("../../../games/robango-island/src/shared/SurvivalContent")
 local Catalog = assert(Content.chapters, "journal catalog required")
-local Text = require("../../../games/robango-island/src/shared/JournalText")
+local Text = require("../../../games/robango-island/PackText.fixture").authored
 local Locale = require("../../../cli/forge/lib/localesync")
 local fs = require("@lune/fs")
 return {

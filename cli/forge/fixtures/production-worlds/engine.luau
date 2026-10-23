@@ -532,13 +532,14 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		},
 		["./DinosaurRig"] = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil),
 		["./MountVisual"] = {
-			species = function()
+			look = function()
 				return nil
 			end,
 			plan = function()
 				return { attach = {}, detach = {} }
 			end,
 		},
+		["./CosmeticVisual"] = load("genres/survival-coop/module/CosmeticVisual.luau", {}, nil),
 	}, nil)
 	module.DinosaurRig = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil)
 	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")

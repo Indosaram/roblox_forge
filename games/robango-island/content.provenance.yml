@@ -86,6 +86,8 @@ entries:
   "recipes/woodland-skewer": { created: 2026-10-16 }
   "recipes/workbench-kit": { created: 2026-10-16 }
   "nodes/berry-bush": { created: 2026-10-16 }
+  "nodes/branch-pile": { created: 2026-10-23 }
+  "nodes/stone-pile": { created: 2026-10-23 }
   "nodes/fallen-tree": { created: 2026-10-16 }
   "nodes/fiber-bush": { created: 2026-10-16 }
   "nodes/flint-outcrop": { created: 2026-10-16 }
@@ -144,6 +146,15 @@ entries:
   "items/workbench-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
   "recipes/workbench-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
   "structures/workbench-t2": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-22 }
+  "items/workbench-t3-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "recipes/workbench-t3-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "structures/workbench-t3": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "items/kiln-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "recipes/kiln-t2-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "structures/kiln-t2": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "items/kiln-t3-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "recipes/kiln-t3-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
+  "structures/kiln-t3": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-23 }
   "items/kiln-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/tanning-frame-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/refrigerator-kit": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }

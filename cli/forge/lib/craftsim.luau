@@ -516,22 +516,23 @@ function M.simulate(content: any, options: Options): { [string]: any }
 			gather(home, need.item)
 		end
 	end
-	guideDone("rw.g01.hand-gather")
+	guideDone("rw.g01.first-gather")
 	obtain("stone-axe", 1)
 	mark("stoneAxe")
+	guideDone("rw.g02.first-axe")
 	obtain("campfire-kit", 1)
 	place("campfire")
-	guideDone("rw.g02.campfire")
 	advance(A.restSeconds)
-	guideDone("rw.g03.rest")
 	assert(recipeById["dry-twig"] ~= nil, "dry-twig recipe")
 	craft(recipeById["dry-twig"])
-	guideDone("rw.g04.first-processing")
 	for _, entry in content.contracts.entries do
 		if entry.pool == "first-day" then
 			deliverContract(entry)
+			guideDone("rw.g03.first-contract")
 		end
 	end
+	-- The first camp donation (guide g04) happens with the windbreak delivery below.
+	guideDone("rw.g04.camp-donation")
 	-- Camp ladder rung 1.
 	for _, project in content.camp.projects do
 		if project.id == "windbreak" then

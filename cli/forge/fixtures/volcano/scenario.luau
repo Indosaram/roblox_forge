@@ -91,7 +91,11 @@ end
 local function equipment(): any
 	local policy = Policy
 	local tree = Tree.new(Content, policy.tree)
-	for i = 1, 8100 do
+	-- Train exactly to the tailoring_4 proficiency (30); a fixed award count would overshoot
+	-- the character level under the spec curve (owner decision 2026-10-23).
+	local i = 0
+	while tree.mastery.tailoring.level < 30 do
+		i += 1
 		tree = Tree.award(tree, policy.tree, "tailoring", "tailoring" .. tostring(i))
 	end
 	assert(tree.level < 59, "mastery training stays below the support character gate")
