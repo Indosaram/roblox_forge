@@ -163,4 +163,105 @@ return {
 			assert(string.match(output, "^specs: 1 passed, 0 failed, 1 files, "), output)
 		end)
 	end,
+
+	["units split a file heavier than half a share into per-test units plus a remainder"] = function()
+		local timings = {
+			files = { ["h.spec.luau"] = 900, ["l.spec.luau"] = 100 },
+			tests = { ["h.spec.luau"] = { b = 600, a = 300 }, ["l.spec.luau"] = { x = 100 } },
+		}
+		local units, weights = specs.units({ "h.spec.luau", "l.spec.luau" }, 2, timings)
+		local expected = { "h.spec.luau\ta", "h.spec.luau\tb", "h.spec.luau\t<unrecorded>", "l.spec.luau" }
+		assert(table.concat(units, "|") == table.concat(expected, "|"), table.concat(units, "|"))
+		assert(weights["h.spec.luau\ta"] == 300 and weights["h.spec.luau\tb"] == 600, "per-test weights")
+		assert(weights["h.spec.luau\t<unrecorded>"] == 0 and weights["l.spec.luau"] == nil, "remainder/unsplit")
+
+		-- A heavy file without per-test timings cannot be split and stays one unit.
+		local single = specs.units({ "h.spec.luau", "l.spec.luau" }, 2, { files = timings.files, tests = {} })
+		assert(table.concat(single, "|") == "h.spec.luau|l.spec.luau", table.concat(single, "|"))
+	end,
+
+	["partition assigns every unit exactly once, heaviest first to the lightest shard"] = function()
+		local files = { "a.spec.luau", "b.spec.luau", "c.spec.luau", "d.spec.luau" }
+		local timings = {
+			files = { ["a.spec.luau"] = 50, ["b.spec.luau"] = 40, ["c.spec.luau"] = 30, ["d.spec.luau"] = 20 },
+			tests = {},
+		}
+		local shards = specs.partition(files, 2, timings)
+		assert(#shards == 2, "shards " .. #shards)
+		-- LPT: a(50)->1, b(40)->2, c(30)->2 (40<50), d(20)->1 (50<70): loads 70 / 70.
+		assert(table.concat(shards[1], ",") == "a.spec.luau,d.spec.luau", table.concat(shards[1], ","))
+		assert(table.concat(shards[2], ",") == "b.spec.luau,c.spec.luau", table.concat(shards[2], ","))
+
+		-- More jobs than units: empty shards are dropped, every unit still appears once.
+		local wide = specs.partition({ "a.spec.luau", "b.spec.luau" }, 5, timings)
+		assert(#wide == 2 and #wide[1] == 1 and #wide[2] == 1, "empty shards must be dropped")
+
+		-- A split heavy file spreads its tests across shards.
+		local split = specs.partition({ "h.spec.luau" }, 2, {
+			files = { ["h.spec.luau"] = 200 },
+			tests = { ["h.spec.luau"] = { a = 100, b = 100 } },
+		})
+		local seen: { [string]: number } = {}
+		for _, shard in split do
+			for _, unit in shard do
+				seen[unit] = (seen[unit] or 0) + 1
+			end
+		end
+		assert(#split == 2, "split file should use both shards")
+		assert(seen["h.spec.luau\ta"] == 1 and seen["h.spec.luau\tb"] == 1, "each test once")
+		assert(seen["h.spec.luau\t<unrecorded>"] == 1, "remainder once")
+	end,
+
+	["files entries select single tests, and the remainder selects only unrecorded tests"] = function()
+		withTree({
+			["s/m.spec.luau"] = "return { one = function() end, two = function() end, three = function() end }\n",
+		}, function(root)
+			local file = root .. "/s/m.spec.luau"
+			local ok, output = specs.run({ files = { file .. "\ttwo" } })
+			assert(ok, output)
+			local got = lines(output)
+			assert(#got == 2 and got[1] == "PASS " .. file .. " :: two", output)
+
+			local timings = { files = { [file] = 2 }, tests = { [file] = { one = 1, two = 1 } } }
+			ok, output = specs.run({ files = { file .. "\t<unrecorded>" }, timings = timings })
+			assert(ok, output)
+			got = lines(output)
+			assert(#got == 2 and got[1] == "PASS " .. file .. " :: three", output)
+
+			-- Split units together cover the file exactly once.
+			ok, output = specs.run({
+				files = { file .. "\tone", file .. "\ttwo", file .. "\t<unrecorded>" },
+				timings = timings,
+			})
+			assert(ok, output)
+			assert(string.match(lines(output)[4], "^specs: 3 passed, 0 failed, 1 files, "), output)
+		end)
+	end,
+
+	["sharded run matches the serial test set, and a crashed shard fails the run"] = function()
+		withTree({
+			["p/a.spec.luau"] = "return { a1 = function() end, a2 = function() end }\n",
+			["p/b.spec.luau"] = "return { b1 = function() end }\n",
+		}, function(root)
+			local okSerial, serial = specs.run({ roots = { root } })
+			local okSharded, sharded = specs.run({ roots = { root }, jobs = 2 })
+			assert(okSerial and okSharded, sharded)
+			local a, b = lines(serial), lines(sharded)
+			assert(#a == 4 and #b == 4, sharded)
+			for index = 1, 3 do
+				assert(a[index] == b[index], "line " .. index .. ": " .. tostring(b[index]))
+			end
+			assert(string.match(b[4], "^specs: 3 passed, 0 failed, 2 files, "), b[4])
+
+			-- A spec that kills its own process leaves its shard without a report.
+			fs.writeFile(
+				root .. "/p/crash.spec.luau",
+				'return { dies = function() require("@lune/process").exit(7) end }\n'
+			)
+			local okCrash, crashed = specs.run({ roots = { root }, jobs = 2, quiet = true })
+			assert(not okCrash, "a crashed shard must fail the run: " .. crashed)
+			assert(string.find(crashed, "SHARD %d+ exited 7 without a report"), crashed)
+			assert(string.find(crashed, "FAIL (shards) :: worker :: ", 1, true), crashed)
+		end)
+	end,
 }

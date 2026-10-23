@@ -27,6 +27,9 @@ export type RunOptions = {
 	-- that test of the file. Skips discovery and the compile pre-pass, which the
 	-- parent already did.
 	files: { string }?,
+	-- Timing record that decides which tests a "path\t<unrecorded>" entry selects.
+	-- Defaults to the saved build/cache/spec-timings.json; specs inject one.
+	timings: Timings?,
 }
 
 -- Per-file durations from the last full run, used to balance shards.
@@ -104,7 +107,10 @@ end
 
 local loadTimings: () -> any
 local recordedCache: any = nil
-local function recordedTests(file: string): { [string]: number }
+local function recordedTests(file: string, override: Timings?): { [string]: number }
+	if override ~= nil then
+		return override.tests[file] or {}
+	end
 	if recordedCache == nil then
 		recordedCache = loadTimings()
 	end
@@ -244,7 +250,7 @@ function M.run(options: RunOptions): (boolean, string)
 				local allowed = onlyTests[specFile]
 				local selected = allowed == nil
 					or allowed[testName] == true
-					or (allowed[REST] == true and recordedTests(specFile)[testName] == nil)
+					or (allowed[REST] == true and recordedTests(specFile, options.timings)[testName] == nil)
 				if type(testName) == "string" and type(testFn) == "function" and selected then
 					if pathMatches or matchesAny(filters, specFile .. " :: " .. testName) then
 						table.insert(names, testName)

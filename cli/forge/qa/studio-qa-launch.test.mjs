@@ -128,6 +128,18 @@ test('the real adapter never disables the task it is about to start', async () =
   expect(calls.some(script => script.includes('Start-ScheduledTask'))).toBe(true);
 });
 
+// A state sample that comes back empty (PowerShell failed or timed out under load) says nothing about the
+// task. Treating it as terminal ended the wait while the run was still going, so the launcher read the
+// receipt minutes before the run wrote it and reported a false `receipt-missing`.
+test('an empty state sample is not terminal; only Ready ends the wait', async () => {
+  const samples = [{ code: 0, stdout: 'Running' }, { code: 1, stdout: '' }, { code: 0, stdout: '' }, { code: 0, stdout: 'Running' }, { code: 0, stdout: 'Ready' }];
+  let taken = 0;
+  const run = async () => samples[Math.min(taken++, samples.length - 1)];
+  const deps = windowsSchedulerDeps({ root: ROOT, run, sleep: async () => {}, now: () => 0 });
+  await deps.waitForTerminal('ForgeQAReal', 1000);
+  expect(taken).toBe(5);
+});
+
 // A create that does not verify back with the action inside the worktree must fail closed.
 test('a create that cannot be verified fails closed', async () => {
   const deps = windowsSchedulerDeps({ root: ROOT, run: async () => ({ code: 0, stdout: '' }), sleep: async () => {}, now: () => 0 });

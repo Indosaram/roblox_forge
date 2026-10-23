@@ -3,7 +3,8 @@
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
-local M = {}
+-- Test seam: true disables the raycast spatial index so a spec can compare against the full scan.
+local M = { fullScan = false }
 function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	local callbacks: { any } = {}
 	local actors: any = {}
@@ -241,10 +242,102 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		return 0
 	end
 	workspace.Terrain = instance("Terrain")
+	-- Spatial index over settled fills: 2D bins over each fill's XZ bounds (plus a margin), so a
+	-- ray only tests fills it can cross. Candidates are a superset of the fills the full scan
+	-- would hit and the exact per-fill math below is unchanged, so hits are identical.
+	local BIN, MARGIN, WIDE = 32, 1, 256
+	local bins: { [number]: { number } } = {}
+	local wide: { number } = {}
+	local indexed = 0
+	local function binKey(bx: number, bz: number): number
+		return bx * 1048576 + bz
+	end
+	local function syncIndex()
+		if #terrainWrites < indexed then
+			table.clear(bins)
+			table.clear(wide)
+			indexed = 0
+		end
+		for index = indexed + 1, #terrainWrites do
+			local fill = terrainWrites[index]
+			local hx = if fill.radius then fill.radius else fill.size.X / 2
+			local hz = if fill.radius then fill.radius else fill.size.Z / 2
+			local x0 = math.floor((fill.position.X - hx - MARGIN) / BIN)
+			local x1 = math.floor((fill.position.X + hx + MARGIN) / BIN)
+			local z0 = math.floor((fill.position.Z - hz - MARGIN) / BIN)
+			local z1 = math.floor((fill.position.Z + hz + MARGIN) / BIN)
+			if not ((x1 - x0 + 1) * (z1 - z0 + 1) <= WIDE) then
+				table.insert(wide, index)
+			else
+				for bx = x0, x1 do
+					for bz = z0, z1 do
+						local key = binKey(bx, bz)
+						local list = bins[key]
+						if not list then
+							list = {}
+							bins[key] = list
+						end
+						table.insert(list, index)
+					end
+				end
+			end
+		end
+		indexed = #terrainWrites
+	end
+	local function finite(value: number): boolean
+		return value == value and value ~= math.huge and value ~= -math.huge
+	end
+	-- Fill indices a ray may cross, or nil when only the full scan is safe.
+	local function candidates(origin: any, direction: any): { number }?
+		local ox, oz, dx, dz = origin.X, origin.Z, direction.X, direction.Z
+		if M.fullScan or not (finite(ox) and finite(oz) and finite(dx) and finite(dz) and finite(direction.Y)) then
+			return nil
+		end
+		syncIndex()
+		if dx == 0 and dz == 0 then
+			-- A zero-length ray divides by zero in the sphere test; keep it on the full scan.
+			if direction.Y == 0 then
+				return nil
+			end
+			local list = bins[binKey(math.floor(ox / BIN), math.floor(oz / BIN))]
+			if #wide == 0 then
+				return list or {}
+			end
+			local result = table.clone(wide)
+			local cell: { number } = list or {}
+			for _, index in cell do
+				table.insert(result, index)
+			end
+			return result
+		end
+		local x0 = math.floor((math.min(ox, ox + dx) - MARGIN) / BIN)
+		local x1 = math.floor((math.max(ox, ox + dx) + MARGIN) / BIN)
+		local z0 = math.floor((math.min(oz, oz + dz) - MARGIN) / BIN)
+		local z1 = math.floor((math.max(oz, oz + dz) + MARGIN) / BIN)
+		if (x1 - x0 + 1) * (z1 - z0 + 1) > WIDE then
+			return nil
+		end
+		local seen, result = {}, table.clone(wide)
+		for bx = x0, x1 do
+			for bz = z0, z1 do
+				local cell: { number } = bins[binKey(bx, bz)] or {}
+				for _, index in cell do
+					if not seen[index] then
+						seen[index] = true
+						table.insert(result, index)
+					end
+				end
+			end
+		end
+		return result
+	end
 	workspace.Raycast = function(_, origin: any, direction: any, params: any): any
 		if physicalTerrain then
 			local intervals, boundaries = {}, { 0, 1 }
-			for index, fill in terrainWrites do
+			local list = candidates(origin, direction)
+			for position = 1, if list then #list else #terrainWrites do
+				local index = if list then list[position] else position
+				local fill = terrainWrites[index]
 				local low, high = 0, 1
 				if fill.height then
 					-- Exact for vertical rays (terrain probes); any other ray uses the bounding box.

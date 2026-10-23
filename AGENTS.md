@@ -28,7 +28,7 @@ Roblox Game Forge is a meta-framework for AI-agent-driven planning, building, an
 - **Game Pack** — per-game `game.yml`, design docs, `econ.yml`, assets, product lists, and game-specific Luau extensions in `src/`.
 - Game packs never copy or modify core or genre code; they only register hooks (e.g. `OnHarvest`, `OnWaveSpawn`). New capabilities are added upward as config options or hooks.
 - `core` and `genres` are semver-versioned packages; each game pack pins versions in its own lockfile.
-- Agent auto-deploys go to staging only. Production deploys, price/probability changes, and core/genre changes require a human-merged PR (core/genre PRs must pass every game pack's tests).
+- Agent auto-deploys go to staging only. Production deploys, price/probability changes, and core/genre changes require the owner's explicit approval. The owner's standing instruction is local commits on `main` only: no pushes, no PRs, and GitHub CI stays disabled, so approval is given in the session, not by merging a PR. A core/genre change must pass every game pack's tests (`forge check`, plus `forge gate` for the affected pack) before it is committed.
 
 ## Commands
 

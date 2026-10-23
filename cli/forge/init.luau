@@ -393,7 +393,7 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
                             pack recorded and replayed, build --all and smoke --local. The tree
                             is fingerprinted before and after; an edit during the run makes the
                             verdict INVALID. Default pack robango-island, journals in
-                            <out>/journals (default build/gate)]=],
+                            <out>/journals (default a fresh build/gate/<stamp>-<hex> per run)]=],
 	},
 	{
 		name = "replay",

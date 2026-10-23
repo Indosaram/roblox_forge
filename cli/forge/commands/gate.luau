@@ -24,6 +24,26 @@ local registryLib = require("../lib/genreregistry")
 local M = {}
 
 local DEFAULT_PACK = "robango-island"
+-- Every run writes under its own directory below this root, so two gates running at once
+-- (one per session or worktree lane) never overwrite each other's journals.
+local OUT_ROOT = "build/gate"
+
+local runCounter = 0
+
+-- A fresh, not-yet-existing per-run directory: "<root>/<UTC stamp>-<12 hex>". The hex part
+-- hashes the high-resolution clock and a per-process counter, so two gates started in the
+-- same second still differ; an existing directory is skipped.
+function M.runDir(root: string): string
+	while true do
+		runCounter += 1
+		local stamp = os.date("!%Y%m%dT%H%M%SZ") :: string
+		local digest = serde.hash("sha256", tostring(os.clock()) .. ":" .. tostring(runCounter) .. ":" .. tostring({}))
+		local dir = root .. "/" .. stamp .. "-" .. string.sub(digest, 1, 12)
+		if not fs.isDir(dir) then
+			return dir
+		end
+	end
+end
 
 export type Options = { pack: string, jobs: number, json: string?, out: string, failFast: boolean }
 
@@ -32,7 +52,7 @@ function M.parseArgs(args: { string }): (Options?, string?)
 		pack = DEFAULT_PACK,
 		jobs = specs.autoJobs(),
 		json = nil,
-		out = "build/gate",
+		out = "",
 		failFast = true,
 	}
 	local index = 2
@@ -63,6 +83,9 @@ function M.parseArgs(args: { string }): (Options?, string?)
 			return nil, "unknown argument '" .. flag .. "' for forge gate"
 		end
 		index += 2
+	end
+	if options.out == "" then
+		options.out = M.runDir(OUT_ROOT)
 	end
 	return options, nil
 end
@@ -170,7 +193,8 @@ function M.run(args: { string }): boolean
 		fs.writeDir(journals)
 	end
 
-	local report: { [string]: any } = { schemaVersion = 1, pack = opts.pack, head = before.head, jobs = {} }
+	local report: { [string]: any } =
+		{ schemaVersion = 1, pack = opts.pack, head = before.head, out = opts.out, jobs = {} }
 	local failed: { string } = {}
 	local entries: { any } = {}
 	local function record(result: pool.JobResult)

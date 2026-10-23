@@ -185,7 +185,7 @@ export async function launchOwnedRun(options, deps) {
   // failed QA run, reported separately from the launch itself.
   const qaOk = enforceReceipt ? (receipt != null && receipt.ok === true) : true;
   if (enforceReceipt && !qaOk && failure === null && deleteFailure === null) {
-    failure = 'QA_RUN_FAILED:' + String(receipt?.failure ?? receipt?.blocker ?? (receipt == null ? 'receipt-missing' : 'ok!=true'));
+    failure = 'QA_RUN_FAILED:' + String(receipt?.failure ?? receipt?.blocker ?? (receipt == null ? 'receipt-missing:' + receiptPath : 'ok!=true'));
   }
   return { ok: lifecycleOk && qaOk, lifecycleOk, qaOk, taskName, stages, failure, deleteFailure, receipt };
 }
@@ -321,7 +321,9 @@ export function windowsSchedulerDeps({ root, run, exists = existsSync, sleep, no
       if (result.code !== 0) throw new Error('QA_LAUNCH_TASK_DELETE_FAILED:' + result.code + ':' + result.stdout.trim());
     },
     async waitForStart(taskName, timeoutMs = 30000) { await waitForState(taskName, ['Running'], timeoutMs); },
-    async waitForTerminal(taskName, timeoutMs = 900000) { await waitForState(taskName, ['Ready', ''], timeoutMs); },
+    // Only an observed `Ready` is terminal. An empty sample is a failed or timed-out PowerShell query, not
+    // a finished task; accepting it ended the wait mid-run and produced false `receipt-missing` verdicts.
+    async waitForTerminal(taskName, timeoutMs = 900000) { await waitForState(taskName, ['Ready'], timeoutMs); },
   };
 }
 
