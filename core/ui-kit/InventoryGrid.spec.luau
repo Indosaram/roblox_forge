@@ -177,6 +177,16 @@ local specs = {
 	["inventory snapshot preserves live press identity and refreshes retained rows"] = function()
 		regression(fs.readFile("core/ui-kit/InventoryGrid.luau"))
 	end,
+	-- p48: the badge kept the engine default TextSize 8 at 360x640.
+	["stack quantity badge text is at least 11 px and fits its badge"] = function()
+		local f = fixture(fs.readFile("core/ui-kit/InventoryGrid.luau"))
+		f.grid.update({ { id = "fiber", text = "Fiber", quantity = 12 } }, nil)
+		local badge = f.button("fiber"):FindFirstChild("Quantity")
+		assert(badge and badge.Text == "12", "quantity badge")
+		local size = badge.TextSize
+		assert(type(size) == "number" and size >= 11, "badge TextSize below 11: " .. tostring(size))
+		assert(size <= badge.Size.Y.Offset and size * 0.62 * 3 <= badge.Size.X.Offset, "badge text overflows")
+	end,
 }
 if process.args[1] == "--run" then
 	specs["inventory snapshot preserves live press identity and refreshes retained rows"]()

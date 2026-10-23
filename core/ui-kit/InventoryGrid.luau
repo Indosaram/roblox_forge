@@ -52,6 +52,7 @@ function M.new(parent: Instance, theme: Components.Theme, selectItem: (string) -
 					created.BackgroundColor3, created.TextColor3 =
 						Color3.fromRGB(18, 28, 26), Color3.fromRGB(240, 244, 240)
 					created.Size, created.Position = UDim2.fromOffset(32, 20), UDim2.new(1, -34, 0, 6)
+					created.TextSize = 12
 					created.Parent = button
 					quantity = created
 				end

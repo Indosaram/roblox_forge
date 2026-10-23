@@ -508,6 +508,8 @@ table.insert(panelFactories, function(ctx)
 		parent = audioGui,
 	})
 	assert(ctx.fitSheet, "AUDIO_SHEET_REQUIRED")(sheet.frame)
+	-- modalSheet starts hidden; audioGui.Enabled alone left the dock hidden with no sheet (p48).
+	sheet.frame.Visible = true
 	local muted, volume = false, 1
 	local connections = {}
 	local function button(label, callback)
