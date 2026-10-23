@@ -115,7 +115,7 @@ function M.coast(layout: any, seed: number): any
 			end
 		end
 	end
-	local coast = { hx = hx, hz = hz }
+	local coast = { hx = hx, hz = hz, unit = unit }
 	function coast.radius(angle: number): number
 		local r = base
 		for _, wave in waves do
@@ -134,11 +134,51 @@ function M.coast(layout: any, seed: number): any
 		local nx, nz = x / hx, z / hz
 		return coast.radius(math.atan2(nz, nx)) - math.sqrt(nx * nx + nz * nz)
 	end
-	function coast.point(angle: number): (number, number)
-		local r = coast.radius(angle)
+	-- `inset` (normalised) walks the contour that far inside the coast, e.g. the grass edge.
+	function coast.point(angle: number, inset: number?): (number, number)
+		local r = coast.radius(angle) - (inset or 0)
 		return r * math.cos(angle) * hx, r * math.sin(angle) * hz
 	end
 	return coast
+end
+
+-- Organic islands: the grass edge is the coast contour inset by GRASS_EDGE (normalised depth).
+-- Columns hold BEACH_TOP out to M.band(coast, cell); adapters paint sand discs over 0..band
+-- (hiding the square column edges) and then grass discs over GRASS_EDGE..band, so the visible
+-- grass/sand boundary is the inset coast curve rather than the column grid.
+M.GRASS_EDGE = 0.09
+M.BEACH_TOP = 2
+
+function M.band(coast: any, cell: number): number
+	return M.GRASS_EDGE + cell * 1.5 / coast.unit
+end
+
+function M.ground(layout: any, x: number): string
+	return if table.find(layout.biomes, "volcano") and x < 0 then "Basalt" else materials[layout.biomes[1]] or "Grass"
+end
+
+-- Authored heights for the organic height field: path samples, nodes, anchors, spawns.
+local function authored(layout: any): { any }
+	local samples = {}
+	for _, path in layout.paths do
+		for i = 2, #path.points do
+			local a, b = path.points[i - 1], path.points[i]
+			local steps = math.max(1, math.ceil(math.sqrt((b.x - a.x) ^ 2 + (b.z - a.z) ^ 2) / 32))
+			for s = 0, steps do
+				local t = s / steps
+				table.insert(
+					samples,
+					{ x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t, z = a.z + (b.z - a.z) * t }
+				)
+			end
+		end
+	end
+	for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+		for _, item in list do
+			table.insert(samples, item.position)
+		end
+	end
+	return samples
 end
 
 -- Catalog navigation and habitat clearings override the seeded high ground.
@@ -149,6 +189,7 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 	local phase = rng:nextNumber() * math.pi * 2
 	local stage = tonumber(string.match(layout.id, "%.s(%d+)$")) or 1
 	local coast = if M.organic(layout) then M.coast(layout, seed) else nil
+	local samples: { any } = if coast then authored(layout) else {}
 	local result = {}
 	-- An organic coast may bulge past the authored bounds; offshore cells are left to the sea.
 	local grow = if coast then cell * 2 else 0
@@ -168,23 +209,68 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 			if coast then
 				-- Only cells wholly inside the coast are land; adapters draw the rim as round beach.
 				local h = cell / 2
-				if
-					math.min(
-						coast.depth(x - h, z - h),
-						coast.depth(x + h, z - h),
-						coast.depth(x - h, z + h),
-						coast.depth(x + h, z + h)
-					) <= 0
-				then
+				local corner = math.min(
+					coast.depth(x - h, z - h),
+					coast.depth(x + h, z - h),
+					coast.depth(x - h, z + h),
+					coast.depth(x + h, z + h)
+				)
+				if corner <= 0 then
 					continue
 				end
+				-- Smooth height field: inverse-distance blend of the authored heights with a
+				-- gentle seeded swell far from them, so neighbouring columns never form terraces.
+				local sum, weight, nearest = 0, 0, math.huge
+				for _, p in samples do
+					local d2 = (x - p.x) ^ 2 + (z - p.z) ^ 2
+					nearest = math.min(nearest, d2)
+					local w = 1 / (d2 + 256) ^ 1.5
+					sum += p.y * w
+					weight += w
+				end
+				local swell = (top - layout.bounds.min.y - 2) * 0.3 * smooth(cell, cell * 4, math.sqrt(nearest))
+				top = sum / weight + swell
 				local depth = coast.depth(x, z)
-				top = 2 + (top - 2) * smooth(0.04, 0.2, depth)
-				beach = depth < 0.09
+				local hold = M.band(coast, cell) + cell * 0.71 / coast.unit
+				top = M.BEACH_TOP + (top - M.BEACH_TOP) * smooth(hold, hold + 0.16, depth)
+				beach = depth < M.GRASS_EDGE
 			elseif shore then
 				top = if edge > 0.98 then -12 else -2
 			end
-			for _, path in layout.paths do
+			if coast then
+				-- Authored ground is exact within round clearings and blends out over two cells,
+				-- never as rectangular plateaus. Exact clearings are re-applied last, in catalog order.
+				local exact: number? = nil
+				local function blend(distance: number, inner: number, target: number)
+					local w = 1 - smooth(inner, inner + cell * 2, distance)
+					top += (target - top) * w
+					if distance <= inner then
+						exact = target
+					end
+				end
+				for _, path in layout.paths do
+					for i = 2, #path.points do
+						local a, b = path.points[i - 1], path.points[i]
+						local distance, t = M.distance(x, z, a, b)
+						blend(distance, path.width / 2 + cell * 0.75, a.y + (b.y - a.y) * t)
+					end
+				end
+				for _, spawn in layout.spawns do
+					local p = spawn.position
+					blend(math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2), spawn.radius + cell * 0.75, p.y)
+				end
+				for _, anchor in layout.anchors do
+					local p = anchor.position
+					local inner = if anchor.id == "objective" then 64 else cell * 0.75
+					blend(math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2), inner, p.y)
+				end
+				for _, node in layout.resourceNodes do
+					local p = node.position
+					blend(math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2), cell * 0.75, p.y)
+				end
+				top = exact or top
+			end
+			for _, path in if coast then {} else layout.paths do
 				for i = 2, #path.points do
 					local a, b = path.points[i - 1], path.points[i]
 					local distance, t = M.distance(x, z, a, b)
@@ -193,18 +279,18 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 					end
 				end
 			end
-			for _, spawn in layout.spawns do
+			for _, spawn in if coast then {} else layout.spawns do
 				if (x - spawn.position.x) ^ 2 + (z - spawn.position.z) ^ 2 <= (spawn.radius + cell) ^ 2 then
 					top = spawn.position.y
 				end
 			end
-			for _, anchor in layout.anchors do
+			for _, anchor in if coast then {} else layout.anchors do
 				local clearance = if anchor.id == "objective" then 64 else cell
 				if math.abs(x - anchor.position.x) <= clearance and math.abs(z - anchor.position.z) <= clearance then
 					top = anchor.position.y
 				end
 			end
-			for _, node in layout.resourceNodes do
+			for _, node in if coast then {} else layout.resourceNodes do
 				if math.abs(x - node.position.x) <= cell and math.abs(z - node.position.z) <= cell then
 					top = node.position.y
 				end
@@ -216,10 +302,7 @@ function M.columns(layout: any, seed: number, cell: number): { any }
 				cell = cell,
 				biome = layout.biomes[1],
 				beach = beach,
-				material = if top < 0 or beach
-					then "Sand"
-					elseif table.find(layout.biomes, "volcano") and x < 0 then "Basalt"
-					else materials[layout.biomes[1]] or "Grass",
+				material = if top < 0 or beach then "Sand" else M.ground(layout, x),
 			})
 		end
 	end

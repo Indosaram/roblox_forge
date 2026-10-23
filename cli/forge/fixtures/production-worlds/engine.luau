@@ -85,9 +85,11 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				FillCylinder = function(_, frame, height: number, radius: number, material)
 					terrainMaterial(material)
 					if physicalTerrain then
-						-- Upright cylinder; its bounding box is close enough for downward ground rays.
-						local size = roblox.Vector3.new(radius * 2, height, radius * 2)
-						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
+						-- Upright cylinder: round in plan, so contour specs see the real disc edge.
+						table.insert(
+							pendingTerrain,
+							{ position = frame.Position, radius = radius, height = height, material = material }
+						)
 					end
 				end,
 				SetMaterialColor = function(_, material)
@@ -244,7 +246,28 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			local intervals, boundaries = {}, { 0, 1 }
 			for index, fill in terrainWrites do
 				local low, high = 0, 1
-				if fill.radius then
+				if fill.height then
+					-- Exact for vertical rays (terrain probes); any other ray uses the bounding box.
+					local dx, dz = origin.X - fill.position.X, origin.Z - fill.position.Z
+					local r = fill.radius
+					if direction.X == 0 and direction.Z == 0 and dx * dx + dz * dz > r * r then
+						low = 2
+					end
+					local half = { X = r, Y = fill.height / 2, Z = r }
+					for _, axis in { "X", "Y", "Z" } do
+						local minimum = fill.position[axis] - half[axis]
+						local maximum = fill.position[axis] + half[axis]
+						if direction[axis] == 0 then
+							if origin[axis] < minimum or origin[axis] > maximum then
+								low = 2
+							end
+						else
+							local a = (minimum - origin[axis]) / direction[axis]
+							local b = (maximum - origin[axis]) / direction[axis]
+							low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
+						end
+					end
+				elseif fill.radius then
 					local offset = origin - fill.position
 					local a, b = direction:Dot(direction), 2 * offset:Dot(direction)
 					local c = offset:Dot(offset) - fill.radius ^ 2

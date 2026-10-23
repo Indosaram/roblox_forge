@@ -206,7 +206,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		local top = column.top
 		if not protected and top > 0 then
 			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
-			if river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
+			-- Organic islands skip the square river pits: they cut 90-degree notches into the grass.
+			if not coastline and river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
 				top, material = -5, "Sand"
 			elseif if column.beach == nil then top < 8 else column.beach then
 				material = "Sand"
@@ -216,21 +217,42 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				material = "Ice"
 			end
 		end
+		local floor = top
+		for dx = -1, 1 do
+			for dz = -1, 1 do
+				floor = math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or top)
+			end
+		end
+		-- Organic islands: a step above the lowest neighbour is a round cap (radius covers the
+		-- cell's corners), so authored height changes read as rounded rises, not square terraces.
+		local cap = coastline ~= nil and top > 0 and top - math.max(floor, 0) > 1
+		local base = if cap then math.max(floor, 0) else top
 		workspace.Terrain:FillBlock(
-			CFrame.new(column.x, (top - 16) / 2, column.z),
-			Vector3.new(column.cell, top + 16, column.cell),
+			CFrame.new(column.x, (base - 16) / 2, column.z),
+			Vector3.new(column.cell, base + 16, column.cell),
 			materials[material]
 		)
+		if cap then
+			if top - base > 4 then
+				-- A wider half-height skirt splits a tall rise into two rounded shoulders.
+				local mid = (base + top) / 2
+				workspace.Terrain:FillCylinder(
+					CFrame.new(column.x, (base + mid) / 2 - 2, column.z),
+					mid - base + 4,
+					column.cell * 0.95,
+					materials[material]
+				)
+			end
+			workspace.Terrain:FillCylinder(
+				CFrame.new(column.x, (base + top) / 2 - 2, column.z),
+				top - base + 4,
+				column.cell * 0.72,
+				materials[material]
+			)
+		end
 		if top > 0 then
 			-- Seeded discs spill each column's surface into its neighbours below their own
 			-- surface height, so material borders are round and never a square tile grid.
-			local floor = top
-			for dx = -1, 1 do
-				for dz = -1, 1 do
-					floor =
-						math.min(floor, tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell] or top)
-				end
-			end
 			table.insert(blobs, { column, floor, material })
 		end
 		if not protected and top > 8 then
@@ -278,6 +300,33 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					band[2],
 					Enum.Material.Sand
 				)
+			end
+		end
+		-- Sand discs cover the band from the coast to M.band, hiding the square column edges;
+		-- grass discs then repaint GRASS_EDGE..band, so the grass edge is the inset coast curve.
+		-- Columns in the band sit at BEACH_TOP, so the discs only change surface material.
+		local band = Terrain.band(coastline, 32)
+		for _, pass in { { 0, band }, { Terrain.GRASS_EDGE, band } } do
+			local last: { number }? = nil
+			for step = 0, 720 do
+				local angle = step * math.pi / 360
+				local ox, oz = coastline.point(angle, pass[1])
+				local ix, iz = coastline.point(angle, pass[2])
+				local cx, cz = (ox + ix) / 2, (oz + iz) / 2
+				local radius = math.sqrt((ox - ix) ^ 2 + (oz - iz) ^ 2) / 2 + 2
+				if not last or math.sqrt((cx - last[1]) ^ 2 + (cz - last[2]) ^ 2) >= radius * 0.45 then
+					last = { cx, cz }
+					local material = if pass[1] == 0
+						then "Sand"
+						elseif interactionGround(cx, cz, radius) then "Ground"
+						else Terrain.ground(layout, cx)
+					workspace.Terrain:FillCylinder(
+						CFrame.new(cx, Terrain.BEACH_TOP - 4, cz),
+						8,
+						radius,
+						materials[material]
+					)
+				end
 			end
 		end
 	end
