@@ -298,6 +298,7 @@ return {
 					local index = assert(table.find(tiles, item)) - 1
 					w, h = math.floor((parent.w - (columns - 1) * 6) / columns), tileHeight
 					x, y = parent.x + (index % columns) * (w + 6), parent.y + math.floor(index / columns) * (h + 6)
+					y -= if menu.CanvasPosition then menu.CanvasPosition.Y else 0
 				end
 				return { x = x, y = y, w = w, h = h }
 			end
@@ -374,6 +375,10 @@ return {
 					end
 				end
 				assert(fallback and fallback.ClassName == "Frame", "every menu tile has a non-text fallback")
+				-- Scroll the grid (as a player would) until the tile is fully inside it.
+				menu.CanvasPosition = { X = 0, Y = 0 }
+				local frame, rect = bounds(menu), bounds(tile)
+				menu.CanvasPosition = { X = 0, Y = math.max(0, rect.y + rect.h - (frame.y + frame.h)) }
 				click(tile)
 				assert(not menu.Visible and visible[id], "tile opens sheet: " .. id)
 				heartbeat:fire()

@@ -5,6 +5,7 @@ local Text = require("./MusicText")
 local Transport = require("./ScoreTransport")
 local Selection = require("./MusicSelection")
 local Sheet = require("./MusicSheet")
+local HUDModel = require("./SurvivalHUDModel")
 local env: any = getfenv()
 local game: any = env.game
 local Instance: any = env.Instance
@@ -159,10 +160,12 @@ function M.playModel(locale: string, room: any, actor: string, now: number, join
 	}
 end
 
-function M.playBounds(width: number, _height: number): (number, number, number, number)
+function M.playBounds(width: number, height: number): (number, number, number, number)
 	local h = 128
 	if width < 600 then
-		return 12, 180, width - 24, h
+		-- Portrait phone: below the HUD column (and its sync status), clear of Roblox's chat.
+		local status = HUDModel.contextHudBounds(width, height).status
+		return 12, if status then status.y + status.height + 8 else 180, width - 24, h
 	end
 	local menuX = width - math.min(216, width - 100) - 84
 	local x = if width >= 1000 then 548 else 12
