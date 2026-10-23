@@ -116,6 +116,15 @@ function M.new(actor: string, newId: () -> string): any
 			model.durable = nil
 		end
 	end
+	--- Clears a success line once its display time has passed, unless a newer result or an
+	--- in-flight request replaced it. Returns whether the line was cleared.
+	function model.expireNotice(notice: string): boolean
+		if model.notice ~= notice or model.pending or model.busy then
+			return false
+		end
+		model.notice = nil
+		return true
+	end
 	return model
 end
 

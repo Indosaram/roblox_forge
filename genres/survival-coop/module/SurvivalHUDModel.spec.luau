@@ -276,6 +276,21 @@ return {
 		state.finish(true, { ok = false, reason = "NOTHING_TO_REPAIR" })
 		assert(state.notice == nil and state.reason == "NOTHING_TO_REPAIR", "a later refusal replaces the line")
 	end,
+	["a success line expires on its own, but never clears a newer line or an in-flight request"] = function()
+		local state = model()
+		state.receive({ durable = { actions = { "survival-coop:item-repair" }, sessionEpoch = 4 } })
+		state.begin("item-repair", { "axe" })
+		state.finish(true, { ok = true })
+		local notice = assert(state.notice, "success line shown")
+		assert(state.expireNotice(notice) and state.notice == nil, "the line clears after its display time")
+		state.begin("item-repair", { "axe" })
+		state.finish(true, { ok = true })
+		local second = state.notice
+		state.begin("item-repair", { "axe" })
+		assert(not state.expireNotice(second), "an in-flight request keeps the HUD state")
+		state.finish(true, { ok = true })
+		assert(not state.expireNotice("stale") and state.notice ~= nil, "an older timer never clears a newer line")
+	end,
 	["non-repair acceptance without a persisted outcome keeps its request"] = function()
 		local state = model()
 		local request = state.begin("craft-reserve", { "cord", "hand" })

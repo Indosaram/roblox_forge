@@ -181,6 +181,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
+	local coastline = if Terrain.organic(layout) then Terrain.coast(layout, seed) else nil
+	if coastline then
+		-- Organic islands keep only land columns; a single sand floor stands in for the seabed.
+		workspace.Terrain:FillBlock(CFrame.new(0, -14, 0), Vector3.new(1400, 4, 1400), Enum.Material.Sand)
+	end
 	-- Mossy trampled earth and sparse light stone sit close to the grass value, never dark stains.
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(98, 116, 60))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(122, 126, 92))
@@ -203,7 +208,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
 			if river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
 				top, material = -5, "Sand"
-			elseif top < 8 then
+			elseif if column.beach == nil then top < 8 else column.beach then
 				material = "Sand"
 			elseif table.find(layout.biomes, "volcano") and column.x < -32 then
 				material = if column.x % 96 < 32 then "CrackedLava" else "Basalt"
@@ -250,6 +255,30 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				column.cell * (0.22 + blobRng:nextNumber() * 0.18),
 				materials[blob[3]]
 			)
+		end
+	end
+	if coastline then
+		-- Square land columns stop inside the coast; two rings of low sand domes walked along the
+		-- seeded lobed coastline draw a round beach that slopes under the water line.
+		local ring: { { number } } = {}
+		local px, pz = math.huge, math.huge
+		for step = 0, 720 do
+			local x, z = coastline.point(step * math.pi / 360)
+			if math.sqrt((x - px) ^ 2 + (z - pz) ^ 2) >= 16 then
+				px, pz = x, z
+				table.insert(ring, { x, z })
+			end
+		end
+		for _, at in ring do
+			local distance = math.sqrt(at[1] * at[1] + at[2] * at[2])
+			local ux, uz = at[1] / distance, at[2] / distance
+			for _, band in { { 12, 22, -0.5 }, { 36, 26, 2 } } do
+				workspace.Terrain:FillBall(
+					Vector3.new(at[1] - ux * band[1], band[3] - band[2], at[2] - uz * band[1]),
+					band[2],
+					Enum.Material.Sand
+				)
+			end
 		end
 	end
 	-- The coarse seeded columns are scenery. Authored navigation is a continuous
@@ -807,7 +836,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						gui.Parent = target
 						game:GetService("CollectionService"):AddTag(target, "ForgeSurvey")
 						local prompt = Instance.new("ProximityPrompt")
-						WorldText.bind(prompt, "survey")
+						WorldText.bind(prompt, "survey", "survey-point")
 						prompt.MaxActivationDistance, prompt.Parent = content.missionPolicy.interactionStuds, target
 						prompt:SetAttribute("ForgeSurvey", true)
 						prompt.Triggered:Connect(function(player)

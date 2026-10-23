@@ -4,6 +4,9 @@ local Locale = require("./SurvivalHUDLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local M = {}
 -- Refusals that also raise the toast.
+-- Seconds a success line (repair done, saved) stays on the contextual status.
+M.NOTICE_SECONDS = 5
+
 M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true }
 
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
@@ -373,6 +376,16 @@ function M.start(options: Options)
 				return
 			end
 			model.finish(ok, result)
+			-- A success line is a confirmation, not a state: it clears after a few seconds unless a
+			-- newer result replaced it (2026-10-23 Studio: the repair line stayed up indefinitely).
+			local notice = model.notice
+			if notice then
+				task.delay(M.NOTICE_SECONDS, function()
+					if not disposed and model.expireNotice(notice) then
+						render()
+					end
+				end)
+			end
 			if M.toasted[model.reason] then
 				toast.Text, toast.Visible = Locale.refusal(locale, model.reason), true
 			end

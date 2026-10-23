@@ -1260,6 +1260,14 @@ exp_next_locked,original,agent:hephaestus/p31,2026-10-22
 exp_home,original,agent:hephaestus/p31,2026-10-22
 exp_results,original,agent:hephaestus/p31,2026-10-22
 exp_result_row,original,agent:hephaestus/p31,2026-10-22
+exp_mission,original,agent:claude-opus/p34,2026-10-23
+mission_gather,original,agent:claude-opus/p34,2026-10-23
+mission_craft,original,agent:claude-opus/p34,2026-10-23
+mission_survey,original,agent:claude-opus/p34,2026-10-23
+mission_rescue,original,agent:claude-opus/p34,2026-10-23
+mission_hunt,original,agent:claude-opus/p34,2026-10-23
+mission_transport,original,agent:claude-opus/p34,2026-10-23
+mission_unknown,original,agent:claude-opus/p34,2026-10-23
 exp_first,original,agent:hephaestus/p31,2026-10-22
 exp_repeat,original,agent:hephaestus/p31,2026-10-22
 exp_delivered,original,agent:hephaestus/p31,2026-10-22

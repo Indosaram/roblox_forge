@@ -165,14 +165,23 @@ function M.menuBounds(width: number, height: number): (number, number, number, n
 	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
 	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 116
 end
--- Short landscape: contextSheet's thumb-gutter rule.
+-- Contextual menu grid: 6px cell gap, and the ScrollingFrame's 6px scrollbar clips the
+-- right edge of its canvas, so tiles only get the width left of the scrollbar.
+M.MENU_GAP, M.MENU_SCROLLBAR, M.MENU_MIN_TILE = 6, 6, 44
+-- Width of one tile when `columns` tiles share a `menuWidth` menu frame.
+function M.menuCell(menuWidth: number, columns: number): number
+	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
+end
+-- Short landscape: contextSheet's thumb-gutter rule. The column count is the design count
+-- capped by how many touch-sized tiles fit the width left of the scrollbar.
 function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
 	local w, columns, tile, top = M.menuBounds(width, height)
 	local x, h = (width - w) / 2, math.max(0, height - top - 128)
 	if (touch or width < 700) and width > height and height < 480 then
 		x, w, h = HUDModel.THUMB_GUTTER, width - 2 * HUDModel.THUMB_GUTTER, height - top - 8
 	end
-	return x, top, w, h, math.min(columns, math.floor((w + 6) / 50)), tile
+	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_TILE + M.MENU_GAP))
+	return x, top, w, h, math.max(1, math.min(columns, fit)), tile
 end
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
@@ -362,6 +371,8 @@ function M.start(options: {
 		menuList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		menuList.CanvasSize = UDim2.fromOffset(0, 0)
 		menuList.ScrollBarThickness = 6
+		-- The canvas stops left of the scrollbar, so the bar never covers the last tile column.
+		menuList.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 	end
 	local entries: { DockEntry } = {}
 	local sheets: { any } = {}
@@ -480,7 +491,7 @@ function M.start(options: {
 			local mx, my, mw, mh = HUDModel.chatSafe(size.X, size.Y, menuX, menuTop, menuWidth, menuHeight)
 			menuList.AnchorPoint, menuList.Position, menuList.Size =
 				Vector2.zero, UDim2.fromOffset(mx, my), UDim2.fromOffset(mw, mh)
-			menuLayout.CellSize = UDim2.fromOffset(math.floor((menuWidth - (columns - 1) * 6) / columns), tileHeight)
+			menuLayout.CellSize = UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight)
 			objectiveSlot.Visible = not menuList.Visible
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			local open = false

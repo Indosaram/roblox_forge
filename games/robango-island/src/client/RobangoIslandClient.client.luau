@@ -20,6 +20,7 @@ local locale = player.LocaleId
 local korean = string.sub(locale, 1, 2) == "ko"
 local names = require(Shared.EntityNames)(locale)
 local WorldText = require(Shared.WorldText)
+local TamingText = require(Forge.genres["survival-coop"].module.TamingPanel)
 local biomeNames: { [string]: string } = {}
 local function localizeJournal(object: Instance)
 	if object:IsA("TextLabel") and object.Parent and object.Parent:IsA("BillboardGui") then
@@ -861,17 +862,24 @@ aerialGui.Parent = player:WaitForChild("PlayerGui")
 local aerialControls = Instance.new("Frame")
 aerialControls.Name, aerialControls.Visible = "PhotoControls", false
 aerialControls.AnchorPoint = Vector2.new(0.5, 0)
-aerialControls.Size, aerialControls.Position = UDim2.new(1, -24, 0, 92), UDim2.new(0.5, 0, 0, 64)
+-- Height follows the visible button rows (AutomaticSize), so a narrow phone that wraps the
+-- buttons into three rows never stacks one control over another (2026-10-23 Studio: Capture
+-- covered Return at 360 wide and trapped the player in the aerial view).
+aerialControls.Size, aerialControls.Position = UDim2.new(1, -24, 0, 0), UDim2.new(0.5, 0, 0, 64)
+aerialControls.AutomaticSize = Enum.AutomaticSize.Y
+local aerialPadding = Instance.new("UIPadding")
+aerialPadding.PaddingTop, aerialPadding.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
+aerialPadding.Parent = aerialControls
 aerialControls.BackgroundColor3 = Color3.fromRGB(18, 28, 26)
 aerialControls.BackgroundTransparency, aerialControls.Parent = 0.08, aerialGui
 local aerialCorner = Instance.new("UICorner")
 aerialCorner.CornerRadius, aerialCorner.Parent = UDim.new(0, 10), aerialControls
 local aerialLimit = Instance.new("UISizeConstraint")
-aerialLimit.MaxSize, aerialLimit.Parent = Vector2.new(520, 92), aerialControls
+aerialLimit.MaxSize, aerialLimit.Parent = Vector2.new(520, math.huge), aerialControls
 local aerialLayout = Instance.new("UIGridLayout")
 aerialLayout.CellSize, aerialLayout.CellPadding = UDim2.new(1 / 3, -6, 0, 40), UDim2.fromOffset(6, 4)
 aerialLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-aerialLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+aerialLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 aerialLayout.Parent = aerialControls
 local aerialButtons: any = {}
 local aerialLabels = {
@@ -989,6 +997,24 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 	local registry: { [Model]: { state: string, elapsed: number } } = {}
 	local connections: { RBXScriptConnection } = {}
 	local destroyed = false
+	-- Overhead species name (client-side, per-client locale), shown only up close so a herd
+	-- does not become a wall of labels.
+	local function nameplate(model: Model)
+		local head = model:FindFirstChild("Head") or model.PrimaryPart
+		if not head or not head:IsA("BasePart") or head:FindFirstChild("ForgeNameplate") then
+			return
+		end
+		local plate = Instance.new("BillboardGui")
+		plate.Name, plate.Size, plate.StudsOffset = "ForgeNameplate", UDim2.fromOffset(160, 26), Vector3.new(0, 2.2, 0)
+		plate.MaxDistance, plate.AlwaysOnTop, plate.LightInfluence = 40, false, 0
+		local text = Instance.new("TextLabel")
+		text.Size, text.BackgroundTransparency, text.TextScaled = UDim2.fromScale(1, 1), 1, true
+		text.Font, text.TextColor3 = Enum.Font.GothamBold, Color3.fromRGB(255, 248, 230)
+		text.TextStrokeTransparency, text.TextStrokeColor3 = 0.3, Color3.fromRGB(30, 24, 18)
+		text.Text = TamingText.species(locale, tostring(model:GetAttribute("Species")))
+		text.Parent = plate
+		plate.Parent = head
+	end
 	local function discover(instance: Instance)
 		local model = if instance:IsA("Model") then instance else instance:FindFirstAncestorOfClass("Model")
 		if
@@ -998,6 +1024,9 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			and model:FindFirstChild("Torso")
 			and model:FindFirstChild("HumanoidRootPart")
 		then
+			if registry[model] == nil then
+				nameplate(model)
+			end
 			registry[model] = registry[model] or { state = "idle", elapsed = 0 }
 		end
 	end

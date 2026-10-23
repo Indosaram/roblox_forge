@@ -1259,6 +1259,14 @@ exp_next_locked,Finish both objectives to unlock the next island,expedition lane
 exp_home,Return home,expedition lane,Return home,집으로 돌아가기
 exp_results,Expedition results,expedition lane,Expedition results,탐험 결과
 exp_result_row,"%s: XP %d, coins %d, trust %d (%s)",expedition lane,"%s: XP %d, coins %d, trust %d (%s)","%s: 경험치 %d, 코인 %d, 신뢰 %d (%s)"
+exp_mission,Route %d %s,expedition lane,Route %d %s,항로 %d %s
+mission_gather,gathering job,expedition lane,gathering job,채집 임무
+mission_craft,crafting job,expedition lane,crafting job,제작 임무
+mission_survey,survey job,expedition lane,survey job,조사 임무
+mission_rescue,rescue job,expedition lane,rescue job,구조 임무
+mission_hunt,hunting job,expedition lane,hunting job,사냥 임무
+mission_transport,transport job,expedition lane,transport job,운송 임무
+mission_unknown,job,expedition lane,job,임무
 exp_first,first clear,expedition lane,first clear,첫 완료
 exp_repeat,repeat,expedition lane,repeat,반복
 exp_delivered,Rewards delivered,expedition lane,Rewards delivered,보상 지급 완료

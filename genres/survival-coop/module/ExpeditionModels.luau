@@ -298,7 +298,7 @@ function M.results(locale: string, results: any, names: any, close: () -> (), cl
 				Text.text(
 					locale,
 					"exp_result_row",
-					if names and names[row.mission] then names[row.mission] else row.mission,
+					Text.mission(locale, names, row.mission),
 					row.xp,
 					row.coins,
 					row.trust,

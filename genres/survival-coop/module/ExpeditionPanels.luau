@@ -221,6 +221,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			popup.open(true)
 		elseif results and results.status ~= "active" and seenResults ~= results.id then
 			popupKind = "results"
+			-- Seen once shown: any close (header X or the return button) must not reopen it.
+			seenResults = results.id
 			popup.render(Models.results(locale, results, ctx.names, function()
 				seenResults = results.id
 				popup.open(false)

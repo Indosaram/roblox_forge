@@ -23,7 +23,18 @@ local function model(name: string, attributes: { [string]: any })
 	function self.IsA(_, class)
 		return class == "Model"
 	end
+	local head: any = { plates = {} }
+	function head.IsA(_, class)
+		return class == "BasePart"
+	end
+	function head.FindFirstChild()
+		return nil
+	end
+	self.head = head
 	function self.FindFirstChild(_, child)
+		if child == "Head" then
+			return head
+		end
 		return if child == "Torso" or child == "HumanoidRootPart" then root else nil
 	end
 	function self.GetAttribute(_, key)
@@ -76,6 +87,28 @@ return {
 				-- Upvalues the client chunk defines before this function: the render profile
 				-- (high keeps every pose) and a camera at the creature.
 				RenderBudget = RenderBudget,
+				locale = "ko-kr",
+				TamingText = {
+					species = function(locale, species)
+						return locale .. ":" .. species
+					end,
+				},
+				Instance = {
+					new = function(class)
+						return setmetatable({ ClassName = class }, {
+							__newindex = function(item, key, value)
+								rawset(item, key, value)
+								if key == "Parent" and type(value) == "table" and value.plates then
+									table.insert(value.plates, item)
+								end
+							end,
+						})
+					end,
+				},
+				UDim2 = { fromOffset = function() end, fromScale = function() end },
+				Vector3 = { new = function() end },
+				Color3 = { fromRGB = function() end },
+				Enum = { Font = {} },
 				profile = RenderBudget.profiles.high,
 				CreaturePose = {
 					sample = function()
@@ -98,5 +131,9 @@ return {
 		end
 		assert(posed[creature], "rig with Species is posed")
 		assert(not posed[player] and not posed[npc], "Torso+HumanoidRootPart without Species is never posed")
+		assert(#creature.head.plates == 1, "one overhead nameplate on the creature")
+		local label = creature.head.plates[1] :: any
+		assert(label.Name == "ForgeNameplate" and label.MaxDistance == 40, "close-range nameplate")
+		assert(#player.head.plates == 0 and #npc.head.plates == 0, "players and NPCs get no creature nameplate")
 	end,
 }

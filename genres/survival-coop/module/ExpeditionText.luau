@@ -17,6 +17,14 @@ local strings: { [string]: { string } } = {
 	biome_beach = { "Beach", "해변" },
 	biome_forest = { "Forest", "숲" },
 	biome_unknown = { "Uncharted", "미지의 바다" },
+	exp_mission = { "Route %d %s", "항로 %d %s" },
+	mission_gather = { "gathering job", "채집 임무" },
+	mission_craft = { "crafting job", "제작 임무" },
+	mission_survey = { "survey job", "조사 임무" },
+	mission_rescue = { "rescue job", "구조 임무" },
+	mission_hunt = { "hunting job", "사냥 임무" },
+	mission_transport = { "transport job", "운송 임무" },
+	mission_unknown = { "job", "임무" },
 	exp_route_gate = { "Level %d, rank %d, %d stages, %d missions", "레벨 %d, 등급 %d, %d단계, 미션 %d개" },
 	exp_route_cap = { "Up to %d players. Closes in %s", "최대 %d명. %s 후 마감" },
 	exp_choose = { "Choose", "선택" },
@@ -165,6 +173,22 @@ function M.biome(locale: string, names: any, id: string?): string
 		return names[key]
 	end
 	return M.text(locale, if strings[key] then key else "biome_unknown")
+end
+
+--- Localized mission name: the pack's names table wins, then "Route N <kind> job" parsed from
+--- the "<prefix>.m<route>.<kind>" id, never the raw id.
+function M.mission(locale: string, names: any, id: string): string
+	if names and names[id] then
+		return names[id]
+	end
+	local route, kind = string.match(id, "%.m(%d+)%.([%w_]+)$")
+	local key = "mission_" .. tostring(kind)
+	return M.text(
+		locale,
+		"exp_mission",
+		tonumber(route) or 0,
+		M.text(locale, if strings[key] then key else "mission_unknown")
+	)
 end
 
 function M.reason(locale: string, reason: string?): string

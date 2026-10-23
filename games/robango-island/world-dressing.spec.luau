@@ -219,6 +219,26 @@ return {
 				dry = dry or column.top > 0
 			end
 			if string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+				-- Organic coasts leave offshore cells to the sea fill instead of emitting wet
+				-- columns, so the shore shows as authored-bounds cells with no land column.
+				local full = 0
+				for _ = layout.bounds.min.x + 16, layout.bounds.max.x - 16, 32 do
+					for _ = layout.bounds.min.z + 16, layout.bounds.max.z - 16, 32 do
+						full += 1
+					end
+				end
+				local inside = 0
+				for _, column in columns do
+					if
+						column.x > layout.bounds.min.x
+						and column.x < layout.bounds.max.x
+						and column.z > layout.bounds.min.z
+						and column.z < layout.bounds.max.z
+					then
+						inside += 1
+					end
+				end
+				wet = wet or inside < full
 				assert(wet and dry, "archipelago must have shore and dry land: " .. layout.id)
 			end
 		end

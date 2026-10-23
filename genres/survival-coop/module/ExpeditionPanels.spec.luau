@@ -87,7 +87,7 @@ local function mount(locale: string, replies: { [string]: any }?): any
 		return if name == "ExpeditionModels" then Models else Text
 	end
 	local clicks: { [any]: () -> () } = {}
-	local h: any = { sent = {}, docks = {}, listener = nil }
+	local h: any = { sent = {}, docks = {}, listener = nil, closes = {} }
 	local function make(props: any): any
 		local item = node("TextLabel")
 		item.Text = props.text
@@ -117,7 +117,9 @@ local function mount(locale: string, replies: { [string]: any }?): any
 					title.Name, title.Parent, title.Text = "Title", header, props.title
 					local scroll = node("ScrollingFrame")
 					scroll.Parent = frame
-					return { frame = frame, scroll = scroll, close = node("TextButton") }
+					local close = node("TextButton")
+					h.closes[props.name] = close
+					return { frame = frame, scroll = scroll, close = close }
 				end,
 			},
 		},
@@ -265,6 +267,26 @@ return {
 		h.click("TravelConfirm")
 		assert(h.sent[1] == Models.PARTY_ACTION .. ":next,", "next island sent")
 		assert(h.find("TravelRefusal").Text == Text.reason("en-us", "mission_gate"), "refusal shown")
+	end,
+	["the results popup closed by its header X stays closed and names missions, not ids"] = function()
+		local h = mount("ko-kr")
+		local results = {
+			id = "trip-x",
+			status = "complete",
+			rows = {
+				{ mission = "rw.m1.gather", xp = 30, coins = 30, trust = 20, repeatClear = false, delivered = true },
+			},
+		}
+		h.push(state({ results = results }))
+		local row = assert(h.find("Result-rw.m1.gather"), "result row")
+		assert(not string.find(row.Text, "rw.m1", 1, true), "raw mission id shown: " .. row.Text)
+		assert(string.find(row.Text, Text.text("ko-kr", "mission_gather"), 1, true), "localized mission kind")
+		local popup = assert(h.find("ForgeExpeditionPopup"), "popup gui")
+		assert(popup.Enabled, "results popup opens")
+		h.closes.ForgeExpeditionPopupSheet.Activated.fire()
+		assert(not popup.Enabled, "header X closes")
+		h.push(state({ results = results }))
+		assert(not popup.Enabled, "the next snapshot does not reopen the same results")
 	end,
 	["results knockout and hazard popups follow the snapshot"] = function()
 		local h = mount("ko-kr")

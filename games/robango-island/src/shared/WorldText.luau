@@ -17,6 +17,7 @@ local strings: { [string]: { string } } = {
 	journal_checkpoint = { "Journal checkpoint", "일지 확인" },
 	journal = { "Journal", "일지" },
 	survey = { "Survey", "조사" },
+	["survey-point"] = { "Survey point", "조사 지점" },
 	farm = { "Farm", "농사" },
 	["farm-plot"] = { "Farm plot", "밭" },
 	["bandage-claim"] = { "Take bandage", "붕대 받기" },
