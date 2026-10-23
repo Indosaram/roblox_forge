@@ -8,6 +8,7 @@ local stdio = require("@lune/stdio")
 local run = require("../lib/run")
 local codegen = require("../lib/codegen")
 local crafting = require("../lib/craftinggenerate")
+local contentrender = require("../lib/contentrender")
 local assetsLib = require("../lib/assets")
 local gameYml = require("../lib/gameyml")
 local lock = require("../lib/lock")
@@ -503,6 +504,36 @@ function M.run(args: { string }?): boolean
 					)
 				end
 			end
+			-- Generated SurvivalContent.luau must match content.yml; a stale copy used to
+			-- surface only deep inside the 15-minute specs stage.
+			local contentPath = "games/" .. pack .. "/content.yml"
+			if fs.isFile(contentPath) then
+				local contentOk, rendered = pcall(function()
+					local built, errors =
+						contentrender.build(serde.decode("yaml", fs.readFile(contentPath)), "crafting")
+					assert(built, table.concat(errors or {}, "; "))
+					return built
+				end)
+				if not contentOk then
+					econFailed = true
+					table.insert(
+						econLogs,
+						"content drift: " .. contentPath .. " does not render: " .. tostring(rendered)
+					)
+				else
+					local shippedPath = "games/" .. pack .. "/" .. (rendered :: any).path
+					if not fs.isFile(shippedPath) or fs.readFile(shippedPath) ~= (rendered :: any).content then
+						econFailed = true
+						table.insert(
+							econLogs,
+							"content drift: "
+								.. shippedPath
+								.. " is out of date; run lune run cli/forge content codegen --pack "
+								.. pack
+						)
+					end
+				end
+			end
 			-- ADR-07 BM hard rules over game.yml monetization (QA-BM-01).
 			local gamePath = "games/" .. pack .. "/game.yml"
 			local durablePath = "games/" .. pack .. "/src/shared/GenreDurable.luau"
@@ -754,9 +785,10 @@ function M.run(args: { string }?): boolean
 	end
 
 	-- specs run as a child process so a broken module cannot wedge the checker.
-	-- "--quiet" keeps passing spec output out of the log; older specs-run ignores it.
+	-- "--quiet" keeps passing spec output out of the log; "--jobs auto" shards the
+	-- spec files across worker processes (the serial run took ~15 minutes).
 	stageFns.specs = function(): (boolean, string)
-		local res = run.exec("lune", { "run", "cli/forge", "specs-run", "--quiet" })
+		local res = run.exec("lune", { "run", "cli/forge", "specs-run", "--quiet", "--jobs", "auto" })
 		return res.ok, res.stdout .. (if res.stderr ~= "" then "\n" .. res.stderr else "")
 	end
 

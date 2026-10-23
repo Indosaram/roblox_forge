@@ -1,4 +1,5 @@
 --!strict
+local fs = require("@lune/fs")
 local process = require("@lune/process")
 local stdio = require("@lune/stdio")
 
@@ -31,6 +32,7 @@ local imagediffCommand = require("./forge/commands/imagediff")
 local replayCommand = require("./forge/commands/replay")
 local provenanceCommand = require("./forge/commands/provenance")
 local spikeCommand = require("./forge/commands/spike")
+local gateCommand = require("./forge/commands/gate")
 local inspector = require("./forge/lib/inspect")
 local specsRunner = require("./forge/lib/specs")
 
@@ -373,11 +375,25 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "test",
 		text = [=[
-  test [filters...] [--quiet] [--slowest N] [--json <path>]
+  test [filters...] [--quiet] [--slowest N] [--json <path>] [--jobs N|auto]
                             Run every *.spec.luau (sorted) whose path or "path :: test" contains
                             any filter. --quiet prints only FAIL lines and the summary,
                             --slowest N lists the N slowest tests, --json writes a schemaVersion 1
-                            report. Exit 0 when all pass, 1 on any failure or zero matches]=],
+                            report. --jobs shards spec files across N worker processes
+                            (default auto = cores - 1; --jobs 1 runs serially in-process).
+                            Exit 0 when all pass, 1 on any failure or zero matches]=],
+	},
+	{
+		name = "gate",
+		text = [=[
+  gate [--pack <slug>] [--jobs N|auto] [--json <path>] [--out <dir>] [--no-fail-fast]
+                            Pre-commit gate in one command: check without specs/build first
+                            (fails fast on lint, types and codegen/content drift), then
+                            concurrently the sharded specs, every native qa scenario of the
+                            pack recorded and replayed, build --all and smoke --local. The tree
+                            is fingerprinted before and after; an edit during the run makes the
+                            verdict INVALID. Default pack robango-island, journals in
+                            <out>/journals (default build/gate)]=],
 	},
 	{
 		name = "replay",
@@ -438,7 +454,7 @@ end
 -- Parses `test`/`specs-run` argv (after the command name) into specs.run options.
 local function parseSpecsArgs(args: { string }): (specsRunner.RunOptions?, string?)
 	local filters: { string } = {}
-	local options: specsRunner.RunOptions = { filters = filters }
+	local options: specsRunner.RunOptions = { filters = filters, jobs = specsRunner.autoJobs() }
 	local index = 2
 	while index <= #args do
 		local arg = args[index]
@@ -457,6 +473,26 @@ local function parseSpecsArgs(args: { string }): (specsRunner.RunOptions?, strin
 				return nil, "--json requires a path"
 			end
 			options.json = path
+			index += 1
+		elseif arg == "--jobs" then
+			local value = args[index + 1]
+			local count = if value == "auto" then specsRunner.autoJobs() else tonumber(value)
+			if count == nil or count < 1 or count ~= math.floor(count) then
+				return nil, "--jobs requires a positive integer or auto"
+			end
+			options.jobs = count
+			index += 1
+		elseif arg == "--files" then
+			-- Internal: a newline-separated spec list written by a parent run.
+			local path = args[index + 1]
+			if path == nil or path == "" or string.sub(path, 1, 2) == "--" then
+				return nil, "--files requires a path"
+			end
+			local list: { string } = {}
+			for line in string.gmatch(fs.readFile(path), "[^\r\n]+") do
+				table.insert(list, line)
+			end
+			options.files = list
 			index += 1
 		elseif string.sub(arg, 1, 2) == "--" then
 			return nil, "unknown flag " .. arg
@@ -608,6 +644,10 @@ local function main()
 		-- because a spec leaves a suspended thread or timer behind; on the success path
 		-- that silence used to wedge `forge check` with no specs output at all.
 		process.exit(if specsOk then 0 else 1)
+	elseif cmd == "gate" then
+		if not gateCommand.run(args) then
+			process.exit(1)
+		end
 	elseif cmd == "imagediff" then
 		process.exit(imagediffCommand.run(args))
 	elseif cmd == "replay" then
@@ -620,7 +660,6 @@ local function main()
 		end
 		local expected = nil
 		if args[3] == "--project" and args[4] then
-			local fs = require("@lune/fs")
 			local serde = require("@lune/serde")
 			local project = serde.decode("json", fs.readFile(args[4]))
 			expected = {}

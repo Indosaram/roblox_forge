@@ -42,10 +42,13 @@ Roblox Game Forge is a meta-framework for AI-agent-driven planning, building, an
 
 ## Fast loop
 
-Do not run the full `check` for every edit; it takes minutes. Iterate with the narrowest command that covers the change, and run the full `check` once before handing off.
+Do not run the full gate for every edit. Iterate with the narrowest command that covers the change, batch independent changes, and run `forge gate` once per batch before committing.
+
+0. `forge gate [--pack <slug>] --json <path>` — the one pre-commit gate: `check` without specs/build first (lint, types, econ/assets/content drift fail in seconds), then concurrently the sharded specs, every native qa scenario of the pack recorded and replayed, `build --all` and `smoke --local`. Ends with `gate: PASS|FAIL|INVALID`. INVALID means a tracked or untracked source file changed during the run: never edit the tree (or merge worker patches) while a gate runs. Do not hand-write .cmd batches of check + scenarios.
 
 1. `lune setup` once after `rokit install` (generates Luau type definitions).
-2. `forge test <substring> [more filters] --quiet` — run only the Lune specs whose path matches a substring. Also `--slowest N` (slowest specs) and `--json <path>` (machine-readable result). `specs-run` remains a hidden alias.
+2. `forge test <substring> [more filters] --quiet` — run only the Lune specs whose path matches a substring. Also `--slowest N` (slowest specs), `--json <path>` (machine-readable result) and `--jobs N|auto` (worker processes; default auto = cores - 1, `--jobs 1` runs in-process). A full unfiltered run records per-test durations in `build/cache/spec-timings.json`, which later runs use to balance shards. `specs-run` remains a hidden alias.
+   After editing `content.yml`, `econ.yml` or `assets/manifest.yml`, run the matching codegen before any gate; `forge check --only econ,assets` catches a stale generated file in seconds.
 3. `forge check --only <stages>` (comma-separated) or `forge check --skip <stages>`; stage ids: `genre-contract,qa-schema,selene,stylua,luau-lsp,econ,game,assets,locale,provenance,lock,specs,build`. Each stage prints its seconds and the run ends with `check: PASS ...` or `check: FAIL stages=...`.
 4. `forge check --json <path>` — writes `{schemaVersion: 1, ok, stages, failed}`; `failed` is a list of stage ids.
 5. Reproduce QA deterministically: `forge qa run --pack <slug> --scenario <name> --record <journal.json>`, then `forge replay <journal.json> [--json]` (exit 0 MATCH, 1 MISMATCH, 2 error). Native scenarios take `seed: <int>`; `capture` steps take `layers: all|world|ui`.

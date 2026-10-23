@@ -82,7 +82,7 @@ All commands run from the repository root as `lune run cli/forge <command> [args
   9. `locale`: Runs `locale check` for every pack that has a `locale/strings.csv`.
   10. `provenance`: Runs the release provenance gate (QA-PROV-01/QA-NAME-01) for every pack that opted in with `provenance/policy.yml`; packs without a policy are skipped. See `provenance` below.
   11. `lock`: Verifies each pack's `forge-lock.yml` pins match `core/forge-package.yml` and its genres' `forge-package.yml`.
-  12. `specs`: Discovers and executes all `*.spec.luau` tests under `core/`, `games/`, `cli/` and `genres/` (the suite `forge test` runs).
+  12. `specs`: Discovers and executes all `*.spec.luau` tests under `core/`, `games/`, `cli/` and `genres/` (the suite `forge test` runs), sharded with `--jobs auto`.
   13. `build`: Builds every discovered pack under `games/` with Rojo into `build/<slug>.rbxl` and inspects each built place (required instances, script entrypoints, relative requires resolve, no leaked specs or READMEs). Each target is independent: one failing pack never hides another, and a failed build is never inspected.
 
   `--only a,b` runs just the listed stages and `--skip a,b` omits them; an unknown id is a usage error that lists the valid ids. `--pack <slug>`, `--project <path>` and `--all` narrow only the `build` stage (which includes inspection); every other stage still covers every pack. `--packs-root <dir>` swaps the build stage's pack discovery root. Each stage prints `[<id>] PASS|FAIL (<s> s)` with its wall time, tool detail appears only on FAIL, and the run ends with `check: PASS (<n> stages, <s> s)` or `check: FAIL stages=<ids> (<s> s)`. `--json <path>` also writes a report (`schemaVersion` 1) with `ok`, a per-stage list (`id`, `ok`, `skipped`, `ms`) and `failed`, a list of the failed stage ids (`[]` when none).
@@ -147,8 +147,8 @@ All commands run from the repository root as `lune run cli/forge <command> [args
 
 ## Testing and debugging tools
 
-- `lune run cli/forge test [filters...] [--quiet] [--slowest N] [--json <path>]`
-  Discovers and runs every `*.spec.luau` under `core/`, `games/`, `cli/` and `genres/` (the same suite as the `check` `specs` stage). A test runs when any filter is a substring of its spec path or of `path :: testName`; no filters runs everything. `--quiet` prints only FAIL lines and the summary, `--slowest N` lists the N slowest tests before the summary, and `--json <path>` writes a machine-readable report. Exits 1 when any test fails. `specs-run` remains as a hidden alias. JavaScript suites (`*.test.mjs`, `*.spec.mjs`) are not discovered by Lune; run them with `bun test <file>` (see [docs/release/verification.md](../../docs/release/verification.md)).
+- `lune run cli/forge test [filters...] [--quiet] [--slowest N] [--json <path>] [--jobs N|auto]`
+  Discovers and runs every `*.spec.luau` under `core/`, `games/`, `cli/` and `genres/` (the same suite as the `check` `specs` stage). A test runs when any filter is a substring of its spec path or of `path :: testName`; no filters runs everything. `--quiet` prints only FAIL lines and the summary, `--slowest N` lists the N slowest tests before the summary, and `--json <path>` writes a machine-readable report. `--jobs` shards spec files (and the individual tests of any file heavier than half a shard, using the durations an unfiltered run records in `build/cache/spec-timings.json`) across worker processes, each with its own TEMP root; the default is `auto` (cores - 1) and `--jobs 1` runs in-process. A worker that crashes or exceeds 30 minutes fails the run. Exits 1 when any test fails. `specs-run` remains as a hidden alias. JavaScript suites (`*.test.mjs`, `*.spec.mjs`) are not discovered by Lune; run them with `bun test <file>` (see [docs/release/verification.md](../../docs/release/verification.md)).
 
 - `lune run cli/forge replay <journal.json> [--json]`
   Re-executes a command journal recorded by `qa run --record` and compares the result with the recorded one. Exits 0 on `MATCH`, 1 on `MISMATCH` and 2 on a usage or input error. `--json` prints a machine-readable result.
@@ -213,6 +213,11 @@ All commands run from the repository root as `lune run cli/forge <command> [args
 
 - `lune run cli/forge gen fulfill <requestFile> --key <assetKey> [--asset-id <n>]`
   Reads a pending request written by `forge gen` (`kind`, `prompt`, `tool`, `pack`), appends it to `games/<pack>/assets/manifest.yml` (`NotUploaded` without `--asset-id`, `PendingModeration` with it), and marks the request `status = "fulfilled"`.
+
+The `econ` stage also renders every pack's `content.yml` and fails on `SurvivalContent.luau` drift with `run lune run cli/forge content codegen --pack <pack>`.
+
+- `lune run cli/forge gate [--pack <slug>] [--jobs N|auto] [--json <path>] [--out <dir>] [--no-fail-fast]`
+  One-command pre-commit gate (default pack `robango-island`). Runs `check --skip specs,build` first and stops there on failure unless `--no-fail-fast`; then runs concurrently the sharded specs, `build --all`, `smoke --pack <slug> --local`, and for every native scenario that applies to the pack (pack-local scenarios, genre scenarios not bound to another pack, and every scenario `game.yml` selects) `qa run --record` followed by `replay`. It fingerprints the git working tree (HEAD plus every changed or untracked, non-ignored file's bytes) before and after: any difference reports `gate: INVALID` with the changed paths. `--json` writes `{schemaVersion: 1, ok, valid, failed, treeChanged, jobs, scenarioCount, durationMs}`.
 
 `forge check` runs an `assets` stage after `econ`: for every pack with `assets/manifest.yml` it gates the manifest for staging and fails on `Assets.luau` drift with `run: lune run cli/forge assets codegen --pack <pack>`.
 - `lune run cli/forge smoke [--pack <slug>] [--local] [--cloud] [--strict] [--fixture <save.json>] [--dry-run]`

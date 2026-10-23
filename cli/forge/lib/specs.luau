@@ -1,7 +1,9 @@
 --!strict
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local process = require("@lune/process")
 local serde = require("@lune/serde")
+local task = require("@lune/task")
 
 local M = {}
 
@@ -18,7 +20,21 @@ export type RunOptions = {
 	-- Directories (relative to the working directory) to discover specs and
 	-- compile sources in. Defaults to core, games, cli and genres.
 	roots: { string }?,
+	-- Worker processes. 1 (or nil) runs every spec in this process; N > 1 shards
+	-- the spec files across N child `specs-run` processes and merges their reports.
+	jobs: number?,
+	-- Exact spec files to run (internal: a shard). An entry "path\ttest" runs only
+	-- that test of the file. Skips discovery and the compile pre-pass, which the
+	-- parent already did.
+	files: { string }?,
 }
+
+-- Per-file durations from the last full run, used to balance shards.
+local TIMINGS_PATH = "build/cache/spec-timings.json"
+-- A shard that runs longer than this is killed and reported as failed.
+local SHARD_TIMEOUT_SECONDS = 1800
+-- Shard unit test name meaning "every test of the file the timing record lacks".
+local REST = "<unrecorded>"
 
 type TestResult = { file: string, test: string, ok: boolean, ms: number, err: string? }
 
@@ -86,6 +102,15 @@ local function writeJson(path: string, report: { [string]: any })
 	fs.writeFile(path, encoded)
 end
 
+local loadTimings: () -> any
+local recordedCache: any = nil
+local function recordedTests(file: string): { [string]: number }
+	if recordedCache == nil then
+		recordedCache = loadTimings()
+	end
+	return recordedCache.tests[file] or {}
+end
+
 function M.run(options: RunOptions): (boolean, string)
 	local filters: { string } = options.filters or {}
 	local filtered = #filters > 0
@@ -95,9 +120,25 @@ function M.run(options: RunOptions): (boolean, string)
 
 	local specs: { string } = {}
 	local sources: { string } = {}
-	for _, dir in roots do
-		M.discover(dir, specs)
-		collect(dir, "%.luau$", sources)
+	local onlyTests: { [string]: { [string]: boolean }? } = {}
+	if options.files == nil then
+		for _, dir in roots do
+			M.discover(dir, specs)
+			collect(dir, "%.luau$", sources)
+		end
+	else
+		for _, entry in options.files do
+			local path, test = string.match(entry, "^([^\t]+)\t(.+)$")
+			if path ~= nil and test ~= nil then
+				if onlyTests[path] == nil then
+					onlyTests[path] = {}
+					table.insert(specs, path)
+				end
+				(onlyTests[path] :: { [string]: boolean })[test] = true
+			else
+				table.insert(specs, entry)
+			end
+		end
 	end
 	table.sort(specs)
 	table.sort(sources)
@@ -155,7 +196,34 @@ function M.run(options: RunOptions): (boolean, string)
 
 	local results: { TestResult } = {}
 	local files = 0
-	for _, specFile in toRequire do
+	local jobs = math.min(options.jobs or 1, #toRequire)
+	if jobs > 1 then
+		local shardResults, _, shardErrors = M.runShards(toRequire, filters, jobs)
+		results = shardResults
+		-- A heavy file can be split across shards; count each spec file once.
+		local seenFiles: { [string]: boolean } = {}
+		for _, result in shardResults do
+			if not seenFiles[result.file] then
+				seenFiles[result.file] = true
+				files += 1
+			end
+		end
+		for _, line in shardErrors do
+			table.insert(logLines, line)
+		end
+		if #shardErrors > 0 then
+			-- A crashed shard is a failure even when every reported test passed.
+			table.insert(results, {
+				file = "(shards)",
+				test = "worker",
+				ok = false,
+				ms = 0,
+				err = table.concat(shardErrors, "; "),
+			})
+		end
+	end
+	local inProcess: { string } = if jobs > 1 then {} else toRequire
+	for _, specFile in inProcess do
 		local pathMatches = not filtered or matchesAny(filters, specFile)
 		local relReqPath = "../../../" .. string.gsub(specFile, "%.luau$", "")
 		local reqOk, specTable = pcall(M.requireSpec, relReqPath)
@@ -173,7 +241,11 @@ function M.run(options: RunOptions): (boolean, string)
 		else
 			local names: { string } = {}
 			for testName, testFn in pairs(specTable) do
-				if type(testName) == "string" and type(testFn) == "function" then
+				local allowed = onlyTests[specFile]
+				local selected = allowed == nil
+					or allowed[testName] == true
+					or (allowed[REST] == true and recordedTests(specFile)[testName] == nil)
+				if type(testName) == "string" and type(testFn) == "function" and selected then
 					if pathMatches or matchesAny(filters, specFile .. " :: " .. testName) then
 						table.insert(names, testName)
 					end
@@ -198,7 +270,8 @@ function M.run(options: RunOptions): (boolean, string)
 		end
 	end
 
-	if filtered and #results == 0 then
+	-- A shard may legitimately match nothing; the parent decides on zero matches.
+	if filtered and #results == 0 and options.files == nil then
 		return false, "specs: no tests matched " .. table.concat(filters, ", ")
 	end
 
@@ -254,8 +327,270 @@ function M.run(options: RunOptions): (boolean, string)
 		})
 	end
 
+	if not filtered and options.files == nil and options.roots == nil then
+		M.saveTimings(results)
+	end
+
 	local success = (failed == 0) and (passed > 0)
 	return success, table.concat(logLines, "\n")
+end
+
+type Timings = { files: { [string]: number }, tests: { [string]: { [string]: number } } }
+
+function loadTimings(): Timings
+	local ok, decoded = pcall(function()
+		return serde.decode("json", fs.readFile(TIMINGS_PATH))
+	end)
+	if ok and type(decoded) == "table" and type(decoded.files) == "table" then
+		return { files = decoded.files, tests = if type(decoded.tests) == "table" then decoded.tests else {} }
+	end
+	return { files = {}, tests = {} }
+end
+
+-- A file whose recorded duration exceeds one shard's fair share is split into
+-- one unit per recorded test, so one slow spec file cannot set the floor.
+-- Tests absent from the record (new since the last run) stay with the file
+-- remainder unit, which runs every test not split out.
+function M.units(files: { string }, jobs: number, timings: Timings): ({ string }, { [string]: number })
+	local total = 0
+	for _, file in files do
+		total += timings.files[file] or 0
+	end
+	local share = total / math.max(1, jobs)
+	local units: { string } = {}
+	local weights: { [string]: number } = {}
+	for _, file in files do
+		local tests = timings.tests[file]
+		local ms = timings.files[file]
+		if ms ~= nil and tests ~= nil and ms > share * 0.5 then
+			local names: { string } = {}
+			for name in tests do
+				table.insert(names, name)
+			end
+			table.sort(names)
+			for _, name in names do
+				local unit = file .. "\t" .. name
+				table.insert(units, unit)
+				weights[unit] = tests[name]
+			end
+			-- Remainder: tests not in the record. Encoded as the file with an
+			-- exclusion marker the shard resolves.
+			local rest = file .. "\t" .. REST
+			table.insert(units, rest)
+			weights[rest] = 0
+		else
+			table.insert(units, file)
+		end
+	end
+	return units, weights
+end
+
+function M.saveTimings(results: { TestResult })
+	local perFile: { [string]: number } = {}
+	local perTest: { [string]: { [string]: number } } = {}
+	for _, result in results do
+		perFile[result.file] = (perFile[result.file] or 0) + result.ms
+		local tests = perTest[result.file] or {}
+		tests[result.test] = result.ms
+		perTest[result.file] = tests
+	end
+	pcall(function()
+		if not fs.isDir("build/cache") then
+			fs.writeDir("build/cache")
+		end
+		fs.writeFile(TIMINGS_PATH, serde.encode("json", { schemaVersion = 1, files = perFile, tests = perTest }))
+	end)
+end
+
+-- Longest-processing-time-first assignment: heaviest file to the lightest shard.
+-- Files without a recorded duration weigh their source size, scaled to the
+-- recorded files' ms-per-byte so both units mix sensibly.
+function M.partition(files: { string }, jobs: number, timings: Timings): { { string } }
+	local units, weights = M.units(files, jobs, timings)
+	local knownMs, knownBytes = 0, 0
+	local sizes: { [string]: number } = {}
+	for _, file in files do
+		local okSize, meta = pcall(fs.metadata, file)
+		sizes[file] = if okSize and meta.exists then (meta :: any).size or 1 else 1
+		if timings.files[file] ~= nil then
+			knownMs += timings.files[file]
+			knownBytes += sizes[file]
+		end
+	end
+	local msPerByte = if knownBytes > 0 then knownMs / knownBytes else 0.01
+	for _, unit in units do
+		if weights[unit] == nil then
+			weights[unit] = timings.files[unit] or (sizes[unit] or 1) * msPerByte
+		end
+	end
+	files = units
+	local ordered = table.clone(files)
+	table.sort(ordered, function(a, b)
+		if weights[a] ~= weights[b] then
+			return weights[a] > weights[b]
+		end
+		return a < b
+	end)
+	local shards: { { string } } = {}
+	local loads: { number } = {}
+	for index = 1, jobs do
+		shards[index] = {}
+		loads[index] = 0
+	end
+	for _, file in ordered do
+		local lightest = 1
+		for index = 2, jobs do
+			if loads[index] < loads[lightest] then
+				lightest = index
+			end
+		end
+		table.insert(shards[lightest], file)
+		loads[lightest] += weights[file]
+	end
+	local nonEmpty: { { string } } = {}
+	for _, shard in shards do
+		if #shard > 0 then
+			table.sort(shard)
+			table.insert(nonEmpty, shard)
+		end
+	end
+	return nonEmpty
+end
+
+local function drain(reader: any, sink: { string })
+	while true do
+		local chunk = reader:read()
+		if chunk == nil or chunk == "" then
+			return
+		end
+		table.insert(sink, chunk)
+	end
+end
+
+-- Runs each shard as `lune run cli/forge specs-run --files <list> --json <report>`
+-- with its own TEMP root (specs name scratch dirs from os.clock, which is not
+-- unique across processes), then merges the shard reports.
+function M.runShards(files: { string }, filters: { string }, jobs: number): ({ TestResult }, number, { string })
+	local shards = M.partition(files, jobs, loadTimings())
+	local scratch = string.gsub(process.env.TEMP or process.env.TMPDIR or "build", "\\", "/")
+		.. "/forge-specs-"
+		.. string.sub(serde.hash("sha256", tostring(os.clock()) .. tostring(os.time())), 1, 12)
+	fs.writeDir(scratch)
+	local reports: { any } = {}
+	local errors: { string } = {}
+	local pending = #shards
+	for index, shard in shards do
+		task.spawn(function()
+			local dir = scratch .. "/shard-" .. index
+			fs.writeDir(dir .. "/tmp")
+			local listPath = dir .. "/files.txt"
+			local reportPath = dir .. "/report.json"
+			fs.writeFile(listPath, table.concat(shard, "\n"))
+			local args =
+				{ "run", "cli/forge", "specs-run", "--quiet", "--jobs", "1", "--files", listPath, "--json", reportPath }
+			for _, filter in filters do
+				table.insert(args, filter)
+			end
+			local tmp = string.gsub(dir .. "/tmp", "/", if process.os == "windows" then "\\" else "/")
+			local okCreate, child = pcall(process.create, M.luneExecutable(), args, {
+				env = { TEMP = tmp, TMP = tmp, TMPDIR = tmp },
+			})
+			if not okCreate then
+				table.insert(errors, string.format("SHARD %d could not start: %s", index, tostring(child)))
+				pending -= 1
+				return
+			end
+			local out: { string } = {}
+			local err: { string } = {}
+			local readers = 2
+			task.spawn(function()
+				drain(child.stdout, out)
+				readers -= 1
+			end)
+			task.spawn(function()
+				drain(child.stderr, err)
+				readers -= 1
+			end)
+			local started = os.clock()
+			local killed = false
+			while readers > 0 do
+				if os.clock() - started > SHARD_TIMEOUT_SECONDS and not killed then
+					killed = true
+					child:kill()
+				end
+				task.wait(0.05)
+			end
+			local status = child:status()
+			local okReport, report = pcall(function()
+				return serde.decode("json", fs.readFile(reportPath))
+			end)
+			if okReport and type(report) == "table" then
+				table.insert(reports, report)
+			end
+			if killed then
+				table.insert(
+					errors,
+					string.format("SHARD %d timed out after %d s: %s", index, SHARD_TIMEOUT_SECONDS, shard[1])
+				)
+			elseif not okReport then
+				local tail = string.sub(table.concat(out) .. table.concat(err), -600)
+				table.insert(errors, string.format("SHARD %d exited %d without a report: %s", index, status.code, tail))
+			end
+			pending -= 1
+		end)
+	end
+	while pending > 0 do
+		task.wait(0.05)
+	end
+	pcall(fs.removeDir, scratch)
+
+	local failureErr: { [string]: string } = {}
+	local results: { TestResult } = {}
+	local fileCount = 0
+	for _, report in reports do
+		fileCount += report.files or 0
+		for _, failure in report.failures or {} do
+			failureErr[failure.file .. " :: " .. failure.test] = failure.error
+		end
+		for _, entry in report.tests or {} do
+			table.insert(results, {
+				file = entry.file,
+				test = entry.test,
+				ok = entry.ok,
+				ms = entry.ms,
+				err = if entry.ok then nil else failureErr[entry.file .. " :: " .. entry.test],
+			})
+		end
+	end
+	-- Same order a serial run reports: by spec file, then by test name.
+	table.sort(results, function(a, b)
+		if a.file ~= b.file then
+			return a.file < b.file
+		end
+		return a.test < b.test
+	end)
+	table.sort(errors)
+	return results, fileCount, errors
+end
+
+function M.luneExecutable(): string
+	if process.os == "windows" then
+		local profile = process.env.USERPROFILE
+		if profile and fs.isFile(profile .. "/.rokit/bin/lune.exe") then
+			return profile .. "/.rokit/bin/lune.exe"
+		end
+	end
+	return "lune"
+end
+
+-- "auto" picks one worker per core minus one, at least 1.
+function M.autoJobs(): number
+	local cores = tonumber(process.env.NUMBER_OF_PROCESSORS or "")
+	if cores == nil then
+		local okExec, res = pcall(process.exec, "nproc", {})
+		cores = if okExec and res.ok then tonumber((string.gsub(res.stdout, "%s+", ""))) else nil
+	end
+	return math.max(1, (cores or 4) - 1)
 end
 
 function M.runAll(): (boolean, string)
