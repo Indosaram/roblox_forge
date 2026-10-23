@@ -73,6 +73,16 @@ local strings: { [string]: { string } } = {
 	guide_g18 = { "Technical support", "기술 지원" },
 	guide_g19 = { "Volcano preparation", "화산 준비" },
 	guide_g20 = { "Rescue preparation", "구조 준비" },
+	guide_g21 = { "Daily contracts", "일일 계약" },
+	guide_g22 = { "Wilds preparation", "야생 지대 준비" },
+	guide_g23 = { "Wilds: hazelnuts", "야생 지대: 개암" },
+	guide_g24 = { "Trail food", "여정 식량" },
+	guide_g25 = { "Wilds: mushrooms", "야생 지대: 버섯" },
+	guide_g26 = { "Marsh bread", "습지 빵" },
+	guide_g27 = { "Deep wilds: clams", "깊은 야생 지대: 조개" },
+	guide_g28 = { "Woodland skewer", "숲 꼬치" },
+	guide_g29 = { "Deep wilds haul", "깊은 야생 지대 채집" },
+	guide_g30 = { "Route supplies", "항로 보급" },
 	guide_next = { "%s: %s %d/%d", "%s: %s %d/%d" },
 	guide_go_gather = { "gather %s (walk up, press E)", "%s 채집 (다가가서 E)" },
 	guide_go_craft = { "craft %s (C key, Menu > Craft)", "%s 제작 (C 키, 메뉴 > 제작)" },
@@ -83,6 +93,15 @@ local strings: { [string]: { string } } = {
 		"등급 %d 달성. 항로 1은 레벨 %d에 열려요 (현재 %d): 메뉴 > 항로",
 	},
 	guide_route_open = { "Route 1 is open: Menu > Routes", "항로 1이 열렸어요: 메뉴 > 항로" },
+	guide_where_region = {
+		"%s (Harbor > departure post, level %d area)",
+		"%s (항구 > 출발 지점, 레벨 %d 지역)",
+	},
+	guide_then_region = {
+		"%s. Next: level %d opens Harbor > departure post (level %d area)",
+		"%s. 다음: 레벨 %d에 항구 > 출발 지점 (레벨 %d 지역)이 열려요",
+	},
+	guide_then_guide = { "%s. Next: guide %s at level %d", "%s. 다음: 안내 %s (레벨 %d)" },
 	guide_complete = { "Guide complete: %s", "안내 완료: %s" },
 	guide_target_axe = { "any axe", "아무 도끼" },
 	guide_target_contract = { "any contract", "아무 계약" },
@@ -205,30 +224,116 @@ function M.format(locale: string, key: string, ...: any): string
 	return string.format(M.text(locale, key), ...)
 end
 
--- HUD objective after the first tutorial steps: next open start guide, then route 1's gate.
+-- Lowest character gate of a support region whose layout is the only source of `item`
+-- (no ungated region has a node for it), or nil when the item is gathered at level 1.
+local function regionLevel(content: any, item: string): number?
+	local nodes = {}
+	for _, layout in content.layouts or {} do
+		for _, node in layout.resourceNodes or {} do
+			if node.item == item then
+				nodes[layout.id] = true
+			end
+		end
+	end
+	local best: number? = nil
+	for _, region in content.supportRegions or {} do
+		if nodes[region.layout] then
+			local gate = (region.gates or {}).characterLevel or 1
+			if gate <= 1 then
+				return nil
+			end
+			best = math.min(best or gate, gate)
+		end
+	end
+	return best
+end
+
+local function title(locale: string, guide: any, names: any): string
+	local key = "guide_" .. string.sub(guide.id, 4, 6)
+	return if strings[key] then M.text(locale, key) else names[guide.id] or guide.id
+end
+
+-- First open unfinished guide with a HUD action: "<guide>: <action> have/need".
+local function openGuide(
+	locale: string,
+	content: any,
+	ch: any,
+	names: any,
+	level: number,
+	grade: number,
+	minRank: number
+): string?
+	local done, progress = ch.definitions or {}, ch.progress or {}
+	for _, g in content.guides or {} do
+		if not done[g.id] and Guide.open(g, level, grade) and ((g.gates or {}).developmentRank or 0) >= minRank then
+			local o = g.objectives[1]
+			for _, objective in g.objectives do
+				if (progress[objective.id] or 0) < objective.quantity then
+					o = objective
+					break
+				end
+			end
+			local go = "guide_go_" .. o.action
+			if strings[go] then
+				local t = "guide_target_" .. o.target
+				local what = M.format(locale, go, if strings[t] then M.text(locale, t) else names[o.target] or o.target)
+				local where = if o.action == "gather" then regionLevel(content, o.target) else nil
+				if where then
+					what = M.format(locale, "guide_where_region", what, where)
+				end
+				local have = math.min(progress[o.id] or 0, o.quantity)
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
+			end
+		end
+	end
+	return nil
+end
+
+-- HUD objective: the next open start guide; after route 1's grade, the next open waypoint guide of
+-- that grade's band; with none open, route 1's gate plus the next authored step (a support region
+-- opening at the harbor departure post, or the next guide's level).
 function M.guideObjective(locale: string, content: any, ch: any, names: any): string?
 	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
 	local needLevel, needRank = Party.gates(content, 1)
-	for _, g in if grade < needRank then content.guides or {} else {} do
-		local o, go = g.objectives[1], "guide_go_" .. g.objectives[1].action
-		if not done[g.id] and Guide.open(g, level, grade) and strings[go] then
-			local t = "guide_target_" .. o.target
-			local what = M.format(locale, go, if strings[t] then M.text(locale, t) else names[o.target] or o.target)
-			local have = math.min((ch.progress or {})[o.id] or 0, o.quantity)
-			return M.format(
-				locale,
-				"guide_next",
-				M.text(locale, "guide_" .. string.sub(g.id, 4, 6)),
-				what,
-				have,
-				o.quantity
-			)
+	if grade < needRank then
+		return openGuide(locale, content, ch, names, level, grade, 0)
+	elseif level >= needLevel then
+		return M.text(locale, "guide_route_open")
+	end
+	local open = openGuide(locale, content, ch, names, level, grade, needRank)
+	if open then
+		return open
+	end
+	local gate = M.format(locale, "guide_route_level", grade, needLevel, level)
+	local region: number? = nil
+	for _, row in content.supportRegions or {} do
+		local at = (row.gates or {}).characterLevel or 1
+		if at > level and at < needLevel then
+			region = math.min(region or at, at)
 		end
 	end
-	return if grade < needRank
-		then nil
-		elseif level >= needLevel then M.text(locale, "guide_route_open")
-		else M.format(locale, "guide_route_level", grade, needLevel, level)
+	local nextGuide, guideAt = nil, nil
+	for _, g in content.guides or {} do
+		local gates = g.gates or {}
+		local at = gates.characterLevel or 1
+		if
+			not done[g.id]
+			and at > level
+			and at < needLevel
+			and (gates.developmentRank or 0) <= grade
+			and (gates.developmentRank or 0) >= needRank
+		then
+			if guideAt == nil or at < guideAt then
+				nextGuide, guideAt = g, at
+			end
+		end
+	end
+	if region and (guideAt == nil or region <= guideAt) then
+		return M.format(locale, "guide_then_region", gate, region, region)
+	elseif nextGuide then
+		return M.format(locale, "guide_then_guide", gate, title(locale, nextGuide, names), guideAt)
+	end
+	return gate
 end
 
 -- "Guide complete" line for guides finished since the previous snapshot.

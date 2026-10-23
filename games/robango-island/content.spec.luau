@@ -200,10 +200,20 @@ return {
 		assert(have["stone-wall-kit"], "stone parts do not depend on clay")
 	end,
 
-	["20 guides in 5 bands of 4 each award 50 development"] = function()
+	["20 guides in 5 bands of 4 each award 50 development, then 10 waypoint guides toward route 1"] = function()
 		local guides = load().guides
-		assert(#guides == 20, "20 guides")
+		assert(#guides == 30, "30 guides")
 		for i, guide in guides do
+			if i > 20 then
+				-- p59 waypoints: XP only, open at grade 2 between the start band and route 1 (L30).
+				assert(guide.rewards.development == 0 and guide.rewards.xp > 0, "waypoint reward " .. guide.id)
+				assert(guide.gates.developmentRank == 2, "waypoint rank " .. guide.id)
+				assert(
+					guide.gates.characterLevel > 1 and guide.gates.characterLevel < 30,
+					"waypoint level " .. guide.id
+				)
+				continue
+			end
 			local first = guides[i - (i - 1) % 4]
 			assert(guide.rewards.development == 50, "50 development " .. guide.id)
 			assert(guide.gates.developmentRank == ((i - 1) // 4) * 2, "band rank " .. guide.id)

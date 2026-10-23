@@ -9,6 +9,9 @@ local M = {}
 -- region's wildlife, or a route's stages plus its missions). 12 runs is one 6-hour instability
 -- index window (robango-fidelity-contracts R01) at about 30 minutes per run.
 M.RUN_BUDGET = 12
+-- stepGaps budget: from every level below a route gate the next authored step (a guide or
+-- chapter opening, a support region opening, or the gate itself) is at most this many levels up.
+M.STEP_GAP = 3
 
 local CATEGORIES = {
 	"survival",
@@ -427,6 +430,48 @@ function M.check(document: any): any
 	end
 	for _, gate in result.levelReachability do
 		result.ok = result.ok and gate.ok
+	end
+	return result
+end
+
+--- Levels in [from, route `index` gate) whose next authored step is more than STEP_GAP levels
+--- up: { level, next } (next = nil when nothing opens). Steps are guides and chapters whose
+--- development gate the route's own grade meets, support regions, and the route gate itself.
+function M.stepGaps(document: any, from: number, archipelago: number?): { any }
+	local layout = "rw.a" .. tostring(archipelago or 1) .. ".s1"
+	local gate, rank = nil, 0
+	for _, stage in document.stages or {} do
+		if stage.layout == layout then
+			gate = math.max(gate or 1, (stage.gates or {}).characterLevel or 1)
+			rank = math.max(rank, (stage.gates or {}).developmentRank or 0)
+		end
+	end
+	if not gate then
+		return {}
+	end
+	local steps: { number } = { gate }
+	for _, section in { "guides", "chapters" } do
+		for _, row in document[section] or {} do
+			local gates = row.gates or {}
+			if (gates.developmentRank or 0) <= rank then
+				table.insert(steps, gates.characterLevel or 1)
+			end
+		end
+	end
+	for _, region in document.supportRegions or {} do
+		table.insert(steps, (region.gates or {}).characterLevel or 1)
+	end
+	local result = {}
+	for level = from, gate - 1 do
+		local nextStep: number? = nil
+		for _, at in steps do
+			if at > level and (nextStep == nil or at < nextStep) then
+				nextStep = at
+			end
+		end
+		if nextStep == nil or nextStep - level > M.STEP_GAP then
+			table.insert(result, { level = level, next = nextStep })
+		end
 	end
 	return result
 end

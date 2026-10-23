@@ -241,7 +241,7 @@ return {
 			find(rows, "Grade").text == "섬 개발 등급 0: 개발 점수 50 / 100 (등급 1)",
 			find(rows, "Grade").text
 		)
-		assert(find(rows, "Done").text == "마친 안내 1 / 20", "done count")
+		assert(find(rows, "Done").text == "마친 안내 1 / 30", "done count")
 		assert(
 			find(rows, "Objective-rw.g02.first-axe.1").text == "제작 아무 도끼: 0 / 1",
 			find(rows, "Objective-rw.g02.first-axe.1").text

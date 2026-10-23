@@ -32421,6 +32421,246 @@ guides:
       - "rw.g20.rescue-preparation.complete"
     provenance:
       classification: "RECONSTRUCTED"
+  -
+    id: "rw.g21.daily-board"
+    gates:
+      characterLevel: 6
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g21.daily-board.1"
+        action: "deliver"
+        target: "contract"
+        quantity: 2
+    rewards:
+      xp: 225
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g21.daily-board.offer"
+      - "rw.g21.daily-board.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g22.wilds-spear"
+    gates:
+      characterLevel: 8
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g22.wilds-spear.1"
+        action: "craft"
+        target: "spear"
+        quantity: 1
+    rewards:
+      xp: 300
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "fiber"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g22.wilds-spear.offer"
+      - "rw.g22.wilds-spear.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g23.wilds-hazelnuts"
+    gates:
+      characterLevel: 10
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g23.wilds-hazelnuts.1"
+        action: "gather"
+        target: "hazelnut"
+        quantity: 3
+    rewards:
+      xp: 325
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g23.wilds-hazelnuts.offer"
+      - "rw.g23.wilds-hazelnuts.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g24.roasted-hazelnuts"
+    gates:
+      characterLevel: 12
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g24.roasted-hazelnuts.1"
+        action: "craft"
+        target: "roasted-hazelnuts"
+        quantity: 1
+    rewards:
+      xp: 375
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "water"
+          quantity: 2
+    dialogueKeys:
+      - "rw.g24.roasted-hazelnuts.offer"
+      - "rw.g24.roasted-hazelnuts.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g25.wilds-chanterelles"
+    gates:
+      characterLevel: 15
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g25.wilds-chanterelles.1"
+        action: "gather"
+        target: "chanterelle"
+        quantity: 2
+    rewards:
+      xp: 450
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g25.wilds-chanterelles.offer"
+      - "rw.g25.wilds-chanterelles.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g26.cattail-flatbread"
+    gates:
+      characterLevel: 18
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g26.cattail-flatbread.1"
+        action: "craft"
+        target: "cattail-flatbread"
+        quantity: 1
+    rewards:
+      xp: 525
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "fiber"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g26.cattail-flatbread.offer"
+      - "rw.g26.cattail-flatbread.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g27.deep-wilds-clams"
+    gates:
+      characterLevel: 20
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g27.deep-wilds-clams.1"
+        action: "gather"
+        target: "clam"
+        quantity: 2
+    rewards:
+      xp: 575
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "water"
+          quantity: 2
+    dialogueKeys:
+      - "rw.g27.deep-wilds-clams.offer"
+      - "rw.g27.deep-wilds-clams.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g28.woodland-skewer"
+    gates:
+      characterLevel: 22
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g28.woodland-skewer.1"
+        action: "craft"
+        target: "woodland-skewer"
+        quantity: 1
+    rewards:
+      xp: 625
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g28.woodland-skewer.offer"
+      - "rw.g28.woodland-skewer.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g29.deep-wilds-haul"
+    gates:
+      characterLevel: 25
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g29.deep-wilds-haul.1"
+        action: "gather"
+        target: "clam"
+        quantity: 2
+    rewards:
+      xp: 700
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "fiber"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g29.deep-wilds-haul.offer"
+      - "rw.g29.deep-wilds-haul.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g30.route-supplies"
+    gates:
+      characterLevel: 28
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g30.route-supplies.1"
+        action: "deliver"
+        target: "contract"
+        quantity: 3
+    rewards:
+      xp: 775
+      coins: 25
+      development: 0
+      items:
+        -
+          item: "berry"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g30.route-supplies.offer"
+      - "rw.g30.route-supplies.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
 chapters:
   -
     id: "rw.c01.signal-trace"

@@ -400,6 +400,47 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		end)
 		send(server, "market-claim", { "listing:1:return:0" })
 	end,
+	-- p59 waypoint guides (levels 6-28, grade 2).
+	["rw.g21.daily-board.1"] = function(server)
+		send(server, "contract-deliver", { "survey-driftwood" })
+		send(server, "contract-deliver", { "eco-fiber-sample" })
+	end,
+	["rw.g22.wilds-spear.1"] = function(server, at)
+		send(server, "gather", { "fallen-tree-01", 0 })
+		craft(server, at, "spear", "hand")
+	end,
+	["rw.g23.wilds-hazelnuts.1"] = function(server)
+		send(server, "gather", { "forest-hazel-thicket-01", 0 })
+	end,
+	["rw.g24.roasted-hazelnuts.1"] = function(server, at)
+		send(server, "gather", { "forest-hazel-thicket-01", 0 })
+		send(server, "gather", { "forest-hazel-thicket-01", 0 })
+		craft(server, at, "roasted-hazelnuts", "station.campfire.t1")
+	end,
+	["rw.g25.wilds-chanterelles.1"] = function(server)
+		send(server, "gather", { "forest-chanterelle-log-01", 0 })
+	end,
+	["rw.g26.cattail-flatbread.1"] = function(server, at)
+		send(server, "gather", { "marsh-cattail-stand-01", 0 })
+		send(server, "gather", { "marsh-cattail-stand-01", 0 })
+		craft(server, at, "cattail-flatbread", "station.campfire.t1")
+	end,
+	["rw.g27.deep-wilds-clams.1"] = function(server)
+		send(server, "gather", { "marsh-clam-bed-01", 0 })
+	end,
+	["rw.g28.woodland-skewer.1"] = function(server, at)
+		send(server, "gather", { "forest-chanterelle-log-01", 0 })
+		send(server, "gather", { "meat-cache-01", 0 })
+		craft(server, at, "woodland-skewer", "station.campfire.t1")
+	end,
+	["rw.g29.deep-wilds-haul.1"] = function(server)
+		send(server, "gather", { "marsh-clam-bed-01", 0 })
+	end,
+	["rw.g30.route-supplies.1"] = function(server)
+		for _, id in { "survey-driftwood", "guild-stone-axe", "eco-fiber-sample" } do
+			send(server, "contract-deliver", { id })
+		end
+	end,
 }
 
 local function fresh(guide: any): (any, any)
