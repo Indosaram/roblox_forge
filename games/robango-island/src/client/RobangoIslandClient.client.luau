@@ -216,9 +216,12 @@ table.insert(panelFactories, function(ctx)
 	assert(ctx.fitSheet, "BUILDING_SHEET_REQUIRED")(sheet.frame)
 	local state: any = { version = 0, parts = {} }
 	local floor = 1
-	local status = Instance.new("TextLabel")
-	status.Size, status.TextWrapped, status.TextSize = UDim2.new(1, 0, 0, 64), true, 15
-	status.Parent = sheet.scroll
+	local status = ctx.ui.components.label(ctx.ui.theme.default, {
+		text = "",
+		size = UDim2.new(1, 0, 0, 64),
+		textSize = 15,
+		parent = sheet.scroll,
+	})
 	local function render()
 		status.Text = (if korean then "층 " else "Floor ") .. floor
 	end
@@ -509,7 +512,6 @@ table.insert(panelFactories, function(ctx)
 		parent = audioGui,
 	})
 	assert(ctx.fitSheet, "AUDIO_SHEET_REQUIRED")(sheet.frame)
-	-- modalSheet starts hidden; audioGui.Enabled alone left the dock hidden with no sheet (p48).
 	sheet.frame.Visible = true
 	local muted, volume = false, 1
 	local connections = {}

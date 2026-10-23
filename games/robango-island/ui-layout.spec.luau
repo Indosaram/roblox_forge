@@ -217,6 +217,18 @@ return {
 			end
 		end
 	end,
+	["the whole shop list fits the 1280x700 sheet without scrolling when no status is shown"] = function()
+		local rect = sheet(1280, 700, false)
+		local count = #Catalog.gamepasses + #Catalog.products + #Catalog.subscriptions
+		-- modalSheet scroll padding 8+8, rows 88 each with 6 px gaps; an empty status must take no space.
+		local canvas = 16 + count * (Shop.ROW_HEIGHT + Shop.DESCRIPTION_HEIGHT) + (count - 1) * 6
+		assert(
+			canvas <= rect.height - 44,
+			string.format("%d rows need %d px, window %d", count, canvas, rect.height - 44)
+		)
+		local source = fs.readFile("genres/survival-coop/module/ShopPanel.luau")
+		assert(string.find(source, 'status.Visible = status.Text ~= ""', 1, true), "empty shop status hidden")
+	end,
 	["standalone panels fit both target viewports"] = function()
 		for _, viewport in VIEWPORTS do
 			local width, height = viewport[1], viewport[2]

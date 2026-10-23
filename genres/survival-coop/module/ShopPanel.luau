@@ -92,7 +92,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		})
 	end
 	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.scroll })
-	status.Name = "ShopStatus"
+	status.Name, status.Visible = "ShopStatus", false
+	status:GetPropertyChangedSignal("Text"):Connect(function()
+		status.Visible = status.Text ~= ""
+	end)
 	local rows = Instance.new("Frame")
 	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent = "ShopRows", 1, UDim2.fromScale(1, 0), sheet.scroll
 	rows.AutomaticSize = Enum.AutomaticSize.Y
