@@ -2670,9 +2670,6 @@ output_path = "games/robango-island/src/shared"
 path = "assets/audio/robango-hit.wav"
 output_path = "games/robango-island/src/shared"
 
-[inputs.robango-hit.web]
-"robango-hit.wav" = { id = 79316499934720 }
-
 [inputs.robango-knockout]
 path = "assets/audio/robango-knockout.wav"
 output_path = "games/robango-island/src/shared"

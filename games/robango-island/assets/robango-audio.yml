@@ -104,6 +104,7 @@ cues:
   - key: hit
     kind: sfx
     type: impact
+    frequency: 82
     duration: 0.22
     seed: 4211
   - key: dodge

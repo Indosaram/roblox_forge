@@ -14618,15 +14618,15 @@ assets:
     tool: forge-procgen
     source: "first-party procedural Robango hit"
     path: assets/audio/robango-hit.wav
-    assetId: 79316499934720
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
-      digest: sha256:822dbb0dd224ebb8425b01b30779aa8f5c1dd80a0ca7fe2f6fdbe4a51595a338
+      digest: sha256:4fb4a6af57d22e4dd9dde8b23dbbde25933f7cf18986b0f1b12344facd7d3818
       recipe:
         id: gen-audio
         version: 1
         input: "assets/robango-audio.yml#hit"
-        inputVersion: sha256:ad821fc79c671fb7074fc8d071dd05eb65dfd5d8df95b83149555b1c7dd3911e
+        inputVersion: sha256:b4be4dfb9274c6139ca316132b1566439681b9c4eb6483ff091365dc5541d558
       provider:
         name: forge-procgen
         version: 1
@@ -14634,7 +14634,7 @@ assets:
         source: first-party generator in this repository
         ownership: first-party
       author: agent:omo/hephaestus
-      created: 2026-10-21
+      created: 2026-10-24
   - key: robango-dodge
     kind: sfx
     tool: forge-procgen

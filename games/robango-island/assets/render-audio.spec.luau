@@ -29,4 +29,15 @@ return {
 			assert(seen[slot], tostring(slot) .. " recipe missing")
 		end
 	end,
+	["no two sound effects render the same audio"] = function()
+		local doc = serde.decode("yaml", fs.readFile("games/robango-island/assets/robango-audio.yml"))
+		local owner: { [string]: string } = {}
+		for _, cue in doc.cues do
+			if cue.kind == "sfx" then
+				local bytes = buffer.tostring(Wav.encode(Render.render(cue, 8000)))
+				assert(not owner[bytes], cue.key .. " sounds identical to " .. tostring(owner[bytes]))
+				owner[bytes] = cue.key
+			end
+		end
+	end,
 }
