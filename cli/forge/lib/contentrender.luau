@@ -116,6 +116,17 @@ end
 
 export type Rendered = { path: string, content: string }
 
+-- V2 object types whose fields are all required and none is a list or map. A
+-- literal of such a type has exactly one valid shape, so strict Luau checks it
+-- without a typed constructor call; every other object row keeps its wrapper.
+local CLOSED: { [string]: boolean } = {}
+for name, body in string.gmatch(ContentV2.types(), "export type V2_([%w_]+) = (%b{})") do
+	local inner = string.sub(body :: string, 2, -2)
+	if not string.find(inner, "?", 1, true) and not string.find(inner, "{", 1, true) then
+		CLOSED[name :: string] = true
+	end
+end
+
 -- List literals propagate their declared element type into every row. Explicit
 -- numeric keys instead infer an exact first-row shape before checking the list.
 local function serializeV2(value: any, used: { [string]: string }, descriptor: string?): string
@@ -138,7 +149,7 @@ local function serializeV2(value: any, used: { [string]: string }, descriptor: s
 		end
 		table.sort(keys)
 		for _, key in keys do
-			local field = if key:match("^[%a_][%w_]*$") then key else "[" .. contract.serialize(key) .. "]"
+			local field = contract.fieldName(key)
 			local child = if descriptor then ContentV2.descriptor(descriptor, key) else nil
 			if descriptor == nil and table.find(ContentV2.SECTIONS, key) then
 				child = "[]" .. key
@@ -147,6 +158,9 @@ local function serializeV2(value: any, used: { [string]: string }, descriptor: s
 		end
 	end
 	local literal = "{" .. table.concat(fields, ",") .. "}"
+	if descriptor and CLOSED[descriptor] then
+		return literal
+	end
 	if descriptor and ContentV2.isObject(descriptor) then
 		if used[descriptor] == nil then
 			local count = 0

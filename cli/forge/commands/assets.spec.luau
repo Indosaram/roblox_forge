@@ -413,7 +413,7 @@ return {
 			assert(ids.cueA == 5, "non-image entry untouched")
 			assertFullCodegen(packDir)
 			local generated = fs.readFile(packDir .. "/src/shared/Assets.luau")
-			assert(string.find(generated, '["cueA"] = 5', 1, true) ~= nil, "partial run keeps other entries")
+			assert(string.find(generated, "cueA=5", 1, true) ~= nil, "partial run keeps other entries")
 
 			-- The next batch skips what is already uploaded and takes the rest.
 			local deps2, state2 = mockTransport()
@@ -477,8 +477,8 @@ return {
 			)
 			assert(fs.readFile(packDir .. "/src/shared/Assets.luau") == partial, "same cache, same codegen")
 			assertFullCodegen(packDir)
-			assert(string.find(partial, '["iconA"]', 1, true) ~= nil, "uploaded image is resolved")
-			assert(string.find(partial, '["cueA"] = 5', 1, true) ~= nil, "untouched entry kept")
+			assert(string.find(partial, "iconA=", 1, true) ~= nil, "uploaded image is resolved")
+			assert(string.find(partial, "cueA=5", 1, true) ~= nil, "untouched entry kept")
 		end)
 	end,
 

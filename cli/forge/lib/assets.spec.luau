@@ -3,6 +3,7 @@
 -- provenance and quality binding, deterministic Luau codegen, and Asphalt
 -- config generation.
 
+local luau = require("@lune/luau")
 local Assets = require("./assets")
 
 local DIGEST_A = "sha256:" .. string.rep("a", 64)
@@ -210,11 +211,44 @@ return {
 				~= nil,
 			"module must carry the generated header"
 		)
-		local alphaAt = string.find(text, '["alpha"]', 1, true)
-		local midAt = string.find(text, '["mid"]', 1, true)
-		local zebraAt = string.find(text, '["zebra"]', 1, true)
+		local alphaAt = string.find(text, "alpha=", 1, true)
+		local midAt = string.find(text, "mid=", 1, true)
+		local zebraAt = string.find(text, "zebra=", 1, true)
 		assert(alphaAt == nil and zebraAt == nil and midAt ~= nil, "only published keys are emitted")
-		assert(string.find(text, '["mid"] = 42', 1, true) ~= nil, "an uploaded id is stored numerically")
+		assert(
+			string.find(text, "{mid=42}", 1, true) ~= nil,
+			"an uploaded id is stored numerically under an identifier key"
+		)
+	end,
+
+	["renderLuau brackets only keys that are not plain identifiers and round-trips"] = function()
+		local manifest = parse({
+			{
+				key = "icon-a",
+				kind = "image",
+				tool = "studio-mcp",
+				source = "a",
+				assetId = 11,
+				moderation = "Approved",
+			},
+			{ key = "end", kind = "image", tool = "studio-mcp", source = "e", assetId = 12, moderation = "Approved" },
+			{
+				key = "plain_b",
+				kind = "image",
+				tool = "studio-mcp",
+				source = "b",
+				assetId = 13,
+				moderation = "Approved",
+			},
+		})
+		local text = Assets.renderLuau(manifest)
+		assert(
+			string.find(text, '{["end"]=12,["icon-a"]=11,plain_b=13}', 1, true) ~= nil,
+			"compact one-line id table: " .. text
+		)
+		local runtime = luau.load(text)()
+		assert(runtime["icon-a"] == "rbxassetid://11" and runtime["end"] == "rbxassetid://12", "bracketed keys load")
+		assert(runtime.plain_b == "rbxassetid://13" and runtime.missing == "", "identifier keys load, unknown is empty")
 	end,
 
 	["renderLuau on an empty manifest returns an empty table"] = function()
@@ -254,18 +288,17 @@ return {
 		})
 		local text = Assets.renderLuau(manifest, "kaiju-egg-raiders")
 		assert(
-			string.find(text, '["sfxClick"] = "rbxasset://forge/kaiju-egg-raiders/sfxClick.wav"', 1, true) ~= nil,
+			string.find(text, 'sfxClick="rbxasset://forge/kaiju-egg-raiders/sfxClick.wav"', 1, true) ~= nil,
 			"an sfx wav maps to its installed rbxasset URL"
 		)
 		assert(
-			string.find(text, '["musicExplore"] = "rbxasset://forge/kaiju-egg-raiders/musicExplore.wav"', 1, true)
-				~= nil,
+			string.find(text, 'musicExplore="rbxasset://forge/kaiju-egg-raiders/musicExplore.wav"', 1, true) ~= nil,
 			"a bgm wav maps to its installed rbxasset URL"
 		)
-		assert(string.find(text, '["iconA"] = 7', 1, true) ~= nil, "non-audio assets still use rbxassetid")
+		assert(string.find(text, "iconA=7", 1, true) ~= nil, "non-audio assets still use rbxassetid")
 		local withoutPack = Assets.renderLuau(manifest)
 		assert(
-			string.find(withoutPack, '["sfxClick"]', 1, true) == nil,
+			string.find(withoutPack, "sfxClick", 1, true) == nil,
 			"without a pack name the local file resolves to an empty id"
 		)
 	end,

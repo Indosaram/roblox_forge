@@ -514,4 +514,67 @@ function M.serialize(value: any): string
 	end
 	return render(value)
 end
+local KEYWORDS = {
+	["and"] = true,
+	["break"] = true,
+	["continue"] = true,
+	["do"] = true,
+	["else"] = true,
+	["elseif"] = true,
+	["end"] = true,
+	["false"] = true,
+	["for"] = true,
+	["function"] = true,
+	["if"] = true,
+	["in"] = true,
+	["local"] = true,
+	["nil"] = true,
+	["not"] = true,
+	["or"] = true,
+	["repeat"] = true,
+	["return"] = true,
+	["then"] = true,
+	["true"] = true,
+	["until"] = true,
+	["while"] = true,
+}
+--- The table field name for `key`: a bare identifier when Luau accepts one,
+--- otherwise a bracketed string literal.
+function M.fieldName(key: string): string
+	return if string.match(key, "^[%a_][%w_]*$") and not KEYWORDS[key]
+		then key
+		else "[" .. string.format("%q", key) .. "]"
+end
+--- Renders the same value as `serialize` as a compact Luau literal for generated
+--- source: sequences as positional list entries, identifier keys bare, and no
+--- whitespace. `serialize` stays the canonical comparison form.
+function M.literal(value: any): string
+	assert(Executor.data(value), "invalid JSON data")
+	local function render(item: any): string
+		if type(item) == "string" then
+			return string.format("%q", item)
+		end
+		if type(item) ~= "table" then
+			return tostring(item)
+		end
+		local fields = {}
+		if item[1] ~= nil then
+			-- validated data: numeric keys form a dense 1..n sequence with no string keys
+			for _, child in ipairs(item) do
+				table.insert(fields, render(child))
+			end
+			return "{" .. table.concat(fields, ",") .. "}"
+		end
+		local keys = {}
+		for key in item do
+			table.insert(keys, key)
+		end
+		table.sort(keys)
+		for _, key in keys do
+			table.insert(fields, M.fieldName(key) .. "=" .. render(item[key]))
+		end
+		return "{" .. table.concat(fields, ",") .. "}"
+	end
+	return render(value)
+end
 return M

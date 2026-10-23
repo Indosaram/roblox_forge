@@ -34,6 +34,24 @@ local function runtime(id: string): any
 	}
 end
 return {
+	["literal renders compact identifier keys and positional lists with the serialize value"] = function()
+		local value = {
+			id = "animal-pen",
+			["end"] = true,
+			["two words"] = 1.5,
+			tags = { "a", "b" },
+			rows = { { item = "x", quantity = 2 } },
+			empty = {},
+		}
+		local text = C.literal(value)
+		assert(
+			text
+				== '{empty={},["end"]=true,id="animal-pen",rows={{item="x",quantity=2}},tags={"a","b"},["two words"]=1.5}',
+			text
+		)
+		local decoded = (require("@lune/luau").load("return " .. text) :: any)()
+		assert(C.serialize(decoded) == C.serialize(value), "literal round-trips to the same value")
+	end,
 	["generated controls accept only local or matching canonical namespaces"] = function()
 		local descriptor = runtime("counter")
 		descriptor.actions = { { id = "increment", origin = "client", args = {} } }
