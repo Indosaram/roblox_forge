@@ -4,9 +4,12 @@
 -- not released (in unpublished Studio places the default animation ids answer 403 and every retry
 -- loads another track) the Animator reaches its 64-track limit and stops playing animations.
 --
--- Engine semantics observed in Studio (p71): Animator:GetPlayingAnimationTracks() lists every track
--- that is not destroyed, stopped ones included (64 listed, 63 with IsPlaying=false); those count
--- toward the 64-track limit; Stop does not free a slot, only Destroy does. A track whose animation
+-- Engine semantics observed in Studio (p71, p75): Animator:GetPlayingAnimationTracks() lists every
+-- track the Animator still runs, stopped ones included, and those count toward the 64-track limit.
+-- A track whose animation failed to load (Length 0) and that was stopped with a fade (Animate calls
+-- Stop(transitionTime)) never finishes the fade and stays listed forever; neither Stop(0) nor Destroy
+-- removes it. Playing it again and stopping it with no fade (Play(0, 0) then Stop(0)) does: it leaves
+-- the list within a frame or two. A playing track leaves after Stop(0). A track whose animation
 -- failed to load may never fire Animator.AnimationPlayed, so the guard prunes on every
 -- AnimationPlayed AND on a sweep of GetPlayingAnimationTracks() several times a second.
 --
@@ -36,7 +39,17 @@ M.SWEEP_SECONDS = 0.2
 -- Ranks of tracks first seen stopped live in a band below every played/discovered-playing rank.
 local STOPPED_BAND = -1e9
 
+-- A released track that is still listed after this many seconds is released again.
+local RELEASE_RETRY_SECONDS = 2
+
 local function release(track: AnimationTrack)
+	-- A stuck fade-stopped track only leaves the Animator after a fresh Play and a no-fade Stop; weight
+	-- 0 keeps that Play invisible.
+	pcall(function()
+		if not track.IsPlaying then
+			track:Play(0, 0)
+		end
+	end)
 	pcall(function()
 		track:Stop(0)
 	end)
@@ -69,6 +82,15 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 	local rank = setmetatable({} :: { [AnimationTrack]: number }, { __mode = "k" })
 	local counter = 0
 	local discovered = 0
+	-- Release time per released track (its own Play fires AnimationPlayed and must not re-rank it).
+	local released = setmetatable({} :: { [AnimationTrack]: number }, { __mode = "k" })
+	local now = 0
+
+	local function drop(track: AnimationTrack)
+		rank[track] = nil
+		released[track] = now
+		release(track)
+	end
 
 	local function newestFirst(a: AnimationTrack, b: AnimationTrack): boolean
 		return rank[a] > rank[b]
@@ -83,6 +105,13 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 		end
 		local groups: { [any]: { AnimationTrack } } = {}
 		for _, track in listed do
+			local at = released[track]
+			if at then
+				if now - at >= RELEASE_RETRY_SECONDS then
+					drop(track)
+				end
+				continue
+			end
 			if rank[track] == nil then
 				if isPlaying(track) then
 					counter += 1
@@ -107,8 +136,7 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 				if index == 1 or (index == 2 and isPlaying(track)) then
 					table.insert(live, track)
 				else
-					rank[track] = nil
-					release(track)
+					drop(track)
 				end
 			end
 		end
@@ -122,13 +150,15 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 				return rank[a] < rank[b]
 			end)
 			for index = 1, #live - M.MAX_TRACKS do
-				rank[live[index]] = nil
-				release(live[index])
+				drop(live[index])
 			end
 		end
 	end
 
 	local played = animator.AnimationPlayed:Connect(function(track: AnimationTrack)
+		if released[track] then
+			return
+		end
 		counter += 1
 		rank[track] = counter
 		sweep()
@@ -137,6 +167,7 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 	local elapsed = 0
 	local ticked = signal:Connect(function(dt: number)
 		elapsed += dt
+		now += dt
 		if elapsed >= M.SWEEP_SECONDS then
 			elapsed = 0
 			sweep()

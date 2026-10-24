@@ -35,52 +35,66 @@ local function signal()
 	return value
 end
 
--- A fake Animator modelled on the engine as observed in Studio (p71): GetPlayingAnimationTracks()
--- lists every track that is not destroyed, stopped ones included; those count toward the 64-track
--- limit; Stop frees nothing, only Destroy does; playing or adjusting a destroyed track errors.
-local function animator()
+-- A fake Animator modelled on the engine as observed in Studio (p71, p75). GetPlayingAnimationTracks()
+-- lists every track the Animator still runs and those count toward the 64-track limit. A loaded track
+-- is listed until it is stopped with no fade or destroyed. On a `sticky` rig (animations that answer
+-- 403) a playing track stopped with a fade (Stop() defaults to 0.1 s) never finishes the fade: it stays
+-- listed and Stop(0) and Destroy do not remove it; only a fresh Play and a no-fade Stop do. On a
+-- `silent` rig Play never fires AnimationPlayed. Playing or adjusting a destroyed track errors.
+local function animator(options: { silent: boolean?, sticky: boolean? }?)
+	local silent = options ~= nil and options.silent == true
+	local sticky = options ~= nil and options.sticky == true
 	local self: any = { live = 0, peak = 0, AnimationPlayed = signal(), tracks = {} }
+	local function list(track)
+		if not table.find(self.tracks, track) then
+			assert(self.live < TRACK_LIMIT, "Animator track limit reached")
+			table.insert(self.tracks, track)
+			self.live += 1
+			self.peak = math.max(self.peak, self.live)
+		end
+	end
+	local function unlist(track)
+		local index = table.find(self.tracks, track)
+		if index then
+			table.remove(self.tracks, index)
+			self.live -= 1
+		end
+	end
 	function self.IsA(_, class)
 		return class == "Animator"
 	end
 	function self.GetPlayingAnimationTracks()
 		return table.clone(self.tracks)
 	end
-	function self.playing(): number
-		local count = 0
-		for _, track in self.tracks do
-			if track.IsPlaying then
-				count += 1
-			end
-		end
-		return count
-	end
 	function self.LoadAnimation(_, animation)
-		assert(self.live < TRACK_LIMIT, "Animator track limit reached")
-		self.live += 1
-		self.peak = math.max(self.peak, self.live)
-		local track: any = { Animation = animation, IsPlaying = false, destroyed = false }
-		table.insert(self.tracks, track)
-		-- `silent` plays without AnimationPlayed: a track whose animation failed to load (403).
-		function track.Play(silent: boolean?)
-			assert(not track.destroyed, "played a destroyed track")
+		local track: any = { Animation = animation, IsPlaying = false, destroyed = false, stuck = false }
+		list(track)
+		function track.Play(_)
+			assert(not track.destroyed or track.stuck, "played a destroyed track")
+			list(track)
+			track.stuck = false
 			track.IsPlaying = true
 			if not silent then
 				self.AnimationPlayed:Fire(track)
 			end
 		end
-		function track.AdjustSpeed()
+		function track.AdjustSpeed(_)
 			assert(not track.destroyed, "adjusted a destroyed track")
 		end
-		function track.Stop()
+		function track.Stop(_, fade: number?)
+			local wasPlaying = track.IsPlaying
 			track.IsPlaying = false
+			if sticky and wasPlaying and (fade or 0.1) > 0 then
+				track.stuck = true
+			elseif not track.stuck then
+				unlist(track)
+			end
 		end
-		function track.Destroy()
-			if not track.destroyed then
-				track.destroyed = true
-				track.IsPlaying = false
-				self.live -= 1
-				table.remove(self.tracks, table.find(self.tracks, track))
+		function track.Destroy(_)
+			track.destroyed = true
+			track.IsPlaying = false
+			if not track.stuck then
+				unlist(track)
 			end
 		end
 		return track
@@ -95,10 +109,10 @@ local function leakyAnimate(rig: any, changes: number)
 	local current: any = nil
 	for change = 1, changes do
 		if current then
-			current.Stop()
+			current:Stop()
 		end
 		current = rig:LoadAnimation({ AnimationId = IDS[change % #IDS + 1] })
-		current.Play()
+		current:Play()
 	end
 	return current
 end
@@ -126,40 +140,40 @@ local SLOTS = {
 
 return {
 	["500 silent Animate replacements stay under the track limit and the cap"] = function()
-		local rig = animator()
+		local rig = animator({ silent = true, sticky = true })
 		local heartbeat = signal()
 		local stop = CharacterTracks.guard(rig, heartbeat :: any)
 		local current: { [number]: any } = {}
 		for change = 1, 500 do
-			-- 403 retries: Animate stops the track it holds in a slot (without destroying it), loads the
-			-- replacement and plays it; the track never reports AnimationPlayed.
+			-- 403 retries: Animate fade-stops the track it holds in a slot (without destroying it), loads
+			-- the replacement and plays it; the track never reports AnimationPlayed.
 			local slot = change % #SLOTS + 1
 			local animations = SLOTS[slot]
 			if current[slot] then
-				current[slot].Stop()
+				current[slot]:Stop()
 			end
 			current[slot] = rig:LoadAnimation(animations[change % #animations + 1])
-			current[slot].Play(true)
+			current[slot]:Play()
 			-- Animate keeps driving the tracks it holds: this errors on a destroyed track.
 			for _, held in current do
-				held.AdjustSpeed(1)
+				held:AdjustSpeed(1)
 			end
 			heartbeat:Fire(0.1)
 			assert(rig.live <= CharacterTracks.MAX_TRACKS, "live tracks capped: " .. rig.live)
 		end
 		assert(rig.peak < TRACK_LIMIT, "live tracks stayed under the engine limit, peak " .. rig.peak)
 		for _, held in current do
-			held.Play(true)
+			held:Play()
 		end
 		stop()
 		assert(heartbeat.live() == 0, "sweep disconnects")
 	end,
 	["unknown stopped tracks never outrank the track Animate drives"] = function()
-		local rig = animator()
+		local rig = animator({ silent = true })
 		local heartbeat = signal()
 		local id = { AnimationId = IDS[1] }
 		local held = rig:LoadAnimation(id)
-		held.Play(true)
+		held:Play()
 		-- Stale tracks of the same animation, loaded later but stopped (failed 403 retries).
 		local stale = { rig:LoadAnimation(id), rig:LoadAnimation(id), rig:LoadAnimation(id) }
 		CharacterTracks.guard(rig, heartbeat :: any)
@@ -170,19 +184,19 @@ return {
 			assert(track.destroyed, "stale stopped sweep-only tracks are destroyed")
 		end
 		assert(not held.destroyed and held.IsPlaying, "the playing track is kept")
-		held.AdjustSpeed(1)
+		held:AdjustSpeed(1)
 		assert(rig.live == 1, "one live track: " .. rig.live)
 	end,
 	["the cap destroys the oldest tracks across many animations, stopped ones first"] = function()
-		local rig = animator()
+		local rig = animator({ silent = true, sticky = true })
 		local heartbeat = signal()
 		CharacterTracks.guard(rig, heartbeat :: any)
 		local tracks = {}
 		for id = 1, 60 do
 			tracks[id] = rig:LoadAnimation({ AnimationId = "rbxassetid://" .. id })
-			tracks[id].Play(true)
+			tracks[id]:Play()
 		end
-		tracks[59].Stop()
+		tracks[59]:Stop()
 		heartbeat:Fire(CharacterTracks.SWEEP_SECONDS)
 		assert(rig.live == CharacterTracks.MAX_TRACKS, "capped: " .. rig.live)
 		assert(tracks[59].destroyed, "a stopped track goes before playing ones")
@@ -198,23 +212,46 @@ return {
 		assert(rig.AnimationPlayed.live() == 0, "guard disconnects")
 	end,
 	["a still-playing previous track may fade out; older ones are destroyed"] = function()
-		local rig = animator()
+		local rig = animator({ sticky = true })
 		local heartbeat = signal()
 		CharacterTracks.guard(rig, heartbeat :: any)
 		local id = { AnimationId = "rbxassetid://1" }
 		-- Animate loads a track and plays it at once (playAnimation: LoadAnimation then Play).
 		local a = rig:LoadAnimation(id)
-		a.Play()
+		a:Play()
 		local b = rig:LoadAnimation(id)
-		b.Play()
+		b:Play()
 		assert(not a.destroyed and not b.destroyed, "crossfade keeps the previous playing track")
 		local c = rig:LoadAnimation(id)
-		c.Play()
+		c:Play()
 		assert(a.destroyed and not b.destroyed and not c.destroyed, "only two per animation")
-		b.Stop()
+		b:Stop()
 		heartbeat:Fire(CharacterTracks.SWEEP_SECONDS)
 		assert(b.destroyed and not c.destroyed, "the faded-out previous track is destroyed")
-		c.AdjustSpeed(1)
+		assert(rig.live == 1, "the fade-stuck previous track leaves the Animator: " .. rig.live)
+		c:AdjustSpeed(1)
+	end,
+	["fade-stopped 403 tracks that Animate destroys leave the Animator"] = function()
+		-- Animate's playAnimation: Stop(transitionTime) and Destroy the held track, then load and play a
+		-- new one. With 403 animations every replaced track sticks (p75 Studio evidence).
+		local rig = animator({ silent = true, sticky = true })
+		local heartbeat = signal()
+		CharacterTracks.guard(rig, heartbeat :: any)
+		local current: any = nil
+		for change = 1, 600 do
+			if current then
+				current:Stop(0.1)
+				current:Destroy()
+			end
+			current = rig:LoadAnimation({ AnimationId = IDS[change % #IDS + 1] })
+			current:Play()
+			current:AdjustSpeed(1)
+			heartbeat:Fire(0.05)
+			-- Between sweeps (every 4 changes here) the replaced tracks wait for the next sweep.
+			assert(rig.live <= 2 * #IDS + 4, "bounded at change " .. change .. ": " .. rig.live)
+		end
+		assert(rig.peak < TRACK_LIMIT, "under the engine limit, peak " .. rig.peak)
+		assert(current.IsPlaying and not current.destroyed, "the held track keeps playing")
 	end,
 	["200 respawns each guard only the live character"] = function()
 		local added = signal()
