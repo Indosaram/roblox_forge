@@ -6,10 +6,13 @@ local Native = require("./CollectRaid")
 local Siege = require("../../../core/domain/state/Siege")
 local M = {}
 export type Config = Loop.Config & { teams: { string } }
+-- Lets a recipe partner credit this genre's one Coins wallet (arena-bounty-v1).
+export type WalletPort = { credit: (Contract.PlayerId, number) -> boolean }
+export type Instance = Contract.Instance & { walletPort: WalletPort }
 type Token = { id: string, locked: boolean, owner: string, team: string }
 M.validateConfig = require("./ConfigSchema").validateConfig
 M.validateSave = require("./SaveSchema").validateSave
-function M.create(raw: Contract.ConfigData, services: Contract.Services): Contract.Instance
+function M.create(raw: Contract.ConfigData, services: Contract.Services): Instance
 	assert(#M.validateConfig(raw) == 0, "invalid collect config")
 	local config = Executor.clone(raw) :: Config
 	config.profile = {
@@ -65,7 +68,7 @@ function M.create(raw: Contract.ConfigData, services: Contract.Services): Contra
 		Loop.tick(config, states[playerId], now - accruedAt[playerId], 1, now)
 		accruedAt[playerId] = now
 	end
-	local instance: Contract.Instance = {} :: Contract.Instance
+	local instance = {} :: Instance
 	function instance.join(playerId, saved)
 		if states[playerId] then
 			return { ok = false, reason = "already joined" }
@@ -244,6 +247,22 @@ function M.create(raw: Contract.ConfigData, services: Contract.Services): Contra
 		end
 		return { ok = ok, reason = if ok then nil else reason or "refused" }
 	end
+	instance.walletPort = {
+		credit = function(playerId, amount)
+			local state = states[playerId]
+			if
+				state == nil
+				or type(amount) ~= "number"
+				or amount < 1
+				or amount % 1 ~= 0
+				or amount > 2 ^ 53 - 1 - state.wallet:balance(config.currency)
+			then
+				return false
+			end
+			state.wallet:credit(config.currency, amount)
+			return true
+		end,
+	}
 	return instance
 end
 return M

@@ -174,9 +174,9 @@ return {
 		assert(require("../../cli/forge/lib/planner").renderConfig == Planner.renderConfig, "planner delegate")
 	end,
 	["planned artifacts are deterministic actual config compiles and dispatches"] = function()
-		local generated = Generator.generate(input)
+		local generated = assert(Generator.legacy, "collect-raid legacy generation").generate(input)
 		local output = files(generated)
-		local again = files(Generator.generate(input))
+		local again = files(assert(Generator.legacy, "collect-raid legacy generation").generate(input))
 		for path, content in output do
 			assert(again[path] == content, "nondeterministic: " .. path)
 			if string.sub(path, -5) == ".luau" then

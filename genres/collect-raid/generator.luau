@@ -148,7 +148,75 @@ local generator: Package.Generator = {
 	id = "collect-raid",
 	configVersion = 1,
 	runtime = Runtime,
-	generate = generate,
+	-- The contract generation a multi-genre recipe pack (pvp-arena's arena-bounty-v1) composes:
+	-- namespaced controls, assets and design notes only. A collect-raid-only pack keeps the
+	-- custom scaffold through `legacy`.
+	generate = function(input)
+		return {
+			config = Fixture.config(),
+			controls = {
+				{
+					id = "collect-raid:buy-source",
+					action = "collect-raid:buy-source",
+					args = { "ember" },
+					label = "Buy source",
+					kind = "prompt",
+				},
+				{
+					id = "collect-raid:hatch",
+					action = "collect-raid:hatch",
+					args = { 1 },
+					label = "Hatch egg",
+					kind = "prompt",
+				},
+				{
+					id = "collect-raid:merge",
+					action = "collect-raid:merge",
+					args = { "ember", 1 },
+					label = "Merge",
+					kind = "button",
+				},
+				{
+					id = "collect-raid:raid",
+					action = "collect-raid:raid",
+					args = { "blue" },
+					label = "Raid rival",
+					kind = "button",
+				},
+				{
+					id = "collect-raid:claim-quest",
+					action = "collect-raid:claim-quest",
+					args = { "hatch" },
+					label = "Claim quest",
+					kind = "button",
+				},
+			},
+			assetKeys = { "collect-raid-starter-prop", "collect-raid-buy", "collect-raid-hatch" },
+			generation = { "procedural", "audio" },
+			artifacts = {
+				{
+					path = "design/collect-raid/loop.md",
+					content = "# Collect and siege\nBuy a source, hatch it on free Coins, merge, and raid rival team vaults during the siege window.\n",
+				},
+				{
+					path = "assets/collect-raid/procgen.yml",
+					content = string.format(
+						"assets:\n  - key: collect-raid-starter-prop\n    kind: prop\n    archetype: crate\n    scale: 1\n    body: [200, 120, 60]\n    accent: [250, 210, 90]\n    seed: %d\n",
+						input.seed
+					),
+				},
+				{
+					path = "assets/collect-raid/audio.yml",
+					content = string.format(
+						"cues:\n  - key: collect-raid-buy\n    kind: sfx\n    type: coin\n    duration: 0.2\n    seed: %d\n"
+							.. "  - key: collect-raid-hatch\n    kind: sfx\n    type: hatch\n    duration: 0.4\n    seed: %d\n",
+						input.seed,
+						input.seed + 1
+					),
+				},
+			},
+		}
+	end,
 	legacy = { generate = generate, codegen = Codegen.generate },
 	driver = {
 		run = run,

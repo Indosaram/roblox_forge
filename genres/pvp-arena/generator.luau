@@ -3,6 +3,8 @@ local Package = require("../../cli/forge/lib/genrecontract")
 local Executor = require("../../core/domain/genre/Executor")
 local Runtime = require("./module/Contract")
 local Fixture = require("./module/Adapter.fixture")
+local Recipe = require("./recipe-generator")
+assert(Runtime.recipe, "arena recipe required")
 local function state(executor: Executor.Executor, id: string): any
 	return executor.snapshot(id)["pvp-arena"]
 end
@@ -69,6 +71,7 @@ local generator: Package.Generator = {
 	id = "pvp-arena",
 	configVersion = 1,
 	runtime = Runtime,
+	recipes = { [Runtime.recipe.id] = Recipe },
 	generate = function(input)
 		return {
 			config = {

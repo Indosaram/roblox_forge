@@ -72,7 +72,13 @@ function Adapter.validateSave(data: Types.StateData): { string }
 	table.sort(errors)
 	return errors
 end
-function Adapter.create(data: Types.ConfigData, services: Types.Services): Types.Instance
+-- `onDecided` (recipe bridge) hears the winner of every match decided in the arena - a
+-- knockout or a timed health decision - exactly once. Forfeits and draws are not reported.
+function Adapter.create(
+	data: Types.ConfigData,
+	services: Types.Services,
+	onDecided: ((winner: string) -> ())?
+): Types.Instance
 	assert(#Adapter.validateConfig(data) == 0, "invalid pvp config")
 	local config = table.clone(data) :: Config
 	config.Round = table.clone(config.Round)
@@ -87,9 +93,12 @@ function Adapter.create(data: Types.ConfigData, services: Types.Services): Types
 			data = extra or { matchId = match.id, players = { match.a, match.b } },
 		})
 	end
-	local function settle(match: Match, score: number, now: number)
+	local function settle(match: Match, score: number, now: number, decided: boolean?)
 		if match.settled then
 			return
+		end
+		if decided and onDecided and score ~= 0.5 then
+			onDecided(if score == 1 then match.a else match.b)
 		end
 		match.settled = true
 		local a, b = players[match.a], players[match.b]
@@ -138,7 +147,7 @@ function Adapter.create(data: Types.ConfigData, services: Types.Services): Types
 					local now = services.now()
 					if now >= (match.round.roundStart :: number) + config.Round.duration then
 						local ah, bh = players[match.a].health, players[match.b].health
-						settle(match, if ah == bh then 0.5 elseif ah > bh then 1 else 0, now)
+						settle(match, if ah == bh then 0.5 elseif ah > bh then 1 else 0, now, true)
 					else
 						settle(match, if id == match.a then 0 else 1, now)
 					end
@@ -198,7 +207,7 @@ function Adapter.create(data: Types.ConfigData, services: Types.Services): Types
 				player.lastAttack = now
 				rival.health = math.max(0, rival.health - config.attackDamage)
 				if rival.health == 0 then
-					settle(match, if id == match.a then 1 else 0, now)
+					settle(match, if id == match.a then 1 else 0, now, true)
 				end
 				return { ok = true }
 			end
@@ -218,7 +227,7 @@ function Adapter.create(data: Types.ConfigData, services: Types.Services): Types
 					emit("OnRoundStart", match)
 				elseif phase == "ended" and not match.settled then
 					local ah, bh = players[match.a].health, players[match.b].health
-					settle(match, if ah == bh then 0.5 elseif ah > bh then 1 else 0, now)
+					settle(match, if ah == bh then 0.5 elseif ah > bh then 1 else 0, now, true)
 				elseif phase == "lobby" then
 					cleanup(match)
 				end

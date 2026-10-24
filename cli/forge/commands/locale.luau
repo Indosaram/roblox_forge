@@ -163,7 +163,7 @@ local function collectGenrePaths(node: any, paths: { string }): ()
 	end
 end
 
-local function genreRuntimeFiles(packDir: string): { string }
+local function genreRuntimeFiles(packDir: string, clientSources: { string }): { string }
 	local files: { string } = {}
 	local projectPath = packDir .. "/default.project.json"
 	if not fs.isFile(projectPath) then
@@ -189,7 +189,20 @@ local function genreRuntimeFiles(packDir: string): { string }
 
 	for _, relative in relativePaths do
 		local runtimeDir = normalizePath(packDir .. "/" .. relative .. "/runtime")
-		if fs.isDir(runtimeDir) then
+		-- A mounted runtime folder ships copy only when the pack's client binds it
+		-- (`Forge.genres["<id>"].module.runtime`); a recipe partner whose module is
+		-- mounted for the server alone renders no runtime HUD text.
+		local genreId = string.match(runtimeDir, "genres/([^/]+)/module/runtime$")
+		local bound = false
+		for _, source in clientSources do
+			if
+				genreId ~= nil
+				and string.find(source, "genres[" .. string.format("%q", genreId) .. "].module.runtime", 1, true)
+			then
+				bound = true
+			end
+		end
+		if bound and fs.isDir(runtimeDir) then
 			for _, name in fs.readDir(runtimeDir) do
 				if
 					string.sub(name, -#SPEC_SUFFIX) ~= SPEC_SUFFIX
@@ -353,7 +366,11 @@ function M.run(args: { string }): boolean
 	local missingSources: { string } = {}
 	local reported: { [string]: boolean } = {}
 	local scanFiles = clientFiles(packDir)
-	for _, file in genreRuntimeFiles(packDir) do
+	local clientSources: { string } = {}
+	for _, file in scanFiles do
+		table.insert(clientSources, fs.readFile(file))
+	end
+	for _, file in genreRuntimeFiles(packDir, clientSources) do
 		table.insert(scanFiles, file)
 	end
 	for _, file in scanFiles do

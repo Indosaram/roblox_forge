@@ -36,7 +36,7 @@ local input: Package.GenerateInput = {
 	debugName = "CollectProofDebug",
 	guiName = "CollectProofGui",
 }
-local generated = Generator.generate(input)
+local generated = assert(Generator.legacy, "collect-raid legacy generation").generate(input)
 assert(#Package.validateGenerator(Generator, Generator.runtime) == 0, "proof.luau invariant")
 local clock = 0
 local e = Executor.new(

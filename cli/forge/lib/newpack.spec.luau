@@ -11,6 +11,8 @@ local tempdir = require("./tempdir")
 local new = require("../commands/new")
 local codegen = require("./codegen")
 local registryLib = require("./genreregistry")
+local qa = require("../commands/qa")
+local qaharness = require("./qaharness")
 
 -- Each pack sits two levels below the repository root (like games/<slug>), so its
 -- generated "../../core" project paths resolve; build/ is git-ignored.
@@ -117,6 +119,21 @@ local function verify(slug: string, genre: string, mode: string?)
 
 		assert(fs.isFile(dir .. "/smoke/smoke.luau"), "generated pack lacks smoke/smoke.luau")
 
+		-- Every native scenario the pack publishes must pass against the pack's own config:
+		-- a recipe or template whose golden path asserts state the pack never reaches fails here.
+		local scenarioDir = dir .. "/qa-scenarios"
+		if fs.isDir(scenarioDir) then
+			for _, file in fs.readDir(scenarioDir) do
+				local raw = serde.decode("yaml", fs.readFile(scenarioDir .. "/" .. file))
+				if raw.kind == "native" then
+					local target, targetErrors = qa.loadTarget(slug, registry, nil, root)
+					assert(target, table.concat(targetErrors, "; "))
+					local outcome = qaharness.runNative(raw, target :: qaharness.Target)
+					assert(outcome.ok, file .. " fails on the generated pack: " .. table.concat(outcome.failures, "; "))
+				end
+			end
+		end
+
 		-- selene.toml excludes build/**, so the scratch pack is linted with --no-exclude.
 		local linted, lintOut = exec("selene", { "--no-exclude", dir })
 		assert(
@@ -151,6 +168,9 @@ return {
 	end,
 	["a new grow-harvest+survival-coop pack is check-clean"] = function()
 		verify("np-gh-sc", "grow-harvest,survival-coop")
+	end,
+	["a new collect-raid+pvp-arena pack is check-clean"] = function()
+		verify("np-cr-pvp", "collect-raid,pvp-arena")
 	end,
 	["a new survival-coop crafting pack is check-clean"] = function()
 		verify("np-craft", "survival-coop", "crafting")

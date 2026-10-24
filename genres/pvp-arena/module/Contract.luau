@@ -1,6 +1,7 @@
 --!strict
 local Types = require("../../../core/domain/genre/Contract")
 local Adapter = require("./Adapter")
+local ArenaBounty = require("./ArenaBounty")
 local contract: Types.RuntimeContract = {
 	api = 1,
 	id = "pvp-arena",
@@ -14,6 +15,7 @@ local contract: Types.RuntimeContract = {
 	hooks = { "OnRoundStart", "OnRoundEnd", "MatchSettled" },
 	validateConfig = Adapter.validateConfig,
 	validateSave = Adapter.validateSave,
+	recipe = ArenaBounty.recipe,
 	create = Adapter.create,
 }
 return contract
