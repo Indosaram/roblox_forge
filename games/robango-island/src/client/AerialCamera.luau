@@ -2,6 +2,108 @@
 -- Roblox-shaped camera and controls are injected so no foreground APIs are needed.
 local M = {}
 M.AERIAL_DENSITY = 0.02
+-- The overview used to inherit the 30-degree quarter-view lens, so fitting a 768-stud archipelago
+-- island put the camera 1700-3700 studs out (y 1508 in p2/p83). That is past the engine's draw
+-- distance once automatic graphics quality drops: p83 saw only the skybox, not even the sea below.
+-- Widen the lens instead, so the camera stays near MAX_DISTANCE from the island centre.
+M.MAX_DISTANCE = 900
+M.MAX_FIELD_OF_VIEW = 110
+-- Bottom band kept free for the Roblox touch thumbstick (bottom-left) and jump (bottom-right).
+M.TOUCH_RESERVE = 150
+M.CONTROL_MIN = 44
+
+type Point = { x: number, y: number, z: number }
+
+--- Vertical field of view that frames the bounds (AerialView's 1.1 sphere margin) within
+--- MAX_DISTANCE, never narrower than the current lens and never wider than MAX_FIELD_OF_VIEW.
+function M.fieldOfView(minimum: Point, maximum: Point, aspect: number, fov: number): number
+	local radius = math.sqrt((maximum.x - minimum.x) ^ 2 + (maximum.y - minimum.y) ^ 2 + (maximum.z - minimum.z) ^ 2)
+		/ 2
+	local need = radius * 1.1 / M.MAX_DISTANCE
+	if need >= 1 then
+		return math.max(fov, M.MAX_FIELD_OF_VIEW)
+	end
+	local angle = math.asin(need)
+	local vertical = if aspect >= 1 then angle else math.atan(math.tan(angle) / aspect)
+	return math.max(fov, math.min(math.deg(vertical) * 2, M.MAX_FIELD_OF_VIEW))
+end
+
+local function partBounds(root: any): (Point?, Point?)
+	local minimum: Point?, maximum: Point? = nil, nil
+	for _, part in root:GetDescendants() do
+		if part:IsA("BasePart") then
+			local cf, half = part.CFrame, part.Size / 2
+			for _, x in { -1, 1 } do
+				for _, y in { -1, 1 } do
+					for _, z in { -1, 1 } do
+						local p = cf.Position
+							+ cf.RightVector * (x * half.X)
+							+ cf.UpVector * (y * half.Y)
+							- cf.LookVector * (z * half.Z)
+						local lo: Point = minimum or { x = p.X, y = p.Y, z = p.Z }
+						local hi: Point = maximum or { x = p.X, y = p.Y, z = p.Z }
+						minimum = { x = math.min(lo.x, p.X), y = math.min(lo.y, p.Y), z = math.min(lo.z, p.Z) }
+						maximum = { x = math.max(hi.x, p.X), y = math.max(hi.y, p.Y), z = math.max(hi.z, p.Z) }
+					end
+				end
+			end
+		end
+	end
+	return minimum, maximum
+end
+
+local function union(a: Point?, b: Point?, pick: (number, number) -> number): Point?
+	if a == nil or b == nil then
+		return a or b
+	end
+	return { x = pick(a.x, b.x), y = pick(a.y, b.y), z = pick(a.z, b.z) }
+end
+
+--- Island bounds for every world a player can stand on: a role world (its catalog layout
+--- bounds, which cover the generated terrain, joined with its parts), the Studio preview
+--- island (its parts joined with the preview terrain extents), else a box around `focus`.
+--- Returns nil only when there is no world and no focus.
+function M.worldBounds(workspace: any, layouts: { any }, preview: { min: Point, max: Point }, focus: Point?): (any, any)
+	local minimum: Point?, maximum: Point? = nil, nil
+	local role = workspace:FindFirstChild("ForgeRoleWorld")
+	if role then
+		local id = role:GetAttribute("ForgeLayoutId")
+		for _, layout in layouts do
+			if layout.id == id then
+				minimum, maximum = table.clone(layout.bounds.min), table.clone(layout.bounds.max)
+			end
+		end
+		local lo, hi = partBounds(role)
+		minimum, maximum = union(minimum, lo, math.min), union(maximum, hi, math.max)
+	else
+		local island = workspace:FindFirstChild("DevelopmentIsland")
+		if island then
+			local lo, hi = partBounds(island)
+			minimum, maximum = union(preview.min, lo, math.min), union(preview.max, hi, math.max)
+		end
+	end
+	if minimum == nil and focus then
+		minimum = { x = focus.x - 96, y = focus.y - 16, z = focus.z - 96 }
+		maximum = { x = focus.x + 96, y = focus.y + 16, z = focus.z + 96 }
+	end
+	return minimum, maximum
+end
+
+--- Photo-control layout in GUI pixels. Every control is at least CONTROL_MIN square; on touch
+--- the panel sits above the TOUCH_RESERVE band so the thumbstick and jump stay clear.
+function M.controlsLayout(viewport: { X: number, Y: number }, touch: boolean): any
+	local width = math.max(math.min(520, viewport.X - 24), 2 * M.CONTROL_MIN + 18)
+	local columns = if (width - 18) / 3 >= 88 then 3 else 2
+	return {
+		width = width,
+		bottom = if touch then M.TOUCH_RESERVE else 16,
+		columns = columns,
+		cellHeight = M.CONTROL_MIN,
+		gap = 6,
+		padding = 6,
+		textSize = 14,
+	}
+end
 
 function M.new(ctx: any): any
 	local Aerial = ctx.aerial
@@ -24,6 +126,10 @@ function M.new(ctx: any): any
 		end
 		camera = ctx.workspace.CurrentCamera
 		local minimum, maximum = ctx.bounds()
+		if minimum == nil or maximum == nil then
+			return
+		end
+		local aspect = camera.ViewportSize.X / camera.ViewportSize.Y
 		active = Aerial.start({
 			read = function()
 				local visibility = {}
@@ -84,7 +190,7 @@ function M.new(ctx: any): any
 				end
 				ctx.quarterView.suspend(false)
 			end,
-		}, minimum, maximum, camera.ViewportSize.X / camera.ViewportSize.Y, camera.FieldOfView)
+		}, minimum, maximum, aspect, M.fieldOfView(minimum, maximum, aspect, camera.FieldOfView))
 	end
 	for name, callback in
 		{

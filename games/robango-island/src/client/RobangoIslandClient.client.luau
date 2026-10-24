@@ -884,31 +884,41 @@ aerialGui.Name, aerialGui.ResetOnSpawn = "ForgeAerial", false
 aerialGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 aerialGui.DisplayOrder = 30
 aerialGui.Parent = player:WaitForChild("PlayerGui")
+local AerialCamera = require(script.Parent.AerialCamera)
 local aerialControls = Instance.new("Frame")
 aerialControls.Name, aerialControls.Visible = "PhotoControls", false
 -- Bottom centre: the top-left belongs to the Roblox chat window, which sat over 돌아가기 and ate
--- its clicks in Studio (p35); the bottom centre stays clear between the thumbstick and jump.
+-- its clicks in Studio (p35). On touch the panel rises above the thumbstick and jump band (p83: the
+-- controls were 34x40, squeezed between them); every control is at least 44x44.
+-- Height follows the visible button rows (AutomaticSize), so wrapped rows never stack (2026-10-23).
 aerialControls.AnchorPoint = Vector2.new(0.5, 1)
--- Height follows the visible button rows (AutomaticSize), so a narrow phone that wraps the
--- buttons into three rows never stacks one control over another (2026-10-23 Studio: Capture
--- covered Return at 360 wide and trapped the player in the aerial view).
--- Width leaves ~120 px each side for the touch thumbstick (bottom-left) and jump (bottom-right).
-aerialControls.Size, aerialControls.Position = UDim2.new(1, -240, 0, 0), UDim2.new(0.5, 0, 1, -16)
 aerialControls.AutomaticSize = Enum.AutomaticSize.Y
 local aerialPadding = Instance.new("UIPadding")
-aerialPadding.PaddingTop, aerialPadding.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
 aerialPadding.Parent = aerialControls
 aerialControls.BackgroundColor3 = Color3.fromRGB(18, 28, 26)
 aerialControls.BackgroundTransparency, aerialControls.Parent = 0.08, aerialGui
 local aerialCorner = Instance.new("UICorner")
 aerialCorner.CornerRadius, aerialCorner.Parent = UDim.new(0, 10), aerialControls
-local aerialLimit = Instance.new("UISizeConstraint")
-aerialLimit.MaxSize, aerialLimit.Parent = Vector2.new(520, math.huge), aerialControls
 local aerialLayout = Instance.new("UIGridLayout")
-aerialLayout.CellSize, aerialLayout.CellPadding = UDim2.new(1 / 3, -6, 0, 40), UDim2.fromOffset(6, 4)
 aerialLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 aerialLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 aerialLayout.Parent = aerialControls
+local aerialTextSize = 14
+local function placeAerialControls()
+	local placement = AerialCamera.controlsLayout(
+		workspace.CurrentCamera.ViewportSize,
+		game:GetService("UserInputService").TouchEnabled
+	)
+	aerialControls.Size = UDim2.fromOffset(placement.width, 0)
+	aerialControls.Position = UDim2.new(0.5, 0, 1, -placement.bottom)
+	aerialPadding.PaddingTop = UDim.new(0, placement.padding)
+	aerialPadding.PaddingBottom = UDim.new(0, placement.padding)
+	aerialLayout.CellSize = UDim2.new(1 / placement.columns, -placement.gap, 0, placement.cellHeight)
+	aerialLayout.CellPadding = UDim2.fromOffset(placement.gap, 4)
+	aerialTextSize = placement.textSize
+end
+placeAerialControls()
+workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeAerialControls)
 local aerialButtons: any = {}
 local aerialLabels = {
 	Return = { "Return", "돌아가기" },
@@ -923,7 +933,7 @@ for index, name in { "Toggle", "Return", "OrbitLeft", "OrbitRight", "HideUI", "S
 	local button = Instance.new("TextButton")
 	button.Text, button.LayoutOrder, button.Parent = aerialLabels[name][if korean then 2 else 1], index, aerialControls
 	button.BackgroundColor3, button.TextColor3 = Color3.fromRGB(40, 76, 66), Color3.fromRGB(240, 244, 240)
-	button.Font, button.TextSize = Enum.Font.GothamMedium, 12
+	button.Font, button.TextSize = Enum.Font.GothamMedium, aerialTextSize
 	button.TextWrapped = true
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius, corner.Parent = UDim.new(0, 8), button
@@ -938,7 +948,7 @@ for _, child in player.PlayerGui:GetChildren() do
 		table.insert(aerialGuis, child)
 	end
 end
-aerial = require(script.Parent.AerialCamera).new({
+aerial = AerialCamera.new({
 	aerial = require(Forge.genres["survival-coop"].module.AerialView),
 	workspace = workspace,
 	quarterView = camera,
@@ -948,24 +958,16 @@ aerial = require(script.Parent.AerialCamera).new({
 	atmosphere = function()
 		return game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere")
 	end,
+	-- Every island the player can stand on: role worlds, the Studio preview island (no
+	-- ForgeRoleWorld; p83 threw on every tap there), else the ground around the character.
 	bounds = function()
-		local minimum = Vector3.new(math.huge, math.huge, math.huge)
-		local maximum = Vector3.new(-math.huge, -math.huge, -math.huge)
-		local root = assert(workspace:FindFirstChild("ForgeRoleWorld"), "AERIAL_WORLD_REQUIRED")
-		for _, part in root:GetDescendants() do
-			if part:IsA("BasePart") then
-				local cf, half = part.CFrame, part.Size / 2
-				for _, x in { -1, 1 } do
-					for _, y in { -1, 1 } do
-						for _, z in { -1, 1 } do
-							local point = cf:PointToWorldSpace(Vector3.new(x * half.X, y * half.Y, z * half.Z))
-							minimum, maximum = minimum:Min(point), maximum:Max(point)
-						end
-					end
-				end
-			end
-		end
-		return { x = minimum.X, y = minimum.Y, z = minimum.Z }, { x = maximum.X, y = maximum.Y, z = maximum.Z }
+		local IslandTerrain = require(Shared.IslandTerrain)
+		local character = player.Character
+		local at = character and character:FindFirstChild("HumanoidRootPart")
+		return AerialCamera.worldBounds(workspace, content.layouts or {}, {
+			min = { x = -IslandTerrain.HALF_X, y = IslandTerrain.BOTTOM, z = -IslandTerrain.HALF_Z },
+			max = { x = IslandTerrain.HALF_X, y = 12, z = IslandTerrain.HALF_Z },
+		}, if at then { x = at.Position.X, y = at.Position.Y, z = at.Position.Z } else nil)
 	end,
 	scriptable = Enum.CameraType.Scriptable,
 	qaCamera = function() -- Studio QA pin: AerialCamera keeps the ForgeQACamera CFrame.
