@@ -389,6 +389,12 @@ function M.craftPanes(_width: number, height: number): any
 	return { height = h, listHeight = math.floor(h * 0.4) }
 end
 
+-- Largest height <= `height` that holds whole `row`-pixel rows separated by `gap` (at least one row).
+function M.wholeRows(height: number, row: number, gap: number): number
+	local rows = math.max(1, math.floor((height + gap) / (row + gap)))
+	return rows * (row + gap) - gap
+end
+
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
 	local top = 64
 	local bottom = if touch or width < 700 then 128 else 16

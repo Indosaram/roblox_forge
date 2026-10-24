@@ -88,6 +88,7 @@ function M.factory(ctx: any): any
 		name = "SiegeMatch",
 		title = L.text(ctx.locale, "match.title"),
 		order = 9,
+		hidden = true,
 		select = function(extensions: any): any
 			return { outpost = extensions.outpost }
 		end,

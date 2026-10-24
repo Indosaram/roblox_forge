@@ -112,6 +112,7 @@ function M.factory(ctx: any): any
 		name = "Transaction",
 		title = L.text(ctx.locale, "tx.title"),
 		order = 14,
+		hidden = true,
 		select = function(): any
 			return entries
 		end,

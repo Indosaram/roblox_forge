@@ -118,25 +118,22 @@ return {
 			end
 		end
 	end,
-	["death zone warning indicator and buttons fit at every target viewport"] = function()
+	["region safety indicator rules and return button fit at every target viewport"] = function()
 		local source = read("DeathZonePanel")
 		local indicator = rowHeight(source, "local indicator = ui.components.label")
-		local warning = rowHeight(source, "local warning = ui.components.label")
-		local button = rowHeight(source, "toggle = ui.components.button")
-		assert(button >= 44, "death zone button under touch size")
+		local rules = rowHeight(source, "local rules = ui.components.label")
+		local button = rowHeight(source, "local toggle = ui.components.button")
+		assert(button >= 44, "return button under touch size")
 		for _, viewport in VIEWPORTS do
 			local width = content(viewport)
 			local _, _, _, sheetHeight = Model.contextSheet(viewport[1], viewport[2], viewport[3])
-			-- Confirm state shows warning + Enter anyway + Stay safe; all must sit in one screen.
-			assert(44 + warning + 2 * button + 3 * 6 <= sheetHeight, "confirm state fits without scrolling")
+			assert(44 + indicator + rules + button + 3 * 6 <= sheetHeight, "panel fits without scrolling")
 			for _, locale in LOCALES do
 				local where = at(viewport, locale)
-				wraps(Zone.text(locale, "zone_warning"), width, warning, BODY, "zone warning " .. where)
+				wraps(Zone.text(locale, "zone_pvp"), width, rules, BODY, "zone rules " .. where)
 				wraps(Zone.text(locale, "zone_safe"), width, indicator, BODY, "zone safe " .. where)
 				wraps(Zone.text(locale, "zone_danger"), width, indicator, BODY, "zone danger " .. where)
-				for _, key in { "zone_enter", "zone_leave", "zone_confirm", "zone_cancel" } do
-					single(Zone.text(locale, key), width, key .. " " .. where)
-				end
+				single(Zone.text(locale, "zone_leave"), width, "zone_leave " .. where)
 			end
 		end
 	end,
@@ -279,17 +276,18 @@ return {
 	["audio and clan membership sheets keep full-width touch rows"] = function()
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		local labels = {
-			{ "Mute", "음소거" },
-			{ "Unmute", "음소거 해제" },
 			{ "Join invited clan", "초대받은 부족 가입" },
 			{ "Clan membership", "부족 가입" },
 		}
 		for _, pair in labels do
 			assert(string.find(client, pair[1], 1, true), "client label moved: " .. pair[1])
 		end
-		-- Volume buttons render tostring(gain * 100) .. "%".
-		assert(string.find(client, 'tostring(gain * 100) .. "%"', 1, true), "volume label moved")
-		table.insert(labels, { "100%", "100%" })
+		-- ui.settings rows (SettingsModel) at their longest value.
+		local Settings = require("./src/shared/SettingsModel")
+		local en, ko = Settings.rows("en-us", { muted = true, reducedEffects = true }), Settings.rows("ko-kr", {})
+		for index, row in en do
+			table.insert(labels, { row[2], ko[index][2] })
+		end
 		for _, viewport in VIEWPORTS do
 			local width = content(viewport)
 			for index, locale in LOCALES do

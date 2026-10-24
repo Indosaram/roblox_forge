@@ -153,6 +153,7 @@ function M.factory(ctx: any): any
 		name = "Dialogue",
 		title = L.text(ctx.locale, "dialogue.title"),
 		order = 15,
+		hidden = true,
 		-- Dialogue takes priority over docked sheets, the menu (30), and placement (40).
 		displayOrder = M.DISPLAY_ORDER,
 		select = function(extensions: any): any

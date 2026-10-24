@@ -1,7 +1,8 @@
 --!strict
--- Client death-zone panel: shows the actor's zone (safe or danger) from
--- snapshot.survivalExtensions["death-zone"] and a toggle. Entering danger asks for a confirm
--- warning first; leaving needs none. The server owns the zone; this panel only sends zone-set.
+-- Client region-safety panel (ui.danger-zone): a read-only explanation of the actor's zone from
+-- snapshot.survivalExtensions["death-zone"] and where optional PvP lives (brawl, team siege).
+-- Per the UI spec lead decision it never offers entering danger; a player still flagged danger
+-- (older saves) gets only the way back to safe. The server owns the zone.
 -- Strings mirror games/robango-island/locale/strings.csv keys (zone_*).
 local M = {}
 
@@ -9,20 +10,17 @@ local M = {}
 local SET = "survival-coop:zone-set"
 
 local strings: { [string]: { string } } = {
-	zone_title = { "Death zone", "데스 존" },
+	zone_title = { "Region safety", "지역 안전" },
 	zone_safe = { "Safe zone: you keep your bag when you fall", "안전 구역: 쓰러져도 가방을 지켜요" },
 	zone_danger = {
 		"Danger zone: your bag drops when you fall",
 		"위험 구역: 쓰러지면 가방을 떨어뜨려요",
 	},
-	zone_enter = { "Enter danger zone", "위험 구역 입장" },
 	zone_leave = { "Return to safe zone", "안전 구역으로 돌아가기" },
-	zone_warning = {
-		"If you fall in the danger zone, everything in your bag drops. Others can take it for ten minutes after you.",
-		"위험 구역에서 쓰러지면 가방의 모든 물건을 떨어뜨려요. 열 분 뒤에는 다른 사람도 가져갈 수 있어요.",
+	zone_pvp = {
+		"Optional PvP is in Brawl and Team siege, with a snapshot loadout: your bag is never at risk there.",
+		"선택형 PvP는 난투와 팀 공성전에서 해요. 장비 스냅샷으로 싸우니 가방은 잃지 않아요.",
 	},
-	zone_confirm = { "Enter anyway", "그래도 입장" },
-	zone_cancel = { "Stay safe", "안전하게 있기" },
 	zone_failed = {
 		"The zone could not be changed. Try again later",
 		"구역을 바꾸지 못했어요. 잠시 후 다시 시도하세요",
@@ -53,9 +51,9 @@ function M.refusal(locale: string, reason: string?): string
 	return M.text(locale, refusals[reason or ""] or "zone_failed")
 end
 
---- What a toggle press does from `zone`: danger is entered only through the confirm warning.
-function M.nextStep(zone: string): string
-	return if zone == "danger" then "leave" else "confirm"
+--- The only action the panel offers from `zone`: leaving danger; nothing ever enters it.
+function M.nextStep(zone: string): string?
+	return if zone == "danger" then "leave" else nil
 end
 
 function M.factory(ctx: any): { destroy: () -> () }?
@@ -92,61 +90,28 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	indicator.Name, indicator.LayoutOrder, indicator.Parent = "ZoneIndicator", 1, sheet.scroll
 	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 40) })
 	status.Name, status.LayoutOrder, status.Visible, status.Parent = "ZoneStatus", 2, false, sheet.scroll
-	local warning = ui.components.label(theme, {
-		text = M.text(ctx.locale, "zone_warning"),
-		size = UDim2.new(1, 0, 0, 56),
-	})
-	warning.Name, warning.LayoutOrder, warning.Visible, warning.Parent = "ZoneWarning", 3, false, sheet.scroll
+	local rules = ui.components.label(theme, { text = M.text(ctx.locale, "zone_pvp"), size = UDim2.new(1, 0, 0, 56) })
+	rules.Name, rules.LayoutOrder, rules.Parent = "ZoneRules", 3, sheet.scroll
 	local zone = "safe"
 	local alive = true
-	local toggle: TextButton
-	local confirm: TextButton
-	local cancel: TextButton
 	local function setStatus(text: string)
 		status.Text = text
 		status.Visible = text ~= ""
 	end
-	local function show(confirming: boolean)
-		indicator.Visible = not confirming
-		warning.Visible, confirm.Visible, cancel.Visible = confirming, confirming, confirming
-		toggle.Visible = not confirming
-	end
-	local function send(target: string)
-		local result = ctx.send(SET, { target })
-		setStatus(if result.ok then "" else M.refusal(ctx.locale, result.reason))
-		show(false)
-	end
-	toggle = ui.components.button(theme, {
-		text = "",
+	-- Shown only while the actor is in danger: the way back. There is no way in.
+	local toggle = ui.components.button(theme, {
+		text = M.text(ctx.locale, "zone_leave"),
 		size = UDim2.new(1, 0, 0, 44),
 		onClick = function()
 			if not alive then
 				setStatus(M.text(ctx.locale, "zone_dead"))
-			elseif M.nextStep(zone) == "confirm" then
-				setStatus("")
-				show(true)
-			else
-				send("safe")
+			elseif M.nextStep(zone) == "leave" then
+				local result = ctx.send(SET, { "safe" })
+				setStatus(if result.ok then "" else M.refusal(ctx.locale, result.reason))
 			end
 		end,
 	})
-	toggle.Name, toggle.LayoutOrder, toggle.Parent = "ZoneToggle", 4, sheet.scroll
-	confirm = ui.components.button(theme, {
-		text = M.text(ctx.locale, "zone_confirm"),
-		size = UDim2.new(1, 0, 0, 44),
-		onClick = function()
-			send("danger")
-		end,
-	})
-	confirm.Name, confirm.LayoutOrder, confirm.Visible, confirm.Parent = "ZoneConfirm", 5, false, sheet.scroll
-	cancel = ui.components.button(theme, {
-		text = M.text(ctx.locale, "zone_cancel"),
-		size = UDim2.new(1, 0, 0, 44),
-		onClick = function()
-			show(false)
-		end,
-	})
-	cancel.Name, cancel.LayoutOrder, cancel.Visible, cancel.Parent = "ZoneCancel", 6, false, sheet.scroll
+	toggle.Name, toggle.LayoutOrder, toggle.Visible, toggle.Parent = "ZoneLeave", 4, false, sheet.scroll
 	local function render(snapshot: { [string]: any })
 		local state = snapshot["death-zone"]
 		if type(state) ~= "table" then
@@ -161,7 +126,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		zone, alive = state.zone, state.alive ~= false
 		indicator.Text = M.text(ctx.locale, if zone == "danger" then "zone_danger" else "zone_safe")
-		toggle.Text = M.text(ctx.locale, if zone == "danger" then "zone_leave" else "zone_enter")
+		toggle.Visible = M.nextStep(zone) == "leave"
 		-- The panel opens from the dock (or Z); a snapshot only refreshes its text and never
 		-- pops the sheet over the world.
 	end

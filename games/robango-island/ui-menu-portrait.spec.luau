@@ -104,8 +104,9 @@ return {
 		end
 	end,
 	["menu keeps its design column count where it fits"] = function()
-		-- Portrait 4, short landscape capped by the thumb gutters, desktop 6.
-		local expected = { ["360x620"] = 4, ["640x339"] = 8, ["1280x720"] = 6 }
+		-- p91: tiles carry a readable 14-16px label beside the icon (MENU_MIN_CELL wide), so
+		-- portrait 2, short landscape 2 between the thumb gutters, desktop 4 in the 720 frame.
+		local expected = { ["360x620"] = 2, ["640x339"] = 2, ["1280x720"] = 4 }
 		for _, viewport in VIEWPORTS do
 			local frame = menuTiles(viewport[1], viewport[2], viewport[3])
 			local at = viewport[1] .. "x" .. viewport[2]
@@ -113,6 +114,6 @@ return {
 		end
 		-- A narrower phone drops columns instead of shrinking tiles under 44px.
 		local frame = menuTiles(200, 560, true)
-		assert(frame.cell >= Panels.MENU_MIN_TILE and frame.columns < 4, "200 wide drops a column")
+		assert(frame.cell >= Panels.MENU_MIN_TILE and frame.columns < 2, "200 wide drops a column")
 	end,
 }

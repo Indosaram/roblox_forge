@@ -79,6 +79,9 @@ function M.factory(ctx: any): any
 			label.Parent = sheet.scroll
 			label.LayoutOrder = index * 2
 			label.ZIndex = 52
+			if ctx.fitRow then
+				ctx.fitRow(label)
+			end
 			table.insert(rows, label)
 			local button = components.button(theme, {
 				text = ctx.text(if chapter.canClaim then "journal_claim" else "journal_open"),

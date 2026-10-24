@@ -135,6 +135,8 @@ function M.mount(ctx: any, spec: any): any
 			id = spec.id,
 			label = spec.title,
 			order = spec.order,
+			-- Context screens (NPC talk, pending settlement, match arrival/end) have no menu
+			-- tile: their trigger opens them, so the menu never shows them without context.
 			hidden = spec.hidden,
 			setOpen = function(open: boolean)
 				if open then

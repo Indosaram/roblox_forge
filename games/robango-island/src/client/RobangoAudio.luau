@@ -84,7 +84,7 @@ function M.snapshotEdges(previous: any, snapshots: any): ({ string }, any)
 	return out, facts
 end
 
-function M.start(SoundBank: any, Director: any, assets: { [string]: string }, config: any)
+function M.start(SoundBank: any, Director: any, assets: { [string]: string }, config: any, Settings: any)
 	local bank = SoundBank.new(config.groups)
 	local missing: { string } = {}
 	local loops: { [string]: Sound } = {}
@@ -269,10 +269,12 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 				then packet.snapshots.survivalExtensions["audio-settings"]
 				else nil
 			if settings then
-				director.setMuted(settings.muted)
+				director.setMuted(settings.muted == true)
 				for group, gain in config.groups do
-					director.setVolume(group, gain * settings.volume)
+					director.setVolume(group, Settings.groupGain(gain, settings, group))
 				end
+				-- Decorative effects read this flag; attack and hazard telegraphs ignore it.
+				player:SetAttribute("ForgeReducedEffects", settings.reducedEffects == true)
 			end
 		end)
 	)

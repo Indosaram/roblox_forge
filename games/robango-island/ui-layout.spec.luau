@@ -330,9 +330,11 @@ return {
 		end, Content.items, { pin = "starter-axe", jobs = {} })
 		assert(rows[1] and rows[1].recipe.id == "starter-axe", "tutorial axe pinned first in filtered list")
 		assert(#rows < #Content.recipes, "nearby filter narrows the list")
-		for _, viewport in HUD_VIEWPORTS do
+		-- p83: Studio PC 1280x720 is 1280x662 below the topbar inset; the list cut its third row.
+		for _, viewport in { HUD_VIEWPORTS[1], HUD_VIEWPORTS[2], HUD_VIEWPORTS[3], { 1280, 662, false } } do
 			local s = hudSheet(viewport[1], viewport[2], viewport[3])
 			local list, detail = craftPanes(s.width, s.height)
+			assert((list.height + 6) % 54 == 0, "craft list ends on a whole recipe row: " .. list.height)
 			local footer = { x = 8, y = s.height - 56, width = s.width - 16, height = 48 }
 			for _, rect in { list, detail, footer } do
 				inside(rect, s.width, s.height, "craft pane")

@@ -308,11 +308,6 @@ function M.factory(ctx: any): any
 	control("TextButton", "Instrument", Text.text(locale, "editor_instrument"), function()
 		api.nextInstrument()
 	end)
-	for index = 1, ctx.rules.maxParts do
-		control("TextButton", "Part" .. index, Text.text(locale, "lobby_part", index), function()
-			api.selectPart(index)
-		end)
-	end
 	local step = ctx.rules.ticksPerQuarter
 	local firstPitch = math.max(ctx.rules.pitchMin, 60)
 	local cells: { any } = {}
@@ -350,6 +345,13 @@ function M.factory(ctx: any): any
 				end)
 			)
 		end
+	end
+	-- p83: the note grid sat under six part rows (below the fold at 360x640, cut at 1280x720);
+	-- it now follows tempo and instrument directly and the parts come after it.
+	for index = 1, ctx.rules.maxParts do
+		control("TextButton", "Part" .. index, Text.text(locale, "lobby_part", index), function()
+			api.selectPart(index)
+		end)
 	end
 	local json = control("TextBox", "ImportText", "", nil)
 	json.PlaceholderText = "{ }"

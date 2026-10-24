@@ -45,7 +45,17 @@ local contract: Shared.RuntimeContract = {
 		},
 		{
 			id = "audio-settings",
-			args = { Schema.boolean(), Schema.number({ min = 0, max = 1 }) },
+			-- muted, master gain, optional per-channel gains and reduced effects (ui.settings).
+			args = {
+				Schema.boolean(),
+				Schema.number({ min = 0, max = 1 }),
+				Schema.optional(Schema.object({
+					music = Schema.optional(Schema.number({ min = 0, max = 1 })),
+					sfx = Schema.optional(Schema.number({ min = 0, max = 1 })),
+					ensemble = Schema.optional(Schema.number({ min = 0, max = 1 })),
+					reducedEffects = Schema.optional(Schema.boolean()),
+				})),
+			},
 			origin = "client",
 			rate = { capacity = 5, refillPerSecond = 2 },
 		},

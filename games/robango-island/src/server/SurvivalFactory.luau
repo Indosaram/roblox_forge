@@ -1166,7 +1166,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 					return allowed
 				end
 				local ok, reason = journalPort.update(actor, function(document)
-					document.audioSettings = { muted = args[1], volume = args[2] }
+					local extra: any = if type(args[3]) == "table" then args[3] else {}
+					document.audioSettings = {
+						muted = args[1],
+						volume = args[2],
+						music = extra.music,
+						sfx = extra.sfx,
+						ensemble = extra.ensemble,
+						reducedEffects = extra.reducedEffects == true,
+					}
 					return document
 				end)
 				return { ok = ok, reason = reason }

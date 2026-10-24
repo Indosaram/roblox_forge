@@ -92,7 +92,6 @@ local categories: { [string]: { number | string } } = {
 function M.tileOrder(id: string, order: number): number
 	return ((categories[id] or { 3 })[1] :: number) * 100 + order
 end
-local categoryKeys = { "menu_survival", "menu_world", "menu_social", "menu_shop", "menu_settings" }
 
 local ACTION_LABELS: { [string]: { string } } = {
 	survey = { "Survey", "조사" },
@@ -167,14 +166,26 @@ function M.activate(entries: { DockEntry }, entry: DockEntry)
 	entry.setOpen(true)
 end
 
-function M.menuBounds(width: number, height: number): (number, number, number, number)
-	local landscape = width > height
-	local columns = if landscape and height < 400 then 10 elseif landscape then 6 else 4
-	return math.min(720, width - 24), columns, if landscape and height < 400 then 56 else 64, 116
-end
 -- Contextual menu grid: 6px cell gap, and the ScrollingFrame's 6px scrollbar clips the
 -- right edge of its canvas, so tiles only get the width left of the scrollbar.
 M.MENU_GAP, M.MENU_SCROLLBAR, M.MENU_MIN_TILE = 6, 6, 44
+-- p83: 11px labels under a category caption were unreadable. A tile is one 48px row: a 24px
+-- icon on the left and the label (16px, never under MENU_LABEL_MIN) in up to two lines beside
+-- it. A column is only added while every tile keeps MENU_LABEL_WIDTH for its label.
+M.MENU_TILE, M.MENU_LABEL_SIZE, M.MENU_LABEL_MIN, M.MENU_ICON = 48, 16, 14, 24
+M.MENU_LABEL_LEFT, M.MENU_LABEL_RIGHT, M.MENU_LABEL_WIDTH = 36, 4, 110
+M.MENU_MIN_CELL = M.MENU_LABEL_LEFT + M.MENU_LABEL_WIDTH + M.MENU_LABEL_RIGHT
+-- Label rect inside a tile of `cell` width (x, width).
+function M.menuLabel(cell: number): (number, number)
+	return M.MENU_LABEL_LEFT, cell - M.MENU_LABEL_LEFT - M.MENU_LABEL_RIGHT
+end
+function M.menuBounds(width: number, height: number): (number, number, number, number)
+	local landscape = width > height
+	local columns = if landscape and height < 400 then 4 elseif landscape then 5 else 2
+	local w = math.min(720, width - 24)
+	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_CELL + M.MENU_GAP))
+	return w, math.max(1, math.min(columns, fit)), M.MENU_TILE, 116
+end
 -- Width of one tile when `columns` tiles share a `menuWidth` menu frame.
 function M.menuCell(menuWidth: number, columns: number): number
 	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
@@ -203,8 +214,12 @@ function M.menuRect(width: number, height: number, touch: boolean): (number, num
 	local x, h = (width - w) / 2, math.max(0, height - top - 128)
 	if (touch or width < 700) and width > height and height < 480 then
 		x, w, h = HUDModel.THUMB_GUTTER, width - 2 * HUDModel.THUMB_GUTTER, height - top - 8
+	elseif chat then
+		-- Portrait phone: the open menu is modal (like every portrait sheet), so it runs down to
+		-- the bottom margin instead of stopping above the thumbstick (p83: 3 rows at 360x640).
+		h = math.max(0, height - top - 16)
 	end
-	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_TILE + M.MENU_GAP))
+	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_CELL + M.MENU_GAP))
 	return x, top, w, h, math.max(1, math.min(columns, fit)), tile
 end
 function M.sheetBounds(width: number, height: number): (number, number)
@@ -712,17 +727,10 @@ function M.start(options: {
 		button.Name, button.LayoutOrder = "Dock-" .. entry.id, entry.order
 		if contextual then
 			local info: { number | string } = categories[entry.id] or { 3, "social" }
-			local category, iconId = info[1] :: number, info[2] :: string
+			local iconId = info[2] :: string
 			button.LayoutOrder = M.tileOrder(entry.id, entry.order)
 			button.Text = ""
-			local heading = ui.components.label(theme, {
-				text = Locale.text(options.locale, categoryKeys[category]),
-				parent = button,
-				size = UDim2.new(1, 0, 0, 16),
-				textSize = 11,
-			})
-			heading.TextColor3 = Color3.fromRGB(224, 241, 229)
-			heading.TextXAlignment = Enum.TextXAlignment.Center
+			-- Tiles stay grouped by category through LayoutOrder (tileOrder); no 11px caption.
 			local icon = if options.icons then options.icons.ui(iconId) else nil
 			local glyphs = {
 				bag = "item",
@@ -747,22 +755,23 @@ function M.start(options: {
 			IconFallback.mount(
 				button,
 				glyphs[iconId],
-				UDim2.fromOffset(20, 20),
-				UDim2.new(0.5, -10, 0, 17),
+				UDim2.fromOffset(M.MENU_ICON, M.MENU_ICON),
+				UDim2.new(0, 6, 0.5, -M.MENU_ICON / 2),
 				if icon then icon.image else nil,
 				"MenuIconFallback"
 			)
 			local caption = ui.components.label(theme, {
 				text = if entry.id == "music" then Locale.text(options.locale, "music") else entry.label,
 				parent = button,
-				size = UDim2.new(1, -4, 0, 16),
-				position = UDim2.new(0, 2, 1, -17),
-				textSize = 11,
+				size = UDim2.new(1, -(M.MENU_LABEL_LEFT + M.MENU_LABEL_RIGHT), 1, -4),
+				position = UDim2.fromOffset(M.MENU_LABEL_LEFT, 2),
+				textSize = M.MENU_LABEL_SIZE,
 			})
+			caption.Name = "MenuLabel"
 			caption.TextScaled, caption.TextWrapped = true, true
-			caption.TextXAlignment = Enum.TextXAlignment.Center
+			caption.TextXAlignment = Enum.TextXAlignment.Left
 			local limit = Instance.new("UITextSizeConstraint")
-			limit.MinTextSize, limit.MaxTextSize, limit.Parent = 8, 12, caption
+			limit.MinTextSize, limit.MaxTextSize, limit.Parent = M.MENU_LABEL_MIN, M.MENU_LABEL_SIZE, caption
 		end
 	end
 	local locks: { [string]: { any } } = {}

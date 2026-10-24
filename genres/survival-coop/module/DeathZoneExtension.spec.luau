@@ -145,7 +145,7 @@ return {
 		local panel = require("./DeathZonePanel")
 		assert(table.find(ExtensionPanels.factories, panel.factory), "panel factory registered")
 	end,
-	["panel text resolves every key in both locales and the confirm gate precedes danger"] = function()
+	["panel text resolves every key in both locales and the panel never offers entering danger"] = function()
 		local Panel = require("./DeathZonePanel")
 		for _, key in Panel.keys do
 			assert(Panel.text("en", key) ~= key and Panel.text("ko", key) ~= key, "localized " .. key)
@@ -154,7 +154,9 @@ return {
 			Panel.refusal("en", "INVALID_ZONE") == Panel.text("en", "zone_failed"),
 			"typed refusal maps to a message"
 		)
-		assert(Panel.nextStep("safe") == "confirm", "entering danger asks for confirmation first")
-		assert(Panel.nextStep("danger") == "leave", "leaving danger needs no warning")
+		-- UI spec lead decision: ui.danger-zone is read-only; no Enter-danger toggle.
+		assert(Panel.nextStep("safe") == nil, "a safe player is offered no way into danger")
+		assert(Panel.nextStep("danger") == "leave", "a player in danger can still return to safe")
+		assert(Panel.text("en", "zone_enter") == "zone_enter", "Enter danger zone copy removed")
 	end,
 }

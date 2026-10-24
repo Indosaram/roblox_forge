@@ -7,7 +7,8 @@ local audio = require(script.Parent:WaitForChild("RobangoAudio")).start(
 	require(Forge.core.infra.audio.SoundBank),
 	require(Forge.genres["survival-coop"].module.AudioDirector),
 	require(Shared.Assets),
-	require(Shared.RobangoAudioCatalog)
+	require(Shared.RobangoAudioCatalog),
+	require(Shared.SettingsModel)
 )
 script.Destroying:Connect(audio.destroy)
 
@@ -520,30 +521,55 @@ table.insert(panelFactories, function(ctx)
 	audioGui.Parent = playerGui
 	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
 		name = "AudioSettings",
-		title = if korean then "소리" else "Audio",
+		title = if korean then "설정" else "Settings",
 		parent = audioGui,
 	})
 	assert(ctx.fitSheet, "AUDIO_SHEET_REQUIRED")(sheet.frame)
 	sheet.frame.Visible = true
-	local muted, volume = false, 1
+	-- ui.settings: master/music/effects/ensemble volume, mute and reduced effects. Every row shows
+	-- its current value; a tap steps it and persists it through audio-settings.
+	local Settings = require(Shared.SettingsModel)
+	local current = Settings.normalize(nil)
 	local connections = {}
-	local function button(label, callback)
+	local buttons: { [string]: TextButton } = {}
+	local function render()
+		for _, row in Settings.rows(locale, current) do
+			local created = buttons[row[1]]
+			if created then
+				created.Text = row[2]
+			end
+		end
+	end
+	for index, row in Settings.rows(locale, current) do
+		local key = row[1]
 		local created = ctx.ui.components.button(ctx.ui.theme.default, {
-			text = label,
+			text = row[2],
 			size = UDim2.new(1, 0, 0, 48),
 			parent = sheet.scroll,
 		})
-		table.insert(connections, created.Activated:Connect(callback))
-		return created
-	end
-	local muteButton: TextButton
-	muteButton = button(if korean then "음소거" else "Mute", function()
-		ctx.send("survival-coop:audio-settings", { not muted, volume })
-	end)
-	for _, gain in { 0.25, 0.5, 0.75, 1 } do
-		button(tostring(gain * 100) .. "%", function()
-			ctx.send("survival-coop:audio-settings", { muted, gain })
-		end)
+		created.Name, created.LayoutOrder = "Setting-" .. key, index
+		buttons[key] = created
+		table.insert(
+			connections,
+			created.Activated:Connect(function()
+				local value: any = if key == "muted" or key == "reducedEffects"
+					then not current[key]
+					else Settings.nextStep(current[key])
+				local args = Settings.args(current, key, value)
+				local result = ctx.send("survival-coop:audio-settings", args)
+				if result and result.ok then
+					current = Settings.normalize({
+						muted = args[1],
+						volume = args[2],
+						music = args[3].music,
+						sfx = args[3].sfx,
+						ensemble = args[3].ensemble,
+						reducedEffects = args[3].reducedEffects,
+					})
+					render()
+				end
+			end)
+		)
 	end
 	table.insert(
 		connections,
@@ -554,15 +580,13 @@ table.insert(panelFactories, function(ctx)
 	local disconnect = ctx.onSnapshot(function(snapshot)
 		local value = snapshot["audio-settings"]
 		if value then
-			muted, volume = value.muted, value.volume
-			muteButton.Text = if muted
-				then (if korean then "음소거 해제" else "Unmute")
-				else (if korean then "음소거" else "Mute")
+			current = Settings.normalize(value)
+			render()
 		end
 	end)
 	assert(ctx.dock, "AUDIO_DOCK_REQUIRED")({
 		id = "audio",
-		label = if korean then "소리" else "Audio",
+		label = if korean then "설정" else "Settings",
 		order = 11,
 		setOpen = function(open)
 			audioGui.Enabled = open
@@ -727,8 +751,13 @@ table.insert(panelFactories, function(ctx)
 		local survival = snapshot["survival-coop"]
 		return if survival and survival.progression then survival.progression.level else 1
 	end
+	-- p83: 44px per text line centred each chapter in a tall block and pushed the next chapter
+	-- below the sheet. Rows are sized to their lines (15px text, 1.2 leading) and grow with wraps.
 	journalContext.rowSize = function(lines: number)
-		return UDim2.new(1, 0, 0, lines * 44)
+		return UDim2.new(1, 0, 0, lines * 18 + 12)
+	end
+	journalContext.fitRow = function(label: TextLabel)
+		label.AutomaticSize, label.TextYAlignment = Enum.AutomaticSize.Y, Enum.TextYAlignment.Top
 	end
 	journalContext.buttonSize = UDim2.new(1, 0, 0, 48)
 	local panel = require(Forge.genres["survival-coop"].module.JournalPanel).factory(journalContext)

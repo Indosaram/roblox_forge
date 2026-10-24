@@ -61,8 +61,10 @@ return {
 			end
 		end
 		-- The p68 case: 360x640 (584 below the inset) had a 238px frame = 3 rows + a 28px sliver.
+		-- p91: the modal portrait menu now runs to the bottom margin; it still trims the sliver.
 		local _, _, _, h, _, tile = Panels.menuRect(360, 584, true)
-		assert(h == 238 and Panels.menuRows(h, tile) == 210, "360x640 menu trims the sliver")
+		local shown = Panels.menuRows(h, tile)
+		assert(shown < h and shown % (tile + Panels.MENU_GAP) == 0, "360x640 menu trims the sliver")
 	end,
 	["360x640 gather button is hidden while the placement bar covers it"] = function()
 		local width, height = 360, 640 - 56

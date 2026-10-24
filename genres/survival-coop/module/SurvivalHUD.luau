@@ -273,7 +273,9 @@ function M.start(options: Options)
 			listPane.AutomaticSize, detailPane.AutomaticSize = Enum.AutomaticSize.None, Enum.AutomaticSize.None
 			-- Short landscape: list beside detail once the stack cannot show toggle plus one recipe.
 			local side = bounds.listHeight < 102 and sheet.frame.AbsoluteSize.X >= 400
-			local listHeight = if side then bounds.height else bounds.listHeight
+			-- Whole recipe rows only (48 + 6 gap): p83 1280x662 showed the third row cut mid-text
+			-- right above the Make footer.
+			local listHeight = Model.wholeRows(if side then bounds.height else bounds.listHeight, 48, 6)
 			listPane.Size = UDim2.new(if side then 0.5 else 1, -4, 0, listHeight)
 			detailPane.Size =
 				UDim2.new(if side then 0.5 else 1, -4, 0, bounds.height - (if side then 0 else listHeight + 8))
