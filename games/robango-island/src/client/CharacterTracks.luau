@@ -4,129 +4,133 @@
 -- not released (in unpublished Studio places the default animation ids answer 403 and every retry
 -- loads another track) the Animator reaches its 64-track limit and stops playing animations.
 --
--- A track whose animation failed to load may never fire Animator.AnimationPlayed, yet it still
--- counts toward the limit (p68: 64 playing tracks, all from 403 ids). So the guard prunes on every
--- AnimationPlayed AND on a sweep about once a second that reads Animator:GetPlayingAnimationTracks().
+-- Engine semantics observed in Studio (p71): Animator:GetPlayingAnimationTracks() lists every track
+-- that is not destroyed, stopped ones included (64 listed, 63 with IsPlaying=false); those count
+-- toward the 64-track limit; Stop does not free a slot, only Destroy does. A track whose animation
+-- failed to load may never fire Animator.AnimationPlayed, so the guard prunes on every
+-- AnimationPlayed AND on a sweep of GetPlayingAnimationTracks() several times a second.
 --
--- Per animation (AnimationId, or the Animation instance when the id is empty) it keeps the newest
--- track, plus the previous one while it is still playing so a crossfade can finish. Every older
--- track is stopped. The engine limit counts playing tracks (p68: GetPlayingAnimationTracks()
--- returned 64 at the warning burst), so Stop(0) alone frees a slot. A track is also destroyed only
--- when it fired AnimationPlayed and a newer track of the same animation has played since: that is
--- the ad75c87 rule, which ran 30 min in Studio with 0 errors, because Animate drops its reference
--- to a track once it loads the replacement. Tracks seen only by the sweep are never destroyed,
--- since Animate may still hold them: a later :Play/:AdjustSpeed on a stopped track is valid, and
--- a re-play makes that track the newest again. Past MAX_PLAYING playing tracks in total the least
--- recently played are stopped. Engine calls are pcall'd so a track Animate destroyed concurrently
--- cannot raise. The guard ends with its character.
+-- Tracks are grouped per animation (AnimationId, or the Animation instance when the id is empty) and
+-- ranked: a track that fires AnimationPlayed becomes the newest of its animation; a track first seen
+-- by the sweep while playing ranks as newest at discovery; a track first seen stopped ranks below
+-- every track ranked by the two rules above (ordered among themselves by discovery), because a
+-- stopped track nobody reported is a replaced one, not the one Animate is driving.
+-- Per animation the newest track is kept (even stopped: a finished one-shot like jump is still the
+-- one Animate holds), the previous one is kept while it is playing so a crossfade can finish, and
+-- every other track is stopped and destroyed.
+--
+-- Why destroying them is safe: the default Animate script holds one track per slot
+-- (currentAnimTrack, runAnimTrack, toolAnimTrack). On a change it stops (and destroys) that track and
+-- assigns the result of a fresh LoadAnimation; it only ever plays or adjusts the track it holds, never
+-- an older one. So a track that is neither the newest of its animation nor still fading out is one
+-- Animate has already dropped.
+--
+-- Past MAX_TRACKS live tracks in total the oldest stopped tracks are destroyed first, then the oldest
+-- playing ones. Engine calls are pcall'd so a track destroyed concurrently cannot raise. The guard
+-- ends with its character.
 local M = {}
 
-M.PER_ANIMATION = 2
-M.MAX_PLAYING = 32
-M.SWEEP_SECONDS = 1
+M.MAX_TRACKS = 32
+M.SWEEP_SECONDS = 0.2
 
-local function release(track: AnimationTrack, destroy: boolean)
+-- Ranks of tracks first seen stopped live in a band below every played/discovered-playing rank.
+local STOPPED_BAND = -1e9
+
+local function release(track: AnimationTrack)
 	pcall(function()
 		track:Stop(0)
 	end)
-	if destroy then
-		pcall(function()
-			track:Destroy()
-		end)
-	end
+	pcall(function()
+		track:Destroy()
+	end)
+end
+
+local function isPlaying(track: AnimationTrack): boolean
+	local ok, playing = pcall(function()
+		return track.IsPlaying
+	end)
+	return ok and playing == true
 end
 
 local function keyOf(track: AnimationTrack): any
-	local animation = track.Animation
-	if not animation then
-		return track
-	end
-	return if animation.AnimationId ~= "" then animation.AnimationId else animation
+	local ok, key = pcall(function(): any
+		local animation = track.Animation
+		if not animation then
+			return track
+		end
+		return if animation.AnimationId ~= "" then animation.AnimationId else animation
+	end)
+	return if ok then key else track
 end
 
---- Watches `animator` and releases superseded tracks per animation and past the playing cap.
+--- Watches `animator` and destroys superseded tracks per animation and past the total cap.
 --- `heartbeat` defaults to RunService.Heartbeat. Returns the stop function.
 function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
-	local order = setmetatable({} :: { [AnimationTrack]: number }, { __mode = "k" })
-	local heard = setmetatable({} :: { [AnimationTrack]: boolean }, { __mode = "k" })
+	local rank = setmetatable({} :: { [AnimationTrack]: number }, { __mode = "k" })
 	local counter = 0
-	local groups: { [any]: { AnimationTrack } } = {}
-
-	-- `played` marks a track that fired AnimationPlayed: it becomes the newest of its animation.
-	local function remember(track: AnimationTrack, played: boolean)
-		local known = order[track] ~= nil
-		if played then
-			heard[track] = true
-		end
-		if known and not played then
-			return
-		end
-		counter += 1
-		order[track] = counter
-		if known then
-			return
-		end
-		local key = keyOf(track)
-		local group = groups[key]
-		if not group then
-			group = {}
-			groups[key] = group
-		end
-		table.insert(group, track)
-	end
+	local discovered = 0
 
 	local function newestFirst(a: AnimationTrack, b: AnimationTrack): boolean
-		return (order[a] or 0) > (order[b] or 0)
+		return rank[a] > rank[b]
 	end
 
 	local function sweep()
-		local ok, playing = pcall(function()
+		local ok, listed = pcall(function()
 			return animator:GetPlayingAnimationTracks()
 		end)
-		if ok then
-			for _, track in playing do
-				remember(track, false)
+		if not ok then
+			return
+		end
+		local groups: { [any]: { AnimationTrack } } = {}
+		for _, track in listed do
+			if rank[track] == nil then
+				if isPlaying(track) then
+					counter += 1
+					rank[track] = counter
+				else
+					discovered += 1
+					rank[track] = STOPPED_BAND + discovered
+				end
 			end
+			local key = keyOf(track)
+			local group = groups[key]
+			if not group then
+				group = {}
+				groups[key] = group
+			end
+			table.insert(group, track)
 		end
 		local live: { AnimationTrack } = {}
-		for key, group in groups do
+		for _, group in groups do
 			table.sort(group, newestFirst)
-			local kept = {}
 			for index, track in group do
-				local superseded = index > 1 and not (#kept < M.PER_ANIMATION and track.IsPlaying)
-				if superseded then
-					-- Destroy only what AnimationPlayed reported; sweep-only tracks are stopped.
-					release(track, heard[track] == true)
-				end
-				local stillHeld = if heard[track] then not superseded else track.IsPlaying
-				if stillHeld then
-					table.insert(kept, track)
-				else
-					-- Forget it; if it plays again the sweep or AnimationPlayed re-registers it.
-					order[track] = nil
-				end
-			end
-			if #kept > 0 then
-				groups[key] = kept
-			else
-				groups[key] = nil
-			end
-			for _, track in kept do
-				if track.IsPlaying then
+				if index == 1 or (index == 2 and isPlaying(track)) then
 					table.insert(live, track)
+				else
+					rank[track] = nil
+					release(track)
 				end
 			end
 		end
-		if #live > M.MAX_PLAYING then
-			table.sort(live, newestFirst)
-			for index = #live, M.MAX_PLAYING + 1, -1 do
-				release(live[index], false)
+		if #live > M.MAX_TRACKS then
+			-- Oldest stopped tracks go first, then the oldest playing ones.
+			table.sort(live, function(a, b)
+				local pa, pb = isPlaying(a), isPlaying(b)
+				if pa ~= pb then
+					return pb
+				end
+				return rank[a] < rank[b]
+			end)
+			for index = 1, #live - M.MAX_TRACKS do
+				rank[live[index]] = nil
+				release(live[index])
 			end
 		end
 	end
 
 	local played = animator.AnimationPlayed:Connect(function(track: AnimationTrack)
-		remember(track, true)
+		counter += 1
+		rank[track] = counter
 		sweep()
 	end)
 	local signal: RBXScriptSignal = heartbeat or game:GetService("RunService").Heartbeat
@@ -138,10 +142,10 @@ function M.guard(animator: Animator, heartbeat: RBXScriptSignal?): () -> ()
 			sweep()
 		end
 	end)
+	sweep()
 	return function()
 		played:Disconnect()
 		ticked:Disconnect()
-		table.clear(groups)
 	end
 end
 
