@@ -1,6 +1,7 @@
 --!strict
 local Model = require("./SurvivalHUDModel")
 local RecipeMarks = require("./RecipeMarks")
+local BuildPlacement = require("./BuildPlacement")
 local Locale = require("./SurvivalHUDLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local Spoilage = require("../../../core/domain/survival/Spoilage")
@@ -11,7 +12,14 @@ M.NOTICE_SECONDS = 5
 -- Seconds a finished refusal stays on the contextual status before it clears.
 M.REFUSAL_SECONDS = 8
 
-M.toasted = { WEAPON_UNAVAILABLE = true, PLACEMENT_UNREACHABLE = true, WAREHOUSE_UNREACHABLE = true }
+M.toasted = {
+	WEAPON_UNAVAILABLE = true,
+	PLACEMENT_UNREACHABLE = true,
+	PLACEMENT_UNSUPPORTED = true,
+	PLACEMENT_BLOCKED = true,
+	PLACEMENT_BLOCKED_CREATURE = true,
+	WAREHOUSE_UNREACHABLE = true,
+}
 -- Seconds a refusal toast stays up (p43 Studio: one stayed ~18 minutes).
 M.TOAST_SECONDS = 6
 
@@ -645,6 +653,33 @@ function M.start(options: Options)
 			end
 		end
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
+		if placement and not reason then
+			-- Same support/obstruction test as the server verify, so wildlife or parts on the plot turn it red.
+			local excluded: { Instance } = { ghost }
+			for _, other in players:GetPlayers() do
+				if other.Character then
+					table.insert(excluded, other.Character)
+				end
+			end
+			local ray = RaycastParams.new()
+			ray.FilterType, ray.FilterDescendantsInstances, ray.RespectCanCollide =
+				Enum.RaycastFilterType.Exclude, excluded, true
+			local box = OverlapParams.new()
+			box.FilterType, box.FilterDescendantsInstances, box.RespectCanCollide =
+				Enum.RaycastFilterType.Exclude, excluded, true
+			local studs = settlement.config.cellStuds
+			local checked = table.clone(placement.cells)
+			table.insert(checked, placement.entry)
+			reason = BuildPlacement.occupancy(checked, function(cell)
+				local center = options.settlementOrigin + Vector3.new((cell.x + 0.5) * studs, 0, (cell.z + 0.5) * studs)
+				local support = world:Raycast(center + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0), ray)
+				if support then
+					center = Vector3.new(center.X, support.Position.Y, center.Z)
+				end
+				local size = Vector3.new(studs - 0.1, 3.5, studs - 0.1)
+				return support, world:GetPartBoundsInBox(CFrame.new(center + Vector3.new(0, 2, 0)), size, box)
+			end, false)
+		end
 		placementReason = reason
 		local cells: { any } = if placement then table.clone(placement.cells) else {}
 		if not placement then
@@ -810,51 +845,83 @@ function M.start(options: Options)
 	confirmPlacement.Size, confirmPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(88, 0)
 	cancelPlacement.Size, cancelPlacement.Position = UDim2.fromOffset(116, 48), UDim2.fromOffset(212, 0)
 	toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -264)
+	local function overControl(px: number, py: number): boolean
+		local p, s = placementBar.AbsolutePosition, placementBar.AbsoluteSize
+		if Model.overPlacementBar(px, py, p, s) then
+			return true
+		end
+		-- Buttons and the touch thumbstick are Active; full-screen HUD containers are not.
+		for _, item in player.PlayerGui:GetGuiObjectsAtPosition(px, py) do
+			if item.Active then
+				return true
+			end
+		end
+		return false
+	end
+	local function pointAt(position: Vector3)
+		local camera, settlement = world.CurrentCamera, model.snapshot.settlement
+		if not camera or not settlement then
+			return
+		end
+		for _, entry in Model.placements(settlement, model.actor) do
+			if entry.placement.definition.id == structureId then
+				return
+			end
+		end
+		local ray = camera:ScreenPointToRay(position.X, position.Y)
+		if math.abs(ray.Direction.Y) < 0.001 then
+			return
+		end
+		local distance = (options.settlementOrigin.Y - ray.Origin.Y) / ray.Direction.Y
+		if distance < 0 then
+			return
+		end
+		local hit = ray.Origin + ray.Direction * distance
+		local nextX, nextZ =
+			Model.pointerCell(hit.X, hit.Z, options.settlementOrigin.X, options.settlementOrigin.Z, settlement.config)
+		if nextX ~= x or nextZ ~= z then
+			x, z = nextX, nextZ
+			preview()
+			blocked.Text = if placementReason then Locale.refusal(locale, placementReason) else ""
+		end
+	end
+	local touchStart: { [any]: Vector3 } = {}
 	table.insert(
 		connections,
 		input.InputChanged:Connect(function(event, processed)
-			if processed or section ~= "build" or not structureId then
+			if section ~= "build" or not structureId then
 				return
 			end
-			local p, s = placementBar.AbsolutePosition, placementBar.AbsoluteSize
-			if Model.overPlacementBar(event.Position.X, event.Position.Y, p, s) then
+			local kind = event.UserInputType.Name
+			local over = kind == "Touch" and overControl(event.Position.X, event.Position.Y)
+			if BuildPlacement.pointerUse(kind, processed, over) then
+				pointAt(event.Position)
+			end
+		end)
+	)
+	-- A tap never fires InputChanged: record where each touch began and move the ghost on release.
+	table.insert(
+		connections,
+		input.InputBegan:Connect(function(event)
+			if event.UserInputType == Enum.UserInputType.Touch then
+				touchStart[event] = event.Position
+			end
+		end)
+	)
+	table.insert(
+		connections,
+		input.InputEnded:Connect(function(event, processed)
+			local start = touchStart[event]
+			touchStart[event] = nil
+			if not start or section ~= "build" or not structureId then
 				return
 			end
+			local at = event.Position
 			if
-				event.UserInputType ~= Enum.UserInputType.MouseMovement
-				and event.UserInputType ~= Enum.UserInputType.Touch
+				BuildPlacement.isTap(start.X, start.Y, at.X, at.Y)
+				and BuildPlacement.pointerUse("Touch", processed, overControl(at.X, at.Y))
 			then
-				return
-			end
-			local camera, settlement = world.CurrentCamera, model.snapshot.settlement
-			if not camera or not settlement then
-				return
-			end
-			for _, entry in Model.placements(settlement, model.actor) do
-				if entry.placement.definition.id == structureId then
-					return
-				end
-			end
-			local ray = camera:ScreenPointToRay(event.Position.X, event.Position.Y)
-			if math.abs(ray.Direction.Y) < 0.001 then
-				return
-			end
-			local distance = (options.settlementOrigin.Y - ray.Origin.Y) / ray.Direction.Y
-			if distance < 0 then
-				return
-			end
-			local hit = ray.Origin + ray.Direction * distance
-			local nextX, nextZ = Model.pointerCell(
-				hit.X,
-				hit.Z,
-				options.settlementOrigin.X,
-				options.settlementOrigin.Z,
-				settlement.config
-			)
-			if nextX ~= x or nextZ ~= z then
-				x, z = nextX, nextZ
-				preview()
-				blocked.Text = if placementReason then Locale.refusal(locale, placementReason) else ""
+				pointAt(at)
 			end
 		end)
 	)
@@ -1588,6 +1655,13 @@ function M.start(options: Options)
 				open("build")
 			elseif key.KeyCode == Enum.KeyCode.R then
 				rest()
+			elseif
+				key.KeyCode == (Enum.KeyCode :: any)[BuildPlacement.ROTATE_KEY]
+				and section == "build"
+				and structureId
+			then
+				rotation = (rotation + 1) % 4
+				render()
 			elseif key.KeyCode == Enum.KeyCode.F then
 				attack()
 			elseif key.KeyCode == Enum.KeyCode.V then

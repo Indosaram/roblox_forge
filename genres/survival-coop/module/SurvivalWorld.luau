@@ -217,7 +217,12 @@ function M.new(config: Config)
 			warehouse = function(actor: string): boolean
 				return reachable(actor, warehouse, nil)
 			end,
-			verify = function(actor: string, placement: Settlement.Placement, state: Settlement.State): boolean
+			-- Returns false plus a distinct refusal (p60: every failure used to read "move closer").
+			verify = function(
+				actor: string,
+				placement: Settlement.Placement,
+				state: Settlement.State
+			): (boolean, string?)
 				local size = state.config.cellStuds
 				local entry = center(placement.entry, size)
 				local ground = world:Raycast(entry + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0))
@@ -225,6 +230,17 @@ function M.new(config: Config)
 					entry = Vector3.new(entry.X, ground.Position.Y, entry.Z)
 				end
 				if not reachable(actor, entry + Vector3.new(0, 3, 0), nil, 12) then
+					return false, "PLACEMENT_UNREACHABLE"
+				end
+				-- Wildlife models carry ForgeWildlifeId (WildlifeWorld); the HUD ghost uses the same test.
+				local function creature(instance: Instance?): boolean
+					local node = instance
+					while node and node ~= world do
+						if node:GetAttribute("ForgeWildlifeId") ~= nil then
+							return true
+						end
+						node = node.Parent
+					end
 					return false
 				end
 				local params = RaycastParams.new()
@@ -248,8 +264,11 @@ function M.new(config: Config)
 				for _, cell in cells do
 					local position = center(cell, size)
 					local support = world:Raycast(position + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0), params)
+					if support and creature(support.Instance) then
+						return false, "PLACEMENT_BLOCKED_CREATURE"
+					end
 					if not support or support.Normal.Y < 0.9 then
-						return false
+						return false, "PLACEMENT_UNSUPPORTED"
 					end
 					if support.Position then
 						position = Vector3.new(position.X, support.Position.Y, position.Z)
@@ -258,17 +277,21 @@ function M.new(config: Config)
 					overlap.FilterType = Enum.RaycastFilterType.Exclude
 					overlap.FilterDescendantsInstances = params.FilterDescendantsInstances
 					overlap.RespectCanCollide = true
-					if
-						#world:GetPartBoundsInBox(
-							CFrame.new(position + Vector3.new(0, 2, 0)),
-							Vector3.new(size - 0.1, 3.5, size - 0.1),
-							overlap
-						) > 0
-					then
-						return false
+					local blockers = world:GetPartBoundsInBox(
+						CFrame.new(position + Vector3.new(0, 2, 0)),
+						Vector3.new(size - 0.1, 3.5, size - 0.1),
+						overlap
+					)
+					for _, part in blockers do
+						if creature(part) then
+							return false, "PLACEMENT_BLOCKED_CREATURE"
+						end
+					end
+					if #blockers > 0 then
+						return false, "PLACEMENT_BLOCKED"
 					end
 				end
-				return true
+				return true, nil
 			end,
 			publish = function(state: Settlement.State)
 				local tribe = state.config.tribeId

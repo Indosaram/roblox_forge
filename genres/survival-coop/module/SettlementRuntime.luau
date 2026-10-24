@@ -24,7 +24,8 @@ export type Config = {
 	maxOutcomes: number?,
 	-- Explicit server consent, applied once to a new or untouched settlement.
 	acceptedMembers: { string }?,
-	verifyPlacement: ((string, Settlement.Placement, Settlement.State) -> boolean)?,
+	-- false plus an optional refusal code; a bare false reads as PLACEMENT_UNREACHABLE.
+	verifyPlacement: ((string, Settlement.Placement, Settlement.State) -> (boolean, string?))?,
 	publish: ((Settlement.State) -> ())?,
 	workshop: {
 		content: Content.Document,
@@ -747,15 +748,16 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 					local reservedId = Transaction.reservationId(tribeId, commandId)
 					resultData = { reservationId = reservedId }
 					if candidate then
-						if
-							config.verifyPlacement
-							and not config.verifyPlacement(
+						local verified, refusal = true, nil
+						if config.verifyPlacement then
+							verified, refusal = config.verifyPlacement(
 								actor,
 								candidate.settlement.reservations[reservedId],
 								Settlement.snapshot(state.settlement)
 							)
-						then
-							candidate, reason = nil, "PLACEMENT_UNREACHABLE"
+						end
+						if not verified then
+							candidate, reason = nil, refusal or "PLACEMENT_UNREACHABLE"
 						else
 							data.operationIds[reservedId] = { actor = actor, epoch = context.sessionEpoch }
 						end
@@ -771,16 +773,15 @@ function M.new(config: Config, store: FencedStore.Store): (Runtime?, string?)
 				}
 				if action == "place" then
 					candidate, reason = Transaction.commit(state, catalog, txContext, args[1])
-					if
-						candidate
-						and config.verifyPlacement
-						and not config.verifyPlacement(
+					if candidate and config.verifyPlacement then
+						local verified, refusal = config.verifyPlacement(
 							actor,
 							state.settlement.reservations[args[1]],
 							Settlement.snapshot(state.settlement)
 						)
-					then
-						candidate, reason = nil, "PLACEMENT_UNREACHABLE"
+						if not verified then
+							candidate, reason = nil, refusal or "PLACEMENT_UNREACHABLE"
+						end
 					end
 					local reservation = state.settlement.reservations[args[1]]
 					if candidate and reservation then

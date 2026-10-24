@@ -201,8 +201,8 @@ local strings: { [string]: { string } } = {
 	make = { "Make (auto-collect)", "만들기 (자동 수령)" },
 	missing = { "Missing", "부족한 재료" },
 	placementHint = {
-		"Point at the ground, then confirm placement",
-		"바닥을 가리킨 뒤 배치를 확정하세요",
+		"Point at or tap the ground, press Y to rotate, then confirm placement",
+		"바닥을 가리키거나 터치하고 Y 키로 회전한 뒤 배치를 확정하세요",
 	},
 	inputs = { "Ingredients (available / needed)", "재료 (사용 가능 / 필요)" },
 	outputs = { "Makes", "결과" },
@@ -229,8 +229,8 @@ local strings: { [string]: { string } } = {
 	place = { "Place", "설치" },
 	preview = { "Preview only - server validates placement", "미리보기 - 서버가 설치 위치를 확인해요" },
 	buildHint = {
-		"Point at the ground; rotate, then reserve. Costs use shared storage.",
-		"바닥을 가리키고 회전한 뒤 예약하세요. 공용 창고 재료를 사용해요.",
+		"Tap or point at ground; Y rotates; reserve. Uses shared storage.",
+		"바닥을 터치하고 Y로 회전한 뒤 예약하세요. 공용 창고 재료를 써요.",
 	},
 	select = { "Select an item for details", "아이템을 선택하면 정보가 나와요" },
 	TRANSPORT_FAILED = {
@@ -270,6 +270,18 @@ local strings: { [string]: { string } } = {
 	PLACEMENT_UNREACHABLE = {
 		"Move closer to place (max 12 studs from the preview's entry marker).",
 		"더 가까이 가서 설치하세요 (미리보기 입구 표시에서 최대 12스터드).",
+	},
+	PLACEMENT_UNSUPPORTED = {
+		"No flat ground under the footprint or entry. Move the preview to level ground.",
+		"건물이나 입구 아래에 평평한 땅이 없어요. 평평한 곳으로 옮기세요.",
+	},
+	PLACEMENT_BLOCKED_CREATURE = {
+		"A creature is standing on the spot. Wait for it to move, or pick another spot.",
+		"동물이 그 자리에 있어요. 비켜날 때까지 기다리거나 다른 곳을 고르세요.",
+	},
+	PLACEMENT_BLOCKED = {
+		"Something is in the way (rock, tree or building). Move or rotate the preview.",
+		"바위·나무·건물 같은 장애물이 있어요. 위치를 옮기거나 회전하세요.",
 	},
 	ITEM_RESERVED = {
 		"That item is held by a reserved job. Cancel the job first.",

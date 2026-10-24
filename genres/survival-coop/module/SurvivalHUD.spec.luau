@@ -15,6 +15,7 @@ return {
 						path == "./SurvivalHUDModel"
 							or path == "./SurvivalHUDLocale"
 							or path == "./RecipeMarks"
+							or path == "./BuildPlacement"
 							or path == "../../../core/ui-kit/IconFallback",
 						"HUD dependencies"
 					)

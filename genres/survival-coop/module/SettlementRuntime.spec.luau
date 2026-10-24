@@ -990,6 +990,22 @@ return {
 		reachable = false
 		assert(command(runtime, "owner", "far", "place", { id, 1, 2 }).reason == "PLACEMENT_UNREACHABLE", "refused")
 		assert(#seen == 0, "a refused place emits nothing")
+		-- p60: the port's own refusal reaches the client on both reserve and place.
+		cfg.verifyPlacement = function()
+			return false, "PLACEMENT_BLOCKED_CREATURE"
+		end
+		assert(
+			command(runtime, "owner", "dino", "place", { id, 1, 2 }).reason == "PLACEMENT_BLOCKED_CREATURE",
+			"place keeps the verify reason"
+		)
+		assert(
+			command(runtime, "owner", "dino-reserve", "reserve", { "bench", 1, 1, 0, 1, 2, 0 }).reason
+				== "PLACEMENT_BLOCKED_CREATURE",
+			"reserve keeps the verify reason"
+		)
+		cfg.verifyPlacement = function()
+			return reachable
+		end
 		reachable = true
 		local placed = command(runtime, "owner", "place", "place", { id, 1, 2 })
 		assert(placed.ok, placed.reason)

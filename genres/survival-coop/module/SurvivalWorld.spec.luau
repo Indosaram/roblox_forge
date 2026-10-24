@@ -259,6 +259,34 @@ return {
 		obstructed, supported = false, false
 		assert(not ports.verify("1", placement, state), 'not ports.verify("1", placement, state)')
 		supported = true
+		-- p60: each refusal names its cause instead of always "move closer".
+		local function refusal(): string
+			local ok, why = ports.verify("1", placement, state)
+			return if ok then "OK" else tostring(why)
+		end
+		assert(refusal() == "OK", "clear plot verifies")
+		supported = false
+		assert(refusal() == "PLACEMENT_UNSUPPORTED", "no ground")
+		supported = true
+		local previous = boundsHandler
+		local function blockWith(parts)
+			boundsHandler = function()
+				return parts
+			end
+		end
+		blockWith({ spawn })
+		assert(refusal() == "PLACEMENT_BLOCKED", "part in the way")
+		local dino = roblox.Instance.new("Model")
+		dino:SetAttribute("ForgeWildlifeId", "rw.protoceratops.01")
+		local hip = roblox.Instance.new("Part")
+		hip.Name, hip.Parent, dino.Parent = "HumanoidRootPart", dino, world
+		blockWith({ hip })
+		assert(refusal() == "PLACEMENT_BLOCKED_CREATURE", "wildlife in the way")
+		boundsHandler = previous
+		dino:Destroy()
+		root.Position = roblox.Vector3.new(100, 0, 0)
+		assert(refusal() == "PLACEMENT_UNREACHABLE", "far away")
+		root.Position = roblox.Vector3.zero
 		ports.publish(state)
 		assert(not world:FindFirstChild("bench"), "reservation has no authoritative geometry")
 		state = assert(Settlement.commit(state, "1", 1, "build"))
