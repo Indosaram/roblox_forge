@@ -6,6 +6,7 @@ local serde = require("@lune/serde")
 local MarketExtension = require("../../../../genres/survival-coop/module/MarketExtension")
 local Catalog = require("./MonetizationCatalog")
 local Ports = require("./MarketPorts")
+local Market = require("../../../../core/domain/market/Market")
 
 local DAY = 86400
 
@@ -125,6 +126,32 @@ return {
 			"7",
 			now
 		) == nil, "absent player is unknown")
+	end,
+	["play time is cumulative: a rejoin keeps the durable online seconds for the 2h gate"] = function()
+		local now = 100 * DAY
+		local rejoined = deps({
+			sessionSeconds = function()
+				return 60
+			end,
+			playedSeconds = function()
+				return 3 * 3600
+			end,
+		})
+		local account = assert(Ports.account(rejoined, "7", now))
+		assert(account.playSeconds == 3 * 3600, "durable play seconds survive a rejoin: " .. account.playSeconds)
+		-- The same rule CrossServerMarketExtension applies to the pack account.
+		local gate = { _config = Market.DEFAULTS } :: any
+		assert(Market.eligible(gate, account, now), "3h cumulative play passes the 2h gate after rejoining")
+		local fresh = assert(Ports.account(
+			deps({
+				playedSeconds = function()
+					return nil
+				end,
+			}),
+			"7",
+			now
+		))
+		assert(fresh.playSeconds == 600, "no durable record falls back to this session")
 	end,
 	["config is accepted by MarketExtension and trades only Coins"] = function()
 		local config = Ports.config(deps())

@@ -83,6 +83,63 @@ return {
 		owned["7:flute"] = true
 		assert(join("7").ok and extension.snapshot("7").room.members["7"], "the flute owner joins")
 	end,
+	["a solo performer hosts, readies, starts and finishes a multi-part score alone"] = function()
+		local at = 100
+		local score = {
+			version = 1,
+			tempo = 120,
+			parts = {
+				{
+					instrumentId = "flute",
+					notes = { { startTick = 0, durationTicks = 480, pitch = 60, velocity = 100 } },
+				},
+				{
+					instrumentId = "drums",
+					notes = { { startTick = 480, durationTicks = 480, pitch = 40, velocity = 90 } },
+				},
+			},
+		}
+		local extension = Extension.new({
+			rules = Rules,
+			decode = function(text)
+				return serde.decode("json", text)
+			end,
+			now = function()
+				return at
+			end,
+			inRange = function()
+				return true
+			end,
+			owns = function(_actor: string, instrumentId: string): boolean
+				return instrumentId == "flute"
+			end,
+			repository = {
+				canRead = function()
+					return true
+				end,
+				load = function()
+					return score
+				end,
+			},
+		})
+		local function send(action: string, args: { any }): any
+			return extension.command("7", "survival-coop:" .. action, args, {}, "client", function()
+				return { ok = true }
+			end)
+		end
+		assert(send("ensemble-join", { "s", 1, 1 }).ok, "solo join opens the room")
+		assert(send("ensemble-start", {}).reason == "ensemble.not_ready", "start names the missing ready")
+		assert(send("ensemble-ready", { true }).ok, "solo ready")
+		assert(send("ensemble-start", {}).ok, "one ready host starts without waiting for others")
+		local room = extension.snapshot("7").room
+		assert(room.host == "7" and room.startAt == at + Rules.countdownSeconds, "host and +2 s start")
+		assert(#room.events == 2, "the unclaimed part still plays as backing")
+		extension.recover("7", room.startAt + 0.6)
+		assert(extension.snapshot("7").room ~= nil, "still performing")
+		extension.recover("7", room.startAt + 1)
+		assert(extension.snapshot("7").room == nil, "the performance finishes and frees the fire")
+		assert(send("ensemble-join", { "s", 1, 1 }).ok, "the soloist can play again")
+	end,
 	["score share refuses a non-numeric or self recipient before the fence and repository"] = function()
 		local calls = 0
 		local extension = Extension.new({

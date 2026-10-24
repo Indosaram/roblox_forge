@@ -117,6 +117,7 @@ require(Forge.genres["survival-coop"].module.MonetizationExtension).configure({
 -- owns the durable escrow and the Coins settlement over the live session (see MarketPorts).
 local tutorialSource: any = nil
 local joinedAt: { [string]: number } = {}
+local liveSession: any = nil
 -- The provisioning policy is guarded by the environment: `studio` is true only for a local Studio
 -- place with no published experience id, so a published server can never select the permissive path.
 -- `server` scopes the per-server camp: a reserved island server keeps its camp across restarts,
@@ -154,6 +155,15 @@ local marketConfig = require(Shared.MarketPorts).config({
 	sessionSeconds = function(actor, now)
 		local since = joinedAt[actor]
 		return if since then now - since else nil
+	end,
+	-- vitals.activeMillis accumulates online time across sessions and is saved with the profile.
+	playedSeconds = function(actor)
+		local port = if liveSession then liveSession.personalTransfer(actor) else nil
+		local data = if port then port.profile().data.envelope.genres["survival-coop"].data else nil
+		local vitals = if type(data) == "table" then data.vitals else nil
+		return if type(vitals) == "table" and type(vitals.activeMillis) == "number"
+			then vitals.activeMillis // 1000
+			else nil
 	end,
 	-- The Contracts extension owns the tutorial; an unavailable snapshot counts as incomplete.
 	tutorialComplete = function(actor)
@@ -290,6 +300,7 @@ local session = Server.start({
 	hooks = require(script.Parent.GenreHooks),
 	storeName = "robango-island-genre-v1",
 })
+liveSession = session
 if RunService:IsStudio() then -- QA: ForgeQASeedDamaged=<id>
 	local I, c =
 		require(Forge.core.domain.inventory.Inventory), require(Forge.core.domain.crafting.Job).catalog(content :: any)

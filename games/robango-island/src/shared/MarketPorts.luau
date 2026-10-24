@@ -8,9 +8,9 @@
 --     quest-bound (mission ledger tokens), bound (practice receipts) or retired (reed/samphire
 --     aliases); derived from the generated content, never a hand list. Robux grants are cosmetic
 --     sets, not items, and the escrow still refuses robuxPurchased/equipped stacks.
---   * account: Player.AccountAge (createdAt), play seconds of the CURRENT session only (no durable
---     cumulative play-time source exists; this under-reports, never over-reports) and the
---     Contracts tutorial completion.
+--   * account: Player.AccountAge (createdAt), cumulative play seconds (the larger of the durable
+--     online-time counter, vitals.activeMillis, and the current session) and the Contracts
+--     tutorial completion. Leaving and rejoining never resets play time.
 -- The escrow, the bag reads and the Coins wallet are owned by the genre MarketExtension over the
 -- live personal aggregate (see its header for the durability model and scope); the pack only
 -- configures which goods trade and who may trade. Fee and caps are core Market defaults.
@@ -42,6 +42,8 @@ export type Deps = {
 	accountAgeDays: (actor: string) -> number?,
 	-- Seconds played in the current server session at `now`; nil when unknown.
 	sessionSeconds: (actor: string, now: number) -> number?,
+	-- Durable cumulative online seconds from the personal save; nil when not loaded here.
+	playedSeconds: ((actor: string) -> number?)?,
 	tutorialComplete: (actor: string) -> boolean,
 }
 
@@ -50,7 +52,8 @@ function M.account(deps: Deps, actor: string, now: number): Market.Account?
 	if type(age) ~= "number" or age < 0 then
 		return nil
 	end
-	local played = deps.sessionSeconds(actor, now) or 0
+	local durable = if deps.playedSeconds then deps.playedSeconds(actor) else nil
+	local played = math.max(deps.sessionSeconds(actor, now) or 0, if type(durable) == "number" then durable else 0)
 	return {
 		id = actor,
 		createdAt = now - math.floor(age) * DAY,
