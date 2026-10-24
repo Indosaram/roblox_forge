@@ -648,6 +648,21 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		},
 	}
 	forge.games = { ["robango-island"] = { src = { shared = { ProcAssets = {} } } } }
+	-- Server-side tool names read the shipped Strings LocalizationTable (see RoleWorld itemNames).
+	forge.games["robango-island"].src.shared.PackText = require("../../../../games/robango-island/src/shared/PackText")
+	forge.games["robango-island"].Strings = {
+		GetEntries = function()
+			local entries = {}
+			for _, row in require("../../../../games/robango-island/PackText.fixture").rows do
+				table.insert(entries, {
+					Key = row.key,
+					Context = row.context,
+					Values = { ["en-us"] = row.en, ["ko-kr"] = row.ko },
+				})
+			end
+			return entries
+		end,
+	}
 	forge.games["robango-island"].src.shared.WorldText =
 		require("../../../../games/robango-island/src/shared/WorldText")
 	forge.games["robango-island"].src.shared.IslandTerrain =

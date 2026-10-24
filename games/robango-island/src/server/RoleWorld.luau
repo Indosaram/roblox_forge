@@ -10,6 +10,14 @@ local Dressing = require("./WorldDressing")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
+-- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
+-- shipped as the Strings LocalizationTable); rows are read once, on first use.
+local packRows: any = nil
+local function itemNames(locale: string): { [string]: string }
+	local PackText = require(Forge.games["robango-island"].src.shared.PackText)
+	packRows = packRows or PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
+	return PackText.names(packRows)(locale)
+end
 local materials: any = Enum.Material
 local shapes: any = Enum.PartType
 local M = {}
@@ -624,6 +632,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		reachStuds = 8,
 		baseWalkSpeed = 16,
 		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
+		itemNames = itemNames,
 		wildlife = { catalog = wildlife.catalog, spawns = spawns, maximum = wildlife.maximum, nowMillis = nowMillis },
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).

@@ -311,6 +311,68 @@ return {
 		api.destroy()
 		world:Destroy()
 	end,
+	["projected tool names follow the owner's LocaleId through the pack item names"] = function()
+		local names = require("../../../games/robango-island/PackText.fixture").names
+		for _, case in
+			{
+				{ locale = "ko-kr", itemNames = names, expected = "부싯돌 손도끼" },
+				{ locale = "en-us", itemNames = names, expected = "Flint Hatchet" },
+				{ locale = "ko-kr", itemNames = nil, expected = "Flint Hatchet" },
+			} :: { any }
+		do
+			local module, _, world, _, _, spawn, actor, callbacks = fixture()
+			actor.LocaleId = case.locale
+			local bag: any = {
+				items = {
+					axe = { itemId = "axe", catalogId = "stone-axe", quantity = 1, durabilityMilli = 100000 },
+				},
+				reservations = {},
+			}
+			local api = module.new({
+				content = {
+					structures = {},
+					items = {
+						{ id = "stone-axe", name = "Flint Hatchet", tags = { "tool" }, maxDurabilityMilli = 100000 },
+					},
+				},
+				worldRevision = "map-v1",
+				spawn = spawn,
+				carriedContainer = "bag",
+				reachStuds = 8,
+				baseWalkSpeed = 16,
+				itemNames = case.itemNames,
+				respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+			})
+			api.bind({
+				members = function()
+					return { "1" }
+				end,
+				snapshot = function()
+					return {
+						["survival-coop"] = { vitals = { healthMilli = 100000 }, inventory = { bag = { items = {} } } },
+					}
+				end,
+				personalTransfer = function()
+					return {
+						profile = function()
+							return {
+								data = {
+									envelope = {
+										genres = { ["survival-coop"] = { data = { inventory = { bag = bag } } } },
+									},
+								},
+							}
+						end,
+					}
+				end,
+			})
+			callbacks.heartbeat()
+			local tool = assert(actor:FindFirstChildOfClass("Backpack"):FindFirstChildOfClass("Tool"), "axe projected")
+			assert(tool.Name == case.expected and tool.ToolTip == case.expected, case.locale .. ": " .. tool.Name)
+			api.destroy()
+			world:Destroy()
+		end
+	end,
 	["canonical claimed tools equip revoke and rebuild across character and membership lifecycle"] = function()
 		local equipped: any = nil
 		local module, _, world, character, _, spawn, actor, callbacks = fixture({

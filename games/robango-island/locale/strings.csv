@@ -216,7 +216,7 @@ item_flint,Flint,entity flint,Flint,뗀석기 부싯돌
 item_fiber,Fiber,entity fiber,Fiber,고사리 섬유
 item_berry,Berry,entity berry,Berry,덤불딸기
 item_meat,Meat,entity meat,Meat,날고기
-item_stone_axe,Stone Axe,entity stone-axe,Stone Axe,부싯돌 손도끼
+item_stone_axe,Flint Hatchet,entity stone-axe,Flint Hatchet,부싯돌 손도끼
 item_stone_pick,Stone Pick,entity stone-pick,Stone Pick,부싯돌 곡괭이
 item_spear,Spear,entity spear,Spear,불에 단련한 창
 item_cooked_meat,Cooked Meat,entity cooked-meat,Cooked Meat,잉걸불 구이
@@ -255,7 +255,7 @@ item_roasted_hazelnuts,Roasted Hazelnuts,entity roasted-hazelnuts,Roasted Hazeln
 item_woodland_skewer,Woodland Skewer,entity woodland-skewer,Woodland Skewer,숲 꼬치
 item_clam_bake,Clam Bake,entity clam-bake,Clam Bake,조개 구이
 item_cattail_flatbread,Cattail Flatbread,entity cattail-flatbread,Cattail Flatbread,부들 납작빵
-recipe_stone_axe,Stone Axe recipe,entity stone-axe-recipe,Stone Axe recipe,부싯돌 손도끼 제작법
+recipe_stone_axe,Flint Hatchet recipe,entity stone-axe-recipe,Flint Hatchet recipe,부싯돌 손도끼 제작법
 recipe_stone_pick,Stone Pick recipe,entity stone-pick-recipe,Stone Pick recipe,부싯돌 곡괭이 제작법
 recipe_spear,Spear recipe,entity spear-recipe,Spear recipe,불에 단련한 창 제작법
 recipe_cooked_meat,Cooked Meat recipe,entity cooked-meat-recipe,Cooked Meat recipe,잉걸불 구이 제작법
@@ -362,7 +362,7 @@ npc_liaison_ecology_greet,"Watch first, touch later. The island remembers who wa
 npc_shipwright_greet,"Hull's patched, sails are dry. Where to this time?",npc line,"Hull's patched, sails are dry. Where to this time?","선체 수리 끝, 돛도 말랐어. 이번엔 어디로 가나?"
 npc_board_keeper_greet,"Three fresh contracts on the board today. First come, first paid.",npc line,"Three fresh contracts on the board today. First come, first paid.",오늘 게시판에 새 의뢰가 셋. 먼저 온 사람이 먼저 받아 가지.
 contract_day1_gather,Deliver 3 Wood,first-day contract,Deliver 3 Wood,쓰러진 통나무 3개 납품하기
-contract_day1_craft,Deliver a Stone Axe,first-day contract,Deliver a Stone Axe,부싯돌 손도끼 납품하기
+contract_day1_craft,Deliver a Flint Hatchet,first-day contract,Deliver a Flint Hatchet,부싯돌 손도끼 납품하기
 contract_day1_settle,Deliver 4 Fiber,first-day contract,Deliver 4 Fiber,고사리 섬유 4개 납품하기
 contract_daily_header,Daily contracts,contract board header,Daily contracts,오늘의 의뢰
 contract_trust_level,Trust,faction trust label,Trust,신뢰도

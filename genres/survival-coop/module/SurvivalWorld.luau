@@ -27,6 +27,10 @@ export type Config = {
 	baseWalkSpeed: number,
 	-- Paid cosmetic looks (mount skins, worn sets); absent means cosmetics render nothing.
 	cosmetics: CosmeticVisual.Config?,
+	-- Localized item names by catalog id for a LocaleId (the pack's player-facing copy). Tool
+	-- Name/ToolTip show in the engine Backpack hotbar, so they follow the owner's locale; an
+	-- absent table or id falls back to the catalog name.
+	itemNames: ((locale: string) -> { [string]: string })?,
 	-- Retry pacing needs a monotonic seconds clock. Production omits it and gets
 	-- os.clock(); specs inject a deterministic one so no test waits on wall time.
 	now: (() -> number)?,
@@ -67,6 +71,17 @@ function M.new(config: Config)
 	local tools: { [Tool]: { owner: string, itemId: string } } = {}
 	local projected: { [Tool]: Model } = {}
 	local toolDefinitions: { [string]: Content.Item } = {}
+	local localeNames: { [string]: { [string]: string } } = {}
+	local function toolName(actor: Player?, catalogId: string): string
+		local resolve = config.itemNames
+		local locale = if actor and type(actor.LocaleId) == "string" then actor.LocaleId else "en-us"
+		if resolve and localeNames[locale] == nil then
+			localeNames[locale] = resolve(locale)
+		end
+		local names = localeNames[locale]
+		local text = if names then names[catalogId] else nil
+		return if type(text) == "string" and text ~= "" then text else toolDefinitions[catalogId].name
+	end
 	local itemDefinitions: { Content.Item } = config.content.items or {}
 	for _, definition in itemDefinitions do
 		if table.find(definition.tags, "tool") and (definition.maxDurabilityMilli or 0) > 0 then
@@ -710,8 +725,10 @@ function M.new(config: Config)
 					continue
 				end
 				local tool = Instance.new("Tool")
-				tool.Name, tool.CanBeDropped, tool.RequiresHandle = toolDefinitions[item.catalogId].name, false, true
-				tool.ToolTip = toolDefinitions[item.catalogId].name
+				-- Display only: equipment authority is the tools registry, never the Tool name.
+				local label = toolName(actor, item.catalogId)
+				tool.Name, tool.CanBeDropped, tool.RequiresHandle = label, false, true
+				tool.ToolTip = label
 				local handle = Instance.new("Part")
 				handle.Name, handle.Size =
 					"Handle", Vector3.new(0.22, if item.catalogId == "spear" then 5 else 2.5, 0.22)
