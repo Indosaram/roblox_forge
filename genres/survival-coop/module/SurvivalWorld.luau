@@ -240,7 +240,9 @@ function M.new(config: Config)
 			): (boolean, string?)
 				local size = state.config.cellStuds
 				local entry = center(placement.entry, size)
-				local ground = world:Raycast(entry + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0))
+				local solid = RaycastParams.new()
+				solid.RespectCanCollide = true
+				local ground = world:Raycast(entry + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0), solid)
 				if ground and ground.Position then
 					entry = Vector3.new(entry.X, ground.Position.Y, entry.Z)
 				end
@@ -338,7 +340,9 @@ function M.new(config: Config)
 					part.Size = Vector3.new((highX - lowX + 1) * size - 0.2, 1, (highZ - lowZ + 1) * size - 0.2)
 					part.Position = origin
 						+ Vector3.new((lowX + highX + 1) * size / 2, 0.5, (lowZ + highZ + 1) * size / 2)
-					local support = world:Raycast(part.Position + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0))
+					local solid = RaycastParams.new()
+					solid.RespectCanCollide = true
+					local support = world:Raycast(part.Position + Vector3.new(0, 32, 0), Vector3.new(0, -64, 0), solid)
 					if support and support.Position then
 						part.Position = Vector3.new(part.Position.X, support.Position.Y + 0.5, part.Position.Z)
 					end

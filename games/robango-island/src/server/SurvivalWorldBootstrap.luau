@@ -888,11 +888,12 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 	local roof = part("CameraTestRoof", Vector3.new(12, 1, 8), Vector3.new(-16, 9, 0), rgb(134, 92, 54))
 	roof.Material = Enum.Material.WoodPlanks
 	roof.Transparency = 1
-	-- Invisible camera-fade marker over the shelter (camera-occlusion QA name). p68: as a collidable,
-	-- queryable part it was the support hit for camp cells and the dodo, so the build ghost and the
-	-- server verify read "no flat ground" there. Like decor and QA marks, it never collides or answers
-	-- queries (placement, ground and reach rays all skip it).
-	roof.CanCollide, roof.CanQuery, roof.CanTouch = false, false, false
+	-- Invisible camera-fade marker over the shelter (camera-occlusion QA name). p68: as a collidable
+	-- part it was the support hit for camp cells and the dodo, so the build ghost and the server verify
+	-- read "no flat ground" there. It never collides, so placement, ground and reach rays (all
+	-- RespectCanCollide) skip it, but it stays queryable: GetPartsObscuringTarget only reports
+	-- CanQuery parts, and the camera fades it through that query (p74).
+	roof.CanCollide, roof.CanQuery, roof.CanTouch = false, true, false
 	CollectionService:AddTag(roof, "ForgeCameraOccluder")
 	kit("Shelter", Vector3.new(-16, 0, 0), "shelter")
 	local marks: { Mark } = {

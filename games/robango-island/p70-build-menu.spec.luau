@@ -18,7 +18,7 @@ local VIEWPORTS =
 	{ { 360, 640, true }, { 390, 844, true }, { 640, 339, true }, { 740, 360, true }, { 1280, 720, false } }
 
 return {
-	["CameraTestRoof never collides or answers placement and ground queries"] = function()
+	["CameraTestRoof never collides but stays queryable for the camera fade"] = function()
 		local engine = Engine.new()
 		local workspace = engine.game:GetService("Workspace")
 		engine.preview(Content, Source, nil, nil, "onboarding", true)
@@ -26,7 +26,11 @@ return {
 		local roof = assert(island:FindFirstChild("CameraTestRoof"), "camera-occlusion QA marker kept")
 		assert(roof.Transparency == 1, "roof stays invisible")
 		assert(roof.CanCollide == false, "roof must not be the support hit for camp cells")
-		assert(roof.CanQuery == false, "roof must not answer unfiltered ground rays")
+		-- p74: GetPartsObscuringTarget only reports CanQuery parts, so the camera fade needs it.
+		assert(roof.CanQuery == true, "camera occlusion query must see the roof")
+		local world = fs.readFile("genres/survival-coop/module/SurvivalWorld.luau")
+		local _, rays = string.gsub(world, "Vector3%.new%(0, %-64, 0%), solid%)", "")
+		assert(rays == 2, "placement verify and structure support rays respect CanCollide: " .. rays)
 	end,
 	["menu frame shows whole tile rows so the last visible tile is tappable"] = function()
 		local source = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
