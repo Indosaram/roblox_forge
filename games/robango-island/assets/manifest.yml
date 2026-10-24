@@ -3776,6 +3776,114 @@ assets:
       author: agent:omo/icons
       created: 2026-10-21
     decalAssetId: 119000950299771
+  - key: item-icon-workbench-t2-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json item.icon.workbench-t2-kit"
+    path: assets/icons/item.icon.workbench-t2-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:0658bc363a311e5e42b3e0c452409259ed32be3c1a612607fa7d9feb14319021
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#item.icon.workbench-t2-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: item-icon-workbench-t3-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json item.icon.workbench-t3-kit"
+    path: assets/icons/item.icon.workbench-t3-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:70679debc4263ac9022c645045b53776749da2562aba37ce8470c51270b492b0
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#item.icon.workbench-t3-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: item-icon-kiln-t2-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json item.icon.kiln-t2-kit"
+    path: assets/icons/item.icon.kiln-t2-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:41b19c4dff40cf8c1ae76131ca6053fff2547e450797a01bfc2fb72baf8b3379
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#item.icon.kiln-t2-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: item-icon-kiln-t3-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json item.icon.kiln-t3-kit"
+    path: assets/icons/item.icon.kiln-t3-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:321dec31bc66cf1d8fbda48557c5b468c8c5ada689b48ad718a564c3e1e3a6f9
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#item.icon.kiln-t3-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
   - key: item-icon-tanning-frame-kit
     kind: image
     tool: gpt-image
@@ -7717,17 +7825,17 @@ assets:
   - key: item-icon-practice-stitch
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-17.png cell 14"
+    source: "gpt-image redraw-p85.json item.icon.practice-stitch"
     path: assets/icons/item.icon.practice-stitch.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:4ca85e2ec52a83fcdccb1830501b574504b5a42e227dfaaf4278369a9f5693c3
+      digest: sha256:1251e81e523e461a198a46f2169369b8d3a26d75e6f063e05d7dca354b7d1d27
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#17"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p85.json#item.icon.practice-stitch"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
       provider:
         name: gpt-image
         version: Responses-API
@@ -7739,7 +7847,8 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-24
+    decalAssetId: 0
   - key: item-icon-practice-seedbed
     kind: image
     tool: gpt-image
@@ -10505,17 +10614,17 @@ assets:
   - key: recipe-icon-rawhide-lashing
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 9"
+    source: "gpt-image redraw-p85.json recipe.icon.rawhide-lashing"
     path: assets/icons/recipe.icon.rawhide-lashing.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:043eb30179054b0a450029afb1661299a6c6143b22a5e017b694be42d3650875
+      digest: sha256:d36a7354b8da335a56562c9c18d0a3cf9e1284e391a0fb745d8b13425be72f73
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p85.json#recipe.icon.rawhide-lashing"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
       provider:
         name: gpt-image
         version: Responses-API
@@ -10527,7 +10636,8 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-24
+    decalAssetId: 0
   - key: recipe-icon-roasted-hazelnuts
     kind: image
     tool: gpt-image
@@ -13753,6 +13863,114 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+  - key: recipe-icon-workbench-t2-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json recipe.icon.workbench-t2-kit"
+    path: assets/icons/recipe.icon.workbench-t2-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:1c1ddf2252d885ebc7d28d24ef1a9cf895602b1fb86cb655c0f18a6a01e5104f
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#recipe.icon.workbench-t2-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: recipe-icon-workbench-t3-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json recipe.icon.workbench-t3-kit"
+    path: assets/icons/recipe.icon.workbench-t3-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:5137c74560d29fa64edcdb2d1ba67ab7c22bc68a97d7e448c03a7aa526a802c3
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#recipe.icon.workbench-t3-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: recipe-icon-kiln-t2-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json recipe.icon.kiln-t2-kit"
+    path: assets/icons/recipe.icon.kiln-t2-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:286771670ef04d1a338877ba1ec3b3b0dd3562ff09f9c67cc4084e7e9d6fa11a
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#recipe.icon.kiln-t2-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
+  - key: recipe-icon-kiln-t3-kit
+    kind: image
+    tool: gpt-image
+    source: "gpt-image redraw-p85.json recipe.icon.kiln-t3-kit"
+    path: assets/icons/recipe.icon.kiln-t3-kit.png
+    assetId: 0
+    moderation: NotUploaded
+    provenance:
+      digest: sha256:4f6a52373fcd91b146f7d72a6e4e0e505e81d90417f44d6d0dd0b3344d763dec
+      recipe:
+        id: robango-icon-redraw
+        version: 1
+        input: "assets/icons/redraw-p85.json#recipe.icon.kiln-t3-kit"
+        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/icons
+      created: 2026-10-24
+    decalAssetId: 0
   - key: recipe-icon-tanning-frame-kit
     kind: image
     tool: gpt-image

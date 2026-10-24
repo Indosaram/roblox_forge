@@ -930,6 +930,14 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-kiln-kit.web]
 "item.icon.kiln-kit.png" = { id = 115368066773450 }
 
+[inputs.item-icon-kiln-t2-kit]
+path = "assets/icons/item.icon.kiln-t2-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-kiln-t3-kit]
+path = "assets/icons/item.icon.kiln-t3-kit.png"
+output_path = "games/robango-island/src/shared"
+
 [inputs.item-icon-knife-t1]
 path = "assets/icons/item.icon.knife-t1.png"
 output_path = "games/robango-island/src/shared"
@@ -1770,6 +1778,14 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-workbench-kit.web]
 "item.icon.workbench-kit.png" = { id = 90055555973243 }
 
+[inputs.item-icon-workbench-t2-kit]
+path = "assets/icons/item.icon.workbench-t2-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-workbench-t3-kit]
+path = "assets/icons/item.icon.workbench-t3-kit.png"
+output_path = "games/robango-island/src/shared"
+
 [inputs.recipe-icon-animal-pen]
 path = "assets/icons/recipe.icon.animal-pen.png"
 output_path = "games/robango-island/src/shared"
@@ -2060,6 +2076,14 @@ output_path = "games/robango-island/src/shared"
 
 [inputs.recipe-icon-kiln-kit]
 path = "assets/icons/recipe.icon.kiln-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-kiln-t2-kit]
+path = "assets/icons/recipe.icon.kiln-t2-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-kiln-t3-kit]
+path = "assets/icons/recipe.icon.kiln-t3-kit.png"
 output_path = "games/robango-island/src/shared"
 
 [inputs.recipe-icon-knife-t1]
@@ -2388,6 +2412,14 @@ output_path = "games/robango-island/src/shared"
 
 [inputs.recipe-icon-workbench-kit]
 path = "assets/icons/recipe.icon.workbench-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-workbench-t2-kit]
+path = "assets/icons/recipe.icon.workbench-t2-kit.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-workbench-t3-kit]
+path = "assets/icons/recipe.icon.workbench-t3-kit.png"
 output_path = "games/robango-island/src/shared"
 
 [inputs.robango-attack]
