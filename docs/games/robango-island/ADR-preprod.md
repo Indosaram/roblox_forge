@@ -105,3 +105,44 @@ bytes; it costs 66 KB of place file instead, which has its own, looser budget.
 every mission `dialogueKeys` entry, plus a case asserting the project ships the
 table and the client reads it), `social-panels.spec.luau`, and QA-PERF-01 itself,
 which now measures 2,959,389 source bytes and 1,250,997 place bytes.
+
+## ADR-12: Player copy lives in `locale/strings.csv`, not in Luau tables (2026-10-24, `03ecb30`, `888ea31`)
+
+**Decision.** ADR-11 now covers all player-facing text, not just the pack's
+authored rows. Copy for the survival-coop screens used by this pack lives in
+`games/robango-island/locale/strings.csv` (with its `provenance.csv` row) and
+reaches the client through the same LocalizationTable. Modules read it by key:
+- `ScreenText.use(PackText.lookup(rows, "scr."))` for the recovered screens and
+  the navigator (p94b);
+- `PackLocale.use(PackText.lookup(rows, ""))` plus `PackLocale.rows(tbl, prefixes?)`,
+  which gives a module's local table an `__index` fallback to the CSV (p94c,
+  p97);
+- `PackText.lookup` / `PackText.names` for pack text and entity names (ADR-11).
+
+An unknown `scr.*` key renders "" and never its id. With no lookup installed,
+`PackLocale` returns nil, so other packs behave as before.
+
+**Why.** QA-PERF-01. Text in a Luau table counts as script source; a
+LocalizationTable does not. The batch reached 3,012,722 source bytes against
+the 3,000,000 limit (`p94/fix.md`). After p94 the margin to the 2,985,000-byte
+future limit was 120 bytes, and `b5a8fa2` left 24 bytes. p97 moved the remaining
+text tables (782 new rows) and measured sourceBytes 2,911,288, futureBytes
+2,923,724, a 61,276-byte margin (`p97/headroom.md`). The budget was not raised.
+
+**Rule for new strings.**
+- Add the row to `strings.csv` (en-us and ko-kr) and `provenance.csv`; do not add
+  a Luau text table or a Luau copy of a CSV row.
+- Use the module's namespace (`scr.`, `hud.`, `soc.`, `chr.`, `mus.`, `fct.`,
+  `ctr.`, `cli.`, `brl.`, `act.`, `trv.`, `exp.`, `wld.`). If an unprefixed key
+  already exists with different text, add a namespaced key rather than change it.
+- Specs that load these modules install `games/robango-island/PackText.fixture`,
+  which reads the real CSV.
+- Run `forge check --only locale,provenance`; a row flagged by the provenance
+  n-gram gate stays out until a human reviews it (five such strings remain in
+  Luau, listed in `p97/headroom.md`).
+
+**Evidence.** `RecoveredScreens.spec.luau` (every literal `scr.*` key has
+en-us and ko-kr rows), the spec adaptations in `p94/fix.md` and
+`p97/headroom.md`, and QA-PERF-01 in `qa-evidence.spec.luau`. p97 reports a
+full `forge test` run of 2850 passed, 0 failed. The moved text has not been
+viewed in Studio on `888ea31` (see [qa-evidence.md](qa-evidence.md)).

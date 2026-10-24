@@ -10,13 +10,28 @@
 
 현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 2026-10-23 `23f5e8c`의 `games/robango-island/assets/manifest.yml` 기준으로 이미지 **260개가 `NotUploaded`**, sfx **15개가 `PendingModeration`**, sfx **22개가 `NotUploaded`**(6d8fef3에서 추가한 새 효과음, 라이브에서는 무음)입니다. 이전 보고 수치(아이콘 253, 오디오 55 대기)는 당시 상태입니다. 숫자는 manifest 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다.
 
+### 현재 차단 상태 (2026-10-24, `888ea31`)
+
+**차단 사유는 여전히 소유자 계정의 moderation warning입니다.** 2026-10-24 Studio 로그에도 `User is moderated`(`p64/console_mid1.txt`)와 moderated 애셋 로드 실패(`p83/screens.md`, `p93/recheck.md`, `p96/recheck.md`의 출력 표)가 남아 있습니다. 경고가 해제됐다는 증거는 없습니다. p85 재검토 기준 이미지 526개 중 **258개가 업로드·Approved, 268개가 미업로드**입니다(`p85/icons.md`, `p85/upload-plan.md`). 오디오 수치는 위 2026-10-23 manifest 기준에서 새로 확인하지 않았습니다.
+
+아래 단계는 모두 1번(경고 확인)을 기다립니다. 에이전트가 먼저 실행하지 않습니다.
+
+- 역할별 Place 11개 생성(소유자) 후 `deploy roles`로 place ID 기록(아래 4번).
+- 아이콘 업로드: `.omo/evidence/robango-recovery/p85/upload-plan.md`의 배치 01~19 순서(아래 2번).
+- 스테이징 배포 `deploy --env staging ... --all-roles`(아래 4번).
+- 실제 휴대폰 QA. 지금까지의 360x640 결과는 Studio 기기 에뮬레이션뿐입니다(`qa-evidence.md` 2026-10-24 절).
+- 서로 다른 실제 계정 2개의 거래·캠프 방문.
+- 실제 결제 영수증 정산과 혜택 적용 확인(가격·결제는 소유자 승인 필요).
+
+2026-10-24 Studio 화면 점검(p83 → p93 → p96)과 QA-PERF-01 정적 여유(61,276 B)는 `qa-evidence.md`의 2026-10-24 절에 있습니다. 이 결과는 Studio 에뮬레이션과 로컬 측정일 뿐이며, 출시 준비 완료를 뜻하지 않습니다.
+
 ### 소유자만 할 수 있는 행동 (2026-10-23 기준, 순서대로)
 
 1. **소유자 계정 `indosaram5`(user id `11734795308`)의 moderation warning 확인.** 소유자가 직접 roblox.com에 로그인해 경고를 확인(acknowledge)합니다. 확인 전에는 Open Cloud 호출이 403을 반환하므로 업로드·배포·상태 조회가 모두 막힙니다. 에이전트는 이 단계를 대신할 수 없고 로그인 정보도 입력하지 않습니다.
 
 아래 2~4는 경고 확인 뒤 리드가 저장소 루트에서 실행합니다. `forge`는 `C:/Users/sook/.rokit/bin/lune.exe run cli/forge`(즉 `lune run cli/forge`)입니다. 업로드에는 `.env.local`의 `ROBLOX_API_KEY`(asset read/write + `legacy-asset:manage`)를 프로세스 환경에 넣습니다. 소유자는 `--creator-user 11734795308`로 지정합니다.
 
-2. **아이콘 업로드(작은 배치).** 각 배치 전에 올릴 아이콘에서 올가미(noose)나 무기처럼 보이는 도형이 없는지 확인합니다(이전 검토: `.omo/evidence/robango-recovery/p6/icon-screen.md`). 먼저 `--dry-run`으로 배치를 확인한 뒤 올립니다.
+2. **아이콘 업로드(작은 배치).** 배치 목록과 순서는 `.omo/evidence/robango-recovery/p85/upload-plan.md`를 따릅니다: 저위험 배치 01~10(20개씩, 마지막 2개)을 먼저, 검토 등급 배치 11~19(도구·무기, 동물 부위, 고기, 가죽, 끈, 사람, 포획; 10개씩)는 사람이 그 배치를 본 뒤에만 올립니다. 배치마다 `assets status`가 Approved를 보일 때까지 기다린 뒤 다음 배치로 갑니다. 각 배치 전에 올릴 아이콘에서 올가미(noose)나 무기처럼 보이는 도형이 없는지 확인합니다(이전 검토: `.omo/evidence/robango-recovery/p6/icon-screen.md`, `p85/icons.md`). 먼저 `--dry-run`으로 배치를 확인한 뒤 올립니다.
    ```text
    lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n> --dry-run
    lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n>

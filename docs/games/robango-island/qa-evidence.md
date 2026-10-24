@@ -1,8 +1,73 @@
 # robango-island QA evidence
 
+## Every-screen Studio audit and static budget (2026-10-24)
+
+Current `main` is `888ea31`. Commits since `4a962f7`: `be6ec3c` (p85 icon
+redraws and upload batches), `6b9dd61` (p88 island view), `9907427` (p92 eight
+recovered screens), `4866f92` (p91 menu and panels), `03ecb30` (p94 copy from
+the LocalizationTable), `b5a8fa2` (p95 fixes for the p93 re-audit) and
+`888ea31` (p97 text tables to CSV, touch objective line). Evidence paths are
+under `.omo/evidence/robango-recovery/` and are gitignored local files. All
+Studio runs used Studio MCP real clicks/taps (`user_mouse_input`) with
+device emulation: PC `hd_1080` at 1280x720 (viewport 1279x720) and phone
+`KC_Mobile_360x640` portrait (viewport 360x640, TouchEnabled). Emulation is not a
+real phone.
+
+### Screen audit status
+
+| Run | Build | Scope | Result | Evidence |
+|---|---|---|---|---|
+| p83 every-screen audit | `9bee01f` | 55 screen states at both sizes, four roles (onboarding, archipelago a1.s1, brawl, team-outpost) | **FAIL**: 42 PASS, 13 FAIL. Island view threw `AERIAL_WORLD_REQUIRED` on the onboarding island and showed blank sky on a1.s1; taming body blank; expedition objectives showed raw ids; brawl panel unstyled with raw weather id; 11 px menu labels; PC craft/journal/score-editor clipping; settings had one volume scale; danger zone still offered entry. 32 of 85 catalog screen IDs had no reachable surface. | `p83/screens.md` |
+| p93 re-audit | `4866f92` | the p83 FAIL rows plus the 8 new navigator screens, both sizes, four roles | **FAIL**: 23 rows, 18 PASS, 5 FAIL (taming empty row re-appended every refresh, phone menu 1 column, build manage raw `farm-plot`, phone score grid 7th column off screen, arrival auto-opening on brawl/team-outpost). Island view, expedition text, brawl panel, siege match/results out of menu, craft/journal/score editor at PC, settings channels and read-only region safety PASS. 0 game script errors in all four sessions. | `p93/recheck.md` |
+| p96 re-check | `b5a8fa2` | the 5 p93 FAIL rows | **PASS** at both sizes: taming holds 2 rows across refreshes, phone menu 2 columns (12 whole tiles visible) and PC 4 columns, build manage reads `밭 회수`, phone score grid scrolls sideways inside the sheet, arrival opens only on onboarding (not on brawl or team-outpost). 0 game script errors. Side note: the HUD objective still showed `다가가서 E` on touch. | `p96/recheck.md` |
+
+What this does **not** cover:
+
+- `888ea31` (p97) is not re-checked in Studio. Its touch HUD objective fix
+  (`ctr.tutorial.gather_touch`) is backed only by `ContractsPanel.spec.luau`, and
+  the text moved to `strings.csv` by p97 has not been viewed in Studio.
+- The home role was not run for the arrival check (p96).
+- p92 screen fit was first measured by the geometry model; p93 then captured
+  all 8 at both sizes, but only in empty states (no clan, no scores, no
+  structures beyond the starter plot, a single player).
+- Screens p83 listed as unreachable in Studio stay unverified: station-prompt
+  and hidden docks (storage, capture, taming job, modify, technical support,
+  island rank, personal research, skill reset, score import/share, ensemble
+  lobby, farm area, crop specialize), and anything that needs a second player
+  or real cross-server travel (route invite, depart/travel, expedition results,
+  brawl match/results, siege match in progress, market buy, ensemble play).
+- Siege match/results empty states were not reachable (p93).
+- Settings has no locale or text-scale row, and nothing consumes
+  `ForgeReducedEffects` yet (p91, p93).
+- The p83 minor items not in any fix lane remain open as recorded there:
+  HUD vitals labels 11 px, clan-membership raw ID input, camp grey text, the
+  `건설`/`건축` naming, tempo with no unit.
+- No real phone, published build or second account was used.
+
+Every Studio session above still logged `ContentId ... moderated` and
+`Failed to load (moderated asset)` lines (p83, p93, p96 output tables); see
+[Current Studio and moderation limits](#current-studio-and-moderation-limits).
+
+### QA-PERF-01 static numbers (p97)
+
+Measured with the spec's own formula on the p97 tree, which landed as
+`888ea31` (`p97/headroom.md`):
+
+| | sourceBytes | futureBytes | margin to the 2,985,000 B limit |
+|---|---:|---:|---:|
+| before (`b5a8fa2`) | 2,972,540 | 2,984,976 | 24 B |
+| after (`888ea31`) | 2,911,288 | 2,923,724 | **61,276 B** |
+
+The budget is unchanged (3,000,000 B source, 2,985,000 B with the 15 KB future
+margin). The headroom came from moving player text out of Luau into
+`locale/strings.csv` ([ADR-12](ADR-preprod.md)); no feature was dropped.
+On-device TTFI and memory for these builds are **not measured**. The latest
+runtime figures are the Studio-process numbers on `2e5ca3b` (`p54/perf.md`),
+which have no memory threshold and are not device numbers.
+
 ## Studio real-input evidence and gates (2026-10-23)
 
-Current `main` is `23f5e8c`. The Studio runs below used local builds of an
+When this section was written, `main` was `23f5e8c`. The Studio runs below used local builds of an
 earlier commit plus the uncommitted batch that later landed. No Studio run used
 exactly `23f5e8c`. Each row names its build. Evidence paths are under
 `.omo/evidence/robango-recovery/` and are gitignored local files. "Real input"
@@ -114,9 +179,14 @@ not a signed-off replacement report. In particular,
 and `p7/studio/play1-console-mcp.txt` explicitly contains truncated HTTP 403
 asset output. Do not claim zero errors or a fresh startup/art pass from these.
 
-The account moderation warning blocks further external asset work. The recovery
-status is **253 icons not yet uploaded** and **55 audio pending moderation**.
-P6 local review replaced ambiguous artwork but cannot clear Roblox moderation.
+The account moderation warning blocks further external asset work. Per the
+p85 re-screen (`p85/icons.md`, `p85/upload-plan.md`), 258 of 526 image entries
+are uploaded and Approved and 268 are not uploaded; the earlier figures
+(253 icons, 55 audio pending) are historical. Studio logs on 2026-10-24 still
+show `User is moderated` / moderated-asset load failures (`p64/console_mid1.txt`,
+and the moderated counts in `p83/screens.md`, `p93/recheck.md`,
+`p96/recheck.md`). P6 and p85 local reviews replaced ambiguous artwork but
+cannot clear Roblox moderation.
 Do not publish or resume uploads while that blocker remains unresolved.
 
 **Studio real-input journey on `97e6a3e` (2026-10-22, `p24/a.md`).** In Windows
@@ -183,7 +253,7 @@ Status values: **local PASS** (runs here, deterministic), **needs Studio** (cann
 | QA-WILD-01 | `forge test WildlifeWorld --quiet` | genres/survival-coop/module/WildlifeWorld.spec.luau : "thirty third NPC spawn is refused and the cap cannot be raised" | local PASS (genre level; the pack's own roster is validated by content.spec.luau) |
 | QA-TAME-01 | `forge test Taming --quiet` | core/domain/taming/Taming.spec.luau : "QA-TAME-01: 10000 seeded simulations land within one percent..." ; genres/survival-coop/module/TamingRuntime.spec.luau : "same seed and events reproduce every capture outcome" | local PASS (merged into durango/integration, 29 specs) |
 | QA-SAVE-01 | `forge qa run --pack robango-island --scenario survival-coop:qa-save-01-rejoin-transfer-crash`; `forge test qa-evidence --quiet` | games/robango-island/qa-scenarios/survival-coop.qa-save-01-rejoin-transfer-crash.yml ; qa-evidence.spec.luau : "QA-SAVE-01 rejoin and transfer-crash scenario conserves items...", "NEGATIVE: a lost item..." | local PASS |
-| QA-PERF-01 | `forge test qa-evidence --quiet` (static build budget only); `forge test render-budget --quiet` (low render-profile caps) | games/robango-island/qa-evidence.spec.luau : "QA-PERF-01 built robango-island place stays inside the new-estimate static budget" + NEGATIVE ; games/robango-island/render-budget.spec.luau | local PASS for the static budget and the render-profile caps only (note 3). Runtime: **not a pass.** Studio layer 2 re-measured on `2e5ca3b` (2026-10-23, `p54/perf.md`): TTFI observed in 3/3 cold starts, median 0.671 s, Studio-process memory median 1,500 MB / max 1,577 MB (on `9db8e04` TTFI was not observed); Studio-process and Android (`SM-N981N`, 2026-10-20, revision not recorded) memory figures have no threshold. Physical low-end device measurement is pending (notes 3, 8) |
+| QA-PERF-01 | `forge test qa-evidence --quiet` (static build budget only); `forge test render-budget --quiet` (low render-profile caps) | games/robango-island/qa-evidence.spec.luau : "QA-PERF-01 built robango-island place stays inside the new-estimate static budget" + NEGATIVE ; games/robango-island/render-budget.spec.luau | local PASS for the static budget and the render-profile caps only (note 3; latest static measurement on `888ea31`: sourceBytes 2,911,288, futureBytes 2,923,724, margin 61,276 B, `p97/headroom.md`). Runtime: **not a pass.** Studio layer 2 re-measured on `2e5ca3b` (2026-10-23, `p54/perf.md`): TTFI observed in 3/3 cold starts, median 0.671 s, Studio-process memory median 1,500 MB / max 1,577 MB (on `9db8e04` TTFI was not observed); Studio-process and Android (`SM-N981N`, 2026-10-20, revision not recorded) memory figures have no threshold. Physical low-end device measurement is pending (notes 3, 8) |
 | QA-RT-01 | `forge qa run --pack robango-island --scenario survival-coop:market-trade --native` | genres/survival-coop/qa-scenarios/market-trade.yml (durable-escrow MarketExtension over a real Session with personal aggregates: list, completed trade with Coins moved and fee sunk, replay, refusals, restart + cancel) | local PASS steps=55 assertions=33 |
 | QA-RT-02 | `forge qa run --pack robango-island --scenario survival-coop:shop-receipt-storm --native` | genres/survival-coop/qa-scenarios/shop-receipt-storm.yml (MonetizationExtension: Catalog/Receipts/Subscription, idempotent redelivery) | local PASS steps=27 assertions=13; staging product IDs registered and verified on Universe `10771918494` (note 8) |
 | QA-RT-03 | `forge qa run --pack robango-island --scenario survival-coop:contracts-tutorial --native` | genres/survival-coop/qa-scenarios/contracts-tutorial.yml (ContractsExtension: contracts, trust, tutorial golden path + negatives + restart) | local PASS steps=74 assertions=31 |
@@ -197,7 +267,7 @@ Status values: **local PASS** (runs here, deterministic), **needs Studio** (cann
 
 1. **QA-ECON-01.** `forge econ sim --pack robango-island` cannot run: the genre simulator for the crafting-mode survival-coop pack stops with `simulation produced no accepted actions: survival-coop`, because the crafting config declares placement and wildlife features the simulation driver does not implement. So the economy gate is computed directly from `content.yml`: for each raw material that has a gather node, gather yield per hour divided by the raw material needed to build every structure once. The accepted band is 1.0 to 100.0 (new estimate, to be revisited after a play session). Measured today: wood 3.4, fieldstone 2.0, marsh clay 2.8, birch bark 9.6, reed 14, flint 65. Hide has no gather node (wildlife drop only) and is excluded. Doubling every yield pushes flint to 130 and fails; a tenth of the yield falls below 1.0 and fails.
 2. **QA-PROV-01 / QA-NAME-01.** The pack now opts in: `games/robango-island/provenance/` carries `policy.yml` (the reference-ip template), `banned-names.yml` (the reviewed reference-ip list), and `fingerprints/namu-20261016.path` pointing at `cli/forge/provenance/reference-ip/fingerprints`. `lune run cli/forge provenance check --pack robango-island` passes (1128 strings, 318 sidecar entries, 7 assets). Sidecars are `content.provenance.yml`, `econ.provenance.yml` and `locale/provenance.csv`; asset author/created are stamped by `forge gen procedural|audio --author agent:claude-5.5/robango-g1 --created 2026-10-16`. Two English locale lines (`lore_role`, `tutorial_done`) were reworded because they matched reference 8-grams.
-3. **QA-PERF-01.** Only static numbers are measurable locally. Measured on 2026-10-22 on the p34 tree (`4f70098` plus the uncommitted p33/p34 batches) with the spec's own method (`rojo build` of `games/robango-island/default.project.json`, then a walk of every instance in the deserialized place): 337 instances, 280 scripts, 2,790,298 bytes (2.79 MB) of script source, 1,096,487 bytes (1.10 MB) place file; with every manifest asset rendered as published, future script source is 2,803,296 bytes against the 2,985,000-byte limit (3.0 MB minus the 15 KB margin), so about 182 KB remain. The earlier figures (217 instances, 168 scripts, 1.26 MB source, 0.54 MB file) predate the catalog screens and world-density work and are superseded. The budget (400 instances, 300 scripts, 3.0 MB source, 1.5 MB file) is a new estimate. The source limit was raised from 2.5 MB to 3.0 MB on 2026-10-22 when the 36 missing catalog screens were added (each screen lane adds about 30 KB of client script); it is not a Roblox platform limit. **Render profiles (p34).** `game.yml` `render_profiles` (mirrored by `src/shared/RenderBudget.luau`) define a low profile selected at SavedQualityLevel 1-3, or Automatic on a touch device: at most 160 decorative dressing parts visible (nearest to the spawn first; RoleWorld stamps `ForgeDecorRank`), at most 2 dressing effect hosts emitting (fire, smoke, ash particles, lights), no decor shadows, articulated creature poses limited to the 6 nearest within 60 studs (telegraphs, attacks, stuns and deaths always posed), and at most 2 runtime EditableMesh prop builds. The high profile keeps the previous behaviour (100-stud pose range, every part, effect and mesh placement). `render-budget.spec.luau` proves each cap on every stage plan; the caps' runtime effect on memory or frame time has **not** been measured. **Layer 2 (Studio, measured 2026-10-18; the measured revision is not recorded in this document and predates `9db8e04`).** Measured in Roblox Studio on Windows (Ryzen 5 7500F) at the lowest rendering quality (Level01), with temporary probe scripts that were never committed. "First interaction" is the moment a gather ProximityPrompt is enabled on the client; time is counted from when the client script starts. These rows are historical and do not describe the current build.
+3. **QA-PERF-01.** Only static numbers are measurable locally. Measured on 2026-10-22 on the p34 tree (`4f70098` plus the uncommitted p33/p34 batches) with the spec's own method (`rojo build` of `games/robango-island/default.project.json`, then a walk of every instance in the deserialized place): 337 instances, 280 scripts, 2,790,298 bytes (2.79 MB) of script source, 1,096,487 bytes (1.10 MB) place file; with every manifest asset rendered as published, future script source is 2,803,296 bytes against the 2,985,000-byte limit (3.0 MB minus the 15 KB margin), so about 182 KB remain. These 2026-10-22 figures are superseded for source size: on 2026-10-24 (`888ea31`, `p97/headroom.md`) sourceBytes is 2,911,288 and futureBytes 2,923,724, a 61,276-byte margin to 2,985,000, after `b5a8fa2` had left only 24 bytes; on-device TTFI and memory are still not measured. The earlier figures (217 instances, 168 scripts, 1.26 MB source, 0.54 MB file) predate the catalog screens and world-density work and are superseded. The budget (400 instances, 300 scripts, 3.0 MB source, 1.5 MB file) is a new estimate. The source limit was raised from 2.5 MB to 3.0 MB on 2026-10-22 when the 36 missing catalog screens were added (each screen lane adds about 30 KB of client script); it is not a Roblox platform limit. **Render profiles (p34).** `game.yml` `render_profiles` (mirrored by `src/shared/RenderBudget.luau`) define a low profile selected at SavedQualityLevel 1-3, or Automatic on a touch device: at most 160 decorative dressing parts visible (nearest to the spawn first; RoleWorld stamps `ForgeDecorRank`), at most 2 dressing effect hosts emitting (fire, smoke, ash particles, lights), no decor shadows, articulated creature poses limited to the 6 nearest within 60 studs (telegraphs, attacks, stuns and deaths always posed), and at most 2 runtime EditableMesh prop builds. The high profile keeps the previous behaviour (100-stud pose range, every part, effect and mesh placement). `render-budget.spec.luau` proves each cap on every stage plan; the caps' runtime effect on memory or frame time has **not** been measured. **Layer 2 (Studio, measured 2026-10-18; the measured revision is not recorded in this document and predates `9db8e04`).** Measured in Roblox Studio on Windows (Ryzen 5 7500F) at the lowest rendering quality (Level01), with temporary probe scripts that were never committed. "First interaction" is the moment a gather ProximityPrompt is enabled on the client; time is counted from when the client script starts. These rows are historical and do not describe the current build.
 
 | Run | Character spawned | Island built (server) | First interaction | Peak memory (Studio process, server + client) |
 |---|---|---|---|---|
