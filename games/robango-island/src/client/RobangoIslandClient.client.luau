@@ -202,7 +202,7 @@ for index, factory in panelFactories do
 		panelFactories[index] = function(ctx)
 			local brawl: any = table.clone(ctx)
 			brawl.content = content
-			brawl.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+			brawl.icons = itemIcons
 			return factory(brawl)
 		end
 	end
