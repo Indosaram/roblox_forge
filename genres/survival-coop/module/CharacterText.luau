@@ -53,6 +53,10 @@ local strings: { [string]: { string } } = {
 		"More guides open at level %d, island grade %d",
 		"레벨 %d, 섬 등급 %d에 안내가 더 열려요",
 	},
+	guide_upcoming = {
+		"Locked: %s · level %d · +%d development · %d coins",
+		"잠김: %s · 레벨 %d · 개발 +%d · 조개돈 %d",
+	},
 	guide_g01 = { "First gather", "첫 채집" },
 	guide_g02 = { "First axe", "첫 도끼" },
 	guide_g03 = { "First contract", "첫 계약" },

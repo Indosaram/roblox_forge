@@ -79,6 +79,54 @@ return {
 		assert(pc.menu.x == 1280 - 216 - 84 and pc.menu.y == 64 and pc.status == nil, "1280x720 HUD unchanged")
 		assert(grid(1280, 720, false).y == 116, "1280x720 grid top unchanged")
 	end,
+	["portrait objective box holds the wrapped grade-2 next step in EN and KO"] = function()
+		-- p64: at 360x640 the 44px box cut '... 다음: 안내 일일 계약 (레벨 6)' after '다음:'.
+		local Text = require("../../genres/survival-coop/module/CharacterText")
+		local size = Model.OBJECTIVE_TEXT_SIZE or 14
+		local function lines(text: string, inner: number): number
+			local count, line = 1, 0
+			for word in string.gmatch(text, "%S+") do
+				local w = HudFit.textWidth(word, size)
+				local gap = if line > 0 then HudFit.textWidth(" ", size) else 0
+				if line > 0 and line + gap + w > inner then
+					count, line = count + 1, w
+				else
+					line += gap + w
+				end
+			end
+			return count
+		end
+		for _, viewport in { { 360, 640 }, { 360, 584 }, { 390, 844 }, { 390, 788 } } do
+			local width, height = viewport[1], viewport[2]
+			local at = width .. "x" .. height
+			local hud = Model.contextHudBounds(width, height)
+			assert(hud.objective.height >= 3 * size + 12, "objective box under three lines at " .. at)
+			for _, locale in { "ko-kr", "en-us" } do
+				local gate = Text.format(locale, "guide_route_level", 2, 30, 5)
+				local text = (if locale == "ko-kr" then "목표: " else "Objective: ")
+					.. Text.format(locale, "guide_then_guide", gate, Text.text(locale, "guide_g21"), 6)
+				local need = lines(text, hud.objective.width - 16) * size + 12
+				assert(
+					need <= hud.objective.height,
+					string.format("%s %s needs %d px, box %d", at, locale, need, hud.objective.height)
+				)
+			end
+			local stick = { x = 0, y = height - 128, width = 128, height = 128 }
+			local jump = { x = width - 128, y = height - 128, width = 128, height = 128 }
+			for key, rect in hud do
+				if key ~= "photo" then
+					assert(
+						not overlaps(rect, stick) and not overlaps(rect, jump),
+						key .. " in a movement zone at " .. at
+					)
+				end
+			end
+			assert(hud.status.y >= hud.objective.y + hud.objective.height, "status below the objective at " .. at)
+			local tracker = Model.trackerBounds(width, height, 5)
+			assert(tracker.y >= hud.objective.y + hud.objective.height, "tracker below the objective at " .. at)
+			assert(not overlaps(tracker, jump) and not overlaps(tracker, stick), "tracker in a movement zone at " .. at)
+		end
+	end,
 	["vitals labels are at least 11px and fit their row at every viewport"] = function()
 		local v = Model.VITALS
 		assert(v and v.textSize >= HudFit.MIN_TEXT_SIZE, "vitals label text under 11px")

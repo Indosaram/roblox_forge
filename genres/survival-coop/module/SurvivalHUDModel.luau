@@ -419,6 +419,13 @@ end
 -- drop under 11px text.
 M.VITALS = { labelX = 4, labelWidth = 48, rowStep = 23, textSize = 11, trackX = 54, trackRight = 46 }
 
+-- Portrait objective slot: room for six wrapped 14px lines plus the chip's 6px top/bottom padding.
+-- The slot is transparent and the chip auto-sizes to its text, so short objectives stay short.
+-- The grade-2 next-step line wrapped past two lines in the 180px column at 360x640 and was cut (p64).
+M.OBJECTIVE_TEXT_SIZE = 14
+M.PORTRAIT_OBJECTIVE_LINES = 6
+M.PORTRAIT_OBJECTIVE_HEIGHT = M.PORTRAIT_OBJECTIVE_LINES * M.OBJECTIVE_TEXT_SIZE + 16
+
 function M.contextHudBounds(width: number, height: number?): any
 	local chat = M.phoneChat(width, height)
 	if chat then
@@ -428,7 +435,8 @@ function M.contextHudBounds(width: number, height: number?): any
 		local w = width - left - 12
 		local menu = { x = width - 76, y = 64, width = 64, height = 44 }
 		local vitals = { x = left, y = menu.y + menu.height + 8, width = w, height = 76 }
-		local objective = { x = left, y = vitals.y + vitals.height + 8, width = w, height = 44 }
+		local objective =
+			{ x = left, y = vitals.y + vitals.height + 8, width = w, height = M.PORTRAIT_OBJECTIVE_HEIGHT }
 		return {
 			vitals = vitals,
 			objective = objective,

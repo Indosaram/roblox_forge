@@ -1,12 +1,26 @@
 --!strict
 -- ui.guides: island development grade progress (current / required points), then every open guide
 -- with its objectives, progress and rewards. Guides whose action has no command yet say so
--- (GuideEvents.UNSUPPORTED) instead of showing a goal the player cannot reach.
+-- (GuideEvents.UNSUPPORTED) instead of showing a goal the player cannot reach. Level-locked guides
+-- of the current grade band follow as locked rows (nearest level first, at most UPCOMING), and the
+-- Locked line names the nearest gate: the lowest level among guides the grade already allows, else
+-- the lowest level overall.
 local Rules = require("./CharacterRules")
 local Text = require("./CharacterText")
 local Sheet = require("./CharacterSheet")
 local GuideEvents = require("./GuideEvents")
 local M = {}
+
+M.UPCOMING = 3
+
+local function before(a: any, b: any): boolean
+	local ga, gb = a.gates or {}, b.gates or {}
+	local la, lb = ga.characterLevel or 1, gb.characterLevel or 1
+	if la ~= lb then
+		return la < lb
+	end
+	return (ga.developmentRank or 0) < (gb.developmentRank or 0)
+end
 
 local function label(locale: string, names: any, id: string): string
 	local key = "guide_target_" .. id
@@ -33,13 +47,20 @@ function M.model(locale: string, data: any): { Sheet.Row }
 		},
 		{ name = "How", text = Text.text(locale, "guide_how"), height = 52 },
 	}
-	local done, locked = 0, nil
+	local done, nearest, lowest, upcoming = 0, nil, nil, {}
 	for _, guide in content.guides or {} do
 		if definitions[guide.id] then
 			done += 1
 		elseif not GuideEvents.open(guide, level, grade) then
-			local gates = guide.gates or {}
-			locked = locked or gates
+			if lowest == nil or before(guide, lowest) then
+				lowest = guide
+			end
+			if ((guide.gates or {}).developmentRank or 0) <= grade then
+				table.insert(upcoming, guide)
+				if nearest == nil or before(guide, nearest) then
+					nearest = guide
+				end
+			end
 		else
 			local short = string.match(guide.id, "^rw%.(g%d+)") or guide.id
 			local rewards = guide.rewards or {}
@@ -74,6 +95,26 @@ function M.model(locale: string, data: any): { Sheet.Row }
 		name = "Done",
 		text = Text.format(locale, "guide_done", done, #(content.guides or {})),
 	})
+	table.sort(upcoming, before)
+	for index = 1, math.min(M.UPCOMING, #upcoming) do
+		local guide = upcoming[index]
+		local short = string.match(guide.id, "^rw%.(g%d+)") or guide.id
+		local rewards = guide.rewards or {}
+		table.insert(rows, {
+			name = "Upcoming-" .. guide.id,
+			text = Text.format(
+				locale,
+				"guide_upcoming",
+				Text.text(locale, "guide_" .. short),
+				(guide.gates or {}).characterLevel or 1,
+				rewards.development or 0,
+				rewards.coins or 0
+			),
+			enabled = false,
+		})
+	end
+	local near = nearest or lowest
+	local locked = if near then near.gates or {} else nil
 	if locked then
 		table.insert(rows, {
 			name = "Locked",

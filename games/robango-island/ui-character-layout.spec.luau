@@ -109,6 +109,10 @@ local function find(rows: { any }, prefix: string): any
 	error("no row " .. prefix)
 end
 
+local function absent(rows: { any }, prefix: string): boolean
+	return not pcall(find, rows, prefix)
+end
+
 return {
 	["every character screen row fits the fitted sheet at PC, portrait and landscape in EN and KO"] = function()
 		for _, viewport in VIEWPORTS do
@@ -248,9 +252,10 @@ return {
 		)
 		assert(string.find(find(rows, "Guide-rw.g03.first-contract").text, "개발 +50", 1, true), "reward shown")
 		assert(
-			find(rows, "Locked").text == "레벨 30, 섬 등급 2에 안내가 더 열려요",
+			find(rows, "Locked").text == "레벨 6, 섬 등급 2에 안내가 더 열려요",
 			find(rows, "Locked").text
 		)
+		assert(absent(rows, "Upcoming-rw.g21.daily-board"), "grade 0 lists no grade-2 guides")
 		local late = data("en-us", 60)
 		late.character.points = 900
 		rows = SCREENS.guides.model("en-us", late)
@@ -262,6 +267,35 @@ return {
 			string.find(find(rows, "Objective-rw.g06.visit.1").text, "(coming later)", 1, true),
 			"a guide action with no command is labeled, not faked"
 		)
+	end,
+	["guides at grade 2 below level 6 name the nearest gate and list the next locked guides"] = function()
+		local d = data("ko-kr", 5)
+		d.character.points, d.character.progress = 200, {}
+		d.character.definitions = {
+			["rw.g01.first-gather"] = true,
+			["rw.g02.first-axe"] = true,
+			["rw.g03.first-contract"] = true,
+			["rw.g04.camp-donation"] = true,
+		}
+		local rows = SCREENS.guides.model("ko-kr", d)
+		assert(
+			find(rows, "Locked").text == "레벨 6, 섬 등급 2에 안내가 더 열려요",
+			find(rows, "Locked").text
+		)
+		local g21 = find(rows, "Upcoming-rw.g21.daily-board")
+		assert(g21 and g21.enabled == false, "g21 listed as a locked row")
+		assert(g21.text == "잠김: 일일 계약 · 레벨 6 · 개발 +0 · 조개돈 25", g21.text)
+		assert(find(rows, "Upcoming-rw.g22.wilds-spear"), "g22 listed")
+		assert(find(rows, "Upcoming-rw.g23.wilds-hazelnuts"), "g23 listed")
+		assert(absent(rows, "Upcoming-rw.g24.roasted-hazelnuts"), "at most three upcoming rows")
+		assert(absent(rows, "Upcoming-rw.g05.home-expansion"), "level 30 guide is not among the next three")
+		local en = SCREENS.guides.model("en-us", d)
+		assert(
+			find(en, "Upcoming-rw.g21.daily-board").text
+				== "Locked: Daily contracts · level 6 · +0 development · 25 coins",
+			find(en, "Upcoming-rw.g21.daily-board").text
+		)
+		assert(find(en, "Locked").text == "More guides open at level 6, island grade 2", find(en, "Locked").text)
 	end,
 	["character and island rank reflect level, SP, rank and the award checklist"] = function()
 		local d = data("en-us", 30)
