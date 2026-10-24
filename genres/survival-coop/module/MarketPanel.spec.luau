@@ -4,6 +4,7 @@
 local fs = require("@lune/fs")
 local Contract = require("./Contract")
 local Panel = require("./MarketPanel")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local function market(): any
 	return {

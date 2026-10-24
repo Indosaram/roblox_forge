@@ -22,59 +22,8 @@ M.ACTIONS = table.freeze({ M.LIST, M.BUY, M.CANCEL })
 local DEFAULT_PRICE = 10
 local MAX_PRICE = 2 ^ 31
 
-M.STRINGS = table.freeze({
-	market_title = { "Market", "시장" },
-	market_buy = { "Buy", "구매" },
-	market_list = { "List", "등록" },
-	market_cancel = { "Cancel", "취소" },
-	market_price = { "%d each x%d", "개당 %d x%d" },
-	market_empty = { "No listings", "등록된 물건이 없어요" },
-	market_sell = { "Sell from your bag", "가방에서 팔기" },
-	market_browse = { "Listings", "판매 목록" },
-	market_mine = { "Your listings", "내 판매 목록" },
-	market_nothing = {
-		"Nothing to sell yet. Gather raw goods first",
-		"아직 팔 물건이 없어요. 먼저 재료를 모아 오세요",
-	},
-	market_have = { "%s (have %d)", "%s (보유 %d)" },
-	market_draft = { "x%d at %d each, fee %d", "%d개, 개당 %d, 수수료 %d" },
-	market_balance = { "Shellmoney %d", "조개돈 %d" },
-	market_listed = { "Listed %s", "%s 등록했어요" },
-	market_bought = { "Bought %s", "%s 샀어요" },
-	market_cancelled = { "%s returned to your bag", "%s 가방으로 돌아왔어요" },
-	market_ineligible = {
-		"This account cannot trade yet",
-		"이 계정은 아직 거래할 수 없어요",
-	},
-	market_outlier = {
-		"That price is too far from the market",
-		"시세와 너무 다른 가격이에요",
-	},
-	market_funds = { "Not enough Shellmoney", "조개돈이 부족해요" },
-	market_bag_full = { "Your bag is full", "가방이 가득 찼어요" },
-	market_gone = { "That listing is no longer available", "이미 팔렸거나 내려간 물건이에요" },
-	market_not_owned = { "You do not have that many", "그만큼 갖고 있지 않아요" },
-	market_gate_tutorial = {
-		"Finish the tutorial to start trading",
-		"첫 안내를 끝내야 시장 거래가 열려요",
-	},
-	market_gate_age = {
-		"Your account is too new to trade yet",
-		"계정이 너무 새로워서 아직 거래할 수 없어요",
-	},
-	market_gate_playtime = {
-		"Play a little longer to unlock trading",
-		"조금 더 플레이하면 거래할 수 있어요",
-	},
-	market_gate_cap = {
-		"Daily trade limit reached. Come back tomorrow",
-		"오늘 거래 한도를 다 썼어요. 내일 다시 오세요",
-	},
-	market_failed = {
-		"Trade could not complete. Try again later",
-		"거래를 완료하지 못했어요. 잠시 후 다시 시도하세요",
-	},
-})
+local PackLocale = require("./PackLocale")
+M.STRINGS = table.freeze(PackLocale.rows({}))
 local refusals: { [string]: string } = {
 	INELIGIBLE_ACCOUNT_AGE = "market_ineligible",
 	INELIGIBLE_PLAYTIME = "market_ineligible",

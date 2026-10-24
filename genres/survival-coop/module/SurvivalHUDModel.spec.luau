@@ -6,6 +6,7 @@ local Job = require("../../../core/domain/crafting/Job")
 local Workshop = require("./Workshop")
 local Settlement = require("../../../core/domain/settlement/Settlement")
 local serde = require("@lune/serde")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 local function status(state: any): string
 	return state.status
 end

@@ -10,6 +10,7 @@ local Zone = require("../../genres/survival-coop/module/DeathZonePanel")
 local MusicText = require("../../genres/survival-coop/module/MusicText")
 local Music = require("../../genres/survival-coop/module/MusicScreens")
 local Navigator = require("../../genres/survival-coop/module/NavigatorPanel")
+require("../../genres/survival-coop/module/ScreenText").use(require("./PackText.fixture").screenText)
 
 -- PC, portrait phone and the Studio short-landscape phone (device simulator 640x339).
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true }, { 640, 339, true } }

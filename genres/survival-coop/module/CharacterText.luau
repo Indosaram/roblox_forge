@@ -5,7 +5,8 @@ local Party = require("../../../core/domain/island/Party")
 local Guide = require("./GuideEvents")
 local M = {}
 
-local strings: { [string]: { string } } = {
+local PackLocale = require("./PackLocale")
+local strings: { [string]: { string } } = PackLocale.rows({
 	char_title = { "Character", "캐릭터" },
 	char_level = { "Level %d / %d", "레벨 %d / %d" },
 	char_xp = { "XP %d / %d to next level", "다음 레벨까지 경험치 %d / %d" },
@@ -87,26 +88,6 @@ local strings: { [string]: { string } } = {
 	guide_g28 = { "Woodland skewer", "숲 꼬치" },
 	guide_g29 = { "Deep wilds haul", "깊은 야생 지대 채집" },
 	guide_g30 = { "Route supplies", "항로 보급" },
-	guide_next = { "%s: %s %d/%d", "%s: %s %d/%d" },
-	guide_go_gather = { "gather %s (walk up, press E)", "%s 채집 (다가가서 E)" },
-	guide_go_craft = { "craft %s (C key, Menu > Craft)", "%s 제작 (C 키, 메뉴 > 제작)" },
-	guide_go_deliver = { "deliver %s (Menu > Contracts)", "%s 납품 (메뉴 > 계약)" },
-	guide_go_donate = { "give to %s (Menu > Camp > Give)", "%s에 기부 (메뉴 > 캠프 > 기부)" },
-	guide_route_level = {
-		"Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes",
-		"등급 %d 달성. 항로 1은 레벨 %d에 열려요 (현재 %d): 메뉴 > 항로",
-	},
-	guide_route_open = { "Route 1 is open: Menu > Routes", "항로 1이 열렸어요: 메뉴 > 항로" },
-	guide_where_region = {
-		"%s (Harbor > departure post, level %d area)",
-		"%s (항구 > 출발 지점, 레벨 %d 지역)",
-	},
-	guide_then_region = {
-		"%s. Next: level %d opens Harbor > departure post (level %d area)",
-		"%s. 다음: 레벨 %d에 항구 > 출발 지점 (레벨 %d 지역)이 열려요",
-	},
-	guide_then_guide = { "%s. Next: guide %s at level %d", "%s. 다음: 안내 %s (레벨 %d)" },
-	guide_complete = { "Guide complete: %s", "안내 완료: %s" },
 	guide_target_axe = { "any axe", "아무 도끼" },
 	guide_target_contract = { "any contract", "아무 계약" },
 	guide_target_camp = { "a camp project", "캠프 공사" },
@@ -204,7 +185,7 @@ local strings: { [string]: { string } } = {
 	SLOT_EMPTY = { "Nothing equipped there", "그 칸에는 장비가 없어요" },
 	NOT_ALIVE = { "You cannot do this while down", "쓰러진 동안은 할 수 없어요" },
 	char_failed = { "That did not work. Try again", "실패했어요. 다시 시도하세요" },
-}
+})
 
 M.keys = {} :: { string }
 for key in strings do

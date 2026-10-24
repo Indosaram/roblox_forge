@@ -4,6 +4,7 @@
 local fs = require("@lune/fs")
 local Models = require("./ExpeditionModels")
 local Text = require("./ExpeditionText")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local function signal(): any
 	local callbacks: { () -> () } = {}

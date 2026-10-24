@@ -29,11 +29,11 @@ function M.fromCsvRows(csv: { { string } }): { Row }
 	return rows
 end
 
---- Authored journal and mission NPC lines (rw.* keys): (locale, key) -> text or nil.
-function M.authored(rows: { Row }): (string, string) -> string?
+--- Rows whose key starts with `prefix` as a (locale, key) -> text or nil lookup.
+function M.lookup(rows: { Row }, prefix: string): (string, string) -> string?
 	local lines: { [string]: Row } = {}
 	for _, row in rows do
-		if string.sub(row.key, 1, 3) == "rw." then
+		if string.sub(row.key, 1, #prefix) == prefix then
 			lines[row.key] = row
 		end
 	end
@@ -41,6 +41,11 @@ function M.authored(rows: { Row }): (string, string) -> string?
 		local row = lines[key]
 		return if row then (if string.sub(locale, 1, 2) == "ko" then row.ko else row.en) else nil
 	end
+end
+
+--- Authored journal and mission NPC lines (rw.* keys).
+function M.authored(rows: { Row }): (string, string) -> string?
+	return M.lookup(rows, "rw.")
 end
 
 --- Entity names by id: item_/structure_/node_ `entity <id>` rows, recipe_ rows (minus the

@@ -20,64 +20,8 @@ local CAPTURE = PREFIX .. "tame-capture"
 local PROMPT_NAME = "ForgeTame"
 local DEFAULT_REACH = 10
 
-local strings: { [string]: { string } } = {
-	companion_place = { "Place in pen", "우리에 놓기" },
-	companion_train = { "Begin taming", "조련 시작" },
-	companion_feed = { "Feed", "먹이 주기" },
-	companion_claim = { "Claim", "조련 완료" },
-	companion_cancel = { "Cancel", "취소" },
-	companion_deploy = { "Deploy", "소환" },
-	companion_recall = { "Recall", "보관" },
-	companion_saddle = { "Equip saddle", "안장 장착" },
-	companion_mount = { "Mount", "타기" },
-	companion_dismount = { "Dismount", "내리기" },
-	companion_release = { "Release", "놓아주기" },
-	companion_recover = { "Recover", "회복" },
-	companion_empty = {
-		"No tamed animals yet. Lower a wild animal to 25% health, stun it with a club, then throw Capture Rope. In the pen, 3 Herbivore Feed tames it.",
-		"아직 길들인 동물이 없어요. 야생 동물의 체력을 25% 이하로 낮추고 몽둥이로 기절시킨 뒤 포획 밧줄을 던지세요. 우리에서 초식동물 사료 3개를 먹이면 길들여져요.",
-	},
-	companion_summary = { "Owned %d/%d · Out with you %d/1", "보유 %d/%d · 함께 다니는 중 %d/1" },
-	companion_phase_Captured = { "Captured", "포획함" },
-	companion_phase_PenPlaced = { "In the pen", "우리 안" },
-	companion_phase_Taming = { "Taming", "조련 중" },
-	companion_phase_Stored = { "Stored", "보관 중" },
-	companion_phase_Deployed = { "Out with you", "함께 다니는 중" },
-	companion_phase_Downed = { "Downed", "쓰러짐" },
-	companion_stats = { "Lv %d · Fullness %d/%d", "Lv %d · 포만감 %d/%d" },
-	companion_feeds = { "Feed %d/%d", "먹이 %d/%d" },
-	companion_resting = { "Recovers in %s", "%s 후 회복" },
-	companion_saddled = { "Saddled", "안장 있음" },
-	companion_riding = { "Riding", "탑승 중" },
-	tame_title = { "Tamed animals", "길들인 동물" },
-	tame_empty = {
-		"No tamed animals yet. Stun a wild animal, then capture it with a bola.",
-		"길들인 동물이 아직 없어요. 야생 동물을 기절시킨 뒤 볼라로 붙잡으세요.",
-	},
-	tame_ready = { "Ready", "준비 완료" },
-	tame_remaining = { "Ready in %s", "%s 후 준비" },
-	tame_feed = { "Feed", "먹이 주기" },
-	tame_mount = { "Mount", "타기" },
-	tame_dismount = { "Dismount", "내리기" },
-	tame_mounted = { "Riding %s", "%s 탑승 중" },
-	tame_gauge = { "Stun gauge: %s", "기절 게이지: %s" },
-	tame_failed = { "That did not work. Try again.", "잘 안 됐어요. 다시 시도하세요." },
-	tame_pending = {
-		"Saving... try the same action again.",
-		"저장 중이에요. 같은 동작을 다시 시도하세요.",
-	},
-	tame_stun = { "Stun", "기절시키기" },
-	tame_capture = { "Capture", "포획하기" },
-	tame_no_tool = { "Craft a Hobble Bola first", "속박 볼라를 먼저 만드세요" },
-	tame_not_full = {
-		"Not stunned enough yet. Keep stunning it.",
-		"아직 덜 기절했어요. 계속 기절시키세요.",
-	},
-	tame_too_far = { "Too far away. Get closer.", "너무 멀어요. 더 가까이 가세요." },
-	tame_escaped = { "It broke free! Try again.", "빠져나갔어요! 다시 시도하세요." },
-	tame_gone = { "That animal is not here anymore.", "그 동물은 이제 여기 없어요." },
-	tame_captured = { "Captured %s! It is in your pen.", "%s 포획! 우리에 들어갔어요." },
-}
+local PackLocale = require("./PackLocale")
+local strings: { [string]: { string } } = PackLocale.rows({})
 
 local function pick(locale: string, entry: { string }): string
 	return if string.sub(locale, 1, 2) == "ko" then entry[2] else entry[1]

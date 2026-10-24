@@ -1781,7 +1781,7 @@ scr.territory.journal_empty,No territory changes yet.,recovered screen,No territ
 scr.territory.nobody,none,recovered screen,none,없음
 scr.territory.outpost,"Team outpost: %s holds it, %s left",recovered screen,"Team outpost: %s holds it, %s left","팀 전초기지: %s 보유, %s 남음"
 scr.territory.outpost_none,Team outpost: nobody holds it,recovered screen,Team outpost: nobody holds it,팀 전초기지: 보유한 부족 없음
-scr.territory.personal,"Your island: %s, land rank %d",recovered screen,"Your island: %s, land rank %d","내 섬: %s, 토지 등급 %d"
+scr.territory.personal,"Your island is at %s, land rank %d",recovered screen,"Your island is at %s, land rank %d","내 섬: %s, 토지 등급 %d"
 scr.territory.personal_none,Your island has not loaded yet.,recovered screen,Your island has not loaded yet.,내 섬 정보를 아직 불러오지 못했어요.
 scr.territory.rules,Your island follows your home access rules. Clan territory is where the clan hall and clan research work.,recovered screen,Your island follows your home access rules. Clan territory is where the clan hall and clan research work.,내 섬은 집 출입 권한을 따라요. 부족 회관과 부족 연구는 부족 영토에서 작동해요.
 scr.territory.title,Territory,recovered screen,Territory,영토

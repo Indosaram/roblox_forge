@@ -1,6 +1,8 @@
 --!strict
 local Panel = require("./CrossServerMarketPanel")
 local Locale = require("./SurvivalHUDLocale")
+-- Installs the strings.csv lookup the genre text tables read (the client installs the Strings table).
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture")
 -- Mounts the panel against recording fakes: every created node, widget props and harbor-sell result.
 local function mount(harborResult: any, locale: string?, listResult: any?, gate: string?, noMarket: boolean?): any
 	local nodes: { any } = {}

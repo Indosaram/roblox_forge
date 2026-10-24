@@ -4,6 +4,7 @@ local serde = require("@lune/serde")
 local CampExtension = require("./CampExtension")
 local CampPanel = require("./CampPanelModel")
 local Content = require("../../../core/domain/survival/Content")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local function content(): Content.Document
 	local document, errors = Content.canonicalize(serde.decode("yaml", fs.readFile("games/robango-island/content.yml")))

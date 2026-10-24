@@ -11,6 +11,8 @@ local dependencies: { [string]: any } = {
 	["./Combat"] = require("./Combat"),
 	["./BrawlLedger"] = require("./BrawlLedger"),
 	["./SocialSheet"] = require("./SocialSheet"),
+	["./PackLocale"] = require("./PackLocale"),
+	["../../../games/robango-island/PackText.fixture"] = require("../../../games/robango-island/PackText.fixture"),
 }
 local function killed(name: string, before: string, after: string)
 	local path = "genres/survival-coop/module/" .. name

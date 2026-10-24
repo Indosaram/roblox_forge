@@ -10,6 +10,7 @@ local Camp = require("../../genres/survival-coop/module/CampPanelModel")
 local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 local HUDModel = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local MODULE = "genres/survival-coop/module/"
 local FIBER = { fiber = "Fiber" }

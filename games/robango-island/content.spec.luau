@@ -10,6 +10,7 @@ local luau = require("@lune/luau")
 local Content = require("../../core/domain/survival/Content")
 local Strings = require("../../core/infra/localization/Strings")
 local contentrender = require("../../cli/forge/lib/contentrender")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 -- Specs run from the repository root.
 local PACK = "games/robango-island"

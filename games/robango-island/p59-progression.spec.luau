@@ -8,6 +8,7 @@ local serde = require("@lune/serde")
 local graph = require("../../cli/forge/lib/contentgraph")
 local Content = require("./src/shared/SurvivalContent")
 local Text = require("../../genres/survival-coop/module/CharacterText")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local NAMES = { spear = "Spear", hazelnut = "Hazelnut", clam = "Clam" }
 

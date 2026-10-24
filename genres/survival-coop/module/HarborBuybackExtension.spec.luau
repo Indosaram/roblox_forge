@@ -7,6 +7,7 @@ local Memory = require("../../../core/infra/data/MemoryBackend")
 local PersonalAggregate = require("../../../core/infra/data/PersonalAggregate")
 local Content = require("../../../core/domain/survival/Content")
 local Harbor = require("./HarborBuybackExtension")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local DAY = 86400
 local PATH = { "genres", "survival-coop", "data", "inventory", "bag" }

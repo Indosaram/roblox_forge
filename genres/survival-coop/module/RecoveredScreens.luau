@@ -618,7 +618,7 @@ function M.factory(ctx: any): any
 			local id = if root then root:GetAttribute("ForgeLayoutId") else nil
 			return if type(id) == "string" then id else nil
 		end
-	local capacity = ctx.capacity or (if players then players.MaxPlayers else 16)
+	local capacity = ctx.capacity or (if players then players.MaxPlayers else nil) or 16
 	local content = ctx.content or {}
 	local panels: { any } = {}
 	local function send(action: string, args: { any }): any

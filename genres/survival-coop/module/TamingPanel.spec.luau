@@ -1,5 +1,7 @@
 --!strict
 local TamingPanel = require("./TamingPanel")
+-- Installs the strings.csv lookup the genre text tables read (the client installs the Strings table).
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture")
 
 return {
 	["text falls back to English and fills the argument"] = function()

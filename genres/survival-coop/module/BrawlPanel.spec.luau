@@ -2,6 +2,7 @@
 -- Host-only (luau-lsp lune set): the robango-island generated catalog is not mounted by other game packs; marker: require("@lune/task")
 local Panel = require("./BrawlPanel")
 local Match = require("../../../core/domain/brawl/Match")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 local Policy =
 	assert(require("../../../games/robango-island/src/shared/SurvivalContent").brawlPolicy, "generated brawl policy")
 return {

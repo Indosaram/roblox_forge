@@ -1,19 +1,7 @@
 --!strict
 local M = {}
-local strings: { [string]: { string } } = {
-	["trade.bundle.list"] = { "List bundle", "묶음 등록" },
-	harbor = { "Harbor buys %d/%d today", "항구 매입 %d/%d" },
-	sell = { "Sell %s (%d each)", "%s 팔기 (개당 %d)" },
-	DAILY_CAP = { "Daily limit reached", "오늘 한도 도달" },
-	NOT_AT_HARBOR = { "Only at the harbor", "항구에서만 가능" },
-	repair = { "Repair (%d coins)", "수리 (%d 조개돈)" },
-	INSUFFICIENT_FUNDS = { "Not enough coins", "조개돈 부족" },
-	repaired = { "Repaired", "수리 완료" },
-	INSUFFICIENT_ITEMS = { "You do not hold that many", "보유 수량이 부족해요" },
-	oversell = {
-		"You cannot sell more than you hold (held %d)",
-		"보유 수량보다 많이 팔 수 없어요 (보유 %d)",
-	},
+local PackLocale = require("./PackLocale")
+local strings: { [string]: { string } } = PackLocale.rows({
 	["market.account"] = {
 		"Market trading is unavailable for this account right now.",
 		"지금은 이 계정으로 장터 거래를 할 수 없어요.",
@@ -71,10 +59,6 @@ local strings: { [string]: { string } } = {
 		"연결이 불확실해요. 다시 누르세요. 두 번 등록되지 않아요.",
 	},
 	["market.refused"] = { "The market refused this listing.", "장터가 이 등록을 거절했어요." },
-	INELIGIBLE_REPAIR = { "This item cannot be repaired", "수리할 수 없는 물건" },
-	preset = { "Terrain %d", "지형 %d" },
-	PRESET_LOCKED = { "Terrain %d: Patron Pass", "지형 %d: 후원 패스" },
-	preset_applied = { "Terrain preset %d applied", "지형 %d 적용됨" },
 	menu_survival = { "Survival", "생존" },
 	menu_world = { "World", "세계" },
 	menu_social = { "Social", "함께" },
@@ -96,18 +80,7 @@ local strings: { [string]: { string } } = {
 	coins = { "Shellmoney %d", "조개돈 %d" },
 	level_sp = { "Level %d / SP %d", "레벨 %d / SP %d" },
 	learn = { "Learn", "배우기" },
-	["skills.survival"] = { "Survival", "생존" },
-	["skills.butchering"] = { "Butchering", "도축" },
-	["skills.gathering"] = { "Gathering", "채집" },
-	["skills.processing"] = { "Processing", "가공" },
 	["skills.weapon_tool"] = { "Weapons & Tools", "무기·도구" },
-	["skills.ranged"] = { "Ranged", "원거리" },
-	["skills.melee"] = { "Melee", "근접" },
-	["skills.construction"] = { "Construction", "건축" },
-	["skills.farming"] = { "Farming", "농사" },
-	["skills.tailoring"] = { "Tailoring", "재봉" },
-	["skills.cooking"] = { "Cooking", "요리" },
-	["skills.defense"] = { "Defense", "방어" },
 	skill_reset = { "Reset specializations", "전문 기술 초기화" },
 	wood = { "Wood", "목재" },
 	fiber = { "Fiber", "섬유" },
@@ -335,7 +308,7 @@ local strings: { [string]: { string } } = {
 		"Refresh and review your supplies before trying again.",
 		"새로 고쳐 보급품을 확인한 뒤 다시 시도하세요.",
 	},
-}
+})
 function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key

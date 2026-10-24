@@ -8,77 +8,18 @@ local Match = require("../../../core/domain/brawl/Match")
 local Sheet = require("./SocialSheet")
 local M = {}
 
-local strings: { [string]: { string } } = {
-	brawl_title = { "Brawl", "난투" },
-	brawl_unavailable = {
-		"Brawl is available on a brawl server. Travel there from the harbor.",
-		"난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요.",
-	},
-	brawl_rules = {
-		"Entry: level %d or higher, %d-%d players, %d s ready phase.",
-		"참가 조건: 레벨 %d 이상, %d-%d명, 준비 시간 %d초.",
-	},
+local PackLocale = require("./PackLocale")
+local strings: { [string]: { string } } = PackLocale.rows({
 	brawl_snapshot = {
 		"Snapshot equipment only. Original equipment is not consumed.",
 		"복제 장비만 사용합니다. 원본 장비는 소모되지 않습니다.",
 	},
-	brawl_reward_line = {
-		"Rewards: participation %d, victory %d coins (first %d matches per day).",
-		"보상: 참가 %d, 승리 %d 코인 (하루 처음 %d경기).",
-	},
-	brawl_queue_status = { "Waiting room: %d/%d players", "대기실: %d/%d명" },
-	brawl_queue_empty = {
-		"No one is waiting yet. Join and the match starts once %d players are in.",
-		"아직 대기 중인 사람이 없어요. 참가 후 %d명이 모이면 경기가 시작돼요.",
-	},
-	brawl_queue_need = {
-		"%d more player(s) needed to start.",
-		"시작까지 %d명이 더 필요해요.",
-	},
-	brawl_queue_you = { "You are in the waiting room.", "대기실에 있어요." },
 	brawl_preparing = { "Get ready: the match starts in %s.", "준비하세요: %s 후 경기가 시작돼요." },
-	brawl_active = { "Match in progress: %d alive, %s left.", "경기 중: 생존 %d명, 남은 시간 %s." },
-	brawl_weather_now = { "Weather: %s. %s", "날씨: %s. %s" },
-	brawl_weather_next = { "Next weather: %s in %s.", "다음 날씨: %s, %s 후." },
-	brawl_weather_plan = {
-		"Weather changes every %d s, ending with a closing ring.",
-		"날씨가 %d초마다 바뀌고 마지막에 경계가 좁혀져요.",
-	},
-	brawl_radius = { "Safe zone radius: %d studs.", "안전 구역 반경: %d스터드." },
 	brawl_spectator = {
 		"You are out. Spectating until the match ends.",
 		"탈락했어요. 경기가 끝날 때까지 관전합니다.",
 	},
-	brawl_result_win = { "Victory! You are the last survivor.", "승리! 마지막 생존자입니다." },
-	brawl_result_draw = { "Draw. No single survivor.", "무승부. 단독 생존자가 없어요." },
-	brawl_result_eliminated = {
-		"Eliminated. Better luck next match.",
-		"탈락. 다음 경기에서 다시 도전하세요.",
-	},
-	brawl_result_watch = { "Match over.", "경기가 끝났어요." },
-	brawl_settled = { "Reward received: %d coins.", "보상 수령: %d 코인." },
-	brawl_join = { "Join queue", "대기열 참가" },
 	brawl_leave = { "Leave", "나가기" },
-	brawl_claim = { "Claim result", "결과 받기" },
-	brawl_ok = { "Confirmed", "확인됨" },
-	brawl_attack = { "Attack nearest rival", "가까운 상대 공격" },
-	brawl_ranged = { "Shoot nearest rival", "가까운 상대 사격" },
-	brawl_dodge = { "Dodge", "회피" },
-	brawl_guard = { "Guard", "방어" },
-	weather_clear = { "Clear", "맑음" },
-	weather_rain = { "Rain", "비" },
-	weather_fog = { "Fog", "안개" },
-	weather_storm = { "Storm", "폭풍" },
-	weather_collapse = { "Closing ring", "경계 수축" },
-	effect_clear = { "No weather effects.", "날씨 효과가 없어요." },
-	effect_rain = { "Sprinting costs %d%% more stamina.", "질주 기력 소모가 %d%% 늘어요." },
-	effect_fog = { "Ranged attacks reach only %d studs.", "원거리 공격이 %d스터드까지만 닿아요." },
-	effect_storm = { "Mounts are unavailable.", "탈것에 탈 수 없어요." },
-	effect_collapse = {
-		"The safe zone shrinks. Outside it you lose %d%% max HP per second.",
-		"안전 구역이 줄어들어요. 밖에서는 초당 최대 체력의 %d%%를 잃어요.",
-	},
-	NO_AMMO = { "No snapshot ammunition", "복제 탄약이 없습니다" },
 	LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },
 	QUEUE_FULL = { "Queue full", "대기열이 가득 찼습니다" },
 	QUEUE_CLOSED = { "Queue closed", "대기열이 마감되었습니다" },
@@ -90,8 +31,7 @@ local strings: { [string]: { string } } = {
 	RECOVERY = { "Recovering", "회복 중" },
 	PERSONAL_UNAVAILABLE = { "Settlement pending", "정산 대기 중" },
 	COMMAND_PENDING = { "Previous command pending", "이전 명령 처리 중" },
-	brawl_refused = { "Request refused", "요청 거절됨" },
-}
+})
 M.strings = strings
 
 function M.text(locale: string, key: string, ...: any): string

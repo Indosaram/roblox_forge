@@ -8,6 +8,7 @@ local Text = require("./MusicText")
 local Selection = require("./MusicSelection")
 local Screens = require("./MusicScreens")
 local Navigator = require("./NavigatorPanel")
+require("./ScreenText").use(require("../../../games/robango-island/PackText.fixture").screenText)
 
 local function signal(): any
 	local callbacks: { any } = {}

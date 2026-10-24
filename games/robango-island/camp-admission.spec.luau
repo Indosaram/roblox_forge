@@ -42,6 +42,7 @@ local content = require("./src/shared/SurvivalContent")
 local defaultSource = require("./src/shared/SurvivalWorldConfig")
 local pack = require("./src/shared/GenreConfig")
 local policy = require("./src/shared/GenreDurable")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local PACK = "games/robango-island"
 local PUBLIC = { provisionId = "camp", policy = "public", ownerId = "", acceptedInvitations = {}, actors = {} }

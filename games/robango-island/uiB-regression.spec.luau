@@ -9,6 +9,7 @@ local Permissions = require("../../genres/survival-coop/module/HomePermissionsPa
 local Social = require("../../genres/survival-coop/module/SocialLocale")
 local Taming = require("../../genres/survival-coop/module/TamingPanel")
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 return {
 	["role prompt construction uses locale keys rather than English literals or raw ids"] = function()
 		for _, path in

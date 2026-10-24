@@ -6,6 +6,7 @@
 local fs = require("@lune/fs")
 local Screens = require("./RecoveredScreens")
 local L = require("./ScreenText")
+L.use(require("../../../games/robango-island/PackText.fixture").screenText)
 local Sheet = require("./SocialSheet")
 local HUDModel = require("./SurvivalHUDModel")
 local Navigator = require("./NavigatorPanel")
@@ -71,13 +72,20 @@ end
 
 return {
 	["every screen string has matching en-us and ko-kr locale rows"] = function()
-		local csv = fs.readFile("games/robango-island/locale/strings.csv")
-		for _, key in L.keys() do
-			local row = string.match(csv, "\n" .. string.gsub(key, "[%.%-]", "%%%0") .. ",([^\n]*)")
-			assert(row, key .. ": missing from strings.csv")
-			assert(string.find(row, L.text("en", key), 1, true), key .. ": en-us text differs")
-			assert(string.find(row, L.text("ko", key), 1, true), key .. ": ko-kr text differs")
+		-- The copy ships only in strings.csv; every scr.* key the screens name must resolve in both locales.
+		local count = 0
+		for _, name in { "RecoveredScreens", "NavigatorPanel", "ScreenText" } do
+			local source = fs.readFile("genres/survival-coop/module/" .. name .. ".luau")
+			for key in string.gmatch(source, '"(scr%.[%w_%.%-]+)"') do
+				if string.sub(key, -1) ~= "." and string.sub(key, -1) ~= "_" then -- prefixes built at runtime
+					assert(L.has(key), key .. ": missing from strings.csv")
+					assert(L.text("en-us", key) ~= "" and L.text("ko-kr", key) ~= "", key .. ": empty locale text")
+					count += 1
+				end
+			end
 		end
+		assert(count > 100, "screen keys scanned: " .. count)
+		assert(L.text("en-us", "scr.no.such.key") == "", "an unknown key never renders its id")
 	end,
 	["each screen has an empty state that fits both viewports in both languages"] = function()
 		for _, locale in LOCALES do

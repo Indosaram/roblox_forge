@@ -25,6 +25,9 @@ local PackText = require(Shared.PackText)
 local packRows = PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
 local names = PackText.names(packRows)(locale)
 local authoredText = PackText.authored(packRows)
+-- Genre panel and screen copy comes from the Strings LocalizationTable, not script source.
+require(Forge.genres["survival-coop"].module.PackLocale).use(PackText.lookup(packRows, ""))
+require(Forge.genres["survival-coop"].module.ScreenText).use(PackText.lookup(packRows, "scr."))
 local WorldText = require(Shared.WorldText)
 local TamingText = require(Forge.genres["survival-coop"].module.TamingPanel)
 local biomeNames: { [string]: string } = {}

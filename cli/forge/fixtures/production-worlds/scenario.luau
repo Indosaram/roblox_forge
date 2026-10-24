@@ -426,12 +426,13 @@ function M.new(ctx: any): any
 		return nil
 	end
 	function api.audio(actor)
-		command(actor, "audio-settings", { true, 0.5 })
+		-- muted, master gain, per-channel table (the Executor requires the full arity).
+		command(actor, "audio-settings", { true, 0.5, { music = 0.25 } })
 		local before = session.snapshot(actor).survivalExtensions["audio-settings"]
-		assert(before.muted and before.volume == 0.5, "settings committed through Session")
+		assert(before.muted and before.volume == 0.5 and before.music == 0.25, "settings committed through Session")
 		assert(api.enter("home", actor) == nil, "rejoin home")
 		local after = session.snapshot(actor).survivalExtensions["audio-settings"]
-		assert(after.muted and after.volume == 0.5, "settings survive fresh profile owner")
+		assert(after.muted and after.volume == 0.5 and after.music == 0.25, "settings survive fresh profile owner")
 		return nil
 	end
 	function api.building(actor)

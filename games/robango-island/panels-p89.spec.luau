@@ -76,6 +76,9 @@ local function mount(locale: string, content: any): (any, (any) -> ())
 	}
 	env.task = { spawn = function() end, wait = function() end }
 	env.require = function(path: string)
+		if path == "./PackLocale" then
+			return require("../../genres/survival-coop/module/PackLocale")
+		end
 		assert(path == "./WildlifeNames", "unexpected require " .. path)
 		return require("../../genres/survival-coop/module/WildlifeNames")
 	end

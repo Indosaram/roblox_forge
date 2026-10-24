@@ -6,8 +6,12 @@ local Strings = require("../../core/infra/localization/Strings")
 local PackText = require("./src/shared/PackText")
 
 local rows = PackText.fromCsvRows(Strings.parseCsv(fs.readFile("games/robango-island/locale/strings.csv")).rows)
+-- Genre text tables read pack rows through PackLocale (the client installs the same lookup).
+require("../../genres/survival-coop/module/PackLocale").use(PackText.lookup(rows, ""))
 return {
 	rows = rows,
 	names = PackText.names(rows),
 	authored = PackText.authored(rows),
+	screenText = PackText.lookup(rows, "scr."),
+	packText = PackText.lookup(rows, ""),
 }

@@ -5,6 +5,7 @@ local fs = require("@lune/fs")
 local HUDModel = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local CampModel = require("../../genres/survival-coop/module/CampPanelModel")
 local Text = require("../../genres/survival-coop/module/CharacterText")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 local function overlaps(a: any, b: any): boolean
 	return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
