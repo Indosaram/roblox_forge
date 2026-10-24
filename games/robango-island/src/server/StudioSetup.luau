@@ -66,6 +66,17 @@ function M.gallery(env: any): Instance?
 	local slots = M.galleryLayout(env.content)
 	local span = Vector3.new(M.COLUMNS * M.SPACING + 40, 4, math.ceil(#slots / M.COLUMNS) * M.SPACING + 40)
 	env.workspace.Terrain:FillBlock(CFrame.new(center - Vector3.new(0, 2, 0)), span, Enum.Material.Grass)
+	-- A flat grass causeway from `bridge` (a point on the island) to the pad, so a tester walks there.
+	local bridge: Vector3? = env.bridge
+	if bridge then
+		local from = Vector3.new(center.X, -2, bridge.Z)
+		local length = math.abs(center.Z - bridge.Z)
+		env.workspace.Terrain:FillBlock(
+			CFrame.new((from + Vector3.new(0, 0, center.Z - bridge.Z) / 2)),
+			Vector3.new(16, 4, length),
+			Enum.Material.Grass
+		)
+	end
 	local folder = Instance.new("Folder")
 	folder.Name = "ForgeSpeciesGallery"
 	local models = {}
@@ -77,11 +88,15 @@ function M.gallery(env: any): Instance?
 			env.rig.new(detail.id, "Gallery." .. detail.id, at, folder, Vector3.new(e.x, e.y, e.z), detail.visual)
 		model.PrimaryPart.Anchored = true
 		local label = Instance.new("BillboardGui")
-		label.Name, label.Size, label.AlwaysOnTop = "ForgeGalleryName", UDim2.fromOffset(200, 30), true
-		label.StudsOffsetWorldSpace, label.MaxDistance = Vector3.new(0, e.y + 3, 0), 400
+		-- Depth-tested like the client nameplates (an AlwaysOnTop label never showed in a Studio frame),
+		-- unlimited range and an explicit adornee: the quarter-view camera sits ~60-150 studs away.
+		label.Name, label.Size, label.AlwaysOnTop = "ForgeGalleryName", UDim2.fromOffset(200, 30), false
+		label.StudsOffsetWorldSpace, label.MaxDistance, label.LightInfluence = Vector3.new(0, e.y + 3, 0), math.huge, 0
+		label.Adornee = model.PrimaryPart
 		local text = Instance.new("TextLabel")
 		text.Size, text.BackgroundTransparency, text.TextScaled = UDim2.fromScale(1, 1), 1, true
-		text.TextColor3, text.TextStrokeTransparency, text.Text = Color3.new(1, 1, 1), 0.2, detail.id
+		text.TextColor3, text.TextStrokeTransparency, text.Text = Color3.new(1, 1, 1), 0, detail.id
+		text.Font = Enum.Font.GothamBold
 		text.Parent = label
 		label.Parent = model.PrimaryPart
 		table.insert(models, model)

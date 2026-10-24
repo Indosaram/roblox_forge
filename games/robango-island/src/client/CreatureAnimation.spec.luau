@@ -194,4 +194,17 @@ return {
 		assert(posed[creature] == 3, "live wildlife is still posed every frame")
 		assert(RenderBudget.profiles.high.decorFaunaPose, "high keeps the graze idle")
 	end,
+	["Studio species gallery rigs are registered and posed by their ForgeWildlifeState"] = function()
+		local walker = model("Gallery.allosaurus", { Species = "allosaurus", ForgeWildlifeState = "walk" })
+		local start, renderStepped = harness({ folder("ForgeSpeciesGallery", { walker }) })
+		local calls = {}
+		start(function(target, state)
+			table.insert(calls, { target = target, state = state })
+		end)
+		for _, handler in renderStepped.handlers do
+			handler(1 / 60)
+		end
+		assert(#calls == 1 and calls[1].target == walker, "gallery rig present at start is posed")
+		assert(#walker.head.plates == 1, "gallery rig is registered (nameplate marker)")
+	end,
 }

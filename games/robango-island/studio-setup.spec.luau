@@ -152,10 +152,85 @@ return {
 		assert(loop, "animation loop scheduled")
 		loop()
 		assert(states[1] == "walk" and table.find(states, "strike"), "walk then attack: " .. table.concat(states, ","))
+		for _, model in folder:GetChildren() do
+			local label = model.PrimaryPart:FindFirstChild("ForgeGalleryName")
+			assert(label.MaxDistance == math.huge and label.Adornee == model.PrimaryPart, "label renders at any range")
+		end
 		local CreaturePose = require("./src/client/CreaturePose")
 		for _, state in states do
 			local clip = CreaturePose.sample({ state = "", elapsed = 0 }, state, 12, false, 0.1)
 			assert(clip == "walk" or clip == "windup" or clip == "attack", "client poses " .. state .. " as " .. clip)
+		end
+	end,
+	["preview-island gallery sits near the shore with a walkable causeway"] = function()
+		local Setup = setup()
+		local ws = workspace(true)
+		local fills = {}
+		ws.Terrain.FillBlock = function(_, cf, size)
+			table.insert(fills, { cf = cf, size = size })
+		end
+		Setup.gallery({
+			isStudio = true,
+			workspace = ws,
+			content = Content,
+			rig = rig(),
+			parent = ws.root,
+			center = roblox.Vector3.new(0, 0, 200),
+			bridge = roblox.Vector3.new(0, 0, 70),
+			spawn = function() end,
+			wait = function() end,
+		})
+		assert(#fills == 2, "pad plus causeway")
+		local causeway = fills[2]
+		local near = causeway.cf.Position.Z - causeway.size.Z / 2
+		local far = causeway.cf.Position.Z + causeway.size.Z / 2
+		local top = causeway.cf.Position.Y + causeway.size.Y / 2
+		assert(near <= 70 and far >= 200 - 80 and top == 0 and causeway.size.X >= 8, "causeway joins island and pad")
+		local Island = require("./src/shared/IslandTerrain")
+		assert(Island.sample(0, 70).top > Island.SEA_LEVEL, "causeway starts on dry island land")
+		local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
+		assert(string.find(server, "Vector3.new(0, 0, 200)", 1, true), "preview gallery center near the island")
+	end,
+	["every gallery species shows distinct walk, windup and strike poses"] = function()
+		local Rig = luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), {
+			environment = {
+				Instance = roblox.Instance,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Color3 = roblox.Color3,
+				Enum = roblox.Enum,
+			},
+		})()
+		local CreaturePose = require("./src/client/CreaturePose")
+		local world = roblox.Instance.new("Folder")
+		for _, detail in Content.wildlifeDetails do
+			local e = detail.renderEnvelope
+			local model = Rig.new(
+				detail.id,
+				detail.id,
+				roblox.Vector3.zero,
+				world,
+				roblox.Vector3.new(e.x, e.y, e.z),
+				detail.visual
+			)
+			local function snapshot(serverState: string, elapsed: number): string
+				local clip = CreaturePose.sample({ state = "", elapsed = 0 }, serverState, 12, false, elapsed)
+				Rig.pose(model, clip, elapsed, 12)
+				local rows = {}
+				for _, joint in model.PrimaryPart:GetChildren() do
+					if joint:IsA("Motor6D") then
+						local p, x, y, z = joint.Transform.Position, joint.Transform:ToEulerAnglesXYZ()
+						table.insert(
+							rows,
+							string.format("%s %.3f %.3f %.3f %.3f %.3f %.3f", joint.Name, p.X, p.Y, p.Z, x, y, z)
+						)
+					end
+				end
+				table.sort(rows)
+				return table.concat(rows, ";")
+			end
+			local walk, windup, strike = snapshot("walk", 0.3), snapshot("windup", 0.3), snapshot("strike", 0.25)
+			assert(walk ~= windup and walk ~= strike and windup ~= strike, "distinct poses: " .. detail.id)
 		end
 	end,
 }

@@ -1081,7 +1081,11 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 		)
 	end
 	local function animated(name: string): boolean
-		return name == "Wildlife" or name == "OwnedCreatures" or name == "ForgeWildlife" or name == "ForgeRoleWorld"
+		return name == "Wildlife"
+			or name == "OwnedCreatures"
+			or name == "ForgeWildlife"
+			or name == "ForgeRoleWorld"
+			or name == "ForgeSpeciesGallery" -- Studio-only gallery (StudioSetup.gallery)
 	end
 	for _, child in workspace:GetChildren() do
 		if animated(child.Name) then

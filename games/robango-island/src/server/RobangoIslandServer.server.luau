@@ -198,7 +198,12 @@ require(script.Parent.StudioSetup).gallery({
 	workspace = workspace,
 	content = content,
 	rig = require(Forge.genres["survival-coop"].module.DinosaurRig),
-	center = Vector3.new(0, 0, 900),
+	-- The preview island (no ForgeStudioRole) reaches z ~84 on dry land: the pad sits just south of
+	-- the shore with a causeway back to it. Role worlds keep the pad far outside their islands.
+	center = if workspace:GetAttribute("ForgeStudioRole") == nil
+		then Vector3.new(0, 0, 200)
+		else Vector3.new(0, 0, 900),
+	bridge = if workspace:GetAttribute("ForgeStudioRole") == nil then Vector3.new(0, 0, 70) else nil,
 	spawn = task.spawn,
 	wait = task.wait,
 })
