@@ -660,6 +660,16 @@ return {
 			{ op = "expect_members", members = { "1" } },
 		})
 		assert(hasError(qascenario.validate(foreign), "outside the scenario genre"), "cross-genre action refused")
+		foreign.partners = { "grow-harvest" }
+		assert(#qascenario.validate(foreign) == 0, "a declared recipe partner's action is allowed")
+		foreign.partners = { "pvp-arena" }
+		assert(
+			hasError(qascenario.validate(foreign), "outside the scenario genre"),
+			"an undeclared genre stays refused"
+		)
+		foreign.partners = { "grow-harvest" }
+		foreign.kind = "smoke"
+		assert(hasError(qascenario.validate(foreign), "partners: expected a native"), "partners are native-only")
 		local unknownOp = scenario({ { op = "teleport", player = "1" } })
 		assert(hasError(qascenario.validate(unknownOp), "unknown operation"), "unknown operation refused")
 		local overBudget = scenario(winningSteps(), { timeout_seconds = 121 })

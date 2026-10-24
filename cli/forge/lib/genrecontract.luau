@@ -49,7 +49,11 @@ export type Generator = {
 	generate: (GenerateInput) -> Generated,
 	driver: Driver,
 	recipes: {
-		[string]: { normalize: ({ [string]: Contract.ConfigData }) -> { [string]: Contract.ConfigData }, driver: Driver },
+		[string]: {
+			normalize: ({ [string]: Contract.ConfigData }) -> { [string]: Contract.ConfigData },
+			driver: Driver,
+			qa: { name: string, players: { string }, goldenPath: { { [string]: any } } }?,
+		},
 	}?,
 	qa: { scenarios: { string }, operations: { string }, targets: { string } },
 	legacy: { generate: (GenerateInput) -> Generated, codegen: (string) -> string }?,

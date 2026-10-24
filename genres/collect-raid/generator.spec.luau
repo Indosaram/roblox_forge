@@ -60,22 +60,37 @@ return {
 			end
 		end
 		table.sort(drifted)
-		-- The starter has moved from the extraction baseline in exactly two places: the client's
-		-- safe-area wrapper (see below) and the server's ForgeQA surface. The generated pack's own
-		-- server is the playable runtime, so the QA surface is bound to THAT runtime - the real
-		-- hatch, the real leaderstats balance and the real profile - rather than to a second,
-		-- parallel contract runtime beside it. Every other starter path is byte-identical to the
-		-- extraction and no path was added or removed, so any further drift fails here.
+		-- The starter has moved from the extraction baseline in exactly three places: the client's
+		-- safe-area wrapper (see below), the server's ForgeQA surface, and the starter loop. The
+		-- generated pack's own server is the playable runtime, so the QA surface is bound to THAT
+		-- runtime - the real hatch, the real leaderstats balance and the real profile - rather than to
+		-- a second, parallel contract runtime beside it. The loop rules moved out of the server into
+		-- the pure src/shared/StarterLoop.luau so the generated smoke/smoke.luau drives the same
+		-- code under Lune (`forge smoke --strict` had no smoke to run), and Config.teamColors became
+		-- BrickColor names so Config loads under Lune. Every other starter path is byte-identical to
+		-- the extraction and only those three paths were added, so any further drift fails here.
 		assert(
-			#drifted == 2
+			#drifted == 3
 				and drifted[1] == "src/client/CollectProofClient.client.luau"
-				and drifted[2] == "src/server/CollectProofServer.server.luau",
-			"starter bytes changed outside the intended client wrapper and server QA surface: "
+				and drifted[2] == "src/server/CollectProofServer.server.luau"
+				and drifted[3] == "src/shared/Config.luau",
+			"starter bytes changed outside the intended client wrapper, server QA surface and loop: "
 				.. table.concat(drifted, ", ")
 		)
+		local added: { [string]: boolean } = {
+			["smoke/smoke.luau"] = true,
+			["smoke/smoke.spec.luau"] = true,
+			["src/shared/StarterLoop.luau"] = true,
+		}
 		for path in extracted do
-			assert(original[path] ~= nil, "extra starter path: " .. path)
+			assert(original[path] ~= nil or added[path], "extra starter path: " .. path)
 		end
+		for path in added do
+			assert(extracted[path] ~= nil, "starter loop path missing: " .. path)
+		end
+		local config = extracted["src/shared/Config.luau"]
+		assert(string.find(config, "BrickColor.new", 1, true) == nil, "Config must stay engine-free plain data")
+		assert(string.find(config, 'Red = "Really red"', 1, true) ~= nil, "Config team colors are BrickColor names")
 		-- The intended move is pinned, so it can be neither widened nor silently
 		-- reverted: the client's new bytes are frozen by hash and must carry the
 		-- guarantees the design requires. The baseline advanced three times, each for a
@@ -100,7 +115,7 @@ return {
 		-- the real leaderstats balance, and whose save writes the real profile.
 		local server = extracted["src/server/CollectProofServer.server.luau"]
 		assert(
-			serde.hash("sha256", server) == "bdbcd9610f9a80653f100dc60533d6add68bcc6ca4dcd9964356f992e1cf9a8d",
+			serde.hash("sha256", server) == "d6dc495a796391e3b37b43f4a3af8e257e7af0f25f52e7a6beb2168618f94a1b",
 			"scaffolded server bytes changed"
 		)
 		-- The standard surface is published by the pack's own server and backed by the real runtime:
@@ -133,6 +148,18 @@ return {
 		assert(
 			string.find(server, 'prompt.Name = "Hatch"', 1, true) ~= nil,
 			"scaffolded incubator prompt is not addressable by an exact path"
+		)
+		-- luau-lsp refuses `player.Team ~= nil` / `== nil` (Team and nil have different
+		-- metatables), so the starter tests Team by truthiness.
+		assert(
+			string.find(server, "Team ~= nil", 1, true) == nil and string.find(server, "Team == nil", 1, true) == nil,
+			"scaffolded server compares Team with nil"
+		)
+		assert(
+			string.find(server, "StarterLoop.hatch(", 1, true) ~= nil
+				and string.find(server, "StarterLoop.tick(", 1, true) ~= nil
+				and string.find(server, "StarterLoop.writeSave(", 1, true) ~= nil,
+			"scaffolded server does not run the StarterLoop the smoke drives"
 		)
 		-- The baseline advanced because of that wrapper and nothing else: the
 		-- historical client must still be the one without it.

@@ -78,6 +78,9 @@ return {
 			"assets/procgen.yml",
 			"assets/audio.yml",
 			"src/shared/Config.luau",
+			"src/shared/StarterLoop.luau",
+			"smoke/smoke.luau",
+			"smoke/smoke.spec.luau",
 			"src/shared/WorldLayout.luau",
 			"src/shared/WorldTheme.luau",
 			"src/shared/ProcAssets.luau",
@@ -146,7 +149,23 @@ return {
 		assert(string.find(server, "part.Transparency = 1", 1, true) ~= nil, "placeholder must be invisible")
 		assert(string.find(server, "WorldBuilder.build", 1, true) ~= nil, "server must build the world")
 		assert(string.find(server, "ProximityPrompt", 1, true) ~= nil, "incubators need a hatch prompt")
-		assert(string.find(server, "Production.accrue", 1, true) ~= nil, "creatures must produce Coins")
+		assert(string.find(server, "StarterLoop.tick(", 1, true) ~= nil, "creatures must produce Coins")
+		local loop = Scaffold.collectRaidFiles("forge-demo", "ForgeDemo")["src/shared/StarterLoop.luau"]
+		assert(string.find(loop, "Production.accrue", 1, true) ~= nil, "the starter loop must accrue Coins")
+	end,
+
+	["the starter ships a pure loop and a smoke that drives it under Lune"] = function()
+		local files = Scaffold.collectRaidFiles("forge-demo", "ForgeDemo")
+		local smoke = files["smoke/smoke.luau"]
+		assert(smoke ~= nil and files["smoke/smoke.spec.luau"] ~= nil, "forge new must scaffold a smoke suite")
+		assert(string.find(smoke, 'require("../src/shared/StarterLoop")', 1, true) ~= nil, "smoke drives StarterLoop")
+		for _, path in { "src/shared/StarterLoop.luau", "src/shared/Config.luau", "smoke/smoke.luau" } do
+			local text = files[path]
+			assert(type(luau.load(text)) == "function", path .. " must compile")
+			for _, engine in { "game:", "Instance.new", "BrickColor.new", "workspace", "os.time", "os.clock" } do
+				assert(string.find(text, engine, 1, true) == nil, path .. " must stay engine-free: " .. engine)
+			end
+		end
 	end,
 
 	["the client renders procgen creatures/decor client-side and plays generated audio"] = function()

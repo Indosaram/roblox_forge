@@ -250,6 +250,9 @@ local function assemble(
 					else "World",
 			}
 			common["src/server/" .. input.pascal .. "World.server.luau"] = runtime.worldServerSource(input)
+			-- The world entry owns the server start and the project mounts no plain
+			-- server script, so publishing one would ship an orphan source file.
+			common["src/server/" .. input.pascal .. "Server.server.luau"] = nil
 		end
 	end
 	-- A legacy pack ships its own gameplay server and owns its own runtime, so no second
@@ -272,15 +275,35 @@ local function assemble(
 		packMode = genreConfig.mode
 	end
 	local block: any = qagen.block(primary, packMode)
+	-- A recipe pack's loop is the recipe's, not the owner genre's single-genre loop: the
+	-- recipe normalizes partner configs (survival-coop's wallet moves to grow-harvest), so
+	-- the owner's golden path would assert state the pack never has. A recipe declares
+	-- its own `qa` block in the same shape as a spec's, and that block is derived instead.
+	local qaSource: any = primary
+	if owner and owner.recipe then
+		local recipes = registry.packages[owner.id].generator.recipes
+		local recipe: any = if recipes then recipes[owner.recipe.id] else nil
+		qaSource = { qa = if recipe and type(recipe.qa) == "table" then recipe.qa else {} }
+		block = qagen.block(qaSource, nil)
+	end
 	-- A legacy pack's playable loop is engine-side, so a derived native scenario would exercise the
 	-- generic contract runtime rather than the game: the legacy pack's own smoke and Studio
 	-- scenarios are its verification, and no parallel-runtime scenario is published with it.
 	if not legacy and type(block) == "table" and type(block.goldenPath) == "table" and #block.goldenPath > 0 then
-		local derived = qagen.derive(primary, {
-			name = qagen.name(primary),
+		local derived = qagen.derive(qaSource, {
+			name = qagen.name(qaSource),
 			genre = specId,
 			pack = input.slug,
-		}, packMode)
+		}, if qaSource == primary then packMode else nil)
+		if qaSource ~= primary and owner and owner.recipe then
+			local partners: { string } = {}
+			for _, partner in owner.recipe.partners do
+				if partner ~= specId then
+					table.insert(partners, partner)
+				end
+			end
+			derived.partners = partners
+		end
 		local derivedErrors = qascenario.validate(derived)
 		assert(#derivedErrors == 0, "derived scenario: " .. table.concat(derivedErrors, "; "))
 		common["qa-scenarios/" .. qagen.fileName(specId, derived.name)] = serde.encode("yaml", derived)

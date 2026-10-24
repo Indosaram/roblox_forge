@@ -253,7 +253,12 @@ local function validateStep(
 		local action = step.action
 		if type(action) ~= "string" or string.match(action, "^[a-z][a-z0-9%-]*:[a-z][a-z0-9%-]*$") == nil then
 			table.insert(errors, label .. ".action: expected '<genre>:<action>'")
-		elseif string.match(action, "^([^:]+):") ~= scenario.genre then
+		elseif
+			string.match(action, "^([^:]+):") ~= scenario.genre
+			and not (
+				type(scenario.partners) == "table" and table.find(scenario.partners, string.match(action, "^([^:]+):"))
+			)
+		then
 			table.insert(errors, label .. ".action: action is outside the scenario genre")
 		end
 		if step.args ~= nil and (not Validation.dense(step.args, 16) or not SerializedData.data(step.args)) then
@@ -684,6 +689,7 @@ function M.validate(raw: any): { string }
 		"players",
 		"fixtures",
 		"data",
+		"partners",
 		"steps",
 	}
 	for key in raw do
@@ -702,6 +708,19 @@ function M.validate(raw: any): { string }
 	end
 	if not isId(raw.pack) then
 		table.insert(errors, "pack: invalid pack slug")
+	end
+	-- A recipe pack composes genres, so its native scenario may drive the recipe's
+	-- partner genres' actions as well as the owner's; nothing else widens the rule.
+	if raw.partners ~= nil then
+		local valid = raw.kind == "native" and type(raw.partners) == "table" and Validation.dense(raw.partners, 8)
+		if valid then
+			for _, id in raw.partners do
+				valid = valid and isId(id)
+			end
+		end
+		if not valid then
+			table.insert(errors, "partners: expected a native scenario's list of genre ids")
+		end
 	end
 	if type(raw.kind) ~= "string" or table.find(M.KINDS, raw.kind) == nil then
 		table.insert(errors, "kind: expected " .. table.concat(M.KINDS, "|"))

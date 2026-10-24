@@ -146,7 +146,9 @@ local function clientSource(
 				"\tcontrolActions[control.id] = control.action",
 				"end",
 				"",
-				"local audio = AudioKit.start({",
+				-- The world-feedback layer plays cues through the kit, so only then is the
+				-- handle kept; otherwise the kit runs on its own subscription.
+				(if withWorldFeedback then "local audio = " else "") .. "AudioKit.start({",
 				"\tgenre = Spec.id,",
 				"\taudio = Spec.audio,",
 				"\tcontentIds = Assets,",
@@ -384,7 +386,9 @@ function M.render(
 		)
 	end
 	table.insert(smoke, 'assert(#checks>0,"empty smoke checks")\nreturn checks\nend}\n')
-	common["smoke/smoke.luau"] = table.concat(smoke, "\n")
+	-- Formatted to stylua's fixed point: one formatter pass over the assembled
+	-- source still re-indents the driver call, so `stylua --check` would fail.
+	common["smoke/smoke.luau"] = genrespec.stabilize(table.concat(smoke, "\n"), "smoke.luau")
 	return common
 end
 --- The standard-surface files a legacy pack no longer publishes: a legacy genre ships its own
