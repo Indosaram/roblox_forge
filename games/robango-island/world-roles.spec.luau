@@ -7,6 +7,7 @@ local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
 local HomeContent = require("../../core/domain/home/HomeContent")
 local Home = require("../../core/domain/home/HomeState")
+require("./PackText.fixture") -- installs the strings.csv lookup that ExtensionPanels.travelText reads
 
 return {
 	["every role is reachable from onboarding through in-game travel and gates show their refusal"] = function()

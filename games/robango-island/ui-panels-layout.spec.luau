@@ -10,7 +10,8 @@ local Zone = require("../../genres/survival-coop/module/DeathZonePanel")
 local MusicText = require("../../genres/survival-coop/module/MusicText")
 local Music = require("../../genres/survival-coop/module/MusicScreens")
 local Navigator = require("../../genres/survival-coop/module/NavigatorPanel")
-require("../../genres/survival-coop/module/ScreenText").use(require("./PackText.fixture").screenText)
+local PackText = require("./PackText.fixture") -- also installs the PackLocale lookup MusicText reads
+require("../../genres/survival-coop/module/ScreenText").use(PackText.screenText)
 
 -- PC, portrait phone and the Studio short-landscape phone (device simulator 640x339).
 local VIEWPORTS = { { 1280, 720, false }, { 360, 640, true }, { 640, 339, true } }
@@ -336,8 +337,10 @@ return {
 	end,
 	["score import, share and ensemble sheets fit labels, buttons and refusals at every target viewport"] = function()
 		local refusals = {}
-		for key in MusicText.strings do
-			if string.find(key, "^score%.") or string.find(key, "^ensemble%.") then
+		-- MusicText rows ship as mus.<key> rows of strings.csv.
+		for _, row in PackText.rows do
+			local key = string.match(row.key, "^mus%.(.+)$")
+			if key and (string.find(key, "^score%.") or string.find(key, "^ensemble%.")) then
 				table.insert(refusals, key)
 			end
 		end

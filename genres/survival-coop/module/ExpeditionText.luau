@@ -6,30 +6,7 @@ local WildlifeNames = require("./WildlifeNames")
 local M = {}
 
 local PackLocale = require("./PackLocale")
-local strings: { [string]: { string } } = PackLocale.rows({
-	biome_grassland = { "Grassland", "초원" },
-	biome_tropical = { "Tropical Isle", "열대 섬" },
-	biome_desert = { "Desert", "사막" },
-	biome_snow = { "Snowfield", "설원" },
-	biome_volcano = { "Volcano", "화산" },
-	biome_swamp = { "Swamp", "늪지" },
-	biome_beach = { "Beach", "해변" },
-	biome_forest = { "Forest", "숲" },
-	biome_unknown = { "Uncharted", "미지의 바다" },
-	exp_gate_level = {
-		"Level %d/%d: guides, contracts and missions give XP",
-		"레벨 %d/%d: 가이드·계약·미션으로 경험치를 얻어요",
-	},
-	exp_gate_rank = {
-		"Island development grade %d/%d: complete guides to raise it (+50 each, 100 per grade)",
-		"섬 개발 등급 %d/%d: 가이드 완료로 등급 상승 (가이드당 +50, 100마다 1등급)",
-	},
-	exp_open_guides = { "Open guides", "가이드 열기" },
-	travel_arrived = {
-		"Arrived: route %d (%s), stage %d of 4",
-		"도착: 항로 %d (%s), 4단계 중 %d단계",
-	},
-})
+local strings: { [string]: { string } } = PackLocale.rows({}, { "exp.", "" })
 
 M.strings = strings
 

@@ -1,4 +1,5 @@
 --!strict
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 local Editor = require("./ScoreEditorPanel")
 local Transport = require("./ScoreTransport")
 local Rules = require("../../../core/domain/music/TestCatalog")

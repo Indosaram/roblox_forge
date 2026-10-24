@@ -3,6 +3,7 @@ local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
 local HUDModel = require("./SurvivalHUDModel")
 local Locale = require("./SurvivalHUDLocale")
+local PackLocale = require("./PackLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 
 export type Context = {
@@ -93,11 +94,7 @@ function M.tileOrder(id: string, order: number): number
 	return ((categories[id] or { 3 })[1] :: number) * 100 + order
 end
 
-local ACTION_LABELS: { [string]: { string } } = {
-	survey = { "Survey", "조사" },
-	rescue = { "Rescue", "구조" },
-	transport = { "Transport", "운송" },
-}
+local ACTION_LABELS: { [string]: { string } } = PackLocale.rows({}, { "act." })
 
 --- Current archipelago stage objectives with progress, e.g. "Wood 0/5 · Survey 0/1".
 --- `state` is the archipelago extension snapshot; nil when no active stage applies.
@@ -125,26 +122,7 @@ function M.stageObjectiveText(state: any, content: any, locale: string, names: {
 	return if #parts > 0 then table.concat(parts, " · ") else nil
 end
 
-local TRAVEL_REASONS: { [string]: { string } } = {
-	mission_gate = { "Finish this island's objectives first", "이 섬의 목표를 먼저 완료하세요" },
-	route_expired = { "This route has expired", "항로가 만료되었습니다" },
-	expiry_imminent = {
-		"The route expires too soon to travel",
-		"항로 만료가 임박해 이동할 수 없습니다",
-	},
-	expedition_inactive = { "No active route", "진행 중인 항로가 없습니다" },
-	missing_expedition = { "No active route", "진행 중인 항로가 없습니다" },
-	level_gate = { "Your level is too low for this route", "항로 레벨이 부족합니다" },
-	development_gate = { "Raise your island development first", "개발 등급을 먼저 올리세요" },
-	instability_gate = { "This route is not unlocked yet", "아직 열리지 않은 항로입니다" },
-	dock_unreachable = { "Move closer to the dock", "부두에 더 가까이 가세요" },
-	transition_not_allowed = { "Depart from the harbor", "항구에서 출발하세요" },
-	studio_no_teleport = {
-		"Accepted. Teleport is unavailable in Studio",
-		"승인됨. Studio에서는 섬 이동이 불가합니다",
-	},
-	travelling = { "Travelling...", "이동 중..." },
-}
+local TRAVEL_REASONS: { [string]: { string } } = PackLocale.rows({}, { "trv." })
 
 --- Player-visible text for the server's dock travel result (`travelling` or a refusal reason).
 function M.travelText(locale: string, result: string): string

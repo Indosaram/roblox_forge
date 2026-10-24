@@ -413,6 +413,7 @@ local function harness(): any
 	env.content = load("games/robango-island/src/shared/SurvivalContent")
 	env.player, env.locale, env.korean = player, "ko-kr", true
 	env.names, env.authoredText = PackText.names("ko-kr"), PackText.authored
+	env.clientText = PackText.packText -- client: PackText.lookup(packRows, "cli.") over full cli.* keys
 	-- The client installs the Strings-table lookups before this section (see its PackText block).
 	load("genres/survival-coop/module/PackLocale").use(PackText.packText)
 	load("genres/survival-coop/module/ScreenText").use(PackText.screenText)

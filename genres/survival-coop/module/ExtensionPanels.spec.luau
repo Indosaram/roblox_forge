@@ -2,6 +2,7 @@
 local Panels = require("./ExtensionPanels")
 local Model = require("./SurvivalHUDModel")
 local fs = require("@lune/fs")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup (client: Strings table)
 
 local function signal(): any
 	local callbacks: { () -> () } = {}
@@ -227,6 +228,8 @@ local function contractsDock(locale: string, width: number, height: number, surv
 			return contracts
 		elseif path == "./CharacterText" then
 			return require("./CharacterText")
+		elseif path == "./PackLocale" then
+			return require("./PackLocale")
 		end
 		return { factory = function() end, mount = function() end }
 	end
@@ -520,6 +523,8 @@ return {
 					return require("../../../core/ui-kit/Layout")
 				elseif path == "./SurvivalHUDModel" then
 					return Model
+				elseif path == "./PackLocale" then
+					return require("./PackLocale")
 				end
 				return { factory = function() end }
 			end

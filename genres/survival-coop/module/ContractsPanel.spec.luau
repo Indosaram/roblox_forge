@@ -1,5 +1,6 @@
 --!strict
 local ContractsPanel = require("./ContractsPanel")
+local PackText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 
 return {
 	["the board keeps its buttons across snapshots that change nothing it renders"] = function()
@@ -88,6 +89,16 @@ return {
 				string.find(done.objective, routes, 1, true),
 				locale .. " next step names Routes: " .. done.objective
 			)
+		end
+	end,
+	["p96 the gather objective names no keyboard key on a touch device"] = function()
+		local gather = { tutorial = { step = "gather", hint = "tutorial.gather" } }
+		for _, locale in { "en-us", "ko-kr" } do
+			local touch = ContractsPanel.model(locale, gather, {}, nil, true).objective
+			assert(touch == PackText.packText(locale, "ctr.tutorial.gather_touch"), locale .. " touch hint: " .. touch)
+			assert(not string.find(touch, "%f[%w]E%f[%W]"), locale .. " touch hint names the E key: " .. touch)
+			local desktop = ContractsPanel.model(locale, gather, {}, nil, false).objective
+			assert(string.find(desktop, "%f[%w]E%f[%W]"), locale .. " keyboard hint keeps E: " .. desktop)
 		end
 	end,
 }

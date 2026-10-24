@@ -6,74 +6,10 @@ local M = {}
 local EARLY = { arrive = true, gather = true, ["craft-stone-axe"] = true }
 
 local PREFIX = "survival-coop:"
+local PackLocale = require("./PackLocale")
 
--- Mirrors the pack's `ct_*` locale rows.
-local STRINGS: { [string]: { en: string, ko: string } } = {
-	contracts_title = { en = "Contracts", ko = "계약" },
-	contracts_accept = { en = "Accept", ko = "수락" },
-	contracts_deliver = { en = "Deliver", ko = "납품" },
-	contracts_accepted = { en = "Accepted", ko = "수락함" },
-	contracts_reward = { en = "Reward", ko = "보상" },
-	contracts_coins = { en = "Shellmoney %d", ko = "조개돈 %d" },
-	contracts_trust = { en = "Trust", ko = "신뢰도" },
-	contracts_tier = { en = "Tier", ko = "단계" },
-	contracts_empty = { en = "No contracts available", ko = "받을 수 있는 계약이 없어요" },
-	contracts_refused = { en = "Refused: ", ko = "거절됨: " },
-	contracts_reason_insufficient = {
-		en = "Not enough items to deliver yet.",
-		ko = "납품할 아이템이 아직 부족해요.",
-	},
-	contracts_reason_carry = {
-		en = "Carry %s x%d in your bag (have %d).",
-		ko = "가방에 %s %d개를 들고 오세요 (현재 %d개).",
-	},
-	contracts_reason_bag_full = {
-		en = "Your bag is full. Make room first.",
-		ko = "가방이 가득 찼어요. 공간을 비우세요.",
-	},
-	contracts_reason_pending = {
-		en = "Saving... try again in a moment.",
-		ko = "저장 중이에요. 잠시 후 다시 시도하세요.",
-	},
-	contracts_reason_order = {
-		en = "Complete the earlier first-day contract first.",
-		ko = "앞선 첫날 계약을 먼저 완료하세요.",
-	},
-	contracts_reason_other = { en = "That did not work. Try again.", ko = "잘 안 됐어요. 다시 시도하세요." },
-	contracts_delivered = { en = "Delivered. Reward: %s", ko = "납품 완료. 보상: %s" },
-	tutorial_title = { en = "Objective", ko = "목표" },
-	tutorial_skip = { en = "Skip arrival", ko = "도착 장면 건너뛰기" },
-	tutorial_done = { en = "Tutorial complete", ko = "튜토리얼 완료" },
-	["tutorial.arrive"] = { en = "Arrive on the island", ko = "섬에 도착하세요" },
-	["tutorial.gather"] = {
-		en = "Gather a resource: walk up and press E",
-		ko = "자원을 채집하세요: 다가가서 E",
-	},
-	["tutorial.craft-stone-axe"] = {
-		en = "Craft an axe: press C (Menu > Craft); the pinned recipe is first",
-		ko = "도끼를 만드세요: C 키 (메뉴 > 제작), 고정된 제작법이 맨 위",
-	},
-	["tutorial.declare-settlement"] = {
-		en = "Place your settlement: store wood in the warehouse (I), then press B to build",
-		ko = "정착지를 세우세요: 가방(I)에서 창고에 나무 보관 후 B 키로 건설",
-	},
-	["tutorial.accept-contract"] = {
-		en = "Accept the first contract: Menu > Contracts",
-		ko = "첫 계약을 수락하세요: 메뉴 > 계약",
-	},
-	["tutorial.deliver-contract"] = {
-		en = "Deliver the first contract: Menu > Contracts > Deliver",
-		ko = "첫 계약을 납품하세요: 메뉴 > 계약 > 납품",
-	},
-	-- After the tutorial the onboarding chain points at route 1 (spec: guides raise the grade).
-	["tutorial.next-route"] = {
-		en = "Next: raise island grade with guides (Menu > Island rank), then open Menu > Routes",
-		ko = "다음: 가이드로 섬 개발 등급 올리기 (메뉴 > 섬 등급), 그다음 메뉴 > 항로",
-	},
-	["faction.route-surveyors"] = { en = "Route Survey Society", ko = "노선 측량 협회" },
-	["faction.artisan-guilds"] = { en = "Artisan Guild Union", ko = "장인 길드 연합" },
-	["faction.island-ecology"] = { en = "Island Ecology Trust", ko = "섬 생태 신탁" },
-}
+-- Rows live in the pack's locale table as ctr.<key> (games/robango-island/locale/strings.csv).
+local STRINGS: { [string]: { string } } = PackLocale.rows({}, { "ctr." })
 
 --- Player sentence for a refusal (never the raw code).
 function M.refusal(locale: string, reason: string?, short: any?, names: { [string]: string }?): string
@@ -95,12 +31,15 @@ function M.text(locale: string, key: string): string
 	if entry == nil then
 		return key
 	end
-	return if string.sub(locale, 1, 2) == "ko" then entry.ko else entry.en
+	return if string.sub(locale, 1, 2) == "ko" then entry[2] else entry[1]
 end
 M.STRINGS = STRINGS
 
---- Pure view model so the layout is testable without Instances.
-function M.model(locale: string, state: any, names: { [string]: string }?, guide: string?): any
+-- Objective hints that name a keyboard key have a touch variant (<hint>_touch) without it.
+local TOUCH_HINTS = { ["tutorial.gather"] = true }
+
+--- Pure view model so the layout is testable without Instances. `touch` picks the key-free hint.
+function M.model(locale: string, state: any, names: { [string]: string }?, guide: string?, touch: boolean?): any
 	local function itemName(id: string): string
 		return if names and names[id] then names[id] else HudLocale.text(locale, id)
 	end
@@ -152,6 +91,7 @@ function M.model(locale: string, state: any, names: { [string]: string }?, guide
 		objective = if guide and not EARLY[tutorial.step]
 			then guide
 			elseif tutorial.complete then M.text(locale, "tutorial.next-route")
+			elseif touch and TOUCH_HINTS[tutorial.hint] then M.text(locale, tutorial.hint .. "_touch")
 			else M.text(locale, tutorial.hint or "tutorial.arrive"),
 		canSkip = tutorial.complete ~= true and tutorial.step == "arrive",
 	}
@@ -185,6 +125,7 @@ function M.factory(ctx: any): any
 	local components, theme = ctx.ui.components, ctx.ui.theme.default
 	local locale = ctx.locale
 	local players = game:GetService("Players")
+	local touch = ctx.touch or game:GetService("UserInputService").TouchEnabled == true
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ContractsPanel"
 	gui.ResetOnSpawn = false
@@ -286,7 +227,7 @@ function M.factory(ctx: any): any
 	end
 	local guide: string?, seen = nil, {}
 	local function render(state: any)
-		local view = M.model(locale, state, ctx.names, guide)
+		local view = M.model(locale, state, ctx.names, guide, touch)
 		local key = M.renderKey(view)
 		objective = M.text(locale, "tutorial_title") .. ": " .. view.objective
 		-- A refusal stays until the board changes (vitals ticks erased it).

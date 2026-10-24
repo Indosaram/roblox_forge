@@ -25,6 +25,8 @@ local PackText = require(Shared.PackText)
 local packRows = PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
 local names = PackText.names(packRows)(locale)
 local authoredText = PackText.authored(packRows)
+-- Client-only labels (clan/outpost, journal, island view) are the cli.* rows of the Strings table.
+local clientText = PackText.lookup(packRows, "cli.")
 -- Genre panel and screen copy comes from the Strings LocalizationTable, not script source.
 require(Forge.genres["survival-coop"].module.PackLocale).use(PackText.lookup(packRows, ""))
 require(Forge.genres["survival-coop"].module.ScreenText).use(PackText.lookup(packRows, "scr."))
@@ -361,29 +363,7 @@ table.insert(panelFactories, function(ctx)
 		return workspace:GetServerTimeNow()
 	end
 	social.text = function(key)
-		local labels = {
-			["ui.clan"] = { "Clan", "부족" },
-			["clan.empty"] = {
-				"Create a clan or join by invitation to share funds and capture team outposts.",
-				"부족을 만들거나 초대로 가입하여 자금을 모으고 팀 거점을 점령하세요.",
-			},
-			["clan.create"] = { "Create clan", "부족 생성" },
-			["clan.join"] = { "Join invited clan", "초대받은 부족 가입" },
-			["clan.invite"] = { "Invite", "초대" },
-			["clan.deposit"] = { "Deposit", "입금" },
-			["clan.withdraw"] = { "Withdraw", "출금" },
-			["clan.level"] = { "Level", "레벨" },
-			["clan.territory"] = { "Territory", "영토" },
-			["ui.outpost"] = { "Team outpost", "팀 거점" },
-			["outpost.owner"] = { "Owner", "소유 부족" },
-			["outpost.remaining"] = { "Seconds remaining", "남은 시간" },
-			["outpost.active"] = { "Capture in progress", "점령 진행 중" },
-			["outpost.settled"] = { "Match finished", "경기 종료" },
-			["outpost.winner"] = { "Winner", "승리 부족" },
-			["outpost.opt-in"] = { "Join team queue", "팀 대기열 참가" },
-		}
-		local row = labels[key]
-		return if row then row[if korean then 2 else 1] else key
+		return clientText(locale, "cli." .. key) or key
 	end
 	social.onViewport = function(callback)
 		local current = workspace.CurrentCamera
@@ -727,19 +707,9 @@ end)
 table.insert(panelFactories, function(ctx)
 	local journalContext: any = table.clone(ctx)
 	local playerGui = player:WaitForChild("PlayerGui")
-	local labels = {
-		journal_open = { "Open journal", "일지 열기" },
-		journal_claim = { "Complete chapter", "챕터 완료" },
-		LEVEL_GATE = { "Requires level 20", "레벨 20 필요" },
-		CHAPTER_ORDER = { "Complete the previous chapter first", "이전 챕터를 먼저 완료하세요" },
-		ALREADY_COMPLETED = { "Completed", "완료" },
-		CHAPTER_ACTIVE = { "Finish the active chapter first", "진행 중인 챕터를 먼저 완료하세요" },
-		OBJECTIVES_INCOMPLETE = { "Complete every objective first", "모든 목표를 먼저 완료하세요" },
-	}
 	journalContext.content = content
 	journalContext.text = function(key)
-		local row = labels[key]
-		return if row then row[if korean then 2 else 1] else authoredText(locale, key) or names[key] or key
+		return clientText(locale, "cli.journal." .. key) or authoredText(locale, key) or names[key] or key
 	end
 	local journalGui: ScreenGui? = nil
 	journalContext.createGui = function(name)
@@ -962,18 +932,10 @@ end
 placeAerialControls()
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeAerialControls)
 local aerialButtons: any = {}
-local aerialLabels = {
-	Return = { "Return", "돌아가기" },
-	Toggle = { "Island view", "섬 전경" },
-	OrbitLeft = { "Rotate left", "왼쪽 회전" },
-	OrbitRight = { "Rotate right", "오른쪽 회전" },
-	HideUI = { "Hide UI", "UI 숨기기" },
-	ShowUI = { "Show UI", "UI 표시" },
-	Capture = { "Capture", "촬영" },
-}
 for index, name in { "Toggle", "Return", "OrbitLeft", "OrbitRight", "HideUI", "ShowUI", "Capture" } do
 	local button = Instance.new("TextButton")
-	button.Text, button.LayoutOrder, button.Parent = aerialLabels[name][if korean then 2 else 1], index, aerialControls
+	button.Text, button.LayoutOrder, button.Parent =
+		clientText(locale, "cli.aerial." .. name) :: string, index, aerialControls
 	button.BackgroundColor3, button.TextColor3 = Color3.fromRGB(40, 76, 66), Color3.fromRGB(240, 244, 240)
 	button.Font, button.TextSize = Enum.Font.GothamMedium, aerialTextSize
 	button.TextWrapped = true

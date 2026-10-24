@@ -1,6 +1,7 @@
 --!strict
 local fs = require("@lune/fs")
 local Panel = require("./OperationPanel")
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 
 return {
 	["rows show inputs, station and gate; locked rows offer no make button"] = function()

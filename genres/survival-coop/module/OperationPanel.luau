@@ -12,18 +12,21 @@ local Instance: any = env.Instance
 local Enum: any = env.Enum
 local UDim2: any = env.UDim2
 
-local strings: { [string]: { string } } = {
-	operation_title = { "Practice and instruments", "연습과 악기" },
-	operation_make = { "Make", "만들기" },
-	operation_done = { "Made", "만들었어요" },
-	operation_hand = { "By hand", "맨손" },
-	operation_station = { "Workbench nearby", "근처 작업대" },
-	operation_level = { "Character level too low", "캐릭터 레벨이 부족해요" },
-	operation_skill = { "Learn the required skill first", "필요한 기술을 먼저 배우세요" },
-	operation_items = { "Not enough materials", "재료가 부족해요" },
-	operation_away = { "Stand next to a workbench", "작업대 옆에 서세요" },
-	operation_failed = { "That did not work. Try again", "실패했어요. 다시 시도하세요" },
+-- operation_* rows of the pack locale table (games/robango-island/locale/strings.csv).
+local PackLocale = require("./PackLocale")
+local KEYS = {
+	"operation_away",
+	"operation_done",
+	"operation_failed",
+	"operation_hand",
+	"operation_items",
+	"operation_level",
+	"operation_make",
+	"operation_skill",
+	"operation_station",
+	"operation_title",
 }
+local strings: { [string]: { string } } = PackLocale.rows({})
 local refusals: { [string]: string } = {
 	CHARACTER_LEVEL_GATE = "operation_level",
 	SKILL_GATE = "operation_skill",
@@ -32,12 +35,7 @@ local refusals: { [string]: string } = {
 }
 
 function M.keys(): { string }
-	local keys = {}
-	for key in strings do
-		table.insert(keys, key)
-	end
-	table.sort(keys)
-	return keys
+	return table.clone(KEYS)
 end
 
 function M.text(locale: string, key: string): string

@@ -4,6 +4,7 @@
 local fs = require("@lune/fs")
 local Build = require("./BuildPlacement")
 local Locale = require("./SurvivalHUDLocale")
+require("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup (client: Strings table)
 
 local HUD = "genres/survival-coop/module/SurvivalHUD.luau"
 

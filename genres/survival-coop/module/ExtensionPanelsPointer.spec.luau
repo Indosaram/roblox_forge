@@ -185,6 +185,8 @@ return {
 					return require("../../../core/ui-kit/Layout")
 				elseif path == "../../../core/ui-kit/IconFallback" then
 					return load("core/ui-kit/IconFallback.luau")
+				elseif path == "./PackLocale" then
+					return require("./PackLocale")
 				end
 				return { factory = function() end }
 			end

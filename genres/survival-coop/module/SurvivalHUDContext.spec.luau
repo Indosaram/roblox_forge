@@ -1,4 +1,5 @@
 --!strict
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 local Locale = require("./SurvivalHUDLocale")
 local Model = require("./SurvivalHUDModel")
 local Tutorial = require("./SurvivalTutorial")

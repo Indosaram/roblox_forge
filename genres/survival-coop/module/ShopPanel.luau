@@ -16,22 +16,9 @@ M.ROW_HEIGHT = 48
 M.DESCRIPTION_HEIGHT = 40
 M.DESCRIPTION_TEXT_SIZE = 14
 
-local strings: { [string]: { string } } = {
-	shop_title = { "Shop", "상점" },
-	shop_buy = { "Buy", "구매" },
-	shop_owned = { "Owned", "보유 중" },
-	shop_skin_select = { "Select appearance", "외형 선택" },
-	shop_price = { "%d Robux", "%d 로벅스" },
-	shop_unavailable = { "Not available yet", "아직 구매할 수 없어요" },
-	shop_ineligible = {
-		"Subscriptions are not available for this account",
-		"이 계정은 구독을 이용할 수 없어요",
-	},
-	shop_failed = {
-		"Purchase could not start. Try again later",
-		"구매를 시작하지 못했어요. 잠시 후 다시 시도하세요",
-	},
-}
+-- shop_* rows of the pack locale table (games/robango-island/locale/strings.csv).
+local PackLocale = require("./PackLocale")
+local strings: { [string]: { string } } = PackLocale.rows({})
 local refusals: { [string]: string } = {
 	PRODUCT_EFFECT_UNAVAILABLE = "shop_unavailable",
 	PRODUCT_NOT_CONFIGURED = "shop_unavailable",

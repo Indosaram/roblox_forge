@@ -1813,3 +1813,785 @@ scr.treasury.no_withdraw,Withdrawing needs permission from the clan owner.,recov
 scr.treasury.spend,Research %s: -%d (%s),recovered screen,Research %s: -%d (%s),연구 %s: -%d (%s)
 scr.treasury.title,Clan treasury,recovered screen,Clan treasury,부족 금고
 scr.treasury.withdraw,Withdraw %d,recovered screen,Withdraw %d,%d 출금
+hud.market.account,Market trading is unavailable for this account right now.,genre text hud,Market trading is unavailable for this account right now.,지금은 이 계정으로 장터 거래를 할 수 없어요.
+hud.market.age,Market listing opens once your Roblox account is 7 days old.,genre text hud,Market listing opens once your Roblox account is 7 days old.,로블록스 계정이 7일 이상 되어야 장터에 등록할 수 있어요.
+hud.market.playtime,Market listing opens after 2 hours of play. Keep exploring and come back.,genre text hud,Market listing opens after 2 hours of play. Keep exploring and come back.,2시간 이상 플레이해야 장터에 등록할 수 있어요. 더 탐험한 뒤 다시 오세요.
+hud.market.invalid,Enter a quantity you carry and a price of at least 1.,genre text hud,Enter a quantity you carry and a price of at least 1.,가진 만큼의 수량과 1 이상의 가격을 입력하세요.
+hud.market.declined,"Those goods could not be escrowed (reserved, equipped, or 20 listings up). Check your bag.",genre text hud,"Those goods could not be escrowed (reserved, equipped, or 20 listings up). Check your bag.",재료를 맡길 수 없어요 (예약·장착 중이거나 등록 20개 초과). 가방을 확인하세요.
+hud.market.pending,Listing is still settling. Press List again in a moment; it will not list twice.,genre text hud,Listing is still settling. Press List again in a moment; it will not list twice.,등록을 정산하는 중이에요. 잠시 뒤 다시 누르세요. 두 번 등록되지 않아요.
+hud.market.conflict,That request already listed different goods. Change the amount or price and list again.,genre text hud,That request already listed different goods. Change the amount or price and list again.,같은 요청으로 다른 묶음이 이미 등록됐어요. 수량이나 가격을 바꿔 다시 등록하세요.
+hud.market.expired,Session refreshed. Reopen the market and list again.,genre text hud,Session refreshed. Reopen the market and list again.,세션이 새로 고쳐졌어요. 장터를 다시 열고 등록하세요.
+hud.market.combat,"A wildlife fight is still settling. Wait a moment, then list again.",genre text hud,"A wildlife fight is still settling. Wait a moment, then list again.",야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 등록하세요.
+hud.market.rate,"Too fast. Wait a moment, then list again.",genre text hud,"Too fast. Wait a moment, then list again.",너무 빨라요. 잠시 뒤 다시 등록하세요.
+hud.market.left,You left this server. Rejoin to list.,genre text hud,You left this server. Rejoin to list.,서버를 떠났어요. 다시 접속한 뒤 등록하세요.
+hud.market.unavailable,The market is still connecting. Wait a moment and try again.,genre text hud,The market is still connecting. Wait a moment and try again.,장터에 연결하는 중이에요. 잠시 뒤 다시 시도하세요.
+hud.market.transport,Connection uncertain. Press List again; it will not list twice.,genre text hud,Connection uncertain. Press List again; it will not list twice.,연결이 불확실해요. 다시 누르세요. 두 번 등록되지 않아요.
+hud.market.refused,The market refused this listing.,genre text hud,The market refused this listing.,장터가 이 등록을 거절했어요.
+hud.menu_survival,Survival,genre text hud,Survival,생존
+hud.menu_world,World,genre text hud,World,세계
+hud.menu_social,Social,genre text hud,Social,함께
+hud.menu_shop,Shop,genre text hud,Shop,상점
+hud.menu_settings,Settings,genre text hud,Settings,설정
+hud.music,Music,genre text hud,Music,연주
+hud.dodge,Dodge [Q],genre text hud,Dodge [Q],회피 [Q]
+hud.guard,Guard [G],genre text hud,Guard [G],방어 [G]
+hud.shoot,Shoot [V],genre text hud,Shoot [V],사격 [V]
+hud.stance,Stance: %s [X],genre text hud,Stance: %s [X],태세: %s [X]
+hud.stance.none,None,genre text hud,None,없음
+hud.stance.attack,Attack,genre text hud,Attack,공격
+hud.stance.defense,Defense,genre text hud,Defense,방어
+hud.stance.counter,Counter,genre text hud,Counter,역습
+hud.stance.onslaught,Onslaught,genre text hud,Onslaught,맹공
+hud.stance.charge,Charge,genre text hud,Charge,돌격
+hud.stance.shoot,Shooting,genre text hud,Shooting,사격
+hud.skills,Skills,genre text hud,Skills,기술
+hud.coins,Shellmoney %d,genre text hud,Shellmoney %d,조개돈 %d
+hud.level_sp,Level %d / SP %d,genre text hud,Level %d / SP %d,레벨 %d / SP %d
+hud.learn,Learn,genre text hud,Learn,배우기
+hud.skills.weapon_tool,Weapons & Tools,genre text hud,Weapons & Tools,무기·도구
+hud.skill_reset,Reset specializations,genre text hud,Reset specializations,전문 기술 초기화
+hud.wood,Wood,genre text hud,Wood,목재
+hud.fiber,Fiber,genre text hud,Fiber,섬유
+hud.flint,Flint,genre text hud,Flint,부싯돌
+hud.berry,Berries,genre text hud,Berries,열매
+hud.meat,Meat,genre text hud,Meat,고기
+hud.cord,Cord,genre text hud,Cord,끈
+hud.stone-axe,Stone axe,genre text hud,Stone axe,돌도끼
+hud.stone-pick,Stone pick,genre text hud,Stone pick,돌곡괭이
+hud.spear,Spear,genre text hud,Spear,창
+hud.cooked-meat,Cooked meat,genre text hud,Cooked meat,구운 고기
+hud.berry-meal,Berry meal,genre text hud,Berry meal,열매 요리
+hud.plank,Plank,genre text hud,Plank,널빤지
+hud.campfire,Campfire,genre text hud,Campfire,모닥불
+hud.workbench,Workbench,genre text hud,Workbench,작업대
+hud.storage,Storage,genre text hud,Storage,창고
+hud.floor,Floor,genre text hud,Floor,바닥
+hud.roof,Roof,genre text hud,Roof,지붕
+hud.campfire-kit,Campfire kit,genre text hud,Campfire kit,모닥불 키트
+hud.workbench-kit,Workbench kit,genre text hud,Workbench kit,작업대 키트
+hud.storage-kit,Storage kit,genre text hud,Storage kit,창고 키트
+hud.floor-kit,Floor kit,genre text hud,Floor kit,바닥 키트
+hud.roof-kit,Roof kit,genre text hud,Roof kit,지붕 키트
+hud.bag,Bag [I],genre text hud,Bag [I],가방 [I]
+hud.craft,Craft [C],genre text hud,Craft [C],제작 [C]
+hud.build,Build [B],genre text hud,Build [B],건설 [B]
+hud.attack,Attack [F],genre text hud,Attack [F],공격 [F]
+hud.WEAPON_UNAVAILABLE,"Craft a Starter Club at a workbench, then equip it from your bag before attacking.",genre text hud,"Craft a Starter Club at a workbench, then equip it from your bag before attacking.",작업대에서 입문용 곤봉을 제작한 뒤 가방에서 장착하고 공격하세요.
+hud.craft_nearby,Nearby / materials,genre text hud,Nearby / materials,주변 시설 / 보유 재료
+hud.craft_all,All recipes,genre text hud,All recipes,모든 레시피
+hud.craft_favorite,Favorite,genre text hud,Favorite,즐겨찾기
+hud.craft_unfavorite,Unfavorite,genre text hud,Unfavorite,즐겨찾기 해제
+hud.craft_track,Track (to-do),genre text hud,Track (to-do),할 일 추적
+hud.craft_untrack,Untrack,genre text hud,Untrack,추적 해제
+hud.tracker_title,To-do recipes,genre text hud,To-do recipes,할 일 레시피
+hud.tracker_ready,Ready,genre text hud,Ready,준비됨
+hud.TODO_LIMIT,You can track up to 5 recipes.,genre text hud,You can track up to 5 recipes.,레시피는 최대 5개까지 추적할 수 있어요.
+hud.INVALID_MARK,That mark is not available.,genre text hud,That mark is not available.,그 표시는 쓸 수 없어요.
+hud.FAVORITE_LIMIT,Too many favorites. Remove one first.,genre text hud,Too many favorites. Remove one first.,즐겨찾기가 너무 많아요. 하나를 먼저 해제하세요.
+hud.WILDLIFE_UNREACHABLE,Move within range and face a dinosaur,genre text hud,Move within range and face a dinosaur,공룡 가까이 이동하고 공룡을 바라보세요
+hud.close,Close,genre text hud,Close,닫기
+hud.cameraHelp,Camera controls,genre text hud,Camera controls,카메라 조작
+hud.cameraHint,"Turn the view: [ / ] keys, right-mouse drag, or twist two fingers outside the HUD. E gathers nearby resources.",genre text hud,"Turn the view: [ / ] keys, right-mouse drag, or twist two fingers outside the HUD. E gathers nearby resources.","시점 회전: [ / ] 키, 마우스 오른쪽 버튼 드래그 또는 HUD 밖에서 두 손가락 돌리기. E로 주변 자원을 채집해요."
+hud.ready,"Explore, gather, and make camp",genre text hud,"Explore, gather, and make camp",탐험하고 채집해서 야영지를 만드세요
+hud.loading,Connecting to your supplies...,genre text hud,Connecting to your supplies...,보급품을 불러오는 중...
+hud.pending,Pending - awaiting server confirmation,genre text hud,Pending - awaiting server confirmation,대기 중 - 서버 확인을 기다리는 중
+hud.confirmed,Confirmed - supplies saved,genre text hud,Confirmed - supplies saved,확인됨 - 보급품 저장 완료
+hud.SETTLEMENT_PUBLICATION_FAILED,Construction saved; world display is recovering. Refresh supplies; do not rebuild or repay.,genre text hud,Construction saved; world display is recovering. Refresh supplies; do not rebuild or repay.,건설은 저장됐으며 월드 표시를 복구 중입니다. 보급품을 새로 고치세요. 다시 건설하거나 지불하지 마세요.
+hud.conflict,Action refused,genre text hud,Action refused,작업 거절됨
+hud.retry,Retry same request,genre text hud,Retry same request,같은 요청 재시도
+hud.refresh,Refresh supplies,genre text hud,Refresh supplies,보급품 새로 고침
+hud.empty,No items yet. Gather nearby resources.,genre text hud,No items yet. Gather nearby resources.,아직 아이템이 없어요. 주변 자원을 채집하세요.
+hud.reserved,Reserved,genre text hud,Reserved,예약됨
+hud.quality,Quality,genre text hud,Quality,품질
+hud.durability,Durability,genre text hud,Durability,내구도
+hud.freshness,Freshness %d%%,genre text hud,Freshness %d%%,신선도 %d%%
+hud.freshness_spoiling,Freshness %d%% - eat or cool it soon,genre text hud,Freshness %d%% - eat or cool it soon,신선도 %d%% - 곧 먹거나 냉장고에 넣으세요
+hud.weight,Weight,genre text hud,Weight,무게
+hud.slots,Slots,genre text hud,Slots,칸
+hud.slow,Heavy load: movement reduced,genre text hud,Heavy load: movement reduced,짐이 무거워 이동 속도가 줄었어요
+hud.eat,Eat one,genre text hud,Eat one,하나 먹기
+hud.hungry,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,genre text hud,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,배가 고파요: 가방(I)을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.
+hud.knocked_down,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,genre text hud,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,쓰러져서 캠프에서 다시 일어났어요. 야생 동물과 배고픔을 조심하세요.
+hud.deposit,Store one,genre text hud,Store one,하나 보관
+hud.withdraw,Take one,genre text hud,Take one,하나 꺼내기
+hud.warehouse,Shared storage,genre text hud,Shared storage,공용 창고
+hud.reserve,Reserve ingredients,genre text hud,Reserve ingredients,재료 예약
+hud.make,Make (auto-collect),genre text hud,Make (auto-collect),만들기 (자동 수령)
+hud.missing,Missing,genre text hud,Missing,부족한 재료
+hud.placementHint,"Click or tap the ground to pick a cell, press Y to rotate, then confirm placement",genre text hud,"Click or tap the ground to pick a cell, press Y to rotate, then confirm placement",바닥을 클릭하거나 터치해 칸을 고르고 Y 키로 회전한 뒤 배치를 확정하세요
+hud.inputs,Ingredients (available / needed),genre text hud,Ingredients (available / needed),재료 (사용 가능 / 필요)
+hud.outputs,Makes,genre text hud,Makes,결과
+hud.station,Station,genre text hud,Station,제작 시설
+hud.tool,Tool,genre text hud,Tool,도구
+hud.hand,By hand,genre text hud,By hand,손으로 제작
+hud.start,Start,genre text hud,Start,시작
+hud.complete,Collect,genre text hud,Collect,받기
+hud.cancel,Cancel,genre text hud,Cancel,취소
+hud.Reserved,Reserved,genre text hud,Reserved,예약됨
+hud.Running,Crafting,genre text hud,Crafting,제작 중
+hud.Ready,Ready to collect,genre text hud,Ready to collect,받기 가능
+hud.jobs,Your crafting jobs,genre text hud,Your crafting jobs,내 제작 작업
+hud.health,Health,genre text hud,Health,체력
+hud.hunger,Hunger,genre text hud,Hunger,포만감
+hud.fatigue,Fatigue,genre text hud,Fatigue,피로
+hud.rest,Rest at campfire [R],genre text hud,Rest at campfire [R],모닥불에서 휴식 [R]
+hud.resting,Resting - move to stop,genre text hud,Resting - move to stop,휴식 중 - 움직이면 종료
+hud.rotate,Rotate,genre text hud,Rotate,회전
+hud.X-,Move left,genre text hud,Move left,왼쪽으로 이동
+hud.X+,Move right,genre text hud,Move right,오른쪽으로 이동
+hud.Z-,Move forward,genre text hud,Move forward,앞으로 이동
+hud.Z+,Move back,genre text hud,Move back,뒤로 이동
+hud.place,Place,genre text hud,Place,설치
+hud.preview,Preview only - server validates placement,genre text hud,Preview only - server validates placement,미리보기 - 서버가 설치 위치를 확인해요
+hud.buildHint,Tap or point at ground; Y rotates; reserve. Uses shared storage.,genre text hud,Tap or point at ground; Y rotates; reserve. Uses shared storage.,바닥을 터치하고 Y로 회전한 뒤 예약하세요. 공용 창고 재료를 써요.
+hud.select,Select an item for details,genre text hud,Select an item for details,아이템을 선택하면 정보가 나와요
+hud.TRANSPORT_FAILED,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,genre text hud,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,연결 상태가 불확실해요. 같은 요청을 재시도하세요.
+hud.HANDSHAKE_FAILED,"Supplies are not connected. Refresh, then try again.",genre text hud,"Supplies are not connected. Refresh, then try again.",보급품 연결이 안 됐어요. 새로 고친 뒤 다시 시도하세요.
+hud.REQUEST_EXPIRED,Session expired. Refresh before a new action.,genre text hud,Session expired. Refresh before a new action.,세션이 만료됐어요. 새로 고친 뒤 작업하세요.
+hud.capacity,"Not enough space. Store items, then collect again; reserved ingredients are safe.",genre text hud,"Not enough space. Store items, then collect again; reserved ingredients are safe.",공간이 부족해요. 아이템을 보관한 뒤 다시 받으세요. 예약 재료는 유지돼요.
+hud.stale,Supplies changed. Refresh and check the new amounts before retrying.,genre text hud,Supplies changed. Refresh and check the new amounts before retrying.,보급품이 변경됐어요. 새로 고쳐 수량을 확인한 뒤 다시 시도하세요.
+hud.materials,"Gather more ingredients, or cancel another reservation.",genre text hud,"Gather more ingredients, or cancel another reservation.",재료를 더 채집하거나 다른 예약을 취소하세요.
+hud.MISSING_INPUTS,"Not enough free materials. Gather more, or cancel a reserved job to free them.",genre text hud,"Not enough free materials. Gather more, or cancel a reserved job to free them.",쓸 수 있는 재료가 모자라요. 더 채집하거나 예약한 작업을 취소해 재료를 풀어 주세요.
+hud.UNAVAILABLE,"The camp warehouse lacks the materials. Store more from your bag, then reserve again.",genre text hud,"The camp warehouse lacks the materials. Store more from your bag, then reserve again.",공용 창고에 재료가 모자라요. 가방에서 재료를 더 보관한 뒤 다시 예약하세요.
+hud.PLACEMENT_UNREACHABLE,Move closer to place (max 12 studs from the preview's entry marker).,genre text hud,Move closer to place (max 12 studs from the preview's entry marker).,더 가까이 가서 설치하세요 (미리보기 입구 표시에서 최대 12스터드).
+hud.PLACEMENT_UNSUPPORTED,No flat ground under the footprint or entry. Move the preview to level ground.,genre text hud,No flat ground under the footprint or entry. Move the preview to level ground.,건물이나 입구 아래에 평평한 땅이 없어요. 평평한 곳으로 옮기세요.
+hud.PLACEMENT_BLOCKED,"Something is in the way (rock, tree or building). Move or rotate the preview.",genre text hud,"Something is in the way (rock, tree or building). Move or rotate the preview.",바위·나무·건물 같은 장애물이 있어요. 위치를 옮기거나 회전하세요.
+hud.ITEM_RESERVED,That item is held by a reserved job. Cancel the job first.,genre text hud,That item is held by a reserved job. Cancel the job first.,예약한 작업이 쓰고 있는 물건이에요. 먼저 그 작업을 취소하세요.
+hud.UNKNOWN_RECIPE,That recipe is not available here.,genre text hud,That recipe is not available here.,여기서는 만들 수 없는 레시피예요.
+hud.STATION_UNAVAILABLE,"Move closer to the required station, then reserve again.",genre text hud,"Move closer to the required station, then reserve again.",필요한 제작 시설(모닥불·작업대 등) 가까이 이동한 뒤 다시 예약하세요.
+hud.WAREHOUSE_UNREACHABLE,Walk to the camp warehouse (the storage crate) to store or take items.,genre text hud,Walk to the camp warehouse (the storage crate) to store or take items.,공용 창고(보관 상자) 가까이 가서 보관하거나 꺼내세요.
+hud.TRANSFER_UNAVAILABLE,"Camp storage is not connected yet. Wait a moment, then try again.",genre text hud,"Camp storage is not connected yet. Wait a moment, then try again.",공용 창고가 아직 연결되지 않았어요. 잠시 뒤 다시 시도하세요.
+hud.CAMPFIRE_UNREACHABLE,Move closer to a campfire to rest.,genre text hud,Move closer to a campfire to rest.,모닥불 가까이 이동하면 쉴 수 있어요.
+hud.SETTLEMENT_UNAVAILABLE,Shared camp is unavailable. Reconnect to its owner before building or storing.,genre text hud,Shared camp is unavailable. Reconnect to its owner before building or storing.,공용 야영지를 사용할 수 없어요. 소유자와 다시 연결한 뒤 건설하거나 보관하세요.
+hud.COLLISION,Footprint or entry is blocked. Move or rotate the preview.,genre text hud,Footprint or entry is blocked. Move or rotate the preview.,설치 공간이나 입구가 막혔어요. 위치를 옮기거나 회전하세요.
+hud.OUT_OF_BOUNDS,Keep the footprint and entry inside the camp grid.,genre text hud,Keep the footprint and entry inside the camp grid.,건물과 입구를 야영지 격자 안에 놓으세요.
+hud.FORBIDDEN,Camp membership does not allow this action. Ask the owner to restore access.,genre text hud,Camp membership does not allow this action. Ask the owner to restore access.,야영지 권한이 없어요. 소유자에게 접근 권한을 요청하세요.
+hud.NOT_READY,Crafting is still running. Collect when its timer ends.,genre text hud,Crafting is still running. Collect when its timer ends.,아직 제작 중이에요. 시간이 끝나면 받으세요.
+hud.unknown,Refresh and review your supplies before trying again.,genre text hud,Refresh and review your supplies before trying again.,새로 고쳐 보급품을 확인한 뒤 다시 시도하세요.
+chr.char_title,Character,genre text chr,Character,캐릭터
+chr.char_level,Level %d / %d,genre text chr,Level %d / %d,레벨 %d / %d
+chr.char_xp,XP %d / %d to next level,genre text chr,XP %d / %d to next level,다음 레벨까지 경험치 %d / %d
+chr.char_xp_max,Maximum level reached,genre text chr,Maximum level reached,최고 레벨 달성
+chr.char_sp,SP %d available / %d total,genre text chr,SP %d available / %d total,SP %d 사용 가능 / 총 %d
+chr.char_rank,Exploration rank %d / 10,genre text chr,Exploration rank %d / 10,탐험 등급 %d / 10
+chr.char_awards,First awards earned %d / %d,genre text chr,First awards earned %d / %d,첫 달성 보상 %d / %d
+chr.char_open_rank,Island rank,genre text chr,Island rank,섬 등급
+chr.char_open_reset,Reset skills,genre text chr,Reset skills,기술 초기화
+chr.char_open_equipment,Equipment,genre text chr,Equipment,장비
+chr.char_open_research,Personal research,genre text chr,Personal research,개인 연구
+chr.reset_title,Skill reset,genre text chr,Skill reset,기술 초기화
+chr.reset_refund,Refund: %d SP,genre text chr,Refund: %d SP,환급: SP %d
+chr.reset_nodes,Removes %d learned skills,genre text chr,Removes %d learned skills,배운 기술 %d개 제거
+chr.reset_none,No learned skills to reset,genre text chr,No learned skills to reset,초기화할 기술이 없어요
+chr.reset_keep,Mastery and crafted gear are kept,genre text chr,Mastery and crafted gear are kept,숙련도와 만든 장비는 유지돼요
+chr.reset_busy_note,Not during combat or crafting,genre text chr,Not during combat or crafting,전투·제작 중에는 불가
+chr.reset_confirm,Confirm reset,genre text chr,Confirm reset,초기화 확인
+chr.reset_done,Skills reset. SP refunded,genre text chr,Skills reset. SP refunded,기술을 초기화하고 SP를 돌려받았어요
+chr.rank_title,Island rank,genre text chr,Island rank,섬 등급
+chr.rank_points,Development %d (100 per rank),genre text chr,Development %d (100 per rank),개발 점수 %d (등급당 100)
+chr.rank_next,Next rank at %d,genre text chr,Next rank at %d,다음 등급: %d
+chr.rank_max,Highest rank reached,genre text chr,Highest rank reached,최고 등급 달성
+chr.rank_lab_open,Laboratory unlocked (rank %d),genre text chr,Laboratory unlocked (rank %d),연구실 해금 (등급 %d)
+chr.rank_lab_locked,Laboratory unlocks at rank %d,genre text chr,Laboratory unlocks at rank %d,연구실은 등급 %d에 해금
+chr.rank_guide,Finish island missions to earn development,genre text chr,Finish island missions to earn development,섬 임무를 마치면 개발 점수를 얻어요
+chr.rank_cell_open,"Island %d-%d: %dx%d studs, rank %d (open)",genre text chr,"Island %d-%d: %dx%d studs, rank %d (open)","섬 %d-%d: %dx%d 스터드, 등급 %d (열림)"
+chr.rank_cell_locked,"Island %d-%d: %dx%d studs, needs rank %d",genre text chr,"Island %d-%d: %dx%d studs, needs rank %d","섬 %d-%d: %dx%d 스터드, 등급 %d 필요"
+chr.rank_award,%s +%d,genre text chr,%s +%d,%s +%d
+chr.rank_award_done,Done: %s +%d,genre text chr,Done: %s +%d,완료: %s +%d
+chr.guide_title,Guides,genre text chr,Guides,안내
+chr.guide_grade,Island grade %d: development %d / %d for grade %d,genre text chr,Island grade %d: development %d / %d for grade %d,섬 개발 등급 %d: 개발 점수 %d / %d (등급 %d)
+chr.guide_how,Finish guides and island missions to earn development points,genre text chr,Finish guides and island missions to earn development points,안내와 섬 임무를 마치면 개발 점수를 얻어요
+chr.guide_done,Guides finished %d / %d,genre text chr,Guides finished %d / %d,마친 안내 %d / %d
+chr.guide_reward,%s · +%d development · %d coins,genre text chr,%s · +%d development · %d coins,%s · 개발 +%d · 조개돈 %d
+chr.guide_objective,%s %s: %d / %d,genre text chr,%s %s: %d / %d,%s %s: %d / %d
+chr.guide_objective_missing,%s %s: %d / %d (coming later),genre text chr,%s %s: %d / %d (coming later),%s %s: %d / %d (추후 제공)
+chr.guide_locked,"More guides open at level %d, island grade %d",genre text chr,"More guides open at level %d, island grade %d","레벨 %d, 섬 등급 %d에 안내가 더 열려요"
+chr.guide_upcoming,Locked: %s · level %d · +%d development · %d coins,genre text chr,Locked: %s · level %d · +%d development · %d coins,잠김: %s · 레벨 %d · 개발 +%d · 조개돈 %d
+chr.guide_g01,First gather,genre text chr,First gather,첫 채집
+chr.guide_g02,First axe,genre text chr,First axe,첫 도끼
+chr.guide_g03,First contract,genre text chr,First contract,첫 계약
+chr.guide_g04,Camp donation,genre text chr,Camp donation,캠프 기부
+chr.guide_g05,Home expansion,genre text chr,Home expansion,집 확장
+chr.guide_g06,Visit a home,genre text chr,Visit a home,집 방문
+chr.guide_g07,Cook and eat,genre text chr,Cook and eat,요리와 식사
+chr.guide_g08,Harbor market,genre text chr,Harbor market,항구 장터
+chr.guide_g09,Farming,genre text chr,Farming,농사
+chr.guide_g10,Clothing,genre text chr,Clothing,옷 만들기
+chr.guide_g11,Skill reclaim,genre text chr,Skill reclaim,기술 회수
+chr.guide_g12,Route sharing,genre text chr,Route sharing,항로 공유
+chr.guide_g13,Laboratory,genre text chr,Laboratory,연구실
+chr.guide_g14,Taming,genre text chr,Taming,길들이기
+chr.guide_g15,Clan,genre text chr,Clan,클랜
+chr.guide_g16,Refrigeration,genre text chr,Refrigeration,냉장 보관
+chr.guide_g17,Snow preparation,genre text chr,Snow preparation,설원 준비
+chr.guide_g18,Technical support,genre text chr,Technical support,기술 지원
+chr.guide_g19,Volcano preparation,genre text chr,Volcano preparation,화산 준비
+chr.guide_g20,Rescue preparation,genre text chr,Rescue preparation,구조 준비
+chr.guide_g21,Daily contracts,genre text chr,Daily contracts,일일 계약
+chr.guide_g22,Wilds preparation,genre text chr,Wilds preparation,야생 지대 준비
+chr.guide_g23,Wilds: hazelnuts,genre text chr,Wilds: hazelnuts,야생 지대: 개암
+chr.guide_g24,Trail food,genre text chr,Trail food,여정 식량
+chr.guide_g25,Wilds: mushrooms,genre text chr,Wilds: mushrooms,야생 지대: 버섯
+chr.guide_g26,Marsh bread,genre text chr,Marsh bread,습지 빵
+chr.guide_g27,Deep wilds: clams,genre text chr,Deep wilds: clams,깊은 야생 지대: 조개
+chr.guide_g28,Woodland skewer,genre text chr,Woodland skewer,숲 꼬치
+chr.guide_g29,Deep wilds haul,genre text chr,Deep wilds haul,깊은 야생 지대 채집
+chr.guide_g30,Route supplies,genre text chr,Route supplies,항로 보급
+chr.guide_target_axe,any axe,genre text chr,any axe,아무 도끼
+chr.guide_target_contract,any contract,genre text chr,any contract,아무 계약
+chr.guide_target_camp,a camp project,genre text chr,a camp project,캠프 공사
+chr.guide_act_gather,Gather,genre text chr,Gather,채집
+chr.guide_act_craft,Craft,genre text chr,Craft,제작
+chr.guide_act_place,Place,genre text chr,Place,설치
+chr.guide_act_rest,Rest at,genre text chr,Rest at,휴식
+chr.guide_act_deliver,Deliver,genre text chr,Deliver,납품
+chr.guide_act_donate,Donate to,genre text chr,Donate to,기부
+chr.guide_act_expand,Expand,genre text chr,Expand,확장
+chr.guide_act_visit,Visit,genre text chr,Visit,방문
+chr.guide_act_eat,Eat,genre text chr,Eat,먹기
+chr.guide_act_list,List,genre text chr,List,장터 등록
+chr.guide_act_settle_return_or_sale,Claim sale or return of,genre text chr,Claim sale or return of,판매·반환 받기
+chr.guide_act_practice,Practice,genre text chr,Practice,연습
+chr.guide_act_purchase,Learn,genre text chr,Learn,기술 배우기
+chr.guide_act_plant,Plant,genre text chr,Plant,심기
+chr.guide_act_water,Water,genre text chr,Water,물 주기
+chr.guide_act_harvest,Harvest,genre text chr,Harvest,수확
+chr.guide_act_feed,Feed,genre text chr,Feed,먹이 주기
+chr.guide_act_tame,Tame,genre text chr,Tame,길들이기
+chr.guide_act_deposit,Store,genre text chr,Store,보관
+chr.guide_act_retrieve,Take out,genre text chr,Take out,꺼내기
+chr.research_title,Personal research,genre text chr,Personal research,개인 연구
+chr.research_line_life,Life (climate): %d%%,genre text chr,Life (climate): %d%%,생활(기후): %d%%
+chr.research_line_light,Light work: %d%%,genre text chr,Light work: %d%%,가벼운 작업: %d%%
+chr.research_line_heavy,Heavy carry: %d%%,genre text chr,Heavy carry: %d%%,무거운 운반: %d%%
+chr.research_tier,T%d %d%% · %d coins · %s · %ds,genre text chr,T%d %d%% · %d coins · %s · %ds,T%d %d%% · 조개돈 %d · %s · %d초
+chr.research_start,Start,genre text chr,Start,시작
+chr.research_cancel,Cancel (refund %d),genre text chr,Cancel (refund %d),취소 (환급 %d)
+chr.research_complete,Collect,genre text chr,Collect,받기
+chr.research_done,Done,genre text chr,Done,완료
+chr.research_running,"Running, ready in %ds",genre text chr,"Running, ready in %ds","진행 중, %d초 남음"
+chr.support_title,Technical support,genre text chr,Technical support,기술 지원
+chr.support_gate,Requires level %d (you are %d),genre text chr,Requires level %d (you are %d),레벨 %d 필요 (현재 %d)
+chr.support_item,Item: %s,genre text chr,Item: %s,장비: %s
+chr.support_none,Equip an item first,genre text chr,Equip an item first,먼저 장비를 착용하세요
+chr.support_current,Current effect +%d%%,genre text chr,Current effect +%d%%,현재 효과 +%d%%
+chr.support_tier,Tier %d: +%d%% · %d coins · %s,genre text chr,Tier %d: +%d%% · %d coins · %s,%d단계: +%d%% · 조개돈 %d · %s
+chr.support_confirm,Confirm tier %d,genre text chr,Confirm tier %d,%d단계 확인
+chr.modify_title,Modify,genre text chr,Modify,개조
+chr.modify_slot,Slot %d: %s,genre text chr,Slot %d: %s,슬롯 %d: %s
+chr.modify_empty,empty,genre text chr,empty,비어 있음
+chr.modify_warning,Replacing a slot gives no refund,genre text chr,Replacing a slot gives no refund,슬롯을 바꾸면 환급되지 않아요
+chr.modify_row,+2 %s · %s,genre text chr,+2 %s · %s,+2 %s · %s
+chr.modify_apply,Apply to slot %d,genre text chr,Apply to slot %d,슬롯 %d에 적용
+chr.equip_title,Equipment,genre text chr,Equipment,장비
+chr.equip_slot,%s: %s,genre text chr,%s: %s,%s: %s
+chr.equip_stats,Power %s · Armor %d · Cold %s · Heat %s,genre text chr,Power %s · Armor %d · Cold %s · Heat %s,공격 %s · 방어 %d · 추위 %s · 더위 %s
+chr.equip_button,Equip %s (%s),genre text chr,Equip %s (%s),%s 착용 (%s)
+chr.equip_unequip,Unequip %s,genre text chr,Unequip %s,%s 벗기
+chr.equip_modify,Modify %s,genre text chr,Modify %s,%s 개조
+chr.equip_support,Support %s,genre text chr,Support %s,%s 기술 지원
+chr.equip_tier,Tech tier %d · mods %d/2,genre text chr,Tech tier %d · mods %d/2,기술 단계 %d · 개조 %d/2
+chr.slot_head,Head,genre text chr,Head,머리
+chr.slot_top,Top,genre text chr,Top,상의
+chr.slot_bottom,Bottom,genre text chr,Bottom,하의
+chr.slot_shoes,Shoes,genre text chr,Shoes,신발
+chr.slot_gloves,Gloves,genre text chr,Gloves,장갑
+chr.slot_bag,Bag,genre text chr,Bag,가방
+chr.slot_weapon,Weapon/tool,genre text chr,Weapon/tool,무기·도구
+chr.attr_sharpness,sharpness,genre text chr,sharpness,날카로움
+chr.attr_hardness,hardness,genre text chr,hardness,단단함
+chr.attr_insulation,insulation,genre text chr,insulation,보온
+chr.attr_flexibility,flexibility,genre text chr,flexibility,유연성
+chr.char_working,Sending...,genre text chr,Sending...,보내는 중...
+chr.STALE_QUOTE,Your skills changed. Check the new refund,genre text chr,Your skills changed. Check the new refund,기술이 바뀌었어요. 새 환급량을 확인하세요
+chr.RESET_BUSY,Finish combat and crafting first,genre text chr,Finish combat and crafting first,전투와 제작을 먼저 끝내세요
+chr.CHARACTER_LEVEL_GATE,Your level is too low,genre text chr,Your level is too low,레벨이 부족해요
+chr.SKILL_GATE,Learn the required skill first,genre text chr,Learn the required skill first,필요한 기술을 먼저 배우세요
+chr.DEVELOPMENT_GATE,Raise your island rank first,genre text chr,Raise your island rank first,섬 등급을 먼저 올리세요
+chr.STATION_GATE,Stand next to the right station,genre text chr,Stand next to the right station,알맞은 시설 옆에 서세요
+chr.INSUFFICIENT_COINS,Not enough coins,genre text chr,Not enough coins,조개돈이 부족해요
+chr.INSUFFICIENT_MATERIALS,Not enough materials in your bag,genre text chr,Not enough materials in your bag,가방에 재료가 부족해요
+chr.UPGRADE_PREREQUISITE,Finish the previous tier first,genre text chr,Finish the previous tier first,이전 단계를 먼저 끝내세요
+chr.ALREADY_COMPLETED,Already done,genre text chr,Already done,이미 완료했어요
+chr.JOB_PENDING,Another job is still running,genre text chr,Another job is still running,다른 작업이 아직 진행 중이에요
+chr.NOT_READY,Still running. Collect when the timer ends,genre text chr,Still running. Collect when the timer ends,아직 진행 중이에요. 시간이 끝나면 받으세요
+chr.JOB_FINISHED,Already finished. Collect it instead,genre text chr,Already finished. Collect it instead,이미 끝났어요. 대신 받으세요
+chr.CANNOT_CANCEL,This job cannot be cancelled,genre text chr,This job cannot be cancelled,이 작업은 취소할 수 없어요
+chr.INELIGIBLE_EQUIPMENT,This item cannot take that,genre text chr,This item cannot take that,이 장비에는 쓸 수 없어요
+chr.UNKNOWN_EQUIPMENT,Equip the item first,genre text chr,Equip the item first,장비를 먼저 착용하세요
+chr.ITEM_NOT_OWNED,That item is not in your bag,genre text chr,That item is not in your bag,가방에 그 물건이 없어요
+chr.NOT_EQUIPMENT,That item cannot be worn,genre text chr,That item cannot be worn,착용할 수 없는 물건이에요
+chr.ITEM_BROKEN,Repair the item first,genre text chr,Repair the item first,먼저 장비를 수리하세요
+chr.ITEM_RESERVED,That item is in use by a job,genre text chr,That item is in use by a job,작업에 쓰이는 중인 물건이에요
+chr.ALREADY_EQUIPPED,Already equipped,genre text chr,Already equipped,이미 착용 중이에요
+chr.SLOT_EMPTY,Nothing equipped there,genre text chr,Nothing equipped there,그 칸에는 장비가 없어요
+chr.NOT_ALIVE,You cannot do this while down,genre text chr,You cannot do this while down,쓰러진 동안은 할 수 없어요
+chr.char_failed,That did not work. Try again,genre text chr,That did not work. Try again,실패했어요. 다시 시도하세요
+exp.biome_grassland,Grassland,genre text exp,Grassland,초원
+exp.biome_tropical,Tropical Isle,genre text exp,Tropical Isle,열대 섬
+exp.biome_desert,Desert,genre text exp,Desert,사막
+exp.biome_snow,Snowfield,genre text exp,Snowfield,설원
+exp.biome_volcano,Volcano,genre text exp,Volcano,화산
+exp.biome_swamp,Swamp,genre text exp,Swamp,늪지
+exp.biome_beach,Beach,genre text exp,Beach,해변
+exp.biome_forest,Forest,genre text exp,Forest,숲
+exp.biome_unknown,Uncharted,genre text exp,Uncharted,미지의 바다
+exp.exp_gate_level,"Level %d/%d: guides, contracts and missions give XP",genre text exp,"Level %d/%d: guides, contracts and missions give XP",레벨 %d/%d: 가이드·계약·미션으로 경험치를 얻어요
+exp.exp_gate_rank,"Island development grade %d/%d: complete guides to raise it (+50 each, 100 per grade)",genre text exp,"Island development grade %d/%d: complete guides to raise it (+50 each, 100 per grade)","섬 개발 등급 %d/%d: 가이드 완료로 등급 상승 (가이드당 +50, 100마다 1등급)"
+exp.exp_open_guides,Open guides,genre text exp,Open guides,가이드 열기
+exp.travel_arrived,"Arrived: route %d (%s), stage %d of 4",genre text exp,"Arrived: route %d (%s), stage %d of 4","도착: 항로 %d (%s), 4단계 중 %d단계"
+brl.brawl_preparing,Get ready: the match starts in %s.,genre text brl,Get ready: the match starts in %s.,준비하세요: %s 후 경기가 시작돼요.
+brl.brawl_spectator,You are out. Spectating until the match ends.,genre text brl,You are out. Spectating until the match ends.,탈락했어요. 경기가 끝날 때까지 관전합니다.
+brl.LEVEL_REQUIRED,Required level not reached,genre text brl,Required level not reached,참가 레벨이 부족합니다
+brl.QUEUE_FULL,Queue full,genre text brl,Queue full,대기열이 가득 찼습니다
+brl.QUEUE_CLOSED,Queue closed,genre text brl,Queue closed,대기열이 마감되었습니다
+brl.NOT_ACTIVE,Match has not started,genre text brl,Match has not started,경기가 시작되지 않았습니다
+brl.ELIMINATED,Eliminated: spectating,genre text brl,Eliminated: spectating,탈락: 관전 중
+brl.WEATHER_RANGE,Fog restricts range,genre text brl,Fog restricts range,안개로 사거리가 제한됩니다
+brl.WEATHER_MOUNT,Storm prevents mounting,genre text brl,Storm prevents mounting,폭풍 중에는 탑승할 수 없습니다
+brl.UNVERIFIED_ACTION,Action unavailable,genre text brl,Action unavailable,사용할 수 없는 행동입니다
+brl.RECOVERY,Recovering,genre text brl,Recovering,회복 중
+brl.PERSONAL_UNAVAILABLE,Settlement pending,genre text brl,Settlement pending,정산 대기 중
+brl.COMMAND_PENDING,Previous command pending,genre text brl,Previous command pending,이전 명령 처리 중
+soc.perm.title,Home access,genre text soc,Home access,집 출입 권한
+soc.perm.owner,Owner: %s,genre text soc,Owner: %s,소유자: %s
+soc.perm.me,Me,genre text soc,Me,나
+soc.perm.version,Save version %d,genre text soc,Save version %d,저장 버전 %d
+soc.perm.visit,Visit: %s,genre text soc,Visit: %s,방문: %s
+soc.perm.use,Use: %s,genre text soc,Use: %s,사용: %s
+soc.perm.build,Build: %s,genre text soc,Build: %s,건설: %s
+soc.perm.recover,Recover: %s,genre text soc,Recover: %s,회수: %s
+soc.perm.offline,Help while I am offline: %s,genre text soc,Help while I am offline: %s,오프라인 중 도움: %s
+soc.perm.hint,Tap a row to change who may do it.,genre text soc,Tap a row to change who may do it.,줄을 눌러 허용 대상을 바꾸세요.
+soc.perm.move,Move home...,genre text soc,Move home...,집 이전...
+soc.mode.owner,Only me,genre text soc,Only me,나만
+soc.mode.none,Nobody else,genre text soc,Nobody else,다른 사람 없음
+soc.mode.friend,Friends,genre text soc,Friends,친구
+soc.mode.clan,Clan,genre text soc,Clan,부족
+soc.on,On,genre text soc,On,켜짐
+soc.off,Off,genre text soc,Off,꺼짐
+soc.move.title,Move home,genre text soc,Move home,집 이전
+soc.move.current,Current spot: %s,genre text soc,Current spot: %s,현재 위치: %s
+soc.move.pick,Move to %s,genre text soc,Move to %s,%s(으)로 이전
+soc.move.confirm_head,Move to %s?,genre text soc,Move to %s?,%s(으)로 이전할까요?
+soc.move.packed,"Packed: %d stored stacks, %d structures",genre text soc,"Packed: %d stored stacks, %d structures","포장: 보관 묶음 %d개, 구조물 %d개"
+soc.move.kept,Access grants and property history are kept.,genre text soc,Access grants and property history are kept.,출입 권한과 소유 기록은 유지됩니다.
+soc.move.history,Moves so far: %d,genre text soc,Moves so far: %d,지금까지 이전: %d회
+soc.move.lock,Storage transfers in progress lock the move.,genre text soc,Storage transfers in progress lock the move.,보관 이동이 진행 중이면 이전할 수 없습니다.
+soc.move.do,Confirm move,genre text soc,Confirm move,이전 확인
+soc.move.done,Home moved. Grants kept.,genre text soc,Home moved. Grants kept.,집을 옮겼습니다. 권한은 유지됩니다.
+soc.back,Back,genre text soc,Back,뒤로
+soc.dest.cove-north,North cove,genre text soc,North cove,북쪽 만
+soc.dest.cove-east,East cove,genre text soc,East cove,동쪽 만
+soc.dest.cove-south,South cove,genre text soc,South cove,남쪽 만
+soc.siege.title,Team siege,genre text soc,Team siege,팀 공성전
+soc.siege.rules,"%d-%d vs %d-%d clan members, %d minutes. Hold the centre %d seconds in total.",genre text soc,"%d-%d vs %d-%d clan members, %d minutes. Hold the centre %d seconds in total.","부족원 %d-%d 대 %d-%d, %d분. 중앙을 총 %d초 점령하세요."
+soc.siege.roster,%s: %d queued (%s),genre text soc,%s: %d queued (%s),%s: 대기 %d명 (%s)
+soc.siege.ready,ready,genre text soc,ready,준비 완료
+soc.siege.waiting,needs %d,genre text soc,needs %d,%d명 필요
+soc.siege.empty,No clan is queued yet.,genre text soc,No clan is queued yet.,아직 대기 중인 부족이 없습니다.
+soc.siege.you_queued,You are in the queue.,genre text soc,You are in the queue.,대기열에 있습니다.
+soc.siege.queue,Join queue,genre text soc,Join queue,대기열 참가
+soc.siege.leave_queue,Leave queue,genre text soc,Leave queue,대기열 나가기
+soc.siege.owner,Outpost owner: %s (%s left),genre text soc,Outpost owner: %s (%s left),거점 소유: %s (남은 시간 %s)
+soc.siege.no_owner,Outpost owner: none,genre text soc,Outpost owner: none,거점 소유: 없음
+soc.siege.open_lobby,Open siege lobby,genre text soc,Open siege lobby,공성전 대기실 열기
+soc.match.title,Siege match,genre text soc,Siege match,공성전 경기
+soc.match.empty,You are not in a siege match. Queue with your clan in the team siege lobby.,genre text soc,You are not in a siege match. Queue with your clan in the team siege lobby.,참가 중인 공성전 경기가 없어요. 팀 공성전 대기실에서 부족과 함께 대기열에 참가하세요.
+soc.match.team,"%s: %d players, control %d/%d s",genre text soc,"%s: %d players, control %d/%d s","%s: %d명, 점령 %d/%d초"
+soc.match.timer,Time left %s,genre text soc,Time left %s,남은 시간 %s
+soc.match.leave,Leave match,genre text soc,Leave match,경기 나가기
+soc.match.confirm,Leave? You stop counting toward control; your team plays on.,genre text soc,Leave? You stop counting toward control; your team plays on.,나갈까요? 점령에 더 이상 기여하지 않고 팀은 계속합니다.
+soc.match.leave_yes,"Yes, leave match",genre text soc,"Yes, leave match","네, 나가기"
+soc.match.stay,Stay,genre text soc,Stay,남기
+soc.result.title,Siege result,genre text soc,Siege result,공성전 결과
+soc.result.empty,Your clan has no finished siege yet. Results appear here after a match.,genre text soc,Your clan has no finished siege yet. Results appear here after a match.,아직 끝난 부족 공성전이 없어요. 경기가 끝나면 여기에 결과가 나타나요.
+soc.result.win,%s won the outpost.,genre text soc,%s won the outpost.,%s 부족이 거점을 차지했습니다.
+soc.result.tie,Draw. No new owner.,genre text soc,Draw. No new owner.,무승부. 새 소유자가 없습니다.
+soc.result.own,Owned for 24 hours (%s left).,genre text soc,Owned for 24 hours (%s left).,24시간 소유 (남은 시간 %s).
+soc.result.prev_kept,Previous owner %s keeps its original expiry (%s left).,genre text soc,Previous owner %s keeps its original expiry (%s left).,이전 소유 부족 %s의 기존 만료가 유지됩니다 (남은 시간 %s).
+soc.result.prev_ended,Previous owner %s lost the outpost.,genre text soc,Previous owner %s lost the outpost.,이전 소유 부족 %s의 소유가 끝났습니다.
+soc.result.prev_none,There was no previous owner.,genre text soc,There was no previous owner.,이전 소유자가 없었습니다.
+soc.result.research_on,Your clan's advanced capture research is active while it owns the outpost.,genre text soc,Your clan's advanced capture research is active while it owns the outpost.,거점을 소유한 동안 부족의 고급 포획 연구가 적용됩니다.
+soc.result.research_off,Advanced capture needs clan research and outpost ownership.,genre text soc,Advanced capture needs clan research and outpost ownership.,고급 포획에는 부족 연구와 거점 소유가 필요합니다.
+soc.result.continue,Continue,genre text soc,Continue,계속
+soc.tx.title,Transactions,genre text soc,Transactions,거래 정산
+soc.tx.op,Ref %s,genre text soc,Ref %s,참조 %s
+soc.tx.verifying,Verifying...,genre text soc,Verifying...,확인 중...
+soc.tx.settling,Settling. Nothing is charged twice.,genre text soc,Settling. Nothing is charged twice.,정산 중. 두 번 청구되지 않습니다.
+soc.tx.delivered,Delivered.,genre text soc,Delivered.,전달 완료.
+soc.tx.rejected,Rejected: %s,genre text soc,Rejected: %s,거절됨: %s
+soc.tx.check,Check status,genre text soc,Check status,상태 확인
+soc.tx.close,Close (keeps settling),genre text soc,Close (keeps settling),닫기 (정산은 계속)
+soc.tx.none,No settlement in progress.,genre text soc,No settlement in progress.,진행 중인 정산이 없습니다.
+soc.trade.title,Direct trade,genre text soc,Direct trade,직접 거래
+soc.trade.invite,Trade with %s,genre text soc,Trade with %s,%s님과 거래
+soc.trade.nobody,No other player on this server.,genre text soc,No other player on this server.,이 서버에 다른 플레이어가 없습니다.
+soc.trade.with,Trading with %s (offer %d),genre text soc,Trading with %s (offer %d),%s님과 거래 중 (제안 %d)
+soc.trade.yours,You give: %s,genre text soc,You give: %s,내가 줌: %s
+soc.trade.theirs,You get: %s,genre text soc,You get: %s,내가 받음: %s
+soc.trade.nothing,nothing,genre text soc,nothing,없음
+soc.trade.item,"%s x%d (Q%d, dur %d, Lv%d)",genre text soc,"%s x%d (Q%d, dur %d, Lv%d)","%s x%d (품질%d, 내구%d, Lv%d)"
+soc.trade.coins,%d shellmoney,genre text soc,%d shellmoney,조개돈 %d
+soc.trade.pick,Item: %s,genre text soc,Item: %s,물건: %s
+soc.trade.qty,Quantity %d (tap +1),genre text soc,Quantity %d (tap +1),수량 %d (눌러서 +1)
+soc.trade.coins_step,Coins %d (tap +10),genre text soc,Coins %d (tap +10),조개돈 %d (눌러서 +10)
+soc.trade.update,Update my offer,genre text soc,Update my offer,내 제안 갱신
+soc.trade.confirm,Confirm trade,genre text soc,Confirm trade,거래 확인
+soc.trade.confirmed,"Confirmed: you %s, them %s",genre text soc,"Confirmed: you %s, them %s","확인: 나 %s, 상대 %s"
+soc.trade.cancel,Cancel trade,genre text soc,Cancel trade,거래 취소
+soc.trade.settled,Trade complete.,genre text soc,Trade complete.,거래 완료.
+soc.trade.cancelled,Trade cancelled: %s,genre text soc,Trade cancelled: %s,거래 취소됨: %s
+soc.trade.changes,Any change clears both confirmations.,genre text soc,Any change clears both confirmations.,변경하면 양쪽 확인이 모두 해제됩니다.
+soc.yes,yes,genre text soc,yes,예
+soc.no,no,genre text soc,no,아니요
+soc.dialogue.title,Talk,genre text soc,Talk,대화
+soc.dialogue.continue,Continue,genre text soc,Continue,계속
+soc.dialogue.complete,Complete: %s,genre text soc,Complete: %s,완료: %s
+soc.dialogue.service,Open: %s,genre text soc,Open: %s,열기: %s
+soc.dialogue.bye,Goodbye,genre text soc,Goodbye,작별 인사
+soc.dialogue.done,Checkpoint saved.,genre text soc,Checkpoint saved.,체크포인트를 저장했습니다.
+soc.npc.marit,Marit: Contracts come and go with the tide. Pick one you can finish.,genre text soc,Marit: Contracts come and go with the tide. Pick one you can finish.,마리트: 계약은 물때처럼 오가요. 끝낼 수 있는 걸 고르세요.
+soc.npc.tuck,Tuck: Bring sound materials and the bench will do the rest.,genre text soc,Tuck: Bring sound materials and the bench will do the rest.,턱: 좋은 재료만 가져오면 작업대가 나머지를 해요.
+soc.npc.hop,Hop: Every page of your journal is a place you have been.,genre text soc,Hop: Every page of your journal is a place you have been.,홉: 일지의 한 장 한 장이 당신이 다녀온 곳이에요.
+soc.npc.sella,"Sella: Prices here are set by islanders, not by me.",genre text soc,"Sella: Prices here are set by islanders, not by me.",셀라: 여기 가격은 제가 아니라 섬 사람들이 정해요.
+soc.npc.bram,Bram: A clan shares funds and research. Outposts are a separate contest.,genre text soc,Bram: A clan shares funds and research. Outposts are a separate contest.,브램: 부족은 자금과 연구를 나눠요. 거점은 별개의 경쟁이에요.
+soc.npc.ines,"Ines: Rest, eat, and patch yourself up before the next crossing.",genre text soc,"Ines: Rest, eat, and patch yourself up before the next crossing.","이네스: 다음 항해 전에 쉬고, 먹고, 몸을 추스르세요."
+soc.npc.pip,Pip: Passes and kits are fixed; you always know what you get.,genre text soc,Pip: Passes and kits are fixed; you always know what you get.,핍: 패스와 키트는 정해져 있어요. 무엇을 받을지 늘 알 수 있죠.
+soc.npc.station.workbench,"Workbench: Clamps, a vise and a tray of loose fittings. Assembly work starts here.",genre text soc,"Workbench: Clamps, a vise and a tray of loose fittings. Assembly work starts here.","작업대: 죔쇠와 바이스, 부품 접시가 놓여 있어요. 조립은 여기서 시작해요."
+soc.npc.station.relay,Radio hut: Static crackles in the headset. A lens would sharpen it.,genre text soc,Radio hut: Static crackles in the headset. A lens would sharpen it.,무전 오두막: 헤드셋에서 잡음이 지직거려요. 렌즈가 있으면 또렷해질 거예요.
+soc.npc.station.market,Market board: Islanders pin their offers here. Every price is set by a player.,genre text soc,Market board: Islanders pin their offers here. Every price is set by a player.,시장 게시판: 섬 사람들이 내놓은 물건이 붙어 있어요. 가격은 모두 플레이어가 정해요.
+soc.npc.default,The harbor keeper nods at you.,genre text soc,The harbor keeper nods at you.,항구 관리인이 고개를 끄덕입니다.
+soc.service.contracts,Contracts,genre text soc,Contracts,계약
+soc.service.craft,Crafting,genre text soc,Crafting,제작
+soc.service.journal,Journal,genre text soc,Journal,일지
+soc.service.clan-membership,Clan membership,genre text soc,Clan membership,부족 가입
+soc.service.shop,Shop,genre text soc,Shop,상점
+soc.service.market,Market,genre text soc,Market,시장
+soc.service.organizations,Organizations,genre text soc,Organizations,조직
+soc.org.title,Organizations,genre text soc,Organizations,조직
+soc.org.intro,Each finished mission objective earns 20 trust with its organization.,genre text soc,Each finished mission objective earns 20 trust with its organization.,임무 목표를 하나 마칠 때마다 해당 조직의 신뢰가 20 오릅니다.
+soc.org.wayfarers,Wayfarers,genre text soc,Wayfarers,길잡이회
+soc.org.scholars,Scholars,genre text soc,Scholars,학자회
+soc.org.wardens,Wardens,genre text soc,Wardens,수호대
+soc.org.traders,Traders,genre text soc,Traders,상인회
+soc.org.wayfarers.missions,Gather missions (Marit),genre text soc,Gather missions (Marit),채집 임무 (마리트)
+soc.org.scholars.missions,Craft and survey missions (Bram),genre text soc,Craft and survey missions (Bram),제작·조사 임무 (브램)
+soc.org.wardens.missions,Rescue and hunt missions (Ines),genre text soc,Rescue and hunt missions (Ines),구조·사냥 임무 (이네스)
+soc.org.traders.missions,Transport missions (Pip),genre text soc,Transport missions (Pip),운송 임무 (핍)
+soc.org.rank,Trust rank %d/5,genre text soc,Trust rank %d/5,신뢰 등급 %d/5
+soc.org.next,%d/%d to next rank,genre text soc,%d/%d to next rank,다음 등급까지 %d/%d
+soc.org.max,Highest rank reached,genre text soc,Highest rank reached,최고 등급 달성
+soc.refuse.FORBIDDEN,Only the owner may do that.,genre text soc,Only the owner may do that.,소유자만 할 수 있습니다.
+soc.refuse.CLAN_REQUIRED,Join a clan before granting clan access.,genre text soc,Join a clan before granting clan access.,부족 권한을 주려면 먼저 부족에 가입하세요.
+soc.refuse.INVALID_PERMISSIONS,That access setting is not allowed.,genre text soc,That access setting is not allowed.,허용되지 않는 권한 설정입니다.
+soc.refuse.OUT_OF_RANGE,Go to your own island first.,genre text soc,Go to your own island first.,먼저 내 섬으로 가세요.
+soc.refuse.SAME_DESTINATION,Your home is already there.,genre text soc,Your home is already there.,집이 이미 그곳에 있습니다.
+soc.refuse.UNKNOWN_DESTINATION,That spot is not available.,genre text soc,That spot is not available.,그 위치는 사용할 수 없습니다.
+soc.refuse.TRANSFER_LOCKED,A storage transfer is still settling. Try again after it finishes.,genre text soc,A storage transfer is still settling. Try again after it finishes.,보관 이동이 아직 정산 중입니다. 끝난 뒤 다시 시도하세요.
+soc.refuse.NOT_TEAM_MEMBER,Only clan members can queue for the siege.,genre text soc,Only clan members can queue for the siege.,부족원만 공성전 대기열에 들어갈 수 있습니다.
+soc.refuse.MATCH_ACTIVE,You are already in a match.,genre text soc,You are already in a match.,이미 경기 중입니다.
+soc.refuse.NOT_IN_MATCH,You are not in this match.,genre text soc,You are not in this match.,이 경기에 참가하고 있지 않습니다.
+soc.refuse.SELF_TRADE,You cannot trade with yourself.,genre text soc,You cannot trade with yourself.,자신과는 거래할 수 없습니다.
+soc.refuse.DIFFERENT_SERVER,That player is not on this server.,genre text soc,That player is not on this server.,그 플레이어는 이 서버에 없습니다.
+soc.refuse.TRADE_BUSY,That player is already trading.,genre text soc,That player is already trading.,그 플레이어는 이미 거래 중입니다.
+soc.refuse.STALE_REVISION,The offer changed. Review it again.,genre text soc,The offer changed. Review it again.,제안이 바뀌었습니다. 다시 확인하세요.
+soc.refuse.EMPTY_TRADE,Offer something first.,genre text soc,Offer something first.,먼저 무언가를 제안하세요.
+soc.refuse.INSUFFICIENT_ITEMS,You no longer have those items.,genre text soc,You no longer have those items.,그 물건이 더 이상 없습니다.
+soc.refuse.INSUFFICIENT_FUNDS,Not enough shellmoney.,genre text soc,Not enough shellmoney.,조개돈이 부족합니다.
+soc.refuse.TRADE_CLOSED,This trade is closed.,genre text soc,This trade is closed.,이 거래는 닫혔습니다.
+soc.refuse.COUNTERPART_LEFT,The other player left.,genre text soc,The other player left.,상대가 떠났습니다.
+soc.refuse.NO_TRADE,No open trade.,genre text soc,No open trade.,열린 거래가 없습니다.
+soc.refuse.UNKNOWN_OPERATION,The server has no record of this yet. Check again shortly.,genre text soc,The server has no record of this yet. Check again shortly.,서버에 아직 기록이 없습니다. 잠시 뒤 다시 확인하세요.
+soc.refuse.WRONG_OBJECTIVE,Nothing to report here yet.,genre text soc,Nothing to report here yet.,아직 여기서 보고할 것이 없습니다.
+soc.refuse.OUT_OF_REACH,Step closer first.,genre text soc,Step closer first.,더 가까이 가세요.
+soc.refuse.COMMAND_UNAVAILABLE,Not available right now.,genre text soc,Not available right now.,지금은 사용할 수 없습니다.
+soc.refuse.unknown,Could not complete. Check status and try again.,genre text soc,Could not complete. Check status and try again.,완료하지 못했습니다. 상태를 확인하세요.
+mus.nav_title,Menu,genre text mus,Menu,메뉴
+mus.nav_open,Open menu,genre text mus,Open menu,메뉴 열기
+mus.nav_survival,Survival,genre text mus,Survival,생존
+mus.nav_craft,Craft,genre text mus,Craft,제작
+mus.nav_build,Build,genre text mus,Build,건설
+mus.nav_skills,Skills,genre text mus,Skills,기술
+mus.nav_journal,Journal,genre text mus,Journal,일지
+mus.nav_explore,Explore,genre text mus,Explore,탐험
+mus.nav_social,Social,genre text mus,Social,함께
+mus.nav_market,Market,genre text mus,Market,장터
+mus.nav_music,Music,genre text mus,Music,연주
+mus.nav_import,Import score,genre text mus,Import score,악보 가져오기
+mus.nav_share,Share score,genre text mus,Share score,악보 공유
+mus.nav_ensemble,Ensemble,genre text mus,Ensemble,합주
+mus.nav_inbox,Inbox,genre text mus,Inbox,수령함
+mus.nav_settings,Settings,genre text mus,Settings,설정
+mus.nav_locked,%s: %s,genre text mus,%s: %s,%s: %s
+mus.lock_unknown,Not on this island,genre text mus,Not on this island,이 섬에는 없어요
+mus.lock_unavailable,Not available right now,genre text mus,Not available right now,지금은 쓸 수 없어요
+mus.lock_unsaved,Save a score first,genre text mus,Save a score first,먼저 악보를 저장하세요
+mus.import_title,Import score,genre text mus,Import score,악보 가져오기
+mus.import_hint,"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)",genre text mus,"Paste score JSON (version 1, 480 ticks per beat, up to 256 KiB)","악보 JSON을 붙여 넣으세요 (버전 1, 박당 480틱, 최대 256 KiB)"
+mus.import_check,Check score,genre text mus,Check score,악보 확인
+mus.import_save,Save score,genre text mus,Save score,악보 저장
+mus.import_preview,"Tempo %d, %d parts, %d notes, %ds",genre text mus,"Tempo %d, %d parts, %d notes, %ds","템포 %d, 파트 %d개, 음표 %d개, %d초"
+mus.import_saved,Saved %s,genre text mus,Saved %s,저장됨 %s
+mus.import_lookup,Score ID (like 123:score:1#2),genre text mus,Score ID (like 123:score:1#2),악보 ID (예: 123:score:1#2)
+mus.import_use,Use this score ID,genre text mus,Use this score ID,이 악보 ID 사용
+mus.import_selected,Selected %s,genre text mus,Selected %s,선택됨 %s
+mus.share_title,Share score,genre text mus,Share score,악보 공유
+mus.share_ref,Score ID: %s,genre text mus,Score ID: %s,악보 ID: %s
+mus.share_note,Copy the ID above. Nothing is posted or opened for you.,genre text mus,Copy the ID above. Nothing is posted or opened for you.,위 ID를 복사하세요. 자동으로 게시하거나 열지 않아요.
+mus.share_recipient,Player user ID,genre text mus,Player user ID,플레이어 사용자 ID
+mus.share_send,Share with player,genre text mus,Share with player,플레이어와 공유
+mus.share_done,Shared %s,genre text mus,Shared %s,공유됨 %s
+mus.lobby_title,Ensemble,genre text mus,Ensemble,합주
+mus.lobby_score,Score %s (locked revision),genre text mus,Score %s (locked revision),악보 %s (고정된 판)
+mus.lobby_none,No score selected,genre text mus,No score selected,선택한 악보 없음
+mus.lobby_slot,%d. %s - part %d%s,genre text mus,%d. %s - part %d%s,%d. %s - 파트 %d%s
+mus.lobby_empty,%d. Open,genre text mus,%d. Open,%d. 빈 자리
+mus.lobby_ready_tag, (ready),genre text mus, (ready), (준비)
+mus.lobby_host_tag, (host),genre text mus, (host), (방장)
+mus.lobby_part,Part %d,genre text mus,Part %d,파트 %d
+mus.lobby_in_range,Near a fire: you can join,genre text mus,Near a fire: you can join,모닥불 근처: 참여할 수 있어요
+mus.lobby_out_range,Stand within 16 studs of a campfire,genre text mus,Stand within 16 studs of a campfire,모닥불 16스터드 안에 서세요
+mus.lobby_join,Join with part %d,genre text mus,Join with part %d,파트 %d로 참여
+mus.lobby_ready,Ready,genre text mus,Ready,준비
+mus.lobby_unready,Not ready,genre text mus,Not ready,준비 취소
+mus.lobby_start,Start (host),genre text mus,Start (host),시작 (방장)
+mus.lobby_leave,Leave,genre text mus,Leave,나가기
+mus.lobby_prompt,Ensemble,genre text mus,Ensemble,합주
+mus.play_countdown,Starting in %.1f s,genre text mus,Starting in %.1f s,%.1f초 후 시작
+mus.play_progress,Part %d: %d/%d notes,genre text mus,Part %d: %d/%d notes,파트 %d: 음표 %d/%d
+mus.play_sync,In sync with the server clock,genre text mus,In sync with the server clock,서버 시계에 맞춰 연주 중
+mus.play_late,Joined late: finished notes skipped,genre text mus,Joined late: finished notes skipped,늦게 합류: 지난 음표는 건너뜀
+mus.play_rejoin,Rejoin part %d,genre text mus,Rejoin part %d,파트 %d로 재합류
+mus.play_leave,Leave ensemble,genre text mus,Leave ensemble,합주 나가기
+mus.score.bytes,Too large: the limit is 256 KiB,genre text mus,Too large: the limit is 256 KiB,너무 커요: 최대 256 KiB
+mus.score.utf8,Text must be UTF-8,genre text mus,Text must be UTF-8,UTF-8 텍스트여야 해요
+mus.score.json,Not valid JSON,genre text mus,Not valid JSON,올바른 JSON이 아니에요
+mus.score.version,"Needs version 1 and only version, tempo, parts",genre text mus,"Needs version 1 and only version, tempo, parts","버전 1과 version, tempo, parts만 필요해요"
+mus.score.tempo,Tempo must be a whole number from 40 to 200,genre text mus,Tempo must be a whole number from 40 to 200,템포는 40~200 정수여야 해요
+mus.score.parts,Needs 1 to 6 parts,genre text mus,Needs 1 to 6 parts,파트는 1~6개여야 해요
+mus.score.field,Part %d note %d: %s,genre text mus,Part %d note %d: %s,파트 %d 음표 %d: %s
+mus.score.partfield,Part %d: %s,genre text mus,Part %d: %s,파트 %d: %s
+mus.f_instrumentId,unknown instrument,genre text mus,unknown instrument,알 수 없는 악기
+mus.f_notes,too many notes or bad list,genre text mus,too many notes or bad list,음표가 너무 많거나 목록이 잘못됨
+mus.f_polyphony,more than 8 notes at once,genre text mus,more than 8 notes at once,동시에 8음 초과
+mus.f_startTick,start is outside the 3 minute score,genre text mus,start is outside the 3 minute score,시작이 3분 범위를 벗어남
+mus.f_durationTicks,length runs past the end,genre text mus,length runs past the end,길이가 끝을 넘음
+mus.f_pitch,pitch must be 21 to 108,genre text mus,pitch must be 21 to 108,음높이는 21~108
+mus.f_velocity,velocity must be 1 to 127,genre text mus,velocity must be 1 to 127,세기는 1~127
+mus.f_note,unexpected note fields,genre text mus,unexpected note fields,음표 항목이 잘못됨
+mus.score.ref,Enter an ID like 123:score:1#2,genre text mus,Enter an ID like 123:score:1#2,123:score:1#2 형식의 ID를 입력하세요
+mus.score.ref_url,"That is a link. Enter the score ID, not a URL",genre text mus,"That is a link. Enter the score ID, not a URL",링크예요. URL이 아니라 악보 ID를 입력하세요
+mus.score.recipient,Enter the player's numeric user ID,genre text mus,Enter the player's numeric user ID,플레이어의 숫자 사용자 ID를 입력하세요
+mus.score.self,You already own this score,genre text mus,You already own this score,이미 내 악보예요
+mus.score.owner,Only the owner can share this revision,genre text mus,Only the owner can share this revision,이 판은 주인만 공유할 수 있어요
+mus.score.private,This score has not been shared with you,genre text mus,This score has not been shared with you,공유받지 않은 악보예요
+mus.score.missing,That score revision does not exist,genre text mus,That score revision does not exist,그 악보 판이 없어요
+mus.score.unsaved,Save a score first,genre text mus,Save a score first,먼저 악보를 저장하세요
+mus.score.store_unavailable,Score storage is busy. Try again soon,genre text mus,Score storage is busy. Try again soon,악보 저장소가 바빠요. 잠시 후 다시
+mus.score.library_full,Your score library is full,genre text mus,Your score library is full,악보 보관함이 가득 찼어요
+mus.ensemble.range,Stand within 16 studs of a campfire with an instrument,genre text mus,Stand within 16 studs of a campfire with an instrument,악기를 들고 모닥불 16스터드 안에 서세요
+mus.ensemble.part,That part is not in this score,genre text mus,That part is not in this score,이 악보에 없는 파트예요
+mus.ensemble.revision,The ensemble is playing a different score,genre text mus,The ensemble is playing a different score,합주가 다른 악보를 쓰고 있어요
+mus.ensemble.full,All six places are taken,genre text mus,All six places are taken,여섯 자리가 모두 찼어요
+mus.ensemble.part_taken,Someone already plays that part,genre text mus,Someone already plays that part,다른 사람이 그 파트를 맡았어요
+mus.ensemble.playing,The performance has started,genre text mus,The performance has started,연주가 이미 시작됐어요
+mus.ensemble.lobby,Join the ensemble first,genre text mus,Join the ensemble first,먼저 합주에 참여하세요
+mus.ensemble.host,Only the host can start,genre text mus,Only the host can start,방장만 시작할 수 있어요
+mus.ensemble.not_ready,Everyone must be ready and near the fire,genre text mus,Everyone must be ready and near the fire,모두 준비하고 모닥불 근처에 있어야 해요
+mus.ensemble.member,You are not in the ensemble,genre text mus,You are not in the ensemble,합주에 참여하지 않았어요
+mus.ensemble.instrument,Craft this part's instrument at a workbench first,genre text mus,Craft this part's instrument at a workbench first,이 파트의 악기를 작업대에서 먼저 만드세요
+mus.failed,That did not work. Try again,genre text mus,That did not work. Try again,실패했어요. 다시 시도하세요
+mus.editor_title,Score editor,genre text mus,Score editor,악보 편집
+mus.editor_close,Close,genre text mus,Close,닫기
+mus.editor_tempo,Tempo (40-200),genre text mus,Tempo (40-200),템포 (40~200)
+mus.editor_tempo_label,Tempo,genre text mus,Tempo,템포
+mus.editor_instrument,Next instrument,genre text mus,Next instrument,다음 악기
+mus.editor_play,Play preview,genre text mus,Play preview,미리 듣기
+mus.editor_stop,Stop,genre text mus,Stop,정지
+mus.editor_playing,Playing,genre text mus,Playing,재생 중
+mus.editor_join,Join ensemble,genre text mus,Join ensemble,합주 참여
+mus.editor_saved,Saved,genre text mus,Saved,저장됨
+mus.editor_imported,Score loaded,genre text mus,Score loaded,악보를 불러왔어요
+mus.editor_status,%s / part %d%s,genre text mus,%s / part %d%s,%s / 파트 %d%s
+mus.instrument_piano,Piano,genre text mus,Piano,피아노
+mus.instrument_guitar,Guitar,genre text mus,Guitar,기타
+mus.instrument_bass,Bass,genre text mus,Bass,베이스
+mus.instrument_violin,Violin,genre text mus,Violin,바이올린
+mus.instrument_flute,Flute,genre text mus,Flute,플루트
+mus.instrument_clarinet,Clarinet,genre text mus,Clarinet,클라리넷
+mus.instrument_trumpet,Trumpet,genre text mus,Trumpet,트럼펫
+mus.instrument_drums,Drums,genre text mus,Drums,드럼
+fct.farm_title,Farm plots,genre text fct,Farm plots,밭
+fct.farm_none,Visit your home island and place a farm plot.,genre text fct,Visit your home island and place a farm plot.,개인 섬에 밭을 설치하세요.
+fct.farm_plot,Plot %d: %s,genre text fct,Plot %d: %s,밭 %d: %s
+fct.farm_empty,Empty,genre text fct,Empty,비어 있음
+fct.farm_growing,"%s growing, ready in %s",genre text fct,"%s growing, ready in %s","%s 자라는 중, %s 후 수확"
+fct.farm_ready,%s ready to harvest,genre text fct,%s ready to harvest,%s 수확 가능
+fct.farm_cost,"Needs 1 seed + 1 water (seed %d, water %d)",genre text fct,"Needs 1 seed + 1 water (seed %d, water %d)","씨앗 1 + 물 1 필요 (씨앗 %d, 물 %d)"
+fct.farm_plant,Plant,genre text fct,Plant,심기
+fct.farm_fertilize,Fertilize,genre text fct,Fertilize,비료 주기
+fct.farm_harvest,Harvest,genre text fct,Harvest,수확
+fct.farm_area,Sprayer,genre text fct,Sprayer,분무기
+fct.farm_book,Crop book,genre text fct,Crop book,작물 도감
+fct.liquid-fertilizer,Liquid -20% time,genre text fct,Liquid -20% time,액체 비료 -20% 시간
+fct.fruit-fertilizer,Fruit +1 fruit,genre text fct,Fruit +1 fruit,과일 비료 +1
+fct.stem-fertilizer,Stem +1 flax,genre text fct,Stem +1 flax,줄기 비료 +1
+fct.area_title,Water sprayer,genre text fct,Water sprayer,물 분무기
+fct.area_hint,Pick up to 9 plots within 12 studs.,genre text fct,Pick up to 9 plots within 12 studs.,12칸 안의 밭을 최대 9개 고르세요.
+fct.area_cost,Cost: water %d + fertilizer %d,genre text fct,Cost: water %d + fertilizer %d,비용: 물 %d + 비료 %d
+fct.area_apply,Apply,genre text fct,Apply,적용
+fct.area_done,Done,genre text fct,Done,완료
+fct.area_ok,Plot %d: applied,genre text fct,Plot %d: applied,밭 %d: 적용됨
+fct.area_fail,Plot %d: %s,genre text fct,Plot %d: %s,밭 %d: %s
+fct.book_title,Crop book,genre text fct,Crop book,작물 도감
+fct.book_rank,"%s rank %d/5, %s",genre text fct,"%s rank %d/5, %s","%s %d/5등급, %s"
+fct.book_next,%d harvests to next rank,genre text fct,%d harvests to next rank,다음 등급까지 수확 %d회
+fct.book_max,max rank,genre text fct,max rank,최고 등급
+fct.book_effects,Chosen: %s | Open: %s,genre text fct,Chosen: %s | Open: %s,선택: %s | 남음: %s
+fct.book_specialize,Specialize (%d),genre text fct,Specialize (%d),특화 선택 (%d)
+fct.none,none,genre text fct,none,없음
+fct.yield,Yield +1,genre text fct,Yield +1,수확량 +1
+fct.time,Growth -10%,genre text fct,Growth -10%,성장 -10%
+fct.quality,Quality +,genre text fct,Quality +,품질 +
+fct.spec_title,Specialize crop,genre text fct,Specialize crop,작물 특화
+fct.spec_chosen,%s (chosen),genre text fct,%s (chosen),%s (선택됨)
+fct.spec_preview,"Next %s: %ds, yield %d, quality %d",genre text fct,"Next %s: %ds, yield %d, quality %d","다음 %s: %d초, 수확 %d, 품질 %d"
+fct.spec_confirm,Confirm,genre text fct,Confirm,확인
+fct.spec_back,Back,genre text fct,Back,뒤로
+fct.proc_title,Processing,genre text fct,Processing,가공
+fct.proc_kind,Process: %s (next),genre text fct,Process: %s (next),가공: %s (다음)
+fct.dry,Drying,genre text fct,Drying,건조
+fct.tan,Tanning,genre text fct,Tanning,무두질
+fct.polish,Polishing,genre text fct,Polishing,연마
+fct.smelt,Smelting,genre text fct,Smelting,제련
+fct.ferment,Fermenting,genre text fct,Fermenting,발효
+fct.compost,Composting,genre text fct,Composting,퇴비화
+fct.proc_row,"%s > %s, %ds, budget %d>%d",genre text fct,"%s > %s, %ds, budget %d>%d","%s > %s, %d초, 예산 %d>%d"
+fct.proc_delta,%s %d>%d,genre text fct,%s %d>%d,%s %d>%d
+fct.proc_none,No eligible item in your bag.,genre text fct,No eligible item in your bag.,가방에 가공할 재료가 없어요.
+fct.proc_start,Start %s,genre text fct,Start %s,%s 시작
+fct.job_start,Start job,genre text fct,Start job,작업 시작
+fct.job_collect,Collect,genre text fct,Collect,받기
+fct.preview_title,Recipe preview,genre text fct,Recipe preview,제작 미리보기
+fct.preview_recipe,%s (next),genre text fct,%s (next),%s (다음)
+fct.preview_main,Main: %s x%d from %s (L%d Q%d),genre text fct,Main: %s x%d from %s (L%d Q%d),"주재료: %s x%d, %s (L%d Q%d)"
+fct.preview_support,Support: %s x%d (have %d),genre text fct,Support: %s x%d (have %d),보조: %s x%d (보유 %d)
+fct.preview_missing,Main: %s x%d missing,genre text fct,Main: %s x%d missing,주재료: %s x%d 부족
+fct.preview_out,"Makes %s x%d, L%d, %ds",genre text fct,"Makes %s x%d, L%d, %ds","결과 %s x%d, L%d, %d초"
+fct.preview_bonus,Main-material return: %d%%,genre text fct,Main-material return: %d%%,주재료 반환: %d%%
+fct.preview_count,Count %d,genre text fct,Count %d,수량 %d
+fct.preview_less,-,genre text fct,-,-
+fct.preview_more,+,genre text fct,+,+
+fct.preview_queue,Queue %d,genre text fct,Queue %d,%d개 예약
+fct.preview_queued,Queued %d/%d,genre text fct,Queued %d/%d,예약 %d/%d
+fct.inbox_title,Inbox,genre text fct,Inbox,보관함
+fct.inbox_empty,No results waiting.,genre text fct,No results waiting.,받을 결과가 없어요.
+fct.inbox_item,Market item: %s x%d,genre text fct,Market item: %s x%d,장터 물품: %s x%d
+fct.inbox_coins,Sale proceeds: %d coins,genre text fct,Sale proceeds: %d coins,판매 대금: %d 조개돈
+fct.inbox_crafted,Crafted: %s (job %s),genre text fct,Crafted: %s (job %s),제작 완료: %s (작업 %s)
+fct.inbox_running,Crafting: %s (job %s),genre text fct,Crafting: %s (job %s),제작 중: %s (작업 %s)
+fct.inbox_refund,Refunded: %s (job %s),genre text fct,Refunded: %s (job %s),환불됨: %s (작업 %s)
+fct.inbox_claim,Claim,genre text fct,Claim,받기
+fct.inbox_expedition,"%s: %d coins, %d XP",genre text fct,"%s: %d coins, %d XP","%s: 조개돈 %d, 경험치 %d"
+fct.inbox_expedition_received,"%s: %d coins, %d XP (received)",genre text fct,"%s: %d coins, %d XP (received)","%s: 조개돈 %d, 경험치 %d (받음)"
+fct.inbox_expedition_items,Items: %s,genre text fct,Items: %s,물품: %s
+fct.ledger_claimed,Already claimed,genre text fct,Already claimed,이미 받았어요
+fct.ledger_missing,Nothing to claim,genre text fct,Nothing to claim,받을 것이 없어요
+fct.inbox_page,Page %d/%d (next),genre text fct,Page %d/%d (next),%d/%d쪽 (다음)
+fct.ok,Done,genre text fct,Done,완료
+fct.TOOL_REQUIRED,Needs a sprinkler in home storage,genre text fct,Needs a sprinkler in home storage,집 창고에 스프링클러가 필요해요
+fct.AREA_LIMIT,Pick 1 to 9 plots,genre text fct,Pick 1 to 9 plots,밭을 1~9개 고르세요
+fct.OUT_OF_AREA,Outside the 12-stud radius,genre text fct,Outside the 12-stud radius,12칸 범위 밖
+fct.ALREADY_FERTILIZED,Already fertilized,genre text fct,Already fertilized,이미 비료를 줬어요
+fct.ALREADY_READY,Already grown,genre text fct,Already grown,이미 다 자랐어요
+fct.FERTILIZER_NOT_APPLICABLE,Not for this crop,genre text fct,Not for this crop,이 작물에는 못 써요
+fct.UNKNOWN_FERTILIZER,Pick a fertilizer,genre text fct,Pick a fertilizer,비료를 고르세요
+fct.DUPLICATE_EFFECT,Effect already chosen,genre text fct,Effect already chosen,이미 고른 효과예요
+fct.RANK_LOCKED,"Reach rank 1, 3 or 5 first",genre text fct,"Reach rank 1, 3 or 5 first","1, 3, 5등급에서 고를 수 있어요"
+fct.EMPTY_PLOT,Nothing planted,genre text fct,Nothing planted,심은 작물이 없어요
+fct.NOT_GROWN,Not grown yet,genre text fct,Not grown yet,아직 자라는 중
+fct.PLOT_OCCUPIED,Plot already planted,genre text fct,Plot already planted,이미 심은 밭
+fct.WRONG_SEED,No seed in home storage,genre text fct,No seed in home storage,집 창고에 씨앗이 없어요
+fct.SKILL_LOCKED,Learn the farming node first,genre text fct,Learn the farming node first,농사 스킬이 필요해요
+fct.SKILL_NODE_GATE,Learn the skill node first,genre text fct,Learn the skill node first,스킬이 필요해요
+fct.STATION_UNAVAILABLE,Stand near the right station,genre text fct,Stand near the right station,알맞은 작업대 가까이 가세요
+fct.PROCESSING_BUDGET,Processing budget used up,genre text fct,Processing budget used up,가공 예산을 다 썼어요
+fct.JOB_QUEUE_FULL,Job queue full,genre text fct,Job queue full,작업 대기열이 가득 찼어요
+fct.COMMAND_UNAVAILABLE,Not available here,genre text fct,Not available here,여기서는 쓸 수 없어요
+ctr.contracts_title,Contracts,genre text ctr,Contracts,계약
+ctr.contracts_accept,Accept,genre text ctr,Accept,수락
+ctr.contracts_deliver,Deliver,genre text ctr,Deliver,납품
+ctr.contracts_accepted,Accepted,genre text ctr,Accepted,수락함
+ctr.contracts_reward,Reward,genre text ctr,Reward,보상
+ctr.contracts_coins,Shellmoney %d,genre text ctr,Shellmoney %d,조개돈 %d
+ctr.contracts_trust,Trust,genre text ctr,Trust,신뢰도
+ctr.contracts_tier,Tier,genre text ctr,Tier,단계
+ctr.contracts_empty,No contracts available,genre text ctr,No contracts available,받을 수 있는 계약이 없어요
+ctr.contracts_refused,Refused: ,genre text ctr,Refused: ,거절됨: 
+ctr.contracts_reason_insufficient,Not enough items to deliver yet.,genre text ctr,Not enough items to deliver yet.,납품할 아이템이 아직 부족해요.
+ctr.contracts_reason_carry,Carry %s x%d in your bag (have %d).,genre text ctr,Carry %s x%d in your bag (have %d).,가방에 %s %d개를 들고 오세요 (현재 %d개).
+ctr.contracts_reason_bag_full,Your bag is full. Make room first.,genre text ctr,Your bag is full. Make room first.,가방이 가득 찼어요. 공간을 비우세요.
+ctr.contracts_reason_pending,Saving... try again in a moment.,genre text ctr,Saving... try again in a moment.,저장 중이에요. 잠시 후 다시 시도하세요.
+ctr.contracts_reason_order,Complete the earlier first-day contract first.,genre text ctr,Complete the earlier first-day contract first.,앞선 첫날 계약을 먼저 완료하세요.
+ctr.contracts_reason_other,That did not work. Try again.,genre text ctr,That did not work. Try again.,잘 안 됐어요. 다시 시도하세요.
+ctr.contracts_delivered,Delivered. Reward: %s,genre text ctr,Delivered. Reward: %s,납품 완료. 보상: %s
+ctr.tutorial_title,Objective,genre text ctr,Objective,목표
+ctr.tutorial_skip,Skip arrival,genre text ctr,Skip arrival,도착 장면 건너뛰기
+ctr.tutorial_done,Tutorial complete,genre text ctr,Tutorial complete,튜토리얼 완료
+ctr.tutorial.arrive,Arrive on the island,genre text ctr,Arrive on the island,섬에 도착하세요
+ctr.tutorial.gather,Gather a resource: walk up and press E,genre text ctr,Gather a resource: walk up and press E,자원을 채집하세요: 다가가서 E
+ctr.tutorial.craft-stone-axe,Craft an axe: press C (Menu > Craft); the pinned recipe is first,genre text ctr,Craft an axe: press C (Menu > Craft); the pinned recipe is first,"도끼를 만드세요: C 키 (메뉴 > 제작), 고정된 제작법이 맨 위"
+ctr.tutorial.declare-settlement,"Place your settlement: store wood in the warehouse (I), then press B to build",genre text ctr,"Place your settlement: store wood in the warehouse (I), then press B to build",정착지를 세우세요: 가방(I)에서 창고에 나무 보관 후 B 키로 건설
+ctr.tutorial.accept-contract,Accept the first contract: Menu > Contracts,genre text ctr,Accept the first contract: Menu > Contracts,첫 계약을 수락하세요: 메뉴 > 계약
+ctr.tutorial.deliver-contract,Deliver the first contract: Menu > Contracts > Deliver,genre text ctr,Deliver the first contract: Menu > Contracts > Deliver,첫 계약을 납품하세요: 메뉴 > 계약 > 납품
+ctr.tutorial.next-route,"Next: raise island grade with guides (Menu > Island rank), then open Menu > Routes",genre text ctr,"Next: raise island grade with guides (Menu > Island rank), then open Menu > Routes","다음: 가이드로 섬 개발 등급 올리기 (메뉴 > 섬 등급), 그다음 메뉴 > 항로"
+ctr.faction.route-surveyors,Route Survey Society,genre text ctr,Route Survey Society,노선 측량 협회
+ctr.faction.artisan-guilds,Artisan Guild Union,genre text ctr,Artisan Guild Union,장인 길드 연합
+ctr.faction.island-ecology,Island Ecology Trust,genre text ctr,Island Ecology Trust,섬 생태 신탁
+ctr.tutorial.gather_touch,Gather a resource: walk up and tap its button,objective tracker on touch devices (no key hint),Gather a resource: walk up and tap its button,자원을 채집하세요: 다가가서 버튼을 누르세요
+act.survey,Survey,stage objective action,Survey,조사
+act.rescue,Rescue,stage objective action,Rescue,구조
+act.transport,Transport,stage objective action,Transport,운송
+trv.mission_gate,Finish this island's objectives first,dock travel result,Finish this island's objectives first,이 섬의 목표를 먼저 완료하세요
+trv.route_expired,This route has expired,dock travel result,This route has expired,항로가 만료되었습니다
+trv.expiry_imminent,The route expires too soon to travel,dock travel result,The route expires too soon to travel,항로 만료가 임박해 이동할 수 없습니다
+trv.expedition_inactive,No active route,dock travel result,No active route,진행 중인 항로가 없습니다
+trv.missing_expedition,No active route,dock travel result,No active route,진행 중인 항로가 없습니다
+trv.level_gate,Your level is too low for this route,dock travel result,Your level is too low for this route,항로 레벨이 부족합니다
+trv.development_gate,Raise your island development first,dock travel result,Raise your island development first,개발 등급을 먼저 올리세요
+trv.instability_gate,This route is not unlocked yet,dock travel result,This route is not unlocked yet,아직 열리지 않은 항로입니다
+trv.dock_unreachable,Move closer to the dock,dock travel result,Move closer to the dock,부두에 더 가까이 가세요
+trv.transition_not_allowed,Depart from the harbor,dock travel result,Depart from the harbor,항구에서 출발하세요
+trv.studio_no_teleport,Accepted. Teleport is unavailable in Studio,dock travel result,Accepted. Teleport is unavailable in Studio,승인됨. Studio에서는 섬 이동이 불가합니다
+trv.travelling,Travelling...,dock travel result,Travelling...,이동 중...
+cli.ui.clan,Clan,client clan/outpost label,Clan,부족
+cli.clan.empty,Create a clan or join by invitation to share funds and capture team outposts.,client clan/outpost label,Create a clan or join by invitation to share funds and capture team outposts.,부족을 만들거나 초대로 가입하여 자금을 모으고 팀 거점을 점령하세요.
+cli.clan.create,Create clan,client clan/outpost label,Create clan,부족 생성
+cli.clan.join,Join invited clan,client clan/outpost label,Join invited clan,초대받은 부족 가입
+cli.clan.invite,Invite,client clan/outpost label,Invite,초대
+cli.clan.deposit,Deposit,client clan/outpost label,Deposit,입금
+cli.clan.withdraw,Withdraw,client clan/outpost label,Withdraw,출금
+cli.clan.level,Level,client clan/outpost label,Level,레벨
+cli.clan.territory,Territory,client clan/outpost label,Territory,영토
+cli.ui.outpost,Team outpost,client clan/outpost label,Team outpost,팀 거점
+cli.outpost.owner,Owner,client clan/outpost label,Owner,소유 부족
+cli.outpost.remaining,Seconds remaining,client clan/outpost label,Seconds remaining,남은 시간
+cli.outpost.active,Capture in progress,client clan/outpost label,Capture in progress,점령 진행 중
+cli.outpost.settled,Match finished,client clan/outpost label,Match finished,경기 종료
+cli.outpost.winner,Winner,client clan/outpost label,Winner,승리 부족
+cli.outpost.opt-in,Join team queue,client clan/outpost label,Join team queue,팀 대기열 참가
+cli.journal.journal_open,Open journal,client journal label,Open journal,일지 열기
+cli.journal.journal_claim,Complete chapter,client journal label,Complete chapter,챕터 완료
+cli.journal.LEVEL_GATE,Requires level 20,client journal label,Requires level 20,레벨 20 필요
+cli.journal.CHAPTER_ORDER,Complete the previous chapter first,client journal label,Complete the previous chapter first,이전 챕터를 먼저 완료하세요
+cli.journal.ALREADY_COMPLETED,Completed,client journal label,Completed,완료
+cli.journal.CHAPTER_ACTIVE,Finish the active chapter first,client journal label,Finish the active chapter first,진행 중인 챕터를 먼저 완료하세요
+cli.journal.OBJECTIVES_INCOMPLETE,Complete every objective first,client journal label,Complete every objective first,모든 목표를 먼저 완료하세요
+cli.aerial.Return,Return,client island view button,Return,돌아가기
+cli.aerial.Toggle,Island view,client island view button,Island view,섬 전경
+cli.aerial.OrbitLeft,Rotate left,client island view button,Rotate left,왼쪽 회전
+cli.aerial.OrbitRight,Rotate right,client island view button,Rotate right,오른쪽 회전
+cli.aerial.HideUI,Hide UI,client island view button,Hide UI,UI 숨기기
+cli.aerial.ShowUI,Show UI,client island view button,Show UI,UI 표시
+cli.aerial.Capture,Capture,client island view button,Capture,촬영

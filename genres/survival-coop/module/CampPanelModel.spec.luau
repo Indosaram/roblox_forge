@@ -1,4 +1,5 @@
 --!strict
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 local Model = require("./CampPanelModel")
 
 local function slice(): any

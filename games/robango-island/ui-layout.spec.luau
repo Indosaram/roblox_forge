@@ -283,6 +283,13 @@ return {
 				assert(key == "brawl_feedback" or (en ~= "" and ko ~= ""), path .. " blank " .. key)
 			end
 		end
+		-- Rows moved to the pack locale table (fct./brl./wld. keys of strings.csv) are checked there.
+		for _, row in require("./PackText.fixture").rows do
+			if string.find(row.key, "^fct%.") or string.find(row.key, "^brl%.") or string.find(row.key, "^wld%.") then
+				count += 1
+				assert(row.en ~= "" and row.ko ~= "", "strings.csv blank " .. row.key)
+			end
+		end
 		assert(count > 100, "string tables discovered")
 	end,
 	["survival HUD sheets keep header and close inside both target viewports"] = function()

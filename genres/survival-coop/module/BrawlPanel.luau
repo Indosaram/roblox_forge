@@ -9,29 +9,7 @@ local Sheet = require("./SocialSheet")
 local M = {}
 
 local PackLocale = require("./PackLocale")
-local strings: { [string]: { string } } = PackLocale.rows({
-	brawl_snapshot = {
-		"Snapshot equipment only. Original equipment is not consumed.",
-		"복제 장비만 사용합니다. 원본 장비는 소모되지 않습니다.",
-	},
-	brawl_preparing = { "Get ready: the match starts in %s.", "준비하세요: %s 후 경기가 시작돼요." },
-	brawl_spectator = {
-		"You are out. Spectating until the match ends.",
-		"탈락했어요. 경기가 끝날 때까지 관전합니다.",
-	},
-	brawl_leave = { "Leave", "나가기" },
-	LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },
-	QUEUE_FULL = { "Queue full", "대기열이 가득 찼습니다" },
-	QUEUE_CLOSED = { "Queue closed", "대기열이 마감되었습니다" },
-	NOT_ACTIVE = { "Match has not started", "경기가 시작되지 않았습니다" },
-	ELIMINATED = { "Eliminated: spectating", "탈락: 관전 중" },
-	WEATHER_RANGE = { "Fog restricts range", "안개로 사거리가 제한됩니다" },
-	WEATHER_MOUNT = { "Storm prevents mounting", "폭풍 중에는 탑승할 수 없습니다" },
-	UNVERIFIED_ACTION = { "Action unavailable", "사용할 수 없는 행동입니다" },
-	RECOVERY = { "Recovering", "회복 중" },
-	PERSONAL_UNAVAILABLE = { "Settlement pending", "정산 대기 중" },
-	COMMAND_PENDING = { "Previous command pending", "이전 명령 처리 중" },
-})
+local strings: { [string]: { string } } = PackLocale.rows({}, { "brl.", "" })
 M.strings = strings
 
 function M.text(locale: string, key: string, ...: any): string

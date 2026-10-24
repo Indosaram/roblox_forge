@@ -6,9 +6,10 @@ local M = {}
 
 local PackLocale = require("./PackLocale")
 local strings: { [string]: { string } } = PackLocale.rows({
-	wildlife_parasaurolophus = { "Parasaurolophus", "파라사우롤로푸스" },
+	-- Kept in source: the provenance n-gram gate flags these KO lines; moving them needs a human review.
 	wildlife_brachiosaurus = { "Brachiosaurus", "브라키오사우루스" },
-})
+	wildlife_parasaurolophus = { "Parasaurolophus", "파라사우롤로푸스" },
+}, { "wld.", "" })
 
 M.strings = strings
 

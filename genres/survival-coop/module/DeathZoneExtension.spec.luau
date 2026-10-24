@@ -4,6 +4,7 @@ local DeathZone = require("./DeathZoneExtension")
 local Extensions = require("./Extensions")
 local ExtensionPanels = require("./ExtensionPanels")
 local Contract = require("./Contract")
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 
 local SET = "survival-coop:zone-set"
 

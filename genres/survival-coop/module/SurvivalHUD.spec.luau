@@ -1,6 +1,7 @@
 --!strict
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local _packText = (require :: any)("../../../games/robango-island/PackText.fixture") -- installs the strings.csv lookup
 
 return {
 	["sheet snapshots retain press identity and dispatch current enabled action"] = function()

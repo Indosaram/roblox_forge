@@ -9,33 +9,15 @@ local M = {}
 -- Durable ids are namespaced: the server's action list carries "survival-coop:zone-set".
 local SET = "survival-coop:zone-set"
 
-local strings: { [string]: { string } } = {
-	zone_title = { "Region safety", "지역 안전" },
-	zone_safe = { "Safe zone: you keep your bag when you fall", "안전 구역: 쓰러져도 가방을 지켜요" },
-	zone_danger = {
-		"Danger zone: your bag drops when you fall",
-		"위험 구역: 쓰러지면 가방을 떨어뜨려요",
-	},
-	zone_leave = { "Return to safe zone", "안전 구역으로 돌아가기" },
-	zone_pvp = {
-		"Optional PvP is in Brawl and Team siege, with a snapshot loadout: your bag is never at risk there.",
-		"선택형 PvP는 난투와 팀 공성전에서 해요. 장비 스냅샷으로 싸우니 가방은 잃지 않아요.",
-	},
-	zone_failed = {
-		"The zone could not be changed. Try again later",
-		"구역을 바꾸지 못했어요. 잠시 후 다시 시도하세요",
-	},
-	zone_dead = { "You cannot change zone while down", "쓰러진 동안은 구역을 바꿀 수 없어요" },
-}
+-- zone_* rows of the pack locale table (games/robango-island/locale/strings.csv).
+local PackLocale = require("./PackLocale")
+local KEYS = { "zone_danger", "zone_dead", "zone_failed", "zone_leave", "zone_pvp", "zone_safe", "zone_title" }
+local strings: { [string]: { string } } = PackLocale.rows({})
 local refusals: { [string]: string } = {
 	NOT_ALIVE = "zone_dead",
 }
 
-M.keys = {} :: { string }
-for key in strings do
-	table.insert(M.keys, key)
-end
-table.sort(M.keys)
+M.keys = KEYS :: { string }
 
 --- Pure text lookup (specced): falls back to the key itself when unknown.
 function M.text(locale: string, key: string): string

@@ -141,10 +141,17 @@ return {
 		end
 	end,
 	["every character text key is localized in EN and KO"] = function()
-		for _, key in Text.keys do
-			local en, ko = Text.text("en-us", key), Text.text("ko-kr", key)
-			assert(en ~= key and ko ~= key and en ~= "" and ko ~= "", key)
+		-- CharacterText rows ship as chr.<key> rows of strings.csv.
+		local count = 0
+		for _, row in require("./PackText.fixture").rows do
+			local key = string.match(row.key, "^chr%.(.+)$")
+			if key then
+				count += 1
+				local en, ko = Text.text("en-us", key), Text.text("ko-kr", key)
+				assert(en ~= key and ko ~= key and en ~= "" and ko ~= "", key)
+			end
 		end
+		assert(count > 100, "character text rows discovered: " .. count)
 		assert(#Panels.factories == 8, "eight screens registered")
 	end,
 	["skill reset confirm sends the quoted version; a stale quote shows a localized refusal"] = function()

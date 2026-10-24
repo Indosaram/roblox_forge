@@ -11,6 +11,7 @@ local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
 local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Editor = require("../../genres/survival-coop/module/ScoreEditorPanel")
 local Rules = require("../../core/domain/music/TestCatalog")
+require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 -- { width, height, touch }: portrait phones, short landscape phone, PC.
 local VIEWPORTS = { { 360, 640, true }, { 390, 844, true }, { 640, 339, true }, { 1280, 720, false } }
