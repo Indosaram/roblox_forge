@@ -10,6 +10,7 @@ local dependencies: { [string]: any } = {
 	),
 	["./Combat"] = require("./Combat"),
 	["./BrawlLedger"] = require("./BrawlLedger"),
+	["./SocialSheet"] = require("./SocialSheet"),
 }
 local function killed(name: string, before: string, after: string)
 	local path = "genres/survival-coop/module/" .. name
@@ -60,7 +61,7 @@ return {
 	["failed personal save acknowledgement killed"] = function()
 		killed("BrawlLedger", "if not ok then", "if false then")
 	end,
-	["mobile viewport clipping killed"] = function()
-		killed("BrawlPanel", "math.min(440, width - 24)", "440")
+	["empty queue state omission killed"] = function()
+		killed("BrawlPanel", "if model.queued == 0 then", "if false then")
 	end,
 }

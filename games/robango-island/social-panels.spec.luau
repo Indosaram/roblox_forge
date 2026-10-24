@@ -493,6 +493,34 @@ cases["siege match opens on arrival and leave needs explicit confirmation"] = fu
 	assert(h.has("You are not in this match."), "refusal shown")
 end
 
+cases["siege match and results explain their empty state and route to the lobby at every viewport"] = function()
+	-- p83: both screens showed the lobby's 'no clan is queued' line with nothing to do.
+	for _, name in { "match", "results" } do
+		for _, viewport in VIEWPORTS do
+			for _, locale in LOCALES do
+				local h = harness(locale, viewport[1], viewport[2], viewport[3])
+				local opened: string? = nil
+				h.ctx.openPanel = function(id: string)
+					opened = id
+				end
+				local panel = Panels[name].factory(h.ctx)
+				h.push({ outpost = outpostState(), clan = { clanId = "alpha" } })
+				panel.open()
+				local where = name .. " empty " .. locale
+				assert(not h.has(L.text(locale, "siege.empty")), where .. ": lobby queue text reused")
+				assert(
+					h.has(L.text(locale, (if name == "match" then "match" else "result") .. ".empty")),
+					where .. ": own empty state"
+				)
+				assert(h.has(L.text(locale, "siege.owner", "gamma", "2h 00m")), where .. ": current ownership shown")
+				checkLayout(h, where)
+				h.press(L.text(locale, "siege.open_lobby"))
+				assert(opened == "outpost" and not h.frame.Visible, where .. ": routes to the siege lobby")
+			end
+		end
+	end
+end
+
 cases["siege results open on settlement with ownership and research consequence"] = function()
 	local h = harness("ko-kr", 640, 339, true)
 	Panels.results.factory(h.ctx)

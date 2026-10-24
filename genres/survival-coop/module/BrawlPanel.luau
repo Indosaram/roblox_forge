@@ -1,9 +1,138 @@
 --!strict
+-- ui.brawl-lobby / ui.brawl-match / ui.brawl-results in one docked sheet. Rendered through the
+-- shared SocialSheet (ui-kit modalSheet inside the fitted extension rect), so the brawl screen
+-- uses the same header, close button, fonts, colours and wrapped 48px rows as every other panel.
+-- `rows(locale, model, policy, act)` is pure: one labelled fact per row, localized weather names
+-- with their ui.icon.weather.* art, and explicit empty, waiting and unavailable states.
 local Match = require("../../../core/domain/brawl/Match")
+local Sheet = require("./SocialSheet")
 local M = {}
 
-function M.layout(width: number, height: number): any
-	return { width = math.min(440, width - 24), height = math.min(480, height - 96), controlHeight = 44 }
+local strings: { [string]: { string } } = {
+	brawl_title = { "Brawl", "난투" },
+	brawl_unavailable = {
+		"Brawl is available on a brawl server. Travel there from the harbor.",
+		"난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요.",
+	},
+	brawl_rules = {
+		"Entry: level %d or higher, %d-%d players, %d s ready phase.",
+		"참가 조건: 레벨 %d 이상, %d-%d명, 준비 시간 %d초.",
+	},
+	brawl_snapshot = {
+		"Snapshot equipment only. Original equipment is not consumed.",
+		"복제 장비만 사용합니다. 원본 장비는 소모되지 않습니다.",
+	},
+	brawl_reward_line = {
+		"Rewards: participation %d, victory %d coins (first %d matches per day).",
+		"보상: 참가 %d, 승리 %d 코인 (하루 처음 %d경기).",
+	},
+	brawl_queue_status = { "Waiting room: %d/%d players", "대기실: %d/%d명" },
+	brawl_queue_empty = {
+		"No one is waiting yet. Join and the match starts once %d players are in.",
+		"아직 대기 중인 사람이 없어요. 참가 후 %d명이 모이면 경기가 시작돼요.",
+	},
+	brawl_queue_need = {
+		"%d more player(s) needed to start.",
+		"시작까지 %d명이 더 필요해요.",
+	},
+	brawl_queue_you = { "You are in the waiting room.", "대기실에 있어요." },
+	brawl_preparing = { "Get ready: the match starts in %s.", "준비하세요: %s 후 경기가 시작돼요." },
+	brawl_active = { "Match in progress: %d alive, %s left.", "경기 중: 생존 %d명, 남은 시간 %s." },
+	brawl_weather_now = { "Weather: %s. %s", "날씨: %s. %s" },
+	brawl_weather_next = { "Next weather: %s in %s.", "다음 날씨: %s, %s 후." },
+	brawl_weather_plan = {
+		"Weather changes every %d s, ending with a closing ring.",
+		"날씨가 %d초마다 바뀌고 마지막에 경계가 좁혀져요.",
+	},
+	brawl_radius = { "Safe zone radius: %d studs.", "안전 구역 반경: %d스터드." },
+	brawl_spectator = {
+		"You are out. Spectating until the match ends.",
+		"탈락했어요. 경기가 끝날 때까지 관전합니다.",
+	},
+	brawl_result_win = { "Victory! You are the last survivor.", "승리! 마지막 생존자입니다." },
+	brawl_result_draw = { "Draw. No single survivor.", "무승부. 단독 생존자가 없어요." },
+	brawl_result_eliminated = {
+		"Eliminated. Better luck next match.",
+		"탈락. 다음 경기에서 다시 도전하세요.",
+	},
+	brawl_result_watch = { "Match over.", "경기가 끝났어요." },
+	brawl_settled = { "Reward received: %d coins.", "보상 수령: %d 코인." },
+	brawl_join = { "Join queue", "대기열 참가" },
+	brawl_leave = { "Leave", "나가기" },
+	brawl_claim = { "Claim result", "결과 받기" },
+	brawl_ok = { "Confirmed", "확인됨" },
+	brawl_attack = { "Attack nearest rival", "가까운 상대 공격" },
+	brawl_ranged = { "Shoot nearest rival", "가까운 상대 사격" },
+	brawl_dodge = { "Dodge", "회피" },
+	brawl_guard = { "Guard", "방어" },
+	weather_clear = { "Clear", "맑음" },
+	weather_rain = { "Rain", "비" },
+	weather_fog = { "Fog", "안개" },
+	weather_storm = { "Storm", "폭풍" },
+	weather_collapse = { "Closing ring", "경계 수축" },
+	effect_clear = { "No weather effects.", "날씨 효과가 없어요." },
+	effect_rain = { "Sprinting costs %d%% more stamina.", "질주 기력 소모가 %d%% 늘어요." },
+	effect_fog = { "Ranged attacks reach only %d studs.", "원거리 공격이 %d스터드까지만 닿아요." },
+	effect_storm = { "Mounts are unavailable.", "탈것에 탈 수 없어요." },
+	effect_collapse = {
+		"The safe zone shrinks. Outside it you lose %d%% max HP per second.",
+		"안전 구역이 줄어들어요. 밖에서는 초당 최대 체력의 %d%%를 잃어요.",
+	},
+	NO_AMMO = { "No snapshot ammunition", "복제 탄약이 없습니다" },
+	LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },
+	QUEUE_FULL = { "Queue full", "대기열이 가득 찼습니다" },
+	QUEUE_CLOSED = { "Queue closed", "대기열이 마감되었습니다" },
+	NOT_ACTIVE = { "Match has not started", "경기가 시작되지 않았습니다" },
+	ELIMINATED = { "Eliminated: spectating", "탈락: 관전 중" },
+	WEATHER_RANGE = { "Fog restricts range", "안개로 사거리가 제한됩니다" },
+	WEATHER_MOUNT = { "Storm prevents mounting", "폭풍 중에는 탑승할 수 없습니다" },
+	UNVERIFIED_ACTION = { "Action unavailable", "사용할 수 없는 행동입니다" },
+	RECOVERY = { "Recovering", "회복 중" },
+	PERSONAL_UNAVAILABLE = { "Settlement pending", "정산 대기 중" },
+	COMMAND_PENDING = { "Previous command pending", "이전 명령 처리 중" },
+	brawl_refused = { "Request refused", "요청 거절됨" },
+}
+M.strings = strings
+
+function M.text(locale: string, key: string, ...: any): string
+	local row = strings[key]
+	if not row then
+		return key
+	end
+	local template = row[if string.sub(locale, 1, 2) == "ko" then 2 else 1]
+	return if select("#", ...) > 0 then string.format(template, ...) else template
+end
+
+function M.refusal(locale: string, reason: string?): string
+	return M.text(locale, if reason and strings[reason] then reason else "brawl_refused")
+end
+
+function M.weatherName(locale: string, id: string): string
+	return if strings["weather_" .. id] then M.text(locale, "weather_" .. id) else M.text(locale, "weather_clear")
+end
+
+-- ItemIcons.ui id: resolves to the manifest key ui-icon-weather-<id>.
+function M.weatherIcon(id: string): string
+	return "weather." .. id
+end
+
+local function effect(locale: string, weather: any, policy: any): string
+	local id = weather.id
+	if id == "rain" then
+		return M.text(locale, "effect_rain", math.floor(((weather.sprintMultiplier or 1) - 1) * 100 + 0.5))
+	elseif id == "fog" then
+		return M.text(locale, "effect_fog", weather.rangeCap or 0)
+	elseif id == "storm" then
+		return M.text(locale, "effect_storm")
+	elseif id == "collapse" then
+		return M.text(locale, "effect_collapse", math.floor(policy.outsideDamageFraction * 100 + 0.5))
+	end
+	return M.text(locale, "effect_clear")
+end
+
+local function clock(seconds: number): string
+	seconds = math.max(0, math.floor(seconds))
+	return string.format("%d:%02d", seconds // 60, seconds % 60)
 end
 
 function M.model(state: any, actor: string, now: number, receipt: any): any
@@ -21,6 +150,17 @@ function M.model(state: any, actor: string, now: number, receipt: any): any
 			math.ceil(state.startsAt + (if state.phase == "preparing" then 0 else state.policy.durationSeconds) - now)
 		)
 		else 0
+	local weather = if state.startsAt then Match.weather(state, now) else state.policy.weather[1]
+	local nextWeather = nil
+	if state.startsAt and state.phase == "active" then
+		local elapsed = now - state.startsAt
+		for _, entry in state.policy.weather do
+			if entry.at > elapsed then
+				nextWeather = { id = entry.id, inSeconds = math.ceil(entry.at - elapsed) }
+				break
+			end
+		end
+	end
 	return {
 		phase = state.phase,
 		queued = #state.order,
@@ -29,14 +169,19 @@ function M.model(state: any, actor: string, now: number, receipt: any): any
 		minimumLevel = state.policy.minimumLevel,
 		alive = alive,
 		remaining = remaining,
-		weather = if state.startsAt then Match.weather(state, now).id else "clear",
+		weather = weather.id,
+		weatherEntry = weather,
+		nextWeather = nextWeather,
 		timeline = state.policy.weather,
+		inMatch = player ~= nil,
+		fighting = player ~= nil and player.alive and state.phase == "active",
 		spectator = player ~= nil and not player.alive and not finished,
 		result = if not finished
 			then nil
 			elseif state.winner == actor then "win"
 			elseif not state.winner then "draw"
-			else "eliminated",
+			elseif player then "eliminated"
+			else "watch",
 		join = state.phase == "queue" and not player,
 		leave = player ~= nil and not finished,
 		claim = finished and player ~= nil and not (receipt and receipt.ok),
@@ -55,299 +200,194 @@ function M.model(state: any, actor: string, now: number, receipt: any): any
 	}
 end
 
-function M.mount(ctx: any): any
-	local ui = ctx.ui
-	local connections = {}
-	local function make(class: string, properties: any, parent: any): any
-		local object = ui.Instance.new(class)
-		for key, value in properties do
-			object[key] = value
+-- act: join, leave, claim, combat(name). model nil = not on a brawl server.
+function M.rows(locale: string, model: any?, policy: any, act: any, feedback: string?): { Sheet.Row }
+	local function t(key: string, ...: any): string
+		return M.text(locale, key, ...)
+	end
+	local rules =
+		t("brawl_rules", policy.minimumLevel, policy.minimumPlayers, policy.maximumPlayers, policy.preparationSeconds)
+	local rewards = t("brawl_reward_line", policy.participationReward, policy.winReward, policy.dailySettlements)
+	if not model then
+		return {
+			{ text = t("brawl_unavailable") },
+			{ text = rules },
+			{ text = t("brawl_snapshot") },
+			{ text = rewards },
+		}
+	end
+	local rows: { Sheet.Row } = {}
+	local function add(text: string, onClick: (() -> ())?, icon: string?)
+		table.insert(rows, { text = text, onClick = onClick, icon = icon })
+	end
+	local first = policy.weather[1]
+	if model.phase == "queue" then
+		add(t("brawl_queue_status", model.queued, model.maximum))
+		if model.queued == 0 then
+			add(t("brawl_queue_empty", model.minimum))
+		elseif model.queued < model.minimum then
+			add(t("brawl_queue_need", model.minimum - model.queued))
 		end
-		object.Parent = parent
-		return object
-	end
-	local root = make("Frame", {
-		Name = "BrawlPanel",
-		AnchorPoint = ui.Vector2.new(0.5, 0.5),
-		Position = ui.UDim2.fromScale(0.5, 0.5),
-	}, ctx.parent)
-	local scroll = make("ScrollingFrame", {
-		Size = ui.UDim2.fromScale(1, 1),
-		AutomaticCanvasSize = ui.Enum.AutomaticSize.Y,
-		CanvasSize = ui.UDim2.fromOffset(0, 0),
-		ScrollBarThickness = 6,
-	}, root)
-	make("UIListLayout", { Padding = ui.UDim.new(0, 8), SortOrder = ui.Enum.SortOrder.LayoutOrder }, scroll)
-	make("UIPadding", {
-		PaddingTop = ui.UDim.new(0, 12),
-		PaddingBottom = ui.UDim.new(0, 12),
-		PaddingLeft = ui.UDim.new(0, 12),
-		PaddingRight = ui.UDim.new(0, 12),
-	}, scroll)
-	local labels = {}
-	for index, name in
-		{ "brawl_title", "brawl_status", "brawl_snapshot", "brawl_weather", "brawl_rewards", "brawl_feedback" }
-	do
-		labels[name] = make("TextLabel", {
-			Name = name,
-			LayoutOrder = index,
-			Text = ctx.text(name),
-			TextWrapped = true,
-			AutomaticSize = ui.Enum.AutomaticSize.Y,
-			Size = ui.UDim2.new(1, -8, 0, 44),
-			TextSize = 18,
-		}, scroll)
-	end
-	local state: any = nil
-	local receipt: any = nil
-	local buttons: { [string]: any } = {}
-	local api = {}
-	function api.resize(width: number, height: number)
-		local layout = M.layout(width, height)
-		root.Size = ui.UDim2.fromOffset(layout.width, layout.height)
-	end
-	function api.update(value: any, now: number)
-		if state and state.id ~= value.id then
-			receipt = nil
+		add(rules)
+		if model.inMatch then
+			add(t("brawl_queue_you"))
 		end
-		state = value
-		local model = M.model(state, ctx.actor, now, receipt)
-		labels.brawl_status.Text = ctx.text("brawl_status", model)
-		labels.brawl_weather.Text = ctx.text("brawl_weather", model)
-		labels.brawl_rewards.Text = ctx.text("brawl_rewards", model)
-		for name, button in buttons do
-			local combat = name == "attack" or name == "ranged" or name == "dodge" or name == "guard"
-			local participant = state.actors[ctx.actor]
-			button.Visible = model[name] == true
-				or (combat and participant ~= nil and participant.alive and state.phase == "active")
-		end
-	end
-	for index, name in { "join", "leave", "claim", "attack", "ranged", "dodge", "guard" } do
-		local button = make("TextButton", {
-			Name = name,
-			LayoutOrder = 10 + index,
-			Size = ui.UDim2.new(1, -8, 0, 44),
-			Text = ctx.text("brawl_" .. name),
-			TextSize = 18,
-			Visible = false,
-		}, scroll)
-		buttons[name] = button
-		table.insert(
-			connections,
-			button.Activated:Connect(function()
-				if not state then
-					return
-				end
-				local model = M.model(state, ctx.actor, ctx.now(), receipt)
-				local combat = name == "attack" or name == "ranged" or name == "dodge" or name == "guard"
-				local participant = state.actors[ctx.actor]
-				if
-					not model[name] and not (combat and participant and participant.alive and state.phase == "active")
-				then
-					return
-				end
-				local actions = { join = "brawl-queue", leave = "brawl-leave", claim = "brawl-reward" }
-				local args = {}
-				if combat then
-					local token = name
-					if name == "attack" or name == "ranged" then
-						local target = if ctx.target then ctx.target(state) else nil
-						if not target then
-							return
-						end
-						token = (if name == "ranged" then "ranged:" else "melee:") .. target
-					end
-					args = { token }
-				end
-				local result = ctx.send("survival-coop:" .. (if combat then "brawl-action" else actions[name]), args)
-				if name == "claim" then
-					receipt = result
-				end
-				labels.brawl_feedback.Text = ctx.text(if result.ok then "brawl_ok" else result.reason, result)
-				api.update(state, ctx.now())
-			end)
+		add(t("brawl_snapshot"))
+		add(rewards)
+		add(
+			t("brawl_weather_plan", if policy.weather[2] then policy.weather[2].at - first.at else 0),
+			nil,
+			M.weatherIcon(first.id)
 		)
-	end
-	function api.destroy()
-		for _, connection in connections do
-			connection:Disconnect()
+	elseif model.phase == "preparing" then
+		add(t("brawl_preparing", clock(model.remaining)))
+		add(t("brawl_queue_status", model.queued, model.maximum))
+		add(
+			t("brawl_weather_now", M.weatherName(locale, first.id), effect(locale, first, policy)),
+			nil,
+			M.weatherIcon(first.id)
+		)
+		add(t("brawl_snapshot"))
+	elseif model.phase == "active" then
+		add(t("brawl_active", model.alive, clock(model.remaining)))
+		if model.spectator then
+			add(t("brawl_spectator"))
 		end
-		root:Destroy()
+		local current = model.weatherEntry or first
+		add(
+			t("brawl_weather_now", M.weatherName(locale, current.id), effect(locale, current, policy)),
+			nil,
+			M.weatherIcon(current.id)
+		)
+		if model.nextWeather then
+			add(
+				t("brawl_weather_next", M.weatherName(locale, model.nextWeather.id), clock(model.nextWeather.inSeconds)),
+				nil,
+				M.weatherIcon(model.nextWeather.id)
+			)
+		end
+		add(t("brawl_radius", math.floor(model.radius + 0.5)))
+	else
+		add(t("brawl_result_" .. (model.result or "watch")))
+		add(rewards)
+		if model.settlement and model.settlement.ok then
+			add(t("brawl_settled", model.settlement.amount or 0))
+		end
 	end
-	api.resize(ctx.width, ctx.height)
-	return api
+	if feedback and feedback ~= "" then
+		add(feedback)
+	end
+	if model.fighting then
+		for _, name in { "attack", "ranged", "dodge", "guard" } do
+			add(t("brawl_" .. name), function()
+				act.combat(name)
+			end)
+		end
+	end
+	if model.join then
+		add(t("brawl_join"), act.join)
+	end
+	if model.claim then
+		add(t("brawl_claim"), act.claim)
+	end
+	if model.leave then
+		add(t("brawl_leave"), act.leave)
+	end
+	return rows
 end
 
 function M.factory(ctx: any): any
 	local env: any = getfenv()
-	local players = env.game:GetService("Players")
-	local workspace = env.game:GetService("Workspace")
-	local gui = env.Instance.new("ScreenGui")
-	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder, gui.Enabled = "ForgeBrawl", false, 18, false
-	gui.Parent = players.LocalPlayer:WaitForChild("PlayerGui")
-	local korean = string.sub(ctx.locale, 1, 2) == "ko"
-	local strings = {
-		brawl_title = { "Brawl", "난투" },
-		brawl_snapshot = {
-			"Snapshot equipment only. Original equipment is not consumed.",
-			"복제 장비만 사용합니다. 원본 장비는 소모되지 않습니다.",
-		},
-		brawl_join = { "Join queue", "대기열 참가" },
-		brawl_leave = { "Leave", "나가기" },
-		brawl_claim = { "Claim result", "결과 받기" },
-		brawl_feedback = { "", "" },
-		brawl_ok = { "Confirmed", "확인됨" },
-		brawl_attack = { "Attack nearest rival", "가까운 상대 공격" },
-		brawl_ranged = { "Shoot nearest rival", "가까운 상대 사격" },
-		NO_AMMO = { "No snapshot ammunition", "복제 탄약이 없습니다" },
-		brawl_dodge = { "Dodge", "회피" },
-		brawl_guard = { "Guard", "방어" },
-		LEVEL_REQUIRED = { "Required level not reached", "참가 레벨이 부족합니다" },
-		QUEUE_FULL = { "Queue full", "대기열이 가득 찼습니다" },
-		QUEUE_CLOSED = { "Queue closed", "대기열이 마감되었습니다" },
-		NOT_ACTIVE = { "Match has not started", "경기가 시작되지 않았습니다" },
-		ELIMINATED = { "Eliminated: spectating", "탈락: 관전 중" },
-		WEATHER_RANGE = { "Fog restricts range", "안개로 사거리가 제한됩니다" },
-		WEATHER_MOUNT = { "Storm prevents mounting", "폭풍 중에는 탑승할 수 없습니다" },
-		UNVERIFIED_ACTION = { "Action unavailable", "사용할 수 없는 행동입니다" },
-		RECOVERY = { "Recovering", "회복 중" },
-		PERSONAL_UNAVAILABLE = { "Settlement pending", "정산 대기 중" },
-		COMMAND_PENDING = { "Previous command pending", "이전 명령 처리 중" },
-	}
-	local statuses = {
-		queue = "대기열",
-		preparing = "준비 중",
-		active = "경기 중",
-		finished = "종료",
-		win = "승리",
-		draw = "무승부",
-		eliminated = "탈락",
-		spectator = "관전 중",
-	}
-	local function text(key: string, model: any?): string
-		if key == "brawl_status" and model then
-			local result = model.result or (if model.spectator then "spectator" else "")
-			return string.format(
-				"%s | %d/%d | %ds | %s",
-				if korean then statuses[model.phase] or model.phase else model.phase,
-				model.queued,
-				model.maximum,
-				model.remaining,
-				if korean then statuses[result] or result else result
-			)
-		elseif key == "brawl_weather" and model then
-			return string.format(
-				"%s | %.0f | %s",
-				model.weather,
-				model.radius,
-				if korean
-					then "비: 질주 기력 증가 / 안개: 사거리 제한 / 폭풍: 탑승 해제"
-					else "Rain: sprint cost / Fog: range limit / Storm: dismount"
-			)
-		elseif key == "brawl_rewards" and model then
-			return string.format(
-				"%s %d / %d | %d",
-				if korean then "참가 / 승리" else "Participation / win",
-				model.participationReward,
-				model.winReward,
-				model.dailySettlements
-			)
-		end
-		local row = strings[key]
-		return if row then row[if korean then 2 else 1] else key
+	local players = if ctx.actorId then nil else env.game:GetService("Players")
+	local actor = ctx.actorId or tostring(players.LocalPlayer.UserId)
+	local now = ctx.serverNow or function(): number
+		return env.game:GetService("Workspace"):GetServerTimeNow()
 	end
-	local function now(): number
-		return workspace:GetServerTimeNow()
-	end
-	local panel = M.mount({
-		ui = { Instance = env.Instance, Enum = env.Enum, UDim = env.UDim, UDim2 = env.UDim2, Vector2 = env.Vector2 },
-		parent = gui,
-		target = function(state: any): string?
-			local character = players.LocalPlayer.Character
+	local target = ctx.target
+		or function(state: any): string?
+			local service = env.game:GetService("Players")
+			local character = service.LocalPlayer.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			if not root then
 				return nil
 			end
 			local nearest, distance = nil, math.huge
-			for actor, participant in state.actors do
-				if actor ~= tostring(players.LocalPlayer.UserId) and participant.alive then
-					local player = players:GetPlayerByUserId(tonumber(actor) or 0)
+			for id, participant in state.actors do
+				if id ~= actor and participant.alive then
+					local player = service:GetPlayerByUserId(tonumber(id) or 0)
 					local other = player and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 					if other and (other.Position - root.Position).Magnitude < distance then
-						nearest, distance = actor, (other.Position - root.Position).Magnitude
+						nearest, distance = id, (other.Position - root.Position).Magnitude
 					end
 				end
 			end
 			return nearest
-		end,
-		actor = tostring(players.LocalPlayer.UserId),
-		send = ctx.send,
-		now = now,
-		width = gui.AbsoluteSize.X,
-		height = gui.AbsoluteSize.Y,
-		text = text,
-	})
-	local dock = if ctx.dock
-		then ctx.dock({
-			id = "brawl",
-			label = text("brawl_title"),
-			order = 65,
-			setOpen = function(open: boolean)
-				gui.Enabled = open
-			end,
-			isOpen = function(): boolean
-				return gui.Enabled
-			end,
-		})
-		else nil
-	-- Keep the launcher usable outside the brawl role and explain the restriction in its sheet.
-	local root = gui:FindFirstChild("BrawlPanel")
-	if ctx.fitSheet then
-		ctx.fitSheet(root)
+		end
+	local receipt: any = nil
+	local matchId: string? = nil
+	local feedback: string? = nil
+	local panel: any
+	local function current(): any
+		return panel and panel.state() and panel.state().brawl
 	end
-	local unavailable = env.Instance.new("TextLabel")
-	unavailable.Name, unavailable.TextWrapped, unavailable.TextSize = "Unavailable", true, 18
-	unavailable.Size = env.UDim2.new(1, -24, 0, 88)
-	unavailable.Position = env.UDim2.fromOffset(12, 12)
-	unavailable.Text = if korean
-		then "난투 서버에서만 이용할 수 있어요. 항구에서 난투 서버로 이동하세요."
-		else "Brawl is available on a brawl server. Travel there from the harbor."
-	unavailable.Parent = root
-	local close = env.Instance.new("TextButton")
-	close.Name, close.Text = "Close", if korean then "닫기" else "Close"
-	close.Size, close.Position = env.UDim2.fromOffset(88, 44), env.UDim2.new(1, -100, 1, -56)
-	close.TextSize = 18
-	close.Parent = root
-	local closeConnection = close.Activated:Connect(function()
-		gui.Enabled = false
-	end)
-	local unsubscribe = ctx.onSnapshot(function(snapshots)
-		local state = snapshots.brawl
-		unavailable.Visible = state == nil
-		for _, child in root:GetChildren() do
-			if child:IsA("ScrollingFrame") then
-				child.Visible = state ~= nil
+	local function send(action: string, args: { any }): any
+		local result = ctx.send("survival-coop:" .. action, args)
+		feedback = if result.ok then M.text(ctx.locale, "brawl_ok") else M.refusal(ctx.locale, result.reason)
+		return result
+	end
+	local act = {
+		join = function()
+			send("brawl-queue", {})
+			panel.render()
+		end,
+		leave = function()
+			send("brawl-leave", {})
+			panel.render()
+		end,
+		claim = function()
+			local result = send("brawl-reward", {})
+			if result.ok then
+				receipt = result
 			end
-		end
-		if state then
-			panel.update(state, now())
-		end
-	end)
-	local resize = gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		panel.resize(gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
-	end)
-	return {
-		destroy = function()
-			closeConnection:Disconnect()
-			if dock then
-				dock.setAvailable(false)
+			panel.render()
+		end,
+		combat = function(name: string)
+			local state = current()
+			local token = name
+			if state and (name == "attack" or name == "ranged") then
+				local rival = target(state)
+				if not rival then
+					return
+				end
+				token = (if name == "ranged" then "ranged:" else "melee:") .. rival
 			end
-			unsubscribe()
-			resize:Disconnect()
-			panel.destroy()
-			gui:Destroy()
+			send("brawl-action", { token })
+			panel.render()
 		end,
 	}
+	panel = Sheet.mount(ctx, {
+		id = "brawl",
+		name = "Brawl",
+		title = M.text(ctx.locale, "brawl_title"),
+		order = 65,
+		select = function(extensions: any): any
+			local state = extensions.brawl
+			if state and state.id ~= matchId then
+				matchId, receipt, feedback = state.id, nil, nil
+			end
+			return { brawl = state }
+		end,
+		rows = function(view: any): { Sheet.Row }
+			local state = view and view.brawl
+			local policy = if state then state.policy else (ctx.content and ctx.content.brawlPolicy)
+			if not policy then
+				return { { text = M.text(ctx.locale, "brawl_unavailable") } }
+			end
+			local model = if state then M.model(state, actor, now(), receipt) else nil
+			return M.rows(ctx.locale, model, policy, act, feedback)
+		end,
+	})
+	return panel
 end
 
 return M

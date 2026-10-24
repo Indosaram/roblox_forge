@@ -4,6 +4,7 @@
 -- original expiry) or ended, and the advanced-capture research consequence.
 local Sheet = require("./SocialSheet")
 local L = require("./SocialLocale")
+local Match = require("./SiegeMatchPanel")
 local M = {}
 
 function M.latest(outpost: any, clanId: string): (string?, any?)
@@ -24,7 +25,9 @@ end
 function M.rows(locale: string, state: any, act: any): { any }
 	local _, match = M.latest(state.outpost, state.clanId)
 	if not match then
-		return { { text = L.text(locale, "siege.empty") } }
+		local rows = Match.emptyRows(locale, state.outpost, state.now, act)
+		rows[1] = { text = L.text(locale, "result.empty") }
+		return rows
 	end
 	local outpost = state.outpost
 	local rows: { any } = {}
@@ -92,6 +95,12 @@ function M.factory(ctx: any): any
 			return M.rows(ctx.locale, view, {
 				close = function()
 					panel.close()
+				end,
+				lobby = function()
+					panel.close()
+					if ctx.openPanel then
+						ctx.openPanel("outpost")
+					end
 				end,
 			})
 		end,

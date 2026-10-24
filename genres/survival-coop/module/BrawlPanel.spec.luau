@@ -28,89 +28,125 @@ return {
 		)
 		assert(not Panel.model(state, "a", 600, { ok = true, amount = 0 }).claim, "settled quota claim disabled")
 	end,
-	["mobile and desktop bounds keep touch controls reachable"] = function()
-		for _, viewport in { { 360, 640 }, { 1920, 1080 }, { 640, 360 } } do
-			local bounds = Panel.layout(viewport[1], viewport[2])
-			assert(bounds.width < viewport[1] and bounds.height < viewport[2], "viewport fit")
-			assert(bounds.controlHeight >= 44 and bounds.height >= 200, "touch and scroll space")
+	["empty queue, weather names and results render as labelled rows"] = function()
+		local act = { join = function() end, leave = function() end, claim = function() end, combat = function() end }
+		local state = Match.new("m", Policy)
+		local rows = Panel.rows("ko-kr", Panel.model(state, "a", 0, nil), Policy, act)
+		assert(rows[2].text == Panel.text("ko-kr", "brawl_queue_empty", Policy.minimumPlayers), "empty queue state")
+		local join = rows[#rows]
+		assert(join.onClick == act.join and join.text == "대기열 참가", "join control last")
+		for _, actor in { "a", "b" } do
+			assert(Match.join(state, actor, { level = Policy.minimumLevel, maxHealth = 100, equipment = {} }), "join")
 		end
+		assert(Match.start(state, 0), "start")
+		state.phase = "active"
+		local fog = Policy.weather[3]
+		rows = Panel.rows("en-us", Panel.model(state, "a", state.startsAt + fog.at, nil), Policy, act)
+		local weather = rows[2]
+		assert(weather.icon == "weather." .. fog.id and string.find(weather.text, "Weather: Fog.", 1, true), "fog row")
+		assert(string.find(weather.text, tostring(fog.rangeCap) .. " studs", 1, true), "fog effect from policy")
+		assert(string.find(rows[3].text, "Next weather: Storm", 1, true), "next weather row")
+		local combat = 0
+		for _, row in rows do
+			combat += if row.onClick == nil then 0 else 1
+		end
+		assert(combat == 5, "four combat controls plus leave while alive")
+		state.phase, state.winner = "finished", "a"
+		rows = Panel.rows("ko-kr", Panel.model(state, "a", 600, { ok = true, amount = 150 }), Policy, act)
+		assert(rows[1].text == Panel.text("ko-kr", "brawl_result_win"), "win result")
+		assert(rows[3].text == Panel.text("ko-kr", "brawl_settled", 150), "settlement shown")
+		rows = Panel.rows("en-us", nil, Policy, act)
+		assert(rows[1].text == Panel.text("en-us", "brawl_unavailable") and #rows == 4, "unavailable explains rules")
 	end,
-	["Roblox shaped UI mounts scrolls activates and cleans up"] = function()
-		local objects = {}
-		local disconnected = 0
-		local sent = {}
-		local function tuple(...: any): any
-			return { ... }
+	["docked kit sheet sends queue and acknowledged claim once"] = function()
+		local widgets, sent, docks = {}, {}, {}
+		local listener: any = nil
+		local frame = { Visible = false, AbsoluteSize = { X = 360, Y = 560 } }
+		local function widget(_theme: any, props: any): any
+			local made = table.clone(props)
+			made.Destroy = function(self: any)
+				self.destroyed = true
+			end
+			table.insert(widgets, made)
+			return made
 		end
-		local ui = {
-			Instance = {
+		local images = 0
+		local ctx: any = {
+			ui = {
+				components = {
+					modalSheet = function(_theme: any, props: any): any
+						assert(props.title == "Brawl", "kit header title")
+						return { frame = frame, scroll = {}, close = { Activated = { Connect = function() end } } }
+					end,
+					label = widget,
+					button = widget,
+				},
+				theme = { default = {} },
+			},
+			locale = "en-us",
+			playerGui = {},
+			actorId = "a",
+			instance = {
 				new = function(class: string): any
-					local object: any = {
-						ClassName = class,
-						Destroy = function(self: any)
-							self.destroyed = true
-						end,
-					}
-					object.Activated = {
-						Connect = function(_: any, callback: any): any
-							object.activate = callback
-							return {
-								Disconnect = function()
-									disconnected += 1
-								end,
-							}
-						end,
-					}
-					table.insert(objects, object)
-					return object
+					images += if class == "ImageLabel" then 1 else 0
+					return { Destroy = function() end }
 				end,
 			},
-			Vector2 = { new = tuple },
-			UDim = { new = tuple },
-			UDim2 = { new = tuple, fromScale = tuple, fromOffset = tuple },
-			Enum = { AutomaticSize = { Y = "Y" }, SortOrder = { LayoutOrder = "LayoutOrder" } },
-		}
-		local panel = Panel.mount({
-			ui = ui,
-			actor = "a",
-			parent = {},
-			width = 360,
-			height = 640,
-			now = function(): number
-				return 0
+			udim = { new = function() end },
+			udim2 = {
+				new = function(xs: number, xo: number, ys: number, yo: number): any
+					return { xs = xs, xo = xo, ys = ys, yo = yo }
+				end,
+			},
+			icons = {
+				ui = function(id: string): any
+					return { image = "rbxassetid://1", key = "ui.icon." .. id }
+				end,
+			},
+			dock = function(entry: any): any
+				docks[entry.id] = entry
+				return { open = function() end, setAvailable = function() end }
 			end,
-			text = function(key: string): string
-				return key
+			onSnapshot = function(callback: any): any
+				listener = callback
+				return function() end
+			end,
+			serverNow = function(): number
+				return 0
 			end,
 			send = function(action: string): any
 				table.insert(sent, action)
 				return { ok = true, amount = 0 }
 			end,
-		})
+		}
+		local panel = Panel.factory(ctx)
+		assert(docks.brawl and docks.brawl.order == 65, "brawl dock entry")
 		local state = Match.new("m", Policy)
-		panel.update(state, 0)
-		local join, claim, scroll: any = nil, nil, nil
-		for _, object in objects do
-			if object.Name == "join" then
-				join = object
+		listener({ brawl = state })
+		panel.open()
+		local function press(text: string)
+			for _, item in widgets do
+				if not item.destroyed and item.text == text and item.onClick then
+					item.onClick()
+					return
+				end
 			end
-			if object.Name == "claim" then
-				claim = object
-			end
-			if object.ClassName == "ScrollingFrame" then
-				scroll = object
-			end
+			error("no button " .. text)
 		end
-		assert(scroll.AutomaticCanvasSize == "Y" and join.Size[4] == 44, "scroll touch")
-		join.activate()
+		for _, item in widgets do
+			assert(item.destroyed or item.size.yo >= 48, "rows keep the 48px touch minimum")
+		end
+		assert(images >= 1, "weather icon mounted")
+		press("Join queue")
 		assert(sent[1] == "survival-coop:brawl-queue", "queue action")
-		state.phase, state.actors = "finished", { a = { alive = false } }
-		panel.update(state, 0)
-		claim.activate()
-		claim.activate()
-		assert(#sent == 2 and sent[2] == "survival-coop:brawl-reward", "one acknowledged claim")
-		panel.resize(1920, 1080)
+		state.phase, state.actors, state.order = "finished", { a = { alive = false } }, { "a" }
+		listener({ brawl = state })
+		press("Claim result")
+		local claims = 0
+		for _, item in widgets do
+			claims += if not item.destroyed and item.text == "Claim result" then 1 else 0
+		end
+		assert(#sent == 2 and sent[2] == "survival-coop:brawl-reward" and claims == 0, "one acknowledged claim")
 		panel.destroy()
-		assert(disconnected == 7 and objects[1].destroyed, "cleanup")
 	end,
 }

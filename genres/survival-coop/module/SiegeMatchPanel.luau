@@ -21,11 +21,23 @@ function M.active(outpost: any, actor: string): (string?, any?)
 	return nil, nil
 end
 
+-- No match for this actor: say so, show the current ownership and route to the siege lobby.
+function M.emptyRows(locale: string, outpost: any, now: number, act: any): { any }
+	local rows: { any } = { { text = L.text(locale, "match.empty") } }
+	if outpost and outpost.owner and outpost.owner ~= "" and now < (outpost.expiresAt or 0) then
+		table.insert(rows, { text = L.text(locale, "siege.owner", outpost.owner, L.duration(outpost.expiresAt - now)) })
+	else
+		table.insert(rows, { text = L.text(locale, "siege.no_owner") })
+	end
+	table.insert(rows, { text = L.text(locale, "siege.open_lobby"), onClick = act.lobby })
+	return rows
+end
+
 -- state = { outpost, policy, actorId, now, confirming, status }
 function M.rows(locale: string, state: any, act: any): { any }
 	local matchId, match = M.active(state.outpost, state.actorId)
 	if not match then
-		return { { text = L.text(locale, "siege.empty") } }
+		return M.emptyRows(locale, state.outpost, state.now, act)
 	end
 	local rows: { any } = {}
 	for index, team in match.teams do
@@ -104,6 +116,12 @@ function M.factory(ctx: any): any
 				stay = function()
 					confirming = false
 					panel.render()
+				end,
+				lobby = function()
+					panel.close()
+					if ctx.openPanel then
+						ctx.openPanel("outpost")
+					end
 				end,
 				leave = function(matchId: string)
 					local result =

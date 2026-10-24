@@ -54,7 +54,12 @@ local strings: { [string]: { string } } = {
 	["siege.leave_queue"] = { "Leave queue", "대기열 나가기" },
 	["siege.owner"] = { "Outpost owner: %s (%s left)", "거점 소유: %s (남은 시간 %s)" },
 	["siege.no_owner"] = { "Outpost owner: none", "거점 소유: 없음" },
+	["siege.open_lobby"] = { "Open siege lobby", "공성전 대기실 열기" },
 	["match.title"] = { "Siege match", "공성전 경기" },
+	["match.empty"] = {
+		"You are not in a siege match. Queue with your clan in the team siege lobby.",
+		"참가 중인 공성전 경기가 없어요. 팀 공성전 대기실에서 부족과 함께 대기열에 참가하세요.",
+	},
 	["match.team"] = { "%s: %d players, control %d/%d s", "%s: %d명, 점령 %d/%d초" },
 	["match.timer"] = { "Time left %s", "남은 시간 %s" },
 	["match.leave"] = { "Leave match", "경기 나가기" },
@@ -65,6 +70,10 @@ local strings: { [string]: { string } } = {
 	["match.leave_yes"] = { "Yes, leave match", "네, 나가기" },
 	["match.stay"] = { "Stay", "남기" },
 	["result.title"] = { "Siege result", "공성전 결과" },
+	["result.empty"] = {
+		"Your clan has no finished siege yet. Results appear here after a match.",
+		"아직 끝난 부족 공성전이 없어요. 경기가 끝나면 여기에 결과가 나타나요.",
+	},
 	["result.win"] = { "%s won the outpost.", "%s 부족이 거점을 차지했습니다." },
 	["result.tie"] = { "Draw. No new owner.", "무승부. 새 소유자가 없습니다." },
 	["result.own"] = { "Owned for 24 hours (%s left).", "24시간 소유 (남은 시간 %s)." },

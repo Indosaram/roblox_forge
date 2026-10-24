@@ -7,7 +7,6 @@ local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 local Clan = require("../../genres/survival-coop/module/ClanPanel")
 local Editor = require("../../genres/survival-coop/module/ScoreEditorPanel")
-local Brawl = require("../../genres/survival-coop/module/BrawlPanel")
 local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
 local HudFit = require("../../core/ui-kit/genre/HudFit")
 local Content: any = require("./src/shared/SurvivalContent")
@@ -158,11 +157,6 @@ return {
 			assert(not overlaps(close, title) and title.width > 0, "title clears close")
 			local hud = Model.contextHudBounds(width, height)
 			assert(not overlaps(rect, hud.biome), "sheet clears biome toast")
-			-- BrawlPanel overlays its own close and unavailable notice inside the fitted root.
-			local brawlClose = { x = rect.width - 100, y = rect.height - 56, width = 88, height = 44 }
-			local notice = { x = 12, y = 12, width = rect.width - 24, height = 88 }
-			inside(brawlClose, rect.width, rect.height, "brawl close")
-			assert(not overlaps(brawlClose, notice), "brawl close clears notice")
 		end
 	end,
 	["row controls in every sheet are disjoint and touch sized"] = function()
@@ -238,13 +232,6 @@ return {
 			inside(editor, width, height, "score editor")
 			local close = { x = editor.width - 92, y = 2, width = 88, height = 44 }
 			assert(close.x >= 0 and close.y + close.height <= 48, "score editor close inside header strip")
-			local brawl = Brawl.layout(width, height)
-			inside({
-				x = (width - brawl.width) / 2,
-				y = (height - brawl.height) / 2,
-				width = brawl.width,
-				height = brawl.height,
-			}, width, height, "brawl")
 		end
 	end,
 	["menu HUD photo controls and biome toast fit without overlap"] = function()

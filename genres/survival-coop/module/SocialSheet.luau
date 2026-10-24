@@ -5,10 +5,13 @@
 -- re-renders on snapshot changes. Service-free under Lune through injected ctx.instance/udim2.
 local M = {}
 
-export type Row = { text: string, onClick: (() -> ())? }
+export type Row = { text: string, onClick: (() -> ())?, icon: string? }
 
 M.TEXT_SIZE = 15
 M.MIN_ROW = 48
+-- A row with an `icon` (ItemIcons.ui id) reserves this left strip for a 28px image.
+M.ICON_INSET = 40
+M.ICON_SIZE = 28
 
 -- Content width of a fitted sheet: frame minus 8 px padding each side and the 6 px scroll bar.
 function M.contentWidth(sheetWidth: number): number
@@ -73,7 +76,7 @@ function M.mount(ctx: any, spec: any): any
 		local rows: { Row } = spec.rows(state, api)
 		local parts = {}
 		for _, row in rows do
-			table.insert(parts, row.text .. (if row.onClick then "!" else ""))
+			table.insert(parts, row.text .. (if row.onClick then "!" else "") .. (row.icon or ""))
 		end
 		local key = table.concat(parts, "\n") .. "@" .. tostring(width())
 		if key == lastKey and not force then
@@ -85,15 +88,31 @@ function M.mount(ctx: any, spec: any): any
 		end
 		table.clear(shown)
 		local w = width()
+		local make = ctx.instance or env.Instance
+		local udim = ctx.udim or env.UDim
 		for index, row in rows do
+			local inset = if row.icon then M.ICON_INSET else 0
 			local props = {
 				text = row.text,
-				size = udim2.new(1, 0, 0, M.rowHeight(row.text, w)),
+				size = udim2.new(1, 0, 0, M.rowHeight(row.text, w - inset)),
 				parent = sheet.scroll,
 				onClick = row.onClick,
 			}
 			local widget = if row.onClick then components.button(theme, props) else components.label(theme, props)
 			widget.LayoutOrder, widget.TextWrapped, widget.Name = index, true, "Row" .. index
+			if row.icon then
+				local pad = make.new("UIPadding")
+				pad.PaddingLeft, pad.Parent = udim.new(0, inset), widget
+				local resolved = if ctx.icons then ctx.icons.ui(row.icon) else nil
+				if resolved and resolved.image then
+					local image = make.new("ImageLabel")
+					image.Name, image.BackgroundTransparency, image.Image = "RowIcon", 1, resolved.image
+					image.Size = udim2.new(0, M.ICON_SIZE, 0, M.ICON_SIZE)
+					-- UIPadding shifts children too: -inset + 6 puts the icon 6px inside the row edge.
+					image.Position = udim2.new(0, 6 - inset, 0.5, -M.ICON_SIZE / 2)
+					image.Parent = widget
+				end
+			end
 			table.insert(shown, widget)
 		end
 	end

@@ -174,36 +174,106 @@ return {
 			end
 		end
 	end,
-	["brawl buttons and notices fit the fitted sheet at every target viewport"] = function()
+	["brawl sheet rows wrap, stack and keep touch controls in every phase at every target viewport"] = function()
+		-- p83 defect 5: the brawl panel was an unstyled frame with raw weather ids and 'a | b | c'
+		-- rows that wrapped into each other at 360. It now renders through the shared SocialSheet
+		-- (ui-kit modalSheet in the fitted rect), and every row is sized from its own wrapped text.
 		local source = read("BrawlPanel")
-		assert(string.find(source, "Size = ui.UDim2.new(1, -8, 0, 44),", 1, true), "brawl row constant moved")
-		assert(string.find(source, "TextSize = 18,", 1, true), "brawl text size moved")
-		local en, ko = {}, {}
-		for key, a, b in string.gmatch(source, '\n%s*([%w_]+) = { "([^"]*)", "([^"]*)" }') do
-			if key ~= "brawl_feedback" then
-				table.insert(en, a)
-				table.insert(ko, b)
-			end
+		assert(string.find(source, "Sheet.mount(ctx, {", 1, true), "brawl mounts the shared kit sheet")
+		assert(not string.find(source, 'Instance.new("TextLabel")', 1, true), "no hand-built default labels")
+		local Sheet = require("../../genres/survival-coop/module/SocialSheet")
+		local Brawl = require("../../genres/survival-coop/module/BrawlPanel")
+		local Match = require("../../core/domain/brawl/Match")
+		local Content: any = require("./src/shared/SurvivalContent")
+		local policy = Content.brawlPolicy
+		local ids = {}
+		for _, weather in policy.weather do
+			table.insert(ids, weather.id)
 		end
-		assert(#en >= 18, "brawl strings discovered")
+		local function states(): { { any } }
+			local out = {}
+			local empty = Match.new("m", policy)
+			table.insert(out, { empty, "a", 0, "queue empty" })
+			local queued = Match.new("m", policy)
+			assert(Match.join(queued, "a", { level = policy.minimumLevel, maxHealth = 100, equipment = {} }), "join")
+			table.insert(out, { queued, "a", 0, "queued" })
+			local live = Match.new("m", policy)
+			for _, actor in { "a", "b", "c" } do
+				assert(Match.join(live, actor, { level = policy.minimumLevel, maxHealth = 100, equipment = {} }), actor)
+			end
+			assert(Match.start(live, 0), "start")
+			table.insert(out, { live, "a", 10, "preparing" })
+			for _, weather in policy.weather do
+				local active = table.clone(live)
+				active.phase = "active"
+				table.insert(out, { active, "a", live.startsAt + weather.at + 1, "active " .. weather.id })
+			end
+			local finished = table.clone(live)
+			finished.phase, finished.winner = "finished", "a"
+			table.insert(out, { finished, "a", live.startsAt + policy.durationSeconds, "finished" })
+			return out
+		end
+		local act = setmetatable({}, {
+			__index = function()
+				return function() end
+			end,
+		})
 		for _, viewport in VIEWPORTS do
-			-- Scroll padding 12 each side, row width 1, -8.
-			local width = content(viewport) + 6 - 24 - 8
-			for index, list in { en, ko } do
-				for _, text in list do
-					local need = HudFit.textWidth(text, 18) + HudFit.PADDING * 2
-					assert(
-						need <= width,
-						string.format(
-							"brawl %q clipped at %s (%d > %d)",
-							text,
-							at(viewport, LOCALES[index]),
-							need,
-							width
-						)
-					)
+			local x, y, sw, sh = Model.contextSheet(viewport[1], viewport[2], viewport[3])
+			assert(x >= 0 and y >= 0 and x + sw <= viewport[1] and y + sh <= viewport[2], "brawl sheet in viewport")
+			local width = Sheet.contentWidth(sw)
+			for _, locale in LOCALES do
+				local sets: { { any } } = { { Brawl.rows(locale, nil, policy, act), "unavailable" } }
+				for _, case in states() do
+					local model = Brawl.model(case[1], case[2], case[3], nil)
+					table.insert(sets, { Brawl.rows(locale, model, policy, act), case[4] })
+				end
+				for _, set in sets do
+					local rows, where = set[1], set[2] .. " " .. at(viewport, locale)
+					assert(#rows >= 3, where .. ": rows present")
+					local top, buttons = 8, 0
+					for _, row in rows do
+						assert(type(row.text) == "string" and row.text ~= "", where .. ": blank row")
+						assert(not string.find(row.text, " | ", 1, true), where .. ": cryptic pipe row " .. row.text)
+						assert(not string.find(row.text, "%%[ds]"), where .. ": unformatted " .. row.text)
+						for _, id in ids do
+							-- Raw lowercase weather ids never reach the player (EN names are capitalized).
+							assert(
+								not string.find(row.text, "%f[%a]" .. id .. "%f[%A]"),
+								where .. ": raw id " .. row.text
+							)
+						end
+						local textWidth = width - (if row.icon then Sheet.ICON_INSET else 0)
+						local height = Sheet.rowHeight(row.text, textWidth)
+						assert(height >= 48, where .. ": row under touch height")
+						wraps(row.text, textWidth, height - 12, Sheet.TEXT_SIZE, where)
+						if row.onClick then
+							buttons += 1
+							-- Kit buttons are one 48px row: the label must fit on one line.
+							single(row.text, textWidth - 2 * HudFit.PADDING, where .. " button")
+							assert(height == Sheet.MIN_ROW, where .. ": button grew past one row")
+						end
+						top += height + 6
+					end
+					if set[2] ~= "unavailable" then
+						assert(buttons >= 1, where .. ": no reachable control")
+					end
+					if set[2] == "queue empty" then
+						-- Status, the empty-queue line, entry rule and Join all sit above the fold.
+						local fold = 8
+						for index = 1, 3 do
+							fold += Sheet.rowHeight(rows[index].text, width) + 6
+						end
+						assert(44 + fold <= sh, where .. ": queue summary above the fold")
+					end
 				end
 			end
+		end
+		-- Every weather id has a distinct localized name and a weather icon key in both locales.
+		for _, id in ids do
+			local en, ko = Brawl.weatherName("en-us", id), Brawl.weatherName("ko-kr", id)
+			assert(en ~= id and ko ~= id and en ~= ko, "weather name " .. id)
+			assert(Brawl.weatherIcon(id) == "weather." .. id, "weather icon key " .. id)
 		end
 	end,
 	["audio and clan membership sheets keep full-width touch rows"] = function()

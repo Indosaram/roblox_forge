@@ -197,6 +197,14 @@ for index, factory in panelFactories do
 			end
 			return require(Forge.genres["survival-coop"].module.CrossServerMarketPanel).factory(trade)
 		end
+	elseif factory == require(Forge.genres["survival-coop"].module.BrawlPanel).factory then
+		-- Weather rows show the ui.icon.weather.* art published for this pack.
+		panelFactories[index] = function(ctx)
+			local brawl: any = table.clone(ctx)
+			brawl.content = content
+			brawl.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+			return factory(brawl)
+		end
 	end
 end
 -- Farming and crafting screens (farm plot, sprayer, crop book, processing, recipe preview, inbox).

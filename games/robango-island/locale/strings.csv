@@ -1623,3 +1623,32 @@ exp_obj_survey,Survey the marked spot %d/%d,expedition objective,Survey the mark
 exp_obj_rescue,Rescue the castaway %d/%d,expedition objective,Rescue the castaway %d/%d,표류자 구조하기 %d/%d
 exp_obj_other,Island objective %d/%d,expedition objective,Island objective %d/%d,섬 목표 %d/%d
 exp_obj_thing,supplies,expedition objective,supplies,물자
+brawl_queue_status,Waiting room: %d/%d players,brawl panel,Waiting room: %d/%d players,대기실: %d/%d명
+brawl_queue_you,You are in the waiting room.,brawl panel,You are in the waiting room.,대기실에 있어요.
+brawl_active,"Match in progress: %d alive, %s left.",brawl panel,"Match in progress: %d alive, %s left.","경기 중: 생존 %d명, 남은 시간 %s."
+brawl_weather_now,Weather: %s. %s,brawl panel,Weather: %s. %s,날씨: %s. %s
+brawl_weather_next,Next weather: %s in %s.,brawl panel,Next weather: %s in %s.,"다음 날씨: %s, %s 후."
+brawl_radius,Safe zone radius: %d studs.,brawl panel,Safe zone radius: %d studs.,안전 구역 반경: %d스터드.
+brawl_result_win,Victory! You are the last survivor.,brawl panel,Victory! You are the last survivor.,승리! 마지막 생존자입니다.
+brawl_result_draw,Draw. No single survivor.,brawl panel,Draw. No single survivor.,무승부. 단독 생존자가 없어요.
+brawl_result_eliminated,Eliminated. Better luck next match.,brawl panel,Eliminated. Better luck next match.,탈락. 다음 경기에서 다시 도전하세요.
+brawl_result_watch,Match over.,brawl panel,Match over.,경기가 끝났어요.
+brawl_settled,Reward received: %d coins.,brawl panel,Reward received: %d coins.,보상 수령: %d 코인.
+weather_clear,Clear,brawl panel,Clear,맑음
+weather_rain,Rain,brawl panel,Rain,비
+weather_fog,Fog,brawl panel,Fog,안개
+weather_storm,Storm,brawl panel,Storm,폭풍
+weather_collapse,Closing ring,brawl panel,Closing ring,경계 수축
+effect_clear,No weather effects.,brawl panel,No weather effects.,날씨 효과가 없어요.
+effect_rain,Sprinting costs %d%% more stamina.,brawl panel,Sprinting costs %d%% more stamina.,질주 기력 소모가 %d%% 늘어요.
+effect_fog,Ranged attacks reach only %d studs.,brawl panel,Ranged attacks reach only %d studs.,원거리 공격이 %d스터드까지만 닿아요.
+effect_storm,Mounts are unavailable.,brawl panel,Mounts are unavailable.,탈것에 탈 수 없어요.
+brawl_rules,"Entry: level %d or higher, %d-%d players, %d s ready phase.",brawl panel,"Entry: level %d or higher, %d-%d players, %d s ready phase.","참가 조건: 레벨 %d 이상, %d-%d명, 준비 시간 %d초."
+brawl_reward_line,"Rewards: participation %d, victory %d coins (first %d matches per day).",brawl panel,"Rewards: participation %d, victory %d coins (first %d matches per day).","보상: 참가 %d, 승리 %d 코인 (하루 처음 %d경기)."
+brawl_queue_empty,No one is waiting yet. Join and the match starts once %d players are in.,brawl panel,No one is waiting yet. Join and the match starts once %d players are in.,아직 대기 중인 사람이 없어요. 참가 후 %d명이 모이면 경기가 시작돼요.
+brawl_queue_need,%d more player(s) needed to start.,brawl panel,%d more player(s) needed to start.,시작까지 %d명이 더 필요해요.
+brawl_weather_plan,"Weather changes every %d s, ending with a closing ring.",brawl panel,"Weather changes every %d s, ending with a closing ring.",날씨가 %d초마다 바뀌고 마지막에 경계가 좁혀져요.
+effect_collapse,The safe zone shrinks. Outside it you lose %d%% max HP per second.,brawl panel,The safe zone shrinks. Outside it you lose %d%% max HP per second.,안전 구역이 줄어들어요. 밖에서는 초당 최대 체력의 %d%%를 잃어요.
+social.match.empty,You are not in a siege match. Queue with your clan in the team siege lobby.,social home and trade sheets,You are not in a siege match. Queue with your clan in the team siege lobby.,참가 중인 공성전 경기가 없어요. 팀 공성전 대기실에서 부족과 함께 대기열에 참가하세요.
+social.result.empty,Your clan has no finished siege yet. Results appear here after a match.,social home and trade sheets,Your clan has no finished siege yet. Results appear here after a match.,아직 끝난 부족 공성전이 없어요. 경기가 끝나면 여기에 결과가 나타나요.
+social.siege.open_lobby,Open siege lobby,social home and trade sheets,Open siege lobby,공성전 대기실 열기
