@@ -142,4 +142,48 @@ return {
 		toggle()
 		assert(camera.CFrame == "qa-pin", "pinned CFrame kept: " .. tostring(camera.CFrame))
 	end,
+	["p77 the aerial overview thins the biome haze and restores it on return"] = function()
+		local callbacks = {}
+		local buttons = setmetatable({}, {
+			__index = function(_, name)
+				return {
+					Activated = {
+						Connect = function(_self, callback)
+							callbacks[name] = callback
+							return { Disconnect = function() end }
+						end,
+					},
+				}
+			end,
+		})
+		local atmosphere = { Density = 0.26, Haze = 1.1 }
+		local camera: any =
+			{ CameraType = "Custom", CFrame = "original", FieldOfView = 70, ViewportSize = { X = 1280, Y = 720 } }
+		Camera.new({
+			aerial = require("../../../../genres/survival-coop/module/AerialView"),
+			workspace = { CurrentCamera = camera },
+			guis = {},
+			buttons = buttons,
+			controls = { Visible = false },
+			quarterView = { suspend = function() end },
+			atmosphere = function()
+				return atmosphere
+			end,
+			-- rw.a1.s1 bounds: the aerial camera sits ~1000 studs out, where density 0.26 is opaque.
+			bounds = function()
+				return { x = -384, y = 0, z = -320 }, { x = 384, y = 20, z = 320 }
+			end,
+			scriptable = "Scriptable",
+			lookAt = function()
+				return "aerial"
+			end,
+			focusAt = function(point)
+				return point
+			end,
+		})
+		callbacks.Toggle()
+		assert(atmosphere.Density <= Camera.AERIAL_DENSITY and atmosphere.Haze == 0, "haze thinned in the overview")
+		callbacks.Return()
+		assert(atmosphere.Density == 0.26 and atmosphere.Haze == 1.1, "play haze restored")
+	end,
 }

@@ -12,6 +12,7 @@ local clips: { [string]: string } = {
 	stunned = "stun",
 	sleep = "rest",
 	hibernate = "rest",
+	walk = "walk", -- Studio species gallery (StudioSetup.gallery) only
 }
 function M.sample(clock: Clock, serverState: string?, speed: number, mounted: boolean, dt: number): (string, number)
 	local clip = if serverState then clips[serverState] else nil

@@ -300,6 +300,7 @@ return {
 			LateEquipmentPorts = LateEquipmentPorts,
 			SurvivalProvisionConfig = require("./src/server/SurvivalProvisionConfig"),
 			GenreHooks = require("./src/server/GenreHooks"),
+			StudioSetup = require("./src/server/StudioSetup"),
 			SurvivalWorldBootstrap = function()
 				return world
 			end,

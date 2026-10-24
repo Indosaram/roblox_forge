@@ -192,6 +192,16 @@ local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wil
 	return Clock.millis(clock.now())
 end, worldRole, RunService:IsStudio() and workspace:GetAttribute("ForgeStudioRole") == nil)
 world.marketAccount = marketConfig.account
+-- Studio QA: ForgeStudioGallery=true lays out every species (walk, then attack) beside the island.
+require(script.Parent.StudioSetup).gallery({
+	isStudio = RunService:IsStudio(),
+	workspace = workspace,
+	content = content,
+	rig = require(Forge.genres["survival-coop"].module.DinosaurRig),
+	center = Vector3.new(0, 0, 900),
+	spawn = task.spawn,
+	wait = task.wait,
+})
 -- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
 local visitWorld: any = world
 visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
@@ -438,14 +448,16 @@ if RunService:IsStudio() and worldRole == "archipelago" and source.expedition th
 			task.wait(1)
 			port = session.personalTransfer(actor)
 		end
-		-- A fresh Studio profile misses the stage gate (level 2, development rank 2): raise it.
+		-- A fresh Studio profile misses the selected stage's gates: seed level, grade, route access.
+		local stage = tonumber(source.expedition.stage) or 1
+		local need = require(script.Parent.StudioSetup).stageGates(content, source.expedition.templateId, stage)
 		local raised = port
 			and port.personal:update(port.profile(), function(view)
 				local data = view.envelope.genres["survival-coop"].data
 				local tree = require(Forge.core.domain.progression.SkillTree)
 				local policy = (content :: any).progressionPolicy.tree
 				local state = data.progression or tree.new(content, policy)
-				data.progression = tree.level(state, policy, math.max(2, state.level))
+				data.progression = tree.level(state, policy, math.max(need.level, state.level))
 				return view
 			end)
 		if raised then
@@ -453,12 +465,13 @@ if RunService:IsStudio() and worldRole == "archipelago" and source.expedition th
 		end
 		(factory :: any).expeditionStore.transaction(actor, function(document)
 			document.development = document.development or { points = 0, definitions = {}, instabilityAccess = 1 }
-			document.development.points = math.max(document.development.points, 200)
+			document.development.points = math.max(document.development.points, need.rank * 100)
+			document.development.instabilityAccess = math.max(document.development.instabilityAccess, need.index)
 			return { ok = true }
 		end)
 		local options = {
 			id = HttpService:GenerateGUID(false),
-			index = tonumber(string.match(source.expedition.templateId, "%d+$")) or 1,
+			index = need.index,
 			seed = source.expedition.seed,
 			revision = "robango-route-v1",
 			ttl = 1800,
@@ -468,6 +481,15 @@ if RunService:IsStudio() and worldRole == "archipelago" and source.expedition th
 		local opened = (factory :: any).archipelago.open(actor, options)
 		if not opened.ok and opened.reason ~= "expedition_active" then
 			warn("STUDIO_EXPEDITION:" .. tostring(opened.reason))
+		elseif opened.ok and stage > 1 then
+			-- Stand on the selected stage: the earlier stages' objectives count as done.
+			(factory :: any).expeditionStore.transaction(actor, function(document)
+				document.archipelago.stage = stage
+				for id in need.completed do
+					document.archipelago.completed[id] = true
+				end
+				return { ok = true }
+			end)
 		end
 	end
 	Players.PlayerAdded:Connect(depart)

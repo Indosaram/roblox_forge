@@ -1,6 +1,7 @@
 --!strict
 -- Roblox-shaped camera and controls are injected so no foreground APIs are needed.
 local M = {}
+M.AERIAL_DENSITY = 0.02
 
 function M.new(ctx: any): any
 	local Aerial = ctx.aerial
@@ -43,6 +44,14 @@ function M.new(ctx: any): any
 				}
 				ctx.quarterView.suspend(true)
 				ctx.controls.Visible = true
+				-- Biome haze is tuned for the ~60-stud play camera; across the aerial distance (hundreds
+				-- of studs on archipelago islands) it paints a flat fog sheet over the island. Thin it
+				-- locally while the overview owns the camera.
+				local atmosphere = if ctx.atmosphere then ctx.atmosphere() else nil
+				if atmosphere then
+					saved.atmosphere = { atmosphere, atmosphere.Density, atmosphere.Haze }
+					atmosphere.Density, atmosphere.Haze = math.min(atmosphere.Density, M.AERIAL_DENSITY), 0
+				end
 				return saved
 			end,
 			apply = function(frame)
@@ -70,6 +79,9 @@ function M.new(ctx: any): any
 					gui.Enabled = enabled
 				end
 				ctx.controls.Visible = value.controlsVisible
+				if value.atmosphere then
+					value.atmosphere[1].Density, value.atmosphere[1].Haze = value.atmosphere[2], value.atmosphere[3]
+				end
 				ctx.quarterView.suspend(false)
 			end,
 		}, minimum, maximum, camera.ViewportSize.X / camera.ViewportSize.Y, camera.FieldOfView)

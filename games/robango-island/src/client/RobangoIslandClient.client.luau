@@ -935,6 +935,9 @@ aerial = require(script.Parent.AerialCamera).new({
 	controls = aerialControls,
 	buttons = aerialButtons,
 	guis = aerialGuis,
+	atmosphere = function()
+		return game:GetService("Lighting"):FindFirstChildOfClass("Atmosphere")
+	end,
 	bounds = function()
 		local minimum = Vector3.new(math.huge, math.huge, math.huge)
 		local maximum = Vector3.new(-math.huge, -math.huge, -math.huge)
@@ -1127,6 +1130,10 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				end
 				local humanoid = model:FindFirstChildOfClass("Humanoid")
 				local speed = root.AssemblyLinearVelocity.Magnitude
+				-- The anchored Studio gallery rig publishes walk without velocity; stride at walking pace.
+				if model:GetAttribute("ForgeWildlifeState") == "walk" then
+					speed = math.max(speed, 12)
+				end
 				local serverState = model:GetAttribute("ForgeWildlifeState")
 				if humanoid and humanoid.Health <= 0 then
 					serverState = "dead"

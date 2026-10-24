@@ -211,6 +211,9 @@
       "SurvivalProvisionConfig": {
         "$path": "src/server/SurvivalProvisionConfig.luau"
       },
+      "StudioSetup": {
+        "$path": "src/server/StudioSetup.luau"
+      },
       "SurvivalWorldBootstrap": {
         "$path": "src/server/SurvivalWorldBootstrap.luau"
       }
