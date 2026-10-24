@@ -527,4 +527,17 @@ return {
 		local Locale = require("./SurvivalHUDLocale")
 		assert(string.find(Locale.text("ko-kr", "hungry"), "(I)", 1, true), "names the bag key")
 	end,
+	["p78 a death revived within the same push raises the knockout toast"] = function()
+		local alive = { vitals = { healthMilli = 100000 } }
+		assert(Model.deathSequence({}) == nil, "no snapshot yet")
+		assert(Model.deathSequence(alive) == 0, "no death state counts as zero deaths")
+		local revived = { vitals = { healthMilli = 100000, hungerMilli = 50000 }, deathBundles = { lastSequence = 1 } }
+		assert(Model.knockedDown(0, revived), "death and respawn between two pushes is reported")
+		assert(not Model.knockedDown(1, revived), "the same death is reported once")
+		assert(not Model.knockedDown(nil, revived), "earlier deaths are not replayed on join")
+		local down = { vitals = { healthMilli = 0 }, deathBundles = { lastSequence = 2 } }
+		assert(not Model.knockedDown(1, down), "while down the knockout panel speaks instead")
+		local Locale = require("./SurvivalHUDLocale")
+		assert(Locale.text("ko-kr", "knocked_down") ~= "knocked_down", "toast line is localized")
+	end,
 }

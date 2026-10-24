@@ -194,6 +194,10 @@ local strings: { [string]: { string } } = {
 		"You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.",
 		"배가 고파요: 가방(I)을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.",
 	},
+	knocked_down = {
+		"You were knocked out and woke up back at camp. Watch out for wild animals and hunger.",
+		"쓰러져서 캠프에서 다시 일어났어요. 야생 동물과 배고픔을 조심하세요.",
+	},
 	deposit = { "Store one", "하나 보관" },
 	withdraw = { "Take one", "하나 꺼내기" },
 	warehouse = { "Shared storage", "공용 창고" },

@@ -280,6 +280,28 @@ function M.hungry(vitals: any): boolean
 		and vitals.hungerMilli / 1000 < M.HUNGRY_BELOW
 end
 
+--- Durable death count of a survival snapshot (deathBundles.lastSequence counts every death,
+--- bag dropped or not); nil until the first snapshot with vitals has arrived.
+function M.deathSequence(snapshot: any): number?
+	if type(snapshot) ~= "table" or type(snapshot.vitals) ~= "table" then
+		return nil
+	end
+	local bundles = snapshot.deathBundles
+	return if type(bundles) == "table" and type(bundles.lastSequence) == "number" then bundles.lastSequence else 0
+end
+
+--- True when a death was committed since `before` and the actor is up again. With no respawn
+--- delay the server revives and reloads the character within a frame, so no snapshot ever shows
+--- zero health and the knockout panel never opens (p76 Studio: two silent returns to spawn).
+function M.knockedDown(before: number?, snapshot: any): boolean
+	local after = M.deathSequence(snapshot)
+	return before ~= nil
+		and after ~= nil
+		and after > before
+		and type(snapshot.vitals.healthMilli) == "number"
+		and snapshot.vitals.healthMilli > 0
+end
+
 --- The tutorial's axe pin: the Flint Hatchet unless the bag holds the starter axe's branch + stone.
 function M.axePin(bag: any, recipes: { any }): string
 	local starter, hatchet = nil, nil

@@ -364,6 +364,8 @@ function M.start(options: Options)
 	local render: () -> ()
 	local refresh: () -> ()
 	local handshakeRetries, hand = 0, {}
+	-- Deaths already reported by the knockout toast (nil until the first snapshot).
+	local reportedDeaths: number? = nil
 	local function send(request: any)
 		if not request then
 			render()
@@ -1694,6 +1696,20 @@ function M.start(options: Options)
 		connections,
 		state.OnClientEvent:Connect(function(packet)
 			if model.receive(packet) then
+				if reportedDeaths == nil or (model.snapshot.vitals and model.snapshot.vitals.healthMilli == 0) then
+					-- First snapshot, or down now: the knockout panel speaks, so the toast stays quiet.
+					reportedDeaths = Model.deathSequence(model.snapshot)
+				elseif Model.knockedDown(reportedDeaths, model.snapshot) then
+					reportedDeaths = Model.deathSequence(model.snapshot)
+					-- The server already moved the character to spawn: say why instead of a silent reset.
+					local line = t("knocked_down")
+					toast.Text, toast.Visible = line, true
+					task.delay(M.TOAST_SECONDS, function()
+						if not disposed and toast.Text == line then
+							toast.Visible = false
+						end
+					end)
+				end
 				render()
 			end
 		end)
