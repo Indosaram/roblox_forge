@@ -24670,6 +24670,9 @@ layouts:
         level: 1
         yield: 3
         respawnSeconds: 120
+    # p81: hunters (warn/attack/leash from wildlife) sit in the south corners, further than
+    # max(40, leashStuds + attackStuds) from every day-1 node, anchor, station, depot and spawn,
+    # here and in the Studio preview projection; grazers (dodo, turtle) stay near camp.
     spawns:
       -
         id: "rw.onboarding.dodo.01"
@@ -24686,9 +24689,9 @@ layouts:
         speciesId: "protoceratops"
         level: 10
         position:
-          x: -36
+          x: -44
           y: 2
-          z: 40
+          z: -72
         count: 1
         radius: 8
       -
@@ -24696,9 +24699,9 @@ layouts:
         speciesId: "parasaurolophus"
         level: 10
         position:
-          x: -64
+          x: 60
           y: 2
-          z: -24
+          z: -72
         count: 1
         radius: 8
       -
@@ -24716,12 +24719,12 @@ layouts:
         speciesId: "triceratops"
         level: 10
         position:
-          x: -96
+          x: 64
           y: 2
-          z: 32
+          z: -68
         count: 1
         radius: 8
-      - {id: "rw.onboarding.boar.01", speciesId: "boar", level: 20, position: {x: -94, y: 2, z: -50}, count: 1, radius: 8}
+      - {id: "rw.onboarding.boar.01", speciesId: "boar", level: 20, position: {x: -60, y: 2, z: -64}, count: 1, radius: 8}
     hazards: []
     refuges: []
     paths:
