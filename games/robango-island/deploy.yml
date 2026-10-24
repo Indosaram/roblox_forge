@@ -5,8 +5,13 @@ environments:
   staging:
     universeId: ${FORGE_STAGING_UNIVERSE_ID}
     placeId: ${FORGE_STAGING_PLACE_ID}
+    # One place per Topology role. New players join the start place, so it is
+    # the onboarding role. Open Cloud cannot create places: the owner adds the
+    # other places in Creator Hub and records them with
+    # `forge deploy roles --env staging --pack robango-island --set <role>=<id>`;
+    # `forge deploy --all-roles` then publishes the same build to every place.
     roles:
-      onboarding: 0
+      onboarding: ${FORGE_STAGING_PLACE_ID}
       home: 0
       harbor: 0
       archipelago: 0
@@ -23,7 +28,7 @@ environments:
     placeId: ${FORGE_PRODUCTION_PLACE_ID}
     requiresHumanMerge: true
     roles:
-      onboarding: 0
+      onboarding: ${FORGE_PRODUCTION_PLACE_ID}
       home: 0
       harbor: 0
       archipelago: 0

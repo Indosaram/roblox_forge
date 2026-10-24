@@ -163,9 +163,17 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "deploy",
 		text = [=[
-  deploy --env <staging|production> [--pack <slug>] [--dry-run] [--development]
+  deploy --env <staging|production> [--pack <slug>] [--dry-run] [--development] [--role <r> | --all-roles]
                             Build the place with rojo and publish it via Roblox Open Cloud
-                            (--dry-run: offline product/asset plan, no API key, no network)]=],
+                            (--dry-run: offline product/asset/role-place plan, no API key, no network;
+                            --all-roles: publish the same build to every role place in deploy.yml,
+                            start place last, refusing while any role id is missing)]=],
+	},
+	{
+		name = "deploy",
+		text = [=[
+  deploy roles --env <staging|production> --pack <slug> --set <role>=<placeId> [--set ...]
+                            Write owner-created role place ids into deploy.yml (no network)]=],
 	},
 	{
 		name = "deploy",

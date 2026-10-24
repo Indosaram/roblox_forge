@@ -29,12 +29,16 @@
    lune run cli/forge assets upload-audio --pack robango-island --creator-user 11734795308
    ```
    artifact sha256 기준으로 멱등이며 `build/audio-upload-cache.json`에 기록합니다. moderation 대기 상태는 재생 가능으로 취급하지 않습니다.
-4. **스테이징 배포.** `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(현재 `10771918494`/`95467272687768`)와 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, 그리고 `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣습니다. `games/robango-island/deploy.yml`의 `environments.staging.universeId`/`placeId`가 `${FORGE_STAGING_UNIVERSE_ID}`/`${FORGE_STAGING_PLACE_ID}`를 참조합니다. 형식은 `deploy --env <staging|production> [--pack <slug>] [--dry-run] [--development]`와 `deploy plan --env ... [--out <path>] [--development]`입니다(`forge deploy --help`). 오프라인 계획과 dry-run을 확인한 뒤 게시합니다.
+4. **스테이징 배포(역할별 Place).** 서버는 `ServerStorage.ForgePlaceRoles`(역할→place ID JSON)와 `game.PlaceId`로 자기 역할을 정하고(`IslandBootstrap.select`), 부두 이동은 대상 역할의 place로 `TeleportService:TeleportAsync`를 호출합니다. 한 Place 안에서 역할을 바꾸는 경로는 Studio 전용(`studio_no_teleport`)이므로, 실서버 이동에는 **역할마다 서로 다른 Place 12개**가 같은 Universe에 있어야 합니다. 시작 Place `95467272687768`이 `onboarding`이며 `deploy.yml`에서 `${FORGE_STAGING_PLACE_ID}`를 참조합니다. Open Cloud API 키로는 Place를 **만들 수 없고**(버전 게시만 가능) 나머지 11개 생성은 소유자 단계입니다.
+   - **소유자 1회 단계:** Creator Hub → Robango Staging → Places → Create Place로 `home`, `harbor`, `archipelago`, `explore10`, `explore20`, `frontier30`, `frontier40`, `frontier50`, `frontier60`, `brawl`, `team-outpost` 11개를 만들고 각 place ID를 알려 줍니다(무료, 공개 설정 변경 없음).
+   - `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(`10771918494`/`95467272687768`), 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣고 프로세스 환경으로 주입합니다.
+   - 홀드 해제 후 에이전트가 실행할 순서입니다. `--dry-run`은 키·네트워크 없이 상품 계획과 역할별 게시 URL·누락 역할을 출력합니다. `--all-roles`는 한 번 빌드한 같은 아티팩트에 전체 역할 맵을 넣어 시작 Place를 마지막으로 모든 Place에 1회씩 게시하며, 누락·중복 ID가 있으면 빌드와 네트워크 전에 거부하고, 실패하면 그 자리에서 멈춥니다.
    ```text
-   lune run cli/forge deploy plan --env staging --pack robango-island --development
-   lune run cli/forge deploy --env staging --pack robango-island --dry-run --development
-   lune run cli/forge deploy --env staging --pack robango-island --development
+   lune run cli/forge deploy roles --env staging --pack robango-island --set home=<id> --set harbor=<id> --set archipelago=<id> --set explore10=<id> --set explore20=<id> --set frontier30=<id> --set frontier40=<id> --set frontier50=<id> --set frontier60=<id> --set brawl=<id> --set team-outpost=<id>
+   lune run cli/forge deploy --env staging --pack robango-island --development --dry-run
+   lune run cli/forge deploy --env staging --pack robango-island --development --all-roles
    ```
+   dry-run 마지막 줄이 `12 role places publishable, 0 missing, 0 errors (deploy --all-roles ready)`일 때만 세 번째 명령을 실행합니다. `deploy roles`가 바꾼 `deploy.yml`은 커밋 대상입니다(place ID는 비밀이 아닙니다). 역할 맵 없이 단일 Place만 게시하는 `--role <r>`도 남아 있지만 일반 배포는 `--all-roles` 하나입니다.
 5. **상품 ID 매핑.** Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`의 `monetization.gamepasses`·`products`·`subscriptions` 항목의 `id`와 런타임 사본 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 둘의 일치를 검사합니다). 현재 값은 스테이징 Universe에 등록한 U15의 ID입니다. 가격·확률 변경은 human-merged PR이 필요합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
 
 ### 로컬 설정 위치와 키 권한
@@ -60,11 +64,11 @@ Game Pass / Developer Product의 논리 키→실제 ID 매핑은 `games/robango
 모든 명령은 저장소 루트에서 실행합니다. `forge`는 `C:/Users/sook/.rokit/bin/lune.exe run cli/forge`입니다. 일반 CLI는 `.env.local`을 자동으로 읽는다고 가정하지 말고 해당 변수를 프로세스 환경에 주입합니다(`cli/forge/publish-staging.sh`만 자동 source 계약이 있습니다).
 
 ```text
-forge deploy --env staging --pack robango-island --development
-forge deploy --env production --pack robango-island
+forge deploy --env staging --pack robango-island --development --all-roles
+forge deploy --env production --pack robango-island --all-roles
 ```
 
-두 번째 명령은 사용자 승인·human-merged PR·프로덕션 대상/키·`FORGE_ALLOW_PRODUCTION` 게이트와 release quality 승인이 모두 갖춰진 후에만 실행합니다. `--development`는 스테이징 전용이며 프로덕션 우회 옵션이 아닙니다. 현재 `starter` 등급과 moderation 차단을 출시 승인으로 바꾸지 않습니다. `deploy.yml`의 역할별 place ID가 0인 상태는 실제 다중 Place 여행 배치 완료가 아닙니다.
+두 번째 명령은 사용자 승인·human-merged PR·프로덕션 대상/키·`FORGE_ALLOW_PRODUCTION` 게이트와 release quality 승인이 모두 갖춰진 후에만 실행합니다. `--development`는 스테이징 전용이며 프로덕션 우회 옵션이 아닙니다. 현재 `starter` 등급과 moderation 차단을 출시 승인으로 바꾸지 않습니다. `deploy.yml`의 역할별 place ID가 0인 상태는 실제 다중 Place 여행 배치 완료가 아니며, `--all-roles`는 그 상태를 거부합니다.
 
 새 콘텐츠의 실제 개인섬/군도 Teleport 왕복, 서로 다른 실제 계정·JobId의 시장 정산, 다인원 난투/합주, 휴대폰 조작과 성능은 아직 합격으로 기록하지 않습니다. QA-PERF-01 2층은 2026-10-21 `9db8e04`에서 측정했습니다(U19, `p13/perf.md`). 초기 상호작용은 실패했고, 그 뒤 `c6dec48`에서 채집 노드를 스폰 옆으로 옮겼습니다. 2026-10-23 `2e5ca3b` 재측정(`p54/perf.md`)에서 콜드 Play 3회 모두 TTFI가 관측됐습니다(중앙값 0.671초). 프로브와 실행법은 `cli/forge/qa/robango-performance.luau`, `cli/forge/qa/robango-performance.md`입니다.
 
