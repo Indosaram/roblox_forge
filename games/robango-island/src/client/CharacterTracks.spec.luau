@@ -38,17 +38,36 @@ end
 -- A fake Animator that counts live tracks the way the engine does: LoadAnimation adds one, and
 -- only Destroy releases it.
 local function animator()
-	local self: any = { live = 0, AnimationPlayed = signal() }
+	local self: any = { live = 0, AnimationPlayed = signal(), tracks = {} }
 	function self.IsA(_, class)
 		return class == "Animator"
+	end
+	function self.GetPlayingAnimationTracks()
+		local playing = {}
+		for _, track in self.tracks do
+			if track.IsPlaying then
+				table.insert(playing, track)
+			end
+		end
+		return playing
+	end
+	function self.playing(): number
+		return #self.GetPlayingAnimationTracks()
 	end
 	function self.LoadAnimation(_, animation)
 		self.live += 1
 		local track: any = { Animation = animation, IsPlaying = false, destroyed = false }
-		function track.Play()
+		table.insert(self.tracks, track)
+		-- `silent` plays without AnimationPlayed: a track whose animation failed to load (403).
+		function track.Play(silent: boolean?)
 			assert(not track.destroyed, "played a destroyed track")
 			track.IsPlaying = true
-			self.AnimationPlayed:Fire(track)
+			if not silent then
+				self.AnimationPlayed:Fire(track)
+			end
+		end
+		function track.AdjustSpeed()
+			assert(not track.destroyed, "adjusted a destroyed track")
 		end
 		function track.Stop()
 			track.IsPlaying = false
@@ -58,6 +77,7 @@ local function animator()
 				track.destroyed = true
 				track.IsPlaying = false
 				self.live -= 1
+				table.remove(self.tracks, table.find(self.tracks, track))
 			end
 		end
 		return track
@@ -93,9 +113,53 @@ local function character(rig: any): any
 end
 
 return {
+	["500 tracks that never fire AnimationPlayed stay bounded by the sweep"] = function()
+		local rig = animator()
+		local heartbeat = signal()
+		local stop = CharacterTracks.guard(rig, heartbeat :: any)
+		local empty = { AnimationId = "" }
+		local current: { [number]: any } = {}
+		local peak = 0
+		for add = 1, 500 do
+			-- 403 retries: Animate loads and plays a track that never reports AnimationPlayed and is
+			-- never stopped; every 5th one has an empty id (grouped by its shared Animation instance).
+			local slot = add % 4 + 1
+			local animation = if add % 5 == 0 then empty else { AnimationId = IDS[add % #IDS + 1] }
+			local track = rig:LoadAnimation(animation)
+			track.Play(true)
+			current[slot] = track
+			-- Animate keeps driving its current tracks: never an error on a released track.
+			for _, held in current do
+				if not held.destroyed then
+					held.AdjustSpeed(1)
+				end
+			end
+			heartbeat:Fire(0.25) -- 4 adds per simulated second
+			peak = math.max(peak, rig.playing())
+		end
+		assert(peak < TRACK_LIMIT, "playing tracks stayed under the engine limit, peak " .. peak)
+		assert(rig.playing() <= CharacterTracks.MAX_PLAYING, "playing tracks capped: " .. rig.playing())
+		for _, held in current do
+			assert(not held.destroyed, "tracks Animate may still hold are only stopped")
+			held.Play(true)
+		end
+		stop()
+		assert(heartbeat.live() == 0, "sweep disconnects")
+	end,
+	["the sweep caps total playing tracks across many animations"] = function()
+		local rig = animator()
+		local heartbeat = signal()
+		CharacterTracks.guard(rig, heartbeat :: any)
+		for id = 1, 60 do
+			rig:LoadAnimation({ AnimationId = "rbxassetid://" .. id }).Play(true)
+		end
+		heartbeat:Fire(CharacterTracks.SWEEP_SECONDS)
+		assert(rig.playing() == CharacterTracks.MAX_PLAYING, "capped to the newest: " .. rig.playing())
+		assert(rig.tracks[60].IsPlaying and not rig.tracks[1].IsPlaying, "the oldest are stopped first")
+	end,
 	["200 Animate state changes keep the Animator under its track limit"] = function()
 		local rig = animator()
-		local stop = CharacterTracks.guard(rig)
+		local stop = CharacterTracks.guard(rig, signal() :: any)
 		local current = leakyAnimate(rig, 200)
 		assert(rig.live <= 2 * #IDS, "bounded tracks per animation: " .. rig.live)
 		assert(rig.live < TRACK_LIMIT, "under the engine limit")
@@ -105,7 +169,7 @@ return {
 	end,
 	["a still-playing previous track may fade out; older ones are released"] = function()
 		local rig = animator()
-		CharacterTracks.guard(rig)
+		CharacterTracks.guard(rig, signal() :: any)
 		local id = { AnimationId = "rbxassetid://1" }
 		local a, b, c = rig:LoadAnimation(id), rig:LoadAnimation(id), rig:LoadAnimation(id)
 		a.Play()
@@ -117,7 +181,7 @@ return {
 	["200 respawns each guard only the live character"] = function()
 		local added = signal()
 		local player: any = { CharacterAdded = added, Character = nil }
-		local stop = CharacterTracks.start(player)
+		local stop = CharacterTracks.start(player, signal() :: any)
 		local rigs = {}
 		for spawn = 1, 200 do
 			local rig = animator()
