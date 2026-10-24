@@ -86,8 +86,9 @@ function M.new(config: any): any
 		end
 		return { ok = false, reason = "ensemble.action" }
 	end
-	function extension.snapshot(_actor: string): any
-		return { room = rooms.snapshot() }
+	function extension.snapshot(actor: string): any
+		local library = if config.repository.summaries then config.repository.summaries(actor) else nil
+		return { room = rooms.snapshot(), library = library }
 	end
 	function extension.recover(_actor: string, now: number)
 		if config.enforceRange then

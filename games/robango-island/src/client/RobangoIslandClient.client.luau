@@ -807,6 +807,16 @@ table.insert(panelFactories, function(ctx)
 	}
 end)
 table.insert(panelFactories, audio.panel)
+-- Recovered spec screens (tracker, score library, clan treasury/research, territory, build manage,
+-- players, arrival); reached through the navigator.
+table.insert(panelFactories, function(ctx)
+	local scoped: any = table.clone(ctx)
+	scoped.content, scoped.actorId = content, tostring(player.UserId)
+	scoped.objective = function(contracts)
+		return require(Forge.genres["survival-coop"].module.ContractsPanel).model(locale, contracts, names).objective
+	end
+	return require(Forge.genres["survival-coop"].module.RecoveredScreens).factory(scoped)
+end)
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
 	ui = {

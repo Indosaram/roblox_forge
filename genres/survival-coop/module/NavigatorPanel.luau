@@ -1,5 +1,6 @@
 --!strict
 local Text = require("./MusicText")
+local ScreenText = require("./ScreenText")
 local Sheet = require("./MusicSheet")
 local env: any = getfenv()
 local game: any = env.game
@@ -23,13 +24,21 @@ M.ROWS = {
 	{ "nav_share", "score-share" },
 	{ "nav_ensemble", "ensemble-lobby" },
 	{ "nav_inbox", "inbox" },
+	{ "scr.nav.tracker", "recipe-tracker" },
+	{ "scr.nav.library", "score-library" },
+	{ "scr.nav.players", "players" },
+	{ "scr.nav.treasury", "clan-treasury" },
+	{ "scr.nav.research", "clan-research" },
+	{ "scr.nav.territory", "territory" },
+	{ "scr.nav.manage", "build-manage" },
+	{ "scr.nav.arrival", "arrival" },
 	{ "nav_settings", "audio" },
 } :: { { any } }
 
 function M.model(locale: string, availability: (string) -> (boolean, boolean, string?)): { any }
 	local rows = {}
 	for _, row in M.ROWS do
-		local label = Text.text(locale, row[1])
+		local label = if ScreenText.has(row[1]) then ScreenText.text(locale, row[1]) else Text.text(locale, row[1])
 		local id = row[2]
 		local open, reason = false, nil
 		if id then

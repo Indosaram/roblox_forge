@@ -7,6 +7,33 @@ local M = {}
 function M.new(config: any): any
 	local store = config.dataStoreService:GetDataStore(config.storeName)
 	local api = {}
+	-- ui.score-library: per-owner summary cache, filled by one read and refreshed by every commit.
+	local summaries: { [string]: any } = {}
+	local loading: { [string]: boolean } = {}
+	local function summarize(state: any): { any }
+		local rows = {}
+		for id, entry in (state and state.scores) or {} do
+			local revision = #entry.revisions
+			local score = entry.revisions[revision]
+			local lastTick = 0
+			for _, part in score.parts do
+				for _, note in part.notes do
+					lastTick = math.max(lastTick, note.startTick + note.durationTicks)
+				end
+			end
+			table.insert(rows, {
+				scoreId = id,
+				revision = revision,
+				tempo = score.tempo,
+				parts = #score.parts,
+				seconds = math.ceil(lastTick * 60 / (score.tempo * config.rules.ticksPerQuarter)),
+			})
+		end
+		table.sort(rows, function(a, b)
+			return a.scoreId < b.scoreId
+		end)
+		return rows
+	end
 	local function read(owner: string): any
 		local ok, value = pcall(function()
 			return store:GetAsync(owner)
@@ -39,6 +66,7 @@ function M.new(config: any): any
 		if not ok then
 			return { ok = false, reason = "score.store_unavailable" }
 		end
+		summaries[owner] = summarize(state)
 		if requestId then
 			local receipt = state.receipts[requestId]
 			if receipt.fingerprint ~= fingerprint then
@@ -111,6 +139,28 @@ function M.new(config: any): any
 				return { ok = true, data = { scoreId = scoreId, revision = revision } }
 			end
 		)
+	end
+	--- Cached summaries for the owner's library, or nil while the first read is in flight
+	--- (config.spawn moves that read off the snapshot path; without it the read is inline).
+	function api.summaries(actor: string): { any }?
+		if summaries[actor] == nil and not loading[actor] then
+			loading[actor] = true
+			local function load()
+				local ok, value = pcall(function()
+					return store:GetAsync(actor)
+				end)
+				loading[actor] = nil
+				if ok then
+					summaries[actor] = summarize(value)
+				end
+			end
+			if config.spawn then
+				config.spawn(load)
+			else
+				load()
+			end
+		end
+		return summaries[actor]
 	end
 	function api.list(actor: string): any
 		local state = read(actor)

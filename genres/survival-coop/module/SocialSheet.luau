@@ -135,6 +135,7 @@ function M.mount(ctx: any, spec: any): any
 			id = spec.id,
 			label = spec.title,
 			order = spec.order,
+			hidden = spec.hidden,
 			setOpen = function(open: boolean)
 				if open then
 					api.open()

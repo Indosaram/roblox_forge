@@ -236,6 +236,7 @@ world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibrar
 	encode = function(value)
 		return HttpService:JSONEncode(value)
 	end,
+	spawn = task.spawn,
 })
 world.marketStore = require(Forge.core.infra.data.CrossServerMarketStore).new(
 	runtimeServices.dataStoreService:GetDataStore(source.persistencePrefix .. "-trade-v1"),

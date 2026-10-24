@@ -155,6 +155,8 @@ local function engine(): any
 				return Text
 			elseif path == "./MusicSelection" then
 				return Selection
+			elseif path == "./ScreenText" then
+				return require("./ScreenText")
 			elseif path == "./SurvivalHUDModel" then
 				return require("./SurvivalHUDModel")
 			end
