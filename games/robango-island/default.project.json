@@ -220,6 +220,9 @@
         "AerialCamera": {
           "$path": "src/client/AerialCamera.luau"
         },
+        "CharacterTracks": {
+          "$path": "src/client/CharacterTracks.luau"
+        },
         "CreaturePose": {
           "$path": "src/client/CreaturePose.luau"
         },

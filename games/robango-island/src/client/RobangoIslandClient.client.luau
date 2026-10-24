@@ -16,6 +16,8 @@ local gui = Client.start({ controls = require(Shared.GenreUI) })
 gui.Destroying:Connect(audio.destroy)
 
 local player = game:GetService("Players").LocalPlayer
+local characterTracks = require(script.Parent:WaitForChild("CharacterTracks")).start(player)
+script.Destroying:Connect(characterTracks)
 local locale = player.LocaleId
 local korean = string.sub(locale, 1, 2) == "ko"
 local PackText = require(Shared.PackText)

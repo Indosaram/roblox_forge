@@ -528,4 +528,97 @@ return {
 			)
 		end
 	end,
+	-- World builds write terrain voxels, which become raycastable only after engine steps. A creature
+	-- grounded in that window must wait for the terrain instead of warning on every normal boot.
+	["creature grounding waits for terrain published after the spawn"] = function()
+		local ready, warnings: { string }, heartbeats: { any } = false, {}, {}
+		local pivot = roblox.CFrame.new(10, 2, 20)
+		local root: any =
+			{ Position = roblox.Vector3.new(10, 2, 20), CFrame = pivot, Size = roblox.Vector3.new(2, 2, 2) }
+		function root.IsA(_, class)
+			return class == "BasePart"
+		end
+		local model: any = { Name = "rw.onboarding.dodo.01", PrimaryPart = root, Parent = {} }
+		function model.GetDescendants()
+			return { root }
+		end
+		function model.GetPivot()
+			return pivot
+		end
+		function model.PivotTo(_, value)
+			pivot = value
+			root.Position, root.CFrame = value.Position, value
+		end
+		local terrain = {}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), {
+			environment = {
+				Instance = roblox.Instance,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Color3 = roblox.Color3,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				workspace = {
+					Terrain = terrain,
+					Raycast = function(_, origin)
+						return if ready
+							then { Instance = terrain, Position = roblox.Vector3.new(origin.X, 6, origin.Z) }
+							else nil
+					end,
+				},
+				game = {
+					GetService = function(_, name)
+						assert(name == "RunService", name)
+						return {
+							Heartbeat = {
+								Connect = function(_, handler)
+									local entry = { handler = handler, live = true }
+									table.insert(heartbeats, entry)
+									return {
+										Disconnect = function()
+											entry.live = false
+										end,
+									}
+								end,
+							},
+						}
+					end,
+				},
+				warn = function(message)
+					table.insert(warnings, message)
+				end,
+			},
+		})()
+		local function step()
+			for _, entry in table.clone(heartbeats) do
+				if entry.live then
+					entry.handler()
+				end
+			end
+		end
+		module.ground(model)
+		step()
+		step()
+		assert(#warnings == 0, "no warning while terrain is still publishing: " .. tostring(warnings[1]))
+		ready = true
+		step()
+		assert(math.abs(root.Position.Y - 7) < 1e-6, "seated on the published terrain: " .. root.Position.Y)
+		for _, entry in heartbeats do
+			assert(not entry.live, "retry released once grounded")
+		end
+		-- A spawn over open sea still reports, after the bounded retry window.
+		ready = false
+		module.ground(model)
+		for _ = 1, module.GROUND_RETRY_STEPS do
+			step()
+		end
+		assert(#warnings == 1 and warnings[1] == "CREATURE_SPAWN_WITHOUT_TERRAIN:rw.onboarding.dodo.01", "bounded")
+		for _, entry in heartbeats do
+			assert(not entry.live, "retry released after warning")
+		end
+	end,
 }

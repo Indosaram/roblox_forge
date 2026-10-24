@@ -692,7 +692,11 @@ function M.new(
 	return model
 end
 
-function M.ground(model: Model)
+-- Voxel writes become raycastable only after engine steps, and a large world build can take more
+-- than one. A miss retries on Heartbeat for up to this many steps before it is reported.
+M.GROUND_RETRY_STEPS = 600
+
+local function settle(model: Model): boolean
 	local root = assert(model.PrimaryPart, "CREATURE_ROOT_REQUIRED")
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
@@ -700,8 +704,7 @@ function M.ground(model: Model)
 	params.IgnoreWater = true
 	local hit = workspace:Raycast(Vector3.new(root.Position.X, 512, root.Position.Z), Vector3.new(0, -1024, 0), params)
 	if not hit then
-		warn("CREATURE_SPAWN_WITHOUT_TERRAIN:" .. model.Name)
-		return
+		return false
 	end
 	local lowest = math.huge
 	for _, piece in model:GetDescendants() do
@@ -716,6 +719,33 @@ function M.ground(model: Model)
 		end
 	end
 	model:PivotTo(model:GetPivot() + Vector3.new(0, hit.Position.Y - lowest, 0))
+	return true
+end
+
+--- Seats the rig on the terrain below it. When the terrain is not raycastable yet (fresh voxel
+--- writes), it retries each Heartbeat and warns only if no terrain appears within the retry window.
+function M.ground(model: Model)
+	if settle(model) then
+		return
+	end
+	local steps = 0
+	local done = false
+	local connection: RBXScriptConnection? = nil
+	connection = game:GetService("RunService").Heartbeat:Connect(function()
+		if done then
+			return
+		end
+		steps += 1
+		if not model.Parent or settle(model) then
+			done = true
+		elseif steps >= M.GROUND_RETRY_STEPS then
+			done = true
+			warn("CREATURE_SPAWN_WITHOUT_TERRAIN:" .. model.Name)
+		end
+		if done then
+			(connection :: RBXScriptConnection):Disconnect()
+		end
+	end)
 end
 
 function M.pose(model: Model, state: string, elapsed: number, speed: number)
