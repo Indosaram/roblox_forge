@@ -277,7 +277,11 @@ return {
 			local nodes: { any } = {}
 			local function node(class: string): any
 				local item: any = { ClassName = class, Activated = signal(), FocusLost = signal(), Text = "" }
+				item.AbsoluteSize = { X = 360, Y = 500 }
 				function item.Destroy() end
+				function item.GetPropertyChangedSignal()
+					return signal()
+				end
 				table.insert(nodes, item)
 				return item
 			end
@@ -307,8 +311,14 @@ return {
 			local chunk = assert(loadstring(fs.readFile("genres/survival-coop/module/ScoreEditorPanel.luau")))
 			local scope: any = setmetatable({
 				Instance = { new = node },
-				UDim2 = { new = dim },
+				UDim2 = {
+					new = dim,
+					fromOffset = function(x, y)
+						return { 0, x, 0, y }
+					end,
+				},
 				Color3 = { fromRGB = dim },
+				Enum = { ScrollingDirection = { X = "X" } },
 				require = function(path: string): any
 					local modules: { [string]: any } = {
 						["../../../core/domain/music/Score"] = require("../../../core/domain/music/Score"),
@@ -367,6 +377,18 @@ return {
 			assert(phoneWidth <= 360, "sheet inside 360 wide")
 			assert(math.ceil(HudFit.textWidth(tempoLabel.Text, 15)) <= phoneWidth - 16, "tempo label fits 360 wide")
 			assert(fitted == 1, "sheet fitted by the shared ExtensionPanels fit")
+			-- p93: the 7th note column ran past 360. The phone sheet's 360px scroll minus 8+8 padding
+			-- and the 6px bar leaves 338px: the grid shows whole columns there and scrolls sideways.
+			for _, item in nodes do
+				if item.Name == "NoteGrid" then
+					local width = item.Size[1] * 338 + item.Size[2]
+					assert(
+						width <= 338 and (width + 8) % 56 == 0,
+						"note grid cuts a column: " .. width .. "px of 338px"
+					)
+					assert(item.CanvasSize[2] == 8 * 56 - 8 and item.ScrollingDirection ~= nil, "scrolls to beat 8")
+				end
+			end
 			assert(docked.label == Text.text(locale, "nav_music"), "dock label localized")
 			for _, item in nodes do
 				local text = item.Text

@@ -1098,6 +1098,7 @@ structure_stairs,Stairs,entity stairs,Stairs,계단
 structure_door,Door,entity door,Door,문
 structure_roof,Roof,entity roof,Roof,지붕
 structure_pillar,Pillar,entity pillar,Pillar,기둥
+structure_farm_plot,Farm Plot,entity farm-plot,Farm Plot,밭
 structure_volcanic_wall,Volcanic Wall,entity volcanic-wall,Volcanic Wall,화산 벽
 archipelago_expiry_imminent,This island will expire soon. Choose another expedition.,archipelago entry refusal,This island will expire soon. Choose another expedition.,이 섬은 곧 소멸합니다. 다른 탐험을 선택하세요.
 archipelago_mission_gate,Finish both objectives before departing. You can return home at any time.,archipelago departure refusal,Finish both objectives before departing. You can return home at any time.,목표 두 개를 끝내야 다음 항로가 열려요. 귀가 항로는 항상 이용할 수 있어요.
@@ -1651,6 +1652,7 @@ social.result.empty,Your clan has no finished siege yet. Results appear here aft
 social.siege.open_lobby,Open siege lobby,social home and trade sheets,Open siege lobby,공성전 대기실 열기
 scr.arrival.continue,Continue,recovered screen,Continue,계속
 scr.arrival.goal,First goal: %s,recovered screen,First goal: %s,첫 목표: %s
+scr.arrival.goal_touch,"First goal: walk up to a resource and tap its button",recovered screen,"First goal: walk up to a resource and tap its button",첫 목표: 자원에 다가가서 버튼을 누르세요
 scr.arrival.premise,You washed ashore on a wild island of dinosaurs.,recovered screen,You washed ashore on a wild island of dinosaurs.,공룡이 사는 야생의 섬에 도착했어요.
 scr.arrival.skip,Skip arrival,recovered screen,Skip arrival,도착 장면 건너뛰기
 scr.arrival.skip_note,Skipping only skips the arrival scene. Your progress stays the same.,recovered screen,Skipping only skips the arrival scene. Your progress stays the same.,건너뛰기는 도착 장면만 건너뛰어요. 진행은 그대로예요.

@@ -311,12 +311,17 @@ function M.factory(ctx: any): any
 	local step = ctx.rules.ticksPerQuarter
 	local firstPitch = math.max(ctx.rules.pitchMin, 60)
 	local cells: { any } = {}
-	-- Horizontal scrolling preserves 48px note targets on a narrow phone rather than shrinking.
+	-- Whole 48px columns fit the sheet; the rest scroll sideways (p93: 7th cut at 360).
 	local grid = ports.new("ScrollingFrame")
-	grid.CanvasSize = ports.size(0, 0, 8 * 56, 4 * 56)
+	grid.CanvasSize = ports.size(0, 0, 8 * 56 - 8, 4 * 56)
 	if ui then
-		grid.Size = UDim2.new(1, 0, 0, 224)
-		grid.BackgroundTransparency, grid.BorderSizePixel = 1, 0
+		grid.BackgroundTransparency, grid.BorderSizePixel, grid.ScrollingDirection = 1, 0, env.Enum.ScrollingDirection.X
+		grid.ScrollBarThickness = 6
+		local function fit()
+			grid.Size = UDim2.fromOffset(math.clamp((scroll.AbsoluteSize.X - 14) // 56, 1, 8) * 56 - 8, 224)
+		end
+		table.insert(connections, scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit))
+		fit()
 	end
 	place(grid, "NoteGrid", 224)
 	row += 3

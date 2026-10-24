@@ -1811,3 +1811,5 @@ scr.treasury.no_withdraw,original,agent:hephaestus/p92,2026-10-25
 scr.treasury.spend,original,agent:hephaestus/p92,2026-10-25
 scr.treasury.title,original,agent:hephaestus/p92,2026-10-25
 scr.treasury.withdraw,original,agent:hephaestus/p92,2026-10-25
+structure_farm_plot,original,agent:hephaestus/p95,2026-10-25
+scr.arrival.goal_touch,original,agent:hephaestus/p95,2026-10-25

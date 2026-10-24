@@ -376,6 +376,18 @@ return {
 			assert(rows.height >= 44 * 2, "Deliver row still visible")
 		end
 	end,
+	["p93 the dock's real menu grid fits its planned columns (UIGridLayout keeps a gap after each cell)"] = function()
+		for _, case in { { 360, 584, 2 }, { 1280, 664, 4 } } do
+			local dock = contractsDock("ko-kr", case[1], case[2])
+			dock.tick()
+			local menu, grid = assert(dock.find("Menu"), "menu"), assert(dock.find("UIGridLayout"), "grid")
+			local cell, gap = grid.CellSize[2], grid.CellPadding[2]
+			-- Roblox wraps a row once n * (cell + gap) passes the canvas (frame minus the scrollbar).
+			local columns = (menu.Size[2] - Panels.MENU_SCROLLBAR) // (cell + gap)
+			assert(columns == case[3], case[1] .. ": " .. columns .. " columns of " .. cell .. "px in " .. menu.Size[2])
+			assert(cell >= Panels.MENU_MIN_CELL, "tile keeps its label width")
+		end
+	end,
 	["survey target distance shows outside the gather step and yields to contract notices"] = function()
 		for _, case in { { "ko-kr", "조사: 50m" }, { "en-us", "Survey: 50m" } } do
 			local dock = contractsDock(case[1], 1280, 664, { 80, 50 })

@@ -585,7 +585,7 @@ function M.arrivalRows(locale: string, state: any, act: any): { any }
 	local rows: { any } = {
 		{ text = L.text(locale, "scr.arrival.premise") },
 		{ text = L.text(locale, "scr.arrival.together") },
-		{ text = L.text(locale, "scr.arrival.goal", view.objective) },
+		{ text = L.text(locale, if state.touch then "scr.arrival.goal_touch" else "scr.arrival.goal", view.objective) },
 		{ text = L.text(locale, "scr.arrival.skip_note") },
 		{ text = L.text(locale, "scr.arrival.continue"), onClick = act.close },
 	}
@@ -887,6 +887,7 @@ function M.factory(ctx: any): any
 		local contracts = state and state.contracts
 		return M.arrivalRows(locale, {
 			tutorial = contracts and contracts.tutorial,
+			touch = ctx.touch or players and env.game:GetService("UserInputService").TouchEnabled,
 			objective = if contracts and ctx.objective then ctx.objective(contracts) else nil,
 		}, {
 			close = function()
@@ -900,7 +901,8 @@ function M.factory(ctx: any): any
 	end, {
 		autoOpen = function(state: any): boolean
 			local tutorial = state and state.contracts and state.contracts.tutorial
-			if arrivalShown or not tutorial or tutorial.complete then
+			local role = ctx.worldRole or env.workspace and env.workspace:GetAttribute("ForgeWorldRole")
+			if arrivalShown or not tutorial or tutorial.complete or role ~= "onboarding" and role ~= "home" then
 				return false
 			end
 			arrivalShown = tutorial.step == "arrive" or tutorial.step == "gather"

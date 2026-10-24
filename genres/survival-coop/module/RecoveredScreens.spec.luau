@@ -426,6 +426,74 @@ return {
 			)
 		end
 	end,
+	["p93 build manage names the starter farm plot"] = function()
+		local PackText = require("../../../games/robango-island/PackText.fixture")
+		for _, locale in LOCALES do
+			local home = { owner = "1", structures = { ["farm-plot"] = { kind = "farm-plot" } } }
+			local rows = Screens.manageRows(locale, { home = home, actorId = "1", names = PackText.names(locale) }, ACT)
+			check(rows, "manage " .. locale)
+			assert(not string.find(texts(rows), "farm-plot", 1, true), "raw structure id: " .. texts(rows))
+		end
+	end,
+	["p93 arrival on a touch device shows no keyboard key"] = function()
+		for _, locale in LOCALES do
+			local touch =
+				Screens.arrivalRows(locale, { tutorial = { step = "gather" }, objective = "E", touch = true }, ACT)
+			assert(string.find(texts(touch), L.text(locale, "scr.arrival.goal_touch"), 1, true), "touch goal")
+			assert(not string.find(texts(touch), "E", 1, true) or locale == "en-us", "no key hint on touch")
+		end
+	end,
+	["p93 arrival opens itself only on the onboarding server"] = function()
+		for _, role in { "onboarding", "brawl", "team-outpost" } do
+			local docks: { [string]: any } = {}
+			local callbacks: { any } = {}
+			local node = function(): any
+				return { Activated = { Connect = function() end }, Destroy = noop }
+			end
+			local widgets = function(): any
+				return node()
+			end
+			Screens.factory({
+				locale = "ko-kr",
+				actorId = "1",
+				worldRole = role,
+				content = Content,
+				playerGui = {},
+				instance = { new = node },
+				udim2 = { new = noop },
+				ui = {
+					theme = { default = {} },
+					components = {
+						modalSheet = function(): any
+							return { frame = node(), scroll = node(), close = node() }
+						end,
+						label = widgets,
+						button = widgets,
+					},
+				},
+				send = function(): any
+					return { ok = true }
+				end,
+				onSnapshot = function(callback: any): () -> ()
+					table.insert(callbacks, callback)
+					return noop
+				end,
+				dock = function(entry: any): any
+					docks[entry.id] = entry
+					return {
+						open = function()
+							entry.setOpen(true)
+						end,
+						setAvailable = noop,
+					}
+				end,
+			})
+			for _, callback in callbacks do
+				callback({ contracts = { tutorial = { step = "arrive" } } }, { roster = {}, snapshots = {} })
+			end
+			assert(docks.arrival.isOpen() == (role == "onboarding"), role .. ": arrival auto-open")
+		end
+	end,
 	["factory mounts every screen as a hidden navigator entry and sends real commands"] = function()
 		local nodes: { any } = {}
 		local function node(): any
@@ -476,6 +544,7 @@ return {
 			serverNow = function(): number
 				return 0
 			end,
+			worldRole = "onboarding",
 			currentLayout = function(): string?
 				return "rw.harbor"
 			end,

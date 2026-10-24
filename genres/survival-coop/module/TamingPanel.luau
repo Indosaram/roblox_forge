@@ -1,12 +1,6 @@
 --!strict
--- Client taming panel: pen list (species, ready time, feed button) plus mount/dismount buttons,
--- rendered from snapshot.survivalExtensions.taming. The server owns every decision (ready time,
--- feed value, ride speed and carry); this panel only sends durable commands and renders results.
--- Strings mirror games/robango-island/locale/strings.csv keys (tame_*); species names are the
--- pack's wildlife_<id> strings, with the raw id as fallback.
--- World input: every wild model under Workspace.ForgeWildlife whose ForgeWildlifeKind is in
--- snapshot.taming.tameable gets a client-local ProximityPrompt (Q / click / tap) that sends
--- tame-hit until the stun gauge for that wild id is full, then tame-capture.
+-- Client taming panel: companion/pen rows and mount buttons from snapshot.taming; the server
+-- owns every decision. Wild models in Workspace.ForgeWildlife get a tame-hit/capture prompt.
 local WildlifeNames = require("./WildlifeNames")
 local M = {}
 
@@ -247,7 +241,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		"TamingRows", 1, UDim2.fromScale(1, 0), sheet.scroll
 	rows.AutomaticSize = Enum.AutomaticSize.Y
 	local layout = Instance.new("UIListLayout")
-	layout.Padding, layout.Parent = UDim.new(0, 6), rows
+	layout.Padding, layout.SortOrder, layout.Parent = UDim.new(0, 6), Enum.SortOrder.LayoutOrder, rows
 	local timers: { { label: TextLabel, remaining: number } } = {}
 	local companionDetails: { [string]: TextLabel } = {}
 	local lastCompanions: any = nil
@@ -270,7 +264,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	end
 	local function render(snapshot: { [string]: any })
 		for _, child in rows:GetChildren() do
-			if child:IsA("Frame") then
+			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
 		end

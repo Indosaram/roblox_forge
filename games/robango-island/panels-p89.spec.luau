@@ -20,12 +20,12 @@ local function csvRows(): { [string]: { string } }
 end
 
 -- A minimal fake engine: enough Instance/UDim2/Color3 for TamingPanel.factory to render.
-local function mount(locale: string, content: any): (any, (any) -> ())
+local function mount(locale: string, content: any): (any, (any) -> (), () -> { any })
 	local nodes: { any } = {}
 	local methods: any = {}
 	methods.__index = methods
 	function methods:IsA(kind)
-		return self.ClassName == kind or (kind == "Frame" and self.ClassName == "Frame")
+		return self.ClassName == kind or kind == "GuiObject" and self.ClassName ~= "UIListLayout"
 	end
 	function methods:Destroy()
 		self.Parent = nil
@@ -83,7 +83,7 @@ local function mount(locale: string, content: any): (any, (any) -> ())
 		return require("../../genres/survival-coop/module/WildlifeNames")
 	end
 	env.Instance = { new = node }
-	env.Enum = { ZIndexBehavior = { Sibling = 1 }, AutomaticSize = { Y = 1 } }
+	env.Enum = { ZIndexBehavior = { Sibling = 1 }, AutomaticSize = { Y = 1 }, SortOrder = { LayoutOrder = 2 } }
 	env.UDim2 = { new = function() end, fromOffset = function() end, fromScale = function() end }
 	env.UDim = { new = function() end }
 	env.Color3 = {
@@ -142,9 +142,18 @@ local function mount(locale: string, content: any): (any, (any) -> ())
 		end
 		return out
 	end
-	return texts, function(snapshot)
-		listener(snapshot)
-	end
+	return texts,
+		function(snapshot)
+			listener(snapshot)
+		end,
+		function()
+			for _, item in nodes do
+				if item.Name == "TamingRows" then
+					return item:GetChildren()
+				end
+			end
+			return {}
+		end
 end
 
 return {
@@ -157,6 +166,26 @@ return {
 				assert(shown.CompanionEmpty == Taming.text(locale, "companion_empty"), "empty state " .. locale)
 				assert(string.find(shown.CompanionSummary, "0/8", 1, true), "summary shows capacity")
 			end
+		end
+	end,
+	["p93 every refresh replaces the taming rows: one summary and one empty state, summary first"] = function()
+		for _, locale in LOCALES do
+			local _, push, children = mount(locale, Content)
+			for _ = 1, 5 do
+				push({ taming = { companions = { pets = {}, receipts = {} }, animals = {} } })
+			end
+			local count: { [string]: number } = {}
+			for _, child in children() do
+				count[child.Name] = (count[child.Name] or 0) + 1
+			end
+			assert(count.CompanionEmpty == 1, locale .. ": empty rows " .. tostring(count.CompanionEmpty))
+			assert(count.CompanionSummary == 1, locale .. ": summary rows " .. tostring(count.CompanionSummary))
+			local layout
+			for _, child in children() do
+				layout = if child.ClassName == "UIListLayout" then child else layout
+			end
+			assert(#children() == 3 and layout, locale .. ": stale rows " .. #children())
+			assert(layout.SortOrder == 2, "rows sort by LayoutOrder so the summary line is first")
 		end
 	end,
 	["each owned companion shows species, phase, level, fullness, colour chip and its actions"] = function()

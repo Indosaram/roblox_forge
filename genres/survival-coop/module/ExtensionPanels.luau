@@ -186,9 +186,9 @@ function M.menuBounds(width: number, height: number): (number, number, number, n
 	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_CELL + M.MENU_GAP))
 	return w, math.max(1, math.min(columns, fit)), M.MENU_TILE, 116
 end
--- Width of one tile when `columns` tiles share a `menuWidth` menu frame.
+-- Tile width for `columns` tiles in a `menuWidth` frame. UIGridLayout reserves a gap after every cell.
 function M.menuCell(menuWidth: number, columns: number): number
-	return math.floor((menuWidth - M.MENU_SCROLLBAR - (columns - 1) * M.MENU_GAP) / columns)
+	return math.floor((menuWidth - M.MENU_SCROLLBAR - columns * M.MENU_GAP) / columns)
 end
 -- Canvas height: top gap, rows, bottom gap (AutomaticCanvasSize came out one row short, p36).
 function M.menuCanvas(count: number, columns: number, tile: number): number
