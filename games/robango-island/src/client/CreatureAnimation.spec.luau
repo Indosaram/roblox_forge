@@ -61,7 +61,7 @@ local function folder(name: string, children: { any }): any
 end
 
 -- Loads the client's startCreatureAnimation against fake workspace folders present at start.
-local function harness(folders: { any }, profile: any?): (any, any, any)
+local function harness(folders: { any }, profile: any?, distance: number?): (any, any, any)
 	local source = fs.readFile(SOURCE)
 	local first = assert(string.find(source, "local function startCreatureAnimation", 1, true))
 	local last = assert(string.find(source, "local creatureAnimation = startCreatureAnimation", 1, true))
@@ -81,7 +81,7 @@ local function harness(folders: { any }, profile: any?): (any, any, any)
 					CFrame = {
 						Position = setmetatable({}, {
 							__sub = function()
-								return { Magnitude = 0 }
+								return { Magnitude = distance or 0 }
 							end,
 						}),
 					},
@@ -134,6 +134,7 @@ return {
 		start(function(target)
 			posed[target] = true
 		end)
+		assert(#creature.head.plates == 0, "no nameplate is built before the first frame")
 		local npc = model("Villager", {})
 		for _, handler in descendantAdded.handlers do
 			handler(npc)
@@ -206,5 +207,25 @@ return {
 		end
 		assert(#calls == 1 and calls[1].target == walker, "gallery rig present at start is posed")
 		assert(#walker.head.plates == 1, "gallery rig is registered (nameplate marker)")
+	end,
+	["nameplates are built lazily: none for creatures beyond their 40-stud draw distance"] = function()
+		local far = model("FarGrazer", { Species = "triceratops" })
+		local start, renderStepped = harness({ folder("Wildlife", { far }) }, RenderBudget.profiles.low, 41)
+		start(function() end)
+		for _ = 1, 3 do
+			for _, handler in renderStepped.handlers do
+				handler(1 / 60)
+			end
+		end
+		assert(#far.head.plates == 0, "a creature outside the nameplate MaxDistance costs no BillboardGui")
+		local near = model("NearGrazer", { Species = "triceratops" })
+		local startNear, steppedNear = harness({ folder("Wildlife", { near }) }, RenderBudget.profiles.low, 40)
+		startNear(function() end)
+		for _ = 1, 2 do
+			for _, handler in steppedNear.handlers do
+				handler(1 / 60)
+			end
+		end
+		assert(#near.head.plates == 1, "exactly one nameplate once the creature is in range")
 	end,
 }

@@ -105,8 +105,10 @@ local content = require(Shared.SurvivalContent)
 local worldConfig = require(Shared.SurvivalWorldConfig)
 local origin = worldConfig.tribe.origin
 gui.Enabled = false
+-- One icon catalog for every screen: ItemIcons.new walks the whole item and recipe catalog.
+local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
 local hud = SurvivalHUD.start({
-	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),
+	icons = itemIcons,
 	contextual = true,
 	content = content,
 	ui = {
@@ -188,7 +190,7 @@ for index, factory in panelFactories do
 		panelFactories[index] = function(ctx)
 			local trade: any = table.clone(ctx)
 			trade.content = content
-			trade.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+			trade.icons = table.clone(itemIcons)
 			local itemIcon = trade.icons.item
 			trade.icons.item = function(id, label)
 				return itemIcon(id, label or names[id])
@@ -339,7 +341,7 @@ end)
 table.insert(panelFactories, function(ctx)
 	local social: any = table.clone(ctx)
 	social.content, social.actorId = content, tostring(player.UserId)
-	social.icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+	social.icons = itemIcons
 	social.encode = function(value)
 		return game:GetService("HttpService"):JSONEncode(value)
 	end
@@ -812,7 +814,7 @@ local panels = ExtensionPanels.start({
 	end,
 	contextual = true,
 	content = content,
-	icons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets)),
+	icons = itemIcons,
 	launchers = {
 		{
 			id = "explore",
@@ -1015,7 +1017,8 @@ local DinosaurRig = require(Forge.genres["survival-coop"].module.DinosaurRig)
 local CreaturePose = require(script.Parent.CreaturePose)
 local function startCreatureAnimation(rigPose: (Model, string, number, number) -> ()): { destroy: () -> () }
 	local RunService = game:GetService("RunService")
-	local registry: { [Model]: { state: string, elapsed: number, offset: number? } } = {}
+	local registry: { [Model]: { state: string, elapsed: number, offset: number?, plated: boolean } } = {}
+	local NAMEPLATE_STUDS = 40
 	local connections: { RBXScriptConnection } = {}
 	local destroyed = false
 	-- Overhead species name (client-side, per-client locale), shown only up close so a herd
@@ -1027,7 +1030,7 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 		end
 		local plate = Instance.new("BillboardGui")
 		plate.Name, plate.Size, plate.StudsOffset = "ForgeNameplate", UDim2.fromOffset(160, 26), Vector3.new(0, 2.2, 0)
-		plate.MaxDistance, plate.AlwaysOnTop, plate.LightInfluence = 40, false, 0
+		plate.MaxDistance, plate.AlwaysOnTop, plate.LightInfluence = NAMEPLATE_STUDS, false, 0
 		local text = Instance.new("TextLabel")
 		text.Size, text.BackgroundTransparency, text.TextScaled = UDim2.fromScale(1, 1), 1, true
 		text.Font, text.TextColor3 = Enum.Font.GothamBold, Color3.fromRGB(255, 248, 230)
@@ -1049,11 +1052,11 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				-- Decorative role-world fauna idles on its server-seeded graze phase and wears no
 				-- nameplate: it is scenery, not a creature the player can interact with.
 				local phase, period = model:GetAttribute("ForgeGrazePhase"), model:GetAttribute("ForgeGrazePeriod")
+				-- The nameplate is built lazily on the first frame the creature is within its
+				-- MaxDistance, so a herd streaming in at startup costs no BillboardGuis.
 				local decor = model:GetAttribute("ForgeDecorFauna") == true
-				if not decor then
-					nameplate(model)
-				end
 				registry[model] = {
+					plated = decor,
 					state = "idle",
 					elapsed = 0,
 					offset = if decor
@@ -1110,9 +1113,14 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				local root = model.PrimaryPart
 				if root and viewCamera and not (registry[model].offset and not profile.decorFaunaPose) then
 					local state = model:GetAttribute("ForgeWildlifeState")
+					local distance = (viewCamera.CFrame.Position - root.Position).Magnitude
+					if not registry[model].plated and distance <= NAMEPLATE_STUDS then
+						registry[model].plated = true
+						nameplate(model)
+					end
 					table.insert(entries, {
 						key = model,
-						distance = (viewCamera.CFrame.Position - root.Position).Magnitude,
+						distance = distance,
 						urgent = state == "warning" or state == "windup" or state == "attack" or state == "stun",
 					})
 				end
@@ -1275,30 +1283,60 @@ local function dressRoleWorld(root: Instance)
 	end
 	folder.Parent = root
 end
+-- Decor gate: procedural props are scenery, so on the low profile they wait until the
+-- first prompt is shown (or decorDeferSeconds pass) instead of competing with the world,
+-- HUD and first gather prompt for the opening frames. High (decorDeferSeconds 0) opens at once.
+local decorGate = RenderBudget.gate()
 local function watchRoleWorld(child: Instance)
 	if child.Name == "ForgeRoleWorld" and not child:FindFirstChild("ForgeProcProps") then
-		task.spawn(dressRoleWorld, child)
+		decorGate.after(function()
+			if child.Parent ~= nil and not child:FindFirstChild("ForgeProcProps") then
+				task.spawn(dressRoleWorld, child)
+			end
+		end)
 	end
 end
+local function startDecorGate(): () -> ()
+	if profile.decorDeferSeconds <= 0 then
+		decorGate.open()
+		return function() end
+	end
+	local shown = game:GetService("ProximityPromptService").PromptShown:Connect(function()
+		decorGate.open()
+	end)
+	task.delay(profile.decorDeferSeconds, decorGate.open)
+	return function()
+		shown:Disconnect()
+	end
+end
+local stopDecorGate = startDecorGate()
+script.Destroying:Connect(stopDecorGate)
+userSettings:GetPropertyChangedSignal("SavedQualityLevel"):Connect(function()
+	if renderProfile().decorDeferSeconds <= 0 then
+		decorGate.open()
+	end
+end)
 workspace.ChildAdded:Connect(watchRoleWorld)
 for _, child in workspace:GetChildren() do
 	watchRoleWorld(child)
 end
-task.spawn(function()
-	local island = workspace:WaitForChild("DevelopmentIsland", 15)
-	if island then
-		local propPlacements = {
-			{ key = "robango-flint-crystal", name = "FlintCrystalMesh", cf = CFrame.new(-10.2, 2.2, 13.2) },
-			{ key = "survival-coop-starter-prop", name = "FlintRockMesh", cf = CFrame.new(-11.8, 1.4, 14.6) },
-			{ key = "robango-forest-tree", name = "CampTreeMeshNW", cf = CFrame.new(-26, 3.2, 8) },
-			{ key = "robango-forest-tree", name = "CampTreeMeshNE", cf = CFrame.new(22, 3.2, 8) },
-			{ key = "robango-forest-tree", name = "CampTreeMeshSW", cf = CFrame.new(-24, 3.2, 22) },
-		}
-		for _, item in RenderBudget.meshes(propPlacements, profile) do
-			local built = decorProp(item.key, item.name, item.cf, 1)
-			if built then
-				built.Parent = island
+decorGate.after(function()
+	task.spawn(function()
+		local island = workspace:WaitForChild("DevelopmentIsland", 15)
+		if island then
+			local propPlacements = {
+				{ key = "robango-flint-crystal", name = "FlintCrystalMesh", cf = CFrame.new(-10.2, 2.2, 13.2) },
+				{ key = "survival-coop-starter-prop", name = "FlintRockMesh", cf = CFrame.new(-11.8, 1.4, 14.6) },
+				{ key = "robango-forest-tree", name = "CampTreeMeshNW", cf = CFrame.new(-26, 3.2, 8) },
+				{ key = "robango-forest-tree", name = "CampTreeMeshNE", cf = CFrame.new(22, 3.2, 8) },
+				{ key = "robango-forest-tree", name = "CampTreeMeshSW", cf = CFrame.new(-24, 3.2, 22) },
+			}
+			for _, item in RenderBudget.meshes(propPlacements, profile) do
+				local built = decorProp(item.key, item.name, item.cf, 1)
+				if built then
+					built.Parent = island
+				end
 			end
 		end
-	end
+	end)
 end)

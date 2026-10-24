@@ -111,6 +111,7 @@
     'wildlifePoseMax': 6
     'decorFaunaPose': false
     'meshBuildsMax': 2
+    'decorDeferSeconds': 8
   'high':
     'qualityLevelMax': 10
     'decorPartsMax': 100000
@@ -120,6 +121,7 @@
     'wildlifePoseMax': 1000
     'decorFaunaPose': true
     'meshBuildsMax': 6
+    'decorDeferSeconds': 0
 'place_roles':
   # Zero is unconfigured. Live startup and deployment refuse it.
   'onboarding': 0

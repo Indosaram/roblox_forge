@@ -10,6 +10,12 @@ export type Profile = {
 	wildlifePoseMax: number,
 	decorFaunaPose: boolean,
 	meshBuildsMax: number,
+	decorDeferSeconds: number,
+}
+export type Gate = {
+	after: (callback: () -> ()) -> (),
+	open: () -> (),
+	isOpen: () -> boolean,
 }
 local M = {}
 
@@ -23,6 +29,7 @@ M.profiles = {
 		wildlifePoseMax = 6,
 		decorFaunaPose = false,
 		meshBuildsMax = 2,
+		decorDeferSeconds = 8,
 	} :: Profile,
 	high = {
 		qualityLevelMax = 10,
@@ -33,6 +40,7 @@ M.profiles = {
 		wildlifePoseMax = 1000,
 		decorFaunaPose = true,
 		meshBuildsMax = 6,
+		decorDeferSeconds = 0,
 	} :: Profile,
 }
 
@@ -114,6 +122,38 @@ function M.meshes<T>(placements: { T }, profile: Profile): { T }
 		table.insert(kept, placements[index])
 	end
 	return kept
+end
+
+--- Startup gate for non-interactive client work (procedural decor, Studio dev-island
+--- meshes). Callbacks queued with `after` run once, in order, when `open` is first called;
+--- after that they run immediately. The client opens it on the first shown prompt, or
+--- after the profile's decorDeferSeconds, or at once when that is 0.
+function M.gate(): Gate
+	local opened = false
+	local waiting: { () -> () } = {}
+	return {
+		after = function(callback: () -> ())
+			if opened then
+				callback()
+			else
+				table.insert(waiting, callback)
+			end
+		end,
+		open = function()
+			if opened then
+				return
+			end
+			opened = true
+			local queued = waiting
+			waiting = {}
+			for _, callback in queued do
+				callback()
+			end
+		end,
+		isOpen = function(): boolean
+			return opened
+		end,
+	}
 end
 
 local EFFECT_CLASSES = { "Fire", "Smoke", "ParticleEmitter", "Beam", "PointLight" }

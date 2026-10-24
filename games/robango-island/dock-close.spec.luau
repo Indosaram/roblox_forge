@@ -413,6 +413,9 @@ local function harness(): any
 	env.content = load("games/robango-island/src/shared/SurvivalContent")
 	env.player, env.locale, env.korean = player, "ko-kr", true
 	env.names, env.authoredText = PackText.names("ko-kr"), PackText.authored
+	-- The client builds one shared icon catalog before the panel section.
+	env.itemIcons =
+		load("genres/survival-coop/module/ItemIcons").new(env.content, load("games/robango-island/src/shared/Assets"))
 	local hud: any = { opened = signal(), shown = false }
 	function hud.open()
 		hud.shown = true
