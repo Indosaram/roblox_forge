@@ -7,6 +7,7 @@
 -- World input: every wild model under Workspace.ForgeWildlife whose ForgeWildlifeKind is in
 -- snapshot.taming.tameable gets a client-local ProximityPrompt (Q / click / tap) that sends
 -- tame-hit until the stun gauge for that wild id is full, then tame-capture.
+local WildlifeNames = require("./WildlifeNames")
 local M = {}
 
 -- Durable ids are genre-qualified: ctx.send checks them against the published action list.
@@ -32,6 +33,22 @@ local strings: { [string]: { string } } = {
 	companion_dismount = { "Dismount", "내리기" },
 	companion_release = { "Release", "놓아주기" },
 	companion_recover = { "Recover", "회복" },
+	companion_empty = {
+		"No tamed animals yet. Lower a wild animal to 25% health, stun it with a club, then throw Capture Rope. In the pen, 3 Herbivore Feed tames it.",
+		"아직 길들인 동물이 없어요. 야생 동물의 체력을 25% 이하로 낮추고 몽둥이로 기절시킨 뒤 포획 밧줄을 던지세요. 우리에서 초식동물 사료 3개를 먹이면 길들여져요.",
+	},
+	companion_summary = { "Owned %d/%d · Out with you %d/1", "보유 %d/%d · 함께 다니는 중 %d/1" },
+	companion_phase_Captured = { "Captured", "포획함" },
+	companion_phase_PenPlaced = { "In the pen", "우리 안" },
+	companion_phase_Taming = { "Taming", "조련 중" },
+	companion_phase_Stored = { "Stored", "보관 중" },
+	companion_phase_Deployed = { "Out with you", "함께 다니는 중" },
+	companion_phase_Downed = { "Downed", "쓰러짐" },
+	companion_stats = { "Lv %d · Fullness %d/%d", "Lv %d · 포만감 %d/%d" },
+	companion_feeds = { "Feed %d/%d", "먹이 %d/%d" },
+	companion_resting = { "Recovers in %s", "%s 후 회복" },
+	companion_saddled = { "Saddled", "안장 있음" },
+	companion_riding = { "Riding", "탑승 중" },
 	tame_title = { "Tamed animals", "길들인 동물" },
 	tame_empty = {
 		"No tamed animals yet. Stun a wild animal, then capture it with a bola.",
@@ -60,47 +77,6 @@ local strings: { [string]: { string } } = {
 	tame_escaped = { "It broke free! Try again.", "빠져나갔어요! 다시 시도하세요." },
 	tame_gone = { "That animal is not here anymore.", "그 동물은 이제 여기 없어요." },
 	tame_captured = { "Captured %s! It is in your pen.", "%s 포획! 우리에 들어갔어요." },
-	wildlife_ridge_strider = { "Ridge Strider", "능선걸음이" },
-	wildlife_fen_trotter = { "Fen Trotter", "늪종종이" },
-	wildlife_bluff_bounder = { "Bluff Bounder", "벼랑깡충이" },
-	wildlife_compsognathus = { "Compsognathus", "콤프소그나투스" },
-	wildlife_oviraptor = { "Oviraptor", "오비랍토르" },
-	wildlife_protoceratops = { "Protoceratops", "프로토케라톱스" },
-	wildlife_gallimimus = { "Gallimimus", "갈리미무스" },
-	wildlife_parasaurolophus = { "Parasaurolophus", "파라사우롤로푸스" },
-	wildlife_stegosaurus = { "Stegosaurus", "스테고사우루스" },
-	wildlife_ankylosaurus = { "Ankylosaurus", "안킬로사우루스" },
-	wildlife_triceratops = { "Triceratops", "트리케라톱스" },
-	wildlife_brachiosaurus = { "Brachiosaurus", "브라키오사우루스" },
-	wildlife_utahraptor = { "Utahraptor", "유타랍토르" },
-	wildlife_velociraptor = { "Velociraptor", "벨로키랍토르" },
-	wildlife_dilophosaurus = { "Dilophosaurus", "딜로포사우루스" },
-	wildlife_allosaurus = { "Allosaurus", "알로사우루스" },
-	wildlife_tyrannosaurus = { "Tyrannosaurus", "티라노사우루스" },
-	wildlife_smilodon = { "Smilodon", "스밀로돈" },
-	wildlife_tropicalSmilodon = { "Tropical Smilodon", "열대 스밀로돈" },
-	wildlife_direWolf = { "Dire Wolf", "다이어울프" },
-	wildlife_mammoth = { "Mammoth", "매머드" },
-	wildlife_deer = { "Deer", "사슴" },
-	wildlife_elephant = { "Elephant", "코끼리" },
-	wildlife_crocodile = { "Crocodile", "악어" },
-	wildlife_turtle = { "Turtle", "거북" },
-	wildlife_dodo = { "Dodo", "도도" },
-	wildlife_boar = { "Boar", "멧돼지" },
-	wildlife_grazer = { "Meadow Plodder", "풀밭느림보" },
-	wildlife_hunter = { "Brush Stalker", "덤불살금이" },
-	wildlife_leaper_fernhop = { "Fernhopper", "고사리뜀이" },
-	wildlife_leaper_reedvault = { "Reed Vaulter", "갈대도약이" },
-	wildlife_charger_oakbrow = { "Oakbrow Rammer", "참나무이마박치기" },
-	wildlife_charger_mudbrow = { "Mudbrow Rammer", "진흙이마박치기" },
-	wildlife_tailswing_mossback = { "Mossback Swinger", "이끼등꼬리채" },
-	wildlife_tailswing_shellclub = { "Shellclub Swinger", "조가비곤봉꼬리" },
-	wildlife_roarer_thicket = { "Thicket Bellower", "덤불울림이" },
-	wildlife_roarer_tidecall = { "Tidecall Bellower", "물때울림이" },
-	wildlife_scavenger_barkpicker = { "Barkpicker", "껍질뒤짐이" },
-	wildlife_scavenger_flotsam = { "Flotsam Sniffer", "표류물킁킁이" },
-	wildlife_herd_acorncrest = { "Acorncrest Grazer", "도토리볏풀뜯이" },
-	wildlife_herd_sedgewader = { "Sedge Wader", "사초건너미" },
 }
 
 local function pick(locale: string, entry: { string }): string
@@ -122,8 +98,7 @@ end
 
 --- Localized species name for a wildlife id.
 function M.species(locale: string, species: string): string
-	local entry = strings["wildlife_" .. string.gsub(species, "%-", "_")]
-	return if entry then pick(locale, entry) else species
+	return WildlifeNames.name(locale, species)
 end
 
 --- m:ss for a remaining time in milliseconds (rounded up to whole seconds).
@@ -183,6 +158,83 @@ function M.refusal(locale: string, result: { ok: boolean?, reason: string? }): s
 		return ""
 	end
 	return if key then M.text(locale, key) else M.text(locale, "tame_failed") .. " [" .. (result.reason or "?") .. "]"
+end
+
+export type CompanionRow = {
+	id: string,
+	title: string,
+	detail: string,
+	color: { r: number, g: number, b: number }?,
+	actions: { string },
+}
+
+--- Pure view model for the V2 companion list (specced): a summary line plus one row per pet,
+--- sorted by id, with the localized species/phase title, a stats line (species level, fullness,
+--- taming feeds and timer, rest timer, saddle/ride), the species body colour and the verbs the
+--- pet's phase allows. `content` is the pack content (wildlifeDetails, progressionPolicy.companion).
+function M.companions(locale: string, state: any, content: any, nowMillis: number): (string, { CompanionRow })
+	local rules = content and content.progressionPolicy and content.progressionPolicy.companion or {}
+	local species: { [string]: any } = {}
+	for _, row in (content and content.wildlifeDetails) or {} do
+		species[row.id] = row
+	end
+	local companions = state and state.companions or {}
+	local ids = {}
+	for id in companions.pets or {} do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	local rows: { CompanionRow } = {}
+	for _, id in ids do
+		local pet = companions.pets[id]
+		local detailRow = species[pet.species]
+		local riding = companions.ride == id
+		local parts = {
+			string.format(
+				M.text(locale, "companion_stats"),
+				if detailRow then detailRow.level else 1,
+				math.floor(pet.satiety or 0),
+				rules.maxSatiety or 100
+			),
+		}
+		if pet.phase == "Taming" then
+			table.insert(parts, string.format(M.text(locale, "companion_feeds"), pet.feeds or 0, rules.feedCount or 3))
+			table.insert(parts, M.pen(locale, (pet.readyAt or 0) - nowMillis))
+		elseif pet.phase == "Downed" then
+			table.insert(parts, M.text(locale, "companion_resting", M.clock((pet.injuredUntil or 0) - nowMillis)))
+		end
+		if riding then
+			table.insert(parts, M.text(locale, "companion_riding"))
+		elseif pet.saddle then
+			table.insert(parts, M.text(locale, "companion_saddled"))
+		end
+		local actions = if pet.phase == "Captured"
+			then { "place", "release:" .. id }
+			elseif pet.phase == "PenPlaced" then { "train" }
+			elseif pet.phase == "Taming" then { "feed", "claim", "cancel" }
+			elseif pet.phase == "Stored" then { "deploy", "release:" .. id }
+			elseif pet.phase == "Deployed" then { "feed", "recall" }
+			else { "recover", "feed" }
+		if pet.phase == "Stored" and not pet.saddle then
+			table.insert(actions, 2, "saddle")
+		elseif pet.phase == "Deployed" then
+			table.insert(actions, if riding then "dismount" elseif pet.saddle then "mount" else "saddle")
+		end
+		local phaseKey = "companion_phase_" .. tostring(pet.phase)
+		local body = detailRow and detailRow.visual and detailRow.visual.body
+		table.insert(rows, {
+			id = id,
+			title = M.species(locale, pet.species) .. " · " .. (if strings[phaseKey]
+				then M.text(locale, phaseKey)
+				else M.text(locale, "companion_phase_Stored")),
+			detail = table.concat(parts, " · "),
+			color = if body then { r = body.r, g = body.g, b = body.b } else nil,
+			actions = actions,
+		})
+	end
+	local out = if companions.deployed then 1 else 0
+	local summary = string.format(M.text(locale, "companion_summary"), #ids, rules.capacity or 8, out)
+	return summary, rows
 end
 
 export type Gauge = { wildId: string?, level: number, max: number, full: boolean? }
@@ -253,6 +305,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local layout = Instance.new("UIListLayout")
 	layout.Padding, layout.Parent = UDim.new(0, 6), rows
 	local timers: { { label: TextLabel, remaining: number } } = {}
+	local companionDetails: { [string]: TextLabel } = {}
+	local lastCompanions: any = nil
+	local function serverMillis(): number
+		return workspace:GetServerTimeNow() * 1000
+	end
 	local received = os.clock()
 	local function send(action: string, args: { any }): any
 		local result = ctx.send(action, args)
@@ -276,36 +333,63 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		table.clear(timers)
 		received = os.clock()
 		local state = snapshot.taming
-		if type(state) ~= "table" then
-			return
-		end
-		if state.companions then
-			local order = 0
-			for id, pet in state.companions.pets do
-				order += 1
+		local v2 = ctx.content ~= nil
+			and ctx.content.progressionPolicy ~= nil
+			and ctx.content.progressionPolicy.companion ~= nil
+		lastCompanions = nil
+		table.clear(companionDetails)
+		if type(state) ~= "table" or state.companions or v2 then
+			-- V2 companions (or no snapshot yet): summary, one card per pet, else how to tame.
+			local summaryText, list = M.companions(ctx.locale, state, ctx.content, serverMillis())
+			local summary =
+				ui.components.label(theme, { text = summaryText, size = UDim2.new(1, 0, 0, 28), parent = rows })
+			summary.Name, summary.LayoutOrder = "CompanionSummary", 0
+			if #list == 0 then
+				local empty = ui.components.label(theme, {
+					text = M.text(ctx.locale, if v2 or type(state) ~= "table" then "companion_empty" else "tame_empty"),
+					size = UDim2.new(1, 0, 0, 120),
+					parent = rows,
+				})
+				empty.Name, empty.LayoutOrder = "CompanionEmpty", 1
+				return
+			end
+			lastCompanions = state
+			for order, row in list do
+				local id = row.id
 				local frame = Instance.new("Frame")
 				frame.Name, frame.BackgroundTransparency, frame.Size, frame.Parent =
-					"Companion-" .. id, 1, UDim2.new(1, 0, 0, 160), rows
+					"Companion-" .. id, 1, UDim2.new(1, 0, 0, 172), rows
 				frame.LayoutOrder = order
-				ui.components.label(
-					theme,
-					{ text = pet.species .. " / " .. pet.phase, size = UDim2.new(1, 0, 0, 32), parent = frame }
-				)
-				local actions = if pet.phase == "Captured"
-					then { "place" }
-					elseif pet.phase == "PenPlaced" then { "train" }
-					elseif pet.phase == "Taming" then { "feed", "claim", "cancel" }
-					elseif pet.phase == "Stored" then { "deploy", "saddle", "release:" .. id }
-					elseif pet.phase == "Deployed" then { "feed", "recall", "mount", "dismount" }
-					else { "recover", "feed" }
-				for index, verb in ipairs(actions) do
+				local chip = Instance.new("Frame")
+				chip.Name, chip.Size, chip.Position, chip.BorderSizePixel =
+					"SpeciesChip", UDim2.fromOffset(22, 22), UDim2.fromOffset(0, 3), 0
+				chip.BackgroundColor3 = if row.color
+					then Color3.fromRGB(row.color.r, row.color.g, row.color.b)
+					else Color3.fromRGB(150, 150, 150)
+				chip.Parent = frame
+				local title = ui.components.label(theme, {
+					text = row.title,
+					size = UDim2.new(1, -30, 0, 28),
+					position = UDim2.fromOffset(30, 0),
+					parent = frame,
+				})
+				title.Name = "CompanionTitle"
+				local detail = ui.components.label(theme, {
+					text = row.detail,
+					size = UDim2.new(1, 0, 0, 40),
+					position = UDim2.fromOffset(0, 28),
+					parent = frame,
+				})
+				detail.Name = "CompanionDetail"
+				companionDetails[id] = detail
+				for index, verb in ipairs(row.actions) do
 					local control = ui.components.button(theme, {
 						text = M.text(
 							ctx.locale,
 							"companion_" .. (if string.sub(verb, 1, 8) == "release:" then "release" else verb)
 						),
 						size = UDim2.new(0.5, -4, 0, 48),
-						position = UDim2.new((index - 1) % 2 / 2, 0, 0, 36 + math.floor((index - 1) / 2) * 52),
+						position = UDim2.new((index - 1) % 2 / 2, 0, 0, 72 + math.floor((index - 1) / 2) * 52),
 						parent = frame,
 						onClick = function()
 							send(PREFIX .. "companion-action", { verb, id })
@@ -544,6 +628,15 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		while alive do
 			task.wait(1)
 			local elapsed = (os.clock() - received) * 1000
+			if lastCompanions then
+				local _, list = M.companions(ctx.locale, lastCompanions, ctx.content, serverMillis())
+				for _, row in list do
+					local detail = companionDetails[row.id]
+					if detail then
+						detail.Text = row.detail
+					end
+				end
+			end
 			for _, timer in timers do
 				local entry: any = timer
 				entry.label.Text = M.species(ctx.locale, entry.species)

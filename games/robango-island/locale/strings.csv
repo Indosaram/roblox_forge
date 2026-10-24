@@ -1286,7 +1286,6 @@ exp_no,no,expedition lane,no,아니요
 exp_travel,Connecting to route %d...,expedition lane,Connecting to route %d...,항로 %d에 연결하는 중...
 exp_retry,Retry,expedition lane,Retry,다시 시도
 exp_stage,Route %d - stage %d of 4,expedition lane,Route %d - stage %d of 4,항로 %d - 4단계 중 %d단계
-exp_objective,%s %s: %d/%d,expedition lane,%s %s: %d/%d,%s %s: %d/%d
 exp_expires,Route closes in %s,expedition lane,Route closes in %s,%s 후 항로 마감
 exp_next,Next island,expedition lane,Next island,다음 섬
 exp_next_locked,Finish both objectives to unlock the next island,expedition lane,Finish both objectives to unlock the next island,목표 두 개를 마치면 다음 섬이 열려요
@@ -1603,3 +1602,24 @@ rw.g30.route-supplies.complete,Supplies packed. Reach level 30 and depart on Rou
 guide_where_region,"%s (Harbor > departure post, level %d area)",HUD objective next step,"%s (Harbor > departure post, level %d area)","%s (항구 > 출발 지점, 레벨 %d 지역)"
 guide_then_region,%s. Next: level %d opens Harbor > departure post (level %d area),HUD objective next step,%s. Next: level %d opens Harbor > departure post (level %d area),%s. 다음: 레벨 %d에 항구 > 출발 지점 (레벨 %d 지역)이 열려요
 guide_then_guide,%s. Next: guide %s at level %d,HUD objective next step,%s. Next: guide %s at level %d,%s. 다음: 안내 %s (레벨 %d)
+companion_empty,"No tamed animals yet. Lower a wild animal to 25% health, stun it with a club, then throw Capture Rope. In the pen, 3 Herbivore Feed tames it.",companion list,"No tamed animals yet. Lower a wild animal to 25% health, stun it with a club, then throw Capture Rope. In the pen, 3 Herbivore Feed tames it.",아직 길들인 동물이 없어요. 야생 동물의 체력을 25% 이하로 낮추고 몽둥이로 기절시킨 뒤 포획 밧줄을 던지세요. 우리에서 초식동물 사료 3개를 먹이면 길들여져요.
+companion_summary,Owned %d/%d · Out with you %d/1,companion list,Owned %d/%d · Out with you %d/1,보유 %d/%d · 함께 다니는 중 %d/1
+companion_phase_Captured,Captured,companion list,Captured,포획함
+companion_phase_PenPlaced,In the pen,companion list,In the pen,우리 안
+companion_phase_Taming,Taming,companion list,Taming,조련 중
+companion_phase_Stored,Stored,companion list,Stored,보관 중
+companion_phase_Deployed,Out with you,companion list,Out with you,함께 다니는 중
+companion_phase_Downed,Downed,companion list,Downed,쓰러짐
+companion_stats,Lv %d · Fullness %d/%d,companion list,Lv %d · Fullness %d/%d,Lv %d · 포만감 %d/%d
+companion_feeds,Feed %d/%d,companion list,Feed %d/%d,먹이 %d/%d
+companion_resting,Recovers in %s,companion list,Recovers in %s,%s 후 회복
+companion_saddled,Saddled,companion list,Saddled,안장 있음
+companion_riding,Riding,companion list,Riding,탑승 중
+exp_obj_gather,Gather %s %d/%d,expedition objective,Gather %s %d/%d,%s 모으기 %d/%d
+exp_obj_craft,Craft %s %d/%d,expedition objective,Craft %s %d/%d,%s 만들기 %d/%d
+exp_obj_hunt,Hunt %s %d/%d,expedition objective,Hunt %s %d/%d,%s 사냥하기 %d/%d
+exp_obj_transport,Deliver %s %d/%d,expedition objective,Deliver %s %d/%d,%s 운반하기 %d/%d
+exp_obj_survey,Survey the marked spot %d/%d,expedition objective,Survey the marked spot %d/%d,조사 지점 살펴보기 %d/%d
+exp_obj_rescue,Rescue the castaway %d/%d,expedition objective,Rescue the castaway %d/%d,표류자 구조하기 %d/%d
+exp_obj_other,Island objective %d/%d,expedition objective,Island objective %d/%d,섬 목표 %d/%d
+exp_obj_thing,supplies,expedition objective,supplies,물자

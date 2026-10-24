@@ -67,17 +67,18 @@ return {
 		for _, anchor in
 			{
 				"size = UDim2.new(0.5, -4, 0, 48),",
-				"position = UDim2.new((index - 1) % 2 / 2, 0, 0, 36 + math.floor((index - 1) / 2) * 52),",
-				'"Companion-" .. id, 1, UDim2.new(1, 0, 0, 160), rows',
+				"position = UDim2.new((index - 1) % 2 / 2, 0, 0, 72 + math.floor((index - 1) / 2) * 52),",
+				'"Companion-" .. id, 1, UDim2.new(1, 0, 0, 172), rows',
 				"size = UDim2.fromScale(0.23, 1),",
 				"size = UDim2.fromScale(0.36, 1),",
 			}
 		do
 			assert(string.find(source, anchor, 1, true), "TamingPanel layout constant moved: " .. anchor)
 		end
-		-- Most verbs a phase shows (Deployed: feed, recall, mount, dismount) in a 2-column grid.
-		local rows = math.ceil(4 / 2)
-		assert(36 + (rows - 1) * 52 + 48 <= 160, "companion action grid fits its 160px card")
+		-- Most verbs a phase shows (Taming: feed, claim, cancel) in a 2-column grid under the
+		-- 28px title and 40px stats line.
+		local rows = math.ceil(3 / 2)
+		assert(72 + (rows - 1) * 52 + 48 <= 172, "companion action grid fits its 172px card")
 		for _, viewport in VIEWPORTS do
 			local width = content(viewport)
 			local half, quarter, ride = width * 0.5 - 4, width * 0.23, width * 0.36

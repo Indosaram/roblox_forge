@@ -2,6 +2,7 @@
 -- Player-facing text for the expedition lane (routes, party, invites, departure, travel,
 -- expedition tracker, results, hazard, knockout). EN first, ko-kr second; default EN.
 -- Every key mirrors a games/robango-island/locale/strings.csv row.
+local WildlifeNames = require("./WildlifeNames")
 local M = {}
 
 local strings: { [string]: { string } } = {
@@ -50,7 +51,14 @@ local strings: { [string]: { string } } = {
 	exp_travel = { "Connecting to route %d...", "항로 %d에 연결하는 중..." },
 	exp_retry = { "Retry", "다시 시도" },
 	exp_stage = { "Route %d - stage %d of 4", "항로 %d - 4단계 중 %d단계" },
-	exp_objective = { "%s %s: %d/%d", "%s %s: %d/%d" },
+	exp_obj_gather = { "Gather %s %d/%d", "%s 모으기 %d/%d" },
+	exp_obj_craft = { "Craft %s %d/%d", "%s 만들기 %d/%d" },
+	exp_obj_hunt = { "Hunt %s %d/%d", "%s 사냥하기 %d/%d" },
+	exp_obj_transport = { "Deliver %s %d/%d", "%s 운반하기 %d/%d" },
+	exp_obj_survey = { "Survey the marked spot %d/%d", "조사 지점 살펴보기 %d/%d" },
+	exp_obj_rescue = { "Rescue the castaway %d/%d", "표류자 구조하기 %d/%d" },
+	exp_obj_other = { "Island objective %d/%d", "섬 목표 %d/%d" },
+	exp_obj_thing = { "supplies", "물자" },
 	exp_expires = { "Route closes in %s", "%s 후 항로 마감" },
 	exp_next = { "Next island", "다음 섬" },
 	exp_next_locked = {
@@ -199,6 +207,29 @@ function M.mission(locale: string, names: any, id: string): string
 		tonumber(route) or 0,
 		M.text(locale, if strings[key] then key else "mission_unknown")
 	)
+end
+
+-- Objective verbs whose template names the target; survey and rescue targets are layout
+-- anchors (never player-facing), so their lines name the activity only.
+local NAMED = { gather = true, craft = true, hunt = true, transport = true }
+
+--- One player-readable objective line, e.g. "쓰러진 통나무 모으기 3/5" or "Survey the marked spot 0/1".
+--- Items come from the pack's names table, hunted species from the wildlife names; a raw id or
+--- action verb is never shown.
+function M.objective(locale: string, names: any, objective: any): string
+	local action = tostring(objective.action)
+	local progress, quantity = objective.progress or 0, objective.quantity or 0
+	if NAMED[action] then
+		local target = tostring(objective.target)
+		local name = if names and names[target] then names[target] else nil
+		if not name and action == "hunt" then
+			local species = WildlifeNames.name(locale, target)
+			name = if species ~= target then species else nil
+		end
+		return M.text(locale, "exp_obj_" .. action, name or M.text(locale, "exp_obj_thing"), progress, quantity)
+	end
+	local key = "exp_obj_" .. action
+	return M.text(locale, if strings[key] then key else "exp_obj_other", progress, quantity)
 end
 
 function M.reason(locale: string, reason: string?): string

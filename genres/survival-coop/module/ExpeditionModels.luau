@@ -292,15 +292,7 @@ function M.expedition(locale: string, state: any, names: any, ask: (string) -> (
 		end)
 	)
 	for _, objective in tracker.objectives do
-		local target = if names and names[objective.target] then names[objective.target] else objective.target
-		table.insert(
-			items,
-			label(
-				Text.text(locale, "exp_objective", objective.action, target, objective.progress, objective.quantity),
-				LINE,
-				"Objective-" .. objective.id
-			)
-		)
+		table.insert(items, label(Text.objective(locale, names, objective), LINE, "Objective-" .. objective.id))
 	end
 	return Text.text(locale, "exp_stage", tracker.route, tracker.stage), items
 end

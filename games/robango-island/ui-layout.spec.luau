@@ -283,6 +283,7 @@ return {
 				"CampPanelModel",
 				"BrawlPanel",
 				"FarmCraftText",
+				"WildlifeNames",
 			}
 		do
 			table.insert(sources, "genres/survival-coop/module/" .. name .. ".luau")

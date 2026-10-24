@@ -260,7 +260,7 @@ return {
 		h.push(state({ tracker = tracker }))
 		assert(h.docks.expedition.available, "expedition tile available")
 		assert(h.find("NextLocked") and not h.find("ExpeditionNext"), "next island locked")
-		assert(h.find("Objective-o2").Text == "rescue castaway: 0/1", "objective progress")
+		assert(h.find("Objective-o2").Text == "Rescue the castaway 0/1", "objective progress")
 		tracker.unlocked = true
 		h.push(state({ tracker = tracker }))
 		h.click("ExpeditionNext")
