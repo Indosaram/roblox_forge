@@ -31,8 +31,30 @@ return {
 		local source = fs.readFile(HUD)
 		assert(not string.find(source, 'if processed or section ~= "build"', 1, true), "touch not gated on processed")
 		assert(string.find(source, "input.InputEnded:Connect", 1, true), "tap-to-cell handler")
-		assert(string.find(source, "BuildPlacement.pointerUse(kind, processed, over)", 1, true), "drag uses the rule")
+		assert(
+			string.find(source, "BuildPlacement.pointerUse(kind, processed, over, ghostLocked)", 1, true),
+			"drag uses the rule"
+		)
 		assert(string.find(source, "GetGuiObjectsAtPosition", 1, true), "HUD buttons keep their taps")
+	end,
+	["p70 desktop ghost stays on the picked cell while the mouse moves to the placement bar"] = function()
+		-- p68: hovering toward '재료 예약' dragged the ghost to the cell under the bar edge.
+		assert(not Build.pointerUse("MouseMovement", false, true), "unprocessed hover over any GUI keeps the cell")
+		assert(not Build.pointerUse("MouseMovement", false, false, true), "a click-locked cell ignores hover")
+		assert(Build.pointerUse("MouseMovement", false, false, false), "unlocked world hover still previews")
+		assert(Build.pointerUse("Touch", true, false, true), "touch drag is never click-locked")
+		assert(Build.clickLocks("MouseButton1", false, false), "world click picks and locks")
+		assert(not Build.clickLocks("MouseButton1", false, true), "click on a HUD control does not re-pick")
+		assert(not Build.clickLocks("MouseButton1", true, false), "GUI-processed click does not re-pick")
+		assert(not Build.clickLocks("Touch", false, false), "touch keeps tap-on-release")
+		local source = fs.readFile(HUD)
+		assert(
+			string.find(source, "BuildPlacement.pointerUse(kind, processed, over, ghostLocked)", 1, true),
+			"hover honours the lock"
+		)
+		assert(string.find(source, 'kind == "MouseMovement")', 1, true), "mouse hover runs the over-GUI check")
+		assert(string.find(source, "BuildPlacement.clickLocks(", 1, true), "world click locks the ghost")
+		assert(string.find(source, "structureId, ghostLocked = definition.id, false", 1, true), "new pick unlocks")
 	end,
 	["p61 a free PC key rotates the ghost and the build hints name it"] = function()
 		assert(Build.ROTATE_KEY == "Y", "rotate key")

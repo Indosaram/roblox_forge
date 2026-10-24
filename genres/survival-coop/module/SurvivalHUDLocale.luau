@@ -201,8 +201,8 @@ local strings: { [string]: { string } } = {
 	make = { "Make (auto-collect)", "만들기 (자동 수령)" },
 	missing = { "Missing", "부족한 재료" },
 	placementHint = {
-		"Point at or tap the ground, press Y to rotate, then confirm placement",
-		"바닥을 가리키거나 터치하고 Y 키로 회전한 뒤 배치를 확정하세요",
+		"Click or tap the ground to pick a cell, press Y to rotate, then confirm placement",
+		"바닥을 클릭하거나 터치해 칸을 고르고 Y 키로 회전한 뒤 배치를 확정하세요",
 	},
 	inputs = { "Ingredients (available / needed)", "재료 (사용 가능 / 필요)" },
 	outputs = { "Makes", "결과" },

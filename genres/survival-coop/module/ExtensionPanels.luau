@@ -184,6 +184,13 @@ function M.menuCanvas(count: number, columns: number, tile: number): number
 	local rows = math.ceil(count / math.max(1, columns))
 	return M.MENU_GAP + rows * (tile + M.MENU_GAP)
 end
+-- Visible menu height trimmed to whole tile rows (p68: at 360x640 a 20px sliver of the next row,
+-- with the Music tile's centre below the frame, so a tap there fell through to the world). With
+-- whole rows the unscrolled view and the view at maximum scroll both end on a full row.
+function M.menuRows(height: number, tile: number): number
+	local rows = math.floor(height / (tile + M.MENU_GAP))
+	return if rows >= 1 then rows * (tile + M.MENU_GAP) else height
+end
 -- Columns: design count capped by touch-sized tiles; the grid starts below the menu button and chat.
 function M.menuRect(width: number, height: number, touch: boolean): (number, number, number, number, number, number)
 	local w, columns, tile, top = M.menuBounds(width, height)
@@ -391,6 +398,8 @@ function M.start(options: {
 		menuList.AutomaticCanvasSize = Enum.AutomaticSize.None
 		menuList.CanvasSize = UDim2.fromOffset(0, 0)
 		menuList.ScrollBarThickness = 6
+		-- Scroll affordance: a light, opaque bar on the dark tiles shows that more rows sit below.
+		menuList.ScrollBarImageColor3, menuList.ScrollBarImageTransparency = Color3.fromRGB(224, 241, 229), 0
 		-- Vertical only, so wheel and drag in either direction always move the rows.
 		menuList.ScrollingDirection = Enum.ScrollingDirection.Y
 		local menuPad = Instance.new("UIPadding")
@@ -523,6 +532,7 @@ function M.start(options: {
 			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
 				M.menuRect(size.X, size.Y, input.TouchEnabled)
 			local mx, my, mw, mh = HUDModel.chatSafe(size.X, size.Y, menuX, menuTop, menuWidth, menuHeight)
+			mh = M.menuRows(mh, tileHeight)
 			set(menuList, "AnchorPoint", Vector2.zero)
 			set(menuList, "Position", UDim2.fromOffset(mx, my))
 			set(menuList, "Size", UDim2.fromOffset(mw, mh))

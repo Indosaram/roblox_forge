@@ -7,12 +7,19 @@ local M = {}
 M.ROTATE_KEY = "Y"
 
 -- The touch camera marks every touch drag processed, so touch ignores `processed` and only skips
--- touches over a HUD control; a processed mouse move is over the GUI.
-function M.pointerUse(kind: string, processed: boolean, overControl: boolean): boolean
+-- touches over a HUD control. A mouse hover moves the ghost only while it is not over the GUI and
+-- no click has locked a cell (p68: hovering toward 'reserve' dragged the ghost under the bar edge).
+function M.pointerUse(kind: string, processed: boolean, overControl: boolean, locked: boolean?): boolean
 	if kind == "MouseMovement" then
-		return not processed
+		return not processed and not overControl and not locked
 	end
 	return kind == "Touch" and not overControl
+end
+
+-- A left click on the world (not on any GUI) moves the ghost there and locks it, so the pointer can
+-- travel to the placement bar without moving the picked cell. Another world click re-picks.
+function M.clickLocks(kind: string, processed: boolean, overControl: boolean): boolean
+	return kind == "MouseButton1" and not processed and not overControl
 end
 
 -- A touch that ends within 12 px of where it began is a tap: the ghost jumps to that cell.

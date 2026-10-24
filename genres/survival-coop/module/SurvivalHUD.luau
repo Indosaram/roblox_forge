@@ -302,6 +302,8 @@ function M.start(options: Options)
 	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
 	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
+	-- Desktop: a world click froze the ghost cell (BuildPlacement.clickLocks).
+	local ghostLocked = false
 	local allRecipes = false
 	local buildCards = Instance.new("Frame")
 	buildCards.Name, buildCards.BackgroundTransparency = "BuildCards", 1
@@ -818,7 +820,7 @@ function M.start(options: Options)
 					end
 				end
 			end
-			structureId = nil
+			structureId, ghostLocked = nil, false
 			preview()
 			placementBar.Visible = false
 			sheet.frame.Visible = true
@@ -893,18 +895,31 @@ function M.start(options: Options)
 				return
 			end
 			local kind = event.UserInputType.Name
-			local over = kind == "Touch" and overControl(event.Position.X, event.Position.Y)
-			if BuildPlacement.pointerUse(kind, processed, over) then
+			local over = (kind == "Touch" or kind == "MouseMovement")
+				and overControl(event.Position.X, event.Position.Y)
+			if BuildPlacement.pointerUse(kind, processed, over, ghostLocked) then
 				pointAt(event.Position)
 			end
 		end)
 	)
 	-- A tap never fires InputChanged: record where each touch began and move the ghost on release.
+	-- A desktop click on the world picks that cell and locks it until the next world click.
 	table.insert(
 		connections,
-		input.InputBegan:Connect(function(event)
+		input.InputBegan:Connect(function(event, processed)
 			if event.UserInputType == Enum.UserInputType.Touch then
 				touchStart[event] = event.Position
+			elseif
+				section == "build"
+				and structureId
+				and BuildPlacement.clickLocks(
+					event.UserInputType.Name,
+					processed,
+					overControl(event.Position.X, event.Position.Y)
+				)
+			then
+				pointAt(event.Position)
+				ghostLocked = true
 			end
 		end)
 	)
@@ -1301,7 +1316,7 @@ function M.start(options: Options)
 			for _, definition in orderedStructures do
 				controls.parent = buildCards
 				local card = button("Structure-" .. definition.id, "", function()
-					structureId = definition.id
+					structureId, ghostLocked = definition.id, false
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
 				end, true)
@@ -1782,7 +1797,8 @@ function M.start(options: Options)
 				local gatherGui = player.PlayerGui:FindFirstChild("ForgeGatherTouch")
 				promptService.Enabled = not modal
 				if gatherGui and gatherGui:IsA("ScreenGui") then
-					gatherGui.Enabled = not modal
+					-- The 360x640 placement bar overlaps the gather button by 8px (p68): hide it while placing.
+					gatherGui.Enabled = not modal and not placementBar.Visible
 				end
 			end
 			for item, verb in { [restButton] = "rest", [attackButton] = "attack" } do
