@@ -483,6 +483,7 @@ for _, actions in
 		require("./RecipeMarks").actions(),
 		require("./OperationExtension").actions(),
 		require("./StanceExtension").actions(),
+		require("./GuideEvents").actions(),
 	}
 do
 	for _, action in actions do

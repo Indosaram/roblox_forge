@@ -1520,6 +1520,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 					content = content,
 					bag = if data then data.inventory.bag.items else nil,
 					market = if data then data.market else nil,
+					companions = if data then data.companions else nil,
 					home = if homeOwner and string.sub(action, 1, 5) == "home-" then homeOwner.snapshot(actor) else nil,
 				}
 				local event: any = GuideEvents.event(action, request.args, guideFacts, { ok = true })

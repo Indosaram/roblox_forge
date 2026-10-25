@@ -10,6 +10,8 @@ local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local Job = require("../../../core/domain/crafting/Job")
 local Tree = require("../../../core/domain/progression/SkillTree")
 local Data = require("../../../core/domain/genre/SerializedData")
+local GuideEvents = require("./GuideEvents")
+local Rules = require("./CharacterRules")
 
 local M = {}
 M.RUN = "survival-coop:operation-run"
@@ -26,11 +28,16 @@ function M.actions(): { any }
 	}
 end
 
---- Executable operation rows in content order.
+-- The guide short id ("g20") of a row gated on an active development guide, else nil.
+function M.guideGate(row: any): string?
+	return string.match(((row.gates or {}).capability or ""), "^active%-guide%-(g%d+)$")
+end
+
+--- Executable operation rows in content order (also rows gated on an active guide).
 function M.operations(content: any): { any }
 	local rows = {}
 	for _, row in content.operations or {} do
-		if M.KINDS[row.kind] then
+		if M.KINDS[row.kind] or M.guideGate(row) then
 			table.insert(rows, row)
 		end
 	end
@@ -155,6 +162,23 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 					return view
 				end
 				local refused = Tree.gate(slice.progression, row.gates or {})
+				local guide = M.guideGate(row)
+				if not refused and guide then
+					-- Open while the guide is unfinished and its level/grade gates are met.
+					local development = if ctx.world and ctx.world.development
+						then ctx.world.development(actor, true)
+						else nil
+					refused = "GUIDE_NOT_OPEN"
+					for _, entry in if development then ctx.content.guides or {} else {} do
+						if
+							string.match(entry.id, "^rw%.(g%d+)%.") == guide
+							and not development.definitions[entry.id]
+							and GuideEvents.open(entry, slice.progression.level, Rules.rank(development.points))
+						then
+							refused = nil
+						end
+					end
+				end
 				if not refused and not stationReady(ctx, actor, row, args[2]) then
 					refused = "STATION_GATE"
 				end

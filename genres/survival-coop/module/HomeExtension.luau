@@ -207,6 +207,9 @@ function M.new(config: any): any
 				})
 			end
 			result = { ok = nextHome ~= nil, reason = refused }
+			if nextHome and operation == "area" then
+				result.data = { areaResults = Home.copy(nextHome.areaResults) }
+			end
 			if not nextHome then
 				return data
 			end

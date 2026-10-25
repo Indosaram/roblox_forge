@@ -63,6 +63,7 @@ local forge = {
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
 				RecipeMarks = require("../../genres/survival-coop/module/RecipeMarks"),
+				MultistoreyCommands = require("../../genres/survival-coop/module/MultistoreyCommands"),
 			},
 		},
 	},
@@ -71,7 +72,7 @@ local forge = {
 			home = { HomeContent = require("../../core/domain/home/HomeContent") },
 			island = { Archipelago = Archipelago },
 			settlement = { Settlement = Settlement },
-			inventory = { Inventory = Inventory },
+			inventory = { Inventory = Inventory, ItemCatalog = require("../../core/domain/inventory/ItemCatalog") },
 			crafting = { Job = Job },
 			command = { Journal = Journal },
 		},
@@ -108,6 +109,7 @@ local function module(name: string): any
 	return luau.load(fs.readFile(PACK .. "/src/server/" .. name .. ".luau"), { environment = environment })()
 end
 local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
+local Companion = require("../../genres/survival-coop/module/CombatCompanion")
 local Provision = module("SurvivalProvision")
 local Factory = module("SurvivalFactory")
 local STUBBED = {
@@ -128,7 +130,8 @@ local function boot(
 	clockAt: { value: number },
 	live: boolean?,
 	preview: boolean?,
-	realRole: boolean?
+	realRole: boolean?,
+	layoutId: string?
 ): Server
 	local source = defaultSource
 	local move: any = nil
@@ -167,7 +170,8 @@ local function boot(
 					return nil
 				end,
 				station = function(_actor, id)
-					return if id == "station.campfire.t1" then { kind = "campfire", reachable = true } else nil
+					local kind = string.match(id, "^station%.(%a+)%.t1$")
+					return if kind == "campfire" or kind == "workbench" then { kind = kind, reachable = true } else nil
 				end,
 			},
 		},
@@ -249,6 +253,23 @@ local function boot(
 			active = value
 			bind(value)
 		end
+	end
+	if layoutId then
+		-- Spatial facts for the guide's place: the actor stands inside it and reaches its anchors.
+		for _, layout in content.layouts do
+			world.layout = if layout.id == layoutId then layout else world.layout
+		end
+		world.services.survivalDeath = {
+			position = function()
+				return { x = 0, y = 2, z = 0 }
+			end,
+			reachable = function()
+				return true
+			end,
+			equipment = function()
+				return {}
+			end,
+		}
 	end
 	local clock = Clock.new(function()
 		return clockAt.value
@@ -348,6 +369,52 @@ local function bagItem(server: any, catalogId: string): string
 	error("no " .. catalogId .. " in bag")
 end
 
+local function give(server: any, id: string, catalogId: string, quantity: number, attributes: any?)
+	server.session.personalTransaction(ACTOR, function(raw)
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items[id] = {
+			itemId = id,
+			catalogId = catalogId,
+			quantity = quantity,
+			qualityMilli = 1000,
+			durabilityMilli = 0,
+			attributes = attributes or {},
+		}
+		return raw
+	end)
+end
+
+local function stored(server: any, catalogId: string): string
+	for id, item in server.factory.homeOwner().snapshot(ACTOR).storage.items do
+		if item.catalogId == catalogId then
+			return id
+		end
+	end
+	error("no " .. catalogId .. " in home storage")
+end
+
+-- Advances time in lease-renewing steps (the personal lease is 120 s).
+local function wait(server: any, at: any, seconds: number)
+	for _ = 1, math.ceil(seconds / 30) do
+		at.value += 30
+		server.session.advance(at.value)
+		-- Production heartbeats read these every frame; the reads keep each fenced lease alive.
+		server.factory.expeditionStore.snapshot(ACTOR)
+		server.factory.services.survivalGathering.snapshot(ACTOR)
+		if server.factory.homeOwner() then
+			server.factory.homeOwner().snapshot(ACTOR)
+		end
+		for _, extension in server.factory.services.survivalExtensions or {} do
+			if extension.snapshot then
+				extension.snapshot(ACTOR)
+			end
+		end
+	end
+end
+
+local function act(server: any, verb: string, target: string)
+	send(server, "guide-act", { verb, target })
+end
+
 local function craft(server: any, at: any, recipe: string, station: string)
 	local reserved = send(server, "craft-reserve", { recipe, station })
 	send(server, "craft-start", { reserved.data.jobId })
@@ -380,6 +447,153 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	end,
 	["rw.g07.food.2"] = function(server)
 		send(server, "food", { bagItem(server, "berry-meal") })
+	end,
+	-- Clothing bootstrap: the practice stitch earns tailoring proficiency for tailoring_1.
+	["rw.g10.clothing.1"] = function(server)
+		send(server, "operation-run", { "practice-fiber-stitch", "hand" })
+	end,
+	["rw.g10.clothing.2"] = function(server)
+		send(server, "skill-learn", { "tailoring_1" })
+	end,
+	["rw.g10.clothing.3"] = function(server, at)
+		server.session.personalTransaction(ACTOR, function(raw)
+			local items = raw.envelope.genres["survival-coop"].data.inventory.bag.items
+			for id, entry in { ["guide-leather"] = { "leather", 2 }, ["guide-dried-fiber"] = { "dried-fiber", 1 } } do
+				items[id] = {
+					itemId = id,
+					catalogId = entry[1],
+					quantity = entry[2],
+					qualityMilli = 1000,
+					durabilityMilli = 0,
+					attributes = {},
+				}
+			end
+			return raw
+		end)
+		craft(server, at, "temperate-gloves", "station.workbench.t1")
+	end,
+	-- p100: the twelve guides whose actions previously had no command.
+	["rw.g06.visit.1"] = function(server)
+		act(server, "visit", "rw.home-demo")
+	end,
+	["rw.g09.farming.1"] = function(server)
+		give(server, "guide-water", "water", 3)
+		send(server, "operation-run", { "practice-seedbed", "hand" })
+	end,
+	["rw.g09.farming.2"] = function(server)
+		send(server, "skill-learn", { "farming_1" })
+	end,
+	["rw.g09.farming.3"] = function(server)
+		give(server, "guide-seed", "corn-seed", 1, { level = 1 })
+		give(server, "guide-fertilizer", "liquid-fertilizer", 1)
+		give(server, "guide-sprinkler", "sprinkler", 1)
+		for _, id in { "guide-seed", "guide-water", "guide-fertilizer", "guide-sprinkler" } do
+			local quantity = server.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items[id].quantity
+			send(server, "home-deposit", { "home:" .. ACTOR, { itemId = id, quantity = quantity } })
+		end
+		send(
+			server,
+			"home-plant",
+			{ "home:" .. ACTOR, { plot = "starter-farm", crop = "corn", seedItem = stored(server, "corn-seed") } }
+		)
+	end,
+	["rw.g09.farming.4"] = function(server)
+		send(
+			server,
+			"home-area",
+			{ "home:" .. ACTOR, { plot = "starter-farm", plots = "starter-farm", fertilizer = "liquid-fertilizer" } }
+		)
+	end,
+	["rw.g09.farming.5"] = function(server, at)
+		wait(server, at, 900)
+		send(server, "home-harvest", { "home:" .. ACTOR, { plot = "starter-farm" } })
+	end,
+	["rw.g11.skill-reclaim.1"] = function(server)
+		act(server, "preview-refund", "skills")
+	end,
+	["rw.g11.skill-reclaim.2"] = function(server)
+		act(server, "cancel-preview", "skills")
+	end,
+	["rw.g12.route-share.1"] = function(server)
+		act(server, "invite-training", "rw.training-recipient")
+	end,
+	["rw.g12.route-share.2"] = function(server)
+		act(server, "revoke", "rw.training-recipient")
+	end,
+	["rw.g13.lab.1"] = function(server)
+		act(server, "inspect", "laboratory")
+	end,
+	["rw.g14.taming.1"] = function(server)
+		-- The guide supplies one owned, captured dodo (quests spec g14).
+		server.session.personalTransaction(ACTOR, function(raw)
+			local rules = content.progressionPolicy.companion
+			local state = assert(Companion.capture(Companion.new({}, 0), "guide-dodo", "dodo", rules :: any))
+			raw.envelope.genres["survival-coop"].data.companions = state
+			return raw
+		end)
+		give(server, "guide-feed", "herbivore-feed", 3)
+		send(server, "companion-action", { "place", "guide-dodo" })
+	end,
+	["rw.g14.taming.2"] = function(server)
+		send(server, "companion-action", { "train", "guide-dodo" })
+		for _ = 1, 3 do
+			send(server, "companion-action", { "feed", "guide-dodo" })
+		end
+	end,
+	["rw.g14.taming.3"] = function(server, at)
+		wait(server, at, 301)
+		send(server, "companion-action", { "claim", "guide-dodo" })
+	end,
+	["rw.g15.clan.1"] = function(server)
+		act(server, "preview-role", "clan")
+	end,
+	["rw.g15.clan.2"] = function(server)
+		act(server, "draft-membership", "clan")
+	end,
+	["rw.g15.clan.3"] = function(server)
+		act(server, "cancel-draft", "clan")
+	end,
+	["rw.g16.refrigeration.1"] = function(server)
+		send(server, "home-deposit", { "home:" .. ACTOR, { itemId = bagItem(server, "berry"), quantity = 1 } })
+	end,
+	["rw.g16.refrigeration.2"] = function(server)
+		act(server, "inspect-rate", "refrigerator")
+	end,
+	["rw.g16.refrigeration.3"] = function(server)
+		send(server, "home-withdraw", { "home:" .. ACTOR, { itemId = stored(server, "berry"), quantity = 1 } })
+	end,
+	["rw.g17.snow-preparation.1"] = function(server)
+		act(server, "equip-loan", "cold-head")
+	end,
+	["rw.g17.snow-preparation.2"] = function(server)
+		act(server, "inspect", "cold-head")
+	end,
+	["rw.g17.snow-preparation.3"] = function(server)
+		act(server, "return-loan", "cold-head")
+	end,
+	["rw.g18.technical-support.1"] = function(server)
+		act(server, "preview", "support-tier-1")
+	end,
+	["rw.g18.technical-support.2"] = function(server)
+		act(server, "acknowledge-level-gate", "support-tier-1")
+	end,
+	["rw.g19.volcano-preparation.1"] = function(server)
+		act(server, "equip-loan", "lava-protection-boots")
+	end,
+	["rw.g19.volcano-preparation.2"] = function(server)
+		act(server, "inspect", "lava-protection-boots")
+	end,
+	["rw.g19.volcano-preparation.3"] = function(server)
+		act(server, "return-loan", "lava-protection-boots")
+	end,
+	["rw.g20.rescue-preparation.1"] = function(server)
+		give(server, "guide-fiber", "fiber", 4)
+		for _ = 1, 2 do
+			send(server, "operation-run", { "assemble-bandage", "hand" })
+		end
+	end,
+	["rw.g20.rescue-preparation.2"] = function(server)
+		act(server, "activate", "rw.harbor.rescue-beacon")
 	end,
 	["rw.g08.market.1"] = function(server)
 		send(server, "market-list", { bagItem(server, "fiber"), 1, 5 })
@@ -443,9 +657,19 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	end,
 }
 
+-- Guides acted out at a place: home commands need the home role, facility anchors the harbor.
+local PLACE: { [string]: string } = {
+	["rw.g06.visit"] = "rw.harbor",
+	["rw.g09.farming"] = "rw.home",
+	["rw.g13.lab"] = "rw.harbor",
+	["rw.g16.refrigeration"] = "rw.home",
+	["rw.g18.technical-support"] = "rw.harbor",
+	["rw.g20.rescue-preparation"] = "rw.harbor",
+}
+
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }
-	local server = boot(Memory.new(), "job:guide-" .. guide.id, at)
+	local server = boot(Memory.new(), "job:guide-" .. guide.id, at, nil, nil, nil, PLACE[guide.id])
 	server.at = at
 	assert(server.session.join(ACTOR).ok, "join")
 	-- Open the guide's band: level and development grade from its gates.
@@ -504,6 +728,101 @@ for _, guide in content.guides do
 		end
 		assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 	end
+end
+
+for _, id in
+	{
+		"rw.g06.visit",
+		"rw.g09.farming",
+		"rw.g11.skill-reclaim",
+		"rw.g12.route-share",
+		"rw.g13.lab",
+		"rw.g14.taming",
+		"rw.g15.clan",
+		"rw.g16.refrigeration",
+		"rw.g17.snow-preparation",
+		"rw.g18.technical-support",
+		"rw.g19.volcano-preparation",
+		"rw.g20.rescue-preparation",
+	}
+do
+	cases["p100 guide " .. id .. " completes end to end through real commands"] = function()
+		local guide: any = nil
+		for _, row in content.guides do
+			guide = if row.id == id then row else guide
+		end
+		local server, at = fresh(guide)
+		for _, objective in guide.objectives do
+			assert(DRIVE[objective.id], objective.id .. " has no command")(server, at)
+		end
+		local development = server.factory.expeditionStore.snapshot(ACTOR).development
+		for _, objective in guide.objectives do
+			assert(
+				(development.progress[objective.id] or 0) >= objective.quantity,
+				objective.id .. " progress " .. tostring(development.progress[objective.id])
+			)
+		end
+		assert(development.definitions[id], id .. " completed")
+		local closed, released = server.session.close(ACTOR), server.factory.close()
+		assert(closed.ok and released.ok, "release " .. tostring(closed.reason) .. " " .. tostring(released.reason))
+	end
+end
+
+cases["guide-act rank constants match CharacterRules"] = function()
+	local Rules = require("../../genres/survival-coop/module/CharacterRules")
+	local guide = { gates = { characterLevel = 1, developmentRank = Rules.MAX_RANK } }
+	local development = { points = Rules.RANK_POINTS * Rules.MAX_RANK, definitions = {}, progress = {} }
+	local fixture = {
+		guides = {
+			{
+				id = "g",
+				gates = guide.gates,
+				objectives = { { id = "o", action = "inspect", target = "t", quantity = 1 } },
+			},
+		},
+	}
+	assert(GuideEvents.nextStep(fixture, development, 1, "inspect", "t"), "max rank opens")
+	development.points -= 1
+	assert(not GuideEvents.nextStep(fixture, development, 1, "inspect", "t"), "one point short stays closed")
+end
+
+cases["guide-act refuses an objective of a guide that is not open or out of order"] = function()
+	local guide: any = nil
+	for _, row in content.guides do
+		guide = if row.id == "rw.g11.skill-reclaim" then row else guide
+	end
+	local server = fresh(guide)
+	local function refused(verb: string, target: string, reason: string)
+		local session = server.session
+		local result = session.command(ACTOR, {
+			requestId = "refuse-" .. verb .. target,
+			sessionEpoch = session.commandEpoch(ACTOR, "survival-coop:guide-act") or 0,
+			action = "survival-coop:guide-act",
+			args = { verb, target },
+		})
+		assert(not result.ok and result.reason == reason, verb .. ": " .. tostring(result.reason))
+	end
+	refused("cancel-preview", "skills", "GUIDE_STEP_ORDER")
+	refused("acknowledge-level-gate", "support-tier-1", "GUIDE_NOT_OPEN")
+	refused("visit", "nowhere", "GUIDE_NOT_OPEN")
+	local development = server.factory.expeditionStore.snapshot(ACTOR).development
+	assert(next(development.progress) == nil or development.progress["rw.g11.skill-reclaim.2"] == nil, "no progress")
+	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
+end
+
+cases["the clothing guide completes through the practice stitch operation"] = function()
+	local guide: any = nil
+	for _, row in content.guides do
+		guide = if row.id == "rw.g10.clothing" then row else guide
+	end
+	local server, at = fresh(guide)
+	for _, objective in guide.objectives do
+		DRIVE[objective.id](server, at)
+	end
+	local development = server.factory.expeditionStore.snapshot(ACTOR).development
+	assert(development.progress["rw.g10.clothing.1"] == 1, "practice stitch counted")
+	assert(development.definitions["rw.g10.clothing"], "clothing guide completed")
+	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 
 cases["the first band alone lifts a fresh player to island grade 2 (route 1)"] = function()

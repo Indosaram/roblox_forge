@@ -11,6 +11,11 @@ local Sheet = require("./CharacterSheet")
 local GuideEvents = require("./GuideEvents")
 local M = {}
 
+local ACK: { [string]: boolean } = {}
+for _, verb in GuideEvents.VERBS do
+	ACK[verb] = true
+end
+
 M.UPCOMING = 3
 
 local function before(a: any, b: any): boolean
@@ -77,16 +82,23 @@ function M.model(locale: string, data: any): { Sheet.Row }
 			for _, objective in guide.objectives do
 				local verb = "guide_act_" .. string.gsub(objective.action, "%-", "_")
 				local missing = GuideEvents.UNSUPPORTED[objective.action] ~= nil
+				-- Acknowledgement steps are performed from this row (guide-act); the server checks order.
+				local tap = ACK[objective.action] and (progress[objective.id] or 0) < objective.quantity
 				table.insert(rows, {
 					name = "Objective-" .. objective.id,
 					text = Text.format(
 						locale,
-						if missing then "guide_objective_missing" else "guide_objective",
+						if missing
+							then "guide_objective_missing"
+							elseif tap then "guide_objective_tap"
+							else "guide_objective",
 						if Text.has(verb) then Text.text(locale, verb) else objective.action,
 						label(locale, names, objective.target),
 						math.min(progress[objective.id] or 0, objective.quantity),
 						objective.quantity
 					),
+					action = if tap then GuideEvents.ACT else nil,
+					args = if tap then { objective.action, objective.target } else nil,
 				})
 			end
 		end

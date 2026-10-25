@@ -2688,3 +2688,23 @@ hud.market.tutorial,Finish the first-day tutorial to open market listing.,genre 
 wld.wildlife_brachiosaurus,Brachiosaurus,genre text wld,Brachiosaurus,브라키오사우러스
 wld.wildlife_parasaurolophus,Parasaurolophus,genre text wld,Parasaurolophus,파라사우롤로퍼스
 set.lang_rejoin,applies on rejoin,settings,applies on rejoin,다시 접속하면 적용
+chr.guide_act_preview_refund,Preview refund of,genre text chr,Preview refund of,환급 미리보기
+chr.guide_act_cancel_preview,Close preview of,genre text chr,Close preview of,미리보기 닫기
+chr.guide_act_invite_training,Send route invite to,genre text chr,Send route invite to,항로 초대 보내기
+chr.guide_act_revoke,Revoke invite of,genre text chr,Revoke invite of,초대 취소
+chr.guide_act_inspect,Inspect,genre text chr,Inspect,살펴보기
+chr.guide_act_place_training,Put in training pen,genre text chr,Put in training pen,훈련 우리에 넣기
+chr.guide_act_preview_role,Review roles of,genre text chr,Review roles of,역할 살펴보기
+chr.guide_act_draft_membership,Draft membership of,genre text chr,Draft membership of,가입 초안 작성
+chr.guide_act_cancel_draft,Cancel draft of,genre text chr,Cancel draft of,초안 취소
+chr.guide_act_inspect_rate,Check cooling rate of,genre text chr,Check cooling rate of,냉장 속도 확인
+chr.guide_act_equip_loan,Borrow and wear,genre text chr,Borrow and wear,빌려서 착용
+chr.guide_act_return_loan,Return,genre text chr,Return,반납
+chr.guide_act_preview,Preview,genre text chr,Preview,미리보기
+chr.guide_act_acknowledge_level_gate,Note the level 60 gate of,genre text chr,Note the level 60 gate of,레벨 60 조건 확인
+chr.guide_act_assemble,Assemble,genre text chr,Assemble,조립
+chr.guide_act_activate,Activate,genre text chr,Activate,작동
+chr.guide_objective_tap,%s %s: %d / %d (tap),genre text chr,%s %s: %d / %d (tap),%s %s: %d / %d (누르기)
+chr.GUIDE_NOT_OPEN,That guide step is not open yet,genre text chr,That guide step is not open yet,아직 열리지 않은 안내 단계예요
+chr.GUIDE_STEP_ORDER,Finish the earlier step of this guide first,genre text chr,Finish the earlier step of this guide first,이 안내의 앞 단계를 먼저 끝내세요
+chr.OUT_OF_RANGE,Move closer first,genre text chr,Move closer first,먼저 더 가까이 가세요

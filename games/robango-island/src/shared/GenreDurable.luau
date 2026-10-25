@@ -33,6 +33,7 @@ local policy: Policy = {
 		[118] = "survival-coop:attack-ranged",
 		[119] = "survival-coop:stance-set",
 		[12] = "survival-coop:settlement-rejoin",
+		[120] = "survival-coop:guide-act",
 		[13] = "survival-coop:settlement-reserve",
 		[14] = "survival-coop:settlement-place",
 		[15] = "survival-coop:settlement-cancel",

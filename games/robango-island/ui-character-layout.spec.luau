@@ -270,10 +270,14 @@ return {
 			find(rows, "Objective-rw.g08.market.1").text == "List Fiber: 1 / 1",
 			find(rows, "Objective-rw.g08.market.1").text
 		)
-		assert(
-			string.find(find(rows, "Objective-rw.g06.visit.1").text, "(coming later)", 1, true),
-			"a guide action with no command is labeled, not faked"
-		)
+		-- Acknowledgement steps run from the row itself through guide-act; the server checks order.
+		local visit = find(rows, "Objective-rw.g06.visit.1")
+		assert(string.find(visit.text, "(tap)", 1, true), visit.text)
+		local log, send = sent()
+		Sheet.activate("en-us", visit, send)
+		assert(log[1].action == "survival-coop:guide-act", "guide-act sent")
+		assert(log[1].args[1] == "visit" and log[1].args[2] == "rw.home-demo", "verb and target")
+		assert(find(rows, "Objective-rw.g08.market.1").action == nil, "finished step is not tappable")
 	end,
 	["guides at grade 2 below level 6 name the nearest gate and list the next locked guides"] = function()
 		local d = data("ko-kr", 5)

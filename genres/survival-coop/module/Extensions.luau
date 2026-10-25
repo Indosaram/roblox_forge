@@ -47,6 +47,7 @@ local factories: { Factory } = {
 	require("./DirectTradeExtension").factory,
 	require("./OperationExtension").factory,
 	require("./StanceExtension").factory,
+	require("./GuideEvents").factory,
 }
 
 return { factories = factories }
