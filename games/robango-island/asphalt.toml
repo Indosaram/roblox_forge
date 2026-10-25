@@ -75,9 +75,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.antler.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-antler.web]
+"item.icon.antler.png" = { id = 97821474194869 }
+
 [inputs.item-icon-antler-profile]
 path = "assets/icons/item.icon.antler-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-antler-profile.web]
+"item.icon.antler-profile.png" = { id = 99705627163465 }
 
 [inputs.item-icon-apple]
 path = "assets/icons/item.icon.apple.png"
@@ -90,6 +96,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.apple-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-apple-profile.web]
+"item.icon.apple-profile.png" = { id = 128874604913219 }
+
 [inputs.item-icon-apple-seed]
 path = "assets/icons/item.icon.apple-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -100,6 +109,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-apple-seed-profile]
 path = "assets/icons/item.icon.apple-seed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-apple-seed-profile.web]
+"item.icon.apple-seed-profile.png" = { id = 91293111926658 }
 
 [inputs.item-icon-axe-t1]
 path = "assets/icons/item.icon.axe-t1.png"
@@ -154,6 +166,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.banana-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-banana-profile.web]
+"item.icon.banana-profile.png" = { id = 135695230347327 }
+
 [inputs.item-icon-banana-seed]
 path = "assets/icons/item.icon.banana-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -164,6 +179,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-banana-seed-profile]
 path = "assets/icons/item.icon.banana-seed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-banana-seed-profile.web]
+"item.icon.banana-seed-profile.png" = { id = 111181421441614 }
 
 [inputs.item-icon-bandage]
 path = "assets/icons/item.icon.bandage.png"
@@ -179,6 +197,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-basalt-profile]
 path = "assets/icons/item.icon.basalt-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-basalt-profile.web]
+"item.icon.basalt-profile.png" = { id = 128215315857736 }
 
 [inputs.item-icon-bed-kit]
 path = "assets/icons/item.icon.bed-kit.png"
@@ -211,6 +232,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-berry-profile]
 path = "assets/icons/item.icon.berry-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-berry-profile.web]
+"item.icon.berry-profile.png" = { id = 133047308724504 }
 
 [inputs.item-icon-birch-bark]
 path = "assets/icons/item.icon.birch-bark.png"
@@ -261,6 +285,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-branch-profile]
 path = "assets/icons/item.icon.branch-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-branch-profile.web]
+"item.icon.branch-profile.png" = { id = 130096441932078 }
 
 [inputs.item-icon-brick-floor-kit]
 path = "assets/icons/item.icon.brick-floor-kit.png"
@@ -330,6 +357,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.chapter.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-chapter.web]
+"item.icon.chapter.png" = { id = 126319925007614 }
+
 [inputs.item-icon-charcoal]
 path = "assets/icons/item.icon.charcoal.png"
 output_path = "games/robango-island/src/shared"
@@ -340,6 +370,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-charcoal-profile]
 path = "assets/icons/item.icon.charcoal-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-charcoal-profile.web]
+"item.icon.charcoal-profile.png" = { id = 88031205214239 }
 
 [inputs.item-icon-clam]
 path = "assets/icons/item.icon.clam.png"
@@ -358,6 +391,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-clam-profile]
 path = "assets/icons/item.icon.clam-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clam-profile.web]
+"item.icon.clam-profile.png" = { id = 82885545922782 }
 
 [inputs.item-icon-clam-soup]
 path = "assets/icons/item.icon.clam-soup.png"
@@ -391,6 +427,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-clay-profile]
 path = "assets/icons/item.icon.clay-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-clay-profile.web]
+"item.icon.clay-profile.png" = { id = 72367116545855 }
 
 [inputs.item-icon-club-t1]
 path = "assets/icons/item.icon.club-t1.png"
@@ -480,6 +519,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.copper-ore-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-copper-ore-profile.web]
+"item.icon.copper-ore-profile.png" = { id = 102023144687969 }
+
 [inputs.item-icon-cord]
 path = "assets/icons/item.icon.cord.png"
 output_path = "games/robango-island/src/shared"
@@ -502,6 +544,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.corn-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-corn-profile.web]
+"item.icon.corn-profile.png" = { id = 115267762671894 }
+
 [inputs.item-icon-corn-seed]
 path = "assets/icons/item.icon.corn-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -512,6 +557,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-corn-seed-profile]
 path = "assets/icons/item.icon.corn-seed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-corn-seed-profile.web]
+"item.icon.corn-seed-profile.png" = { id = 93054966929208 }
 
 [inputs.item-icon-crossbow-t1]
 path = "assets/icons/item.icon.crossbow-t1.png"
@@ -581,9 +629,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.feather.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-feather.web]
+"item.icon.feather.png" = { id = 100473750307788 }
+
 [inputs.item-icon-feather-profile]
 path = "assets/icons/item.icon.feather-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-feather-profile.web]
+"item.icon.feather-profile.png" = { id = 112397731452191 }
 
 [inputs.item-icon-fermented-banana]
 path = "assets/icons/item.icon.fermented-banana.png"
@@ -631,6 +685,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.fiber-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-fiber-profile.web]
+"item.icon.fiber-profile.png" = { id = 103203729195937 }
+
 [inputs.item-icon-fieldstone]
 path = "assets/icons/item.icon.fieldstone.png"
 output_path = "games/robango-island/src/shared"
@@ -649,6 +706,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.fig-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-fig-profile.web]
+"item.icon.fig-profile.png" = { id = 86939942668764 }
+
 [inputs.item-icon-fig-seed]
 path = "assets/icons/item.icon.fig-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -659,6 +719,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-fig-seed-profile]
 path = "assets/icons/item.icon.fig-seed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fig-seed-profile.web]
+"item.icon.fig-seed-profile.png" = { id = 72870288972364 }
 
 [inputs.item-icon-fig-stew]
 path = "assets/icons/item.icon.fig-stew.png"
@@ -678,6 +741,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.fish-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-fish-profile.web]
+"item.icon.fish-profile.png" = { id = 98816438823600 }
+
 [inputs.item-icon-flax]
 path = "assets/icons/item.icon.flax.png"
 output_path = "games/robango-island/src/shared"
@@ -688,6 +754,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-flax-profile]
 path = "assets/icons/item.icon.flax-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flax-profile.web]
+"item.icon.flax-profile.png" = { id = 110486401131001 }
 
 [inputs.item-icon-flax-seed]
 path = "assets/icons/item.icon.flax-seed.png"
@@ -707,6 +776,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.flax-seed-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-flax-seed-profile.web]
+"item.icon.flax-seed-profile.png" = { id = 129167276082067 }
+
 [inputs.item-icon-flaxseed]
 path = "assets/icons/item.icon.flaxseed.png"
 output_path = "games/robango-island/src/shared"
@@ -717,6 +789,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-flaxseed-profile]
 path = "assets/icons/item.icon.flaxseed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-flaxseed-profile.web]
+"item.icon.flaxseed-profile.png" = { id = 79445364478490 }
 
 [inputs.item-icon-flint]
 path = "assets/icons/item.icon.flint.png"
@@ -736,6 +811,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.flint-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-flint-profile.web]
+"item.icon.flint-profile.png" = { id = 112103953549928 }
+
 [inputs.item-icon-floor-kit]
 path = "assets/icons/item.icon.floor-kit.png"
 output_path = "games/robango-island/src/shared"
@@ -753,6 +831,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-fragment]
 path = "assets/icons/item.icon.fragment.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-fragment.web]
+"item.icon.fragment.png" = { id = 70809560323064 }
 
 [inputs.item-icon-fruit-fertilizer]
 path = "assets/icons/item.icon.fruit-fertilizer.png"
@@ -783,9 +864,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.granite.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-granite.web]
+"item.icon.granite.png" = { id = 90729243582254 }
+
 [inputs.item-icon-granite-profile]
 path = "assets/icons/item.icon.granite-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-granite-profile.web]
+"item.icon.granite-profile.png" = { id = 110207261466141 }
 
 [inputs.item-icon-grilled-fish]
 path = "assets/icons/item.icon.grilled-fish.png"
@@ -825,6 +912,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-heat-brace]
 path = "assets/icons/item.icon.heat-brace.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-heat-brace.web]
+"item.icon.heat-brace.png" = { id = 96121390341296 }
 
 [inputs.item-icon-herbivore-feed]
 path = "assets/icons/item.icon.herbivore-feed.png"
@@ -877,33 +967,57 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.instrument-bass.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-instrument-bass.web]
+"item.icon.instrument-bass.png" = { id = 72974583490439 }
+
 [inputs.item-icon-instrument-clarinet]
 path = "assets/icons/item.icon.instrument-clarinet.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-clarinet.web]
+"item.icon.instrument-clarinet.png" = { id = 124956534887258 }
 
 [inputs.item-icon-instrument-drums]
 path = "assets/icons/item.icon.instrument-drums.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-instrument-drums.web]
+"item.icon.instrument-drums.png" = { id = 137296979768242 }
+
 [inputs.item-icon-instrument-flute]
 path = "assets/icons/item.icon.instrument-flute.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-flute.web]
+"item.icon.instrument-flute.png" = { id = 136327647206063 }
 
 [inputs.item-icon-instrument-guitar]
 path = "assets/icons/item.icon.instrument-guitar.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-instrument-guitar.web]
+"item.icon.instrument-guitar.png" = { id = 92993193768987 }
+
 [inputs.item-icon-instrument-piano]
 path = "assets/icons/item.icon.instrument-piano.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-piano.web]
+"item.icon.instrument-piano.png" = { id = 84669463367332 }
 
 [inputs.item-icon-instrument-trumpet]
 path = "assets/icons/item.icon.instrument-trumpet.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-instrument-trumpet.web]
+"item.icon.instrument-trumpet.png" = { id = 72179945169834 }
+
 [inputs.item-icon-instrument-violin]
 path = "assets/icons/item.icon.instrument-violin.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-instrument-violin.web]
+"item.icon.instrument-violin.png" = { id = 135456652423667 }
 
 [inputs.item-icon-iron]
 path = "assets/icons/item.icon.iron.png"
@@ -923,6 +1037,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.iron-ore-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-iron-ore-profile.web]
+"item.icon.iron-ore-profile.png" = { id = 139206282652753 }
+
 [inputs.item-icon-kiln-kit]
 path = "assets/icons/item.icon.kiln-kit.png"
 output_path = "games/robango-island/src/shared"
@@ -934,9 +1051,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.kiln-t2-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-kiln-t2-kit.web]
+"item.icon.kiln-t2-kit.png" = { id = 132686651926953 }
+
 [inputs.item-icon-kiln-t3-kit]
 path = "assets/icons/item.icon.kiln-t3-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-kiln-t3-kit.web]
+"item.icon.kiln-t3-kit.png" = { id = 72708233911837 }
 
 [inputs.item-icon-knife-t1]
 path = "assets/icons/item.icon.knife-t1.png"
@@ -970,6 +1093,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.lava-protection-boots.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-lava-protection-boots.web]
+"item.icon.lava-protection-boots.png" = { id = 136467402168054 }
+
 [inputs.item-icon-leaf-compost]
 path = "assets/icons/item.icon.leaf-compost.png"
 output_path = "games/robango-island/src/shared"
@@ -994,6 +1120,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-leaves-profile]
 path = "assets/icons/item.icon.leaves-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-leaves-profile.web]
+"item.icon.leaves-profile.png" = { id = 90119380295070 }
 
 [inputs.item-icon-liquid-fertilizer]
 path = "assets/icons/item.icon.liquid-fertilizer.png"
@@ -1052,6 +1181,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.onion-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-onion-profile.web]
+"item.icon.onion-profile.png" = { id = 103380981526041 }
+
 [inputs.item-icon-onion-seed]
 path = "assets/icons/item.icon.onion-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -1062,6 +1194,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-onion-seed-profile]
 path = "assets/icons/item.icon.onion-seed-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-onion-seed-profile.web]
+"item.icon.onion-seed-profile.png" = { id = 132205897133272 }
 
 [inputs.item-icon-onion-soup]
 path = "assets/icons/item.icon.onion-soup.png"
@@ -1109,9 +1244,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.plate.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-plate.web]
+"item.icon.plate.png" = { id = 80486825814010 }
+
 [inputs.item-icon-plate-profile]
 path = "assets/icons/item.icon.plate-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-plate-profile.web]
+"item.icon.plate-profile.png" = { id = 73162493312249 }
 
 [inputs.item-icon-polished-basalt]
 path = "assets/icons/item.icon.polished-basalt.png"
@@ -1152,6 +1293,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.potato-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-potato-profile.web]
+"item.icon.potato-profile.png" = { id = 86012484200918 }
+
 [inputs.item-icon-potato-seed]
 path = "assets/icons/item.icon.potato-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -1163,9 +1307,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.potato-seed-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-potato-seed-profile.web]
+"item.icon.potato-seed-profile.png" = { id = 77745185919455 }
+
 [inputs.item-icon-practice-seedbed]
 path = "assets/icons/item.icon.practice-seedbed.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-practice-seedbed.web]
+"item.icon.practice-seedbed.png" = { id = 136195299842925 }
 
 [inputs.item-icon-practice-stitch]
 path = "assets/icons/item.icon.practice-stitch.png"
@@ -1196,17 +1346,29 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.relief-unit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-relief-unit.web]
+"item.icon.relief-unit.png" = { id = 104039675808897 }
+
 [inputs.item-icon-rescue-marker]
 path = "assets/icons/item.icon.rescue-marker.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rescue-marker.web]
+"item.icon.rescue-marker.png" = { id = 95595713504491 }
 
 [inputs.item-icon-rescue-transponder]
 path = "assets/icons/item.icon.rescue-transponder.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-rescue-transponder.web]
+"item.icon.rescue-transponder.png" = { id = 80677584411301 }
+
 [inputs.item-icon-research-bundle]
 path = "assets/icons/item.icon.research-bundle.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-research-bundle.web]
+"item.icon.research-bundle.png" = { id = 84957162197724 }
 
 [inputs.item-icon-rex-leather]
 path = "assets/icons/item.icon.rex-leather.png"
@@ -1254,33 +1416,57 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.rw-journal-seal-1.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-rw-journal-seal-1.web]
+"item.icon.rw-journal-seal-1.png" = { id = 97819957053660 }
+
 [inputs.item-icon-rw-journal-seal-2]
 path = "assets/icons/item.icon.rw-journal-seal-2.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-2.web]
+"item.icon.rw-journal-seal-2.png" = { id = 118078433937058 }
 
 [inputs.item-icon-rw-journal-seal-3]
 path = "assets/icons/item.icon.rw-journal-seal-3.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-rw-journal-seal-3.web]
+"item.icon.rw-journal-seal-3.png" = { id = 104871660144545 }
+
 [inputs.item-icon-rw-journal-seal-4]
 path = "assets/icons/item.icon.rw-journal-seal-4.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-4.web]
+"item.icon.rw-journal-seal-4.png" = { id = 119391116111671 }
 
 [inputs.item-icon-rw-journal-seal-5]
 path = "assets/icons/item.icon.rw-journal-seal-5.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-rw-journal-seal-5.web]
+"item.icon.rw-journal-seal-5.png" = { id = 101900156607009 }
+
 [inputs.item-icon-rw-journal-seal-6]
 path = "assets/icons/item.icon.rw-journal-seal-6.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-6.web]
+"item.icon.rw-journal-seal-6.png" = { id = 120494634881231 }
 
 [inputs.item-icon-rw-journal-seal-7]
 path = "assets/icons/item.icon.rw-journal-seal-7.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-rw-journal-seal-7.web]
+"item.icon.rw-journal-seal-7.png" = { id = 84582191662872 }
+
 [inputs.item-icon-rw-journal-seal-8]
 path = "assets/icons/item.icon.rw-journal-seal-8.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-rw-journal-seal-8.web]
+"item.icon.rw-journal-seal-8.png" = { id = 84900044502805 }
 
 [inputs.item-icon-saddle]
 path = "assets/icons/item.icon.saddle.png"
@@ -1300,6 +1486,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.sample-case.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-sample-case.web]
+"item.icon.sample-case.png" = { id = 99781689577558 }
+
 [inputs.item-icon-shell-fragment]
 path = "assets/icons/item.icon.shell-fragment.png"
 output_path = "games/robango-island/src/shared"
@@ -1311,17 +1500,29 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.shell-fragment-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-shell-fragment-profile.web]
+"item.icon.shell-fragment-profile.png" = { id = 78450158937660 }
+
 [inputs.item-icon-shelter-liner]
 path = "assets/icons/item.icon.shelter-liner.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-shelter-liner.web]
+"item.icon.shelter-liner.png" = { id = 76123530293437 }
 
 [inputs.item-icon-signal-fragment]
 path = "assets/icons/item.icon.signal-fragment.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-signal-fragment.web]
+"item.icon.signal-fragment.png" = { id = 71079259870059 }
+
 [inputs.item-icon-signal-lens]
 path = "assets/icons/item.icon.signal-lens.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-signal-lens.web]
+"item.icon.signal-lens.png" = { id = 120655699525654 }
 
 [inputs.item-icon-signal-relay-kit]
 path = "assets/icons/item.icon.signal-relay-kit.png"
@@ -1384,6 +1585,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-spoiled-food-profile]
 path = "assets/icons/item.icon.spoiled-food-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-spoiled-food-profile.web]
+"item.icon.spoiled-food-profile.png" = { id = 86320244428899 }
 
 [inputs.item-icon-sprinkler]
 path = "assets/icons/item.icon.sprinkler.png"
@@ -1471,6 +1675,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.stone-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-stone-profile.web]
+"item.icon.stone-profile.png" = { id = 125205870274334 }
+
 [inputs.item-icon-stone-roof-kit]
 path = "assets/icons/item.icon.stone-roof-kit.png"
 output_path = "games/robango-island/src/shared"
@@ -1495,6 +1702,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-survey-sample]
 path = "assets/icons/item.icon.survey-sample.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-survey-sample.web]
+"item.icon.survey-sample.png" = { id = 126230001032148 }
 
 [inputs.item-icon-sword-t1]
 path = "assets/icons/item.icon.sword-t1.png"
@@ -1670,6 +1880,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.volcanic-ash.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-volcanic-ash.web]
+"item.icon.volcanic-ash.png" = { id = 112980783517762 }
+
 [inputs.item-icon-volcanic-bone]
 path = "assets/icons/item.icon.volcanic-bone.png"
 output_path = "games/robango-island/src/shared"
@@ -1691,6 +1904,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-volcanic-ore-profile]
 path = "assets/icons/item.icon.volcanic-ore-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-volcanic-ore-profile.web]
+"item.icon.volcanic-ore-profile.png" = { id = 71713958709516 }
 
 [inputs.item-icon-volcanic-wall]
 path = "assets/icons/item.icon.volcanic-wall.png"
@@ -1717,6 +1933,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.water-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-water-profile.web]
+"item.icon.water-profile.png" = { id = 99844418108081 }
+
 [inputs.item-icon-well-kit]
 path = "assets/icons/item.icon.well-kit.png"
 output_path = "games/robango-island/src/shared"
@@ -1742,6 +1961,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.wheat-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-wheat-profile.web]
+"item.icon.wheat-profile.png" = { id = 107955598119865 }
+
 [inputs.item-icon-wheat-seed]
 path = "assets/icons/item.icon.wheat-seed.png"
 output_path = "games/robango-island/src/shared"
@@ -1753,6 +1975,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.wheat-seed-profile.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-wheat-seed-profile.web]
+"item.icon.wheat-seed-profile.png" = { id = 85238217375797 }
+
 [inputs.item-icon-wood]
 path = "assets/icons/item.icon.wood.png"
 output_path = "games/robango-island/src/shared"
@@ -1763,6 +1988,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.item-icon-wood-profile]
 path = "assets/icons/item.icon.wood-profile.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.item-icon-wood-profile.web]
+"item.icon.wood-profile.png" = { id = 92472312568173 }
 
 [inputs.item-icon-woodland-skewer]
 path = "assets/icons/item.icon.woodland-skewer.png"
@@ -1782,13 +2010,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/item.icon.workbench-t2-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-workbench-t2-kit.web]
+"item.icon.workbench-t2-kit.png" = { id = 105448063322365 }
+
 [inputs.item-icon-workbench-t3-kit]
 path = "assets/icons/item.icon.workbench-t3-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.item-icon-workbench-t3-kit.web]
+"item.icon.workbench-t3-kit.png" = { id = 116001704098687 }
+
 [inputs.recipe-icon-animal-pen]
 path = "assets/icons/recipe.icon.animal-pen.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-animal-pen.web]
+"recipe.icon.animal-pen.png" = { id = 120096362658005 }
 
 [inputs.recipe-icon-axe-t1]
 path = "assets/icons/recipe.icon.axe-t1.png"
@@ -1806,21 +2043,36 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.baked-apple.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-baked-apple.web]
+"recipe.icon.baked-apple.png" = { id = 140337840922358 }
+
 [inputs.recipe-icon-baked-potato]
 path = "assets/icons/recipe.icon.baked-potato.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-baked-potato.web]
+"recipe.icon.baked-potato.png" = { id = 106159880587821 }
 
 [inputs.recipe-icon-banana-mash]
 path = "assets/icons/recipe.icon.banana-mash.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-banana-mash.web]
+"recipe.icon.banana-mash.png" = { id = 136525355278752 }
+
 [inputs.recipe-icon-bed-kit]
 path = "assets/icons/recipe.icon.bed-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-bed-kit.web]
+"recipe.icon.bed-kit.png" = { id = 99690858565347 }
+
 [inputs.recipe-icon-berry-meal]
 path = "assets/icons/recipe.icon.berry-meal.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-berry-meal.web]
+"recipe.icon.berry-meal.png" = { id = 130368174929844 }
 
 [inputs.recipe-icon-bow-t1]
 path = "assets/icons/recipe.icon.bow-t1.png"
@@ -1838,17 +2090,29 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.brick-floor-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-brick-floor-kit.web]
+"recipe.icon.brick-floor-kit.png" = { id = 132777380987864 }
+
 [inputs.recipe-icon-brick-roof-kit]
 path = "assets/icons/recipe.icon.brick-roof-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-brick-roof-kit.web]
+"recipe.icon.brick-roof-kit.png" = { id = 79454896472554 }
 
 [inputs.recipe-icon-brick-wall-kit]
 path = "assets/icons/recipe.icon.brick-wall-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-brick-wall-kit.web]
+"recipe.icon.brick-wall-kit.png" = { id = 95008811900143 }
+
 [inputs.recipe-icon-campfire-kit]
 path = "assets/icons/recipe.icon.campfire-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-campfire-kit.web]
+"recipe.icon.campfire-kit.png" = { id = 107494244979202 }
 
 [inputs.recipe-icon-capture-bola]
 path = "assets/icons/recipe.icon.capture-bola.png"
@@ -1866,13 +2130,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.cattail-flatbread.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-cattail-flatbread.web]
+"recipe.icon.cattail-flatbread.png" = { id = 120985814028086 }
+
 [inputs.recipe-icon-clam-bake]
 path = "assets/icons/recipe.icon.clam-bake.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-clam-bake.web]
+"recipe.icon.clam-bake.png" = { id = 79636329727549 }
+
 [inputs.recipe-icon-clam-soup]
 path = "assets/icons/recipe.icon.clam-soup.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-clam-soup.web]
+"recipe.icon.clam-soup.png" = { id = 86085857550457 }
 
 [inputs.recipe-icon-clan-hall-kit]
 path = "assets/icons/recipe.icon.clan-hall-kit.png"
@@ -1894,13 +2167,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.cold-bag.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-cold-bag.web]
+"recipe.icon.cold-bag.png" = { id = 107273611657008 }
+
 [inputs.recipe-icon-cold-bottom]
 path = "assets/icons/recipe.icon.cold-bottom.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-cold-bottom.web]
+"recipe.icon.cold-bottom.png" = { id = 86354767286913 }
+
 [inputs.recipe-icon-cold-gloves]
 path = "assets/icons/recipe.icon.cold-gloves.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-gloves.web]
+"recipe.icon.cold-gloves.png" = { id = 102181655771376 }
 
 [inputs.recipe-icon-cold-head]
 path = "assets/icons/recipe.icon.cold-head.png"
@@ -1910,25 +2192,43 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.cold-shoes.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-cold-shoes.web]
+"recipe.icon.cold-shoes.png" = { id = 98158326440296 }
+
 [inputs.recipe-icon-cold-top]
 path = "assets/icons/recipe.icon.cold-top.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-cold-top.web]
+"recipe.icon.cold-top.png" = { id = 72155180018096 }
 
 [inputs.recipe-icon-compost-berry]
 path = "assets/icons/recipe.icon.compost-berry.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-compost-berry.web]
+"recipe.icon.compost-berry.png" = { id = 102172673024104 }
+
 [inputs.recipe-icon-compost-fiber]
 path = "assets/icons/recipe.icon.compost-fiber.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-fiber.web]
+"recipe.icon.compost-fiber.png" = { id = 102860260370699 }
 
 [inputs.recipe-icon-compost-leaves]
 path = "assets/icons/recipe.icon.compost-leaves.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-compost-leaves.web]
+"recipe.icon.compost-leaves.png" = { id = 79810418839990 }
+
 [inputs.recipe-icon-compost-spoiled-food]
 path = "assets/icons/recipe.icon.compost-spoiled-food.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-compost-spoiled-food.web]
+"recipe.icon.compost-spoiled-food.png" = { id = 132356021133756 }
 
 [inputs.recipe-icon-cooked-meat]
 path = "assets/icons/recipe.icon.cooked-meat.png"
@@ -1941,6 +2241,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.recipe-icon-corn-porridge]
 path = "assets/icons/recipe.icon.corn-porridge.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-corn-porridge.web]
+"recipe.icon.corn-porridge.png" = { id = 124013823727235 }
 
 [inputs.recipe-icon-crossbow-t1]
 path = "assets/icons/recipe.icon.crossbow-t1.png"
@@ -1958,9 +2261,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.door-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-door-kit.web]
+"recipe.icon.door-kit.png" = { id = 137673222091032 }
+
 [inputs.recipe-icon-dry-fiber]
 path = "assets/icons/recipe.icon.dry-fiber.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-dry-fiber.web]
+"recipe.icon.dry-fiber.png" = { id = 127677601899429 }
 
 [inputs.recipe-icon-dry-hide]
 path = "assets/icons/recipe.icon.dry-hide.png"
@@ -1974,61 +2283,106 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.dry-twig.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-dry-twig.web]
+"recipe.icon.dry-twig.png" = { id = 119683354334196 }
+
 [inputs.recipe-icon-extract-apple-seed]
 path = "assets/icons/recipe.icon.extract-apple-seed.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-apple-seed.web]
+"recipe.icon.extract-apple-seed.png" = { id = 79126596915188 }
 
 [inputs.recipe-icon-extract-banana-seed]
 path = "assets/icons/recipe.icon.extract-banana-seed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-extract-banana-seed.web]
+"recipe.icon.extract-banana-seed.png" = { id = 134806172936440 }
+
 [inputs.recipe-icon-extract-corn-seed]
 path = "assets/icons/recipe.icon.extract-corn-seed.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-corn-seed.web]
+"recipe.icon.extract-corn-seed.png" = { id = 82366794156474 }
 
 [inputs.recipe-icon-extract-fig-seed]
 path = "assets/icons/recipe.icon.extract-fig-seed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-extract-fig-seed.web]
+"recipe.icon.extract-fig-seed.png" = { id = 72046585511712 }
+
 [inputs.recipe-icon-extract-flax-seed]
 path = "assets/icons/recipe.icon.extract-flax-seed.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-flax-seed.web]
+"recipe.icon.extract-flax-seed.png" = { id = 91183283898795 }
 
 [inputs.recipe-icon-extract-onion-seed]
 path = "assets/icons/recipe.icon.extract-onion-seed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-extract-onion-seed.web]
+"recipe.icon.extract-onion-seed.png" = { id = 113945638646120 }
+
 [inputs.recipe-icon-extract-potato-seed]
 path = "assets/icons/recipe.icon.extract-potato-seed.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-extract-potato-seed.web]
+"recipe.icon.extract-potato-seed.png" = { id = 107814402068267 }
 
 [inputs.recipe-icon-extract-wheat-seed]
 path = "assets/icons/recipe.icon.extract-wheat-seed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-extract-wheat-seed.web]
+"recipe.icon.extract-wheat-seed.png" = { id = 91745070934461 }
+
 [inputs.recipe-icon-ferment-banana]
 path = "assets/icons/recipe.icon.ferment-banana.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-banana.web]
+"recipe.icon.ferment-banana.png" = { id = 115821939491665 }
 
 [inputs.recipe-icon-ferment-corn]
 path = "assets/icons/recipe.icon.ferment-corn.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-ferment-corn.web]
+"recipe.icon.ferment-corn.png" = { id = 132469029142355 }
+
 [inputs.recipe-icon-ferment-fig]
 path = "assets/icons/recipe.icon.ferment-fig.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-ferment-fig.web]
+"recipe.icon.ferment-fig.png" = { id = 105420859050017 }
 
 [inputs.recipe-icon-ferment-wheat]
 path = "assets/icons/recipe.icon.ferment-wheat.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-ferment-wheat.web]
+"recipe.icon.ferment-wheat.png" = { id = 94213071669002 }
+
 [inputs.recipe-icon-fig-stew]
 path = "assets/icons/recipe.icon.fig-stew.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-fig-stew.web]
+"recipe.icon.fig-stew.png" = { id = 84432540266888 }
+
 [inputs.recipe-icon-flax-seed-crisp]
 path = "assets/icons/recipe.icon.flax-seed-crisp.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-flax-seed-crisp.web]
+"recipe.icon.flax-seed-crisp.png" = { id = 124049114007458 }
 
 [inputs.recipe-icon-flint-knife]
 path = "assets/icons/recipe.icon.flint-knife.png"
@@ -2038,13 +2392,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.floor-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-floor-kit.web]
+"recipe.icon.floor-kit.png" = { id = 116341860561836 }
+
 [inputs.recipe-icon-fruit-fertilizer]
 path = "assets/icons/recipe.icon.fruit-fertilizer.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-fruit-fertilizer.web]
+"recipe.icon.fruit-fertilizer.png" = { id = 80089201483589 }
+
 [inputs.recipe-icon-grilled-fish]
 path = "assets/icons/recipe.icon.grilled-fish.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-grilled-fish.web]
+"recipe.icon.grilled-fish.png" = { id = 118077718685839 }
 
 [inputs.recipe-icon-hammer-t1]
 path = "assets/icons/recipe.icon.hammer-t1.png"
@@ -2062,29 +2425,50 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.herbivore-feed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-herbivore-feed.web]
+"recipe.icon.herbivore-feed.png" = { id = 133406175820114 }
+
 [inputs.recipe-icon-hoe-t1]
 path = "assets/icons/recipe.icon.hoe-t1.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hoe-t1.web]
+"recipe.icon.hoe-t1.png" = { id = 81513679231525 }
 
 [inputs.recipe-icon-hoe-t2]
 path = "assets/icons/recipe.icon.hoe-t2.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-hoe-t2.web]
+"recipe.icon.hoe-t2.png" = { id = 113611409041083 }
+
 [inputs.recipe-icon-hoe-t3]
 path = "assets/icons/recipe.icon.hoe-t3.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-hoe-t3.web]
+"recipe.icon.hoe-t3.png" = { id = 127987107409749 }
 
 [inputs.recipe-icon-kiln-kit]
 path = "assets/icons/recipe.icon.kiln-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-kiln-kit.web]
+"recipe.icon.kiln-kit.png" = { id = 125289999859695 }
+
 [inputs.recipe-icon-kiln-t2-kit]
 path = "assets/icons/recipe.icon.kiln-t2-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-kiln-t2-kit.web]
+"recipe.icon.kiln-t2-kit.png" = { id = 136421147918762 }
+
 [inputs.recipe-icon-kiln-t3-kit]
 path = "assets/icons/recipe.icon.kiln-t3-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-kiln-t3-kit.web]
+"recipe.icon.kiln-t3-kit.png" = { id = 125713684021528 }
 
 [inputs.recipe-icon-knife-t1]
 path = "assets/icons/recipe.icon.knife-t1.png"
@@ -2102,29 +2486,50 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.laboratory-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-laboratory-kit.web]
+"recipe.icon.laboratory-kit.png" = { id = 86106242110025 }
+
 [inputs.recipe-icon-lava-protection-boots]
 path = "assets/icons/recipe.icon.lava-protection-boots.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-lava-protection-boots.web]
+"recipe.icon.lava-protection-boots.png" = { id = 133748928750570 }
 
 [inputs.recipe-icon-legacy-campfire-kit]
 path = "assets/icons/recipe.icon.legacy-campfire-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-legacy-campfire-kit.web]
+"recipe.icon.legacy-campfire-kit.png" = { id = 125335235770793 }
+
 [inputs.recipe-icon-legacy-floor-kit]
 path = "assets/icons/recipe.icon.legacy-floor-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-legacy-floor-kit.web]
+"recipe.icon.legacy-floor-kit.png" = { id = 84940554594785 }
 
 [inputs.recipe-icon-legacy-storage-kit]
 path = "assets/icons/recipe.icon.legacy-storage-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-legacy-storage-kit.web]
+"recipe.icon.legacy-storage-kit.png" = { id = 121715731269606 }
+
 [inputs.recipe-icon-legacy-workbench-kit]
 path = "assets/icons/recipe.icon.legacy-workbench-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-legacy-workbench-kit.web]
+"recipe.icon.legacy-workbench-kit.png" = { id = 139006614518628 }
+
 [inputs.recipe-icon-liquid-fertilizer]
 path = "assets/icons/recipe.icon.liquid-fertilizer.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-liquid-fertilizer.web]
+"recipe.icon.liquid-fertilizer.png" = { id = 138917554614352 }
 
 [inputs.recipe-icon-meat-potato-stew]
 path = "assets/icons/recipe.icon.meat-potato-stew.png"
@@ -2134,6 +2539,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.mud-brick.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-mud-brick.web]
+"recipe.icon.mud-brick.png" = { id = 105275613604013 }
+
 [inputs.recipe-icon-onion-meat-skewer]
 path = "assets/icons/recipe.icon.onion-meat-skewer.png"
 output_path = "games/robango-island/src/shared"
@@ -2141,6 +2549,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.recipe-icon-onion-soup]
 path = "assets/icons/recipe.icon.onion-soup.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-onion-soup.web]
+"recipe.icon.onion-soup.png" = { id = 125685657788804 }
 
 [inputs.recipe-icon-pickaxe-t1]
 path = "assets/icons/recipe.icon.pickaxe-t1.png"
@@ -2158,9 +2569,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.plank.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-plank.web]
+"recipe.icon.plank.png" = { id = 128698112412736 }
+
 [inputs.recipe-icon-polish-basalt]
 path = "assets/icons/recipe.icon.polish-basalt.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-basalt.web]
+"recipe.icon.polish-basalt.png" = { id = 118144028282754 }
 
 [inputs.recipe-icon-polish-bone]
 path = "assets/icons/recipe.icon.polish-bone.png"
@@ -2170,9 +2587,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.polish-flint.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-polish-flint.web]
+"recipe.icon.polish-flint.png" = { id = 87040699408967 }
+
 [inputs.recipe-icon-polish-stone]
 path = "assets/icons/recipe.icon.polish-stone.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-polish-stone.web]
+"recipe.icon.polish-stone.png" = { id = 81401519636412 }
 
 [inputs.recipe-icon-rawhide-lashing]
 path = "assets/icons/recipe.icon.rawhide-lashing.png"
@@ -2182,9 +2605,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.recovery-feed.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-recovery-feed.web]
+"recipe.icon.recovery-feed.png" = { id = 76869155814543 }
+
 [inputs.recipe-icon-refrigerator-kit]
 path = "assets/icons/recipe.icon.refrigerator-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-refrigerator-kit.web]
+"recipe.icon.refrigerator-kit.png" = { id = 130826433932843 }
 
 [inputs.recipe-icon-rex-meat-stew]
 path = "assets/icons/recipe.icon.rex-meat-stew.png"
@@ -2198,33 +2627,57 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.roasted-hazelnuts.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-roasted-hazelnuts.web]
+"recipe.icon.roasted-hazelnuts.png" = { id = 102945408891672 }
+
 [inputs.recipe-icon-roof-kit]
 path = "assets/icons/recipe.icon.roof-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-roof-kit.web]
+"recipe.icon.roof-kit.png" = { id = 93552667797678 }
 
 [inputs.recipe-icon-saddle]
 path = "assets/icons/recipe.icon.saddle.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-saddle.web]
+"recipe.icon.saddle.png" = { id = 94885178226586 }
+
 [inputs.recipe-icon-signal-relay-kit]
 path = "assets/icons/recipe.icon.signal-relay-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-signal-relay-kit.web]
+"recipe.icon.signal-relay-kit.png" = { id = 80983144483571 }
 
 [inputs.recipe-icon-smelt-copper]
 path = "assets/icons/recipe.icon.smelt-copper.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-smelt-copper.web]
+"recipe.icon.smelt-copper.png" = { id = 89377990558426 }
+
 [inputs.recipe-icon-smelt-iron]
 path = "assets/icons/recipe.icon.smelt-iron.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-iron.web]
+"recipe.icon.smelt-iron.png" = { id = 70712722624547 }
 
 [inputs.recipe-icon-smelt-steel]
 path = "assets/icons/recipe.icon.smelt-steel.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-smelt-steel.web]
+"recipe.icon.smelt-steel.png" = { id = 96221136020811 }
+
 [inputs.recipe-icon-smelt-volcanic-alloy]
 path = "assets/icons/recipe.icon.smelt-volcanic-alloy.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-smelt-volcanic-alloy.web]
+"recipe.icon.smelt-volcanic-alloy.png" = { id = 118691720105686 }
 
 [inputs.recipe-icon-spear]
 path = "assets/icons/recipe.icon.spear.png"
@@ -2246,9 +2699,15 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.sprinkler.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-sprinkler.web]
+"recipe.icon.sprinkler.png" = { id = 126470157096573 }
+
 [inputs.recipe-icon-stairs-kit]
 path = "assets/icons/recipe.icon.stairs-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stairs-kit.web]
+"recipe.icon.stairs-kit.png" = { id = 78470972644213 }
 
 [inputs.recipe-icon-starter-axe]
 path = "assets/icons/recipe.icon.starter-axe.png"
@@ -2266,6 +2725,9 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.stem-fertilizer.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-stem-fertilizer.web]
+"recipe.icon.stem-fertilizer.png" = { id = 113906602961515 }
+
 [inputs.recipe-icon-stone-axe]
 path = "assets/icons/recipe.icon.stone-axe.png"
 output_path = "games/robango-island/src/shared"
@@ -2277,6 +2739,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.recipe-icon-stone-floor-kit]
 path = "assets/icons/recipe.icon.stone-floor-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-stone-floor-kit.web]
+"recipe.icon.stone-floor-kit.png" = { id = 128864862337934 }
 
 [inputs.recipe-icon-stone-maul]
 path = "assets/icons/recipe.icon.stone-maul.png"
@@ -2290,13 +2755,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.stone-roof-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-stone-roof-kit.web]
+"recipe.icon.stone-roof-kit.png" = { id = 138311507704758 }
+
 [inputs.recipe-icon-stone-wall-kit]
 path = "assets/icons/recipe.icon.stone-wall-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-stone-wall-kit.web]
+"recipe.icon.stone-wall-kit.png" = { id = 127838613097191 }
+
 [inputs.recipe-icon-storage-kit]
 path = "assets/icons/recipe.icon.storage-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-storage-kit.web]
+"recipe.icon.storage-kit.png" = { id = 116273275801200 }
 
 [inputs.recipe-icon-sword-t1]
 path = "assets/icons/recipe.icon.sword-t1.png"
@@ -2334,13 +2808,22 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.temperate-bag.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-temperate-bag.web]
+"recipe.icon.temperate-bag.png" = { id = 120866927282602 }
+
 [inputs.recipe-icon-temperate-bottom]
 path = "assets/icons/recipe.icon.temperate-bottom.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-temperate-bottom.web]
+"recipe.icon.temperate-bottom.png" = { id = 122388264550135 }
+
 [inputs.recipe-icon-temperate-gloves]
 path = "assets/icons/recipe.icon.temperate-gloves.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-gloves.web]
+"recipe.icon.temperate-gloves.png" = { id = 119976609574954 }
 
 [inputs.recipe-icon-temperate-head]
 path = "assets/icons/recipe.icon.temperate-head.png"
@@ -2350,37 +2833,64 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.temperate-shoes.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-temperate-shoes.web]
+"recipe.icon.temperate-shoes.png" = { id = 82201576133844 }
+
 [inputs.recipe-icon-temperate-top]
 path = "assets/icons/recipe.icon.temperate-top.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-temperate-top.web]
+"recipe.icon.temperate-top.png" = { id = 110913838599271 }
 
 [inputs.recipe-icon-tent-kit]
 path = "assets/icons/recipe.icon.tent-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-tent-kit.web]
+"recipe.icon.tent-kit.png" = { id = 76847526526061 }
+
 [inputs.recipe-icon-thatch-bundle]
 path = "assets/icons/recipe.icon.thatch-bundle.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-thatch-bundle.web]
+"recipe.icon.thatch-bundle.png" = { id = 93780189884425 }
 
 [inputs.recipe-icon-timber-beam]
 path = "assets/icons/recipe.icon.timber-beam.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-timber-beam.web]
+"recipe.icon.timber-beam.png" = { id = 125297225373647 }
+
 [inputs.recipe-icon-timber-wall-kit]
 path = "assets/icons/recipe.icon.timber-wall-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-timber-wall-kit.web]
+"recipe.icon.timber-wall-kit.png" = { id = 135152399907697 }
 
 [inputs.recipe-icon-tropical-bag]
 path = "assets/icons/recipe.icon.tropical-bag.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-tropical-bag.web]
+"recipe.icon.tropical-bag.png" = { id = 126457026391278 }
+
 [inputs.recipe-icon-tropical-bottom]
 path = "assets/icons/recipe.icon.tropical-bottom.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-tropical-bottom.web]
+"recipe.icon.tropical-bottom.png" = { id = 138759130177782 }
+
 [inputs.recipe-icon-tropical-gloves]
 path = "assets/icons/recipe.icon.tropical-gloves.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-gloves.web]
+"recipe.icon.tropical-gloves.png" = { id = 85230036368544 }
 
 [inputs.recipe-icon-tropical-head]
 path = "assets/icons/recipe.icon.tropical-head.png"
@@ -2390,37 +2900,64 @@ output_path = "games/robango-island/src/shared"
 path = "assets/icons/recipe.icon.tropical-shoes.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-tropical-shoes.web]
+"recipe.icon.tropical-shoes.png" = { id = 100004585321805 }
+
 [inputs.recipe-icon-tropical-top]
 path = "assets/icons/recipe.icon.tropical-top.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-tropical-top.web]
+"recipe.icon.tropical-top.png" = { id = 131345820987891 }
 
 [inputs.recipe-icon-wall-kit]
 path = "assets/icons/recipe.icon.wall-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-wall-kit.web]
+"recipe.icon.wall-kit.png" = { id = 130859365136830 }
+
 [inputs.recipe-icon-well-kit]
 path = "assets/icons/recipe.icon.well-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-well-kit.web]
+"recipe.icon.well-kit.png" = { id = 85166039341616 }
 
 [inputs.recipe-icon-wheat-flatbread]
 path = "assets/icons/recipe.icon.wheat-flatbread.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-wheat-flatbread.web]
+"recipe.icon.wheat-flatbread.png" = { id = 126630154778512 }
+
 [inputs.recipe-icon-woodland-skewer]
 path = "assets/icons/recipe.icon.woodland-skewer.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-woodland-skewer.web]
+"recipe.icon.woodland-skewer.png" = { id = 73486590143947 }
 
 [inputs.recipe-icon-workbench-kit]
 path = "assets/icons/recipe.icon.workbench-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-workbench-kit.web]
+"recipe.icon.workbench-kit.png" = { id = 86381009097887 }
+
 [inputs.recipe-icon-workbench-t2-kit]
 path = "assets/icons/recipe.icon.workbench-t2-kit.png"
 output_path = "games/robango-island/src/shared"
 
+[inputs.recipe-icon-workbench-t2-kit.web]
+"recipe.icon.workbench-t2-kit.png" = { id = 107287843027906 }
+
 [inputs.recipe-icon-workbench-t3-kit]
 path = "assets/icons/recipe.icon.workbench-t3-kit.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.recipe-icon-workbench-t3-kit.web]
+"recipe.icon.workbench-t3-kit.png" = { id = 85467624679002 }
 
 [inputs.robango-attack]
 path = "assets/audio/robango-attack.wav"
@@ -2983,6 +3520,9 @@ output_path = "games/robango-island/src/shared"
 [inputs.ui-icon-fatigue]
 path = "assets/icons/ui.icon.fatigue.png"
 output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-fatigue.web]
+"ui.icon.fatigue.png" = { id = 86694160556710 }
 
 [inputs.ui-icon-favorite]
 path = "assets/icons/ui.icon.favorite.png"
