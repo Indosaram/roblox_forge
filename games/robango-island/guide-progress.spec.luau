@@ -965,4 +965,35 @@ cases["p103 support quote refuses a non-support row and a closed guide still acc
 	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 
+-- p120 D3: guide-act at a world anchor uses the real harbor geometry (RoleWorld parts, generated
+-- terrain, SurvivalWorld raycast). Standing at the visitor portal or the rescue beacon reaches it;
+-- standing 30 studs away does not. (Studio p115: the ray to the buried anchor point hit Terrain or the
+-- portal part itself, so every visit refused OUT_OF_RANGE.)
+cases["guide-act reaches harbor anchors through real terrain and facility parts"] = function()
+	local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+	local engine = Engine.new(nil, true)
+	local world = engine.role.build(content, defaultSource, wildlifePolicy, function()
+		return 0
+	end, "rw.harbor", 1776)
+	engine.game:GetService("RunService").Heartbeat:Wait()
+	local portal = world.anchorParts["visitor-portal"]
+	local beacon = world.anchorParts["rescue-beacon"]
+	assert(portal and beacon, "harbor facility parts are registered by anchor id")
+	for _, case in { { "visit", "rw.home-demo", portal }, { "activate", "rw.harbor.rescue-beacon", beacon } } do
+		local p = case[3].Position
+		-- On the facility (as in Studio) and one step beside it.
+		for _, offset in { { 0, 3.5, 0 }, { 5.5, 3, 0 } } do
+			engine.move(FIRST, { x = p.X + offset[1], y = p.Y + offset[2], z = p.Z + offset[3] })
+			assert(
+				GuideEvents.atAnchor(content, world, FIRST, case[1], case[2]),
+				case[1] .. " " .. case[2] .. " reachable at offset " .. offset[1]
+			)
+		end
+		engine.move(FIRST, { x = p.X + 30, y = p.Y + 3, z = p.Z })
+		assert(not GuideEvents.atAnchor(content, world, FIRST, case[1], case[2]), case[1] .. " refused far away")
+	end
+	assert(GuideEvents.atAnchor(content, world, FIRST, "inspect", "cold-head"), "no anchor: no reach check")
+	world.destroy()
+end
+
 return cases

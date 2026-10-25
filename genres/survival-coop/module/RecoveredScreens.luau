@@ -693,9 +693,13 @@ function M.rolesRows(locale: string, state: any, act: any): { any }
 		{ text = L.text(locale, "scr.roles.count", #ids) },
 		{ text = L.text(locale, if govern then "scr.roles.note" else "scr.roles.readonly") },
 	}
+	-- A member missing from the server roster is offline: never show the bare user id (p115 D5).
+	local function display(id: string): string
+		return if state.names and state.names[id] then state.names[id] else L.text(locale, "scr.roles.offline")
+	end
 	for _, id in ids do
 		local member = clan.members[id]
-		local who = name(state.names, id)
+		local who = display(id)
 		table.insert(rows, {
 			text = L.text(
 				locale,
@@ -737,7 +741,7 @@ function M.rolesRows(locale: string, state: any, act: any): { any }
 			table.insert(rows, { text = L.text(locale, "scr.roles.drafts_empty") })
 		end
 		for _, id in drafts do
-			local who = name(state.names, id)
+			local who = display(id)
 			local role = L.text(locale, "scr.roles.role_" .. clan.drafts[id].role)
 			table.insert(rows, {
 				text = L.text(locale, "scr.roles.draft_confirm", who, role),
@@ -1173,6 +1177,7 @@ function M.factory(ctx: any): any
 
 	-- ui.clan-roles
 	local rolesStatus: string? = nil
+	local rolesView: string? = nil
 	local applied: string? = nil
 	local roles: any
 	roles = mount(10, function(extensions: any, packet: any): any
@@ -1183,6 +1188,12 @@ function M.factory(ctx: any): any
 		return { clan = extensions.clan, names = names }
 	end, function(state: any): { any }
 		local clan = state and state.clan
+		-- A status line belongs to the view it was made in: joining, leaving or switching clans drops
+		-- it (p115 D4: "no clan with that ID" stayed on the member view after creating a clan).
+		local view = if clan then tostring(clan.clanId) .. "/" .. tostring(clan.members[actorId] ~= nil) else ""
+		if view ~= rolesView then
+			rolesView, rolesStatus = view, nil
+		end
 		return M.rolesRows(locale, {
 			clan = clan,
 			actorId = actorId,

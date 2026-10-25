@@ -1,5 +1,6 @@
 --!strict
 local Clan = require("../../../core/domain/settlement/Clan")
+local ScreenText = require("./ScreenText")
 local M = {}
 
 function M.bounds(width: number, height: number): any
@@ -102,9 +103,11 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 		end
 	end
 	empty()
-	local unsubscribe = ctx.onSnapshot(function(snapshot: any)
+	local unsubscribe = ctx.onSnapshot(function(snapshot: any, packet: any?)
 		local state = snapshot[id]
-		local key = ctx.encode(state)
+		-- Member names come from the server roster, so a roster change re-renders too.
+		local roster = if packet then packet.roster else nil
+		local key = ctx.encode({ state, roster })
 		if key == rendered then
 			return
 		end
@@ -116,7 +119,7 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 		end
 		order = 0
 		if state then
-			render(state, add)
+			render(state, add, roster)
 		else
 			empty()
 		end
@@ -131,19 +134,27 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 end
 
 function M.factory(ctx: any): any
-	return M.mount(ctx, "clan", ctx.text("ui.clan"), "social", function(state: any, add: any)
+	return M.mount(ctx, "clan", ctx.text("ui.clan"), "social", function(state: any, add: any, roster: any?)
 		local view = M.model(state, ctx.actorId, ctx.content.operations)
+		-- Player-facing labels only (p115 D5): display names, localized roles, research and territory.
+		local names = {}
+		for _, entry in roster or {} do
+			names[entry.id] = entry.name
+		end
+		local function format(key: string, ...: any): string
+			return string.format(ctx.text(key), ...)
+		end
 		local function command(operation: string, args: any)
 			args.expectedRevision = state.revision
 			return ctx.send("survival-coop:clan-" .. operation, { state.clanId, args })
 		end
-		add(ctx.text("clan.level") .. ": " .. state.level .. " / " .. state.funds)
-		add(ctx.text("clan.territory") .. ": " .. state.territory)
+		add(ctx.text("clan.level") .. ": " .. state.level .. " / " .. ctx.text("clan.funds") .. ": " .. state.funds)
+		add(ctx.text("clan.territory") .. ": " .. ScreenText.layout(ctx.locale or "en-us", state.territory))
 		if ctx.openOutposts then
 			add(ctx.text("ui.outpost"), ctx.openOutposts)
 		end
 		for _, row in view.members do
-			add(row.text)
+			add((names[row.id] or ctx.text("clan.offline")) .. " / " .. ctx.text("clan.role_" .. row.role))
 			if row.canManage then
 				add(ctx.text("clan.officer"), function()
 					command("role", { target = row.id, role = "officer" })
@@ -189,7 +200,7 @@ function M.factory(ctx: any): any
 		end
 		for _, row in view.research do
 			add(
-				ctx.text(row.id) .. " / " .. row.cost,
+				format("clan.research_row", ctx.text(row.id), row.cost),
 				if row.canStart
 					then function()
 						command("research-start", { id = row.id })
@@ -199,7 +210,7 @@ function M.factory(ctx: any): any
 		end
 		for jobId, job in state.jobs do
 			if job.status == "pending" then
-				add(ctx.text(job.definition) .. " / " .. math.max(0, job.finishAt - ctx.serverNow()))
+				add(format("clan.research_left", ctx.text(job.definition), math.max(0, job.finishAt - ctx.serverNow())))
 				if Clan.allowed(state, ctx.actorId, "research") then
 					add(ctx.text("clan.research-complete"), function()
 						command("research-complete", { jobId = jobId })

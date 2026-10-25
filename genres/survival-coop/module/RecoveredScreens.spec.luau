@@ -992,21 +992,35 @@ return {
 		assert(sent[1][2][1] == "tide" and sent[1][2][2].role == "visitor", "draft args")
 		click(L.text("en-us", "scr.roles.withdraw_draft", "tide"))
 		assert(sent[2][1] == "survival-coop:clan-draft-cancel" and sent[2][2][1] == "tide", "withdraw args")
+		docks["clan-roles"].setOpen(true)
+		-- p115 D4: a refusal from the no-clan view (unknown clan id) must not survive joining a clan.
+		reply = { ok = false, reason = "WRONG_IDENTITY" }
+		click(L.text("en-us", "scr.roles.apply_member"))
+		assert(string.find(screen(), L.refusal("en-us", "WRONG_IDENTITY"), 1, true), "apply refusal shown")
+		reply = { ok = true }
+		local mark = #shown
 		local state = clan()
 		state.drafts = { ["7"] = { role = "member", at = 0 } }
 		for _, callback in callbacks do
 			callback({ clan = state }, { roster = { { id = "7", name = "Bo" } }, snapshots = {} })
 		end
 		docks["clan-roles"].setOpen(true)
+		local after = {}
+		for index = mark + 1, #shown do
+			table.insert(after, shown[index].Text)
+		end
+		assert(#after > 0, "member view rendered")
+		local member = table.concat(after, "\n")
+		assert(not string.find(member, L.refusal("en-us", "WRONG_IDENTITY"), 1, true), "stale refusal cleared")
 		reply = { ok = true, data = { role = "member", grants = Clan.preview(state, "member") } }
 		click(L.text("en-us", "scr.roles.preview", L.text("en-us", "scr.roles.role_member")))
-		assert(sent[3][1] == "survival-coop:clan-preview" and sent[3][2][2].role == "member", "preview args")
+		assert(sent[4][1] == "survival-coop:clan-preview" and sent[4][2][2].role == "member", "preview args")
 		local line = Screens.previewLine("en-us", reply.data)
 		assert(string.find(screen(), line, 1, true), "preview shown")
 		reply = { ok = false, reason = "CLAN_FULL" }
 		click(L.text("en-us", "scr.roles.draft_confirm", "Bo", L.text("en-us", "scr.roles.role_member")))
-		assert(sent[4][1] == "survival-coop:clan-draft-confirm", "confirm sent")
-		assert(sent[4][2][1] == "tide" and sent[4][2][2].target == "7" and sent[4][2][2].expectedRevision == 0, "args")
+		assert(sent[5][1] == "survival-coop:clan-draft-confirm", "confirm sent")
+		assert(sent[5][2][1] == "tide" and sent[5][2][2].target == "7" and sent[5][2][2].expectedRevision == 0, "args")
 		assert(string.find(screen(), L.refusal("en-us", "CLAN_FULL"), 1, true), "localized refusal shown")
 	end,
 	["market buy confirms the exact bundle and refuses short balance or a gone listing"] = function()

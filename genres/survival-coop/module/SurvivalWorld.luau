@@ -163,6 +163,14 @@ function M.new(config: Config)
 		local hit = world:Raycast(from.Position, delta, params)
 		return hit == nil or (instance ~= nil and (hit.Instance == instance or hit.Instance:IsDescendantOf(instance)))
 	end
+	-- Reach to a placed part (station, facility): within 12 studs of it and a clear ray to just above
+	-- its top. The part itself never blocks, and the target is never buried under its own terrain.
+	local function nearPart(id: string, part: BasePart): boolean
+		local from = root(id)
+		return from ~= nil
+			and (from.Position - part.Position).Magnitude <= 12
+			and reachable(id, part.Position + Vector3.new(0, part.Size.Y / 2 + 2, 0), part, 16)
+	end
 	local function station(id: string, key: string): { kind: string, reachable: boolean }?
 		local part = stations[key]
 		if not part or not part:IsDescendantOf(world) or not tags:HasTag(part, "ForgeSurvivalStation") then
@@ -172,12 +180,9 @@ function M.new(config: Config)
 		if type(kind) ~= "string" or not kinds[kind] or part:GetAttribute("ForgeStationId") ~= key then
 			return nil
 		end
-		local from = root(id)
 		return {
 			kind = kind,
-			reachable = from ~= nil
-				and (from.Position - part.Position).Magnitude <= 12
-				and reachable(id, part.Position + Vector3.new(0, part.Size.Y / 2 + 2, 0), part, 16),
+			reachable = nearPart(id, part),
 		}
 	end
 	local services: Options.Services = {
@@ -218,8 +223,12 @@ function M.new(config: Config)
 		},
 	}
 	-- isFriend is declared so the table satisfies SurvivalBootstrap.World; hosts assign the trusted friendship source.
-	local api =
-		{ services = services, isFriend = nil :: ((string, string) -> boolean)?, structureKits = nil :: Folder? }
+	local api = {
+		services = services,
+		isFriend = nil :: ((string, string) -> boolean)?,
+		structureKits = nil :: Folder?,
+		nearPart = nearPart,
+	}
 	local built: { [string]: BasePart } = {}
 	local builtVersion: { [string]: number } = {}
 	-- The host supplies a trusted plot origin and warehouse position. These ports

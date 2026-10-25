@@ -253,6 +253,31 @@ local function anchors(content: any, verb: string, target: string): { [string]: 
 	return out
 end
 
+--- True when no world anchor is named by (verb, target), or the actor stands within reach of one
+--- of the named anchors of the world's current layout. A world with placed anchor parts answers
+--- through world.anchorReach (reach to the visible part, never to the authored point that can lie
+--- under the terrain or inside the part); otherwise the death port's reach to the anchor point.
+function M.atAnchor(content: any, world: any, actor: string, verb: string, target: string): boolean
+	local places = anchors(content, verb, target)
+	if not next(places) then
+		return true
+	end
+	local spatial = world.services and world.services.survivalDeath
+	for _, anchor in if world.layout then world.layout.anchors else {} do
+		if
+			places[anchor.id] == true
+			and (
+				if world.anchorReach
+					then world.anchorReach(actor, anchor)
+					else spatial ~= nil and spatial.reachable(actor, anchor.position)
+			)
+		then
+			return true
+		end
+	end
+	return false
+end
+
 --- The guide whose next unfinished objective is (verb, target), or nil with the refusal.
 function M.nextStep(content: any, development: any, level: number, verb: string, target: string): (any?, string?)
 	local grade = rank(development.points or 0)
@@ -298,17 +323,8 @@ function M.factory(ctx: any): any
 			if refused then
 				return { ok = false, reason = refused }
 			end
-			local places = anchors(ctx.content, verb, target)
-			if next(places) then
-				local spatial = ctx.world.services and ctx.world.services.survivalDeath
-				local here = false
-				for _, anchor in if ctx.world.layout then ctx.world.layout.anchors else {} do
-					here = here
-						or (places[anchor.id] == true and spatial ~= nil and spatial.reachable(actor, anchor.position))
-				end
-				if not here then
-					return { ok = false, reason = "OUT_OF_RANGE" }
-				end
+			if not M.atAnchor(ctx.content, ctx.world, actor, verb, target) then
+				return { ok = false, reason = "OUT_OF_RANGE" }
 			end
 			local admitted = admit()
 			if not admitted.ok then

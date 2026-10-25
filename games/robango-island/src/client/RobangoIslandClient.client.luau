@@ -470,7 +470,7 @@ table.insert(panelFactories, function(ctx)
 		return tonumber(ask())
 	end
 	social.confirm = function(key: string)
-		input.PlaceholderText = key .. " / OK"
+		input.PlaceholderText = social.text(key) .. " / OK"
 		return ask() == "OK"
 	end
 	social.clanWallet = function(id, operation, amount)

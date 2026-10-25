@@ -2763,3 +2763,34 @@ chr.SAVE_FAILED,Could not save. Try again,genre text chr,Could not save. Try aga
 chr.PROGRESSION_UNAVAILABLE,Your progress is still loading. Try again in a moment,genre text chr,Your progress is still loading. Try again in a moment,진행 정보를 불러오는 중이에요. 잠시 뒤 다시 시도하세요
 hud.skill_needed,Locked: learn %s,genre text hud,Locked: learn %s,잠김: %s 기술 필요
 hud.skill_needed_refusal,Learn the %s skill first (Skills tab),genre text hud,Learn the %s skill first (Skills tab),먼저 %s 기술을 배우세요 (기술 탭)
+chr.guide_target_rw.home,your home island,genre text chr,your home island,내 개인 섬
+chr.guide_target_rw.home-demo,the demonstration home,genre text chr,the demonstration home,시범 집
+chr.guide_target_farming_1,Farming 1,genre text chr,Farming 1,농사 1
+chr.guide_target_tailoring_1,Tailoring 1,genre text chr,Tailoring 1,재봉 1
+chr.guide_target_practice-fiber-stitch,Weaving practice,genre text chr,Weaving practice,섬유 엮기 연습
+chr.guide_target_skills,skill reset,genre text chr,skill reset,기술 초기화
+chr.guide_target_rw.training-recipient,a party member,genre text chr,a party member,파티원
+chr.guide_target_clan,a clan,genre text chr,a clan,부족
+chr.guide_target_support-tier-1,support tier 1,genre text chr,support tier 1,기술 지원 1단계
+chr.guide_target_rw.harbor.rescue-beacon,the harbor rescue beacon,genre text chr,the harbor rescue beacon,항구 구조 신호기
+cli.clan.funds,Funds,client clan/outpost label,Funds,자금
+cli.clan.officer,Make officer,client clan/outpost label,Make officer,간부로 지정
+cli.clan.member,Make member,client clan/outpost label,Make member,부족원으로 지정
+cli.clan.withdraw-permission,Toggle withdraw permission,client clan/outpost label,Toggle withdraw permission,출금 권한 바꾸기
+cli.clan.transfer,Hand over leadership,client clan/outpost label,Hand over leadership,부족장 넘기기
+cli.clan.relocate,Move clan territory,client clan/outpost label,Move clan territory,부족 영토 옮기기
+cli.clan.research-complete,Complete research,client clan/outpost label,Complete research,연구 완료
+cli.clan.research-cancel,Cancel research,client clan/outpost label,Cancel research,연구 취소
+cli.clan.dissolve,Disband clan,client clan/outpost label,Disband clan,부족 해산
+cli.clan.leave,Leave clan,client clan/outpost label,Leave clan,부족 탈퇴
+scr.roles.offline,A clan member (offline),recovered screen,A clan member (offline),부족원 (오프라인)
+cli.clan.offline,A clan member (offline),client clan/outpost label,A clan member (offline),부족원 (오프라인)
+cli.clan.role_owner,Leader,client clan/outpost label,Leader,부족장
+cli.clan.role_officer,Officer,client clan/outpost label,Officer,간부
+cli.clan.role_member,Member,client clan/outpost label,Member,부족원
+cli.clan.role_visitor,Visitor,client clan/outpost label,Visitor,방문자
+cli.clan.research_row,%s (%d shellmoney),client clan/outpost label,%s (%d shellmoney),%s (조개돈 %d)
+cli.clan.research_left,%s: %d s left,client clan/outpost label,%s: %d s left,%s: %d초 남음
+cli.clan-research-exploration,Exploration research,client clan/outpost label,Exploration research,탐험 연구
+cli.clan-research-combat,Combat research,client clan/outpost label,Combat research,전투 연구
+cli.clan-research-advanced-capture,Advanced capture research,client clan/outpost label,Advanced capture research,고급 포획 연구

@@ -52,14 +52,21 @@ return {
 			assert(row.ready and row.skill == nil, "learned node unlocks " .. row.recipe.id)
 		end
 		local node = "cooking_1"
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		-- p115 D1: the status line received the raw node id; the HUD stores the localized name.
+		local stored = string.match(hud, "\n%s*refusedSkill = ([^\n]+)")
+		assert(
+			stored == "if row.skill then Locale.skillName(locale, row.skill) else nil",
+			"refusal stores the skill name: " .. tostring(stored)
+		)
 		for _, locale in { "en-us", "ko-kr" } do
 			local name = Locale.skillName(locale, node)
 			local line = Locale.refusal(locale, "SKILL_NODE_GATE", name)
 			assert(string.find(line, name, 1, true), locale .. " refusal names the skill")
+			assert(not string.find(line, "%a_%d"), locale .. " refusal has no node id: " .. line)
 			assert(line ~= Locale.refusal(locale, "UNKNOWN_REASON"), locale .. " refusal is not the generic line")
 		end
 		assert(string.find(Locale.skillName("ko-kr", node), "요리", 1, true), "KO skill name")
-		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
 		assert(string.find(hud, "elseif row.skill then", 1, true), "recipe row shows the locked skill")
 		assert(string.find(hud, "Locale.refusal(locale, model.reason, refusedSkill)", 1, true), "status names it")
 	end,

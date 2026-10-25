@@ -676,6 +676,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- Station panels: a tier-2+ workbench opens ui.modify, a signal relay opens ui.technical-support.
 	-- The server still gates every command on station kind, tier and reach.
 	world.tieredStations = {}
+	-- Placed parts of layout anchors (stations, harbor facilities): guide-act reach (GuideEvents)
+	-- measures to the part a player sees, not the authored anchor point under the terrain.
+	world.anchorParts = {}
 	local function stationPanel(target: BasePart, kind: string, tier: number)
 		local panel = if kind == "workbench" and tier >= 2
 			then "modify"
@@ -706,6 +709,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 			world.registerStation(target, anchor.id, station)
 			world.tieredStations[anchor.id] = target
+			world.anchorParts[anchor.id] = target
 			stationPanel(target, station, tonumber(string.match(anchor.id, "%.t(%d+)$")) or 1)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })
@@ -723,6 +727,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		return result
 	end
+	-- guide-act reach (GuideEvents.atAnchor): to the anchor's placed part with the station reach rule,
+	-- else to the anchor lifted onto the ground. The authored point lies under terrain (y=4), so a
+	-- straight ray to it hit Terrain or the facility part itself and always refused (p115 D3).
+	world.anchorReach = function(actor: string, anchor: any): boolean
+		local target = world.anchorParts[anchor.id] or world.tieredStations[anchor.id]
+		if target and target.Parent then
+			return world.nearPart(actor, target)
+		end
+		return world.services.survivalDeath.reachable(actor, interactionPosition(anchor.position, 4))
+	end
 	if layoutId == "rw.harbor" then
 		local Harbor = require(Forge.genres["survival-coop"].module.HarborFacilities)
 		world.harborFacilities = Harbor.describe(content)
@@ -731,6 +745,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				facility.position = interactionPosition(facility.position, 4)
 				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
 				target:SetAttribute("ForgeHarborFacility", facility.anchor)
+				world.anchorParts[facility.anchor] = target
 				local prompt = Instance.new("ProximityPrompt")
 				WorldText.bind(prompt, if facility.kind == "market" then "market" else "interact", facility.anchor)
 				prompt.MaxActivationDistance, prompt.Parent = 8, target

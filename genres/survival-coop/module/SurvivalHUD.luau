@@ -1278,7 +1278,7 @@ function M.start(options: Options)
 							render()
 							return
 						end
-						refusedSkill = row.skill
+						refusedSkill = if row.skill then Locale.skillName(locale, row.skill) else nil
 						command(
 							"craft-reserve",
 							{ recipe.id, if station then station:GetAttribute("ForgeStationId") else "hand" }
