@@ -102,6 +102,36 @@ M.operations = {
 	world_building = function(ctx, step): string?
 		return ctx.fixture.building(actorOf(ctx, step))
 	end,
+	world_multistorey = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.multistorey(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "production_multistorey_exception"
+		end
+		return result
+	end,
+	world_journal = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.journal(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "production_journal_exception"
+		end
+		return result
+	end,
+	world_ensemble = function(ctx, step): string?
+		local ok, result = xpcall(function()
+			return ctx.fixture.ensemble(actorOf(ctx, step))
+		end, debug.traceback)
+		if not ok then
+			print(result)
+			return "production_ensemble_exception"
+		end
+		return result
+	end,
 }
 function M.new(ctx: any): any
 	local engine = Engine.new(true)
@@ -132,6 +162,9 @@ function M.new(ctx: any): any
 	module.JournalObjectiveFeed = require("../../../../genres/survival-coop/module/JournalObjectiveFeed")
 	module.JournalExtension = require("../../../../genres/survival-coop/module/JournalExtension")
 	module.RecipeMarks = require("../../../../genres/survival-coop/module/RecipeMarks")
+	module.EnsembleRange = require("../../../../genres/survival-coop/module/EnsembleRange")
+	module.EnsembleExtension = require("../../../../genres/survival-coop/module/EnsembleExtension")
+	module.ScoreTransport = require("../../../../genres/survival-coop/module/ScoreTransport")
 	forge.core.domain.home = { HomeContent = HomeContent }
 	forge.core.domain.settlement = { Settlement = require("../../../../core/domain/settlement/Settlement") }
 	forge.core.domain.settlement.Clan = require("../../../../core/domain/settlement/Clan")
@@ -164,6 +197,7 @@ function M.new(ctx: any): any
 	local factory: any, session: any, world: any
 	local sequence = 0
 	local clanDirectory: any = nil
+	local musicRepository: any, musicDecode: any = nil, nil
 	local actorId: string? = nil
 	local function create(role: string, actor: string)
 		sequence += 1
@@ -199,6 +233,7 @@ function M.new(ctx: any): any
 			{ studio = false, server = "worlds:" .. tostring(sequence) }
 		)
 		world.clanDirectory = clanDirectory
+		world.musicRepository, world.musicDecode = musicRepository, musicDecode
 		factory = assert(
 			factoryBuilder(
 				Content,
@@ -1582,6 +1617,496 @@ function M.new(ctx: any): any
 		if loaded.homeId ~= home.homeId or loaded.landRank ~= home.landRank then
 			return "home_changed"
 		end
+		return nil
+	end
+	-- Fixture item grant through the real Inventory/ItemCatalog rules (stands in for gathering).
+	local grantSequence = 0
+	local function grant(actor: string, catalogId: string, quantity: number)
+		local Inventory = require("../../../../core/domain/inventory/Inventory")
+		local catalog = require("../../../../core/domain/inventory/ItemCatalog").new(Content.items)
+		local definition = assert(catalog[catalogId], "unknown fixture item " .. catalogId)
+		local port = session.personalTransfer(actor)
+		port.install(assert(
+			port.personal:update(port.profile(), function(raw)
+				local slice = raw.envelope.genres["survival-coop"].data
+				local bag = Inventory.fromSave(slice.inventory.bag, catalog)
+				local remaining = quantity
+				while remaining > 0 do
+					local amount = math.min(definition.stackMax or 1, remaining)
+					grantSequence += 1
+					local added, reason = Inventory.add(bag, catalog, {
+						itemId = "fixture-" .. catalogId .. "-" .. tostring(grantSequence),
+						catalogId = catalogId,
+						quantity = amount,
+						qualityMilli = 1000,
+						durabilityMilli = definition.maxDurabilityMilli or 0,
+						attributes = {},
+					}, bag.version)
+					bag = assert(added, "fixture grant " .. catalogId .. ": " .. tostring(reason))
+					remaining -= amount
+				end
+				slice.inventory.bag = Inventory.save(bag)
+				return raw
+			end),
+			"fixture grant"
+		))
+	end
+	local function countOf(actor: string, catalogId: string): number
+		local count = 0
+		for _, item in personal(actor).inventory.bag.items do
+			if item.catalogId == catalogId then
+				count += item.quantity
+			end
+		end
+		return count
+	end
+	-- Fixture progression: stands in for the runs that earn a level or skill node.
+	local function progress(actor: string, level: number, node: string?)
+		local port = session.personalTransfer(actor)
+		port.install(assert(
+			port.personal:update(port.profile(), function(raw)
+				local progression = raw.envelope.genres["survival-coop"].data.progression
+				progression.level = math.max(progression.level, level)
+				if node then
+					progression.paid[node] = progression.paid[node] or 1
+				end
+				return raw
+			end),
+			"fixture progression"
+		))
+	end
+	-- Multistorey home through the production building-place/building-remove commands
+	-- (SurvivalFactory -> MultistoreyCommands -> personal aggregate + RoleWorld collision publish).
+	function api.multistorey(actor)
+		local Topology = require("../../../../core/domain/settlement/Multistorey")
+		local Commands = require("../../../../genres/survival-coop/module/MultistoreyCommands")
+		local Aerial = require("../../../../genres/survival-coop/module/AerialView")
+		local policy = Commands.policy(Content)
+		local kits = Content.buildingPolicy.kits
+		local function state(): any
+			return session.snapshot(actor).survivalExtensions.building or { version = 0, parts = {} }
+		end
+		local function stand(floor: number)
+			engine.move(actor, { x = 0, y = Content.homePolicy.dock.y + Content.homePolicy.floors[floor], z = 0 })
+		end
+		local function part(kind: string, floor: number, x: number): any
+			return { id = kind .. floor .. "x" .. x, kind = kind, x = x, z = 0, floor = floor }
+		end
+		local function place(kind: string, floor: number, x: number)
+			command(actor, "building-place", { { version = state().version, part = part(kind, floor, x) } })
+		end
+		local baseline: { [string]: number } = {}
+		for _, kit in kits do
+			baseline[kit] = countOf(actor, kit)
+		end
+		stand(1)
+		if baseline[kits.floor] == 0 then
+			refused(actor, "building-place", { { version = 0, part = part("floor", 1, 0) } }, "MISSING_KIT")
+		end
+		local granted: { [string]: number } = { floor = 6, pillar = 4, stairs = 2 }
+		for kind, quantity in granted do
+			grant(actor, kits[kind], quantity)
+		end
+		engine.move(actor, Content.homePolicy.dock)
+		refused(actor, "building-place", { { version = 0, part = part("floor", 1, 0) } }, "BUILD_BOUNDARY")
+		stand(1)
+		refused(actor, "building-place", { { version = 0, part = part("floor", 1, 20) } }, "BUILD_BOUNDARY")
+		refused(actor, "building-place", { { version = 0, part = part("pillar", 1, 0) } }, "UNSUPPORTED")
+		for floor = 1, 3 do
+			stand(floor)
+			place("floor", floor, 0)
+			assert(Topology.reachable(state(), floor, 0, 0), "committed floor is reachable by stairs")
+			place("floor", floor, 1)
+			if floor < 3 then
+				place("pillar", floor, 0)
+				place("pillar", floor, 1)
+				place("stairs", floor, 0)
+			end
+		end
+		refused(actor, "building-place", { { version = state().version, part = part("stairs", 3, 1) } }, "TOP_FLOOR")
+		-- Replaying one committed request refunds exactly once.
+		local version = state().version
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		local removal = request(actor, "building-remove", { { version = version, id = "floor3x1" } })
+		assert(session.command(actor, removal).ok, "remove commits")
+		ctx.clock.advanceTo(ctx.clock.now() + 3)
+		assert(session.command(actor, removal).ok, "remove replay")
+		assert(
+			state().version == version + 1 and countOf(actor, kits.floor) == baseline[kits.floor] + 1,
+			"replayed removal refunds one kit"
+		)
+		place("floor", 3, 1)
+		for floor = 1, 2 do
+			stand(floor)
+			local v = state().version
+			refused(actor, "building-remove", { { version = v, id = "pillar" .. floor .. "x0" } }, "SUPPORT_REQUIRED")
+			refused(actor, "building-remove", { { version = v, id = "stairs" .. floor .. "x0" } }, "STAIRS_REQUIRED")
+		end
+		local committed = state()
+		local mark = #engine.parts
+		assert(api.enter("home", actor) == nil, "multistorey fresh owner")
+		local restored = state()
+		local expected, count = 0, 0
+		for id, saved in committed.parts do
+			assert(restored.parts[id] and restored.parts[id].floor == saved.floor, "topology restored " .. id)
+			count += 1
+			for _, box in Topology.geometry(policy, saved, committed) do
+				assert(box.canCollide, "every published box collides")
+				expected += 1
+			end
+		end
+		assert(count == 12 and restored.version == committed.version, "twelve-part three-floor home restored")
+		local published = 0
+		for index = mark + 1, #engine.parts do
+			local value = engine.parts[index]
+			if not value.destroyed and string.sub(value.Name, 1, 9) == "Building:" and value.CanCollide then
+				published += 1
+			end
+		end
+		assert(published == expected, "fresh home publishes exactly the topology collision boxes")
+		local half = world.home.rules.landSizes[factory.homeOwner().snapshot(actor).landRank] / 2
+		local top = policy.baseY + policy.floors * policy.floorHeight
+		for _, aspect in { 360 / 640, 1280 / 720 } do
+			local frame = Aerial.frame(
+				{ x = -half, y = policy.baseY, z = -half },
+				{ x = half, y = top, z = half },
+				aspect,
+				30,
+				0
+			)
+			assert(frame.distance > 0 and frame.position.y > top, "aerial view frames the whole home")
+		end
+		for _, id in
+			{
+				"floor3x1",
+				"floor3x0",
+				"stairs2x0",
+				"pillar2x1",
+				"pillar2x0",
+				"floor2x1",
+				"floor2x0",
+				"stairs1x0",
+				"pillar1x1",
+				"pillar1x0",
+				"floor1x1",
+				"floor1x0",
+			}
+		do
+			local current = state()
+			stand(current.parts[id].floor)
+			command(actor, "building-remove", { { version = current.version, id = id } })
+		end
+		assert(next(state().parts) == nil, "home cleared")
+		for kind, quantity in granted do
+			assert(countOf(actor, kits[kind]) == baseline[kits[kind]] + quantity, "exact refund " .. kind)
+		end
+		return nil
+	end
+	-- All eight journal chapters through journal-open/claim plus the factory's own producers:
+	-- world journal markers (journal-interact), craft-complete receipts, a real wildlife kill and
+	-- the escort recovery. Travel between roles is the fixture's fresh-owner world switch.
+	function api.journal(actor)
+		local here: string? = nil
+		local function go(role: string, force: boolean?)
+			if force or here ~= role then
+				assert(api.enter(role, actor) == nil, "enter " .. role)
+				here = role
+			end
+		end
+		local function journal(): any
+			return session.snapshot(actor).survivalExtensions.journal
+		end
+		local function interact(markerId: string)
+			local target = assert(world.journalTargets[markerId], "authored journal marker " .. markerId)
+			engine.move(actor, target.position)
+			command(actor, "journal-interact", { markerId })
+		end
+		local harbor = { speak = true, assemble = true, administer = true, eat = true, deposit = true, submit = true }
+		local function roleOf(objective: any): string
+			if harbor[objective.action] then
+				return "rw.harbor"
+			elseif objective.target == "signal-relay" or objective.action == "install" then
+				return "home"
+			end
+			return assert(string.match(objective.target, "^(.*)%.[^%.]+$"), "layout target " .. objective.target)
+		end
+		local function operation(item: string): any
+			for _, row in Content.operations do
+				if row.id == "assemble-" .. item then
+					return row
+				end
+			end
+			error("missing assembly " .. item)
+		end
+		local function kill(objective: any)
+			grant(actor, Content.missionPolicy.starterWeapon, 1)
+			local weapon: string? = nil
+			for id, item in personal(actor).inventory.bag.items do
+				if item.catalogId == Content.missionPolicy.starterWeapon then
+					weapon = id
+				end
+			end
+			assert(weapon, "granted weapon")
+			go(here :: string, true)
+			local target: any = nil
+			for _, spawn in world.roleWildlife.spawns do
+				if spawn.catalogId == objective.target then
+					target = spawn
+					break
+				end
+			end
+			assert(target, "authored " .. objective.target)
+			engine.move(actor, { x = target.position.x, y = target.position.y, z = target.position.z + 2 })
+			engine.equip(world, actor, weapon)
+			for hit = 1, 400 do
+				if factory.services.survivalWildlife.snapshot(actor)[target.id].healthMilli == 0 then
+					break
+				end
+				if hit % 90 == 0 then
+					local owner = session.personalTransfer(actor)
+					owner.install(assert(
+						owner.personal:update(owner.profile(), function(raw)
+							local item = raw.envelope.genres["survival-coop"].data.inventory.bag.items[weapon]
+							item.durabilityMilli = 100000
+							return raw
+						end),
+						"between-hit fixture repair"
+					))
+				end
+				command(actor, "attack", { target.id })
+				ctx.clock.advanceTo(ctx.clock.now() + 3)
+				assert(session.recoverTransfers(actor, 64).ok, "kill recovery")
+			end
+			assert(session.recoverTransfers(actor, 64).ok, "kill receipt delivery")
+			assert(factory.services.survivalWildlife.snapshot(actor)[target.id].healthMilli == 0, "real kill")
+		end
+		local function escort(chapter: any, objective: any)
+			local back: any = nil
+			for _, row in chapter.objectives do
+				if row.action == "return" then
+					back = row
+				end
+			end
+			local role = roleOf(objective)
+			go(role)
+			local rescue = objective.id .. ":1"
+			local position = world.journalTargets[rescue].position
+			interact(rescue)
+			go(role, true)
+			local exit = world.journalTargets[back.id .. ":1"].position
+			local length = math.sqrt((exit.x - position.x) ^ 2 + (exit.z - position.z) ^ 2)
+			engine.move(actor, position)
+			for index = 1, math.ceil(length / 4) do
+				local t = math.min(1, index * 4 / length)
+				engine.move(actor, {
+					x = position.x + (exit.x - position.x) * t,
+					y = exit.y,
+					z = position.z + (exit.z - position.z) * t,
+				})
+				ctx.clock.advanceTo(ctx.clock.now() + 1)
+				assert(session.recoverTransfers(actor, 8).ok, "escort movement recovery")
+			end
+			for _ = 1, 4 do
+				assert(session.recoverTransfers(actor, 8).ok, "escort arrival recovery")
+			end
+		end
+		local function drive(chapter: any, objective: any)
+			local action, target = objective.action, objective.target
+			if action == "craft" then
+				go("home")
+				local station = "station.workbench.t1"
+				for _, detail in Content.recipeDetails do
+					if detail.id == target then
+						for _, node in detail.skillNodes do
+							progress(actor, detail.minCharacterLevel, node)
+						end
+					end
+				end
+				for _, recipe in Content.recipes do
+					if recipe.id == target then
+						for _, input in recipe.inputs do
+							grant(actor, input.item, input.quantity)
+						end
+						station = "station." .. recipe.station .. ".t1"
+					end
+				end
+				craft(actor, target, station)
+				return
+			elseif action == "fresh-kill" then
+				kill(objective)
+				return
+			elseif action == "escort" then
+				escort(chapter, objective)
+				return
+			elseif action == "assemble" then
+				for _, input in operation(target).inputs do
+					grant(actor, input.item, input.quantity)
+				end
+			elseif action == "deposit" then
+				grant(actor, target, objective.quantity)
+			elseif action == "administer" then
+				grant(actor, Content.progressionPolicy.journalRemedy, 1)
+			end
+			go(roleOf(objective))
+			local markers = if action == "survey" then objective.quantity else 1
+			for index = 1, markers do
+				interact(objective.id .. ":" .. tostring(index))
+			end
+			if action == "assemble" then
+				assert((journal().counts[objective.id] or 0) == 0, "assembly is a timed job, not instant credit")
+				ctx.clock.advanceTo(ctx.clock.now() + operation(target).seconds)
+				interact(objective.id .. ":1")
+			end
+		end
+		refused(actor, "journal-open", { Content.chapters[1].id }, "LEVEL_GATE")
+		progress(actor, Content.chapters[1].gates.characterLevel)
+		refused(actor, "journal-open", { Content.chapters[2].id }, "CHAPTER_ORDER")
+		for _, chapter in Content.chapters do
+			progress(actor, chapter.gates.characterLevel)
+			command(actor, "journal-open", { chapter.id })
+			refused(actor, "journal-claim", {}, "OBJECTIVES_INCOMPLETE")
+			for _, objective in chapter.objectives do
+				drive(chapter, objective)
+				local count = journal().counts[objective.id]
+				assert(
+					count == objective.quantity,
+					objective.id .. " credited through the production producer: " .. tostring(count)
+				)
+			end
+			local balance = personal(actor).balance
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			local claim = request(actor, "journal-claim", {})
+			assert(session.command(actor, claim).ok, "claim " .. chapter.id)
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			assert(session.command(actor, claim).ok, "claim replay " .. chapter.id)
+			assert(personal(actor).balance == balance + chapter.rewards.coins, "chapter reward paid once")
+			go("home", true)
+			assert(journal().completed[chapter.id], "completion survives a fresh owner " .. chapter.id)
+		end
+		return nil
+	end
+	-- Ensemble through the factory's own EnsembleExtension/ScoreTransport configuration: pack
+	-- content.music rules, the durable ScoreLibraryStore, server instrument ownership and the
+	-- campfire venue range. Scores arrive through the chunked score-upload commands.
+	function api.ensemble(actor)
+		local serde = require("@lune/serde")
+		musicRepository = require("../../../../genres/survival-coop/module/ScoreLibraryStore").new({
+			dataStoreService = {
+				GetDataStore = function(_, name: string)
+					return {
+						UpdateAsync = function(_, key, transform)
+							local ok, value = ctx.backend.update(name .. ":" .. key, transform)
+							assert(ok, value)
+							return value
+						end,
+						GetAsync = function(_, key)
+							local ok, value = ctx.backend.update(name .. ":" .. key, function(old)
+								return old
+							end)
+							assert(ok, value)
+							return value
+						end,
+					}
+				end,
+			},
+			storeName = "production-ensemble",
+			rules = Content.music,
+			maxStoreBytes = 3900000,
+			encode = function(value)
+				return serde.encode("json", value)
+			end,
+		})
+		musicDecode = function(text)
+			return serde.decode("json", text)
+		end
+		assert(api.enter("home", actor) == nil, "production music bindings")
+		local rules = Content.music
+		local function send(performer: string, action: string, args: { any }): any
+			ctx.clock.advanceTo(ctx.clock.now() + 3)
+			return session.command(performer, request(performer, string.gsub(action, "^survival%-coop:", ""), args))
+		end
+		local transport = require("../../../../genres/survival-coop/module/ScoreTransport")
+		local function upload(text: string, id: string): any
+			return transport.send({
+				rules = rules,
+				send = function(action, args)
+					return send(actor, action, args)
+				end,
+			}, text, nil, id)
+		end
+		local function library(): string
+			return serde.encode("json", musicRepository.list(actor))
+		end
+		local empty = library()
+		refused(actor, "score-upload-begin", { "oversize", rules.maxBytes + 1, string.rep("0", 64), "" }, "score.bytes")
+		local malformed = upload("{", "malformed")
+		assert(not malformed.ok, "malformed score refused")
+		assert(send(actor, "score-upload-cancel", {}).ok, "cancel refused upload")
+		assert(library() == empty, "refused uploads leave no score revision")
+		local instruments = { "piano", "guitar", "bass", "violin", "flute", "drums" }
+		local score: any = { version = 1, tempo = 120, parts = {} }
+		for _, instrument in instruments do
+			assert(rules.instruments[instrument], "pack instrument " .. instrument)
+			table.insert(score.parts, {
+				instrumentId = instrument,
+				notes = { { startTick = 0, durationTicks = rules.ticksPerQuarter, pitch = 60, velocity = 100 } },
+			})
+		end
+		local saved = upload(serde.encode("json", score), "ensemble-score")
+		assert(saved.ok, tostring(saved.reason))
+		local scoreId, revision = saved.data.scoreId, saved.data.revision
+		local venue = anchor("station.campfire.t1")
+		local performers = { actor }
+		for index = 1, rules.maxPerformers do
+			table.insert(performers, tostring(11734795308 + index))
+		end
+		local function near(index: number)
+			engine.move(performers[index], { x = venue.x + index, y = venue.y, z = venue.z })
+		end
+		for index, performer in performers do
+			if performer ~= actor then
+				assert(session.join(performer).ok, "performer joins live Session")
+				command(actor, "score-share", { scoreId, revision, performer })
+			end
+			near(index)
+		end
+		local function join(index: number, part: number): any
+			return send(performers[index], "ensemble-join", { scoreId, revision, part })
+		end
+		local refusal: any = join(2, 2)
+		assert(refusal.reason == "ensemble.instrument", "unowned instrument: " .. tostring(refusal.reason))
+		for index, performer in performers do
+			grant(performer, "instrument-" .. instruments[math.min(index, #instruments)], 1)
+		end
+		local last = #performers
+		engine.move(performers[last], { x = venue.x + 4 * rules.radiusStuds, y = venue.y, z = venue.z })
+		refusal = join(last, #instruments)
+		assert((refusal.reason :: string) == "ensemble.range", "out of venue range: " .. tostring(refusal.reason))
+		near(last)
+		for index = 1, rules.maxPerformers do
+			assert(join(index, index).ok, "performer " .. index .. " joins")
+			assert(send(performers[index], "ensemble-ready", { true }).ok, "ready " .. index)
+		end
+		refusal = join(last, #instruments)
+		assert((refusal.reason :: string) == "ensemble.full", "seventh performer: " .. tostring(refusal.reason))
+		refusal = send(performers[2], "ensemble-start", {})
+		assert((refusal.reason :: string) == "ensemble.host", "only the host starts: " .. tostring(refusal.reason))
+		assert(send(actor, "ensemble-start", {}).ok, "host starts")
+		local room = session.snapshot(actor).survivalExtensions.ensemble.room
+		local serverNow = engine.game:GetService("Workspace"):GetServerTimeNow()
+		assert(room.startAt == serverNow + rules.countdownSeconds, "authoritative server start time")
+		local members = 0
+		for _ in room.members do
+			members += 1
+		end
+		assert(members == rules.maxPerformers and room.members[performers[last]] == nil, "six performers")
+		assert(#room.events == #instruments, "one scheduled event per part")
+		for _, event in room.events do
+			assert(math.abs(event.at - room.startAt) <= 0.1, "events within 100 ms")
+		end
+		assert(api.enter("home", actor) == nil, "score library fresh owner")
+		assert(musicRepository.load(scoreId, revision), "durable score revision")
+		assert(musicRepository.canRead(performers[2], scoreId, revision), "durable share")
 		return nil
 	end
 	api.close = close

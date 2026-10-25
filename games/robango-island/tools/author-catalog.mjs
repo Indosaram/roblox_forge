@@ -394,6 +394,9 @@ export function buildCatalog(snapshot) {
   }
   // Original Robango terminology is applied to both machine references and
   // player copy, keeping quest targets, stations and locale keys in lockstep.
+  // Declared difference for the task-1 124-recipe parity check: spec L10
+  // communication-station-kit is present as signal-relay-kit (fidelity-matrix.md,
+  // Materials / processing row); compare spec IDs through original(), never raw.
   const original = text => text.replaceAll('communication-station', 'signal-relay').replaceAll('Communication Station', 'Signal Relay').replaceAll('communication_station', 'signal_relay').replaceAll('skill-return', 'skill-reclaim').replaceAll('Pioneers', 'Wayfarers').replaceAll('pioneers', 'wayfarers');
   const rewrite = value => typeof value === 'string' ? original(value) : Array.isArray(value) ? value.map(rewrite) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, child]) => [key, rewrite(child)])) : value;
   const document = rewrite(d);

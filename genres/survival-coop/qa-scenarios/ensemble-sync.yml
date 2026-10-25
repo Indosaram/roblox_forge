@@ -6,8 +6,9 @@ contract_api: 1
 seed: 1605
 timeout_seconds: 120
 players: [owner]
-fixtures: [cli/forge/fixtures/ensemble-sync]
+fixtures: [cli/forge/fixtures/production-worlds]
 steps:
   - {op: join, player: owner}
-  - {op: ensemble_run, player: owner}
-  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: expect_members, members: [owner]}
+  - {op: world_join, player: owner}
+  - {op: world_ensemble, player: owner}

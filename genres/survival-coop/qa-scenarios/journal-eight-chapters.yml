@@ -6,7 +6,9 @@ contract_api: 1
 seed: 217
 timeout_seconds: 120
 players: [owner]
-fixtures: [cli/forge/fixtures/journal-eight-chapters]
+fixtures: [cli/forge/fixtures/production-worlds]
 steps:
-  - {op: journal_chapters, player: owner}
-  - {op: expect_result, player: owner, field: ok, equals: true}
+  - {op: join, player: owner}
+  - {op: expect_members, members: [owner]}
+  - {op: world_join, player: owner}
+  - {op: world_journal, player: owner}
