@@ -92,6 +92,10 @@ local environment: any = {
 				WaitForChild = function()
 					return forge
 				end,
+				-- Players: no live Player object in this harness (settings snapshot skips the attribute).
+				GetPlayerByUserId = function()
+					return nil
+				end,
 			}
 		end,
 	},

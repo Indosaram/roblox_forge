@@ -94,7 +94,8 @@ return {
 			assert(
 				extensionActions[index] == "operation-run"
 					or extensionActions[index] == "attack-ranged"
-					or extensionActions[index] == "stance-set",
+					or extensionActions[index] == "stance-set"
+					or extensionActions[index] == "guide-act",
 				"only later extensions follow recipe-mark: " .. extensionActions[index]
 			)
 		end
