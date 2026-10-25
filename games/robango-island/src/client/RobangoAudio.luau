@@ -275,6 +275,7 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 				end
 				-- Decorative effects read this flag; attack and hazard telegraphs ignore it.
 				player:SetAttribute("ForgeReducedEffects", settings.reducedEffects == true)
+				player:SetAttribute("ForgeTextScale", Settings.TEXT_SCALE[Settings.normalize(settings).textSize])
 			end
 		end)
 	)

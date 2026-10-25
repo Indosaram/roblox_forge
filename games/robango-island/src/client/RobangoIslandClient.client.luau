@@ -19,7 +19,9 @@ gui.Destroying:Connect(audio.destroy)
 local player = game:GetService("Players").LocalPlayer
 local characterTracks = require(script.Parent:WaitForChild("CharacterTracks")).start(player)
 script.Destroying:Connect(characterTracks)
-local locale = player.LocaleId
+-- ui.settings language: the saved choice (published by the server as ForgeLanguage), else LocaleId.
+local Settings = require(Shared.SettingsModel)
+local locale = Settings.locale(player.LocaleId, { language = player:GetAttribute("ForgeLanguage") })
 local korean = string.sub(locale, 1, 2) == "ko"
 local PackText = require(Shared.PackText)
 local packRows = PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
@@ -102,6 +104,36 @@ userSettings:GetPropertyChangedSignal("SavedQualityLevel"):Connect(function()
 		applyRender(object)
 	end
 end)
+-- ui.settings reduced effects / text size (RobangoAudio mirrors the saved settings to attributes).
+local function reduceAll()
+	local reduced = player:GetAttribute("ForgeReducedEffects") == true
+	for _, root in { workspace, game:GetService("Lighting") } do
+		for _, object in root:GetDescendants() do
+			Settings.reduceEffect(object, reduced)
+		end
+	end
+end
+local function scaleAll()
+	local scale = player:GetAttribute("ForgeTextScale") or 1
+	for _, object in player:WaitForChild("PlayerGui"):GetDescendants() do
+		Settings.scaleText(object, scale)
+	end
+end
+player:GetAttributeChangedSignal("ForgeReducedEffects"):Connect(reduceAll)
+player:GetAttributeChangedSignal("ForgeTextScale"):Connect(scaleAll)
+for _, root in { workspace, game:GetService("Lighting") } do
+	root.DescendantAdded:Connect(function(object)
+		Settings.reduceEffect(object, player:GetAttribute("ForgeReducedEffects") == true)
+	end)
+end
+player:WaitForChild("PlayerGui").DescendantAdded:Connect(function(object)
+	local scale = player:GetAttribute("ForgeTextScale")
+	if scale and scale ~= 1 then
+		Settings.scaleText(object, scale)
+	end
+end)
+reduceAll()
+scaleAll()
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
 local gathering = GatheringClient.start({ locale = locale, names = names })
 gui.Destroying:Connect(gathering.destroy)
@@ -515,21 +547,23 @@ table.insert(panelFactories, function(ctx)
 	})
 	assert(ctx.fitSheet, "AUDIO_SHEET_REQUIRED")(sheet.frame)
 	sheet.frame.Visible = true
-	-- ui.settings: master/music/effects/ensemble volume, mute and reduced effects. Every row shows
+	-- ui.settings: volumes, mute, reduced effects, language and text size. Every row shows
 	-- its current value; a tap steps it and persists it through audio-settings.
-	local Settings = require(Shared.SettingsModel)
-	local current = Settings.normalize(nil)
+	local SheetSettings = require(Shared.SettingsModel)
+	local current = SheetSettings.normalize(nil)
 	local connections = {}
 	local buttons: { [string]: TextButton } = {}
 	local function render()
-		for _, row in Settings.rows(locale, current) do
+		for _, row in SheetSettings.rows(locale, current) do
 			local created = buttons[row[1]]
 			if created then
-				created.Text = row[2]
+				-- Pack text is built once per session, so a new language applies on rejoin.
+				local pending = row[1] == "language" and SheetSettings.locale(player.LocaleId, current) ~= locale
+				created.Text = row[2] .. (if pending then " - " .. SheetSettings.text(locale, "lang_rejoin") else "")
 			end
 		end
 	end
-	for index, row in Settings.rows(locale, current) do
+	for index, row in SheetSettings.rows(locale, current) do
 		local key = row[1]
 		local created = ctx.ui.components.button(ctx.ui.theme.default, {
 			text = row[2],
@@ -541,20 +575,10 @@ table.insert(panelFactories, function(ctx)
 		table.insert(
 			connections,
 			created.Activated:Connect(function()
-				local value: any = if key == "muted" or key == "reducedEffects"
-					then not current[key]
-					else Settings.nextStep(current[key])
-				local args = Settings.args(current, key, value)
+				local args = SheetSettings.args(current, key, SheetSettings.next(current, key))
 				local result = ctx.send("survival-coop:audio-settings", args)
 				if result and result.ok then
-					current = Settings.normalize({
-						muted = args[1],
-						volume = args[2],
-						music = args[3].music,
-						sfx = args[3].sfx,
-						ensemble = args[3].ensemble,
-						reducedEffects = args[3].reducedEffects,
-					})
+					current = SheetSettings.fromArgs(args)
 					render()
 				end
 			end)
@@ -569,7 +593,7 @@ table.insert(panelFactories, function(ctx)
 	local disconnect = ctx.onSnapshot(function(snapshot)
 		local value = snapshot["audio-settings"]
 		if value then
-			current = Settings.normalize(value)
+			current = SheetSettings.normalize(value)
 			render()
 		end
 	end)
@@ -967,6 +991,7 @@ aerial = AerialCamera.new({
 	aerial = require(Forge.genres["survival-coop"].module.AerialView),
 	workspace = workspace,
 	quarterView = camera,
+	touch = game:GetService("UserInputService").TouchEnabled,
 	controls = aerialControls,
 	buttons = aerialButtons,
 	guis = aerialGuis,

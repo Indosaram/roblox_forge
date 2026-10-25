@@ -2667,3 +2667,24 @@ scr.refuse.TRANSFER_UNAVAILABLE,Camp storage is not connected yet. Try again in 
 scr.refuse.FULL_WEIGHT,That would be too heavy.,recovered screen,That would be too heavy.,너무 무거워져요.
 scr.refuse.REQUEST_EXPIRED,Session expired. Reopen and try again.,recovered screen,Session expired. Reopen and try again.,세션이 만료됐어요. 다시 열고 시도하세요.
 scr.refuse.UNAUTHORIZED,Only camp members can move items.,recovered screen,Only camp members can move items.,캠프 구성원만 옮길 수 있어요.
+set.volume,Master volume,settings,Master volume,전체 음량
+set.music,Music,settings,Music,음악
+set.sfx,Sound effects,settings,Sound effects,효과음
+set.ensemble,Ensemble,settings,Ensemble,합주
+set.mute,Sound: on,settings,Sound: on,소리: 켜짐
+set.unmute,Sound: muted,settings,Sound: muted,소리: 꺼짐
+set.reduced_on,Reduced effects: on,settings,Reduced effects: on,효과 줄이기: 켜짐
+set.reduced_off,Reduced effects: off,settings,Reduced effects: off,효과 줄이기: 꺼짐
+set.language,Language,settings,Language,언어
+set.lang_auto,Auto (device),settings,Auto (device),자동 (기기 설정)
+set.lang_ko,한국어,settings,한국어,한국어
+set.lang_en,English,settings,English,English
+set.textSize,Text size,settings,Text size,글자 크기
+set.text_normal,Normal,settings,Normal,보통
+set.text_large,Large,settings,Large,크게
+fct.OUT_OF_RANGE,Move onto your home island,genre text fct,Move onto your home island,먼저 개인 섬에 들어가세요
+hud.PLACEMENT_BLOCKED_CREATURE,"A creature is standing on the spot. Wait for it to move, or pick another spot.",genre text hud,"A creature is standing on the spot. Wait for it to move, or pick another spot.",그 자리에 동물이 서 있어요. 동물이 떠나면 다시 하거나 다른 곳에 놓으세요.
+hud.market.tutorial,Finish the first-day tutorial to open market listing.,genre text hud,Finish the first-day tutorial to open market listing.,첫날 안내를 끝내면 장터에 물건을 올릴 수 있어요.
+wld.wildlife_brachiosaurus,Brachiosaurus,genre text wld,Brachiosaurus,브라키오사우러스
+wld.wildlife_parasaurolophus,Parasaurolophus,genre text wld,Parasaurolophus,파라사우롤로퍼스
+set.lang_rejoin,applies on rejoin,settings,applies on rejoin,다시 접속하면 적용

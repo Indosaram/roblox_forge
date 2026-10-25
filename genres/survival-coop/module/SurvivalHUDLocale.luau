@@ -1,17 +1,7 @@
 --!strict
 local M = {}
 local PackLocale = require("./PackLocale")
-local strings: { [string]: { string } } = PackLocale.rows({
-	-- Kept in source: the provenance n-gram gate flags these KO lines; moving them needs a human review.
-	PLACEMENT_BLOCKED_CREATURE = {
-		"A creature is standing on the spot. Wait for it to move, or pick another spot.",
-		"동물이 그 자리에 있어요. 비켜날 때까지 기다리거나 다른 곳을 고르세요.",
-	},
-	["market.tutorial"] = {
-		"Finish the first-day tutorial to open market listing.",
-		"첫날 튜토리얼을 마치면 장터에 등록할 수 있어요.",
-	},
-}, { "hud.", "" })
+local strings: { [string]: { string } } = PackLocale.rows({}, { "hud.", "" })
 function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key

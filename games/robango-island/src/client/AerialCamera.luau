@@ -105,6 +105,73 @@ function M.controlsLayout(viewport: { X: number, Y: number }, touch: boolean): a
 	}
 end
 
+--- Screen y of the photo panel's top edge (six visible controls, Toggle hidden).
+function M.panelTop(viewport: { X: number, Y: number }, touch: boolean): number
+	local layout = M.controlsLayout(viewport, touch)
+	local rows = math.ceil(6 / layout.columns)
+	return viewport.Y - layout.bottom - (layout.padding * 2 + rows * layout.cellHeight + (rows - 1) * 4)
+end
+
+local function dot(a: Point, b: Point): number
+	return a.x * b.x + a.y * b.y + a.z * b.z
+end
+
+--- Re-frames `frame` (same view direction) so every bounds corner projects above `bandTop` and
+--- inside the screen sides: the nearest distance (times the zoom `ratio`) that fits, with the
+--- camera shifted down its up axis to centre the island in that band. p93: on the phone the
+--- controls panel covered the island's southern tip.
+function M.fitAbove(frame: any, minimum: Point, maximum: Point, viewport: any, bandTop: number, ratio: number): any
+	local c = frame.focus
+	local f = { x = c.x - frame.position.x, y = c.y - frame.position.y, z = c.z - frame.position.z }
+	local length = math.sqrt(dot(f, f))
+	f = { x = f.x / length, y = f.y / length, z = f.z / length }
+	local flat = math.sqrt(f.x ^ 2 + f.z ^ 2)
+	local r = { x = -f.z / flat, y = 0, z = f.x / flat }
+	local u = { x = r.y * f.z - r.z * f.y, y = r.z * f.x - r.x * f.z, z = r.x * f.y - r.y * f.x }
+	local tanV = math.tan(math.rad(frame.fieldOfView) / 2) * 0.95
+	local tanH = tanV * viewport.X / viewport.Y
+	local low = 1 - 2 * bandTop / viewport.Y
+	local corners: { Point } = {}
+	for _, x in { minimum.x, maximum.x } do
+		for _, y in { minimum.y, maximum.y } do
+			for _, z in { minimum.z, maximum.z } do
+				table.insert(corners, { x = x - c.x, y = y - c.y, z = z - c.z })
+			end
+		end
+	end
+	-- Feasible up-shift interval at distance d, or nil when a corner cannot fit.
+	local function shift(d: number): number?
+		local lo, hi = -math.huge, math.huge
+		for _, p in corners do
+			local depth = dot(p, f) + d
+			if depth <= 0 or math.abs(dot(p, r)) > depth * tanH then
+				return nil
+			end
+			local y = dot(p, u)
+			lo, hi = math.max(lo, low * depth * tanV - y), math.min(hi, depth * tanV - y)
+		end
+		return if lo <= hi then (lo + hi) / 2 else nil
+	end
+	local near, far = 0, frame.distance * 4
+	for _ = 1, 40 do
+		local mid = (near + far) / 2
+		if shift(mid) then
+			far = mid
+		else
+			near = mid
+		end
+	end
+	local d = far * ratio
+	local k = shift(d) or shift(far) or 0
+	local aim = { x = c.x - u.x * k, y = c.y - u.y * k, z = c.z - u.z * k }
+	return {
+		focus = aim,
+		distance = d,
+		fieldOfView = frame.fieldOfView,
+		position = { x = aim.x - f.x * d, y = aim.y - f.y * d, z = aim.z - f.z * d },
+	}
+end
+
 function M.new(ctx: any): any
 	local Aerial = ctx.aerial
 	ctx.controls.Visible = false
@@ -130,6 +197,7 @@ function M.new(ctx: any): any
 			return
 		end
 		local aspect = camera.ViewportSize.X / camera.ViewportSize.Y
+		local base = 0
 		active = Aerial.start({
 			read = function()
 				local visibility = {}
@@ -160,7 +228,24 @@ function M.new(ctx: any): any
 				end
 				return saved
 			end,
-			apply = function(frame)
+			apply = function(frame: any)
+				if ctx.touch then
+					base = if frame.minDistance then frame.distance else base
+					local ratio = if base > 0 then frame.distance / base else 1
+					local top = M.panelTop(camera.ViewportSize, true)
+					local fitted = M.fitAbove(frame, minimum, maximum, camera.ViewportSize, top, ratio)
+					-- Keep within draw distance: widen the lens rather than back the camera out.
+					while
+						ratio <= 1
+						and fitted.distance > M.MAX_DISTANCE
+						and fitted.fieldOfView < M.MAX_FIELD_OF_VIEW
+					do
+						local wider = table.clone(frame)
+						wider.fieldOfView = math.min(fitted.fieldOfView + 2, M.MAX_FIELD_OF_VIEW)
+						fitted = M.fitAbove(wider, minimum, maximum, camera.ViewportSize, top, ratio)
+					end
+					frame = fitted
+				end
 				camera.CameraType = ctx.scriptable
 				camera.CFrame = ctx.qaCamera and ctx.qaCamera() or ctx.lookAt(frame.position, frame.focus)
 				camera.Focus = ctx.focusAt(frame.focus)

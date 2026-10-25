@@ -1174,6 +1174,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 						sfx = extra.sfx,
 						ensemble = extra.ensemble,
 						reducedEffects = extra.reducedEffects == true,
+						language = extra.language,
+						textSize = extra.textSize,
 					}
 					return document
 				end)
@@ -1181,7 +1183,14 @@ return function(content: any, source, world, backend, clock, options, provision,
 			end,
 			snapshot = function(actor)
 				local document = personalData(actor)
-				return if document then document.audioSettings or { muted = false, volume = 1 } else nil
+				local settings = if document then document.audioSettings or { muted = false, volume = 1 } else nil
+				-- The client picks its pack-text locale from this at startup (the handshake push runs
+				-- this snapshot before Client.start returns); nil (auto) follows the player's LocaleId.
+				local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
+				if player and settings then
+					player:SetAttribute("ForgeLanguage", settings.language)
+				end
+				return settings
 			end,
 		}
 	end)

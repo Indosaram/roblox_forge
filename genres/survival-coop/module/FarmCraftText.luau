@@ -4,10 +4,7 @@
 local HudLocale = require("./SurvivalHUDLocale")
 local PackLocale = require("./PackLocale")
 local M = {}
-M.strings = PackLocale.rows({
-	-- Kept in source: the provenance n-gram gate flags these KO lines; moving them needs a human review.
-	OUT_OF_RANGE = { "Move onto your home island", "개인 섬으로 이동하세요" },
-}, { "fct." })
+M.strings = PackLocale.rows({}, { "fct." })
 
 local function pick(locale: string, key: string): string?
 	local row = M.strings[key]

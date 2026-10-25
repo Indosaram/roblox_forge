@@ -54,6 +54,8 @@ local contract: Shared.RuntimeContract = {
 					sfx = Schema.optional(Schema.number({ min = 0, max = 1 })),
 					ensemble = Schema.optional(Schema.number({ min = 0, max = 1 })),
 					reducedEffects = Schema.optional(Schema.boolean()),
+					language = Schema.optional(Schema.enum({ "auto", "ko", "en" })),
+					textSize = Schema.optional(Schema.enum({ "normal", "large" })),
 				})),
 			},
 			origin = "client",

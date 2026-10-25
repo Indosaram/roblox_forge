@@ -189,7 +189,7 @@ function M.start(options: Options)
 		end
 		local value = Components.label(theme, {
 			text = "",
-			textSize = 11,
+			textSize = Model.VITALS.textSize,
 			parent = vitals,
 			size = UDim2.fromOffset(38, 20),
 			position = UDim2.new(1, -42, 0, 4 + (index - 1) * 23),

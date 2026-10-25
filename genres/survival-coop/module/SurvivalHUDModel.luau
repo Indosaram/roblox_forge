@@ -445,7 +445,7 @@ end
 
 -- Vitals row geometry (SurvivalHUD): localized stat label, bar track, value. Labels never
 -- drop under 11px text.
-M.VITALS = { labelX = 4, labelWidth = 48, rowStep = 23, textSize = 11, trackX = 54, trackRight = 46 }
+M.VITALS = { labelX = 4, labelWidth = 62, rowStep = 23, textSize = 14, trackX = 68, trackRight = 46 }
 
 -- Portrait objective slot: room for six wrapped 14px lines plus the chip's 6px top/bottom padding.
 -- The slot is transparent and the chip auto-sizes to its text, so short objectives stay short.
