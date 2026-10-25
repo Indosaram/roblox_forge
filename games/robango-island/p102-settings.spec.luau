@@ -130,6 +130,26 @@ return {
 			end
 		end
 	end,
+	["vitals icons sit beside their labels and every row holds 14px and 1.2x text (p105 D1)"] = function()
+		local v = Model.VITALS
+		local large = math.floor(v.textSize * Settings.TEXT_SCALE.large + 0.5)
+		-- A Gotham line box is 1.5x the text size: p105 measured 21px text in the old 20px label.
+		assert(
+			v.rowHeight >= math.ceil(large * 1.5),
+			"row " .. tostring(v.rowHeight) .. "px clips " .. large .. "px text"
+		)
+		assert(v.iconX + v.iconSize <= v.labelX, "icon overlaps the label")
+		assert(v.labelX + v.labelWidth <= v.trackX, "label overlaps the track")
+		for _, viewport in { { 360, 640 }, { 1280, 720 } } do
+			local vitals = Model.contextHudBounds(viewport[1], viewport[2]).vitals
+			assert(v.rowTop + 2 * v.rowStep + v.rowHeight <= vitals.height, "three rows fit at " .. viewport[1])
+			assert(vitals.width - v.trackX - v.trackRight >= 40, "track squeezed at " .. viewport[1])
+		end
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, "image.Image, image.Parent = icon.image, vitals", 1, true), "icon is a row sibling")
+		assert(not string.find(hud, "symbol.TextTransparency", 1, true), "label is never hidden under the icon")
+		assert(string.find(hud, "Model.VITALS.rowHeight", 1, true), "label height follows the row")
+	end,
 	["phone island view frames the whole island above the controls panel"] = function()
 		local Content = require("./src/shared/SurvivalContent")
 		local Aerial = require("../../genres/survival-coop/module/AerialView")

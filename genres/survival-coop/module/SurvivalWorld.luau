@@ -440,7 +440,9 @@ function M.new(config: Config)
 		mounts[id] = { species = key, model = model, humanoid = humanoid, hip = humanoid.HipHeight }
 		humanoid.HipHeight += MountVisual.SEAT.liftStuds
 	end
-	local function syncMounts(active: Session.Session, members: { string })
+	-- frame: the heartbeat's own session snapshot per member (dropped when a command ran), so one
+	-- frame clones each member's snapshot once instead of four times (p105: clone timed out in a stall).
+	local function syncMounts(active: Session.Session, members: { string }, frame: { [string]: any })
 		local wanted: { [string]: string } = {}
 		local attached: { [string]: string } = {}
 		for id, mount in mounts do
@@ -453,14 +455,15 @@ function M.new(config: Config)
 			end
 		end
 		for _, id in members do
-			local state = snapshot(id)
+			local whole = frame[id] or active.snapshot(id)
+			local state = whole["survival-coop"]
 			if busy[id] or not state or not state.vitals or state.vitals.healthMilli <= 0 then
 				if busy[id] and attached[id] then
 					wanted[id] = attached[id]
 				end
 				continue
 			end
-			local shared = active.snapshot(id).survivalExtensions
+			local shared = whole.survivalExtensions
 			local extensions = if type(shared) == "table" then shared else nil
 			-- Worn paid cosmetics (cloak/banner sets) follow the monetization appearance.
 			local actor = player(id)
@@ -927,6 +930,7 @@ function M.new(config: Config)
 						retryAfter[id] = nil
 					end
 				end
+				local frame: { [string]: any } = {}
 				for _, id in members do
 					if busy[id] then
 						continue
@@ -935,7 +939,9 @@ function M.new(config: Config)
 					local humanoid = if actor and actor.Character
 						then actor.Character:FindFirstChildOfClass("Humanoid")
 						else nil
-					local state = snapshot(id)
+					local whole = active.snapshot(id)
+					frame[id] = whole
+					local state = whole["survival-coop"]
 					if humanoid and state then
 						if observed[humanoid] == nil then
 							observed[humanoid] = humanoid.Health
@@ -985,6 +991,7 @@ function M.new(config: Config)
 									continue
 								end
 							end
+							frame[id] = nil
 							busy[id] = true
 							local ok, result = pcall(function(): Shared.Result
 								local outcome = active.commandServer(id, request)
@@ -1015,7 +1022,9 @@ function M.new(config: Config)
 								end
 								continue
 							end
-							state = snapshot(id)
+							whole = active.snapshot(id)
+							frame[id] = whole
+							state = whole["survival-coop"]
 						end
 						humanoid.WalkSpeed = config.baseWalkSpeed
 							* (state.speedMultiplierMilli or 1000)
@@ -1023,7 +1032,7 @@ function M.new(config: Config)
 							/ 1000000
 						-- A mounted rider moves at the server-resolved ride speed (never client input),
 						-- scaled by the same load penalty measured against the ride's carry capacity.
-						local shared = active.snapshot(id).survivalExtensions
+						local shared = whole.survivalExtensions
 						local ride = if type(shared) == "table" then shared.taming else nil
 						if type(ride) == "table" and ride.walkSpeedStuds then
 							humanoid.WalkSpeed = ride.walkSpeedStuds
@@ -1039,7 +1048,7 @@ function M.new(config: Config)
 						end
 					end
 				end
-				syncMounts(active, members)
+				syncMounts(active, members, frame)
 			end)
 		)
 	end

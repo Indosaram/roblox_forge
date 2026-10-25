@@ -705,6 +705,109 @@ return {
 			assert(sent[#sent][1] == "craft-complete", "collect once finished")
 		end
 	end,
+	["craft jobs count down on the open sheet and offer Collect at the deadline (p105 D2)"] = function()
+		local job = {
+			recipeId = "stone-axe",
+			state = "Running",
+			startedAt = 1000,
+			finishAt = 4000,
+			inputs = { { catalogId = "stone", quantity = 2 } },
+			outputs = { { catalogId = "stone-axe", quantity = 1 } },
+		}
+		local function rows(now: number): string
+			return texts(Screens.jobsRows("en-us", { now = now, jobs = { { id = "j1", job = job } } }, ACT))
+		end
+		assert(string.find(rows(3500), L.text("en-us", "scr.jobs.running", "0:01"), 1, true), "half a second left")
+		assert(string.find(rows(-60000), L.text("en-us", "scr.jobs.running", "0:03"), 1, true), "capped at the recipe")
+		local nodes: { any } = {}
+		local function node(): any
+			local item: any = { Visible = true, AbsoluteSize = { X = 344, Y = 560 } }
+			item.Activated = {
+				Connect = function(_self: any, callback: any)
+					item.fire = callback
+					return { Disconnect = noop }
+				end,
+			}
+			function item.Destroy(self: any)
+				self.Parent = nil
+			end
+			table.insert(nodes, item)
+			return item
+		end
+		local widgets = function(_theme: any, props: any): any
+			local item = node()
+			item.Text, item.Parent, item.onClick = props.text, props.parent, props.onClick
+			return item
+		end
+		local now, timers, callbacks, docks = 1.5, {} :: { any }, {} :: { any }, {} :: { [string]: any }
+		local mounted: any = Screens.factory({
+			locale = "en-us",
+			actorId = "1",
+			names = {},
+			playerGui = {},
+			instance = { new = node },
+			udim2 = {
+				new = function(...: any): any
+					return { ... }
+				end,
+			},
+			ui = {
+				theme = { default = {} },
+				components = {
+					modalSheet = function(): any
+						return { frame = node(), scroll = node(), close = node() }
+					end,
+					label = widgets,
+					button = widgets,
+				},
+			},
+			serverNow = function(): number
+				return now
+			end,
+			delay = function(seconds: number, callback: () -> ())
+				table.insert(timers, { seconds = seconds, callback = callback })
+			end,
+			worldRole = "home",
+			send = function(): any
+				return { ok = true }
+			end,
+			onSnapshot = function(callback: any): () -> ()
+				table.insert(callbacks, callback)
+				return noop
+			end,
+			dock = function(entry: any): any
+				docks[entry.id] = entry
+				return {
+					open = function()
+						entry.setOpen(true)
+					end,
+					setAvailable = noop,
+				}
+			end,
+		})
+		local workshop = { actorId = "1", entries = { j1 = { job = job } } }
+		for _, callback in callbacks do
+			callback({}, { snapshots = { ["survival-coop"] = { workshop = workshop } } })
+		end
+		docks.jobs.setOpen(true)
+		local function shown(text: string): boolean
+			for _, item in nodes do
+				if item.Parent ~= nil and item.Text == text then
+					return true
+				end
+			end
+			return false
+		end
+		assert(
+			shown(L.text("en-us", "scr.jobs.row", "stone-axe", "j1", L.text("en-us", "scr.jobs.running", "0:03"))),
+			"start"
+		)
+		assert(#timers == 1 and timers[1].seconds == 1, "one tick while running")
+		now = 4.2
+		assert(table.remove(timers, 1)).callback()
+		assert(shown(L.text("en-us", "scr.jobs.complete", "stone-axe")), "Collect without a new snapshot")
+		mounted.destroy()
+	end,
 	["clan roles: the leader assigns roles and withdraw, others read only"] = function()
 		local state = clan()
 		for _, locale in LOCALES do

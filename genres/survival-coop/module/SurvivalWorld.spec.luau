@@ -792,6 +792,48 @@ return {
 		api.destroy()
 		world:Destroy()
 	end,
+	["one heartbeat reads each member's session snapshot once, mounts and ride speed included (p105)"] = function()
+		local module, _, world, _, _, spawn, _, callbacks, humanoid = fixture()
+		local api = module.new({
+			content = { structures = {}, items = {} },
+			worldRevision = "map-v1",
+			spawn = spawn,
+			carriedContainer = "bag",
+			reachStuds = 8,
+			baseWalkSpeed = 16,
+			respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		})
+		local reads = 0
+		local state: any =
+			{ vitals = { healthMilli = 100000 }, inventory = { bag = { items = {}, reservations = {} } } }
+		api.bind({
+			members = function()
+				return { "1" }
+			end,
+			snapshot = function()
+				reads += 1
+				return {
+					["survival-coop"] = table.clone(state),
+					survivalExtensions = { taming = { walkSpeedStuds = 24, loadMilli = 1000 } },
+				}
+			end,
+			personalTransfer = function()
+				return {
+					profile = function()
+						return { data = { envelope = { genres = { ["survival-coop"] = { data = state } } } } }
+					end,
+				}
+			end,
+			commandEpoch = function()
+				return 7
+			end,
+		})
+		callbacks.heartbeat()
+		assert(reads == 1, "session snapshots per heartbeat: " .. reads)
+		assert(humanoid.WalkSpeed == 24, "ride speed read from the same snapshot")
+		api.destroy()
+		world:Destroy()
+	end,
 	["engine events preserve request identity suppress health feedback and enforce equipment ownership"] = function()
 		local module, _, world, character, root, spawn, actor, callbacks, humanoid, advance = fixture()
 		local api = module.new({

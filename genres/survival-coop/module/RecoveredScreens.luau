@@ -611,12 +611,16 @@ function M.jobsRows(locale: string, state: any, act: any): { any }
 	for _, entry in state.jobs or {} do
 		local job = entry.job
 		local label = name(state.names, job.recipeId)
-		local left = (job.finishAt or 0) - state.now
+		local finishAt = job.finishAt or 0
+		-- Capped at the job's own length so a client clock behind the server never shows more time
+		-- than the recipe takes; whole seconds round up, so a running job never reads 0:00 (p105 D2).
+		local length = if job.startedAt then finishAt - job.startedAt else math.huge
+		local left = math.min(finishAt - state.now, length)
 		local ready = job.state == "Ready" or job.state == "Running" and left <= 0
 		local phase = if job.state == "Reserved"
 			then L.text(locale, "scr.jobs.reserved")
 			elseif ready then L.text(locale, "scr.jobs.ready")
-			else L.text(locale, "scr.jobs.running", L.duration(left / 1000))
+			else L.text(locale, "scr.jobs.running", L.duration(math.ceil(left / 1000)))
 		table.insert(rows, { text = L.text(locale, "scr.jobs.row", label, string.sub(entry.id, 1, 8), phase) })
 		for _, pair: any in { { "escrow", job.inputs }, { "result", job.outputs } } do
 			local parts = {}
@@ -1055,10 +1059,28 @@ function M.factory(ctx: any): any
 	-- ui.jobs
 	local jobsStatus: string? = nil
 	local jobs: any
+	-- No snapshot arrives while a job runs, so the open sheet re-reads the clock every second until
+	-- no job is running: the countdown moves and Collect appears at the deadline (p105 D2).
+	local delay = ctx.delay or function(seconds: number, callback: () -> ())
+		env.task.delay(seconds, callback)
+	end
+	local ticking = false
+	local function tick()
+		ticking = false
+		if jobs.isOpen() then
+			jobs.refresh()
+		end
+	end
 	jobs = mount(9, function(_extensions: any, packet: any): any
 		local survival = (packet.snapshots or {})["survival-coop"]
 		return { jobs = if survival then HUDModel.jobs(survival, actorId) else {} }
 	end, function(state: any): { any }
+		for _, entry in (state and state.jobs) or {} do
+			if entry.job.state == "Running" and not ticking and jobs.isOpen() then
+				ticking = true
+				delay(1, tick)
+			end
+		end
 		return M.jobsRows(locale, {
 			jobs = state and state.jobs,
 			now = now() * 1000,
@@ -1258,6 +1280,9 @@ function S.rows(locale: string, state: any, act: any): { any }
 			else "scr.storage.empty_filter"
 		table.insert(rows, { text = L.text(locale, key) })
 	end
+	-- The picked stack, its stepper, Store/Take and the result sit right under the filter, above the
+	-- other stacks, so the move button stays on screen at 360x640 (p105 D5: it was below the fold).
+	local listed: { any } = {}
 	for _, row in shown do
 		local item = row.item
 		local text = L.text(locale, "scr.storage.item", label(item.catalogId), item.quantity, row.reserved)
@@ -1286,7 +1311,7 @@ function S.rows(locale: string, state: any, act: any): { any }
 				})
 			end
 		else
-			table.insert(rows, {
+			table.insert(listed, {
 				text = text,
 				onClick = if member
 					then function()
@@ -1298,6 +1323,9 @@ function S.rows(locale: string, state: any, act: any): { any }
 	end
 	if state.status then
 		table.insert(rows, { text = state.status })
+	end
+	for _, row in listed do
+		table.insert(rows, row)
 	end
 	table.insert(rows, { text = L.text(locale, "scr.storage.note") })
 	return rows

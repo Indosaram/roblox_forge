@@ -119,6 +119,10 @@ function M.mount(ctx: any, spec: any): any
 	api.render = function()
 		render(true)
 	end
+	-- Re-reads the rows and rebuilds only when their text changed (clock-driven screens).
+	api.refresh = function()
+		render()
+	end
 	api.open = function()
 		sheet.frame.Visible = true
 		render(true)

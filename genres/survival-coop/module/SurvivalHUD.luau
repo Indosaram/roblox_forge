@@ -147,11 +147,13 @@ function M.start(options: Options)
 	local statBars: { [string]: any } = {}
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
-		-- Localized label under the optional (maybe moderated) image.
+		local rowY = Model.VITALS.rowTop + (index - 1) * Model.VITALS.rowStep
+		-- Localized label beside the optional (maybe moderated) image, never under it.
 		local symbol = Instance.new("TextLabel")
 		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
-		symbol.Position = UDim2.fromOffset(Model.VITALS.labelX, 4 + (index - 1) * Model.VITALS.rowStep)
-		symbol.Size = UDim2.fromOffset(Model.VITALS.labelWidth, 20)
+		symbol.Position = UDim2.fromOffset(Model.VITALS.labelX, rowY)
+		symbol.Size = UDim2.fromOffset(Model.VITALS.labelWidth, Model.VITALS.rowHeight)
+		symbol.TextXAlignment = Enum.TextXAlignment.Left
 		symbol.Text, symbol.TextColor3, symbol.TextSize = t(stat), Color3.fromRGB(240, 244, 240), Model.VITALS.textSize
 		symbol.TextScaled = true
 		local textLimit = Instance.new("UITextSizeConstraint")
@@ -159,20 +161,17 @@ function M.start(options: Options)
 			Model.VITALS.textSize, Model.VITALS.textSize, symbol
 		if icon and icon.image then
 			local image = Instance.new("ImageLabel")
-			image.Name, image.BackgroundTransparency = "Asset", 1
-			image.Size, image.Position = UDim2.fromOffset(20, 20), UDim2.fromOffset(11, 0)
-			image.Image, image.Parent = icon.image, symbol
-			local function loaded()
-				symbol.TextTransparency = if image.IsLoaded then 1 else 0
-			end
-			image:GetPropertyChangedSignal("IsLoaded"):Connect(loaded)
-			loaded()
+			image.Name, image.BackgroundTransparency = stat .. "Asset", 1
+			local size = Model.VITALS.iconSize
+			image.Size = UDim2.fromOffset(size, size)
+			image.Position = UDim2.fromOffset(Model.VITALS.iconX, rowY + (Model.VITALS.rowHeight - size) / 2)
+			image.Image, image.Parent = icon.image, vitals
 		end
 		symbol.Parent = vitals
 		local track = Instance.new("Frame")
 		track.Name, track.BorderSizePixel, track.BackgroundColor3 = stat .. "Track", 0, Color3.fromRGB(45, 62, 56)
 		track.Position, track.Size, track.Parent =
-			UDim2.fromOffset(Model.VITALS.trackX, 10 + (index - 1) * Model.VITALS.rowStep),
+			UDim2.fromOffset(Model.VITALS.trackX, rowY + Model.VITALS.rowHeight / 2 - 4),
 			UDim2.new(1, -(Model.VITALS.trackX + Model.VITALS.trackRight), 0, 8),
 			vitals
 		local fill = Instance.new("Frame")
@@ -191,8 +190,8 @@ function M.start(options: Options)
 			text = "",
 			textSize = Model.VITALS.textSize,
 			parent = vitals,
-			size = UDim2.fromOffset(38, 20),
-			position = UDim2.new(1, -42, 0, 4 + (index - 1) * 23),
+			size = UDim2.fromOffset(38, Model.VITALS.rowHeight),
+			position = UDim2.new(1, -42, 0, rowY),
 		})
 		statBars[stat] = { fill = fill, value = value }
 	end

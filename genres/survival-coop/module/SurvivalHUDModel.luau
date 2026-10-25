@@ -443,9 +443,22 @@ function M.phoneChat(width: number, height: number?): any
 	return nil
 end
 
--- Vitals row geometry (SurvivalHUD): localized stat label, bar track, value. Labels never
--- drop under 11px text.
-M.VITALS = { labelX = 4, labelWidth = 62, rowStep = 23, textSize = 14, trackX = 68, trackRight = 46 }
+-- Vitals row geometry (SurvivalHUD): optional stat icon, localized stat label beside it (never
+-- under it: p105 Studio showed the heart/bolt drawn over the label), bar track, value. A Gotham
+-- line box is 1.5x the text size (14px -> 21px, p105), so a 26px row holds 1.2x text (17px) too;
+-- rows step 24px and overlap only in their transparent padding.
+M.VITALS = {
+	iconX = 4,
+	iconSize = 18,
+	labelX = 26,
+	labelWidth = 62,
+	rowTop = 0,
+	rowStep = 24,
+	rowHeight = 26,
+	textSize = 14,
+	trackX = 90,
+	trackRight = 46,
+}
 
 -- Portrait objective slot: room for six wrapped 14px lines plus the chip's 6px top/bottom padding.
 -- The slot is transparent and the chip auto-sizes to its text, so short objectives stay short.

@@ -8,6 +8,8 @@ local L = require("./ScreenText")
 L.use(require("../../../games/robango-island/PackText.fixture").screenText)
 local Sheet = require("./SocialSheet")
 local HUDModel = require("./SurvivalHUDModel")
+local Inventory = require("../../../core/domain/inventory/Inventory")
+local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 
 local LOCALES = { "en-us", "ko-kr" }
 local VIEWPORTS: { { any } } = { { 1280, 720, false }, { 360, 640, true } }
@@ -146,6 +148,56 @@ return {
 		end
 		assert(Storage.nextQuantity(10, 12) == 12 and Storage.nextQuantity(12, 12) == 1, "all, then wraps")
 		assert(Storage.nextQuantity(100, 2000) == 1000, "transfer cap 1000")
+	end,
+	["the picked stack's Store/Take button stays above the fold at 360x640 (p105 D5)"] = function()
+		local items = {}
+		for index = 1, 12 do
+			local id = string.format("b%02d", index)
+			items[id] = { itemId = id, catalogId = if index % 2 == 0 then "wood" else "berry", quantity = index }
+		end
+		local _, _, w, h = HUDModel.contextSheet(360, 640, true)
+		for _, locale in LOCALES do
+			local rows = Storage.rows(locale, state({ bag = inventory(items, 30), selected = "b12", quantity = 1 }), {})
+			check(rows, "picked last stack " .. locale)
+			local move = L.text(locale, "scr.storage.deposit", 1, "Wood")
+			local top, found = 0, false
+			for _, row in rows do
+				top += Sheet.rowHeight(row.text, Sheet.contentWidth(w)) + 6
+				if row.text == move then
+					found = true
+					break
+				end
+			end
+			assert(found, "move button rendered")
+			-- 56 px sheet title; the button's bottom edge must be visible without scrolling.
+			assert(top <= h - 56, string.format("move button ends at %d, sheet shows %d", top, h - 56))
+		end
+	end,
+	["a taken stack lands as its own bag stack, like gathered stacks; merging stays explicit (p105 D3)"] = function()
+		-- Decision: no auto-merge on Take. Gathering adds a fresh stack per harvest and ItemTransfer
+		-- credits a fresh stack ("merging is separate"); inventory-merge combines stacks on request.
+		local catalog = ItemCatalog.new({ { id = "fiber", stackMax = 100, weightMilli = 100 } })
+		local function stack(id: string, quantity: number): any
+			return {
+				itemId = id,
+				catalogId = "fiber",
+				quantity = quantity,
+				qualityMilli = 1000,
+				durabilityMilli = 0,
+				attributes = {},
+			}
+		end
+		local limits = { slots = 20, softWeightMilli = 60000, hardWeightMilli = 90000 }
+		local bag = assert(Inventory.add(Inventory.new("bag", limits), catalog, stack("b1", 6), 0))
+		local storage = assert(Inventory.add(Inventory.new("storage", limits), catalog, stack("w1", 5), 0))
+		local left, taken =
+			Inventory.move(storage, bag, catalog, "w1", 1, "transfer:1:output", storage.version, bag.version)
+		assert(left and taken, "take one")
+		assert(taken.items.b1.quantity == 6 and taken.items["transfer:1:output"].quantity == 1, "own stack")
+		local merged = assert(Inventory.merge(taken, catalog, "transfer:1:output", "b1", 1, taken.version))
+		assert(merged.items.b1.quantity == 7 and merged.items["transfer:1:output"] == nil, "explicit merge combines")
+		local source = fs.readFile("core/infra/data/ItemTransfer.luau")
+		assert(string.find(source, "Inventory.add(inventory, self._catalog, escrow", 1, true), "credit adds a stack")
 	end,
 	["reserved items cannot move and refusals are localized"] = function()
 		for _, locale in LOCALES do
