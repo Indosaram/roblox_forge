@@ -3,7 +3,7 @@
 -- permission, category filter, quantity selection and the existing transfer commands; rows fit the
 -- contextual sheet at 1280x720 and 360x640; the warehouse prompt and the HUD bag sheet open it.
 local fs = require("@lune/fs")
-local Storage = require("./StoragePanel")
+local Storage = require("./RecoveredScreens").storage
 local L = require("./ScreenText")
 L.use(require("../../../games/robango-island/PackText.fixture").screenText)
 local Sheet = require("./SocialSheet")
@@ -162,10 +162,10 @@ return {
 	end,
 	["warehouse prompt and HUD bag sheet open the storage screen"] = function()
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
-		assert(string.find(client, "module.StoragePanel", 1, true), "client registers ui.storage")
+		assert(string.find(client, "module.RecoveredScreens).storage", 1, true), "client registers ui.storage")
 		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
 		assert(string.find(hud, 'options.openPanel("storage")', 1, true), "bag sheet opens ui.storage")
-		local source = fs.readFile("genres/survival-coop/module/StoragePanel.luau")
+		local source = fs.readFile("genres/survival-coop/module/RecoveredScreens.luau")
 		for key in string.gmatch(source, '"(scr%.[%w_%.%-]+)"') do
 			if string.sub(key, -1) ~= "." and string.sub(key, -1) ~= "_" then
 				assert(L.text("en-us", key) ~= "" and L.text("ko-kr", key) ~= "", key .. ": missing locale row")

@@ -11,24 +11,8 @@ local env: any = getfenv()
 -- item picker is a searchable, category-filtered, paged list instead of one button per id.
 M.PAGE_SIZE = 8
 M.CATEGORIES = { "all", "material", "food", "gear", "building" }
-local GEAR_TAGS = { tool = true, ["weapon-tool"] = true, clothing = true, saddle = true, instrument = true }
-
---- Browse category of a content item: gear, building (kits/parts), food or material.
-function M.category(item: any?): string
-	if not item then
-		return "material"
-	end
-	for _, tag in item.tags or {} do
-		if GEAR_TAGS[tag] or tag == "sprinkler" then
-			return "gear"
-		end
-	end
-	local id: string = item.id
-	if string.sub(id, -4) == "-kit" or table.find(item.tags or {}, "building-part") then
-		return "building"
-	end
-	return if item.foodEffects then "food" else "material"
-end
+-- Browse category of a content item (the storage screen owns it; same buckets).
+M.category = BuyScreen.storage.category
 
 --- Pure catalog filter: case-insensitive substring of the display name or id, one category,
 --- clamped page. Returns the page's ids plus the clamped page and page count.

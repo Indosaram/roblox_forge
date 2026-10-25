@@ -149,7 +149,7 @@ local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
 	openPanel = function(id: string): boolean
-		return id == "storage" and require(Forge.genres["survival-coop"].module.StoragePanel).show()
+		return id == "storage" and require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.show()
 			or require(Forge.genres["survival-coop"].module.CharacterSheet).open(id)
 	end,
 	content = content,
@@ -189,7 +189,7 @@ gui.Destroying:Connect(function()
 end)
 local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, actor)
 	if actor == player and prompt:GetAttribute("ForgeWarehouse") then
-		if not require(Forge.genres["survival-coop"].module.StoragePanel).show() then
+		if not require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.show() then
 			hud.open("bag")
 		end
 	end
@@ -852,7 +852,7 @@ end)
 table.insert(panelFactories, function(ctx)
 	local scoped: any = table.clone(ctx)
 	scoped.content, scoped.actorId = content, tostring(player.UserId)
-	return require(Forge.genres["survival-coop"].module.StoragePanel).factory(scoped)
+	return require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.factory(scoped)
 end)
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
