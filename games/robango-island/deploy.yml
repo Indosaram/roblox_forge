@@ -12,17 +12,17 @@ environments:
     # `forge deploy --all-roles` then publishes the same build to every place.
     roles:
       onboarding: ${FORGE_STAGING_PLACE_ID}
-      home: 0
-      harbor: 0
-      archipelago: 0
-      explore10: 0
-      explore20: 0
-      frontier30: 0
-      frontier40: 0
-      frontier50: 0
-      frontier60: 0
-      brawl: 0
-      team-outpost: 0
+      home: ${FORGE_STAGING_ROLE_HOME}
+      harbor: ${FORGE_STAGING_ROLE_HARBOR}
+      archipelago: ${FORGE_STAGING_ROLE_ARCHIPELAGO}
+      explore10: ${FORGE_STAGING_ROLE_EXPLORE_TEN}
+      explore20: ${FORGE_STAGING_ROLE_EXPLORE_TWENTY}
+      frontier30: ${FORGE_STAGING_ROLE_FRONTIER_THIRTY}
+      frontier40: ${FORGE_STAGING_ROLE_FRONTIER_FORTY}
+      frontier50: ${FORGE_STAGING_ROLE_FRONTIER_FIFTY}
+      frontier60: ${FORGE_STAGING_ROLE_FRONTIER_SIXTY}
+      brawl: ${FORGE_STAGING_ROLE_BRAWL}
+      team-outpost: ${FORGE_STAGING_ROLE_TEAM_OUTPOST}
   production:
     universeId: ${FORGE_PRODUCTION_UNIVERSE_ID}
     placeId: ${FORGE_PRODUCTION_PLACE_ID}
