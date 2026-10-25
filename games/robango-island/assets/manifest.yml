@@ -1835,17 +1835,17 @@ assets:
   - key: ui-icon-stance-attack
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json ui.icon.stance.attack"
+    source: "gpt-image redraw-p119.json ui.icon.stance.attack"
     path: assets/icons/ui.icon.stance.attack.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:c8aaab0e98635d5b3fa3cc29fd949ae7e9f45986ebec082105a2de5cc0196ba5
+      digest: sha256:050a32c1ed71117ee265c707402acd65cd1ee2c860c075e3702bd5b4f948d862
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#ui.icon.stance.attack"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#ui.icon.stance.attack"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -1857,7 +1857,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
     decalAssetId: 0
   - key: ui-icon-stance-defense
     kind: image
@@ -2078,17 +2078,17 @@ assets:
   - key: ui-icon-capture
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 1"
+    source: "gpt-image redraw-p119.json ui.icon.capture"
     path: assets/icons/ui.icon.capture.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:780b54b9fa03d4d33662bd96230930cc245b6f76afb234d5d2ef99c749b19dc4
+      digest: sha256:91f46876e152f3117535f80449b1a7cf3e821965b0dde398ad8bdb396789ae57
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#ui.icon.capture"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -2100,7 +2100,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
     decalAssetId: 0
   - key: ui-icon-party
     kind: image
@@ -2321,17 +2321,17 @@ assets:
   - key: ui-icon-visitor
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json ui.icon.visitor"
+    source: "gpt-image redraw-p119.json ui.icon.visitor"
     path: assets/icons/ui.icon.visitor.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:6a363864221be8f7a912778221bda44ad651af271b185abbe7497b4b4d1fe7af
+      digest: sha256:5411660effaae3e5efccf867ed5d5d5080fdf59c2b353d231994ba9e20d1c56a
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#ui.icon.visitor"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#ui.icon.visitor"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -2343,7 +2343,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
     decalAssetId: 0
   - key: ui-icon-withdraw-capability
     kind: image
@@ -2861,17 +2861,17 @@ assets:
   - key: item-icon-cord
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 2"
+    source: "gpt-image redraw-p119.json item.icon.cord"
     path: assets/icons/item.icon.cord.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:c84b036a2f77ca530a515a96cea62e9a4b9e321371bac683b2ac533bb9d2ec33
+      digest: sha256:4ecf1f8e827b9ac7fd2d1805619f2f4589035d36f168ef9c2607c9bd127d4c44
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#item.icon.cord"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -2883,7 +2883,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
     decalAssetId: 0
   - key: item-icon-fiber
     kind: image
@@ -3725,17 +3725,17 @@ assets:
   - key: item-icon-capture-bola
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json item.icon.capture-bola"
+    source: "gpt-image redraw-p119.json item.icon.capture-bola"
     path: assets/icons/item.icon.capture-bola.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8fdef8fc2003c7cb85b2550f69f51d67f42f381aa232db6fc1422c2845b1b5f3
+      digest: sha256:dad65e82bfc2ae3d660607ac7d5855c23d641cca67800ae313144b0bfc17790f
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#item.icon.capture-bola"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#item.icon.capture-bola"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -3747,7 +3747,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
     decalAssetId: 0
   - key: item-icon-kiln-kit
     kind: image
@@ -7586,17 +7586,17 @@ assets:
   - key: item-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json item.icon.capture-rope"
+    source: "gpt-image redraw-p119.json item.icon.capture-rope"
     path: assets/icons/item.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:29804db086ad342d3b99757add07de4128f4fb53c78d5af8594f0716602878f8
+      digest: sha256:2e5bf408842d500e7e8ab997a601ce0baf359deca6c6be3dbe3960fd10812c2a
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#item.icon.capture-rope"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#item.icon.capture-rope"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -7608,7 +7608,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
     decalAssetId: 0
   - key: item-icon-saddle
     kind: image
@@ -7748,17 +7748,17 @@ assets:
   - key: item-icon-starter-axe
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-17.png cell 11"
+    source: "gpt-image redraw-p119.json item.icon.starter-axe"
     path: assets/icons/item.icon.starter-axe.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:c6aa6e33c9276a343f15bc6bbfd8822f2fa7a0881d11b3f4a5626688c503c41e
+      digest: sha256:85431254c09017ce4a4337c9f20ab25bd3e04a65a223f43730c6c0cbf3d7fd35
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#17"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.starter-axe"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -7770,21 +7770,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-starter-pickaxe
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-17.png cell 12"
+    source: "gpt-image redraw-p119.json item.icon.starter-pickaxe"
     path: assets/icons/item.icon.starter-pickaxe.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:f3227399901d0595246bbe6e57b4829ca0ca898ea0ef7c420c5d6e0bcebb3504
+      digest: sha256:bdd9644294eea8588fbd282937fee7abf25a86e95eef17c93620446fe2287e45
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#17"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.starter-pickaxe"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -7796,21 +7796,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-starter-club
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-17.png cell 13"
+    source: "gpt-image redraw-p119.json item.icon.starter-club"
     path: assets/icons/item.icon.starter-club.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:126ab623fa1c7e87fa6d6f799a877da1dd742d0dc75b23f7e4866bafd099513e
+      digest: sha256:1c144ef37853172be88efed0070a2bad18a08e989df2106c2902bc2b9f7f622f
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#17"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.starter-club"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -7822,21 +7822,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-practice-stitch
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p85.json item.icon.practice-stitch"
+    source: "gpt-image redraw-p119.json item.icon.practice-stitch"
     path: assets/icons/item.icon.practice-stitch.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:1251e81e523e461a198a46f2169369b8d3a26d75e6f063e05d7dca354b7d1d27
+      digest: sha256:deb0789680982092fdad5cf8769caa15a7f7ed3f6dc5f1a301920243ea751944
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p85.json#item.icon.practice-stitch"
-        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+        input: "assets/icons/redraw-p119.json#item.icon.practice-stitch"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -7848,7 +7848,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-24
+      created: 2026-10-25
     decalAssetId: 0
   - key: item-icon-practice-seedbed
     kind: image
@@ -8123,17 +8123,17 @@ assets:
   - key: item-icon-bandage
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-18.png cell 9"
+    source: "gpt-image redraw-p119.json item.icon.bandage"
     path: assets/icons/item.icon.bandage.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:805fbe09c4f9cee4b22c8d5801e23fa0621b90fa2735afc0548fb99f5c9dff36
+      digest: sha256:8b9b7b3d56f94ecb7390ac7b45ba018626bcd6d8cda6fc2ff84feda8aab86266
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#18"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.bandage"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8145,7 +8145,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-signal-lens
     kind: image
     tool: gpt-image
@@ -8338,18 +8338,18 @@ assets:
   - key: item-icon-skull
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 8"
+    source: "gpt-image redraw-p119.json item.icon.skull"
     path: assets/icons/item.icon.skull.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:dd582daa231f828d23bdfd28a11bbbec9b804519d8fe3bf564fdc93a7031167b
+      digest: sha256:f054d9ca205a4f2e69ea0e6154b005aa35df09e4c363d46978920597e2403243
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#item.icon.skull"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8361,7 +8361,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-feather
     kind: image
     tool: gpt-image
@@ -8419,17 +8419,17 @@ assets:
   - key: item-icon-horn
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 4"
+    source: "gpt-image redraw-p119.json item.icon.horn"
     path: assets/icons/item.icon.horn.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:6424b7e321d143cb14517e28be960bd7270bf95fb7e35c3c0c17f5528322a1a2
+      digest: sha256:19015ee8bffca64b4d24cf559bed5c1166260ddd435418e02f36b843b1434b2a
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.horn"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8441,21 +8441,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-claw
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 5"
+    source: "gpt-image redraw-p119.json item.icon.claw"
     path: assets/icons/item.icon.claw.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d1594b141d82a5e319eb7618cca44df98f028ae029dfe6ea26d54318b1347f4a
+      digest: sha256:392277e3320a1e065219d6df84a7aebdd0b53f5ef1e4a3140fe84dd7d40a3012
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.claw"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8467,21 +8467,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-tooth
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 6"
+    source: "gpt-image redraw-p119.json item.icon.tooth"
     path: assets/icons/item.icon.tooth.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:b3a96885b9b0047b8f5c8054361fc683103786b3abd495d0b9c5e508ca582bd1
+      digest: sha256:06d53a08bf2d7c075c338e217c870139748ef72d7e3e6d740a79798daf9b8187
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.tooth"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8493,21 +8493,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-fang
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 7"
+    source: "gpt-image redraw-p119.json item.icon.fang"
     path: assets/icons/item.icon.fang.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:4986fe95e068a28949c1ebae7b6c22ba90ed41b260958ce80298b7a5ec57af98
+      digest: sha256:e60aefc6eb0e9e92948d93d572b2f909b601848ff93e35b21e041d5ba8cb9b92
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.fang"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8519,22 +8519,22 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-sinew
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 6"
+    source: "gpt-image redraw-p119.json item.icon.sinew"
     path: assets/icons/item.icon.sinew.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:dbd3c5108bc613bb507ac5ccaf55ecfa9bf54d1261d1a475e4b773ea38066888
+      digest: sha256:acfa6d77b17bbc9a0849a9c8b9ea5d364c50a13e283bdd154d739f3d3f1772a3
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#item.icon.sinew"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8546,21 +8546,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-tusk
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-19.png cell 9"
+    source: "gpt-image redraw-p119.json item.icon.tusk"
     path: assets/icons/item.icon.tusk.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:064e8c8d3e009a345528c2931f386224aab8fcf890d146e5e8a0a3c02a2971e7
+      digest: sha256:a68dec091a49898d44ca418ef3fb522cec72765dc40293b003780ece1c74d33d
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#19"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.tusk"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -8572,7 +8572,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-antler
     kind: image
     tool: gpt-image
@@ -8981,17 +8981,17 @@ assets:
   - key: item-icon-meat-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-20.png cell 9"
+    source: "gpt-image redraw-p119.json item.icon.meat-profile"
     path: assets/icons/item.icon.meat-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:e0e87219423234d3bda352f9ef38474517697cef930933f00478a7a86abe4434
+      digest: sha256:f0f4b164f75f6645650bb23c885210e7ef4ec2d07a688f002456725685ed6c27
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#20"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.meat-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9003,21 +9003,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-hide-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-20.png cell 10"
+    source: "gpt-image redraw-p119.json item.icon.hide-profile"
     path: assets/icons/item.icon.hide-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:921b2e39f3ab82f91a79b9805f5a24f4acd3061f790c7312821dd932d4c92023
+      digest: sha256:987c620d5a6fab44715fb285e5c0ad51a4507af265e041469dc001e359f74b31
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#20"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.hide-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9029,21 +9029,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-bone-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-20.png cell 11"
+    source: "gpt-image redraw-p119.json item.icon.bone-profile"
     path: assets/icons/item.icon.bone-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:4e715cfc7ce35186d1f0da608f80fa75dfa0aa1c8ebf95b6109c031c45c7de1c
+      digest: sha256:a065effd290232fceaa4a9815d726d1e4e7563d31acd1e291092ac13af0aa923
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#20"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.bone-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9055,7 +9055,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-feather-profile
     kind: image
     tool: gpt-image
@@ -9140,17 +9140,17 @@ assets:
   - key: item-icon-claw-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-20.png cell 15"
+    source: "gpt-image redraw-p119.json item.icon.claw-profile"
     path: assets/icons/item.icon.claw-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8ee77f19423a62446651b01be932524fdd4df99c143f59d4e909ce5f7a7663f6
+      digest: sha256:9b82fc46f5c6d91df3bbdc9bf274fbcf42b6c868b21de4fd1148392cf5056b87
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#20"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.claw-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9162,21 +9162,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-tooth-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-20.png cell 16"
+    source: "gpt-image redraw-p119.json item.icon.tooth-profile"
     path: assets/icons/item.icon.tooth-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:683e9d82b456a25af31626cfc7be1c508e35ab512f7f4a06d509f0f72f4f51ae
+      digest: sha256:133440b3f9495d39b0b5925e4dc2e7ffec8506b5c83bb57be95ae2fc4fae69b3
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#20"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.tooth-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9188,21 +9188,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-volcanic-bone-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 1"
+    source: "gpt-image redraw-p119.json item.icon.volcanic-bone-profile"
     path: assets/icons/item.icon.volcanic-bone-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:22d8322aa884ebeb0c977a1adc9f14e805dec832473a67a6d89acfae58036880
+      digest: sha256:1ebde7d97a8e61550b12740d3da96286e522b61855c9b9e27c2b8e6890ef5a11
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.volcanic-bone-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9214,21 +9214,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-fur-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 2"
+    source: "gpt-image redraw-p119.json item.icon.fur-profile"
     path: assets/icons/item.icon.fur-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:0fd1f9efb105519aca2ea0309c61749ba6dceb8e0a6c38ce6c05ccd4bab54264
+      digest: sha256:9c67af8f718464cd85b178bc062f93b6441f1842ba138d7b1611e0a4167cd9e4
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.fur-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9240,21 +9240,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-fang-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 3"
+    source: "gpt-image redraw-p119.json item.icon.fang-profile"
     path: assets/icons/item.icon.fang-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:a5fe3d1de798e748f918224b2e8fbf29d08aa72951a708a00e4e9e47fc625545
+      digest: sha256:b86caab7bee6e113562d3da807fa6fa072f9fd17e68ff8979bfdbe5b383e994b
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.fang-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9266,22 +9266,22 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-sinew-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 7"
+    source: "gpt-image redraw-p119.json item.icon.sinew-profile"
     path: assets/icons/item.icon.sinew-profile.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:0543b7b5ce54fedd7f04da965dafc7c157ff621b59025694c26411ecf1b907f3
+      digest: sha256:0d403ade12a7f43820f087c7468b7e6f0369d1c622b2efdf165d6aab20587a18
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#item.icon.sinew-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9293,21 +9293,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-tusk-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 5"
+    source: "gpt-image redraw-p119.json item.icon.tusk-profile"
     path: assets/icons/item.icon.tusk-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8656b801803bebfd380edb5a33add6d21ca0b91e73f2beda4b4a55aa2b99ad4e
+      digest: sha256:543f939f9f6fe49fa2be7e3f27bb10b0cf46717b0dea4846a216fd3b969523c1
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.tusk-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9319,21 +9319,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-horn-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-21.png cell 6"
+    source: "gpt-image redraw-p119.json item.icon.horn-profile"
     path: assets/icons/item.icon.horn-profile.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:22b4fd28412d85d9b760184139d153bb5e1839997215340f9c4176d73894a79d
+      digest: sha256:24870bf57cb476984291dd2938f6bfa3a7eda16f7b05c888a45d603ce4125bcd
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#21"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#item.icon.horn-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9345,7 +9345,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-antler-profile
     kind: image
     tool: gpt-image
@@ -9376,18 +9376,18 @@ assets:
   - key: item-icon-skull-profile
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 9"
+    source: "gpt-image redraw-p119.json item.icon.skull-profile"
     path: assets/icons/item.icon.skull-profile.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:87b5b729a8033e151d7434197f6ae8d4d36f5ae76ed9e9d128e2288764f0dd5c
+      digest: sha256:865439c174df72487b1d96ec271b5020752ded00c347196d97c0509155c73809
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#item.icon.skull-profile"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -9399,7 +9399,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: item-icon-branch-profile
     kind: image
     tool: gpt-image
@@ -10537,17 +10537,17 @@ assets:
   - key: recipe-icon-cooked-meat
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 3"
+    source: "gpt-image redraw-p119.json recipe.icon.cooked-meat"
     path: assets/icons/recipe.icon.cooked-meat.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d532b4824475efb8a84fd4fcea185e12f43c733deab9b7a29ebbbe122aeb1138
+      digest: sha256:8697bb4319848a8ff09f27f86748adc6acde776ffbdc61aa7dc79778d882b987
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.cooked-meat"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10559,22 +10559,22 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-cord
     kind: image
     tool: gpt-image
-    source: "gpt-image recovery-atlas.png cell 3"
+    source: "gpt-image redraw-p119.json recipe.icon.cord"
     path: assets/icons/recipe.icon.cord.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:0a23a8d6883799c8e616bef3b780ecd550a18c83ed4cc673e08d7bbc29741bb5
+      digest: sha256:6eeb8d3953fb6ea84126f817365c445bf7bac8dcf5316d7a056e9fd30e24cecd
       recipe:
-        id: robango-icon-recovery
+        id: robango-icon-redraw
         version: 2
-        input: "assets/icons/recovery.json"
-        inputVersion: sha256:46c6d5e8cc3c11ee08fdc6ff3bc8fb9f42c3e3335b0ed0a81d7910c0a8ce5e47
+        input: "assets/icons/redraw-p119.json#recipe.icon.cord"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10586,21 +10586,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-flint-knife
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 5"
+    source: "gpt-image redraw-p119.json recipe.icon.flint-knife"
     path: assets/icons/recipe.icon.flint-knife.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:807c26c942393054989aeaf5baca065bf60f31284773eff0bd1ad106308de523
+      digest: sha256:01d8a7e37e0657479e8b6cccfbe95d7dc76e3fb6b4af44ca2556d9e25cfcd5cc
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.flint-knife"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10612,7 +10612,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-legacy-floor-kit
     kind: image
     tool: gpt-image
@@ -10697,17 +10697,17 @@ assets:
   - key: recipe-icon-rawhide-lashing
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p85.json recipe.icon.rawhide-lashing"
+    source: "gpt-image redraw-p119.json recipe.icon.rawhide-lashing"
     path: assets/icons/recipe.icon.rawhide-lashing.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d36a7354b8da335a56562c9c18d0a3cf9e1284e391a0fb745d8b13425be72f73
+      digest: sha256:7da9dc3ea56651a8acd248be6b8c5d70c8be51a972d81b53ea8b0cc41c6e9cac
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p85.json#recipe.icon.rawhide-lashing"
-        inputVersion: sha256:d203786443514dfc78c52cf0d828447b06716dd954f741d9dd89748b817798ac
+        input: "assets/icons/redraw-p119.json#recipe.icon.rawhide-lashing"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10719,7 +10719,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-24
+      created: 2026-10-25
     decalAssetId: 0
   - key: recipe-icon-roasted-hazelnuts
     kind: image
@@ -10778,17 +10778,17 @@ assets:
   - key: recipe-icon-spear
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 12"
+    source: "gpt-image redraw-p119.json recipe.icon.spear"
     path: assets/icons/recipe.icon.spear.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d084674d2c82659f45374e2384d9d8341f1e5c0922120b5b77a767b273ed7a56
+      digest: sha256:58549500fcb86a4ac1aa71f94a02ca9f132d7659cf298ec184a74f007088d585
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.spear"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10800,21 +10800,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-stone-axe
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.stone-axe"
     path: assets/icons/recipe.icon.stone-axe.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:5236186932deb08e3e8aefcb6c8a5a4a567cae7fc0bc145673de5af49c34e517
+      digest: sha256:2d5a3f6157c45e9cfdda104d7221d6963df01a5ba3b2e3fc9733742241813400
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.stone-axe"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10826,21 +10826,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-stone-block
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 14"
+    source: "gpt-image redraw-p119.json recipe.icon.stone-block"
     path: assets/icons/recipe.icon.stone-block.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:135991496d8587e0b1871cd519376837b3d4533b786809b29b7fe03d293dbd0b
+      digest: sha256:d15650b454538922ca422828e7b0ad2de9a01345e55ab8bee9a1f789c384f330
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.stone-block"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10852,7 +10852,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-stone-floor-kit
     kind: image
     tool: gpt-image
@@ -10883,17 +10883,17 @@ assets:
   - key: recipe-icon-stone-maul
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-24.png cell 16"
+    source: "gpt-image redraw-p119.json recipe.icon.stone-maul"
     path: assets/icons/recipe.icon.stone-maul.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:c02b5e06cb18cb5ac1187e59e4abc89123b754ba5df0f27eacbc910ecb72cd67
+      digest: sha256:17fac77ce9eca96fa99b2c022e2e10ea2531a04a2567afad0a8ed124a05d4ce9
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#24"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.stone-maul"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10905,21 +10905,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-stone-pick
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 1"
+    source: "gpt-image redraw-p119.json recipe.icon.stone-pick"
     path: assets/icons/recipe.icon.stone-pick.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:14aa282b3f1f5c85ae1c3f5db2153cfdef82830ac1abc7ca50a04074866f6b78
+      digest: sha256:454eba4e8ff654d8f41eddb504e85d004cb9473457e8ab2fc1d15d6cc7538d9e
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.stone-pick"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -10931,7 +10931,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-stone-roof-kit
     kind: image
     tool: gpt-image
@@ -11151,17 +11151,17 @@ assets:
   - key: recipe-icon-capture-bola
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json recipe.icon.capture-bola"
+    source: "gpt-image redraw-p119.json recipe.icon.capture-bola"
     path: assets/icons/recipe.icon.capture-bola.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:ad8fa8a984e9d2994ab86b02b0dbc7efca5040fb70be0624070304d613f684a0
+      digest: sha256:7419e92b607c3bd1d403b6b9d8761c62617c4df09ce97dc41a98b2996eda4c5d
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#recipe.icon.capture-bola"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#recipe.icon.capture-bola"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11173,7 +11173,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
   - key: recipe-icon-dry-twig
     kind: image
     tool: gpt-image
@@ -11231,17 +11231,17 @@ assets:
   - key: recipe-icon-dry-hide
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.dry-hide"
     path: assets/icons/recipe.icon.dry-hide.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:fa377377772868d3ebee86b6fafce9cc0d23dec950ad334f944efada46f10b30
+      digest: sha256:b10adca9b2119d980f7c87d7048e45b87cd62535140bb464a061b78bb7234356
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.dry-hide"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11253,21 +11253,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-dry-meat
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 14"
+    source: "gpt-image redraw-p119.json recipe.icon.dry-meat"
     path: assets/icons/recipe.icon.dry-meat.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:b49f57f1976ce09cba8dd0cbe01cf3d9af8327cef328d2c30f2171b1fd0f2daf
+      digest: sha256:5112eba9068c1bedd37645b772ceda05875ad54367144cb6ceb6c9ab0fc758de
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.dry-meat"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11279,21 +11279,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-tan-hide
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 15"
+    source: "gpt-image redraw-p119.json recipe.icon.tan-hide"
     path: assets/icons/recipe.icon.tan-hide.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:69aec0cbd49c9e9689e21b3478d768c97e6ccf1b0a989013a8ecfd1d65750c20
+      digest: sha256:053cc3bb4806719c42199cf25f9a704a06f148c78e670e54ed342a6202099f9f
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tan-hide"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11305,21 +11305,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-tan-thick-hide
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-25.png cell 16"
+    source: "gpt-image redraw-p119.json recipe.icon.tan-thick-hide"
     path: assets/icons/recipe.icon.tan-thick-hide.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:f0043d04b4c6945832b199d808bc3daf6b591376eda243d14f078f817ed62f09
+      digest: sha256:83c643f3ca9c7d6c47a8218f3a44c518a4a12895676030b816feb087c6a181d8
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#25"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tan-thick-hide"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11331,21 +11331,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-tan-fur-hide
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-26.png cell 1"
+    source: "gpt-image redraw-p119.json recipe.icon.tan-fur-hide"
     path: assets/icons/recipe.icon.tan-fur-hide.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d90b55a5c3f877b798a0750efe16b5fb33edca5ba21c062d1b49ce26dc529fe5
+      digest: sha256:1ff25fe6673cef9dad462048fb46f086a7f9ce95dbe896c152658c396d083861
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#26"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tan-fur-hide"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11357,21 +11357,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-tan-rex-hide
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-26.png cell 2"
+    source: "gpt-image redraw-p119.json recipe.icon.tan-rex-hide"
     path: assets/icons/recipe.icon.tan-rex-hide.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:e04a32b89f1f794b1c28f46a271ff87a6bf1d56803f21a44a7e10cf7e5d29b16
+      digest: sha256:1e4f51a5397e166a5b261e0bdeddb46cb4fe876c3170f7f17294b65b3720ce00
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#26"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tan-rex-hide"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11383,7 +11383,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-polish-stone
     kind: image
     tool: gpt-image
@@ -11441,17 +11441,17 @@ assets:
   - key: recipe-icon-polish-bone
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-26.png cell 5"
+    source: "gpt-image redraw-p119.json recipe.icon.polish-bone"
     path: assets/icons/recipe.icon.polish-bone.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:a04ae94ab59aad5bea9ea282e1e5d413e541ac1a2d2a2f8b0246ea4be98a220c
+      digest: sha256:c3f207ccf1c7918bac93b0fca42a9499b41c79d56a5b26646695dcf6679f8039
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#26"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.polish-bone"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11463,7 +11463,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-polish-basalt
     kind: image
     tool: gpt-image
@@ -11818,17 +11818,17 @@ assets:
   - key: recipe-icon-axe-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 3"
+    source: "gpt-image redraw-p119.json recipe.icon.axe-t1"
     path: assets/icons/recipe.icon.axe-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8e1e6f62229a1f192af2b86ee9ec6fcd3251feb61e501f965e0c5df8dcce90ec
+      digest: sha256:2c47374a36d31af853767107724a18c58e0bab6e08ac5dac45aede1d334900a1
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.axe-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11840,21 +11840,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-pickaxe-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 4"
+    source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t1"
     path: assets/icons/recipe.icon.pickaxe-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:255545b80f86eb21dc4216626c1d11839b646a39e9adc839b1ad069b548cc773
+      digest: sha256:e8f3e1bd95b3fd9a14a13b1d65dd4b839d12ef784ecdb044e66fd9f3ff4293cc
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.pickaxe-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11866,21 +11866,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-knife-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 5"
+    source: "gpt-image redraw-p119.json recipe.icon.knife-t1"
     path: assets/icons/recipe.icon.knife-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:62d3a87d01d91a838d9be6fff5e63e7b72daf3b1f83aab9ad86e8985272bc5f1
+      digest: sha256:946e14a120fd3e64d91c2f20019efb580c9ce697734f0b6ac3424d07b6f7ab3f
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.knife-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11892,7 +11892,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hoe-t1
     kind: image
     tool: gpt-image
@@ -11923,17 +11923,17 @@ assets:
   - key: recipe-icon-axe-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 7"
+    source: "gpt-image redraw-p119.json recipe.icon.axe-t2"
     path: assets/icons/recipe.icon.axe-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:33e782a68fe6049ec1f37fa0081624784138c5ebcc88fd190a819a280224bc24
+      digest: sha256:bc592886320c36873dc65a0ecaae08ca8da86927b076d589031d8c33090e9b9b
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.axe-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11945,21 +11945,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-pickaxe-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 8"
+    source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t2"
     path: assets/icons/recipe.icon.pickaxe-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:840220f990ef9a5592f1b2d0be98da2303571557b7690ef5bf6dc2951033b730
+      digest: sha256:f615c08fbbc3196ee2e99648e816a36f52a136b277e494f215c444d67954cef7
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.pickaxe-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11971,21 +11971,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-knife-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 9"
+    source: "gpt-image redraw-p119.json recipe.icon.knife-t2"
     path: assets/icons/recipe.icon.knife-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:3b0efba3c634d6b4ac59cbe592105793b92fa9f64021935be4e5285bab531c75
+      digest: sha256:43c9f9e3d237b7e69796e0455f72b452e986b679f0d8aa4e588997221d7af886
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.knife-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -11997,7 +11997,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hoe-t2
     kind: image
     tool: gpt-image
@@ -12028,17 +12028,17 @@ assets:
   - key: recipe-icon-axe-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 11"
+    source: "gpt-image redraw-p119.json recipe.icon.axe-t3"
     path: assets/icons/recipe.icon.axe-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:a29207e6d0ce63d956b45690a160bb75e55a53d2b928cbc6527812bbea4339e1
+      digest: sha256:9d1a381fa87fa3978ff6bd40d83583ab455cee98ec24ed34e18b03d22ed9bcac
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.axe-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12050,21 +12050,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-pickaxe-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 12"
+    source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t3"
     path: assets/icons/recipe.icon.pickaxe-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:ae32d46326f6d76925dc15ddea2ba96ee5943307a47ae1a769a6edc10850daff
+      digest: sha256:453824706cf1f49d1c1ed078edc6f11aaf1548483ce2a5798438ec5e947c5e7d
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.pickaxe-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12076,21 +12076,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-knife-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.knife-t3"
     path: assets/icons/recipe.icon.knife-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:6f168f5f5cf7aa30ea378d3b85116f00ec93e2a489ce7199a80736efd9c9560d
+      digest: sha256:457077d53accb5520dd2c34191a61ca044efdc855fd519294a7f8f0b25028b63
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.knife-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12102,7 +12102,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hoe-t3
     kind: image
     tool: gpt-image
@@ -12133,17 +12133,17 @@ assets:
   - key: recipe-icon-club-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 15"
+    source: "gpt-image redraw-p119.json recipe.icon.club-t1"
     path: assets/icons/recipe.icon.club-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:f65639010c6834c7f3211bcc7c3a9e248c151d9dc5c4f62b0712dd5420c526ca
+      digest: sha256:19f9d2695f0401a66e6b0d93a6921bc038dda5efe36a5bb93d402f7011e397ff
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.club-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12155,21 +12155,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-spear-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-27.png cell 16"
+    source: "gpt-image redraw-p119.json recipe.icon.spear-t1"
     path: assets/icons/recipe.icon.spear-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8f94249e39ef07de25a7ea4b0ee5ecaa0946f30970835a86f67b6da2cbbaa373
+      digest: sha256:aa93b5d26dd16bf49019b80efbcbc6a541417804a3a0b2d9bf8fe06d723633c9
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#27"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.spear-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12181,21 +12181,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-sword-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 1"
+    source: "gpt-image redraw-p119.json recipe.icon.sword-t1"
     path: assets/icons/recipe.icon.sword-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:7bb1edac08d579b982dde1dbd0ddd8907d8766ca80a02da2a44f12abd6a92eb5
+      digest: sha256:e5fe83e21396efc78b9374646b14af45f011ee4f48a4249595b42a93cc8a31b4
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.sword-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12207,21 +12207,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hammer-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 2"
+    source: "gpt-image redraw-p119.json recipe.icon.hammer-t1"
     path: assets/icons/recipe.icon.hammer-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:90656d34b30091f6ddcb9b47edff5288ebbe372583becc901cdf705be7155d5f
+      digest: sha256:926d742033a0eb557dbb54de8456bd0c94c121d04c37b40c1d1be0fff682816c
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.hammer-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12233,21 +12233,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-bow-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 3"
+    source: "gpt-image redraw-p119.json recipe.icon.bow-t1"
     path: assets/icons/recipe.icon.bow-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:19fe8fd5dc9b6b742c93529e0de7e4923f0f5f797044874bfe8059d77463531c
+      digest: sha256:985363079c3091cea95741bad17c45c458d0bb7ddf2772096776a162d0a656f1
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.bow-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12259,21 +12259,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-crossbow-t1
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 4"
+    source: "gpt-image redraw-p119.json recipe.icon.crossbow-t1"
     path: assets/icons/recipe.icon.crossbow-t1.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:f62f15dec1c21bc94df31792eb561c44c39a7d3cffb8d0bf88a5826d7938525f
+      digest: sha256:8b8a2189c99b2b1dae07c01694fee9724f2c69d29942b8b839f069539f8cca17
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.crossbow-t1"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12285,21 +12285,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-club-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 5"
+    source: "gpt-image redraw-p119.json recipe.icon.club-t2"
     path: assets/icons/recipe.icon.club-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:8a527b46aa03fcd3e637c9a7c71401e1bcc6e00c554465dc9d287879ee5ec062
+      digest: sha256:eb9676572ad5a7af454f1ad439a1ef5217c7c37a3cb7a15e886fe9c992f48c60
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.club-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12311,21 +12311,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-spear-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 6"
+    source: "gpt-image redraw-p119.json recipe.icon.spear-t2"
     path: assets/icons/recipe.icon.spear-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:b56d4d1f393362ce813cded5dbdd21f2717f0bb94d3c76c197973aecb592a070
+      digest: sha256:ef9258ddf6b4ce871c80a63c2927c467fd5ef767f0f7acbe74d3bafdcce3c556
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.spear-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12337,21 +12337,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-sword-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 7"
+    source: "gpt-image redraw-p119.json recipe.icon.sword-t2"
     path: assets/icons/recipe.icon.sword-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:3dcf0ca47fff7c398829c22f414181ade47d321b2a4e160e27757b66ba290517
+      digest: sha256:322916ecfd63daff633413463782cce0fe5cbc57a2cd34eb2511ecd0cbe7948f
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.sword-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12363,21 +12363,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hammer-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 8"
+    source: "gpt-image redraw-p119.json recipe.icon.hammer-t2"
     path: assets/icons/recipe.icon.hammer-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:dfd552e7b8b1846eca1d232fc89c5fba66dba1b2fc5d888dea1e802ebfcc6bc8
+      digest: sha256:108bb323dfc2e0e8881b012f987b5595abd8c89b0fdcf5eff7f4bec10d20f835
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.hammer-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12389,21 +12389,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-bow-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 9"
+    source: "gpt-image redraw-p119.json recipe.icon.bow-t2"
     path: assets/icons/recipe.icon.bow-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:70c0c7e79678c2a216fd00ecb01803354d7f46a043cc541ffc3583ab49628d14
+      digest: sha256:b265b875b2070f6a90a8247d14aca9871d32e44111b1e9c4c43768580b3390fa
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.bow-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12415,21 +12415,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-crossbow-t2
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 10"
+    source: "gpt-image redraw-p119.json recipe.icon.crossbow-t2"
     path: assets/icons/recipe.icon.crossbow-t2.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:a8e28413e075e4e5035f972ca5b36ca25b79871f9dab0ad1ea97ae21c51bc442
+      digest: sha256:aaef2c1c7ee5e29524931f39e17d0092df7481bf1fca4136a133da0f64b1e2b7
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.crossbow-t2"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12441,21 +12441,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-club-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 11"
+    source: "gpt-image redraw-p119.json recipe.icon.club-t3"
     path: assets/icons/recipe.icon.club-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:97aba9f47989a491c1c04e95bec3482e44d20cef1fed1a13fee191efe6d8a968
+      digest: sha256:2a8286772884dd8b68af9768f5540ca9640cf7cddac7836ee094237a9098b437
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.club-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12467,21 +12467,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-spear-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 12"
+    source: "gpt-image redraw-p119.json recipe.icon.spear-t3"
     path: assets/icons/recipe.icon.spear-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:a58b8df75bef388877bbc9da85362022e6d76bfe5bb3e8519d42738fdeb3d7e7
+      digest: sha256:1514962b778e8ad69e3427f8cc6303e4907e2ec039349d863b5cdb9ec813908b
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.spear-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12493,21 +12493,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-sword-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.sword-t3"
     path: assets/icons/recipe.icon.sword-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:2e17a21d18a03c89c1f603b5e2b5a2c1c4bb15c8206c81a0693dee2e82596983
+      digest: sha256:2a5023f90f87e3f11e601b6448d7a624c64dd20c4cd78b4ba368ec515b6c8600
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.sword-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12519,21 +12519,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-hammer-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 14"
+    source: "gpt-image redraw-p119.json recipe.icon.hammer-t3"
     path: assets/icons/recipe.icon.hammer-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:0edf553dcba559568956247fd5b6097207cbf13e06bf323da6b479ca9326a616
+      digest: sha256:9a6f0b39bdf18452012d4aef86658462bc2319cde0fb9ca9fc3d03c23a122c11
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.hammer-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12545,21 +12545,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-bow-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 15"
+    source: "gpt-image redraw-p119.json recipe.icon.bow-t3"
     path: assets/icons/recipe.icon.bow-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:847ff465e699de30982729753b06e48d360151036653768b9ea1d0a8385953e5
+      digest: sha256:1fb4f3926ef92e4184e524be32c2fa5117c67226f02b63792c1478e591ca4ada
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.bow-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12571,21 +12571,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-crossbow-t3
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-28.png cell 16"
+    source: "gpt-image redraw-p119.json recipe.icon.crossbow-t3"
     path: assets/icons/recipe.icon.crossbow-t3.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d327f8708d9de27b005cb14a7c1264d8c82ba576ca7a7198d7b963ed9027ad36
+      digest: sha256:f01ba2bd7aa49a7db9cd2ba72659c82a1aaa0258cf5fac4e9c7e438a833642c8
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#28"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.crossbow-t3"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12597,21 +12597,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-temperate-head
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-29.png cell 1"
+    source: "gpt-image redraw-p119.json recipe.icon.temperate-head"
     path: assets/icons/recipe.icon.temperate-head.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:ecf81faa3781ec8e0a3943327cdd34cfc1d980690340fcd4b11e07d2934a32bf
+      digest: sha256:951b471ff6a16d954542aa7fb4c77bde3b4a756110b295ab8d8e6f9b5ef46023
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#29"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.temperate-head"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12623,7 +12623,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-temperate-top
     kind: image
     tool: gpt-image
@@ -12762,17 +12762,17 @@ assets:
   - key: recipe-icon-tropical-head
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-29.png cell 7"
+    source: "gpt-image redraw-p119.json recipe.icon.tropical-head"
     path: assets/icons/recipe.icon.tropical-head.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:874add906909dfa20c26d42ff3fa4a1769d258d94016129da6db0a71e0c9a993
+      digest: sha256:09194f7c50ab7d7941058f45fc5424699b492b69b1ac5ce54d8d398ebaa9dd33
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#29"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tropical-head"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12784,7 +12784,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-tropical-top
     kind: image
     tool: gpt-image
@@ -12923,17 +12923,17 @@ assets:
   - key: recipe-icon-cold-head
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-29.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.cold-head"
     path: assets/icons/recipe.icon.cold-head.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d38a6b9cb0d9c3cc8fb563fc13f55db3d109efd0b445e512069ac46a816d1de5
+      digest: sha256:e72fbb55d791864f921414b5097defd055c7b8a6d3f18d65c6f0de5443a601dc
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#29"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.cold-head"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -12945,7 +12945,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-cold-top
     kind: image
     tool: gpt-image
@@ -13300,17 +13300,17 @@ assets:
   - key: recipe-icon-roast-meat
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-30.png cell 11"
+    source: "gpt-image redraw-p119.json recipe.icon.roast-meat"
     path: assets/icons/recipe.icon.roast-meat.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:43a7838ccdd7a6403b5afa1c0bc169b47815033b5bbb4691d647f5b3c579afaf
+      digest: sha256:20310b8e35c3e7d08a60c04b6de307552d448e25224362584396c7b9678edc74
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#30"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.roast-meat"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13322,21 +13322,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-meat-potato-stew
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-30.png cell 12"
+    source: "gpt-image redraw-p119.json recipe.icon.meat-potato-stew"
     path: assets/icons/recipe.icon.meat-potato-stew.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:1d24532615ac3d4c40e5c3d5828eedbdd5586b05bdb5d59ce6d1517b14cc5ec5
+      digest: sha256:3012f728ac78dbc09c95300fd5c8b816b38601759c2da1911de243ef41bd7577
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#30"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.meat-potato-stew"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13348,21 +13348,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-onion-meat-skewer
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-30.png cell 13"
+    source: "gpt-image redraw-p119.json recipe.icon.onion-meat-skewer"
     path: assets/icons/recipe.icon.onion-meat-skewer.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:3602fa3951e12b46a91f403692d461201c8089ee5731f23e4e6f53191b1b5c35
+      digest: sha256:16235fbc0cb92bd497089dc35444ee9daa168f24813fde81d3adbca327b6bbc8
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#30"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.onion-meat-skewer"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13374,21 +13374,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-rex-meat-stew
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-30.png cell 14"
+    source: "gpt-image redraw-p119.json recipe.icon.rex-meat-stew"
     path: assets/icons/recipe.icon.rex-meat-stew.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:0e41383abbb3ca39680135e77ceed5e693618bd2e879c2b3a52226ef1e80d741
+      digest: sha256:a726d36135b78e1bf3cdcd943c960020547a725faefab280448489977bf1062d
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#30"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.rex-meat-stew"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13400,7 +13400,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-grilled-fish
     kind: image
     tool: gpt-image
@@ -13485,17 +13485,17 @@ assets:
   - key: recipe-icon-carnivore-feed
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-31.png cell 2"
+    source: "gpt-image redraw-p119.json recipe.icon.carnivore-feed"
     path: assets/icons/recipe.icon.carnivore-feed.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:d4c9b84c07d152fdf95c122675ab6952748bb18edcff3e0f9ad4ac649f3342c4
+      digest: sha256:f6cc98564a2c925b591693bcf429b2ae7f592c96722ee82f03a61e2c06fb0677
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#31"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.carnivore-feed"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13507,7 +13507,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-extract-corn-seed
     kind: image
     tool: gpt-image
@@ -13835,18 +13835,18 @@ assets:
   - key: recipe-icon-capture-rope
     kind: image
     tool: gpt-image
-    source: "gpt-image redraw-p31.json recipe.icon.capture-rope"
+    source: "gpt-image redraw-p119.json recipe.icon.capture-rope"
     path: assets/icons/recipe.icon.capture-rope.png
     assetId: 0
     moderation: NotUploaded
     decalAssetId: 0
     provenance:
-      digest: sha256:4e64283ff2647da6903c07c25efa0b19e6d2954857cb0f27a8190305434dd960
+      digest: sha256:e645d031e54455e7941517bcca8a20707d1a263d92bb4b5d97565c31beb7b7a7
       recipe:
         id: robango-icon-redraw
         version: 1
-        input: "assets/icons/redraw-p31.json#recipe.icon.capture-rope"
-        inputVersion: sha256:b8ea12f2db9cdca68f40318b926318a961dfb402a263799b8a240ea4cd4cde23
+        input: "assets/icons/redraw-p119.json#recipe.icon.capture-rope"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -13858,7 +13858,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-22
+      created: 2026-10-25
   - key: recipe-icon-animal-pen
     kind: image
     tool: gpt-image
@@ -14132,17 +14132,17 @@ assets:
   - key: recipe-icon-tanning-frame-kit
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-32.png cell 6"
+    source: "gpt-image redraw-p119.json recipe.icon.tanning-frame-kit"
     path: assets/icons/recipe.icon.tanning-frame-kit.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:c71be9814c83b0e9b4e343146dd60de8f6adc07a4372caf1851c760aa53157d8
+      digest: sha256:0cbf154b03439b98f565eaab427772839064db5110002ce6a052eb2234c5cdb7
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#32"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.tanning-frame-kit"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -14154,7 +14154,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-refrigerator-kit
     kind: image
     tool: gpt-image
@@ -14347,17 +14347,17 @@ assets:
   - key: recipe-icon-clan-hall-kit
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-32.png cell 14"
+    source: "gpt-image redraw-p119.json recipe.icon.clan-hall-kit"
     path: assets/icons/recipe.icon.clan-hall-kit.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:6a7906d1154d60c454e26d0bb8fdac7da5af3c6ab975a4ec5611b4fd59bb9feb
+      digest: sha256:1cc852fffae7b01020d9743f6873306017837c9630799fb246a3fdf39a755a80
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#32"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.clan-hall-kit"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -14369,7 +14369,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-wall-kit
     kind: image
     tool: gpt-image
@@ -14508,17 +14508,17 @@ assets:
   - key: recipe-icon-starter-axe
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-33.png cell 4"
+    source: "gpt-image redraw-p119.json recipe.icon.starter-axe"
     path: assets/icons/recipe.icon.starter-axe.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:bfbee05c4cad89e81ecb47d0a27ac1463b7784c0ffa7eb054f47ec6ed7186504
+      digest: sha256:b24daeb648d5954101635d83c0638a1732cc2e9758018b4de61b2c6d047ed66d
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#33"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.starter-axe"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -14530,21 +14530,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-starter-pickaxe
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-33.png cell 5"
+    source: "gpt-image redraw-p119.json recipe.icon.starter-pickaxe"
     path: assets/icons/recipe.icon.starter-pickaxe.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:73cca4cd3227232e2913cac459766b0a685ece88814bf80adff1046c37f70138
+      digest: sha256:30423850d244031c2cd6a484c994cab253b4e46e4df9f2ad7038886e90c1fadb
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#33"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.starter-pickaxe"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -14556,21 +14556,21 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: recipe-icon-starter-club
     kind: image
     tool: gpt-image
-    source: "gpt-image atlas-33.png cell 6"
+    source: "gpt-image redraw-p119.json recipe.icon.starter-club"
     path: assets/icons/recipe.icon.starter-club.png
     assetId: 0
     moderation: NotUploaded
     provenance:
-      digest: sha256:f02031c834314989e2fe683dd6226225c944e281352aa810644ff38ec50c66a5
+      digest: sha256:7857354852b5d67c76f121d73f905c365d48d89aba8f84e791a0fe39ce6bcb5e
       recipe:
-        id: robango-icon-atlas
+        id: robango-icon-redraw
         version: 1
-        input: "assets/icons/jobs.json#33"
-        inputVersion: sha256:d3953f33a433c3d777c78deb13984242169c015b514898c3f3b1446fcea87e8a
+        input: "assets/icons/redraw-p119.json#recipe.icon.starter-club"
+        inputVersion: sha256:65e3a02b4fa0aee35cae7c3fceb2ffb45e88d4e9043e96ae4c26c7c69fce2707
       provider:
         name: gpt-image
         version: Responses-API
@@ -14582,7 +14582,7 @@ assets:
           version: "2026-01-01"
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
-      created: 2026-10-21
+      created: 2026-10-25
   - key: robango-bgm-home
     kind: bgm
     tool: forge-procgen

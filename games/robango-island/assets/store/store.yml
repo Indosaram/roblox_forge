@@ -2,6 +2,7 @@
 schemaVersion: 1
 game: Robango Island
 created: 2026-10-21
+updated: 2026-10-25 # p119: exploration thumbnails redrawn as a harbor-dock scene (the game has dock travel, no boats)
 status: local-reviewed
 uploadStatus: not-uploaded
 provider: gpt-image
@@ -95,25 +96,25 @@ assets:
     kind: thumbnail
     path: assets/store/exploration-no-text.png
     size: { width: 1920, height: 1080 }
-    bytes: 3383368
-    sha256: 1493f17ff5854ac3794259aedd774d2073b5b9dd9e3effdcdf5a36fec6949f53
+    bytes: 3172190
+    sha256: 77335a63151fe24316f7a039c275e2006259da852a5953a7b38fce26d4cb52d7
     provider: gpt-image
     rights: inherited-from-manifest-rights
     text: none
-    promptFile: .omo/evidence/robango-recovery/p7/store/exploration.prompt.txt
-    source: .omo/evidence/robango-recovery/p7/store/exploration-no-text-source.png
+    promptFile: .omo/evidence/robango-recovery/p119/store/exploration.prompt.txt
+    source: .omo/evidence/robango-recovery/p119/store/exploration-no-text-source.png
     referenceImage: .omo/evidence/robango-recovery/p7/store/icon-source.png
-    prompt: "Landscape 16:9 release thumbnail for Robango Island, premium vibrant stylized 3D Roblox front-page key art. A sweeping playful tropical archipelago adventure viewed from a slightly elevated three-quarter camera behind and beside two simple wooden motorboats with smooth low hulls, no sails or masts. Two cheerful blocky Roblox-style explorer friends in teal and orange ride in the nearest boat; a friendly small emerald-green dinosaur with orange back plates sits happily as a passenger in the second boat. Boats travel across sparkling turquoise water toward a lush chain of palm-covered islands, sandy beaches, dramatic green cliffs and a majestic distant volcano. Distinct clear boat silhouettes and joyous faces in foreground, sparkling curved white wakes guide the eye into the islands. Sunny azure sky with clean open space upper left. Saturated bright turquoise and emerald palette, polished toy-like 3D materials, crisp cinematic adventure composition, premium Roblox discovery quality. No text, letters, logos, UI or watermark anywhere. Strict family-friendly safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious symbols or political symbols. One image, fill the entire 16:9 frame."
+    prompt: "Landscape 16:9 release thumbnail for Robango Island, premium vibrant stylized 3D Roblox front-page key art. Two cheerful blocky Roblox-style explorer friends in teal and orange shirts with small backpacks stand on a simple sturdy wooden harbor dock at the edge of their home island, one pointing out across sparkling turquoise water toward a chain of lush palm-covered islands with sandy beaches, green cliffs and a majestic distant volcano with a soft cloud. A friendly emerald-green dinosaur with orange back plates stands beside them on the dock looking toward the islands, curious and happy. A small thatched harbor hut and wooden crates stand at the dock's land end. Dynamic low three-quarter camera behind and beside the group, open clean sky in the upper left for a title. No boats, no ships, no sails. No text or letters anywhere, no logo, no watermark. Strict family-friendly moderation: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. Output exactly one landscape image."
   - key: exploration-title
     kind: thumbnail
     path: assets/store/exploration-title.png
     size: { width: 1920, height: 1080 }
-    bytes: 3360559
-    sha256: ef6b413cd738b74b419cfc333a00d365927a706dddff72f3f93a7fb96f81a17c
+    bytes: 3043040
+    sha256: 96f4449ed649096357aacaaed99c9de7b12948e799828b4db283eaf5b014b94d
     provider: gpt-image
     rights: inherited-from-manifest-rights
     text: ROBANGO ISLAND
     promptFile: .omo/evidence/robango-recovery/p7/store/title.prompt.txt
-    source: .omo/evidence/robango-recovery/p7/store/exploration-title-source.png
-    referenceImage: .omo/evidence/robango-recovery/p7/store/exploration-no-text-source.png
+    source: .omo/evidence/robango-recovery/p119/store/exploration-title-source.png
+    referenceImage: .omo/evidence/robango-recovery/p119/store/exploration-no-text-source.png
     prompt: "Edit the supplied Robango Island store thumbnail to create its English-title variant. Preserve the entire illustrated scene, characters, dinosaur, colors, lighting, camera and 16:9 composition. Add only the exact title \"ROBANGO ISLAND\" once in the open upper-left sky, on two stacked lines, large bold rounded adventurous 3D lettering with warm golden-yellow fill, dark teal outline and a subtle clean shadow. Spell R O B A N G O and I S L A N D exactly. Keep the whole title inside generous safe margins and do not cover any face. No other text or symbols, no logo or watermark. Preserve strict safety: no weapons, blood, skulls, bones, ropes, loops, nooses, flags, religious or political symbols. Output one landscape image."
