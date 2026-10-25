@@ -83,6 +83,14 @@ local function run(custom: boolean)
 		UserId = 1,
 		DisplayName = "Actor",
 		Parent = players,
+		attributes = {},
+		SetAttribute = function(self, key, data)
+			assert(type(data) ~= "table", "Dictionary is not a supported attribute type: " .. key)
+			self.attributes[key] = data
+		end,
+		GetAttribute = function(self, key)
+			return self.attributes[key]
+		end,
 		Kick = function()
 			error("unexpected kick")
 		end,
