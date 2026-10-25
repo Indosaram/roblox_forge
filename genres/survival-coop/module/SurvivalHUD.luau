@@ -1139,7 +1139,14 @@ function M.start(options: Options)
 					label(t("select"))
 				end
 			end
-			label(t("warehouse"))
+			if options.openPanel then
+				-- ui.storage: filters, amounts, capacity and permissions live in their own screen.
+				button("Storage", t("warehouse"), function()
+					options.openPanel("storage")
+				end)
+			else
+				label(t("warehouse"))
+			end
 			for _, row in Model.items(model.snapshot.warehouse) do
 				mutation(
 					"Withdraw-" .. row.item.itemId,

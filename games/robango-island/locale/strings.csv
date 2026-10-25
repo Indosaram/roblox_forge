@@ -2637,3 +2637,33 @@ scr.buy.gone,This listing is no longer on the market.,recovered screen,This list
 scr.buy.confirm,Buy for %d shellmoney,recovered screen,Buy for %d shellmoney,조개돈 %d에 구매
 scr.buy.done,Bought. The bundle arrives in your collection box.,recovered screen,Bought. The bundle arrives in your collection box.,구매했어요. 묶음은 수령함으로 들어와요.
 scr.buy.open_market,Back to the market,recovered screen,Back to the market,장터로 돌아가기
+scr.storage.title,Camp storage,recovered screen,Camp storage,공용 창고
+scr.storage.unavailable,Camp storage is not connected on this server yet. Walk to the storage crate and try again.,recovered screen,Camp storage is not connected on this server yet. Walk to the storage crate and try again.,이 서버에서는 아직 공용 창고가 연결되지 않았어요. 보관 상자 가까이 가서 다시 시도하세요.
+scr.storage.capacity,"Storage: %d/%d slots, %s/%s kg",recovered screen,"Storage: %d/%d slots, %s/%s kg","창고: %d/%d칸, %s/%s kg"
+scr.storage.bag,"Bag: %d/%d slots, %s/%s kg",recovered screen,"Bag: %d/%d slots, %s/%s kg","가방: %d/%d칸, %s/%s kg"
+scr.storage.member,You are a camp member: you can store and take items.,recovered screen,You are a camp member: you can store and take items.,캠프 구성원이라 보관하고 꺼낼 수 있어요.
+scr.storage.visitor,Only camp members can move items. Ask the owner for an invite.,recovered screen,Only camp members can move items. Ask the owner for an invite.,캠프 구성원만 물건을 옮길 수 있어요. 주인에게 초대를 받으세요.
+scr.storage.mode_bag,Showing: bag (tap to show storage),recovered screen,Showing: bag (tap to show storage),보기: 가방 (눌러서 창고 보기)
+scr.storage.mode_storage,Showing: storage (tap to show bag),recovered screen,Showing: storage (tap to show bag),보기: 창고 (눌러서 가방 보기)
+scr.storage.filter,Filter: %s,recovered screen,Filter: %s,분류: %s
+scr.storage.cat_all,All items,recovered screen,All items,전체
+scr.storage.cat_material,Materials,recovered screen,Materials,재료
+scr.storage.cat_food,Food,recovered screen,Food,음식
+scr.storage.cat_gear,Gear,recovered screen,Gear,장비
+scr.storage.cat_building,Building,recovered screen,Building,건축
+scr.storage.empty_bag,Your bag is empty. Gather or craft something to store it here.,recovered screen,Your bag is empty. Gather or craft something to store it here.,가방이 비었어요. 채집하거나 만든 물건을 여기에 보관하세요.
+scr.storage.empty_storage,The camp storage is empty.,recovered screen,The camp storage is empty.,공용 창고가 비었어요.
+scr.storage.empty_filter,Nothing in this category.,recovered screen,Nothing in this category.,이 분류에는 물건이 없어요.
+scr.storage.item,%s x%d (reserved %d),recovered screen,%s x%d (reserved %d),%s x%d (예약 %d)
+scr.storage.locked,This stack is reserved by a craft job and cannot move until the job ends.,recovered screen,This stack is reserved by a craft job and cannot move until the job ends.,이 묶음은 제작 작업에 예약돼 있어 작업이 끝날 때까지 옮길 수 없어요.
+scr.storage.pending,A transfer is settling. Wait for it before the next move.,recovered screen,A transfer is settling. Wait for it before the next move.,이체가 정산 중이에요. 끝난 뒤 다시 옮기세요.
+scr.storage.quantity,Amount: %d of %d (tap to change),recovered screen,Amount: %d of %d (tap to change),수량: %d / %d (눌러서 바꾸기)
+scr.storage.deposit,Store %d %s,recovered screen,Store %d %s,%d개 %s 보관
+scr.storage.withdraw,Take %d %s,recovered screen,Take %d %s,%d개 %s 꺼내기
+scr.storage.done,Moved.,recovered screen,Moved.,옮겼어요.
+scr.storage.note,Moves need you next to the storage crate. Items being moved or packed for a home move are locked.,recovered screen,Moves need you next to the storage crate. Items being moved or packed for a home move are locked.,보관 상자 가까이 있어야 옮길 수 있어요. 옮기는 중이거나 집 이전으로 포장된 물건은 잠겨요.
+scr.refuse.WAREHOUSE_UNREACHABLE,Walk to the storage crate first.,recovered screen,Walk to the storage crate first.,먼저 보관 상자 가까이 가세요.
+scr.refuse.TRANSFER_UNAVAILABLE,Camp storage is not connected yet. Try again in a moment.,recovered screen,Camp storage is not connected yet. Try again in a moment.,공용 창고가 아직 연결되지 않았어요. 잠시 뒤 다시 시도하세요.
+scr.refuse.FULL_WEIGHT,That would be too heavy.,recovered screen,That would be too heavy.,너무 무거워져요.
+scr.refuse.REQUEST_EXPIRED,Session expired. Reopen and try again.,recovered screen,Session expired. Reopen and try again.,세션이 만료됐어요. 다시 열고 시도하세요.
+scr.refuse.UNAUTHORIZED,Only camp members can move items.,recovered screen,Only camp members can move items.,캠프 구성원만 옮길 수 있어요.

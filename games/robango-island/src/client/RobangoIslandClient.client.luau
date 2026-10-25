@@ -116,7 +116,10 @@ local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(co
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
-	openPanel = require(Forge.genres["survival-coop"].module.CharacterSheet).open,
+	openPanel = function(id: string): boolean
+		return id == "storage" and require(Forge.genres["survival-coop"].module.StoragePanel).show()
+			or require(Forge.genres["survival-coop"].module.CharacterSheet).open(id)
+	end,
 	content = content,
 	ui = {
 		components = require(Forge.core["ui-kit"].Components),
@@ -154,7 +157,9 @@ gui.Destroying:Connect(function()
 end)
 local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, actor)
 	if actor == player and prompt:GetAttribute("ForgeWarehouse") then
-		hud.open("bag")
+		if not require(Forge.genres["survival-coop"].module.StoragePanel).show() then
+			hud.open("bag")
+		end
 	end
 end)
 gui.Destroying:Connect(function()
@@ -819,6 +824,11 @@ table.insert(panelFactories, function(ctx)
 		return require(Forge.genres["survival-coop"].module.ContractsPanel).model(locale, contracts, names).objective
 	end
 	return require(Forge.genres["survival-coop"].module.RecoveredScreens).factory(scoped)
+end)
+table.insert(panelFactories, function(ctx)
+	local scoped: any = table.clone(ctx)
+	scoped.content, scoped.actorId = content, tostring(player.UserId)
+	return require(Forge.genres["survival-coop"].module.StoragePanel).factory(scoped)
 end)
 local panels = ExtensionPanels.start({
 	factories = panelFactories,
