@@ -11,6 +11,7 @@ local Clan = require("../../../core/domain/settlement/Clan")
 local Topology = require("../../../core/domain/settlement/Multistorey")
 local RecipeMarks = require("./RecipeMarks")
 local Selection = require("./MusicSelection")
+local HUDModel = require("./SurvivalHUDModel")
 local M = {}
 
 M.PREFIX = "survival-coop:"
@@ -24,7 +25,13 @@ M.SCREENS = {
 	{ id = "build-manage", spec = "ui.build-manage", title = "scr.manage.title", order = 35 },
 	{ id = "players", spec = "ui.social", title = "scr.social.title", order = 36 },
 	{ id = "arrival", spec = "ui.arrival", title = "scr.arrival.title", order = 37 },
+	{ id = "jobs", spec = "ui.jobs", title = "scr.jobs.title", order = 38 },
+	{ id = "clan-roles", spec = "ui.clan-roles", title = "scr.roles.title", order = 39 },
+	-- Contextual: opened by a listing's Buy button in the harbor market, not by the navigator.
+	{ id = "market-buy", spec = "ui.market-buy", title = "scr.buy.title", order = 40, contextual = true },
 }
+-- The listing the market's Buy button handed to ui.market-buy (id, catalogId, quantity, price, seller).
+M.buying = {} :: { listing: any? }
 
 local function name(names: any, id: string): string
 	return if names and names[id] then names[id] else id
@@ -595,6 +602,141 @@ function M.arrivalRows(locale: string, state: any, act: any): { any }
 	return rows
 end
 
+-- ui.jobs: state = { jobs = {{id, job}}, now (ms), names, status }
+function M.jobsRows(locale: string, state: any, act: any): { any }
+	local rows: { any } = {}
+	if #(state.jobs or {}) == 0 then
+		table.insert(rows, { text = L.text(locale, "scr.jobs.empty") })
+	end
+	for _, entry in state.jobs or {} do
+		local job = entry.job
+		local label = name(state.names, job.recipeId)
+		local left = (job.finishAt or 0) - state.now
+		local ready = job.state == "Ready" or job.state == "Running" and left <= 0
+		local phase = if job.state == "Reserved"
+			then L.text(locale, "scr.jobs.reserved")
+			elseif ready then L.text(locale, "scr.jobs.ready")
+			else L.text(locale, "scr.jobs.running", L.duration(left / 1000))
+		table.insert(rows, { text = L.text(locale, "scr.jobs.row", label, string.sub(entry.id, 1, 8), phase) })
+		for _, pair: any in { { "escrow", job.inputs }, { "result", job.outputs } } do
+			local parts = {}
+			for _, stack in pair[2] or {} do
+				table.insert(parts, name(state.names, stack.catalogId) .. " x" .. stack.quantity)
+			end
+			if #parts > 0 then
+				table.insert(rows, { text = L.text(locale, "scr.jobs." .. pair[1], table.concat(parts, ", ")) })
+			end
+		end
+		local verb = if job.state == "Reserved" then "start" elseif ready then "complete" else nil
+		if verb then
+			table.insert(rows, {
+				text = L.text(locale, "scr.jobs." .. verb, label),
+				onClick = function()
+					act.command("craft-" .. verb, entry.id)
+				end,
+			})
+		end
+		if job.state == "Reserved" then
+			table.insert(rows, {
+				text = L.text(locale, "scr.jobs.cancel", label),
+				onClick = function()
+					act.command("craft-cancel", entry.id)
+				end,
+			})
+		end
+	end
+	if state.status then
+		table.insert(rows, { text = state.status })
+	end
+	table.insert(rows, { text = L.text(locale, "scr.jobs.cancel_note") })
+	table.insert(rows, { text = L.text(locale, "scr.jobs.terms") })
+	table.insert(rows, { text = L.text(locale, "scr.tracker.open_craft"), onClick = act.craft })
+	table.insert(rows, { text = L.text(locale, "scr.nav.research"), onClick = act.research })
+	table.insert(rows, { text = L.text(locale, "scr.jobs.taming"), onClick = act.taming })
+	return rows
+end
+
+-- ui.clan-roles: state = { clan, actorId, names = {[id]: display}, status }
+function M.rolesRows(locale: string, state: any, act: any): { any }
+	local clan = state.clan
+	if not clan then
+		return noClan(locale, act)
+	end
+	local ids = sorted(clan.members)
+	local govern = Clan.allowed(clan, state.actorId, "govern")
+	local rows: { any } = {
+		{ text = L.text(locale, "scr.roles.count", #ids) },
+		{ text = L.text(locale, if govern then "scr.roles.note" else "scr.roles.readonly") },
+	}
+	for _, id in ids do
+		local member = clan.members[id]
+		local who = name(state.names, id)
+		table.insert(rows, {
+			text = L.text(
+				locale,
+				"scr.roles.line",
+				who,
+				L.text(locale, "scr.roles.role_" .. member.role),
+				L.text(locale, if member.withdraw then "scr.roles.on" else "scr.roles.off")
+			),
+		})
+		if govern and member.role ~= "owner" then
+			local role = if member.role == "officer" then "member" else "officer"
+			table.insert(rows, {
+				text = L.text(locale, "scr.roles.make_" .. role, who),
+				onClick = function()
+					act.command("role", { target = id, role = role })
+				end,
+			})
+			if member.role ~= "visitor" then
+				table.insert(rows, {
+					text = L.text(locale, if member.withdraw then "scr.roles.revoke" else "scr.roles.grant", who),
+					onClick = function()
+						act.command("capability", { target = id, enabled = not member.withdraw })
+					end,
+				})
+			end
+		end
+	end
+	if state.status then
+		table.insert(rows, { text = state.status })
+	end
+	table.insert(rows, { text = L.text(locale, "scr.clan.open"), onClick = act.clan })
+	return rows
+end
+
+-- ui.market-buy: state = { listing, market = { balance, listings }, names, status }
+function M.buyRows(locale: string, state: any, act: any): { any }
+	local listing, market = state.listing, state.market or {}
+	local back = { text = L.text(locale, "scr.buy.open_market"), onClick = act.market }
+	if not listing then
+		return { { text = L.text(locale, "scr.buy.empty") }, back }
+	end
+	local rows: { any } = {
+		{ text = L.text(locale, "scr.buy.item", name(state.names, listing.catalogId), listing.quantity) },
+		{ text = L.text(locale, "scr.buy.total", listing.price, market.balance or 0) },
+		{ text = L.text(locale, "scr.buy.listing", string.sub(tostring(listing.id), 1, 8)) },
+		{ text = L.text(locale, "scr.buy.whole") },
+		{ text = L.text(locale, "scr.buy.final") },
+	}
+	local listed = market.listings == nil
+	for _, other in market.listings or {} do
+		listed = listed or (other.id == listing.id and other.price == listing.price)
+	end
+	if state.status then
+		table.insert(rows, { text = state.status })
+	end
+	if not listed then
+		table.insert(rows, { text = L.text(locale, "scr.buy.gone") })
+	elseif (market.balance or 0) < listing.price then
+		table.insert(rows, { text = L.refusal(locale, "INSUFFICIENT_FUNDS") })
+	elseif not state.done then
+		table.insert(rows, { text = L.text(locale, "scr.buy.confirm", listing.price), onClick = act.confirm })
+	end
+	table.insert(rows, back)
+	return rows
+end
+
 local function bagOf(survival: any): any
 	for _, bag in (survival and survival.inventory) or {} do
 		if bag.kind == "carried" then
@@ -909,6 +1051,95 @@ function M.factory(ctx: any): any
 			return arrivalShown
 		end,
 	})
+
+	-- ui.jobs
+	local jobsStatus: string? = nil
+	local jobs: any
+	jobs = mount(9, function(_extensions: any, packet: any): any
+		local survival = (packet.snapshots or {})["survival-coop"]
+		return { jobs = if survival then HUDModel.jobs(survival, actorId) else {} }
+	end, function(state: any): { any }
+		return M.jobsRows(locale, {
+			jobs = state and state.jobs,
+			now = now() * 1000,
+			names = ctx.names,
+			status = jobsStatus,
+		}, {
+			command = function(action: string, id: string)
+				local result = send(action, { id })
+				jobsStatus = if result.ok then nil else L.refusal(locale, result.reason)
+				jobs.render()
+			end,
+			craft = function()
+				open("craft")
+			end,
+			research = function()
+				open("clan-research")
+			end,
+			taming = function()
+				open("taming")
+			end,
+		})
+	end)
+
+	-- ui.clan-roles
+	local rolesStatus: string? = nil
+	local roles: any
+	roles = mount(10, function(extensions: any, packet: any): any
+		local names = {}
+		for _, entry in packet.roster or {} do
+			names[entry.id] = entry.name
+		end
+		return { clan = extensions.clan, names = names }
+	end, function(state: any): { any }
+		local clan = state and state.clan
+		return M.rolesRows(locale, {
+			clan = clan,
+			actorId = actorId,
+			names = state and state.names,
+			status = rolesStatus,
+		}, {
+			clan = function()
+				open("clan")
+			end,
+			command = function(operation: string, args: any)
+				args.expectedRevision = clan.revision
+				local result = send("clan-" .. operation, { clan.clanId, args })
+				rolesStatus = if result.ok then nil else L.refusal(locale, result.reason)
+				roles.render()
+			end,
+		})
+	end)
+
+	-- ui.market-buy: one confirm per listing handed over by the market's Buy button.
+	local buyStatus: string?, bought = nil, false
+	local shownListing: any = nil
+	local buy: any
+	buy = mount(11, function(extensions: any): any
+		return { market = extensions.market }
+	end, function(state: any): { any }
+		local listing = M.buying.listing
+		if listing ~= shownListing then
+			shownListing, buyStatus, bought = listing, nil, false
+		end
+		return M.buyRows(locale, {
+			listing = listing,
+			market = state and state.market,
+			names = ctx.names,
+			status = buyStatus,
+			done = bought,
+		}, {
+			market = function()
+				open("market")
+			end,
+			confirm = function()
+				local result = send("market-buy", { listing.id, listing.price })
+				bought = result.ok
+				buyStatus = if result.ok then L.text(locale, "scr.buy.done") else L.refusal(locale, result.reason)
+				buy.render()
+			end,
+		})
+	end)
 
 	return {
 		panels = panels,

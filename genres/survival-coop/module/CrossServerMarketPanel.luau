@@ -4,6 +4,7 @@ local M = {}
 local Ledger = require("../../../core/domain/command/Ledger")
 local CrossServer = require("../../../core/domain/market/CrossServer")
 local Locale = require("./SurvivalHUDLocale")
+local BuyScreen = require("./RecoveredScreens")
 local env: any = getfenv()
 
 -- Catalog browse page size: the tradeable set is the whole content catalog (~200 ids), so the
@@ -431,7 +432,11 @@ function M.factory(ctx: any): any
 				text("Whole bundle ", "묶음 전체 ") .. tostring(listing.price)
 			)
 			button(text("Buy bundle", "묶음 구매"), function()
-				send("buy", { listing.id, listing.price })
+				-- ui.market-buy confirms the exact bundle, total and balance before the debit.
+				BuyScreen.buying.listing = listing
+				if not (ctx.open and ctx.open("market-buy")) then
+					send("buy", { listing.id, listing.price })
+				end
 			end)
 		end
 		label(text("Collection box ", "수령함 ") .. tostring(state.page) .. "/" .. tostring(state.pages))

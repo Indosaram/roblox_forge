@@ -116,6 +116,7 @@ local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(co
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
+	openPanel = require(Forge.genres["survival-coop"].module.CharacterSheet).open,
 	content = content,
 	ui = {
 		components = require(Forge.core["ui-kit"].Components),

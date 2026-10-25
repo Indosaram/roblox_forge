@@ -85,6 +85,8 @@ export type Options = {
 	settlementOrigin: Vector3,
 	names: { [string]: string }?,
 	contextual: boolean?,
+	-- Opens a docked screen by id; the skill reset button opens the ui.skill-reset quote with it.
+	openPanel: ((string) -> boolean)?,
 }
 
 function M.start(options: Options)
@@ -1153,7 +1155,9 @@ function M.start(options: Options)
 			if progression then
 				label(string.format(t("level_sp"), progression.level, progression.sp), 40)
 				button("skill-reset", t("skill_reset"), function()
-					command("skill-reset", { progression.version })
+					if not (options.openPanel and options.openPanel("skill-reset")) then
+						command("skill-reset", { progression.version })
+					end
 				end, true)
 				for _, node in content.skillNodes or {} do
 					local learned = progression.paid[node.id] ~= nil

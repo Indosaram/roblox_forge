@@ -98,6 +98,22 @@ return {
 			check(Screens.manageRows(locale, { actorId = "1" }, ACT), "manage")
 			check(Screens.socialRows(locale, { actorId = "1", capacity = 16, roster = {} }, ACT), "social")
 			check(Screens.arrivalRows(locale, {}, ACT), "arrival")
+			check(Screens.jobsRows(locale, { now = 0 }, ACT), "jobs")
+			check(Screens.rolesRows(locale, { actorId = "1" }, ACT), "roles")
+			check(Screens.buyRows(locale, {}, ACT), "buy")
+			assert(
+				string.find(
+					texts(Screens.jobsRows(locale, { now = 0 }, ACT)),
+					L.text(locale, "scr.jobs.empty"),
+					1,
+					true
+				),
+				"jobs empty copy"
+			)
+			assert(
+				string.find(texts(Screens.buyRows(locale, {}, ACT)), L.text(locale, "scr.buy.empty"), 1, true),
+				"buy empty copy"
+			)
 			assert(
 				string.find(texts(Screens.trackerRows(locale, {}, ACT)), L.text(locale, "scr.tracker.empty"), 1, true),
 				"tracker empty copy"
@@ -578,6 +594,9 @@ return {
 			return docks[id] ~= nil, docks[id] ~= nil, nil
 		end)
 		for _, screen in Screens.SCREENS do
+			if screen.contextual then
+				continue
+			end
 			local found = false
 			for _, row in navigator do
 				found = found or (row.id == screen.id and row.open)
@@ -615,8 +634,141 @@ return {
 				assert(item.Size[4] >= 48, "rendered rows are 48 px targets")
 			end
 		end
+		-- ui.market-buy: the listing handed over by the market's Buy confirms with its exact id and price.
+		Screens.buying.listing = { id = "L1", catalogId = "wood", quantity = 3, price = 40 }
+		for _, callback in snapshot do
+			callback({ market = { balance = 100, listings = { { id = "L1", price = 40 } } } }, { snapshots = {} })
+		end
+		docks["market-buy"].setOpen(true)
+		local buy: any = nil
+		for _, item in nodes do
+			if item.Parent ~= nil and item.Text == L.text("ko-kr", "scr.buy.confirm", 40) and item.onClick then
+				buy = item
+			end
+		end
+		assert(buy, "buy confirm rendered")
+		buy.onClick()
+		assert(sent[#sent][1] == "survival-coop:market-buy", "market-buy sent")
+		assert(sent[#sent][2][1] == "L1" and sent[#sent][2][2] == 40, "exact listing and price")
+		Screens.buying.listing = nil
 		mounted.destroy()
+		local market = fs.readFile("genres/survival-coop/module/CrossServerMarketPanel.luau")
+		assert(string.find(market, 'ctx.open("market-buy")', 1, true), "market Buy opens the confirm screen")
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		assert(string.find(client, "module.RecoveredScreens).factory", 1, true), "client registers the screens")
+	end,
+	["craft jobs show escrow, timer and only legal verbs"] = function()
+		local function job(state: string, finishAt: number?): any
+			return {
+				recipeId = "stone-axe",
+				state = state,
+				finishAt = finishAt,
+				inputs = { { catalogId = "stone", quantity = 2 } },
+				outputs = { { catalogId = "stone-axe", quantity = 1 } },
+			}
+		end
+		for _, locale in LOCALES do
+			local sent: { any } = {}
+			local act = setmetatable({
+				command = function(action: string, id: string)
+					table.insert(sent, { action, id })
+				end,
+			}, { __index = ACT })
+			local names = { ["stone-axe"] = "Axe", stone = "Stone" }
+			local reserved = Screens.jobsRows(
+				locale,
+				{ now = 0, names = names, jobs = { { id = "j1", job = job("Reserved") } } },
+				act
+			)
+			check(reserved, "jobs reserved " .. locale)
+			assert(string.find(texts(reserved), L.text(locale, "scr.jobs.escrow", "Stone x2"), 1, true), "escrow line")
+			press(reserved, L.text(locale, "scr.jobs.cancel", "Axe"))
+			press(reserved, L.text(locale, "scr.jobs.start", "Axe"))
+			assert(sent[1][1] == "craft-cancel" and sent[2][1] == "craft-start" and sent[2][2] == "j1", "verbs")
+			local running = Screens.jobsRows(
+				locale,
+				{ now = 0, names = names, jobs = { { id = "j1", job = job("Running", 65000) } } },
+				act
+			)
+			local copy = texts(running)
+			assert(string.find(copy, L.text(locale, "scr.jobs.running", "1:05"), 1, true), "countdown")
+			assert(
+				not string.find(copy, L.text(locale, "scr.jobs.cancel", "Axe"), 1, true),
+				"running jobs cannot cancel"
+			)
+			local done = Screens.jobsRows(
+				locale,
+				{ now = 70000, names = names, jobs = { { id = "j1", job = job("Running", 65000) } } },
+				act
+			)
+			press(done, L.text(locale, "scr.jobs.complete", "Axe"))
+			assert(sent[#sent][1] == "craft-complete", "collect once finished")
+		end
+	end,
+	["clan roles: the leader assigns roles and withdraw, others read only"] = function()
+		local state = clan()
+		for _, locale in LOCALES do
+			local sent: { any } = {}
+			local act = setmetatable({
+				command = function(op: string, args: any)
+					table.insert(sent, { op, args })
+				end,
+			}, { __index = ACT })
+			local rows = Screens.rolesRows(locale, { clan = state, actorId = "1", names = { ["2"] = "Ari" } }, act)
+			check(rows, "roles owner " .. locale)
+			assert(
+				string.find(
+					texts(rows),
+					L.text(
+						locale,
+						"scr.roles.line",
+						"Ari",
+						L.text(locale, "scr.roles.role_member"),
+						L.text(locale, "scr.roles.off")
+					),
+					1,
+					true
+				),
+				"member line"
+			)
+			press(rows, L.text(locale, "scr.roles.make_officer", "Ari"))
+			press(rows, L.text(locale, "scr.roles.grant", "Ari"))
+			assert(sent[1][1] == "role" and sent[1][2].target == "2" and sent[1][2].role == "officer", "role args")
+			assert(sent[2][1] == "capability" and sent[2][2].enabled == true, "withdraw grant")
+			local member = Screens.rolesRows(locale, { clan = state, actorId = "2" }, act)
+			check(member, "roles member " .. locale)
+			for _, row in member do
+				assert(not row.onClick or row.text == L.text(locale, "scr.clan.open"), "members get no role buttons")
+			end
+		end
+	end,
+	["market buy confirms the exact bundle and refuses short balance or a gone listing"] = function()
+		local listing = { id = "L1", catalogId = "wood", quantity = 3, price = 40 }
+		for _, locale in LOCALES do
+			local market = { balance = 100, listings = { { id = "L1", price = 40 } } }
+			local rows = Screens.buyRows(locale, { listing = listing, market = market, names = { wood = "Wood" } }, ACT)
+			check(rows, "buy " .. locale)
+			assert(string.find(texts(rows), L.text(locale, "scr.buy.item", "Wood", 3), 1, true), "bundle line")
+			press(rows, L.text(locale, "scr.buy.confirm", 40))
+			local poor = texts(
+				Screens.buyRows(
+					locale,
+					{ listing = listing, market = { balance = 10, listings = market.listings } },
+					ACT
+				)
+			)
+			assert(not string.find(poor, L.text(locale, "scr.buy.confirm", 40), 1, true), "no buy without balance")
+			local gone =
+				texts(Screens.buyRows(locale, { listing = listing, market = { balance = 100, listings = {} } }, ACT))
+			assert(string.find(gone, L.text(locale, "scr.buy.gone"), 1, true), "gone listing")
+		end
+	end,
+	["HUD skill reset opens the ui.skill-reset quote instead of resetting at once"] = function()
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, 'options.openPanel("skill-reset")', 1, true), "HUD routes reset through the quote")
+		local sheet = fs.readFile("genres/survival-coop/module/CharacterSheet.luau")
+		assert(string.find(sheet, "function M.open(id: string): boolean", 1, true), "character sheets open by id")
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(client, "module.CharacterSheet).open", 1, true), "client passes the opener")
 	end,
 }

@@ -2595,3 +2595,45 @@ cli.aerial.OrbitRight,Rotate right,client island view button,Rotate right,오른
 cli.aerial.HideUI,Hide UI,client island view button,Hide UI,UI 숨기기
 cli.aerial.ShowUI,Show UI,client island view button,Show UI,UI 표시
 cli.aerial.Capture,Capture,client island view button,Capture,촬영
+scr.nav.jobs,Craft jobs,recovered screen,Craft jobs,제작 작업
+scr.nav.roles,Clan roles,recovered screen,Clan roles,부족 역할
+scr.jobs.title,Craft jobs,recovered screen,Craft jobs,제작 작업
+scr.jobs.empty,No craft jobs right now. Reserve a recipe in Craft to start one.,recovered screen,No craft jobs right now. Reserve a recipe in Craft to start one.,지금 진행 중인 제작 작업이 없어요. 제작에서 제작법을 예약하면 시작돼요.
+scr.jobs.row,%s (job %s): %s,recovered screen,%s (job %s): %s,%s (작업 %s): %s
+scr.jobs.reserved,"materials reserved, waiting to start",recovered screen,"materials reserved, waiting to start","재료 예약됨, 시작 대기"
+scr.jobs.running,finishes in %s,recovered screen,finishes in %s,%s 후 완료
+scr.jobs.ready,ready to collect,recovered screen,ready to collect,수령 가능
+scr.jobs.escrow,Held for this job: %s,recovered screen,Held for this job: %s,이 작업에 묶인 재료: %s
+scr.jobs.result,Result: %s,recovered screen,Result: %s,결과: %s
+scr.jobs.start,Start %s,recovered screen,Start %s,%s 시작
+scr.jobs.complete,Collect %s,recovered screen,Collect %s,%s 수령
+scr.jobs.cancel,Cancel %s (materials return),recovered screen,Cancel %s (materials return),%s 취소 (재료 반환)
+scr.jobs.cancel_note,Only jobs still waiting to start can be cancelled; their materials return to the bag.,recovered screen,Only jobs still waiting to start can be cancelled; their materials return to the bag.,"시작 전 대기 중인 작업만 취소할 수 있고, 재료는 가방으로 돌아와요."
+scr.jobs.terms,Clan research refunds part of its cost when cancelled. Cancelling taming returns the animal but not the feed.,recovered screen,Clan research refunds part of its cost when cancelled. Cancelling taming returns the animal but not the feed.,부족 연구는 취소하면 비용 일부를 돌려받아요. 길들이기를 취소하면 동물은 돌아오지만 먹이는 돌아오지 않아요.
+scr.jobs.taming,Tamed animals...,recovered screen,Tamed animals...,길들인 동물...
+scr.roles.title,Clan roles,recovered screen,Clan roles,부족 역할
+scr.roles.count,Members: %d,recovered screen,Members: %d,부족원: %d명
+scr.roles.note,You lead this clan. Officers can invite and manage; the withdraw permission is granted separately.,recovered screen,You lead this clan. Officers can invite and manage; the withdraw permission is granted separately.,"부족장이에요. 간부는 초대와 관리를 할 수 있고, 출금 권한은 따로 줘요."
+scr.roles.readonly,Only the clan leader can change roles and the withdraw permission.,recovered screen,Only the clan leader can change roles and the withdraw permission.,역할과 출금 권한은 부족장만 바꿀 수 있어요.
+scr.roles.line,"%s: %s, withdraw %s",recovered screen,"%s: %s, withdraw %s","%s: %s, 출금 %s"
+scr.roles.role_owner,leader,recovered screen,leader,부족장
+scr.roles.role_officer,officer,recovered screen,officer,간부
+scr.roles.role_member,member,recovered screen,member,부족원
+scr.roles.role_visitor,visitor,recovered screen,visitor,방문자
+scr.roles.on,allowed,recovered screen,allowed,허용
+scr.roles.off,not allowed,recovered screen,not allowed,불가
+scr.roles.make_officer,Make %s an officer,recovered screen,Make %s an officer,%s님을 간부로
+scr.roles.make_member,Make %s a member,recovered screen,Make %s a member,%s님을 부족원으로
+scr.roles.grant,Allow %s to withdraw,recovered screen,Allow %s to withdraw,%s님 출금 허용
+scr.roles.revoke,Stop %s from withdrawing,recovered screen,Stop %s from withdrawing,%s님 출금 막기
+scr.buy.title,Confirm purchase,recovered screen,Confirm purchase,구매 확인
+scr.buy.empty,Pick a listing in the harbor market first.,recovered screen,Pick a listing in the harbor market first.,먼저 항구 장터에서 판매 목록을 고르세요.
+scr.buy.item,%s x%d (whole bundle),recovered screen,%s x%d (whole bundle),%s x%d (묶음 전체)
+scr.buy.total,Total %d shellmoney. You have %d.,recovered screen,Total %d shellmoney. You have %d.,총 조개돈 %d. 보유 %d.
+scr.buy.listing,Listing %s,recovered screen,Listing %s,판매 번호 %s
+scr.buy.whole,You buy the whole bundle; partial buys are not possible.,recovered screen,You buy the whole bundle; partial buys are not possible.,묶음 전체를 사요. 일부만 살 수는 없어요.
+scr.buy.final,"The server checks the price again. If it changed, nothing is charged.",recovered screen,"The server checks the price again. If it changed, nothing is charged.",서버가 가격을 다시 확인해요. 바뀌었으면 결제되지 않아요.
+scr.buy.gone,This listing is no longer on the market.,recovered screen,This listing is no longer on the market.,이 판매 목록은 더 이상 장터에 없어요.
+scr.buy.confirm,Buy for %d shellmoney,recovered screen,Buy for %d shellmoney,조개돈 %d에 구매
+scr.buy.done,Bought. The bundle arrives in your collection box.,recovered screen,Bought. The bundle arrives in your collection box.,구매했어요. 묶음은 수령함으로 들어와요.
+scr.buy.open_market,Back to the market,recovered screen,Back to the market,장터로 돌아가기

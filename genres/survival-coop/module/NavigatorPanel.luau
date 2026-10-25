@@ -32,6 +32,8 @@ M.ROWS = {
 	{ "scr.nav.territory", "territory" },
 	{ "scr.nav.manage", "build-manage" },
 	{ "scr.nav.arrival", "arrival" },
+	{ "scr.nav.jobs", "jobs" },
+	{ "scr.nav.roles", "clan-roles" },
 	{ "nav_settings", "audio" },
 } :: { { any } }
 

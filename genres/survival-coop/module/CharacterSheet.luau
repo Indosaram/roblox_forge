@@ -22,6 +22,15 @@ export type Row = {
 M.focus = {} :: { item: string? }
 local handles: { [string]: any } = {}
 
+--- Opens a mounted character sheet by id (the HUD's skill reset opens the quote dialog).
+function M.open(id: string): boolean
+	local handle = handles[id]
+	if handle then
+		handle.open()
+	end
+	return handle ~= nil
+end
+
 function M.data(extensions: any, packet: any): any
 	local snapshots = (packet or {}).snapshots or {}
 	return {
