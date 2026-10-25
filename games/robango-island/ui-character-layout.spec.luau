@@ -283,6 +283,25 @@ return {
 		Sheet.activate("en-us", quote, send)
 		assert(log[2].action == "survival-coop:equipment-quote", "support preview sends the quote")
 		assert(log[2].args[1] == "support-tier-1" and log[2].args[2] == "preview", "quote args")
+		-- p111: steps performed on another panel open it (party, clan roles, camp); no command is sent.
+		local opened = {}
+		local open = function(id: string): boolean
+			table.insert(opened, id)
+			return true
+		end
+		for prefix, panel in
+			{
+				["Objective-rw.g12.route-share.1"] = "party",
+				["Objective-rw.g15.clan.2"] = "clan-roles",
+				["Objective-rw.g17.snow-preparation.1"] = "camp",
+			}
+		do
+			local row = find(rows, prefix)
+			assert(row.open == panel and string.find(row.text, "(tap)", 1, true), prefix .. " is tappable")
+			assert(Sheet.activate("en-us", row, send, open) == "", "no status")
+			assert(opened[#opened] == panel, prefix .. " opens " .. panel)
+		end
+		assert(#log == 2, "opening a panel sends nothing")
 	end,
 	["guides at grade 2 below level 6 name the nearest gate and list the next locked guides"] = function()
 		local d = data("ko-kr", 5)

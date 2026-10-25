@@ -115,7 +115,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				party.render(Text.text(locale, "exp_party"), {
 					{
 						kind = "label",
-						text = Text.reason(locale, result.reason),
+						text = Text.reason(locale, result.reason, verb),
 						height = 56,
 						name = "PartyRefusal",
 					},

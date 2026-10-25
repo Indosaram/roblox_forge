@@ -423,4 +423,75 @@ return {
 			assert(string.find(arrived[1].text, Text.text(locale, "biome_tropical"), 1, true), "arrival names biome")
 		end
 	end,
+	["p111 party route sharing: invite, revoke and accept send exact args; refusals are localized"] = function()
+		local HUDModel = require("./SurvivalHUDModel")
+		local VIEW: { { any } } = { { 1280, 720, false }, { 360, 640, true } }
+		local Sheet = require("./SocialSheet")
+		for _, locale in { "en-us", "ko-kr" } do
+			local log = {}
+			local function send(verb: string, arg: string)
+				table.insert(log, verb .. ":" .. arg)
+			end
+			local others = { { id = "8", name = "Mina" }, { id = "9", name = "Jun" } }
+			local shared = {
+				now = 0,
+				routes = {},
+				party = { id = "p", leader = "7", members = { "7", "8", "9" }, capacity = 8, invites = {} },
+				routeShare = { route = 2, members = { ["9"] = "invited" } },
+				routeInvites = { { owner = "8", route = 3 } },
+			}
+			local _, items = Models.party(locale, shared, "7", others, send)
+			local function item(name: string): any
+				for _, entry in items do
+					if entry.name == name then
+						return entry
+					end
+				end
+				error("no item " .. name)
+			end
+			item("RouteInvite-8").onClick()
+			item("RouteRevoke-9").onClick()
+			item("RouteAccept-8").onClick()
+			assert(
+				log[1] == "route-invite:8" and log[2] == "route-revoke:9" and log[3] == "route-accept:8",
+				table.concat(log, ",")
+			)
+			assert(
+				item("RouteAccept-8").text == Text.text(locale, "route_accept", "Mina", 3),
+				"names the owner and route"
+			)
+			-- Rows are 48 px controls that fit the sheet at 1280x720 and 360x640.
+			for _, entry in items do
+				if string.sub(entry.name or "", 1, 5) == "Route" then
+					assert(entry.height == 48, entry.name .. " is 48 px")
+					for _, viewport in VIEW do
+						local _, _, w =
+							HUDModel.contextSheet(viewport[1] :: number, viewport[2] :: number, viewport[3] :: boolean)
+						assert(Sheet.rowHeight(entry.text, Sheet.contentWidth(w)) <= 48, entry.text)
+					end
+				end
+			end
+			-- Empty state: a party of one has nobody to share with.
+			local _, solo = Models.party(locale, {
+				now = 0,
+				routes = {},
+				party = { id = "p", leader = "7", members = { "7" }, capacity = 8, invites = {} },
+			}, "7", others, send)
+			local empty = false
+			for _, entry in solo do
+				empty = empty or entry.name == "RouteShareEmpty"
+			end
+			assert(empty, "route share empty state")
+			local codes: { [string]: string } = {
+				["route-invite"] = "party_member_busy",
+				["route-revoke"] = "invite_missing",
+				["route-accept"] = "invite_missing",
+			}
+			for verb, code in codes do
+				local line = Text.reason(locale, code, verb)
+				assert(line ~= Text.reason(locale, code) and line ~= Text.text(locale, "exp_refused"), verb)
+			end
+			assert(Text.reason(locale, "party_self", "route-invite") ~= Text.text(locale, "exp_refused"), "party_self")
+		end
+	end,
 }

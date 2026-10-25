@@ -41,8 +41,9 @@ function M.data(extensions: any, packet: any): any
 end
 
 --- What pressing a row does, without Instances: returns the status text to show
---- ("" on success without a message). `send` is ctx.send.
-function M.activate(locale: string, row: Row, send: (string, { any }) -> any): string
+--- ("" on success without a message). `send` is ctx.send; `open` (ctx.open) opens a panel that
+--- is not a character sheet (party, camp, clan roles).
+function M.activate(locale: string, row: Row, send: (string, { any }) -> any, open: ((string) -> boolean)?): string
 	if row.focus ~= nil then
 		M.focus.item = row.focus
 	end
@@ -50,6 +51,8 @@ function M.activate(locale: string, row: Row, send: (string, { any }) -> any): s
 		local handle = handles[row.open]
 		if handle then
 			handle.open()
+		elseif open then
+			open(row.open)
 		end
 		if not row.action then
 			return ""
@@ -124,7 +127,7 @@ function M.mount(
 						status = Text.text(ctx.locale, "char_working")
 						render(true)
 						task.spawn(function()
-							status = M.activate(ctx.locale, row, ctx.send)
+							status = M.activate(ctx.locale, row, ctx.send, ctx.open)
 							render(true)
 						end)
 					end,

@@ -93,13 +93,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		for _, r in model.rows do
 			table.insert(parts, r.id .. ":" .. r.delivered .. "/" .. r.need .. ":" .. tostring(r.locked))
 		end
+		for id, loan in (slice and slice.loans) or {} do
+			table.insert(parts, id .. ">" .. tostring(loan.borrower))
+		end
 		return table.concat(parts, "|")
 	end
 	local function act(action: string, args: { any }, success: string?)
 		status = ""
 		local result = ctx.send(action, args)
 		-- The push (guide line) lands before send returns.
-		local own = if result.ok then success or "" else Model.refusal(ctx.locale, result.reason)
+		local own = if result.ok
+			then success or ""
+			else Model.refusal(ctx.locale, result.reason, action == "survival-coop:camp-loan")
 		status = if own ~= "" and status ~= "" then own .. "\n" .. status else own .. status
 		render(true)
 	end
@@ -327,6 +332,29 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					})
 				end
 			end
+		end
+		-- Equipment loans between camp members (guides g17/g19): lend the picked item, borrow,
+		-- return or recall. Rows are 48 px buttons; status rows are labels.
+		local people = {}
+		for _, entry in (packet and packet.roster) or {} do
+			people[entry.id] = entry.name
+		end
+		local me = tostring((players.LocalPlayer :: Player).UserId)
+		for _, row in Model.loans(ctx.locale, slice, me, choice, people, ctx.names) do
+			local holder = add(48)
+			local props = { text = row.text, size = UDim2.fromScale(1, 1), parent = holder }
+			local args = row.args
+			local widget = if args
+				then components.button(theme, {
+					text = row.text,
+					size = props.size,
+					parent = holder,
+					onClick = function()
+						act("survival-coop:camp-loan", args)
+					end,
+				})
+				else components.label(theme, props)
+			widget.Name, widget.TextWrapped = row.name, true
 		end
 		if status ~= "" then
 			local note = add(44)

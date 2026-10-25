@@ -2708,3 +2708,56 @@ chr.guide_objective_tap,%s %s: %d / %d (tap),genre text chr,%s %s: %d / %d (tap)
 chr.GUIDE_NOT_OPEN,That guide step is not open yet,genre text chr,That guide step is not open yet,아직 열리지 않은 안내 단계예요
 chr.GUIDE_STEP_ORDER,Finish the earlier step of this guide first,genre text chr,Finish the earlier step of this guide first,이 안내의 앞 단계를 먼저 끝내세요
 chr.OUT_OF_RANGE,Move closer first,genre text chr,Move closer first,먼저 더 가까이 가세요
+route_invite,Share my route with %s,expedition lane,Share my route with %s,내 항로를 %s님과 공유
+route_revoke,Stop sharing my route with %s (%s),expedition lane,Stop sharing my route with %s (%s),%s님과 항로 공유 그만하기 (%s)
+route_status_invited,invited,expedition lane,invited,초대함
+route_status_member,sharing,expedition lane,sharing,공유 중
+route_share_empty,Invite a crew member to share your route.,expedition lane,Invite a crew member to share your route.,항로를 공유하려면 먼저 파티원을 초대하세요.
+route_accept,Accept %s's shared route %d,expedition lane,Accept %s's shared route %d,%s님이 공유한 항로 %d 받기
+reason_party_self,You cannot do that to yourself,expedition lane,You cannot do that to yourself,자기 자신에게는 할 수 없어요
+reason_route_invite_party_member_busy,That player already has your route invite,expedition lane,That player already has your route invite,그 플레이어는 이미 항로 초대를 받았어요
+reason_route_revoke_invite_missing,That player is not sharing your route,expedition lane,That player is not sharing your route,그 플레이어와는 항로를 공유하고 있지 않아요
+reason_route_accept_invite_missing,That route share was withdrawn,expedition lane,That route share was withdrawn,항로 공유가 취소됐어요
+camp_loan_offer,Lend %s to the camp,camp panel,Lend %s to the camp,%s 캠프에 빌려주기
+camp_loan_nothing,Nothing in your bag to lend,camp panel,Nothing in your bag to lend,빌려줄 물건이 가방에 없어요
+camp_loan_empty,No gear on loan yet. Lend an item for others to borrow.,camp panel,No gear on loan yet. Lend an item for others to borrow.,빌려준 장비가 아직 없어요. 물건을 빌려주면 다른 구성원이 쓸 수 있어요.
+camp_loan_take,Borrow %s from %s,camp panel,Borrow %s from %s,%s 빌리기 (%s님 장비)
+camp_loan_return,Return %s,camp panel,Return %s,%s 돌려주기
+camp_loan_recall,Take back %s,camp panel,Take back %s,%s 되찾기
+camp_loan_out,%s is borrowed by %s,camp panel,%s is borrowed by %s,%s: %s님이 빌려 쓰는 중
+camp_loan_forbidden,Only camp members can lend or borrow gear,camp panel,Only camp members can lend or borrow gear,캠프 구성원만 장비를 빌리거나 빌려줄 수 있어요
+camp_loan_own,You lent this item. Take it back instead.,camp panel,You lent this item. Take it back instead.,내가 빌려준 물건이에요. 대신 되찾으세요.
+camp_loan_not_borrower,Only the player who borrowed it can return it,camp panel,Only the player who borrowed it can return it,빌린 사람만 돌려줄 수 있어요
+camp_loan_missing,That loan is gone. Reopen the camp.,camp panel,That loan is gone. Reopen the camp.,그 대여는 이미 끝났어요. 캠프를 다시 여세요.
+camp_loan_busy,It is still borrowed. Wait until it is returned.,camp panel,It is still borrowed. Wait until it is returned.,아직 빌려 쓰는 중이에요. 돌려받은 뒤 되찾으세요.
+camp_loan_not_lender,Only the lender can take it back,camp panel,Only the lender can take it back,빌려준 사람만 되찾을 수 있어요
+camp_loan_taken,Someone else already borrowed it,camp panel,Someone else already borrowed it,다른 사람이 이미 빌렸어요
+camp_loan_exists,That item is already on loan,camp panel,That item is already on loan,이미 빌려준 물건이에요
+camp_loan_in_use,Unequip or free the borrowed item first,camp panel,Unequip or free the borrowed item first,빌린 물건을 먼저 해제하세요
+camp_loan_bag_full,Your bag is full. Make room first.,camp panel,Your bag is full. Make room first.,가방이 가득 찼어요. 먼저 자리를 비우세요.
+scr.roles.apply_member,Apply to a clan as a member,recovered screen,Apply to a clan as a member,부족원으로 가입 신청
+scr.roles.apply_visitor,Apply to a clan as a visitor,recovered screen,Apply to a clan as a visitor,방문자로 가입 신청
+scr.roles.applied,Applied to %s. The leader will confirm.,recovered screen,Applied to %s. The leader will confirm.,%s 부족에 신청했어요. 부족장이 확인해요.
+scr.roles.withdraw_draft,Withdraw my application to %s,recovered screen,Withdraw my application to %s,%s 부족 가입 신청 취소
+scr.roles.preview,Preview the %s role,recovered screen,Preview the %s role,%s 역할 미리 보기
+scr.roles.preview_line,%s can: %s,recovered screen,%s can: %s,%s 권한: %s
+scr.roles.drafts_empty,Nobody is waiting to join right now.,recovered screen,Nobody is waiting to join right now.,대기 중인 가입 신청이 없어요.
+scr.roles.draft_confirm,Accept %s as %s,recovered screen,Accept %s as %s,%s님을 %s(으)로 받기
+scr.roles.draft_cancel,Decline %s,recovered screen,Decline %s,%s님 신청 거절
+scr.roles.cap_view,view,recovered screen,view,보기
+scr.roles.cap_build,build,recovered screen,build,건설
+scr.roles.cap_deposit,deposit,recovered screen,deposit,입금
+scr.roles.cap_invite,invite,recovered screen,invite,초대
+scr.roles.cap_research,research,recovered screen,research,연구
+scr.roles.cap_territory,territory,recovered screen,territory,영토
+scr.roles.cap_govern,govern,recovered screen,govern,관리
+scr.roles.cap_withdraw,withdraw,recovered screen,withdraw,출금
+scr.refuse.ALREADY_MEMBER,You are already in that clan.,recovered screen,You are already in that clan.,이미 그 부족의 구성원이에요.
+scr.refuse.INVALID_ROLE,That role cannot be chosen.,recovered screen,That role cannot be chosen.,고를 수 없는 역할이에요.
+scr.refuse.DRAFT_EXISTS,Your application is already waiting.,recovered screen,Your application is already waiting.,이미 신청이 대기 중이에요.
+scr.refuse.NO_DRAFT,That application is no longer waiting.,recovered screen,That application is no longer waiting.,그 신청은 더 이상 대기 중이 아니에요.
+scr.refuse.CLAN_FULL,The clan is full.,recovered screen,The clan is full.,부족이 가득 찼어요.
+scr.refuse.WRONG_IDENTITY,No clan has that ID. Check it and try again.,recovered screen,No clan has that ID. Check it and try again.,그 ID의 부족이 없어요. 확인 후 다시 시도하세요.
+chr.UNKNOWN_OPERATION,That support tier is not available,genre text chr,That support tier is not available,그 기술 지원 단계는 없어요
+chr.SAVE_FAILED,Could not save. Try again,genre text chr,Could not save. Try again,저장하지 못했어요. 다시 시도하세요
+chr.PROGRESSION_UNAVAILABLE,Your progress is still loading. Try again in a moment,genre text chr,Your progress is still loading. Try again in a moment,진행 정보를 불러오는 중이에요. 잠시 뒤 다시 시도하세요

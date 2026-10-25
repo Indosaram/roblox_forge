@@ -67,8 +67,14 @@ function M.objective(locale: string, names: any, objective: any): string
 	return M.text(locale, if strings[key] then key else "exp_obj_other", progress, quantity)
 end
 
-function M.reason(locale: string, reason: string?): string
+--- A refusal sentence; `verb` (e.g. "route-revoke") picks a verb-specific line when one exists,
+--- because shared codes (invite_missing, party_member_busy) mean different things per verb.
+function M.reason(locale: string, reason: string?, verb: string?): string
 	local key = "reason_" .. tostring(reason)
+	local specific = if verb then "reason_" .. string.gsub(verb, "%-", "_") .. "_" .. tostring(reason) else nil
+	if specific and strings[specific] then
+		return M.text(locale, specific)
+	end
 	return M.text(locale, if strings[key] then key else "exp_refused")
 end
 

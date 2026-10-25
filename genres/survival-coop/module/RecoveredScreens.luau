@@ -660,11 +660,35 @@ function M.jobsRows(locale: string, state: any, act: any): { any }
 	return rows
 end
 
--- ui.clan-roles: state = { clan, actorId, names = {[id]: display}, status }
+-- ui.clan-roles: state = { clan, actorId, names = {[id]: display}, status, applied? }
+-- A player outside a clan applies to one (membership draft, the leader decides) or withdraws it;
+-- members preview each role's real grants (clan-preview) and those who may invite settle drafts.
+local PREVIEW_ROLES = { "officer", "member", "visitor" }
 function M.rolesRows(locale: string, state: any, act: any): { any }
 	local clan = state.clan
 	if not clan then
-		return noClan(locale, act)
+		local rows = { { text = L.text(locale, "scr.clan.none") } }
+		for _, role in { "member", "visitor" } do
+			table.insert(rows, {
+				text = L.text(locale, "scr.roles.apply_" .. role),
+				onClick = function()
+					act.apply(role)
+				end,
+			})
+		end
+		if state.applied then
+			table.insert(rows, {
+				text = L.text(locale, "scr.roles.withdraw_draft", state.applied),
+				onClick = function()
+					act.withdraw(state.applied)
+				end,
+			})
+		end
+		if state.status then
+			table.insert(rows, { text = state.status })
+		end
+		table.insert(rows, { text = L.text(locale, "scr.clan.open"), onClick = act.clan })
+		return rows
 	end
 	local ids = sorted(clan.members)
 	local govern = Clan.allowed(clan, state.actorId, "govern")
@@ -702,11 +726,57 @@ function M.rolesRows(locale: string, state: any, act: any): { any }
 			end
 		end
 	end
+	for _, role in PREVIEW_ROLES do
+		table.insert(rows, {
+			text = L.text(locale, "scr.roles.preview", L.text(locale, "scr.roles.role_" .. role)),
+			onClick = function()
+				act.preview(role)
+			end,
+		})
+	end
+	if Clan.allowed(clan, state.actorId, "invite") then
+		local drafts = sorted(clan.drafts)
+		if #drafts == 0 then
+			table.insert(rows, { text = L.text(locale, "scr.roles.drafts_empty") })
+		end
+		for _, id in drafts do
+			local who = name(state.names, id)
+			local role = L.text(locale, "scr.roles.role_" .. clan.drafts[id].role)
+			table.insert(rows, {
+				text = L.text(locale, "scr.roles.draft_confirm", who, role),
+				onClick = function()
+					act.command("draft-confirm", { target = id })
+				end,
+			})
+			table.insert(rows, {
+				text = L.text(locale, "scr.roles.draft_cancel", who),
+				onClick = function()
+					act.command("draft-cancel", { target = id })
+				end,
+			})
+		end
+	end
 	if state.status then
 		table.insert(rows, { text = state.status })
 	end
 	table.insert(rows, { text = L.text(locale, "scr.clan.open"), onClick = act.clan })
 	return rows
+end
+
+--- The status line for a clan-preview result: the role and the capabilities it grants.
+function M.previewLine(locale: string, data: any): string
+	local grants = {}
+	for _, capability in { "view", "build", "deposit", "invite", "research", "territory", "govern", "withdraw" } do
+		if data.grants[capability] then
+			table.insert(grants, L.text(locale, "scr.roles.cap_" .. capability))
+		end
+	end
+	return L.text(
+		locale,
+		"scr.roles.preview_line",
+		L.text(locale, "scr.roles.role_" .. data.role),
+		table.concat(grants, ", ")
+	)
 end
 
 -- ui.market-buy: state = { listing, market = { balance, listings }, names, status }
@@ -1106,6 +1176,7 @@ function M.factory(ctx: any): any
 
 	-- ui.clan-roles
 	local rolesStatus: string? = nil
+	local applied: string? = nil
 	local roles: any
 	roles = mount(10, function(extensions: any, packet: any): any
 		local names = {}
@@ -1120,6 +1191,7 @@ function M.factory(ctx: any): any
 			actorId = actorId,
 			names = state and state.names,
 			status = rolesStatus,
+			applied = if clan then nil else applied,
 		}, {
 			clan = function()
 				open("clan")
@@ -1127,6 +1199,30 @@ function M.factory(ctx: any): any
 			command = function(operation: string, args: any)
 				args.expectedRevision = clan.revision
 				local result = send("clan-" .. operation, { clan.clanId, args })
+				rolesStatus = if result.ok then nil else L.refusal(locale, result.reason)
+				roles.render()
+			end,
+			preview = function(role: string)
+				local result = send("clan-preview", { clan.clanId, { role = role } })
+				rolesStatus = if result.ok then M.previewLine(locale, result.data) else L.refusal(locale, result.reason)
+				roles.render()
+			end,
+			-- The clan id comes from the shared clan input sheet (the same one Join uses).
+			apply = function(role: string)
+				local id = if ctx.askText then ctx.askText() else nil
+				if type(id) ~= "string" or id == "" then
+					return
+				end
+				local result = send("clan-draft", { id, { role = role } })
+				applied = if result.ok then id else applied
+				rolesStatus = if result.ok
+					then L.text(locale, "scr.roles.applied", id)
+					else L.refusal(locale, result.reason)
+				roles.render()
+			end,
+			withdraw = function(id: string)
+				local result = send("clan-draft-cancel", { id, {} })
+				applied = if result.ok then nil else applied
 				rolesStatus = if result.ok then nil else L.refusal(locale, result.reason)
 				roles.render()
 			end,

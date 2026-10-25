@@ -107,6 +107,10 @@ return {
 		local accepted = h.send("b", "route-accept", "a")
 		assert(accepted.ok and accepted.data.status == "member", "b accepts")
 		assert(h.extension.snapshot("a").routeShare.members.b == "member", "snapshot shows the roster")
+		-- p111: the invited player's snapshot lists the pending share; an accepted one drops out.
+		local pending = h.extension.snapshot("c").routeInvites
+		assert(#pending == 1 and pending[1].owner == "a" and pending[1].route == 2, "pending invite listed")
+		assert(#h.extension.snapshot("b").routeInvites == 0, "accepted share is no longer pending")
 		assert(h.send("a", "invite", "b").ok and h.send("b", "accept", "a").ok, "b joins the crew")
 		local departed = h.send("a", "depart", "2")
 		assert(departed.ok and #h.travels == 2, "shared member departs: " .. tostring(departed.reason))

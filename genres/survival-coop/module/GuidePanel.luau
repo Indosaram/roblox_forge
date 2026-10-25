@@ -27,6 +27,18 @@ end
 
 M.UPCOMING = 3
 
+-- Steps performed on another panel (p111): the row opens the panel that sends the real command
+-- (route sharing on the party sheet, role preview and drafts on clan roles, loans at the camp).
+M.OPEN = table.freeze({
+	["invite-training"] = "party",
+	revoke = "party",
+	["preview-role"] = "clan-roles",
+	["draft-membership"] = "clan-roles",
+	["cancel-draft"] = "clan-roles",
+	["equip-loan"] = "camp",
+	["return-loan"] = "camp",
+})
+
 local function before(a: any, b: any): boolean
 	local ga, gb = a.gates or {}, b.gates or {}
 	local la, lb = ga.characterLevel or 1, gb.characterLevel or 1
@@ -92,7 +104,9 @@ function M.model(locale: string, data: any): { Sheet.Row }
 				local verb = "guide_act_" .. string.gsub(objective.action, "%-", "_")
 				local missing = GuideEvents.UNSUPPORTED[objective.action] ~= nil
 				-- Acknowledgement steps are performed from this row (guide-act); the server checks order.
-				local tap = ACK[objective.action] ~= nil and (progress[objective.id] or 0) < objective.quantity
+				local pending = (progress[objective.id] or 0) < objective.quantity
+				local tap = ACK[objective.action] ~= nil and pending
+				local panel = if pending then M.OPEN[objective.action] else nil
 				local action, args = nil, nil
 				if tap then
 					action, args = ACK[objective.action](objective.target)
@@ -103,7 +117,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 						locale,
 						if missing
 							then "guide_objective_missing"
-							elseif tap then "guide_objective_tap"
+							elseif tap or panel then "guide_objective_tap"
 							else "guide_objective",
 						if Text.has(verb) then Text.text(locale, verb) else objective.action,
 						label(locale, names, objective.target),
@@ -112,6 +126,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 					),
 					action = action,
 					args = args,
+					open = panel,
 				})
 			end
 		end

@@ -82,6 +82,19 @@ local REFUSALS: { [string]: string } = {
 	NOT_JOINT = "camp_not_joint",
 	NOT_STARTED = "camp_not_started",
 }
+-- camp-loan codes (p103 CampExtension.loan); these win over REFUSALS for loan commands only.
+local LOAN_REFUSALS: { [string]: string } = {
+	FORBIDDEN = "camp_loan_forbidden",
+	OWN_LOAN = "camp_loan_own",
+	NOT_BORROWER = "camp_loan_not_borrower",
+	NO_LOAN = "camp_loan_missing",
+	LOAN_OUT = "camp_loan_busy",
+	NOT_LENDER = "camp_loan_not_lender",
+	LOAN_TAKEN = "camp_loan_taken",
+	LOAN_EXISTS = "camp_loan_exists",
+	LOAN_IN_USE = "camp_loan_in_use",
+	BAG_FULL = "camp_loan_bag_full",
+}
 
 function M.text(locale: string, key: string): string
 	local entry = STRINGS[key]
@@ -96,13 +109,81 @@ function M.keys(): { string }
 	table.sort(keys)
 	return keys
 end
-function M.refusal(locale: string, reason: string?): string
+function M.refusal(locale: string, reason: string?, loan: boolean?): string
 	local code = reason or ""
 	-- The client transport appends the engine error: "TRANSPORT_FAILED: <detail>".
 	if string.sub(code, 1, 16) == "TRANSPORT_FAILED" then
 		code = "TRANSPORT_FAILED"
 	end
+	if loan and LOAN_REFUSALS[code] then
+		return M.text(locale, LOAN_REFUSALS[code])
+	end
 	return M.text(locale, REFUSALS[code] or "camp_refused")
+end
+
+--- camp-loan refusal codes with their own line (FORBIDDEN means "not a camp member" here).
+function M.loanRefusalCodes(): { string }
+	local codes = {}
+	for code in LOAN_REFUSALS do
+		table.insert(codes, code)
+	end
+	table.sort(codes)
+	return codes
+end
+
+export type LoanRow = { name: string, text: string, args: { string }? }
+
+--- Equipment loans (camp-loan): lend the picked item, then one row per open loan with the
+--- action this player may take (borrow, return, recall) or a status line. `people` maps ids to
+--- display names, `items` catalog ids to item names.
+function M.loans(locale: string, slice: any, me: string, choice: Choice?, people: any, items: any): { LoanRow }
+	local rows: { LoanRow } = {}
+	if type(slice) ~= "table" or slice.role ~= "member" then
+		return rows
+	end
+	local function person(id: string): string
+		return people and people[id] or id
+	end
+	local function item(catalogId: string): string
+		return items and items[catalogId] or HudLocale.text(locale, catalogId)
+	end
+	table.insert(rows, {
+		name = "LoanOffer",
+		text = if choice
+			then string.format(M.text(locale, "camp_loan_offer"), choice.label)
+			else M.text(locale, "camp_loan_nothing"),
+		args = if choice then { "offer", choice.itemId } else nil,
+	})
+	local ids = {}
+	for id in slice.loans or {} do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	if #ids == 0 then
+		table.insert(rows, { name = "LoanEmpty", text = M.text(locale, "camp_loan_empty") })
+	end
+	for _, id in ids do
+		local loan = slice.loans[id]
+		local name, mine = item(loan.catalogId), loan.lender == me
+		local key, verb, who = nil, nil, nil
+		if loan.borrower == me then
+			key, verb = "camp_loan_return", "return"
+		elseif loan.borrower then
+			key, who = "camp_loan_out", person(loan.borrower)
+		elseif mine then
+			key, verb = "camp_loan_recall", "recall"
+		else
+			key, verb, who = "camp_loan_take", "take", person(loan.lender)
+		end
+		table.insert(rows, {
+			name = "Loan-" .. id,
+			text = if who
+				then string.format(M.text(locale, key), name, who)
+				else string.format(M.text(locale, key), name),
+			args = if verb then { verb, id } else nil,
+		})
+	end
+	return rows
 end
 
 --- Refusal codes with their own line (specs prove each is distinct from the generic one).

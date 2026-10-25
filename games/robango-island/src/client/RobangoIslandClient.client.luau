@@ -390,6 +390,8 @@ table.insert(panelFactories, function(ctx)
 		end,
 	}
 end)
+-- The clan input sheet's prompt, shared with ui.clan-roles (a membership draft names a clan id).
+local askClanText: (() -> string?)? = nil
 table.insert(panelFactories, function(ctx)
 	local social: any = table.clone(ctx)
 	social.content, social.actorId = content, tostring(player.UserId)
@@ -463,6 +465,7 @@ table.insert(panelFactories, function(ctx)
 		return coroutine.yield()
 	end
 	social.chooseActor, social.chooseTerritory = ask, ask
+	askClanText = ask
 	social.chooseAmount = function()
 		return tonumber(ask())
 	end
@@ -844,6 +847,9 @@ table.insert(panelFactories, audio.panel)
 table.insert(panelFactories, function(ctx)
 	local scoped: any = table.clone(ctx)
 	scoped.content, scoped.actorId = content, tostring(player.UserId)
+	scoped.askText = function(): string?
+		return if askClanText then askClanText() else nil
+	end
 	scoped.objective = function(contracts)
 		return require(Forge.genres["survival-coop"].module.ContractsPanel).model(locale, contracts, names).objective
 	end

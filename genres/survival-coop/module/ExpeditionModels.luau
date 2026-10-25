@@ -9,6 +9,8 @@ M.PARTY_ACTION = "survival-coop:party-action"
 M.COMPANION_ACTION = "survival-coop:companion-action"
 
 local ROW, LINE, BODY = 44, 40, 56
+-- Route-sharing rows (p111) keep the 48 px touch target of the social sheets.
+local SHARE = 48
 
 local function label(text: string, height: number?, name: string?): any
 	return { kind = "label", text = text, height = height or LINE, name = name }
@@ -163,7 +165,17 @@ function M.travel(
 	return Text.text(locale, "exp_routes"), items
 end
 
--- ui.party: roster, readiness, leader, invites, remove/leave/share.
+local function nameOf(others: { any }, id: string): string
+	for _, other in others do
+		if other.id == id then
+			return other.name
+		end
+	end
+	return id
+end
+
+-- ui.party: roster, readiness, leader, invites, remove/leave/share, route sharing (S7).
+-- state.routeShare is my own share roster; state.routeInvites lists routes shared with me.
 function M.party(
 	locale: string,
 	state: any,
@@ -178,6 +190,18 @@ function M.party(
 		table.insert(items, label(Text.text(locale, "party_empty"), BODY, "PartyEmpty"))
 	else
 		table.insert(items, label(Text.text(locale, "party_members", #party.members, party.capacity), LINE))
+	end
+	-- A route another player shared with me waits here until I accept it (my own gates apply).
+	for _, invite in state.routeInvites or {} do
+		table.insert(items, {
+			kind = "button",
+			text = Text.text(locale, "route_accept", nameOf(others, invite.owner), invite.route),
+			height = SHARE,
+			name = "RouteAccept-" .. invite.owner,
+			onClick = function()
+				send("route-accept", invite.owner)
+			end,
+		})
 	end
 	-- Actions first so the primary control stays above the fold on a 339 px landscape phone.
 	if leader then
@@ -223,6 +247,38 @@ function M.party(
 		)
 		if party.route then
 			table.insert(items, label(Text.text(locale, "party_shared", party.route), LINE, "PartyRoute"))
+		end
+		-- S7 route sharing: share my highest open route with a crew member, or stop sharing.
+		local shared = if state.routeShare then state.routeShare.members else {}
+		for _, member in party.members do
+			if member ~= me then
+				local who = nameOf(others, member)
+				local status = shared[member]
+				if status then
+					table.insert(items, {
+						kind = "button",
+						text = Text.text(locale, "route_revoke", who, Text.text(locale, "route_status_" .. status)),
+						height = SHARE,
+						name = "RouteRevoke-" .. member,
+						onClick = function()
+							send("route-revoke", member)
+						end,
+					})
+				else
+					table.insert(items, {
+						kind = "button",
+						text = Text.text(locale, "route_invite", who),
+						height = SHARE,
+						name = "RouteInvite-" .. member,
+						onClick = function()
+							send("route-invite", member)
+						end,
+					})
+				end
+			end
+		end
+		if #party.members < 2 then
+			table.insert(items, label(Text.text(locale, "route_share_empty"), SHARE, "RouteShareEmpty"))
 		end
 		for _, row in party.roster or {} do
 			local tags = Text.text(locale, if row.ready then "party_ready" else "party_not_ready_tag")

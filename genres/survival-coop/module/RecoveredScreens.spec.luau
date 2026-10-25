@@ -840,10 +840,174 @@ return {
 			assert(sent[2][1] == "capability" and sent[2][2].enabled == true, "withdraw grant")
 			local member = Screens.rolesRows(locale, { clan = state, actorId = "2" }, act)
 			check(member, "roles member " .. locale)
+			local previews = {}
+			for _, role in { "officer", "member", "visitor" } do
+				previews[L.text(locale, "scr.roles.preview", L.text(locale, "scr.roles.role_" .. role))] = true
+			end
 			for _, row in member do
-				assert(not row.onClick or row.text == L.text(locale, "scr.clan.open"), "members get no role buttons")
+				-- p111: role previews are read-only and open to every member.
+				assert(
+					not row.onClick or row.text == L.text(locale, "scr.clan.open") or previews[row.text],
+					"members get no role buttons"
+				)
 			end
 		end
+	end,
+	["p111 clan roles: preview, membership drafts and the leader's confirm or cancel"] = function()
+		for _, locale in LOCALES do
+			local sent: { any } = {}
+			local act = setmetatable({
+				command = function(op: string, args: any)
+					table.insert(sent, { op, args })
+				end,
+				preview = function(role: string)
+					table.insert(sent, { "preview", role })
+				end,
+				apply = function(role: string)
+					table.insert(sent, { "apply", role })
+				end,
+				withdraw = function(id: string)
+					table.insert(sent, { "withdraw", id })
+				end,
+			}, { __index = ACT })
+			-- Outside a clan: apply as member or visitor, withdraw a pending application.
+			local outside = Screens.rolesRows(locale, { actorId = "9", applied = "tide" }, act)
+			check(outside, "roles applicant " .. locale)
+			press(outside, L.text(locale, "scr.roles.apply_member"))
+			press(outside, L.text(locale, "scr.roles.apply_visitor"))
+			press(outside, L.text(locale, "scr.roles.withdraw_draft", "tide"))
+			assert(sent[1][2] == "member" and sent[2][2] == "visitor" and sent[3][2] == "tide", "applicant buttons")
+			local fresh = Screens.rolesRows(locale, { actorId = "9" }, act)
+			assert(
+				not string.find(texts(fresh), L.text(locale, "scr.roles.withdraw_draft", "tide"), 1, true),
+				"no withdraw"
+			)
+			-- Leader: previews, empty drafts state, then one pending draft to accept or decline.
+			local state = clan()
+			local empty = Screens.rolesRows(locale, { clan = state, actorId = "1" }, act)
+			check(empty, "roles no drafts " .. locale)
+			assert(string.find(texts(empty), L.text(locale, "scr.roles.drafts_empty"), 1, true), "drafts empty state")
+			press(empty, L.text(locale, "scr.roles.preview", L.text(locale, "scr.roles.role_officer")))
+			assert(sent[4][1] == "preview" and sent[4][2] == "officer", "preview role")
+			state.drafts = { ["7"] = { role = "visitor", at = 0 } }
+			local rows = Screens.rolesRows(locale, { clan = state, actorId = "1", names = { ["7"] = "Bo" } }, act)
+			check(rows, "roles drafts " .. locale)
+			press(rows, L.text(locale, "scr.roles.draft_confirm", "Bo", L.text(locale, "scr.roles.role_visitor")))
+			press(rows, L.text(locale, "scr.roles.draft_cancel", "Bo"))
+			assert(sent[5][1] == "draft-confirm" and sent[5][2].target == "7", "confirm args")
+			assert(sent[6][1] == "draft-cancel" and sent[6][2].target == "7", "cancel args")
+			-- A plain member sees previews but cannot settle drafts.
+			local member = Screens.rolesRows(locale, { clan = state, actorId = "2", names = { ["7"] = "Bo" } }, act)
+			assert(not string.find(texts(member), L.text(locale, "scr.roles.draft_cancel", "Bo"), 1, true), "member")
+			local line = Screens.previewLine(locale, { role = "officer", grants = Clan.preview(state, "officer") })
+			check({ { text = line } }, "preview line " .. locale)
+			assert(string.find(line, L.text(locale, "scr.roles.cap_invite"), 1, true), line)
+			assert(not string.find(line, L.text(locale, "scr.roles.cap_govern"), 1, true), "officer does not govern")
+			for _, code in
+				{ "ALREADY_MEMBER", "INVALID_ROLE", "DRAFT_EXISTS", "NO_DRAFT", "CLAN_FULL", "WRONG_IDENTITY" }
+			do
+				local text = L.refusal(locale, code)
+				assert(text ~= L.text(locale, "scr.refuse.unknown"), code .. " has its own line")
+				check({ { text = text } }, code)
+			end
+		end
+	end,
+	["p111 clan roles factory sends clan-preview, clan-draft and draft-confirm with the exact args"] = function()
+		local node = function(): any
+			local item: any = { Visible = true, AbsoluteSize = { X = 344, Y = 560 } }
+			item.Activated = { Connect = function() end }
+			item.Destroy = noop
+			return item
+		end
+		local docks: { [string]: any } = {}
+		local callbacks: { any } = {}
+		local shown: { any } = {}
+		local sent: { any } = {}
+		local widgets = function(_theme: any, props: any): any
+			local item = node()
+			item.Text, item.onClick = props.text, props.onClick
+			table.insert(shown, item)
+			return item
+		end
+		local reply: any = { ok = true }
+		local function screen(): string
+			local out = {}
+			for _, item in shown do
+				table.insert(out, item.Text)
+			end
+			return table.concat(out, "\n")
+		end
+		Screens.factory({
+			locale = "en-us",
+			actorId = "1",
+			content = Content,
+			names = {},
+			playerGui = {},
+			instance = { new = node },
+			udim2 = { new = noop },
+			ui = {
+				theme = { default = {} },
+				components = {
+					modalSheet = function(): any
+						return { frame = node(), scroll = node(), close = node() }
+					end,
+					label = widgets,
+					button = widgets,
+				},
+			},
+			serverNow = function(): number
+				return 0
+			end,
+			worldRole = "home",
+			askText = function(): string
+				return "tide"
+			end,
+			send = function(action: string, args: any): any
+				table.insert(sent, { action, args })
+				return reply
+			end,
+			onSnapshot = function(callback: any): () -> ()
+				table.insert(callbacks, callback)
+				return noop
+			end,
+			dock = function(entry: any): any
+				docks[entry.id] = entry
+				return { open = noop, setAvailable = noop }
+			end,
+		})
+		local function click(text: string)
+			for index = #shown, 1, -1 do
+				if shown[index].Text == text and shown[index].onClick then
+					return shown[index].onClick()
+				end
+			end
+			error("no button " .. text)
+		end
+		for _, callback in callbacks do
+			callback({}, { roster = {}, snapshots = {} })
+		end
+		docks["clan-roles"].setOpen(true)
+		click(L.text("en-us", "scr.roles.apply_visitor"))
+		assert(sent[1][1] == "survival-coop:clan-draft", "draft sent")
+		assert(sent[1][2][1] == "tide" and sent[1][2][2].role == "visitor", "draft args")
+		click(L.text("en-us", "scr.roles.withdraw_draft", "tide"))
+		assert(sent[2][1] == "survival-coop:clan-draft-cancel" and sent[2][2][1] == "tide", "withdraw args")
+		local state = clan()
+		state.drafts = { ["7"] = { role = "member", at = 0 } }
+		for _, callback in callbacks do
+			callback({ clan = state }, { roster = { { id = "7", name = "Bo" } }, snapshots = {} })
+		end
+		docks["clan-roles"].setOpen(true)
+		reply = { ok = true, data = { role = "member", grants = Clan.preview(state, "member") } }
+		click(L.text("en-us", "scr.roles.preview", L.text("en-us", "scr.roles.role_member")))
+		assert(sent[3][1] == "survival-coop:clan-preview" and sent[3][2][2].role == "member", "preview args")
+		local line = Screens.previewLine("en-us", reply.data)
+		assert(string.find(screen(), line, 1, true), "preview shown")
+		reply = { ok = false, reason = "CLAN_FULL" }
+		click(L.text("en-us", "scr.roles.draft_confirm", "Bo", L.text("en-us", "scr.roles.role_member")))
+		assert(sent[4][1] == "survival-coop:clan-draft-confirm", "confirm sent")
+		assert(sent[4][2][1] == "tide" and sent[4][2][2].target == "7" and sent[4][2][2].expectedRevision == 0, "args")
+		assert(string.find(screen(), L.refusal("en-us", "CLAN_FULL"), 1, true), "localized refusal shown")
 	end,
 	["market buy confirms the exact bundle and refuses short balance or a gone listing"] = function()
 		local listing = { id = "L1", catalogId = "wood", quantity = 3, price = 40 }

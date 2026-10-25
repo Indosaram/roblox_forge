@@ -213,6 +213,23 @@ end
 
 function M.new(env: any): any
 	local state = Party.new()
+	local sharedWith: { [string]: { [string]: boolean } } = {}
+	-- Routes other owners shared with `actor` that still wait for acceptance (ui.party).
+	local function routeInvites(actor: string): { any }
+		local out = {}
+		local owners: { [string]: boolean } = sharedWith[actor] or {}
+		for owner in owners do
+			local document = env.document(owner)
+			local record = if document then document.routeShare else nil
+			if record and record.members[actor] == "invited" then
+				table.insert(out, { owner = owner, route = record.route })
+			end
+		end
+		table.sort(out, function(a, b)
+			return a.owner < b.owner
+		end)
+		return out
+	end
 	local ttl = env.ttl or M.TTL
 	local function depart(actor: string, route: number): any
 		local party = Party.partyOf(state, actor)
@@ -293,7 +310,7 @@ function M.new(env: any): any
 			end
 		end
 		local memberFacts = if verb == "route-accept" then env.facts(actor) else nil
-		return env.transaction(owner, function(document): any
+		local result = env.transaction(owner, function(document): any
 			local nextShare, reason
 			if verb == "route-invite" then
 				nextShare, reason = Party.shareInvite(document.routeShare, actor, target, route)
@@ -311,6 +328,12 @@ function M.new(env: any): any
 				data = { route = nextShare.route, owner = owner, status = nextShare.members[actor] or "revoked" },
 			}
 		end)
+		if result.ok and verb == "route-invite" then
+			-- Lookup only (who shared with me); the owner's durable roster stays the authority.
+			sharedWith[target] = sharedWith[target] or {}
+			sharedWith[target][actor] = true
+		end
+		return result
 	end
 	return {
 		id = "expedition",
@@ -408,6 +431,7 @@ function M.new(env: any): any
 				),
 				party = view,
 				routeShare = if document then document.routeShare else nil,
+				routeInvites = routeInvites(actor),
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
 				-- The player's own level and island grade, so a locked route can say what is missing.
 				facts = env.facts(actor),
