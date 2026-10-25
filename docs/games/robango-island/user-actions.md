@@ -1,68 +1,62 @@
-# 로방고 섬: 사용자 결정·행동 목록 (2026-10-21)
+# 로방고 섬: 사용자 결정·행동 목록 (2026-10-25)
 
 원본은 로컬 연구 세션 폴더(`.omo/ulw-research/…/preprod/user-actions.md`, gitignore)에 있으며, 이 사본이 저장소 기준본입니다.
 
 아래 목록은 이전 단일 섬 프로토타입의 사용자 결정·검증 이력입니다. 에이전트 작업이 모두 끝났다는 주장은 철회합니다. 새 후기 온라인 재현 설계의 구현과 검증은 별도이며, 현재 범위는 `fidelity-matrix.md`, 증거 한계는 `qa-evidence.md`의 Readiness correction을 따릅니다. 이력의 완료 표시는 당시 기록된 동작만 뜻하며 새 콘텐츠의 출시 준비 완료를 뜻하지 않습니다.
 
-## 현재 운영 상태와 다음 행동 (2026-10-21)
+## 현재 운영 상태와 다음 행동 (2026-10-25, `204bda9`)
 
-스테이징 대상은 Universe `10771918494`, Place `95467272687768`입니다. 이 문서의 예전 배포 버전과 모바일 수치는 당시 콘텐츠의 이력이며, 현재 `d1f13db` 또는 진행 중인 P7 변경의 배포·합격 증거가 아닙니다. `690ac33` 이후 P1~P6에서 개인섬·군도·재료/성장·전투·저널·부족·난투·합주·서버 간 시장의 구현과 네이티브 검증이 추가되었습니다. 기능별 실제 입증 범위는 [qa-evidence.md](qa-evidence.md)의 2026-10-21 표를 따르고, `5bcb0e6`~`23f5e8c`의 Studio 실제 입력 결과와 미검증 항목은 같은 문서의 2026-10-23 절을 따릅니다.
+기능별 상태와 근거는 [fidelity-matrix.md](fidelity-matrix.md)의 검증 열, 상세 기록은 [qa-evidence.md](qa-evidence.md)의 "Current state at `204bda9`" 절을 따릅니다. 아래 `pNN` 경로는 `.omo/evidence/robango-recovery/` 아래의 로컬(gitignore) 파일입니다.
 
-현재 계정 moderation warning이 외부 작업의 차단 사유입니다. 2026-10-23 `23f5e8c`의 `games/robango-island/assets/manifest.yml` 기준으로 이미지 **260개가 `NotUploaded`**, sfx **15개가 `PendingModeration`**, sfx **22개가 `NotUploaded`**(6d8fef3에서 추가한 새 효과음, 라이브에서는 무음)입니다. 이전 보고 수치(아이콘 253, 오디오 55 대기)는 당시 상태입니다. 숫자는 manifest 상태이며, 승인 완료나 Roblox에서 사용 가능하다는 뜻이 아닙니다. P7 콘솔에는 `User is moderated`와 asset HTTP 403도 남아 있습니다. 경고 해제·소유권/체험 권한·실제 승인 상태를 사용자가 확인한 뒤에만 승인된 업로드를 재개합니다.
+### 에이전트가 이미 처리한 것
 
-### 현재 차단 상태 (2026-10-24, `888ea31`)
+- **Roblox 웹 단계는 에이전트가 소유자의 로그인된 Aside 브라우저 세션으로 처리합니다.** 로그인 정보를 입력하지 않습니다. moderation 경고(애셋 `105225552511668`, 2026-10-21 검토) 확인을 2026-10-25에 완료했습니다(`p106/not-approved.txt`).
+- **역할별 Place 생성과 스테이징 배포 완료(2026-10-25, `p107/deploy.md`).** 같은 Aside 세션으로 Place 11개를 만들고 `a0d674c` 빌드를 12개 Place 모두에 게시했습니다(모두 HTTP 200, Open Cloud로 재확인). Universe는 `PRIVATE` 그대로입니다. 이후 같은 명령으로 `71566f8`(온보딩 v17), `9dc99f7`(온보딩 v18, 나머지 v4)을 다시 게시했습니다(`p112`, `p115` 배포 로그).
+- **아이콘·오디오 업로드 재개(`9691bfd`, `71566f8`, `p108/screen.md`).** 저위험 배치 01~10을 배치마다 Approved 확인 후 올렸고, 대기 중이던 오디오 15개도 Approved입니다. `204bda9`의 manifest는 Approved 526, NotUploaded 111(검토 등급 아이콘 86, 보류 2, 아이콘 계획 밖 오디오 23), 대기 0입니다.
+- **Studio 로그인과 실행은 에이전트가 처리합니다.** Studio QA는 Studio MCP 실제 입력으로 진행합니다(최근: `p112/recheck.md`, `p115/recheck.md`). AGENTS.md 규칙대로 Studio 실행 전에는 사용자에게 묻습니다.
 
-**차단 사유는 여전히 소유자 계정의 moderation warning입니다.** 2026-10-24 Studio 로그에도 `User is moderated`(`p64/console_mid1.txt`)와 moderated 애셋 로드 실패(`p83/screens.md`, `p93/recheck.md`, `p96/recheck.md`의 출력 표)가 남아 있습니다. 경고가 해제됐다는 증거는 없습니다. p85 재검토 기준 이미지 526개 중 **258개가 업로드·Approved, 268개가 미업로드**입니다(`p85/icons.md`, `p85/upload-plan.md`). 오디오 수치는 위 2026-10-23 manifest 기준에서 새로 확인하지 않았습니다.
+### 소유자만 할 수 있는 행동
 
-아래 단계는 모두 1번(경고 확인)을 기다립니다. 에이전트가 먼저 실행하지 않습니다.
+1. **두 번째 Roblox 계정.** 계정이 하나뿐이라 두 계정 간 거래(서로 다른 JobId의 시장 정산 포함), 캠프 방문·장비 대여 반납, 부족 가입 신청 승인, 파티 항로 공유, 난투·합주·공성전, 실서버 Place 간 Teleport 왕복을 검증하지 못했습니다(`p115/recheck.md` 4~6행 NOT RUN). 두 번째 계정을 만들어 주거나 테스트에 쓸 계정을 지정해 주세요. 에이전트는 로그인 정보를 입력하지 않으므로 그 계정의 로그인도 소유자가 합니다.
+2. **휴대폰 무선 디버깅 연결.** 실기기 기록은 2026-10-20 이전 콘텐츠의 안드로이드 1회뿐이고, 이후 360x640 결과는 모두 Studio 에뮬레이션입니다. 휴대폰에서 무선 디버깅을 켜고 페어링해 주어야 실기기 QA를 다시 할 수 있습니다.
+3. **Robux 지출 승인.** 실제 결제 영수증 정산과 혜택 적용 확인, 저연령 노출 요건(U7) 같은 유료 단계는 소유자 승인 전에는 실행하지 않습니다. 가격·확률 변경도 소유자 승인이 필요합니다.
+4. **프로덕션 게시 승인.** 프로덕션 Universe/Place·키가 없고 `FORGE_ALLOW_PRODUCTION` 게이트도 닫혀 있습니다. 공개 전환과 프로덕션 게시는 소유자가 세션에서 명시적으로 승인한 뒤에만 실행합니다.
 
-- 역할별 Place 11개 생성(소유자) 후 `deploy roles`로 place ID 기록(아래 4번).
-- 아이콘 업로드: `.omo/evidence/robango-recovery/p85/upload-plan.md`의 배치 01~19 순서(아래 2번).
-- 스테이징 배포 `deploy --env staging ... --all-roles`(아래 4번).
-- 실제 휴대폰 QA. 지금까지의 360x640 결과는 Studio 기기 에뮬레이션뿐입니다(`qa-evidence.md` 2026-10-24 절).
-- 서로 다른 실제 계정 2개의 거래·캠프 방문.
-- 실제 결제 영수증 정산과 혜택 적용 확인(가격·결제는 소유자 승인 필요).
+### 스테이징 Place와 배포 명령
 
-2026-10-24 Studio 화면 점검(p83 → p93 → p96)과 QA-PERF-01 정적 여유(61,276 B)는 `qa-evidence.md`의 2026-10-24 절에 있습니다. 이 결과는 Studio 에뮬레이션과 로컬 측정일 뿐이며, 출시 준비 완료를 뜻하지 않습니다.
+Universe `10771918494`(`PRIVATE`). 시작 Place는 `FORGE_STAGING_PLACE_ID`, 나머지 역할은 `games/robango-island/deploy.yml`이 `FORGE_STAGING_ROLE_*` 환경 변수로 참조합니다(`cc950b5`). ID는 `.env.local`에만 둡니다.
 
-### 소유자만 할 수 있는 행동 (2026-10-23 기준, 순서대로)
+| 역할 | Place ID | 환경 변수 |
+|---|---|---|
+| onboarding (시작) | 95467272687768 | `FORGE_STAGING_PLACE_ID` |
+| home | 138037124358403 | `FORGE_STAGING_ROLE_HOME` |
+| harbor | 74762124664475 | `FORGE_STAGING_ROLE_HARBOR` |
+| archipelago | 71669922813678 | `FORGE_STAGING_ROLE_ARCHIPELAGO` |
+| explore10 | 113022535464737 | `FORGE_STAGING_ROLE_EXPLORE_TEN` |
+| explore20 | 124582682750666 | `FORGE_STAGING_ROLE_EXPLORE_TWENTY` |
+| frontier30 | 97353598156206 | `FORGE_STAGING_ROLE_FRONTIER_THIRTY` |
+| frontier40 | 101898062384284 | `FORGE_STAGING_ROLE_FRONTIER_FORTY` |
+| frontier50 | 84995036714900 | `FORGE_STAGING_ROLE_FRONTIER_FIFTY` |
+| frontier60 | 114521850689528 | `FORGE_STAGING_ROLE_FRONTIER_SIXTY` |
+| brawl | 85368204973944 | `FORGE_STAGING_ROLE_BRAWL` |
+| team-outpost | 122380491449815 | `FORGE_STAGING_ROLE_TEAM_OUTPOST` |
 
-1. **소유자 계정 `indosaram5`(user id `11734795308`)의 moderation warning 확인.** 소유자가 직접 roblox.com에 로그인해 경고를 확인(acknowledge)합니다. 확인 전에는 Open Cloud 호출이 403을 반환하므로 업로드·배포·상태 조회가 모두 막힙니다. 에이전트는 이 단계를 대신할 수 없고 로그인 정보도 입력하지 않습니다.
+저장소 루트에서 `.env.local`의 변수를 프로세스 환경에 넣고, `bun`이 PATH에 있어야 합니다(게시 전송에 필요). dry-run 마지막 줄이 `12 role places publishable, 0 missing, 0 errors (deploy --all-roles ready)`일 때만 게시합니다.
 
-아래 2~4는 경고 확인 뒤 리드가 저장소 루트에서 실행합니다. `forge`는 `C:/Users/sook/.rokit/bin/lune.exe run cli/forge`(즉 `lune run cli/forge`)입니다. 업로드에는 `.env.local`의 `ROBLOX_API_KEY`(asset read/write + `legacy-asset:manage`)를 프로세스 환경에 넣습니다. 소유자는 `--creator-user 11734795308`로 지정합니다.
+```text
+lune run cli/forge deploy --env staging --pack robango-island --development --dry-run
+lune run cli/forge deploy --env staging --pack robango-island --development --all-roles
+```
 
-2. **아이콘 업로드(작은 배치).** 배치 목록과 순서는 `.omo/evidence/robango-recovery/p85/upload-plan.md`를 따릅니다: 저위험 배치 01~10(20개씩, 마지막 2개)을 먼저, 검토 등급 배치 11~19(도구·무기, 동물 부위, 고기, 가죽, 끈, 사람, 포획; 10개씩)는 사람이 그 배치를 본 뒤에만 올립니다. 배치마다 `assets status`가 Approved를 보일 때까지 기다린 뒤 다음 배치로 갑니다. 각 배치 전에 올릴 아이콘에서 올가미(noose)나 무기처럼 보이는 도형이 없는지 확인합니다(이전 검토: `.omo/evidence/robango-recovery/p6/icon-screen.md`, `p85/icons.md`). 먼저 `--dry-run`으로 배치를 확인한 뒤 올립니다.
-   ```text
-   lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n> --dry-run
-   lune run cli/forge assets upload-images --pack robango-island --creator-user 11734795308 --limit <n>
-   lune run cli/forge assets status --pack robango-island
-   ```
-   `--limit <n>`은 아직 올리지 않은 이미지를 manifest 순서로 최대 n개만 올리고 멈춘 뒤 남은 수를 보고합니다. `--only <key1,key2,...>`로 특정 키만 올릴 수도 있습니다. 진행 상황은 `build/image-upload-cache.json`에 sha256별로 기록되므로 같은 명령을 다시 실행하면 이어서 진행합니다. `src/shared/Assets.luau`는 항상 전체 manifest 기준으로 다시 생성됩니다. 배치마다 `assets status`로 moderation 결과를 확인하고, 거절이 나오면 멈춥니다.
-3. **오디오 업로드.** 새 효과음 22개(`NotUploaded`)를 올리고 대기 중인 항목을 다시 확인합니다.
-   ```text
-   lune run cli/forge assets upload-audio --pack robango-island --creator-user 11734795308 --dry-run
-   lune run cli/forge assets upload-audio --pack robango-island --creator-user 11734795308
-   ```
-   artifact sha256 기준으로 멱등이며 `build/audio-upload-cache.json`에 기록합니다. moderation 대기 상태는 재생 가능으로 취급하지 않습니다.
-4. **스테이징 배포(역할별 Place).** 서버는 `ServerStorage.ForgePlaceRoles`(역할→place ID JSON)와 `game.PlaceId`로 자기 역할을 정하고(`IslandBootstrap.select`), 부두 이동은 대상 역할의 place로 `TeleportService:TeleportAsync`를 호출합니다. 한 Place 안에서 역할을 바꾸는 경로는 Studio 전용(`studio_no_teleport`)이므로, 실서버 이동에는 **역할마다 서로 다른 Place 12개**가 같은 Universe에 있어야 합니다. 시작 Place `95467272687768`이 `onboarding`이며 `deploy.yml`에서 `${FORGE_STAGING_PLACE_ID}`를 참조합니다. Open Cloud API 키로는 Place를 **만들 수 없고**(버전 게시만 가능) 나머지 11개 생성은 소유자 단계입니다.
-   - **소유자 1회 단계:** Creator Hub → Robango Staging → Places → Create Place로 `home`, `harbor`, `archipelago`, `explore10`, `explore20`, `frontier30`, `frontier40`, `frontier50`, `frontier60`, `brawl`, `team-outpost` 11개를 만들고 각 place ID를 알려 줍니다(무료, 공개 설정 변경 없음).
-   - `.env.local`에 `FORGE_STAGING_UNIVERSE_ID`/`FORGE_STAGING_PLACE_ID`(`10771918494`/`95467272687768`), 같은 값의 `ROBLOX_STAGING_UNIVERSE_ID`/`ROBLOX_STAGING_PLACE_ID`, `ROBLOX_STAGING_API_KEY`(해당 Universe의 `universe-places` write)를 넣고 프로세스 환경으로 주입합니다.
-   - 홀드 해제 후 에이전트가 실행할 순서입니다. `--dry-run`은 키·네트워크 없이 상품 계획과 역할별 게시 URL·누락 역할을 출력합니다. `--all-roles`는 한 번 빌드한 같은 아티팩트에 전체 역할 맵을 넣어 시작 Place를 마지막으로 모든 Place에 1회씩 게시하며, 누락·중복 ID가 있으면 빌드와 네트워크 전에 거부하고, 실패하면 그 자리에서 멈춥니다.
-   ```text
-   lune run cli/forge deploy roles --env staging --pack robango-island --set home=<id> --set harbor=<id> --set archipelago=<id> --set explore10=<id> --set explore20=<id> --set frontier30=<id> --set frontier40=<id> --set frontier50=<id> --set frontier60=<id> --set brawl=<id> --set team-outpost=<id>
-   lune run cli/forge deploy --env staging --pack robango-island --development --dry-run
-   lune run cli/forge deploy --env staging --pack robango-island --development --all-roles
-   ```
-   dry-run 마지막 줄이 `12 role places publishable, 0 missing, 0 errors (deploy --all-roles ready)`일 때만 세 번째 명령을 실행합니다. `deploy roles`가 바꾼 `deploy.yml`은 커밋 대상입니다(place ID는 비밀이 아닙니다). 역할 맵 없이 단일 Place만 게시하는 `--role <r>`도 남아 있지만 일반 배포는 `--all-roles` 하나입니다.
-5. **상품 ID 매핑.** Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`의 `monetization.gamepasses`·`products`·`subscriptions` 항목의 `id`와 런타임 사본 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 둘의 일치를 검사합니다). 현재 값은 스테이징 Universe에 등록한 U15의 ID입니다. 가격·확률 변경은 human-merged PR이 필요합니다. 로컬 아이콘 위험 도형 교체 및 검토는 `.omo/evidence/robango-recovery/p6/icon-screen.md`에 있으며 Roblox의 승인 판정을 대체하지 않습니다.
+`--all-roles`는 한 번 빌드한 같은 아티팩트를 시작 Place를 마지막으로 12개 Place에 1회씩 게시하고, 누락·중복 ID가 있으면 빌드와 네트워크 전에 거부하며, 실패하면 그 자리에서 멈춥니다. `--development`는 스테이징 전용입니다.
 
 ### 로컬 설정 위치와 키 권한
 
-저장소 루트의 gitignore 파일 `.env.local`에 값을 넣습니다. 아래는 **변수 이름만** 나열합니다. 키 값을 문서·Git·로그에 복사하지 않습니다. `.env.example`가 이름의 기준이고 `games/robango-island/deploy.yml`이 배포 대상 변수를 참조합니다.
+저장소 루트의 gitignore 파일 `.env.local`에 값을 넣습니다. 아래는 **변수 이름만** 나열합니다. 키 값을 문서·Git·로그에 복사하지 않습니다. `.env.example`가 이름의 기준입니다.
 
 | 용도 | `.env.local` 변수 이름 |
 |---|---|
-| 스테이징 배포 대상 | `FORGE_STAGING_UNIVERSE_ID`, `FORGE_STAGING_PLACE_ID` |
+| 스테이징 배포 대상 | `FORGE_STAGING_UNIVERSE_ID`, `FORGE_STAGING_PLACE_ID`, `FORGE_STAGING_ROLE_*` 11개(위 표) |
 | 스테이징 Open Cloud 키와 대상 바인딩 | `ROBLOX_STAGING_API_KEY`, `ROBLOX_STAGING_UNIVERSE_ID`, `ROBLOX_STAGING_PLACE_ID` |
 | 프로덕션 배포 대상 | `FORGE_PRODUCTION_UNIVERSE_ID`, `FORGE_PRODUCTION_PLACE_ID` |
 | 프로덕션 Open Cloud 키와 대상 바인딩 | `ROBLOX_PRODUCTION_API_KEY`, `ROBLOX_PRODUCTION_UNIVERSE_ID`, `ROBLOX_PRODUCTION_PLACE_ID` |
@@ -70,24 +64,13 @@
 | 실제 소유자/스테이징 QA | `FORGE_OWNER_USER_ID`, `FORGE_STAGING_OWNER_USER_ID`, `FORGE_QA_ACTOR_IDS` |
 | 승인된 프로덕션 배포 게이트 | `FORGE_ALLOW_PRODUCTION` |
 
-각 환경의 FORGE 대상과 ROBLOX 대상 바인딩은 같은 Universe/Place여야 합니다. 예전 U21의 `FORGE_PROD_*`/`ROBLOX_PROD_*` 표기는 현재 계약이 아닙니다. 배포용 키에는 해당 Universe의 **`universe-places` write** 권한이 필요합니다. 업로드용 키에는 **asset read/write**와 Decal의 이미지 콘텐츠 ID 해석을 위한 **`legacy-asset:manage`** 권한이 필요합니다. 환경별 키를 대상 Universe에 제한하고, 생성 애셋 소유자와 업로드 키의 권한을 맞춥니다.
+각 환경의 FORGE 대상과 ROBLOX 대상 바인딩은 같은 Universe/Place여야 합니다. 배포용 키에는 해당 Universe의 **`universe-places` write** 권한이, 업로드용 키에는 **asset read/write**와 **`legacy-asset:manage`** 권한이 필요합니다. Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`과 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 일치를 검사). 등록·프롬프트 표출·실제 결제 정산·혜택 적용은 서로 다른 증거입니다.
 
-Game Pass / Developer Product의 논리 키→실제 ID 매핑은 `games/robango-island/game.yml`의 monetization 설정과 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다. 현재 스테이징 등록 이력은 U15에 보존합니다. 프로덕션 Universe를 별도로 만들면 그 Universe에 등록한 상품 ID를 이 두 위치에 맞추고 검증해야 합니다. 등록·프롬프트 표출·실제 결제 정산·혜택 적용은 서로 다른 증거입니다.
+### 남은 에이전트 작업(소유자 대기 없음)
 
-### 배포 명령과 남은 검증
-
-모든 명령은 저장소 루트에서 실행합니다. `forge`는 `C:/Users/sook/.rokit/bin/lune.exe run cli/forge`입니다. 일반 CLI는 `.env.local`을 자동으로 읽는다고 가정하지 말고 해당 변수를 프로세스 환경에 주입합니다(`cli/forge/publish-staging.sh`만 자동 source 계약이 있습니다).
-
-```text
-forge deploy --env staging --pack robango-island --development --all-roles
-forge deploy --env production --pack robango-island --all-roles
-```
-
-두 번째 명령은 사용자 승인·human-merged PR·프로덕션 대상/키·`FORGE_ALLOW_PRODUCTION` 게이트와 release quality 승인이 모두 갖춰진 후에만 실행합니다. `--development`는 스테이징 전용이며 프로덕션 우회 옵션이 아닙니다. 현재 `starter` 등급과 moderation 차단을 출시 승인으로 바꾸지 않습니다. `deploy.yml`의 역할별 place ID가 0인 상태는 실제 다중 Place 여행 배치 완료가 아니며, `--all-roles`는 그 상태를 거부합니다.
-
-새 콘텐츠의 실제 개인섬/군도 Teleport 왕복, 서로 다른 실제 계정·JobId의 시장 정산, 다인원 난투/합주, 휴대폰 조작과 성능은 아직 합격으로 기록하지 않습니다. QA-PERF-01 2층은 2026-10-21 `9db8e04`에서 측정했습니다(U19, `p13/perf.md`). 초기 상호작용은 실패했고, 그 뒤 `c6dec48`에서 채집 노드를 스폰 옆으로 옮겼습니다. 2026-10-23 `2e5ca3b` 재측정(`p54/perf.md`)에서 콜드 Play 3회 모두 TTFI가 관측됐습니다(중앙값 0.671초). 프로브와 실행법은 `cli/forge/qa/robango-performance.luau`, `cli/forge/qa/robango-performance.md`입니다.
-
-최신 Studio 실입력 여정(2026-10-22, `97e6a3e`, `p24/a.md`): 채집 → 돌도끼 제작 → 장착 → 벌목 → 창고 보관 → 모닥불 예약·설치 → 휴식 → 계약 수락·납품까지 실제 입력으로 진행해 튜토리얼 완료에 도달했습니다. 도중에 `PLACEMENT_UNREACHABLE` 거절(12 studs 밖, UX 안내 없음)이 있었고, 계약은 가방의 나무만 세기 때문에 창고에 먼저 보관하면 첫 납품이 무반응이었습니다. 필터한 콘솔 오류는 0건입니다. 시각 검수는 실패 상태입니다: a1.s1 전경은 가독성 FAIL(평평한 단색 지면)이고, 홈·온보딩 캠프의 모닥불 주황빛이 과합니다. 수정 대기 중이며, 출시 준비 완료를 뜻하지 않습니다.
+- 최신 main을 스테이징에 다시 게시하고, 한 계정으로 가능한 실서버 확인(부두에서 다른 Place로 이동 등)을 기록합니다. 아직 실서버 플레이 기록은 없습니다.
+- 검토 등급 아이콘 배치 11~19는 사람이 배치를 본 뒤에만 올립니다(`p85/upload-plan.md`).
+- `p115/recheck.md`의 D1(기술 이름 대신 노드 ID), D3·D4(부족 패널 상태·원시 키) 수정.
 
 ## 이전 결정·실행 이력
 

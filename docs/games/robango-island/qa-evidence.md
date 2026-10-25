@@ -1,5 +1,122 @@
 # robango-island QA evidence
 
+## Current state at `204bda9` (2026-10-25)
+
+Local `main` is `204bda9`. This section supersedes the blocker and budget
+statements in the older sections below where they conflict; those sections stay
+as history. Evidence paths are under `.omo/evidence/robango-recovery/` (local,
+gitignored). The system-by-system status is in
+[fidelity-matrix.md](fidelity-matrix.md).
+
+### Gate
+
+`p7/gate129.json`: `forge gate --pack robango-island` on `head` `204bda9`,
+`ok` true, `valid` true, no failed job. It ran `check-fast`, the sharded specs,
+`build-all`, `smoke` and 43 native scenarios, each recorded and replayed:
+archipelago-chain, archipelago-expiry, archipelago-first-stage (plus
+-onsite-axe and -stone-axe), archipelago-four-island-rewards, audio-director,
+bootstrap-crafting, brawl-weather, camp-ladder, clan-governance,
+combat-tame-ride, contracts-tutorial, cross-server-market, ensemble-sync,
+entitlement-effects, equipment-support, fresh-expedition-return,
+fresh-home-archipelago-return, golden-path, handoff-conservation, harbor-trade,
+home-permissions, home-return, home-storage-transfer, journal-eight-chapters,
+market-trade, material-to-equipment, multistorey-home, production-audio,
+production-building, production-clan, production-score, prompt-campfire,
+qa-save-01-rejoin-transfer-crash, rescue-escort-cargo, role-routing,
+route-share, shop-receipt-storm, taming-mounts, team-outpost,
+volcano-progression, zone-death. The two earlier gates on this stretch that
+failed (`gate126` on `eea0084`: specs; `gate121` on `e7681bf`: specs) were fixed
+by `dd29b2d` and `a0d674c`.
+
+What changed on the native layer since `888ea31`:
+
+- `5376200` (p104): `multistorey-home`, `journal-eight-chapters` and
+  `ensemble-sync` drive the production command path through the real
+  `SurvivalFactory` and `Session` instead of domain-only fixtures
+  (`p104/report.md`). Role travel there is still the fixture's world switch.
+- `e7681bf` (p100): all 30 development guides complete end to end
+  (`guide-progress.spec`, `p100/gap.md`).
+- `1b004ca` + `eea0084` (p103, p111): route sharing, the technical-support
+  quote, camp equipment loans and clan drafts change real state, with player
+  entry points; new native scenario `route-share` (`p103/report.md`,
+  `p111/report.md`).
+
+### Staging deploy
+
+`p107/deploy.md` (2026-10-25): all 12 Topology role places exist in the private
+Universe `10771918494` and received the same build of `a0d674c` with
+`deploy --env staging --pack robango-island --development --all-roles` (exit 0,
+every publish HTTP 200, Open Cloud read-back of each place). Visibility stayed
+`PRIVATE`. `cc950b5` moved the role ids out of git into `FORGE_STAGING_ROLE_*`
+references in `deploy.yml`. Later redeploys with the same command:
+`71566f8` (`p112/deploy-71566f8.log`, onboarding v17, other roles v3) and
+`9dc99f7` (`p115/deploy-9dc99f7.log`, onboarding v18, other roles v4, artifact
+sha256 `3b54ee54...6d46`). The table below is the first publish. No live player
+session on these places is recorded.
+
+| Role | Place id | Version |
+|---|---|---|
+| onboarding (start) | 95467272687768 | 16 |
+| home | 138037124358403 | 2 |
+| harbor | 74762124664475 | 2 |
+| archipelago | 71669922813678 | 2 |
+| explore10 | 113022535464737 | 2 |
+| explore20 | 124582682750666 | 2 |
+| frontier30 | 97353598156206 | 2 |
+| frontier40 | 101898062384284 | 2 |
+| frontier50 | 84995036714900 | 2 |
+| frontier60 | 114521850689528 | 2 |
+| brawl | 85368204973944 | 2 |
+| team-outpost | 122380491449815 | 2 |
+
+### Moderation and assets
+
+- The owner account's moderation notice (asset `105225552511668`, reviewed
+  2026-10-21) was acknowledged through the signed-in Aside browser session on
+  2026-10-25; the final page load lands on `roblox.com/ko/home`
+  (`p106/not-approved.txt`).
+- Uploads resumed after that. `9691bfd` and `71566f8` (p108, p108b) uploaded the
+  screened low-risk icon batches 01-10, each verified Approved through the API
+  before the next batch, and confirmed the 15 pending audio cues as Approved
+  (`p108/screen.md`). The manifest at `204bda9` reads **526 Approved, 111
+  NotUploaded, 0 pending** (86 review-tier and 2 held icons, 23 audio outside the
+  icon plan).
+- The review-tier icon batches 11-19 are not uploaded.
+
+### Studio rechecks after `888ea31`
+
+All runs used Studio MCP real input with device emulation (PC 1280x720, phone
+`KC_Mobile_360x640`). Emulation is not a real phone.
+
+| Run | Build | Result | Evidence |
+|---|---|---|---|
+| p98 text check | `888ea31` | ko-kr PASS on every screen checked (0 raw keys, 0 format tokens); touch objective without "E" PASS. en-us could not be forced in Studio. | `p98/text.md` |
+| p105 new screens | `a0d674c` | PARTIAL: craft jobs, clan roles (non-member), skill reset quote, storage, settings (language, text size, reduced effects), phone island view PASS; vitals icon over label FAIL (D1); guide-act NOT RUN (no seed). 0 game script errors. | `p105/recheck.md` |
+| p112 fixes | `71566f8` | 4/5 PASS: vitals icons beside labels at 1x and 1.2x, craft job countdown and Collect, phone storage action above the fold, 0 game errors. Guide-act NOT RUN (no seed path then). | `p112/recheck.md` |
+| p115 p103/p111 entry points | `9dc99f7` | PC Reserve click, single-player party empty state, camp loan lend/take back, clan create and member role preview PASS. FAIL: skill-gate refusal names the raw node id (D1); clan panel stale status and raw keys (D3, D4). NOT RUN: party invite/accept, borrower return, draft withdraw (need a second player). | `p115/recheck.md` |
+
+`204bda9` itself (generated-content compaction) has no Studio run; p114 shows the
+decoded content is identical to `9dc99f7` (`p114/report.md`).
+
+### QA-PERF-01 static budget
+
+On `204bda9` the future-asset margin is **43,174 B** (sourceBytes 2,937,519,
+futureBytes 2,941,826 against 2,985,000), up from 337 B on `9dc99f7`
+(`p114/report.md`). This supersedes the 61,276 B figure for `888ea31` below.
+Runtime TTFI and memory are still only the Studio-process figures on `2e5ca3b`
+(`p54/perf.md`).
+
+### Still not verified
+
+- **No real phone connection**: no real-device run since the 2026-10-20 Android
+  session on the old content.
+- **Single Roblox account**: no two-account trade, camp visit, clan draft
+  confirm, party route share, brawl match, ensemble or siege; no live
+  dock-to-place teleport by a player.
+- **Live receipt not exercised**: product ids are registered on staging (note 8),
+  but no authorized charge, receipt settlement or benefit check exists.
+- Staging runs `9dc99f7`; later main commits (`204bda9` content codegen, `a9ec241` CLI) are not published.
+
 ## Every-screen Studio audit and static budget (2026-10-24)
 
 Current `main` is `888ea31`. Commits since `4a962f7`: `be6ec3c` (p85 icon
@@ -187,7 +304,7 @@ show `User is moderated` / moderated-asset load failures (`p64/console_mid1.txt`
 and the moderated counts in `p83/screens.md`, `p93/recheck.md`,
 `p96/recheck.md`). P6 and p85 local reviews replaced ambiguous artwork but
 cannot clear Roblox moderation.
-Do not publish or resume uploads while that blocker remains unresolved.
+Do not publish or resume uploads while that blocker remains unresolved. (Superseded: the notice was acknowledged on 2026-10-25, `p106/not-approved.txt`; see [Current state at `204bda9`](#current-state-at-204bda9-2026-10-25).)
 
 **Studio real-input journey on `97e6a3e` (2026-10-22, `p24/a.md`).** In Windows
 Studio, real input completed the onboarding chain from first gather through
@@ -210,7 +327,7 @@ Staging remains Universe `10771918494` / Place `95467272687768`; no new publishe
 version was read back in this task. The authoritative local variable names,
 Open Cloud deploy/upload scopes, Game Pass/Developer Product mapping paths,
 and staging/production commands are in
-[user-actions.md](user-actions.md#현재-운영-상태와-다음-행동-2026-10-21).
+[user-actions.md](user-actions.md#현재-운영-상태와-다음-행동-2026-10-25-204bda9).
 Production is not established by staging registration or historical deployment.
 
 ## Readiness correction (2026-10-20)
