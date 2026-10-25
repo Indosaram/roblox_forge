@@ -22,6 +22,9 @@ local VERBS = {
 	next = true,
 	home = true,
 	claim = true,
+	["route-invite"] = true,
+	["route-accept"] = true,
+	["route-revoke"] = true,
 }
 
 -- Declared through Contract's trailing action loop, so existing durable indices never shift.
@@ -226,8 +229,14 @@ function M.new(env: any): any
 		table.sort(members)
 		-- The actor travels last: a departing server may stop answering after its own handoff.
 		table.insert(members, actor)
+		local owned = env.document(actor)
+		local share = if owned then owned.routeShare else nil
 		for _, member in members do
-			local ok, reason = Party.routeGate(env.content, route, env.facts(member))
+			local facts = env.facts(member)
+			if member ~= actor then
+				facts = Party.sharedFacts(share, member, route, facts)
+			end
+			local ok, reason = Party.routeGate(env.content, route, facts)
 			if not ok then
 				return { ok = false, reason = if member == actor then reason else "party_not_ready" }
 			end
@@ -251,12 +260,57 @@ function M.new(env: any): any
 			else nil
 		for _, member in members do
 			local departure = M.carried(if env.personal then env.personal(member) else nil)
-			local moved = env.travel(member, "archipelago", route, { party = crewInfo, departure = departure })
+			local shared = member ~= actor and share and share.route == route and share.members[member] == "member"
+			local moved = env.travel(
+				member,
+				"archipelago",
+				route,
+				{ party = crewInfo, departure = departure, sharedBy = if shared then actor else nil }
+			)
 			if member == actor then
 				result = moved
 			end
 		end
 		return { ok = result.ok, reason = result.reason, data = { route = route, members = #members } }
+	end
+	-- Route sharing (S7): the actor shares the highest route they can enter themselves; the roster
+	-- persists in the owner's route document. Accept writes the owner's record after the
+	-- member's own gates pass; a revoke removes the member.
+	local function share(actor: string, verb: string, target: string): any
+		local owner = if verb == "route-accept" then target else actor
+		if verb == "route-invite" and not env.online(target) then
+			return { ok = false, reason = "player_offline" }
+		end
+		local route, refused = 0, nil
+		if verb == "route-invite" then
+			local facts = env.facts(actor)
+			for index = math.min(facts.instabilityAccess or 1, Party.ROUTES), 1, -1 do
+				local ok, reason = Party.routeGate(env.content, index, facts)
+				route, refused = if ok and route == 0 then index else route, refused or reason
+			end
+			if route == 0 then
+				return { ok = false, reason = refused }
+			end
+		end
+		local memberFacts = if verb == "route-accept" then env.facts(actor) else nil
+		return env.transaction(owner, function(document): any
+			local nextShare, reason
+			if verb == "route-invite" then
+				nextShare, reason = Party.shareInvite(document.routeShare, actor, target, route)
+			elseif verb == "route-accept" then
+				nextShare, reason = Party.shareAccept(env.content, document.routeShare, actor, memberFacts)
+			else
+				nextShare, reason = Party.shareRevoke(document.routeShare, target)
+			end
+			if not nextShare then
+				return { ok = false, reason = reason }
+			end
+			document.routeShare = nextShare
+			return {
+				ok = true,
+				data = { route = nextShare.route, owner = owner, status = nextShare.members[actor] or "revoked" },
+			}
+		end)
 	end
 	return {
 		id = "expedition",
@@ -291,6 +345,8 @@ function M.new(env: any): any
 				ok, reason = Party.share(state, actor, tonumber(arg) or 0)
 			elseif verb == "claim" then
 				return env.claim(actor, arg)
+			elseif verb == "route-invite" or verb == "route-revoke" or verb == "route-accept" then
+				return share(actor, verb, arg)
 			elseif verb == "next" or verb == "home" then
 				if not env.onExpedition() then
 					return { ok = false, reason = "missing_expedition" }
@@ -351,6 +407,7 @@ function M.new(env: any): any
 					M.worn(env.content, if env.worn then env.worn(actor) else {})
 				),
 				party = view,
+				routeShare = if document then document.routeShare else nil,
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
 				-- The player's own level and island grade, so a locked route can say what is missing.
 				facts = env.facts(actor),

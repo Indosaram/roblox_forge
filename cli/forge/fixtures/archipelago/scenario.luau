@@ -1,9 +1,45 @@
 --!strict
 local Extension = require("../../../../genres/survival-coop/module/ArchipelagoExtension")
+local Expedition = require("../../../../genres/survival-coop/module/ExpeditionExtension")
 local Domain = require("../../../../core/domain/island/Archipelago")
 local Content = require("../../../../games/robango-island/src/shared/SurvivalContent")
 local M = {}
 M.operations = {
+	-- p103 S7 route sharing through the production party-action handler; membership persists in
+	-- the owner's route document and each member keeps their own level gate.
+	route_share = function(ctx, step): string?
+		local actor = ctx.playerOf(step)
+		local result = ctx.fixture.crew.command(
+			actor,
+			Expedition.ACTION,
+			{ step.verb, step.target },
+			{},
+			"client",
+			function()
+				return { ok = true }
+			end
+		)
+		ctx.results[actor] = result
+		return if result.ok == (step.expect == "refused")
+			then "unexpected route share: " .. tostring(result.reason)
+			else nil
+	end,
+	route_open = function(ctx, step): string?
+		local actor = ctx.playerOf(step)
+		local result = ctx.fixture.extension.open(actor, {
+			id = "shared-" .. actor,
+			index = step.route,
+			seed = ctx.scenario.seed,
+			ttl = 1000,
+			revision = "v2",
+			entryBuffer = 30,
+			sharedBy = step.sharedBy,
+		})
+		ctx.results[actor] = result
+		return if result.ok == (step.expect == "refused")
+			then "unexpected shared open: " .. tostring(result.reason)
+			else nil
+	end,
 	archi_open = function(ctx, step): string?
 		local result = ctx.fixture.extension.open(ctx.playerOf(step), {
 			id = "native-expedition",
@@ -66,9 +102,52 @@ M.operations = {
 }
 function M.new(ctx): any
 	local document: any = { bag = { { id = "owned-pick", durability = 27 } } }
+	local documents: any = {}
 	local ledger: any = {}
 	local now = 0
+	local owner = ctx.scenario.players[1]
+	local function doc(actor: string): any
+		if actor == owner then
+			return document
+		end
+		documents[actor] = documents[actor] or {}
+		return documents[actor]
+	end
+	local function transaction(actor, transform)
+		return transform(doc(actor))
+	end
+	-- Owner: every route open; a helper: level 60 but no route access of their own; a newcomer: level 1.
+	local function facts(actor: string): any
+		if actor == owner then
+			return { level = 60, developmentRank = 10, instabilityAccess = 5 }
+		end
+		return { level = if actor == "newcomer" then 1 else 60, developmentRank = 10, instabilityAccess = 1 }
+	end
 	return {
+		crew = Expedition.new({
+			content = Content,
+			now = function()
+				return now
+			end,
+			facts = facts,
+			document = doc,
+			transaction = transaction,
+			online = function()
+				return true
+			end,
+			onExpedition = function()
+				return false
+			end,
+			layoutId = function()
+				return nil
+			end,
+			position = function()
+				return nil
+			end,
+			travel = function()
+				return { ok = true }
+			end,
+		}),
 		document = document,
 		ledger = ledger,
 		setTime = function(value)
@@ -80,17 +159,14 @@ function M.new(ctx): any
 			now = function()
 				return now
 			end,
-			facts = function()
-				return { level = 60, developmentRank = 10, instabilityAccess = 5 }
-			end,
+			facts = facts,
 			verify = function(actor, id)
 				local receipt = ledger[id]
 				return if receipt and receipt.actor == actor then receipt else nil
 			end,
 			store = {
-				transaction = function(_actor, transform)
-					return transform(document)
-				end,
+				transaction = transaction,
+				snapshot = doc,
 			},
 			returnHome = function(actor)
 				-- Actual Session handoff exercises owned-player persistence; the

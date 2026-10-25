@@ -29,6 +29,12 @@ M.operations = {
 				else "relocation lost permissions"
 		elseif step.check == "departed" then
 			return if state.members.helper == nil and state.funds == 0 then nil else "departed actor changed funds"
+		elseif step.check == "drafted" then
+			return if state.members.third
+					and state.members.third.role == "visitor"
+					and next(state.drafts) == nil
+				then nil
+				else "confirmed draft did not admit the applicant"
 		end
 		return "unknown clan assertion"
 	end,

@@ -11,9 +11,18 @@ local Sheet = require("./CharacterSheet")
 local GuideEvents = require("./GuideEvents")
 local M = {}
 
-local ACK: { [string]: boolean } = {}
+local ACK: { [string]: any } = {}
 for _, verb in GuideEvents.VERBS do
-	ACK[verb] = true
+	ACK[verb] = function(target: string): (string, { any })
+		return GuideEvents.ACT, { verb, target }
+	end
+end
+-- The support steps (g18) run the real quote command; the server reads the authored tier row.
+local QUOTE: { [string]: string } = { preview = "preview", ["acknowledge-level-gate"] = "acknowledge" }
+for verb, mode in QUOTE do
+	ACK[verb] = function(target: string): (string, { any })
+		return "survival-coop:equipment-quote", { target, mode }
+	end
 end
 
 M.UPCOMING = 3
@@ -83,7 +92,11 @@ function M.model(locale: string, data: any): { Sheet.Row }
 				local verb = "guide_act_" .. string.gsub(objective.action, "%-", "_")
 				local missing = GuideEvents.UNSUPPORTED[objective.action] ~= nil
 				-- Acknowledgement steps are performed from this row (guide-act); the server checks order.
-				local tap = ACK[objective.action] and (progress[objective.id] or 0) < objective.quantity
+				local tap = ACK[objective.action] ~= nil and (progress[objective.id] or 0) < objective.quantity
+				local action, args = nil, nil
+				if tap then
+					action, args = ACK[objective.action](objective.target)
+				end
 				table.insert(rows, {
 					name = "Objective-" .. objective.id,
 					text = Text.format(
@@ -97,8 +110,8 @@ function M.model(locale: string, data: any): { Sheet.Row }
 						math.min(progress[objective.id] or 0, objective.quantity),
 						objective.quantity
 					),
-					action = if tap then GuideEvents.ACT else nil,
-					args = if tap then { objective.action, objective.target } else nil,
+					action = action,
+					args = args,
 				})
 			end
 		end

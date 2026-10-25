@@ -5,7 +5,7 @@ kind: native
 contract_api: 1
 seed: 814
 timeout_seconds: 120
-players: [owner, helper]
+players: [owner, helper, third]
 fixtures: [cli/forge/fixtures/clan-governance]
 steps:
   - {op: join, player: owner}
@@ -23,4 +23,16 @@ steps:
   - {op: expect_result, player: helper, field: reason, equals: NOT_MEMBER}
   - {op: clan_command, player: helper, action: withdraw, args: {amount: 1}, expect: refused}
   - {op: clan_check, player: owner, check: departed}
+  # p103 g15: the role preview reads the real grants; a membership draft waits for the leader.
+  - {op: clan_command, player: owner, action: preview, args: {role: officer}}
+  - {op: expect_result, player: owner, field: data.grants.invite, equals: true}
+  - {op: clan_command, player: third, action: draft, args: {role: member}}
+  - {op: clan_command, player: third, action: draft-confirm, args: {target: third}, expect: refused}
+  - {op: expect_result, player: third, field: reason, equals: NOT_MEMBER}
+  - {op: clan_command, player: owner, action: draft-cancel, args: {target: third}}
+  - {op: clan_command, player: owner, action: draft-confirm, args: {target: third}, expect: refused}
+  - {op: expect_result, player: owner, field: reason, equals: NO_DRAFT}
+  - {op: clan_command, player: third, action: draft, args: {role: visitor}}
+  - {op: clan_command, player: owner, action: draft-confirm, args: {target: third}}
+  - {op: clan_check, player: owner, check: drafted}
   - {op: close, player: owner}

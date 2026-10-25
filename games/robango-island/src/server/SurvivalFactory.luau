@@ -693,6 +693,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 			document = function(actor)
 				return (expeditionStore.snapshot(actor))
 			end,
+			transaction = expeditionStore.transaction,
 			layoutId = function()
 				return if world.layout then world.layout.id else nil
 			end,

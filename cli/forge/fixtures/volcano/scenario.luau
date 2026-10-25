@@ -258,7 +258,53 @@ local function equipment(): any
 	}
 end
 
+-- p103 g18: the production equipment-quote command over the real Session personal aggregate,
+-- bound through the production progression owner (ProgressionPorts + LateEquipmentPorts).
+local function quote(ctx: any, actor: string, step: any): any
+	local Extension = require("../../../../genres/survival-coop/module/LateEquipmentExtension")
+	local world: any = { services = {} }
+	require("../../../../genres/survival-coop/module/ProgressionPorts").bind(world, Content, {
+		snapshot = function()
+			return { development = { points = 800, definitions = {}, progress = {} } }
+		end,
+	}, ctx.now)
+	require("../../../../games/robango-island/src/server/LateEquipmentPorts").bind(world)
+	assert(ctx.session.personalTransaction(actor, function(raw)
+		local data = raw.envelope.genres["survival-coop"].data
+		data.progression = Tree.level(Tree.new(Content, Policy.tree), Policy.tree, step.level)
+		return raw
+	end))
+	local extension = assert(Extension.factory({
+		content = Content,
+		world = world,
+		now = ctx.now,
+		personalTransfer = ctx.session.personalTransfer,
+	}))
+	ctx.fixture.sequence = (ctx.fixture.sequence or 0) + 1
+	local result = extension.command(
+		actor,
+		"survival-coop:equipment-quote",
+		{ step.id, step.verb },
+		{ sessionEpoch = 1, requestId = "quote-" .. ctx.fixture.sequence, actorId = actor },
+		"client",
+		function()
+			return { ok = true }
+		end
+	)
+	local late = extension.snapshot(actor) or {}
+	if result.ok then
+		result.data.acknowledged = (late.acknowledged or {})[step.id]
+	end
+	return result
+end
+
 M.operations = {
+	equipment_quote = function(ctx: any, step: any): string?
+		local actor = ctx.playerOf(step)
+		local result = quote(ctx, actor, step)
+		ctx.results[actor] = result
+		return if result.ok == (step.expect == "refused") then "unexpected quote: " .. tostring(result.reason) else nil
+	end,
 	volcano_progression = function(ctx: any, step: any): string?
 		local data = volcano()
 		ctx.fixture.state = data

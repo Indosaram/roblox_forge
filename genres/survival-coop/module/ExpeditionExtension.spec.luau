@@ -19,6 +19,15 @@ local function harness(facts: { [string]: any }, now: number?, onExpedition: boo
 		document = function(actor)
 			return h.documents and h.documents[actor]
 		end,
+		transaction = function(actor, transform)
+			h.documents = h.documents or {}
+			local document = table.clone(h.documents[actor] or {})
+			local result = transform(document)
+			if result.ok then
+				h.documents[actor] = document
+			end
+			return result
+		end,
 		layoutId = function()
 			return h.layout
 		end,
@@ -82,6 +91,28 @@ return {
 		assert(away.send("a", "next").ok and away.travels[1] == "a>next-island:nil", "next island uses travel")
 		local home = harness({ a = READY })
 		assert(home.send("a", "home").reason == "missing_expedition", "return needs an expedition")
+	end,
+	["route-invite accept and revoke persist in the owner's route record and keep member gates"] = function()
+		local facts = {
+			a = { level = 35, developmentRank = 4, instabilityAccess = 2 },
+			b = { level = 35, developmentRank = 4, instabilityAccess = 1 },
+			c = { level = 1, developmentRank = 0, instabilityAccess = 1 },
+		}
+		local h = harness(facts)
+		assert(h.send("a", "route-invite", "b").ok and h.send("a", "route-invite", "c").ok, "invites")
+		local share = h.documents.a.routeShare
+		assert(share.route == 2 and share.members.b == "invited", "the owner's open route is shared")
+		local low = h.send("c", "route-accept", "a")
+		assert(not low.ok and low.reason == "level_gate", "the member's own gate refuses")
+		local accepted = h.send("b", "route-accept", "a")
+		assert(accepted.ok and accepted.data.status == "member", "b accepts")
+		assert(h.extension.snapshot("a").routeShare.members.b == "member", "snapshot shows the roster")
+		assert(h.send("a", "invite", "b").ok and h.send("b", "accept", "a").ok, "b joins the crew")
+		local departed = h.send("a", "depart", "2")
+		assert(departed.ok and #h.travels == 2, "shared member departs: " .. tostring(departed.reason))
+		assert(h.send("a", "route-revoke", "b").ok and h.documents.a.routeShare.members.b == nil, "revoked")
+		assert(h.send("a", "route-revoke", "b").reason == "invite_missing", "revoking twice is refused")
+		assert(h.send("b", "route-accept", "a").reason == "invite_missing", "a revoked member cannot accept")
 	end,
 	["snapshot carries routes party invites tracker hazard and results"] = function()
 		local h = harness({ a = READY, b = READY }, 100)

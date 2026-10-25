@@ -14,6 +14,7 @@ function M.new(id: string, owner: string): any
 		owner = owner,
 		members = { [owner] = { role = "owner", withdraw = false } },
 		invites = {},
+		drafts = {},
 		funds = 0,
 		level = 1,
 		experience = 0,
@@ -44,6 +45,21 @@ function M.allowed(state: any, actor: string, capability: string): boolean
 	return capability == "view"
 end
 
+local CAPABILITIES = { "view", "build", "deposit", "invite", "research", "territory", "govern", "withdraw" }
+
+--- The grants a role carries in this clan (role preview), or nil for the owner or an unknown role.
+function M.preview(state: any, role: string): any?
+	if state.dissolved or not roles[role] or role == "owner" then
+		return nil
+	end
+	local probe = { dissolved = false, members = { [""] = { role = role, withdraw = false } } }
+	local grants = {}
+	for _, capability in CAPABILITIES do
+		grants[capability] = M.allowed(probe, "", capability)
+	end
+	return grants
+end
+
 function M.effect(state: any, actor: string, effect: string, now: number, outpost: any): boolean
 	if not M.allowed(state, actor, "build") or not state.research[effect] then
 		return false
@@ -65,7 +81,7 @@ function M.apply(
 	now: number,
 	ctx: any
 ): (any?, string?)
-	if operation ~= "join" then
+	if operation ~= "join" and operation ~= "draft" and not (operation == "draft-cancel" and args.target == nil) then
 		if not M.allowed(state, actor, "view") then
 			return nil, "NOT_MEMBER"
 		end
@@ -98,6 +114,40 @@ function M.apply(
 		end
 		out.members[actor] = { role = "member", withdraw = false }
 		out.invites[actor] = nil
+	elseif operation == "draft" then
+		-- A membership draft: the applicant asks for a role; the leader confirms or cancels it.
+		if state.dissolved or state.members[actor] then
+			return nil, "ALREADY_MEMBER"
+		end
+		if args.role ~= "member" and args.role ~= "visitor" then
+			return nil, "INVALID_ROLE"
+		end
+		out.drafts = out.drafts or {}
+		if out.drafts[actor] then
+			return nil, "DRAFT_EXISTS"
+		end
+		out.drafts[actor] = { role = args.role, at = now }
+	elseif operation == "draft-cancel" or operation == "draft-confirm" then
+		local target = args.target or actor
+		if target ~= actor and not M.allowed(state, actor, "invite") then
+			return nil, "FORBIDDEN"
+		end
+		local draft = (state.drafts or {})[target]
+		if not draft then
+			return nil, "NO_DRAFT"
+		end
+		out.drafts[target] = nil
+		if operation == "draft-confirm" then
+			local count = 0
+			for _ in state.members do
+				count += 1
+			end
+			if target == actor or count >= ctx.rules.maxMembers then
+				return nil, if target == actor then "FORBIDDEN" else "CLAN_FULL"
+			end
+			out.members[target] = { role = draft.role, withdraw = false }
+			out.invites[target] = nil
+		end
 	elseif operation == "role" or operation == "capability" or operation == "transfer" then
 		if not M.allowed(state, actor, "govern") then
 			return nil, "FORBIDDEN"

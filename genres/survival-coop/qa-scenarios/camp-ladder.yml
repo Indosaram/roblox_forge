@@ -12,7 +12,7 @@ players: [owner, member, guest, stranger]
 fixtures: [cli/forge/fixtures/camp-ladder, cli/forge/fixtures/camp-seed]
 data:
   durable:
-    actions: ["survival-coop:settlement-leave", "survival-coop:camp-contribute", "survival-coop:camp-complete", "survival-coop:camp-visit-open", "survival-coop:camp-visit-help"]
+    actions: ["survival-coop:settlement-leave", "survival-coop:camp-contribute", "survival-coop:camp-complete", "survival-coop:camp-visit-open", "survival-coop:camp-visit-help", "survival-coop:camp-loan"]
     serverActions: ["survival-coop:settlement-invite"]
     personal: {namespace: personal, inventoryPath: [genres, survival-coop, data, inventory, bag]}
 steps:
@@ -63,6 +63,21 @@ steps:
   - {op: command, player: guest, requestId: late, sessionEpoch: current, action: "survival-coop:camp-visit-help", args: [owner, drying-rack, starter-fiber, 2, 6], expect: refused}
   - {op: expect_result, player: guest, field: reason, equals: VISIT_EXPIRED}
   - {op: expect_snapshot, player: guest, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 10}
+  # p103 g17/g19 equipment loan: a member escrows gear in the camp, another member borrows and
+  # returns it, and only then the lender recalls it. A non-member cannot borrow.
+  - {op: seed_bag, player: member, item: cold-head, itemId: spare-hat, quantity: 1}
+  - {op: command, player: member, requestId: loan1, sessionEpoch: current, action: "survival-coop:camp-loan", args: [offer, spare-hat]}
+  - {op: expect_result, player: member, field: data.loanId, equals: L-member-loan1}
+  - {op: expect_snapshot, player: owner, scope: session, field: survivalExtensions.camp.loans.L-member-loan1.catalogId, equals: cold-head}
+  - {op: command, player: guest, requestId: steal, sessionEpoch: current, action: "survival-coop:camp-loan", args: [take, L-member-loan1], expect: refused}
+  - {op: expect_result, player: guest, field: reason, equals: FORBIDDEN}
+  - {op: command, player: owner, requestId: borrow, sessionEpoch: current, action: "survival-coop:camp-loan", args: [take, L-member-loan1]}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.loan-L-member-loan1.catalogId, equals: cold-head}
+  - {op: command, player: member, requestId: early-recall, sessionEpoch: current, action: "survival-coop:camp-loan", args: [recall, L-member-loan1], expect: refused}
+  - {op: expect_result, player: member, field: reason, equals: LOAN_OUT}
+  - {op: command, player: owner, requestId: giveback, sessionEpoch: current, action: "survival-coop:camp-loan", args: [return, L-member-loan1]}
+  - {op: command, player: member, requestId: recall, sessionEpoch: current, action: "survival-coop:camp-loan", args: [recall, L-member-loan1]}
+  - {op: expect_snapshot, player: member, genre: survival-coop, field: inventory.bag.items.spare-hat.catalogId, equals: cold-head}
   # Rejoin cooldown wired into the game: a departed member cannot be re-invited.
   - {op: command, player: member, requestId: leave, sessionEpoch: current, action: "survival-coop:settlement-leave", args: [member, 1, 1]}
   - {op: command_server, player: owner, requestId: reinvite, sessionEpoch: current, action: "survival-coop:settlement-invite", args: [member, 2, 2], expect: refused}

@@ -484,6 +484,10 @@ for _, actions in
 		require("./OperationExtension").actions(),
 		require("./StanceExtension").actions(),
 		require("./GuideEvents").actions(),
+		-- p103: real route-share/clan-draft/support-quote/loan commands behind the guide steps.
+		require("./ClanExtension").draftActions(),
+		require("./LateEquipmentExtension").actions(),
+		require("./CampExtension").actions(),
 	}
 do
 	for _, action in actions do

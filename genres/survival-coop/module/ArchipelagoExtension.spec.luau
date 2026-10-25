@@ -4,6 +4,42 @@ local Content = require("../../../games/robango-island/src/shared/SurvivalConten
 local World = require("../../../games/robango-island/src/server/ArchipelagoWorld")
 local serde = require("@lune/serde")
 return {
+	["a member on a shared route opens it with the owner's route access but their own level gate"] = function()
+		local documents: any = { owner = { routeShare = { route = 2, members = { b = "member", c = "invited" } } } }
+		local extension = Extension.new({
+			content = Content,
+			entryBuffer = 30,
+			now = function()
+				return 10
+			end,
+			facts = function(actor)
+				return { level = if actor == "low" then 1 else 60, developmentRank = 10, instabilityAccess = 1 }
+			end,
+			store = {
+				transaction = function(actor, transform)
+					local candidate = serde.decode("json", serde.encode("json", documents[actor] or {}))
+					local result = transform(candidate)
+					if result.ok then
+						documents[actor] = candidate
+					end
+					return result
+				end,
+				snapshot = function(actor)
+					return documents[actor]
+				end,
+			},
+		})
+		local function open(actor: string, id: string): any
+			return extension.open(
+				actor,
+				{ id = id, index = 2, seed = 74, ttl = 1000, revision = "v2", entryBuffer = 30, sharedBy = "owner" }
+			)
+		end
+		assert(open("b", "trip-b").ok, "a shared member opens route 2")
+		assert(open("c", "trip-c").reason == "instability_gate", "an invite alone lends nothing")
+		documents.owner.routeShare.members.low = "member"
+		assert(open("low", "trip-low").reason == "level_gate", "the member's own level gate holds")
+	end,
 	["mission development awards once and a completed route unlocks the next instability"] = function()
 		local document: any = {}
 		local receipt: any = nil

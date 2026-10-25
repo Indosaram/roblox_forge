@@ -80,6 +80,7 @@ local forge = {
 	},
 }
 local manualScheduling = false
+local online: { [string]: boolean } = {}
 local environment: any = {
 	script = { Parent = { LateEquipmentPorts = LateEquipmentPorts } },
 	game = {
@@ -88,9 +89,9 @@ local environment: any = {
 				WaitForChild = function()
 					return forge
 				end,
-				-- Players: no live Player object in this harness (settings snapshot skips the attribute).
-				GetPlayerByUserId = function()
-					return nil
+				-- Players: only actors a case marks online have a Player stub (route-share invites).
+				GetPlayerByUserId = function(_, id)
+					return if online[tostring(id)] then { SetAttribute = function() end } else nil
 				end,
 			}
 		end,
@@ -135,7 +136,8 @@ local function boot(
 	live: boolean?,
 	preview: boolean?,
 	realRole: boolean?,
-	layoutId: string?
+	layoutId: string?,
+	clan: boolean?
 ): Server
 	local source = defaultSource
 	local move: any = nil
@@ -258,6 +260,29 @@ local function boot(
 			bind(value)
 		end
 	end
+	if clan then
+		world.clanDirectory = require("../../core/infra/data/ClanStore").new({
+			dataStore = {
+				UpdateAsync = function(_, key, transform)
+					local ok, result = backend.update("clan-directory:" .. key, transform)
+					assert(ok, result)
+					return result
+				end,
+			},
+			rules = content.clanPolicy,
+			maxBytes = 3900000,
+			encode = function(value)
+				return serde.encode("json", value)
+			end,
+			fence = {
+				sessionId = "guide-clan",
+				leaseSeconds = 120,
+				now = function()
+					return math.floor(clockAt.value)
+				end,
+			},
+		})
+	end
 	if layoutId then
 		-- Spatial facts for the guide's place: the actor stands inside it and reaches its anchors.
 		for _, layout in content.layouts do
@@ -337,10 +362,12 @@ local function boot(
 end
 
 local ACTOR = FIRST
+local LENDER = "2001"
 local sequence = 0
-local function send(server: any, action: string, args: { any }): any
+local function send(server: any, action: string, args: { any }, actor: string?): any
+	local who = actor or ACTOR
 	if action == "gather" then
-		args = { args[1], server.factory.services.survivalGathering.snapshot(ACTOR).version }
+		args = { args[1], server.factory.services.survivalGathering.snapshot(who).version }
 	end
 	sequence += 1
 	server.at.value += 3
@@ -348,17 +375,17 @@ local function send(server: any, action: string, args: { any }): any
 	local session = server.session
 	local request = {
 		requestId = "guide-" .. sequence,
-		sessionEpoch = session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
+		sessionEpoch = session.commandEpoch(who, "survival-coop:" .. action) or 0,
 		action = "survival-coop:" .. action,
 		args = args,
 	}
-	local result = session.command(ACTOR, request)
+	local result = session.command(who, request)
 	for _ = 1, 4 do
 		if result.ok or action ~= "gather" then
 			break
 		end
-		assert(session.recoverTransfers(ACTOR, 16).ok, "transfer recovery")
-		result = session.command(ACTOR, request)
+		assert(session.recoverTransfers(who, 16).ok, "transfer recovery")
+		result = session.command(who, request)
 	end
 	assert(result.ok, action .. ": " .. serde.encode("json", result))
 	return result
@@ -373,8 +400,8 @@ local function bagItem(server: any, catalogId: string): string
 	error("no " .. catalogId .. " in bag")
 end
 
-local function give(server: any, id: string, catalogId: string, quantity: number, attributes: any?)
-	server.session.personalTransaction(ACTOR, function(raw)
+local function give(server: any, id: string, catalogId: string, quantity: number, attributes: any?, actor: string?)
+	server.session.personalTransaction(actor or ACTOR, function(raw)
 		raw.envelope.genres["survival-coop"].data.inventory.bag.items[id] = {
 			itemId = id,
 			catalogId = catalogId,
@@ -417,6 +444,25 @@ end
 
 local function act(server: any, verb: string, target: string)
 	send(server, "guide-act", { verb, target })
+end
+
+-- p103 loans: a camp member escrows gear in the camp; the guide player borrows and returns it.
+local loans: { [string]: string } = {}
+local function lend(server: any, item: string)
+	assert(server.session.join(LENDER).ok, "lender joins")
+	give(server, "lend-" .. item, item, 1, nil, LENDER)
+	local offered = send(server, "camp-loan", { "offer", "lend-" .. item }, LENDER)
+	loans[item] = offered.data.loanId
+	send(server, "camp-loan", { "take", loans[item] })
+	assert(server.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items["loan-" .. loans[item]], "borrowed")
+end
+local function giveBack(server: any, item: string)
+	send(server, "camp-loan", { "return", loans[item] })
+	assert(server.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items["loan-" .. loans[item]] == nil, "gone")
+	send(server, "camp-loan", { "recall", loans[item] }, LENDER)
+	local back = server.session.snapshot(LENDER)["survival-coop"].inventory.bag.items["lend-" .. item]
+	assert(back and back.catalogId == item, "the lender has the gear back")
+	assert(server.session.close(LENDER).ok, "lender leaves")
 end
 
 local function craft(server: any, at: any, recipe: string, station: string)
@@ -518,11 +564,19 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	["rw.g11.skill-reclaim.2"] = function(server)
 		act(server, "cancel-preview", "skills")
 	end,
+	-- p103: route sharing is real: the invite and revoke land in the owner's route record.
 	["rw.g12.route-share.1"] = function(server)
-		act(server, "invite-training", "rw.training-recipient")
+		online[LENDER] = true
+		assert(server.session.join(LENDER).ok, "recipient joins")
+		local invited = send(server, "party-action", { "route-invite", LENDER })
+		assert(invited.data.route == 1, "the owner's unlocked route is shared")
+		local share = server.factory.expeditionStore.snapshot(ACTOR).routeShare
+		assert(share.members[LENDER] == "invited", "invite persisted in route state")
 	end,
 	["rw.g12.route-share.2"] = function(server)
-		act(server, "revoke", "rw.training-recipient")
+		send(server, "party-action", { "route-revoke", LENDER })
+		assert(server.factory.expeditionStore.snapshot(ACTOR).routeShare.members[LENDER] == nil, "revoked")
+		assert(server.session.close(LENDER).ok, "recipient leaves")
 	end,
 	["rw.g13.lab.1"] = function(server)
 		act(server, "inspect", "laboratory")
@@ -548,14 +602,22 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		wait(server, at, 301)
 		send(server, "companion-action", { "claim", "guide-dodo" })
 	end,
+	-- p103: the clan steps read and write the real clan record.
 	["rw.g15.clan.1"] = function(server)
-		act(server, "preview-role", "clan")
+		assert(server.session.join(LENDER).ok, "leader joins")
+		send(server, "clan-create", { "guide-clan" }, LENDER)
+		local preview = send(server, "clan-preview", { "guide-clan", { role = "member" } })
+		assert(preview.data.grants.build and not preview.data.grants.govern, "member grants previewed")
 	end,
 	["rw.g15.clan.2"] = function(server)
-		act(server, "draft-membership", "clan")
+		send(server, "clan-draft", { "guide-clan", { role = "member" } })
+		local clan = server.session.snapshot(LENDER).survivalExtensions.clan
+		assert(clan.drafts[ACTOR].role == "member" and not clan.members[ACTOR], "draft recorded, not a member")
 	end,
 	["rw.g15.clan.3"] = function(server)
-		act(server, "cancel-draft", "clan")
+		send(server, "clan-draft-cancel", { "guide-clan", {} })
+		assert(server.session.snapshot(LENDER).survivalExtensions.clan.drafts[ACTOR] == nil, "draft cancelled")
+		assert(server.session.close(LENDER).ok, "leader leaves")
 	end,
 	["rw.g16.refrigeration.1"] = function(server)
 		send(server, "home-deposit", { "home:" .. ACTOR, { itemId = bagItem(server, "berry"), quantity = 1 } })
@@ -567,28 +629,32 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		send(server, "home-withdraw", { "home:" .. ACTOR, { itemId = stored(server, "berry"), quantity = 1 } })
 	end,
 	["rw.g17.snow-preparation.1"] = function(server)
-		act(server, "equip-loan", "cold-head")
+		lend(server, "cold-head")
 	end,
 	["rw.g17.snow-preparation.2"] = function(server)
 		act(server, "inspect", "cold-head")
 	end,
 	["rw.g17.snow-preparation.3"] = function(server)
-		act(server, "return-loan", "cold-head")
+		giveBack(server, "cold-head")
 	end,
+	-- p103: the support quote is the real tier row; the acknowledgement lands in late-equipment state.
 	["rw.g18.technical-support.1"] = function(server)
-		act(server, "preview", "support-tier-1")
+		local quote = send(server, "equipment-quote", { "support-tier-1", "preview" })
+		assert(quote.data.level == 60 and quote.data.cost == 500 and not quote.data.levelMet, "tier 1 quote")
 	end,
 	["rw.g18.technical-support.2"] = function(server)
-		act(server, "acknowledge-level-gate", "support-tier-1")
+		send(server, "equipment-quote", { "support-tier-1", "acknowledge" })
+		local late = server.session.snapshot(ACTOR).survivalExtensions["late-equipment"]
+		assert(late.acknowledged["support-tier-1"] == 60, "level gate acknowledged in late-equipment state")
 	end,
 	["rw.g19.volcano-preparation.1"] = function(server)
-		act(server, "equip-loan", "lava-protection-boots")
+		lend(server, "lava-protection-boots")
 	end,
 	["rw.g19.volcano-preparation.2"] = function(server)
 		act(server, "inspect", "lava-protection-boots")
 	end,
 	["rw.g19.volcano-preparation.3"] = function(server)
-		act(server, "return-loan", "lava-protection-boots")
+		giveBack(server, "lava-protection-boots")
 	end,
 	["rw.g20.rescue-preparation.1"] = function(server)
 		give(server, "guide-fiber", "fiber", 4)
@@ -673,7 +739,8 @@ local PLACE: { [string]: string } = {
 
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }
-	local server = boot(Memory.new(), "job:guide-" .. guide.id, at, nil, nil, nil, PLACE[guide.id])
+	local clan = guide.id == "rw.g15.clan"
+	local server = boot(Memory.new(), "job:guide-" .. guide.id, at, nil, nil, nil, PLACE[guide.id], clan)
 	server.at = at
 	assert(server.session.join(ACTOR).ok, "join")
 	-- Open the guide's band: level and development grade from its gates.
@@ -807,7 +874,7 @@ cases["guide-act refuses an objective of a guide that is not open or out of orde
 		assert(not result.ok and result.reason == reason, verb .. ": " .. tostring(result.reason))
 	end
 	refused("cancel-preview", "skills", "GUIDE_STEP_ORDER")
-	refused("acknowledge-level-gate", "support-tier-1", "GUIDE_NOT_OPEN")
+	refused("inspect-rate", "refrigerator", "GUIDE_NOT_OPEN")
 	refused("visit", "nowhere", "GUIDE_NOT_OPEN")
 	local development = server.factory.expeditionStore.snapshot(ACTOR).development
 	assert(next(development.progress) == nil or development.progress["rw.g11.skill-reclaim.2"] == nil, "no progress")
@@ -840,6 +907,61 @@ cases["the first band alone lifts a fresh player to island grade 2 (route 1)"] =
 	end
 	local points = server.factory.expeditionStore.snapshot(ACTOR).development.points
 	assert(points >= 200, "grade 2 needs 200 development, got " .. points)
+	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
+end
+
+cases["p103 camp equipment loans escrow the item and refuse out-of-turn takes, returns and recalls"] = function()
+	local guide: any = nil
+	for _, row in content.guides do
+		guide = if row.id == "rw.g17.snow-preparation" then row else guide
+	end
+	local server = fresh(guide)
+	assert(server.session.join(LENDER).ok, "lender joins")
+	give(server, "lend-hat", "cold-head", 1, nil, LENDER)
+	local loanId = send(server, "camp-loan", { "offer", "lend-hat" }, LENDER).data.loanId
+	assert(server.session.snapshot(LENDER)["survival-coop"].inventory.bag.items["lend-hat"] == nil, "escrowed")
+	local camp = server.session.snapshot(LENDER).survivalExtensions.camp
+	assert(camp.loans[loanId].catalogId == "cold-head" and camp.loans[loanId].lender == LENDER, "in the camp")
+	local function refused(actor: string, args: { any }, reason: string)
+		sequence += 1
+		server.at.value += 3
+		server.session.advance(server.at.value)
+		local result = server.session.command(actor, {
+			requestId = "loan-refuse-" .. sequence,
+			sessionEpoch = server.session.commandEpoch(actor, "survival-coop:camp-loan") or 0,
+			action = "survival-coop:camp-loan",
+			args = args,
+		})
+		assert(not result.ok and result.reason == reason, args[1] .. ": " .. tostring(result.reason))
+	end
+	refused(LENDER, { "take", loanId }, "OWN_LOAN")
+	refused(ACTOR, { "return", loanId }, "NOT_BORROWER")
+	refused(ACTOR, { "take", "missing" }, "NO_LOAN")
+	send(server, "camp-loan", { "take", loanId })
+	refused(LENDER, { "recall", loanId }, "LOAN_OUT")
+	refused(ACTOR, { "recall", loanId }, "NOT_LENDER")
+	send(server, "camp-loan", { "return", loanId })
+	refused(ACTOR, { "return", loanId }, "NOT_BORROWER")
+	send(server, "camp-loan", { "recall", loanId }, LENDER)
+	assert(server.session.snapshot(LENDER)["survival-coop"].inventory.bag.items["lend-hat"], "recalled")
+	refused(LENDER, { "recall", loanId }, "NO_LOAN")
+	local progress = server.factory.expeditionStore.snapshot(ACTOR).development.progress
+	assert(progress["rw.g17.snow-preparation.1"] == 1, "the real take counts as the guide's loan step")
+	assert(server.session.close(LENDER).ok and server.session.close(ACTOR).ok, "close")
+	assert(server.factory.close().ok, "release")
+end
+
+cases["p103 support quote refuses a non-support row and a closed guide still accepts the real quote"] = function()
+	local server = fresh(content.guides[1])
+	local result = server.session.command(ACTOR, {
+		requestId = "quote-bad",
+		sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:equipment-quote") or 0,
+		action = "survival-coop:equipment-quote",
+		args = { "modify-hardness", "preview" },
+	})
+	assert(not result.ok and result.reason == "UNKNOWN_OPERATION", tostring(result.reason))
+	local quote = send(server, "equipment-quote", { "support-tier-2", "preview" })
+	assert(quote.data.level == 60 and quote.data.tier == 2, "tier 2 quote")
 	assert(server.session.close(ACTOR).ok and server.factory.close().ok, "release")
 end
 

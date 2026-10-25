@@ -32,7 +32,24 @@ local ACTIONS: { [string]: string } = {
 	["survival-coop:camp-complete"] = "complete",
 	["survival-coop:camp-visit-open"] = "visit-open",
 	["survival-coop:camp-visit-help"] = "visit-help",
+	["survival-coop:camp-loan"] = "loan",
 }
+
+-- camp-loan {offer itemId | take|return|recall loanId}: equipment loans between camp members.
+function M.actions(): { any }
+	local Schema = require("../../../core/infra/net/Schema")
+	return {
+		{
+			id = "camp-loan",
+			args = {
+				Schema.enum({ "offer", "take", "return", "recall" }),
+				Schema.string({ maxLen = 96, pattern = ".+" }),
+			},
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+	}
+end
 
 export type Config = {
 	content: Content.Document,
@@ -288,7 +305,7 @@ function M.new(config: Config): Built?
 	end
 
 	-- credit(data, settlementState, catalogId) -> (reason?) mutates data.camp on success.
-	type Credit = (any, string) -> string?
+	type Credit = (any, string, any) -> string?
 	local function deliver(
 		actor: string,
 		tribeId: string,
@@ -325,12 +342,13 @@ function M.new(config: Config): Built?
 			return copy(known.result)
 		end
 		local catalogId: string? = nil
+		local held: any = nil
 		local reserved, reserveError = bagUpdate(personal, function(bag)
 			local stack = bag.items[itemId]
 			if stack == nil then
 				return nil, "UNKNOWN_ITEM"
 			end
-			catalogId = stack.catalogId
+			catalogId, held = stack.catalogId, copy(stack)
 			if bag.reservations[id] ~= nil then
 				return nil, nil
 			end
@@ -356,7 +374,7 @@ function M.new(config: Config): Built?
 				reason = "RECEIPT_LIMIT"
 				return data
 			end
-			reason = credit(nextData, catalogId :: string)
+			reason = credit(nextData, catalogId :: string, held)
 			if reason then
 				return data
 			end
@@ -386,6 +404,150 @@ function M.new(config: Config): Built?
 			return "FORBIDDEN"
 		end
 		return nil
+	end
+
+	-- Equipment loans between camp members (guides g17/g19). One unit is escrowed in the camp
+	-- aggregate on offer; a member takes it into their bag, returns it, and only then the lender
+	-- may recall it. Bag and camp change in a recoverable order: a retried take re-adds a missing
+	-- borrowed item, a retried return finishes the camp side once the bag no longer holds it.
+	local function loanUpdate(tribeId: string, body: (any) -> (string?, any)): (string?, any)
+		local token, openError = open(tribeId)
+		if not token then
+			return openError or "CAMP_UNAVAILABLE", nil
+		end
+		local reason, value = nil, nil
+		local committed, err = store:update(token, function(data)
+			local nextData = copy(data)
+			nextData.loans = nextData.loans or {}
+			reason, value = body(nextData)
+			return if reason then data else nextData
+		end)
+		if not committed then
+			return err or "CAMP_COMMIT_FAILED", nil
+		end
+		tokens[tribeId] = committed
+		return reason, value
+	end
+	local function bagGive(personal: Session.PersonalTransfer, item: any): (boolean, string?)
+		return bagUpdate(personal, function(bag)
+			if bag.items[item.itemId] then
+				return nil, nil
+			end
+			return Inventory.add(bag, catalog, item, bag.version)
+		end)
+	end
+	local function loan(actor: string, args: { any }, context: Shared.CommandContext): Shared.Result
+		local settlement = member(actor)
+		if settlement == nil then
+			return failure("FORBIDDEN")
+		end
+		local tribeId = settlement.config.tribeId
+		local verb, id = args[1], args[2]
+		if verb == "offer" then
+			local binding = Ledger.canonical({ action = "loan-offer", actor = actor, args = args })
+			-- The loan id is the lender's request identity, so a replayed offer names the same loan.
+			local loanId = "L-" .. actor .. "-" .. context.requestId
+			local result = deliver(actor, tribeId, id, 1, context, binding, function(data, catalogId, held)
+				local reason = authority(actor, settlement)
+				if reason then
+					return reason
+				end
+				data.loans = data.loans or {}
+				if data.loans[loanId] then
+					return "LOAN_EXISTS"
+				end
+				local item = copy(held)
+				item.quantity = 1
+				data.loans[loanId] = { lender = actor, origin = id, catalogId = catalogId, item = item }
+				return nil
+			end)
+			return if result.ok then { ok = true, data = { loanId = loanId } } else result
+		end
+		local personal = config.personalTransfer(actor)
+		if not personal then
+			return failure("PERSONAL_UNAVAILABLE")
+		end
+		local held = "loan-" .. tostring(id)
+		if verb == "take" then
+			local reason, row = loanUpdate(tribeId, function(data)
+				local entry = data.loans[id]
+				if not entry then
+					return "NO_LOAN", nil
+				elseif entry.borrower and entry.borrower ~= actor then
+					return "LOAN_TAKEN", nil
+				elseif entry.lender == actor then
+					return "OWN_LOAN", nil
+				end
+				entry.borrower = actor
+				return nil, copy(entry)
+			end)
+			if reason then
+				return failure(reason)
+			end
+			local item = copy(row.item)
+			item.itemId = held
+			local given, why = bagGive(personal, item)
+			if not given then
+				loanUpdate(tribeId, function(data)
+					data.loans[id].borrower = nil
+					return nil, nil
+				end)
+				return failure(why or "BAG_FULL")
+			end
+			return { ok = true, data = { loanId = id, catalogId = row.catalogId } }
+		elseif verb == "return" then
+			local token = open(tribeId)
+			local row = if token and token.data.loans then token.data.loans[id] else nil
+			if not row then
+				return failure("NO_LOAN")
+			elseif row.borrower ~= actor then
+				return failure("NOT_BORROWER")
+			end
+			local removed, why = bagUpdate(personal, function(bag)
+				if bag.items[held] == nil then
+					return nil, nil
+				end
+				return Inventory.consume(bag, held, 1, bag.version)
+			end)
+			if not removed then
+				return failure(why or "LOAN_IN_USE")
+			end
+			local reason = loanUpdate(tribeId, function(data)
+				data.loans[id].borrower = nil
+				return nil, nil
+			end)
+			return if reason then failure(reason) else { ok = true, data = { loanId = id, catalogId = row.catalogId } }
+		elseif verb == "recall" then
+			local reason, row = loanUpdate(tribeId, function(data)
+				local entry = data.loans[id]
+				if not entry then
+					return "NO_LOAN", nil
+				elseif entry.lender ~= actor then
+					return "NOT_LENDER", nil
+				elseif entry.borrower then
+					return "LOAN_OUT", nil
+				end
+				data.loans[id] = nil
+				return nil, copy(entry)
+			end)
+			if reason then
+				return failure(reason)
+			end
+			local given, why = bagUpdate(personal, function(bag)
+				local item = copy(row.item)
+				item.itemId = if bag.items[row.origin] then held else row.origin
+				return Inventory.add(bag, catalog, item, bag.version)
+			end)
+			if not given then
+				loanUpdate(tribeId, function(data)
+					data.loans[id] = row
+					return nil, nil
+				end)
+				return failure(why or "BAG_FULL")
+			end
+			return { ok = true, data = { loanId = id, catalogId = row.catalogId } }
+		end
+		return failure("UNKNOWN_ACTION")
 	end
 
 	local function contribute(actor: string, args: { any }, context: Shared.CommandContext): Shared.Result
@@ -567,6 +729,8 @@ function M.new(config: Config): Built?
 			return complete(actor, args, context)
 		elseif mapped == "visit-open" then
 			return open_visit(actor, args)
+		elseif mapped == "loan" then
+			return loan(actor, args, context)
 		end
 		return help(actor, args, context)
 	end
@@ -596,6 +760,7 @@ function M.new(config: Config): Built?
 			facilities = copy(state.facilities),
 			completed = copy(state.completed),
 			active = copy(state.active),
+			loans = if settlement then copy(token.data.loans or {}) else nil,
 			ladder = { rungs = copy(ladder.rungs), projects = copy(ladder.projects), leagueRung = ladder.leagueRung },
 		}
 		if settlement then

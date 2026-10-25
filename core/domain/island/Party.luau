@@ -243,6 +243,56 @@ function M.routeGate(content: any, route: number, facts: any): (boolean, string?
 	return true, nil
 end
 
+-- Route sharing (S7): the owner opens their unlocked route to invited party members. The record
+-- lives in the owner's durable route state; a new route starts a fresh roster. Sharing lends
+-- only the owner's route access (instability); every member keeps their own level and
+-- development gates. Each transition returns a new record.
+function M.shareInvite(share: any?, owner: string, target: string, route: number): (any?, string?)
+	if target == owner then
+		return nil, "party_self"
+	end
+	local members: { [string]: string } = if share and share.route == route then table.clone(share.members) else {}
+	local out: any = { route = route, members = members }
+	if members[target] then
+		return nil, "party_member_busy"
+	end
+	out.members[target] = "invited"
+	return out, nil
+end
+
+function M.sharedFacts(share: any?, actor: string, route: number, facts: any): any
+	if not share or share.route ~= route or share.members[actor] ~= "member" then
+		return facts
+	end
+	local out = table.clone(facts)
+	out.instabilityAccess = math.max(facts.instabilityAccess or 1, route)
+	return out
+end
+
+function M.shareAccept(content: any, share: any?, actor: string, facts: any): (any?, string?)
+	if not share or share.members[actor] ~= "invited" then
+		return nil, "invite_missing"
+	end
+	local out = table.clone(share)
+	out.members = table.clone(share.members)
+	out.members[actor] = "member"
+	local ok, reason = M.routeGate(content, share.route, M.sharedFacts(out, actor, share.route, facts))
+	if not ok then
+		return nil, reason
+	end
+	return out, nil
+end
+
+function M.shareRevoke(share: any?, target: string): (any?, string?)
+	if not share or share.members[target] == nil then
+		return nil, "invite_missing"
+	end
+	local out = table.clone(share)
+	out.members = table.clone(share.members)
+	out.members[target] = nil
+	return out, nil
+end
+
 -- Expiry of a route opened at `now` (the same rotation window Expedition.open uses).
 function M.window(now: number, ttl: number): number
 	return (now // ttl + 1) * ttl

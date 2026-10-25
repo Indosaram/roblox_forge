@@ -429,6 +429,7 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 			entryBuffer = source.archipelago.entryBufferSeconds,
 			party = extra and extra.party,
 			departure = extra and extra.departure,
+			sharedBy = extra and extra.sharedBy,
 		})
 		if not opened.ok and opened.reason ~= "expedition_active" then
 			return false, opened.reason

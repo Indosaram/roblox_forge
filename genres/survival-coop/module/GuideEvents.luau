@@ -84,6 +84,20 @@ function M.event(action: string, args: { any }, facts: any, result: any): any?
 		return nil
 	elseif action == "guide-act" then
 		return event(data.action, data.target)
+	elseif action == "party-action" then
+		-- Route sharing (S7): any real invite or revoke of a party member is the training step.
+		local verb = if args[1] == "route-invite"
+			then "invite-training"
+			elseif args[1] == "route-revoke" then "revoke"
+			else nil
+		return if verb then event(verb, args[2], 1, "rw.training-recipient") else nil
+	elseif action == "clan-preview" or action == "clan-draft" or action == "clan-draft-cancel" then
+		local verbs = { ["clan-preview"] = "preview-role", ["clan-draft"] = "draft-membership" }
+		return event(verbs[action] or "cancel-draft", "clan")
+	elseif action == "equipment-quote" then
+		return event(if args[2] == "acknowledge" then "acknowledge-level-gate" else "preview", args[1])
+	elseif action == "camp-loan" and (args[1] == "take" or args[1] == "return") then
+		return event(if args[1] == "take" then "equip-loan" else "return-loan", data.catalogId)
 	elseif action == "home-area" then
 		-- The sprayer waters each selected plot it could apply to.
 		local crop, count = nil, 0
@@ -179,8 +193,9 @@ function M.apply(content: any, development: any, level: number, grade: (number) 
 end
 
 -- guide-act: the acknowledgement steps of development guides that change no game state (open a
--- preview, inspect a facility, draft and cancel, borrow and return training gear, visit the
--- demonstration home, ring the practice beacon). The server accepts one only when it is the next
+-- preview, inspect a facility, visit the demonstration home, ring the practice beacon). Route
+-- invites, clan drafts, equipment loans and the support quote are real commands (party-action,
+-- clan-*, camp-loan, equipment-quote). The server accepts one only when it is the next
 -- unfinished objective of an open guide and, when the target names a world anchor, only within
 -- reach of it. The settled result names { action, target }, which M.event turns into the guide
 -- event. Nothing is granted here: rewards settle through the guide outbox.
@@ -193,17 +208,8 @@ M.VERBS = table.freeze({
 	"visit",
 	"preview-refund",
 	"cancel-preview",
-	"invite-training",
-	"revoke",
 	"inspect",
-	"preview-role",
-	"draft-membership",
-	"cancel-draft",
 	"inspect-rate",
-	"equip-loan",
-	"return-loan",
-	"preview",
-	"acknowledge-level-gate",
 	"activate",
 })
 -- Verbs performed at a facility whose anchor is not named by the target.

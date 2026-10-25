@@ -278,6 +278,11 @@ return {
 		assert(log[1].action == "survival-coop:guide-act", "guide-act sent")
 		assert(log[1].args[1] == "visit" and log[1].args[2] == "rw.home-demo", "verb and target")
 		assert(find(rows, "Objective-rw.g08.market.1").action == nil, "finished step is not tappable")
+		-- p103: the support steps send the real quote command, not an acknowledgement.
+		local quote = find(rows, "Objective-rw.g18.technical-support.1")
+		Sheet.activate("en-us", quote, send)
+		assert(log[2].action == "survival-coop:equipment-quote", "support preview sends the quote")
+		assert(log[2].args[1] == "support-tier-1" and log[2].args[2] == "preview", "quote args")
 	end,
 	["guides at grade 2 below level 6 name the nearest gate and list the next locked guides"] = function()
 		local d = data("ko-kr", 5)

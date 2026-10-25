@@ -1,5 +1,6 @@
 --!strict
 local Archipelago = require("../../../core/domain/island/Archipelago")
+local Party = require("../../../core/domain/island/Party")
 local Objectives = require("../../../core/domain/island/MissionObjectives")
 local Rewards = require("./MissionRewards")
 local M = {}
@@ -120,7 +121,13 @@ function M.new(env: any): any
 				end
 				local input = table.clone(options)
 				input.actor = actor
-				local state, reason = Archipelago.open(env.content, input, env.facts(actor, document), env.now())
+				local facts = env.facts(actor, document)
+				if options.sharedBy and options.sharedBy ~= actor then
+					-- Route sharing (S7) lends the owner's route access; the member's own gates still apply.
+					local owner = env.store.snapshot(options.sharedBy)
+					facts = Party.sharedFacts(owner and owner.routeShare, actor, options.index, facts)
+				end
+				local state, reason = Archipelago.open(env.content, input, facts, env.now())
 				if state then
 					document.archipelago = state
 					local ids = document.expeditionIds or {}

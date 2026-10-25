@@ -46,6 +46,28 @@ function M.actions(): { any }
 	return actions
 end
 
+-- Membership drafts and the role preview (guide g15), appended after every earlier action.
+function M.draftActions(): { any }
+	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	local revision = Schema.optional(Schema.number({ min = 0, max = 2 ^ 53 - 2, integer = true }))
+	local actions = {}
+	local rows: { { any } } = {
+		{ "preview", { role = id } },
+		{ "draft", { role = id, expectedRevision = revision } },
+		{ "draft-confirm", { target = id, expectedRevision = revision } },
+		{ "draft-cancel", { target = Schema.optional(id), expectedRevision = revision } },
+	}
+	for _, row in rows do
+		table.insert(actions, {
+			id = "clan-" .. row[1],
+			args = { id, Schema.object(row[2]) },
+			origin = "client",
+			rate = { capacity = 50, refillPerSecond = 10 },
+		})
+	end
+	return actions
+end
+
 function M.aggregate(config: any, domain: any, prefix: string, actions: { string }): any
 	local store = config.store()
 	local tokens: any = {}
@@ -94,6 +116,13 @@ function M.aggregate(config: any, domain: any, prefix: string, actions: { string
 			return { ok = false, reason = reason }
 		end
 		local receipt = actor .. ":" .. tostring(context.sessionEpoch) .. ":" .. context.requestId
+		if operation == "preview" then
+			local role = (args[2] or {}).role
+			local grants = domain.preview(token.data, role)
+			return if grants
+				then { ok = true, data = { role = role, grants = grants } }
+				else { ok = false, reason = "INVALID_ROLE" }
+		end
 		if (operation == "deposit" or operation == "withdraw") and config.wallet then
 			local result = config.wallet(actor, operation, args[2], context, token)
 			if result.token then
@@ -241,6 +270,10 @@ function M.new(config: any): any
 		"research-cancel",
 		"relocate",
 		"dissolve",
+		"preview",
+		"draft",
+		"draft-confirm",
+		"draft-cancel",
 	})
 end
 
