@@ -109,4 +109,27 @@ return {
 			end, "message").ok, "error body without a version must be rejected")
 		end
 	end,
+	["missing bun is reported as a missing transport before any request"] = function()
+		local result = cloud.publish(function()
+			error("PUBLISH_TRANSPORT_MISSING", 0)
+		end, "place")
+		assert(not result.ok and result.code == "PUBLISH_TRANSPORT_MISSING", "missing transport code kept")
+		local ready, reason = cloud.transportReady(function(): any
+			error("program not found", 0)
+		end)
+		assert(
+			not ready and string.find(tostring(reason), "PUBLISH_TRANSPORT_MISSING: bun not found on PATH", 1, true),
+			"missing bun is named"
+		)
+		local failing, failReason = cloud.transportReady(function(): any
+			return { ok = false, code = 1, stdout = "", stderr = "" }
+		end)
+		assert(
+			not failing and string.find(tostring(failReason), "PUBLISH_TRANSPORT_MISSING", 1, true),
+			"failing bun is missing"
+		)
+		assert(cloud.transportReady(function(): any
+			return { ok = true, code = 0, stdout = "1.4.3\n", stderr = "" }
+		end) == true, "installed bun is ready")
+	end,
 }

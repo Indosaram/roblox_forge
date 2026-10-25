@@ -126,4 +126,17 @@ return {
 		local bad, badErr = deploytarget.unsettableId("not-an-id", {})
 		assert(bad == nil and badErr ~= nil, "a non-integer literal is refused")
 	end,
+	["reference names may contain digits after the first letter"] = function()
+		local value, missing =
+			deploytarget.expand("${FORGE_STAGING_ROLE_EXPLORE10}", { FORGE_STAGING_ROLE_EXPLORE10 = "55" })
+		assert(missing == nil and value == 55, "digit-bearing reference resolves")
+		local _, unset = deploytarget.expand("${ROLE2_HOME}", {})
+		assert(unset == "ROLE2_HOME", "digit-bearing unset reference is named")
+		local target = deploytarget.target(
+			{ environments = { staging = { universeId = "${U1}", placeId = "${P2X}" } } },
+			"staging",
+			{ U1 = "3", P2X = "4" }
+		)
+		assert(target and target.universeId == 3 and target.placeId == 4, "digit names resolve in targets")
+	end,
 }

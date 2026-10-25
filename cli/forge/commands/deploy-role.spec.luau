@@ -165,4 +165,40 @@ return {
 		end, "build/x.rbxl", "staging")
 		assert(not failed and #urls == 2, "first failure stops before the start place")
 	end,
+	["roles --set keeps env references and writes literal rows only"] = function()
+		local yml = "environments:\n  staging:\n    universeId: 42\n    placeId: 7\n    roles:\n"
+		for index, role in ROLES do
+			local value = if role == "onboarding"
+				then "7"
+				elseif role == "home" then "${FIXTURE_ROLE_HOME}"
+				elseif role == "explore10" then "${FIXTURE_ROLE_EXPLORE10}"
+				else tostring(100 + index)
+			yml ..= "      " .. role .. ": " .. value .. "\n"
+		end
+		withFixture("fixture-deploy-role-refs", yml, function(directory)
+			local pack = "fixture-deploy-role-refs"
+			local args = { "deploy", "roles", "--env", "staging", "--pack", pack, "--set", "home=555" }
+			assert(Deploy.run(args, { env = {} }), "reference role accepted")
+			assert(fs.readFile(directory .. "/deploy.yml") == yml, "reference row is never replaced by a literal id")
+			local pending = Deploy.roleReferences(yml, "staging", { home = 555, explore10 = 556 })
+			assert(pending.home == "FIXTURE_ROLE_HOME" and pending.explore10 == "FIXTURE_ROLE_EXPLORE10", "env names")
+			assert(
+				not Deploy.run(
+					{ "deploy", "roles", "--env", "staging", "--pack", pack, "--set", "home=7" },
+					{ env = {} }
+				),
+				"a referenced id still refuses a duplicate"
+			)
+			assert(
+				Deploy.run(
+					{ "deploy", "roles", "--env", "staging", "--pack", pack, "--set", "home=555", "--set", "brawl=777" },
+					{ env = {} }
+				),
+				"mixed set"
+			)
+			local written = fs.readFile(directory .. "/deploy.yml")
+			assert(string.find(written, "      brawl: 777\n", 1, true), "literal row written")
+			assert(string.find(written, "      home: ${FIXTURE_ROLE_HOME}\n", 1, true), "reference row kept")
+		end)
+	end,
 }

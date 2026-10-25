@@ -179,10 +179,49 @@ function M.renderRolePlan(plan: RolePlan, environment: string): string
 	return table.concat(lines, "\n")
 end
 
+local REFERENCE_VALUE = "^%$%{([A-Za-z_][A-Za-z0-9_]*)%}%s*$"
+
+--- Visits every `      <role>: <value>` line under `environments.<env>.roles`.
+local function eachRoleLine(lines: { string }, env: string, visit: (index: number, role: string, value: string) -> ())
+	local inEnv, inRoles = false, false
+	for i, line in lines do
+		local envName = string.match(line, "^  ([%w%-]+):%s*$")
+		if envName then
+			inEnv, inRoles = envName == env, false
+		elseif inEnv and string.match(line, "^    roles:%s*$") then
+			inRoles = true
+		elseif inRoles and string.match(line, "^      %S") then
+			local role, value = string.match(line, "^      ([%w%-]+):%s*(.-)%s*$")
+			if role then
+				visit(i, role, value or "")
+			end
+		elseif string.match(line, "^%S") then
+			inEnv, inRoles = false, false
+		elseif string.match(line, "^    %S") then
+			inRoles = false
+		end
+	end
+end
+
+--- Maps each role in `sets` whose deploy.yml value is a `${NAME}` reference to
+--- NAME. Those rows are never rewritten: the id belongs in the environment.
+function M.roleReferences(source: string, env: string, sets: { [string]: number }): { [string]: string }
+	local result: { [string]: string } = {}
+	eachRoleLine(string.split(source, "\n"), env, function(_index, role, value)
+		local name = string.match(value, REFERENCE_VALUE)
+		if sets[role] ~= nil and name ~= nil then
+			result[role] = name
+		end
+	end)
+	return result
+end
+
 --- `deploy roles --env <env> [--pack <slug> | --pack-dir <dir>] --set role=id [...]`:
 --- writes owner-created role place ids back into deploy.yml in place (comments
---- and layout are kept; only the named `      <role>: <n>` lines change).
-function M.setRoles(args: { string }): boolean
+--- and layout are kept; only the named literal `      <role>: <n>` lines change).
+--- A role whose value is a `${NAME}` reference keeps the reference; the command
+--- prints `NAME=<id>` for the operator's .env.local instead.
+function M.setRoles(args: { string }, variables: { [string]: string? }): boolean
 	local Topology = require("../../../core/domain/island/Topology")
 	local env: string? = nil
 	local packDir: string? = nil
@@ -225,26 +264,16 @@ function M.setRoles(args: { string }): boolean
 	end
 	local source = fs.readFile(path)
 	local lines = string.split(source, "\n")
-	local inEnv, inRoles = false, false
+	local references = M.roleReferences(source, env :: string, sets)
 	local written: { [string]: boolean } = {}
-	for i, line in lines do
-		local envName = string.match(line, "^  ([%w%-]+):%s*$")
-		if envName then
-			inEnv, inRoles = envName == env, false
-		elseif inEnv and string.match(line, "^    roles:%s*$") then
-			inRoles = true
-		elseif inRoles and string.match(line, "^      %S") then
-			local role = string.match(line, "^      ([%w%-]+):")
-			if role and sets[role] then
+	eachRoleLine(lines, env :: string, function(i, role, _value)
+		if sets[role] then
+			if references[role] == nil then
 				lines[i] = string.format("      %s: %d", role, sets[role])
-				written[role] = true
 			end
-		elseif string.match(line, "^%S") then
-			inEnv, inRoles = false, false
-		elseif string.match(line, "^    %S") then
-			inRoles = false
+			written[role] = true
 		end
-	end
+	end)
 	for role in sets do
 		if not written[role] then
 			stdio.ewrite("Error: " .. path .. " has no environments." .. env .. ".roles." .. role .. " line\n")
@@ -253,17 +282,41 @@ function M.setRoles(args: { string }): boolean
 	end
 	local updated = table.concat(lines, "\n")
 	local decoded = serde.decode("yaml", updated)
-	local plan = M.rolePlan(decoded, env, {})
+	-- Validate as if the referenced variables already held the new ids.
+	local planVariables: { [string]: string? } = table.clone(variables)
+	for role, name in references do
+		planVariables[name] = string.format("%d", sets[role])
+	end
+	local plan = M.rolePlan(decoded, env, planVariables)
 	if plan == nil or #plan.errors > 0 then
 		stdio.ewrite(
 			"Error: refusing role ids: " .. (if plan then table.concat(plan.errors, ",") else "no roles") .. "\n"
 		)
 		return false
 	end
-	fs.writeFile(path, updated)
+	if updated ~= source then
+		fs.writeFile(path, updated)
+	end
+	local referenced: { string } = {}
+	for role in references do
+		table.insert(referenced, role)
+	end
+	table.sort(referenced)
+	for _, role in referenced do
+		stdio.write(
+			string.format(
+				"deploy roles: %s references ${%s}; kept the reference - set %s=%d in .env.local (or the process environment)\n",
+				role,
+				references[role],
+				references[role],
+				sets[role]
+			)
+		)
+	end
 	stdio.write(
 		string.format(
-			"deploy roles: wrote %s; missing: %s\n",
+			"deploy roles: %s %s; missing: %s\n",
+			if updated ~= source then "wrote" else "left unchanged",
 			path,
 			if #plan.missing > 0 then table.concat(plan.missing, ",") else "none"
 		)
@@ -447,7 +500,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 	local role: string? = nil
 	local allRoles = false
 	if args[2] == "roles" then
-		return M.setRoles(args)
+		return M.setRoles(args, variables)
 	end
 	local index = if args[2] == "plan" then 3 else 2
 	if args[2] == "plan" then
@@ -609,6 +662,15 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 	if apiKey == nil then
 		stdio.ewrite("deploy: " .. tostring(credentialError) .. "\n")
 		return false
+	end
+	if not (ports and ports.request) then
+		-- The default transport spawns bun; refuse before building or publishing
+		-- the first place when it is absent.
+		local ready, transportError = opencloud.transportReady()
+		if not ready then
+			stdio.ewrite("deploy: " .. tostring(transportError) .. "\n")
+			return false
+		end
 	end
 	local otherEnv = if env == "staging" then "production" else "staging"
 	local other = deploytarget.target(deploy, otherEnv, variables)

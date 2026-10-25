@@ -510,4 +510,76 @@ return {
 			assert(not fs.isFile(packDir .. "/src/shared/Assets.luau"), "no codegen on dry run")
 		end)
 	end,
+	["assets status prefers the asset key, backs off on 429 and saves progress"] = function()
+		local root = tempdir.root() .. "/forge-assets-status-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+		local ok, reason = xpcall(function()
+			fs.writeDir(root)
+			local manifestPath = root .. "/manifest.yml"
+			local lines = { "assets:" }
+			for index, key in { "cueA", "cueB", "cueC" } do
+				for _, line in
+					{
+						"  - key: " .. key,
+						"    kind: sfx",
+						"    tool: forge-procgen",
+						"    source: generated",
+						"    assetId: " .. tostring(index * 10),
+						"    moderation: PendingModeration",
+					}
+				do
+					table.insert(lines, line)
+				end
+			end
+			fs.writeFile(manifestPath, table.concat(lines, "\n") .. "\n")
+			local waits: { number } = {}
+			local keys: { string } = {}
+			local seen: { [string]: number } = {}
+			local deps: assetsCommand.UploadDeps = {
+				env = { ROBLOX_API_KEY = "generic", ROBLOX_ASSET_API_KEY = "asset-reader" } :: { [string]: string? },
+				wait = function(seconds: number)
+					table.insert(waits, seconds)
+				end,
+				request = function(params: any): any
+					table.insert(keys, params.headers["x-api-key"])
+					local id = string.match(params.url, "/assets/(%d+)$") :: string
+					seen[id] = (seen[id] or 0) + 1
+					if id == "30" or (id == "20" and seen[id] == 1) then
+						return {
+							ok = false,
+							statusCode = 429,
+							statusMessage = "Too Many Requests",
+							headers = { ["retry-after"] = "7" },
+							body = "",
+						}
+					end
+					return {
+						ok = true,
+						statusCode = 200,
+						statusMessage = "OK",
+						body = serde.encode("json", { moderationResult = { moderationState = "Approved" } }),
+					}
+				end,
+			}
+			local passed = assetsCommand.run({ "assets", "status", "--manifest", manifestPath }, nil, deps)
+			assert(not passed, "exhausted rate limit fails the run")
+			assert(keys[1] == "asset-reader", "ROBLOX_ASSET_API_KEY wins over ROBLOX_API_KEY")
+			assert(waits[1] == 7, "Retry-After honored")
+			assert(seen["20"] == 2 and seen["30"] == 6, "bounded retries per asset")
+			local manifest = assert(assetsLib.parseManifest(serde.decode("yaml", fs.readFile(manifestPath))))
+			local states: { [string]: string } = {}
+			for _, asset in manifest.assets do
+				states[asset.key] = asset.moderation :: string
+			end
+			assert(states.cueA == "Approved" and states.cueB == "Approved", "states read before the failure are saved")
+			assert(states.cueC == "PendingModeration", "unread state unchanged")
+			deps.env = { ROBLOX_API_KEY = "generic" } :: { [string]: string? }
+			table.clear(keys)
+			assetsCommand.run({ "assets", "status", "--manifest", manifestPath }, nil, deps)
+			assert(keys[1] == "generic", "ROBLOX_API_KEY remains the fallback")
+		end, debug.traceback)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
 }

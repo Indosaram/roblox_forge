@@ -7,10 +7,29 @@ local M = {}
 
 -- Bun native fetch owns its 30-second abort; Lune owns a 35-second process
 -- watchdog covering startup, stdin and output. Never retry an uncertain POST.
+-- Preflight for the bun helper: callers run it before the first publish so a
+-- missing bun is reported as PUBLISH_TRANSPORT_MISSING, not as an unsupported
+-- transport after the build. `exec` is injectable for specs.
+function M.transportReady(exec: ((string, { string }) -> any)?): (boolean, string?)
+	local run = exec or process.exec
+	local ok, result = pcall(run, "bun", { "--version" })
+	if not ok or type(result) ~= "table" or result.ok ~= true then
+		return false,
+			"PUBLISH_TRANSPORT_MISSING: bun not found on PATH (the Open Cloud transport runs cli/forge/lib/opencloud-transport.mjs with bun; install bun or add it to PATH)"
+	end
+	return true, nil
+end
+
 function M.request(request: any): any
 	local started, child = pcall(process.create, "bun", { "cli/forge/lib/opencloud-transport.mjs" })
 	if not started then
-		error("PUBLISH_TRANSPORT_UNSUPPORTED", 0)
+		local text = string.lower(tostring(child))
+		error(
+			if string.find(text, "not found", 1, true)
+				then "PUBLISH_TRANSPORT_MISSING"
+				else "PUBLISH_TRANSPORT_UNSUPPORTED",
+			0
+		)
 	end
 	local lifecycle = require("./opencloud-process").exchange(
 		child,
@@ -104,6 +123,7 @@ function M.publish(request: () -> any, kind: "place" | "message"): Result
 		end
 		if
 			response == "PUBLISH_TRANSPORT_UNSUPPORTED"
+			or response == "PUBLISH_TRANSPORT_MISSING"
 			or response == "PUBLISH_MALFORMED_REPLY"
 			or response == "PUBLISH_CLEANUP_FAILED"
 			or response == "PUBLISH_HELPER_NONZERO"

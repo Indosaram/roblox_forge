@@ -17,7 +17,8 @@
 --                  instead of re-uploaded. Pending moderation is reported, never
 --                  treated as playable.
 -- The status and upload-audio commands make no network call until
--- ROBLOX_API_KEY is present. check never makes one at all.
+-- ROBLOX_API_KEY is present (status prefers ROBLOX_ASSET_API_KEY when set).
+-- check never makes one at all.
 
 local fs = require("@lune/fs")
 local net = require("@lune/net")
@@ -365,28 +366,88 @@ function M.applyModerationUpdates(text: string, linesByKey: { [string]: string }
 	return table.concat(result, "\n") .. (if hadTrailingNewline then "\n" else "")
 end
 
-local function runStatus(pack: string, manifestPath: string, manifest: assetsLib.Manifest): boolean
-	local apiKey = process.env["ROBLOX_API_KEY"]
-	if apiKey == nil or apiKey == "" then
-		stdio.ewrite("Error: ROBLOX_API_KEY is not set; assets status needs Open Cloud access\n")
+-- Each 429 waits for max(Retry-After, 2^(attempt-1)) seconds, capped at 60,
+-- and gives up after STATUS_ATTEMPTS tries so a long run never hangs.
+local STATUS_ATTEMPTS = 6
+
+local function retryAfterSeconds(response: any): number?
+	local headers = if type(response.headers) == "table" then response.headers else {}
+	return tonumber(headers["retry-after"] or headers["Retry-After"])
+end
+
+--- The Open Cloud key `assets status` reads with: ROBLOX_ASSET_API_KEY (a key
+--- with asset:read) when set, else the shared ROBLOX_API_KEY.
+function M.statusApiKey(variables: { [string]: string? }): (string?, string)
+	local assetKey = variables["ROBLOX_ASSET_API_KEY"]
+	if assetKey ~= nil and assetKey ~= "" then
+		return assetKey, "ROBLOX_ASSET_API_KEY"
+	end
+	local shared = variables["ROBLOX_API_KEY"]
+	if shared ~= nil and shared ~= "" then
+		return shared, "ROBLOX_API_KEY"
+	end
+	return nil, "ROBLOX_API_KEY"
+end
+
+local function runStatus(pack: string, manifestPath: string, manifest: assetsLib.Manifest, deps: UploadDeps): boolean
+	local apiKey = M.statusApiKey(deps.env or process.env)
+	if apiKey == nil then
+		stdio.ewrite(
+			"Error: neither ROBLOX_ASSET_API_KEY nor ROBLOX_API_KEY is set; assets status needs Open Cloud access\n"
+		)
 		return false
+	end
+	local request: (any) -> any = deps.request or net.request :: any
+	local wait = deps.wait or function(seconds: number)
+		task.wait(seconds)
 	end
 
 	local refreshed = 0
 	local linesByKey: { [string]: string } = {}
+	-- Update the `moderation:` line per refreshed key in place (F2/finding 5): a
+	-- full serde.encode re-encode drops every hand-written comment and reorders
+	-- keys, and a block with no existing moderation: line still needs one
+	-- inserted rather than silently skipped. Saved after every asset so a run
+	-- that stops part way keeps every state it already read.
+	local function save()
+		local text = fs.readFile(manifestPath)
+		local updated = M.applyModerationUpdates(text, linesByKey)
+		if updated ~= text then
+			fs.writeFile(manifestPath, updated)
+		end
+	end
+	local function fail(message: string): boolean
+		stdio.ewrite(message)
+		stdio.ewrite(
+			string.format("assets status: FAIL (%d states saved to %s before stopping)\n", refreshed, manifestPath)
+		)
+		return false
+	end
 	for _, asset in manifest.assets do
 		if asset.assetId > 0 then
 			local url = "https://apis.roblox.com/assets/v1/assets/" .. tostring(asset.assetId)
-			local response = net.request({
-				url = url,
-				method = "GET",
-				headers = { ["x-api-key"] = apiKey },
-			})
+			local response: any = nil
+			for attempt = 1, STATUS_ATTEMPTS do
+				response = request({
+					url = url,
+					method = "GET",
+					headers = { ["x-api-key"] = apiKey },
+				})
+				if response.statusCode ~= 429 or attempt == STATUS_ATTEMPTS then
+					break
+				end
+				wait(math.min(60, math.max(2 ^ (attempt - 1), retryAfterSeconds(response) or 0)))
+			end
 			if not response.ok then
-				stdio.ewrite(
-					string.format("asset %s: HTTP %d %s\n", asset.key, response.statusCode, response.statusMessage)
+				return fail(
+					string.format(
+						"asset %s: HTTP %d %s%s\n",
+						asset.key,
+						response.statusCode,
+						tostring(response.statusMessage),
+						if response.statusCode == 429 then " (rate limit persisted; rerun to resume)" else ""
+					)
 				)
-				return false
 			end
 			local decodedOk, body = pcall(function()
 				return serde.decode("json", response.body)
@@ -398,32 +459,23 @@ local function runStatus(pack: string, manifestPath: string, manifest: assetsLib
 				then body.moderationResult.moderationState
 				else nil
 			if apiState == nil then
-				stdio.ewrite("asset " .. asset.key .. ": response had no moderationResult.moderationState\n")
-				return false
+				return fail("asset " .. asset.key .. ": response had no moderationResult.moderationState\n")
 			end
 			local mapped: assetsLib.Moderation? = API_MODERATION_STATE[apiState]
 			if mapped == nil then
-				stdio.ewrite(
+				return fail(
 					"asset " .. asset.key .. ": unknown moderation state '" .. apiState .. "' from Open Cloud\n"
 				)
-				return false
 			end
 			local finalMapped: assetsLib.Moderation = mapped :: any
 			asset.moderation = finalMapped
 			linesByKey[asset.key] = finalMapped
+			save()
 			stdio.write("asset " .. asset.key .. ": " .. mapped .. "\n")
 			refreshed += 1
 		end
 	end
 
-	-- Update the `moderation:` line per refreshed key in place (F2/finding 5): a
-	-- full serde.encode re-encode drops every hand-written comment and reorders
-	-- keys, and a block with no existing moderation: line still needs one
-	-- inserted rather than silently skipped.
-	if refreshed > 0 then
-		local text = fs.readFile(manifestPath)
-		fs.writeFile(manifestPath, M.applyModerationUpdates(text, linesByKey))
-	end
 	stdio.write(string.format("assets status: PASS (%d uploaded assets refreshed for %s)\n", refreshed, pack))
 	return true
 end
@@ -1085,7 +1137,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?, deps: UploadD
 	elseif sub == "codegen" then
 		return runCodegen(pack, typed, context)
 	end
-	return runStatus(pack, path, typed)
+	return runStatus(pack, path, typed, deps or {})
 end
 
 return M
