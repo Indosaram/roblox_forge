@@ -660,9 +660,6 @@ function M.jobsRows(locale: string, state: any, act: any): { any }
 	return rows
 end
 
--- ui.clan-roles: state = { clan, actorId, names = {[id]: display}, status, applied? }
--- A player outside a clan applies to one (membership draft, the leader decides) or withdraws it;
--- members preview each role's real grants (clan-preview) and those who may invite settle drafts.
 local PREVIEW_ROLES = { "officer", "member", "visitor" }
 function M.rolesRows(locale: string, state: any, act: any): { any }
 	local clan = state.clan
@@ -1207,7 +1204,6 @@ function M.factory(ctx: any): any
 				rolesStatus = if result.ok then M.previewLine(locale, result.data) else L.refusal(locale, result.reason)
 				roles.render()
 			end,
-			-- The clan id comes from the shared clan input sheet (the same one Join uses).
 			apply = function(role: string)
 				local id = if ctx.askText then ctx.askText() else nil
 				if type(id) ~= "string" or id == "" then

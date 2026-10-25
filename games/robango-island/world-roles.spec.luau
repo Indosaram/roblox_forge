@@ -27,6 +27,9 @@ return {
 				onExpedition = function()
 					return false
 				end,
+				document = function()
+					return nil
+				end,
 				travel = function(_, destination)
 					found[destination] = true
 					return { ok = true }

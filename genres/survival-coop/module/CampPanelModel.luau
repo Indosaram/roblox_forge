@@ -82,7 +82,6 @@ local REFUSALS: { [string]: string } = {
 	NOT_JOINT = "camp_not_joint",
 	NOT_STARTED = "camp_not_started",
 }
--- camp-loan codes (p103 CampExtension.loan); these win over REFUSALS for loan commands only.
 local LOAN_REFUSALS: { [string]: string } = {
 	FORBIDDEN = "camp_loan_forbidden",
 	OWN_LOAN = "camp_loan_own",

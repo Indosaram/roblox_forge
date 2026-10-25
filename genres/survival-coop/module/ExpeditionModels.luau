@@ -9,7 +9,6 @@ M.PARTY_ACTION = "survival-coop:party-action"
 M.COMPANION_ACTION = "survival-coop:companion-action"
 
 local ROW, LINE, BODY = 44, 40, 56
--- Route-sharing rows (p111) keep the 48 px touch target of the social sheets.
 local SHARE = 48
 
 local function label(text: string, height: number?, name: string?): any
@@ -174,8 +173,6 @@ local function nameOf(others: { any }, id: string): string
 	return id
 end
 
--- ui.party: roster, readiness, leader, invites, remove/leave/share, route sharing (S7).
--- state.routeShare is my own share roster; state.routeInvites lists routes shared with me.
 function M.party(
 	locale: string,
 	state: any,
@@ -191,7 +188,6 @@ function M.party(
 	else
 		table.insert(items, label(Text.text(locale, "party_members", #party.members, party.capacity), LINE))
 	end
-	-- A route another player shared with me waits here until I accept it (my own gates apply).
 	for _, invite in state.routeInvites or {} do
 		table.insert(items, {
 			kind = "button",
@@ -248,7 +244,6 @@ function M.party(
 		if party.route then
 			table.insert(items, label(Text.text(locale, "party_shared", party.route), LINE, "PartyRoute"))
 		end
-		-- S7 route sharing: share my highest open route with a crew member, or stop sharing.
 		local shared = if state.routeShare then state.routeShare.members else {}
 		for _, member in party.members do
 			if member ~= me then

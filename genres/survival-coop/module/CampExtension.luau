@@ -35,7 +35,6 @@ local ACTIONS: { [string]: string } = {
 	["survival-coop:camp-loan"] = "loan",
 }
 
--- camp-loan {offer itemId | take|return|recall loanId}: equipment loans between camp members.
 function M.actions(): { any }
 	local Schema = require("../../../core/infra/net/Schema")
 	return {
@@ -406,10 +405,6 @@ function M.new(config: Config): Built?
 		return nil
 	end
 
-	-- Equipment loans between camp members (guides g17/g19). One unit is escrowed in the camp
-	-- aggregate on offer; a member takes it into their bag, returns it, and only then the lender
-	-- may recall it. Bag and camp change in a recoverable order: a retried take re-adds a missing
-	-- borrowed item, a retried return finishes the camp side once the bag no longer holds it.
 	local function loanUpdate(tribeId: string, body: (any) -> (string?, any)): (string?, any)
 		local token, openError = open(tribeId)
 		if not token then
@@ -445,7 +440,6 @@ function M.new(config: Config): Built?
 		local verb, id = args[1], args[2]
 		if verb == "offer" then
 			local binding = Ledger.canonical({ action = "loan-offer", actor = actor, args = args })
-			-- The loan id is the lender's request identity, so a replayed offer names the same loan.
 			local loanId = "L-" .. actor .. "-" .. context.requestId
 			local result = deliver(actor, tribeId, id, 1, context, binding, function(data, catalogId, held)
 				local reason = authority(actor, settlement)

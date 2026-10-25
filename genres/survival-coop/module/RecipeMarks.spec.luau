@@ -92,10 +92,18 @@ return {
 		local mark = table.find(extensionActions, "recipe-mark") :: number
 		for index = mark + 1, #extensionActions do
 			assert(
-				extensionActions[index] == "operation-run"
-					or extensionActions[index] == "attack-ranged"
-					or extensionActions[index] == "stance-set"
-					or extensionActions[index] == "guide-act",
+				table.find({
+					"operation-run",
+					"attack-ranged",
+					"stance-set",
+					"guide-act",
+					"clan-preview",
+					"clan-draft",
+					"clan-draft-confirm",
+					"clan-draft-cancel",
+					"equipment-quote",
+					"camp-loan",
+				}, extensionActions[index]) ~= nil,
 				"only later extensions follow recipe-mark: " .. extensionActions[index]
 			)
 		end
