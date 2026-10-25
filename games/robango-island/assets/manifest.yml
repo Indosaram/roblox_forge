@@ -1837,8 +1837,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json ui.icon.stance.attack"
     path: assets/icons/ui.icon.stance.attack.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109597309532040
+    moderation: Approved
     provenance:
       digest: sha256:050a32c1ed71117ee265c707402acd65cd1ee2c860c075e3702bd5b4f948d862
       recipe:
@@ -1858,7 +1858,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 114711705660322
   - key: ui-icon-stance-defense
     kind: image
     tool: gpt-image
@@ -2080,8 +2080,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json ui.icon.capture"
     path: assets/icons/ui.icon.capture.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113913447698597
+    moderation: Approved
     provenance:
       digest: sha256:91f46876e152f3117535f80449b1a7cf3e821965b0dde398ad8bdb396789ae57
       recipe:
@@ -2101,7 +2101,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 123254749711713
   - key: ui-icon-party
     kind: image
     tool: gpt-image
@@ -2323,8 +2323,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json ui.icon.visitor"
     path: assets/icons/ui.icon.visitor.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 131303626520595
+    moderation: Approved
     provenance:
       digest: sha256:5411660effaae3e5efccf867ed5d5d5080fdf59c2b353d231994ba9e20d1c56a
       recipe:
@@ -2344,7 +2344,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 79135708820344
   - key: ui-icon-withdraw-capability
     kind: image
     tool: gpt-image
@@ -2863,8 +2863,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.cord"
     path: assets/icons/item.icon.cord.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 117231046692167
+    moderation: Approved
     provenance:
       digest: sha256:4ecf1f8e827b9ac7fd2d1805619f2f4589035d36f168ef9c2607c9bd127d4c44
       recipe:
@@ -2884,7 +2884,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 114520284649744
   - key: item-icon-fiber
     kind: image
     tool: gpt-image
@@ -3727,8 +3727,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.capture-bola"
     path: assets/icons/item.icon.capture-bola.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119076139453799
+    moderation: Approved
     provenance:
       digest: sha256:dad65e82bfc2ae3d660607ac7d5855c23d641cca67800ae313144b0bfc17790f
       recipe:
@@ -3748,7 +3748,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 133166186408164
   - key: item-icon-kiln-kit
     kind: image
     tool: gpt-image
@@ -7588,8 +7588,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.capture-rope"
     path: assets/icons/item.icon.capture-rope.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136073982532210
+    moderation: Approved
     provenance:
       digest: sha256:2e5bf408842d500e7e8ab997a601ce0baf359deca6c6be3dbe3960fd10812c2a
       recipe:
@@ -7609,7 +7609,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 128515887616474
   - key: item-icon-saddle
     kind: image
     tool: gpt-image
@@ -7750,8 +7750,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.starter-axe"
     path: assets/icons/item.icon.starter-axe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84747836415847
+    moderation: Approved
     provenance:
       digest: sha256:85431254c09017ce4a4337c9f20ab25bd3e04a65a223f43730c6c0cbf3d7fd35
       recipe:
@@ -7771,13 +7771,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 92971479660225
   - key: item-icon-starter-pickaxe
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.starter-pickaxe"
     path: assets/icons/item.icon.starter-pickaxe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 104379553073685
+    moderation: Approved
     provenance:
       digest: sha256:bdd9644294eea8588fbd282937fee7abf25a86e95eef17c93620446fe2287e45
       recipe:
@@ -7797,13 +7798,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 76238232106304
   - key: item-icon-starter-club
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.starter-club"
     path: assets/icons/item.icon.starter-club.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 122335464624832
+    moderation: Approved
     provenance:
       digest: sha256:1c144ef37853172be88efed0070a2bad18a08e989df2106c2902bc2b9f7f622f
       recipe:
@@ -7823,13 +7825,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 88166124691090
   - key: item-icon-practice-stitch
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.practice-stitch"
     path: assets/icons/item.icon.practice-stitch.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 110770625584324
+    moderation: Approved
     provenance:
       digest: sha256:deb0789680982092fdad5cf8769caa15a7f7ed3f6dc5f1a301920243ea751944
       recipe:
@@ -7849,7 +7852,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 104587934560601
   - key: item-icon-practice-seedbed
     kind: image
     tool: gpt-image
@@ -8125,8 +8128,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.bandage"
     path: assets/icons/item.icon.bandage.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 112150777642534
+    moderation: Approved
     provenance:
       digest: sha256:8b9b7b3d56f94ecb7390ac7b45ba018626bcd6d8cda6fc2ff84feda8aab86266
       recipe:
@@ -8146,6 +8149,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 89055291600188
   - key: item-icon-signal-lens
     kind: image
     tool: gpt-image
@@ -8340,9 +8344,9 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.skull"
     path: assets/icons/item.icon.skull.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 81107018795829
+    moderation: Approved
+    decalAssetId: 71573802018170
     provenance:
       digest: sha256:f054d9ca205a4f2e69ea0e6154b005aa35df09e4c363d46978920597e2403243
       recipe:
@@ -8421,8 +8425,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.horn"
     path: assets/icons/item.icon.horn.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132393360159769
+    moderation: Approved
     provenance:
       digest: sha256:19015ee8bffca64b4d24cf559bed5c1166260ddd435418e02f36b843b1434b2a
       recipe:
@@ -8442,13 +8446,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 122902723850725
   - key: item-icon-claw
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.claw"
     path: assets/icons/item.icon.claw.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84262530794525
+    moderation: Approved
     provenance:
       digest: sha256:392277e3320a1e065219d6df84a7aebdd0b53f5ef1e4a3140fe84dd7d40a3012
       recipe:
@@ -8468,13 +8473,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 101737996140243
   - key: item-icon-tooth
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.tooth"
     path: assets/icons/item.icon.tooth.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139436982853395
+    moderation: Approved
     provenance:
       digest: sha256:06d53a08bf2d7c075c338e217c870139748ef72d7e3e6d740a79798daf9b8187
       recipe:
@@ -8494,13 +8500,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 75299228702769
   - key: item-icon-fang
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.fang"
     path: assets/icons/item.icon.fang.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 127758360087000
+    moderation: Approved
     provenance:
       digest: sha256:e60aefc6eb0e9e92948d93d572b2f909b601848ff93e35b21e041d5ba8cb9b92
       recipe:
@@ -8520,14 +8527,15 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 140332377541808
   - key: item-icon-sinew
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.sinew"
     path: assets/icons/item.icon.sinew.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 136995702837189
+    moderation: Approved
+    decalAssetId: 74052612316429
     provenance:
       digest: sha256:acfa6d77b17bbc9a0849a9c8b9ea5d364c50a13e283bdd154d739f3d3f1772a3
       recipe:
@@ -8552,8 +8560,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.tusk"
     path: assets/icons/item.icon.tusk.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130069817373544
+    moderation: Approved
     provenance:
       digest: sha256:a68dec091a49898d44ca418ef3fb522cec72765dc40293b003780ece1c74d33d
       recipe:
@@ -8573,6 +8581,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 121738027459657
   - key: item-icon-antler
     kind: image
     tool: gpt-image
@@ -8983,8 +8992,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.meat-profile"
     path: assets/icons/item.icon.meat-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 134628193243309
+    moderation: Approved
     provenance:
       digest: sha256:f0f4b164f75f6645650bb23c885210e7ef4ec2d07a688f002456725685ed6c27
       recipe:
@@ -9004,13 +9013,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 72570209446140
   - key: item-icon-hide-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.hide-profile"
     path: assets/icons/item.icon.hide-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114254140779296
+    moderation: Approved
     provenance:
       digest: sha256:987c620d5a6fab44715fb285e5c0ad51a4507af265e041469dc001e359f74b31
       recipe:
@@ -9030,13 +9040,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 135687457620788
   - key: item-icon-bone-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.bone-profile"
     path: assets/icons/item.icon.bone-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 114949784169544
+    moderation: Approved
     provenance:
       digest: sha256:a065effd290232fceaa4a9815d726d1e4e7563d31acd1e291092ac13af0aa923
       recipe:
@@ -9056,6 +9067,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 135126762756342
   - key: item-icon-feather-profile
     kind: image
     tool: gpt-image
@@ -9142,8 +9154,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.claw-profile"
     path: assets/icons/item.icon.claw-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119886223468527
+    moderation: Approved
     provenance:
       digest: sha256:9b82fc46f5c6d91df3bbdc9bf274fbcf42b6c868b21de4fd1148392cf5056b87
       recipe:
@@ -9163,13 +9175,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 118189016429089
   - key: item-icon-tooth-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.tooth-profile"
     path: assets/icons/item.icon.tooth-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 105989366287977
+    moderation: Approved
     provenance:
       digest: sha256:133440b3f9495d39b0b5925e4dc2e7ffec8506b5c83bb57be95ae2fc4fae69b3
       recipe:
@@ -9189,13 +9202,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 108585214012064
   - key: item-icon-volcanic-bone-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.volcanic-bone-profile"
     path: assets/icons/item.icon.volcanic-bone-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 95805879527092
+    moderation: Approved
     provenance:
       digest: sha256:1ebde7d97a8e61550b12740d3da96286e522b61855c9b9e27c2b8e6890ef5a11
       recipe:
@@ -9215,13 +9229,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 99502649267854
   - key: item-icon-fur-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.fur-profile"
     path: assets/icons/item.icon.fur-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 96944991453009
+    moderation: Approved
     provenance:
       digest: sha256:9c67af8f718464cd85b178bc062f93b6441f1842ba138d7b1611e0a4167cd9e4
       recipe:
@@ -9241,13 +9256,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 103670458557354
   - key: item-icon-fang-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.fang-profile"
     path: assets/icons/item.icon.fang-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115010030736651
+    moderation: Approved
     provenance:
       digest: sha256:b86caab7bee6e113562d3da807fa6fa072f9fd17e68ff8979bfdbe5b383e994b
       recipe:
@@ -9267,14 +9283,15 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 108159859344161
   - key: item-icon-sinew-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.sinew-profile"
     path: assets/icons/item.icon.sinew-profile.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 87741376669883
+    moderation: Approved
+    decalAssetId: 125176052230281
     provenance:
       digest: sha256:0d403ade12a7f43820f087c7468b7e6f0369d1c622b2efdf165d6aab20587a18
       recipe:
@@ -9299,8 +9316,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.tusk-profile"
     path: assets/icons/item.icon.tusk-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116243726647136
+    moderation: Approved
     provenance:
       digest: sha256:543f939f9f6fe49fa2be7e3f27bb10b0cf46717b0dea4846a216fd3b969523c1
       recipe:
@@ -9320,13 +9337,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 107893765135534
   - key: item-icon-horn-profile
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.horn-profile"
     path: assets/icons/item.icon.horn-profile.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 109116371675045
+    moderation: Approved
     provenance:
       digest: sha256:24870bf57cb476984291dd2938f6bfa3a7eda16f7b05c888a45d603ce4125bcd
       recipe:
@@ -9346,6 +9364,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 137636973777614
   - key: item-icon-antler-profile
     kind: image
     tool: gpt-image
@@ -9378,9 +9397,9 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json item.icon.skull-profile"
     path: assets/icons/item.icon.skull-profile.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 108991253295470
+    moderation: Approved
+    decalAssetId: 127110131069101
     provenance:
       digest: sha256:865439c174df72487b1d96ec271b5020752ded00c347196d97c0509155c73809
       recipe:
@@ -10539,8 +10558,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.cooked-meat"
     path: assets/icons/recipe.icon.cooked-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 88435862957861
+    moderation: Approved
     provenance:
       digest: sha256:8697bb4319848a8ff09f27f86748adc6acde776ffbdc61aa7dc79778d882b987
       recipe:
@@ -10560,14 +10579,15 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 97420729938008
   - key: recipe-icon-cord
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.cord"
     path: assets/icons/recipe.icon.cord.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 74259370233438
+    moderation: Approved
+    decalAssetId: 72610123038565
     provenance:
       digest: sha256:6eeb8d3953fb6ea84126f817365c445bf7bac8dcf5316d7a056e9fd30e24cecd
       recipe:
@@ -10592,8 +10612,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.flint-knife"
     path: assets/icons/recipe.icon.flint-knife.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 82471834193961
+    moderation: Approved
     provenance:
       digest: sha256:01d8a7e37e0657479e8b6cccfbe95d7dc76e3fb6b4af44ca2556d9e25cfcd5cc
       recipe:
@@ -10613,6 +10633,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 111192053255914
   - key: recipe-icon-legacy-floor-kit
     kind: image
     tool: gpt-image
@@ -10699,8 +10720,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.rawhide-lashing"
     path: assets/icons/recipe.icon.rawhide-lashing.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84604049065331
+    moderation: Approved
     provenance:
       digest: sha256:7da9dc3ea56651a8acd248be6b8c5d70c8be51a972d81b53ea8b0cc41c6e9cac
       recipe:
@@ -10720,7 +10741,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
-    decalAssetId: 0
+    decalAssetId: 100486614815099
   - key: recipe-icon-roasted-hazelnuts
     kind: image
     tool: gpt-image
@@ -10780,8 +10801,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.spear"
     path: assets/icons/recipe.icon.spear.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 91002601733250
+    moderation: Approved
     provenance:
       digest: sha256:58549500fcb86a4ac1aa71f94a02ca9f132d7659cf298ec184a74f007088d585
       recipe:
@@ -10801,13 +10822,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 105000175542758
   - key: recipe-icon-stone-axe
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.stone-axe"
     path: assets/icons/recipe.icon.stone-axe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76255687149547
+    moderation: Approved
     provenance:
       digest: sha256:2d5a3f6157c45e9cfdda104d7221d6963df01a5ba3b2e3fc9733742241813400
       recipe:
@@ -10827,13 +10849,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 83229148816758
   - key: recipe-icon-stone-block
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.stone-block"
     path: assets/icons/recipe.icon.stone-block.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 113449180415651
+    moderation: Approved
     provenance:
       digest: sha256:d15650b454538922ca422828e7b0ad2de9a01345e55ab8bee9a1f789c384f330
       recipe:
@@ -10853,6 +10876,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 105540350462128
   - key: recipe-icon-stone-floor-kit
     kind: image
     tool: gpt-image
@@ -10885,8 +10909,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.stone-maul"
     path: assets/icons/recipe.icon.stone-maul.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 130050302968486
+    moderation: Approved
     provenance:
       digest: sha256:17fac77ce9eca96fa99b2c022e2e10ea2531a04a2567afad0a8ed124a05d4ce9
       recipe:
@@ -10906,13 +10930,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 113719458515193
   - key: recipe-icon-stone-pick
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.stone-pick"
     path: assets/icons/recipe.icon.stone-pick.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103113414827305
+    moderation: Approved
     provenance:
       digest: sha256:454eba4e8ff654d8f41eddb504e85d004cb9473457e8ab2fc1d15d6cc7538d9e
       recipe:
@@ -10932,6 +10957,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 108184921602728
   - key: recipe-icon-stone-roof-kit
     kind: image
     tool: gpt-image
@@ -11153,8 +11179,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.capture-bola"
     path: assets/icons/recipe.icon.capture-bola.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 99744013114771
+    moderation: Approved
     provenance:
       digest: sha256:7419e92b607c3bd1d403b6b9d8761c62617c4df09ce97dc41a98b2996eda4c5d
       recipe:
@@ -11174,6 +11200,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 119535792318676
   - key: recipe-icon-dry-twig
     kind: image
     tool: gpt-image
@@ -11233,8 +11260,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.dry-hide"
     path: assets/icons/recipe.icon.dry-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 94118008596945
+    moderation: Approved
     provenance:
       digest: sha256:b10adca9b2119d980f7c87d7048e45b87cd62535140bb464a061b78bb7234356
       recipe:
@@ -11254,13 +11281,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 83358532152313
   - key: recipe-icon-dry-meat
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.dry-meat"
     path: assets/icons/recipe.icon.dry-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 80655068560176
+    moderation: Approved
     provenance:
       digest: sha256:5112eba9068c1bedd37645b772ceda05875ad54367144cb6ceb6c9ab0fc758de
       recipe:
@@ -11280,13 +11308,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 116499630235573
   - key: recipe-icon-tan-hide
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tan-hide"
     path: assets/icons/recipe.icon.tan-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84570326627182
+    moderation: Approved
     provenance:
       digest: sha256:053cc3bb4806719c42199cf25f9a704a06f148c78e670e54ed342a6202099f9f
       recipe:
@@ -11306,13 +11335,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 80879203050997
   - key: recipe-icon-tan-thick-hide
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tan-thick-hide"
     path: assets/icons/recipe.icon.tan-thick-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 81546519975194
+    moderation: Approved
     provenance:
       digest: sha256:83c643f3ca9c7d6c47a8218f3a44c518a4a12895676030b816feb087c6a181d8
       recipe:
@@ -11332,13 +11362,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 101114521858150
   - key: recipe-icon-tan-fur-hide
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tan-fur-hide"
     path: assets/icons/recipe.icon.tan-fur-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83436081751263
+    moderation: Approved
     provenance:
       digest: sha256:1ff25fe6673cef9dad462048fb46f086a7f9ce95dbe896c152658c396d083861
       recipe:
@@ -11358,13 +11389,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 140308461902121
   - key: recipe-icon-tan-rex-hide
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tan-rex-hide"
     path: assets/icons/recipe.icon.tan-rex-hide.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 98337703621303
+    moderation: Approved
     provenance:
       digest: sha256:1e4f51a5397e166a5b261e0bdeddb46cb4fe876c3170f7f17294b65b3720ce00
       recipe:
@@ -11384,6 +11416,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 122178728283617
   - key: recipe-icon-polish-stone
     kind: image
     tool: gpt-image
@@ -11443,8 +11476,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.polish-bone"
     path: assets/icons/recipe.icon.polish-bone.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 139720698275008
+    moderation: Approved
     provenance:
       digest: sha256:c3f207ccf1c7918bac93b0fca42a9499b41c79d56a5b26646695dcf6679f8039
       recipe:
@@ -11464,6 +11497,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 130660251261392
   - key: recipe-icon-polish-basalt
     kind: image
     tool: gpt-image
@@ -11820,8 +11854,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.axe-t1"
     path: assets/icons/recipe.icon.axe-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 91561004635274
+    moderation: Approved
     provenance:
       digest: sha256:2c47374a36d31af853767107724a18c58e0bab6e08ac5dac45aede1d334900a1
       recipe:
@@ -11841,13 +11875,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 119527917101958
   - key: recipe-icon-pickaxe-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t1"
     path: assets/icons/recipe.icon.pickaxe-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 79510275683119
+    moderation: Approved
     provenance:
       digest: sha256:e8f3e1bd95b3fd9a14a13b1d65dd4b839d12ef784ecdb044e66fd9f3ff4293cc
       recipe:
@@ -11867,13 +11902,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 85181822469102
   - key: recipe-icon-knife-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.knife-t1"
     path: assets/icons/recipe.icon.knife-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119450104253317
+    moderation: Approved
     provenance:
       digest: sha256:946e14a120fd3e64d91c2f20019efb580c9ce697734f0b6ac3424d07b6f7ab3f
       recipe:
@@ -11893,6 +11929,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 97534627425507
   - key: recipe-icon-hoe-t1
     kind: image
     tool: gpt-image
@@ -11925,8 +11962,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.axe-t2"
     path: assets/icons/recipe.icon.axe-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 88405350243760
+    moderation: Approved
     provenance:
       digest: sha256:bc592886320c36873dc65a0ecaae08ca8da86927b076d589031d8c33090e9b9b
       recipe:
@@ -11946,13 +11983,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 75114024743899
   - key: recipe-icon-pickaxe-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t2"
     path: assets/icons/recipe.icon.pickaxe-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92707916479158
+    moderation: Approved
     provenance:
       digest: sha256:f615c08fbbc3196ee2e99648e816a36f52a136b277e494f215c444d67954cef7
       recipe:
@@ -11972,13 +12010,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 135551984239331
   - key: recipe-icon-knife-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.knife-t2"
     path: assets/icons/recipe.icon.knife-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115543933031900
+    moderation: Approved
     provenance:
       digest: sha256:43c9f9e3d237b7e69796e0455f72b452e986b679f0d8aa4e588997221d7af886
       recipe:
@@ -11998,6 +12037,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 86413436349122
   - key: recipe-icon-hoe-t2
     kind: image
     tool: gpt-image
@@ -12030,8 +12070,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.axe-t3"
     path: assets/icons/recipe.icon.axe-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135428561931316
+    moderation: Approved
     provenance:
       digest: sha256:9d1a381fa87fa3978ff6bd40d83583ab455cee98ec24ed34e18b03d22ed9bcac
       recipe:
@@ -12051,13 +12091,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 137255109644702
   - key: recipe-icon-pickaxe-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.pickaxe-t3"
     path: assets/icons/recipe.icon.pickaxe-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132873633028535
+    moderation: Approved
     provenance:
       digest: sha256:453824706cf1f49d1c1ed078edc6f11aaf1548483ce2a5798438ec5e947c5e7d
       recipe:
@@ -12077,13 +12118,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 95023091966869
   - key: recipe-icon-knife-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.knife-t3"
     path: assets/icons/recipe.icon.knife-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108015232965383
+    moderation: Approved
     provenance:
       digest: sha256:457077d53accb5520dd2c34191a61ca044efdc855fd519294a7f8f0b25028b63
       recipe:
@@ -12103,6 +12145,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 106805958891687
   - key: recipe-icon-hoe-t3
     kind: image
     tool: gpt-image
@@ -12135,8 +12178,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.club-t1"
     path: assets/icons/recipe.icon.club-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103563044965421
+    moderation: Approved
     provenance:
       digest: sha256:19f9d2695f0401a66e6b0d93a6921bc038dda5efe36a5bb93d402f7011e397ff
       recipe:
@@ -12156,13 +12199,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 82617861819060
   - key: recipe-icon-spear-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.spear-t1"
     path: assets/icons/recipe.icon.spear-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107307514666604
+    moderation: Approved
     provenance:
       digest: sha256:aa93b5d26dd16bf49019b80efbcbc6a541417804a3a0b2d9bf8fe06d723633c9
       recipe:
@@ -12182,13 +12226,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 79578498296024
   - key: recipe-icon-sword-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.sword-t1"
     path: assets/icons/recipe.icon.sword-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86486271609875
+    moderation: Approved
     provenance:
       digest: sha256:e5fe83e21396efc78b9374646b14af45f011ee4f48a4249595b42a93cc8a31b4
       recipe:
@@ -12208,13 +12253,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 70759258347998
   - key: recipe-icon-hammer-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.hammer-t1"
     path: assets/icons/recipe.icon.hammer-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 119554371629466
+    moderation: Approved
     provenance:
       digest: sha256:926d742033a0eb557dbb54de8456bd0c94c121d04c37b40c1d1be0fff682816c
       recipe:
@@ -12234,13 +12280,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 132007719010775
   - key: recipe-icon-bow-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.bow-t1"
     path: assets/icons/recipe.icon.bow-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72228484635711
+    moderation: Approved
     provenance:
       digest: sha256:985363079c3091cea95741bad17c45c458d0bb7ddf2772096776a162d0a656f1
       recipe:
@@ -12260,13 +12307,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 140170203114794
   - key: recipe-icon-crossbow-t1
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.crossbow-t1"
     path: assets/icons/recipe.icon.crossbow-t1.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 89986303012660
+    moderation: Approved
     provenance:
       digest: sha256:8b8a2189c99b2b1dae07c01694fee9724f2c69d29942b8b839f069539f8cca17
       recipe:
@@ -12286,13 +12334,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 134240429600129
   - key: recipe-icon-club-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.club-t2"
     path: assets/icons/recipe.icon.club-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 125754385998486
+    moderation: Approved
     provenance:
       digest: sha256:eb9676572ad5a7af454f1ad439a1ef5217c7c37a3cb7a15e886fe9c992f48c60
       recipe:
@@ -12312,13 +12361,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 119520132797471
   - key: recipe-icon-spear-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.spear-t2"
     path: assets/icons/recipe.icon.spear-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 75921160123298
+    moderation: Approved
     provenance:
       digest: sha256:ef9258ddf6b4ce871c80a63c2927c467fd5ef767f0f7acbe74d3bafdcce3c556
       recipe:
@@ -12338,13 +12388,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 109552670102747
   - key: recipe-icon-sword-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.sword-t2"
     path: assets/icons/recipe.icon.sword-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84441360615126
+    moderation: Approved
     provenance:
       digest: sha256:322916ecfd63daff633413463782cce0fe5cbc57a2cd34eb2511ecd0cbe7948f
       recipe:
@@ -12364,13 +12415,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 72047956168825
   - key: recipe-icon-hammer-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.hammer-t2"
     path: assets/icons/recipe.icon.hammer-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 108177821522678
+    moderation: Approved
     provenance:
       digest: sha256:108bb323dfc2e0e8881b012f987b5595abd8c89b0fdcf5eff7f4bec10d20f835
       recipe:
@@ -12390,13 +12442,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 98535844610050
   - key: recipe-icon-bow-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.bow-t2"
     path: assets/icons/recipe.icon.bow-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 121611776215531
+    moderation: Approved
     provenance:
       digest: sha256:b265b875b2070f6a90a8247d14aca9871d32e44111b1e9c4c43768580b3390fa
       recipe:
@@ -12416,13 +12469,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 114337923313000
   - key: recipe-icon-crossbow-t2
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.crossbow-t2"
     path: assets/icons/recipe.icon.crossbow-t2.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 118993416574957
+    moderation: Approved
     provenance:
       digest: sha256:aaef2c1c7ee5e29524931f39e17d0092df7481bf1fca4136a133da0f64b1e2b7
       recipe:
@@ -12442,13 +12496,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 131012717900631
   - key: recipe-icon-club-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.club-t3"
     path: assets/icons/recipe.icon.club-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107946357015750
+    moderation: Approved
     provenance:
       digest: sha256:2a8286772884dd8b68af9768f5540ca9640cf7cddac7836ee094237a9098b437
       recipe:
@@ -12468,13 +12523,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 89257673854895
   - key: recipe-icon-spear-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.spear-t3"
     path: assets/icons/recipe.icon.spear-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 123801610641625
+    moderation: Approved
     provenance:
       digest: sha256:1514962b778e8ad69e3427f8cc6303e4907e2ec039349d863b5cdb9ec813908b
       recipe:
@@ -12494,13 +12550,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 78566926854999
   - key: recipe-icon-sword-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.sword-t3"
     path: assets/icons/recipe.icon.sword-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92185019015208
+    moderation: Approved
     provenance:
       digest: sha256:2a5023f90f87e3f11e601b6448d7a624c64dd20c4cd78b4ba368ec515b6c8600
       recipe:
@@ -12520,13 +12577,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 120226985095625
   - key: recipe-icon-hammer-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.hammer-t3"
     path: assets/icons/recipe.icon.hammer-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129047611492533
+    moderation: Approved
     provenance:
       digest: sha256:9a6f0b39bdf18452012d4aef86658462bc2319cde0fb9ca9fc3d03c23a122c11
       recipe:
@@ -12546,13 +12604,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 83982222177862
   - key: recipe-icon-bow-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.bow-t3"
     path: assets/icons/recipe.icon.bow-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 96824513866090
+    moderation: Approved
     provenance:
       digest: sha256:1fb4f3926ef92e4184e524be32c2fa5117c67226f02b63792c1478e591ca4ada
       recipe:
@@ -12572,13 +12631,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 90264539668692
   - key: recipe-icon-crossbow-t3
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.crossbow-t3"
     path: assets/icons/recipe.icon.crossbow-t3.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 83840187230557
+    moderation: Approved
     provenance:
       digest: sha256:f01ba2bd7aa49a7db9cd2ba72659c82a1aaa0258cf5fac4e9c7e438a833642c8
       recipe:
@@ -12598,13 +12658,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 140653372649839
   - key: recipe-icon-temperate-head
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.temperate-head"
     path: assets/icons/recipe.icon.temperate-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 115167877037756
+    moderation: Approved
     provenance:
       digest: sha256:951b471ff6a16d954542aa7fb4c77bde3b4a756110b295ab8d8e6f9b5ef46023
       recipe:
@@ -12624,6 +12685,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 128244479443942
   - key: recipe-icon-temperate-top
     kind: image
     tool: gpt-image
@@ -12764,8 +12826,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tropical-head"
     path: assets/icons/recipe.icon.tropical-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 121843873486590
+    moderation: Approved
     provenance:
       digest: sha256:09194f7c50ab7d7941058f45fc5424699b492b69b1ac5ce54d8d398ebaa9dd33
       recipe:
@@ -12785,6 +12847,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 139327085861891
   - key: recipe-icon-tropical-top
     kind: image
     tool: gpt-image
@@ -12925,8 +12988,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.cold-head"
     path: assets/icons/recipe.icon.cold-head.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 107914330702193
+    moderation: Approved
     provenance:
       digest: sha256:e72fbb55d791864f921414b5097defd055c7b8a6d3f18d65c6f0de5443a601dc
       recipe:
@@ -12946,6 +13009,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 100415388393008
   - key: recipe-icon-cold-top
     kind: image
     tool: gpt-image
@@ -13302,8 +13366,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.roast-meat"
     path: assets/icons/recipe.icon.roast-meat.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129004735099016
+    moderation: Approved
     provenance:
       digest: sha256:20310b8e35c3e7d08a60c04b6de307552d448e25224362584396c7b9678edc74
       recipe:
@@ -13323,13 +13387,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 133420432106851
   - key: recipe-icon-meat-potato-stew
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.meat-potato-stew"
     path: assets/icons/recipe.icon.meat-potato-stew.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 129733852176442
+    moderation: Approved
     provenance:
       digest: sha256:3012f728ac78dbc09c95300fd5c8b816b38601759c2da1911de243ef41bd7577
       recipe:
@@ -13349,13 +13414,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 123696121106494
   - key: recipe-icon-onion-meat-skewer
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.onion-meat-skewer"
     path: assets/icons/recipe.icon.onion-meat-skewer.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 97391048741003
+    moderation: Approved
     provenance:
       digest: sha256:16235fbc0cb92bd497089dc35444ee9daa168f24813fde81d3adbca327b6bbc8
       recipe:
@@ -13375,13 +13441,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 78896912537515
   - key: recipe-icon-rex-meat-stew
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.rex-meat-stew"
     path: assets/icons/recipe.icon.rex-meat-stew.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 111951675357578
+    moderation: Approved
     provenance:
       digest: sha256:a726d36135b78e1bf3cdcd943c960020547a725faefab280448489977bf1062d
       recipe:
@@ -13401,6 +13468,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 85188388172696
   - key: recipe-icon-grilled-fish
     kind: image
     tool: gpt-image
@@ -13487,8 +13555,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.carnivore-feed"
     path: assets/icons/recipe.icon.carnivore-feed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 105836677830591
+    moderation: Approved
     provenance:
       digest: sha256:f6cc98564a2c925b591693bcf429b2ae7f592c96722ee82f03a61e2c06fb0677
       recipe:
@@ -13508,6 +13576,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 101632584142513
   - key: recipe-icon-extract-corn-seed
     kind: image
     tool: gpt-image
@@ -13837,9 +13906,9 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.capture-rope"
     path: assets/icons/recipe.icon.capture-rope.png
-    assetId: 0
-    moderation: NotUploaded
-    decalAssetId: 0
+    assetId: 88397274610279
+    moderation: Approved
+    decalAssetId: 110560510925421
     provenance:
       digest: sha256:e645d031e54455e7941517bcca8a20707d1a263d92bb4b5d97565c31beb7b7a7
       recipe:
@@ -14134,8 +14203,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.tanning-frame-kit"
     path: assets/icons/recipe.icon.tanning-frame-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 100120469900755
+    moderation: Approved
     provenance:
       digest: sha256:0cbf154b03439b98f565eaab427772839064db5110002ce6a052eb2234c5cdb7
       recipe:
@@ -14155,6 +14224,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 116769897082071
   - key: recipe-icon-refrigerator-kit
     kind: image
     tool: gpt-image
@@ -14349,8 +14419,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.clan-hall-kit"
     path: assets/icons/recipe.icon.clan-hall-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 131539824980844
+    moderation: Approved
     provenance:
       digest: sha256:1cc852fffae7b01020d9743f6873306017837c9630799fb246a3fdf39a755a80
       recipe:
@@ -14370,6 +14440,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 125282340359766
   - key: recipe-icon-wall-kit
     kind: image
     tool: gpt-image
@@ -14510,8 +14581,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.starter-axe"
     path: assets/icons/recipe.icon.starter-axe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90095630487867
+    moderation: Approved
     provenance:
       digest: sha256:b24daeb648d5954101635d83c0638a1732cc2e9758018b4de61b2c6d047ed66d
       recipe:
@@ -14531,13 +14602,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 101973346066757
   - key: recipe-icon-starter-pickaxe
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.starter-pickaxe"
     path: assets/icons/recipe.icon.starter-pickaxe.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 103458579734503
+    moderation: Approved
     provenance:
       digest: sha256:30423850d244031c2cd6a484c994cab253b4e46e4df9f2ad7038886e90c1fadb
       recipe:
@@ -14557,13 +14629,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 126213531757532
   - key: recipe-icon-starter-club
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p119.json recipe.icon.starter-club"
     path: assets/icons/recipe.icon.starter-club.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 88566023662597
+    moderation: Approved
     provenance:
       digest: sha256:7857354852b5d67c76f121d73f905c365d48d89aba8f84e791a0fe39ce6bcb5e
       recipe:
@@ -14583,6 +14656,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-25
+    decalAssetId: 119882423933084
   - key: robango-bgm-home
     kind: bgm
     tool: forge-procgen
