@@ -120,16 +120,62 @@ export type Rendered = { path: string, content: string }
 -- literal of such a type has exactly one valid shape, so strict Luau checks it
 -- without a typed constructor call; every other object row keeps its wrapper.
 local CLOSED: { [string]: boolean } = {}
+-- Closed row types whose rows are emitted as positional constructor calls
+-- (`p1(0,2,-96)` for `{x=0,y=2,z=-96}`): name -> { alias, sorted keys, signature }.
+local POSITIONAL: { [string]: { alias: string, keys: { string }, source: string } } = {}
 for name, body in string.gmatch(ContentV2.types(), "export type V2_([%w_]+) = (%b{})") do
 	local inner = string.sub(body :: string, 2, -2)
 	if not string.find(inner, "?", 1, true) and not string.find(inner, "{", 1, true) then
 		CLOSED[name :: string] = true
 	end
 end
+do
+	local names = {}
+	for name in CLOSED do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	local declared: { [string]: string } = {}
+	for name, body in string.gmatch(ContentV2.types(), "export type V2_([%w_]+) = (%b{})") do
+		declared[name :: string] = string.sub(body :: string, 2, -2)
+	end
+	for index, name in names do
+		local keys, params, fields = {}, {}, {}
+		for key, kind in string.gmatch(declared[name], "([%w_]+): ([%w_]+)") do
+			local field, fieldType = key :: string, kind :: string
+			table.insert(keys, field)
+			table.insert(params, field .. ": " .. fieldType)
+			table.insert(fields, field .. "=" .. field)
+		end
+		local alias = "p" .. tostring(index)
+		POSITIONAL[name] = {
+			alias = alias,
+			keys = keys,
+			source = "local function "
+				.. alias
+				.. "("
+				.. table.concat(params, ", ")
+				.. "): V2_"
+				.. name
+				.. " return {"
+				.. table.concat(fields, ",")
+				.. "} end",
+		}
+	end
+end
 
 -- List literals propagate their declared element type into every row. Explicit
 -- numeric keys instead infer an exact first-row shape before checking the list.
-local function serializeV2(value: any, used: { [string]: string }, descriptor: string?): string
+-- Repeated typed rows (507 identical provenance rows alone) ship once as a
+-- factory that returns a fresh table per call, so no two rows alias.
+type Shared = {
+	counts: { [string]: number },
+	names: { [string]: string },
+	kinds: { [string]: string },
+	positional: { [string]: boolean },
+}
+
+local function serializeV2(value: any, used: { [string]: string }, descriptor: string?, shared: Shared?): string
 	if descriptor and descriptor:sub(1, 1) == "?" then
 		descriptor = descriptor:sub(2)
 	end
@@ -140,7 +186,7 @@ local function serializeV2(value: any, used: { [string]: string }, descriptor: s
 	if #value > 0 then
 		for _, entry in value do
 			local element = if descriptor and descriptor:sub(1, 2) == "[]" then descriptor:sub(3) else nil
-			table.insert(fields, serializeV2(entry, used, element))
+			table.insert(fields, serializeV2(entry, used, element, shared))
 		end
 	else
 		local keys = {}
@@ -154,10 +200,40 @@ local function serializeV2(value: any, used: { [string]: string }, descriptor: s
 			if descriptor == nil and table.find(ContentV2.SECTIONS, key) then
 				child = "[]" .. key
 			end
-			table.insert(fields, field .. "=" .. serializeV2(value[key], used, child))
+			table.insert(fields, field .. "=" .. serializeV2(value[key], used, child, shared))
 		end
 	end
 	local literal = "{" .. table.concat(fields, ",") .. "}"
+	local positional = if descriptor then POSITIONAL[descriptor] else nil
+	if positional and shared then
+		local count = 0
+		for _ in value do
+			count += 1
+		end
+		local args = {}
+		for _, key in positional.keys do
+			if value[key] ~= nil and type(value[key]) ~= "table" then
+				table.insert(args, contract.serialize(value[key]))
+			end
+		end
+		if count == #positional.keys and #args == count then
+			shared.positional[descriptor :: string] = true
+			literal = positional.alias .. "(" .. table.concat(args, ",") .. ")"
+		end
+	end
+	local leaf = true
+	for _, field in value do
+		if type(field) == "table" then
+			leaf = false
+		end
+	end
+	if shared and leaf and descriptor and ContentV2.isObject(descriptor) then
+		if shared.names[literal] then
+			return shared.names[literal] .. "()"
+		end
+		shared.counts[literal] = (shared.counts[literal] or 0) + 1
+		shared.kinds[literal] = descriptor
+	end
 	if descriptor and CLOSED[descriptor] then
 		return literal
 	end
@@ -255,6 +331,38 @@ function M.render(document: Content.Document, mode: string): string
 		end
 		table.sort(constructors)
 		typeSource ..= "\n" .. table.concat(constructors, "\n")
+		local shared: Shared = { counts = {}, names = {}, kinds = {}, positional = {} }
+		serializeV2(payload, used, nil, shared)
+		local candidates = {}
+		for literal, count in shared.counts do
+			local saved = count * (#literal - 4) - #literal - 60
+			if count > 1 and saved > 0 then
+				table.insert(candidates, { literal = literal, saved = saved })
+			end
+		end
+		table.sort(candidates, function(a, b)
+			return if a.saved ~= b.saved then a.saved > b.saved else a.literal < b.literal
+		end)
+		local factories = {}
+		for name, row in POSITIONAL do
+			if shared.positional[name] then
+				table.insert(factories, row.source)
+			end
+		end
+		table.sort(factories)
+		for index = 1, math.min(#candidates, 120) do
+			local literal = candidates[index].literal
+			local kind = shared.kinds[literal]
+			local name = "s" .. tostring(index)
+			shared.names[literal] = name
+			local body = if CLOSED[kind] then literal else used[kind] .. "(" .. literal .. ")"
+			table.insert(factories, "local function " .. name .. "(): V2_" .. kind .. " return " .. body .. " end")
+		end
+		shared.counts = {}
+		serialized = serializeV2(payload, used, nil, shared)
+		if #factories > 0 then
+			typeSource ..= "\n" .. table.concat(factories, "\n")
+		end
 	end
 	-- V2 catalogs are large data literals; keep their deterministic compact form
 	-- rather than shipping hundreds of kilobytes of formatter-only whitespace.

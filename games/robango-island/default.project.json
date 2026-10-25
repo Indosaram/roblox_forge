@@ -52,6 +52,8 @@
     "../../genres/survival-coop/module/BrawlLedger.luau",
     "../../genres/survival-coop/module/SkinSelection.luau",
     "../../genres/survival-coop/module/Capabilities.luau",
+    "../../genres/survival-coop/module/OutpostPanel.luau",
+    "../../genres/grow-harvest/module/Audio.luau",
     "**/*.md",
     "**/.gitkeep",
     "**/*.yml"
