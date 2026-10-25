@@ -16,7 +16,14 @@ function M.skill(locale: string, node: { category: string, rank: number?, cost: 
 	local name = if strings[key] then M.text(locale, key) else (string.gsub(node.category, "_", " "))
 	return name .. (if node.rank then " " .. tostring(node.rank) else "") .. " · " .. tostring(node.cost) .. " SP"
 end
-function M.refusal(locale: string, reason: string): string
+function M.skillName(locale: string, id: string): string
+	local category, rank = string.match(id, "^(.-)_(%d+)$")
+	return M.text(locale, "skills." .. (category or id)) .. " " .. (rank or "")
+end
+function M.refusal(locale: string, reason: string, skill: string?): string
+	if reason == "SKILL_NODE_GATE" and skill then
+		return string.format(M.text(locale, "skill_needed_refusal"), skill)
+	end
 	local key = reason
 	if string.find(reason, "WEIGHT") or string.find(reason, "SLOTS") or string.find(reason, "CAPACITY") then
 		key = "capacity"

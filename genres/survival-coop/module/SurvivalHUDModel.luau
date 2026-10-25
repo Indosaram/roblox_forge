@@ -331,6 +331,13 @@ function M.recipeOrder(
 			held = held or ingredient.available > 0
 		end
 		ready = ready and complete
+		local skill: string? = nil
+		for _, d in if filter and filter.progression then filter.details else {} do
+			for _, n in if d.id == recipe.id then d.skillNodes else {} do
+				skill = skill or (if filter.progression.paid[n] then nil else n)
+			end
+		end
+		ready = ready and skill == nil
 		if recipe.requiredToolTag then
 			local tool = false
 			for _, row in M.items(bag) do
@@ -361,6 +368,7 @@ function M.recipeOrder(
 				recipe = recipe,
 				ready = ready,
 				stationReady = stationReady,
+				skill = skill,
 				station = recipe.station or "",
 				favorite = favorite,
 			})
@@ -395,9 +403,11 @@ function M.wholeRows(height: number, row: number, gap: number): number
 	return rows * (row + gap) - gap
 end
 
+-- CoreGui tool hotbar: bottom 70 px (p112)
+M.HOTBAR_CLEAR = 56
 function M.contextSheetBounds(width: number, height: number, touch: boolean): (number, number, number, number)
 	local top = 64
-	local bottom = if touch or width < 700 then 128 else 16
+	local bottom = if touch or width < 700 then 128 else M.HOTBAR_CLEAR
 	if width < 600 and height > width then
 		return width, math.max(44, height - top - 16), top, 0
 	end
@@ -412,13 +422,14 @@ function M.chatSafe(
 	w: number,
 	h: number
 ): (number, number, number, number)
+	local edge = y + h
 	if width >= 1000 and x < 540 and y < 320 then
 		if width - 548 >= w then
 			x = 548
 		else
 			y = 328
 		end
-		h = math.min(h, height - y - 8)
+		h = math.max(0, math.min(h, edge - y, height - y - 8))
 	end
 	return x, y, w, h
 end

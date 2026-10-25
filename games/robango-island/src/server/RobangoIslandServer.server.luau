@@ -318,6 +318,37 @@ if RunService:IsStudio() then -- QA: ForgeQASeedDamaged=<id>
 		end
 	end)
 end
+if RunService:IsStudio() then -- QA: ForgeQASeedProgress="<level>:<rank>[:<guideId>]"
+	workspace:GetAttributeChangedSignal("ForgeQASeedProgress"):Connect(function()
+		local l, r, id = string.match(tostring(workspace:GetAttribute("ForgeQASeedProgress")), "^(%d+):(%d+):?(.*)$")
+		local G, P, at = (content :: any).guides, (content :: any).progressionPolicy.tree, nil
+		for i, g in G do
+			at = if g.id == id then i else at
+		end
+		if not l or id ~= "" and not at then
+			return
+		end
+		local g, T = if at then G[at].gates else {}, require(Forge.core.domain.progression.SkillTree)
+		local lv = math.min(P.maxLevel, math.max(tonumber(l) :: number, g.characterLevel or 1))
+		for _, p in Players:GetPlayers() do
+			session.personalTransaction(tostring(p.UserId), function(raw)
+				local d = raw.envelope.genres["survival-coop"].data
+				local s = d.progression or T.new(content, P)
+				d.progression = if s.level < lv then T.level(s, P, lv) else s
+				return raw
+			end);
+			(factory :: any).expeditionStore.transaction(tostring(p.UserId), function(doc)
+				local d = doc.development or { points = 0, definitions = {}, instabilityAccess = 1 }
+				d.points = math.max(d.points, 100 * math.max(tonumber(r) :: number, g.developmentRank or 0))
+				for i = 1, (at or 1) - 1 do
+					d.definitions[G[i].id] = true
+				end
+				doc.development = d
+				return { ok = true }
+			end)
+		end
+	end)
+end
 -- Recover durable listing barriers even when no seller is online. The extension
 -- wrapper serializes this worker with market commands and Session fences value.
 local tradeRecovery: any = nil

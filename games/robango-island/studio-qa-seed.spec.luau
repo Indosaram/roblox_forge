@@ -7,7 +7,7 @@ local Job = require("../../core/domain/crafting/Job")
 local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local content: any = require("./src/shared/SurvivalContent")
 
-local function boot(studio: boolean): (any, () -> any)
+local function boot(studio: boolean, marker: string?): (any, () -> any, () -> any)
 	local listeners, attributes = {}, {}
 	local workspace = {
 		GetAttribute = function(_, key)
@@ -32,9 +32,14 @@ local function boot(studio: boolean): (any, () -> any)
 	}
 	local forge = { core = { domain = { inventory = { Inventory = Inventory }, crafting = { Job = Job } } } }
 	local source = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
-	local first = assert(string.find(source, "if RunService:IsStudio() then -- QA: ForgeQASeedDamaged", 1, true))
+	local first = assert(
+		string.find(source, "if RunService:IsStudio() then -- QA: " .. (marker or "ForgeQASeedDamaged"), 1, true)
+	)
 	local last = assert(string.find(source, "\nend\n", first, true))
 	local raw: any
+	local document: any = {}
+	local SkillTree = require("../../core/domain/progression/SkillTree")
+	forge.core.domain.progression = { SkillTree = SkillTree }
 	luau.load(string.sub(source, first, last + 4), {
 		environment = {
 			workspace = workspace,
@@ -42,6 +47,21 @@ local function boot(studio: boolean): (any, () -> any)
 			content = content,
 			assert = assert,
 			tostring = tostring,
+			tonumber = tonumber,
+			string = string,
+			math = math,
+			warn = function() end,
+			factory = {
+				expeditionStore = {
+					transaction = function(actor, transform)
+						assert(actor == "7", "seed writes the joined player's expedition document")
+						local candidate = table.clone(document)
+						local outcome = transform(candidate)
+						document = if outcome.ok then candidate else document
+						return outcome
+					end,
+				},
+			},
 			require = function(value)
 				return value
 			end,
@@ -69,6 +89,8 @@ local function boot(studio: boolean): (any, () -> any)
 	raw.envelope.genres["survival-coop"].data.inventory.bag = Inventory.save(Inventory.new("bag", limits))
 	return workspace, function()
 		return raw
+	end, function()
+		return document
 	end
 end
 
@@ -101,5 +123,48 @@ return {
 		end
 		assert(count == 1 and item.catalogId == id and item.quantity == 1, "exactly one copy")
 		assert(Model.repairCost(item, content) ~= nil, "damaged copy shows the Repair button")
+	end,
+	["progress seed is inert outside Studio"] = function()
+		local workspace, raw, doc = boot(false, "ForgeQASeedProgress")
+		workspace:SetAttribute("ForgeQASeedProgress", "30:2")
+		assert(raw().envelope.genres["survival-coop"].data.progression == nil, "live profile untouched")
+		assert(doc().development == nil, "live development untouched")
+	end,
+	["Studio progress seed raises level and rank through the profile, idempotently"] = function()
+		local workspace, raw, doc = boot(true, "ForgeQASeedProgress")
+		workspace:SetAttribute("ForgeQASeedProgress", "30:2")
+		local tree = raw().envelope.genres["survival-coop"].data.progression
+		assert(tree and tree.level == 30, "level 30 saved through personalTransaction")
+		assert(doc().development.points == 200, "rank 2 = 200 development points")
+		local version = tree.version
+		workspace:SetAttribute("ForgeQASeedProgress", "5:0")
+		local again = raw().envelope.genres["survival-coop"].data.progression
+		assert(again.level == 30 and again.version == version, "raise-only: a lower seed changes nothing")
+		assert(doc().development.points == 200, "raise-only rank")
+		workspace:SetAttribute("ForgeQASeedProgress", "bogus")
+		assert(raw().envelope.genres["survival-coop"].data.progression.level == 30, "malformed seed ignored")
+	end,
+	["Studio progress seed with a guide id opens that guide"] = function()
+		local Guide = require("../../genres/survival-coop/module/GuideEvents")
+		local target, index = nil, 0
+		for i, guide in content.guides do
+			if string.match(guide.id, "^rw%.g12%.") then
+				target, index = guide, i
+			end
+		end
+		assert(target, "g12 guide exists")
+		local workspace, raw, doc = boot(true, "ForgeQASeedProgress")
+		workspace:SetAttribute("ForgeQASeedProgress", "1:0:" .. target.id)
+		local level = raw().envelope.genres["survival-coop"].data.progression.level
+		local development = doc().development
+		local grade = development.points // 100
+		for i, guide in content.guides do
+			local open = not development.definitions[guide.id] and Guide.open(guide, level, grade)
+			if i < index then
+				assert(development.definitions[guide.id], "earlier guides marked done")
+			elseif i == index then
+				assert(open, "the seeded guide is open")
+			end
+		end
 	end,
 }

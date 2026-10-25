@@ -2761,3 +2761,5 @@ scr.refuse.WRONG_IDENTITY,No clan has that ID. Check it and try again.,recovered
 chr.UNKNOWN_OPERATION,That support tier is not available,genre text chr,That support tier is not available,그 기술 지원 단계는 없어요
 chr.SAVE_FAILED,Could not save. Try again,genre text chr,Could not save. Try again,저장하지 못했어요. 다시 시도하세요
 chr.PROGRESSION_UNAVAILABLE,Your progress is still loading. Try again in a moment,genre text chr,Your progress is still loading. Try again in a moment,진행 정보를 불러오는 중이에요. 잠시 뒤 다시 시도하세요
+hud.skill_needed,Locked: learn %s,genre text hud,Locked: learn %s,잠김: %s 기술 필요
+hud.skill_needed_refusal,Learn the %s skill first (Skills tab),genre text hud,Learn the %s skill first (Skills tab),먼저 %s 기술을 배우세요 (기술 탭)

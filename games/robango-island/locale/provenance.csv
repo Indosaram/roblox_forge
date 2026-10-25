@@ -2761,3 +2761,5 @@ scr.refuse.WRONG_IDENTITY,original,agent:hephaestus/p111,2026-10-25
 chr.UNKNOWN_OPERATION,original,agent:hephaestus/p111,2026-10-25
 chr.SAVE_FAILED,original,agent:hephaestus/p111,2026-10-25
 chr.PROGRESSION_UNAVAILABLE,original,agent:hephaestus/p111,2026-10-25
+hud.skill_needed,original,agent:hephaestus/p113,2026-10-25
+hud.skill_needed_refusal,original,agent:hephaestus/p113,2026-10-25

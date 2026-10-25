@@ -6,10 +6,7 @@ local Locale = require("./SurvivalHUDLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
--- Refusals that also raise the toast.
--- Seconds a success line (repair done, saved) stays on the contextual status.
 M.NOTICE_SECONDS = 5
--- Seconds a finished refusal stays on the contextual status before it clears.
 M.REFUSAL_SECONDS = 8
 
 M.toasted = {
@@ -20,7 +17,6 @@ M.toasted = {
 	PLACEMENT_BLOCKED_CREATURE = true,
 	WAREHOUSE_UNREACHABLE = true,
 }
--- Seconds a refusal toast stays up (p43 Studio: one stayed ~18 minutes).
 M.TOAST_SECONDS = 6
 
 function M.controls(components: any, theme: any, parent: any, fit: ((Instance) -> ())?): any
@@ -85,7 +81,6 @@ export type Options = {
 	settlementOrigin: Vector3,
 	names: { [string]: string }?,
 	contextual: boolean?,
-	-- Opens a docked screen by id; the skill reset button opens the ui.skill-reset quote with it.
 	openPanel: ((string) -> boolean)?,
 }
 
@@ -148,7 +143,6 @@ function M.start(options: Options)
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
 		local rowY = Model.VITALS.rowTop + (index - 1) * Model.VITALS.rowStep
-		-- Localized label beside the optional (maybe moderated) image, never under it.
 		local symbol = Instance.new("TextLabel")
 		symbol.Name, symbol.BackgroundTransparency = stat .. "Icon", 1
 		symbol.Position = UDim2.fromOffset(Model.VITALS.labelX, rowY)
@@ -220,7 +214,6 @@ function M.start(options: Options)
 	local toolbar = Instance.new("Frame")
 	toolbar.Name, toolbar.BackgroundTransparency = "Navigation", 1
 	toolbar.Position, toolbar.Size, toolbar.Parent = UDim2.fromOffset(0, 124), UDim2.new(1, 0, 0, 48), root
-	-- ui.recipe-tracker: read-only to-do rows; geometry from Model.trackerBounds (PC and portrait).
 	local tracker =
 		Components.label(theme, { text = "", size = UDim2.fromOffset(216, 50), parent = root, textSize = 13 })
 	tracker.Name, tracker.Visible = "RecipeTracker", false
@@ -272,10 +265,7 @@ function M.start(options: Options)
 				sheet.frame, UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)
 			panes.AutomaticSize = Enum.AutomaticSize.None
 			listPane.AutomaticSize, detailPane.AutomaticSize = Enum.AutomaticSize.None, Enum.AutomaticSize.None
-			-- Short landscape: list beside detail once the stack cannot show toggle plus one recipe.
 			local side = bounds.listHeight < 102 and sheet.frame.AbsoluteSize.X >= 400
-			-- Whole recipe rows only (48 + 6 gap): p83 1280x662 showed the third row cut mid-text
-			-- right above the Make footer.
 			local listHeight = Model.wholeRows(if side then bounds.height else bounds.listHeight, 48, 6)
 			listPane.Size = UDim2.new(if side then 0.5 else 1, -4, 0, listHeight)
 			detailPane.Size =
@@ -305,9 +295,9 @@ function M.start(options: Options)
 	capacityFill.Name, capacityFill.BorderSizePixel = "Fill", 0
 	capacityFill.BackgroundColor3, capacityFill.Parent = Color3.fromRGB(127, 224, 156), capacityTrack
 	local section, selected, recipeId, structureId = "", nil, nil, nil
-	-- Desktop: a world click froze the ghost cell (BuildPlacement.clickLocks).
 	local ghostLocked = false
 	local allRecipes = false
+	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
 	buildCards.Name, buildCards.BackgroundTransparency = "BuildCards", 1
 	buildCards.Size, buildCards.AutomaticSize, buildCards.Parent =
@@ -316,7 +306,6 @@ function M.start(options: Options)
 	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
 		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
 	local function fitBuildCards()
-		-- Cost chips need ~100px for a name beside the count: phones get one column.
 		local columns = if sheet.frame.AbsoluteSize.X >= 600
 			then 3
 			elseif sheet.frame.AbsoluteSize.X >= 480 then 2
@@ -367,7 +356,6 @@ function M.start(options: Options)
 	local render: () -> ()
 	local refresh: () -> ()
 	local handshakeRetries, hand = 0, {}
-	-- Deaths already reported by the knockout toast (nil until the first snapshot).
 	local reportedDeaths: number? = nil
 	local function send(request: any)
 		if not request then
@@ -408,8 +396,6 @@ function M.start(options: Options)
 				return
 			end
 			model.finish(ok, result)
-			-- A success line is a confirmation, not a state: it clears after a few seconds unless a
-			-- newer result replaced it (2026-10-23 Studio: the repair line stayed up indefinitely).
 			local notice = model.notice
 			if notice then
 				task.delay(M.NOTICE_SECONDS, function()
@@ -422,13 +408,11 @@ function M.start(options: Options)
 				local line = Locale.refusal(locale, model.reason)
 				toast.Text, toast.Visible = line, true
 				task.delay(M.TOAST_SECONDS, function()
-					-- Only this refusal's line clears; a newer toast or missing-materials line stays.
 					if not disposed and toast.Text == line then
 						toast.Visible = false
 					end
 				end)
 			end
-			-- The contextual status floats over every sheet: a refusal there expires like a notice.
 			local refused = if contextual and model.status == "conflict" then model.reason else nil
 			if refused then
 				task.delay(M.REFUSAL_SECONDS, function()
@@ -515,7 +499,6 @@ function M.start(options: Options)
 		end
 		local target: string? = nil
 		local targetPos: Vector3? = nil
-		-- A bow reaches 40 studs (server rechecks range, sight and facing); melee stays at 8.
 		local distance = if ranged then Model.RANGED_STUDS else 8
 		for _, instance in world:GetDescendants() do
 			local id = instance:GetAttribute("ForgeWildlifeId")
@@ -601,7 +584,6 @@ function M.start(options: Options)
 		IconFallback.mount(item, icon.category, UDim2.fromOffset(28, 28), UDim2.fromOffset(4, 6), icon.image)
 		local padding = item:FindFirstChild("IconPadding") or Instance.new("UIPadding")
 		padding.Name, padding.PaddingLeft, padding.Parent = "IconPadding", UDim.new(0, 40), item
-		-- Padding affects child coordinates too; keep the glyph inside the row.
 		item:FindFirstChild("IconFallback").Position = UDim2.fromOffset(-36, 6)
 	end
 	local function materialRow(id: string, available: number?, needed: number, parent: any?): any
@@ -661,7 +643,6 @@ function M.start(options: Options)
 		end
 		local placement, reason = Model.preview(model.snapshot, model.actor, definition, x, z, rotation)
 		if placement and not reason then
-			-- Same support/obstruction test as the server verify, so wildlife or parts on the plot turn it red.
 			local excluded: { Instance } = { ghost }
 			for _, other in players:GetPlayers() do
 				if other.Character then
@@ -757,14 +738,12 @@ function M.start(options: Options)
 			part.Transparency, part.Material, part.Parent = 0.4, Enum.Material.Neon, ghost
 		end
 	end
-	-- Own ScreenGui: above the dock (30) and extension sheets (20).
 	local placementGui = Instance.new("ScreenGui")
 	placementGui.Name, placementGui.ResetOnSpawn, placementGui.DisplayOrder = "ForgePlacementHUD", false, 40
 	placementGui.ScreenInsets, placementGui.ZIndexBehavior = gui.ScreenInsets, gui.ZIndexBehavior
 	placementGui.Parent = player:WaitForChild("PlayerGui")
 	local placementBar = Instance.new("Frame")
 	placementBar.Name, placementBar.BackgroundTransparency = "PlacementControls", 1
-	-- The placement overlay must win hit testing over the modal sheet (50..52).
 	placementBar.ZIndex = sheet.frame.ZIndex + 3
 	placementBar.Size, placementBar.Position = UDim2.fromOffset(272, 48), UDim2.new(0.5, -136, 1, -72)
 	placementBar.Parent, placementBar.Visible = placementGui, false
@@ -857,7 +836,6 @@ function M.start(options: Options)
 		if Model.overPlacementBar(px, py, p, s) then
 			return true
 		end
-		-- Buttons and the touch thumbstick are Active; full-screen HUD containers are not.
 		for _, item in player.PlayerGui:GetGuiObjectsAtPosition(px, py) do
 			if item.Active then
 				return true
@@ -907,8 +885,6 @@ function M.start(options: Options)
 			end
 		end)
 	)
-	-- A tap never fires InputChanged: record where each touch began and move the ghost on release.
-	-- A desktop click on the world picks that cell and locks it until the next world click.
 	table.insert(
 		connections,
 		input.InputBegan:Connect(function(event, processed)
@@ -978,7 +954,6 @@ function M.start(options: Options)
 		end
 		tracker.Text = table.concat(lines, "\n")
 		local size = root.AbsoluteSize
-		-- Same viewport frame as the vitals card: root is inset 12/8 inside the safe area.
 		local bounds = Model.trackerBounds(size.X + 24, size.Y + 16, #rows)
 		tracker.AnchorPoint = Vector2.zero
 		tracker.Position = UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
@@ -989,7 +964,6 @@ function M.start(options: Options)
 			return
 		end
 		placementBar.Visible = section == "build" and structureId ~= nil
-		-- Placement is a world interaction: the catalog takes no input meanwhile.
 		if section == "build" then
 			sheet.frame.Visible = structureId == nil
 		end
@@ -1015,7 +989,7 @@ function M.start(options: Options)
 		status.Text = t(model.status)
 			.. (
 				if model.reason
-					then "\n" .. Locale.refusal(locale, model.reason)
+					then "\n" .. Locale.refusal(locale, model.reason, refusedSkill)
 					elseif model.notice then "\n" .. t(model.notice)
 					elseif hungry then "\n" .. t("hungry")
 					else ""
@@ -1043,7 +1017,7 @@ function M.start(options: Options)
 			end, not model.busy)
 		end
 		if model.reason then
-			label(Locale.refusal(locale, model.reason), 100)
+			label(Locale.refusal(locale, model.reason, refusedSkill), 100)
 		elseif model.notice then
 			label(t(model.notice), 48)
 		end
@@ -1100,7 +1074,6 @@ function M.start(options: Options)
 				local item = if selected then bag.items[selected] else nil
 				contentParent, controls.parent = detailPane, detailPane
 				if item then
-					-- Carried food shows its remaining freshness on the server clock (the bag is never cold).
 					local policy = Spoilage.policy(options.content)
 					local fresh = if policy
 						then Spoilage.freshness(item, policy, math.floor(world:GetServerTimeNow() * 1000), false)
@@ -1139,7 +1112,6 @@ function M.start(options: Options)
 				end
 			end
 			if options.openPanel then
-				-- ui.storage: filters, amounts, capacity and permissions live in their own screen.
 				button("Storage", t("warehouse"), function()
 					options.openPanel("storage")
 				end)
@@ -1193,6 +1165,8 @@ function M.start(options: Options)
 					all = allRecipes,
 					pin = pin,
 					jobs = jobs,
+					progression = model.snapshot.progression,
+					details = options.content.recipeDetails,
 					favorites = if model.snapshot.recipeMarks then model.snapshot.recipeMarks.favorites else nil,
 				}
 			)
@@ -1236,6 +1210,10 @@ function M.start(options: Options)
 						.. (
 							if row.ready
 								then t("reserve") .. " +"
+								elseif row.skill then string.format(
+									t("skill_needed"),
+									Locale.skillName(locale, row.skill)
+								)
 								elseif not row.stationReady then t("station") .. ": " .. name(row.station)
 								else t("missing")
 						),
@@ -1300,6 +1278,7 @@ function M.start(options: Options)
 							render()
 							return
 						end
+						refusedSkill = row.skill
 						command(
 							"craft-reserve",
 							{ recipe.id, if station then station:GetAttribute("ForgeStationId") else "hand" }
