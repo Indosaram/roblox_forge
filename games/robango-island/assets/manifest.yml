@@ -1000,8 +1000,8 @@ assets:
     tool: gpt-image
     source: "gpt-image recovery-atlas.png cell 11"
     path: assets/icons/ui.icon.fatigue.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 86694160556710
+    moderation: Approved
     provenance:
       digest: sha256:36b081840b60fe3a22b10398f0635fa1d4a27b45ea7cc3638bdead8ae7dc0581
       recipe:
@@ -1021,7 +1021,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
-    decalAssetId: 0
+    decalAssetId: 112100788219162
   - key: ui-icon-xp
     kind: image
     tool: gpt-image
@@ -3781,8 +3781,8 @@ assets:
     tool: gpt-image
     source: "gpt-image redraw-p85.json item.icon.workbench-t2-kit"
     path: assets/icons/item.icon.workbench-t2-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 105448063322365
+    moderation: Approved
     provenance:
       digest: sha256:0658bc363a311e5e42b3e0c452409259ed32be3c1a612607fa7d9feb14319021
       recipe:
@@ -3802,14 +3802,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-24
-    decalAssetId: 0
+    decalAssetId: 107743229277229
   - key: item-icon-workbench-t3-kit
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p85.json item.icon.workbench-t3-kit"
     path: assets/icons/item.icon.workbench-t3-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 116001704098687
+    moderation: Approved
     provenance:
       digest: sha256:70679debc4263ac9022c645045b53776749da2562aba37ce8470c51270b492b0
       recipe:
@@ -3829,14 +3829,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-24
-    decalAssetId: 0
+    decalAssetId: 83164441336875
   - key: item-icon-kiln-t2-kit
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p85.json item.icon.kiln-t2-kit"
     path: assets/icons/item.icon.kiln-t2-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 132686651926953
+    moderation: Approved
     provenance:
       digest: sha256:41b19c4dff40cf8c1ae76131ca6053fff2547e450797a01bfc2fb72baf8b3379
       recipe:
@@ -3856,14 +3856,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-24
-    decalAssetId: 0
+    decalAssetId: 95807257836788
   - key: item-icon-kiln-t3-kit
     kind: image
     tool: gpt-image
     source: "gpt-image redraw-p85.json item.icon.kiln-t3-kit"
     path: assets/icons/item.icon.kiln-t3-kit.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72708233911837
+    moderation: Approved
     provenance:
       digest: sha256:321dec31bc66cf1d8fbda48557c5b468c8c5ada689b48ad718a564c3e1e3a6f9
       recipe:
@@ -3883,7 +3883,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-24
-    decalAssetId: 0
+    decalAssetId: 123091699765165
   - key: item-icon-tanning-frame-kit
     kind: image
     tool: gpt-image
@@ -7723,8 +7723,8 @@ assets:
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 10"
     path: assets/icons/item.icon.lava-protection-boots.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136467402168054
+    moderation: Approved
     provenance:
       digest: sha256:58705500b2818c1be9700526f250a8785801f33cd87156542bc627599af06a4d
       recipe:
@@ -7744,6 +7744,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 117205770726827
   - key: item-icon-starter-axe
     kind: image
     tool: gpt-image
@@ -7854,8 +7855,8 @@ assets:
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 15"
     path: assets/icons/item.icon.practice-seedbed.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136195299842925
+    moderation: Approved
     provenance:
       digest: sha256:cdf3643c30d61e4d1c0c39a3054fe17142cdff6b26f94762516d94da76ec034e
       recipe:
@@ -7875,13 +7876,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 131224340251604
   - key: item-icon-instrument-piano
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-17.png cell 16"
     path: assets/icons/item.icon.instrument-piano.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84669463367332
+    moderation: Approved
     provenance:
       digest: sha256:899aeeee4c3ccccbee3f447c3ed3be3f849d93fb4c54b04db2a136f23f92f3b9
       recipe:
@@ -7901,13 +7903,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 70484330847645
   - key: item-icon-instrument-guitar
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 1"
     path: assets/icons/item.icon.instrument-guitar.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 92993193768987
+    moderation: Approved
     provenance:
       digest: sha256:e08553f1aa86f46c5ebede95088236bb8eada70c78bb61f94ef9c6d593d35c9d
       recipe:
@@ -7927,13 +7930,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 121143121748876
   - key: item-icon-instrument-bass
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 2"
     path: assets/icons/item.icon.instrument-bass.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72974583490439
+    moderation: Approved
     provenance:
       digest: sha256:552647f01113773f0e713056161884364aaa97e7cc7361930c572a2f39015b53
       recipe:
@@ -7953,13 +7957,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 71807457313341
   - key: item-icon-instrument-violin
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 3"
     path: assets/icons/item.icon.instrument-violin.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 135456652423667
+    moderation: Approved
     provenance:
       digest: sha256:d847bc71a0244376d0728f2a47fd508032e8feaffce93ff4d139af1336aa3a52
       recipe:
@@ -7979,13 +7984,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 102888202114045
   - key: item-icon-instrument-flute
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 4"
     path: assets/icons/item.icon.instrument-flute.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 136327647206063
+    moderation: Approved
     provenance:
       digest: sha256:37685088e14d518526d2a80fdaca4636368d36db64daef8b77c20870e565e86c
       recipe:
@@ -8005,13 +8011,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 130323562207146
   - key: item-icon-instrument-clarinet
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 5"
     path: assets/icons/item.icon.instrument-clarinet.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 124956534887258
+    moderation: Approved
     provenance:
       digest: sha256:acbe158de4d430d2e00ce22e52957fa2b18c6cc9ccd9ab8a4fbffacf8c647842
       recipe:
@@ -8031,13 +8038,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 113484651335458
   - key: item-icon-instrument-trumpet
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 6"
     path: assets/icons/item.icon.instrument-trumpet.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 72179945169834
+    moderation: Approved
     provenance:
       digest: sha256:52c296b31f29739bf9372b1cdcbd26bbb69be3f0cf1c1d9da6b40be3567ab583
       recipe:
@@ -8057,13 +8065,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 85985563636828
   - key: item-icon-instrument-drums
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 7"
     path: assets/icons/item.icon.instrument-drums.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 137296979768242
+    moderation: Approved
     provenance:
       digest: sha256:83e79de466f50f0fc4f7de0f3357f6afc8bd357a1a090e62191c55f802398be5
       recipe:
@@ -8083,13 +8092,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 133560153839746
   - key: item-icon-granite
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 8"
     path: assets/icons/item.icon.granite.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 90729243582254
+    moderation: Approved
     provenance:
       digest: sha256:315e1cc7f7c8aec7e177836502cfb3e029e46da4e74c83634e072707e34ebcf4
       recipe:
@@ -8109,6 +8119,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 84214667785510
   - key: item-icon-bandage
     kind: image
     tool: gpt-image
@@ -8140,8 +8151,8 @@ assets:
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 10"
     path: assets/icons/item.icon.signal-lens.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 120655699525654
+    moderation: Approved
     provenance:
       digest: sha256:28c95a205bd5af9e1732b0a5a25baa19ed0e0a68713ae479c0eedecabd2f186d
       recipe:
@@ -8161,13 +8172,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 136214615755474
   - key: item-icon-sample-case
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 11"
     path: assets/icons/item.icon.sample-case.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 99781689577558
+    moderation: Approved
     provenance:
       digest: sha256:78bdf789b5956872da498c34d23a8cf933223f1ebb2867bb5ff71539eb264352
       recipe:
@@ -8187,13 +8199,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 85256562635935
   - key: item-icon-research-bundle
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 12"
     path: assets/icons/item.icon.research-bundle.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 84957162197724
+    moderation: Approved
     provenance:
       digest: sha256:a15655ca6265a5452cc75489547fffab71abc0f578c581853a32ee9d14cb2edd
       recipe:
@@ -8213,13 +8226,14 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 124801487628200
   - key: item-icon-shelter-liner
     kind: image
     tool: gpt-image
     source: "gpt-image atlas-18.png cell 13"
     path: assets/icons/item.icon.shelter-liner.png
-    assetId: 0
-    moderation: NotUploaded
+    assetId: 76123530293437
+    moderation: Approved
     provenance:
       digest: sha256:2f1d2f46f07ac6cfc0820559e05b49132e2b38fe6cc2645eb2209eefe49cc68d
       recipe:
@@ -8239,6 +8253,7 @@ assets:
           verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
       author: agent:omo/icons
       created: 2026-10-21
+    decalAssetId: 93280993259159
   - key: item-icon-heat-brace
     kind: image
     tool: gpt-image
