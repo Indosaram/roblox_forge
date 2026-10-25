@@ -803,7 +803,15 @@ return function(content: any, source, world, backend, clock, options, provision,
 			return nil, "WRONG_OBJECTIVE"
 		end
 		local death: any = world.services.survivalDeath
-		if not target or not death.reachable(actor, target.position) then
+		-- Reach the visible marker part with the station rule (a ray to its centre hits the part).
+		if
+			not target
+			or not (
+				if target.part and target.part.Parent
+					then world.nearPart(actor, target.part)
+					else death.reachable(actor, target.position)
+			)
+		then
 			return nil, "OUT_OF_REACH"
 		end
 		local physical = { survey = true, inspect = true, activate = true, speak = true, tune = true }

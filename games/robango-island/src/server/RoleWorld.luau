@@ -754,12 +754,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				prompt:SetAttribute("ForgePanel", facility.panel)
 				prompt:SetAttribute("ForgeDialogue", facility.talk)
 				prompt:SetAttribute("ForgeOperation", facility.operation)
+				-- Travel reach uses the station rule on this part (p123): a ray to its centre hit the part.
 				prompt.Triggered:Connect(function(player)
-					if
-						facility.destination
-						and world.travel
-						and world.services.survivalDeath.reachable(tostring(player.UserId), facility.position)
-					then
+					if facility.destination and world.travel and world.nearPart(tostring(player.UserId), target) then
 						world.travel(player, facility.destination)
 					end
 				end)
@@ -792,12 +789,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, true, target
 		prompt.Triggered:Connect(function(player)
 			local actor = tostring(player.UserId)
-			local reach = world.services.survivalDeath
-			local approach = { x = position.x, y = position.y + 2, z = position.z }
 			local outcome: string
 			if not (bound and world.travel) then
 				outcome = "expedition_inactive"
-			elseif not reach.reachable(actor, approach) then
+			elseif not world.nearPart(actor, target) then
 				outcome = "dock_unreachable"
 			else
 				local ok, reason = world.travel(player, destination)
@@ -948,8 +943,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					local position =
 						{ x = anchor.position.x + (index - 1) * 8, y = anchor.position.y, z = anchor.position.z }
 					local id = objective.id .. ":" .. tostring(index)
-					world.journalTargets[id] = { position = position, objective = objective.id, marker = id }
 					local target = part(id, position, { x = 2, y = 3, z = 2 })
+					-- The marker part is the journal reach target (SurvivalFactory, station reach rule).
+					world.journalTargets[id] =
+						{ position = position, objective = objective.id, marker = id, part = target }
 					local prompt = Instance.new("ProximityPrompt")
 					WorldText.bind(prompt, "journal_checkpoint", "journal")
 					prompt.MaxActivationDistance, prompt.Parent = 8, target

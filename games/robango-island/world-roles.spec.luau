@@ -45,6 +45,10 @@ return {
 			world.services.survivalDeath.reachable = function()
 				return true
 			end
+			-- Topology walk, not reach: travel prompts check world.nearPart (covered with real terrain below).
+			world.nearPart = function()
+				return true
+			end
 			world.travel = function(_, destination)
 				found[destination] = true
 				return false, "studio_no_teleport"
@@ -81,6 +85,9 @@ return {
 		end, "rw.harbor", 1776)
 		world.bind({} :: any)
 		world.services.survivalDeath.reachable = function()
+			return true
+		end
+		world.nearPart = function()
 			return true
 		end
 		local post =
@@ -247,23 +254,85 @@ return {
 					end
 				end
 				if destination then
-					local checked, traveled = false, false
-					world.services.survivalDeath.reachable = function(_, position)
-						assert(
-							position.x == p.X
-								and position.y == p.Y + (if prompt.Name == "ForgeDock" then 2 else 0)
-								and position.z == p.Z,
-							target.Name .. " travel authority position"
-						)
-						checked = true
-						return true
-					end
+					-- p123: travel authority is the station reach rule on the prompt's own part (real
+					-- terrain, real SurvivalWorld raycast), never a ray to a point inside that part.
+					local traveled = false
 					world.travel = function(_, actual)
 						assert(actual == destination, "travel destination")
 						traveled = true
+						return false, "studio_no_teleport"
 					end
-					prompt.Triggered:Fire({ UserId = 1, SetAttribute = function() end })
-					assert(checked and traveled, target.Name .. " prompt failed to travel")
+					-- As in Studio the prompt's part is solid to rays that do not exclude it (the headless
+					-- terrain engine models terrain only); the nearer of part and terrain hits wins.
+					local raycast = workspace.Raycast
+					local function solid(origin: any, direction: any, params: any): number?
+						if params and params.FilterType == roblox.Enum.RaycastFilterType.Include then
+							return nil
+						end
+						for _, ignored in if params then params.FilterDescendantsInstances or {} else {} do
+							if ignored == target or target:IsDescendantOf(ignored) then
+								return nil
+							end
+						end
+						local low, high = 0, 1
+						for _, axis in { "X", "Y", "Z" } do
+							local minimum = target.Position[axis] - target.Size[axis] / 2
+							local maximum = target.Position[axis] + target.Size[axis] / 2
+							if direction[axis] == 0 then
+								if origin[axis] < minimum or origin[axis] > maximum then
+									return nil
+								end
+							else
+								local a = (minimum - origin[axis]) / direction[axis]
+								local b = (maximum - origin[axis]) / direction[axis]
+								low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
+							end
+						end
+						return if low <= high then low else nil
+					end
+					local function travels(at: any): boolean
+						traveled = false
+						engine.move("1", { x = at.X, y = at.Y, z = at.Z })
+						workspace.Raycast = function(self, origin, direction, params)
+							local hit = raycast(self, origin, direction, params)
+							local t = solid(origin, direction, params)
+							if t and (not hit or (hit.Position - origin).Magnitude > direction.Magnitude * t) then
+								return { Instance = target, Position = origin + direction * t }
+							end
+							return hit
+						end
+						prompt.Triggered:Fire({ UserId = 1, SetAttribute = function() end })
+						workspace.Raycast = raycast
+						return traveled
+					end
+					local top = p.Y + target.Size.Y / 2
+					assert(
+						travels(roblox.Vector3.new(p.X, top + 3, p.Z)),
+						layout.id .. ":" .. target.Name .. " standing on it travels"
+					)
+					for _, offset in { { 5, 0 }, { -5, 0 }, { 0, 5 }, { 0, -5 } } do
+						local x, z = p.X + offset[1], p.Z + offset[2]
+						local ground = workspace:Raycast(
+							roblox.Vector3.new(x, 512, z),
+							roblox.Vector3.new(0, -1024, 0),
+							{ IgnoreWater = true }
+						)
+						local y = math.max(if ground then ground.Position.Y else top, top) + 3
+						assert(
+							travels(roblox.Vector3.new(x, y, z)),
+							layout.id
+								.. ":"
+								.. target.Name
+								.. " next to it travels at "
+								.. offset[1]
+								.. ","
+								.. offset[2]
+						)
+					end
+					assert(
+						not travels(roblox.Vector3.new(p.X + 30, top + 3, p.Z)),
+						layout.id .. ":" .. target.Name .. " refused 30 studs away"
+					)
 				end
 				interactions += 1
 			end
