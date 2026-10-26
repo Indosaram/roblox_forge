@@ -1,10 +1,16 @@
-# Local store-art manifest stub. No assets have been uploaded to Roblox.
+# Store-art manifest. Icon and the three titled thumbnails are uploaded to the private Robango Staging universe 10771918494 (2026-10-26, p127).
 schemaVersion: 1
 game: Robango Island
 created: 2026-10-21
 updated: 2026-10-25 # p119: exploration thumbnails redrawn as a harbor-dock scene (the game has dock travel, no boats)
 status: local-reviewed
-uploadStatus: not-uploaded
+uploadStatus: staging-uploaded
+uploads: # publish.roblox.com/v1/games/10771918494/{icon,thumbnail/image}, HTTP 200; evidence .omo/evidence/robango-recovery/p127/store-upload.txt
+  - { key: icon, universe: 10771918494, targetId: 2087456033496220, uploaded: 2026-10-26 }
+  - { key: rider-title, universe: 10771918494, targetId: 8320967961412131, uploaded: 2026-10-26 }
+  - { key: crafting-title, universe: 10771918494, targetId: 6550727228407064, uploaded: 2026-10-26 }
+  - { key: exploration-title, universe: 10771918494, targetId: 5079957289240575, uploaded: 2026-10-26 }
+productionUploadStatus: not-uploaded # production universe not created
 provider: gpt-image
 providerVersion: Responses-API
 generationRoute: bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs
