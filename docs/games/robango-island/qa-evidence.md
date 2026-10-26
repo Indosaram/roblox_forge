@@ -1,5 +1,47 @@
 # robango-island QA evidence
 
+## Current state at `9d673db` (2026-10-26)
+
+This section adds the 2026-10-26 runs on top of the `204bda9` section below; where they conflict, this one wins. Evidence paths are under `.omo/evidence/robango-recovery/` (local, gitignored).
+
+### Gate
+
+- `p7/gate134.json` / `p7/gate134.log`: `forge gate --pack robango-island` on `head` `9d673db`, `ok` true, `valid` true, 47 jobs, 0 failed, 43 native scenarios recorded and replayed, 282.2 s (`durationMs` 282158).
+- The slowest jobs were specs (199.5 s), `journal-eight-chapters` (180.4 s) and `production-building` (168.9 s), all running concurrently.
+- `0172441` (p128) makes the production-worlds fixture drop the instances of destroyed worlds after each world switch. That brought `journal-eight-chapters` from 557 s cold (about 310 s warm) to about 64 s alone, with the replay hash unchanged (commit message). There is no separate p128 evidence folder; the gate134 log above is the run on the result.
+
+### Staging deploy
+
+- `p127/deploy-9d673db.log`: `deploy --env staging --pack robango-island --development --all-roles` published `9d673db` to all 12 role places of the private Universe `10771918494`.
+- Every publish was HTTP 200, with one artifact (sha256 `33937718...cd19a`, `releaseApproved=false`).
+- Onboarding is now v20 and the other 11 roles are v6. Visibility stayed `PRIVATE`.
+- No live player session on these places is recorded.
+
+### Store art
+
+- The icon and the three title thumbnails (rider, crafting, exploration) were uploaded to staging Universe `10771918494` on 2026-10-26 (p127).
+- `p127/store-upload.txt` records HTTP 200 and a target id for each upload: icon `2087456033496220`, rider `8320967961412131`, crafting `6550727228407064`, exploration `5079957289240575`.
+- `games/robango-island/assets/store/store.yml` (`4f9f889`) records them as `staging-uploaded`, and the commit records all four as approved. The upload log itself shows only the HTTP 200 responses, not the moderation state.
+- `productionUploadStatus` is `not-uploaded`, because there is no production Universe.
+
+### Studio rechecks
+
+All three runs used Studio MCP real input with device emulation (PC 1280x720, phone `KC_Mobile_360x640` portrait). Emulation is not a real phone.
+
+| Run | Build | Result | Evidence |
+|---|---|---|---|
+| p124 | `827248d` | 5/5 PASS. Guide steps next to their target, portal and dock reach (accept next to them, refuse from 30 studs), readable skill refusal/guide/clan names, redrawn icons. One low defect: the visitor portal published no travel result (D1). 0 game script errors. | `p124/recheck.md` |
+| p127 | `9979d15` | 3 PASS, 1 FAIL. (1) The visitor portal now shows a travel result line ('승인됨. Studio에서는 섬 이동이 불가합니다', ForgeTravelResult `studio_no_teleport`); the out-of-reach line cannot be reached through the 8-stud prompt in Studio. (2) Below level 50 the bandage row is locked with the g20 guide name ('구조 준비') and has no Make button; with g20 open it is made ('만들었어요'). (3) Home expand with the real `home-expand` command: refused `EXPANSION_LOCKED` at 29.5 studs from the home dock part, accepted at 4.6 studs (land 96x96, g05 reward paid). (4) FAIL D1: on the phone the drums and violin practice rows were clipped (fixed 44 px label, TextFits=false). 0 game script errors. | `p127/recheck.md` |
+| p130 | `9d673db` | 3/3 PASS: D1 fixed. On the phone, drums and violin grow to 45 px (54 px at 1.2x text, with piano), 12/12 labels fit, the scroll reaches the last Make button. A fresh profile shows the 9 locked rows readable with no Make button. PC 12/12 fit. 0 game script errors. | `p130/recheck.md` |
+
+### Still not verified (2026-10-26)
+
+- **Real phone unreachable**: the paired `SM-N981N` was not reachable in the 2026-10-26 lead check (no adb device, no ping). There is no evidence file for that check. The last real-device run is still the 2026-10-20 Android session on the old content.
+- **Single Roblox account**: no two-account trade, camp visit or loan return, clan draft confirm, party route share, brawl, ensemble or siege. No live dock-to-place teleport by a player.
+- **`ClanStore.browse` (p117) is held**: it changes `core/infra/data/ClanStore` and needs owner approval for a core change before commit (`p117/report.md`).
+- **No production Universe**: no production place or keys, and `FORGE_ALLOW_PRODUCTION` is closed. Store art and the build exist only on staging.
+- Live receipts are still not exercised (Robux spend needs owner approval).
+
 ## Current state at `204bda9` (2026-10-25)
 
 Local `main` is `204bda9`. This section supersedes the blocker and budget
