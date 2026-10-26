@@ -40,7 +40,15 @@ return {
 		)
 		assert(betterEn == "Requires Starter Axe or better (equip it)", tostring(betterEn))
 		assert(GatheringClient.refusalText("en-us", refused("TOOL_UNAVAILABLE")) == "Equip the right tool", "no detail")
-		assert(GatheringClient.refusalText("en-us", refused("ODD")) == "Cannot gather (ODD)", "unknown still visible")
+		assert(
+			GatheringClient.refusalText("en-us", refused("ODD")) == "You can't gather this right now",
+			"unknown still visible"
+		)
+		assert(not string.find(GatheringClient.refusalText("ko-kr", refused("ODD")) :: string, "ODD"), "no raw code")
+		for _, code in { "HANDSHAKE_FAILED", "TRANSPORT_FAILED", "REQUEST_EXPIRED" } do
+			local ko = GatheringClient.refusalText("ko-kr", refused(code)) :: string
+			assert(not string.find(ko, code) and string.find(ko, "연결"), code .. " reads as connecting")
+		end
 		assert(GatheringClient.refusalText("en-us", { ok = true, data = { status = "confirmed" } }) == nil, "success")
 	end,
 	["a node on cooldown shows the seconds until it can be gathered again"] = function()

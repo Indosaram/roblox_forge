@@ -14,6 +14,9 @@ script.Destroying:Connect(audio.destroy)
 
 local Client = require(Forge.core.infra.genre.Client)
 local gui = Client.start({ controls = require(Shared.GenreUI) })
+-- The core starter panel is a developer roster/snapshot view; the HUD below replaces it.
+-- Hide it at once so it never shows while the rest of the client loads.
+gui.Enabled = false
 gui.Destroying:Connect(audio.destroy)
 
 local player = game:GetService("Players").LocalPlayer

@@ -58,8 +58,13 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		return if ko then "가방이 가득 찼습니다" else "Your bag is full"
 	elseif reason == "STALE_VERSION" then
 		return nil -- the node changed under the request; the next press uses the new version
+	elseif reason == "HANDSHAKE_FAILED" or reason == "TRANSPORT_FAILED" or reason == "REQUEST_EXPIRED" then
+		return if ko
+			then "아직 연결 중이에요. 잠시 후 다시 시도하세요"
+			else "Still connecting. Try again in a moment"
 	end
-	return if ko then "채집할 수 없습니다 (" .. reason .. ")" else "Cannot gather (" .. reason .. ")"
+	-- Unknown server codes stay out of player-facing text.
+	return if ko then "지금은 채집할 수 없어요" else "You can't gather this right now"
 end
 
 --- A final refusal ends the frozen request: the source kept no grant, so the prompt returns
