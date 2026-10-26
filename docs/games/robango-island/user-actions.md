@@ -6,6 +6,8 @@
 
 ## 2026-10-26 갱신 (`9d673db`)
 
+- 공룡 한국어 표준 표기(브라키오사우루스, 파라사우롤로푸스)로 바꾸면 provenance 검사가 나무위키 참조 8-gram 일치로 막습니다(gate135, 2026-10-26). 사람 검토자 서명이 있는 `provenance/allow.yml` 면제가 있어야 하므로 현재는 기존 표기(브라키오사우러스, 파라사우롤로퍼스)를 유지합니다. 소유자 결정 필요.
+
 상세 기록은 [qa-evidence.md](qa-evidence.md)의 "Current state at `9d673db`" 절을 따릅니다. 경로는 `.omo/evidence/robango-recovery/` 아래의 로컬(gitignore) 파일입니다.
 
 ### 에이전트가 처리한 것

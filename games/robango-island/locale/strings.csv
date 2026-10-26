@@ -2688,8 +2688,8 @@ set.text_large,Large,settings,Large,크게
 fct.OUT_OF_RANGE,Move onto your home island,genre text fct,Move onto your home island,먼저 개인 섬에 들어가세요
 hud.PLACEMENT_BLOCKED_CREATURE,"A creature is standing on the spot. Wait for it to move, or pick another spot.",genre text hud,"A creature is standing on the spot. Wait for it to move, or pick another spot.",그 자리에 동물이 서 있어요. 동물이 떠나면 다시 하거나 다른 곳에 놓으세요.
 hud.market.tutorial,Finish the first-day tutorial to open market listing.,genre text hud,Finish the first-day tutorial to open market listing.,첫날 안내를 끝내면 장터에 물건을 올릴 수 있어요.
-wld.wildlife_brachiosaurus,Brachiosaurus,genre text wld,Brachiosaurus,브라키오사우루스
-wld.wildlife_parasaurolophus,Parasaurolophus,genre text wld,Parasaurolophus,파라사우롤로푸스
+wld.wildlife_brachiosaurus,Brachiosaurus,genre text wld,Brachiosaurus,브라키오사우러스
+wld.wildlife_parasaurolophus,Parasaurolophus,genre text wld,Parasaurolophus,파라사우롤로퍼스
 set.lang_rejoin,applies on rejoin,settings,applies on rejoin,다시 접속하면 적용
 chr.guide_act_preview_refund,Preview refund of,genre text chr,Preview refund of,환급 미리보기
 chr.guide_act_cancel_preview,Close preview of,genre text chr,Close preview of,미리보기 닫기
