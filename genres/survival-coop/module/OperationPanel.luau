@@ -118,7 +118,9 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		gui.Enabled = false
 	end)
 	local status = components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 32) })
-	status.Name, status.LayoutOrder, status.Parent = "OperationStatus", 0, sheet.scroll
+	-- Rows and status grow with wrapped or 1.2x text; the authored height is the minimum (p129).
+	local grow = Enum.AutomaticSize.Y
+	status.Name, status.LayoutOrder, status.AutomaticSize, status.Parent = "OperationStatus", 0, grow, sheet.scroll
 	-- The nearest registered station of `kind` within reach; the server re-checks reach.
 	local function stationId(kind: string?): string
 		local character = players.LocalPlayer.Character
@@ -164,7 +166,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			guides[row.id] = row.guide
 			local text = row.label .. "\n" .. row.inputs .. " / " .. (row.locked or row.where)
 			local label = components.label(theme, { text = text, size = UDim2.new(1, 0, 0, 44) })
-			label.Name, label.LayoutOrder, label.Parent = "Operation-" .. row.id, index * 2, sheet.scroll
+			label.Name, label.LayoutOrder, label.AutomaticSize = "Operation-" .. row.id, index * 2, grow
+			label.Parent = sheet.scroll
 			table.insert(shown, label)
 			if not row.locked then
 				local make = components.button(theme, {
