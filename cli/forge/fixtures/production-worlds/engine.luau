@@ -782,6 +782,26 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		end,
 		parts = callbacks,
 		terrainWrites = terrainWrites,
+		-- Drop instances whose root ancestor was destroyed (a closed world). Every lookup and the
+		-- warehouse ray scan walk this list, so without pruning each world rebuild gets slower.
+		-- Order is kept, so reverse-order lookups (interact) behave the same.
+		compact = function()
+			local kept = 0
+			for index = 1, #callbacks do
+				local value = callbacks[index]
+				local current = value
+				while current.Parent do
+					current = current.Parent
+				end
+				if not current.destroyed then
+					kept += 1
+					callbacks[kept] = value
+				end
+			end
+			for index = #callbacks, kept + 1, -1 do
+				callbacks[index] = nil
+			end
+		end,
 	}
 end
 return M

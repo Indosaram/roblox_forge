@@ -1810,6 +1810,9 @@ function M.new(ctx: any): any
 		local function go(role: string, force: boolean?)
 			if force or here ~= role then
 				assert(api.enter(role, actor) == nil, "enter " .. role)
+				-- Each switch closes the previous world; drop its destroyed instances so the
+				-- engine's linear part scans stay sized to the live world (~9x faster run).
+				engine.compact()
 				here = role
 			end
 		end
