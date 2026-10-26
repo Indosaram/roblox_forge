@@ -10,7 +10,12 @@ uploads: # publish.roblox.com/v1/games/10771918494/{icon,thumbnail/image}, HTTP 
   - { key: rider-title, universe: 10771918494, targetId: 8320967961412131, uploaded: 2026-10-26 }
   - { key: crafting-title, universe: 10771918494, targetId: 6550727228407064, uploaded: 2026-10-26 }
   - { key: exploration-title, universe: 10771918494, targetId: 5079957289240575, uploaded: 2026-10-26 }
-productionUploadStatus: not-uploaded # production universe not created
+productionUploadStatus: uploaded # private production universe 10773197163, 2026-10-26 (p133); 3 thumbnails listed approved by games/v2 media, icon state not read back
+productionUploads: # evidence .omo/evidence/robango-recovery/p133/store-upload.txt, store-media-check.txt
+  - { key: icon, universe: 10773197163, targetId: 1176462923297955, uploaded: 2026-10-26 }
+  - { key: rider-title, universe: 10773197163, targetId: 7949752260690849, uploaded: 2026-10-26 }
+  - { key: crafting-title, universe: 10773197163, targetId: 7880780404914844, uploaded: 2026-10-26 }
+  - { key: exploration-title, universe: 10773197163, targetId: 5615982680412409, uploaded: 2026-10-26 }
 provider: gpt-image
 providerVersion: Responses-API
 generationRoute: bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs
