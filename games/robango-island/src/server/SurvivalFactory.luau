@@ -523,7 +523,11 @@ return function(content: any, source, world, backend, clock, options, provision,
 						and world.layout.id == "rw.home"
 						and math.abs(position.x) <= half
 						and math.abs(position.z) <= half,
-					atDock = spatial ~= nil and spatial.reachable(actor, rules.dock),
+					-- The visible home dock part with the station reach rule (p126), as every other dock
+					-- since p123; the fixed dock point only when no dock part was placed.
+					atDock = if world.homeDock and world.homeDock.Parent
+						then (world.nearPart :: any)(actor, world.homeDock)
+						else spatial ~= nil and spatial.reachable(actor, rules.dock),
 					ownerOnline = personalData(owner) ~= nil,
 					friend = if world.isFriend then world.isFriend(owner, actor) else false,
 					developmentRank = development.homeRank,

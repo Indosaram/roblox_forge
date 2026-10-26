@@ -812,10 +812,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			-- The server's result is always shown: refusal reason or the travelling notice.
 			M.publishTravel(player, outcome)
 		end)
+		return target
 	end
 	for _, anchor in layout.anchors do
 		if anchor.id == "entry" or (anchor.id == "exit" and layoutId ~= "rw.home") then
-			dock(
+			-- The home dock part is also home expand's atDock reach target (SurvivalFactory, p126).
+			local placed = dock(
 				anchor.id,
 				if layoutId == "rw.home" then content.homePolicy.dock else anchor.position,
 				if layoutId == "rw.onboarding" or layoutId == "rw.harbor"
@@ -825,6 +827,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						else "home")
 					else "harbor"
 			)
+			if layoutId == "rw.home" then
+				world.homeDock = placed
+			end
 		end
 	end
 	for _, facility in world.harborFacilities or {} do

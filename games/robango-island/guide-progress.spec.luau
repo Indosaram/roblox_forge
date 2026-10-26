@@ -996,4 +996,102 @@ cases["guide-act reaches harbor anchors through real terrain and facility parts"
 	world.destroy()
 end
 
+-- p126: home expand's atDock uses the station reach rule on the home dock part (world.nearPart), as
+-- every other dock does since p123. Real rw.home geometry, generated terrain, SurvivalWorld raycast;
+-- the dock part is solid to rays that do not exclude it, as in Studio.
+cases["home expand atDock reaches the home dock part through real terrain"] = function()
+	local roblox = require("@lune/roblox")
+	local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+	local engine = Engine.new(nil, true)
+	local workspace = engine.game:GetService("Workspace")
+	local world = engine.role.build(content, defaultSource, wildlifePolicy, function()
+		return 0
+	end, "rw.home", 1776)
+	local at = { value = 1000 }
+	local provision = Provision(PUBLIC, defaultSource.tribe.config.tribeId, { studio = false, server = "job:p126" })
+	local factory = assert(Factory(
+		content,
+		world.roleSource,
+		world,
+		Memory.new(),
+		Clock.new(function()
+			return at.value
+		end),
+		{
+			sessionId = "server-p126",
+			leaseSeconds = 120,
+			now = function()
+				return math.floor(at.value)
+			end,
+			budget = {
+				encode = function(value)
+					return serde.encode("json", value)
+				end,
+			},
+		},
+		provision,
+		nil
+	))
+	local dock = workspace:FindFirstChild("ForgeRoleWorld"):FindFirstChild("entry")
+	assert(dock and dock:FindFirstChild("ForgeDock"), "home dock part")
+	local raycast = workspace.Raycast
+	local function solid(origin: any, direction: any, params: any): number?
+		for _, ignored in if params then params.FilterDescendantsInstances or {} else {} do
+			if ignored == dock or dock:IsDescendantOf(ignored) then
+				return nil
+			end
+		end
+		local low, high = 0, 1
+		for _, axis in { "X", "Y", "Z" } do
+			local minimum = dock.Position[axis] - dock.Size[axis] / 2
+			local maximum = dock.Position[axis] + dock.Size[axis] / 2
+			if direction[axis] == 0 then
+				if origin[axis] < minimum or origin[axis] > maximum then
+					return nil
+				end
+			else
+				local a = (minimum - origin[axis]) / direction[axis]
+				local b = (maximum - origin[axis]) / direction[axis]
+				low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
+			end
+		end
+		return if low <= high then low else nil
+	end
+	workspace.Raycast = function(self, origin, direction, params)
+		local hit = raycast(self, origin, direction, params)
+		local t = solid(origin, direction, params)
+		if t and (not hit or (hit.Position - origin).Magnitude > direction.Magnitude * t) then
+			return { Instance = dock, Position = origin + direction * t }
+		end
+		return hit
+	end
+	local function atDock(x: number, z: number): boolean
+		local ground =
+			raycast(workspace, roblox.Vector3.new(x, 512, z), roblox.Vector3.new(0, -1024, 0), { IgnoreWater = true })
+		local top = dock.Position.Y + dock.Size.Y / 2
+		engine.move(FIRST, { x = x, y = math.max(if ground then ground.Position.Y else top, top) + 3, z = z })
+		return world.home.facts(FIRST, FIRST, "expand", {}).atDock
+	end
+	local p = dock.Position
+	assert(atDock(p.X, p.Z), "standing on the home dock reaches it")
+	for _, offset in { { 5, 0 }, { -5, 0 }, { 0, -5 } } do
+		assert(atDock(p.X + offset[1], p.Z + offset[2]), "beside the home dock at " .. offset[1] .. "," .. offset[2])
+	end
+	assert(not atDock(p.X + 30, p.Z), "30 studs away is not at the dock")
+	workspace.Raycast = raycast
+	-- Without a placed dock part the fixed dock point is the fallback.
+	local death, aimed = world.services.survivalDeath, nil
+	local reachable = death.reachable
+	death.reachable = function(_, position)
+		aimed = position
+		return true
+	end
+	dock.Parent = nil
+	assert(world.home.facts(FIRST, FIRST, "expand", {}).atDock, "fallback reach")
+	assert(aimed == world.home.rules.dock, "fallback aims at the fixed dock point")
+	death.reachable = reachable
+	assert(factory.close().ok, "release")
+	world.destroy()
+end
+
 return cases
