@@ -7,6 +7,39 @@ local Session = require("../../../core/infra/genre/Session")
 local Clan = require("../../../core/domain/settlement/Clan")
 local Ecology = require("./CombatEcology")
 return {
+	["clan-browse is an appended client action whose page reaches only the asking actor"] = function()
+		local Contract: any = require("./Contract")
+		local declared = false
+		for _, action in Contract.actions do
+			declared = declared or (action.id == "clan-browse" and action.origin == "client")
+		end
+		local extensionActions = Contract.extensionActions :: { string }
+		assert(declared and extensionActions[#extensionActions] == "clan-browse", "appended last")
+		local fs = require("@lune/fs")
+		local durable = fs.readFile("games/robango-island/src/shared/GenreDurable.luau")
+		assert(string.find(durable, '"survival-coop:clan-browse"', 1, true), "durable policy publishes it")
+		local asked: any = nil
+		local browser = Extension.browser(function(query: string, page: number, size: number): (any?, string?)
+			if query == "down" then
+				return nil, "THROTTLED"
+			end
+			asked = { query, page, size } :: { any }
+			return { query = query, page = page, pages = 1, total = 1, rows = { { id = "tide" } } }, nil
+		end)
+		local function admit(): any
+			return { ok = true }
+		end
+		assert(browser.handles("survival-coop:clan-browse") and not browser.handles("survival-coop:clan-join"), "own")
+		assert(browser.snapshot("a") == nil, "no page before asking")
+		local result = browser.command("a", "survival-coop:clan-browse", { "ti", 2 } :: { any }, {}, "client", admit)
+		assert(result.ok and asked[1] == "ti" and asked[2] == 2 and asked[3] == Extension.BROWSE_PAGE, "page asked")
+		assert(browser.snapshot("a").rows[1].id == "tide" and browser.snapshot("b") == nil, "per actor")
+		local down = browser.command("a", "survival-coop:clan-browse", { "down", 1 } :: { any }, {}, "client", admit)
+		assert(not down.ok and down.reason == "THROTTLED", "a directory failure is not an empty list")
+		local release = assert(Session.lifecycle(browser).releaseActor, "lifecycle registered")
+		assert(release("a").ok and browser.snapshot("a") == nil, "released")
+		assert(Extension.browseFactory({ world = {} }) == nil, "absent without a directory")
+	end,
 	["fresh clan owner completes durable research without a wallet port"] = function()
 		local backend = Memory.new()
 		local now = 0

@@ -2797,3 +2797,22 @@ cli.clan.research_left,%s: %d s left,client clan/outpost label,%s: %d s left,%s:
 cli.clan-research-exploration,Exploration research,client clan/outpost label,Exploration research,탐험 연구
 cli.clan-research-combat,Combat research,client clan/outpost label,Combat research,전투 연구
 cli.clan-research-advanced-capture,Advanced capture research,client clan/outpost label,Advanced capture research,고급 포획 연구
+scr.browse.title,Find a clan,recovered screen,Find a clan,부족 찾기
+scr.browse.list,Show clans,recovered screen,Show clans,부족 목록 보기
+scr.browse.empty,No clan matches. Try another name.,recovered screen,No clan matches. Try another name.,맞는 부족이 없어요. 다른 이름으로 찾아보세요.
+scr.browse.search,Search by clan name,recovered screen,Search by clan name,부족 이름으로 찾기
+scr.browse.query,"Results for ""%s""",recovered screen,"Results for ""%s""","""%s"" 검색 결과"
+scr.browse.all,Show every clan,recovered screen,Show every clan,모든 부족 보기
+scr.browse.row,"%s: %d/%d members, %s",recovered screen,"%s: %d/%d members, %s","%s: 부족원 %d/%d명, %s"
+scr.browse.recruiting,recruiting,recovered screen,recruiting,모집 중
+scr.browse.full,full,recovered screen,full,정원 마감
+scr.browse.page,Page %d of %d,recovered screen,Page %d of %d,%d/%d쪽
+scr.browse.prev,Previous page,recovered screen,Previous page,이전 쪽
+scr.browse.next,Next page,recovered screen,Next page,다음 쪽
+scr.browse.selected,Selected clan: %s,recovered screen,Selected clan: %s,고른 부족: %s
+scr.browse.apply_member,Apply to %s as a member,recovered screen,Apply to %s as a member,%s 부족에 부족원으로 신청
+scr.browse.apply_visitor,Apply to %s as a visitor,recovered screen,Apply to %s as a visitor,%s 부족에 방문자로 신청
+scr.browse.join,Join %s (needs an invite),recovered screen,Join %s (needs an invite),%s 부족 가입 (초대 필요)
+scr.roles.browse,Find a clan to apply to,recovered screen,Find a clan to apply to,신청할 부족 찾기
+scr.refuse.NOT_INVITED,That clan has not invited you. Apply instead.,recovered screen,That clan has not invited you. Apply instead.,그 부족의 초대를 받지 않았어요. 가입 신청을 해 보세요.
+cli.clan.browse,Find a clan,client clan/outpost label,Find a clan,부족 찾기

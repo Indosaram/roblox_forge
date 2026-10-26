@@ -68,6 +68,56 @@ function M.draftActions(): { any }
 	return actions
 end
 
+-- Clan browse (p117): a paged name search over the clan directory, appended after every
+-- earlier action so durable indices never shift.
+function M.browseActions(): { any }
+	return {
+		{
+			id = "clan-browse",
+			args = { Schema.string({ maxLen = 32 }), Schema.number({ min = 1, max = 1000, integer = true }) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
+	}
+end
+
+M.BROWSE_PAGE = 8
+
+-- The last page each actor asked for, read once per command; snapshots never touch the directory.
+function M.browser(browse: (string, number, number) -> (any?, string?)): any
+	local pages: { [string]: any } = {}
+	return Session.registerLifecycle({
+		id = "clan-browse",
+		handles = function(action: string): boolean
+			return action == "survival-coop:clan-browse"
+		end,
+		command = function(actor: string, _action: string, args: any, _context: any, _origin: string, admit: any): any
+			local admitted = admit()
+			if not admitted.ok then
+				return admitted
+			end
+			local page, reason = browse(args[1], args[2], M.BROWSE_PAGE)
+			if not page then
+				return { ok = false, reason = reason }
+			end
+			pages[actor] = page
+			return { ok = true, data = { total = page.total } }
+		end,
+		snapshot = function(actor: string): any
+			return pages[actor]
+		end,
+		releaseActor = function(actor: string): any
+			pages[actor] = nil
+			return { ok = true }
+		end,
+	})
+end
+
+function M.browseFactory(ctx: any): any
+	local clan = ctx.world and ctx.world.clan
+	return if clan and clan.browse then M.browser(clan.browse) else nil
+end
+
 function M.aggregate(config: any, domain: any, prefix: string, actions: { string }): any
 	local store = config.store()
 	local tokens: any = {}

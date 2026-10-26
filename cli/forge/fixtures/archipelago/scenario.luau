@@ -24,6 +24,16 @@ M.operations = {
 			then "unexpected route share: " .. tostring(result.reason)
 			else nil
 	end,
+	-- p117: the invitee's pending shares, read from a fresh crew handler (a restart or another
+	-- server over the same durable documents), so no in-memory index can answer.
+	route_invites = function(ctx, step): string?
+		local actor = ctx.playerOf(step)
+		ctx.fixture.crew = ctx.fixture.newCrew()
+		local pending = ctx.fixture.crew.snapshot(actor).routeInvites
+		local first: any = pending[1] or {}
+		ctx.results[actor] = { ok = true, data = { count = #pending, owner = first.owner, route = first.route } }
+		return nil
+	end,
 	route_open = function(ctx, step): string?
 		local actor = ctx.playerOf(step)
 		local result = ctx.fixture.extension.open(actor, {
@@ -123,8 +133,8 @@ function M.new(ctx): any
 		end
 		return { level = if actor == "newcomer" then 1 else 60, developmentRank = 10, instabilityAccess = 1 }
 	end
-	return {
-		crew = Expedition.new({
+	local function newCrew(): any
+		return Expedition.new({
 			content = Content,
 			now = function()
 				return now
@@ -147,7 +157,11 @@ function M.new(ctx): any
 			travel = function()
 				return { ok = true }
 			end,
-		}),
+		})
+	end
+	return {
+		crew = newCrew(),
+		newCrew = newCrew,
 		document = document,
 		ledger = ledger,
 		setTime = function(value)

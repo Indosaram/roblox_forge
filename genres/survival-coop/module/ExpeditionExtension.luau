@@ -213,16 +213,17 @@ end
 
 function M.new(env: any): any
 	local state = Party.new()
-	local sharedWith: { [string]: { [string]: boolean } } = {}
-	-- Routes other owners shared with `actor` that still wait for acceptance (ui.party).
-	local function routeInvites(actor: string): { any }
+	-- Routes other owners shared with `actor` that still wait for acceptance (ui.party). The
+	-- invitee's own document keeps a pointer per owner, so the list survives a server change or
+	-- restart. Another actor's document is read only while that actor is on this server (its
+	-- lease is ours); elsewhere the pointer stands until accept or revoke settles it.
+	local function routeInvites(actor: string, document: any?): { any }
 		local out = {}
-		local owners: { [string]: boolean } = sharedWith[actor] or {}
-		for owner in owners do
-			local document = env.document(owner)
-			local record = if document then document.routeShare else nil
-			if record and record.members[actor] == "invited" then
-				table.insert(out, { owner = owner, route = record.route })
+		for owner, route in (document and document.routeInvites) or {} do
+			local owned = if env.online(owner) then env.document(owner) else nil
+			local record = if owned then owned.routeShare else nil
+			if not owned or (record and record.members[actor] == "invited") then
+				table.insert(out, { owner = owner, route = if record then record.route else route })
 			end
 		end
 		table.sort(out, function(a, b)
@@ -310,6 +311,24 @@ function M.new(env: any): any
 			end
 		end
 		local memberFacts = if verb == "route-accept" then env.facts(actor) else nil
+		-- The invitee pointer is written first, so every committed invite has one; a pointer whose
+		-- invite never committed is stale and the owner's record refuses it (invite_missing).
+		local function point(member: string, value: number?): any
+			return env.transaction(member, function(document: any): any
+				local pointers: any = table.clone(document.routeInvites or {})
+				pointers[owner] = value
+				document.routeInvites = if next(pointers) then pointers else nil
+				return { ok = true }
+			end)
+		end
+		if verb == "route-invite" then
+			local owned = env.document(actor)
+			local _, reason = Party.shareInvite(if owned then owned.routeShare else nil, actor, target, route)
+			local pointed = if reason then nil else point(target, route)
+			if reason or not pointed.ok then
+				return { ok = false, reason = reason or pointed.reason }
+			end
+		end
 		local result = env.transaction(owner, function(document): any
 			local nextShare, reason
 			if verb == "route-invite" then
@@ -328,10 +347,12 @@ function M.new(env: any): any
 				data = { route = nextShare.route, owner = owner, status = nextShare.members[actor] or "revoked" },
 			}
 		end)
-		if result.ok and verb == "route-invite" then
-			-- Lookup only (who shared with me); the owner's durable roster stays the authority.
-			sharedWith[target] = sharedWith[target] or {}
-			sharedWith[target][actor] = true
+		-- Accept (or a withdrawn share) clears the actor's own pointer; revoke clears the target's
+		-- only while the target is here, never taking the lease of a document another server holds.
+		if verb == "route-accept" and (result.ok or result.reason == "invite_missing") then
+			point(actor, nil)
+		elseif verb == "route-revoke" and result.ok and env.online(target) then
+			point(target, nil)
 		end
 		return result
 	end
@@ -431,7 +452,7 @@ function M.new(env: any): any
 				),
 				party = view,
 				routeShare = if document then document.routeShare else nil,
-				routeInvites = routeInvites(actor),
+				routeInvites = routeInvites(actor, document),
 				routes = Party.routes(env.content, env.facts(actor), now, ttl),
 				-- The player's own level and island grade, so a locked route can say what is missing.
 				facts = env.facts(actor),

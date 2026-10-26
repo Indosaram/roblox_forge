@@ -6,8 +6,9 @@ local fs = require("@lune/fs")
 
 local ACTION = Extension.ACTION
 
-local function harness(facts: { [string]: any }, now: number?, onExpedition: boolean?): any
-	local h: any = { travels = {}, now = now or 0 }
+local function harness(facts: { [string]: any }, now: number?, onExpedition: boolean?, documents: any?): any
+	-- h.away: actors on another server (their document lease is not ours).
+	local h: any = { travels = {}, now = now or 0, documents = documents, away = {} }
 	h.extension = Extension.new({
 		content = Content,
 		now = function()
@@ -17,9 +18,12 @@ local function harness(facts: { [string]: any }, now: number?, onExpedition: boo
 			return facts[actor] or { level = 1, developmentRank = 0, instabilityAccess = 1 }
 		end,
 		document = function(actor)
-			return h.documents and h.documents[actor]
+			return if h.away[actor] then nil else h.documents and h.documents[actor]
 		end,
 		transaction = function(actor, transform)
+			if h.away[actor] then
+				return { ok = false, reason = "locked" }
+			end
 			h.documents = h.documents or {}
 			local document = table.clone(h.documents[actor] or {})
 			local result = transform(document)
@@ -35,7 +39,7 @@ local function harness(facts: { [string]: any }, now: number?, onExpedition: boo
 			return h.position
 		end,
 		online = function(actor)
-			return actor ~= "offline"
+			return actor ~= "offline" and not h.away[actor]
 		end,
 		onExpedition = function()
 			return onExpedition == true
@@ -117,6 +121,37 @@ return {
 		assert(h.send("a", "route-revoke", "b").ok and h.documents.a.routeShare.members.b == nil, "revoked")
 		assert(h.send("a", "route-revoke", "b").reason == "invite_missing", "revoking twice is refused")
 		assert(h.send("b", "route-accept", "a").reason == "invite_missing", "a revoked member cannot accept")
+	end,
+	["pending route shares live in the invitee's document across a restart or another server"] = function()
+		local facts = {
+			a = { level = 35, developmentRank = 4, instabilityAccess = 2 },
+			b = { level = 35, developmentRank = 4, instabilityAccess = 1 },
+		}
+		local h = harness(facts)
+		assert(h.send("a", "route-invite", "b").ok, "invite")
+		assert(h.documents.b.routeInvites.a == 2, "invitee pointer persisted")
+		-- A fresh server over the same documents, where the owner is not present.
+		local moved = harness(facts, 0, false, h.documents)
+		moved.away.a = true
+		local pending = moved.extension.snapshot("b").routeInvites
+		assert(#pending == 1 and pending[1].owner == "a" and pending[1].route == 2, "listed on another server")
+		assert(moved.send("b", "route-accept", "a").reason == "locked", "owner's record stays with its server")
+		assert(moved.documents.b.routeInvites.a == 2, "a failed accept keeps the pointer")
+		-- Revoke while the invitee is elsewhere leaves a stale pointer; accept settles and clears it.
+		h.away.b = true
+		assert(h.send("a", "route-revoke", "b").ok, "revoke")
+		moved.away.a = nil
+		assert(#moved.extension.snapshot("b").routeInvites == 0, "owner here: a revoked share is not listed")
+		assert(moved.send("b", "route-accept", "a").reason == "invite_missing", "withdrawn share refused")
+		assert(moved.documents.b.routeInvites == nil, "stale pointer cleared")
+		-- Same server: accept and revoke both clear the pointer.
+		h.away.b = nil
+		assert(h.send("a", "route-invite", "b").ok and h.send("b", "route-accept", "a").ok, "accepted")
+		assert(h.documents.b.routeInvites == nil, "accept clears")
+		assert(h.send("a", "route-revoke", "b").ok and h.send("a", "route-invite", "b").ok, "re-invite")
+		assert(h.send("a", "route-revoke", "b").ok and h.documents.b.routeInvites == nil, "revoke clears")
+		assert(h.send("a", "route-invite", "a").reason == "party_self", "self invite writes nothing")
+		assert(h.documents.a.routeInvites == nil, "no self pointer")
 	end,
 	["snapshot carries routes party invites tracker hazard and results"] = function()
 		local h = harness({ a = READY, b = READY }, 100)

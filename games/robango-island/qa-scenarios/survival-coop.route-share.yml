@@ -13,14 +13,24 @@ steps:
   - {op: route_share, player: owner, verb: route-invite, target: helper}
   - {op: expect_result, player: owner, field: data.route, equals: 5}
   - {op: route_share, player: owner, verb: route-invite, target: newcomer}
+  # p117: pending shares persist in the invitee's document, so a restarted handler lists them.
+  - {op: route_invites, player: newcomer}
+  - {op: expect_result, player: newcomer, field: data.count, equals: 1}
+  - {op: expect_result, player: newcomer, field: data.owner, equals: owner}
+  - {op: expect_result, player: newcomer, field: data.route, equals: 5}
   - {op: route_open, player: helper, route: 5, sharedBy: owner, expect: refused}
   - {op: expect_result, player: helper, field: reason, equals: instability_gate}
   - {op: route_share, player: helper, verb: route-accept, target: owner}
   - {op: expect_result, player: helper, field: data.status, equals: member}
+  - {op: route_invites, player: helper}
+  - {op: expect_result, player: helper, field: data.count, equals: 0}
   # Gates stay per member: the level-1 newcomer cannot accept route 5.
   - {op: route_share, player: newcomer, verb: route-accept, target: owner, expect: refused}
   - {op: expect_result, player: newcomer, field: reason, equals: level_gate}
   - {op: route_open, player: helper, route: 5, sharedBy: owner}
+  - {op: route_share, player: owner, verb: route-revoke, target: newcomer}
+  - {op: route_invites, player: newcomer}
+  - {op: expect_result, player: newcomer, field: data.count, equals: 0}
   - {op: route_share, player: owner, verb: route-revoke, target: helper}
   - {op: route_share, player: owner, verb: route-revoke, target: helper, expect: refused}
   - {op: expect_result, player: owner, field: reason, equals: invite_missing}

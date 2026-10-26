@@ -138,6 +138,18 @@ return {
 			assert(fitted, "clan participates in shared display order and viewport fitting")
 			panel.destroy()
 			widgets = {}
+			local opened: string? = nil
+			ctx.open = function(id: string)
+				opened = id
+			end
+			widgets = {}
+			frame.Visible = true
+			panel = Panel.factory(ctx)
+			assert(#widgets == 4 and widgets[4].text == "clan.browse", "browse entry beside the id box")
+			widgets[4].onClick()
+			assert(opened == "clan-browse" and frame.Visible == false, "browse opens the clan list")
+			panel.destroy()
+			widgets = {}
 			panel = Outpost.factory(ctx)
 			callback({ outpost = { owner = "a", expiresAt = 20, matches = {} } })
 			assert(#widgets == 3, "outpost renders ownership expiry and opt-in")

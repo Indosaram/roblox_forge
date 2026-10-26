@@ -40,6 +40,7 @@ local policy: Policy = {
 		[124] = "survival-coop:clan-draft-cancel",
 		[125] = "survival-coop:equipment-quote",
 		[126] = "survival-coop:camp-loan",
+		[127] = "survival-coop:clan-browse",
 		[13] = "survival-coop:settlement-reserve",
 		[14] = "survival-coop:settlement-place",
 		[15] = "survival-coop:settlement-cancel",

@@ -91,6 +91,40 @@ function M.new(config: any): any
 		local record = state.records[key]
 		return if record then Data.clone(record.data) else nil, nil
 	end
+	-- Browse page (name, member count, capacity, recruiting) over the same CAS directory, which
+	-- already indexes every clan; a listing only, never membership authority.
+	function api.browse(query: string, page: number, size: number): (any?, string?)
+		local ok, state = transact(function(_state: any) end)
+		if not ok then
+			return nil, tostring(state)
+		end
+		local needle, rows = string.lower(query), {}
+		for key, record in state.records do
+			local clan = record.data
+			if
+				string.sub(key, 1, 5) == "clan:"
+				and not clan.dissolved
+				and string.find(string.lower(clan.clanId), needle, 1, true)
+			then
+				local count = 0
+				for _ in clan.members do
+					count += 1
+				end
+				local capacity = config.rules.maxMembers
+				table.insert(
+					rows,
+					{ id = clan.clanId, members = count, capacity = capacity, recruiting = count < capacity }
+				)
+			end
+		end
+		table.sort(rows, function(a: any, b: any): boolean
+			return a.id < b.id
+		end)
+		local pages = math.max(1, math.ceil(#rows / size))
+		page = math.clamp(page, 1, pages)
+		local slice = table.move(rows, (page - 1) * size + 1, math.min(#rows, page * size), 1, {})
+		return { query = query, page = page, pages = pages, total = #rows, rows = slice }, nil
+	end
 	return api
 end
 

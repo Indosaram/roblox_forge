@@ -39,6 +39,7 @@ local factories: { Factory } = {
 	require("./LateEquipmentExtension").factory,
 	require("./BrawlExtension").factory,
 	require("./ClanExtension").factory,
+	require("./ClanExtension").browseFactory,
 	require("./OutpostExtension").factory,
 	require("./EnsembleExtension").factory,
 	require("./ScoreTransport").factory,

@@ -29,6 +29,8 @@ M.SCREENS = {
 	{ id = "clan-roles", spec = "ui.clan-roles", title = "scr.roles.title", order = 39 },
 	-- Contextual: opened by a listing's Buy button in the harbor market, not by the navigator.
 	{ id = "market-buy", spec = "ui.market-buy", title = "scr.buy.title", order = 40, contextual = true },
+	-- Opened from the clan sheet and ui.clan-roles (p117); the clan-id box stays as a fallback.
+	{ id = "clan-browse", spec = "ui.clan-browse", title = "scr.browse.title", order = 41, contextual = true },
 }
 -- The listing the market's Buy button handed to ui.market-buy (id, catalogId, quantity, price, seller).
 M.buying = {} :: { listing: any? }
@@ -673,6 +675,7 @@ function M.rolesRows(locale: string, state: any, act: any): { any }
 				end,
 			})
 		end
+		table.insert(rows, { text = L.text(locale, "scr.roles.browse"), onClick = act.browse })
 		if state.applied then
 			table.insert(rows, {
 				text = L.text(locale, "scr.roles.withdraw_draft", state.applied),
@@ -761,6 +764,76 @@ function M.rolesRows(locale: string, state: any, act: any): { any }
 		table.insert(rows, { text = state.status })
 	end
 	table.insert(rows, { text = L.text(locale, "scr.clan.open"), onClick = act.clan })
+	return rows
+end
+
+-- ui.clan-browse: state = { page = { query, page, pages, rows = {{id, members, capacity, recruiting}} },
+--   selected, inClan, status }. A row fills the apply / join action for that clan.
+function M.browseRows(locale: string, state: any, act: any): { any }
+	local page: any = state.page
+	local rows: { any } = {}
+	if not page then
+		table.insert(rows, { text = L.text(locale, "scr.browse.list"), onClick = act.all })
+	elseif #page.rows == 0 then
+		table.insert(rows, { text = L.text(locale, "scr.browse.empty") })
+	end
+	table.insert(rows, { text = L.text(locale, "scr.browse.search"), onClick = act.search })
+	if page and page.query ~= "" then
+		table.insert(rows, { text = L.text(locale, "scr.browse.query", page.query) })
+		table.insert(rows, { text = L.text(locale, "scr.browse.all"), onClick = act.all })
+	end
+	for _, row in if page then page.rows else {} do
+		local text = L.text(
+			locale,
+			"scr.browse.row",
+			row.id,
+			row.members,
+			row.capacity,
+			L.text(locale, if row.recruiting then "scr.browse.recruiting" else "scr.browse.full")
+		)
+		table.insert(rows, {
+			text = text,
+			onClick = function()
+				act.select(row.id)
+			end,
+		})
+	end
+	if page and page.pages > 1 then
+		table.insert(rows, { text = L.text(locale, "scr.browse.page", page.page, page.pages) })
+		for _, step in { { by = -1, key = "scr.browse.prev" }, { by = 1, key = "scr.browse.next" } } do
+			local target = page.page + step.by
+			if target >= 1 and target <= page.pages then
+				table.insert(rows, {
+					text = L.text(locale, step.key),
+					onClick = function()
+						act.page(target)
+					end,
+				})
+			end
+		end
+	end
+	local id = state.selected
+	if id and not state.inClan then
+		table.insert(rows, { text = L.text(locale, "scr.browse.selected", id) })
+		for _, role in { "member", "visitor" } do
+			table.insert(rows, {
+				text = L.text(locale, "scr.browse.apply_" .. role, id),
+				onClick = function()
+					act.apply(id, role)
+				end,
+			})
+		end
+		table.insert(rows, {
+			text = L.text(locale, "scr.browse.join", id),
+			onClick = function()
+				act.join(id)
+			end,
+		})
+	end
+	if state.status then
+		table.insert(rows, { text = state.status })
+	end
+	table.insert(rows, { text = L.text(locale, "scr.nav.roles"), onClick = act.roles })
 	return rows
 end
 
@@ -1180,6 +1253,11 @@ function M.factory(ctx: any): any
 	local rolesView: string? = nil
 	local applied: string? = nil
 	local roles: any
+	local function draft(id: string, role: string): any
+		local result = send("clan-draft", { id, { role = role } })
+		applied = if result.ok then id else applied
+		return result
+	end
 	roles = mount(10, function(extensions: any, packet: any): any
 		local names = {}
 		for _, entry in packet.roster or {} do
@@ -1220,8 +1298,7 @@ function M.factory(ctx: any): any
 				if type(id) ~= "string" or id == "" then
 					return
 				end
-				local result = send("clan-draft", { id, { role = role } })
-				applied = if result.ok then id else applied
+				local result = draft(id, role)
 				rolesStatus = if result.ok
 					then L.text(locale, "scr.roles.applied", id)
 					else L.refusal(locale, result.reason)
@@ -1232,6 +1309,62 @@ function M.factory(ctx: any): any
 				applied = if result.ok then nil else applied
 				rolesStatus = if result.ok then nil else L.refusal(locale, result.reason)
 				roles.render()
+			end,
+			browse = function()
+				open("clan-browse")
+			end,
+		})
+	end)
+
+	-- ui.clan-browse
+	local browseStatus: string?, picked: string? = nil, nil
+	local browse: any
+	local function fetch(query: string, page: number)
+		local result = send("clan-browse", { query, page })
+		browseStatus = if result.ok then nil else L.refusal(locale, result.reason)
+		browse.render()
+	end
+	browse = mount(12, function(extensions: any): any
+		return { page = extensions["clan-browse"], inClan = extensions.clan ~= nil }
+	end, function(state: any): { any }
+		local page = state and state.page
+		local query = if page then page.query else ""
+		return M.browseRows(locale, {
+			page = page,
+			selected = picked,
+			inClan = state and state.inClan,
+			status = browseStatus,
+		}, {
+			all = function()
+				fetch("", 1)
+			end,
+			search = function()
+				local text = if ctx.askText then ctx.askText() else nil
+				if type(text) == "string" then
+					fetch(string.sub(text, 1, 32), 1)
+				end
+			end,
+			page = function(index: number)
+				fetch(query, index)
+			end,
+			select = function(id: string)
+				picked, browseStatus = id, nil
+				browse.render()
+			end,
+			apply = function(id: string, role: string)
+				local result = draft(id, role)
+				browseStatus = if result.ok
+					then L.text(locale, "scr.roles.applied", id)
+					else L.refusal(locale, result.reason)
+				browse.render()
+			end,
+			join = function(id: string)
+				local result = send("clan-join", { id, {} })
+				browseStatus = if result.ok then nil else L.refusal(locale, result.reason)
+				browse.render()
+			end,
+			roles = function()
+				open("clan-roles")
 			end,
 		})
 	end)

@@ -76,6 +76,39 @@ return {
 		end)
 		assert(token and token.data.owner == "owner", "new aggregate is a valid fenced record")
 	end,
+	["browse pages every live clan with member count, capacity and recruiting state"] = function()
+		local f = fixture()
+		local directory = f.build("browse")
+		for index = 1, 9 do
+			assert(directory.create("owner" .. index, "tide" .. index).ok, "create")
+		end
+		assert(directory.create("solo", "reef").ok, "create reef")
+		local first = assert(directory.browse("", 1, 8))
+		assert(first.total == 10 and first.pages == 2 and #first.rows == 8, "first page")
+		assert(first.rows[1].id == "reef" and first.rows[1].members == 1 and first.rows[1].capacity == 50, "row")
+		assert(first.rows[1].recruiting, "open clan recruits")
+		local last = assert(directory.browse("", 99, 8))
+		assert(last.page == 2 and #last.rows == 2 and last.rows[2].id == "tide9", "page clamps to the last")
+		local found = assert(directory.browse("TIDE", 1, 8))
+		assert(found.total == 9 and found.rows[1].id == "tide1", "case-insensitive name search")
+		local token = assert(directory.store:acquire("clan:reef", function(data: any): any
+			return data
+		end))
+		assert(directory.store:update(token, function(data: any): any
+			for index = 1, 49 do
+				data.members["m" .. index] = { role = "member", withdraw = false }
+			end
+			return data
+		end))
+		local full = assert(directory.browse("reef", 1, 8)).rows[1]
+		assert(full.members == 50 and not full.recruiting, "a full clan is not recruiting")
+		assert(directory.store:update(token, function(data: any): any
+			data.members = { solo = data.members.solo }
+			data.dissolved = true
+			return data
+		end))
+		assert(assert(directory.browse("reef", 1, 8)).total == 0, "dissolved clans drop out")
+	end,
 	["directory CAS owns membership uniqueness, cap, dissolution and stale fences"] = function()
 		local f = fixture()
 		local a, b = f.build("a"), f.build("b")

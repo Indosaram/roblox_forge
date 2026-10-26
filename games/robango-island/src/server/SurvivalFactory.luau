@@ -92,6 +92,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 				return if state then state.owner else ""
 			end,
 			create = directory.create,
+			browse = directory.browse,
 			identity = function(actor, requested)
 				if requested then
 					local state = directory.read("clan:" .. requested)

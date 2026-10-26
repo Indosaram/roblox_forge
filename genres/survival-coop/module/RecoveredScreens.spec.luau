@@ -1023,6 +1023,160 @@ return {
 		assert(sent[5][2][1] == "tide" and sent[5][2][2].target == "7" and sent[5][2][2].expectedRevision == 0, "args")
 		assert(string.find(screen(), L.refusal("en-us", "CLAN_FULL"), 1, true), "localized refusal shown")
 	end,
+	["p117 clan browse lists name, members and recruiting, pages, and a row fills apply or join"] = function()
+		for _, locale in LOCALES do
+			local sent: { any } = {}
+			local act = setmetatable({
+				all = function()
+					table.insert(sent, { "all" })
+				end,
+				page = function(index: number)
+					table.insert(sent, { "page", index } :: { any })
+				end,
+				select = function(id: string)
+					table.insert(sent, { "select", id })
+				end,
+				apply = function(id: string, role: string)
+					table.insert(sent, { "apply", id, role })
+				end,
+				join = function(id: string)
+					table.insert(sent, { "join", id })
+				end,
+				browse = function()
+					table.insert(sent, { "browse" })
+				end,
+			}, { __index = ACT })
+			local fresh = Screens.browseRows(locale, {}, act)
+			check(fresh, "browse fresh " .. locale)
+			press(fresh, L.text(locale, "scr.browse.list"))
+			local empty = Screens.browseRows(locale, { page = { query = "zz", page = 1, pages = 1, rows = {} } }, act)
+			check(empty, "browse empty " .. locale)
+			assert(string.find(texts(empty), L.text(locale, "scr.browse.empty"), 1, true), "empty state")
+			local page = {
+				query = "",
+				page = 2,
+				pages = 3,
+				rows = {
+					{ id = "tide", members = 3, capacity = 50, recruiting = true },
+					{ id = "reef", members = 50, capacity = 50, recruiting = false },
+				},
+			}
+			local rows = Screens.browseRows(locale, { page = page, selected = "tide" }, act)
+			check(rows, "browse page " .. locale)
+			local open = L.text(locale, "scr.browse.row", "tide", 3, 50, L.text(locale, "scr.browse.recruiting"))
+			local full = L.text(locale, "scr.browse.row", "reef", 50, 50, L.text(locale, "scr.browse.full"))
+			assert(string.find(texts(rows), full, 1, true), "full clan shown as full")
+			press(rows, open)
+			press(rows, L.text(locale, "scr.browse.prev"))
+			press(rows, L.text(locale, "scr.browse.next"))
+			press(rows, L.text(locale, "scr.browse.apply_member", "tide"))
+			press(rows, L.text(locale, "scr.browse.join", "tide"))
+			assert(sent[1][1] == "all" and sent[2][2] == "tide" and sent[3][2] == 1 and sent[4][2] == 3, "nav")
+			assert(sent[5][2] == "tide" and sent[5][3] == "member" and sent[6][2] == "tide", "row fills the action")
+			local member = Screens.browseRows(locale, { page = page, selected = "tide", inClan = true }, act)
+			assert(not string.find(texts(member), L.text(locale, "scr.browse.join", "tide"), 1, true), "in a clan")
+			press(Screens.rolesRows(locale, { actorId = "9" }, act), L.text(locale, "scr.roles.browse"))
+			assert(sent[7][1] == "browse", "clan roles reaches the browse list")
+		end
+	end,
+	["p117 clan browse factory pages through clan-browse and a picked row sends clan-draft and clan-join"] = function()
+		local node = function(): any
+			local item: any = { Visible = true, AbsoluteSize = { X = 344, Y = 560 } }
+			item.Activated = { Connect = function() end }
+			item.Destroy = noop
+			return item
+		end
+		local docks: { [string]: any } = {}
+		local callbacks: { any } = {}
+		local shown: { any } = {}
+		local sent: { any } = {}
+		local opened: { string } = {}
+		local widgets = function(_theme: any, props: any): any
+			local item = node()
+			item.Text, item.onClick = props.text, props.onClick
+			table.insert(shown, item)
+			return item
+		end
+		Screens.factory({
+			locale = "en-us",
+			actorId = "9",
+			content = Content,
+			names = {},
+			playerGui = {},
+			instance = { new = node },
+			udim2 = { new = noop },
+			ui = {
+				theme = { default = {} },
+				components = {
+					modalSheet = function(): any
+						return { frame = node(), scroll = node(), close = node() }
+					end,
+					label = widgets,
+					button = widgets,
+				},
+			},
+			serverNow = function(): number
+				return 0
+			end,
+			worldRole = "home",
+			askText = function(): string
+				return "ti"
+			end,
+			open = function(id: string)
+				table.insert(opened, id)
+			end,
+			send = function(action: string, args: any): any
+				table.insert(sent, { action, args })
+				return { ok = true }
+			end,
+			onSnapshot = function(callback: any): () -> ()
+				table.insert(callbacks, callback)
+				return noop
+			end,
+			dock = function(entry: any): any
+				docks[entry.id] = entry
+				return { open = noop, setAvailable = noop }
+			end,
+		})
+		local function click(text: string)
+			for index = #shown, 1, -1 do
+				if shown[index].Text == text and shown[index].onClick then
+					return shown[index].onClick()
+				end
+			end
+			error("no button " .. text)
+		end
+		for _, callback in callbacks do
+			callback({}, { roster = {}, snapshots = {} })
+		end
+		docks["clan-roles"].setOpen(true)
+		click(L.text("en-us", "scr.roles.browse"))
+		assert(opened[1] == "clan-browse", "roles opens the browse list")
+		assert(docks["clan-browse"].hidden, "browse is a hidden contextual entry")
+		docks["clan-browse"].setOpen(true)
+		click(L.text("en-us", "scr.browse.search"))
+		assert(sent[1][1] == "survival-coop:clan-browse" and sent[1][2][1] == "ti" and sent[1][2][2] == 1, "search")
+		local page = {
+			query = "ti",
+			page = 1,
+			pages = 2,
+			rows = { { id = "tide", members = 3, capacity = 50, recruiting = true } },
+		}
+		for _, callback in callbacks do
+			callback({ ["clan-browse"] = page }, { roster = {}, snapshots = {} })
+		end
+		click(L.text("en-us", "scr.browse.next"))
+		assert(sent[2][1] == "survival-coop:clan-browse" and sent[2][2][1] == "ti" and sent[2][2][2] == 2, "paging")
+		click(L.text("en-us", "scr.browse.row", "tide", 3, 50, L.text("en-us", "scr.browse.recruiting")))
+		click(L.text("en-us", "scr.browse.apply_visitor", "tide"))
+		assert(sent[3][1] == "survival-coop:clan-draft" and sent[3][2][1] == "tide", "draft from the row")
+		assert(sent[3][2][2].role == "visitor", "role")
+		click(L.text("en-us", "scr.browse.join", "tide"))
+		assert(sent[4][1] == "survival-coop:clan-join" and sent[4][2][1] == "tide", "join from the row")
+		docks["clan-roles"].setOpen(true)
+		click(L.text("en-us", "scr.roles.withdraw_draft", "tide"))
+		assert(sent[5][1] == "survival-coop:clan-draft-cancel", "the browse application shows on clan roles")
+	end,
 	["market buy confirms the exact bundle and refuses short balance or a gone listing"] = function()
 		local listing = { id = "L1", catalogId = "wood", quantity = 3, price = 40 }
 		for _, locale in LOCALES do

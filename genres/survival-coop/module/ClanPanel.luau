@@ -100,6 +100,12 @@ function M.mount(ctx: any, id: string, title: string, iconKey: string, render: a
 			add(ctx.text("clan.empty"))
 			add(ctx.text("clan.create"), membership)
 			add(ctx.text("clan.join"), membership)
+			if ctx.open then
+				add(ctx.text("clan.browse"), function()
+					sheet.frame.Visible = false
+					ctx.open("clan-browse")
+				end)
+			end
 		end
 	end
 	empty()

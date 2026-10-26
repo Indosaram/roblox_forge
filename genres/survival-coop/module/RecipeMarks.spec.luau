@@ -103,6 +103,7 @@ return {
 					"clan-draft-cancel",
 					"equipment-quote",
 					"camp-loan",
+					"clan-browse",
 				}, extensionActions[index]) ~= nil,
 				"only later extensions follow recipe-mark: " .. extensionActions[index]
 			)

@@ -488,6 +488,7 @@ for _, actions in
 		require("./ClanExtension").draftActions(),
 		require("./LateEquipmentExtension").actions(),
 		require("./CampExtension").actions(),
+		require("./ClanExtension").browseActions(),
 	}
 do
 	for _, action in actions do
