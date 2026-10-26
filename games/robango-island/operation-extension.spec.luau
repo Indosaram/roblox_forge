@@ -68,6 +68,7 @@ local function harness(items: { any }): any
 			},
 		},
 	}
+	h.world = world
 	h.extension = assert(Operation.factory({
 		content = Content,
 		world = world,
@@ -195,6 +196,38 @@ return {
 		assert(byId["practice-seedbed"] and byId["practice-seedbed"].reason == nil, "practice is open at level 1")
 		assert(byId["instrument-flute"].reason == "CHARACTER_LEVEL_GATE", "flute shows its level gate")
 		assert(byId["plant-corn"] == nil, "other kinds are not listed")
+	end,
+	["assemble-bandage is refused outside guide g20 and the snapshot and panel name the guide (p125)"] = function()
+		local Panel = require("../../genres/survival-coop/module/OperationPanel")
+		require("./PackText.fixture")
+		local h = harness({ stack("f", "fiber", 6) })
+		local development = { points = 0, definitions = {}, progress = {} }
+		h.world.development = function()
+			return development
+		end
+		local refused = h.run("assemble-bandage")
+		assert(
+			refused.reason == "GUIDE_NOT_OPEN" and h.held("bandage") == 0,
+			"g20 not open: " .. tostring(refused.reason)
+		)
+		local row: any = nil
+		for _, entry in assert(h.extension.snapshot("1")).operations do
+			row = if entry.id == "assemble-bandage" then entry else row
+		end
+		assert(row.reason == "GUIDE_NOT_OPEN" and row.guide == "g20", "snapshot lists the guide gate")
+		local panel = Panel.rows("en-us", { operations = { row } })[1]
+		assert(
+			panel.locked == "Only while the guide is open: Rescue preparation",
+			"en line: " .. tostring(panel.locked)
+		)
+		local ko = Panel.refusal("ko-kr", refused.reason, row.guide)
+		assert(ko == "안내가 열려 있을 때만 만들 수 있어요: 구조 준비", "ko line: " .. ko)
+		assert(Panel.refusal("en-us", "GUIDE_NOT_OPEN") ~= Panel.text("en-us", "operation_failed"), "not generic")
+		local slice = h.slice()
+		slice.progression = Tree.level(slice.progression, Content.progressionPolicy.tree, 50)
+		development.points = 800
+		local made = h.run("assemble-bandage", nil, "open")
+		assert(made.ok and h.held("bandage") == 1 and h.held("fiber") == 4, "open g20 makes a bandage")
 	end,
 	["operation-run is declared, durable and served by a registered factory"] = function()
 		assert(table.find(Contract.extensionActions :: { string }, "operation-run"), "extension action")

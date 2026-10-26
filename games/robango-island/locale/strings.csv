@@ -1520,6 +1520,8 @@ operation_skill,"Learn the required skill first",operations sheet (OperationPane
 operation_items,"Not enough materials",operations sheet (OperationPanel),"Not enough materials","재료가 부족해요"
 operation_away,"Stand next to a workbench",operations sheet (OperationPanel),"Stand next to a workbench","작업대 옆에 서세요"
 operation_failed,"That did not work. Try again",operations sheet (OperationPanel),"That did not work. Try again","실패했어요. 다시 시도하세요"
+operation_guide,"Only while the guide is open: %s",operations sheet (OperationPanel),"Only while the guide is open: %s","안내가 열려 있을 때만 만들 수 있어요: %s"
+operation_guide_any,"a development guide",operations sheet (OperationPanel),"a development guide","개발 안내"
 music.ensemble.instrument,"Craft this part's instrument at a workbench first",music and navigator screens (MusicText),"Craft this part's instrument at a workbench first","이 파트의 악기를 작업대에서 먼저 만드세요"
 combat_shoot,Shoot [V],combat stance and ranged controls,Shoot [V],사격 [V]
 combat_stance,Stance: %s [X],combat stance and ranged controls,Stance: %s [X],태세: %s [X]
@@ -2565,6 +2567,7 @@ trv.dock_unreachable,Move closer to the dock,dock travel result,Move closer to t
 trv.transition_not_allowed,Depart from the harbor,dock travel result,Depart from the harbor,항구에서 출발하세요
 trv.studio_no_teleport,Accepted. Teleport is unavailable in Studio,dock travel result,Accepted. Teleport is unavailable in Studio,승인됨. Studio에서는 섬 이동이 불가합니다
 trv.travelling,Travelling...,dock travel result,Travelling...,이동 중...
+trv.portal_unreachable,Move closer to the portal,dock travel result,Move closer to the portal,이동문에 더 가까이 가세요
 cli.ui.clan,Clan,client clan/outpost label,Clan,부족
 cli.clan.empty,Create a clan or join by invitation to share funds and capture team outposts.,client clan/outpost label,Create a clan or join by invitation to share funds and capture team outposts.,부족을 만들거나 초대로 가입하여 자금을 모으고 팀 거점을 점령하세요.
 cli.clan.create,Create clan,client clan/outpost label,Create clan,부족 생성

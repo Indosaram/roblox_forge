@@ -44,6 +44,26 @@ function M.operations(content: any): { any }
 	return rows
 end
 
+-- GUIDE_NOT_OPEN unless the row's guide is unfinished and its level/grade gates are met; nil
+-- for rows without a guide gate. `fresh` re-reads the expedition document (commands do).
+local function guideRefusal(ctx: any, actor: string, row: any, level: number, fresh: boolean): string?
+	local guide = M.guideGate(row)
+	if not guide then
+		return nil
+	end
+	local development = if ctx.world and ctx.world.development then ctx.world.development(actor, fresh) else nil
+	for _, entry in if development then ctx.content.guides or {} else {} do
+		if
+			string.match(entry.id, "^rw%.(g%d+)%.") == guide
+			and not development.definitions[entry.id]
+			and GuideEvents.open(entry, level, Rules.rank(development.points))
+		then
+			return nil
+		end
+	end
+	return "GUIDE_NOT_OPEN"
+end
+
 local function find(content: any, id: any): any
 	for _, row in M.operations(content) do
 		if row.id == id then
@@ -162,23 +182,7 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 					return view
 				end
 				local refused = Tree.gate(slice.progression, row.gates or {})
-				local guide = M.guideGate(row)
-				if not refused and guide then
-					-- Open while the guide is unfinished and its level/grade gates are met.
-					local development = if ctx.world and ctx.world.development
-						then ctx.world.development(actor, true)
-						else nil
-					refused = "GUIDE_NOT_OPEN"
-					for _, entry in if development then ctx.content.guides or {} else {} do
-						if
-							string.match(entry.id, "^rw%.(g%d+)%.") == guide
-							and not development.definitions[entry.id]
-							and GuideEvents.open(entry, slice.progression.level, Rules.rank(development.points))
-						then
-							refused = nil
-						end
-					end
-				end
+					or guideRefusal(ctx, actor, row, slice.progression.level, true)
 				if not refused and not stationReady(ctx, actor, row, args[2]) then
 					refused = "STATION_GATE"
 				end
@@ -226,7 +230,17 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 					stationTier = row.stationTier,
 					inputs = Data.clone(row.inputs),
 					outputs = Data.clone(row.outputs),
-					reason = if progression then Tree.gate(progression, row.gates or {}) else "PROGRESSION_UNAVAILABLE",
+					-- The guide gate is listed too, so a row the server refuses never offers Make (p125).
+					reason = if progression
+						then Tree.gate(progression, row.gates or {}) or guideRefusal(
+							ctx,
+							actor,
+							row,
+							progression.level,
+							false
+						)
+						else "PROGRESSION_UNAVAILABLE",
+					guide = M.guideGate(row),
 				})
 			end
 			return { operations = rows } :: any, nil

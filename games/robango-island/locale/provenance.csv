@@ -1519,6 +1519,8 @@ operation_skill,original,agent:hephaestus/st_01a167bc,2026-10-23
 operation_items,original,agent:hephaestus/st_01a167bc,2026-10-23
 operation_away,original,agent:hephaestus/st_01a167bc,2026-10-23
 operation_failed,original,agent:hephaestus/st_01a167bc,2026-10-23
+operation_guide,original,agent:hephaestus/p125,2026-10-26
+operation_guide_any,original,agent:hephaestus/p125,2026-10-26
 music.ensemble.instrument,original,agent:hephaestus/st_01a167bc,2026-10-23
 combat_shoot,original,agent:hephaestus/p45-g7g10g11,2026-10-23
 combat_stance,original,agent:hephaestus/p45-g7g10g11,2026-10-23
@@ -2565,6 +2567,7 @@ trv.dock_unreachable,original,agent:hephaestus/p97,2026-10-24
 trv.transition_not_allowed,original,agent:hephaestus/p97,2026-10-24
 trv.studio_no_teleport,original,agent:hephaestus/p97,2026-10-24
 trv.travelling,original,agent:hephaestus/p97,2026-10-24
+trv.portal_unreachable,original,agent:hephaestus/p125,2026-10-26
 cli.ui.clan,original,agent:hephaestus/p97,2026-10-24
 cli.clan.empty,original,agent:hephaestus/p97,2026-10-24
 cli.clan.create,original,agent:hephaestus/p97,2026-10-24

@@ -18,6 +18,8 @@ local KEYS = {
 	"operation_away",
 	"operation_done",
 	"operation_failed",
+	"operation_guide",
+	"operation_guide_any",
 	"operation_hand",
 	"operation_items",
 	"operation_level",
@@ -32,6 +34,7 @@ local refusals: { [string]: string } = {
 	SKILL_GATE = "operation_skill",
 	INSUFFICIENT_ITEMS = "operation_items",
 	STATION_GATE = "operation_away",
+	GUIDE_NOT_OPEN = "operation_guide",
 }
 
 function M.keys(): { string }
@@ -46,8 +49,15 @@ function M.text(locale: string, key: string): string
 	return if string.sub(locale, 1, 2) == "ko" then entry[2] else entry[1]
 end
 
-function M.refusal(locale: string, reason: string?): string
-	return M.text(locale, refusals[reason or ""] or "operation_failed")
+--- Refusal line for a server reason. A guide-gated row (`guide` = "g20") names its guide.
+function M.refusal(locale: string, reason: string?, guide: string?): string
+	local key = refusals[reason or ""] or "operation_failed"
+	if key == "operation_guide" then
+		local ko = string.sub(locale, 1, 2) == "ko"
+		local name = if guide then PackLocale.get(if ko then "ko-kr" else "en-us", "chr.guide_" .. guide) else nil
+		return string.format(M.text(locale, key), name or M.text(locale, "operation_guide_any"))
+	end
+	return M.text(locale, key)
 end
 
 --- Pure rows: label, input line, gate text and whether Make is offered.
@@ -66,7 +76,8 @@ function M.rows(locale: string, state: any, names: { [string]: string }?): { any
 			inputs = table.concat(inputs, ", "),
 			where = M.text(locale, if row.station then "operation_station" else "operation_hand"),
 			station = row.station,
-			locked = if row.reason then M.refusal(locale, row.reason) else nil,
+			locked = if row.reason then M.refusal(locale, row.reason, row.guide) else nil,
+			guide = row.guide,
 		})
 	end
 	return out
@@ -128,6 +139,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		return best
 	end
 	local shown: { any } = {}
+	local guides: { [string]: string } = {}
 	local lastKey = ""
 	local function render(snapshot: { [string]: any })
 		local state = snapshot.operations
@@ -149,6 +161,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		table.clear(shown)
 		for index, row in rows do
+			guides[row.id] = row.guide
 			local text = row.label .. "\n" .. row.inputs .. " / " .. (row.locked or row.where)
 			local label = components.label(theme, { text = text, size = UDim2.new(1, 0, 0, 44) })
 			label.Name, label.LayoutOrder, label.Parent = "Operation-" .. row.id, index * 2, sheet.scroll
@@ -161,7 +174,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 						local result = ctx.send(M.RUN, { row.id, stationId(row.station) })
 						status.Text = if result.ok
 							then M.text(ctx.locale, "operation_done")
-							else M.refusal(ctx.locale, result.reason)
+							else M.refusal(ctx.locale, result.reason, row.guide)
 					end,
 				})
 				make.Name, make.LayoutOrder, make.Parent = "Make-" .. row.id, index * 2 + 1, sheet.scroll
@@ -172,11 +185,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local unsubscribe = ctx.onSnapshot(render)
 	-- World prompts (harbor practice stands) send the command directly; show its outcome here.
 	local unsend = if ctx.onSend
-		then ctx.onSend(function(action: string, _args: any, result: any)
+		then ctx.onSend(function(action: string, args: any, result: any)
 			if action == M.RUN and type(result) == "table" then
 				status.Text = if result.ok
 					then M.text(ctx.locale, "operation_done")
-					else M.refusal(ctx.locale, result.reason)
+					else M.refusal(ctx.locale, result.reason, guides[(args or {})[1]])
 			end
 		end)
 		else nil

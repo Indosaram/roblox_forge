@@ -755,10 +755,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				prompt:SetAttribute("ForgeDialogue", facility.talk)
 				prompt:SetAttribute("ForgeOperation", facility.operation)
 				-- Travel reach uses the station rule on this part (p123): a ray to its centre hit the part.
+				-- Like dock(), the server result is always published, refusal or travelling (p125).
 				prompt.Triggered:Connect(function(player)
-					if facility.destination and world.travel and world.nearPart(tostring(player.UserId), target) then
-						world.travel(player, facility.destination)
+					if not facility.destination then
+						return
 					end
+					local outcome: string
+					if not world.travel then
+						outcome = "expedition_inactive"
+					elseif not world.nearPart(tostring(player.UserId), target) then
+						outcome = "portal_unreachable"
+					else
+						local ok, reason = world.travel(player, facility.destination)
+						outcome = if ok then "travelling" else tostring(reason or "travel_refused")
+					end
+					M.publishTravel(player, outcome)
 				end)
 			elseif facility.talk then
 				-- Station dialogue prompt on the registered station part.

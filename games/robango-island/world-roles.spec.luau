@@ -130,6 +130,63 @@ return {
 			"Studio travel applies the live role/level gate before studio_no_teleport"
 		)
 	end,
+	["visitor portal publishes its travel result like a dock (p125)"] = function()
+		local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.harbor", 1776)
+		world.bind({} :: any)
+		local near = true
+		world.nearPart = function()
+			return near
+		end
+		local portal = engine.game
+			:GetService("Workspace")
+			:FindFirstChild("ForgeRoleWorld")
+			:FindFirstChild("rw.harbor.visitor-portal")
+		local prompt: any = nil
+		for _, child in portal:GetChildren() do
+			prompt = if child:IsA("ProximityPrompt") then child else prompt
+		end
+		local function trigger(): string?
+			local shown: any = nil
+			prompt.Triggered:Fire({
+				UserId = 1,
+				SetAttribute = function(_self, key, value)
+					shown = if key == "ForgeTravelResult" then value else shown
+				end,
+			})
+			return if type(shown) == "string" then string.match(shown, "^([^|]+)|") else nil
+		end
+		local destination: any = nil
+		world.travel = function(_, actual)
+			destination = actual
+			return false, "studio_no_teleport"
+		end
+		assert(trigger() == "studio_no_teleport", "Studio no-teleport is published")
+		assert(destination == "home", "portal travels home")
+		world.travel = function()
+			return false, "level_gate"
+		end
+		assert(trigger() == "level_gate", "a refusal is published")
+		world.travel = function()
+			return true
+		end
+		assert(trigger() == "travelling", "success is published")
+		near = false
+		destination = nil
+		world.travel = function(_, actual)
+			destination = actual
+			return true
+		end
+		assert(trigger() == "portal_unreachable" and destination == nil, "out of reach: refused, no travel")
+		for _, locale in { "en-us", "ko-kr" } do
+			local text = Panels.travelText(locale, "portal_unreachable")
+			assert(not string.find(text, "portal_unreachable", 1, true), locale .. " portal reason text")
+		end
+		world.destroy()
+	end,
 	["dock authority does not raycast into its own collidable platform"] = function()
 		local engine = Engine.new(true)
 		local world = engine.role.build(Content, Source, Policy, function()
