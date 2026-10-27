@@ -148,9 +148,31 @@ local origin = worldConfig.tribe.origin
 gui.Enabled = false
 -- One icon catalog for every screen: ItemIcons.new walks the whole item and recipe catalog.
 local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+-- HUD shell (A4, ui-spec "Tideglass"): world labels read pack names; the mount token opens the
+-- taming panel through the panel dock started further down.
+local shellPanels: any = nil
+local entryText = PackText.lookup(packRows, "")
+local WildlifeNames = require(Forge.genres["survival-coop"].module.WildlifeNames)
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
+	shell = {
+		name = function(kind: string, key: string): string?
+			if kind == "npc" then
+				return entryText(locale, key)
+			elseif kind == "wildlife" or kind == "pet" then
+				return WildlifeNames.name(locale, key)
+			elseif kind == "drop" then
+				return require(Forge.genres["survival-coop"].module.SurvivalHUDLocale).text(locale, "shell.lost")
+			end
+			return names[key]
+		end,
+		open = function(id: string)
+			if shellPanels and shellPanels.open then
+				shellPanels.open(id)
+			end
+		end,
+	},
 	openPanel = function(id: string): boolean
 		return id == "storage" and require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.show()
 			or require(Forge.genres["survival-coop"].module.CharacterSheet).open(id)
@@ -887,6 +909,7 @@ local panels = ExtensionPanels.start({
 		hud.close()
 	end,
 	contextual = true,
+	shell = true,
 	content = content,
 	icons = itemIcons,
 	launchers = {
@@ -929,6 +952,7 @@ local panels = ExtensionPanels.start({
 		},
 	},
 })
+shellPanels = panels
 hud.opened:Connect(function()
 	if hud.isOpen() then
 		panels.closeAll()

@@ -2,6 +2,7 @@
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local Layout = require("../../../core/ui-kit/Layout")
 local HUDModel = require("./SurvivalHUDModel")
+local HudShell = require("./HudShell")
 local Locale = require("./SurvivalHUDLocale")
 local PackLocale = require("./PackLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
@@ -244,18 +245,27 @@ M.factories = {
 	require("./OperationPanel").factory,
 } :: { Factory }
 
-export type Started = { destroy: () -> (), closeAll: () -> () }
-function M.start(options: {
-	ui: any,
-	locale: string,
-	names: { [string]: string }?,
-	factories: { Factory }?,
-	onOpen: (() -> ())?,
-	contextual: boolean?,
-	icons: any?,
-	launchers: { { id: string, label: string, open: () -> () } }?,
-	content: any?,
-}): Started
+export type Started = {
+	destroy: () -> (),
+	closeAll: () -> (),
+	open: ((string) -> boolean)?,
+}
+function M.start(
+	options: {
+		ui: any,
+		locale: string,
+		names: { [string]: string }?,
+		factories: { Factory }?,
+		onOpen: (() -> ())?,
+		contextual: boolean?,
+		icons: any?,
+		launchers: { { id: string, label: string, open: () -> () } }?,
+		content: any?,
+		-- Robango HUD shell (A4): the objective card sits in the HudShell quest region and the menu
+		-- toggle becomes the first pebble of the bottom-left row instead of a top-right button.
+		shell: boolean?,
+	}
+): Started
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
 	local action = storage:WaitForChild("ForgeAction")
@@ -344,6 +354,7 @@ function M.start(options: {
 	local players = game:GetService("Players")
 	local input = game:GetService("UserInputService")
 	local contextual = options.contextual == true
+	local shell = contextual and options.shell == true
 	local dockGui = Instance.new("ScreenGui")
 	dockGui.Name, dockGui.ResetOnSpawn, dockGui.DisplayOrder = "ForgePanelDock", false, 30
 	dockGui.ZIndexBehavior, dockGui.ScreenInsets = Enum.ZIndexBehavior.Sibling, Enum.ScreenInsets.CoreUISafeInsets
@@ -450,6 +461,13 @@ function M.start(options: {
 		menuOutline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		menuOutline.Color, menuOutline.Parent = Color3.fromRGB(240, 244, 240), menuToggle
 	end
+	if shell then
+		local outline = menuToggle:FindFirstChild("MenuOutline")
+		if outline then
+			outline:Destroy()
+		end
+		HudShell.pebble(menuToggle, false, true)
+	end
 	local function viewport(): any
 		return dockGui.AbsoluteSize
 	end
@@ -529,6 +547,18 @@ function M.start(options: {
 			local menu = bounds.menu
 			column.AnchorPoint, column.Position = Vector2.zero, UDim2.fromOffset(menu.x, menu.y)
 			column.Size = UDim2.fromOffset(menu.width, menu.height)
+			if shell then
+				-- Quest card under the minimap; the menu toggle is the first token of the bottom-left row.
+				local regions = HudShell.regions(size.X, size.Y, HudShell.guiClear(dockGui), input.TouchEnabled)
+				local quest = regions.quest
+				objectiveSlot.Position = UDim2.fromOffset(quest.x, quest.y)
+				objectiveSlot.Size = UDim2.fromOffset(quest.width, quest.height)
+				local slot = regions.rowSlots[1]
+				column.Position, column.Size =
+					UDim2.fromOffset(slot.x, slot.y), UDim2.fromOffset(slot.width, slot.height)
+				set(menuToggle, "Size", UDim2.fromScale(1, 1))
+				set(menuToggle, "TextSize", HudShell.textSize("caption", regions.safeHeight))
+			end
 			set(menuList, "Parent", dockGui)
 			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
 				M.menuRect(size.X, size.Y, input.TouchEnabled)
@@ -909,6 +939,7 @@ function M.start(options: {
 		openPanel(panel)
 	end)
 	return {
+		open = context.open,
 		closeAll = function()
 			if contextual then
 				menuList.Visible = false

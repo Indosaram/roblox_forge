@@ -3,6 +3,7 @@ local Model = require("./SurvivalHUDModel")
 local RecipeMarks = require("./RecipeMarks")
 local BuildPlacement = require("./BuildPlacement")
 local Locale = require("./SurvivalHUDLocale")
+local HudShell = require("./HudShell")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
@@ -82,6 +83,13 @@ export type Options = {
 	names: { [string]: string }?,
 	contextual: boolean?,
 	openPanel: ((string) -> boolean)?,
+	-- Landscape HUD shell (ui-spec "Tideglass", Robango A4); used only with contextual = true.
+	-- `name(kind, key)` labels world entities; `open(id)` opens a panel by id (the mount token opens
+	-- "taming"). The menu token is ExtensionPanels' own toggle (its shell option), in row slot 1.
+	shell: {
+		name: (string, string) -> string?,
+		open: (string) -> (),
+	}?,
 }
 
 function M.start(options: Options)
@@ -99,6 +107,7 @@ function M.start(options: Options)
 	local locale = options.locale or player.LocaleId
 	local content = options.content
 	local contextual = options.contextual == true
+	local shell = if contextual then options.shell else nil
 	local function t(key: string): string
 		local text = Locale.text(locale, key)
 		local touchOnly = input.TouchEnabled and not input.KeyboardEnabled
@@ -921,6 +930,7 @@ function M.start(options: Options)
 			end
 		end)
 	)
+	local shellRegions: any = nil
 	local function renderTracker()
 		local rows = RecipeMarks.tracker(
 			Model.bag(model.snapshot),
@@ -955,6 +965,10 @@ function M.start(options: Options)
 		tracker.Text = table.concat(lines, "\n")
 		local size = root.AbsoluteSize
 		local bounds = Model.trackerBounds(size.X + 24, size.Y + 16, #rows)
+		if shellRegions then
+			HudShell.put(tracker, shellRegions.tracker)
+			return
+		end
 		tracker.AnchorPoint = Vector2.zero
 		tracker.Position = UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
 		tracker.Size = UDim2.fromOffset(bounds.width, bounds.height)
@@ -1531,7 +1545,7 @@ function M.start(options: Options)
 	end
 	local restPrompt: BillboardGui? = nil
 	local combatPrompt: BillboardGui? = nil
-	if contextual then
+	if contextual and not shell then
 		local restCard = Instance.new("BillboardGui")
 		restCard.Name, restCard.Size = "RestInteraction", UDim2.fromOffset(132, 48)
 		restCard.Active = true
@@ -1556,7 +1570,196 @@ function M.start(options: Options)
 		combatPrompt = combatCard
 		toolbar.Visible = false
 	end
-
+	-- HUD shell (Robango A4, ui-spec "Tideglass"): vitals top-left, minimap + XY and the quest card
+	-- top-right (ExtensionPanels), a menu (ExtensionPanels) / emote / chat row bottom-left and the tide-arc cluster of
+	-- pebble tokens bottom-right. The combat buttons above become cluster tokens.
+	local shellButtons: { [string]: TextButton } = {}
+	local shellRow: { [number]: TextButton } = {}
+	local extensions: any = {}
+	local shownPrompts: { [ProximityPrompt]: boolean } = {}
+	local stopOverlays: (() -> ())? = nil
+	local shellOptions = shell
+	if shellOptions then
+		toolbar.Visible, restButton.Visible = false, false
+		for _, item in { vitals, coins, status, tracker, restButton, attackButton } do
+			item.Parent = gui
+		end
+		for _, item in defenseButtons do
+			item.Parent = gui
+		end
+		local function interact()
+			if nearest("campfire") then
+				rest()
+				return
+			end
+			local character = player.Character
+			local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
+			local best: ProximityPrompt? = nil
+			local distance = math.huge
+			for prompt in shownPrompts do
+				local holder = prompt.Parent
+				local at = if holder and holder:IsA("Attachment")
+					then holder.WorldPosition
+					elseif holder and holder:IsA("BasePart") then holder.Position
+					else nil
+				if prompt.Enabled and at and pivot and pivot:IsA("BasePart") then
+					local d = (at - pivot.Position).Magnitude
+					if d < distance then
+						best, distance = prompt, d
+					end
+				end
+			end
+			if best then
+				best:InputHoldBegin()
+				task.delay(best.HoldDuration, function()
+					best:InputHoldEnd()
+				end)
+			end
+		end
+		local guiService = game:GetService("GuiService")
+		local actionsById: { [string]: () -> () } = {
+			interact = interact,
+			mount = function()
+				shellOptions.open("taming")
+			end,
+			skills = function()
+				open("skills")
+			end,
+			consume = function()
+				open("bag")
+			end,
+			build = function()
+				open("build")
+			end,
+			emote = function()
+				pcall(function()
+					guiService:SetEmotesMenuOpen(not guiService:GetEmotesMenuOpen())
+				end)
+			end,
+			chat = function()
+				local starter = game:GetService("StarterGui")
+				local ok = pcall(function()
+					starter:SetCore("ChatActive", not starter:GetCore("ChatActive"))
+				end)
+				if not ok then
+					local window = game:GetService("TextChatService"):FindFirstChildOfClass("ChatWindowConfiguration")
+					if window then
+						window.Enabled = not window.Enabled
+					end
+				end
+			end,
+		}
+		local function token(id: string): TextButton
+			local item = Components.button(theme, {
+				text = t("shell." .. id),
+				size = UDim2.fromOffset(48, 48),
+				parent = gui,
+				onClick = actionsById[id],
+			})
+			item.Name = "Token-" .. id
+			return item
+		end
+		for _, id in { "interact", "mount", "skills", "consume", "build" } do
+			shellButtons[id] = token(id)
+		end
+		shellButtons.attack, shellButtons.shoot = attackButton, defenseButtons.shoot
+		for _, id in { "dodge", "guard", "stance" } do
+			shellButtons[id] = defenseButtons[id]
+		end
+		for index, id in { "emote", "chat" } do
+			shellRow[index + 1] = token(id)
+		end
+		for _, item in shellButtons do
+			item.TextScaled, item.TextWrapped = true, true
+			fitText(item)
+		end
+		for _, item in pairs(shellRow) do
+			item.TextScaled, item.TextWrapped = true, true
+			fitText(item)
+		end
+		local promptService = game:GetService("ProximityPromptService")
+		table.insert(
+			connections,
+			promptService.PromptShown:Connect(function(prompt: ProximityPrompt)
+				shownPrompts[prompt] = true
+			end)
+		)
+		table.insert(
+			connections,
+			promptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
+				shownPrompts[prompt] = nil
+			end)
+		)
+		stopOverlays = HudShell.startOverlays({
+			gui = gui,
+			hidden = function(): boolean
+				return sheet.frame.Visible or player:GetAttribute("ForgeExtensionSheetOpen") == true
+			end,
+			name = shellOptions.name,
+			coordsText = function(px: number, pz: number): string
+				return string.format(t("shell.coords"), px, pz)
+			end,
+			tribe = function(): string
+				local clan = extensions.clan
+				return if type(clan) == "table"
+						and type(clan.clanId) == "string"
+						and clan.clanId ~= ""
+					then string.format(t("shell.tribe"), clan.clanId)
+					else t("shell.no_tribe")
+			end,
+		})
+	end
+	-- Shows the tokens for the current context at their tide-arc slots; hides the rest.
+	local function layoutShell(actions: any, modal: boolean)
+		if not shellRegions then
+			return
+		end
+		local taming = extensions.taming
+		local companions = if type(taming) == "table" then taming.companions else nil
+		local policy = model.durable
+		local flags = {
+			combat = actions.attack or actions.shoot,
+			building = placementBar.Visible,
+			interact = nearest("campfire") ~= nil or next(shownPrompts) ~= nil,
+			dodge = actions.dodge,
+			guard = actions.guard,
+			stance = actions.stance,
+			attack = actions.attack,
+			shoot = actions.shoot,
+			mount = type(taming) == "table"
+				and (taming.ride ~= nil or (type(companions) == "table" and companions.deployed ~= nil)),
+			skills = content.progressionPolicy ~= nil,
+		}
+		local shown: { [string]: boolean } = {}
+		if not modal then
+			for _, entry in HudShell.tokens(flags) do
+				local item = shellButtons[entry.id]
+				local r = shellRegions.tokens[entry.slot]
+				if item and r then
+					shown[entry.id] = true
+					HudShell.put(item, r)
+					item.TextSize = HudShell.textSize("label", shellRegions.safeHeight)
+					local enabled = entry.enabled and policy ~= nil and model.pending == nil
+					item.Active, item.Interactable = enabled, enabled
+					HudShell.pebble(item, entry.slot == "P" and enabled, enabled)
+					item.Text = if entry.id == "stance"
+						then Model.stanceLabel(locale, model.snapshot.contracts and model.snapshot.contracts.stance, t)
+						else t("shell." .. entry.id)
+				end
+			end
+		end
+		for id, item in shellButtons do
+			item.Visible = shown[id] == true
+		end
+		restButton.Visible = false
+		local rowVisible = not sheet.frame.Visible and player:GetAttribute("ForgeExtensionSheetOpen") ~= true
+		for index, item in pairs(shellRow) do
+			HudShell.put(item, shellRegions.rowSlots[index])
+			item.Visible = rowVisible
+			item.TextSize = HudShell.textSize("caption", shellRegions.safeHeight)
+			HudShell.pebble(item, false, true)
+		end
+	end
 	local CHAT_RESERVE_WIDTH = 240
 	local MIN_STACK_WIDTH = 160
 	local function chatRightEdge(): number
@@ -1581,6 +1784,15 @@ function M.start(options: Options)
 			local sx, sy, sw, sh = Model.contextSheet(size.X, size.Y, input.TouchEnabled)
 			sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
 				Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
+			if shell then
+				local view = gui.AbsoluteSize
+				shellRegions = HudShell.regions(view.X, view.Y, HudShell.guiClear(gui), input.TouchEnabled)
+				HudShell.put(vitals, shellRegions.vitals)
+				HudShell.put(status, shellRegions.status)
+				local chips = shellRegions.chips
+				HudShell.put(coins, { x = chips.x, y = chips.y, width = 100, height = math.min(28, chips.height) })
+				return
+			end
 			local hud = Model.contextHudBounds(size.X + 24, size.Y + 16)
 			local bounds = hud.vitals
 			vitals.AnchorPoint, vitals.Position = Vector2.zero, UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
@@ -1686,6 +1898,9 @@ function M.start(options: Options)
 	table.insert(
 		connections,
 		state.OnClientEvent:Connect(function(packet)
+			if type(packet) == "table" and type(packet.snapshots) == "table" then
+				extensions = packet.snapshots.survivalExtensions or extensions
+			end
 			if model.receive(packet) then
 				if reportedDeaths == nil or (model.snapshot.vitals and model.snapshot.vitals.healthMilli == 0) then
 					-- First snapshot, or down now: the knockout panel speaks, so the toast stays quiet.
@@ -1787,6 +2002,9 @@ function M.start(options: Options)
 				local stanceView = model.snapshot.contracts and model.snapshot.contracts.stance
 				defenseButtons.stance.Text = Model.stanceLabel(locale, stanceView, t)
 				defenseButtons.shoot.Text = t("shoot")
+				if shell then
+					layoutShell(actions, modal)
+				end
 				if restPrompt then
 					restPrompt.Enabled = actions.rest
 					if restTarget then
@@ -1809,6 +2027,9 @@ function M.start(options: Options)
 				end
 			end
 			for item, verb in { [restButton] = "rest", [attackButton] = "attack" } do
+				if shell then
+					continue
+				end
 				local enabled = model.pending == nil
 					and model.durable ~= nil
 					and table.find(model.durable.actions, "survival-coop:" .. verb) ~= nil
@@ -1834,6 +2055,9 @@ function M.start(options: Options)
 		resultEvent:Destroy()
 		requestEvent:Destroy()
 		placementGui:Destroy()
+		if stopOverlays then
+			stopOverlays()
+		end
 		gui:Destroy()
 	end
 	table.insert(connections, gui.Destroying:Connect(destroy))

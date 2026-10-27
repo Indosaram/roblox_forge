@@ -2829,3 +2829,20 @@ cli.survivor.forager,Forager,client survivor picker,Forager,채집가
 cli.survivor.forager_note,plaid shirt and field jeans,client survivor picker,plaid shirt and field jeans,체크 셔츠와 작업 청바지
 cli.survivor.drifter,Drifter,client survivor picker,Drifter,방랑자
 cli.survivor.drifter_note,black jacket and black jeans,client survivor picker,black jacket and black jeans,검은 재킷과 검은 청바지
+hud.shell.interact,Interact,genre text hud,Interact,상호작용
+hud.shell.attack,Attack,genre text hud,Attack,공격
+hud.shell.shoot,Shoot,genre text hud,Shoot,사격
+hud.shell.dodge,Dodge,genre text hud,Dodge,회피
+hud.shell.guard,Guard,genre text hud,Guard,방어
+hud.shell.stance,Stance,genre text hud,Stance,태세
+hud.shell.mount,Ride,genre text hud,Ride,탈것
+hud.shell.skills,Skills,genre text hud,Skills,기술
+hud.shell.consume,Eat,genre text hud,Eat,먹기
+hud.shell.build,Build,genre text hud,Build,건설
+hud.shell.menu,Menu,genre text hud,Menu,메뉴
+hud.shell.emote,Emote,genre text hud,Emote,감정
+hud.shell.chat,Chat,genre text hud,Chat,채팅
+hud.shell.coords,X %d  Y %d,genre text hud,X %d  Y %d,X %d  Y %d
+hud.shell.tribe,Clan %s,genre text hud,Clan %s,부족 %s
+hud.shell.no_tribe,No clan,genre text hud,No clan,부족 없음
+hud.shell.lost,Lost belongings,genre text hud,Lost belongings,잃어버린 짐
