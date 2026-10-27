@@ -16864,3 +16864,128 @@ assets:
         ownership: first-party
       author: agent:omo/hephaestus
       created: 2026-10-27
+  - key: mesh-bld-atlas-a
+    kind: model
+    tool: blender
+    source: "B3 package RobangoBldA: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 137308084948887
+    moderation: Approved
+    provenance:
+      digest: sha256:f2c19a0a27ff189245ff8e84e644d30869f114847a4c00f329aef33ce1d9f43c
+      recipe:
+        id: robango-gen-buildings
+        version: 2
+        input: "assets/blender/gen_buildings.py#RobangoBldA"
+        inputVersion: sha256:1f4ecfaae104d1c82dfc6feeff626b98b9c36f3da667f6aa7ab5a480635a00e6
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: mesh-bld-atlas-b
+    kind: model
+    tool: blender
+    source: "B3 package RobangoBldB: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 72603265254434
+    moderation: Approved
+    provenance:
+      digest: sha256:d1390aa0b9177fb1178d1516e945fd31557379e33f0f6cba49d26dba9a9baae4
+      recipe:
+        id: robango-gen-buildings
+        version: 2
+        input: "assets/blender/gen_buildings.py#RobangoBldB"
+        inputVersion: sha256:1f4ecfaae104d1c82dfc6feeff626b98b9c36f3da667f6aa7ab5a480635a00e6
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: mesh-bld-atlas-c
+    kind: model
+    tool: blender
+    source: "B3 package RobangoBldC: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 95843797197885
+    moderation: Approved
+    provenance:
+      digest: sha256:ec8b2f14105c68fffcd0115051709cf1f0e3a7297ed2954113de26e4a019a7a1
+      recipe:
+        id: robango-gen-buildings
+        version: 2
+        input: "assets/blender/gen_buildings.py#RobangoBldC"
+        inputVersion: sha256:1f4ecfaae104d1c82dfc6feeff626b98b9c36f3da667f6aa7ab5a480635a00e6
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: mesh-bld-hero
+    kind: model
+    tool: blender
+    source: "B3 package RobangoHero: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 126899390519799
+    moderation: Approved
+    provenance:
+      digest: sha256:19c85d1534e4396be580489642c6f799bb26c2c6624be54fe997e4659f675c92
+      recipe:
+        id: robango-gen-buildings
+        version: 2
+        input: "assets/blender/gen_buildings.py#RobangoHero"
+        inputVersion: sha256:1f4ecfaae104d1c82dfc6feeff626b98b9c36f3da667f6aa7ab5a480635a00e6
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: mesh-town-kit
+    kind: model
+    tool: blender
+    source: "B3 package RobangoTownKit: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 79397523264142
+    moderation: Approved
+    provenance:
+      digest: sha256:620a531488fd953cb286350f0fdf39c2fcb8ccc18c5bccce7402a78f6f69e3d6
+      recipe:
+        id: robango-gen-buildings
+        version: 2
+        input: "assets/blender/gen_buildings.py#RobangoTownKit"
+        inputVersion: sha256:1f4ecfaae104d1c82dfc6feeff626b98b9c36f3da667f6aa7ab5a480635a00e6
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-27

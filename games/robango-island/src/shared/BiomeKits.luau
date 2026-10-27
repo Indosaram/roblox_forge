@@ -358,10 +358,10 @@ M.allKits = { "beach", "jungle", "grassland", "savanna", "lake" }
 --- returns key -> template. A failed load leaves that kit out; the world still builds.
 function M.load(kits: { string }, assets: { [string]: string }): { [string]: any }
 	-- Headless engines (Lune specs, native qa) have no InsertService: no kits, the world still builds.
-	local ok, insert = pcall(function()
+	local hasInsert, insert = pcall(function()
 		return runtime.game:GetService("InsertService")
 	end)
-	if not ok or insert == nil then
+	if not hasInsert or insert == nil then
 		return templates
 	end
 	for _, kit in kits do

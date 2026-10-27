@@ -22,6 +22,8 @@ gui.Destroying:Connect(audio.destroy)
 local player = game:GetService("Players").LocalPlayer
 local characterTracks = require(script.Parent:WaitForChild("CharacterTracks")).start(player)
 script.Destroying:Connect(characterTracks)
+-- G24: roofs and walls fade while the local character is inside a building footprint.
+script.Destroying:Connect(require(script.Parent:WaitForChild("Cutaway")).start(player))
 -- ui.settings language: the saved choice (published by the server as ForgeLanguage), else LocaleId.
 local Settings = require(Shared.SettingsModel)
 local locale = Settings.locale(player.LocaleId, { language = player:GetAttribute("ForgeLanguage") })

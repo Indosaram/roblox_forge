@@ -1,0 +1,267 @@
+--!strict
+-- B3 mesh templates (asset-catalog sections 6-7): the five uploaded building packages are
+-- loaded once per server through InsertService:LoadAsset and cloned in place of the primitive
+-- Part kits. Callers keep their own gameplay part (tags, prompts, attributes) and only receive
+-- a visual Model, so a failed load leaves the Part kits in place.
+-- Template rows: ground-centred, 1 stud per unit. Mesh name suffixes (gen_buildings.py):
+--   <key>__cut   roof/wall that fades indoors (ForgeCutaway, G24)
+--   <key>__ember fire anchor (Fire + PointLight)
+--   <key>__glow  emissive glass / rift fissure
+--   <key>__tag   cloth that later takes a clan colour
+--   <key>__halo  rift shard halo
+local M = {}
+
+M.PACKAGES = { "mesh-bld-atlas-a", "mesh-bld-atlas-b", "mesh-bld-atlas-c", "mesh-bld-hero", "mesh-town-kit" }
+
+-- content.yml structures[].id -> catalog row key.
+M.STRUCTURES = {
+	campfire = "bld.campfire",
+	workbench = "bld.workbench.t1",
+	["workbench-t2"] = "bld.workbench.t2",
+	["workbench-t3"] = "bld.workbench.t3",
+	kiln = "bld.kiln.t1",
+	["kiln-t2"] = "bld.kiln.t2",
+	["kiln-t3"] = "bld.kiln.t3",
+	["mud-kiln"] = "bld.mud-kiln",
+	["tanning-frame"] = "bld.tanning-frame",
+	["joiner-bench"] = "bld.joiner-bench",
+	["mason-bench"] = "bld.mason-bench",
+	refrigerator = "bld.refrigerator",
+	tent = "bld.tent",
+	bed = "bld.bed",
+	well = "bld.well",
+	["signal-relay"] = "bld.signal-relay",
+	laboratory = "bld.laboratory",
+	["clan-hall"] = "bld.clan-hall",
+	["animal-pen"] = "bld.animal-pen",
+	storage = "bld.storage",
+	floor = "bld.timber.floor",
+	["timber-wall"] = "bld.timber.wall",
+	wall = "bld.timber.wall",
+	["timber-roof"] = "bld.timber.roof",
+	roof = "bld.timber.roof",
+	door = "bld.timber.door",
+	stairs = "bld.timber.stairs",
+	pillar = "bld.timber.pillar",
+	["stone-floor"] = "bld.stone.floor",
+	["stone-wall"] = "bld.stone.wall",
+	["stone-roof"] = "bld.stone.roof",
+	["brick-floor"] = "bld.brick.floor",
+	["brick-wall"] = "bld.brick.wall",
+	["brick-roof"] = "bld.brick.roof",
+	["volcanic-wall"] = "bld.volcanic-wall",
+}
+
+-- WorldDressing kit kinds -> catalog row key (vegetation, rocks and farm stay with B1).
+M.DRESSING = {
+	shelter = "bld.tent",
+	campfire = "bld.campfire",
+	chest = "bld.storage",
+	fence = "town.fence-rail",
+	workbench = "bld.workbench.t1",
+	["drying-rack"] = "bld.tanning-frame",
+	dock = "town.drift-camp-walkway",
+	beacon = "town.road-sign",
+}
+
+-- Harbor facility anchors that get a town-kit visual: { row, x offset from the anchor }.
+M.FACILITIES = {
+	["visitor-portal"] = { row = "town.rift-ring", dx = 10 },
+	["rescue-beacon"] = { row = "town.rescue-bell", dx = 6 },
+	objective = { row = "town.trading-post", dx = 0 },
+}
+
+-- Role set pieces placed by RoleWorld: { layout, row, x, z, yaw degrees }. Positions sit beside the
+-- authored anchors (content.yml) and never on a path or node approach; all are decor only.
+M.SET_PIECES = {
+	{ layout = "rw.onboarding", row = "town.balloon-wreck", x = 44, z = 70, yaw = 20 },
+	{ layout = "rw.onboarding", row = "town.beacon-tower", x = 22, z = -76, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.dock", x = 0, z = 156, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.boat", x = 22, z = 166, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.market-stall", x = 84, z = 0, yaw = 90 },
+	{ layout = "rw.harbor", row = "town.npc-booth", x = -84, z = 0, yaw = -90 },
+	{ layout = "rw.harbor", row = "town.chart-table", x = 14, z = 120, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.crate-stack", x = -16, z = 118, yaw = 30 },
+	{ layout = "rw.harbor", row = "bld.well", x = -40, z = 24, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.lamp-post", x = 10, z = 100, yaw = 0 },
+	{ layout = "rw.harbor", row = "town.lamp-post", x = -10, z = 60, yaw = 180 },
+	{ layout = "rw.harbor", row = "town.banner-pole", x = 72, z = 92, yaw = 0 },
+}
+
+-- Rows a player stands on or walks against keep collision; everything else is visual only.
+local SOLID = {
+	["bld.timber.floor"] = true,
+	["bld.stone.floor"] = true,
+	["bld.brick.floor"] = true,
+	["bld.timber.wall"] = true,
+	["bld.stone.wall"] = true,
+	["bld.brick.wall"] = true,
+	["bld.volcanic-wall"] = true,
+	["bld.timber.stairs"] = true,
+	["bld.timber.pillar"] = true,
+}
+
+local templates: { [string]: Model }? = nil
+
+--- Test seam: specs inject fake row templates instead of InsertService.
+function M.setTemplates(value: { [string]: Model }?)
+	templates = value
+end
+
+--- Loads every package once (in parallel); later calls return the cached table. Returns an
+--- empty table when InsertService is unavailable (headless fixtures) or every load fails.
+function M.load(): { [string]: Model }
+	if templates then
+		return templates
+	end
+	local loaded: { [string]: Model } = {}
+	templates = loaded
+	local insert = game:GetService("InsertService")
+	if not insert then
+		return loaded
+	end
+	local ok, assets = pcall(function()
+		return require(game:GetService("ReplicatedStorage").Forge.games["robango-island"].src.shared.Assets)
+	end)
+	if not ok then
+		return loaded
+	end
+	local storage = Instance.new("Folder")
+	storage.Name, storage.Parent = "ForgeMeshTemplates", game:GetService("ServerStorage")
+	local pending = #M.PACKAGES
+	local done = Instance.new("BindableEvent")
+	for _, key in M.PACKAGES do
+		task.spawn(function()
+			local id = tonumber(string.match(assets[key] or "", "%d+$"))
+			local success, result = pcall(function()
+				return insert:LoadAsset(assert(id, "MESH_PACKAGE_UNPUBLISHED:" .. key))
+			end)
+			if success then
+				for _, row in result:GetDescendants() do
+					if row:IsA("Model") and row:FindFirstChildWhichIsA("MeshPart") then
+						local name = string.gsub(row.Name, "%.%d%d%d$", "")
+						row.Name, row.WorldPivot, row.Parent = name, CFrame.new(), storage
+						loaded[name] = row
+					end
+				end
+				result:Destroy()
+			else
+				warn("StructureMeshes: " .. key .. " not loaded, primitive kits stay: " .. tostring(result))
+			end
+			pending -= 1
+			if pending == 0 then
+				done:Fire()
+			end
+		end)
+	end
+	if pending > 0 then
+		done.Event:Wait()
+	end
+	done:Destroy()
+	return loaded
+end
+
+--- A placed copy of row `key` (nil if the template is missing). The Model pivot is the row's
+--- ground centre. options.decor makes every part non-colliding and non-queryable.
+function M.clone(key: string?, options: { decor: boolean? }?): Model?
+	local template = if key and templates then templates[key] else nil
+	if not template then
+		return nil
+	end
+	local model = template:Clone()
+	model.Name = "ForgeMeshVisual"
+	model:SetAttribute("ForgeMeshRow", key)
+	local solid = SOLID[key :: string] == true and not (options and options.decor)
+	for _, part in model:GetDescendants() do
+		if not part:IsA("MeshPart") then
+			continue
+		end
+		local suffix = string.match(part.Name, "__(%a+)$")
+		part.Anchored, part.CanTouch = true, false
+		part.CanCollide = solid and suffix ~= "tag" and not (key == "bld.timber.door" and suffix == "cut")
+		part.CanQuery = part.CanCollide
+		if suffix == "cut" then
+			part:SetAttribute("ForgeCutaway", true)
+			game:GetService("CollectionService"):AddTag(part, "ForgeCutaway")
+		elseif suffix == "ember" or suffix == "glow" then
+			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
+			if surface then
+				surface:Destroy()
+			end
+			part.Material, part.CastShadow = Enum.Material.Neon, false
+			part.Color = if suffix == "ember" then Color3.fromRGB(255, 122, 40) else Color3.fromRGB(150, 236, 220)
+			local light = Instance.new("PointLight")
+			light.Color, light.Range, light.Brightness = part.Color, if suffix == "ember" then 10 else 12, 0.8
+			light.Shadows, light.Parent = false, part
+			if suffix == "ember" then
+				local fire = Instance.new("Fire")
+				fire.Size, fire.Heat, fire.Parent = 2, 4, part
+			end
+		end
+	end
+	return model
+end
+
+--- Swaps a ForgeStructureKits template's primitive Parts for the mesh row, scaled down only when
+--- it would overhang the footprint by more than 1 stud. Returns true when swapped.
+function M.structureKit(kit: Model, definition: any, cellStuds: number): boolean
+	local visual = M.clone(M.STRUCTURES[definition.id])
+	if not visual then
+		return false
+	end
+	-- Rows are exported unrotated, so the axis-aligned extent of their parts is the footprint.
+	local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+	for _, part in visual:GetDescendants() do
+		if part:IsA("BasePart") then
+			low = low:Min(part.Position - part.Size / 2)
+			high = high:Max(part.Position + part.Size / 2)
+		end
+	end
+	local size = high - low
+	local scale =
+		math.min(1, (definition.footprintX * cellStuds + 2) / size.X, (definition.footprintZ * cellStuds + 2) / size.Z)
+	if scale < 1 then
+		visual:ScaleTo(scale)
+	end
+	for _, child in kit:GetChildren() do
+		child:Destroy()
+	end
+	for _, part in visual:GetChildren() do
+		part.Parent = kit
+	end
+	visual:Destroy()
+	kit.WorldPivot = CFrame.new()
+	kit:SetAttribute("ForgeMeshRow", M.STRUCTURES[definition.id])
+	return true
+end
+
+--- Hangs the row visual under a gameplay part (station, home structure, harbor facility) and
+--- hides the part itself; the part keeps every tag, prompt and attribute. `ground` is the world
+--- CFrame of the row's ground centre. Re-calling only re-pivots the existing visual.
+function M.dress(target: BasePart, key: string?, ground: CFrame): Model?
+	local visual = target:FindFirstChild("ForgeMeshVisual") :: Model?
+	if not visual then
+		visual = M.clone(key, { decor = true })
+		if not visual then
+			return nil
+		end
+		visual.Parent = target
+	end
+	(visual :: Model):PivotTo(ground)
+	target.Transparency = 1
+	return visual
+end
+
+--- A free-standing decor copy of row `key` at `ground` under `parent` (nil if no template).
+function M.place(key: string?, ground: CFrame, parent: Instance, name: string): Model?
+	local visual = M.clone(key, { decor = true })
+	if not visual then
+		return nil
+	end
+	visual.Name = name
+	visual:PivotTo(ground)
+	visual.Parent = parent
+	return visual
+end
+
+return M

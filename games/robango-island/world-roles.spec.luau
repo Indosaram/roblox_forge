@@ -708,6 +708,7 @@ return {
 		local engine = Engine.new()
 		local bootstrap = engine.load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
 			["./WorldDressing"] = engine.dressing,
+			["./StructureMeshes"] = engine.meshes,
 		}, { Parent = { RoleWorld = engine.role, HomeWorld = engine.home, BrawlWorld = {} } })
 		local world = bootstrap(Content, Source, Policy, function()
 			return 0
@@ -738,6 +739,7 @@ return {
 			local engine = Engine.new()
 			local bootstrap = engine.load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
 				["./WorldDressing"] = engine.dressing,
+				["./StructureMeshes"] = engine.meshes,
 			}, {
 				Parent = {
 					RoleWorld = engine.role,

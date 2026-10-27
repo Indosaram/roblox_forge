@@ -5,6 +5,7 @@ local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
 local Rng = require(Forge.core.domain.random.Rng)
 local IslandTerrain = require(Forge.games["robango-island"].src.shared.IslandTerrain)
 local Dressing = require("./WorldDressing")
+local Meshes = require("./StructureMeshes")
 
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
 -- shipped as the Strings LocalizationTable); rows are read once, on first use.
@@ -113,8 +114,11 @@ end
 return function(content: any, source: any, wildlifePolicy, epochMillis, role: string, studioSingle: boolean)
 	local kits = Instance.new("Folder")
 	kits.Name, kits.Parent = "ForgeStructureKits", game:GetService("ReplicatedStorage")
+	Meshes.load()
 	for _, definition in content.structures do
-		Dressing.structure(kits, definition, source.tribe.config.cellStuds)
+		local kit = Dressing.structure(kits, definition, source.tribe.config.cellStuds)
+		-- B3: the mesh row replaces the primitive Parts when its package loaded.
+		Meshes.structureKit(kit, definition, source.tribe.config.cellStuds)
 	end
 	if not studioSingle then
 		local configured = table.clone(source)

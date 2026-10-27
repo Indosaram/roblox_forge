@@ -129,7 +129,12 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			return kind == self.ClassName
 				or (
 					kind == "BasePart"
-					and (self.ClassName == "Part" or self.ClassName == "SpawnLocation" or self.ClassName == "WedgePart")
+					and (
+						self.ClassName == "Part"
+						or self.ClassName == "SpawnLocation"
+						or self.ClassName == "WedgePart"
+						or self.ClassName == "MeshPart"
+					)
 				)
 		end
 		function value:IsDescendantOf(parent)
@@ -678,14 +683,24 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
 		["../../../../core/domain/survival/Volcano"] = require("../../../../core/domain/survival/Volcano"),
 	}, nil)
+	-- B3 mesh rows: the fake game has no InsertService, so load() yields no templates and the
+	-- primitive kits stay; specs inject templates through meshes.setTemplates.
+	local meshes = load("games/robango-island/src/server/StructureMeshes.luau", {}, nil)
 	local preview = load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
 		["./WorldDressing"] = dressing,
+		["./StructureMeshes"] = meshes,
 	}, nil)
-	local role = load("games/robango-island/src/server/RoleWorld.luau", { ["./WorldDressing"] = dressing }, nil)
+	local role = load(
+		"games/robango-island/src/server/RoleWorld.luau",
+		{ ["./WorldDressing"] = dressing, ["./StructureMeshes"] = meshes },
+		nil
+	)
 	local home = load("games/robango-island/src/server/HomeWorld.luau", { ["./WorldDressing"] = dressing }, nil)
 	local archipelago = require("../../../../games/robango-island/src/server/ArchipelagoWorld")
 	return {
 		dressing = dressing,
+		meshes = meshes,
+		newInstance = instance,
 		forge = forge,
 		game = game,
 		load = load,

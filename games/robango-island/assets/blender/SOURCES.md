@@ -48,6 +48,24 @@ Downloaded but not used in a shipped asset: `namaqualand_boulder_04`, `shrub_02`
 - Poly Haven licence page: https://polyhaven.com/license ("CC0").
 - ambientCG (CC0) was searched for reptile/scale materials. It has no scale or reptile set, so it is not used.
 
+## B3 buildings (`build_building_atlas.py`, `gen_buildings.py`)
+
+Downloads go to `build/b3/src/<id>/{diff,nor,rough}.jpg` (1k tier, `https://api.polyhaven.com/files/<id>`). Each is graded into one tile of the shared 1024 building atlas. All geometry is authored in `gen_buildings.py`.
+
+| Source asset | Atlas tile | URL | Licence |
+|---|---|---|---|
+| bark_brown_02 | log | https://polyhaven.com/a/bark_brown_02 | CC0 1.0 |
+| old_planks_02 | plank | https://polyhaven.com/a/old_planks_02 | CC0 1.0 |
+| reed_roof_04 | thatch | https://polyhaven.com/a/reed_roof_04 | CC0 1.0 |
+| rough_linen | canvas, hide, teal cloth | https://polyhaven.com/a/rough_linen | CC0 1.0 |
+| hessian_230 | rope | https://polyhaven.com/a/hessian_230 | CC0 1.0 |
+| stacked_stone_wall | stone, char, sea-glass | https://polyhaven.com/a/stacked_stone_wall | CC0 1.0 |
+| brick_wall_02 | brick | https://polyhaven.com/a/brick_wall_02 | CC0 1.0 |
+| clay_plaster | clay | https://polyhaven.com/a/clay_plaster | CC0 1.0 |
+| roof_slates_02 | slate | https://polyhaven.com/a/roof_slates_02 | CC0 1.0 |
+| clay_roof_tiles_02 | tile | https://polyhaven.com/a/clay_roof_tiles_02 | CC0 1.0 |
+| rusty_metal_02 | metal | https://polyhaven.com/a/rusty_metal_02 | CC0 1.0 |
+
 ## Original (procedural) content
 
 These were authored in code and carry no third-party input:

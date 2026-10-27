@@ -64,6 +64,8 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 			shape
 		)
 		value.ground = { x = p.x, y = p.y, z = p.z }
+		-- Kit identity: RoleWorld swaps a whole kit for its B3 mesh row (StructureMeshes.DRESSING).
+		value.kit, value.kitKind = id, kind
 		return value
 	end
 	local wood, sand = { 112, 78, 48 }, { 217, 189, 131 }

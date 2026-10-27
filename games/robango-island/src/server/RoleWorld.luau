@@ -7,6 +7,7 @@ local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
 local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
+local Meshes = require("./StructureMeshes")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
 local BiomeKits = require(Forge.games["robango-island"].src.shared.BiomeKits)
@@ -42,6 +43,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	assert(layout, "UNKNOWN_ROLE_LAYOUT:" .. layoutId)
+	-- B3 mesh rows (InsertService); an empty table keeps the primitive kits.
+	local meshRows = Meshes.load()
 	local root = Instance.new("Folder")
 	root.Name = "ForgeRoleWorld"
 	-- Clients re-derive the ProcProps decor plan from these before it replicates.
@@ -719,6 +722,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			world.tieredStations[anchor.id] = target
 			world.anchorParts[anchor.id] = target
 			stationPanel(target, station, tonumber(string.match(anchor.id, "%.t(%d+)$")) or 1)
+			local tier = tonumber(string.match(anchor.id, "%.t(%d+)$")) or 1
+			Meshes.dress(
+				target,
+				Meshes.STRUCTURES[if tier > 1 then station .. "-t" .. tier else station],
+				CFrame.new(target.Position - Vector3.new(0, target.Size.Y / 2, 0))
+			)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })
 				-- Two torch posts flank each camp fire; SkyDriver strengthens their light at night.
@@ -758,6 +767,18 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
 				target:SetAttribute("ForgeHarborFacility", facility.anchor)
 				world.anchorParts[facility.anchor] = target
+				-- Town-kit set piece beside the interaction part (rift, rescue bell, notice board).
+				local set = Meshes.FACILITIES[facility.anchor]
+				if set then
+					local hit = workspace:Raycast(
+						Vector3.new(facility.position.x + set.dx, 512, facility.position.z),
+						Vector3.new(0, -1024, 0),
+						groundParams
+					)
+					if hit then
+						Meshes.place(set.row, CFrame.new(hit.Position), root, facility.anchor .. ".set")
+					end
+				end
 				local prompt = Instance.new("ProximityPrompt")
 				WorldText.bind(prompt, if facility.kind == "market" then "market" else "interact", facility.anchor)
 				prompt.MaxActivationDistance, prompt.Parent = 8, target
@@ -1231,7 +1252,48 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		-- Land must exist before ray queries; home kits retain their authored offsets.
+		local meshedKits = {}
 		for _, definition in parts do
+			local row = if definition.kit then Meshes.DRESSING[definition.kitKind] else nil
+			if row and meshRows[row] then
+				-- The kit's primitive parts stay as hidden handles; one mesh row renders the kit.
+				local value = homeParts[definition.id]
+				value.Transparency, value.CanCollide, value.CanQuery = 1, false, false
+				if not meshedKits[definition.kit] then
+					meshedKits[definition.kit] = true
+					local visual = folder:FindFirstChild(definition.kit .. ".mesh") :: Model?
+					local ground = definition.ground
+					local hit =
+						workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
+					if hit and not visual then
+						Meshes.place(row, CFrame.new(hit.Position), folder, definition.kit .. ".mesh")
+					elseif hit and visual then
+						(visual :: Model):PivotTo(CFrame.new(hit.Position))
+					end
+				end
+			elseif definition.kind and Meshes.STRUCTURES[definition.kind] and not definition.decorative then
+				-- A built home structure (HomeState record) keeps its station part; the mesh dresses it.
+				local value = homeParts[definition.id]
+				local hit = workspace:Raycast(
+					Vector3.new(definition.position.x, 512, definition.position.z),
+					Vector3.new(0, -1024, 0),
+					groundParams
+				)
+				if hit then
+					Meshes.dress(value, Meshes.STRUCTURES[definition.kind], CFrame.new(hit.Position))
+				end
+			end
+		end
+		for _, child in folder:GetChildren() do
+			local kit = string.match(child.Name, "^(.+)%.mesh$")
+			if kit and not meshedKits[kit] then
+				child:Destroy()
+			end
+		end
+		for _, definition in parts do
+			if definition.kit and meshedKits[definition.kit] then
+				continue
+			end
 			if definition.kind == "farm-plot" then
 				local position = interactionPosition(definition.position, definition.size.y)
 				homeParts[definition.id].Position = Vector3.new(position.x, position.y, position.z)
@@ -1257,6 +1319,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		return definition.effect ~= nil
 	end)
 	for _, definition in dressing.parts do
+		-- A kit with a B3 mesh row renders as one mesh model at its ground point instead of Parts.
+		local row = if definition.kit then Meshes.DRESSING[definition.kitKind] else nil
+		if row and meshRows[row] then
+			if not root:FindFirstChild(definition.kit) then
+				local ground = definition.ground
+				local hit =
+					workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
+				if hit then
+					local model = Meshes.place(row, CFrame.new(hit.Position), root, definition.kit)
+					if model then
+						model:SetAttribute("ForgeDecorRank", decorRanks[definition.id])
+					end
+				end
+			end
+			continue
+		end
 		local placed = grounded(definition)
 		if placed then
 			local value
@@ -1288,6 +1366,24 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end)
 	end
 	local destroy = world.destroy
+	for _, piece in Meshes.SET_PIECES do
+		if piece.layout == layoutId then
+			local hit = workspace:Raycast(Vector3.new(piece.x, 512, piece.z), Vector3.new(0, -1024, 0), groundParams)
+			local y = if hit then hit.Position.Y elseif piece.row == "town.boat" then 0 else nil
+			if y and (piece.row == "town.boat" or piece.row == "town.dock") then
+				-- The sea fill tops out at y=-4; the pier and moored cutter float on it, not the seabed.
+				y = math.max(y, -3.6)
+			end
+			if y then
+				Meshes.place(
+					piece.row,
+					CFrame.new(piece.x, y, piece.z) * CFrame.Angles(0, math.rad(piece.yaw), 0),
+					root,
+					"set." .. piece.row
+				)
+			end
+		end
+	end
 	-- Terrain writes settle on the engine step before bind spawns and grounds wildlife.
 	game:GetService("RunService").Heartbeat:Wait()
 	if #arrivalGrazers > 0 then

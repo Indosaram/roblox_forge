@@ -183,6 +183,9 @@
       "WorldDressing": {
         "$path": "src/server/WorldDressing.luau"
       },
+      "StructureMeshes": {
+        "$path": "src/server/StructureMeshes.luau"
+      },
       "HomeWorld": {
         "$path": "src/server/HomeWorld.luau"
       },
@@ -233,6 +236,9 @@
         },
         "CharacterTracks": {
           "$path": "src/client/CharacterTracks.luau"
+        },
+        "Cutaway": {
+          "$path": "src/client/Cutaway.luau"
         },
         "CreaturePose": {
           "$path": "src/client/CreaturePose.luau"
