@@ -13,6 +13,13 @@ M.BONES = table.freeze({
 	theropod = table.freeze({ "Root", "Spine", "Chest", "Neck1", "Neck2", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "Tail5", "ThighL", "ShinL", "FootL", "ToeL", "ArmL", "ThighR", "ShinR", "FootR", "ToeR", "ArmR" }),
 	ceratopsian = table.freeze({ "Root", "Spine", "Chest", "Neck", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR" }),
 	sauropod = table.freeze({ "Root", "Spine", "Chest", "Neck1", "Neck2", "Neck3", "Neck4", "Neck5", "Neck6", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "Tail5", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR" }),
+	armored = table.freeze({ "Root", "Spine", "Chest", "Neck", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR" }),
+	hadrosaur = table.freeze({ "Root", "Spine", "Chest", "Neck1", "Neck2", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "Tail5", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR" }),
+	mammal = table.freeze({ "Root", "Spine", "Chest", "Neck1", "Neck2", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "HandL", "EarL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR", "HandR", "EarR" }),
+	elephant = table.freeze({ "Root", "Spine", "Chest", "Neck", "Head", "Jaw", "Trunk1", "Trunk2", "Trunk3", "Trunk4", "Tail1", "Tail2", "ThighL", "ShinL", "FootL", "UpperArmL", "ForearmL", "EarL", "ThighR", "ShinR", "FootR", "UpperArmR", "ForearmR", "EarR" }),
+	crocodilian = table.freeze({ "Root", "Spine", "Chest", "Neck", "Head", "Jaw", "Tail1", "Tail2", "Tail3", "Tail4", "ThighL", "ShinL", "UpperArmL", "ForearmL", "ThighR", "ShinR", "UpperArmR", "ForearmR" }),
+	turtle = table.freeze({ "Root", "Spine", "Neck", "Head", "Jaw", "Tail", "ThighL", "UpperArmL", "ForearmL", "ThighR", "UpperArmR", "ForearmR" }),
+	bird = table.freeze({ "Root", "Neck1", "Neck2", "Head", "Jaw", "Tail", "ThighL", "ShinL", "FootL", "WingL", "ThighR", "ShinR", "FootR", "WingR" }),
 })
 
 -- Every state the client clock (CreaturePose.sample) can produce, mapped to its clip.
@@ -35,25 +42,54 @@ local CLIPS: { [string]: string } = {
 	stun = "rest",
 	sleep = "rest",
 	rest = "rest",
+	-- B2b: water travel (crocodilian, turtle) when the server publishes it; others treat it as walk.
+	swim = "swim",
 }
 
 function M.clip(state: string): string
 	return CLIPS[state] or "idle"
 end
 
-local function necks(plan: string): { string }
-	if plan == "sauropod" then
-		return { "Neck1", "Neck2", "Neck3", "Neck4", "Neck5", "Neck6" }
-	elseif plan == "ceratopsian" then
-		return { "Neck" }
+local function prefixed(plan: string, prefix: string): { string }
+	local out = {}
+	for _, name in M.BONES[plan] do
+		if string.sub(name, 1, #prefix) == prefix then
+			table.insert(out, name)
+		end
 	end
-	return { "Neck1", "Neck2" }
+	return out
+end
+
+local function necks(plan: string): { string }
+	return prefixed(plan, "Neck")
 end
 
 local function tails(plan: string): { string }
-	return if plan == "ceratopsian"
-		then { "Tail1", "Tail2", "Tail3", "Tail4" }
-		else { "Tail1", "Tail2", "Tail3", "Tail4", "Tail5" }
+	return prefixed(plan, "Tail")
+end
+
+-- Plans whose forelimbs are legs (diagonal gait); the bird and theropod are bipeds.
+local QUADRUPED: { [string]: boolean } = {
+	ceratopsian = true,
+	sauropod = true,
+	armored = true,
+	hadrosaur = true,
+	mammal = true,
+	elephant = true,
+	crocodilian = true,
+	turtle = true,
+}
+M.QUADRUPED = QUADRUPED
+-- Water travel clip (asset catalog: crocodilian and turtle).
+local SWIMMERS: { [string]: boolean } = { crocodilian = true, turtle = true }
+M.SWIMMERS = SWIMMERS
+-- Heavy, slow-stepping plans share the sauropod's stride rate.
+local SLOW: { [string]: boolean } = { elephant = true, armored = true, turtle = true }
+
+local function each(plan: string, prefix: string, fn: (string, number) -> ())
+	for i, name in prefixed(plan, prefix) do
+		fn(name, i)
+	end
 end
 
 --- Samples one frame. `elapsed` is seconds in the current state, `speed` studs/s, `style` the
@@ -61,13 +97,26 @@ end
 function M.sample(plan: string, state: string, elapsed: number, speed: number, style: string?, period: number?): Frame
 	local bones = assert(M.BONES[plan], "UNKNOWN_BODY_PLAN")
 	local clip = M.clip(state)
+	if clip == "swim" and not SWIMMERS[plan] then
+		clip = "walk"
+	end
 	local frame: Frame = {}
 	for _, name in bones do
 		frame[name] = { x = 0, y = 0, z = 0 }
 	end
+	-- Shared clips address limb bones a plan may lack (the turtle has no shins, the bird no
+	-- chest): those writes land in a scratch entry that is never returned.
+	local scratch: Entry = { x = 0, y = 0, z = 0 }
+	setmetatable(frame :: any, {
+		__index = function()
+			return scratch
+		end,
+	})
 	local t = elapsed
-	local quad = plan ~= "theropod"
+	local quad = QUADRUPED[plan] == true
 	local heavy = plan == "sauropod"
+	local slow = SLOW[plan] == true
+	local bird = plan == "bird"
 	-- Idle breathing and a slow tail sway under every living clip.
 	local breath = math.sin(t * (if heavy then 1.1 else 1.8))
 	if clip ~= "death" then
@@ -78,15 +127,25 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 		for _, name in necks(plan) do
 			frame[name].x += math.sin(t * 0.7) * 0.02
 		end
+		-- Trunk sway and ear fanning (elephant), ear twitch (mammal).
+		each(plan, "Trunk", function(name, i)
+			frame[name].x += math.sin(t * 1.3 - i * 0.5) * 0.06
+			frame[name].z += math.sin(t * 0.9 - i * 0.4) * 0.05
+		end)
+		each(plan, "Ear", function(name)
+			frame[name].z += math.sin(t * (if plan == "elephant" then 1.6 else 0.5)) * 0.12
+		end)
 	end
 	if clip == "walk" or clip == "run" then
 		local running = clip == "run"
-		local rate = if running then 9 else (if heavy then 2.6 else 5)
+		local rate = if running then 9 else (if heavy or slow then 2.6 else 5)
 		local phase = t * rate * math.clamp((speed + 4) / (if running then 22 else 12), 0.6, 1.4)
-		local swing = if running then 0.75 else (if heavy then 0.28 else 0.42)
+		local swing = if running then 0.75 else (if heavy or slow then 0.28 else 0.42)
+		-- Running mammals gallop: both hind legs strike together, the forelegs half a cycle later.
+		local gallop = running and plan == "mammal"
 		for _, side in { "L", "R" } do
 			local s = if side == "L" then 1 else -1
-			local p = math.sin(phase) * s
+			local p = if gallop then math.sin(phase + (if side == "L" then 0 else 0.35)) else math.sin(phase) * s
 			frame["Thigh" .. side].x += swing * p
 			frame["Shin" .. side].x += swing * 0.9 * math.max(0, math.sin(phase + 1.3) * s)
 			frame["Foot" .. side].x -= swing * 0.6 * p
@@ -97,9 +156,19 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 			else
 				frame["Toe" .. side].x -= swing * 0.3 * p
 				frame["Arm" .. side].x += 0.1 * p
+				-- Bird: wings held out for balance on the walk, flapped on the run.
+				frame["Wing" .. side].y += s * (if running then 0.35 + math.sin(phase * 2) * 0.5 else 0.1)
 			end
 		end
+		if gallop then
+			frame.Spine.x += math.sin(phase) * 0.12
+		end
 		frame.Root.lift = math.abs(math.sin(phase)) * (if running then 0.06 else 0.025)
+		if bird then
+			-- Hop-waddle: two small hops per stride, the body rocking side to side.
+			frame.Root.lift = math.abs(math.sin(phase * (if running then 2 else 1))) * (if running then 0.16 else 0.06)
+			frame.Root.y += math.sin(phase) * 0.08
+		end
 		frame.Root.z += math.sin(phase) * 0.03
 		if running then
 			frame.Root.x += 0.1
@@ -127,6 +196,27 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 			frame.ThighL.x -= dip * 0.06
 			frame.ThighR.x -= dip * 0.06
 		end
+	elseif clip == "swim" then
+		-- Legs tucked (crocodilian) or paddling (turtle); the tail sculls; the body rides low.
+		local phase = t * 3
+		local croc = plan == "crocodilian"
+		for i, name in tails(plan) do
+			frame[name].z += math.sin(phase - i * 0.7) * (if croc then 0.35 else 0.15)
+		end
+		frame.Spine.z += math.sin(phase) * (if croc then 0.12 else 0.04)
+		for _, side in { "L", "R" } do
+			local s = if side == "L" then 1 else -1
+			if croc then
+				frame["Thigh" .. side].x -= 0.7
+				frame["UpperArm" .. side].x += 0.7
+			else
+				frame["UpperArm" .. side].x += math.sin(phase + (if s > 0 then 0 else math.pi)) * 0.7
+				frame["Forearm" .. side].x += math.max(0, math.sin(phase)) * 0.3
+				frame["Thigh" .. side].x -= math.sin(phase + (if s > 0 then math.pi else 0)) * 0.4
+			end
+		end
+		frame.Root.lift = -0.35
+		frame.Head.x -= 0.08
 	elseif clip == "windup" then
 		-- Warning: head raised, jaw open, weight shifted back.
 		local k = math.clamp(t / 0.3, 0, 1)
@@ -153,6 +243,49 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 			for _, name in necks(plan) do
 				frame[name].x += pulse * 0.05
 			end
+		elseif kind == "tail" then
+			-- Armored tail swing: the body pivots one way, the tail (plates, club) sweeps across.
+			frame.Root.y += pulse * 0.35
+			for i, name in tails(plan) do
+				frame[name].z += pulse * (0.3 + 0.1 * i)
+			end
+			frame.Head.z -= pulse * 0.2
+		elseif kind == "tusk" then
+			-- Head-down sweep with the tusks, trunk curled up out of the way.
+			frame.Root.forward = pulse * 0.2
+			for _, name in necks(plan) do
+				frame[name].x += pulse * 0.25
+			end
+			frame.Head.z += pulse * 0.5
+			frame.Head.x += pulse * 0.2
+			each(plan, "Trunk", function(name)
+				frame[name].x -= pulse * 0.35
+			end)
+			each(plan, "Ear", function(name)
+				frame[name].z += pulse * 0.4
+			end)
+		elseif kind == "lunge" then
+			-- Crocodilian strike: a low burst forward, jaws wide, then a twisting shake.
+			frame.Root.forward = pulse * 0.45
+			frame.Head.x -= pulse * 0.2
+			frame.Jaw.x += pulse * 0.9
+			frame.Root.y += math.sin(t * 20) * pulse * 0.15
+		elseif kind == "withdraw" then
+			-- Turtle snap: the head pulls back toward the shell and snaps, the body hunkers down.
+			for _, name in necks(plan) do
+				frame[name].x += pulse * 0.6
+			end
+			frame.Head.x -= pulse * 0.4
+			frame.Jaw.x += pulse * 0.45
+			frame.Root.lift = -pulse * 0.15
+		elseif kind == "flutter" then
+			-- Bird: wings beat fast while it jumps forward and pecks.
+			frame.Root.forward = pulse * 0.2
+			frame.Root.lift = pulse * 0.25
+			frame.WingL.y += (0.6 + math.sin(t * 30) * 0.6) * pulse
+			frame.WingR.y -= (0.6 + math.sin(t * 30) * 0.6) * pulse
+			frame.Head.x += pulse * 0.3
+			frame.Jaw.x += pulse * 0.5
 		elseif kind == "kick" then
 			frame.ThighL.x -= pulse * 1.0
 			frame.ShinL.x += pulse * 0.4
@@ -184,6 +317,8 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 		end
 		frame.Head.z += flinch * 0.25
 		frame.Jaw.x += flinch * 0.3
+		frame.WingL.y += flinch * 0.6
+		frame.WingR.y -= flinch * 0.6
 	elseif clip == "rest" then
 		frame.Root.lift = -0.22
 		for _, side in { "L", "R" } do
@@ -221,6 +356,7 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 			frame[name].x -= ease * 0.06
 		end
 	end
+	setmetatable(frame :: any, nil)
 	return frame
 end
 

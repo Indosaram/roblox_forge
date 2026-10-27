@@ -24,6 +24,22 @@ local function layout(id: string): any
 end
 
 return {
+	["every content species has a skinned mesh template id (B2a + B2b)"] = function()
+		local Assets: any = require("./src/shared/Assets")
+		local MESH_SPECIES: { string } = Engine.new().role.MESH_SPECIES
+		local mapped: { [string]: boolean } = {}
+		for _, species in MESH_SPECIES do
+			mapped[species] = true
+		end
+		local count = 0
+		for _, detail in (Content :: any).wildlifeDetails do
+			count += 1
+			assert(mapped[detail.id], detail.id .. " is mapped to a mesh")
+			local id = Assets["creature-" .. string.lower(detail.id)]
+			assert(type(id) == "string" and string.match(id, "^rbxassetid://%d+$"), detail.id .. " has an asset id")
+		end
+		assert(count == 24 and #MESH_SPECIES == 24, "all 24 species")
+	end,
 	["grazer spawns become seeded herds of 3-5 that reach the wildlife world"] = function()
 		for _, layoutId in { "rw.onboarding", "rw.explore20", "rw.a1.s2" } do
 			local config = build(layoutId, 79)

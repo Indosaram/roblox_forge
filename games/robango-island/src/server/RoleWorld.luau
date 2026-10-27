@@ -27,7 +27,8 @@ local materials: any = Enum.Material
 local shapes: any = Enum.PartType
 local M = {}
 
--- B2a skinned templates (manifest creature-<species>); a species without one keeps the part rig.
+-- B2a/B2b skinned templates (manifest creature-<lowercased species>), all 24 content species; a
+-- species whose template fails to load keeps the part rig.
 M.MESH_SPECIES = table.freeze({
 	"compsognathus",
 	"oviraptor",
@@ -40,6 +41,19 @@ M.MESH_SPECIES = table.freeze({
 	"protoceratops",
 	"triceratops",
 	"brachiosaurus",
+	"stegosaurus",
+	"ankylosaurus",
+	"parasaurolophus",
+	"smilodon",
+	"tropicalSmilodon",
+	"direWolf",
+	"boar",
+	"deer",
+	"mammoth",
+	"elephant",
+	"crocodile",
+	"turtle",
+	"dodo",
 })
 local meshesStarted = false
 function M.startMeshes(load: (number) -> Instance, storage: Instance, ids: { [string]: string })

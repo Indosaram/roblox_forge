@@ -44,6 +44,12 @@ return {
 		assert(#BonePose.BONES.theropod == 22, "theropod 22 bones")
 		assert(#BonePose.BONES.ceratopsian == 20, "ceratopsian 20 bones")
 		assert(#BonePose.BONES.sauropod == 26, "sauropod 26 bones")
+		-- B2b plans (asset catalog section 5).
+		local want: { [string]: number } =
+			{ armored = 20, hadrosaur = 22, mammal = 24, elephant = 24, crocodilian = 18, turtle = 12, bird = 14 }
+		for plan, count in want do
+			assert(#PLANS[plan] == count, plan .. " " .. count .. " bones")
+		end
 	end,
 	["each state samples a distinct, deterministic pose on every plan bone"] = function()
 		for plan, bones in PLANS do
@@ -86,8 +92,11 @@ return {
 		for plan in PLANS do
 			local walk = BonePose.sample(plan, "walk", 0.3, 8)
 			assert(walk.ThighL.x * walk.ThighR.x < 0, plan .. " legs alternate")
-			if plan ~= "theropod" then
+			if BonePose.QUADRUPED[plan] then
 				assert(walk.UpperArmL.x * walk.ThighL.x < 0, plan .. " diagonal gait")
+			end
+			for name in walk do
+				assert(table.find(PLANS[plan], name), plan .. " samples only its own bones: " .. name)
 			end
 			local idle = BonePose.sample(plan, "idle", 0.25, 0)
 			local attack = BonePose.sample(plan, "attack", 0.25, 0, "bite")
@@ -102,6 +111,41 @@ return {
 		local stomp = BonePose.sample("sauropod", "attack", 0.25, 0, "stomp")
 		assert(stomp.Root.x < -0.25 and stomp.UpperArmL.x < -0.5, "sauropod rears for its stomp")
 		assert(BonePose.clip("strike") == "attack" and BonePose.clip("unknown") == "idle", "clip map")
+	end,
+	["B2b gaits: swimmers scull, the bird hops and flaps, mammals gallop"] = function()
+		for plan in BonePose.SWIMMERS do
+			local swim = BonePose.sample(plan, "swim", 0.4, 6)
+			local walk = BonePose.sample(plan, "walk", 0.4, 6)
+			assert((swim.Root.lift or 0) < -0.2, plan .. " rides low in the water")
+			assert(math.abs(swim.Tail1 and swim.Tail1.z or swim.Tail.z) > 0.05, plan .. " tail sculls")
+			assert(swim.ThighL.x ~= walk.ThighL.x, plan .. " swim is its own clip")
+		end
+		-- A land plan given "swim" walks instead of failing.
+		local landed = BonePose.sample("mammal", "swim", 0.4, 6)
+		local walked = BonePose.sample("mammal", "walk", 0.4, 6)
+		assert(landed.ThighL.x == walked.ThighL.x, "non-swimmers walk")
+		local hop = BonePose.sample("bird", "run", 0.13, 10)
+		assert((hop.Root.lift or 0) > 0.1, "bird hops on the run")
+		local flapA = BonePose.sample("bird", "run", 0.1, 10)
+		local flapB = BonePose.sample("bird", "run", 0.25, 10)
+		assert(flapA.WingL.y ~= flapB.WingL.y and flapA.WingL.y * flapA.WingR.y < 0, "wings flap symmetrically")
+		local flutter = BonePose.sample("bird", "attack", 0.25, 0, "flutter")
+		assert(math.abs(flutter.WingL.y) > 0.1 and (flutter.Root.lift or 0) > 0.1, "flutter attack")
+		local gallop = BonePose.sample("mammal", "run", 0.2, 20)
+		assert(gallop.ThighL.x * gallop.ThighR.x > 0, "gallop: hind legs strike together")
+		assert(gallop.Spine.x ~= 0, "gallop flexes the spine")
+	end,
+	["B2b attack styles move the parts that strike"] = function()
+		local tail = BonePose.sample("armored", "attack", 0.25, 0, "tail")
+		assert(tail.Tail4.z > 0.5 and math.abs(tail.Root.y) > 0.2, "armored tail sweep")
+		local tusk = BonePose.sample("elephant", "attack", 0.25, 0, "tusk")
+		assert(tusk.Head.z > 0.3 and tusk.Trunk1.x < -0.2, "tusk sweep curls the trunk")
+		local lunge = BonePose.sample("crocodilian", "attack", 0.25, 0, "lunge")
+		assert(lunge.Jaw.x > 0.6 and (lunge.Root.forward or 0) > 0.3, "crocodilian lunge")
+		local withdraw = BonePose.sample("turtle", "attack", 0.25, 0, "withdraw")
+		assert(withdraw.Neck.x > 0.4 and withdraw.Jaw.x > 0.3, "turtle snap")
+		local idle = BonePose.sample("elephant", "idle", 1.0, 0)
+		assert(idle.Trunk2.x ~= 0 and idle.EarL.z ~= 0, "elephant trunk and ears sway at idle")
 	end,
 	["without the mesh option every pack keeps the part rig"] = function()
 		local rig = loadRig()

@@ -230,6 +230,279 @@ assets:
         ownership: first-party
       author: "agent:omo"
       created: 2026-10-27
+  - key: creature-ankylosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 96008662831509
+    moderation: Approved
+    provenance:
+      digest: sha256:2dcfba28d49ad18bd17a99691f6f43238d1cabc86969a8129a77529b8629786d
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#ankylosaurus"
+        inputVersion: sha256:2dcfba28d49ad18bd17a99691f6f43238d1cabc86969a8129a77529b8629786d
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-boar
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 115490399031354
+    moderation: Approved
+    provenance:
+      digest: sha256:7c9940b7bb0021a0a5631797adb23af6680068e8ae7ebbcdefd76ef28046a41a
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#boar"
+        inputVersion: sha256:7c9940b7bb0021a0a5631797adb23af6680068e8ae7ebbcdefd76ef28046a41a
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-crocodile
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 138070251689140
+    moderation: Approved
+    provenance:
+      digest: sha256:99dde666dfe29c4ed4dede5da00f32f52afaa32c3ed11052ccbcbf06053d2596
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#crocodile"
+        inputVersion: sha256:99dde666dfe29c4ed4dede5da00f32f52afaa32c3ed11052ccbcbf06053d2596
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-deer
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 91771876099985
+    moderation: Approved
+    provenance:
+      digest: sha256:bbbd5c508fab229d2ca2372348c71ff3821e68948a138c7f98a7dc5330e86d71
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#deer"
+        inputVersion: sha256:bbbd5c508fab229d2ca2372348c71ff3821e68948a138c7f98a7dc5330e86d71
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-direwolf
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 75120241248179
+    moderation: Approved
+    provenance:
+      digest: sha256:4b9caed81d30ecc685e353dd19bcff320a14804157e9e38e5a673a87f2f8d87f
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#direWolf"
+        inputVersion: sha256:4b9caed81d30ecc685e353dd19bcff320a14804157e9e38e5a673a87f2f8d87f
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-dodo
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 77967877377084
+    moderation: Approved
+    provenance:
+      digest: sha256:445163ea7c3b76bcf428369a6efb83b759b727a9d1119d2c08ec698e3c966620
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#dodo"
+        inputVersion: sha256:445163ea7c3b76bcf428369a6efb83b759b727a9d1119d2c08ec698e3c966620
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-elephant
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 130342510032925
+    moderation: Approved
+    provenance:
+      digest: sha256:eacbc53d3b32fa8e89d08812bff81a5f8427a55338cf0b8d9c5eab461b22a64a
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#elephant"
+        inputVersion: sha256:eacbc53d3b32fa8e89d08812bff81a5f8427a55338cf0b8d9c5eab461b22a64a
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-mammoth
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 120983799130132
+    moderation: Approved
+    provenance:
+      digest: sha256:1589a3de1e440c3d43e6373140c7a1ca86844f5683e9132e48e7ed5effd459c2
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#mammoth"
+        inputVersion: sha256:1589a3de1e440c3d43e6373140c7a1ca86844f5683e9132e48e7ed5effd459c2
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-parasaurolophus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 106514193110454
+    moderation: Approved
+    provenance:
+      digest: sha256:1db0a6773c0310fe0a34e5285eef673050494624d4f582bcd0c17e18353b31e8
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#parasaurolophus"
+        inputVersion: sha256:1db0a6773c0310fe0a34e5285eef673050494624d4f582bcd0c17e18353b31e8
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-smilodon
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 136557014224077
+    moderation: Approved
+    provenance:
+      digest: sha256:da981db96add6604704a1d5d3e908aeaeef1ba641814dff48712d92f7caa8ae0
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#smilodon"
+        inputVersion: sha256:da981db96add6604704a1d5d3e908aeaeef1ba641814dff48712d92f7caa8ae0
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-stegosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 71115011842619
+    moderation: Approved
+    provenance:
+      digest: sha256:ec041f2e503adf0c7bd777fa6be8a5d1547512962c7d1686c939eaeb8b97c79c
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#stegosaurus"
+        inputVersion: sha256:ec041f2e503adf0c7bd777fa6be8a5d1547512962c7d1686c939eaeb8b97c79c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-tropicalsmilodon
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 108358640319396
+    moderation: Approved
+    provenance:
+      digest: sha256:1f648bc2970d905fcfa0ced339a83625d6bf4ad9c687285254781f75ff847987
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#tropicalSmilodon"
+        inputVersion: sha256:1f648bc2970d905fcfa0ced339a83625d6bf4ad9c687285254781f75ff847987
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
+  - key: creature-turtle
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2b body plans, skinned FBX)"
+    assetId: 79493261551292
+    moderation: Approved
+    provenance:
+      digest: sha256:170b3c78acf31683f279fcee7cbf81b0c0d3e24a6c085173d65c5e7cdf78c18c
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#turtle"
+        inputVersion: sha256:170b3c78acf31683f279fcee7cbf81b0c0d3e24a6c085173d65c5e7cdf78c18c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo/hephaestus"
+      created: 2026-10-27
   - key: audio-instrument-bass
     kind: sfx
     tool: forge-procgen
