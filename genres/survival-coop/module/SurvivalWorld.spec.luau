@@ -649,6 +649,167 @@ return {
 		api.destroy()
 		world:Destroy()
 	end,
+	["opt-in down hold keeps a dead actor down until decided and wakes it at the chosen point"] = function()
+		local module, services, world, _, _, spawn, actor, callbacks, humanoid, advance = fixture()
+		local api = module.new({
+			content = { structures = {} },
+			worldRevision = "map-v1",
+			spawn = spawn,
+			carriedContainer = "bag",
+			reachStuds = 8,
+			baseWalkSpeed = 16,
+			respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		})
+		local decision: any = nil
+		local settled = 0
+		api.downHold = {
+			holdSeconds = 600,
+			decide = function(id)
+				assert(id == "1", "held actor id")
+				return decision
+			end,
+			settle = function(id)
+				assert(id == "1", "settled actor id")
+				settled += 1
+			end,
+		}
+		local state: any = { vitals = { healthMilli = 100000 } }
+		local requests: { any } = {}
+		local pivots: { any } = {}
+		actor.DisplayName = "Mira"
+		actor.LoadCharacterAsync = function()
+			local replacement = roblox.Instance.new("Model")
+			replacement.Parent = world
+			local body = roblox.Instance.new("Part")
+			body.Name, body.Parent = "HumanoidRootPart", replacement
+			body.Position = roblox.Vector3.new(0, 0, 0)
+			local replacementHumanoid = roblox.Instance.new("Humanoid")
+			replacementHumanoid.Parent = replacement
+			replacementHumanoid.Health = 100
+			replacementHumanoid.MaxHealth = 100
+			healthSignals[replacementHumanoid] = {
+				Connect = function(self, callback)
+					self.callback = callback
+					return {
+						Disconnect = function()
+							self.callback = nil
+						end,
+					}
+				end,
+			}
+			actor.Character = replacement
+			table.insert(pivots, replacement)
+		end
+		api.bind({
+			members = function()
+				return { "1" }
+			end,
+			snapshot = function()
+				return { ["survival-coop"] = state }
+			end,
+			commandEpoch = function()
+				return 7
+			end,
+			personalTransfer = function()
+				return {
+					profile = function()
+						return {
+							data = {
+								envelope = {
+									genres = {
+										["survival-coop"] = {
+											data = {
+												death = { locations = { ["death:1"] = { x = 12, y = 5, z = -3 } } },
+											},
+										},
+									},
+								},
+							},
+						}
+					end,
+				}
+			end,
+			commandServer = function(_, request)
+				table.insert(requests, request)
+				if request.action == "survival-coop:vitals-damage" then
+					state.vitals.healthMilli = 0
+					state.deathBundles = { lastSequence = 1, bundles = { ["death:1"] = { expiresMillis = 1 } } }
+				else
+					assert(request.action == "survival-coop:respawn", "only the respawn follows")
+					state.vitals.healthMilli = request.args[1]
+				end
+				return { ok = true, stateVersion = #requests }
+			end,
+		})
+		assert(services.Players.RespawnTime == 600, "engine auto-respawn pushed past the hold")
+		callbacks.heartbeat()
+		humanoid.Health = 0
+		callbacks.heartbeat()
+		assert(#requests == 1 and state.vitals.healthMilli == 0, "death committed")
+		for _ = 1, 5 do
+			advance(module.RETRY_INTERVAL_SECONDS)
+			callbacks.heartbeat()
+		end
+		assert(#requests == 1 and #pivots == 0 and settled == 0, "undecided actor stays down: no respawn queued")
+		local drops = world:FindFirstChild("ForgeWorldDrops")
+		local sack = drops and drops:FindFirstChild("LostBelongings")
+		assert(sack and sack:GetAttribute("ForgeDropOwner") == "Mira", "lost belongings marker names its owner")
+		assert(
+			math.abs(sack.Position.X - 12) < 0.01 and math.abs(sack.Position.Z + 3) < 0.01,
+			"marker at the death spot"
+		)
+		decision = { at = { x = 40, y = 2, z = 9 } }
+		callbacks.heartbeat()
+		callbacks.heartbeat()
+		assert(#requests == 2 and requests[2].action == "survival-coop:respawn", "decided actor respawns durably")
+		assert(#pivots == 1 and settled == 1, "character reloaded once and the hold settled")
+		local woke = pivots[1]:FindFirstChild("HumanoidRootPart").CFrame.Position
+		assert(
+			math.abs(woke.X - 40) < 0.01 and math.abs(woke.Z - 9) < 0.01,
+			"woke at the decided point " .. tostring(woke)
+		)
+		state.deathBundles = { lastSequence = 1, bundles = {} }
+		advance(2)
+		callbacks.heartbeat()
+		assert(#drops:GetChildren() == 0, "marker removed when the bundle is gone")
+		api.destroy()
+		assert(world:FindFirstChild("ForgeWorldDrops") == nil, "drop folder destroyed")
+		world:Destroy()
+	end,
+	["without a down hold no drop markers are projected"] = function()
+		local module, _, world, _, _, spawn, _, callbacks = fixture()
+		local api = module.new({
+			content = { structures = {} },
+			worldRevision = "map-v1",
+			spawn = spawn,
+			carriedContainer = "bag",
+			reachStuds = 8,
+			baseWalkSpeed = 16,
+			respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		})
+		local state: any = {
+			vitals = { healthMilli = 100000 },
+			deathBundles = { lastSequence = 1, bundles = { ["death:1"] = { expiresMillis = 1 } } },
+		}
+		api.bind({
+			members = function()
+				return { "1" }
+			end,
+			snapshot = function()
+				return { ["survival-coop"] = state }
+			end,
+			commandEpoch = function()
+				return 7
+			end,
+			commandServer = function()
+				return { ok = true, stateVersion = 1 }
+			end,
+		})
+		callbacks.heartbeat()
+		assert(world:FindFirstChild("ForgeWorldDrops") == nil, "legacy packs unchanged")
+		api.destroy()
+		world:Destroy()
+	end,
 	["deferred health signals do not echo authored health as damage"] = function()
 		local module, _, world, _, _, spawn, _, callbacks, humanoid = fixture()
 		local api = module.new({

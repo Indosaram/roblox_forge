@@ -19,6 +19,16 @@ local Settlement = require("../../../core/domain/settlement/Settlement")
 local CharacterRules = require("./CharacterRules")
 local M = {}
 export type GatherAuthority = (Session.Session, GatheringRuntime.Request, Inventory.State) -> boolean
+-- Opt-in down hold (C6 death and rescue), assigned by the host as `world.downHold` before bind:
+-- while durable health is 0 the actor stays down until `decide` returns a way back
+-- ({ at = where to wake, nil = the spawn }); nil keeps holding. `settle` runs once the durable
+-- respawn landed. `holdSeconds` raises Players.RespawnTime so the engine never reloads a held
+-- character on its own. With a hold, live death bundles also get labelled ground markers.
+export type DownHold = {
+	decide: (id: string) -> { at: { x: number, y: number, z: number }? }?,
+	settle: (id: string) -> (),
+	holdSeconds: number,
+}
 export type Config = {
 	content: Content.Document,
 	worldRevision: string,
@@ -229,6 +239,7 @@ function M.new(config: Config)
 	local api = {
 		services = services,
 		isFriend = nil :: ((string, string) -> boolean)?,
+		downHold = nil :: DownHold?,
 		structureKits = nil :: Folder?,
 		nearPart = nearPart,
 	}
@@ -868,17 +879,103 @@ function M.new(config: Config)
 			end
 		end
 	end
-	local function loadCharacter(actor: Player): boolean
+	-- Where a held actor wakes (downHold.decide); absent means the spawn.
+	local wakeAt: { [string]: Vector3 } = {}
+	local function loadCharacter(actor: Player, at: Vector3?): boolean
 		actor.RespawnLocation = config.spawn
 		actor:LoadCharacterAsync()
 		if actor.Character then
-			actor.Character:PivotTo(config.spawn.CFrame + Vector3.new(0, 4, 0))
+			actor.Character:PivotTo(
+				if at then CFrame.new(at + Vector3.new(0, 4, 0)) else config.spawn.CFrame + Vector3.new(0, 4, 0)
+			)
 		end
 		return true
+	end
+	-- Lost-belongings markers (downHold packs only): one anchored, non-colliding sack per live
+	-- death bundle at its saved location, tagged for the HUD world labels with the owner's name.
+	local dropFolder: Folder? = nil
+	local dropParts: { [string]: BasePart } = {}
+	local dropsAt = -math.huge
+	local function projectDrops(active: Session.Session, members: { string }, frame: { [string]: any })
+		if not api.downHold or now() - dropsAt < 1 then
+			return
+		end
+		dropsAt = now()
+		local wanted: { [string]: { at: Vector3, owner: string } } = {}
+		for _, id in members do
+			local whole = frame[id] or active.snapshot(id)
+			local state = whole and whole["survival-coop"]
+			local bundles = state and state.deathBundles and state.deathBundles.bundles
+			local personal = if bundles and next(bundles) then active.personalTransfer(id) else nil
+			local data = if personal then personal.profile().data.envelope.genres["survival-coop"].data else nil
+			local locations = if data and data.death then data.death.locations else nil
+			local actor = player(id)
+			for deathId in bundles or {} do
+				local p = if locations then locations[deathId] else nil
+				if p then
+					wanted[id .. "/" .. deathId] = {
+						at = Vector3.new(p.x, p.y, p.z),
+						owner = if actor then actor.DisplayName else id,
+					}
+				end
+			end
+		end
+		for key, part in dropParts do
+			if not wanted[key] then
+				part:Destroy()
+				dropParts[key] = nil
+			end
+		end
+		for key, entry in wanted do
+			if not dropParts[key] then
+				if not dropFolder then
+					local folder = Instance.new("Folder")
+					folder.Name, folder.Parent = "ForgeWorldDrops", world
+					dropFolder = folder
+				end
+				local sack = Instance.new("Part")
+				sack.Name, sack.Anchored, sack.CanCollide, sack.CanQuery = "LostBelongings", true, false, false
+				sack.Size, sack.Material = Vector3.new(1.6, 1.2, 1.6), Enum.Material.Fabric
+				sack.Color, sack.Position = Color3.fromRGB(138, 117, 96), entry.at - Vector3.new(0, 2.4, 0)
+				sack:SetAttribute("ForgeDropOwner", entry.owner)
+				sack.Parent = dropFolder
+				tags:AddTag(sack, "ForgeWorldDrop")
+				dropParts[key] = sack
+			end
+		end
+	end
+	--- Nearest registered station of one of `kinds` to the actor (camp wake point), or nil.
+	function api.nearestStation(id: string, wanted: { string }): Vector3?
+		local from = root(id)
+		local best: Vector3? = nil
+		local gap = math.huge
+		for _, part in stations do
+			local kind = part:GetAttribute("ForgeStationKind")
+			if type(kind) == "string" and table.find(wanted, kind) and part:IsDescendantOf(world) then
+				local d = if from then (part.Position - from.Position).Magnitude else 0
+				if d < gap then
+					best, gap = part.Position + Vector3.new(4, 0, 0), d
+				end
+			end
+		end
+		return best
+	end
+	--- Live root position of a member (rescue reach), or nil.
+	function api.rootPosition(id: string): Vector3?
+		local part = root(id)
+		return if part then part.Position else nil
+	end
+	--- The member's survival vitals from the bound session, or nil.
+	function api.vitals(id: string): any
+		local state = snapshot(id)
+		return if state then state.vitals else nil
 	end
 	function api.bind(active: Session.Session)
 		assert(session == nil, "world already bound")
 		session = active
+		if api.downHold then
+			players.RespawnTime = api.downHold.holdSeconds
+		end
 		if config.wildlife then
 			local policy = config.wildlife
 			local event = Instance.new("BindableEvent")
@@ -969,13 +1066,22 @@ function M.new(config: Config)
 						end
 						observeHealth(id, humanoid)
 						if state.vitals and state.vitals.healthMilli == 0 and #(pending[id] or {}) == 0 then
-							-- Retained under an unavailable epoch: a silent drop here leaves durable
-							-- health at zero with nothing queued to reconcile it.
-							enqueue(id, "respawn", {
-								config.respawnValues.healthMilli,
-								config.respawnValues.hungerMilli,
-								config.respawnValues.fatigueMilli,
-							}, nil, true)
+							-- A held actor stays down until its way back is decided (downHold).
+							local hold = api.downHold
+							local wake = if hold then hold.decide(id) else { at = nil }
+							if wake then
+								local at = wake.at
+								if at then
+									wakeAt[id] = Vector3.new(at.x, at.y, at.z)
+								end
+								-- Retained under an unavailable epoch: a silent drop here leaves durable
+								-- health at zero with nothing queued to reconcile it.
+								enqueue(id, "respawn", {
+									config.respawnValues.healthMilli,
+									config.respawnValues.hungerMilli,
+									config.respawnValues.fatigueMilli,
+								}, nil, true)
+							end
 						end
 						exposeHazards(id, state)
 						local part = root(id)
@@ -1028,7 +1134,12 @@ function M.new(config: Config)
 							end
 							if result.ok and request.action == "survival-coop:respawn" and actor then
 								busy[id] = true
-								local loaded, err = pcall(loadCharacter, actor)
+								local at = wakeAt[id]
+								wakeAt[id] = nil
+								if api.downHold then
+									api.downHold.settle(id)
+								end
+								local loaded, err = pcall(loadCharacter, actor, at)
 								busy[id] = nil
 								if not loaded then
 									warn(err)
@@ -1062,6 +1173,7 @@ function M.new(config: Config)
 					end
 				end
 				syncMounts(active, members, frame)
+				projectDrops(active, members, frame)
 			end)
 		)
 	end
@@ -1087,11 +1199,21 @@ function M.new(config: Config)
 			},
 		})
 		if result.ok then
+			if api.downHold then
+				wakeAt[id] = nil
+				api.downHold.settle(id)
+			end
 			loadCharacter(actor)
 		end
 		return result
 	end
 	function api.destroy()
+		if dropFolder then
+			dropFolder:Destroy()
+			dropFolder = nil
+		end
+		table.clear(dropParts)
+		table.clear(wakeAt)
 		for id in mounts do
 			detachMount(id)
 		end

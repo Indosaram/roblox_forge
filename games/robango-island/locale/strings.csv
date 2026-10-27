@@ -2903,3 +2903,21 @@ opening.prompt.beacon,Mirror beacon,opening beat 7 beacon label,Mirror beacon,�
 opening.prompt.boat,Gannet,opening beat 7 boat label,Gannet,가넷호
 world.population,"%s · %d here",world prompt,"%s · %d here","%s · 지금 %d명"
 exp_route_population,%d here now,expedition lane,%d here now,지금 %d명
+rsc.title,You're down,down screen title,You're down,쓰러졌다
+rsc.rift,Return through the rift,down card,Return through the rift,균열로 돌아가기
+rsc.rift_line,Wake at the nearest rift; some belongings stay here,down card consequence,Wake at the nearest rift; some belongings stay here,가까운 균열에서 깨어남. 가진 짐 일부를 이곳에 남김
+rsc.camp,Wake at camp,down card,Wake at camp,캠프에서 깨어나기
+rsc.camp_line,Wake at your camp or plot; gear loses durability,down card consequence,Wake at your camp or plot; gear loses durability,내 캠프·구획에서 깨어남. 장비 내구도 감소
+rsc.rescue,Send up a flare,down card,Send up a flare,구조 신호 올리기
+rsc.rescue_line,Wait up to 90 s for someone nearby to help you up,down card consequence,Wait up to 90 s for someone nearby to help you up,주변 사람이 일으켜 줄 때까지 기다림(최대 90초)
+rsc.getup,Get up,down card in safe zones,Get up,일어나기
+rsc.getup_line,You are safe here; nothing is lost,down card consequence in safe zones,You are safe here; nothing is lost,안전한 곳이라 잃는 것이 없음
+rsc.waiting,Flare up: %d s left,down screen flare countdown,Flare up: %d s left,구조 신호: %d초 남음
+rsc.flare_chat,"%s sent up a flare at (%d, %d)",rescue chat line,"%s sent up a flare at (%d, %d)","%s님이 구조 신호를 올렸습니다 (%d, %d)"
+rsc.flare_marker,%s needs help (%d s),rescue world marker,%s needs help (%d s),%s 구조 필요 (%d초)
+rsc.help,Help up,rescue button,Help up,일으켜 주기
+rsc.help_far,Move closer to help,rescue button when far,Move closer to help,가까이 가서 도와주세요
+rsc.failed,That did not work. Try again,rescue generic refusal,That did not work. Try again,잘 되지 않았어요. 다시 시도하세요
+rsc.too_far,Too far away to help,rescue refusal distance,Too far away to help,너무 멀어서 도울 수 없어요
+rsc.expired,That flare has gone out,rescue refusal expired,That flare has gone out,구조 신호가 꺼졌어요
+rsc.lost_owner,Lost belongings: %s,dropped bundle world label,Lost belongings: %s,잃어버린 짐: %s

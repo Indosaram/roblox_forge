@@ -5,7 +5,8 @@
 local fs = require("@lune/fs")
 
 local MODULE = "genres/survival-coop/module/"
-local PANELS = { "DeathZonePanel", "ShopPanel", "TamingPanel", "ContractsPanel", "CampPanel", "MarketPanel" }
+local PANELS =
+	{ "DeathZonePanel", "ShopPanel", "TamingPanel", "ContractsPanel", "CampPanel", "MarketPanel", "DownPanel" }
 
 local function durableActions(): { [string]: boolean }
 	local chunk = assert(loadstring(fs.readFile("games/robango-island/src/shared/GenreDurable.luau")))

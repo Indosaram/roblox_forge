@@ -243,6 +243,8 @@ M.factories = {
 	require("./BrawlPanel").factory,
 	require("./ExpeditionPanels").factory,
 	require("./OperationPanel").factory,
+	-- Renders only while survivalExtensions.rescue is published (opt-in RescueExtension).
+	require("./DownPanel").factory,
 } :: { Factory }
 
 export type Started = {

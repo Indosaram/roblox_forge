@@ -476,7 +476,13 @@ function M.collect(world: any, tags: any): { { any } }
 		table.insert(out, { part, "station", part:GetAttribute("ForgeStationKind") })
 	end
 	for _, item in tags:GetTagged(M.DROP_TAG) do
-		table.insert(out, { item, "drop", item:GetAttribute("ForgeItemId") or "drop" })
+		-- A death-bundle marker names its owner ("owner:<name>"); other drops keep their item key.
+		local owner = item:GetAttribute("ForgeDropOwner")
+		table.insert(out, {
+			item,
+			"drop",
+			if type(owner) == "string" then "owner:" .. owner else item:GetAttribute("ForgeItemId") or "drop",
+		})
 	end
 	for _, item in tags:GetTagged(M.PET_TAG) do
 		table.insert(out, { item, "pet", item:GetAttribute("ForgeSpecies") })

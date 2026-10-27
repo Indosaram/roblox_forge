@@ -489,6 +489,8 @@ for _, actions in
 		require("./LateEquipmentExtension").actions(),
 		require("./CampExtension").actions(),
 		require("./ClanExtension").browseActions(),
+		-- C6 down-and-rescue (opt-in RescueExtension); appended last like the rows above.
+		require("./RescueExtension").actions(),
 	}
 do
 	for _, action in actions do

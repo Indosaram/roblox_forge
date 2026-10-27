@@ -187,7 +187,8 @@ local hud = SurvivalHUD.start({
 			elseif kind == "wildlife" or kind == "pet" then
 				return WildlifeNames.name(locale, key)
 			elseif kind == "drop" then
-				return require(Forge.genres["survival-coop"].module.SurvivalHUDLocale).text(locale, "shell.lost")
+				return require(Forge.genres["survival-coop"].module.DownPanel).dropLabel(locale, key)
+					or require(Forge.genres["survival-coop"].module.SurvivalHUDLocale).text(locale, "shell.lost")
 			elseif kind == "dock" then
 				return WorldText.population(locale, key, populationCounts())
 			end

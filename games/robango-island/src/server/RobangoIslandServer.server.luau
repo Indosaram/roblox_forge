@@ -240,6 +240,29 @@ visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
 	end,
 })
 world.runtimeServices = runtimeServices
+-- C6 death and rescue (opt-in genre RescueExtension): trusted facts for the down panel. Town
+-- (harbor) and home are safe roles with one "Get up" card; camp wakes at the nearest camp fire.
+world.rescue = {
+	position = function(actor: string)
+		local at = world.rootPosition(actor)
+		return if at then { x = at.X, y = at.Y, z = at.Z } else nil
+	end,
+	health = function(actor: string): number?
+		local vitals = world.vitals(actor)
+		return if vitals then vitals.healthMilli else nil
+	end,
+	safe = function(): boolean
+		return worldRole == "home" or worldRole == "harbor"
+	end,
+	camp = function(actor: string)
+		local at = world.nearestStation(actor, { "campfire", "fireplace" })
+		return if at then { x = at.X, y = at.Y, z = at.Z } else nil
+	end,
+	name = function(actor: string): string
+		local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
+		return if player then player.DisplayName else actor
+	end,
+}
 -- Survivor avatars (A6): the preset model the archipelago extension saves through.
 visitWorld.survivor = require(Shared.SurvivorAvatar)
 world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibraryStore).new({

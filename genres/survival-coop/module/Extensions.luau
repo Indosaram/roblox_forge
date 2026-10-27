@@ -49,6 +49,8 @@ local factories: { Factory } = {
 	require("./OperationExtension").factory,
 	require("./StanceExtension").factory,
 	require("./GuideEvents").factory,
+	-- Opt-in (C6): active only when the host world exposes a `rescue` port.
+	require("./RescueExtension").factory,
 }
 
 return { factories = factories }
