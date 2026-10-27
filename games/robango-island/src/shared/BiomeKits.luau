@@ -11,6 +11,15 @@ local Rng = load(
 		then runtime.game:GetService("ReplicatedStorage"):WaitForChild("Forge").core.domain.random.Rng
 		else "../../../../core/domain/random/Rng"
 )
+-- B1b kit data (swamp, desert, tundra, volcano): rows are converted below; this module stays the
+-- one loader for every kit.
+local B1b = load(
+	if runtime.game
+		then runtime.game
+			:GetService("ReplicatedStorage")
+			:WaitForChild("Forge").games["robango-island"].src.shared.BiomeKitsB1b
+		else "./BiomeKitsB1b"
+)
 
 -- Default-zoom landscape screen on the reference phone (catalog section 0): ~100 x 220 studs.
 M.SCREEN_AREA = 100 * 220
@@ -119,8 +128,29 @@ M.kits = {
 	},
 } :: { [string]: { Row } }
 
+-- B1b rows -> B1a rows: perScreen is the midpoint of B1b's {min, max} density, masks follow the
+-- B1a convention (grass in bands, shrubs on band edges), and scale jitter is +-10% for trees and
+-- +-20% otherwise. B1b packages name each MeshPart `model` (dots/dashes as underscores), so the
+-- loader aliases that name to the row key.
+M.modelKey = {} :: { [string]: string }
+for kit, data in B1b.kits do
+	M.packages[kit] = data.package
+	local rows = {}
+	for _, entry in data.rows do
+		local tree = entry.family == "tree"
+		local mask = if entry.family == "grass" then "band" elseif entry.family == "shrub" then "edge" else nil
+		local perScreen = (entry.density[1] + entry.density[2]) / 2
+		table.insert(
+			rows,
+			row(entry.key, entry.family, perScreen, if tree then 0.9 else 0.8, if tree then 1.1 else 1.2, mask)
+		)
+		M.modelKey[entry.model] = entry.key
+	end
+	M.kits[kit] = rows
+end
+
 -- Catalog section 2 kit map. Beach coves (sand-edged land columns) use the beach kit on every
--- role that loads it. B1b owns swamp/desert/snow/volcano; those roles get no B1a kit inland.
+-- role that loads it. Swamp/desert/snow/volcano roles use the B1b kit of their first biome.
 function M.kitsFor(layout: any): { string }
 	local id = layout.id
 	if id == "rw.onboarding" then
@@ -137,6 +167,8 @@ function M.kitsFor(layout: any): { string }
 		return { "jungle", "beach" }
 	elseif first == "grassland" or first == "forest" or first == "beach" then
 		return { "grassland", "beach" }
+	elseif B1b.biomeKit[first] then
+		return { B1b.biomeKit[first], "beach" }
 	end
 	return { "beach" }
 end
@@ -147,7 +179,7 @@ export type Ground = {
 	slope: (x: number, z: number) -> number,
 	beach: (x: number, z: number) -> boolean,
 }
-function M.ground(columns: { any }): Ground
+function M.ground(columns: { any }, sandInland: boolean?): Ground
 	local cell = if columns[1] then columns[1].cell else 32
 	local byKey: { [string]: any } = {}
 	for _, column in columns do
@@ -184,7 +216,7 @@ function M.ground(columns: { any }): Ground
 	end
 	function ground.beach(x: number, z: number): boolean
 		local column = at(x, z)
-		return column ~= nil and (column.beach == true or column.material == "Sand")
+		return column ~= nil and (column.beach == true or (not sandInland and column.material == "Sand"))
 	end
 	return ground
 end
@@ -260,7 +292,9 @@ end
 
 --- Deterministic scatter for one role: same layout + columns + seed -> same placements.
 function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Placement }
-	local ground = M.ground(columns)
+	local kits = M.kitsFor(layout)
+	-- Desert islands are Sand throughout: only the terrain's beach flag marks their rim.
+	local ground = M.ground(columns, kits[1] == "desert")
 	local result: { Placement } = {}
 	if #columns == 0 then
 		return result
@@ -276,7 +310,6 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 	end
 	local stream = Rng.new(seed):fork("biome-kits:" .. layout.id)
 	local bands = lattice(stream:fork("bands"), 16)
-	local kits = M.kitsFor(layout)
 	for kitIndex, kit in kits do
 		-- Beach is a rim kit unless it is the role's only kit (harbor), where it dresses all land.
 		local beachKit = kit == "beach" and #kits > 1
@@ -352,7 +385,7 @@ local templates: { [string]: any } = {}
 local loading: { [string]: boolean } = {}
 
 -- Every kit this module can place; the server preloads all of them at start.
-M.allKits = { "beach", "jungle", "grassland", "savanna", "lake" }
+M.allKits = { "beach", "jungle", "grassland", "savanna", "lake", "swamp", "desert", "tundra", "volcano" }
 
 --- Server: loads each needed package once (InsertService, owned by the universe creator) and
 --- returns key -> template. A failed load leaves that kit out; the world still builds.
@@ -378,7 +411,7 @@ function M.load(kits: { string }, assets: { [string]: string }): { [string]: any
 				templates["@" .. kit] = model
 				for _, child in model:GetDescendants() do
 					if child:IsA("BasePart") then
-						templates[child.Name] = child
+						templates[M.modelKey[child.Name] or child.Name] = child
 					end
 				end
 			else

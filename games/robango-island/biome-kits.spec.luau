@@ -1,6 +1,7 @@
 --!strict
 -- B1a scatter gate: the biome-kit plan is deterministic for a recorded seed, meets the G9
--- density (>= 20 mesh vegetation instances per default-zoom screen) on every B1a role, and never
+-- density (>= 20 mesh vegetation instances per default-zoom screen) on every B1a role and on one
+-- role per B1b kit (swamp, desert, snow/tundra, volcano), and never
 -- places anything in water, on a cliff face, on a path/spawn clearing or on a gather node.
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
@@ -59,6 +60,31 @@ cases["roles map to the catalog kits"] = function()
 	assert(Kits.kitsFor(layouts["rw.explore20"])[1] == "savanna", "explore20 uses the savanna kit")
 	assert(Kits.kitsFor(layouts["rw.a1.s2"])[1] == "lake", "rw.a1.s2 uses the lake kit")
 	assert(Kits.kitsFor(layouts["rw.harbor"])[1] == "beach", "harbor uses the beach kit")
+	assert(Kits.kitsFor(layouts["rw.a2.s2"])[1] == "swamp", "swamp roles use the swamp kit")
+	assert(Kits.kitsFor(layouts["rw.a1.s4"])[1] == "desert", "desert roles use the desert kit")
+	assert(Kits.kitsFor(layouts["rw.a4.s1"])[1] == "tundra", "snow roles use the tundra kit")
+	assert(Kits.kitsFor(layouts["rw.a5.s1"])[1] == "volcano", "volcano roles use the volcano kit")
+	assert(Kits.kitsFor(layouts["rw.frontier40"])[1] == "tundra", "a mixed role uses its first biome's kit")
+	for _, kit in Kits.allKits do
+		assert(Kits.packages[kit] and Kits.kits[kit], kit .. " has a package and rows")
+	end
+	-- B1b MeshParts are named with underscores; the loader maps them back to the row key.
+	assert(Kits.modelKey["veg_swamp_dead_bare"] == "veg.swamp.dead-bare", "B1b model names alias row keys")
+end
+
+-- Each B1b kit is deterministic on a role of its own biome.
+cases["B1b kits: same seed gives the same scatter"] = function()
+	for _, id in { "rw.a2.s2", "rw.a1.s4", "rw.a4.s1", "rw.a5.s1" } do
+		local a = plan(id, SEED)
+		local b = plan(id, SEED)
+		assert(#a == #b and #a > 0, id .. ": plan size differs or is empty")
+		for i = 1, #a do
+			assert(
+				a[i].key == b[i].key and a[i].x == b[i].x and a[i].z == b[i].z,
+				id .. ": placement " .. i .. " differs"
+			)
+		end
+	end
 end
 
 local VEG = { tree = true, shrub = true, fern = true, grass = true }
@@ -72,6 +98,11 @@ local ROLES = {
 	"rw.explore20",
 	"rw.harbor",
 	"rw.onboarding",
+	-- B1b kits: swamp, desert, snow (tundra kit), volcano.
+	"rw.a2.s2",
+	"rw.a1.s4",
+	"rw.a4.s1",
+	"rw.a5.s1",
 }
 cases["no water, cliff or path placements and >= 20 vegetation per screen"] = function()
 	for _, id in ROLES do
@@ -177,6 +208,12 @@ cases["LOD distances and low-profile grass lever"] = function()
 		"low profile hides grass past 120"
 	)
 	assert(not Kits.visible("fern", 300, false) and Kits.visible("tree", 500, true), "fern 256 / tree 512")
+	-- Every family a kit row uses (B1a and B1b) has LOD distances.
+	for kit, rows in Kits.kits do
+		for _, row in rows do
+			assert(Kits.visible(row.family, 0, true), kit .. ": " .. row.key .. " has no LOD family")
+		end
+	end
 end
 
 cases["NEGATIVE: water, cliff faces and paths are rejected"] = function()

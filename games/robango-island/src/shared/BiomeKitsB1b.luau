@@ -23,7 +23,7 @@ export type Row = {
 
 export type Kit = {
 	package: string,
-	terrain: { [string]: Color3 },
+	terrain: { [string]: { number } },
 	rows: { Row },
 }
 
@@ -51,15 +51,21 @@ end
 
 local M = {}
 
+-- Engine-free colour triple {r, g, b} (0-255) so Lune specs load this module; the Roblox side
+-- builds Color3.fromRGB(table.unpack(c)) when it applies MaterialColors.
+local function rgb(r: number, g: number, b: number): { number }
+	return { r, g, b }
+end
+
 -- Terrain material colours per biome kit (MaterialColors overrides), tuned against R11.
 M.kits = {
 	swamp = {
 		package = "robango-kit-swamp",
 		terrain = {
-			Mud = Color3.fromRGB(74, 61, 50),
-			Grass = Color3.fromRGB(78, 80, 50),
-			LeafyGrass = Color3.fromRGB(70, 74, 44),
-			Ground = Color3.fromRGB(82, 70, 56),
+			Mud = rgb(74, 61, 50),
+			Grass = rgb(78, 80, 50),
+			LeafyGrass = rgb(70, 74, 44),
+			Ground = rgb(82, 70, 56),
 		},
 		rows = {
 			row("veg.swamp.dead-bare", "tree", 2, 4),
@@ -77,10 +83,10 @@ M.kits = {
 	desert = {
 		package = "robango-kit-desert",
 		terrain = {
-			Sand = Color3.fromRGB(178, 122, 82),
-			Sandstone = Color3.fromRGB(166, 118, 76),
-			Ground = Color3.fromRGB(160, 110, 74),
-			Grass = Color3.fromRGB(150, 124, 80),
+			Sand = rgb(178, 122, 82),
+			Sandstone = rgb(166, 118, 76),
+			Ground = rgb(160, 110, 74),
+			Grass = rgb(150, 124, 80),
 		},
 		rows = {
 			row("veg.desert.column-cactus", "tree", 3, 6),
@@ -99,11 +105,11 @@ M.kits = {
 	tundra = {
 		package = "robango-kit-tundra",
 		terrain = {
-			Snow = Color3.fromRGB(216, 221, 224),
-			Glacier = Color3.fromRGB(170, 196, 208),
-			Grass = Color3.fromRGB(150, 146, 120),
-			Ground = Color3.fromRGB(110, 104, 92),
-			Rock = Color3.fromRGB(110, 108, 102),
+			Snow = rgb(216, 221, 224),
+			Glacier = rgb(170, 196, 208),
+			Grass = rgb(150, 146, 120),
+			Ground = rgb(110, 104, 92),
+			Rock = rgb(110, 108, 102),
 		},
 		rows = {
 			row("veg.tundra.snow-pine", "tree", 2, 4),
@@ -119,11 +125,11 @@ M.kits = {
 	volcano = {
 		package = "robango-kit-volcano",
 		terrain = {
-			Basalt = Color3.fromRGB(52, 48, 46),
-			Ground = Color3.fromRGB(84, 64, 56),
-			Grass = Color3.fromRGB(91, 58, 46),
-			CrackedLava = Color3.fromRGB(150, 60, 30),
-			Slate = Color3.fromRGB(70, 66, 62),
+			Basalt = rgb(52, 48, 46),
+			Ground = rgb(84, 64, 56),
+			Grass = rgb(91, 58, 46),
+			CrackedLava = rgb(150, 60, 30),
+			Slate = rgb(70, 66, 62),
 		},
 		rows = {
 			row("veg.volcano.charred", "tree", 2, 4),
