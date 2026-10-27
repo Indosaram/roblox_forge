@@ -1,4 +1,235 @@
 assets:
+  - key: creature-allosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 140512050670146
+    moderation: Approved
+    provenance:
+      digest: sha256:dd7fbfeb8c097a153fa4fcdaaa4f2ae5b4ed4efeb45de56bd3aac07de8192aae
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#allosaurus"
+        inputVersion: sha256:dd7fbfeb8c097a153fa4fcdaaa4f2ae5b4ed4efeb45de56bd3aac07de8192aae
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-brachiosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 101663935146740
+    moderation: Approved
+    provenance:
+      digest: sha256:8739aa78b20633b8b3e2ca038cc03fa3a17afd7ecb9be1276b039eeca976f305
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#brachiosaurus"
+        inputVersion: sha256:8739aa78b20633b8b3e2ca038cc03fa3a17afd7ecb9be1276b039eeca976f305
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-compsognathus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 104069860957066
+    moderation: Approved
+    provenance:
+      digest: sha256:69881157b451a9fd49cf7a811708bc454851f63aacd55a0032bc5d8cdbea0add
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#compsognathus"
+        inputVersion: sha256:69881157b451a9fd49cf7a811708bc454851f63aacd55a0032bc5d8cdbea0add
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-dilophosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 73297759376699
+    moderation: Approved
+    provenance:
+      digest: sha256:fdc0d87834cec4945cc3083c4965778f828298413aae08e4ee80c3363ab918eb
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#dilophosaurus"
+        inputVersion: sha256:fdc0d87834cec4945cc3083c4965778f828298413aae08e4ee80c3363ab918eb
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-gallimimus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 81353890340223
+    moderation: Approved
+    provenance:
+      digest: sha256:d864bd405212e241dbd0c74a04430d0b008e5862d08323bf5bb5273cda11dc48
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#gallimimus"
+        inputVersion: sha256:d864bd405212e241dbd0c74a04430d0b008e5862d08323bf5bb5273cda11dc48
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-oviraptor
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 71606978422336
+    moderation: Approved
+    provenance:
+      digest: sha256:38c729f9c2fb351b3833198e04211be6fffc9ade63cfdb0d69fc22ab56064d0c
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#oviraptor"
+        inputVersion: sha256:38c729f9c2fb351b3833198e04211be6fffc9ade63cfdb0d69fc22ab56064d0c
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-protoceratops
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 128410258997513
+    moderation: Approved
+    provenance:
+      digest: sha256:d57d32a1d37db30c99da496e76d2993f7bb68df1368810a54158685ad2994ef9
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#protoceratops"
+        inputVersion: sha256:d57d32a1d37db30c99da496e76d2993f7bb68df1368810a54158685ad2994ef9
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-triceratops
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 80809674071629
+    moderation: Approved
+    provenance:
+      digest: sha256:3ee3366a8ae81046b276e84e476b110c03e1076509e05b69e0e6a989824411fc
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#triceratops"
+        inputVersion: sha256:3ee3366a8ae81046b276e84e476b110c03e1076509e05b69e0e6a989824411fc
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-tyrannosaurus
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 89444120853887
+    moderation: Approved
+    provenance:
+      digest: sha256:bb78144ba79ed8bc86badc952c14847605b510380059df466bceb1c268a87892
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#tyrannosaurus"
+        inputVersion: sha256:bb78144ba79ed8bc86badc952c14847605b510380059df466bceb1c268a87892
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-utahraptor
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 73604390430904
+    moderation: Approved
+    provenance:
+      digest: sha256:fbd4c5302771108b1fcd46333a3734807cb6a3aa207571d48e614f9db17fa1e5
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#utahraptor"
+        inputVersion: sha256:fbd4c5302771108b1fcd46333a3734807cb6a3aa207571d48e614f9db17fa1e5
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
+  - key: creature-velociraptor
+    kind: model
+    tool: forge-procgen
+    source: "first-party headless Blender generator (B2a body plans, skinned FBX)"
+    assetId: 94433344475538
+    moderation: Approved
+    provenance:
+      digest: sha256:51082b966a4645a9e51961bd1707c1f51e184a07fa422cf2a5c8cadc56f8cad5
+      recipe:
+        id: gen-creatures
+        version: 1
+        input: "assets/blender/gen_creatures.py#velociraptor"
+        inputVersion: sha256:51082b966a4645a9e51961bd1707c1f51e184a07fa422cf2a5c8cadc56f8cad5
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
+        ownership: first-party
+      author: "agent:omo"
+      created: 2026-10-27
   - key: audio-instrument-bass
     kind: sfx
     tool: forge-procgen

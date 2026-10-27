@@ -3,6 +3,7 @@
 -- player damage, or client-authored position/damage enter this boundary.
 local Wildlife = require("./Wildlife")
 local DinosaurMotion = require("./DinosaurMotion")
+local Herd = require("./Herd")
 local Content = require("../../../core/domain/survival/Content")
 local M = {}
 -- How far below its home a creature may drop before it is returned there (off-island fall).
@@ -30,6 +31,8 @@ export type Config = {
 	-- retain this strike identity (prefix with a server world incarnation).
 	damage: (string, string, number) -> (),
 	observePath: ((PathObservation) -> ())?,
+	-- Optional herds: followers move with the leader; a hit alarms the herd.
+	herds: { Herd.Herd }?,
 }
 type Entry = {
 	model: Model,
@@ -62,6 +65,14 @@ function M.new(config: Config)
 	local paths = game:GetService("PathfindingService")
 	local catalog = Wildlife.catalog(config.content, config.catalog)
 	local entries: { [string]: Entry } = {}
+	local herdOf: { [string]: Herd.Herd } = {}
+	local herds: { Herd.Herd } = config.herds or {}
+	for _, herd in herds do
+		herdOf[herd.leader] = herd
+		for _, member in herd.members do
+			herdOf[member] = herd
+		end
+	end
 	local count, stopped = 0, false
 	local function point(position: Vector3): Wildlife.Position
 		return { x = position.X, y = position.Y, z = position.Z }
@@ -365,6 +376,12 @@ function M.new(config: Config)
 			return
 		end
 		assert(confirmed.catalogId == entry.state.catalogId and confirmed.version >= entry.state.version, "STALE_NPC")
+		-- A confirmed hit on a herd member alarms the herd (Herd.alarm).
+		local wounded = confirmed.healthMilli < entry.state.healthMilli and confirmed.healthMilli > 0
+		local attacker = confirmed.provoker or entry.state.target or entry.state.provoker
+		if wounded and attacker and herdOf[confirmed.id] then
+			api.provoke(confirmed.id, attacker)
+		end
 		entry.state.healthMilli, entry.state.version, entry.state.killer =
 			confirmed.healthMilli, confirmed.version, confirmed.killer
 		entry.state.capturedUntil, entry.state.captureId = confirmed.capturedUntil, confirmed.captureId
@@ -394,6 +411,21 @@ function M.new(config: Config)
 			return false
 		end
 		entry.provokedBy = actorId
+		local herd = herdOf[id]
+		if herd then
+			local positions: { [string]: Wildlife.Position } = {}
+			local engaged: { [string]: boolean } = {}
+			for _, member in { herd.leader, table.unpack(herd.members) } do
+				local other = entries[member]
+				if other and other.state.healthMilli > 0 and other.root:IsDescendantOf(world) then
+					positions[member] = point(other.root.Position)
+					engaged[member] = other.provokedBy ~= nil
+				end
+			end
+			for _, join in Herd.alarm(herd, id, positions, engaged) do
+				entries[join.id].provokedBy = actorId
+			end
+		end
 		return true
 	end
 	function api.snapshot(id: string): Wildlife.State?
@@ -480,6 +512,20 @@ function M.new(config: Config)
 					observe(entry, failure, "refused", failure.status)
 				end
 				entry.recoveryPath, entry.failedPath = failure, nil
+			end
+			-- A calm follower keeps its offset from the leader.
+			local herd = herdOf[id]
+			local leader = if herd and herd.leader ~= id then entries[herd.leader] else nil
+			if
+				leader
+				and not intent.damage
+				and state.target == nil
+				and state.healthMilli > 0
+				and leader.state.healthMilli > 0
+				and leader.root:IsDescendantOf(world)
+			then
+				local goal = Herd.follow(leader.state.home, point(leader.root.Position), state.home)
+				intent.destination = if Wildlife.distance(point(entry.root.Position), goal) > 4 then goal else nil
 			end
 			if intent.destination and Wildlife.distance(point(entry.root.Position), intent.destination) > 1 then
 				move(entry, intent.destination)

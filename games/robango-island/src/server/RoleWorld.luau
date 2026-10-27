@@ -6,6 +6,7 @@ local World = require(Forge.genres["survival-coop"].module.SurvivalWorld)
 local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
 local Journal = require(Forge.core.domain.command.Journal)
 local Rng = require(Forge.core.domain.random.Rng)
+local Herd = require(Forge.genres["survival-coop"].module.Herd)
 local Dressing = require("./WorldDressing")
 local Meshes = require("./StructureMeshes")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
@@ -26,6 +27,53 @@ local materials: any = Enum.Material
 local shapes: any = Enum.PartType
 local M = {}
 
+-- B2a skinned templates (manifest creature-<species>); a species without one keeps the part rig.
+M.MESH_SPECIES = table.freeze({
+	"compsognathus",
+	"oviraptor",
+	"gallimimus",
+	"utahraptor",
+	"velociraptor",
+	"dilophosaurus",
+	"allosaurus",
+	"tyrannosaurus",
+	"protoceratops",
+	"triceratops",
+	"brachiosaurus",
+})
+local meshesStarted = false
+function M.startMeshes(load: (number) -> Instance, storage: Instance, ids: { [string]: string })
+	if meshesStarted then
+		return
+	end
+	meshesStarted = true
+	local folder = Instance.new("Folder")
+	folder.Name = "ForgeCreatureTemplates"
+	folder.Parent = storage
+	local templates: { [string]: Instance } = {}
+	for _, species in M.MESH_SPECIES do
+		local id = tonumber(string.match(ids["creature-" .. string.lower(species)] or "", "^rbxassetid://(%d+)$"))
+		if id then
+			local ok, loaded = pcall(load, id)
+			local mesh = if ok and loaded then loaded:FindFirstChildWhichIsA("MeshPart", true) else nil
+			if mesh then
+				mesh.Name, mesh.Parent = species, folder
+				templates[species] = mesh
+			else
+				warn("CREATURE_TEMPLATE_UNAVAILABLE:" .. species)
+			end
+			if ok and loaded then
+				loaded:Destroy()
+			end
+		end
+	end
+	require(Forge.genres["survival-coop"].module.DinosaurRig).configureMeshes({
+		source = function(species: string): Instance?
+			return templates[species]
+		end,
+	})
+end
+
 M.travelSerial = 0
 --- Publishes a dock travel result to the player as "<outcome>|<serial>"; the HUD
 --- tracker shows each new value for a few seconds. Also logged for Studio QA.
@@ -36,6 +84,14 @@ function M.publishTravel(player: any, outcome: string)
 end
 
 function M.build(content: any, source: any, policy: any, nowMillis: any, layoutId: string, seed: number): any
+	local hasInsert, insert = pcall(function()
+		return game:GetService("InsertService")
+	end)
+	if hasInsert and insert then
+		M.startMeshes(function(id: number): Instance
+			return insert:LoadAsset(id)
+		end, game:GetService("ServerStorage"), require(Forge.games["robango-island"].src.shared.Assets) :: any)
+	end
 	local layout: any = nil
 	for _, candidate in content.layouts do
 		if candidate.id == layoutId then
@@ -524,13 +580,26 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			})
 		end
 	end
+	-- count > 1 spawns a herd, laid out from the recorded seed.
+	local herds = {}
+	local herdStream = Rng.new(seed):fork("herd")
 	for _, authored in layout.spawns do
-		for index = 1, authored.count do
-			table.insert(spawns, {
-				id = authored.id .. "." .. tostring(index),
-				catalogId = authored.speciesId,
-				position = authored.position,
-			})
+		local stream = herdStream:fork(authored.id)
+		local members = Herd.place(authored.id, authored.position, authored.count, authored.radius, function()
+			return stream:nextNumber()
+		end)
+		for _, member in members do
+			table.insert(spawns, { id = member.id, catalogId = authored.speciesId, position = member.position })
+		end
+		if #members > 1 then
+			local followers = {}
+			for index = 2, #members do
+				table.insert(followers, members[index].id)
+			end
+			table.insert(
+				herds,
+				Herd.new(authored.id, members[1].id, followers, { alarmStuds = 24, maxJoin = 4, maxChain = 2 })
+			)
 		end
 	end
 	local arrivalGrazers = {}
@@ -578,11 +647,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			game:GetService("RunService").Heartbeat:Wait()
 			local animal = rig.new("triceratops", "ArrivalGrazer" .. index, position, root, nil, looks("triceratops"))
 			table.insert(arrivalGrazers, animal)
-			animal:ScaleTo(1.4)
+			-- ScaleTo breaks skinning.
+			if animal:GetAttribute("ForgeSkinned") ~= true then
+				animal:ScaleTo(1.4)
+			end
 			animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(60 + index * 50), 0))
 			rig.ground(animal)
 			decorate(animal, "ArrivalGrazer" .. index)
 		end
+	end
+	if string.match(layoutId, "^rw%.explore%d+$") then
+		-- Decorative arrival sauropod (G11, R03-3).
+		local rig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+		local position = Vector3.new(entry.x + 64, entry.y, entry.z - 84)
+		local animal = rig.new("brachiosaurus", "ArrivalSauropod", position, root, nil, looks("brachiosaurus"))
+		table.insert(arrivalGrazers, animal)
+		animal:PivotTo(CFrame.new(position) * CFrame.Angles(0, math.rad(115), 0))
+		decorate(animal, "ArrivalSauropod")
 	end
 	local wildlife = table.clone(policy)
 	wildlife.catalog = table.clone(policy.catalog)
@@ -618,6 +699,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	wildlife.spawns = spawns
+	wildlife.herds = herds
 	if content.missionPolicy then
 		local combat = content.missionPolicy
 		wildlife.catalog.weapons = table.clone(wildlife.catalog.weapons)
@@ -644,7 +726,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		baseWalkSpeed = 16,
 		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
 		itemNames = itemNames,
-		wildlife = { catalog = wildlife.catalog, spawns = spawns, maximum = wildlife.maximum, nowMillis = nowMillis },
+		wildlife = {
+			catalog = wildlife.catalog,
+			spawns = spawns,
+			maximum = wildlife.maximum,
+			nowMillis = nowMillis,
+			herds = herds,
+		},
 		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
 		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).
 		hazards = if string.match(layoutId, "^rw%.a%d+%.s%d+$") then { layout = layout } else nil,

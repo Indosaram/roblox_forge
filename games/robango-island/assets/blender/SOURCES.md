@@ -13,7 +13,7 @@ Every external input used by the `gen_*.py` generators in this directory is list
 | grass_medium_01 | scanned grass atlas (diff, alpha) | `gen_tallgrass_scan.py` (tufts, seed heads) | https://polyhaven.com/a/grass_medium_01 | CC0 1.0 |
 | shrub_04 | scanned shrub leaf atlas (diff, alpha, nor_gl) | `gen_berrybush.py` (single leaves stamped into cluster tiles) | https://polyhaven.com/a/shrub_04 | CC0 1.0 |
 | palm_tree_bark | scanned bark texture (diff, nor_gl) | `gen_palm_v2.py` (trunk half of the atlas) | https://polyhaven.com/a/palm_tree_bark | CC0 1.0 |
-| brown_leather | scanned leather texture (albedo, nor_gl) | `gen_theropod_v2.py` (skin micro-detail, box-projected) | https://polyhaven.com/a/brown_leather | CC0 1.0 |
+| brown_leather | scanned leather texture (albedo, nor_gl) | `gen_theropod_v2.py`, `gen_creatures.py` (skin micro-detail, box-projected) | https://polyhaven.com/a/brown_leather | CC0 1.0 |
 | calathea_orbifolia_01 | scanned broadleaf model atlas | `gen_kits.py` | https://polyhaven.com/a/calathea_orbifolia_01 | CC0 1.0 |
 | nettle_plant | scanned nettle atlas | `gen_kits.py` | https://polyhaven.com/a/nettle_plant | CC0 1.0 |
 | wild_rooibos_bush | scanned bush atlas | `gen_kits.py` | https://polyhaven.com/a/wild_rooibos_bush | CC0 1.0 |

@@ -39,6 +39,38 @@ function M.new(id: string, leader: string, members: { string }, config: Config):
 	})
 end
 
+export type Point = { x: number, y: number, z: number }
+export type Member = { id: string, position: Point }
+
+--- Spawn -> `count` members (leader `<spawn>.1` on the point) ringed inside `radius`; `unit` is
+--- a seeded [0, 1) stream.
+function M.place(spawnId: string, at: Point, count: number, radius: number, unit: () -> number): { Member }
+	assert(#spawnId > 0 and integer(count, 1, 31), "INVALID_HERD_SPAWN")
+	local ring = math.max(radius, 0)
+	local members: { Member } = {}
+	local turn = unit() * 2 * math.pi
+	for index = 1, count do
+		local position = { x = at.x, y = at.y, z = at.z }
+		if index > 1 then
+			local angle = turn + (index - 2) / (count - 1) * 2 * math.pi + (unit() - 0.5) * 0.6
+			local distance = ring * (0.55 + unit() * 0.45)
+			position.x += math.cos(angle) * distance
+			position.z += math.sin(angle) * distance
+		end
+		table.insert(members, { id = spawnId .. "." .. tostring(index), position = position })
+	end
+	return members
+end
+
+--- A follower's goal: its home offset from the leader, applied at the leader's position.
+function M.follow(leaderHome: Point, leaderNow: Point, memberHome: Point): Point
+	return {
+		x = leaderNow.x + (memberHome.x - leaderHome.x),
+		y = leaderNow.y,
+		z = leaderNow.z + (memberHome.z - leaderHome.z),
+	}
+end
+
 function M.contains(herd: Herd, id: string): boolean
 	return herd.leader == id or table.find(herd.members, id) ~= nil
 end

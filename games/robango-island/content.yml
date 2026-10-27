@@ -13974,7 +13974,7 @@ layouts:
           x: -96
           y: 6
           z: -280
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.a1.s2.protoceratops.02"
@@ -13984,7 +13984,7 @@ layouts:
           x: -96
           y: 6
           z: -296
-        count: 1
+        count: 3
         radius: 8
       -
         id: "rw.a1.s2.protoceratops.03"
@@ -13994,7 +13994,7 @@ layouts:
           x: -112
           y: 6
           z: -280
-        count: 1
+        count: 5
         radius: 8
     hazards:
       -
@@ -15162,7 +15162,7 @@ layouts:
           x: 96
           y: 8
           z: 280
-        count: 1
+        count: 5
         radius: 8
       -
         id: "rw.a1.s4.gallimimus.02"
@@ -15173,7 +15173,7 @@ layouts:
           x: 96
           y: 8
           z: 304
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.a1.s4.gallimimus.03"
@@ -15184,7 +15184,7 @@ layouts:
           x: 120
           y: 8
           z: 280
-        count: 1
+        count: 4
         radius: 8
     hazards:
       -
@@ -17843,7 +17843,7 @@ layouts:
           x: -280
           y: 10
           z: 96
-        count: 1
+        count: 5
         radius: 8
       -
         id: "rw.a3.s1.gallimimus.02"
@@ -17853,7 +17853,7 @@ layouts:
           x: -304
           y: 10
           z: 96
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.a3.s1.gallimimus.03"
@@ -17863,7 +17863,7 @@ layouts:
           x: -280
           y: 10
           z: 120
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.a3.s1.ankylosaurus.01"
@@ -24752,7 +24752,7 @@ layouts:
           x: -44
           y: 2
           z: -72
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.onboarding.parasaurolophus.01"
@@ -24782,7 +24782,7 @@ layouts:
           x: 64
           y: 2
           z: -68
-        count: 1
+        count: 3
         radius: 8
       - {id: "rw.onboarding.boar.01", speciesId: "boar", level: 20, position: {x: -60, y: 2, z: -64}, count: 1, radius: 8}
     hazards: []
@@ -27308,7 +27308,7 @@ layouts:
           x: -240
           y: 6
           z: -96
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.explore20.triceratops.02"
@@ -27318,7 +27318,7 @@ layouts:
           x: -272
           y: 6
           z: -96
-        count: 1
+        count: 3
         radius: 8
       -
         id: "rw.explore20.parasaurolophus.01"
@@ -28241,7 +28241,7 @@ layouts:
           x: -280
           y: 8
           z: 192
-        count: 1
+        count: 5
         radius: 8
       -
         id: "rw.frontier30.gallimimus.02"
@@ -28251,7 +28251,7 @@ layouts:
           x: -304
           y: 8
           z: 192
-        count: 1
+        count: 4
         radius: 8
       -
         id: "rw.frontier30.gallimimus.03"
@@ -28261,7 +28261,7 @@ layouts:
           x: -280
           y: 8
           z: 216
-        count: 1
+        count: 4
         radius: 8
     hazards: []
     refuges:

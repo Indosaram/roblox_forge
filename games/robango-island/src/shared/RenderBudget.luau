@@ -115,6 +115,11 @@ function M.poses(entries: { { key: any, distance: number, urgent: boolean } }, p
 	return chosen
 end
 
+--- Seconds between pose writes: every frame inside half the pose range, else 10 Hz.
+function M.poseInterval(distance: number, profile: Profile): number
+	return if distance <= profile.wildlifePoseStuds * 0.5 then 0 else 0.1
+end
+
 --- The runtime EditableMesh placements this profile builds, in authored order.
 function M.meshes<T>(placements: { T }, profile: Profile): { T }
 	local kept = {}

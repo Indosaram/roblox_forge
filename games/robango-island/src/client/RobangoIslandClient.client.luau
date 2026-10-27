@@ -1142,10 +1142,14 @@ if game:GetService("RunService"):IsStudio() then
 end
 
 local DinosaurRig = require(Forge.genres["survival-coop"].module.DinosaurRig)
+DinosaurRig.configureMeshes({ sample = require(Forge.genres["survival-coop"].module.BonePose).sample })
 local CreaturePose = require(script.Parent.CreaturePose)
 local function startCreatureAnimation(rigPose: (Model, string, number, number) -> ()): { destroy: () -> () }
 	local RunService = game:GetService("RunService")
-	local registry: { [Model]: { state: string, elapsed: number, offset: number?, plated: boolean } } = {}
+	local registry: {
+		[Model]: { state: string, elapsed: number, offset: number?, plated: boolean, wait: number? },
+	} =
+		{}
 	local NAMEPLATE_STUDS = 40
 	local connections: { RBXScriptConnection } = {}
 	local destroyed = false
@@ -1173,7 +1177,7 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			model
 			and model:IsA("Model")
 			and model:GetAttribute("Species") ~= nil
-			and model:FindFirstChild("Torso")
+			and (model:FindFirstChild("Torso") or model:FindFirstChild("Body"))
 			and model:FindFirstChild("HumanoidRootPart")
 		then
 			if registry[model] == nil then
@@ -1293,16 +1297,23 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				end
 				-- Beyond the profile's pose range or cap hold the articulated silhouette.
 				-- Telegraphs and death remain active.
-				if
-					posed[model]
-					or not viewCamera
-					or state == "warning"
+				local urgent = state == "warning"
 					or state == "windup"
 					or state == "attack"
 					or state == "dead"
 					or state == "stun"
-				then
-					rigPose(model, state, elapsed, speed)
+				if posed[model] or not viewCamera or urgent then
+					local interval = if urgent or not viewCamera
+						then 0
+						else RenderBudget.poseInterval(
+							(viewCamera.CFrame.Position - root.Position).Magnitude,
+							profile
+						)
+					animation.wait = (animation.wait or 0) - dt
+					if animation.wait <= 0 then
+						animation.wait = interval
+						rigPose(model, state, elapsed, speed)
+					end
 				end
 			end
 		end)

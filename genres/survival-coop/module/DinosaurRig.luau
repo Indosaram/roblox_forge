@@ -84,6 +84,35 @@ local pigments: { [string]: { number } } = {
 	dodo = { 122, 141, 151 },
 }
 
+--- Skinned-mesh option (off unless a pack sets it): `source` gives a species' skinned MeshPart
+--- template (server), `sample` is the BonePose sampler (client).
+export type BoneEntry = { x: number, y: number, z: number, lift: number?, forward: number? }
+export type MeshOptions = {
+	source: ((species: string) -> Instance?)?,
+	sample: ((string, string, number, number, string?, number?) -> { [string]: BoneEntry })?,
+}
+local meshOptions: MeshOptions = {}
+function M.configureMeshes(options: MeshOptions)
+	meshOptions = table.clone(options)
+end
+
+--- Skinned body welded to the envelope root, feet on its floor; never scaled. Generated meshes
+--- face -Z, as the rig does.
+local function skinned(model: Model, root: BasePart, template: Instance, dims: Vector3): boolean
+	local found = if template:IsA("MeshPart") then template else template:FindFirstChildWhichIsA("MeshPart", true)
+	if not found then
+		return false
+	end
+	local mesh = found:Clone()
+	mesh.Name = "Body"
+	mesh.Anchored, mesh.CanCollide, mesh.CanQuery, mesh.CanTouch, mesh.Massless = false, false, false, false, true
+	mesh.CFrame = root.CFrame * CFrame.new(0, (mesh.Size.Y - dims.Y) / 2, 0)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name, weld.Part0, weld.Part1, weld.Parent = "BodyWeld", root, mesh, root
+	mesh.Parent = model
+	return true
+end
+
 function M.new(
 	kind: string,
 	id: string,
@@ -99,9 +128,27 @@ function M.new(
 	assert(dims and dims.X > 0 and dims.Y > 0 and dims.Z > 0, "INVALID_RIG_ENVELOPE")
 	local model = Instance.new("Model")
 	model.Name = id
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 	local root = Instance.new("Part")
 	root.Name, root.Transparency, root.CanCollide = "HumanoidRootPart", 1, true
 	root.Size, root.CFrame, root.Parent = dims, CFrame.new(position), model
+	local source = meshOptions.source
+	local template = if source then source(species) else nil
+	if template and skinned(model, root, template, dims) then
+		local humanoid = Instance.new("Humanoid")
+		humanoid.RequiresNeck, humanoid.HipHeight = false, 0
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		humanoid.Parent = model
+		model:SetAttribute("Species", species)
+		model:SetAttribute("Silhouette", if visual then visual.feature else (spec :: Shape).feature)
+		model:SetAttribute("BodyPlan", if visual then visual.plan else (spec :: Shape).family)
+		model:SetAttribute("AttackStyle", if spec then spec.attack else "bite")
+		model:SetAttribute("ForgeSkinned", true)
+		model:SetAttribute("PartCount", 2)
+		model:SetAttribute("PartBudget", 48)
+		model.PrimaryPart, model.Parent = root, parent
+		return model
+	end
 	local w, h, l = dims.X, dims.Y, dims.Z
 	local family = if visual then visual.plan else (spec :: Shape).family
 	local feature = if visual then visual.feature else (spec :: Shape).feature
@@ -748,9 +795,64 @@ function M.ground(model: Model)
 	end)
 end
 
+local boneCache: { [Model]: { [string]: Bone } } = setmetatable({}, { __mode = "k" }) :: any
+local function bones(model: Model): { [string]: Bone }?
+	local cached = boneCache[model]
+	if cached then
+		return cached
+	end
+	local body = model:FindFirstChild("Body")
+	if not body then
+		return nil
+	end
+	local found: { [string]: Bone } = {}
+	for _, d in body:GetDescendants() do
+		if d:IsA("Bone") then
+			found[d.Name] = d
+		end
+	end
+	boneCache[model] = found
+	return found
+end
+
+--- Bone.Transform pose of a skinned rig; lift/forward scale with the envelope height.
+function M.poseBones(model: Model, state: string, elapsed: number, speed: number): boolean
+	local root = model.PrimaryPart
+	local plan = model:GetAttribute("BodyPlan")
+	local map = bones(model)
+	local sample = meshOptions.sample
+	if not root or not map or not sample or type(plan) ~= "string" then
+		return false
+	end
+	local style = model:GetAttribute("AttackStyle")
+	local authored = model:GetAttribute("ForgeGrazePeriod")
+	local frame = sample(
+		plan,
+		state,
+		elapsed,
+		speed,
+		if type(style) == "string" then style else nil,
+		if type(authored) == "number" and authored > 0 then authored else nil
+	)
+	local height = root.Size.Y * 0.5
+	for name, entry in frame do
+		local bone = map[name]
+		if bone then
+			-- The FBX import mirrors Blender bone roll: pitch and forward are inverted (Studio-measured).
+			bone.Transform = CFrame.new(0, (entry.lift or 0) * height, -(entry.forward or 0) * height)
+				* CFrame.Angles(-entry.x, entry.y, entry.z)
+		end
+	end
+	return true
+end
+
 function M.pose(model: Model, state: string, elapsed: number, speed: number)
 	local root = model.PrimaryPart
 	if not root then
+		return
+	end
+	if model:GetAttribute("ForgeSkinned") == true then
+		M.poseBones(model, state, elapsed, speed)
 		return
 	end
 	local stride = math.sin(elapsed * (if state == "run" then 9 else 5))

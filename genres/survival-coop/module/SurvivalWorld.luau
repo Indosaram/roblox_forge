@@ -10,6 +10,7 @@ local GatheringRuntime = require("./GatheringRuntime")
 local Fenced = require("../../../core/infra/data/FencedStore")
 local Wildlife = require("./Wildlife")
 local WildlifeWorld = require("./WildlifeWorld")
+local Herd = require("./Herd")
 local DinosaurRig = require("./DinosaurRig")
 local MountVisual = require("./MountVisual")
 local CosmeticVisual = require("./CosmeticVisual")
@@ -43,6 +44,8 @@ export type Config = {
 		spawns: { { id: string, catalogId: string, position: Wildlife.Position } },
 		nowMillis: () -> number,
 		maximum: number,
+		-- Optional herds (Herd.new) over spawn ids; absent keeps every spawn solitary.
+		herds: { Herd.Herd }?,
 	}?,
 }
 
@@ -886,6 +889,7 @@ function M.new(config: Config)
 				content = config.content,
 				catalog = policy.catalog,
 				maximum = policy.maximum,
+				herds = policy.herds,
 				observePath = function(observation)
 					event:Fire(observation)
 				end,

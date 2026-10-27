@@ -642,6 +642,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	module.DinosaurRig = load("genres/survival-coop/module/DinosaurRig.luau", {}, nil)
 	module.HarborFacilities = require("../../../../genres/survival-coop/module/HarborFacilities")
 	module.CharacterRules = require("../../../../genres/survival-coop/module/CharacterRules")
+	module.Herd = require("../../../../genres/survival-coop/module/Herd")
 	local dressing = load("games/robango-island/src/server/WorldDressing.luau", {}, nil)
 	forge.core.infra = {
 		render = {
