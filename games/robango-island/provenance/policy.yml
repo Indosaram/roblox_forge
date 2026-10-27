@@ -7,8 +7,18 @@ ngram:
 dialogueKeyPrefixes: [dialogue., speaker., npc.]
 assets:
   allowTools: [forge-procgen, trellis]
-  # recipe.id values written by forge gen procedural / gen audio
+  # recipe.id values written by forge gen procedural / gen audio, and the in-repo headless Blender
+  # generators under assets/blender/ (first-party code on CC0 inputs listed in assets/blender/SOURCES.md)
   allowRecipes:
-    forge-procgen: [gen-procedural, gen-audio]
+    forge-procgen:
+      [
+        gen-procedural,
+        gen-audio,
+        blender-gen-kits,
+        blender-gen-nodes,
+        blender-gen-kit-swamp,
+        blender-gen-kit-biomes,
+        blender-gen-nodes-b1b,
+      ]
   licensedKinds: [sfx, image]
   denyTools: [audiocraft, roblox-cube, hunyuan3d-2]

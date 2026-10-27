@@ -35,3 +35,4 @@ Thumbs.db
 *.log
 .orca-worktrees/
 /C:/
+__pycache__/
