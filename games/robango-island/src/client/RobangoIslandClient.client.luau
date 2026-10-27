@@ -13,9 +13,9 @@ local audio = require(script.Parent:WaitForChild("RobangoAudio")).start(
 script.Destroying:Connect(audio.destroy)
 
 local Client = require(Forge.core.infra.genre.Client)
-local gui = Client.start({ controls = require(Shared.GenreUI) })
+local gui = Client.start({ controls = require(Shared.GenreUI), hidden = true })
 -- The core starter panel is a developer roster/snapshot view; the HUD below replaces it.
--- Hide it at once so it never shows while the rest of the client loads.
+-- `hidden` keeps it off from creation (a kick during load showed it on the phone, p134 v22).
 gui.Enabled = false
 gui.Destroying:Connect(audio.destroy)
 

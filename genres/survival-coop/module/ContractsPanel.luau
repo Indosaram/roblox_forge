@@ -36,7 +36,11 @@ end
 M.STRINGS = STRINGS
 
 -- Objective hints that name a keyboard key have a touch variant (<hint>_touch) without it.
-local TOUCH_HINTS = { ["tutorial.gather"] = true }
+local TOUCH_HINTS = {
+	["tutorial.gather"] = true,
+	["tutorial.craft-stone-axe"] = true,
+	["tutorial.declare-settlement"] = true,
+}
 
 --- Pure view model so the layout is testable without Instances. `touch` picks the key-free hint.
 function M.model(locale: string, state: any, names: { [string]: string }?, guide: string?, touch: boolean?): any

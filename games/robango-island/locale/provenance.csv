@@ -2552,6 +2552,8 @@ ctr.faction.route-surveyors,original,agent:hephaestus/p97,2026-10-24
 ctr.faction.artisan-guilds,original,agent:hephaestus/p97,2026-10-24
 ctr.faction.island-ecology,original,agent:hephaestus/p97,2026-10-24
 ctr.tutorial.gather_touch,original,agent:hephaestus/p97,2026-10-24
+ctr.tutorial.craft-stone-axe_touch,original,agent:omo/p134,2026-10-27
+ctr.tutorial.declare-settlement_touch,original,agent:omo/p134,2026-10-27
 act.survey,original,agent:hephaestus/p97,2026-10-24
 act.rescue,original,agent:hephaestus/p97,2026-10-24
 act.transport,original,agent:hephaestus/p97,2026-10-24

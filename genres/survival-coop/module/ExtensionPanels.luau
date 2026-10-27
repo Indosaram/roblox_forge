@@ -442,6 +442,14 @@ function M.start(options: {
 		end,
 	})
 	menuToggle.Name, menuToggle.LayoutOrder = "MenuToggle", 1
+	if contextual then
+		-- A world combat card (shoot/stance) can float behind the screen-space menu button; the
+		-- outline keeps the button reading as its own control instead of merging into that card.
+		local menuOutline = Instance.new("UIStroke")
+		menuOutline.Name, menuOutline.Thickness = "MenuOutline", 2
+		menuOutline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		menuOutline.Color, menuOutline.Parent = Color3.fromRGB(240, 244, 240), menuToggle
+	end
 	local function viewport(): any
 		return dockGui.AbsoluteSize
 	end

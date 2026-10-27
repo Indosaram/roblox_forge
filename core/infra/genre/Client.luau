@@ -5,7 +5,7 @@ local HttpService = game:GetService("HttpService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Options = require("./Options")
 local CommandTransport = require("./CommandTransport")
-export type Options = { controls: { Options.Control }, guiName: string? }
+export type Options = { controls: { Options.Control }, guiName: string?, hidden: boolean? }
 local M = {}
 function M.start(options: Options): ScreenGui
 	local player = Players.LocalPlayer
@@ -13,6 +13,9 @@ function M.start(options: Options): ScreenGui
 	local state = ReplicatedStorage:WaitForChild("ForgeState") :: RemoteEvent
 	local gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn = options.guiName or "ForgeStarter", false
+	-- A pack with its own HUD keeps this developer panel off from creation, so a kick or a
+	-- slow load never shows it before the pack's own client code runs.
+	gui.Enabled = options.hidden ~= true
 	local panel = Instance.new("ScrollingFrame")
 	panel.Name, panel.Size, panel.Position = "Snapshots", UDim2.fromOffset(440, 560), UDim2.fromOffset(16, 16)
 	panel.AutomaticCanvasSize, panel.CanvasSize, panel.ScrollBarThickness = Enum.AutomaticSize.Y, UDim2.new(), 6

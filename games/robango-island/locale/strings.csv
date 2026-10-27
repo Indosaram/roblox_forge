@@ -2552,6 +2552,8 @@ ctr.faction.route-surveyors,Route Survey Society,genre text ctr,Route Survey Soc
 ctr.faction.artisan-guilds,Artisan Guild Union,genre text ctr,Artisan Guild Union,장인 길드 연합
 ctr.faction.island-ecology,Island Ecology Trust,genre text ctr,Island Ecology Trust,섬 생태 신탁
 ctr.tutorial.gather_touch,Gather a resource: walk up and tap its button,objective tracker on touch devices (no key hint),Gather a resource: walk up and tap its button,자원을 채집하세요: 다가가서 버튼을 누르세요
+ctr.tutorial.craft-stone-axe_touch,Craft an axe: Menu > Craft; the pinned recipe is first,objective tracker on touch devices (no key hint),Craft an axe: Menu > Craft; the pinned recipe is first,"도끼를 만드세요: 메뉴 > 제작, 고정된 제작법이 맨 위"
+ctr.tutorial.declare-settlement_touch,"Place your settlement: store wood in the warehouse from your bag, then open Build",objective tracker on touch devices (no key hint),"Place your settlement: store wood in the warehouse from your bag, then open Build",정착지를 세우세요: 가방에서 창고에 나무를 보관한 뒤 건설을 여세요
 act.survey,Survey,stage objective action,Survey,조사
 act.rescue,Rescue,stage objective action,Rescue,구조
 act.transport,Transport,stage objective action,Transport,운송

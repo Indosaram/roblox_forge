@@ -101,4 +101,20 @@ return {
 			assert(string.find(desktop, "%f[%w]E%f[%W]"), locale .. " keyboard hint keeps E: " .. desktop)
 		end
 	end,
+	["p134 the craft and settlement objectives name no keyboard key on a touch device"] = function()
+		for _, step in { "craft-stone-axe", "declare-settlement" } do
+			local state = { tutorial = { step = step, hint = "tutorial." .. step } }
+			for _, locale in { "en-us", "ko-kr" } do
+				local touch = ContractsPanel.model(locale, state, {}, nil, true).objective
+				assert(touch == PackText.packText(locale, "ctr.tutorial." .. step .. "_touch"), locale .. " " .. touch)
+				for _, key in { "C", "B", "I" } do
+					assert(
+						not string.find(touch, "%f[%w]" .. key .. "%f[%W]"),
+						locale .. " names " .. key .. ": " .. touch
+					)
+				end
+				assert(not string.find(touch, "키", 1, true), locale .. " says key: " .. touch)
+			end
+		end
+	end,
 }
