@@ -211,7 +211,9 @@ end
 -- static proxy; the binding budget is the device measurement on the reference
 -- phone (TTFI <= 10 s, PSS <= 900 MB, >= 30 fps median), re-measured after
 -- every wave, and that one is never relaxed.
-local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 3400000, fileBytes = 1500000 }
+-- 2026-10-28: fileBytes 1.5 -> 1.7 MB with C6 rescue + C8 full-screen panels (1.526 MB built);
+-- the place file tracks script source, which stays inside its own 3.4 MB cap.
+local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 3400000, fileBytes = 1700000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 
