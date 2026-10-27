@@ -9,6 +9,8 @@ local Rng = require(Forge.core.domain.random.Rng)
 local Dressing = require("./WorldDressing")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
+local BiomeKits = require(Forge.games["robango-island"].src.shared.BiomeKits)
+local Assets = require(Forge.games["robango-island"].src.shared.Assets)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
@@ -1269,6 +1271,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			value:SetAttribute("ForgeDecorRank", decorRanks[placed.id])
 			value:SetAttribute("ForgeEffectRank", effectRanks[placed.id])
 		end
+	end
+	-- B1a mesh biome kits: seeded scatter on the shared terrain tops; package loads run off
+	-- the build path so a slow InsertService never delays the world.
+	if #columns > 0 then
+		task.spawn(function()
+			local placements = BiomeKits.plan(layout, columns, seed, Terrain)
+			local loaded = BiomeKits.load(BiomeKits.kitsFor(layout), Assets)
+			if root.Parent == nil then
+				return
+			end
+			local kitFolder = Instance.new("Folder")
+			kitFolder.Name = "ForgeBiomeKits"
+			kitFolder:SetAttribute("ForgeKitCount", BiomeKits.place(kitFolder, placements, loaded))
+			kitFolder.Parent = root
+		end)
 	end
 	local destroy = world.destroy
 	-- Terrain writes settle on the engine step before bind spawns and grounds wildlife.

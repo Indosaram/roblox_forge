@@ -39,7 +39,7 @@ async function create(file) {
   const request = {
     assetType,
     displayName: name,
-    description: 'Robango Island A2 asset-pipeline pilot (generated in Blender).',
+    description: `Robango Island ${name} (generated in Blender from CC0 sources).`,
     creationContext: { creator: { userId: String(userId) } },
   };
   const form = new FormData();

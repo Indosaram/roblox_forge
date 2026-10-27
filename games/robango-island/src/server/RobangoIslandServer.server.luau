@@ -75,6 +75,9 @@ end
 local content = require(Shared.SurvivalContent)
 local source: any = table.clone(require(Shared.SurvivalWorldConfig))
 local wildlifePolicy = require(Shared.WildlifePolicy)
+-- B1a: load every biome-kit package once at server start; role worlds clone from the cache.
+local BiomeKits = require(Shared.BiomeKits)
+task.spawn(BiomeKits.load, BiomeKits.allKits, require(Shared.Assets))
 if RunService:IsStudio() and workspace:GetAttribute("ForgeStudioLayout") then
 	source.expedition = {
 		status = "active",

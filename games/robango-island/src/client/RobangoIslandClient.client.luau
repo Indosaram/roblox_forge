@@ -86,6 +86,7 @@ for _, object in workspace:GetDescendants() do
 end
 -- Render profile: low on SavedQualityLevel <= low.qualityLevelMax (Automatic on touch).
 local RenderBudget = require(Shared.RenderBudget)
+local BiomeKits = require(Shared.BiomeKits)
 local userSettings: any = UserSettings():GetService("UserGameSettings")
 local function renderProfile(): RenderBudget.Profile
 	local level = tonumber(string.match(tostring(userSettings.SavedQualityLevel), "(%d+)$")) or 0
@@ -1413,6 +1414,21 @@ end
 -- HUD and first gather prompt for the opening frames. High (decorDeferSeconds 0) opens at once.
 local decorGate = RenderBudget.gate()
 local function watchRoleWorld(child: Instance)
+	if child.Name == "ForgeRoleWorld" then
+		-- B1a kit LOD: distance culling plus the low-profile cap on the replicated kit folder.
+		task.spawn(function()
+			local kits = child:WaitForChild("ForgeBiomeKits", 120)
+			if kits then
+				BiomeKits.runLod(
+					kits,
+					RenderBudget.select(
+						tonumber(string.match(tostring(userSettings.SavedQualityLevel), "(%d+)$")) or 0,
+						game:GetService("UserInputService").TouchEnabled
+					) == "low"
+				)
+			end
+		end)
+	end
 	if child.Name == "ForgeRoleWorld" and not child:FindFirstChild("ForgeProcProps") then
 		decorGate.after(function()
 			if child.Parent ~= nil and not child:FindFirstChild("ForgeProcProps") then
