@@ -206,7 +206,12 @@ end
 -- 217 instances / 168 scripts / 1.26 MB script source / 0.54 MB place file; the
 -- budget leaves roughly 2x headroom. First-interaction time and device memory
 -- cannot be measured locally (see docs/games/robango-island/qa-evidence.md).
-local PERF_BUDGET = { instances = 400, scripts = 300, sourceBytes = 3000000, fileBytes = 1500000 }
+-- 2026-10-27: scripts 300 -> 340 and sourceBytes 3.0 -> 3.4 MB for the Durango
+-- experience plan (.omo/plans/robango-durango-experience.md, G21). These are a
+-- static proxy; the binding budget is the device measurement on the reference
+-- phone (TTFI <= 10 s, PSS <= 900 MB, >= 30 fps median), re-measured after
+-- every wave, and that one is never relaxed.
+local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 3400000, fileBytes = 1500000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 
