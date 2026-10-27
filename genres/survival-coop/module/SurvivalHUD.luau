@@ -1000,14 +1000,15 @@ function M.start(options: Options)
 			end
 		end
 		local hungry = Model.hungry(v)
-		status.Text = t(model.status)
-			.. (
-				if model.reason
-					then "\n" .. Locale.refusal(locale, model.reason, refusedSkill)
-					elseif model.notice then "\n" .. t(model.notice)
-					elseif hungry then "\n" .. t("hungry")
-					else ""
-			)
+		local detail = if model.reason
+			then Locale.refusal(locale, model.reason, refusedSkill)
+			elseif model.notice then t(model.notice)
+			elseif hungry then t("hungry")
+			else nil
+		-- Shell: the status slot shows only the notice itself; the idle "ready" headline above it
+		-- read as a second objective card in mid-screen on the phone (staging v26).
+		local quiet = shell ~= nil and (model.status == "ready" or model.status == "confirmed")
+		status.Text = if quiet and detail then detail else t(model.status) .. (if detail then "\n" .. detail else "")
 		if contextual then
 			status.Visible = model.status == "conflict" or model.status == "pending" or model.notice ~= nil or hungry
 		end
@@ -1574,6 +1575,10 @@ function M.start(options: Options)
 	-- top-right (ExtensionPanels), a menu (ExtensionPanels) / emote / chat row bottom-left and the tide-arc cluster of
 	-- pebble tokens bottom-right. The combat buttons above become cluster tokens.
 	local shellButtons: { [string]: TextButton } = {}
+	local nearestPromptFn: (() -> ProximityPrompt?)? = nil
+	local function labelOf(prompt: ProximityPrompt?): string
+		return if prompt and prompt.ActionText ~= "" then prompt.ActionText else t("shell.interact")
+	end
 	local shellRow: { [number]: TextButton } = {}
 	local extensions: any = {}
 	local shownPrompts: { [ProximityPrompt]: boolean } = {}
@@ -1587,11 +1592,7 @@ function M.start(options: Options)
 		for _, item in defenseButtons do
 			item.Parent = gui
 		end
-		local function interact()
-			if nearest("campfire") then
-				rest()
-				return
-			end
+		local function nearestPrompt(): ProximityPrompt?
 			local character = player.Character
 			local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
 			local best: ProximityPrompt? = nil
@@ -1609,6 +1610,15 @@ function M.start(options: Options)
 					end
 				end
 			end
+			return best
+		end
+		nearestPromptFn = nearestPrompt
+		local function interact()
+			if nearest("campfire") then
+				rest()
+				return
+			end
+			local best = nearestPrompt()
 			if best then
 				best:InputHoldBegin()
 				task.delay(best.HoldDuration, function()
@@ -1681,6 +1691,11 @@ function M.start(options: Options)
 			connections,
 			promptService.PromptShown:Connect(function(prompt: ProximityPrompt)
 				shownPrompts[prompt] = true
+				-- Shell: the interact token carries the prompt (its ActionText); Roblox's default prompt
+				-- card drew over the player at spawn (staging v26). Local-only property change.
+				if input.TouchEnabled and prompt.Style == Enum.ProximityPromptStyle.Default then
+					prompt.Style = Enum.ProximityPromptStyle.Custom
+				end
 			end)
 		)
 		table.insert(
@@ -1745,6 +1760,9 @@ function M.start(options: Options)
 					HudShell.pebble(item, entry.slot == "P" and enabled, enabled)
 					item.Text = if entry.id == "stance"
 						then Model.stanceLabel(locale, model.snapshot.contracts and model.snapshot.contracts.stance, t)
+						elseif entry.id == "interact" and nearestPromptFn and not nearest("campfire") then labelOf(
+							nearestPromptFn()
+						)
 						else t("shell." .. entry.id)
 				end
 			end

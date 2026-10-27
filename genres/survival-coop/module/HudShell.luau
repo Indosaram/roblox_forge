@@ -78,6 +78,9 @@ M.ARC_GAP = 2
 -- phone the arc hugged the edge and the 회피 token's rim ran past the rounded screen corner (v25).
 M.EDGE = 0.03
 M.VITALS_MIN_HEIGHT = 78
+-- Label 26+62, a bar track of at least 80 and the value 46 (SurvivalHUDModel.VITALS): narrower and the
+-- bars collapsed to dots on the phone (staging v26).
+M.VITALS_MIN_WIDTH = 220
 
 local function rect(x: number, y: number, width: number, height: number): Rect
 	return {
@@ -185,11 +188,18 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 	-- spec's 0.12H panel is 42 px and the rows spilled out of it over the coin chip (staging v25).
 	local vitals = tl(0.02, 0.46, 0.02, 0.14)
 	vitals.height = math.max(vitals.height, M.VITALS_MIN_HEIGHT)
+	vitals.width = math.max(vitals.width, M.VITALS_MIN_WIDTH)
 	local chips = rect(vitals.x, vitals.y + vitals.height + 0.015 * h, 0.40 * h, 0.07 * h)
 	local tracker = rect(vitals.x, chips.y + chips.height + 0.015 * h, 0.40 * h, 0.16 * h)
 	local minimap = tr(0.03, 0.25, 0.02, 0.24)
 	local coords = tr(0.05, 0.23, 0.245, 0.285)
 	local status = tc(-0.4, 0.4, 0.16, 0.26)
+	local clearX = vitals.x + vitals.width + 0.02 * h
+	if status.x < clearX then
+		-- Narrow screens: the banner starts right of the widened vitals panel.
+		local right = status.x + status.width
+		status.x, status.width = math.floor(clearX + 0.5), math.max(0, right - math.floor(clearX + 0.5))
+	end
 	local quest = tr(0.03, 0.52, 0.30, 0.42)
 	-- A wide touch screen has room left of the minimap: the quest card sits there at the minimap's
 	-- height (about five lines) instead of between the minimap and the action cluster, where its

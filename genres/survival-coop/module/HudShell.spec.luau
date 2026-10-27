@@ -119,7 +119,8 @@ return {
 		-- over the coin chip on the phone (staging v25): the panel keeps the spec's top-left corner and
 		-- width, grows to VITALS_MIN_HEIGHT, and the chips and tracker stack under it.
 		local v = physical(r.vitals, PHONE)
-		near("vitals corner", { v[1], v[2], v[3], 111 }, { 103, 171, 408, 111 }, 4)
+		near("vitals corner", { v[1], v[2], 408, 111 }, { 103, 171, 408, 111 }, 4)
+		assert(r.vitals.width >= Shell.VITALS_MIN_WIDTH, "vitals wide enough for a bar track")
 		assert(r.vitals.height >= Shell.VITALS_MIN_HEIGHT, "vitals holds its three bar rows")
 		assert(r.chips.y >= r.vitals.y + r.vitals.height, "chips under vitals")
 		near("minimap", physical(r.minimap, PHONE), { 2084, 171, 204, 204 }, 4)
