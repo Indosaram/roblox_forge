@@ -159,6 +159,7 @@ return {
 				"WildlifePolicy",
 				"TamingConfig",
 				"MonetizationCatalog",
+				"MonetizationIds",
 				"MarketPorts",
 				"GenreDurable",
 				"GenreConfig",

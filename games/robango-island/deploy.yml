@@ -23,20 +23,33 @@ environments:
       frontier60: ${FORGE_STAGING_ROLE_FRONTIER_SIXTY}
       brawl: ${FORGE_STAGING_ROLE_BRAWL}
       team-outpost: ${FORGE_STAGING_ROLE_TEAM_OUTPOST}
+    # Product ids registered on this universe, keyed by game.yml monetization key. deploy
+    # injects them as ServerStorage.ForgeMonetizationIds; the server overrides the catalog
+    # ids with them. A missing or unset id becomes 0, which the shop lists but never prompts.
+    monetization:
+      routeGuildPatron: 2040232413
+      wideWarehouse: 2037904759
+      skinRidgeStriderGold: 3720013569
+      routeGuildMonthly: EXP-4461467833720767028
   production:
     universeId: ${FORGE_PRODUCTION_UNIVERSE_ID}
     placeId: ${FORGE_PRODUCTION_PLACE_ID}
     requiresHumanMerge: true
     roles:
       onboarding: ${FORGE_PRODUCTION_PLACE_ID}
-      home: 0
-      harbor: 0
-      archipelago: 0
-      explore10: 0
-      explore20: 0
-      frontier30: 0
-      frontier40: 0
-      frontier50: 0
-      frontier60: 0
-      brawl: 0
-      team-outpost: 0
+      home: ${FORGE_PRODUCTION_ROLE_HOME}
+      harbor: ${FORGE_PRODUCTION_ROLE_HARBOR}
+      archipelago: ${FORGE_PRODUCTION_ROLE_ARCHIPELAGO}
+      explore10: ${FORGE_PRODUCTION_ROLE_EXPLORE_TEN}
+      explore20: ${FORGE_PRODUCTION_ROLE_EXPLORE_TWENTY}
+      frontier30: ${FORGE_PRODUCTION_ROLE_FRONTIER_THIRTY}
+      frontier40: ${FORGE_PRODUCTION_ROLE_FRONTIER_FORTY}
+      frontier50: ${FORGE_PRODUCTION_ROLE_FRONTIER_FIFTY}
+      frontier60: ${FORGE_PRODUCTION_ROLE_FRONTIER_SIXTY}
+      brawl: ${FORGE_PRODUCTION_ROLE_BRAWL}
+      team-outpost: ${FORGE_PRODUCTION_ROLE_TEAM_OUTPOST}
+    monetization:
+      routeGuildPatron: ${FORGE_PRODUCTION_PRODUCT_ROUTE_GUILD_PATRON}
+      wideWarehouse: ${FORGE_PRODUCTION_PRODUCT_WIDE_WAREHOUSE}
+      skinRidgeStriderGold: ${FORGE_PRODUCTION_PRODUCT_SKIN_RIDGE_STRIDER_GOLD}
+      routeGuildMonthly: ${FORGE_PRODUCTION_PRODUCT_ROUTE_GUILD_MONTHLY}

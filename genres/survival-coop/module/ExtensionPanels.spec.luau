@@ -678,6 +678,7 @@ return {
 		assert(Panels.travelText("en-us", "mission_gate") == "Finish this island's objectives first", "gate")
 		assert(Panels.travelText("ko-kr", "travelling") == "이동 중...", "travelling")
 		assert(string.find(Panels.travelText("en-us", "studio_no_teleport"), "Studio", 1, true) ~= nil, "studio")
-		assert(Panels.travelText("en-us", "weird") == "Cannot travel (weird)", "unknown reason still visible")
+		assert(Panels.travelText("en-us", "weird") == "You can't travel right now", "unknown reason still visible")
+		assert(not string.find(Panels.travelText("ko-kr", "weird"), "weird"), "no raw code")
 	end,
 }

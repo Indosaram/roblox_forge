@@ -131,7 +131,7 @@ function M.travelText(locale: string, result: string): string
 	if row then
 		return row[if ko then 2 else 1]
 	end
-	return (if ko then "이동할 수 없습니다 (" else "Cannot travel (") .. result .. ")"
+	return if ko then "지금은 이동할 수 없어요" else "You can't travel right now"
 end
 
 function M.activate(entries: { DockEntry }, entry: DockEntry)

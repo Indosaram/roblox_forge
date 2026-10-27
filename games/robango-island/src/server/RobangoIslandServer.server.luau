@@ -92,8 +92,17 @@ local PolicyPort = require(Forge.core.infra.monetization.PolicyPort)
 local entitlementFactory: any = nil
 local Cosmetics = require(Shared.CosmeticConfig)
 local CosmeticVisual = require(Forge.genres["survival-coop"].module.CosmeticVisual)
+-- `forge deploy` injects the target environment's product ids (deploy.yml monetization); the
+-- catalog's own ids are the staging defaults. An id deploy left at 0 is listed, never prompted.
+local monetizationIds = ServerStorage:FindFirstChild("ForgeMonetizationIds")
+local catalog = require(Shared.MonetizationIds).apply(
+	require(Shared.MonetizationCatalog),
+	if monetizationIds and monetizationIds:IsA("StringValue")
+		then HttpService:JSONDecode(monetizationIds.Value)
+		else nil
+)
 require(Forge.genres["survival-coop"].module.MonetizationExtension).configure({
-	catalog = require(Shared.MonetizationCatalog) :: any,
+	catalog = catalog :: any,
 	marketplace = MarketplacePort.roblox(game:GetService("MarketplaceService"), Players, Enum.ProductPurchaseDecision),
 	policy = PolicyPort.roblox(game:GetService("PolicyService"), Players),
 	hooks = {

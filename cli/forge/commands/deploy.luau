@@ -132,6 +132,25 @@ function M.rolePlan(deploy: any, environment: string, variables: { [string]: str
 	return result
 end
 
+--- Product ids for `environments.<env>.monetization`, keyed by game.yml monetization key.
+--- Values are literal ids or `${NAME}` references; an unset reference or 0 maps to 0, which the
+--- shop lists but never prompts, so a missing production product can never sell the staging item.
+--- Returns nil when the environment declares no monetization block.
+function M.monetizationIds(deploy: any, environment: string, variables: { [string]: string? }): { [string]: any }?
+	local selected = if type(deploy) == "table" and type(deploy.environments) == "table"
+		then deploy.environments[environment]
+		else nil
+	if type(selected) ~= "table" or type(selected.monetization) ~= "table" then
+		return nil
+	end
+	local ids: { [string]: any } = {}
+	for key, value in selected.monetization do
+		local id, unset = deploytarget.expand(value, variables)
+		ids[tostring(key)] = if unset ~= nil or id == nil or id == "" then 0 else id
+	end
+	return ids
+end
+
 --- Byte-stable markdown section listing every role place the publish touches.
 function M.renderRolePlan(plan: RolePlan, environment: string): string
 	local lines = { "## Role places (" .. environment .. ")", "" }
@@ -611,6 +630,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 	-- references resolved from the operator's environment; an unset reference is
 	-- refused by name so a missing variable never becomes a wrong target.
 	local selectedDeploy = deploy
+	local monetizationIds = M.monetizationIds(deploy, env, variables)
 	local rolePlan: RolePlan? = nil
 	local roleMap: { [string]: number }? = nil
 	if allRoles then
@@ -702,7 +722,7 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 			return false
 		end
 		stdio.write("deploy: built " .. outputPath .. "\n")
-		if roleMap then
+		if roleMap or monetizationIds then
 			local roblox = require("@lune/roblox")
 			local place = roblox.deserializePlace(fs.readFile(outputPath))
 			local storage = place:FindFirstChild("ServerStorage")
@@ -711,16 +731,37 @@ function M.run(args: { string }, ports: { env: { [string]: string? }?, request: 
 				created.Parent = place
 				storage = created
 			end
-			local config = roblox.Instance.new("StringValue")
-			config.Name = "ForgePlaceRoles"
-			config.Value = serde.encode("json", roleMap)
-			config.Parent = storage
+			if roleMap then
+				local config = roblox.Instance.new("StringValue")
+				config.Name = "ForgePlaceRoles"
+				config.Value = serde.encode("json", roleMap)
+				config.Parent = storage
+			end
+			if monetizationIds then
+				local config = roblox.Instance.new("StringValue")
+				config.Name = "ForgeMonetizationIds"
+				config.Value = serde.encode("json", monetizationIds)
+				config.Parent = storage
+			end
 			fs.writeFile(outputPath, roblox.serializePlace(place))
 		end
 	end
 	-- Release publishes the assessed artifact, never an unassessed rebuild.
 	-- Hold the upload bytes across the final gate to detect artifact replacement.
 	local artifact = fs.readFile(outputPath)
+	if monetizationIds then
+		-- The published bytes must carry this environment's product ids, never another's.
+		local place = require("@lune/roblox").deserializePlace(artifact)
+		local storage = place:FindFirstChild("ServerStorage")
+		local config = if storage then storage:FindFirstChild("ForgeMonetizationIds") else nil
+		local actual = if config and config:IsA("StringValue") then serde.decode("json", (config :: any).Value) else nil
+		for key, id in monetizationIds :: { [string]: any } do
+			if actual == nil or actual[key] ~= id then
+				stdio.ewrite("monetization artifact configuration mismatch: " .. key .. "\n")
+				return false
+			end
+		end
+	end
 	if roleMap then
 		-- The same assessed bytes serve every role. Refuse a mismatched map instead
 		-- of silently rewriting an approved artifact during publication.

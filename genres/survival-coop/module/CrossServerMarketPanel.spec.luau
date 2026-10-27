@@ -164,6 +164,21 @@ local function sellRow(rows: { any }): number
 	error("harbor sell button missing")
 end
 return {
+	["p134 a market refusal reads as player text, never the raw server code (EN/KO)"] = function()
+		local SocialLocale = require("./SocialLocale")
+		for _, locale in { "en-us", "ko-kr" } do
+			local known = SocialLocale.refusal(locale, "INSUFFICIENT_FUNDS")
+			assert(
+				known ~= "refuse.INSUFFICIENT_FUNDS" and not string.find(known, "INSUFFICIENT", 1, true),
+				locale .. " known"
+			)
+			local unknown = SocialLocale.refusal(locale, "SETTLEMENT_WEIRD_CODE")
+			assert(
+				not string.find(unknown, "SETTLEMENT", 1, true) and unknown ~= "refuse.unknown",
+				locale .. " unknown"
+			)
+		end
+	end,
 	["p62 a market slice arriving after an unavailable snapshot clears the unavailable header"] = function()
 		local ui = mount({ ok = true }, "ko-kr", nil, nil, true)
 		assert(ui.status.Name == "MarketUnavailable", "no slice: unavailable")

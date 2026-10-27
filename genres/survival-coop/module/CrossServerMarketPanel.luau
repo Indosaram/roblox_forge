@@ -5,6 +5,7 @@ local Ledger = require("../../../core/domain/command/Ledger")
 local CrossServer = require("../../../core/domain/market/CrossServer")
 local Locale = require("./SurvivalHUDLocale")
 local BuyScreen = require("./RecoveredScreens")
+local SocialLocale = require("./SocialLocale")
 local env: any = getfenv()
 
 -- Catalog browse page size: the tradeable set is the whole content catalog (~200 ids), so the
@@ -171,9 +172,7 @@ function M.factory(ctx: any): any
 	local rerender: () -> () = function() end
 	local function send(action, args)
 		local result = ctx.send("survival-coop:market-" .. action, args)
-		status.Text = if result.ok
-			then text("Confirmed", "완료")
-			else text("Settlement pending: ", "정산 대기 중: ") .. tostring(result.reason)
+		status.Text = if result.ok then text("Confirmed", "완료") else SocialLocale.refusal(ctx.locale, result.reason)
 	end
 	local function label(value)
 		order += 1
