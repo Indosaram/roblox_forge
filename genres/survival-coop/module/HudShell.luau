@@ -546,7 +546,6 @@ end
 -- Bag equipment doll slots (spec 6.3), CharacterRules.SLOTS order.
 M.DOLL_SLOTS = table.freeze({ "head", "top", "bottom", "shoes", "gloves", "bag", "weapon" })
 
-
 -- Gather picker ("shell fan", spec section 3, plan C2/G7): M pebbles on an arc opening upward over
 -- the node's screen point, 40 degrees apart (200 degrees at six), radius 0.22H grown until the
 -- tokens part; captions sit outside the ring, the node name pill under the target. The fan is
