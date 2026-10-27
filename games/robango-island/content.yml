@@ -577,6 +577,17 @@ items:
     weightMilli: 500
     tags: []
   -
+    # C1 opening: the first tool, made by hand from the onboarding bone heap; it opens the flint scree.
+    id: "bone-knife"
+    name: "Bone Knife"
+    stackMax: 1
+    weightMilli: 400
+    maxDurabilityMilli: 60000
+    tags:
+      - "cutting"
+      - "tool"
+      - "weapon-tool"
+  -
     id: "polished-bone"
     name: "Polished Bone"
     stackMax: 50
@@ -1864,6 +1875,21 @@ nodes:
     id: "meat-cache"
     respawnMillis: 120000
 recipes:
+  -
+    # C1 opening: first craft by hand (no station), bone 1 + fiber 2.
+    craftMillis: 4000
+    id: "bone-knife"
+    inputs:
+      -
+        item: "bone"
+        quantity: 1
+      -
+        item: "fiber"
+        quantity: 2
+    outputs:
+      -
+        item: "bone-knife"
+        quantity: 1
   -
     craftMillis: 3000
     id: "berry-meal"
@@ -9575,6 +9601,16 @@ operations:
     provenance:
       classification: "RECONSTRUCTED"
 recipeDetails:
+  -
+    id: "bone-knife"
+    minCharacterLevel: 1
+    primaryMaterialLevel: 0
+    primaryInputs: ["bone"]
+    auxiliaryInputs: ["fiber"]
+    skillNodes: []
+    seconds: 4
+    provenance:
+      classification: "RECONSTRUCTED"
   -
     id: "dry-twig"
     minCharacterLevel: 1
@@ -24565,7 +24601,32 @@ layouts:
           x: -32
           y: 2
           z: -4
+      # C1 opening beats (opening-script.md section 1), placed inside today's onboarding bounds
+      # until A3 lands the 1024 island; each clears every hunter's leash + attack reach.
+      - {id: "opening.tumble", position: {x: 12, y: 2, z: 66}}
+      - {id: "opening.stake.1", position: {x: 8, y: 2, z: 62}}
+      - {id: "opening.stake.2", position: {x: 16, y: 2, z: 62}}
+      - {id: "opening.stake.3", position: {x: 12, y: 2, z: 70}}
+      - {id: "opening.boar-lane", position: {x: 28, y: 2, z: 54}}
+      - {id: "opening.ford", position: {x: -10, y: 2, z: 20}}
+      - {id: "opening.windfall", position: {x: -54, y: 2, z: 30}}
+      - {id: "opening.mirror-ridge", position: {x: 0, y: 2, z: -60}}
+      - {id: "opening.beacon", position: {x: 8, y: 2, z: -50}}
+      - {id: "opening.jetty", position: {x: 0, y: 2, z: -72}}
     resourceNodes:
+      -
+        # C1 opening: the bone heap is the first gather, bare-handed, 19 studs from spawn.
+        id: "rw.onboarding.carcass"
+        item: "bone"
+        position:
+          x: -18
+          y: 2
+          z: 64
+        stock: 6
+        # bone-profile's lowest material level.
+        level: 10
+        yield: 1
+        respawnSeconds: 120
       -
         id: "rw.onboarding.branch"
         item: "branch"
@@ -24628,26 +24689,25 @@ layouts:
           x: -54
           y: 2
           z: 24
-        stock: 10
+        stock: 12
         level: 1
         yield: 3
         respawnSeconds: 120
         tool: "starter-axe"
       -
+        # C1 opening: flint scree beside the bone heap (18 studs), flaked with the bone knife;
+        # no skill gate, so the first axe is reachable bare-handed.
         id: "rw.onboarding.extra-1"
         item: "flint"
         position:
-          x: -42
+          x: -26
           y: 2
-          z: 24
+          z: 48
         stock: 12
         level: 1
         yield: 3
         respawnSeconds: 120
-        gates:
-          skillNodes:
-            - "gathering_1"
-        tool: "starter-pickaxe"
+        tool: "bone-knife"
       -
         id: "rw.onboarding.extra-2"
         item: "corn-seed"
@@ -24912,9 +24972,9 @@ layouts:
             y: 2
             z: 24
           -
-            x: -42
+            x: -26
             y: 2
-            z: 24
+            z: 48
         width: 8
       -
         id: "rw.onboarding.resource-13"

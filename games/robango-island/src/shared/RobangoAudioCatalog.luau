@@ -216,6 +216,7 @@ return {
 		["banana-seed"] = "gather-plant",
 		["basalt"] = "gather-stone",
 		["berry"] = "gather-plant",
+		["bone"] = "gather-shell",
 		["branch"] = "gather-wood",
 		["cattail-root"] = "gather-plant",
 		["chanterelle"] = "gather-plant",

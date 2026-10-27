@@ -367,8 +367,8 @@ contract_day1_settle,Deliver 4 Fiber,first-day contract,Deliver 4 Fiber,고사�
 contract_daily_header,Daily contracts,contract board header,Daily contracts,오늘의 의뢰
 contract_trust_level,Trust,faction trust label,Trust,신뢰도
 tutorial_arrival,The tide carried you here. Skip any time.,tutorial step 1,The tide carried you here. Skip any time.,물때가 당신을 이곳에 데려왔다. 언제든 건너뛸 수 있다.
-tutorial_gather,Walk up to a fallen trunk and gather.,tutorial step 2,Walk up to a fallen trunk and gather.,쓰러진 나무에 다가가 채집하자.
-tutorial_craft,Open crafting and make a Flint Hatchet.,tutorial step 3,Open crafting and make a Flint Hatchet.,제작 창을 열고 부싯돌 손도끼를 만들자.
+tutorial_gather,Gather bone from the bone heap and fiber from a tuft.,tutorial step 2,Gather bone from the bone heap and fiber from a tuft.,"뼈무덤에서 뼈를, 덤불에서 섬유를 채집하자."
+tutorial_craft,"Make a Bone Knife, flake flint with it, then make a Flint Hatchet.",tutorial step 3,"Make a Bone Knife, flake flint with it, then make a Flint Hatchet.",뼈칼을 만들고 그 칼로 부싯돌을 떼어 부싯돌 손도끼를 만들자.
 tutorial_settle,Choose a spot and claim your settlement.,tutorial step 4,Choose a spot and claim your settlement.,자리를 골라 정착지를 선언하자.
 tutorial_contract,Accept your first contract and deliver it.,tutorial step 5,Accept your first contract and deliver it.,첫 의뢰를 받고 납품하자.
 tutorial_done,"Your camp is standing at last, and the next island is out there.",tutorial complete,"Your camp is standing at last, and the next island is out there.",선단이 발판을 마련했다. 섬들이 기다린다.
@@ -397,7 +397,7 @@ ct_tutorial_skip,Skip arrival,contracts and tutorial panel,Skip arrival,도착 �
 ct_tutorial_done,Tutorial complete,contracts and tutorial panel,Tutorial complete,튜토리얼 완료
 ct_tutorial_arrive,Arrive on the island,contracts and tutorial panel,Arrive on the island,섬에 도착하세요
 ct_tutorial_gather,Gather a resource,contracts and tutorial panel,Gather a resource,자원을 채집하세요
-ct_tutorial_craft_stone_axe,Craft a stone axe,contracts and tutorial panel,Craft a stone axe,돌도끼를 만드세요
+ct_tutorial_craft_stone_axe,Craft a Flint Hatchet,contracts and tutorial panel,Craft a Flint Hatchet,부싯돌 손도끼를 만드세요
 ct_tutorial_declare_settlement,Place your settlement,contracts and tutorial panel,Place your settlement,정착지를 세우세요
 ct_tutorial_accept_contract,Accept the first contract,contracts and tutorial panel,Accept the first contract,첫 계약을 수락하세요
 ct_tutorial_deliver_contract,Deliver the first contract,contracts and tutorial panel,Deliver the first contract,첫 계약을 납품하세요
@@ -1019,7 +1019,7 @@ rw.m5.transport.offer,Deliver all twenty-five relief units to the receiver.,RECO
 rw.m5.transport.complete,All twenty-five units are delivered.,RECONSTRUCTED Robango catalog source,All twenty-five units are delivered.,스물다섯 개 모두 배달했어요.
 rw.g01.first-gather.offer,Start with your hands: gather three fiber from a fiber bush.,RECONSTRUCTED Robango catalog source,Start with your hands: gather three fiber from a fiber bush.,우선 맨손으로 시작해요. 섬유 덤불에서 섬유 세 개를 모으세요.
 rw.g01.first-gather.complete,Good. Hands are enough for your first materials.,RECONSTRUCTED Robango catalog source,Good. Hands are enough for your first materials.,좋아요. 첫 재료는 맨손으로도 충분해요.
-rw.g02.first-axe.offer,Craft your first axe. A Flint Hatchet made by hand counts.,RECONSTRUCTED Robango catalog source,Craft your first axe. A Flint Hatchet made by hand counts.,첫 도끼를 만드세요. 손으로 만든 부싯돌 손도끼도 인정돼요.
+rw.g02.first-axe.offer,"Craft your first axe. Make a Bone Knife from bone and fiber, flake flint with it, then knap a Flint Hatchet by hand.",RECONSTRUCTED Robango catalog source,"Craft your first axe. Make a Bone Knife from bone and fiber, flake flint with it, then knap a Flint Hatchet by hand.","첫 도끼를 만드세요. 뼈와 섬유로 뼈칼을 만들고, 그 칼로 부싯돌을 떼어 손으로 부싯돌 손도끼를 다듬으세요."
 rw.g02.first-axe.complete,An axe opens the windfall logs. Keep it equipped when you chop.,RECONSTRUCTED Robango catalog source,An axe opens the windfall logs. Keep it equipped when you chop.,도끼가 있으면 쓰러진 통나무를 벨 수 있어요. 벨 때는 손에 들고 있으세요.
 npc.hop,Hop,RECONSTRUCTED Robango catalog source,Hop,Hop
 rw.g03.first-contract.offer,Open the contract board and deliver any contract.,RECONSTRUCTED Robango catalog source,Open the contract board and deliver any contract.,계약 게시판을 열고 아무 계약이나 납품하세요.
@@ -2543,7 +2543,7 @@ ctr.tutorial_skip,Skip arrival,genre text ctr,Skip arrival,도착 장면 건너�
 ctr.tutorial_done,Tutorial complete,genre text ctr,Tutorial complete,튜토리얼 완료
 ctr.tutorial.arrive,Arrive on the island,genre text ctr,Arrive on the island,섬에 도착하세요
 ctr.tutorial.gather,Gather a resource: walk up and press E,genre text ctr,Gather a resource: walk up and press E,자원을 채집하세요: 다가가서 E
-ctr.tutorial.craft-stone-axe,Craft an axe: press C (Menu > Craft); the pinned recipe is first,genre text ctr,Craft an axe: press C (Menu > Craft); the pinned recipe is first,"도끼를 만드세요: C 키 (메뉴 > 제작), 고정된 제작법이 맨 위"
+ctr.tutorial.craft-stone-axe,"Craft an axe: make a Bone Knife, flake flint with it, then press C (Menu > Craft)",genre text ctr,"Craft an axe: make a Bone Knife, flake flint with it, then press C (Menu > Craft)",도끼를 만드세요: 뼈칼로 부싯돌을 뗀 뒤 C 키 (메뉴 > 제작)
 ctr.tutorial.declare-settlement,"Place your settlement: store wood in the warehouse (I), then press B to build",genre text ctr,"Place your settlement: store wood in the warehouse (I), then press B to build",정착지를 세우세요: 가방(I)에서 창고에 나무 보관 후 B 키로 건설
 ctr.tutorial.accept-contract,Accept the first contract: Menu > Contracts,genre text ctr,Accept the first contract: Menu > Contracts,첫 계약을 수락하세요: 메뉴 > 계약
 ctr.tutorial.deliver-contract,Deliver the first contract: Menu > Contracts > Deliver,genre text ctr,Deliver the first contract: Menu > Contracts > Deliver,첫 계약을 납품하세요: 메뉴 > 계약 > 납품
@@ -2552,7 +2552,7 @@ ctr.faction.route-surveyors,Route Survey Society,genre text ctr,Route Survey Soc
 ctr.faction.artisan-guilds,Artisan Guild Union,genre text ctr,Artisan Guild Union,장인 길드 연합
 ctr.faction.island-ecology,Island Ecology Trust,genre text ctr,Island Ecology Trust,섬 생태 신탁
 ctr.tutorial.gather_touch,Gather a resource: walk up and tap its button,objective tracker on touch devices (no key hint),Gather a resource: walk up and tap its button,자원을 채집하세요: 다가가서 버튼을 누르세요
-ctr.tutorial.craft-stone-axe_touch,Craft an axe: Menu > Craft; the pinned recipe is first,objective tracker on touch devices (no key hint),Craft an axe: Menu > Craft; the pinned recipe is first,"도끼를 만드세요: 메뉴 > 제작, 고정된 제작법이 맨 위"
+ctr.tutorial.craft-stone-axe_touch,"Craft an axe: make a Bone Knife, flake flint with it, then Menu > Craft",objective tracker on touch devices (no key hint),"Craft an axe: make a Bone Knife, flake flint with it, then Menu > Craft",도끼를 만드세요: 뼈칼로 부싯돌을 뗀 뒤 메뉴 > 제작
 ctr.tutorial.declare-settlement_touch,"Place your settlement: store wood in the warehouse from your bag, then open Build",objective tracker on touch devices (no key hint),"Place your settlement: store wood in the warehouse from your bag, then open Build",정착지를 세우세요: 가방에서 창고에 나무를 보관한 뒤 건설을 여세요
 act.survey,Survey,stage objective action,Survey,조사
 act.rescue,Rescue,stage objective action,Rescue,구조
@@ -2846,3 +2846,54 @@ hud.shell.coords,X %d  Y %d,genre text hud,X %d  Y %d,X %d  Y %d
 hud.shell.tribe,Clan %s,genre text hud,Clan %s,부족 %s
 hud.shell.no_tribe,No clan,genre text hud,No clan,부족 없음
 hud.shell.lost,Lost belongings,genre text hud,Lost belongings,잃어버린 짐
+item_bone_knife,Bone Knife,entity bone-knife,Bone Knife,뼈칼
+recipe_bone_knife,Bone Knife recipe,entity bone-knife-recipe,Bone Knife recipe,뼈칼 제작법
+node_onboarding_carcass,Sea-beast Bone Heap,entity rw-onboarding-carcass,Sea-beast Bone Heap,바다짐승 뼈무덤
+node_onboarding_flint,Flint Scree,entity rw-onboarding-extra-1,Flint Scree,부싯돌 너덜
+opening.skip,Skip,opening beat 0 skip button,Skip,건너뛰기
+opening.cold.1,Eleventh year after the Tidal Rift. Route Guild research balloon Skylark.,opening beat 0 caption,Eleventh year after the Tidal Rift. Route Guild research balloon Skylark.,조수 균열 이후 열한 번째 해. 항로단 연구 기구 종다리호.
+opening.cold.2,...the wind turned.,opening beat 0 caption,...the wind turned.,...바람이 바뀌었다.
+opening.tumble.title,Skylark crash site,opening beat 1 tracker title,Skylark crash site,종다리호 추락 현장
+opening.tumble.move,Tap the sand to walk there,opening beat 1 card on touch,Tap the sand to walk there,모래를 톡 눌러 이동하세요
+opening.tumble.move_pc,Click or use WASD to move,opening beat 1 card on PC,Click or use WASD to move,클릭하거나 WASD로 이동
+opening.tumble.label,Tumble (tangled),opening beat 1 world label,Tumble (tangled),텀블 (얽힘)
+opening.tumble.stake,Rope stake,opening beat 1 world label,Rope stake,밧줄 말뚝
+opening.tumble.stakes,□ Pull the stakes pinning Tumble (%d/3),opening beat 1 tracker line,□ Pull the stakes pinning Tumble (%d/3),□ 텀블을 묶은 밧줄 말뚝 뽑기 (%d/3)
+opening.tumble.dodges,□ Dodge the charge (%d/2),opening beat 1 tracker line,□ Dodge the charge (%d/2),□ 돌진 피하기 (%d/2)
+opening.tumble.charge,It's charging! Press Dodge,opening beat 1 card,It's charging! Press Dodge,돌진이 온다! 피하기를 누르세요
+opening.tumble.retry,Again! Dodge when the red mark shows,opening beat 1 card after a hit,Again! Dodge when the red mark shows,한 번 더! 빨간 표시가 보이면 피하기
+opening.tumble.snort,(snort),opening beat 1 speech bubble,(snort),(콧김)
+opening.mirror.title,Mirror on the ridge,opening beat 2 tracker title,Mirror on the ridge,등성이의 거울 신호
+opening.mirror.signal,"Flash—flash-flash. If you're alive: flint by the bone heap on the beach. Make a blade, then climb the ridge. — Marit Ossel, Survey Society",opening beat 2 signal card,"Flash—flash-flash. If you're alive: flint by the bone heap on the beach. Make a blade, then climb the ridge. — Marit Ossel, Survey Society","깜빡—깜빡깜빡. 「살아 있으면 해변 뼈무덤 옆 부싯돌. 칼부터 만들고 등성이로.」 — 마리트 오셀, 측량회"
+opening.mirror.heap,□ Check the bone heap on the beach,opening beat 2 tracker line,□ Check the bone heap on the beach,□ 해변 뼈무덤 살펴보기
+opening.knife.title,A first tool,opening beat 3 tracker title,A first tool,첫 도구
+opening.knife.bone,□ 1 bone from the bone heap,opening beat 3 tracker line,□ 1 bone from the bone heap,□ 뼈무덤에서 뼈 1개
+opening.knife.fiber,□ 3 fiber,opening beat 3 tracker line,□ 3 fiber,□ 섬유 3개
+opening.knife.craft,□ Craft a Bone Knife,opening beat 3 tracker line,□ Craft a Bone Knife,□ 뼈칼 만들기
+opening.knife.banner,First tool: Bone Knife,opening beat 3 first-craft banner,First tool: Bone Knife,첫 도구: 뼈칼
+opening.hatchet.title,Knap a hatchet,opening beat 4 tracker title,Knap a hatchet,손도끼 다듬기
+opening.hatchet.flint,□ Flake flint with the bone knife (%d/2),opening beat 4 tracker line,□ Flake flint with the bone knife (%d/2),□ 뼈칼로 부싯돌 떼어내기 (%d/2)
+opening.hatchet.craft,□ Craft a Flint Hatchet,opening beat 4 tracker line,□ Craft a Flint Hatchet,□ 부싯돌 손도끼 만들기
+opening.ridge.title,To the ridge,opening beat 5 tracker title,To the ridge,등성이로
+opening.ridge.stream,□ Follow the stream uphill,opening beat 5 tracker line,□ Follow the stream uphill,□ 개울을 따라 올라가기
+opening.ridge.wood,□ 7 wood (%d/7),opening beat 5 tracker line,□ 7 wood (%d/7),□ 나무 7개 (%d/7)
+opening.ridge.camp,□ Reach Windback Ridge camp,opening beat 5 tracker line,□ Reach Windback Ridge camp,□ 바람등성이 캠프 도착
+opening.ridge.herd,Grazing herds pass by if you leave them be,opening beat 5 hint card,Grazing herds pass by if you leave them be,초식 무리는 먼저 건드리지 않으면 지나갑니다
+opening.ridge.call,(low call),opening beat 5 speech bubble,(low call),(낮게 울음)
+opening.camp.title,Windback Ridge camp,opening beat 6 tracker title,Windback Ridge camp,바람등성이 캠프
+opening.camp.line1,You made the blade first. Good — you'll last.,opening beat 6 Marit line,You made the blade first. Good — you'll last.,"칼부터 만들었네. 좋아, 살아남을 사람이다."
+opening.camp.line2,Claim a spot here. One campfire makes it a camp.,opening beat 6 Marit line,Claim a spot here. One campfire makes it a camp.,여기 네 자리를 잡아. 모닥불 하나면 캠프가 돼.
+opening.camp.line3,The Gannet comes in when it sees the beacon. Put three bundles of wood on it.,opening beat 6 Marit line,The Gannet comes in when it sees the beacon. Put three bundles of wood on it.,가넷호가 봉화를 보면 들어온다. 장작 세 단을 봉화에 올려 줘.
+opening.camp.contract,Beacon kindling,opening beat 6 contract card title,Beacon kindling,봉화 장작
+opening.camp.place,□ Place a campfire on your camp spot,opening beat 6 tracker line,□ Place a campfire on your camp spot,□ 캠프 자리에 모닥불 놓기
+opening.camp.accept,□ Take Marit's request,opening beat 6 tracker line,□ Take Marit's request,□ 마리트의 의뢰 수락
+opening.camp.deliver,□ Deliver 3 wood to the beacon,opening beat 6 tracker line,□ Deliver 3 wood to the beacon,□ 봉화에 장작 3개 납품
+opening.beacon.title,The mirror beacon,opening beat 7 tracker title,The mirror beacon,거울 봉화
+opening.beacon.windbreak,□ Add fiber to the windbreak,opening beat 7 tracker line,□ Add fiber to the windbreak,□ 바람막이에 섬유 보태기
+opening.beacon.windbreak_hint,Add 1 fiber to the windbreak,opening beat 7 hint,Add 1 fiber to the windbreak,바람막이에 섬유 1개 보태기
+opening.beacon.light,□ Light the beacon,opening beat 7 tracker line,□ Light the beacon,□ 봉화 켜기
+opening.beacon.board,□ Board the Gannet at the jetty,opening beat 7 tracker line,□ Board the Gannet at the jetty,□ 부두에서 가넷호 타기
+opening.beacon.confirm,Board the Gannet? Destination: your island,opening beat 7 departure card,Board the Gannet? Destination: your island,가넷호에 오를까요? 행선지: 나의 섬
+opening.beacon.yes,Board,opening beat 7 departure button,Board,승선
+opening.beacon.no,Not yet,opening beat 7 departure button,Not yet,아직
+opening.beacon.farewell,Every tide moves the shorelines. Keep your own chart.,opening beat 7 Marit line,Every tide moves the shorelines. Keep your own chart.,물때마다 물가가 바뀌어. 해도는 네 손으로 그려.

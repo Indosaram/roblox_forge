@@ -23,7 +23,9 @@ return {
 	["every tool a gather node requires belongs to a tier family"] = function()
 		for _, layout in Content.layouts do
 			for _, node in layout.resourceNodes do
-				if node.tool and node.tool ~= "starter-club" then
+				-- bone-knife (C1 opening flint scree) is an exact-match tool by design: opening-script.md
+				-- section 3 keeps toolPolicy unchanged, and the knife is re-craftable on the same beach.
+				if node.tool and node.tool ~= "starter-club" and node.tool ~= "bone-knife" then
 					assert(tierOf(node.tool), node.id .. ": " .. node.tool .. " has no tool tier family")
 				end
 			end

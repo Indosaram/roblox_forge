@@ -54,6 +54,7 @@ entries:
   "items/wood": { created: 2026-10-16 }
   "items/woodland-skewer": { created: 2026-10-16 }
   "items/workbench-kit": { created: 2026-10-16 }
+  "recipes/bone-knife": { source: original, author: "agent:omo/c1", created: 2026-10-27 }
   "recipes/berry-meal": { created: 2026-10-16 }
   "recipes/brick-floor-kit": { created: 2026-10-16 }
   "recipes/brick-roof-kit": { created: 2026-10-16 }
@@ -184,6 +185,7 @@ entries:
   "items/stone": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/polished-stone": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/polished-flint": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
+  "items/bone-knife": { source: original, author: "agent:omo/c1", created: 2026-10-27 }
   "items/bone": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/polished-bone": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }
   "items/basalt": { source: original, author: "agent:hephaestus/RECONSTRUCTED", created: 2026-10-20 }

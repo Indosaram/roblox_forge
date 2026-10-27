@@ -616,18 +616,32 @@ return {
 		act("tutorial-skip-arrival", {})
 		-- g01 first-gather: fiber x3 (one gather yields 3).
 		gather("rw.onboarding.fiber")
-		-- g02 first-axe: any axe. On rw.onboarding flint needs a pickaxe and gathering_1, so the
-		-- first axe here is the starter axe (branch 3 + stone 2) at the workbench; it also chops the
-		-- contract's wood.
-		gather("rw.onboarding.branch")
-		gather("rw.onboarding.stone")
-		server.move(FIRST, { x = -32, y = 5, z = -2 })
-		craft("starter-axe", "station.workbench.t1")
-		local axe
-		for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
-			axe = if item.catalogId == "starter-axe" then id else axe
+		-- g02 first-axe (C1 opening): bare-handed bone from the bone heap, a Bone Knife by hand
+		-- (bone 1 + fiber 2), flint flaked with the equipped knife, then the Flint Hatchet by hand.
+		-- No station, no skill node, no starter kit; the hatchet also chops the contract's wood.
+		local function bagItem(catalogId: string): string
+			local found
+			for id, item in session.snapshot(FIRST)["survival-coop"].inventory.bag.items do
+				found = if item.catalogId == catalogId then id else found
+			end
+			return assert(found, catalogId .. " in the bag")
 		end
-		server.equip(FIRST, assert(axe, "starter axe crafted"))
+		server.move(FIRST, { x = -18, y = 5, z = 62 })
+		gather("rw.onboarding.carcass")
+		craft("bone-knife")
+		server.move(FIRST, { x = -26, y = 5, z = 46 })
+		local refused = command(
+			session,
+			FIRST,
+			"p45-bare-flint",
+			"gather",
+			{ "rw.onboarding.extra-1", server.factory.services.survivalGathering.snapshot(FIRST).version }
+		)
+		assert(not refused.ok and refused.reason == "TOOL_UNAVAILABLE", "flint needs the knife in hand")
+		server.equip(FIRST, bagItem("bone-knife"))
+		gather("rw.onboarding.extra-1")
+		craft("stone-axe")
+		server.equip(FIRST, bagItem("stone-axe"))
 		-- g03 first-contract: survey-driftwood delivers wood x3.
 		server.move(FIRST, { x = -54, y = 5, z = 22 })
 		gather("rw.onboarding.extra-0")

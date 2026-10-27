@@ -989,6 +989,26 @@
          
         - 
          'id':
+          'bone-knife'
+         'maxDurabilityMilli':
+          60000
+         'name':
+          'Bone Knife'
+         'stackMax':
+          1
+         'tags':
+          - 
+           'cutting'
+          - 
+           'tool'
+          - 
+           'weapon-tool'
+          
+         'weightMilli':
+          400
+         
+        - 
+         'id':
           'bow-t1'
          'maxDurabilityMilli':
           100000
@@ -4714,6 +4734,34 @@
           
          'station':
           'campfire'
+         
+        - 
+         'craftMillis':
+          4000
+         'id':
+          'bone-knife'
+         'inputs':
+          - 
+           'item':
+            'bone'
+           'quantity':
+            1
+           
+          - 
+           'item':
+            'fiber'
+           'quantity':
+            2
+           
+          
+         'outputs':
+          - 
+           'item':
+            'bone-knife'
+           'quantity':
+            1
+           
+          
          
         - 
          'craftMillis':
