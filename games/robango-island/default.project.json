@@ -46,7 +46,6 @@
     "../../core/domain/monetization/Entitlements.luau",
     "../../genres/survival-coop/module/CraftingClient.luau",
     "../../genres/survival-coop/module/ClanPorts.luau",
-    "../../genres/survival-coop/module/Herd.luau",
     "../../genres/survival-coop/module/Habitat.luau",
     "../../genres/survival-coop/module/CrossServerMarketProject.luau",
     "../../genres/survival-coop/module/BrawlLedger.luau",
