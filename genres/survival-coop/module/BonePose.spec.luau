@@ -190,9 +190,11 @@ return {
 		local goal = Herd.follow({ x = 0, y = 0, z = 0 }, { x = 30, y = 2, z = 5 }, { x = -3, y = 0, z = 4 })
 		assert(goal.x == 27 and goal.z == 9 and goal.y == 2, "keeps its offset from the leader")
 	end,
-	["content herd counts are 3-5 for B2a grazers and every other spawn stays single"] = function()
+	["content herd counts are 3-5 for herd species and every other spawn stays single"] = function()
 		local content: any = require("../../../games/robango-island/src/shared/SurvivalContent")
 		local grazers = { protoceratops = true, triceratops = true, gallimimus = true }
+		-- C1 opening beat 5: a dodo trio and a parasaurolophus herd at the onboarding ford.
+		local openingHerds = { dodo = true, parasaurolophus = true }
 		local herds = 0
 		for _, layout in content.layouts do
 			local total = 0
@@ -201,6 +203,9 @@ return {
 				if grazers[spawn.speciesId] then
 					assert(spawn.count >= 3 and spawn.count <= 5, spawn.id .. " herd of 3-5")
 					herds += 1
+				elseif openingHerds[spawn.speciesId] and spawn.count > 1 then
+					assert(layout.id == "rw.onboarding", spawn.id .. " opening herds stay on onboarding")
+					assert(spawn.count >= 3 and spawn.count <= 5, spawn.id .. " herd of 3-5")
 				else
 					assert(spawn.count == 1, spawn.id .. " stays single")
 				end
