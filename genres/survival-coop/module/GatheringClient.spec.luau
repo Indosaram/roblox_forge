@@ -45,9 +45,21 @@ return {
 			"unknown still visible"
 		)
 		assert(not string.find(GatheringClient.refusalText("ko-kr", refused("ODD")) :: string, "ODD"), "no raw code")
-		for _, code in { "HANDSHAKE_FAILED", "TRANSPORT_FAILED", "REQUEST_EXPIRED" } do
+		for _, code in
+			{
+				"HANDSHAKE_FAILED",
+				"TRANSPORT_FAILED",
+				"REQUEST_EXPIRED",
+				-- p134 v22 D6: a profile still loading/saving refused every press silently.
+				"COMMAND_PENDING",
+				"profile operation in progress",
+				"player not joined",
+			}
+		do
 			local ko = GatheringClient.refusalText("ko-kr", refused(code)) :: string
-			assert(not string.find(ko, code) and string.find(ko, "연결"), code .. " reads as connecting")
+			assert(not string.find(ko, code, 1, true) and string.find(ko, "연결"), code .. " reads as connecting")
+			local en = GatheringClient.refusalText("en-us", refused(code)) :: string
+			assert(en == "Still connecting. Try again in a moment", code .. " en: " .. tostring(en))
 		end
 		assert(GatheringClient.refusalText("en-us", { ok = true, data = { status = "confirmed" } }) == nil, "success")
 	end,

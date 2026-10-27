@@ -50,6 +50,7 @@ local REFUSALS: { [string]: string } = {
 	RECEIPT_EXISTS = "camp_retry",
 	INVALID_REQUEST = "camp_retry",
 	COMMAND_PENDING = "camp_retry",
+	["profile operation in progress"] = "camp_retry",
 	SERVER_EVENT_PENDING = "camp_retry",
 	TRANSFER_PENDING = "camp_busy",
 	COMBAT_PENDING = "camp_combat",

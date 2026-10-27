@@ -274,6 +274,22 @@ function M.start(options: Options): ServerSession
 		qa.Parent = ServerStorage
 	end
 	local pending: { [string]: boolean? } = {}
+	-- Player-facing kick text: never an internal reason code (p134 v22 D3). The internal
+	-- reason stays in the ForgeLastKick attribute and the warn() log.
+	local function kickText(player: Player, reason: any): string
+		local ok, locale = pcall(function(): string
+			return (player :: any).LocaleId
+		end)
+		local ko = ok and type(locale) == "string" and string.sub(locale, 1, 2) == "ko"
+		if reason == "profile already active/loading" or reason == "locked" then
+			return if ko
+				then "이전 접속의 저장을 마무리하는 중이에요. 잠시 후 다시 접속해 주세요."
+				else "Your save is still closing from your last session. Please rejoin in a moment."
+		end
+		return if ko
+			then "저장 데이터를 불러오지 못했어요. 잠시 후 다시 접속해 주세요."
+			else "We couldn't load your save. Please rejoin in a moment."
+	end
 	local function close(id: string)
 		local result = session.close(id)
 		pending[id] = if result.ok or result.released then nil else true
@@ -293,15 +309,30 @@ function M.start(options: Options): ServerSession
 		-- instead of kicking a player who would otherwise load on the next attempt.
 		local function retryable(reason: any): boolean
 			return reason == "locked"
+				-- Same-server rejoin while this server still closes the previous session
+				-- (force-quit then relaunch, p134 v22 D3): wait for that close to finish.
+				or reason == "profile already active/loading"
 				or reason == "LOCAL_TRANSPORT_UNAVAILABLE"
 				or reason == "LOCAL_HTTP_429"
 				or (type(reason) == "string" and string.sub(reason, 1, 12) == "LOCAL_HTTP_5")
 		end
+		-- A previous session's close that failed is retried here first: joining must never
+		-- leave the old close pending, or the heartbeat retry would close the NEW session and
+		-- refuse every action it sends (p134 v22 D6).
+		local function attempt(): any
+			if pending[id] then
+				close(id)
+			end
+			if pending[id] then
+				return { ok = false, reason = "profile already active/loading" }
+			end
+			return session.join(id)
+		end
 		local retryDeadline = os.clock() + 90
-		local result = session.join(id)
+		local result = attempt()
 		while not result.ok and retryable(result.reason) and os.clock() < retryDeadline and player.Parent == Players do
 			task.wait(1 + jitter:nextNumber() * 3)
-			result = session.join(id)
+			result = attempt()
 		end
 		if result.notificationError then
 			warn("Forge join notification " .. id .. ": " .. result.notificationError)
@@ -312,7 +343,7 @@ function M.start(options: Options): ServerSession
 			ServerStorage:SetAttribute("ForgeLastKick", id .. " " .. tostring(result.reason))
 			warn("Forge profile load " .. id .. ": " .. tostring(result.reason))
 			close(id)
-			player:Kick("Profile unavailable: " .. tostring(result.reason))
+			player:Kick(kickText(player, result.reason))
 			return
 		end
 		if player.Parent ~= Players then
@@ -331,11 +362,17 @@ function M.start(options: Options): ServerSession
 		task.spawn(join, player)
 	end
 	local accumulator, saves = 0, 0
+	-- Each Heartbeat runs in its own thread and a live DataStore call yields for seconds when the
+	-- per-key queue backs up: without this guard every second started another overlapping tick,
+	-- whose recovery sweeps kept the profile busy so every action and the 30 s save were refused
+	-- (p134 v22 D6). A tick that is still running absorbs the elapsed time of skipped frames.
+	local ticking = false
 	RunService.Heartbeat:Connect(function(delta)
 		accumulator += delta
-		if accumulator < 1 then
+		if accumulator < 1 or ticking then
 			return
 		end
+		ticking = true
 		local elapsed = math.floor(accumulator)
 		accumulator -= elapsed
 		local ok, err = pcall(function()
@@ -345,18 +382,28 @@ function M.start(options: Options): ServerSession
 		if not ok then
 			warn("Forge heartbeat: " .. tostring(err))
 		end
-		for id in pending do
-			close(id)
-		end
-		saves += elapsed
-		if saves >= 30 then
-			saves %= 30
-			for _, id in session.members() do
-				local result = session.save(id)
-				if not result.ok then
-					warn("Forge profile save " .. id .. ": " .. tostring(result.reason))
+		local settled, failure = pcall(function()
+			for id in pending do
+				-- A member present on this server rejoined: its join loop owns the old close.
+				local userId = tonumber(id)
+				if userId == nil or Players:GetPlayerByUserId(userId) == nil then
+					close(id)
 				end
 			end
+			saves += elapsed
+			if saves >= 30 then
+				saves %= 30
+				for _, id in session.members() do
+					local result = session.save(id)
+					if not result.ok then
+						warn("Forge profile save " .. id .. ": " .. tostring(result.reason))
+					end
+				end
+			end
+		end)
+		ticking = false
+		if not settled then
+			warn("Forge heartbeat: " .. tostring(failure))
 		end
 	end)
 	game:BindToClose(function()

@@ -205,8 +205,15 @@ return {
 	["actual join retries transient transport failures before kicking"] = function()
 		local attributes: { [string]: string } = {}
 		local delays: { number } = {}
+		local function attribute(name: string): string?
+			return attributes[name]
+		end
 		local joinCallback: ((any) -> ())? = nil
+		local removingCallback: ((any) -> ())? = nil
 		local kicked: any = nil
+		local function kickedText(): string
+			return tostring(kicked)
+		end
 		local players = {
 			GetPlayers = function()
 				return {}
@@ -219,14 +226,21 @@ return {
 					joinCallback = callback
 				end,
 			},
-			PlayerRemoving = { Connect = function() end },
+			PlayerRemoving = {
+				Connect = function(_self: any, callback: (any) -> ())
+					removingCallback = callback
+				end,
+			},
 		}
 		local outcomes: { any } = {
 			{ ok = false, reason = "LOCAL_TRANSPORT_UNAVAILABLE" },
 			{ ok = false, reason = "LOCAL_TRANSPORT_UNAVAILABLE" },
 			{ ok = true },
 			{ ok = false, reason = "BAD_SAVE" },
+			{ ok = false, reason = "BAD_SAVE" },
 		}
+		local closes: { any } = {}
+		local closed: { string } = {}
 		local attempts = 0
 		local dependencies: { [string]: any } = {
 			["./Options"] = Options,
@@ -315,8 +329,9 @@ return {
 										attempts += 1
 										return table.remove(outcomes, 1) or { ok = true }
 									end,
-									close = function()
-										return { ok = true }
+									close = function(id: string)
+										table.insert(closed, id)
+										return table.remove(closes, 1) or { ok = true }
 									end,
 								}
 							end,
@@ -363,7 +378,45 @@ return {
 		}
 		terminal.Parent = players
 		fireJoin(terminal)
-		assert(attempts == 4 and kicked == "Profile unavailable: BAD_SAVE", "non-transient failure still kicks")
+		assert(attempts == 4, "non-transient failure is not retried")
+		assert(
+			kicked == "We couldn't load your save. Please rejoin in a moment.",
+			"non-transient failure still kicks with readable text: " .. tostring(kicked)
+		)
 		assert(attributes.ForgeLastKick == "2 BAD_SAVE", "kick reason readback")
+		local korean: any = {
+			UserId = 3,
+			LocaleId = "ko-kr",
+			Kick = function(_self: any, message: any)
+				kicked = message
+			end,
+		}
+		korean.Parent = players
+		fireJoin(korean)
+		assert(
+			kickedText() == "저장 데이터를 불러오지 못했어요. 잠시 후 다시 접속해 주세요."
+				and not string.find(kickedText(), "BAD_SAVE", 1, true),
+			"korean kick text has no internal reason"
+		)
+		assert(attribute("ForgeLastKick") == "3 BAD_SAVE", "internal reason stays in the attribute")
+		-- p134 v22 D3/D6: a force-quit leaves this server's close of user 4 unfinished and the same
+		-- user rejoins within seconds. The join retries the old close first, waits, then loads.
+		table.clear(delays)
+		table.clear(closed)
+		outcomes = { { ok = false, reason = "profile already active/loading" }, { ok = true } }
+		attempts = 0
+		closes = { { ok = false, reason = "profile operation in progress" }, { ok = false, reason = "busy" } }
+		local rejoined: any = {
+			UserId = 4,
+			Kick = function(_self: any, message: any)
+				error("same-server rejoin kicked: " .. tostring(message))
+			end,
+		}
+		rejoined.Parent = players;
+		(removingCallback :: any)(rejoined) -- the departure close fails and stays pending
+		fireJoin(rejoined)
+		assert(#closed == 3 and closed[3] == "4", "the rejoin retried the old close: " .. #closed)
+		assert(attempts == 2 and #delays == 2, "join waited out the old close and the busy profile, then loaded")
+		assert(attribute("ForgeLastKick") == "3 BAD_SAVE", "the rejoin was not kicked")
 	end,
 }

@@ -129,7 +129,8 @@ local function boot(
 	clockAt: { value: number },
 	live: boolean?,
 	preview: boolean?,
-	realRole: boolean?
+	realRole: boolean?,
+	production: boolean?
 ): Server
 	local source = defaultSource
 	local move: any = nil
@@ -257,9 +258,34 @@ local function boot(
 	local now = function()
 		return math.floor(clockAt.value)
 	end
+	if production then
+		-- RobangoIslandServer's clan directory: reads through GetAsync, mutations through CAS.
+		world.clanDirectory = require("../../core/infra/data/ClanStore").new({
+			dataStore = {
+				UpdateAsync = function(_, key, transform)
+					local ok, result = backend.update("clans:" .. key, transform)
+					assert(ok, result)
+					return result
+				end,
+				GetAsync = function(_, key)
+					return backend.get("clans:" .. key)
+				end,
+			},
+			rules = content.clanPolicy,
+			maxBytes = 3900000,
+			readSeconds = 10,
+			encode = function(value)
+				return serde.encode("json", value)
+			end,
+			fence = { sessionId = "clans-" .. server, leaseSeconds = 120, leasedReads = true, now = now },
+		})
+	end
 	local factory = assert(Factory(content, source, world, backend, clock, {
 		sessionId = "server-" .. server,
 		leaseSeconds = 120,
+		-- The live store options RobangoIslandServer passes (production only).
+		suppressIdentityUpdates = production,
+		leasedReads = production,
 		now = now,
 		budget = {
 			encode = function(value)
@@ -299,6 +325,33 @@ local function boot(
 	bound = session
 	factory.bind(session)
 	return { session = session, factory = factory, provision = provision, now = now, move = move, equip = equip }
+end
+
+-- A live-DataStore stand-in: every UpdateAsync counts against a per-key write budget (Roblox allows
+-- about one write per key per 6 s; Studio's MemoryBackend has no such limit), GetAsync is a read.
+local function liveStore(clockAt: { value: number }): any
+	local inner = Memory.new()
+	local data: { [string]: any } = {}
+	local store: any = { writes = {}, early = {}, last = {}, counting = false }
+	function store.update(key, transform)
+		if store.counting then
+			local now = clockAt.value
+			store.writes[key] = (store.writes[key] or 0) + 1
+			if store.last[key] ~= nil and now - store.last[key] < 6 then
+				store.early[key] = (store.early[key] or 0) + 1
+			end
+			store.last[key] = now
+		end
+		local ok, value = inner.update(key, transform)
+		if ok then
+			data[key] = serde.decode("json", serde.encode("json", value))
+		end
+		return ok, value
+	end
+	function store.get(key)
+		return if data[key] ~= nil then serde.decode("json", serde.encode("json", data[key])) else nil
+	end
+	return store
 end
 
 local function command(session: any, actor: string, id: string, action: string, args: { any }): any
@@ -1062,5 +1115,69 @@ return {
 		assert(campA.settlement.roles["3002"] == nil and campB.settlement.roles["3001"] == nil, "no cross-server seats")
 		assert(first.session.close("3001").ok and second.session.close("3002").ok, "close")
 		assert(first.factory.close().ok and second.factory.close().ok, "release")
+	end,
+	["p134 a live idle session stays under the DataStore per-key write limit over 120 s"] = function()
+		-- p134 v22 D6: robango-exp-v1, home, directory, contracts and mon keys each saw 1-2
+		-- UpdateAsync calls per second on live staging (Heartbeat snapshot read-throughs), and
+		-- the queue backlog left every action refused.
+		local clockAt = { value = 1000 }
+		local store = liveStore(clockAt)
+		local server = boot(store, "job:p134-live", clockAt, true, nil, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "join")
+		-- Settle the join's own writes, then measure the steady state as Server drives it:
+		-- advance, a state push (snapshot + command epochs) per second, and the 30 s save.
+		for _ = 1, 6 do
+			clockAt.value += 1
+			session.advance(clockAt.value)
+		end
+		store.counting = true
+		local seconds = 120
+		for second = 1, seconds do
+			clockAt.value += 1
+			session.advance(clockAt.value)
+			session.snapshot(FIRST)
+			session.commandEpoch(FIRST)
+			for _, action in policy.actions do
+				session.commandEpoch(FIRST, action)
+			end
+			if second % 30 == 0 then
+				assert(session.save(FIRST).ok, "30 s save")
+			end
+		end
+		local report = {}
+		for key, count in store.writes do
+			table.insert(report, key .. "=" .. count)
+			-- One write per 6 s is the hard live ceiling; steady state must stay well under it.
+			assert(count <= seconds / 12, key .. " wrote " .. count .. " times in " .. seconds .. " s")
+			assert(store.early[key] == nil, key .. " wrote twice within 6 s " .. tostring(store.early[key]) .. " times")
+		end
+		table.sort(report)
+		print("p134 writes per key over 120 s: " .. table.concat(report, ", "))
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	["p134 a same-server rejoin after a force-quit loads and its gather works"] = function()
+		local clockAt = { value = 1000 }
+		local store = liveStore(clockAt)
+		local server = boot(store, "job:p134-rejoin", clockAt, true, nil, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "first join")
+		for _ = 1, 5 do
+			clockAt.value += 1
+			session.advance(clockAt.value)
+		end
+		-- Force-quit: Server closes the departing player; the app relaunches within 15 s and
+		-- lands on the same server, which still holds this Session.
+		assert(session.close(FIRST).ok, "departure close")
+		clockAt.value += 12
+		session.advance(clockAt.value)
+		local rejoined = session.join(FIRST)
+		assert(rejoined.ok, "same-server rejoin: " .. tostring(rejoined.reason))
+		assert(table.find(session.members(), FIRST), "rejoined player is a member")
+		assert(session.commandEpoch(FIRST, "survival-coop:gather") ~= nil, "rejoined player can command")
+		local gathered = command(session, FIRST, "p134-g1", "gather", { "fallen-tree-01", 0 })
+		assert(gathered.ok, "gather after rejoin: " .. serde.encode("json", gathered))
+		assert(session.save(FIRST).ok, "save after rejoin")
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
 	end,
 }

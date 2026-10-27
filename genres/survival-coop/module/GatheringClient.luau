@@ -58,7 +58,18 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		return if ko then "가방이 가득 찼습니다" else "Your bag is full"
 	elseif reason == "STALE_VERSION" then
 		return nil -- the node changed under the request; the next press uses the new version
-	elseif reason == "HANDSHAKE_FAILED" or reason == "TRANSPORT_FAILED" or reason == "REQUEST_EXPIRED" then
+	elseif
+		reason == "HANDSHAKE_FAILED"
+		or reason == "TRANSPORT_FAILED"
+		or reason == "REQUEST_EXPIRED"
+		-- The server is still loading, saving or recovering this profile (p134 v22 D6): the
+		-- press was refused, and the player must see that instead of a silent no-op.
+		or reason == "COMMAND_PENDING"
+		or reason == "SERVER_EVENT_PENDING"
+		or reason == "PERSONAL_UNAVAILABLE"
+		or reason == "profile operation in progress"
+		or reason == "player not joined"
+	then
 		return if ko
 			then "아직 연결 중이에요. 잠시 후 다시 시도하세요"
 			else "Still connecting. Try again in a moment"
@@ -228,9 +239,9 @@ function M.start(options: Options?)
 			end
 		end
 	end
-	local function refresh()
+	local function refresh(): boolean
 		if refreshing or disposed then
-			return
+			return false
 		end
 		refreshing = true
 		local ok, result = pcall(function()
@@ -239,9 +250,11 @@ function M.start(options: Options?)
 		refreshing = false
 		if not disposed and ok and type(result) == "table" and result.ok then
 			durable = result.durable
+			return true
 		elseif not disposed then
 			report({ ok = false, reason = "HANDSHAKE_FAILED" }, result)
 		end
+		return false
 	end
 	local function activate(part: BasePart, triggeringPlayer: Player, inputSource: string?)
 		if disposed or refreshing or triggeringPlayer ~= player or not nodes[part] then
@@ -260,7 +273,15 @@ function M.start(options: Options?)
 				then durable.epochs[ACTION]
 				else if durable then durable.sessionEpoch else nil
 			if not CommandTransport.durable(durable, ACTION) or not integer(epoch) then
-				refresh()
+				local reached = refresh()
+				-- The server withholds the epoch while it loads, saves or recovers this profile:
+				-- say so instead of a silent press (p134 v22 D6). A failed handshake already reported.
+				local refreshed = if durable and durable.epochs
+					then durable.epochs[ACTION]
+					else if durable then durable.sessionEpoch else nil
+				if reached and not integer(refreshed) then
+					report({ ok = false, reason = "COMMAND_PENDING" })
+				end
 				return -- A refreshed epoch is used only by the next user activation.
 			end
 			pending[id] = CommandTransport.request(nil, ACTION, { id, version }, epoch, function()

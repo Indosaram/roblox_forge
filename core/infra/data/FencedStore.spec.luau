@@ -377,4 +377,58 @@ return {
 		end)
 		assert(durable.revision == acquired.revision + 2 and durable.data.coins == 4, "one renewal write only")
 	end,
+	["leased reads serve a healthy lease locally and round-trip only past half life"] = function()
+		-- p134 v22 D6: each live UpdateAsync counts against ~1 write per key per 6 s, and
+		-- snapshot callers refresh every heartbeat.
+		local memory = MemoryBackend.new()
+		local calls, fail = 0, false
+		local backend = {
+			update = function(key: string, transform: MemoryBackend.Transform): (boolean, any)
+				calls += 1
+				if fail then
+					return false, "throttled"
+				end
+				return memory.update(key, transform)
+			end,
+		}
+		local now = 0
+		local function leased(session: string)
+			return FencedStore.new(backend, {
+				sessionId = session,
+				leaseSeconds = 30,
+				leasedReads = true,
+				now = function()
+					return now
+				end,
+			})
+		end
+		local a = leased("a")
+		local token = assert(a:acquire("k", initial))
+		assert(calls == 1, "acquire round-trips")
+		for second = 1, 15 do
+			now = second
+			token = assert(a:refresh(token))
+			token = assert(a:renew(token))
+		end
+		assert(calls == 1 and token.data.coins == 10, "healthy lease reads stay local: " .. calls)
+		-- Another Store of the same session over the same backend sees this commit.
+		token = assert(a:update(token, function(data)
+			data.coins = 7
+			return data
+		end))
+		local sibling = leased("a")
+		assert(assert(sibling:refresh(token)).data.coins == 7 and calls == 2, "acknowledged commit is served")
+		-- Past half the lease the read renews the fence through the backend once.
+		now = 31
+		token = assert(a:refresh(token))
+		assert(calls == 3 and token.leaseExpiresAt == 61, "lapsing lease renewed")
+		-- A failed commit may have written: the next read must round-trip.
+		fail = true
+		assert(a:update(token, function(data)
+			data.coins = 1
+			return data
+		end) == nil, "throttled")
+		fail = false
+		assert(a:refresh(token) and calls == 5, "no local read after an ambiguous commit")
+	end,
 }

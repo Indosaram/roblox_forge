@@ -64,6 +64,48 @@ local function fixture(): any
 end
 
 return {
+	["reads go through GetAsync and reuse a fresh directory; only mutations write"] = function()
+		-- p134 v22 D6: membership/read per heartbeat made the global "directory" key an
+		-- UpdateAsync every second on live servers.
+		local f = fixture()
+		local writes, reads = 0, 0
+		local reader: any = {}
+		function reader:UpdateAsync(key: string, transform: any): any
+			writes += 1
+			return f.service:UpdateAsync(key, transform)
+		end
+		function reader:GetAsync(key: string): any
+			reads += 1
+			return f.service:UpdateAsync(key, function(old: any): any
+				return old
+			end)
+		end
+		local clock = 0
+		local directory = Store.new({
+			dataStore = reader,
+			rules = { maxMembers = 50 },
+			maxBytes = 4000000,
+			readSeconds = 10,
+			encode = function(value: any): string
+				return serde.encode("json", value)
+			end,
+			fence = {
+				sessionId = "reader",
+				leaseSeconds = 120,
+				now = function(): number
+					return clock
+				end,
+			},
+		})
+		assert(directory.create("owner", "alpha").ok and writes == 1, "create writes once")
+		for second = 1, 120 do
+			clock = second
+			assert(directory.membership("owner") == "alpha", "membership")
+			assert(directory.read("clan:alpha"), "record")
+		end
+		assert(writes == 1, "reads never write: " .. writes)
+		assert(reads == 12, "one GetAsync per 10 s: " .. reads)
+	end,
 	["create commits an unleased clan record and retries without duplicate membership"] = function()
 		local f = fixture()
 		local directory = f.build("create")

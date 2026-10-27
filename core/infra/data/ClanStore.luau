@@ -8,7 +8,14 @@ local Clan = require("../../domain/settlement/Clan")
 local M = {}
 
 function M.new(config: any): any
-	local function transact(transform: any): (boolean, any)
+	-- Reads (membership, record lookups, browse) never write: a live UpdateAsync on this one
+	-- global key counts against the 1-write-per-6s per-key limit even when nothing changes, and
+	-- per-heartbeat snapshot reads flooded the DataStore queue (p134 v22 D6). With
+	-- config.readSeconds a read reuses the last directory this server read or committed for at
+	-- most that many seconds; every mutation still runs inside the CAS below.
+	local cached: any = nil
+	local cachedAt = 0
+	local function write(transform: any): (boolean, any)
 		return pcall(function(): any
 			return config.dataStore:UpdateAsync("directory", function(old: any): any
 				local state = if old then Data.clone(old) else { version = 1, records = {}, members = {} }
@@ -33,6 +40,30 @@ function M.new(config: any): any
 				return state
 			end)
 		end)
+	end
+	local function transact(transform: any): (boolean, any)
+		local ok, state = write(transform)
+		cached = if ok then Data.clone(state) else nil
+		cachedAt = config.fence.now()
+		return ok, state
+	end
+	local function readDirectory(): (boolean, any)
+		local now = config.fence.now()
+		if cached ~= nil and config.readSeconds and now - cachedAt < config.readSeconds then
+			return true, cached
+		end
+		if not config.dataStore.GetAsync then
+			return transact(function(_state: any) end)
+		end
+		local ok, state = pcall(function(): any
+			return config.dataStore:GetAsync("directory")
+		end)
+		if not ok then
+			cached = nil
+			return false, state
+		end
+		cached, cachedAt = if state then Data.clone(state) else { version = 1, records = {}, members = {} }, now
+		return true, cached
 	end
 	local backend = {
 		update = function(key: string, transform: any): (boolean, any)
@@ -77,14 +108,14 @@ function M.new(config: any): any
 		return if ok then outcome else { ok = false, reason = tostring(state) }
 	end
 	function api.membership(actor: string): (string?, string?)
-		local ok, state = transact(function(_state: any) end)
+		local ok, state = readDirectory()
 		if not ok then
 			return nil, tostring(state)
 		end
 		return state.members[actor], nil
 	end
 	function api.read(key: string): (any?, string?)
-		local ok, state = transact(function(_state: any) end)
+		local ok, state = readDirectory()
 		if not ok then
 			return nil, tostring(state)
 		end
@@ -94,7 +125,7 @@ function M.new(config: any): any
 	-- Browse page (name, member count, capacity, recruiting) over the same CAS directory, which
 	-- already indexes every clan; a listing only, never membership authority.
 	function api.browse(query: string, page: number, size: number): (any?, string?)
-		local ok, state = transact(function(_state: any) end)
+		local ok, state = readDirectory()
 		if not ok then
 			return nil, tostring(state)
 		end

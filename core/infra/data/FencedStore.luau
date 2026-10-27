@@ -19,6 +19,10 @@ export type Options = {
 	-- skipped. The confirmation contract (revision must advance on a real
 	-- candidate) stays intact because no candidate is built at all.
 	suppressIdentityUpdates: boolean?,
+	-- Runtime stores opt in: while this session holds a healthy lease (more than half left) on
+	-- the generation the caller holds, refresh serves the last record this process acknowledged
+	-- for the key instead of calling the backend. Only fenced writers may share such a key.
+	leasedReads: boolean?,
 }
 export type Profile = {
 	key: string,
@@ -83,6 +87,19 @@ local function validate(record: any): string?
 		return "invalid lease"
 	end
 	return nil
+end
+
+-- Last acknowledged record per key, shared by every Store over the same backend object so a
+-- commit through one Store is what another Store's read-through sees. Cleared on any failed or
+-- unconfirmed commit (an ambiguous ACK may have written), so it only ever holds a confirmed record.
+local memos: { [any]: { [string]: any } } = setmetatable({} :: any, { __mode = "k" })
+local function memoFor(backend: any): { [string]: any }
+	local memo = memos[backend]
+	if not memo then
+		memo = {}
+		memos[backend] = memo
+	end
+	return memo
 end
 
 local FencedStore = {}
@@ -220,9 +237,12 @@ function FencedStore._commit(
 		generation, revision = nextGeneration, nextRevision
 		return candidate
 	end)
+	local memo = memoFor(self._backend)
 	if not ok then
+		memo[key] = nil
 		return nil, if type(persisted) == "string" then persisted else "backend error"
 	end
+	memo[key] = if persisted ~= nil and validate(persisted) == nil then clone(persisted) else nil
 	if reason then
 		return nil, reason
 	end
@@ -233,6 +253,7 @@ function FencedStore._commit(
 		or persisted.generation ~= generation
 		or persisted.revision ~= revision
 	then
+		memo[key] = nil
 		return nil, "unconfirmed commit"
 	end
 	return {
@@ -277,6 +298,13 @@ function FencedStore.renew(self: Store, profile: Profile): (Profile?, string?)
 	then
 		return profile
 	end
+	-- With leasedReads a lease this process just acknowledged (acquire or any commit) is
+	-- already a confirmed fence: the first renew need not repeat the round-trip.
+	local leased = self:_leased(profile)
+	if leased then
+		leased.leaseRenewed = true
+		return leased, nil
+	end
 	local refreshed, err = self:_commit(profile.key, profile, function(data: Data): Data
 		return data
 	end, "renew")
@@ -285,13 +313,54 @@ function FencedStore.renew(self: Store, profile: Profile): (Profile?, string?)
 	end
 	return refreshed, err
 end
--- Read-through refresh for callers that need the current committed aggregate. The
--- backend read always happens, so an external commit is observed by the next call;
--- only the publish is skipped, and only while the lease is healthy. verify may
--- inspect the freshly read record but must not mutate it: a mutation would make the
--- content differ from the persisted record and force the identity write this path
--- exists to avoid.
+-- The confirmed record for a healthy lease this session holds on the caller's generation, or
+-- nil when the backend round-trip is required (leasedReads off, no record, or past half life).
+function FencedStore._leased(self: Store, profile: Profile): Profile?
+	local held = if self._opts.leasedReads then memoFor(self._backend)[profile.key] else nil
+	if
+		held == nil
+		or profile.sessionId ~= self._opts.sessionId
+		or held.generation ~= profile.generation
+		or held.lease == nil
+		or held.lease.sessionId ~= self._opts.sessionId
+	then
+		return nil
+	end
+	local now = self._opts.now()
+	if not integer(now, 0) or now + self._opts.leaseSeconds / 2 > held.lease.expiresAt then
+		return nil
+	end
+	return {
+		key = profile.key,
+		sessionId = self._opts.sessionId,
+		generation = held.generation,
+		data = clone(held.data),
+		leaseExpiresAt = held.lease.expiresAt,
+		leaseRenewed = profile.leaseRenewed,
+	}
+end
+-- Read-through refresh for callers that need the current committed aggregate. Without
+-- leasedReads the backend read always happens, so an external commit is observed by the
+-- next call; only the publish is skipped while the lease is healthy. With leasedReads,
+-- while this session holds a healthy lease (more than half left) on the generation the
+-- caller holds, no other writer can commit the key (every fenced commit by another session
+-- is refused), so the last record acknowledged through this backend IS the durable record
+-- and is served without a backend call. On a live DataStore every UpdateAsync counts
+-- against the 1-write-per-6s per-key limit, and snapshot callers refresh every heartbeat:
+-- reading through each time flooded the request queue (p134 v22 D6). Past half the lease,
+-- or with no confirmed record, the backend round-trip runs and renews the fence. verify may
+-- inspect the record but must not mutate it: a mutation forces the backend commit path.
 function FencedStore.refresh(self: Store, profile: Profile, verify: Transform?): (Profile?, string?)
+	local leased = self:_leased(profile)
+	if leased then
+		local data = leased.data
+		if verify then
+			verify(data)
+		end
+		if deepEqual(data, memoFor(self._backend)[profile.key].data) then
+			return leased, nil
+		end
+	end
 	return self:_commit(profile.key, profile, function(data: Data): Data
 		if verify then
 			verify(data)

@@ -261,6 +261,8 @@ local clanDirectory = require(Forge.core.infra.data.ClanStore).new({
 	messaging = runtimeServices.messagingService,
 	topic = "robango-clans-v1",
 	cacheSeconds = 60,
+	-- Reads use GetAsync and are reused for 10 s; only mutations run UpdateAsync (p134 v22 D6).
+	readSeconds = 10,
 	rules = content.clanPolicy,
 	maxBytes = 3900000,
 	encode = function(value)
@@ -269,6 +271,7 @@ local clanDirectory = require(Forge.core.infra.data.ClanStore).new({
 	fence = {
 		sessionId = "clans:" .. HttpService:GenerateGUID(false),
 		leaseSeconds = 120,
+		leasedReads = true,
 		now = function()
 			return math.floor(clock.now())
 		end,
@@ -280,6 +283,9 @@ local factory, err = require(script.Parent.SurvivalFactory)(content, source, vis
 	leaseSeconds = 120,
 	-- Heartbeat identity reads must not become durable writes (131 camp writes in 90 s starved transport).
 	suppressIdentityUpdates = true,
+	-- Live DataStores take about 1 write per key per 6 s and every UpdateAsync counts, so a
+	-- per-heartbeat read-through flooded the queue (p134 v22 D6): serve leased reads locally.
+	leasedReads = true,
 	now = function()
 		return math.floor(DateTime.now().UnixTimestampMillis / 1000)
 	end,
