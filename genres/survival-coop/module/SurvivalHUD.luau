@@ -1670,12 +1670,11 @@ function M.start(options: Options)
 			shellRow[index + 1] = token(id)
 		end
 		for _, item in shellButtons do
-			item.TextScaled, item.TextWrapped = true, true
-			fitText(item)
+			-- Fixed token text (HudShell.tokenText): TextScaled shrank two-word labels under 10 px.
+			item.TextScaled, item.TextWrapped = false, true
 		end
 		for _, item in pairs(shellRow) do
-			item.TextScaled, item.TextWrapped = true, true
-			fitText(item)
+			item.TextScaled, item.TextWrapped = false, true
 		end
 		local promptService = game:GetService("ProximityPromptService")
 		table.insert(
@@ -1740,7 +1739,7 @@ function M.start(options: Options)
 				if item and r then
 					shown[entry.id] = true
 					HudShell.put(item, r)
-					item.TextSize = HudShell.textSize("label", shellRegions.safeHeight)
+					item.TextSize = HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
 					local enabled = entry.enabled and policy ~= nil and model.pending == nil
 					item.Active, item.Interactable = enabled, enabled
 					HudShell.pebble(item, entry.slot == "P" and enabled, enabled)
@@ -1758,7 +1757,7 @@ function M.start(options: Options)
 		for index, item in pairs(shellRow) do
 			HudShell.put(item, shellRegions.rowSlots[index])
 			item.Visible = rowVisible
-			item.TextSize = HudShell.textSize("caption", shellRegions.safeHeight)
+			item.TextSize = HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
 			HudShell.pebble(item, false, true)
 		end
 	end

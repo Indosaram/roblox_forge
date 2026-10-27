@@ -87,7 +87,8 @@ return {
 	["regions match ui-spec section 5 at 1920x1080 PC"] = function()
 		local r = check(PC[1], PC[2], PC[3], PC[4])
 		near("vitals", physical(r.vitals, PC), { 20, 78, 450, 123 }, 2)
-		near("chips", physical(r.chips, PC), { 20, 216, 409, 72 }, 2)
+		assert(r.vitals.height >= Shell.VITALS_MIN_HEIGHT, "vitals holds its three bar rows")
+		assert(r.chips.y >= r.vitals.y + r.vitals.height and r.tracker.y >= r.chips.y + r.chips.height, "stacked")
 		near("minimap", physical(r.minimap, PC), { 1664, 78, 225, 225 }, 2)
 		near("coords", physical(r.coords, PC), { 1685, 308, 184, 41 }, 2)
 		near("quest", physical(r.quest, PC), { 1389, 365, 501, 123 }, 2)
@@ -114,11 +115,18 @@ return {
 	["regions match ui-spec section 5 at 2400x1080 phone"] = function()
 		local r = check(PHONE[1], PHONE[2], PHONE[3], PHONE[4])
 		-- Logical px round to whole numbers, so one logical px is 2.625 physical: slack 4.
-		near("vitals", physical(r.vitals, PHONE), { 103, 171, 408, 111 }, 4)
-		near("chips", physical(r.chips, PHONE), { 103, 296, 371, 65 }, 4)
+		-- The spec's 0.12H vitals rect (111 px tall here) cannot hold the three 24 px bar rows, which spilled
+		-- over the coin chip on the phone (staging v25): the panel keeps the spec's top-left corner and
+		-- width, grows to VITALS_MIN_HEIGHT, and the chips and tracker stack under it.
+		local v = physical(r.vitals, PHONE)
+		near("vitals corner", { v[1], v[2], v[3], 111 }, { 103, 171, 408, 111 }, 4)
+		assert(r.vitals.height >= Shell.VITALS_MIN_HEIGHT, "vitals holds its three bar rows")
+		assert(r.chips.y >= r.vitals.y + r.vitals.height, "chips under vitals")
 		near("minimap", physical(r.minimap, PHONE), { 2084, 171, 204, 204 }, 4)
 		near("coords", physical(r.coords, PHONE), { 2103, 380, 167, 37 }, 4)
-		near("quest", physical(r.quest, PHONE), { 1834, 431, 455, 111 }, 4)
+		-- Touch: the quest card moves left of the minimap (same top and height), clear of the cluster.
+		assert(r.quest.y == r.minimap.y and r.quest.x + r.quest.width < r.minimap.x, "quest beside the minimap")
+		assert(r.quest.y + r.quest.height < r.cluster.y, "quest above the cluster")
 		local row = physical(r.row, PHONE)
 		assert(row[1] >= 100 and row[1] + row[3] <= 579 and row[2] + row[4] <= 1064, "row inside the spec region")
 		-- Spec pt token sizes overlap on the spec radii at H=353: tokens shrink to the 44 px floor and
@@ -130,10 +138,24 @@ return {
 	end,
 
 	["regions fit and never overlap at smaller viewports"] = function()
-		local sizes: { { any } } =
-			{ { 1280, 720, 36, false }, { 1920, 1080, 0, false }, { 780, 390, 36, true }, { 640, 339, 36, true } }
+		local sizes: { { any } } = {
+			{ 1280, 720, 36, false },
+			{ 1920, 1080, 0, false },
+			{ 780, 390, 36, true },
+			{ 640, 339, 36, true },
+			-- SM-N981N in a CoreUISafeInsets gui (topClear 0 since staging v25's double-inset fix).
+			{ 800, 360, 0, true },
+			{ 850, 411, 0, true },
+		}
 		for _, size in sizes do
-			check(size[1], size[2], size[3], size[4])
+			local r = check(size[1], size[2], size[3], size[4])
+			if size[4] then
+				-- Touch tokens keep EDGE off the screen's bottom and right edges (rounded corners).
+				local c = r.cluster
+				local margin = math.floor(Shell.EDGE * r.safeHeight)
+				assert(c.x + c.width <= size[1] - margin and c.y + c.height <= size[2] - margin, "cluster edge margin")
+				assert(Shell.tokenText("label", r.safeHeight, true) >= 13, "touch token text")
+			end
 		end
 	end,
 

@@ -74,6 +74,10 @@ M.SLOTS = table.freeze({
 })
 M.SLOT_ORDER = table.freeze({ "P", "I1", "I2", "I3", "O1", "O2", "X" })
 M.ARC_GAP = 2
+-- Touch screens keep tokens this fraction of the safe height off the bottom and side edges: on the
+-- phone the arc hugged the edge and the 회피 token's rim ran past the rounded screen corner (v25).
+M.EDGE = 0.03
+M.VITALS_MIN_HEIGHT = 78
 
 local function rect(x: number, y: number, width: number, height: number): Rect
 	return {
@@ -111,14 +115,15 @@ function M.cluster(width: number, height: number, topClear: number?, touch: bool
 				size = math.max(M.MIN_TOUCH, math.floor(size * shrink + 0.5))
 			end
 			local radius, angle = spec[1] * k * h, math.rad(spec[2])
-			local cx, cy = width - radius * math.cos(angle), top + h - radius * math.sin(angle)
+			local edge = if touch then M.EDGE * h else 0
+			local cx, cy = width - edge - radius * math.cos(angle), top + h - edge - radius * math.sin(angle)
 			local tall = size * M.PEBBLE.aspect
 			if touch then
 				tall = math.max(M.MIN_TOUCH, tall)
 			end
 			-- Keep the whole token inside the safe corner (10 and 80 degree slots sit near the edges).
-			cx = math.min(cx, width - size / 2 - M.ARC_GAP)
-			cy = math.min(cy, top + h - tall / 2 - M.ARC_GAP)
+			cx = math.min(cx, width - edge - size / 2 - M.ARC_GAP)
+			cy = math.min(cy, top + h - edge - tall / 2 - M.ARC_GAP)
 			out[slot] = rect(cx - size / 2, cy - tall / 2, size, tall)
 		end
 		for i, a in M.SLOT_ORDER do
@@ -175,21 +180,38 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 	local function tc(x0: number, x1: number, y0: number, y1: number): Rect
 		return rect(width / 2 + x0 * h, top + y0 * h, (x1 - x0) * h, (y1 - y0) * h)
 	end
+	-- The vitals panel holds three bar rows (SurvivalHUDModel.VITALS: 24 px steps, 26 px rows), so it
+	-- never gets shorter than VITALS_MIN_HEIGHT; chips and tracker stack under it. On a phone the
+	-- spec's 0.12H panel is 42 px and the rows spilled out of it over the coin chip (staging v25).
 	local vitals = tl(0.02, 0.46, 0.02, 0.14)
-	local chips = tl(0.02, 0.42, 0.155, 0.225)
-	local tracker = tl(0.02, 0.42, 0.24, 0.40)
+	vitals.height = math.max(vitals.height, M.VITALS_MIN_HEIGHT)
+	local chips = rect(vitals.x, vitals.y + vitals.height + 0.015 * h, 0.40 * h, 0.07 * h)
+	local tracker = rect(vitals.x, chips.y + chips.height + 0.015 * h, 0.40 * h, 0.16 * h)
 	local minimap = tr(0.03, 0.25, 0.02, 0.24)
 	local coords = tr(0.05, 0.23, 0.245, 0.285)
-	local quest = tr(0.03, 0.52, 0.30, 0.42)
 	local status = tc(-0.4, 0.4, 0.16, 0.26)
+	local quest = tr(0.03, 0.52, 0.30, 0.42)
+	-- A wide touch screen has room left of the minimap: the quest card sits there at the minimap's
+	-- height (about five lines) instead of between the minimap and the action cluster, where its
+	-- wrapped text ran into the top token on the phone (staging v25).
+	local side = rect(minimap.x - 0.02 * h - 0.48 * h, minimap.y, 0.48 * h, minimap.height)
+	if touch and side.x >= status.x + status.width + 0.02 * h then
+		quest = side
+	end
 	-- Bottom-left row: S tokens bottom-aligned at 0.98H, starting 0.02H from the left edge.
 	local size = M.tokenSize("S", h, touch == true)
 	local gap = math.max(8, 0.03 * h)
 	local rowSlots = {}
+	local edge = if touch then M.EDGE * h else 0
 	for index = 1, 3 do
-		rowSlots[index] = rect(0.02 * h + (index - 1) * (size + gap), top + 0.98 * h - size, size, size)
+		rowSlots[index] = rect(0.02 * h + edge + (index - 1) * (size + gap), top + 0.98 * h - size - edge, size, size)
 	end
 	local tokens, k = M.cluster(width, height, top, touch)
+	local cluster = bounds(tokens)
+	if quest.y + quest.height > cluster.y - 2 and quest.x + quest.width > cluster.x then
+		-- Narrow phones: the quest card ends above the action cluster instead of running into it.
+		quest.height = math.max(0.06 * h, cluster.y - 2 - quest.y)
+	end
 	return {
 		safeHeight = h,
 		arcScale = k,
@@ -202,7 +224,7 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		status = status,
 		row = bounds(rowSlots),
 		rowSlots = rowSlots,
-		cluster = bounds(tokens),
+		cluster = cluster,
 		tokens = tokens,
 	}
 end
@@ -373,11 +395,24 @@ function M.put(item: any, r: Rect, origin: any?)
 	item.Size = UDim2.fromOffset(r.width, r.height)
 end
 
---- Top-bar clearance for a CoreUISafeInsets ScreenGui.
+--- Top-bar clearance for a ScreenGui. A CoreUISafeInsets gui already starts below the top bar, and
+--- its AbsolutePosition still reads 0, so subtracting TopbarInset again pushed the whole shell down by
+--- the bar height and shrank the safe height to ~295 px on the phone (staging v25: vitals overflow,
+--- banner mid-screen, tiny menu label, the cluster cut at the bottom edge).
 function M.guiClear(gui: any): number
+	if Enum and gui.ScreenInsets == Enum.ScreenInsets.CoreUISafeInsets then
+		return 0
+	end
 	-- Headless spec engines have no TopbarInset; there is no top bar to clear then.
 	local inset = game:GetService("GuiService").TopbarInset
 	return if inset then M.topClear(inset.Max.Y, gui.AbsolutePosition.Y) else 0
+end
+
+--- Token caption size: the spec type scale, but never under 13 px on a touch screen (the 10 px
+--- caption on the phone row read as unreadable, staging v25).
+function M.tokenText(style: string, safeHeight: number, touch: boolean): number
+	local size = M.textSize(style, safeHeight)
+	return if touch then math.max(13, size) else size
 end
 
 export type OverlayOptions = {

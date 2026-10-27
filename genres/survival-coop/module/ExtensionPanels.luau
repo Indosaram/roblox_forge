@@ -557,7 +557,7 @@ function M.start(
 				column.Position, column.Size =
 					UDim2.fromOffset(slot.x, slot.y), UDim2.fromOffset(slot.width, slot.height)
 				set(menuToggle, "Size", UDim2.fromScale(1, 1))
-				set(menuToggle, "TextSize", HudShell.textSize("caption", regions.safeHeight))
+				set(menuToggle, "TextSize", HudShell.tokenText("label", regions.safeHeight, input.TouchEnabled))
 			end
 			set(menuList, "Parent", dockGui)
 			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
