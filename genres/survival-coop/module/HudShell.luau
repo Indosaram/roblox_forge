@@ -440,6 +440,42 @@ function M.collect(world: any, tags: any): { { any } }
 end
 
 --- Minimap + XY readout (in options.gui), world labels and the player ring. Returns a destroyer.
+-- HUD ScreenGuis that never count as a full sheet.
+M.HUD_GUIS = table.freeze({ ForgeSurvivalHUD = true, ForgePanelDock = true, ForgePlacementHUD = true })
+
+-- True when another ScreenGui shows a full sheet (Components.modalSheet shape: a visible Frame
+-- with Header > Close, directly or one level under the gui). Catches sheets the dock does not
+-- own, e.g. the survivor picker, so the HUD regions hide instead of drawing over them.
+function M.sheetOpen(playerGui: any): boolean
+	if not playerGui then
+		return false
+	end
+	local function sheet(item: any): boolean
+		if item.ClassName ~= "Frame" or not item.Visible then
+			return false
+		end
+		local header = item:FindFirstChild("Header")
+		return header ~= nil and header:FindFirstChild("Close") ~= nil
+	end
+	for _, gui in playerGui:GetChildren() do
+		if gui.ClassName == "ScreenGui" and gui.Enabled and not M.HUD_GUIS[gui.Name] then
+			for _, child in gui:GetChildren() do
+				if sheet(child) then
+					return true
+				end
+				if child.ClassName == "Frame" and child.Visible then
+					for _, inner in child:GetChildren() do
+						if sheet(inner) then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
 function M.startOverlays(options: OverlayOptions): () -> ()
 	local players = game:GetService("Players")
 	local tags = game:GetService("CollectionService")

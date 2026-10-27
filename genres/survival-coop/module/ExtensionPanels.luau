@@ -586,8 +586,13 @@ function M.start(
 			for _, entry in entries do
 				open = open or entry.isOpen()
 			end
-			column.Visible = not open and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
-			objectiveSlot.Visible = objectiveSlot.Visible and not open
+			-- Shell: a sheet the dock does not own (e.g. the survivor picker) also hides the menu token and
+			-- the quest card, so neither draws over its header.
+			local foreign = shell and HudShell.sheetOpen(players.LocalPlayer:FindFirstChild("PlayerGui"))
+			column.Visible = not open
+				and not foreign
+				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
+			objectiveSlot.Visible = objectiveSlot.Visible and not open and not foreign
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
 			local sx, sy, sw, sh = HUDModel.contextSheet(size.X, size.Y, input.TouchEnabled)
 			for _, frame in sheets do

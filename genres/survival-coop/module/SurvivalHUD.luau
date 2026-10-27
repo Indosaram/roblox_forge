@@ -1693,7 +1693,9 @@ function M.start(options: Options)
 		stopOverlays = HudShell.startOverlays({
 			gui = gui,
 			hidden = function(): boolean
-				return sheet.frame.Visible or player:GetAttribute("ForgeExtensionSheetOpen") == true
+				return sheet.frame.Visible
+					or player:GetAttribute("ForgeExtensionSheetOpen") == true
+					or HudShell.sheetOpen(player:FindFirstChild("PlayerGui"))
 			end,
 			name = shellOptions.name,
 			coordsText = function(px: number, pz: number): string
@@ -1752,7 +1754,7 @@ function M.start(options: Options)
 			item.Visible = shown[id] == true
 		end
 		restButton.Visible = false
-		local rowVisible = not sheet.frame.Visible and player:GetAttribute("ForgeExtensionSheetOpen") ~= true
+		local rowVisible = not modal
 		for index, item in pairs(shellRow) do
 			HudShell.put(item, shellRegions.rowSlots[index])
 			item.Visible = rowVisible
@@ -1966,7 +1968,9 @@ function M.start(options: Options)
 			attackButton.Visible = model.durable ~= nil
 				and table.find(model.durable.actions, "survival-coop:attack") ~= nil
 			if contextual then
-				local modal = sheet.frame.Visible or player:GetAttribute("ForgeExtensionSheetOpen") == true
+				local modal = sheet.frame.Visible
+					or player:GetAttribute("ForgeExtensionSheetOpen") == true
+					or (shell ~= nil and HudShell.sheetOpen(player:FindFirstChild("PlayerGui")))
 				vitals.Visible = not modal and model.snapshot.vitals ~= nil
 				local balance = tonumber(model.snapshot.balance)
 				coins.Visible, coins.Text = not modal and balance ~= nil, string.format(t("coins"), balance or 0)

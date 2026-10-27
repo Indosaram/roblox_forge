@@ -196,4 +196,39 @@ return {
 		assert(cx == 12 and cz == -8, "rounded")
 		assert(Shell.topClear(58, 0) == 58 and Shell.topClear(58, 58) == 0, "topClear in gui space")
 	end,
+	["a foreign full sheet hides the HUD; HUD guis and hidden sheets do not"] = function()
+		local function node(class: string, name: string, props: any?, children: { any }?): any
+			local item: any = if props then props else {}
+			item.ClassName, item.Name = class, name
+			local list: { any } = if children then children else {}
+			function item.GetChildren()
+				return list
+			end
+			function item.FindFirstChild(_self, wanted: string)
+				for _, child in list do
+					if child.Name == wanted then
+						return child
+					end
+				end
+				return nil
+			end
+			return item
+		end
+		local function picker(enabled: boolean, visible: boolean): any
+			local header = node("Frame", "Header", nil, { node("TextButton", "Close") })
+			local frame = node("Frame", "SurvivorPicker", { Visible = visible }, { header })
+			return node("ScreenGui", "ForgeSurvivorPicker", { Enabled = enabled }, { frame })
+		end
+		local function hudSheet(): any
+			local header = node("Frame", "Header", nil, { node("TextButton", "Close") })
+			local frame = node("Frame", "SurvivalSheet", { Visible = true }, { header })
+			local root = node("Frame", "Root", { Visible = true }, { frame })
+			return node("ScreenGui", "ForgeSurvivalHUD", { Enabled = true }, { root })
+		end
+		assert(Shell.sheetOpen(node("PlayerGui", "PlayerGui", nil, { picker(true, true) })), "open picker")
+		assert(not Shell.sheetOpen(node("PlayerGui", "PlayerGui", nil, { picker(false, true) })), "disabled gui")
+		assert(not Shell.sheetOpen(node("PlayerGui", "PlayerGui", nil, { picker(true, false) })), "hidden sheet")
+		assert(not Shell.sheetOpen(node("PlayerGui", "PlayerGui", nil, { hudSheet() })), "own HUD sheet")
+		assert(not Shell.sheetOpen(nil), "no PlayerGui")
+	end,
 }
