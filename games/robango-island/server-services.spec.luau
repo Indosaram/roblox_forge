@@ -305,6 +305,7 @@ return {
 			SurvivalProvisionConfig = require("./src/server/SurvivalProvisionConfig"),
 			GenreHooks = require("./src/server/GenreHooks"),
 			StudioSetup = require("./src/server/StudioSetup"),
+			SocialPresence = require("./src/server/SocialPresence"),
 			SurvivalWorldBootstrap = function()
 				return world
 			end,

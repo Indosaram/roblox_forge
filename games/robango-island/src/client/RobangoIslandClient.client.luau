@@ -164,6 +164,19 @@ local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(co
 local shellPanels: any = nil
 local entryText = PackText.lookup(packRows, "")
 local WildlifeNames = require(Forge.genres["survival-coop"].module.WildlifeNames)
+-- G22: live player counts per destination role, published by the server's SocialPresence.
+local populationText, population = nil, nil
+local function populationCounts(): { [string]: number }?
+	local text = workspace:GetAttribute("ForgePopulation")
+	if text ~= populationText then
+		populationText = text
+		local ok, decoded = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(text)
+		end)
+		population = if type(text) == "string" and ok and type(decoded) == "table" then decoded else nil
+	end
+	return population
+end
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
@@ -175,6 +188,8 @@ local hud = SurvivalHUD.start({
 				return WildlifeNames.name(locale, key)
 			elseif kind == "drop" then
 				return require(Forge.genres["survival-coop"].module.SurvivalHUDLocale).text(locale, "shell.lost")
+			elseif kind == "dock" then
+				return WorldText.population(locale, key, populationCounts())
 			end
 			return names[key]
 		end,

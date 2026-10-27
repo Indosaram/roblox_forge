@@ -1067,6 +1067,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		prompt.Name = "ForgeDock"
 		WorldText.bind(prompt, "travel", destination)
 		prompt:SetAttribute("ForgeDestination", destination)
+		-- G22: the dock part names its destination so the HUD labels it with the live population.
+		target:SetAttribute("ForgeDestination", destination)
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, true, target
 		prompt.Triggered:Connect(function(player)
 			local actor = tostring(player.UserId)

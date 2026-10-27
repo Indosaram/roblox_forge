@@ -51,11 +51,19 @@ local strings: { [string]: { string } } = {
 	["visitor-portal"] = { "Home portal", "개인 섬 이동문" },
 	["rescue-beacon"] = { "Rescue beacon", "구조 신호기" },
 	["station.signal-relay.t1"] = { "Signal relay", "신호 중계기" },
+	population = { "%s · %d here", "%s · 지금 %d명" },
 }
 M.strings = strings
 function M.text(locale: string, key: string): string
 	local entry = strings[key] or strings.guide
 	return entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1]
+end
+--- Dock / departure post label (G22): the destination name plus the live player count from the
+--- server's ForgePopulation counts ({ [role] = players }). Unknown counts show the name only.
+function M.population(locale: string, destination: string, counts: { [string]: number }?): string
+	local name = M.text(locale, destination)
+	local players = if counts then counts[destination] else nil
+	return if type(players) == "number" then string.format(M.text(locale, "population"), name, players) else name
 end
 function M.bind(prompt: any, action: string, object: string?)
 	prompt:SetAttribute("ForgeActionKey", action)

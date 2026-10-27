@@ -228,6 +228,9 @@
       "StudioSetup": {
         "$path": "src/server/StudioSetup.luau"
       },
+      "SocialPresence": {
+        "$path": "src/server/SocialPresence.luau"
+      },
       "SurvivalWorldBootstrap": {
         "$path": "src/server/SurvivalWorldBootstrap.luau"
       }

@@ -425,13 +425,27 @@ function M.tokenText(style: string, safeHeight: number, touch: boolean): number
 	return if touch then math.max(13, size) else size
 end
 
+--- Player name tag text sizes (spec section 5 player ring: name `label`, clan tag `caption`). On a
+--- touch screen the name keeps one px over the 13 px floor so it still reads above the clan tag.
+function M.nameTag(safeHeight: number, touch: boolean): { name: number, tribe: number, width: number, height: number }
+	local tribe = M.tokenText("caption", safeHeight, touch)
+	local name = math.max(M.tokenText("label", safeHeight, touch), tribe + 1)
+	return { name = name, tribe = tribe, width = name * 16, height = name + tribe + 6 }
+end
+
+--- A dock or departure post part a pack marked with its destination role (world label kind "dock").
+M.DESTINATION_ATTRIBUTE = "ForgeDestination"
+
 export type OverlayOptions = {
 	gui: any,
 	hidden: () -> boolean,
 	-- Localized label text for a world entity of `kind` keyed by `key`, or nil to skip it.
 	name: (string, string) -> string?,
 	coordsText: (number, number) -> string,
+	-- Own clan tag text ("" hides the line).
 	tribe: () -> string,
+	-- Another player's clan tag text, or nil/"" for none. Optional: without it others show their name only.
+	tribeOf: ((any) -> string?)?,
 }
 
 -- Tags a pack/server sets on a ground drop or a deployed pet so it gets a label.
@@ -469,8 +483,11 @@ function M.collect(world: any, tags: any): { { any } }
 	end
 	for _, item in world:GetDescendants() do
 		local facility = item:GetAttribute("ForgeHarborFacility")
+		local destination = item:GetAttribute(M.DESTINATION_ATTRIBUTE)
 		if type(facility) == "string" and string.sub(facility, 1, 4) == "npc." then
 			table.insert(out, { item, "npc", facility })
+		elseif type(destination) == "string" and item:IsA("BasePart") then
+			table.insert(out, { item, "dock", destination })
 		elseif item:IsA("Model") and item.Name == "ForgeMount" then
 			table.insert(out, { item, "pet", item:GetAttribute("ForgeMountSpecies") })
 		end
@@ -598,6 +615,8 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 	-- other players get a 30% ring and their name only. Handle adornments are client-only.
 	local ringFolder = Instance.new("Folder")
 	ringFolder.Name, ringFolder.Parent = "ForgePlayerRings", labelFolder
+	local touch = game:GetService("UserInputService").TouchEnabled
+	local tagSize = M.nameTag(360, touch)
 	local rings: { [any]: any } = {}
 	local function ringFor(owner: any): any
 		local entry = rings[owner]
@@ -626,14 +645,14 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		tag.Parent = ringFolder
 		local nameLine = Instance.new("TextLabel")
 		nameLine.Name, nameLine.BackgroundTransparency, nameLine.Size = "Name", 1, UDim2.new(1, 0, 0, 22)
-		nameLine.TextColor3, nameLine.Font, nameLine.TextSize = color(P.bone), Enum.Font.BuilderSansBold, 16
+		nameLine.TextColor3, nameLine.Font, nameLine.TextSize = color(P.bone), Enum.Font.BuilderSansMedium, 16
 		nameLine.TextStrokeTransparency, nameLine.Parent = 0.4, tag
 		local tribeLine = Instance.new("TextLabel")
 		tribeLine.Name, tribeLine.BackgroundTransparency = "Tribe", 1
 		tribeLine.Position, tribeLine.Size = UDim2.fromOffset(0, 22), UDim2.new(1, 0, 0, 16)
 		tribeLine.TextColor3, tribeLine.Font, tribeLine.TextSize = color(P.tealPale), Enum.Font.BuilderSans, 13
-		tribeLine.TextStrokeTransparency, tribeLine.Visible, tribeLine.Parent = 0.5, own, tag
-		entry = { ring = ring, fan = fan, tag = tag, name = nameLine, tribe = tribeLine }
+		tribeLine.TextStrokeTransparency, tribeLine.Visible, tribeLine.Parent = 0.5, false, tag
+		entry = { ring = ring, fan = fan, tag = tag, name = nameLine, tribe = tribeLine, sized = 0 }
 		rings[owner] = entry
 		return entry
 	end
@@ -680,8 +699,20 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					end
 					entry.tag.StudsOffsetWorldSpace = Vector3.new(0, down - 1.1, 0)
 					entry.name.Text = owner.DisplayName
-					if owner == player then
-						entry.tribe.Text = options.tribe()
+					-- G22: every tag carries the clan line (own: "No clan" too; others: only when in one).
+					local tribe = if owner == player
+						then options.tribe()
+						elseif options.tribeOf then options.tribeOf(owner) or ""
+						else ""
+					entry.tribe.Text, entry.tribe.Visible = tribe, tribe ~= ""
+					if entry.sized ~= tagSize.name then
+						entry.sized = tagSize.name
+						entry.tag.Size = UDim2.fromOffset(tagSize.width, tagSize.height)
+						entry.name.Size = UDim2.new(1, 0, 0, tagSize.name + 4)
+						entry.name.TextSize = tagSize.name
+						entry.tribe.Position = UDim2.fromOffset(0, tagSize.name + 4)
+						entry.tribe.Size = UDim2.new(1, 0, 0, tagSize.tribe + 2)
+						entry.tribe.TextSize = tagSize.tribe
 					end
 				end
 			end
@@ -701,6 +732,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			M.put(map, regions.minimap)
 			M.put(coords, regions.coords)
 			coords.TextSize = M.textSize("caption", regions.safeHeight)
+			tagSize = M.nameTag(regions.safeHeight, touch)
 			local hidden = options.hidden()
 			map.Visible, coords.Visible = not hidden, not hidden
 			local character = player.Character

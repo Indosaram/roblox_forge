@@ -685,3 +685,62 @@ if opening then
 		openingTick:Disconnect()
 	end)
 end
+
+-- G22 social presence: live per-island population (MemoryStore) and clan tags over heads.
+local presence = require(script.Parent.SocialPresence).start({
+	map = runtimeServices.memoryStoreService:GetSortedMap(require(script.Parent.SocialPresence).MAP),
+	enum = Enum,
+	players = Players,
+	workspace = workspace,
+	role = worldRole,
+	route = if source.expedition then tonumber(source.expedition.index) else nil,
+	jobId = if game.JobId ~= "" then game.JobId else "studio",
+	encode = function(value)
+		return HttpService:JSONEncode(value)
+	end,
+	log = function(message)
+		warn(message)
+	end,
+	membership = function(actor)
+		return (clanDirectory.membership(actor))
+	end,
+	filter = function(text, userId)
+		return game:GetService("TextService")
+			:FilterStringAsync(text, userId, Enum.TextFilterContext.PublicChat)
+			:GetNonChatStringForBroadcastAsync()
+	end,
+	every = function(seconds: number, fn: () -> ())
+		-- Heartbeat accumulator like the trade worker: one tick at a time, the first right away.
+		local running, elapsed = false, seconds
+		local connection = RunService.Heartbeat:Connect(function(delta)
+			elapsed += delta
+			if running or elapsed < seconds then
+				return
+			end
+			running, elapsed = true, 0
+			task.spawn(function()
+				local ok: boolean, failure: any = pcall(fn)
+				running = false
+				if not ok then
+					warn("PRESENCE_TICK:" .. tostring(failure))
+				end
+			end)
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end,
+})
+Players.PlayerAdded:Connect(function(player)
+	presence.publish()
+	presence.tagPlayer(player)
+end)
+Players.PlayerRemoving:Connect(function()
+	task.defer(presence.publish)
+end)
+game:BindToClose(presence.stop)
+-- Route cards read the summed population of each archipelago route (ExpeditionExtension).
+visitWorld.population = function(listing: string): number?
+	local counts = presence.counts
+	return if counts then counts[listing] or 0 else nil
+end

@@ -1723,6 +1723,13 @@ function M.start(options: Options)
 					then string.format(t("shell.tribe"), clan.clanId)
 					else t("shell.no_tribe")
 			end,
+			-- Other players' clan: the server's ForgeClan player attribute (G22); none shows the name only.
+			tribeOf = function(other: Player): string?
+				local clanId = other:GetAttribute("ForgeClan")
+				return if type(clanId) == "string" and clanId ~= ""
+					then string.format(t("shell.tribe"), clanId)
+					else nil
+			end,
 		})
 	end
 	-- Shows the tokens for the current context at their tide-arc slots; hides the rest.

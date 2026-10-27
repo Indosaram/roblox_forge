@@ -43,6 +43,10 @@ function M.routes(
 			items,
 			label(
 				Text.text(locale, "exp_route_cap", card.capacity, Text.duration(card.expiresAt - state.now))
+					-- G22: live players on this route's islands, when the server reports it.
+					.. (if type(card.population) == "number"
+						then " · " .. Text.text(locale, "exp_route_population", card.population)
+						else "")
 					.. if card.ok or gated then "" else " - " .. Text.reason(locale, card.reason),
 				if gated then LINE else BODY
 			)

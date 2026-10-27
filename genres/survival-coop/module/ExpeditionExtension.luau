@@ -11,6 +11,17 @@ local M = {}
 
 M.ACTION = "survival-coop:party-action"
 M.TTL = 1800
+
+--- Route cards with `population` (players on that route's islands now) when the pack supplies a
+--- live count port (env.population("archipelago.<route>") -> number?). Optional, display only.
+function M.withPopulation(cards: { any }, population: ((string) -> number?)?): { any }
+	if population then
+		for _, card in cards do
+			card.population = population("archipelago." .. tostring(card.route))
+		end
+	end
+	return cards
+end
 local VERBS = {
 	invite = true,
 	accept = true,
@@ -453,7 +464,7 @@ function M.new(env: any): any
 				party = view,
 				routeShare = if document then document.routeShare else nil,
 				routeInvites = routeInvites(actor, document),
-				routes = Party.routes(env.content, env.facts(actor), now, ttl),
+				routes = M.withPopulation(Party.routes(env.content, env.facts(actor), now, ttl), env.population),
 				-- The player's own level and island grade, so a locked route can say what is missing.
 				facts = env.facts(actor),
 				results = results,

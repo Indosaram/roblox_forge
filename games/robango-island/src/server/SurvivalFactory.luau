@@ -720,6 +720,10 @@ return function(content: any, source, world, backend, clock, options, provision,
 			onExpedition = function()
 				return workspace:GetAttribute("ForgeWorldRole") == "archipelago"
 			end,
+			-- G22: live player count per route (SocialPresence via the server's world.population).
+			population = function(listing)
+				return if world.population then world.population(listing) else nil
+			end,
 			personal = personalData,
 			worn = function(actor)
 				local spatial = world.services.survivalDeath
