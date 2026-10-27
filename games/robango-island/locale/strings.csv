@@ -2897,3 +2897,7 @@ opening.beacon.confirm,Board the Gannet? Destination: your island,opening beat 7
 opening.beacon.yes,Board,opening beat 7 departure button,Board,승선
 opening.beacon.no,Not yet,opening beat 7 departure button,Not yet,아직
 opening.beacon.farewell,Every tide moves the shorelines. Keep your own chart.,opening beat 7 Marit line,Every tide moves the shorelines. Keep your own chart.,물때마다 물가가 바뀌어. 해도는 네 손으로 그려.
+opening.prompt.pull,Pull,opening beat 1 stake prompt,Pull,뽑기
+opening.prompt.light,Light,opening beat 7 beacon prompt,Light,켜기
+opening.prompt.beacon,Mirror beacon,opening beat 7 beacon label,Mirror beacon,거울 봉화
+opening.prompt.boat,Gannet,opening beat 7 boat label,Gannet,가넷호

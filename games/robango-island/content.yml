@@ -4816,6 +4816,8 @@ wildlife:
   -
     id: "parasaurolophus"
     behavior: "hunter"
+    # C1: the ford herd only fights back (matches wildlifeDetails behaviour: retaliate).
+    flag: "retaliate"
     warnStuds: 18
     attackStuds: 6
     leashStuds: 48
@@ -24735,15 +24737,16 @@ layouts:
     # here and in the Studio preview projection; grazers (dodo, turtle) stay near camp.
     spawns:
       -
+        # C1 beat 5: a dodo trio on the beach edge, the first wildlife in view (placeholder until A3).
         id: "rw.onboarding.dodo.01"
         speciesId: "dodo"
         level: 10
         position:
-          x: -12
+          x: -4
           y: 2
-          z: 60
-        count: 1
-        radius: 8
+          z: 38
+        count: 3
+        radius: 6
       -
         id: "rw.onboarding.protoceratops.01"
         speciesId: "protoceratops"
@@ -24755,14 +24758,15 @@ layouts:
         count: 4
         radius: 8
       -
+        # C1 beat 5: the parasaurolophus herd wading at opening.ford (placeholder until A3).
         id: "rw.onboarding.parasaurolophus.01"
         speciesId: "parasaurolophus"
         level: 10
         position:
-          x: 60
+          x: 14
           y: 2
-          z: -72
-        count: 1
+          z: 8
+        count: 4
         radius: 8
       -
         id: "rw.onboarding.turtle.01"

@@ -148,6 +148,14 @@ local SurvivalHUD = require(Forge.genres["survival-coop"].module.SurvivalHUD)
 local content = require(Shared.SurvivalContent)
 local worldConfig = require(Shared.SurvivalWorldConfig)
 local origin = worldConfig.tribe.origin
+-- C1: the onboarding camp plot sits at the ridge camp anchor; the server publishes it.
+local roleRoot = if workspace:GetAttribute("ForgeWorldRole") == "onboarding"
+	then workspace:WaitForChild("ForgeRoleWorld", 10)
+	else nil
+local campOrigin = if roleRoot then roleRoot:GetAttribute("ForgeCampOrigin") else nil
+if typeof(campOrigin) == "Vector3" then
+	origin = { x = campOrigin.X, y = campOrigin.Y, z = campOrigin.Z }
+end
 gui.Enabled = false
 -- One icon catalog for every screen: ItemIcons.new walks the whole item and recipe catalog.
 local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
@@ -833,6 +841,19 @@ for _, factory in require(Forge.genres["survival-coop"].module.CharacterPanels).
 	end)
 end
 local aerial: any = nil
+local camera: any = nil
+-- C1 opening beats (cold open, stakes/boar/Tumble, mirror, herd hint, beacon/Gannet, tracker).
+table.insert(panelFactories, function(ctx)
+	local scoped: any = table.clone(ctx)
+	scoped.content = content
+	scoped.text = function(key: string): string
+		return require(Forge.genres["survival-coop"].module.PackLocale).get(locale, key) or key
+	end
+	scoped.quarterView = function()
+		return camera
+	end
+	return require(Shared.OpeningClient).factory(scoped)
+end)
 -- Social / home / trade sheets (ui.home-permissions, ui.home-move, ui.siege-*, ui.transaction,
 -- ui.direct-trade, ui.dialogue). Each screen is its own module; this only supplies ports.
 table.insert(panelFactories, function(ctx)
@@ -966,7 +987,7 @@ script.Destroying:Connect(panels.destroy)
 
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
 -- A1: character 6% of the short axis (pinch 3-15%), fixed yaw on touch.
-local camera = QuarterView.start({
+camera = QuarterView.start({
 	yaw = if workspace:GetAttribute("ForgeWorldBiome") == "volcano" then -90 else 45,
 	pitch = 57,
 	fieldOfView = 30,

@@ -588,3 +588,100 @@ if routing.travel then
 	travel.OnInvoke = routing.travel
 	travel.Parent = ServerStorage
 end
+-- C1 opening (onboarding role): server-owned beat steps. Boarding the Gannet resolves the
+-- existing onboarding -> home transfer on the server; the client only sends checked intents.
+local opening: any = (world :: any).opening
+if opening then
+	local AnalyticsService = game:GetService("AnalyticsService")
+	local contracts: any = nil
+	for _, extension in (factory.services.survivalExtensions or {}) :: { any } do
+		contracts = if extension.id == "contracts" then extension else contracts
+	end
+	local function data(actor: string): any
+		local port = session.personalTransfer(actor)
+		return if port then port.profile().data.envelope.genres["survival-coop"].data else nil
+	end
+	local function rootOf(actor: string): BasePart?
+		local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
+		local root = player and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		return if root and root:IsA("BasePart") then root else nil
+	end
+	opening.bind({
+		tutorial = function(actor)
+			local view = if contracts then contracts.snapshot(actor) else nil
+			local tutorial = if type(view) == "table" then view.tutorial else nil
+			return if type(tutorial) == "table" then tutorial.index else nil,
+				type(tutorial) == "table" and tutorial.complete == true
+		end,
+		items = function(actor): { [string]: number }?
+			local state = data(actor)
+			if not state or not state.inventory then
+				return nil
+			end
+			local totals: { [string]: number } = {}
+			for _, item: any in state.inventory.bag.items do
+				totals[item.catalogId] = (totals[item.catalogId] or 0) + item.quantity
+			end
+			return totals
+		end,
+		dodgeAt = function(actor)
+			local state = data(actor)
+			local defense = state and state.combat and state.combat.defense
+			return if defense then defense.dodgeStart else nil
+		end,
+		position = function(actor)
+			local root = rootOf(actor)
+			return if root then root.Position else nil
+		end,
+		near = function(actor, part)
+			return world.nearPart(actor, part)
+		end,
+		store = (factory :: any).expeditionStore,
+		analytics = function(actor: string, step: string, index: number, beat: number)
+			print("ForgeOpening " .. actor .. " opening_step " .. step)
+			local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
+			if player then
+				pcall(function()
+					AnalyticsService:LogCustomEvent(player, "opening_step", index, {
+						[Enum.AnalyticsCustomFieldKeys.CustomField01.Name] = step,
+						[Enum.AnalyticsCustomFieldKeys.CustomField02.Name] = "beat " .. beat,
+					})
+				end)
+			end
+		end,
+		travel = function(actor)
+			local player = Players:GetPlayerByUserId(tonumber(actor) or 0)
+			if not player then
+				return false, "PLAYER_GONE"
+			end
+			return liveWorld.travel(player, "home")
+		end,
+	})
+	local intent = Instance.new("RemoteFunction")
+	intent.Name = "ForgeOpeningIntent"
+	intent.OnServerInvoke = function(player: Player, kind: any)
+		if type(kind) ~= "string" or #kind > 32 then
+			return false, "INVALID_INTENT"
+		end
+		return opening.intent(tostring(player.UserId), kind)
+	end
+	intent.Parent = game:GetService("ReplicatedStorage")
+	local elapsed = 0
+	local openingTick = RunService.Heartbeat:Connect(function(delta)
+		elapsed += delta
+		if elapsed < 0.25 then
+			return
+		end
+		elapsed = 0
+		local ok, failure = pcall(opening.tick, session.members(), Clock.millis(clock.now()))
+		if not ok then
+			warn("OPENING_TICK:" .. tostring(failure))
+		end
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		opening.leave(tostring(player.UserId))
+	end)
+	script.Destroying:Connect(function()
+		openingTick:Disconnect()
+	end)
+end

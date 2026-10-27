@@ -1219,6 +1219,12 @@ return function(content: any, source, world, backend, clock, options, provision,
 	table.insert(extensionFactories, function(): any
 		return require(Forge.genres["survival-coop"].module.RecipeMarks).factory(journalPort, content.recipes)
 	end)
+	if world.opening then
+		-- C1 opening (onboarding role only): publishes the per-player beat view, observes the windbreak.
+		table.insert(extensionFactories, function(): any
+			return world.opening.extension
+		end)
+	end
 	table.insert(extensionFactories, function(ctx)
 		local journalContext = table.clone(ctx)
 		journalContext.journal = journalPort

@@ -4,7 +4,8 @@
 -- engages an actor within its leash of its home (Wildlife.decide disengages beyond leashStuds)
 -- and strikes from attackStuds, so every day-1 interaction point must lie further than
 -- leashStuds + attackStuds from every hunter home, and never closer than MIN_CLEARANCE studs.
--- Grazers flee and never strike, so they may stay near camp.
+-- Grazers flee and never strike, so they may stay near camp; retaliators (flag retaliate, e.g. the
+-- C1 ford herd) never engage an actor that has not struck them first, so they may too.
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
@@ -19,7 +20,7 @@ type Point = { id: string, x: number, z: number }
 local function threats(): { [string]: number }
 	local reach: { [string]: number } = {}
 	for _, definition in Content.wildlife do
-		if Archetype.engine(definition.behavior) == "hunter" then
+		if Archetype.engine(definition.behavior) == "hunter" and (definition :: any).flag ~= "retaliate" then
 			reach[definition.id] = math.max(MIN_CLEARANCE, definition.leashStuds + definition.attackStuds)
 		end
 	end

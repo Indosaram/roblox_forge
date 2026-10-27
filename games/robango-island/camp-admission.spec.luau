@@ -791,6 +791,8 @@ return {
 				"real depot transfer"
 			)
 		end
+		-- C1: the camp grid starts at the ridge camp plot anchor; stand by cell 4,4 to build.
+		server.move(FIRST, { x = -30, y = 7, z = 12 })
 		local camp = session.snapshot(FIRST).survivalSettlement
 		local reserved = command(session, FIRST, "real-build", "settlement-reserve", {
 			"campfire",

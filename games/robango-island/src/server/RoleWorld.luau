@@ -993,7 +993,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if layoutId == "rw.onboarding" then
 		-- The live island is elevated; the preview's depot target is below its terrain.
 		world.roleSource.tribe.warehousePosition = { x = -16, y = 5, z = -4 }
-		world.roleSource.tribe.origin = { x = -32, y = 4, z = -16 }
+		-- C1: the camp plot grid starts at the ridge camp plot anchor (opening-script.md section 1).
+		local plot = { x = -32, z = -16 }
+		for _, anchor in layout.anchors do
+			plot = if anchor.id == "station.campfire.t1" then anchor.position else plot
+		end
+		world.roleSource.tribe.origin = { x = plot.x, y = 4, z = plot.z }
+		root:SetAttribute("ForgeCampOrigin", Vector3.new(plot.x, 4, plot.z))
+		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
+		world.opening = require("./OpeningDirector").new(layout, root, nowMillis)
 		local depot = part("Warehouse", world.roleSource.tribe.warehousePosition, { x = 3, y = 2, z = 2 })
 		depot.Transparency, depot.CanCollide, depot.CanQuery, depot.CanTouch = 1, false, false, false
 		depot:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)

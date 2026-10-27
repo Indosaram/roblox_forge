@@ -191,6 +191,9 @@
       "RoleWorld": {
         "$path": "src/server/RoleWorld.luau"
       },
+      "OpeningDirector": {
+        "$path": "src/server/OpeningDirector.luau"
+      },
       "LateEquipmentPorts": {
         "$path": "src/server/LateEquipmentPorts.luau"
       },

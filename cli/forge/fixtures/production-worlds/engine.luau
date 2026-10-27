@@ -693,9 +693,12 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		["./WorldDressing"] = dressing,
 		["./StructureMeshes"] = meshes,
 	}, nil)
+	forge.games["robango-island"].src.shared.OpeningScene =
+		require("../../../../games/robango-island/src/shared/OpeningScene")
+	local opening = load("games/robango-island/src/server/OpeningDirector.luau", {}, nil)
 	local role = load(
 		"games/robango-island/src/server/RoleWorld.luau",
-		{ ["./WorldDressing"] = dressing, ["./StructureMeshes"] = meshes },
+		{ ["./WorldDressing"] = dressing, ["./StructureMeshes"] = meshes, ["./OpeningDirector"] = opening },
 		nil
 	)
 	local home = load("games/robango-island/src/server/HomeWorld.luau", { ["./WorldDressing"] = dressing }, nil)
