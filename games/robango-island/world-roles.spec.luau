@@ -731,7 +731,7 @@ return {
 			end
 		end
 		table.sort(roles)
-		assert(#roles == 11, "every non-onboarding role covered")
+		assert(#roles == 12, "every non-onboarding role covered")
 		for _, region in Content.supportRegions do
 			assert(Topology.ROLES[region.role], region.id .. " names unknown live role " .. tostring(region.role))
 		end
@@ -1050,5 +1050,54 @@ return {
 		end
 		assert(found and next(world.surveyMarkers) ~= nil, "real gather and spatial survey bindings exist")
 		world.destroy()
+	end,
+	["Saltmeadow town renders 28 claimable plot stakes, docks to harbor and rift, and flags claims"] = function()
+		local TownPlots = require("./src/shared/TownPlots")
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.town", 1776)
+		local root = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld")
+		local plots = root:FindFirstChild("ForgeTownPlots")
+		assert(plots and #plots:GetChildren() == 28, "28 plot models")
+		local claims, docks = 0, {}
+		for _, prompt in root:GetDescendants() do
+			if prompt:IsA("ProximityPrompt") and prompt.Name == "ForgeTownClaim" then
+				claims += 1
+				assert(prompt:GetAttribute("ForgeActionKey") == "claim", "claim prompt is localized")
+			elseif prompt:IsA("ProximityPrompt") and prompt.Name == "ForgeDock" then
+				docks[prompt:GetAttribute("ForgeDestination")] = true
+			end
+		end
+		assert(claims == 28, "one claim prompt per plot")
+		assert(docks.harbor and docks.archipelago, "town docks reach the harbor and the rift")
+		local called: any = nil
+		world.missionAction = function(actor, operation, target)
+			called = { actor, operation, target }
+			return { ok = true }
+		end
+		local w01 = plots:FindFirstChild("W01"):FindFirstChild("plot.W01")
+		w01:FindFirstChild("ForgeTownClaim").Triggered:Fire({ UserId = 5, SetAttribute = function() end })
+		assert(called and called[2] == "town-claim" and called[3] == "W01", "stake sends town-claim")
+		local doc = assert(TownPlots.claim(world.townLayout, "town-01", nil, "W01", "5", { developmentRank = 1 }, 0))
+		world.publishTownPlot("W01", doc)
+		local flag = plots:FindFirstChild("W01"):FindFirstChild("flag.W01")
+		assert(flag.Transparency == 0 and not w01:FindFirstChild("ForgeTownClaim").Enabled, "claimed plot flies a flag")
+		world.destroy()
+		local onboarding = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.onboarding", 1776)
+		local towns = 0
+		for _, prompt in engine.game:GetService("Workspace"):GetDescendants() do
+			if
+				prompt:IsA("ProximityPrompt")
+				and prompt.Name == "ForgeDock"
+				and prompt:GetAttribute("ForgeDestination") == "town"
+			then
+				towns += 1
+			end
+		end
+		assert(towns == 1, "onboarding sails to the town")
+		onboarding.destroy()
 	end,
 }

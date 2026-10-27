@@ -30595,6 +30595,336 @@ layouts:
         width: 8
     provenance:
       classification: "RECONSTRUCTED"
+  -
+    # C5a (plan G17): Saltmeadow, the shared plot town. 1536x1536 island, 28 claimable 64x64
+    # plots (W01-W12, E01-E12, N01-N04) per the C5a town-layout spec.
+    # Plot anchors hold each footprint flat; every through route crosses the plaza (objective).
+    id: "rw.town"
+    bounds:
+      min:
+        x: -768
+        y: 0
+        z: -768
+      max:
+        x: 768
+        y: 8
+        z: 768
+    biomes:
+      - "grassland"
+    anchors:
+      -
+        id: "entry"
+        position:
+          x: 0
+          y: 4
+          z: 544
+      -
+        id: "exit"
+        position:
+          x: 0
+          y: 4
+          z: -608
+      -
+        id: "objective"
+        position:
+          x: 0
+          y: 4
+          z: 208
+      -
+        id: "trading-post"
+        position:
+          x: 0
+          y: 4
+          z: 128
+      -
+        id: "clan-hall"
+        position:
+          x: 224
+          y: 4
+          z: 208
+      -
+        id: "well"
+        position:
+          x: -208
+          y: 4
+          z: 256
+      -
+        id: "work-yard"
+        position:
+          x: 176
+          y: 4
+          z: 336
+      -
+        id: "plot.W01"
+        position:
+          x: -576
+          y: 4
+          z: -192
+      -
+        id: "plot.W02"
+        position:
+          x: -496
+          y: 4
+          z: -192
+      -
+        id: "plot.W03"
+        position:
+          x: -416
+          y: 4
+          z: -192
+      -
+        id: "plot.W04"
+        position:
+          x: -336
+          y: 4
+          z: -192
+      -
+        id: "plot.W05"
+        position:
+          x: -576
+          y: 4
+          z: -112
+      -
+        id: "plot.W06"
+        position:
+          x: -496
+          y: 4
+          z: -112
+      -
+        id: "plot.W07"
+        position:
+          x: -416
+          y: 4
+          z: -112
+      -
+        id: "plot.W08"
+        position:
+          x: -336
+          y: 4
+          z: -112
+      -
+        id: "plot.W09"
+        position:
+          x: -576
+          y: 4
+          z: -32
+      -
+        id: "plot.W10"
+        position:
+          x: -496
+          y: 4
+          z: -32
+      -
+        id: "plot.W11"
+        position:
+          x: -416
+          y: 4
+          z: -32
+      -
+        id: "plot.W12"
+        position:
+          x: -336
+          y: 4
+          z: -32
+      -
+        id: "plot.E01"
+        position:
+          x: 336
+          y: 4
+          z: -192
+      -
+        id: "plot.E02"
+        position:
+          x: 416
+          y: 4
+          z: -192
+      -
+        id: "plot.E03"
+        position:
+          x: 496
+          y: 4
+          z: -192
+      -
+        id: "plot.E04"
+        position:
+          x: 576
+          y: 4
+          z: -192
+      -
+        id: "plot.E05"
+        position:
+          x: 336
+          y: 4
+          z: -112
+      -
+        id: "plot.E06"
+        position:
+          x: 416
+          y: 4
+          z: -112
+      -
+        id: "plot.E07"
+        position:
+          x: 496
+          y: 4
+          z: -112
+      -
+        id: "plot.E08"
+        position:
+          x: 576
+          y: 4
+          z: -112
+      -
+        id: "plot.E09"
+        position:
+          x: 336
+          y: 4
+          z: -32
+      -
+        id: "plot.E10"
+        position:
+          x: 416
+          y: 4
+          z: -32
+      -
+        id: "plot.E11"
+        position:
+          x: 496
+          y: 4
+          z: -32
+      -
+        id: "plot.E12"
+        position:
+          x: 576
+          y: 4
+          z: -32
+      -
+        id: "plot.N01"
+        position:
+          x: -192
+          y: 4
+          z: -384
+      -
+        id: "plot.N02"
+        position:
+          x: -112
+          y: 4
+          z: -384
+      -
+        id: "plot.N03"
+        position:
+          x: 128
+          y: 4
+          z: -384
+      -
+        id: "plot.N04"
+        position:
+          x: 208
+          y: 4
+          z: -384
+    resourceNodes: []
+    spawns: []
+    hazards: []
+    refuges: []
+    paths:
+      -
+        id: "rw.town.main"
+        points:
+          -
+            x: 0
+            y: 4
+            z: 544
+          -
+            x: 0
+            y: 4
+            z: 320
+          -
+            x: 0
+            y: 4
+            z: 208
+          -
+            x: 0
+            y: 4
+            z: -464
+          -
+            x: 0
+            y: 4
+            z: -608
+        width: 24
+      -
+        id: "rw.town.south-lane"
+        points:
+          -
+            x: -576
+            y: 4
+            z: 32
+          -
+            x: 576
+            y: 4
+            z: 32
+        width: 16
+      -
+        id: "rw.town.west-spine"
+        points:
+          -
+            x: -272
+            y: 4
+            z: 32
+          -
+            x: -272
+            y: 4
+            z: -240
+        width: 16
+      -
+        id: "rw.town.east-spine"
+        points:
+          -
+            x: 272
+            y: 4
+            z: 32
+          -
+            x: 272
+            y: 4
+            z: -240
+        width: 16
+      -
+        id: "rw.town.west-row"
+        points:
+          -
+            x: -600
+            y: 4
+            z: -240
+          -
+            x: -272
+            y: 4
+            z: -240
+        width: 16
+      -
+        id: "rw.town.east-row"
+        points:
+          -
+            x: 272
+            y: 4
+            z: -240
+          -
+            x: 600
+            y: 4
+            z: -240
+        width: 16
+      -
+        id: "rw.town.north-lane"
+        points:
+          -
+            x: -240
+            y: 4
+            z: -336
+          -
+            x: 240
+            y: 4
+            z: -336
+        width: 16
+    provenance:
+      classification: "RECONSTRUCTED"
 stages:
   -
     id: "rw.a1.s1.gather"
@@ -31339,6 +31669,14 @@ supportRegions:
     gates:
       characterLevel: 60
     role: "frontier60"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.town"
+    layout: "rw.town"
+    gates:
+      characterLevel: 1
+    role: "town"
     provenance:
       classification: "RECONSTRUCTED"
 missions:

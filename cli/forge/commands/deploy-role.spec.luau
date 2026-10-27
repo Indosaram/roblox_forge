@@ -16,6 +16,7 @@ local ROLES = {
 	"frontier60",
 	"brawl",
 	"team-outpost",
+	"town",
 }
 
 local function fullRoles(start: any): { [string]: any }

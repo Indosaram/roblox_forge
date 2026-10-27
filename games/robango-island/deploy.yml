@@ -23,6 +23,7 @@ environments:
       frontier60: ${FORGE_STAGING_ROLE_FRONTIER_SIXTY}
       brawl: ${FORGE_STAGING_ROLE_BRAWL}
       team-outpost: ${FORGE_STAGING_ROLE_TEAM_OUTPOST}
+      town: ${FORGE_STAGING_ROLE_TOWN}
     # Product ids registered on this universe, keyed by game.yml monetization key. deploy
     # injects them as ServerStorage.ForgeMonetizationIds; the server overrides the catalog
     # ids with them. A missing or unset id becomes 0, which the shop lists but never prompts.
@@ -48,6 +49,7 @@ environments:
       frontier60: ${FORGE_PRODUCTION_ROLE_FRONTIER_SIXTY}
       brawl: ${FORGE_PRODUCTION_ROLE_BRAWL}
       team-outpost: ${FORGE_PRODUCTION_ROLE_TEAM_OUTPOST}
+      town: ${FORGE_PRODUCTION_ROLE_TOWN}
     monetization:
       routeGuildPatron: ${FORGE_PRODUCTION_PRODUCT_ROUTE_GUILD_PATRON}
       wideWarehouse: ${FORGE_PRODUCTION_PRODUCT_WIDE_WAREHOUSE}

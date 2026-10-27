@@ -671,6 +671,8 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	}
 	forge.games["robango-island"].src.shared.WorldText =
 		require("../../../../games/robango-island/src/shared/WorldText")
+	forge.games["robango-island"].src.shared.TownPlots =
+		require("../../../../games/robango-island/src/shared/TownPlots")
 	forge.games["robango-island"].src.shared.IslandTerrain =
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
 	forge.games["robango-island"].src.shared.RenderBudget =

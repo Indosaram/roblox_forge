@@ -50,8 +50,15 @@ return {
 	end,
 	["factory rejects oversized server and plot policy"] = function()
 		local value = config()
-		value.maxServerPlayers = 9
-		assert(not pcall(Services.new, value, Memory.new(), options), "server cap")
+		value.maxServerPlayers = 33
+		assert(not pcall(Services.new, value, Memory.new(), options), "server cap above the town role capacity")
+		value = config()
+		value.maxServerPlayers = 32
+		local town = assert(Services.new(value, Memory.new(), options), "the town role seats 32")
+		assert(town.close().ok, "close town factory")
+		value = config()
+		value.maxServerPlayers = 0
+		assert(not pcall(Services.new, value, Memory.new(), options), "zero server cap")
 		value = config()
 		value.maxPlots = 5
 		assert(not pcall(Services.new, value, Memory.new(), options), "plot cap")

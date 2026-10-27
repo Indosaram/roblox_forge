@@ -19,12 +19,19 @@ Topology.ROLES = {
 	frontier60 = "frontier60",
 	brawl = "brawl",
 	["team-outpost"] = "team-outpost",
+	-- Shared plot town (plan G17, C5a): one reserved server per town id, up to ROLE_CAPACITY.town.
+	town = "town",
 }
+-- Per-server player capacity of a place role. Roles not listed keep the legacy kind cap
+-- (POLICY_CAPACITY, ADR-04); only the town is larger (plan G17 supersedes ADR-04 for it).
+Topology.ROLE_CAPACITY = table.freeze({ town = 32 })
 local ROLE_EDGES: { [string]: { [string]: boolean } } = {
-	onboarding = { home = true },
-	home = { harbor = true },
+	onboarding = { home = true, town = true },
+	home = { harbor = true, town = true },
+	town = { harbor = true, archipelago = true },
 	harbor = {
 		home = true,
+		town = true,
 		archipelago = true,
 		explore10 = true,
 		explore20 = true,
@@ -69,6 +76,15 @@ function Topology.resolveRole(places: { [string]: number }, placeId: number): (s
 		return nil, "unconfigured_place_id:" .. tostring(placeId)
 	end
 	return selected, nil
+end
+
+--- Player capacity of one server of `role`: ROLE_CAPACITY when listed, else POLICY_CAPACITY.
+--- An unknown role errors.
+function Topology.roleCapacity(role: string): number
+	if Topology.ROLES[role] == nil then
+		error("unknown role")
+	end
+	return Topology.ROLE_CAPACITY[role] or Topology.POLICY_CAPACITY
 end
 
 function Topology.validateRoleTransition(from: string, to: string, level: number): (boolean, string?)

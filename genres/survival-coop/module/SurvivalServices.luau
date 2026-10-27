@@ -11,6 +11,7 @@ local ProfileStore = require("../../../core/infra/data/ProfileStore")
 local Shared = require("../../../core/domain/genre/Contract")
 local Catalog = require("../../../core/domain/inventory/ItemCatalog")
 local CapacityPolicy = require("../../../core/domain/survival/CapacityPolicy")
+local Topology = require("../../../core/domain/island/Topology")
 local M = {}
 export type Config = {
 	tribes: { Settlement.Config },
@@ -30,7 +31,13 @@ export type Factory = {
 	close: () -> Shared.Result,
 }
 function M.new(config: Config, backend: ProfileStore.Backend, options: Fenced.Options): (Factory?, string?)
-	assert(Catalog.integer(config.maxServerPlayers, 1, 8), "INVALID_SERVER_LIMIT")
+	-- Bounded by the largest place-role capacity (the shared town seats 32, plan G17); hosts pass
+	-- Topology.roleCapacity(role), so every other role still caps at the legacy 8.
+	local ceiling: number = Topology.POLICY_CAPACITY
+	for _, capacity: number in Topology.ROLE_CAPACITY :: { [string]: number } do
+		ceiling = math.max(ceiling, capacity)
+	end
+	assert(Catalog.integer(config.maxServerPlayers, 1, ceiling), "INVALID_SERVER_LIMIT")
 	assert(Catalog.integer(config.maxPlots, 1, 4) and #config.tribes <= config.maxPlots, "INVALID_PLOT_LIMIT")
 	assert(Catalog.integer(config.maxReceipts, 1, 4096), "INVALID_RECEIPT_LIMIT")
 	assert(options.budget ~= nil, "TRIBE_BYTE_BUDGET_REQUIRED")

@@ -485,6 +485,67 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end
 		return { homeRank = rank, grade = math.min(10, math.floor(points / 100)), points = points }
 	end
+	if world.townLayout then
+		-- Saltmeadow plot runtime (C5a): fenced plot documents, paid from the personal bag.
+		local townCatalog = Job.catalog(content)
+		local townDefinitions = {}
+		for _, definition in content.structures do
+			townDefinitions[definition.id] = {
+				id = definition.id,
+				footprintX = definition.footprintX,
+				footprintZ = definition.footprintZ,
+				cost = definition.cost,
+				station = definition.station,
+			}
+		end
+		local TownRuntime = require(Forge.games["robango-island"].src.shared.TownRuntime)
+		world.town = TownRuntime.new({
+			layout = world.townLayout,
+			townId = source.townId or "town-01",
+			definitions = townDefinitions,
+			catalog = townCatalog,
+			store = require(Forge.core.infra.data.FencedStore).new(backend, options),
+			now = seconds,
+			rank = function(actor)
+				return developmentFacts(expeditionStore.snapshot(actor)).grade
+			end,
+			reach = function(actor, plot)
+				local spatial = world.services.survivalDeath
+				local at = if spatial then spatial.position(actor) else nil
+				return at ~= nil
+					and at.x >= plot.min.x - 8
+					and at.x <= plot.max.x + 8
+					and at.z >= plot.min.z - 8
+					and at.z <= plot.max.z + 8
+			end,
+			bag = function(actor, transform)
+				if not activeSession then
+					return false, "PERSONAL_UNAVAILABLE"
+				end
+				local reason: string? = nil
+				local ok, failure = activeSession.personalTransaction(actor, function(raw)
+					reason = nil
+					local data = raw.envelope.genres["survival-coop"].data
+					local bag = Inventory.fromSave(data.inventory.bag, townCatalog)
+					local nextBag, why = transform(bag)
+					reason = why
+					if nextBag and not why then
+						data.inventory.bag = Inventory.save(nextBag)
+					end
+					return raw
+				end)
+				if not ok then
+					return false, tostring(failure)
+				end
+				return reason == nil, reason
+			end,
+			publish = world.publishTownPlot,
+		})
+		local failed = world.town.start()
+		if #failed > 0 then
+			warn("TOWN_PLOTS_UNAVAILABLE:" .. table.concat(failed, ","))
+		end
+	end
 	if content.homePolicy then
 		local rules = HomeContent.rules(content)
 		local published: any = {}
@@ -662,6 +723,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 					return chosen
 				elseif args[1] == "next-island" then
 					return archipelago.nextIsland(actor)
+				elseif (args[1] == "town-claim" or args[1] == "town-build") and world.town then
+					-- Saltmeadow plots (C5a): claim a free plot or build on your own.
+					return world.town.command(actor, args[1], args[2])
 				elseif args[1] == "return" then
 					return archipelago.recover(actor, "return")
 				end
@@ -1272,7 +1336,10 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end,
 		wildlife = wildlifeConfig,
 		settlements = {
-			maxServerPlayers = 8,
+			-- The shared town seats its role capacity (32, plan G17); every other role keeps 8.
+			maxServerPlayers = if world.townLayout
+				then require(Forge.core.domain.island.Topology).roleCapacity("town")
+				else 8,
 			maxPlots = 1,
 			maxReceipts = 4096,
 			tribeFor = provision.tribeFor,

@@ -277,7 +277,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain.WaterTransparency = 0.35
 	local field = if Terrain.relief(layout) then Terrain.field(layout, seed) else nil
 	if not field then
-		workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
+		-- The sea covers the island plus a margin; the 1536-stud town (C5a) is wider than the 1400 default.
+		local sea = math.max(1400, layout.bounds.max.x - layout.bounds.min.x + 256)
+		workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(sea, 12, sea), Enum.Material.Water)
 	end
 	local coastline = if field then field.coast elseif Terrain.organic(layout) then Terrain.coast(layout, seed) else nil
 	local gradedInland = coastline == nil and Terrain.graded(layout)
@@ -1084,6 +1086,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		return target
 	end
 	for _, anchor in layout.anchors do
+		-- Saltmeadow (rw.town): the south dock sails to the harbor, the north rift opens a route.
 		if anchor.id == "entry" or (anchor.id == "exit" and layoutId ~= "rw.home") then
 			-- The home dock part is also home expand's atDock reach target (SurvivalFactory, p126).
 			local placed = dock(
@@ -1093,11 +1096,95 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					then "home"
 					elseif string.match(layoutId, "^rw%.a%d+%.s%d+$") then (if anchor.id == "exit"
 						then "next-island"
-						else "home")
+						else "home") -- Saltmeadow: the south dock sails to the harbor, the north rift opens a route.
+
+					elseif layoutId == "rw.town" then (if anchor.id == "exit" then "archipelago" else "harbor")
 					else "harbor"
 			)
 			if layoutId == "rw.home" then
 				world.homeDock = placed
+			end
+		end
+	end
+	-- Onboarding also sails straight to the shared town (C5a), beside its exit dock.
+	if layoutId == "rw.onboarding" then
+		for _, anchor in layout.anchors do
+			if anchor.id == "exit" then
+				dock("town-dock", { x = anchor.position.x + 16, y = anchor.position.y, z = anchor.position.z }, "town")
+			end
+		end
+	end
+	if layoutId == "rw.town" then
+		-- Saltmeadow plots (C5a): one Atomic model per plot holding its stake, flag and built
+		-- structures. The stake prompt claims; claimed plots fly the owner's seeded flag colour.
+		local TownPlots = require(Forge.games["robango-island"].src.shared.TownPlots)
+		local town = TownPlots.layout(seed)
+		local folder = Instance.new("Folder")
+		folder.Name, folder.Parent = "ForgeTownPlots", root
+		world.townLayout = town
+		world.townPlots = {}
+		for _, plot in town.plots do
+			local model = Instance.new("Model")
+			model.Name, model.ModelStreamingMode, model.Parent = plot.id, Enum.ModelStreamingMode.Atomic, folder
+			local corner = TownPlots.corner(plot, plot.stake)
+			local at = interactionPosition({
+				x = corner.x + (if corner.x == plot.min.x then 3 else -3),
+				y = 4,
+				z = corner.z + (if corner.z == plot.min.z then 3 else -3),
+			}, 3)
+			local stake = part("plot." .. plot.id, at, { x = 1, y = 3, z = 1 })
+			stake.Color, stake.Parent = Color3.fromRGB(64, 200, 190), model
+			stake:SetAttribute("ForgeTownPlot", plot.id)
+			Meshes.dress(stake, "town.plot-marker", CFrame.new(stake.Position - Vector3.new(0, 1.5, 0)))
+			local flag = part("flag." .. plot.id, { x = at.x, y = at.y + 3, z = at.z }, { x = 0.2, y = 1.6, z = 2.4 })
+			flag.CanCollide, flag.CanQuery, flag.CanTouch, flag.Transparency = false, false, false, 1
+			flag.Material, flag.Parent = Enum.Material.Fabric, model
+			local prompt = Instance.new("ProximityPrompt")
+			prompt.Name = "ForgeTownClaim"
+			WorldText.bind(prompt, "claim", "plot")
+			prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 10, false, stake
+			prompt.Triggered:Connect(function(player)
+				local result = if world.missionAction
+					then world.missionAction(tostring(player.UserId), "town-claim", plot.id)
+					else nil
+				M.publishTravel(
+					player,
+					if result and result.ok
+						then "town_claimed"
+						else tostring(result and result.reason or "town_unavailable")
+				)
+			end)
+			world.townPlots[plot.id] = {
+				stake = stake,
+				flag = flag,
+				prompt = prompt,
+				ports = world.settlementPorts(
+					Vector3.new(plot.min.x, at.y - 1.75, plot.min.z),
+					Vector3.new(plot.centre.x, at.y, plot.centre.z)
+				),
+			}
+		end
+		world.publishTownPlot = function(plotId: string, doc: any)
+			local slot = world.townPlots[plotId]
+			if not slot then
+				return
+			end
+			slot.stake:SetAttribute("ForgeTownOwner", if doc then doc.ownerId else nil)
+			slot.prompt.Enabled = doc == nil
+			slot.flag.Transparency = if doc then 0 else 1
+			if doc then
+				slot.flag.Color = Color3.fromRGB(table.unpack(TownPlots.flagColour(seed, doc.ownerId)))
+				slot.ports.publish(doc.settlement)
+			end
+		end
+		-- Quest card at the trading post: "Saltmeadow: claim a free plot" opens the journal.
+		for _, anchor in layout.anchors do
+			if anchor.id == "trading-post" then
+				local board = part("town-quest", interactionPosition(anchor.position, 3), { x = 3, y = 3, z = 1 })
+				local prompt = Instance.new("ProximityPrompt")
+				WorldText.bind(prompt, "interact", "town-quest")
+				prompt.MaxActivationDistance, prompt.Parent = 10, board
+				prompt:SetAttribute("ForgePanel", "journal")
 			end
 		end
 	end

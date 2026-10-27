@@ -47,6 +47,10 @@ world.frontier50,"Volcanic frontier (Lv 50)",world prompt,"Volcanic frontier (Lv
 world.frontier60,"Rex frontier (Lv 60)",world prompt,"Rex frontier (Lv 60)","티라노 외곽 섬 (레벨 60)"
 world.brawl,"Brawl arena",world prompt,"Brawl arena","난투장"
 world.team-outpost,"Team outpost",world prompt,"Team outpost","팀 전초기지"
+world.town,"Saltmeadow town",world prompt,"Saltmeadow town","소금풀밭 마을"
+world.claim,"Claim plot",world prompt,"Claim plot","구획 맡기"
+world.plot,"Free plot",world prompt,"Free plot","빈 구획"
+world.town-quest,"Saltmeadow: claim a free plot",world prompt,"Saltmeadow: claim a free plot","소금풀밭 마을: 빈 구획을 하나 맡아 보세요"
 music.editor_title,"Score editor",music editor,"Score editor","악보 편집"
 music.editor_close,"Close",music editor,"Close","닫기"
 music.editor_tempo,"Tempo (40-200)",music editor,"Tempo (40-200)","템포 (40~200)"
@@ -1676,6 +1680,7 @@ scr.layout.rw.harbor,Harbor,recovered screen,Harbor,항구
 scr.layout.rw.home,Home island,recovered screen,Home island,개인 섬
 scr.layout.rw.onboarding,Starting island,recovered screen,Starting island,시작 섬
 scr.layout.rw.team-outpost,Team outpost,recovered screen,Team outpost,팀 전초기지
+scr.layout.rw.town,Saltmeadow town,recovered screen,Saltmeadow town,소금풀밭 마을
 scr.layout.unknown,Unnamed island,recovered screen,Unnamed island,이름 없는 섬
 scr.library.count,%d saved score(s). Every revision is kept unchanged.,recovered screen,%d saved score(s). Every revision is kept unchanged.,저장한 악보 %d개. 모든 판은 바뀌지 않고 보관돼요.
 scr.library.empty,No saved scores yet. Write one in the editor or import JSON.,recovered screen,No saved scores yet. Write one in the editor or import JSON.,저장한 악보가 없어요. 편집기에서 만들거나 JSON을 가져오세요.
@@ -2570,6 +2575,18 @@ trv.transition_not_allowed,Depart from the harbor,dock travel result,Depart from
 trv.studio_no_teleport,Accepted. Teleport is unavailable in Studio,dock travel result,Accepted. Teleport is unavailable in Studio,승인됨. Studio에서는 섬 이동이 불가합니다
 trv.travelling,Travelling...,dock travel result,Travelling...,이동 중...
 trv.portal_unreachable,Move closer to the portal,dock travel result,Move closer to the portal,이동문에 더 가까이 가세요
+trv.town_claimed,Plot claimed. Build on it with your camp,dock travel result,Plot claimed. Build on it with your camp,구획을 맡았어요. 야영지와 함께 지어 보세요
+trv.town_unavailable,The town is not ready yet,dock travel result,The town is not ready yet,마을이 아직 준비되지 않았어요
+trv.PLOT_OWNED,Someone already holds this plot,dock travel result,Someone already holds this plot,이미 주인이 있는 구획이에요
+trv.ALREADY_CLAIMED,You already hold a plot,dock travel result,You already hold a plot,이미 맡은 구획이 있어요
+trv.RANK_REQUIRED,Finish the arrival tutorial first,dock travel result,Finish the arrival tutorial first,도착 튜토리얼을 먼저 마치세요
+trv.UNKNOWN_PLOT,That plot does not exist,dock travel result,That plot does not exist,없는 구획이에요
+trv.PLOT_UNCLAIMED,Claim this plot first,dock travel result,Claim this plot first,이 구획을 먼저 맡으세요
+trv.PLOT_UNREACHABLE,Stand on your plot to build,dock travel result,Stand on your plot to build,내 구획 안에서 지으세요
+trv.NOT_PLOT_MEMBER,Only the plot camp can build here,dock travel result,Only the plot camp can build here,이 구획의 야영지만 지을 수 있어요
+trv.OUT_OF_PLOT,Build inside your own plot,dock travel result,Build inside your own plot,내 구획 안에 지으세요
+trv.STRUCTURE_NOT_ALLOWED,That building belongs in the town hall,dock travel result,That building belongs in the town hall,그 건물은 마을 회관 전용이에요
+trv.STATION_CAP,This plot already has enough of that station,dock travel result,This plot already has enough of that station,이 구획에는 그 작업대가 이미 충분해요
 cli.ui.clan,Clan,client clan/outpost label,Clan,부족
 cli.clan.empty,Create a clan or join by invitation to share funds and capture team outposts.,client clan/outpost label,Create a clan or join by invitation to share funds and capture team outposts.,부족을 만들거나 초대로 가입하여 자금을 모으고 팀 거점을 점령하세요.
 cli.clan.create,Create clan,client clan/outpost label,Create clan,부족 생성

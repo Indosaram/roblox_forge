@@ -47,6 +47,10 @@ world.frontier50,original,agent:hephaestus/p52,2026-10-23
 world.frontier60,original,agent:hephaestus/p52,2026-10-23
 world.brawl,original,agent:hephaestus/p52,2026-10-23
 world.team-outpost,original,agent:hephaestus/p52,2026-10-23
+world.town,original,agent:hephaestus/c5a,2026-10-27
+world.claim,original,agent:hephaestus/c5a,2026-10-27
+world.plot,original,agent:hephaestus/c5a,2026-10-27
+world.town-quest,original,agent:hephaestus/c5a,2026-10-27
 music.editor_title,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 music.editor_close,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
 music.editor_tempo,original,agent:hephaestus/RECONSTRUCTED,2026-10-22
@@ -1674,6 +1678,7 @@ scr.layout.rw.harbor,original,agent:hephaestus/p92,2026-10-25
 scr.layout.rw.home,original,agent:hephaestus/p92,2026-10-25
 scr.layout.rw.onboarding,original,agent:hephaestus/p92,2026-10-25
 scr.layout.rw.team-outpost,original,agent:hephaestus/p92,2026-10-25
+scr.layout.rw.town,original,agent:hephaestus/c5a,2026-10-27
 scr.layout.unknown,original,agent:hephaestus/p92,2026-10-25
 scr.library.count,original,agent:hephaestus/p92,2026-10-25
 scr.library.empty,original,agent:hephaestus/p92,2026-10-25
@@ -2570,6 +2575,18 @@ trv.transition_not_allowed,original,agent:hephaestus/p97,2026-10-24
 trv.studio_no_teleport,original,agent:hephaestus/p97,2026-10-24
 trv.travelling,original,agent:hephaestus/p97,2026-10-24
 trv.portal_unreachable,original,agent:hephaestus/p125,2026-10-26
+trv.town_claimed,original,agent:hephaestus/c5a,2026-10-27
+trv.town_unavailable,original,agent:hephaestus/c5a,2026-10-27
+trv.PLOT_OWNED,original,agent:hephaestus/c5a,2026-10-27
+trv.ALREADY_CLAIMED,original,agent:hephaestus/c5a,2026-10-27
+trv.RANK_REQUIRED,original,agent:hephaestus/c5a,2026-10-27
+trv.UNKNOWN_PLOT,original,agent:hephaestus/c5a,2026-10-27
+trv.PLOT_UNCLAIMED,original,agent:hephaestus/c5a,2026-10-27
+trv.PLOT_UNREACHABLE,original,agent:hephaestus/c5a,2026-10-27
+trv.NOT_PLOT_MEMBER,original,agent:hephaestus/c5a,2026-10-27
+trv.OUT_OF_PLOT,original,agent:hephaestus/c5a,2026-10-27
+trv.STRUCTURE_NOT_ALLOWED,original,agent:hephaestus/c5a,2026-10-27
+trv.STATION_CAP,original,agent:hephaestus/c5a,2026-10-27
 cli.ui.clan,original,agent:hephaestus/p97,2026-10-24
 cli.clan.empty,original,agent:hephaestus/p97,2026-10-24
 cli.clan.create,original,agent:hephaestus/p97,2026-10-24
