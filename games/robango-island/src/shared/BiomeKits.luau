@@ -325,10 +325,16 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 			end
 			local placed, tries = 0, 0
 			local clearance = if entry.family == "tree" then 4 else if entry.family == "grass" then 1 else 2
+			-- Stratified sampling: candidates walk a jittered grid sized to the wanted count, so a
+			-- 3072-stud relief island has no screen-sized holes that pure uniform scatter leaves.
+			local gx = math.max(1, math.ceil(math.sqrt(math.max(wanted, 1) * (x1 - x0) / (z1 - z0))))
+			local gz = math.max(1, math.ceil(math.max(wanted, 1) / gx))
+			local cw, ch = (x1 - x0) / gx, (z1 - z0) / gz
 			while placed < wanted and tries < wanted * 8 do
+				local cell = tries % (gx * gz)
 				tries += 1
-				local x = x0 + rng:nextNumber() * (x1 - x0)
-				local z = z0 + rng:nextNumber() * (z1 - z0)
+				local x = x0 + (cell % gx + rng:nextNumber()) * cw
+				local z = z0 + (cell // gx + rng:nextNumber()) * ch
 				local yaw = rng:nextNumber() * 360
 				local scale = entry.scale[1] + rng:nextNumber() * (entry.scale[2] - entry.scale[1])
 				if not M.allowed(layout, terrain, ground, x, z, clearance) then

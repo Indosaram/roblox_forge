@@ -256,8 +256,9 @@ return {
 				buttons = buttons,
 				controls = { Visible = false },
 				quarterView = { suspend = function() end },
+				-- 3072-stud relief islands: the overview frames the REGION around the player (worldBounds).
 				bounds = function()
-					return layout.bounds.min, layout.bounds.max
+					return Camera.region(layout.bounds.min, layout.bounds.max, nil)
 				end,
 				scriptable = "Scriptable",
 				lookAt = function(position, focus)
@@ -277,7 +278,8 @@ return {
 			-- The whole island still fits: AerialView's sphere test at the applied lens.
 			local vertical = math.rad(camera.FieldOfView) / 2
 			local half = math.min(vertical, math.atan(math.tan(vertical) * viewport.X / viewport.Y))
-			local b = layout.bounds
+			local rlo, rhi = Camera.region(layout.bounds.min, layout.bounds.max, nil)
+			local b = { min = rlo, max = rhi }
 			local radius = math.sqrt((b.max.x - b.min.x) ^ 2 + (b.max.y - b.min.y) ^ 2 + (b.max.z - b.min.z) ^ 2) / 2
 			assert(distance * math.sin(half) >= radius * 1.0999, label .. " island fits")
 		end

@@ -150,7 +150,7 @@ return {
 		assert(not string.find(hud, "symbol.TextTransparency", 1, true), "label is never hidden under the icon")
 		assert(string.find(hud, "Model.VITALS.rowHeight", 1, true), "label height follows the row")
 	end,
-	["phone island view frames the whole island above the controls panel"] = function()
+	["phone island view frames the island region above the controls panel"] = function()
 		local Content = require("./src/shared/SurvivalContent")
 		local Aerial = require("../../genres/survival-coop/module/AerialView")
 		local layout: any = nil
@@ -185,8 +185,9 @@ return {
 				buttons = buttons,
 				controls = { Visible = false },
 				quarterView = { suspend = function() end },
+				-- 3072-stud relief islands: the overview frames the REGION around the player (worldBounds).
 				bounds = function()
-					return layout.bounds.min, layout.bounds.max
+					return Camera.region(layout.bounds.min, layout.bounds.max, nil)
 				end,
 				scriptable = "Scriptable",
 				lookAt = function(position, target)
@@ -211,7 +212,8 @@ return {
 			local tanH = tanV * viewport.X / viewport.Y
 			local panelTop = Camera.panelTop(viewport, true)
 			local label = viewport.X .. "x" .. viewport.Y
-			local b = layout.bounds
+			local rlo, rhi = Camera.region(layout.bounds.min, layout.bounds.max, nil)
+			local b = { min = rlo, max = rhi }
 			for _, x in { b.min.x, b.max.x } do
 				for _, y in { b.min.y, b.max.y } do
 					for _, z in { b.min.z, b.max.z } do

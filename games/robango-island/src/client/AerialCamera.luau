@@ -8,6 +8,10 @@ M.AERIAL_DENSITY = 0.02
 -- Widen the lens instead, so the camera stays near MAX_DISTANCE from the island centre.
 M.MAX_DISTANCE = 900
 M.MAX_FIELD_OF_VIEW = 110
+-- A3 relief islands are 3072 studs: no lens frames one whole within MAX_DISTANCE. The overview
+-- frames at most a REGION-wide square around the player (with 86-stud relief this is the widest
+-- square whose framing sphere stays inside MAX_DISTANCE); the archipelago view is the sea chart.
+M.REGION = 720
 -- Bottom band kept free for the Roblox touch thumbstick (bottom-left) and jump (bottom-right).
 M.TOUCH_RESERVE = 150
 M.CONTROL_MIN = 44
@@ -86,7 +90,25 @@ function M.worldBounds(workspace: any, layouts: { any }, preview: { min: Point, 
 		minimum = { x = focus.x - 96, y = focus.y - 16, z = focus.z - 96 }
 		maximum = { x = focus.x + 96, y = focus.y + 16, z = focus.z + 96 }
 	end
+	if minimum and maximum then
+		return M.region(minimum, maximum, focus)
+	end
 	return minimum, maximum
+end
+
+--- Bounds the overview may frame: unchanged up to REGION wide; a wider island is cut to a
+--- REGION square around `focus` (else its centre), slid to stay inside the island.
+function M.region(minimum: Point, maximum: Point, focus: Point?): (Point, Point)
+	local lo, hi = table.clone(minimum), table.clone(maximum)
+	for _, axis in { "x", "z" } do
+		local low, high = (minimum :: any)[axis], (maximum :: any)[axis]
+		if high - low > M.REGION then
+			local centre = if focus then (focus :: any)[axis] else (low + high) / 2
+			local start = math.clamp(centre - M.REGION / 2, low, high - M.REGION);
+			(lo :: any)[axis], (hi :: any)[axis] = start, start + M.REGION
+		end
+	end
+	return lo, hi
 end
 
 --- Photo-control layout in GUI pixels. Every control is at least CONTROL_MIN square; on touch
