@@ -1,4 +1,37 @@
 # robango-island QA evidence
+## Current state at `cb59664` (2026-10-27)
+
+### Gate and deploy
+- gate141 PASS on `cb59664` (47 jobs, 0 failed, 271.0 s). The commit stacks the D6/D3 live DataStore fix (`850973e`) with the phone UI fixes for D4/D5 and the hidden developer panel.
+- Staging deploy of `cb59664`: all 12 role places were accepted (onboarding v23, other roles v9). Log: `.omo/evidence/robango-recovery/p134/deploy-cb59664.log`.
+
+### Real phone (SM-N981N over USB, account indosaram5)
+Sources: `.omo/evidence/robango-recovery/p134/report-v22.md` and `p134/v23/report.md`.
+
+- **QA-PERF-01, second level (staging v22):**
+  - time to first interaction 6.9 s or less warm, 8.0 s or less cold;
+  - PSS max 674 MB cold, 1.0 GB warm.
+  - Measured on the reference phone (a 2020 flagship, not a low-end device), so low-end performance is still unverified.
+- **D6 (staging v23):** after a force-quit and a rejoin 8 s later, the server answers commands again. Bag "하나 보관" returned the localized refusal instead of failing silently. The bag survived the force-quit: 끈 1, 덤불딸기 3, 고사리 섬유 9, 칸 3/30.
+- **D3 (v23):** the rejoin was not kicked, and no raw "Profile unavailable" text appeared.
+- **D4 and D5 (v23):** the menu button no longer overlaps the combat card, and the touch objective no longer names a keyboard key.
+- **Specs:** the D6 write rate is backed by `camp-admission.spec` (120 s idle, no key written twice within 6 s; `robango-exp` 1016 to 2 backend calls). The live server write rate was not observed.
+- **New minor finding:** the rope item shows its name twice ("끈 끈").
+
+### Durango fidelity re-audit (2026-10-27)
+The build was compared scene by scene with captured original footage: `.omo/evidence/robango-durango-ref/catalog.md` (20 scenes, 97 frames) against `.omo/evidence/robango-durango-gap/` (phone captures and inventory). It does not look or play like the reference:
+- flat primitive-shape world;
+- Part-built creatures with no herds;
+- fixed lighting;
+- portrait phone layout;
+- thumbstick controls.
+
+The plan of record is now `.omo/plans/robango-durango-experience.md` (v2, 25 gaps, 25 tasks), and the earlier "implemented" statuses do not mean parity.
+
+### Still not verified
+- Live two-account trade, camp and rescue (no second account).
+- Release-candidate quality receipt.
+- Every item in the Durango experience plan.
 
 ## Current state at `9d673db` (2026-10-26)
 
