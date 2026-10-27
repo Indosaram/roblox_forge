@@ -29,6 +29,8 @@ export type Request = {
 	nodeId: string,
 	nodeVersion: number,
 	expiresAt: number,
+	-- Gather picker: one output from the node's offered outputs (nil grants the whole harvest).
+	output: string?,
 }
 export type Config = {
 	key: string,
@@ -254,6 +256,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			or not Catalog.integer(req.sessionEpoch, 0, 2 ^ 53 - 1)
 			or not Catalog.integer(req.nodeVersion, 0, 2 ^ 53 - 2)
 			or not Catalog.integer(req.expiresAt, 0, 2 ^ 53 - 1)
+			or (req.output ~= nil and not Catalog.identity(req.output))
 		then
 			return failed("INVALID_REQUEST")
 		end
@@ -335,7 +338,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				end
 			end
 			local candidate, gatherError =
-				Gathering.gather(data.nodes, staging, req, content, req.nodeId, req.nodeVersion, scoped)
+				Gathering.gather(data.nodes, staging, req, content, req.nodeId, req.nodeVersion, scoped, req.output)
 			if not candidate then
 				reason = gatherError
 				local timer = data.respawns[req.nodeId]

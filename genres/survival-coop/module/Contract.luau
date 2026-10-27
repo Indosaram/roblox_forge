@@ -159,7 +159,13 @@ local contract: Shared.RuntimeContract = {
 		{ id = "skill-learn", args = { id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 		{ id = "skill-reset", args = { version }, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } },
 		{ id = "companion-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
-		{ id = "gather", args = { id, version }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		-- Optional third arg: the one output picked from the node's offered outputs (gather picker).
+		{
+			id = "gather",
+			args = { id, version, Schema.optional(id) },
+			origin = "client",
+			rate = { capacity = 5, refillPerSecond = 2 },
+		},
 		{
 			id = "transfer-deposit",
 			args = { id, quantity },

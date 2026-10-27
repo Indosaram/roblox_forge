@@ -2953,3 +2953,7 @@ hud.panel.nothing_to_sell,No tradable goods yet. Gather resources first.,genre t
 hud.panel.no_listings,You have nothing listed.,genre text hud,You have nothing listed.,올린 물건이 없어요.
 hud.panel.no_claims,The collection box is empty.,genre text hud,The collection box is empty.,수령함이 비어 있어요.
 hud.panel.market_unavailable,The trading post is unavailable on this server.,genre text hud,The trading post is unavailable on this server.,이 서버에서는 교역소를 쓸 수 없어요.
+cli.gather.toast,+%d %s,"gather picker item gain toast (quantity, item)",+%d %s,+%d %s
+cli.gather.level,Lv %d,gather picker node level tag,Lv %d,Lv %d
+cli.gather.levelup,Skill grew,gather skill level-up banner title,Skill grew,기술이 늘었다
+cli.gather.banner,%s Lv %d,"gather skill level-up banner line (skill, level)",%s Lv %d,%s Lv %d

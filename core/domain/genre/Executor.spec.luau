@@ -335,4 +335,25 @@ return {
 		assert(not ok and string.find(tostring(err), "counter:Changed", 1, true), "contract assertion failed")
 		assert(executor.snapshot("p").counter.count == 1, "contract assertion failed")
 	end,
+	["trailing optional args may be omitted, never skipped or exceeded"] = function()
+		local runtime = fixture()
+		runtime.actions[1].args =
+			{ Schema.number({ min = 1, max = 2, integer = true }), Schema.optional(Schema.string({})) }
+		local executor = Executor.new(pack(), { runtime }, {
+			now = function()
+				return 0
+			end,
+			roll = function()
+				return 0
+			end,
+			emit = function(_e) end,
+		})
+		assert(executor.join("p").ok, "join")
+		assert(executor.validateClient("p", "counter:add", { 1 }).ok, "optional tail omitted")
+		assert(executor.validateClient("p", "counter:add", { 1, "pick" }).ok, "optional tail sent")
+		assert(executor.validateClient("p", "counter:add", { 1, 7 }).reason ~= nil, "optional tail still typed")
+		assert(executor.validateClient("p", "counter:add", {}).reason == "invalid arity", "required arg missing")
+		assert(executor.validateClient("p", "counter:add", { 1, "a", "b" }).reason == "invalid tuple", "too many")
+		assert(not executor.validateClient("p", "counter:add", { [2] = "pick" }).ok, "hole refused")
+	end,
 }

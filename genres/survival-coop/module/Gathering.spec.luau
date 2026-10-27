@@ -226,4 +226,44 @@ return {
 		local stale, err = Gathering.gather(nodes, bag, context, content, "bush-1", 0, access)
 		assert(not stale and err == "STALE_VERSION", "stale shared version")
 	end,
+	["picker outputs: harvest first, then policy extras, deduplicated and capped at six"] = function()
+		local content: any = fixture()
+		content.gatherPolicy = {
+			extras = {
+				{ item = "fiber", outputs = { { item = "seed", quantity = 9 }, { item = "knife", quantity = 1 } } },
+			},
+		}
+		local offered = Gathering.outputs(content, content.nodes[1].harvest)
+		assert(#offered == 3, "fiber, seed and knife")
+		assert(offered[1].item == "fiber" and offered[1].quantity == 3, "harvest first")
+		assert(offered[2].item == "seed" and offered[2].quantity == 1, "harvest quantity wins a duplicate")
+		assert(offered[3].item == "knife" and offered[3].quantity == 1, "extra appended")
+		local view, level, plain = Gathering.offered(content, "bush", "bush-1")
+		assert(#view == 3 and level == nil and plain == 2, "catalog node view")
+		local none = Gathering.offered(content, "ghost", "ghost-1")
+		assert(#none == 0, "unknown node offers nothing")
+		local many = {}
+		for index = 1, 9 do
+			table.insert(many, { item = "fiber", quantity = index })
+		end
+		content.gatherPolicy.extras = { { item = "fiber", outputs = many }, { item = "seed", outputs = many } }
+		assert(#Gathering.outputs(content, { { item = "fiber", quantity = 1 } }) == 1, "same item once")
+	end,
+	["a picked output grants only that output; an output the node does not offer is refused"] = function()
+		local content: any, nodes, bag, access = fixture()
+		content.gatherPolicy = { extras = { { item = "fiber", outputs = { { item = "knife", quantity = 1 } } } } }
+		local picked, err = Gathering.gather(nodes, bag, context, content, "bush-1", 0, access, "seed")
+		assert(picked, err)
+		assert(#picked.itemIds == 1, "one output")
+		local item = picked.inventory.items[picked.itemIds[1]]
+		assert(item.catalogId == "seed" and item.quantity == 1, "the picked output only")
+		assert(picked.nodes.nodes["bush-1"].charges == 0, "a pick still spends the charge")
+		local extra = Gathering.gather(nodes, bag, context, content, "bush-1", 0, access, "knife")
+		assert(extra and extra.inventory.items[extra.itemIds[1]].catalogId == "knife", "a policy extra is offered")
+		local refused, reason = Gathering.gather(nodes, bag, context, content, "bush-1", 0, access, "meat")
+		assert(refused == nil and reason == "OUTPUT_NOT_OFFERED", "unoffered output refused")
+		assert(nodes.nodes["bush-1"].charges == 1 and bag.version == 1, "a refusal publishes nothing")
+		local whole = Gathering.gather(nodes, bag, context, content, "bush-1", 0, access)
+		assert(whole and #whole.itemIds == 2, "no pick keeps the whole harvest")
+	end,
 }

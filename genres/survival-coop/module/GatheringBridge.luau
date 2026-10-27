@@ -60,6 +60,7 @@ function M.new(config: Config)
 				nodeId = args[1],
 				nodeVersion = args[2],
 				expiresAt = expiresAt,
+				output = args[3],
 			})
 		end)
 		return {

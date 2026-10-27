@@ -182,8 +182,18 @@ function M.new(
 			end
 			count += 1
 		end
-		if count ~= #action.args then
+		-- Trailing Schema.optional args may be omitted; the sent ones must stay dense from 1.
+		local required = #action.args
+		while required > 0 and action.args[required].kind == "optional" do
+			required -= 1
+		end
+		if count < required or count > #action.args then
 			return reject("invalid arity")
+		end
+		for index = 1, count do
+			if args[index] == nil then
+				return reject("invalid tuple")
+			end
 		end
 		local valid, reason = Schema.check(Schema.tuple(action.args), args)
 		if not valid then

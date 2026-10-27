@@ -75,6 +75,54 @@ function M.new(worldRevision: string, content: Content.Document, nodes: { Node }
 	return M.snapshot(state)
 end
 
+--- The outputs a node offers the gather picker: each harvest entry, then the pack's optional
+--- `gatherPolicy.extras` rows for the items it harvests (first entry per item wins, at most 6).
+function M.outputs(content: Content.Document, harvest: { Content.Quantity }): { Content.Quantity }
+	local out: { Content.Quantity } = {}
+	local seen: { [string]: boolean } = {}
+	local function add(entry: Content.Quantity)
+		if not seen[entry.item] and #out < 6 then
+			seen[entry.item] = true
+			table.insert(out, { item = entry.item, quantity = entry.quantity })
+		end
+	end
+	for _, entry in harvest do
+		add(entry)
+	end
+	local policy = (content :: any).gatherPolicy
+	for _, entry in harvest do
+		for _, extra in if policy then policy.extras else {} do
+			if extra.item == entry.item then
+				for _, output in extra.outputs do
+					add(output)
+				end
+			end
+		end
+	end
+	return out
+end
+
+--- Picker view of a published node part: its offered outputs, the authored level (layout
+--- resources only) and how many leading outputs are the plain harvest (what a gather without a
+--- pick grants). The catalog node `kind` wins; else the layout resource `nodeId` (role worlds
+--- register a kind derived from the resource id).
+function M.offered(content: Content.Document, kind: string, nodeId: string): ({ Content.Quantity }, number?, number)
+	for _, definition in content.nodes do
+		if definition.id == kind then
+			return M.outputs(content, definition.harvest), nil, #definition.harvest
+		end
+	end
+	for _, layout in (content :: any).layouts or {} do
+		for _, resource in layout.resourceNodes or {} do
+			if resource.id == nodeId then
+				return M.outputs(content, { { item = resource.item, quantity = resource.yield } }), resource.level, 1
+			end
+		end
+	end
+	return {}, nil, 0
+end
+
+--- `picked` (optional) is one offered output item (M.outputs); nil keeps the whole harvest.
 function M.gather(
 	state: State,
 	inventory: Inventory.State,
@@ -82,7 +130,8 @@ function M.gather(
 	content: Content.Document,
 	nodeId: string,
 	expectedNodeVersion: number,
-	access: Access
+	access: Access,
+	picked: string?
 ): (Candidate?, string?)
 	if context.actorId ~= access.actorId then
 		return nil, "WRONG_ACTOR"
@@ -149,10 +198,22 @@ function M.gather(
 	if not definition then
 		return nil, "UNKNOWN_NODE_CATALOG"
 	end
+	local grants = definition.harvest
+	if picked ~= nil then
+		grants = {}
+		for _, offered in M.outputs(content, definition.harvest) do
+			if offered.item == picked then
+				grants = { offered }
+			end
+		end
+		if #grants == 0 then
+			return nil, "OUTPUT_NOT_OFFERED"
+		end
+	end
 	local catalog = Job.catalog(content)
 	local bag = Inventory.snapshot(inventory)
 	local ids: { string } = {}
-	for index, output in definition.harvest do
+	for index, output in grants do
 		local itemId = identity .. ":output:" .. tostring(index)
 		local added, err = Inventory.add(bag, catalog, {
 			itemId = itemId,

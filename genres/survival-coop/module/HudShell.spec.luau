@@ -254,4 +254,57 @@ return {
 		assert(not Shell.sheetOpen(node("PlayerGui", "PlayerGui", nil, { hudSheet() })), "own HUD sheet")
 		assert(not Shell.sheetOpen(nil), "no PlayerGui")
 	end,
+	["gather fan keeps 2-6 pebbles apart, inside the safe area, on landscape phones and PC"] = function()
+		-- { width, height, topClear, touch }: 800x360 and 850x411 landscape phones (logical), PC.
+		local views: { { any } } = { { 800, 360, 36, true }, { 850, 411, 58, true }, { 1920, 1080, 58, false } }
+		for _, view in views do
+			local width, height, top, touch = view[1], view[2], view[3], view[4]
+			for count = 2, Shell.FAN.maximum do
+				-- Node in the middle, at each corner and at the bottom edge: the fan shifts inside.
+				for _, at in
+					{ { width / 2, height / 2 }, { 10, top + 10 }, { width - 10, height - 10 }, { width / 2, height } }
+				do
+					local fan = Shell.fan(width, height, top, touch, at[1], at[2], count)
+					assert(#fan.tokens == count and #fan.captions == count, "one pebble and caption per output")
+					local where = string.format("%dx%d n=%d at %d,%d", width, height, count, at[1], at[2])
+					assert(Shell.inside(fan.name, width, height, top), "name pill inside " .. where)
+					local middle = fan.tokens[math.ceil(count / 2)]
+					assert(middle.y + middle.height < fan.name.y, "fan opens upward over the target " .. where)
+					for index, token in fan.tokens do
+						assert(Shell.inside(token, width, height, top), "token inside " .. where)
+						assert(Shell.inside(fan.captions[index], width, height, top), "caption inside " .. where)
+						assert(token.width >= (if touch then Shell.MIN_TOUCH else 0), "touch-size token " .. where)
+						assert(not Shell.overlaps(token, fan.name), "pebble clears the name pill " .. where)
+						assert(not Shell.overlaps(fan.captions[index], fan.name), "caption clears the pill " .. where)
+						for other = index + 1, count do
+							assert(not Shell.circlesOverlap(token, fan.tokens[other]), "pebbles apart " .. where)
+						end
+					end
+				end
+			end
+		end
+	end,
+	["item toasts and the skill banner sit in their spec regions without overlapping"] = function()
+		for _, view in { { 800, 360, 36 }, { 850, 411, 58 }, { 1920, 1080, 58 } } do
+			local feedback = Shell.feedback(view[1], view[2], view[3])
+			assert(#feedback.toasts == 3, "stack of three")
+			assert(Shell.inside(feedback.banner, view[1], view[2], view[3]), "banner inside")
+			for index, toast in feedback.toasts do
+				assert(Shell.inside(toast, view[1], view[2], view[3]), "toast inside")
+				assert(not Shell.overlaps(toast, feedback.banner), "toast clears the banner")
+				if index > 1 then
+					assert(not Shell.overlaps(toast, feedback.toasts[index - 1]), "toasts stack")
+				end
+			end
+		end
+	end,
+	["a skill level-up is a mastery level that rose, never the first snapshot"] = function()
+		assert(#Shell.levelUps(nil, { gathering = { level = 3 } }) == 0, "baseline")
+		local ups = Shell.levelUps(
+			{ gathering = { level = 2 }, melee = { level = 1 }, farming = { level = 4 } },
+			{ gathering = { level = 3 }, melee = { level = 1 }, farming = { level = 6 } }
+		)
+		assert(#ups == 2 and ups[1].id == "farming" and ups[1].level == 6, "sorted rises")
+		assert(ups[2].id == "gathering" and ups[2].level == 3, "gathering rose")
+	end,
 }

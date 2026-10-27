@@ -174,6 +174,9 @@ local schemas: { [string]: { [string]: string } } = {
 	},
 	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
 	buybackRow = { item = "@items", price = "positive" },
+	-- Gather picker: extra outputs a node harvesting `item` offers instead of its harvest.
+	gatherExtra = { item = "@items", outputs = "[]quantity" },
+	gatherPolicy = { provenance = "provenance", extras = "[]gatherExtra" },
 	harborPolicy = {
 		provenance = "provenance",
 		buyback = "[]buybackRow",
@@ -481,6 +484,7 @@ M.POLICIES = {
 	"outpostPolicy",
 	"brawlPolicy",
 	"music",
+	"gatherPolicy",
 }
 local enums: { [string]: { string } } = {
 	classification = { "CONFIRMED", "RECONSTRUCTED", "HISTORICAL_EVENT" },

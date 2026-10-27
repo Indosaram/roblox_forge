@@ -2953,3 +2953,7 @@ hud.panel.nothing_to_sell,original,agent:hephaestus/C8,2026-10-27
 hud.panel.no_listings,original,agent:hephaestus/C8,2026-10-27
 hud.panel.no_claims,original,agent:hephaestus/C8,2026-10-27
 hud.panel.market_unavailable,original,agent:hephaestus/C8,2026-10-27
+cli.gather.toast,original,agent:hephaestus/c2,2026-10-27
+cli.gather.level,original,agent:hephaestus/c2,2026-10-27
+cli.gather.levelup,original,agent:hephaestus/c2,2026-10-27
+cli.gather.banner,original,agent:hephaestus/c2,2026-10-27

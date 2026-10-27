@@ -141,7 +141,16 @@ end)
 reduceAll()
 scaleAll()
 local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringClient)
-local gathering = GatheringClient.start({ locale = locale, names = names })
+-- C2 gather picker: a prompt, the touch button or a routed tap (TapRouter triggers the prompt) on a
+-- node opens the shell fan of its offered outputs; the fan sends the picked output.
+local gatherPicker: any = nil
+local gathering = GatheringClient.start({
+	locale = locale,
+	names = names,
+	pick = function(part: BasePart): boolean
+		return gatherPicker ~= nil and gatherPicker.open(part)
+	end,
+})
 gui.Destroying:Connect(gathering.destroy)
 
 local SurvivalHUD = require(Forge.genres["survival-coop"].module.SurvivalHUD)
@@ -214,6 +223,73 @@ local hud = SurvivalHUD.start({
 	locale = locale,
 	names = names,
 })
+do
+	local HudShell = require(Forge.genres["survival-coop"].module.HudShell)
+	local Gathering = require(Forge.genres["survival-coop"].module.Gathering)
+	local fanGui = Instance.new("ScreenGui")
+	fanGui.Name, fanGui.ResetOnSpawn, fanGui.DisplayOrder = "ForgeGatherFan", false, 20
+	fanGui.IgnoreGuiInset, fanGui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling
+	fanGui.Parent = player.PlayerGui
+	local function nodeName(part: BasePart): string
+		local kind, item = part:GetAttribute("ForgeNodeKind"), part:GetAttribute("ForgeNodeItem")
+		return names[kind :: any] or (if type(item) == "string" then names[item] or item else nil) or tostring(kind)
+	end
+	gatherPicker = HudShell.startPicker({
+		gui = fanGui,
+		touch = function(): boolean
+			return game:GetService("UserInputService").TouchEnabled
+		end,
+		hidden = function(): boolean
+			return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true
+		end,
+		offered = function(part: BasePart): ({ { item: string, quantity: number } }, number?)
+			local kind, id = part:GetAttribute("ForgeNodeKind"), part:GetAttribute("ForgeNodeId")
+			if type(kind) ~= "string" or type(id) ~= "string" then
+				return {}, nil
+			end
+			local offered, level = Gathering.offered(content :: any, kind, id)
+			return offered, level
+		end,
+		nodeName = nodeName,
+		itemName = function(item: string): string
+			return names[item] or item
+		end,
+		icon = function(item: string): string?
+			return itemIcons.item(item).image
+		end,
+		gather = function(part: BasePart, output: string): any
+			return gathering.gather(part, output)
+		end,
+		text = function(key: string): string
+			return clientText(locale, "cli.gather." .. key) or key
+		end,
+		reach = 10,
+	})
+	gui.Destroying:Connect(gatherPicker.destroy)
+	-- Skill level-up banner: a mastery category whose level rose in the latest snapshot.
+	local mastery: any = nil
+	local stateEvent = game:GetService("ReplicatedStorage"):WaitForChild("ForgeState") :: RemoteEvent
+	local levelWatch = stateEvent.OnClientEvent:Connect(function(packet: any)
+		local slice = type(packet) == "table"
+			and type(packet.snapshots) == "table"
+			and packet.snapshots["survival-coop"]
+		local progression = type(slice) == "table" and slice.progression
+		if type(progression) ~= "table" or type(progression.mastery) ~= "table" then
+			return
+		end
+		for _, up in HudShell.levelUps(mastery, progression.mastery) do
+			local skill = entryText(locale, "skills." .. up.id) or up.id
+			gatherPicker.banner(
+				clientText(locale, "cli.gather.levelup") or "",
+				string.format(clientText(locale, "cli.gather.banner") or "%s %d", skill, up.level)
+			)
+		end
+		mastery = progression.mastery
+	end)
+	gui.Destroying:Connect(function()
+		levelWatch:Disconnect()
+	end)
+end
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name, toastGui.ResetOnSpawn = "BiomeToast", false
 toastGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets

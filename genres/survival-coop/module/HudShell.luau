@@ -524,6 +524,85 @@ end
 -- Bag equipment doll slots (spec 6.3), CharacterRules.SLOTS order.
 M.DOLL_SLOTS = table.freeze({ "head", "top", "bottom", "shoes", "gloves", "bag", "weapon" })
 
+
+-- Gather picker ("shell fan", spec section 3, plan C2/G7): M pebbles on an arc opening upward over
+-- the node's screen point, 40 degrees apart (200 degrees at six), radius 0.22H grown until the
+-- tokens part; captions sit outside the ring, the node name pill under the target. The fan is
+-- shifted as a whole so every token, caption and the pill stays inside the safe area.
+M.FAN = table.freeze({ radius = 0.22, step = 40, maximum = 6, caption = 18, pill = 22 })
+
+export type Fan = { tokens: { Rect }, captions: { Rect }, name: Rect, x: number, y: number }
+
+function M.fan(
+	width: number,
+	height: number,
+	topClear: number?,
+	touch: boolean?,
+	x: number,
+	y: number,
+	count: number
+): Fan
+	local top = topClear or 0
+	local h = height - top
+	local n = math.clamp(count, 1, M.FAN.maximum)
+	local size = M.tokenSize("M", h, touch == true)
+	local tall = math.max(if touch then M.MIN_TOUCH else 0, size * M.PEBBLE.aspect)
+	local half = math.rad(M.FAN.step / 2)
+	local radius = math.max(M.FAN.radius * h, (math.max(size, tall) + M.ARC_GAP * 2) / (2 * math.sin(half)))
+	local caption, pill = M.FAN.caption, M.FAN.pill
+	local pillWidth = math.min(width - 8, math.max(4 * size, 0.6 * h))
+	-- Relative layout around (0, 0), then one shift into the screen.
+	local tokens, captions = {}, {}
+	local x0, y0, x1, y1 = -pillWidth / 2, 0, pillWidth / 2, 0
+	for index = 1, n do
+		local angle = math.rad(90 + M.FAN.step * ((n - 1) / 2 - (index - 1)))
+		local cx, cy = radius * math.cos(angle), -radius * math.sin(angle)
+		local token = rect(cx - size / 2, cy - tall / 2, size, tall)
+		local out = (radius + math.max(size, tall) / 2 + caption / 2 + 2)
+		local kx, ky = out * math.cos(angle), -out * math.sin(angle)
+		local label = rect(kx - size * 0.8, ky - caption / 2, size * 1.6, caption)
+		tokens[index], captions[index] = token, label
+		for _, r in { token, label } do
+			x0, y0 = math.min(x0, r.x), math.min(y0, r.y)
+			x1, y1 = math.max(x1, r.x + r.width), math.max(y1, r.y + r.height)
+		end
+	end
+	-- The name pill sits under the target and under the lowest pebble or caption of a wide fan.
+	local pillTop = math.max(6, y1 + 4)
+	y1 = pillTop + pill
+	-- Touch keeps the spec's 32 px camera-cutout side inset as well as the edge margin.
+	local edge = if touch then math.max(M.EDGE * h, 32) else 4
+	local px = math.clamp(x, edge - x0, width - edge - x1)
+	local py = math.clamp(y, top + edge - y0, height - edge - y1)
+	local function shift(r: Rect): Rect
+		return rect(r.x + px, r.y + py, r.width, r.height)
+	end
+	for index = 1, n do
+		tokens[index], captions[index] = shift(tokens[index]), shift(captions[index])
+	end
+	return {
+		tokens = tokens,
+		captions = captions,
+		name = shift(rect(-pillWidth / 2, pillTop, pillWidth, pill)),
+		x = px,
+		y = py,
+	}
+end
+
+--- Item-gain toast stack (spec section 5: top-right, 0.46-0.58H, three lines) and the level-up
+--- banner (top-centre, the status region). Lines are `caption`-scale but never under 13 px.
+function M.feedback(width: number, height: number, topClear: number?): { toasts: { Rect }, banner: Rect }
+	local top = topClear or 0
+	local h = height - top
+	local toasts = {}
+	local line = math.max(18, 0.04 * h)
+	for index = 1, 3 do
+		toasts[index] = rect(width - 1.0 * h, top + 0.46 * h + (index - 1) * line, 0.55 * h, line - 2)
+	end
+	local bannerWidth = math.min(1.4 * h, width - 16)
+	return { toasts = toasts, banner = rect(width / 2 - bannerWidth / 2, top + 0.16 * h, bannerWidth, 0.10 * h) }
+end
+
 -- ---------------------------------------------------------------------------------------------
 -- Runtime overlays (Roblox only; the layout above stays engine-free for Lune specs). One module
 -- on purpose: the pack's QA-PERF-01 static budget counts every shipped ModuleScript.
@@ -534,6 +613,7 @@ local env: any = getfenv()
 local game: any = env.game
 local Instance: any, Enum: any, UDim: any, UDim2: any = env.Instance, env.Enum, env.UDim, env.UDim2
 local Vector2: any, Vector3: any, CFrame: any, Color3: any = env.Vector2, env.Vector3, env.CFrame, env.Color3
+local task: any = env.task
 local ColorSequence: any, NumberSequence: any = env.ColorSequence, env.NumberSequence
 
 local function color(c: any): any
@@ -1028,6 +1108,288 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		coords:Destroy()
 		labelFolder:Destroy()
 	end
+end
+
+--- Skill categories whose mastery level rose between two progression snapshots ({ [id]: { level } }),
+--- sorted by id. A nil `before` is the first snapshot: a baseline, never a level-up.
+function M.levelUps(before: { [string]: any }?, after: { [string]: any }?): { { id: string, level: number } }
+	local out: { { id: string, level: number } } = {}
+	if not before or not after then
+		return out
+	end
+	for id, entry in after do
+		local previous = before[id]
+		if type(entry) == "table" and type(previous) == "table" and entry.level > previous.level then
+			table.insert(out, { id = id, level = entry.level })
+		end
+	end
+	table.sort(out, function(a, b)
+		return a.id < b.id
+	end)
+	return out
+end
+
+export type PickerOptions = {
+	-- A ScreenGui with IgnoreGuiInset (screen space = viewport space).
+	gui: any,
+	touch: () -> boolean,
+	hidden: () -> boolean,
+	-- Offered outputs of a node part and its authored level (nil = none to show).
+	offered: (any) -> ({ { item: string, quantity: number } }, number?),
+	nodeName: (any) -> string,
+	itemName: (string) -> string,
+	icon: (string) -> string?,
+	-- Sends one gather of `output`; yields and returns the server result.
+	gather: (any, string) -> any,
+	text: (string) -> string,
+	-- Studs: the fan closes once the character is this far from the node.
+	reach: number,
+}
+
+--- Gather picker runtime plus the item toasts and the skill banner. Returns
+--- { open(part), close(), isOpen(), toast(line), banner(title, line), destroy() }.
+function M.startPicker(options: PickerOptions): any
+	local run = game:GetService("RunService")
+	local guiService = game:GetService("GuiService")
+	local input = game:GetService("UserInputService")
+	local player = game:GetService("Players").LocalPlayer
+	local world = game:GetService("Workspace")
+	local P = M.PALETTE
+	local gui = options.gui
+	local connections: { any } = {}
+	local root = Instance.new("Frame")
+	root.Name, root.BackgroundTransparency, root.Size, root.Visible = "GatherFan", 1, UDim2.fromScale(1, 1), false
+	root.Parent = gui
+	local namePill = Instance.new("TextButton")
+	namePill.Name, namePill.AutoButtonColor, namePill.BackgroundColor3 = "NodeName", false, color(P.ink)
+	namePill.BackgroundTransparency, namePill.TextColor3 = 0.3, color(P.bone)
+	namePill.Font, namePill.Parent = Enum.Font.BuilderSansBold, root
+	local pillCorner = Instance.new("UICorner")
+	pillCorner.CornerRadius, pillCorner.Parent = UDim.new(0.5, 0), namePill
+	local tokens: { any } = {}
+	local function token(index: number): any
+		local entry = tokens[index]
+		if entry then
+			return entry
+		end
+		local button = Instance.new("TextButton")
+		button.Name, button.Text, button.Parent = "Output" .. index, "", root
+		local image = Instance.new("ImageLabel")
+		image.Name, image.BackgroundTransparency = "Icon", 1
+		image.AnchorPoint, image.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+		image.Size, image.Parent = UDim2.fromScale(0.56, 0.56), button
+		local glyph = Instance.new("TextLabel")
+		glyph.Name, glyph.BackgroundTransparency, glyph.Size = "Glyph", 1, UDim2.fromScale(1, 1)
+		glyph.TextColor3, glyph.Font, glyph.Parent = color(P.bone), Enum.Font.BuilderSansBold, button
+		local count = Instance.new("TextLabel")
+		count.Name, count.BackgroundTransparency, count.AnchorPoint = "Count", 1, Vector2.new(1, 1)
+		count.Position, count.Size = UDim2.new(1, -4, 1, -2), UDim2.fromScale(0.6, 0.34)
+		count.TextXAlignment, count.TextColor3 = Enum.TextXAlignment.Right, color(P.bone)
+		count.Font, count.Parent = Enum.Font.BuilderSansBold, button
+		local caption = Instance.new("TextLabel")
+		caption.Name, caption.BackgroundColor3, caption.BackgroundTransparency = "Caption", color(P.ink), 0.3
+		caption.TextColor3, caption.Font, caption.Parent = color(P.bone), Enum.Font.BuilderSansMedium, root
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), caption
+		entry = { button = button, image = image, glyph = glyph, count = count, caption = caption }
+		tokens[index] = entry
+		return entry
+	end
+	local current: any = nil
+	local outputs: { { item: string, quantity: number } } = {}
+	local busy = false
+	local function close()
+		current, busy = nil, false
+		root.Visible = false
+		root:SetAttribute("ForgeGatherNode", nil)
+	end
+	-- Toasts (stack of three, newest on top) and the banner.
+	local toastLabels: { any } = {}
+	local toastLines: { { text: string, at: number } } = {}
+	for index = 1, 3 do
+		local label = Instance.new("TextLabel")
+		label.Name, label.BackgroundColor3, label.BackgroundTransparency = "Toast" .. index, color(P.ink), 0.25
+		label.TextColor3, label.Font, label.Visible = color(P.bone), Enum.Font.BuilderSansBold, false
+		label.TextXAlignment, label.Parent = Enum.TextXAlignment.Right, gui
+		local pad = Instance.new("UIPadding")
+		pad.PaddingRight, pad.Parent = UDim.new(0, 10), label
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), label
+		toastLabels[index] = label
+	end
+	local banner = Instance.new("Frame")
+	banner.Name, banner.BackgroundColor3, banner.BackgroundTransparency = "SkillBanner", color(P.tealDeep), 0.08
+	banner.Visible, banner.Parent = false, gui
+	local bannerRim = Instance.new("UIStroke")
+	bannerRim.Color, bannerRim.Thickness, bannerRim.Parent = color(P.ochre), 2, banner
+	local bannerCorner = Instance.new("UICorner")
+	bannerCorner.CornerRadius, bannerCorner.Parent = UDim.new(0.3, 0), banner
+	local bannerTitle = Instance.new("TextLabel")
+	bannerTitle.Name, bannerTitle.BackgroundTransparency, bannerTitle.Size = "Title", 1, UDim2.fromScale(1, 0.45)
+	bannerTitle.TextColor3, bannerTitle.Font, bannerTitle.Parent = color(P.bone), Enum.Font.BuilderSansMedium, banner
+	local bannerLine = Instance.new("TextLabel")
+	bannerLine.Name, bannerLine.BackgroundTransparency = "Line", 1
+	bannerLine.Position, bannerLine.Size = UDim2.fromScale(0, 0.42), UDim2.fromScale(1, 0.58)
+	bannerLine.TextColor3, bannerLine.Font, bannerLine.Parent = color(P.ochre), Enum.Font.BuilderSansBold, banner
+	local bannerUntil = 0
+	local function topClear(): number
+		local inset = guiService.TopbarInset
+		return if inset then inset.Max.Y else 0
+	end
+	local function screenPoint(part: any): (number?, number?)
+		local camera = world.CurrentCamera
+		if not camera then
+			return nil, nil
+		end
+		local point, visible = camera:WorldToViewportPoint(part.Position)
+		return if visible and point.Z > 0 then point.X else nil, point.Y
+	end
+	local function pick(index: number)
+		local part, entry = current, outputs[index]
+		if busy or not part or not entry then
+			return
+		end
+		busy = true
+		local result = options.gather(part, entry.item)
+		busy = false
+		if type(result) == "table" and result.ok == true then
+			table.insert(toastLines, 1, {
+				text = string.format(options.text("toast"), entry.quantity, options.itemName(entry.item)),
+				at = os.clock(),
+			})
+		end
+	end
+	local function open(part: any)
+		local offered, level = options.offered(part)
+		if #offered == 0 or options.hidden() then
+			return false
+		end
+		current, outputs = part, offered
+		root:SetAttribute("ForgeGatherNode", part:GetAttribute("ForgeNodeId"))
+		local name = options.nodeName(part)
+		namePill.Text = if level then name .. "  " .. string.format(options.text("level"), level) else name
+		for index, entry in tokens do
+			entry.button.Visible, entry.caption.Visible = index <= #offered, index <= #offered
+		end
+		for index, output in offered do
+			local entry = token(index)
+			entry.button.Visible, entry.caption.Visible = true, true
+			entry.button:SetAttribute("ForgeItem", output.item)
+			local image = options.icon(output.item)
+			entry.image.Image, entry.image.Visible = image or "", image ~= nil
+			entry.glyph.Text = if image then "" else utf8.char(utf8.codepoint(options.itemName(output.item), 1))
+			entry.count.Text = "x" .. output.quantity
+			entry.caption.Text = options.itemName(output.item)
+		end
+		root.Visible = true
+		return true
+	end
+	for index = 1, M.FAN.maximum do
+		local entry = token(index)
+		entry.button.Visible, entry.caption.Visible = false, false
+		table.insert(
+			connections,
+			entry.button.Activated:Connect(function()
+				task.spawn(pick, index)
+			end)
+		)
+	end
+	table.insert(connections, namePill.Activated:Connect(close))
+	table.insert(
+		connections,
+		input.InputBegan:Connect(function(key: any, processed: boolean)
+			if processed or not current then
+				return
+			end
+			if key.KeyCode == Enum.KeyCode.Escape or key.KeyCode == Enum.KeyCode.ButtonB then
+				close()
+			end
+			-- PC: number keys 1-6 pick the matching output.
+			local number = key.KeyCode.Value - Enum.KeyCode.One.Value + 1
+			if number >= 1 and number <= #outputs then
+				task.spawn(pick, number)
+			end
+		end)
+	)
+	table.insert(
+		connections,
+		run.RenderStepped:Connect(function()
+			local size = gui.AbsoluteSize
+			local touch = options.touch()
+			local clear = topClear()
+			local h = size.Y - clear
+			local now = os.clock()
+			-- Feedback.
+			local feedback = M.feedback(size.X, size.Y, clear)
+			while #toastLines > 0 and now - toastLines[#toastLines].at > 3 do
+				table.remove(toastLines)
+			end
+			for index, label in toastLabels do
+				local line = toastLines[index]
+				label.Visible = line ~= nil and not options.hidden()
+				if line then
+					M.put(label, feedback.toasts[index])
+					label.Text, label.TextSize = line.text, M.tokenText("label", h, touch)
+				end
+			end
+			banner.Visible = now < bannerUntil and not options.hidden()
+			if banner.Visible then
+				M.put(banner, feedback.banner)
+				bannerTitle.TextSize = M.tokenText("label", h, touch)
+				bannerLine.TextSize = M.textSize("title", h)
+			end
+			-- Fan.
+			local part = current
+			if not part then
+				return
+			end
+			local character = player.Character
+			local body = character and character:FindFirstChild("HumanoidRootPart")
+			local far = body
+				and Vector3.new(body.Position.X - part.Position.X, 0, body.Position.Z - part.Position.Z).Magnitude
+					> options.reach
+			local x, y = screenPoint(part)
+			if not part:IsDescendantOf(world) or far or options.hidden() or not x then
+				close()
+				return
+			end
+			local fan = M.fan(size.X, size.Y, clear, touch, x, y :: number, #outputs)
+			M.put(namePill, fan.name)
+			namePill.TextSize = M.tokenText("label", h, touch)
+			for index = 1, #outputs do
+				local entry = tokens[index]
+				M.put(entry.button, fan.tokens[index])
+				M.put(entry.caption, fan.captions[index])
+				M.pebble(entry.button, false, not busy)
+				entry.count.TextSize = M.tokenText("caption", h, touch)
+				entry.glyph.TextSize = M.textSize("title", h)
+				entry.caption.TextSize = M.tokenText("caption", h, touch)
+			end
+		end)
+	)
+	return {
+		open = open,
+		close = close,
+		isOpen = function(): boolean
+			return current ~= nil
+		end,
+		toast = function(line: string)
+			table.insert(toastLines, 1, { text = line, at = os.clock() })
+		end,
+		banner = function(title: string, line: string)
+			bannerTitle.Text, bannerLine.Text, bannerUntil = title, line, os.clock() + 3
+		end,
+		destroy = function()
+			for _, connection in connections do
+				connection:Disconnect()
+			end
+			root:Destroy()
+			banner:Destroy()
+			for _, label in toastLabels do
+				label:Destroy()
+			end
+		end,
+	}
 end
 
 return M

@@ -302,6 +302,25 @@ return {
 		end
 		assert(count == 1, "one stable receipt")
 	end,
+	["a picked output is the only credit and an unoffered pick is refused without spending the node"] = function()
+		local c = fixture()
+		local bad = table.clone(c.request)
+		bad.requestId, bad.output = "forged", "knife"
+		local refused = c.runtime.command(bad)
+		assert(refused.status == "rejected" and refused.error == "OUTPUT_NOT_OFFERED", "unoffered output refused")
+		assert(c.read("nodes:world-1").data.nodes.nodes["bush-1"].charges == 1, "refusal keeps the charge")
+		local malformed = table.clone(c.request)
+		malformed.requestId, malformed.output = "malformed", ""
+		assert(c.runtime.command(malformed).error == "INVALID_REQUEST", "empty output id is invalid")
+		local picked = table.clone(c.request)
+		picked.output = "seed"
+		assert(c.runtime.command(picked).status ~= "rejected", "offered pick accepted")
+		for _ = 1, 3 do
+			c.runtime.recover("alice", 8)
+		end
+		local receipt = c.runtime.receipt("alice", 0, "harvest")
+		assert(receipt and receipt.items.seed == 1 and receipt.items.fiber == nil, "only the picked output credited")
+	end,
 	["mission receipt requires finalized destination credit and exact actor identity"] = function()
 		local c = fixture()
 		assert(c.runtime.receipt("alice", 0, "harvest") == nil, "unissued gather cannot complete mission")

@@ -1,8 +1,15 @@
 --!strict
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
 local M = {}
--- Optional `locale` (label) and `names` (kind/catalog id -> display name).
-export type Options = { onResult: ((any, any?) -> ())?, locale: string?, names: { [string]: string }? }
+-- Optional `locale` (label) and `names` (kind/catalog id -> display name). Optional `pick`
+-- (gather picker, opt-in): the prompt and the touch button call it first, and a true answer means
+-- the picker opened, so nothing is sent; the picker then sends through the returned `gather`.
+export type Options = {
+	onResult: ((any, any?) -> ())?,
+	locale: string?,
+	names: { [string]: string }?,
+	pick: ((BasePart) -> boolean)?,
+}
 local TAG = "ForgeSurvivalNode"
 local ACTION = "survival-coop:gather"
 
@@ -256,17 +263,17 @@ function M.start(options: Options?)
 		end
 		return false
 	end
-	local function activate(part: BasePart, triggeringPlayer: Player, inputSource: string?)
+	local function activate(part: BasePart, triggeringPlayer: Player, inputSource: string?, output: string?): any
 		if disposed or refreshing or triggeringPlayer ~= player or not nodes[part] then
-			return
+			return nil
 		end
 		local id = registered(part)
 		if not id or busy[id] then
-			return
+			return nil
 		end
 		if pending[id] == nil then
 			if not published(part) then
-				return
+				return nil
 			end
 			local version = part:GetAttribute("ForgeNodeVersion")
 			local epoch = if durable and durable.epochs
@@ -282,9 +289,11 @@ function M.start(options: Options?)
 				if reached and not integer(refreshed) then
 					report({ ok = false, reason = "COMMAND_PENDING" })
 				end
-				return -- A refreshed epoch is used only by the next user activation.
+				return nil -- A refreshed epoch is used only by the next user activation.
 			end
-			pending[id] = CommandTransport.request(nil, ACTION, { id, version }, epoch, function()
+			-- A picked output rides as the optional third arg; the server grants only that output.
+			local args: { any } = if output then { id, version, output } else { id, version }
+			pending[id] = CommandTransport.request(nil, ACTION, args, epoch, function()
 				return http:GenerateGUID(false)
 			end)
 			table.freeze(pending[id].args)
@@ -308,7 +317,7 @@ function M.start(options: Options?)
 		end)
 		busy[id] = nil
 		if disposed then
-			return
+			return nil
 		end
 		if ok then
 			pending[id] = CommandTransport.settle(pending[id], result)
@@ -331,6 +340,7 @@ function M.start(options: Options?)
 			report({ ok = false, reason = "TRANSPORT_FAILED" }, result)
 		end
 		update(part)
+		return if ok then result else nil
 	end
 	local function remove(instance: Instance)
 		if not instance:IsA("BasePart") then
@@ -358,6 +368,9 @@ function M.start(options: Options?)
 		prompt.RequiresLineOfSight, prompt.ClickablePrompt, prompt.Enabled = false, true, false
 		local owned = {
 			prompt.Triggered:Connect(function(actor)
+				if actor == player and options and options.pick and options.pick(instance) then
+					return
+				end
 				activate(instance, actor)
 			end),
 			instance.AttributeChanged:Connect(function()
@@ -412,6 +425,9 @@ function M.start(options: Options?)
 		touch.Activated:Connect(function()
 			local part = selected
 			if part and touch.Visible then
+				if options and options.pick and options.pick(part) then
+					return
+				end
 				activate(part, player, "touch-button-activated")
 			end
 		end)
@@ -432,6 +448,11 @@ function M.start(options: Options?)
 	end
 	refresh()
 	return {
+		-- One gather of a registered node; `output` picks one offered output. Yields while sending
+		-- and returns the server result (nil when nothing was sent).
+		gather = function(part: BasePart, output: string?): any
+			return activate(part, player, "picker", output)
+		end,
 		destroy = function()
 			if disposed then
 				return

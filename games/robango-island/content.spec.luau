@@ -10,6 +10,8 @@ local luau = require("@lune/luau")
 local Content = require("../../core/domain/survival/Content")
 local Strings = require("../../core/infra/localization/Strings")
 local contentrender = require("../../cli/forge/lib/contentrender")
+local Gathering = require("../../genres/survival-coop/module/Gathering")
+local Shipped = require("./src/shared/SurvivalContent")
 require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read (client: Strings table)
 
 -- Specs run from the repository root.
@@ -362,5 +364,61 @@ return {
 		assert(count >= document.contracts.dailyCount, "daily pool covers a full board")
 		-- Witness: an item only found off the home island is rejected by the same check.
 		assert(not obtainable("reed", 0), "reed is not a home resource")
+	end,
+	["C2: every gather node offers 2-6 distinct outputs, the shipped content agrees and extras are raw"] = function()
+		local document: any = canonical()
+		-- Picker extras are plain raw materials: never quest, retired or tool items.
+		local special: { [string]: boolean } = {}
+		for _, item in document.items do
+			for _, tag in item.tags or {} do
+				if tag == "quest-bound" or tag == "retired" or tag == "tool" then
+					special[item.id] = true
+				end
+			end
+		end
+		local function check(where: string, offered: { any }, plain: number)
+			assert(#offered >= 2 and #offered <= 6, where .. " offers " .. #offered .. " outputs")
+			local seen = {}
+			for _, output in offered do
+				assert(not seen[output.item], where .. " repeats " .. output.item)
+				seen[output.item] = true
+				assert(output.quantity >= 1, where .. " quantity")
+			end
+			for index = plain + 1, #offered do
+				assert(
+					not special[offered[index].item],
+					where .. " picker extra " .. offered[index].item .. " is not raw"
+				)
+			end
+		end
+		local nodes = 0
+		for _, node in document.nodes do
+			check(node.id, Gathering.outputs(document, node.harvest), #node.harvest)
+			nodes += 1
+		end
+		for _, layout in document.layouts do
+			for _, resource in layout.resourceNodes do
+				if
+					not string.find(resource.id, ".cargo.", 1, true)
+					and not string.find(resource.id, ".chapter.", 1, true)
+				then
+					local kind = string.gsub(resource.id, "[._]", "-")
+					local offered, level, plain = Gathering.offered(document, kind, resource.id)
+					check(resource.id, offered, plain)
+					assert(level == resource.level and plain == 1, resource.id .. " picker view")
+					assert(
+						offered[1].item == resource.item and offered[1].quantity == resource.yield,
+						resource.id .. " harvest first"
+					)
+					nodes += 1
+				end
+			end
+		end
+		assert(nodes >= 280, "every catalog and layout node checked, got " .. nodes)
+		local shipped: any = Shipped
+		assert(shipped.gatherPolicy ~= nil, "codegen ships the gather policy")
+		for _, node in shipped.nodes do
+			assert(#Gathering.outputs(shipped, node.harvest) >= 2, "shipped " .. node.id)
+		end
 	end,
 }
