@@ -83,6 +83,33 @@ function M.route(
 	return { { position = goal, jump = false } }
 end
 
+-- Shore stop: walk the straight line from `from` toward `goal` in `step`-stud samples and return
+-- the last land point before the line first leaves land (the goal itself when it stays on land).
+-- Water before any land is crossed, so a wading player can still walk back ashore. Returns nil
+-- (refuse the tap) when no land is reached or the walk would be shorter than SHORE_MIN.
+-- `isLand(x, z)` is the terrain query; positions are Vector3s or { X, Y, Z } tables.
+M.SHORE_STEP, M.SHORE_MIN = 2, 3 -- studs: sample spacing, shortest walk worth taking
+function M.shore(from: any, goal: any, isLand: (number, number) -> boolean, step: number?): (number?, number?)
+	local spacing = step or M.SHORE_STEP
+	local dx, dz = goal.X - from.X, goal.Z - from.Z
+	local length = math.sqrt(dx * dx + dz * dz)
+	local count = math.max(math.ceil(length / spacing), 1)
+	local lastX, lastZ, lastT = nil, nil, 0
+	for index = 1, count do
+		local t = index / count
+		local x, z = from.X + dx * t, from.Z + dz * t
+		if isLand(x, z) then
+			lastX, lastZ, lastT = x, z, t
+		elseif lastX ~= nil then
+			break
+		end
+	end
+	if lastX == nil or (lastT < 1 and lastT * length < M.SHORE_MIN) then
+		return nil, nil
+	end
+	return if lastT == 1 then goal.X else lastX, if lastT == 1 then goal.Z else lastZ
+end
+
 function M.steer(
 	dx: number,
 	dy: number,
@@ -195,8 +222,30 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			humanoid:MoveTo(root.Position)
 		end
 	end
+	-- A tap the shore stop refuses flashes the marker red where the finger landed.
+	local function flash(at: Vector3)
+		serial += 1
+		local mine = serial
+		marker.Color = Color3.fromRGB(214, 84, 70)
+		marker.CFrame = CFrame.new(at + Vector3.new(0, 0.15, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		marker.Parent = world
+		task.delay(0.35, function()
+			if mine == serial then
+				marker.Parent = nil
+			end
+		end)
+	end
+	local landParams = RaycastParams.new()
+	landParams.FilterType = Enum.RaycastFilterType.Exclude
+	landParams.IgnoreWater = false
+	local function isLand(x: number, z: number): boolean
+		landParams.FilterDescendantsInstances = if player.Character then { player.Character } else {}
+		local hit = world:Raycast(Vector3.new(x, 400, z), Vector3.new(0, -800, 0), landParams)
+		return hit ~= nil and not (hit.Instance == world.Terrain and hit.Material == Enum.Material.Water)
+	end
 	local function moveTo(goal: Vector3, arrive: number?, onArrive: (() -> ())?)
 		serial += 1
+		marker.Color = Color3.fromRGB(110, 196, 178)
 		local mine = serial
 		marker.CFrame = CFrame.new(goal + Vector3.new(0, 0.15, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		marker.Parent = world
@@ -205,7 +254,12 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			if not humanoid or not root then
 				return
 			end
-			local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = true })
+			local path = PathfindingService:CreatePath({
+				AgentRadius = 2,
+				AgentHeight = 5,
+				AgentCanJump = true,
+				Costs = { Water = math.huge },
+			})
 			local ok = pcall(function()
 				path:ComputeAsync(root.Position, goal)
 			end)
@@ -340,7 +394,17 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		end
 	end
 	router.register("ground", function(position: Vector3)
-		moveTo(position)
+		local _, root = body()
+		if not root then
+			return true
+		end
+		-- Ground taps stop at the shore: never walk into the sea.
+		local x, z = M.shore(root.Position, position, isLand)
+		if x and z then
+			moveTo(if x == position.X and z == position.Z then position else Vector3.new(x, position.Y, z))
+		else
+			flash(position)
+		end
 		return true
 	end)
 

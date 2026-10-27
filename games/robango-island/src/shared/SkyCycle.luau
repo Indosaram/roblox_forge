@@ -9,19 +9,22 @@ M.DAY_SECONDS = 24 * 60
 
 type RGB = { number }
 
--- Day: warm and slightly desaturated (R13-6 day frames). Night: strong cool blue, lifted
--- ambient so terrain, creatures and prompts stay readable (R17 night frames).
+-- Day: warm and slightly desaturated (R13-6 day frames). Night: bright cool blue-grey moonlight
+-- (R17-1): strong blue ambient, high exposure and a moon-coloured ColorShift_Top keep ground,
+-- plants and the player readable like an overcast day with a blue cast; the sea's warm-grey
+-- WaterColor turns slate under the cool tint instead of glowing royal blue; fires pool warm
+-- light. `water` drives Terrain.WaterColor.
 -- stylua: ignore start
 local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, outdoorAmbient = { 158, 148, 128 },
 	colorShiftTop = { 255, 232, 196 }, colorShiftBottom = { 92, 82, 64 }, decay = { 132, 138, 140 },
 	grade = { brightness = 0.02, contrast = 0.1, saturation = -0.12, tint = { 255, 242, 222 } },
 	density = 0.26, haze = 1.1, glare = 0.25, bloom = 0.08, sunRays = 0.04, starCount = 0,
-	fire = { brightness = 0.8, range = 10 } }
-local NIGHT: any = { brightness = 1.4, exposure = 0.35, ambient = { 70, 88, 132 }, outdoorAmbient = { 82, 110, 172 },
-	colorShiftTop = { 118, 150, 222 }, colorShiftBottom = { 30, 42, 80 }, decay = { 34, 46, 88 },
-	grade = { brightness = 0.04, contrast = 0.16, saturation = -0.04, tint = { 172, 198, 255 } },
-	fog = { 64, 84, 128 }, density = 0.3, haze = 0.6, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
-	fire = { brightness = 2.6, range = 20 } }
+	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10 } }
+local NIGHT: any = { brightness = 2.2, exposure = 1.4, ambient = { 100, 126, 190 }, outdoorAmbient = { 116, 150, 228 },
+	colorShiftTop = { 146, 180, 250 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
+	grade = { brightness = 0.04, contrast = 0.06, saturation = -0.16, tint = { 180, 212, 255 } },
+	fog = { 110, 130, 165 }, density = 0.28, haze = 0.8, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
+	water = { 100, 92, 62 }, fire = { brightness = 2.6, range = 20 } }
 -- stylua: ignore end
 -- Sunrise/sunset push the warm grade further toward amber.
 local GOLDEN_TINT = { 255, 214, 172 }
@@ -79,7 +82,7 @@ function M.at(hours: number, fog: RGB): any
 			saturation = lerp(ng.saturation, dg.saturation, d), tint = tint },
 		atmosphere = { color = mix(NIGHT.fog, mix(fog, GOLDEN_TINT, g * 0.35), d), decay = c("decay"),
 			density = f("density"), haze = f("haze"), glare = f("glare") },
-		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5),
+		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5), water = c("water"),
 		fire = { brightness = lerp(DAY.fire.brightness, NIGHT.fire.brightness, n),
 			range = lerp(DAY.fire.range, NIGHT.fire.range, n) },
 	}
@@ -205,8 +208,11 @@ function M.ensure(lighting: Instance)
 	ensure(lighting, "Atmosphere", M.ATMOSPHERE).Offset = 0.12
 end
 
-function M.apply(lighting: any, state: any, weather: any, atmosphere: boolean)
+function M.apply(lighting: any, state: any, weather: any, atmosphere: boolean, terrain: any?)
 	local dim = 1 - weather.dim
+	if terrain then
+		terrain.WaterColor = rgb(state.water)
+	end
 	lighting.ClockTime = state.clockTime
 	lighting.Brightness = state.brightness * dim
 	lighting.ExposureCompensation = state.exposure
@@ -385,7 +391,7 @@ function M.start(ctx: any): () -> ()
 			brawl
 		)
 		local reduced = ctx.reduced()
-		M.apply(lighting, state, weather, not ctx.aerial() and not reduced)
+		M.apply(lighting, state, weather, not ctx.aerial() and not reduced, workspace.Terrain)
 		-- Phones: fewer particles and no sun rays; reduced effects: none.
 		local low = ctx.low()
 		local scale = if reduced then 0 else M.particleScale(if low then "low" else "high")

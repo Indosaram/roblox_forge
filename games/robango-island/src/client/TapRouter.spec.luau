@@ -92,6 +92,26 @@ return {
 		local short = TapRouter.route("Success", { { position = a, jump = false } }, goal)
 		assert(#short == 1 and short[1].position == goal, "single-point path walks to the goal")
 	end,
+	["ground taps stop at the last land point and refuse a tap straight into the sea"] = function()
+		-- Land is x < 20; the sea starts at x = 20.
+		local function isLand(x: number, _z: number): boolean
+			return x < 20
+		end
+		local x, z = TapRouter.shore({ X = 0, Y = 0, Z = 0 }, { X = 10, Y = 0, Z = 5 }, isLand)
+		assert(x == 10 and z == 5, "an all-land tap keeps its exact goal")
+		x, z = TapRouter.shore({ X = 0, Y = 0, Z = 0 }, { X = 60, Y = 0, Z = 0 }, isLand)
+		assert(x and z == 0 and x < 20 and x >= 20 - TapRouter.SHORE_STEP, "stops on the last land sample")
+		x, z = TapRouter.shore({ X = 0, Y = 0, Z = 0 }, { X = 60, Y = 0, Z = 0 }, function(px)
+			return px < 20 or px > 30
+		end)
+		assert(x and x < 20, "a far island behind open water is not reached by walking through it")
+		x = TapRouter.shore({ X = 19, Y = 0, Z = 0 }, { X = 60, Y = 0, Z = 0 }, isLand)
+		assert(x == nil, "standing on the shore, a sea tap is refused")
+		x = TapRouter.shore({ X = 25, Y = 0, Z = 0 }, { X = 40, Y = 0, Z = 0 }, isLand)
+		assert(x == nil, "a tap further out to sea is refused")
+		x, z = TapRouter.shore({ X = 25, Y = 0, Z = 0 }, { X = 5, Y = 0, Z = 0 }, isLand)
+		assert(x == 5 and z == 0, "a wading player can walk back ashore")
+	end,
 	["drag steers along the camera's flattened axes"] = function()
 		-- Camera looking north (-Z): right is +X.
 		local right, forward = { x = 1, z = 0 }, { x = 0, z = -1 }

@@ -187,12 +187,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		lighting,
 		SkyCycle.state(buildSeconds, skyOrigin, dressing.palette.fog),
 		SkyCycle.weatherAt(content, layout, seed, buildSeconds, buildSeconds, nil),
-		true
+		true,
+		workspace.Terrain
 	)
 	local correction: any = lighting:FindFirstChild(SkyCycle.GRADE)
 	local bloom: any = lighting:FindFirstChild(SkyCycle.BLOOM)
 	local atmosphere: any = lighting:FindFirstChild(SkyCycle.ATMOSPHERE)
-	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
 	local coastline = if Terrain.organic(layout) then Terrain.coast(layout, seed) else nil

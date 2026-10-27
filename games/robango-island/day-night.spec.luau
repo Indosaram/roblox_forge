@@ -22,6 +22,37 @@ local function luminance(c: { number }): number
 	return 0.2126 * c[1] + 0.7152 * c[2] + 0.0722 * c[3]
 end
 
+local function saturation(c: { number }): number
+	local high, low = math.max(c[1], c[2], c[3]), math.min(c[1], c[2], c[3])
+	return if high <= 0 then 0 else (high - low) / high
+end
+
+-- First-order estimate of a lit surface on screen from the pure lighting state: outdoor ambient
+-- plus sky light (scaled by daylight), exposure, the grade tint and saturation. Studio captures
+-- (p134/lane150) showed the night sea follows Terrain.WaterColor, not its reflectance, so water
+-- is estimated as a lit surface of `state.water`. Thresholds were confirmed on those captures.
+local GRASS = { 86, 110, 60 }
+local FIRE = { 255, 150, 70 } -- campfire PointLight colour (SkyCycle.torch)
+-- `fire` adds the campfire PointLight at half its range (roughly linear falloff: half strength).
+local function onScreen(state: any, albedo: { number }, fire: boolean?): { number }
+	local d = state.daylight
+	local k = state.brightness * (d + (1 - d) * 0.25) * 0.6
+	local e = 2 ^ state.exposure
+	local out = {}
+	for i = 1, 3 do
+		local light = state.outdoorAmbient[i] / 255 + k * state.colorShiftTop[i] / 255
+		if fire then
+			light += FIRE[i] / 255 * state.fire.brightness * 0.5
+		end
+		out[i] = albedo[i] * light * e * state.grade.tint[i] / 255
+	end
+	local y = luminance(out)
+	for i = 1, 3 do
+		out[i] = math.clamp(y + (out[i] - y) * (1 + state.grade.saturation) + state.grade.brightness * 255, 0, 255)
+	end
+	return out
+end
+
 return {
 	["a full cycle is 24 real minutes and depends only on the injected clock"] = function()
 		assert(DayNight.DAY_SECONDS == 1440, "24-minute day")
@@ -50,6 +81,23 @@ return {
 		assert(luminance(night.outdoorAmbient) >= 80, "outdoor ambient keeps the night readable")
 		assert(night.brightness >= 1 and night.exposure > 0, "night stays lit")
 		assert(night.starCount > 0, "stars at night")
+	end,
+	["night is bright cool blue-grey moonlight with a warm fire pool and a slate sea"] = function()
+		local day, night = DayNight.at(12, FOG), DayNight.at(0, FOG)
+		local dayLand, nightLand = onScreen(day, GRASS), onScreen(night, GRASS)
+		local nightSea = onScreen(night, night.water)
+		local pool = onScreen(night, GRASS, true)
+		assert(luminance(nightLand) >= 0.55 * luminance(dayLand), "night land luminance >= 55% of day")
+		assert(nightLand[3] >= nightLand[1] + 15, "night grass is blue-grey: B exceeds R by >= 15")
+		assert(saturation(nightSea) <= saturation(nightLand) + 0.15, "night sea saturation <= land + 0.15")
+		assert(luminance(pool) >= 1.3 * luminance(nightLand), "fire pool >= 1.3x night land luminance")
+		assert(saturation(night.water) <= 0.4, "night water colour is warm grey, not royal blue")
+		assert(day.water[1] == 69 and day.water[2] == 139 and day.water[3] == 153, "day water keeps its colour")
+		for hours = 0, 23.5, 0.5 do
+			local state = DayNight.at(hours, FOG)
+			local land = onScreen(state, GRASS)
+			assert(luminance(land) >= 0.55 * luminance(dayLand), "readable at " .. hours)
+		end
 	end,
 	["dawn and dusk blend smoothly and fires burn brighter at night"] = function()
 		local previous = DayNight.at(4, FOG).daylight
