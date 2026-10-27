@@ -669,6 +669,10 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
 	forge.games["robango-island"].src.shared.RenderBudget =
 		require("../../../../games/robango-island/src/shared/RenderBudget")
+	-- BiomeKits: pure scatter plan plus adapters; the fake game has no InsertService, so no kits load.
+	forge.games["robango-island"].src.shared.BiomeKits = load("games/robango-island/src/shared/BiomeKits.luau", {
+		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
+	}, nil)
 	-- SkyCycle writes Lighting through engine globals, so it loads in the fake environment.
 	forge.games["robango-island"].src.shared.SkyCycle = load("games/robango-island/src/shared/SkyCycle.luau", {
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),

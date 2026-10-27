@@ -166,6 +166,8 @@ return {
 				"GenreSpec",
 				"GenreUI",
 				"SurvivorAvatar",
+				"BiomeKits",
+				"Assets",
 			}
 		do
 			shared[name] = require("./src/shared/" .. name)

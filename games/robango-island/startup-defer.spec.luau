@@ -34,6 +34,10 @@ local function roleWorld(): any
 	function value.FindFirstChild()
 		return nil
 	end
+	-- The biome-kit LOD watcher waits for the kit folder; none replicates in this harness.
+	function value.WaitForChild()
+		return nil
+	end
 	return value
 end
 
@@ -49,6 +53,8 @@ local function harness(profile: RenderBudget.Profile)
 	local initial = { roleWorld() }
 	local env = {
 		RenderBudget = RenderBudget,
+		BiomeKits = { runLod = function() end },
+		userSettingsLevel = 0,
 		profile = profile,
 		renderProfile = function()
 			return profile
