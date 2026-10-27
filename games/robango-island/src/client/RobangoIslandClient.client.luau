@@ -938,11 +938,14 @@ gui.Destroying:Connect(panels.destroy)
 script.Destroying:Connect(panels.destroy)
 
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
-local camera = QuarterView.start(
-	if workspace:GetAttribute("ForgeWorldBiome") == "volcano"
-		then { yaw = -90, pitch = 35, distance = 110, fieldOfView = 60 }
-		else nil
-)
+-- A1: character 6% of the short axis (pinch 3-15%), fixed yaw on touch.
+local camera = QuarterView.start({
+	yaw = if workspace:GetAttribute("ForgeWorldBiome") == "volcano" then -90 else 45,
+	pitch = 57,
+	fieldOfView = 30,
+	zoom = { characterHeight = 5.5, share = 0.06, minShare = 0.03, maxShare = 0.15 },
+	touchRotate = false,
+})
 gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
 local aerialGui = Instance.new("ScreenGui")
@@ -1057,6 +1060,19 @@ local aerialBack = game:GetService("UserInputService").InputBegan:Connect(functi
 	if not processed and (input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB) then
 		aerial.close()
 	end
+end)
+-- A1 tap router; thumbstick off via DevTouchMovementMode.
+local TapRouter = require(script.Parent:WaitForChild("TapRouter"))
+local tapInput = TapRouter.start({
+	player = player,
+	blocked = function(): boolean
+		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
+	end,
+})
+local removeTapActions = TapRouter.installActions(tapInput, require(Forge.core.infra.genre.CommandTransport))
+gui.Destroying:Connect(function()
+	removeTapActions()
+	tapInput.destroy()
 end)
 gui.Destroying:Connect(function()
 	aerial.destroy()

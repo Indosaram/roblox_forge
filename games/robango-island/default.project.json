@@ -222,7 +222,10 @@
     },
     "StarterPlayer": {
       "$properties": {
-        "LoadCharacterAppearance": false
+        "LoadCharacterAppearance": false,
+        "DevTouchMovementMode": {
+          "Enum": 5
+        }
       },
       "StarterPlayerScripts": {
         "AerialCamera": {
@@ -239,6 +242,17 @@
         },
         "RobangoIslandClient": {
           "$path": "src/client/RobangoIslandClient.client.luau"
+        },
+        "TapRouter": {
+          "$path": "src/client/TapRouter.luau"
+        }
+      }
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "$properties": {
+        "ScreenOrientation": {
+          "Enum": 2
         }
       }
     }

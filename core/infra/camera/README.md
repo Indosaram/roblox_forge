@@ -24,7 +24,19 @@ remain mandatory; client selection must also raycast without excluding faded par
 
 Mouse wheel changes zoom by five studs per notch. TouchPinch uses the initial
 distance divided by cumulative scale; it rejects consumed UI gestures and points
-outside GuiService:GetInsetArea(CoreUISafeInsets). It owns no GUI and does not
+outside GuiService:GetInsetArea(CoreUISafeInsets).
+
+Opt-in options (defaults unchanged when omitted):
+- `zoom = { characterHeight, share, minShare, maxShare }` sets zoom by the
+  character's on-screen height as a fraction of the short screen axis. The arm
+  length is recomputed each frame from FOV, pitch and viewport aspect
+  (`QuarterView.distanceForShare` / `screenShare`). Pinch multiplies the share by the
+  cumulative scale, the wheel by 1.1 per notch, and both clamp to [minShare, maxShare].
+  `api.share()` returns the current share. Robango uses 5.5 studs, 6% (range 3-15%).
+- `touchRotate = false` ignores TouchRotate (fixed yaw on touch). The `[`/`]` keys
+  and right-drag still rotate on PC.
+
+It owns no GUI and does not
 consume movement/touch inputs. The HUD owner must independently use
 ScreenGui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets and keep interaction
 controls away from the thumbstick/jump regions. Native math cannot prove mobile

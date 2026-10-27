@@ -16,9 +16,17 @@ export type Config = {
 	focusHeight: number?,
 	occluderTag: string?,
 	roofTag: string?,
+	zoom: Zoom?,
+	touchRotate: boolean?,
 }
+export type Zoom = { characterHeight: number, share: number, minShare: number, maxShare: number }
 
 local M = {}
+-- Character height / short screen axis; self-inverse (share <-> distance).
+function M.screenShare(d: number, h: number, pitch: number, fov: number, aspect: number?): number
+	return h * math.cos(math.rad(pitch)) / (2 * d * math.tan(math.rad(fov) / 2) * math.min(aspect or 1, 1))
+end
+M.distanceForShare = M.screenShare
 function M.start(config: Config?)
 	assert(RunService:IsClient(), "QuarterView requires a client")
 	local options: Config = config or {}
@@ -35,6 +43,17 @@ function M.start(config: Config?)
 	local distance = options.distance or 85
 	assert(finite(distance), "invalid camera distance")
 	distance = math.clamp(distance, minimum, maximum)
+	local zoom = options.zoom
+	local share = 0
+	if zoom then
+		local h, lo, hi = zoom.characterHeight, zoom.minShare, zoom.maxShare
+		assert(finite(h) and h > 0 and lo > 0 and finite(hi) and hi >= lo and finite(zoom.share), "invalid zoom")
+		share = math.clamp(zoom.share, zoom.minShare, zoom.maxShare)
+	end
+	local function aspectOf(current: Camera): number
+		local size = current.ViewportSize
+		return if size and size.Y > 0 then size.X / size.Y else 1
+	end
 	local player = Players.LocalPlayer
 	local connections: { RBXScriptConnection } = {}
 	local faded: { [BasePart]: number } = {}
@@ -97,6 +116,9 @@ function M.start(config: Config?)
 			clear()
 			return
 		end
+		if zoom then
+			distance = M.distanceForShare(share, zoom.characterHeight, pitch, fov, aspectOf(current))
+		end
 		local focus = root.Position + Vector3.new(0, height, 0)
 		local y, p = math.rad(yaw), math.rad(pitch)
 		local offset = Vector3.new(math.sin(y) * math.cos(p), math.sin(p), math.cos(y) * math.cos(p)) * distance
@@ -151,6 +173,9 @@ function M.start(config: Config?)
 		UserInputService.InputChanged:Connect(function(input: InputObject, processed: boolean)
 			if not processed and input.UserInputType == Enum.UserInputType.MouseWheel then
 				distance = math.clamp(distance - input.Position.Z * 5, minimum, maximum)
+				if zoom then
+					share = math.clamp(share * 1.1 ^ input.Position.Z, zoom.minShare, zoom.maxShare)
+				end
 			elseif
 				not processed
 				and input.UserInputType == Enum.UserInputType.MouseMovement
@@ -176,6 +201,10 @@ function M.start(config: Config?)
 	table.insert(
 		connections,
 		UserInputService.TouchRotate:Connect(function(positions, rotation, _velocity, state, processed)
+			if options.touchRotate == false then
+				rotateOrigin = nil
+				return
+			end
 			local safe = GuiService:GetInsetArea(Enum.ScreenInsets.CoreUISafeInsets)
 			for _, position in positions do
 				if
@@ -222,10 +251,14 @@ function M.start(config: Config?)
 				return
 			end
 			if state == Enum.UserInputState.Begin then
-				pinchDistance = distance
+				pinchDistance = if zoom then share else distance
 			end
 			if pinchDistance and finite(scale) and scale > 0 then
-				distance = math.clamp(pinchDistance / scale, minimum, maximum)
+				if zoom then
+					share = math.clamp(pinchDistance * scale, zoom.minShare, zoom.maxShare)
+				else
+					distance = math.clamp(pinchDistance / scale, minimum, maximum)
+				end
 			end
 		end)
 	)
@@ -244,6 +277,14 @@ function M.start(config: Config?)
 			"invalid view"
 		)
 		yaw, pitch, distance = newYaw, newPitch, math.clamp(newDistance, minimum, maximum)
+		if zoom then
+			local current = camera or Workspace.CurrentCamera
+			local s = M.screenShare(newDistance, zoom.characterHeight, pitch, fov, current and aspectOf(current))
+			share = math.clamp(s, zoom.minShare, zoom.maxShare)
+		end
+	end
+	function api.share(): number?
+		return if zoom then share else nil
 	end
 	function api.stop()
 		if stopped then
