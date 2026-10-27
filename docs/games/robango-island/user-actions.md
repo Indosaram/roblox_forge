@@ -43,7 +43,7 @@
 1. **두 번째 Roblox 계정.** 계정이 하나뿐이라 두 계정 간 거래(서로 다른 JobId의 시장 정산 포함), 캠프 방문·장비 대여 반납, 부족 가입 신청 승인, 파티 항로 공유, 난투·합주·공성전, 실서버 Place 간 Teleport 왕복을 검증하지 못했습니다(`p115/recheck.md` 4~6행 NOT RUN). 두 번째 계정을 만들어 주거나 테스트에 쓸 계정을 지정해 주세요. 에이전트는 로그인 정보를 입력하지 않으므로 그 계정의 로그인도 소유자가 합니다.
 2. **휴대폰 무선 디버깅 연결.** 실기기 기록은 2026-10-20 이전 콘텐츠의 안드로이드 1회뿐이고, 이후 360x640 결과는 모두 Studio 에뮬레이션입니다. 휴대폰에서 무선 디버깅을 켜고 페어링해 주어야 실기기 QA를 다시 할 수 있습니다.
 3. **Robux 지출 승인.** 실제 결제 영수증 정산과 혜택 적용 확인, 저연령 노출 요건(U7) 같은 유료 단계는 소유자 승인 전에는 실행하지 않습니다. 가격·확률 변경도 소유자 승인이 필요합니다.
-4. **프로덕션 게시(품질 게이트 대기).** `forge deploy --env production`은 `quality.yml`의 tier가 `starter`라서 `QUALITY_GATE_FAILED`로 거부합니다(dry-run 확인, 2026-10-26). 게시하려면 `release-candidate` 평가 영수증이 필요하고, 영수증에는 두 번째 실제 계정과 소유자 평가자 서명이 들어갑니다. 소유자는 게이트를 기다리기로 했습니다(2026-10-26). 영수증이 생기면 `FORGE_ALLOW_PRODUCTION=1`로 게시하고, 그 전에 프로덕션 상품을 등록해야 합니다. 지금 빌드는 스테이징 상품 ID(`game.yml`, `MonetizationCatalog.luau`)를 고정으로 담고 있어서, 환경별 상품 ID 주입이 먼저 필요합니다.
+4. **프로덕션 게시(품질 게이트 대기).** `forge deploy --env production`은 `quality.yml`의 tier가 `starter`라서 `QUALITY_GATE_FAILED`로 거부합니다(dry-run 확인, 2026-10-26). 게시하려면 `release-candidate` 평가 영수증이 필요하고, 영수증에는 두 번째 실제 계정과 소유자 평가자 서명이 들어갑니다. 소유자는 게이트를 기다리기로 했습니다(2026-10-26). 영수증이 생기면 `FORGE_ALLOW_PRODUCTION=1`로 게시하고, 그 전에 프로덕션 Universe에 상품 4종을 등록하고 ID를 `.env.local`의 `FORGE_PRODUCTION_PRODUCT_*` 4개에 넣으세요. `forge deploy`가 환경별 상품 ID를 빌드에 넣습니다(`6e49e68`). 비워 둔 상품은 상점에 보이지만 결제 창은 열지 않으므로, 스테이징 상품이 프로덕션에서 팔리는 일은 없습니다.
 
 ### 스테이징 Place와 배포 명령
 
@@ -87,7 +87,7 @@ lune run cli/forge deploy --env staging --pack robango-island --development --al
 | 실제 소유자/스테이징 QA | `FORGE_OWNER_USER_ID`, `FORGE_STAGING_OWNER_USER_ID`, `FORGE_QA_ACTOR_IDS` |
 | 승인된 프로덕션 배포 게이트 | `FORGE_ALLOW_PRODUCTION` |
 
-각 환경의 FORGE 대상과 ROBLOX 대상 바인딩은 같은 Universe/Place여야 합니다. 배포용 키에는 해당 Universe의 **`universe-places` write** 권한이, 업로드용 키에는 **asset read/write**와 **`legacy-asset:manage`** 권한이 필요합니다. Game Pass / Developer Product / Subscription의 실제 ID는 `games/robango-island/game.yml`과 `games/robango-island/src/shared/MonetizationCatalog.luau`에 있습니다(`MonetizationCatalog.spec.luau`가 일치를 검사). 등록·프롬프트 표출·실제 결제 정산·혜택 적용은 서로 다른 증거입니다.
+각 환경의 FORGE 대상과 ROBLOX 대상 바인딩은 같은 Universe/Place여야 합니다. 배포용 키에는 해당 Universe의 **`universe-places` write** 권한이, 업로드용 키에는 **asset read/write**와 **`legacy-asset:manage`** 권한이 필요합니다. Game Pass / Developer Product / Subscription의 환경별 ID는 `games/robango-island/deploy.yml`의 `environments.<env>.monetization`에 있습니다. 스테이징은 값이 직접 적혀 있고, 프로덕션은 `.env.local`의 `FORGE_PRODUCTION_PRODUCT_ROUTE_GUILD_PATRON`, `_WIDE_WAREHOUSE`, `_SKIN_RIDGE_STRIDER_GOLD`, `_ROUTE_GUILD_MONTHLY`를 읽습니다. 배포할 때 이 ID가 `ServerStorage.ForgeMonetizationIds`로 빌드에 들어가고, 게시 직전에 다시 확인합니다. `game.yml`과 `MonetizationCatalog.luau`의 ID는 Studio에서 쓰는 스테이징 기본값입니다. 등록·프롬프트 표출·실제 결제 정산·혜택 적용은 서로 다른 증거입니다.
 
 ### 남은 에이전트 작업(소유자 대기 없음)
 
@@ -128,7 +128,7 @@ lune run cli/forge deploy --env staging --pack robango-island --development --al
 | U12 | ~~main 반영 승인~~ **완료**: 사용자 승인("모두 가장 좋은 대로", 2026-10-17)에 따라 에이전트가 `durango/integration`을 main 에 fast-forward 했습니다(force 없음). 이후 main 보호 규칙·리뷰 정책은 사용자가 정합니다 | — | AGENTS.md layer rules |
 | U13 | 라이브 서버 QA 2층 | Studio 시나리오 wildlife-spatial·full-coop-rejoin·tutorial(QA-CORE-01)은 2026-10-19 Windows Studio에서 통과했습니다(qa-evidence.md 주 7). 실제 TeleportService 왕복(QA-TP-01의 2층)과 실제 MemoryStore 부하(QA-SPIKE-01의 2층)는 라이브 서버가 필요해 아직 실행하지 않았습니다 | 무료 | 계획 §12 |
 | U14 | 스테이징 배포 | 완료(2026-10-19): 비공개 체험 `Robango Staging`(universeId `10771918494`, placeId `95467272687768`)을 생성하고 Open Cloud API 키를 `.env.local`(gitignore)에 설정해 `forge deploy --env staging --pack robango-island --development`로 버전 2를 게시·검증했습니다(qa-evidence.md 주 8). 프로덕션 배포만 별도 Universe/Place·승인이 필요합니다 | 무료 | deploy.yml |
-| U15 | Robux 상품 등록 | 완료(2026-10-19, 스테이징): `Robango Staging` Universe(`10771918494`)에 Game Pass 2종(`routeGuildPatron` `2040232413`, `wideWarehouse` `2037904759`), Developer Product 1종(`skinRidgeStriderGold` `3720013569`), Experience Subscription 1종(`routeGuildMonthly` `EXP-4461467833720767028`)을 원가 그대로 등록·활성화하고 `game.yml`과 `MonetizationCatalog.luau`에 반영했습니다. 프로덕션 Universe를 따로 만들 경우 그 Universe의 ID로 교체해야 합니다 | 무료(등록) | AGENTS.md, QA-BM-01 |
+| U15 | Robux 상품 등록 | 완료(2026-10-19, 스테이징): `Robango Staging` Universe(`10771918494`)에 Game Pass 2종(`routeGuildPatron` `2040232413`, `wideWarehouse` `2037904759`), Developer Product 1종(`skinRidgeStriderGold` `3720013569`), Experience Subscription 1종(`routeGuildMonthly` `EXP-4461467833720767028`)을 원가 그대로 등록·활성화하고 `game.yml`과 `MonetizationCatalog.luau`에 반영했습니다. 프로덕션(`10773197163`)은 아직 등록 전입니다. 같은 가격으로 등록한 뒤 `.env.local`의 `FORGE_PRODUCTION_PRODUCT_*`를 채우면 되고, 코드 수정은 필요 없습니다 | 무료(등록) | AGENTS.md, QA-BM-01 |
 | U16 | 오디오·3D 애셋 제작 확정 | 이전 프로토타입의 3D 월드·공룡 리그 및 스토어 이미지 제작·적용 이력은 qa-evidence.md 주 8에 보존합니다(2026-10-20). 새 설계의 24종 실루엣·리그·동작, 지역·시설, 악기·합주 오디오를 모두 제작·검증했다는 뜻이 아닙니다 | 새 설계 미검증 | AGENTS.md, qa-evidence.md 주 8 |
 | U17 | 출처 지문 갱신 | 원작 참고 자료 지문(cli/forge/provenance/reference-ip)은 2026-10-16 시점 공개 문서 기준입니다. 공개 자료가 바뀌면 재생성 여부를 정합니다 | 무료 | A3 provenance |
 | U18 | 원작 제목 히스토리 정리 | 통합 브랜치 초기 커밋 3개(d2565da, 9556e85, 1f4002a)의 메시지·파일에 원작 제목이 남아 있습니다. 현재 트리는 금칙어 0건이지만, 이 커밋들은 이미 공개 원격의 `durango/integration`에 올라가 있고, main fast-forward 로 main 히스토리에도 포함됩니다. 지우려면 히스토리 재작성(squash 또는 filter-repo) 후 main·integration 둘 다 force-push 해야 하며, 이미 받아 간 사본은 회수할 수 없습니다. force-push 라 에이전트는 하지 않았습니다 | 무료 | QA-NAME-01 |
