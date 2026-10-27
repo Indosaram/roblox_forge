@@ -63,6 +63,12 @@ function M.organic(layout: any): boolean
 	return layout.id == "rw.harbor" or string.match(layout.id, "^rw%.a%d+%.s%d+$") ~= nil
 end
 
+-- Opt-in relief generator: a layout whose data carries `terrain = { generator = "relief", seed, relief }`
+-- gets the multi-octave height field below. Every other layout keeps the legacy columns byte for byte.
+function M.relief(layout: any): boolean
+	return layout.terrain ~= nil and layout.terrain.generator == "relief"
+end
+
 -- Frontier regions keep their square-column world but get the same graded height field, so
 -- their bypass ramps beside the high station yard are walkable.
 function M.graded(layout: any): boolean
@@ -301,10 +307,491 @@ local function authored(layout: any): { any }
 	return samples
 end
 
+-- Relief field constants (studs). SEA is the water surface the role adapters fill to.
+M.SEA = -4
+M.CLIFF_STEP = 12
+M.TRAIL_WIDTH = 10
+M.TRAIL_SLOPE = 0.3
+M.STREAM_WIDTH = 14
+-- Steepest ground rise (studs per stud) next to authored points and paths.
+M.GRADE_CAP = 0.35
+
+local function segments(x: number, z: number, points: { any }): (number, number)
+	local best, at = math.huge, 1
+	for i = 2, #points do
+		local d = M.distance(x, z, points[i - 1], points[i])
+		if d < best then
+			best, at = d, i
+		end
+	end
+	return best, at
+end
+
+local function along(x: number, z: number, points: { any }): (number, number)
+	local d, i = segments(x, z, points)
+	local _, t = M.distance(x, z, points[i - 1], points[i])
+	return d, points[i - 1].y + (points[i].y - points[i - 1].y) * t
+end
+
+-- Densifies a polyline every `step` studs, sampling y from `height`.
+local function densify(points: { any }, step: number, height: (number, number) -> number): { any }
+	local out = {}
+	for i = 2, #points do
+		local a, b = points[i - 1], points[i]
+		local n = math.max(1, math.ceil(math.sqrt((b.x - a.x) ^ 2 + (b.z - a.z) ^ 2) / step))
+		for s = if i == 2 then 0 else 1, n do
+			local x, z = a.x + (b.x - a.x) * s / n, a.z + (b.z - a.z) * s / n
+			table.insert(out, { x = x, y = height(x, z), z = z })
+		end
+	end
+	return out
+end
+
+function M.length(points: { any }): number
+	local total = 0
+	for i = 2, #points do
+		total += math.sqrt((points[i].x - points[i - 1].x) ^ 2 + (points[i].z - points[i - 1].z) ^ 2)
+	end
+	return total
+end
+
+local fields: { [string]: any } = setmetatable({}, { __mode = "v" }) :: any
+
+--- The relief height field of an opted-in layout. The route `seed` and the island seed recorded in
+--- the layout data (`terrain.seed`) together fix the island: the same pair always gives the same
+--- field. Returns { coast, height(x, z), water(x, z), trails, streams, ponds, relief }.
+function M.field(layout: any, seed: number): any
+	local key = layout.id .. ":" .. seed .. ":" .. layout.terrain.seed
+	if fields[key] then
+		return fields[key]
+	end
+	local mixed = (seed * 1000003 + layout.terrain.seed) % 2147483647
+	local rng = Rng.new(mixed):fork(layout.id .. ":relief")
+	-- The relief coast is tabulated per angle (2048 steps, linear between), so the many depth
+	-- queries of a 3072-stud island do not rescan every authored keep-disc.
+	local exact = M.coast(layout, mixed)
+	local STEPS = 2048
+	local table_ = table.create(STEPS + 1, 0)
+	for i = 0, STEPS do
+		table_[i + 1] = exact.radius(-math.pi + i * 2 * math.pi / STEPS)
+	end
+	local coast: any = { hx = exact.hx, hz = exact.hz, unit = exact.unit }
+	function coast.radius(angle: number): number
+		local f = ((angle + math.pi) % (2 * math.pi)) / (2 * math.pi) * STEPS
+		local i = math.clamp(math.floor(f), 0, STEPS - 1)
+		return table_[i + 1] + (table_[i + 2] - table_[i + 1]) * (f - i)
+	end
+	function coast.depth(x: number, z: number): number
+		local nx, nz = x / coast.hx, z / coast.hz
+		return coast.radius(math.atan2(nz, nx)) - math.sqrt(nx * nx + nz * nz)
+	end
+	function coast.point(angle: number, inset: number?): (number, number)
+		local r = coast.radius(angle) - (inset or 0)
+		return r * math.cos(angle) * coast.hx, r * math.sin(angle) * coast.hz
+	end
+	local unit, amp = coast.unit, layout.terrain.relief
+	local o = {}
+	for i = 1, 6 do
+		o[i] = rng:nextNumber() * 4096
+	end
+	local samples = authored(layout)
+	local function inland(x: number, z: number): number
+		return coast.depth(x, z) * unit
+	end
+	-- Authored samples binned on a 64-stud grid; lookups beyond 240 studs only need "far".
+	local BIN = 64
+	local none: { any } = {}
+	local bins: { [number]: { any } } = {}
+	for _, p in samples do
+		local bin = math.floor(p.x / BIN) * 65536 + math.floor(p.z / BIN)
+		bins[bin] = bins[bin] or {}
+		table.insert(bins[bin], p)
+	end
+	local function nearestAuthored(x: number, z: number): number
+		local best = math.huge
+		local bx, bz = math.floor(x / BIN), math.floor(z / BIN)
+		for dx = -4, 4 do
+			for dz = -4, 4 do
+				for _, p in bins[(bx + dx) * 65536 + bz + dz] or none do
+					best = math.min(best, (x - p.x) ^ 2 + (z - p.z) ^ 2)
+				end
+			end
+		end
+		return math.sqrt(best)
+	end
+	-- Seeded inland spot at least `clear` studs from authored ground and `shore` studs inside the coast.
+	local function spot(clear: number, shore: number, avoid: { any }): any
+		for _ = 1, 64 do
+			local angle, r = rng:nextNumber() * math.pi * 2, math.sqrt(rng:nextNumber()) * 0.75
+			local x, z = math.cos(angle) * r * coast.hx, math.sin(angle) * r * coast.hz
+			local ok = inland(x, z) > shore and nearestAuthored(x, z) > clear
+			for _, other in avoid do
+				ok = ok and (x - other.x) ^ 2 + (z - other.z) ^ 2 > (other.r + clear) ^ 2
+			end
+			if ok then
+				return { x = x, z = z }
+			end
+		end
+		return nil
+	end
+	local basins: { any } = {}
+	for _ = 1, 3 do
+		local at = spot(420, 420, basins)
+		if at then
+			table.insert(basins, { x = at.x, z = at.z, r = 240, depth = amp * 0.55 })
+		end
+	end
+	-- Multi-octave hills, ridged crests, terraced cliffs on strong ridges, seeded basins.
+	local mesas: { any } = {}
+	for _ = 1, 2 do
+		local avoid = table.clone(basins)
+		for _, mesa in mesas do
+			table.insert(avoid, mesa)
+		end
+		local at = spot(260, 360, avoid)
+		if at then
+			table.insert(mesas, { x = at.x, z = at.z, r = 150, height = M.CLIFF_STEP * 2 })
+		end
+	end
+	local function natural(x: number, z: number): number
+		local n, a, f, total = 0, 1, 1 / 700, 0
+		for k = 1, 5 do
+			n += math.noise(x * f + o[1] + k * 17.3, z * f + o[2], k * 0.37) * a
+			total += a
+			a *= 0.5
+			f *= 2
+		end
+		local ridge = 1 - math.abs(math.noise(x / 460 + o[3], z / 460 + o[4], 0.5)) * 2
+		ridge = math.clamp(ridge, 0, 1) ^ 3
+		local h = amp * (0.55 * math.clamp(n / total + 0.5, 0, 1) + 0.6 * ridge)
+		local cliff = smooth(0.3, 0.45, ridge) * smooth(80, 200, nearestAuthored(x, z))
+		if cliff > 0 then
+			local t = h / M.CLIFF_STEP
+			local stepped = (math.floor(t) + smooth(0.75, 0.95, t - math.floor(t))) * M.CLIFF_STEP
+			h += (stepped - h) * cliff
+		end
+		for _, basin in basins do
+			local d = math.sqrt((x - basin.x) ^ 2 + (z - basin.z) ^ 2)
+			h -= basin.depth * (1 - smooth(basin.r * 0.3, basin.r, d))
+		end
+		-- Seeded mesas: flat-topped rises whose rims are near-vertical cliffs.
+		for _, mesa in mesas do
+			local d = math.sqrt((x - mesa.x) ^ 2 + (z - mesa.z) ^ 2)
+			h += mesa.height * (1 - smooth(mesa.r - 10, mesa.r, d))
+		end
+		return math.max(h, 0)
+	end
+	-- Authored gameplay ground: inverse-distance blend of authored heights, exact in round clearings,
+	-- blended into the relief over 48..240 studs so every node, anchor and spawn keeps its height.
+	local function settled(x: number, z: number): number
+		local h = natural(x, z)
+		if nearestAuthored(x, z) < 240 then
+			local sum, weight, nearest = 0, 0, math.huge
+			for _, p in samples do
+				local d2 = (x - p.x) ^ 2 + (z - p.z) ^ 2
+				nearest = math.min(nearest, d2)
+				local w = 1 / (d2 + 256) ^ 1.5
+				sum += p.y * w
+				weight += w
+			end
+			h += (sum / weight - h) * (1 - smooth(48, 240, math.sqrt(nearest)))
+			local exactSum, exactWeight, pointSum, pointWeight, pointDepth, exactDepth = 0, 0, 0, 0, 0, 0
+			local function blend(distance: number, inner: number, target: number, point: boolean?)
+				h += (target - h) * (1 - smooth(inner, inner + 48, distance))
+				-- Overlapping clearings blend by depth inside each, so their meeting line has no step;
+				-- a node, anchor or spawn clearing outranks a path passing through it.
+				if distance <= inner then
+					local w = (1 - distance / inner) ^ 2 + 1e-3
+					if point then
+						pointSum += target * w
+						pointWeight += w
+						pointDepth = math.max(pointDepth, 1 - distance / inner)
+					else
+						exactSum += target * w
+						exactWeight += w
+						exactDepth = math.max(exactDepth, 1 - distance / inner)
+					end
+				end
+			end
+			-- Crossing catalog paths at different heights: the ground follows the highest one, with a
+			-- walkable 0.3 ramp down from its edge, so no path ribbon stands above the ground.
+			local ridge, near = -math.huge, math.huge
+			for _, path in layout.paths do
+				for i = 2, #path.points do
+					local a, b = path.points[i - 1], path.points[i]
+					local distance, t = M.distance(x, z, a, b)
+					local over = math.max(0, distance - path.width / 2 - 4)
+					if over < 48 then
+						ridge = math.max(ridge, a.y + (b.y - a.y) * t - over * 0.3)
+						near = math.min(near, distance - path.width / 2)
+					end
+				end
+			end
+			if ridge > -math.huge then
+				h += (ridge - h) * (1 - smooth(40, 88, near))
+			end
+			for _, list in { layout.spawns, layout.anchors, layout.resourceNodes } do
+				for _, item in list do
+					local p = item.position
+					local inner = if item.id == "objective" then 64 else (item.radius or 0) + 24
+					blend(math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2), inner, p.y, true)
+				end
+			end
+			if exactWeight > 0 then
+				h += (exactSum / exactWeight - h) * smooth(0, 0.45, exactDepth)
+			end
+			-- Point clearings take over from paths over their outer third, as a walkable ramp.
+			if pointWeight > 0 then
+				h += (pointSum / pointWeight - h) * smooth(0, 0.7, pointDepth)
+			end
+			-- Slope cap: within reach of any authored point or path the ground stays inside a
+			-- GRADE_CAP cone around it, so no blend leaves a step a character must jump. Points first,
+			-- then paths as an upper cap, so a path never runs below a raised bank.
+			for _, list in { layout.spawns, layout.anchors, layout.resourceNodes } do
+				for _, item in list do
+					local p = item.position
+					local lim = M.GRADE_CAP * math.max(0, math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2) - 6)
+					if lim < 40 then
+						h = math.clamp(h, p.y - lim, p.y + lim)
+					end
+				end
+			end
+			-- Paths: the ground stays between the highest ramp floor (a path's height falling off at
+			-- GRADE_CAP from its edge) and the lowest cap (rising off at GRADE_CAP). On a ribbon both meet
+			-- the path height; where ribbons at different heights meet, the higher wins and ramps down.
+			local floor, cap = -math.huge, math.huge
+			for _, path in layout.paths do
+				for i = 2, #path.points do
+					local a, b = path.points[i - 1], path.points[i]
+					local distance, t = M.distance(x, z, a, b)
+					local lim = M.GRADE_CAP * math.max(0, distance - path.width / 2 - 2)
+					if lim < 40 then
+						local y = a.y + (b.y - a.y) * t
+						floor, cap = math.max(floor, y - lim), math.min(cap, y + lim)
+					end
+				end
+			end
+			if floor > -math.huge then
+				h = if floor >= cap then floor else math.clamp(h, floor, cap)
+			end
+			-- Authored points keep their catalog height last: within 6 studs exact, then a 0.6 cone (the
+			-- steepest catalog station-to-ribbon grade). The clamp is continuous, so it adds no step.
+			for _, list in { layout.spawns, layout.anchors, layout.resourceNodes } do
+				for _, item in list do
+					local p = item.position
+					local lim = 0.6 * math.max(0, math.sqrt((x - p.x) ^ 2 + (z - p.z) ^ 2) - 6)
+					if lim < 120 then
+						h = math.clamp(h, p.y - lim, p.y + lim)
+					end
+				end
+			end
+		end
+		-- The ground ramps down to the beach over the last 260 studs inside the coast.
+		return M.BEACH_TOP + math.max(0, h - M.BEACH_TOP) * smooth(40, 300, inland(x, z))
+	end
+	-- Coast-to-coast dirt trail: a seeded meander across the island, height-smoothed and graded to
+	-- TRAIL_SLOPE so it is walkable end to end.
+	local a0 = rng:nextNumber() * math.pi * 2
+	local a1 = a0 + math.pi + (rng:nextNumber() - 0.5) * 0.6
+	local sx, sz = coast.point(a0, 0.03)
+	local ex, ez = coast.point(a1, 0.03)
+	local phase, waves = rng:nextNumber() * math.pi * 2, 3 + rng:nextInteger(0, 1)
+	local route = {}
+	for i = 0, 24 do
+		local t = i / 24
+		local dx, dz = ex - sx, ez - sz
+		local length = math.sqrt(dx * dx + dz * dz)
+		local side = math.sin(t * math.pi * waves + phase) * math.sin(t * math.pi) * unit * 0.3
+		local x, z = sx + dx * t - dz / length * side, sz + dz * t + dx / length * side
+		for _ = 1, 8 do
+			if i == 0 or i == 24 or coast.depth(x, z) > 0.05 then
+				break
+			end
+			x, z = x * 0.9, z * 0.9
+		end
+		table.insert(route, { x = x, y = 0, z = z })
+	end
+	local trail = densify(route, 16, settled)
+	-- The trail height is smoothed, then graded to TRAIL_SLOPE in both directions.
+	for _ = 1, 3 do
+		local copy = table.clone(trail)
+		for i = 2, #trail - 1 do
+			trail[i] = { x = copy[i].x, z = copy[i].z, y = (copy[i - 1].y + copy[i].y * 2 + copy[i + 1].y) / 4 }
+		end
+	end
+	for _, order in { { 2, #trail, 1 }, { #trail - 1, 1, -1 } } do
+		for i = order[1], order[2], order[3] do
+			local prev = trail[i - order[3]]
+			local run = math.sqrt((trail[i].x - prev.x) ^ 2 + (trail[i].z - prev.z) ^ 2)
+			trail[i].y = math.clamp(trail[i].y, prev.y - run * M.TRAIL_SLOPE, prev.y + run * M.TRAIL_SLOPE)
+		end
+	end
+	local function trailed(x: number, z: number): (number, number)
+		local h = settled(x, z)
+		local d, y = along(x, z, trail)
+		-- Inside authored clearings the clearing height wins (trail samples there are pinned to it).
+		local w = (1 - smooth(M.TRAIL_WIDTH / 2, M.TRAIL_WIDTH / 2 + 24, d)) * smooth(16, 72, nearestAuthored(x, z))
+		return h + (y - h) * w, d
+	end
+	-- One stream from a high inland spring to the sea, its bed never rising downstream; ponds in basins.
+	local streams: { any } = {}
+	local source = spot(360, 520, basins)
+	if source then
+		local angle = math.atan2(source.z / coast.hz, source.x / coast.hx)
+		local mx, mz = coast.point(angle, -0.04)
+		local bend = (rng:nextNumber() - 0.5) * unit * 0.25
+		local path = {}
+		for i = 0, 10 do
+			local t = i / 10
+			local dx, dz = mx - source.x, mz - source.z
+			local length = math.sqrt(dx * dx + dz * dz)
+			local side = math.sin(t * math.pi * 2) * bend
+			table.insert(path, {
+				x = source.x + dx * t - dz / length * side,
+				y = 0,
+				z = source.z + dz * t + dx / length * side,
+			})
+		end
+		local bed = densify(path, 16, function(x, z)
+			return (trailed(x, z)) - 3
+		end)
+		for i = 2, #bed do
+			bed[i].y = math.min(bed[i].y, bed[i - 1].y)
+		end
+		bed[#bed].y = math.min(bed[#bed].y, M.SEA - 2)
+		table.insert(streams, { points = bed, width = M.STREAM_WIDTH })
+	end
+	local ponds: { any } = {}
+	for _, basin in basins do
+		if segments(basin.x, basin.z, trail) > 120 and inland(basin.x, basin.z) > 200 then
+			table.insert(ponds, { x = basin.x, z = basin.z, r = 56, level = (trailed(basin.x, basin.z)) + 1.5 })
+		end
+	end
+	local field: any = { coast = coast, trails = { trail }, streams = streams, ponds = ponds, relief = amp }
+	function field.height(x: number, z: number): number
+		local depth = coast.depth(x, z)
+		if depth <= 0 then
+			-- Offshore: a sand shelf sloping from the beach down to the seabed, no wall at the coast.
+			return math.max(M.SEA - 8, M.BEACH_TOP + depth * unit * 0.3)
+		end
+		local h, dTrail = trailed(x, z)
+		if M.protected(layout, x, z, 16) then
+			return h
+		end
+		for _, stream in streams do
+			local d, y = along(x, z, stream.points)
+			if d < stream.width then
+				-- A ford where the trail crosses: the channel there is at most 1.5 studs deep.
+				local floor = if dTrail < M.TRAIL_WIDTH then h - 1.5 else -math.huge
+				h = math.min(h, math.max(floor, y + (d / stream.width) ^ 2 * 6))
+			end
+		end
+		for _, pond in ponds do
+			local d2 = (x - pond.x) ^ 2 + (z - pond.z) ^ 2
+			if d2 < pond.r ^ 2 then
+				h = math.min(h, pond.level - 3 * (1 - d2 / pond.r ^ 2))
+			end
+		end
+		return h
+	end
+	--- Water surface over (x, z) for a pond or stream channel, else nil (sea excluded).
+	function field.water(x: number, z: number): number?
+		for _, pond in ponds do
+			if (x - pond.x) ^ 2 + (z - pond.z) ^ 2 < pond.r ^ 2 then
+				return pond.level
+			end
+		end
+		for _, stream in streams do
+			local d, y = along(x, z, stream.points)
+			if d < stream.width * 0.6 and not M.protected(layout, x, z, 16) then
+				return y + 1.5
+			end
+		end
+		return nil
+	end
+	function field.trail(x: number, z: number): number
+		return (segments(x, z, trail))
+	end
+	--- Distance to the nearest authored gameplay point (path sample, node, anchor or spawn).
+	field.clear = nearestAuthored
+	fields[key] = field
+	return field
+end
+
+--- Ground height an adapter can use where a terrain ray finds nothing (not yet written or not
+--- streamed in). Relief layouts only; nil for legacy layouts.
+function M.surface(layout: any, seed: number, x: number, z: number): number?
+	return if M.relief(layout) then M.field(layout, seed).height(x, z) else nil
+end
+
+local reliefCache: { [string]: { any } } = setmetatable({}, { __mode = "v" }) :: any
+
+--- Square land columns of a relief layout: only cells wholly inside the coast; cliffs read as Rock,
+--- trails as Ground, pond and stream beds as Mud, the beach band as Sand. Memoized per
+--- (layout, seed, island seed, cell); callers treat the list as read-only.
+local function reliefColumns(layout: any, seed: number, cell: number): { any }
+	local cacheKey = layout.id .. ":" .. seed .. ":" .. layout.terrain.seed .. ":" .. cell
+	if reliefCache[cacheKey] then
+		return reliefCache[cacheKey]
+	end
+	local field = M.field(layout, seed)
+	local coast = field.coast
+	local result = {}
+	local tops: { [string]: number } = {}
+	local h = cell / 2
+	for x = -coast.hx + h, coast.hx - h, cell do
+		for z = -coast.hz + h, coast.hz - h, cell do
+			local corner = math.min(
+				coast.depth(x - h, z - h),
+				coast.depth(x + h, z - h),
+				coast.depth(x - h, z + h),
+				coast.depth(x + h, z + h)
+			)
+			if corner <= 0 then
+				continue
+			end
+			local top = field.height(x, z)
+			tops[x .. "," .. z] = top
+			local beach = coast.depth(x, z) < M.GRASS_EDGE
+			local wet = field.water(x, z) ~= nil
+			table.insert(result, {
+				x = x,
+				z = z,
+				top = top,
+				cell = cell,
+				biome = layout.biomes[1],
+				beach = beach,
+				wet = wet or nil,
+				material = if beach
+					then "Sand"
+					elseif wet then "Mud"
+					elseif field.trail(x, z) < M.TRAIL_WIDTH / 2 + 4 then "Ground"
+					else M.ground(layout, x),
+			})
+		end
+	end
+	for _, column in result do
+		if column.beach or column.wet or column.material == "Ground" then
+			continue
+		end
+		for _, d in { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } do
+			local other = tops[column.x + d[1] * cell .. "," .. column.z + d[2] * cell]
+			if other and column.top - other >= 8 and not M.protected(layout, column.x, column.z, 16) then
+				column.material = "Rock"
+			end
+		end
+	end
+	reliefCache[cacheKey] = result
+	return result
+end
+
 -- Catalog navigation and habitat clearings override the seeded high ground.
 -- Returns square terrain columns; adapters materialize columns before ribbons.
 function M.columns(layout: any, seed: number, cell: number): { any }
 	assert(cell > 0 and cell % 4 == 0, "TERRAIN_CELL_MULTIPLE_OF_FOUR")
+	if M.relief(layout) then
+		return reliefColumns(layout, seed, cell)
+	end
 	local rng = Rng.new(seed):fork(layout.id)
 	local phase = rng:nextNumber() * math.pi * 2
 	local stage = tonumber(string.match(layout.id, "%.s(%d+)$")) or 1

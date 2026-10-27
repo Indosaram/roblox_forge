@@ -207,6 +207,16 @@ function M.roleScale(layout: any, columns: { any }): number
 		return M.HOME_SCALE
 	end
 	local top = 0
+	if Terrain.relief(layout) then
+		-- Relief islands rise far above their camps; props scale with the authored ground, as
+		-- they did when the terrain followed it.
+		for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+			for _, item in list do
+				top = math.max(top, item.position.y)
+			end
+		end
+		columns = {}
+	end
 	for _, column in columns do
 		if column.top > 0 then
 			top = math.max(top, column.top)

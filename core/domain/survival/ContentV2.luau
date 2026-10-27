@@ -27,6 +27,8 @@ local schemas: { [string]: { [string]: string } } = {
 	anchor = { id = "id", position = "point" },
 	landmark = { id = "id", kind = "text", position = "point", size = "point" },
 	art = { landmark = "landmark" },
+	-- Opt-in relief terrain (ArchipelagoTerrain.relief): the recorded island seed and relief in studs.
+	terrain = { generator = "id", seed = "integer", relief = "positive" },
 	gate = {
 		characterLevel = "?level",
 		developmentRank = "?integer",
@@ -407,6 +409,7 @@ local schemas: { [string]: { [string]: string } } = {
 	layouts = {
 		id = "id",
 		art = "?art",
+		terrain = "?terrain",
 		provenance = "provenance",
 		bounds = "bounds",
 		biomes = "[]id",

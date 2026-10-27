@@ -234,10 +234,22 @@ gui.Destroying:Connect(function()
 	warehouseConnection:Disconnect()
 end)
 local telegraphs: { [Model]: Highlight } = {}
+-- ForgeWildlife is a descendant of the role world, not a workspace child; found once, then reused.
+local wildlifeFolder: Instance? = nil
 local telegraphConnection = game:GetService("RunService").Heartbeat:Connect(function()
-	local folder = workspace:FindFirstChild("ForgeWildlife")
+	if not (wildlifeFolder and wildlifeFolder:IsDescendantOf(workspace)) then
+		wildlifeFolder = workspace:FindFirstChild("ForgeWildlife", true)
+	end
+	local folder = wildlifeFolder
 	if not folder then
 		return
+	end
+	for model, marker in telegraphs do
+		-- A model streamed out (or removed) leaves its marker; drop it so the table never leaks.
+		if not model:IsDescendantOf(folder) then
+			marker:Destroy()
+			telegraphs[model] = nil
+		end
 	end
 	for _, model in folder:GetChildren() do
 		if not model:IsA("Model") then
@@ -1424,8 +1436,13 @@ local function dressRoleWorld(root: Instance)
 			return
 		end
 		local p = item.position
-		local hit = workspace:Raycast(Vector3.new(p.x, p.y + 60, p.z), Vector3.new(0, -160, 0), ray)
-		local y = if hit then hit.Position.Y else p.y
+		-- Streaming: terrain beyond the stream radius (or not yet written) is absent on the client, so
+		-- relief layouts take the height from the shared deterministic field instead of a ray.
+		local surface = Terrain.surface(layout, seed, p.x, p.z)
+		local hit = if surface
+			then nil
+			else workspace:Raycast(Vector3.new(p.x, p.y + 60, p.z), Vector3.new(0, -160, 0), ray)
+		local y = surface or if hit then hit.Position.Y else p.y
 		if not table.find(meshKeys, item.key) and #meshKeys < profile.meshBuildsMax then
 			table.insert(meshKeys, item.key)
 		end

@@ -8,7 +8,13 @@ local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
 local Terrain = require("../../core/domain/island/ArchipelagoTerrain")
 
+-- Relief islands (ArchipelagoTerrain.relief) are gated by relief-terrain.spec instead.
 local function organic(id: string): boolean
+	for _, layout in Content.layouts do
+		if layout.id == id and Terrain.relief(layout) then
+			return false
+		end
+	end
 	return id == "rw.harbor" or string.match(id, "^rw%.a%d+%.s%d+$") ~= nil
 end
 
@@ -362,7 +368,8 @@ return {
 			end
 			world.destroy()
 		end
-		assert(checked > 300, "harbor and stage gameplay points covered: " .. checked)
+		-- Only the harbor keeps the legacy organic coast; relief stages: relief-terrain.spec.
+		assert(checked > 20, "harbor and stage gameplay points covered: " .. checked)
 	end,
 	["grass plateau edge follows the coast curve, not the square column grid"] = function()
 		local roblox = require("@lune/roblox")
@@ -417,6 +424,6 @@ return {
 			checked += 1
 			world.destroy()
 		end
-		assert(checked >= 15, "non-desert organic islands measured: " .. checked)
+		assert(checked >= 1, "non-desert organic islands measured: " .. checked)
 	end,
 }

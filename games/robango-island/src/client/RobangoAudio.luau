@@ -210,11 +210,14 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	for _, child in player:GetChildren() do
 		attach(child)
 	end
-	-- Creature telegraph/strike follow the replicated wildlife feedback edge.
+	-- Creature telegraph/strike follow the replicated wildlife feedback edge. Under streaming a
+	-- creature can stream in, out and back; `watched` keeps one connection per live model.
+	local watched: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 	local function watchCreature(model: Instance)
-		if not model:IsA("Model") then
+		if not model:IsA("Model") or watched[model] then
 			return
 		end
+		watched[model] = true
 		table.insert(
 			connections,
 			model:GetAttributeChangedSignal("ForgeWildlifeFeedback"):Connect(function()
@@ -225,16 +228,22 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 			end)
 		)
 	end
-	task.spawn(function()
-		local folder = workspace:WaitForChild("ForgeWildlife", math.huge)
-		if disposed then
+	local function watchFolder(folder: Instance)
+		if disposed or folder.Name ~= "ForgeWildlife" then
 			return
 		end
 		table.insert(connections, folder.ChildAdded:Connect(watchCreature))
 		for _, model in folder:GetChildren() do
 			watchCreature(model)
 		end
-	end)
+	end
+	-- No unbounded wait: ForgeWildlife lives under the role world (not a workspace child), and a
+	-- world without wildlife (Studio preview) never creates it.
+	table.insert(connections, workspace.DescendantAdded:Connect(watchFolder))
+	local present = workspace:FindFirstChild("ForgeWildlife", true)
+	if present then
+		watchFolder(present)
+	end
 	-- Button clicks; header close buttons sound as a close.
 	local function watchButton(object: Instance)
 		if object:IsA("GuiButton") then

@@ -62,6 +62,13 @@
     "$className": "DataModel",
     "Workspace": {
       "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingIntegrityMode": "MinimumRadiusPause",
+        "StreamingMinRadius": 128,
+        "StreamingTargetRadius": 512,
+        "ModelStreamingBehavior": "Improved"
+      },
       "Terrain": {
         "$className": "Terrain",
         "$properties": {

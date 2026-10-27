@@ -204,6 +204,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	groundParams.FilterType = Enum.RaycastFilterType.Include
 	groundParams.FilterDescendantsInstances = { workspace.Terrain }
 	groundParams.IgnoreWater = true
+	-- Relief layouts write far chunks asynchronously; where a ray finds no voxels yet, the
+	-- deterministic height field gives the ground (legacy layouts: nil, as before).
+	local function probe(x: number, z: number): number?
+		local hit = workspace:Raycast(Vector3.new(x, 512, z), Vector3.new(0, -1024, 0), groundParams)
+		return if hit then hit.Position.Y else Terrain.surface(layout, seed, x, z)
+	end
 	local function grounded(definition: any): any
 		local ground = definition.ground
 			or {
@@ -217,14 +223,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if bottom <= ground.y + 0.5 then
 			ground = { x = definition.position.x, y = bottom, z = definition.position.z }
 		end
-		local hit = workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
-		if not hit then
+		local hitY = probe(ground.x, ground.z)
+		if not hitY then
 			return nil
 		end
 		local result = table.clone(definition)
 		result.position = {
 			x = definition.position.x,
-			y = definition.position.y + hit.Position.Y - ground.y - 0.15,
+			y = definition.position.y + hitY - ground.y - 0.15,
 			z = definition.position.z,
 		}
 		return result
@@ -255,8 +261,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local bloom: any = lighting:FindFirstChild(SkyCycle.BLOOM)
 	local atmosphere: any = lighting:FindFirstChild(SkyCycle.ATMOSPHERE)
 	workspace.Terrain.WaterTransparency = 0.35
-	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
-	local coastline = if Terrain.organic(layout) then Terrain.coast(layout, seed) else nil
+	local field = if Terrain.relief(layout) then Terrain.field(layout, seed) else nil
+	if not field then
+		workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
+	end
+	local coastline = if field then field.coast elseif Terrain.organic(layout) then Terrain.coast(layout, seed) else nil
 	local gradedInland = coastline == nil and Terrain.graded(layout)
 	local function nearPath(x: number, z: number, reach: number): boolean
 		for _, path in layout.paths do
@@ -268,7 +277,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 		return false
 	end
-	if coastline then
+	if coastline and not field then
 		-- Organic islands keep only land columns; a single sand floor stands in for the seabed.
 		workspace.Terrain:FillBlock(CFrame.new(0, -14, 0), Vector3.new(1400, 4, 1400), Enum.Material.Sand)
 	end
@@ -276,10 +285,134 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(98, 116, 60))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(122, 126, 92))
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
+	if field then
+		-- Relief islands: per-island sea fill beyond the coast (no shared slab), then land in
+		-- 256-stud chunks. Chunks around the authored camp (spawn, nodes, stations) are written now;
+		-- the rest follow one chunk per engine step, nearest first, so the first interaction never
+		-- waits for the far island.
+		local coast, tile = field.coast, 128
+		for x = -coast.hx - 256 + tile / 2, coast.hx + 256, tile do
+			for z = -coast.hz - 256 + tile / 2, coast.hz + 256, tile do
+				local h = tile / 2
+				local inside = math.min(
+					coast.depth(x - h, z - h),
+					coast.depth(x + h, z - h),
+					coast.depth(x - h, z + h),
+					coast.depth(x + h, z + h)
+				)
+				if inside <= 0.02 then
+					workspace.Terrain:FillBlock(CFrame.new(x, -14, z), Vector3.new(tile, 4, tile), Enum.Material.Sand)
+					workspace.Terrain:FillBlock(
+						CFrame.new(x, (Terrain.SEA - 12) / 2, z),
+						Vector3.new(tile, Terrain.SEA + 12, tile),
+						Enum.Material.Water
+					)
+				end
+			end
+		end
+		local low = { x = math.huge, z = math.huge }
+		local high = { x = -math.huge, z = -math.huge }
+		for _, list in { layout.resourceNodes, layout.anchors, layout.spawns } do
+			for _, item in list do
+				low.x, low.z = math.min(low.x, item.position.x), math.min(low.z, item.position.z)
+				high.x, high.z = math.max(high.x, item.position.x), math.max(high.z, item.position.z)
+			end
+		end
+		local chunks: { [string]: any } = {}
+		local order: { any } = {}
+		for _, column in columns do
+			local key = math.floor(column.x / 256) .. "," .. math.floor(column.z / 256)
+			local chunk = chunks[key]
+			if not chunk then
+				local cx, cz = (math.floor(column.x / 256) + 0.5) * 256, (math.floor(column.z / 256) + 0.5) * 256
+				chunk = {
+					columns = {},
+					camp = cx + 224 >= low.x and cx - 224 <= high.x and cz + 224 >= low.z and cz - 224 <= high.z,
+					distance = math.sqrt(cx * cx + cz * cz),
+					key = key,
+				}
+				chunks[key] = chunk
+				table.insert(order, chunk)
+			end
+			table.insert(chunk.columns, column)
+		end
+		table.sort(order, function(a, b)
+			return if a.distance ~= b.distance then a.distance < b.distance else a.key < b.key
+		end)
+		local function write(chunk: any)
+			for _, column in chunk.columns do
+				local material = column.material
+				if
+					(material == "Grass" or material == "LeafyGrass")
+					and interactionGround(column.x, column.z, column.cell)
+				then
+					material = "Ground"
+				end
+				local top = column.top
+				if field.clear(column.x, column.z) < 96 then
+					-- Near authored ground the column is written as 8-stud blocks sampled from the field,
+					-- so paths and clearings keep their catalog slope instead of 32-stud steps (4-stud blocks
+					-- right at authored ground, where a 2.5-stud step limit applies).
+					local sub = if field.clear(column.x, column.z) < 48 then 4 else 8
+					for sx = column.x - column.cell / 2 + sub / 2, column.x + column.cell / 2, sub do
+						for sz = column.z - column.cell / 2 + sub / 2, column.z + column.cell / 2, sub do
+							local y = field.height(sx, sz)
+							workspace.Terrain:FillBlock(
+								CFrame.new(sx, (y - 16) / 2, sz),
+								Vector3.new(sub, y + 16, sub),
+								materials[material]
+							)
+						end
+					end
+					continue
+				end
+				workspace.Terrain:FillBlock(
+					CFrame.new(column.x, (top - 16) / 2, column.z),
+					Vector3.new(column.cell, top + 16, column.cell),
+					materials[material]
+				)
+				-- A bevel ball rounds steps down to lower neighbours away from authored ground.
+				if field.clear(column.x, column.z) > 64 then
+					local r = column.cell * 0.75
+					workspace.Terrain:FillBall(Vector3.new(column.x, top - r, column.z), r, materials[material])
+				end
+				local water = field.water(column.x, column.z)
+				if water and water > top then
+					workspace.Terrain:FillBlock(
+						CFrame.new(column.x, (top + water) / 2, column.z),
+						Vector3.new(column.cell, water - top, column.cell),
+						Enum.Material.Water
+					)
+				end
+			end
+		end
+		local later = {}
+		for _, chunk in order do
+			if chunk.camp then
+				write(chunk)
+			else
+				table.insert(later, chunk)
+			end
+		end
+		root:SetAttribute("ForgeTerrainChunks", #order)
+		task.spawn(function()
+			for _, chunk in later do
+				if root.Parent == nil then
+					return
+				end
+				write(chunk)
+				game:GetService("RunService").Heartbeat:Wait()
+			end
+			root:SetAttribute("ForgeTerrainReady", true)
+		end)
+	else
+		root:SetAttribute("ForgeTerrainReady", true)
+	end
 	for _, column in columns do
 		tops[column.x .. "," .. column.z] = column.top
 	end
-	for _, column in columns do
+	local legacy: { any } = if field then {} else columns
+	for _, column in legacy do
 		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
 		local material = column.material
 		if
@@ -621,6 +754,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 		local stream = Rng.new(seed):fork("decor-fauna:" .. layoutId .. ":" .. id)
+		-- StreamingEnabled: the client poses root and limbs together, so the rig streams as one unit.
+		animal.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 		animal:SetAttribute("ForgeDecorFauna", true)
 		animal:SetAttribute("ForgeGrazePhase", stream:nextNumber())
 		animal:SetAttribute("ForgeGrazePeriod", 6 + stream:nextNumber() * 8)

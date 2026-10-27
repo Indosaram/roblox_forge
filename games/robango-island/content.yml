@@ -13162,13 +13162,18 @@ layouts:
         size: {x: 24, y: 36, z: 24}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 20
-        z: 320
+        x: 1536
+        y: 64
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7301
+      relief: 64
     biomes:
       - "grassland"
     anchors:
@@ -13765,13 +13770,18 @@ layouts:
         size: {x: 40, y: 20, z: 16}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 24
-        z: 384
+        x: 1536
+        y: 64
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7398
+      relief: 64
     biomes:
       - "grassland"
     anchors:
@@ -14341,13 +14351,18 @@ layouts:
         size: {x: 32, y: 18, z: 32}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 24
-        z: 320
+        x: 1536
+        y: 64
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7495
+      relief: 64
     biomes:
       - "grassland"
     anchors:
@@ -14942,13 +14957,18 @@ layouts:
         size: {x: 32, y: 28, z: 32}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 32
-        z: 384
+        x: 1536
+        y: 64
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7592
+      relief: 64
     biomes:
       - "desert"
     anchors:
@@ -15547,13 +15567,18 @@ layouts:
         size: {x: 48, y: 48, z: 48}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 32
-        z: 384
+        x: 1536
+        y: 72
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7689
+      relief: 72
     biomes:
       - "tropical"
     anchors:
@@ -16088,13 +16113,18 @@ layouts:
         size: {x: 40, y: 20, z: 24}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 24
-        z: 320
+        x: 1536
+        y: 72
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7786
+      relief: 72
     biomes:
       - "swamp"
     anchors:
@@ -16603,13 +16633,18 @@ layouts:
         size: {x: 40, y: 16, z: 24}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 24
-        z: 384
+        x: 1536
+        y: 72
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7883
+      relief: 72
     biomes:
       - "swamp"
     anchors:
@@ -17118,13 +17153,18 @@ layouts:
         size: {x: 48, y: 32, z: 32}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 36
-        z: 320
+        x: 1536
+        y: 72
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 7980
+      relief: 72
     biomes:
       - "desert"
     anchors:
@@ -17659,13 +17699,18 @@ layouts:
         size: {x: 32, y: 32, z: 32}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 36
-        z: 320
+        x: 1536
+        y: 80
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8077
+      relief: 80
     biomes:
       - "desert"
     anchors:
@@ -18204,13 +18249,18 @@ layouts:
         size: {x: 24, y: 28, z: 24}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 28
-        z: 384
+        x: 1536
+        y: 80
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8174
+      relief: 80
     biomes:
       - "swamp"
     anchors:
@@ -18719,13 +18769,18 @@ layouts:
         size: {x: 40, y: 36, z: 32}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 40
-        z: 320
+        x: 1536
+        y: 80
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8271
+      relief: 80
     biomes:
       - "tropical"
     anchors:
@@ -19260,13 +19315,18 @@ layouts:
         size: {x: 48, y: 30, z: 48}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 40
-        z: 384
+        x: 1536
+        y: 80
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8368
+      relief: 80
     biomes:
       - "tropical"
     anchors:
@@ -19831,13 +19891,18 @@ layouts:
         size: {x: 48, y: 36, z: 24}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 48
-        z: 384
+        x: 1536
+        y: 88
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8465
+      relief: 88
     biomes:
       - "snow"
     anchors:
@@ -20445,13 +20510,18 @@ layouts:
         size: {x: 40, y: 32, z: 24}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 48
-        z: 320
+        x: 1536
+        y: 88
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8562
+      relief: 88
     biomes:
       - "snow"
     anchors:
@@ -20960,13 +21030,18 @@ layouts:
         size: {x: 32, y: 24, z: 32}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 56
-        z: 384
+        x: 1536
+        y: 88
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8659
+      relief: 88
     biomes:
       - "snow"
     anchors:
@@ -21557,13 +21632,18 @@ layouts:
         size: {x: 40, y: 28, z: 40}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 56
-        z: 320
+        x: 1536
+        y: 88
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8756
+      relief: 88
     biomes:
       - "snow"
     anchors:
@@ -22098,13 +22178,18 @@ layouts:
         size: {x: 40, y: 44, z: 40}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 64
-        z: 320
+        x: 1536
+        y: 96
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8853
+      relief: 96
     biomes:
       - "volcano"
     anchors:
@@ -22716,13 +22801,18 @@ layouts:
         size: {x: 32, y: 40, z: 40}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 64
-        z: 384
+        x: 1536
+        y: 96
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 8950
+      relief: 96
     biomes:
       - "volcano"
     anchors:
@@ -23220,13 +23310,18 @@ layouts:
         size: {x: 40, y: 48, z: 40}
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 72
-        z: 320
+        x: 1536
+        y: 96
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9047
+      relief: 96
     biomes:
       - "volcano"
     anchors:
@@ -23828,13 +23923,18 @@ layouts:
         size: {x: 32, y: 36, z: 32}
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -384
+        z: -1536
       max:
-        x: 320
-        y: 72
-        z: 384
+        x: 1536
+        y: 96
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9144
+      relief: 96
     biomes:
       - "tropical"
       - "volcano"
@@ -24531,13 +24631,18 @@ layouts:
     id: "rw.onboarding"
     bounds:
       min:
-        x: -112
+        x: -512
         y: 0
-        z: -96
+        z: -512
       max:
-        x: 112
-        y: 12
-        z: 96
+        x: 512
+        y: 24
+        z: 512
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9241
+      relief: 24
     biomes:
       - "beach"
       - "grassland"
@@ -25779,13 +25884,18 @@ layouts:
     id: "rw.explore10"
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -288
+        z: -1536
       max:
-        x: 320
-        y: 24
-        z: 288
+        x: 1536
+        y: 61
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9338
+      relief: 61
     biomes:
       - "grassland"
     anchors:
@@ -27037,13 +27147,18 @@ layouts:
     id: "rw.explore20"
     bounds:
       min:
-        x: -320
+        x: -1536
         y: 0
-        z: -288
+        z: -1536
       max:
-        x: 320
-        y: 32
-        z: 288
+        x: 1536
+        y: 66
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9435
+      relief: 66
     biomes:
       - "grassland"
     anchors:
@@ -27969,13 +28084,18 @@ layouts:
     id: "rw.frontier30"
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 40
-        z: 320
+        x: 1536
+        y: 71
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9532
+      relief: 71
     biomes:
       - "tropical"
       - "desert"
@@ -28623,13 +28743,18 @@ layouts:
     id: "rw.frontier40"
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 48
-        z: 320
+        x: 1536
+        y: 76
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9629
+      relief: 76
     biomes:
       - "snow"
       - "desert"
@@ -29195,13 +29320,18 @@ layouts:
     id: "rw.frontier50"
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 64
-        z: 320
+        x: 1536
+        y: 81
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9726
+      relief: 81
     biomes:
       - "volcano"
       - "tropical"
@@ -29763,13 +29893,18 @@ layouts:
     id: "rw.frontier60"
     bounds:
       min:
-        x: -384
+        x: -1536
         y: 0
-        z: -320
+        z: -1536
       max:
-        x: 384
-        y: 72
-        z: 320
+        x: 1536
+        y: 86
+        z: 1536
+    # A3 relief terrain: island seed recorded here; same seed, same island.
+    terrain:
+      generator: "relief"
+      seed: 9823
+      relief: 86
     biomes:
       - "volcano"
     anchors:
