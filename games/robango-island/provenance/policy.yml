@@ -19,6 +19,7 @@ assets:
         blender-gen-kit-swamp,
         blender-gen-kit-biomes,
         blender-gen-nodes-b1b,
+        gen-creatures,
       ]
     blender: [robango-gen-buildings]
   licensedKinds: [sfx, image]
