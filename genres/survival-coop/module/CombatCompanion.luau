@@ -2,6 +2,8 @@
 -- V2 companion candidate reducer. Publish companion + resources + receipt in
 -- ONE owning aggregate transaction. No irreversible work happens in callbacks.
 local M = {}
+-- Longest pet name in bytes (8 Hangul syllables or 24 Latin letters fit).
+M.NAME_BYTES = 24
 export type Pet = {
 	id: string,
 	species: string,
@@ -13,6 +15,10 @@ export type Pet = {
 	injuredUntil: number,
 	saddle: boolean,
 	stamina: number,
+	-- Deployed pet holds its spot instead of following its owner (C4 pet ring).
+	stay: boolean?,
+	-- Owner-given name, already text-filtered by the server boundary (C4 pet ring).
+	name: string?,
 }
 export type State = {
 	pets: { [string]: Pet },
@@ -140,7 +146,12 @@ function M.command(
 		if pet.phase ~= "Deployed" then
 			return nil, "INVALID_PHASE"
 		end
-		nextPet.phase, result.deployed, result.ride = "Stored", nil, nil
+		nextPet.phase, nextPet.stay, result.deployed, result.ride = "Stored", nil, nil, nil
+	elseif action == "stay" or action == "follow" then
+		if pet.phase ~= "Deployed" or state.ride == id then
+			return nil, "INVALID_PHASE"
+		end
+		nextPet.stay = if action == "stay" then true else nil
 	elseif action == "saddle" then
 		if (result.materials.saddle or 0) < 1 then
 			return nil, "NO_SADDLE"
@@ -154,7 +165,7 @@ function M.command(
 		if pet.phase ~= "Deployed" or not pet.saddle or pet.satiety <= 0 then
 			return nil, "MOUNT_GATED"
 		end
-		result.ride = id
+		result.ride, nextPet.stay = id, nil
 	elseif action == "dismount" then
 		if state.ride ~= id then
 			return nil, "NOT_MOUNTED"
@@ -164,7 +175,7 @@ function M.command(
 		if pet.phase ~= "Deployed" then
 			return nil, "INVALID_PHASE"
 		end
-		nextPet.phase, nextPet.injuredUntil = "Downed", now + rules.downMillis
+		nextPet.phase, nextPet.injuredUntil, nextPet.stay = "Downed", now + rules.downMillis, nil
 		result.ride, result.deployed = nil, nil
 	elseif action == "recover" then
 		if pet.phase ~= "Downed" or now < pet.injuredUntil then
@@ -172,13 +183,26 @@ function M.command(
 		end
 		nextPet.phase, nextPet.injuredUntil = "Stored", 0
 	elseif action == "release:" .. id then
-		if pet.phase ~= "Stored" and pet.phase ~= "Captured" then
+		-- A pet out with you is released on the spot (C4 pet ring) unless it is being ridden.
+		if pet.phase ~= "Stored" and pet.phase ~= "Captured" and pet.phase ~= "Deployed" then
 			return nil, "RELEASE_PHASE"
+		end
+		if state.ride == id then
+			return nil, "MOUNTED"
 		end
 		if pet.cargo ~= 0 or pet.injuredUntil > now then
 			return nil, "RELEASE_CARGO_OR_INJURY"
 		end
 		result.pets[id] = nil
+		if state.deployed == id then
+			result.deployed = nil
+		end
+	elseif string.sub(action, 1, 7) == "rename:" then
+		local name = string.sub(action, 8)
+		if #name < 1 or #name > M.NAME_BYTES then
+			return nil, "INVALID_NAME"
+		end
+		nextPet.name = name
 	else
 		return nil, "UNKNOWN_ACTION"
 	end

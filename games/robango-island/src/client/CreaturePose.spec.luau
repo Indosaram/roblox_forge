@@ -26,4 +26,10 @@ return {
 		assert(Pose.sample(clock, "idle", 0, false, 0.1) == "idle", "stationary idles")
 		assert(Pose.sample(clock, nil, 5, true, 0.1) == "ridden", "mount clip")
 	end,
+	["a ridden mount strides with its rider: idle at rest, walk clip while moving, run when fast"] = function()
+		local clock = { state = "idle", elapsed = 0 }
+		assert(Pose.sample(clock, nil, 0, true, 0.1) == "idle", "parked mount idles")
+		assert(Pose.sample(clock, nil, 8, true, 0.1) == "ridden", "ridden walk")
+		assert(Pose.sample(clock, nil, 28, true, 0.1) == "run", "ridden gallop")
+	end,
 }

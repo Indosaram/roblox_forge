@@ -90,6 +90,12 @@ export type Options = {
 	shell: {
 		name: (string, string) -> string?,
 		open: (string) -> (),
+		-- C4 pet ring (optional): `capturable()` is true while a downed tameable target is in reach;
+		-- the capture / dismount / pet tokens call `act(id)`. Absent keeps the panel-only flow.
+		pet: {
+			capturable: () -> boolean,
+			act: (string) -> (),
+		}?,
 	}?,
 }
 
@@ -1895,6 +1901,21 @@ function M.start(options: Options)
 			build = function()
 				open("build")
 			end,
+			capture = function()
+				if shellOptions.pet then
+					shellOptions.pet.act("capture")
+				end
+			end,
+			dismount = function()
+				if shellOptions.pet then
+					shellOptions.pet.act("dismount")
+				end
+			end,
+			pet = function()
+				if shellOptions.pet then
+					shellOptions.pet.act("pet")
+				end
+			end,
 			emote = function()
 				pcall(function()
 					guiService:SetEmotesMenuOpen(not guiService:GetEmotesMenuOpen())
@@ -1923,7 +1944,7 @@ function M.start(options: Options)
 			item.Name = "Token-" .. id
 			return item
 		end
-		for _, id in { "interact", "mount", "skills", "consume", "build" } do
+		for _, id in { "interact", "mount", "skills", "consume", "build", "capture", "dismount", "pet" } do
 			shellButtons[id] = token(id)
 		end
 		shellButtons.attack, shellButtons.shoot = attackButton, defenseButtons.shoot
@@ -2006,6 +2027,8 @@ function M.start(options: Options)
 			mount = type(taming) == "table"
 				and (taming.ride ~= nil or (type(companions) == "table" and companions.deployed ~= nil)),
 			skills = content.progressionPolicy ~= nil,
+			capture = shell ~= nil and shell.pet ~= nil and shell.pet.capturable(),
+			riding = shell ~= nil and shell.pet ~= nil and type(taming) == "table" and taming.ride ~= nil,
 		}
 		local shown: { [string]: boolean } = {}
 		if not modal then

@@ -8,6 +8,11 @@ local Job = require("../../../core/domain/crafting/Job")
 local Data = require("../../../core/domain/genre/SerializedData")
 local M = {}
 
+-- C4 pet ring: verbs aimed at a deployed pet in the world need the owner within this many studs
+-- of its body (server-measured through ctx.world.petDistance; worlds without pet bodies skip it).
+M.PET_REACH_STUDS = 14
+local NEAR_VERBS = { mount = true, stay = true, follow = true, feed = true }
+
 function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean } }?): any
 	local rules = ctx.content.progressionPolicy.companion
 	local catalog = Job.catalog(ctx.content)
@@ -69,6 +74,23 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 			-- Defeat is a server event, not a player-controlled recovery shortcut.
 			if args[1] == "defeat" then
 				return { ok = false, reason = "SERVER_ONLY" }
+			end
+			-- Rename (C4 pet ring): the raw name never reaches state; the pack's text filter answers
+			-- before the profile is read (it may yield), and its output is what the verb carries.
+			if action == "survival-coop:companion-action" and string.sub(args[1], 1, 7) == "rename:" then
+				local filter = ctx.world and ctx.world.filterPetName
+				if not filter then
+					return { ok = false, reason = "NAME_FILTER_UNAVAILABLE" }
+				end
+				local raw = string.sub(args[1], 8)
+				if #raw < 1 or #raw > Companion.NAME_BYTES then
+					return { ok = false, reason = "INVALID_NAME" }
+				end
+				local filtered = filter(actor, raw)
+				if type(filtered) ~= "string" or #filtered < 1 or #filtered > Companion.NAME_BYTES then
+					return { ok = false, reason = "NAME_REJECTED" }
+				end
+				args = { "rename:" .. filtered, args[2] }
 			end
 			local port = ctx.personalTransfer(actor)
 			if not port then
@@ -213,6 +235,28 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 			for id, item in bag.items do
 				current.materials[item.catalogId] = (current.materials[item.catalogId] or 0)
 					+ Inventory.available(bag, id)
+			end
+			local pet = current.pets[args[2]]
+			if pet and args[1] == "mount" then
+				local rideable = false
+				for _, row in ctx.content.wildlifeDetails or {} do
+					if row.id == pet.species then
+						rideable = row.mount ~= nil and row.mount.enabled == true
+					end
+				end
+				if not rideable then
+					return { ok = false, reason = "NOT_RIDEABLE" }
+				end
+			end
+			local measure = ctx.world and ctx.world.petDistance
+			if pet and measure and NEAR_VERBS[args[1]] and pet.phase == "Deployed" and current.ride ~= args[2] then
+				local distance = measure(actor, args[2])
+				if distance == nil then
+					return { ok = false, reason = "PET_ABSENT" }
+				end
+				if distance > M.PET_REACH_STUDS then
+					return { ok = false, reason = "TOO_FAR" }
+				end
 			end
 			local candidate, reason = Companion.command(current, receipt, args[1], args[2], ctx.nowMillis(), rules)
 			if not candidate then

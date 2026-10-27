@@ -73,4 +73,26 @@ return {
 			"hungry gate"
 		)
 	end,
+	["C4 ring verbs: stay and follow, rename, release a deployed pet; riders and strangers refused"] = function()
+		local state = trained()
+		assert(select(2, Companion.command(state, "s0", "stay", "pet", 300000, rules)) == "INVALID_PHASE", "ridden pet")
+		state = assert(Companion.command(state, "off", "dismount", "pet", 300000, rules))
+		state = assert(Companion.command(state, "s1", "stay", "pet", 300000, rules))
+		assert(state.pets.pet.stay == true, "stays")
+		state = assert(Companion.command(state, "s2", "follow", "pet", 300000, rules))
+		assert(state.pets.pet.stay == nil, "follows")
+		state = assert(Companion.command(state, "n1", "rename:Pebble", "pet", 300000, rules))
+		assert(state.pets.pet.name == "Pebble", "named")
+		assert(select(2, Companion.command(state, "n2", "rename:", "pet", 300000, rules)) == "INVALID_NAME", "empty")
+		local long = "rename:" .. string.rep("x", Companion.NAME_BYTES + 1)
+		assert(select(2, Companion.command(state, "n3", long, "pet", 300000, rules)) == "INVALID_NAME", "too long")
+		assert(select(2, Companion.command(state, "x", "stay", "stranger", 300000, rules)) == "NOT_OWNER", "not owner")
+		local ridden = assert(Companion.command(state, "on", "mount", "pet", 300000, rules))
+		assert(
+			select(2, Companion.command(ridden, "c4-r0", "release:pet", "pet", 300000, rules)) == "MOUNTED",
+			"no release while ridden"
+		)
+		state = assert(Companion.command(state, "c4-r1", "release:pet", "pet", 300000, rules))
+		assert(next(state.pets) == nil and state.deployed == nil and state.ride == nil, "released out of the world")
+	end,
 }

@@ -422,15 +422,9 @@ function M.new(config: Config)
 		end
 		mount.model:Destroy()
 	end
-	local function attachMount(id: string, key: string)
-		local species, skin = MountVisual.parse(key)
-		local actor = player(id)
-		local character = if actor then actor.Character else nil
-		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
-		local rider = root(id)
-		if not character or not humanoid or not rider then
-			return
-		end
+	-- A wildlife-species rig (mount or pet body): content engine, render envelope and visual, plus a
+	-- worn paid skin's look (cosmetic only).
+	local function speciesRig(species: string, skin: string?, name: string, at: Vector3, parent: Instance): Model
 		local engine = "grazer"
 		for _, entry in (config.content.wildlife or {}) :: { any } do
 			if entry.id == species then
@@ -451,17 +445,138 @@ function M.new(config: Config)
 		if skin and config.cosmetics then
 			visual = CosmeticVisual.mount(visual, config.cosmetics.mountSkins[skin])
 		end
-		local model = MountVisual.dress(
-			DinosaurRig.new(engine, MountVisual.MODEL_NAME, rider.Position, character, envelope, visual)
-		)
+		return DinosaurRig.new(engine, name, at, parent, envelope, visual)
+	end
+	local function attachMount(id: string, key: string)
+		local species, skin = MountVisual.parse(key)
+		local actor = player(id)
+		local character = if actor then actor.Character else nil
+		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+		local rider = root(id)
+		if not character or not humanoid or not rider then
+			return
+		end
+		local model = MountVisual.dress(speciesRig(species, skin, MountVisual.MODEL_NAME, rider.Position, character))
 		local body = model:FindFirstChild("MountRoot") :: BasePart
-		body.CFrame = rider.CFrame * CFrame.new(0, MountVisual.SEAT.offsetStuds, 0)
+		local offset, lift = MountVisual.SEAT.offsetStuds, MountVisual.SEAT.liftStuds
+		-- Skinned mounts seat the rider on the back over the Spine bone (B2a rigs), measured on the
+		-- rig as built; the part rig keeps the silhouette-measured SEAT.
+		local mesh = model:FindFirstChild("Body")
+		local spine = if model:GetAttribute("ForgeSkinned") == true and mesh
+			then mesh:FindFirstChild("Spine", true)
+			else nil
+		if spine and spine:IsA("Bone") then
+			local floor = body.Position.Y - body.Size.Y / 2
+			offset, lift =
+				MountVisual.seat(body.Size.Y, spine.WorldPosition.Y - floor, humanoid.HipHeight + rider.Size.Y / 2)
+		end
+		body.CFrame = rider.CFrame * CFrame.new(0, offset, 0)
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0, weld.Part1, weld.Parent = rider, body, body
 		model:SetAttribute("ForgeMountSpecies", species)
 		model:SetAttribute("ForgeMountSkin", skin)
 		mounts[id] = { species = key, model = model, humanoid = humanoid, hip = humanoid.HipHeight }
-		humanoid.HipHeight += MountVisual.SEAT.liftStuds
+		humanoid.HipHeight += lift
+	end
+	-- Deployed pets (C4): one server-made body per owner whose deployed pet is not being ridden. It
+	-- walks behind its owner (MountVisual.followGoal) unless told to stay, and carries its owner and
+	-- pet id so the owner's client can open the pet ring on it. Server-owned physics only.
+	local pets: { [string]: { key: string, petId: string, model: Model, root: BasePart, humanoid: Humanoid } } = {}
+	local petFolder: Folder? = nil
+	local function despawnPet(id: string)
+		local pet = pets[id]
+		if pet then
+			pets[id] = nil
+			pet.model:Destroy()
+		end
+	end
+	local function spawnPet(id: string, key: string, name: string?)
+		local owner = root(id)
+		local petId, species = string.match(key, "^(.*)|([^|]+)$")
+		if not owner or not petId or not species then
+			return
+		end
+		if not petFolder then
+			local folder = Instance.new("Folder")
+			folder.Name, folder.Parent = MountVisual.PET_FOLDER, world
+			petFolder = folder
+		end
+		local look = owner.CFrame.LookVector
+		local gx, gz = MountVisual.followGoal(owner.Position.X, owner.Position.Z, look.X, look.Z, 1e9, 1e9, false)
+		local at = Vector3.new(gx or owner.Position.X, owner.Position.Y, gz or owner.Position.Z)
+		local model = speciesRig(species, nil, MountVisual.PET_MODEL_NAME, at, petFolder :: Folder)
+		local body = model.PrimaryPart :: BasePart
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		if not body or not humanoid then
+			model:Destroy()
+			return
+		end
+		model:SetAttribute("ForgePetOwner", id)
+		model:SetAttribute("ForgePetId", petId)
+		model:SetAttribute("ForgeSpecies", species)
+		model:SetAttribute("ForgePetName", name)
+		tags:AddTag(model, MountVisual.PET_TAG)
+		humanoid.WalkSpeed = MountVisual.FOLLOW.speed
+		DinosaurRig.ground(model)
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") and not part.Anchored then
+				part:SetNetworkOwner(nil)
+			end
+		end
+		pets[id] = { key = key, petId = petId, model = model, root = body, humanoid = humanoid }
+	end
+	local function syncPets(active: Session.Session, members: { string }, frame: { [string]: any })
+		local seen: { [string]: boolean } = {}
+		for _, id in members do
+			if busy[id] then
+				seen[id] = pets[id] ~= nil
+				continue
+			end
+			local whole = frame[id] or active.snapshot(id)
+			local shared = if whole then whole.survivalExtensions else nil
+			local taming = if type(shared) == "table" then shared.taming else nil
+			local key, stay = MountVisual.pet(taming)
+			local owner = root(id)
+			if not key or not owner then
+				continue
+			end
+			seen[id] = true
+			local state = taming.companions.pets[taming.companions.deployed]
+			local current: any = pets[id]
+			if current and (current.key ~= key or not current.model:IsDescendantOf(world)) then
+				despawnPet(id)
+				current = nil
+			end
+			if not current then
+				spawnPet(id, key, state.name)
+				continue
+			end
+			current.model:SetAttribute("ForgePetName", state.name)
+			current.model:SetAttribute("ForgePetStay", stay)
+			local look = owner.CFrame.LookVector
+			local p = current.root.Position
+			local gx, gz, jump =
+				MountVisual.followGoal(owner.Position.X, owner.Position.Z, look.X, look.Z, p.X, p.Z, stay)
+			if gx and gz and jump then
+				current.model:PivotTo(CFrame.new(gx, owner.Position.Y, gz))
+				DinosaurRig.ground(current.model)
+			elseif gx and gz then
+				current.humanoid:MoveTo(Vector3.new(gx, p.Y, gz))
+			end
+		end
+		for id in pets do
+			if not seen[id] then
+				despawnPet(id)
+			end
+		end
+	end
+	--- Studs from an owner to the body of their deployed pet `petId`; nil when no such body exists.
+	function api.petDistance(actor: string, petId: string): number?
+		local pet, owner = pets[actor], root(actor)
+		if not pet or pet.petId ~= petId or not owner or not pet.model:IsDescendantOf(world) then
+			return nil
+		end
+		return (pet.root.Position - owner.Position).Magnitude
 	end
 	-- frame: the heartbeat's own session snapshot per member (dropped when a command ran), so one
 	-- frame clones each member's snapshot once instead of four times (p105: clone timed out in a stall).
@@ -1174,6 +1289,7 @@ function M.new(config: Config)
 				end
 				syncMounts(active, members, frame)
 				projectDrops(active, members, frame)
+				syncPets(active, members, frame)
 			end)
 		)
 	end
@@ -1216,6 +1332,13 @@ function M.new(config: Config)
 		table.clear(wakeAt)
 		for id in mounts do
 			detachMount(id)
+		end
+		for id in pets do
+			despawnPet(id)
+		end
+		if petFolder then
+			petFolder:Destroy()
+			petFolder = nil
 		end
 		if capacityQA then
 			capacityQA:Destroy()

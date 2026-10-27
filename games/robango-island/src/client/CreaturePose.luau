@@ -17,7 +17,14 @@ local clips: { [string]: string } = {
 function M.sample(clock: Clock, serverState: string?, speed: number, mounted: boolean, dt: number): (string, number)
 	local clip = if serverState then clips[serverState] else nil
 	local state: string = clip
-		or (if mounted then "ridden" elseif speed > 14 then "run" elseif speed > 0.5 then "walk" else "idle")
+		-- Ridden (C4): the mount strides with its rider's speed, runs past a jog and idles at rest.
+		or (
+			if speed > 14
+				then "run"
+				elseif mounted and speed > 0.5 then "ridden"
+				elseif speed > 0.5 then "walk"
+				else "idle"
+		)
 	if state ~= clock.state then
 		clock.state, clock.elapsed = state, 0
 	end

@@ -39,4 +39,27 @@ return {
 			assert(part.Massless and not part.Anchored, "massless and welded-ready")
 		end
 	end,
+	["skinned seat sits the rider over the spine bone and keeps the mount feet on the ground"] = function()
+		-- Ridge strider (gallimimus): 6-stud root, spine 3.5 studs up, rider root standing 3 studs up.
+		local offset, lift = MountVisual.seat(6, 3.5, 3)
+		local riderAboveFloor = 3.5 * (1 + MountVisual.BACK_PAD) + MountVisual.RIDER_ABOVE_BACK
+		assert(math.abs(lift - (riderAboveFloor - 3)) < 1e-9, "lift raises the rider onto the back")
+		assert(math.abs((3 + lift + offset - 3) - 0) < 1e-9, "mount floor stays on the ground")
+		local lowOffset, lowLift = MountVisual.seat(1, 0.3, 3)
+		assert(lowLift == 0 and math.abs(3 + lowOffset - 0.5) < 1e-9, "a low back never sinks the rider")
+	end,
+	["pet body follows its owner, holds on stay and is hidden while ridden"] = function()
+		local companions = { deployed = "p", pets = { p = { id = "p", species = "gallimimus" } } }
+		assert(MountVisual.pet({ companions = companions }) == "p|gallimimus", "deployed pet shows")
+		companions.ride = "p"
+		assert(MountVisual.pet({ companions = companions }) == nil, "ridden pet is the mount body")
+		assert(MountVisual.pet(nil) == nil and MountVisual.pet({ companions = {} }) == nil, "none deployed")
+		local near = { MountVisual.followGoal(0, 0, 0, -1, 2, 2, false) }
+		assert(near[1] == nil, "inside slack stays put")
+		local gx, gz, jump = MountVisual.followGoal(0, 0, 0, -1, 30, 0, false)
+		assert(gx and gz and not jump and gz > 0, "walks behind the owner")
+		local _, _, far = MountVisual.followGoal(0, 0, 0, -1, 500, 0, false)
+		assert(far == true, "teleports when left far behind")
+		assert(MountVisual.followGoal(0, 0, 0, -1, 30, 0, true) == nil, "stay holds its spot")
+	end,
 }

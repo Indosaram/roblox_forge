@@ -21,6 +21,19 @@ return function(content: any, source, world, backend, clock, options, provision,
 	content = table.clone(content)
 	content.capability = nil
 	require(script.Parent.LateEquipmentPorts).bind(world)
+	-- C4 pet rename: names pass Roblox text filtering for broadcast (other players see the label);
+	-- a filter error refuses the rename rather than storing raw text.
+	world.filterPetName = function(actor: string, raw: string): string?
+		local userId = tonumber(actor)
+		if not userId then
+			return nil
+		end
+		local ok, filtered = pcall(function()
+			local result = game:GetService("TextService"):FilterStringAsync(raw, userId)
+			return result:GetNonChatStringForBroadcastAsync()
+		end)
+		return if ok and type(filtered) == "string" then filtered else nil
+	end
 	local definitions = {}
 	for _, definition in content.structures do
 		definitions[definition.id] = {

@@ -341,6 +341,10 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			and type(model:GetAttribute("ForgeWildlifeId")) == "string"
 			and (type(hp) ~= "number" or hp > 0)
 	end
+	-- C4: the player's own deployed pet is a creature target too (the pet ring opens on it).
+	local function ownPet(model: Instance): boolean
+		return model:IsA("Model") and model:GetAttribute("ForgePetOwner") == tostring(player.UserId)
+	end
 	local function probe(x: number, y: number): Probe?
 		local camera = world.CurrentCamera
 		local _, root = body()
@@ -355,7 +359,7 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		local creature: any, node: any = nil, nil
 		local ancestor: Instance? = hit and hit.Instance
 		while ancestor and ancestor ~= world do
-			if not creature and alive(ancestor) then
+			if not creature and (alive(ancestor) or ownPet(ancestor)) then
 				creature = ancestor
 			end
 			if not node and ancestor:IsA("BasePart") and CollectionService:HasTag(ancestor, "ForgeSurvivalNode") then
@@ -364,10 +368,15 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			ancestor = ancestor.Parent
 		end
 		local folder = world:FindFirstChild("ForgeWildlife")
+		local candidates = if folder then folder:GetChildren() else {}
+		local petFolder = world:FindFirstChild("ForgePets")
+		for _, model in if petFolder then petFolder:GetChildren() else {} do
+			table.insert(candidates, model)
+		end
 		creature = creature
-			or pick(camera, x, y, if folder then folder:GetChildren() else {}, function(model)
+			or pick(camera, x, y, candidates, function(model)
 				local anchor = model:FindFirstChild("HumanoidRootPart")
-				return if alive(model) and anchor and anchor:IsA("BasePart") then anchor else nil
+				return if (alive(model) or ownPet(model)) and anchor and anchor:IsA("BasePart") then anchor else nil
 			end)
 		node = node
 			or pick(camera, x, y, CollectionService:GetTagged("ForgeSurvivalNode"), function(part)

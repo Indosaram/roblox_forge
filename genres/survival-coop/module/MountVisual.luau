@@ -13,6 +13,71 @@ local M = {}
 --- is 6 up and the mount root 2.75 below it puts the mount's feet on the ground.
 M.SEAT = table.freeze({ offsetStuds = -2.75, liftStuds = 3 })
 M.MODEL_NAME = "ForgeMount"
+-- Skinned mounts (B2a) seat the rider on the back over the Spine bone (it starts at the pelvis). The
+-- hide sits BACK_PAD of the bone's height above it (gen_creatures.py pelvis radius / pelvis height:
+-- theropod 0.25, ceratopsian 0.35, sauropod 0.22), and a straddling rider's root is
+-- RIDER_ABOVE_BACK studs above the hide.
+M.BACK_PAD, M.RIDER_ABOVE_BACK = 0.27, 1
+
+--- Seat for a skinned mount whose floor is the mount root's bottom face. `rootHeight` is that
+--- root's height, `boneAboveFloor` the Spine bone's height over the floor and `standing` the
+--- rider root's height over the ground when standing. Returns the mount root offset under the rider
+--- root (negative = below) and the HipHeight lift; the lift never goes below zero, so a mount
+--- lower than a standing rider keeps its feet on the ground under the rider.
+function M.seat(rootHeight: number, boneAboveFloor: number, standing: number): (number, number)
+	local riderAboveFloor = boneAboveFloor * (1 + M.BACK_PAD) + M.RIDER_ABOVE_BACK
+	local lift = math.max(0, riderAboveFloor - standing)
+	return rootHeight / 2 - (standing + lift), lift
+end
+
+-- Deployed pets (C4): a following pet body named ForgePet, server-moved toward its owner and
+-- tagged so the HUD shell labels it (HudShell.PET_TAG).
+M.PET_MODEL_NAME, M.PET_FOLDER, M.PET_TAG = "ForgePet", "ForgePets", "ForgeWorldPet"
+M.FOLLOW = table.freeze({ behind = 4, side = 3, slack = 6, teleport = 60, speed = 20 })
+
+--- The wanted pet body per owner from each owner's taming snapshot: the deployed pet unless it is
+--- being ridden (the mount body shows it then). Key is "<petId>|<species>" so a swap re-spawns.
+function M.pet(taming: any): (string?, boolean)
+	local companions = if type(taming) == "table" then taming.companions else nil
+	if type(companions) ~= "table" or type(companions.deployed) ~= "string" then
+		return nil, false
+	end
+	local id = companions.deployed
+	local pet = if type(companions.pets) == "table" then companions.pets[id] else nil
+	if type(pet) ~= "table" or type(pet.species) ~= "string" or companions.ride == id then
+		return nil, false
+	end
+	return id .. "|" .. pet.species, pet.stay == true
+end
+
+--- Where a following pet should walk: behind and beside the owner (x, z = owner position, fx, fz =
+--- owner facing). nil when already within slack (or staying); `teleport` when it fell too far back.
+function M.followGoal(
+	ox: number,
+	oz: number,
+	fx: number,
+	fz: number,
+	px: number,
+	pz: number,
+	stay: boolean
+): (number?, number?, boolean)
+	local dx, dz = px - ox, pz - oz
+	local distance = math.sqrt(dx * dx + dz * dz)
+	if stay and distance <= M.FOLLOW.teleport * 4 then
+		return nil, nil, false
+	end
+	local length = math.sqrt(fx * fx + fz * fz)
+	local ux, uz = if length > 1e-6 then fx / length else 0, if length > 1e-6 then fz / length else -1
+	local gx = ox - ux * M.FOLLOW.behind - uz * M.FOLLOW.side
+	local gz = oz - uz * M.FOLLOW.behind + ux * M.FOLLOW.side
+	if distance > M.FOLLOW.teleport then
+		return gx, gz, true
+	end
+	if distance <= M.FOLLOW.slack then
+		return nil, nil, false
+	end
+	return gx, gz, false
+end
 
 export type Plan = { detach: { string }, attach: { { actor: string, species: string } } }
 

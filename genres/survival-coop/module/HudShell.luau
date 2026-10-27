@@ -289,11 +289,18 @@ export type Flags = {
 	shoot: boolean,
 	mount: boolean,
 	skills: boolean,
+	-- C4: a stunned (downed) tameable target is in reach, and the player is riding.
+	capture: boolean?,
+	riding: boolean?,
 }
 export type Token = { slot: string, id: string, enabled: boolean }
 
 function M.context(flags: Flags): string
-	return if flags.building then "build" elseif flags.combat then "combat" else "explore"
+	return if flags.building
+		then "build"
+		elseif flags.combat then "combat"
+		elseif flags.riding then "mount"
+		else "explore"
 end
 
 --- Tokens shown for the current context, in slot order. Build mode shows none: the placement bar
@@ -315,9 +322,17 @@ function M.tokens(flags: Flags): { Token }
 		add("I3", "guard", flags.guard)
 		add("O1", "skills", flags.skills)
 		add("O2", "consume", true)
-		if flags.attack and flags.shoot then
+		if flags.capture then
+			add("X", "capture", true)
+		elseif flags.attack and flags.shoot then
 			add("X", "shoot", true)
 		end
+	elseif context == "mount" then
+		-- Riding (spec section 5): dismount first, the pet ring, interact and consume.
+		add("P", "dismount", true)
+		add("I2", "pet", true)
+		add("I3", "interact", flags.interact)
+		add("O1", "consume", true)
 	else
 		add("P", "interact", flags.interact)
 		add("I1", "dodge", flags.dodge)
@@ -327,6 +342,9 @@ function M.tokens(flags: Flags): { Token }
 		add("I3", "skills", flags.skills)
 		add("O1", "consume", true)
 		add("O2", "build", true)
+		if flags.capture then
+			add("X", "capture", true)
+		end
 	end
 	return out
 end

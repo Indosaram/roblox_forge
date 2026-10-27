@@ -307,4 +307,19 @@ return {
 		assert(#ups == 2 and ups[1].id == "farming" and ups[1].level == 6, "sorted rises")
 		assert(ups[2].id == "gathering" and ups[2].level == 3, "gathering rose")
 	end,
+	["C4 capture token on a downed target and the riding cluster"] = function()
+		local explore = Shell.tokens(flags({ capture = true }))
+		assert(explore[#explore].slot == "X" and explore[#explore].id == "capture", "capture token in the X slot")
+		local combat = Shell.tokens(flags({ combat = true, attack = true, shoot = true, capture = true }))
+		assert(combat[#combat].id == "capture" and #combat == 7, "capture replaces the ranged extra in combat")
+		local riding = Shell.tokens(flags({ riding = true, mount = true }))
+		assert(Shell.context(flags({ riding = true })) == "mount", "riding context")
+		assert(riding[1].slot == "P" and riding[1].id == "dismount", "dismount is primary")
+		local ids = {}
+		for _, token in riding do
+			ids[token.id] = token.slot
+		end
+		assert(ids.pet == "I2" and ids.dodge == nil and ids.build == nil, "pet ring, no dodge or build while riding")
+		assert(Shell.context(flags({ riding = true, building = true })) == "build", "placement still wins")
+	end,
 }

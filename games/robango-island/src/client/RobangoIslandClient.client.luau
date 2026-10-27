@@ -171,6 +171,9 @@ local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(co
 -- HUD shell (A4, ui-spec "Tideglass"): world labels read pack names; the mount token opens the
 -- taming panel through the panel dock started further down.
 local shellPanels: any = nil
+-- C4 pet ring: built by its panel factory (ExtensionPanels context) further down; the HUD shell's
+-- capture / dismount / pet tokens and the tap router reach it through this handle.
+local petRing: any = nil
 local entryText = PackText.lookup(packRows, "")
 local WildlifeNames = require(Forge.genres["survival-coop"].module.WildlifeNames)
 -- G22: live player counts per destination role, published by the server's SocialPresence.
@@ -208,6 +211,16 @@ local hud = SurvivalHUD.start({
 				shellPanels.open(id)
 			end
 		end,
+		pet = {
+			capturable = function(): boolean
+				return petRing ~= nil and petRing.capturable()
+			end,
+			act = function(id: string)
+				if petRing then
+					petRing.act(id)
+				end
+			end,
+		},
 	},
 	openPanel = function(id: string): boolean
 		return id == "storage" and require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.show()
@@ -369,6 +382,10 @@ script.Destroying:Connect(hud.destroy)
 
 local ExtensionPanels = require(Forge.genres["survival-coop"].module.ExtensionPanels)
 local panelFactories = table.clone(ExtensionPanels.factories)
+table.insert(panelFactories, function(ctx)
+	petRing = require(Forge.genres["survival-coop"].module.PetRing).factory(ctx)
+	return petRing
+end)
 for index, factory in panelFactories do
 	if factory == require(Forge.genres["survival-coop"].module.MarketPanel).factory then
 		panelFactories[index] = function(ctx)
@@ -1252,6 +1269,14 @@ local combatHud = CombatHud.start({
 local removeTapActions, send =
 	TapRouter.installActions(tapInput, require(Forge.core.infra.genre.CommandTransport), combatHud)
 sendCommand = send
+-- C4: a tap on your own pet (or your mount) opens the pet ring; other creatures fall through to
+-- the attack handler installed above (registered later = asked first).
+local removePetTap = tapInput.register("creature", function(model: Model)
+	return petRing ~= nil and petRing.openOn(model)
+end)
+gui.Destroying:Connect(function()
+	removePetTap()
+end)
 gui.Destroying:Connect(function()
 	removeTapActions()
 	combatHud.destroy()
@@ -1334,7 +1359,8 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 			and model:IsA("Model")
 			and model:GetAttribute("Species") ~= nil
 			and (model:FindFirstChild("Torso") or model:FindFirstChild("Body"))
-			and model:FindFirstChild("HumanoidRootPart")
+			-- A ridden mount's root is renamed MountRoot (MountVisual.dress); it still poses.
+			and (model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("MountRoot"))
 		then
 			if registry[model] == nil then
 				-- Decorative role-world fauna idles on its server-seeded graze phase and wears no
@@ -1344,7 +1370,10 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				-- MaxDistance, so a herd streaming in at startup costs no BillboardGuis.
 				local decor = model:GetAttribute("ForgeDecorFauna") == true
 				registry[model] = {
-					plated = decor,
+					plated = decor
+						-- Mounts and pets wear the HUD shell's pet label instead (HudShell.collect).
+						or model:GetAttribute("ForgeMountSpecies") ~= nil
+						or model:GetAttribute("ForgePetOwner") ~= nil,
 					state = "idle",
 					elapsed = 0,
 					offset = if decor

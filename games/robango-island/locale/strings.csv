@@ -2970,3 +2970,33 @@ cmb.refused.NOT_YOURS,Someone else's catch,genre text cmb,Someone else's catch,�
 cmb.refused.CORPSE_EXPIRED,"Too late, it's spoiled",genre text cmb,"Too late, it's spoiled","너무 늦었어요, 상했어요"
 cmb.refused.ALREADY_TAKEN,Already taken,genre text cmb,Already taken,이미 챙겼어요
 cmb.refused.INVENTORY_FULL,Bag is full,genre text cmb,Bag is full,가방이 가득 찼어요
+hud.shell.capture,Capture,genre text hud,Capture,포획
+hud.shell.dismount,Hop off,genre text hud,Hop off,내리기
+hud.shell.pet,Companion,genre text hud,Companion,동료
+pet.ride,Ride,pet ring (C4),Ride,올라타기
+pet.dismount,Hop off,pet ring (C4),Hop off,내리기
+pet.saddle,Saddle up,pet ring (C4),Saddle up,안장 얹기
+pet.stay,Wait here,pet ring (C4),Wait here,여기서 기다려
+pet.follow,Come along,pet ring (C4),Come along,따라와
+pet.feed,Feed,pet ring (C4),Feed,먹이 주기
+pet.rename,Name,pet ring (C4),Name,이름 짓기
+pet.recall,Send to rest,pet ring (C4),Send to rest,쉬러 보내기
+pet.release,Set free,pet ring (C4),Set free,풀어 주기
+pet.rename_hint,"New name, then Enter",pet ring (C4),"New name, then Enter",새 이름 입력 후 Enter
+pet.capturing,Throwing the rope...,pet ring (C4),Throwing the rope...,밧줄을 던지는 중...
+pet.card_success,Caught!,pet ring (C4),Caught!,붙잡았어요!
+pet.card_fail,It got away,pet ring (C4),It got away,놓쳤어요
+pet.card_fail_hint,Knock it down again and retry.,pet ring (C4),Knock it down again and retry.,다시 쓰러뜨리고 시도하세요.
+pet.card_level,Lv %d,pet ring (C4),Lv %d,Lv %d
+pet.card_ride_yes,Can carry a rider,pet ring (C4),Can carry a rider,탈 수 있어요
+pet.card_ride_no,Cannot be ridden,pet ring (C4),Cannot be ridden,탈 수 없어요
+pet.card_next,Place it in the pen to start taming.,pet ring (C4),Place it in the pen to start taming.,우리에 넣고 조련을 시작하세요.
+pet.card_list,Companions,pet ring (C4),Companions,동료 목록
+pet.refusal_not_rideable,This animal cannot be ridden.,pet ring (C4),This animal cannot be ridden.,이 동물은 탈 수 없어요.
+pet.refusal_absent,Your companion is not nearby.,pet ring (C4),Your companion is not nearby.,동료가 근처에 없어요.
+pet.refusal_name,That name cannot be used.,pet ring (C4),That name cannot be used.,그 이름은 쓸 수 없어요.
+pet.refusal_mounted,Hop off first.,pet ring (C4),Hop off first.,먼저 내리세요.
+pet.refusal_mount_gated,It needs a saddle and a full belly to ride.,pet ring (C4),It needs a saddle and a full belly to ride.,타려면 안장과 포만감이 필요해요.
+pet.refusal_no_saddle,You need a saddle.,pet ring (C4),You need a saddle.,안장이 필요해요.
+pet.refusal_no_feed,You need Herbivore Feed.,pet ring (C4),You need Herbivore Feed.,초식동물 사료가 필요해요.
+pet.refusal_release,Empty its bags and let it heal first.,pet ring (C4),Empty its bags and let it heal first.,짐을 비우고 회복한 뒤에 풀어 주세요.
