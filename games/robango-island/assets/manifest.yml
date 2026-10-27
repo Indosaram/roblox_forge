@@ -16757,3 +16757,110 @@ assets:
         ownership: first-party
       author: agent:omo/hephaestus
       created: 2026-10-27
+  # --- B1b biome kits (swamp, desert, tundra, volcano) + B1b nodes: Open Cloud Model packages,
+  # loaded with InsertService:LoadAsset; row layout in src/shared/BiomeKitsB1b.luau.
+  - key: robango-kit-swamp
+    kind: model
+    tool: forge-procgen
+    source: "first-party Blender generator gen_kit_swamp.py (swamp biome kit (R11-3)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 133665939216774
+    moderation: Approved
+    provenance:
+      digest: sha256:217cc68d2e378d66520203805582c5338d6087dad8d76d50897b00efea358454
+      recipe:
+        id: blender-gen-kit-swamp
+        version: 1
+        input: "assets/blender/gen_kit_swamp.py"
+        inputVersion: sha256:cc421622f8c3eda7771e35825688840dc07503dbf2b998d9779ccced58c742b9
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository; external inputs are CC0 1.0 (Poly Haven)"
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: robango-kit-desert
+    kind: model
+    tool: forge-procgen
+    source: "first-party Blender generator gen_kit_biomes.py (desert biome kit (R11-7)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 91078817812890
+    moderation: Approved
+    provenance:
+      digest: sha256:67648c5c0d23585cef45eb6a33fbcdc4a9d142c2d0e9553f5c8e7fa98374b123
+      recipe:
+        id: blender-gen-kit-biomes
+        version: 1
+        input: "assets/blender/gen_kit_biomes.py"
+        inputVersion: sha256:66c5f769c9d44982dd922d3376839ccce198dd28682bf98921ee2e6c8abdc120
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository; external inputs are CC0 1.0 (Poly Haven)"
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: robango-kit-tundra
+    kind: model
+    tool: forge-procgen
+    source: "first-party Blender generator gen_kit_biomes.py (tundra biome kit (R11-6)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 107681947830568
+    moderation: Approved
+    provenance:
+      digest: sha256:29f68dee90a113871d699cb3f3e67327444427efdd14239cff98b78123e14f6a
+      recipe:
+        id: blender-gen-kit-biomes
+        version: 1
+        input: "assets/blender/gen_kit_biomes.py"
+        inputVersion: sha256:66c5f769c9d44982dd922d3376839ccce198dd28682bf98921ee2e6c8abdc120
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository; external inputs are CC0 1.0 (Poly Haven)"
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: robango-kit-volcano
+    kind: model
+    tool: forge-procgen
+    source: "first-party Blender generator gen_kit_biomes.py (volcano biome kit (R11-4)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 117086030414631
+    moderation: Approved
+    provenance:
+      digest: sha256:3a0a0e10211a08cfd3b76bf58f7256092d7bfb20a927dd99dd66e684fa488ef3
+      recipe:
+        id: blender-gen-kit-biomes
+        version: 1
+        input: "assets/blender/gen_kit_biomes.py"
+        inputVersion: sha256:66c5f769c9d44982dd922d3376839ccce198dd28682bf98921ee2e6c8abdc120
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository; external inputs are CC0 1.0 (Poly Haven)"
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-27
+  - key: robango-nodes-b1b
+    kind: model
+    tool: forge-procgen
+    source: "first-party Blender generator gen_nodes_b1b.py (B1b resource nodes, full + depleted states); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 97645114176521
+    moderation: Approved
+    provenance:
+      digest: sha256:6ae2d8c2e65fb44bd6f3a48e4818d676916656bb695a11a8113c6e0e40b83865
+      recipe:
+        id: blender-gen-nodes-b1b
+        version: 1
+        input: "assets/blender/gen_nodes_b1b.py"
+        inputVersion: sha256:c42a4fe8406b7965c3fd492b7e402ca23f4bda7356aa35c147d48a39921b78c3
+      provider:
+        name: forge-procgen
+        version: 1
+      rights:
+        source: "first-party generator in this repository; external inputs are CC0 1.0 (Poly Haven)"
+        ownership: first-party
+      author: agent:omo/hephaestus
+      created: 2026-10-27

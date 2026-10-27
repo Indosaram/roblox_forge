@@ -29,6 +29,19 @@ Every external input used by the `gen_*.py` generators in this directory is list
 | bark_willow | scanned bark texture | `gen_kits.py` | https://polyhaven.com/a/bark_willow | CC0 1.0 |
 | forest_leaves_02 | scanned leaf texture | `gen_kits.py` | https://polyhaven.com/a/forest_leaves_02 | CC0 1.0 |
 | gravel_floor_02 | scanned gravel texture | `gen_kits.py`, `gen_nodes.py` | https://polyhaven.com/a/gravel_floor_02 | CC0 1.0 |
+| dead_tree_trunk | scanned bark (diff, nor_gl) | B1b `gen_kit_swamp.py`, `gen_kit_biomes.py`, `gen_nodes_b1b.py` (dead, desert-snag, charred bark; rotting log) | https://polyhaven.com/a/dead_tree_trunk | CC0 1.0 |
+| bark_willow | scanned bark (diff, nor_gl) | B1b swamp dark bark, tundra birch bark | https://polyhaven.com/a/bark_willow | CC0 1.0 |
+| pine_bark | scanned bark (diff, nor_gl) | B1b tundra pine trunk | https://polyhaven.com/a/pine_bark | CC0 1.0 |
+| fir_tree_01 | twig atlas only (diff, alpha) | B1b tundra pine needle cards (snow painted over) | https://polyhaven.com/a/fir_tree_01 | CC0 1.0 |
+| brown_mud | ground scan (diff, nor_gl, rough) | B1b swamp mud stone, clay-bank node | https://polyhaven.com/a/brown_mud | CC0 1.0 |
+| lichen_rock | rock scan (diff, nor_gl, rough) | B1b swamp stone, tundra boulder | https://polyhaven.com/a/lichen_rock | CC0 1.0 |
+| sandstone_cracks | rock scan (diff, nor_gl, rough) | B1b desert sandstone chunk | https://polyhaven.com/a/sandstone_cracks | CC0 1.0 |
+| rock_face | rock scan (diff, nor_gl, rough) | B1b desert wind boulder, tundra ice shards, ore-vein nodes | https://polyhaven.com/a/rock_face | CC0 1.0 |
+| snow_02 | snow scan (diff, nor_gl, rough) | B1b tundra boulder snow cap | https://polyhaven.com/a/snow_02 | CC0 1.0 |
+| dark_rock | rock scan (diff, nor_gl, rough) | B1b volcano basalt / obsidian, basalt-face node | https://polyhaven.com/a/dark_rock | CC0 1.0 |
+| burned_ground_01 | ground scan (diff, nor_gl, rough) | B1b volcano lava crust, hot-spring rim, vent node | https://polyhaven.com/a/burned_ground_01 | CC0 1.0 |
+
+B1b also reuses `shrub_04` (leaf clusters for swamp, desert, tundra bushes) and `palm_tree_bark` (cycad trunk). Cacti, agave, cycad fronds, grass/sedge/reed blades, twigs, moss strands, lichen, ash, sulfur and pebble textures are painted procedurally in `kit_b1b.py`.
 
 Downloaded but not used in a shipped asset: `namaqualand_boulder_04`, `shrub_02`, `forest_floor`, `dead_tree_trunk`, `lambis_shell`. All are CC0 1.0 (polyhaven.com/a/<id>).
 
