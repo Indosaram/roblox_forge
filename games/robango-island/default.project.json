@@ -221,6 +221,9 @@
       }
     },
     "StarterPlayer": {
+      "$properties": {
+        "LoadCharacterAppearance": false
+      },
       "StarterPlayerScripts": {
         "AerialCamera": {
           "$path": "src/client/AerialCamera.luau"

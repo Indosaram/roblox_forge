@@ -2818,3 +2818,14 @@ scr.browse.join,original,agent:hephaestus/p117,2026-10-25
 scr.roles.browse,original,agent:hephaestus/p117,2026-10-25
 scr.refuse.NOT_INVITED,original,agent:hephaestus/p117,2026-10-25
 cli.clan.browse,original,agent:hephaestus/p117,2026-10-25
+cli.survivor.title,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.intro,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.current,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.ranger,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.ranger_note,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.scout,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.scout_note,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.forager,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.forager_note,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.drifter,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.drifter_note,original,agent:hephaestus/A6,2026-10-27

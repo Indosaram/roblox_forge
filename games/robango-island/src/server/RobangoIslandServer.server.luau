@@ -237,6 +237,8 @@ visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
 	end,
 })
 world.runtimeServices = runtimeServices
+-- Survivor avatars (A6): the preset model the archipelago extension saves through.
+visitWorld.survivor = require(Shared.SurvivorAvatar)
 world.musicRepository = require(Forge.genres["survival-coop"].module.ScoreLibraryStore).new({
 	dataStoreService = runtimeServices.dataStoreService,
 	storeName = source.persistencePrefix .. "-music-v1",
@@ -297,6 +299,12 @@ local factory, err = require(script.Parent.SurvivalFactory)(content, source, vis
 }, provision, wildlifePolicy)
 assert(factory, err)
 entitlementFactory = factory
+-- Every character spawns as its saved game-supplied survivor (worn paid sets dress on top).
+visitWorld.survivor.wardrobe({
+	players = Players,
+	store = (factory :: any).expeditionStore,
+	world = visitWorld,
+})
 for _, extension in (factory.services.survivalExtensions or {}) :: { any } do
 	if extension.id == "contracts" then
 		tutorialSource = extension

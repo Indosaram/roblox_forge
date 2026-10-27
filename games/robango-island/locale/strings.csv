@@ -2818,3 +2818,14 @@ scr.browse.join,Join %s (needs an invite),recovered screen,Join %s (needs an inv
 scr.roles.browse,Find a clan to apply to,recovered screen,Find a clan to apply to,신청할 부족 찾기
 scr.refuse.NOT_INVITED,That clan has not invited you. Apply instead.,recovered screen,That clan has not invited you. Apply instead.,그 부족의 초대를 받지 않았어요. 가입 신청을 해 보세요.
 cli.clan.browse,Find a clan,client clan/outpost label,Find a clan,부족 찾기
+cli.survivor.title,Choose your survivor,client survivor picker,Choose your survivor,생존자 선택
+cli.survivor.intro,Pick who you wash ashore as. You can play as this survivor from now on.,client survivor picker,Pick who you wash ashore as. You can play as this survivor from now on.,어떤 생존자로 섬에 도착할지 고르세요. 이제부터 이 생존자로 플레이합니다.
+cli.survivor.current,current,client survivor picker,current,현재
+cli.survivor.ranger,Ranger,client survivor picker,Ranger,레인저
+cli.survivor.ranger_note,denim jacket and field jeans,client survivor picker,denim jacket and field jeans,데님 재킷과 작업 청바지
+cli.survivor.scout,Scout,client survivor picker,Scout,정찰병
+cli.survivor.scout_note,white hoodie and dark jeans,client survivor picker,white hoodie and dark jeans,흰 후드티와 검은 청바지
+cli.survivor.forager,Forager,client survivor picker,Forager,채집가
+cli.survivor.forager_note,plaid shirt and field jeans,client survivor picker,plaid shirt and field jeans,체크 셔츠와 작업 청바지
+cli.survivor.drifter,Drifter,client survivor picker,Drifter,방랑자
+cli.survivor.drifter_note,black jacket and black jeans,client survivor picker,black jacket and black jeans,검은 재킷과 검은 청바지

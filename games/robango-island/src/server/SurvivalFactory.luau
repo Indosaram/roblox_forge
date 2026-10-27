@@ -638,7 +638,14 @@ return function(content: any, source, world, backend, clock, options, provision,
 				if not allowed.ok then
 					return allowed
 				end
-				if args[1] == "next-island" then
+				if args[1] == "survivor" and world.survivor then
+					-- First-join survivor picker (A6): the choice lives in the same actor document.
+					local chosen = world.survivor.choose(expeditionStore, actor, args[2])
+					if chosen.ok and world.dressSurvivor then
+						world.dressSurvivor(actor)
+					end
+					return chosen
+				elseif args[1] == "next-island" then
 					return archipelago.nextIsland(actor)
 				elseif args[1] == "return" then
 					return archipelago.recover(actor, "return")
@@ -669,6 +676,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 				-- an expedition-owned ledger kept beside, not inside, the active expedition.
 				local view: any = if document.archipelago then table.clone(document.archipelago) else {}
 				view.reputation = table.clone(document.reputation or {})
+				view.survivor = if world.survivor then world.survivor.view(document) else nil
 				return view, nil
 			end,
 			drain = expeditionStore.drain,

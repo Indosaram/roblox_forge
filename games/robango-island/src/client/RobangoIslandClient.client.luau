@@ -845,6 +845,16 @@ table.insert(panelFactories, function(ctx)
 	}
 end)
 table.insert(panelFactories, audio.panel)
+-- First-join survivor picker (A6): opens once while no survivor is saved.
+table.insert(panelFactories, function(ctx)
+	local scoped: any = table.clone(ctx)
+	local Survivor = require(Shared.SurvivorAvatar)
+	scoped.presets = Survivor.PRESETS
+	scoped.text = function(key: string): string
+		return clientText(locale, "cli.survivor." .. key) or key
+	end
+	return Survivor.picker(scoped)
+end)
 -- Recovered spec screens (tracker, score library, clan treasury/research, territory, build manage,
 -- players, arrival); reached through the navigator.
 table.insert(panelFactories, function(ctx)
