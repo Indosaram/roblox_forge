@@ -5,6 +5,7 @@ local BuildPlacement = require("./BuildPlacement")
 local Locale = require("./SurvivalHUDLocale")
 local HudShell = require("./HudShell")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
+local CharacterRules = require("./CharacterRules")
 local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
 M.NOTICE_SECONDS = 5
@@ -230,6 +231,8 @@ function M.start(options: Options)
 		Enum.TextXAlignment.Left, Enum.TextYAlignment.Top, true
 	tracker.BackgroundColor3, tracker.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.15
 	local sheet = Components.modalSheet(theme, { name = "SurvivalSheet", title = "", parent = root })
+	-- Robango C8 full-screen craft / bag layout (HudShell.panel), set by resize() while one is open.
+	local panelLayout: any = nil
 	local function fitText(item: Instance): ()
 		local existing = item:FindFirstChild("ForgeTextFit")
 		local constraint: UITextSizeConstraint
@@ -242,7 +245,8 @@ function M.start(options: Options)
 			constraint = Instance.new("UITextSizeConstraint")
 			constraint.Name, constraint.Parent = "ForgeTextFit", item
 		end
-		constraint.MinTextSize, constraint.MaxTextSize = 10, 15
+		constraint.MinTextSize, constraint.MaxTextSize =
+			if panelLayout then HudShell.PANEL_MIN_TEXT else 10, if panelLayout then panelLayout.text.body else 15
 	end
 	sheet.frame.Visible = false
 	local controls = M.controls(Components, theme, sheet.scroll, fitText)
@@ -267,7 +271,48 @@ function M.start(options: Options)
 	local actionLayout = Instance.new("UIListLayout")
 	actionLayout.FillDirection, actionLayout.Padding, actionLayout.Parent =
 		Enum.FillDirection.Horizontal, UDim.new(0, 6), craftActions
+	-- Full-screen craft / bag panel (ui-spec section 6, Robango C8; shell only): categories (craft) or
+	-- the equipment doll (bag) on the left, the list in the middle, the detail on the right and the
+	-- one primary button (craftActions) at the detail's bottom.
+	local categoryPane = Instance.new("ScrollingFrame")
+	categoryPane.Name, categoryPane.BackgroundTransparency, categoryPane.Visible = "Categories", 1, false
+	categoryPane.BorderSizePixel, categoryPane.ScrollBarThickness = 0, 6
+	categoryPane.CanvasSize, categoryPane.AutomaticCanvasSize = UDim2.new(), Enum.AutomaticSize.Y
+	categoryPane.ZIndex, categoryPane.Parent = 52, sheet.frame
+	local categoryLayout = Instance.new("UIListLayout")
+	categoryLayout.Padding, categoryLayout.SortOrder, categoryLayout.Parent =
+		UDim.new(0, 6), Enum.SortOrder.LayoutOrder, categoryPane
+	local filterBar = Instance.new("ScrollingFrame")
+	filterBar.Name, filterBar.BackgroundTransparency, filterBar.Visible = "Filters", 1, false
+	filterBar.BorderSizePixel, filterBar.ScrollBarThickness = 0, 4
+	filterBar.ScrollingDirection, filterBar.Size = Enum.ScrollingDirection.X, UDim2.new(1, -8, 0, 50)
+	filterBar.CanvasSize, filterBar.AutomaticCanvasSize = UDim2.new(), Enum.AutomaticSize.X
+	filterBar.LayoutOrder, filterBar.Parent = 0, listPane
+	local filterLayout = Instance.new("UIListLayout")
+	filterLayout.FillDirection, filterLayout.Padding, filterLayout.SortOrder, filterLayout.Parent =
+		Enum.FillDirection.Horizontal, UDim.new(0, 6), Enum.SortOrder.LayoutOrder, filterBar
+	local currency =
+		Components.label(theme, { text = "", size = UDim2.fromOffset(140, 32), parent = sheet.frame, textSize = 15 })
+	currency.Name, currency.Visible, currency.ZIndex = "Currency", false, 53
+	-- Shell money pill: ochre with ink text (ui-spec section 1).
+	currency.BackgroundColor3, currency.BackgroundTransparency = HudShell.color(HudShell.PALETTE.ochre), 0
+	currency.TextColor3 = HudShell.color(HudShell.PALETTE.ink)
+	local pill = Instance.new("UICorner")
+	pill.CornerRadius, pill.Parent = UDim.new(0.5, 0), currency
+	local panelCategory, bagFilter = "all", "all"
+	local characterGear: any = nil
 	local function fitPanes()
+		if panelLayout then
+			panes.Parent, panes.AutomaticSize = sheet.frame, Enum.AutomaticSize.None
+			panes.Position, panes.Size = UDim2.new(), UDim2.fromScale(1, 1)
+			listPane.AutomaticSize, detailPane.AutomaticSize = Enum.AutomaticSize.None, Enum.AutomaticSize.None
+			local frameAt = Vector2.new(panelLayout.frame.x, panelLayout.frame.y)
+			HudShell.put(listPane, panelLayout.list, frameAt)
+			HudShell.put(detailPane, panelLayout.detailBody, frameAt)
+			HudShell.put(categoryPane, panelLayout.categories, frameAt)
+			HudShell.put(craftActions, panelLayout.primary, frameAt)
+			return
+		end
 		if craftActions.Visible then
 			local bounds = Model.craftPanes(sheet.frame.AbsoluteSize.X, sheet.frame.AbsoluteSize.Y)
 			panes.Parent, panes.Position, panes.Size =
@@ -973,10 +1018,51 @@ function M.start(options: Options)
 		tracker.Position = UDim2.fromOffset(bounds.x - 12, bounds.y - 8)
 		tracker.Size = UDim2.fromOffset(bounds.width, bounds.height)
 	end
+	-- Shell (Robango C8): bag and craft open as full-screen panels; other sections keep the side sheet.
+	local panelSelected: { [Instance]: boolean } = {}
+	local PANEL_GLYPH: { [string]: string } = {
+		all = "item",
+		tool = "tool",
+		weapon = "weapon",
+		clothing = "armor",
+		food = "food",
+		medicine = "medicine",
+		material = "wood",
+		building = "building",
+		farm = "seed",
+		pet = "creature",
+	}
+	local itemDefinitions: { [string]: any } = {}
+	for _, definition in content.items or {} do
+		itemDefinitions[definition.id] = definition
+	end
+	local function itemCategory(id: string): string
+		return IconFallback.category(itemDefinitions[id] or { id = id })
+	end
+	local function fitShellPanel()
+		local kind = if shell and sheet.frame.Visible and (section == "bag" or section == "craft") then section else nil
+		if kind then
+			local view = gui.AbsoluteSize
+			panelLayout = HudShell.panel(view.X, view.Y, HudShell.guiClear(gui), kind)
+			HudShell.applyPanel(sheet, panelLayout, root.AbsolutePosition - gui.AbsolutePosition)
+			HudShell.put(currency, panelLayout.currency, Vector2.new(panelLayout.frame.x, panelLayout.frame.y))
+			currency.TextSize = panelLayout.text.label
+		elseif panelLayout then
+			panelLayout = nil
+			HudShell.restorePanel(sheet, {
+				panel = HudShell.color(theme.colors.panel),
+				accent = HudShell.color(theme.colors.accent),
+				close = HudShell.color(theme.colors.bad),
+				titleSize = theme.textSizes.body,
+			})
+		end
+	end
 	render = function()
 		if disposed then
 			return
 		end
+		fitShellPanel()
+		table.clear(panelSelected)
 		placementBar.Visible = section == "build" and structureId ~= nil
 		if section == "build" then
 			sheet.frame.Visible = structureId == nil
@@ -1016,7 +1102,12 @@ function M.start(options: Options)
 		controls.begin(section)
 		noteUsed = 0
 		panes.Visible = section == "bag" or section == "craft"
-		craftActions.Visible = section == "craft"
+		craftActions.Visible = section == "craft" or (panelLayout ~= nil and section == "bag")
+		categoryPane.Visible, currency.Visible = panelLayout ~= nil, panelLayout ~= nil
+		filterBar.Visible = panelLayout ~= nil and section == "bag"
+		if panelLayout then
+			currency.Text = string.format(t("coins"), tonumber(model.snapshot.balance) or 0)
+		end
 		fitPanes()
 		buildCards.Visible = section == "build"
 		capacityTrack.Visible = section == "bag"
@@ -1060,6 +1151,61 @@ function M.start(options: Options)
 					label(t("slow"))
 				end
 				local rows = Model.items(bag)
+				if panelLayout then
+					-- Category chips over the grid; only categories the bag holds.
+					local held = {}
+					for _, row in rows do
+						table.insert(held, itemCategory(row.item.catalogId))
+					end
+					local chips = HudShell.panelCategories(held)
+					if not table.find(chips, bagFilter) then
+						bagFilter = "all"
+					end
+					controls.parent = filterBar
+					for _, id in chips do
+						local text = t("cat." .. id)
+						local chip = button("Filter-" .. id, text, function()
+							bagFilter = id
+							render()
+						end)
+						chip.Size = UDim2.fromOffset(math.max(64, (utf8.len(text) or #text) * 9 + 20), 44)
+						panelSelected[chip] = id == bagFilter
+					end
+					controls.parent = listPane
+					local shown = {}
+					for _, row in rows do
+						if
+							bagFilter == "all"
+							or HudShell.panelCategory(itemCategory(row.item.catalogId)) == bagFilter
+						then
+							table.insert(shown, row)
+						end
+					end
+					rows = shown
+					-- Equipment doll (spec 6.3): one row per gear slot with what is worn there.
+					contentParent, controls.parent = categoryPane, categoryPane
+					local equipped = if type(characterGear) == "table" then characterGear.equipped or {} else {}
+					for _, slot in HudShell.DOLL_SLOTS do
+						local itemId = equipped[slot]
+						local worn = if itemId then bag.items[itemId] else nil
+						local slotButton = button(
+							"Slot-" .. slot,
+							string.format(
+								t("chr.equip_slot"),
+								t("chr.slot_" .. slot),
+								if worn then name(worn.catalogId) else t("chr.modify_empty")
+							),
+							function()
+								if worn then
+									selected = itemId
+									render()
+								end
+							end
+						)
+						panelSelected[slotButton] = worn ~= nil and itemId == selected
+					end
+					contentParent, controls.parent = listPane, listPane
+				end
 				if selected == nil or bag.items[selected] == nil then
 					selected = if rows[1] then rows[1].item.itemId else nil
 				end
@@ -1083,6 +1229,29 @@ function M.start(options: Options)
 				local grid = inventoryGrid
 				grid.frame.LayoutOrder = controls.order()
 				grid.update(display, selected)
+				local cells = grid.frame:FindFirstChildOfClass("UIGridLayout")
+				if panelLayout and cells then
+					-- Six square cells (spec 6.3); the name moves to the detail card, the count stays >= 13 px.
+					cells.CellSize = UDim2.fromOffset(panelLayout.cell, panelLayout.cell)
+					for _, slot in grid.frame:GetChildren() do
+						local caption, quantity = slot:FindFirstChild("Caption"), slot:FindFirstChild("Quantity")
+						if caption and quantity then
+							caption.Visible = false
+							quantity.TextSize, quantity.Size = HudShell.PANEL_MIN_TEXT, UDim2.fromOffset(28, 18)
+							quantity.Position = UDim2.new(1, -30, 1, -20)
+						end
+					end
+				elseif cells then
+					cells.CellSize = UDim2.new(0.333, -6, 0, 92)
+					for _, slot in grid.frame:GetChildren() do
+						local caption, quantity = slot:FindFirstChild("Caption"), slot:FindFirstChild("Quantity")
+						if caption and quantity then
+							caption.Visible = true
+							quantity.TextSize, quantity.Size = 12, UDim2.fromOffset(32, 20)
+							quantity.Position = UDim2.new(1, -34, 0, 6)
+						end
+					end
+				end
 				if #rows == 0 then
 					label(t("empty"))
 				end
@@ -1106,16 +1275,37 @@ function M.start(options: Options)
 							.. (if fresh then "\n" .. Locale.freshness(locale, fresh) else ""),
 						if fresh then 84 else 64
 					)
+					-- Panel: one primary action at the detail's bottom (eat, else equip, else store).
+					local food, slot = false, if panelLayout then CharacterRules.slotOf(item.catalogId) else nil
 					for _, definition in options.content.items do
 						if definition.id == item.catalogId and definition.foodEffects then
+							food = true
+							if panelLayout then
+								controls.parent = craftActions
+							end
 							mutation("Eat-" .. item.itemId, t("eat"), "food", function()
 								command("food", { item.itemId })
 							end)
+							controls.parent = detailPane
 						end
+					end
+					local wornHere = slot ~= nil
+						and type(characterGear) == "table"
+						and (characterGear.equipped or {})[slot] == item.itemId
+					if slot and not food and not wornHere then
+						controls.parent = craftActions
+						mutation("Equip-" .. item.itemId, t("panel.equip"), "gear-equip", function()
+							command("gear-equip", { item.itemId })
+						end)
+						controls.parent = detailPane
+					end
+					if panelLayout and not food and (not slot or wornHere) then
+						controls.parent = craftActions
 					end
 					mutation("Deposit-" .. item.itemId, t("deposit"), "transfer-deposit", function()
 						command("transfer-deposit", { item.itemId, 1 })
 					end)
+					controls.parent = detailPane
 					local cost = Model.repairCost(item, options.content)
 					if cost then
 						mutation("Repair-" .. item.itemId, string.format(t("repair"), cost), "item-repair", function()
@@ -1125,6 +1315,10 @@ function M.start(options: Options)
 				else
 					label(t("select"))
 				end
+			end
+			if panelLayout then
+				-- Warehouse access sits under the equipment doll.
+				contentParent, controls.parent = categoryPane, categoryPane
 			end
 			if options.openPanel then
 				button("Storage", t("warehouse"), function()
@@ -1185,6 +1379,40 @@ function M.start(options: Options)
 					favorites = if model.snapshot.recipeMarks then model.snapshot.recipeMarks.favorites else nil,
 				}
 			)
+			if panelLayout then
+				-- Category rail (spec 6.1): only categories with at least one recipe, output item's category.
+				local outputs = {}
+				for _, row in orderedRecipes do
+					table.insert(outputs, itemCategory(row.recipe.outputs[1].item))
+				end
+				local rail = HudShell.panelCategories(outputs)
+				if not table.find(rail, panelCategory) then
+					panelCategory = "all"
+				end
+				contentParent, controls.parent = categoryPane, categoryPane
+				for _, id in rail do
+					local tab = button("Category-" .. id, t("cat." .. id), function()
+						panelCategory, recipeId = id, nil
+						render()
+					end)
+					IconFallback.mount(tab, PANEL_GLYPH[id], UDim2.fromOffset(24, 24), UDim2.new(0, 6, 0.5, -12), nil)
+					local pad = tab:FindFirstChild("IconPadding") or Instance.new("UIPadding")
+					pad.Name, pad.PaddingLeft, pad.Parent = "IconPadding", UDim.new(0, 34), tab
+					tab:FindFirstChild("IconFallback").Position = UDim2.new(0, -28, 0.5, -12)
+					tab.Size = UDim2.new(1, -8, 0, panelLayout.categoryRow)
+					panelSelected[tab] = id == panelCategory
+				end
+				local kept = {}
+				for _, row in orderedRecipes do
+					if
+						panelCategory == "all"
+						or HudShell.panelCategory(itemCategory(row.recipe.outputs[1].item)) == panelCategory
+					then
+						table.insert(kept, row)
+					end
+				end
+				orderedRecipes = kept
+			end
 			button("RecipeFilter", t(if allRecipes then "craft_nearby" else "craft_all"), function()
 				allRecipes = not allRecipes
 				recipeId = nil
@@ -1241,6 +1469,10 @@ function M.start(options: Options)
 				if options.icons then
 					local icon = options.icons.recipe(recipe.id)
 					itemIcon(recipeButton, if icon.image then icon else options.icons.item(recipe.outputs[1].item))
+				end
+				if panelLayout then
+					recipeButton.Size = UDim2.new(1, -8, 0, panelLayout.listRow)
+					panelSelected[recipeButton] = recipe.id == recipeId
 				end
 				if recipe.id == recipeId then
 					contentParent, controls.parent = detailPane, detailPane
@@ -1390,9 +1622,31 @@ function M.start(options: Options)
 		end
 		fitPanes()
 		controls.finish()
+		local actionButtons = {}
 		for _, child in craftActions:GetChildren() do
 			if child:IsA("GuiButton") then
+				table.insert(actionButtons, child)
+			end
+		end
+		for _, child in actionButtons do
+			if panelLayout then
+				-- The detail column's bottom: one primary (teal, ink text) plus a job's cancel if any.
+				child.Size = UDim2.new(1 / #actionButtons, -6, 1, 0)
+				HudShell.panelButton(child, string.sub(child.Name, 1, 7) ~= "cancel-")
+			else
 				child.Size = UDim2.new(1 / 3, -6, 0, 48)
+			end
+		end
+		if panelLayout then
+			for _, pane in { listPane, detailPane, categoryPane, filterBar } do
+				for _, child in pane:GetChildren() do
+					if child:IsA("GuiButton") then
+						HudShell.panelButton(child, panelSelected[child] == true)
+					elseif child:IsA("TextLabel") then
+						child.TextColor3 = HudShell.color(HudShell.PALETTE.bone)
+						child.TextSize = math.max(HudShell.PANEL_MIN_TEXT, child.TextSize)
+					end
+				end
 			end
 		end
 		for index = noteUsed + 1, #notePool do
@@ -1817,6 +2071,9 @@ function M.start(options: Options)
 				HudShell.put(status, shellRegions.status)
 				local chips = shellRegions.chips
 				HudShell.put(coins, { x = chips.x, y = chips.y, width = 100, height = math.min(28, chips.height) })
+				if panelLayout then
+					render()
+				end
 				return
 			end
 			local hud = Model.contextHudBounds(size.X + 24, size.Y + 16)
@@ -1926,6 +2183,7 @@ function M.start(options: Options)
 		state.OnClientEvent:Connect(function(packet)
 			if type(packet) == "table" and type(packet.snapshots) == "table" then
 				extensions = packet.snapshots.survivalExtensions or extensions
+				characterGear = if type(extensions.character) == "table" then extensions.character.gear else nil
 			end
 			if model.receive(packet) then
 				if reportedDeaths == nil or (model.snapshot.vitals and model.snapshot.vitals.healthMilli == 0) then

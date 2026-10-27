@@ -6,6 +6,8 @@ local CrossServer = require("../../../core/domain/market/CrossServer")
 local Locale = require("./SurvivalHUDLocale")
 local BuyScreen = require("./RecoveredScreens")
 local SocialLocale = require("./SocialLocale")
+local IconFallback = require("../../../core/ui-kit/IconFallback")
+local Shell = require("./HudShell")
 local env: any = getfenv()
 
 -- Catalog browse page size: the tradeable set is the whole content catalog (~200 ids), so the
@@ -130,6 +132,400 @@ function M.feeText(locale: string, price: number): string
 	return string.format(template, CrossServer.FEE_PERCENT, fee, price - fee)
 end
 
+--- Trading post as a full-screen panel (ui-spec 6.2, Robango C8; ExtensionPanels shell only): a
+--- rail of Buy / Sell / My listings / Collection box tabs, the middle list or grid and the right
+--- detail with one primary button. Same commands and refusal lines as the side sheet.
+function M.shellPanel(
+	ctx: any,
+	gui: any,
+	sheet: any,
+	browse: any,
+	drafts: { [string]: any },
+	definitions: { [string]: any },
+	rerender: () -> ()
+): (any) -> ()
+	local Instance, Enum, UDim2, UDim, Vector2 = env.Instance, env.Enum, env.UDim2, env.UDim, env.Vector2
+	local theme = ctx.ui.theme.default
+	local function t(key: string): string
+		return Locale.text(ctx.locale, key)
+	end
+	sheet.frame:SetAttribute("ForgeShellPanel", "market")
+	local function pane(name: string): any
+		local frame = Instance.new("ScrollingFrame")
+		frame.Name, frame.BackgroundTransparency, frame.BorderSizePixel = name, 1, 0
+		frame.ScrollBarThickness, frame.CanvasSize = 6, UDim2.new()
+		frame.AutomaticCanvasSize, frame.ZIndex, frame.Parent = Enum.AutomaticSize.Y, 52, sheet.frame
+		local layout = Instance.new("UIListLayout")
+		layout.Padding, layout.SortOrder, layout.Parent = UDim.new(0, 6), Enum.SortOrder.LayoutOrder, frame
+		return frame
+	end
+	local rail, list, detail = pane("Rail"), pane("List"), pane("Detail")
+	local action: (() -> ())? = nil
+	local primary = ctx.ui.components.button(theme, {
+		text = "",
+		size = UDim2.fromOffset(120, 48),
+		parent = sheet.frame,
+		onClick = function()
+			if action then
+				action()
+			end
+		end,
+	})
+	primary.Name, primary.ZIndex = "Primary", 53
+	local currency =
+		ctx.ui.components.label(theme, { text = "", size = UDim2.fromOffset(140, 32), parent = sheet.frame })
+	currency.Name, currency.ZIndex = "Currency", 53
+	currency.BackgroundColor3, currency.BackgroundTransparency = Shell.color(Shell.PALETTE.ochre), 0
+	currency.TextColor3 = Shell.color(Shell.PALETTE.ink)
+	local pill = Instance.new("UICorner")
+	pill.CornerRadius, pill.Parent = UDim.new(0.5, 0), currency
+	local view: any = { tab = "buy", item = nil, listing = nil, own = nil, claim = nil, sell = nil }
+	local layout: any = nil
+	local order = 0
+	local function place()
+		local size = gui.AbsoluteSize
+		layout = Shell.panel(size.X, size.Y, Shell.guiClear(gui), "market")
+		Shell.applyPanel(sheet, layout, Vector2.zero)
+		local at = Vector2.new(layout.frame.x, layout.frame.y)
+		Shell.put(rail, layout.categories, at)
+		Shell.put(list, layout.list, at)
+		Shell.put(detail, layout.detailBody, at)
+		Shell.put(primary, layout.primary, at)
+		Shell.put(currency, layout.currency, at)
+		primary.TextSize, currency.TextSize = layout.text.heading, layout.text.label
+	end
+	local function clear(frame: any)
+		for _, child in frame:GetChildren() do
+			if child:IsA("GuiObject") then
+				child:Destroy()
+			end
+		end
+	end
+	local function text(parent: any, value: string, style: string?, height: number?): any
+		order += 1
+		local size = layout.text[style or "body"]
+		local item = ctx.ui.components.label(theme, {
+			text = value,
+			size = UDim2.new(1, -8, 0, height or math.max(28, math.ceil(size * 1.5))),
+			parent = parent,
+			textSize = size,
+		})
+		item.TextXAlignment, item.LayoutOrder = Enum.TextXAlignment.Left, order
+		item.TextColor3 = Shell.color(Shell.PALETTE.bone)
+		return item
+	end
+	local function press(parent: any, value: string, selected: boolean, callback: () -> (), height: number?): any
+		order += 1
+		local item = ctx.ui.components.button(theme, {
+			text = value,
+			size = UDim2.new(1, -8, 0, height or layout.listRow),
+			parent = parent,
+			onClick = callback,
+		})
+		item.LayoutOrder, item.TextSize, item.TextWrapped = order, layout.text.label, true
+		Shell.panelButton(item, selected)
+		return item
+	end
+	local function grid(parent: any, columns: number): any
+		order += 1
+		local frame = Instance.new("Frame")
+		frame.Name, frame.BackgroundTransparency, frame.LayoutOrder = "Grid", 1, order
+		frame.Size, frame.AutomaticSize, frame.Parent = UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, parent
+		local cells = Instance.new("UIGridLayout")
+		local edge = Shell.gridCell(layout.list.width, columns, layout.gap)
+		cells.CellSize, cells.CellPadding = UDim2.fromOffset(edge, edge), UDim2.fromOffset(layout.gap, layout.gap)
+		cells.SortOrder, cells.Parent = Enum.SortOrder.LayoutOrder, frame
+		return frame
+	end
+	local function stepper(parent: any, steps: { number }, apply: (number) -> ())
+		order += 1
+		local row = Instance.new("Frame")
+		row.Name, row.BackgroundTransparency, row.LayoutOrder = "Stepper", 1, order
+		row.Size, row.Parent = UDim2.new(1, -8, 0, Shell.MIN_TOUCH), parent
+		for index, step in steps do
+			local item = ctx.ui.components.button(theme, {
+				text = (if step > 0 then "+" else "") .. tostring(step),
+				size = UDim2.new(1 / #steps, -6, 1, 0),
+				position = UDim2.fromScale((index - 1) / #steps, 0),
+				parent = row,
+				onClick = function()
+					apply(step)
+				end,
+			})
+			item.TextSize = layout.text.label
+			Shell.panelButton(item, false)
+		end
+	end
+	local status = ""
+	local function send(name: string, args: { any }, listRefusal: boolean?)
+		local result = ctx.send("survival-coop:market-" .. name, args)
+		status = if result.ok
+			then t("panel.done")
+			elseif listRefusal then M.listRefusal(ctx.locale, result.reason)
+			else SocialLocale.refusal(ctx.locale, result.reason)
+		rerender()
+	end
+	local CATEGORY_KEY = { all = "all", material = "material", food = "food", gear = "tool", building = "building" }
+	local GLYPH = { all = "item", material = "wood", food = "food", gear = "tool", building = "building" }
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(rerender)
+	return function(snapshot: any)
+		place()
+		local state = snapshot.market
+		local keep = { list.CanvasPosition, detail.CanvasPosition }
+		for _, frame in { rail, list, detail } do
+			clear(frame)
+		end
+		order, action = 0, nil
+		local header = sheet.frame:FindFirstChild("Header")
+		local title = header and header:FindFirstChild("Title")
+		if title then
+			title.Text = t("panel.trading_post")
+		end
+		for _, tab in Shell.MARKET_TABS do
+			press(rail, t("panel.tab." .. tab), view.tab == tab, function()
+				view.tab, status = tab, ""
+				rerender()
+			end, layout.categoryRow)
+		end
+		if not state then
+			currency.Visible, primary.Visible = false, false
+			text(list, t("panel.market_unavailable"), "body", 60).TextWrapped = true
+			return
+		end
+		currency.Visible = true
+		currency.Text = string.format(t("coins"), tonumber(state.balance) or 0)
+		local primaryText: string? = nil
+		if view.tab == "buy" then
+			if browse.picked == nil then
+				-- Category grid (4 columns) first; picking one turns it into the item list.
+				local cells = grid(list, Shell.MARKET_GRID_COLUMNS)
+				for index, key in M.CATEGORIES do
+					local tile = ctx.ui.components.button(theme, {
+						text = t("cat." .. CATEGORY_KEY[key]),
+						size = UDim2.fromOffset(64, 64),
+						parent = cells,
+						onClick = function()
+							browse.category, browse.page, browse.picked = key, 1, true
+							rerender()
+						end,
+					})
+					tile.LayoutOrder, tile.TextSize, tile.TextWrapped = index, layout.text.label, true
+					tile.TextYAlignment = Enum.TextYAlignment.Bottom
+					Shell.panelButton(tile, browse.category == key)
+					IconFallback.mount(tile, GLYPH[key], UDim2.fromScale(0.42, 0.42), UDim2.fromScale(0.29, 0.12), nil)
+				end
+			else
+				press(list, t("panel.back"), false, function()
+					browse.picked = nil
+					rerender()
+				end, Shell.MIN_TOUCH)
+				local found = M.browse(state.catalogIds, browse.query, browse.category, browse.page, function(id)
+					return ctx.icons.item(id).text
+				end, function(id)
+					return M.category(definitions[id])
+				end)
+				browse.page = found.page
+				if #found.ids == 0 then
+					text(list, t("panel.no_match"), "body", 48).TextWrapped = true
+				end
+				for _, id in found.ids do
+					press(list, ctx.icons.item(id).text, state.filter == id, function()
+						view.listing = nil
+						send("browse", { id, 1 })
+					end)
+				end
+				if found.page < found.pages then
+					press(list, t("panel.more"), false, function()
+						browse.page += 1
+						rerender()
+					end, Shell.MIN_TOUCH)
+				end
+			end
+			-- Detail: the selected item's bundles; the primary buys the picked one (ui.market-buy confirms).
+			if state.filter then
+				text(detail, ctx.icons.item(state.filter).text, "heading")
+			end
+			if #state.listings == 0 then
+				text(detail, t("panel.no_bundles"), "body", 60).TextWrapped = true
+			end
+			for _, listing in state.listings do
+				if view.listing == nil then
+					view.listing = listing.id
+				end
+				press(
+					detail,
+					string.format(t("panel.bundle"), listing.quantity, listing.price),
+					view.listing == listing.id,
+					function()
+						view.listing = listing.id
+						rerender()
+					end,
+					Shell.MIN_TOUCH
+				)
+				if view.listing == listing.id then
+					primaryText = t("panel.buy")
+					action = function()
+						BuyScreen.buying.listing = listing
+						if not (ctx.open and ctx.open("market-buy")) then
+							send("buy", { listing.id, listing.price })
+						end
+					end
+				end
+			end
+		elseif view.tab == "sell" then
+			-- Bag grid (6 columns) of tradable goods; the detail prices the picked stack.
+			local cells = grid(list, Shell.BAG_COLUMNS)
+			local ids = {}
+			for id, item in state.items do
+				if table.find(state.catalogIds, item.catalogId) then
+					table.insert(ids, id)
+				end
+			end
+			table.sort(ids)
+			if state.items[view.sell or ""] == nil then
+				view.sell = ids[1]
+			end
+			for index, id in ids do
+				local item = state.items[id]
+				local icon = ctx.icons.item(item.catalogId)
+				local tile = ctx.ui.components.button(theme, {
+					text = "x" .. tostring(item.quantity),
+					size = UDim2.fromOffset(64, 64),
+					parent = cells,
+					onClick = function()
+						view.sell = id
+						rerender()
+					end,
+				})
+				tile.LayoutOrder, tile.TextSize = index, Shell.PANEL_MIN_TEXT
+				tile.TextXAlignment, tile.TextYAlignment = Enum.TextXAlignment.Right, Enum.TextYAlignment.Bottom
+				Shell.panelButton(tile, view.sell == id)
+				IconFallback.mount(
+					tile,
+					M.category(definitions[item.catalogId]) == "food" and "food" or "item",
+					UDim2.fromScale(0.6, 0.6),
+					UDim2.fromScale(0.2, 0.08),
+					icon.image
+				)
+			end
+			if #ids == 0 then
+				text(list, t("panel.nothing_to_sell"), "body", 60).TextWrapped = true
+			end
+			local picked = if view.sell then state.items[view.sell] else nil
+			if picked then
+				local id = view.sell :: string
+				local draft = drafts[id] or { quantity = 1, price = 10 }
+				drafts[id] = draft
+				text(detail, ctx.icons.item(picked.catalogId).text .. " x" .. tostring(picked.quantity), "heading")
+				if state.eligible == false then
+					local blocked = text(detail, M.listRefusal(ctx.locale, state.ineligibleReason), "body", 60)
+					blocked.Name, blocked.TextWrapped = "ListBlocked", true
+				end
+				text(detail, string.format(t("panel.quantity"), draft.quantity), "label")
+				stepper(detail, { -10, -1, 1, 10 }, function(step)
+					draft.quantity = math.clamp(draft.quantity + step, 1, picked.quantity)
+					rerender()
+				end)
+				text(detail, string.format(t("panel.price"), draft.price), "label")
+				stepper(detail, Shell.PRICE_STEPS, function(step)
+					draft.price = Shell.stepPrice(draft.price, step)
+					rerender()
+				end)
+				local fee = text(detail, M.feeText(ctx.locale, draft.price), "caption", 40)
+				fee.Name, fee.TextWrapped = "ListFee", true
+				primaryText = t("panel.list")
+				action = function()
+					send("list", { id, draft.quantity, draft.price }, true)
+				end
+				local harbor = snapshot["harbor-buyback"]
+				local each = harbor and harbor.prices[picked.catalogId]
+				if each then
+					press(
+						detail,
+						string.format(Locale.text(ctx.locale, "sell"), ctx.icons.item(picked.catalogId).text, each),
+						false,
+						function()
+							local result = ctx.send("survival-coop:harbor-sell", { picked.catalogId, draft.quantity })
+							status = if result.ok
+								then t("panel.done")
+								else M.sellRefusal(ctx.locale, result.reason, state.items, picked.catalogId)
+							rerender()
+						end,
+						Shell.MIN_TOUCH
+					)
+				end
+			end
+		elseif view.tab == "mine" then
+			if #state.listed == 0 then
+				text(list, t("panel.no_listings"), "body", 48).TextWrapped = true
+			end
+			for _, listing in state.listed do
+				if view.own == nil then
+					view.own = listing.id
+				end
+				press(
+					list,
+					ctx.icons.item(listing.catalogId).text
+						.. "  "
+						.. string.format(t("panel.bundle"), listing.quantity, listing.price),
+					view.own == listing.id,
+					function()
+						view.own = listing.id
+						rerender()
+					end
+				)
+				if view.own == listing.id then
+					text(detail, ctx.icons.item(listing.catalogId).text, "heading")
+					text(detail, string.format(t("panel.bundle"), listing.quantity, listing.price), "body")
+					primaryText = t("panel.withdraw")
+					action = function()
+						view.own = nil
+						send("cancel", { listing.id })
+					end
+				end
+			end
+		else
+			if #state.claims == 0 then
+				text(list, t("panel.no_claims"), "body", 48).TextWrapped = true
+			end
+			for _, claim in state.claims do
+				if view.claim == nil then
+					view.claim = claim.id
+				end
+				local value = claim.value
+				local line = if value.item
+					then ctx.icons.item(value.item.catalogId).text .. " x" .. tostring(value.item.quantity)
+					else string.format(t("coins"), value.coins or 0)
+				press(list, line, view.claim == claim.id, function()
+					view.claim = claim.id
+					rerender()
+				end)
+				if view.claim == claim.id then
+					text(detail, line, "heading")
+					primaryText = t("panel.collect")
+					action = function()
+						view.claim = nil
+						send("claim", { claim.id })
+					end
+				end
+			end
+			if state.page < state.pages then
+				press(list, t("panel.more"), false, function()
+					send("browse", { state.filter, state.page + 1 })
+				end, Shell.MIN_TOUCH)
+			end
+		end
+		if status ~= "" then
+			local line = text(detail, status, "label", 44)
+			line.Name, line.TextWrapped, line.LayoutOrder = "MarketStatus", true, -1
+		end
+		primary.Visible = primaryText ~= nil
+		primary.Text = primaryText or ""
+		Shell.panelButton(primary, true)
+		list.CanvasPosition, detail.CanvasPosition = keep[1], keep[2]
+	end
+end
+
 function M.factory(ctx: any): any
 	local Instance = ctx.instance or env.Instance
 	local Enum = ctx.enum or env.Enum
@@ -230,7 +626,17 @@ function M.factory(ctx: any): any
 		end
 	end
 	local latest: any = nil
+	local renderShell: ((any) -> ())? = nil
+	if ctx.shell then
+		renderShell = M.shellPanel(ctx, gui, sheet, browse, drafts, definitions, function()
+			rerender()
+		end)
+	end
 	local function render(snapshot)
+		if renderShell then
+			renderShell(snapshot)
+			return
+		end
 		local state = snapshot.market
 		if not state then
 			-- No market slice means the cross-server market is not wired on this server (Studio has

@@ -2921,3 +2921,35 @@ rsc.failed,That did not work. Try again,rescue generic refusal,That did not work
 rsc.too_far,Too far away to help,rescue refusal distance,Too far away to help,너무 멀어서 도울 수 없어요
 rsc.expired,That flare has gone out,rescue refusal expired,That flare has gone out,구조 신호가 꺼졌어요
 rsc.lost_owner,Lost belongings: %s,dropped bundle world label,Lost belongings: %s,잃어버린 짐: %s
+hud.cat.all,All,genre text hud,All,전체
+hud.cat.tool,Tools,genre text hud,Tools,도구
+hud.cat.weapon,Weapons,genre text hud,Weapons,무기
+hud.cat.clothing,Clothing,genre text hud,Clothing,옷
+hud.cat.food,Food,genre text hud,Food,음식
+hud.cat.medicine,Medicine,genre text hud,Medicine,약품
+hud.cat.material,Materials,genre text hud,Materials,재료
+hud.cat.building,Building,genre text hud,Building,건축
+hud.cat.farm,Farming,genre text hud,Farming,농사
+hud.cat.pet,Animals,genre text hud,Animals,동물
+hud.panel.trading_post,Trading post,genre text hud,Trading post,교역소
+hud.panel.tab.buy,Buy,genre text hud,Buy,사기
+hud.panel.tab.sell,Sell,genre text hud,Sell,팔기
+hud.panel.tab.mine,My listings,genre text hud,My listings,내 물건
+hud.panel.tab.claims,Collection box,genre text hud,Collection box,수령함
+hud.panel.buy,Buy,genre text hud,Buy,사기
+hud.panel.list,List,genre text hud,List,올리기
+hud.panel.withdraw,Withdraw,genre text hud,Withdraw,내리기
+hud.panel.collect,Collect,genre text hud,Collect,받기
+hud.panel.equip,Equip,genre text hud,Equip,착용
+hud.panel.done,Done,genre text hud,Done,완료
+hud.panel.back,Back to categories,genre text hud,Back to categories,종류로 돌아가기
+hud.panel.more,More,genre text hud,More,더 보기
+hud.panel.bundle,%d pcs for %d shellmoney,genre text hud,%d pcs for %d shellmoney,%d개 · 조개돈 %d
+hud.panel.quantity,Quantity %d,genre text hud,Quantity %d,수량 %d
+hud.panel.price,Bundle price %d,genre text hud,Bundle price %d,묶음 가격 %d
+hud.panel.no_match,No item matches.,genre text hud,No item matches.,맞는 품목이 없어요.
+hud.panel.no_bundles,No bundles for this item yet. Pick an item from the list.,genre text hud,No bundles for this item yet. Pick an item from the list.,아직 이 품목 묶음이 없어요. 목록에서 품목을 고르세요.
+hud.panel.nothing_to_sell,No tradable goods yet. Gather resources first.,genre text hud,No tradable goods yet. Gather resources first.,팔 수 있는 물건이 없어요. 먼저 재료를 모으세요.
+hud.panel.no_listings,You have nothing listed.,genre text hud,You have nothing listed.,올린 물건이 없어요.
+hud.panel.no_claims,The collection box is empty.,genre text hud,The collection box is empty.,수령함이 비어 있어요.
+hud.panel.market_unavailable,The trading post is unavailable on this server.,genre text hud,The trading post is unavailable on this server.,이 서버에서는 교역소를 쓸 수 없어요.

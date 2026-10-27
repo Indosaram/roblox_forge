@@ -443,6 +443,8 @@ function M.start(
 			},
 		}
 	end
+	-- Robango C8: panels may lay themselves out full-screen (HudShell.panel) when the shell is on.
+	(context :: any).shell = shell
 	local menuToggle = ui.components.button(theme, {
 		text = if string.sub(options.locale, 1, 2) == "ko" then "메뉴" else "Menu",
 		size = UDim2.new(1, 0, 0, 40),
@@ -601,6 +603,16 @@ function M.start(
 				local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 				if owner then
 					owner.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+				end
+				local kind = if shell then frame:GetAttribute("ForgeShellPanel") else nil
+				if type(kind) == "string" and owner then
+					-- Full-screen panel (ui-spec section 6): the panel lays out its own columns.
+					local view = owner.AbsoluteSize
+					frame.AnchorPoint = Vector2.zero
+					local r = HudShell.panel(view.X, view.Y, HudShell.guiClear(owner), kind).frame
+					set(frame, "Position", UDim2.fromOffset(r.x, r.y))
+					set(frame, "Size", UDim2.fromOffset(r.width, r.height))
+					continue
 				end
 				frame.AnchorPoint, frame.Position = Vector2.zero, UDim2.fromOffset(sx, sy)
 				frame.Size = UDim2.fromOffset(sw, sh)

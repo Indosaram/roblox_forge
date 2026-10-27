@@ -18,6 +18,7 @@ return {
 							or path == "./RecipeMarks"
 							or path == "./BuildPlacement"
 							or path == "./HudShell"
+							or path == "./CharacterRules"
 							or path == "../../../core/ui-kit/IconFallback",
 						"HUD dependencies"
 					)

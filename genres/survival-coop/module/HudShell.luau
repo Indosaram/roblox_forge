@@ -360,6 +360,171 @@ end
 M.RING = table.freeze({ radius = 3.5, wedgeDegrees = 50, wedgeReach = 1.2, wedgeAlpha = 0.35, otherAlpha = 0.3 })
 
 -- ---------------------------------------------------------------------------------------------
+-- Full-screen panels (spec section 6, Robango C8): craft, trading post and bag cover the safe area
+-- with a title bar and three columns (categories | list | detail) and one primary button at the
+-- detail column's bottom. Column widths are fractions of the body width (spec SW).
+M.PANEL_COLUMNS = table.freeze({
+	craft = { 0.16, 0.40, 0.44 },
+	market = { 0.12, 0.48, 0.40 },
+	bag = { 0.28, 0.46, 0.26 },
+})
+M.PANEL_GAP = 8
+M.PANEL_MIN_TEXT = 13
+-- Row heights in H (spec 6.1: 0.09H category rows, 0.11H list rows, 0.12H primary button) with the
+-- touch floor; on a pointer screen they stop growing at the cap so a 1022 px tall PC keeps lists dense.
+M.PANEL_ROWS =
+	table.freeze({ bar = { 0.10, 72 }, category = { 0.09, 56 }, list = { 0.11, 72 }, primary = { 0.12, 64 } })
+M.BAG_COLUMNS = 6
+M.MARKET_GRID_COLUMNS = 4
+
+export type PanelLayout = {
+	kind: string,
+	safeHeight: number,
+	frame: Rect,
+	bar: Rect,
+	title: Rect,
+	currency: Rect,
+	close: Rect,
+	categories: Rect,
+	list: Rect,
+	detail: Rect,
+	detailBody: Rect,
+	primary: Rect,
+	categoryRow: number,
+	listRow: number,
+	cell: number,
+	gap: number,
+	text: { [string]: number },
+}
+
+--- Panel text size: the spec type scale, never under 13 px (phone readability floor).
+function M.panelText(style: string, safeHeight: number): number
+	return math.max(M.PANEL_MIN_TEXT, M.textSize(style, safeHeight))
+end
+
+local function row(kind: string, h: number): number
+	local spec = M.PANEL_ROWS[kind]
+	return math.max(M.MIN_TOUCH, math.floor(math.min(spec[1] * h, spec[2]) + 0.5))
+end
+
+--- Grid cell edge for `columns` cells in a list column `width` wide (bag: 6 columns, trading post
+--- category grid: 4); the 6 px scrollbar and the grid frame's 8 px inset take their width off.
+function M.gridCell(width: number, columns: number, gap: number?): number
+	local g = gap or M.PANEL_GAP
+	return math.floor((width - 6 - 8 - (columns - 1) * g) / columns)
+end
+
+--- Panel rects in the space of a CoreUISafeInsets ScreenGui of `width` x `height` (`topClear` as in
+--- `regions`). `kind` is craft, market or bag.
+function M.panel(width: number, height: number, topClear: number?, kind: string): PanelLayout
+	local top = topClear or 0
+	local h = height - top
+	local gap = M.PANEL_GAP
+	local pad = math.max(gap, math.floor(0.02 * h + 0.5))
+	local barHeight = row("bar", h)
+	local close = M.MIN_TOUCH
+	local closeRect = rect(width - pad - close, top + (barHeight - close) / 2, close, close)
+	local pillHeight = math.min(barHeight - 8, math.max(28, math.floor(0.07 * h + 0.5)))
+	local pillWidth = math.clamp(math.floor(0.45 * h + 0.5), 140, 240)
+	local currency = rect(closeRect.x - gap - pillWidth, top + (barHeight - pillHeight) / 2, pillWidth, pillHeight)
+	local title = rect(pad, top, math.max(0, currency.x - gap - pad), barHeight)
+	local y0 = top + barHeight + gap
+	local bodyHeight = top + h - pad - y0
+	local bodyWidth = width - 2 * pad - 2 * gap
+	local fractions = M.PANEL_COLUMNS[kind] or M.PANEL_COLUMNS.craft
+	local w1 = math.floor(bodyWidth * fractions[1] + 0.5)
+	local w2 = math.floor(bodyWidth * fractions[2] + 0.5)
+	local w3 = bodyWidth - w1 - w2
+	local categories = rect(pad, y0, w1, bodyHeight)
+	local list = rect(pad + w1 + gap, y0, w2, bodyHeight)
+	local detail = rect(list.x + w2 + gap, y0, w3, bodyHeight)
+	local primaryHeight = row("primary", h)
+	local primary = rect(detail.x, detail.y + detail.height - primaryHeight, detail.width, primaryHeight)
+	local detailBody = rect(detail.x, detail.y, detail.width, detail.height - primaryHeight - gap)
+	local columns = if kind == "market" then M.MARKET_GRID_COLUMNS else M.BAG_COLUMNS
+	local cell = M.gridCell(list.width, columns, gap)
+	local text: { [string]: number } = {}
+	for style: string in M.TYPE :: any do
+		text[style] = M.panelText(style, h)
+	end
+	return {
+		kind = kind,
+		safeHeight = h,
+		frame = rect(0, top, width, h),
+		bar = rect(0, top, width, barHeight),
+		title = title,
+		currency = currency,
+		close = closeRect,
+		categories = categories,
+		list = list,
+		detail = detail,
+		detailBody = detailBody,
+		primary = primary,
+		categoryRow = row("category", h),
+		listRow = row("list", h),
+		cell = cell,
+		gap = gap,
+		text = text,
+	}
+end
+
+-- Panel categories (spec 6.1 order). Item icon categories (IconFallback.category) map onto them;
+-- only categories with at least one entry are shown.
+M.PANEL_CATEGORY_ORDER = table.freeze({
+	"all",
+	"tool",
+	"weapon",
+	"clothing",
+	"food",
+	"medicine",
+	"material",
+	"building",
+	"farm",
+	"pet",
+})
+local ICON_CATEGORY: { [string]: string } = {
+	tool = "tool",
+	weapon = "weapon",
+	armor = "clothing",
+	food = "food",
+	medicine = "medicine",
+	building = "building",
+	seed = "farm",
+	creature = "pet",
+}
+function M.panelCategory(iconCategory: string?): string
+	return ICON_CATEGORY[iconCategory or ""] or "material"
+end
+
+--- Categories to show for entries whose icon categories are `iconCategories`: "all" first, then
+--- every non-empty category in spec order.
+function M.panelCategories(iconCategories: { string }): { string }
+	local present: { [string]: boolean } = {}
+	for _, category in iconCategories do
+		present[M.panelCategory(category)] = true
+	end
+	local out = { "all" }
+	for _, id in M.PANEL_CATEGORY_ORDER do
+		if id ~= "all" and present[id] then
+			table.insert(out, id)
+		end
+	end
+	return out
+end
+
+-- Trading post rail tabs (spec 6.2). The fourth tab is the collection box: this market books
+-- sales and withdrawals as claims, and that box is the history the player acts on.
+M.MARKET_TABS = table.freeze({ "buy", "sell", "mine", "claims" })
+-- Sell price steppers (spec 6.2: not the reference's 1000/100/10/1 buttons).
+M.PRICE_STEPS = table.freeze({ -100, -10, 10, 100 })
+function M.stepPrice(price: number, step: number): number
+	return math.clamp(math.floor(price) + step, 1, 1000000)
+end
+
+-- Bag equipment doll slots (spec 6.3), CharacterRules.SLOTS order.
+M.DOLL_SLOTS = table.freeze({ "head", "top", "bottom", "shoes", "gloves", "bag", "weapon" })
+
+-- ---------------------------------------------------------------------------------------------
 -- Runtime overlays (Roblox only; the layout above stays engine-free for Lune specs). One module
 -- on purpose: the pack's QA-PERF-01 static budget counts every shipped ModuleScript.
 
@@ -374,6 +539,7 @@ local ColorSequence: any, NumberSequence: any = env.ColorSequence, env.NumberSeq
 local function color(c: any): any
 	return Color3.fromRGB(c.r, c.g, c.b)
 end
+M.color = color
 
 --- Styles a GuiButton as a pebble token: tealDeep fill (teal and ink glyph when active), a
 --- driftwood rim 6% of the edge, squircle corners, bone label text.
@@ -403,6 +569,57 @@ function M.put(item: any, r: Rect, origin: any?)
 	item.AnchorPoint = Vector2.zero
 	item.Position = UDim2.fromOffset(r.x - o.X, r.y - o.Y)
 	item.Size = UDim2.fromOffset(r.width, r.height)
+end
+
+--- Lays a Components.modalSheet out as a full-screen panel (spec section 6): the frame covers the
+--- safe area in the panel palette, the header becomes the title bar and the close button a pebble.
+--- `origin` is the gui-space position of the frame's parent. The sheet's own scroll is hidden; the
+--- caller places its columns at the layout's rects (relative to `layout.frame`).
+function M.applyPanel(sheet: any, layout: PanelLayout, origin: any?)
+	local P = M.PALETTE
+	local frame = sheet.frame
+	M.put(frame, layout.frame, origin)
+	frame.BackgroundColor3, frame.BackgroundTransparency = color(P.panel), 0.06
+	local header = frame:FindFirstChild("Header")
+	if header then
+		header.Size, header.BackgroundColor3 = UDim2.new(1, 0, 0, layout.bar.height), color(P.tealDeep)
+		local title = header:FindFirstChild("Title")
+		if title then
+			M.put(title, layout.title, Vector2.new(layout.frame.x, layout.frame.y))
+			title.TextSize, title.TextColor3 = layout.text.title, color(P.bone)
+		end
+	end
+	M.put(sheet.close, layout.close, Vector2.new(layout.frame.x, layout.frame.y))
+	sheet.close.TextSize = layout.text.heading
+	M.pebble(sheet.close, false, true)
+	sheet.scroll.Visible = false
+end
+
+--- Undoes applyPanel (Components.modalSheet geometry and the given theme colours) for sections of
+--- the same sheet that stay a side sheet.
+function M.restorePanel(sheet: any, colors: { panel: any, accent: any, close: any, titleSize: number })
+	sheet.frame.BackgroundColor3, sheet.frame.BackgroundTransparency = colors.panel, 0
+	local header = sheet.frame:FindFirstChild("Header")
+	if header then
+		header.Size, header.BackgroundColor3 = UDim2.new(1, 0, 0, 44), colors.accent
+		local title = header:FindFirstChild("Title")
+		if title then
+			title.Position, title.Size = UDim2.fromOffset(14, 0), UDim2.new(1, -70, 1, 0)
+			title.TextSize = colors.titleSize
+		end
+	end
+	sheet.close.AnchorPoint, sheet.close.Position = Vector2.new(1, 0.5), UDim2.new(1, -6, 0.5, 0)
+	sheet.close.Size, sheet.close.BackgroundColor3 = UDim2.fromOffset(44, 44), colors.close
+	sheet.scroll.Visible = true
+end
+
+--- Panel button colours: the primary action is teal with ink text (bone on teal fails contrast),
+--- every other control tealDeep with bone text; a selected row or tab reads teal too.
+function M.panelButton(button: any, primary: boolean)
+	local P = M.PALETTE
+	button.BackgroundColor3 = color(if primary then P.teal else P.tealDeep)
+	button.TextColor3 = color(if primary then P.ink else P.bone)
+	button.Font = Enum.Font.BuilderSans
 end
 
 --- Top-bar clearance for a ScreenGui. A CoreUISafeInsets gui already starts below the top bar, and
