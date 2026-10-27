@@ -429,7 +429,15 @@ function M.load(kits: { string }, assets: { [string]: string }): { [string]: any
 end
 
 --- Server: clones templates for every placement under `parent` (a Folder named ForgeBiomeKits).
-function M.place(parent: any, placements: { Placement }, loaded: { [string]: any }): number
+--- `surface(x, z)` is the rendered terrain top there (a server raycast). Voxel terrain rounds a
+--- FillBlock top up to the 4-stud voxel grid (column top 2.0 renders at 4.0), so the planned
+--- column top alone buries short rows (clutter, ferns, rocks, meadow grass) under the grass.
+function M.place(
+	parent: any,
+	placements: { Placement },
+	loaded: { [string]: any },
+	surface: ((x: number, z: number) -> number?)?
+): number
 	local count = 0
 	for index, p in placements do
 		local template = loaded[p.key]
@@ -441,8 +449,11 @@ function M.place(parent: any, placements: { Placement }, loaded: { [string]: any
 		part.CanQuery = p.family == "tree" or p.family == "rock"
 		part.CastShadow = p.family == "tree" or p.family == "rock"
 		part.Size = template.Size * p.scale
-		-- Sink 0.3 studs so card bases and rock skirts never float on the voxel surface.
-		part.CFrame = CFrame.new(p.x, p.y + part.Size.Y / 2 - 0.3, p.z) * CFrame.Angles(0, math.rad(p.yaw), 0)
+		local y = if surface then surface(p.x, p.z) or p.y else p.y
+		-- Sink 0.3 studs so card bases and rock skirts never float on the voxel surface; flat ground
+		-- cards (leaf litter, gravel: ~0.02 thick) would vanish under it, so they ride 0.05 above.
+		local sink = if part.Size.Y < 0.6 then -0.05 else 0.3
+		part.CFrame = CFrame.new(p.x, y + part.Size.Y / 2 - sink, p.z) * CFrame.Angles(0, math.rad(p.yaw), 0)
 		part.Name = p.key
 		part:SetAttribute("ForgeKitFamily", p.family)
 		part:SetAttribute("ForgeKitIndex", index)

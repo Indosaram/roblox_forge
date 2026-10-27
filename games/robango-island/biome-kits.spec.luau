@@ -216,6 +216,84 @@ cases["LOD distances and low-profile grass lever"] = function()
 	end
 end
 
+-- Live staging v30/v31: voxel terrain rounds a FillBlock top up to the 4-stud grid (onboarding
+-- column tops 2.0 render at 4.0), so kits seated on the planned column top were buried (768 of
+-- 1969 on the real engine: every clutter row, most ferns and rocks). The onboarding role must
+-- place kits from the InsertService package and seat each one on the rendered surface.
+cases["onboarding places package kits on the rendered terrain surface"] = function()
+	local roblox: any = require("@lune/roblox")
+	local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+	local Content = require("./src/shared/SurvivalContent")
+	local engine = Engine.new(nil, true)
+	-- A package shaped like the uploads: a Model of MeshParts named by row key, ground-centred.
+	local loads = 0
+	local insert = {
+		LoadAsset = function(_, _id: number): any
+			loads += 1
+			local model = engine.newInstance("Model")
+			for _, rows in Kits.kits do
+				for _, row in rows do
+					local part = engine.newInstance("MeshPart")
+					-- Clutter rows ship as ~0.02-stud flat cards (real package sizes).
+					local height = if row.family == "clutter" then 0.02 else 3
+					part.Name, part.Size = row.key, roblox.Vector3.new(4, height, 4)
+					part.Parent = model
+				end
+			end
+			function model:FindFirstChildWhichIsA(kind: string): any
+				for _, child in self:GetDescendants() do
+					if child:IsA(kind) then
+						return child
+					end
+				end
+				return nil
+			end
+			return model
+		end,
+	}
+	local getService = engine.game.GetService
+	engine.game.GetService = function(self, key)
+		return if key == "InsertService" then insert else getService(self, key)
+	end
+	local workspace = engine.game:GetService("Workspace")
+	-- The rendered surface sits a voxel step above the planned column top, as on Roblox.
+	local raycast = workspace.Raycast
+	workspace.Raycast = function(self, origin, direction, params)
+		local hit = raycast(self, origin, direction, params)
+		return if hit
+			then { Instance = hit.Instance, Normal = hit.Normal, Position = hit.Position + roblox.Vector3.new(0, 2, 0) }
+			else nil
+	end
+	local Source = require("./src/shared/SurvivalWorldConfig")
+	-- RoleWorld reads the generated asset ids at load; reload it with them registered.
+	engine.forge.games["robango-island"].src.shared.Assets = require("./src/shared/Assets")
+	local role = engine.load("games/robango-island/src/server/RoleWorld.luau", {
+		["./WorldDressing"] = engine.dressing,
+		["./StructureMeshes"] = engine.meshes,
+		["./OpeningDirector"] = engine.load("games/robango-island/src/server/OpeningDirector.luau", {}, nil),
+	}, nil)
+	local world = role.build(Content, Source, require("./src/shared/WildlifePolicy"), function()
+		return 0
+	end, "rw.onboarding", 1776)
+	local folder = workspace:FindFirstChild("ForgeRoleWorld"):FindFirstChild("ForgeBiomeKits")
+	assert(folder, "onboarding builds a ForgeBiomeKits folder")
+	local count = folder:GetAttribute("ForgeKitCount")
+	local parts = folder:GetChildren()
+	assert(loads > 0 and type(count) == "number" and count > 0 and count == #parts, "kits placed: " .. tostring(count))
+	for _, part in parts do
+		local p = part.CFrame.Position
+		local hit = workspace:Raycast(roblox.Vector3.new(p.X, 512, p.Z), roblox.Vector3.new(0, -1024, 0), {
+			IgnoreWater = true,
+		})
+		assert(hit, part.Name .. " has no ground")
+		local bottom = p.Y - part.Size.Y / 2
+		assert(bottom - hit.Position.Y >= -0.3 - 1e-6, part.Name .. " sits below the rendered surface")
+		assert(bottom - hit.Position.Y <= 0.05 + 1e-6, part.Name .. " floats above the rendered surface")
+		assert(p.Y + part.Size.Y / 2 > hit.Position.Y, part.Name .. " is buried")
+	end
+	world.destroy()
+end
+
 cases["NEGATIVE: water, cliff faces and paths are rejected"] = function()
 	local layout = layouts["rw.a1.s1"]
 	local columns = Terrain.columns(layout, SEED, 32)

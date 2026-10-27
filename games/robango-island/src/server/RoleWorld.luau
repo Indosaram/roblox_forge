@@ -1608,7 +1608,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 			local kitFolder = Instance.new("Folder")
 			kitFolder.Name = "ForgeBiomeKits"
-			kitFolder:SetAttribute("ForgeKitCount", BiomeKits.place(kitFolder, placements, loaded))
+			-- Seat each kit on the rendered voxel surface, not the planned column top (see place).
+			-- Relief chunks are written nearest-first; wait for the last one, then one engine step so
+			-- the voxels are raycastable. probe falls back to the height field where a ray misses.
+			local heartbeat = game:GetService("RunService").Heartbeat
+			repeat
+				heartbeat:Wait()
+			until root:GetAttribute("ForgeTerrainReady") or (root :: any).Parent == nil
+			if (root :: any).Parent == nil then
+				return
+			end
+			kitFolder:SetAttribute("ForgeKitCount", BiomeKits.place(kitFolder, placements, loaded, probe))
 			kitFolder.Parent = root
 		end)
 	end
