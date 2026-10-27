@@ -669,6 +669,11 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
 	forge.games["robango-island"].src.shared.RenderBudget =
 		require("../../../../games/robango-island/src/shared/RenderBudget")
+	-- SkyCycle writes Lighting through engine globals, so it loads in the fake environment.
+	forge.games["robango-island"].src.shared.SkyCycle = load("games/robango-island/src/shared/SkyCycle.luau", {
+		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
+		["../../../../core/domain/survival/Volcano"] = require("../../../../core/domain/survival/Volcano"),
+	}, nil)
 	local preview = load("games/robango-island/src/server/SurvivalWorldBootstrap.luau", {
 		["./WorldDressing"] = dressing,
 	}, nil)

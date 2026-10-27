@@ -1079,6 +1079,22 @@ gui.Destroying:Connect(function()
 	aerialBack:Disconnect()
 	aerialGui:Destroy()
 end)
+-- G18 day-night and weather: server clock + published cycle attributes drive Lighting locally.
+local stopSky = require(Shared.SkyCycle).start({
+	content = content,
+	low = function()
+		return profile == RenderBudget.profiles.low
+	end,
+	-- The overview thins haze itself while its controls are shown.
+	aerial = function()
+		return aerialControls.Visible
+	end,
+	reduced = function()
+		return player:GetAttribute("ForgeReducedEffects") == true
+	end,
+})
+gui.Destroying:Connect(stopSky)
+script.Destroying:Connect(stopSky)
 if game:GetService("RunService"):IsStudio() then
 	game:GetService("RunService"):BindToRenderStep("ForgeStudioCapture", Enum.RenderPriority.Last.Value, function()
 		local position = workspace:GetAttribute("ForgeStudioCameraPosition")

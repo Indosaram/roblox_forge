@@ -10,6 +10,7 @@ local Dressing = require("./WorldDressing")
 local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
+local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
 -- shipped as the Strings LocalizationTable); rows are read once, on first use.
 local packRows: any = nil
@@ -172,23 +173,25 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if initialAtmosphere then
 		initialAtmosphere:Destroy()
 	end
-	lighting.ClockTime, lighting.Brightness = 16.2, 2.3
-	lighting.Ambient = Color3.fromRGB(108, 113, 119)
-	lighting.OutdoorAmbient = Color3.fromRGB(151, 151, 137)
-	-- Atmosphere gives depth haze; no DepthOfField (mobile fill rate).
-	local rays = lighting:FindFirstChild("ForgeSunRays") or Instance.new("SunRaysEffect")
-	rays.Name, rays.Intensity, rays.Spread, rays.Parent = "ForgeSunRays", 0.04, 0.5, lighting
-	local correction = Instance.new("ColorCorrectionEffect")
-	correction.Name, correction.Brightness, correction.Contrast = "ForgeWarmGrade", 0.02, 0.13
-	correction.Saturation, correction.TintColor, correction.Parent = 0.12, Color3.fromRGB(255, 246, 228), lighting
-	local bloom = Instance.new("BloomEffect")
-	bloom.Name, bloom.Intensity, bloom.Size, bloom.Threshold, bloom.Parent = "ForgeEmberBloom", 0.08, 14, 1.8, lighting
-	local atmosphere = Instance.new("Atmosphere")
-	atmosphere.Name = "ForgeBiomeAtmosphere"
-	atmosphere.Color = Color3.fromRGB(table.unpack(dressing.palette.fog))
-	atmosphere.Decay = Color3.fromRGB(120, 140, 160)
-	atmosphere.Density, atmosphere.Offset, atmosphere.Haze, atmosphere.Glare = 0.26, 0.12, 1.1, 0.25
-	atmosphere.Parent = lighting
+	-- G18: 24-minute day cycle and climate weather. The server publishes the seeded cycle origin
+	-- (server-clock seconds); clients drive Lighting from workspace:GetServerTimeNow() through the
+	-- same pure SkyCycle functions. This sets the build-time baseline. No DepthOfField.
+	local skyOrigin = SkyCycle.origin(layoutId, seed, math.floor(nowMillis() / 1000))
+	workspace:SetAttribute("ForgeSkyOrigin", skyOrigin)
+	workspace:SetAttribute("ForgeSkyLayout", layoutId)
+	workspace:SetAttribute("ForgeSkySeed", seed)
+	workspace:SetAttribute("ForgeSkyFog", Color3.fromRGB(table.unpack(dressing.palette.fog)))
+	SkyCycle.ensure(lighting)
+	local buildSeconds = nowMillis() / 1000
+	SkyCycle.apply(
+		lighting,
+		SkyCycle.state(buildSeconds, skyOrigin, dressing.palette.fog),
+		SkyCycle.weatherAt(content, layout, seed, buildSeconds, buildSeconds, nil),
+		true
+	)
+	local correction: any = lighting:FindFirstChild(SkyCycle.GRADE)
+	local bloom: any = lighting:FindFirstChild(SkyCycle.BLOOM)
+	local atmosphere: any = lighting:FindFirstChild(SkyCycle.ATMOSPHERE)
 	workspace.Terrain.WaterColor = Color3.fromRGB(69, 139, 153)
 	workspace.Terrain.WaterTransparency = 0.35
 	workspace.Terrain:FillBlock(CFrame.new(0, -10, 0), Vector3.new(1400, 12, 1400), Enum.Material.Water)
@@ -624,6 +627,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	wildlife.maximum = math.max(policy.maximum, #spawns)
 	wildlife.sourceKey = "w"
 	local revision = layoutId .. ":" .. tostring(seed)
+	-- The live hazard storm timeline starts at World.new (SurvivalWorld hazardOrigin); ash visuals
+	-- use the same instant on the server epoch clock.
+	workspace:SetAttribute("ForgeStormOrigin", nowMillis() / 1000)
 	local world: any = World.new({
 		content = runtimeContent,
 		worldRevision = revision,
@@ -713,6 +719,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			stationPanel(target, station, tonumber(string.match(anchor.id, "%.t(%d+)$")) or 1)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })
+				-- Two torch posts flank each camp fire; SkyDriver strengthens their light at night.
+				local base = target.Position - Vector3.new(0, target.Size.Y / 2, 0)
+				SkyCycle.torch(root, base + Vector3.new(5, 0, 3))
+				SkyCycle.torch(root, base + Vector3.new(-5, 0, 3))
 			end
 		end
 	end

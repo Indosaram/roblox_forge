@@ -224,6 +224,8 @@ function M.new(content: any, world: any, options: any, session: any, seconds: an
 			return frame
 		end,
 		publish = function(state: any)
+			-- G18: clients draw the match weather timeline from the server-authoritative start.
+			workspace:SetAttribute("ForgeBrawlStartsAt", if state.phase ~= "queue" then state.startsAt else nil)
 			for actor, participant in state.actors do
 				local character = rig(actor)
 				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
