@@ -2957,3 +2957,16 @@ cli.gather.toast,+%d %s,"gather picker item gain toast (quantity, item)",+%d %s,
 cli.gather.level,Lv %d,gather picker node level tag,Lv %d,Lv %d
 cli.gather.levelup,Skill grew,gather skill level-up banner title,Skill grew,기술이 늘었다
 cli.gather.banner,%s Lv %d,"gather skill level-up banner line (skill, level)",%s Lv %d,%s Lv %d
+cmb.end_combat,Step back,genre text cmb,Step back,물러서기
+cmb.level,Lv %d,genre text cmb,Lv %d,Lv %d
+cmb.taken,+%d %s,genre text cmb,+%d %s,+%d %s
+cmb.dodged,Dodged,genre text cmb,Dodged,회피
+cmb.carcass_title,Take from the body,genre text cmb,Take from the body,사체에서 챙기기
+cmb.carcass_leave,Leave it,genre text cmb,Leave it,그냥 두기
+cmb.refused,Can't take that now,genre text cmb,Can't take that now,지금은 챙길 수 없어요
+cmb.refused.OUT_OF_RANGE,Move closer,genre text cmb,Move closer,더 가까이 가세요
+cmb.refused.NOT_OFFERED,Not on this body,genre text cmb,Not on this body,이 사체에는 없어요
+cmb.refused.NOT_YOURS,Someone else's catch,genre text cmb,Someone else's catch,다른 사람이 잡은 사냥감
+cmb.refused.CORPSE_EXPIRED,"Too late, it's spoiled",genre text cmb,"Too late, it's spoiled","너무 늦었어요, 상했어요"
+cmb.refused.ALREADY_TAKEN,Already taken,genre text cmb,Already taken,이미 챙겼어요
+cmb.refused.INVENTORY_FULL,Bag is full,genre text cmb,Bag is full,가방이 가득 찼어요

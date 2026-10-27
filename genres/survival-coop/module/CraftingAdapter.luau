@@ -275,6 +275,9 @@ function M.validateSave(raw: Shared.StateData): { string }
 			end
 		end
 	end
+	if data.carcass ~= nil and not require("./CarcassExtension").valid(data.carcass) then
+		table.insert(errors, "carcass: invalid corpse records")
+	end
 	if data.recipeMarks ~= nil then
 		for _, problem in RecipeMarks.validate(data.recipeMarks) do
 			table.insert(errors, problem)
@@ -313,6 +316,7 @@ function M.validateSave(raw: Shared.StateData): { string }
 			and key ~= "lateEquipment"
 			and key ~= "recipeMarks"
 			and key ~= "stance"
+			and key ~= "carcass"
 		then
 			table.insert(errors, key .. ": unknown save key")
 		end
@@ -1259,6 +1263,7 @@ function M.new(
 				"lateEquipment",
 				"recipeMarks",
 				"stance",
+				"carcass",
 			}
 		do
 			if saved and saved[key] ~= nil then

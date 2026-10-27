@@ -839,12 +839,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				telegraphMillis = 1000,
 				cooldownMillis = 2000,
 			})
-			local drops = {}
-			for _, drop in definition.dropReservoirs do
-				table.insert(drops, { item = drop.item, quantity = drop.quantity })
-			end
+			-- dropReservoirs are offered by the carcass picker (CarcassExtension, C3), not dropped on the kill.
 			wildlife.catalog.species[definition.id] =
-				{ healthMilli = definition.health * 1000, damageMilli = definition.damage * 1000, drops = drops }
+				{ healthMilli = definition.health * 1000, damageMilli = definition.damage * 1000, drops = {} }
 		end
 	end
 	wildlife.spawns = spawns

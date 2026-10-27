@@ -222,6 +222,26 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		-- Narrow phones: the quest card ends above the action cluster instead of running into it.
 		quest.height = math.max(0.06 * h, cluster.y - 2 - quest.y)
 	end
+	-- Combat (C3, G12): the target bar (name, Lv, HP) top-centre, kept right of the vitals panel and
+	-- left of the minimap on narrow screens, and the end-combat pill above the action cluster.
+	local target = tc(-0.4, 0.4, 0.02, 0.14)
+	if target.x < clearX then
+		local right = target.x + target.width
+		target.x, target.width = math.floor(clearX + 0.5), math.max(0, right - math.floor(clearX + 0.5))
+	end
+	local mapGap = minimap.x - math.floor(0.02 * h + 0.5)
+	if target.x + target.width > mapGap then
+		target.width = math.max(0, mapGap - target.x)
+	end
+	local endCombat = rect(width - 0.40 * h, top + 0.48 * h, 0.37 * h, 0.10 * h)
+	if endCombat.y + endCombat.height > cluster.y - M.ARC_GAP then
+		endCombat.y = math.floor(cluster.y - M.ARC_GAP - endCombat.height + 0.5)
+	end
+	if hits(endCombat, quest, M.ARC_GAP) then
+		-- Short phones: no room between the quest card and the arc, so the pill sits left of the arc.
+		endCombat.x = math.floor(cluster.x - M.ARC_GAP * 4 - endCombat.width + 0.5)
+		endCombat.y = math.floor(cluster.y + cluster.height * 0.5 - endCombat.height / 2 + 0.5)
+	end
 	return {
 		safeHeight = h,
 		arcScale = k,
@@ -236,6 +256,8 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		rowSlots = rowSlots,
 		cluster = cluster,
 		tokens = tokens,
+		target = target,
+		endCombat = endCombat,
 	}
 end
 

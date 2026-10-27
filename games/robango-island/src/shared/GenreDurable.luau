@@ -43,6 +43,7 @@ local policy: Policy = {
 		[127] = "survival-coop:clan-browse",
 		[128] = "survival-coop:rescue-choose",
 		[129] = "survival-coop:rescue-revive",
+		[130] = "survival-coop:carcass-take",
 		[13] = "survival-coop:settlement-reserve",
 		[14] = "survival-coop:settlement-place",
 		[15] = "survival-coop:settlement-cancel",

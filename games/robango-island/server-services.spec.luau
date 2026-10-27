@@ -52,6 +52,7 @@ local forge = {
 				GuideEvents = require("../../genres/survival-coop/module/GuideEvents"),
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
+				CarcassExtension = require("../../genres/survival-coop/module/CarcassExtension"),
 			},
 		},
 	},
@@ -448,6 +449,11 @@ return {
 			taming = taming or extension.id == "taming"
 		end
 		assert(taming, "taming extension is built")
+		local carcass = false
+		for _, extension in services.survivalExtensions or {} do
+			carcass = carcass or extension.id == "carcass"
+		end
+		assert(carcass, "carcass picker extension is built (C3)")
 		local ok, err = pcall(
 			Options.validate,
 			{

@@ -1221,9 +1221,40 @@ local tapInput = TapRouter.start({
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
 	end,
 })
-local removeTapActions = TapRouter.installActions(tapInput, require(Forge.core.infra.genre.CommandTransport))
+-- C3 combat presentation: tap a creature to engage the semi-automatic attack loop; target bar,
+-- step-back pill, damage numbers, low-health vignette, dodge hop and the carcass fan.
+local CombatHud = require(Forge.genres["survival-coop"].module.CombatHud)
+local sendCommand: (string, { any }) -> any = function(_verb: string, _args: { any }): any
+	return { ok = false, reason = "COMMAND_UNAVAILABLE" }
+end
+local combatHud = CombatHud.start({
+	content = content,
+	locale = locale,
+	send = function(verb: string, args: { any }): any
+		return sendCommand(verb, args)
+	end,
+	approach = function(goal: any, within: number, arrive: () -> ())
+		tapInput.moveTo(goal, within, arrive)
+	end,
+	stop = function()
+		tapInput.stop()
+	end,
+	name = function(kind: string): string
+		return WildlifeNames.name(locale, kind)
+	end,
+	itemName = function(item: string): string
+		return names[item] or item
+	end,
+	hidden = function(): boolean
+		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
+	end,
+})
+local removeTapActions, send =
+	TapRouter.installActions(tapInput, require(Forge.core.infra.genre.CommandTransport), combatHud)
+sendCommand = send
 gui.Destroying:Connect(function()
 	removeTapActions()
+	combatHud.destroy()
 	tapInput.destroy()
 end)
 gui.Destroying:Connect(function()

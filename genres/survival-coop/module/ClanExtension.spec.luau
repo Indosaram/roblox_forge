@@ -14,12 +14,15 @@ return {
 			declared = declared or (action.id == "clan-browse" and action.origin == "client")
 		end
 		local extensionActions = Contract.extensionActions :: { string }
-		-- C6 rescue actions append after clan-browse; clan-browse stays ahead of them.
-		local browse = table.find(extensionActions, "clan-browse") :: number
-		for index = browse + 1, #extensionActions do
-			assert(table.find({ "rescue-choose", "rescue-revive" }, extensionActions[index]), "appended last")
+		-- Later appends (C6 rescue, C3 carcass) follow clan-browse; clan-browse follows camp-loan.
+		local at = table.find(extensionActions, "clan-browse") :: number
+		assert(declared and at == (table.find(extensionActions, "camp-loan") :: number) + 1, "appended after camp-loan")
+		for index = at + 1, #extensionActions do
+			assert(
+				table.find({ "rescue-choose", "rescue-revive", "carcass-take" }, extensionActions[index]),
+				"only later extensions follow: " .. extensionActions[index]
+			)
 		end
-		assert(declared, "appended last")
 		local fs = require("@lune/fs")
 		local durable = fs.readFile("games/robango-island/src/shared/GenreDurable.luau")
 		assert(string.find(durable, '"survival-coop:clan-browse"', 1, true), "durable policy publishes it")

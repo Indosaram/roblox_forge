@@ -63,6 +63,12 @@ local function reachable(document: Content.Document, drops: { [string]: any }): 
 			have[entry.item] = true
 		end
 	end
+	-- Carcass picker outputs (C3): content species reservoirs are taken from the body after a kill.
+	for _, species in document.wildlifeDetails or {} do
+		for _, entry in species.dropReservoirs or {} do
+			have[entry.item] = true
+		end
+	end
 	local built: { [string]: boolean } = {}
 	-- V2 acquisition also includes authored layout resources and public stations.
 	-- Retired aliases remain covered by the legacy node checks above, including

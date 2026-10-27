@@ -162,6 +162,7 @@ function M.new(ctx: any): any
 	module.JournalObjectiveFeed = require("../../../../genres/survival-coop/module/JournalObjectiveFeed")
 	module.JournalExtension = require("../../../../genres/survival-coop/module/JournalExtension")
 	module.RecipeMarks = require("../../../../genres/survival-coop/module/RecipeMarks")
+	module.CarcassExtension = require("../../../../genres/survival-coop/module/CarcassExtension")
 	module.EnsembleRange = require("../../../../genres/survival-coop/module/EnsembleRange")
 	module.EnsembleExtension = require("../../../../genres/survival-coop/module/EnsembleExtension")
 	module.ScoreTransport = require("../../../../genres/survival-coop/module/ScoreTransport")

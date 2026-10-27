@@ -510,7 +510,11 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 end
 
 M.REACH = 6
-function M.installActions(tap: any, transport: any): () -> ()
+--- Node and creature tap actions. With `combat` (CombatHud.start's api) a creature tap engages the
+--- semi-automatic attack loop and a ground tap pauses it; without it a creature tap walks up and
+--- sends one attack. Returns the remover and `send(action, args)`, the durable command sender the
+--- combat loop and the carcass picker use.
+function M.installActions(tap: any, transport: any, combat: any?): (() -> (), (string, { any }) -> any)
 	local CommandTransport = transport
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
@@ -524,19 +528,19 @@ function M.installActions(tap: any, transport: any): () -> ()
 			durable = packet.durable
 		end
 	end)
-	local function attack(id: string)
+	-- One durable request in flight; an unsettled request is retried with the same id before any other.
+	local function send(verb: string, args: { any }): any
 		if sending then
-			return
+			return { ok = false, reason = "COMMAND_PENDING" }
 		end
-		local verb = "survival-coop:attack"
 		local epoch = if durable and durable.epochs then durable.epochs[verb] else durable and durable.sessionEpoch
 		if not CommandTransport.durable(durable, verb) or type(epoch) ~= "number" then
-			return
+			return { ok = false, reason = "COMMAND_UNAVAILABLE" }
 		end
-		if pending and pending.args[1] ~= id then
-			return
+		if pending and (pending.action ~= verb or table.concat(pending.args, "\0") ~= table.concat(args, "\0")) then
+			return { ok = false, reason = "COMMAND_PENDING" }
 		end
-		pending = CommandTransport.request(pending, verb, { id }, epoch, function()
+		pending = CommandTransport.request(pending, verb, args, epoch, function()
 			return http:GenerateGUID(false)
 		end)
 		sending = true
@@ -550,6 +554,7 @@ function M.installActions(tap: any, transport: any): () -> ()
 			or result.reason == "COMMAND_PENDING"
 			or type(data) == "table" and data.status == "recovering"
 		pending = if busy then CommandTransport.settle(pending, result) else nil
+		return if ok then result else { ok = false, reason = "TRANSPORT" }
 	end
 	local removeNode = tap.register("node", function(part: BasePart)
 		local prompt = part:FindFirstChild("ForgeGather")
@@ -570,18 +575,29 @@ function M.installActions(tap: any, transport: any): () -> ()
 		if not anchor or not anchor:IsA("BasePart") or type(id) ~= "string" then
 			return false
 		end
+		if combat then
+			return combat.engage(model)
+		end
 		tap.moveTo(anchor.Position, M.REACH, function()
 			if model.Parent then
-				task.spawn(attack, id)
+				task.spawn(send, "survival-coop:attack", { id })
 			end
 		end)
 		return true
 	end)
+	-- A ground tap walks away on purpose: pause the auto loop, then let the move handler run.
+	local removeGround = tap.register("ground", function()
+		if combat then
+			combat.pause()
+		end
+		return false
+	end)
 	return function()
 		removeNode()
 		removeCreature()
+		removeGround()
 		connection:Disconnect()
-	end
+	end, send
 end
 
 return M

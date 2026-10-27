@@ -2957,3 +2957,16 @@ cli.gather.toast,original,agent:hephaestus/c2,2026-10-27
 cli.gather.level,original,agent:hephaestus/c2,2026-10-27
 cli.gather.levelup,original,agent:hephaestus/c2,2026-10-27
 cli.gather.banner,original,agent:hephaestus/c2,2026-10-27
+cmb.end_combat,original,agent:hephaestus/C3,2026-10-27
+cmb.level,original,agent:hephaestus/C3,2026-10-27
+cmb.taken,original,agent:hephaestus/C3,2026-10-27
+cmb.dodged,original,agent:hephaestus/C3,2026-10-27
+cmb.carcass_title,original,agent:hephaestus/C3,2026-10-27
+cmb.carcass_leave,original,agent:hephaestus/C3,2026-10-27
+cmb.refused,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.OUT_OF_RANGE,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.NOT_OFFERED,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.NOT_YOURS,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.CORPSE_EXPIRED,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.ALREADY_TAKEN,original,agent:hephaestus/C3,2026-10-27
+cmb.refused.INVENTORY_FULL,original,agent:hephaestus/C3,2026-10-27

@@ -249,14 +249,11 @@ local policy: {
 		},
 		version = 1,
 	}
--- Gameplay numbers come only from generated content.
+-- Gameplay numbers come only from generated content. Content species (wildlifeDetails) carry no
+-- automatic kill drops: their dropReservoirs are offered by the carcass picker (CarcassExtension, C3).
 local content = require("./SurvivalContent")
 for _, species in assert(content.wildlifeDetails, "species catalog") do
-	local drops = {}
-	for _, reservoir in species.dropReservoirs do
-		table.insert(drops, { item = reservoir.item, quantity = reservoir.quantity })
-	end
 	policy.catalog.species[species.id] =
-		{ healthMilli = species.health * 1000, damageMilli = species.damage * 1000, drops = drops }
+		{ healthMilli = species.health * 1000, damageMilli = species.damage * 1000, drops = {} }
 end
 return policy

@@ -497,6 +497,8 @@ for _, actions in
 		require("./ClanExtension").browseActions(),
 		-- C6 down-and-rescue (opt-in RescueExtension); appended last like the rows above.
 		require("./RescueExtension").actions(),
+		-- C3 carcass picker (opt-in factory; the action id is declared for every pack).
+		require("./CarcassExtension").actions(),
 	}
 do
 	for _, action in actions do

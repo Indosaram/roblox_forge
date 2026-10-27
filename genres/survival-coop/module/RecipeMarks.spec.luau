@@ -106,6 +106,7 @@ return {
 					"clan-browse",
 					"rescue-choose",
 					"rescue-revive",
+					"carcass-take",
 				}, extensionActions[index]) ~= nil,
 				"only later extensions follow recipe-mark: " .. extensionActions[index]
 			)

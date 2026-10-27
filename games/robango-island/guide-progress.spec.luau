@@ -63,6 +63,7 @@ local forge = {
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
 				RecipeMarks = require("../../genres/survival-coop/module/RecipeMarks"),
+				CarcassExtension = require("../../genres/survival-coop/module/CarcassExtension"),
 				MultistoreyCommands = require("../../genres/survival-coop/module/MultistoreyCommands"),
 			},
 		},

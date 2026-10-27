@@ -75,6 +75,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 		}
 	end
 	local extensionFactories = table.clone(Extensions.factories)
+	-- C3 (G12): carcass outputs are picked after a kill (CarcassExtension), not dropped automatically.
+	table.insert(extensionFactories, require(Forge.genres["survival-coop"].module.CarcassExtension).factory)
 	if world.clanDirectory then
 		local directory: any = world.clanDirectory
 		local occupying: { string } = {}
