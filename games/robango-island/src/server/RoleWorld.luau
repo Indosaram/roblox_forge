@@ -55,37 +55,113 @@ M.MESH_SPECIES = table.freeze({
 	"turtle",
 	"dodo",
 })
-local meshesStarted = false
-function M.startMeshes(load: (number) -> Instance, storage: Instance, ids: { [string]: string })
-	if meshesStarted then
-		return
-	end
-	meshesStarted = true
-	local folder = Instance.new("Folder")
-	folder.Name = "ForgeCreatureTemplates"
-	folder.Parent = storage
-	local templates: { [string]: Instance } = {}
-	for _, species in M.MESH_SPECIES do
-		local id = tonumber(string.match(ids["creature-" .. string.lower(species)] or "", "^rbxassetid://(%d+)$"))
-		if id then
-			local ok, loaded = pcall(load, id)
-			local mesh = if ok and loaded then loaded:FindFirstChildWhichIsA("MeshPart", true) else nil
-			if mesh then
-				mesh.Name, mesh.Parent = species, folder
-				templates[species] = mesh
-			else
-				warn("CREATURE_TEMPLATE_UNAVAILABLE:" .. species)
-			end
-			if ok and loaded then
-				loaded:Destroy()
+-- D1 (G21): the role world waits at most this long for its own species' templates; a slower
+-- InsertService leaves those rigs as part rigs instead of holding the world.
+M.MESH_WAIT_SECONDS = 8
+
+--- Skinned species a role renders while it is built and bound: authored spawns (a species with no
+--- mesh of its own renders as the grazer/hunter stand-in, brachiosaurus/allosaurus), the arrival
+--- fauna, the onboarding grazers and the explore sauropod. Every other species (pets and mounts
+--- a player brings) loads in the background after these.
+function M.roleSpecies(content: any, layout: any, fauna: { any }): { string }
+	local wanted: { [string]: boolean } = {}
+	local function add(species: string)
+		if table.find(M.MESH_SPECIES, species) then
+			wanted[species] = true
+			return
+		end
+		local engine = "hunter"
+		for _, entry in content.wildlife or {} do
+			if entry.id == species and (entry.behavior == "grazer" or entry.behavior == "herd-grazer") then
+				engine = "grazer"
 			end
 		end
+		wanted[if engine == "grazer" then "brachiosaurus" else "allosaurus"] = true
 	end
-	require(Forge.genres["survival-coop"].module.DinosaurRig).configureMeshes({
-		source = function(species: string): Instance?
-			return templates[species]
-		end,
-	})
+	for _, spawn in layout.spawns do
+		add(spawn.speciesId)
+	end
+	for _, creature in fauna do
+		add(creature.species)
+	end
+	if layout.id == "rw.onboarding" then
+		add("triceratops")
+	elseif string.match(layout.id, "^rw%.explore%d+$") then
+		add("brachiosaurus")
+	end
+	local result = {}
+	for _, species in M.MESH_SPECIES do
+		if wanted[species] then
+			table.insert(result, species)
+		end
+	end
+	return result
+end
+
+local meshFolder: Instance? = nil
+local meshTemplates: { [string]: Instance } = {}
+local meshLoading: { [string]: boolean } = {}
+local function loadSpecies(load: (number) -> Instance, ids: { [string]: string }, species: string)
+	if meshTemplates[species] or meshLoading[species] then
+		return
+	end
+	local id = tonumber(string.match(ids["creature-" .. string.lower(species)] or "", "^rbxassetid://(%d+)$"))
+	if not id then
+		return
+	end
+	meshLoading[species] = true
+	-- One thread per package: the loads overlap instead of queueing (24 sequential LoadAssets held
+	-- every role world for ~10-20 s on staging v36).
+	task.spawn(function()
+		local ok, loaded = pcall(load, id)
+		local mesh = if ok and loaded then loaded:FindFirstChildWhichIsA("MeshPart", true) else nil
+		if mesh then
+			mesh.Name, mesh.Parent = species, meshFolder
+			meshTemplates[species] = mesh
+		else
+			warn("CREATURE_TEMPLATE_UNAVAILABLE:" .. species)
+		end
+		if ok and loaded then
+			loaded:Destroy()
+		end
+		meshLoading[species] = nil
+	end)
+end
+
+--- Blocks until none of `species` is still loading, or MESH_WAIT_SECONDS pass.
+function M.awaitMeshes(species: { string })
+	local started = os.clock()
+	for _, name in species do
+		while meshLoading[name] and os.clock() - started < M.MESH_WAIT_SECONDS do
+			task.wait()
+		end
+	end
+end
+
+--- Starts the role's species loads at once (in parallel) and returns without waiting; the rest of
+--- MESH_SPECIES load afterwards on a deferred thread. Pair with awaitMeshes before building rigs.
+function M.startMeshes(load: (number) -> Instance, storage: Instance, ids: { [string]: string }, first: { string }?)
+	if not meshFolder then
+		local folder = Instance.new("Folder")
+		folder.Name = "ForgeCreatureTemplates"
+		folder.Parent = storage
+		meshFolder = folder
+		require(Forge.genres["survival-coop"].module.DinosaurRig).configureMeshes({
+			source = function(species: string): Instance?
+				return meshTemplates[species]
+			end,
+		})
+	end
+	local wanted: { string } = first or M.MESH_SPECIES :: any
+	for _, species in wanted do
+		loadSpecies(load, ids, species)
+	end
+	task.defer(function()
+		M.awaitMeshes(wanted)
+		for _, species in M.MESH_SPECIES do
+			loadSpecies(load, ids, species)
+		end
+	end)
 end
 
 M.travelSerial = 0
@@ -101,11 +177,6 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local hasInsert, insert = pcall(function()
 		return game:GetService("InsertService")
 	end)
-	if hasInsert and insert then
-		M.startMeshes(function(id: number): Instance
-			return insert:LoadAsset(id)
-		end, game:GetService("ServerStorage"), require(Forge.games["robango-island"].src.shared.Assets) :: any)
-	end
 	local layout: any = nil
 	for _, candidate in content.layouts do
 		if candidate.id == layoutId then
@@ -120,6 +191,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- Clients re-derive the ProcProps decor plan from these before it replicates.
 	root:SetAttribute("ForgeLayoutId", layoutId)
 	root:SetAttribute("ForgeWorldSeed", seed)
+	-- C1: the camp plot grid starts at the ridge camp plot anchor (opening-script.md section 1). Set
+	-- before the root replicates: the client reads it once, right after ForgeRoleWorld arrives.
+	local campPlot = { x = -32, z = -16 }
+	for _, anchor in layout.anchors do
+		campPlot = if anchor.id == "station.campfire.t1" then anchor.position else campPlot
+	end
+	if layoutId == "rw.onboarding" then
+		root:SetAttribute("ForgeCampOrigin", Vector3.new(campPlot.x, 4, campPlot.z))
+	end
 	root.Parent = workspace
 	local function part(id: string, position: any, size: any): any
 		local value = Instance.new("Part")
@@ -135,6 +215,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		then {}
 		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
 	local dressing = Dressing.plan(layout, columns, Terrain)
+	-- D1 (G21): package loads start now and overlap the terrain writes below. Only this role's
+	-- creature species and biome kits load up front (not all 24 species and 9 kits).
+	local roleSpecies = M.roleSpecies(content, layout, dressing.fauna)
+	if hasInsert and insert then
+		M.startMeshes(function(id: number): Instance
+			return insert:LoadAsset(id)
+		end, game:GetService("ServerStorage"), Assets :: any, roleSpecies)
+	end
+	if #columns > 0 then
+		task.spawn(BiomeKits.load, BiomeKits.kitsFor(layout), Assets)
+	end
 	-- Roblox's animated grass is avatar-height. Keep interaction approaches clear.
 	local function interactionGround(x: number, z: number, margin: number): boolean
 		for _, node in layout.resourceNodes do
@@ -752,6 +843,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end
 	end
 	local arrivalGrazers = {}
+	-- Decorative rigs below and the wildlife bind spawns clone the role's skinned templates.
+	M.awaitMeshes(roleSpecies)
 	-- Decorative rigs use the same authored species look as live wildlife.
 	local function looks(species: string): any
 		for _, detail in content.wildlifeDetails or {} do
@@ -1304,13 +1397,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if layoutId == "rw.onboarding" then
 		-- The live island is elevated; the preview's depot target is below its terrain.
 		world.roleSource.tribe.warehousePosition = { x = -16, y = 5, z = -4 }
-		-- C1: the camp plot grid starts at the ridge camp plot anchor (opening-script.md section 1).
-		local plot = { x = -32, z = -16 }
-		for _, anchor in layout.anchors do
-			plot = if anchor.id == "station.campfire.t1" then anchor.position else plot
-		end
-		world.roleSource.tribe.origin = { x = plot.x, y = 4, z = plot.z }
-		root:SetAttribute("ForgeCampOrigin", Vector3.new(plot.x, 4, plot.z))
+		world.roleSource.tribe.origin = { x = campPlot.x, y = 4, z = campPlot.z }
 		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
 		world.opening = require("./OpeningDirector").new(layout, root, nowMillis)
 		local depot = part("Warehouse", world.roleSource.tribe.warehousePosition, { x = 3, y = 2, z = 2 })
@@ -1766,20 +1853,36 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			if root.Parent == nil then
 				return
 			end
+			-- D1 (G21): nearest the spawn first. The first batch (within KIT_FIRST_RADIUS, inside the camp
+			-- chunks written synchronously above) goes in at once; the rest follow KIT_BATCH per engine
+			-- step once every chunk is written, so no frame places the whole island (20k on a 3072 island).
+			local batches = BiomeKits.batches(placements, { x = entry.x, z = entry.z })
 			local kitFolder = Instance.new("Folder")
 			kitFolder.Name = "ForgeBiomeKits"
-			-- Seat each kit on the rendered voxel surface, not the planned column top (see place).
-			-- Relief chunks are written nearest-first; wait for the last one, then one engine step so
-			-- the voxels are raycastable. probe falls back to the height field where a ray misses.
+			-- Seat each kit on the rendered voxel surface, not the planned column top (see place):
+			-- one engine step after a write the voxels are raycastable; probe falls back to the height
+			-- field where a ray misses.
 			local heartbeat = game:GetService("RunService").Heartbeat
-			repeat
-				heartbeat:Wait()
-			until root:GetAttribute("ForgeTerrainReady") or (root :: any).Parent == nil
+			heartbeat:Wait()
 			if (root :: any).Parent == nil then
 				return
 			end
-			kitFolder:SetAttribute("ForgeKitCount", BiomeKits.place(kitFolder, placements, loaded, probe))
+			local count = BiomeKits.place(kitFolder, batches[1] or {}, loaded, probe, 0)
+			kitFolder:SetAttribute("ForgeKitCount", count)
 			kitFolder.Parent = root
+			repeat
+				heartbeat:Wait()
+			until root:GetAttribute("ForgeTerrainReady") or (root :: any).Parent == nil
+			local offset = #(batches[1] or {})
+			for index = 2, #batches do
+				if (root :: any).Parent == nil then
+					return
+				end
+				count += BiomeKits.place(kitFolder, batches[index], loaded, probe, offset)
+				offset += #batches[index]
+				kitFolder:SetAttribute("ForgeKitCount", count)
+				heartbeat:Wait()
+			end
 		end)
 	end
 	local destroy = world.destroy

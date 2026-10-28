@@ -314,4 +314,93 @@ cases["NEGATIVE: water, cliff faces and paths are rejected"] = function()
 	assert(not Kits.allowed(layout, Terrain, ground, 99999, 99999, 1), "off-island must be rejected")
 end
 
+-- D1 (G21) startup budget, staging v36 on SM-N981N: onboarding TTFI ~32 s / PSS ~1.0-1.1 GB.
+-- Each role loads only its own kits (no all-kit server preload), and kits go in nearest the spawn
+-- first: a bounded first batch, then fixed-size batches, never the whole island in one frame.
+cases["D1: a role loads only its own kits and no server start preloads every kit"] = function()
+	for _, id in ROLES do
+		local kits = Kits.kitsFor(layouts[id])
+		assert(#kits >= 1 and #kits <= 3, id .. " loads " .. #kits .. " kits (budget 3 of " .. #Kits.allKits .. ")")
+	end
+	local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
+	assert(not string.find(server, "BiomeKits.allKits", 1, true), "the server never preloads every kit package")
+	local role = fs.readFile("games/robango-island/src/server/RoleWorld.luau")
+	assert(
+		string.find(role, "BiomeKits.load, BiomeKits.kitsFor(layout)", 1, true),
+		"the role build starts its own kit loads before the terrain writes"
+	)
+end
+
+cases["D1: kit batches are nearest-first, bounded, and the first batch fills the spawn screen"] = function()
+	assert(Kits.KIT_FIRST_MAX <= 400 and Kits.KIT_BATCH <= 300, "placement budget")
+	for _, id in { "rw.onboarding", "rw.explore10", "rw.a1.s1", "rw.a1.s2", "rw.harbor" } do
+		local layout = layouts[id]
+		local entry = layout.anchors[1].position
+		for _, anchor in layout.anchors do
+			entry = if anchor.id == "entry" then anchor.position else entry
+		end
+		local placements = plan(id, SEED)
+		local batches = Kits.batches(placements, entry)
+		local total, last = 0, -1
+		for index, batch in batches do
+			local cap = if index == 1 then Kits.KIT_FIRST_MAX else Kits.KIT_BATCH
+			assert(#batch <= cap, id .. ": batch " .. index .. " holds " .. #batch .. " > " .. cap)
+			for _, p in batch do
+				local d = (p.x - entry.x) ^ 2 + (p.z - entry.z) ^ 2
+				assert(d >= last, id .. ": batches are not nearest-first")
+				if index == 1 then
+					assert(d <= Kits.KIT_FIRST_RADIUS ^ 2, id .. ": first batch reaches past the first radius")
+				end
+				last = d
+			end
+			total += #batch
+		end
+		assert(total == #placements, id .. ": batches drop or repeat placements")
+		-- B1 must not regress: the spawn's default-zoom screen (220 x 100 landscape) gets the same
+		-- vegetation from the first batch as from the whole plan, and >= 20 where the role is dressed.
+		local function screenVeg(list: { any }): number
+			local n = 0
+			for _, p in list do
+				if VEG[p.family] and math.abs(p.x - entry.x) <= 110 and math.abs(p.z - entry.z) <= 50 then
+					n += 1
+				end
+			end
+			return n
+		end
+		local first, all = screenVeg(batches[1]), screenVeg(placements)
+		assert(first == all or first >= 20, id .. ": first batch shows " .. first .. " of " .. all .. " screen veg")
+		if id ~= "rw.harbor" then
+			assert(first >= 20, id .. ": spawn screen veg " .. first .. " < 20")
+		end
+		print(
+			string.format(
+				"%s: %d kits, first batch %d (screen veg %d), %d batches",
+				id,
+				#placements,
+				#batches[1],
+				first,
+				#batches
+			)
+		)
+	end
+end
+
+cases["D1: a role loads only its own creature templates up front"] = function()
+	local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+	local Content = require("./src/shared/SurvivalContent")
+	local Dressing = Engine.new().dressing
+	local role = Engine.new().role
+	for _, id in { "rw.onboarding", "rw.explore10", "rw.town", "rw.a1.s1" } do
+		local layout = layouts[id]
+		local columns = Terrain.columns(layout, SEED, if id == "rw.onboarding" then 16 else 32)
+		local species = role.roleSpecies(Content, layout, Dressing.plan(layout, columns, Terrain).fauna)
+		assert(#species <= 8, id .. " loads " .. #species .. " creature packages up front (budget 8 of 24)")
+		for _, spawn in layout.spawns do
+			if table.find(role.MESH_SPECIES, spawn.speciesId) then
+				assert(table.find(species, spawn.speciesId), id .. ": " .. spawn.speciesId .. " is not loaded up front")
+			end
+		end
+	end
+end
+
 return cases

@@ -196,10 +196,16 @@ function M.ground(columns: { any }, sandInland: boolean?): Ground
 		local column = at(x, z)
 		return if column then column.top else nil
 	end
+	-- Slope depends only on the snapped column: computed once per column (the scatter asks per try).
+	local slopes: { [any]: number } = {}
 	function ground.slope(x: number, z: number): number
 		local column, cx, cz = at(x, z)
 		if not column then
 			return math.huge
+		end
+		local cached = slopes[column]
+		if cached then
+			return cached
 		end
 		local worst = 0
 		for dx = -1, 1 do
@@ -212,6 +218,7 @@ function M.ground(columns: { any }, sandInland: boolean?): Ground
 				end
 			end
 		end
+		slopes[column] = worst
 		return worst
 	end
 	function ground.beach(x: number, z: number): boolean
@@ -310,6 +317,8 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 	end
 	local stream = Rng.new(seed):fork("biome-kits:" .. layout.id)
 	local bands = lattice(stream:fork("bands"), 16)
+	-- fork() never advances `stream`, so the region lattice is the same for every candidate: build it once.
+	local regions = lattice(stream:fork("regions"), 4)
 	for kitIndex, kit in kits do
 		-- Beach is a rim kit unless it is the role's only kit (harbor), where it dresses all land.
 		local beachKit = kit == "beach" and #kits > 1
@@ -346,7 +355,7 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 				-- Multi-kit roles split the island into seeded kit regions (onboarding/lake roles).
 				if not beachKit and #kits > 2 then
 					local span = math.min(160, (x1 - x0) / 3)
-					local region = lattice(stream:fork("regions"), 4)((x - x0) / span, (z - z0) / span)
+					local region = regions((x - x0) / span, (z - z0) / span)
 					local inland = #kits - 1
 					if math.min(inland, math.floor(region * inland) + 1) ~= kitIndex then
 						continue
@@ -390,11 +399,68 @@ end
 local templates: { [string]: any } = {}
 local loading: { [string]: boolean } = {}
 
--- Every kit this module can place; the server preloads all of them at start.
+-- Every kit this module can place. Role worlds load only BiomeKits.kitsFor(layout) (D1: the
+-- server no longer preloads all nine at start).
 M.allKits = { "beach", "jungle", "grassland", "savanna", "lake", "swamp", "desert", "tundra", "volcano" }
 
+-- D1 (G21) placement budget. Placements go in nearest the spawn first: the first batch is the
+-- spawn screen and its surroundings (at most KIT_FIRST_MAX within KIT_FIRST_RADIUS studs), placed
+-- right away; the rest follow KIT_BATCH per engine step, so no frame clones a whole island.
+M.KIT_FIRST_RADIUS = 128
+M.KIT_FIRST_MAX = 400
+M.KIT_BATCH = 300
+
+--- Splits a plan into placement batches ordered by flat distance to `origin` (ties keep plan
+--- order, so the result is deterministic): batch 1 per the first-batch budget, then KIT_BATCH each.
+function M.batches(placements: { Placement }, origin: { x: number, z: number }): { { Placement } }
+	local order = table.create(#placements)
+	local distance = table.create(#placements)
+	for index, p in placements do
+		order[index] = index
+		distance[index] = (p.x - origin.x) ^ 2 + (p.z - origin.z) ^ 2
+	end
+	table.sort(order, function(a, b)
+		return if distance[a] ~= distance[b] then distance[a] < distance[b] else a < b
+	end)
+	local batches: { { Placement } } = {}
+	local current: { Placement } = {}
+	local first = true
+	for _, index in order do
+		local full = if first
+			then #current >= M.KIT_FIRST_MAX or distance[index] > M.KIT_FIRST_RADIUS ^ 2
+			else #current >= M.KIT_BATCH
+		if full then
+			table.insert(batches, current)
+			current, first = {}, false
+		end
+		table.insert(current, placements[index])
+	end
+	if #current > 0 or first then
+		table.insert(batches, current)
+	end
+	return batches
+end
+
+local function loadKit(insert: any, kit: string, id: number)
+	loading[kit] = true
+	local ok, model = pcall(insert.LoadAsset, insert, id)
+	loading[kit] = nil
+	if ok and model then
+		templates["@" .. kit] = model
+		for _, child in model:GetDescendants() do
+			if child:IsA("BasePart") then
+				templates[M.modelKey[child.Name] or child.Name] = child
+			end
+		end
+	else
+		warn("BiomeKits: package " .. kit .. " did not load: " .. tostring(model))
+	end
+end
+
 --- Server: loads each needed package once (InsertService, owned by the universe creator) and
---- returns key -> template. A failed load leaves that kit out; the world still builds.
+--- returns key -> template. A failed load leaves that kit out; the world still builds. The
+--- packages load in parallel; a load already in flight (started earlier by the role build) is
+--- awaited, never repeated.
 function M.load(kits: { string }, assets: { [string]: string }): { [string]: any }
 	-- Headless engines (Lune specs, native qa) have no InsertService: no kits, the world still builds.
 	local hasInsert, insert = pcall(function()
@@ -405,24 +471,13 @@ function M.load(kits: { string }, assets: { [string]: string }): { [string]: any
 	end
 	for _, kit in kits do
 		local id = tonumber(string.match(assets[M.packages[kit]] or "", "%d+$") or "")
-		-- A load already in flight (server-start preload) finishes before a role world reads it.
-		while loading[kit] do
-			task.wait(0.1)
+		if id and not templates["@" .. kit] and not loading[kit] then
+			task.spawn(loadKit, insert, kit, id)
 		end
-		if id and not templates["@" .. kit] then
-			loading[kit] = true
-			local ok, model = pcall(insert.LoadAsset, insert, id)
-			loading[kit] = nil
-			if ok and model then
-				templates["@" .. kit] = model
-				for _, child in model:GetDescendants() do
-					if child:IsA("BasePart") then
-						templates[M.modelKey[child.Name] or child.Name] = child
-					end
-				end
-			else
-				warn("BiomeKits: package " .. kit .. " did not load: " .. tostring(model))
-			end
+	end
+	for _, kit in kits do
+		while loading[kit] do
+			task.wait()
 		end
 	end
 	return templates
@@ -432,11 +487,13 @@ end
 --- `surface(x, z)` is the rendered terrain top there (a server raycast). Voxel terrain rounds a
 --- FillBlock top up to the 4-stud voxel grid (column top 2.0 renders at 4.0), so the planned
 --- column top alone buries short rows (clutter, ferns, rocks, meadow grass) under the grass.
+--- `offset` numbers ForgeKitIndex across batches.
 function M.place(
 	parent: any,
 	placements: { Placement },
 	loaded: { [string]: any },
-	surface: ((x: number, z: number) -> number?)?
+	surface: ((x: number, z: number) -> number?)?,
+	offset: number?
 ): number
 	local count = 0
 	for index, p in placements do
@@ -456,18 +513,19 @@ function M.place(
 		part.CFrame = CFrame.new(p.x, y + part.Size.Y / 2 - sink, p.z) * CFrame.Angles(0, math.rad(p.yaw), 0)
 		part.Name = p.key
 		part:SetAttribute("ForgeKitFamily", p.family)
-		part:SetAttribute("ForgeKitIndex", index)
+		part:SetAttribute("ForgeKitIndex", (offset or 0) + index)
 		part.Parent = parent
 		count += 1
 	end
 	return count
 end
 
---- Client: distance LOD + low-profile cap over the replicated ForgeBiomeKits folder. Hidden
---- instances move to a client-only holder; nothing is destroyed, so re-showing is free.
+--- Client: distance LOD + low-profile cap over the replicated ForgeBiomeKits folder. A hidden
+--- instance stays in place with LocalTransparencyModifier 1 (not drawn), so StreamingEnabled can
+--- still evict it; a part the engine streams out (Parent nil) is dropped from the list. D1: the old
+--- client-only holder kept every hidden card out of streaming's reach and re-parented streamed-out
+--- parts back, so client memory grew with every stud walked.
 function M.runLod(folder: any, low: boolean)
-	local holder = Instance.new("Folder")
-	holder.Name = "ForgeBiomeKitsHidden"
 	local all: { any } = {}
 	local function track(child: any)
 		if child:IsA("BasePart") and child:GetAttribute("ForgeKitFamily") then
@@ -483,22 +541,24 @@ function M.runLod(folder: any, low: boolean)
 			local camera = runtime.workspace.CurrentCamera
 			local focus = camera and camera.Focus.Position or Vector3.zero
 			local shown = 0
+			local kept = table.create(#all)
 			for _, part in all do
+				if part.Parent == nil then
+					continue
+				end
+				table.insert(kept, part)
 				local family = part:GetAttribute("ForgeKitFamily")
 				local distance = (part.Position - focus).Magnitude
 				local keep = M.visible(family, distance, low) and (not low or shown < M.lowProfile.maxShown)
 				if keep then
 					shown += 1
 				end
-				local target = if keep then folder else holder
-				if part.Parent ~= target then
-					part.Parent = target
-				end
-				part.CastShadow = not low and distance <= M.lod[family].shadow
+				part.LocalTransparencyModifier = if keep then 0 else 1
+				part.CastShadow = keep and not low and distance <= M.lod[family].shadow
 			end
+			all = kept
 			task.wait(0.5)
 		end
-		holder:Destroy()
 	end)
 end
 
