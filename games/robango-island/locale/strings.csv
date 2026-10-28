@@ -2974,6 +2974,8 @@ cli.gather.toast,+%d %s,"gather picker item gain toast (quantity, item)",+%d %s,
 cli.gather.level,Lv %d,gather picker node level tag,Lv %d,Lv %d
 cli.gather.levelup,Skill grew,gather skill level-up banner title,Skill grew,기술이 늘었다
 cli.gather.banner,%s Lv %d,"gather skill level-up banner line (skill, level)",%s Lv %d,%s Lv %d
+cli.gather.decor_rock,"Scenery rock: gather stone at a marked stone pile or flint outcrop.",gather tap on a decorative boulder with no gather node nearby,"Scenery rock: gather stone at a marked stone pile or flint outcrop.","풍경 바위예요. 돌은 표시된 돌무더기나 부싯돌 노두에서 모아요."
+cli.gather.decor_tree,"Scenery tree: gather wood at a marked branch pile or fallen log.",gather tap on a decorative tree with no gather node nearby,"Scenery tree: gather wood at a marked branch pile or fallen log.","풍경 나무예요. 나무는 표시된 나뭇가지 더미나 쓰러진 통나무에서 모아요."
 cmb.end_combat,Step back,genre text cmb,Step back,물러서기
 cmb.level,Lv %d,genre text cmb,Lv %d,Lv %d
 cmb.taken,+%d %s,genre text cmb,+%d %s,+%d %s

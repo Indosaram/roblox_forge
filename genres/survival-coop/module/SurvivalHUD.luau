@@ -1255,6 +1255,9 @@ function M.start(options: Options)
 							caption.Visible = false
 							quantity.TextSize, quantity.Size = HudShell.PANEL_MIN_TEXT, UDim2.fromOffset(28, 18)
 							quantity.Position = UDim2.new(1, -30, 1, -20)
+							-- InventoryGrid re-mounts the icon on every update, so it became the later sibling
+							-- at the same ZIndex and covered the count's top half (phone v40: digits unreadable).
+							quantity.ZIndex = slot.ZIndex + 2
 						end
 					end
 				elseif cells then
@@ -1265,6 +1268,7 @@ function M.start(options: Options)
 							caption.Visible = true
 							quantity.TextSize, quantity.Size = 12, UDim2.fromOffset(32, 20)
 							quantity.Position = UDim2.new(1, -34, 0, 6)
+							quantity.ZIndex = slot.ZIndex + 2
 						end
 					end
 				end

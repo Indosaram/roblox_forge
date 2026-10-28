@@ -2,16 +2,18 @@
 -- A1 world tap router: UI > creature > node > ground; a handler returning false passes on.
 local M = {}
 
-export type Kind = "ui" | "creature" | "node" | "ground"
+export type Kind = "ui" | "creature" | "node" | "decor" | "ground"
 export type Probe = {
 	overUi: boolean?,
 	creature: any?,
 	node: any?,
+	-- ForgeKitFamily of a tapped biome-kit rock or tree that is scenery, not a gather node.
+	decor: string?,
 	ground: any?,
 }
 export type Handler = (target: any, probe: Probe) -> boolean?
 
-local PRIORITY: { Kind } = { "ui", "creature", "node", "ground" }
+local PRIORITY: { Kind } = { "ui", "creature", "node", "decor", "ground" }
 M.PRIORITY = table.freeze(PRIORITY)
 M.TAP_SLOP, M.PICK_RADIUS = 12, 40 -- px: drag threshold, fingertip pick radius
 
@@ -134,6 +136,23 @@ end
 function M.kitOwner(name: string): string?
 	local id = string.match(name, "^(.-)%.kit%.") or string.match(name, "^(.-)%.kit$")
 	return if id and id ~= "" then id else nil
+end
+
+-- Staging v40: the boulders and trees a player sees are mostly BiomeKits scenery (queryable rock and
+-- tree meshes in ForgeBiomeKits), not the few authored gather nodes, so a tap on them walked only.
+-- A scenery tap gathers from a node standing within DECOR_RADIUS studs of the tapped point; with
+-- none there, the decor handler says where stone and wood come from.
+M.DECOR_RADIUS = 16
+function M.decorNode(at: any, nodes: { any }, radius: number): any?
+	local best, bestDistance = nil, radius * radius
+	for _, node in nodes do
+		local p = node.Position
+		local d = (p.X - at.X) ^ 2 + (p.Z - at.Z) ^ 2
+		if d <= bestDistance then
+			best, bestDistance = node, d
+		end
+	end
+	return best
 end
 
 function M.gesture()
@@ -426,12 +445,24 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			end
 			node = M.nearest(x, y, screen, M.PICK_RADIUS)
 		end
+		local decor: string? = nil
+		local family = if hit and not node then hit.Instance:GetAttribute("ForgeKitFamily") else nil
+		if hit and (family == "rock" or family == "tree") then
+			local nodes = {}
+			for _, part in CollectionService:GetTagged("ForgeSurvivalNode") do
+				if part:IsA("BasePart") and part:IsDescendantOf(world) then
+					table.insert(nodes, part)
+				end
+			end
+			node = M.decorNode(hit.Position, nodes, M.DECOR_RADIUS)
+			decor = if node then nil else family
+		end
 		local ground: Vector3? = hit and hit.Position
 		if not ground and math.abs(ray.Direction.Y) > 1e-3 then
 			local t = (root.Position.Y - 3 - ray.Origin.Y) / ray.Direction.Y
 			ground = if t > 0 then ray.Origin + ray.Direction * t else nil
 		end
-		return { overUi = false, creature = creature, node = node, ground = ground }
+		return { overUi = false, creature = creature, node = node, decor = decor, ground = ground }
 	end
 	local function tap(x: number, y: number, ui: boolean)
 		if options.blocked() then
@@ -566,13 +597,16 @@ M.REACH = 6
 --- Node and creature tap actions. With `combat` (CombatHud.start's api) a creature tap engages the
 --- semi-automatic attack loop and a ground tap pauses it; without it a creature tap walks up and
 --- sends one attack. With `gather` (the C2 picker's open) a node tap opens the gather radial;
---- without it (or when it declines) the node's ForgeGather prompt is triggered. Returns the remover
---- and `send(action, args)`, the durable command sender the combat loop and the carcass picker use.
+--- without it (or when it declines) the node's ForgeGather prompt is triggered. With `notice`, a tap
+--- on scenery rock or tree with no gather node beside it shows that line (the walk still runs).
+--- Returns the remover and `send(action, args)`, the durable command sender the combat loop and
+--- the carcass picker use.
 function M.installActions(
 	tap: any,
 	transport: any,
 	combat: any?,
-	gather: ((BasePart) -> boolean)?
+	gather: ((BasePart) -> boolean)?,
+	notice: ((string) -> ())?
 ): (() -> (), (string, { any }) -> any)
 	local CommandTransport = transport
 	local storage = game:GetService("ReplicatedStorage")
@@ -665,6 +699,12 @@ function M.installActions(
 		end)
 		return true
 	end)
+	local removeDecor = tap.register("decor", function(family: string)
+		if notice then
+			notice(family)
+		end
+		return false
+	end)
 	-- A ground tap walks away on purpose: pause the auto loop, then let the move handler run.
 	local removeGround = tap.register("ground", function()
 		if combat then
@@ -674,10 +714,12 @@ function M.installActions(
 	end)
 	return function()
 		removeNode()
+		removeDecor()
 		removeCreature()
 		removeGround()
 		connection:Disconnect()
-	end, send
+	end,
+		send
 end
 
 return M

@@ -125,4 +125,124 @@ return {
 		assert(Combat.refusal("ko-kr", "OUT_OF_RANGE") == "더 가까이 가세요", "specific refusal")
 		assert(Combat.refusal("en-us", "SOME_NEW_CODE") == Combat.text("en-us", "refused"), "generic, not raw")
 	end,
+	["damage numbers survive a respawn and rebuild a board whose label was destroyed"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local I = roblox.Instance
+		local playerGui = I.new("PlayerGui")
+		local holder = I.new("Model")
+		local root = I.new("Part")
+		root.Name, root.Parent = "HumanoidRootPart", holder
+		local humanoid = { Health = 100, MaxHealth = 100 }
+		local character = {
+			FindFirstChild = function(_, name)
+				return if name == "HumanoidRootPart" then root else nil
+			end,
+			FindFirstChildOfClass = function(_, class)
+				return if class == "Humanoid" then humanoid else nil
+			end,
+		}
+		local player = {
+			Character = character,
+			WaitForChild = function()
+				return playerGui
+			end,
+			FindFirstChild = function()
+				return nil
+			end,
+		}
+		local beats: { () -> () } = {}
+		local function signal(list: { any }?)
+			return {
+				Connect = function(_, fn)
+					if list then
+						table.insert(list, fn)
+					end
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local services: { [string]: any } = {
+			Players = { LocalPlayer = player },
+			RunService = { Heartbeat = signal(beats) },
+			Workspace = {
+				FindFirstChild = function()
+					return nil
+				end,
+			},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+			-- The float animation runs on a later frame; the pool keeps each board enabled meanwhile.
+			task = { spawn = function() end },
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		-- HudShell reads the engine globals too, so it loads in the same environment.
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		environment.require = function(path: string)
+			return if path == "./HudShell" then shell else require("./PackLocale")
+		end
+		-- Lune Instances have no events: a button's Activated is a no-op signal here.
+		roblox.implementProperty("TextButton", "Activated", function()
+			return signal()
+		end)
+		local hud = luau.load(fs.readFile("genres/survival-coop/module/CombatHud.luau"), {
+			environment = environment,
+		})()
+		hud.start({
+			content = Content,
+			locale = "en-us",
+			send = function() end,
+			approach = function() end,
+			stop = function() end,
+			name = function(id: string)
+				return id
+			end,
+			itemName = function(id: string)
+				return id
+			end,
+			hidden = function()
+				return false
+			end,
+		})
+		local gui = playerGui:FindFirstChild("ForgeCombatHUD")
+		gui.AbsoluteSize = roblox.Vector2.new(850, 411)
+		local function hit(): any
+			humanoid.Health -= 5
+			beats[1]()
+			local numbers = playerGui:FindFirstChild("ForgeDamageNumbers")
+			assert(numbers, "damage number layer present")
+			local shown = false
+			for _, board in numbers:GetChildren() do
+				shown = shown or (board.Enabled and board.Adornee == root and board.Text.Text == "-5")
+			end
+			assert(shown, "the hit shows a number over the player")
+			return numbers
+		end
+		beats[1]() -- first frame records the starting health
+		hit()
+		-- Respawn as the engine does it: every PlayerGui child except a non-resetting LayerCollector
+		-- is destroyed (folders included).
+		for _, child in playerGui:GetChildren() do
+			if not (child:IsA("LayerCollector") and child.ResetOnSpawn == false) then
+				child:Destroy()
+			end
+		end
+		local numbers = hit()
+		-- A board whose label is gone (any other teardown) leaves the pool instead of indexing nil.
+		for _, board in numbers:GetChildren() do
+			board.Enabled = false
+			board.Text:Destroy()
+		end
+		hit()
+	end,
 }

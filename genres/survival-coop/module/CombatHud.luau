@@ -283,13 +283,24 @@ function M.start(options: Options)
 	titleCorner.CornerRadius, titleCorner.Parent = UDim.new(0.5, 0), fanTitle
 	fanTitle.Parent = fan
 	local fanTokens: { any } = {}
-	-- Floating numbers: pooled billboards in a PlayerGui folder.
-	local numberFolder = Instance.new("Folder")
-	numberFolder.Name, numberFolder.Parent = "ForgeDamageNumbers", player:WaitForChild("PlayerGui")
+	-- Floating numbers: pooled billboards in PlayerGui. A respawn deletes every PlayerGui child that is
+	-- not a non-resetting LayerCollector, so a Folder here took the pool's labels with it and every
+	-- later hit indexed a missing "Text" (staging v40: CombatHud:316 ~57/s). A ScreenGui that does not
+	-- reset survives, its BillboardGuis still render in the world, and a dead board leaves the pool.
+	local numberFolder = Instance.new("ScreenGui")
+	numberFolder.Name, numberFolder.ResetOnSpawn = "ForgeDamageNumbers", false
+	numberFolder.Parent = player:WaitForChild("PlayerGui")
 	local pool: { any } = {}
 	local function float(anchor: any, text: string, tint: any)
 		if not anchor or not anchor.Parent then
 			return
+		end
+		for index = #pool, 1, -1 do
+			local item = pool[index]
+			if item.Parent ~= numberFolder or not item:FindFirstChild("Text") then
+				item:Destroy()
+				table.remove(pool, index)
+			end
 		end
 		local board: any = nil
 		for _, item in pool do

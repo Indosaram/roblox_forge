@@ -103,6 +103,34 @@ return {
 		assert(tap.handlers.node(nodePart(roblox.Vector3.new(1, 0, 0), prompt)) == true, "declined still handled")
 		assert(held == 1, "prompt fallback fired")
 	end,
+	["a tap on scenery rock or tree gathers from a node beside it, else says where to gather"] = function()
+		-- Staging v40: the boulders and trees on screen are BiomeKits scenery (ForgeKitFamily rock/tree,
+		-- queryable), not gather nodes, so their taps fell through to a plain walk with no word.
+		local V = roblox.Vector3
+		local stone = { Position = V.new(-54, 2, 12) }
+		local wood = { Position = V.new(-66, 2, 12) }
+		assert(TapRouter.decorNode(V.new(-50, 0, 18), { stone, wood }, TapRouter.DECOR_RADIUS) == stone, "nearest node")
+		assert(TapRouter.decorNode(V.new(-9, 0, 140), { stone, wood }, TapRouter.DECOR_RADIUS) == nil, "far scenery")
+		local ranks = {}
+		for index, kind in TapRouter.PRIORITY do
+			ranks[kind] = index
+		end
+		assert(ranks.node < ranks.decor and ranks.decor < ranks.ground, "decor after node, before ground")
+		local Router = loadWithGame(V.new(0, 0, 0))
+		local router = Router.new()
+		local said, walked = {}, 0
+		router.register("ground", function()
+			walked += 1
+			return true
+		end)
+		Router.installActions(router, {}, nil, function()
+			return true
+		end, function(family)
+			table.insert(said, family)
+		end)
+		assert(router.dispatch({ decor = "rock", ground = V.new(1, 0, 1) }) == "ground", "the walk still runs")
+		assert(said[1] == "rock" and walked == 1, "the player is told where stone comes from")
+	end,
 	["node kit pieces map back to their gather node id"] = function()
 		-- The visible bush or rock is the node's decorative kit (CanQuery=false), not the small tagged part.
 		assert(TapRouter.kitOwner("rw.explore10.berry.kit.leaf3") == "rw.explore10.berry", "kit part")

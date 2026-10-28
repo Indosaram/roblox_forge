@@ -3056,3 +3056,5 @@ trv.sail_unreachable,original,agent:omo/c7,2026-10-28
 trv.invalid_route,original,agent:omo/c7,2026-10-28
 trv.drift_reset,original,agent:omo/c7,2026-10-28
 trv.expedition_active,original,agent:omo/c7,2026-10-28
+cli.gather.decor_rock,original,agent:omo/v40-craft,2026-10-28
+cli.gather.decor_tree,original,agent:omo/v40-craft,2026-10-28

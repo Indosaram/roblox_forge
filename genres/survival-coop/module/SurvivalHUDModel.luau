@@ -22,6 +22,14 @@ M.TRANSIENT = table.freeze({
 	["rate limited"] = true,
 	["profile operation in progress"] = true,
 }) :: { [string]: boolean }
+-- Idempotent personal toggles (RecipeMarks, StanceExtension): they commit without a stateVersion,
+-- so Transport.settle never ends them and a replay re-applies the same value. Any answer that is
+-- not a transient refusal is final. Staging v40: a committed recipe-mark stayed 'pending' for
+-- 90 s on two servers and locked craft and eat (every mutation is disabled while pending).
+M.TOGGLES = table.freeze({
+	["survival-coop:recipe-mark"] = true,
+	["survival-coop:stance-set"] = true,
+}) :: { [string]: boolean }
 
 -- One-click hand craft: the next verb, args and delay after a HUD craft result (reserve -> start -> collect).
 function M.handChain(
@@ -142,6 +150,9 @@ function M.new(actor: string, newId: () -> string): any
 		-- is not an in-flight phase is final, so a retry cannot replay it into a refusal.
 		local phase = if type(result.data) == "table" then result.data.status else nil
 		if result.ok and action == "survival-coop:item-repair" and phase ~= "pending" and phase ~= "recovering" then
+			model.pending = nil
+		end
+		if action and M.TOGGLES[action] and not M.TRANSIENT[result.reason] then
 			model.pending = nil
 		end
 		-- Transfer settles in another owner and exposes its phase. A rejected grant is final

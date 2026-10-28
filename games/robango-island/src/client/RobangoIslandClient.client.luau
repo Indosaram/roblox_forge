@@ -1292,6 +1292,12 @@ local removeTapActions, send = TapRouter.installActions(
 	-- C2: a node tap opens the gather radial client-side, before any server reply.
 	function(part: BasePart): boolean
 		return gatherPicker ~= nil and gatherPicker.open(part)
+	end,
+	-- Scenery rock or tree with no gather node beside it: say where stone and wood come from.
+	function(family: string)
+		if gatherPicker then
+			gatherPicker.toast(clientText(locale, "cli.gather.decor_" .. family) or family)
+		end
 	end
 )
 sendCommand = send
