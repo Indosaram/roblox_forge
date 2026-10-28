@@ -404,9 +404,13 @@ cases["D1: a role loads only its own creature templates up front"] = function()
 end
 -- D2 F3: a 58-stud veg.jungle.buttress-giant beside the onboarding spawn filled the whole default
 -- view. Trees stay ARRIVAL_CLEAR.tree studs and rocks ARRIVAL_CLEAR.rock studs from every arrival
--- (entry spawn and the archipelago yard spawn), on every dressed role layout.
+-- (entry spawn and the archipelago yard spawn), on every dressed role layout. With the L3 ~30-stud
+-- cap the clearing is sized to the cold-open sight line, no wider, so trees still frame the spawn.
 cases["D2: no tree or rock kit crowds an arrival on any role layout"] = function()
-	assert(Kits.ARRIVAL_CLEAR.tree >= 100, "tree clearing covers the 35-degree cold-open sight line")
+	local sight = Kits.ARRIVAL_SIGHT
+	local needed = sight.treeTop / math.tan(math.rad(sight.pitch)) + sight.crownRadius
+	assert(Kits.ARRIVAL_CLEAR.tree >= needed, "tree clearing covers the 35-degree cold-open sight line")
+	assert(Kits.ARRIVAL_CLEAR.tree <= needed + 8, "tree clearing no wider than the sight line needs")
 	assert(Kits.ARRIVAL_CLEAR.rock >= 32, "rock clearing")
 	local ids = table.clone(ROLES)
 	for _, extra in { "rw.town", "rw.brawl", "rw.team-outpost" } do
@@ -435,6 +439,15 @@ cases["D2: no tree or rock kit crowds an arrival on any role layout"] = function
 		trees += if p.family == "tree" then 1 else 0
 	end
 	assert(trees >= 60, "onboarding keeps its trees: " .. trees)
+	-- Framed, not blocked: trees stand just outside the clearing around the onboarding spawn.
+	local layout = layouts["rw.onboarding"]
+	local entry = Kits.arrivals(layout)[1]
+	local framing = 0
+	for _, p in plan("rw.onboarding", 1776) do
+		local d = math.sqrt((p.x - entry.x) ^ 2 + (p.z - entry.z) ^ 2)
+		framing += if p.family == "tree" and d <= Kits.ARRIVAL_CLEAR.tree + 48 then 1 else 0
+	end
+	assert(framing >= 4, "trees frame the onboarding spawn: " .. framing)
 end
 
 return cases

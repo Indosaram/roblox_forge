@@ -74,7 +74,18 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				FillBlock = function(_, frame, size, material)
 					terrainMaterial(material)
 					if physicalTerrain then
-						table.insert(pendingTerrain, { position = frame.Position, size = size, material = material })
+						-- A yawed block (painted path slab) is recorded with its frame; bounds use the
+						-- rotated footprint and point tests go through the frame's object space.
+						local rotated = frame.Rotation ~= roblox.CFrame.identity
+						local record: any = { position = frame.Position, size = size, material = material }
+						if rotated then
+							record.frame = frame
+							local h = size / 2
+							local wx = math.abs(frame.RightVector.X) * h.X + math.abs(frame.LookVector.X) * h.Z
+							local wz = math.abs(frame.RightVector.Z) * h.X + math.abs(frame.LookVector.Z) * h.Z
+							record.bounds = roblox.Vector3.new(wx * 2, size.Y, wz * 2)
+						end
+						table.insert(pendingTerrain, record)
 					end
 				end,
 				FillBall = function(_, position, radius, material)
@@ -265,8 +276,9 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		end
 		for index = indexed + 1, #terrainWrites do
 			local fill = terrainWrites[index]
-			local hx = if fill.radius then fill.radius else fill.size.X / 2
-			local hz = if fill.radius then fill.radius else fill.size.Z / 2
+			local extent = fill.bounds or fill.size
+			local hx = if fill.radius then fill.radius else extent.X / 2
+			local hz = if fill.radius then fill.radius else extent.Z / 2
 			local x0 = math.floor((fill.position.X - hx - MARGIN) / BIN)
 			local x1 = math.floor((fill.position.X + hx + MARGIN) / BIN)
 			local z0 = math.floor((fill.position.Z - hz - MARGIN) / BIN)
@@ -377,16 +389,20 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 						high = math.min(high, (-b + math.sqrt(discriminant)) / (2 * a))
 					end
 				else
+					-- A yawed block is tested in its own object space (a ray along Y stays along Y).
+					local o = if fill.frame then fill.frame:PointToObjectSpace(origin) + fill.position else origin
+					local dir = if fill.frame then fill.frame:VectorToObjectSpace(direction) else direction
 					for _, axis in { "X", "Y", "Z" } do
 						local minimum = fill.position[axis] - fill.size[axis] / 2
 						local maximum = fill.position[axis] + fill.size[axis] / 2
-						if direction[axis] == 0 then
-							if origin[axis] < minimum or origin[axis] > maximum then
+						-- Object-space axes of a yawed block can carry float noise around 0.
+						if math.abs(dir[axis]) < 1e-9 then
+							if o[axis] < minimum or o[axis] > maximum then
 								low = 2
 							end
 						else
-							local a = (minimum - origin[axis]) / direction[axis]
-							local b = (maximum - origin[axis]) / direction[axis]
+							local a = (minimum - o[axis]) / dir[axis]
+							local b = (maximum - o[axis]) / dir[axis]
 							low, high = math.max(low, math.min(a, b)), math.min(high, math.max(a, b))
 						end
 					end

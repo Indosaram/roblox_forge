@@ -1,8 +1,9 @@
 --!strict
 -- QA-PERF-01 startup deferral: on the low render profile the client builds no procedural
--- decor (role-world ProcProps, Studio dev-island meshes) before the first prompt is shown
--- or decorDeferSeconds pass; the high profile builds at once. Loads the client's real
--- decor-gate chunk against fake services and counts dressing work.
+-- decor (Studio dev-island meshes) before the first prompt is shown or decorDeferSeconds pass;
+-- the high profile builds at once. Role worlds build no client decor at all (asset-audit L2: B1
+-- kits and B3 rows dress them server-side); the client only starts the biome-kit LOD watcher on
+-- each, never deferred. Loads the client's real decor-gate chunk against fake services.
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local RenderBudget = require("./src/shared/RenderBudget")
@@ -34,9 +35,9 @@ local function roleWorld(): any
 	function value.FindFirstChild()
 		return nil
 	end
-	-- The biome-kit LOD watcher waits for the kit folder; none replicates in this harness.
+	-- The biome-kit LOD watcher waits for the kit folder.
 	function value.WaitForChild()
-		return nil
+		return {}
 	end
 	return value
 end
@@ -49,18 +50,19 @@ local function harness(profile: RenderBudget.Profile)
 	local last = #source
 	local shown, childAdded, quality = signal(), signal(), signal()
 	local delays: { { seconds: number, callback: () -> () } } = {}
-	local counts = { dressed = 0, islandProps = 0 }
+	local counts = { lod = 0, islandProps = 0 }
 	local initial = { roleWorld() }
 	local env = {
 		RenderBudget = RenderBudget,
-		BiomeKits = { runLod = function() end },
+		BiomeKits = {
+			runLod = function()
+				counts.lod += 1
+			end,
+		},
 		userSettingsLevel = 0,
 		profile = profile,
 		renderProfile = function()
 			return profile
-		end,
-		dressRoleWorld = function()
-			counts.dressed += 1
 		end,
 		decorProp = function()
 			counts.islandProps += 1
@@ -69,12 +71,13 @@ local function harness(profile: RenderBudget.Profile)
 		CFrame = { new = function() end },
 		game = {
 			GetService = function(_, name)
-				assert(name == "ProximityPromptService", "unexpected service " .. name)
-				return { PromptShown = shown }
+				assert(name == "ProximityPromptService" or name == "UserInputService", "unexpected service " .. name)
+				return { PromptShown = shown, TouchEnabled = false }
 			end,
 		},
 		script = { Destroying = signal() },
 		userSettings = {
+			SavedQualityLevel = "Enum.SavedQualitySetting.Automatic",
 			GetPropertyChangedSignal = function()
 				return quality
 			end,
@@ -129,27 +132,32 @@ return {
 	["low profile builds no decor before the first shown prompt"] = function()
 		local counts, shown, delays, childAdded = harness(RenderBudget.profiles.low)
 		childAdded.fire(roleWorld())
-		assert(counts.dressed == 0 and counts.islandProps == 0, "low built decor before first interaction")
+		assert(counts.islandProps == 0, "low built decor before first interaction")
 		assert(#delays == 1 and delays[1].seconds == RenderBudget.profiles.low.decorDeferSeconds, "bounded fallback")
 		shown.fire()
-		assert(counts.dressed == 2, "both role worlds dress after the first prompt: " .. counts.dressed)
 		assert(counts.islandProps == ISLAND_PROPS_LOW, "dev-island meshes keep the low cap")
 		delays[1].callback()
 		shown.fire()
-		assert(counts.dressed == 2 and counts.islandProps == ISLAND_PROPS_LOW, "the gate opens once")
+		assert(counts.islandProps == ISLAND_PROPS_LOW, "the gate opens once")
 	end,
-	["low profile still dresses after decorDeferSeconds when no prompt shows"] = function()
+	["low profile still builds after decorDeferSeconds when no prompt shows"] = function()
 		local counts, _shown, delays = harness(RenderBudget.profiles.low)
-		assert(counts.dressed == 0, "deferred")
+		assert(counts.islandProps == 0, "deferred")
 		delays[1].callback()
-		assert(counts.dressed == 1 and counts.islandProps == ISLAND_PROPS_LOW, "fallback timer opens the gate")
+		assert(counts.islandProps == ISLAND_PROPS_LOW, "fallback timer opens the gate")
 	end,
-	["high profile dresses immediately (PC visuals unchanged)"] = function()
-		local counts, _shown, delays, childAdded = harness(RenderBudget.profiles.high)
-		assert(counts.dressed == 1 and #delays == 0, "high dresses the present role world at once")
-		assert(counts.islandProps == 5, "high builds every dev-island mesh")
+	["high profile builds immediately (PC visuals unchanged)"] = function()
+		local counts, _shown, delays = harness(RenderBudget.profiles.high)
+		assert(#delays == 0 and counts.islandProps == 5, "high builds every dev-island mesh at once")
+	end,
+	["role worlds get only the biome-kit LOD watcher, never gated and never client decor"] = function()
+		local counts, _shown, _delays, childAdded = harness(RenderBudget.profiles.low)
+		assert(counts.lod == 1, "the present role world starts its kit LOD at once: " .. counts.lod)
 		childAdded.fire(roleWorld())
-		assert(counts.dressed == 2, "a later role world dresses at once on high")
+		assert(counts.lod == 2, "a later role world starts its kit LOD at once")
+		local source = fs.readFile(SOURCE)
+		assert(not string.find(source, "dressRoleWorld", 1, true), "no client role-world decor pass")
+		assert(not string.find(source, "ForgeProcProps", 1, true), "no ForgeProcProps folder")
 	end,
 	["the client builds one shared ItemIcons catalog for HUD and every panel"] = function()
 		local source = fs.readFile(SOURCE)

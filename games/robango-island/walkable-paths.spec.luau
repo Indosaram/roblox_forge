@@ -2,8 +2,8 @@
 -- p39 walkability gate: every catalog path on the harbor and every archipelago stage is walkable
 -- by a default character without jumping. Each path polyline is sampled every ~2 studs on its
 -- centre line and both edges (1 stud inside) over the walk surface the world builds: the highest
--- solid terrain fill from the production fill-call recording, or the path ribbon part where it
--- is higher. Seed 1776 at 6d8fef3: a3 bypass ramps stepped 5 studs, a4 6-7 and a5 8-9.
+-- solid terrain fill from the production fill-call recording. Paths are painted into the terrain
+-- (RoleWorld plan.paint: yawed Ground slabs at the catalog slope); no Part ribbon is laid. Seed 1776 at 6d8fef3: a3 bypass ramps stepped 5 studs, a4 6-7 and a5 8-9.
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
@@ -26,8 +26,9 @@ local function topAt(engine: any, roblox: any): (number, number) -> number
 		if fill.material == roblox.Enum.Material.Water or fill.material == roblox.Enum.Material.Air then
 			continue
 		end
-		local hx = if fill.radius then fill.radius else fill.size.X / 2
-		local hz = if fill.radius then fill.radius else fill.size.Z / 2
+		local extent = fill.bounds or fill.size
+		local hx = if fill.radius then fill.radius else extent.X / 2
+		local hz = if fill.radius then fill.radius else extent.Z / 2
 		for bx = math.floor((fill.position.X - hx) / 32), math.floor((fill.position.X + hx) / 32) do
 			for bz = math.floor((fill.position.Z - hz) / 32), math.floor((fill.position.Z + hz) / 32) do
 				local key = bx * 4096 + bz
@@ -45,6 +46,11 @@ local function topAt(engine: any, roblox: any): (number, number) -> number
 				high = if d2 <= fill.radius ^ 2 then fill.position.Y + fill.height / 2 else nil
 			elseif fill.radius then
 				high = if d2 < fill.radius ^ 2 then fill.position.Y + math.sqrt(fill.radius ^ 2 - d2) else nil
+			elseif fill.frame then
+				local p = fill.frame:PointToObjectSpace(roblox.Vector3.new(x, fill.position.Y, z))
+				if math.abs(p.X) <= fill.size.X / 2 and math.abs(p.Z) <= fill.size.Z / 2 then
+					high = fill.position.Y + fill.size.Y / 2
+				end
 			elseif
 				math.abs(x - fill.position.X) <= fill.size.X / 2
 				and math.abs(z - fill.position.Z) <= fill.size.Z / 2
@@ -59,33 +65,9 @@ local function topAt(engine: any, roblox: any): (number, number) -> number
 	end
 end
 
--- Top of the highest path ribbon part covering (x, z); RoleWorld lays one per polyline segment
--- at the catalog height, path.width wide.
-local function ribbonAt(layout: any): (number, number) -> number
-	return function(x: number, z: number): number
-		local best = -math.huge
-		for _, path in layout.paths do
-			for i = 2, #path.points do
-				local a, b = path.points[i - 1], path.points[i]
-				local dx, dz = b.x - a.x, b.z - a.z
-				local length = math.sqrt(dx * dx + dz * dz)
-				if length == 0 then
-					continue
-				end
-				local along = ((x - a.x) * dx + (z - a.z) * dz) / length
-				local side = math.abs(((x - a.x) * dz - (z - a.z) * dx) / length)
-				if along >= -0.5 and along <= length + 0.5 and side <= path.width / 2 then
-					best = math.max(best, a.y + (b.y - a.y) * math.clamp(along / length, 0, 1))
-				end
-			end
-		end
-		return best
-	end
-end
-
 -- Worst single step between neighbouring samples and worst rise over 8 studs, along every path.
 local function measure(engine: any, layout: any, roblox: any): (number, string, number, string)
-	local top, ribbon = topAt(engine, roblox), ribbonAt(layout)
+	local top = topAt(engine, roblox)
 	local low, high = layout.bounds.min, layout.bounds.max
 	local step, stepAt, slope, slopeAt = 0, "", 0, ""
 	for _, path in layout.paths do
@@ -104,12 +86,12 @@ local function measure(engine: any, layout: any, roblox: any): (number, string, 
 				for s = 0, n do
 					local t = s / n
 					local x, z = a.x + (b.x - a.x) * t - uz * offset, a.z + (b.z - a.z) * t + ux * offset
-					-- Habitat approaches start offshore, where RoleWorld lays no ribbon.
+					-- Habitat approaches start offshore, where RoleWorld paints nothing.
 					if x < low.x or x > high.x or z < low.z or z > high.z then
 						table.clear(history)
 						continue
 					end
-					local y = math.max(top(x, z), ribbon(x, z))
+					local y = top(x, z)
 					local where = string.format("%s#%d (%.0f,%.0f) offset %.0f", path.id, i, x, z, offset)
 					local previous = history[#history]
 					if previous and math.abs(y - previous) > step then
@@ -133,7 +115,7 @@ end
 -- is allowed when both are dry and the step is at most MAX_STEP. Returns authored points that no
 -- reached sample within REACH studs (and within MAX_STEP of the point's height) supports.
 local function unreachable(engine: any, layout: any, roblox: any): { string }
-	local top, ribbon = topAt(engine, roblox), ribbonAt(layout)
+	local top = topAt(engine, roblox)
 	local low, high = layout.bounds.min, layout.bounds.max
 	local heights: { [number]: number } = {}
 	local function key(i: number, j: number): number
@@ -143,7 +125,7 @@ local function unreachable(engine: any, layout: any, roblox: any): { string }
 		local k = key(i, j)
 		local y = heights[k]
 		if y == nil then
-			y = math.max(top(i * SPACING, j * SPACING), ribbon(i * SPACING, j * SPACING))
+			y = top(i * SPACING, j * SPACING)
 			heights[k] = y
 		end
 		return y
@@ -205,6 +187,24 @@ local function unreachable(engine: any, layout: any, roblox: any): { string }
 end
 
 return {
+	["paths are painted into the terrain: no Part ribbon remains"] = function()
+		local engine = Engine.new(nil, true)
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.harbor", 1776)
+		local root = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld")
+		for _, path in world.layout.paths do
+			for index = 2, #path.points do
+				assert(not root:FindFirstChild(path.id .. "." .. index), path.id .. " still lays a Part ribbon")
+			end
+		end
+		local slabs = 0
+		for _, fill in engine.terrainWrites do
+			slabs += if fill.frame and fill.material == require("@lune/roblox").Enum.Material.Ground then 1 else 0
+		end
+		assert(slabs > 0, "harbor paths painted as Ground slabs")
+		world.destroy()
+	end,
 	["every path on harbor, stage and frontier islands is walkable without jumping"] = function()
 		local roblox = require("@lune/roblox")
 		local checked, failures = 0, {}

@@ -5,6 +5,8 @@
 -- a visual Model, so a failed load leaves the Part kits in place.
 -- Template rows: ground-centred, 1 stud per unit. Mesh name suffixes (gen_buildings.py):
 --   <key>__cut   roof/wall that fades indoors (ForgeCutaway, G24)
+--   <key>__wall  house walls above the wainscot: fade indoors like __cut (G24)
+--   <key>__lamp  warm window pane / door lantern (warm Neon + small PointLight)
 --   <key>__ember fire anchor (Fire + PointLight)
 --   <key>__glow  emissive glass / rift fissure
 --   <key>__tag   cloth that later takes a clan colour
@@ -52,7 +54,10 @@ M.STRUCTURES = {
 	["volcanic-wall"] = "bld.volcanic-wall",
 }
 
--- WorldDressing kit kinds -> catalog row key (vegetation, rocks and farm stay with B1).
+-- WorldDressing kit kinds -> catalog row key. Every kit kind WorldDressing.plan and .home emit
+-- has a row (world-dressing-census.spec); vegetation and rocks come from the B1 biome kits instead.
+-- Until the L5 town house rows exist, the cottage borrows the thatched clan hall and the open
+-- workshop shed the roofed tier-3 bench.
 M.DRESSING = {
 	shelter = "bld.tent",
 	campfire = "bld.campfire",
@@ -64,14 +69,40 @@ M.DRESSING = {
 	beacon = "town.road-sign",
 	market = "town.market-stall",
 	["quest-board"] = "town.notice-board",
+	-- L5 town house rows; RoleWorld picks the cottage variant per house (M.house).
+	house = "town.house.cottage-a",
+	workshop = "town.house.workshop",
+	farm = "town.flower-bed",
 }
 
 -- Harbor facility anchors that get a town-kit visual: { row, x offset from the anchor }.
 M.FACILITIES = {
 	["visitor-portal"] = { row = "town.rift-ring", dx = 10 },
-	["rescue-beacon"] = { row = "town.rescue-bell", dx = 6 },
+	["rescue-beacon"] = { row = "town.rescue-bell", dx = 0 },
 	objective = { row = "town.trading-post", dx = 0 },
+	["practice-seedbed"] = { row = "town.flower-bed", dx = 0 },
+	["practice-fiber-stitch"] = { row = "bld.tanning-frame", dx = 0 },
+	-- Hazard briefing post and the resource-yard drop point.
+	hazard = { row = "town.road-sign", dx = 0 },
+	resources = { row = "town.crate-stack", dx = 0 },
 }
+
+-- Saltmeadow house variants (L5): regular lots take one of the cottages, `lot = "large"` the
+-- longhouse. The pick is seeded per house id, so one server seed always dresses the same town.
+M.COTTAGES = { "town.house.cottage-a", "town.house.cottage-b", "town.house.cottage-c" }
+M.LONGHOUSE = "town.house.longhouse"
+
+--- The house row for one WorldDressing.TOWN house: `pick` is a seeded number in [0, 1).
+function M.house(lot: string?, pick: number): string
+	if lot == "large" then
+		return M.LONGHOUSE
+	end
+	return M.COTTAGES[math.clamp(math.floor(pick * #M.COTTAGES) + 1, 1, #M.COTTAGES)]
+end
+
+-- Rows whose `__glow` is a lantern (warm), not the teal rift/mirror glass.
+local WARM_GLOW = { ["town.lamp-post"] = true, ["town.dock"] = true }
+M.WARM = { 255, 170, 90 }
 
 -- Role set pieces placed by RoleWorld: { layout, row, x, z, yaw degrees }. Positions sit beside the
 -- authored anchors (content.yml) and never on a path or node approach; all are decor only.
@@ -213,9 +244,20 @@ function M.clone(key: string?, options: { decor: boolean? }?): Model?
 		part.Anchored, part.CanTouch = true, false
 		part.CanCollide = solid and suffix ~= "tag" and not (key == "bld.timber.door" and suffix == "cut")
 		part.CanQuery = part.CanCollide
-		if suffix == "cut" then
+		if suffix == "cut" or suffix == "wall" then
 			part:SetAttribute("ForgeCutaway", true)
 			game:GetService("CollectionService"):AddTag(part, "ForgeCutaway")
+		elseif suffix == "lamp" or (suffix == "glow" and WARM_GLOW[key :: string]) then
+			-- Warm window or lantern: cheap Neon plus one small unshadowed light.
+			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
+			if surface then
+				surface:Destroy()
+			end
+			local warm = Color3.fromRGB(table.unpack(M.WARM))
+			part.Material, part.Color, part.CastShadow = Enum.Material.Neon, warm, false
+			local light = Instance.new("PointLight")
+			light.Color, light.Range, light.Brightness = warm, 8, 0.6
+			light.Shadows, light.Parent = false, part
 		elseif suffix == "ember" or suffix == "glow" then
 			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
 			if surface then

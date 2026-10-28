@@ -1606,67 +1606,10 @@ local function decorProp(key: string, name: string, cf: CFrame, scale: number, p
 	end
 	return built
 end
--- Every role world (harbor, archipelago stages, home) gets the deterministic ProcProps plan,
--- re-derived from the layout id and seed the server stamps on ForgeRoleWorld.
-local function dressRoleWorld(root: Instance)
-	local layoutId, seed = root:GetAttribute("ForgeLayoutId"), root:GetAttribute("ForgeWorldSeed")
-	if type(layoutId) ~= "string" or type(seed) ~= "number" then
-		return
-	end
-	local layout: any = nil
-	for _, candidate in content.layouts :: any do
-		if candidate.id == layoutId then
-			layout = candidate
-		end
-	end
-	if not layout then
-		return
-	end
-	local Terrain = require(Forge.core.domain.island.ArchipelagoTerrain)
-	local columns = if layoutId == "rw.home"
-		then {}
-		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
-	local placements = ProcProps.limit(ProcProps.plan(layout, columns, seed, content.homePolicy), profile)
-	local folder = Instance.new("Folder")
-	folder.Name = "ForgeProcProps"
-	local ray = RaycastParams.new()
-	ray.FilterType = Enum.RaycastFilterType.Include
-	ray.FilterDescendantsInstances = { workspace.Terrain }
-	ray.IgnoreWater = true
-	-- Only the first meshBuildsMax distinct keys may take the EditableMesh path.
-	local meshKeys: { string } = {}
-	for _, item in placements do
-		if root.Parent == nil then
-			return
-		end
-		local p = item.position
-		-- Streaming: terrain beyond the stream radius (or not yet written) is absent on the client, so
-		-- relief layouts take the height from the shared deterministic field instead of a ray.
-		local surface = Terrain.surface(layout, seed, p.x, p.z)
-		local hit = if surface
-			then nil
-			else workspace:Raycast(Vector3.new(p.x, p.y + 60, p.z), Vector3.new(0, -160, 0), ray)
-		local y = surface or if hit then hit.Position.Y else p.y
-		if not table.find(meshKeys, item.key) and #meshKeys < profile.meshBuildsMax then
-			table.insert(meshKeys, item.key)
-		end
-		local built = decorProp(
-			item.key,
-			item.name,
-			CFrame.new(p.x, y, p.z) * CFrame.Angles(0, math.rad(item.yaw), 0),
-			item.scale,
-			not table.find(meshKeys, item.key),
-			y
-		)
-		if built then
-			built.Parent = folder
-		end
-	end
-	folder.Parent = root
-end
--- Decor gate: procedural props are scenery, so on the low profile they wait until the
--- first prompt is shown (or decorDeferSeconds pass) instead of competing with the world,
--- HUD and first gather prompt for the opening frames. High (decorDeferSeconds 0) opens at once.
+-- Role worlds get no procedural props: B1 mesh biome kits and B3 rows dress them (asset-audit L2).
+-- Decor gate: the remaining procedural decor (Studio dev-island meshes) is scenery, so on the low
+-- profile it waits until the first prompt is shown (or decorDeferSeconds pass) instead of competing
+-- with the world, HUD and first gather prompt for the opening frames. High opens at once.
 local decorGate = RenderBudget.gate()
 local function watchRoleWorld(child: Instance)
 	if child.Name == "ForgeRoleWorld" then
@@ -1681,13 +1624,6 @@ local function watchRoleWorld(child: Instance)
 						game:GetService("UserInputService").TouchEnabled
 					) == "low"
 				)
-			end
-		end)
-	end
-	if child.Name == "ForgeRoleWorld" and not child:FindFirstChild("ForgeProcProps") then
-		decorGate.after(function()
-			if child.Parent ~= nil and not child:FindFirstChild("ForgeProcProps") then
-				task.spawn(dressRoleWorld, child)
 			end
 		end)
 	end

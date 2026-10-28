@@ -139,6 +139,51 @@ return {
 		world.destroy()
 		engine.meshes.setTemplates(nil)
 	end,
+	["house walls fade like roofs and lamp panes glow warm with one small light"] = function()
+		local engine = Engine.new()
+		local model = engine.newInstance("Model")
+		model.Name = "town.house.cottage-a"
+		for _, suffix in { "", "__cut", "__wall", "__lamp" } do
+			local part = engine.newInstance("MeshPart")
+			part.Name, part.Parent = "town.house.cottage-a" .. suffix, model
+		end
+		engine.meshes.setTemplates({ ["town.house.cottage-a"] = model })
+		local visual = assert(engine.meshes.clone("town.house.cottage-a", { decor = true }))
+		local tags = engine.game:GetService("CollectionService")
+		for _, part in visual:GetDescendants() do
+			if part.ClassName ~= "MeshPart" then
+				continue
+			end
+			local suffix = string.match(part.Name, "__(%a+)$")
+			local faded = tags:HasTag(part, "ForgeCutaway") == true
+			assert(faded == (suffix == "cut" or suffix == "wall"), part.Name .. " cut-away tag")
+			local light = part:FindFirstChildOfClass("PointLight")
+			if suffix == "lamp" then
+				assert(part.Material == roblox.Enum.Material.Neon and light, "lamp pane is warm Neon with a light")
+				assert(
+					light.Range <= 8 and light.Shadows == false and light.Color.R > light.Color.B,
+					"cheap warm light"
+				)
+				assert(part:FindFirstChildOfClass("Fire") == nil, "no fire on a window")
+			else
+				assert(light == nil, part.Name .. " has no light")
+			end
+		end
+		engine.meshes.setTemplates(nil)
+	end,
+	["town house variants are seeded per house: cottages on lots, the longhouse on large lots"] = function()
+		local engine = Engine.new()
+		local seen = {}
+		for index = 0, 9 do
+			seen[engine.meshes.house(nil, index / 10)] = true
+		end
+		for _, row in engine.meshes.COTTAGES do
+			assert(seen[row], "cottage variant used: " .. row)
+		end
+		assert(not seen[engine.meshes.LONGHOUSE], "regular lots never take the longhouse")
+		assert(engine.meshes.house("large", 0.3) == engine.meshes.LONGHOUSE, "large lot")
+		assert(engine.meshes.DRESSING.workshop == "town.house.workshop", "workshop row")
+	end,
 	["without mesh templates the primitive kits stay"] = function()
 		local engine = Engine.new()
 		local kits = engine.newInstance("Folder")

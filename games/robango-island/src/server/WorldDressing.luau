@@ -633,32 +633,18 @@ function M.arrival(parts: { any }, layout: any, palette: any): { any }
 	local function at(along: number, side: number): any
 		return { x = s.x + f.x * along - f.z * side, y = s.y, z = s.z + f.z * along + f.x * side }
 	end
-	local p = at(6, 18)
-	local base = add(parts, "trailhead.landmark.base", { x = p.x, y = p.y + 4, z = p.z }, {
-		x = 9,
-		y = 8,
-		z = 9,
-	}, "Rock", palette.rock, "Ball")
-	base.ground = p
+	-- The wayfinding sign is the arrival landmark; vegetation around it is the B1 scatter plus the
+	-- mesh grove (plan), never primitive outcrops or tree clusters.
 	M.kit(parts, "trailhead.landmark", at(14, 15), "beacon", palette)
-	local woody = not (table.find(layout.biomes, "volcano") or layout.biomes[1] == "desert")
-	local tree = if layout.biomes[1] == "snow"
-		then "conifer"
-		elseif layout.biomes[1] == "tropical" or layout.biomes[1] == "swamp" then "palm"
-		else "tree"
-	for i, spot in { { 30, -24 }, { 58, 24 }, { 84, -24 } } do
-		M.kit(parts, "trailhead.outcrop" .. i, at(spot[1], spot[2]), "rock", palette)
-		M.kit(parts, "trailhead.cluster" .. i, at(spot[1] + 8, spot[2] * 1.4), if woody then tree else "rock", palette)
-		M.kit(parts, "trailhead.understory" .. i, at(spot[1] - 6, spot[2] * 1.2), "bush", palette)
-	end
 	local species = if table.find(layout.biomes, "volcano") then fauna.volcano else fauna[layout.biomes[1]]
 	return { { id = "trailhead.grazer", species = species or "dodo", position = at(22, -34) } }
 end
 
 -- D2 (R13, Durango town): Saltmeadow buildings around the road cross, clear of the roads, the
 -- plaza anchors, the plots and the B3 set pieces. `yaw` turns the kit front (local -Z) to face its
--- road. Houses, the workshop and the dock stay composed parts; the market and the quest board
--- swap to their B3 town-kit rows (StructureMeshes.DRESSING) when those load.
+-- road. Every kind has a B3/L5 row (StructureMeshes.DRESSING); RoleWorld picks the house variant
+-- per seed (StructureMeshes.house): `lot = "large"` lots take the longhouse, the rest a cottage.
+-- The composed parts are the load-failure fallback only.
 M.TOWN = table.freeze({
 	{ id = "town.house.1", kind = "house", x = -44, z = -40, yaw = 90 },
 	{ id = "town.house.2", kind = "house", x = 44, z = -40, yaw = -90 },
@@ -672,6 +658,12 @@ M.TOWN = table.freeze({
 	{ id = "town.house.10", kind = "house", x = 44, z = 520, yaw = -90 },
 	{ id = "town.house.11", kind = "house", x = -140, z = 72, yaw = 0 },
 	{ id = "town.house.12", kind = "house", x = 140, z = 72, yaw = 0 },
+	-- South-lane row (z = 32): longhouses on the two big lots north of the lane, cottages facing
+	-- them across it.
+	{ id = "town.house.13", kind = "house", x = -216, z = 76, yaw = 0, lot = "large" },
+	{ id = "town.house.14", kind = "house", x = 216, z = 76, yaw = 0, lot = "large" },
+	{ id = "town.house.15", kind = "house", x = -140, z = -12, yaw = 180 },
+	{ id = "town.house.16", kind = "house", x = 140, z = -12, yaw = 180 },
 	{ id = "town.market.1", kind = "market", x = -90, z = 170, yaw = 90 },
 	{ id = "town.market.2", kind = "market", x = 90, z = 170, yaw = -90 },
 	{ id = "town.workshop", kind = "workshop", x = 220, z = 380, yaw = -90 },
@@ -698,79 +690,217 @@ local function turn(parts: { any }, start: number, x: number, z: number, yaw: nu
 	end
 end
 
+-- B1 biome kits (BiomeKits.luau, shared). Resolved on first use: the production-worlds fixture
+-- loads this module before it wires the shared BiomeKits table.
+local biomeKits: any = nil
+local function kits(): any
+	if not biomeKits then
+		biomeKits = load(
+			if runtime.game
+				then runtime.game
+					:GetService("ReplicatedStorage")
+					:WaitForChild("Forge").games["robango-island"].src.shared.BiomeKits
+				else "../shared/BiomeKits"
+		)
+	end
+	return biomeKits
+end
+
+-- Hero B1 rows per biome kit for authored landmarks, hazard rims and volcanic outcrops.
+M.HERO_TREE = table.freeze({
+	beach = "veg.beach.palm-tall",
+	jungle = "veg.jungle.strangler",
+	grassland = "veg.grassland.oak",
+	savanna = "veg.savanna.flat-top",
+	lake = "veg.lake.willow",
+	swamp = "veg.swamp.cypress",
+	desert = "veg.desert.dead-snag",
+	tundra = "veg.tundra.snow-pine",
+	volcano = "veg.volcano.charred",
+} :: { [string]: string })
+M.HERO_ROCK = table.freeze({
+	beach = "rock.beach.tide-boulder",
+	jungle = "rock.jungle.mossy-boulder",
+	grassland = "rock.grassland.boulder-cluster",
+	savanna = "rock.savanna.kopje-slab",
+	lake = "rock.lake.river-stones",
+	swamp = "rock.swamp.mud-stone",
+	desert = "rock.desert.wind-boulder",
+	tundra = "rock.tundra.ice-shard",
+	volcano = "rock.volcano.obsidian-boulder",
+} :: { [string]: string })
+-- Mesh understory per arrival point (shrub, fern and grass rows of the local kit), so a spawn
+-- screen keeps vegetation where the B1 scatter is thin (harbor streets, small brawl islands).
+M.GROVE = 16
+M.GROVE_RINGS = { 18, 24, 30, 36, 42 }
+M.GROVE_SPACING = 6
+
+local function familyOf(kit: string, key: string): string
+	for _, row in kits().kits[kit] do
+		if row.key == key then
+			return row.family
+		end
+	end
+	error("WORLD_DRESSING_UNKNOWN_KIT_ROW:" .. key)
+end
+
+-- One B1 placement (BiomeKits.Placement plus an id); RoleWorld seats it on the rendered surface.
+local function placement(id: string, kit: string, key: string, p: any, yaw: number, scale: number): any
+	return {
+		id = id,
+		kit = kit,
+		key = key,
+		family = familyOf(kit, key),
+		x = p.x,
+		y = p.y,
+		z = p.z,
+		yaw = yaw,
+		scale = scale,
+	}
+end
+
+-- True when (x, z) is clear of every authored path ribbon by `margin` studs.
+local function offPath(layout: any, terrain: any, x: number, z: number, margin: number): boolean
+	for _, path in layout.paths do
+		for j = 2, #path.points do
+			if terrain.distance(x, z, path.points[j - 1], path.points[j]) <= path.width / 2 + margin then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+--- Terrain strokes: authored paths as dry trampled earth instead of Part ribbons, clamped to the
+--- island bounds (habitat approaches start offshore, where nothing is painted).
+local function paths(paint: { any }, layout: any)
+	local low, high = layout.bounds.min, layout.bounds.max
+	local function inside(p: any): boolean
+		return p.x >= low.x and p.x <= high.x and p.z >= low.z and p.z <= high.z
+	end
+	for _, path in layout.paths do
+		for index = 2, #path.points do
+			local a, b = path.points[index - 1], path.points[index]
+			if not inside(a) and not inside(b) then
+				continue
+			end
+			local from = { x = math.clamp(a.x, low.x, high.x), y = a.y, z = math.clamp(a.z, low.z, high.z) }
+			local to = { x = math.clamp(b.x, low.x, high.x), y = b.y, z = math.clamp(b.z, low.z, high.z) }
+			if from.x ~= to.x or from.z ~= to.z then
+				table.insert(paint, {
+					id = path.id .. "." .. index,
+					shape = "segment",
+					from = from,
+					to = to,
+					width = path.width,
+					material = "Ground",
+				})
+			end
+		end
+	end
+end
+
+--- Mesh understory around each arrival point: ring candidates nearest first, kept where a B1 kit
+--- may stand (BiomeKits.allowed) and clear of the drift camp.
+local function grove(out: { any }, layout: any, columns: { any }, terrain: any)
+	local B1 = kits()
+	local list = B1.kitsFor(layout)
+	local ground = B1.ground(columns, list[1] == "desert")
+	local cell = if columns[1] then columns[1].cell else 32
+	-- Slope against existing neighbours only: BiomeKits reads a missing column as a -12 cliff, which
+	-- marks every column of a platform island (the harbor) as a cliff face.
+	local grade = {
+		top = ground.top,
+		beach = ground.beach,
+		slope = function(x: number, z: number): number
+			local top = ground.top(x, z)
+			if top == nil then
+				return math.huge
+			end
+			local worst = 0
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					local other = ground.top(x + dx * cell, z + dz * cell)
+					if other and (dx ~= 0 or dz ~= 0) then
+						worst = math.max(worst, math.abs(other - top) / (cell * math.sqrt(dx * dx + dz * dz)))
+					end
+				end
+			end
+			return worst
+		end,
+	}
+	local camp = M.driftCamp(layout)
+	local rows: { [string]: { string } } = {}
+	for _, kit in list do
+		rows[kit] = {}
+		for _, row in B1.kits[kit] do
+			if row.family == "shrub" or row.family == "fern" or row.family == "grass" then
+				table.insert(rows[kit], row.key)
+			end
+		end
+	end
+	local placed: { any } = {}
+	for arrival, at in B1.arrivals(layout) do
+		local count = 0
+		for ring, radius in M.GROVE_RINGS do
+			for step = 0, 15 do
+				if count >= M.GROVE then
+					break
+				end
+				local angle = (step + ring * 0.5) * math.pi / 8
+				local x, z = at.x + math.cos(angle) * radius, at.z + math.sin(angle) * radius
+				if not B1.allowed(layout, terrain, grade, x, z, 2) then
+					continue
+				end
+				local clear = true
+				for _, other in placed do
+					clear = clear and (x - other.x) ^ 2 + (z - other.z) ^ 2 >= M.GROVE_SPACING ^ 2
+				end
+				if camp then
+					for _, key in { "fire", "tent", "rift" } do
+						clear = clear and (x - camp[key].x) ^ 2 + (z - camp[key].z) ^ 2 >= 12 ^ 2
+					end
+				end
+				if not clear then
+					continue
+				end
+				local kit = if #list > 1 and ground.beach(x, z) then "beach" else list[1]
+				local keys = rows[kit] or rows[list[1]]
+				count += 1
+				local value = placement(
+					"grove." .. arrival .. "." .. count,
+					kit,
+					keys[(count - 1) % #keys + 1],
+					{ x = x, y = ground.top(x, z) :: number, z = z },
+					(count * 137.5) % 360,
+					0.9 + (count % 4) * 0.1
+				)
+				table.insert(placed, value)
+				table.insert(out, value)
+			end
+		end
+	end
+end
+
+--- The role's visual plan. `parts` holds only kits with a B3 mesh row (StructureMeshes.DRESSING;
+--- their composed parts are the load-failure fallback). Vegetation and rocks are B1 kit rows in
+--- `kits` (BiomeKits.Placement + id), paths and hazard pools are terrain strokes in `paint`, and
+--- lava glow, steam and ash are emitter points in `effects`. No primitive scatter is emitted.
 function M.plan(layout: any, columns: { any }, terrain: any): any
 	local palette = M.palette(layout)
 	local parts: { any } = {}
-	local props: { any } = {}
+	local placements: { any } = {}
+	local paint: { any } = {}
+	local effects: { any } = {}
 	local buildings = M.town(layout)
 	for _, building in buildings do
 		local start = #parts + 1
 		M.kit(parts, building.id, { x = building.x, y = 4, z = building.z }, building.kind, palette)
 		turn(parts, start, building.x, building.z, building.yaw)
 	end
-	-- Archipelago stages spend part of the scatter budget on the arrival dressing instead.
-	local scatter = if M.trailhead(layout) then 11 else 16
-	local stride = math.max(1, math.ceil(#columns / 120))
-	for index, column in columns do
-		if
-			index % stride == 0
-			and #props < scatter
-			and column.top > 0
-			and not terrain.protected(layout, column.x, column.z, 16)
-		then
-			local kind = if #props % 3 == 0
-				then "rock"
-				elseif table.find(layout.biomes, "volcano") or layout.biomes[1] == "desert" then "rock"
-				elseif
-					layout.id == "rw.onboarding"
-					or layout.biomes[1] == "tropical"
-					or layout.biomes[1] == "swamp"
-					or (column.top < 8 and layout.biomes[1] ~= "snow")
-				then "palm"
-				elseif layout.biomes[1] == "snow" then "conifer"
-				else "tree"
-			local p = { x = column.x, y = column.top, z = column.z }
-			local spaced = true
-			for _, other in props do
-				if (p.x - other.position.x) ^ 2 + (p.z - other.position.z) ^ 2 < 22 ^ 2 then
-					spaced = false
-				end
-			end
-			for _, building in buildings do
-				if (p.x - building.x) ^ 2 + (p.z - building.z) ^ 2 < 24 ^ 2 then
-					spaced = false
-				end
-			end
-			if not spaced then
-				continue
-			end
-			table.insert(props, { position = p, kind = kind })
-			local start = #parts + 1
-			M.kit(parts, "biome." .. #props, p, kind, palette)
-			for n = start, #parts do
-				local value = parts[n]
-				local angle = index * 2.399963
-				local dx, dz = value.position.x - p.x, value.position.z - p.z
-				local scale = 0.75 + (index % 5) * 0.1
-				value.position.x = p.x + (dx * math.cos(angle) - dz * math.sin(angle)) * scale
-				value.position.z = p.z + (dx * math.sin(angle) + dz * math.cos(angle)) * scale
-				value.position.y = p.y + (value.position.y - p.y) * scale
-				value.size = { x = value.size.x * scale, y = value.size.y * scale, z = value.size.z * scale }
-				-- CFrame yaw turns +X toward -Z, so it must negate the position rotation.
-				value.yaw = (value.yaw or 0) - math.deg(angle)
-				value.color = {
-					math.clamp(value.color[1] + index % 13 - 6, 0, 255),
-					math.clamp(value.color[2] + index % 17 - 8, 0, 255),
-					value.color[3],
-				}
-			end
-			if kind ~= "rock" then
-				local understory = ({ "fern", "cycad", "grass", "horsetail", "bush" })[#props % 5 + 1]
-				if not terrain.protected(layout, p.x + 8, p.z + 5, 6) then
-					M.kit(parts, "understory." .. #props, { x = p.x + 8, y = p.y, z = p.z + 5 }, understory, palette)
-				end
-			end
-		end
+	local primary = if #columns > 0 then kits().kitsFor(layout)[1] else nil
+	if layout.id ~= "rw.home" then
+		paths(paint, layout)
 	end
 	for _, anchor in layout.anchors do
 		local p = anchor.position
@@ -804,28 +934,32 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 		end
 	end
 	-- Optional authored art metadata is projected by content codegen, like anchors.
-	-- Never re-transform its positions here.
-	if layout.art then
-		local art = layout.art
-		local p = art.landmark.position
-		local size = art.landmark.size
-		local base = add(
-			parts,
-			art.landmark.id .. ".base",
-			{ x = p.x, y = p.y + size.y / 2, z = p.z },
-			size,
-			"Rock",
-			palette.rock
-		)
-		base.shape = "Ball"
-		base.ground = p
-		M.kit(
-			parts,
-			art.landmark.id .. ".crown",
-			{ x = p.x + size.x * 0.7 + 6, y = p.y, z = p.z },
-			if art.landmark.kind == "tree" then "tree" else "beacon",
-			palette
-		)
+	-- Never re-transform its positions here. The landmark is a hero B1 row sized to the authored
+	-- footprint: a tree, or a three-boulder outcrop.
+	if layout.art and primary then
+		local landmark = layout.art.landmark
+		local p, size = landmark.position, landmark.size
+		if landmark.kind == "tree" then
+			table.insert(placements, placement(landmark.id, primary, M.HERO_TREE[primary], p, 0, 1.1))
+		else
+			-- Three boulders inside the footprint; one that would land on a trail stays out.
+			local scale = math.clamp(math.max(size.x, size.z) / 16, 1, 2.5)
+			for i = 1, 3 do
+				local angle = i * math.pi * 2 / 3
+				local at = {
+					x = p.x + math.cos(angle) * size.x / 4,
+					y = p.y,
+					z = p.z + math.sin(angle) * size.z / 4,
+				}
+				if offPath(layout, terrain, at.x, at.z, 4) then
+					local key = M.HERO_ROCK[primary]
+					table.insert(
+						placements,
+						placement(landmark.id .. "." .. i, primary, key, at, i * 97 % 360, scale * (1.15 - i * 0.1))
+					)
+				end
+			end
+		end
 	end
 	for _, refuge in layout.refuges do
 		local a, b = refuge.bounds.min, refuge.bounds.max
@@ -833,80 +967,90 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 	end
 	for _, hazard in layout.hazards do
 		if hazard.kind == "lava" or hazard.kind == "hot-spring" then
-			local surface = add(
-				parts,
-				hazard.id .. ".surface",
-				{ x = hazard.position.x, y = hazard.position.y + 0.1, z = hazard.position.z },
-				{ x = hazard.radius * 2, y = 0.4, z = hazard.radius * 2 },
-				if hazard.kind == "lava" then "Neon" else "Glass",
-				if hazard.kind == "lava" then { 232, 112, 41 } else { 108, 192, 191 },
-				"Ball"
-			)
-			surface.effect = if hazard.kind == "lava" then "lava" else "steam"
-			for i = 1, 8 do
-				local angle = i * math.pi / 4
-				M.kit(parts, hazard.id .. ".rim" .. i, {
-					x = hazard.position.x + math.cos(angle) * hazard.radius,
-					y = hazard.position.y - 1,
-					z = hazard.position.z + math.sin(angle) * hazard.radius,
-				}, "rock", palette)
+			local lava = hazard.kind == "lava"
+			table.insert(paint, {
+				id = hazard.id .. ".surface",
+				shape = "disc",
+				position = hazard.position,
+				radius = hazard.radius,
+				material = if lava then "CrackedLava" else "Water",
+			})
+			table.insert(effects, {
+				id = hazard.id .. ".surface",
+				effect = if lava then "lava" else "steam",
+				position = hazard.position,
+			})
+			if primary then
+				for i = 1, 8 do
+					local angle = i * math.pi / 4
+					local at = {
+						x = hazard.position.x + math.cos(angle) * hazard.radius,
+						y = hazard.position.y,
+						z = hazard.position.z + math.sin(angle) * hazard.radius,
+					}
+					-- Springs sit on their link trail: rim stones stay off the walkable ribbon.
+					if offPath(layout, terrain, at.x, at.z, 3) then
+						local key = M.HERO_ROCK[primary]
+						table.insert(
+							placements,
+							placement(hazard.id .. ".rim" .. i, primary, key, at, i * 45, 0.8 + i % 3 * 0.1)
+						)
+					end
+				end
 			end
 		end
 	end
 	if table.find(layout.biomes, "volcano") then
 		local center = layout.anchors[1].position
 		for i = 1, 4 do
-			local flow = add(
-				parts,
-				"lava.flow" .. i,
-				{ x = center.x - 36 - i * 4, y = center.y + 1, z = center.z - i * 24 },
-				{ x = 7, y = 1, z = 32 },
-				"Neon",
-				{ 255, 102, 18 }
-			)
-			flow.yaw, flow.effect = -12, "lava"
-			M.kit(
-				parts,
-				"basalt." .. i,
-				{ x = center.x - 52, y = center.y, z = center.z - i * 26 },
-				"rock",
-				palettes.volcano
-			)
+			-- A cooled flow tongue painted into the ground, its glow an emitter at the head.
+			local head = { x = center.x - 36 - i * 4, y = center.y, z = center.z - i * 24 }
+			local tail = { x = head.x + math.sin(math.rad(-12)) * 16, y = head.y, z = head.z - 16 }
+			table.insert(paint, {
+				id = "lava.flow" .. i,
+				shape = "segment",
+				from = { x = 2 * head.x - tail.x, y = head.y, z = 2 * head.z - tail.z },
+				to = tail,
+				width = 7,
+				material = "CrackedLava",
+			})
+			table.insert(effects, { id = "lava.flow" .. i, effect = "lava", position = head })
+			local at = { x = center.x - 52, y = center.y, z = center.z - i * 26 }
+			if primary and offPath(layout, terrain, at.x, at.z, 4) then
+				table.insert(placements, placement("basalt." .. i, primary, M.HERO_ROCK[primary], at, i * 61, 1.2))
+			end
 		end
-		local vent = add(
-			parts,
-			"ash.vent",
-			{ x = center.x - 58, y = center.y + 12, z = center.z - 100 },
-			{ x = 8, y = 24, z = 8 },
-			"Basalt",
-			palettes.volcano.rock
+		local vent = { x = center.x - 58, y = center.y, z = center.z - 100 }
+		if primary and offPath(layout, terrain, vent.x, vent.z, 8) then
+			table.insert(placements, placement("ash.vent", primary, M.HERO_ROCK[primary], vent, 0, 2.4))
+		end
+		table.insert(
+			effects,
+			{ id = "ash.vent", effect = "ash", position = { x = vent.x, y = vent.y + 12, z = vent.z } }
 		)
-		vent.effect = "ash"
-		-- Distant offshore lava is scenery only; damaging lava stays at catalog volumes.
+		-- Distant offshore ash plumes are scenery only; damaging lava stays at catalog volumes.
 		local x = layout.bounds.min.x - 48
 		for i = 1, 5 do
-			add(
-				parts,
-				"offshore.ash" .. i,
-				{ x = x, y = 3 + i * 3, z = (i - 3) * 36 },
-				{ x = 72 - i * 8, y = 12 + i * 6, z = 50 },
-				"Basalt",
-				{ 58, 62, 65 },
-				"Ball"
-			)
-			add(
-				parts,
-				"offshore.lava" .. i,
-				{ x = x + 12, y = 10 + i * 3, z = (i - 3) * 36 },
-				{ x = 3, y = 0.8, z = 42 },
-				"Neon",
-				{ 232, 112, 41 }
+			table.insert(
+				effects,
+				{ id = "offshore.ash" .. i, effect = "ash", position = { x = x, y = 3 + i * 3, z = (i - 3) * 36 } }
 			)
 		end
 	end
 	local arrival = M.arrival(parts, layout, palette)
+	if primary then
+		grove(placements, layout, columns, terrain)
+	end
 	assert(#parts <= 768, "WORLD_DRESSING_PART_BUDGET")
-	return { parts = parts, props = props, palette = palette, fauna = arrival, buildings = buildings }
+	return {
+		parts = parts,
+		kits = placements,
+		paint = paint,
+		effects = effects,
+		palette = palette,
+		fauna = arrival,
+		buildings = buildings,
+	}
 end
 
 function M.resource(item: any): string
@@ -943,10 +1087,21 @@ function M.home(parts: { any }, home: any, rules: any)
 	M.kit(parts, "home.storage", { x = -half + 17, y = 1, z = -half + 19 }, "chest", palette)
 	M.kit(parts, "home.farm", { x = half - 12, y = 1, z = -half + 14 }, "farm", palette)
 	add(parts, "home.path", { x = 0, y = 1.05, z = 0 }, { x = 7, y = 0.2, z = half * 2 }, "Ground", { 167, 142, 98 })
-	-- Palms stay on the east coast, clear of the camp.
+	-- Palms stay on the east coast, clear of the camp: B1 beach kit rows (RoleWorld renderHome
+	-- places kind "biome-kit" through BiomeKits.place), never primitive palm kits.
 	for i = 1, 4 do
 		local a = math.rad(i * 20 - 40)
-		M.kit(parts, "home.tree" .. i, { x = math.cos(a) * half, y = 0, z = math.sin(a) * half }, "palm", palette)
+		table.insert(parts, {
+			id = "home.tree" .. i,
+			kind = "biome-kit",
+			kit = "beach",
+			key = if i % 2 == 0 then "veg.beach.palm-lean" else "veg.beach.palm-tall",
+			family = "tree",
+			position = { x = math.cos(a) * half, y = 0, z = math.sin(a) * half },
+			yaw = i * 83 % 360,
+			scale = 0.9 + i % 3 * 0.1,
+			decorative = true,
+		})
 	end
 end
 

@@ -212,6 +212,46 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		value.Parent = root
 		return value
 	end
+	-- A mesh row stretched to a gameplay box (timber modules, pads): the row's parts are scaled per axis
+	-- to the box and hung under it; the box keeps its collision and turns invisible. Returns false
+	-- (the box stays a visible Part) when the row is missing.
+	local function fitRow(target: BasePart, key: string): boolean
+		-- Re-fitting replaces the visual: the box may have moved or resized since the last fit.
+		local previous = target:FindFirstChild("ForgeMeshVisual")
+		if previous then
+			previous:Destroy()
+		end
+		local visual = Meshes.clone(key, { decor = true })
+		if not visual then
+			return false
+		end
+		local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+		for _, item in visual:GetDescendants() do
+			if item:IsA("BasePart") then
+				low = low:Min(item.Position - item.Size / 2)
+				high = high:Max(item.Position + item.Size / 2)
+			end
+		end
+		local size, centre = high - low, (low + high) / 2
+		local scale = Vector3.new(
+			target.Size.X / math.max(size.X, 0.05),
+			target.Size.Y / math.max(size.Y, 0.05),
+			target.Size.Z / math.max(size.Z, 0.05)
+		)
+		for _, item in visual:GetDescendants() do
+			if item:IsA("BasePart") then
+				local offset = (item.Position - centre) * scale
+				item.Size *= scale
+				item.CFrame = target.CFrame * CFrame.new(offset) * item.CFrame.Rotation
+				item.Position = item.CFrame.Position
+			end
+		end
+		visual.Parent = target
+		target.Transparency = 1
+		return true
+	end
+	-- Survey markers take the B1 survey cairn once the node packages load (node mesh pass below).
+	local surveyCairns: { BasePart } = {}
 	local columns: { any } = if layoutId == "rw.home"
 		then {}
 		else Terrain.columns(layout, seed, if layoutId == "rw.onboarding" then 16 else 32)
@@ -259,6 +299,36 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		return false
 	end
 	workspace:SetAttribute("ForgeWorldBiome", layout.biomes[1])
+	-- Light, fire and smoke children for a dressing effect (lava, fire, lamp, steam, ash).
+	local function addEffect(value: any, effect: string)
+		if value:FindFirstChild("ForgeEffect") then
+			return
+		end
+		local marker = Instance.new("Folder")
+		marker.Name, marker.Parent = "ForgeEffect", value
+		if effect == "lava" or effect == "fire" or effect == "lamp" then
+			local light = Instance.new("PointLight")
+			light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 0.8, 10, value
+		end
+		if effect == "fire" then
+			local fire = Instance.new("Fire")
+			fire.Size, fire.Heat, fire.Parent = 2, 4, value
+		elseif effect ~= "lava" and effect ~= "lamp" then
+			local smoke = Instance.new("Smoke")
+			smoke.Color = if effect == "steam" then Color3.fromRGB(224, 234, 230) else Color3.fromRGB(95, 91, 85)
+			smoke.Size, smoke.RiseVelocity, smoke.Opacity, smoke.Parent =
+				if effect == "ash" then 22 else 7, 9, 0.35, value
+		end
+		if effect == "ash" then
+			local ash = Instance.new("ParticleEmitter")
+			ash.Texture, ash.Rate = "rbxasset://textures/particles/smoke_main.dds", 12
+			ash.Lifetime, ash.Speed = NumberRange.new(3, 5), NumberRange.new(7, 12)
+			ash.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(1, 12) })
+			ash.Transparency =
+				NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) })
+			ash.Color, ash.Parent = ColorSequence.new(Color3.fromRGB(87, 81, 74)), value
+		end
+	end
 	local function style(value: any, definition: any)
 		value.Material = materials[definition.material or dressing.palette.ground]
 		if definition.color then
@@ -276,33 +346,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if definition.decorative then
 			value.CanCollide, value.CanTouch, value.CanQuery = false, false, false
 		end
-		if definition.effect and not value:FindFirstChild("ForgeEffect") then
-			local effect = Instance.new("Folder")
-			effect.Name, effect.Parent = "ForgeEffect", value
-			if definition.effect == "lava" or definition.effect == "fire" or definition.effect == "lamp" then
-				local light = Instance.new("PointLight")
-				light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 0.8, 10, value
-			end
-			if definition.effect == "fire" then
-				local fire = Instance.new("Fire")
-				fire.Size, fire.Heat, fire.Parent = 2, 4, value
-			elseif definition.effect ~= "lava" and definition.effect ~= "lamp" then
-				local smoke = Instance.new("Smoke")
-				smoke.Color = if definition.effect == "steam"
-					then Color3.fromRGB(224, 234, 230)
-					else Color3.fromRGB(95, 91, 85)
-				smoke.Size, smoke.RiseVelocity, smoke.Opacity, smoke.Parent =
-					if definition.effect == "ash" then 22 else 7, 9, 0.35, value
-			end
-			if definition.effect == "ash" then
-				local ash = Instance.new("ParticleEmitter")
-				ash.Texture, ash.Rate = "rbxasset://textures/particles/smoke_main.dds", 12
-				ash.Lifetime, ash.Speed = NumberRange.new(3, 5), NumberRange.new(7, 12)
-				ash.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(1, 12) })
-				ash.Transparency =
-					NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) })
-				ash.Color, ash.Parent = ColorSequence.new(Color3.fromRGB(87, 81, 74)), value
-			end
+		if definition.effect then
+			addEffect(value, definition.effect)
 		end
 	end
 	-- Include only Terrain: another prop, path or canopy can never become ground.
@@ -690,30 +735,52 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
-	-- Authored navigation is a continuous dry ribbon with the catalog slope.
-	local paths: { any } = if layoutId == "rw.home" then {} else layout.paths
-	local low, high = layout.bounds.min, layout.bounds.max
-	local function inside(p: any): boolean
-		return p.x >= low.x and p.x <= high.x and p.z >= low.z and p.z <= high.z
-	end
-	for _, path in paths do
-		for index = 2, #path.points do
-			local a, b = path.points[index - 1], path.points[index]
-			-- Habitat approaches start offshore; a ribbon there read as a concrete frame in the sea.
-			if not inside(a) and not inside(b) then
+	-- Authored navigation and hazard pools are painted into the terrain (WorldDressing plan.paint,
+	-- asset-audit L2) instead of Part ribbons. A segment is a run of yawed Ground slabs, path.width
+	-- wide and PAINT_STEP long, each topped at the catalog height of its midpoint (the old ribbon's
+	-- surface, stepping at most slope x PAINT_STEP), with a round cap at every corner; a disc is a
+	-- shallow pool. Relief islands write far chunks later, so the strokes are re-applied once
+	-- every chunk is in.
+	local PAINT_STEP = 2
+	local function paintStrokes()
+		for _, stroke in dressing.paint do
+			local material = materials[stroke.material]
+			if stroke.shape == "disc" then
+				local p = stroke.position
+				local water = stroke.material == "Water"
+				local top = (probe(p.x, p.z) or p.y) + (if water then 0.2 else 0.1)
+				local depth = if water then 1 else 2
+				workspace.Terrain:FillCylinder(CFrame.new(p.x, top - depth / 2, p.z), depth, stroke.radius, material)
 				continue
 			end
-			local from = Vector3.new(math.clamp(a.x, low.x, high.x), a.y, math.clamp(a.z, low.z, high.z))
-			local to = Vector3.new(math.clamp(b.x, low.x, high.x), b.y, math.clamp(b.z, low.z, high.z))
-			local delta = to - from
-			if delta.Magnitude > 0 then
-				local ribbon =
-					part(path.id .. "." .. tostring(index), a, { x = path.width, y = 1, z = delta.Magnitude + 1 })
-				ribbon.CFrame = CFrame.lookAt((from + to) / 2 - Vector3.new(0, 0.5, 0), to - Vector3.new(0, 0.5, 0))
-				ribbon.Material = Enum.Material.Ground
-				ribbon.Color = Color3.fromRGB(169, 145, 102)
+			local a, b = stroke.from, stroke.to
+			local length = math.sqrt((b.x - a.x) ^ 2 + (b.z - a.z) ^ 2)
+			local yaw = math.atan2(b.x - a.x, b.z - a.z)
+			local steps = math.max(1, math.ceil(length / PAINT_STEP))
+			for index = 1, steps do
+				local t = (index - 0.5) / steps
+				local top = a.y + (b.y - a.y) * t
+				workspace.Terrain:FillBlock(
+					CFrame.new(a.x + (b.x - a.x) * t, top - 2, a.z + (b.z - a.z) * t) * CFrame.Angles(0, yaw, 0),
+					Vector3.new(stroke.width, 4, length / steps + 0.5),
+					material
+				)
+			end
+			for _, cap in { a, b } do
+				workspace.Terrain:FillCylinder(CFrame.new(cap.x, cap.y - 2, cap.z), 4, stroke.width / 2, material)
 			end
 		end
+	end
+	paintStrokes()
+	if field then
+		task.spawn(function()
+			while not root:GetAttribute("ForgeTerrainReady") and (root :: any).Parent ~= nil do
+				game:GetService("RunService").Heartbeat:Wait()
+			end
+			if (root :: any).Parent ~= nil then
+				paintStrokes()
+			end
+		end)
 	end
 	local entry = layout.anchors[1].position
 	for _, anchor in layout.anchors do
@@ -730,13 +797,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- The default studded white pad read as a stray plate beside the spawn rocks.
 	spawn.Transparency = 1
 	spawn.Parent = root
+	-- Warm light posts: the town.lamp-post row with the torch light in its lantern (SkyCycle.torch);
+	-- the primitive pole and burning head stay only when the row fails to load.
+	local function torch(at: Vector3, yaw: number?): BasePart
+		return SkyCycle.torch(root, at, yaw, function(frame: CFrame): Instance?
+			return Meshes.place("town.lamp-post", frame, root, "ForgeTorchPost")
+		end)
+	end
 	if layoutId ~= "rw.home" then
 		-- D2 (R17): two torches frame every arrival so the spawn is a warm pool at night.
 		for _, side in { -1, 1 } do
 			local x, z = entry.x + side * 8, entry.z + 6
 			local y = probe(x, z)
 			if y then
-				SkyCycle.torch(root, Vector3.new(x, y, z))
+				-- Lantern arms face the arrival.
+				torch(Vector3.new(x, y, z), if side < 0 then 0 else 180)
 			end
 		end
 	end
@@ -1108,7 +1183,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				-- Four torch posts ring each camp fire; SkyDriver strengthens their light at night.
 				local base = target.Position - Vector3.new(0, target.Size.Y / 2, 0)
 				for _, offset in { { 5, 3 }, { -5, 3 }, { 5, -4 }, { -5, -4 } } do
-					SkyCycle.torch(root, base + Vector3.new(offset[1], 0, offset[2]))
+					-- Lantern arms lean toward the fire.
+					torch(base + Vector3.new(offset[1], 0, offset[2]), if offset[1] > 0 then 180 else 0)
 				end
 			end
 		end
@@ -1151,8 +1227,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						Vector3.new(0, -1024, 0),
 						groundParams
 					)
-					if hit then
-						Meshes.place(set.row, CFrame.new(hit.Position), root, facility.anchor .. ".set")
+					local placed = if hit
+						then Meshes.place(set.row, CFrame.new(hit.Position), root, facility.anchor .. ".set")
+						else nil
+					-- The row is the visual; the part stays the invisible prompt and reach handle.
+					if placed then
+						target.Transparency = 1
 					end
 				end
 				local prompt = Instance.new("ProximityPrompt")
@@ -1202,6 +1282,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local function dock(id: string, position: any, destination: string)
 		position = interactionPosition(position, 1)
 		local target = part(id, position, { x = 10, y = 1, z = 8 })
+		-- The slab stays the collidable deck and prompt handle (hidden); a pier row renders it with its
+		-- deck flush with the slab top and its land end on the slab, running out to sea (away from the
+		-- island centre): town.dock (48-stud pier), the 16-stud walkway on the home isle.
+		local home = layoutId == "rw.home"
+		local top = target.Position.Y + target.Size.Y / 2
+		local out = Vector3.new(target.Position.X, 0, target.Position.Z)
+		out = if out.Magnitude > 0 then out.Unit else Vector3.new(0, 0, 1)
+		local centre = target.Position + out * (if home then 4 else 19)
+		Meshes.dress(
+			target,
+			if home then "town.drift-camp-walkway" else "town.dock",
+			CFrame.new(centre.X, top - (if home then 1.2 else 0.3), centre.Z)
+				* CFrame.Angles(0, math.atan2(out.X, out.Z), 0)
+		)
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "ForgeDock"
 		WorldText.bind(prompt, "travel", destination)
@@ -1291,43 +1385,79 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				return value
 			end
 			local gate = plot.centre.x
-			for _, height in { 1.2, 2.6 } do
-				local tag = plot.id .. "." .. height
-				fencePiece("border.n." .. tag, plot.centre.x, height, plot.min.z, { x = 64, y = 0.4, z = 0.4 })
-				fencePiece("border.w." .. tag, plot.min.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
-				fencePiece("border.e." .. tag, plot.max.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
-				for _, side in { -1, 1 } do
-					local length = 32 - 6
+			if meshRows["town.plot-fence"] and meshRows["town.plot-fence-corner"] and meshRows["town.plot-gate"] then
+				-- L5 rows: 8-stud fence segments (front, local -Z, into the plot), posts at the corners,
+				-- edge middles and gate sides, and the 12-stud gateway with its claim board facing the lane.
+				local function piece(row: string, name: string, x: number, z: number, yaw: number)
+					Meshes.place(row, CFrame.new(x, floor, z) * CFrame.Angles(0, math.rad(yaw), 0), model, name)
+				end
+				for offset = -28, 28, 8 do
+					piece("town.plot-fence", "border.n." .. offset, plot.centre.x + offset, plot.min.z, 180)
+					piece("town.plot-fence", "border.w." .. offset, plot.min.x, plot.centre.z + offset, -90)
+					piece("town.plot-fence", "border.e." .. offset, plot.max.x, plot.centre.z + offset, 90)
+					if math.abs(offset) > 4 then
+						piece("town.plot-fence", "border.s." .. offset, gate + offset, plot.max.z, 0)
+					end
+				end
+				for _, post in
+					{
+						{ plot.min.x, plot.min.z },
+						{ plot.max.x, plot.min.z },
+						{ plot.max.x, plot.max.z },
+						{ plot.min.x, plot.max.z },
+						{ plot.centre.x, plot.min.z },
+						{ plot.min.x, plot.centre.z },
+						{ plot.max.x, plot.centre.z },
+					}
+				do
+					piece("town.plot-fence-corner", "post." .. post[1] .. "." .. post[2], post[1], post[2], 0)
+				end
+				piece("town.plot-gate", "gate." .. plot.id, gate, plot.max.z, 0)
+			else
+				for _, height in { 1.2, 2.6 } do
+					local tag = plot.id .. "." .. height
+					fencePiece("border.n." .. tag, plot.centre.x, height, plot.min.z, { x = 64, y = 0.4, z = 0.4 })
+					fencePiece("border.w." .. tag, plot.min.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
+					fencePiece("border.e." .. tag, plot.max.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
+					for _, side in { -1, 1 } do
+						local length = 32 - 6
+						fencePiece(
+							"border.s" .. side .. "." .. tag,
+							gate + side * (6 + length / 2),
+							height,
+							plot.max.z,
+							{ x = length, y = 0.4, z = 0.4 }
+						)
+					end
+				end
+				for _, post in
+					{
+						{ plot.min.x, plot.min.z },
+						{ plot.max.x, plot.min.z },
+						{ plot.max.x, plot.max.z },
+						{ plot.min.x, plot.max.z },
+						{ plot.centre.x, plot.min.z },
+						{ plot.min.x, plot.centre.z },
+						{ plot.max.x, plot.centre.z },
+						{ gate - 6, plot.max.z },
+						{ gate + 6, plot.max.z },
+					}
+				do
 					fencePiece(
-						"border.s" .. side .. "." .. tag,
-						gate + side * (6 + length / 2),
-						height,
-						plot.max.z,
-						{ x = length, y = 0.4, z = 0.4 }
+						"post." .. post[1] .. "." .. post[2],
+						post[1],
+						1.75,
+						post[2],
+						{ x = 0.7, y = 3.5, z = 0.7 }
 					)
 				end
+				local sign = fencePiece("sign." .. plot.id, gate - 9, 3.4, plot.max.z + 1.5, { x = 4, y = 2, z = 0.3 })
+				sign.Material, sign.Color = Enum.Material.WoodPlanks, Color3.fromRGB(196, 158, 102)
+				fencePiece("sign.post." .. plot.id, gate - 9, 1.2, plot.max.z + 1.5, { x = 0.4, y = 2.4, z = 0.4 })
+				local label =
+					fencePiece("sign.tag." .. plot.id, gate - 9, 3.4, plot.max.z + 1.7, { x = 2.6, y = 0.9, z = 0.1 })
+				label.Material, label.Color = Enum.Material.Fabric, Color3.fromRGB(64, 200, 190)
 			end
-			for _, post in
-				{
-					{ plot.min.x, plot.min.z },
-					{ plot.max.x, plot.min.z },
-					{ plot.max.x, plot.max.z },
-					{ plot.min.x, plot.max.z },
-					{ plot.centre.x, plot.min.z },
-					{ plot.min.x, plot.centre.z },
-					{ plot.max.x, plot.centre.z },
-					{ gate - 6, plot.max.z },
-					{ gate + 6, plot.max.z },
-				}
-			do
-				fencePiece("post." .. post[1] .. "." .. post[2], post[1], 1.75, post[2], { x = 0.7, y = 3.5, z = 0.7 })
-			end
-			local sign = fencePiece("sign." .. plot.id, gate - 9, 3.4, plot.max.z + 1.5, { x = 4, y = 2, z = 0.3 })
-			sign.Material, sign.Color = Enum.Material.WoodPlanks, Color3.fromRGB(196, 158, 102)
-			fencePiece("sign.post." .. plot.id, gate - 9, 1.2, plot.max.z + 1.5, { x = 0.4, y = 2.4, z = 0.4 })
-			local label =
-				fencePiece("sign.tag." .. plot.id, gate - 9, 3.4, plot.max.z + 1.7, { x = 2.6, y = 0.9, z = 0.1 })
-			label.Material, label.Color = Enum.Material.Fabric, Color3.fromRGB(64, 200, 190)
 			local prompt = Instance.new("ProximityPrompt")
 			prompt.Name = "ForgeTownClaim"
 			WorldText.bind(prompt, "claim", "plot")
@@ -1370,6 +1500,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		for _, anchor in layout.anchors do
 			if anchor.id == "trading-post" then
 				local board = part("town-quest", interactionPosition(anchor.position, 3), { x = 3, y = 3, z = 1 })
+				-- The town.trading-post set piece stands on this anchor; the card is its prompt handle.
+				if meshRows["town.trading-post"] then
+					board.Transparency = 1
+				end
 				local prompt = Instance.new("ProximityPrompt")
 				WorldText.bind(prompt, "interact", "town-quest")
 				prompt.MaxActivationDistance, prompt.Parent = 10, board
@@ -1396,11 +1530,26 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		prompt:SetAttribute("ForgePanel", "sea-chart-" .. kind)
 		target:SetAttribute("ForgeSailPoint", kind)
 		table.insert(sailPoints, { part = target, kind = kind })
+		-- The dock sail point is the prompt handle in front of the town.chart-table set piece.
+		if kind == "dock" and meshRows["town.chart-table"] then
+			target.Transparency = 1
+		end
 		return target
 	end
-	local function rift(id: string, base: BasePart)
-		-- Our rift: a lilac Neon fissure in a stone ring (B3 town.rift-ring when its mesh loads).
+	--- Our rift: the redesigned town.rift-ring (L5: stone lip, glowing cleft, monolith shards) at the
+	--- sail point's ground, or an existing rift row `visual`. The sail point stays the invisible
+	--- prompt handle inside the cleft; `facing` turns the cleft's front toward a neighbour. Only when
+	--- the row is missing does the old lilac Neon fissure in a Slate ring stand in.
+	local function rift(id: string, base: BasePart, visual: Instance?, facing: Vector3?)
 		local ground = base.Position - Vector3.new(0, base.Size.Y / 2, 0)
+		local frame = if facing
+			then CFrame.lookAt(ground, Vector3.new(facing.X, ground.Y, facing.Z))
+			else CFrame.new(ground)
+		local placed = visual or Meshes.place("town.rift-ring", frame, root, id .. ".set")
+		if placed then
+			base.Transparency = 1
+			return
+		end
 		local fissure = part(id .. ".fissure", { x = ground.X, y = ground.Y + 4.5, z = ground.Z }, {
 			x = 1.2,
 			y = 7,
@@ -1413,19 +1562,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		ring.Color, ring.Transparency = Color3.fromRGB(74, 61, 49), 0.6
 		ring.CanCollide, ring.CanQuery = false, false
 		ring.CFrame = CFrame.new(ring.Position) * CFrame.Angles(0, 0, math.rad(90))
-		Meshes.place("town.rift-ring", CFrame.new(ground), root, id .. ".set")
 	end
 	if layoutId == "rw.harbor" then
 		sailPoint("SeaChartTable", { x = 14, y = 2, z = 112 }, "dock", { x = 4, y = 3, z = 3 })
 		for _, facility in world.harborFacilities or {} do
 			if facility.anchor == "visitor-portal" then
+				-- The step-through point sits in the cleft of the visitor-portal rift (FACILITIES dx), so
+				-- the harbor shows one rift carrying both prompts.
+				local set = Meshes.FACILITIES["visitor-portal"]
 				local base = sailPoint(
 					"HarborRift",
-					{ x = facility.position.x - 10, y = 0, z = facility.position.z + 12 },
+					{ x = facility.position.x + set.dx, y = 0, z = facility.position.z },
 					"rift",
 					{ x = 3, y = 1, z = 3 }
 				)
-				rift("HarborRift", base)
+				rift("HarborRift", base, root:FindFirstChild("visitor-portal.set"))
 			end
 		end
 	end
@@ -1434,7 +1585,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		local fire = part("DriftCamp.fire", interactionPosition(camp.fire, 1), { x = 4, y = 1, z = 4 })
 		fire.Material, fire.Color = Enum.Material.Slate, Color3.fromRGB(96, 92, 88)
 		Meshes.dress(fire, Meshes.STRUCTURES.campfire, CFrame.new(fire.Position - Vector3.new(0, 0.5, 0)))
-		SkyCycle.torch(root, fire.Position + Vector3.new(4, -0.5, 0))
+		torch(fire.Position + Vector3.new(4, -0.5, 0), 180)
 		local tent = part("DriftCamp.tent", interactionPosition(camp.tent, 4), { x = 8, y = 4, z = 6 })
 		tent.Material, tent.Color = Enum.Material.Fabric, Color3.fromRGB(185, 165, 140)
 		tent.CFrame = CFrame.new(tent.Position) * CFrame.Angles(0, math.rad(camp.yaw), 0)
@@ -1443,7 +1594,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			Meshes.STRUCTURES.tent,
 			CFrame.new(tent.Position - Vector3.new(0, 2, 0)) * CFrame.Angles(0, math.rad(camp.yaw), 0)
 		)
-		rift("DriftCamp.rift", sailPoint("DriftCamp.riftBase", camp.rift, "rift", { x = 3, y = 1, z = 3 }))
+		-- The cleft faces the tent, so its 22-stud long side runs across the camp, not into it.
+		rift(
+			"DriftCamp.rift",
+			sailPoint("DriftCamp.riftBase", camp.rift, "rift", { x = 3, y = 1, z = 3 }),
+			nil,
+			tent.Position
+		)
 	end
 	--- The sail point ("dock" or "rift") the actor stands at, or nil. Dock prompts count as docks.
 	world.sailPoint = function(actor: string): string?
@@ -1475,6 +1632,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				}, 6)
 				local marker = part("IslandBoundary", position, { x = 1, y = 6, z = 1 })
 				marker.Color = Color3.fromRGB(214, 170, 72)
+				-- The signpost row is the visual; the post stays the invisible rank prompt handle.
+				Meshes.dress(marker, "town.road-sign", CFrame.new(marker.Position - Vector3.new(0, 3, 0)))
 				marker:SetAttribute("ForgeCell", cell.id)
 				marker:SetAttribute("ForgeCellRank", cell.rank)
 				marker:SetAttribute("ForgeCellMin", Vector3.new(b.min.x, b.min.y, b.min.z))
@@ -1495,7 +1654,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		world.roleSource.tribe.warehousePosition = { x = -16, y = 5, z = -4 }
 		world.roleSource.tribe.origin = { x = campPlot.x, y = 4, z = campPlot.z }
 		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
-		world.opening = require("./OpeningDirector").new(layout, root, nowMillis)
+		local Opening = require("./OpeningDirector")
+		world.opening = Opening.new(layout, root, nowMillis)
+		-- L5 opening.stake / opening.mirror rows; the peg and mirror Parts stay the prompt/glint handles.
+		Opening.dressProps(world.opening, function(target: BasePart, key: string, ground: CFrame): Instance?
+			return Meshes.dress(target, key, ground)
+		end)
 		-- D2 (R20): the composed beacon and Gannet take their B3 town-kit rows when those load; the
 		-- parts stay (hidden) because the prompts and the client fly-in live on Pole and Hull.
 		for _, model in { world.opening.beacon, world.opening.boat } do
@@ -1599,6 +1763,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						{ x = anchor.position.x + (index - 1) * 8, y = anchor.position.y, z = anchor.position.z }
 					local id = objective.id .. ":" .. tostring(index)
 					local target = part(id, position, { x = 2, y = 3, z = 2 })
+					-- A notice board renders the checkpoint; the invisible part keeps the prompt.
+					Meshes.dress(target, "town.notice-board", CFrame.new(target.Position - Vector3.new(0, 1.5, 0)))
 					-- The marker part is the journal reach target (SurvivalFactory, station reach rule).
 					world.journalTargets[id] =
 						{ position = position, objective = objective.id, marker = id, part = target }
@@ -1624,6 +1790,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						local id = objective.id .. "." .. tostring(index)
 						world.surveyMarkers[id] = { position = position, objective = objective.id, layout = layoutId }
 						local target = part(id, interactionPosition(position, 3), { x = 2, y = 3, z = 2 })
+						table.insert(surveyCairns, target)
 						local gui = Instance.new("BillboardGui")
 						gui.Size, gui.StudsOffset, gui.AlwaysOnTop =
 							UDim2.fromOffset(120, 32), Vector3.new(0, 4, 0), true
@@ -1646,6 +1813,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				end
 			end
 		end
+	end
+	if #surveyCairns > 0 then
+		task.spawn(function()
+			local templates = NodeMeshes.load(BiomeKits, Assets)
+			for _, cairn in surveyCairns do
+				if cairn.Parent then
+					NodeMeshes.dress(cairn, NodeMeshes.ROWS["node.survey-cairn"], templates, 0)
+				end
+			end
+		end)
 	end
 	local anchors = {}
 	for _, anchor in layout.anchors do
@@ -1708,8 +1885,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		npc.Position = Vector3.new(position.x, position.y, position.z)
 		npc:SetAttribute("Treated", state.treated)
 	end
+	-- Mission prompt visuals: supply crates for claims and deliveries, a bedroll where the castaway
+	-- is treated. The part stays the invisible prompt handle.
+	local missionRows = {
+		["bandage-claim"] = "town.crate-stack",
+		["rescue-treat"] = "bld.bed",
+		["cargo-claim"] = "town.crate-stack",
+		["cargo-deliver"] = "town.crate-stack",
+	}
 	local function missionPrompt(operation, position)
 		local target = part(operation, position, { x = 2, y = 3, z = 2 })
+		Meshes.dress(target, missionRows[operation], CFrame.new(target.Position - Vector3.new(0, 1.5, 0)))
 		local prompt = Instance.new("ProximityPrompt")
 		WorldText.bind(prompt, operation)
 		prompt.MaxActivationDistance, prompt.Parent = content.missionPolicy.interactionStuds, target
@@ -1756,6 +1942,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				z = box.depth,
 			})
 			value.Material, value.CanCollide = Enum.Material.WoodPlanks, box.canCollide
+			-- Timber module rows stretched to the collision box: posts, wall panels, floor decks and treads.
+			local tall = box.height > math.max(box.width, box.depth)
+			fitRow(
+				value,
+				if tall
+						and box.width <= 1
+						and box.depth <= 1
+					then "bld.timber.pillar"
+					elseif tall then "bld.timber.wall"
+					else "bld.timber.floor"
+			)
 			table.insert(buildingParts, value)
 		end
 	end
@@ -1767,9 +1964,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	local folder = Instance.new("Folder")
 	folder.Name, folder.Parent = "HomeStructures", root
+	local homeKits: any = nil
 	world.renderHome = function(parts)
 		local present = {}
+		local kitRows = {}
 		for _, definition in parts do
+			if definition.kind == "biome-kit" then
+				table.insert(kitRows, definition)
+				continue
+			end
 			present[definition.id] = true
 			local value = homeParts[definition.id]
 			if not value then
@@ -1860,7 +2063,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Land must exist before ray queries; home kits retain their authored offsets.
 		local meshedKits = {}
 		for _, definition in parts do
-			local row = if definition.kit then Meshes.DRESSING[definition.kitKind] else nil
+			local row = if definition.kit and definition.kitKind then Meshes.DRESSING[definition.kitKind] else nil
 			if row and meshRows[row] then
 				-- The kit's primitive parts stay as hidden handles; one mesh row renders the kit.
 				local value = homeParts[definition.id]
@@ -1896,8 +2099,31 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				child:Destroy()
 			end
 		end
+		-- Shore palms and other home B1 rows: real kit meshes on the land surface (asset-audit L2).
+		if #kitRows > 0 then
+			local placements: { any } = {}
+			for _, definition in kitRows do
+				table.insert(placements, {
+					key = definition.key,
+					family = definition.family,
+					x = definition.position.x,
+					y = definition.position.y,
+					z = definition.position.z,
+					yaw = definition.yaw,
+					scale = definition.scale,
+				})
+			end
+			local loaded = BiomeKits.load({ "beach" }, Assets)
+			if homeKits then
+				homeKits:Destroy()
+			end
+			homeKits = Instance.new("Folder")
+			homeKits.Name = "ForgeBiomeKits"
+			BiomeKits.place(homeKits, placements, loaded, probe)
+			homeKits.Parent = folder
+		end
 		for _, definition in parts do
-			if definition.kit and meshedKits[definition.kit] then
+			if (definition.kit and meshedKits[definition.kit]) or definition.kind == "biome-kit" then
 				continue
 			end
 			if definition.kind == "farm-plot" then
@@ -1917,6 +2143,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				end
 			end
 		end
+		-- Starter pads and the home dock read as plank decks, farm plots as planted beds; the parts
+		-- keep their collision and prompts (fitted after the farm plots are grounded above).
+		for _, definition in parts do
+			local value = homeParts[definition.id]
+			if value and (definition.kind == "starter-pad" or definition.kind == "dock") then
+				fitRow(value, "bld.timber.floor")
+			elseif value and definition.kind == "farm-plot" then
+				fitRow(value, "town.flower-bed")
+			end
+		end
 	end
 	-- Render after terrain is final; ranks from spawn drive client decor culling.
 	local origin = { x = spawn.Position.X, z = spawn.Position.Z }
@@ -1924,9 +2160,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local effectRanks = RenderBudget.rank(dressing.parts, origin, function(definition: any): boolean
 		return definition.effect ~= nil
 	end)
+	-- Town houses: a seeded cottage variant per house, the longhouse on large lots (L5 rows).
+	local houseRows: { [string]: string } = {}
+	for _, building in dressing.buildings do
+		if building.kind == "house" then
+			houseRows[building.id] =
+				Meshes.house(building.lot, Rng.new(seed):fork("town-house:" .. building.id):nextNumber())
+		end
+	end
 	for _, definition in dressing.parts do
 		-- A kit with a B3 mesh row renders as one mesh model at its ground point instead of Parts.
-		local row = if definition.kit then Meshes.DRESSING[definition.kitKind] else nil
+		local row = if definition.kit then houseRows[definition.kit] or Meshes.DRESSING[definition.kitKind] else nil
 		if row and meshRows[row] then
 			if not root:FindFirstChild(definition.kit) then
 				local ground = definition.ground
@@ -1961,11 +2205,34 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			value:SetAttribute("ForgeEffectRank", effectRanks[placed.id])
 		end
 	end
+	-- Lava glow, hot-spring steam and ash plumes (plan.effects): an invisible, non-colliding emitter
+	-- anchor per point on the ground, ranked like decor so the low profile caps them.
+	local emitters = {}
+	for _, point in dressing.effects do
+		table.insert(emitters, { id = point.id, position = point.position, decorative = true })
+	end
+	local emitterRanks = RenderBudget.rank(emitters, origin)
+	for _, point in dressing.effects do
+		local p = point.position
+		local y = if point.effect == "ash" and string.sub(point.id, 1, 8) == "offshore"
+			then p.y
+			else (probe(p.x, p.z) or p.y) + (if point.effect == "ash" then 12 else 0.5)
+		local anchor = part(point.id .. ".effect", { x = p.x, y = y, z = p.z }, { x = 1, y = 1, z = 1 })
+		anchor.Transparency, anchor.CastShadow = 1, false
+		anchor.CanCollide, anchor.CanTouch, anchor.CanQuery = false, false, false
+		addEffect(anchor, point.effect)
+		anchor:SetAttribute("ForgeDecorRank", emitterRanks[point.id])
+		anchor:SetAttribute("ForgeEffectRank", emitterRanks[point.id])
+	end
 	-- B1a mesh biome kits: seeded scatter on the shared terrain tops; package loads run off
 	-- the build path so a slow InsertService never delays the world.
 	if #columns > 0 then
 		task.spawn(function()
+			-- The seeded scatter plus the dressing plan's own rows (landmarks, hazard rims, arrival grove).
 			local placements = BiomeKits.plan(layout, columns, seed, Terrain)
+			for _, p in dressing.kits do
+				table.insert(placements, p)
+			end
 			local loaded = BiomeKits.load(BiomeKits.kitsFor(layout), Assets)
 			if root.Parent == nil then
 				return

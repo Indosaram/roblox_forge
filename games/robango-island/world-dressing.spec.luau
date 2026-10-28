@@ -8,9 +8,16 @@ local Home = require("../../core/domain/home/HomeState")
 local serde = require("@lune/serde")
 
 local function validate(layout: any, plan: any)
-	assert(#plan.parts <= 768 and #plan.props <= 96, "world art budget")
-	for _, prop in plan.props do
-		assert(not Terrain.protected(layout, prop.position.x, prop.position.z, 16), "prop blocks navigation")
+	assert(#plan.parts <= 768, "world art budget")
+	for _, p in plan.kits do
+		for _, path in layout.paths do
+			for i = 2, #path.points do
+				assert(
+					Terrain.distance(p.x, p.z, path.points[i - 1], path.points[i]) > path.width / 2,
+					p.id .. " stands on path " .. path.id
+				)
+			end
+		end
 	end
 end
 
@@ -90,105 +97,94 @@ return {
 			end
 		end
 	end,
-	["kit roots ground independently and canopy clusters never stack"] = function()
+	["B1 kit placements name real rows of the role's own kits"] = function()
+		local BiomeKits = require("./src/shared/BiomeKits")
 		for _, layout in Content.layouts :: any do
-			local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
-			for index, prop in plan.props do
-				for previous = 1, index - 1 do
-					local other = plan.props[previous].position
-					assert(
-						(prop.position.x - other.x) ^ 2 + (prop.position.z - other.z) ^ 2 >= 22 ^ 2,
-						"canopy spacing"
-					)
+			local columns = if layout.id == "rw.home" then {} else Terrain.columns(layout, 79, 32)
+			local plan = Dressing.plan(layout, columns, Terrain)
+			local allowed = BiomeKits.kitsFor(layout)
+			for _, p in plan.kits do
+				assert(table.find(allowed, p.kit), layout.id .. " " .. p.id .. " uses kit " .. p.kit)
+				local found = false
+				for _, row in BiomeKits.kits[p.kit] do
+					found = found or (row.key == p.key and row.family == p.family)
 				end
-			end
-			for _, part in plan.parts do
-				if string.find(part.id, "biome.", 1, true) or string.find(part.id, "understory.", 1, true) then
-					assert(part.ground and part.ground.y <= part.position.y + part.size.y, "kit requires terrain root")
-				end
-				if layout.art and part.id == layout.art.landmark.id .. ".crown.trunk1" then
-					assert(
-						part.ground.x > layout.art.landmark.position.x + layout.art.landmark.size.x / 2,
-						"tree must stand beside boulder"
-					)
-				end
+				assert(found, layout.id .. " " .. p.id .. " names unknown row " .. p.key)
+				assert(p.scale > 0 and p.scale <= 3, p.id .. " scale")
 			end
 		end
 	end,
-	["palm trunk segments chain and carry the crown in every role"] = function()
-		-- Cylinder axis is local X after CFrame.Angles(0, yaw, roll).
-		local function axis(part: any, sign: number): any
-			local r, y, h = math.rad(part.roll or 0), math.rad(part.yaw or 0), sign * part.size.x / 2
-			local x = math.cos(r) * h
-			return {
-				x = part.position.x + x * math.cos(y),
-				y = part.position.y + math.sin(r) * h,
-				z = part.position.z - x * math.sin(y),
-			}
-		end
-		local function gap(a: any, b: any): number
-			return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
-		end
-		local palms, coastal = 0, false
-		for _, layout in Content.layouts :: any do
-			local byId, plan = {}, Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
-			for _, part in plan.parts do
-				byId[part.id] = part
-			end
-			for _, part in plan.parts do
-				local kit = string.match(part.id, "^(.+)%.trunk4$")
-				if kit and byId[kit .. ".frond0.1-1"] then
-					palms += 1
-					coastal = coastal or layout.id == "rw.a1.s1"
-					for i = 2, 4 do
-						local d = gap(axis(byId[kit .. ".trunk" .. (i - 1)], 1), axis(byId[kit .. ".trunk" .. i], -1))
-						assert(d <= 0.1, "palm trunk gap " .. kit .. " " .. d)
-					end
-					local crown = byId[kit .. ".crown"]
-					local base = { x = crown.position.x, y = crown.position.y - crown.size.y / 2, z = crown.position.z }
-					assert(gap(base, axis(part, 1)) <= 0.3, "floating palm crown " .. kit)
-				end
-			end
-		end
-		assert(palms > 0 and coastal, "coastal grassland palms use the frond kit")
-	end,
-	["authored landmarks reach the production dressing plan"] = function()
+	["authored landmarks reach the production dressing plan as hero B1 rows"] = function()
 		local count = 0
 		for _, layout in Content.layouts :: any do
 			if layout.art then
 				count += 1
 				local landmark = layout.art.landmark
 				local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
-				local found = false
-				for _, part in plan.parts do
-					if part.id == landmark.id .. ".base" then
-						found = true
+				local found = 0
+				for _, p in plan.kits do
+					if p.id == landmark.id or string.sub(p.id, 1, #landmark.id + 1) == landmark.id .. "." then
+						found += 1
 						assert(
-							part.position.x == landmark.position.x and part.position.z == landmark.position.z,
-							"landmark position changed twice"
+							p.family == landmark.kind,
+							landmark.id .. " is a " .. landmark.kind .. ", got " .. p.family
 						)
+						local d = math.sqrt((p.x - landmark.position.x) ^ 2 + (p.z - landmark.position.z) ^ 2)
 						assert(
-							part.size.x == landmark.size.x and part.size.z == landmark.size.z,
-							"landmark footprint changed"
+							d <= math.max(landmark.size.x, landmark.size.z) / 2,
+							landmark.id .. " left its footprint"
 						)
 					end
 				end
-				assert(found, "authored landmark omitted: " .. layout.id)
+				assert(found >= 1, "authored landmark omitted: " .. layout.id)
 			end
 		end
 		assert(count == 20, "all authored expedition landmarks must ship")
 	end,
+	["paths are painted into terrain, never laid as parts"] = function()
+		for _, layout in Content.layouts :: any do
+			if layout.id == "rw.home" then
+				continue
+			end
+			local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
+			local strokes = 0
+			for _, stroke in plan.paint do
+				if stroke.shape == "segment" and stroke.material == "Ground" then
+					strokes += 1
+				end
+			end
+			local low, high = layout.bounds.min, layout.bounds.max
+			local function within(p: any): boolean
+				return p.x >= low.x and p.x <= high.x and p.z >= low.z and p.z <= high.z
+			end
+			local inside = 0
+			for _, path in layout.paths do
+				for i = 2, #path.points do
+					local a, b = path.points[i - 1], path.points[i]
+					local from = { x = math.clamp(a.x, low.x, high.x), z = math.clamp(a.z, low.z, high.z) }
+					local to = { x = math.clamp(b.x, low.x, high.x), z = math.clamp(b.z, low.z, high.z) }
+					if (within(a) or within(b)) and (from.x ~= to.x or from.z ~= to.z) then
+						inside += 1
+					end
+				end
+			end
+			assert(strokes == inside, layout.id .. " paints " .. strokes .. " of " .. inside .. " path segments")
+		end
+	end,
 	["volcano has luminous flows ash and hot spring effects"] = function()
-		local lava, ash, steam = false, false, false
+		local lava, ash, steam, crust = false, false, false, false
 		for _, layout in Content.layouts :: any do
 			local plan = Dressing.plan(layout, Terrain.columns(layout, 79, 32), Terrain)
-			for _, part in plan.parts do
-				lava = lava or (part.effect == "lava" and part.material == "Neon")
-				ash = ash or part.effect == "ash"
-				steam = steam or part.effect == "steam"
+			for _, effect in plan.effects do
+				lava = lava or effect.effect == "lava"
+				ash = ash or effect.effect == "ash"
+				steam = steam or effect.effect == "steam"
+			end
+			for _, stroke in plan.paint do
+				crust = crust or stroke.material == "CrackedLava"
 			end
 		end
-		assert(lava and ash and steam, "volcanic effects missing")
+		assert(lava and ash and steam and crust, "volcanic effects missing")
 	end,
 	["home camp includes crops storage fire and path without repeated awnings"] = function()
 		local rules = HomeContent.rules(Content)
@@ -243,12 +239,12 @@ return {
 			end
 		end
 	end,
-	["world dressing negative mutation rejects props inside objective and over budget"] = function()
+	["world dressing negative mutation rejects kit rows on a path and over budget"] = function()
 		local layout: any = (Content.layouts :: any)[1]
-		local p = layout.anchors[1].position
-		local plan: any = { parts = {}, props = { { position = p } } }
+		local on = layout.paths[1].points[1]
+		local plan: any = { parts = {}, kits = { { id = "mutant", x = on.x, z = on.z } } }
 		assert(not pcall(validate, layout, plan), "clearance mutation must fail")
-		plan.props = {}
+		plan.kits = {}
 		for i = 1, 769 do
 			plan.parts[i] = {}
 		end

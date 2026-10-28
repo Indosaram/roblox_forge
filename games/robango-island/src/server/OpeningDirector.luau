@@ -14,6 +14,32 @@ local M = {}
 
 M.SET_PIECE_TAG = "ForgeSetPiece"
 M.NEAR_FORD, M.NEAR_MARIT = 30, 20
+-- opening.mirror row: the pane centre sits 3.9 studs over the tripod's ground pivot (L5 ROWS).
+M.MIRROR_PANE = 3.9
+
+--- L5 mesh rows for the stakes and the mirror. `dress(part, key, ground)` hangs a row visual under
+--- a gameplay part and returns it (nil when the row is missing). A dressed stake keeps its peg
+--- Part as the invisible prompt handle (its cap, lashing and guy line hide too); the mirror Part
+--- moves to the pane centre and turns invisible, so the client glint light anchors on the pane.
+function M.dressProps(api: any, dress: (BasePart, string, CFrame) -> Instance?)
+	for _, stake in api.stakes do
+		local ground = stake.Position - Vector3.new(0, stake.Size.Y / 2, 0)
+		local visual = dress(stake, "opening.stake", CFrame.new(ground))
+		if visual then
+			for _, item in stake:GetDescendants() do
+				if item:IsA("BasePart") and not item:IsDescendantOf(visual) then
+					item.Transparency = 1
+				end
+			end
+		end
+	end
+	local mirror = api.mirror
+	local ground = mirror.Position - Vector3.new(0, mirror.Size.Y / 2, 0)
+	if dress(mirror, "opening.mirror", CFrame.new(ground)) then
+		mirror.Position = ground + Vector3.new(0, M.MIRROR_PANE, 0)
+		mirror.Transparency = 1
+	end
+end
 
 export type Ports = {
 	tutorial: (actor: string) -> (number?, boolean),
@@ -194,7 +220,8 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 			part.CanCollide = false
 		end
 	end
-	-- A mirror glint source on the ridge (the flash VFX is client-side).
+	-- A mirror glint source on the ridge (the flash VFX is client-side). RoleWorld hangs the
+	-- opening.mirror row under it and lifts it to the pane centre (MIRROR_PANE) once the row loads.
 	local mirror = block(
 		"OpeningMirror",
 		ground("opening.mirror-ridge", 1),

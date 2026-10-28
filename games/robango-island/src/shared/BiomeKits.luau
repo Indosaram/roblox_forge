@@ -307,10 +307,16 @@ end
 
 -- D2 F3: tall families stay out of an arrival clearing so the opening camera sees the player.
 -- The cold open frames the spawn from 150-260 studs at a 35-40 degree pitch (OpeningClient.shot),
--- the play camera from 95 studs at 57 degrees: a 60-stud canopy (buttress-giant at scale 1.1,
--- ~22 studs crown radius) clears the sight line only beyond ~100 studs at 35 degrees. Rocks top
--- out near 20 studs (a 16-stud slab at scale 1.2). Radii are flat studs from each arrival point.
-M.ARRIVAL_CLEAR = { tree = 112, rock = 40 } :: { [string]: number }
+-- the play camera from 95 studs at 57 degrees. A tree at flat distance d hides the spawn on the
+-- shallowest (35 degree) sight line unless its crown's near edge clears it:
+-- (d - crown radius) * tan(35) >= tree top. L3 caps the hero trees near 30 studs: the worst row is
+-- veg.grassland.oak-c (29.8 studs, x1.15 scale jitter = 34.3) and the widest crown
+-- veg.jungle.buttress-giant (28.3 studs across, x1.1 = 15.6 radius), so the sight line clears from
+-- 34.3 / tan(35) + 15.6 = 64.6 studs. 68 keeps a small margin; the old 112 was the same rule for
+-- a 60-stud canopy and left the spawn in an empty field. Rocks top out near 20 studs (a 16-stud
+-- slab at scale 1.2). Radii are flat studs from each arrival point.
+M.ARRIVAL_SIGHT = { pitch = 35, treeTop = 29.8 * 1.15, crownRadius = 28.3 * 1.1 / 2 }
+M.ARRIVAL_CLEAR = { tree = 68, rock = 40 } :: { [string]: number }
 
 --- Archipelago stage arrival (RoleWorld spawn): beside the nearest yard gather node, inside its
 --- 8-stud prompt range, 32 studs up the `.main` path from its third point. nil on other roles.

@@ -297,7 +297,15 @@ function M.applyFire(light: any, state: any)
 	light.Shadows = false
 end
 
-function M.torch(parent: Instance, at: Vector3): BasePart
+-- Lantern glass of the town.lamp-post row in the row's local frame (gen_buildings.lamp_post).
+M.TORCH_LANTERN = { x = 1.6, y = 6.6, z = 0 }
+
+--- A warm light post at `at` (ground). `post(frame)` may place a mesh row (town.lamp-post) at
+--- that ground frame: then the primitive pole and head turn invisible, the head (the light host
+--- SkyDriver strengthens at night) moves into the lantern glass and drops its open flame, and the
+--- row's own lantern light is removed so the post keeps exactly one warm light. Without a row the
+--- primitive pole and burning head stay. `yaw` turns the lantern arm (degrees).
+function M.torch(parent: Instance, at: Vector3, yaw: number?, post: ((CFrame) -> Instance?)?): BasePart
 	local pole = Instance.new("Part")
 	pole.Name, pole.Anchored, pole.Size = "ForgeTorchPole", true, Vector3.new(0.5, 5, 0.5)
 	pole.Material, pole.Color = Enum.Material.Wood, Color3.fromRGB(96, 66, 40)
@@ -315,6 +323,20 @@ function M.torch(parent: Instance, at: Vector3): BasePart
 	fire.Size, fire.Heat, fire.Parent = 1.5, 3, head
 	local light = Instance.new("PointLight")
 	light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 150, 70), 0.8, 10, head
+	local frame = CFrame.new(at) * CFrame.Angles(0, math.rad(yaw or 0), 0)
+	local row = if post then post(frame) else nil
+	if row then
+		for _, item in row:GetDescendants() do
+			if item:IsA("PointLight") then
+				item:Destroy()
+			end
+		end
+		pole.Transparency, head.Transparency = 1, 1
+		fire:Destroy()
+		local lantern = M.TORCH_LANTERN
+		head.CFrame = frame * CFrame.new(lantern.x, lantern.y, lantern.z)
+		head.Position = head.CFrame.Position
+	end
 	return head
 end
 
