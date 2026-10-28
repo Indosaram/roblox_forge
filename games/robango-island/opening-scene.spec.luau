@@ -135,6 +135,31 @@ return {
 		assert(later.strikeAt == Scene.CHARGE_MILLIS, "real-time charge")
 		assert(first.strikeAt - later.strikeAt == math.floor(1200 * 0.65 + 0.5), "slow window delays the strike")
 	end,
+	["the boar run starts in the play camera's frame and ends at the player (D2b R04)"] = function()
+		local lane: any = nil
+		for _, layout in Content.layouts do
+			if layout.id == "rw.onboarding" then
+				for _, entry in layout.anchors do
+					lane = if entry.id == "opening.boar-lane" then entry.position else lane
+				end
+			end
+		end
+		assert(lane, "boar lane anchor")
+		-- D2b stood at (14, 84) for the whole dodge beat: 33 studs from the lane, out of frame.
+		for _, p in { { 14, 84 }, { 12, 66 }, { -40, 120 }, { 28, 54 } } do
+			local sx, sz = Scene.chargeFrom(lane.x, lane.z, p[1], p[2])
+			local reach = math.sqrt((sx - p[1]) ^ 2 + (sz - p[2]) ^ 2)
+			assert(reach <= Scene.CHARGE_REACH + 1e-6, "run starts within reach: " .. reach)
+			assert(Scene.CHARGE_REACH <= 14.4, "reach fits the closest quarter-view zoom")
+			local ex, ez = Scene.chargeAt(sx, sz, p[1], p[2], 1)
+			assert(ex == p[1] and ez == p[2], "run ends at the player")
+			local mx, mz = Scene.chargeAt(sx, sz, p[1], p[2], 0.5)
+			assert(math.abs(mx - (sx + p[1]) / 2) < 1e-6 and math.abs(mz - (sz + p[2]) / 2) < 1e-6, "midway")
+		end
+		-- The run keeps the lane's side: the boar comes from the lane, not from behind the player.
+		local sx, sz = Scene.chargeFrom(lane.x, lane.z, 14, 84)
+		assert((sx - 14) * (lane.x - 14) + (sz - 84) * (lane.z - 84) > 0, "same side as the lane")
+	end,
 	["skip: the cold open ends on skip, or by itself after its budget"] = function()
 		local state = Scene.new(0)
 		local events, emit = recorder()

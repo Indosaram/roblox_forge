@@ -686,6 +686,9 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	forge.games["robango-island"].src.shared.BiomeKits = load("games/robango-island/src/shared/BiomeKits.luau", {
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
 	}, nil)
+	-- NodeMeshes builds CFrames through engine globals; specs inject node templates via setTemplates.
+	forge.games["robango-island"].src.shared.NodeMeshes =
+		load("games/robango-island/src/shared/NodeMeshes.luau", {}, nil)
 	-- SkyCycle writes Lighting through engine globals, so it loads in the fake environment.
 	forge.games["robango-island"].src.shared.SkyCycle = load("games/robango-island/src/shared/SkyCycle.luau", {
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),

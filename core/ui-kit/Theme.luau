@@ -53,6 +53,37 @@ Theme.default = {
 	textSizes = { title = 24, body = 18, small = 14 },
 } :: Theme
 
+-- Panel shell tokens ("sheet shell"): the one look every docked side sheet shares. Our own shape
+-- language: a warm parchment body framed in a wood rim, a leather header with icon + title + round
+-- close, ink text left-aligned in rows, sea-glass buttons. Text sizes scale with the safe height H
+-- of the sheet's ScreenGui ({ floor, cap } px, floor at H = 360) and never drop under 14 px.
+Theme.sheet = table.freeze({
+	colors = table.freeze({
+		body = { r = 236, g = 226, b = 203 },
+		rim = { r = 122, g = 92, b = 62 },
+		header = { r = 74, g = 52, b = 36 },
+		headerText = { r = 246, g = 238, b = 220 },
+		ink = { r = 38, g = 30, b = 24 },
+		inkMuted = { r = 92, g = 76, b = 60 },
+		chip = { r = 222, g = 208, b = 178 },
+		marker = { r = 58, g = 128, b = 118 },
+		button = { r = 58, g = 96, b = 88 },
+		buttonText = { r = 246, g = 238, b = 220 },
+		disabled = { r = 196, g = 186, b = 166 },
+		disabledText = { r = 70, g = 58, b = 46 },
+		close = { r = 176, g = 72, b = 52 },
+	}),
+	text = table.freeze({ title = { 18, 22 }, body = { 14, 16 }, small = { 14, 14 } }),
+	minText = 14,
+	space = table.freeze({ pad = 12, gap = 8, header = 44, close = 44, icon = 30, row = 44, marker = 8, corner = 10 }),
+})
+
+--- Shell text size in px for `style` (title, body, small) in a gui `safeHeight` px tall.
+function Theme.sheetText(style: string, safeHeight: number): number
+	local row = Theme.sheet.text[style] or Theme.sheet.text.body
+	return math.max(Theme.sheet.minText, math.clamp(math.floor(row[1] * safeHeight / 360 + 0.5), row[1], row[2]))
+end
+
 local function deepMerge(base: any, overrides: any): any
 	if type(base) ~= "table" or type(overrides) ~= "table" then
 		return overrides

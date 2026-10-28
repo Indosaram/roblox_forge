@@ -11,6 +11,9 @@ Every row is one mesh named by its catalog key. Extra meshes on a row use a suff
   <key>__ember fire anchor (Fire + PointLight at load)
   <key>__glow  emissive rift fissure / lantern glass
   <key>__tag   cloth recoloured at runtime (plot tag, clan banner)
+  <key>__wall  L5 house walls above the wainscot (second cut-away layer: walls fade with the roof)
+  <key>__lamp  L5 warm window panes / door lanterns (warm Neon + PointLight, no Fire)
+  <key>__halo  rift shard halo
 All rows share ONE 1024 atlas (albedo + normal + roughness): log, plank, thatch, canvas, rope,
 stone, brick, clay, slate, tile, metal, hide, char, solids, teal cloth, sea-glass.
 Shapes are our own: no reference-game models were traced. Seed 4310.
@@ -40,6 +43,9 @@ SOLIDS = {"ember": (0, 0), "leaf": (1, 0), "flower": (0, 1), "glow": (1, 1)}
 SPAN = {"log": 5, "plank": 6, "thatch": 6, "canvas": 7, "rope": 2, "stone": 6, "brick": 5,
         "clay": 6, "slate": 6, "tile": 6, "metal": 3, "hide": 4, "char": 5, "teal": 4, "seaglass": 5}
 MARGIN = 0.02
+# Tiles whose texture has a fixed "up" (courses, shingles, reed fall line): V follows world up on
+# walls and the fall line on roofs. Grain tiles (log, plank, rope, metal) follow the longest edge.
+UPRIGHT = {"thatch", "canvas", "stone", "brick", "clay", "slate", "tile", "hide", "char", "teal", "seaglass"}
 
 
 def tile_rect(tile):
@@ -61,7 +67,7 @@ class MB:
     def __init__(self):
         self.faces = []  # (points, tile)
 
-    def face(self, pts, tile, center=None):
+    def face(self, pts, tile, center=None, uvs=None):
         """center: a point inside the closed primitive; the face is wound to point away from it,
         because Roblox culls back faces (single-sided meshes)."""
         pts = [Vector(p) for p in pts]
@@ -73,43 +79,42 @@ class MB:
             mid = sum(pts, Vector((0, 0, 0))) / len(pts)
             if n.dot(mid - Vector(center)) < 0:
                 pts = list(reversed(pts))
-        self.faces.append((pts, tile))
+                uvs = list(reversed(uvs)) if uvs else uvs
+        self.faces.append((pts, tile, uvs))
 
     def tris(self):
-        return sum(len(p) - 2 for p, _ in self.faces)
+        return sum(len(p) - 2 for p, _, _ in self.faces)
+
+    @staticmethod
+    def chunks(pts, tile):
+        """Long quads are split along their long side so each piece maps to at most ~one tile span
+        (an atlas tile cannot repeat, so one long face would otherwise squeeze or stretch)."""
+        if len(pts) != 4 or tile in SOLIDS:
+            return [pts]
+        p0, p1, p2, p3 = pts
+        span = SPAN.get(tile, 6)
+        a, b = (p1 - p0).length, (p2 - p1).length
+        k = min(6, max(1, math.ceil(max(a, b) / (span * 1.15))))
+        if k == 1:
+            return [pts]
+        out = []
+        for i in range(k):
+            s, t = i / k, (i + 1) / k
+            if a >= b:
+                out.append([p0.lerp(p1, s), p0.lerp(p1, t), p3.lerp(p2, t), p3.lerp(p2, s)])
+            else:
+                out.append([p0.lerp(p3, s), p1.lerp(p2, s), p1.lerp(p2, t), p0.lerp(p3, t)])
+        return out
 
     def build(self, name):
         bm = bmesh.new()
         uv = bm.loops.layers.uv.new("UVMap")
-        for pts, tile in self.faces:
-            vs = [bm.verts.new(p) for p in pts]
-            try:
-                f = bm.faces.new(vs)
-            except ValueError:
+        for whole, tile, uvs in self.faces:
+            if uvs:
+                self._mapped(bm, uv, whole, tile, uvs)
                 continue
-            u0, v0, du, dv = tile_rect(tile)
-            if dv == 0.0:
-                for loop in f.loops:
-                    loop[uv].uv = (u0 + random.random() * du, v0 - random.random() * du * 0.5)
-                continue
-            n = f.normal if f.normal.length > 1e-6 else Vector((0, 0, 1))
-            t1 = (pts[1] - pts[0])
-            if t1.length < 1e-6:
-                t1 = Vector((1, 0, 0))
-            t1.normalize()
-            t2 = n.cross(t1).normalized()
-            co = [((p - pts[0]).dot(t1), (p - pts[0]).dot(t2)) for p in pts]
-            mx, my = min(c[0] for c in co), min(c[1] for c in co)
-            ex = max(c[0] for c in co) - mx
-            ey = max(c[1] for c in co) - my
-            span = SPAN.get(tile, 6)
-            s = 1.0 / max(span, ex, ey, 1e-3)
-            ox = random.random() * max(0.0, 1 - ex * s)
-            oy = random.random() * max(0.0, 1 - ey * s)
-            for loop, c in zip(f.loops, co):
-                a = ox + (c[0] - mx) * s
-                b = oy + (c[1] - my) * s
-                loop[uv].uv = (u0 + (MARGIN + a * (1 - 2 * MARGIN)) * du, v0 + (MARGIN + b * (1 - 2 * MARGIN)) * dv)
+            for pts in self.chunks(whole, tile):
+                self._face(bm, uv, pts, tile)
         bm.normal_update()
         me = bpy.data.meshes.new(name)
         bm.to_mesh(me)
@@ -117,6 +122,61 @@ class MB:
         obj = bpy.data.objects.new(name, me)
         bpy.context.scene.collection.objects.link(obj)
         return obj
+
+    @staticmethod
+    def _mapped(bm, uv, pts, tile, uvs):
+        try:
+            f = bm.faces.new([bm.verts.new(p) for p in pts])
+        except ValueError:
+            return
+        u0, v0, du, dv = tile_rect(tile)
+        for loop, (a, b) in zip(f.loops, uvs):
+            loop[uv].uv = (u0 + (MARGIN + a * (1 - 2 * MARGIN)) * du, v0 + (MARGIN + b * (1 - 2 * MARGIN)) * dv)
+
+    @staticmethod
+    def _face(bm, uv, pts, tile):
+        vs = [bm.verts.new(p) for p in pts]
+        try:
+            f = bm.faces.new(vs)
+        except ValueError:
+            return
+        u0, v0, du, dv = tile_rect(tile)
+        if dv == 0.0:
+            for loop in f.loops:
+                loop[uv].uv = (u0 + random.random() * du, v0 - random.random() * du * 0.5)
+            return
+        # Newell normal from the points: bmesh face normals are zero until normal_update(), which
+        # left every vertical face with a degenerate V axis (the B3 "streak" stretch).
+        n = Vector((0, 0, 0))
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            n += Vector(((a.y - b.y) * (a.z + b.z), (a.z - b.z) * (a.x + b.x), (a.x - b.x) * (a.y + b.y)))
+        if n.length < 1e-9:
+            return
+        n.normalize()
+        # V follows the grain: the longest edge (logs, planks, posts), or the fall line on roofs.
+        edges = [pts[(i + 1) % len(pts)] - pts[i] for i in range(len(pts))]
+        if tile in UPRIGHT and abs(n.z) < 0.9:
+            grain = Vector((0, 0, 1)) - n * n.z
+        else:
+            grain = max(edges, key=lambda e: e.length).copy()
+        grain -= n * grain.dot(n)
+        if grain.length < 1e-6:
+            grain = n.orthogonal()
+        t2 = grain.normalized()
+        t1 = t2.cross(n).normalized()
+        co = [((p - pts[0]).dot(t1), (p - pts[0]).dot(t2)) for p in pts]
+        mx, my = min(c[0] for c in co), min(c[1] for c in co)
+        ex = max(c[0] for c in co) - mx
+        ey = max(c[1] for c in co) - my
+        span = SPAN.get(tile, 6)
+        s = 1.0 / max(span, ex, ey, 1e-3)
+        ox = random.random() * max(0.0, 1 - ex * s)
+        oy = random.random() * max(0.0, 1 - ey * s)
+        for loop, c in zip(f.loops, co):
+            a = ox + (c[0] - mx) * s
+            b = oy + (c[1] - my) * s
+            loop[uv].uv = (u0 + (MARGIN + a * (1 - 2 * MARGIN)) * du, v0 + (MARGIN + b * (1 - 2 * MARGIN)) * dv)
 
 
 def rot(r):
@@ -192,12 +252,20 @@ def lathe(mb, c, prof, tile, n=10, close_top=True, close_bottom=False, jitter=0.
 
 
 def sheet(mb, p00, p10, p01, nu, nv, tile, sag=0.0, both=True, noise=0.0):
-    """Subdivided cloth/hide sheet spanning p00->p10 (u) and p00->p01 (v); sags along -Z."""
+    """Subdivided cloth/hide sheet spanning p00->p10 (u) and p00->p01 (v); sags along -Z.
+    The whole sheet maps continuously into one atlas tile (V up the cloth, so the hem grime of
+    the cloth tiles sits on the lowest edge) instead of one random patch per cell."""
     p00, p10, p01 = Vector(p00), Vector(p10), Vector(p01)
     du, dv = p10 - p00, p01 - p00
-    G = []
+    span = SPAN.get(tile, 6)
+    su = min(1.0, du.length / span)
+    sv = min(1.0, dv.length / span)
+    flip = p01.z < p00.z  # keep V pointing up the cloth
+    ou = random.random() * (1 - su)
+    ov = random.random() * (1 - sv)
+    G, T = [], []
     for j in range(nv + 1):
-        row = []
+        row, trow = [], []
         for i in range(nu + 1):
             u, v = i / nu, j / nv
             p = p00 + du * u + dv * v
@@ -205,13 +273,16 @@ def sheet(mb, p00, p10, p01, nu, nv, tile, sag=0.0, both=True, noise=0.0):
             if noise:
                 p.z += random.uniform(-noise, noise)
             row.append(p)
+            trow.append((ou + u * su, ov + ((1 - v) if flip else v) * sv))
         G.append(row)
+        T.append(trow)
     for j in range(nv):
         for i in range(nu):
             q = [G[j][i], G[j][i + 1], G[j + 1][i + 1], G[j + 1][i]]
-            mb.face(q, tile)
+            t = [T[j][i], T[j][i + 1], T[j + 1][i + 1], T[j + 1][i]]
+            mb.face(q, tile, uvs=t)
             if both:
-                mb.face(list(reversed(q)), tile)
+                mb.face(list(reversed(q)), tile, uvs=list(reversed(t)))
 
 
 def rock(mb, c, s, tile="stone", n=6):
@@ -1112,6 +1183,542 @@ def beacon_tower(m, cut, ex):
         log(m, (random.uniform(-4, 4), -4.2, 0.3), (random.uniform(-4, 4), 4.2, 0.4), 0.35)
 
 
+# ---------------------------------------------------------------- L5: town houses, plot fences, opening props
+# Houses: the door faces Blender +Y (Roblox -Z), ridge along X, pivot = ground centre of the walls.
+#   <key>        footing, plank floor, wainscot (lowest wall course), corner posts, door frame,
+#                porch deck, interior props, yard dressing (always visible)
+#   <key>__wall  wall panels/logs above the wainscot and gable fills (fade: walls)
+#   <key>__cut   roof courses, ridge, barge boards, chimney stack above the eave, porch roof (fade: roof)
+#   <key>__lamp  warm window panes and the door lantern (L8: warm Neon + PointLight, no Fire)
+WAINSCOT = 1.4
+
+
+def wall_run(mb, a, b, z0, z1, t, tile, holes=()):
+    """Straight wall a->b (XY) from z0 to z1, thickness t; holes: (s along the run, width, h0, h1)."""
+    a, b = Vector((a[0], a[1], 0)), Vector((b[0], b[1], 0))
+    length = (b - a).length
+    d = (b - a).normalized()
+    ang = math.degrees(math.atan2(d.y, d.x))
+
+    def piece(s0, s1, h0, h1):
+        if s1 - s0 < 0.05 or h1 - h0 < 0.05:
+            return
+        c = a + d * ((s0 + s1) / 2)
+        box(mb, (c.x, c.y, (h0 + h1) / 2), (s1 - s0, t, h1 - h0), tile, r=(0, 0, ang))
+
+    s = 0.0
+    for hs, hw, h0, h1 in sorted(holes):
+        piece(s, hs - hw / 2, z0, z1)
+        piece(hs - hw / 2, hs + hw / 2, z0, max(z0, h0))
+        piece(hs - hw / 2, hs + hw / 2, min(z1, h1), z1)
+        s = hs + hw / 2
+    piece(s, length, z0, z1)
+
+
+def gable_fill(mb, x, d, z0, z1, t, tile):
+    """Triangular gable end in the YZ plane at x (base width d), closed both sides."""
+    inner = Vector((x, 0, z0 + (z1 - z0) * 0.3))
+    for off in (-t / 2, t / 2):
+        tri = [(x + off, -d / 2, z0), (x + off, d / 2, z0), (x + off, 0, z1)]
+        mb.face(tri, tile, center=inner)
+    for k in range(2):
+        p, q = ((x, -d / 2, z0), (x, 0, z1)) if k == 0 else ((x, 0, z1), (x, d / 2, z0))
+        mb.face([(x - t / 2, p[1], p[2]), (x + t / 2, p[1], p[2]), (x + t / 2, q[1], q[2]), (x - t / 2, q[1], q[2])],
+                tile, center=inner)
+
+
+def course_roof(cut, length, depth, eave, ridge, tile, courses=6, over=1.2, thick=0.3, tilt=4.0):
+    """Gable roof (ridge along X) of overlapping courses. Each course is a few degrees steeper
+    than the roof plane so its butt edge kicks out: a shingle / thatch read at the town camera."""
+    half = depth / 2 + over
+    rise = ridge - eave
+    a2 = math.atan2(rise, half) + math.radians(tilt)
+    slope = math.hypot(half, rise)
+    seg = slope / courses * 1.4
+    for s in (-1, 1):
+        for k in range(courses):
+            f1 = (k + 1) / courses
+            py, pz = half * (1 - f1), eave - 0.25 + rise * f1
+            yc = py + math.cos(a2) * seg / 2 + math.sin(a2) * thick / 2
+            zc = pz - math.sin(a2) * seg / 2 + math.cos(a2) * thick / 2
+            box(cut, (random.uniform(-0.08, 0.08), s * yc, zc),
+                (length + over * 2 + random.uniform(-0.2, 0.2), seg, thick), tile,
+                r=(-s * math.degrees(a2) + random.uniform(-0.8, 0.8), 0, random.uniform(-0.4, 0.4)))
+        for x in (-length / 2 - over, length / 2 + over):  # barge boards
+            log(cut, (x, s * (half + 0.1), eave - 0.4), (x, 0, ridge + 0.3), 0.16, n=5)
+    log(cut, (-length / 2 - over - 0.3, 0, ridge + 0.4), (length / 2 + over + 0.3, 0, ridge + 0.4), 0.34, n=6)
+
+
+def window(walls, lamp, p, out, w, h):
+    """Frame + open plank shutters (walls) and a warm pane set into the wall (lamp).
+    p: centre on the wall's outer face; out: outward unit vector (axis aligned)."""
+    facing_y = abs(out.y) > 0.5
+    along = Vector((1, 0, 0)) if facing_y else Vector((0, 1, 0))
+
+    def sz(a, o, z):  # size along the wall, outward, vertical
+        return (a, o, z) if facing_y else (o, a, z)
+
+    box(lamp, p - out * 0.25, sz(w, 0.1, h), "ember")
+    for k in (-1, 1):
+        box(walls, p + along * (k * w / 2) + out * 0.08, sz(0.22, 0.3, h + 0.3), "log")
+        box(walls, p + Vector((0, 0, k * h / 2)) + out * 0.1, sz(w + 0.5, 0.32, 0.22), "plank")
+        box(walls, p + along * (k * (w * 0.78)) + out * 0.22, sz(w * 0.5, 0.12, h + 0.2), "plank",
+            r=(0, 0, k * 10 * (1 if (out.y + out.x) > 0 else -1)))
+    box(walls, p + out * 0.1, sz(0.12, 0.25, h), "log")  # mullion
+
+
+def footing(m, length, depth, h):
+    box(m, (0, 0, h / 2 - 0.2), (length + 0.8, depth + 0.8, h + 0.4), "stone")
+    for i in range(int((length + depth) * 0.7)):  # loose stones along the base
+        t = random.random()
+        if random.random() < 0.5:
+            p = (-length / 2 + t * length, random.choice((-1, 1)) * (depth / 2 + 0.5))
+        else:
+            p = (random.choice((-1, 1)) * (length / 2 + 0.5), -depth / 2 + t * depth)
+        rock(m, (p[0], p[1], 0), random.uniform(0.6, 1.0), "stone", n=5)
+
+
+def plank_floor(m, length, depth, z):
+    n = max(2, int(depth / 1.6))
+    for i in range(n):
+        y = -depth / 2 + (i + 0.5) * depth / n
+        box(m, (0, y, z), (length, depth / n - 0.06, 0.2), "plank", r=(0, 0, random.uniform(-0.2, 0.2)))
+
+
+def interior(m, length, depth, z, long=False):
+    """Readable props for the R16-3 cut-away view: bed(s), table, chest, pots, rug."""
+    beds = (-length / 2 + 2.2,) if not long else (-length / 2 + 2.2, -length / 2 + 5.6)
+    for bx in beds:
+        box(m, (bx, -depth / 2 + 2.0, z + 0.45), (2.6, 3.2, 0.6), "plank")
+        box(m, (bx, -depth / 2 + 2.1, z + 0.85), (2.3, 2.9, 0.25), "canvas")
+        box(m, (bx, -depth / 2 + 1.0, z + 1.05), (1.6, 0.7, 0.3), "hide")
+    tx = length / 2 - 3.0
+    box(m, (tx, 0.4, z + 1.25), (2.8, 1.8, 0.2), "plank")
+    for dx in (-1.1, 1.1):
+        box(m, (tx + dx, 0.4, z + 0.6), (0.25, 1.4, 1.2), "log")
+    for dy in (-1.5, 2.3):
+        box(m, (tx, 0.4 + dy * 0.8, z + 0.5), (2.2, 0.5, 0.2), "plank")
+    box(m, (length / 2 - 1.5, -depth / 2 + 1.5, z + 0.55), (1.6, 1.0, 1.1), "plank")  # chest
+    box(m, (length / 2 - 1.5, -depth / 2 + 1.5, z + 0.75), (1.66, 1.06, 0.15), "metal")
+    sheet(m, (-1.6, -1.0, z + 0.13), (1.6, -1.0, z + 0.13), (-1.6, 1.4, z + 0.13), 2, 2, "hide", both=False)
+    for i in range(2):
+        lathe(m, (-0.6 + i * 0.9, -depth / 2 + 1.0, z), [(0.35, 0), (0.45, 0.5), (0.3, 0.9)], "clay", n=7)
+
+
+def house(m, cut, ex, length, depth, wall_h, rise, roof_tile, wall_tile, chimney=None, porch=False,
+          courses=6, thick=0.3, logs=False, stone_lower=False, long=False, walls_mb=None):
+    """Shared house body. walls_mb: where the walls go (default ex["wall"]; the clan hall keeps
+    walls in __cut so the existing G24 cut-away fades them)."""
+    walls, lamp = walls_mb or ex["wall"], ex["lamp"]
+    base = 0.9
+    footing(m, length, depth, base)
+    plank_floor(m, length - 0.8, depth - 0.8, base + 0.1)
+    top = base + wall_h
+    hl, hd = length / 2, depth / 2
+    dw, dh = 2.6, 4.4
+    t = 0.7
+    wz, wh, ww = base + 3.0, 1.6, 1.8
+    win = lambda s, w=ww: (s, w, wz - wh / 2, wz + wh / 2)
+    front = [(hl, dw, base, base + dh), win(hl * 0.4), win(length - hl * 0.4)]
+    if long:
+        front = [(hl, dw, base, base + dh), win(length * 0.18), win(length * 0.36), win(length * 0.64),
+                 win(length * 0.82)]
+    back = [win(hl * 0.6), win(length - hl * 0.6)] if long else [win(hl)]
+    side = [win(hd)]
+    # runs go counter-clockwise seen from above so the outward normal is to the right
+    runs = [((hl, hd), (-hl, hd), front, Vector((0, 1, 0))), ((-hl, -hd), (hl, -hd), back, Vector((0, -1, 0))),
+            ((-hl, hd), (-hl, -hd), side, Vector((-1, 0, 0))), ((hl, -hd), (hl, hd), side, Vector((1, 0, 0)))]
+    for a, b, holes, out in runs:
+        door_only = [h for h in holes if h[2] <= base + 0.01]
+        wall_run(m, a, b, base, base + WAINSCOT, t, "stone" if stone_lower else wall_tile, door_only)
+        if stone_lower:
+            mid = base + wall_h * 0.48
+            wall_run(walls, a, b, base + WAINSCOT, mid, t, "stone", holes)
+            wall_run(walls, a, b, mid, top, t * 0.8, wall_tile, holes)
+            box(walls, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, mid),
+                (abs(b[0] - a[0]) + t + 0.2, abs(b[1] - a[1]) + t + 0.2, 0.3), "log")
+        elif logs:
+            run_len = (Vector(b) - Vector(a)).length
+            d = (Vector((b[0], b[1], 0)) - Vector((a[0], a[1], 0))).normalized()
+            n = int(round((wall_h - WAINSCOT) / 0.9))
+            for k in range(n):
+                z = base + WAINSCOT + 0.45 + k * 0.9
+                cuts, s0 = [], 0.0
+                for hs, hw, h0, h1 in sorted(holes):
+                    if h0 - 0.3 < z < h1 + 0.3:
+                        cuts.append((s0, hs - hw / 2))
+                        s0 = hs + hw / 2
+                cuts.append((s0, run_len))
+                for p0, p1 in cuts:
+                    e0 = 0.8 if p0 == 0.0 else 0.0  # notched corner overhang
+                    e1 = 0.8 if p1 == run_len else 0.0
+                    if p1 - p0 < 0.3:
+                        continue
+                    A = Vector((a[0], a[1], z)) + d * (p0 - e0)
+                    B = Vector((a[0], a[1], z)) + d * (p1 + e1)
+                    log(walls, A, B, 0.47, n=6)
+        else:
+            wall_run(walls, a, b, base + WAINSCOT, top, t, wall_tile, holes)
+            d = (Vector((b[0], b[1], 0)) - Vector((a[0], a[1], 0)))
+            for f in (0.25, 0.75):  # vertical battens between openings
+                p = Vector((a[0], a[1], 0)) + d * f + out * (t / 2 + 0.08)
+                if all(abs(f * d.length - hs) > hw / 2 + 0.4 for hs, hw, _, _ in holes):
+                    box(walls, (p.x, p.y, (base + WAINSCOT + top) / 2), (0.3, 0.3, top - base - WAINSCOT), "log")
+        for hs, hw, h0, h1 in holes:
+            if h0 <= base + 0.01:
+                continue
+            d = (Vector((b[0], b[1], 0)) - Vector((a[0], a[1], 0))).normalized()
+            p = Vector((a[0], a[1], 0)) + d * hs + out * (t / 2) + Vector((0, 0, (h0 + h1) / 2))
+            window(walls, lamp, p, out, hw, h1 - h0)
+        if not logs:
+            box(walls, ((a[0] + b[0]) / 2 + out.x * 0.05, (a[1] + b[1]) / 2 + out.y * 0.05, top - 0.15),
+                (abs(b[0] - a[0]) + 0.6 if abs(out.y) > 0.5 else t + 0.2,
+                 abs(b[1] - a[1]) + 0.6 if abs(out.x) > 0.5 else t + 0.2, 0.35), "log")  # top plate
+    if not logs:
+        for x in (-hl, hl):
+            for y in (-hd, hd):
+                box(m, (x, y, (base + top) / 2), (0.8, 0.8, top - base + 0.1), "log")
+    for x in (-hl, hl):
+        gable_fill(walls, x, depth + 0.4, top, top + rise - 0.3, t * 0.8, "plank")
+    # door: frame + lintel stay on the main mesh so the doorway reads with the walls faded
+    for dx in (-dw / 2 - 0.2, dw / 2 + 0.2):
+        box(m, (dx, hd, base + dh / 2), (0.4, t + 0.3, dh), "log")
+    box(m, (0, hd, base + dh + 0.2), (dw + 1.0, t + 0.3, 0.4), "log")
+    for i in range(3):  # plank leaf, ajar inward
+        box(walls, (-dw / 2 + 0.45 + i * 0.85, hd - 0.6 - i * 0.28, base + dh / 2), (0.82, 0.16, dh - 0.1), "plank",
+            r=(0, 0, 18))
+    box(m, (0, hd + 1.0, base * 0.5), (dw + 1.4, 1.6, base), "stone")  # threshold step
+    course_roof(cut, length, depth, top, top + rise, roof_tile, courses=courses, thick=thick)
+    box(m, (dw / 2 + 0.9, hd + 0.6, base + dh), (0.12, 0.9, 0.12), "metal")  # door lantern
+    box(m, (dw / 2 + 0.9, hd + 1.0, base + dh - 0.55), (0.55, 0.55, 0.75), "metal")
+    box(lamp, (dw / 2 + 0.9, hd + 1.0, base + dh - 0.55), (0.42, 0.58, 0.52), "ember")
+    if chimney:
+        cx, cy = chimney
+        h_top = top + rise + 1.2
+        box(m, (cx, cy, (base + top) / 2), (1.7, 1.7, top - base), "stone")
+        box(cut, (cx, cy, (top + h_top) / 2), (1.6, 1.6, h_top - top), "stone")
+        box(cut, (cx, cy, h_top + 0.15), (2.0, 2.0, 0.3), "slate")
+    if porch:
+        pd = 3.2
+        pw = min(length * 0.6, 12.0)
+        box(m, (0, hd + pd / 2 + 0.3, base - 0.05), (pw, pd, 0.3), "plank")
+        for x in (-pw / 2 + 0.3, pw / 2 - 0.3):
+            log(m, (x, hd + pd, 0), (x, hd + pd, base + dh + 0.8), 0.22, n=6)
+            lash(m, (x, hd + pd, base + dh + 0.4), (x, hd + pd, base + dh + 0.8), 0.22)
+        log(m, (-pw / 2, hd + pd, base + dh + 0.8), (pw / 2, hd + pd, base + dh + 0.8), 0.18, n=5)
+        box(cut, (0, hd + pd / 2 + 0.4, base + dh + 1.35), (pw + 1.0, pd + 1.6, 0.28), roof_tile, r=(-16, 0, 0))
+    interior(m, length, depth, base + 0.2, long=long)
+    # yard dressing: rain barrel, stacked firewood
+    lathe(m, (-hl - 1.3, hd - 1.2, 0), [(0.7, 0), (0.82, 0.7), (0.7, 1.6)], "plank", n=9, close_bottom=True)
+    lathe(m, (-hl - 1.3, hd - 1.2, 1.55), [(0.62, 0)], "slate", n=8)
+    for k in range(3):
+        for j in range(3 - k):
+            y = -hd + 1.2 + j * 0.62 + k * 0.31
+            log(m, (hl + 0.8, y, 0.35 + k * 0.55), (hl + 2.6, y, 0.35 + k * 0.55), 0.28, n=5)
+
+
+def cottage_a(m, cut, ex):
+    """Plank cottage, steep thatch, stone chimney, front porch."""
+    house(m, cut, ex, 14.0, 10.0, 6.0, 5.6, "thatch", "plank", chimney=(4.4, -3.2), porch=True, courses=5,
+          thick=0.6)
+
+
+def cottage_b(m, cut, ex):
+    """Log cabin with notched corners and a plank-shingle roof."""
+    house(m, cut, ex, 12.0, 10.0, 6.2, 4.8, "plank", "log", chimney=(-3.8, -3.0), courses=7, thick=0.26, logs=True)
+
+
+def cottage_c(m, cut, ex):
+    """Stone lower storey, plank upper walls, slate roof (the settled house)."""
+    house(m, cut, ex, 13.0, 9.0, 6.8, 5.0, "slate", "plank", chimney=(0.0, -2.6), porch=True, courses=6,
+          thick=0.26, stone_lower=True)
+
+
+def longhouse(m, cut, ex):
+    """Long communal house: 26 studs, thatch, two chimneys and a woodpile lean-to at the back."""
+    house(m, cut, ex, 26.0, 11.0, 6.0, 6.2, "thatch", "plank", chimney=(-7.0, -3.6), porch=True, courses=5,
+          thick=0.6, long=True)
+    box(m, (7.0, -3.6, 3.9), (1.7, 1.7, 6.0), "stone")
+    box(cut, (7.0, -3.6, 10.6), (1.6, 1.6, 7.4), "stone")
+    box(cut, (7.0, -3.6, 14.4), (2.0, 2.0, 0.3), "slate")
+    for x in (6.0, 12.0):
+        log(m, (x, -8.6, 0), (x, -8.6, 3.6), 0.2, n=5)
+    for k in range(4):
+        log(m, (6.4, -7.6, 0.35 + k * 0.55), (11.6, -7.6, 0.35 + k * 0.55), 0.26, n=5)
+    box(cut, (9.0, -7.4, 4.0), (7.0, 3.2, 0.24), "plank", r=(16, 0, 0))
+
+
+def workshop(m, cut, ex):
+    """Open-front timber workshop: forge with brick chimney, anvil, bench, racks; pent plank roof."""
+    walls, lamp = ex["wall"], ex["lamp"]
+    L, D, H = 14.0, 10.0, 6.5
+    hl, hd = L / 2, D / 2
+    footing(m, L, D, 0.6)
+    box(m, (0, 0, 0.75), (L - 0.4, D - 0.4, 0.2), "stone")
+    wall_run(m, (-hl, -hd), (hl, -hd), 0.6, 0.6 + WAINSCOT, 0.6, "plank")
+    wall_run(walls, (-hl, -hd), (hl, -hd), 0.6 + WAINSCOT, H + 1.4, 0.6, "plank")
+    for x in (-hl, hl):
+        wall_run(m, (x, -hd), (x, hd * 0.2), 0.6, 0.6 + WAINSCOT, 0.6, "plank")
+        wall_run(walls, (x, -hd), (x, hd * 0.2), 0.6 + WAINSCOT, H, 0.6, "plank")
+    for x in (-hl, -hl / 3, hl / 3, hl):  # open front on posts
+        log(m, (x, hd, 0), (x, hd, H), 0.32, n=6)
+        lash(m, (x, hd, H - 0.5), (x, hd, H), 0.32)
+    log(m, (-hl - 0.6, hd, H), (hl + 0.6, hd, H), 0.3, n=6)
+    for x in (-hl, hl):
+        log(m, (x, -hd, 0), (x, -hd, H + 1.4), 0.32, n=6)
+    rise = 1.4
+    ang = math.degrees(math.atan2(rise, D + 2.4))
+    for k in range(6):  # pent roof, high at the back
+        y = -hd - 0.8 + (k + 0.5) * (D + 2.4) / 6
+        z = H + 1.4 - (y + hd + 0.8) / (D + 2.4) * rise + 0.3
+        box(cut, (0, y, z), (L + 2.0, (D + 2.4) / 6 * 1.3, 0.28), "plank", r=(-ang - 3, 0, random.uniform(-0.5, 0.5)))
+    fx, fy = -hl + 2.2, -hd + 2.2
+    box(m, (fx, fy, 1.4), (3.2, 3.0, 1.6), "stone")
+    box(m, (fx, fy, 2.25), (2.4, 2.2, 0.15), "char")
+    lathe(ex["ember"], (fx, fy, 2.3), [(0.8, 0), (0.3, 0.4)], "ember", n=6)
+    lathe(m, (fx, fy, 3.4), [(1.5, 0), (0.6, 1.6)], "brick", n=8, close_top=False)
+    box(m, (fx, fy, 6.2), (1.0, 1.0, 2.6), "brick")
+    box(cut, (fx, fy, H + 2.6), (1.1, 1.1, 2.6), "brick")
+    lathe(m, (-0.8, -0.3, 0.7), [(0.7, 0), (0.75, 1.0), (0.7, 1.4)], "log", n=8)  # anvil stump
+    box(m, (-0.8, -0.3, 2.35), (1.6, 0.6, 0.5), "metal")
+    box(m, (0.1, -0.3, 2.5), (0.6, 0.35, 0.22), "metal")
+    lathe(m, (-hl + 4.8, -hd + 1.2, 0.7), [(0.7, 0), (0.8, 0.8), (0.7, 1.5)], "plank", n=9)  # quench barrel
+    lathe(m, (-hl + 4.8, -hd + 1.2, 2.15), [(0.6, 0)], "slate", n=8)
+    box(m, (3.0, -hd + 1.3, 2.4), (6.0, 1.8, 0.25), "plank")
+    for x in (0.4, 5.6):
+        box(m, (x, -hd + 1.3, 1.5), (0.3, 1.5, 1.6), "log")
+    box(walls, (3.0, -hd + 0.45, 4.4), (5.4, 0.15, 1.8), "plank")  # tool wall
+    for i in range(5):
+        box(walls, (0.8 + i * 1.1, -hd + 0.6, 4.3), (0.15, 0.2, 1.3), "metal")
+    for k in range(4):  # timber rack
+        log(m, (hl - 1.2, -hd + 1.0, 1.0 + k * 0.45), (hl - 1.2, hd - 2.0, 1.0 + k * 0.45), 0.2, n=5)
+    for y in (-hd + 1.0, hd - 2.0):
+        box(m, (hl - 1.2, y, 1.2), (0.25, 0.25, 2.4), "log")
+    box(m, (hl / 3, hd + 0.35, H - 0.6), (0.12, 0.7, 0.12), "metal")
+    box(m, (hl / 3, hd + 0.7, H - 1.2), (0.5, 0.5, 0.7), "metal")
+    box(lamp, (hl / 3, hd + 0.7, H - 1.2), (0.38, 0.52, 0.5), "ember")
+    crate(m, (hl + 1.6, hd - 0.6, 0.8), 1.6, 12)
+    crate(m, (hl + 1.5, hd - 2.4, 0.75), 1.5, -6)
+
+
+def plot_fence(m, cut, ex):
+    """8-stud plot fence segment along X (tiles end to end): two posts, two split rails and a row
+    of sharpened pickets (R12-1)."""
+    for x in (-4.0, 4.0):
+        log(m, (x, 0, 0), (x, 0, 3.4), 0.24, n=6)
+        lathe(m, (x, 0, 3.4), [(0.24, 0), (0.0, 0.55)], "log", n=6)
+        lash(m, (x, 0, 2.6), (x, 0, 3.0), 0.24)
+    for z in (1.3, 2.6):
+        log(m, (-4.25, 0.05, z), (4.25, 0.05, z + random.uniform(-0.12, 0.12)), 0.15, n=5)
+    for i in range(7):
+        x = -3.4 + i * (6.8 / 6)
+        h = random.uniform(1.7, 2.2)
+        lean = random.uniform(0.15, 0.3)
+        cyl(m, (x, 0.25, 0), (x, 0.25 + lean, h), 0.13, 0.1, "log", n=5, cap=False)
+        lathe(m, (x, 0.25 + lean, h), [(0.1, 0), (0.0, 0.35)], "log", n=5)
+
+
+def plot_fence_corner(m, cut, ex):
+    """Corner post for plot fences: a taller post with a stone collar and a lashed cap."""
+    log(m, (0, 0, 0), (0, 0, 4.2), 0.32, n=7)
+    lathe(m, (0, 0, 4.2), [(0.32, 0), (0.0, 0.6)], "log", n=7)
+    lash(m, (0, 0, 3.2), (0, 0, 3.6), 0.32)
+    for i in range(5):
+        a = i * 2 * math.pi / 5
+        rock(m, (math.cos(a) * 0.6, math.sin(a) * 0.6, 0), 0.6, "stone", n=5)
+
+
+def plot_gate(m, cut, ex):
+    """12-stud plot gateway along X: tall posts, lintel with a hanging claim board (__tag), two
+    leaves swung open toward Blender +Y (Roblox -Z, into the plot)."""
+    W = 12.0
+    for x in (-W / 2, W / 2):
+        log(m, (x, 0, 0), (x, 0, 6.2), 0.34, n=7)
+        lathe(m, (x, 0, 6.2), [(0.34, 0), (0.0, 0.6)], "log", n=7)
+        log(m, (x, -1.3, 0), (x, 0, 2.6), 0.14, n=5)
+        rock(m, (x, 0, 0), 1.0, "stone", n=5)
+        lash(m, (x, 0, 5.4), (x, 0, 5.8), 0.34)
+    log(m, (-W / 2 - 0.8, 0, 5.5), (W / 2 + 0.8, 0, 5.5), 0.26, n=6)
+    for x in (-1.4, 1.4):
+        cyl(m, (x, 0, 5.3), (x, 0, 4.75), 0.04, 0.04, "rope", n=4, cap=False)
+    box(m, (0, 0, 4.25), (3.6, 0.2, 1.0), "plank")
+    sheet(ex["tag"], (1.5, -0.13, 3.9), (-1.5, -0.13, 3.9), (1.5, -0.13, 4.6), 2, 1, "teal", both=False)
+    for side in (-1, 1):
+        hinge = Vector((side * (W / 2 - 0.4), 0, 0))
+        dirv = Vector((-side * math.cos(math.radians(70)), math.sin(math.radians(70)), 0))
+        leaf = W / 2 - 0.6
+        for z in (0.9, 2.9):
+            a = hinge + Vector((0, 0, z))
+            log(m, a, a + dirv * leaf, 0.13, n=5)
+        for k in range(4):
+            p = hinge + dirv * (0.4 + k * (leaf - 0.6) / 3)
+            log(m, p + Vector((0, 0, 0.3)), p + Vector((0, 0, 3.4)), 0.12, n=5)
+        log(m, hinge + Vector((0, 0, 0.9)), hinge + dirv * leaf + Vector((0, 0, 2.9)), 0.1, n=4)
+
+
+def opening_stake(m, cut, ex):
+    """Survey stake for the opening (replaces the Part peg + cap + lashing + guy line): squared
+    peg with a split top, rope lashing, a teal cloth strip (__tag) and a guy line to a ground peg
+    toward Blender -Y (Roblox +Z). Pivot: ground at the peg."""
+    box(m, (0, 0, 1.1), (0.5, 0.5, 2.2), "log", r=(0, 0, 12))
+    for s in (-1, 1):
+        box(m, (s * 0.13, 0, 2.45), (0.22, 0.48, 0.5), "log", r=(0, s * 8, 12))
+    cyl(m, (0, 0, 1.75), (0, 0, 2.05), 0.36, 0.36, "rope", n=7)
+    sheet(ex["tag"], (0.25, 0.05, 1.55), (0.95, 0.35, 1.3), (0.25, 0.05, 2.0), 2, 1, "teal")
+    cyl(m, (0, -0.1, 1.9), (0, -1.9, 0.15), 0.04, 0.04, "rope", n=4, cap=False)
+    box(m, (0, -1.95, 0.2), (0.16, 0.16, 0.6), "log", r=(-20, 0, 0))
+    for i in range(4):
+        rock(m, (math.cos(i * 1.6) * 0.6, math.sin(i * 1.6) * 0.6, 0), 0.35, "stone", n=4)
+
+
+def opening_mirror(m, cut, ex):
+    """Heliograph mirror on a lashed tripod (replaces the Glass block). The disc faces Blender -Y
+    (Roblox +Z), tilted up 15 deg; the pane is __glow. Pivot: tripod centre on the ground."""
+    top = Vector((0, 0, 3.2))
+    for i in range(3):
+        a = i * 2 * math.pi / 3 + math.pi / 2
+        log(m, (math.cos(a) * 1.3, math.sin(a) * 1.3, 0), top, 0.1, n=5)
+    lash(m, top - Vector((0, 0, 0.3)), top, 0.12)
+    for s in (-1, 1):  # yoke
+        box(m, (s * 0.88, 0, 3.6), (0.12, 0.2, 0.9), "log")
+    box(m, (0, 0, 3.2), (1.9, 0.2, 0.15), "log")
+    centre = Vector((0, 0, 3.9))
+    tilt = math.radians(15)
+    nrm = Vector((0, -math.cos(tilt), math.sin(tilt)))
+    up = Vector((0, math.sin(tilt), math.cos(tilt)))
+    side = Vector((1, 0, 0))
+    R, n = 0.8, 12
+    circle = [(side * math.cos(k * 2 * math.pi / n) + up * math.sin(k * 2 * math.pi / n)) for k in range(n)]
+    rim = [centre + c * R for c in circle]
+    back = [p - nrm * 0.12 for p in rim]
+    for k in range(n):
+        j = (k + 1) % n
+        m.face([rim[k], rim[j], back[j], back[k]], "metal", center=centre - nrm * 0.06)
+    m.face(list(back), "metal", center=centre)
+    m.face(list(rim), "metal", center=centre - nrm)  # backing behind the pane
+    ex["glow"].face([centre + nrm * 0.03 + c * (R - 0.12) for c in circle], "glow", center=centre - nrm)
+    box(m, (0.9, -0.3, 0.25), (0.6, 0.4, 0.5), "plank")  # sighting box at the foot
+
+
+def clan_hall_v2(m, cut, ex):
+    """Clan hall v2 (L5): 36 x 22 log hall, 21 studs to the ridge, carved door posts, a central
+    hearth, clan banners (__tag). Walls and roof both sit in __cut so the live G24 cut-away
+    (StructureMeshes tags __cut) fades the whole shell when a player walks in."""
+    house(m, cut, ex, 36.0, 22.0, 8.0, 11.0, "thatch", "log", chimney=None, porch=True, courses=6, thick=0.7,
+          logs=True, long=True, walls_mb=cut)
+    hd = 11.0
+    for x in (-3.4, 3.4):  # carved door posts with a crossbeam
+        log(m, (x, hd + 3.6, 0), (x, hd + 3.6, 9.0), 0.5, n=8)
+        for z in (2.5, 5.0, 7.5):
+            lathe(m, (x, hd + 3.6, z), [(0.62, 0), (0.7, 0.35), (0.55, 0.7)], "char", n=8)
+        lathe(m, (x, hd + 3.6, 9.0), [(0.5, 0), (0.0, 0.9)], "log", n=8)
+    log(m, (-4.6, hd + 3.6, 8.4), (4.6, hd + 3.6, 8.4), 0.35, n=6)
+    for x in (-1.2, 1.2):  # horn pair on the crossbeam
+        cyl(m, (x, hd + 3.6, 8.7), (x * 1.9, hd + 3.6, 10.0), 0.2, 0.04, "clay", n=5)
+    lathe(m, (0, 0, 1.1), [(1.8, 0), (1.9, 0.5), (1.6, 0.6)], "stone", n=10)  # hearth
+    lathe(ex["ember"], (0, 0, 1.6), [(1.0, 0), (0.4, 0.5)], "ember", n=8)
+    for i in range(2):  # long tables either side of the hearth
+        y = -4.0 + i * 8.0
+        box(m, (8.0, y, 2.2), (12.0, 2.0, 0.25), "plank")
+        box(m, (-8.0, y, 2.2), (8.0, 2.0, 0.25), "plank")
+        for x in (3.0, 13.0, -11.0, -5.0):
+            box(m, (x, y, 1.6), (0.3, 1.6, 1.2), "log")
+    for x in (-21.0, 21.0):  # banner poles
+        log(m, (x, hd + 2.0, 0), (x, hd + 2.0, 15.0), 0.24, n=6)
+        log(m, (x, hd + 2.0, 14.4), (x + (-3.0 if x > 0 else 3.0), hd + 2.0, 14.4), 0.1, n=5)
+        x0, x1 = (x + 0.2, x + 3.0) if x < 0 else (x - 3.0, x - 0.2)
+        sheet(ex["tag"], (x0, hd + 2.0, 8.6), (x1, hd + 2.0, 8.6), (x0, hd + 2.0, 14.2), 3, 5, "teal", noise=0.06)
+        rock(m, (x, hd + 2.0, 0), 1.4, "stone")
+    for i in range(3):  # entrance steps
+        box(m, (0, hd + 4.8 + i * 0.8, 0.75 - i * 0.25), (6.0, 0.9, 0.3), "stone")
+
+
+def rift_v2(m, cut, ex):
+    """Rift v2 (L5): a ground fissure, not a standing gate. A raised broken stone lip (a mound
+    of tumbled blocks and two tilted monolith shards) around a dark cleft; the cleft walls are
+    char rock and its floor glows (__glow); a slow shard halo (__halo) floats above. Nothing sits
+    below y=0, so it works on uncarved terrain. Footprint ~24 x 16, tallest shard ~9 studs."""
+    # fissure plan: a jagged lens along X
+    n = 14
+    left, right = [], []
+    for k in range(n + 1):
+        t = k / n
+        x = -8.5 + t * 17.0
+        w = 2.4 * math.sin(math.pi * t) ** 0.8 + 0.15
+        wob = random.uniform(-0.35, 0.35)
+        left.append((x, -w + wob))
+        right.append((x, w + wob))
+    depth = 0.15
+    rim = 2.0
+    for k in range(n):  # cleft walls (inner faces, dark rock), sloping in toward the glow
+        for edge, sgn in ((left, -1), (right, 1)):
+            (x0, y0), (x1, y1) = edge[k], edge[k + 1]
+            q = [(x0, y0, rim), (x1, y1, rim), (x1, y1 * 0.35, depth), (x0, y0 * 0.35, depth)]
+            m.face(q, "char", center=(0.5 * (x0 + x1), -sgn * 8.0, rim))
+    floor = []  # glowing floor strip
+    for k in range(n):
+        (x0, l0), (x1, l1) = left[k], left[k + 1]
+        r0, r1 = right[k][1], right[k + 1][1]
+        q = [(x0, l0 * 0.35, depth + 0.05), (x1, l1 * 0.35, depth + 0.05), (x1, r1 * 0.35, depth + 0.05),
+             (x0, r0 * 0.35, depth + 0.05)]
+        ex["glow"].face(q, "glow", center=(0.5 * (x0 + x1), 0.0, depth - 2.0))
+    for k in range(n):  # dark floor under the glow (closes the cleft from below)
+        (x0, l0), (x1, l1) = left[k], left[k + 1]
+        r0, r1 = right[k][1], right[k + 1][1]
+        m.face([(x0, l0 * 0.35, depth), (x1, l1 * 0.35, depth), (x1, r1 * 0.35, depth), (x0, r0 * 0.35, depth)],
+               "char", center=(0.5 * (x0 + x1), 0.0, depth + 2.0))
+    for k in range(1, n, 2):  # glowing veins running up the walls
+        for edge in (left, right):
+            x, y = edge[k]
+            f = 0.9  # just inside the wall surface
+            ex["glow"].face([(x - 0.12, y * f, rim - 0.4), (x + 0.12, y * f, rim - 0.4), (x + 0.1, y * 0.42, depth + 0.3),
+                             (x - 0.1, y * 0.42, depth + 0.3)], "glow", center=(x, y * 3.0, rim))
+    # stone lip: ground skirt + tumbled blocks hugging the edge
+    for edge, sgn in ((left, -1), (right, 1)):
+        for k in range(n):
+            (x0, y0), (x1, y1) = edge[k], edge[k + 1]
+            q = [(x0, y0, rim), (x1, y1, rim), (x1 * 1.08, y1 + sgn * 3.4, 0.0), (x0 * 1.08, y0 + sgn * 3.4, 0.0)]
+            m.face(q, "stone", center=(0.5 * (x0 + x1), y0 - sgn * 1.0, -2.0))
+        for k in range(0, n + 1, 1):
+            x, y = edge[k]
+            s = random.uniform(1.0, 1.9) * (0.6 + 0.6 * math.sin(math.pi * k / n))
+            rock(m, (x + random.uniform(-0.4, 0.4), y + sgn * (0.9 + s * 0.4), rim * 0.55), max(s, 0.8), "stone", n=6)
+    for x in (-9.6, 9.6):  # cleft ends
+        rock(m, (x, 0, 0), 2.6, "stone", n=6)
+    # two tilted monolith shards leaning over the cleft (silhouette at the town camera)
+    for (x, y, h, lean, yaw) in ((-3.2, -3.4, 9.0, 18, 10), (4.4, 3.2, 6.5, -22, -14)):
+        base = Vector((x, y, 0))
+        R = rot((lean, 0, yaw))
+        prof = [(1.3, 0.0), (1.2, h * 0.35), (0.85, h * 0.7), (0.15, h)]
+        rings = []
+        for r, z in prof:
+            ring_pts = []
+            for i in range(5):
+                a = i * 2 * math.pi / 5 + 0.3
+                rr = r * random.uniform(0.85, 1.15)
+                ring_pts.append(base + R @ Vector((math.cos(a) * rr, math.sin(a) * rr * 0.7, z)))
+            rings.append(ring_pts)
+        c = base + R @ Vector((0, 0, h * 0.4))
+        for kk in range(len(rings) - 1):
+            for i in range(5):
+                j = (i + 1) % 5
+                m.face([rings[kk][i], rings[kk][j], rings[kk + 1][j], rings[kk + 1][i]], "stone", center=c)
+        m.face(list(reversed(rings[0])), "stone", center=c)
+        m.face(rings[-1], "stone", center=c)
+        for kk in (1, 2):  # glowing crack up the inner face of each shard
+            p0 = base + R @ Vector((0, -0.75 * prof[kk - 1][0] * 0.7, prof[kk - 1][1] + 0.3))
+            p1 = base + R @ Vector((0, -0.75 * prof[kk][0] * 0.7, prof[kk][1]))
+            side = R @ Vector((0.12, 0, 0))
+            d = (p1 - p0).normalized()
+            out = R @ Vector((0, -1, 0))
+            ex["glow"].face([p0 - side + out * 0.25, p0 + side + out * 0.25, p1 + side + out * 0.25,
+                             p1 - side + out * 0.25], "glow", center=p0 - out)
+    for i in range(8):  # shard halo (rotated at runtime)
+        a = i * 2 * math.pi / 8
+        c = (math.cos(a) * 5.5, math.sin(a) * 3.0, 6.5 + math.sin(a * 2) * 1.0)
+        lathe(ex["halo"], c, [(0.3, -0.6), (0.35, 0), (0.0, 0.8)], "seaglass", n=4)
+
+
 # ---------------------------------------------------------------- rows table
 # key, builder, package, tri budget
 ROWS = [
@@ -1121,13 +1728,13 @@ ROWS = [
     ("bld.workbench.t3", workbench_t3, "RobangoBldA", 2800),
     ("bld.tanning-frame", tanning_frame, "RobangoBldA", 1000),
     ("bld.joiner-bench", joiner_bench, "RobangoBldA", 2000),
-    ("bld.clan-hall", clan_hall, "RobangoBldA", 6000),
+    ("bld.clan-hall", clan_hall_v2, "RobangoBldA", 9000),
     ("bld.animal-pen", animal_pen, "RobangoBldA", 1400),
     ("bld.storage", storage, "RobangoBldA", 600),
-    ("bld.timber.floor", timber_floor, "RobangoBldA", 200),
+    ("bld.timber.floor", timber_floor, "RobangoBldA", 250),
     ("bld.timber.wall", timber_wall, "RobangoBldA", 400),
     ("bld.timber.roof", timber_roof, "RobangoBldA", 500),
-    ("bld.timber.door", timber_door, "RobangoBldA", 400),
+    ("bld.timber.door", timber_door, "RobangoBldA", 450),
     ("bld.timber.stairs", timber_stairs, "RobangoBldA", 600),
     ("bld.timber.pillar", timber_pillar, "RobangoBldA", 150),
     ("bld.kiln.t1", kiln_t1, "RobangoBldB", 1400),
@@ -1149,7 +1756,12 @@ ROWS = [
     ("bld.signal-relay", signal_relay, "RobangoBldC", 1600),
     ("bld.laboratory", laboratory, "RobangoBldC", 2400),
     ("town.trading-post", trading_post, "RobangoHero", 9000),
-    ("town.rift-ring", rift_ring, "RobangoHero", 3000),
+    ("town.rift-ring", rift_v2, "RobangoHero", 3500),
+    ("town.house.cottage-a", cottage_a, "RobangoHero", 5000),
+    ("town.house.cottage-b", cottage_b, "RobangoHero", 5000),
+    ("town.house.cottage-c", cottage_c, "RobangoHero", 5000),
+    ("town.house.longhouse", longhouse, "RobangoHero", 7000),
+    ("town.house.workshop", workshop, "RobangoHero", 5000),
     ("town.dock", dock, "RobangoTownKit", 5000),
     ("town.plot-marker", plot_marker, "RobangoTownKit", 300),
     ("town.fence-rail", fence_rail, "RobangoTownKit", 300),
@@ -1171,8 +1783,13 @@ ROWS = [
     ("town.drift-camp-walkway", drift_walkway, "RobangoTownKit", 800),
     ("town.balloon-wreck", balloon_wreck, "RobangoTownKit", 6000),
     ("town.beacon-tower", beacon_tower, "RobangoTownKit", 3000),
+    ("town.plot-fence", plot_fence, "RobangoTownKit", 600),
+    ("town.plot-fence-corner", plot_fence_corner, "RobangoTownKit", 300),
+    ("town.plot-gate", plot_gate, "RobangoTownKit", 900),
+    ("opening.stake", opening_stake, "RobangoTownKit", 400),
+    ("opening.mirror", opening_mirror, "RobangoTownKit", 500),
 ]
-SUFFIXES = ("cut", "ember", "glow", "tag", "halo")
+SUFFIXES = ("cut", "wall", "ember", "glow", "lamp", "tag", "halo")
 
 
 

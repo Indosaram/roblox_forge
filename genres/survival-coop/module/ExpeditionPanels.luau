@@ -8,6 +8,9 @@ local Sheet = require("./ExpeditionSheet")
 local Text = require("./ExpeditionText")
 local M = {}
 
+-- Seconds the arrival hint stays on the HUD before the arrival counts as seen.
+M.HINT_SECONDS = 12
+
 local function others(): { any }
 	local players = game:GetService("Players")
 	local list = {}
@@ -44,6 +47,27 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local shownArrival: string? = nil
 	local seenInvites: { [string]: boolean } = {}
 	local render: () -> ()
+	local clock: () -> number = ctx.clock or os.clock
+	local hintKey: string?, hintAt = nil, 0
+	-- Arrival hint: a HUD chip in the objective column (own top-centre gui when there is none).
+	local hintParent = ctx.objectiveSlot
+	if not hintParent then
+		local hintGui = Instance.new("ScreenGui")
+		hintGui.Name, hintGui.ResetOnSpawn, hintGui.DisplayOrder = "ForgeArrivalHint", false, 12
+		hintGui.Parent = players.LocalPlayer:WaitForChild("PlayerGui")
+		hintParent = hintGui
+	end
+	local hint: any
+	hint = ctx.ui.components.button(ctx.ui.theme.default, {
+		text = "",
+		size = UDim2.fromOffset(216, 44),
+		onClick = function()
+			routes.open(true)
+			hint.Visible = false
+		end,
+	})
+	hint.Name, hint.Visible, hint.LayoutOrder, hint.TextWrapped = "ArrivalHint", false, 1, true
+	hint.Parent = hintParent
 
 	local function act(verb: string, arg: string): any
 		local result = ctx.send(Models.PARTY_ACTION, { verb, arg })
@@ -65,20 +89,34 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local arrival = latest.arrival
 		local arrivalKey = if arrival then arrival.id .. ":" .. arrival.stage else nil
 		shownArrival = nil
+		hint.Visible = false
+		-- The arrival hint lives for HINT_SECONDS, then the arrival counts as seen.
+		if arrivalKey and arrivalKey ~= hintKey then
+			hintKey, hintAt = arrivalKey, clock()
+		end
+		if
+			arrivalKey
+			and seenArrival ~= arrivalKey
+			and not routes.gui.Enabled
+			and clock() - hintAt > M.HINT_SECONDS
+		then
+			seenArrival = arrivalKey
+		end
 		if view.kind == "list" and arrivalKey and seenArrival ~= arrivalKey then
 			shownArrival = arrivalKey
 			-- The arrival names its route's biome (never the raw expedition id).
 			local card = (latest.routes or {})[arrival.route]
 			arrival = table.clone(arrival)
 			arrival.biome = arrival.biome or (if card then card.biome else nil)
-			routes.render(Models.travel(locale, arrival.route, nil, function() end, function()
+			local title, items = Models.travel(locale, arrival.route, nil, function() end, function()
 				seenArrival = arrivalKey
 				routes.open(false)
 				render()
-			end, arrival))
-			if seenArrival ~= arrivalKey and not routes.gui.Enabled then
-				routes.open(true)
-			end
+			end, arrival)
+			routes.render(title, items)
+			-- D2b (R10): the sheet no longer opens itself over the camp on arrival. A HUD hint
+			-- carries the arrival line; tapping it (or the Routes tile) opens the arrival card.
+			hint.Text, hint.Visible = items[1].text, not routes.gui.Enabled
 		elseif view.kind == "confirm" and view.route then
 			local route = view.route :: number
 			routes.render(Models.confirm(locale, latest, route, {
@@ -289,6 +327,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			unsubscribe()
 			for _, shell in { routes, party, expedition, popup } do
 				shell.gui:Destroy()
+			end
+			hint:Destroy()
+			if hintParent ~= ctx.objectiveSlot then
+				hintParent:Destroy()
 			end
 		end,
 	}

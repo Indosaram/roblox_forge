@@ -7,6 +7,23 @@ local Options = require("./Options")
 local CommandTransport = require("./CommandTransport")
 export type Options = { controls: { Options.Control }, guiName: string?, hidden: boolean? }
 local M = {}
+-- TextLabel.Text refuses strings of 200000+ characters (p134 v45: a 256K snapshot dump raised
+-- an error on every packet). The developer view shows at most this many characters per snapshot.
+M.SNAPSHOT_TEXT_LIMIT = 16000
+--- Developer snapshot text, truncated on a UTF-8 boundary below SNAPSHOT_TEXT_LIMIT.
+function M.snapshotText(id: string, encoded: string): string
+	local text = id .. "\n" .. encoded
+	if #text <= M.SNAPSHOT_TEXT_LIMIT then
+		return text
+	end
+	local suffix = "\n... (" .. #text .. " chars, truncated)"
+	local cut = M.SNAPSHOT_TEXT_LIMIT - #suffix
+	-- Back up to the start of a UTF-8 sequence so the cut never splits a character.
+	while cut > 0 and bit32.band(string.byte(text, cut + 1) or 0, 0xC0) == 0x80 do
+		cut -= 1
+	end
+	return string.sub(text, 1, cut) .. suffix
+end
 function M.start(options: Options): ScreenGui
 	local player = Players.LocalPlayer
 	local action = ReplicatedStorage:WaitForChild("ForgeAction") :: RemoteFunction
@@ -14,8 +31,11 @@ function M.start(options: Options): ScreenGui
 	local gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn = options.guiName or "ForgeStarter", false
 	-- A pack with its own HUD keeps this developer panel off from creation, so a kick or a
-	-- slow load never shows it before the pack's own client code runs.
-	gui.Enabled = options.hidden ~= true
+	-- slow load never shows it before the pack's own client code runs. A hidden panel also never
+	-- builds the per-packet JSON snapshot dump: nobody can see it, and it cost a full
+	-- JSONEncode of every snapshot on every packet in shipped places (p134 v45).
+	local hidden = options.hidden == true
+	gui.Enabled = not hidden
 	local panel = Instance.new("ScrollingFrame")
 	panel.Name, panel.Size, panel.Position = "Snapshots", UDim2.fromOffset(440, 560), UDim2.fromOffset(16, 16)
 	panel.AutomaticCanvasSize, panel.CanvasSize, panel.ScrollBarThickness = Enum.AutomaticSize.Y, UDim2.new(), 6
@@ -171,18 +191,20 @@ function M.start(options: Options): ScreenGui
 			selected = if roster[1] then roster[1].id else nil
 		end
 		selectionLabel()
-		local ids = {}
-		for id in packet.snapshots do
-			table.insert(ids, id)
-		end
-		table.sort(ids)
-		for _, id in ids do
-			local label = labels[id]
-			if not label then
-				label = text(id .. ":snapshot")
-				labels[id] = label
+		if not hidden then
+			local ids = {}
+			for id in packet.snapshots do
+				table.insert(ids, id)
 			end
-			label.Text = id .. "\n" .. HttpService:JSONEncode(packet.snapshots[id])
+			table.sort(ids)
+			for _, id in ids do
+				local label = labels[id]
+				if not label then
+					label = text(id .. ":snapshot")
+					labels[id] = label
+				end
+				label.Text = M.snapshotText(id, HttpService:JSONEncode(packet.snapshots[id]))
+			end
 		end
 		if status.Text == "Loading profile" then
 			status.Text = "Ready"

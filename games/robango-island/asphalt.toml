@@ -3569,9 +3569,6 @@ output_path = "games/robango-island/src/shared"
 path = "assets/audio/robango-ui-close.wav"
 output_path = "games/robango-island/src/shared"
 
-[inputs.robango-ui-close.web]
-"robango-ui-close.wav" = { id = 101757647762518 }
-
 [inputs.robango-ui-confirm]
 path = "assets/audio/robango-ui-confirm.wav"
 output_path = "games/robango-island/src/shared"

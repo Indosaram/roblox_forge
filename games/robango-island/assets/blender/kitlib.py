@@ -623,3 +623,184 @@ def report_rows(objs, budgets):
         b = budgets.get(o.name)
         rows.append({"key": o.name, "tris": t, "budget": b, "fits": b is None or t <= b, "size": [round(v, 1) for v in o.dimensions]})
     return rows
+
+
+# ------------------------------------------------------------------ L3 vegetation v2
+# Durango-like crowns (R11-1/2/8): a forked, tapered trunk (optional buttress roots) carries a few
+# primary branches; each ends in a spread of small twig + branch-card clusters with sky gaps
+# between them, instead of one dense ball of leaf quads on a straight pole.
+
+
+def line(tile, p0, p1, w0, w1, col, shade=0.25):
+    """Tapered segment p0 -> p1 (pixel coords, bottom-up rows) painted opaque into tile."""
+    h, w = tile.shape[:2]
+    pad = max(w0, w1) + 2
+    x0, x1 = int(max(0, min(p0[0], p1[0]) - pad)), int(min(w, max(p0[0], p1[0]) + pad))
+    y0, y1 = int(max(0, min(p0[1], p1[1]) - pad)), int(min(h, max(p0[1], p1[1]) + pad))
+    if x1 <= x0 or y1 <= y0:
+        return
+    yy, xx = np.mgrid[y0:y1, x0:x1].astype(F32)
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    ll = dx * dx + dy * dy + 1e-6
+    s = np.clip(((xx - p0[0]) * dx + (yy - p0[1]) * dy) / ll, 0, 1)
+    px_, py_ = p0[0] + s * dx, p0[1] + s * dy
+    d = np.sqrt((xx - px_) ** 2 + (yy - py_) ** 2)
+    width = w0 + (w1 - w0) * s
+    sel = d <= width
+    side = ((xx - px_) * -dy + (yy - py_) * dx) / math.sqrt(ll)
+    lit = 1 + shade * np.clip(side / np.maximum(width, 0.5), -1, 1)
+    sub = tile[y0:y1, x0:x1]
+    sub[sel, :3] = np.clip(col[None, :] * lit[sel][:, None], 0, 1)
+    sub[sel, 3] = 1.0
+
+
+def sprig(rng, leaf_srcs, twig, size=256, leaves=22, leaf_h=64, sides=4, spread=0.95, reach=0.38):
+    """Branch-card tile: a twig with side twigs and leaves stamped along them, base at the bottom
+    centre. The open silhouette (gaps between twigs) is what gives a crown its negative space."""
+    t = np.zeros((size, size, 4), F32)
+    k = size / 256
+    bx = size / 2 + rng.uniform(-8, 8) * k
+    tx = size / 2 + rng.uniform(-36, 36) * k
+    main = [(bx + (tx - bx) * (u * u), 2 + u * size * 0.86) for u in np.linspace(0, 1, 7)]
+    polys = [main]
+    for i in range(6):
+        line(t, main[i], main[i + 1], 3.2 * k * (1 - i / 7), 3.2 * k * (1 - (i + 1) / 7) + 0.6, twig)
+    for j in range(sides):
+        u = rng.uniform(0.22, 0.78)
+        i = int(u * 6)
+        p = main[i]
+        sgn = -1 if j % 2 else 1
+        ang = sgn * rng.uniform(0.45, spread)
+        ln = size * reach * rng.uniform(0.7, 1.1) * (1 - 0.35 * u)
+        pts = [p]
+        for s in range(1, 4):
+            a = ang * (1 - 0.15 * s)
+            q = pts[-1]
+            pts.append((q[0] + math.sin(a) * ln / 3, q[1] + math.cos(a) * ln / 3))
+        for s in range(3):
+            line(t, pts[s], pts[s + 1], 1.8 * k * (1 - s / 4), 1.8 * k * (1 - (s + 1) / 4) + 0.4, twig)
+        polys.append(pts)
+    for n in range(leaves):
+        poly = polys[n % len(polys)]
+        u = rng.uniform(0.35, 1.0)
+        f = u * (len(poly) - 1)
+        i = min(int(f), len(poly) - 2)
+        a0, a1 = poly[i], poly[i + 1]
+        fr = f - i
+        cx, cy = a0[0] + (a1[0] - a0[0]) * fr, a0[1] + (a1[1] - a0[1]) * fr
+        dx, dy = a1[0] - a0[0], a1[1] - a0[1]
+        ang = math.atan2(-dx, dy) + rng.choice([-1, 1]) * rng.uniform(0.35, 1.0)
+        leaf = leaf_srcs[int(rng.uniform(0, len(leaf_srcs) - 1e-6))]
+        stamp(t, leaf, cx, cy, ang, leaf_h * k * rng.uniform(0.7, 1.1), rng.uniform(0.72, 1.05))
+    return t
+
+
+def _pick(rng, seq):
+    return seq[int(rng.uniform(0, len(seq) - 1e-6))]
+
+
+def crown_points(rng, n, centre, rx, ry, rz, mind, depth=(0.5, 1.0), zmin=-0.35):
+    """Up to n cluster centres in a crown ellipsoid, at least `mind` apart (the gaps)."""
+    pts = []
+    for _ in range(n * 80):
+        if len(pts) >= n:
+            break
+        z = rng.uniform(zmin, 1.0)
+        a = rng.uniform(0, 2 * math.pi)
+        r = math.sqrt(max(0.0, 1 - z * z))
+        d = rng.uniform(*depth)
+        p = centre + Vector((r * math.cos(a) * rx, r * math.sin(a) * ry, z * rz)) * d
+        if all((p - q).length >= mind for q in pts):
+            pts.append(p)
+    return pts
+
+
+def card_cluster(quad, rng, p, out, uvs, cards, size, flat=0.5):
+    """`cards` branch cards fanned from p: tips outward/up, some near-flat for the top-down camera."""
+    up = Vector((0, 0, 1))
+    for k in range(cards):
+        jitter = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.6, 1)))
+        horizontal = Vector((out.x, out.y, 0))
+        if horizontal.length < 1e-3:
+            horizontal = Vector((math.cos(k), math.sin(k), 0))
+        horizontal.normalize()
+        if k < cards * flat:
+            d = (horizontal + jitter * 0.6 + up * rng.uniform(-0.1, 0.35)).normalized()
+        else:
+            d = (out * 0.6 + up * 0.7 + jitter * 0.55).normalized()
+        side = d.cross(up)
+        if side.length < 1e-3:
+            side = Vector((1, 0, 0))
+        side = (Matrix.Rotation(rng.uniform(-0.7, 0.7), 3, d) @ side.normalized()).normalized()
+        w = size * rng.uniform(0.8, 1.2)
+        b = p - d * w * 0.3
+        quad([b - side * w / 2, b + side * w / 2, b + side * w / 2 + d * w, b - side * w / 2 + d * w], _pick(rng, uvs))
+
+
+def branch_tree(tube, quad, rng, height, trunk_r, crown, uvs, *, fork=0.45, leaders=2, groups=7, clusters=30,
+                cards=8, card=3.0, roots=0, root_reach=2.6, root_h=2.0, lean=(0.0, 0.0), sides=8, mind=None,
+                zmin=-0.35, depth=(0.5, 1.0), flat=0.5, twigs=True, hang=None):
+    """Clustered branch-card tree. tube(pts, radii, sides); quad(corners, uv).
+    crown = (rx, ry, rz); the crown top sits at `height`. Returns the cluster centres."""
+    rx, ry, rz = crown
+    lx, ly = lean
+    centre = Vector((lx * height, ly * height, height - rz))
+    F = Vector((lx * height * fork * 0.6, ly * height * fork * 0.6, height * fork))
+    trunk = [Vector((0, 0, -0.3)), Vector((0, 0, 0.6)), F * 0.35 + Vector((rng.uniform(-0.2, 0.2), rng.uniform(-0.2, 0.2), 0)),
+             F * 0.7 + Vector((rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), 0)), F]
+    tube(trunk, [trunk_r * 1.55, trunk_r * 1.2, trunk_r, trunk_r * 0.86, trunk_r * 0.72], sides)
+    for i in range(roots):
+        a = 2 * math.pi * i / roots + rng.uniform(-0.25, 0.25)
+        o = Vector((math.cos(a), math.sin(a), 0))
+        reach = root_reach * rng.uniform(0.8, 1.2)
+        tube([o * trunk_r * 0.3 + Vector((0, 0, root_h)), o * trunk_r * 1.2 + Vector((0, 0, root_h * 0.4)),
+              o * trunk_r * reach + Vector((0, 0, -0.2))], [trunk_r * 0.5, trunk_r * 0.36, trunk_r * 0.1], 4)
+    pts = crown_points(rng, clusters, centre, rx, ry, rz, mind or card * 1.15, depth, zmin)
+    # Groups by azimuth around the crown centre; each group is one primary branch.
+    def az(p):
+        return math.atan2(p.y - centre.y, p.x - centre.x)
+    order = sorted(pts, key=az)
+    off = int(rng.uniform(0, len(order) or 1))
+    order = order[off:] + order[:off]
+    per = max(1, math.ceil(len(order) / groups))
+    chunks = [order[i : i + per] for i in range(0, len(order), per)]
+    ends = []
+    for j in range(leaders):
+        mine = [c for gi, c in enumerate(chunks) if gi % leaders == j]
+        flatpts = [p for c in mine for p in c] or [centre]
+        m = sum(flatpts, Vector()) / len(flatpts)
+        end = F + (m - F) * 0.45
+        end.z = max(end.z, F.z + (centre.z - F.z) * 0.55)
+        mid = (F + end) / 2 + Vector((rng.uniform(-0.4, 0.4), rng.uniform(-0.4, 0.4), 0.3))
+        tube([F, mid, end], [trunk_r * 0.72, trunk_r * 0.55, trunk_r * 0.4], max(5, sides - 2))
+        ends.append(end)
+    for gi, chunk in enumerate(chunks):
+        if not chunk:
+            continue
+        L = ends[gi % leaders]
+        cg = sum(chunk, Vector()) / len(chunk)
+        bg = cg * 0.8 + centre * 0.2
+        mid = (L + bg) / 2 + Vector((0, 0, (bg - L).length * 0.12))
+        tube([L, mid, bg], [trunk_r * 0.38, trunk_r * 0.26, trunk_r * 0.15], 5)
+        for p in chunk:
+            out = (p - centre)
+            out = Vector((out.x / max(rx, 1e-3), out.y / max(ry, 1e-3), out.z / max(rz, 1e-3)))
+            out = out.normalized() if out.length > 1e-3 else Vector((0, 0, 1))
+            if twigs and (p - bg).length > card * 0.4:
+                tube([bg, p], [trunk_r * 0.12, trunk_r * 0.05], 3)
+            card_cluster(quad, rng, p, out, uvs, cards, card, flat)
+            if hang is not None:
+                hang(p)
+    return pts
+
+
+def clustered_shrub(quad, rng, rx, rz, clusters, cards, card, uvs, z0=0.0):
+    """Shrub as clumps of branch cards with gaps (replaces the uniform leaf-quad ball)."""
+    centre = Vector((0, 0, z0 + rz * 0.55))
+    pts = crown_points(rng, clusters, centre, rx, rx, rz * 0.55, card * 0.8, (0.45, 1.0), -0.5)
+    for p in pts:
+        out = p - centre
+        out = out.normalized() if out.length > 1e-3 else Vector((0, 0, 1))
+        card_cluster(quad, rng, p, out, uvs, cards, card, 0.35)
+    return pts
+

@@ -69,8 +69,8 @@ def desert(rng, outdir):
     V.put("desert_leaf", 0, 768, K.leaf_cluster_tile(256, rng, "#6a6a44", sat=0.4, leaves=18))
     vm, vp = V.save(outdir, alpha=True)
     G = K.Atlas("RobangoKitDesert_grass", 512)
-    G.put("dry", 0, 0, K.paint_blades(K.tile(256), rng, 40, "#8a7448", "desert_straw", height=(0.3, 0.8), width=(1.0, 1.8), lean=0.8))
-    G.put("dry2", 256, 0, K.paint_blades(K.tile(256), rng, 30, "#7a6440", "#c2a878", height=(0.25, 0.6), width=(1.0, 1.6), lean=0.9))
+    G.put("dry", 0, 0, K.paint_blades(K.tile(256), rng, 70, "#8a7448", "desert_straw", height=(0.3, 0.8), width=(0.6, 1.1), lean=0.8))
+    G.put("dry2", 256, 0, K.paint_blades(K.tile(256), rng, 56, "#7a6440", "#c2a878", height=(0.25, 0.6), width=(0.6, 1.0), lean=0.9))
     gm, gp = G.save(outdir, alpha=True)
     R = K.Atlas("RobangoKitDesert_rock", 1024)
     R.put("sandstone", 0, 0, K.scan_tile("sandstone_cracks/textures/sandstone_cracks_diff_1k.jpg", 512, "sandstone", 0.8, 0.6), K.scan_normal("sandstone_cracks/textures/sandstone_cracks_nor_gl_1k.jpg", 512), K.scan_rough("sandstone_cracks/textures/sandstone_cracks_rough_1k.jpg", 512))
@@ -88,6 +88,9 @@ def desert(rng, outdir):
     b = K.Builder()
     snag(b, rng, V.rects["bark"], V.rects["twigs"], 13, 0.55, 3)
     objs.append(b.finish("veg_desert_dead_snag", vm))
+    b = K.Builder()  # L3 variant: shorter, wider-spread snag
+    snag(b, rng, V.rects["bark"], V.rects["twigs2"], 10, 0.5, 3, tw=2.2)
+    objs.append(b.finish("veg_desert_dead_snag_b", vm))
     b = K.Builder()  # barrel cactus
     b.tube([Vector((0, 0, -0.2)) + Vector((0, 0, z)) for z in (0, 0.6, 1.4, 2.1, 2.5)], [0.9, 1.15, 1.15, 0.9, 0.35], V.rects["cactus"], sides=20, v_scale=0.12, rib=0.1, ribs=10)
     for i in range(3):
@@ -109,7 +112,7 @@ def desert(rng, outdir):
             b.card(o * 0.15, up, Vector((-o.y, o.x, 0)), 0.75, ln, V.rects["agave" if i % 2 else "agave2"], bend=o * 0.4, rows=4)
     objs.append(b.finish("veg_desert_agave", vm))
     b = K.Builder()
-    K.grass_cluster(b, rng, [G.rects["dry"], G.rects["dry2"]], 1.5, 0.7, 16, width=1.5)
+    K.grass_cluster(b, rng, [G.rects["dry"], G.rects["dry2"]], 1.5, 0.7, 20, width=1.0)
     objs.append(b.finish("veg_desert_sparse_dry", gm))
     b = K.Builder()  # second shrub type: low creosote-like bush, leaf clusters on twigs
     for i in range(16):
@@ -161,12 +164,12 @@ def tundra(rng, outdir):
     K.paint_blotch(sn, rng, "snow", "#c4ccd2", scale=5, cover=0.75, seed=9)
     K.paint_dots(sn, rng, 12, "#5a5450", "#7a746c", 3, 8, (0.25, 0.75))
     V.put("snowpatch", 256, 768, sn)
-    leaves = K.leaf_cluster_tile(256, rng, "#6a6a3a", sat=0.5, leaves=18)
+    leaves = K.sprig_tile(256, rng, "#6a6a3a", "#8a8070", sat=0.5, leaves=50, leaf_h=44, sides=6)
     V.put("birch_leaf", 512, 768, K.snow_overlay(leaves, 0.2, rng))
     vm, vp = V.save(outdir, alpha=True)
     G = K.Atlas("RobangoKitTundra_grass", 512)
     for i, (x, y) in enumerate(((0, 0), (256, 0))):
-        t = K.paint_blades(K.tile(256), rng, 80, "#7a7058", "frost_straw", height=(0.4, 0.9), width=(1.0, 2.0), lean=0.7)
+        t = K.paint_blades(K.tile(256), rng, 140, "#7a7058", "frost_straw", height=(0.4, 0.9), width=(0.6, 1.2), lean=0.7)
         G.put(f"tussock{i}", x, y, K.snow_overlay(t, 0.15 + 0.15 * i, rng))
     gm, gp = G.save(outdir, alpha=True)
     R = K.Atlas("RobangoKitTundra_rock", 1024)
@@ -178,26 +181,31 @@ def tundra(rng, outdir):
     rm, rp = R.save(outdir, alpha=False, with_rough=True)
 
     objs = []
-    b = K.Builder()  # snow-loaded pine: trunk + tiers of drooping needle cards
-    b.tube([Vector((0, 0, -0.4)), Vector((0, 0, 10)), Vector((0, 0, 22))], [0.6, 0.38, 0.08], V.rects["pine_bark"], sides=7, v_scale=0.05)
-    for t in range(12):
-        z = 3.0 + t * 1.55
-        rad = 4.8 * (1 - t / 13) + 0.5
-        for i in range(11):
-            a = 2 * math.pi * (i + t * 0.37) / 11
-            o = Vector((math.cos(a), math.sin(a), 0))
-            b.card(Vector((0, 0, z)), (o + Vector((0, 0, 0.15))).normalized(), Vector((-o.y, o.x, 0)), rad * 0.85, rad, V.rects["needles_snow"], bend=Vector((0, 0, -rad * 0.35)), rows=2)
-    objs.append(b.finish("veg_tundra_snow_pine", vm))
-    b = K.Builder()  # twisted dwarf birch
-    pts = [Vector((0, 0, -0.3)), Vector((0.6, 0.2, 2.5)), Vector((-0.2, 0.5, 5)), Vector((0.5, 0.2, 7.5))]
-    b.tube(pts, [0.42, 0.32, 0.24, 0.14], V.rects["birch_bark"], sides=7, v_scale=0.08)
-    tips = []
-    for i in range(4):
-        a = i * 1.7
-        K.grow_branches(b, rng, pts[1 + i % 3], Vector((math.cos(a), math.sin(a), 0.9)), 2.8, 0.16, V.rects["birch_bark"], 2, spread=0.8, sides=4, segs=2, tips=tips, gnarl=0.35, min_r=0.04)
-    for p, d in tips[::2]:
-        leafy(b, rng, V.rects["birch_leaf"], p, 1.0, 1.0, 5, (0.9, 1.3))
-    objs.append(b.finish("veg_tundra_dwarf_birch", vm))
+    def pine(name, h, tiers, r0, per):
+        # Snow-loaded pine: trunk + tiers of drooping needle cards; L3 adds a second, slimmer variant.
+        b = K.Builder()
+        b.tube([Vector((0, 0, -0.4)), Vector((0, 0, h * 0.45)), Vector((0, 0, h))], [0.6, 0.38, 0.08], V.rects["pine_bark"], sides=7, v_scale=0.05)
+        for t in range(tiers):
+            z = 3.0 + t * (h - 4.0) / tiers
+            rad = r0 * (1 - t / (tiers + 1)) + 0.5
+            for i in range(per):
+                a = 2 * math.pi * (i + t * 0.37) / per + rng.uniform(-0.15, 0.15)
+                o = Vector((math.cos(a), math.sin(a), 0))
+                b.card(Vector((0, 0, z)), (o + Vector((0, 0, 0.15))).normalized(), Vector((-o.y, o.x, 0)), rad * 0.85, rad, V.rects["needles_snow"], bend=Vector((0, 0, -rad * 0.35)), rows=2)
+        objs.append(b.finish(name, vm))
+
+    pine("veg_tundra_snow_pine", 22, 12, 4.8, 11)
+    pine("veg_tundra_snow_pine_b", 18, 10, 3.6, 9)
+
+    def birch(name, h, lean, clusters):
+        # L3: twisted dwarf birch with a clustered branch-card crown (gaps between clumps).
+        b = K.Builder()
+        K.hero(b, rng, V.rects["birch_bark"], [V.rects["birch_leaf"]], h, 0.32, (3.2, 3.0, 2.6), fork=0.4, leaders=3, groups=5,
+               clusters=clusters, cards=6, card=1.9, mind=1.4, sides=6, lean=lean)
+        objs.append(b.finish(name, vm))
+
+    birch("veg_tundra_dwarf_birch", 8.0, (0.05, 0.02), 16)
+    birch("veg_tundra_dwarf_birch_b", 6.5, (-0.06, 0.04), 13)
     b = K.Builder()  # frost shrub
     for i in range(16):
         a = math.pi * i / 16
@@ -208,7 +216,7 @@ def tundra(rng, outdir):
     mat_patch(b, rng, V.rects["lichen"], 3.0)
     objs.append(b.finish("veg_tundra_lichen_mat", vm))
     b = K.Builder()
-    K.grass_cluster(b, rng, [G.rects["tussock0"], G.rects["tussock1"]], 2.5, 0.8, 24, width=2.0)
+    K.grass_cluster(b, rng, [G.rects["tussock0"], G.rects["tussock1"]], 2.5, 0.8, 28, width=1.3)
     objs.append(b.finish("veg_tundra_frost_tussock", gm))
     b = K.Builder()  # snowy ice-crusted boulder: rock + snow cap
     b.rock(Vector((0, 0, 1.6)), (3.2, 2.7, 2.2), R.rects["rock"], rng, sub=3, rough=0.3)
@@ -248,8 +256,8 @@ def volcano(rng, outdir):
     V.put("ash", 256, 512, ash)
     vm, vp = V.save(outdir, alpha=True)
     G = K.Atlas("RobangoKitVolcano_grass", 512)
-    G.put("burnt", 0, 0, K.paint_blades(K.tile(256), rng, 70, "#2e211c", "burnt_grass", height=(0.35, 0.85), width=(1.0, 2.0), lean=0.7))
-    G.put("burnt2", 256, 0, K.paint_blades(K.tile(256), rng, 60, "#3a2a22", "#7a5a40", height=(0.3, 0.75), width=(1.0, 1.8), lean=0.8))
+    G.put("burnt", 0, 0, K.paint_blades(K.tile(256), rng, 120, "#2e211c", "burnt_grass", height=(0.35, 0.85), width=(0.6, 1.2), lean=0.7))
+    G.put("burnt2", 256, 0, K.paint_blades(K.tile(256), rng, 105, "#3a2a22", "#7a5a40", height=(0.3, 0.75), width=(0.6, 1.1), lean=0.8))
     gm, gp = G.save(outdir, alpha=True)
     R = K.Atlas("RobangoKitVolcano_rock", 1024)
     R.put("basalt", 0, 0, K.scan_tile("dark_rock/textures/dark_rock_diff_1k.jpg", 512, "basalt", 0.85, 0.4), K.scan_normal("dark_rock/textures/dark_rock_nor_gl_1k.jpg", 512), K.scan_rough("dark_rock/textures/dark_rock_rough_1k.jpg", 512))
@@ -266,6 +274,9 @@ def volcano(rng, outdir):
     b = K.Builder()
     snag(b, rng, V.rects["char_bark"], V.rects["char_twigs"], 15, 0.6, 2, tw=2.0, every=3)
     objs.append(b.finish("veg_volcano_charred", vm))
+    b = K.Builder()  # L3 variant: shorter broken snag
+    snag(b, rng, V.rects["char_bark"], V.rects["char_twigs"], 11, 0.55, 2, tw=1.8, every=3)
+    objs.append(b.finish("veg_volcano_charred_b", vm))
     b = K.Builder()  # survivor cycad: stout trunk + frond crown
     b.tube([Vector((0, 0, -0.3)), Vector((0.1, 0, 2.5)), Vector((0.2, 0.1, 5.2))], [0.8, 0.7, 0.55], V.rects["cycad_trunk"], sides=10, v_scale=0.12, jitter=0.05, rng=rng)
     for i in range(18):
@@ -283,7 +294,7 @@ def volcano(rng, outdir):
     mat_patch(b, rng, V.rects["sulfur"], 2.0)
     objs.append(b.finish("veg_volcano_sulfur_moss", vm))
     b = K.Builder()
-    K.grass_cluster(b, rng, [G.rects["burnt"], G.rects["burnt2"]], 2.0, 0.8, 24, width=1.8)
+    K.grass_cluster(b, rng, [G.rects["burnt"], G.rects["burnt2"]], 2.0, 0.8, 28, width=1.2)
     objs.append(b.finish("veg_volcano_burnt_grass", gm))
     b = K.Builder()  # basalt columns
     for i in range(10):

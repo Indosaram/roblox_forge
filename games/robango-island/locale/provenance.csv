@@ -2988,6 +2988,11 @@ cmb.refused.NOT_YOURS,original,agent:hephaestus/C3,2026-10-27
 cmb.refused.CORPSE_EXPIRED,original,agent:hephaestus/C3,2026-10-27
 cmb.refused.ALREADY_TAKEN,original,agent:hephaestus/C3,2026-10-27
 cmb.refused.INVENTORY_FULL,original,agent:hephaestus/C3,2026-10-27
+cmb.attack,original,agent:hephaestus/D2b-R08,2026-10-28
+cmb.attack.WEAPON_UNAVAILABLE,original,agent:hephaestus/D2b-R08,2026-10-28
+cmb.attack.BLOCKED,original,agent:hephaestus/D2b-R08,2026-10-28
+cmb.attack.NOT_FACING,original,agent:hephaestus/D2b-R08,2026-10-28
+cmb.attack.MOUNTED,original,agent:hephaestus/D2b-R08,2026-10-28
 hud.shell.capture,original,agent:hephaestus/C4,2026-10-27
 hud.shell.dismount,original,agent:hephaestus/C4,2026-10-27
 hud.shell.pet,original,agent:hephaestus/C4,2026-10-27

@@ -26,7 +26,22 @@ function M.refusal(locale: string, reason: string): string
 	return M.text(locale, if strings["refused." .. reason] then "refused." .. reason else "refused")
 end
 
-M.REACH = 6 -- studs: stop the approach this close (melee weapons reach 8)
+--- Player copy for a refused swing, or nil for a refusal the loop handles by itself (cooldown,
+--- windup, busy, out of range). D2b R08: every swing was refused WEAPON_UNAVAILABLE and the player
+--- saw nothing at all.
+function M.attackRefusal(locale: string, reason: any): string?
+	if type(reason) ~= "string" or not (M.FINAL[reason] or reason == "BLOCKED" or reason == "NOT_FACING") then
+		return nil
+	end
+	return M.text(locale, if strings["attack." .. reason] then "attack." .. reason else "attack")
+end
+
+-- Studs (flat) to stop the approach at. The server measures melee reach centre to centre in 3D and
+-- the starter rule reaches 5, so the old 6-stud stop could leave every swing OUT_OF_RANGE.
+M.REACH = 4
+M.MIN_REACH = 1.5 -- an OUT_OF_RANGE refusal closes in by REACH_STEP down to this
+M.REACH_STEP = 1
+M.DRIFT = 3 -- studs the target may move from the approach goal before the walk is re-aimed
 M.SWING_SECONDS = 0.9 -- pause after a confirmed swing before the next
 M.BACKOFF_SECONDS = 0.4 -- pause after a transient refusal (cooldown, windup, busy)
 M.APPROACH_SECONDS = 4 -- an approach that has not arrived by then is retried
@@ -57,6 +72,10 @@ export type Session = {
 	inFlight: boolean,
 	approachUntil: number?,
 	reason: string?,
+	-- Current approach stop distance (flat studs); shrinks on OUT_OF_RANGE.
+	reach: number?,
+	-- A Backpack tool was taken up after a WEAPON_UNAVAILABLE refusal (tried once per target).
+	armed: boolean?,
 }
 
 --- Engages `target` at `now`. Re-tapping the same target keeps its pacing.
@@ -67,7 +86,15 @@ function M.engage(session: Session?, target: string, now: number): Session
 		same.reason = nil
 		return same
 	end
-	return { target = target, auto = true, nextAt = now, inFlight = false, approachUntil = nil, reason = nil }
+	return {
+		target = target,
+		auto = true,
+		nextAt = now,
+		inFlight = false,
+		approachUntil = nil,
+		reason = nil,
+		reach = M.REACH,
+	}
 end
 
 --- What the loop does this frame: "swing", "approach", "wait" or "idle".
@@ -78,7 +105,7 @@ function M.step(session: Session?, now: number, alive: boolean, distance: number
 	if session.inFlight or now < session.nextAt then
 		return "wait"
 	end
-	if distance > M.REACH then
+	if distance > (session.reach or M.REACH) then
 		return if session.approachUntil and now < session.approachUntil then "wait" else "approach"
 	end
 	return "swing"
@@ -89,14 +116,17 @@ function M.settle(session: Session, now: number, result: any): Session
 	local nextSession = table.clone(session)
 	nextSession.inFlight = false
 	local reason = if type(result) == "table" then result.reason else "TRANSPORT"
-	if type(result) == "table" and result.ok then
+	-- WINDUP: the server accepted the swing and resolves it after the draw; pace like a hit.
+	if type(result) == "table" and (result.ok or reason == "WINDUP") then
 		nextSession.nextAt, nextSession.reason = now + M.SWING_SECONDS, nil
 	elseif type(reason) == "string" and M.FINAL[reason] then
 		nextSession.auto, nextSession.reason = false, reason
 	elseif type(reason) == "string" and M.REPOSITION[reason] then
+		-- Close in a little more before the next swing.
 		nextSession.nextAt, nextSession.approachUntil, nextSession.reason = now, nil, reason
+		nextSession.reach = math.max(M.MIN_REACH, (session.reach or M.REACH) - M.REACH_STEP)
 	else
-		-- WINDUP / COOLDOWN / COMBAT_PENDING / transport: the same swing settles on a later try.
+		-- COOLDOWN / COMBAT_PENDING / transport: the same swing settles on a later try.
 		nextSession.nextAt, nextSession.reason = now + M.BACKOFF_SECONDS, reason
 	end
 	return nextSession
@@ -223,6 +253,8 @@ function M.start(options: Options)
 		corner.AnchorPoint, corner.Position = Vector2.new(spec[1], spec[2]), UDim2.fromScale(spec[1], spec[2])
 		corner.BorderSizePixel, corner.BackgroundColor3, corner.Active = 0, color(P.coral), false
 		corner.ZIndex = 0
+		-- The glow is decoration: a tap on a creature under a corner must still reach the world.
+		corner:SetAttribute("ForgeTapThrough", true)
 		local fade = Instance.new("UIGradient")
 		fade.Rotation = spec[3]
 		fade.Parent = corner
@@ -418,6 +450,21 @@ function M.start(options: Options)
 	table.insert(connections, fanClose.Activated:Connect(closeCarcass))
 	table.insert(connections, stepBack.Activated:Connect(disengage))
 
+	-- Holds the first Backpack tool when the character holds none; true when one was taken up.
+	local function arm(): boolean
+		local humanoid = body()
+		local character = player.Character
+		local backpack = player:FindFirstChildOfClass("Backpack")
+		if not humanoid or not character or not backpack or character:FindFirstChildOfClass("Tool") then
+			return false
+		end
+		local tool = backpack:FindFirstChildOfClass("Tool")
+		if not tool then
+			return false
+		end
+		humanoid:EquipTool(tool)
+		return true
+	end
 	local function swing()
 		local current = session
 		if not current then
@@ -427,7 +474,19 @@ function M.start(options: Options)
 		task.spawn(function()
 			local result = options.send("survival-coop:attack", { current.target })
 			if session and session.target == current.target then
+				local previous = session.reason
 				session = M.settle(session, clock(), result)
+				if session.reason == "WEAPON_UNAVAILABLE" and not session.armed and arm() then
+					-- Nothing in hand: take a tool from the Backpack and swing again (once).
+					session.auto, session.armed = true, true
+					session.nextAt = clock() + M.BACKOFF_SECONDS
+					return
+				end
+				local line = M.attackRefusal(options.locale, session.reason)
+				if line and session.reason ~= previous then
+					local _, root = body()
+					float(rootOf(targetModel) or root, line, P.bone)
+				end
 			end
 		end)
 	end
@@ -477,6 +536,7 @@ function M.start(options: Options)
 		)
 	end
 	local ownHealth: number? = nil
+	local approachGoal: any = nil
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function()
@@ -536,12 +596,21 @@ function M.start(options: Options)
 			local distance = if anchor and root
 				then Vector3.new(anchor.Position.X - root.Position.X, 0, anchor.Position.Z - root.Position.Z).Magnitude
 				else nil
+			-- A target that moved away from the walk's goal (a fleeing dodo) re-aims the walk.
+			if session and anchor and session.approachUntil and approachGoal then
+				local drift = anchor.Position - approachGoal
+				if Vector3.new(drift.X, 0, drift.Z).Magnitude > M.DRIFT then
+					session.approachUntil = nil
+				end
+			end
 			local decision = M.step(session, now, alive, distance)
 			if decision == "approach" and session and anchor then
-				session.approachUntil = now + M.APPROACH_SECONDS
-				options.approach(anchor.Position, M.REACH, function()
-					if session then
-						session.approachUntil = nil
+				local walking = session
+				walking.approachUntil = now + M.APPROACH_SECONDS
+				approachGoal = anchor.Position
+				options.approach(anchor.Position, walking.reach or M.REACH, function()
+					if session == walking then
+						walking.approachUntil = nil
 					end
 				end)
 			elseif decision == "swing" then

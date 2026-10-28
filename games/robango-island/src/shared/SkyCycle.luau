@@ -15,16 +15,19 @@ type RGB = { number }
 -- old night (exposure 1.4, tint 180/212/255) as a near-uniform saturated blue, so the tint and
 -- ambients are greyer and brighter and the exposure lower; thin night air keeps the far frame
 -- edge clear (M.fog). The sea's warm-grey WaterColor turns slate under the cool tint; fires pool
--- warm light. `water` drives Terrain.WaterColor.
+-- warm light. `water` drives Terrain.WaterColor. D2b (R17, 01:00 captures) still read explore10 grass
+-- as daytime green and the town as dark teal: the night grade now desaturates hard (-0.55) under a
+-- moon-blue tint and lifts exposure, so every role gets the same readable blue-grey moonlight; the
+-- grade is the only per-frame post effect, so it applies identically on every role world.
 -- stylua: ignore start
 local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, outdoorAmbient = { 158, 148, 128 },
 	colorShiftTop = { 255, 232, 196 }, colorShiftBottom = { 92, 82, 64 }, decay = { 132, 138, 140 },
 	grade = { brightness = 0.02, contrast = 0.1, saturation = -0.12, tint = { 255, 242, 222 } },
 	density = 0.26, haze = 1.1, glare = 0.25, bloom = 0.08, sunRays = 0.04, starCount = 0,
 	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10 } }
-local NIGHT: any = { brightness = 2.2, exposure = 1.0, ambient = { 120, 140, 190 }, outdoorAmbient = { 146, 164, 206 },
-	colorShiftTop = { 172, 192, 236 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
-	grade = { brightness = 0.03, contrast = 0.06, saturation = -0.08, tint = { 204, 218, 246 } },
+local NIGHT: any = { brightness = 2.2, exposure = 1.3, ambient = { 120, 140, 190 }, outdoorAmbient = { 130, 162, 236 },
+	colorShiftTop = { 150, 176, 250 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
+	grade = { brightness = 0.04, contrast = 0, saturation = -0.55, tint = { 196, 212, 244 } },
 	fog = { 110, 130, 165 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
 	water = { 100, 92, 62 }, fire = { brightness = 3, range = 24 } }
 -- stylua: ignore end

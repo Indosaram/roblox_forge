@@ -38,12 +38,20 @@ return {
 		local cooldown = Combat.settle(s, 5, { ok = false, reason = "COOLDOWN" })
 		assert(cooldown.auto and nearly(cooldown.nextAt, 5 + Combat.BACKOFF_SECONDS), "cooldown backs off")
 		local windup = Combat.settle(s, 5, { ok = false, reason = "WINDUP" })
-		assert(windup.auto, "windup is transient")
+		assert(windup.auto and windup.reason == nil, "windup is an accepted swing")
 		local far = Combat.settle(s, 5, { ok = false, reason = "OUT_OF_RANGE" })
 		assert(
 			far.auto and far.reason == "OUT_OF_RANGE" and Combat.step(far, 5, true, 12) == "approach",
 			"out of range re-approaches"
 		)
+		assert(far.reach == Combat.REACH - Combat.REACH_STEP, "out of range closes in a stud")
+		local close = far
+		for _ = 1, 10 do
+			close = Combat.settle(close, 5, { ok = false, reason = "OUT_OF_RANGE" })
+		end
+		assert(close.reach == Combat.MIN_REACH, "closing in stops at the minimum reach")
+		local drawn = Combat.settle(s, 5, { ok = false, reason = "WINDUP" })
+		assert(nearly(drawn.nextAt, 5 + Combat.SWING_SECONDS), "an accepted swing in its windup paces like a hit")
 		local dead = Combat.settle(s, 5, { ok = false, reason = "ALREADY_DEAD" })
 		assert(not dead.auto and Combat.step(dead, 9, true, 1) == "idle", "a dead target ends the loop")
 		local unarmed = Combat.settle(s, 5, { ok = false, reason = "WEAPON_UNAVAILABLE" })
@@ -124,6 +132,11 @@ return {
 		end
 		assert(Combat.refusal("ko-kr", "OUT_OF_RANGE") == "더 가까이 가세요", "specific refusal")
 		assert(Combat.refusal("en-us", "SOME_NEW_CODE") == Combat.text("en-us", "refused"), "generic, not raw")
+		assert(Combat.attackRefusal("en-us", "COOLDOWN") == nil, "pacing refusals stay silent")
+		assert(Combat.attackRefusal("en-us", "OUT_OF_RANGE") == nil, "the loop walks closer instead")
+		local unarmed = Combat.attackRefusal("ko-kr", "WEAPON_UNAVAILABLE")
+		assert(unarmed and unarmed ~= "attack.WEAPON_UNAVAILABLE", "no weapon says so in KO")
+		assert(Combat.attackRefusal("en-us", "UNAUTHORIZED") == Combat.text("en-us", "attack"), "generic, not raw")
 	end,
 	["damage numbers survive a respawn and rebuild a board whose label was destroyed"] = function()
 		local roblox: any = require("@lune/roblox")

@@ -60,6 +60,29 @@ M.DODGES_NEEDED, M.MAX_TRIES = 2, 4
 M.MIRROR_MILLIS = 6000 -- the signal card auto-advances
 M.BOAT_MILLIS = 4000 -- the Gannet rounds the headland after the beacon is lit
 M.STAKES = 3
+-- The client starts each boar run at most this far (flat studs) from the player: at the closest
+-- zoom (share 0.15) the 57-degree, 30-degree-FOV play camera still shows ~14 studs of ground
+-- behind the character and ~20 ahead, so the whole run and its telegraph stay on screen at every
+-- zoom. D2b (R04) never saw the boar in 8 dodge-beat frames: the run started at the lane anchor,
+-- ~33 studs off, at the anchor's y=2 (under the relief terrain); the client now grounds it.
+M.CHARGE_REACH = 14
+
+--- Flat (x, z) start of a boar run from the lane anchor toward the player at (px, pz).
+function M.chargeFrom(lx: number, lz: number, px: number, pz: number): (number, number)
+	local dx, dz = lx - px, lz - pz
+	local length = math.sqrt(dx * dx + dz * dz)
+	if length <= M.CHARGE_REACH then
+		return lx, lz
+	end
+	local k = M.CHARGE_REACH / length
+	return px + dx * k, pz + dz * k
+end
+
+--- Flat (x, z) of the boar at run progress k (0 start, 1 at the player).
+function M.chargeAt(sx: number, sz: number, px: number, pz: number, k: number): (number, number)
+	local t = math.clamp(k, 0, 1)
+	return sx + (px - sx) * t, sz + (pz - sz) * t
+end
 
 local INDEX: { [string]: number } = {}
 for index, step in M.STEPS do

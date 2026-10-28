@@ -184,4 +184,34 @@ return {
 			assert(Catalog.signals[name], name .. " signal unmapped")
 		end
 	end,
+	-- p134 v40-v46: the live universe refused 101757647762518 ("User is not authorized to access
+	-- Asset") on every panel close. An id the phone cannot load is never published as a cue.
+	["no audio cue publishes an asset id the live universe refuses"] = function()
+		local refused = { [101757647762518] = "robango-ui-close" }
+		local Assets = require("../src/shared/Assets")
+		for key, asset in manifest() do
+			if asset.kind == "sfx" or asset.kind == "bgm" then
+				assert(not refused[asset.assetId], key .. " publishes refused asset " .. tostring(asset.assetId))
+			end
+		end
+		local close = Assets["robango-ui-close"]
+		assert(not string.match(close, "^rbxassetid://"), "ui-close is not a cloud id: " .. close)
+		local played: { string } = {}
+		local bank = {
+			new = function()
+				return {
+					define = function(_, name)
+						table.insert(played, name)
+					end,
+				}
+			end,
+		}
+		local started = pcall(Audio.start, bank, {
+			new = function()
+				error("stop after slot definitions")
+			end,
+		}, Assets, Catalog, {})
+		assert(not started and not table.find(played, "ui-close"), "RobangoAudio skips the unpublished close cue")
+		assert(table.find(played, "ui-open"), "published cues are still defined")
+	end,
 }

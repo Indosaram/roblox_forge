@@ -2990,6 +2990,11 @@ cmb.refused.NOT_YOURS,Someone else's catch,genre text cmb,Someone else's catch,�
 cmb.refused.CORPSE_EXPIRED,"Too late, it's spoiled",genre text cmb,"Too late, it's spoiled","너무 늦었어요, 상했어요"
 cmb.refused.ALREADY_TAKEN,Already taken,genre text cmb,Already taken,이미 챙겼어요
 cmb.refused.INVENTORY_FULL,Bag is full,genre text cmb,Bag is full,가방이 가득 찼어요
+cmb.attack,Can't attack that now,genre text cmb,Can't attack that now,지금은 공격할 수 없어요
+cmb.attack.WEAPON_UNAVAILABLE,Hold or wear a weapon to attack,genre text cmb,Hold or wear a weapon to attack,무기를 손에 들거나 장착해야 공격할 수 있어요
+cmb.attack.BLOCKED,Something is in the way,genre text cmb,Something is in the way,사이에 막는 것이 있어요
+cmb.attack.NOT_FACING,Turn toward it,genre text cmb,Turn toward it,대상을 바라보세요
+cmb.attack.MOUNTED,Get off your mount to attack,genre text cmb,Get off your mount to attack,탈것에서 내려야 공격할 수 있어요
 hud.shell.capture,Capture,genre text hud,Capture,포획
 hud.shell.dismount,Hop off,genre text hud,Hop off,내리기
 hud.shell.pet,Companion,genre text hud,Companion,동료

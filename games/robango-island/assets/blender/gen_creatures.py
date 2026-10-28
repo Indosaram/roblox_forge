@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bmesh
 import bpy
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 
 import common as C
 
@@ -33,23 +34,30 @@ X = Vector((1, 0, 0))
 # A2b palette family targets (hide #6b5f3e, belly #8a7a58) so the herd reads realistic, not toy.
 SPECIES = {
     "compsognathus": dict(plan="theropod", envelope=(1, 1.5, 3), tris=4000, tex=512, length=3.0,
-        body="#6a7440", stripe="#3a4224", belly="#9a9468", accent="#56602f",
-        knobs=dict(neck=1.15, head=0.9, tail=1.25, girth=0.8, legs=1.0, arms=1.0, snout=1.0)),
+        body="#5e6a38", stripe="#323a1e", belly="#a8a27a", accent="#56602f", dorsal="#2e361a",
+        head="#8a5a26", plume="#3a4222", plume_tip="#b8b08a", skin="feathers",
+        knobs=dict(neck=1.15, head=0.9, tail=1.25, girth=0.8, legs=1.0, arms=1.0, snout=1.0, neckr=0.85, headw=0.85),
+        features=["feathers"]),
     "oviraptor": dict(plan="theropod", envelope=(1.5, 3, 3), tris=4000, tex=512, length=3.0,
-        body="#7a5440", stripe="#4a2e22", belly="#a08c6c", accent="#3e5a6e",
-        knobs=dict(neck=1.1, head=1.0, tail=0.9, girth=1.0, legs=1.0, arms=1.15, snout=0.6),
-        features=["crest", "armfeathers", "tailfan"]),
+        body="#6a4636", stripe="#3a2218", belly="#b0a084", accent="#3e6a7e", dorsal="#33221a",
+        head="#3e6a7e", plume="#2e2420", plume_tip="#d4c8b2", skin="feathers",
+        knobs=dict(neck=1.1, head=1.0, tail=0.9, girth=1.0, legs=1.0, arms=1.15, snout=0.6, neckr=0.85, headw=0.9),
+        features=["crest", "feathers"]),
     "gallimimus": dict(plan="theropod", envelope=(2, 6, 5), tris=7000, tex=512, length=5.0,
-        body="#7e6444", stripe="#4c3a26", belly="#a8946e", accent="#5e4a32",
-        knobs=dict(neck=1.6, head=0.72, tail=1.0, girth=0.9, legs=1.45, arms=1.1, snout=1.1)),
+        body="#5a524a", stripe="#2e2a26", belly="#d6d0c4", accent="#5e4a32", dorsal="#2c2826",
+        head="#7a3626", plume="#34302c", plume_tip="#e2ddd2", skin="feathers",
+        knobs=dict(neck=1.6, head=0.72, tail=1.0, girth=0.9, legs=1.45, arms=1.1, snout=1.1, neckr=0.7, headw=0.8),
+        features=["feathers"]),
     "utahraptor": dict(plan="theropod", envelope=(3, 6, 6), tris=7000, tex=512, length=6.0,
-        body="#6e4c36", stripe="#3c2618", belly="#9c8664", accent="#a07c46",
-        knobs=dict(neck=1.0, head=1.05, tail=1.0, girth=1.15, legs=1.05, arms=1.15, snout=1.0),
-        features=["sickle", "mane", "armfeathers"]),
+        body="#4a3a2e", stripe="#241a14", belly="#b6a890", accent="#a07c46", dorsal="#2a201a",
+        head="#a2462a", plume="#2a221c", plume_tip="#dcd4c4", skin="feathers",
+        knobs=dict(neck=1.0, head=1.05, tail=1.0, girth=1.15, legs=1.05, arms=1.15, snout=1.0, neckr=0.8, headw=0.82),
+        features=["sickle", "feathers"]),
     "velociraptor": dict(plan="theropod", envelope=(2, 4, 4), tris=4000, tex=512, length=4.0,
-        body="#80684a", stripe="#4a3624", belly="#a89474", accent="#5e3e2c",
-        knobs=dict(neck=1.0, head=0.95, tail=1.1, girth=0.85, legs=1.0, arms=1.05, snout=1.15),
-        features=["sickle", "armfeathers"]),
+        body="#5a4c40", stripe="#2e241c", belly="#ada390", accent="#5e3e2c", dorsal="#2c2520",
+        head="#90321f", plume="#2a2420", plume_tip="#d0c8b6", skin="feathers",
+        knobs=dict(neck=1.0, head=0.95, tail=1.1, girth=0.85, legs=1.0, arms=1.05, snout=1.15, neckr=0.78, headw=0.78),
+        features=["sickle", "feathers"]),
     "dilophosaurus": dict(plan="theropod", envelope=(3, 6, 6), tris=7000, tex=512, length=6.0,
         body="#4e6a58", stripe="#2a3c32", belly="#94a088", accent="#a08844",
         knobs=dict(neck=1.15, head=1.0, tail=1.0, girth=1.0, legs=1.05, arms=1.0, snout=1.1),
@@ -82,21 +90,21 @@ SPECIES = {
         body="#4e6a62", stripe="#2e443e", belly="#9aa490", accent="#a0603a",
         knobs=dict(girth=1.0), features=["tubecrest", "duckbill"]),
     "smilodon": dict(plan="mammal", envelope=(3, 4, 5), tris=7000, tex=512, length=5.0,
-        body="#a08458", stripe="#6a5034", belly="#c8b896", accent="#7a5c3a", stripe_lo=9, skin="fur",
-        knobs=dict(girth=1.12, legs=0.95, neck=0.9, head=1.1, snout=0.75, tail=0.55, maner=1.25),
+        body="#9c7e52", stripe="#6a5034", belly="#c2b08c", accent="#7a5c3a", stripe_lo=9, skin="fur", dorsal="#6e5638",
+        knobs=dict(girth=1.12, legs=0.95, neck=0.9, head=1.1, snout=0.75, tail=0.55, maner=1.25, ear=0.7),
         features=["saber"], saber=0.24, foot="paw"),
     "tropicalSmilodon": dict(plan="mammal", envelope=(2.5, 3.5, 5), tris=7000, tex=512, length=5.0,
         body="#a87a44", stripe="#3a2a1c", belly="#d0bc98", accent="#6a4a2c", stripe_lo=0.28, skin="fur",
-        knobs=dict(girth=0.95, legs=0.95, neck=0.9, head=1.0, snout=0.75, tail=1.15),
+        knobs=dict(girth=0.95, legs=0.95, neck=0.9, head=1.0, snout=0.75, tail=1.15, ear=0.75),
         features=["saber"], saber=0.13, foot="paw"),
     "direWolf": dict(plan="mammal", envelope=(2.5, 3.5, 5), tris=7000, tex=512, length=5.0,
-        body="#6e7072", stripe="#46484c", belly="#b4b2ac", accent="#55575c", stripe_lo=9, skin="fur",
-        knobs=dict(girth=0.9, legs=1.05, neck=1.0, head=1.0, snout=1.35, tail=1.25, tailr=1.4, maner=1.3, ear=1.2),
+        body="#7a7874", stripe="#46484c", belly="#c4c0b8", accent="#55575c", stripe_lo=9, skin="fur", dorsal="#4a4a4a",
+        knobs=dict(girth=0.9, legs=1.05, neck=1.0, head=1.0, snout=1.35, tail=1.25, tailr=1.4, maner=1.3, ear=0.95),
         features=[], foot="paw"),
     "boar": dict(plan="mammal", envelope=(2.5, 3, 4), tris=4000, tex=512, length=4.0,
         body="#5e4a3a", stripe="#3c2e24", belly="#8a7460", accent="#3a2c22", stripe_lo=9, skin="fur",
         knobs=dict(girth=1.25, legs=0.72, neck=0.6, head=1.2, snout=1.3, headup=0.2, tail=0.4, chestr=1.15),
-        features=["tusks", "bristles"], foot="hoof"),
+        features=["tusks"], foot="hoof"),
     "deer": dict(plan="mammal", envelope=(2, 5, 4), tris=7000, tex=512, length=4.0,
         body="#93704c", stripe="#6a5034", belly="#d0c4ae", accent="#5a4430", stripe_lo=9, skin="fur",
         knobs=dict(girth=0.82, legs=1.3, neck=1.0, head=0.95, snout=1.1, headup=1.0, tail=0.3, tailup=1, ear=1.3, legr=0.75),
@@ -111,12 +119,65 @@ SPECIES = {
         body="#4e5e3c", stripe="#2e3a24", belly="#a8a27a", accent="#3e4a30", stripe_lo=0.34, skin="plates",
         knobs=dict(girth=1.0), features=["scutes", "teeth"]),
     "turtle": dict(plan="turtle", envelope=(1.5, 1, 2), tris=4000, tex=512, length=2.0,
-        body="#5e7046", stripe="#3e4a2e", belly="#b0a678", accent="#6e5636", stripe_lo=9, skin="plates",
+        body="#56653e", stripe="#2e3a22", belly="#b4aa7c", accent="#6e5636", stripe_lo=9, skin="plates", dorsal="#3a4628",
         knobs=dict(girth=1.0), features=["shell"], iris="#2a1e16"),
     "dodo": dict(plan="bird", envelope=(1.5, 2, 2), tris=4000, tex=512, length=2.0,
         body="#7a8290", stripe="#5a6270", belly="#c4c2ba", accent="#b8985a", stripe_lo=9, skin="feathers",
         knobs=dict(girth=1.0), features=["beak", "wings", "tuft"]),
 }
+# v2 (L4) per-species hide patterns: layered masks over the countershaded base, sizes as a
+# fraction of body length. (kind, colour key or hex, strength, region, params).
+PATTERNS = {
+    "compsognathus": [("spots", "stripe", 0.75, "upper", dict(size=0.035, r=0.3)), ("saddle", "stripe", 0.35, None, {}), ("head", "head", 0.85, None, dict(r=0.75))],
+    "oviraptor": [("blotch", "stripe", 0.55, "upper", dict(size=0.08, t=0.55)), ("saddle", "stripe", 0.4, None, {}), ("head", "head", 0.85, None, dict(r=0.75))],
+    "gallimimus": [("saddle", "stripe", 0.6, None, {}), ("spots", "belly", 0.3, "upper", dict(size=0.02, r=0.25)), ("head", "head", 0.85, None, dict(r=0.75))],
+    "utahraptor": [("bands", "stripe", 0.7, "upper", dict(count=7, distortion=14)), ("spots", "stripe", 0.35, "upper", dict(size=0.022, r=0.25)), ("head", "head", 0.85, None, dict(r=0.75))],
+    "velociraptor": [("spots", "stripe", 0.6, "upper", dict(size=0.025, r=0.3)), ("saddle", "stripe", 0.4, None, {}), ("head", "head", 0.85, None, dict(r=0.75))],
+    "dilophosaurus": [("spots", "stripe", 0.75, "upper", dict(size=0.06, r=0.32))],
+    "allosaurus": [("bands", "stripe", 0.55, "upper", dict(count=9, distortion=6)), ("saddle", "stripe", 0.3, None, {})],
+    "tyrannosaurus": [("saddle", "stripe", 0.7, None, {}), ("blotch", "stripe", 0.4, "upper", dict(size=0.05, t=0.55))],
+    "protoceratops": [("bands", "stripe", 0.92, "all", dict(count=10, distortion=3, sharp=1))],
+    "triceratops": [("blotch", "stripe", 0.55, "upper", dict(size=0.12, t=0.5)), ("saddle", "stripe", 0.3, None, {})],
+    "brachiosaurus": [("reticulate", "stripe", 0.35, "upper", dict(size=0.03, w=0.06)), ("saddle", "stripe", 0.35, None, {})],
+    "stegosaurus": [("blotch", "stripe", 0.6, "upper", dict(size=0.06, t=0.52)), ("saddle", "stripe", 0.3, None, {})],
+    "ankylosaurus": [("spots", "belly", 0.45, "upper", dict(size=0.05, r=0.3)), ("saddle", "stripe", 0.4, None, {})],
+    "parasaurolophus": [("bands", "stripe", 0.45, "upper", dict(count=8, distortion=5)), ("blotch", "stripe", 0.25, "upper", dict(size=0.05, t=0.55))],
+    "smilodon": [("grizzle", "stripe", 0.25, None, {}), ("socks", "#c8b896", 0.35, None, {})],
+    "tropicalSmilodon": [("bands", "stripe", 0.85, "upper", dict(count=12, distortion=7))],
+    "direWolf": [("saddle", "stripe", 0.55, None, {}), ("grizzle", "#2e2f31", 0.3, None, {})],
+    "boar": [("grizzle", "#2a221c", 0.5, None, {}), ("socks", "stripe", 0.6, None, {})],
+    "deer": [("saddle", "stripe", 0.3, None, {})],
+    "mammoth": [("saddle", "stripe", 0.45, None, {}), ("grizzle", "#2a1c14", 0.3, None, {})],
+    "elephant": [("blotch", "#615d57", 0.25, None, dict(size=0.1, t=0.55)), ("saddle", "stripe", 0.25, None, {})],
+    "crocodile": [("blotch", "stripe", 0.7, "upper", dict(size=0.05, t=0.5)), ("saddle", "stripe", 0.3, None, {})],
+    "turtle": [("blotch", "stripe", 0.4, None, dict(size=0.08, t=0.5))],
+    "dodo": [("grizzle", "stripe", 0.15, None, {}), ("saddle", "stripe", 0.25, None, {})],
+}
+
+# v2 (L4) mammal fur: opaque tapered clumps on the sculpt (zone, count, length, half-width), in
+# body-length fractions. One skinned material, so the cards are thin solid wedges, not alpha.
+# L4b: every clump is a soft lobe shell (flat, broad, rounded tip, lying close to the skin and
+# overlapping like shingles) instead of a spiky 3-sided wedge; CLUMP_TRIS triangles each.
+FUR = {
+    "smilodon": [("cheek", 26, 0.045, 0.02), ("mane", 40, 0.05, 0.022), ("throat", 24, 0.05, 0.02)],
+    "tropicalSmilodon": [("cheek", 22, 0.04, 0.018), ("mane", 28, 0.04, 0.018), ("throat", 16, 0.04, 0.018)],
+    "direWolf": [("mane", 70, 0.075, 0.03), ("cheek", 26, 0.05, 0.022), ("dorsal", 50, 0.055, 0.026), ("throat", 30, 0.065, 0.026), ("tail", 40, 0.07, 0.03), ("haunch", 24, 0.05, 0.024)],
+    "boar": [("crest", 54, 0.06, 0.016), ("cheek", 14, 0.04, 0.016), ("all", 40, 0.035, 0.016)],
+    "deer": [("throat", 24, 0.045, 0.02), ("tail", 8, 0.035, 0.018)],
+    "mammoth": [("skirt", 220, 0.16, 0.03), ("crest", 44, 0.07, 0.03), ("cheek", 26, 0.055, 0.026), ("tail", 10, 0.05, 0.02)],
+    "dodo": [("dorsal", 40, 0.1, 0.05), ("haunch", 16, 0.09, 0.05), ("tailtip", 12, 0.14, 0.05)],
+}
+# L4b raptor plumage (feather shells in the plume material: dark base, pale tip):
+# arm wing feathers, tail-tip fan, neck/head crest and a short back/thigh coat.
+PLUME = {
+    "compsognathus": [("arm", 16, 0.07, 0.03), ("tailtip", 14, 0.09, 0.035), ("crest_neck", 18, 0.06, 0.03), ("dorsal", 14, 0.05, 0.03)],
+    "oviraptor": [("arm", 22, 0.1, 0.04), ("tailtip", 18, 0.12, 0.04), ("crest_neck", 16, 0.06, 0.03), ("dorsal", 14, 0.05, 0.03)],
+    "gallimimus": [("arm", 24, 0.09, 0.032), ("tailtip", 18, 0.1, 0.035), ("crest_neck", 22, 0.05, 0.022), ("dorsal", 26, 0.05, 0.026), ("haunch", 14, 0.05, 0.026)],
+    "utahraptor": [("arm", 30, 0.1, 0.035), ("tailtip", 22, 0.11, 0.036), ("crest_neck", 30, 0.06, 0.026), ("dorsal", 28, 0.05, 0.026), ("haunch", 16, 0.05, 0.024)],
+    "velociraptor": [("arm", 20, 0.1, 0.036), ("tailtip", 16, 0.1, 0.034), ("crest_neck", 20, 0.06, 0.028), ("dorsal", 10, 0.05, 0.028)],
+}
+CLUMP_TRIS = 14
+
 # B2a species keep their recorded seeds; B2b species seed from SEED + 100.
 B2A_SPECIES = sorted(k for k, v in SPECIES.items() if v["plan"] in ("theropod", "ceratopsian", "sauropod"))
 B2B_SPECIES = sorted(k for k in SPECIES if k not in B2A_SPECIES)
@@ -154,13 +215,15 @@ def theropod(k):
     nose = hb + Vector((0, -0.14 - 0.35 * sn, -0.055)) * hs
     jaw_a = hb + Vector((0, -0.10, -0.10)) * hs
     jaw_tip = hb + Vector((0, -0.14 - 0.31 * sn, -0.135)) * hs
+    # L4b: neckr/headw thin the neck and narrow the skull (lean raptors); bones do not move.
+    nr, hw = k.get("neckr", 1.0), k.get("headw", 1.0)
     neck = [
-        ("neck_a", tuple(neck_a), 0.14 * g * max(hs, 1) ** 0.5, 0.16 * g * max(hs, 1) ** 0.5),
-        ("neck_b", tuple(neck_b), 0.11 * g * hs ** 0.6, 0.12 * g * hs ** 0.6),
-        ("head_back", tuple(hb), 0.13 * hs, 0.13 * hs),
-        ("head", tuple(head), 0.115 * hs, 0.11 * hs),
-        ("snout", tuple(snout), 0.085 * hs, 0.065 * hs),
-        ("nose", tuple(nose), 0.05 * hs, 0.042 * hs),
+        ("neck_a", tuple(neck_a), 0.14 * g * max(hs, 1) ** 0.5 * nr, 0.16 * g * max(hs, 1) ** 0.5 * nr),
+        ("neck_b", tuple(neck_b), 0.11 * g * hs ** 0.6 * nr, 0.12 * g * hs ** 0.6 * nr),
+        ("head_back", tuple(hb), 0.13 * hs * hw, 0.13 * hs),
+        ("head", tuple(head), 0.115 * hs * hw, 0.11 * hs),
+        ("snout", tuple(snout), 0.085 * hs * hw, 0.065 * hs),
+        ("nose", tuple(nose), 0.05 * hs * hw, 0.042 * hs),
     ]
     jaw = [("jaw_a", tuple(jaw_a), 0.09 * hs, 0.055 * hs), ("jaw_tip", tuple(jaw_tip), 0.04 * hs, 0.026 * hs)]
     tl = k["tail"]
@@ -512,8 +575,9 @@ def mammal(k):
     for i, (dy, dz, r) in enumerate([(0.14, 0.0, 0.05), (0.32, -0.1 + 0.2 * tu, 0.045), (0.5, -0.26 + 0.35 * tu, 0.03)]):
         tail.append((f"tail{i + 1}", tuple(pel + Vector((0, dy * tl, dz * tl))), r * tr * g, r * tr * g))
     x = 0.11 * g
-    hind_pts = [("hip", (x, 0.3, hip - 0.06), 0.12 * g, 0.14 * g), ("knee", (x * 1.1, 0.2, hip * 0.62), 0.07 * lr, 0.075 * lr), ("ankle", (x, 0.36, hip * 0.27), 0.045 * lr, 0.045 * lr), ("foot", (x, 0.3, 0.035), 0.045 * lr, 0.03)]
-    fore_pts = [("shoulder", (x, -0.28, sh - 0.08), 0.11 * g, 0.13 * g), ("elbow", (x * 1.1, -0.24, sh * 0.52), 0.065 * lr, 0.065 * lr), ("wrist", (x, -0.27, sh * 0.16), 0.042 * lr, 0.042 * lr), ("hand", (x, -0.32, 0.035), 0.045 * lr, 0.03)]
+    # v2: digitigrade - stifle forward, hock high and back, long slanted metatarsal onto the toes.
+    hind_pts = [("hip", (x, 0.3, hip - 0.06), 0.12 * g, 0.14 * g), ("knee", (x * 1.1, 0.14, hip * 0.62), 0.07 * lr, 0.075 * lr), ("ankle", (x, 0.42, hip * 0.33), 0.04 * lr, 0.045 * lr), ("foot", (x, 0.35, 0.035), 0.04 * lr, 0.03)]
+    fore_pts = [("shoulder", (x, -0.28, sh - 0.08), 0.11 * g, 0.13 * g), ("elbow", (x * 1.1, -0.2, sh * 0.55), 0.062 * lr, 0.065 * lr), ("wrist", (x, -0.27, sh * 0.17), 0.038 * lr, 0.04 * lr), ("hand", (x, -0.3, 0.035), 0.04 * lr, 0.03)]
     kind = k.get("foot", "paw")
     limbs, tips = _limbs(hind_pts, fore_pts, kind, 2 if kind == "hoof" else 4, "Foot", "Hand")
     neck_bones = [
@@ -548,9 +612,10 @@ def elephant(k):
     trunk = [("t1", (0, -1.66, 1.5), 0.16, 0.16), ("t2", (0, -1.7, 1.05), 0.12, 0.12), ("t3", (0, -1.68, 0.62), 0.09, 0.09), ("t4", (0, -1.6, 0.34), 0.065, 0.065)]
     tail = [("tail1", (0, 1.05, 1.65), 0.08, 0.08), ("tail2", (0, 1.2, 1.05), 0.045, 0.045)]
     x = 0.42 * g
-    hind_pts = [("hip", (x, 0.55, 1.55), 0.32, 0.36), ("knee", (x, 0.5, 0.95), 0.27, 0.27), ("ankle", (x, 0.55, 0.32), 0.24, 0.24), ("foot", (x, 0.5, 0.06), 0.27, 0.12)]
-    fore_pts = [("shoulder", (x * 1.05, -0.62, 1.6), 0.32, 0.36), ("elbow", (x * 1.07, -0.66, 1.0), 0.27, 0.27), ("wrist", (x * 1.07, -0.62, 0.32), 0.24, 0.24), ("hand", (x * 1.07, -0.66, 0.06), 0.27, 0.12)]
-    limbs, tips = _limbs(hind_pts, fore_pts, "nailbig", 3)
+    # v2: tapered pillar legs (fat upper leg, slim knee/ankle) ending on round flat pads.
+    hind_pts = [("hip", (x, 0.55, 1.55), 0.3, 0.34), ("knee", (x, 0.52, 0.95), 0.2, 0.21), ("ankle", (x, 0.55, 0.36), 0.17, 0.17), ("foot", (x, 0.5, 0.12), 0.19, 0.1)]
+    fore_pts = [("shoulder", (x * 1.05, -0.62, 1.6), 0.3, 0.34), ("elbow", (x * 1.07, -0.58, 1.0), 0.21, 0.22), ("wrist", (x * 1.07, -0.62, 0.36), 0.17, 0.17), ("hand", (x * 1.07, -0.64, 0.12), 0.19, 0.1)]
+    limbs, tips = _limbs(hind_pts, fore_pts, "nailbig", 4)
     neck_bones = [
         ("Neck", "chest", "head_back", "Chest"),
         ("Head", "head_back", "nose", "Neck"),
@@ -821,13 +886,7 @@ def build_details(sp, sk, points):
             out["claw"].append(detail_object("sickle" + sfx, b, "Foot" + sfx))
     b = bmesh.new()
     eye = sk["eye"]
-    r = 0.034 * s * (sp["knobs"].get("head", 1.0) ** 0.5 if sp["plan"] == "theropod" else 1.0)
-    if sp["plan"] == "sauropod":
-        r = 0.16
-    elif sp["plan"] == "ceratopsian":
-        r = 0.045 * s
-    elif "eye_r" in sk:
-        r = sk["eye_r"] * s
+    r = sk["eye_r_abs"]
     for side in (1, -1):
         bmesh.ops.create_uvsphere(b, u_segments=10, v_segments=8, radius=r, matrix=Matrix.Translation(Vector((eye.x * side, eye.y, eye.z))))
     eyes = detail_object("eyes", b, "Head")
@@ -999,9 +1058,11 @@ def build_details_b2b(sp, sk, points, out):
             plate(b, base + d * 0.15, Vector((0.35 * side, -1, 0.1)), d, abs(d.z) * 0.55, d.length * 0.8, 0.05 * s, 12, math.pi * 1.2)
         else:
             d = tip - base
-            m = Matrix.Translation(base + d / 2) @ d.normalized().to_track_quat("Z", "Y").to_matrix().to_4x4() @ Matrix.Diagonal((1.0, 0.45, 1.0, 1))
-            bmesh.ops.create_cone(b, cap_ends=True, segments=6, radius1=d.length * 0.42, radius2=d.length * 0.04, depth=d.length, matrix=m)
-        out["accent"].append(detail_object("ear" + sfx, b, "Ear" + sfx))
+            leaf(b, base - d * 0.12, tip, d.length * 0.36, d.length * 0.09, 0.8, Vector((0.35 * side, -1, 0.1)))
+        ear = detail_object("ear" + sfx, b, "Ear" + sfx)
+        C.finish_mesh(ear)
+        # L4b: ears wear the hide (same fur, countershading and AO) instead of a flat accent fill.
+        out.setdefault("skin", []).append(ear)
     if "plates" in feats:
         # Two staggered rows of tall rounded plates from the neck to mid-tail, tallest over the hips.
         b_by = {}
@@ -1169,6 +1230,477 @@ def build_details_b2b(sp, sk, points, out):
     return out
 
 
+# ------------------------------------------------------------------ v2 sculpt (L4)
+# The skin-modifier tube body is only the armature-shaped core. v2 unions it with ellipsoid
+# masses (skull, jaw, cheek, brow, muscle bellies over hips and shoulders, skeletal landmarks,
+# merged foot pads and toes), voxel-remeshes the union into one watertight sculpt, then bakes
+# that high mesh onto the decimated low mesh (normal + albedo + roughness).
+
+# Eye radius against the B2a/B2b value: real eyes are small next to the skull.
+EYE_SCALE = dict(theropod=0.58, ceratopsian=0.6, sauropod=0.6, armored=0.7, hadrosaur=0.68, mammal=0.78, elephant=0.5, crocodilian=0.8, turtle=0.9, bird=0.8)
+# Skull width/height against the head skin radius; m = limb muscle gain; lm = ilium/scapula bumps.
+SCULPT = {
+    "theropod": dict(sw=0.82, sh=1.22, m=1.0, lm=False, cheek=1.0),
+    "ceratopsian": dict(sw=0.9, sh=1.0, m=1.0, lm=True, cheek=0.8),
+    "sauropod": dict(sw=0.85, sh=0.95, m=0.9, lm=True, cheek=0.0),
+    "armored": dict(sw=1.0, sh=0.85, m=0.85, lm=False, cheek=0.6),
+    "hadrosaur": dict(sw=0.85, sh=1.05, m=1.0, lm=True, cheek=0.7),
+    "mammal": dict(sw=0.95, sh=0.95, m=1.0, lm=True, cheek=1.0),
+    "elephant": dict(sw=0.9, sh=1.05, m=0.9, lm=True, cheek=0.0),
+    "crocodilian": dict(sw=1.05, sh=0.7, m=0.7, lm=False, cheek=0.8),
+    "turtle": dict(sw=0.9, sh=0.9, m=0.0, lm=False, cheek=0.0),
+    "bird": dict(sw=0.95, sh=1.0, m=0.8, lm=False, cheek=0.0),
+}
+Y = Vector((0, 1, 0))
+Z = Vector((0, 0, 1))
+
+
+def ell(bm, center, along, r_side, r_along, r_up, segments=14, rings=10):
+    """Ellipsoid whose second axis follows `along` (its first axis stays as close to X as it can)."""
+    yv = Vector(along).normalized()
+    xv = X - yv * X.dot(yv)
+    if xv.length < 1e-3:
+        xv = Z - yv * Z.dot(yv)
+    xv.normalize()
+    zv = xv.cross(yv)
+    m = Matrix.Identity(4)
+    for i in range(3):
+        m[i][0], m[i][1], m[i][2], m[i][3] = xv[i] * r_side, yv[i] * r_along, zv[i] * r_up, center[i]
+    bmesh.ops.create_uvsphere(bm, u_segments=segments, v_segments=rings, radius=1.0, matrix=m)
+
+
+def eye_radius(sp, sk):
+    s = sk["scale"]
+    r = 0.034 * s * (sp["knobs"].get("head", 1.0) ** 0.5 if sp["plan"] == "theropod" else 1.0)
+    if sp["plan"] == "sauropod":
+        r = 0.16
+    elif sp["plan"] == "ceratopsian":
+        r = 0.045 * s
+    elif "eye_r" in sk:
+        r = sk["eye_r"] * s
+    return r * EYE_SCALE[sp["plan"]]
+
+
+def sculpt_masses(sp, sk, P, R):
+    """[(center, along, r_side, r_along, r_up)] in final studs."""
+    plan = sp["plan"]
+    cfg = SCULPT[plan]
+    out = []
+
+    def rm(key):
+        return max(R[key]) if key in R else 0.0
+
+    def add(c, along, a, b, c2):
+        if a > 0 and b > 0 and c2 > 0:
+            out.append((Vector(c), Vector(along), a, b, c2))
+
+    hb, nose = P["head_back"], P["nose"]
+    d = nose - hb
+    hl = d.length
+    fwd = d.normalized()
+    hr = max(rm("head"), rm("head_back") * 0.9)
+    hw = sp["knobs"].get("headw", 1.0)
+    if plan == "mammal":
+        # L4b: rounded cranium, a distinct stop, a tapering muzzle bridge, a nose pad and round
+        # zygomatic cheeks instead of one long skull slab (the v2 heads read blocky).
+        sn = sp["knobs"].get("snout", 1.0)
+        cat = sp.get("foot") == "paw" and sn < 0.9
+        add(hb.lerp(nose, 0.2) + Z * hr * 0.12, d, hr * 1.02, hl * 0.34, hr * 0.98)
+        add(hb + Z * hr * 0.28 + fwd * hl * 0.06, d, hr * 1.05, hl * 0.3, hr * 0.95)
+        add(hb.lerp(nose, 0.58) - Z * hr * 0.06, d, hr * (0.62 if cat else 0.5), hl * 0.3, hr * 0.6)
+        add(hb.lerp(nose, 0.84) - Z * hr * 0.1, d, hr * (0.5 if cat else 0.36), hl * 0.2, hr * 0.44)
+        add(nose - fwd * hl * 0.04 - Z * hr * 0.04, d, hr * 0.26, hl * 0.08, hr * 0.22)
+        for side in (1, -1):
+            add(hb.lerp(nose, 0.34) + X * side * hr * (0.6 if cat else 0.5) - Z * hr * 0.2, d, hr * (0.42 if cat else 0.32), hl * 0.2, hr * 0.36)
+    else:
+        # Skull: one mass from the occiput to the snout, then a narrower muzzle.
+        add(hb.lerp(nose, 0.36) + Z * hr * 0.08, d, hr * cfg["sw"] * hw, hl * 0.5, hr * cfg["sh"])
+    if plan in ("theropod", "hadrosaur", "crocodilian"):
+        add(hb.lerp(nose, 0.74), d, hr * cfg["sw"] * 0.62 * hw, hl * 0.3, hr * cfg["sh"] * 0.72)
+    if "jaw_a" in P and plan not in ("bird", "turtle", "elephant"):
+        dj = P["jaw_tip"] - P["jaw_a"]
+        add(P["jaw_a"].lerp(P["jaw_tip"], 0.4), dj, rm("jaw_a") * 0.95 * hw, dj.length * 0.52, rm("jaw_a") * 0.75)
+    er, eye = sk["eye_r_abs"], sk["eye"]
+    for side in (1, -1):
+        sx = X * side
+        if cfg["cheek"]:
+            # Jaw adductor bulge behind and below the eye.
+            c = hb + sx * hr * 0.55 * hw + fwd * hl * 0.1 - Z * hr * 0.28
+            add(c, d, hr * 0.34 * cfg["cheek"] * hw, hl * 0.2, hr * 0.42 * cfg["cheek"])
+        # Brow ridge over the eye.
+        e = Vector((eye.x * side, eye.y, eye.z))
+        add(e + Z * er * 1.05 + sx * er * 0.15, d, er * 1.0, er * 2.1, er * 0.7)
+    neck_key = "neck_a" if "neck_a" in P else ("n1" if "n1" in P else None)
+    if neck_key and plan not in ("turtle", "bird"):
+        n0, n1 = P["chest"], P[neck_key]
+        rn = rm(neck_key)
+        add(n0.lerp(n1, 0.55) + Z * rn * 0.3, n1 - n0, rn * 0.95, (n1 - n0).length * 0.6, rn * 0.9)
+    m = cfg["m"]
+    if m:
+        for side, sfx in ((1, "L"), (-1, "R")):
+            sx = X * side
+
+            def seg(a, b):
+                return (P[a + sfx], P[b + sfx]) if a + sfx in P and b + sfx in P else None
+
+            # Thigh: big muscle belly over the hip (caudofemoralis / quadriceps mass).
+            thigh = seg("hip", "knee") or seg("hip", "foot")
+            if thigh:
+                a, b = thigh
+                r0 = rm("hip" + sfx)
+                add(a.lerp(b, 0.3) + sx * r0 * 0.14, b - a, r0 * 0.92 * m, (b - a).length * 0.44, r0 * 1.05 * m)
+            shank = seg("knee", "ankle")
+            if shank:
+                a, b = shank
+                r0 = rm("knee" + sfx)
+                add(a.lerp(b, 0.26) + Y * r0 * 0.3, b - a, r0 * 0.8 * m, (b - a).length * 0.32, r0 * 0.95 * m)
+            upper = seg("shoulder", "elbow")
+            if upper:
+                a, b = upper
+                r0 = rm("shoulder" + sfx)
+                add(a.lerp(b, 0.28) + sx * r0 * 0.1, b - a, r0 * 0.88 * m, (b - a).length * 0.42, r0 * 1.0 * m)
+            fore = seg("elbow", "wrist") or seg("elbow", "hand")
+            if fore and plan != "bird":
+                a, b = fore
+                r0 = rm("elbow" + sfx)
+                add(a.lerp(b, 0.24) - Y * r0 * 0.15, b - a, r0 * 0.78 * m, (b - a).length * 0.3, r0 * 0.9 * m)
+            if cfg["lm"]:
+                rp, rc = rm("pelvis"), rm("chest")
+                add(P["pelvis"] + sx * rp * 0.55 + Z * rp * 0.72, Y, rp * 0.26, rp * 0.42, rp * 0.2)
+                add(P["chest"] + sx * rc * 0.62 + Z * rc * 0.5 + Y * rc * 0.1, Vector((0, 0.45, 1)), rc * 0.16, rc * 0.48, rc * 0.3)
+    # Feet: pads with the toes merged in (mammals), round flat pads (elephants).
+    kind = sp.get("foot", "paw")
+    for side, sfx in ((1, "L"), (-1, "R")):
+        for end in ("foot" + sfx, "hand" + sfx):
+            if end not in P:
+                continue
+            f, r = P[end], R[end][0]
+            if plan == "elephant":
+                # L4b: overlapping, gently flaring masses (no ledge between pad and leg).
+                for zz, rr, ru in ((0.42, 1.04, 0.5), (0.85, 0.99, 0.75), (1.45, 0.95, 0.95), (2.2, 0.92, 1.1)):
+                    add(Vector((f.x, f.y - r * 0.06, r * zz)), Z, r * rr, r * ru, r * rr)
+            elif plan == "mammal" and kind == "paw":
+                add(f + Vector((0, -r * 0.5, r * 0.25)), Y, r * 1.15, r * 1.35, r * 0.8)
+                for dx in (-0.78, -0.27, 0.27, 0.78):
+                    c = Vector((f.x + dx * r * side, f.y - r * (1.35 - 0.35 * abs(dx)), r * 0.42))
+                    add(c, -Y, r * 0.4, r * 0.55, r * 0.42)
+            elif plan == "mammal":
+                for dx in (-0.42, 0.42):
+                    c = Vector((f.x + dx * r * side, f.y - r * 0.6, r * 0.55))
+                    add(c, Vector((0, -1, -0.45)), r * 0.48, r * 0.95, r * 0.62)
+    return out
+
+
+def remesh_high(obj, voxel, s):
+    r = obj.modifiers.new("vox", "REMESH")
+    r.mode = "VOXEL"
+    r.voxel_size = voxel
+    r.adaptivity = 0.0
+    sm = obj.modifiers.new("smooth", "SMOOTH")
+    sm.factor = 0.7
+    sm.iterations = 10
+    C.apply_modifiers(obj)
+    tex = bpy.data.textures.new("lump", "CLOUDS")
+    tex.noise_scale = 0.08 * s
+    disp = obj.modifiers.new("disp", "DISPLACE")
+    disp.texture = tex
+    disp.strength = 0.006 * s
+    C.apply_modifiers(obj)
+    for v in obj.data.vertices:
+        if v.co.z < 0:
+            v.co.z = 0.0  # flat soles: the feet stand on the floor plane
+    obj.data.update()
+
+
+def core_edges(sk):
+    """The skin graph of build_body as (key_a, key_b) edges."""
+    edges = []
+
+    def run(chain, start):
+        prev = start
+        for n, _p, _a, _b in chain:
+            if prev is not None:
+                edges.append((prev, n))
+            prev = n
+        return prev
+
+    tail_end = run(list(reversed(sk["tail"])), None)
+    last = run(sk["spine"], tail_end)
+    run(sk["neck"], last)
+    run(sk["jaw"], "head_back")
+    for parent, chain in sk.get("extras", []):
+        run(chain, parent)
+    for _sfx, leg, toes, arm, fingers in sk["limbs"]:
+        foot = run(leg, "pelvis")
+        for n, _p, _a, _b in toes:
+            edges.append((foot, n))
+        wrist = run(arm, "chest")
+        for n, _p, _a, _b in fingers:
+            edges.append((wrist, n))
+    return edges
+
+
+def core_masses(bm, sk, points, radii):
+    """Closed ellipsoid chain along every skeleton edge (radius ra sideways, rb up): a manifold
+    stand-in for the skin-modifier tube, which the voxel remesher cannot read reliably."""
+    for a, b in core_edges(sk):
+        pa, pb = points[a], points[b]
+        (xa, za), (xb, zb) = radii[a], radii[b]
+        d = pb - pa
+        n = max(2, int(d.length / max(min(xa, za, xb, zb), 1e-3) * 1.6) + 1)
+        for i in range(n + 1):
+            t = i / n
+            rx, rz = xa + (xb - xa) * t, za + (zb - za) * t
+            ell(bm, pa.lerp(pb, t), d if d.length > 1e-6 else Y, rx, max(d.length / n * 0.9, min(rx, rz)), rz, 12, 8)
+
+
+def build_body_v2(name, sk, sp, points, radii, target):
+    """Voxel sculpt (high) + its decimated copy (low, the shipped body). Returns (low, high, bvh)."""
+    bm = bmesh.new()
+    core_masses(bm, sk, points, radii)
+    core = C.mesh_object(name + "_core", bm)
+    bm = bmesh.new()
+    for c, along, a, b, c2 in sculpt_masses(sp, sk, points, radii):
+        ell(bm, c, along, a, b, c2)
+    masses = C.mesh_object(name + "_masses", bm)
+    high = C.join([core, masses], name + "_high")
+    remesh_high(high, sp["length"] / 230.0, sk["scale"])
+    C.finish_mesh(high)
+    low = high.copy()
+    low.data = high.data.copy()
+    low.name = name
+    C.link(low)
+    C.decimate_to(low, target)
+    C.finish_mesh(low)
+    hb = bmesh.new()
+    hb.from_mesh(high.data)
+    bvh = BVHTree.FromBMesh(hb)
+    hb.free()
+    return low, high, bvh
+
+
+def snap_surface(sk, bvh):
+    """Eyes and claw/hoof/nail tips onto the sculpt surface (no floating toenails)."""
+    s = sk["scale"]
+    er = sk["eye_r_abs"]
+    loc, n, _i, _d = bvh.find_nearest(Vector((abs(sk["eye"].x), sk["eye"].y, sk["eye"].z)))
+    if loc is not None:
+        sk["eye"] = loc - n * er * 0.42
+    tips = []
+    for kind, p, bone in sk["tips"]:
+        loc, n, _i, _d = bvh.find_nearest(p)
+        if loc is None:
+            tips.append((kind, p, bone))
+            continue
+        depth = {"nailbig": 0.03 * s, "hoof": 0.012 * s}.get(kind, 0.006 * s)
+        tips.append((kind, loc - n * depth, bone))
+    sk["tips"] = tips
+
+
+def _seg_dist(p, a, b):
+    ab = b - a
+    t = max(0.0, min(1.0, (p - a).dot(ab) / max(ab.length_squared, 1e-9)))
+    return (a + ab * t - p).length
+
+
+def build_fur(sp, sk, P, R, high, table=None):
+    """Soft fur / feather lobes grown from the sculpt surface per zone (opaque shells)."""
+    import bisect
+    import random
+
+    spec = (FUR if table is None else table).get(sp["key"])
+    if not spec:
+        return None
+    L = sp["length"]
+    polys = list(high.data.polygons)
+    areas, acc = [], 0.0
+    for p in polys:
+        acc += p.area
+        areas.append(acc)
+
+    def rm(k):
+        return max(R[k]) if k in R else 0.0
+
+    hb, chest, pel = P["head_back"], P["chest"], P["pelvis"]
+    neck = P.get("neck_a", chest.lerp(hb, 0.5))
+    rn, rc, rp = max(rm("neck_a"), rm("chest") * 0.6), rm("chest"), rm("pelvis")
+    hr = max(rm("head"), rm("head_back"))
+    eye = sk["eye"]
+    tails = [P[k] for k in sorted(P) if k.startswith("tail")]
+    floor = max(P["ankleL"].z if "ankleL" in P else 0.15 * L, 0.05 * L)
+    mid_z = (chest.z + pel.z) / 2
+
+    def zone_ok(z, p, n):
+        if z == "mane":
+            return _seg_dist(p, chest, hb) < rn * 1.7 and n.z > -0.35 and p.y > hb.y + hr * 0.2
+        if z == "cheek":
+            return (p - hb).length < hr * 1.6 and abs(n.x) > 0.45 and p.y > eye.y and p.z < eye.z + hr * 0.2
+        if z == "dorsal":
+            return n.z > 0.55 and chest.y - rc * 0.3 <= p.y <= pel.y + rp * 0.5
+        if z == "throat":
+            return _seg_dist(p, chest, hb) < rn * 1.6 and n.z < -0.2 and p.y > hb.y
+        if z == "crest":
+            return abs(p.x) < rc * 0.32 and n.z > 0.45 and neck.y - rn * 0.4 <= p.y <= pel.y
+        if z == "tail":
+            return bool(tails) and min(_seg_dist(p, a, b) for a, b in zip([pel] + tails, tails)) < rp * 0.6 and p.y > pel.y + rp * 0.6
+        if z == "skirt":
+            lower = n.z < 0.35 and floor * 1.4 < p.z < mid_z + rc * 0.2 and chest.y - rc * 1.1 <= p.y <= pel.y + rp * 0.9
+            return lower or ((p - hb).length < hr * 1.4 and n.z < -0.2)
+        if z == "all":
+            return _seg_dist(p, chest, pel) < max(rc, rp) * 1.35 and n.z > -0.5
+        if z == "haunch":
+            return n.z > 0.0 and abs(n.x) > 0.35 and _seg_dist(p, pel, P.get("kneeL", pel)) < rp * 1.6 and p.y > pel.y - rp * 0.6
+        if z == "arm":
+            for f in "LR":
+                a0 = P.get("shoulder" + f)
+                a1 = P.get("wrist" + f, P.get("wingtip" + f))
+                if a0 is not None and a1 is not None and _seg_dist(p, a0, a1) < max(rm("shoulder" + f), 1e-3) * 1.5 and n.x * (1 if f == "L" else -1) > -0.2:
+                    return True
+            return False
+        if z == "tailtip":
+            return len(tails) >= 1 and _seg_dist(p, tails[max(0, len(tails) - 3)], tails[-1]) < rp * 0.5 and n.z > -0.4
+        if z == "crest_neck":
+            return _seg_dist(p, chest.lerp(hb, 0.25), chest.lerp(hb, 0.92)) < rn * 1.6 and n.z > 0.45 and abs(n.x) < 0.6
+        return False
+
+    bm = bmesh.new()
+    bases, tipness = [], []
+    for zone, count, lf, wf in spec:
+        made, tries = 0, 0
+        while made < count and tries < count * 120:
+            tries += 1
+            i = bisect.bisect_left(areas, random.random() * acc)
+            poly = polys[min(i, len(polys) - 1)]
+            p, n = Vector(poly.center), Vector(poly.normal)
+            if not zone_ok(zone, p, n):
+                continue
+            made += 1
+            ln = lf * L * random.uniform(0.75, 1.25)
+            w = wf * L * random.uniform(0.8, 1.2)
+            lift = 0.28
+            if zone == "skirt":
+                g = -Z * 1.0 + Y * 0.15
+                lift = 0.35
+            elif zone == "crest":
+                g = Y * 0.8 + Z * 0.5
+                lift = 0.5
+            elif zone in ("tail", "tailtip"):
+                g = Y * 1.0 - Z * 0.2 + X * (1 if p.x > 0 else -1) * (0.5 if zone == "tailtip" else 0.0)
+                lift = 0.2
+            elif zone == "arm":
+                f = "L" if p.x > 0 else "R"
+                a1 = P.get("wrist" + f, P.get("wingtip" + f))
+                g = (a1 - P["shoulder" + f]).normalized() * 0.6 + Y * 0.8 - Z * 0.4
+                lift = 0.18
+            elif zone == "crest_neck":
+                g = Y * 0.9 + Z * 0.35
+                lift = 0.45
+            else:
+                g = Y * 0.8 - Z * 0.45
+                lift = 0.16
+            # Lie the lobe along the skin (growth direction projected on the tangent plane).
+            tg = g - n * g.dot(n)
+            if tg.length < 1e-4:
+                tg = Y - n * Y.dot(n)
+            d = (tg.normalized() + n * lift).normalized()
+            side = d.cross(n)
+            if side.length < 1e-4:
+                side = d.cross(X if abs(d.x) < 0.9 else Z)
+            side.normalize()
+            up = side.cross(d).normalized()
+            if up.dot(n) < 0:
+                up = -up
+            th = w * 0.16
+            base = p - n * th * 1.5
+            mid = base + d * ln * 0.5 + up * th * 0.4
+            tip = base + d * ln - up * th * 0.8
+            tip.z = max(tip.z, floor)
+            rings = []
+            for c, r, t in ((base, w * 0.75, th), (mid, w, th * 0.8)):
+                rings.append([bm.verts.new(c + side * r * cx + up * t * cz) for cx, cz in ((1, 0), (0, 1), (-1, 0), (0, -1))])
+            tv = bm.verts.new(tip)
+            bm.faces.new(list(reversed(rings[0])))
+            for k in range(4):
+                a0, a1 = rings[0][k], rings[0][(k + 1) % 4]
+                b0, b1 = rings[1][k], rings[1][(k + 1) % 4]
+                bm.faces.new((a0, a1, b1, b0))
+                bm.faces.new((b0, b1, tv))
+            bases += [base] * 9
+            tipness += [0.0] * 4 + [0.55] * 4 + [1.0]
+    if not bases:
+        bm.free()
+        return None
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    obj = C.mesh_object("fur", bm)
+    me = obj.data
+    a = me.attributes.new("fur_base", "FLOAT_VECTOR", "POINT")
+    f = me.attributes.new("is_fur", "FLOAT", "POINT")
+    tp = me.attributes.new("fur_tip", "FLOAT", "POINT")
+    for i, b in enumerate(bases):
+        a.data[i].vector = b
+        f.data[i].value = 1.0
+        tp.data[i].value = tipness[i]
+    for poly in me.polygons:
+        poly.use_smooth = True
+    return obj
+
+
+def copy_fur_weights(body):
+    """Each fur clump takes the bone weights of the body vertex under its base."""
+    from mathutils.kdtree import KDTree
+
+    me = body.data
+    isf = me.attributes.get("is_fur")
+    if isf is None:
+        return 0
+    flags = [d.value > 0.5 for d in isf.data]
+    bases = [Vector(d.vector) for d in me.attributes["fur_base"].data]
+    kd = KDTree(len(flags) - sum(flags))
+    for v in me.vertices:
+        if not flags[v.index]:
+            kd.insert(v.co, v.index)
+    kd.balance()
+    groups = {g.index: g for g in body.vertex_groups}
+    n = 0
+    for v in me.vertices:
+        if not flags[v.index]:
+            continue
+        _co, src, _d = kd.find(bases[v.index])
+        ws = [(ge.group, ge.weight) for ge in me.vertices[src].groups if ge.weight > 1e-4]
+        for g in groups.values():
+            g.remove([v.index])
+        for gi, w in ws:
+            groups[gi].add([v.index], w, "REPLACE")
+        n += 1
+    me.attributes.remove(me.attributes["is_fur"])
+    me.attributes.remove(me.attributes["fur_base"])
+    me.attributes.remove(me.attributes["fur_tip"])
+    return n
+
+
+def leaf(bm, base, tip, width, thick, cup, facing, segments=10, rings=8):
+    """Cupped ear: a deformed sphere, widest near the base, pointed at the tip, bowl toward `facing`."""
+    u = tip - base
+    length = u.length
+    u.normalize()
+    nrm = Vector(facing) - u * Vector(facing).dot(u)
+    nrm.normalize()
+    v = u.cross(nrm).normalized()
+    tmp = bmesh.new()
+    bmesh.ops.create_uvsphere(tmp, u_segments=segments, v_segments=rings, radius=1.0)
+    for vert in tmp.verts:
+        x, y, z = vert.co
+        t = (z + 1) / 2
+        prof = math.sin(math.pi * min(1.0, 0.12 + 0.88 * t)) ** 0.7 * (1.0 - 0.4 * t)
+        yd = y * thick * (0.35 + 0.65 * prof) - cup * width * prof * (1 - x * x) * 0.45
+        vert.co = base + u * length * t + v * (x * width * prof) + nrm * yd
+    me = bpy.data.meshes.new("leaf_tmp")
+    tmp.to_mesh(me)
+    tmp.free()
+    bm.from_mesh(me)
+    bpy.data.meshes.remove(me)
+
+
 # ------------------------------------------------------------------ materials
 
 
@@ -1181,31 +1713,130 @@ def make_hide_mat(sp, sk):
         geo = nodes.new("ShaderNodeNewGeometry")
         nz = nodes.new("ShaderNodeSeparateXYZ")
         links.new(geo.outputs["Normal"], nz.inputs["Vector"])
-        shade = C.ramp(nodes, links, nz.outputs["Z"], [(-0.55, C.hexlin(sp["belly"])), (-0.05, C.hexlin(sp["body"])), (0.6, C.hexlin(sp["body"]))])
-        # Irregular transverse stripes on the back and flanks only; band count scales with length.
-        wave = nodes.new("ShaderNodeTexWave")
-        wave.wave_type = "BANDS"
-        wave.bands_direction = "Y"
-        wave.inputs["Scale"].default_value = 2.6 * 3.55 / length * (1.0 if sp["plan"] != "sauropod" else 1.6)
-        wave.inputs["Distortion"].default_value = 9.0
-        wave.inputs["Detail"].default_value = 3.0
-        links.new(coord, wave.inputs["Vector"])
-        brk = C.noise(nodes, 3.5 * 3.55 / length, 4, 0.55, coord, links)
-        sm = nodes.new("ShaderNodeMath")
-        sm.operation = "MULTIPLY"
-        links.new(wave.outputs["Fac"], sm.inputs[0])
-        links.new(brk.outputs["Fac"], sm.inputs[1])
-        lo = 0.30 if sp["plan"] != "sauropod" else 0.36
-        lo = sp.get("stripe_lo", lo)
-        band = C.ramp(nodes, links, sm.outputs["Value"], [(lo, (0, 0, 0)), (lo + 0.12, (1, 1, 1))])
-        back = C.ramp(nodes, links, nz.outputs["Z"], [(-0.2, (0, 0, 0)), (0.25, (1, 1, 1))])
-        m1 = nodes.new("ShaderNodeMath")
-        m1.operation = "MULTIPLY"
-        links.new(band.outputs["Color"], m1.inputs[0])
-        links.new(back.outputs["Color"], m1.inputs[1])
-        stripe_col = nodes.new("ShaderNodeRGB")
-        stripe_col.outputs[0].default_value = (*C.hexlin(sp["stripe"]), 1)
-        col = C.mix(nodes, links, m1.outputs["Value"], shade.outputs["Color"], stripe_col.outputs[0])
+        # L4b countershading: light ventral -> body flank -> darker dorsal stripe (value contrast
+        # the references carry), then darker extremities below.
+        dorsal = C.hexlin(sp["dorsal"]) if "dorsal" in sp else lerp3(C.hexlin(sp["body"]), C.hexlin(sp["stripe"]), 0.55)
+        shade = C.ramp(nodes, links, nz.outputs["Z"], [(-0.7, C.hexlin(sp["belly"])), (-0.4, lerp3(C.hexlin(sp["belly"]), C.hexlin(sp["body"]), 0.25)), (0.0, C.hexlin(sp["body"])), (0.4, C.hexlin(sp["body"])), (0.9, dorsal)])
+        # v2: per-species pattern layers (PATTERNS) over the countershaded base, plus a soft
+        # low-frequency mottle so no two flanks read as one flat fill.
+        mot = C.noise(nodes, 2.2 / length, 3, 0.5, coord, links)
+        mott = C.ramp(nodes, links, mot.outputs["Fac"], [(0.3, (0.88, 0.88, 0.88)), (0.7, (1.1, 1.1, 1.1))])
+        base_m = nodes.new("ShaderNodeMix")
+        base_m.data_type = "RGBA"
+        base_m.blend_type = "MULTIPLY"
+        base_m.inputs["Factor"].default_value = 1.0
+        links.new(shade.outputs["Color"], base_m.inputs["A"])
+        links.new(mott.outputs["Color"], base_m.inputs["B"])
+        col = base_m.outputs["Result"]
+        back = C.ramp(nodes, links, nz.outputs["Z"], [(-0.2, (0, 0, 0)), (0.25, (1, 1, 1))]).outputs["Color"]
+        hip_z = sk["hip_z"]
+        sz = nodes.new("ShaderNodeSeparateXYZ")
+        links.new(coord, sz.inputs["Vector"])
+
+        def scaled_coord(k):
+            mp0 = nodes.new("ShaderNodeMapping")
+            mp0.inputs["Scale"].default_value = (k, k, k)
+            links.new(coord, mp0.inputs["Vector"])
+            return mp0.outputs["Vector"]
+
+        def voronoi(k, feature="F1"):
+            v = nodes.new("ShaderNodeTexVoronoi")
+            v.feature = feature
+            v.inputs["Scale"].default_value = 1.0
+            v.inputs["Randomness"].default_value = 0.9
+            # warp the cells a little so spots are not perfect discs
+            w = C.noise(nodes, k * 1.5, 2, 0.5, coord, links)
+            off = nodes.new("ShaderNodeVectorMath")
+            off.operation = "MULTIPLY_ADD"
+            links.new(w.outputs["Color"], off.inputs[0])
+            off.inputs[1].default_value = (0.35, 0.35, 0.35)
+            links.new(scaled_coord(k), off.inputs[2])
+            links.new(off.outputs["Vector"], v.inputs["Vector"])
+            return v.outputs["Distance"]
+
+        def pattern_mask(kind, q):
+            if kind == "spots":
+                k = 1.0 / (q["size"] * length)
+                return C.ramp(nodes, links, voronoi(k), [(q["r"] * 0.75, (1, 1, 1)), (q["r"], (0, 0, 0))]).outputs["Color"]
+            if kind == "rosette":
+                k = 1.0 / (q["size"] * length)
+                return C.ramp(nodes, links, voronoi(k), [(0.14, (0, 0, 0)), (0.2, (1, 1, 1)), (0.27, (1, 1, 1)), (0.33, (0, 0, 0))]).outputs["Color"]
+            if kind == "reticulate":
+                k = 1.0 / (q["size"] * length)
+                return C.ramp(nodes, links, voronoi(k, "DISTANCE_TO_EDGE"), [(q["w"] * 0.5, (1, 1, 1)), (q["w"], (0, 0, 0))]).outputs["Color"]
+            if kind == "blotch":
+                n0 = C.noise(nodes, 1.0 / (q["size"] * length), 3, 0.55, coord, links)
+                return C.ramp(nodes, links, n0.outputs["Fac"], [(q["t"], (0, 0, 0)), (q["t"] + 0.06, (1, 1, 1))]).outputs["Color"]
+            if kind == "bands":
+                wave = nodes.new("ShaderNodeTexWave")
+                wave.wave_type = "BANDS"
+                wave.bands_direction = "Y"
+                wave.inputs["Scale"].default_value = 0.32 * q["count"] / length
+                wave.inputs["Distortion"].default_value = q.get("distortion", 6)
+                wave.inputs["Detail"].default_value = 3.0
+                wave.inputs["Detail Scale"].default_value = 1.5
+                links.new(coord, wave.inputs["Vector"])
+                if q.get("sharp"):
+                    return C.ramp(nodes, links, wave.outputs["Fac"], [(0.45, (0, 0, 0)), (0.6, (1, 1, 1))]).outputs["Color"]
+                brk = C.noise(nodes, 3.5 * 3.55 / length, 4, 0.55, coord, links)
+                sm = nodes.new("ShaderNodeMath")
+                sm.operation = "MULTIPLY"
+                links.new(wave.outputs["Fac"], sm.inputs[0])
+                links.new(brk.outputs["Fac"], sm.inputs[1])
+                return C.ramp(nodes, links, sm.outputs["Value"], [(0.3, (0, 0, 0)), (0.42, (1, 1, 1))]).outputs["Color"]
+            if kind == "saddle":
+                n0 = C.noise(nodes, 6.0 / length, 3, 0.6, coord, links)
+                add = nodes.new("ShaderNodeMath")
+                add.operation = "MULTIPLY_ADD"
+                links.new(n0.outputs["Fac"], add.inputs[0])
+                add.inputs[1].default_value = 0.5
+                links.new(nz.outputs["Z"], add.inputs[2])
+                return C.ramp(nodes, links, add.outputs["Value"], [(0.55, (0, 0, 0)), (0.95, (1, 1, 1))]).outputs["Color"]
+            if kind == "socks":
+                return C.ramp(nodes, links, sz.outputs["Z"], [(hip_z * 0.18, (1, 1, 1)), (hip_z * 0.45, (0, 0, 0))]).outputs["Color"]
+            if kind == "head":
+                vm = nodes.new("ShaderNodeVectorMath")
+                vm.operation = "DISTANCE"
+                links.new(coord, vm.inputs[0])
+                vm.inputs[1].default_value = sk["head_c"]
+                hl = sk["head_l"]
+                n1 = C.noise(nodes, 6.0 / hl, 3, 0.6, coord, links)
+                sm = nodes.new("ShaderNodeMath")
+                sm.operation = "MULTIPLY_ADD"
+                links.new(n1.outputs["Fac"], sm.inputs[0])
+                sm.inputs[1].default_value = hl * 0.35
+                links.new(vm.outputs["Value"], sm.inputs[2])
+                return C.ramp(nodes, links, sm.outputs["Value"], [(hl * q["r"] * 0.7, (1, 1, 1)), (hl * q["r"] * 1.15, (0, 0, 0))]).outputs["Color"]
+            if kind == "grizzle":
+                n0 = C.noise(nodes, 60.0 / length, 2, 0.5, coord, links)
+                return C.ramp(nodes, links, n0.outputs["Fac"], [(0.5, (0, 0, 0)), (0.62, (1, 1, 1))]).outputs["Color"]
+            raise ValueError(kind)
+
+        # Extremities: lower legs and feet, the tail tip and the muzzle tip run darker.
+        ext_c = nodes.new("ShaderNodeRGB")
+        ext_c.outputs[0].default_value = (*lerp3(C.hexlin(sp["stripe"]), (0.01, 0.008, 0.006), 0.25), 1)
+        legs_m = C.ramp(nodes, links, sz.outputs["Z"], [(hip_z * 0.12, (0.7, 0.7, 0.7)), (hip_z * 0.5, (0, 0, 0))]).outputs["Color"]
+        if sp["plan"] not in ("turtle", "crocodilian"):
+            col = C.mix(nodes, links, legs_m, col, ext_c.outputs[0])
+        ty0, ty1 = sk["tail_y"]
+        tail_m = C.ramp(nodes, links, sz.outputs["Y"], [(ty0 + (ty1 - ty0) * 0.55, (0, 0, 0)), (ty1, (0.6, 0.6, 0.6))]).outputs["Color"]
+        col = C.mix(nodes, links, tail_m, col, ext_c.outputs[0])
+        for kind, colour, strength, region, q in PATTERNS[sp["key"]]:
+            mask = pattern_mask(kind, q)
+            k = nodes.new("ShaderNodeMath")
+            k.operation = "MULTIPLY"
+            links.new(mask, k.inputs[0])
+            k.inputs[1].default_value = strength
+            fac = k.outputs["Value"]
+            if region == "upper":
+                k2 = nodes.new("ShaderNodeMath")
+                k2.operation = "MULTIPLY"
+                links.new(fac, k2.inputs[0])
+                links.new(back, k2.inputs[1])
+                fac = k2.outputs["Value"]
+            pc = nodes.new("ShaderNodeRGB")
+            pc.outputs[0].default_value = (*C.hexlin(sp.get(colour, colour)), 1)
+            col = C.mix(nodes, links, fac, col, pc.outputs[0])
 
         def dist_to(point, radius_in, radius_out):
             vm = nodes.new("ShaderNodeVectorMath")
@@ -1217,9 +1848,7 @@ def make_hide_mat(sp, sk):
         dark = nodes.new("ShaderNodeRGB")
         dark.outputs[0].default_value = (*C.hexlin("#1c1712"), 1)
         eye, nos = sk["eye"], sk["nostril"]
-        es = 0.035 * s if sp["plan"] != "sauropod" else 0.18
-        if "eye_r" in sk:
-            es = sk["eye_r"] * s
+        es = sk["eye_r_abs"]
         for side in (1, -1):
             col = C.mix(nodes, links, dist_to((nos.x * side, nos.y, nos.z), es * 0.22, es * 0.4), col, dark.outputs[0])
             ring = dist_to((eye.x * side, eye.y + es * 0.9, eye.z), es, es * 2.2)
@@ -1264,39 +1893,162 @@ def make_hide_mat(sp, sk):
         b.inputs["Strength"].default_value = 0.3
         links.new(vor.outputs["Distance"], b.inputs["Height"])
         links.new(nmap.outputs["Normal"], b.inputs["Normal"])
-        skin = sp.get("skin")
-        if skin in ("fur", "feathers", "wrinkle"):
-            # B2b coverings: fur = strands along the body axis, feathers = overlapping scallops,
-            # wrinkle = deep cross-creases (elephant hide). Height drives a second bump on top.
-            mp2 = nodes.new("ShaderNodeMapping")
-            k = 6.0 / max(length, 1.0) * 8
-            mp2.inputs["Scale"].default_value = {"fur": (k * 6, k * 0.6, k * 6), "feathers": (k * 2, k * 2, k * 2), "wrinkle": (k * 0.5, k * 3, k * 1.2)}[skin]
-            links.new(coord, mp2.inputs["Vector"])
-            if skin == "feathers":
-                tex = nodes.new("ShaderNodeTexVoronoi")
-                tex.feature = "F1"
-                links.new(mp2.outputs["Vector"], tex.inputs["Vector"])
-                height = tex.outputs["Distance"]
-            else:
-                tex = C.noise(nodes, 1.0, 8 if skin == "fur" else 4, 0.65, mp2.outputs["Vector"], links)
-                height = tex.outputs["Fac"]
-            b2 = nodes.new("ShaderNodeBump")
-            b2.inputs["Strength"].default_value = 0.55
-            links.new(height, b2.inputs["Height"])
-            links.new(b.outputs["Normal"], b2.inputs["Normal"])
-            tone = C.ramp(nodes, links, height, [(0.25, (0.78, 0.78, 0.78)), (0.75, (1.12, 1.12, 1.12))])
-            mul2 = nodes.new("ShaderNodeMix")
-            mul2.data_type = "RGBA"
-            mul2.blend_type = "MULTIPLY"
-            mul2.inputs["Factor"].default_value = 1.0
-            links.new(mul.outputs["Result"], mul2.inputs["A"])
-            links.new(tone.outputs["Color"], mul2.inputs["B"])
-            rough = C.ramp(nodes, links, bw.outputs["Val"], [(0.05, (0.95, 0.95, 0.95)), (0.3, (0.85, 0.85, 0.85))])
-            return mul2.outputs["Result"], rough.outputs["Color"], b2.outputs["Normal"]
-        rough = C.ramp(nodes, links, bw.outputs["Val"], [(0.05, (0.9, 0.9, 0.9)), (0.3, (0.7, 0.7, 0.7))])
-        return mul.outputs["Result"], rough.outputs["Color"], b.outputs["Normal"]
+        col, height, hstr, rough_lo, rough_hi = skin_detail(nodes, links, coord, sp, mul.outputs["Result"])
+        nb = nodes.new("ShaderNodeBump")
+        nb.inputs["Strength"].default_value = hstr
+        nb.inputs["Distance"].default_value = 0.02 * length
+        links.new(height, nb.inputs["Height"])
+        links.new(b.outputs["Normal"], nb.inputs["Normal"])
+        # Fur shells: darker roots, sun-bleached tips (attributes from build_fur, 0 on the body).
+        isf = nodes.new("ShaderNodeAttribute")
+        isf.attribute_name = "is_fur"
+        tip = nodes.new("ShaderNodeAttribute")
+        tip.attribute_name = "fur_tip"
+        tipc = C.ramp(nodes, links, tip.outputs["Fac"], [(0.0, (0.9, 0.9, 0.9)), (1.0, (1.06, 1.05, 1.03))])
+        col = multiply(nodes, links, col, C.mix(nodes, links, isf.outputs["Fac"], white(nodes), tipc.outputs["Color"]))
+        col = occlusion(nodes, links, col, length, sp)
+        rough = C.ramp(nodes, links, height, [(0.2, (rough_hi,) * 3), (0.8, (rough_lo,) * 3)])
+        return col, rough.outputs["Color"], nb.outputs["Normal"]
 
     return hide_mat
+
+
+def white(nodes):
+    w = nodes.new("ShaderNodeRGB")
+    w.outputs[0].default_value = (1, 1, 1, 1)
+    return w.outputs[0]
+
+
+def multiply(nodes, links, a, b):
+    m = nodes.new("ShaderNodeMix")
+    m.data_type = "RGBA"
+    m.blend_type = "MULTIPLY"
+    m.inputs["Factor"].default_value = 1.0
+    links.new(a, m.inputs["A"])
+    links.new(b, m.inputs["B"])
+    return m.outputs["Result"]
+
+
+# Per-skin tiling detail (L4b): cells per stud scale with body size so a 512/1024 bake still
+# resolves them. (cells per body length, bump strength, edge darkening).
+SKIN = {
+    "scales": (46.0, 0.7, 0.42),
+    "plates": (30.0, 0.8, 0.4),
+    "wrinkle": (26.0, 0.65, 0.6),
+    "fur": (90.0, 0.45, 0.7),
+    "feathers": (40.0, 0.5, 0.6),
+}
+
+
+def skin_detail(nodes, links, coord, sp, col):
+    """Height + albedo detail per skin: scales (voronoi cells, dark seams, per-cell tint), plates
+    (bigger cells), wrinkle (crossing crease network), fur (stretched strands), feathers
+    (overlapping scallops). Returns (col, height, bump strength, rough lo, rough hi)."""
+    skin = sp.get("skin", "scales")
+    cells, strength, edge_dark = SKIN[skin]
+    k = cells / sp["length"]
+    mp = nodes.new("ShaderNodeMapping")
+    stretch = {"fur": (k * 1.4, k * 0.25, k * 1.4), "feathers": (k * 1.1, k * 0.7, k * 1.1), "wrinkle": (k * 0.6, k * 1.8, k * 0.6)}.get(skin, (k, k, k))
+    mp.inputs["Scale"].default_value = stretch
+    links.new(coord, mp.inputs["Vector"])
+    if skin in ("scales", "plates", "feathers"):
+        v = nodes.new("ShaderNodeTexVoronoi")
+        v.feature = "DISTANCE_TO_EDGE"
+        links.new(mp.outputs["Vector"], v.inputs["Vector"])
+        v1 = nodes.new("ShaderNodeTexVoronoi")
+        v1.feature = "F1"
+        links.new(mp.outputs["Vector"], v1.inputs["Vector"])
+        if skin == "feathers":
+            # Scallop: edge distance shaped into a raised rounded lip with a dark under-edge.
+            h = C.ramp(nodes, links, v1.outputs["Distance"], [(0.0, (1, 1, 1)), (0.55, (0.55, 0.55, 0.55)), (0.75, (0.1, 0.1, 0.1))])
+        else:
+            h = C.ramp(nodes, links, v.outputs["Distance"], [(0.0, (0, 0, 0)), (0.09, (0.55, 0.55, 0.55)), (0.3, (1, 1, 1))])
+        height = h.outputs["Color"]
+        seam = C.ramp(nodes, links, v.outputs["Distance"], [(0.02, (edge_dark,) * 3), (0.12, (1, 1, 1))])
+        tint = C.ramp(nodes, links, v1.outputs["Color"], [(0.0, (0.86, 0.86, 0.86)), (1.0, (1.1, 1.08, 1.04))])
+        col = multiply(nodes, links, multiply(nodes, links, col, seam.outputs["Color"]), tint.outputs["Color"])
+        return col, height, strength, 0.62, 0.9
+    if skin == "wrinkle":
+        v = nodes.new("ShaderNodeTexVoronoi")
+        v.feature = "DISTANCE_TO_EDGE"
+        links.new(mp.outputs["Vector"], v.inputs["Vector"])
+        n = C.noise(nodes, 1.0, 6, 0.7, mp.outputs["Vector"], links)
+        add = nodes.new("ShaderNodeMath")
+        add.operation = "MULTIPLY_ADD"
+        links.new(v.outputs["Distance"], add.inputs[0])
+        add.inputs[1].default_value = 2.2
+        links.new(n.outputs["Fac"], add.inputs[2])
+        h = C.ramp(nodes, links, add.outputs["Value"], [(0.35, (0, 0, 0)), (0.7, (1, 1, 1))])
+        crease = C.ramp(nodes, links, v.outputs["Distance"], [(0.015, (edge_dark,) * 3), (0.08, (1, 1, 1))])
+        col = multiply(nodes, links, col, crease.outputs["Color"])
+        return col, h.outputs["Color"], strength, 0.8, 0.95
+    # fur: long strands along the body axis, broken into tufts.
+    n = C.noise(nodes, 1.0, 10, 0.75, mp.outputs["Vector"], links)
+    w = nodes.new("ShaderNodeTexWave")
+    w.wave_type = "BANDS"
+    w.bands_direction = "X"
+    w.inputs["Scale"].default_value = 1.0
+    w.inputs["Distortion"].default_value = 9.0
+    w.inputs["Detail"].default_value = 6.0
+    links.new(mp.outputs["Vector"], w.inputs["Vector"])
+    m = nodes.new("ShaderNodeMath")
+    m.operation = "MULTIPLY"
+    links.new(n.outputs["Fac"], m.inputs[0])
+    links.new(w.outputs["Fac"], m.inputs[1])
+    h = C.ramp(nodes, links, m.outputs["Value"], [(0.05, (0, 0, 0)), (0.45, (1, 1, 1))])
+    tone = C.ramp(nodes, links, m.outputs["Value"], [(0.05, (edge_dark,) * 3), (0.5, (1.12, 1.1, 1.06))])
+    col = multiply(nodes, links, col, tone.outputs["Color"])
+    return col, h.outputs["Color"], strength, 0.85, 0.97
+
+
+def occlusion(nodes, links, col, length, sp, fur_ok=True):
+    """Baked ambient occlusion (local to the creature) + curvature dirt in the creases."""
+    ao = nodes.new("ShaderNodeAmbientOcclusion")
+    ao.only_local = True
+    ao.samples = 16
+    ao.inputs["Distance"].default_value = 0.08 * length
+    aoc = C.ramp(nodes, links, ao.outputs["AO"], [(0.15, (0.42, 0.4, 0.38)), (0.85, (1, 1, 1))])
+    # Shells sit on the skin, so their local AO is mostly self-shadow: keep a quarter of it.
+    isf = nodes.new("ShaderNodeAttribute")
+    isf.attribute_name = "is_fur"
+    k = nodes.new("ShaderNodeMath")
+    k.operation = "MULTIPLY"
+    k.inputs[1].default_value = 0.75
+    links.new(isf.outputs["Fac"], k.inputs[0])
+    if fur_ok:
+        aof = C.mix(nodes, links, k.outputs["Value"], aoc.outputs["Color"], white(nodes))
+    else:
+        aof = aoc.outputs["Color"]
+    col = multiply(nodes, links, col, aof)
+    geo = nodes.new("ShaderNodeNewGeometry")
+    dirt = C.ramp(nodes, links, geo.outputs["Pointiness"], [(0.44, (0.62, 0.58, 0.54)), (0.5, (1, 1, 1)), (0.56, (1.08, 1.08, 1.06))])
+    return multiply(nodes, links, col, dirt.outputs["Color"])
+
+
+def plume_mat(sp, length):
+    """Feather shells: dark plume at the root, pale tip, barb streaks, a little AO."""
+
+    def build(nodes, links):
+        coord = nodes.new("ShaderNodeTexCoord").outputs["Object"]
+        tip = nodes.new("ShaderNodeAttribute")
+        tip.attribute_name = "fur_tip"
+        c = C.ramp(nodes, links, tip.outputs["Fac"], [(0.0, C.hexlin(sp["plume"])), (0.55, C.hexlin(sp["plume"])), (1.0, C.hexlin(sp["plume_tip"]))])
+        w = nodes.new("ShaderNodeTexWave")
+        w.wave_type = "BANDS"
+        w.inputs["Scale"].default_value = 160.0 / length
+        w.inputs["Distortion"].default_value = 4.0
+        links.new(coord, w.inputs["Vector"])
+        barbs = C.ramp(nodes, links, w.outputs["Fac"], [(0.2, (0.78, 0.78, 0.78)), (0.8, (1.08, 1.08, 1.08))])
+        col = multiply(nodes, links, c.outputs["Color"], barbs.outputs["Color"])
+        col = occlusion(nodes, links, col, length, sp)
+        bmp = nodes.new("ShaderNodeBump")
+        bmp.inputs["Strength"].default_value = 0.35
+        links.new(w.outputs["Fac"], bmp.inputs["Height"])
+        r = nodes.new("ShaderNodeValue")
+        r.outputs[0].default_value = 0.8
+        return col, r.outputs[0], bmp.outputs["Normal"]
+
+    return build
 
 
 def flat_mat(hexcol, rough):
@@ -1332,7 +2084,7 @@ def shell_mat(sp):
         vor.feature = "DISTANCE_TO_EDGE"
         vor.inputs["Scale"].default_value = 3.2
         links.new(coord, vor.inputs["Vector"])
-        seam = C.ramp(nodes, links, vor.outputs["Distance"], [(0.02, C.hexlin("#2a2418")), (0.06, C.hexlin(sp["accent"])), (0.2, C.hexlin("#8a7048"))])
+        seam = C.ramp(nodes, links, vor.outputs["Distance"], [(0.02, C.hexlin("#1a150e")), (0.07, C.hexlin("#3a2c1c")), (0.12, C.hexlin(sp["accent"])), (0.24, C.hexlin("#5e4c30"))])
         n = C.noise(nodes, 18.0, 6, 0.6, coord, links)
         tone = C.ramp(nodes, links, n.outputs["Fac"], [(0.3, (0.8, 0.8, 0.8)), (0.7, (1.1, 1.1, 1.1))])
         mul = nodes.new("ShaderNodeMix")
@@ -1341,12 +2093,13 @@ def shell_mat(sp):
         mul.inputs["Factor"].default_value = 1.0
         links.new(seam.outputs["Color"], mul.inputs["A"])
         links.new(tone.outputs["Color"], mul.inputs["B"])
+        shaded = occlusion(nodes, links, mul.outputs["Result"], sp["length"], sp)
         bmp = nodes.new("ShaderNodeBump")
         bmp.inputs["Strength"].default_value = 0.6
         links.new(vor.outputs["Distance"], bmp.inputs["Height"])
         r = nodes.new("ShaderNodeValue")
         r.outputs[0].default_value = 0.65
-        return mul.outputs["Result"], r.outputs[0], bmp.outputs["Normal"]
+        return shaded, r.outputs[0], bmp.outputs["Normal"]
 
     return build
 
@@ -1452,8 +2205,33 @@ def build_geometry(sp, raw, s, name, body_tris):
         for n, p, _a, _b in leg + toes + arm + fingers:
             points[n] = Vector(p)
     points.update(sk.get("extra_points", {}))
-    body, _ = build_body(name, sk, body_tris)
+    radii = {}
+    for c in ("spine", "neck", "jaw", "tail"):
+        for n, _p, ra, rb in sk[c]:
+            radii[n] = (ra, rb)
+    for _parent, chain in sk.get("extras", []):
+        for n, _p, ra, rb in chain:
+            radii[n] = (ra, rb)
+    for sfx, leg, toes, arm, fingers in sk["limbs"]:
+        for n, _p, ra, rb in leg + toes + arm + fingers:
+            radii[n] = (ra, rb)
+    sk["eye_r_abs"] = eye_radius(sp, sk)
+    sk["hip_z"] = points["pelvis"].z
+    fur_tris = sum(c * CLUMP_TRIS for t in (FUR, PLUME) for _z, c, _l, _w in t.get(sp["key"], []))
+    sk["head_c"] = points["head_back"].lerp(points["nose"], 0.45)
+    sk["head_l"] = (points["nose"] - points["head_back"]).length
+    tail_pts = [points[k] for k in points if k.startswith("tail")]
+    sk["tail_y"] = (points["pelvis"].y, max([t.y for t in tail_pts] + [points["pelvis"].y + 0.01]))
+    body, high, bvh = build_body_v2(name, sk, sp, points, radii, body_tris - fur_tris)
+    snap_surface(sk, bvh)
     det = build_details(sp, sk, points)
+    fur = build_fur(sp, sk, points, radii, high)
+    if fur is not None:
+        det["fur"] = [fur]
+    plume = build_fur(sp, sk, points, radii, high, PLUME)
+    if plume is not None:
+        det["plume"] = [plume]
+    bpy.data.objects.remove(high)
     return body, det, sk, points
 
 
@@ -1472,7 +2250,7 @@ def main():
     argv = sys.argv[sys.argv.index("--") + 1 :]
     outdir = C.out_dir()
     key = argv[1]
-    sp = SPECIES[key]
+    sp = dict(SPECIES[key], key=key)
     name = "Robango" + key[0].upper() + key[1:]
     b2b = sp["plan"] in B2B_PLANS
     # B2a seeds stay as recorded (index among the B2a species); B2b seeds start at SEED + 100.
@@ -1498,7 +2276,8 @@ def main():
     if b2b:
         detail_budget = 1300 if sp["tris"] <= 4000 else 2000
     body, det, sk, points = build_geometry(sp, raw, s, name, sp["tris"] - detail_budget)
-    body.data.materials.append(C.material("hide", make_hide_mat(sp, sk)))
+    hide = C.material("hide", make_hide_mat(sp, sk))
+    body.data.materials.append(hide)
     iris = sp.get("iris", "eye")
     mats = {
         "claw": C.material("claw", flat_mat("claw", 0.45)),
@@ -1506,6 +2285,9 @@ def main():
         "accent": C.material("accent", flat_mat(sp["accent"], 0.8)),
         "ivory": C.material("ivory", flat_mat(sp.get("ivory", "#b8ab88"), 0.6)),
         "shell": C.material("shell", shell_mat(sp)),
+        "fur": hide,
+        "skin": hide,
+        "plume": C.material("plume", plume_mat(sp, sp["length"])) if "plume" in sp else hide,
     }
     parts = [body]
     for kind, objs in det.items():
@@ -1518,6 +2300,7 @@ def main():
     maps = C.bake(body, name, outdir, size=sp["tex"])
     arm = build_armature(name, sk, points)
     weighted, fixed = weight(body, arm, smooth=b2b)
+    fur_vertices = copy_fur_weights(body)
     pv = C.preview(name, outdir, [body])
     fbx = C.export_fbx(name, outdir, [arm, body])
     lo = Vector((1e9, 1e9, 1e9))
@@ -1539,6 +2322,8 @@ def main():
             "bones": len(arm.data.bones),
             "weighted_vertices": weighted,
             "fallback_or_detail_vertices": fixed,
+            "fur_vertices": fur_vertices,
+            "bone_names": [b.name for b in arm.data.bones],
             "vertices": len(body.data.vertices),
             "size_studs": [round(size.x, 2), round(size.z, 2), round(size.y, 2)],
             "envelope": sp["envelope"],

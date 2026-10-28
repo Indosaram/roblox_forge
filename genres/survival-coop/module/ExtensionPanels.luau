@@ -48,6 +48,7 @@ local UDim2: any = env.UDim2
 local Vector2: any = env.Vector2
 local Color3: any = env.Color3
 local RaycastParams: any = env.RaycastParams
+local ColorSequence: any = env.ColorSequence
 
 local M = {}
 local categories: { [string]: { number | string } } = {
@@ -201,6 +202,227 @@ function M.menuRect(width: number, height: number, touch: boolean): (number, num
 	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_CELL + M.MENU_GAP))
 	return x, top, w, h, math.max(1, math.min(columns, fit)), tile
 end
+-- Robango shell menu (D2b fix 10): the menu toggle is the first pebble of the bottom-left row, so
+-- the grid no longer starts under a top-right button (top 116 left 2 rows on the 800x360 phone). A
+-- landscape grid runs from the safe-area top to its bottom, right of the toggle, and keeps the
+-- camera-cutout inset on touch screens; a wide pointer screen keeps the 720 px grid at the right.
+M.SHELL_MENU_MARGIN, M.SHELL_MENU_SIDE = 4, 32
+function M.shellMenuRect(
+	width: number,
+	height: number,
+	touch: boolean,
+	toggle: { x: number, y: number, width: number, height: number }
+): (number, number, number, number, number, number)
+	local _, columns, tile = M.menuBounds(width, height)
+	local side = if touch then M.SHELL_MENU_SIDE else 12
+	local x = toggle.x + toggle.width + M.MENU_GAP
+	local w = width - x - side
+	if w > 720 then
+		x, w = width - side - 720, 720
+	end
+	local fit = math.floor((w - M.MENU_SCROLLBAR + M.MENU_GAP) / (M.MENU_MIN_CELL + M.MENU_GAP))
+	local margin = M.SHELL_MENU_MARGIN
+	return x, margin, w, math.max(0, height - 2 * margin), math.max(1, math.min(columns, fit)), tile
+end
+
+-- Shell side sheet on a short touch landscape: the whole safe height (the HUD hides under an open
+-- sheet) and centred at most 640 wide, instead of the 64 px top reserve of contextSheet.
+function M.shellSheet(width: number, height: number, touch: boolean): (number, number, number, number)
+	if (touch or width < 700) and width > height and height < 480 then
+		local w = math.min(640, width - 2 * M.SHELL_MENU_SIDE)
+		return math.floor((width - w) / 2), 8, w, height - 16
+	end
+	return HUDModel.contextSheet(width, height, touch)
+end
+
+-- ---------------------------------------------------------------------------------------------
+-- Sheet shell (D2b fix 3): every sheet fitted through ctx.fitSheet gets one look from the ui-kit
+-- Theme.sheet tokens: parchment body in a wood rim, a leather header with an icon badge, a
+-- left-aligned title and a round close, left-aligned ink rows with a marker, sea-glass buttons, and
+-- every text at least Theme.sheetText for the gui's safe height (never under 14 px). Text is styled
+-- as it is parented (rows rebuild on every snapshot), so panels keep their own row code. Sheets that
+-- lay themselves out as full-screen shell panels (ForgeShellPanel) keep their own palette.
+local function rgb(c: any): any
+	return Color3.fromRGB(c.r, c.g, c.b)
+end
+
+local function child(item: any, class: string): any
+	return if type(item.FindFirstChildOfClass) == "function" then item:FindFirstChildOfClass(class) else nil
+end
+
+local function childNamed(item: any, name: string): any
+	return if type(item.FindFirstChild) == "function" then item:FindFirstChild(name) else nil
+end
+
+--- Shell text style of a text object in a sheet: title (header title, close), button or body.
+function M.shellRole(item: any, header: any): string
+	if item.Parent == header or item.Name == "Close" then
+		return "title"
+	end
+	return if item.ClassName == "TextButton" then "button" else "body"
+end
+
+--- Styles one TextLabel/TextButton of a shell sheet. `size(style)` is the current shell text size.
+function M.styleShellText(item: any, header: any, tokens: any, size: (string) -> number)
+	local C, S = tokens.colors, tokens.space
+	local class = item.ClassName
+	if (class ~= "TextLabel" and class ~= "TextButton") or item.TextScaled then
+		return
+	end
+	local role = M.shellRole(item, header)
+	if role == "title" then
+		item.TextSize = size("title")
+		item.TextColor3 = rgb(C.headerText)
+		if item.Name == "Close" then
+			item.BackgroundColor3 = rgb(C.close)
+		end
+		return
+	end
+	item.TextSize = math.max(item.TextSize or 0, size("body"))
+	local parent = item.Parent
+	if parent ~= nil and parent.ClassName == "TextButton" then
+		-- A caption inside a button (icon buttons) takes the button's text colour.
+		item.TextColor3 = rgb(C.buttonText)
+		return
+	end
+	if role == "button" then
+		-- Rows that are buttons (screen links, actions) read as one sea-glass family.
+		if item.BackgroundTransparency ~= 1 then
+			item.BackgroundColor3, item.TextColor3 = rgb(C.button), rgb(C.buttonText)
+		end
+		return
+	end
+	local stroke = child(item, "UIStroke")
+	if stroke then
+		-- Ink on parchment needs no halo; the kit's world-backdrop stroke only blurs it.
+		stroke.Transparency = 1
+	end
+	item.TextColor3 = rgb(C.ink)
+	if item.BackgroundTransparency ~= 1 then
+		item.BackgroundColor3 = rgb(C.chip)
+	end
+	if Enum then
+		item.TextXAlignment = Enum.TextXAlignment.Left
+	end
+	-- A list row (a direct child of the sheet's scroll) gets a sea-glass marker left of its text;
+	-- nested labels only keep the left inset.
+	local row = item.Parent ~= nil and item.Parent.Name == "Content"
+	local padding = child(item, "UIPadding") or Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, if row then S.marker + 2 * S.gap else S.gap)
+	padding.PaddingRight, padding.Parent = UDim.new(0, S.gap), item
+	if row and Enum then
+		-- A row grows with its wrapped text instead of clipping it (panels size rows for 15 px text).
+		item.AutomaticSize = Enum.AutomaticSize.Y
+	end
+	if row and not childNamed(item, "ShellMarker") then
+		local marker = Instance.new("Frame")
+		marker.Name, marker.BorderSizePixel, marker.BackgroundColor3 = "ShellMarker", 0, rgb(C.marker)
+		marker.Size = UDim2.fromOffset(S.marker, math.max(S.marker, size("body")))
+		marker.AnchorPoint = Vector2.new(0, 0.5)
+		marker.Position = UDim2.new(0, -(S.marker + S.gap), 0.5, 0)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius, corner.Parent = UDim.new(0.5, 0), marker
+		marker.Parent = item
+	end
+end
+
+-- Fallback glyph per menu icon id (IconFallback shapes), shared by menu tiles and sheet headers.
+local GLYPHS: { [string]: string } = {
+	bag = "item",
+	craft = "tool",
+	build = "building",
+	capture = "creature",
+	skills = "seed",
+	energy = "food",
+	currency = "stone",
+	music = "fiber",
+	settings = "tool",
+	social = "creature",
+	party = "creature",
+	clan = "creature",
+	invite = "creature",
+	explore = "seed",
+	journal = "wood",
+	todo = "wood",
+	market = "food",
+	inbox = "item",
+}
+
+--- Header icon badge of a shell sheet for screen `id` (its menu category icon); `icons` is the
+--- pack's icon resolver (options.icons), nil for the fallback glyph only.
+function M.shellIcon(frame: any, id: string?, icons: any?, tokens: any)
+	local header = childNamed(frame, "Header")
+	if not header then
+		return
+	end
+	local S = tokens.space
+	local info: { number | string } = (id and categories[id]) or { 0, "inbox" }
+	local iconId = info[2] :: string
+	local icon = if icons then icons.ui(iconId) else nil
+	IconFallback.mount(
+		header,
+		GLYPHS[iconId],
+		UDim2.fromOffset(S.icon, S.icon),
+		UDim2.new(0, S.pad, 0.5, -S.icon / 2),
+		if icon then icon.image else nil,
+		"ShellIcon"
+	)
+	if id then
+		frame:SetAttribute("ForgeShellIcon", id)
+	end
+end
+
+--- Styles a Components.modalSheet frame as the shell sheet (frame, header, icon, close, scroll).
+function M.styleShellFrame(frame: any, tokens: any, size: (string) -> number)
+	local C, S = tokens.colors, tokens.space
+	frame.BackgroundColor3, frame.BackgroundTransparency = rgb(C.body), 0
+	local rim = child(frame, "UIStroke")
+	if rim then
+		rim.Color, rim.Thickness = rgb(C.rim), 3
+	end
+	local shade = child(frame, "UIGradient")
+	if shade and ColorSequence then
+		-- The kit's panel gradient darkens the fill to near-black at the bottom; parchment only warms.
+		shade.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(232, 222, 204))
+	end
+	local header = childNamed(frame, "Header")
+	if header then
+		header.BackgroundColor3 = rgb(C.header)
+		local sheen = child(header, "UIGradient")
+		if sheen and ColorSequence then
+			sheen.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(214, 204, 192))
+		end
+		local title = childNamed(header, "Title")
+		if title then
+			local left = S.pad + S.icon + S.gap
+			title.Position = UDim2.fromOffset(left, 0)
+			title.Size = UDim2.new(1, -(left + S.close + 6 + S.gap), 1, 0)
+			if Enum then
+				title.TextXAlignment = Enum.TextXAlignment.Left
+			end
+			M.styleShellText(title, header, tokens, size)
+		end
+		local close = childNamed(header, "Close")
+		if close then
+			M.styleShellText(close, header, tokens, size)
+		end
+		M.shellIcon(frame, nil, nil, tokens)
+	end
+	local scroll = childNamed(frame, "Content")
+	if scroll then
+		scroll.ScrollBarImageColor3 = rgb(C.rim)
+		local padding = child(scroll, "UIPadding")
+		if padding then
+			padding.PaddingLeft, padding.PaddingRight = UDim.new(0, S.pad), UDim.new(0, S.pad)
+			padding.PaddingTop, padding.PaddingBottom = UDim.new(0, S.pad), UDim.new(0, S.pad)
+		end
+		local list = child(scroll, "UIListLayout")
+		if list then
+			list.Padding = UDim.new(0, S.gap)
+		end
+	end
+end
+
 function M.sheetBounds(width: number, height: number): (number, number)
 	local size = Layout.sheetSize({ x = width, y = height })
 	return math.min(440, size.x), math.min(520, math.floor(height * 0.7), size.y)
@@ -266,6 +488,9 @@ function M.start(
 		-- Robango HUD shell (A4): the objective card sits in the HudShell quest region and the menu
 		-- toggle becomes the first pebble of the bottom-left row instead of a top-right button.
 		shell: boolean?,
+		-- Dock ids kept off the menu grid (id -> reason). The panel still mounts and still opens
+		-- through ctx.open / world prompts; only its tile is hidden.
+		held: { [string]: string }?,
 	}
 ): Started
 	local storage = game:GetService("ReplicatedStorage")
@@ -566,18 +791,27 @@ function M.start(
 			set(menuList, "Parent", dockGui)
 			local menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
 				M.menuRect(size.X, size.Y, input.TouchEnabled)
+			if shell and size.X > size.Y then
+				local regions = HudShell.regions(size.X, size.Y, HudShell.guiClear(dockGui), input.TouchEnabled)
+				menuX, menuTop, menuWidth, menuHeight, columns, tileHeight =
+					M.shellMenuRect(size.X, size.Y, input.TouchEnabled, regions.rowSlots[1])
+			end
 			local mx, my, mw, mh = HUDModel.chatSafe(size.X, size.Y, menuX, menuTop, menuWidth, menuHeight)
 			mh = M.menuRows(mh, tileHeight)
-			set(menuList, "AnchorPoint", Vector2.zero)
-			set(menuList, "Position", UDim2.fromOffset(mx, my))
-			set(menuList, "Size", UDim2.fromOffset(mw, mh))
-			set(menuLayout, "CellSize", UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight))
 			local shownTiles = 0
 			for _, tile in tiles do
 				if tile.Visible then
 					shownTiles += 1
 				end
 			end
+			if shell then
+				-- The shell grid runs the full safe height; it ends after its last row when that fits.
+				mh = math.min(mh, M.menuCanvas(shownTiles, columns, tileHeight) - M.MENU_GAP)
+			end
+			set(menuList, "AnchorPoint", Vector2.zero)
+			set(menuList, "Position", UDim2.fromOffset(mx, my))
+			set(menuList, "Size", UDim2.fromOffset(mw, mh))
+			set(menuLayout, "CellSize", UDim2.fromOffset(M.menuCell(menuWidth, columns), tileHeight))
 			-- The layout's own content height wins if it wraps into more rows than predicted.
 			local canvas = math.max(
 				M.menuCanvas(shownTiles, columns, tileHeight),
@@ -599,6 +833,9 @@ function M.start(
 			objectiveSlot.Visible = objectiveSlot.Visible and not open and not foreign
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
 			local sx, sy, sw, sh = HUDModel.contextSheet(size.X, size.Y, input.TouchEnabled)
+			if shell then
+				sx, sy, sw, sh = M.shellSheet(size.X, size.Y, input.TouchEnabled)
+			end
 			for _, frame in sheets do
 				local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 				if owner then
@@ -610,6 +847,12 @@ function M.start(
 					local view = owner.AbsoluteSize
 					frame.AnchorPoint = Vector2.zero
 					local r = HudShell.panel(view.X, view.Y, HudShell.guiClear(owner), kind).frame
+					local badge = frame:FindFirstChild("Header")
+					badge = badge and badge:FindFirstChild("ShellIcon")
+					if badge then
+						-- The full-screen panel title starts at the bar's left edge, where the badge sits.
+						badge:Destroy()
+					end
 					set(frame, "Position", UDim2.fromOffset(r.x, r.y))
 					set(frame, "Size", UDim2.fromOffset(r.width, r.height))
 					continue
@@ -649,7 +892,11 @@ function M.start(
 			frame.Size = UDim2.fromOffset(width, fitted)
 		end
 	end
-	local resizeConnection = dockGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+	local restyle: () -> () = function() end
+	local resizeConnection = dockGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		place()
+		restyle()
+	end)
 	local lastChatRight, lastChat, lastHeight = -1, -1, -1
 	local arrivalSent = false
 	local travelSeen: string?, travelUntil = nil, 0
@@ -749,6 +996,27 @@ function M.start(
 		end
 	end)
 	context.objectiveSlot = objectiveSlot
+	-- Sheet shell (D2b fix 3): fitted sheets take the ui-kit Theme.sheet look; their text is styled as
+	-- it is parented and re-sized when the viewport changes.
+	local tokens = if contextual and ui and ui.theme then ui.theme.sheet else nil
+	local function shellSize(style: string): number
+		return ui.theme.sheetText(style, dockGui.AbsoluteSize.Y)
+	end
+	local shellConnections: { any } = {}
+	-- Panels fit their sheet and then register its dock entry: that entry names the header icon.
+	local lastFitted: any = nil
+	local function shellText(frame: any, item: any)
+		if tokens and frame:GetAttribute("ForgeShellPanel") == nil and item:IsA("GuiObject") then
+			M.styleShellText(item, frame:FindFirstChild("Header"), tokens, shellSize)
+		end
+	end
+	function restyle()
+		for _, frame in sheets do
+			for _, item in frame:GetDescendants() do
+				shellText(frame, item)
+			end
+		end
+	end
 	context.fitSheet = function(frame: any)
 		local owner = frame:FindFirstAncestorWhichIsA("ScreenGui")
 		if owner then
@@ -756,6 +1024,19 @@ function M.start(
 			owner.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 		end
 		table.insert(sheets, frame)
+		if tokens then
+			lastFitted = frame
+			M.styleShellFrame(frame, tokens, shellSize)
+			for _, item in frame:GetDescendants() do
+				shellText(frame, item)
+			end
+			table.insert(
+				shellConnections,
+				frame.DescendantAdded:Connect(function(item)
+					shellText(frame, item)
+				end)
+			)
+		end
 		place()
 	end
 	local function styleTile(button: any, entry: any)
@@ -767,29 +1048,9 @@ function M.start(
 			button.Text = ""
 			-- Tiles stay grouped by category through LayoutOrder (tileOrder); no 11px caption.
 			local icon = if options.icons then options.icons.ui(iconId) else nil
-			local glyphs = {
-				bag = "item",
-				craft = "tool",
-				build = "building",
-				capture = "creature",
-				skills = "seed",
-				energy = "food",
-				currency = "stone",
-				music = "fiber",
-				settings = "tool",
-				social = "creature",
-				party = "creature",
-				clan = "creature",
-				invite = "creature",
-				explore = "seed",
-				journal = "wood",
-				todo = "wood",
-				market = "food",
-				inbox = "item",
-			}
 			IconFallback.mount(
 				button,
-				glyphs[iconId],
+				GLYPHS[iconId],
 				UDim2.fromOffset(M.MENU_ICON, M.MENU_ICON),
 				UDim2.new(0, 6, 0.5, -M.MENU_ICON / 2),
 				if icon then icon.image else nil,
@@ -811,7 +1072,15 @@ function M.start(
 	end
 	local locks: { [string]: { any } } = {}
 	context.dock = function(entry: DockEntry): DockHandle
+		if options.held and options.held[entry.id] then
+			entry = table.clone(entry)
+			entry.hidden = true
+		end
 		table.insert(entries, entry)
+		if tokens and lastFitted then
+			M.shellIcon(lastFitted, entry.id, options.icons, tokens)
+			lastFitted = nil
+		end
 		locks[entry.id] = { true }
 		local function open()
 			if options.onOpen then
@@ -977,6 +1246,9 @@ function M.start(
 			harborConnection:Disconnect()
 			connection:Disconnect()
 			resizeConnection:Disconnect()
+			for _, shellConnection in shellConnections do
+				shellConnection:Disconnect()
+			end
 			followConnection:Disconnect()
 			dockGui:Destroy()
 			table.clear(listeners)

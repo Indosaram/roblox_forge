@@ -88,7 +88,7 @@ local function mount(locale: string, replies: { [string]: any }?): any
 		return if name == "ExpeditionModels" then Models else Text
 	end
 	local clicks: { [any]: () -> () } = {}
-	local h: any = { sent = {}, docks = {}, listener = nil, closes = {} }
+	local h: any = { sent = {}, docks = {}, listener = nil, closes = {}, now = 0 }
 	local function make(props: any): any
 		local item = node("TextLabel")
 		item.Text = props.text
@@ -97,6 +97,9 @@ local function mount(locale: string, replies: { [string]: any }?): any
 	local ctx = {
 		locale = locale,
 		names = {},
+		clock = function()
+			return h.now
+		end,
 		ui = {
 			theme = { default = {} },
 			components = {
@@ -339,6 +342,14 @@ return {
 			arrived = { items = 5, coins = 55 },
 		}
 		h.push(state({ arrival = arrival }))
+		local routesGui = assert(h.find("ForgeRoutes"), "routes gui")
+		-- D2b (R10): arrival never opens the sheet over the camp; a HUD hint carries the line.
+		assert(not routesGui.Enabled, "arrival does not auto-open the routes sheet")
+		local hint = assert(h.find("ArrivalHint"), "arrival hint on the HUD")
+		assert(hint.Visible, "hint shown on arrival")
+		assert(hint.Text == Text.text("en-us", "travel_arrived", 1, "Grassland", 2), "hint carries the arrival line")
+		h.click("ArrivalHint")
+		assert(routesGui.Enabled and not hint.Visible, "tapping the hint opens the arrival card")
 		assert(h.find("TravelIdentity").Text == Text.text("en-us", "travel_arrived", 1, "Grassland", 2), "identity")
 		assert(not string.find(h.find("TravelIdentity").Text, "trip", 1, true), "raw expedition id hidden")
 		assert(h.find("TravelCrew") and h.find("TravelReconcile"), "crew and reconciliation")
@@ -346,16 +357,26 @@ return {
 		h.click("TravelBack")
 		assert(h.find("Route-1"), "back to the route list after acknowledging arrival")
 		-- A new arrival closed with the header X is acknowledged too: the next snapshot keeps it shut.
-		local routesGui = assert(h.find("ForgeRoutes"), "routes gui")
 		local second = table.clone(arrival)
 		second.stage = 3
 		h.push(state({ arrival = second }))
-		assert(routesGui.Enabled and h.find("TravelIdentity"), "next arrival opens the sheet")
+		assert(not routesGui.Enabled and h.find("ArrivalHint").Visible, "next arrival shows the hint only")
+		h.click("ArrivalHint")
+		assert(routesGui.Enabled and h.find("TravelIdentity"), "the hint opens the next arrival")
 		h.closes.ForgeRoutesSheet.Activated.fire()
 		assert(not routesGui.Enabled, "header X closes the arrival")
 		h.push(state({ arrival = second }))
 		assert(not routesGui.Enabled, "a later snapshot of the same arrival does not reopen it")
 		assert(h.find("Route-1") and not h.find("TravelIdentity"), "X acknowledged the arrival like Stay")
+		-- An ignored hint expires: the arrival then counts as seen and the hint stays gone.
+		local third = table.clone(arrival)
+		third.stage = 4
+		h.push(state({ arrival = third }))
+		assert(h.find("ArrivalHint").Visible and not routesGui.Enabled, "third arrival: hint only")
+		h.now += 13
+		h.push(state({ arrival = third }))
+		assert(not h.find("ArrivalHint").Visible and not routesGui.Enabled, "hint expires, sheet stays shut")
+		assert(h.find("Route-1"), "routes list after the hint expires")
 		local results = {
 			id = "trip",
 			status = "complete",

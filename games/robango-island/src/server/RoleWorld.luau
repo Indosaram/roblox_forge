@@ -13,6 +13,7 @@ local WorldText = require(Forge.games["robango-island"].src.shared.WorldText)
 local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudget)
 local BiomeKits = require(Forge.games["robango-island"].src.shared.BiomeKits)
 local Assets = require(Forge.games["robango-island"].src.shared.Assets)
+local NodeMeshes = require(Forge.games["robango-island"].src.shared.NodeMeshes)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
@@ -966,13 +967,31 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if content.missionPolicy then
 		local combat = content.missionPolicy
 		wildlife.catalog.weapons = table.clone(wildlife.catalog.weapons)
-		wildlife.catalog.weapons[combat.starterWeapon] = {
+		local starter = {
 			damageMilli = combat.weaponDamageMilli,
 			wearMilli = combat.weaponWearMilli,
 			rangeStuds = combat.weaponRangeStuds,
 			cooldownMillis = combat.weaponCooldownMillis,
 			facingDot = 0,
 		}
+		wildlife.catalog.weapons[combat.starterWeapon] = starter
+		-- D2b R08: every melee weapon-tool strikes wildlife (the opening's bone knife was refused
+		-- WEAPON_UNAVAILABLE, so no swing ever landed). An item without its own rule strikes like the
+		-- starter club; worn performance still adds per tier. Bows and crossbows stay ranged-only.
+		local ranged: { [string]: boolean } = {}
+		for _, row in (content.brawlPolicy and content.brawlPolicy.weapons) or {} do
+			ranged[row.item] = true
+		end
+		for _, item in content.items do
+			if
+				table.find(item.tags, "weapon-tool")
+				and (item.maxDurabilityMilli or 0) > 0
+				and not ranged[item.id]
+				and not wildlife.catalog.weapons[item.id]
+			then
+				wildlife.catalog.weapons[item.id] = table.clone(starter)
+			end
+		end
 	end
 	wildlife.maximum = math.max(policy.maximum, #spawns)
 	wildlife.sourceKey = "w"
@@ -1003,6 +1022,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).
 		hazards = if string.match(layoutId, "^rw%.a%d+%.s%d+$") then { layout = layout } else nil,
 	})
+	-- L1: every node renders its B1 node mesh (NodeMeshes); the part below is the gameplay handle
+	-- (tag, prompt, attributes, collision) and turns invisible once the mesh is hung under it.
+	local nodeMeshes = {}
 	for _, node in nodes do
 		local target = part(node.id, node.position, { x = 3, y = 2, z = 3 })
 		target.Material, target.Color = Enum.Material.Rock, Color3.fromRGB(117, 119, 112)
@@ -1021,23 +1043,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		else
 			target.Shape = Enum.PartType.Ball
 		end
-		-- Decorative family kit beside the target; rendered with the dressing pass below.
-		local p: any = node.position
-		Dressing.kit(
-			dressing.parts,
-			node.id .. ".kit",
-			{ x = p.x + 8, y = p.y, z = p.z + 6 },
-			if family == "wood" and layoutId ~= "rw.home"
-				then "tree"
-				elseif family == "water" then "grass"
-				elseif family == "mineral" then "rock"
-				else "bush",
-			dressing.palette
-		)
 		world.registerNode(target, node.id, node.catalogId, 0, revision)
 		-- Attributes cannot hold tables; the HUD tracker resolves the item id to a localized name.
 		target:SetAttribute("ForgeNodeItem", nodeItems[node.id].id)
+		local yaw = Rng.new(seed):fork("node-mesh:" .. node.id):nextNumber() * 360
+		table.insert(nodeMeshes, { target = target, row = NodeMeshes.row(nodeItems[node.id].id), yaw = yaw })
 	end
+	-- Package loads run off the build path; until they land (or if one fails) the handle stays visible.
+	task.spawn(function()
+		local templates = NodeMeshes.load(BiomeKits, Assets)
+		if (root :: any).Parent == nil then
+			return
+		end
+		for _, dressed in nodeMeshes do
+			NodeMeshes.dress(dressed.target, dressed.row, templates, dressed.yaw)
+		end
+	end)
 	-- Station panels: a tier-2+ workbench opens ui.modify, a signal relay opens ui.technical-support.
 	-- The server still gates every command on station kind, tier and reach.
 	world.tieredStations = {}

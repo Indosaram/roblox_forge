@@ -6,7 +6,7 @@ local fs = require("@lune/fs")
 local Transport = require("../../../core/infra/genre/CommandTransport")
 
 -- Minimal engine double: just enough Instances/services for GatheringClient.start.
-local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): any
+local function clientHarness(answer: (any) -> any, extra: { [string]: any }?, handshake: (() -> any)?): any
 	local function signal(): any
 		local listeners: { { c: any, f: (...any) -> () } } = {}
 		local s = {}
@@ -80,7 +80,7 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 	function remote:InvokeServer(...)
 		local args = table.pack(...)
 		if args.n == 0 then
-			return { ok = true, durable = policy }
+			return if handshake then handshake() else { ok = true, durable = policy }
 		end
 		table.insert(sent, args[2])
 		return answer(args[2])
@@ -98,6 +98,7 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 	function tags:GetInstanceRemovedSignal()
 		return signal()
 	end
+	local stateEvent = { OnClientEvent = signal() }
 	local guid = 0
 	local services: any = {
 		Workspace = world,
@@ -114,12 +115,13 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 		},
 		ReplicatedStorage = {
 			WaitForChild = function(_, name)
-				return if name == "ForgeAction" then remote else { OnClientEvent = signal() }
+				return if name == "ForgeAction" then remote else stateEvent
 			end,
 		},
 	}
 	local prompt: any = nil
 	local touch: any = nil
+	local notice: any = nil
 	local module = luau.load(fs.readFile("genres/survival-coop/module/GatheringClient.luau"), {
 		environment = {
 			game = {
@@ -134,6 +136,8 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 						prompt = o
 					elseif class == "TextButton" then
 						touch = o
+					elseif class == "TextLabel" then
+						notice = o
 					end
 					return o
 				end,
@@ -146,9 +150,14 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 				ScreenInsets = { CoreUISafeInsets = 0 },
 				Font = { GothamBold = 0 },
 			},
-			task = { delay = function() end },
-			require = function()
-				return Transport
+			task = {
+				delay = function() end,
+				spawn = function(callback, ...)
+					callback(...)
+				end,
+			},
+			require = function(path: string): any
+				return if path == "./PackLocale" then require("./PackLocale") else Transport
 			end,
 		},
 	})()
@@ -164,6 +173,13 @@ local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): a
 		touch = touch,
 		prompt = prompt,
 		sent = sent,
+		policy = policy,
+		notice = function(): any
+			return notice
+		end,
+		packet = function(durable: any)
+			stateEvent.OnClientEvent:Fire({ durable = durable })
+		end,
 		press = function()
 			prompt.Triggered:Fire(player)
 		end,
@@ -223,6 +239,53 @@ return {
 		h.touch.Activated:Fire()
 		assert(picked[1] == h.node, "the picker is asked about the open node")
 		assert(#h.sent == 1 and h.sent[1].args[1] == "rw.a1.s1.material.wood", "one gather of the open node")
+		h.destroy()
+	end,
+	-- p134 v45/v46: "아직 연결 중이에요" flashed for 15-18 s after join while gathers were already
+	-- confirming. Once the server issued a gather epoch, a transient refusal (a save or recovery
+	-- sweep holding the profile) retries silently on the next packet instead of showing the banner.
+	["a live session retries a transient refusal silently and never shows the connecting banner"] = function()
+		local answers: { any } = {
+			{ ok = false, reason = "COMMAND_PENDING" },
+			{ ok = true, stateVersion = 2, data = { status = "confirmed" } },
+			{ ok = false, reason = "TOOL_UNAVAILABLE", data = { status = "rejected" } },
+		}
+		local calls = 0
+		local h = clientHarness(function()
+			calls += 1
+			return answers[calls]
+		end)
+		h.press()
+		assert(#h.sent == 1, "one request sent")
+		assert(not h.notice().Visible, "no connecting banner on a live session: " .. tostring(h.notice().Text))
+		h.packet(h.policy)
+		assert(#h.sent == 2 and h.sent[2] == h.sent[1], "the next packet replays the same frozen request")
+		assert(not h.notice().Visible, "confirmed gather shows no banner")
+		h.press()
+		assert(
+			h.notice().Visible and h.notice().Text == "맞는 도구를 장착하세요",
+			"final refusals still explain"
+		)
+		h.destroy()
+	end,
+	["a confirmed gather clears a connecting banner shown while the profile loaded"] = function()
+		local handshakes = 0
+		local h = clientHarness(
+			function()
+				return { ok = true, stateVersion = 2, data = { status = "confirmed" } }
+			end,
+			nil,
+			function()
+				handshakes += 1
+				return { ok = false, reason = "profile not ready" }
+			end
+		)
+		assert(handshakes == 1, "initial handshake")
+		assert(h.notice().Visible and string.find(h.notice().Text, "연결", 1, true), "loading shows connecting")
+		h.packet(h.policy)
+		h.press()
+		assert(#h.sent == 1, "gather sent with the packet epoch")
+		assert(not h.notice().Visible, "a confirmed gather clears the connecting banner")
 		h.destroy()
 	end,
 }

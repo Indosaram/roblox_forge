@@ -112,6 +112,17 @@ return {
 		assert(night.fire.range > day.fire.range, "fire reaches further at night")
 		assert(DayNight.at(17.5, FOG).golden > 0.5, "golden hour at sunset")
 	end,
+	["night grade turns grass and sand moon blue-grey, not daytime green (D2b R17)"] = function()
+		local night = DayNight.at(1, FOG)
+		local grass, sand = onScreen(night, GRASS), onScreen(night, { 180, 170, 140 })
+		-- D2b captured explore10 grass at 01:00 as green (G - B = 27 on screen): the grade must pull
+		-- green to grey-blue on every role, since grass covers every island.
+		assert(saturation(grass) <= 0.2, "night grass desaturated: " .. saturation(grass))
+		assert(grass[2] - grass[3] <= 10, "night grass is not green: G - B = " .. grass[2] - grass[3])
+		assert(night.grade.saturation <= -0.4, "night grade desaturates")
+		assert(sand[3] >= sand[1], "night sand reads moon blue")
+		assert(night.exposure >= 1.25, "town night lifted: exposure " .. night.exposure)
+	end,
 	["volcano layouts follow the content storm timeline with ash"] = function()
 		local layout = layoutWith(function(l)
 			return table.find(l.biomes, "volcano") ~= nil

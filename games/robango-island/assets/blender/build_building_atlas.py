@@ -20,8 +20,8 @@ CELL = SIZE // GRID
 TILES = [
     ("log", "bark_brown_02", "#6a5843", 0.6),
     ("plank", "old_planks_02", "#7d6646", 0.6),
-    ("thatch", "reed_roof_04", "#9c8a5a", 0.65),
-    ("canvas", "rough_linen", "#ae9f7c", 0.5),
+    ("thatch", "reed_roof_04", "#8a7650", 0.6),
+    ("canvas", "rough_linen", "#a39272", 0.5),
     ("rope", "hessian_230", "#8c7a55", 0.6),
     ("stone", "stacked_stone_wall", "#6c5c4b", 0.55),
     ("brick", "brick_wall_02", "#8a5a40", 0.7),
@@ -42,8 +42,46 @@ def hexrgb(h):
     return np.array([int(h[i : i + 2], 16) / 255 for i in (0, 2, 4)], np.float32)
 
 
-def load(path, mode="RGB"):
-    return np.asarray(Image.open(path).convert(mode).resize((CELL, CELL), Image.LANCZOS), np.float32) / 255
+def load(path, mode="RGB", crop_top=0.0):
+    image = Image.open(path).convert(mode)
+    if crop_top:
+        # reed_roof_04 carries a band of grass along its top edge; keep only the reed courses.
+        image = image.crop((0, int(image.height * crop_top), image.width, image.height))
+    return np.asarray(image.resize((CELL, CELL), Image.LANCZOS), np.float32) / 255
+
+
+def blur(field, passes):
+    for _ in range(passes):
+        field = (field + np.roll(field, 1, 0) + np.roll(field, -1, 0) + np.roll(field, 1, 1) + np.roll(field, -1, 1)) / 5
+    return field
+
+
+def weather_cloth(rgb, seed):
+    """Canvas / cloth wear so linen does not read as a flat cream fill at the town camera:
+    low-frequency mottling, two sewn panel seams with stitch shadows, a grime band along the
+    bottom edge (UVs on cloth run world-up) and a couple of darker patches. Tileable in X."""
+    rng = np.random.default_rng(seed)
+    n = rgb.shape[0]
+    mottle = blur(rng.standard_normal((n, n)).astype(np.float32), 40)
+    mottle = mottle / (np.abs(mottle).max() + 1e-6)
+    shade = 1 + 0.16 * mottle
+    y = np.linspace(0, 1, n, dtype=np.float32)[:, None]
+    shade *= 1 - 0.22 * np.clip((y - 0.72) / 0.28, 0, 1) ** 1.5  # grime toward the hem
+    shade *= 1 - 0.06 * np.clip((0.12 - y) / 0.12, 0, 1)
+    x = np.arange(n)[None, :]
+    for seam in (n // 3, 2 * n // 3):
+        d = np.abs(x - seam)
+        shade *= 1 - 0.28 * (d <= 1) - 0.1 * ((d > 1) & (d <= 4))
+        stitch = (d == 3) & ((np.arange(n)[:, None] // 5) % 2 == 0)
+        shade *= 1 - 0.18 * stitch
+    stains = np.zeros((n, n), np.float32)
+    yy, xx = np.ogrid[:n, :n]
+    for _ in range(3):  # soft water stains
+        cy, cx = rng.integers(30, n - 30, 2)
+        r = rng.integers(14, 30)
+        stains += np.exp(-(((yy - cy) ** 2 + (xx - cx) ** 2) / (2.0 * r * r))).astype(np.float32)
+    shade *= 1 - 0.12 * np.clip(stains, 0, 1)
+    return np.clip(rgb * shade[..., None], 0, 1)
 
 
 def grade(rgb, target, sat):
@@ -70,9 +108,12 @@ def main():
             normal[ys, xs] = (0.5, 0.5, 1.0)
             rough[ys, xs] = 0.9
             continue
-        albedo[ys, xs] = grade(load(os.path.join(src, pid, "diff.jpg")), target, sat)
-        normal[ys, xs] = load(os.path.join(src, pid, "nor.jpg"))
-        rough[ys, xs] = load(os.path.join(src, pid, "rough.jpg"))
+        crop = 0.1 if name == "thatch" else 0.0
+        albedo[ys, xs] = grade(load(os.path.join(src, pid, "diff.jpg"), crop_top=crop), target, sat)
+        if name in ("canvas", "teal", "hide"):
+            albedo[ys, xs] = weather_cloth(albedo[ys, xs], index)
+        normal[ys, xs] = load(os.path.join(src, pid, "nor.jpg"), crop_top=crop)
+        rough[ys, xs] = load(os.path.join(src, pid, "rough.jpg"), crop_top=crop)
         print(f"tile {index:2d} {name:8s} mean={albedo[ys, xs].reshape(-1, 3).mean(0).round(3)} target={target}")
     for label, data in (("albedo", albedo), ("normal", normal), ("rough", rough)):
         Image.fromarray((data * 255 + 0.5).astype(np.uint8)).save(os.path.join(root, f"atlas_{label}.png"))

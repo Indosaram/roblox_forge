@@ -1077,6 +1077,23 @@ local panels = ExtensionPanels.start({
 	shell = true,
 	content = content,
 	icons = itemIcons,
+	-- Multiplayer is on hold (owner): these screens only act on other players, so a single player
+	-- gets nothing from them and their tiles stay off the menu until multiplayer resumes (delete
+	-- this table then). The panels still mount and still open from their own triggers (an incoming
+	-- trade invite, an expedition party invite, ctx.open from the navigator or an NPC).
+	-- D2b (08bc5d0, PC 1280x720): the grid had 36 tiles and showed 28 (7 rows x 4) before scrolling,
+	-- so shop, music, audio, brawl, home-move, home-permissions and organizations sat below the
+	-- fold. With these 8 tiles held the PC grid fits on one screen.
+	held = {
+		brawl = "brawl needs minimumPlayers 2",
+		["direct-trade"] = "trades with another player on this server",
+		outpost = "team siege: one clan against another",
+		party = "invites other players to an expedition party",
+		clan = "a clan is a group of players",
+		["clan-membership"] = "create or join a clan of players",
+		["home-permissions"] = "grants visit/use/build to friends and clan members",
+		["death-zone"] = "opt-in PvP zone, only used by brawl and team siege",
+	},
 	launchers = {
 		{
 			id = "explore",

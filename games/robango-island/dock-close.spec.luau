@@ -127,6 +127,23 @@ local function harness(options: any?): any
 					if value then
 						table.insert(rawget(getmetatable(value) :: any, "data").children, self)
 					end
+					data[key] = value
+					-- Like the engine: every new ancestor reports the moved item and its subtree.
+					local moved = { self }
+					for _, deep in methods.GetDescendants(self) do
+						table.insert(moved, deep)
+					end
+					local ancestor = value
+					while ancestor do
+						local added = rawget(getmetatable(ancestor) :: any, "data").signals.DescendantAdded
+						if added then
+							for _, each in moved do
+								added:Fire(each)
+							end
+						end
+						ancestor = ancestor.Parent
+					end
+					return
 				end
 				data[key] = value
 			end,
@@ -454,7 +471,7 @@ local function harness(options: any?): any
 	env.gui, env.script = node("ScreenGui", "ForgeGenreUI"), node("LocalScript", "RobangoIslandClient")
 	luau.load(section, { debugName = CLIENT, environment = env })()
 	local dock = assert(playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
-	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes, playerGui = playerGui }
+	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes, playerGui = playerGui, hud = hud }
 	-- Device change: every enabled ScreenGui is laid out again and reports it; a disabled one is not.
 	function h.setViewport(width: number, height: number, inset: number)
 		screen.width, screen.height, screen.inset = width, height, inset
@@ -668,6 +685,38 @@ local function checkMarket(h: any, view: { number }, locale: string)
 	assert(buttons >= 8, "tabs, grid and primary rendered at " .. where)
 end
 
+-- Scrolls the open menu grid as a player would until `tile` is a whole row inside it, then returns
+-- whether the tile (and the grid) sit fully on screen. Mirrors UIGridLayout: cells in LayoutOrder,
+-- a gap after each cell, the canvas starting MENU_GAP below the frame top (UIPadding).
+local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
+local function menuReach(h: any, tile: any, view: { any }): boolean
+	local grid = assert(h.menu:FindFirstChildOfClass("UIGridLayout"), "menu grid layout")
+	local cell, gap = grid.CellSize, Panels.MENU_GAP
+	local frame = rect(h.menu)
+	local columns = math.max(1, (frame.width - Panels.MENU_SCROLLBAR) // (cell.X.Offset + gap))
+	local index = 0
+	for _, other in h.tiles() do
+		if other.Visible then
+			if other == tile then
+				break
+			end
+			index += 1
+		end
+	end
+	local top = gap + (index // columns) * (cell.Y.Offset + gap)
+	local bottom = top + cell.Y.Offset
+	local canvas = h.menu.CanvasSize.Y.Offset
+	local scroll = math.clamp(bottom - frame.height, 0, math.max(0, canvas - frame.height))
+	h.menu.CanvasPosition = roblox.Vector2.new(0, scroll)
+	local x = (index % columns) * (cell.X.Offset + gap)
+	local screen = { x = 0, y = 0, width = view[1], height = view[2] }
+	return bottom <= canvas
+		and top - scroll >= 0
+		and bottom - scroll <= frame.height
+		and x + cell.X.Offset <= frame.width - Panels.MENU_SCROLLBAR
+		and inside(frame, screen)
+end
+
 return {
 	["D2 F4: the trading post fills 800x360, 850x411 (58 px inset) and 1920x1080 after any device change; X closes it"] = function()
 		for _, locale in { "ko-kr", "en-us" } do
@@ -741,5 +790,179 @@ return {
 		end
 		assert(#ids >= 40 and opened >= #ids - 2, string.format("%d of %d dock entries opened", opened, #ids))
 		assert(#h.errors == 0, table.concat(h.errors, "\n"))
+	end,
+	-- D2b (08bc5d0, Studio PC 1280x720): market, shop, audio, music, brawl, home-move,
+	-- home-permissions, direct-trade and organizations "opened nothing". 36 tiles with 7 rows on
+	-- screen put 8 of them below the fold. Multiplayer is on hold, so the tiles that only act on
+	-- other players are held off the grid. Every tile left is reachable in the scrolling grid (a whole
+	-- row on screen after scrolling, never clipped) and opens its panel (a sheet, or the HUD sheet for
+	-- the bag/craft/build/skills launchers), on the PC and on the 800x360 phone.
+	["D2b: every visible menu tile is reachable by scrolling and opens a panel; multiplayer-only tiles are held"] = function()
+		local HELD = {
+			brawl = true,
+			["direct-trade"] = true,
+			outpost = true,
+			party = true,
+			clan = true,
+			["clan-membership"] = true,
+			["home-permissions"] = true,
+			["death-zone"] = true,
+		}
+		local REQUIRED = { "market", "shop", "audio", "music", "home-move", "organizations" }
+		for _, view in { { 1280, 720 - 58, false }, { 1280, 720, false }, { 800, 360, true }, { 799, 339, true } } do
+			local h = harness({ width = view[1], height = view[2], touch = view[3] })
+			-- The slices a Studio onboarding join publishes (D2b census: 36 tiles before this fix), so the
+			-- context tiles (camp, death-zone, practice, routes, party) count against the fold too.
+			h.publish({
+				market = MARKET,
+				camp = { role = "guest", hosts = { ["2"] = true } },
+				["death-zone"] = { zone = "safe", alive = true },
+				operations = {},
+				expedition = {
+					routes = {},
+					party = { members = { "1" }, capacity = 4, invites = {} },
+					now = 0,
+					facts = {},
+				},
+			})
+			for _, id in { "camp", "operations", "routes" } do
+				assert(h.tile(id).Visible, id .. " context tile shown for the fold count")
+			end
+			local visible = {}
+			for _, tile in h.tiles() do
+				local id = string.sub(tile.Name, 6)
+				assert(not (HELD[id] and tile.Visible), id .. " (multiplayer only) is on the menu")
+				if tile.Visible then
+					table.insert(visible, tile)
+				end
+			end
+			local at = view[1] .. "x" .. view[2]
+			h.click(h.toggle)
+			-- D2b fix 10: the phone grid showed 2 rows (108 px). The grid now runs the safe height:
+			-- at least 5 whole rows on the 800x360 phone, and the PC shows every tile without scrolling.
+			local cell = assert(h.menu:FindFirstChildOfClass("UIGridLayout"), "grid").CellSize.Y.Offset
+			local rows = rect(h.menu).height // (cell + Panels.MENU_GAP)
+			local columns = (rect(h.menu).width - Panels.MENU_SCROLLBAR)
+				// (h.menu:FindFirstChildOfClass("UIGridLayout").CellSize.X.Offset + Panels.MENU_GAP)
+			local need = if view[1] >= 1280 then math.ceil(#visible / columns) else 5
+			assert(rows >= need, string.format("%d rows on screen, need %d at %s", rows, need, at))
+			for _, tile in visible do
+				assert(menuReach(h, tile, view), string.sub(tile.Name, 6) .. " not reachable at " .. at)
+			end
+			h.click(h.toggle)
+			for _, id in REQUIRED do
+				local tile = h.tile(id)
+				assert(tile.Visible, id .. " tile on the menu at " .. at)
+			end
+			for _, tile in visible do
+				local id = string.sub(tile.Name, 6)
+				h.step()
+				if not h.menu.Visible then
+					h.click(h.toggle)
+				end
+				assert(h.menu.Visible, "menu opens before " .. id)
+				assert(menuReach(h, tile, view), id .. " scrolled into view at " .. at)
+				h.click(tile)
+				if id == "explore" then
+					-- Island view is the aerial camera (bound after this section): the menu just gives way.
+					assert(not h.menu.Visible, "explore closes the menu")
+				elseif LAUNCHERS[id] then
+					assert(h.hud.shown, id .. " opens the HUD sheet at " .. at)
+					h.hud.close()
+				else
+					local open = h.sheets()
+					assert(#open == 1 and not h.column.Visible, id .. " opens no panel at " .. at)
+					h.click(open[1].close)
+					assert(#h.sheets() == 0 and h.column.Visible, id .. " X returns the menu at " .. at)
+				end
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	-- D2b fix 3 (08bc5d0: ~15 panels were one black sheet of ~9 px centred text, score 2) and fix 10
+	-- (phone menu: 6 of 36 tiles in a 108 px scroller, tiles unlabeled on PC). Every docked sheet
+	-- opened from its tile is the shell sheet: parchment body, header with icon badge, left-aligned
+	-- title and a 44 px close inside the screen, body text >= 14 px at 800x360 and >= 16 px at
+	-- 1280x720, left-aligned row text; every menu tile carries a label at least MENU_LABEL_MIN.
+	["D2b: docked sheets share the shell look with readable text and every menu tile is labelled"] = function()
+		local Theme = require("../../core/ui-kit/Theme")
+		local body = Theme.sheet.colors.body
+		for _, view in { { 800, 360, true, 14 }, { 1280, 720, false, 16 } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3] })
+			h.publish({ market = MARKET, operations = {} })
+			local checked = 0
+			for _, tile in h.tiles() do
+				local id = string.sub(tile.Name, 6)
+				if not tile.Visible then
+					continue
+				end
+				local label = tile:FindFirstChild("MenuLabel")
+				assert(label and label.Text ~= "", id .. " tile has no label at " .. at)
+				assert(label.TextSize >= Panels.MENU_LABEL_MIN, id .. " tile label under the minimum at " .. at)
+				if LAUNCHERS[id] then
+					continue
+				end
+				h.step()
+				h.click(h.toggle)
+				h.click(tile)
+				local open = h.sheets()
+				if #open == 1 and open[1].frame:GetAttribute("ForgeShellPanel") == nil then
+					local frame, close = open[1].frame, open[1].close
+					local header = frame:FindFirstChild("Header")
+					-- Components.modalSheet sheets (Header + Content scroll); the sea chart draws its own map.
+					if header and frame:FindFirstChild("Content") then
+						checked += 1
+						local function walk(item: any)
+							for _, child in item:GetChildren() do
+								local text = child.ClassName == "TextLabel" or child.ClassName == "TextButton"
+								if text and child.Visible ~= false and child.Text ~= "" and not child.TextScaled then
+									assert(
+										child.TextSize >= view[4],
+										string.format(
+											"%s: %q is %d px (< %d) at %s",
+											id,
+											child.Text,
+											child.TextSize,
+											view[4],
+											at
+										)
+									)
+									if child.ClassName == "TextLabel" and item.Name == "Content" then
+										assert(
+											child.TextXAlignment == roblox.Enum.TextXAlignment.Left,
+											string.format("%s: row %q is not left-aligned at %s", id, child.Text, at)
+										)
+									end
+								end
+								walk(child)
+							end
+						end
+						walk(frame)
+						local c = frame.BackgroundColor3
+						assert(
+							math.floor(c.R * 255 + 0.5) == body.r and math.floor(c.G * 255 + 0.5) == body.g,
+							id .. " sheet body is not the shell parchment at " .. at
+						)
+						assert(header:FindFirstChild("ShellIcon"), id .. " header has no icon at " .. at)
+						local title = assert(header:FindFirstChild("Title"), id .. " title")
+						assert(title.TextXAlignment == roblox.Enum.TextXAlignment.Left, id .. " title centred")
+						assert(title.TextSize >= view[4] + 2, id .. " title under " .. (view[4] + 2) .. " px at " .. at)
+						local x = rect(close)
+						assert(x.width >= 44 and x.height >= 44, id .. " close under 44 px at " .. at)
+						assert(
+							x.x >= 0 and x.y >= 0 and x.x + x.width <= view[1] and x.y + x.height <= view[2],
+							id .. " close off screen at " .. at
+						)
+					end
+				end
+				for _, sheet in h.sheets() do
+					h.click(sheet.close)
+				end
+				h.hud.close()
+			end
+			assert(checked >= 12, checked .. " shell sheets checked at " .. at)
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
 	end,
 }

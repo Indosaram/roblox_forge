@@ -671,3 +671,35 @@ def row_layout(objects, gap=4.0):
         o.location.x = x - lo
         x += hi - lo + gap
     bpy.context.view_layer.update()
+
+
+# ------------------------------------------------------------------ L3 vegetation v2 bridge
+# Clustered branch-card crowns (kitlib.branch_tree / sprig) for the B1b builders.
+
+SHRUB4_BOXES = [(135, 100, 232, 330), (540, 75, 628, 338), (440, 410, 552, 645), (618, 395, 712, 598), (238, 655, 338, 940), (383, 712, 492, 952), (562, 698, 652, 905), (52, 735, 152, 962)]
+
+
+def sprig_tile(size, rng, target, twig, sat=0.55, **kw):
+    """Branch-card tile: twig + side twigs + scanned shrub_04 leaves (CC0), base at the bottom."""
+    import kitlib
+
+    diff = load_scan(os.path.join("shrub_04", "textures", "shrub_04_diff_1k.jpg"))
+    alpha = load_scan(os.path.join("shrub_04", "textures", "shrub_04_alpha_1k.png"))
+    m = alpha[..., 0] > 0.5
+    diff = grade(diff, target, strength=0.8, sat=sat, mask=m)
+    diff[..., 3] = m.astype(np.float32)
+    leaves = [diff[1024 - y1 : 1024 - y0, x0:x1].copy() for x0, y0, x1, y1 in SHRUB4_BOXES]
+    return kitlib.sprig(rng, leaves, hexrgb(twig), size=size, **kw)
+
+
+def hero(b, rng, bark, rects, height, trunk_r, crown, **kw):
+    """Clustered branch-card tree on a Builder (kitlib.branch_tree)."""
+    import kitlib
+
+    return kitlib.branch_tree(lambda pts, radii, sides: b.tube(pts, radii, bark, sides=sides, v_scale=0.05), b.quad, rng, height, trunk_r, crown, rects, **kw)
+
+
+def bush(b, rng, rx, rz, clusters, cards, card, rects):
+    import kitlib
+
+    return kitlib.clustered_shrub(b.quad, rng, rx, rz, clusters, cards, card, rects)

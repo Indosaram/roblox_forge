@@ -250,6 +250,20 @@ function M.factory(ctx: any): any
 		end
 		return model
 	end
+	local groundParams = RaycastParams.new()
+	groundParams.FilterType, groundParams.IgnoreWater = Enum.RaycastFilterType.Exclude, true
+	local function groundY(at: Vector3): number?
+		groundParams.FilterDescendantsInstances = { stage, player.Character :: any }
+		local hit = workspace:Raycast(Vector3.new(at.X, at.Y + 64, at.Z), Vector3.new(0, -160, 0), groundParams)
+		return if hit then hit.Position.Y else nil
+	end
+	local function placeBoar(model: Model, start: Vector3, target: Vector3, k: number)
+		local half = if model.PrimaryPart then model.PrimaryPart.Size.Y / 2 else 1.5
+		local x, z = Scene.chargeAt(start.X, start.Z, target.X, target.Z, k)
+		local floor = groundY(Vector3.new(x, target.Y, z)) or (target.Y - 3)
+		local at = Vector3.new(x, floor + half, z)
+		model:PivotTo(CFrame.lookAt(at, Vector3.new(target.X, at.Y, target.Z)))
+	end
 	local function bubble(model: Model, key: string)
 		local head = model.PrimaryPart
 		if not head or head:FindFirstChild("OpeningBubble") then
@@ -377,17 +391,25 @@ function M.factory(ctx: any): any
 			boar = boar or rig("boar", lane)
 			local charge = view.charge
 			local charging = charge ~= nil and now >= charge.startAt and now <= charge.strikeAt + Scene.GRACE_MILLIS
+			-- Between charges the boar paws at the start of its next run, in frame and on the ground.
+			local start = lane
+			if root then
+				local x, z = Scene.chargeFrom(lane.X, lane.Z, root.Position.X, root.Position.Z)
+				start = Vector3.new(x, root.Position.Y, z)
+			end
+			local target = if root then root.Position else lane
 			if charging and root and boar then
-				local k = M.chargeProgress(charge, now)
-				local at = lane:Lerp(root.Position, k)
-				boar:PivotTo(CFrame.lookAt(at, Vector3.new(root.Position.X, at.Y, root.Position.Z)))
+				placeBoar(boar, start, target, M.chargeProgress(charge, now))
 				if not mark then
+					-- Telegraph: a coral outline drawn over terrain and props for the whole run.
 					local created = Instance.new("Highlight")
-					created.FillColor, created.Parent = P.coral, boar
+					created.FillColor, created.OutlineColor = P.coral, P.coral
+					created.FillTransparency, created.DepthMode = 0.45, Enum.HighlightDepthMode.AlwaysOnTop
+					created.Parent = boar
 					mark = created
 				end
 			elseif boar then
-				boar:PivotTo(CFrame.new(lane))
+				placeBoar(boar, start, target, 0)
 				if mark then
 					mark:Destroy()
 					mark = nil

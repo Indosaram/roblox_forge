@@ -96,6 +96,37 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 	return if ko then "지금은 채집할 수 없어요" else "You can't gather this right now"
 end
 
+-- Refusals that only mean "the profile is busy for a moment" (loading, saving, a 1 Hz recovery
+-- sweep, a rate-limited handshake). They read as the connecting banner (gth.connecting) or, for a
+-- press waiting for the epoch, the queued banner (gth.queued).
+local TRANSIENT: { [string]: boolean } = {
+	CONNECTING_QUEUED = true,
+	HANDSHAKE_FAILED = true,
+	TRANSPORT_FAILED = true,
+	REQUEST_EXPIRED = true,
+	COMMAND_PENDING = true,
+	SERVER_EVENT_PENDING = true,
+	PERSONAL_UNAVAILABLE = true,
+	["profile operation in progress"] = true,
+	["player not joined"] = true,
+}
+
+--- True for a refusal that only says the profile is momentarily busy (see TRANSIENT).
+function M.transient(result: any): boolean
+	return type(result) == "table" and result.ok == false and TRANSIENT[result.reason] == true
+end
+
+--- The notice for a gather answer. Once the session is live (the server has issued a gather
+--- epoch or confirmed a gather), a transient refusal shows nothing: the press is retried by
+--- itself, and the connecting banner flashing between confirmed gathers misled players for
+--- 15-18 s after every join (p134 v45/v46).
+function M.noticeText(locale: string?, result: any, names: { [string]: string }?, live: boolean): string?
+	if live and M.transient(result) then
+		return nil
+	end
+	return M.refusalText(locale, result, names)
+end
+
 --- A final refusal ends the frozen request: the source kept no grant, so the prompt returns
 --- to a fresh gather. STALE_VERSION/NODE_DEPLETED and every `rejected` answer (tool, level,
 --- skill admission) are final; transient answers (pending, recovering, transport) keep the
@@ -156,6 +187,17 @@ function M.start(options: Options?)
 	-- itself once a state packet carries the epoch, within QUEUE_SECONDS of the press.
 	local queued: { part: BasePart, inputSource: string?, output: string?, at: number }? = nil
 	local QUEUE_SECONDS = 20
+	-- The session is live once the server issued a gather epoch or confirmed a gather; from then
+	-- on a transient refusal is retried silently instead of flashing the connecting banner.
+	local live = false
+	local function epochOf(policy: any): any
+		return if policy and policy.epochs then policy.epochs[ACTION] else if policy then policy.sessionEpoch else nil
+	end
+	local function observe(policy: any)
+		if CommandTransport.durable(policy, ACTION) and integer(epochOf(policy)) then
+			live = true
+		end
+	end
 	local connections: { RBXScriptConnection } = {}
 	local touchGui = Instance.new("ScreenGui")
 	touchGui.Name, touchGui.ResetOnSpawn = "ForgeGatherTouch", false
@@ -188,6 +230,8 @@ function M.start(options: Options?)
 	notice.TextColor3 = Color3.fromRGB(250, 236, 226)
 	notice.Parent = touchGui
 	local noticeSerial = 0
+	-- The visible notice is a transient (connecting/queued) one: a confirmed gather clears it.
+	local noticeTransient = false
 	touchGui.Parent = player:WaitForChild("PlayerGui")
 	local shown: { [ProximityPrompt]: BasePart } = {}
 	local selected: BasePart? = nil
@@ -196,10 +240,18 @@ function M.start(options: Options?)
 		if disposed then
 			return
 		end
-		local text = M.refusalText(options and options.locale, result, names)
+		if type(result) == "table" and result.ok == true then
+			live = true
+			if noticeTransient then
+				noticeSerial += 1
+				noticeTransient, notice.Visible = false, false
+			end
+		end
+		local text = M.noticeText(options and options.locale, result, names, live)
 		if text then
 			noticeSerial += 1
 			local serial = noticeSerial
+			noticeTransient = M.transient(result)
 			notice.Text, notice.Visible = text, true
 			task.delay(3, function()
 				if serial == noticeSerial then
@@ -272,13 +324,20 @@ function M.start(options: Options?)
 		refreshing = false
 		if not disposed and ok and type(result) == "table" and result.ok then
 			durable = result.durable
+			observe(durable)
 			return true
 		elseif not disposed then
 			report({ ok = false, reason = "HANDSHAKE_FAILED" }, result)
 		end
 		return false
 	end
-	local function activate(part: BasePart, triggeringPlayer: Player, inputSource: string?, output: string?): any
+	local function activate(
+		part: BasePart,
+		triggeringPlayer: Player,
+		inputSource: string?,
+		output: string?,
+		queuedAt: number?
+	): any
 		if disposed or refreshing or triggeringPlayer ~= player or not nodes[part] then
 			return nil
 		end
@@ -303,8 +362,15 @@ function M.start(options: Options?)
 					then durable.epochs[ACTION]
 					else if durable then durable.sessionEpoch else nil
 				if not reached or not CommandTransport.durable(durable, ACTION) or not integer(refreshed) then
-					if reached then
-						queued = { part = part, inputSource = inputSource, output = output, at = os.clock() }
+					-- A live session withholds the epoch only for a moment (a save or recovery sweep), so
+					-- the press waits for the next packet even when the handshake was refused.
+					if reached or live then
+						queued = {
+							part = part,
+							inputSource = inputSource,
+							output = output,
+							at = queuedAt or os.clock(),
+						}
 						report({ ok = false, reason = "CONNECTING_QUEUED" })
 					end
 					return nil
@@ -354,6 +420,11 @@ function M.start(options: Options?)
 			if type(result) == "table" and result.reason == "REQUEST_EXPIRED" then
 				durable = nil
 				refresh()
+			end
+			if live and M.transient(result) and not queued then
+				-- Silent retry: the next packet with an epoch replays this press (same frozen request
+				-- while it is still pending), bounded by QUEUE_SECONDS from the original press.
+				queued = { part = part, inputSource = inputSource, output = output, at = queuedAt or os.clock() }
 			end
 			report(result, diagnostic)
 		else
@@ -459,12 +530,13 @@ function M.start(options: Options?)
 		state.OnClientEvent:Connect(function(packet)
 			if type(packet) == "table" and packet.durable then
 				durable = packet.durable
+				observe(durable)
 				local waiting = queued
-				local epoch = if durable.epochs then durable.epochs[ACTION] else durable.sessionEpoch
+				local epoch = epochOf(durable)
 				if waiting and integer(epoch) and CommandTransport.durable(durable, ACTION) then
 					queued = nil
 					if os.clock() - waiting.at <= QUEUE_SECONDS then
-						task.spawn(activate, waiting.part, player, waiting.inputSource, waiting.output)
+						task.spawn(activate, waiting.part, player, waiting.inputSource, waiting.output, waiting.at)
 					end
 				end
 			end

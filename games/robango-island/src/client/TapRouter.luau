@@ -341,8 +341,11 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		end
 		for _, object in gui:GetGuiObjectsAtPosition(x, y) do
 			local screen = object:FindFirstAncestorWhichIsA("LayerCollector")
+			-- Decoration that opts out (the combat vignette corners) never swallows a world tap: an
+			-- engaged player could not tap a second creature under a corner (D2b R08 retarget).
 			if
 				object.Visible
+				and object:GetAttribute("ForgeTapThrough") ~= true
 				and (not screen or not screen:IsA("ScreenGui") or screen.Enabled)
 				and (object:IsA("GuiButton") or object.Active or object.BackgroundTransparency < 1)
 			then
@@ -622,20 +625,7 @@ function M.installActions(
 		end
 	end)
 	-- One durable request in flight; an unsettled request is retried with the same id before any other.
-	local function send(verb: string, args: { any }): any
-		if sending then
-			return { ok = false, reason = "COMMAND_PENDING" }
-		end
-		local epoch = if durable and durable.epochs then durable.epochs[verb] else durable and durable.sessionEpoch
-		if not CommandTransport.durable(durable, verb) or type(epoch) ~= "number" then
-			return { ok = false, reason = "COMMAND_UNAVAILABLE" }
-		end
-		if pending and (pending.action ~= verb or table.concat(pending.args, "\0") ~= table.concat(args, "\0")) then
-			return { ok = false, reason = "COMMAND_PENDING" }
-		end
-		pending = CommandTransport.request(pending, verb, args, epoch, function()
-			return http:GenerateGUID(false)
-		end)
+	local function invoke(): any
 		sending = true
 		local ok, result = pcall(function()
 			return action:InvokeServer("command", pending)
@@ -648,6 +638,29 @@ function M.installActions(
 			or type(data) == "table" and data.status == "recovering"
 		pending = if busy then CommandTransport.settle(pending, result) else nil
 		return if ok then result else { ok = false, reason = "TRANSPORT" }
+	end
+	local function send(verb: string, args: { any }): any
+		if sending then
+			return { ok = false, reason = "COMMAND_PENDING" }
+		end
+		local epoch = if durable and durable.epochs then durable.epochs[verb] else durable and durable.sessionEpoch
+		if not CommandTransport.durable(durable, verb) or type(epoch) ~= "number" then
+			return { ok = false, reason = "COMMAND_UNAVAILABLE" }
+		end
+		if pending and (pending.action ~= verb or table.concat(pending.args, "\0") ~= table.concat(args, "\0")) then
+			-- D2b R08: an attack the server answered COMMAND_PENDING (an earlier swing still settling)
+			-- is kept, and once the player retargeted nothing re-sent it, so every swing at the next
+			-- creature (and every carcass take) was refused locally forever. Re-send the unsettled
+			-- request with its own id first; only once it settles does the new one go out.
+			invoke()
+			if pending then
+				return { ok = false, reason = "COMMAND_PENDING" }
+			end
+		end
+		pending = CommandTransport.request(pending, verb, args, epoch, function()
+			return http:GenerateGUID(false)
+		end)
+		return invoke()
 	end
 	local removeNode = tap.register("node", function(part: BasePart)
 		local prompt = part:FindFirstChild("ForgeGather")
