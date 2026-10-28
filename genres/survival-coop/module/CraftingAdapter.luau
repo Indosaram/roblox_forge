@@ -15,6 +15,7 @@ local EntitlementEffects = require("./EntitlementEffects")
 local ItemCatalog = require("../../../core/domain/inventory/ItemCatalog")
 local Validation = require("../../../core/domain/genre/Validation")
 local Workshop = require("./Workshop")
+local Job = require("../../../core/domain/crafting/Job")
 local Skills = require("./Skills")
 local Combat = require("./Combat")
 local Stance = require("./Stance")
@@ -453,6 +454,21 @@ function M.new(
 		end
 		return saved
 	end
+	-- The material-growth result of a reserved craft; nil, nil when an input carries no recorded
+	-- material (starter stacks) or the recipe has no material row (a plain craft).
+	local function materialCraft(candidate: Workshop.Candidate, progression: any): (any, string?)
+		local job = candidate.jobs.entries[candidate.jobId].job
+		local inputs = {}
+		for _, item in job.inputs do
+			if not item.material then
+				return nil, nil
+			end
+			local material = table.clone(item.material)
+			material.quantity = item.quantity
+			table.insert(inputs, material)
+		end
+		return Progression.craft(content, progression, job.recipeId, inputs)
+	end
 	local function stageRaw(
 		id: string,
 		action: string,
@@ -575,38 +591,64 @@ function M.new(
 							if config.craftSeed ~= nil then { seed = config.craftSeed } else nil
 						)
 					end
+					-- Refuse before any input is locked: a material craft the collect step would refuse
+					-- must never hold the reserved inputs (p134 v41 cord).
+					if candidate and not err and player.progression then
+						local _, refusal = materialCraft(candidate, player.progression)
+						if refusal then
+							candidate, err = nil, refusal
+						end
+					end
 				else
 					candidate, err =
 						Workshop.transition(jobs, bag, context, args[1], string.sub(action, 7), context.nowMillis)
 				end
-				if candidate and not err and action == "craft-complete" and player.progression then
+				if
+					candidate
+					and not err
+					and not candidate.reason
+					and action == "craft-complete"
+					and player.progression
+				then
 					local job = candidate.jobs.entries[candidate.jobId].job
-					local inputs = {}
-					local recorded = true
-					for _, item in job.inputs do
-						if not item.material then
-							recorded = false
-							break
+					local material, refusal = materialCraft(candidate, player.progression)
+					if refusal then
+						-- A refused collect releases the reservation in the same commit, so the
+						-- inputs return to the bag instead of staying locked by a dead job.
+						local cancelled = Workshop.transition(jobs, bag, context, args[1], "cancel", context.nowMillis)
+						candidate = cancelled
+						if cancelled then
+							cancelled.reason = refusal
+						else
+							err = refusal
 						end
-						local material = table.clone(item.material)
-						material.quantity = item.quantity
-						table.insert(inputs, material)
-					end
-					if recorded then
-						local material
-						material, err = Progression.craft(content, player.progression, job.recipeId, inputs)
-						if material then
-							for _, output in job.outputs do
-								if output.catalogId == material.item then
-									output.material = material
-									candidate.inventory.items[output.itemId].material = material
-								end
+					elseif material then
+						for _, output in job.outputs do
+							if output.catalogId == material.item then
+								output.material = material
+								candidate.inventory.items[output.itemId].material = material
 							end
 						end
 					end
-					if err then
-						candidate = nil
-					end
+				end
+			end
+			-- A refused start (death between the hand chain's reserve and start, a downed player) never
+			-- leaves the reserve holding its inputs: cancel the job in this same commit.
+			if
+				not candidate
+				and err
+				and err ~= "DURABLE_COMMAND_REQUIRED"
+				and action == "craft-start"
+				and type(args[1]) == "string"
+				and player.workshop
+				and inventoryConfig
+				and player.workshop.entries[args[1]]
+				and player.workshop.entries[args[1]].job.state == "Reserved"
+			then
+				local abandoned, released =
+					Workshop.abandon(player.workshop, player.inventory[inventoryConfig.carriedContainer], args[1])
+				if abandoned and released then
+					candidate = { jobs = abandoned, inventory = released, jobId = args[1], reason = err }
 				end
 			end
 			local states = table.clone(player.inventory)
@@ -705,6 +747,7 @@ function M.new(
 		then
 			local nextVitals: Vitals.State? = nil
 			local nextBag: Inventory.State? = nil
+			local nextWorkshop: Workshop.State? = nil
 			local err: string? = nil
 			if not player.vitals or not content or not inventoryConfig then
 				err = "VITALS_NOT_CONFIGURED"
@@ -770,12 +813,38 @@ function M.new(
 						end
 					end
 				elseif action == "food" then
-					nextBag, nextVitals, err = Consumption.consume(
-						player.inventory[inventoryConfig.carriedContainer],
-						advanced,
-						content,
-						args[1]
-					)
+					local bag = player.inventory[inventoryConfig.carriedContainer]
+					-- Eating wins over an unfinished craft holding the stack: such jobs are cancelled and
+					-- their inputs released in this same commit (p134 v41: a forgotten berry-meal
+					-- reservation refused every eat, so the player starved).
+					if player.workshop and type(args[1]) == "string" and bag.items[args[1]] then
+						local holders: { string } = {}
+						for owner, quantities in bag.reservations do
+							if quantities[args[1]] and player.workshop.entries[owner] then
+								table.insert(holders, owner)
+							end
+						end
+						table.sort(holders)
+						local jobs = player.workshop
+						for _, owner in holders do
+							if Inventory.available(bag, args[1]) >= 1 then
+								break
+							end
+							local abandoned, released = Workshop.abandon(jobs, bag, owner)
+							if abandoned and released then
+								jobs, bag = abandoned, released
+							end
+						end
+						if jobs ~= player.workshop then
+							nextWorkshop = jobs
+						end
+					end
+					nextBag, nextVitals, err = Consumption.consume(bag, advanced, content, args[1])
+					-- Name a craft-held stack so the HUD says "cancel the job" instead of a
+					-- generic shortage line.
+					if err == "UNAVAILABLE" and type(args[1]) == "string" and bag.items[args[1]] then
+						err = "ITEM_RESERVED"
+					end
 				elseif action == "rest" then
 					local fire = if services.survivalSpatial
 						then services.survivalSpatial.campfire(id, args[1])
@@ -811,13 +880,9 @@ function M.new(
 					tostring(context.sessionEpoch) .. ":" .. context.requestId
 				)
 			end
-			local saved = savePlayer(
-				id,
-				candidate,
-				if accepted then nextVitals else player.vitals,
-				player.workshop,
-				player.skills
-			)
+			local workshop = if accepted and nextWorkshop then nextWorkshop else player.workshop
+			local saved =
+				savePlayer(id, candidate, if accepted then nextVitals else player.vitals, workshop, player.skills)
 			saved.progression = progression
 			return {
 				result = { ok = accepted, reason = err },
@@ -826,6 +891,7 @@ function M.new(
 					if accepted then
 						player.inventory = candidate
 						player.vitals = nextVitals
+						player.workshop = workshop
 						player.progression = progression
 					end
 				end,
@@ -1183,6 +1249,30 @@ function M.new(
 		end)
 		if not validWorkshop then
 			return { ok = false, reason = tostring(workshop) }
+		end
+		-- A job reserved under an older content revision holds its bag inputs forever: its recipe
+		-- may be gone or need a station the HUD no longer lists, so nothing shows it to cancel
+		-- (p134 v41: a content-v1 berry-meal job locked all 3 starter berries, and every eat
+		-- after the respawn was refused). Release such jobs; the next commit persists it.
+		if workshop and containers then
+			local revision = "content-v" .. tostring(config.contentVersion)
+			for _, entry in workshop.entries do
+				local state = entry.job.state
+				local inventory = containers[entry.job.containerId]
+				if entry.job.catalogRevision ~= revision and state ~= "Committed" and state ~= "Cancelled" then
+					local job, released, reason = Job.cancel(entry.job, inventory)
+					if reason == nil then
+						entry.job, containers[entry.job.containerId] = job, released
+						entry.retainedThroughEpoch = workshop.epoch
+					end
+				end
+			end
+			-- Join only: settle jobs an earlier server left holding the bag (a reserve never started,
+			-- a finished timer nobody collected); Session.join commits the result.
+			if rebase and inventoryConfig then
+				local carried = inventoryConfig.carriedContainer
+				workshop, containers[carried] = Workshop.reconcile(workshop, containers[carried], Clock.millis(lastAt))
+			end
 		end
 		local validSkills, skills = pcall(function(): Skills.State?
 			if not mastery then

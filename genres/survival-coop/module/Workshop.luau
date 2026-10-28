@@ -228,6 +228,64 @@ function M.transition(
 	return { jobs = jobs, inventory = result, jobId = jobId, reason = reason }, nil
 end
 
+-- A reserved job nobody started (the hand craft starts right after reserving; a station craft
+-- waits for its Start press) is abandoned on the next join after this long.
+M.STALE_RESERVED_MILLIS = 10 * 60 * 1000
+
+--- SERVER ONLY: cancels one unfinished job outside a client cancel (a refused later step, a
+--- stale reservation) and releases its inputs. Nil when the job is unknown, finished, or its
+--- reservation no longer agrees with the bag.
+function M.abandon(state: State, inventory: Inventory.State, jobId: string): (State?, Inventory.State?)
+	local entry = state.entries[jobId]
+	if not entry or terminal(entry.job) or entry.job.containerId ~= inventory.id then
+		return nil, nil
+	end
+	local job, released, reason = Job.cancel(entry.job, inventory)
+	if reason then
+		return nil, nil
+	end
+	local jobs = M.snapshot(state)
+	jobs.entries[jobId].job = job
+	jobs.entries[jobId].retainedThroughEpoch = math.max(entry.retainedThroughEpoch, jobs.epoch)
+	return jobs, released
+end
+
+--- SERVER ONLY, on join: settles jobs an earlier server left holding bag reservations. A
+--- reserved job older than STALE_RESERVED_MILLIS is abandoned (inputs released); a started job
+--- of a plain recipe whose timer has ended is collected when its outputs fit; anything else stays
+--- for the player to collect or cancel.
+function M.reconcile(state: State, inventory: Inventory.State, nowMillis: number): (State, Inventory.State)
+	local ids: { string } = {}
+	for id in state.entries do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	for _, id in ids do
+		local job = state.entries[id].job
+		if terminal(job) or job.containerId ~= inventory.id then
+			continue
+		end
+		if job.state == "Reserved" then
+			if nowMillis - job.reservedAt >= M.STALE_RESERVED_MILLIS then
+				local jobs, released = M.abandon(state, inventory, id)
+				if jobs and released then
+					state, inventory = jobs, released
+				end
+			end
+		elseif nowMillis >= (job.finishAt :: number) and #((job.content :: any).recipeDetails or {}) == 0 then
+			-- Material recipes (a recipeDetails row) stay Ready: their collect applies material growth.
+			local done, collected, reason = Job.complete(job, inventory, nowMillis)
+			if not reason and done.state == "Committed" then
+				state = M.snapshot(state)
+				state.entries[id].job = done
+				state.entries[id].retainedThroughEpoch = math.max(state.entries[id].retainedThroughEpoch, state.epoch)
+				inventory = collected
+			end
+		end
+	end
+	return state, inventory
+end
+
 function M.save(state: State): any
 	local result: any = M.snapshot(state)
 	result.saveVersion = 1

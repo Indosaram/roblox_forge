@@ -59,8 +59,12 @@ function M.craft(
 	inputs: { Materials.Material }
 ): (Materials.Material?, string?)
 	local row, detail = Materials.recipe(content, id)
-	if not row or not detail then
+	if not row then
 		return nil, "UNKNOWN_RECIPE"
+	elseif not detail then
+		-- A plain recipe (no recipeDetails row, e.g. cord) has no material growth: the caller
+		-- commits it as an ordinary craft (p134 v41: gathered-fibre cord was refused at collect).
+		return nil, nil
 	end
 	local reason =
 		Tree.gate(state, detail.gates or { characterLevel = detail.minCharacterLevel, skillNodes = detail.skillNodes })
