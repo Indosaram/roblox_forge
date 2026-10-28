@@ -450,4 +450,58 @@ return {
 		fail = false
 		assert(a:refresh(token) and calls == 5, "no local read after an ambiguous commit")
 	end,
+	["takeover option steals only a live lease the predicate names and fences the old owner"] = function()
+		local backend = MemoryBackend.new()
+		local now = 0
+		local clock = function()
+			return now
+		end
+		local old = store(backend, clock, "old")
+		local held = assert(old:acquire("personal:1", initial))
+		assert(old:acquire("shared", initial))
+		local allowed: { [string]: boolean } = { ["personal:1"] = true }
+		local new = FencedStore.new(backend, {
+			sessionId = "new",
+			leaseSeconds = 30,
+			now = clock,
+			takeover = function(key)
+				return allowed[key] == true
+			end,
+		})
+		now = 5
+		local _, sharedReason = new:acquire("shared", initial)
+		assert(sharedReason == "locked", "a key the predicate refuses keeps waiting")
+		local taken = assert(new:acquire("personal:1", initial))
+		assert(taken.generation == held.generation + 1 and taken.data.coins == 10, "latest record taken over")
+		local _, lost = old:update(held, debit)
+		assert(lost == "lease lost", "old owner fenced")
+		assert(new:update(taken, debit), "new owner writes")
+	end,
+	["present actor takeover waits the grace once per episode"] = function()
+		local now = 0
+		local present = true
+		local decide = FencedStore.presentActorTakeover({
+			now = function()
+				return now
+			end,
+			graceSeconds = 5,
+			actorOf = function(key)
+				return string.match(key, "^home:(%d+)$")
+			end,
+			present = function()
+				return present
+			end,
+		})
+		assert(not decide("camp:1"), "shared keys never")
+		assert(not decide("home:1"), "first refusal starts the grace")
+		now = 4
+		assert(not decide("home:1"), "inside the grace")
+		now = 5
+		assert(decide("home:1"), "after the grace")
+		assert(decide("home:1"), "a replayed transform decides the same way")
+		present = false
+		assert(not decide("home:1"), "absent actor never")
+		present, now = true, 200
+		assert(not decide("home:1"), "a later episode waits the grace again")
+	end,
 }

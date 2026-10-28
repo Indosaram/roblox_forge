@@ -329,6 +329,32 @@ local factory, err = require(script.Parent.SurvivalFactory)(content, source, vis
 	-- Live DataStores take about 1 write per key per 6 s and every UpdateAsync counts, so a
 	-- per-heartbeat read-through flooded the queue (p134 v22 D6): serve leased reads locally.
 	leasedReads = true,
+	-- A player who joins here while a server they left (force-stopped or still closing) holds
+	-- their per-actor documents takes those over after 5 s instead of waiting out the 120 s
+	-- lease (p134 v40: actions refused for minutes after the HUD appeared). Shared keys (camp,
+	-- world sources, clans) never match and keep waiting.
+	takeover = require(Forge.core.infra.data.FencedStore).presentActorTakeover({
+		now = function()
+			return math.floor(DateTime.now().UnixTimestampMillis / 1000)
+		end,
+		graceSeconds = 5,
+		actorOf = function(key)
+			local prefix, actor = string.match(key, "^([%w_-]+):(%d+)$")
+			local perActor = {
+				contracts = true,
+				mkt = true,
+				mon = true,
+				["taming-v1"] = true,
+				["robango-exp-v1"] = true,
+				home = true,
+			}
+			return if prefix and perActor[prefix] then actor else nil
+		end,
+		present = function(actor)
+			local userId = tonumber(actor)
+			return userId ~= nil and Players:GetPlayerByUserId(userId) ~= nil
+		end,
+	}),
 	now = function()
 		return math.floor(DateTime.now().UnixTimestampMillis / 1000)
 	end,

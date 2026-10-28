@@ -301,7 +301,8 @@ function M.new(config: any): any
 		local token = tokens[owner]
 		if token then
 			local released, reason = store:release(token)
-			if not released then
+			-- "lease lost": the server the owner moved to took the home over and owns it.
+			if not released and reason ~= "lease lost" then
 				return { ok = false, reason = reason }
 			end
 			tokens[owner] = nil

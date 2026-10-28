@@ -17,6 +17,16 @@ export type Options = {
 	-- Defaults to no delay when omitted, which is also what keeps this module
 	-- safe to run under Lune, where no `task` global exists.
 	wait: ((attempt: number) -> ())?,
+	-- Personal aggregate only (Session with durable.personal): forwarded to its FencedStore
+	-- (see FencedStore.Options). Live DataStores take about one write per key per 6 s.
+	leasedReads: boolean?,
+	suppressIdentityUpdates: boolean?,
+	-- Personal aggregate only: seconds a join may be refused as "locked" by another session's
+	-- live lease before this session takes it over. Session.join runs only for a player who is
+	-- connected to this server, and an account plays on one server at a time, so the holder can
+	-- no longer serve them; the grace lets a holder that is still closing release normally.
+	-- Absent: wait for the lease to expire.
+	takeoverSeconds: number?,
 }
 
 export type Profile = {

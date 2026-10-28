@@ -33,6 +33,13 @@ function M.start(options: Options): ServerSession
 			sessionId = game.JobId .. HttpService:GenerateGUID(false),
 			lockTimeout = 120,
 			retries = 3,
+			-- Personal aggregate (packs with durable.personal): leased reads and identity suppression
+			-- keep a live DataStore under its ~1 write per key per 6 s, and a player who joins here
+			-- while a previous server (force-stopped or still closing) holds their lease takes it
+			-- over after 5 s instead of waiting up to lockTimeout.
+			leasedReads = true,
+			suppressIdentityUpdates = true,
+			takeoverSeconds = 5,
 			wait = function(attempt)
 				task.wait(math.min(2 ^ (attempt - 1), 16))
 			end,

@@ -81,7 +81,8 @@ function M.new(backend: any, options: Fenced.Options, namespace: string): any
 		local token = tokens[actor]
 		if token then
 			local released, reason = store:release(token)
-			if not released then
+			-- "lease lost": the server the actor moved to took the document over and owns it.
+			if not released and reason ~= "lease lost" then
 				return { ok = false, reason = reason }
 			end
 		end

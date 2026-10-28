@@ -65,7 +65,13 @@ local forge = {
 			crafting = { Job = Job },
 			command = { Journal = Journal },
 		},
-		infra = { genre = { Clock = Clock, Session = Session }, data = { ActorDocumentStore = ActorDocumentStore } },
+		infra = {
+			genre = { Clock = Clock, Session = Session },
+			data = {
+				ActorDocumentStore = ActorDocumentStore,
+				FencedStore = require("../../core/infra/data/FencedStore"),
+			},
+		},
 	},
 }
 local environment: any = {

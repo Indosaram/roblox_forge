@@ -23,6 +23,10 @@ export type Options = {
 	-- the generation the caller holds, refresh serves the last record this process acknowledged
 	-- for the key instead of calling the backend. Only fenced writers may share such a key.
 	leasedReads: boolean?,
+	-- Called (inside the acquire transform) with the key when an acquire finds another session's
+	-- live lease: true takes the record over (see acquire). Absent or false: "locked" until that
+	-- lease expires.
+	takeover: ((key: string) -> boolean)?,
 }
 export type Profile = {
 	key: string,
@@ -170,8 +174,12 @@ function FencedStore._commit(
 				return old
 			end
 		elseif old and old.lease and old.lease.sessionId ~= self._opts.sessionId and now < old.lease.expiresAt then
-			reason = "locked"
-			return old
+			-- Decided when the transform runs, so a queued write sees the time it executes at.
+			local takeover = self._opts.takeover
+			if mode ~= "acquire" or not takeover or not takeover(key) then
+				reason = "locked"
+				return old
+			end
 		end
 		if old and (old.revision == MAX or ((not profile or mode == "reclaim") and old.generation == MAX)) then
 			reason = "counter exhausted"
@@ -277,6 +285,10 @@ end
 
 -- Each successful acquisition increments generation, including same-session reacquisition.
 -- Both acquire and update callbacks must be pure, non-yielding, and replay-safe.
+-- A record locked by another session's live lease is taken over only when the `takeover` option
+-- says that session can no longer serve the key (e.g. its actor now plays on this server). The
+-- generation bump fences every later write of the previous owner ("lease lost"), and the read is
+-- the latest committed record, so nothing the previous owner acknowledged is lost.
 function FencedStore.acquire(self: Store, key: string, migrate: Transform): (Profile?, string?)
 	return self:_commit(key, nil, migrate, "acquire")
 end
@@ -391,5 +403,35 @@ function FencedStore.release(self: Store, profile: Profile): (Profile?, string?)
 	return self:_commit(profile.key, profile, function(data)
 		return data
 	end, "release")
+end
+
+-- A `takeover` predicate for actor-scoped keys: `actorOf(key)` names the actor a key belongs to
+-- (nil: never taken over) and `present(actor)` says that actor is connected to this server. An
+-- account plays on one server at a time, so a live lease held elsewhere for a present actor
+-- belongs to a server they left (force-stopped, crashed or still closing). The lease is taken
+-- over once it has refused this server for `graceSeconds`, which gives a holder that is still
+-- closing time to release normally.
+function FencedStore.presentActorTakeover(options: {
+	now: () -> number,
+	graceSeconds: number,
+	actorOf: (key: string) -> string?,
+	present: (actor: string) -> boolean,
+}): (key: string) -> boolean
+	local refusedSince: { [string]: number } = {}
+	return function(key: string): boolean
+		local actor = options.actorOf(key)
+		if actor == nil or not options.present(actor) then
+			return false
+		end
+		local now = options.now()
+		local since = refusedSince[key]
+		-- A refusal older than a minute belongs to an earlier episode: start a new one. The
+		-- start is kept after a takeover so a replayed transform decides the same way.
+		if since == nil or now - since > math.max(60, 2 * options.graceSeconds) then
+			refusedSince[key] = now
+			return options.graceSeconds <= 0
+		end
+		return now - since >= options.graceSeconds
+	end
 end
 return FencedStore

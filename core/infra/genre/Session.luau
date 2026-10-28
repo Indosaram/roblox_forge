@@ -101,6 +101,8 @@ function M.new(
 	local personal: PersonalAggregate.Store? = nil
 	local tokens: { [string]: FencedStore.Profile } = {}
 	local admissions: { [string]: { requestId: string, binding: string } } = {}
+	-- Actors inside join: only their personal key may be taken over (see takeoverSeconds).
+	local joiningActors: { [string]: boolean } = {}
 	if durable and durable.personal then
 		executor.requireHydration()
 		assert(services.encode ~= nil, "personal aggregate requires encoder")
@@ -117,6 +119,28 @@ function M.new(
 					return math.floor(storeOptions.now())
 				end,
 				budget = { encode = services.encode },
+				-- Only fenced writers touch a personal aggregate, so a healthy lease this session holds
+				-- is the durable record: with these options (Server.start sets them) refreshes and
+				-- renews stay local and identity commits publish nothing. A live DataStore takes about
+				-- one write per key per 6 s, and each command spent two (refresh + commit), keeping the
+				-- actor busy (no command epoch) for ~12 s per command.
+				leasedReads = storeOptions.leasedReads,
+				suppressIdentityUpdates = storeOptions.suppressIdentityUpdates,
+				takeover = if storeOptions.takeoverSeconds
+					then FencedStore.presentActorTakeover({
+						now = function()
+							return storeOptions.now()
+						end,
+						graceSeconds = storeOptions.takeoverSeconds,
+						actorOf = function(key)
+							local prefix = durable.personal.namespace .. ":"
+							return if string.sub(key, 1, #prefix) == prefix then string.sub(key, #prefix + 1) else nil
+						end,
+						present = function(actor)
+							return joiningActors[actor] == true
+						end,
+					})
+					else nil,
 			},
 		})
 	end
@@ -364,6 +388,8 @@ function M.new(
 				return migrated
 			end
 			if personal then
+				-- join runs only for a player connected to this server (see takeoverSeconds).
+				joiningActors[id] = true
 				local token, reason = personal:load(id, function()
 					return migrate(nil)
 				end)
@@ -376,6 +402,7 @@ function M.new(
 			return store:load("player-" .. id, migrate)
 		end)
 		busy[id] = nil
+		joiningActors[id] = nil
 		if not ok then
 			return failure(tostring(profile))
 		end
@@ -682,17 +709,23 @@ function M.new(
 				return drained
 			end
 			local prepared = executor.prepareLeave(id)
+			-- "lease lost": another server took the record over for this player (takeoverSeconds).
+			-- It owns the durable state now; every command was committed before it was answered, so
+			-- this server only drops its copy instead of retrying a write that can never succeed.
 			local saved = write(id, false)
-			if not saved.ok then
+			local superseded = not saved.ok and saved.reason == "lease lost"
+			if not saved.ok and not superseded then
 				return saved
 			end
 			local extensionRelease = releaseActor(id)
 			if not extensionRelease.ok then
 				return extensionRelease
 			end
-			local released, reason = personal:release(tokens[id])
-			if not released then
-				return failure(reason)
+			if not superseded then
+				local released, reason = personal:release(tokens[id])
+				if not released and reason ~= "lease lost" then
+					return failure(reason)
+				end
 			end
 			local notification = executor.leave(id)
 			joined[id], profiles[id], tokens[id], ledgers[id] = nil, nil, nil, nil

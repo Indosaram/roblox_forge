@@ -13,7 +13,7 @@ local function migrate(raw: any): { [string]: any }
 	return ProfileSchema.migrate(raw, 1, defaults, {})
 end
 
-local function opts(sessionId: string, now: () -> number)
+local function opts(sessionId: string, now: () -> number): ProfileStore.Options
 	return { sessionId = sessionId, lockTimeout = 30, retries = 3, now = now, wait = function() end }
 end
 
