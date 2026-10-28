@@ -253,13 +253,13 @@ end
 --- SERVER ONLY: folds a committed job's outputs into matching stacks already in the bag, so
 --- repeated crafts of one item share a slot (p134 v43: five 'cord x1' slots). Outputs that do not
 --- match an existing stack (other quality, material or attributes) keep their own slot.
-function M.stackOutputs(job: Job.Job, inventory: Inventory.State): Inventory.State
+function M.stackOutputs(job: Job.Job, inventory: Inventory.State, loose: Inventory.Loose?): Inventory.State
 	if job.state ~= "Committed" then
 		return inventory
 	end
 	local catalog = Job.catalog(job.content)
 	for _, output in job.outputs do
-		inventory = Inventory.restack(inventory, catalog, output.itemId)
+		inventory = Inventory.restack(inventory, catalog, output.itemId, loose)
 	end
 	return inventory
 end

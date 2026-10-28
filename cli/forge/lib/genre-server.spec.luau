@@ -333,6 +333,9 @@ return {
 										table.insert(closed, id)
 										return table.remove(closes, 1) or { ok = true }
 									end,
+									adopt = function()
+										return false
+									end,
 								}
 							end,
 						}
@@ -418,5 +421,166 @@ return {
 		assert(#closed == 3 and closed[3] == "4", "the rejoin retried the old close: " .. #closed)
 		assert(attempts == 2 and #delays == 2, "join waited out the old close and the busy profile, then loaded")
 		assert(attribute("ForgeLastKick") == "3 BAD_SAVE", "the rejoin was not kicked")
+	end,
+	-- p134 v46 r3: force-stop then an immediate relaunch landed on the SAME server while the actor
+	-- was still joined there. The new client acted on that session (first gather at 8.25 s), but
+	-- every join attempt answered "profile already active/loading" and after the 90 s retry window
+	-- the join loop kicked the player it was serving ('이전 접속의 저장을 마무리하는 중이에요').
+	["actual same-server rejoin adopts the still-joined session and is never kicked"] = function()
+		local clock = 0
+		local joinCallback: ((any) -> ())? = nil
+		local removingCallback: ((any) -> ())? = nil
+		local players = {
+			GetPlayers = function()
+				return {}
+			end,
+			GetPlayerByUserId = function()
+				return nil
+			end,
+			PlayerAdded = {
+				Connect = function(_self: any, callback: (any) -> ())
+					joinCallback = callback
+				end,
+			},
+			PlayerRemoving = {
+				Connect = function(_self: any, callback: (any) -> ())
+					removingCallback = callback
+				end,
+			},
+		}
+		local live = { ["5"] = true }
+		local joins, closed = 0, {}
+		local dependencies: { [string]: any } = {
+			["./Options"] = Options,
+			["../data/MemoryBackend"] = MemoryBackend,
+			["../data/DataStoreBackend"] = {},
+			["../../domain/genre/Contract"] = Contract,
+			["./Clock"] = Clock,
+			["../../domain/random/Rng"] = require("../../../core/domain/random/Rng"),
+			["./CommandTransport"] = require("../../../core/infra/genre/CommandTransport"),
+			["./OutfitPresenter"] = {
+				bindings = function()
+					return {}
+				end,
+				apply = function() end,
+			},
+		}
+		local server = luau.load(fs.readFile("core/infra/genre/Server.luau"), {
+			environment = {
+				game = {
+					JobId = "same-server-rejoin",
+					GetService = function(_self: any, name: string): any
+						if name == "Players" then
+							return players
+						end
+						if name == "HttpService" then
+							return {
+								GenerateGUID = function()
+									return "guid"
+								end,
+							}
+						end
+						if name == "RunService" then
+							return {
+								IsStudio = function()
+									return false
+								end,
+								Heartbeat = { Connect = function() end },
+							}
+						end
+						return {
+							FindFirstChild = function()
+								return nil
+							end,
+							SetAttribute = function() end,
+						}
+					end,
+					BindToClose = function() end,
+				},
+				DateTime = {
+					now = function()
+						return { UnixTimestampMillis = 100000 }
+					end,
+				},
+				Instance = {
+					new = function()
+						return { FireClient = function() end }
+					end,
+				},
+				os = {
+					clock = function()
+						return clock
+					end,
+				},
+				task = {
+					wait = function(duration: number)
+						clock += duration
+					end,
+					spawn = function() end,
+				},
+				require = function(path: string): any
+					if path == "./Session" then
+						return {
+							new = function()
+								return {
+									members = function()
+										return {}
+									end,
+									adopt = function(id: string)
+										return live[id] == true
+									end,
+									join = function(_id: string): any
+										joins += 1
+										-- What Session.join answers while the actor is still joined.
+										return { ok = false, reason = "profile already active/loading" }
+									end,
+									close = function(id: string)
+										table.insert(closed, id)
+										live[id] = nil
+										return { ok = true }
+									end,
+								}
+							end,
+						}
+					end
+					return dependencies[path]
+				end,
+			},
+		})()
+		server.start({
+			packConfig = { api = 1, order = { "pvp-arena" }, configs = { ["pvp-arena"] = Fixture } },
+			contracts = { Arena },
+			controls = {},
+			storeName = "SameServerRejoin",
+			backend = MemoryBackend.new(),
+			starterWorld = false,
+		})
+		local function player(): any
+			local p: any = {
+				UserId = 5,
+				LocaleId = "ko-kr",
+				Kick = function(_self: any, message: any)
+					error("the rejoined player was kicked: " .. tostring(message))
+				end,
+			}
+			p.Parent = players
+			return p
+		end
+		local stale, fresh = player(), player()
+		-- The force-stopped client's Player is still on the server when the relaunch arrives.
+		local fire = joinCallback :: any
+		fire(stale) -- the first launch, joined long ago
+		fire(fresh)
+		assert(joins == 0 and clock == 0, "the live session is adopted without a join or a wait")
+		assert(#closed == 0 and live["5"], "the session the new client acts on stays open")
+		-- The stale Player finally leaves: that must not close the session the new Player owns.
+		stale.Parent = nil
+		local leave = removingCallback :: any
+		leave(stale)
+		assert(#closed == 0 and live["5"], "a stale Player leaving does not close the adopted session")
+		-- The adopted Player leaving does close it.
+		fresh.Parent = nil
+		leave(fresh)
+		assert(#closed == 1 and closed[1] == "5", "the owner's departure closes the session")
 	end,
 }

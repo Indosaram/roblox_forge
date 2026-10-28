@@ -32,6 +32,11 @@ export type Preset = {
 	shirt: number,
 	pants: number,
 	skin: Rgb,
+	-- Game-made look that renders without any asset load: body colours under the clothing (torso =
+	-- top, legs = bottom) and the colour of the composed hair cap used when the hair/hat fails.
+	top: Rgb,
+	bottom: Rgb,
+	hairColor: Rgb,
 	scale: { height: number, width: number },
 }
 
@@ -96,6 +101,9 @@ M.PRESETS = {
 		shirt = 144076436,
 		pants = 144076760,
 		skin = { r = 186, g = 142, b = 104 },
+		top = { r = 74, g = 96, b = 128 },
+		bottom = { r = 52, g = 74, b = 54 },
+		hairColor = { r = 92, g = 60, b = 36 },
 		scale = { height = 1.05, width = 1 },
 	},
 	{
@@ -106,6 +114,9 @@ M.PRESETS = {
 		shirt = 398633584,
 		pants = 382537569,
 		skin = { r = 234, g = 196, b = 164 },
+		top = { r = 88, g = 114, b = 152 },
+		bottom = { r = 38, g = 38, b = 44 },
+		hairColor = { r = 122, g = 72, b = 42 },
 		scale = { height = 1, width = 0.92 },
 	},
 	{
@@ -116,6 +127,9 @@ M.PRESETS = {
 		shirt = 398635081,
 		pants = 144076760,
 		skin = { r = 124, g = 86, b = 62 },
+		top = { r = 62, g = 86, b = 140 },
+		bottom = { r = 52, g = 74, b = 54 },
+		hairColor = { r = 112, g = 88, b = 60 },
 		scale = { height = 0.98, width = 0.94 },
 	},
 	{
@@ -126,6 +140,9 @@ M.PRESETS = {
 		shirt = 4047884046,
 		pants = 398633812,
 		skin = { r = 160, g = 112, b = 80 },
+		top = { r = 44, g = 44, b = 50 },
+		bottom = { r = 36, g = 36, b = 42 },
+		hairColor = { r = 88, g = 58, b = 34 },
 		scale = { height = 1.02, width = 1.04 },
 	},
 } :: { Preset }
@@ -169,7 +186,7 @@ end
 
 --- HumanoidDescription property values for a catalog preset. Every property the description
 --- does not set stays at its blank default, so nothing from the player's own avatar remains.
-function M.describe(preset: Preset): { properties: { [string]: any }, skin: Rgb }
+function M.describe(preset: Preset): { properties: { [string]: any }, skin: Rgb, colors: { [string]: Rgb } }
 	assert(preset.kind == "catalog", "SURVIVOR_KIND_UNSUPPORTED")
 	return {
 		properties = {
@@ -194,6 +211,17 @@ function M.describe(preset: Preset): { properties: { [string]: any }, skin: Rgb 
 			ProportionScale = 0,
 		},
 		skin = preset.skin,
+		-- Under the clothing the body already reads as dressed: a top and trousers in the outfit's
+		-- colours, skin on head and arms. These are plain colours, so they show even when the
+		-- shirt/pants templates fail to load on a live server (p134 v46: a skin-only blank body).
+		colors = {
+			HeadColor = preset.skin,
+			LeftArmColor = preset.skin,
+			RightArmColor = preset.skin,
+			TorsoColor = preset.top,
+			LeftLegColor = preset.bottom,
+			RightLegColor = preset.bottom,
+		},
 	}
 end
 
@@ -225,9 +253,8 @@ function M.apply(character: any, preset: Preset, ports: any): (boolean, string?)
 	for key, value in plan.properties do
 		description[key] = value
 	end
-	local skin = ports.color(plan.skin)
-	for _, key in { "HeadColor", "TorsoColor", "LeftArmColor", "RightArmColor", "LeftLegColor", "RightLegColor" } do
-		description[key] = skin
+	for key, rgb in plan.colors do
+		description[key] = ports.color(rgb)
 	end
 	local ok, err = pcall(function()
 		humanoid:ApplyDescriptionReset(description)
@@ -243,6 +270,66 @@ function M.apply(character: any, preset: Preset, ports: any): (boolean, string?)
 	return true, nil
 end
 
+M.FALLBACK = "ForgeSurvivorFallback"
+M.APPLY_ATTEMPTS = 3
+
+--- The outfit pieces a preset wears that are not on `character` (asset loads that failed live):
+--- "Shirt", "Pants" and "Hair" (the preset's hair or hat accessory).
+function M.missing(character: any, preset: Preset): { string }
+	local result = {}
+	if not character:FindFirstChildOfClass("Shirt") then
+		table.insert(result, "Shirt")
+	end
+	if not character:FindFirstChildOfClass("Pants") then
+		table.insert(result, "Pants")
+	end
+	if (preset.hair or preset.hat) and not character:FindFirstChildOfClass("Accessory") then
+		table.insert(result, "Hair")
+	end
+	return result
+end
+
+--- Dresses `character` and checks the result: an apply that errors or leaves outfit pieces
+--- unloaded is retried (`ports.wait` between attempts) up to APPLY_ATTEMPTS times. What still does
+--- not load is replaced by game-made pieces that need no asset: the body colours from `describe`
+--- already show the top and trousers, and a missing hair/hat gets a composed hair cap
+--- (`ports.hairCap(head, color)` returns a welded Part). Returns the pieces that never loaded.
+--- `ports.current()` is false once the character was replaced (respawn): stop dressing it.
+function M.dressCharacter(character: any, preset: Preset, ports: any): (boolean, { string }, string?)
+	local previous = character:FindFirstChild(M.FALLBACK)
+	if previous then
+		previous:Destroy()
+	end
+	local missing: { string } = {}
+	local reason: string? = nil
+	local applied = false
+	for attempt = 1, M.APPLY_ATTEMPTS do
+		local ok, err = M.apply(character, preset, ports)
+		applied = applied or ok
+		reason = err
+		missing = if ok then M.missing(character, preset) else { "Shirt", "Pants", "Hair" }
+		if ok and #missing == 0 then
+			return true, missing, nil
+		end
+		if attempt < M.APPLY_ATTEMPTS then
+			ports.wait(attempt * 2)
+			if not ports.current() then
+				return false, missing, "REPLACED"
+			end
+		end
+	end
+	if applied and table.find(missing, "Hair") and (preset.hair or preset.hat) then
+		local head = character:FindFirstChild("Head")
+		if head then
+			local folder = ports.folder(M.FALLBACK)
+			local cap = ports.hairCap(head, ports.color(preset.hairColor))
+			cap.Parent = folder
+			folder.Parent = character
+		end
+	end
+	return applied, missing, reason
+end
+
 -- Server engine adapter (SurvivorWardrobe): dresses every character as its saved survivor on each
 -- spawn and right after the picker saves a choice. The place loads no player avatar
 -- (StarterPlayer.LoadCharacterAppearance = false). Paid worn sets are re-dressed on top by
@@ -255,6 +342,25 @@ function M.wardrobe(ports: any)
 		end,
 		color = function(rgb)
 			return Color3.fromRGB(rgb.r, rgb.g, rgb.b)
+		end,
+		folder = function(name: string)
+			local folder = Instance.new("Folder")
+			folder.Name = name
+			return folder
+		end,
+		hairCap = function(head: BasePart, color: Color3)
+			local cap = Instance.new("Part")
+			cap.Name = "HairCap"
+			cap.Size = Vector3.new(head.Size.X * 1.08, head.Size.Y * 0.45, head.Size.Z * 1.08)
+			cap.CFrame = head.CFrame * CFrame.new(0, head.Size.Y * 0.32, head.Size.Z * 0.04)
+			cap.Color, cap.Material = color, Enum.Material.SmoothPlastic
+			cap.CanCollide, cap.CanQuery, cap.CanTouch, cap.Massless = false, false, false, true
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0, weld.Part1, weld.Parent = head, cap, cap
+			return cap
+		end,
+		wait = function(seconds: number)
+			task.wait(seconds)
 		end,
 	}
 	local function dress(player: Player)
@@ -284,9 +390,14 @@ function M.wardrobe(ports: any)
 			end
 			character.AncestryChanged:Wait()
 		end
-		local ok, reason = M.apply(character, M.presetOf(document), ApplyPorts)
-		if not ok then
-			warn("SURVIVOR_APPLY:" .. tostring(reason))
+		local dressPorts = table.clone(ApplyPorts) :: any
+		dressPorts.current = function(): boolean
+			return player.Character == character and player.Parent ~= nil
+		end
+		local ok, missing, reason = M.dressCharacter(character, M.presetOf(document), dressPorts)
+		if not ok or #missing > 0 then
+			-- Readable in the live server log: which pieces fell back to the game-made look.
+			warn("SURVIVOR_APPLY:" .. tostring(reason) .. " missing=" .. table.concat(missing, ","))
 		end
 	end
 	local function watch(player: Player)

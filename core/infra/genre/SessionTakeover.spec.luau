@@ -149,4 +149,51 @@ return {
 		local seconds = timeToAction(server(backend, clock, "new-server", nil), clock, 150)
 		assert(seconds ~= nil and seconds > 100, "waits for lease expiry: " .. tostring(seconds))
 	end,
+	-- p134 v46 r3: after a takeover the previous server is still alive. Its 1 Hz advance renews
+	-- (and, refused, tries to reclaim) the lease, its 30 s save and its departure close all fire
+	-- after the new server already serves the player. None of them may fence the new owner.
+	["a live old server's late renew, reclaim, save and close never fence the new owner"] = function()
+		local backend = Memory.new()
+		local clock = { value = 1000 }
+		local old = forceStopped(backend, clock)
+		local fresh = server(backend, clock, "new-server", 5)
+		local seconds = timeToAction(fresh, clock, 30)
+		assert(seconds ~= nil and seconds <= BUDGET, "new server acts: " .. tostring(seconds))
+		for minute = 1, 3 do
+			-- Past half the old lease: the old advance does a real renew and then a reclaim.
+			clock.value += 61
+			old.advance(clock.value)
+			local saved = old.save(ACTOR)
+			assert(not saved.ok and saved.reason == "lease lost", "old save fenced: " .. tostring(saved.reason))
+			fresh.advance(clock.value)
+			local epoch = fresh.commandEpoch(ACTOR, ACTION)
+			assert(epoch ~= nil, "minute " .. minute .. ": new server still issues epochs")
+			local result = fresh.command(
+				ACTOR,
+				{ requestId = "late-" .. minute, sessionEpoch = epoch, action = ACTION, args = {} }
+			)
+			assert(result.ok, "minute " .. minute .. ": new server command " .. tostring(result.reason))
+			assert(fresh.save(ACTOR).ok, "minute " .. minute .. ": new server saves")
+		end
+		assert(old.close(ACTOR).ok, "old close tolerates the takeover")
+		clock.value += 5
+		fresh.advance(clock.value)
+		assert(fresh.save(ACTOR).ok, "the old close did not fence the new owner")
+	end,
+	-- The same account reconnecting to the server that still holds it: the session is adopted.
+	["a same-server rejoin adopts the joined session; a close already past drain does not"] = function()
+		local backend = Memory.new()
+		local clock = { value = 1000 }
+		local host = server(backend, clock, "host", 5)
+		assert(host.join(ACTOR).ok, "join")
+		assert(host.join(ACTOR).reason == "profile already active/loading", "a second join is refused")
+		assert(host.adopt(ACTOR), "the joined session is adopted")
+		local epoch = host.commandEpoch(ACTOR, ACTION)
+		assert(epoch ~= nil, "adopted session issues epochs")
+		local result = host.command(ACTOR, { requestId = "a1", sessionEpoch = epoch, action = ACTION, args = {} })
+		assert(result.ok, "adopted session commands: " .. tostring(result.reason))
+		assert(host.close(ACTOR).ok, "close")
+		assert(not host.adopt(ACTOR), "a closed actor is not adopted")
+		assert(host.join(ACTOR).ok, "it rejoins normally instead")
+	end,
 }

@@ -56,6 +56,10 @@ export type Session = {
 	envelope: (string) -> Contract.SaveEnvelope,
 	restore: (string, any) -> LifecycleResult,
 	members: () -> { string },
+	-- Keeps a still-joined actor on this server for a client that reconnected to it (same-server
+	-- rejoin): true when the session serves commands again. A close that already began tearing the
+	-- actor down (leave prepared, extensions released) cannot be taken back: false.
+	adopt: (string) -> boolean,
 }
 local function failure(reason: string?): LifecycleResult
 	return { ok = false, reason = reason or "profile operation failed" }
@@ -147,6 +151,8 @@ function M.new(
 	local profiles: { [string]: ProfileStore.Profile } = {}
 	local joined: { [string]: boolean } = {}
 	local leaving: { [string]: boolean } = {}
+	-- executor.prepareLeave ran for the actor (vitals went offline): a close past this point.
+	local prepared: { [string]: boolean } = {}
 	local departed: { [string]: boolean } = {}
 	local releasedActors: { [string]: { [string]: boolean } } = {}
 	local busy: { [string]: boolean } = {}
@@ -369,7 +375,7 @@ function M.new(
 		end
 		local rejoining = departed[id] == true
 		departed[id] = nil
-		leaving[id], releasedActors[id] = nil, nil
+		leaving[id], releasedActors[id], prepared[id] = nil, nil, nil
 		busy[id] = true
 		-- The executor join the personal acquisition ran (nil: not run, or the backend never invoked it).
 		local projected: Contract.Result? = nil
@@ -721,7 +727,8 @@ function M.new(
 			if not drained.ok then
 				return drained
 			end
-			local prepared = executor.prepareLeave(id)
+			prepared[id] = true
+			local preparedError = executor.prepareLeave(id)
 			-- "lease lost": another server took the record over for this player (takeoverSeconds).
 			-- It owns the durable state now; every command was committed before it was answered, so
 			-- this server only drops its copy instead of retrying a write that can never succeed.
@@ -743,7 +750,8 @@ function M.new(
 			local notification = executor.leave(id)
 			joined[id], profiles[id], tokens[id], ledgers[id] = nil, nil, nil, nil
 			departed[id] = true
-			return { ok = true, notificationError = notification or prepared }
+			prepared[id] = nil
+			return { ok = true, notificationError = notification or preparedError }
 		end
 		if #extensions > 0 then
 			local ready = session.prepareHandoff(id)
@@ -1393,6 +1401,14 @@ function M.new(
 	end
 	function session.envelope(id)
 		return capture(id)
+	end
+	function session.adopt(id)
+		if not joined[id] or departed[id] or prepared[id] or (releasedActors[id] and next(releasedActors[id])) then
+			return false
+		end
+		-- A close that failed in drain (busy, transfers still recovering) changed nothing durable.
+		leaving[id] = nil
+		return true
 	end
 	function session.members()
 		local ids = {}

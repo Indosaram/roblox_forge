@@ -357,23 +357,41 @@ function M.exchange(
 	return nextState, nil
 end
 
+-- Attribute keys in `loose` (per catalog id) are provenance only: stacks that differ just in them
+-- are the same item to the player, and the folded stack keeps a key only where both agree.
+export type Loose = { [string]: { [string]: boolean } }
+
+local function looselyCompatible(left: Item, right: Item, keys: { [string]: boolean }?): boolean
+	if not keys then
+		return M.compatible(left, right)
+	end
+	local a, b = table.clone(left), table.clone(right)
+	a.attributes, b.attributes = table.clone(left.attributes), table.clone(right.attributes)
+	for key in keys do
+		a.attributes[key], b.attributes[key] = nil, nil
+	end
+	return M.compatible(a, b)
+end
+
 --- Folds `itemId` into an existing compatible, unreserved stack of the same item that has room
 --- (lowest item id first), so a freshly minted output (a crafted cord) does not take its own
---- slot. Whatever does not fit stays under `itemId`. Pure: returns the next state (unchanged
+--- slot. Whatever does not fit stays under `itemId`. `loose` names provenance attribute keys per
+--- catalog id that do not split a stack (see Loose). Pure: returns the next state (unchanged
 --- version when nothing moved).
-function M.restack(state: State, catalog: Catalog.Catalog, itemId: string): State
+function M.restack(state: State, catalog: Catalog.Catalog, itemId: string, loose: Loose?): State
 	local item = state.items[itemId]
 	if not item or M.available(state, itemId) ~= item.quantity then
 		return state
 	end
 	local stackMax = catalog[item.catalogId].stackMax
+	local keys = if loose then loose[item.catalogId] else nil
 	local targets: { string } = {}
 	for id, other in state.items do
 		if
 			id ~= itemId
 			and other.quantity < stackMax
 			and M.available(state, id) == other.quantity
-			and M.compatible(item, other)
+			and looselyCompatible(item, other, keys)
 		then
 			table.insert(targets, id)
 		end
@@ -388,9 +406,15 @@ function M.restack(state: State, catalog: Catalog.Catalog, itemId: string): Stat
 		if not moving then
 			break
 		end
-		local room = math.min(stackMax - nextState.items[id].quantity, moving.quantity)
-		nextState.items[id].quantity += room
+		local target = nextState.items[id]
+		local room = math.min(stackMax - target.quantity, moving.quantity)
+		target.quantity += room
 		moving.quantity -= room
+		for key in (keys or {}) :: { [string]: boolean } do
+			if target.attributes[key] ~= moving.attributes[key] then
+				target.attributes[key] = nil
+			end
+		end
 		if moving.quantity == 0 then
 			nextState.items[itemId] = nil
 		end
@@ -426,7 +450,8 @@ end
 
 --- Folds every unreserved stack into compatible, unreserved stacks with room, highest item id
 --- first, so the lowest id of each group survives (legacy bags with one slot per gather/craft).
-function M.restackAll(state: State, catalog: Catalog.Catalog): State
+--- `loose`: see restack.
+function M.restackAll(state: State, catalog: Catalog.Catalog, loose: Loose?): State
 	local ids: { string } = {}
 	for id in state.items do
 		table.insert(ids, id)
@@ -435,7 +460,7 @@ function M.restackAll(state: State, catalog: Catalog.Catalog): State
 		return a > b
 	end)
 	for _, id in ids do
-		state = M.restack(state, catalog, id)
+		state = M.restack(state, catalog, id, loose)
 	end
 	return state
 end

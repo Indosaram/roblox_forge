@@ -114,6 +114,8 @@ return {
 			end,
 		})
 		assert(ok and applied and applied.Shirt == 144076436 and applied.HeadColor.r == 186, "described")
+		-- The body itself is coloured as the outfit, so it never reads as a bare skin block.
+		assert(applied.TorsoColor.r == 74 and applied.LeftLegColor.g == 74, "top and trousers coloured")
 		assert(applied.Face == 0 and applied.GraphicTShirt == 0, "player's own items cleared")
 		assert(removed and character.attributes.ForgeSurvivor == "ranger", "re-dress marker")
 	end,
@@ -136,5 +138,101 @@ return {
 			not Survivor.pickerNeeded({ preset = "ranger", chosen = true }) and not Survivor.pickerNeeded(nil),
 			"otherwise closed"
 		)
+	end,
+	-- p134 v46 (live server): the character spawned as a bare skin-coloured block, no shirt, pants
+	-- or hair. ApplyDescriptionReset returned without error, but on the live server the clothing
+	-- and accessory assets did not land on the character, and the old code neither checked nor
+	-- retried: every body part was the skin colour, so nothing at all read as clothing.
+	["a live apply whose clothing never loads still dresses the survivor in game-made pieces"] = function()
+		local function fakeCharacter(loads: boolean)
+			local children: { [string]: any } = {}
+			local applied: any = nil
+			local character: any = { attributes = {}, applies = 0 }
+			local head = { Name = "Head", Size = { X = 2, Y = 1, Z = 1 } }
+			function character.FindFirstChildOfClass(_, class)
+				if class == "Humanoid" then
+					return {
+						ApplyDescriptionReset = function(_, description)
+							character.applies += 1
+							applied = description
+							if loads then
+								children.Shirt, children.Pants, children.Accessory = {}, {}, {}
+							end
+						end,
+					}
+				end
+				return children[class]
+			end
+			function character.FindFirstChild(_, name)
+				return if name == "Head" then head else children[name]
+			end
+			function character.SetAttribute(self, key, value)
+				self.attributes[key] = value
+			end
+			character.described = function()
+				return applied
+			end
+			character.children = children
+			return character
+		end
+		local waits = {}
+		local function ports(_character: any): any
+			return {
+				description = function()
+					return {}
+				end,
+				color = function(rgb)
+					return rgb
+				end,
+				wait = function(seconds)
+					table.insert(waits, seconds)
+				end,
+				current = function()
+					return true
+				end,
+				folder = function(name)
+					local folder: any = { Name = name }
+					function folder.Destroy() end
+					return folder
+				end,
+				hairCap = function(_head, color)
+					return { Name = "HairCap", Color = color }
+				end,
+			}
+		end
+		local preset = assert(Survivor.find("ranger"))
+		local broken = fakeCharacter(false)
+		local p = ports(broken)
+		p.folder = function(name)
+			local folder: any = { Name = name }
+			broken.children[name] = folder
+			return folder
+		end
+		local ok, missing = Survivor.dressCharacter(broken, preset, p)
+		assert(ok, "the description itself applied")
+		assert(broken.applies == Survivor.APPLY_ATTEMPTS and #waits == Survivor.APPLY_ATTEMPTS - 1, "retried")
+		assert(#missing == 3, "shirt, pants and hair never loaded: " .. table.concat(missing, ","))
+		local described = broken.described()
+		assert(described.TorsoColor ~= described.HeadColor, "torso wears the top colour, not skin")
+		assert(described.LeftLegColor ~= described.HeadColor, "legs wear the trouser colour, not skin")
+		assert(broken.children[Survivor.FALLBACK], "a composed hair cap replaces the missing hair")
+		table.clear(waits)
+		local fine = fakeCharacter(true)
+		local okFine, none = Survivor.dressCharacter(fine, preset, ports(fine))
+		assert(okFine and #none == 0 and fine.applies == 1 and #waits == 0, "a loading outfit applies once")
+		assert(fine.children[Survivor.FALLBACK] == nil, "no fallback when the real pieces loaded")
+	end,
+	["every preset colours its top and trousers unlike its skin"] = function()
+		for _, preset in Survivor.PRESETS do
+			local colors = Survivor.describe(preset).colors
+			for _, key in { "TorsoColor", "LeftLegColor", "RightLegColor" } do
+				local c = colors[key]
+				assert(
+					c and not (c.r == preset.skin.r and c.g == preset.skin.g and c.b == preset.skin.b),
+					preset.id .. "." .. key
+				)
+			end
+			assert(preset.hairColor, preset.id .. " hair colour")
+		end
 	end,
 }

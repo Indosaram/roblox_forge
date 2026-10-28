@@ -479,4 +479,68 @@ return {
 		assert(bag(third).items["w-legacy-1:output:1"].quantity == 5, "fold persisted")
 		third.factory.close()
 	end,
+	-- p134 v46: after the join restack the phone still held 7 cords in slots of 1, 2 and 4, all
+	-- 'quality 1, durability 0'. Job outputs keep the attributes every input shares, so the cords
+	-- differed only in provenance: twisted from gathered fibre { level = 1 } (Gathering stamps the
+	-- node level), from the starter fibre { origin = "starter" }, from a mix of both {}, and the
+	-- survey contract's reward { origin = "contract" }. Inventory.compatible compared attributes,
+	-- so each shape stayed its own slot.
+	["legacy cords that differ only in provenance attributes fold into one slot on join"] = function()
+		local backend = Memory.new()
+		local at = { value = 1793150000 }
+		local first = boot(backend, at, "server-a")
+		assert(first.session.join(ACTOR).ok, "join a")
+		arrive(first)
+		local steps = hand(first, "cord")
+		assert(steps[#steps].ok, "cord: " .. tostring(steps[#steps].reason))
+		local shapes = {
+			{ quantity = 1, attributes = { origin = "starter" } },
+			{ quantity = 2, attributes = { level = 1 } },
+			{ quantity = 4, attributes = {} },
+			{ quantity = 1, attributes = { origin = "contract" } },
+		}
+		assert(
+			first.session.personalTransaction(ACTOR, function(raw: any)
+				local items = raw.envelope.genres["survival-coop"].data.inventory.bag.items
+				local cord: any = nil
+				for id, item in items do
+					if item.catalogId == "cord" then
+						cord = item
+						items[id] = nil
+					end
+				end
+				for index, shape in shapes do
+					local copy = table.clone(cord)
+					copy.attributes = shape.attributes
+					copy.itemId, copy.quantity = "w-legacy-" .. index .. ":output:1", shape.quantity
+					items[copy.itemId] = copy
+				end
+				return raw
+			end),
+			"plant legacy cords"
+		)
+		first.factory.close()
+		at.value += 60
+		local second = boot(backend, at, "server-b")
+		assert(second.session.join(ACTOR).ok, "join b")
+		local slots = 0
+		for _, item in bag(second).items do
+			if item.catalogId == "cord" then
+				slots += 1
+			end
+		end
+		assert(count(second, "cord") == 8 and slots == 1, count(second, "cord") .. " cords in " .. slots .. " slots")
+		-- A fresh craft from gathered fibre ({ level = 1 }) joins that stack instead of a new slot.
+		arrive(second)
+		local again = hand(second, "cord")
+		assert(again[#again].ok, "cord again: " .. tostring(again[#again].reason))
+		slots = 0
+		for _, item in bag(second).items do
+			if item.catalogId == "cord" then
+				slots += 1
+			end
+		end
+		assert(count(second, "cord") == 9 and slots == 1, "new cord stacked: " .. slots .. " slots")
+		second.factory.close()
+	end,
 }

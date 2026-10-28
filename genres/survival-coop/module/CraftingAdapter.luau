@@ -359,6 +359,22 @@ function M.new(
 		then services.survivalContent or Content.canonicalize(inventoryConfig.content)
 		else nil
 	local catalog = if content then catalogOf(content) else {}
+	-- Provenance-only attributes that must not split a stack the player sees as one item (p134
+	-- v46: 7 cords stuck in slots of 1, 2 and 4). A crafted output keeps the attributes all its
+	-- inputs share, so cord twisted from gathered fibre carried { level = 1 }, from starter fibre
+	-- { origin = "starter" }, from a mix {}, and a contract reward { origin = "contract" }. `origin`
+	-- never matters; `level` matters only where a material profile gives the item a level (seeds,
+	-- raw materials), so it is loose for everything else.
+	local looseStack: Inventory.Loose = {}
+	if content then
+		local leveled: { [string]: boolean } = {}
+		for _, profile in (content :: any).materials or {} do
+			leveled[profile.item] = true
+		end
+		for id in catalog :: { [string]: any } do
+			looseStack[id] = if leveled[id] then { origin = true } else { origin = true, level = true }
+		end
+	end
 	-- Carried food ages on the command clock; only content with a food-spoilage operation spoils.
 	local spoilage = if content then Spoilage.policy(content) else nil
 	local mastery = if content then Skills.catalog(content) else nil
@@ -631,7 +647,7 @@ function M.new(
 						end
 					end
 					if not refusal then
-						candidate.inventory = Workshop.stackOutputs(job, candidate.inventory)
+						candidate.inventory = Workshop.stackOutputs(job, candidate.inventory, looseStack)
 					end
 				end
 				if
@@ -642,7 +658,7 @@ function M.new(
 					and not player.progression
 				then
 					local job = candidate.jobs.entries[candidate.jobId].job
-					candidate.inventory = Workshop.stackOutputs(job, candidate.inventory)
+					candidate.inventory = Workshop.stackOutputs(job, candidate.inventory, looseStack)
 				end
 			end
 			-- A refused start (death between the hand chain's reserve and start, a downed player) never
@@ -1287,7 +1303,7 @@ function M.new(
 				workshop, containers[carried] = Workshop.reconcile(workshop, containers[carried], Clock.millis(lastAt))
 				-- Bags saved before gathers/crafts stacked hold one slot per output (p134 v45: 11 fibre and
 				-- 5 cord slots); fold them once. Reserved stacks stay where their holders expect them.
-				containers[carried] = Inventory.restackAll(containers[carried], catalog)
+				containers[carried] = Inventory.restackAll(containers[carried], catalog, looseStack)
 			end
 		end
 		local validSkills, skills = pcall(function(): Skills.State?

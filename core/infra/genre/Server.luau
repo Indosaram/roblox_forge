@@ -307,8 +307,23 @@ function M.start(options: Options): ServerSession
 			warn("Forge profile release " .. id .. ": " .. tostring(result.reason))
 		end
 	end
+	-- The Player object that owns each actor's session on this server. A force-stopped client's
+	-- Player can outlive its connection, so a relaunch can arrive (a second Player, same UserId)
+	-- while the first is still here, and the stale one's PlayerRemoving can fire after that.
+	local owners: { [string]: Player } = {}
 	local function join(player: Player)
 		local id = tostring(player.UserId)
+		owners[id] = player
+		-- p134 v46 r3: an immediate rejoin landed on this same server while the actor was still
+		-- joined. Every join answered "profile already active/loading" while the new client's
+		-- commands ran on that session (first gather 8.25 s), and 90 s later the loop kicked the
+		-- player it was serving ('이전 접속의 저장을 마무리하는 중이에요'). The session is live and
+		-- serves this account: the new Player takes it over; a failed old close is dropped.
+		if session.adopt(id) then
+			pending[id] = nil
+			push()
+			return
+		end
 		-- A predecessor's durable locks can still cover this profile right after a
 		-- physical replacement, and a burst of simultaneous joins can transiently
 		-- outrun the local transport while the host is healthy before and after.
@@ -333,6 +348,9 @@ function M.start(options: Options): ServerSession
 			if pending[id] then
 				return { ok = false, reason = "profile already active/loading" }
 			end
+			if session.adopt(id) then
+				return { ok = true, adopted = true }
+			end
 			return session.join(id)
 		end
 		local retryDeadline = os.clock() + 90
@@ -343,6 +361,14 @@ function M.start(options: Options): ServerSession
 		end
 		if result.notificationError then
 			warn("Forge join notification " .. id .. ": " .. result.notificationError)
+		end
+		if owners[id] ~= player then
+			return -- a newer Player of this account took the actor over
+		end
+		if result.adopted then
+			pending[id] = nil
+			push()
+			return
 		end
 		if not result.ok then
 			-- Surface the kick reason where the QA harness can read it back after
@@ -360,9 +386,16 @@ function M.start(options: Options): ServerSession
 		end
 	end
 	Players.PlayerAdded:Connect(join)
-	Players.PlayerRemoving:Connect(function(player)
-		close(tostring(player.UserId))
-		handshakeAt[tostring(player.UserId)] = nil
+	Players.PlayerRemoving:Connect(function(player: Player)
+		local id = tostring(player.UserId)
+		-- A stale Player leaving after the account rejoined here must not close the live session.
+		local owner = owners[id]
+		if owner and owner ~= player then
+			return
+		end
+		owners[id] = nil
+		close(id)
+		handshakeAt[id] = nil
 		push()
 	end)
 	for _, player in Players:GetPlayers() do
