@@ -207,4 +207,35 @@ return {
 		local held = assert(Inventory.reserve(add(add(bag("c"), item("r", 1)), item("n", 1)), "job", { r = 1 }, 2))
 		assert(Inventory.restack(held, catalog, "n") == held, "a reserved stack is not a merge target")
 	end,
+	["addStacked fills matching stacks first and only the rest takes a slot"] = function()
+		local small = ItemCatalog.new({ { id = "wood", stackMax = 10, weightMilli = 1, maxDurabilityMilli = 1000 } })
+		local full = Inventory.new("full", { slots = 1, softWeightMilli = 90000, hardWeightMilli = 90000 })
+		full = assert(Inventory.add(full, small, item("old", 6), 0))
+		local merged = assert(Inventory.addStacked(full, small, item("new", 3), full.version))
+		assert(merged.items.old.quantity == 9 and merged.items.new == nil, "a full bag takes a fitting gather")
+		assert(merged.version == full.version + 1, "one version step")
+		local _, overflow = Inventory.addStacked(merged, small, item("more", 3), merged.version)
+		assert(overflow == "FULL_SLOTS", "the remainder still needs a slot")
+		local _, stale = Inventory.addStacked(merged, small, item("more", 1), full.version)
+		assert(stale == "STALE_VERSION", "version checked")
+		local _, dup = Inventory.addStacked(merged, small, item("old", 1), merged.version)
+		assert(dup == "DUPLICATE_ITEM_ID", "an existing id is refused like add")
+	end,
+	["restackAll folds legacy one-per-output slots and leaves reserved stacks alone"] = function()
+		local state = bag("legacy")
+		for index = 1, 5 do
+			state = add(state, item("cord-" .. index, 1))
+		end
+		state = add(add(state, item("held", 1)), item("odd", 1, 2000))
+		state = assert(Inventory.reserve(state, "job", { held = 1 }, state.version))
+		local folded = Inventory.restackAll(state, catalog)
+		local slots = 0
+		for _ in folded.items do
+			slots += 1
+		end
+		assert(folded.items["cord-1"].quantity == 5 and slots == 3, "five cords in one slot, " .. slots)
+		assert(folded.items.held.quantity == 1 and folded.reservations.job.held == 1, "reserved untouched")
+		assert(folded.items.odd.quantity == 1, "other quality keeps its slot")
+		assert(Inventory.restackAll(folded, catalog) == folded, "idempotent")
+	end,
 }

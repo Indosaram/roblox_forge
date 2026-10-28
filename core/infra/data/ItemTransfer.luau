@@ -28,6 +28,9 @@ export type Options = {
 	maxReceipts: number,
 	now: () -> number,
 	authorize: (Request, any, FencedStore.Data) -> boolean,
+	-- Destination credit folds the output into compatible stacks (Inventory.addStacked) instead
+	-- of a fresh stack. The CREDITED receipt, not the output id, is the replay guard.
+	stack: boolean?,
 }
 export type Result = {
 	version: number,
@@ -222,7 +225,7 @@ end
 -- ESCROWED removes them from inventory; CREDITED installs destination ownership;
 -- FINALIZED is the only confirmed success. Once credited, source escrow is only
 -- a liability/receipt and MUST NOT be counted a second time as owned quantity.
--- Output creates a fresh stack (whole moves retain itemId); merging is separate.
+-- Output creates a fresh stack (whole moves retain itemId) unless options.stack merges it.
 function M.advance(
 	self: Coordinator,
 	source: FencedStore.Profile,
@@ -378,7 +381,11 @@ function M.advance(
 		end
 		local inventory = Inventory.fromSave(data.inventory, self._catalog)
 		local nextInventory
-		nextInventory, reason = Inventory.add(inventory, self._catalog, escrow, inventory.version)
+		if self._options.stack then
+			nextInventory, reason = Inventory.addStacked(inventory, self._catalog, escrow, inventory.version)
+		else
+			nextInventory, reason = Inventory.add(inventory, self._catalog, escrow, inventory.version)
+		end
 		if nextInventory then
 			data.inventory = Inventory.save(nextInventory)
 			receipts[req.id] = { request = copy(req), phase = "CREDITED" }

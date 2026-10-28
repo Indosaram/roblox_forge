@@ -1285,6 +1285,9 @@ function M.new(
 			if rebase and inventoryConfig then
 				local carried = inventoryConfig.carriedContainer
 				workshop, containers[carried] = Workshop.reconcile(workshop, containers[carried], Clock.millis(lastAt))
+				-- Bags saved before gathers/crafts stacked hold one slot per output (p134 v45: 11 fibre and
+				-- 5 cord slots); fold them once. Reserved stacks stay where their holders expect them.
+				containers[carried] = Inventory.restackAll(containers[carried], catalog)
 			end
 		end
 		local validSkills, skills = pcall(function(): Skills.State?

@@ -407,4 +407,76 @@ return {
 		assert(job.state == "Cancelled", "the refused job is cancelled, " .. job.state)
 		live.factory.close()
 	end,
+	-- p134 v45: every gather took its own slot (11 slots of 'fibre x3' after a few minutes, bag
+	-- 20/30). Each gather mints '<grant>:output:1' and the destination credit added it as is.
+	["four gathers of one node share one slot"] = function()
+		local live = boot()
+		assert(live.session.join(ACTOR).ok, "join")
+		arrive(live)
+		local function slots(): number
+			local n = 0
+			for _, item in bag(live).items do
+				if item.catalogId == "fiber" then
+					n += 1
+				end
+			end
+			return n
+		end
+		local before, fibre = slots(), count(live, "fiber")
+		for round = 1, 4 do
+			local result = gather(live, "rw.onboarding.fiber", "fiber")
+			assert(result.ok, "gather " .. round .. ": " .. tostring(result.reason))
+		end
+		assert(count(live, "fiber") == fibre + 12, "every gather credited once")
+		assert(slots() == before + 1, "4 gathers took " .. (slots() - before) .. " slots")
+		live.factory.close()
+	end,
+	-- The same phone kept 5 'cord x1' slots crafted before the v43 craft restack: join folds them.
+	["a legacy bag with five one-cord slots holds one after join"] = function()
+		local backend = Memory.new()
+		local at = { value = 1793150000 }
+		local first = boot(backend, at, "server-a")
+		assert(first.session.join(ACTOR).ok, "join a")
+		arrive(first)
+		local steps = hand(first, "cord")
+		assert(steps[#steps].ok, "cord: " .. tostring(steps[#steps].reason))
+		assert(
+			first.session.personalTransaction(ACTOR, function(raw: any)
+				local items = raw.envelope.genres["survival-coop"].data.inventory.bag.items
+				local cord: any = nil
+				for id, item in items do
+					if item.catalogId == "cord" then
+						cord = item
+						items[id] = nil
+					end
+				end
+				for index = 1, 5 do
+					local copy = table.clone(cord)
+					copy.attributes = table.clone(cord.attributes)
+					copy.itemId, copy.quantity = "w-legacy-" .. index .. ":output:1", 1
+					items[copy.itemId] = copy
+				end
+				return raw
+			end),
+			"plant legacy cords"
+		)
+		first.factory.close()
+		at.value += 60
+		local second = boot(backend, at, "server-b")
+		assert(second.session.join(ACTOR).ok, "join b")
+		local slots = 0
+		for _, item in bag(second).items do
+			if item.catalogId == "cord" then
+				slots += 1
+			end
+		end
+		assert(count(second, "cord") == 5 and slots == 1, count(second, "cord") .. " cords in " .. slots .. " slots")
+		second.factory.close()
+		-- The fold was saved with the join: a third server reads one stack.
+		at.value += 60
+		local third = boot(backend, at, "server-c")
+		assert(third.session.join(ACTOR).ok, "join c")
+		assert(bag(third).items["w-legacy-1:output:1"].quantity == 5, "fold persisted")
+		third.factory.close()
+	end,
 }

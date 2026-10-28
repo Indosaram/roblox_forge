@@ -399,6 +399,47 @@ function M.restack(state: State, catalog: Catalog.Catalog, itemId: string): Stat
 	return nextState
 end
 
+--- `add` that first folds the new item into compatible, unreserved stacks with room (see
+--- restack); only the remainder takes a slot under `item.itemId`, so a full bag still accepts an
+--- item that fits an existing stack. One version step, like add.
+function M.addStacked(state: State, catalog: Catalog.Catalog, item: Item, expected: number): (State?, string?)
+	local err = version(state, expected)
+	if err then
+		return nil, err
+	end
+	if not validItem(catalog, item) then
+		return nil, "INVALID_ITEM"
+	end
+	if state.items[item.itemId] then
+		return nil, "DUPLICATE_ITEM_ID"
+	end
+	local nextState = M.snapshot(state)
+	nextState.items[item.itemId] = copyItem(item)
+	nextState = M.restack(nextState, catalog, item.itemId)
+	err = capacity(nextState, catalog)
+	if err then
+		return nil, err
+	end
+	nextState.version = state.version + 1
+	return nextState, nil
+end
+
+--- Folds every unreserved stack into compatible, unreserved stacks with room, highest item id
+--- first, so the lowest id of each group survives (legacy bags with one slot per gather/craft).
+function M.restackAll(state: State, catalog: Catalog.Catalog): State
+	local ids: { string } = {}
+	for id in state.items do
+		table.insert(ids, id)
+	end
+	table.sort(ids, function(a, b)
+		return a > b
+	end)
+	for _, id in ids do
+		state = M.restack(state, catalog, id)
+	end
+	return state
+end
+
 function M.split(
 	state: State,
 	catalog: Catalog.Catalog,

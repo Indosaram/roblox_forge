@@ -932,8 +932,10 @@ return {
 		local g1 = command(session, FIRST, "g1", "gather", { "fallen-tree-01", 0 })
 		assert(g1.ok, "gather 1 " .. tostring(g1.reason))
 		assert(command(session, FIRST, "g2", "gather", { "fallen-tree-01", 1 }).ok, "gather 2")
+		-- Both gathers share one wood stack now (p134 v45); deposit every stack whole.
 		for index, itemId in woodStacks(session, FIRST) do
-			local deposited = command(session, FIRST, "d" .. index, "transfer-deposit", { itemId, 3 })
+			local quantity = session.snapshot(FIRST)["survival-coop"].inventory.bag.items[itemId].quantity
+			local deposited = command(session, FIRST, "d" .. index, "transfer-deposit", { itemId, quantity })
 			assert(deposited.ok, "deposit " .. tostring(deposited.reason))
 		end
 		camp = session.snapshot(FIRST).survivalSettlement
@@ -1002,7 +1004,7 @@ return {
 		-- The HUD deposits one at a time: four single deposits pay for the campfire (wood x4).
 		local count = 0
 		for _, itemId in woodStacks(session, FIRST) do
-			for unit = 1, 3 do
+			for unit = 1, session.snapshot(FIRST)["survival-coop"].inventory.bag.items[itemId].quantity do
 				if count < 4 then
 					count += 1
 					local deposited = command(session, FIRST, "d" .. itemId .. unit, "transfer-deposit", { itemId, 1 })

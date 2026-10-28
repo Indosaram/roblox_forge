@@ -176,6 +176,8 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			authorize = function()
 				return false -- all accepted grants already entered irrevocable escrow
 			end,
+			-- Gathered outputs join a matching stack (p134 v45: one slot per gather filled the bag).
+			stack = true,
 		})
 		local result: Result = { status = "confirmed", transfers = {} }
 		for _, grant in grants do

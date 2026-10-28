@@ -65,8 +65,9 @@ steps:
   - {op: command, player: owner, requestId: Withdraw101, sessionEpoch: current, action: "survival-coop:transfer-withdraw", args: ["transfer:owner:0:Transfer101:output", 3], times: 20}
   - {op: expect_result, player: owner, field: data.phase, equals: FINALIZED}
   - {op: expect_result, player: owner, field: stateVersion, at_least: 1}
-  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 9}
-  - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.transfer:owner:0:Transfer101:output.quantity", equals: 3}
+  # The rejoin above folded the credited fibre back into its matching starter stack: all 12 in one slot.
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-fiber.quantity, equals: 12}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: "inventory.bag.items.transfer:owner:0:Transfer101:output", is_nil: true}
   - {op: expect_snapshot, player: owner, scope: session, field: "survivalSettlement.warehouse.items.transfer:owner:0:Transfer101:output", is_nil: true}
   - {op: close, player: owner}
   - {op: expect_members, members: []}
