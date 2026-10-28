@@ -536,8 +536,12 @@ function M.factory(ctx: any): any
 	local function text(en: string, ko: string): string
 		return if korean then ko else en
 	end
+	-- The gui stays enabled and the sheet frame is the open state (like SocialSheet). The shell panel
+	-- sizes itself from this gui's AbsoluteSize, and a disabled ScreenGui is not laid out: toggling
+	-- Enabled kept the size from when it was last on screen (D2 F4: 1279x662 on a 799x359 phone, the
+	-- Close pebble off-screen).
 	local gui = Instance.new("ScreenGui")
-	gui.Name, gui.ResetOnSpawn, gui.Enabled = "ForgeCrossServerMarket", false, false
+	gui.Name, gui.ResetOnSpawn = "ForgeCrossServerMarket", false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
@@ -546,7 +550,7 @@ function M.factory(ctx: any): any
 		parent = gui,
 	})
 	ctx.fitSheet(sheet.frame)
-	sheet.frame.Visible = true
+	sheet.frame.Visible = false
 	local status = ctx.ui.components.label(
 		ctx.ui.theme.default,
 		{ text = "", size = UDim2.new(1, 0, 0, 48), parent = sheet.scroll }
@@ -859,18 +863,23 @@ function M.factory(ctx: any): any
 		latest = snapshot
 		render(snapshot)
 	end)
+	-- One open state for the dock, the X and the prompt.
+	local function setOpen(open: boolean)
+		sheet.frame.Visible = open
+		if open then
+			rerender()
+		end
+	end
 	sheet.close.Activated:Connect(function()
-		gui.Enabled = false
+		setOpen(false)
 	end)
 	ctx.dock({
 		id = "market",
 		label = text("Market", "장터"),
 		order = 5,
-		setOpen = function(open)
-			gui.Enabled = open
-		end,
+		setOpen = setOpen,
 		isOpen = function()
-			return gui.Enabled
+			return sheet.frame.Visible == true
 		end,
 	})
 	local prompt = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(value, player)
@@ -881,7 +890,7 @@ function M.factory(ctx: any): any
 			and value:GetAttribute("ForgeMarket")
 			and not M.talksFirst(value)
 		then
-			gui.Enabled = true
+			setOpen(true)
 		end
 	end)
 	return {

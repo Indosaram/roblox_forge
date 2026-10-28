@@ -39,12 +39,18 @@ local function signal(): any
 	return s
 end
 
-local function harness(): any
+-- options: width, height, inset (top bar px a CoreUISafeInsets gui loses), touch, locale.
+local function harness(options: any?): any
+	local opts = options or {}
+	local locale = opts.locale or "ko-kr"
+	-- Screen state a ScreenGui was last laid out at. D2 F4 (Studio, phone 799x359): the trading post's
+	-- toggled-off ScreenGui kept the 1279x662 it had on PC, so only an enabled gui follows the screen.
+	local screen = { width = opts.width or 360, height = opts.height or 582, inset = opts.inset or 0 }
 	local errors: { string } = {}
 	local nodes: { any } = {}
 	local attributes: { [string]: any } = {}
 	local heartbeat = signal()
-	local viewport = roblox.Vector2.new(360, 582)
+	local viewport = roblox.Vector2.new(screen.width, screen.height)
 	local methods: any = {}
 	local DEFAULTS: any = {
 		Visible = true,
@@ -63,8 +69,16 @@ local function harness(): any
 	}
 	local function node(class: string, name: string?): any
 		local data: any = { ClassName = class, Name = name or class, children = {}, signals = {} }
+		if class == "ScreenGui" then
+			data.laidOut = table.clone(screen)
+		end
 		local item = setmetatable({}, {
 			__index = function(self, key)
+				if key == "AbsoluteSize" and data.laidOut then
+					local at = data.laidOut
+					local safe = data.ScreenInsets == roblox.Enum.ScreenInsets.CoreUISafeInsets
+					return roblox.Vector2.new(at.width, at.height - (if safe then at.inset else 0))
+				end
 				local value = data[key]
 				if value ~= nil then
 					return value
@@ -237,7 +251,7 @@ local function harness(): any
 	function methods.Stop() end
 
 	local player = node("Player", "Player")
-	player.UserId, player.DisplayName, player.LocaleId = 1, "Player", "ko-kr"
+	player.UserId, player.DisplayName, player.LocaleId = 1, "Player", locale
 	function player.GetAttribute(_self, key)
 		return attributes[key]
 	end
@@ -280,7 +294,7 @@ local function harness(): any
 		guid += 1
 		return "guid-" .. guid
 	end
-	services.UserInputService.TouchEnabled = true
+	services.UserInputService.TouchEnabled = opts.touch ~= false
 	function services.UserInputService.GetFocusedTextBox()
 		return nil
 	end
@@ -411,8 +425,8 @@ local function harness(): any
 	end
 	env.Forge, env.Shared = forge, forge.games["robango-island"].src.shared
 	env.content = load("games/robango-island/src/shared/SurvivalContent")
-	env.player, env.locale, env.korean = player, "ko-kr", true
-	env.names, env.authoredText = PackText.names("ko-kr"), PackText.authored
+	env.player, env.locale, env.korean = player, locale, locale == "ko-kr"
+	env.names, env.authoredText = PackText.names(locale), PackText.authored
 	env.clientText = PackText.packText -- client: PackText.lookup(packRows, "cli.") over full cli.* keys
 	-- The client installs the Strings-table lookups before this section (see its PackText block).
 	load("genres/survival-coop/module/PackLocale").use(PackText.packText)
@@ -440,7 +454,27 @@ local function harness(): any
 	env.gui, env.script = node("ScreenGui", "ForgeGenreUI"), node("LocalScript", "RobangoIslandClient")
 	luau.load(section, { debugName = CLIENT, environment = env })()
 	local dock = assert(playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
-	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes }
+	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes, playerGui = playerGui }
+	-- Device change: every enabled ScreenGui is laid out again and reports it; a disabled one is not.
+	function h.setViewport(width: number, height: number, inset: number)
+		screen.width, screen.height, screen.inset = width, height, inset
+		viewport = roblox.Vector2.new(width, height)
+		DEFAULTS.AbsoluteSize, DEFAULTS.ViewportSize = viewport, viewport
+		for _, item in nodes do
+			local data = rawget(getmetatable(item) :: any, "data")
+			if data.laidOut and item.Enabled ~= false then
+				data.laidOut = table.clone(screen)
+				item:GetPropertyChangedSignal("AbsoluteSize"):Fire()
+			end
+		end
+	end
+	-- One server state packet (ExtensionPanels reads packet.snapshots.survivalExtensions).
+	function h.publish(extensions: any)
+		game:GetService("ReplicatedStorage"):WaitForChild("ForgeState").OnClientEvent:Fire({
+			snapshots = { survivalExtensions = extensions },
+		})
+		h.step()
+	end
 	h.column = assert(dock:FindFirstChild("Dock"), "dock column")
 	h.menu = assert(dock:FindFirstChild("Menu"), "menu grid")
 	h.toggle = assert(h.column:FindFirstChild("MenuToggle"), "menu toggle")
@@ -538,7 +572,141 @@ local function cycle(h: any, id: string): boolean
 	return true
 end
 
+-- D2 F4: the trading post (C8 full-screen panel) at the three plan C8 screens.
+local VIEWS = { { 800, 360, 0 }, { 850, 411, 58 }, { 1920, 1080, 0 } }
+local MARKET: any = {
+	balance = 120,
+	items = { a = { catalogId = "antler", quantity = 5 } },
+	catalogIds = { "antler", "apple" },
+	listed = { { id = "L1", catalogId = "antler", quantity = 2, price = 20 } },
+	listings = { { id = "S1", catalogId = "antler", quantity = 2, price = 21 } },
+	filter = "antler",
+	claims = { { id = "C1", value = { coins = 30 } } },
+	page = 1,
+	pages = 2,
+	eligible = true,
+}
+-- Screen rect of a GuiObject inside its ScreenGui (offset layout, plus scale against the parent).
+local function rect(item: any): { x: number, y: number, width: number, height: number }
+	local parent = item.Parent
+	local base = if parent and parent.ClassName ~= "ScreenGui"
+		then rect(parent)
+		else { x = 0, y = 0, width = parent.AbsoluteSize.X, height = parent.AbsoluteSize.Y }
+	local size, position = item.Size, item.Position or roblox.UDim2.new()
+	local width = size.X.Scale * base.width + size.X.Offset
+	local height = size.Y.Scale * base.height + size.Y.Offset
+	local anchor = item.AnchorPoint or roblox.Vector2.zero
+	return {
+		x = base.x + position.X.Scale * base.width + position.X.Offset - anchor.X * width,
+		y = base.y + position.Y.Scale * base.height + position.Y.Offset - anchor.Y * height,
+		width = width,
+		height = height,
+	}
+end
+local function inside(r: any, bounds: any): boolean
+	return r.x >= bounds.x - 0.5
+		and r.y >= bounds.y - 0.5
+		and r.x + r.width <= bounds.x + bounds.width + 0.5
+		and r.y + r.height <= bounds.y + bounds.height + 0.5
+end
+-- Checks the open market at screen `view` (safe area = the viewport below the top-bar inset).
+local function checkMarket(h: any, view: { number }, locale: string)
+	local where = string.format("%dx%d inset %d %s", view[1], view[2], view[3], locale)
+	local open = h.sheets()
+	assert(#open == 1 and open[1].frame.Name == "TradeSheet", "trading post open at " .. where)
+	local frame, close = open[1].frame, open[1].close
+	local safe = { x = 0, y = 0, width = view[1], height = view[2] - view[3] }
+	local panel = rect(frame)
+	assert(
+		panel.width == safe.width and panel.height == safe.height and inside(panel, safe),
+		string.format("panel %dx%d fills the %s safe area", panel.width, panel.height, where)
+	)
+	local x = rect(close)
+	assert(inside(x, panel), "close inside the panel at " .. where)
+	assert(x.width >= 44 and x.height >= 44, "close >= 44 px at " .. where)
+	local Social = require("../../genres/survival-coop/module/SocialSheet")
+	local buttons = 0
+	local function walk(item: any)
+		for _, child in item:GetChildren() do
+			if child.Visible ~= false and child.Size then
+				local r = rect(child)
+				local isButton = child.ClassName == "TextButton"
+				if isButton or child.ClassName == "TextLabel" or child.ClassName == "ScrollingFrame" then
+					-- Scrolling lists may run past their pane; everything else stays on screen.
+					if not item:IsA("ScrollingFrame") then
+						assert(inside(r, panel), child.Name .. " overflows the panel at " .. where)
+					end
+				end
+				if isButton then
+					buttons += 1
+					assert(r.height >= 44 and r.width >= 44, child.Name .. " under 44 px at " .. where)
+				end
+				if (isButton or child.ClassName == "TextLabel") and child.Text ~= "" and not child.TextScaled then
+					assert(child.TextSize >= 13, child.Name .. " text under 13 px at " .. where)
+					-- Unwrapped text is one line; wrapped text fits its rows.
+					local width = Social.textWidth(child.Text, child.TextSize)
+					local lines = if child.TextWrapped
+						then math.max(1, math.floor(r.height / (child.TextSize * 1.2)))
+						else 1
+					assert(
+						width <= (r.width - 4) * lines,
+						string.format(
+							"'%s' (%d px) does not fit %d px x %d at %s",
+							child.Text,
+							width,
+							r.width,
+							lines,
+							where
+						)
+					)
+				end
+				walk(child)
+			end
+		end
+	end
+	walk(frame)
+	assert(buttons >= 8, "tabs, grid and primary rendered at " .. where)
+end
+
 return {
+	["D2 F4: the trading post fills 800x360, 850x411 (58 px inset) and 1920x1080 after any device change; X closes it"] = function()
+		for _, locale in { "ko-kr", "en-us" } do
+			-- Studio order: the panels start on a PC window, the device simulator then switches screens.
+			local h = harness({ width = 1279, height = 662, touch = false, locale = locale })
+			h.publish({
+				market = MARKET,
+				["harbor-buyback"] = { prices = { antler = 1 }, dailyUnits = 200, remaining = 7 },
+			})
+			for _, view in VIEWS do
+				h.setViewport(view[1], view[2], view[3])
+				h.step()
+				assert(#h.sheets() == 0 and h.column.Visible, "dock idle before the market")
+				h.click(h.toggle)
+				h.click(h.tile("market"))
+				checkMarket(h, view, locale)
+				local close = h.sheets()[1].close
+				h.click(close)
+				assert(#h.sheets() == 0, "X closes the trading post at " .. view[1] .. "x" .. view[2])
+				assert(h.column.Visible and h.attributes.ForgeExtensionSheetOpen == false, "X returns the menu")
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	["D2 F4: an open trading post follows a device change and its X still closes it"] = function()
+		local h = harness({ width = 1279, height = 662, touch = false })
+		h.publish({ market = MARKET })
+		h.step()
+		h.click(h.toggle)
+		h.click(h.tile("market"))
+		for _, view in VIEWS do
+			h.setViewport(view[1], view[2], view[3])
+			h.step()
+			checkMarket(h, view, "ko-kr")
+		end
+		h.click(h.sheets()[1].close)
+		assert(#h.sheets() == 0 and h.column.Visible, "X closes after resizes")
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
+	end,
 	["p48: after the score editor's X the menu toggle returns and the audio tile opens its sheet"] = function()
 		local h = harness()
 		assert(cycle(h, "music"), "score editor opens")

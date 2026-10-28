@@ -151,6 +151,7 @@ local function mount(harborResult: any, locale: string?, listResult: any?, gate:
 		listener = listener,
 		state = withMarket,
 		gui = gui,
+		sheet = sheet,
 		player = player,
 		prompt = promptSignal.PromptTriggered,
 	}
@@ -348,11 +349,11 @@ return {
 					else nil,
 			}
 		end
-		local gui: any = ui.gui
+		local frame: any = ui.sheet.frame
 		local function enabled(): any
-			return gui.Enabled
+			return frame.Visible
 		end
-		gui.Enabled = false
+		frame.Visible = false
 		ui.prompt.callback(prompt({ ForgeMarket = true }, { ForgeHarborFacility = "npc.sella" }), ui.player)
 		assert(enabled() == false, "npc.sella prompt must not stack the market over its dialogue")
 		ui.prompt.callback(prompt({ ForgeMarket = true, ForgeDialogue = "station.market" }), ui.player)
