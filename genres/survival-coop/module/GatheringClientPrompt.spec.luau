@@ -6,7 +6,7 @@ local fs = require("@lune/fs")
 local Transport = require("../../../core/infra/genre/CommandTransport")
 
 -- Minimal engine double: just enough Instances/services for GatheringClient.start.
-local function clientHarness(answer: (any) -> any): any
+local function clientHarness(answer: (any) -> any, extra: { [string]: any }?): any
 	local function signal(): any
 		local listeners: { { c: any, f: (...any) -> () } } = {}
 		local s = {}
@@ -119,6 +119,7 @@ local function clientHarness(answer: (any) -> any): any
 		},
 	}
 	local prompt: any = nil
+	local touch: any = nil
 	local module = luau.load(fs.readFile("genres/survival-coop/module/GatheringClient.luau"), {
 		environment = {
 			game = {
@@ -131,6 +132,8 @@ local function clientHarness(answer: (any) -> any): any
 					local o = new(class)
 					if class == "ProximityPrompt" then
 						prompt = o
+					elseif class == "TextButton" then
+						touch = o
 					end
 					return o
 				end,
@@ -149,8 +152,16 @@ local function clientHarness(answer: (any) -> any): any
 			end,
 		},
 	})()
-	local handle = module.start({ locale = "ko-kr" })
+	local startOptions: any = { locale = "ko-kr" }
+	if extra then
+		for key, value in extra do
+			startOptions[key] = value
+		end
+	end
+	local handle = module.start(startOptions)
 	return {
+		node = node,
+		touch = touch,
 		prompt = prompt,
 		sent = sent,
 		press = function()
@@ -188,6 +199,30 @@ return {
 		assert(h.prompt.ActionText == "채집 중...", "transient keeps pending label")
 		h.press()
 		assert(#h.sent == 2 and h.sent[2] == h.sent[1], "transient replays the identical request")
+		h.destroy()
+	end,
+	-- p134 v43: with a node's gather fan open, the big touch button acted on the nearest prompt
+	-- (often another node, or none at all) instead of the node in the fan: no item, no notice.
+	["the touch gather button acts on the node whose picker is open"] = function()
+		local picked: { any } = {}
+		local node: any = nil
+		local h = clientHarness(function()
+			return { ok = true, data = { status = "confirmed" } }
+		end, {
+			focus = function()
+				return node
+			end,
+			pick = function(part)
+				table.insert(picked, part)
+				return false
+			end,
+		})
+		node = h.node
+		-- No prompt is the nearest one this frame (the fan covers it); the button is shown.
+		h.touch.Visible = true
+		h.touch.Activated:Fire()
+		assert(picked[1] == h.node, "the picker is asked about the open node")
+		assert(#h.sent == 1 and h.sent[1].args[1] == "rw.a1.s1.material.wood", "one gather of the open node")
 		h.destroy()
 	end,
 }

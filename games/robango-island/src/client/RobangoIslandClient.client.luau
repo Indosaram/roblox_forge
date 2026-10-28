@@ -150,6 +150,9 @@ local gathering = GatheringClient.start({
 	pick = function(part: BasePart): boolean
 		return gatherPicker ~= nil and gatherPicker.open(part)
 	end,
+	focus = function(): BasePart?
+		return if gatherPicker then gatherPicker.node() else nil
+	end,
 })
 gui.Destroying:Connect(gathering.destroy)
 

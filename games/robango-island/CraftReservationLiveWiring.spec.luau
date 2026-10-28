@@ -158,12 +158,15 @@ local function boot(backend: any?, at: any?, serverId: string?)
 	}
 end
 
+-- Request ids stay unique across client models (a fresh model per hand chain).
+local clientSequence = 0
 local function client(live: any): any
 	local session = live.session
 	local sequence = 0
 	local model = Model.new(ACTOR, function()
 		sequence += 1
-		return "hud-" .. sequence
+		clientSequence += 1
+		return "hud-" .. clientSequence
 	end)
 	local function handshake()
 		local epochs = {}
@@ -356,6 +359,26 @@ return {
 		local last = steps[#steps]
 		assert(last.action == "survival-coop:craft-complete" and last.ok, "collect: " .. tostring(last.reason))
 		assert(count(live, "cord") == before + 1, "one cord arrived")
+		live.factory.close()
+	end,
+	-- p134 v43: every crafted cord took its own 'cord x1' slot (5 slots after 5 crafts) and the craft
+	-- panel showed 'cord 1'. Each job minted a fresh '<job>:output:1' item and nothing merged it.
+	["crafted cords stack into one slot"] = function()
+		local live = boot()
+		assert(live.session.join(ACTOR).ok, "join")
+		arrive(live)
+		for round = 1, 3 do
+			local steps = hand(live, "cord")
+			assert(steps[#steps].ok, "cord " .. round .. ": " .. tostring(steps[#steps].reason))
+		end
+		local slots = 0
+		for _, item in bag(live).items do
+			if item.catalogId == "cord" then
+				slots += 1
+			end
+		end
+		assert(count(live, "cord") == 3 and slots == 1, count(live, "cord") .. " cords in " .. slots .. " slots")
+		assert(Model.held(bag(live), "cord") == 3, "the craft panel counts every cord")
 		live.factory.close()
 	end,
 	["a refused cord start puts the fibre back"] = function()

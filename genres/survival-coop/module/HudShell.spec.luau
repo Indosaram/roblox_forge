@@ -436,4 +436,84 @@ return {
 		labels:FindFirstChild("WorldLabel").Text:Destroy()
 		beat()
 	end,
+	-- p134 v43: with the fan open, the big gather button (prompt / touch / routed tap) re-opened the
+	-- same fan and nothing was sent; only an output pebble gathered. A second open of the open node
+	-- now gathers its default (first) output.
+	["opening the open node again gathers its first output"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local gui = roblox.Instance.new("ScreenGui")
+		local node = roblox.Instance.new("Part")
+		local function signal()
+			return {
+				Connect = function()
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		roblox.implementProperty("TextButton", "Activated", function()
+			return signal()
+		end)
+		local services: { [string]: any } = {
+			RunService = { RenderStepped = signal() },
+			GuiService = {},
+			UserInputService = { InputBegan = signal() },
+			Players = { LocalPlayer = {} },
+			Workspace = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+			task = {
+				spawn = function(fn, ...)
+					fn(...)
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		local sent: { string } = {}
+		local picker = shell.startPicker({
+			gui = gui,
+			touch = function()
+				return true
+			end,
+			hidden = function()
+				return false
+			end,
+			offered = function()
+				return { { item = "fiber", quantity = 3 }, { item = "leaves", quantity = 1 } }, 1
+			end,
+			nodeName = function()
+				return "fern"
+			end,
+			itemName = function(item)
+				return item
+			end,
+			icon = function()
+				return nil
+			end,
+			gather = function(_, output)
+				table.insert(sent, output)
+				return { ok = true }
+			end,
+			text = function(key)
+				return if key == "toast" then "+%d %s" else key
+			end,
+			reach = 10,
+		})
+		assert(picker.open(node) and #sent == 0, "the first open shows the fan only")
+		assert(picker.node() == node, "the fan tracks its node")
+		assert(picker.open(node), "the second open is handled")
+		assert(#sent == 1 and sent[1] == "fiber", "the second open gathers the first output")
+		picker.destroy()
+	end,
 }

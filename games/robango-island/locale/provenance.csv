@@ -1886,6 +1886,7 @@ hud.attack,original,agent:hephaestus/p97,2026-10-24
 hud.WEAPON_UNAVAILABLE,original,agent:hephaestus/p97,2026-10-24
 hud.craft_nearby,original,agent:hephaestus/p97,2026-10-24
 hud.craft_all,original,agent:hephaestus/p97,2026-10-24
+hud.craft_held,original,agent:hephaestus/p134-v43,2026-10-28
 hud.craft_favorite,original,agent:hephaestus/p97,2026-10-24
 hud.craft_unfavorite,original,agent:hephaestus/p97,2026-10-24
 hud.craft_track,original,agent:hephaestus/p97,2026-10-24

@@ -1305,6 +1305,12 @@ function M.startPicker(options: PickerOptions): any
 		end
 	end
 	local function open(part: any)
+		-- The fan is already open on this node: the big gather button (or another tap on the node)
+		-- gathers the default output instead of silently re-opening the same fan (p134 v43).
+		if current ~= nil and current == part and root.Visible then
+			task.spawn(pick, 1)
+			return true
+		end
 		local offered, level = options.offered(part)
 		if #offered == 0 or options.hidden() then
 			return false
@@ -1417,6 +1423,10 @@ function M.startPicker(options: PickerOptions): any
 		close = close,
 		isOpen = function(): boolean
 			return current ~= nil
+		end,
+		-- The node part whose fan is open (nil when closed).
+		node = function(): any
+			return current
 		end,
 		toast = function(line: string)
 			table.insert(toastLines, 1, { text = line, at = os.clock() })

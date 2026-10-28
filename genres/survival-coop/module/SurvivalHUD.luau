@@ -1502,7 +1502,12 @@ function M.start(options: Options)
 						materialRow(ingredient.id, ingredient.available, ingredient.needed)
 					end
 					for _, item in recipe.outputs do
-						materialRow(item.item, nil, item.quantity)
+						local outputRow = materialRow(item.item, nil, item.quantity)
+						-- The yield, then how many the bag holds over every stack (p134 v43).
+						local yield = outputRow:FindFirstChild("RowCount")
+						if yield then
+							yield.Text = string.format(t("craft_held"), item.quantity, Model.held(bag, item.item))
+						end
 					end
 					label(
 						(if recipe.station then name(recipe.station) else t("hand"))

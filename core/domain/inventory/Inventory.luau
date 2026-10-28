@@ -357,6 +357,48 @@ function M.exchange(
 	return nextState, nil
 end
 
+--- Folds `itemId` into an existing compatible, unreserved stack of the same item that has room
+--- (lowest item id first), so a freshly minted output (a crafted cord) does not take its own
+--- slot. Whatever does not fit stays under `itemId`. Pure: returns the next state (unchanged
+--- version when nothing moved).
+function M.restack(state: State, catalog: Catalog.Catalog, itemId: string): State
+	local item = state.items[itemId]
+	if not item or M.available(state, itemId) ~= item.quantity then
+		return state
+	end
+	local stackMax = catalog[item.catalogId].stackMax
+	local targets: { string } = {}
+	for id, other in state.items do
+		if
+			id ~= itemId
+			and other.quantity < stackMax
+			and M.available(state, id) == other.quantity
+			and M.compatible(item, other)
+		then
+			table.insert(targets, id)
+		end
+	end
+	if #targets == 0 then
+		return state
+	end
+	table.sort(targets)
+	local nextState = M.snapshot(state)
+	for _, id in targets do
+		local moving = nextState.items[itemId]
+		if not moving then
+			break
+		end
+		local room = math.min(stackMax - nextState.items[id].quantity, moving.quantity)
+		nextState.items[id].quantity += room
+		moving.quantity -= room
+		if moving.quantity == 0 then
+			nextState.items[itemId] = nil
+		end
+	end
+	nextState.version += 1
+	return nextState
+end
+
 function M.split(
 	state: State,
 	catalog: Catalog.Catalog,

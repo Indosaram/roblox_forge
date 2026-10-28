@@ -193,4 +193,18 @@ return {
 		save.saveVersion = 2
 		assert(not pcall(Inventory.fromSave, save, catalog), "inventory invariant")
 	end,
+	["restack folds a new output into matching unreserved stacks and keeps the rest apart"] = function()
+		local small = ItemCatalog.new({ { id = "wood", stackMax = 10, weightMilli = 1, maxDurabilityMilli = 1000 } })
+		local function put(state: Inventory.State, value: Inventory.Item): Inventory.State
+			return assert(Inventory.add(state, small, value, state.version))
+		end
+		local state = put(put(put(bag("a"), item("old", 8)), item("odd", 5, 2000)), item("new", 4))
+		local merged = Inventory.restack(state, small, "new")
+		assert(merged.items.old.quantity == 10 and merged.items.new.quantity == 2, "fills to stackMax, rest stays")
+		assert(merged.items.odd.quantity == 5 and merged.version == state.version + 1, "other quality untouched")
+		local single = Inventory.restack(add(add(bag("b"), item("a1", 1)), item("a2", 1)), catalog, "a2")
+		assert(single.items.a1.quantity == 2 and single.items.a2 == nil, "identical outputs share one slot")
+		local held = assert(Inventory.reserve(add(add(bag("c"), item("r", 1)), item("n", 1)), "job", { r = 1 }, 2))
+		assert(Inventory.restack(held, catalog, "n") == held, "a reserved stack is not a merge target")
+	end,
 }

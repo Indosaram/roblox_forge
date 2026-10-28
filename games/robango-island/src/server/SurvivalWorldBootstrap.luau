@@ -352,7 +352,10 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 				nowMillis = assert(epochMillis, "WILDLIFE_CLOCK_REQUIRED"),
 			}
 			else nil,
-		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		-- Full fullness on a respawn (p134 v43): 50 emptied in 15 min and the next death followed
+		-- ~8 min later, so a player still looking for food starved every ~23 min (3 deaths/hour).
+		-- Full = 30 min (hungerMillisPerUnit 18000), the same runway a new character gets.
+		respawnValues = { healthMilli = 100000, hungerMilli = 100000, fatigueMilli = 0 },
 	})
 	world.roleWildlife = wildlifePolicy
 	local campfire = part("campfire", Vector3.new(3, 1, 3), Vector3.new(-6, 0.5, 0), rgb(96, 92, 86))

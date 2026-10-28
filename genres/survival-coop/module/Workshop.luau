@@ -250,6 +250,20 @@ function M.abandon(state: State, inventory: Inventory.State, jobId: string): (St
 	return jobs, released
 end
 
+--- SERVER ONLY: folds a committed job's outputs into matching stacks already in the bag, so
+--- repeated crafts of one item share a slot (p134 v43: five 'cord x1' slots). Outputs that do not
+--- match an existing stack (other quality, material or attributes) keep their own slot.
+function M.stackOutputs(job: Job.Job, inventory: Inventory.State): Inventory.State
+	if job.state ~= "Committed" then
+		return inventory
+	end
+	local catalog = Job.catalog(job.content)
+	for _, output in job.outputs do
+		inventory = Inventory.restack(inventory, catalog, output.itemId)
+	end
+	return inventory
+end
+
 --- SERVER ONLY, on join: settles jobs an earlier server left holding bag reservations. A
 --- reserved job older than STALE_RESERVED_MILLIS is abandoned (inputs released); a started job
 --- of a plain recipe whose timer has ended is collected when its outputs fit; anything else stays
@@ -279,7 +293,7 @@ function M.reconcile(state: State, inventory: Inventory.State, nowMillis: number
 				state = M.snapshot(state)
 				state.entries[id].job = done
 				state.entries[id].retainedThroughEpoch = math.max(state.entries[id].retainedThroughEpoch, state.epoch)
-				inventory = collected
+				inventory = M.stackOutputs(done, collected)
 			end
 		end
 	end

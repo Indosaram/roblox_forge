@@ -1886,6 +1886,7 @@ hud.attack,Attack [F],genre text hud,Attack [F],공격 [F]
 hud.WEAPON_UNAVAILABLE,"Craft a Starter Club at a workbench, then equip it from your bag before attacking.",genre text hud,"Craft a Starter Club at a workbench, then equip it from your bag before attacking.",작업대에서 입문용 곤봉을 제작한 뒤 가방에서 장착하고 공격하세요.
 hud.craft_nearby,Nearby / materials,genre text hud,Nearby / materials,주변 시설 / 보유 재료
 hud.craft_all,All recipes,genre text hud,All recipes,모든 레시피
+hud.craft_held,"x%d (have %d)",craft panel output row: yield and total held,"x%d (have %d)","x%d (보유 %d)"
 hud.craft_favorite,Favorite,genre text hud,Favorite,즐겨찾기
 hud.craft_unfavorite,Unfavorite,genre text hud,Unfavorite,즐겨찾기 해제
 hud.craft_track,Track (to-do),genre text hud,Track (to-do),할 일 추적

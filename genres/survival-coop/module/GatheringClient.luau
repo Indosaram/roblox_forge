@@ -10,6 +10,9 @@ export type Options = {
 	locale: string?,
 	names: { [string]: string }?,
 	pick: ((BasePart) -> boolean)?,
+	-- Optional: the node whose picker fan is open. The touch button acts on it (not on the
+	-- nearest prompt), so the big gather button gathers the node the player is looking at.
+	focus: (() -> BasePart?)?,
 }
 local TAG = "ForgeSurvivalNode"
 local ACTION = "survival-coop:gather"
@@ -440,7 +443,8 @@ function M.start(options: Options?)
 	table.insert(
 		connections,
 		touch.Activated:Connect(function()
-			local part = selected
+			local focused = options and options.focus and options.focus()
+			local part = if focused and nodes[focused] then focused else selected
 			if part and touch.Visible then
 				if options and options.pick and options.pick(part) then
 					return

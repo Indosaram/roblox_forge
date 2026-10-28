@@ -996,7 +996,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			nowMillis = nowMillis,
 			herds = herds,
 		},
-		respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+		-- Full fullness on a respawn (p134 v43): 50 emptied in 15 min and the next death followed
+		-- ~8 min later, so a player still looking for food starved every ~23 min (3 deaths/hour).
+		-- Full = 30 min (hungerMillisPerUnit 18000), the same runway a new character gets.
+		respawnValues = { healthMilli = 100000, hungerMilli = 100000, fatigueMilli = 0 },
 		-- Archipelago stages tick their authored hazard zones (CharacterRules.hazardExposure).
 		hazards = if string.match(layoutId, "^rw%.a%d+%.s%d+$") then { layout = layout } else nil,
 	})

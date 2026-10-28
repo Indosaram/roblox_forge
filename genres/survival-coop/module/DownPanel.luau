@@ -55,6 +55,48 @@ function M.refusal(locale: string, reason: string?): string
 	return M.text(locale, REFUSALS[reason or ""] or "failed")
 end
 
+-- Refusals that mean "not ready yet, send the same choice again": the down push can carry no
+-- command epoch while the death commit still holds the profile (ExtensionPanels.send answers
+-- COMMAND_UNAVAILABLE without reaching the server), or the server is mid-commit. Staging v43: the
+-- first rift tap showed 'That did not work' with no server log; the second tap worked.
+M.TRANSIENT = table.freeze({
+	COMMAND_UNAVAILABLE = true,
+	COMMAND_PENDING = true,
+	-- The death commit rolled the command epoch after the panel's last push; the next push
+	-- (<= 1 s) carries the current one and a fresh request is minted for the re-send.
+	REQUEST_EXPIRED = true,
+	SERVER_EVENT_PENDING = true,
+	TRANSFER_PENDING = true,
+	SOURCE_BUSY = true,
+	["rate limited"] = true,
+	["profile operation in progress"] = true,
+}) :: { [string]: boolean }
+M.CHOOSE_TRIES, M.CHOOSE_WAIT = 8, 0.5
+
+local function transient(result: any): boolean
+	if type(result) ~= "table" or result.ok then
+		return false
+	end
+	local reason = tostring(result.reason)
+	return M.TRANSIENT[reason] == true
+		or string.sub(reason, 1, 16) == "TRANSPORT_FAILED"
+		or (type(result.data) == "table" and result.data.status == "recovering")
+end
+
+--- Sends one down choice, re-sending it while the answer is transient (at most CHOOSE_TRIES sends,
+--- `wait` between them). Returns the last answer.
+function M.choose(send: (string, { any }) -> any, option: string, wait: (number) -> ()): any
+	local result = send(M.CHOOSE, { option })
+	for _ = 2, M.CHOOSE_TRIES do
+		if not transient(result) then
+			break
+		end
+		wait(M.CHOOSE_WAIT)
+		result = send(M.CHOOSE, { option })
+	end
+	return result
+end
+
 --- Pure view model for the down screen, or nil when the actor is up.
 function M.model(locale: string, state: any): any
 	if type(state) ~= "table" or state.down ~= true then
@@ -143,11 +185,17 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	local boards: { [string]: any } = {}
 	local seen: { [string]: boolean } = {}
 	local shownDown = false
+	local choosing = false
 	local function choose(option: string)
+		if choosing then
+			return
+		end
+		choosing = true
 		task.spawn(function()
-			local result = ctx.send(M.CHOOSE, { option })
-			if not result.ok then
-				status.Text = M.refusal(locale, result.reason)
+			local result = M.choose(ctx.send, option, task.wait)
+			choosing = false
+			if type(result) ~= "table" or not result.ok then
+				status.Text = M.refusal(locale, if type(result) == "table" then result.reason else nil)
 			end
 		end)
 	end

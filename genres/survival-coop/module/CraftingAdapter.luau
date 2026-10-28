@@ -630,6 +630,19 @@ function M.new(
 							end
 						end
 					end
+					if not refusal then
+						candidate.inventory = Workshop.stackOutputs(job, candidate.inventory)
+					end
+				end
+				if
+					candidate
+					and not err
+					and not candidate.reason
+					and action == "craft-complete"
+					and not player.progression
+				then
+					local job = candidate.jobs.entries[candidate.jobId].job
+					candidate.inventory = Workshop.stackOutputs(job, candidate.inventory)
 				end
 			end
 			-- A refused start (death between the hand chain's reserve and start, a downed player) never

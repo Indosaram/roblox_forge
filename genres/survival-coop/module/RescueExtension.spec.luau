@@ -185,4 +185,41 @@ return {
 		assert(#DownPanel.newFlares(seen, { flare }) == 0, "announced once")
 		assert(#DownPanel.newFlares(seen, {}) == 0 and next(seen) == nil, "gone flares forgotten")
 	end,
+	-- p134 v43: the first rift tap was refused 'That did not work' with no server log. The down
+	-- push came while the death commit held the profile, so it carried no rescue-choose epoch and
+	-- ExtensionPanels.send answered COMMAND_UNAVAILABLE locally; the second tap had one.
+	["a down choice re-sends transient refusals and lands on the first tap"] = function()
+		local answers: { any } = {
+			{ ok = false, reason = "COMMAND_UNAVAILABLE" },
+			{ ok = false, reason = "COMMAND_PENDING" },
+			{ ok = true, data = { option = "rift" } },
+		}
+		local sent, waits = 0, 0
+		local result = DownPanel.choose(
+			function(action, args)
+				assert(action == DownPanel.CHOOSE and args[1] == "rift", "the rift choice is sent")
+				sent += 1
+				return answers[sent]
+			end,
+			"rift",
+			function()
+				waits += 1
+			end
+		)
+		assert(result.ok and sent == 3 and waits == 2, "retried until confirmed, sends " .. sent)
+		-- A final refusal is shown at once, never re-sent.
+		sent = 0
+		result = DownPanel.choose(function()
+			sent += 1
+			return { ok = false, reason = "NOT_DOWN" }
+		end, "rift", function() end)
+		assert(not result.ok and sent == 1, "final refusal sent once")
+		-- A server that stays busy ends after a bounded number of sends.
+		sent = 0
+		DownPanel.choose(function()
+			sent += 1
+			return { ok = false, reason = "COMMAND_PENDING" }
+		end, "rift", function() end)
+		assert(sent == DownPanel.CHOOSE_TRIES, "bounded retries")
+	end,
 }

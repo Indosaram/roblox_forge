@@ -265,6 +265,18 @@ function M.jobs(snapshot: any, actor: string): { any }
 	return rows
 end
 
+--- Total quantity of one catalog item across every stack in the bag (reserved units included):
+--- the craft panel's output row shows it, not the size of a single stack.
+function M.held(bag: any, catalogId: string): number
+	local total = 0
+	for _, row in M.items(bag) do
+		if row.item.catalogId == catalogId then
+			total += row.item.quantity
+		end
+	end
+	return total
+end
+
 function M.ingredients(bag: any, recipe: any): { any }
 	local rows = {}
 	for _, input in recipe.inputs do
