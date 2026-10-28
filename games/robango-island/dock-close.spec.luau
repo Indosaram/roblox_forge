@@ -39,7 +39,9 @@ local function signal(): any
 	return s
 end
 
--- options: width, height, inset (top bar px a CoreUISafeInsets gui loses), touch, locale.
+-- options: width, height, inset (top bar px a CoreUISafeInsets gui loses), touch, locale, realHud
+-- (start the shipped SurvivalHUD instead of a stub, with GuiService.TopbarInset and computed
+-- AbsolutePosition/AbsoluteSize for offset/scale GuiObjects).
 local function harness(options: any?): any
 	local opts = options or {}
 	local locale = opts.locale or "ko-kr"
@@ -49,6 +51,29 @@ local function harness(options: any?): any
 	local errors: { string } = {}
 	local nodes: { any } = {}
 	local attributes: { [string]: any } = {}
+	-- Gui-space rect of a GuiObject from Size/Position/AnchorPoint (offset and scale), its ScreenGui at 0,0.
+	local function layoutRect(item: any): any
+		local parent = item.Parent
+		local base = if parent and parent.Size
+			then layoutRect(parent)
+			elseif parent and parent.ClassName == "ScreenGui" then {
+				x = 0,
+				y = 0,
+				width = parent.AbsoluteSize.X,
+				height = parent.AbsoluteSize.Y,
+			}
+			else { x = 0, y = 0, width = screen.width, height = screen.height }
+		local size, position = item.Size, item.Position or roblox.UDim2.new()
+		local width = size.X.Scale * base.width + size.X.Offset
+		local height = size.Y.Scale * base.height + size.Y.Offset
+		local anchor = item.AnchorPoint or roblox.Vector2.zero
+		return {
+			x = base.x + position.X.Scale * base.width + position.X.Offset - anchor.X * width,
+			y = base.y + position.Y.Scale * base.height + position.Y.Offset - anchor.Y * height,
+			width = width,
+			height = height,
+		}
+	end
 	local heartbeat = signal()
 	local viewport = roblox.Vector2.new(screen.width, screen.height)
 	local methods: any = {}
@@ -79,6 +104,12 @@ local function harness(options: any?): any
 					local safe = data.ScreenInsets == roblox.Enum.ScreenInsets.CoreUISafeInsets
 					return roblox.Vector2.new(at.width, at.height - (if safe then at.inset else 0))
 				end
+				if opts.realHud and (key == "AbsolutePosition" or key == "AbsoluteSize") and data.Size then
+					local r = layoutRect(self)
+					return if key == "AbsolutePosition"
+						then roblox.Vector2.new(r.x, r.y)
+						else roblox.Vector2.new(r.width, r.height)
+				end
 				local value = data[key]
 				if value ~= nil then
 					return value
@@ -107,6 +138,10 @@ local function harness(options: any?): any
 						or string.find(key, "Destroying")
 						or string.find(key, "Lost$")
 						or string.find(key, "Stepped$")
+						or (
+							opts.realHud
+							and (string.find(key, "Shown$") or string.find(key, "Hidden$") or string.find(key, "ing$"))
+						)
 					then
 						data[key] = signal()
 						return data[key]
@@ -288,6 +323,12 @@ local function harness(options: any?): any
 		CollectionService = node("CollectionService"),
 		TweenService = node("TweenService"),
 		Workspace = workspace,
+		-- Top bar band in screen px; a CoreUISafeInsets gui starts below it (AbsolutePosition y 0).
+		GuiService = node("GuiService"),
+	}
+	services.GuiService.TopbarInset = {
+		Min = roblox.Vector2.zero,
+		Max = roblox.Vector2.new(screen.width, if opts.realHud then screen.inset else 0),
 	}
 	services.Players.LocalPlayer = player
 	function services.Players.GetPlayers()
@@ -461,6 +502,31 @@ local function harness(options: any?): any
 	function hud.isOpen()
 		return hud.shown
 	end
+	if opts.realHud then
+		-- The client's SurvivalHUD.start call (contextual shell), on the real ui-kit.
+		hud = load("genres/survival-coop/module/SurvivalHUD").start({
+			icons = env.itemIcons,
+			contextual = true,
+			shell = {
+				name = function(_kind, key)
+					return env.names[key]
+				end,
+				open = function() end,
+			},
+			openPanel = function()
+				return false
+			end,
+			content = env.content,
+			ui = {
+				components = load("core/ui-kit/Components"),
+				grid = load("core/ui-kit/InventoryGrid"),
+				theme = load("core/ui-kit/Theme"),
+			},
+			settlementOrigin = roblox.Vector3.new(0, 0, 0),
+			locale = locale,
+			names = env.names,
+		})
+	end
 	env.hud = hud
 	env.audio = {
 		signal = function() end,
@@ -472,9 +538,14 @@ local function harness(options: any?): any
 	luau.load(section, { debugName = CLIENT, environment = env })()
 	local dock = assert(playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
 	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes, playerGui = playerGui, hud = hud }
+	h.rect = layoutRect
 	-- Device change: every enabled ScreenGui is laid out again and reports it; a disabled one is not.
 	function h.setViewport(width: number, height: number, inset: number)
 		screen.width, screen.height, screen.inset = width, height, inset
+		services.GuiService.TopbarInset = {
+			Min = roblox.Vector2.zero,
+			Max = roblox.Vector2.new(width, if opts.realHud then inset else 0),
+		}
 		viewport = roblox.Vector2.new(width, height)
 		DEFAULTS.AbsoluteSize, DEFAULTS.ViewportSize = viewport, viewport
 		for _, item in nodes do
@@ -717,7 +788,68 @@ local function menuReach(h: any, tile: any, view: { any }): boolean
 		and inside(frame, screen)
 end
 
+-- D2b fix 4: the SurvivalSheet (bag, craft, skills, build) on the shipped SurvivalHUD.
+local function sheetParts(h: any): (any, any, any)
+	local gui = assert(h.playerGui:FindFirstChild("ForgeSurvivalHUD"), "survival hud gui")
+	local frame = assert(gui:FindFirstChild("SafeArea"):FindFirstChild("SurvivalSheet"), "survival sheet")
+	return gui, frame, frame:FindFirstChild("Header"):FindFirstChild("Close")
+end
+local function overlap(a: any, b: any): boolean
+	return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
+end
+-- The notice lane (status line + MaterialToast) must sit on screen and off every content rect.
+local function laneClear(h: any, content: { any }, where: string)
+	local gui = h.playerGui:FindFirstChild("ForgeSurvivalHUD")
+	for _, name in { "Status", "MaterialToast" } do
+		local item = assert(gui:FindFirstChild(name), name)
+		local r = h.rect(item)
+		assert(r.width > 0 and r.height >= 28, string.format("%s lane %dx%d at %s", name, r.width, r.height, where))
+		assert(r.y >= 0 and r.y + r.height <= gui.AbsoluteSize.Y, name .. " lane on screen at " .. where)
+		for _, c in content do
+			assert(
+				not overlap(r, c.rect),
+				string.format("%s (%d,%d %dx%d) covers %s at %s", name, r.x, r.y, r.width, r.height, c.name, where)
+			)
+		end
+	end
+end
+
 return {
+	["D2b 4: SurvivalSheet Close sits below the top-bar band, closes by click, and notices never cover its rows"] = function()
+		-- PC 1280x720 (58 px top bar, the D2b capture) and the SM-N981N landscape phone.
+		for _, view in { { 1280, 720, 58, false }, { 850, 411, 58, true } } do
+			local where = string.format("%dx%d", view[1], view[2])
+			local h = harness({ width = view[1], height = view[2], inset = view[3], touch = view[4], realHud = true })
+			local _, frame, close = sheetParts(h)
+			for _, section in { "bag", "craft", "skills", "build", "skills" } do
+				h.hud.open(section)
+				h.step()
+				assert(frame.Visible, section .. " opens at " .. where)
+				local x = h.rect(close)
+				-- GuiService.TopbarInset.Max.Y in the gui's space: presses above it never reach the button.
+				assert(
+					x.y >= view[3] and x.width >= 44 and x.height >= 44,
+					string.format("%s Close at y %d inside the %d px top bar band at %s", section, x.y, view[3], where)
+				)
+				local content: { any } = {}
+				if section == "bag" or section == "craft" then
+					for _, name in { "Categories", "CraftActions" } do
+						table.insert(content, { name = name, rect = h.rect(frame:FindFirstChild(name)) })
+					end
+					local panes = frame:FindFirstChild("PanelPanes")
+					for _, name in { "ItemList", "ItemDetails" } do
+						table.insert(content, { name = name, rect = h.rect(panes:FindFirstChild(name)) })
+					end
+				else
+					table.insert(content, { name = section .. " sheet", rect = h.rect(frame) })
+				end
+				laneClear(h, content, section .. " " .. where)
+				h.click(close)
+				assert(not frame.Visible, section .. " X closes the sheet at " .. where)
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
 	["D2 F4: the trading post fills 800x360, 850x411 (58 px inset) and 1920x1080 after any device change; X closes it"] = function()
 		for _, locale in { "ko-kr", "en-us" } do
 			-- Studio order: the panels start on a PC window, the device simulator then switches screens.

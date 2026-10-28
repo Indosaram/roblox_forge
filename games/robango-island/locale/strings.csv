@@ -2580,7 +2580,7 @@ trv.town_claimed,Plot claimed. Build on it with your camp,dock travel result,Plo
 trv.town_unavailable,The town is not ready yet,dock travel result,The town is not ready yet,마을이 아직 준비되지 않았어요
 trv.PLOT_OWNED,Someone already holds this plot,dock travel result,Someone already holds this plot,이미 주인이 있는 구획이에요
 trv.ALREADY_CLAIMED,You already hold a plot,dock travel result,You already hold a plot,이미 맡은 구획이 있어요
-trv.RANK_REQUIRED,Finish the arrival tutorial first,dock travel result,Finish the arrival tutorial first,도착 튜토리얼을 먼저 마치세요
+trv.RANK_REQUIRED,Gather fiber and craft an axe to claim a plot,town plot claim refusal (development grade 1: guides rw.g01 + rw.g02),Gather fiber and craft an axe to claim a plot,섬유를 모으고 도끼를 만들면 구획을 맡을 수 있어요
 trv.UNKNOWN_PLOT,That plot does not exist,dock travel result,That plot does not exist,없는 구획이에요
 trv.PLOT_UNCLAIMED,Claim this plot first,dock travel result,Claim this plot first,이 구획을 먼저 맡으세요
 trv.PLOT_UNREACHABLE,Stand on your plot to build,dock travel result,Stand on your plot to build,내 구획 안에서 지으세요

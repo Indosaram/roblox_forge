@@ -415,6 +415,8 @@ M.PANEL_MIN_TEXT = 13
 M.PANEL_ROWS =
 	table.freeze({ bar = { 0.10, 72 }, category = { 0.09, 56 }, list = { 0.11, 72 }, primary = { 0.12, 64 } })
 M.BAG_COLUMNS = 6
+-- Smallest notice lane height (one 13 px line plus padding).
+M.NOTICE_MIN = 28
 M.MARKET_GRID_COLUMNS = 4
 
 export type PanelLayout = {
@@ -423,6 +425,8 @@ export type PanelLayout = {
 	frame: Rect,
 	bar: Rect,
 	title: Rect,
+	-- Status / refusal toast lane while the panel is open (never over the columns).
+	notice: Rect,
 	currency: Rect,
 	close: Rect,
 	categories: Rect,
@@ -455,19 +459,35 @@ function M.gridCell(width: number, columns: number, gap: number?): number
 end
 
 --- Panel rects in the space of a CoreUISafeInsets ScreenGui of `width` x `height` (`topClear` as in
---- `regions`). `kind` is craft, market or bag.
-function M.panel(width: number, height: number, topClear: number?, kind: string): PanelLayout
+--- `regions`). `kind` is craft, market or bag. `hitTop` is the first gui row that receives presses
+--- (HudShell.hitClear): D2b Studio, the 1280x720 craft/bag Close at gui y 11 never activated by path
+--- or by coordinates, and ac58d0f saw the same for the dock at y 8. The title row then drops below
+--- it and the strip it leaves at the top of the bar is the notice lane; with no band the notice lane
+--- is the bar between the title and the currency pill. Either way it never covers the columns.
+function M.panel(width: number, height: number, topClear: number?, kind: string, hitTop: number?): PanelLayout
 	local top = topClear or 0
 	local h = height - top
 	local gap = M.PANEL_GAP
 	local pad = math.max(gap, math.floor(0.02 * h + 0.5))
 	local barHeight = row("bar", h)
 	local close = M.MIN_TOUCH
-	local closeRect = rect(width - pad - close, top + (barHeight - close) / 2, close, close)
+	local inset = (barHeight - close) / 2
+	local rowY = math.max(top, (hitTop or top) - inset)
+	local closeRect = rect(width - pad - close, rowY + inset, close, close)
 	local pillHeight = math.min(barHeight - 8, math.max(28, math.floor(0.07 * h + 0.5)))
 	local pillWidth = math.clamp(math.floor(0.45 * h + 0.5), 140, 240)
-	local currency = rect(closeRect.x - gap - pillWidth, top + (barHeight - pillHeight) / 2, pillWidth, pillHeight)
-	local title = rect(pad, top, math.max(0, currency.x - gap - pad), barHeight)
+	local currency = rect(closeRect.x - gap - pillWidth, rowY + (barHeight - pillHeight) / 2, pillWidth, pillHeight)
+	local titleRoom = math.max(0, currency.x - gap - pad)
+	local title, notice
+	if rowY - top >= M.NOTICE_MIN then
+		title = rect(pad, rowY, titleRoom, barHeight)
+		notice = rect(pad, top, width - 2 * pad, rowY - top)
+	else
+		local titleWidth = math.floor(titleRoom * 0.4 + 0.5)
+		title = rect(pad, rowY, titleWidth, barHeight)
+		notice = rect(pad + titleWidth + gap, rowY, math.max(0, titleRoom - titleWidth - gap), barHeight)
+	end
+	barHeight += rowY - top
 	local y0 = top + barHeight + gap
 	local bodyHeight = top + h - pad - y0
 	local bodyWidth = width - 2 * pad - 2 * gap
@@ -493,6 +513,7 @@ function M.panel(width: number, height: number, topClear: number?, kind: string)
 		frame = rect(0, top, width, h),
 		bar = rect(0, top, width, barHeight),
 		title = title,
+		notice = notice,
 		currency = currency,
 		close = closeRect,
 		categories = categories,
@@ -628,6 +649,28 @@ function M.fan(
 	}
 end
 
+--- Status line and refusal toast lane while a sheet is open, in gui space, never over the sheet's
+--- content (D2b: the "pending" line sat top-centre over the bag, skills and build rows). A full-screen
+--- panel has its own lane in the title bar (`panel.notice`); a side sheet gets the strip above it,
+--- else the wider gap beside it, else whatever strip is left above it (possibly empty).
+function M.noticeLane(width: number, height: number, topClear: number?, sheet: Rect, panel: PanelLayout?): Rect
+	if panel then
+		return panel.notice
+	end
+	local top = topClear or 0
+	local h = height - top
+	local lane = math.clamp(math.floor(0.08 * h + 0.5), M.NOTICE_MIN, 44)
+	if sheet.y - top >= lane + 8 then
+		return rect(sheet.x, sheet.y - 4 - lane, sheet.width, lane)
+	end
+	local left, right = sheet.x, width - sheet.x - sheet.width
+	if math.max(left, right) >= 136 then
+		local x = if left >= right then 8 else sheet.x + sheet.width + 8
+		return rect(x, sheet.y, math.max(left, right) - 16, 2 * lane)
+	end
+	return rect(sheet.x, top, sheet.width, math.max(0, sheet.y - top))
+end
+
 --- Item-gain toast stack (spec section 5: top-right, 0.46-0.58H, three lines) and the level-up
 --- banner (top-centre, the status region). Lines are `caption`-scale but never under 13 px.
 function M.feedback(width: number, height: number, topClear: number?): { toasts: { Rect }, banner: Rect }
@@ -750,6 +793,13 @@ function M.guiClear(gui: any): number
 		return 0
 	end
 	-- Headless spec engines have no TopbarInset; there is no top bar to clear then.
+	local inset = game:GetService("GuiService").TopbarInset
+	return if inset then M.topClear(inset.Max.Y, gui.AbsolutePosition.Y) else 0
+end
+
+--- First gui row that receives presses: GuiService.TopbarInset.Max.Y in the gui's space, also for a
+--- CoreUISafeInsets gui. Layout keeps using guiClear (no double inset); only hit targets clear this.
+function M.hitClear(gui: any): number
 	local inset = game:GetService("GuiService").TopbarInset
 	return if inset then M.topClear(inset.Max.Y, gui.AbsolutePosition.Y) else 0
 end

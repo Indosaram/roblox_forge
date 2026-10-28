@@ -13,7 +13,22 @@ M.PLOT_STUDS = 64
 M.CELL_STUDS = 4
 M.GRID = 16
 M.MAX_MEMBERS = 4
+-- First-plot rule: development grade 1 (100 points). The first two guides, rw.g01 (gather fiber x3)
+-- and rw.g02 (craft the first axe), give 50 points each and are both beats of the C1 opening, so a
+-- new player meets it in the first session; the town is reachable from onboarding before that, so
+-- the refusal is shown as a toast naming those two guides (trv.RANK_REQUIRED, see toastReason).
 M.MIN_DEVELOPMENT_RANK = 1
+M.FIRST_PLOT_GUIDES = table.freeze({ "rw.g01.first-gather", "rw.g02.first-axe" })
+-- Claim outcomes the stake prompt publishes (RoleWorld, "<outcome>|<serial>") that the client toasts.
+M.CLAIM_OUTCOMES = table.freeze({
+	town_claimed = true,
+	town_unavailable = true,
+	RANK_REQUIRED = true,
+	PLOT_OWNED = true,
+	ALREADY_CLAIMED = true,
+	UNKNOWN_PLOT = true,
+	PLOT_UNREACHABLE = true,
+})
 -- Island ellipse radii and the inner fraction every plot footprint must stay within (§2 coast check).
 M.ISLAND = table.freeze({ x = 760, z = 740, inner = 0.86 })
 -- Town-hall-only and siege structures never go on a plot (§4 rule 7).
@@ -108,6 +123,16 @@ end
 function M.flagColour(seed: number, ownerId: string): { number }
 	local rng = Rng.new(seed):fork("town:flag:" .. ownerId)
 	return M.FLAG_COLOURS[rng:nextInteger(1, #M.FLAG_COLOURS)]
+end
+
+--- The claim outcome to toast for a published ForgeTravelResult value ("<outcome>|<serial>"), or nil
+--- when the value is not a plot claim result (dock travel results keep the objective-card line).
+function M.toastReason(published: any): string?
+	if type(published) ~= "string" then
+		return nil
+	end
+	local outcome = string.match(published, "^([^|]+)")
+	return if outcome and M.CLAIM_OUTCOMES[outcome] then outcome else nil
 end
 
 function M.tribeId(townId: string, plotId: string): string

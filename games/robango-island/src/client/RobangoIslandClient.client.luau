@@ -305,6 +305,19 @@ do
 	gui.Destroying:Connect(function()
 		levelWatch:Disconnect()
 	end)
+	-- Saltmeadow plot claims (D2b R12): the stake's result, a refusal reason included, is a toast.
+	-- The objective card only shows ForgeTravelResult while no contract notice holds it, so a
+	-- RANK_REQUIRED claim used to log on the server with nothing on screen.
+	local TownPlots = require(Shared.TownPlots)
+	local claimWatch = player:GetAttributeChangedSignal("ForgeTravelResult"):Connect(function()
+		local reason = TownPlots.toastReason(player:GetAttribute("ForgeTravelResult"))
+		if reason then
+			gatherPicker.toast(require(Forge.genres["survival-coop"].module.ExtensionPanels).travelText(locale, reason))
+		end
+	end)
+	gui.Destroying:Connect(function()
+		claimWatch:Disconnect()
+	end)
 end
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name, toastGui.ResetOnSpawn = "BiomeToast", false

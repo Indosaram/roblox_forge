@@ -83,6 +83,36 @@ return {
 		end
 	end,
 
+	["D2b 4: with a top-bar hit band the bar's controls clear it and the notice lane never meets the columns"] = function()
+		-- CoreUISafeInsets gui (topClear 0) under a 58 px band (PC) and a phone with a 32 px band.
+		for _, view in { { 1280, 662, 58 }, { 800, 360, 32 }, { 1920, 1022, 58 }, { 850, 411, 0 } } do
+			for _, kind in KINDS do
+				local where = label(kind, { view[1], view[2] }, "band " .. view[3])
+				local p = Shell.panel(view[1], view[2], 0, kind, view[3])
+				-- The press target clears the band; the bar's labels keep their padding around it.
+				assert(p.close.y >= view[3], where .. " close below the band")
+				assert(p.close.width >= Shell.MIN_TOUCH and p.close.y + p.close.height <= p.bar.y + p.bar.height, where)
+				assert(p.notice.width > 0 and p.notice.height >= Shell.NOTICE_MIN, where .. " notice lane size")
+				for _, id in { "categories", "list", "detailBody", "primary", "close", "currency", "title" } do
+					assert(not Shell.overlaps(p.notice, (p :: any)[id]), where .. " notice lane over " .. id)
+				end
+				assert(Shell.noticeLane(view[1], view[2], 0, p.frame, p) == p.notice, where .. " panel lane")
+				assert(p.list.height >= 2 * p.listRow, where .. " list rows still fit")
+			end
+		end
+		-- Side sheets: the lane sits above or beside the sheet, never on it.
+		local cases: { { w: number, h: number, sheet: Shell.Rect } } = {
+			{ w = 1280, h = 662, sheet = { x = 552, y = 64, width = 720, height = 470 } },
+			{ w = 800, h = 360, sheet = { x = 104, y = 64, width = 592, height = 288 } },
+			{ w = 360, h = 582, sheet = { x = 0, y = 64, width = 360, height = 502 } },
+		}
+		for _, case in cases do
+			local lane = Shell.noticeLane(case.w, case.h, 0, case.sheet)
+			assert(not Shell.overlaps(lane, case.sheet), "side sheet lane over the sheet at " .. case.w)
+			assert(Shell.inside(lane, case.w, case.h, 0), "side sheet lane on screen at " .. case.w)
+		end
+	end,
+
 	["column widths follow the spec fractions"] = function()
 		for _, view in VIEWS do
 			for _, kind in KINDS do

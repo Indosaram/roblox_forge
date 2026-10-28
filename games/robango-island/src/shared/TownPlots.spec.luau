@@ -96,6 +96,50 @@ return {
 		local r6 = reasonOf(TownPlots.claim(layout, TOWN, nil, "W02", "3", { developmentRank = 1 }, -1))
 		assert(r6 == "INVALID_CLOCK", "explicit clock required")
 	end,
+	["D2b 5: the first plot's rank is met by the first two opening guides; refusals map to KO/EN toasts"] = function()
+		-- Grade = floor(points / 100) (SurvivalFactory developmentFacts); the first-plot guides are open
+		-- to a level-1, grade-0 player and together pay at least MIN_DEVELOPMENT_RANK grades.
+		local fs = require("@lune/fs")
+		local factory = fs.readFile("games/robango-island/src/server/SurvivalFactory.luau")
+		assert(string.find(factory, "grade = math.min(10, math.floor(points / 100))", 1, true), "grade formula")
+		assert(string.find(factory, "developmentFacts(expeditionStore.snapshot(actor)).grade", 1, true), "claim rank")
+		local points = 0
+		for _, id in TownPlots.FIRST_PLOT_GUIDES do
+			local found = nil
+			for _, guide in Content.guides do
+				found = if guide.id == id then guide else found
+			end
+			assert(found, "guide " .. id)
+			assert((found.gates.developmentRank or 0) == 0 and (found.gates.characterLevel or 1) <= 1, id .. " gate")
+			points += found.rewards.development
+		end
+		assert(math.floor(points / 100) >= TownPlots.MIN_DEVELOPMENT_RANK, "first-plot guides pay grade 1")
+		-- Both are beats of the C1 opening every new player plays (fiber gather, then the hatchet).
+		local Scene = require("./OpeningScene")
+		local steps = {}
+		for _, step in Scene.STEPS do
+			steps[step.id] = true
+		end
+		assert(steps.fiber and steps.hatchet, "opening teaches fiber and the axe")
+		-- Every claim outcome the stake publishes is a toast with its own KO and EN line.
+		local _text = require("../../PackText.fixture")
+		local Panels = require("../../../../genres/survival-coop/module/ExtensionPanels")
+		for outcome in TownPlots.CLAIM_OUTCOMES do
+			assert(TownPlots.toastReason(outcome .. "|7") == outcome, outcome .. " toasts")
+			local en, ko = Panels.travelText("en-us", outcome), Panels.travelText("ko-kr", outcome)
+			assert(en ~= Panels.travelText("en-us", "?") and ko ~= Panels.travelText("ko-kr", "?"), outcome)
+			assert(en ~= ko, outcome .. " KO differs from EN")
+		end
+		assert(string.find(Panels.travelText("en-us", "RANK_REQUIRED"), "axe", 1, true), "names the guides")
+		assert(TownPlots.toastReason("travelling|3") == nil and TownPlots.toastReason(nil) == nil, "dock results")
+		-- The client toasts each new claim result (the objective card is held by contract notices).
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(
+			string.find(client, 'GetAttributeChangedSignal("ForgeTravelResult")', 1, true)
+				and string.find(client, "TownPlots.toastReason(", 1, true),
+			"client toasts claim results"
+		)
+	end,
 	["build: inside your plot only; outsiders, other plots and town-hall pieces refused"] = function()
 		local layout, defs = TownPlots.layout(SEED), definitions()
 		local doc = claimed(layout, "E05", "1")

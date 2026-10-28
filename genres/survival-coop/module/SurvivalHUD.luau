@@ -1055,11 +1055,23 @@ function M.start(options: Options)
 	local function itemCategory(id: string): string
 		return IconFallback.category(itemDefinitions[id] or { id = id })
 	end
+	-- Contextual side sheet (skills, build, ...). Its header Close stays below the top-bar band that
+	-- swallows presses (HudShell.hitClear): the sheet top is pushed down to it when needed.
+	local function placeSideSheet()
+		local size = root.AbsoluteSize
+		local sx, sy, sw, sh = Model.contextSheet(size.X, size.Y, input.TouchEnabled)
+		local band = HudShell.hitClear(gui) - (root.AbsolutePosition.Y - gui.AbsolutePosition.Y)
+		if sy < band then
+			sy, sh = band, math.max(0, sh - (band - sy))
+		end
+		sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
+			Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
+	end
 	local function fitShellPanel()
 		local kind = if shell and sheet.frame.Visible and (section == "bag" or section == "craft") then section else nil
 		if kind then
 			local view = gui.AbsoluteSize
-			panelLayout = HudShell.panel(view.X, view.Y, HudShell.guiClear(gui), kind)
+			panelLayout = HudShell.panel(view.X, view.Y, HudShell.guiClear(gui), kind, HudShell.hitClear(gui))
 			HudShell.applyPanel(sheet, panelLayout, root.AbsolutePosition - gui.AbsolutePosition)
 			HudShell.put(currency, panelLayout.currency, Vector2.new(panelLayout.frame.x, panelLayout.frame.y))
 			currency.TextSize = panelLayout.text.label
@@ -1071,6 +1083,9 @@ function M.start(options: Options)
 				close = HudShell.color(theme.colors.bad),
 				titleSize = theme.textSizes.body,
 			})
+			-- applyPanel left the frame on the full-screen rect (Close at gui y ~0, under the top bar):
+			-- D2b skills/build opened after bag/craft could only be closed by their key.
+			placeSideSheet()
 		end
 	end
 	render = function()
@@ -2100,12 +2115,13 @@ function M.start(options: Options)
 		return if right > 0 then right + 8 else CHAT_RESERVE_WIDTH
 	end
 
+	local placeNotices: () -> ()
 	local function resize()
 		local size = root.AbsoluteSize
 		if contextual then
-			local sx, sy, sw, sh = Model.contextSheet(size.X, size.Y, input.TouchEnabled)
-			sheet.frame.AnchorPoint, sheet.frame.Position, sheet.frame.Size =
-				Vector2.zero, UDim2.fromOffset(sx, sy), UDim2.fromOffset(sw, sh)
+			if not panelLayout then
+				placeSideSheet()
+			end
 			if shell then
 				local view = gui.AbsoluteSize
 				shellRegions = HudShell.regions(view.X, view.Y, HudShell.guiClear(gui), input.TouchEnabled)
@@ -2156,6 +2172,38 @@ function M.start(options: Options)
 			UDim2.new(1, -math.floor(width / 2) - 4, 0, 132), UDim2.fromOffset(math.floor(width / 2) - 4, 48)
 	end
 	table.insert(connections, root:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize))
+	-- Status line and material/refusal toast while a sheet is open: HudShell.noticeLane, never over
+	-- the sheet's rows (D2b: "pending" top-centre over bag, skills and build). Back to the HUD slots
+	-- when the sheet closes.
+	local laned = false
+	placeNotices = function()
+		if not sheet.frame.Visible then
+			if laned then
+				laned = false
+				toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -264)
+				resize()
+			end
+			return
+		end
+		laned = true
+		-- Above the sheet (Sibling ZIndex at the gui level; the sheet's root is ZIndex 1).
+		toast.ZIndex, status.ZIndex = 60, 60
+		local view, at = gui.AbsoluteSize, gui.AbsolutePosition
+		local frameAt = sheet.frame.AbsolutePosition - at
+		local frameSize = sheet.frame.AbsoluteSize
+		local lane = HudShell.noticeLane(view.X, view.Y, HudShell.guiClear(gui), {
+			x = frameAt.X,
+			y = frameAt.Y,
+			width = frameSize.X,
+			height = frameSize.Y,
+		}, panelLayout)
+		HudShell.put(toast, lane, toast.Parent.AbsolutePosition - at)
+		HudShell.put(status, lane, status.Parent.AbsolutePosition - at)
+		-- One line at a time: the newer toast hides the status line behind it.
+		if toast.Visible then
+			status.Visible = false
+		end
+	end
 	local RunService = game:GetService("RunService")
 	local lastChatRight: number? = nil
 	local function followChat(): ()
@@ -2347,6 +2395,7 @@ function M.start(options: Options)
 					end
 				end
 				player:SetAttribute("ForgeSurvivalSheetOpen", sheet.frame.Visible)
+				placeNotices()
 				local gatherGui = player.PlayerGui:FindFirstChild("ForgeGatherTouch")
 				promptService.Enabled = not modal
 				if gatherGui and gatherGui:IsA("ScreenGui") then
