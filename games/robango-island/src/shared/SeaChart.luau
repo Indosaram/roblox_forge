@@ -14,20 +14,22 @@ M.HISTORY = 8
 M.GRID = { columns = 5, rows = 3 }
 -- Chart slots: { column, row } on the 5x3 sea grid plus a fixed nudge inside the cell (0-1).
 -- Low bands sit near home on the left; higher bands and the drift isles sail further out.
+-- `rift`: the island has a rift (RoleWorld: HarborRift on rw.harbor, the drift camp rift on every
+-- archipelago stage); sea-chart.spec checks the flag against the built worlds.
 local islandRows: { any } = {
 	{ id = "home", role = "home", cell = { 0, 1 }, nudge = { 0.35, 0.3 } },
-	{ id = "harbor", role = "harbor", cell = { 1, 1 }, nudge = { 0.6, 0.55 } },
+	{ id = "harbor", role = "harbor", cell = { 1, 1 }, nudge = { 0.6, 0.55 }, rift = true },
 	{ id = "explore10", role = "explore10", cell = { 1, 0 }, nudge = { 0.2, 0.75 } },
 	{ id = "explore20", role = "explore20", cell = { 2, 0 }, nudge = { 0.7, 0.35 } },
 	{ id = "frontier30", role = "frontier30", cell = { 3, 0 }, nudge = { 0.3, 0.8 } },
 	{ id = "frontier40", role = "frontier40", cell = { 4, 0 }, nudge = { 0.65, 0.2 } },
 	{ id = "frontier60", role = "frontier60", cell = { 3, 1 }, nudge = { 0.8, 0.45 } },
 	{ id = "frontier50", role = "frontier50", cell = { 4, 1 }, nudge = { 0.25, 0.7 } },
-	{ id = "drift1", route = 1, cell = { 0, 2 }, nudge = { 0.6, 0.4 } },
-	{ id = "drift2", route = 2, cell = { 1, 2 }, nudge = { 0.25, 0.85 } },
-	{ id = "drift3", route = 3, cell = { 2, 2 }, nudge = { 0.75, 0.6 } },
-	{ id = "drift4", route = 4, cell = { 3, 2 }, nudge = { 0.35, 0.3 } },
-	{ id = "drift5", route = 5, cell = { 2, 1 }, nudge = { 0.45, 0.5 } },
+	{ id = "drift1", route = 1, cell = { 0, 2 }, nudge = { 0.6, 0.4 }, rift = true },
+	{ id = "drift2", route = 2, cell = { 1, 2 }, nudge = { 0.25, 0.85 }, rift = true },
+	{ id = "drift3", route = 3, cell = { 2, 2 }, nudge = { 0.75, 0.6 }, rift = true },
+	{ id = "drift4", route = 4, cell = { 3, 2 }, nudge = { 0.35, 0.3 }, rift = true },
+	{ id = "drift5", route = 5, cell = { 2, 1 }, nudge = { 0.45, 0.5 }, rift = true },
 }
 M.ISLANDS = table.freeze(islandRows)
 M.COMPASS_CELL = { 4, 2 }
@@ -92,6 +94,7 @@ function M.islands(content: any, view: any): { any }
 	local level = view.level or 1
 	for _, island in M.ISLANDS do
 		local card: any = { id = island.id, cell = island.cell, nudge = island.nudge, band = M.band(content, island) }
+		card.rift = island.rift == true
 		if island.route then
 			local layout = layoutOf(content, "rw.a" .. island.route .. ".s1")
 			card.route, card.drift = island.route, true
@@ -101,10 +104,13 @@ function M.islands(content: any, view: any): { any }
 			if trip and trip.status == "active" and trip.index == island.route then
 				card.here, card.expiresAt = view.role == "archipelago", trip.expiresAt
 			end
+			-- The route window is the same rotation everywhere, so every drift isle counts down on
+			-- the chart, not only at the harbor (v40: no countdown in town or onboarding).
+			card.expiresAt = card.expiresAt or (if route then route.expiresAt else nil)
 			if view.role ~= "harbor" then
 				card.locked, card.reason = not card.here, if card.here then nil else "transition_not_allowed"
 			elseif route then
-				card.locked, card.reason, card.expiresAt = not route.ok, route.reason, card.expiresAt or route.expiresAt
+				card.locked, card.reason = not route.ok, route.reason
 			else
 				local ok, reason = Party.routeGate(content, island.route, view.facts or { level = level })
 				card.locked, card.reason = not ok, reason
@@ -204,8 +210,20 @@ end
 
 --- Full-screen chart rects in gui pixels: header (title, close), the sea grid with one tile per
 --- island (marker, name, band chip), the compass, the 0.28H bottom sheet and the HUD timer pill.
+--- A top clearance that leaves no room for a whole tile per grid cell is given back row by row
+--- (the header slides up) so island tiles and their labels never overlap.
 function M.layout(width: number, height: number, topClear: number?): any
-	local top = topClear or 0
+	local top = math.max(0, math.floor(topClear or 0))
+	local layout = M.layoutAt(width, height, top)
+	while not layout.fits and top > 0 do
+		top -= 1
+		layout = M.layoutAt(width, height, top)
+	end
+	return layout
+end
+
+--- One layout pass at a fixed top clearance; `fits` is false when a tile is taller than its cell.
+function M.layoutAt(width: number, height: number, top: number): any
 	local h = height - top
 	local text = M.textSizes(h)
 	local pad = math.max(8, math.floor(0.03 * h + 0.5))
@@ -218,11 +236,12 @@ function M.layout(width: number, height: number, topClear: number?): any
 	local marker = math.clamp(math.floor(cellH * 0.42), 44, 96)
 	local tileH = marker + 2 + (text.name + 4) + (text.chip + 4)
 	local tileW = math.min(cellW - 8, 240)
+	local fits = tileH <= cellH - 2
 	local tiles = {}
 	for _, island in M.ISLANDS do
 		local cx, cy = chart.x + island.cell[1] * cellW, chart.y + island.cell[2] * cellH
 		local x = cx + 4 + (cellW - 8 - tileW) * island.nudge[1]
-		local y = cy + 2 + math.max(0, cellH - 4 - tileH) * island.nudge[2]
+		local y = cy + 1 + math.max(0, cellH - 2 - tileH) * island.nudge[2]
 		local tile = rect(x, y, tileW, tileH)
 		tiles[island.id] = {
 			tile = tile,
@@ -251,6 +270,8 @@ function M.layout(width: number, height: number, topClear: number?): any
 	local timerW = math.max(240, math.floor(0.62 * h + 0.5))
 	return {
 		safeHeight = h,
+		top = top,
+		fits = fits,
 		text = text,
 		header = header,
 		title = title,
@@ -298,7 +319,7 @@ local WASH, HOME = { 127, 163, 91 }, { 201, 154, 59 }
 function M.panel(ctx: any): any
 	local players = game:GetService("Players")
 	local run = game:GetService("RunService")
-	local HudShell = require("../../../../genres/survival-coop/module/HudShell")
+	local guiService = game:GetService("GuiService")
 	local player = players.LocalPlayer
 	local function rgb(value: { number }): Color3
 		return Color3.fromRGB(value[1], value[2], value[3])
@@ -347,7 +368,10 @@ function M.panel(ctx: any): any
 	close.BackgroundColor3, close.Font, close.Parent = Color3.fromRGB(237, 230, 214), Enum.Font.GothamBold, header
 	local compass = label(sheetFrame, "Compass", 18, INK)
 	compass.Text = ctx.text("compass")
+	-- Border mode: a UIStroke on a TextLabel defaults to Contextual and outlines the glyph, which
+	-- read as an unlabelled black blob under the frontier50 isle (staging v40).
 	local compassRing = Instance.new("UIStroke")
+	compassRing.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	compassRing.Color, compassRing.Thickness, compassRing.Parent = rgb(INK), 2, compass
 	local compassCorner = Instance.new("UICorner")
 	compassCorner.CornerRadius, compassCorner.Parent = UDim.new(0.5, 0), compass
@@ -395,14 +419,23 @@ function M.panel(ctx: any): any
 			trip = if trip and trip.status then trip else nil,
 		}
 	end
+	-- Both guis IgnoreGuiInset, so gui y 0 is the screen top and TopbarInset.Max.Y is the clearance.
+	-- HudShell.guiClear also subtracted the gui's AbsolutePosition.Y (-58 on the phone) and cleared
+	-- the bar twice: 116 px of 411, rows shorter than a tile, labels over the next row (v40).
+	local function topClear(): number
+		local inset = if guiService then guiService.TopbarInset else nil
+		return if inset then inset.Max.Y else 0
+	end
 	local function render()
 		local size = gui.AbsoluteSize
-		local layout = M.layout(size.X, size.Y, HudShell.guiClear(gui))
+		local layout = M.layout(size.X, size.Y, topClear())
 		local sizes = layout.text
 		put(header, layout.header)
 		put(title, layout.title)
 		title.TextSize = sizes.title
+		-- Close is a child of Header (HudShell.sheetOpen reads Header > Close): header-relative.
 		put(close, layout.close)
+		close.Position = UDim2.fromOffset(layout.close.x - layout.header.x, layout.close.y - layout.header.y)
 		close.TextSize = sizes.heading
 		put(compass, layout.compass)
 		compass.TextSize = sizes.chip
@@ -423,6 +456,11 @@ function M.panel(ctx: any): any
 			tile.stroke.Color = rgb(if card.drift then LILAC else INK)
 			tile.stroke.Thickness = if card.here then 4 else 2
 			tile.lock.Visible = card.locked
+			tile.rift.Visible = card.rift
+			-- Drift isles: the band chip carries the window countdown as a lilac pill.
+			local counting = card.drift and card.expiresAt ~= nil
+			tile.chip.BackgroundColor3 = rgb(LILAC)
+			tile.chip.BackgroundTransparency = if counting then 0.25 else 1
 			if card.id == selected then
 				put(sheet, layout.sheet.frame)
 				put(sheetName, layout.sheet.name)
@@ -455,11 +493,13 @@ function M.panel(ctx: any): any
 			minimap.Parent = playerGui:FindFirstChild("Minimap", true)
 		end
 		local trip = latest and latest.archipelago
+		-- A boolean: `and trip.expiresAt` yielded a number, `== true` was always false and the pill
+		-- never showed. It shows only on an active drift isle, never in onboarding, home or town.
 		local drifting = workspace:GetAttribute("ForgeWorldRole") == "archipelago"
-			and trip
+			and trip ~= nil
 			and trip.status == "active"
-			and trip.expiresAt
-		timer.Visible = drifting == true and not gui.Enabled
+			and type(trip.expiresAt) == "number"
+		timer.Visible = drifting and not gui.Enabled
 		if timer.Visible then
 			put(timer, layout.timer)
 			timer.TextSize = sizes.name
@@ -478,9 +518,24 @@ function M.panel(ctx: any): any
 		lock.Position, lock.AnchorPoint, lock.Parent = UDim2.fromScale(1, 1), Vector2.new(1, 1), marker
 		local lockCorner = Instance.new("UICorner")
 		lockCorner.CornerRadius, lockCorner.Parent = UDim.new(0.5, 0), lock
+		-- Rift badge (top-left, opposite the lock): a lilac disc with an ink rim and a bone fissure.
+		local rift = Instance.new("Frame")
+		rift.Name, rift.BackgroundColor3, rift.Size = "Rift", rgb(LILAC), UDim2.fromScale(0.4, 0.4)
+		rift.Position, rift.Visible, rift.Parent = UDim2.fromScale(0, 0), false, marker
+		local riftCorner = Instance.new("UICorner")
+		riftCorner.CornerRadius, riftCorner.Parent = UDim.new(0.5, 0), rift
+		local riftRim = Instance.new("UIStroke")
+		riftRim.ApplyStrokeMode, riftRim.Color, riftRim.Thickness = Enum.ApplyStrokeMode.Border, rgb(INK), 1.5
+		riftRim.Parent = rift
+		local fissure = Instance.new("Frame")
+		fissure.Name, fissure.BorderSizePixel, fissure.BackgroundColor3 = "Fissure", 0, Color3.fromRGB(237, 230, 214)
+		fissure.AnchorPoint, fissure.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+		fissure.Size, fissure.Rotation, fissure.Parent = UDim2.fromScale(0.18, 0.7), 20, rift
 		local name = label(sheetFrame, "Name-" .. island.id, 14, INK)
 		local chip = label(sheetFrame, "Chip-" .. island.id, 13, INK)
-		tiles[island.id] = { marker = marker, stroke = stroke, lock = lock, name = name, chip = chip }
+		local chipCorner = Instance.new("UICorner")
+		chipCorner.CornerRadius, chipCorner.Parent = UDim.new(0.5, 0), chip
+		tiles[island.id] = { marker = marker, stroke = stroke, lock = lock, rift = rift, name = name, chip = chip }
 		marker.Activated:Connect(function()
 			selected, status = island.id, nil
 			render()

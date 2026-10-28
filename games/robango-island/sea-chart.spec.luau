@@ -12,8 +12,16 @@ local Terrain = require("../../core/domain/island/ArchipelagoTerrain")
 local Archipelago = require("../../core/domain/island/Archipelago")
 local Fit = require("../../core/ui-kit/genre/HudFit")
 local Fixture = require("./PackText.fixture")
+local Party = require("../../core/domain/island/Party")
+local HudShell = require("../../genres/survival-coop/module/HudShell")
+local roblox: any = require("@lune/roblox")
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 
 local VIEWPORTS = { { 800, 360, 0 }, { 850, 411, 58 }, { 1920, 1080, 0 } }
+-- Staging v40 phone: the chart gui read ~800x360 with a 108 px top clearance (the top bar cleared
+-- twice); rows were shorter than a tile and every name/band label ran over the next row's marker.
+local SQUEEZED = { 800, 360, 108 }
 
 local function overlaps(a: any, b: any): boolean
 	return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
@@ -32,6 +40,149 @@ local function text(locale: string): (string, ...any) -> string
 		assert(row, "missing cli.chart." .. key)
 		return if select("#", ...) > 0 then string.format(row, ...) else row
 	end
+end
+
+-- Headless panel: SeaChart.panel on a fake Instance tree with the v40 phone numbers (an 800x360
+-- IgnoreGuiInset gui at AbsolutePosition y -54 under a 54 px top bar) and a pushed snapshot.
+local function mountPanel(role: string, snapshot: any): any
+	local made: { any } = {}
+	local function signal(): any
+		local handlers = {}
+		return {
+			Connect = function(_, fn)
+				table.insert(handlers, fn)
+				return { Disconnect = function() end }
+			end,
+			Fire = function(_, ...)
+				for _, fn in handlers do
+					fn(...)
+				end
+			end,
+		}
+	end
+	local function new(className: string): any
+		local item: any = { ClassName = className, Name = className, Activated = signal() }
+		if className == "ScreenGui" then
+			item.AbsoluteSize, item.AbsolutePosition = roblox.Vector2.new(800, 360), roblox.Vector2.new(0, -54)
+		end
+		function item:IsA(kind)
+			return kind == self.ClassName
+		end
+		function item:IsDescendantOf(parent)
+			local at = self.Parent
+			while at do
+				if at == parent then
+					return true
+				end
+				at = at.Parent
+			end
+			return false
+		end
+		function item:FindFirstChild(name, recursive)
+			for _, other in made do
+				if other.Name == name and (other.Parent == self or (recursive and other:IsDescendantOf(self))) then
+					return other
+				end
+			end
+			return nil
+		end
+		function item:WaitForChild(name)
+			return assert(self:FindFirstChild(name), name)
+		end
+		function item:Destroy()
+			self.Parent = nil
+		end
+		table.insert(made, item)
+		return item
+	end
+	local player = new("Player")
+	new("PlayerGui").Parent = player
+	player.Name = "Player"
+	for _, item in made do
+		if item.ClassName == "PlayerGui" then
+			item.Name = "PlayerGui"
+		end
+	end
+	local attributes = { ForgeWorldRole = role }
+	local services: any = {
+		Players = { LocalPlayer = player },
+		RunService = { Heartbeat = signal() },
+		GuiService = { TopbarInset = { Max = roblox.Vector2.new(800, 54) } },
+	}
+	local env: any = {
+		game = {
+			GetService = function(_, key)
+				return services[key]
+			end,
+		},
+		workspace = {
+			GetAttribute = function(_, key)
+				return attributes[key]
+			end,
+		},
+		Instance = { new = new },
+		Enum = roblox.Enum,
+		Color3 = roblox.Color3,
+		UDim = roblox.UDim,
+		UDim2 = roblox.UDim2,
+		Vector2 = roblox.Vector2,
+		require = function(path: string): any
+			if string.find(path, "Rng$") then
+				return require("../../core/domain/random/Rng")
+			elseif string.find(path, "Topology$") then
+				return require("../../core/domain/island/Topology")
+			elseif string.find(path, "Party$") then
+				return Party
+			elseif string.find(path, "HudShell$") then
+				-- HudShell.guiClear as shipped: TopbarInset.Max.Y through HudShell.topClear.
+				return {
+					guiClear = function(gui: any): number
+						return HudShell.topClear(services.GuiService.TopbarInset.Max.Y, gui.AbsolutePosition.Y)
+					end,
+				}
+			end
+			return {}
+		end,
+	}
+	local Chart = luau.load(fs.readFile("games/robango-island/src/shared/SeaChart.luau"), { environment = env })()
+	local copyText = text("ko-kr")
+	local handle = Chart.panel({
+		content = Content,
+		text = copyText,
+		reason = function(reason: string): string
+			return reason
+		end,
+		biome = function(id: string): string
+			return id
+		end,
+		send = function()
+			return { ok = false }
+		end,
+		dock = function()
+			return { open = function() end }
+		end,
+		onSnapshot = function(callback)
+			callback(snapshot, {})
+			return function() end
+		end,
+	})
+	local function find(name: string): any
+		for _, item in made do
+			if item.Name == name and item.Parent then
+				return item
+			end
+		end
+		return nil
+	end
+	local function box(item: any): any
+		return {
+			x = item.Position.X.Offset,
+			y = item.Position.Y.Offset,
+			width = item.Size.X.Offset,
+			height = item.Size.Y.Offset,
+		}
+	end
+	return { made = made, find = find, box = box, destroy = handle.destroy }
 end
 
 local function layoutOf(id: string): any
@@ -66,11 +217,13 @@ end
 
 return {
 	["chart layout: no overlap, touch >= 44 px, text >= 13 px at 800x360, 850x411 and 1920x1080"] = function()
-		for _, v in VIEWPORTS do
+		for _, v in { VIEWPORTS[1], VIEWPORTS[2], VIEWPORTS[3], SQUEEZED } do
 			local width, height, top = v[1], v[2], v[3]
-			local tag = width .. "x" .. height
+			local tag = width .. "x" .. height .. "+" .. top
 			local layout = SeaChart.layout(width, height, top)
-			local screen = { x = 0, y = top, width = width, height = height - top }
+			local cleared = layout.header.y
+			assert(v == SQUEEZED or cleared == top, tag .. " keeps the top clearance: " .. cleared)
+			local screen = { x = 0, y = cleared, width = width, height = height - cleared }
 			for key, size in layout.text do
 				assert(size >= 13, tag .. " text " .. key .. " " .. size)
 			end
@@ -106,7 +259,14 @@ return {
 			-- Island names and band chips fit their tile in both languages.
 			for _, locale in { "en-us", "ko-kr" } do
 				local copyText = text(locale)
-				for _, card in SeaChart.islands(Content, harborView(60, 5)) do
+				local counted = harborView(60, 5)
+				counted.role = "town"
+				counted.routes = Party.routes(Content, counted.facts, 1, SeaChart.TTL)
+				local cards = SeaChart.islands(Content, harborView(60, 5))
+				for _, card in SeaChart.islands(Content, counted) do
+					table.insert(cards, card)
+				end
+				for _, card in cards do
 					local copy = SeaChart.copy(card, copyText, 0)
 					local tile = layout.tiles[card.id]
 					assert(
@@ -123,6 +283,86 @@ return {
 				assert(Fit.textWidth(copyText("step"), layout.text.heading) <= sheet.sail.width, tag .. " step label")
 			end
 		end
+	end,
+	["chart panel on the v40 phone: labels clear of other isles, no glyph-outline blob, rift badges"] = function()
+		local facts = { level = 1, developmentRank = 1, instabilityAccess = 1 }
+		local snapshot =
+			{ expedition = { now = 1, facts = facts, routes = Party.routes(Content, facts, 1, SeaChart.TTL) } }
+		local panel = mountPanel("onboarding", snapshot)
+		local markers: { [string]: any } = {}
+		for _, island in SeaChart.ISLANDS do
+			markers[island.id] = panel.box(assert(panel.find("Isle-" .. island.id), island.id .. " marker"))
+		end
+		for _, island in SeaChart.ISLANDS do
+			for _, kind in { "Name-", "Chip-" } do
+				local label = panel.box(assert(panel.find(kind .. island.id), kind .. island.id))
+				for other, marker in markers do
+					assert(
+						other == island.id or not overlaps(label, marker),
+						kind .. island.id .. " label runs over the " .. other .. " isle"
+					)
+				end
+				for _, peer in SeaChart.ISLANDS do
+					if peer.id ~= island.id then
+						for _, peerKind in { "Name-", "Chip-" } do
+							local peerLabel = panel.box(panel.find(peerKind .. peer.id))
+							assert(
+								not overlaps(label, peerLabel),
+								kind .. island.id .. " overlaps " .. peerKind .. peer.id
+							)
+						end
+					end
+				end
+			end
+		end
+		-- The black blob under frontier50 was the compass "N": a UIStroke on a TextLabel outlines the
+		-- glyph (Contextual) unless it is Border mode. No stroke on any label may outline its text.
+		for _, item in panel.made do
+			if item.ClassName == "UIStroke" and item.Parent and item.Parent.ClassName == "TextLabel" then
+				assert(
+					item.ApplyStrokeMode == roblox.Enum.ApplyStrokeMode.Border,
+					"glyph-outline stroke on " .. item.Parent.Name
+				)
+			end
+		end
+		local compass = panel.box(assert(panel.find("Compass"), "compass"))
+		assert(compass.width >= 44 and compass.height >= 44, "compass is a ring, not a blob")
+		-- Rift badges on every chart island that has a rift (harbor and the drift isles).
+		for _, island in SeaChart.ISLANDS do
+			local marker = panel.find("Isle-" .. island.id)
+			local rift = marker:FindFirstChild("Rift")
+			assert((rift ~= nil and rift.Visible == true) == (island.rift == true), island.id .. " rift badge")
+		end
+		assert(panel.find("DriftTimer").Visible ~= true, "no drift countdown pill off a drift isle (onboarding)")
+		panel.destroy()
+	end,
+	["drift countdown: every drift isle counts down on the chart; the HUD pill shows on a drift isle"] = function()
+		local facts = { level = 60, developmentRank = 10, instabilityAccess = 5 }
+		local routes = Party.routes(Content, facts, 1, SeaChart.TTL)
+		local ko = text("ko-kr")
+		for _, role in { "town", "home", "onboarding", "harbor" } do
+			for _, card in SeaChart.islands(Content, { role = role, level = 60, facts = facts, routes = routes }) do
+				local chip = SeaChart.copy(card, ko, 1).chip
+				assert(
+					(string.find(chip, "%d+:%d%d$") ~= nil) == (card.drift == true),
+					role .. " " .. card.id .. " countdown: " .. chip
+				)
+			end
+		end
+		local trip = openTrip(3600)
+		local snapshot = { expedition = { now = 3600, facts = facts, routes = routes }, archipelago = trip }
+		local panel = mountPanel("archipelago", snapshot)
+		local timer = panel.find("DriftTimer")
+		assert(timer.Visible == true, "drift-isle HUD countdown pill visible")
+		-- The panel clock runs on from the snapshot (os.clock), so allow the second it may have ticked.
+		local left = trip.expiresAt - 3600
+		assert(
+			timer.Text == ko("hud_timer", SeaChart.clock(left))
+				or timer.Text == ko("hud_timer", SeaChart.clock(left - 1)),
+			"pill text " .. tostring(timer.Text)
+		)
+		panel.destroy()
+		assert(SeaChart.ISLANDS[2].id == "harbor" and SeaChart.ISLANDS[2].rift, "harbor rift on the chart")
 	end,
 	["chart islands: an archipelago of distinct biomes with level bands; Korean and English copy"] = function()
 		local cards = SeaChart.islands(Content, harborView(60, 5))
