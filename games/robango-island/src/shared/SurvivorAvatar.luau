@@ -276,6 +276,14 @@ function M.wardrobe(ports: any)
 				return
 			end
 		end
+		-- ApplyDescription needs the character in the DataModel; CharacterAdded can fire before the
+		-- spawn gate parents it.
+		while not character:IsDescendantOf(workspace) do
+			if player.Character ~= character or player.Parent == nil then
+				return
+			end
+			character.AncestryChanged:Wait()
+		end
 		local ok, reason = M.apply(character, M.presetOf(document), ApplyPorts)
 		if not ok then
 			warn("SURVIVOR_APPLY:" .. tostring(reason))
