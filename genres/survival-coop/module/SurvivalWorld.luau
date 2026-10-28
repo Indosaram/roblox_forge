@@ -1080,9 +1080,12 @@ function M.new(config: Config)
 		local part = root(id)
 		return if part then part.Position else nil
 	end
-	--- The member's survival vitals from the bound session, or nil.
+	--- The member's durable survival vitals (personal profile), or nil. Never reads
+	--- session.snapshot: extension snapshots (RescueExtension) call this from inside it.
 	function api.vitals(id: string): any
-		local state = snapshot(id)
+		local active = session
+		local personal = if active then active.personalTransfer(id) else nil
+		local state = if personal then personal.profile().data.envelope.genres["survival-coop"].data else nil
 		return if state then state.vitals else nil
 	end
 	function api.bind(active: Session.Session)

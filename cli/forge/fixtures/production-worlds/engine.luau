@@ -636,6 +636,9 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			plan = function()
 				return { attach = {}, detach = {} }
 			end,
+			pet = function()
+				return nil
+			end,
 		},
 		["./CosmeticVisual"] = load("genres/survival-coop/module/CosmeticVisual.luau", {}, nil),
 	}, nil)
