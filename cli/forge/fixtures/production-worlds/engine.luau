@@ -744,6 +744,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				["../../../core/infra/genre/CommandTransport"] = require(
 					"../../../../core/infra/genre/CommandTransport"
 				),
+				["./PackLocale"] = require("../../../../genres/survival-coop/module/PackLocale"),
 			}, nil).start({
 				onResult = function(result, diagnostic)
 					lastResult = result

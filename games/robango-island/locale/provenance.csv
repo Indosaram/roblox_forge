@@ -3058,3 +3058,5 @@ trv.drift_reset,original,agent:omo/c7,2026-10-28
 trv.expedition_active,original,agent:omo/c7,2026-10-28
 cli.gather.decor_rock,original,agent:omo/v40-craft,2026-10-28
 cli.gather.decor_tree,original,agent:omo/v40-craft,2026-10-28
+gth.connecting,original,agent:omo/d1-join,2026-10-28
+gth.queued,original,agent:omo/d1-join,2026-10-28

@@ -371,6 +371,8 @@ function M.new(
 		departed[id] = nil
 		leaving[id], releasedActors[id] = nil, nil
 		busy[id] = true
+		-- The executor join the personal acquisition ran (nil: not run, or the backend never invoked it).
+		local projected: Contract.Result? = nil
 		local ok, profile, err = pcall(function(): (ProfileStore.Profile?, string?)
 			local function migrate(raw: any)
 				local migrated = M.migrate(raw, options.contracts)
@@ -390,8 +392,23 @@ function M.new(
 			if personal then
 				-- join runs only for a player connected to this server (see takeoverSeconds).
 				joiningActors[id] = true
+				-- The joined envelope (adapter rebase, new genre slices) commits in the acquisition's own
+				-- write: a separate commit right after it waited out the key's write interval (~6 s on a
+				-- live DataStore) before the player could act (D1). Replays re-join from scratch.
 				local token, reason = personal:load(id, function()
 					return migrate(nil)
+				end, function(envelope)
+					if projected ~= nil then
+						executor.discard(id)
+					end
+					local joinedResult = executor.join(id, envelope :: Contract.SaveEnvelope, true)
+					projected = joinedResult
+					if not joinedResult.ok then
+						return envelope
+					end
+					local joinedEnvelope = executor.save(id)
+					joinedEnvelope.commands = Executor.clone(envelope.commands)
+					return joinedEnvelope
 				end)
 				if token then
 					tokens[id] = token
@@ -403,6 +420,9 @@ function M.new(
 		end)
 		busy[id] = nil
 		joiningActors[id] = nil
+		if (not ok or not profile) and projected ~= nil and projected.ok then
+			executor.discard(id)
+		end
 		if not ok then
 			return failure(tostring(profile))
 		end
@@ -411,24 +431,16 @@ function M.new(
 		end
 		profiles[id] = profile
 		ledgers[id] = if profile.data.commands then Executor.clone(profile.data.commands) else nil
-		local result = executor.join(id, profile.data :: Contract.SaveEnvelope, personal ~= nil)
 		if personal then
 			busy[id] = true
+			local result: Contract.Result = projected or failure("JOIN_NOT_PROJECTED")
 			if not result.ok then
 				personal:release(tokens[id])
 				profiles[id], tokens[id] = nil, nil
 				busy[id] = nil
-				return result
+				return failure(result.reason)
 			end
-			local committed, reason = personal:commit(tokens[id], tokens[id].data.stateRevision, capture(id), nil)
-			if not committed or reason then
-				executor.discard(id)
-				personal:release(tokens[id])
-				profiles[id], tokens[id] = nil, nil
-				busy[id] = nil
-				return failure(reason)
-			end
-			hydrate(id, committed)
+			hydrate(id, tokens[id])
 			joined[id] = true
 			busy[id] = nil
 			for _, extension in extensions do
@@ -445,6 +457,7 @@ function M.new(
 			end
 			return { ok = true, notificationError = executor.flushCommand() }
 		end
+		local result = executor.join(id, profile.data :: Contract.SaveEnvelope, false)
 		if result.ok then
 			joined[id] = true
 			for _, extension in extensions do
@@ -829,6 +842,35 @@ function M.new(
 		return executor.dispatchServer(id, action, args)
 	end
 	local lastCommandRecovery: { [string]: number } = {}
+	-- Shared-store epochs (settlement, transfer) may need a write on a key other work also
+	-- writes (the camp: admission, members' commands). commandState asks for every action's
+	-- epoch on every push and handshake, so waiting there held the player's whole command
+	-- state, gather included, behind that key's queue (~6 s per write on a live DataStore,
+	-- D1). The issuing call runs in its own thread: a call that completes without yielding
+	-- answers at once; one that waits on the backend answers nil ("not yet") and the same
+	-- write finishes in the background, so a later poll is served from the issued ledger.
+	local issuing: { [string]: boolean } = {}
+	local function sharedEpoch(key: string, issue: () -> number?): number?
+		if issuing[key] then
+			return nil
+		end
+		local done, epoch = false, nil :: number?
+		local thread = coroutine.create(function()
+			issuing[key] = true
+			local ok, result = pcall(issue)
+			issuing[key] = nil
+			done = true
+			if not ok then
+				error(result, 0)
+			end
+			epoch = result
+		end)
+		local resumed, err = coroutine.resume(thread)
+		if not resumed then
+			error(err, 0)
+		end
+		return if done then epoch else nil
+	end
 	function session.commandEpoch(id, action)
 		if not durable or not joined[id] or leaving[id] or busy[id] or pending[id] then
 			return nil
@@ -854,12 +896,16 @@ function M.new(
 			end
 		end
 		if action and services.survivalTransfer and services.survivalTransfer.handles(action) then
-			local epoch = services.survivalTransfer.epoch(id, action)
-			return epoch
+			local transfer = services.survivalTransfer
+			return sharedEpoch("transfer:" .. id, function()
+				return (transfer.epoch(id, action :: string))
+			end)
 		end
 		if action and services.survivalSettlement and services.survivalSettlement.handles(action) then
-			local epoch = services.survivalSettlement.epoch(id, action)
-			return epoch
+			local settlement = services.survivalSettlement
+			return sharedEpoch("settlement:" .. id, function()
+				return (settlement.epoch(id, action :: string))
+			end)
 		end
 		local extension = extensionFor(action)
 		if extension and extension.epoch then

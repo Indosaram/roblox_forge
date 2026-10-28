@@ -354,6 +354,10 @@ local factory, err = require(script.Parent.SurvivalFactory)(content, source, vis
 			local userId = tonumber(actor)
 			return userId ~= nil and Players:GetPlayerByUserId(userId) ~= nil
 		end,
+		-- The grace runs once from the player's arrival, not again for each of their documents.
+		presentSince = function(actor)
+			return joinedAt[actor]
+		end,
 	}),
 	now = function()
 		return math.floor(DateTime.now().UnixTimestampMillis / 1000)

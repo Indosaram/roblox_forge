@@ -98,7 +98,16 @@ function M.new(backend: MemoryBackend.Backend, options: Options): Store
 	return setmetatable({ _store = FencedStore.new(backend, options.store), _options = opts }, M)
 end
 
-function M.load(self: Store, id: string, initialize: () -> any): (FencedStore.Profile?, string?)
+-- `project` (optional) maps the loaded envelope to the one this acquisition commits, inside the
+-- same write: a join that would otherwise follow its acquire with a commit of the joined envelope
+-- spends one write instead of two (one write per key per 6 s on a live DataStore). It runs on every
+-- replay of the transform and must leave the caller consistent with the last invocation.
+function M.load(
+	self: Store,
+	id: string,
+	initialize: () -> any,
+	project: ((any) -> any)?
+): (FencedStore.Profile?, string?)
 	if not Catalog.identity(id) then
 		return nil, "INVALID_PERSONAL_ID"
 	end
@@ -112,6 +121,14 @@ function M.load(self: Store, id: string, initialize: () -> any): (FencedStore.Pr
 			}
 		end
 		validate(self, data)
+		if project then
+			local envelope = project(copy(data.envelope))
+			if not equal(data.envelope, envelope) then
+				data.envelope = copy(envelope)
+				bump(data)
+				validate(self, data)
+			end
+		end
 		return data
 	end)
 end

@@ -213,7 +213,14 @@ local client = luau.load(fs.readFile("genres/survival-coop/module/GatheringClien
 				return { X = x, Y = y, Z = z }
 			end,
 		},
-		require = function(path)
+		require = function(path): any
+			if path == "./PackLocale" then
+				return {
+					get = function()
+						return nil
+					end,
+				}
+			end
 			assert(path == "../../../core/infra/genre/CommandTransport", "transport dependency")
 			return Transport
 		end,

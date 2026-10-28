@@ -503,5 +503,11 @@ return {
 		assert(not decide("home:1"), "absent actor never")
 		present, now = true, 200
 		assert(not decide("home:1"), "a later episode waits the grace again")
+		-- `quiet`: seconds since the holder last wrote the record.
+		now = 300
+		assert(decide("home:2", 5), "a holder quiet for the grace is taken over at once")
+		assert(not decide("home:3", 4), "a holder that wrote inside the grace may still be closing")
+		present = false
+		assert(not decide("home:2", 600), "absent actor never, however quiet")
 	end,
 }

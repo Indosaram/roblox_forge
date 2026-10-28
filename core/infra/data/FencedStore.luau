@@ -26,7 +26,7 @@ export type Options = {
 	-- Called (inside the acquire transform) with the key when an acquire finds another session's
 	-- live lease: true takes the record over (see acquire). Absent or false: "locked" until that
 	-- lease expires.
-	takeover: ((key: string) -> boolean)?,
+	takeover: ((key: string, quiet: number?) -> boolean)?,
 }
 export type Profile = {
 	key: string,
@@ -176,7 +176,10 @@ function FencedStore._commit(
 		elseif old and old.lease and old.lease.sessionId ~= self._opts.sessionId and now < old.lease.expiresAt then
 			-- Decided when the transform runs, so a queued write sees the time it executes at.
 			local takeover = self._opts.takeover
-			if mode ~= "acquire" or not takeover or not takeover(key) then
+			-- Seconds since the holder last wrote this record (every write sets expiresAt to its
+			-- time plus leaseSeconds, the same for every server of a pack).
+			local quiet = now - (old.lease.expiresAt - self._opts.leaseSeconds)
+			if mode ~= "acquire" or not takeover or not takeover(key, quiet) then
 				reason = "locked"
 				return old
 			end
@@ -298,6 +301,22 @@ end
 -- Mutation AND its durable receipt belong in the returned aggregate. Uses current
 -- persisted data, never profile.data. Returned data is detached from persistence.
 function FencedStore.update(self: Store, profile: Profile, transform: Transform): (Profile?, string?)
+	-- With leasedReads and identity suppression, a healthy lease this session holds is the durable
+	-- record (see refresh), so a transform that changes nothing on it would publish nothing: answer
+	-- it locally instead of spending one of the key's ~1 write per 6 s (an item transfer re-reads its
+	-- source and destination before every phase). Any change still runs the backend commit, which
+	-- replays the (pure, replay-safe) transform on the persisted record.
+	if self._opts.suppressIdentityUpdates then
+		local leased = self:_leased(profile)
+		if leased then
+			local held = memoFor(self._backend)[profile.key]
+			local data = transform(clone(held.data))
+			assert(type(data) == "table", "transform must return aggregate data")
+			if deepEqual(data, held.data) then
+				return leased, nil
+			end
+		end
+	end
 	return self:_commit(profile.key, profile, transform, "update")
 end
 function FencedStore.save(self: Store, profile: Profile, transform: Transform): (Profile?, string?)
@@ -410,20 +429,34 @@ end
 -- account plays on one server at a time, so a live lease held elsewhere for a present actor
 -- belongs to a server they left (force-stopped, crashed or still closing). The lease is taken
 -- over once it has refused this server for `graceSeconds`, which gives a holder that is still
--- closing time to release normally.
+-- closing time to release normally. With `presentSince(actor)` (when the actor arrived on this
+-- server) the grace runs from the arrival instead, once per actor: the actor's other documents,
+-- first touched only after the personal takeover, then no longer wait (and spend another write
+-- slot on a refused attempt) for a grace of their own. A holder that has not written the record
+-- for `graceSeconds` is not closing it either, so its lease is taken over at once: on a live
+-- DataStore the refused attempt and the retry after the grace each cost the key a write slot
+-- (~6 s), which put a rejoin's first action past the D1 budget.
 function FencedStore.presentActorTakeover(options: {
 	now: () -> number,
 	graceSeconds: number,
 	actorOf: (key: string) -> string?,
 	present: (actor: string) -> boolean,
-}): (key: string) -> boolean
+	presentSince: ((actor: string) -> number?)?,
+}): (key: string, quiet: number?) -> boolean
 	local refusedSince: { [string]: number } = {}
-	return function(key: string): boolean
+	return function(key: string, quiet: number?): boolean
 		local actor = options.actorOf(key)
 		if actor == nil or not options.present(actor) then
 			return false
 		end
+		if quiet ~= nil and quiet >= options.graceSeconds then
+			return true
+		end
 		local now = options.now()
+		local arrived = if options.presentSince then options.presentSince(actor) else nil
+		if arrived ~= nil then
+			return now - arrived >= options.graceSeconds
+		end
 		local since = refusedSince[key]
 		-- A refusal older than a minute belongs to an earlier episode: start a new one. The
 		-- start is kept after a takeover so a replayed transform decides the same way.

@@ -225,13 +225,23 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return nil
 		end
 		-- A source acceptance alone is insufficient: destination credit must be
-		-- acknowledged before the receipt may satisfy a mission objective.
+		-- acknowledged before the receipt may satisfy a mission objective. A source receipt
+		-- still ESCROWED counts once the actor's personal record holds the matching CREDITED
+		-- receipt (the command confirms there; recover() finalizes the source later).
+		local personal = config.resolvePersonal(actor)
+		local credits = if personal then personal.profile().data.itemTransfers.receipts else {}
 		for _, mint in grant.mints do
 			if mint.request.actor ~= actor or config.now() >= mint.request.expiresAt then
 				return nil
 			end
 			local receipt = current.data.itemTransfers.receipts[mint.request.id]
-			if not receipt or receipt.phase ~= "FINALIZED" then
+			local credit = credits[mint.request.id]
+			local credited = receipt ~= nil
+				and receipt.phase == "ESCROWED"
+				and credit ~= nil
+				and credit.phase == "CREDITED"
+				and Ledger.canonical(credit.request) == Ledger.canonical(mint.request)
+			if not receipt or (receipt.phase ~= "FINALIZED" and not credited) then
 				return nil
 			end
 		end
@@ -441,6 +451,24 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return refused
 		end
 		local progressed = advance(personal, { accepted })
+		-- The player's outcome is settled once every mint is credited to the personal bag: the items
+		-- are durable there and the source keeps the escrowed receipt. Finalizing the source (and the
+		-- progression award that follows it) is bookkeeping that recover() completes; waiting for it
+		-- here cost the source key's next write slot (~6 s on a live DataStore) per first gather (D1).
+		if progressed.status == "pending" and progressed.error == nil and #progressed.transfers > 0 then
+			local credited = true
+			for _, transfer in progressed.transfers do
+				if
+					transfer.status ~= "confirmed"
+					and not (transfer.status == "pending" and transfer.phase == "CREDITED")
+				then
+					credited = false
+				end
+			end
+			if credited then
+				progressed.status = "confirmed"
+			end
+		end
 		if gathered and config.analytics then
 			config.analytics:emit("gather", {
 				actorId = req.actorId,
@@ -468,17 +496,18 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		-- view. Only pay for the durable scan when a respawn deadline has
 		-- matured, timers are missing, or a grant actually waits for this
 		-- member — the quiet-state sweep must cost zero requests.
+		-- A missing respawn timer or cursor is not work: every accept and recovery write creates
+		-- them first (replenish, cursors), so a sweep that would only initialize them is skipped. A
+		-- fresh server otherwise spent the source key's write slot on every joining player's first
+		-- sweep, and the player's first gather waited ~6 s behind it (D1).
 		local sessionData = source.data
 		local work = false
 		for id in sessionData.nodes.nodes do
 			local timer = if sessionData.respawns then sessionData.respawns[id] else nil
-			if timer == nil or (timer.deadline and config.nowMillis() >= timer.deadline) then
+			if timer and timer.deadline and config.nowMillis() >= timer.deadline then
 				work = true
 				break
 			end
-		end
-		if not work and sessionData.cursors == nil then
-			work = true
 		end
 		if not work then
 			for _, grant in sessionData.grants do

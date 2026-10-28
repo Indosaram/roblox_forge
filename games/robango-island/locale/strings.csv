@@ -3058,3 +3058,5 @@ trv.sail_unreachable,Stand at a dock or a rift to sail,dock travel result,Stand 
 trv.invalid_route,That island is not on the chart,dock travel result,That island is not on the chart,해도에 없는 섬입니다
 trv.drift_reset,The drift isle reshaped. Sailing to its new shore...,dock travel result,The drift isle reshaped. Sailing to its new shore...,표류섬의 모습이 바뀌었습니다. 새 해안으로 이동 중...
 trv.expedition_active,Finish your current drift isle first,dock travel result,Finish your current drift isle first,진행 중인 표류섬을 먼저 마치세요
+gth.connecting,Still connecting. Try again in a moment,gather refusal while the profile loads or saves,Still connecting. Try again in a moment,아직 연결 중이에요. 잠시 후 다시 시도하세요
+gth.queued,Loading your save. Gathering as soon as it's ready,gather press queued until the profile is ready (sends by itself),Loading your save. Gathering as soon as it's ready,불러오는 중이에요. 준비되면 자동으로 채집해요

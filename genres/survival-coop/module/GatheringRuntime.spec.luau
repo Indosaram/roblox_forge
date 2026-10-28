@@ -380,7 +380,7 @@ return {
 		c.millis = 4200
 		c.analytics = refused.analytics
 		c.open("same-session")
-		assert(c.runtime.command(c.request).status == "pending", "first credit is pending finalization")
+		assert(c.runtime.command(c.request).status == "confirmed", "confirmed once credited to the bag")
 		finish(c)
 		for _ = 1, 3 do
 			assert(c.runtime.command(c.request).status == "confirmed", "exact duplicate")
@@ -421,11 +421,11 @@ return {
 		assert(c.runtime.command(c.request).status == "confirmed", "old request retains outcome")
 		assert(c.runtime.snapshot().nodes.nodes["bush-1"].charges == 1, "replay never harvests respawn")
 		nextRequest.nodeVersion = 2
-		assert(c.runtime.command(nextRequest).status == "pending", "new identity harvests next cycle")
+		assert(c.runtime.command(nextRequest).status == "confirmed", "new identity harvests next cycle")
 	end,
 	["two yields exactly once across one hundred duplicate requests"] = function()
 		local c = fixture()
-		assert(c.runtime.command(c.request).status == "pending", "first credit is pending finalization")
+		assert(c.runtime.command(c.request).status == "confirmed", "confirmed once credited to the bag")
 		finish(c)
 		for _ = 1, 100 do
 			assert(c.runtime.command(c.request).status == "confirmed", "exact duplicate")

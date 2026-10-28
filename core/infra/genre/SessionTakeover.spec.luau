@@ -126,7 +126,8 @@ return {
 	["a still-closing holder gets the grace before its lease is taken over"] = function()
 		local backend = Memory.new()
 		local clock = { value = 1000 }
-		forceStopped(backend, clock)
+		-- The holder wrote the record just now (its acquire): it may still be closing.
+		assert(server(backend, clock, "old-server", 5).join(ACTOR).ok, "old server join")
 		local fresh = server(backend, clock, "new-server", 5)
 		local first = fresh.join(ACTOR)
 		assert(not first.ok and first.reason == "locked", "first attempt waits for the holder")
@@ -134,6 +135,12 @@ return {
 		assert(fresh.join(ACTOR).reason == "locked", "still inside the grace")
 		clock.value += 1
 		assert(fresh.join(ACTOR).ok, "taken over once the grace has passed")
+	end,
+	["a holder quiet for the grace is taken over on the first attempt"] = function()
+		local backend = Memory.new()
+		local clock = { value = 1000 }
+		forceStopped(backend, clock)
+		assert(server(backend, clock, "new-server", 5).join(ACTOR).ok, "no refused write slot")
 	end,
 	["without takeoverSeconds the lease is still honoured until it expires"] = function()
 		local backend = Memory.new()

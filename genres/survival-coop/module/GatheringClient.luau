@@ -1,5 +1,6 @@
 --!strict
 local CommandTransport = require("../../../core/infra/genre/CommandTransport")
+local PackLocale = require("./PackLocale")
 local M = {}
 -- Optional `locale` (label) and `names` (kind/catalog id -> display name). Optional `pick`
 -- (gather picker, opt-in): the prompt and the touch button call it first, and a true answer means
@@ -34,7 +35,13 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		then result.data.requirement
 		else {}
 	local reason = result.reason
-	if reason == "LEVEL_LOCKED" then
+	if reason == "CONNECTING_QUEUED" then
+		-- The press waits for the server to finish loading this profile and sends by itself.
+		return PackLocale.get(locale or "en-us", "gth.queued")
+			or if ko
+				then "불러오는 중이에요. 준비되면 자동으로 채집해요"
+				else "Loading your save. Gathering as soon as it's ready"
+	elseif reason == "LEVEL_LOCKED" then
 		local level = tostring(need.level or "?")
 		return if ko then "레벨 " .. level .. " 필요" else "Requires level " .. level
 	elseif reason == "TOOL_UNAVAILABLE" then
@@ -77,9 +84,10 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 		or reason == "profile operation in progress"
 		or reason == "player not joined"
 	then
-		return if ko
-			then "아직 연결 중이에요. 잠시 후 다시 시도하세요"
-			else "Still connecting. Try again in a moment"
+		return PackLocale.get(locale or "en-us", "gth.connecting")
+			or if ko
+				then "아직 연결 중이에요. 잠시 후 다시 시도하세요"
+				else "Still connecting. Try again in a moment"
 	end
 	-- Unknown server codes stay out of player-facing text.
 	return if ko then "지금은 채집할 수 없어요" else "You can't gather this right now"
@@ -141,6 +149,10 @@ function M.start(options: Options?)
 	local refreshing = false
 	local pending: { [string]: any } = {}
 	local busy: { [string]: boolean } = {}
+	-- A press made while the server still withholds the gather epoch (profile loading): sent by
+	-- itself once a state packet carries the epoch, within QUEUE_SECONDS of the press.
+	local queued: { part: BasePart, inputSource: string?, output: string?, at: number }? = nil
+	local QUEUE_SECONDS = 20
 	local connections: { RBXScriptConnection } = {}
 	local touchGui = Instance.new("ScreenGui")
 	touchGui.Name, touchGui.ResetOnSpawn = "ForgeGatherTouch", false
@@ -281,15 +293,20 @@ function M.start(options: Options?)
 				else if durable then durable.sessionEpoch else nil
 			if not CommandTransport.durable(durable, ACTION) or not integer(epoch) then
 				local reached = refresh()
-				-- The server withholds the epoch while it loads, saves or recovers this profile:
-				-- say so instead of a silent press (p134 v22 D6). A failed handshake already reported.
+				-- The server withholds the epoch while it loads, saves or recovers this profile. A
+				-- refreshed epoch sends this press now; otherwise the press is queued and sends by
+				-- itself when a state packet brings the epoch (D1: presses were refused for ~25 s).
 				local refreshed = if durable and durable.epochs
 					then durable.epochs[ACTION]
 					else if durable then durable.sessionEpoch else nil
-				if reached and not integer(refreshed) then
-					report({ ok = false, reason = "COMMAND_PENDING" })
+				if not reached or not CommandTransport.durable(durable, ACTION) or not integer(refreshed) then
+					if reached then
+						queued = { part = part, inputSource = inputSource, output = output, at = os.clock() }
+						report({ ok = false, reason = "CONNECTING_QUEUED" })
+					end
+					return nil
 				end
-				return nil -- A refreshed epoch is used only by the next user activation.
+				epoch = refreshed
 			end
 			-- A picked output rides as the optional third arg; the server grants only that output.
 			local args: { any } = if output then { id, version, output } else { id, version }
@@ -438,6 +455,14 @@ function M.start(options: Options?)
 		state.OnClientEvent:Connect(function(packet)
 			if type(packet) == "table" and packet.durable then
 				durable = packet.durable
+				local waiting = queued
+				local epoch = if durable.epochs then durable.epochs[ACTION] else durable.sessionEpoch
+				if waiting and integer(epoch) and CommandTransport.durable(durable, ACTION) then
+					queued = nil
+					if os.clock() - waiting.at <= QUEUE_SECONDS then
+						task.spawn(activate, waiting.part, player, waiting.inputSource, waiting.output)
+					end
+				end
 			end
 		end)
 	)
