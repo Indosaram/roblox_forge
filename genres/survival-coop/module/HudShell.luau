@@ -927,14 +927,20 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		item.Position, item.Size = UDim2.fromOffset(x, y), UDim2.fromOffset(size, size)
 		item.BackgroundColor3, item.Visible = color(tint), true
 	end
-	-- World labels: pooled BillboardGuis in PlayerGui (a ScreenGui does not render billboards).
-	local labelFolder = Instance.new("Folder")
-	labelFolder.Name, labelFolder.Parent = "ForgeWorldLabels", player:WaitForChild("PlayerGui")
+	-- World labels: pooled BillboardGuis in PlayerGui. On respawn Roblox deletes every PlayerGui child
+	-- that is not a LayerCollector, so a Folder here took the whole pool (and the rings) with it and the
+	-- cached boards had no "Text" left (staging v38: HudShell:1129 every heartbeat). A ScreenGui that
+	-- does not reset survives; a nested BillboardGui still renders in the world.
+	local labelFolder = Instance.new("ScreenGui")
+	labelFolder.Name, labelFolder.ResetOnSpawn = "ForgeWorldLabels", false
+	labelFolder.Parent = player:WaitForChild("PlayerGui")
 	local boards: { any } = {}
 	local function board(index: number): any
 		local existing = boards[index]
-		if existing then
+		if existing and existing.Parent == labelFolder and existing:FindFirstChild("Text") then
 			return existing
+		elseif existing then
+			existing:Destroy()
 		end
 		local item = Instance.new("BillboardGui")
 		item.Name, item.Size, item.AlwaysOnTop = "WorldLabel", UDim2.fromOffset(180, 28), true
@@ -962,7 +968,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 	local rings: { [any]: any } = {}
 	local function ringFor(owner: any): any
 		local entry = rings[owner]
-		if entry then
+		if entry and entry.ring.Parent == ringFolder and entry.tag.Parent == ringFolder then
 			return entry
 		end
 		local own = owner == player

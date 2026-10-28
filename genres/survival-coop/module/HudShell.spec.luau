@@ -322,4 +322,118 @@ return {
 		assert(ids.pet == "I2" and ids.dodge == nil and ids.build == nil, "pet ring, no dodge or build while riding")
 		assert(Shell.context(flags({ riding = true, building = true })) == "build", "placement still wins")
 	end,
+	["world labels survive a respawn and rebuild a board whose label was destroyed"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local I = roblox.Instance
+		local playerGui = I.new("PlayerGui")
+		local gui = I.new("ScreenGui")
+		gui.AbsoluteSize, gui.ResetOnSpawn, gui.Parent = roblox.Vector2.new(850, 411), false, playerGui
+		local root = {
+			Position = roblox.Vector3.new(0, 0, 0),
+			CFrame = roblox.CFrame.new(),
+			IsA = function(_, class)
+				return class == "BasePart"
+			end,
+		}
+		local character = {
+			FindFirstChild = function(_, name)
+				return if name == "HumanoidRootPart" then root else nil
+			end,
+		}
+		local player = {
+			Character = character,
+			WaitForChild = function()
+				return playerGui
+			end,
+		}
+		local node = I.new("Part")
+		node.Position = roblox.Vector3.new(4, 0, 0)
+		node:SetAttribute("ForgeNodeKind", "fiber")
+		local beats: { (number) -> () } = {}
+		local function signal(list: { any }?)
+			return {
+				Connect = function(_, fn)
+					if list then
+						table.insert(list, fn)
+					end
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local services: { [string]: any } = {
+			Players = {
+				LocalPlayer = player,
+				PlayerRemoving = signal(),
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			CollectionService = {
+				GetTagged = function(_, tag)
+					return if tag == "ForgeSurvivalNode" then { node } else {}
+				end,
+			},
+			Workspace = {
+				GetDescendants = function()
+					return {}
+				end,
+				FindFirstChild = function()
+					return nil
+				end,
+			},
+			RunService = { RenderStepped = signal(), Heartbeat = signal(beats) },
+			UserInputService = { TouchEnabled = true },
+			GuiService = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		shell.startOverlays({
+			gui = gui,
+			hidden = function()
+				return false
+			end,
+			name = function(_, key)
+				return key
+			end,
+			coordsText = function(x: number, z: number)
+				return x .. "," .. z
+			end,
+			tribe = function()
+				return ""
+			end,
+		})
+		local function beat(): any
+			beats[1](1)
+			local labels = playerGui:FindFirstChild("ForgeWorldLabels")
+			assert(labels and labels:GetAttribute("ForgeLabelCount") == 1, "one node labelled")
+			local board = labels:FindFirstChild("WorldLabel")
+			assert(board and board.Adornee == node and board.Text.Text == "fiber", "label shows the node")
+			return labels
+		end
+		beat()
+		-- Respawn as the engine does it: every PlayerGui child except a non-resetting LayerCollector
+		-- is destroyed (folders included, whatever their descendants say).
+		for _, child in playerGui:GetChildren() do
+			if not (child:IsA("LayerCollector") and child.ResetOnSpawn == false) then
+				child:Destroy()
+			end
+		end
+		local labels = beat()
+		-- A board whose label is gone (any other teardown) is rebuilt instead of indexing nil.
+		labels:FindFirstChild("WorldLabel").Text:Destroy()
+		beat()
+	end,
 }

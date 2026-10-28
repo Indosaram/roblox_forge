@@ -9,6 +9,19 @@ local M = {}
 M.PLACEMENT_BOTTOM = 152
 -- Success line (SurvivalHUDLocale key) shown after a confirmed action.
 M.SUCCESS = { ["survival-coop:item-repair"] = "repaired" } :: { [string]: string }
+-- Transient refusals re-sent automatically, one second apart, before only the Retry button is left.
+M.AUTO_RETRIES, M.AUTO_RETRY_SECONDS = 10, 1
+-- Session / Executor refusals that mean "busy, send the same request again" (core/infra/genre/Session,
+-- core/domain/genre/Executor debitRate, GatheringBridge SOURCE_BUSY).
+M.TRANSIENT = table.freeze({
+	COMMAND_PENDING = true,
+	COMBAT_PENDING = true,
+	SERVER_EVENT_PENDING = true,
+	TRANSFER_PENDING = true,
+	SOURCE_BUSY = true,
+	["rate limited"] = true,
+	["profile operation in progress"] = true,
+}) :: { [string]: boolean }
 
 -- One-click hand craft: the next verb, args and delay after a HUD craft result (reserve -> start -> collect).
 function M.handChain(
@@ -97,7 +110,7 @@ function M.new(actor: string, newId: () -> string): any
 		table.freeze(request.args)
 		table.freeze(request)
 		model.pending, model.busy, model.status, model.reason = request, true, "pending", nil
-		model.notice = nil
+		model.notice, model.autoRetries = nil, nil
 		return request
 	end
 	function model.retry(): any
@@ -106,6 +119,15 @@ function M.new(actor: string, newId: () -> string): any
 		end
 		model.busy, model.status = true, "pending"
 		return model.pending
+	end
+	--- The retained request after a transient server refusal, for the HUD to re-send by itself
+	--- (same requestId, so a late commit replays instead of applying twice). Nil once it settled,
+	--- while one is in flight, or after M.AUTO_RETRIES tries (the Retry button stays).
+	function model.autoRetry(): any
+		if not model.autoRetries or model.autoRetries > M.AUTO_RETRIES then
+			return nil
+		end
+		return model.retry()
 	end
 	function model.finish(ok: boolean, result: any)
 		model.busy = false
@@ -134,6 +156,15 @@ function M.new(actor: string, newId: () -> string): any
 			model.pending = nil
 		end
 		model.reason = if result.ok then nil else result.reason
+		-- A busy-server refusal (no stateVersion: nothing was recorded) keeps the same request pending.
+		-- Its code has no HUD line and read as "refresh supplies" while nothing re-sent it (staging
+		-- v37/v38 craft): the pending headline says it all, and the HUD re-sends it (autoRetry).
+		if model.pending and not result.ok and M.TRANSIENT[result.reason] then
+			model.reason = nil
+			model.autoRetries = (model.autoRetries or 0) + 1
+		else
+			model.autoRetries = nil
+		end
 		if result.ok and not model.pending then
 			model.notice = M.SUCCESS[action]
 		end

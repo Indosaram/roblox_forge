@@ -484,6 +484,16 @@ function M.start(options: Options)
 			resultEvent:Fire({ request = request, result = result, status = model.status })
 			render()
 			refresh()
+			if model.autoRetries then
+				task.delay(Model.AUTO_RETRY_SECONDS, function()
+					if not disposed then
+						local again = model.autoRetry()
+						if again then
+							send(again)
+						end
+					end
+				end)
+			end
 			local verb, args, wait = Model.handChain(request, ok and result, hand, content.recipes)
 			if verb then
 				task.delay(wait, function()

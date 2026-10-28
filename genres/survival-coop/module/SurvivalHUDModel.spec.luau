@@ -268,6 +268,37 @@ return {
 			'state.begin("craft-start", { "job-1" }).requestId == "request-2"'
 		)
 	end,
+	["a transient server refusal re-sends the same request and never reads as 'refresh supplies'"] = function()
+		-- Staging v38/v37 craft: the server refused without a stateVersion (busy session), so the
+		-- request stayed pending with the unmapped code shown as hud.unknown and nothing re-sent it.
+		local Locale = require("./SurvivalHUDLocale")
+		local state = model()
+		local request = state.begin("craft-reserve", { "cord", "hand" })
+		for _, reason in { "COMMAND_PENDING", "COMBAT_PENDING", "rate limited" } do
+			state.finish(true, { ok = false, reason = reason })
+			assert(state.status == "pending" and state.pending == request, "same request retained: " .. reason)
+			assert(state.reason == nil, "no 'refresh supplies' line for " .. reason)
+			assert(state.autoRetry() == request and state.autoRetry() == nil, "re-sent once, then in flight")
+		end
+		assert(
+			Locale.text("ko-kr", "pending") == "대기 중 - 서버 확인을 기다리는 중",
+			"pending headline stays"
+		)
+		state.finish(true, { ok = true, stateVersion = 3 })
+		assert(state.status == "confirmed" and state.pending == nil and state.autoRetry() == nil, "settled")
+		-- A recorded refusal keeps its own line and is final.
+		state.begin("craft-reserve", { "cord", "hand" })
+		state.finish(true, { ok = false, reason = "MISSING_INPUTS", stateVersion = 4 })
+		assert(status(state) == "conflict" and state.reason == "MISSING_INPUTS" and state.autoRetry() == nil, "final")
+		-- Re-sending is bounded; the Retry button remains after that.
+		local stuck = state.begin("craft-reserve", { "cord", "hand" })
+		for _ = 1, Model.AUTO_RETRIES do
+			state.finish(true, { ok = false, reason = "COMMAND_PENDING" })
+			assert(state.autoRetry() == stuck, "bounded re-send")
+		end
+		state.finish(true, { ok = false, reason = "COMMAND_PENDING" })
+		assert(state.autoRetry() == nil and state.retry() == stuck, "manual retry only")
+	end,
 	["accepted repair without stateVersion settles with a success line, no refusal and no retry"] = function()
 		local state = model()
 		state.receive({ durable = { actions = { "survival-coop:item-repair" }, sessionEpoch = 4 } })
