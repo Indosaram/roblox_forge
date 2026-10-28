@@ -563,6 +563,11 @@ local function harness(options: any?): any
 		})
 		h.step()
 	end
+	-- A whole packet (survival-coop snapshot + durable policy), as the server pushes it.
+	function h.packet(packet: any)
+		game:GetService("ReplicatedStorage"):WaitForChild("ForgeState").OnClientEvent:Fire(packet)
+		h.step()
+	end
 	h.column = assert(dock:FindFirstChild("Dock"), "dock column")
 	h.menu = assert(dock:FindFirstChild("Menu"), "menu grid")
 	h.toggle = assert(h.column:FindFirstChild("MenuToggle"), "menu toggle")
@@ -1094,6 +1099,195 @@ return {
 				h.hud.close()
 			end
 			assert(checked >= 12, checked .. " shell sheets checked at " .. at)
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	["U3b: every menu tile and sheet header shows a pack icon or a clean glyph, never an empty dark square"] = function()
+		local Theme = require("../../core/ui-kit/Theme")
+		local missing: { string } = {}
+		-- An icon badge reads as an empty slot when its frame is filled and it shows no art: the glyph
+		-- is hidden only by a published Asset image (IconFallback hides it once the image loads).
+		local function clean(badge: any, where: string)
+			assert(badge and badge.ClassName == "Frame", "icon badge at " .. where)
+			assert(badge.BackgroundTransparency == 1, "filled (dark square) icon badge at " .. where)
+			local asset, glyph = badge:FindFirstChild("Asset"), badge:FindFirstChild("Glyph")
+			local image = asset ~= nil and asset.Image ~= nil and asset.Image ~= ""
+			assert(image or (glyph and glyph:FindFirstChild("Shape1")), "no art and no glyph at " .. where)
+			return image
+		end
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3] })
+			h.publish({ market = MARKET, operations = {} })
+			for _, tile in h.tiles() do
+				local id = string.sub(tile.Name, 6)
+				if tile.Visible then
+					if not clean(tile:FindFirstChild("MenuIconFallback"), id .. " tile at " .. at) then
+						table.insert(missing, id)
+					end
+				end
+				if not tile.Visible or LAUNCHERS[id] then
+					continue
+				end
+				h.step()
+				h.click(h.toggle)
+				h.click(tile)
+				for _, sheet in h.sheets() do
+					local header = sheet.frame:FindFirstChild("Header")
+					if
+						header
+						and sheet.frame:FindFirstChild("Content")
+						and sheet.frame:GetAttribute("ForgeShellPanel") == nil
+					then
+						clean(header:FindFirstChild("ShellIcon"), id .. " header at " .. at)
+					end
+				end
+				for _, sheet in h.sheets() do
+					h.click(sheet.close)
+				end
+				h.hud.close()
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+		-- Every visible dock id has published art (assets/icons + manifest), not just the glyph.
+		assert(#missing == 0, "dock ids without a pack icon: " .. table.concat(missing, ", "))
+		assert(Theme.sheet ~= nil, "sheet tokens")
+	end,
+	["U3b: bag, craft, skills and build sheets wear the shell tokens with 14/16 px text floors"] = function()
+		local Theme = require("../../core/ui-kit/Theme")
+		local C = Theme.sheet.colors
+		local function same(c: any, token: any): boolean
+			return math.floor(c.R * 255 + 0.5) == token.r
+				and math.floor(c.G * 255 + 0.5) == token.g
+				and math.floor(c.B * 255 + 0.5) == token.b
+		end
+		local actions = {}
+		for _, verb in { "food", "gear-equip", "transfer-deposit", "craft-reserve", "recipe-mark", "skill-learn" } do
+			table.insert(actions, "survival-coop:" .. verb)
+		end
+		local function stack(id: string, catalogId: string, quantity: number): any
+			return {
+				itemId = id,
+				catalogId = catalogId,
+				quantity = quantity,
+				qualityMilli = 1000,
+				durabilityMilli = 1000,
+			}
+		end
+		local packet = {
+			revision = 1,
+			durable = { actions = actions, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					balance = 100,
+					vitals = { healthMilli = 90000, hungerMilli = 70000, fatigueMilli = 20000 },
+					progression = { level = 2, sp = 4, xp = 10, paid = {}, version = 1 },
+					inventory = {
+						{
+							kind = "carried",
+							items = { a = stack("a", "bone", 5), b = stack("b", "fiber", 12) },
+							reservations = {},
+							limits = { slots = 20, softWeightMilli = 40000, hardWeightMilli = 60000 },
+							weightMilli = 2000,
+						},
+					},
+				},
+				survivalExtensions = {},
+			},
+		}
+		-- 800x360 phone (floor 14) and 1280x720 PC (floor 16), plus U4's 58 px top bar on PC.
+		for _, view in { { 800, 360, 0, true, 14 }, { 1280, 720, 58, false, 16 } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], inset = view[3], touch = view[4], realHud = true })
+			h.packet(packet)
+			local _, frame, close = sheetParts(h)
+			for _, section in { "bag", "craft", "skills", "build" } do
+				local where = section .. " " .. at
+				h.hud.open(section)
+				h.step()
+				assert(frame.Visible, section .. " open at " .. at)
+				assert(same(frame.BackgroundColor3, C.body), where .. ": body is not the shell parchment")
+				assert(same(frame:FindFirstChild("Header").BackgroundColor3, C.header), where .. ": header not leather")
+				assert(same(close.BackgroundColor3, C.close), where .. ": close not the shell close")
+				local x = h.rect(close)
+				assert(x.width >= 44 and x.height >= 44 and x.y >= view[3], where .. ": close 44 px below the top bar")
+				local rows, counts = 0, 0
+				local function walk(item: any)
+					for _, child in item:GetChildren() do
+						if child.Visible == false then
+							continue
+						end
+						local class = child.ClassName
+						if (class == "TextLabel" or class == "TextButton") and child.Text ~= "" then
+							assert(not child.TextScaled, string.format("%s: %q is TextScaled", where, child.Text))
+							assert(
+								child.TextSize >= view[5],
+								string.format("%s: %q is %d px (< %d)", where, child.Text, child.TextSize, view[5])
+							)
+							if child.Name == "RowCount" or child.Name == "Quantity" then
+								counts += 1
+								assert(
+									child.TextXAlignment == roblox.Enum.TextXAlignment.Right,
+									where .. ": count " .. child.Text .. " not right-aligned"
+								)
+							elseif
+								class == "TextLabel"
+								and child.Parent.ClassName ~= "TextButton"
+								and child.Name ~= "Currency"
+							then
+								rows += 1
+								assert(
+									child.TextXAlignment == roblox.Enum.TextXAlignment.Left,
+									string.format("%s: row %q is not left-aligned", where, child.Text)
+								)
+							end
+						end
+						if class == "Frame" and child.Name == "IconFallback" then
+							assert(
+								child.BackgroundTransparency == 1,
+								where .. ": dark icon square in " .. child.Parent.Name
+							)
+						end
+						walk(child)
+					end
+				end
+				walk(frame)
+				assert(rows > 0, where .. ": no rows")
+				if section == "bag" or section == "craft" then
+					assert(counts > 0, where .. ": no item counts")
+				end
+				laneClear(h, { { name = section .. " close", rect = x } }, where)
+				h.click(close)
+				assert(not frame.Visible, where .. ": X closes")
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	["U3b: character and guides show an empty state, not the failure line, before any record exists"] = function()
+		for _, locale in { "ko-kr", "en-us" } do
+			local h = harness({ width = 800, height = 360, touch = true, locale = locale })
+			h.publish({})
+			for _, id in { "character", "guides" } do
+				h.step()
+				h.click(h.toggle)
+				h.click(h.tile(id))
+				local open = h.sheets()
+				assert(#open == 1, id .. " opens")
+				local texts = {}
+				for _, item in open[1].frame:GetDescendants() do
+					if (item.ClassName == "TextLabel" or item.ClassName == "TextButton") and item.Text ~= "" then
+						table.insert(texts, item.Text)
+					end
+				end
+				local all = table.concat(texts, "|")
+				assert(
+					not string.find(all, "실패", 1, true) and not string.find(all, "did not work", 1, true),
+					id .. ": " .. all
+				)
+				local expected = if locale == "ko-kr" then "아직 없어요" else "Nothing here yet"
+				assert(string.find(all, expected, 1, true), id .. " empty state missing: " .. all)
+				h.click(open[1].close)
+			end
 			assert(#h.errors == 0, table.concat(h.errors, "\n"))
 		end
 	end,

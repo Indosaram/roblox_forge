@@ -25,7 +25,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	local content, survival, character = data.content, data.survival, data.character
 	local bag = survival and survival.inventory and survival.inventory.bag
 	if not content or not bag then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local names = data.names or {}
 	local gear = (character and character.gear) or { equipped = {}, equipment = {} }

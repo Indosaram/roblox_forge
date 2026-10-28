@@ -1268,8 +1268,8 @@ function M.start(options: Options)
 						local caption, quantity = slot:FindFirstChild("Caption"), slot:FindFirstChild("Quantity")
 						if caption and quantity then
 							caption.Visible = false
-							quantity.TextSize, quantity.Size = HudShell.PANEL_MIN_TEXT, UDim2.fromOffset(28, 18)
-							quantity.Position = UDim2.new(1, -30, 1, -20)
+							quantity.TextSize, quantity.Size = HudShell.PANEL_MIN_TEXT, UDim2.fromOffset(36, 22)
+							quantity.Position = UDim2.new(1, -38, 1, -24)
 							-- InventoryGrid re-mounts the icon on every update, so it became the later sibling
 							-- at the same ZIndex and covered the count's top half (phone v40: digits unreadable).
 							quantity.ZIndex = slot.ZIndex + 2
@@ -1383,9 +1383,12 @@ function M.start(options: Options)
 				end, true)
 				for _, node in content.skillNodes or {} do
 					local learned = progression.paid[node.id] ~= nil
-					button("learn-" .. node.id, Locale.skill(locale, node), function()
+					local row = button("learn-" .. node.id, Locale.skill(locale, node), function()
 						command("skill-learn", { node.id })
 					end, not learned)
+					if shell and options.icons then
+						itemIcon(row, options.icons.ui(if learned then "success" else "skill-point"))
+					end
 				end
 			end
 		elseif section == "craft" then
@@ -1600,7 +1603,13 @@ function M.start(options: Options)
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
 				end, true)
-				IconFallback.mount(card, "building", UDim2.fromOffset(28, 28), UDim2.fromOffset(6, 6), nil)
+				-- The structure's kit art (item.icon.<id>-kit), else the build icon; the glyph without either.
+				local kit = if options.icons then options.icons.item(definition.id .. "-kit") else nil
+				local art = if kit and kit.image
+					then kit.image
+					elseif options.icons then options.icons.ui("build").image
+					else nil
+				IconFallback.mount(card, "building", UDim2.fromOffset(28, 28), UDim2.fromOffset(6, 6), art)
 				local title = card:FindFirstChild("StructureName")
 					or Components.label(
 						theme,
@@ -1688,6 +1697,32 @@ function M.start(options: Options)
 					end
 				end
 			end
+		end
+		if shell and Theme.sheet and sheet.frame.Visible then
+			-- The bag / craft / skills / build sheets wear the same shell as the docked sheets.
+			local safe = gui.AbsoluteSize.Y
+			local primary: { [Instance]: boolean } = {}
+			for _, child in craftActions:GetChildren() do
+				primary[child] = string.sub(child.Name, 1, 7) ~= "cancel-"
+			end
+			HudShell.skinSheet(sheet.frame, {
+				tokens = Theme.sheet,
+				body = Theme.sheetText("body", safe),
+				title = Theme.sheetText("title", safe),
+				selected = function(item: any): boolean
+					return panelSelected[item] == true
+						or primary[item] == true
+						or (inventoryGrid ~= nil and item.Parent == inventoryGrid.frame and item.Name == selected)
+				end,
+				lists = {
+					listPane,
+					categoryPane,
+					filterBar,
+					sheet.scroll,
+					buildCards,
+					if inventoryGrid then inventoryGrid.frame else listPane,
+				},
+			})
 		end
 		for index = noteUsed + 1, #notePool do
 			notePool[index].Visible = false

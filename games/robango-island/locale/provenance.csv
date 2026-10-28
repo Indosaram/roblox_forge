@@ -2135,6 +2135,7 @@ chr.ALREADY_EQUIPPED,original,agent:hephaestus/p97,2026-10-24
 chr.SLOT_EMPTY,original,agent:hephaestus/p97,2026-10-24
 chr.NOT_ALIVE,original,agent:hephaestus/p97,2026-10-24
 chr.char_failed,original,agent:hephaestus/p97,2026-10-24
+chr.char_empty,original,agent:hephaestus/u3b,2026-10-28
 exp.biome_grassland,original,agent:hephaestus/p97,2026-10-24
 exp.biome_tropical,original,agent:hephaestus/p97,2026-10-24
 exp.biome_desert,original,agent:hephaestus/p97,2026-10-24
@@ -3066,3 +3067,13 @@ cli.gather.decor_rock,original,agent:omo/v40-craft,2026-10-28
 cli.gather.decor_tree,original,agent:omo/v40-craft,2026-10-28
 gth.connecting,original,agent:omo/d1-join,2026-10-28
 gth.queued,original,agent:omo/d1-join,2026-10-28
+cli.title.tagline,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.start,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.settings,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.loading,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip1,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip2,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip3,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip4,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip5,original,agent:hephaestus/R01-title,2026-10-28
+cli.title.tip6,original,agent:hephaestus/R01-title,2026-10-28

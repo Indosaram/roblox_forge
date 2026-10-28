@@ -56,7 +56,7 @@ end
 function M.model(locale: string, data: any): { Sheet.Row }
 	local content, character = data.content, data.character
 	if not content or not character then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local names = data.names or {}
 	local points = character.points or 0

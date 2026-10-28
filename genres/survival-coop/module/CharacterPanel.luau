@@ -9,7 +9,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	local survival, character, content = data.survival, data.character, data.content
 	local tree = survival and survival.progression
 	if not tree or not content then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local view = Rules.character(content, tree, if character then character.points or 0 else 0)
 	local awards = Rules.awards(content, if character then character.definitions else nil)

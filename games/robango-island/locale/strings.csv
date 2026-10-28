@@ -2135,6 +2135,7 @@ chr.ALREADY_EQUIPPED,Already equipped,genre text chr,Already equipped,이미 착
 chr.SLOT_EMPTY,Nothing equipped there,genre text chr,Nothing equipped there,그 칸에는 장비가 없어요
 chr.NOT_ALIVE,You cannot do this while down,genre text chr,You cannot do this while down,쓰러진 동안은 할 수 없어요
 chr.char_failed,That did not work. Try again,genre text chr,That did not work. Try again,실패했어요. 다시 시도하세요
+chr.char_empty,Nothing here yet. It fills in as you play,character sheets before any record exists (new player or snapshot not yet received),Nothing here yet. It fills in as you play,아직 없어요. 플레이하면 여기에 채워져요
 exp.biome_grassland,Grassland,genre text exp,Grassland,초원
 exp.biome_tropical,Tropical Isle,genre text exp,Tropical Isle,열대 섬
 exp.biome_desert,Desert,genre text exp,Desert,사막
@@ -3066,3 +3067,13 @@ trv.drift_reset,The drift isle reshaped. Sailing to its new shore...,dock travel
 trv.expedition_active,Finish your current drift isle first,dock travel result,Finish your current drift isle first,진행 중인 표류섬을 먼저 마치세요
 gth.connecting,Still connecting. Try again in a moment,gather refusal while the profile loads or saves,Still connecting. Try again in a moment,아직 연결 중이에요. 잠시 후 다시 시도하세요
 gth.queued,Loading your save. Gathering as soon as it's ready,gather press queued until the profile is ready (sends by itself),Loading your save. Gathering as soon as it's ready,불러오는 중이에요. 준비되면 자동으로 채집해요
+cli.title.tagline,Wash ashore. Gather. Tame. Sail on.,client title screen,Wash ashore. Gather. Tame. Sail on.,표류하고 모으고 길들여 다시 바다로.
+cli.title.start,Start,client title screen,Start,시작하기
+cli.title.settings,Settings,client title screen,Settings,설정
+cli.title.loading,Loading the island...,client loading screen,Loading the island...,섬을 불러오는 중...
+cli.title.tip1,Tap a resource node to open its harvest picker and choose what to gather.,client loading tip,Tap a resource node to open its harvest picker and choose what to gather.,자원을 누르면 채집 선택지가 열려요. 원하는 재료를 고르세요.
+cli.title.tip2,A creature winding up a charge is your cue to press Dodge.,client loading tip,A creature winding up a charge is your cue to press Dodge.,동물이 돌진 자세를 잡으면 회피를 누를 때예요.
+cli.title.tip3,"A bone knife comes first: bone, fiber and a little patience.",client loading tip,"A bone knife comes first: bone, fiber and a little patience.","첫 도구는 뼈칼이에요. 뼈, 섬유, 그리고 약간의 인내."
+cli.title.tip4,"Drift isles sink back into the sea, so bring home what you find.",client loading tip,"Drift isles sink back into the sea, so bring home what you find.",표류섬은 다시 바다에 잠겨요. 찾은 것은 집으로 가져오세요.
+cli.title.tip5,Open the sea chart at the harbor to pick your next island.,client loading tip,Open the sea chart at the harbor to pick your next island.,항구에서 해도를 펼쳐 다음 섬을 고르세요.
+cli.title.tip6,Sell spare goods at the trading post and buy what your camp lacks.,client loading tip,Sell spare goods at the trading post and buy what your camp lacks.,남는 물건은 교역소에 팔고 캠프에 필요한 것을 사세요.

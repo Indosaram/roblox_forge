@@ -129,6 +129,15 @@
         }
       }
     },
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "RobangoBoot": {
+        "$path": "src/first/RobangoBoot.client.luau"
+      },
+      "TitleFlow": {
+        "$path": "src/first/TitleFlow.luau"
+      }
+    },
     "ReplicatedStorage": {
       "Forge": {
         "$className": "Folder",

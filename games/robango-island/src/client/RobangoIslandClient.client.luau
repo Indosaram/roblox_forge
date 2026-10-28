@@ -397,6 +397,16 @@ gui.Destroying:Connect(hud.destroy)
 script.Destroying:Connect(hud.destroy)
 
 local ExtensionPanels = require(Forge.genres["survival-coop"].module.ExtensionPanels)
+-- R01: the ReplicatedFirst title screen (RobangoBoot) holds the survivor picker and the opening
+-- cold open until its Start sets ForgeTitleDone; the cold open also waits out an open picker.
+local function titleHeld(): boolean
+	return player:GetAttribute("ForgeTitleDone") ~= true
+end
+local function pickerShown(): boolean
+	local picker = player:FindFirstChildOfClass("PlayerGui")
+	local found = picker and picker:FindFirstChild("ForgeSurvivorPicker")
+	return found ~= nil and found:IsA("ScreenGui") and found.Enabled
+end
 local panelFactories = table.clone(ExtensionPanels.factories)
 table.insert(panelFactories, function(ctx)
 	petRing = require(Forge.genres["survival-coop"].module.PetRing).factory(ctx)
@@ -778,6 +788,8 @@ table.insert(panelFactories, function(ctx)
 		label = if korean then "설정" else "Settings",
 		order = 11,
 		setOpen = function(open)
+			-- Opened from the title screen (DisplayOrder 100), the sheet sits above it.
+			audioGui.DisplayOrder = if titleHeld() then 101 else 24
 			audioGui.Enabled = open
 		end,
 		isOpen = function()
@@ -989,6 +1001,9 @@ table.insert(panelFactories, function(ctx)
 	scoped.quarterView = function()
 		return camera
 	end
+	scoped.held = function(): boolean
+		return titleHeld() or pickerShown()
+	end
 	return require(Shared.OpeningClient).factory(scoped)
 end)
 -- Social / home / trade sheets (ui.home-permissions, ui.home-move, ui.siege-*, ui.transaction,
@@ -1035,6 +1050,13 @@ table.insert(panelFactories, function(ctx)
 	scoped.presets = Survivor.PRESETS
 	scoped.text = function(key: string): string
 		return clientText(locale, "cli.survivor." .. key) or key
+	end
+	scoped.held = titleHeld
+	scoped.onRelease = function(fn: () -> ()): () -> ()
+		local connection = player:GetAttributeChangedSignal("ForgeTitleDone"):Connect(fn)
+		return function()
+			connection:Disconnect()
+		end
 	end
 	return Survivor.picker(scoped)
 end)
@@ -1290,6 +1312,15 @@ local tapInput = TapRouter.start({
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
 	end,
 })
+-- R01 join screen (ReplicatedFirst RobangoBoot): the HUD, panels and camera above are built, so
+-- the loading screen may turn into the title now; its Start sets ForgeTitleDone.
+player:SetAttribute("ForgeHudReady", true)
+-- Title settings shortcut: each tap bumps ForgeTitleSettings; the settings sheet opens above it.
+player:GetAttributeChangedSignal("ForgeTitleSettings"):Connect(function()
+	if panels.open then
+		panels.open("audio")
+	end
+end)
 -- C3 combat presentation: tap a creature to engage the semi-automatic attack loop; target bar,
 -- step-back pill, damage numbers, low-health vignette, dodge hop and the carcass fan.
 local CombatHud = require(Forge.genres["survival-coop"].module.CombatHud)

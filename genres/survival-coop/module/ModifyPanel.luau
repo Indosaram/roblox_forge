@@ -13,7 +13,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	local content, survival = data.content, data.survival
 	local tree = survival and survival.progression
 	if not content or not tree then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local record = Support.focused(data)
 	if not record then

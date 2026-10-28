@@ -309,10 +309,13 @@ end
 
 -- Joins ACTOR at `at.value` and runs the server's threads and the client's press loop. Returns
 -- the seconds from the join to the first confirmed gather (nil: none within `limit`) and a log.
-local function measure(live: any, at: Time, limit: number, layoutId: string): (number?, { string })
+-- `hold` (R01 title screen) keeps the client on the title for that many seconds after the join:
+-- the server join and heartbeat run meanwhile and the time is counted from the Start tap.
+local function measure(live: any, at: Time, limit: number, layoutId: string, hold: number?): (number?, { string })
 	local session = live.session
 	local log: { string } = {}
-	local started = at.value
+	local joinedAt = at.value
+	local started = at.value + (hold or 0)
 	local function note(text: string)
 		table.insert(log, string.format("%6.2f %s", at.value - started, text))
 		if process.env.FORGE_JOIN_TRACE then
@@ -363,6 +366,10 @@ local function measure(live: any, at: Time, limit: number, layoutId: string): (n
 		local index = 0
 		local node: string? = nil
 		local sequence = 0
+		if hold then
+			sleep(hold)
+			note("title Start tapped")
+		end
 		while running and confirmed == nil do
 			if member() then
 				if list == nil and ACTION == "survival-coop:gather" then
@@ -421,7 +428,7 @@ local function measure(live: any, at: Time, limit: number, layoutId: string): (n
 			sleep(1)
 		end
 	end)
-	while confirmed == nil and at.value - started <= limit do
+	while confirmed == nil and at.value - joinedAt <= limit + (hold or 0) do
 		pump(at)
 	end
 	running = false
@@ -443,7 +450,7 @@ local function forceStopped(at: Time, old: any)
 	old.factory.close = function() end
 end
 
-local function run(layoutId: string, stale: boolean): (number?, { string })
+local function run(layoutId: string, stale: boolean, hold: number?): (number?, { string })
 	local at: Time = { value = 1000, wakes = {} }
 	if process.env.FORGE_JOIN_TRACE then
 		print("boot", layoutId, os.clock())
@@ -457,7 +464,7 @@ local function run(layoutId: string, stale: boolean): (number?, { string })
 	if process.env.FORGE_JOIN_TRACE then
 		print("booted", os.clock())
 	end
-	local seconds, log = measure(live, at, 60, layoutId)
+	local seconds, log = measure(live, at, 60, layoutId, hold)
 	-- Every thread still parked on a write returns; the run ends with the spec.
 	backend.halted = true
 	for _ = 1, 50 do
@@ -470,8 +477,8 @@ local function run(layoutId: string, stale: boolean): (number?, { string })
 	return seconds, log
 end
 
-local function check(layoutId: string, stale: boolean)
-	local seconds, log = run(layoutId, stale)
+local function check(layoutId: string, stale: boolean, hold: number?)
+	local seconds, log = run(layoutId, stale, hold)
 	assert(
 		seconds ~= nil and seconds <= BUDGET,
 		"time to first confirmed action: " .. tostring(seconds) .. "\n" .. table.concat(log, "\n")
@@ -490,5 +497,16 @@ return {
 	end,
 	["town: a rejoin after a force-stop confirms its first action within the D1 budget"] = function()
 		check("rw.town", true)
+	end,
+	-- R01: the title waits for the player by design, so D1 counts from the Start tap. A tap the
+	-- moment the title appears (2 s, the loading screen's earliest close) and a slow one (20 s,
+	-- past every join retry and lease takeover) both confirm within the budget of the tap.
+	["onboarding: with the title held, the first action confirms within D1 of the Start tap"] = function()
+		check("rw.onboarding", false, 2)
+		check("rw.onboarding", true, 20)
+	end,
+	["town: with the title held, the first action confirms within D1 of the Start tap"] = function()
+		check("rw.town", true, 2)
+		check("rw.town", false, 20)
 	end,
 }

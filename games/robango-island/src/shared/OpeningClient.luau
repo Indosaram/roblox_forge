@@ -381,7 +381,8 @@ function M.factory(ctx: any): any
 			end
 			return
 		end
-		if view.coldOpen then
+		-- R01: the cold open waits for the title's Start and the survivor picker (`held`).
+		if view.coldOpen and not (ctx.held and ctx.held()) then
 			startCold()
 		end
 		local root = rootPart()

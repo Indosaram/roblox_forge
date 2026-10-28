@@ -8,7 +8,7 @@ local M = {}
 function M.model(locale: string, data: any): { Sheet.Row }
 	local content, character = data.content, data.character
 	if not content then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local points = if character then character.points or 0 else 0
 	local rank = Rules.rank(points)

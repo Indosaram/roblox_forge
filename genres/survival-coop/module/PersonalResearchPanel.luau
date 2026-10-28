@@ -21,7 +21,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	local content, survival, character = data.content, data.survival, data.character
 	local tree = survival and survival.progression
 	if not content or not tree then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local rank = Rules.rank(if character then character.points or 0 else 0)
 	local now = if character then character.now or 0 else 0

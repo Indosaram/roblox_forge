@@ -21,6 +21,8 @@ export type Context = {
 	openPanel: ((string) -> ())?,
 	dialogue: ((string, string?) -> ())?,
 	content: any?,
+	-- The pack's icon resolver (ItemIcons: ui/item/recipe -> { image, category }), when given.
+	icons: any?,
 }
 export type DockEntry = {
 	id: string,
@@ -326,8 +328,112 @@ function M.styleShellText(item: any, header: any, tokens: any, size: (string) ->
 	end
 end
 
+-- Pack ui icon (assets/icons/ui.icon.<icon>.png, manifest key ui-icon-<icon>) per dock id, for its
+-- menu tile and sheet header. A dock id not listed here uses its category icon (`categories`).
+M.DOCK_ICONS = table.freeze({
+	bag = "bag",
+	craft = "craft",
+	build = "build",
+	skills = "skills",
+	character = "member",
+	equipment = "durability",
+	journal = "journal",
+	contracts = "todo",
+	explore = "explore",
+	["death-zone"] = "block",
+	taming = "capture",
+	clan = "clan",
+	tribe = "social",
+	outpost = "claim",
+	camp = "party",
+	market = "market",
+	["market-buy"] = "market",
+	["clan-join"] = "invite",
+	["clan-membership"] = "invite",
+	["clan-browse"] = "clan",
+	["clan-roles"] = "officer",
+	["clan-treasury"] = "currency",
+	["clan-research"] = "search",
+	construction = "build",
+	building = "build",
+	["build-manage"] = "build",
+	brawl = "stance.attack",
+	routes = "explore",
+	party = "party",
+	expedition = "explore",
+	arrival = "explore",
+	shop = "currency",
+	music = "music",
+	["score-import"] = "music",
+	["score-share"] = "music",
+	["score-library"] = "music",
+	["ensemble-lobby"] = "music",
+	operations = "music",
+	navigator = "sort",
+	audio = "settings",
+	sound = "settings",
+	farm = "fertility",
+	["farm-area"] = "fertility",
+	["crop-specialize"] = "fertility",
+	["crop-book"] = "journal",
+	processing = "processing-budget",
+	["craft-preview"] = "craft",
+	["recipe-tracker"] = "todo",
+	inbox = "inbox",
+	storage = "capacity",
+	guides = "help",
+	["skill-reset"] = "refresh",
+	["island-rank"] = "exploration-rank",
+	["personal-research"] = "search",
+	["technical-support"] = "help",
+	modify = "sharpness",
+	["home-move"] = "visitor",
+	["home-permissions"] = "permission",
+	organizations = "clan",
+	["sea-chart"] = "exploration-rank",
+	["sea-chart-dock"] = "exploration-rank",
+	["sea-chart-rift"] = "exploration-rank",
+	territory = "claim",
+	["siege-match"] = "stance.defense",
+	["siege-results"] = "stance.defense",
+	transaction = "escrow",
+	["direct-trade"] = "escrow",
+	dialogue = "social",
+	players = "member",
+	jobs = "clock",
+})
+
+-- Glyph ink on a menu tile (ui-spec bone on the tile's dark fill).
+local TILE_GLYPH = table.freeze({ r = 0xED, g = 0xE6, b = 0xD6 })
+
+--- Pack ui icon id of dock entry `id`.
+function M.iconId(id: string): string
+	local info: { number | string } = categories[id] or { 3, "social" }
+	return M.DOCK_ICONS[id] or info[2] :: string
+end
+
 -- Fallback glyph per menu icon id (IconFallback shapes), shared by menu tiles and sheet headers.
 local GLYPHS: { [string]: string } = {
+	member = "creature",
+	durability = "armor",
+	block = "armor",
+	claim = "building",
+	officer = "creature",
+	search = "item",
+	["stance.attack"] = "weapon",
+	["stance.defense"] = "armor",
+	sort = "wood",
+	fertility = "seed",
+	["processing-budget"] = "tool",
+	capacity = "item",
+	help = "item",
+	refresh = "item",
+	["exploration-rank"] = "seed",
+	sharpness = "weapon",
+	visitor = "building",
+	permission = "armor",
+	escrow = "item",
+	clock = "item",
 	bag = "item",
 	craft = "tool",
 	build = "building",
@@ -348,6 +454,28 @@ local GLYPHS: { [string]: string } = {
 	inbox = "item",
 }
 
+--- Mounts the icon badge `name` for pack ui icon `iconId` in `parent`: the pack's PNG on a clear
+--- badge, or (no published icon) the IconFallback glyph drawn in `ink` on a clear badge. Never the
+--- dark filled square an empty slot reads as (lead review of the U3 render).
+function M.mountIcon(parent: any, iconId: string, icons: any?, size: any, position: any, name: string, ink: any): any
+	local icon = if icons then icons.ui(iconId) else nil
+	local image = if icon and icon.image and icon.image ~= "" then icon.image else nil
+	local badge = IconFallback.mount(parent, GLYPHS[iconId] or "item", size, position, image, name)
+	if badge == nil then
+		return nil
+	end
+	badge.BackgroundTransparency = 1
+	local glyph = childNamed(badge, "Glyph")
+	if glyph and type(glyph.GetChildren) == "function" then
+		for _, part in glyph:GetChildren() do
+			if part.ClassName == "Frame" then
+				part.BackgroundColor3 = rgb(ink)
+			end
+		end
+	end
+	return badge
+end
+
 --- Header icon badge of a shell sheet for screen `id` (its menu category icon); `icons` is the
 --- pack's icon resolver (options.icons), nil for the fallback glyph only.
 function M.shellIcon(frame: any, id: string?, icons: any?, tokens: any)
@@ -356,16 +484,14 @@ function M.shellIcon(frame: any, id: string?, icons: any?, tokens: any)
 		return
 	end
 	local S = tokens.space
-	local info: { number | string } = (id and categories[id]) or { 0, "inbox" }
-	local iconId = info[2] :: string
-	local icon = if icons then icons.ui(iconId) else nil
-	IconFallback.mount(
+	M.mountIcon(
 		header,
-		GLYPHS[iconId],
+		if id then M.iconId(id) else "inbox",
+		icons,
 		UDim2.fromOffset(S.icon, S.icon),
 		UDim2.new(0, S.pad, 0.5, -S.icon / 2),
-		if icon then icon.image else nil,
-		"ShellIcon"
+		"ShellIcon",
+		tokens.colors.headerText
 	)
 	if id then
 		frame:SetAttribute("ForgeShellIcon", id)
@@ -531,6 +657,7 @@ function M.start(
 		locale = options.locale,
 		names = options.names,
 		content = options.content,
+		icons = options.icons,
 		send = function(actionId, args)
 			local epoch = if durable and durable.epochs then durable.epochs[actionId] else nil
 			if not CommandTransport.durable(durable, actionId) or (pending[actionId] == nil and epoch == nil) then
@@ -1042,19 +1169,18 @@ function M.start(
 	local function styleTile(button: any, entry: any)
 		button.Name, button.LayoutOrder = "Dock-" .. entry.id, entry.order
 		if contextual then
-			local info: { number | string } = categories[entry.id] or { 3, "social" }
-			local iconId = info[2] :: string
+			local iconId = M.iconId(entry.id)
 			button.LayoutOrder = M.tileOrder(entry.id, entry.order)
 			button.Text = ""
 			-- Tiles stay grouped by category through LayoutOrder (tileOrder); no 11px caption.
-			local icon = if options.icons then options.icons.ui(iconId) else nil
-			IconFallback.mount(
+			M.mountIcon(
 				button,
-				GLYPHS[iconId],
+				iconId,
+				options.icons,
 				UDim2.fromOffset(M.MENU_ICON, M.MENU_ICON),
 				UDim2.new(0, 6, 0.5, -M.MENU_ICON / 2),
-				if icon then icon.image else nil,
-				"MenuIconFallback"
+				"MenuIconFallback",
+				TILE_GLYPH
 			)
 			local caption = ui.components.label(theme, {
 				text = if entry.id == "music" then Locale.text(options.locale, "music") else entry.label,

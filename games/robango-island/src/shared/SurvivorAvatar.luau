@@ -503,21 +503,29 @@ function M.picker(ctx: any): any
 			gui.Enabled = false
 		end)
 	)
+	local function maybeOpen()
+		if M.pickerNeeded(view) and not asked and not (ctx.held and ctx.held()) then
+			asked = true
+			gui.Enabled = true
+		end
+	end
 	local stop = ctx.onSnapshot(function(snapshot)
 		local trip = if type(snapshot) == "table" then snapshot.archipelago else nil
 		local next = if type(trip) == "table" then trip.survivor else nil
 		if next then
 			view = next
 			render()
-			if M.pickerNeeded(view) and not asked then
-				asked = true
-				gui.Enabled = true
-			end
+			maybeOpen()
 		end
 	end)
+	-- R01: the picker waits for the title screen's Start (`held`), then opens on `onRelease`.
+	local release = if ctx.onRelease then ctx.onRelease(maybeOpen) else nil
 	return {
 		destroy = function()
 			stop()
+			if release then
+				release()
+			end
 			for _, connection in connections do
 				connection:Disconnect()
 			end

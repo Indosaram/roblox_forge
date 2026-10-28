@@ -167,6 +167,21 @@ return {
 			DownPanel.model("en-us", { down = true, options = { "rescue" }, choice = "rescue", waitingMillis = 41500 })
 		assert(waiting.waiting == "Flare up: 42 s left" and waiting.cards[1].active, "countdown and active card")
 	end,
+	["U3b: every down card asks the icon resolver for item art for its pebble badge"] = function()
+		local asked = {}
+		local icons = {
+			item = function(id: string)
+				table.insert(asked, id)
+				return { image = "rbxassetid://" .. #asked }
+			end,
+		}
+		for _, option in { "rift", "camp", "rescue", "get-up" } do
+			local image = DownPanel.icon(icons, option)
+			assert(string.match(image, "^rbxassetid://%d+$"), option .. " art: " .. image)
+			assert(asked[#asked] == DownPanel.ICON_ASSETS[option], option .. " asks its item")
+		end
+		assert(DownPanel.icon(nil, "rift") == "", "no resolver, no image")
+	end,
 	["flare chat line, drop label and refusals"] = function()
 		local flare = { id = "1", name = "Mira", x = 911, y = 3, z = 594 }
 		assert(DownPanel.flareLine("en-us", flare) == "Mira sent up a flare at (911, 594)", "EN chat line")

@@ -7,6 +7,7 @@
 --     "Help up" button when close enough; the server validates every revive.
 -- Strings are rsc.* rows of the pack locale table (games/robango-island/locale/strings.csv).
 local PackLocale = require("./PackLocale")
+local Shell = require("./HudShell")
 
 local M = {}
 M.CHOOSE = "survival-coop:rescue-choose"
@@ -40,6 +41,22 @@ function M.dropLabel(locale: string, key: string): string?
 end
 local LABELS = { rift = "rift", camp = "camp", rescue = "rescue", ["get-up"] = "getup" }
 local ICONS = { rift = "death.rift", camp = "death.camp", rescue = "death.rescue", ["get-up"] = "death.camp" }
+-- Pack item icons drawn on each down card's pebble badge (closest published art to ui-spec's
+-- death.* glyphs: rift fragment, campfire, rescue flare beacon). No ASCII placeholder glyphs.
+M.ICON_ASSETS = table.freeze({
+	rift = "signal-fragment",
+	camp = "campfire-kit",
+	["get-up"] = "campfire-kit",
+	rescue = "rescue-marker",
+})
+
+--- Image of the down-card icon for `option` from the pack's icon resolver ("" without one).
+local function DownPanel_icon(icons: any?, option: string): string
+	local key = M.ICON_ASSETS[option]
+	local icon = if icons and key then icons.item(key) else nil
+	return if icon and icon.image then icon.image else ""
+end
+M.icon = DownPanel_icon
 local REFUSALS = { TOO_FAR = "too_far", REQUEST_EXPIRED = "expired", NO_REQUEST = "expired" }
 
 function M.text(locale: string, key: string, ...: any): string
@@ -212,10 +229,17 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		corner.CornerRadius, corner.Parent = UDim.new(0.14, 0), button
 		local rim = Instance.new("UIStroke")
 		rim.Name, rim.Color, rim.Thickness, rim.Parent = "Rim", rgb(0x8A7560), 3, button
-		local glyph = Instance.new("TextLabel")
-		glyph.Name, glyph.BackgroundTransparency, glyph.Position = "Icon", 1, UDim2.fromScale(0.05, 0.06)
-		glyph.Size, glyph.Font, glyph.TextScaled = UDim2.fromScale(0.9, 0.3), Enum.Font.BuilderSansBold, true
-		glyph.TextColor3, glyph.Parent = rgb(0xC99A3B), button
+		local glyph = Instance.new("ImageLabel")
+		glyph.Name, glyph.BackgroundTransparency, glyph.AnchorPoint = "Icon", 1, Vector2.new(0.5, 0)
+		glyph.Position, glyph.Size = UDim2.fromScale(0.5, 0.05), UDim2.fromScale(0.3, 0.3)
+		glyph.SizeConstraint, glyph.ScaleType = Enum.SizeConstraint.RelativeYY, Enum.ScaleType.Fit
+		glyph.Parent = button
+		local inner = Instance.new("ImageLabel")
+		inner.Name, inner.BackgroundTransparency, inner.AnchorPoint = "Image", 1, Vector2.new(0.5, 0.5)
+		inner.Position, inner.Size, inner.ScaleType =
+			UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.72, 0.72), Enum.ScaleType.Fit
+		inner.Parent = glyph
+		Shell.pebbleShape(glyph, Shell.PALETTE.tealDeep)
 		local name = Instance.new("TextLabel")
 		name.Name, name.BackgroundTransparency, name.Position = "Title", 1, UDim2.fromScale(0.06, 0.4)
 		name.Size, name.Font, name.TextScaled = UDim2.fromScale(0.88, 0.2), Enum.Font.BuilderSansBold, true
@@ -284,10 +308,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				local item = card(index)
 				item.option, item.button.Visible = entry.option, true
 				item.title.Text, item.line.Text = entry.title, entry.line
-				item.icon.Text = if entry.option == "rescue"
-					then "( ! )"
-					elseif entry.option == "rift" then "( o )"
-					else "/\\"
+				item.icon.Image.Image = DownPanel_icon(ctx.icons, entry.option)
+				item.icon:SetAttribute("ForgeIconKey", M.ICON_ASSETS[entry.option])
 				item.button:SetAttribute("ForgeIcon", entry.icon)
 				item.rim.Color = if entry.active then rgb(0x5FA8A0) else rgb(0x8A7560)
 			end

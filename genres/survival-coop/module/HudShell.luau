@@ -703,26 +703,37 @@ local function color(c: any): any
 end
 M.color = color
 
+--- The pebble shape (spec section 3) on any GuiObject: fill, squircle corners and the driftwood rim.
+--- Action tokens, gather fan outputs and the down-card icon badges all take their shape from here,
+--- so the HUD speaks one token language (decision 9: our pebble, never a hex).
+function M.pebbleShape(item: any, fill: any, transparency: number?)
+	item.BackgroundTransparency = transparency or 0
+	item.BackgroundColor3 = color(fill)
+	local corner = item:FindFirstChild("PebbleCorner") or Instance.new("UICorner")
+	corner.Name, corner.CornerRadius, corner.Parent = "PebbleCorner", UDim.new(M.PEBBLE.corner, 0), item
+	for _, child in item:GetChildren() do
+		if child:IsA("UICorner") and child ~= corner then
+			child:Destroy()
+		end
+	end
+	local rim = item:FindFirstChild("PebbleRim") or Instance.new("UIStroke")
+	rim.Name, rim.Color, rim.Parent = "PebbleRim", color(M.PALETTE.drift), item
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Thickness = math.max(2, math.floor(math.min(item.AbsoluteSize.X, item.AbsoluteSize.Y) * M.PEBBLE.rim + 0.5))
+end
+
 --- Styles a GuiButton as a pebble token: tealDeep fill (teal and ink glyph when active), a
 --- driftwood rim 6% of the edge, squircle corners, bone label text.
 function M.pebble(button: any, active: boolean?, enabled: boolean?)
 	local P = M.PALETTE
 	button.AutoButtonColor = false
-	button.BackgroundTransparency = if enabled == false then 0.6 else 0
-	button.BackgroundColor3 = color(if enabled == false then P.boneShade elseif active then P.teal else P.tealDeep)
+	M.pebbleShape(
+		button,
+		if enabled == false then P.boneShade elseif active then P.teal else P.tealDeep,
+		if enabled == false then 0.6 else 0
+	)
 	button.TextColor3 = color(if active then P.ink else P.bone)
 	button.Font = Enum.Font.BuilderSans
-	local corner = button:FindFirstChild("PebbleCorner") or Instance.new("UICorner")
-	corner.Name, corner.CornerRadius, corner.Parent = "PebbleCorner", UDim.new(M.PEBBLE.corner, 0), button
-	for _, child in button:GetChildren() do
-		if child:IsA("UICorner") and child ~= corner then
-			child:Destroy()
-		end
-	end
-	local rim = button:FindFirstChild("PebbleRim") or Instance.new("UIStroke")
-	rim.Name, rim.Color, rim.Parent = "PebbleRim", color(P.drift), button
-	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	rim.Thickness = math.max(2, math.floor(math.min(button.AbsoluteSize.X, button.AbsoluteSize.Y) * M.PEBBLE.rim + 0.5))
 end
 
 --- Places a GuiObject at a rect given in the space of `frame`'s ScreenGui (offset by `origin`).
@@ -782,6 +793,152 @@ function M.panelButton(button: any, primary: boolean)
 	button.BackgroundColor3 = color(if primary then P.teal else P.tealDeep)
 	button.TextColor3 = color(if primary then P.ink else P.bone)
 	button.Font = Enum.Font.BuilderSans
+end
+
+-- Sheet skin (lead review of U3: the bag / craft / skills / build sheets of SurvivalHUD on the same
+-- shell as the docked sheets): the ui-kit Theme.sheet tokens (parchment body in a wood rim, leather
+-- header, round close, ink rows left-aligned, item counts right-aligned, sea-glass buttons) and the
+-- Theme.sheetText floors. Colours, alignment and text size only: every rect stays where the layout
+-- (HudShell.panel / contextSheet, U4's Close row and notice lane) put it.
+local SKIN_RIGHT = table.freeze({ RowCount = true, Quantity = true })
+
+local function rgb(c: any): any
+	return Color3.fromRGB(c.r, c.g, c.b)
+end
+
+--- Icon badges (IconFallback frames) on parchment: no dark filled square; a glyph draws in `ink`.
+function M.skinIcon(badge: any, ink: any)
+	badge.BackgroundTransparency = 1
+	local glyph = badge:FindFirstChild("Glyph")
+	if glyph then
+		for _, part in glyph:GetChildren() do
+			if part:IsA("Frame") then
+				part.BackgroundColor3 = rgb(ink)
+			end
+		end
+	end
+end
+
+export type SkinOptions = {
+	-- Theme.sheet tokens and the current text sizes (Theme.sheetText for the gui's safe height).
+	tokens: any,
+	body: number,
+	title: number,
+	-- True for a selected row / tab or the primary action: sea-glass; other list rows are chips.
+	selected: (any) -> boolean,
+	-- Containers whose buttons are list rows (chip unless selected); other buttons are sea-glass.
+	lists: { any },
+}
+
+--- Skins a Components.modalSheet frame (and everything in it) with the sheet tokens.
+function M.skinSheet(frame: any, options: SkinOptions)
+	local C = options.tokens.colors
+	frame.BackgroundColor3, frame.BackgroundTransparency = rgb(C.body), 0
+	local rim = frame:FindFirstChildOfClass("UIStroke")
+	if rim then
+		rim.Color, rim.Thickness = rgb(C.rim), 3
+	end
+	local shade = frame:FindFirstChildOfClass("UIGradient")
+	if shade and ColorSequence then
+		shade.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(232, 222, 204))
+	end
+	local header = frame:FindFirstChild("Header")
+	if header then
+		header.BackgroundColor3, header.BackgroundTransparency = rgb(C.header), 0
+		local sheen = header:FindFirstChildOfClass("UIGradient")
+		if sheen and ColorSequence then
+			sheen.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(214, 204, 192))
+		end
+	end
+	local function inList(item: any): boolean
+		for _, list in options.lists do
+			if item.Parent == list then
+				return true
+			end
+		end
+		return false
+	end
+	for _, item in frame:GetDescendants() do
+		local class = item.ClassName
+		if class == "Frame" and (item.Name == "IconFallback" or item.Name == "ShellIcon") then
+			M.skinIcon(item, if header and item:IsDescendantOf(header) then C.headerText else C.ink)
+		elseif class == "ScrollingFrame" then
+			item.ScrollBarImageColor3 = rgb(C.rim)
+		elseif class == "TextLabel" or class == "TextButton" then
+			local stroke = item:FindFirstChildOfClass("UIStroke")
+			if header and item:IsDescendantOf(header) then
+				item.TextScaled, item.TextSize = false, options.title
+				item.TextColor3 = rgb(C.headerText)
+				if item.Name == "Close" then
+					item.BackgroundColor3 = rgb(C.close)
+				else
+					item.TextXAlignment = Enum.TextXAlignment.Left
+				end
+				continue
+			end
+			if item.Name == "Close" then
+				-- The full-screen panel's close pebble sits on the frame (HudShell.applyPanel).
+				item.TextScaled, item.TextSize = false, options.title
+				item.BackgroundColor3, item.TextColor3 = rgb(C.close), rgb(C.headerText)
+				continue
+			end
+			if item.Text ~= "" then
+				-- Fixed sizes at the floor: TextScaled shrank rows to 10 px (D2b: ~9 px body text).
+				item.TextScaled, item.TextWrapped = false, true
+				item.TextSize = math.max(item.TextSize, options.body)
+				local fit = item:FindFirstChildOfClass("UITextSizeConstraint")
+				if fit then
+					fit.MaxTextSize = math.max(fit.MaxTextSize, item.TextSize)
+					fit.MinTextSize = math.min(fit.MaxTextSize, math.max(fit.MinTextSize, options.body))
+				end
+			end
+			if stroke and class == "TextLabel" then
+				-- Ink on parchment needs no halo.
+				stroke.Transparency = 1
+			end
+			if class == "TextButton" then
+				local enabled = item.Interactable ~= false and item.Active ~= false
+				local chip = inList(item) and not options.selected(item)
+				item.BackgroundTransparency = 0
+				item.BackgroundColor3 = rgb(if not enabled then C.disabled elseif chip then C.chip else C.button)
+				item.TextColor3 = rgb(if not enabled then C.disabledText elseif chip then C.ink else C.buttonText)
+				if item:FindFirstChild("IconPadding") or inList(item) then
+					-- A list row: icon (if any) left, then its text left-aligned beside it.
+					item.TextXAlignment = Enum.TextXAlignment.Left
+					if not item:FindFirstChild("IconPadding") then
+						local pad = item:FindFirstChild("SkinPadding") or Instance.new("UIPadding")
+						pad.Name, pad.PaddingLeft, pad.PaddingRight = "SkinPadding", UDim.new(0, 12), UDim.new(0, 8)
+						pad.Parent = item
+					end
+				end
+			else
+				local parent = item.Parent
+				local onButton = parent ~= nil and parent:IsA("TextButton")
+				if SKIN_RIGHT[item.Name] then
+					item.TextXAlignment = Enum.TextXAlignment.Right
+				elseif item.Name == "Currency" then
+					item.TextXAlignment = Enum.TextXAlignment.Center
+				else
+					item.TextXAlignment = Enum.TextXAlignment.Left
+				end
+				if item.Name == "Quantity" then
+					-- Inventory cell count: an ink pill bottom-right of the cell, bone digits.
+					item.BackgroundColor3, item.BackgroundTransparency = rgb(C.header), 0.05
+					item.TextColor3 = rgb(C.headerText)
+				elseif item.Name == "RowCount" and item.TextColor3 == Color3.fromRGB(255, 155, 132) then
+					-- A short material count (materialRow colours it) stays a warning, in the close red.
+					item.TextColor3 = rgb(C.close)
+				elseif onButton and parent.BackgroundColor3 == rgb(C.button) then
+					item.TextColor3 = rgb(C.buttonText)
+				else
+					item.TextColor3 = rgb(C.ink)
+					if item.BackgroundTransparency < 1 then
+						item.BackgroundColor3 = rgb(C.chip)
+					end
+				end
+			end
+		end
+	end
 end
 
 --- Top-bar clearance for a ScreenGui. A CoreUISafeInsets gui already starts below the top bar, and

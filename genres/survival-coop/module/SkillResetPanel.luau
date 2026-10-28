@@ -10,7 +10,7 @@ M.RESET = "survival-coop:skill-reset"
 function M.model(locale: string, data: any): { Sheet.Row }
 	local tree = data.survival and data.survival.progression
 	if not tree then
-		return { { name = "Empty", text = Text.text(locale, "char_failed") } }
+		return { { name = "Empty", text = Text.text(locale, "char_empty") } }
 	end
 	local quote = Rules.resetQuote(tree)
 	local rows: { Sheet.Row } = {
