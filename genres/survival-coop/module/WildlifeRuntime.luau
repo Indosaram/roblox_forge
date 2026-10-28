@@ -115,8 +115,24 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		return current, err
 	end
+	-- A lease that lapsed while this server still owns the key (no write for longer than the
+	-- lease: a backgrounded phone, a long down hold) is taken back; only a real takeover by
+	-- another session stays "lease lost" (p134 v37: every later command answered COMBAT_PENDING).
+	local function reclaimed(err: string?): boolean
+		if err ~= "lease lost" then
+			return false
+		end
+		local taken = store:reclaim(source)
+		if taken then
+			source = taken
+		end
+		return taken ~= nil
+	end
 	local function update(transform: Fenced.Transform): string?
 		local updated, err = store:update(source, transform)
+		if not updated and reclaimed(err) then
+			updated, err = store:update(source, transform)
+		end
 		if updated then
 			source = updated
 		end
@@ -622,6 +638,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		-- writes once per half lease, so a quiet world never loses its owner
 		-- (Studio: the first attack after two idle minutes answered "lease lost").
 		local renewed, renewError = store:renew(source)
+		if not renewed and reclaimed(renewError) then
+			renewed, renewError = source, nil
+		end
 		if not renewed then
 			return pending(renewError or "SOURCE_UNKNOWN")
 		end

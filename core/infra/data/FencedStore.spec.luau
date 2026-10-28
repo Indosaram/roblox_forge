@@ -150,6 +150,25 @@ return {
 		end
 		assert(assert(a:acquire("k", initial)).generation == 2, "expired acquisition increments generation")
 	end,
+	["reclaim takes back a lapsed lease only while no other session took the key"] = function()
+		local now = 0
+		local memory = MemoryBackend.new()
+		local clock = function()
+			return now
+		end
+		local a = store(memory, clock)
+		local token = assert(a:acquire("k", initial))
+		now = 50
+		local back = assert(a:reclaim(token))
+		assert(back.generation == token.generation + 1 and back.leaseExpiresAt == 80, "reclaim fences and renews")
+		local stale, err = a:update(token, debit)
+		assert(stale == nil and err == "lease lost", "pre-reclaim token stays fenced")
+		assert(a:update(back, debit), "reclaimed token writes")
+		now = 200
+		assert(store(memory, clock, "b"):acquire("k", initial), "another session takes the lapsed key")
+		local lost, lostErr = a:reclaim(back)
+		assert(lost == nil and lostErr == "lease lost", "reclaim never steals from a new owner")
+	end,
 	["copy on write commits mutation receipt together using current data"] = function()
 		local a = store(MemoryBackend.new(), function()
 			return 0

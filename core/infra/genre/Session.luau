@@ -185,6 +185,29 @@ function M.new(
 		ledgers[id] = Executor.clone(token.data.envelope.commands)
 		executor.hydrate(id, token.data.envelope)
 	end
+	-- Keep the personal fence alive, and take it back when it lapsed while this server still owns
+	-- it (an idle phone or a long down hold outlasts the lease): a lapsed lease otherwise refused
+	-- every later save and command forever (p134 v37 "Forge profile save <uid>: lease lost").
+	-- `renew` (the 1 Hz advance) refreshes the fence; other callers only reclaim a lease the token
+	-- itself shows as lapsed, so a healthy save or command pays no extra round-trip.
+	local function keepLease(id: string, renew: boolean?)
+		local token = tokens[id]
+		if not personal or not token then
+			return
+		end
+		local renewed: FencedStore.Profile?, reason: string? = nil, "lease lost"
+		if renew then
+			renewed, reason = personal:renew(token)
+		elseif token.leaseExpiresAt == nil or storeOptions.now() < token.leaseExpiresAt then
+			return
+		end
+		if not renewed and reason == "lease lost" then
+			renewed = personal:reclaim(token)
+		end
+		if renewed then
+			tokens[id] = renewed
+		end
+	end
 	function session.personalTransaction(id, transform)
 		if not personal or pending[id] or (busy[id] and personalCaller[id] ~= coroutine.running()) then
 			return false, "COMMAND_PENDING"
@@ -284,6 +307,7 @@ function M.new(
 		if busy[id] or next(pending) then
 			return failure("COMMAND_PENDING")
 		end
+		keepLease(id)
 		busy[id] = true
 		local ok, results = pcall(function()
 			personalCaller[id] = coroutine.running()
@@ -427,6 +451,7 @@ function M.new(
 			return failure("profile operation in progress")
 		end
 		if personal then
+			keepLease(id)
 			busy[id] = true
 			local token, reason = personal:commit(tokens[id], tokens[id].data.stateRevision, capture(id), nil)
 			busy[id] = nil
@@ -1058,6 +1083,7 @@ function M.new(
 			return failure("COMMAND_PENDING")
 		end
 		if personal and not staged then
+			keepLease(id)
 			busy[id] = true
 			local current, reason = personal:refresh(tokens[id])
 			busy[id] = nil
@@ -1253,12 +1279,7 @@ function M.new(
 				if leaving[id] then
 					continue
 				end
-				if personal and tokens[id] then
-					local renewed = personal:renew(tokens[id])
-					if renewed then
-						tokens[id] = renewed
-					end
-				end
+				keepLease(id, true)
 				session.recoverTransfers(id, 8)
 			end
 		end

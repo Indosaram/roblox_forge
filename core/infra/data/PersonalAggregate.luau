@@ -200,6 +200,13 @@ function M.renew(self: Store, token: FencedStore.Profile): (FencedStore.Profile?
 	end
 	return self._store:renew(token)
 end
+-- Take back a lapsed lease this session still owns (see FencedStore.reclaim).
+function M.reclaim(self: Store, token: FencedStore.Profile): (FencedStore.Profile?, string?)
+	if not owns(self, token.key) then
+		return nil, "PERSONAL_NAMESPACE"
+	end
+	return self._store:reclaim(token)
+end
 -- Preserve current data; final envelope capture must first pass commit's CAS.
 function M.release(self: Store, token: FencedStore.Profile): (FencedStore.Profile?, string?)
 	if not owns(self, token.key) then

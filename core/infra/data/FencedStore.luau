@@ -162,7 +162,9 @@ function FencedStore._commit(
 				or old.generation ~= profile.generation
 				or old.lease == nil
 				or old.lease.sessionId ~= profile.sessionId
-				or now >= old.lease.expiresAt
+				-- reclaim may take back a lapsed lease: the record still names this session on the
+				-- caller's generation, so no other writer committed since it lapsed.
+				or (mode ~= "reclaim" and now >= old.lease.expiresAt)
 			then
 				reason = "lease lost"
 				return old
@@ -171,11 +173,14 @@ function FencedStore._commit(
 			reason = "locked"
 			return old
 		end
-		if old and (old.revision == MAX or (not profile and old.generation == MAX)) then
+		if old and (old.revision == MAX or ((not profile or mode == "reclaim") and old.generation == MAX)) then
 			reason = "counter exhausted"
 			return old
 		end
-		local nextGeneration = if profile then profile.generation else (if old then old.generation + 1 else 1)
+		local nextGeneration = if mode == "reclaim"
+			then (profile :: Profile).generation + 1
+			elseif profile then profile.generation
+			else (if old then old.generation + 1 else 1)
 		local nextRevision = if old then old.revision + 1 else 1
 		local data = transform(clone(if old then old.data else {}))
 		assert(type(data) == "table", "transform must return aggregate data")
@@ -312,6 +317,20 @@ function FencedStore.renew(self: Store, profile: Profile): (Profile?, string?)
 		refreshed.leaseRenewed = true
 	end
 	return refreshed, err
+end
+-- Takes back a lease that lapsed while this session still owns the key: the record must still
+-- carry this session's lease on the caller's generation (no other session acquired, committed or
+-- released since). Like acquire it increments generation, fencing every older token; data is
+-- kept as persisted. Anything else stays "lease lost" (an idle phone or a long down hold let
+-- the 120 s lease lapse and every later write was refused forever, p134 v37).
+function FencedStore.reclaim(self: Store, profile: Profile): (Profile?, string?)
+	local reclaimed, err = self:_commit(profile.key, profile, function(data: Data): Data
+		return data
+	end, "reclaim")
+	if reclaimed then
+		reclaimed.leaseRenewed = true
+	end
+	return reclaimed, err
 end
 -- The confirmed record for a healthy lease this session holds on the caller's generation, or
 -- nil when the backend round-trip is required (leasedReads off, no record, or past half life).

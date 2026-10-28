@@ -1700,7 +1700,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 						})
 					end
 				end
-				local id = request.sessionEpoch .. ":" .. request.requestId
+				local id = tostring(request.sessionEpoch) .. ":" .. tostring(request.requestId)
 				if result.ok and data and Award(content, data.progression, action, id) ~= data.progression then
 					session.personalTransaction(actor, function(raw)
 						local d = raw.envelope.genres["survival-coop"].data
