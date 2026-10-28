@@ -1011,5 +1011,10 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		decor("ReedTip", Vector3.new(0.4, 2, 0.4), CFrame.new(x + 0.6, y + 4, z), rgb(120, 86, 52))
 	end)
 	world.structureKits = kits
+	-- SpawnGate: the preview island is built synchronously, so its spawn is ready at once.
+	world.spawnPart = spawn
+	world.spawnReady = function(): boolean
+		return true
+	end
 	return world
 end

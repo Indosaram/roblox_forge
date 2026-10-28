@@ -758,29 +758,35 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local nodeItems: any = {}
 	-- Voxel writes are raycastable only after an engine step.
 	game:GetService("RunService").Heartbeat:Wait()
-	for _, path in layout.paths do
-		if string.match(layoutId, "^rw%.a%d+%.s%d+$") and string.sub(path.id, -5) == ".main" then
-			-- Arrive beside the nearest yard gather node, inside its 8-stud prompt range.
-			local y, q = path.points[3], path.points[2]
-			local at = Vector3.new(y.x, 512, y.z) + (Vector3.new(q.x, 512, q.z) - Vector3.new(y.x, 512, y.z)).Unit * 32
-			local nearest, best = nil, math.huge
-			for _, node in layout.resourceNodes do
-				local d = (Vector3.new(node.position.x, 512, node.position.z) - at).Magnitude
-				if
-					d < best
-					and not string.find(node.id, ".cargo.", 1, true)
-					and not string.find(node.id, ".chapter.", 1, true)
-				then
-					nearest, best = node, d
-				end
-			end
-			if nearest then
-				local p = Vector3.new(nearest.position.x, 512, nearest.position.z)
-				at = p + (at - p).Unit * 5
-			end
-			local hit = workspace:Raycast(at, Vector3.new(0, -1024, 0), groundParams)
-			spawn.Position = Vector3.new(at.X, if hit then hit.Position.Y + 0.5 else y.y + 1, at.Z)
+	local yard = BiomeKits.yard(layout)
+	if yard then
+		-- Archipelago stages arrive beside the nearest yard gather node, inside its 8-stud prompt range
+		-- (BiomeKits.yard keeps the kit arrival clearing on the same point).
+		spawn.Position = Vector3.new(yard.x, yard.y + 1, yard.z)
+	end
+	-- D2 F2: the spawn stands on the written voxel surface under it (a 4-stud voxel can round the
+	-- top above the authored height). ForgeSpawnReady says that ground exists: SpawnGate loads no
+	-- character before it. Where no voxel is under it yet, the gate waits for the full terrain.
+	local function seatSpawn(): boolean
+		local at = spawn.Position
+		local under = workspace:Raycast(Vector3.new(at.X, 512, at.Z), Vector3.new(0, -1024, 0), groundParams)
+		if under then
+			-- Never lowered: a dock entry over the sea floor keeps its authored height.
+			spawn.Position = Vector3.new(at.X, math.max(at.Y, under.Position.Y + 0.5), at.Z)
 		end
+		return under ~= nil
+	end
+	if seatSpawn() then
+		root:SetAttribute("ForgeSpawnReady", true)
+	else
+		task.spawn(function()
+			while not root:GetAttribute("ForgeTerrainReady") and (root :: any).Parent ~= nil do
+				game:GetService("RunService").Heartbeat:Wait()
+			end
+			game:GetService("RunService").Heartbeat:Wait()
+			seatSpawn()
+			root:SetAttribute("ForgeSpawnReady", true)
+		end)
 	end
 	for _, node in layout.resourceNodes do
 		-- Quest cargo is a mission ledger, never a generic inventory mint.
@@ -1886,6 +1892,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		end)
 	end
 	local destroy = world.destroy
+	-- SpawnGate seats characters here (Players.CharacterAutoLoads is off in the place).
+	world.spawnPart = spawn
+	world.spawnReady = function(): boolean
+		return root:GetAttribute("ForgeSpawnReady") == true
+	end
 	for _, piece in Meshes.SET_PIECES do
 		if piece.layout == layoutId then
 			local hit = workspace:Raycast(Vector3.new(piece.x, 512, piece.z), Vector3.new(0, -1024, 0), groundParams)

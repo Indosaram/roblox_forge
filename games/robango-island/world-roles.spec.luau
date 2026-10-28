@@ -1100,4 +1100,141 @@ return {
 		assert(towns == 1, "onboarding sails to the town")
 		onboarding.destroy()
 	end,
+	-- D2 F2: on 2 of 3 cold starts the engine auto-loaded the character at (0, y, 0) before the relief
+	-- terrain existed; it fell to Y~-520 (below FallenPartsDestroyHeight) and waited out RespawnTime
+	-- 270 (the C6 down hold). The place must not auto-load, the role world must publish when the
+	-- ground under its spawn is written, and SpawnGate loads characters only after that.
+	["D2: the place never auto-loads characters and every role spawn stands on written ground"] = function()
+		local project = serde.decode("json", fs.readFile("games/robango-island/default.project.json"))
+		local players = project.tree.Players
+		assert(players and players["$properties"].CharacterAutoLoads == false, "Players.CharacterAutoLoads is false")
+		assert(project.tree.ServerScriptService.SpawnGate, "SpawnGate ships in ServerScriptService")
+		local roblox: any = require("@lune/roblox")
+		local Kits = require("./src/shared/BiomeKits")
+		for _, layoutId in { "rw.onboarding", "rw.explore10", "rw.a1.s1", "rw.harbor", "rw.town" } do
+			local engine = Engine.new(nil, true)
+			local world = engine.role.build(Content, Source, Policy, function()
+				return 0
+			end, layoutId, 1776)
+			assert(type(world.spawnReady) == "function" and world.spawnPart, layoutId .. " publishes its spawn gate")
+			assert(world.spawnReady(), layoutId .. ": spawn ground is written once the build returns")
+			local at = world.spawnPart.Position
+			local hit = engine.game:GetService("Workspace"):Raycast(
+				roblox.Vector3.new(at.X, 512, at.Z),
+				roblox.Vector3.new(0, -1024, 0),
+				{ IgnoreWater = true }
+			)
+			assert(hit, layoutId .. ": no terrain under the spawn")
+			assert(at.Y >= hit.Position.Y, layoutId .. ": spawn sits below the written ground")
+			assert(at.Y - hit.Position.Y <= 4, layoutId .. ": spawn floats " .. at.Y - hit.Position.Y .. " studs up")
+			local layout: any = nil
+			for _, candidate in Content.layouts do
+				layout = if candidate.id == layoutId then candidate else layout
+			end
+			local near = false
+			for _, point in Kits.arrivals(layout) do
+				near = near or (point.x - at.X) ^ 2 + (point.z - at.Z) ^ 2 <= 1
+			end
+			assert(near, layoutId .. ": the spawn is one of the kit arrival clearings")
+			world.destroy()
+		end
+	end,
+	["D2: SpawnGate holds characters until the spawn is ready, returns void falls, reloads non-down deaths"] = function()
+		local roblox: any = require("@lune/roblox")
+		local engine = Engine.new()
+		local Gate = engine.load("games/robango-island/src/server/SpawnGate.luau", {}, nil)
+		local function signal(): any
+			local handlers = {}
+			return {
+				Connect = function(_, fn)
+					table.insert(handlers, fn)
+					return {
+						Disconnect = function()
+							table.remove(handlers, table.find(handlers, fn) :: number)
+						end,
+					}
+				end,
+				Fire = function(_, ...)
+					for _, fn in table.clone(handlers) do
+						fn(...)
+					end
+				end,
+			}
+		end
+		local spawn = engine.newInstance("SpawnLocation")
+		spawn.CFrame = roblox.CFrame.new(10, 30, -20)
+		local list, added, heartbeat = {}, signal(), signal()
+		local players = { PlayerAdded = added, PlayerRemoving = signal() }
+		function players.GetPlayers()
+			return list
+		end
+		local function newPlayer(id: number): any
+			local player: any = { UserId = id, Parent = players, Character = nil, CharacterAdded = signal(), loads = 0 }
+			function player.LoadCharacterAsync(self)
+				self.loads += 1
+				local character = engine.newInstance("Model")
+				local root = engine.newInstance("Part")
+				root.Name, root.Parent = "HumanoidRootPart", character
+				local humanoid = engine.newInstance("Humanoid")
+				humanoid.Died, humanoid.Parent = signal(), character
+				self.Character = character
+				self.CharacterAdded:Fire(character)
+			end
+			return player
+		end
+		local ready, alive = false, { ["1"] = true, ["2"] = true }
+		local delayed: { () -> () } = {}
+		local gate = Gate.start({
+			players = players,
+			heartbeat = heartbeat,
+			spawn = spawn,
+			ready = function()
+				return ready
+			end,
+			alive = function(actor)
+				return alive[actor]
+			end,
+			delay = function(seconds, fn)
+				assert(seconds == Gate.RESPAWN_SECONDS, "reload delay")
+				table.insert(delayed, fn)
+			end,
+		})
+		local one, two = newPlayer(1), newPlayer(2)
+		for _, player in { one, two } do
+			table.insert(list, player)
+			added:Fire(player)
+		end
+		for _ = 1, 3 do
+			heartbeat:Fire()
+		end
+		assert(one.loads == 0 and two.loads == 0, "no character before the role's ground exists")
+		ready = true
+		heartbeat:Fire()
+		heartbeat:Fire()
+		assert(one.loads == 1 and two.loads == 1, "each player loads exactly once when ready")
+		assert(one.RespawnLocation == spawn, "respawns target the role spawn")
+		local root = one.Character:FindFirstChild("HumanoidRootPart")
+		assert(
+			(root.Position - (spawn.CFrame.Position + roblox.Vector3.new(0, Gate.LIFT, 0))).Magnitude < 1e-6,
+			"seated"
+		)
+		-- A void fall goes back to the spawn before the engine's FallenPartsDestroyHeight (-500).
+		assert(Gate.VOID_Y > -500, "void return fires above the destroy height")
+		root.Position = roblox.Vector3.new(0, Gate.VOID_Y - 1, 0)
+		heartbeat:Fire()
+		assert(root.Position.Y > 0 and one.loads == 1, "void fall teleported to the spawn, no death")
+		-- A death outside the down flow (durable health above 0) reloads after RESPAWN_SECONDS, not 270.
+		assert(Gate.RESPAWN_SECONDS <= 10, "non-down respawn is quick")
+		one.Character:FindFirstChildOfClass("Humanoid").Died:Fire()
+		-- A downed actor (durable health 0) stays with the C6 down hold.
+		alive["2"] = false
+		two.Character:FindFirstChildOfClass("Humanoid").Died:Fire()
+		assert(#delayed == 2, "both deaths scheduled a check")
+		for _, fn in delayed do
+			fn()
+		end
+		assert(one.loads == 2, "a non-down death reloads at the spawn")
+		assert(two.loads == 1, "a downed actor is left to the down hold")
+		gate.destroy()
+	end,
 }

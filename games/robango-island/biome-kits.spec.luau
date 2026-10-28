@@ -402,5 +402,39 @@ cases["D1: a role loads only its own creature templates up front"] = function()
 		end
 	end
 end
+-- D2 F3: a 58-stud veg.jungle.buttress-giant beside the onboarding spawn filled the whole default
+-- view. Trees stay ARRIVAL_CLEAR.tree studs and rocks ARRIVAL_CLEAR.rock studs from every arrival
+-- (entry spawn and the archipelago yard spawn), on every dressed role layout.
+cases["D2: no tree or rock kit crowds an arrival on any role layout"] = function()
+	assert(Kits.ARRIVAL_CLEAR.tree >= 100, "tree clearing covers the 35-degree cold-open sight line")
+	assert(Kits.ARRIVAL_CLEAR.rock >= 32, "rock clearing")
+	local ids = table.clone(ROLES)
+	for _, extra in { "rw.town", "rw.brawl", "rw.team-outpost" } do
+		table.insert(ids, extra)
+	end
+	for _, id in ids do
+		local layout = layouts[id]
+		local arrivals = Kits.arrivals(layout)
+		assert(#arrivals >= 1, id .. " has an arrival")
+		if string.match(id, "^rw%.a%d+%.s%d+$") then
+			assert(#arrivals == 2, id .. ": the yard spawn is an arrival")
+		end
+		for _, p in plan(id, SEED) do
+			local radius = Kits.ARRIVAL_CLEAR[p.family]
+			if radius then
+				for _, point in arrivals do
+					local d = math.sqrt((p.x - point.x) ^ 2 + (p.z - point.z) ^ 2)
+					assert(d >= radius, string.format("%s: %s %.0f studs from an arrival", id, p.key, d))
+				end
+			end
+		end
+	end
+	-- The D2 Studio seed (1776): the onboarding plan still dresses the island with trees.
+	local trees = 0
+	for _, p in plan("rw.onboarding", 1776) do
+		trees += if p.family == "tree" then 1 else 0
+	end
+	assert(trees >= 60, "onboarding keeps its trees: " .. trees)
+end
 
 return cases

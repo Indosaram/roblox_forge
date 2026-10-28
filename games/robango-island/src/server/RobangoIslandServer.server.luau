@@ -214,6 +214,21 @@ local world = require(script.Parent.SurvivalWorldBootstrap)(content, source, wil
 	return Clock.millis(clock.now())
 end, worldRole, RunService:IsStudio() and workspace:GetAttribute("ForgeStudioRole") == nil)
 world.marketAccount = marketConfig.account
+-- D2 F2: no character before the role's ground under the spawn exists (CharacterAutoLoads is off in
+-- default.project.json); a void fall returns to the spawn; a death outside the C6 down flow reloads.
+require(script.Parent.SpawnGate).start({
+	players = Players,
+	heartbeat = RunService.Heartbeat,
+	spawn = (world :: any).spawnPart,
+	ready = (world :: any).spawnReady,
+	alive = function(actor: string): boolean
+		local vitals = (world :: any).vitals(actor)
+		return vitals == nil or vitals.healthMilli > 0
+	end,
+	delay = function(seconds: number, fn: () -> ())
+		task.delay(seconds, fn)
+	end,
+})
 -- Studio QA: ForgeStudioGallery=true lays out every species (walk, then attack) beside the island.
 require(script.Parent.StudioSetup).gallery({
 	isStudio = RunService:IsStudio(),

@@ -233,6 +233,14 @@
       },
       "SurvivalWorldBootstrap": {
         "$path": "src/server/SurvivalWorldBootstrap.luau"
+      },
+      "SpawnGate": {
+        "$path": "src/server/SpawnGate.luau"
+      }
+    },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
       }
     },
     "StarterPlayer": {

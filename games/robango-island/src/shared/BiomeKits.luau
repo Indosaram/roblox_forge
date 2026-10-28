@@ -297,9 +297,83 @@ function M.allowed(layout: any, terrain: any, ground: Ground, x: number, z: numb
 	return true
 end
 
+-- D2 F3: tall families stay out of an arrival clearing so the opening camera sees the player.
+-- The cold open frames the spawn from 150-260 studs at a 35-40 degree pitch (OpeningClient.shot),
+-- the play camera from 95 studs at 57 degrees: a 60-stud canopy (buttress-giant at scale 1.1,
+-- ~22 studs crown radius) clears the sight line only beyond ~100 studs at 35 degrees. Rocks top
+-- out near 20 studs (a 16-stud slab at scale 1.2). Radii are flat studs from each arrival point.
+M.ARRIVAL_CLEAR = { tree = 112, rock = 40 } :: { [string]: number }
+
+--- Archipelago stage arrival (RoleWorld spawn): beside the nearest yard gather node, inside its
+--- 8-stud prompt range, 32 studs up the `.main` path from its third point. nil on other roles.
+function M.yard(layout: any): { x: number, y: number, z: number }?
+	if not string.match(layout.id, "^rw%.a%d+%.s%d+$") then
+		return nil
+	end
+	local result = nil
+	for _, path in layout.paths do
+		if string.sub(path.id, -5) ~= ".main" then
+			continue
+		end
+		local y, q = path.points[3], path.points[2]
+		local dx, dz = q.x - y.x, q.z - y.z
+		local length = math.sqrt(dx * dx + dz * dz)
+		local ax, az = y.x + dx / length * 32, y.z + dz / length * 32
+		local nearest, best = nil, math.huge
+		for _, node in layout.resourceNodes do
+			local d = math.sqrt((node.position.x - ax) ^ 2 + (node.position.z - az) ^ 2)
+			if
+				d < best
+				and not string.find(node.id, ".cargo.", 1, true)
+				and not string.find(node.id, ".chapter.", 1, true)
+			then
+				nearest, best = node, d
+			end
+		end
+		if nearest and best > 0 then
+			local px, pz = nearest.position.x, nearest.position.z
+			ax, az = px + (ax - px) / best * 5, pz + (az - pz) / best * 5
+		end
+		result = { x = ax, y = y.y, z = az }
+	end
+	return result
+end
+
+--- Where players arrive on a role: the entry anchor (else the first anchor) plus the stage yard.
+function M.arrivals(layout: any): { { x: number, z: number } }
+	local entry = layout.anchors[1] and layout.anchors[1].position
+	for _, anchor in layout.anchors do
+		if anchor.id == "entry" then
+			entry = anchor.position
+		end
+	end
+	local result = {}
+	if entry then
+		table.insert(result, { x = entry.x, z = entry.z })
+	end
+	local yard = M.yard(layout)
+	if yard then
+		table.insert(result, { x = yard.x, z = yard.z })
+	end
+	return result
+end
+
 --- Deterministic scatter for one role: same layout + columns + seed -> same placements.
 function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Placement }
 	local kits = M.kitsFor(layout)
+	local arrivals = M.arrivals(layout)
+	local function crowdsArrival(family: string, x: number, z: number): boolean
+		local radius = M.ARRIVAL_CLEAR[family]
+		if not radius then
+			return false
+		end
+		for _, point in arrivals do
+			if (x - point.x) ^ 2 + (z - point.z) ^ 2 < radius * radius then
+				return true
+			end
+		end
+		return false
+	end
 	-- Desert islands are Sand throughout: only the terrain's beach flag marks their rim.
 	local ground = M.ground(columns, kits[1] == "desert")
 	local result: { Placement } = {}
@@ -346,7 +420,7 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 				local z = z0 + (cell // gx + rng:nextNumber()) * ch
 				local yaw = rng:nextNumber() * 360
 				local scale = entry.scale[1] + rng:nextNumber() * (entry.scale[2] - entry.scale[1])
-				if not M.allowed(layout, terrain, ground, x, z, clearance) then
+				if not M.allowed(layout, terrain, ground, x, z, clearance) or crowdsArrival(entry.family, x, z) then
 					continue
 				end
 				if #kits > 1 and ground.beach(x, z) ~= beachKit then
