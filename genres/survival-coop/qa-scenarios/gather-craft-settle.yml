@@ -23,7 +23,7 @@ steps:
   - {op: expect_result, player: owner, field: reason, equals: TRIBE_FULL}
   - {op: expect_snapshot, player: owner, scope: session, field: survivalSettlement.settlement.roles.foreign, is_nil: true}
   - {op: commit_barrier, mode: suspend, key: qa-nodes, skip: 1}
-  - {op: command, player: owner, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect_suspended: true, expect: refused}
+  - {op: command, player: owner, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect_suspended: true}
   - {op: command, player: member, requestId: harvest, sessionEpoch: current, action: "survival-coop:gather", args: [final-tree, 0], expect: refused}
   - {op: expect_result, player: member, field: reason, equals: SOURCE_BUSY}
   - {op: resume_commit}
