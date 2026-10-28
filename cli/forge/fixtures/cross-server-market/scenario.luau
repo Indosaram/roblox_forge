@@ -163,7 +163,8 @@ function M.new(ctx: any): any
 			requireOk(b.session.close("buyer"))
 			time += 86400
 			local restarted = server("restarted-worker")
-			restarted.extension.recover("seller")
+			-- The offline trade worker sweeps with no actor (RobangoIslandServer tradeWorker).
+			restarted.extension.recover("")
 			requireOk(restarted.session.join("seller"))
 			requireOk(command(restarted, "seller", "claim", { "seller:expire-list:return:0" }, "expired-pickup"))
 			assert(

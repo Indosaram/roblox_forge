@@ -81,7 +81,14 @@ function M.new(ports: Domain.Ports, now: () -> number, personal: any?, catalogId
 			end
 			else nil,
 		recover = if personal
-			then function(_actor: string): any
+			then function(actor: string): any
+				-- The durable scan (ListKeysAsync + GetAsync per key) belongs to the server's 30 s
+				-- trade worker, which calls with no actor. Session also calls recover per member on
+				-- every tick and before commands; scanning there throttled DataStore and left every
+				-- command waiting behind it (phone v36: actions stuck on "waiting for server").
+				if actor ~= "" then
+					return { status = "confirmed", pending = 0 }
+				end
 				local count = 0
 				for _, id in (ports :: any).pending() do
 					local result = book.recover(id, now())
