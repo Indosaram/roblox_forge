@@ -19,12 +19,22 @@ export type Config = {
 	zoom: Zoom?,
 	touchRotate: boolean?,
 }
-export type Zoom = { characterHeight: number, share: number, minShare: number, maxShare: number }
+-- `characterDepth` (studs, optional): the character's front-to-back extent. A steep pitch shows
+-- the top of the body too, so the on-screen height is h*cos(pitch) + depth*sin(pitch).
+export type Zoom = {
+	characterHeight: number,
+	characterDepth: number?,
+	share: number,
+	minShare: number,
+	maxShare: number,
+}
 
 local M = {}
--- Character height / short screen axis; self-inverse (share <-> distance).
-function M.screenShare(d: number, h: number, pitch: number, fov: number, aspect: number?): number
-	return h * math.cos(math.rad(pitch)) / (2 * d * math.tan(math.rad(fov) / 2) * math.min(aspect or 1, 1))
+-- On-screen character extent / short screen axis; self-inverse (share <-> distance).
+function M.screenShare(d: number, h: number, pitch: number, fov: number, aspect: number?, depth: number?): number
+	local p = math.rad(pitch)
+	return (h * math.cos(p) + (depth or 0) * math.sin(p))
+		/ (2 * d * math.tan(math.rad(fov) / 2) * math.min(aspect or 1, 1))
 end
 M.distanceForShare = M.screenShare
 function M.start(config: Config?)
@@ -47,7 +57,9 @@ function M.start(config: Config?)
 	local share = 0
 	if zoom then
 		local h, lo, hi = zoom.characterHeight, zoom.minShare, zoom.maxShare
+		local depth = zoom.characterDepth or 0
 		assert(finite(h) and h > 0 and lo > 0 and finite(hi) and hi >= lo and finite(zoom.share), "invalid zoom")
+		assert(finite(depth) and depth >= 0, "invalid zoom depth")
 		share = math.clamp(zoom.share, zoom.minShare, zoom.maxShare)
 	end
 	local function aspectOf(current: Camera): number
@@ -117,7 +129,8 @@ function M.start(config: Config?)
 			return
 		end
 		if zoom then
-			distance = M.distanceForShare(share, zoom.characterHeight, pitch, fov, aspectOf(current))
+			distance =
+				M.distanceForShare(share, zoom.characterHeight, pitch, fov, aspectOf(current), zoom.characterDepth)
 		end
 		local focus = root.Position + Vector3.new(0, height, 0)
 		local y, p = math.rad(yaw), math.rad(pitch)
@@ -279,7 +292,14 @@ function M.start(config: Config?)
 		yaw, pitch, distance = newYaw, newPitch, math.clamp(newDistance, minimum, maximum)
 		if zoom then
 			local current = camera or Workspace.CurrentCamera
-			local s = M.screenShare(newDistance, zoom.characterHeight, pitch, fov, current and aspectOf(current))
+			local s = M.screenShare(
+				newDistance,
+				zoom.characterHeight,
+				pitch,
+				fov,
+				current and aspectOf(current),
+				zoom.characterDepth
+			)
 			share = math.clamp(s, zoom.minShare, zoom.maxShare)
 		end
 	end

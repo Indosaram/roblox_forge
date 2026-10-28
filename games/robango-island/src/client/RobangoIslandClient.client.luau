@@ -1107,12 +1107,14 @@ gui.Destroying:Connect(panels.destroy)
 script.Destroying:Connect(panels.destroy)
 
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
--- A1: character 6% of the short axis (pinch 3-15%), fixed yaw on touch.
+-- A1: character 6% of the short axis (pinch 3-15%), fixed yaw on touch. From 57 degrees the body's
+-- front-to-back depth shows too (head top, shoulders): with height alone the phone measured 8.2-8.8%
+-- (p134 v36), so the share counts a 1.5-stud body depth.
 camera = QuarterView.start({
 	yaw = if workspace:GetAttribute("ForgeWorldBiome") == "volcano" then -90 else 45,
 	pitch = 57,
 	fieldOfView = 30,
-	zoom = { characterHeight = 5.5, share = 0.06, minShare = 0.03, maxShare = 0.15 },
+	zoom = { characterHeight = 5.5, characterDepth = 1.5, share = 0.06, minShare = 0.03, maxShare = 0.15 },
 	touchRotate = false,
 })
 gui.Destroying:Connect(camera.stop)
@@ -1266,8 +1268,15 @@ local combatHud = CombatHud.start({
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
 	end,
 })
-local removeTapActions, send =
-	TapRouter.installActions(tapInput, require(Forge.core.infra.genre.CommandTransport), combatHud)
+local removeTapActions, send = TapRouter.installActions(
+	tapInput,
+	require(Forge.core.infra.genre.CommandTransport),
+	combatHud,
+	-- C2: a node tap opens the gather radial client-side, before any server reply.
+	function(part: BasePart): boolean
+		return gatherPicker ~= nil and gatherPicker.open(part)
+	end
+)
 sendCommand = send
 -- C4: a tap on your own pet (or your mount) opens the pet ring; other creatures fall through to
 -- the attack handler installed above (registered later = asked first).

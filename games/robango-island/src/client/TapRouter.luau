@@ -128,6 +128,14 @@ function M.steer(
 	return x / length, z / length
 end
 
+-- The node id a decorative kit piece belongs to. RoleWorld dresses each gather node with a kit named
+-- `<nodeId>.kit` (mesh model) or `<nodeId>.kit.<piece>` (parts) a few studs beside the small tagged
+-- node part; the kit is what the player sees as the bush or rock, but it is CanQuery=false.
+function M.kitOwner(name: string): string?
+	local id = string.match(name, "^(.-)%.kit%.") or string.match(name, "^(.-)%.kit$")
+	return if id and id ~= "" then id else nil
+end
+
 function M.gesture()
 	local count = 0
 	local session: { id: any, x: number, y: number, ui: boolean, dragging: boolean, multi: boolean }? = nil
@@ -378,10 +386,46 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 				local anchor = model:FindFirstChild("HumanoidRootPart")
 				return if (alive(model) or ownPet(model)) and anchor and anchor:IsA("BasePart") then anchor else nil
 			end)
-		node = node
-			or pick(camera, x, y, CollectionService:GetTagged("ForgeSurvivalNode"), function(part)
-				return if part:IsA("BasePart") and part:IsDescendantOf(world) then part else nil
-			end)
+		if not node then
+			-- Fingertip pick on the node part and on its kit pieces (the visible bush or rock).
+			local byId: { [string]: BasePart } = {}
+			local parents: { [Instance]: boolean } = {}
+			local list = {}
+			for _, part in CollectionService:GetTagged("ForgeSurvivalNode") do
+				local id = part:GetAttribute("ForgeNodeId")
+				if part:IsA("BasePart") and part:IsDescendantOf(world) and type(id) == "string" then
+					byId[id] = part
+					table.insert(list, { owner = part, at = part.Position })
+					if part.Parent then
+						parents[part.Parent] = true
+					end
+				end
+			end
+			for parent in parents do
+				for _, child in parent:GetChildren() do
+					local id = M.kitOwner(child.Name)
+					local owner = id and byId[id]
+					if owner then
+						local at = if child:IsA("BasePart")
+							then child.Position
+							elseif child:IsA("Model") then child:GetPivot().Position
+							else nil
+						if at then
+							table.insert(list, { owner = owner, at = at })
+						end
+					end
+				end
+			end
+			local screen = {}
+			for _, entry in list do
+				local point, visible = camera:WorldToScreenPoint(entry.at)
+				table.insert(
+					screen,
+					{ target = entry.owner, x = point.X, y = point.Y, visible = visible and point.Z > 0 }
+				)
+			end
+			node = M.nearest(x, y, screen, M.PICK_RADIUS)
+		end
 		local ground: Vector3? = hit and hit.Position
 		if not ground and math.abs(ray.Direction.Y) > 1e-3 then
 			local t = (root.Position.Y - 3 - ray.Origin.Y) / ray.Direction.Y
@@ -521,9 +565,15 @@ end
 M.REACH = 6
 --- Node and creature tap actions. With `combat` (CombatHud.start's api) a creature tap engages the
 --- semi-automatic attack loop and a ground tap pauses it; without it a creature tap walks up and
---- sends one attack. Returns the remover and `send(action, args)`, the durable command sender the
---- combat loop and the carcass picker use.
-function M.installActions(tap: any, transport: any, combat: any?): (() -> (), (string, { any }) -> any)
+--- sends one attack. With `gather` (the C2 picker's open) a node tap opens the gather radial;
+--- without it (or when it declines) the node's ForgeGather prompt is triggered. Returns the remover
+--- and `send(action, args)`, the durable command sender the combat loop and the carcass picker use.
+function M.installActions(
+	tap: any,
+	transport: any,
+	combat: any?,
+	gather: ((BasePart) -> boolean)?
+): (() -> (), (string, { any }) -> any)
 	local CommandTransport = transport
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
@@ -567,15 +617,36 @@ function M.installActions(tap: any, transport: any, combat: any?): (() -> (), (s
 	end
 	local removeNode = tap.register("node", function(part: BasePart)
 		local prompt = part:FindFirstChild("ForgeGather")
-		if not prompt or not prompt:IsA("ProximityPrompt") then
-			return false
-		end
-		tap.moveTo(part.Position, M.REACH, function()
-			if prompt.Parent and prompt.Enabled then
+		local function fallback()
+			if prompt and prompt:IsA("ProximityPrompt") and prompt.Parent and prompt.Enabled then
 				prompt:InputHoldBegin()
 				prompt:InputHoldEnd()
 			end
-		end)
+		end
+		if gather then
+			-- C2: the gather radial opens client-side (no prompt, no server round trip); in reach it
+			-- opens at once, else after the walk. The picker sends the gather once an output is picked.
+			local function open()
+				if part.Parent and not gather(part) then
+					fallback()
+				end
+			end
+			local character = game:GetService("Players").LocalPlayer.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local gap = if root and root:IsA("BasePart")
+				then Vector3.new(root.Position.X - part.Position.X, 0, root.Position.Z - part.Position.Z).Magnitude
+				else math.huge
+			if gap <= M.REACH then
+				open()
+			else
+				tap.moveTo(part.Position, M.REACH, open)
+			end
+			return true
+		end
+		if not prompt or not prompt:IsA("ProximityPrompt") then
+			return false
+		end
+		tap.moveTo(part.Position, M.REACH, fallback)
 		return true
 	end)
 	local removeCreature = tap.register("creature", function(model: Model)

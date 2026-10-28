@@ -1,9 +1,115 @@
 --!strict
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
+local roblox: any = require("@lune/roblox")
 local TapRouter = require("./TapRouter")
 local function probe(fields: { [string]: any }): any
 	return fields
 end
+-- TapRouter with a stub `game` for installActions (ReplicatedStorage remotes, the local character).
+local function loadWithGame(rootPosition: any): any
+	local signal = {
+		Connect = function()
+			return { Disconnect = function() end }
+		end,
+	}
+	local root = {
+		Position = rootPosition,
+		IsA = function(_, class)
+			return class == "BasePart"
+		end,
+	}
+	local character = {
+		FindFirstChild = function(_, name)
+			return if name == "HumanoidRootPart" then root else nil
+		end,
+	}
+	local services: { [string]: any } = {
+		ReplicatedStorage = {
+			WaitForChild = function(_, name)
+				return { Name = name, OnClientEvent = signal }
+			end,
+		},
+		HttpService = {},
+		Players = { LocalPlayer = { Character = character } },
+	}
+	return luau.load(fs.readFile("games/robango-island/src/client/TapRouter.luau"), {
+		environment = {
+			game = {
+				GetService = function(_, name)
+					return assert(services[name], name)
+				end,
+			},
+			Vector3 = roblox.Vector3,
+		},
+	})()
+end
+local function fakeTap(): any
+	local tap: any = { handlers = {}, moves = {} }
+	function tap.register(kind, fn)
+		tap.handlers[kind] = fn
+		return function() end
+	end
+	function tap.moveTo(goal, within, arrive)
+		table.insert(tap.moves, { goal = goal, within = within, arrive = arrive })
+	end
+	return tap
+end
+local function nodePart(position: any, prompt: any?): any
+	return {
+		Parent = {},
+		Position = position,
+		FindFirstChild = function(_, name)
+			return if name == "ForgeGather" then prompt else nil
+		end,
+	}
+end
 return {
+	["a node tap opens the gather radial client-side before any server reply"] = function()
+		-- p134 v36: tapping a bush or rock opened nothing. The node handler needed the ForgeGather prompt
+		-- (returned false without it) and then only fired the prompt; the C2 radial was never asked.
+		local Router = loadWithGame(roblox.Vector3.new(0, 0, 0))
+		local opened = {}
+		local accept = true
+		local tap = fakeTap()
+		Router.installActions(tap, {}, nil, function(part)
+			table.insert(opened, part)
+			return accept
+		end)
+		-- In reach, no prompt yet (GatheringClient adds it later; the server may be slow): opens at once.
+		local near = nodePart(roblox.Vector3.new(3, 0, 4))
+		assert(tap.handlers.node(near) == true, "node tap handled")
+		assert(#opened == 1 and opened[1] == near and #tap.moves == 0, "radial opened without walking")
+		-- Out of reach: walk up, then open on arrival.
+		local far = nodePart(roblox.Vector3.new(40, 0, 0))
+		assert(tap.handlers.node(far) == true and #opened == 1, "far node waits for the walk")
+		assert(#tap.moves == 1 and tap.moves[1].within == Router.REACH, "walks to reach")
+		tap.moves[1].arrive()
+		assert(#opened == 2 and opened[2] == far, "radial opened on arrival")
+		-- The picker declines (nothing offered): the node's prompt still gathers.
+		accept = false
+		local held = 0
+		local prompt = {
+			Parent = true,
+			Enabled = true,
+			IsA = function(_, class)
+				return class == "ProximityPrompt"
+			end,
+			InputHoldBegin = function()
+				held += 1
+			end,
+			InputHoldEnd = function() end,
+		}
+		assert(tap.handlers.node(nodePart(roblox.Vector3.new(1, 0, 0), prompt)) == true, "declined still handled")
+		assert(held == 1, "prompt fallback fired")
+	end,
+	["node kit pieces map back to their gather node id"] = function()
+		-- The visible bush or rock is the node's decorative kit (CanQuery=false), not the small tagged part.
+		assert(TapRouter.kitOwner("rw.explore10.berry.kit.leaf3") == "rw.explore10.berry", "kit part")
+		assert(TapRouter.kitOwner("rw.explore10.stone.kit") == "rw.explore10.stone", "kit mesh model")
+		assert(TapRouter.kitOwner("rw.explore10.stone") == nil, "node part itself")
+		assert(TapRouter.kitOwner("biome.12.leaf1") == nil and TapRouter.kitOwner(".kit") == nil, "plain decor")
+	end,
 	["tap priority is ui then creature then node then ground and handlers can pass"] = function()
 		local router = TapRouter.new()
 		local seen = {}
