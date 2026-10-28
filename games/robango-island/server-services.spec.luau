@@ -310,6 +310,7 @@ return {
 			SurvivalWorldBootstrap = function()
 				return world
 			end,
+			SpawnGate = require("./src/server/SpawnGate"),
 		}
 		bootEnv.script = { Parent = parent, Destroying = signal() }
 		parent.SurvivalProvision = load(PACK .. "/src/server/SurvivalProvision.luau")
