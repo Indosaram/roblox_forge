@@ -1194,6 +1194,82 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			dock(facility.id, facility.position, facility.destination)
 		end
 	end
+	-- C7 sail points (G20, G25): the harbor chart table opens the sea chart in dock mode and the
+	-- rift opens it in rift mode; on a drift isle a small camp (fire, tent, rift) stands beside the
+	-- arrival trail. The server reads world.sailPoint before any chart voyage leaves.
+	local sailPoints: { { part: BasePart, kind: string } } = {}
+	local function sailPoint(id: string, position: any, kind: string, size: any): BasePart
+		local target = part(id, interactionPosition(position, size.y), size)
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "ForgeSeaChart"
+		WorldText.bind(prompt, if kind == "rift" then "step-through" else "set-sail", "sea-chart")
+		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, target
+		prompt:SetAttribute("ForgePanel", "sea-chart-" .. kind)
+		target:SetAttribute("ForgeSailPoint", kind)
+		table.insert(sailPoints, { part = target, kind = kind })
+		return target
+	end
+	local function rift(id: string, base: BasePart)
+		-- Our rift: a lilac Neon fissure in a stone ring (B3 town.rift-ring when its mesh loads).
+		local ground = base.Position - Vector3.new(0, base.Size.Y / 2, 0)
+		local fissure = part(id .. ".fissure", { x = ground.X, y = ground.Y + 4.5, z = ground.Z }, {
+			x = 1.2,
+			y = 7,
+			z = 4,
+		})
+		fissure.Material, fissure.Color = Enum.Material.Neon, Color3.fromRGB(154, 143, 181)
+		fissure.CanCollide, fissure.CanQuery, fissure.Transparency = false, false, 0.15
+		local ring = part(id .. ".ring", { x = ground.X, y = ground.Y + 4.5, z = ground.Z }, { x = 1, y = 10, z = 10 })
+		ring.Shape, ring.Material = Enum.PartType.Cylinder, Enum.Material.Slate
+		ring.Color, ring.Transparency = Color3.fromRGB(74, 61, 49), 0.6
+		ring.CanCollide, ring.CanQuery = false, false
+		ring.CFrame = CFrame.new(ring.Position) * CFrame.Angles(0, 0, math.rad(90))
+		Meshes.place("town.rift-ring", CFrame.new(ground), root, id .. ".set")
+	end
+	if layoutId == "rw.harbor" then
+		sailPoint("SeaChartTable", { x = 14, y = 2, z = 112 }, "dock", { x = 4, y = 3, z = 3 })
+		for _, facility in world.harborFacilities or {} do
+			if facility.anchor == "visitor-portal" then
+				local base = sailPoint(
+					"HarborRift",
+					{ x = facility.position.x - 10, y = 0, z = facility.position.z + 12 },
+					"rift",
+					{ x = 3, y = 1, z = 3 }
+				)
+				rift("HarborRift", base)
+			end
+		end
+	end
+	local camp = Dressing.driftCamp(layout)
+	if camp then
+		local fire = part("DriftCamp.fire", interactionPosition(camp.fire, 1), { x = 4, y = 1, z = 4 })
+		fire.Material, fire.Color = Enum.Material.Slate, Color3.fromRGB(96, 92, 88)
+		Meshes.dress(fire, Meshes.STRUCTURES.campfire, CFrame.new(fire.Position - Vector3.new(0, 0.5, 0)))
+		SkyCycle.torch(root, fire.Position + Vector3.new(4, -0.5, 0))
+		local tent = part("DriftCamp.tent", interactionPosition(camp.tent, 4), { x = 8, y = 4, z = 6 })
+		tent.Material, tent.Color = Enum.Material.Fabric, Color3.fromRGB(185, 165, 140)
+		tent.CFrame = CFrame.new(tent.Position) * CFrame.Angles(0, math.rad(camp.yaw), 0)
+		Meshes.dress(
+			tent,
+			Meshes.STRUCTURES.tent,
+			CFrame.new(tent.Position - Vector3.new(0, 2, 0)) * CFrame.Angles(0, math.rad(camp.yaw), 0)
+		)
+		rift("DriftCamp.rift", sailPoint("DriftCamp.riftBase", camp.rift, "rift", { x = 3, y = 1, z = 3 }))
+	end
+	--- The sail point ("dock" or "rift") the actor stands at, or nil. Dock prompts count as docks.
+	world.sailPoint = function(actor: string): string?
+		for _, point in sailPoints do
+			if point.part.Parent and world.nearPart(actor, point.part) then
+				return point.kind
+			end
+		end
+		for _, item in root:GetChildren() do
+			if item:FindFirstChild("ForgeDock") and world.nearPart(actor, item) then
+				return "dock"
+			end
+		end
+		return nil
+	end
 	-- Archipelago cells: a boundary marker at the island edge beside the entry dock opens
 	-- ui.island-rank. Its cell bounds and required rank come from the layout data.
 	for _, cell in CharacterRules.cells(content) do

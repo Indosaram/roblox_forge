@@ -8,6 +8,7 @@ local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local IslandBootstrap = require(Forge.genres["survival-coop"].module.IslandBootstrap)
 local Topology = require(Forge.core.domain.island.Topology)
+local SeaChart = require(Shared.SeaChart)
 local ServerStorage = game:GetService("ServerStorage")
 local roleConfig = ServerStorage:FindFirstChild("ForgePlaceRoles")
 local roles = if roleConfig and roleConfig:IsA("StringValue") then HttpService:JSONDecode(roleConfig.Value) else nil
@@ -503,7 +504,8 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 		local opened = (factory :: any).archipelago.open(actor, {
 			id = HttpService:GenerateGUID(false),
 			index = route or 1,
-			seed = 20261018,
+			-- C7: a recorded departure seed from the explicit clock (Expedition.open forks it per route).
+			seed = SeaChart.departureSeed(clock.now(), actor),
 			revision = "robango-route-v1",
 			ttl = 1800,
 			entryBuffer = source.archipelago.entryBufferSeconds,
@@ -536,6 +538,57 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 			if ok or destination == "next-island" or destination == "archipelago" then "studio_no_teleport" else reason
 	end
 	return routing.travel(player, destination, token)
+end
+-- C7 drift isles (G25): when an active drift isle's window ends, its layout regenerates from a
+-- new recorded seed (SeaChart.driftReset) and the actor re-enters the archipelago, whose server
+-- renders the persisted seed. In Studio there is no teleport; the reset is still recorded.
+if worldRole == "archipelago" then
+	local elapsed = 0
+	local resetting: { [string]: boolean } = {}
+	local driftWorker = RunService.Heartbeat:Connect(function(delta)
+		elapsed += delta
+		if elapsed < 5 then
+			return
+		end
+		elapsed = 0
+		local now = math.floor(clock.now())
+		for _, player in Players:GetPlayers() do
+			local actor = tostring(player.UserId)
+			local document = if resetting[actor] then nil else (factory :: any).expeditionStore.snapshot(actor)
+			local trip = document and document.archipelago
+			if trip and trip.status == "active" and now >= trip.expiresAt then
+				resetting[actor] = true
+				task.spawn(function()
+					local reset = (factory :: any).expeditionStore.transaction(actor, function(current)
+						local state = current.archipelago
+						local result: any = { ok = false, reason = "missing_expedition" }
+						if state then
+							local ok, reason = SeaChart.driftReset(state, now, SeaChart.TTL)
+							result = { ok = ok, reason = reason, data = { seed = state.seed, party = state.party } }
+						end
+						return result
+					end)
+					if reset.ok then
+						warn("ForgeDriftReset " .. actor .. " seed " .. tostring(reset.data.seed))
+						-- Same "<outcome>|<serial>" channel as dock results; the new seed keeps it unique.
+						player:SetAttribute("ForgeTravelResult", "drift_reset|" .. tostring(reset.data.seed))
+						local party = reset.data.party
+						if routing.travel and player.Parent then
+							routing.travel(
+								player,
+								"archipelago",
+								if party then party.token .. ":drift:" .. tostring(reset.data.seed) else nil
+							)
+						end
+					end
+					resetting[actor] = nil
+				end)
+			end
+		end
+	end)
+	script.Destroying:Connect(function()
+		driftWorker:Disconnect()
+	end)
 end
 -- END production world interactions.
 if RunService:IsStudio() and worldRole == "archipelago" and source.expedition then

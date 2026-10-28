@@ -1022,6 +1022,23 @@ table.insert(panelFactories, function(ctx)
 	end
 	return Survivor.picker(scoped)
 end)
+-- C7 sea chart (G20) and the drift-isle HUD countdown (G25): menu tile, minimap tap, the harbor
+-- chart table (dock mode) and rifts (rift mode). Copy is the cli.chart.* rows.
+table.insert(panelFactories, function(ctx)
+	local scoped: any = table.clone(ctx)
+	scoped.content = content
+	scoped.text = function(key: string, ...: any): string
+		local row = clientText(locale, "cli.chart." .. key) or key
+		return if select("#", ...) > 0 then string.format(row, ...) else row
+	end
+	scoped.reason = function(reason: string): string
+		return require(Forge.genres["survival-coop"].module.ExtensionPanels).travelText(locale, reason)
+	end
+	scoped.biome = function(id: string): string
+		return clientText(locale, "cli.chart.biome_" .. id) or id
+	end
+	return require(Shared.SeaChart).panel(scoped)
+end)
 -- Recovered spec screens (tracker, score library, clan treasury/research, territory, build manage,
 -- players, arrival); reached through the navigator.
 table.insert(panelFactories, function(ctx)

@@ -523,6 +523,24 @@ function M.trailhead(layout: any): any?
 	return nil
 end
 
+-- C7 drift-isle camp beside the arrival trail: { along, side } from the trailhead. The three
+-- spots stay clear of trails, gather nodes and the arrival dressing on every archipelago stage
+-- (sea-chart.spec). RoleWorld builds them as single parts outside the dressing part budget.
+M.DRIFT_CAMP = table.freeze({ fire = { 28, 28 }, tent = { 28, 40 }, rift = { 16, 44 } } :: { [string]: { number } })
+
+function M.driftCamp(layout: any): any?
+	local head = M.trailhead(layout)
+	if not head then
+		return nil
+	end
+	local s, f = head.position, head.forward
+	local camp: any = { yaw = math.deg(math.atan2(-f.x, -f.z)) }
+	for key, spot in M.DRIFT_CAMP do
+		camp[key] = { x = s.x + f.x * spot[1] - f.z * spot[2], y = s.y, z = s.z + f.z * spot[1] + f.x * spot[2] }
+	end
+	return camp
+end
+
 -- Passive, biome-plausible silhouettes for the arrival view; never interactive wildlife.
 local fauna: any = {
 	grassland = "dodo",

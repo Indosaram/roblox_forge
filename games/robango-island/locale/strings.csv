@@ -3017,3 +3017,42 @@ pet.refusal_mount_gated,It needs a saddle and a full belly to ride.,pet ring (C4
 pet.refusal_no_saddle,You need a saddle.,pet ring (C4),You need a saddle.,안장이 필요해요.
 pet.refusal_no_feed,You need Herbivore Feed.,pet ring (C4),You need Herbivore Feed.,초식동물 사료가 필요해요.
 pet.refusal_release,Empty its bags and let it heal first.,pet ring (C4),Empty its bags and let it heal first.,짐을 비우고 회복한 뒤에 풀어 주세요.
+cli.chart.title,Sea chart,client sea chart label,Sea chart,해도
+cli.chart.compass,N,client sea chart label,N,북
+cli.chart.band,Lv %d-%d,client sea chart label,Lv %d-%d,레벨 %d-%d
+cli.chart.band_open,Lv %d+,client sea chart label,Lv %d+,레벨 %d+
+cli.chart.your_island,Your island,client sea chart label,Your island,내 섬
+cli.chart.town,Town,client sea chart label,Town,마을
+cli.chart.here,You are here,client sea chart label,You are here,현재 위치
+cli.chart.locked,Locked,client sea chart label,Locked,잠김
+cli.chart.time_left,Time left %s,client sea chart label,Time left %s,남은 시간 %s
+cli.chart.open,Open waters,client sea chart label,Open waters,열린 바다
+cli.chart.sail,Set sail,client sea chart label,Set sail,출항
+cli.chart.step,Step through,client sea chart label,Step through,균열 통과
+cli.chart.drift,Drift isle,client sea chart label,Drift isle,표류섬
+cli.chart.hud_timer,Drift isle time left %s,client sea chart label,Drift isle time left %s,표류섬 남은 시간 %s
+cli.chart.isle.home,Home isle,client sea chart label,Home isle,나의 섬
+cli.chart.isle.harbor,Tide Harbor,client sea chart label,Tide Harbor,물결 항구
+cli.chart.isle.explore10,Fernreach Wilds,client sea chart label,Fernreach Wilds,고사리 들녘
+cli.chart.isle.explore20,Deepwood Wilds,client sea chart label,Deepwood Wilds,깊은 숲 들녘
+cli.chart.isle.frontier30,Sunscar Shoals,client sea chart label,Sunscar Shoals,햇살 여울
+cli.chart.isle.frontier40,Frostcairn Reach,client sea chart label,Frostcairn Reach,서리 돌무덤
+cli.chart.isle.frontier50,Ashveil Ridge,client sea chart label,Ashveil Ridge,잿빛 능선
+cli.chart.isle.frontier60,Rexfang Caldera,client sea chart label,Rexfang Caldera,이빨 칼데라
+cli.chart.isle.drift1,Meadow drift isle,client sea chart label,Meadow drift isle,초원 표류섬
+cli.chart.isle.drift2,Palm drift isle,client sea chart label,Palm drift isle,야자 표류섬
+cli.chart.isle.drift3,Dune drift isle,client sea chart label,Dune drift isle,모래 표류섬
+cli.chart.isle.drift4,Frost drift isle,client sea chart label,Frost drift isle,서리 표류섬
+cli.chart.isle.drift5,Ember drift isle,client sea chart label,Ember drift isle,불씨 표류섬
+cli.chart.biome_beach,Beach,client sea chart label,Beach,해변
+cli.chart.biome_forest,Forest,client sea chart label,Forest,숲
+cli.chart.biome_grassland,Grassland,client sea chart label,Grassland,초원
+cli.chart.biome_tropical,Tropical,client sea chart label,Tropical,열대
+cli.chart.biome_desert,Desert,client sea chart label,Desert,사막
+cli.chart.biome_snow,Snow,client sea chart label,Snow,설원
+cli.chart.biome_volcano,Volcano,client sea chart label,Volcano,화산
+cli.chart.biome_swamp,Swamp,client sea chart label,Swamp,늪지
+trv.sail_unreachable,Stand at a dock or a rift to sail,dock travel result,Stand at a dock or a rift to sail,부두나 균열 앞에서 출항하세요
+trv.invalid_route,That island is not on the chart,dock travel result,That island is not on the chart,해도에 없는 섬입니다
+trv.drift_reset,The drift isle reshaped. Sailing to its new shore...,dock travel result,The drift isle reshaped. Sailing to its new shore...,표류섬의 모습이 바뀌었습니다. 새 해안으로 이동 중...
+trv.expedition_active,Finish your current drift isle first,dock travel result,Finish your current drift isle first,진행 중인 표류섬을 먼저 마치세요

@@ -1,0 +1,564 @@
+--!strict
+-- C7 sea chart and drift isles (plan G20, G25; ui-spec section 6.4). Our own style: a parchment
+-- chart with ink islands, level bands, slate lock hatching and lilac drift-isle halos.
+-- The pure part (island cards, voyage gate, layout, drift-isle seeds) runs under Lune; the view
+-- builds Instances only when an ExtensionPanels context calls M.panel.
+-- Names: "rift" is our warp hole, "drift isles" are the timed archipelago islands.
+local M = {}
+local Rng = require("../../../../core/domain/random/Rng")
+local Topology = require("../../../../core/domain/island/Topology")
+local Party = require("../../../../core/domain/island/Party")
+
+M.TTL = 1800
+M.HISTORY = 8
+M.GRID = { columns = 5, rows = 3 }
+-- Chart slots: { column, row } on the 5x3 sea grid plus a fixed nudge inside the cell (0-1).
+-- Low bands sit near home on the left; higher bands and the drift isles sail further out.
+local islandRows: { any } = {
+	{ id = "home", role = "home", cell = { 0, 1 }, nudge = { 0.35, 0.3 } },
+	{ id = "harbor", role = "harbor", cell = { 1, 1 }, nudge = { 0.6, 0.55 } },
+	{ id = "explore10", role = "explore10", cell = { 1, 0 }, nudge = { 0.2, 0.75 } },
+	{ id = "explore20", role = "explore20", cell = { 2, 0 }, nudge = { 0.7, 0.35 } },
+	{ id = "frontier30", role = "frontier30", cell = { 3, 0 }, nudge = { 0.3, 0.8 } },
+	{ id = "frontier40", role = "frontier40", cell = { 4, 0 }, nudge = { 0.65, 0.2 } },
+	{ id = "frontier60", role = "frontier60", cell = { 3, 1 }, nudge = { 0.8, 0.45 } },
+	{ id = "frontier50", role = "frontier50", cell = { 4, 1 }, nudge = { 0.25, 0.7 } },
+	{ id = "drift1", route = 1, cell = { 0, 2 }, nudge = { 0.6, 0.4 } },
+	{ id = "drift2", route = 2, cell = { 1, 2 }, nudge = { 0.25, 0.85 } },
+	{ id = "drift3", route = 3, cell = { 2, 2 }, nudge = { 0.75, 0.6 } },
+	{ id = "drift4", route = 4, cell = { 3, 2 }, nudge = { 0.35, 0.3 } },
+	{ id = "drift5", route = 5, cell = { 2, 1 }, nudge = { 0.45, 0.5 } },
+}
+M.ISLANDS = table.freeze(islandRows)
+M.COMPASS_CELL = { 4, 2 }
+local BANDS = { "explore10", "explore20", "frontier30", "frontier40", "frontier50", "frontier60" }
+
+local function layoutOf(content: any, id: string): any?
+	for _, layout in content.layouts do
+		if layout.id == id then
+			return layout
+		end
+	end
+	return nil
+end
+
+local function roleMinimum(content: any, role: string): number
+	for _, region in content.supportRegions do
+		if region.role == role then
+			return region.gates.characterLevel or 1
+		end
+	end
+	return 1
+end
+
+--- Level band of a chart island: { min, max? } (max nil = open-ended), nil for home and harbor.
+function M.band(content: any, island: any): any?
+	if island.route then
+		local low = Party.gates(content, island.route)
+		local high = if island.route < Party.ROUTES then Party.gates(content, island.route + 1) - 1 else nil
+		return { min = low, max = if high and high >= low then high else nil }
+	end
+	local index = table.find(BANDS, island.role)
+	if not index then
+		return nil
+	end
+	local low = roleMinimum(content, island.role)
+	local nextRole = BANDS[index + 1]
+	return { min = low, max = if nextRole then roleMinimum(content, nextRole) - 1 else nil }
+end
+
+--- World role of a layout id ("rw.harbor" -> "harbor", "rw.a3.s2" -> "archipelago").
+function M.roleOf(layoutId: string): string
+	if string.match(layoutId, "^rw%.a%d+%.s%d+$") then
+		return "archipelago"
+	end
+	return (string.gsub(layoutId, "^rw%.", ""))
+end
+
+-- From a drift isle the rift leads home only (the route ends there); every other pair follows
+-- the live Topology edges.
+local function roleGate(from: string, to: string, level: number): (boolean, string?)
+	if from == "archipelago" and to ~= "home" then
+		return false, "transition_not_allowed"
+	end
+	return Topology.validateRoleTransition(from, to, level)
+end
+
+--- Island cards for the chart. view = { role, level, routes (expedition route cards), trip, now }.
+--- Locks reuse the live gates: Topology.validateRoleTransition for role islands and the
+--- server's Party.routeGate card (ok/reason) for drift isles, which sail only from the harbor.
+function M.islands(content: any, view: any): { any }
+	local cards = {}
+	local level = view.level or 1
+	for _, island in M.ISLANDS do
+		local card: any = { id = island.id, cell = island.cell, nudge = island.nudge, band = M.band(content, island) }
+		if island.route then
+			local layout = layoutOf(content, "rw.a" .. island.route .. ".s1")
+			card.route, card.drift = island.route, true
+			card.biomes = if layout then layout.biomes else {}
+			local route = if view.routes then view.routes[island.route] else nil
+			local trip = view.trip
+			if trip and trip.status == "active" and trip.index == island.route then
+				card.here, card.expiresAt = view.role == "archipelago", trip.expiresAt
+			end
+			if view.role ~= "harbor" then
+				card.locked, card.reason = not card.here, if card.here then nil else "transition_not_allowed"
+			elseif route then
+				card.locked, card.reason, card.expiresAt = not route.ok, route.reason, card.expiresAt or route.expiresAt
+			else
+				local ok, reason = Party.routeGate(content, island.route, view.facts or { level = level })
+				card.locked, card.reason = not ok, reason
+			end
+		else
+			local layout = layoutOf(content, "rw." .. island.role)
+			card.role, card.home = island.role, island.role == "home"
+			card.biomes = if layout then layout.biomes else {}
+			if island.role == view.role then
+				card.here = true
+			else
+				local ok, reason = roleGate(view.role or "harbor", island.role, level)
+				card.locked, card.reason = not ok, reason
+			end
+		end
+		card.locked = card.locked == true
+		table.insert(cards, card)
+	end
+	return cards
+end
+
+--- Server voyage gate for a role island picked on the chart. `from` is the sail point the actor
+--- stands at ("dock" or "rift", nil when none is in reach); the level gate is the live
+--- Topology rule, so a locked island is refused here and again by the teleport router.
+function M.sail(destination: any, role: string, level: number, from: string?): (boolean, string?)
+	if from ~= "dock" and from ~= "rift" then
+		return false, "sail_unreachable"
+	end
+	local known = false
+	for _, island in M.ISLANDS do
+		known = known or (island.role ~= nil and island.role == destination)
+	end
+	if not known then
+		return false, "invalid_route"
+	end
+	if destination == role then
+		return false, "transition_not_allowed"
+	end
+	return roleGate(role, destination, level)
+end
+
+--- Drift-isle departure seed: a recorded seed from the explicit clock and the actor id.
+function M.departureSeed(now: number, actor: string): number
+	return Rng.new(math.max(0, math.floor(now))):fork("drift-departure"):fork(actor):nextU32()
+end
+
+--- Next recorded seed after `previous`; never equal to it.
+function M.reseed(previous: number, generation: number): number
+	local seed = Rng.new(previous):fork("drift-reset|" .. tostring(generation)):nextU32()
+	return if seed == previous then (seed + 1) % 2 ^ 32 else seed
+end
+
+--- Drift-isle reset: an expired, still active isle regenerates from a new recorded seed and opens
+--- a fresh window. The previous and new seeds are kept in state.driftSeeds (latest M.HISTORY).
+function M.driftReset(state: any, now: number, ttl: number): (boolean, string?)
+	if state.status ~= "active" then
+		return false, "expedition_inactive"
+	end
+	if now < state.expiresAt then
+		return false, "not_expired"
+	end
+	local generation = (state.driftGeneration or 0) + 1
+	local seed = M.reseed(state.seed, generation)
+	local history = table.clone(state.driftSeeds or {})
+	table.insert(history, { from = state.seed, to = seed, at = now })
+	while #history > M.HISTORY do
+		table.remove(history, 1)
+	end
+	state.seed, state.driftGeneration, state.driftSeeds = seed, generation, history
+	state.expiresAt = now + ttl
+	return true, nil
+end
+
+--- Countdown text "m:ss" ("h:mm:ss" from an hour); never negative.
+function M.clock(seconds: number): string
+	local left = math.max(0, math.floor(seconds))
+	local h, m, s = left // 3600, (left % 3600) // 60, left % 60
+	return if h > 0 then string.format("%d:%02d:%02d", h, m, s) else string.format("%d:%02d", m, s)
+end
+
+local function rect(x: number, y: number, w: number, h: number): any
+	return {
+		x = math.floor(x + 0.5),
+		y = math.floor(y + 0.5),
+		width = math.floor(w + 0.5),
+		height = math.floor(h + 0.5),
+	}
+end
+
+--- Text sizes on the spec scale (pt = safeHeight / 360), never under 13 px.
+function M.textSizes(safeHeight: number): any
+	local function size(pt: number, cap: number): number
+		return math.clamp(math.floor(pt * safeHeight / 360 + 0.5), 13, cap)
+	end
+	return { title = size(20, 30), heading = size(16, 24), name = size(14, 22), chip = size(13, 18) }
+end
+
+--- Full-screen chart rects in gui pixels: header (title, close), the sea grid with one tile per
+--- island (marker, name, band chip), the compass, the 0.28H bottom sheet and the HUD timer pill.
+function M.layout(width: number, height: number, topClear: number?): any
+	local top = topClear or 0
+	local h = height - top
+	local text = M.textSizes(h)
+	local pad = math.max(8, math.floor(0.03 * h + 0.5))
+	local headerHeight = math.max(44, math.floor(0.12 * h + 0.5))
+	local header = rect(0, top, width, headerHeight)
+	local close = rect(width - pad - headerHeight, top, headerHeight, headerHeight)
+	local title = rect(pad, top, close.x - 2 * pad, headerHeight)
+	local chart = rect(pad, top + headerHeight + pad / 2, width - 2 * pad, h - headerHeight - pad * 1.5)
+	local cellW, cellH = chart.width / M.GRID.columns, chart.height / M.GRID.rows
+	local marker = math.clamp(math.floor(cellH * 0.42), 44, 96)
+	local tileH = marker + 2 + (text.name + 4) + (text.chip + 4)
+	local tileW = math.min(cellW - 8, 240)
+	local tiles = {}
+	for _, island in M.ISLANDS do
+		local cx, cy = chart.x + island.cell[1] * cellW, chart.y + island.cell[2] * cellH
+		local x = cx + 4 + (cellW - 8 - tileW) * island.nudge[1]
+		local y = cy + 2 + math.max(0, cellH - 4 - tileH) * island.nudge[2]
+		local tile = rect(x, y, tileW, tileH)
+		tiles[island.id] = {
+			tile = tile,
+			marker = rect(tile.x + (tile.width - marker) / 2, tile.y, marker, marker),
+			name = rect(tile.x, tile.y + marker + 2, tile.width, text.name + 4),
+			chip = rect(tile.x, tile.y + marker + 2 + text.name + 4, tile.width, text.chip + 4),
+		}
+	end
+	local side = math.floor(math.min(cellW, cellH) * 0.7)
+	local compass = rect(
+		chart.x + M.COMPASS_CELL[1] * cellW + (cellW - side) / 2,
+		chart.y + M.COMPASS_CELL[2] * cellH + (cellH - side) / 2,
+		side,
+		side
+	)
+	local button = math.max(44, math.floor(0.12 * h + 0.5))
+	local lines = (text.heading + 4) + 2 * (text.chip + 4)
+	local sheetH = math.max(math.floor(0.28 * h + 0.5), lines + 2 * pad, button + 2 * pad)
+	local sheetW = math.min(width - 2 * pad, 760)
+	local sheet = rect((width - sheetW) / 2, top + h - sheetH - pad / 2, sheetW, sheetH)
+	local buttonW = math.max(160, math.floor(0.5 * h + 0.5))
+	local sail = rect(sheet.x + sheet.width - pad - buttonW, sheet.y + (sheet.height - button) / 2, buttonW, button)
+	local textW = sail.x - sheet.x - 2 * pad
+	local lineY = sheet.y + (sheet.height - lines) / 2
+	local timerH = math.max(28, math.floor(0.08 * h + 0.5))
+	local timerW = math.max(240, math.floor(0.62 * h + 0.5))
+	return {
+		safeHeight = h,
+		text = text,
+		header = header,
+		title = title,
+		close = close,
+		chart = chart,
+		tiles = tiles,
+		compass = compass,
+		sheet = {
+			frame = sheet,
+			name = rect(sheet.x + pad, lineY, textW, text.heading + 4),
+			info = rect(sheet.x + pad, lineY + text.heading + 4, textW, text.chip + 4),
+			status = rect(sheet.x + pad, lineY + text.heading + 4 + text.chip + 4, textW, text.chip + 4),
+			sail = sail,
+		},
+		timer = rect((width - timerW) / 2, top + math.floor(0.02 * h + 0.5), timerW, timerH),
+	}
+end
+
+--- Card copy through `text(key, ...)` (cli.chart.* rows). Returns name, band chip and status.
+function M.copy(card: any, text: (string, ...any) -> string, now: number?, reason: ((string) -> string)?): any
+	local band = card.band
+	local chip = if not band
+		then text(if card.home then "your_island" else "town")
+		elseif band.max then text("band", band.min, band.max)
+		else text("band_open", band.min)
+	local left = if card.expiresAt and now then M.clock(card.expiresAt - now) else nil
+	if card.drift and left then
+		chip = chip .. " · " .. left
+	end
+	local status = if card.here
+		then text("here")
+		elseif card.locked then (if reason and card.reason then reason(card.reason) else text("locked"))
+		elseif card.drift and left then text("time_left", left)
+		else text("open")
+	return { name = text("isle." .. card.id), chip = chip, status = status }
+end
+
+-- View --------------------------------------------------------------------------------------
+
+local PARCHMENT, INK, LOCK, LILAC = { 185, 165, 140 }, { 27, 34, 36 }, { 110, 116, 119 }, { 154, 143, 181 }
+local WASH, HOME = { 127, 163, 91 }, { 201, 154, 59 }
+
+--- Panel factory (ExtensionPanels context plus `text`, `reason`, `biome` and `content`). Opens
+--- from the menu tile, the minimap and the world prompts ForgePanel = sea-chart-dock / -rift.
+function M.panel(ctx: any): any
+	local players = game:GetService("Players")
+	local run = game:GetService("RunService")
+	local HudShell = require("../../../../genres/survival-coop/module/HudShell")
+	local player = players.LocalPlayer
+	local function rgb(value: { number }): Color3
+		return Color3.fromRGB(value[1], value[2], value[3])
+	end
+	local function put(item: any, r: any)
+		item.Position, item.Size = UDim2.fromOffset(r.x, r.y), UDim2.fromOffset(r.width, r.height)
+	end
+	local function label(parent: Instance, name: string, size: number, color: { number }): TextLabel
+		local item = Instance.new("TextLabel")
+		item.Name, item.BackgroundTransparency, item.TextColor3 = name, 1, rgb(color)
+		item.Font, item.TextSize, item.TextWrapped = Enum.Font.GothamBold, size, false
+		item.TextTruncate, item.Parent = Enum.TextTruncate.AtEnd, parent
+		return item
+	end
+	local gui = Instance.new("ScreenGui")
+	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder, gui.Enabled = "ForgeSeaChart", false, 31, false
+	gui.IgnoreGuiInset = true
+	gui.Parent = player:WaitForChild("PlayerGui")
+	local hud = Instance.new("ScreenGui")
+	hud.Name, hud.ResetOnSpawn, hud.DisplayOrder = "ForgeSeaChartHud", false, 23
+	hud.IgnoreGuiInset = true
+	hud.Parent = gui.Parent
+	-- Parchment: driftPale fill, a darker deckle rim and faint 10% grid lines.
+	local sheetFrame = Instance.new("Frame")
+	sheetFrame.Name, sheetFrame.BackgroundColor3, sheetFrame.Size = "Chart", rgb(PARCHMENT), UDim2.fromScale(1, 1)
+	sheetFrame.Parent = gui
+	local rim = Instance.new("UIStroke")
+	rim.Color, rim.Thickness, rim.Parent = Color3.fromRGB(138, 117, 96), 6, sheetFrame
+	for i = 1, 9 do
+		for _, vertical in { true, false } do
+			local line = Instance.new("Frame")
+			line.Name, line.BorderSizePixel = "Grid", 0
+			line.BackgroundColor3, line.BackgroundTransparency = rgb(INK), 0.9
+			line.Position = if vertical then UDim2.fromScale(i / 10, 0) else UDim2.fromScale(0, i / 10)
+			line.Size = if vertical then UDim2.new(0, 1, 1, 0) else UDim2.new(1, 0, 0, 1)
+			line.Parent = sheetFrame
+		end
+	end
+	-- HudShell.sheetOpen reads a visible Frame with Header > Close as a full sheet.
+	local header = Instance.new("Frame")
+	header.Name, header.BackgroundTransparency, header.Parent = "Header", 1, sheetFrame
+	local title = label(sheetFrame, "Title", 20, INK)
+	title.Text, title.TextXAlignment = ctx.text("title"), Enum.TextXAlignment.Left
+	local close = Instance.new("TextButton")
+	close.Name, close.Text, close.TextColor3 = "Close", "X", rgb(INK)
+	close.BackgroundColor3, close.Font, close.Parent = Color3.fromRGB(237, 230, 214), Enum.Font.GothamBold, header
+	local compass = label(sheetFrame, "Compass", 18, INK)
+	compass.Text = ctx.text("compass")
+	local compassRing = Instance.new("UIStroke")
+	compassRing.Color, compassRing.Thickness, compassRing.Parent = rgb(INK), 2, compass
+	local compassCorner = Instance.new("UICorner")
+	compassCorner.CornerRadius, compassCorner.Parent = UDim.new(0.5, 0), compass
+	local tiles: { [string]: any } = {}
+	local selected: string? = nil
+	local status: string? = nil
+	local mode = "view"
+	local cards: { any } = {}
+	local latest: any, received = nil, os.clock()
+	local sheet = Instance.new("Frame")
+	sheet.Name, sheet.BackgroundColor3, sheet.Visible = "IslandSheet", Color3.fromRGB(237, 230, 214), false
+	sheet.Parent = sheetFrame
+	local sheetCorner = Instance.new("UICorner")
+	sheetCorner.CornerRadius, sheetCorner.Parent = UDim.new(0, 12), sheet
+	local sheetName = label(sheetFrame, "SheetName", 16, INK)
+	local sheetInfo = label(sheetFrame, "SheetInfo", 13, INK)
+	local sheetStatus = label(sheetFrame, "SheetStatus", 13, INK)
+	for _, item in { sheetName, sheetInfo, sheetStatus } do
+		item.TextXAlignment, item.ZIndex, item.Visible = Enum.TextXAlignment.Left, 3, false
+	end
+	local sail = Instance.new("TextButton")
+	sail.Name, sail.BackgroundColor3, sail.TextColor3 =
+		"Sail", Color3.fromRGB(31, 78, 76), Color3.fromRGB(237, 230, 214)
+	sail.Font, sail.ZIndex, sail.Visible, sail.Parent = Enum.Font.GothamBold, 3, false, sheetFrame
+	local timer = label(hud, "DriftTimer", 14, { 237, 230, 214 })
+	timer.BackgroundTransparency, timer.BackgroundColor3, timer.Visible = 0.2, rgb(LILAC), false
+	local timerCorner = Instance.new("UICorner")
+	timerCorner.CornerRadius, timerCorner.Parent = UDim.new(0.5, 0), timer
+	-- The round HUD minimap (HudShell overlays) opens the chart: a transparent button fills it.
+	local minimap = Instance.new("TextButton")
+	minimap.Name, minimap.Text, minimap.BackgroundTransparency = "MinimapChart", "", 1
+	minimap.Size, minimap.ZIndex = UDim2.fromScale(1, 1), 5
+	local function now(): number
+		local expedition = latest and latest.expedition
+		return (if expedition and expedition.now then expedition.now else 0) + (os.clock() - received)
+	end
+	local function view(): any
+		local expedition = latest and latest.expedition or {}
+		local trip = latest and latest.archipelago
+		return {
+			role = workspace:GetAttribute("ForgeWorldRole") or "harbor",
+			level = if expedition.facts then expedition.facts.level else 1,
+			facts = expedition.facts,
+			routes = expedition.routes,
+			trip = if trip and trip.status then trip else nil,
+		}
+	end
+	local function render()
+		local size = gui.AbsoluteSize
+		local layout = M.layout(size.X, size.Y, HudShell.guiClear(gui))
+		local sizes = layout.text
+		put(header, layout.header)
+		put(title, layout.title)
+		title.TextSize = sizes.title
+		put(close, layout.close)
+		close.TextSize = sizes.heading
+		put(compass, layout.compass)
+		compass.TextSize = sizes.chip
+		cards = M.islands(ctx.content, view())
+		local t = now()
+		for _, card in cards do
+			local r = layout.tiles[card.id]
+			local tile = tiles[card.id]
+			local copy = M.copy(card, ctx.text, t, ctx.reason)
+			put(tile.marker, r.marker)
+			put(tile.name, r.name)
+			put(tile.chip, r.chip)
+			tile.name.Text, tile.name.TextSize = copy.name, sizes.name
+			tile.chip.Text, tile.chip.TextSize = copy.chip, sizes.chip
+			tile.marker.BackgroundColor3 =
+				rgb(if card.locked then LOCK elseif card.drift then LILAC elseif card.home then HOME else WASH)
+			tile.marker.BackgroundTransparency = if card.locked then 0.35 else 0.15
+			tile.stroke.Color = rgb(if card.drift then LILAC else INK)
+			tile.stroke.Thickness = if card.here then 4 else 2
+			tile.lock.Visible = card.locked
+			if card.id == selected then
+				put(sheet, layout.sheet.frame)
+				put(sheetName, layout.sheet.name)
+				put(sheetInfo, layout.sheet.info)
+				put(sheetStatus, layout.sheet.status)
+				put(sail, layout.sheet.sail)
+				sheetName.TextSize, sheetInfo.TextSize, sheetStatus.TextSize = sizes.heading, sizes.chip, sizes.chip
+				sail.TextSize = sizes.heading
+				local climate = {}
+				for _, biome in card.biomes do
+					table.insert(climate, ctx.biome(biome))
+				end
+				sheetName.Text = copy.name .. (if card.drift then " · " .. ctx.text("drift") else "")
+				sheetInfo.Text = copy.chip .. (if #climate > 0 then " · " .. table.concat(climate, ", ") else "")
+				sheetStatus.Text = status or copy.status
+				sail.Text = ctx.text(if mode == "rift" then "step" else "sail")
+				sail.Active = not card.locked and not card.here
+				sail.AutoButtonColor = sail.Active
+				sail.BackgroundTransparency = if sail.Active then 0 else 0.5
+			end
+		end
+		local shown = selected ~= nil
+		for _, item: GuiObject in { sheet :: GuiObject, sheetName, sheetInfo, sheetStatus, sail } do
+			item.Visible = shown
+		end
+		-- HUD: the drift-isle countdown on an active drift isle, and the minimap as a chart opener.
+		local playerGui = gui.Parent :: Instance
+		local mapParent = minimap.Parent
+		if mapParent == nil or not mapParent:IsDescendantOf(playerGui) then
+			minimap.Parent = playerGui:FindFirstChild("Minimap", true)
+		end
+		local trip = latest and latest.archipelago
+		local drifting = workspace:GetAttribute("ForgeWorldRole") == "archipelago"
+			and trip
+			and trip.status == "active"
+			and trip.expiresAt
+		timer.Visible = drifting == true and not gui.Enabled
+		if timer.Visible then
+			put(timer, layout.timer)
+			timer.TextSize = sizes.name
+			timer.Text = ctx.text("hud_timer", M.clock(trip.expiresAt - t))
+		end
+	end
+	for _, island in M.ISLANDS do
+		local marker = Instance.new("TextButton")
+		marker.Name, marker.Text, marker.Parent = "Isle-" .. island.id, "", sheetFrame
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius, corner.Parent = UDim.new(0.45, 0), marker
+		local stroke = Instance.new("UIStroke")
+		stroke.ApplyStrokeMode, stroke.Parent = Enum.ApplyStrokeMode.Border, marker
+		local lock = Instance.new("Frame")
+		lock.Name, lock.BackgroundColor3, lock.Size = "Lock", rgb(LOCK), UDim2.fromScale(0.36, 0.36)
+		lock.Position, lock.AnchorPoint, lock.Parent = UDim2.fromScale(1, 1), Vector2.new(1, 1), marker
+		local lockCorner = Instance.new("UICorner")
+		lockCorner.CornerRadius, lockCorner.Parent = UDim.new(0.5, 0), lock
+		local name = label(sheetFrame, "Name-" .. island.id, 14, INK)
+		local chip = label(sheetFrame, "Chip-" .. island.id, 13, INK)
+		tiles[island.id] = { marker = marker, stroke = stroke, lock = lock, name = name, chip = chip }
+		marker.Activated:Connect(function()
+			selected, status = island.id, nil
+			render()
+		end)
+	end
+	local busy = false
+	sail.Activated:Connect(function()
+		local card: any = nil
+		for _, candidate in cards do
+			card = if candidate.id == selected then candidate else card
+		end
+		if busy or not card or card.locked or card.here then
+			return
+		end
+		busy = true
+		local result = if card.drift
+			then ctx.send("survival-coop:party-action", { "depart", tostring(card.route) })
+			else ctx.send("survival-coop:mission-action", { "sail", card.role })
+		busy = false
+		local reason = if result and result.ok then "travelling" else (result and result.reason or "travel_refused")
+		status = ctx.reason(reason)
+		render()
+	end)
+	local function setOpen(open: boolean, opened: string)
+		gui.Enabled = open
+		mode = opened
+		if not open then
+			selected, status = nil, nil
+		end
+		render()
+	end
+	local function isOpen(): boolean
+		return gui.Enabled
+	end
+	local entries = {}
+	for index, id in { "sea-chart", "sea-chart-dock", "sea-chart-rift" } do
+		local opened = if index == 1 then "view" elseif index == 2 then "dock" else "rift"
+		table.insert(
+			entries,
+			ctx.dock({
+				id = id,
+				label = ctx.text("title"),
+				order = 60 + index,
+				hidden = index > 1,
+				setOpen = function(value: boolean)
+					setOpen(value, opened)
+				end,
+				isOpen = isOpen,
+			})
+		)
+	end
+	close.Activated:Connect(function()
+		setOpen(false, "view")
+	end)
+	minimap.Activated:Connect(function()
+		entries[1].open()
+	end)
+	local stop = ctx.onSnapshot(function(snapshot)
+		latest, received = snapshot, os.clock()
+		render()
+	end)
+	local elapsed = 0
+	local beat = run.Heartbeat:Connect(function(dt)
+		elapsed += dt
+		if elapsed >= 0.5 then
+			elapsed = 0
+			render()
+		end
+	end)
+	return {
+		destroy = function()
+			stop()
+			beat:Disconnect()
+			gui:Destroy()
+			hud:Destroy()
+			minimap:Destroy()
+		end,
+	}
+end
+
+return M

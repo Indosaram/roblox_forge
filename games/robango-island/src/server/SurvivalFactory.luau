@@ -728,6 +728,25 @@ return function(content: any, source, world, backend, clock, options, provision,
 					return world.town.command(actor, args[1], args[2])
 				elseif args[1] == "return" then
 					return archipelago.recover(actor, "return")
+				elseif args[1] == "sail" then
+					-- C7 sea chart voyage to a role island: the actor stands at a dock or rift and the
+					-- live level gate allows it; travel then goes through the role/teleport router.
+					local SeaChart = require(Forge.games["robango-island"].src.shared.SeaChart)
+					local role = if world.layout then SeaChart.roleOf(world.layout.id) else "harbor"
+					local from = if world.sailPoint then world.sailPoint(actor) else nil
+					local level = expeditionFacts(actor, expeditionStore.snapshot(actor)).level
+					local ok, reason = SeaChart.sail(args[2], role, level, from)
+					local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
+					if not ok or not player or not world.travel then
+						local refused: any = { ok = false, reason = reason or "travel_unavailable" }
+						return refused
+					end
+					local moved: any, why = (world :: any).travel(player, args[2])
+					if type(moved) == "table" then
+						return moved
+					end
+					local sailed: any = { ok = moved == true, reason = if moved then nil else why or "travel_failed" }
+					return sailed
 				end
 				return archipelago.mission(actor, args[1], args[2])
 			end,
