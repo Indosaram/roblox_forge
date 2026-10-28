@@ -14,6 +14,7 @@ local RenderBudget = require(Forge.games["robango-island"].src.shared.RenderBudg
 local BiomeKits = require(Forge.games["robango-island"].src.shared.BiomeKits)
 local Assets = require(Forge.games["robango-island"].src.shared.Assets)
 local NodeMeshes = require(Forge.games["robango-island"].src.shared.NodeMeshes)
+local MeshTexture = require(Forge.games["robango-island"].src.shared.MeshTexture)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
@@ -117,6 +118,7 @@ local function loadSpecies(load: (number) -> Instance, ids: { [string]: string }
 		local ok, loaded = pcall(load, id)
 		local mesh = if ok and loaded then loaded:FindFirstChildWhichIsA("MeshPart", true) else nil
 		if mesh then
+			MeshTexture.bake(mesh)
 			mesh.Name, mesh.Parent = species, meshFolder
 			meshTemplates[species] = mesh
 		else

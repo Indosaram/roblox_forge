@@ -696,11 +696,14 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		require("../../../../games/robango-island/src/shared/IslandTerrain")
 	forge.games["robango-island"].src.shared.RenderBudget =
 		require("../../../../games/robango-island/src/shared/RenderBudget")
+	forge.games["robango-island"].src.shared.MeshTexture =
+		require("../../../../games/robango-island/src/shared/MeshTexture")
 	forge.games["robango-island"].src.shared.BiomeKitsB1b =
 		require("../../../../games/robango-island/src/shared/BiomeKitsB1b")
 	-- BiomeKits: pure scatter plan plus adapters; the fake game has no InsertService, so no kits load.
 	forge.games["robango-island"].src.shared.BiomeKits = load("games/robango-island/src/shared/BiomeKits.luau", {
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
+		["./MeshTexture"] = require("../../../../games/robango-island/src/shared/MeshTexture"),
 	}, nil)
 	-- NodeMeshes builds CFrames through engine globals; specs inject node templates via setTemplates.
 	forge.games["robango-island"].src.shared.NodeMeshes =

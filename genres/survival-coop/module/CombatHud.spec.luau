@@ -205,7 +205,8 @@ return {
 			return if path == "./HudShell" then shell else require("./PackLocale")
 		end
 		-- Lune Instances have no events: a button's Activated is a no-op signal here.
-		roblox.implementProperty("TextButton", "Activated", function()
+		-- Registration is global to the Lune process; another spec in the same worker may own it already.
+		pcall(roblox.implementProperty, "TextButton", "Activated", function()
 			return signal()
 		end)
 		local hud = luau.load(fs.readFile("genres/survival-coop/module/CombatHud.luau"), {

@@ -190,6 +190,8 @@ function M.load(): { [string]: Model }
 	if not ok then
 		return loaded
 	end
+	local MeshTexture =
+		require(game:GetService("ReplicatedStorage").Forge.games["robango-island"].src.shared.MeshTexture)
 	local storage = Instance.new("Folder")
 	storage.Name, storage.Parent = "ForgeMeshTemplates", game:GetService("ServerStorage")
 	local pending = #M.PACKAGES
@@ -201,6 +203,7 @@ function M.load(): { [string]: Model }
 				return insert:LoadAsset(assert(id, "MESH_PACKAGE_UNPUBLISHED:" .. key))
 			end)
 			if success then
+				MeshTexture.bake(result)
 				for _, row in result:GetDescendants() do
 					if row:IsA("Model") and row:FindFirstChildWhichIsA("MeshPart") then
 						local name = string.gsub(row.Name, "%.%d%d%d$", "")
@@ -249,20 +252,16 @@ function M.clone(key: string?, options: { decor: boolean? }?): Model?
 			game:GetService("CollectionService"):AddTag(part, "ForgeCutaway")
 		elseif suffix == "lamp" or (suffix == "glow" and WARM_GLOW[key :: string]) then
 			-- Warm window or lantern: cheap Neon plus one small unshadowed light.
-			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
-			if surface then
-				surface:Destroy()
-			end
+			-- Plain Neon: no baked atlas texture (MeshTexture.bake) over the glow.
+			part.TextureID = ""
 			local warm = Color3.fromRGB(table.unpack(M.WARM))
 			part.Material, part.Color, part.CastShadow = Enum.Material.Neon, warm, false
 			local light = Instance.new("PointLight")
 			light.Color, light.Range, light.Brightness = warm, 8, 0.6
 			light.Shadows, light.Parent = false, part
 		elseif suffix == "ember" or suffix == "glow" then
-			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
-			if surface then
-				surface:Destroy()
-			end
+			-- Plain Neon: no baked atlas texture (MeshTexture.bake) over the glow.
+			part.TextureID = ""
 			part.Material, part.CastShadow = Enum.Material.Neon, false
 			part.Color = if suffix == "ember" then Color3.fromRGB(255, 122, 40) else Color3.fromRGB(150, 236, 220)
 			local light = Instance.new("PointLight")

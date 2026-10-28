@@ -20,6 +20,14 @@ local B1b = load(
 			:WaitForChild("Forge").games["robango-island"].src.shared.BiomeKitsB1b
 		else "./BiomeKitsB1b"
 )
+-- Loaded templates render through MeshPart textures, not SurfaceAppearance (MeshTexture.luau).
+local MeshTexture = load(
+	if runtime.game
+		then runtime.game
+			:GetService("ReplicatedStorage")
+			:WaitForChild("Forge").games["robango-island"].src.shared.MeshTexture
+		else "./MeshTexture"
+)
 
 -- Default-zoom landscape screen on the reference phone (catalog section 0): ~100 x 220 studs.
 M.SCREEN_AREA = 100 * 220
@@ -534,6 +542,7 @@ local function loadKit(insert: any, kit: string, id: number)
 	local ok, model = pcall(insert.LoadAsset, insert, id)
 	loading[kit] = nil
 	if ok and model then
+		MeshTexture.bake(model)
 		templates["@" .. kit] = model
 		for _, child in model:GetDescendants() do
 			if child:IsA("BasePart") then

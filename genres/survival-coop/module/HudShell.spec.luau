@@ -452,7 +452,8 @@ return {
 				end,
 			}
 		end
-		roblox.implementProperty("TextButton", "Activated", function()
+		-- Registration is global to the Lune process; another spec in the same worker may own it already.
+		pcall(roblox.implementProperty, "TextButton", "Activated", function()
 			return signal()
 		end)
 		local services: { [string]: any } = {
