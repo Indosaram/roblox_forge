@@ -10,21 +10,23 @@ M.DAY_SECONDS = 24 * 60
 type RGB = { number }
 
 -- Day: warm and slightly desaturated (R13-6 day frames). Night: bright cool blue-grey moonlight
--- (R17-1): strong blue ambient, high exposure and a moon-coloured ColorShift_Top keep ground,
--- plants and the player readable like an overcast day with a blue cast; the sea's warm-grey
--- WaterColor turns slate under the cool tint instead of glowing royal blue; fires pool warm
--- light. `water` drives Terrain.WaterColor.
+-- (R17-1): a moonlit grey-blue ambient, moderate exposure and a moon-coloured ColorShift_Top keep
+-- ground, plants and the player readable like an overcast day with a blue cast. D2 (R17) saw the
+-- old night (exposure 1.4, tint 180/212/255) as a near-uniform saturated blue, so the tint and
+-- ambients are greyer and brighter and the exposure lower; thin night air keeps the far frame
+-- edge clear (M.fog). The sea's warm-grey WaterColor turns slate under the cool tint; fires pool
+-- warm light. `water` drives Terrain.WaterColor.
 -- stylua: ignore start
 local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, outdoorAmbient = { 158, 148, 128 },
 	colorShiftTop = { 255, 232, 196 }, colorShiftBottom = { 92, 82, 64 }, decay = { 132, 138, 140 },
 	grade = { brightness = 0.02, contrast = 0.1, saturation = -0.12, tint = { 255, 242, 222 } },
 	density = 0.26, haze = 1.1, glare = 0.25, bloom = 0.08, sunRays = 0.04, starCount = 0,
 	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10 } }
-local NIGHT: any = { brightness = 2.2, exposure = 1.4, ambient = { 100, 126, 190 }, outdoorAmbient = { 116, 150, 228 },
-	colorShiftTop = { 146, 180, 250 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
-	grade = { brightness = 0.04, contrast = 0.06, saturation = -0.16, tint = { 180, 212, 255 } },
-	fog = { 110, 130, 165 }, density = 0.28, haze = 0.8, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
-	water = { 100, 92, 62 }, fire = { brightness = 2.6, range = 20 } }
+local NIGHT: any = { brightness = 2.2, exposure = 1.0, ambient = { 120, 140, 190 }, outdoorAmbient = { 146, 164, 206 },
+	colorShiftTop = { 172, 192, 236 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
+	grade = { brightness = 0.03, contrast = 0.06, saturation = -0.08, tint = { 204, 218, 246 } },
+	fog = { 110, 130, 165 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
+	water = { 100, 92, 62 }, fire = { brightness = 3, range = 24 } }
 -- stylua: ignore end
 -- Sunrise/sunset push the warm grade further toward amber.
 local GOLDEN_TINT = { 255, 214, 172 }
@@ -94,6 +96,34 @@ function M.state(seconds: number, origin: number, fog: RGB): any
 end
 
 M.WINDOW_SECONDS = 240
+
+-- Atmosphere caps: weather may thicken the day air up to DAY_FOG; at full night density and haze
+-- stay at or under NIGHT_FOG so the fog never closes in before the play camera's far frame edge.
+M.DAY_FOG = table.freeze({ density = 0.6, haze = 10 })
+M.NIGHT_FOG = table.freeze({ density = 0.17, haze = 0.6 })
+
+--- Atmosphere Density/Haze for a lighting state under a weather visual.
+function M.fog(state: any, weather: any): { density: number, haze: number }
+	local n = 1 - state.daylight
+	return {
+		density = math.min(
+			state.atmosphere.density + weather.fogDensity,
+			lerp(M.DAY_FOG.density, M.NIGHT_FOG.density, n)
+		),
+		haze = math.min(state.atmosphere.haze + weather.fogHaze, lerp(M.DAY_FOG.haze, M.NIGHT_FOG.haze, n)),
+	}
+end
+
+-- Atmosphere has no FogEnd. First-order fog end (studs): where the haze reaches ~95% opacity,
+-- transmittance exp(-K * density * (1 + 0.15 * haze) * d) = 0.05. K is fitted to the D2 night-town
+-- capture (old night density 0.28 + fog weather 0.3, haze 0.8 + 2.4: fogged out at ~80 studs).
+local FOG_K = 0.0437
+function M.visibility(density: number, haze: number): number
+	if density <= 0 then
+		return math.huge
+	end
+	return math.log(20) / (FOG_K * density * (1 + 0.15 * haze))
+end
 
 -- rain/ash: particle rate per emitter at full quality.
 M.VISUALS = {
@@ -242,8 +272,8 @@ function M.apply(lighting: any, state: any, weather: any, atmosphere: boolean, t
 		air.Color, air.Decay = rgb(state.atmosphere.color), rgb(state.atmosphere.decay)
 		air.Glare = state.atmosphere.glare * dim
 		if atmosphere then
-			air.Density = math.min(state.atmosphere.density + weather.fogDensity, 0.6)
-			air.Haze = state.atmosphere.haze + weather.fogHaze
+			local fog = M.fog(state, weather)
+			air.Density, air.Haze = fog.density, fog.haze
 		end
 	end
 end

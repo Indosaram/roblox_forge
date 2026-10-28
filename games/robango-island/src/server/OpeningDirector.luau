@@ -5,8 +5,9 @@
 -- scripted boar is presentation only: no wildlife entity, no damage path. A returning player
 -- (tutorial complete, no opening record) is bypassed and never sees a beat.
 --
--- Set pieces are primitive placeholders tagged `ForgeSetPiece` with a `ForgeSetPieceId`
--- attribute (town.beacon-tower, town.boat) so the B3 lane can swap meshes by tag.
+-- Set pieces are composed multi-part models tagged `ForgeSetPiece` with a `ForgeSetPieceId`
+-- attribute (town.beacon-tower, town.boat); RoleWorld adds the B3 mesh row by that id when the
+-- town kit loads and hides the parts (the prompts stay on Pole, Hull and the stakes).
 local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local Scene = require(Forge.games["robango-island"].src.shared.OpeningScene)
 local M = {}
@@ -81,15 +82,67 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		)
 		stake.Material = Enum.Material.Wood
 		stake:SetAttribute("ForgeOpeningStake", index)
+		-- D2 (R04): a split peg with a rope lashing and a guy line, not one block.
+		local top = stake.Position + Vector3.new(0, 1.1, 0)
+		local cap =
+			block("Cap", top + Vector3.new(0, 0.2, 0), Vector3.new(0.8, 0.4, 0.8), Color3.fromRGB(98, 72, 46), stake)
+		cap.Material = Enum.Material.Wood
+		local lash = block(
+			"Lashing",
+			top - Vector3.new(0, 0.5, 0),
+			Vector3.new(0.75, 0.3, 0.75),
+			Color3.fromRGB(196, 170, 120),
+			stake
+		)
+		lash.Material = Enum.Material.Fabric
+		local line = block("GuyLine", top, Vector3.new(0.12, 0.12, 4), Color3.fromRGB(196, 170, 120), stake)
+		line.Material = Enum.Material.Fabric
+		line.CFrame = CFrame.new(top + Vector3.new(0, 0.6, -1.8)) * CFrame.Angles(math.rad(-20), 0, 0)
+		for _, piece in { cap, lash, line } do
+			piece.CanCollide, piece.CanQuery, piece.CanTouch = false, false, false
+		end
 		stakes[index] = stake
 	end
-	-- Mirror beacon tower (town.beacon-tower): pole, fire basket, mirror crown.
+	-- Mirror beacon tower (town.beacon-tower): four tapered legs with braces, a plank deck, the
+	-- iron fire basket and the mirror crown. RoleWorld swaps in the B3 mesh row when it loads.
 	local beacon = setPiece("OpeningBeacon", "town.beacon-tower")
 	local base = ground("opening.beacon", 0)
-	local pole =
-		block("Pole", base + Vector3.new(0, 4, 0), Vector3.new(1.2, 8, 1.2), Color3.fromRGB(110, 84, 58), beacon)
+	local timber = Color3.fromRGB(110, 84, 58)
+	local pole = block("Pole", base + Vector3.new(0, 4, 0), Vector3.new(1.2, 8, 1.2), timber, beacon)
 	pole.Material = Enum.Material.Wood
+	for _, corner in { { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } } do
+		local foot = base + Vector3.new(corner[1] * 2.4, 0, corner[2] * 2.4)
+		local head = base + Vector3.new(corner[1] * 1.1, 8, corner[2] * 1.1)
+		local leg = block("Leg", (foot + head) / 2, Vector3.new(0.5, (head - foot).Magnitude, 0.5), timber, beacon)
+		leg.Material = Enum.Material.Wood
+		leg.CFrame = CFrame.lookAt((foot + head) / 2, head) * CFrame.Angles(math.rad(90), 0, 0)
+	end
+	for _, level in { 2.5, 5.5 } do
+		local reach = 2.4 - level / 8 * 1.3
+		for _, side in { -1, 1 } do
+			block(
+				"BraceX",
+				base + Vector3.new(0, level, side * reach),
+				Vector3.new(reach * 2, 0.3, 0.3),
+				timber,
+				beacon
+			).Material =
+				Enum.Material.Wood
+			block(
+				"BraceZ",
+				base + Vector3.new(side * reach, level, 0),
+				Vector3.new(0.3, 0.3, reach * 2),
+				timber,
+				beacon
+			).Material =
+				Enum.Material.Wood
+		end
+	end
+	block("Deck", base + Vector3.new(0, 8.1, 0), Vector3.new(3.6, 0.3, 3.6), Color3.fromRGB(150, 112, 72), beacon).Material =
+		Enum.Material.WoodPlanks
 	block("Basket", base + Vector3.new(0, 8.6, 0), Vector3.new(3, 1.2, 3), Color3.fromRGB(74, 61, 49), beacon)
+	block("Coals", base + Vector3.new(0, 9.2, 0), Vector3.new(2.4, 0.3, 2.4), Color3.fromRGB(58, 44, 36), beacon).Material =
+		Enum.Material.Slate
 	local crown = block(
 		"MirrorCrown",
 		base + Vector3.new(0, 10.2, 0),
@@ -100,13 +153,40 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 	crown.Material = Enum.Material.Glass
 	beacon.PrimaryPart = pole
 	-- The supply cutter Gannet (town.boat), moored at the jetty; each client plays its fly-in.
+	-- Composed hull (keel, tapered bow and stern, gunwales, thwarts), mast, boom and sail.
 	local boat = setPiece("OpeningGannet", "town.boat")
 	local mooring = ground("opening.jetty", 0) + Vector3.new(0, 1.5, -10)
-	local hull = block("Hull", mooring, Vector3.new(6, 2, 16), Color3.fromRGB(74, 61, 49), boat)
+	local planks = Color3.fromRGB(74, 61, 49)
+	local canvas = Color3.fromRGB(237, 230, 214)
+	local hull = block("Hull", mooring, Vector3.new(6, 2, 16), planks, boat)
 	hull.Material = Enum.Material.WoodPlanks
-	block("Mast", mooring + Vector3.new(0, 6, 0), Vector3.new(0.6, 10, 0.6), Color3.fromRGB(237, 230, 214), boat)
-	local sail =
-		block("Sail", mooring + Vector3.new(0, 7, 1.5), Vector3.new(0.2, 7, 5), Color3.fromRGB(237, 230, 214), boat)
+	block("Keel", mooring - Vector3.new(0, 1.2, 0), Vector3.new(1, 0.6, 18), Color3.fromRGB(58, 46, 36), boat).Material =
+		Enum.Material.Wood
+	for _, side in { -1, 1 } do
+		local tip = block("Bow", mooring + Vector3.new(0, 0.2, side * 9.2), Vector3.new(4.2, 2.2, 2.4), planks, boat)
+		tip.Material = Enum.Material.WoodPlanks
+		tip.CFrame = CFrame.new(tip.Position) * CFrame.Angles(0, math.rad(45), 0)
+		block(
+			"Gunwale",
+			mooring + Vector3.new(side * 3.1, 1.15, 0),
+			Vector3.new(0.4, 0.3, 16.4),
+			Color3.fromRGB(122, 92, 60),
+			boat
+		).Material =
+			Enum.Material.Wood
+		block(
+			"Thwart",
+			mooring + Vector3.new(0, 0.9, side * 4),
+			Vector3.new(5.6, 0.3, 1),
+			Color3.fromRGB(122, 92, 60),
+			boat
+		).Material =
+			Enum.Material.Wood
+	end
+	block("Mast", mooring + Vector3.new(0, 6, 0), Vector3.new(0.6, 10, 0.6), canvas, boat)
+	block("Boom", mooring + Vector3.new(0, 2.6, 3), Vector3.new(0.4, 0.4, 6), Color3.fromRGB(122, 92, 60), boat).Material =
+		Enum.Material.Wood
+	local sail = block("Sail", mooring + Vector3.new(0, 7, 1.5), Vector3.new(0.2, 7, 5), canvas, boat)
 	sail.Material = Enum.Material.Fabric
 	boat.PrimaryPart = hull
 	for _, part in boat:GetDescendants() do

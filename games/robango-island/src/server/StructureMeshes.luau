@@ -62,6 +62,8 @@ M.DRESSING = {
 	["drying-rack"] = "bld.tanning-frame",
 	dock = "town.drift-camp-walkway",
 	beacon = "town.road-sign",
+	market = "town.market-stall",
+	["quest-board"] = "town.notice-board",
 }
 
 -- Harbor facility anchors that get a town-kit visual: { row, x offset from the anchor }.

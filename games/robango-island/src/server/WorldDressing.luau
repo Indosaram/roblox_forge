@@ -427,6 +427,76 @@ function M.kit(parts: { any }, id: string, p: any, kind: string, palette: any)
 		if kind ~= "well" then
 			piece("coals", 0, 0.6, 0, 2, 0.4, 2, "Neon", { 255, 106, 24 }).effect = "fire"
 		end
+	elseif kind == "house" then
+		-- Saltmeadow cottage (front = local -Z): plank walls on a stone footing, steep thatch,
+		-- a lit door lantern and warm windows so the town reads at night.
+		piece("footing", 0, 0.4, 0, 11, 0.8, 9, "Slate", palette.rock)
+		piece("walls", 0, 3.8, 0, 10, 6, 8, "WoodPlanks", { 150, 110, 70 })
+		piece("gable", 0, 7.9, 0, 9, 2.2, 7.6, "WoodPlanks", { 138, 100, 62 })
+		for _, side in { -1, 1 } do
+			piece("thatch" .. side, side * 2.95, 8.85, 0, 7.2, 0.6, 10.4, "Grass", { 176, 146, 94 }).roll = side * -35
+			piece("window" .. side, side * 3, 4.2, -4.05, 1.6, 1.4, 0.2, "Neon", { 214, 170, 104 })
+		end
+		piece("ridge", 0, 11, 0, 0.6, 0.6, 10.6, "Wood", wood)
+		piece("door", 0, 2.8, -4.05, 2.2, 4, 0.3, "Wood", wood)
+		piece("chimney", 3, 10, 2, 1.2, 3, 1.2, "Slate", palette.rock)
+		piece("lantern", 1.8, 4.6, -4.5, 0.6, 0.8, 0.6, "Neon", { 255, 150, 70 }).effect = "lamp"
+	elseif kind == "workshop" then
+		-- Open timber shed: workbench, anvil, forge coals and a log pile under a pent roof.
+		for _, x in { -5, 5 } do
+			for _, z in { -4, 4 } do
+				piece("post" .. x .. "." .. z, x, 3, z, 0.8, 6, 0.8, "Wood", wood)
+			end
+		end
+		piece("roof", 0, 6.4, 0, 11.5, 0.5, 9.5, "WoodPlanks", sand).roll = 8
+		piece("bench", 0, 1.6, 1.5, 6, 0.6, 2.2, "WoodPlanks", { 150, 110, 70 })
+		piece("benchbase", 0, 0.7, 1.5, 5.4, 1.2, 1.8, "Wood", wood)
+		piece("anvil", -3, 1, -1.5, 1.6, 1.2, 1, "Slate", { 70, 70, 72 })
+		piece("forge", -3.5, 1.2, 2.5, 2, 1.4, 2, "Slate", palette.rock)
+		piece("coals", -3.5, 2, 2.5, 1.4, 0.3, 1.4, "Neon", { 255, 106, 24 }).effect = "fire"
+		for i = 1, 3 do
+			piece("log" .. i, 3.5, 0.5 + (i - 1) * 0.85, -2 + (i % 2) * 0.4, 4, 0.9, 0.9, "Wood", wood, "Cylinder")
+		end
+		piece("lantern", 4.6, 4.5, -3.6, 0.6, 0.8, 0.6, "Neon", { 255, 150, 70 }).effect = "lamp"
+	elseif kind == "market" then
+		-- Market stall (B3 town.market-stall when loaded): counter, striped awning, crates.
+		piece("counter", 0, 1.2, -1.4, 6, 2.4, 1.6, "WoodPlanks", { 150, 110, 70 })
+		for _, x in { -3, 3 } do
+			for _, z in { -2, 2 } do
+				piece("post" .. x .. "." .. z, x, 2.6, z, 0.4, 5.2, 0.4, "Wood", wood)
+			end
+		end
+		for i = 1, 4 do
+			piece(
+				"awning" .. i,
+				(i - 2.5) * 1.6,
+				5.4,
+				0,
+				1.6,
+				0.3,
+				5.2,
+				"Fabric",
+				if i % 2 == 0 then { 222, 214, 190 } else { 58, 112, 128 }
+			)
+		end
+		piece("crate1", -1.6, 2.9, -1.4, 1.4, 1, 1.2, "WoodPlanks", sand)
+		piece("crate2", 1.4, 0.8, 1.2, 1.6, 1.6, 1.6, "WoodPlanks", sand)
+		piece("lantern", 3, 4.4, -2.4, 0.6, 0.8, 0.6, "Neon", { 255, 150, 70 }).effect = "lamp"
+	elseif kind == "quest-board" then
+		-- Notice board (B3 town.notice-board when loaded) with pinned quest notes.
+		for _, x in { -2.4, 2.4 } do
+			piece("post" .. x, x, 3.1, 0, 0.4, 6.2, 0.4, "Wood", wood)
+		end
+		piece("board", 0, 3.6, 0, 4.6, 3, 0.3, "WoodPlanks", { 150, 110, 70 })
+		for i = 1, 3 do
+			piece("note" .. i, (i - 2) * 1.4, 3.4 + (i % 2) * 0.6, -0.2, 0.9, 1.1, 0.05, "Fabric", sand)
+		end
+		for _, side in { -1, 1 } do
+			piece("hood" .. side, side * 1.4, 6.5, 0, 3.2, 0.25, 1.6, "WoodPlanks", wood).roll = side * -25
+		end
+	elseif kind == "torch" then
+		piece("pole", 0, 2.5, 0, 0.5, 5, 0.5, "Wood", { 96, 66, 40 })
+		piece("head", 0, 5.3, 0, 0.9, 0.7, 0.9, "Neon", { 255, 132, 40 }).effect = "fire"
 	elseif kind == "bed" then
 		piece("frame", 0, 0.5, 0, 4, 1, 7, "Wood", wood)
 		piece("blanket", 0, 1.2, 0, 3.7, 0.5, 6.5, "Fabric", palette.leaf)
@@ -585,10 +655,59 @@ function M.arrival(parts: { any }, layout: any, palette: any): { any }
 	return { { id = "trailhead.grazer", species = species or "dodo", position = at(22, -34) } }
 end
 
+-- D2 (R13, Durango town): Saltmeadow buildings around the road cross, clear of the roads, the
+-- plaza anchors, the plots and the B3 set pieces. `yaw` turns the kit front (local -Z) to face its
+-- road. Houses, the workshop and the dock stay composed parts; the market and the quest board
+-- swap to their B3 town-kit rows (StructureMeshes.DRESSING) when those load.
+M.TOWN = table.freeze({
+	{ id = "town.house.1", kind = "house", x = -44, z = -40, yaw = 90 },
+	{ id = "town.house.2", kind = "house", x = 44, z = -40, yaw = -90 },
+	{ id = "town.house.3", kind = "house", x = -44, z = -160, yaw = 90 },
+	{ id = "town.house.4", kind = "house", x = 44, z = -160, yaw = -90 },
+	{ id = "town.house.5", kind = "house", x = -44, z = -280, yaw = 90 },
+	{ id = "town.house.6", kind = "house", x = 44, z = -280, yaw = -90 },
+	{ id = "town.house.7", kind = "house", x = -44, z = 400, yaw = 90 },
+	{ id = "town.house.8", kind = "house", x = 44, z = 460, yaw = -90 },
+	{ id = "town.house.9", kind = "house", x = -44, z = 520, yaw = 90 },
+	{ id = "town.house.10", kind = "house", x = 44, z = 520, yaw = -90 },
+	{ id = "town.house.11", kind = "house", x = -140, z = 72, yaw = 0 },
+	{ id = "town.house.12", kind = "house", x = 140, z = 72, yaw = 0 },
+	{ id = "town.market.1", kind = "market", x = -90, z = 170, yaw = 90 },
+	{ id = "town.market.2", kind = "market", x = 90, z = 170, yaw = -90 },
+	{ id = "town.workshop", kind = "workshop", x = 220, z = 380, yaw = -90 },
+	{ id = "town.quest-board", kind = "quest-board", x = 30, z = 150, yaw = -90 },
+	{ id = "town.dock", kind = "dock", x = -112, z = 700, yaw = 0 },
+})
+
+--- The town's buildings (`M.TOWN`) on rw.town, else none.
+function M.town(layout: any): { any }
+	return if layout.id == "rw.town" then M.TOWN :: any else {}
+end
+
+-- Turns kit parts [start, #parts] by `yaw` degrees about (x, z), like the scatter turn in plan.
+local function turn(parts: { any }, start: number, x: number, z: number, yaw: number)
+	local angle = math.rad(yaw)
+	for n = start, #parts do
+		local value = parts[n]
+		local dx, dz = value.position.x - x, value.position.z - z
+		value.position.x = x + dx * math.cos(angle) - dz * math.sin(angle)
+		value.position.z = z + dx * math.sin(angle) + dz * math.cos(angle)
+		value.yaw = (value.yaw or 0) - yaw
+		-- A kit rendered as one B3 mesh row turns as a whole (RoleWorld dressing pass).
+		value.kitYaw = -yaw
+	end
+end
+
 function M.plan(layout: any, columns: { any }, terrain: any): any
 	local palette = M.palette(layout)
 	local parts: { any } = {}
 	local props: { any } = {}
+	local buildings = M.town(layout)
+	for _, building in buildings do
+		local start = #parts + 1
+		M.kit(parts, building.id, { x = building.x, y = 4, z = building.z }, building.kind, palette)
+		turn(parts, start, building.x, building.z, building.yaw)
+	end
 	-- Archipelago stages spend part of the scatter budget on the arrival dressing instead.
 	local scatter = if M.trailhead(layout) then 11 else 16
 	local stride = math.max(1, math.ceil(#columns / 120))
@@ -614,6 +733,11 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 			local spaced = true
 			for _, other in props do
 				if (p.x - other.position.x) ^ 2 + (p.z - other.position.z) ^ 2 < 22 ^ 2 then
+					spaced = false
+				end
+			end
+			for _, building in buildings do
+				if (p.x - building.x) ^ 2 + (p.z - building.z) ^ 2 < 24 ^ 2 then
 					spaced = false
 				end
 			end
@@ -782,7 +906,7 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 	end
 	local arrival = M.arrival(parts, layout, palette)
 	assert(#parts <= 768, "WORLD_DRESSING_PART_BUDGET")
-	return { parts = parts, props = props, palette = palette, fauna = arrival }
+	return { parts = parts, props = props, palette = palette, fauna = arrival, buildings = buildings }
 end
 
 function M.resource(item: any): string

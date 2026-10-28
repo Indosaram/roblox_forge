@@ -278,14 +278,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if definition.effect and not value:FindFirstChild("ForgeEffect") then
 			local effect = Instance.new("Folder")
 			effect.Name, effect.Parent = "ForgeEffect", value
-			if definition.effect == "lava" or definition.effect == "fire" then
+			if definition.effect == "lava" or definition.effect == "fire" or definition.effect == "lamp" then
 				local light = Instance.new("PointLight")
 				light.Color, light.Brightness, light.Range, light.Parent = Color3.fromRGB(255, 112, 26), 0.8, 10, value
 			end
 			if definition.effect == "fire" then
 				local fire = Instance.new("Fire")
 				fire.Size, fire.Heat, fire.Parent = 2, 4, value
-			elseif definition.effect ~= "lava" then
+			elseif definition.effect ~= "lava" and definition.effect ~= "lamp" then
 				local smoke = Instance.new("Smoke")
 				smoke.Color = if definition.effect == "steam"
 					then Color3.fromRGB(224, 234, 230)
@@ -533,7 +533,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if not protected and top > 0 then
 			local river = math.abs(column.x - math.sin(column.z / 75 + seed) * 42)
 			-- Organic islands skip the square river pits: they cut 90-degree notches into the grass.
-			if not coastline and river < column.cell * 0.55 and column.z > layout.bounds.min.z + 64 then
+			-- The town skips them too: D2 (R13) read them as rectangular ponds between the plots.
+			if
+				not coastline
+				and layoutId ~= "rw.town"
+				and river < column.cell * 0.55
+				and column.z > layout.bounds.min.z + 64
+			then
 				top, material = -5, "Sand"
 			elseif if column.beach == nil then top < 8 else column.beach then
 				material = "Sand"
@@ -723,6 +729,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- The default studded white pad read as a stray plate beside the spawn rocks.
 	spawn.Transparency = 1
 	spawn.Parent = root
+	if layoutId ~= "rw.home" then
+		-- D2 (R17): two torches frame every arrival so the spawn is a warm pool at night.
+		for _, side in { -1, 1 } do
+			local x, z = entry.x + side * 8, entry.z + 6
+			local y = probe(x, z)
+			if y then
+				SkyCycle.torch(root, Vector3.new(x, y, z))
+			end
+		end
+	end
 	local runtimeContent: any = table.clone(content)
 	runtimeContent.nodes = table.clone(content.nodes)
 	if layoutId == "rw.home" then
@@ -1065,10 +1081,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			)
 			if station == "campfire" or station == "fireplace" then
 				table.insert(musicVenues, { enabled = true, part = target })
-				-- Two torch posts flank each camp fire; SkyDriver strengthens their light at night.
+				-- Four torch posts ring each camp fire; SkyDriver strengthens their light at night.
 				local base = target.Position - Vector3.new(0, target.Size.Y / 2, 0)
-				SkyCycle.torch(root, base + Vector3.new(5, 0, 3))
-				SkyCycle.torch(root, base + Vector3.new(-5, 0, 3))
+				for _, offset in { { 5, 3 }, { -5, 3 }, { 5, -4 }, { -5, -4 } } do
+					SkyCycle.torch(root, base + Vector3.new(offset[1], 0, offset[2]))
+				end
 			end
 		end
 	end
@@ -1238,6 +1255,55 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			local flag = part("flag." .. plot.id, { x = at.x, y = at.y + 3, z = at.z }, { x = 0.2, y = 1.6, z = 2.4 })
 			flag.CanCollide, flag.CanQuery, flag.CanTouch, flag.Transparency = false, false, false, 1
 			flag.Material, flag.Parent = Enum.Material.Fabric, model
+			-- D2 (R12): a low two-rail timber fence on all four edges (one 12-stud gate on the max-z
+			-- side, facing the plot's lane), corner and mid posts, and a claim sign by the gate. All
+			-- visual: never collides or queries, so build cells and reach stay as before.
+			local floor = at.y - 1.75
+			local wood = Color3.fromRGB(122, 88, 56)
+			local function fencePiece(name: string, x: number, y: number, z: number, size: any)
+				local value = part(name, { x = x, y = floor + y, z = z }, size)
+				value.Material, value.Color, value.Parent = Enum.Material.Wood, wood, model
+				value.CanCollide, value.CanQuery, value.CanTouch = false, false, false
+				return value
+			end
+			local gate = plot.centre.x
+			for _, height in { 1.2, 2.6 } do
+				local tag = plot.id .. "." .. height
+				fencePiece("border.n." .. tag, plot.centre.x, height, plot.min.z, { x = 64, y = 0.4, z = 0.4 })
+				fencePiece("border.w." .. tag, plot.min.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
+				fencePiece("border.e." .. tag, plot.max.x, height, plot.centre.z, { x = 0.4, y = 0.4, z = 64 })
+				for _, side in { -1, 1 } do
+					local length = 32 - 6
+					fencePiece(
+						"border.s" .. side .. "." .. tag,
+						gate + side * (6 + length / 2),
+						height,
+						plot.max.z,
+						{ x = length, y = 0.4, z = 0.4 }
+					)
+				end
+			end
+			for _, post in
+				{
+					{ plot.min.x, plot.min.z },
+					{ plot.max.x, plot.min.z },
+					{ plot.max.x, plot.max.z },
+					{ plot.min.x, plot.max.z },
+					{ plot.centre.x, plot.min.z },
+					{ plot.min.x, plot.centre.z },
+					{ plot.max.x, plot.centre.z },
+					{ gate - 6, plot.max.z },
+					{ gate + 6, plot.max.z },
+				}
+			do
+				fencePiece("post." .. post[1] .. "." .. post[2], post[1], 1.75, post[2], { x = 0.7, y = 3.5, z = 0.7 })
+			end
+			local sign = fencePiece("sign." .. plot.id, gate - 9, 3.4, plot.max.z + 1.5, { x = 4, y = 2, z = 0.3 })
+			sign.Material, sign.Color = Enum.Material.WoodPlanks, Color3.fromRGB(196, 158, 102)
+			fencePiece("sign.post." .. plot.id, gate - 9, 1.2, plot.max.z + 1.5, { x = 0.4, y = 2.4, z = 0.4 })
+			local label =
+				fencePiece("sign.tag." .. plot.id, gate - 9, 3.4, plot.max.z + 1.7, { x = 2.6, y = 0.9, z = 0.1 })
+			label.Material, label.Color = Enum.Material.Fabric, Color3.fromRGB(64, 200, 190)
 			local prompt = Instance.new("ProximityPrompt")
 			prompt.Name = "ForgeTownClaim"
 			WorldText.bind(prompt, "claim", "plot")
@@ -1406,6 +1472,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		world.roleSource.tribe.origin = { x = campPlot.x, y = 4, z = campPlot.z }
 		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
 		world.opening = require("./OpeningDirector").new(layout, root, nowMillis)
+		-- D2 (R20): the composed beacon and Gannet take their B3 town-kit rows when those load; the
+		-- parts stay (hidden) because the prompts and the client fly-in live on Pole and Hull.
+		for _, model in { world.opening.beacon, world.opening.boat } do
+			local primary = model.PrimaryPart
+			local visual = Meshes.clone(model:GetAttribute("ForgeSetPieceId"), { decor = true })
+			if visual and primary then
+				local floor = primary.Position.Y - primary.Size.Y / 2
+				visual:PivotTo(CFrame.new(primary.Position.X, floor, primary.Position.Z))
+				visual.Parent = model
+				for _, item in model:GetDescendants() do
+					if item:IsA("BasePart") and not item:IsDescendantOf(visual) then
+						item.Transparency = 1
+					end
+				end
+			end
+		end
 		local depot = part("Warehouse", world.roleSource.tribe.warehousePosition, { x = 3, y = 2, z = 2 })
 		depot.Transparency, depot.CanCollide, depot.CanQuery, depot.CanTouch = 1, false, false, false
 		depot:SetAttribute("ForgeWarehouseTribe", source.tribe.config.tribeId)
@@ -1827,7 +1909,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local hit =
 					workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
 				if hit then
-					local model = Meshes.place(row, CFrame.new(hit.Position), root, definition.kit)
+					local model = Meshes.place(
+						row,
+						CFrame.new(hit.Position) * CFrame.Angles(0, math.rad(definition.kitYaw or 0), 0),
+						root,
+						definition.kit
+					)
 					if model then
 						model:SetAttribute("ForgeDecorRank", decorRanks[definition.id])
 					end
