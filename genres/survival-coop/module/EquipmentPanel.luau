@@ -3,6 +3,7 @@
 local Rules = require("./CharacterRules")
 local Text = require("./CharacterText")
 local Sheet = require("./CharacterSheet")
+local Cards = require("./SheetCards")
 local M = {}
 
 M.EQUIP = "survival-coop:gear-equip"
@@ -19,6 +20,42 @@ local function tier(record: any): number
 		n = math.max(n, tonumber(string.match(id, "(%d+)$")) or 0)
 	end
 	return n
+end
+
+-- U6: stat tiles and a gear doll (worn item art, dimmed slot glyph when empty).
+local SLOT_ICON = { shoes = "flexibility", gloves = "hardness", bag = "capacity", weapon = "sharpness" }
+local STAT_ICON = { "sharpness", "hardness", "insulation", "weather.clear" }
+function M.cards(locale: string, data: any, size: number, width: number, icons: any): (string, any, (any) -> ())
+	local bag = data.survival and data.survival.inventory and data.survival.inventory.bag
+	if not data.content or not bag then
+		return "", {}, function() end
+	end
+	local gear = (data.character and data.character.gear) or { equipped = {} }
+	local worn, names, hide = Rules.worn(gear, bag), data.names or {}, { Stats = true }
+	local stats = string.split(M.model(locale, data)[1].text, " · ")
+	local key, doll, chips = table.concat(stats), {}, {}
+	for index, stat in stats do
+		local label, value = string.match(stat, "^(.-)%s+(%S+)$")
+		table.insert(chips, { icon = icons.ui(STAT_ICON[index]), label = label or stat, value = value or "" })
+	end
+	for _, slot in Rules.SLOTS do
+		local record = worn[slot]
+		hide["Slot-" .. slot] = true
+		key ..= if record then record.catalogId else "-"
+		table.insert(doll, {
+			icon = if record then icons.item(record.catalogId) else icons.ui(SLOT_ICON[slot] or "insulation"),
+			label = Text.text(locale, "slot_" .. slot),
+			value = if record then names[record.catalogId] or record.catalogId else Text.text(locale, "modify_empty"),
+			dim = record == nil,
+		})
+	end
+	local columns = Cards.columns(width)
+	return key .. columns,
+		hide,
+		function(parent)
+			Cards.tiles(parent, { order = 1, tiles = chips, columns = #chips, size = size })
+			Cards.tiles(parent, { order = 2, tiles = doll, columns = columns, size = size })
+		end
 end
 
 function M.model(locale: string, data: any): { Sheet.Row }
@@ -119,6 +156,10 @@ function M.factory(ctx: any): any
 		model = function(l, d)
 			d.content, d.names = ctx.content, ctx.names
 			return M.model(l, d)
+		end,
+		cards = function(l, d, size, width)
+			d.content, d.names = ctx.content, ctx.names
+			return M.cards(l, d, size, width, ctx.icons)
 		end,
 	})
 end

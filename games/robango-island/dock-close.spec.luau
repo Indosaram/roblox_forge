@@ -837,9 +837,13 @@ return {
 				assert(frame.Visible, section .. " opens at " .. where)
 				local x = h.rect(close)
 				-- GuiService.TopbarInset.Max.Y in the gui's space: presses above it never reach the button.
+				-- U6 Studio MCP probes: that dead strip is the PC player list (top right); on a touch screen a
+				-- CoreUISafeInsets gui starts below the top bar and takes presses from its first row, so the
+				-- phone keeps no band (the bag/craft bar no longer spends 58 of 281 px on it).
+				local band = if view[4] then 0 else view[3]
 				assert(
-					x.y >= view[3] and x.width >= 44 and x.height >= 44,
-					string.format("%s Close at y %d inside the %d px top bar band at %s", section, x.y, view[3], where)
+					x.y >= band and x.width >= 44 and x.height >= 44,
+					string.format("%s Close at y %d inside the %d px top bar band at %s", section, x.y, band, where)
 				)
 				local content: { any } = {}
 				if section == "bag" or section == "craft" then

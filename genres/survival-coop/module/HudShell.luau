@@ -956,7 +956,15 @@ end
 
 --- First gui row that receives presses: GuiService.TopbarInset.Max.Y in the gui's space, also for a
 --- CoreUISafeInsets gui. Layout keeps using guiClear (no double inset); only hit targets clear this.
+--- U6 probes: the dead strip is the PC player list; a touch CoreUISafeInsets gui has none.
 function M.hitClear(gui: any): number
+	if
+		Enum
+		and gui.ScreenInsets == Enum.ScreenInsets.CoreUISafeInsets
+		and game:GetService("UserInputService").TouchEnabled
+	then
+		return 0
+	end
 	local inset = game:GetService("GuiService").TopbarInset
 	return if inset then M.topClear(inset.Max.Y, gui.AbsolutePosition.Y) else 0
 end

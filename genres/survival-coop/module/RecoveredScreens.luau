@@ -59,7 +59,7 @@ function M.trackerRows(locale: string, state: any, act: any): { any }
 	local rows: { any } = {}
 	local tracked = RecipeMarks.tracker(state.bag, state.warehouse, state.recipes or {}, state.marks)
 	if #tracked == 0 then
-		table.insert(rows, { text = L.text(locale, "scr.tracker.empty") })
+		table.insert(rows, { text = L.text(locale, "scr.tracker.empty"), empty = "todo" })
 	end
 	for _, row in tracked do
 		local label = name(state.names, row.recipeId)

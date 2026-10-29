@@ -15,6 +15,8 @@ export type Context = {
 	dock: ((DockEntry) -> DockHandle)?,
 	fitSheet: ((any) -> ())?,
 	objectiveSlot: any?,
+	-- Shell text size (Theme.sheetText) for SheetCards inside a fitted sheet (U6).
+	sheetText: ((string) -> number)?,
 	open: ((string) -> boolean)?,
 	availability: ((string) -> (boolean, boolean, string?))?,
 	onSend: (((string, { any }, any, string?) -> ()) -> () -> ())?,
@@ -269,6 +271,10 @@ function M.styleShellText(item: any, header: any, tokens: any, size: (string) ->
 	local C, S = tokens.colors, tokens.space
 	local class = item.ClassName
 	if (class ~= "TextLabel" and class ~= "TextButton") or item.TextScaled then
+		return
+	end
+	-- SheetCards text (empty states, hero and tile cards) keeps its own centring, weight and ink.
+	if type(item.GetAttribute) == "function" and item:GetAttribute("ForgeShellKeep") == true then
 		return
 	end
 	local role = M.shellRole(item, header)
@@ -1133,6 +1139,10 @@ function M.start(
 	local tokens = if contextual and ui and ui.theme then ui.theme.sheet else nil
 	local function shellSize(style: string): number
 		return ui.theme.sheetText(style, dockGui.AbsoluteSize.Y)
+	end
+	-- U6: SheetCards inside a fitted sheet use the same text scale as its rows.
+	context.sheetText = function(style: string): number
+		return if tokens then shellSize(style) else 15
 	end
 	local shellConnections: { any } = {}
 	-- Panels fit their sheet and then register its dock entry: that entry names the header icon.

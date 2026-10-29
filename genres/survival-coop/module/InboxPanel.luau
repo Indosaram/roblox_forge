@@ -38,7 +38,7 @@ function M.mount(ctx: any, hub: any): any
 		local shown, current, pages = Model.page(rows, page)
 		page = current
 		if #rows == 0 then
-			sheet.label(t("inbox_empty"))
+			sheet.empty(t("inbox_empty"), t("inbox_empty_hint"), "inbox")
 		end
 		for _, row in shown do
 			local item = if row.catalogId then hub.name(row.catalogId) .. " x" .. tostring(row.quantity) else ""

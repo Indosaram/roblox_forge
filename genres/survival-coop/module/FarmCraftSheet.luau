@@ -85,6 +85,24 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 		label.TextWrapped = true
 		return label
 	end
+	-- U6: SheetCards empty state (spec engines with ctx.instance keep the label).
+	function api.empty(title: string, hint: string?, icon: string?): any
+		if ctx.instance ~= nil then
+			return api.label(if hint then title .. "\n" .. hint else title)
+		end
+		order += 1
+		local size = if ctx.sheetText then ctx.sheetText("body") else 15
+		local card = require("./SheetCards").empty(sheet.scroll, {
+			name = "EmptyState",
+			order = order,
+			icon = if ctx.icons and icon then ctx.icons.ui(icon) else nil,
+			title = title,
+			hint = hint,
+			size = size,
+		})
+		table.insert(shown, card)
+		return card
+	end
 	-- One row of buttons: { name, text, onClick } per split.
 	function api.row(splits: { { number } }, cells: { Cell }): { any }
 		local row = holder()

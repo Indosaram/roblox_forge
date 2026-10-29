@@ -236,6 +236,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	end
 	local status = ui.components.label(theme, { text = "", size = UDim2.new(1, 0, 0, 28), parent = sheet.scroll })
 	status.Name = "TamingStatus"
+	if ctx.icons then -- U6: no lone marker for an empty status line
+		status.Visible = false
+		status:GetPropertyChangedSignal("Text"):Connect(function()
+			status.Visible = status.Text ~= ""
+		end)
+	end
 	local rows = Instance.new("Frame")
 	rows.Name, rows.BackgroundTransparency, rows.Size, rows.Parent =
 		"TamingRows", 1, UDim2.fromScale(1, 0), sheet.scroll
@@ -289,6 +295,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					parent = rows,
 				})
 				empty.Name, empty.LayoutOrder = "CompanionEmpty", 1
+				if ctx.icons then -- U6: capture-rope art over the how-to text
+					local art = Instance.new("ImageLabel")
+					art.LayoutOrder, art.BackgroundTransparency, art.ScaleType = 1, 1, Enum.ScaleType.Fit
+					art.Size, art.Image = UDim2.new(1, 0, 0, 64), ctx.icons.item("capture-rope").image or ""
+					art.Parent, empty.LayoutOrder = rows, 2
+				end
 				return
 			end
 			lastCompanions = state

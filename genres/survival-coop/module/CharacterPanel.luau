@@ -3,7 +3,38 @@
 local Rules = require("./CharacterRules")
 local Text = require("./CharacterText")
 local Sheet = require("./CharacterSheet")
+local Cards = require("./SheetCards")
 local M = {}
+
+-- U6: portrait hero (level, XP bar, SP / rank / awards chips) built from the model rows.
+local HERO = { Level = true, XP = true, SP = true, Rank = true, Awards = true }
+function M.cards(locale: string, data: any, size: number, icons: any): (string, any, (any) -> ())
+	local rows, by = M.model(locale, data), {}
+	for _, row in rows do
+		by[row.name] = row.text
+	end
+	if not by.Level then
+		return "", {}, function() end
+	end
+	local tree = data.survival.progression
+	local xp = Rules.character(data.content, tree, 0)
+	return by.Level .. by.XP .. by.SP .. by.Rank .. by.Awards,
+		HERO,
+		function(parent)
+			Cards.hero(parent, {
+				icon = icons.ui("member"),
+				title = by.Level,
+				fraction = if xp.nextXP > 0 then xp.xp / xp.nextXP else 1,
+				caption = by.XP,
+				chips = {
+					{ icon = icons.ui("skill-point"), text = by.SP },
+					{ icon = icons.ui("exploration-rank"), text = by.Rank },
+					{ icon = icons.ui("success"), text = by.Awards },
+				},
+				size = size,
+			})
+		end
+end
 
 function M.model(locale: string, data: any): { Sheet.Row }
 	local survival, character, content = data.survival, data.character, data.content
@@ -44,6 +75,10 @@ function M.factory(ctx: any): any
 		model = function(l, d)
 			d.content = ctx.content
 			return M.model(l, d)
+		end,
+		cards = function(l, d, size)
+			d.content = ctx.content
+			return M.cards(l, d, size, ctx.icons)
 		end,
 	})
 end

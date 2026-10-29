@@ -5,7 +5,8 @@
 -- re-renders on snapshot changes. Service-free under Lune through injected ctx.instance/udim2.
 local M = {}
 
-export type Row = { text: string, onClick: (() -> ())?, icon: string? }
+-- `empty` (U6): ItemIcons.ui id of a SheetCards empty card for this row.
+export type Row = { text: string, onClick: (() -> ())?, icon: string?, empty: string? }
 
 M.TEXT_SIZE = 15
 M.MIN_ROW = 48
@@ -91,6 +92,18 @@ function M.mount(ctx: any, spec: any): any
 		local make = ctx.instance or env.Instance
 		local udim = ctx.udim or env.UDim
 		for index, row in rows do
+			if row.empty and ctx.instance == nil and not row.onClick then
+				local size = if ctx.sheetText then ctx.sheetText("body") else 15
+				local card = require("./SheetCards").empty(sheet.scroll, {
+					name = "Row" .. index,
+					order = index,
+					icon = if ctx.icons then ctx.icons.ui(row.empty) else nil,
+					title = row.text,
+					size = size,
+				})
+				table.insert(shown, card)
+				continue
+			end
 			local inset = if row.icon then M.ICON_INSET else 0
 			local props = {
 				text = row.text,

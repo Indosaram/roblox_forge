@@ -73,7 +73,20 @@ end
 
 function M.mount(
 	ctx: any,
-	spec: { id: string, title: string, order: number, menu: boolean, model: (string, any) -> { Row } }
+	spec: {
+		id: string,
+		title: string,
+		order: number,
+		menu: boolean,
+		model: (string, any) -> { Row },
+		-- U6 SheetCards above the rows: key, row names they replace, builder (run on key change).
+		cards: ((
+			locale: string,
+			data: any,
+			size: number,
+			width: number
+		) -> (string, { [string]: boolean }, (Instance) -> ()))?,
+	}
 ): { destroy: () -> () }?
 	local ui = ctx.ui
 	local theme = ui.theme.default
@@ -100,6 +113,39 @@ function M.mount(
 			return
 		end
 		local rows = spec.model(ctx.locale, data)
+		local hide: { [string]: boolean } = {}
+		if spec.cards and ctx.icons then
+			local holder = sheet.scroll:FindFirstChild("Cards")
+			if not holder then
+				holder = Instance.new("Frame")
+				holder.Name, holder.BackgroundTransparency, holder.LayoutOrder = "Cards", 1, -1
+				holder.Size, holder.AutomaticSize = UDim2.new(1, -6, 0, 0), Enum.AutomaticSize.Y
+				local stack = Instance.new("UIListLayout")
+				stack.SortOrder, stack.Padding, stack.Parent = Enum.SortOrder.LayoutOrder, UDim.new(0, 8), holder
+				holder.Parent = sheet.scroll
+			end
+			local size = if ctx.sheetText then ctx.sheetText("body") else 15
+			local width = math.max(240, sheet.frame.AbsoluteSize.X - 40)
+			local cardKey, hidden, build = spec.cards(ctx.locale, data, size, width)
+			hide = hidden
+			cardKey ..= "@" .. size .. "x" .. width
+			if holder:GetAttribute("ForgeCardKey") ~= cardKey then
+				for _, old in holder:GetChildren() do
+					if not old:IsA("UIListLayout") then
+						old:Destroy()
+					end
+				end
+				build(holder)
+				holder:SetAttribute("ForgeCardKey", cardKey)
+			end
+			local kept = {}
+			for _, row in rows do
+				if not hide[row.name] then
+					table.insert(kept, row)
+				end
+			end
+			rows = kept
+		end
 		if status ~= "" then
 			table.insert(rows, 1, { name = "Status", text = status, height = 44 })
 		end

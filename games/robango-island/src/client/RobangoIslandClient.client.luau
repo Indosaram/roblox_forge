@@ -1189,6 +1189,16 @@ local panels = ExtensionPanels.start({
 	},
 })
 shellPanels = panels
+if game:GetService("RunService"):IsStudio() then -- QA: ForgeQAOpen=<dock id> ("" closes all)
+	player:GetAttributeChangedSignal("ForgeQAOpen"):Connect(function()
+		local id = player:GetAttribute("ForgeQAOpen")
+		player:SetAttribute("ForgeQAOpened", id ~= "" and panels.open and panels.open(id))
+		if id == "" then
+			panels.closeAll()
+			hud.close()
+		end
+	end)
+end
 hud.opened:Connect(function()
 	if hud.isOpen() then
 		panels.closeAll()

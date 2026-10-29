@@ -612,6 +612,7 @@ function M.start(options: Options)
 			item = pooled
 		end
 		item.Name = "Note" .. noteUsed
+		item.Font = (Enum.Font :: any)[theme.font]
 		item.Parent = contentParent
 		item.Text = text
 		item.Size = UDim2.new(1, -8, 0, height or 48)
@@ -1375,7 +1376,14 @@ function M.start(options: Options)
 		elseif section == "skills" then
 			local progression = model.snapshot.progression
 			if progression then
-				label(string.format(t("level_sp"), progression.level, progression.sp), 40)
+				local heading = label(string.format(t("level_sp"), progression.level, progression.sp), 40)
+				if shell then
+					-- U6: bold level / SP heading with the skill-point badge.
+					heading.Font, heading.TextSize = Enum.Font.BuilderSansBold, math.max(heading.TextSize, 18)
+					if options.icons then
+						itemIcon(heading, options.icons.ui("skill-point"))
+					end
+				end
 				button("skill-reset", t("skill_reset"), function()
 					if not (options.openPanel and options.openPanel("skill-reset")) then
 						command("skill-reset", { progression.version })
