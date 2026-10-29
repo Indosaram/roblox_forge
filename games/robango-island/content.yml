@@ -13151,33 +13151,38 @@ harborPolicy:
     - {item: "meat", price: 2}
   dailyUnits: 200
   daySeconds: 86400
-# C2 gather picker (plan G7): tapping a node opens a fan of its outputs. Each harvested item also
-# offers these deterministic alternatives (the player picks one; no random roll), so every node
-# offers at least two outputs. Quantities are a content/economy choice awaiting owner review.
+# C2 gather picker (plan G7, R05-3): tapping a node opens a fan of its outputs. Each harvested item
+# also offers two deterministic alternatives (the player picks one; no random roll), so every node
+# offers at least three outputs. Balance (owner-approved C2h, 2026-10-29), free Coins only: valued
+# at harborPolicy buyback (unlisted raw = 1 Coin), each alternative is worth between half and all
+# of the plain harvest, so picking never mints more Coins than gathering. No Robux item is involved.
 gatherPolicy:
   provenance: {classification: "RECONSTRUCTED", sourceId: "robango-c2-gather-picker"}
   extras:
     - item: "apple"
       outputs:
-        - {item: "leaves", quantity: 1}
-        - {item: "branch", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "apple-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "banana"
       outputs:
         - {item: "leaves", quantity: 2}
+        - {item: "fiber", quantity: 2}
     - item: "banana-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "basalt"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "berry"
       outputs:
         - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "bone"
       outputs:
         - {item: "sinew", quantity: 1}
@@ -13185,131 +13190,155 @@ gatherPolicy:
     - item: "branch"
       outputs:
         - {item: "leaves", quantity: 2}
+        - {item: "fiber", quantity: 2}
     - item: "cattail-root"
       outputs:
-        - {item: "fiber", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "chanterelle"
       outputs:
-        - {item: "leaves", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "charcoal"
       outputs:
         - {item: "branch", quantity: 2}
+        - {item: "stone", quantity: 2}
     - item: "clam"
       outputs:
-        - {item: "shell-fragment", quantity: 1}
+        - {item: "shell-fragment", quantity: 2}
+        - {item: "water", quantity: 2}
     - item: "clay"
       outputs:
-        - {item: "stone", quantity: 1}
+        - {item: "stone", quantity: 2}
+        - {item: "water", quantity: 2}
     - item: "copper-ore"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "corn"
       outputs:
-        - {item: "leaves", quantity: 1}
-        - {item: "fiber", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "fiber", quantity: 2}
     - item: "corn-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "fiber"
       outputs:
-        - {item: "leaves", quantity: 1}
-        - {item: "branch", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "fieldstone"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "clay", quantity: 2}
     - item: "fig"
       outputs:
-        - {item: "leaves", quantity: 1}
-        - {item: "branch", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "fig-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "fish"
       outputs:
         - {item: "bone", quantity: 1}
+        - {item: "shell-fragment", quantity: 1}
     - item: "flax"
       outputs:
         - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "flax-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "flaxseed"
       outputs:
         - {item: "fiber", quantity: 1}
+        - {item: "leaves", quantity: 1}
     - item: "flint"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "granite"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "hazelnut"
       outputs:
-        - {item: "leaves", quantity: 1}
-        - {item: "branch", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "hide"
       outputs:
-        - {item: "sinew", quantity: 1}
+        - {item: "sinew", quantity: 2}
+        - {item: "bone", quantity: 2}
     - item: "iron-ore"
       outputs:
         - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "leaves"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "branch", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "branch", quantity: 2}
     - item: "marsh-clay"
       outputs:
-        - {item: "stone", quantity: 1}
+        - {item: "clay", quantity: 2}
+        - {item: "water", quantity: 2}
     - item: "meat"
       outputs:
-        - {item: "bone", quantity: 1}
-        - {item: "hide", quantity: 1}
+        - {item: "bone", quantity: 3}
+        - {item: "hide", quantity: 3}
     - item: "onion"
       outputs:
-        - {item: "leaves", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "fiber", quantity: 2}
     - item: "onion-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "potato"
       outputs:
-        - {item: "leaves", quantity: 1}
+        - {item: "leaves", quantity: 2}
+        - {item: "fiber", quantity: 2}
     - item: "potato-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "reed"
       outputs:
         - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "samphire"
       outputs:
-        - {item: "fiber", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "shell-fragment"
       outputs:
-        - {item: "clam", quantity: 1}
+        - {item: "clam", quantity: 2}
+        - {item: "stone", quantity: 2}
     - item: "signal-fragment"
       outputs:
-        - {item: "stone", quantity: 1}
+        - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "stone"
       outputs:
-        - {item: "fieldstone", quantity: 1}
+        - {item: "fieldstone", quantity: 2}
+        - {item: "clay", quantity: 2}
     - item: "volcanic-ore"
       outputs:
-        - {item: "basalt", quantity: 1}
+        - {item: "basalt", quantity: 2}
         - {item: "stone", quantity: 2}
     - item: "water"
       outputs:
-        - {item: "clay", quantity: 1}
+        - {item: "clay", quantity: 2}
+        - {item: "stone", quantity: 2}
     - item: "wheat"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "wheat-seed"
       outputs:
-        - {item: "fiber", quantity: 1}
-        - {item: "leaves", quantity: 1}
+        - {item: "fiber", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "wood"
       outputs:
         - {item: "branch", quantity: 2}

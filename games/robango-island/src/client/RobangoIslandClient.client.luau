@@ -242,6 +242,7 @@ local hud = SurvivalHUD.start({
 do
 	local HudShell = require(Forge.genres["survival-coop"].module.HudShell)
 	local Gathering = require(Forge.genres["survival-coop"].module.Gathering)
+	local GatherOffer = require(script.Parent:WaitForChild("GatherOffer"))
 	local fanGui = Instance.new("ScreenGui")
 	fanGui.Name, fanGui.ResetOnSpawn, fanGui.DisplayOrder = "ForgeGatherFan", false, 20
 	fanGui.IgnoreGuiInset, fanGui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling
@@ -259,12 +260,10 @@ do
 			return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true
 		end,
 		offered = function(part: BasePart): ({ { item: string, quantity: number } }, number?)
-			local kind, id = part:GetAttribute("ForgeNodeKind"), part:GetAttribute("ForgeNodeId")
-			if type(kind) ~= "string" or type(id) ~= "string" then
-				return {}, nil
-			end
-			local offered, level = Gathering.offered(content :: any, kind, id)
-			return offered, level
+			return GatherOffer.offered(part, function(kind: string, id: string)
+				local offered, level = Gathering.offered(content :: any, kind, id)
+				return offered, level
+			end)
 		end,
 		nodeName = nodeName,
 		itemName = function(item: string): string
@@ -282,6 +281,12 @@ do
 		reach = 10,
 	})
 	gui.Destroying:Connect(gatherPicker.destroy)
+	local fanWatch = game:GetService("RunService").Heartbeat:Connect(function()
+		GatherOffer.step(gatherPicker)
+	end)
+	gui.Destroying:Connect(function()
+		fanWatch:Disconnect()
+	end)
 	-- Skill level-up banner: a mastery category whose level rose in the latest snapshot.
 	local mastery: any = nil
 	local stateEvent = game:GetService("ReplicatedStorage"):WaitForChild("ForgeState") :: RemoteEvent

@@ -272,6 +272,9 @@
         "CreaturePose": {
           "$path": "src/client/CreaturePose.luau"
         },
+        "GatherOffer": {
+          "$path": "src/client/GatherOffer.luau"
+        },
         "RobangoAudio": {
           "$path": "src/client/RobangoAudio.luau"
         },

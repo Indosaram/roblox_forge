@@ -427,4 +427,50 @@ return {
 			assert(#Gathering.outputs(shipped, node.harvest) >= 2, "shipped " .. node.id)
 		end
 	end,
+	-- C2h (owner-approved weights, 2026-10-29): Durango's wheel shows 3-6 outputs per node (R05-3).
+	-- Before, 186 of 284 nodes offered only 2 and many alternatives were a single leaf for 3 stone.
+	-- Every node now offers at least 3, and each alternative is worth half to all of the plain
+	-- harvest at harbor buyback Coins (unlisted raw = 1), so a pick never mints more free currency.
+	["C2h: every gather node offers 3+ outputs and each pick is Coin-bounded by the plain harvest"] = function()
+		local document: any = canonical()
+		local price: { [string]: number } = {}
+		for _, row in document.harborPolicy.buyback do
+			price[row.item] = row.price
+		end
+		local function coins(entry: any): number
+			return (price[entry.item] or 1) * entry.quantity
+		end
+		local function check(where: string, harvest: { any })
+			local offered = Gathering.outputs(document, harvest)
+			assert(#offered >= 3, where .. " offers " .. #offered .. " outputs")
+			local plain = 0
+			for _, entry in harvest do
+				plain = math.max(plain, coins(entry))
+			end
+			for index = #harvest + 1, #offered do
+				local value = coins(offered[index])
+				assert(
+					value <= plain and value * 2 >= plain,
+					where .. " pick " .. offered[index].item .. " worth " .. value .. " vs harvest " .. plain
+				)
+			end
+		end
+		local nodes = 0
+		for _, node in document.nodes do
+			check(node.id, node.harvest)
+			nodes += 1
+		end
+		for _, layout in document.layouts do
+			for _, resource in layout.resourceNodes do
+				if
+					not string.find(resource.id, ".cargo.", 1, true)
+					and not string.find(resource.id, ".chapter.", 1, true)
+				then
+					check(resource.id, { { item = resource.item, quantity = resource.yield } })
+					nodes += 1
+				end
+			end
+		end
+		assert(nodes >= 280, "every catalog and layout node checked, got " .. nodes)
+	end,
 }
