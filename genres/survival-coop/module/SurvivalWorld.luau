@@ -921,6 +921,8 @@ function M.new(config: Config)
 				local label = toolName(actor, item.catalogId)
 				tool.Name, tool.CanBeDropped, tool.RequiresHandle = label, false, true
 				tool.ToolTip = label
+				-- Client hint only (CombatHud.pickWeapon); authority stays the tools registry.
+				tool:SetAttribute("ForgeCatalogId", item.catalogId)
 				local dress = config.visuals and config.visuals.tool
 				if not (dress and dress(tool, item.catalogId)) then
 					M.toolVisual(tool, item.catalogId)

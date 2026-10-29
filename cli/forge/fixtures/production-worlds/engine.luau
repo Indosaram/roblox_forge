@@ -698,6 +698,8 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		require("../../../../games/robango-island/src/shared/RenderBudget")
 	forge.games["robango-island"].src.shared.MeshTexture =
 		require("../../../../games/robango-island/src/shared/MeshTexture")
+	forge.games["robango-island"].src.shared.OnboardingWildlife =
+		require("../../../../games/robango-island/src/shared/OnboardingWildlife")
 	forge.games["robango-island"].src.shared.BiomeKitsB1b =
 		require("../../../../games/robango-island/src/shared/BiomeKitsB1b")
 	-- BiomeKits: pure scatter plan plus adapters; the fake game has no InsertService, so no kits load.

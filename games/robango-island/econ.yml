@@ -10626,6 +10626,8 @@
           'hunter'
          'cooldownMillis':
           2200
+         'flag':
+          'retaliate'
          'id':
           'protoceratops'
          'leashStuds':

@@ -2406,8 +2406,15 @@ function M.start(options: Options)
 						end
 					end
 				end
-				local actions =
-					Model.contextActions(model.durable, model.pending, modal, restTarget, attackTarget, rangedTarget)
+				local actions = Model.contextActions(
+					model.durable,
+					model.pending,
+					modal,
+					restTarget,
+					attackTarget,
+					rangedTarget,
+					Model.rangedReady(Model.bag(model.snapshot), content)
+				)
 				restButton.Visible, attackButton.Visible = actions.rest, actions.attack
 				for key, defenseControl in defenseButtons do
 					defenseControl.Visible = actions[key]

@@ -379,6 +379,11 @@ function M.factory(ctx: any): any
 				boar:Destroy()
 				boar = nil
 			end
+			-- Tumble leaves with the opening (p134 v50).
+			if tumble then
+				tumble:Destroy()
+				tumble = nil
+			end
 			return
 		end
 		-- R01: the cold open waits for the title's Start and the survivor picker (`held`).
@@ -441,6 +446,25 @@ function M.factory(ctx: any): any
 		local pinned = anchor("opening.tumble")
 		if pinned and (view.beat or 0) <= 7 then
 			tumble = tumble or rig("protoceratops", pinned)
+			local plateKey = Scene.tumbleLabel(view)
+			if tumble and tumble.PrimaryPart and plateKey then
+				local plate = tumble.PrimaryPart:FindFirstChild("OpeningName")
+				if not plate then
+					local created = Instance.new("BillboardGui")
+					created.Name, created.Size = "OpeningName", UDim2.fromOffset(160, 24)
+					created.StudsOffset, created.AlwaysOnTop = Vector3.new(0, 4.5, 0), true
+					local label = Instance.new("TextLabel")
+					label.Name, label.Size, label.BackgroundTransparency = "Text", UDim2.fromScale(1, 1), 1
+					label.TextColor3, label.TextStrokeTransparency, label.TextScaled = P.bone, 0.4, true
+					label.Font, label.Parent = Enum.Font.BuilderSansBold, created
+					created.Parent = tumble.PrimaryPart
+					plate = created
+				end
+				local label = (plate :: any):FindFirstChild("Text")
+				if label then
+					label.Text = text(plateKey)
+				end
+			end
 			if view.freed and root and tumble then
 				if snortUntil == 0 then
 					snortUntil = os.clock() + 3

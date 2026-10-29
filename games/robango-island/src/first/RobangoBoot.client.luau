@@ -13,6 +13,15 @@ local Flow = require(script.Parent:WaitForChild("TitleFlow"))
 ReplicatedFirst:RemoveDefaultLoadingScreen()
 
 local player = Players.LocalPlayer
+-- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
+local LANDSCAPE = Enum.ScreenOrientation.LandscapeSensor
+local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+playerGui.ScreenOrientation = LANDSCAPE
+playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
+	if playerGui.ScreenOrientation ~= LANDSCAPE then
+		playerGui.ScreenOrientation = LANDSCAPE
+	end
+end)
 local function rgb(value: number): Color3
 	return Color3.fromRGB(bit32.rshift(value, 16), bit32.band(bit32.rshift(value, 8), 0xFF), bit32.band(value, 0xFF))
 end
@@ -90,7 +99,7 @@ end
 local start = pebble("Start", true)
 local settings = pebble("Settings", false)
 
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.Parent = playerGui
 
 local function place()
 	local size = (workspace.CurrentCamera :: Camera).ViewportSize

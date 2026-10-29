@@ -1067,6 +1067,12 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	wildlife.spawns = spawns
 	wildlife.herds = herds
+	require(Forge.games["robango-island"].src.shared.OnboardingWildlife).apply(
+		content,
+		layoutId,
+		runtimeContent.wildlife,
+		wildlife.catalog.species
+	)
 	if content.missionPolicy then
 		local combat = content.missionPolicy
 		wildlife.catalog.weapons = table.clone(wildlife.catalog.weapons)

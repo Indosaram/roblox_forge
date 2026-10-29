@@ -259,4 +259,42 @@ return {
 		end
 		hit()
 	end,
+	["p134 v50: the combat bar ends on death, a gone target or walking away from a paused loop"] = function()
+		local s = Combat.engage(nil, "proto-1", 0)
+		assert(not Combat.release(nil, false, false, nil), "no session, nothing to clear")
+		assert(not Combat.release(s, true, true, 3), "a live fight keeps the bar")
+		assert(Combat.release(s, false, true, 3), "the player was downed")
+		assert(Combat.release(s, true, false, 3), "the target died, was captured or despawned")
+		assert(Combat.release(s, true, true, nil), "no body to measure from (respawning)")
+		assert(not Combat.release(s, true, true, Combat.RELEASE_STUDS + 50), "an auto chase keeps its bar")
+		local paused = table.clone(s)
+		paused.auto = false
+		assert(not Combat.release(paused, true, true, Combat.RELEASE_STUDS), "paused nearby keeps the bar")
+		assert(Combat.release(paused, true, true, Combat.RELEASE_STUDS + 1), "walked away from a paused loop")
+	end,
+	["p134 v50: an unarmed swing raises a melee tool from the Backpack, never the bola"] = function()
+		local function tool(name: string, catalogId: string?): any
+			return {
+				Name = name,
+				IsA = function(_, class)
+					return class == "Tool"
+				end,
+				GetAttribute = function(_, key)
+					return if key == "ForgeCatalogId" then catalogId else nil
+				end,
+			}
+		end
+		local bola, knife = tool("A bola", "capture-bola"), tool("B knife", "bone-knife")
+		assert(Combat.pickWeapon(Content, { bola, knife }) == knife, "the bone knife, not the bola listed first")
+		assert(Combat.pickWeapon(Content, { bola }) == nil, "a bola alone is no melee weapon")
+		assert(Combat.pickWeapon(Content, { tool("bow", "bow-t1") }) == nil, "a bow is ranged, not melee")
+		assert(Combat.pickWeapon(Content, { tool("x", nil) }) == nil, "an unlabelled Tool is ignored")
+		local club = tool("A club", "starter-club")
+		assert(Combat.pickWeapon(Content, { knife, club }) == club, "stable order by name")
+		local world = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalWorld.luau")
+		assert(
+			string.find(world, 'tool:SetAttribute("ForgeCatalogId", item.catalogId)', 1, true),
+			"projected Tools carry their catalog id"
+		)
+	end,
 }

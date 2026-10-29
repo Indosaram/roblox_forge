@@ -618,7 +618,8 @@ function M.contextActions(
 	modal: boolean,
 	restTarget: any,
 	attackTarget: any,
-	rangedTarget: any?
+	rangedTarget: any?,
+	rangedReady: boolean?
 ): any
 	local function allowed(verb: string): boolean
 		return not modal
@@ -631,9 +632,31 @@ function M.contextActions(
 		attack = attackTarget ~= nil and allowed("attack"),
 		dodge = attackTarget ~= nil and allowed("dodge"),
 		guard = attackTarget ~= nil and allowed("guard"),
-		shoot = rangedTarget ~= nil and allowed("attack-ranged"),
-		stance = (attackTarget ~= nil or rangedTarget ~= nil) and allowed("stance-set"),
+		-- Shoot only with a ranged weapon (p134 v50: knife-only players got a refused Shoot).
+		shoot = rangedTarget ~= nil and rangedReady == true and allowed("attack-ranged"),
+		stance = (attackTarget ~= nil or (rangedTarget ~= nil and rangedReady == true)) and allowed("stance-set"),
 	}
+end
+
+--- True when the bag holds an unbroken, unreserved brawlPolicy ranged weapon.
+function M.rangedReady(bag: any, content: any): boolean
+	if type(bag) ~= "table" or type(bag.items) ~= "table" then
+		return false
+	end
+	local ranged: { [string]: boolean } = {}
+	for _, row in (content and content.brawlPolicy and content.brawlPolicy.weapons) or {} do
+		ranged[row.item] = true
+	end
+	for id, item in bag.items do
+		local reserved = 0
+		for _, quantities in bag.reservations or {} do
+			reserved += quantities[id] or 0
+		end
+		if ranged[item.catalogId] and (item.durabilityMilli or 0) > 0 and (item.quantity or 0) > reserved then
+			return true
+		end
+	end
+	return false
 end
 
 function M.nearestGatherable(nodes: { any }): any

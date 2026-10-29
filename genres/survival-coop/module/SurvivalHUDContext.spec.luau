@@ -170,10 +170,10 @@ return {
 	["shoot and stance controls appear for a ranged target and cycle only unlocked stances"] = function()
 		local policy = { actions = { "survival-coop:attack-ranged", "survival-coop:stance-set" } }
 		local far = {}
-		local actions = Model.contextActions(policy, nil, false, nil, nil, far)
+		local actions = Model.contextActions(policy, nil, false, nil, nil, far, true)
 		assert(actions.shoot and actions.stance and not actions.attack, "a 30 stud target offers Shoot, not melee")
-		assert(not Model.contextActions(policy, nil, true, nil, nil, far).shoot, "modal hides Shoot")
-		assert(not Model.contextActions({ actions = {} }, nil, false, nil, nil, far).stance, "undeclared hidden")
+		assert(not Model.contextActions(policy, nil, true, nil, nil, far, true).shoot, "modal hides Shoot")
+		assert(not Model.contextActions({ actions = {} }, nil, false, nil, nil, far, true).stance, "undeclared hidden")
 		local view = { current = "none", unlocked = { attack = false, shoot = true, defense = true } }
 		assert(Model.nextStance(view) == "defense", "skips locked attack")
 		view.current = "defense"
@@ -202,6 +202,45 @@ return {
 		assert(
 			not Tutorial.landed(session, true) and Tutorial.current(session) == "gather" and count == 1,
 			"repeat landing does not skip gather"
+		)
+	end,
+	["p134 v50: a bone-knife-only bag never turns the combat token into Shoot; a bow does"] = function()
+		-- The phone: a creature 8-40 studs away made the big combat token Shoot, the server refused it
+		-- (no bow) and the toast read as "melee needs a starter club". Real robango content and bag.
+		local content: any = (require :: any)("../../../games/robango-island/src/shared/SurvivalContent")
+		local policy = {
+			actions = { "survival-coop:attack", "survival-coop:attack-ranged", "survival-coop:stance-set" },
+		}
+		local function item(id: string, catalogId: string, durability: number)
+			return { itemId = id, catalogId = catalogId, quantity = 1, durabilityMilli = durability }
+		end
+		local knife = { items = { k = item("k", "bone-knife", 60000) }, reservations = {} }
+		assert(not Model.rangedReady(knife, content), "a bone knife is not a ranged weapon")
+		local far = {}
+		local actions = Model.contextActions(policy, nil, false, nil, nil, far, Model.rangedReady(knife, content))
+		assert(not actions.shoot and not actions.stance, "no Shoot or stance for a far creature with only a knife")
+		local tokens = (require :: any)("./HudShell").tokens({ combat = actions.attack or actions.shoot } :: any)
+		assert(#tokens > 0 and tokens[1].id ~= "shoot", "the primary token is not Shoot")
+		local bow = { items = { k = knife.items.k, b = item("b", "bow-t1", 100000) }, reservations = {} }
+		assert(Model.rangedReady(bow, content), "an unbroken bow is ranged-ready")
+		assert(
+			Model.contextActions(policy, nil, false, nil, nil, far, Model.rangedReady(bow, content)).shoot,
+			"a bow offers Shoot"
+		)
+		bow.items.b.durabilityMilli = 0
+		assert(not Model.rangedReady(bow, content), "a broken bow is not")
+		bow.items.b.durabilityMilli = 100000
+		bow.reservations = { job = { b = 1 } }
+		assert(not Model.rangedReady(bow, content), "a bow reserved by a craft is not")
+		local near = {}
+		assert(
+			Model.contextActions(policy, nil, false, nil, near, near, false).attack,
+			"a creature in reach still offers melee Attack"
+		)
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(
+			string.find(hud, "Model.rangedReady(Model.bag(model.snapshot), content)", 1, true),
+			"the HUD feeds the real bag into the Shoot decision"
 		)
 	end,
 }

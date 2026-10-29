@@ -4803,6 +4803,9 @@ wildlife:
   -
     id: "protoceratops"
     behavior: "hunter"
+    # p134 v50: a herd of four ran down a new player near the onboarding spawn; small
+    # ceratopsians only fight back (matches wildlifeDetails behaviour: retaliate).
+    flag: "retaliate"
     warnStuds: 12
     attackStuds: 5
     leashStuds: 32

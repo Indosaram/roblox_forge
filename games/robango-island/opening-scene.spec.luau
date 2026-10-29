@@ -314,4 +314,28 @@ return {
 		assert(not opening.intent(RETURNING, "cold-open-done"), "no beat input")
 		world.destroy()
 	end,
+	-- p134 v50: a tan striped small dino followed the phone player like a companion and ignored
+	-- knife taps. That is Tumble, the opening's freed protoceratops (OpeningClient: a client-only
+	-- rig, never a wildlife entity, so taps cannot target it). Intended, but it had no label and
+	-- the rig stayed in the world after the opening ended. It is named once freed and leaves with
+	-- the opening.
+	["Tumble is named while it follows and leaves when the opening ends"] = function()
+		local fs = require("@lune/fs")
+		local view = { active = true, beat = 1, freed = false }
+		assert(Scene.tumbleLabel(view) == "opening.tumble.label", "staked: tangled")
+		view.freed, view.beat = true, 5
+		assert(Scene.tumbleLabel(view) == "opening.tumble.name", "freed: named as the player's companion")
+		assert(Scene.tumbleLabel({ active = false, beat = 5, freed = true }) == nil, "no label after the opening")
+		assert(Scene.tumbleLabel(nil) == nil, "returning players have no view")
+		for _, locale in { "en-us", "ko-kr" } do
+			local line = Fixture.packText(locale, "opening.tumble.name")
+			assert(line and line ~= "opening.tumble.name", locale .. " copy exists")
+		end
+		local source = fs.readFile("games/robango-island/src/shared/OpeningClient.luau")
+		local inactive = assert(string.find(source, "if not active then", 1, true))
+		local stop = assert(string.find(source, "return", inactive, true))
+		local block = string.sub(source, inactive, stop)
+		assert(string.find(block, "tumble:Destroy()", 1, true), "the opening's end removes Tumble")
+		assert(not string.find(source, "ForgeWildlifeId", 1, true), "Tumble is never a wildlife target")
+	end,
 }

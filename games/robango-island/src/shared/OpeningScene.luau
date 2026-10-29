@@ -345,6 +345,14 @@ function M.advance(state: State, facts: Facts, now: number, emit: (string, numbe
 	return state.index ~= before or state.tries ~= tries or state.charge ~= charge
 end
 
+--- Name-plate key over Tumble (client-only rig): tangled, then named once freed; nil after.
+function M.tumbleLabel(view: any): string?
+	if type(view) ~= "table" or view.active ~= true or (view.beat or 0) > 7 then
+		return nil
+	end
+	return if view.freed then "opening.tumble.name" else "opening.tumble.label"
+end
+
 --- The per-player view the client stages (published as JSON on the Player).
 function M.view(state: State, facts: Facts): any
 	local step = M.current(state)

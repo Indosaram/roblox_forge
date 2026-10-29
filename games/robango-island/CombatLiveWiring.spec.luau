@@ -123,12 +123,12 @@ local function server()
 	return { engine = engine, world = world, factory = factory, session = session, clock = clock, at = at }
 end
 
--- Puts a carried item in the bag (the opening's hand-made bone knife) and holds it as a Tool.
-local function hold(live: any, catalogId: string, durability: number)
+-- Puts a carried item in the bag without holding it.
+local function stash(live: any, itemId: string, catalogId: string, durability: number)
 	live.engine.move(ACTOR, Content.homePolicy.dock)
 	assert(live.session.personalTransaction(ACTOR, function(raw: any)
-		raw.envelope.genres["survival-coop"].data.inventory.bag.items["held-1"] = {
-			itemId = "held-1",
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items[itemId] = {
+			itemId = itemId,
 			catalogId = catalogId,
 			quantity = 1,
 			qualityMilli = 1000,
@@ -137,6 +137,11 @@ local function hold(live: any, catalogId: string, durability: number)
 		}
 		return raw
 	end))
+end
+
+-- Puts a carried item in the bag (the opening's hand-made bone knife) and holds it as a Tool.
+local function hold(live: any, catalogId: string, durability: number)
+	stash(live, "held-1", catalogId, durability)
 	live.engine.equip(live.world, ACTOR, "held-1")
 end
 
@@ -146,7 +151,7 @@ end
 
 -- The phone: CombatHud plus TapRouter's creature handler and durable sender, over a workspace that
 -- mirrors the server's published wildlife (ForgeWildlife models and their attributes).
-local function client(live: any)
+local function client(live: any, tools: { any }?)
 	local I = roblox.Instance
 	local t = { value = 0 }
 	local folder = I.new("Folder")
@@ -173,13 +178,41 @@ local function client(live: any)
 	local playerGui = I.new("PlayerGui")
 	local root = I.new("Part")
 	root.Name = "HumanoidRootPart"
-	local humanoid = { Health = 100, MaxHealth = 100 }
+	-- The engine Backpack the server projects bag tools into (SurvivalWorld projectTools): one Tool
+	-- per usable tool item, labelled with its catalog id. EquipTool holds it on the server too.
+	local held: any = nil
+	local backpack = {
+		tools = {} :: { any },
+		GetChildren = function(self)
+			return self.tools
+		end,
+	}
+	for _, entry in tools or {} do
+		table.insert(backpack.tools, {
+			Name = entry.name,
+			itemId = entry.itemId,
+			IsA = function(_, class)
+				return class == "Tool"
+			end,
+			GetAttribute = function(_, key)
+				return if key == "ForgeCatalogId" then entry.catalogId else nil
+			end,
+		})
+	end
+	local humanoid = {
+		Health = 100,
+		MaxHealth = 100,
+		EquipTool = function(_, tool)
+			held = tool
+			live.engine.equip(live.world, ACTOR, tool.itemId)
+		end,
+	}
 	local character = {
 		FindFirstChild = function(_, name)
 			return if name == "HumanoidRootPart" then root else nil
 		end,
 		FindFirstChildOfClass = function(_, class)
-			return if class == "Humanoid" then humanoid else nil
+			return if class == "Humanoid" then humanoid elseif class == "Tool" then held else nil
 		end,
 	}
 	local player = {
@@ -191,8 +224,8 @@ local function client(live: any)
 		FindFirstChild = function()
 			return nil
 		end,
-		FindFirstChildOfClass = function()
-			return nil
+		FindFirstChildOfClass = function(_, class)
+			return if class == "Backpack" then backpack else nil
 		end,
 	}
 	local function place(position: any)
@@ -351,6 +384,16 @@ local function client(live: any)
 		results = results,
 		place = place,
 		gui = gui,
+		humanoid = humanoid,
+		held = function(): any
+			return held
+		end,
+		pause = function()
+			hud.pause()
+		end,
+		bar = function(): boolean
+			return gui:FindFirstChild("TargetBar").Visible and gui:FindFirstChild("EndCombat").Visible
+		end,
 		approaches = function(): number
 			return approaches
 		end,
@@ -478,6 +521,66 @@ return {
 		assert(table.find(phone.floats(), line), "the refusal shows over the target")
 		assert(requestsAt(phone, DODO) == 1, "a final refusal stops the loop")
 		assert(hp(live, DODO) == FULL, "no damage without a weapon")
+		live.factory.close()
+	end,
+	-- p134 v50: a fresh player with the bone knife in the bag but nothing in hand. The loop's first
+	-- swing is refused WEAPON_UNAVAILABLE and it raises a Backpack tool once; the old code took the
+	-- first Tool child, which can be the capture bola, so the retry was refused too and the fight
+	-- ended without a hit. It must raise the knife and kill the dodo.
+	["an empty-handed player is armed with the bone knife, not the bola, and the dodo dies"] = function()
+		local live = server()
+		stash(live, "bola-1", "capture-bola", 100000)
+		stash(live, "knife-1", "bone-knife", 60000)
+		local phone = client(live, {
+			{ name = "A bola", itemId = "bola-1", catalogId = "capture-bola" },
+			{ name = "B knife", itemId = "knife-1", catalogId = "bone-knife" },
+		})
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 15, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		assert(phone.held() and phone.held().itemId == "knife-1", "the knife was raised")
+		assert(hp(live, DODO) == 0, "the dodo died on the server, health " .. hp(live, DODO))
+		live.factory.close()
+	end,
+	-- p134 v50: after the player was downed, the step-back pill stayed up ~10 min over the action
+	-- buttons until it was tapped. Old code kept the bar while the target lived, whatever the player.
+	["the combat bar clears when the player is downed mid-fight"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		phone.tick()
+		assert(phone.bar(), "the bar shows while fighting")
+		assert(hp(live, DODO) > 0, "the target is still alive")
+		phone.humanoid.Health = 0
+		phone.tick()
+		assert(not phone.bar(), "downed: the target bar and step-back pill are gone")
+		phone.humanoid.Health = 100
+		for _ = 1, 3 do
+			phone.tick()
+		end
+		assert(not phone.bar(), "it does not come back after the respawn")
+		live.factory.close()
+	end,
+	["the combat bar clears when the player walks away from a paused fight"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		phone.tick()
+		assert(phone.bar(), "engaged")
+		phone.pause() -- a ground tap: the player walks off on purpose
+		phone.place(roblox.Vector3.new(dodo.X + 20, 3, dodo.Z))
+		phone.tick()
+		assert(phone.bar(), "still near: the bar stays so the fight can resume")
+		phone.place(roblox.Vector3.new(dodo.X + 120, 3, dodo.Z))
+		phone.tick()
+		assert(not phone.bar(), "out of range: the bar is gone and the action buttons are back")
 		live.factory.close()
 	end,
 }

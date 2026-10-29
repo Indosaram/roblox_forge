@@ -111,6 +111,43 @@ function M.step(session: Session?, now: number, alive: boolean, distance: number
 	return "swing"
 end
 
+-- Flat studs from the character to the engaged target beyond which a paused engagement ends.
+M.RELEASE_STUDS = 40
+
+--- Backpack Tool to raise for a melee swing (first by name, melee weapon-tool), or nil.
+function M.pickWeapon(content: any, children: { any }): any
+	local melee: { [string]: boolean } = {}
+	for _, item in (content and content.items) or {} do
+		if table.find(item.tags or {}, "weapon-tool") then
+			melee[item.id] = true
+		end
+	end
+	for _, row in (content and content.brawlPolicy and content.brawlPolicy.weapons) or {} do
+		melee[row.item] = nil
+	end
+	local best: any = nil
+	for _, child in children do
+		if child:IsA("Tool") and melee[child:GetAttribute("ForgeCatalogId")] then
+			if not best or child.Name < best.Name then
+				best = child
+			end
+		end
+	end
+	return best
+end
+
+--- True when the combat bar must clear: player dead or bodiless, target gone, or walked away
+--- from a paused loop (p134 v50: the step-back pill outlived a death by ~10 min).
+function M.release(session: Session?, playerAlive: boolean, targetAlive: boolean, distance: number?): boolean
+	if not session then
+		return false
+	end
+	if not playerAlive or not targetAlive or distance == nil then
+		return true
+	end
+	return not session.auto and distance > M.RELEASE_STUDS
+end
+
 --- Session after an attack result. The server decided it; this only paces the next try.
 function M.settle(session: Session, now: number, result: any): Session
 	local nextSession = table.clone(session)
@@ -450,7 +487,7 @@ function M.start(options: Options)
 	table.insert(connections, fanClose.Activated:Connect(closeCarcass))
 	table.insert(connections, stepBack.Activated:Connect(disengage))
 
-	-- Holds the first Backpack tool when the character holds none; true when one was taken up.
+	-- Holds a Backpack melee weapon (never the bola) when none is held; true when one was taken.
 	local function arm(): boolean
 		local humanoid = body()
 		local character = player.Character
@@ -458,7 +495,7 @@ function M.start(options: Options)
 		if not humanoid or not character or not backpack or character:FindFirstChildOfClass("Tool") then
 			return false
 		end
-		local tool = backpack:FindFirstChildOfClass("Tool")
+		local tool = M.pickWeapon(options.content, backpack:GetChildren())
 		if not tool then
 			return false
 		end
@@ -616,9 +653,13 @@ function M.start(options: Options)
 			elseif decision == "swing" then
 				swing()
 			end
-			if session and not alive and not carcass then
-				-- Gone (captured, despawned, already dead when tapped): clear the bar.
+			local playerAlive = humanoid ~= nil and root ~= nil and humanoid.Health > 0
+			if session and M.release(session, playerAlive, alive or carcass ~= nil, distance) then
+				-- A carcass on the engaged kill keeps the bar until the fan closes.
 				session, targetModel = nil, nil
+				if not playerAlive then
+					closeCarcass()
+				end
 			end
 			-- Target bar.
 			local engaged = session ~= nil and targetModel ~= nil
