@@ -736,6 +736,30 @@ M.HERO_ROCK = table.freeze({
 M.GROVE = 40
 M.GROVE_RINGS = { 14, 19, 24, 30, 36, 42, 50 }
 M.GROVE_SPACING = 4.5
+-- L10b (R03-2/R03-3: the arrival stands in waist-high grass with red/orange flower patches; the
+-- old spawn screen held ~13 grass cards within 45 studs). Seeded drifts of the primary kit's grass
+-- rows: `count` clusters per arrival, `pieces` cards each, `spread` studs across, scaled up to
+-- about waist height (a 5.5-stud survivor); `flowers` is the share of flower rows in a drift.
+-- Budget: 14 x 9 = 126 grass cards per arrival (no shadow, 160-stud LOD, client low-profile cap
+-- 700), +6% on the onboarding scatter's 2049 placements, generated at runtime (no place bytes).
+type DriftRule = {
+	count: number,
+	pieces: number,
+	radius: { number },
+	spread: number,
+	spacing: number,
+	scale: { number },
+	flowers: number,
+}
+M.DRIFT = table.freeze({
+	count = 14,
+	pieces = 9,
+	radius = { 11, 56 },
+	spread = 5,
+	spacing = 1.5,
+	scale = { 1.05, 1.4 },
+	flowers = 0.4,
+} :: DriftRule)
 
 local function familyOf(kit: string, key: string): string
 	for _, row in kits().kits[kit] do
@@ -887,6 +911,73 @@ local function grove(out: { any }, layout: any, columns: { any }, terrain: any)
 					0.9 + (count % 4) * 0.1
 				)
 				table.insert(placed, value)
+				table.insert(out, value)
+			end
+		end
+	end
+	-- Drifts (M.DRIFT): clustered grass and flower cards around each arrival, on the same clearance
+	-- rule as the grove (paths, spawn circles, anchors, nodes, drift camp), so they never hide a node.
+	local primaryKit = list[1]
+	local grasses, flowers = {}, {}
+	for _, row in B1.kits[primaryKit] do
+		if row.family == "grass" then
+			table.insert(if string.find(row.key, "flower", 1, true) then flowers else grasses, row.key)
+		end
+	end
+	if #grasses == 0 and #flowers == 0 then
+		return
+	end
+	local drift = Rng.new(#columns):fork(layout.id .. ":drift")
+	local tufts: { any } = {}
+	for arrival, at in B1.arrivals(layout) do
+		local made = 0
+		for _ = 1, M.DRIFT.count * 3 do
+			if made >= M.DRIFT.count then
+				break
+			end
+			local angle = drift:nextNumber() * math.pi * 2
+			local reach = M.DRIFT.radius[1] + drift:nextNumber() * (M.DRIFT.radius[2] - M.DRIFT.radius[1])
+			local cx, cz = at.x + math.cos(angle) * reach, at.z + math.sin(angle) * reach
+			if not B1.allowed(layout, terrain, grade, cx, cz, 1) or ground.beach(cx, cz) then
+				continue
+			end
+			made += 1
+			local flowery = #grasses == 0 or (#flowers > 0 and drift:nextNumber() < M.DRIFT.flowers)
+			for piece = 1, M.DRIFT.pieces do
+				local a = drift:nextNumber() * math.pi * 2
+				local r = math.sqrt(drift:nextNumber()) * M.DRIFT.spread
+				local x, z = cx + math.cos(a) * r, cz + math.sin(a) * r
+				local yaw = drift:nextNumber() * 360
+				local scale = M.DRIFT.scale[1] + drift:nextNumber() * (M.DRIFT.scale[2] - M.DRIFT.scale[1])
+				if not B1.allowed(layout, terrain, grade, x, z, 1) then
+					continue
+				end
+				local clear = true
+				for _, other in tufts do
+					clear = clear and (x - other.x) ^ 2 + (z - other.z) ^ 2 >= M.DRIFT.spacing ^ 2
+				end
+				if camp then
+					for _, key in { "fire", "tent", "rift" } do
+						clear = clear and (x - camp[key].x) ^ 2 + (z - camp[key].z) ^ 2 >= 12 ^ 2
+					end
+				end
+				if not clear then
+					continue
+				end
+				-- Flower drifts keep a grass fringe (every third card), grass drifts a stray flower.
+				local pool = if flowery == (piece % 3 ~= 0) and #flowers > 0 then flowers else grasses
+				if #pool == 0 then
+					pool = flowers
+				end
+				local value = placement(
+					"drift." .. arrival .. "." .. made .. "." .. piece,
+					primaryKit,
+					pool[(piece - 1) % #pool + 1],
+					{ x = x, y = ground.top(x, z) :: number, z = z },
+					yaw,
+					scale
+				)
+				table.insert(tufts, value)
 				table.insert(out, value)
 			end
 		end

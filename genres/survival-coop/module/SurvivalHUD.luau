@@ -89,6 +89,8 @@ export type Options = {
 	-- "taming"). The menu token is ExtensionPanels' own toggle (its shell option), in row slot 1.
 	shell: {
 		name: (string, string) -> string?,
+		-- Optional second world-label line (`kind`, labelled instance): HudShell OverlayOptions.hint.
+		hint: ((string, any) -> string?)?,
 		open: (string) -> (),
 		-- C4 pet ring (optional): `capturable()` is true while a downed tameable target is in reach;
 		-- the capture / dismount / pet tokens call `act(id)`. Absent keeps the panel-only flow.
@@ -2078,6 +2080,7 @@ function M.start(options: Options)
 					or HudShell.sheetOpen(player:FindFirstChild("PlayerGui"))
 			end,
 			name = shellOptions.name,
+			hint = shellOptions.hint,
 			coordsText = function(px: number, pz: number): string
 				return string.format(t("shell.coords"), px, pz)
 			end,

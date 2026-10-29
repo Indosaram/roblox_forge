@@ -1,16 +1,23 @@
 --!strict
 -- L10 gather-node focus (R05-1: the node the player is about to gather reads at a glance). One
--- client ground ring (CylinderHandleAdornment, the same adornment as the player ring) marks a
--- single node: the node whose gather fan is open, else the node under the mouse (PC hover), else
--- the nearest harvestable node within reach of the character. It is sized to the shown mesh state
--- (the handle part is invisible, NodeMeshes). A Highlight did not draw in Studio captures.
+-- client ground marker marks a single node: the node whose gather fan is open, else the node under
+-- the mouse (PC hover), else the nearest harvestable node within reach of the character. It is
+-- sized to the shown mesh state (the handle part is invisible, NodeMeshes). A Highlight did not
+-- draw in Studio captures.
+-- L10b (phone v54: the node ring could not be told apart from the player's own ring): the marker is
+-- a ring of M.DASHES amber dashes (BoxHandleAdornments, wider than the player ring line), never the
+-- player's solid thin teal circle (HudShell.RING, PALETTE.teal).
 local M = {}
 
 M.REACH = 10
 M.STEP_SECONDS = 0.1
-M.COLOR = { 246, 214, 140 }
+M.COLOR = { 255, 184, 56 }
 M.MIN_RADIUS = 2.6
-M.WIDTH = 0.35
+M.WIDTH = 0.5
+M.HEIGHT = 0.3
+M.DASHES = 8
+-- Share of each dash slot the dash fills (the rest is the gap that makes it read as dashed).
+M.DASH_FILL = 0.55
 
 export type Candidate = { part: any, distance: number, harvestable: boolean }
 
@@ -42,6 +49,19 @@ function M.radius(visual: any): number
 	return math.max(M.MIN_RADIUS, math.max(visual.Size.X, visual.Size.Z) / 2 + 0.6)
 end
 
+--- Dash layout around the node centre: per dash its angle, length (along the ring tangent) and
+--- flat offset, on the centre line of a `radius` ring M.WIDTH wide.
+function M.dashes(radius: number): { { angle: number, length: number, x: number, z: number } }
+	local out = {}
+	local mid = radius - M.WIDTH / 2
+	local length = 2 * math.pi * mid / M.DASHES * M.DASH_FILL
+	for index = 0, M.DASHES - 1 do
+		local angle = index * 2 * math.pi / M.DASHES
+		table.insert(out, { angle = angle, length = length, x = math.cos(angle) * mid, z = math.sin(angle) * mid })
+	end
+	return out
+end
+
 --- The mesh the ring sits under on a dressed node (the shown state), else the part itself.
 function M.visual(part: any): any
 	local depleted = part:GetAttribute("ForgeNodeDepleted") == true
@@ -57,21 +77,29 @@ function M.start(options: { open: () -> any?, hidden: () -> boolean }): () -> ()
 	local input = game:GetService("UserInputService")
 	local run = game:GetService("RunService")
 	local player = players.LocalPlayer
-	local ring = Instance.new("CylinderHandleAdornment")
-	ring.Name, ring.Transparency = "ForgeNodeFocus", 0.15
-	ring.Color3 = Color3.fromRGB(M.COLOR[1], M.COLOR[2], M.COLOR[3])
-	-- Depth-tested (AlwaysOnTop hid the adornment in Studio captures): the ring sits on the highest
-	-- ground sampled around its rim so a slope or sand mound does not swallow half of it.
-	ring.Height, ring.AlwaysOnTop = 0.3, false
-	ring.Visible = false
-	ring.Adornee = workspace.Terrain
-	ring.Parent = player:WaitForChild("PlayerGui")
+	local holder = Instance.new("Folder")
+	holder.Name = "ForgeNodeFocus"
+	local dashes: { any } = {}
+	for index = 1, M.DASHES do
+		local dash = Instance.new("BoxHandleAdornment")
+		dash.Name, dash.Transparency = "Dash", 0.05
+		dash.Color3 = Color3.fromRGB(M.COLOR[1], M.COLOR[2], M.COLOR[3])
+		-- Depth-tested (AlwaysOnTop hid the adornment in Studio captures): the marker sits on the highest
+		-- ground sampled around its rim so a slope or sand mound does not swallow half of it.
+		dash.AlwaysOnTop, dash.Visible = false, false
+		dash.Adornee = workspace.Terrain
+		dash.Parent = holder
+		dashes[index] = dash
+	end
+	holder.Parent = player:WaitForChild("PlayerGui")
 	local terrainOnly = RaycastParams.new()
 	terrainOnly.FilterType = Enum.RaycastFilterType.Include
 	terrainOnly.FilterDescendantsInstances = { workspace.Terrain }
 	local function show(focus: any?)
 		if not focus then
-			ring.Visible = false
+			for _, dash in dashes do
+				dash.Visible = false
+			end
 			return
 		end
 		local visual = M.visual(focus)
@@ -85,9 +113,14 @@ function M.start(options: { open: () -> any?, hidden: () -> boolean }): () -> ()
 				ground = math.max(ground, hit.Position.Y)
 			end
 		end
-		ring.Radius, ring.InnerRadius = r, r - M.WIDTH
-		ring.CFrame = CFrame.new(visual.Position.X, ground + 0.2, visual.Position.Z) * CFrame.Angles(math.rad(90), 0, 0)
-		ring.Visible = true
+		local centre = Vector3.new(visual.Position.X, ground + 0.2, visual.Position.Z)
+		for index, layout in M.dashes(r) do
+			local dash = dashes[index]
+			dash.Size = Vector3.new(M.WIDTH, M.HEIGHT, layout.length)
+			-- Long axis (local Z) along the tangent of the ring at this angle.
+			dash.CFrame = CFrame.new(centre + Vector3.new(layout.x, 0, layout.z)) * CFrame.Angles(0, -layout.angle, 0)
+			dash.Visible = true
+		end
 	end
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
@@ -141,7 +174,7 @@ function M.start(options: { open: () -> any?, hidden: () -> boolean }): () -> ()
 	end)
 	return function()
 		connection:Disconnect()
-		ring:Destroy()
+		holder:Destroy()
 	end
 end
 

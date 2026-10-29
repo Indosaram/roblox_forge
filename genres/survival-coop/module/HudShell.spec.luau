@@ -199,8 +199,9 @@ return {
 
 	["label targets: within 40 studs, nearest first, stable ties, capped"] = function()
 		local list = {}
+		-- Creatures (not capped per kind like gather nodes) fill the board pool up to LABEL_LIMIT.
 		for i = 1, 40 do
-			table.insert(list, { id = string.format("n%02d", i), kind = "node", x = i, y = 0, z = 0 })
+			table.insert(list, { id = string.format("n%02d", i), kind = "wildlife", x = i, y = 0, z = 0 })
 		end
 		table.insert(list, { id = "b", kind = "npc", x = 3, y = 0, z = 0 })
 		table.insert(list, { id = "a", kind = "pet", x = -3, y = 0, z = 0 })
@@ -209,6 +210,21 @@ return {
 		assert(picked[1].id == "n01" and picked[2].id == "n02", "nearest first")
 		assert(picked[3].id == "a" and picked[4].id == "b" and picked[5].id == "n03", "ties by id")
 		assert(#Shell.labelTargets(list, 0, 0, 0, 40, 100) == 42, "all within 40 studs when uncapped")
+	end,
+	["label targets cap gather nodes apart so a node field leaves boards for NPCs and creatures"] = function()
+		local list = {}
+		for i = 1, 20 do
+			table.insert(list, { id = string.format("n%02d", i), kind = "node", x = i, y = 0, z = 0 })
+		end
+		table.insert(list, { id = "w", kind = "wildlife", x = 30, y = 0, z = 0 })
+		local picked = Shell.labelTargets(list, 0, 0, 0)
+		local nodes, wildlife = 0, false
+		for _, candidate in picked do
+			nodes += if candidate.kind == "node" then 1 else 0
+			wildlife = wildlife or candidate.kind == "wildlife"
+		end
+		assert(nodes == Shell.NODE_LABEL_LIMIT, "node labels capped at " .. Shell.NODE_LABEL_LIMIT .. ", got " .. nodes)
+		assert(picked[1].id == "n01" and wildlife, "nearest nodes first, the creature still labelled")
 	end,
 
 	-- p134 v54: walking to the dock "the camera yaw changes made it hard to aim". The camera yaw
@@ -384,6 +400,9 @@ return {
 		local node = I.new("Part")
 		node.Position = roblox.Vector3.new(4, 0, 0)
 		node:SetAttribute("ForgeNodeKind", "fiber")
+		-- A dressed node: the shown mesh stands 6 studs tall over the invisible handle.
+		local mesh = I.new("Part")
+		mesh.Size, mesh.Position, mesh.Parent = roblox.Vector3.new(4, 6, 4), roblox.Vector3.new(4, 2, 0), node
 		local beats: { (number) -> () } = {}
 		local function signal(list: { any }?)
 			return {
@@ -447,6 +466,9 @@ return {
 			tribe = function()
 				return ""
 			end,
+			hint = function(kind, part)
+				return if kind == "node" and part == node then "Lv 1 - By hand" else nil
+			end,
 		})
 		local function beat(): any
 			beats[1](1)
@@ -454,6 +476,16 @@ return {
 			assert(labels and labels:GetAttribute("ForgeLabelCount") == 1, "one node labelled")
 			local board = labels:FindFirstChild("WorldLabel")
 			assert(board and board.Adornee == node and board.Text.Text == "fiber", "label shows the node")
+			-- L10b: an AlwaysOnTop board never drew on the Studio client (same board drew depth-tested),
+			-- so the node labels stayed invisible; it must ride above the node's mesh to pass the depth test.
+			assert(board.AlwaysOnTop == false, "world label is depth-tested, not AlwaysOnTop")
+			assert(board.Size.Y.Offset > 0 and board.MaxDistance >= Shell.LABEL_RADIUS, "sized and in range")
+			assert(
+				board.StudsOffsetWorldSpace.Y >= 5 + Shell.LABEL_BOARD.clear - 1e-3,
+				"lifted over the 6-stud mesh: " .. tostring(board.StudsOffsetWorldSpace)
+			)
+			local hint = board:FindFirstChild("Hint")
+			assert(hint and hint.Visible and hint.Text == "Lv 1 - By hand", "node tool hint line")
 			return labels
 		end
 		beat()

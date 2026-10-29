@@ -60,6 +60,14 @@ end
 
 M.LABEL_RADIUS = 40
 M.LABEL_LIMIT = 24
+-- Gather node labels are capped apart from the total, nearest first (a node field must not take
+-- every pooled board from NPCs and creatures, and a phone draws at most this many node boards).
+M.NODE_LABEL_LIMIT = 8
+-- World label board (L10b). Depth-tested: an AlwaysOnTop BillboardGui never drew on the Studio
+-- client (same adornee, size and parent drew once AlwaysOnTop was false), so the pooled labels were
+-- enabled and sized yet invisible. The board rides `clear` studs over the anchor's tallest child
+-- (a node's mesh) so the depth test never hides it inside the node it names.
+M.LABEL_BOARD = table.freeze({ width = 220, height = 40, name = 16, hint = 12, clear = 1.2, base = 3 })
 M.MAP_WINDOW = 160
 
 -- Tide arc slots (spec section 3): { radius in H, angle in degrees from the right edge, size }.
@@ -376,10 +384,33 @@ function M.labelTargets(
 		return a[2].id < b[2].id
 	end)
 	local out: { Candidate } = {}
-	for index = 1, math.min(#near, limit or M.LABEL_LIMIT) do
-		out[index] = near[index][2]
+	local nodes = 0
+	for _, entry in near do
+		if #out >= (limit or M.LABEL_LIMIT) then
+			break
+		end
+		local candidate = entry[2]
+		if candidate.kind == "node" then
+			nodes += 1
+			if nodes > M.NODE_LABEL_LIMIT then
+				continue
+			end
+		end
+		table.insert(out, candidate)
 	end
 	return out
+end
+
+--- Studs above an anchor's centre for its label: over the tallest BasePart child (a node's shown
+--- mesh) plus LABEL_BOARD.clear, never under LABEL_BOARD.base.
+function M.labelLift(anchor: any): number
+	local top = anchor.Size.Y / 2
+	for _, child in anchor:GetChildren() do
+		if child:IsA("BasePart") and child.Transparency < 1 then
+			top = math.max(top, child.Position.Y + child.Size.Y / 2 - anchor.Position.Y)
+		end
+	end
+	return math.max(M.LABEL_BOARD.base, top + M.LABEL_BOARD.clear)
 end
 
 --- Minimap pixel for a world offset (north-up, +x right, +z down), or nil outside the map.
@@ -1029,6 +1060,9 @@ export type OverlayOptions = {
 	tribe: () -> string,
 	-- Another player's clan tag text, or nil/"" for none. Optional: without it others show their name only.
 	tribeOf: ((any) -> string?)?,
+	-- Small second label line under a world label (`kind`, labelled instance), e.g. a gather node's
+	-- tool hint ("Lv 1 . by hand"). Optional: nil or "" shows the name alone.
+	hint: ((string, any) -> string?)?,
 }
 
 -- Tags a pack/server sets on a ground drop or a deployed pet so it gets a label.
@@ -1184,25 +1218,33 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 	local boards: { any } = {}
 	local function board(index: number): any
 		local existing = boards[index]
-		if existing and existing.Parent == labelFolder and existing:FindFirstChild("Text") then
+		if
+			existing
+			and existing.Parent == labelFolder
+			and existing:FindFirstChild("Text")
+			and existing:FindFirstChild("Hint")
+		then
 			return existing
 		elseif existing then
 			existing:Destroy()
 		end
+		local B = M.LABEL_BOARD
 		local item = Instance.new("BillboardGui")
-		item.Name, item.Size, item.AlwaysOnTop = "WorldLabel", UDim2.fromOffset(180, 28), true
-		item.StudsOffsetWorldSpace, item.LightInfluence = Vector3.new(0, 3, 0), 0
+		item.Name, item.Size, item.AlwaysOnTop = "WorldLabel", UDim2.fromOffset(B.width, B.height), false
+		item.StudsOffsetWorldSpace, item.LightInfluence = Vector3.new(0, B.base, 0), 0
 		item.MaxDistance = M.LABEL_RADIUS + 8
+		-- R05-1: floating white text with a dark stroke, no plate (the old ink pill read as UI chrome).
 		local text = Instance.new("TextLabel")
-		text.Name, text.AnchorPoint, text.Position = "Text", Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
-		text.Size, text.AutomaticSize = UDim2.fromOffset(0, 24), Enum.AutomaticSize.X
-		text.BackgroundColor3, text.BackgroundTransparency = color(P.ink), 0.45
-		text.Font, text.TextSize = Enum.Font.BuilderSansMedium, 15
-		local pad = Instance.new("UIPadding")
-		pad.PaddingLeft, pad.PaddingRight, pad.Parent = UDim.new(0, 10), UDim.new(0, 10), text
-		local round = Instance.new("UICorner")
-		round.CornerRadius, round.Parent = UDim.new(0.5, 0), text
-		text.Parent, item.Parent = item, labelFolder
+		text.Name, text.BackgroundTransparency = "Text", 1
+		text.Size = UDim2.new(1, 0, 0, B.name + 6)
+		text.Font, text.TextSize = Enum.Font.BuilderSansBold, B.name
+		text.TextStrokeColor3, text.TextStrokeTransparency = color(P.ink), 0.25
+		local hint = Instance.new("TextLabel")
+		hint.Name, hint.BackgroundTransparency = "Hint", 1
+		hint.Position, hint.Size = UDim2.fromOffset(0, B.name + 4), UDim2.new(1, 0, 0, B.hint + 4)
+		hint.Font, hint.TextSize, hint.TextColor3 = Enum.Font.BuilderSansMedium, B.hint, color(P.boneShade)
+		hint.TextStrokeColor3, hint.TextStrokeTransparency, hint.Visible = color(P.ink), 0.35, false
+		text.Parent, hint.Parent, item.Parent = item, item, labelFolder
 		boards[index] = item
 		return item
 	end
@@ -1383,9 +1425,13 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					local item = board(shown)
 					local entry = lookup[target.id]
 					item.Adornee, item.Enabled = entry[1], true
+					item.StudsOffsetWorldSpace = Vector3.new(0, M.labelLift(entry[1]), 0)
 					local text = item:FindFirstChild("Text") :: any
 					text.Text = entry[2]
 					text.TextColor3 = color(if entry[3] == "wildlife" then P.coral else P.bone)
+					local hint = item:FindFirstChild("Hint") :: any
+					local line = if entry[3] == "node" and options.hint then options.hint("node", entry[1]) else nil
+					hint.Text, hint.Visible = line or "", line ~= nil and line ~= ""
 				end
 			end
 			for index = used + 1, #dots do

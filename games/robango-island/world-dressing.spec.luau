@@ -173,6 +173,50 @@ return {
 	end,
 	-- L10 (R03-3: worn earth, moss and scree break up the arrival ground): variety patches paint
 	-- flat inland ground around the arrival, never beach, paths, nodes or the home/town roles.
+	-- L10b (R03-2/R03-3: waist-high grass and flower patches around the arrival; the old spawn held
+	-- ~13 grass cards within 45 studs): seeded drifts of the primary kit's grass and flower rows.
+	["arrival carries dense waist-high grass and flower drifts clear of nodes and paths"] = function()
+		local BiomeKits = require("./src/shared/BiomeKits")
+		local layout: any = nil
+		for _, candidate in Content.layouts :: any do
+			if candidate.id == "rw.onboarding" then
+				layout = candidate
+			end
+		end
+		local columns = Terrain.columns(layout, 79, 16)
+		local plan = Dressing.plan(layout, columns, Terrain)
+		local again = Dressing.plan(layout, columns, Terrain)
+		local at = BiomeKits.arrivals(layout)[1]
+		local grass, flowers, tall, drift = 0, 0, 0, 0
+		for i, p in plan.kits do
+			local near = (p.x - at.x) ^ 2 + (p.z - at.z) ^ 2 <= 45 ^ 2
+			if near and p.family == "grass" then
+				grass += 1
+				flowers += if string.find(p.key, "flower", 1, true) then 1 else 0
+			end
+			if string.sub(p.id, 1, 6) == "drift." then
+				drift += 1
+				assert(again.kits[i].id == p.id and again.kits[i].x == p.x, "deterministic drifts")
+				assert(p.family == "grass" and p.scale >= 1.05, p.id .. " is a scaled-up grass card")
+				tall += if p.scale >= 1.2 then 1 else 0
+				for _, node in layout.resourceNodes do
+					local d = math.sqrt((p.x - node.position.x) ^ 2 + (p.z - node.position.z) ^ 2)
+					assert(d >= 6, p.id .. " hides node " .. node.id)
+				end
+				for _, path in layout.paths do
+					for j = 2, #path.points do
+						local gap = Terrain.distance(p.x, p.z, path.points[j - 1], path.points[j])
+						assert(gap > path.width / 2 + 2, p.id .. " on path " .. path.id)
+					end
+				end
+			end
+		end
+		assert(grass >= 60, "grass cards within 45 studs of the arrival: " .. grass)
+		assert(flowers >= 20, "flower cards within 45 studs of the arrival: " .. flowers)
+		assert(tall >= drift / 3, "a third of the drift cards are waist-high")
+		-- Device budget: drifts stay a small share of the role's kit instances.
+		assert(drift <= Dressing.DRIFT.count * Dressing.DRIFT.pieces * #BiomeKits.arrivals(layout), "drift cap")
+	end,
 	["arrival ground carries seeded variety patches off paths beaches and nodes"] = function()
 		local function find(id: string): any
 			for _, layout in Content.layouts :: any do

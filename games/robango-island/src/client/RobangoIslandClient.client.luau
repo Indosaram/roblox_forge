@@ -215,6 +215,22 @@ local function nodeItemByKind(): { [string]: string }
 	end
 	return nodeItems :: { [string]: string }
 end
+local GatherOffer = require(script.Parent:WaitForChild("GatherOffer"))
+local rowsOfNodes: { any }? = nil
+-- Node rows a floating label hint reads (level, requiredToolTag): role-world resourceNodes plus the
+-- preview island's world nodes, built once.
+local function nodeRows(): { any }
+	if not rowsOfNodes then
+		local rows = table.clone(worldConfig.nodes or {})
+		for _, layout in (content :: any).layouts or {} do
+			for _, node in layout.resourceNodes or {} do
+				table.insert(rows, node)
+			end
+		end
+		rowsOfNodes = rows
+	end
+	return rowsOfNodes :: { any }
+end
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
@@ -236,6 +252,17 @@ local hud = SurvivalHUD.start({
 				return if item then names[item] else nil
 			end
 			return names[key]
+		end,
+		-- L10b: node labels carry a small level / tool line under the name (R05-1 "돌멩이 Lv 1").
+		hint = function(kind: string, part: Instance): string?
+			if kind ~= "node" then
+				return nil
+			end
+			return GatherOffer.hint(part, nodeRows(), function(key: string): string?
+				return clientText(locale, "cli.gather." .. key)
+			end, function(tag: string): string
+				return names[tag] or tag
+			end)
 		end,
 		open = function(id: string)
 			if shellPanels and shellPanels.open then
@@ -270,7 +297,6 @@ local hud = SurvivalHUD.start({
 do
 	local HudShell = require(Forge.genres["survival-coop"].module.HudShell)
 	local Gathering = require(Forge.genres["survival-coop"].module.Gathering)
-	local GatherOffer = require(script.Parent:WaitForChild("GatherOffer"))
 	local fanGui = Instance.new("ScreenGui")
 	fanGui.Name, fanGui.ResetOnSpawn, fanGui.DisplayOrder = "ForgeGatherFan", false, 20
 	fanGui.IgnoreGuiInset, fanGui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling

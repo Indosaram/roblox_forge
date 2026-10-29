@@ -30,4 +30,31 @@ function M.step(picker: any): boolean
 	return false
 end
 
+--- L10b small second line of a node's floating label (R05-1 "돌멩이 Lv 1"): its authored level and
+--- what it is gathered with, e.g. "Lv 1 - By hand". `nodes` are the node rows that may carry a level or
+--- requiredToolTag (layout resourceNodes, preview world nodes), matched on ForgeNodeId. `text(key)`
+--- returns the cli.gather.* line, `tagName(tag)` a tool tag's display name. nil when nothing to say.
+function M.hint(part: any, nodes: { any }, text: (string) -> string?, tagName: (string) -> string): string?
+	if part:GetAttribute("ForgeNodeDepleted") == true then
+		return nil
+	end
+	local id = part:GetAttribute("ForgeNodeId")
+	local row: any = nil
+	for _, node in nodes do
+		if node.id == id then
+			row = node
+		end
+	end
+	local tool = if row and type(row.requiredToolTag) == "string"
+		then string.format(text("tool") or "%s", tagName(row.requiredToolTag))
+		else text("hand")
+	local level = if row and type(row.level) == "number"
+		then string.format(text("level") or "Lv %d", row.level)
+		else nil
+	if level and tool then
+		return level .. " - " .. tool
+	end
+	return level or tool
+end
+
 return M

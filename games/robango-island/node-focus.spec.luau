@@ -47,4 +47,62 @@ cases["the ring follows the shown mesh state and never shrinks below its minimum
 	assert(NodeFocus.radius(NodeFocus.visual(empty)) == NodeFocus.MIN_RADIUS, "small mesh keeps the minimum")
 end
 
+-- L10b (phone v54): the node marker could not be told apart from the player's own teal ring. The
+-- marker is a dashed amber ring, a different colour and a different shape from HudShell.RING.
+cases["the node focus marker is dashed amber, unlike the player's solid teal ring"] = function()
+	local Shell = require("../../genres/survival-coop/module/HudShell")
+	local teal = Shell.PALETTE.teal
+	local r, g, b = NodeFocus.COLOR[1], NodeFocus.COLOR[2], NodeFocus.COLOR[3]
+	local distance = math.sqrt((r - teal.r) ^ 2 + (g - teal.g) ^ 2 + (b - teal.b) ^ 2)
+	assert(distance > 150, "marker colour far from the player teal, distance " .. distance)
+	assert(r > b + 100, "warm (amber) marker")
+	assert(NodeFocus.DASHES and NodeFocus.DASHES >= 6, "the marker is dashed")
+	local dashes = NodeFocus.dashes(3.6)
+	assert(#dashes == NodeFocus.DASHES, "one dash per slot")
+	local mid = 3.6 - NodeFocus.WIDTH / 2
+	local slot = 2 * math.pi * mid / NodeFocus.DASHES
+	for _, dash in dashes do
+		assert(math.abs(math.sqrt(dash.x ^ 2 + dash.z ^ 2) - mid) < 1e-6, "dash on the ring line")
+		assert(dash.length < slot * 0.8, "visible gap between dashes")
+	end
+	assert(NodeFocus.WIDTH > 0.22 * 1.5, "marker line clearly wider than the player ring line")
+	local source = require("@lune/fs").readFile("games/robango-island/src/client/NodeFocus.luau")
+	assert(not string.find(source, "CylinderHandleAdornment", 1, true), "no solid cylinder ring like the player's")
+	assert(string.find(source, "BoxHandleAdornment", 1, true), "dash adornments")
+end
+
+-- L10b: floating node labels carry a small level / tool line under the name (R05-1 "돌멩이 Lv 1").
+cases["node label hint shows the level and the tool, wired into the HUD shell"] = function()
+	local GatherOffer = require("./src/client/GatherOffer")
+	local lines = { hand = "By hand", tool = "Needs %s", level = "Lv %d" }
+	local function text(key: string): string?
+		return lines[key]
+	end
+	local function tag(name: string): string
+		return if name == "cutting" then "Knife" else name
+	end
+	local rows = {
+		{ id = "rw.onboarding.fiber", level = 1 },
+		{ id = "rw.a1.s1.ore", level = 3, requiredToolTag = "cutting" },
+		{ id = "fiber-bush-01" },
+	}
+	local a, b, c, gone = node("a"), node("b"), node("c"), node("d", true)
+	a:SetAttribute("ForgeNodeId", "rw.onboarding.fiber")
+	b:SetAttribute("ForgeNodeId", "rw.a1.s1.ore")
+	c:SetAttribute("ForgeNodeId", "fiber-bush-01")
+	gone:SetAttribute("ForgeNodeId", "rw.onboarding.fiber")
+	assert(GatherOffer.hint(a, rows, text, tag) == "Lv 1 - By hand", "hand node")
+	assert(GatherOffer.hint(b, rows, text, tag) == "Lv 3 - Needs Knife", "tool node")
+	assert(GatherOffer.hint(c, rows, text, tag) == "By hand", "no level authored")
+	assert(GatherOffer.hint(gone, rows, text, tag) == nil, "a depleted node shows its name only")
+	local fs = require("@lune/fs")
+	local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+	assert(string.find(client, "GatherOffer.hint(part, nodeRows()", 1, true), "client passes the hint to the shell")
+	local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+	assert(string.find(hud, "hint = shellOptions.hint", 1, true), "SurvivalHUD forwards the hint to the overlays")
+	local csv = fs.readFile("games/robango-island/locale/strings.csv")
+	assert(string.find(csv, "\ncli.gather.hand,", 1, true), "hand hint row")
+	assert(string.find(csv, "\ncli.gather.tool,", 1, true), "tool hint row")
+end
+
 return cases
