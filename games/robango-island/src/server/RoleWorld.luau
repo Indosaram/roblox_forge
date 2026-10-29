@@ -221,6 +221,25 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		value.Parent = root
 		return value
 	end
+	-- L6: townspeople and castaways stand as survivor figures (SurvivorAvatar rigs, welded to the
+	-- handle so moving it moves them) once the survivor package loads; until then, or when it
+	-- fails or the engine is headless, the handle part stays the visible stand-in.
+	local function survivorFigure(name: string, handle: BasePart)
+		-- Headless fixtures carry no SurvivorAvatar module (a plain table without the key).
+		local module = (Forge.games["robango-island"].src.shared :: any).SurvivorAvatar
+		if not module then
+			return
+		end
+		local Survivor = require(module) :: any
+		if type(Survivor) ~= "table" or not Survivor.onRigs then
+			return
+		end
+		Survivor.onRigs(function()
+			if handle.Parent and Survivor.figure(name, handle) then
+				handle.Transparency = 1
+			end
+		end)
+	end
 	-- A mesh row stretched to a gameplay box (timber modules, pads): the row's parts are scaled per axis
 	-- to the box and hung under it; the box keeps its collision and turns invisible. Returns false
 	-- (the box stays a visible Part) when the row is missing.
@@ -1229,6 +1248,9 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				local target = part(facility.id, facility.position, { x = 2, y = 4, z = 2 })
 				target:SetAttribute("ForgeHarborFacility", facility.anchor)
 				world.anchorParts[facility.anchor] = target
+				if facility.kind == "npc" then
+					survivorFigure(facility.anchor, target)
+				end
 				-- Town-kit set piece beside the interaction part (rift, rescue bell, notice board).
 				local set = Meshes.FACILITIES[facility.anchor]
 				if set then
@@ -1518,6 +1540,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				WorldText.bind(prompt, "interact", "town-quest")
 				prompt.MaxActivationDistance, prompt.Parent = 10, board
 				prompt:SetAttribute("ForgePanel", "journal")
+			end
+		end
+		-- L6: townsfolk beside the trading post, well, work yard and clan hall (decor only: no
+		-- prompt, no collision; invisible handles until the survivor package loads).
+		local townsfolk =
+			{ ["trading-post"] = { 5, 3 }, well = { -4, 2 }, ["work-yard"] = { 4, -4 }, ["clan-hall"] = { -6, 6 } }
+		for _, anchor in layout.anchors do
+			local offset = townsfolk[anchor.id]
+			if offset then
+				local at =
+					{ x = anchor.position.x + offset[1], y = anchor.position.y, z = anchor.position.z + offset[2] }
+				local handle = part("townsfolk." .. anchor.id, interactionPosition(at, 5), { x = 2, y = 5, z = 2 })
+				handle.Transparency, handle.CanCollide, handle.CanQuery, handle.CanTouch = 1, false, false, false
+				-- Face the anchor they stand beside.
+				handle.CFrame =
+					CFrame.lookAt(handle.Position, Vector3.new(anchor.position.x, handle.Position.Y, anchor.position.z))
+				survivorFigure("town:" .. anchor.id, handle)
 			end
 		end
 	end
@@ -1852,6 +1891,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if not npc then
 			npc = part("JournalCastaway-" .. actor, position, { x = 2, y = 5, z = 2 })
 			npc.CanCollide = false
+			survivorFigure("castaway:" .. actor, npc)
 			journalEscorts[actor] = npc
 		end
 		npc.Position = Vector3.new(position.x, position.y, position.z)
@@ -1890,6 +1930,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		if not npc then
 			npc = part("Castaway-" .. actor, position, { x = 2, y = 5, z = 2 })
 			npc.CanCollide = false
+			survivorFigure("castaway:" .. actor, npc)
 			escorts[actor] = npc
 		end
 		npc.Position = Vector3.new(position.x, position.y, position.z)

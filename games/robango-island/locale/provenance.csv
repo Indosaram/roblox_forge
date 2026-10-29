@@ -2848,6 +2848,7 @@ cli.survivor.forager,original,agent:hephaestus/A6,2026-10-27
 cli.survivor.forager_note,original,agent:hephaestus/A6,2026-10-27
 cli.survivor.drifter,original,agent:hephaestus/A6,2026-10-27
 cli.survivor.drifter_note,original,agent:hephaestus/A6,2026-10-27
+cli.survivor.confirm,original,agent:hephaestus/L6,2026-10-29
 hud.shell.interact,original,agent:hephaestus/A4,2026-10-27
 hud.shell.attack,original,agent:hephaestus/A4,2026-10-27
 hud.shell.shoot,original,agent:hephaestus/A4,2026-10-27

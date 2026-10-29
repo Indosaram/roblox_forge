@@ -2841,13 +2841,14 @@ cli.survivor.title,Choose your survivor,client survivor picker,Choose your survi
 cli.survivor.intro,Pick who you wash ashore as. You can play as this survivor from now on.,client survivor picker,Pick who you wash ashore as. You can play as this survivor from now on.,어떤 생존자로 섬에 도착할지 고르세요. 이제부터 이 생존자로 플레이합니다.
 cli.survivor.current,current,client survivor picker,current,현재
 cli.survivor.ranger,Ranger,client survivor picker,Ranger,레인저
-cli.survivor.ranger_note,denim jacket and field jeans,client survivor picker,denim jacket and field jeans,데님 재킷과 작업 청바지
+cli.survivor.ranger_note,"waistcoat, rolled shirtsleeves and work trousers",client survivor picker,"waistcoat, rolled shirtsleeves and work trousers","조끼, 걷어 올린 셔츠 소매와 작업 바지"
 cli.survivor.scout,Scout,client survivor picker,Scout,정찰병
-cli.survivor.scout_note,white hoodie and dark jeans,client survivor picker,white hoodie and dark jeans,흰 후드티와 검은 청바지
+cli.survivor.scout_note,"braces, long sleeves and tall laced boots",client survivor picker,"braces, long sleeves and tall laced boots","멜빵, 긴소매 셔츠와 긴 끈 부츠"
 cli.survivor.forager,Forager,client survivor picker,Forager,채집가
-cli.survivor.forager_note,plaid shirt and field jeans,client survivor picker,plaid shirt and field jeans,체크 셔츠와 작업 청바지
+cli.survivor.forager_note,field coat and a wide-brimmed hat,client survivor picker,field coat and a wide-brimmed hat,들일 코트와 챙 넓은 모자
 cli.survivor.drifter,Drifter,client survivor picker,Drifter,방랑자
-cli.survivor.drifter_note,black jacket and black jeans,client survivor picker,black jacket and black jeans,검은 재킷과 검은 청바지
+cli.survivor.drifter_note,bib overalls and a flat cap,client survivor picker,bib overalls and a flat cap,멜빵 작업복과 납작 모자
+cli.survivor.confirm,Play as this survivor,client survivor picker,Play as this survivor,이 생존자로 플레이
 hud.shell.interact,Interact,genre text hud,Interact,상호작용
 hud.shell.attack,Attack,genre text hud,Attack,공격
 hud.shell.shoot,Shoot,genre text hud,Shoot,사격

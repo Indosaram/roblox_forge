@@ -215,7 +215,9 @@ end
 -- the place file tracks script source, which stays inside its own cap.
 -- 2026-10-28: sourceBytes 3.4 -> 4.0 MB with C2 gather, C3 combat and C4 capture/ride (3.39 MB with
 -- every asset id published); the device budget above stays the binding one.
-local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 4000000, fileBytes = 1700000 }
+-- 2026-10-29: fileBytes 1.7 -> 1.8 MB with L6 survivor rigs, L7 tool visuals and C2 gather offers
+-- (1.708 MB built); the device budget above stays the binding one.
+local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 4000000, fileBytes = 1800000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 

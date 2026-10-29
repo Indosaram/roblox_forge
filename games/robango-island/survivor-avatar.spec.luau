@@ -235,4 +235,102 @@ return {
 			assert(preset.hairColor, preset.id .. " hair colour")
 		end
 	end,
+	-- L6: the presets dress the pack's own survivor meshes (mesh-survivors) on two body types.
+	["L6 rig presets: two body types, every worn slot coloured, a stable figure per name"] = function()
+		local bodies = {}
+		for _, preset in Survivor.PRESETS do
+			assert(preset.kind == "rig", preset.id .. " is a rig preset")
+			assert(preset.rigBody and Survivor.BODIES[preset.rigBody], preset.id .. " body type")
+			bodies[preset.rigBody :: string] = true
+			local palette = assert(preset.palette, preset.id .. " palette")
+			for _, slot in { "skin", "shirt", "boots", "hair" } do
+				assert(palette[slot], preset.id .. " colours " .. slot)
+			end
+			local skin, material = Survivor.slotStyle(preset, "skin")
+			assert(skin == palette.skin and material == "SmoothPlastic", "skin slot style")
+			local _, boots = Survivor.slotStyle(preset, "trousers")
+			assert(boots == "SmoothPlastic", "no patterned engine material on clothing")
+			local eye = Survivor.slotStyle(preset, "eye")
+			assert(eye.r < 80, "face details are dark")
+		end
+		assert(bodies.A and bodies.B, "both body types are used")
+		assert(Survivor.figurePreset("npc.marit") == Survivor.figurePreset("npc.marit"), "stable figure")
+		local seen = {}
+		for _, name in { "npc.marit", "npc.tuck", "npc.hop", "npc.sella", "npc.bram", "npc.ines", "npc.pip" } do
+			seen[Survivor.figurePreset(name).id] = true
+		end
+		local count = 0
+		for _ in seen do
+			count += 1
+		end
+		assert(count >= 3, "harbor townspeople wear several outfits")
+		local part, slot, preset = Survivor.piece("LeftUpperArm__shirt__scout")
+		assert(part == "LeftUpperArm" and slot == "shirt" and preset == "scout", "piece name split")
+		assert(Survivor.piece("Anchor__anchor__ranger") == "Anchor", "anchor piece")
+	end,
+	["L6 joint layout: every R15 joint pivots at the end of its child part"] = function()
+		local parts = 0
+		for _, bodyId in { "A", "B" } do
+			local layout = Survivor.layout(bodyId)
+			parts = 0
+			for _ in layout.rest do
+				parts += 1
+			end
+			assert(parts == 16, "16 R15 parts incl. the root")
+			local joints = 0
+			for name, joint in layout.joints do
+				joints += 1
+				assert(layout.rest[joint.parent], name)
+				local b = assert(layout.rest[joint.child], name)
+				assert(
+					math.abs(joint.at.y - b.y) <= 0.8 and math.abs(joint.at.x - b.x) <= 0.1,
+					name .. " pivot at the child's end"
+				)
+			end
+			assert(joints == 15, "15 R15 joints")
+			-- Feet stand on the floor the humanoid's hip height puts under the root.
+			local foot = layout.rest.LeftFoot
+			assert(math.abs(foot.y - 0.15 + Survivor.ROOT_HEIGHT) < 1e-6, "foot on the floor")
+			assert(
+				math.abs(Survivor.ROOT_HEIGHT - (Survivor.HIP_HEIGHT + 2 / 2)) < 1e-6,
+				"hip height + half the root = floor"
+			)
+		end
+		assert(Survivor.layout("A").rest.LeftUpperArm.x < Survivor.layout("B").rest.LeftUpperArm.x, "body A is broader")
+	end,
+	["L6 dressRig leaves the character alone while the rig package is not loaded"] = function()
+		local applied = false
+		local character: any = {}
+		function character.FindFirstChildOfClass(_, class)
+			return if class == "Humanoid"
+				then {
+					ApplyDescriptionReset = function()
+						applied = true
+					end,
+				}
+				else nil
+		end
+		Survivor.setRigs(nil)
+		local ok, why = Survivor.dressRig(character, assert(Survivor.find("scout")), {})
+		assert(not ok and why == "RIG_NOT_LOADED" and not applied, "no package: nothing changes (catalog look follows)")
+		assert(Survivor.figure("npc.pip", {} :: any) == nil, "no figure before the package loads")
+	end,
+	["L6 wiring: the wardrobe loads the rig package and NPCs and castaways reuse the figures"] = function()
+		local fs = require("@lune/fs")
+		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
+		assert(string.find(source, "MeshTexture.bake", 1, true), "the package goes through MeshTexture")
+		assert(string.find(source, "task.spawn(M.loadRigs)", 1, true), "wardrobe loads the rigs")
+		local role = fs.readFile("games/robango-island/src/server/RoleWorld.luau")
+		for _, needle in
+			{
+				"survivorFigure(facility.anchor, target)",
+				'survivorFigure("castaway:" .. actor, npc)',
+				'survivorFigure("town:" .. anchor.id, handle)',
+			}
+		do
+			assert(string.find(role, needle, 1, true), "RoleWorld wires " .. needle)
+		end
+		local Assets = require("./src/shared/Assets")
+		assert(string.match(Assets[Survivor.RIG_PACKAGE], "^rbxassetid://%d+$"), "mesh-survivors has an asset id")
+	end,
 }

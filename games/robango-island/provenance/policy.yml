@@ -21,6 +21,6 @@ assets:
         blender-gen-nodes-b1b,
         gen-creatures,
       ]
-    blender: [robango-gen-buildings, robango-gen-tools]
+    blender: [robango-gen-buildings, robango-gen-tools, robango-gen-survivors]
   licensedKinds: [sfx, image]
   denyTools: [audiocraft, roblox-cube, hunyuan3d-2]
