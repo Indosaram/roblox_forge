@@ -248,7 +248,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		line.Name, line.BackgroundTransparency, line.Position = "Line", 1, UDim2.fromScale(0.06, 0.62)
 		line.Size, line.Font, line.TextWrapped = UDim2.fromScale(0.88, 0.34), Enum.Font.BuilderSans, true
 		line.TextScaled, line.TextColor3, line.Parent = true, rgb(0xCFC4AD), button
-		local entry = { button = button, icon = glyph, title = name, line = line, rim = rim, option = "" }
+		-- The badge art sits on the inner label: `glyph.Image` is the ImageLabel's own Image property
+		-- (a string), never this child (p134 v49: "attempt to index string with 'Image'" each snapshot).
+		local entry =
+			{ button = button, icon = glyph, image = inner, title = name, line = line, rim = rim, option = "" }
 		button.Activated:Connect(function()
 			choose(entry.option)
 		end)
@@ -308,11 +311,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				local item = card(index)
 				item.option, item.button.Visible = entry.option, true
 				item.title.Text, item.line.Text = entry.title, entry.line
-				-- The badge is an ImageLabel, so `.Image` is its own string property, not the child "Image".
-				local inner = item.icon:FindFirstChild("Image")
-				if inner then
-					inner.Image = DownPanel_icon(ctx.icons, entry.option)
-				end
+				item.image.Image = DownPanel_icon(ctx.icons, entry.option)
 				item.icon:SetAttribute("ForgeIconKey", M.ICON_ASSETS[entry.option])
 				item.button:SetAttribute("ForgeIcon", entry.icon)
 				item.rim.Color = if entry.active then rgb(0x5FA8A0) else rgb(0x8A7560)

@@ -146,3 +146,38 @@ en-us and ko-kr rows), the spec adaptations in `p94/fix.md` and
 `p97/headroom.md`, and QA-PERF-01 in `qa-evidence.spec.luau`. p97 reports a
 full `forge test` run of 2850 passed, 0 failed. The moved text has not been
 viewed in Studio on `888ea31` (see [qa-evidence.md](qa-evidence.md)).
+
+## ADR-13: Fullness floor on join (2026-10-29, p134 v49/v50)
+
+**Decision.** When a saved, living survivor joins a server, its fullness is
+raised to at least `CraftingAdapter.JOIN_FULLNESS_FLOOR_MILLI` (50 of 100). This
+applies only on join (`Session.join` -> `loadPlayer(..., rebase = true)`). It
+never lowers fullness. It does not apply to a fresh character (who starts full),
+to a dead survivor, or to a mid-session `hydrate`.
+
+**Why.** On the phone, a returning account joined at fullness 8 with no food in
+its bag and starved about 11 minutes after Start (v49). The next session joined at 29 and was
+downed 8 minutes later (v50); the town joined at 0 and died at 8.5 minutes.
+Hunger only ticks while online, so the player logged off nearly empty and came
+back to an immediate death before they could reach the berry bush. At the
+shipped 18 s per unit, 50 gives 15 minutes before hunger starts to hurt and
+about 23 minutes before death. That is enough time to find food, but a
+survivor who logs off hungry still comes back hungry. Respawns already refill
+fullness to 100 (`respawnValues`), and a new character starts at 100.
+
+**Rejected.**
+- A guaranteed food grant on join: it mints items, so it would affect the economy.
+- A per-player food node placed nearby: it needs world wiring in every role.
+
+**Shape.**
+- `genres/survival-coop/module/CraftingAdapter.luau` `loadPlayer` clamps
+  `hungerMilli` up to the floor on join and clears the hunger and starvation
+  remainders.
+- The save format is unchanged.
+
+**Evidence.** `games/robango-island/OnboardingFood.spec.luau` "a returning
+survivor who logged off nearly empty joins with the fullness floor". It plays the
+real RoleWorld, SurvivalFactory, Session and MemoryBackend through two sessions:
+log off at fullness <= 10 with an empty bag, close, then rejoin on the same
+backend. The survivor joins at exactly 50 and loses no health over the next
+14 minutes. Without the clamp it joins at 2.

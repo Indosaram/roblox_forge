@@ -8,6 +8,8 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ContentProvider = game:GetService("ContentProvider")
+local GuiService = game:GetService("GuiService")
+local StarterGui = game:GetService("StarterGui")
 local Flow = require(script.Parent:WaitForChild("TitleFlow"))
 
 ReplicatedFirst:RemoveDefaultLoadingScreen()
@@ -21,6 +23,10 @@ playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
 	if playerGui.ScreenOrientation ~= LANDSCAPE then
 		playerGui.ScreenOrientation = LANDSCAPE
 	end
+end)
+-- The Roblox Backpack hotbar stays hidden under the title and under full sheets (TitleFlow).
+Flow.bindBackpack(player, function(shown: boolean)
+	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, shown)
 end)
 local function rgb(value: number): Color3
 	return Color3.fromRGB(bit32.rshift(value, 16), bit32.band(bit32.rshift(value, 8), 0xFF), bit32.band(value, 0xFF))
@@ -36,11 +42,12 @@ gui.IgnoreGuiInset, gui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling
 
 local backdrop = Instance.new("Frame")
 backdrop.Name, backdrop.Size, backdrop.BorderSizePixel = "Backdrop", UDim2.fromScale(1, 1), 0
-backdrop.BackgroundColor3, backdrop.Parent = C.tealDeep, gui
--- Our own key art: the place's primary store thumbnail (assets/store/store.yml), cropped to fill.
+backdrop.BackgroundColor3, backdrop.ClipsDescendants, backdrop.Parent = C.tealDeep, true, gui
+-- Our own key art: the place's primary store thumbnail (assets/store/store.yml). Placed by
+-- Flow.art below the top bar so its wordmark is never under it.
 local art = Instance.new("ImageLabel")
 art.Name, art.Size, art.BackgroundTransparency = "Art", UDim2.fromScale(1, 1), 1
-art.ScaleType, art.Image = Enum.ScaleType.Crop, Flow.background(game.PlaceId) or ""
+art.ScaleType, art.Image = Enum.ScaleType.Stretch, Flow.background(game.PlaceId) or ""
 art.Parent = backdrop
 -- Left-side shade so the copy stays readable over the bright sea.
 local shade = Instance.new("Frame")
@@ -103,7 +110,10 @@ gui.Parent = playerGui
 
 local function place()
 	local size = (workspace.CurrentCamera :: Camera).ViewportSize
-	local rects = Flow.layout(size.X, size.Y)
+	local top = math.max(GuiService.TopbarInset.Max.Y, Flow.TOP_INSET)
+	local rects = Flow.layout(size.X, size.Y, top)
+	local frame = Flow.art(size.X, size.Y, top)
+	art.Position, art.Size = UDim2.fromOffset(frame.x, frame.y), UDim2.fromOffset(frame.width, frame.height)
 	for name, item in
 		{
 			title = title,
@@ -126,6 +136,7 @@ end
 place()
 local camera = workspace.CurrentCamera :: Camera
 local resize = camera:GetPropertyChangedSignal("ViewportSize"):Connect(place)
+local inset = GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(place)
 
 -- Copy: the Strings LocalizationTable (cli.title.* and game_name rows of locale/strings.csv).
 local text: { [string]: string }? = nil
@@ -181,6 +192,7 @@ local function close()
 		stepper:Disconnect()
 	end
 	resize:Disconnect()
+	inset:Disconnect()
 	start.Active, settings.Active = false, false
 	if controls then
 		controls:Enable()

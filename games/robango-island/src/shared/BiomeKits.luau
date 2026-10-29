@@ -580,6 +580,11 @@ function M.load(kits: { string }, assets: { [string]: string }): { [string]: any
 	return templates
 end
 
+-- Families a tap ray can hit (TapRouter.DECOR_FAMILIES): the scenery that looks gatherable, so a tap
+-- on it gathers from a node beside it or says where to gather (p134 v50: a fern tap only walked).
+-- None collide; grass and clutter stay unqueryable.
+M.QUERYABLE = table.freeze({ tree = true, rock = true, fern = true, shrub = true })
+
 --- Server: clones templates for every placement under `parent` (a Folder named ForgeBiomeKits).
 --- `surface(x, z)` is the rendered terrain top there (a server raycast). Voxel terrain rounds a
 --- FillBlock top up to the 4-stud voxel grid (column top 2.0 renders at 4.0), so the planned
@@ -600,7 +605,7 @@ function M.place(
 		end
 		local part = template:Clone()
 		part.Anchored, part.CanCollide, part.CanTouch = true, false, false
-		part.CanQuery = p.family == "tree" or p.family == "rock"
+		part.CanQuery = M.QUERYABLE[p.family] == true
 		part.CastShadow = p.family == "tree" or p.family == "rock"
 		part.Size = template.Size * p.scale
 		local y = if surface then surface(p.x, p.z) or p.y else p.y

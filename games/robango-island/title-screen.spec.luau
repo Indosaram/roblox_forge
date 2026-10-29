@@ -199,4 +199,77 @@ return {
 		)
 		assert(Flow.background(0) == nil, "Studio local place: palette only")
 	end,
+	-- p134 v49: the Roblox Backpack hotbar (tool tiles) drew over the title and over the bottom of
+	-- the bag and craft sheets. It is hidden under the title, shown after Start, hidden again while a
+	-- full sheet is open; hiding the CoreGui never unequips the held tool.
+	["the backpack hotbar hides under the title and full sheets and returns after Start"] = function()
+		local attributes: { [string]: any } = {}
+		local watchers: { [string]: { () -> () } } = {}
+		local player = {
+			GetAttribute = function(_, name: string)
+				return attributes[name]
+			end,
+			SetAttribute = function(_, name: string, value: any)
+				attributes[name] = value
+				for _, fn in watchers[name] or {} do
+					fn()
+				end
+			end,
+			GetAttributeChangedSignal = function(_, name: string)
+				return {
+					Connect = function(_, fn)
+						watchers[name] = watchers[name] or {}
+						table.insert(watchers[name], fn)
+						return { Disconnect = function() end }
+					end,
+				}
+			end,
+		}
+		local applied: { boolean } = {}
+		Flow.bindBackpack(player, function(shown: boolean)
+			table.insert(applied, shown)
+		end)
+		assert(#applied == 1 and applied[1] == false, "hidden at once under the title")
+		player:SetAttribute("ForgeSurvivalSheetOpen", true)
+		assert(#applied == 1, "still hidden, no redundant call")
+		player:SetAttribute("ForgeSurvivalSheetOpen", false)
+		player:SetAttribute("ForgeTitleDone", true)
+		assert(applied[#applied] == true, "Start restores the hotbar")
+		player:SetAttribute("ForgeSurvivalSheetOpen", true)
+		assert(applied[#applied] == false, "the bag or craft sheet hides it")
+		player:SetAttribute("ForgeSurvivalSheetOpen", false)
+		assert(applied[#applied] == true, "closing the sheet brings it back")
+		player:SetAttribute("ForgeExtensionSheetOpen", true)
+		assert(applied[#applied] == false, "an extension sheet hides it too")
+		-- The live wiring: the boot applies it to the Backpack CoreGui and never unequips.
+		local boot = fs.readFile("games/robango-island/src/first/RobangoBoot.client.luau")
+		assert(string.find(boot, "Flow.bindBackpack(player, function(shown: boolean)", 1, true), "bound in the boot")
+		assert(
+			string.find(boot, "StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, shown", 1, true),
+			"applied to the Backpack CoreGui"
+		)
+		assert(not string.find(boot, "UnequipTools", 1, true), "the held tool stays equipped")
+		-- The sheets publish the attributes the binding reads.
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, 'player:SetAttribute("ForgeSurvivalSheetOpen", sheet.frame.Visible)', 1, true), "bag")
+		local panels = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
+		assert(string.find(panels, 'SetAttribute("ForgeExtensionSheetOpen", open', 1, true), "extension sheets")
+	end,
+	-- p134 v49 (2400x1080, 850x411 logical, top bar 58): the full-screen crop of the 16:9 key art
+	-- cut its top, and the ROBANGO wordmark sat under the Roblox top bar.
+	["the key art and its wordmark start below the top bar and fill the safe area"] = function()
+		for _, viewport in { { 850, 411, 58 }, { 800, 360, 58 }, { 1280, 720, 58 }, { 1920, 1080, 36 } } do
+			local width, height, top = viewport[1], viewport[2], viewport[3]
+			local art = Flow.art(width, height, top)
+			local label = width .. "x" .. height
+			assert(art.y >= top, "art top under the top bar at " .. label)
+			assert(art.x <= 0 and art.x + art.width >= width, "art spans the width at " .. label)
+			assert(art.y + art.height >= height, "art reaches the bottom at " .. label)
+			assert(math.abs(art.width / art.height - Flow.ART_ASPECT) < 0.01, "art keeps its aspect at " .. label)
+		end
+		local boot = fs.readFile("games/robango-island/src/first/RobangoBoot.client.luau")
+		assert(string.find(boot, "local frame = Flow.art(size.X, size.Y, top)", 1, true), "boot places the art")
+		assert(string.find(boot, "GuiService.TopbarInset.Max.Y", 1, true), "from the live top bar")
+		assert(string.find(boot, "Flow.layout(size.X, size.Y, top)", 1, true), "copy below the same top")
+	end,
 }

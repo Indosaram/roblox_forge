@@ -256,4 +256,77 @@ return {
 		x, z = TapRouter.steer(5, 5, right, forward)
 		assert(x == nil and z == nil, "inside slop no steer")
 	end,
+	-- p134 v50: tapping a fern and a palm only walked the character. Palms are BiomeKits "tree" rows
+	-- (queryable scenery: a tree tap gathers from a node beside it or says where wood comes from).
+	-- Ferns and bushes are scenery too ("fern"/"shrub" rows), but were CanQuery=false, so the tap ray
+	-- went through them to the ground. The real gather ferns are fiber nodes (tagged, mesh queryable).
+	["fern, bush, palm and rock scenery are tappable and each says where to gather"] = function()
+		local Kits = require("../shared/BiomeKits")
+		local strings = fs.readFile("games/robango-island/locale/strings.csv")
+		local Fixture = require("../../PackText.fixture")
+		local looks = { "tree", "rock", "fern", "shrub" }
+		for _, family in looks do
+			assert(Kits.QUERYABLE[family] and TapRouter.DECOR_FAMILIES[family], family .. " scenery is tappable")
+			local key = "cli.gather.decor_" .. family
+			assert(string.find(strings, "\n" .. key .. ",", 1, true), key .. " row")
+			assert(Fixture.packText("ko-kr", key) and Fixture.packText("en-us", key), key .. " both locales")
+		end
+		assert(not Kits.QUERYABLE.grass and not Kits.QUERYABLE.clutter, "grass and litter stay out of taps")
+		local palms = 0
+		for _, rows in Kits.kits do
+			for _, row in rows do
+				if string.find(row.key, "palm", 1, true) then
+					palms += 1
+					assert(row.family == "tree", row.key .. " is tree scenery")
+				end
+			end
+		end
+		assert(palms >= 3, "palm rows found")
+		-- BiomeKits.place (the server's real placement path) applies it to every placed part.
+		local environment: any = {
+			require = function(path: string): any
+				return if string.find(path, "Rng", 1, true)
+					then require("../../../../core/domain/random/Rng")
+					else require("../shared/BiomeKitsB1b")
+			end,
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local Placer = luau.load(fs.readFile("games/robango-island/src/shared/BiomeKits.luau"), {
+			environment = environment,
+		})()
+		local folder = roblox.Instance.new("Folder")
+		local loaded, placements = {}, {}
+		for index, family in { "tree", "rock", "fern", "shrub", "grass", "clutter" } do
+			local template = roblox.Instance.new("Part")
+			template.Size = roblox.Vector3.new(2, 2, 2)
+			loaded["k." .. family] = template
+			table.insert(
+				placements,
+				{ key = "k." .. family, family = family, x = index, y = 0, z = 0, yaw = 0, scale = 1 }
+			)
+		end
+		assert(Placer.place(folder, placements, loaded, nil, 0) == 6, "all placed")
+		for _, part in folder:GetChildren() do
+			local family = part:GetAttribute("ForgeKitFamily")
+			assert(part.CanQuery == (Kits.QUERYABLE[family] == true), family .. " CanQuery")
+			assert(part.CanCollide == false, family .. " never collides")
+		end
+		-- A fern tap with no node beside it routes to decor and says where fiber comes from.
+		local V = roblox.Vector3
+		local Router = loadWithGame(V.new(0, 0, 0))
+		local router = Router.new()
+		local said = {}
+		router.register("ground", function()
+			return true
+		end)
+		Router.installActions(router, {}, nil, function()
+			return true
+		end, function(family)
+			table.insert(said, family)
+		end)
+		assert(router.dispatch({ decor = "fern", ground = V.new(1, 0, 1) }) == "ground", "the walk still runs")
+		assert(said[1] == "fern", "the player is told where fiber comes from")
+	end,
 }

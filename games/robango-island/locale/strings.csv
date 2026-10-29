@@ -2980,6 +2980,8 @@ cli.gather.levelup,Skill grew,gather skill level-up banner title,Skill grew,기�
 cli.gather.banner,%s Lv %d,"gather skill level-up banner line (skill, level)",%s Lv %d,%s Lv %d
 cli.gather.decor_rock,"Scenery rock: gather stone at a marked stone pile or flint outcrop.",gather tap on a decorative boulder with no gather node nearby,"Scenery rock: gather stone at a marked stone pile or flint outcrop.","풍경 바위예요. 돌은 표시된 돌무더기나 부싯돌 노두에서 모아요."
 cli.gather.decor_tree,"Scenery tree: gather wood at a marked branch pile or fallen log.",gather tap on a decorative tree with no gather node nearby,"Scenery tree: gather wood at a marked branch pile or fallen log.","풍경 나무예요. 나무는 표시된 나뭇가지 더미나 쓰러진 통나무에서 모아요."
+cli.gather.decor_fern,"Scenery fern: gather fiber at a marked fiber tuft or bracken bed.",gather tap on a decorative fern with no gather node nearby,"Scenery fern: gather fiber at a marked fiber tuft or bracken bed.","풍경 고사리예요. 섬유는 표시된 섬유 덤불이나 고사리 군락에서 모아요."
+cli.gather.decor_shrub,"Scenery bush: gather berries at a marked berry bush or bramble patch.",gather tap on a decorative bush with no gather node nearby,"Scenery bush: gather berries at a marked berry bush or bramble patch.","풍경 덤불이에요. 열매는 표시된 딸기 덤불이나 나무딸기 덤불에서 모아요."
 cmb.end_combat,Step back,genre text cmb,Step back,물러서기
 cmb.level,Lv %d,genre text cmb,Lv %d,Lv %d
 cmb.taken,+%d %s,genre text cmb,+%d %s,+%d %s

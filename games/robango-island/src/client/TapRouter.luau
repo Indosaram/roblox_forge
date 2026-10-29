@@ -7,7 +7,7 @@ export type Probe = {
 	overUi: boolean?,
 	creature: any?,
 	node: any?,
-	-- ForgeKitFamily of a tapped biome-kit rock or tree that is scenery, not a gather node.
+	-- ForgeKitFamily of a tapped biome-kit rock, tree, fern or shrub that is scenery, not a gather node.
 	decor: string?,
 	ground: any?,
 }
@@ -143,6 +143,9 @@ end
 -- A scenery tap gathers from a node standing within DECOR_RADIUS studs of the tapped point; with
 -- none there, the decor handler says where stone and wood come from.
 M.DECOR_RADIUS = 16
+-- Scenery families that look gatherable (BiomeKits.QUERYABLE): p134 v50, a fern tap only walked. Each
+-- has a cli.gather.decor_<family> line.
+M.DECOR_FAMILIES = table.freeze({ rock = true, tree = true, fern = true, shrub = true })
 function M.decorNode(at: any, nodes: { any }, radius: number): any?
 	local best, bestDistance = nil, radius * radius
 	for _, node in nodes do
@@ -450,7 +453,7 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		end
 		local decor: string? = nil
 		local family = if hit and not node then hit.Instance:GetAttribute("ForgeKitFamily") else nil
-		if hit and (family == "rock" or family == "tree") then
+		if hit and type(family) == "string" and M.DECOR_FAMILIES[family] then
 			local nodes = {}
 			for _, part in CollectionService:GetTagged("ForgeSurvivalNode") do
 				if part:IsA("BasePart") and part:IsDescendantOf(world) then

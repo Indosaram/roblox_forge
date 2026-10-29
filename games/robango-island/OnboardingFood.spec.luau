@@ -16,7 +16,7 @@ local Durable = require("./src/shared/GenreDurable")
 
 local DOWNED = "11734795308"
 
-local function boot()
+local function boot(saved: any?, startAt: number?)
 	local engine = Engine.new(true)
 	local forge = engine.forge
 	local module = forge.genres["survival-coop"].module
@@ -66,7 +66,7 @@ local function boot()
 			ClanStoreWallet = require("../../core/infra/data/ClanStoreWallet"),
 		},
 	}
-	local at = { value = 1000 }
+	local at = { value = startAt or 1000 }
 	local clock = Clock.new(function()
 		return at.value
 	end)
@@ -108,7 +108,7 @@ local function boot()
 		Source.tribe.config.tribeId,
 		{ studio = false, server = "rescue-live" }
 	)
-	local backend = Memory.new()
+	local backend = saved or Memory.new()
 	local encode = function(value)
 		return serde.encode("json", value)
 	end
@@ -148,6 +148,7 @@ local function boot()
 		engine = engine,
 		session = session,
 		factory = factory,
+		backend = backend,
 		command = command,
 		at = at,
 		heartbeat = function()
@@ -264,5 +265,37 @@ return {
 			)
 		)
 		live.factory.close()
+	end,
+	-- p134 v49: a returning (not fresh) account started at fullness 8 with no food and starved about
+	-- 11 minutes after Start. The join floor (ADR-13) gives a living survivor at least
+	-- CraftingAdapter.JOIN_FULLNESS_FLOOR_MILLI on join, through the real Session.join wiring.
+	["a returning survivor who logged off nearly empty joins with the fullness floor"] = function()
+		local Adapter = require("../../genres/survival-coop/module/CraftingAdapter")
+		local first = boot()
+		assert(first.session.join(DOWNED).ok, "first join")
+		arrive(first, DOWNED)
+		-- Spend the bag's berries elsewhere: the worst case is an empty bag.
+		while berryId(first) do
+			assert(first.command(DOWNED, "survival-coop:food", { berryId(first) }).ok, "eat the starter berries")
+		end
+		play(first, 29 * MINUTE + 15, false)
+		local left = vitals(first)
+		assert(left.healthMilli > 0 and left.hungerMilli <= 10000, "logged off nearly empty: " .. left.hungerMilli)
+		local leftAt = first.at.value
+		assert(first.session.close(DOWNED).ok, "leave saves")
+		first.factory.close()
+		local back = boot(first.backend, leftAt + 600)
+		assert(back.session.join(DOWNED).ok, "rejoin")
+		arrive(back, DOWNED)
+		local joined = vitals(back)
+		assert(
+			joined.hungerMilli == Adapter.JOIN_FULLNESS_FLOOR_MILLI,
+			"joined at fullness " .. joined.hungerMilli // 1000
+		)
+		assert(berryId(back) == nil, "still no food in the bag")
+		-- The floor is a real runway: 14 minutes of looking for food costs no health.
+		local lowest = play(back, 14 * MINUTE, false)
+		assert(lowest == joined.healthMilli, "health fell to " .. lowest .. " within 14 minutes of joining")
+		back.factory.close()
 	end,
 }

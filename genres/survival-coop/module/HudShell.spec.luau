@@ -517,4 +517,119 @@ return {
 		assert(#sent == 1 and sent[1] == "fiber", "the second open gathers the first output")
 		picker.destroy()
 	end,
+	-- p134 v49: the first pick on a fan opened from the gather button answered "too far, move
+	-- closer" (server reach 8 studs with a clear ray). A pick out of reach now walks up first and then
+	-- gathers, like the combat approach; a NODE_UNREACHABLE answer walks closer and retries once.
+	["a gather pick out of reach walks into range and then gathers"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local V = roblox.Vector3
+		local gui = roblox.Instance.new("ScreenGui")
+		local node = roblox.Instance.new("Part")
+		node.Position, node.Parent = V.new(9, 0, 0), roblox.Instance.new("Folder")
+		local root = { Position = V.new(0, 0, 0) }
+		local function signal()
+			return {
+				Connect = function()
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		-- Registered once per process; another spec in the run may have done it already.
+		pcall(roblox.implementProperty, "TextButton", "Activated", function()
+			return signal()
+		end)
+		local services: { [string]: any } = {
+			RunService = { RenderStepped = signal() },
+			GuiService = {},
+			UserInputService = { InputBegan = signal() },
+			Players = {
+				LocalPlayer = {
+					Character = {
+						FindFirstChild = function(_, name)
+							return if name == "HumanoidRootPart" then root else nil
+						end,
+					},
+				},
+			},
+			Workspace = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+			task = {
+				spawn = function(fn, ...)
+					fn(...)
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		local sent: { { item: string, at: number } } = {}
+		local walks: { { within: number, arrive: () -> () } } = {}
+		local answer: any = { ok = true }
+		local picker = shell.startPicker({
+			gui = gui,
+			touch = function()
+				return true
+			end,
+			hidden = function()
+				return false
+			end,
+			offered = function()
+				return { { item = "fiber", quantity = 3 }, { item = "branch", quantity = 1 } }, 1
+			end,
+			nodeName = function()
+				return "fern"
+			end,
+			itemName = function(item)
+				return item
+			end,
+			icon = function()
+				return nil
+			end,
+			gather = function(_, output)
+				table.insert(sent, { item = output, at = root.Position.X })
+				return answer
+			end,
+			text = function(key)
+				return if key == "toast" then "+%d %s" else key
+			end,
+			reach = 10,
+			approach = function(part, within, arrive)
+				assert(part == node, "walks to the picked node")
+				table.insert(walks, { within = within, arrive = arrive })
+			end,
+		})
+		-- The fan is open 9 studs away (inside the fan's 10, outside gather reach).
+		assert(picker.open(node), "fan opens")
+		assert(picker.open(node), "the gather button picks the default output")
+		assert(#sent == 0 and #walks == 1, "no refused gather is sent: the character walks first")
+		assert(walks[1].within <= shell.PICK_REACH, "walks inside gather reach")
+		root.Position = V.new(7, 0, 0)
+		walks[1].arrive()
+		assert(#sent == 1 and sent[1].item == "fiber" and sent[1].at == 7, "gathers on arrival")
+		-- In reach: gathers at once, no walk.
+		picker.open(node)
+		assert(#sent == 2 and #walks == 1, "in reach gathers at once")
+		-- The server still says too far (height, a blocked ray): walk closer and retry once.
+		answer = { ok = false, reason = "NODE_UNREACHABLE" }
+		picker.open(node)
+		assert(#sent == 3 and #walks == 2, "an unreachable answer walks closer")
+		walks[2].arrive()
+		assert(#sent == 4 and #walks == 2, "one retry after the walk, no loop")
+		picker.destroy()
+		-- The live wiring: the client hands the tap router's walk to the picker.
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(client, "walkTo(part.Position, within, arrive)", 1, true), "picker approach")
+		assert(string.find(client, "walkTo = tapInput.moveTo", 1, true), "bound to the tap router walk")
+	end,
 }

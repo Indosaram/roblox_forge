@@ -201,6 +201,9 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 end
 
 M.PREVIOUS_SAVE_VERSION = 2
+-- Fullness (milli) a living survivor has at least on join: 15 minutes before hunger hurts at the
+-- shipped 18 s per unit. Only raises; dead, fresh and fuller survivors are untouched (ADR-13).
+M.JOIN_FULLNESS_FLOOR_MILLI = 50000
 
 function M.upgradeSave(data: Shared.StateData): Shared.StateData
 	local copy = table.clone(data)
@@ -1256,6 +1259,12 @@ function M.new(
 				restored.clockMillis = nowMillis
 				restored.online = true
 				restored.resting = false
+				-- Join floor (ADR-13): a returning survivor who logged off nearly empty gets a runway to
+				-- find food instead of starving minutes after Start (p134 v49: fullness 8, dead in ~11 min).
+				if restored.healthMilli > 0 and restored.hungerMilli < M.JOIN_FULLNESS_FLOOR_MILLI then
+					restored.hungerMilli, restored.hungerRemainder = M.JOIN_FULLNESS_FLOOR_MILLI, 0
+					restored.starvationRemainder = 0
+				end
 			elseif nowMillis > restored.clockMillis then
 				local projected = Vitals.advance(restored, nowMillis)
 				if not config.survivalDeath or restored.healthMilli == 0 or projected.healthMilli > 0 then

@@ -1396,7 +1396,15 @@ export type PickerOptions = {
 	text: (string) -> string,
 	-- Studs: the fan closes once the character is this far from the node.
 	reach: number,
+	-- Walks the character to within `within` flat studs of the node, then calls `arrive` (the tap
+	-- router's moveTo; a newer walk or tap supersedes it and `arrive` never runs). With it, a pick
+	-- out of gather reach walks up first, and a NODE_UNREACHABLE answer walks closer and retries once.
+	approach: ((any, number, () -> ()) -> ())?,
 }
+
+-- Flat studs: a pick farther than PICK_REACH from its node walks to PICK_STOP first (server reach is
+-- 8 studs in 3D with a clear ray; p134 v49: the first pick answered "too far, move closer").
+M.PICK_REACH, M.PICK_STOP = 5, 3
 
 --- Gather picker runtime plus the item toasts and the skill banner. Returns
 --- { open(part), close(), isOpen(), toast(line), banner(title, line), destroy() }.
@@ -1496,9 +1504,15 @@ function M.startPicker(options: PickerOptions): any
 		local point, visible = camera:WorldToViewportPoint(part.Position)
 		return if visible and point.Z > 0 then point.X else nil, point.Y
 	end
-	local function pick(index: number)
-		local part, entry = current, outputs[index]
-		if busy or not part or not entry then
+	local function gap(part: any): number?
+		local character = player.Character
+		local body = character and character:FindFirstChild("HumanoidRootPart")
+		return if body
+			then Vector3.new(body.Position.X - part.Position.X, 0, body.Position.Z - part.Position.Z).Magnitude
+			else nil
+	end
+	local function send(part: any, entry: { item: string, quantity: number }, walked: boolean)
+		if busy then
 			return
 		end
 		busy = true
@@ -1509,7 +1523,34 @@ function M.startPicker(options: PickerOptions): any
 				text = string.format(options.text("toast"), entry.quantity, options.itemName(entry.item)),
 				at = os.clock(),
 			})
+		elseif
+			options.approach
+			and not walked
+			and type(result) == "table"
+			and result.reason == "NODE_UNREACHABLE"
+			and part.Parent
+		then
+			options.approach(part, M.PICK_STOP, function()
+				send(part, entry, true)
+			end)
 		end
+	end
+	local function pick(index: number)
+		local part, entry = current, outputs[index]
+		if busy or not part or not entry then
+			return
+		end
+		local distance = gap(part)
+		if options.approach and distance and distance > M.PICK_REACH then
+			-- Walk into reach, then gather, like the combat approach (never a "too far" refusal).
+			options.approach(part, M.PICK_STOP, function()
+				if part.Parent then
+					send(part, entry, true)
+				end
+			end)
+			return
+		end
+		send(part, entry, false)
 	end
 	local function open(part: any)
 		-- The fan is already open on this node: the big gather button (or another tap on the node)

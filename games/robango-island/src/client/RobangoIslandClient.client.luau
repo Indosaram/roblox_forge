@@ -144,6 +144,8 @@ local GatheringClient = require(Forge.genres["survival-coop"].module.GatheringCl
 -- C2 gather picker: a prompt, the touch button or a routed tap (TapRouter triggers the prompt) on a
 -- node opens the shell fan of its offered outputs; the fan sends the picked output.
 local gatherPicker: any = nil
+-- The tap router's walk, set once TapRouter starts below; the gather picker walks into reach with it.
+local walkTo: ((Vector3, number, () -> ()) -> ())? = nil
 local gathering = GatheringClient.start({
 	locale = locale,
 	names = names,
@@ -286,6 +288,11 @@ do
 			return clientText(locale, "cli.gather." .. key) or key
 		end,
 		reach = 10,
+		approach = function(part: BasePart, within: number, arrive: () -> ())
+			if walkTo then
+				walkTo(part.Position, within, arrive)
+			end
+		end,
 	})
 	gui.Destroying:Connect(gatherPicker.destroy)
 	local fanWatch = game:GetService("RunService").Heartbeat:Connect(function()
@@ -1324,6 +1331,7 @@ local tapInput = TapRouter.start({
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
 	end,
 })
+walkTo = tapInput.moveTo
 -- R01 join screen (ReplicatedFirst RobangoBoot): the HUD, panels and camera above are built, so
 -- the loading screen may turn into the title now; its Start sets ForgeTitleDone.
 player:SetAttribute("ForgeHudReady", true)
@@ -1369,7 +1377,7 @@ local removeTapActions, send = TapRouter.installActions(
 	function(part: BasePart): boolean
 		return gatherPicker ~= nil and gatherPicker.open(part)
 	end,
-	-- Scenery rock or tree with no gather node beside it: say where stone and wood come from.
+	-- Scenery rock, tree, fern or bush with no gather node beside it: say where to gather instead.
 	function(family: string)
 		if gatherPicker then
 			gatherPicker.toast(clientText(locale, "cli.gather.decor_" .. family) or family)

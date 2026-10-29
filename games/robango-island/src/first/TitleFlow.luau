@@ -161,6 +161,61 @@ end
 
 export type Rect = { x: number, y: number, width: number, height: number, textSize: number? }
 
+-- The store thumbnail's aspect (Flow.background asks for 768x432).
+M.ART_ASPECT = 768 / 432
+
+--- Key art rect for a `width` x `height` IgnoreGuiInset view whose top bar reaches `top` px. The
+--- wordmark sits at the top of the art, so the art starts below the top bar and fills the safe
+--- area at its own aspect, cropping only the bottom and the sides (p134 v49: a centred full-screen
+--- crop put the logo under the Roblox top bar).
+function M.art(width: number, height: number, top: number, aspect: number?): Rect
+	local ratio = aspect or M.ART_ASPECT
+	local artWidth = math.max(width, math.ceil((height - top) * ratio))
+	return {
+		x = math.floor((width - artWidth) / 2),
+		y = top,
+		width = artWidth,
+		height = math.ceil(artWidth / ratio),
+	}
+end
+
+--- Whether the Roblox Backpack hotbar may show: never under the title (p134 v49: tool tiles drew
+--- over it) and never under a full sheet (the bag and craft sheets reach the hotbar band).
+--- Hiding the Backpack CoreGui only hides the bar; an equipped tool stays equipped.
+function M.backpackShown(titleDone: boolean, sheetOpen: boolean): boolean
+	return titleDone and not sheetOpen
+end
+
+M.SHEET_ATTRIBUTES = table.freeze({ "ForgeSurvivalSheetOpen", "ForgeExtensionSheetOpen" })
+
+--- Keeps the Backpack CoreGui on `backpackShown` for the session: `apply(shown)` sets it (the boot
+--- passes StarterGui:SetCoreGuiEnabled). Applies at once (hidden under the title) and on every
+--- change of ForgeTitleDone or a sheet attribute. Returns the disconnect.
+function M.bindBackpack(player: any, apply: (boolean) -> ()): () -> ()
+	local last: boolean? = nil
+	local function sync()
+		local sheet = false
+		for _, name in M.SHEET_ATTRIBUTES do
+			sheet = sheet or player:GetAttribute(name) == true
+		end
+		local shown = M.backpackShown(player:GetAttribute("ForgeTitleDone") == true, sheet)
+		if shown ~= last then
+			last = shown
+			apply(shown)
+		end
+	end
+	local connections = {}
+	for _, name in { "ForgeTitleDone", table.unpack(M.SHEET_ATTRIBUTES) } do
+		table.insert(connections, player:GetAttributeChangedSignal(name):Connect(sync))
+	end
+	sync()
+	return function()
+		for _, connection in connections do
+			connection:Disconnect()
+		end
+	end
+end
+
 --- Landscape layout in screen pixels (IgnoreGuiInset ScreenGui) for a `width` x `height` view.
 --- One unit is height/360, capped at 1.6. The left column stacks the title and tagline over the
 --- loading block (tip, status, bar), whose area the Start button takes over in the title phase. The
