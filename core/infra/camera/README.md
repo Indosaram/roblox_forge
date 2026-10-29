@@ -10,7 +10,7 @@ The render event follows the character without changing its transparency. A
 0.75-stud sphere sweep shortens the camera arm at solid geometry (the requested
 zoom remains unchanged). Camera replacement restores the old camera before taking
 ownership of the replacement. Stop restores camera type, subject, transform,
-focus, and FOV, resets every owned local fade, and disconnects all five listeners.
+focus, and FOV, resets every owned local fade, and disconnects all its listeners.
 Character removal/addition clears local fades and pending pinch gestures.
 
 Tag eligible roof/foliage BaseParts or their ancestor Models `ForgeCameraRoof` or
@@ -35,6 +35,17 @@ Opt-in options (defaults unchanged when omitted):
   `api.share()` returns the current share. Robango uses 5.5 studs, 6% (range 3-15%).
 - `touchRotate = false` ignores TouchRotate (fixed yaw on touch). The `[`/`]` keys
   and right-drag still rotate on PC.
+- `pinchBlocked = function(x, y): boolean` switches touch zoom to raw touches:
+  two fingers tracked through InputBegan/InputChanged/InputEnded scale the zoom by
+  their spread (cumulative from the second finger's landing), whatever the
+  gameProcessed flag says. Phones report world touches as processed, so the
+  TouchPinch path above never zoomed there (p134 v54). A finger that lands where
+  `pinchBlocked` returns true (UI) never joins a pinch; TouchPinch is ignored.
+- `closePitch` / `closeFocusHeight` (stud zoom only) ease the pitch and focus height
+  linearly from their values at `minDistance` to `pitch` / `focusHeight` at
+  `maxDistance`: a low over-the-shoulder view when zoomed in. `api.zoomTo(d)` sets
+  the arm with the same clamp. Robango uses pitch 55->30, 50 studs, zoom 12-60
+  (`games/robango-island/src/shared/CameraConfig.luau`).
 
 It owns no GUI and does not
 consume movement/touch inputs. The HUD owner must independently use

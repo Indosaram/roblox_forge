@@ -10,6 +10,7 @@ local Scene = require("./OpeningScene")
 local HudShell = require("../../../../genres/survival-coop/module/HudShell")
 local HudLocale = require("../../../../genres/survival-coop/module/SurvivalHUDLocale")
 local DinosaurRig = require("../../../../genres/survival-coop/module/DinosaurRig")
+local CameraConfig = require("./CameraConfig")
 local M = {}
 
 M.COLD_OPEN_SECONDS, M.SKIP_AFTER = 25, 1.0
@@ -23,8 +24,10 @@ function M.shot(t: number): (number, number, number, number)
 	elseif t < 16 then
 		return 40, 150, 32, shake -- gust shot over the reef crest
 	end
-	local k = math.clamp((t - 16) / 1.5, 0, 1) -- settle toward the A1 default framing
-	return 40 + (57 - 40) * k, 150 + (80 - 150) * k, 32 + (45 - 32) * k, 0
+	-- Settle onto the play camera's default framing, so the hand-over to QuarterView does not jump.
+	local k = math.clamp((t - 16) / 1.5, 0, 1)
+	local pitch, distance = CameraConfig.pitch, CameraConfig.distance
+	return 40 + (pitch - 40) * k, 150 + (distance - 150) * k, 32 + (45 - 32) * k, 0
 end
 
 --- Caption key at `t` seconds of the cold open.

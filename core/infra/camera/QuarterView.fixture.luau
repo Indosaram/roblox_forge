@@ -49,7 +49,13 @@ function M.new(): any
 		return if name == "HumanoidRootPart" then f.root else nil
 	end
 	f.player = { Character = f.character, CharacterAdded = signal(), CharacterRemoving = signal() }
-	f.input = { InputChanged = signal(), InputBegan = signal(), TouchPinch = signal(), TouchRotate = signal() }
+	f.input = {
+		InputChanged = signal(),
+		InputBegan = signal(),
+		InputEnded = signal(),
+		TouchPinch = signal(),
+		TouchRotate = signal(),
+	}
 	function f.input:GetFocusedTextBox()
 		return f.focusedTextBox
 	end

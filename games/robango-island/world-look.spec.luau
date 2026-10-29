@@ -9,7 +9,7 @@ local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
 local SkyCycle = require("./src/shared/SkyCycle")
-local QuarterView = require("../../core/infra/camera/QuarterView.fixture").new().module
+local CameraConfig = require("./src/shared/CameraConfig")
 local Terrain = require("../../core/domain/island/ArchipelagoTerrain")
 local Dressing = require("./src/server/WorldDressing")
 local roblox: any = require("@lune/roblox")
@@ -18,17 +18,12 @@ local CLIENT = "games/robango-island/src/client/RobangoIslandClient.client.luau"
 local FOG = { 192, 215, 205 }
 
 -- Far edge of the play camera's frame: the ground point under the top of the view, at the
--- widest zoom the client allows (minShare), on a landscape screen (the short axis is vertical).
+-- widest zoom the client allows (CameraConfig.maxDistance, its pitch and FOV).
 local function cameraReach(): number
 	local source = fs.readFile(CLIENT)
-	local zoom = (loadstring("return " .. assert(string.match(source, "zoom = (%b{})"))) :: any)()
-	local start = assert(string.find(source, "QuarterView.start({", 1, true))
-	local pitch = assert(tonumber(string.match(source, "pitch = ([%d%.]+)", start)))
-	local fov = assert(tonumber(string.match(source, "fieldOfView = ([%d%.]+)", start)))
-	local distance =
-		QuarterView.distanceForShare(zoom.minShare, zoom.characterHeight, pitch, fov, 16 / 9, zoom.characterDepth)
-	local height = distance * math.sin(math.rad(pitch))
-	return height / math.sin(math.rad(pitch - fov / 2))
+	assert(string.find(source, "require(Shared.CameraConfig)", 1, true), "client camera config")
+	local height = CameraConfig.maxDistance * math.sin(math.rad(CameraConfig.pitch))
+	return height / math.sin(math.rad(CameraConfig.pitch - CameraConfig.fieldOfView / 2))
 end
 
 local function warm(light: any): boolean
@@ -63,7 +58,7 @@ end
 return {
 	["night fog ends beyond the play camera's far frame edge on every role and weather"] = function()
 		local reach = cameraReach()
-		assert(reach > 200, "camera reach measured: " .. reach)
+		assert(reach > 60, "camera reach measured: " .. reach)
 		local night = SkyCycle.at(1, FOG)
 		local brawl = { startsAt = 0, policy = Content.brawlPolicy }
 		for _, layout in Content.layouts do

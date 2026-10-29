@@ -18,6 +18,14 @@ export type Config = {
 	roofTag: string?,
 	zoom: Zoom?,
 	touchRotate: boolean?,
+	-- Pitch and focus height at minDistance; both ease linearly to `pitch` / `focusHeight` at
+	-- maxDistance, so a close zoom looks over the shoulder instead of down on the head.
+	closePitch: number?,
+	closeFocusHeight: number?,
+	-- Opt-in raw-touch pinch: two world touches (InputBegan/Changed/Ended, the events tap-to-move
+	-- already relies on) zoom by their spread. A touch starting where this returns true (UI) never
+	-- joins a pinch. Phones deliver world touches with gameProcessed=true, so it is not consulted.
+	pinchBlocked: ((x: number, y: number) -> boolean)?,
 }
 -- `characterDepth` (studs, optional): the character's front-to-back extent. A steep pitch shows
 -- the top of the body too, so the on-screen height is h*cos(pitch) + depth*sin(pitch).
@@ -54,6 +62,13 @@ function M.start(config: Config?)
 	assert(finite(distance), "invalid camera distance")
 	distance = math.clamp(distance, minimum, maximum)
 	local zoom = options.zoom
+	local closePitch, closeHeight = options.closePitch, options.closeFocusHeight or height
+	assert(
+		closePitch == nil or (finite(closePitch) and closePitch > 0 and closePitch < 90 and not zoom),
+		"invalid close pitch"
+	)
+	assert(finite(closeHeight), "invalid close focus height")
+	local pinchBlocked = options.pinchBlocked
 	local share = 0
 	if zoom then
 		local h, lo, hi = zoom.characterHeight, zoom.minShare, zoom.maxShare
@@ -76,6 +91,35 @@ function M.start(config: Config?)
 	local suspended = false
 	local pinchDistance: number? = nil
 	local rotateOrigin: number? = nil
+	-- Raw pinch: world touches by InputObject, and the spread/zoom when the second finger landed.
+	local touches: { [any]: { x: number, y: number } } = {}
+	local pinchBase: { gap: number, value: number }? = nil
+	local function gapOf(): number?
+		local a = next(touches)
+		local b = a ~= nil and next(touches, a) or nil
+		if a == nil or b == nil or next(touches, b) ~= nil then
+			return nil
+		end
+		local p, q = touches[a], touches[b]
+		local gap = math.sqrt((p.x - q.x) ^ 2 + (p.y - q.y) ^ 2)
+		return if gap > 0 then gap else nil
+	end
+	local function rebase()
+		local gap = gapOf()
+		pinchBase = if gap then { gap = gap, value = if zoom then share else distance } else nil
+	end
+	local function forgetTouches()
+		table.clear(touches)
+		pinchBase = nil
+	end
+	-- Pitch and focus height for the current arm length (closePitch eases in toward minDistance).
+	local function framing(): (number, number)
+		if closePitch == nil then
+			return pitch, height
+		end
+		local t = if maximum > minimum then math.clamp((distance - minimum) / (maximum - minimum), 0, 1) else 1
+		return closePitch + (pitch - closePitch) * t, closeHeight + (height - closeHeight) * t
+	end
 	local function clear()
 		for part, original in faded do
 			part.LocalTransparencyModifier = original
@@ -132,8 +176,9 @@ function M.start(config: Config?)
 			distance =
 				M.distanceForShare(share, zoom.characterHeight, pitch, fov, aspectOf(current), zoom.characterDepth)
 		end
-		local focus = root.Position + Vector3.new(0, height, 0)
-		local y, p = math.rad(yaw), math.rad(pitch)
+		local viewPitch, focusHeight = framing()
+		local focus = root.Position + Vector3.new(0, focusHeight, 0)
+		local y, p = math.rad(yaw), math.rad(viewPitch)
 		local offset = Vector3.new(math.sin(y) * math.cos(p), math.sin(p), math.cos(y) * math.cos(p)) * distance
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
@@ -171,6 +216,7 @@ function M.start(config: Config?)
 			clear()
 			pinchDistance = nil
 			rotateOrigin = nil
+			forgetTouches()
 		end)
 	)
 	table.insert(
@@ -179,12 +225,26 @@ function M.start(config: Config?)
 			clear()
 			pinchDistance = nil
 			rotateOrigin = nil
+			forgetTouches()
 		end)
 	)
 	table.insert(
 		connections,
 		UserInputService.InputChanged:Connect(function(input: InputObject, processed: boolean)
-			if not processed and input.UserInputType == Enum.UserInputType.MouseWheel then
+			if pinchBlocked and input.UserInputType == Enum.UserInputType.Touch then
+				local tracked = touches[input]
+				if tracked then
+					tracked.x, tracked.y = input.Position.X, input.Position.Y
+					local base, gap = pinchBase, gapOf()
+					if base and gap and not suspended then
+						if zoom then
+							share = math.clamp(base.value * gap / base.gap, zoom.minShare, zoom.maxShare)
+						else
+							distance = math.clamp(base.value * base.gap / gap, minimum, maximum)
+						end
+					end
+				end
+			elseif not processed and input.UserInputType == Enum.UserInputType.MouseWheel then
 				distance = math.clamp(distance - input.Position.Z * 5, minimum, maximum)
 				if zoom then
 					share = math.clamp(share * 1.1 ^ input.Position.Z, zoom.minShare, zoom.maxShare)
@@ -201,6 +261,20 @@ function M.start(config: Config?)
 	table.insert(
 		connections,
 		UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+			if pinchBlocked and input.UserInputType == Enum.UserInputType.Touch then
+				-- A finger whose end never reached us (chat, console, menu) is no longer down.
+				for other in touches do
+					local state = other.UserInputState
+					if state ~= Enum.UserInputState.Begin and state ~= Enum.UserInputState.Change then
+						touches[other] = nil
+					end
+				end
+				if not pinchBlocked(input.Position.X, input.Position.Y) then
+					touches[input] = { x = input.Position.X, y = input.Position.Y }
+				end
+				rebase()
+				return
+			end
 			if processed or UserInputService:GetFocusedTextBox() then
 				return
 			end
@@ -208,6 +282,15 @@ function M.start(config: Config?)
 				yaw = (yaw - 45) % 360
 			elseif input.KeyCode == Enum.KeyCode.RightBracket then
 				yaw = (yaw + 45) % 360
+			end
+		end)
+	)
+	table.insert(
+		connections,
+		UserInputService.InputEnded:Connect(function(input: InputObject)
+			if pinchBlocked and touches[input] then
+				touches[input] = nil
+				rebase()
 			end
 		end)
 	)
@@ -244,6 +327,9 @@ function M.start(config: Config?)
 	table.insert(
 		connections,
 		UserInputService.TouchPinch:Connect(function(positions, scale, _velocity, state, processed)
+			if pinchBlocked then
+				return -- raw-touch pinch owns zoom
+			end
 			if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
 				pinchDistance = nil
 				return
@@ -302,6 +388,11 @@ function M.start(config: Config?)
 			)
 			share = math.clamp(s, zoom.minShare, zoom.maxShare)
 		end
+	end
+	-- Arm length request (the same clamp as wheel and pinch); Studio QA uses it for zoom captures.
+	function api.zoomTo(newDistance: number)
+		assert(not stopped and finite(newDistance) and not zoom, "invalid zoom request")
+		distance = math.clamp(newDistance, minimum, maximum)
 	end
 	function api.share(): number?
 		return if zoom then share else nil

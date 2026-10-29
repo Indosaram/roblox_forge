@@ -230,6 +230,29 @@ function M.gesture(live: ((any) -> boolean)?)
 	return g
 end
 
+-- True when screen point (x, y) is over interactive or opaque UI; the camera's pinch uses it too, so
+-- a finger that lands on a button never zooms and a finger on the world never presses a button.
+function M.overUi(player: Player, x: number, y: number): boolean
+	local gui = player:FindFirstChildOfClass("PlayerGui")
+	if not gui then
+		return false
+	end
+	for _, object in gui:GetGuiObjectsAtPosition(x, y) do
+		local screen = object:FindFirstAncestorWhichIsA("LayerCollector")
+		-- Decoration that opts out (the combat vignette corners) never swallows a world tap: an
+		-- engaged player could not tap a second creature under a corner (D2b R08 retarget).
+		if
+			object.Visible
+			and object:GetAttribute("ForgeTapThrough") ~= true
+			and (not screen or not screen:IsA("ScreenGui") or screen.Enabled)
+			and (object:IsA("GuiButton") or object.Active or object.BackgroundTransparency < 1)
+		then
+			return true
+		end
+	end
+	return false
+end
+
 function M.start(options: { player: Player, blocked: () -> boolean })
 	local moveKeys = { W = 1, A = 1, S = 1, D = 1, Up = 1, Down = 1, Left = 1, Right = 1 }
 	local UserInputService = game:GetService("UserInputService")
@@ -366,24 +389,7 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 	end
 
 	local function overUi(x: number, y: number): boolean
-		local gui = player:FindFirstChildOfClass("PlayerGui")
-		if not gui then
-			return false
-		end
-		for _, object in gui:GetGuiObjectsAtPosition(x, y) do
-			local screen = object:FindFirstAncestorWhichIsA("LayerCollector")
-			-- Decoration that opts out (the combat vignette corners) never swallows a world tap: an
-			-- engaged player could not tap a second creature under a corner (D2b R08 retarget).
-			if
-				object.Visible
-				and object:GetAttribute("ForgeTapThrough") ~= true
-				and (not screen or not screen:IsA("ScreenGui") or screen.Enabled)
-				and (object:IsA("GuiButton") or object.Active or object.BackgroundTransparency < 1)
-			then
-				return true
-			end
-		end
-		return false
+		return M.overUi(player, x, y)
 	end
 	local function pick(camera: Camera, x: number, y: number, items: { Instance }, anchor: (Instance) -> BasePart?)
 		local list = {}

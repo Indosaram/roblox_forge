@@ -1227,16 +1227,15 @@ gui.Destroying:Connect(panels.destroy)
 script.Destroying:Connect(panels.destroy)
 
 local QuarterView = require(Forge.core.infra.camera.QuarterView)
--- A1: character 6% of the short axis (pinch 3-15%), fixed yaw on touch. From 57 degrees the body's
--- front-to-back depth shows too (head top, shoulders): with height alone the phone measured 8.2-8.8%
--- (p134 v36), so the share counts a 1.5-stud body depth.
-camera = QuarterView.start({
-	yaw = if workspace:GetAttribute("ForgeWorldBiome") == "volcano" then -90 else 45,
-	pitch = 57,
-	fieldOfView = 30,
-	zoom = { characterHeight = 5.5, characterDepth = 1.5, share = 0.06, minShare = 0.03, maxShare = 0.15 },
-	touchRotate = false,
-})
+-- Durango framing and 12-60 stud zoom: see CameraConfig. The pinch reads raw touches, because
+-- phones report world touches as gameProcessed, which made the old TouchPinch path drop every pinch.
+local TapRouter = require(script.Parent:WaitForChild("TapRouter"))
+local cameraConfig: any = table.clone(require(Shared.CameraConfig))
+cameraConfig.yaw = if workspace:GetAttribute("ForgeWorldBiome") == "volcano" then -90 else 45
+cameraConfig.pinchBlocked = function(x: number, y: number): boolean
+	return TapRouter.overUi(player, x, y)
+end
+camera = QuarterView.start(cameraConfig)
 gui.Destroying:Connect(camera.stop)
 script.Destroying:Connect(camera.stop)
 local aerialGui = Instance.new("ScreenGui")
@@ -1353,7 +1352,6 @@ local aerialBack = game:GetService("UserInputService").InputBegan:Connect(functi
 	end
 end)
 -- A1 tap router; thumbstick off via DevTouchMovementMode.
-local TapRouter = require(script.Parent:WaitForChild("TapRouter"))
 local tapInput = TapRouter.start({
 	player = player,
 	blocked = function(): boolean
@@ -1477,6 +1475,12 @@ if game:GetService("RunService"):IsStudio() then
 		local position = workspace:GetAttribute("ForgeStudioCameraPosition")
 		local target = workspace:GetAttribute("ForgeStudioCameraTarget")
 		local pinned = workspace:GetAttribute("ForgeQACamera")
+		-- QA zoom: drives the live camera's arm length (the pinch/wheel clamp) without GUI input.
+		local zoom = workspace:GetAttribute("ForgeQAZoom")
+		if type(zoom) == "number" then
+			workspace:SetAttribute("ForgeQAZoom", nil)
+			pcall(camera.zoomTo, zoom)
+		end
 		if typeof(pinned) == "CFrame" then
 			camera.stop()
 			workspace.CurrentCamera.CFrame = pinned

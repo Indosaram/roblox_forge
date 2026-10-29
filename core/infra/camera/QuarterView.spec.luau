@@ -23,6 +23,23 @@ local function projectedShare(camera: any, height: number, fov: number, viewport
 	local pixels = math.abs(top - bottom) / 2 * viewport.Y
 	return pixels / math.min(viewport.X, viewport.Y)
 end
+-- A fake touch InputObject: the engine reuses one object per finger and updates it in place.
+local function finger(x: number, y: number): any
+	return {
+		UserInputType = roblox.Enum.UserInputType.Touch,
+		UserInputState = roblox.Enum.UserInputState.Begin,
+		Position = roblox.Vector3.new(x, y, 0),
+	}
+end
+local function move(f: any, touch: any, x: number, y: number)
+	touch.UserInputState, touch.Position = roblox.Enum.UserInputState.Change, roblox.Vector3.new(x, y, 0)
+	-- Phones report world touches as already processed (the touch camera/thumbstick claims them).
+	f.input.InputChanged:Fire(touch, true)
+end
+local function lift(f: any, touch: any)
+	touch.UserInputState = roblox.Enum.UserInputState.End
+	f.input.InputEnded:Fire(touch, true)
+end
 return {
 	["zoom by on-screen character height matches the projection and clamps the pinch range"] = function()
 		local f = Fixture.new()
@@ -206,6 +223,104 @@ return {
 		f.input.TouchPinch:Fire(positions, 2, 0, state.Change, false)
 		f.step(0)
 		near(f.cast.direction.Magnitude, 110)
+		api.stop()
+	end,
+	["raw two-finger pinch zooms even when the engine marks the touches processed"] = function()
+		local f = Fixture.new()
+		local blocked = { x = 700, y = 300 }
+		local api = f.module.start({
+			distance = 50,
+			minDistance = 12,
+			maxDistance = 60,
+			pinchBlocked = function(x: number, y: number): boolean
+				return x >= blocked.x and y >= blocked.y
+			end,
+		})
+		f.step(0)
+		near(f.cast.direction.Magnitude, 50)
+		local a, b = finger(300, 180), finger(400, 180)
+		f.input.InputBegan:Fire(a, true)
+		f.input.InputBegan:Fire(b, true)
+		-- The spread doubles: the arm halves (cumulative from the second finger's landing).
+		move(f, b, 500, 180)
+		f.step(0)
+		near(f.cast.direction.Magnitude, 25)
+		move(f, a, 0, 180) -- spread 500 = 5x: 10 studs, clamped to the 12 stud floor
+		f.step(0)
+		near(f.cast.direction.Magnitude, 12)
+		move(f, a, 450, 180) -- spread 50 = 0.5x: clamps at the 60 stud ceiling
+		f.step(0)
+		near(f.cast.direction.Magnitude, 60)
+		lift(f, b)
+		move(f, a, 200, 180) -- one finger left: no zoom
+		f.step(0)
+		near(f.cast.direction.Magnitude, 60)
+		lift(f, a)
+		-- A finger that lands on UI never joins a pinch.
+		local ui, world = finger(750, 330), finger(300, 180)
+		f.input.InputBegan:Fire(ui, true)
+		f.input.InputBegan:Fire(world, true)
+		move(f, ui, 760, 340)
+		move(f, world, 100, 100)
+		f.step(0)
+		near(f.cast.direction.Magnitude, 60)
+		lift(f, ui)
+		lift(f, world)
+		-- The engine's TouchPinch is ignored in raw mode (no double zoom).
+		local positions = { roblox.Vector2.new(100, 100), roblox.Vector2.new(200, 200) }
+		f.input.TouchPinch:Fire(positions, 1, 0, roblox.Enum.UserInputState.Begin, false)
+		f.input.TouchPinch:Fire(positions, 4, 0, roblox.Enum.UserInputState.Change, false)
+		f.step(0)
+		near(f.cast.direction.Magnitude, 60)
+		-- A finger whose end never arrived (chat took it) does not make the next finger a pinch partner.
+		local lost, c, d = finger(300, 180), finger(300, 180), finger(400, 180)
+		f.input.InputBegan:Fire(lost, true)
+		lost.UserInputState = roblox.Enum.UserInputState.End
+		f.input.InputBegan:Fire(c, true)
+		move(f, c, 200, 180)
+		f.step(0)
+		near(f.cast.direction.Magnitude, 60)
+		f.input.InputBegan:Fire(d, true)
+		move(f, d, 1000, 180) -- spread 200 (at landing) -> 800: the 60 stud arm / 4
+		f.step(0)
+		near(f.cast.direction.Magnitude, 15)
+		api.stop()
+		assert(f.input.InputEnded:count() == 0, "pinch listener disposed")
+	end,
+	["close zoom eases the pitch down and the focus up to an over-the-shoulder view"] = function()
+		local f = Fixture.new()
+		local api = f.module.start({
+			pitch = 55,
+			closePitch = 30,
+			distance = 60,
+			minDistance = 12,
+			maxDistance = 60,
+			closeFocusHeight = 3.5,
+		})
+		f.step(0)
+		local function pitchNow(): number
+			local d = f.cast.direction
+			return math.deg(math.asin(d.Y / d.Magnitude))
+		end
+		near(pitchNow(), 55)
+		near(f.cast.origin.Y, 2.5)
+		api.zoomTo(12)
+		f.step(0)
+		near(f.cast.direction.Magnitude, 12)
+		near(pitchNow(), 30)
+		near(f.cast.origin.Y, 3.5)
+		api.zoomTo(36)
+		f.step(0)
+		near(pitchNow(), 42.5)
+		-- The wheel uses the same clamp.
+		for _ = 1, 20 do
+			f.input.InputChanged:Fire(
+				{ UserInputType = roblox.Enum.UserInputType.MouseWheel, Position = { Z = 1 } },
+				false
+			)
+		end
+		f.step(0)
+		near(f.cast.direction.Magnitude, 12)
 		api.stop()
 	end,
 }

@@ -383,7 +383,24 @@ function M.labelTargets(
 end
 
 --- Minimap pixel for a world offset (north-up, +x right, +z down), or nil outside the map.
-function M.mapPoint(dx: number, dz: number, side: number, window: number?): (number?, number?)
+--- With the camera's look (`lookX`, `lookZ`, flattened) the map turns so its up is screen up:
+--- the quarter view looks along a 45 degree yaw, so a north-up map disagreed with every tap
+--- (p134 v54 read that as camera yaw drift).
+function M.mapPoint(
+	dx: number,
+	dz: number,
+	side: number,
+	window: number?,
+	lookX: number?,
+	lookZ: number?
+): (number?, number?)
+	local lx, lz = lookX or 0, lookZ or -1
+	local length = math.sqrt(lx * lx + lz * lz)
+	if length < 1e-6 then
+		lx, lz, length = 0, -1, 1
+	end
+	lx, lz = lx / length, lz / length
+	dx, dz = dx * -lz + dz * lx, -(dx * lx + dz * lz)
 	local half = (window or M.MAP_WINDOW) / 2
 	if math.abs(dx) > half or math.abs(dz) > half then
 		return nil, nil
@@ -1320,7 +1337,11 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			if root and root:IsA("BasePart") and not hidden then
 				local origin = root.Position
 				local look = root.CFrame.LookVector
-				arrow.Rotation = math.deg(math.atan2(look.X, -look.Z))
+				local camera = world.CurrentCamera
+				local view = if camera then camera.CFrame.LookVector else Vector3.new(0, 0, -1)
+				-- The facing arrow in the camera-aligned map frame (up = where the camera looks).
+				local ax, ay = M.mapPoint(look.X * 10, look.Z * 10, 2, 40, view.X, view.Z)
+				arrow.Rotation = if ax and ay then math.deg(math.atan2(ax - 1, -(ay - 1))) else 0
 				coords.Text = options.coordsText(M.coords(origin.X, origin.Z))
 				local side = regions.minimap.width
 				local candidates: { Candidate } = {}
@@ -1329,7 +1350,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					local anchor = anchorOf(entry[1])
 					if anchor then
 						local at = anchor.Position
-						local x, y = M.mapPoint(at.X - origin.X, at.Z - origin.Z, side)
+						local x, y = M.mapPoint(at.X - origin.X, at.Z - origin.Z, side, nil, view.X, view.Z)
 						if x and y then
 							local tint = if entry[2] == "node"
 								then P.moss
@@ -1350,7 +1371,8 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					local body = other ~= player and other.Character
 					local at = body and body:FindFirstChild("HumanoidRootPart")
 					if at and at:IsA("BasePart") then
-						local x, y = M.mapPoint(at.Position.X - origin.X, at.Position.Z - origin.Z, side)
+						local x, y =
+							M.mapPoint(at.Position.X - origin.X, at.Position.Z - origin.Z, side, nil, view.X, view.Z)
 						if x and y then
 							dot(x, y, P.bone, 7)
 						end

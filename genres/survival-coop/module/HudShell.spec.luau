@@ -211,6 +211,37 @@ return {
 		assert(#Shell.labelTargets(list, 0, 0, 0, 40, 100) == 42, "all within 40 studs when uncapped")
 	end,
 
+	-- p134 v54: walking to the dock "the camera yaw changes made it hard to aim". The camera yaw
+	-- never changed (fixed 45 degrees); the minimap was north-up while the view looks along 45
+	-- degrees, so map and screen disagreed by 135 degrees. The map now turns with the camera.
+	["the minimap turns with the camera so map up is screen up"] = function()
+		local h = math.sqrt(0.5)
+		local function close(x: number?, y: number?, ex: number, ey: number, what: string)
+			assert(
+				x and y and math.abs(x - ex) < 1e-6 and math.abs(y - ey) < 1e-6,
+				what .. ": " .. tostring(x) .. "," .. tostring(y)
+			)
+		end
+		-- QuarterView yaw 45 looks along (-h, -h): ahead on screen is up on the map.
+		local x, y = Shell.mapPoint(-10 * h, -10 * h, 200, 160, -h, -h)
+		close(x, y, 100, 100 - 10 / 80 * 100, "ahead is up")
+		-- The camera's right (h, -h) is map right.
+		x, y = Shell.mapPoint(10 * h, -10 * h, 200, 160, -h, -h)
+		close(x, y, 100 + 10 / 80 * 100, 100, "right is right")
+		-- No camera: north-up as before.
+		x, y = Shell.mapPoint(80, -80, 200)
+		close(x, y, 200, 0, "north-up fallback")
+		local source = require("@lune/fs").readFile("genres/survival-coop/module/HudShell.luau")
+		for _, needle in
+			{
+				"local view = if camera then camera.CFrame.LookVector else Vector3.new(0, 0, -1)",
+				"M.mapPoint(at.X - origin.X, at.Z - origin.Z, side, nil, view.X, view.Z)",
+				"M.mapPoint(look.X * 10, look.Z * 10, 2, 40, view.X, view.Z)",
+			}
+		do
+			assert(string.find(source, needle, 1, true), needle .. " wired")
+		end
+	end,
 	["minimap point and XY coordinates"] = function()
 		local x, y = Shell.mapPoint(0, 0, 200)
 		assert(x == 100 and y == 100, "centre")
