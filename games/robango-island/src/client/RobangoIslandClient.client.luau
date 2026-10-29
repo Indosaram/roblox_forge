@@ -170,7 +170,14 @@ if typeof(campOrigin) == "Vector3" then
 end
 gui.Enabled = false
 -- One icon catalog for every screen: ItemIcons.new walks the whole item and recipe catalog.
-local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets))
+-- The dock map gives menu tiles that share a genre default icon their own pack art (L9).
+local itemIcons = require(Forge.genres["survival-coop"].module.ItemIcons).new(content, require(Shared.Assets), {
+	building = "dock.building",
+	["craft-preview"] = "dock.craft-preview",
+	["crop-book"] = "dock.crop-book",
+	routes = "dock.routes",
+	operations = "dock.operations",
+})
 -- HUD shell (A4, ui-spec "Tideglass"): world labels read pack names; the mount token opens the
 -- taming panel through the panel dock started further down.
 local shellPanels: any = nil

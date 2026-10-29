@@ -681,4 +681,15 @@ return {
 		assert(Panels.travelText("en-us", "weird") == "You can't travel right now", "unknown reason still visible")
 		assert(not string.find(Panels.travelText("ko-kr", "weird"), "weird"), "no raw code")
 	end,
+	["L9 a pack dock map overrides a tile's icon id; without one the genre default is unchanged"] = function()
+		for _, id in { "bag", "routes", "explore", "music", "operations", "unknown-tile" } do
+			assert(Panels.iconId(id) == Panels.iconId(id, nil), "nil icons keeps the default for " .. id)
+			assert(Panels.iconId(id) == Panels.iconId(id, { dock = {} }), "empty map keeps the default for " .. id)
+		end
+		assert(Panels.iconId("routes") == "explore" and Panels.iconId("operations") == "music", "genre defaults")
+		local icons = { dock = { routes = "dock.routes", operations = "dock.operations" } }
+		assert(Panels.iconId("routes", icons) == "dock.routes", "pack override for routes")
+		assert(Panels.iconId("operations", icons) == "dock.operations", "pack override for operations")
+		assert(Panels.iconId("explore", icons) == "explore", "unmapped tiles keep the default")
+	end,
 }

@@ -10,7 +10,7 @@ export type Catalog = {
 }
 export type Icon = { key: string?, image: string?, text: string, category: string? }
 
-function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
+function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string }, dock: { [string]: string }?)
 	local items: { [string]: string } = {}
 	local recipes: { [string]: boolean } = {}
 	local categories: { [string]: string } = {}
@@ -49,6 +49,8 @@ function ItemIcons.new(catalog: Catalog, assets: { [string]: number | string })
 	end
 
 	return {
+		-- Optional pack map: menu dock id -> ui icon id (ExtensionPanels.iconId); nil keeps the defaults.
+		dock = dock,
 		ui = function(id: string, label: string?): Icon
 			return resolve("ui", id, label)
 		end,

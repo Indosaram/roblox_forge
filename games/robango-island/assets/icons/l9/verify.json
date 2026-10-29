@@ -1,0 +1,1764 @@
+{
+ "item.icon.apple": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 11,
+  "clear": 4745,
+  "inputVersion": "42617eb30a8403232ea2f5e27a221edcd58f2363fa3c45107f48bba662809350",
+  "sha256": "4fd6da543180a69128030c570985c80dc4a60ea6e727dc97da7e42fbc6f548b2",
+  "visible": 4272
+ },
+ "item.icon.apple-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 11,
+  "clear": 4745,
+  "inputVersion": "cbbdc2f744b2686c621a33a9f24999faed3b330176db395a4a6c4f1d78e644e3",
+  "sha256": "4fd6da543180a69128030c570985c80dc4a60ea6e727dc97da7e42fbc6f548b2",
+  "variantOf": "item.icon.apple",
+  "visible": 4272
+ },
+ "item.icon.banana": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 12,
+  "clear": 5393,
+  "inputVersion": "bf9b9b2aa41ce493a4fc87c605893b8b0c6c6b6d891f6f67148ad0616ad4a81f",
+  "sha256": "eba05eaf5cdf13949e2b755b84b5eb32ba639fcda0cd7dc70bc7a9ff25e7764a",
+  "visible": 3668
+ },
+ "item.icon.banana-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 12,
+  "clear": 5393,
+  "inputVersion": "812c420ea47a7ef68ab1cb9c42e882ed1765aa12ed6bfa93e0c2be602baae2e8",
+  "sha256": "eba05eaf5cdf13949e2b755b84b5eb32ba639fcda0cd7dc70bc7a9ff25e7764a",
+  "variantOf": "item.icon.banana",
+  "visible": 3668
+ },
+ "item.icon.bandage": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 9,
+  "clear": 5915,
+  "inputVersion": "b07a970a5f56448e529ae82b2fd99b5a0ce6846bde2c75d42e927dbda04778cf",
+  "sha256": "86db3bb8244a0d40adf3cf41ad494c8e5e5e67ff4b32f2482445395f3110dce9",
+  "visible": 3173
+ },
+ "item.icon.basalt": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 10,
+  "clear": 4069,
+  "inputVersion": "8efd0d20a0884b0ddf8c02173f1936b00c6178437fcf6e637a38ba6611211ecd",
+  "sha256": "49596f2be0e286fa15094d575fd9552b3396451ea4c2210fa9b349a09238250f",
+  "visible": 4986
+ },
+ "item.icon.basalt-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 10,
+  "clear": 4069,
+  "inputVersion": "5331901b50439d75a7fb1cb09542d6a947194595c5ffd63f1ae3fd5fe04aa095",
+  "sha256": "49596f2be0e286fa15094d575fd9552b3396451ea4c2210fa9b349a09238250f",
+  "variantOf": "item.icon.basalt",
+  "visible": 4986
+ },
+ "item.icon.berry": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 9,
+  "clear": 6136,
+  "inputVersion": "9108dcc6ebc1da01e9f5a9eb7179b72b43f23f0a6ee52dc8e8651f671986dc39",
+  "sha256": "275b39d00e6a636ed3321ac4ceb65c1682ec28c1736a01e1f44a51236b0b55ca",
+  "visible": 2908
+ },
+ "item.icon.berry-meal": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 10,
+  "clear": 4809,
+  "inputVersion": "68bf758ca2417ed2b7df621b39c1f7de700370b10e33e26f25d57e0ed745dff3",
+  "sha256": "d6152834df2f4728cb6c5eaa3a904a7ab8624db5988023529d8f6e21d4aab37d",
+  "visible": 4242
+ },
+ "item.icon.berry-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 9,
+  "clear": 6136,
+  "inputVersion": "a6c8ddb0c8bbdc941d4d770cd8f63f56f5405e4d518e74c28b2d87a3b4477523",
+  "sha256": "275b39d00e6a636ed3321ac4ceb65c1682ec28c1736a01e1f44a51236b0b55ca",
+  "variantOf": "item.icon.berry",
+  "visible": 2908
+ },
+ "item.icon.birch-bark": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 5,
+  "clear": 5029,
+  "inputVersion": "99b5794e13590a6c2c4b8469460fdbe690425b0fbfedbf4f154d4f0212a2ce95",
+  "sha256": "a227caa4a651b5c596aca2797efbb6021f13085f05854edfc2046282986f6906",
+  "visible": 4014
+ },
+ "item.icon.bone": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 11,
+  "clear": 6942,
+  "inputVersion": "ad30b1782e3a1a807d429c5146ec0e4eb448633e1019e9bbf1c2c192ba900070",
+  "sha256": "710c78a4332dd0836f480f43540e1097268bd69846f11ab474d061dbbbd5888f",
+  "visible": 2142
+ },
+ "item.icon.bone-knife": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 1,
+  "clear": 7292,
+  "inputVersion": "c56d8803e6d12b0f832f70db1ec34a78b6710a02bc9aec737c73543b9733f512",
+  "sha256": "c25ce373ed3b84463902eeb126ae262b9f1fb6c50c5f3fe41d62ce11357637ad",
+  "visible": 1786
+ },
+ "item.icon.bone-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 11,
+  "clear": 6942,
+  "inputVersion": "c2f67c0d77ea0d74df649d883d6bf327728f2abdff9718b37e20968087838e83",
+  "sha256": "710c78a4332dd0836f480f43540e1097268bd69846f11ab474d061dbbbd5888f",
+  "variantOf": "item.icon.bone",
+  "visible": 2142
+ },
+ "item.icon.branch": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 3,
+  "clear": 7197,
+  "inputVersion": "1c9ec0e0fee00fddde816c73850f15adafd2b1289deb4c0aad0d3b6a348aeb94",
+  "sha256": "86a63e4a90136bad5408d7d38841373fb76579c3de681adf8ce375ba7572ff33",
+  "visible": 1847
+ },
+ "item.icon.branch-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 3,
+  "clear": 7197,
+  "inputVersion": "502ba0189491ef025ce25ec7d5d574df1f788a62f9af6482d913529de560a3a8",
+  "sha256": "86a63e4a90136bad5408d7d38841373fb76579c3de681adf8ce375ba7572ff33",
+  "variantOf": "item.icon.branch",
+  "visible": 1847
+ },
+ "item.icon.campfire-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 1,
+  "clear": 5391,
+  "inputVersion": "500e49f39410b0ca9beff7feab1a7ad7987caa243543a83fe482bb0bc92f3378",
+  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
+  "visible": 3592
+ },
+ "item.icon.capture-bola": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 8,
+  "clear": 7136,
+  "inputVersion": "aa54fbd7b352db54b3cd36d4f2e54536d74d0dccd5ae8cd268a62ea76e4cdab1",
+  "sha256": "9983dc9a16318173bba0ceda9011f1a683383e7c184d0789e38aad6539c60d54",
+  "visible": 1874
+ },
+ "item.icon.cattail-flatbread": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 13,
+  "clear": 4423,
+  "inputVersion": "55d353698f9f7195215eca2aa3506a83443ed504b5b02bce72eb9b220c04f198",
+  "sha256": "55aadb3857a431681282d43f9ac694fc4453fc35a6ac33d8dd8cd521a9b1938b",
+  "visible": 4644
+ },
+ "item.icon.cattail-root": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 6,
+  "clear": 6194,
+  "inputVersion": "193a533a91532eae8a3e01111f3665dd7741967cda053ef6fceb67605ce9df09",
+  "sha256": "9c8648cf9e1286a2cddd756c0a9816128a12ccb504e3491554c9e98cafe3e4b5",
+  "visible": 2568
+ },
+ "item.icon.chanterelle": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 7,
+  "clear": 6033,
+  "inputVersion": "d4a1fc42f8b097b365403c8fed5c4fe0744cd4b58a40d0e4fb2f814d8dbd6f2e",
+  "sha256": "f3295f56864dfd740f5f6cec4b7c7fe29f1518b7de51a22db299dfb953ca8cea",
+  "visible": 3007
+ },
+ "item.icon.charcoal": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 5,
+  "clear": 4683,
+  "inputVersion": "74ac3afb8f23560ce91b095de28df5a20f9ec51187f1d2a693716f1006ffe05c",
+  "sha256": "5ede4e8cbd2e1100e409b92b4f0a2895322a1fe3cb2c5283eb02d47a20d0b991",
+  "visible": 4368
+ },
+ "item.icon.charcoal-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 5,
+  "clear": 4683,
+  "inputVersion": "5dea25b0da0c3ff85d46117facac1bb9e51979e7ce81d582ad4844190051bdbf",
+  "sha256": "5ede4e8cbd2e1100e409b92b4f0a2895322a1fe3cb2c5283eb02d47a20d0b991",
+  "variantOf": "item.icon.charcoal",
+  "visible": 4368
+ },
+ "item.icon.clam": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 1,
+  "clear": 5109,
+  "inputVersion": "808c234cf5ff18a56cfec5b84b44f97c2e42c20efc7aa7d1ad6c24b44a70f56e",
+  "sha256": "5304cb147af30e2f869ca85efd368917950238d9a76adb8b0919a9ade0ef5539",
+  "visible": 3973
+ },
+ "item.icon.clam-bake": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 12,
+  "clear": 4660,
+  "inputVersion": "1d11fc7a7e2ece1b1cf1cb0226ac03d05044439ac80b0bae1ec45596898503b8",
+  "sha256": "523f2d1309fbebbff5f878a9635711d56fb51f2efc9f5a6ee5582f59484faa43",
+  "visible": 4384
+ },
+ "item.icon.clam-profile": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 1,
+  "clear": 5109,
+  "inputVersion": "4fb242e671cec77d0cd5d782cf75230c166f9abfaaff59a538b92325b7d3d280",
+  "sha256": "5304cb147af30e2f869ca85efd368917950238d9a76adb8b0919a9ade0ef5539",
+  "variantOf": "item.icon.clam",
+  "visible": 3973
+ },
+ "item.icon.clay": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 6,
+  "clear": 4393,
+  "inputVersion": "971d7172aabd9a85d49702c338d13bebc2875cf80229a37c2d4dd5b66162f369",
+  "sha256": "e4b454953754cc27ede82f672a53a777b5925f5038644fbe360d9114d2a68d63",
+  "visible": 4659
+ },
+ "item.icon.clay-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 6,
+  "clear": 4393,
+  "inputVersion": "dd82efbc6629227671bd15b7a91678a21b6e1f2076920f9d15c4a0dbfef8be8d",
+  "sha256": "e4b454953754cc27ede82f672a53a777b5925f5038644fbe360d9114d2a68d63",
+  "variantOf": "item.icon.clay",
+  "visible": 4659
+ },
+ "item.icon.cooked-meat": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 14,
+  "clear": 4952,
+  "inputVersion": "64085b21e95723285a3f934e97f5c15a5a7b3f40fd90b2f82899812cec1bc7f7",
+  "sha256": "98c75858863ae4bb8c79ee474f6b2f01a9c1e8b451bf588012876fcd1c1da206",
+  "visible": 4046
+ },
+ "item.icon.copper-ore": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 11,
+  "clear": 4247,
+  "inputVersion": "d1fa3111ac7c941ce7e7c36ce1448208041acd0eba5d3a8f2fa8da66833db15e",
+  "sha256": "613e9336762160de5cb9e098827c3c73991e1bd8ec65e04ac0b681d1d67df2a4",
+  "visible": 4811
+ },
+ "item.icon.copper-ore-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 11,
+  "clear": 4247,
+  "inputVersion": "4f97063a25b575d0cf9fafd8acdc9b12945bb748bbef4d7f22b066447895637a",
+  "sha256": "613e9336762160de5cb9e098827c3c73991e1bd8ec65e04ac0b681d1d67df2a4",
+  "variantOf": "item.icon.copper-ore",
+  "visible": 4811
+ },
+ "item.icon.cord": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 7,
+  "clear": 7117,
+  "inputVersion": "32c84c36de0bb6523abadf4142dc01f8dd30f59b36ec5fa6f169b81d4a70cbb5",
+  "sha256": "a14b656263013fe26569309b859c8bad5d0ee51612873797f471a1911c5ef166",
+  "visible": 1788
+ },
+ "item.icon.corn": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 13,
+  "clear": 5413,
+  "inputVersion": "6273f39a88d116e935203b4cd761019cf03432d2db5ebdd331321312e425210c",
+  "sha256": "435b29dce1d8c8a9d0fbc3d7ec8e300d26c98aaf7061d9264fc69a4d6905abc0",
+  "visible": 3616
+ },
+ "item.icon.corn-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 13,
+  "clear": 5413,
+  "inputVersion": "b5a2a929d9ac3f4ecefab28e3e1eddf5829cedf52435730f2dbd9ba87b46443d",
+  "sha256": "435b29dce1d8c8a9d0fbc3d7ec8e300d26c98aaf7061d9264fc69a4d6905abc0",
+  "variantOf": "item.icon.corn",
+  "visible": 3616
+ },
+ "item.icon.fiber": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 2,
+  "clear": 6484,
+  "inputVersion": "3edf2ebfdd4393adf9199f948b6123fa3440db8a3f6a002b614cb5d3c5075db5",
+  "sha256": "667a8f562d8b018ac15760cda2c4befcf0f0a036514ba21c10bf1bfa324a8056",
+  "visible": 2575
+ },
+ "item.icon.fiber-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 2,
+  "clear": 6484,
+  "inputVersion": "82f1a47ff958a87c701af943cfb17e4c1caf097186829db2724eb003199dfe2b",
+  "sha256": "667a8f562d8b018ac15760cda2c4befcf0f0a036514ba21c10bf1bfa324a8056",
+  "variantOf": "item.icon.fiber",
+  "visible": 2575
+ },
+ "item.icon.fieldstone": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 8,
+  "clear": 4439,
+  "inputVersion": "ad7a6f883d4485f3fecf47f8513b1245f8c208dfe1897eb88e93f85e637bd3e4",
+  "sha256": "ad06bf079e84a42ac00ee7264aaabae00273673f3eda894ecfd4c6bc15e8bc20",
+  "visible": 4628
+ },
+ "item.icon.fish": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 2,
+  "clear": 6242,
+  "inputVersion": "55ed4d87a81fc50def2a73b404c0b107e69252adea64a7aca4262208c1df40e2",
+  "sha256": "6cd19fd3188895006faed40721a38bcacd858f2d1013b704109d1df4cffa1dc7",
+  "visible": 2804
+ },
+ "item.icon.fish-profile": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 2,
+  "clear": 6242,
+  "inputVersion": "f557b091060cc6d8c0b7a8c47806b60d64cd71f13c507903a25e2e5080ed2636",
+  "sha256": "6cd19fd3188895006faed40721a38bcacd858f2d1013b704109d1df4cffa1dc7",
+  "variantOf": "item.icon.fish",
+  "visible": 2804
+ },
+ "item.icon.flax": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 16,
+  "clear": 6017,
+  "inputVersion": "2c6eb68cc91d8d904a70ee2468cffdc271503babb4d9046fab613075b50a17c3",
+  "sha256": "49b3ecd784b80519e2de67dc7dbebca6691b487c93bfa2a3e649ba8eb45faae5",
+  "visible": 3014
+ },
+ "item.icon.flax-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 16,
+  "clear": 6017,
+  "inputVersion": "89f4d64a615164c2a14e1618e898d74a68639fb9664f5fe79ba018f8e55819b2",
+  "sha256": "49b3ecd784b80519e2de67dc7dbebca6691b487c93bfa2a3e649ba8eb45faae5",
+  "variantOf": "item.icon.flax",
+  "visible": 3014
+ },
+ "item.icon.flint": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 6,
+  "clear": 4807,
+  "inputVersion": "83dec00ac9b7ce3d8e0e73db4f79271eff13d61704e096280a9eec6d4360554d",
+  "sha256": "aacc29fc64fc0d466af9e0ffb62baf84f8d9d18971e1e00bbdcac34eee1f202c",
+  "visible": 4257
+ },
+ "item.icon.flint-knife": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 3,
+  "clear": 6816,
+  "inputVersion": "7d086e02dc2c3c53bf9f4022433813e8486187613bcc0c491815e228620ebd9e",
+  "sha256": "49ff9d5e3bbc74e631b578e8575e25fcfc2e2fa150a4987ada8a2a84813ee3ba",
+  "visible": 2249
+ },
+ "item.icon.flint-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 6,
+  "clear": 4807,
+  "inputVersion": "2facb1585a26510a7fe66ac50c20f29acd9296350f2564d1384f865188570b22",
+  "sha256": "aacc29fc64fc0d466af9e0ffb62baf84f8d9d18971e1e00bbdcac34eee1f202c",
+  "variantOf": "item.icon.flint",
+  "visible": 4257
+ },
+ "item.icon.floor-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 4,
+  "clear": 5771,
+  "inputVersion": "2cdb09a0f3934ecb1f8321f5ef872d72bf2a39c96f1e63f19f4fd884cf1ca663",
+  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
+  "visible": 3308
+ },
+ "item.icon.granite": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 9,
+  "clear": 4745,
+  "inputVersion": "0ce486da3053eb49743de1a977aacb45e6f2c5788c6f5db7fd47d4850f7f5403",
+  "sha256": "ea07177371fec79e6e3932e640d1c945a81ab1682fe5ce9a2b026600b6bc9be3",
+  "visible": 4320
+ },
+ "item.icon.granite-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 9,
+  "clear": 4745,
+  "inputVersion": "8b34ced75d1a9c9737e40e6e0ee7321e05ec74fddfe3487d767af51bccb11a5d",
+  "sha256": "ea07177371fec79e6e3932e640d1c945a81ab1682fe5ce9a2b026600b6bc9be3",
+  "variantOf": "item.icon.granite",
+  "visible": 4320
+ },
+ "item.icon.hazelnut": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 8,
+  "clear": 5851,
+  "inputVersion": "d0a05cb3e9d339057ab33713141431409ca998f946f5a9e3965285750f2caf80",
+  "sha256": "3d41b05d61c2418f5898f8f60451829a14841f4a7be3eb7dcb5f1c1fe171a3d6",
+  "visible": 3183
+ },
+ "item.icon.hide": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 12,
+  "clear": 5149,
+  "inputVersion": "eba2d33152414a1c157668edc15004de394faefc8571beccc078bdd83e28e1df",
+  "sha256": "64109351f642002f65c3cbff5ee41a2e9a2afe937a153b870b9bc6acfd8ee4e2",
+  "visible": 3857
+ },
+ "item.icon.hide-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 12,
+  "clear": 5149,
+  "inputVersion": "119cabedf574f0436f546d28d3efcb6569ca588a4f2c761871d5c2c1276faeff",
+  "sha256": "64109351f642002f65c3cbff5ee41a2e9a2afe937a153b870b9bc6acfd8ee4e2",
+  "variantOf": "item.icon.hide",
+  "visible": 3857
+ },
+ "item.icon.iron-ore": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 12,
+  "clear": 4363,
+  "inputVersion": "3803594999c1cabfde547d4582b977741536e8e90746c83b211715ea53796e10",
+  "sha256": "fee9bdf31dbd51040132b511f9a2dc96b72fb8dc2552096efd5167a2cfca719b",
+  "visible": 4699
+ },
+ "item.icon.iron-ore-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 12,
+  "clear": 4363,
+  "inputVersion": "1a50a2b5205399b011910eefe276e835cc116a9429483f6f1f08dd7bfefe68d3",
+  "sha256": "fee9bdf31dbd51040132b511f9a2dc96b72fb8dc2552096efd5167a2cfca719b",
+  "variantOf": "item.icon.iron-ore",
+  "visible": 4699
+ },
+ "item.icon.leaves": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 4,
+  "clear": 4678,
+  "inputVersion": "b7448ba0aa18d8b9015c154c9f6e9fe9e52b0a4d0c68ec69969de2ce61d3291a",
+  "sha256": "43fdbccb9dc467f5452a465726b734b600b50d4173e0e96fcdb46edae2f9abc4",
+  "visible": 4321
+ },
+ "item.icon.leaves-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 4,
+  "clear": 4678,
+  "inputVersion": "2f3b8dd61fcdcb6b71b98bfe2e0f7b7890a5fbe683fb6be1fa32c3171727c21d",
+  "sha256": "43fdbccb9dc467f5452a465726b734b600b50d4173e0e96fcdb46edae2f9abc4",
+  "variantOf": "item.icon.leaves",
+  "visible": 4321
+ },
+ "item.icon.marsh-clay": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 7,
+  "clear": 4594,
+  "inputVersion": "f33fe3a1d2af98d9fb7eebfc5e55667a286a6c854bbc13d7a554e32d87066c23",
+  "sha256": "6d8cdbe5cea304a0fb30bf94ef8501a6cebbac7e5ff95b290c90b935b92b86aa",
+  "visible": 4469
+ },
+ "item.icon.meat": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 13,
+  "clear": 4835,
+  "inputVersion": "929b9c4d44fd8415ea5e9a96b4a0ba6384acabb2d3746cf332d93f0d0bc44f85",
+  "sha256": "b5736f2bc7e34c6557a118a784cbe3afd4e66e05ddec5eb473f8723653836a55",
+  "visible": 4229
+ },
+ "item.icon.meat-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 13,
+  "clear": 4835,
+  "inputVersion": "8f573566bcdc5704bfdfad2f13049fb13de54049c600788f7c7f3337922ac6b2",
+  "sha256": "b5736f2bc7e34c6557a118a784cbe3afd4e66e05ddec5eb473f8723653836a55",
+  "variantOf": "item.icon.meat",
+  "visible": 4229
+ },
+ "item.icon.onion": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 15,
+  "clear": 5703,
+  "inputVersion": "c40df5c5dec3d1a50436f6857f0f480d20f0585559629a9387102421a1bc0779",
+  "sha256": "eef8d5958da5159e80d3bf081dc827726d487c1ddba439adc09d74fd38ccd6b4",
+  "visible": 3308
+ },
+ "item.icon.onion-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 15,
+  "clear": 5703,
+  "inputVersion": "fbec4c0fd4bd53478ba889a67330895aa49748fcbd3a11ba274cb95ccba851e9",
+  "sha256": "eef8d5958da5159e80d3bf081dc827726d487c1ddba439adc09d74fd38ccd6b4",
+  "variantOf": "item.icon.onion",
+  "visible": 3308
+ },
+ "item.icon.plank": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 1,
+  "clear": 5138,
+  "inputVersion": "4bd5917a0165f4d2553f218e39619093b90be72a523898e770d0e5b35e959bb2",
+  "sha256": "5ffd183b75b9902b8525b24b7040f42067ec6486ca0a75dde03ddbd7c97bd553",
+  "visible": 3936
+ },
+ "item.icon.potato": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 14,
+  "clear": 4960,
+  "inputVersion": "8fff07b929c7e24e3652d264947b92e4d2b069fecbb9dd7797524b4b2098df04",
+  "sha256": "f8293c2aaf154766e69e25efe5636402dc817ddbe5a4f00feca924cf9d7d6732",
+  "visible": 4114
+ },
+ "item.icon.potato-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 14,
+  "clear": 4960,
+  "inputVersion": "664ecbc54c9225a04393d4b9c12f0003b2d4d148ac36aedce436e5fd3f62e440",
+  "sha256": "f8293c2aaf154766e69e25efe5636402dc817ddbe5a4f00feca924cf9d7d6732",
+  "variantOf": "item.icon.potato",
+  "visible": 4114
+ },
+ "item.icon.reed": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 3,
+  "clear": 6853,
+  "inputVersion": "b45d95a0edad94e1db146b897544a049a0c9e3d46c7be4baa95a1e8f6c5c8391",
+  "sha256": "6b0812545dbe49c5a3fb169bf78b2bfa9a38d2a79b0e2a48ffe84db3e8b2d362",
+  "visible": 2018
+ },
+ "item.icon.rescue-marker": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 10,
+  "clear": 7201,
+  "inputVersion": "86e336f987b001333c5ffc09353d8239b9bb7220a86c17a82a375d977ec833bc",
+  "sha256": "9cd8ffca117bf4fc2f12945f96765bd8b8d06a96ae0c153a8d0eed9d4c6d021d",
+  "visible": 1855
+ },
+ "item.icon.roasted-hazelnuts": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 9,
+  "clear": 5541,
+  "inputVersion": "52e33e459674b7b5db21f1b81c3cd74fb438279f7bc44c1b0b4f6687d74c1e8b",
+  "sha256": "c21a948afeed3839c82ba61274ca6d48e593488c0c509c60fd3db454a0080ed0",
+  "visible": 3539
+ },
+ "item.icon.roof-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 5,
+  "clear": 5421,
+  "inputVersion": "a22435fea91a9282ca0269489721175b51120a333768e61a17a76681490b39ca",
+  "sha256": "c284a15aac6a8b04b4fd8127ed03d9e65d2c726bf755ae7fc22b2585500778e8",
+  "visible": 3605
+ },
+ "item.icon.samphire": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 15,
+  "clear": 5591,
+  "inputVersion": "2a97786e3c9a0b558da2b8a09f204ae10b5957cb9c0d2ae913d394220289269c",
+  "sha256": "02084620c3aa1ca7e75357caffd43e75db940e5884018d7f45a7d1a22ed95a2a",
+  "visible": 3340
+ },
+ "item.icon.shell-fragment": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 15,
+  "clear": 5357,
+  "inputVersion": "d0d970de806637812141bf2a915ef30071a40316357de563615c000943c5bf9d",
+  "sha256": "07f6c11e1d31a266eb2ae246386d12bea3302ead069cf300f009a833e44815de",
+  "visible": 3655
+ },
+ "item.icon.shell-fragment-profile": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 15,
+  "clear": 5357,
+  "inputVersion": "866d49ba078febc234cb798ad0a429a8b21feb2b3fd71b3b24a068d4f412437e",
+  "sha256": "07f6c11e1d31a266eb2ae246386d12bea3302ead069cf300f009a833e44815de",
+  "variantOf": "item.icon.shell-fragment",
+  "visible": 3655
+ },
+ "item.icon.signal-fragment": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 14,
+  "clear": 5003,
+  "inputVersion": "43f3d097eed604d71b00ebeaac2832a6c36851f543dd73cedd562ee9a6d6796b",
+  "sha256": "1cf7078fe42c2cedec36c152a2283292e6633d8c1819e48f292ce23753430d8f",
+  "visible": 4058
+ },
+ "item.icon.sinew": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 14,
+  "clear": 6890,
+  "inputVersion": "3f43f947832c64957907403a1c1898c59b4e46a44940c109fa2d4aaa5b3610e5",
+  "sha256": "ca5fb457d8dd8d0d0ae273f594327b5e16f0fed2e049109ac25f292b8a3c36b2",
+  "visible": 2047
+ },
+ "item.icon.sinew-profile": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 14,
+  "clear": 6890,
+  "inputVersion": "abea11d8a4fb568f5041ac93b15e4b77ec8baa4577684964d1e321d5714a6741",
+  "sha256": "ca5fb457d8dd8d0d0ae273f594327b5e16f0fed2e049109ac25f292b8a3c36b2",
+  "variantOf": "item.icon.sinew",
+  "visible": 2047
+ },
+ "item.icon.spear": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 2,
+  "clear": 7889,
+  "inputVersion": "d6b74a55ba2319b3930dd83d59114d78b93fe6c117034f6b9137ca7d3e098504",
+  "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
+  "visible": 1186
+ },
+ "item.icon.starter-axe": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 6,
+  "clear": 7176,
+  "inputVersion": "20c360e82eb3c6db584dde6a97a63f47232e193efb162a604011cacf85bce748",
+  "sha256": "ab7ab2ef8b81d7f1b5adfcfc1206c26ab32bd0dd71fe388083fc4b269a010569",
+  "visible": 1884
+ },
+ "item.icon.starter-club": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 8,
+  "clear": 6658,
+  "inputVersion": "117e6b04837baee6582567314da2a7c35c2a51e9f7d2b0fc60605b5d409b93e6",
+  "sha256": "55335163ee3d589c16578e2062ff991100ea439ae2c2c628117f171699c5eb99",
+  "visible": 2406
+ },
+ "item.icon.starter-pickaxe": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 7,
+  "clear": 7523,
+  "inputVersion": "41787f0171bf0bd672c3faef576723194b0a78b0aac2131fc1ca48f9994b4839",
+  "sha256": "89176a4b25d75a41a52927f2f85ff28845aed4ecd4ce01636c72289043990817",
+  "visible": 1504
+ },
+ "item.icon.stone": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 5,
+  "clear": 5117,
+  "inputVersion": "bd9fca62813c284842bd755fa67133b81d74392028b09d683b22bf1d0a6d517c",
+  "sha256": "3f51105371d0b1639bedb15d9df47e1e7a46d7a3082883b6d105c42589e23838",
+  "visible": 3955
+ },
+ "item.icon.stone-axe": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 15,
+  "clear": 6988,
+  "inputVersion": "c0bd65865c32aa4318d3f602761631c1d1edfa71a0a2719172dad4aa61c11388",
+  "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
+  "visible": 2054
+ },
+ "item.icon.stone-maul": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 4,
+  "clear": 6545,
+  "inputVersion": "2046a2de2db4f994e001c3f571656269100bf8d8c878532404d0de4e7b04762b",
+  "sha256": "7c8e8852f92bb6366c771c334726c5bd0bd414bccdd2750bce84454ac432047b",
+  "visible": 2524
+ },
+ "item.icon.stone-pick": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 16,
+  "clear": 7336,
+  "inputVersion": "b979b3bf71b7b549db61456f24dafb9f1b8b7278dd2880eee1ac80f5df9231bc",
+  "sha256": "eef7f4e1cacfce41215dfae99312f95b381551a4ee8310fcee2e5c3d521f3ad6",
+  "visible": 1745
+ },
+ "item.icon.stone-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 5,
+  "clear": 5117,
+  "inputVersion": "3322d0816ec688f9c671321f16c6155387881fa55f7743e7edb8365b927ffa41",
+  "sha256": "3f51105371d0b1639bedb15d9df47e1e7a46d7a3082883b6d105c42589e23838",
+  "variantOf": "item.icon.stone",
+  "visible": 3955
+ },
+ "item.icon.storage-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 3,
+  "clear": 4525,
+  "inputVersion": "523a2542cf6556f6e566b716f3624a21c6ee825d8b74e58183c5697012881ca3",
+  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
+  "visible": 4550
+ },
+ "item.icon.thatch-bundle": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 4,
+  "clear": 5824,
+  "inputVersion": "42900381f79bfeb9eb98c17406400c072f092ec12346a1643806d384c90d5127",
+  "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
+  "visible": 3236
+ },
+ "item.icon.volcanic-ore": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 13,
+  "clear": 4437,
+  "inputVersion": "484db7d05e48c3e0f33ef0f315d8036f2a40183fd2784e323ca70275ba00c7df",
+  "sha256": "0a0f849429047c2881f281d230eedb0dfbec2c7144f4fe4d240b5b7fa6d32830",
+  "visible": 4651
+ },
+ "item.icon.volcanic-ore-profile": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 13,
+  "clear": 4437,
+  "inputVersion": "aa881a57c1137bc628faf421a50ee492fffbdea59787aa762f3bfb7a2c587cac",
+  "sha256": "0a0f849429047c2881f281d230eedb0dfbec2c7144f4fe4d240b5b7fa6d32830",
+  "variantOf": "item.icon.volcanic-ore",
+  "visible": 4651
+ },
+ "item.icon.water": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 16,
+  "clear": 4839,
+  "inputVersion": "302a9be4b7c132598fb5c998b7a2b5d3f5946ed1d8c03ca9882a8414fce7b2da",
+  "sha256": "8e7e868b9ac5b4625e66741ce4f8fb3a8997b157675630741ce82412a326c96b",
+  "visible": 4201
+ },
+ "item.icon.water-profile": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 16,
+  "clear": 4839,
+  "inputVersion": "049bbe872d9592897f5729fb24ce9f6ab63200a1d73945bb2e4c4e4b11d130f8",
+  "sha256": "8e7e868b9ac5b4625e66741ce4f8fb3a8997b157675630741ce82412a326c96b",
+  "variantOf": "item.icon.water",
+  "visible": 4201
+ },
+ "item.icon.wheat": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 16,
+  "clear": 6304,
+  "inputVersion": "16a5982a73c928c224f02d3842a216ecd68088406c21166c2a54c82e4a053378",
+  "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
+  "visible": 2414
+ },
+ "item.icon.wheat-profile": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 16,
+  "clear": 6304,
+  "inputVersion": "0853999171559613d3bf2bf0a0635adc87f3c81a1df0f83a7ee3cfb8517821e3",
+  "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
+  "variantOf": "item.icon.wheat",
+  "visible": 2414
+ },
+ "item.icon.wood": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 10,
+  "clear": 5483,
+  "inputVersion": "0fc8314f9e777dcf1b55fd5ed77bf8aace3d00eaa8dc9f186180828795bac377",
+  "sha256": "8a6445b6c42145874c8257677c0b47f236764f330e5fb210ac91cd5733cd5fe2",
+  "visible": 3588
+ },
+ "item.icon.wood-profile": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 10,
+  "clear": 5483,
+  "inputVersion": "24539825e5f7689cc7792f3ad6bcd8e111f0633d39f1b8809d57ebf2a63a2b44",
+  "sha256": "8a6445b6c42145874c8257677c0b47f236764f330e5fb210ac91cd5733cd5fe2",
+  "variantOf": "item.icon.wood",
+  "visible": 3588
+ },
+ "item.icon.woodland-skewer": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 11,
+  "clear": 6986,
+  "inputVersion": "1f4fd309b4e379ec4b5c8aaf92ab54a37c99e121a7c2310179ac3191fa4dbcd8",
+  "sha256": "5b445a370d7fa74a2845b65d0ce8cd2b7698036cc03a08d9baabbc863ea0abe7",
+  "visible": 2055
+ },
+ "item.icon.workbench-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 2,
+  "clear": 5508,
+  "inputVersion": "1aa239c60b0048c466f46254fcd359d020dc109ea558574c105ad5da5c1cc564",
+  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
+  "visible": 3509
+ },
+ "recipe.icon.berry-meal": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 10,
+  "clear": 4809,
+  "inputVersion": "0b7cc5cb4f4690321d43ab3a391d0b840b2f3aa19f249b2fdd49aab91b491f97",
+  "sha256": "d6152834df2f4728cb6c5eaa3a904a7ab8624db5988023529d8f6e21d4aab37d",
+  "variantOf": "item.icon.berry-meal",
+  "visible": 4242
+ },
+ "recipe.icon.bone-knife": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 1,
+  "clear": 7292,
+  "inputVersion": "bb289c8b34dff7e69f0ca33ae79584e6933415cc8231cf0fae108b8acea1ad19",
+  "sha256": "c25ce373ed3b84463902eeb126ae262b9f1fb6c50c5f3fe41d62ce11357637ad",
+  "variantOf": "item.icon.bone-knife",
+  "visible": 1786
+ },
+ "recipe.icon.campfire-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 1,
+  "clear": 5391,
+  "inputVersion": "c4ecd9069e057b84938e0d545d41c6b41ab7588e00a2045b0221f24cffe9370c",
+  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
+  "variantOf": "item.icon.campfire-kit",
+  "visible": 3592
+ },
+ "recipe.icon.capture-bola": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 8,
+  "clear": 7136,
+  "inputVersion": "18c735a6df4a4300375380e5dc4be8fa12eade83fe855445d46d4a1e357f2179",
+  "sha256": "9983dc9a16318173bba0ceda9011f1a683383e7c184d0789e38aad6539c60d54",
+  "variantOf": "item.icon.capture-bola",
+  "visible": 1874
+ },
+ "recipe.icon.cattail-flatbread": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 13,
+  "clear": 4423,
+  "inputVersion": "3adc43b8920fee96b0fd84bf29ccadffee18f760ddd33d7c7e58891139c3657e",
+  "sha256": "55aadb3857a431681282d43f9ac694fc4453fc35a6ac33d8dd8cd521a9b1938b",
+  "variantOf": "item.icon.cattail-flatbread",
+  "visible": 4644
+ },
+ "recipe.icon.clam-bake": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 12,
+  "clear": 4660,
+  "inputVersion": "45012c5b48a114251933c83da9232411bf67bf4eda39912f9dbe9c5caa0e07bf",
+  "sha256": "523f2d1309fbebbff5f878a9635711d56fb51f2efc9f5a6ee5582f59484faa43",
+  "variantOf": "item.icon.clam-bake",
+  "visible": 4384
+ },
+ "recipe.icon.cooked-meat": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 14,
+  "clear": 4952,
+  "inputVersion": "f5c5701b3ac9b4188a578585c06211e38b76153b7ffaccab1301263905b75dcf",
+  "sha256": "98c75858863ae4bb8c79ee474f6b2f01a9c1e8b451bf588012876fcd1c1da206",
+  "variantOf": "item.icon.cooked-meat",
+  "visible": 4046
+ },
+ "recipe.icon.cord": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 7,
+  "clear": 7117,
+  "inputVersion": "a9acaeaeda01296c201de42ae4075e50621f00258ced7a184e5a6f08bc8134f8",
+  "sha256": "a14b656263013fe26569309b859c8bad5d0ee51612873797f471a1911c5ef166",
+  "variantOf": "item.icon.cord",
+  "visible": 1788
+ },
+ "recipe.icon.flint-knife": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 3,
+  "clear": 6816,
+  "inputVersion": "7b334e7464b61136791ec810f569b86bad70532d7cd03a03a2fe1f4732f40e99",
+  "sha256": "49ff9d5e3bbc74e631b578e8575e25fcfc2e2fa150a4987ada8a2a84813ee3ba",
+  "variantOf": "item.icon.flint-knife",
+  "visible": 2249
+ },
+ "recipe.icon.floor-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 4,
+  "clear": 5771,
+  "inputVersion": "54fd05ae4a00e674caeb1f45c16a6862aad8f9616a04c857602d6e88b2dea419",
+  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
+  "variantOf": "item.icon.floor-kit",
+  "visible": 3308
+ },
+ "recipe.icon.legacy-campfire-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 1,
+  "clear": 5391,
+  "inputVersion": "c4ecd9069e057b84938e0d545d41c6b41ab7588e00a2045b0221f24cffe9370c",
+  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
+  "variantOf": "item.icon.campfire-kit",
+  "visible": 3592
+ },
+ "recipe.icon.legacy-floor-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 4,
+  "clear": 5771,
+  "inputVersion": "54fd05ae4a00e674caeb1f45c16a6862aad8f9616a04c857602d6e88b2dea419",
+  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
+  "variantOf": "item.icon.floor-kit",
+  "visible": 3308
+ },
+ "recipe.icon.legacy-storage-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 3,
+  "clear": 4525,
+  "inputVersion": "648014e657a232d4014670d570c10cd621fe95d39882cd96913a09b78f3065dd",
+  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
+  "variantOf": "item.icon.storage-kit",
+  "visible": 4550
+ },
+ "recipe.icon.legacy-workbench-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 2,
+  "clear": 5508,
+  "inputVersion": "39e4744cafa5778c7259c4b45072134175e2adde2a65cda8433b17b001d47160",
+  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
+  "variantOf": "item.icon.workbench-kit",
+  "visible": 3509
+ },
+ "recipe.icon.plank": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 1,
+  "clear": 5138,
+  "inputVersion": "da445bd7e77311fd9e7960cb4040d688589b5f8a61bc80ecad0489d81183ea30",
+  "sha256": "5ffd183b75b9902b8525b24b7040f42067ec6486ca0a75dde03ddbd7c97bd553",
+  "variantOf": "item.icon.plank",
+  "visible": 3936
+ },
+ "recipe.icon.rawhide-lashing": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 7,
+  "clear": 7117,
+  "inputVersion": "a9acaeaeda01296c201de42ae4075e50621f00258ced7a184e5a6f08bc8134f8",
+  "sha256": "a14b656263013fe26569309b859c8bad5d0ee51612873797f471a1911c5ef166",
+  "variantOf": "item.icon.cord",
+  "visible": 1788
+ },
+ "recipe.icon.roasted-hazelnuts": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 9,
+  "clear": 5541,
+  "inputVersion": "2efedea9401f2453ee7653ef6bab18a8abadfba4c93e0d1bde79e449f3928230",
+  "sha256": "c21a948afeed3839c82ba61274ca6d48e593488c0c509c60fd3db454a0080ed0",
+  "variantOf": "item.icon.roasted-hazelnuts",
+  "visible": 3539
+ },
+ "recipe.icon.roof-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 5,
+  "clear": 5421,
+  "inputVersion": "d37692f127b6372a34b9cf00b749f8a25712218e53c08accfae5859f7f73d8fa",
+  "sha256": "c284a15aac6a8b04b4fd8127ed03d9e65d2c726bf755ae7fc22b2585500778e8",
+  "variantOf": "item.icon.roof-kit",
+  "visible": 3605
+ },
+ "recipe.icon.spear": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 2,
+  "clear": 7889,
+  "inputVersion": "9cda1124db4843c57c3371a0f2b11e3d6823136aa804153e086ef8690eac48ba",
+  "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
+  "variantOf": "item.icon.spear",
+  "visible": 1186
+ },
+ "recipe.icon.starter-axe": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 6,
+  "clear": 7176,
+  "inputVersion": "6a0e68cbe9cfb02cda4cfa25bd0bf9cd25b855d1036c77d1c2dedaa0c100d000",
+  "sha256": "ab7ab2ef8b81d7f1b5adfcfc1206c26ab32bd0dd71fe388083fc4b269a010569",
+  "variantOf": "item.icon.starter-axe",
+  "visible": 1884
+ },
+ "recipe.icon.starter-club": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 8,
+  "clear": 6658,
+  "inputVersion": "e3997178a006d34770d0e42b032ee03c0c7ed41926c9dbbceeb1829d15975154",
+  "sha256": "55335163ee3d589c16578e2062ff991100ea439ae2c2c628117f171699c5eb99",
+  "variantOf": "item.icon.starter-club",
+  "visible": 2406
+ },
+ "recipe.icon.starter-pickaxe": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 7,
+  "clear": 7523,
+  "inputVersion": "56f73543f983f8325bbb88f9df06236a5a66c1e0b61bc5d0eb98478d479d167e",
+  "sha256": "89176a4b25d75a41a52927f2f85ff28845aed4ecd4ce01636c72289043990817",
+  "variantOf": "item.icon.starter-pickaxe",
+  "visible": 1504
+ },
+ "recipe.icon.stone-axe": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 15,
+  "clear": 6988,
+  "inputVersion": "26188bd5475b44cda4c6f1ebb087ced07d0b1a8769ade2f432ab089f5548090a",
+  "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
+  "variantOf": "item.icon.stone-axe",
+  "visible": 2054
+ },
+ "recipe.icon.stone-maul": {
+  "atlas": "l9/atlas-c.png",
+  "cell": 4,
+  "clear": 6545,
+  "inputVersion": "b0a50dffdbf5c892168e86f018d9869f68cd23f56d2947751561708305aefb0a",
+  "sha256": "7c8e8852f92bb6366c771c334726c5bd0bd414bccdd2750bce84454ac432047b",
+  "variantOf": "item.icon.stone-maul",
+  "visible": 2524
+ },
+ "recipe.icon.stone-pick": {
+  "atlas": "l9/atlas-a.png",
+  "cell": 16,
+  "clear": 7336,
+  "inputVersion": "6585c19a2c3fe3ca90241d7ab43948f3b80f0397c7996db19489d50075ff4f1e",
+  "sha256": "eef7f4e1cacfce41215dfae99312f95b381551a4ee8310fcee2e5c3d521f3ad6",
+  "variantOf": "item.icon.stone-pick",
+  "visible": 1745
+ },
+ "recipe.icon.storage-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 3,
+  "clear": 4525,
+  "inputVersion": "648014e657a232d4014670d570c10cd621fe95d39882cd96913a09b78f3065dd",
+  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
+  "variantOf": "item.icon.storage-kit",
+  "visible": 4550
+ },
+ "recipe.icon.thatch-bundle": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 4,
+  "clear": 5824,
+  "inputVersion": "0d0b6a385d7f8b5d36362109814f9a78bdddcec7904ea7075fc33945ad9bfa25",
+  "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
+  "variantOf": "item.icon.thatch-bundle",
+  "visible": 3236
+ },
+ "recipe.icon.woodland-skewer": {
+  "atlas": "l9/atlas-b.png",
+  "cell": 11,
+  "clear": 6986,
+  "inputVersion": "2ca75d9d91ce2e622cf1f9cb8c8caac22f764736ea496be37fb159e1310d9915",
+  "sha256": "5b445a370d7fa74a2845b65d0ce8cd2b7698036cc03a08d9baabbc863ea0abe7",
+  "variantOf": "item.icon.woodland-skewer",
+  "visible": 2055
+ },
+ "recipe.icon.workbench-kit": {
+  "atlas": "l9/atlas-d.png",
+  "cell": 2,
+  "clear": 5508,
+  "inputVersion": "39e4744cafa5778c7259c4b45072134175e2adde2a65cda8433b17b001d47160",
+  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
+  "variantOf": "item.icon.workbench-kit",
+  "visible": 3509
+ },
+ "ui.icon.back": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 16,
+  "clear": 6203,
+  "inputVersion": "92ef0436435f83f1d707427cffc897a99ea31d72997475eb358546852fdca8f7",
+  "sha256": "c125aabf5001140b58fd7549c1f8c3199ad08d6cb4f2950ac7cbafd84f365e1e",
+  "visible": 2852
+ },
+ "ui.icon.bag": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 1,
+  "clear": 2787,
+  "inputVersion": "b2359630076d1519767660723341d1737f8ae3c3a34eabd636f8399c5e212ba2",
+  "sha256": "ab1a11cf03bebc51f808a1e522e5569d5f95c6122f0b4318191c8278b6b9845d",
+  "visible": 6202
+ },
+ "ui.icon.block": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 3,
+  "clear": 4061,
+  "inputVersion": "026ecf30788aa0a4b0370aea00783089674aa7a86e17241f072b91ccb9289a93",
+  "sha256": "a5dfd0c21b03d4ca3c7133b2b906f3d0e02fb2598483685037710a9e27e30a3a",
+  "visible": 4962
+ },
+ "ui.icon.build": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 3,
+  "clear": 4915,
+  "inputVersion": "a48331814f702148e364e2ce34191e396320a3ad3b44f3ae537f2ff445221f28",
+  "sha256": "7cf968bd9991ed0c3921bbd97d5911be179c16d9aad7942adcc70c59fa953345",
+  "visible": 3802
+ },
+ "ui.icon.capacity": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 4,
+  "clear": 4192,
+  "inputVersion": "62a2d240b8b71397a4c2994fc694b331e65d3b2a6dd521ed39578d3079be7a54",
+  "sha256": "c13abf172d38f78ce2d37ad1a60d5498ecefdd531f6bda88ad26a80c529926e4",
+  "visible": 4863
+ },
+ "ui.icon.capture": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 13,
+  "clear": 3441,
+  "inputVersion": "5a1394499cf5b0e543d11247da5cc55a87a4581f2dff925bf0d24829305e586b",
+  "sha256": "dc498f3959c90981bffa49d7ffde97a5b741468b1d3fd80aa37432ce589aa6b4",
+  "visible": 5519
+ },
+ "ui.icon.cat.all": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 1,
+  "clear": 4784,
+  "inputVersion": "cdb2a1395f65b6ac235a98e889a4a7d0c1a4691be559921221e582ce096ad5e8",
+  "sha256": "0ac038bc525c63274c7121eff37b6384f72ed8b4e34eb8fa462c405ec8d2032e",
+  "visible": 4290
+ },
+ "ui.icon.cat.building": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 8,
+  "clear": 4923,
+  "inputVersion": "588a8dc0529fb5ca2bc3a3434f77e4615f072c7a502127aa8958f017f99eff59",
+  "sha256": "f26dbc3c6b973e6ef98be4a7f46dd3eaed240fdf71b0e5b89f3b31760b6a0477",
+  "visible": 4098
+ },
+ "ui.icon.cat.clothing": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 4,
+  "clear": 4991,
+  "inputVersion": "05dc26db1e46105757464300adcb3453bb450186efddd98590f237502fb6552d",
+  "sha256": "253f9c202e7c5fc1625c560f8cd23099280d31ec7ec1fe091f60380063131b5f",
+  "visible": 4097
+ },
+ "ui.icon.cat.farm": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 9,
+  "clear": 6541,
+  "inputVersion": "bf485b28032be393249c27920d40e946e6efadd837477dc8528b1269c311ba73",
+  "sha256": "8795896f7a064a1e3605c5a9785ec559db121dda97c46c9293ff76c1dd82751f",
+  "visible": 2345
+ },
+ "ui.icon.cat.food": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 5,
+  "clear": 5268,
+  "inputVersion": "a4abced86968c98aa8827cdb67af6ab012a0fdbc212db82aee20a0479c19a4f2",
+  "sha256": "ae2a628d01ca44697cb13008c8c27cb2ed59e02928645c24e203038ef2d6ec5c",
+  "visible": 3801
+ },
+ "ui.icon.cat.material": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 7,
+  "clear": 4911,
+  "inputVersion": "4018e92d52c8bafe375bf90d136b091a7cccf858dcd38fd4c4a22d7b7d45cc45",
+  "sha256": "c864abdb3f9b3dcb3b8b87659676d1b1f3d2baf41b6b0c7b513ff029bd7345ee",
+  "visible": 4173
+ },
+ "ui.icon.cat.medicine": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 6,
+  "clear": 3939,
+  "inputVersion": "998d71e7729d4bae7e8677db15f082c030b3c8fbc5beb2c932e1fa23c0d212af",
+  "sha256": "a540f11b87303d1150b2f49289fd4dfc03cbac2dc5a093819409a4af03c6b8d6",
+  "visible": 5103
+ },
+ "ui.icon.cat.pet": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 10,
+  "clear": 5525,
+  "inputVersion": "6f45da626b66b86bf125884c21d3eb5d034beffe9d6794eb1bc190979e56b96f",
+  "sha256": "e8dcc58baf115534273caab5ea2c58b38585b72b36475d052a2f0eb6c140de15",
+  "visible": 3528
+ },
+ "ui.icon.cat.tool": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 2,
+  "clear": 6571,
+  "inputVersion": "c96379cc523a7bf99cc35f53b8935f4b846492c75bca066b7bf3a060a7b368ce",
+  "sha256": "c363b88727689a55ba2008af616c2bf032c1dae0be33bb6151703b5fd4b2e303",
+  "visible": 2452
+ },
+ "ui.icon.cat.weapon": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 3,
+  "clear": 7910,
+  "inputVersion": "4d72a9f867f08b684410d02eab1f30f960772b304150f51d2118b5b01e190a97",
+  "sha256": "137aacf6c25db71269c0bb68dcadfca8dfdaa90305fef6578d70e611824111a5",
+  "visible": 1159
+ },
+ "ui.icon.claim": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 12,
+  "clear": 7350,
+  "inputVersion": "7dfe0c5b38d6017f7cabb3acf1e165d9ee07bf24dd19eeea3da392ef2cfd0b3f",
+  "sha256": "a7a118e0397672a12b287d8ed390d4f380cd8e1285530cc61395931ba95260f3",
+  "visible": 1687
+ },
+ "ui.icon.clan": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 14,
+  "clear": 5495,
+  "inputVersion": "723c96ffd55ecddcc23e7359b746e4d13303d4a53ac802b9b0e98d02affb9f97",
+  "sha256": "0a9694bd62055215decde1d109c14a3a56285c08f4f0895f9aa3de08c9ff550e",
+  "visible": 3483
+ },
+ "ui.icon.clock": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 11,
+  "clear": 5420,
+  "inputVersion": "31a9e757e0931fabe83413c74272a7cf0cbb3998b7cf13bf95203435a4591a29",
+  "sha256": "b85ae4be3e14d95dd578f26392ce211f73585518e995901c291d50648b5c6a56",
+  "visible": 3648
+ },
+ "ui.icon.close": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 15,
+  "clear": 5707,
+  "inputVersion": "f10bb952d456c7ead564563d91cb316c3e26f33bbd4e3fe72f2edc07567359b7",
+  "sha256": "d033d49b2760cfb868e14ae6b9ca6a1be3af1c429b9345ee3aa3c87b06d4ae69",
+  "visible": 3282
+ },
+ "ui.icon.craft": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 2,
+  "clear": 5081,
+  "inputVersion": "d75dc4803e3b5f435864752f4908eb01913a5535290bb30a3d0ccedbf4eabf81",
+  "sha256": "f6edee56c16a241cb8586b1392c299d8d602edd63956c1c74a7781c710c88104",
+  "visible": 3925
+ },
+ "ui.icon.currency": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 16,
+  "clear": 4493,
+  "inputVersion": "97cc9771f08c19f5de172cdd73fb8043f33e82fafeafd432bb9aafce86639aa6",
+  "sha256": "e2719cba1bf56834aa78cc2bb9189ac8cd389367c622e321374e5e446dee6a8f",
+  "visible": 4569
+ },
+ "ui.icon.dock.building": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 11,
+  "clear": 5340,
+  "inputVersion": "af93a4f019ee34c4bbf432af25228f5fb99b74331cb133b65b75f9d8a9fa6ad5",
+  "sha256": "8cba759d728cb1efea56b7aca5b726e7119366447c99d5873ae04a8e1a09af48",
+  "visible": 3668
+ },
+ "ui.icon.dock.craft-preview": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 12,
+  "clear": 4775,
+  "inputVersion": "e2c45b9916c62a66a91b000fe63e7014f5d2a0cd68c68d2066cdde34640d1089",
+  "sha256": "5422494c67aac5db2de66174a35153813002946ba23e19ca0270d0cb3357a895",
+  "visible": 4275
+ },
+ "ui.icon.dock.crop-book": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 13,
+  "clear": 4754,
+  "inputVersion": "8699b148804b0cf015599062b286d5fdfcf00497f849c9891ae69e9e8d7444e1",
+  "sha256": "784492e30c30a39c137d1fbf19055e813c228c2d7672eb9d1209086b030ef9af",
+  "visible": 4313
+ },
+ "ui.icon.dock.operations": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 15,
+  "clear": 4281,
+  "inputVersion": "69805c24cbc52544f85abb537395632367333f8d00414aac3fd3193df01db97d",
+  "sha256": "67dad2244b724e7b6adbb115e0e3115cecd4fe6be042ef74c0e8fcb548c48591",
+  "visible": 4789
+ },
+ "ui.icon.dock.routes": {
+  "atlas": "l9/atlas-j.png",
+  "cell": 14,
+  "clear": 5727,
+  "inputVersion": "bce4db9240bbf39fd35d6352d7efe18280db83bdb61f16bb05b08475673d037a",
+  "sha256": "9514446cb8ac9e51b7c84e6e5bcc28edab7436ffcc882a12a917eb3ecb3beb4d",
+  "visible": 3129
+ },
+ "ui.icon.dodge": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 1,
+  "clear": 5876,
+  "inputVersion": "5c1e9a69f882e3d5b3c548d82ec7d0d0868ae6ac6eab1873ccf321d07147a6d4",
+  "sha256": "1e6f2147f96b7a76703694e477b24a6bf60d4818de2d956aa14aba515a5f8988",
+  "visible": 3124
+ },
+ "ui.icon.durability": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 2,
+  "clear": 3276,
+  "inputVersion": "f670d56e3d0535360baa6463838b039b15c501b16a69c5d2c7ffa8b0e70ee15e",
+  "sha256": "57e1d3738740856ccca08bd261de52836595748a7ddb06de0d55471bf0ea0a6c",
+  "visible": 5741
+ },
+ "ui.icon.empty": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 2,
+  "clear": 4382,
+  "inputVersion": "51a65a3cc0531acf8422331b0a2c12e2002f96a5a31d75702f151d2cf5044929",
+  "sha256": "8f4d6976caf36c9c45e3f715d6d35363db9bfb415fffb42c7371a14c0cec1f34",
+  "visible": 4689
+ },
+ "ui.icon.energy": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 7,
+  "clear": 5295,
+  "inputVersion": "b0a96ff8ffee241c5b9051cdd85a66dbfb3f4c2a39632504cdfbc0763c65780c",
+  "sha256": "076059eae4c662db965f6d4e559b05d569e8543aff0198a3535d0640b57f8535",
+  "visible": 3748
+ },
+ "ui.icon.error": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 3,
+  "clear": 3721,
+  "inputVersion": "671105f5941941eaa44f9a90d01c207cdfbbb72ec438866ffa7e3b65942ec945",
+  "sha256": "93f4efb9cc1de6cdc59147709e486d206f651791e9ba3ba5a496837b7a6acd59",
+  "visible": 5321
+ },
+ "ui.icon.escrow": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 10,
+  "clear": 4020,
+  "inputVersion": "66fa5294b567c00cbac99c69023e5deeb6ed9419a14b080a1fdf3d710a210642",
+  "sha256": "242ccaea37c419f72b1cf39fde73eb67bc6fd357db5e809546813acb0ad3d51a",
+  "visible": 5000
+ },
+ "ui.icon.exploration-rank": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 7,
+  "clear": 4728,
+  "inputVersion": "8e18c7d3301b5cf58c5afa1385749749fc0bd49d8a056ede9845d2f318df0253",
+  "sha256": "64de9cbc9c97ec2102d6263eac653e71336594433d706e1699fd76cc42e6bc06",
+  "visible": 4305
+ },
+ "ui.icon.explore": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 6,
+  "clear": 5448,
+  "inputVersion": "60acdb4b55f0b35913b0eb2c669a77abcd3cd5ed2cc55ce43408569fd2c82506",
+  "sha256": "b32914010e4452b233c2afe026ab8a7c7ffc2eafbcfae435bc6bdcdfc945a85e",
+  "visible": 3592
+ },
+ "ui.icon.fatigue": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 8,
+  "clear": 5064,
+  "inputVersion": "996de1ef40ccaa38c8faa7348e1f875edb08de99a54d398441da6037f4c9227c",
+  "sha256": "752f3985c48567e53503acb143476173f879adac81c1b30d1c9880a5a1269524",
+  "visible": 4010
+ },
+ "ui.icon.favorite": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 4,
+  "clear": 5197,
+  "inputVersion": "f756d91357ff07e1c8bfdc77506cdf9cde61d387b4b07ddcb866b342c9fbcf81",
+  "sha256": "9093f3bd439c7844a28e823cb610edcbe8978c21f2aef43303d20cbec4c87865",
+  "visible": 3693
+ },
+ "ui.icon.fertility": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 5,
+  "clear": 5553,
+  "inputVersion": "54e6e29d6ffbfbb5613079342613bfbc99894170a6ab2dc8e33b2b779e4ba5d4",
+  "sha256": "69ced686ad1d21bfbe63807511878b8fa99b54562c45bf4cc718ea7f2a70e60b",
+  "visible": 3354
+ },
+ "ui.icon.filter": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 5,
+  "clear": 5001,
+  "inputVersion": "1288f2aa3e1ec1d7eb6bac193e885812ef8d4394fe19eabd358ef94ce376402a",
+  "sha256": "435f06e70dff092ceaf350b307479d7a372979d7ace27aec74864026680e6862",
+  "visible": 3915
+ },
+ "ui.icon.flexibility": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 6,
+  "clear": 7069,
+  "inputVersion": "d6b8f15152b6af0b5a2ab073a0a93788e089b76ce6ba3d9dc4aaef90eb47d1c5",
+  "sha256": "f09165b46449c06f30bf276b992a1262f79fd315598cc1092bf22dfbcc1ed5a7",
+  "visible": 2017
+ },
+ "ui.icon.hardness": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 7,
+  "clear": 3931,
+  "inputVersion": "fb7dcd16981f8a9b3c5331f4db6fa1faf77964aa7d0af0cb16868decc54a8a8a",
+  "sha256": "6ac7d866b8488c0786bf3494ce0c06965536d58a3c9dca4863f347b74ba840c2",
+  "visible": 5131
+ },
+ "ui.icon.health": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 6,
+  "clear": 4839,
+  "inputVersion": "7f04fd649de4d25d68127175425275c34609646560e0699b2274a5e96dcac694",
+  "sha256": "9f046875626259f86dedbfea59a683c3a104e702fd3ddec8a46c4949fda502cc",
+  "visible": 4222
+ },
+ "ui.icon.help": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 3,
+  "clear": 5244,
+  "inputVersion": "f6799f292cae8facc094a125a2072353feb1db95f207c061948d25ef88ae701e",
+  "sha256": "51ab54812d87fd16fabaff961e48ce9e5ec784552825f8cb1350c95b3381ad48",
+  "visible": 3730
+ },
+ "ui.icon.inbox": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 10,
+  "clear": 6466,
+  "inputVersion": "6141b2ba3f687b9a46752b00fcd6b0f6f978be2c364bb579980d59d35908b9c3",
+  "sha256": "b1bee4bdd5e17637f733973db2a7cbb7298ed56047f7c5707672bddb5e1834c2",
+  "visible": 2613
+ },
+ "ui.icon.insulation": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 8,
+  "clear": 4691,
+  "inputVersion": "a85bc0620a1ae554d47c036bd29dc6fee3b16b9cabede453e3297d05377ec55b",
+  "sha256": "c36437da1aafe84b4d449b270b6ba180b3a74030d9de61c37c83251aadd91fe9",
+  "visible": 4354
+ },
+ "ui.icon.invite": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 13,
+  "clear": 4854,
+  "inputVersion": "316571aa51002fb19b986cc2c42f281356d3d5dd2850148c75d534702c14b093",
+  "sha256": "d817a7d718635c52078db23e16c3376c5bd34d7755f0dbb7de08d8c4ff6c6c30",
+  "visible": 4204
+ },
+ "ui.icon.journal": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 5,
+  "clear": 4390,
+  "inputVersion": "e55274401d8b9bd4acdcdaa3682a803d3b406da18de55671992fce935178b275",
+  "sha256": "6e0cb94e5b6269967bfefef72564cd5a85013c060076e465a4c5ca468a08a63f",
+  "visible": 4642
+ },
+ "ui.icon.leader": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 9,
+  "clear": 5245,
+  "inputVersion": "e5b3ad58ffeb061746b1189569db385fb474d50bcefeeb382b80d65a5bd6e556",
+  "sha256": "21ac6144246bc593ec486bc8da061c3af460e1b93b5d9409371ae62efa1b63d0",
+  "visible": 3762
+ },
+ "ui.icon.loading": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 10,
+  "clear": 5449,
+  "inputVersion": "71bd5af5b94800256548f2ee08b839d64ea3fe681b1881f7522af1bfd7e56b67",
+  "sha256": "46b9ec237482d4f7e2a00b52c35bea5f8dd90f8cd008496532e9db10fbcfe32a",
+  "visible": 3502
+ },
+ "ui.icon.locked": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 12,
+  "clear": 5115,
+  "inputVersion": "5d251ff6b3b68da41897c32e827617ab4b0567eb88cbdd930f46029e74773411",
+  "sha256": "a6366d5030ac3248b4006c7f5e70ad22d0b2ca9a442f1601e446b2d59af69218",
+  "visible": 3906
+ },
+ "ui.icon.market": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 8,
+  "clear": 4642,
+  "inputVersion": "b5010c749a3cad9c3162c2e4debdee779c2ddd89cdb60149cdc667b0814bcd46",
+  "sha256": "58c9774ef821ca446451a42c578fae555ef5ffd4cdb2fce1ec5d165ef03415c7",
+  "visible": 4414
+ },
+ "ui.icon.member": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 1,
+  "clear": 6085,
+  "inputVersion": "4c2935c0fc6250b74e4ec10ba2b1c4b1bb552f9c50d0e0c648071861d6d1741b",
+  "sha256": "ba7d8e6f21b9a6020ab18784f68c774016107c9fe91e994b20ee3de1c1c6aeac",
+  "visible": 2980
+ },
+ "ui.icon.music": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 9,
+  "clear": 7304,
+  "inputVersion": "2c6d0cc25267ddeda0205935adfac707c979d4c5d0d7132df327ac750fbf0d8f",
+  "sha256": "9f2433b84d409ea1daf0301117cbee4754d997c628d48bfb27a01e678338bc78",
+  "visible": 1776
+ },
+ "ui.icon.nutrition": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 11,
+  "clear": 4800,
+  "inputVersion": "2cca9be01738e69a3abe0c7e693cf938b0fc8900da4507b5f74f0f163371f733",
+  "sha256": "bdb06903b59d9784035d2a55dc8f7fc429751eef5a3279d81d7b0cabec69d7ee",
+  "visible": 4273
+ },
+ "ui.icon.officer": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 14,
+  "clear": 5665,
+  "inputVersion": "4b50aed50dbc2cf334d95891db36627a177f768335163b89415eb37237431bf9",
+  "sha256": "c0998d096ec3c3fc23d6adbfbf4381e45f22532251a870cea987e13994bb9bbc",
+  "visible": 3399
+ },
+ "ui.icon.offline": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 12,
+  "clear": 5445,
+  "inputVersion": "b9c8d9a1ea27a18d442e8f6bee5018bcb47fcd181f7f79d7cf707b414f4fcc91",
+  "sha256": "57114d7ea2983a89f3d2ef70eb30ae4dab018e0cf5c456d6f2b70dc07ce75787",
+  "visible": 3501
+ },
+ "ui.icon.owner": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 13,
+  "clear": 4668,
+  "inputVersion": "5ad6b9a0f9bb8fb5d4d0329b1d3fb9f4dc2b42db5eb2a08c928c01f464572c10",
+  "sha256": "b4012db7dbbf7c61255ae1ece83cfba90af913d277db58acc108aa58d4a33cf7",
+  "visible": 4379
+ },
+ "ui.icon.party": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 15,
+  "clear": 5851,
+  "inputVersion": "858388c46ef592131e4e16bf20bb5fab4b02bee2e09642fbacfa404cbfa0db8f",
+  "sha256": "afba7a4c4ce2d9518a6e2998cf7c77c59306c48ca197fb82d9bb5f64da703aaa",
+  "visible": 3030
+ },
+ "ui.icon.pending": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 14,
+  "clear": 5225,
+  "inputVersion": "58bb73fc1896804b629e4398d8fc478e825cd6b6e4e04c265f7ec78608987d5c",
+  "sha256": "338184eaedcaee0d86c4110f121b30a69a0d93b435f02db17da2dac478185b0a",
+  "visible": 3817
+ },
+ "ui.icon.permission": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 2,
+  "clear": 6869,
+  "inputVersion": "df9502a409371ad350dd56305ab213e8171186a657b8e1803dcb2e07a0bb5952",
+  "sha256": "7cbfcdd0a6e5dc07e4f1be61855892701e37d1456bb512ce7a0c81d4cedb6709",
+  "visible": 2118
+ },
+ "ui.icon.processing-budget": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 6,
+  "clear": 4300,
+  "inputVersion": "451ff44633f121f81f4285fe86edd8e23a40a0e1782bf1f4fd7abc73b2071ecc",
+  "sha256": "27a133196a530efb1f910c99153de4c6f2fafe8e4f12afc9e2dc72dcd67ad45d",
+  "visible": 4746
+ },
+ "ui.icon.quality": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 13,
+  "clear": 4109,
+  "inputVersion": "e5473edee6beea2459381e56716e1b0d7d715b2a7f02c25398cc826f979919ad",
+  "sha256": "dc9e8596b620657643e4bba76669e647b86168212ab869eb08118d06c11d2c31",
+  "visible": 4960
+ },
+ "ui.icon.ready": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 15,
+  "clear": 5778,
+  "inputVersion": "4eb2b4bdd8411c208b992cbfc87104676ba93175f0e14979a51a9fce64cd1b8c",
+  "sha256": "4302b737ebaf82df68987c10f27555fc4428521bf7bdb04c72b6923d7379d716",
+  "visible": 3248
+ },
+ "ui.icon.refresh": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 8,
+  "clear": 5850,
+  "inputVersion": "d764ecb4795b3c12be0fd0414c3e6e18c746df8bae8dbd6e6f6ac8b442574500",
+  "sha256": "a62bd6b658524475b31387ca13000e4961cf5dde718d65e45eae06711afd6756",
+  "visible": 3091
+ },
+ "ui.icon.refund": {
+  "atlas": "l9/atlas-h.png",
+  "cell": 16,
+  "clear": 5267,
+  "inputVersion": "92af287583eb94bfd90b3ec520327529e04c39c87eea210139cdb6f6ce13aa2f",
+  "sha256": "b7cd3984c413ec002632af0c03a3e97cbab8fa574f0641b946dac0d43073bfc3",
+  "visible": 3651
+ },
+ "ui.icon.search": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 9,
+  "clear": 6566,
+  "inputVersion": "be5d04857504ffb5b5a6ac86652f770acd87dda7f23484a2d56b54c62d1b3264",
+  "sha256": "d0a7832efa709b47d583ab542215f11cd7fc36b48c568aac80803daa978630a9",
+  "visible": 2491
+ },
+ "ui.icon.settings": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 11,
+  "clear": 4371,
+  "inputVersion": "c633c8cca7096e84d15b21151a7467c95fc4aee5b987c05c5e47821d11de4df7",
+  "sha256": "2a1f4f01083b1914c85d86905a6576c06beed9f1842522300b105cd193785028",
+  "visible": 4551
+ },
+ "ui.icon.sharpness": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 16,
+  "clear": 5448,
+  "inputVersion": "25213f91c0340e4a3a109acf8a9b4310211e3919363c8376ab10ca055ad687f3",
+  "sha256": "724abf9684c78d35a2f3d6b29f6cce343ca4b5ae482a6ef635ea482337f7a1dc",
+  "visible": 3551
+ },
+ "ui.icon.skill-point": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 10,
+  "clear": 4435,
+  "inputVersion": "c1f2d267ddb5d2a39f8c4c6099704842d58cd69d5189d4e3ded2262e9c4c2afd",
+  "sha256": "9726f7270152c0e126beacce8d3dc19e6b43f5d86f202f4c5125df484ff7c3fe",
+  "visible": 4625
+ },
+ "ui.icon.skills": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 4,
+  "clear": 4813,
+  "inputVersion": "e7782936d9f013eef58affbdc5a1a86f32692458f160856dd375a88595aa8f89",
+  "sha256": "0ec8b4dafbe3b498dc14b07266b4a27f81991d9e37ad75ec52334afffeea9af4",
+  "visible": 4235
+ },
+ "ui.icon.social": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 7,
+  "clear": 5389,
+  "inputVersion": "3f0fb3ac8b99d288397d00683c099610ca338a799e386a1078ce468c813a31d9",
+  "sha256": "6a2584403ee74cd2b74088e9fb62380c4c4b34a1f7448e4fe5dbd4ef0802f936",
+  "visible": 3604
+ },
+ "ui.icon.sort": {
+  "atlas": "l9/atlas-f.png",
+  "cell": 15,
+  "clear": 5090,
+  "inputVersion": "1338f016307605eefc9db90757cd76f42b31f23248287454a40d9f9d56f7c2f1",
+  "sha256": "0169cc1c771ad7c0f362763aac21b3a4f0fbc3f59a5040b3168ab90e2c0a0f1f",
+  "visible": 3961
+ },
+ "ui.icon.stale": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 1,
+  "clear": 6069,
+  "inputVersion": "7de388e0e56e82e0112d51652cd875ac588d89af3c146a48256c6bb5b271b4c5",
+  "sha256": "cc58ede165571ab37c731256714561a749b5819a72a90d3353c364b5a6e3c0c4",
+  "visible": 2985
+ },
+ "ui.icon.stance.attack": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 4,
+  "clear": 6986,
+  "inputVersion": "cbbd9a3e4211c6b3738daa87c82263f3af6550b7a89b8baa178998bcd01cccdb",
+  "sha256": "072e19a147f51c67cac901586c2acc68847026c58a1177fcda4a5683f02e7f26",
+  "visible": 1999
+ },
+ "ui.icon.stance.charge": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 2,
+  "clear": 5512,
+  "inputVersion": "540a8c1dd10b38a7b950f87e2aa6c2fd402a7db07c4ca052591710dfd230d61c",
+  "sha256": "9b09d77e15d3328c75f17cda35555ba6e5df0c6cfeece64e06303283b6d01e05",
+  "visible": 3166
+ },
+ "ui.icon.stance.counter": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 3,
+  "clear": 3479,
+  "inputVersion": "f85d951e403ca74d07b55e52a8995419943cee47062691581b64318706d96aff",
+  "sha256": "4829347f6344d31fed0f8efa9ec53382c696b7e6674a4b584c592bf59518add1",
+  "visible": 5566
+ },
+ "ui.icon.stance.defense": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 5,
+  "clear": 5158,
+  "inputVersion": "1a45ba0dbc5e0c6174f651720199691b92927f101149c246f1b8aa09c9289baf",
+  "sha256": "053a9b211df52bac336b10bb66da63fc2b8d1265f5368762fe6d09a9bdec3719",
+  "visible": 3919
+ },
+ "ui.icon.stance.onslaught": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 4,
+  "clear": 6486,
+  "inputVersion": "bd72708de9aad37e216ca0f978917a8693e82ce7a03aa0970ef41a98979940dd",
+  "sha256": "789742bb19fe279d0682cba6814016dd1ae391b5b58acc3f178333bfb88433ae",
+  "visible": 2427
+ },
+ "ui.icon.stance.shoot": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 5,
+  "clear": 6902,
+  "inputVersion": "7b8c46b23d17698e1e7b4dc699abe1dadcbd75c0ae5c008cadd9495fdc55230f",
+  "sha256": "bf2840f2d6f90603794bd75f2cefd3aa548eee99991a404e26c257e1ee609c82",
+  "visible": 2114
+ },
+ "ui.icon.subdue": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 6,
+  "clear": 6900,
+  "inputVersion": "253601ac2cdcb0698784828fd5c926d31c05af2d28974e05d58f9a3cf5913fb3",
+  "sha256": "15bb9a5ce289aae822d93b55fa2ca7efbfecced6ad170200f67f97193138cc36",
+  "visible": 2186
+ },
+ "ui.icon.success": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 9,
+  "clear": 4958,
+  "inputVersion": "0cd477cccf788c6327f42e3dc096b87494a66e7fb4264529251db53bf31df20e",
+  "sha256": "7442152c31a0502bee07721713568327ae816b3f408bf789e912a0387be1ac70",
+  "visible": 4102
+ },
+ "ui.icon.todo": {
+  "atlas": "l9/atlas-e.png",
+  "cell": 12,
+  "clear": 4160,
+  "inputVersion": "3a0bb40acac43afe7e64f2c7780a9900134bb5908f96e0366923d6948b8d1dae",
+  "sha256": "c661da644f47b4b0785d17fce6ba39a78f5fcb2c745dbf13c07523888308df40",
+  "visible": 4883
+ },
+ "ui.icon.visitor": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 1,
+  "clear": 6445,
+  "inputVersion": "09d0d5c16b7bce93fa39f3bff0d6176140a7e10316050961fd43335960e0d199",
+  "sha256": "e57baaef56ce8f03ba5dc6fc3c1cc39db5d887c091700b8455c4f5104ddf2166",
+  "visible": 2604
+ },
+ "ui.icon.weather.clear": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 7,
+  "clear": 5321,
+  "inputVersion": "ccb20f3349c95aaf50cd9c895c0efa549651d1bd185f1dc11daf56bf89dff567",
+  "sha256": "7d8053a2344b35970d00b3a01d00390f90415c94278a763ee7e10c0f71d6d567",
+  "visible": 3666
+ },
+ "ui.icon.weather.collapse": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 11,
+  "clear": 5048,
+  "inputVersion": "ac6a454bc608976616fe7d817a575b86ad9bc7dc652184b44a80d327084f3177",
+  "sha256": "1dc6f6a5fe49cf2fc85307d668f9121971ec57f627f7fc8a92c42ab5e720159a",
+  "visible": 3934
+ },
+ "ui.icon.weather.fog": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 9,
+  "clear": 4730,
+  "inputVersion": "f44ac7ffa5a8e23452d8284bcacd8a655343a85da13db55ad920eb31d2821c87",
+  "sha256": "112d1edab756cb0f56885e54dcc55f240e2e48cad432023c958a28a482ad5d4f",
+  "visible": 3930
+ },
+ "ui.icon.weather.rain": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 8,
+  "clear": 5961,
+  "inputVersion": "3ab6551a992fc73b0904a3eef1434f87e67568ad6c9892d1ec2bef3ce5edf582",
+  "sha256": "7a0d9176a149a055e8d65718edc4362d91613ac9aa150e5c1ff24170ccf8ccd6",
+  "visible": 3026
+ },
+ "ui.icon.weather.storm": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 10,
+  "clear": 6066,
+  "inputVersion": "005a5f934d091bd0a11069347b41cd1c8561a05d395736e1f6dccac4427cf0f0",
+  "sha256": "0290d3fe89342b531cfe878687abd08a61746cba5fd94de93a34273adaa5e4a3",
+  "visible": 2981
+ },
+ "ui.icon.weight": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 14,
+  "clear": 4386,
+  "inputVersion": "195dfb15f587df72ef082c86f2627e164841472aa19768191a3be4ea73c692dc",
+  "sha256": "48de760be9e780a15371873e95cc32bc5a59776eddafec721ee79408dcfd3f3c",
+  "visible": 4646
+ },
+ "ui.icon.withdraw-capability": {
+  "atlas": "l9/atlas-i.png",
+  "cell": 12,
+  "clear": 4194,
+  "inputVersion": "ceb9f05d62c47f30f2d96f7c8e225aba609687e792099e1190f422a6cd9d8196",
+  "sha256": "0e5a3c383d7ef137dc1dd21ecc01fcf4ce6a29ab570717ae329317a1e145806a",
+  "visible": 4775
+ },
+ "ui.icon.xp": {
+  "atlas": "l9/atlas-g.png",
+  "cell": 11,
+  "clear": 5978,
+  "inputVersion": "d60da798e3cc63d10107024cb9e90c9297ae62375a38b800f55f9f7022e44349",
+  "sha256": "3fecaf33f7a578c2533397e712b1634622de3325339d1b53d2b56f9cd1f055c0",
+  "visible": 3058
+ }
+}

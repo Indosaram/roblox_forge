@@ -553,3 +553,21 @@ not be inferred from a provenance row.
 | recipe.icon.starter-axe.png | atlas-33.png / 4 | gpt-image Responses API / imagegen.mjs | 2026-10-21 |
 | recipe.icon.starter-pickaxe.png | atlas-33.png / 5 | gpt-image Responses API / imagegen.mjs | 2026-10-21 |
 | recipe.icon.starter-club.png | atlas-33.png / 6 | gpt-image Responses API / imagegen.mjs | 2026-10-21 |
+
+## L9 painted restyle, 2026-10-29
+
+Sources: `l9/atlas-a.png` .. `l9/atlas-i.png`, generated with
+`bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs --size 1024x1024 --quality high --background transparent`
+(`l9/gen.mjs`). Shared style prompt `l9/style.txt` (painted shading, thin umber outline, earthy palette,
+moderation rules: no people/hands, no blades or points toward the viewer, cords straight with visible ends,
+no loops/coils/knots). Per-cell subjects in `l9/jobs.json`; atlas a is text-only, b-i use atlas a as the
+style reference. `l9/slice.py` crops each cell (4% inset, alpha<8 cleared, edge fragments removed, 88% fill,
+LANCZOS 96x96) and writes `l9/verify.json` (sha256 + inputVersion per icon). `l9/manifest.py` repoints the
+140 rows (139 restyled + new `item-icon-bone-knife`) to recipe `robango-icon-l9`. Every atlas was screened by
+eye before slicing. Uploaded to the staging creator in batches of 20; all 140 Approved/Active (API-verified).
+Commercial terms of the mahoquot proxy remain for the owner to confirm, as above.
+
+### L9 round 2, 2026-10-29
+
+- `l9/variants.py` copies each restyled item icon to its recipe icon (29) and its material profile icon (29), so an item never shows two styles. The bytes are identical, so these rows reuse the item's uploaded asset id.
+- Atlas `l9/atlas-j.png`: 10 craft category icons (`ui.icon.cat.*`) and 5 menu tile icons (`ui.icon.dock.*`), screened and uploaded (15/15 Approved).

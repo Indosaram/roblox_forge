@@ -1433,7 +1433,9 @@ function M.start(options: Options)
 						panelCategory, recipeId = id, nil
 						render()
 					end)
-					IconFallback.mount(tab, PANEL_GLYPH[id], UDim2.fromOffset(24, 24), UDim2.new(0, 6, 0.5, -12), nil)
+					-- Pack art for the category (ui.icon.cat.<id>) when published; the glyph otherwise.
+					local art = if options.icons then options.icons.ui("cat." .. id).image else nil
+					IconFallback.mount(tab, PANEL_GLYPH[id], UDim2.fromOffset(24, 24), UDim2.new(0, 6, 0.5, -12), art)
 					local pad = tab:FindFirstChild("IconPadding") or Instance.new("UIPadding")
 					pad.Name, pad.PaddingLeft, pad.Parent = "IconPadding", UDim.new(0, 34), tab
 					tab:FindFirstChild("IconFallback").Position = UDim2.new(0, -28, 0.5, -12)

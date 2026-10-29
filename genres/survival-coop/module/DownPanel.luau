@@ -308,7 +308,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				local item = card(index)
 				item.option, item.button.Visible = entry.option, true
 				item.title.Text, item.line.Text = entry.title, entry.line
-				item.icon.Image.Image = DownPanel_icon(ctx.icons, entry.option)
+				-- The badge is an ImageLabel, so `.Image` is its own string property, not the child "Image".
+				local inner = item.icon:FindFirstChild("Image")
+				if inner then
+					inner.Image = DownPanel_icon(ctx.icons, entry.option)
+				end
 				item.icon:SetAttribute("ForgeIconKey", M.ICON_ASSETS[entry.option])
 				item.button:SetAttribute("ForgeIcon", entry.icon)
 				item.rim.Color = if entry.active then rgb(0x5FA8A0) else rgb(0x8A7560)

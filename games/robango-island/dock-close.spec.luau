@@ -97,6 +97,11 @@ local function harness(options: any?): any
 		if class == "ScreenGui" then
 			data.laidOut = table.clone(screen)
 		end
+		-- Engine rule: a property wins over a same-named child (ImageLabel.Image is the image string,
+		-- even with a child named "Image"; v49 DownPanel:311 indexed that string).
+		if class == "ImageLabel" or class == "ImageButton" then
+			data.Image = ""
+		end
 		local item = setmetatable({}, {
 			__index = function(self, key)
 				if key == "AbsoluteSize" and data.laidOut then
@@ -1290,5 +1295,25 @@ return {
 			end
 			assert(#h.errors == 0, table.concat(h.errors, "\n"))
 		end
+	end,
+	["L9: the down panel renders its cards with pack art and no script error"] = function()
+		local h = harness({ width = 800, height = 360, touch = true })
+		h.publish({ rescue = { down = true, options = { "rift", "camp", "rescue" }, flares = {} } })
+		h.publish({ rescue = { down = true, options = { "rift", "camp", "rescue" }, flares = {} } })
+		assert(#h.errors == 0, table.concat(h.errors, "; "))
+		local gui = assert(h.playerGui:FindFirstChild("ForgeDownPanel"), "down panel gui")
+		assert(gui.Enabled == true, "down panel shows while down")
+		local shown = 0
+		for _, card in gui:GetDescendants() do
+			if card.Name == "DownCard" and card.Visible then
+				local inner = card:FindFirstChild("Icon") and card.Icon:FindFirstChild("Image")
+				assert(
+					inner and string.match(inner.Image, "^rbxassetid://%d+$"),
+					"card art for " .. tostring(card:GetAttribute("ForgeIcon"))
+				)
+				shown += 1
+			end
+		end
+		assert(shown == 3, "three down cards, got " .. shown)
 	end,
 }

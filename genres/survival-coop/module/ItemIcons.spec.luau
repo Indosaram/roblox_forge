@@ -56,4 +56,9 @@ return {
 		assert(icons.item("cord").image == nil, "local paths must retain text fallback")
 		assert(icons.item("stone").image == nil, "zero IDs must retain text fallback")
 	end,
+	["an optional dock map rides on the resolver and defaults to nil"] = function()
+		assert(resolver().dock == nil, "no pack map keeps the genre defaults")
+		local icons = ItemIcons.new({ items = {}, recipes = {} }, {}, { routes = "dock.routes" })
+		assert(icons.dock and icons.dock.routes == "dock.routes", "pack dock map is exposed")
+	end,
 }

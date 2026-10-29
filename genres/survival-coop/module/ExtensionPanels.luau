@@ -406,8 +406,13 @@ M.DOCK_ICONS = table.freeze({
 -- Glyph ink on a menu tile (ui-spec bone on the tile's dark fill).
 local TILE_GLYPH = table.freeze({ r = 0xED, g = 0xE6, b = 0xD6 })
 
---- Pack ui icon id of dock entry `id`.
-function M.iconId(id: string): string
+--- Pack ui icon id of dock entry `id`. A pack can give tiles distinct art through its icon resolver's
+--- optional `dock` map (dock id -> ui icon id); without one the genre defaults below apply.
+function M.iconId(id: string, icons: any?): string
+	local override = if type(icons) == "table" and type(icons.dock) == "table" then icons.dock[id] else nil
+	if type(override) == "string" then
+		return override
+	end
 	local info: { number | string } = categories[id] or { 3, "social" }
 	return M.DOCK_ICONS[id] or info[2] :: string
 end
@@ -486,7 +491,7 @@ function M.shellIcon(frame: any, id: string?, icons: any?, tokens: any)
 	local S = tokens.space
 	M.mountIcon(
 		header,
-		if id then M.iconId(id) else "inbox",
+		if id then M.iconId(id, icons) else "inbox",
 		icons,
 		UDim2.fromOffset(S.icon, S.icon),
 		UDim2.new(0, S.pad, 0.5, -S.icon / 2),
@@ -1169,7 +1174,7 @@ function M.start(
 	local function styleTile(button: any, entry: any)
 		button.Name, button.LayoutOrder = "Dock-" .. entry.id, entry.order
 		if contextual then
-			local iconId = M.iconId(entry.id)
+			local iconId = M.iconId(entry.id, options.icons)
 			button.LayoutOrder = M.tileOrder(entry.id, entry.order)
 			button.Text = ""
 			-- Tiles stay grouped by category through LayoutOrder (tileOrder); no 11px caption.

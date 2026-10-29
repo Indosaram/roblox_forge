@@ -1,0 +1,224 @@
+{
+  "date": "2026-10-29",
+  "route": "bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs --size 1024x1024 --quality high --background transparent",
+  "style": "l9/style.txt",
+  "reference": "atlas a is generated from text only; atlases b-g use l9/atlas-a.png as the style reference",
+  "postprocess": "l9/slice.py: 4x4 cells, 4% inset, alpha<8 cleared, edge-touching fragments <25% of the largest component cleared, tight crop centred at 88% fill, LANCZOS 96x96",
+  "atlases": [
+    {
+      "id": "a",
+      "kind": "item",
+      "subjects": {
+        "bone-knife": "a short knife carved from one pale animal leg bone, the blade end ground thin and sharp, the knuckle end wrapped with a few straight turns of tan fibre as a grip",
+        "fiber": "a loose flat bundle of long pale green-tan fern fibres, strands straight and parallel, tied in the middle by one straight band",
+        "branch": "one forked dry tree branch with grey-brown bark and a single small leaf",
+        "leaves": "a small pile of three broad green tropical leaves, slightly curled",
+        "stone": "one rounded grey river stone with a few speckles",
+        "flint": "one glossy dark grey flint nodule with a sharp conchoidal fracture face and cream cortex",
+        "cord": "three short straight lengths of twisted tan plant cord lying side by side, all six ends frayed and visible",
+        "capture-bola": "a hunting bola lying flat: three round leather-wrapped stone weights each attached to a short straight leather thong, the three thongs meet at one small wooden bead in the centre like a three-pointed star, no loops",
+        "berry": "a small cluster of four dark red wild berries with two green leaves",
+        "wood": "two short split firewood logs stacked, pale inner wood and brown bark",
+        "bone": "one clean cream animal leg bone with rounded knobbed ends",
+        "hide": "one raw untanned animal hide laid flat, irregular outline, tan fur side up",
+        "meat": "one raw cut of red meat on a large green leaf, marbled, no bone, no blood drops",
+        "cooked-meat": "one browned roasted cut of meat on a large green leaf, grill marks, a wisp of steam",
+        "stone-axe": "a flint hatchet: dark flint head lashed with straight tan sinew wraps to a short wooden haft, head pointing to the upper right",
+        "stone-pick": "a stone pick: a long pointed grey stone head lashed with straight wraps to a wooden handle, head at the top, points sideways"
+      }
+    },
+    {
+      "id": "b",
+      "kind": "item",
+      "subjects": {
+        "clam": "one closed ribbed grey-cream clam shell",
+        "fish": "one whole silver-grey reef fish lying on its side, muted stripes",
+        "reed": "a bundle of five straight green-brown marsh reeds with feathery tips",
+        "thatch-bundle": "a thick bundle of dry golden straw thatch bound by two straight bands",
+        "birch-bark": "two curled sheets of white birch bark with dark horizontal marks",
+        "cattail-root": "two pale starchy cattail rhizome roots with small rootlets",
+        "chanterelle": "two golden-orange chanterelle mushrooms with wavy caps",
+        "hazelnut": "three brown hazelnuts, one still in its green husk",
+        "roasted-hazelnuts": "a small pile of dark roasted cracked hazelnuts on a flat stone",
+        "berry-meal": "a carved wooden bowl full of mashed red berries with a wooden spoon",
+        "woodland-skewer": "a straight wooden stick skewer with grilled mushrooms and meat chunks, lying diagonal",
+        "clam-bake": "opened cooked clams on a bed of green seaweed on a flat hot stone",
+        "cattail-flatbread": "one round rustic flatbread with toasted brown spots",
+        "sinew": "three short straight cream-coloured dried sinew strips side by side, all ends visible",
+        "shell-fragment": "two broken pieces of thick pearly seashell",
+        "water": "a sealed brown gourd water flask with a wooden stopper"
+      }
+    },
+    {
+      "id": "c",
+      "kind": "item",
+      "subjects": {
+        "plank": "two sawn light-brown wooden planks stacked crosswise",
+        "spear": "a simple wooden spear with a knapped flint tip, lying diagonal, tip to the upper right",
+        "flint-knife": "a knapped flint blade knife with a short wooden handle, blade to the upper right",
+        "stone-maul": "a heavy blunt round stone maul head lashed to a thick wooden handle, head to the upper right",
+        "charcoal": "three black lumps of charcoal with faint grey ash",
+        "clay": "one lump of moist reddish-brown clay with finger smears",
+        "marsh-clay": "one lump of grey-green marsh clay with a few reed fibres stuck in it",
+        "fieldstone": "one flat rough tan fieldstone with lichen spots",
+        "granite": "one chunk of speckled pink-grey granite",
+        "basalt": "one dark columnar basalt block with hexagonal faces",
+        "copper-ore": "a rough rock chunk with green and copper-orange mineral veins",
+        "iron-ore": "a heavy rust-red and dark grey iron ore rock",
+        "volcanic-ore": "a black porous volcanic rock with dull orange glowing cracks",
+        "signal-fragment": "a broken shard of old teal-glazed ceramic with a faint carved spiral",
+        "samphire": "a small bunch of green succulent sea samphire stems",
+        "flax": "a bundle of blue-flowered flax stalks bound by one straight band"
+      }
+    },
+    {
+      "id": "d",
+      "kind": "item",
+      "subjects": {
+        "campfire-kit": "a ring of stones around stacked dry logs with a small calm flame",
+        "workbench-kit": "a sturdy rough-hewn wooden work bench with a stone hammer resting on top",
+        "storage-kit": "a closed wooden storage chest with iron corner straps",
+        "floor-kit": "a small square section of lashed wooden floor planks seen from above at an angle",
+        "roof-kit": "a small sloped section of thatched roof on a wooden frame",
+        "starter-axe": "a simple woodcutter's axe: plain grey iron head on a straight wooden handle, head to the upper right",
+        "starter-pickaxe": "a plain iron pickaxe with a straight wooden handle, head at the top",
+        "starter-club": "a thick knobbly hardwood club, plain, lying diagonal",
+        "bandage": "a rolled strip of clean cream linen bandage with a loose straight tail",
+        "rescue-marker": "a small wooden signal post with a bright orange cloth flag",
+        "apple": "one red-green apple with a leaf",
+        "banana": "a small bunch of three yellow bananas",
+        "corn": "one ear of corn with yellow kernels and pulled-back husk",
+        "potato": "two brown potatoes",
+        "onion": "one golden-brown onion bulb with dry roots",
+        "wheat": "a small sheaf of golden wheat ears bound by one straight band"
+      }
+    },
+    {
+      "id": "e",
+      "kind": "ui",
+      "subjects": {
+        "bag": "a worn canvas and leather backpack with a rolled blanket strapped on top",
+        "craft": "a stone hammer and a flint chisel crossed over a small wooden block",
+        "build": "a half-built timber hut frame with a ridge beam",
+        "skills": "an old leather-bound book with a single green leaf pressed on the cover",
+        "journal": "an open field journal with a pencil and a sketch of a fern",
+        "explore": "a brass pocket compass, lid open, needle pointing up",
+        "social": "two wooden mugs touching in a toast",
+        "market": "a woven basket of trade goods with a small cloth price tag without text",
+        "music": "a carved wooden flute with three finger holes",
+        "inbox": "a sealed rolled parchment letter with a red wax seal",
+        "settings": "a bronze gear wheel",
+        "todo": "a parchment checklist pinned to a board with three ticked boxes, no text",
+        "capture": "a wooden animal carrier crate with air slots",
+        "clan": "a tall cloth banner on a pole with a leaf emblem",
+        "party": "three lit torches standing together",
+        "currency": "a small stack of three polished shell coins"
+      }
+    },
+    {
+      "id": "f",
+      "kind": "ui",
+      "subjects": {
+        "member": "a carved wooden name token on a short straight leather strap",
+        "durability": "a sturdy leather and wood shield seen from the front, round",
+        "help": "a glowing oil lantern",
+        "capacity": "a wooden crate with its lid open showing straw",
+        "fertility": "a young green seedling sprouting from a mound of dark soil",
+        "processing-budget": "a stone mortar and pestle",
+        "exploration-rank": "a rolled sea chart tied with one straight band, partly open showing an island",
+        "refresh": "two curved green leaves forming a circle around nothing",
+        "search": "a brass magnifying glass",
+        "escrow": "a small locked wooden strongbox",
+        "clock": "a bronze sundial",
+        "claim": "a wooden survey stake with a small flag",
+        "invite": "a folded parchment card with a green leaf seal",
+        "officer": "a bronze badge medallion with a leaf emblem on a short straight ribbon",
+        "sort": "three wooden planks stacked from long to short",
+        "sharpness": "a whetstone with a flint blade lying beside it, blade pointing to the upper right"
+      }
+    },
+    {
+      "id": "g",
+      "kind": "ui",
+      "subjects": {
+        "visitor": "a small wooden boat with a furled sail",
+        "permission": "a heavy iron key",
+        "block": "a stone wall segment",
+        "stance.attack": "two wooden practice staffs crossed",
+        "stance.defense": "a tall wooden tower shield with metal rim",
+        "health": "a red heart shape made of woven red cloth with stitching",
+        "energy": "a roasted drumstick-shaped meat on a leaf",
+        "fatigue": "a soft folded wool blanket",
+        "success": "a green leaf with a cream tick mark painted on it",
+        "skill-point": "a golden amber gem",
+        "xp": "a golden five-pointed star carved from wood",
+        "locked": "an iron padlock, closed",
+        "quality": "a polished blue-green gemstone",
+        "weight": "a cast iron balance weight",
+        "close": "a cross made of two crossed wooden sticks lashed in the middle",
+        "back": "a carved wooden arrow sign pointing left"
+      }
+    },
+    {
+      "id": "h",
+      "kind": "ui",
+      "subjects": {
+        "dodge": "a small leather sandal with motion dust puffs behind it",
+        "empty": "an empty open woven basket",
+        "error": "a cracked clay pot",
+        "favorite": "a single red wild flower with green leaves",
+        "filter": "a woven reed sieve funnel",
+        "flexibility": "a green bamboo stalk bent in a gentle arc",
+        "hardness": "a solid grey granite cube",
+        "insulation": "a folded thick fur pelt",
+        "leader": "a carved wooden crown with three leaf points",
+        "loading": "a small hourglass with wooden frame and pale sand",
+        "nutrition": "a bowl of grains, beans and a carrot",
+        "offline": "an unlit old oil lantern, dark glass",
+        "owner": "a wooden house-shaped carved token with a leaf mark",
+        "pending": "a lit candle stub on a clay dish",
+        "ready": "a raised green cloth signal flag on a short pole",
+        "refund": "three shell coins with a curved leaf arrow over them"
+      }
+    },
+    {
+      "id": "i",
+      "kind": "ui",
+      "subjects": {
+        "stale": "a wilted brown leaf",
+        "stance.charge": "a pair of running boots with dust trail",
+        "stance.counter": "a round wooden shield with a curved arrow carved on it",
+        "stance.onslaught": "three wooden practice staffs fanned out",
+        "stance.shoot": "a quiver of three arrows, points upward",
+        "subdue": "a soft padded wooden practice club wrapped in cloth",
+        "weather.clear": "a bright painted sun disc with soft rays",
+        "weather.rain": "a grey cloud with three straight rain streaks",
+        "weather.fog": "three soft grey mist bands over a small hill",
+        "weather.storm": "a dark cloud with a yellow lightning bolt",
+        "weather.collapse": "a cracked rock slab breaking into chunks",
+        "withdraw-capability": "an open wooden chest with one shell coin lifting out"
+      }
+    },
+    {
+      "id": "j",
+      "kind": "ui",
+      "subjects": {
+        "cat.all": "a small woven basket holding a stone, a stick and a leaf together",
+        "cat.tool": "a stone hammer with a wooden handle lying diagonal, head to the upper right",
+        "cat.weapon": "a wooden spear shaft with a flint tip lying flat diagonal, tip to the upper right",
+        "cat.clothing": "a folded tan leather tunic with stitched seams",
+        "cat.food": "a roasted fish on a green leaf",
+        "cat.medicine": "a small clay pot of green herbal salve with a sprig of leaves",
+        "cat.material": "a small stack of a plank, a stone block and a fibre bundle",
+        "cat.building": "a small thatched wooden hut",
+        "cat.farm": "a wooden hoe lying beside a sprouting seedling",
+        "cat.pet": "a leather saddle with a short straight strap",
+        "dock.building": "a stack of three cut stone bricks with a mortar trowel lying beside them",
+        "dock.craft-preview": "a parchment blueprint sheet with a drawn axe outline, partly unrolled, no text",
+        "dock.crop-book": "a green cloth-bound herbal book with a pressed wheat ear on the cover",
+        "dock.routes": "a wooden ship's steering wheel",
+        "dock.operations": "a small wooden hand drum with a hide head"
+      }
+    }
+  ]
+}
