@@ -283,6 +283,9 @@
         },
         "TapRouter": {
           "$path": "src/client/TapRouter.luau"
+        },
+        "NodeFocus": {
+          "$path": "src/client/NodeFocus.luau"
         }
       }
     },

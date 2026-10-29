@@ -159,6 +159,18 @@ end
 
 local STATES = { full = "ForgeNodeMeshFull", depleted = "ForgeNodeMeshDepleted" }
 
+M.MIN_FOOTPRINT = 4
+M.MAX_SCALE = 1.8
+
+--- Uniform scale that brings a row's widest horizontal extent up to MIN_FOOTPRINT (never shrinks).
+function M.scaleFor(template: any): number
+	local wide = math.max(template.Size.X, template.Size.Z)
+	if wide <= 0 or wide >= M.MIN_FOOTPRINT then
+		return 1
+	end
+	return math.min(M.MIN_FOOTPRINT / wide, M.MAX_SCALE)
+end
+
 local function show(target: any)
 	-- Without a depleted row the full mesh stays up while the node regrows.
 	local depleted = target:GetAttribute("ForgeNodeDepleted") == true and target:FindFirstChild(STATES.depleted) ~= nil
@@ -166,7 +178,9 @@ local function show(target: any)
 		local mesh = target:FindFirstChild(name)
 		if mesh then
 			local on = (state == "depleted") == depleted
-			mesh.Transparency = if on then 0 else 1
+			-- A baked cutout card is shown at its base transparency (MeshTexture.bake), never 0.
+			local base = mesh:GetAttribute("ForgeBaseTransparency")
+			mesh.Transparency = if on then (if type(base) == "number" then base else 0) else 1
 			mesh.CanQuery = on
 		end
 	end
@@ -191,6 +205,10 @@ function M.dress(target: any, row: Row?, templates: { [string]: any }, yaw: numb
 		local mesh = template:Clone()
 		mesh.Name = name
 		mesh.Anchored, mesh.CanCollide, mesh.CanTouch = true, false, false
+		-- L10 (p134 v49: nodes read as props): small rows (stone pile, seed pod, carcass) grow to a
+		-- MIN_FOOTPRINT-stud footprint so they read at the 95-stud play camera; both states share the
+		-- full row's factor so the swap never jumps in size.
+		mesh.Size *= M.scaleFor(full)
 		-- Sink below the handle's 0.25-stud lift so the mesh skirt meets the voxel surface; flat rows
 		-- (fish school, signal shard) ride just above it instead (BiomeKits.place uses the same rule).
 		local sink = if mesh.Size.Y < 0.6 then 0.2 else 0.45

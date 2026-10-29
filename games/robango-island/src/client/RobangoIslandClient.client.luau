@@ -201,6 +201,20 @@ local function populationCounts(): { [string]: number }?
 	end
 	return population
 end
+local nodeItems: { [string]: string }? = nil
+-- Catalog node kind (RoleWorld: node id with "."/"_" -> "-") -> its item id, built once.
+local function nodeItemByKind(): { [string]: string }
+	if not nodeItems then
+		local map = {}
+		for _, layout in (content :: any).layouts or {} do
+			for _, node in layout.resourceNodes or {} do
+				map[(string.gsub(node.id, "[._]", "-"))] = node.item
+			end
+		end
+		nodeItems = map
+	end
+	return nodeItems :: { [string]: string }
+end
 local hud = SurvivalHUD.start({
 	icons = itemIcons,
 	contextual = true,
@@ -215,6 +229,11 @@ local hud = SurvivalHUD.start({
 					or require(Forge.genres["survival-coop"].module.SurvivalHUDLocale).text(locale, "shell.lost")
 			elseif kind == "dock" then
 				return WorldText.population(locale, key, populationCounts())
+			elseif kind == "node" and not names[key] then
+				-- L10: role-world nodes carry a per-node catalog kind ("rw-onboarding-branch"), so the
+				-- floating label names the node's item instead (R05-1 "Boulder", "Raspberry Bush").
+				local item = nodeItemByKind()[key]
+				return if item then names[item] else nil
 			end
 			return names[key]
 		end,
@@ -1395,6 +1414,16 @@ local removeTapActions, send = TapRouter.installActions(
 	end
 )
 sendCommand = send
+-- L10: one outline on the gather node in focus (open fan > mouse hover > nearest in reach).
+local stopNodeFocus = require(script.Parent:WaitForChild("NodeFocus")).start({
+	open = function(): any
+		return if gatherPicker then gatherPicker.node() else nil
+	end,
+	hidden = function(): boolean
+		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
+	end,
+})
+gui.Destroying:Connect(stopNodeFocus)
 -- C4: a tap on your own pet (or your mount) opens the pet ring; other creatures fall through to
 -- the attack handler installed above (registered later = asked first).
 local removePetTap = tapInput.register("creature", function(model: Model)

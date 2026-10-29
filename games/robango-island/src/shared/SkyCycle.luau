@@ -20,10 +20,12 @@ type RGB = { number }
 -- moon-blue tint and lifts exposure, so every role gets the same readable blue-grey moonlight; the
 -- grade is the only per-frame post effect, so it applies identically on every role world.
 -- stylua: ignore start
-local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, outdoorAmbient = { 158, 148, 128 },
-	colorShiftTop = { 255, 232, 196 }, colorShiftBottom = { 92, 82, 64 }, decay = { 132, 138, 140 },
-	grade = { brightness = 0.02, contrast = 0.1, saturation = -0.12, tint = { 255, 242, 222 } },
-	density = 0.26, haze = 1.1, glare = 0.25, bloom = 0.08, sunRays = 0.04, starCount = 0,
+-- L10 (R03-2/R03-3/R05-1): the day grade is a warm late-afternoon haze, muted olive-ochre rather
+-- than clean saturated green: warmer tint and sky shift, a little more contrast and haze.
+local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, outdoorAmbient = { 152, 140, 120 },
+	colorShiftTop = { 255, 224, 182 }, colorShiftBottom = { 92, 82, 64 }, decay = { 150, 140, 122 },
+	grade = { brightness = 0.03, contrast = 0.14, saturation = -0.18, tint = { 255, 237, 208 } },
+	density = 0.3, haze = 1.35, glare = 0.3, bloom = 0.08, sunRays = 0.04, starCount = 0,
 	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10 } }
 local NIGHT: any = { brightness = 2.2, exposure = 1.3, ambient = { 120, 140, 190 }, outdoorAmbient = { 130, 162, 236 },
 	colorShiftTop = { 150, 176, 250 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },

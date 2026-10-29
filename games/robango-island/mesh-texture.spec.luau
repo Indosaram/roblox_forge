@@ -59,6 +59,22 @@ cases["bake accepts a single MeshPart (creature templates) and is idempotent"] =
 	assert(part.TextureContent.Uri == "rbxassetid://95388020143637", "texture survives a second bake")
 end
 
+-- L10: at Transparency 0 a baked MeshPart texture draws opaque, so alpha cutout cards (the
+-- SurfaceAppearance's AlphaMode Transparency rows) take the cutout transparency and record it as
+-- the base a show/hide toggle restores; Overlay rows (rocks, creatures, buildings) stay opaque.
+cases["bake keeps cutout cards in the transparent pass and opaque rows at 0"] = function()
+	local model = imported()
+	MeshTexture.bake(model)
+	local card = model:FindFirstChild("veg.jungle.jungle-tall")
+	local rock = model:FindFirstChild("rock.jungle.red-bank")
+	assert(card.Transparency > 0 and card.Transparency < 0.05, "cutout card is in the transparent pass")
+	-- Transparency is stored as float32, the attribute as a double.
+	assert(card:GetAttribute(MeshTexture.BASE_ATTRIBUTE) == MeshTexture.CUTOUT_TRANSPARENCY, "card records its base")
+	assert(math.abs(MeshTexture.shown(card) - card.Transparency) < 1e-6, "a card is shown at its base")
+	assert(rock.Transparency == 0 and rock:GetAttribute(MeshTexture.BASE_ATTRIBUTE) == nil, "opaque row")
+	assert(MeshTexture.shown(rock) == 0, "an opaque row is shown at 0")
+end
+
 -- Static guard: every runtime InsertService:LoadAsset in the pack's server/shared code sits in a
 -- file that bakes the loaded result. A new loader without MeshTexture.bake would ship untextured
 -- meshes on device again.

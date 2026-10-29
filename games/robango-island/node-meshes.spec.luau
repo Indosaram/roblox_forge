@@ -134,6 +134,45 @@ cases["built roles show no primitive gather node and swap full/depleted"] = func
 	end
 end
 
+cases["small node rows scale up to the readable footprint and cutout rows restore their base"] = function()
+	local engine = Engine.new()
+	local NodeMeshes = nodeMeshes(engine)
+	local function sized(x: number, z: number): any
+		local mesh = engine.newInstance("MeshPart")
+		mesh.Size = roblox.Vector3.new(x, 1, z)
+		return mesh
+	end
+	assert(NodeMeshes.scaleFor(sized(6, 3)) == 1, "a wide row keeps its size")
+	assert(NodeMeshes.scaleFor(sized(2.5, 1)) == NodeMeshes.MIN_FOOTPRINT / 2.5, "a small row reaches the footprint")
+	assert(NodeMeshes.scaleFor(sized(1, 1)) == NodeMeshes.MAX_SCALE, "scale is capped")
+	-- A baked cutout template (MeshTexture.bake) is shown at its base transparency, never 0.
+	local rows = templates(engine)
+	for _, mesh in rows do
+		mesh.Transparency = 0.02
+		mesh:SetAttribute("ForgeBaseTransparency", 0.02)
+	end
+	NodeMeshes.setTemplates(rows)
+	local world = engine.role.build(Content, Source, Policy, function()
+		return 0
+	end, "rw.onboarding", 1776)
+	local checked = 0
+	for _, part in engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalNode") do
+		local full = part:FindFirstChild("ForgeNodeMeshFull")
+		local depleted = part:FindFirstChild("ForgeNodeMeshDepleted")
+		if full and depleted then
+			checked += 1
+			assert(full.Transparency == 0.02 and depleted.Transparency == 1, part.Name .. " full at base")
+			part:SetAttribute("ForgeNodeDepleted", true)
+			assert(full.Transparency == 1 and depleted.Transparency == 0.02, part.Name .. " depleted at base")
+			part:SetAttribute("ForgeNodeDepleted", false)
+			assert(full.Transparency == 0.02, part.Name .. " regrows at base")
+		end
+	end
+	assert(checked > 0, "onboarding nodes dressed")
+	NodeMeshes.setTemplates(nil)
+	world.destroy()
+end
+
 cases["a missing template keeps the primitive handle visible"] = function()
 	local engine = Engine.new()
 	local NodeMeshes = nodeMeshes(engine)

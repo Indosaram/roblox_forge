@@ -171,6 +171,54 @@ return {
 			assert(strokes == inside, layout.id .. " paints " .. strokes .. " of " .. inside .. " path segments")
 		end
 	end,
+	-- L10 (R03-3: worn earth, moss and scree break up the arrival ground): variety patches paint
+	-- flat inland ground around the arrival, never beach, paths, nodes or the home/town roles.
+	["arrival ground carries seeded variety patches off paths beaches and nodes"] = function()
+		local function find(id: string): any
+			for _, layout in Content.layouts :: any do
+				if layout.id == id then
+					return layout
+				end
+			end
+			return nil
+		end
+		local layout = assert(find("rw.onboarding"), "onboarding layout")
+		local columns = Terrain.columns(layout, 79, 16)
+		local plan = Dressing.plan(layout, columns, Terrain)
+		local again = Dressing.plan(layout, columns, Terrain)
+		local count, materials = 0, {}
+		for i, stroke in plan.paint do
+			if not stroke.patch then
+				continue
+			end
+			count += 1
+			materials[stroke.material] = true
+			assert(stroke.shape == "disc" and stroke.position.y > 0.5, stroke.id .. " on land")
+			assert(again.paint[i].id == stroke.id and again.paint[i].position.x == stroke.position.x, "deterministic")
+			for _, node in layout.resourceNodes do
+				local d =
+					math.sqrt((stroke.position.x - node.position.x) ^ 2 + (stroke.position.z - node.position.z) ^ 2)
+				assert(d >= stroke.radius, stroke.id .. " covers node " .. node.id)
+			end
+			for _, path in layout.paths do
+				for j = 2, #path.points do
+					local gap =
+						Terrain.distance(stroke.position.x, stroke.position.z, path.points[j - 1], path.points[j])
+					assert(gap > path.width / 2, stroke.id .. " paints path " .. path.id)
+				end
+			end
+		end
+		assert(count >= 24 and count <= Dressing.PATCH.count * 2, "onboarding patches: " .. count)
+		assert(materials.LeafyGrass and materials.Ground, "moss and bare earth both appear")
+		for _, id in { "rw.home", "rw.town" } do
+			local other = find(id)
+			if other then
+				for _, stroke in Dressing.plan(other, Terrain.columns(other, 79, 32), Terrain).paint do
+					assert(not stroke.patch, id .. " keeps its authored ground")
+				end
+			end
+		end
+	end,
 	["volcano has luminous flows ash and hot spring effects"] = function()
 		local lava, ash, steam, crust = false, false, false, false
 		for _, layout in Content.layouts :: any do

@@ -10,7 +10,7 @@ local Rng = load(
 		else "../../../../core/domain/random/Rng"
 )
 local palettes: any = {
-	grassland = { ground = "Grass", leaf = { 82, 114, 71 }, rock = { 110, 117, 103 }, fog = { 192, 215, 205 } },
+	grassland = { ground = "Grass", leaf = { 82, 114, 71 }, rock = { 110, 117, 103 }, fog = { 206, 208, 188 } },
 	forest = { ground = "LeafyGrass", leaf = { 61, 100, 62 }, rock = { 97, 110, 101 }, fog = { 175, 202, 185 } },
 	tropical = { ground = "LeafyGrass", leaf = { 44, 111, 76 }, rock = { 90, 110, 100 }, fog = { 170, 209, 197 } },
 	swamp = { ground = "Mud", leaf = { 104, 124, 69 }, rock = { 82, 98, 89 }, fog = { 180, 194, 153 } },
@@ -731,9 +731,11 @@ M.HERO_ROCK = table.freeze({
 } :: { [string]: string })
 -- Mesh understory per arrival point (shrub, fern and grass rows of the local kit), so a spawn
 -- screen keeps vegetation where the B1 scatter is thin (harbor streets, small brawl islands).
-M.GROVE = 16
-M.GROVE_RINGS = { 18, 24, 30, 36, 42 }
-M.GROVE_SPACING = 6
+-- L10 (R03-3: 8-15 shrubs plus grass tufts, stones and litter around the arrival): 40 pieces over
+-- seven rings, mixing low ground clutter (gravel, leaf litter) and small rocks into the plants.
+M.GROVE = 40
+M.GROVE_RINGS = { 14, 19, 24, 30, 36, 42, 50 }
+M.GROVE_SPACING = 4.5
 
 local function familyOf(kit: string, key: string): string
 	for _, row in kits().kits[kit] do
@@ -834,12 +836,20 @@ local function grove(out: { any }, layout: any, columns: { any }, terrain: any)
 	for _, kit in list do
 		rows[kit] = {}
 		for _, row in B1.kits[kit] do
-			if row.family == "shrub" or row.family == "fern" or row.family == "grass" then
+			-- Gravel cards read as dark puddles at the play camera; leaf litter reads as ground texture.
+			if
+				row.family == "shrub"
+				or row.family == "fern"
+				or row.family == "grass"
+				or (row.family == "clutter" and not row.key:find("gravel"))
+			then
 				table.insert(rows[kit], row.key)
 			end
 		end
 	end
 	local placed: { any } = {}
+	-- Seeded jitter so the rings never read as a pattern (same layout -> same grove).
+	local jitter = Rng.new(#columns):fork(layout.id .. ":grove")
 	for arrival, at in B1.arrivals(layout) do
 		local count = 0
 		for ring, radius in M.GROVE_RINGS do
@@ -847,8 +857,9 @@ local function grove(out: { any }, layout: any, columns: { any }, terrain: any)
 				if count >= M.GROVE then
 					break
 				end
-				local angle = (step + ring * 0.5) * math.pi / 8
-				local x, z = at.x + math.cos(angle) * radius, at.z + math.sin(angle) * radius
+				local angle = (step + ring * 0.5 + (jitter:nextNumber() - 0.5) * 0.8) * math.pi / 8
+				local reach = radius + (jitter:nextNumber() - 0.5) * 4
+				local x, z = at.x + math.cos(angle) * reach, at.z + math.sin(angle) * reach
 				if not B1.allowed(layout, terrain, grade, x, z, 2) then
 					continue
 				end
@@ -878,6 +889,85 @@ local function grove(out: { any }, layout: any, columns: { any }, terrain: any)
 				table.insert(placed, value)
 				table.insert(out, value)
 			end
+		end
+	end
+end
+
+--- Ground variety (L10, R03-3 / R05-1): seeded discs of moss, bare earth and scree around each
+--- arrival point, painted into the terrain like paths, so the spawn screen is not one flat green.
+--- Patches stay off paths, nodes and the drift camp; they never change heights (strokes write
+--- only the top two studs at the probed surface).
+type PatchRule = {
+	count: number,
+	radius: { number },
+	size: { number },
+	slope: number,
+	mix: { { material: string, upTo: number } },
+}
+M.PATCH = table.freeze({
+	count = 64,
+	radius = { 14, 108 },
+	size = { 4, 11 },
+	-- Flat ground only, so the patch reads as one surface.
+	slope = 0.12,
+	-- Material share in order (cumulative): moss, bare earth, scree.
+	mix = {
+		{ material = "LeafyGrass", upTo = 0.5 },
+		{ material = "Ground", upTo = 0.82 },
+		{ material = "Pavement", upTo = 1 },
+	},
+} :: PatchRule)
+local function patches(paint: { any }, layout: any, terrain: any, columns: { any })
+	if #columns == 0 or layout.id == "rw.home" or layout.id == "rw.town" then
+		return
+	end
+	local B1 = kits()
+	local ground = B1.ground(columns, false)
+	local rng = Rng.new(#columns):fork(layout.id .. ":patch")
+	for arrival, at in B1.arrivals(layout) do
+		local made = 0
+		for _ = 1, M.PATCH.count * 3 do
+			if made >= M.PATCH.count then
+				break
+			end
+			local angle = rng:nextNumber() * math.pi * 2
+			local distance = M.PATCH.radius[1] + rng:nextNumber() * (M.PATCH.radius[2] - M.PATCH.radius[1])
+			local size = M.PATCH.size[1] + rng:nextNumber() * (M.PATCH.size[2] - M.PATCH.size[1])
+			local roll = rng:nextNumber()
+			local x, z = at.x + math.cos(angle) * distance * 1.25, at.z + math.sin(angle) * distance
+			local top = ground.top(x, z)
+			if
+				top == nil
+				or top <= B1.LAND_TOP
+				or ground.beach(x, z)
+				or ground.slope(x, z) > M.PATCH.slope
+				or not offPath(layout, terrain, x, z, size)
+			then
+				continue
+			end
+			local near = false
+			for _, node in layout.resourceNodes do
+				near = near or (x - node.position.x) ^ 2 + (z - node.position.z) ^ 2 < (size + 3) ^ 2
+			end
+			if near then
+				continue
+			end
+			local material = M.PATCH.mix[#M.PATCH.mix].material
+			for _, entry in M.PATCH.mix do
+				if roll <= entry.upTo then
+					material = entry.material
+					break
+				end
+			end
+			made += 1
+			table.insert(paint, {
+				id = "patch." .. arrival .. "." .. made,
+				shape = "disc",
+				patch = true,
+				position = { x = x, y = top, z = z },
+				radius = if material == "Pavement" then size * 0.55 else size,
+				material = material,
+			})
 		end
 	end
 end
@@ -1040,6 +1130,7 @@ function M.plan(layout: any, columns: { any }, terrain: any): any
 	local arrival = M.arrival(parts, layout, palette)
 	if primary then
 		grove(placements, layout, columns, terrain)
+		patches(paint, layout, terrain, columns)
 	end
 	assert(#parts <= 768, "WORLD_DRESSING_PART_BUDGET")
 	return {

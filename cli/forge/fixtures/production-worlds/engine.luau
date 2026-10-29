@@ -107,6 +107,12 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				SetMaterialColor = function(_, material)
 					terrainMaterial(material)
 				end,
+				-- Recolours voxels in place (occupancy unchanged): the physical terrain heights are untouched.
+				ReplaceMaterial = function(_, _region, resolution: number, from, to)
+					assert(resolution == 4, "ReplaceMaterial resolution must be 4")
+					terrainMaterial(from)
+					terrainMaterial(to)
+				end,
 			}
 			local writable = {
 				WaterColor = true,
@@ -580,6 +586,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				Instance = { new = instance },
 				Vector3 = roblox.Vector3,
 				CFrame = roblox.CFrame,
+				Region3 = roblox.Region3,
 				Color3 = roblox.Color3,
 				UDim2 = roblox.UDim2,
 				UDim = roblox.UDim,

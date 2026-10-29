@@ -462,9 +462,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Organic islands keep only land columns; a single sand floor stands in for the seabed.
 		workspace.Terrain:FillBlock(CFrame.new(0, -14, 0), Vector3.new(1400, 4, 1400), Enum.Material.Sand)
 	end
-	-- Mossy trampled earth and sparse light stone sit close to the grass value, never dark stains.
-	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(98, 116, 60))
+	-- Ground reads as warm trampled earth, moss as a darker olive and scree (Pavement) as grey
+	-- gravel (L10: next to R03-3 / R05-1 the old green Ground made spawn clearings one flat lawn).
+	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(112, 100, 66))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(122, 126, 92))
+	workspace.Terrain:SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(90, 108, 54))
+	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(102, 118, 62))
+	workspace.Terrain:SetMaterialColor(Enum.Material.Pavement, Color3.fromRGB(122, 116, 102))
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
 	if field then
 		-- Relief islands: per-island sea fill beyond the coast (no shared slab), then land in
@@ -770,12 +774,33 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- shallow pool. Relief islands write far chunks later, so the strokes are re-applied once
 	-- every chunk is in.
 	local PAINT_STEP = 2
+	-- Inland ground a variety patch may recolour (never sand, water, rock or painted paths' mud).
+	local PATCH_FROM = { Enum.Material.Ground, Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Limestone }
 	local function paintStrokes()
 		for _, stroke in dressing.paint do
 			local material = materials[stroke.material]
 			if stroke.shape == "disc" then
 				local p = stroke.position
 				local water = stroke.material == "Water"
+				if stroke.patch then
+					-- Ground-variety patch: swap the material of the surface voxels in 4-stud cells inside the
+					-- disc (ReplaceMaterial keeps occupancy, so the ground never rises; a fill re-applied after
+					-- the far chunks would stack into mounds).
+					local surface = probe(p.x, p.z) or p.y
+					local r = stroke.radius
+					for cx = math.floor((p.x - r) / 4) * 4, p.x + r, 4 do
+						for cz = math.floor((p.z - r) / 4) * 4, p.z + r, 4 do
+							if (cx + 2 - p.x) ^ 2 + (cz + 2 - p.z) ^ 2 <= r * r then
+								local low = Vector3.new(cx, math.floor(surface / 4) * 4 - 4, cz)
+								local region = Region3.new(low, low + Vector3.new(4, 12, 4))
+								for _, from in PATCH_FROM do
+									workspace.Terrain:ReplaceMaterial(region, 4, from, material)
+								end
+							end
+						end
+					end
+					continue
+				end
 				local top = (probe(p.x, p.z) or p.y) + (if water then 0.2 else 0.1)
 				local depth = if water then 1 else 2
 				workspace.Terrain:FillCylinder(CFrame.new(p.x, top - depth / 2, p.z), depth, stroke.radius, material)
