@@ -256,7 +256,12 @@ function M.layout(width: number, height: number, top: number?): { [string]: Rect
 	}
 	out.tagline = { x = margin, y = blockTop - px(12) - px(22), width = column, height = px(22), textSize = px(16) }
 	out.title = { x = margin, y = out.tagline.y - px(48), width = column, height = px(48), textSize = px(40) }
-	assert(out.title.y >= inset, "TITLE_UNDER_TOPBAR")
+	-- Short views with a tall top bar (Studio 1072x635, phones with a notch inset) would push the
+	-- title under the top bar: drop the tagline, then pin the title just below the inset.
+	if out.title.y < inset then
+		out.tagline.height, out.tagline.textSize = 0, 0
+		out.title.y = math.max(inset, out.tagline.y - px(48) + px(22))
+	end
 	return out
 end
 

@@ -7,6 +7,7 @@ local roblox: any = require("@lune/roblox")
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local _packText = (require :: any)("../../../games/robango-island/PackText.fixture")
+local ImageLoad = require("../../../core/ui-kit/ImageLoad.fixture")
 
 local function signal(list: { any }?)
 	return {
@@ -37,6 +38,7 @@ local function mount(): (any, (any) -> ())
 			end,
 		},
 		Lighting = lighting,
+		RunService = { Heartbeat = signal() },
 		TextChatService = {
 			FindFirstChild = function()
 				return nil
@@ -65,15 +67,11 @@ local function mount(): (any, (any) -> ())
 		return signal()
 	end)
 	-- Lune GUI objects have no layout: the pebble rim reads a card badge's size.
-	environment.Instance = {
-		new = function(class: string): any
-			local made = I.new(class)
-			if made:IsA("GuiObject") then
-				made.AbsoluteSize = roblox.Vector2.new(48, 48)
-			end
-			return made
-		end,
-	}
+	environment.Instance = ImageLoad.instance(function(made)
+		if made:IsA("GuiObject") then
+			made.AbsoluteSize = roblox.Vector2.new(48, 48)
+		end
+	end)
 	local panel = luau.load(fs.readFile("genres/survival-coop/module/DownPanel.luau"), {
 		chunkName = "DownPanel",
 		environment = environment,

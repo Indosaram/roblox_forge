@@ -1414,6 +1414,11 @@ export type PickerOptions = {
 -- 8 studs in 3D with a clear ray; p134 v49: the first pick answered "too far, move closer").
 M.PICK_REACH, M.PICK_STOP = 5, 3
 
+--- True while a fan token's item initial must show: no art, or art that has not loaded.
+function M.fanGlyphVisible(image: any): boolean
+	return image.Image == "" or not image.IsLoaded
+end
+
 --- Gather picker runtime plus the item toasts and the skill banner. Returns
 --- { open(part), close(), isOpen(), toast(line), banner(title, line), destroy() }.
 function M.startPicker(options: PickerOptions): any
@@ -1449,6 +1454,11 @@ function M.startPicker(options: PickerOptions): any
 		local glyph = Instance.new("TextLabel")
 		glyph.Name, glyph.BackgroundTransparency, glyph.Size = "Glyph", 1, UDim2.fromScale(1, 1)
 		glyph.TextColor3, glyph.Font, glyph.Parent = color(P.bone), Enum.Font.BuilderSansBold, button
+		-- The initial stays until the art has loaded: a published image the experience may not use
+		-- (p134 v51: 403 InvalidPermission) never loads and would leave an empty pebble.
+		image:GetPropertyChangedSignal("IsLoaded"):Connect(function()
+			glyph.Visible = M.fanGlyphVisible(image)
+		end)
 		local count = Instance.new("TextLabel")
 		count.Name, count.BackgroundTransparency, count.AnchorPoint = "Count", 1, Vector2.new(1, 1)
 		count.Position, count.Size = UDim2.new(1, -4, 1, -2), UDim2.fromScale(0.6, 0.34)
@@ -1584,7 +1594,8 @@ function M.startPicker(options: PickerOptions): any
 			entry.button:SetAttribute("ForgeItem", output.item)
 			local image = options.icon(output.item)
 			entry.image.Image, entry.image.Visible = image or "", image ~= nil
-			entry.glyph.Text = if image then "" else utf8.char(utf8.codepoint(options.itemName(output.item), 1))
+			entry.glyph.Text = utf8.char(utf8.codepoint(options.itemName(output.item), 1))
+			entry.glyph.Visible = M.fanGlyphVisible(entry.image)
 			entry.count.Text = "x" .. output.quantity
 			entry.caption.Text = options.itemName(output.item)
 		end
@@ -1670,6 +1681,7 @@ function M.startPicker(options: PickerOptions): any
 				M.pebble(entry.button, false, not busy)
 				entry.count.TextSize = M.tokenText("caption", h, touch)
 				entry.glyph.TextSize = M.textSize("title", h)
+				entry.glyph.Visible = M.fanGlyphVisible(entry.image)
 				entry.caption.TextSize = M.tokenText("caption", h, touch)
 			end
 		end)

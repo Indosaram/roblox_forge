@@ -3,6 +3,9 @@
 --   [--manifest <path>] [--quality-profile <path>] [--pack-dir <dir>]
 --   [--creator-group <id> | --creator-user <id>] [--cache <path>] [--dry-run]
 --   upload-images additionally takes [--limit <n>] [--only <key1,key2,...>]`:
+--   grant        - grant the pack's deploy.yml universe (per --env) Use permission on every
+--                  uploaded asset through the asset-permissions API (Restricted images do not
+--                  draw in a published experience without it)
 --   check        - gate a manifest's provenance (lawful tool/provider, recorded
 --                  recipe and rights, digest matching the artifact bytes on disk)
 --                  and its moderation state. With --quality-profile it additionally
@@ -31,13 +34,14 @@ local assetsLib = require("../lib/assets")
 local audioassets = require("../lib/audioassets")
 local imageassets = require("../lib/imageassets")
 local cliutil = require("../lib/cliutil")
+local deploytarget = require("../lib/deploytarget")
 local qualityprofile = require("../lib/qualityprofile")
 
 local M = {}
 
 local DEFAULT_PACK = "kaiju-egg-raiders"
 local ENVS = { "staging", "production" }
-local SUBS = { "check", "codegen", "status", "upload-audio", "upload-images" }
+local SUBS = { "check", "codegen", "status", "upload-audio", "upload-images", "grant" }
 
 -- Open Cloud Assets API endpoints and the publishing defaults. Audio uploads
 -- are free; nothing here spends Robux. The creator is never hardcoded: it comes
@@ -960,6 +964,131 @@ local function runUploadImages(options: any, deps: UploadDeps): boolean
 	return failures == 0
 end
 
+-- ---------------------------------------------------------------------------
+-- grant: give the pack's experience Use permission on every uploaded asset.
+-- ---------------------------------------------------------------------------
+
+-- p134 v51/v52 (phone): the L9 icons were Approved and the live server's ContentProvider loaded
+-- every one, but the client logged `AssetDelivery403InvalidPermission` for them and kept the old
+-- glyphs. Images created by an account with Asset Privacy on are Restricted: a published
+-- experience can draw them only after the owner grants that universe Use. Studio hid this because
+-- the creator's own permission applies there.
+local PERMISSIONS_URL = "https://apis.roblox.com/asset-permissions-api/v1/assets/permissions"
+M.GRANT_BATCH = 50
+
+--- The Open Cloud key `assets grant` uses: ROBLOX_ASSET_PERMISSIONS_API_KEY (a key with
+--- asset-permissions:write) when set, else ROBLOX_API_KEY.
+function M.grantApiKey(variables: { [string]: string? }): (string?, string)
+	for _, name in { "ROBLOX_ASSET_PERMISSIONS_API_KEY", "ROBLOX_API_KEY" } do
+		local value = variables[name]
+		if value ~= nil and value ~= "" then
+			return value, name
+		end
+	end
+	return nil, "ROBLOX_ASSET_PERMISSIONS_API_KEY"
+end
+
+--- Distinct uploaded asset ids of the manifest, in manifest order (string form for the API).
+function M.grantIds(manifest: assetsLib.Manifest): { string }
+	local ids, seen = {}, {}
+	for _, asset in manifest.assets do
+		if asset.assetId > 0 and asset.moderation ~= "Rejected" then
+			local id = string.format("%.0f", asset.assetId)
+			if not seen[id] then
+				seen[id] = true
+				table.insert(ids, id)
+			end
+		end
+	end
+	return ids
+end
+
+local function runGrant(options: any, deps: UploadDeps): boolean
+	local env = deps.env or process.env
+	local deployPath = options.packDir .. "/deploy.yml"
+	local deploy = decodeYaml(deployPath)
+	if deploy == nil then
+		stdio.ewrite("Error: failed to read " .. deployPath .. "\n")
+		return false
+	end
+	local target, targetErr = deploytarget.target(deploy, options.env, env)
+	if target == nil then
+		stdio.ewrite("Error: " .. tostring(targetErr) .. "\n")
+		return false
+	end
+	local universe = string.format("%.0f", target.universeId)
+	local ids = M.grantIds(options.manifest)
+	if options.dryRun then
+		stdio.write(string.format("assets grant: DRY-RUN (%d assets -> universe %s Use)\n", #ids, universe))
+		return true
+	end
+	local apiKey, keyName = M.grantApiKey(env)
+	if apiKey == nil then
+		stdio.ewrite(
+			"Error: " .. keyName .. " is not set; assets grant needs an Open Cloud key with asset-permissions:write\n"
+		)
+		return false
+	end
+	local request: (any) -> any = deps.request or net.request :: any
+	local wait = deps.wait or function(seconds: number)
+		task.wait(seconds)
+	end
+	local granted, failed = 0, 0
+	for first = 1, #ids, M.GRANT_BATCH do
+		local requests = {}
+		for index = first, math.min(first + M.GRANT_BATCH - 1, #ids) do
+			table.insert(requests, { assetId = tonumber(ids[index]) })
+		end
+		local body = serde.encode("json", {
+			subjectType = "Universe",
+			subjectId = universe,
+			action = "Use",
+			requests = requests,
+		})
+		local response: any = nil
+		for attempt = 1, STATUS_ATTEMPTS do
+			response = request({
+				url = PERMISSIONS_URL,
+				method = "PATCH",
+				headers = { ["x-api-key"] = apiKey, ["content-type"] = "application/json" },
+				body = body,
+			})
+			if response.statusCode ~= 429 or attempt == STATUS_ATTEMPTS then
+				break
+			end
+			wait(math.min(60, math.max(2 ^ (attempt - 1), retryAfterSeconds(response) or 0)))
+		end
+		if not response.ok then
+			stdio.ewrite(
+				string.format(
+					"assets grant: FAIL HTTP %d %s (%s needs asset-permissions:write; %d granted before stopping)\n",
+					response.statusCode,
+					tostring(response.body),
+					keyName,
+					granted
+				)
+			)
+			return false
+		end
+		local decoded = serde.decode("json", response.body)
+		granted += #(decoded.successAssetIds or {})
+		for _, err in decoded.errors or {} do
+			failed += 1
+			stdio.ewrite(string.format("asset %.0f: %s\n", err.assetId or 0, tostring(err.code)))
+		end
+	end
+	stdio.write(
+		string.format(
+			"assets grant: %s (%d of %d assets granted Use to universe %s)\n",
+			if failed == 0 then "PASS" else "FAIL",
+			granted,
+			#ids,
+			universe
+		)
+	)
+	return failed == 0
+end
+
 --- Dispatches one of the assets subcommands. Returns false with a printed
 --- reason on any refusal so the CLI can exit 1; a usage error also returns
 --- exit code 2 as the second value. `deps` injects the upload-images transport.
@@ -1119,6 +1248,7 @@ function M.run(args: { string }, context: cliutil.CommandContext?, deps: UploadD
 	end
 
 	local path = manifestPath
+		or (if (sub :: string) == "grant" and packDirArg ~= nil then packDirArg .. "/assets/manifest.yml" else nil)
 		or (
 			(if context and context.packsDir then context.packsDir else "games")
 			.. "/"
@@ -1132,7 +1262,15 @@ function M.run(args: { string }, context: cliutil.CommandContext?, deps: UploadD
 	end
 	local typed = manifest :: assetsLib.Manifest
 
-	if sub == "check" then
+	if (sub :: string) == "grant" then
+		return runGrant({
+			packDir = packDirArg
+				or ((if context and context.packsDir then context.packsDir else "games") .. "/" .. pack),
+			manifest = typed,
+			env = env,
+			dryRun = dryRun,
+		}, deps or {})
+	elseif sub == "check" then
 		return runCheck(typed, env, path, qualityProfilePath)
 	elseif sub == "codegen" then
 		return runCodegen(pack, typed, context)

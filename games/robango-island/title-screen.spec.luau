@@ -272,4 +272,14 @@ return {
 		assert(string.find(boot, "GuiService.TopbarInset.Max.Y", 1, true), "from the live top bar")
 		assert(string.find(boot, "Flow.layout(size.X, size.Y, top)", 1, true), "copy below the same top")
 	end,
+	-- A short view (title column taller than the space under a 58 px top bar) used to raise
+	-- TITLE_UNDER_TOPBAR and kill the boot script; the title now clamps below the inset.
+	["short views with a tall top bar keep the title below the inset instead of asserting"] = function()
+		for _, view in { { 400, 120, 58 }, { 600, 130, 58 }, { 800, 360, 58 } } do
+			local ok, rects = pcall(Flow.layout, view[1], view[2], view[3])
+			local label = view[1] .. "x" .. view[2]
+			assert(ok, "layout raised at " .. label .. ": " .. tostring(rects))
+			assert(rects.title.y >= view[3], "title under the top bar at " .. label)
+		end
+	end,
 }

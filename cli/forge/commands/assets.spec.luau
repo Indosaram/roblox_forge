@@ -582,4 +582,73 @@ return {
 		end
 		assert(ok, tostring(reason))
 	end,
+	-- p134 v51: Restricted (Asset Privacy) images do not draw in the published experience until
+	-- its universe has Use; `assets grant` sends one PATCH per batch for every uploaded id.
+	["assets grant gives the deploy universe Use on every uploaded asset"] = function()
+		local root = tempdir.root() .. "/forge-grant-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+		local packDir = root .. "/grantpack"
+		local ok, reason = pcall(function()
+			fs.writeDir(packDir .. "/assets")
+			local lines = { "assets:" }
+			for index, id in { 11, 12, 12, 0, 13 } do
+				for _, line in
+					{
+						"  - key: icon" .. index,
+						"    kind: image",
+						"    tool: forge-procgen",
+						"    source: generated",
+						"    assetId: " .. id,
+						"    moderation: "
+							.. (if index == 5 then "Rejected" elseif id > 0 then "Approved" else "NotUploaded"),
+					}
+				do
+					table.insert(lines, line)
+				end
+			end
+			fs.writeFile(packDir .. "/assets/manifest.yml", table.concat(lines, "\n") .. "\n")
+			fs.writeFile(
+				packDir .. "/deploy.yml",
+				"environments:\n  staging:\n    universeId: ${FORGE_STAGING_UNIVERSE_ID}\n    placeId: 7\n"
+			)
+			local sent: { any } = {}
+			local deps: any = {
+				env = { FORGE_STAGING_UNIVERSE_ID = "424242", ROBLOX_API_KEY = "test-key" },
+				wait = function() end,
+				request = function(params: any): any
+					table.insert(sent, params)
+					local body = serde.decode("json", params.body)
+					local granted = {}
+					for _, entry in body.requests do
+						table.insert(granted, entry.assetId)
+					end
+					return { ok = true, statusCode = 200, body = serde.encode("json", { successAssetIds = granted }) }
+				end,
+			}
+			local passed = assetsCommand.run({ "assets", "grant", "--pack-dir", packDir }, nil, deps)
+			assert(passed, "grant passes")
+			assert(#sent == 1, "one batch for three ids")
+			assert(
+				sent[1].method == "PATCH"
+					and string.find(sent[1].url, "asset-permissions-api/v1/assets/permissions", 1, true),
+				"asset-permissions PATCH"
+			)
+			assert(sent[1].headers["x-api-key"] == "test-key", "api key header")
+			local body = serde.decode("json", sent[1].body)
+			assert(
+				body.subjectType == "Universe" and body.subjectId == "424242" and body.action == "Use",
+				"universe Use grant"
+			)
+			local ids = {}
+			for _, entry in body.requests do
+				table.insert(ids, entry.assetId)
+			end
+			assert(#ids == 2 and ids[1] == 11 and ids[2] == 12, "distinct uploaded, non-rejected ids only")
+			local dry = assetsCommand.run({ "assets", "grant", "--pack-dir", packDir, "--dry-run" }, nil, deps)
+			assert(dry and #sent == 1, "dry run sends nothing")
+		end)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
 }

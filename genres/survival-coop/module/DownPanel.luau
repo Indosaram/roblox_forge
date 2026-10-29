@@ -57,6 +57,11 @@ local function DownPanel_icon(icons: any?, option: string): string
 	return if icon and icon.image then icon.image else ""
 end
 M.icon = DownPanel_icon
+
+--- True while a down card badge must show its initial: no art, or art that has not loaded.
+function M.badgeGlyphVisible(image: any): boolean
+	return image.Image == "" or not image.IsLoaded
+end
 local REFUSALS = { TOO_FAR = "too_far", REQUEST_EXPIRED = "expired", NO_REQUEST = "expired" }
 
 function M.text(locale: string, key: string, ...: any): string
@@ -239,6 +244,16 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		inner.Position, inner.Size, inner.ScaleType =
 			UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.72, 0.72), Enum.ScaleType.Fit
 		inner.Parent = glyph
+		-- The option's initial stays on the badge until the art has loaded: a published image the
+		-- experience may not use (p134 v51: 403 InvalidPermission) never loads, and the badge read as
+		-- an empty square.
+		local initial = Instance.new("TextLabel")
+		initial.Name, initial.BackgroundTransparency, initial.Size = "Glyph", 1, UDim2.fromScale(1, 1)
+		initial.Font, initial.TextScaled, initial.Text = Enum.Font.BuilderSansBold, true, ""
+		initial.TextColor3, initial.Parent = rgb(0xEDE6D6), glyph
+		inner:GetPropertyChangedSignal("IsLoaded"):Connect(function()
+			initial.Visible = M.badgeGlyphVisible(inner)
+		end)
 		Shell.pebbleShape(glyph, Shell.PALETTE.tealDeep)
 		local name = Instance.new("TextLabel")
 		name.Name, name.BackgroundTransparency, name.Position = "Title", 1, UDim2.fromScale(0.06, 0.4)
@@ -250,8 +265,16 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		line.TextScaled, line.TextColor3, line.Parent = true, rgb(0xCFC4AD), button
 		-- The badge art sits on the inner label: `glyph.Image` is the ImageLabel's own Image property
 		-- (a string), never this child (p134 v49: "attempt to index string with 'Image'" each snapshot).
-		local entry =
-			{ button = button, icon = glyph, image = inner, title = name, line = line, rim = rim, option = "" }
+		local entry = {
+			button = button,
+			icon = glyph,
+			image = inner,
+			glyph = initial,
+			title = name,
+			line = line,
+			rim = rim,
+			option = "",
+		}
 		button.Activated:Connect(function()
 			choose(entry.option)
 		end)
@@ -312,6 +335,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				item.option, item.button.Visible = entry.option, true
 				item.title.Text, item.line.Text = entry.title, entry.line
 				item.image.Image = DownPanel_icon(ctx.icons, entry.option)
+				item.glyph.Text = utf8.char(utf8.codepoint(entry.title, 1))
+				item.glyph.Visible = M.badgeGlyphVisible(item.image)
 				item.icon:SetAttribute("ForgeIconKey", M.ICON_ASSETS[entry.option])
 				item.button:SetAttribute("ForgeIcon", entry.icon)
 				item.rim.Color = if entry.active then rgb(0x5FA8A0) else rgb(0x8A7560)
@@ -346,8 +371,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 	end
 	local unsubscribe = ctx.onSnapshot(render)
+	-- IsLoaded does not always signal (Studio: never for a cached image), so while the panel shows
+	-- each badge's initial follows its art's load state every frame.
+	local heartbeat = game:GetService("RunService").Heartbeat:Connect(function()
+		if gui.Enabled then
+			for _, item in cards do
+				item.glyph.Visible = M.badgeGlyphVisible(item.image)
+			end
+		end
+	end)
 	return {
 		destroy = function()
+			heartbeat:Disconnect()
 			unsubscribe()
 			grade:Destroy()
 			markers:Destroy()

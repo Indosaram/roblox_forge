@@ -158,7 +158,12 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
                             Assets API, poll each operation, and record the returned rbxassetid plus
                             moderation state in assets/manifest.yml. Idempotent by artifact sha256 via
                             build/audio-upload-cache.json. Pending moderation is reported, never
-                            treated as playable]=],
+                            treated as playable
+  assets grant [--pack <slug> | --pack-dir <dir>] [--env staging|production] [--dry-run]
+                            Grant the pack's deploy.yml universe Use permission on every uploaded
+                            asset (asset-permissions API; key ROBLOX_ASSET_PERMISSIONS_API_KEY or
+                            ROBLOX_API_KEY with asset-permissions:write). Restricted images (Asset
+                            Privacy) do not draw in a published experience without it]=],
 	},
 	{
 		name = "deploy",

@@ -3,6 +3,8 @@
 -- 2400x1080 phone (SM-N981N, scale 2.625, side inset 32, top bar 58 logical) and 1920x1080 PC
 -- (top bar 58), all inside the safe area, below the top bar and never overlapping.
 local Shell = require("./HudShell")
+-- ImageLabel IsLoaded / GetPropertyChangedSignal for the picker specs (registered once per process).
+local _imageLoad = require("../../../core/ui-kit/ImageLoad.fixture")
 
 local REGIONS = { "vitals", "chips", "tracker", "status", "minimap", "coords", "quest", "row", "cluster" }
 
