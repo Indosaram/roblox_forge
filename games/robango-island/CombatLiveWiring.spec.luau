@@ -482,6 +482,59 @@ return {
 		assert(phone.gui:FindFirstChild("CarcassFan").Visible, "the carcass fan opens over the body")
 		live.factory.close()
 	end,
+	-- p134 v51: walking the onboarding camp, the tester found nothing huntable in reach (the taps hit
+	-- Tumble, a client-only companion, and a scenery rock). A dodo herd grazes beside the main path
+	-- on the camp leg, and a tap from the camp workbench hunts it with the bone knife.
+	["a dodo grazes beside the camp leg of the start path and a tap from camp hunts it"] = function()
+		local layout: any = nil
+		for _, entry in Content.layouts do
+			if entry.id == "rw.onboarding" then
+				layout = entry
+			end
+		end
+		local path: any = nil
+		for _, entry in layout.paths do
+			if entry.id == "rw.onboarding.main" then
+				path = entry
+			end
+		end
+		local function segment(px: number, pz: number, a: any, b: any): number
+			local dx, dz = b.x - a.x, b.z - a.z
+			local t = math.clamp(((px - a.x) * dx + (pz - a.z) * dz) / (dx * dx + dz * dz), 0, 1)
+			return math.sqrt((px - a.x - t * dx) ^ 2 + (pz - a.z - t * dz) ^ 2)
+		end
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local bench: any = nil
+		for _, anchor in layout.anchors do
+			if anchor.id == "station.workbench.t1" then
+				bench = anchor.position
+			end
+		end
+		local target: string? = nil
+		for id, model in phone.models do
+			local p = model.HumanoidRootPart.Position
+			local kind = model:GetAttribute("ForgeWildlifeKind")
+			local near = math.huge
+			for index = 1, #path.points - 1 do
+				near = math.min(near, segment(p.X, p.Z, path.points[index], path.points[index + 1]))
+			end
+			local camp = math.sqrt((p.X - bench.x) ^ 2 + (p.Z - bench.z) ^ 2)
+			if kind == "dodo" and near <= path.width and camp <= 45 and not target then
+				target = id
+			end
+		end
+		assert(target, "a dodo grazes within the path width of the main path and 45 studs of the workbench")
+		local id = target :: string
+		phone.place(roblox.Vector3.new(bench.x, 3, bench.z))
+		assert(phone.tap(id), "the creature tap engages")
+		fight(phone, live, id, 60)
+		assert(phone.approaches() >= 1, "the character walked to the dodo")
+		assert(hp(live, id) == 0, "the camp dodo died on the server, health " .. hp(live, id))
+		assert(swingsAt(phone, id) <= MAX_SWINGS, "within " .. MAX_SWINGS .. " swings")
+		live.factory.close()
+	end,
 	["tapping a second creature retargets the loop and it dies too"] = function()
 		local live = server()
 		hold(live, "bone-knife", 60000)

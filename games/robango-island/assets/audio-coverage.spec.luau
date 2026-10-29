@@ -185,17 +185,24 @@ return {
 		end
 	end,
 	-- p134 v40-v46: the live universe refused 101757647762518 ("User is not authorized to access
-	-- Asset") on every panel close. An id the phone cannot load is never published as a cue.
+	-- Asset") on every panel close; p134 v50-v51 did the same for the onboarding music
+	-- (130902558696165) and the panel open (80860347167934). An id the phone cannot load is never
+	-- published as a cue.
 	["no audio cue publishes an asset id the live universe refuses"] = function()
-		local refused = { [101757647762518] = "robango-ui-close" }
+		local refused = {
+			[101757647762518] = "robango-ui-close",
+			[130902558696165] = "robango-bgm-onboarding",
+			[80860347167934] = "robango-ui-open",
+		}
 		local Assets = require("../src/shared/Assets")
 		for key, asset in manifest() do
 			if asset.kind == "sfx" or asset.kind == "bgm" then
 				assert(not refused[asset.assetId], key .. " publishes refused asset " .. tostring(asset.assetId))
 			end
 		end
-		local close = Assets["robango-ui-close"]
-		assert(not string.match(close, "^rbxassetid://"), "ui-close is not a cloud id: " .. close)
+		for _, key in refused do
+			assert(not string.match(Assets[key], "^rbxassetid://"), key .. " is not a cloud id: " .. Assets[key])
+		end
 		local played: { string } = {}
 		local bank = {
 			new = function()
@@ -211,7 +218,9 @@ return {
 				error("stop after slot definitions")
 			end,
 		}, Assets, Catalog, {})
-		assert(not started and not table.find(played, "ui-close"), "RobangoAudio skips the unpublished close cue")
-		assert(table.find(played, "ui-open"), "published cues are still defined")
+		for _, cue in { "ui-close", "ui-open", "bgm-onboarding" } do
+			assert(not started and not table.find(played, cue), "RobangoAudio skips the unpublished " .. cue .. " cue")
+		end
+		assert(table.find(played, "ui-confirm"), "published cues are still defined")
 	end,
 }

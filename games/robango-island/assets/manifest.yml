@@ -916,13 +916,16 @@ assets:
         ownership: first-party
       author: "agent:omo"
       created: 2026-10-20
+  # robango-bgm-onboarding: upload 130902558696165 fails on the phone in the live universe with "User is not authorized"
+  # (p134 v50-v51, one client error per join). Unpublished until a re-upload is verified on a
+  # phone: the cue falls back to the local rbxasset file, which RobangoAudio skips (silent).
   - key: robango-bgm-onboarding
     kind: bgm
     tool: forge-procgen
     source: "first-party procedural Robango bgm-onboarding"
     path: assets/audio/robango-bgm-onboarding.wav
-    assetId: 130902558696165
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
       digest: sha256:82238541f6d925656e226eec8953b766916839f46ed0a8a67e69f765228ec7e7
       recipe:
@@ -16127,13 +16130,16 @@ assets:
         ownership: first-party
       author: agent:omo/hephaestus
       created: 2026-10-21
+  # robango-ui-open: upload 80860347167934 fails on the phone in the live universe with "User is not authorized"
+  # (p134 v50-v51, one client error per panel open). Unpublished until a re-upload is verified on a
+  # phone: the cue falls back to the local rbxasset file, which RobangoAudio skips (silent).
   - key: robango-ui-open
     kind: sfx
     tool: forge-procgen
     source: "first-party procedural Robango ui-open"
     path: assets/audio/robango-ui-open.wav
-    assetId: 80860347167934
-    moderation: Approved
+    assetId: 0
+    moderation: NotUploaded
     provenance:
       digest: sha256:79ffb951022559d47ae4b1777e72b8bb6cf491a558af7aad7233a8a8cf518cdd
       recipe:

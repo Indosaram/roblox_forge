@@ -158,13 +158,33 @@ function M.decorNode(at: any, nodes: { any }, radius: number): any?
 	return best
 end
 
-function M.gesture()
-	local count = 0
+-- p134 v51: three 5-17 min spells where every tap and swipe did nothing. The old gesture counted
+-- fingers with a bare counter; one touch whose InputEnded never arrived (the dev console, chat or a
+-- CoreGui overlay took it) left the count at 1, so every later touch was a "second finger" (pinch)
+-- that never tapped or steered until a respawn cancelled it. Touches are now tracked by id, and a
+-- touch the engine already ended (`live(id)` false) is dropped before a new one begins.
+function M.gesture(live: ((any) -> boolean)?)
+	local active: { [any]: boolean } = {}
 	local session: { id: any, x: number, y: number, ui: boolean, dragging: boolean, multi: boolean }? = nil
 	local g = {}
+	local function prune()
+		if not live then
+			return
+		end
+		for id in active do
+			if not live(id) then
+				active[id] = nil
+				if session and session.id == id then
+					session = nil
+				end
+			end
+		end
+	end
 	function g.began(id: any, x: number, y: number, overUi: boolean)
-		count += 1
-		if count == 1 then
+		prune()
+		active[id] = true
+		local first = next(active)
+		if next(active, first) == nil then
 			session = { id = id, x = x, y = y, ui = overUi, dragging = false, multi = false }
 		elseif session then
 			session.multi = true
@@ -181,7 +201,7 @@ function M.gesture()
 		return if s.dragging then "steer" else nil
 	end
 	function g.ended(id: any, x: number, y: number): string?
-		count = math.max(count - 1, 0)
+		active[id] = nil
 		local s = session
 		if not s or s.id ~= id then
 			return nil
@@ -204,7 +224,8 @@ function M.gesture()
 		return if s then s.x else nil, if s then s.y else nil
 	end
 	function g.cancel()
-		count, session = 0, nil
+		table.clear(active)
+		session = nil
 	end
 	return g
 end
@@ -218,7 +239,14 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 	local world = game:GetService("Workspace")
 	local player = options.player
 	local router = M.new()
-	local gesture = M.gesture()
+	-- A touch InputObject the engine ended or cancelled is no longer a finger on the glass.
+	local gesture = M.gesture(function(id: any): boolean
+		if typeof(id) ~= "Instance" then
+			return true
+		end
+		local state = (id :: InputObject).UserInputState
+		return state == Enum.UserInputState.Begin or state == Enum.UserInputState.Change
+	end)
 	local connections: { RBXScriptConnection } = {}
 	local function on(signal: RBXScriptSignal, fn: (...any) -> ())
 		table.insert(connections, signal:Connect(fn))
@@ -578,6 +606,17 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			end
 		end
 	end)
+	-- The app or a text box (chat, the dev console) took the input: any touch in flight may never
+	-- report its end to us, so start clean.
+	local function lost()
+		gesture.cancel()
+		release()
+	end
+	on(UserInputService.WindowFocusReleased, lost)
+	on(UserInputService.TextBoxFocused, lost)
+	on(UserInputService.TextBoxFocusReleased, lost)
+	-- The Roblox menu swallows every input while open, the end of a finger already down included.
+	on(game:GetService("GuiService").MenuOpened, lost)
 	on(player.CharacterAdded, function()
 		serial += 1
 		marker.Parent = nil

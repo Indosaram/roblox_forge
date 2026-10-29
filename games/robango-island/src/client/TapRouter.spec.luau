@@ -205,6 +205,44 @@ return {
 		g.cancel()
 		assert(g.ended(1, 100, 100) == nil and not g.steering(), "respawn cancels")
 	end,
+	-- p134 v51 (SM-N981N): three 5-17 min spells where taps and swipes did nothing while the server
+	-- showed a free humanoid, after chat / dev console use. One touch whose end never reached the
+	-- game left the old finger counter at 1, so every later touch counted as a pinch's second finger.
+	["a touch whose end never arrives does not turn every later touch into a pinch"] = function()
+		local ended: { [any]: boolean } = {}
+		local g = TapRouter.gesture(function(id)
+			return not ended[id]
+		end)
+		g.began("lost", 50, 50, false) -- the console / chat took this finger's InputEnded
+		ended.lost = true
+		g.began("tap", 300, 300, false)
+		assert(g.ended("tap", 302, 301) == "tap", "the next tap walks")
+		g.began("drag", 300, 300, false)
+		assert(g.moved("drag", 380, 300) == "steer" and g.ended("drag", 380, 300) == "release", "swipes steer")
+		-- A real second finger still makes a pinch.
+		g.began("a", 100, 100, false)
+		g.began("b", 200, 200, false)
+		assert(g.ended("b", 200, 200) == nil and g.ended("a", 100, 100) == nil, "pinch is no tap")
+		-- Without a liveness probe, cancel() (focus lost to chat or the console) also clears it.
+		local plain = TapRouter.gesture()
+		plain.began("lost", 50, 50, false)
+		plain.cancel()
+		plain.began("tap", 300, 300, false)
+		assert(plain.ended("tap", 300, 300) == "tap", "cancel forgets the stranded finger")
+		-- The runtime wires the cancel to focus changes and the probe to UserInputState.
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		for _, needle in
+			{
+				"UserInputService.WindowFocusReleased, lost",
+				"UserInputService.TextBoxFocused, lost",
+				"UserInputService.TextBoxFocusReleased, lost",
+				"MenuOpened, lost",
+				"UserInputState.Begin",
+			}
+		do
+			assert(string.find(source, needle, 1, true), needle .. " wired")
+		end
+	end,
 	["picking prefers the closest visible candidate inside the radius"] = function()
 		local list = {
 			{ target = "behind", x = 101, y = 101, visible = false },

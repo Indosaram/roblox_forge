@@ -25089,6 +25089,9 @@ layouts:
         count: 3
         radius: 8
       - {id: "rw.onboarding.boar.01", speciesId: "boar", level: 20, position: {x: -60, y: 2, z: -64}, count: 1, radius: 8}
+      # p134 v51: no huntable creature was in reach of the camp walk. A second dodo trio grazes on
+      # the main path between the ford and the camp, the first hunt with the bone knife.
+      - {id: "rw.onboarding.dodo.02", speciesId: "dodo", level: 10, position: {x: -28, y: 2, z: 30}, count: 3, radius: 6}
     hazards: []
     refuges: []
     paths:

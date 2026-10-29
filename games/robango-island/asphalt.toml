@@ -3274,9 +3274,6 @@ output_path = "games/robango-island/src/shared"
 path = "assets/audio/robango-bgm-onboarding.wav"
 output_path = "games/robango-island/src/shared"
 
-[inputs.robango-bgm-onboarding.web]
-"robango-bgm-onboarding.wav" = { id = 130902558696165 }
-
 [inputs.robango-bgm-snow]
 path = "assets/audio/robango-bgm-snow.wav"
 output_path = "games/robango-island/src/shared"
@@ -3600,9 +3597,6 @@ output_path = "games/robango-island/src/shared"
 [inputs.robango-ui-open]
 path = "assets/audio/robango-ui-open.wav"
 output_path = "games/robango-island/src/shared"
-
-[inputs.robango-ui-open.web]
-"robango-ui-open.wav" = { id = 80860347167934 }
 
 [inputs.survival-coop-action]
 path = "assets/audio/survival-coop-action.wav"

@@ -210,16 +210,29 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	for _, child in player:GetChildren() do
 		attach(child)
 	end
+	-- Per-instance connections (creature feedback, button clicks), dropped when the instance
+	-- leaves. p134 v51: these went into `connections` for the whole session, so every panel row
+	-- button rebuilt on a state packet and every creature that streamed in kept its connection and
+	-- its instance alive: client memory crept ~2 MB/min over 80 min.
+	local owned: { [Instance]: RBXScriptConnection } = {}
+	local function own(object: Instance, link: RBXScriptConnection)
+		owned[object] = link
+	end
+	local function disown(object: Instance)
+		local link = owned[object]
+		if link then
+			link:Disconnect()
+			owned[object] = nil
+		end
+	end
 	-- Creature telegraph/strike follow the replicated wildlife feedback edge. Under streaming a
-	-- creature can stream in, out and back; `watched` keeps one connection per live model.
-	local watched: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+	-- creature can stream in, out and back; one connection per model while it is in the folder.
 	local function watchCreature(model: Instance)
-		if not model:IsA("Model") or watched[model] then
+		if disposed or not model:IsA("Model") or owned[model] then
 			return
 		end
-		watched[model] = true
-		table.insert(
-			connections,
+		own(
+			model,
 			model:GetAttributeChangedSignal("ForgeWildlifeFeedback"):Connect(function()
 				local event = config.wildlife[model:GetAttribute("ForgeWildlifeFeedback")]
 				if event then
@@ -233,6 +246,7 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 			return
 		end
 		table.insert(connections, folder.ChildAdded:Connect(watchCreature))
+		table.insert(connections, folder.ChildRemoved:Connect(disown))
 		for _, model in folder:GetChildren() do
 			watchCreature(model)
 		end
@@ -246,10 +260,10 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	end
 	-- Button clicks; header close buttons sound as a close.
 	local function watchButton(object: Instance)
-		if object:IsA("GuiButton") then
-			table.insert(
-				connections,
-				object.Activated:Connect(function()
+		if not disposed and object:IsA("GuiButton") and not owned[object] then
+			own(
+				object,
+				(object :: GuiButton).Activated:Connect(function()
 					signal(if object.Name == "Close" then "uiClose" else "uiClick")
 				end)
 			)
@@ -257,6 +271,7 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 	end
 	local playerGui = player:WaitForChild("PlayerGui")
 	table.insert(connections, playerGui.DescendantAdded:Connect(watchButton))
+	table.insert(connections, playerGui.DescendantRemoving:Connect(disown))
 	for _, object in playerGui:GetDescendants() do
 		watchButton(object)
 	end
@@ -309,6 +324,9 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 				subscribed:Disconnect()
 			end
 			table.clear(connections)
+			for object in owned do
+				disown(object)
+			end
 			table.clear(attached)
 			table.clear(refused)
 			table.clear(refusedOrder)
