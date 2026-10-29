@@ -219,6 +219,255 @@
         "dock.routes": "a wooden ship's steering wheel",
         "dock.operations": "a small wooden hand drum with a hide head"
       }
+    },
+    {
+      "id": "k",
+      "kind": "item",
+      "subjects": {
+        "brick-floor-kit": "a small square stack of flat terracotta floor bricks, a few laid side by side",
+        "brick-roof-kit": "a short stack of curved terracotta roof tiles, overlapping",
+        "brick-wall-kit": "a short section of red-brown fired brick wall with pale mortar lines",
+        "mud-brick": "one rectangular sun-dried mud brick with straw flecks",
+        "stone-block": "one squared grey dressed stone block with chisel marks",
+        "stone-floor-kit": "four flat square grey paving stones laid in a small square",
+        "stone-roof-kit": "a small stack of thin grey slate roof slabs, overlapping",
+        "stone-wall-kit": "a short section of dry-stacked grey fieldstone wall",
+        "timber-beam": "one long squared timber beam with visible end grain, lying diagonal",
+        "timber-wall-kit": "a small upright panel of vertical timber boards joined by two horizontal battens",
+        "kiln-kit": "a small domed clay kiln with a dark arched opening and a soft orange glow inside",
+        "workbench-t2-kit": "a sturdy wooden workbench with copper corner fittings and a copper vice",
+        "workbench-t3-kit": "a heavy wooden workbench with dark iron brackets and an iron anvil block on top",
+        "kiln-t2-kit": "a domed brick kiln with a short chimney and an orange glow in the opening",
+        "kiln-t3-kit": "a tall stone and iron furnace with a chimney and a bright orange glow in the opening"
+      }
+    },
+    {
+      "id": "l",
+      "kind": "item",
+      "subjects": {
+        "tanning-frame-kit": "a square wooden frame with a tan hide stretched flat inside by short straight ties at the edges",
+        "refrigerator-kit": "a wooden ice chest with a lifted lid showing pale blue ice blocks inside",
+        "tent-kit": "a small canvas A-frame tent in muted green and tan with a wooden pole",
+        "bed-kit": "a low wooden bed frame with a folded wool blanket and a straw pillow, empty",
+        "well-kit": "a round fieldstone well with a small wooden roof and a wooden bucket on the rim",
+        "signal-relay-kit": "a wooden tripod mast topped with a small brass reflector dish and a teal lens",
+        "laboratory-kit": "a wooden table with two glass flasks of teal and amber liquid and a brass scale",
+        "clan-hall-kit": "a small timber longhouse with a thatched roof and a wooden door",
+        "animal-pen": "a small square wooden fence pen with a gate and straw on the ground, empty",
+        "wall-kit": "a short section of vertical log palisade wall with pointed tops",
+        "stairs-kit": "a short flight of three wooden stair steps",
+        "door-kit": "one plank wooden door with two dark iron hinges and a wooden handle",
+        "roof": "a small sloped section of thatched straw roof",
+        "pillar": "one round carved stone pillar with a square base and capital",
+        "volcanic-wall": "a short section of wall built from dark basalt blocks with dull orange seams"
+      }
+    },
+    {
+      "id": "m",
+      "kind": "item",
+      "subjects": {
+        "dried-wood": "three short split logs, pale and grey, cracked from drying, stacked",
+        "dried-fiber": "a flat bundle of dry straw-coloured plant fibres, strands straight, one straight band in the middle",
+        "dried-hide": "one stiff dried tan animal hide laid flat, irregular edges",
+        "dried-meat": "three dark brown strips of dried jerky lying side by side",
+        "leather": "one folded piece of smooth brown tanned leather",
+        "thick-leather": "a thick stack of three folded dark brown leather sheets",
+        "fur": "one soft folded pelt of cream and grey fur",
+        "fur-leather": "one folded piece of tanned leather with a cream fur lining showing at the edge",
+        "rex-leather": "one folded piece of tough green-grey scaled reptile leather",
+        "polished-stone": "one smooth polished grey oval stone with a soft sheen",
+        "polished-flint": "one polished dark grey flint blank, smooth and glossy, lying sideways",
+        "polished-bone": "one smooth polished cream bone rod, lying diagonal",
+        "polished-basalt": "one smooth polished black basalt oval stone",
+        "copper": "one small copper ingot, warm orange-brown with a soft sheen",
+        "iron": "one grey iron ingot"
+      }
+    },
+    {
+      "id": "n",
+      "kind": "item",
+      "subjects": {
+        "steel": "one bright blue-grey steel ingot",
+        "volcanic-alloy": "one dark ingot of black metal with thin dull orange veins",
+        "fermented-corn": "a small clay crock with a cloth cover, ears of corn kernels visible at the rim",
+        "fermented-wheat": "a small clay crock with a cloth cover, golden wheat grains at the rim",
+        "fermented-banana": "a small clay crock with a cloth cover, soft yellow banana slices at the rim",
+        "fig": "two purple figs, one cut open showing pink seeds, with a green leaf",
+        "fermented-fig": "a small clay crock with a cloth cover, dark purple figs at the rim",
+        "fiber-compost": "a small mound of dark soil mixed with pale fibre strands",
+        "berry-compost": "a small mound of dark soil mixed with small red berries",
+        "leaf-compost": "a small mound of dark soil mixed with brown and green leaves",
+        "spoiled-food": "a mouldy grey-green lump of old bread on a leaf, a few small fuzzy spots",
+        "food-compost": "a small mound of dark soil with vegetable peels and leaves",
+        "axe-t1": "a stone axe: grey stone head lashed to a wooden handle with straight wraps, head to the upper right",
+        "pickaxe-t1": "a stone pickaxe: a pointed grey stone head on a wooden handle, head at the top",
+        "knife-t1": "a short stone knife with a knapped grey blade and a wooden grip, blade to the upper right"
+      }
+    },
+    {
+      "id": "o",
+      "kind": "item",
+      "subjects": {
+        "hoe-t1": "a long-handled garden hoe: a wide flat grey stone blade set at a right angle to the end of a long straight wooden handle like a letter L, handle diagonal, blade at the top facing down",
+        "axe-t2": "a copper axe: warm copper head on a wooden handle, head to the upper right",
+        "pickaxe-t2": "a copper pickaxe with a warm copper head on a wooden handle, head at the top",
+        "knife-t2": "a short copper knife with a wooden grip, blade to the upper right",
+        "hoe-t2": "a long-handled garden hoe: a wide flat copper-orange blade set at a right angle to the end of a long straight wooden handle like a letter L, handle diagonal, blade at the top facing down",
+        "axe-t3": "an iron axe: dark grey steel head on a wooden handle wrapped in leather, head to the upper right",
+        "pickaxe-t3": "an iron pickaxe with a dark steel head on a leather-wrapped wooden handle, head at the top",
+        "knife-t3": "a short steel knife with a leather-wrapped grip, blade to the upper right",
+        "hoe-t3": "a long-handled garden hoe: a wide flat dark blue-grey steel blade set at a right angle to the end of a long straight leather-wrapped handle like a letter L, handle diagonal, blade at the top facing down",
+        "club-t1": "a plain knobbly wooden club, lying diagonal",
+        "spear-t1": "a wooden spear with a grey stone tip, lying diagonal, tip to the upper right",
+        "sword-t1": "a short wooden practice sword, lying diagonal, tip to the upper right",
+        "hammer-t1": "a stone hammer: a blunt grey stone head lashed to a wooden handle, head to the upper right",
+        "bow-t1": "a simple wooden bow with a taut straight string, lying diagonal, no arrow",
+        "crossbow-t1": "a simple wooden crossbow lying flat on its side, pointing to the upper right, no bolt"
+      }
+    },
+    {
+      "id": "p",
+      "kind": "item",
+      "subjects": {
+        "club-t2": "a wooden club with copper bands around the head, lying diagonal",
+        "spear-t2": "a wooden spear with a copper tip, lying diagonal, tip to the upper right",
+        "sword-t2": "a short copper sword with a wooden grip, lying diagonal, tip to the upper right",
+        "hammer-t2": "a hammer with a copper head on a wooden handle, head to the upper right",
+        "bow-t2": "a wooden recurve bow with copper fittings and a taut straight string, lying diagonal, no arrow",
+        "crossbow-t2": "a wooden crossbow with copper fittings lying flat on its side, pointing to the upper right, no bolt",
+        "club-t3": "a heavy wooden mace with a dark iron head, lying diagonal",
+        "spear-t3": "a spear with a steel tip and leather-wrapped shaft, lying diagonal, tip to the upper right",
+        "sword-t3": "a steel sword with a leather-wrapped grip, lying diagonal, tip to the upper right",
+        "hammer-t3": "a hammer with a heavy dark iron head on a leather-wrapped handle, head to the upper right",
+        "bow-t3": "a dark laminated longbow with steel tips and a taut straight string, lying diagonal, no arrow",
+        "crossbow-t3": "a crossbow with a steel bow and dark wooden stock lying flat on its side, pointing to the upper right, no bolt",
+        "temperate-head": "an empty brown felt hat with a narrow brim",
+        "temperate-top": "a folded green linen shirt, empty",
+        "temperate-bottom": "a pair of tan canvas trousers folded flat, empty"
+      }
+    },
+    {
+      "id": "q",
+      "kind": "item",
+      "subjects": {
+        "temperate-shoes": "a pair of brown leather boots side by side, empty",
+        "temperate-gloves": "a pair of brown leather work gloves lying flat side by side, fingers together, empty",
+        "temperate-bag": "a green canvas backpack with leather straps, closed",
+        "tropical-head": "an empty woven straw sun hat with a wide brim",
+        "tropical-top": "a folded light teal short-sleeve cotton shirt, empty",
+        "tropical-bottom": "a pair of tan cotton shorts folded flat, empty",
+        "tropical-shoes": "a pair of woven leather sandals side by side, empty",
+        "tropical-gloves": "a pair of thin woven fingerless gloves lying flat side by side, empty",
+        "tropical-bag": "a woven straw shoulder bag with a short straight strap, closed",
+        "cold-head": "an empty fur-lined leather hat with ear flaps",
+        "cold-top": "a folded thick blue-grey wool parka with a fur collar, empty",
+        "cold-bottom": "a pair of thick padded green wool trousers folded flat, empty",
+        "cold-shoes": "a pair of tall fur-lined winter boots side by side, empty",
+        "cold-gloves": "a pair of thick cream wool mittens lying flat side by side, empty",
+        "cold-bag": "a sturdy blue-grey leather backpack with fur trim, closed"
+      }
+    },
+    {
+      "id": "r",
+      "kind": "item",
+      "subjects": {
+        "corn-porridge": "a wooden bowl of creamy yellow corn porridge",
+        "baked-potato": "one baked potato split open with steam",
+        "wheat-flatbread": "one round golden wheat flatbread with toasted spots",
+        "onion-soup": "a clay bowl of golden onion soup",
+        "flaxseed": "a small pile of shiny brown flax seeds",
+        "flax-seed-crisp": "a rectangular golden cracker studded with flax seeds",
+        "banana-mash": "a wooden bowl of mashed yellow banana with a slice on top",
+        "fig-stew": "a clay bowl of purple fig stew with fig halves",
+        "baked-apple": "one baked golden-brown apple with soft wrinkled skin",
+        "roast-meat": "one browned roast meat drumstick with a clean bone end, on a leaf",
+        "meat-potato-stew": "a clay bowl of brown stew with meat chunks and potato pieces",
+        "onion-meat-skewer": "a straight wooden skewer with grilled meat and onion pieces, lying diagonal, point to the upper right",
+        "rex-meat-stew": "a large clay pot of dark rich meat stew with vegetables",
+        "grilled-fish": "one whole grilled fish with dark grill marks on a leaf",
+        "clam-soup": "a clay bowl of creamy soup with open clam shells"
+      }
+    },
+    {
+      "id": "s",
+      "kind": "item",
+      "subjects": {
+        "herbivore-feed": "a burlap sack of green leafy fodder and grain, open at the top",
+        "carnivore-feed": "a wooden bowl of brown kibble pellets with one cooked drumstick on top",
+        "corn-seed": "a small cloth seed pouch with yellow corn kernels spilling out",
+        "potato-seed": "a small cloth seed pouch with a few small sprouting seed potatoes",
+        "wheat-seed": "a small cloth seed pouch with golden wheat grains spilling out",
+        "onion-seed": "a small cloth seed pouch with small black onion seeds and one small onion set",
+        "flax-seed": "a small cloth seed pouch with shiny brown flax seeds and a blue flax flower",
+        "banana-seed": "a small cloth seed pouch with a young green banana sucker shoot",
+        "fig-seed": "a small cloth seed pouch with a small fig cutting with two leaves",
+        "apple-seed": "a small cloth seed pouch with dark brown apple pips and a small apple leaf",
+        "liquid-fertilizer": "a corked clay jug with a dark green liquid drip on the lip",
+        "fruit-fertilizer": "a small burlap sack of dark fertilizer with a red fruit on the front",
+        "stem-fertilizer": "a small burlap sack of dark fertilizer with a green sprout on the front",
+        "sprinkler": "a small wooden garden water barrel with a copper spout spraying a few water droplets",
+        "capture-rope": "a flat rectangular woven fibre mat, tightly woven, all edges straight"
+      }
+    },
+    {
+      "id": "t",
+      "kind": "item",
+      "subjects": {
+        "saddle": "a brown leather riding saddle with a cream blanket under it, empty",
+        "recovery-feed": "a wooden bowl of green herbs and grain with a small red berry on top",
+        "volcanic-bone": "one dark charcoal-grey animal bone with dull orange cracks",
+        "lava-protection-boots": "a pair of thick black and ochre heat-proof boots side by side, empty",
+        "practice-stitch": "an embroidery hoop with a simple stitched leaf pattern on cream cloth and a needle lying beside it",
+        "practice-seedbed": "a small wooden raised garden box with three green seedlings",
+        "instrument-piano": "a small upright wooden piano with cream keys",
+        "instrument-guitar": "an acoustic wooden guitar lying diagonal, neck to the upper right",
+        "instrument-bass": "a wooden double bass lying diagonal, neck to the upper right",
+        "instrument-violin": "a wooden violin with its bow lying beside it, diagonal",
+        "instrument-flute": "a wooden flute lying diagonal",
+        "instrument-clarinet": "a dark wooden clarinet lying diagonal",
+        "instrument-trumpet": "a brass trumpet lying on its side",
+        "instrument-drums": "a small wooden hand drum with a hide head and two drumsticks lying beside it",
+        "signal-lens": "a round glass lens in a brass ring frame on a short stand"
+      }
+    },
+    {
+      "id": "u",
+      "kind": "item",
+      "subjects": {
+        "sample-case": "a small closed wooden case with brass latches and a leather handle",
+        "research-bundle": "a stack of leather-bound notebooks and rolled papers held by one straight band",
+        "shelter-liner": "a folded green waxed canvas tarp",
+        "heat-brace": "a padded leather and copper heat plate with two short straight buckle straps",
+        "rescue-transponder": "a small brass and wood box device with a short antenna and a teal light",
+        "skull": "a flat grey stone with a fossil imprint of a leaf",
+        "feather": "one long brown and cream feather",
+        "plate": "one curved bony armour plate from a dinosaur, grey-tan with ridges",
+        "horn": "one curved cream animal horn",
+        "claw": "one curved cream animal claw, polished, lying sideways",
+        "tooth": "one large cream animal tooth",
+        "fang": "one long curved cream fang, lying sideways",
+        "tusk": "one long curved ivory tusk, lying diagonal",
+        "antler": "one branched brown antler",
+        "relief-unit": "a small closed green canvas aid kit box with a cream cross on the lid"
+      }
+    },
+    {
+      "id": "v",
+      "kind": "item",
+      "subjects": {
+        "survey-sample": "a small glass jar with a cork holding a chunk of teal mineral",
+        "volcanic-ash": "a small pile of fine dark grey volcanic ash",
+        "chapter": "a closed leather-bound book with a cloth bookmark",
+        "fragment": "a torn piece of old parchment map",
+        "rw-journal-seal-1": "a round bronze medallion embossed with a palm tree",
+        "rw-journal-seal-2": "a round bronze medallion embossed with a mountain",
+        "rw-journal-seal-3": "a round bronze medallion embossed with a wave",
+        "rw-journal-seal-4": "a round bronze medallion embossed with a campfire",
+        "rw-journal-seal-5": "a round bronze medallion embossed with a leaf",
+        "rw-journal-seal-6": "a round bronze medallion embossed with a fish",
+        "rw-journal-seal-7": "a round bronze medallion embossed with a rising sun over water",
+        "rw-journal-seal-8": "a round bronze medallion embossed with a four-point compass star"
+      }
     }
   ]
 }

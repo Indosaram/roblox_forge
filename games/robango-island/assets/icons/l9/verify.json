@@ -1,4 +1,29 @@
 {
+ "item.icon.animal-pen": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 9,
+  "clear": 5677,
+  "inputVersion": "9fc70623db6241b2c658ba6c6ef4bbe8a6957e123480536ab6fc9041e57e246e",
+  "sha256": "71eebf52e24100450597d0c6b4f8bde7a96d0ae32557429d7b2ba1f6fc6b2bd6",
+  "visible": 3246
+ },
+ "item.icon.antler": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 14,
+  "clear": 6878,
+  "inputVersion": "9752da3fd5432819332627e52128883ca26cfa44bfb5255b39c4ef7fec7b3872",
+  "sha256": "94a0de6979ad02e9f332c9cd2c46049e8749621161214ef2e882f74d4f20e0c3",
+  "visible": 2103
+ },
+ "item.icon.antler-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 14,
+  "clear": 6878,
+  "inputVersion": "0c566fddbc72b007f973bda5a2d2c80d904fe5d0b5d17d1e9a669c85edcd0b2c",
+  "sha256": "94a0de6979ad02e9f332c9cd2c46049e8749621161214ef2e882f74d4f20e0c3",
+  "variantOf": "item.icon.antler",
+  "visible": 2103
+ },
  "item.icon.apple": {
   "atlas": "l9/atlas-d.png",
   "cell": 11,
@@ -16,6 +41,63 @@
   "variantOf": "item.icon.apple",
   "visible": 4272
  },
+ "item.icon.apple-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 10,
+  "clear": 5571,
+  "inputVersion": "1d21145acbc3ef5d4d0d0c74d1299eb5e6828fcfd005b3b165201d926466e625",
+  "sha256": "12a9dd4029bb68f497d5a07391117ec330d6b35d473c27b9d08c5565842a6264",
+  "visible": 3455
+ },
+ "item.icon.apple-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 10,
+  "clear": 5571,
+  "inputVersion": "1b2285a863e8c871a086bf85d2d6a5d2580012dd1ad990ceae9c6b2b4b16195f",
+  "sha256": "12a9dd4029bb68f497d5a07391117ec330d6b35d473c27b9d08c5565842a6264",
+  "variantOf": "item.icon.apple-seed",
+  "visible": 3455
+ },
+ "item.icon.axe-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 13,
+  "clear": 6668,
+  "inputVersion": "442ae5d7c5f4e578d26a5fca112923bd28ca6799f9fddbd8ee6a95d4d5c753fc",
+  "sha256": "3933276e68d96d7457869a08871518755d5cfe917bbe297e9247366360e852cb",
+  "visible": 2352
+ },
+ "item.icon.axe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 2,
+  "clear": 7189,
+  "inputVersion": "f7e9c6519383b8262accc5b916a69d862f92eed2fceb2a30d908f1df4af5f3ed",
+  "sha256": "6ce9da512d6a8e8256b1255264a5b9d08e7074e26a135e1d52c48383e60e2f3a",
+  "visible": 1846
+ },
+ "item.icon.axe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 6,
+  "clear": 7126,
+  "inputVersion": "3fcd2965c029d68e809849911dd086ca06803b97f42d589e0fd2522128d862c2",
+  "sha256": "5e6dc03c592404b49baa840c536af480eaff5fe580e57db8decaf37328b14973",
+  "visible": 1911
+ },
+ "item.icon.baked-apple": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 9,
+  "clear": 3750,
+  "inputVersion": "ce55cf16dde2ab83491ed355c723ffe20273bfe39315eee63d5078e2f87d9607",
+  "sha256": "fb743df0bdd42ad243ca76915d7bd00320f9f4f9a37c77d0d42da24631f5cfd1",
+  "visible": 5303
+ },
+ "item.icon.baked-potato": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 2,
+  "clear": 5528,
+  "inputVersion": "4c337ac90bab29004827189ca371a04c20393d2c9ce42d8a56a484218a2c1aa3",
+  "sha256": "53cc9ee483d412fdcdcce3801b5bc0be8d67d9dc5f5f98df53f6f151c1845870",
+  "visible": 3383
+ },
  "item.icon.banana": {
   "atlas": "l9/atlas-d.png",
   "cell": 12,
@@ -23,6 +105,14 @@
   "inputVersion": "bf9b9b2aa41ce493a4fc87c605893b8b0c6c6b6d891f6f67148ad0616ad4a81f",
   "sha256": "eba05eaf5cdf13949e2b755b84b5eb32ba639fcda0cd7dc70bc7a9ff25e7764a",
   "visible": 3668
+ },
+ "item.icon.banana-mash": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 7,
+  "clear": 4222,
+  "inputVersion": "052f2ac1e130dc11b5863a32bd49a69768e386201ec0c8a2e2c1252f51f58e85",
+  "sha256": "74691cfad90ebd9e98f74579795cf46439ae70e22903941ad7588c63fcdc6341",
+  "visible": 4865
  },
  "item.icon.banana-profile": {
   "atlas": "l9/atlas-d.png",
@@ -32,6 +122,23 @@
   "sha256": "eba05eaf5cdf13949e2b755b84b5eb32ba639fcda0cd7dc70bc7a9ff25e7764a",
   "variantOf": "item.icon.banana",
   "visible": 3668
+ },
+ "item.icon.banana-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 8,
+  "clear": 5315,
+  "inputVersion": "8476cee3cd793468e7032f5ea4384568aabe560c12e8373d5ae6129338ce577e",
+  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
+  "visible": 3706
+ },
+ "item.icon.banana-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 8,
+  "clear": 5315,
+  "inputVersion": "78a10e4bd5fa34d41640aefb186d914d31f4c12d8964d552786f7cb28b0c0096",
+  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
+  "variantOf": "item.icon.banana-seed",
+  "visible": 3706
  },
  "item.icon.bandage": {
   "atlas": "l9/atlas-d.png",
@@ -58,6 +165,14 @@
   "variantOf": "item.icon.basalt",
   "visible": 4986
  },
+ "item.icon.bed-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 4,
+  "clear": 6196,
+  "inputVersion": "1b0fd0c5fdeb618811478ca57895e42aa68b732d7fcfabcf50daf0db69f31fb8",
+  "sha256": "085a3ebb050e3ef9f19a9dbe48fea5bd7dbe1d4d743c5cc1704a455a87cf1593",
+  "visible": 2855
+ },
  "item.icon.berry": {
   "atlas": "l9/atlas-a.png",
   "cell": 9,
@@ -65,6 +180,14 @@
   "inputVersion": "9108dcc6ebc1da01e9f5a9eb7179b72b43f23f0a6ee52dc8e8651f671986dc39",
   "sha256": "275b39d00e6a636ed3321ac4ceb65c1682ec28c1736a01e1f44a51236b0b55ca",
   "visible": 2908
+ },
+ "item.icon.berry-compost": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 9,
+  "clear": 5558,
+  "inputVersion": "3d6303d8b07950562948a7ffb7597ebe9fa9690381084b88b086ae2be97ce74b",
+  "sha256": "a36f12b4931d4c3bc76159048abef255319e061d5b6b5ec793f5d7a01b410808",
+  "visible": 3478
  },
  "item.icon.berry-meal": {
   "atlas": "l9/atlas-b.png",
@@ -116,6 +239,30 @@
   "variantOf": "item.icon.bone",
   "visible": 2142
  },
+ "item.icon.bow-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 14,
+  "clear": 8098,
+  "inputVersion": "535436ba41474a855554ee98f7c2b046c16ce98308f664141140b16adfa79af8",
+  "sha256": "3d8568f2e97dc32cf088d9b4b33094f7e5fd1e6f639215d3a17b57f34bfa6c4d",
+  "visible": 878
+ },
+ "item.icon.bow-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 5,
+  "clear": 7908,
+  "inputVersion": "219a8d9b55d4f7f2cbd2c52f2edde4dd2e937f00f83dcf89e8651d895fa690b0",
+  "sha256": "74036e1998d7f895f5fd20d6e410bfbc08a3e74fd89d2a4c9e63fc2e7b3fa93a",
+  "visible": 1040
+ },
+ "item.icon.bow-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 11,
+  "clear": 7868,
+  "inputVersion": "c4f431eede608c3cc835f6be8ca4f33f8955f3bb4d4843e802a4e68c2cbaec7c",
+  "sha256": "e66862a77258d196f548706e8e1e7aea806473afba424a07331797206418b0dd",
+  "visible": 1107
+ },
  "item.icon.branch": {
   "atlas": "l9/atlas-a.png",
   "cell": 3,
@@ -133,6 +280,30 @@
   "variantOf": "item.icon.branch",
   "visible": 1847
  },
+ "item.icon.brick-floor-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 1,
+  "clear": 5648,
+  "inputVersion": "4187b63e4adcb3aeb15600b0db16fef2b9f2fae5f9c02d199c3b7e494e74c8a9",
+  "sha256": "6dd08eab4a4581c8348f3eb649ce933b74c470402a8194e5b6c5c4b6373b5489",
+  "visible": 3426
+ },
+ "item.icon.brick-roof-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 2,
+  "clear": 5305,
+  "inputVersion": "2e1a0b61980cb6ecb1b3f1ea6e38e667c09a01c04df34c788dfa50475590f1be",
+  "sha256": "5d4045dbcb76d58927de7749a72393f5378c902f5788edb4517537cabcf325e9",
+  "visible": 3757
+ },
+ "item.icon.brick-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 3,
+  "clear": 4083,
+  "inputVersion": "0a5a51237bd356731cf780068d36217c84e05c4877a4e7f3e48e3d0e685bc973",
+  "sha256": "2df56be3ddde74a87d2955e435d3433258ce2a7df197f6a8e03c4a5a10b8b5c3",
+  "visible": 4957
+ },
  "item.icon.campfire-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 1,
@@ -148,6 +319,22 @@
   "inputVersion": "aa54fbd7b352db54b3cd36d4f2e54536d74d0dccd5ae8cd268a62ea76e4cdab1",
   "sha256": "9983dc9a16318173bba0ceda9011f1a683383e7c184d0789e38aad6539c60d54",
   "visible": 1874
+ },
+ "item.icon.capture-rope": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 15,
+  "clear": 6165,
+  "inputVersion": "bd2186a5bd9257d010d5f3b47e89792e1572a7e9ea79a9b492629b50b1df3b36",
+  "sha256": "22c17852fb8c1264a2fe2253d4181a7548f6054821efe7fe69ac527237046b49",
+  "visible": 2916
+ },
+ "item.icon.carnivore-feed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 2,
+  "clear": 4916,
+  "inputVersion": "006c0ac397e60bedc4f424db06f9bb2c3ce5d51a058f44819cd4e46310da2ee6",
+  "sha256": "918249d1c96610d7774e08348f550ed3eccee67c2b33059bc7dd6ea8362f9f13",
+  "visible": 4146
  },
  "item.icon.cattail-flatbread": {
   "atlas": "l9/atlas-b.png",
@@ -172,6 +359,14 @@
   "inputVersion": "d4a1fc42f8b097b365403c8fed5c4fe0744cd4b58a40d0e4fb2f814d8dbd6f2e",
   "sha256": "f3295f56864dfd740f5f6cec4b7c7fe29f1518b7de51a22db299dfb953ca8cea",
   "visible": 3007
+ },
+ "item.icon.chapter": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 3,
+  "clear": 5060,
+  "inputVersion": "80e236a55e1bd04fdbe0eea47b6f367496608bab72126a95a44ed0c5b9609683",
+  "sha256": "79718df2ee0ee8b1e511192f2b37e0b9e10f32b3f525ffbbeb9a107110a3352e",
+  "visible": 3995
  },
  "item.icon.charcoal": {
   "atlas": "l9/atlas-c.png",
@@ -215,6 +410,39 @@
   "variantOf": "item.icon.clam",
   "visible": 3973
  },
+ "item.icon.clam-soup": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 15,
+  "clear": 4330,
+  "inputVersion": "bd6d5e632e30abbff430a2c79a432a5febea4e93b6a03c3ed48662721b4c27fe",
+  "sha256": "48c5c6db632b07338357cf66f1b795644d363c2ff74ca877ae31c5f19f303150",
+  "visible": 4761
+ },
+ "item.icon.clan-hall-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 8,
+  "clear": 4892,
+  "inputVersion": "ab42f8e7c4f36b7afd62327734e8e10d4baf12d6de5554cc95909d6097835787",
+  "sha256": "190142bf0281a5414364935a9f167965e103087695b45eeca5c103194dec5296",
+  "visible": 4162
+ },
+ "item.icon.claw": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 10,
+  "clear": 6483,
+  "inputVersion": "a6922189b8c6c885298b544da8d29121a44608febdb377182a1c21fe5050bfaf",
+  "sha256": "ee3b121ff09129c917c787ef37d808017dddd338c8e80514188d50ce90162cf0",
+  "visible": 2578
+ },
+ "item.icon.claw-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 10,
+  "clear": 6483,
+  "inputVersion": "ed2fe6445db94b7e8a123583bda9f73834ad49c9efb9395812395cd2e78261e8",
+  "sha256": "ee3b121ff09129c917c787ef37d808017dddd338c8e80514188d50ce90162cf0",
+  "variantOf": "item.icon.claw",
+  "visible": 2578
+ },
  "item.icon.clay": {
   "atlas": "l9/atlas-c.png",
   "cell": 6,
@@ -232,6 +460,78 @@
   "variantOf": "item.icon.clay",
   "visible": 4659
  },
+ "item.icon.club-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 10,
+  "clear": 6769,
+  "inputVersion": "4e07c6c0c38e497acda36b22cb0496932c90f8be6f99920bfeaee45ba83ac946",
+  "sha256": "eefc1b65b188e2135651108245818d01fe1a6ac801d948eb9e8e4531ea427517",
+  "visible": 2315
+ },
+ "item.icon.club-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 1,
+  "clear": 7059,
+  "inputVersion": "522eaf49954445f3af9078748821206a22c06dcd42ca1ea249b285da8673fa25",
+  "sha256": "f3ba683c360f86539962687a1be37daa6145dd2317db743f2b3b28c6978d2ea5",
+  "visible": 1994
+ },
+ "item.icon.club-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 7,
+  "clear": 7170,
+  "inputVersion": "68e576d12740474b1fd07ad37178363f8831ddea7f4c731cde0956c183282c89",
+  "sha256": "d5ddd990543c68c43f8e3f02312b3000ce6acc78e2b758ec9574734b6bcfe8a8",
+  "visible": 1886
+ },
+ "item.icon.cold-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 15,
+  "clear": 3694,
+  "inputVersion": "0dc356a2c31ea7e5193f5ebc73dd29bec444f3b4768eb868776f516e9fd4ebec",
+  "sha256": "a7096ec474de28f44e3d45e09c16d7b4a00f2156cd13b26c73c42971de20ada9",
+  "visible": 5382
+ },
+ "item.icon.cold-bottom": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 12,
+  "clear": 4495,
+  "inputVersion": "c9a4f274959a22300d064538bcdafab3ab060eda065d9f5001728b3aa4b1fac0",
+  "sha256": "2640a7a7f60fc2cca0f0407dbbfe6dd074dd990c19313f18308567cec3a18f9a",
+  "visible": 4573
+ },
+ "item.icon.cold-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 14,
+  "clear": 5082,
+  "inputVersion": "427cf51db0473ee5cd24360cb3156e2c6f789ac3bbf6b2eb64961cb88914f989",
+  "sha256": "65a8ed5bfd2290b68e59c1b79d292eb324b7ca9f81d2a35efd857fa79ff82d77",
+  "visible": 3929
+ },
+ "item.icon.cold-head": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 10,
+  "clear": 4598,
+  "inputVersion": "59ee2d25829ae82a0ef20f2926177e776db86a325c29c52e87f39ae79f88315d",
+  "sha256": "2546f6256e60a8a189578a0c82ec8bbfc39ccf70bfd050f31d87f17e61a611d0",
+  "visible": 4427
+ },
+ "item.icon.cold-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 13,
+  "clear": 4366,
+  "inputVersion": "555cf28a4b56f9ec7f386f4bfd8ef93b9de9156f348b578e9cc6995cb173b401",
+  "sha256": "50e903714a84b7fab9d6caaf8dc892fbb48dfa584787aa8faa7b9c261882c6df",
+  "visible": 4636
+ },
+ "item.icon.cold-top": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 11,
+  "clear": 3690,
+  "inputVersion": "193d2a95e6ea9eb523c50e0ec94182db1a623d4180b4f416753d7b4522631182",
+  "sha256": "c9e665180f5b04f030610338d7d31124bc59b32e23bdc10eeedd8208fb508411",
+  "visible": 5361
+ },
  "item.icon.cooked-meat": {
   "atlas": "l9/atlas-a.png",
   "cell": 14,
@@ -239,6 +539,14 @@
   "inputVersion": "64085b21e95723285a3f934e97f5c15a5a7b3f40fd90b2f82899812cec1bc7f7",
   "sha256": "98c75858863ae4bb8c79ee474f6b2f01a9c1e8b451bf588012876fcd1c1da206",
   "visible": 4046
+ },
+ "item.icon.copper": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 14,
+  "clear": 6030,
+  "inputVersion": "e30e5b169540b040e88fa1fd96c00c3da286240bb3a813c1fed3ef00e039b383",
+  "sha256": "4b3fcdd5792c454212a624808e5c52e42d32917586d2de8bba27cd6d5df2c90f",
+  "visible": 3062
  },
  "item.icon.copper-ore": {
   "atlas": "l9/atlas-c.png",
@@ -273,6 +581,14 @@
   "sha256": "435b29dce1d8c8a9d0fbc3d7ec8e300d26c98aaf7061d9264fc69a4d6905abc0",
   "visible": 3616
  },
+ "item.icon.corn-porridge": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 1,
+  "clear": 4327,
+  "inputVersion": "b82510a6522373d417cf08f4828c02bef52511a9fb8aa3de4a24db8ef9b57c03",
+  "sha256": "5914577dfad7025861d0fc35d43becb20a5e4508fe787f569cf1d87411bcf2e4",
+  "visible": 4726
+ },
  "item.icon.corn-profile": {
   "atlas": "l9/atlas-d.png",
   "cell": 13,
@@ -282,6 +598,153 @@
   "variantOf": "item.icon.corn",
   "visible": 3616
  },
+ "item.icon.corn-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 3,
+  "clear": 5893,
+  "inputVersion": "15104d612122dbfdc55d5f6873dba60f6023d4e7f61a2af0af92fedcbca13bd7",
+  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
+  "visible": 3120
+ },
+ "item.icon.corn-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 3,
+  "clear": 5893,
+  "inputVersion": "301d6cd7a766f3ef2aad3d5bf21b6d466dfea967157ccf0d7152be4ed7b663a8",
+  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
+  "variantOf": "item.icon.corn-seed",
+  "visible": 3120
+ },
+ "item.icon.crossbow-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 15,
+  "clear": 7244,
+  "inputVersion": "23be6602ff82320d4e31feff39c9c96f5910eba2c7dd4b382a94e5740c9b4ebb",
+  "sha256": "a43809f10c4a700ee0cd2bb1872ae2cdae88860481afe96d8f1eb2df44ab53eb",
+  "visible": 1723
+ },
+ "item.icon.crossbow-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 6,
+  "clear": 6920,
+  "inputVersion": "424cc939edcf6d3b2091c3fafd894503e286a2b9588be9c9baebcb6fd7a8ef7f",
+  "sha256": "85e326170a4f9a645dd0592e3feb1bbd19760f93368debe915c006d6565bc1e7",
+  "visible": 2002
+ },
+ "item.icon.crossbow-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 12,
+  "clear": 6874,
+  "inputVersion": "61646ef0a4b27cad7492a1d87bd795b9c8bf5bd2d379e8f93df1e2406ae65f08",
+  "sha256": "b827e9e368824d0db9ae8597a3d65b26222b7a08fa70d9474052e8a70fa31d8e",
+  "visible": 2058
+ },
+ "item.icon.door-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 12,
+  "clear": 5776,
+  "inputVersion": "3929aca0bf2c78e1e1b438c3fa8f4e053b4eb85dd2dc036fbc1b20f6116db351",
+  "sha256": "1828cba0969bb94cec0d2379763b733dfe9a71d5b614ea0ef8378e4589e77755",
+  "visible": 3314
+ },
+ "item.icon.dried-fiber": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 2,
+  "clear": 6184,
+  "inputVersion": "6914823eda7729f6711097ec737be5fb542ab5a7298a4a48610f8d8eac191e71",
+  "sha256": "5d7920ec627a341e50054d58a93f91763e59caf314885961dd1e451429bdae60",
+  "visible": 2884
+ },
+ "item.icon.dried-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 3,
+  "clear": 4754,
+  "inputVersion": "453a5c1845170af57c8dc6a49f43cdd61db332cbbdec45adc188626379054382",
+  "sha256": "76ea0479e4f5c40c434d460810e5cd91bcd82b9578f6f310ad80038219032d4d",
+  "visible": 4270
+ },
+ "item.icon.dried-meat": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 4,
+  "clear": 5948,
+  "inputVersion": "bc7ab30781db0a7e36044191c04b1e90188d2fc35af0dd6306ba0842c2ed96bc",
+  "sha256": "f8d4b16b2675268e31ac4d8bc0df367ac12bb1296acd1a55fa412aaa9880c06d",
+  "visible": 3006
+ },
+ "item.icon.dried-wood": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 1,
+  "clear": 5258,
+  "inputVersion": "5623db4de048694eb2c45e4b31d7127469bcc23f5d21b4586681d98447bbcc0d",
+  "sha256": "5da371d90c860c398f060d05a998627c51d2d898b7a70314c3fdf59001bd60ff",
+  "visible": 3792
+ },
+ "item.icon.fang": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 12,
+  "clear": 7031,
+  "inputVersion": "aa3a3adfee507a52d5a707b0ce08fdc8e6bd1bf7cbf1622303ee102487f59acd",
+  "sha256": "53e0f65a990d53d590e950cb7667962078063cdc4f0c2793e3cb926a6e2b6f72",
+  "visible": 2043
+ },
+ "item.icon.fang-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 12,
+  "clear": 7031,
+  "inputVersion": "82a9608a26844cbd283b2b32a8edc2e4ba0903850ed1f50129a3b0c83b09b642",
+  "sha256": "53e0f65a990d53d590e950cb7667962078063cdc4f0c2793e3cb926a6e2b6f72",
+  "variantOf": "item.icon.fang",
+  "visible": 2043
+ },
+ "item.icon.feather": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 7,
+  "clear": 6390,
+  "inputVersion": "4596fd78f16914c4d9f1d7fd5792792ccd87a391d9a44ac5a0dde3676c39361c",
+  "sha256": "dfc49a8839227870493c38d3fa58c0d597a57836bce3e51c58cde5ceead6513f",
+  "visible": 2594
+ },
+ "item.icon.feather-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 7,
+  "clear": 6390,
+  "inputVersion": "f66525d4677798221f51d0e6dff84351c022ea878f722fad647e023de3927d3e",
+  "sha256": "dfc49a8839227870493c38d3fa58c0d597a57836bce3e51c58cde5ceead6513f",
+  "variantOf": "item.icon.feather",
+  "visible": 2594
+ },
+ "item.icon.fermented-banana": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 5,
+  "clear": 4076,
+  "inputVersion": "25fd2c9d2998a9e1cbf912ee4557c3fc7f4e7972b0e3e33489afa630ee74fc33",
+  "sha256": "cf585ecae6a93b7dec6f0398676ea98828f21f90f885afc0d44ff35c58710873",
+  "visible": 4987
+ },
+ "item.icon.fermented-corn": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 3,
+  "clear": 3902,
+  "inputVersion": "31c53728ce616ea35906e06ee17597cbcdcbb4d319ca4d42f55a91f690d8abe9",
+  "sha256": "697b2e80476c1fb15b7de92d32ba3d007eeba5935e98f2ca2cb2ce67d664dc52",
+  "visible": 5141
+ },
+ "item.icon.fermented-fig": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 7,
+  "clear": 3892,
+  "inputVersion": "3d1ea2c89215eba3f3cdaaeb2483517be34e777fa723b19f533a9592a6176857",
+  "sha256": "7c523598fcaedcf926f55184a92598f85f3ff82274ffa767c28e2c230d5e71aa",
+  "visible": 5168
+ },
+ "item.icon.fermented-wheat": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 4,
+  "clear": 3845,
+  "inputVersion": "551540101bd180b64e6006b27281d87021a998aa21cacaf3e26ac393cd527612",
+  "sha256": "e3fb090418d41c2d4776cae8fc9f105af730aa1ca94b8ca82c17a9252b4fe805",
+  "visible": 5196
+ },
  "item.icon.fiber": {
   "atlas": "l9/atlas-a.png",
   "cell": 2,
@@ -289,6 +752,14 @@
   "inputVersion": "3edf2ebfdd4393adf9199f948b6123fa3440db8a3f6a002b614cb5d3c5075db5",
   "sha256": "667a8f562d8b018ac15760cda2c4befcf0f0a036514ba21c10bf1bfa324a8056",
   "visible": 2575
+ },
+ "item.icon.fiber-compost": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 8,
+  "clear": 5595,
+  "inputVersion": "97f4258b73ffcdf383f9e4cd55a911ddd4a8703b3a5bb95458abc90c57bb8e4a",
+  "sha256": "34b32210dc0ea07cb76b53782f4505b7aa2cb8a64f7fd78e324b49fde87f42f6",
+  "visible": 3439
  },
  "item.icon.fiber-profile": {
   "atlas": "l9/atlas-a.png",
@@ -306,6 +777,48 @@
   "inputVersion": "ad7a6f883d4485f3fecf47f8513b1245f8c208dfe1897eb88e93f85e637bd3e4",
   "sha256": "ad06bf079e84a42ac00ee7264aaabae00273673f3eda894ecfd4c6bc15e8bc20",
   "visible": 4628
+ },
+ "item.icon.fig": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 6,
+  "clear": 4814,
+  "inputVersion": "76b96a68db9de41801a1f67a54f359e96ccd2877335c95992015a38558954694",
+  "sha256": "d7828b9cffe6d983d767f930921aa5264e98d8ce63288c84342e89d517ae3582",
+  "visible": 4214
+ },
+ "item.icon.fig-profile": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 6,
+  "clear": 4814,
+  "inputVersion": "1a9c8b9742cf08315c95fb8d0f40101ef6cd4161f770ffe6025dc2dbb03a1688",
+  "sha256": "d7828b9cffe6d983d767f930921aa5264e98d8ce63288c84342e89d517ae3582",
+  "variantOf": "item.icon.fig",
+  "visible": 4214
+ },
+ "item.icon.fig-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 9,
+  "clear": 4570,
+  "inputVersion": "63060c2c9011dddcaf1458028082ca8ff4b57b32cbe2d4d93a08b63ed4d85316",
+  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
+  "visible": 4419
+ },
+ "item.icon.fig-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 9,
+  "clear": 4570,
+  "inputVersion": "682ac8a621ef61d3d847a1620f6a7e0d3f0af07a04ba770169b25833a9097065",
+  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
+  "variantOf": "item.icon.fig-seed",
+  "visible": 4419
+ },
+ "item.icon.fig-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 8,
+  "clear": 4259,
+  "inputVersion": "b04a78db8c54de52dd981424d7e03a2e42cab3324227376a552aebfefb684d2e",
+  "sha256": "7be6915487a43d7a5178ed444007b6d03aa501afcfd867feb4c3bb0e7352e317",
+  "visible": 4806
  },
  "item.icon.fish": {
   "atlas": "l9/atlas-b.png",
@@ -341,6 +854,48 @@
   "variantOf": "item.icon.flax",
   "visible": 3014
  },
+ "item.icon.flax-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 7,
+  "clear": 5562,
+  "inputVersion": "cede158bc0a33fd05d4f2c10c4f58acfdf9c5f466cd94438f13d7d0149151613",
+  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
+  "visible": 3393
+ },
+ "item.icon.flax-seed-crisp": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 6,
+  "clear": 5756,
+  "inputVersion": "84cfc2ef9b152bb9ad33ba5f7d3df3adbf122c753af049c676a320c58b257f00",
+  "sha256": "f9b5c8b704d6b60923e54f3f359ead472730a4119d1905088312f22266ae413a",
+  "visible": 3334
+ },
+ "item.icon.flax-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 7,
+  "clear": 5562,
+  "inputVersion": "390144745fa194a21d0f9c0d9639fcf7c55bbcbb1f9180b0de3900901614486e",
+  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
+  "variantOf": "item.icon.flax-seed",
+  "visible": 3393
+ },
+ "item.icon.flaxseed": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 5,
+  "clear": 5542,
+  "inputVersion": "ede1133b14189fc37f02427f888fc7ea7d68c589a72d32d2f0765b42ac7be32e",
+  "sha256": "212eb39c4011a1cc9cf1759f545f27b0be6ced1d48f2f0f99e2257792fb1401f",
+  "visible": 3447
+ },
+ "item.icon.flaxseed-profile": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 5,
+  "clear": 5542,
+  "inputVersion": "5bdc7646487a0dd674e656dfbc48965cdaa4d1d92b2fdab5180e243f033f0363",
+  "sha256": "212eb39c4011a1cc9cf1759f545f27b0be6ced1d48f2f0f99e2257792fb1401f",
+  "variantOf": "item.icon.flaxseed",
+  "visible": 3447
+ },
  "item.icon.flint": {
   "atlas": "l9/atlas-a.png",
   "cell": 6,
@@ -374,6 +929,55 @@
   "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
   "visible": 3308
  },
+ "item.icon.food-compost": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 12,
+  "clear": 5476,
+  "inputVersion": "e98c5a9772d0c1028c5cc8895ea1000e1a54c79cedbcf8bba3da58f3233a1ae5",
+  "sha256": "f755de49aaf9bcbd75498676446e7cd4bf3eea78271a66d192d5646981eec5d4",
+  "visible": 3553
+ },
+ "item.icon.fragment": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 4,
+  "clear": 4620,
+  "inputVersion": "7382f8edcda63626124218b4e9245625de014a3785b6b1a932444cab2e5b0bb7",
+  "sha256": "480e6d5e1604e78a3e4a60b6f89268d8fbe5c2c6fb3fe0b0bafde76fa8613b92",
+  "visible": 4399
+ },
+ "item.icon.fruit-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 12,
+  "clear": 3806,
+  "inputVersion": "c1cfc7c1ebf4c77e91d98d981792850d8062aa85bd468779e9f1f5154edea8c5",
+  "sha256": "873862ff5d204c489a0b4fe4690f22532825168bc5e8ace3190d6c688a15cf1a",
+  "visible": 5240
+ },
+ "item.icon.fur": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 7,
+  "clear": 5151,
+  "inputVersion": "0fe968b368076e2dad4b68d0f4228c81b2e6176921e092f75db99305daba8368",
+  "sha256": "a4fcff5da0548c8055b1bb41750410ca4de1441ae192f266dae9c28cc8b5684c",
+  "visible": 3918
+ },
+ "item.icon.fur-leather": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 8,
+  "clear": 5925,
+  "inputVersion": "58e83c0e41fdaa7353d202bc8894de9f01394d0228e848983ee23151c35b4c20",
+  "sha256": "733677d5cfbb3b42737459a4519090cb9ef8c61ed7b9f365346feace818bfc7c",
+  "visible": 3166
+ },
+ "item.icon.fur-profile": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 7,
+  "clear": 5151,
+  "inputVersion": "5492524eafd0c4b4304d8651e9ede6fb28c2729f80014377812c355241f0ec5a",
+  "sha256": "a4fcff5da0548c8055b1bb41750410ca4de1441ae192f266dae9c28cc8b5684c",
+  "variantOf": "item.icon.fur",
+  "visible": 3918
+ },
  "item.icon.granite": {
   "atlas": "l9/atlas-c.png",
   "cell": 9,
@@ -391,6 +995,38 @@
   "variantOf": "item.icon.granite",
   "visible": 4320
  },
+ "item.icon.grilled-fish": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 14,
+  "clear": 4952,
+  "inputVersion": "3b91c316603ccfd25060dc141a9778b06c49570f5194501d69a58f327bcff923",
+  "sha256": "9933c829191a6040d1f6bfb5c40d36e518e79ee75b9911eb44194dfff01ad18f",
+  "visible": 4120
+ },
+ "item.icon.hammer-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 13,
+  "clear": 6965,
+  "inputVersion": "08cd9b7e5a9e8985a3af94a59d1af1eac8f040e4149fe715ef6679b2be2e1779",
+  "sha256": "5c439895dcaac00b8a43ffadbe1414ea026b9892299e62666b46bd66d17d2425",
+  "visible": 2097
+ },
+ "item.icon.hammer-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 4,
+  "clear": 7237,
+  "inputVersion": "69373120ccef573c011311769e51f7f10252a5e84011956c9938f9ac5e0957fa",
+  "sha256": "5985a9ddb651a1f9b1207917fba18de831088482bf96ef91e53bc8a5bca0c543",
+  "visible": 1813
+ },
+ "item.icon.hammer-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 10,
+  "clear": 6994,
+  "inputVersion": "898048718d3893826d0edf2c6b3a03069d6a42c37c8c21bf9e32524415cedcc5",
+  "sha256": "05683c64f8964456ac5dc567391e1ce09adc9a9e85e5b296ee73b345ba15394c",
+  "visible": 2050
+ },
  "item.icon.hazelnut": {
   "atlas": "l9/atlas-b.png",
   "cell": 8,
@@ -398,6 +1034,22 @@
   "inputVersion": "d0a05cb3e9d339057ab33713141431409ca998f946f5a9e3965285750f2caf80",
   "sha256": "3d41b05d61c2418f5898f8f60451829a14841f4a7be3eb7dcb5f1c1fe171a3d6",
   "visible": 3183
+ },
+ "item.icon.heat-brace": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 4,
+  "clear": 5808,
+  "inputVersion": "70f2cb698eb5374341977f0723cfc309bf13dcbec650217b57d69f0f31e63721",
+  "sha256": "74e746a1b0d8b2c69d55e36979a7fdb9ae29ea1815d8e9de78b5966862e6f7f8",
+  "visible": 3271
+ },
+ "item.icon.herbivore-feed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 1,
+  "clear": 4191,
+  "inputVersion": "b82624099360db0f2eed87bb225a993b84c34b2b29b0045000002788f79132df",
+  "sha256": "670f736804d5934ea82cb68de0a1966004a0e4bfcd0e9e1616163ead14e74565",
+  "visible": 4851
  },
  "item.icon.hide": {
   "atlas": "l9/atlas-a.png",
@@ -416,6 +1068,119 @@
   "variantOf": "item.icon.hide",
   "visible": 3857
  },
+ "item.icon.hoe-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 1,
+  "clear": 7665,
+  "inputVersion": "0342b0c6ce93a7cc0ff8920e32550c341e38f5539e005947423a7c6f20956496",
+  "sha256": "ae1ec334de0d6f97475dbf497008f5502628724ba0cf582439ff763ea666a041",
+  "visible": 1374
+ },
+ "item.icon.hoe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 5,
+  "clear": 7686,
+  "inputVersion": "7ef225fc4d1054e285842efcd9df3a1310973e96b07639d4771962a53b5d8767",
+  "sha256": "5f002337876637a5af362a4c1dd0551e75f347654186e4882d2ebaa6ca4ff265",
+  "visible": 1346
+ },
+ "item.icon.hoe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 9,
+  "clear": 7577,
+  "inputVersion": "62d933e395fcd740d481d54b87484c58a0fbae06ae11735f75e9bab74116cbf7",
+  "sha256": "9896b16f27a6723269d2e8cfe1a82841fde1a6439c84e1056c4d29ce15792edd",
+  "visible": 1456
+ },
+ "item.icon.horn": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 9,
+  "clear": 6521,
+  "inputVersion": "5123bc4ce115f4cd2dac5839913ce06520db6db5fb22215ae14367dae7ef9545",
+  "sha256": "aa0a29308cc834337f921c7b02db4045747c6778debf76b1c81fb7aaea695746",
+  "visible": 2543
+ },
+ "item.icon.horn-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 9,
+  "clear": 6521,
+  "inputVersion": "b5043c90e680cc439cfe2d54b5babb1183b0a7f88cb0c378b2b81ad8e255308b",
+  "sha256": "aa0a29308cc834337f921c7b02db4045747c6778debf76b1c81fb7aaea695746",
+  "variantOf": "item.icon.horn",
+  "visible": 2543
+ },
+ "item.icon.instrument-bass": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 9,
+  "clear": 5948,
+  "inputVersion": "87d5329502a42d99322c8b8253906c7cf927382d66749373f45fd818af11e091",
+  "sha256": "025d666d2197eac7f038609401e6f6a2f274a861c2307d848b980a2778729e4c",
+  "visible": 3110
+ },
+ "item.icon.instrument-clarinet": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 12,
+  "clear": 7849,
+  "inputVersion": "8bb219016a5e71600b64d97e7771d4c704a605c3778be963b1b39f6a8c26d04a",
+  "sha256": "3d437d94692f39b1b9e6aa0ce8f003c64e746280354756d415c21c0f92069bba",
+  "visible": 1233
+ },
+ "item.icon.instrument-drums": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 14,
+  "clear": 5261,
+  "inputVersion": "9cf10da1c94efe270dda4a8691915bfe4697d93694f5da96e6ed85c60ecdcc67",
+  "sha256": "87719e3a1a5b5dcaec35807ce2c20204386850402aed98c4a93feefee96829b1",
+  "visible": 3755
+ },
+ "item.icon.instrument-flute": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 11,
+  "clear": 7934,
+  "inputVersion": "748369c86eaebce0dba82633100b05080f9d071bd8a2f319468cfd402c0fb907",
+  "sha256": "a449baf530660c9a0d5a53f8970696bbed1f8a23a369cc7aa0da05cda368d45f",
+  "visible": 1155
+ },
+ "item.icon.instrument-guitar": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 8,
+  "clear": 6265,
+  "inputVersion": "e8c4bede33af87e6791afbda8be9dada77081787c912426780d4db7cb156315d",
+  "sha256": "41c67f374c39ca25e1b12aaf77bbe37b3b7565dd96885042b00c5cef6c34956e",
+  "visible": 2777
+ },
+ "item.icon.instrument-piano": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 7,
+  "clear": 3471,
+  "inputVersion": "86a9837e197fadbfc2754f2fc4dbb8c8d9a34ad86da51c7cac093e29bcba23b9",
+  "sha256": "0e36a822fcee89e6efadf746a140340cb89de01a6d8f3f4ae856edbbea40dd25",
+  "visible": 5546
+ },
+ "item.icon.instrument-trumpet": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 13,
+  "clear": 7032,
+  "inputVersion": "a8532f2bb2978212573c304d39c46909a4671625b89ed3531e28e58b2c2fa24d",
+  "sha256": "672005ad5d32f2f375d587be4d12d0cc12d9650c6ff42ba856787f5bf3b14746",
+  "visible": 1943
+ },
+ "item.icon.instrument-violin": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 10,
+  "clear": 6719,
+  "inputVersion": "e607697a3220f8078a2488929bc9792c147289e2d296f66db904c6a030228e21",
+  "sha256": "51fef35157268bd10b3b1137fbdd6f10d13bc2166f6a3059e2642f3fabc7820f",
+  "visible": 2329
+ },
+ "item.icon.iron": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 15,
+  "clear": 6093,
+  "inputVersion": "f56ca9a2003f74116c0ede1db5a4edee646f50d802a081a1bd70a66efd435b47",
+  "sha256": "59f667b33fa5b447087136c11e0f719d2f9a7897207143b3b2477cc527e14fd7",
+  "visible": 2997
+ },
  "item.icon.iron-ore": {
   "atlas": "l9/atlas-c.png",
   "cell": 12,
@@ -432,6 +1197,86 @@
   "sha256": "fee9bdf31dbd51040132b511f9a2dc96b72fb8dc2552096efd5167a2cfca719b",
   "variantOf": "item.icon.iron-ore",
   "visible": 4699
+ },
+ "item.icon.kiln-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 11,
+  "clear": 4310,
+  "inputVersion": "531d48e8060c6c8e242415fd00d57bca7d1dfef3b90ecc1bc5b2357d3f6b796a",
+  "sha256": "eac56a9e76097318b114ad76ecf780833b10587c0d2fc599efe262c12b6b0014",
+  "visible": 4762
+ },
+ "item.icon.kiln-t2-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 14,
+  "clear": 4402,
+  "inputVersion": "5ca8e1a4313b50d9f26a676cad18a942bb10619e98b5b654398af5485d004b28",
+  "sha256": "e10443801a32ba554b4388e0a6e7e5c45cb4e2c95150994b80b76aab57256c4d",
+  "visible": 4664
+ },
+ "item.icon.kiln-t3-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 15,
+  "clear": 4573,
+  "inputVersion": "5f99d73e5d698f2fe8e678bf01f8e4c39b2844ddeaac4b997a70fe33a4f237e0",
+  "sha256": "980dc991790253e14e08a99924c8f09146c74d506eda9f99b0b3a1f0ebf875a2",
+  "visible": 4466
+ },
+ "item.icon.knife-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 15,
+  "clear": 6632,
+  "inputVersion": "8ae15a94d928eec32a8d601ee50be328686cfa01b05e9088e4f7709647e275cc",
+  "sha256": "54038686adb661f6065c5640f4e98878e0e0bc5c63091b838f44a7d8fc697e87",
+  "visible": 2434
+ },
+ "item.icon.knife-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 4,
+  "clear": 7257,
+  "inputVersion": "eb902e38b886b3876a099919c886c242b16d4a0873e430f8325afcb009ee3d2c",
+  "sha256": "aa5dc56e31fa51fa4e00fcd41bca81f585d4fec9e45aa35d73859404038b713d",
+  "visible": 1822
+ },
+ "item.icon.knife-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 8,
+  "clear": 7098,
+  "inputVersion": "3adaf4e73608b11872ad53ea99de654186b60c4454bda4f2e5051fd22019356d",
+  "sha256": "2fc955c50286c0b0521d9e424ce578731a2d980b8e29f5ed0e528d1ceacf7e1f",
+  "visible": 1995
+ },
+ "item.icon.laboratory-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 7,
+  "clear": 5687,
+  "inputVersion": "748aef127dc6c69476d7501fce3a45c2e4a194632c5aa45a54ac85595f40bd6b",
+  "sha256": "d631bc8b7f00f3e77a9189842afa78cb1b1f19a9e50d9582da1b7d6e1df6af42",
+  "visible": 3164
+ },
+ "item.icon.lava-protection-boots": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 4,
+  "clear": 4160,
+  "inputVersion": "8e627704a523395b9cb94d2eccb7775a793e3c1c52383bf96dd1d94a7f2aa3ff",
+  "sha256": "5d776d098136685f7e246945d860a7461d06ec125be66d63fab22efd80db4bfa",
+  "visible": 4905
+ },
+ "item.icon.leaf-compost": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 10,
+  "clear": 5471,
+  "inputVersion": "5aa8279d8e3d105ea5382847dca563c4331fcc8790750e37c31c9eddcac35ed4",
+  "sha256": "595dc9baccefdfc4b18cafd13f78e57d0ec1e074aaeeb64b0d72f7480e1744d6",
+  "visible": 3559
+ },
+ "item.icon.leather": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 5,
+  "clear": 5646,
+  "inputVersion": "60b4b68a5c04e6f603b61e52dcfc614f3ecb471130db305e255d7549bbf8d6a4",
+  "sha256": "c0abd0ed8a8857694601639c0613c3e02128db685d9a35c0c22be1cffb9e4722",
+  "visible": 3428
  },
  "item.icon.leaves": {
   "atlas": "l9/atlas-a.png",
@@ -450,6 +1295,14 @@
   "variantOf": "item.icon.leaves",
   "visible": 4321
  },
+ "item.icon.liquid-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 11,
+  "clear": 5324,
+  "inputVersion": "ede2028482ccf2f8b74e40f7f7420b34bff8fb4cd0edda4c02b0cf872c54fb5e",
+  "sha256": "a79b1770cc085f9e3ccba02005f79dbfd21bd4403748dacfd2b6381ebc48a852",
+  "visible": 3736
+ },
  "item.icon.marsh-clay": {
   "atlas": "l9/atlas-c.png",
   "cell": 7,
@@ -466,6 +1319,14 @@
   "sha256": "b5736f2bc7e34c6557a118a784cbe3afd4e66e05ddec5eb473f8723653836a55",
   "visible": 4229
  },
+ "item.icon.meat-potato-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 11,
+  "clear": 4315,
+  "inputVersion": "6fa70c8f6a1f9d3258c089f0cb68572559e98ac7435b0294584c1cbcb911b8b3",
+  "sha256": "ec05c3c84401eca14bddaba24630592da29ca85ff7bd5e2563cede0e03a3dd2d",
+  "visible": 4746
+ },
  "item.icon.meat-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 13,
@@ -475,6 +1336,14 @@
   "variantOf": "item.icon.meat",
   "visible": 4229
  },
+ "item.icon.mud-brick": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 4,
+  "clear": 5559,
+  "inputVersion": "6375a322e9e6c5d94bf09afca325ad36048b04ffa76f5dad30a428368accfaf4",
+  "sha256": "3ad28b6c5b9f052868d81b9074efac6a4e5afb0a3ba5bcb6182a0374a588bf87",
+  "visible": 3509
+ },
  "item.icon.onion": {
   "atlas": "l9/atlas-d.png",
   "cell": 15,
@@ -482,6 +1351,14 @@
   "inputVersion": "c40df5c5dec3d1a50436f6857f0f480d20f0585559629a9387102421a1bc0779",
   "sha256": "eef8d5958da5159e80d3bf081dc827726d487c1ddba439adc09d74fd38ccd6b4",
   "visible": 3308
+ },
+ "item.icon.onion-meat-skewer": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 12,
+  "clear": 6547,
+  "inputVersion": "eebe24b695c3bf1de0bd95b9711a44bb1731f68d6b41ec5419a38093fa6d651b",
+  "sha256": "bb0815528f981c49ee6e208c361316c73b75b7afbdfe60e1e4acb1057d1b0a37",
+  "visible": 2502
  },
  "item.icon.onion-profile": {
   "atlas": "l9/atlas-d.png",
@@ -492,6 +1369,63 @@
   "variantOf": "item.icon.onion",
   "visible": 3308
  },
+ "item.icon.onion-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 6,
+  "clear": 5799,
+  "inputVersion": "97011f00338a641ad67c9cc4725c2dfe7c943ba31487115eff17a8afe3807073",
+  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
+  "visible": 3189
+ },
+ "item.icon.onion-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 6,
+  "clear": 5799,
+  "inputVersion": "dd445824c0eda1888314dcd19d1fa540cefd6653ce0fa57f137549f2ba584a20",
+  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
+  "variantOf": "item.icon.onion-seed",
+  "visible": 3189
+ },
+ "item.icon.onion-soup": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 4,
+  "clear": 4320,
+  "inputVersion": "db4b07234c21f9b3a82ad6050aa427acd074178ef7f649926c1fc0bfe99dea23",
+  "sha256": "5ce1d185a0931fcb6cc7e6a75d93aeca27ec92f7d5a605011c329474b7c4f6b5",
+  "visible": 4748
+ },
+ "item.icon.pickaxe-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 14,
+  "clear": 7121,
+  "inputVersion": "f9820c498f89c2c087a8c44b170dfa4ad324631936e2d715f39648e71fa29cc8",
+  "sha256": "e13dd65da77584e94d8ea21bca98ea6ee3e81f8b60ce97ff05c6903b8940eabb",
+  "visible": 1948
+ },
+ "item.icon.pickaxe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 3,
+  "clear": 7563,
+  "inputVersion": "7d63216908b03068b448650e6e1694d91d8ad65fe984147f4defd1d1f9612c80",
+  "sha256": "8b6425b352f8f999a3821b757ac0682649918ed479574d2c06de2b26dac94511",
+  "visible": 1481
+ },
+ "item.icon.pickaxe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 7,
+  "clear": 7451,
+  "inputVersion": "9e7981db7551cf47dcf339921c23a956f272b6f1f6194898eb186905307fc221",
+  "sha256": "d90190c61d58764dcc8f5a42451d6d68c6e00cd9bf902d0b50f6d7431285f041",
+  "visible": 1586
+ },
+ "item.icon.pillar": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 14,
+  "clear": 6339,
+  "inputVersion": "bf7e29f4a892f7b555425324e1a6d8474bad6291f9b022debc4992bcf851666b",
+  "sha256": "757bd30ba8b5c9147d4efa80b6f01b96bfb2ea66e900c2604032f9ee43a16a4b",
+  "visible": 2724
+ },
  "item.icon.plank": {
   "atlas": "l9/atlas-c.png",
   "cell": 1,
@@ -499,6 +1433,55 @@
   "inputVersion": "4bd5917a0165f4d2553f218e39619093b90be72a523898e770d0e5b35e959bb2",
   "sha256": "5ffd183b75b9902b8525b24b7040f42067ec6486ca0a75dde03ddbd7c97bd553",
   "visible": 3936
+ },
+ "item.icon.plate": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 8,
+  "clear": 4971,
+  "inputVersion": "82abbfe9d7afef7ef707336ee9146063f68f141d6c2d5d5716e8d5975e5dee51",
+  "sha256": "0048b16e4ae9e12b728d67233e2670e1f215065d78ee36a5f97ca5e80934a3d3",
+  "visible": 4078
+ },
+ "item.icon.plate-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 8,
+  "clear": 4971,
+  "inputVersion": "50fb12181943607d1bec099e6210d21fb468c12fd4d5fe91e557da01ad4f213e",
+  "sha256": "0048b16e4ae9e12b728d67233e2670e1f215065d78ee36a5f97ca5e80934a3d3",
+  "variantOf": "item.icon.plate",
+  "visible": 4078
+ },
+ "item.icon.polished-basalt": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 13,
+  "clear": 4976,
+  "inputVersion": "8b49900543c8ee3038f8467c05f6deb672ca29e09c09656be03c0a90551820bc",
+  "sha256": "6a23f2201c411df709dc2f21f91d8853c7f9771928e099c607c9b52a151788aa",
+  "visible": 4096
+ },
+ "item.icon.polished-bone": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 12,
+  "clear": 7010,
+  "inputVersion": "505741156101d82745fb6fa3f711a22d642668bf6e55659789405968356638ea",
+  "sha256": "d7ca69d580add1febf39a7951a9b68ca2fbe20f7aac88ce1cc96b6c7fe20027e",
+  "visible": 2065
+ },
+ "item.icon.polished-flint": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 11,
+  "clear": 5800,
+  "inputVersion": "c87b6385cc81cbc6d1913b6422e953399461a43424a99f83c611259a8882870d",
+  "sha256": "b25a88fa2d3ce1b87166e230047e3cf119e4bb1d27be3bd3519e81a7d69ec99c",
+  "visible": 3272
+ },
+ "item.icon.polished-stone": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 10,
+  "clear": 4956,
+  "inputVersion": "9b768ddc1672c8d1ef19c757b56648de3499be17280dfb1ae49c15aa93248559",
+  "sha256": "f68651b6069328d1b0435134cf164346978d4af84f6d84a0380f1768f68e45c8",
+  "visible": 4122
  },
  "item.icon.potato": {
   "atlas": "l9/atlas-d.png",
@@ -517,6 +1500,47 @@
   "variantOf": "item.icon.potato",
   "visible": 4114
  },
+ "item.icon.potato-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 4,
+  "clear": 5464,
+  "inputVersion": "7de7ec17c6c3569fba53d16059d4a10102ef953e83efbd9d958c9205f3fbf5a9",
+  "sha256": "58788435a5ee95fb23c116e61964217e8f37c7b20dc9809b5ebb1238fab034c1",
+  "visible": 3598
+ },
+ "item.icon.potato-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 4,
+  "clear": 5464,
+  "inputVersion": "618ba1913805acc4ed7a8581575638df6249e1f32149cd95a134a66be05922b6",
+  "sha256": "58788435a5ee95fb23c116e61964217e8f37c7b20dc9809b5ebb1238fab034c1",
+  "variantOf": "item.icon.potato-seed",
+  "visible": 3598
+ },
+ "item.icon.practice-seedbed": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 6,
+  "clear": 5129,
+  "inputVersion": "42fb2b3f6edf5c141acef6c2f0af4d51a825758500ecae197bc5dbde5572028d",
+  "sha256": "821486607d1d8449c68dce81b255298fc3ad6af7abe7846746d9e6b750083582",
+  "visible": 3874
+ },
+ "item.icon.practice-stitch": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 5,
+  "clear": 4269,
+  "inputVersion": "c4b2cbf14d870279819db5919fc529fbece845407c31027b692957cab965b7b5",
+  "sha256": "d7381e569e1666a139a703b32ea956edaabfc63505e76edd5461102756038ba5",
+  "visible": 4797
+ },
+ "item.icon.recovery-feed": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 2,
+  "clear": 4834,
+  "inputVersion": "aad5d3780c103ef3119f33e96be926a3a3fe10581047d27982a2237bff2ebdcb",
+  "sha256": "3099122d331b71b95dfaf282ddbb0ddd7caf3587b9ab2ea95c797bf049bf5d08",
+  "visible": 4184
+ },
  "item.icon.reed": {
   "atlas": "l9/atlas-b.png",
   "cell": 3,
@@ -524,6 +1548,22 @@
   "inputVersion": "b45d95a0edad94e1db146b897544a049a0c9e3d46c7be4baa95a1e8f6c5c8391",
   "sha256": "6b0812545dbe49c5a3fb169bf78b2bfa9a38d2a79b0e2a48ffe84db3e8b2d362",
   "visible": 2018
+ },
+ "item.icon.refrigerator-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 2,
+  "clear": 3923,
+  "inputVersion": "3ac11cde9b12c9856cfecfbbdf6d758a1463319089f1a76a090971c8016c5183",
+  "sha256": "fde147dd6de740a0696ae7d149ed3da6ef01d95180a95dcbeecab0690427ecba",
+  "visible": 5118
+ },
+ "item.icon.relief-unit": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 15,
+  "clear": 4979,
+  "inputVersion": "e09beb67bc3701655a17e3a97cddaf4ab06a1124a8119129ec3c81cfe7db7040",
+  "sha256": "d265ed85bf8c31a12b3fa7735db2087782dcd979c146a26ca6a212a66a898c49",
+  "visible": 4100
  },
  "item.icon.rescue-marker": {
   "atlas": "l9/atlas-d.png",
@@ -533,6 +1573,46 @@
   "sha256": "9cd8ffca117bf4fc2f12945f96765bd8b8d06a96ae0c153a8d0eed9d4c6d021d",
   "visible": 1855
  },
+ "item.icon.rescue-transponder": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 5,
+  "clear": 5975,
+  "inputVersion": "304023d92f25aeef7946288d7933350d006849bd63e76d4fc44d6334de4c2c67",
+  "sha256": "eba9b07c7a3472b9e6dfb80a1c787fb9574874722d22fadacfb6d7a8cac8e726",
+  "visible": 3115
+ },
+ "item.icon.research-bundle": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 2,
+  "clear": 5707,
+  "inputVersion": "ce3a5fba106674891984e19cdd776ec35d58e070d038856778bbaecad284d700",
+  "sha256": "f2710b713e2432e2cb464b1b901453aefc7bd0f101c367cfe7ca33e6a50ec8ed",
+  "visible": 3366
+ },
+ "item.icon.rex-leather": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 9,
+  "clear": 5128,
+  "inputVersion": "2bd10d455f677c80b8958c1cf3677a05d6c8b831de13aba34b91c69db98db448",
+  "sha256": "52453ab792fe595ff44d14298d75b21ec665bee4298bad1f2eb4113fa31f7ad2",
+  "visible": 3934
+ },
+ "item.icon.rex-meat-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 13,
+  "clear": 3608,
+  "inputVersion": "1b6df2deab94d2d2e655081d337fed8c2d78eb8242b10cec5cfaed809c9085f3",
+  "sha256": "acddc947836b6a0ce1d8a6de22bb5f6f60abd73ed52902c6a214827af0c5e26d",
+  "visible": 5416
+ },
+ "item.icon.roast-meat": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 10,
+  "clear": 5008,
+  "inputVersion": "faac36db34b59a889f4d58a4569672c4f175052eb415240353ef215b1e8876be",
+  "sha256": "a01c5ce50fbcab579234d2ce9e187f19a17ae316811087004bfbb933bdcc0f85",
+  "visible": 4065
+ },
  "item.icon.roasted-hazelnuts": {
   "atlas": "l9/atlas-b.png",
   "cell": 9,
@@ -540,6 +1620,14 @@
   "inputVersion": "52e33e459674b7b5db21f1b81c3cd74fb438279f7bc44c1b0b4f6687d74c1e8b",
   "sha256": "c21a948afeed3839c82ba61274ca6d48e593488c0c509c60fd3db454a0080ed0",
   "visible": 3539
+ },
+ "item.icon.roof": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 13,
+  "clear": 5435,
+  "inputVersion": "afa40df709aba386558f697890d4439467059d26c80bcd88a8f7a18a511db850",
+  "sha256": "c6a214cde751daffef4c002be033cd27c422d2f41227ecba6438d9fcb67711b2",
+  "visible": 3621
  },
  "item.icon.roof-kit": {
   "atlas": "l9/atlas-d.png",
@@ -549,6 +1637,78 @@
   "sha256": "c284a15aac6a8b04b4fd8127ed03d9e65d2c726bf755ae7fc22b2585500778e8",
   "visible": 3605
  },
+ "item.icon.rw-journal-seal-1": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 5,
+  "clear": 3726,
+  "inputVersion": "25ef9c4543228a30f07f2f1632ed014ca1eff9f381929b865bdbd93cbeae8712",
+  "sha256": "58320e1d7914e2832715af36906d79484c5c19808b8a7d2588f6b86e59268409",
+  "visible": 5352
+ },
+ "item.icon.rw-journal-seal-2": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 6,
+  "clear": 3677,
+  "inputVersion": "3950f9ca499670c351640db19fb4aba906e216167260c1fd11882e608037847e",
+  "sha256": "7962e7e6dcc66da9399af3602daff46c62134c5bc5d3a05506137f9675035e40",
+  "visible": 5395
+ },
+ "item.icon.rw-journal-seal-3": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 7,
+  "clear": 3701,
+  "inputVersion": "51c2a88cc2a8b5d8ae8088ce29ccd0b0a7cf220e0f88df732bc3ec457914a11c",
+  "sha256": "3828c0e1cde4d28fd83c737517a84491ca72656fd7a8ff44e627c19786848379",
+  "visible": 5365
+ },
+ "item.icon.rw-journal-seal-4": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 8,
+  "clear": 3653,
+  "inputVersion": "3c5d2502822b9e20527eacd4d2c3c0169ce540ec4a8e3ed916bc2251ea3cdf1a",
+  "sha256": "54d2e3db65974d48d189e7657a1812bf1a31ce6be2bb00eccc3e4662b2c3e5d9",
+  "visible": 5418
+ },
+ "item.icon.rw-journal-seal-5": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 9,
+  "clear": 3652,
+  "inputVersion": "bf70e4310de014f10fc6851da3b1e1fb5a0680cd6a6701f13d55ed209fd47718",
+  "sha256": "3d3111d7e283cdf3ff322c363e5443f44c7d8edf357c5a1efb772bf69ff64923",
+  "visible": 5412
+ },
+ "item.icon.rw-journal-seal-6": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 10,
+  "clear": 3585,
+  "inputVersion": "5f8dc114df0ff790b489889881fc97701237871b51076a0c77365dc8f0b8510d",
+  "sha256": "868d68649356e0f4fb7cda639ec2eac8929ecd0e91b258a76ae556ae73c415c6",
+  "visible": 5467
+ },
+ "item.icon.rw-journal-seal-7": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 11,
+  "clear": 3572,
+  "inputVersion": "5b4a28ef917a3d2113878f40e4dbb1f515e079de8e612137049f0aae06fa8c31",
+  "sha256": "4fae807b881f218467e848f3c970ffea645389b729c87d04e5b437801132a7a3",
+  "visible": 5487
+ },
+ "item.icon.rw-journal-seal-8": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 12,
+  "clear": 3640,
+  "inputVersion": "57729b92eae055f20924ee10544acd70d91925a0484c8c819da8b5f4c6442d23",
+  "sha256": "c761c4e62d109bb62244e4d7a5108aaf3da8e4fa46ca8480472ef2b883948084",
+  "visible": 5421
+ },
+ "item.icon.saddle": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 1,
+  "clear": 4371,
+  "inputVersion": "ca456a2d0ad3e8b7f546f15e7067e832ac7535f94f4251ef31ab662d4116d12e",
+  "sha256": "d15c0bbc8ecf0f3323d17679f6db2e2347b1a68f14c9478cfa936afed11499d2",
+  "visible": 4693
+ },
  "item.icon.samphire": {
   "atlas": "l9/atlas-c.png",
   "cell": 15,
@@ -556,6 +1716,14 @@
   "inputVersion": "2a97786e3c9a0b558da2b8a09f204ae10b5957cb9c0d2ae913d394220289269c",
   "sha256": "02084620c3aa1ca7e75357caffd43e75db940e5884018d7f45a7d1a22ed95a2a",
   "visible": 3340
+ },
+ "item.icon.sample-case": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 1,
+  "clear": 5417,
+  "inputVersion": "2d535a45df85edd7fae4eceb10b55e1792903aa63378e336e3add38e3d5f3cdf",
+  "sha256": "e8b0b34b94c3623b4568d0f7bc5db36e415705b3c1c6d04a8c2071e9e42b5098",
+  "visible": 3664
  },
  "item.icon.shell-fragment": {
   "atlas": "l9/atlas-b.png",
@@ -574,6 +1742,14 @@
   "variantOf": "item.icon.shell-fragment",
   "visible": 3655
  },
+ "item.icon.shelter-liner": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 3,
+  "clear": 5455,
+  "inputVersion": "b77b843c2707a12b37add4fe8227c9ac227845c73e36c1f544b676a78e938b89",
+  "sha256": "1da01df04cb62bbe56bffbb6c7536a76ad9ffe7577785e6ad6795938a2447416",
+  "visible": 3613
+ },
  "item.icon.signal-fragment": {
   "atlas": "l9/atlas-c.png",
   "cell": 14,
@@ -581,6 +1757,22 @@
   "inputVersion": "43f3d097eed604d71b00ebeaac2832a6c36851f543dd73cedd562ee9a6d6796b",
   "sha256": "1cf7078fe42c2cedec36c152a2283292e6633d8c1819e48f292ce23753430d8f",
   "visible": 4058
+ },
+ "item.icon.signal-lens": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 15,
+  "clear": 4903,
+  "inputVersion": "d430d1bc85307f3f769e8309d05d4957900bd04186b94d040c149b62d33c36f0",
+  "sha256": "ff569cf33de9d70bbd1ba6c310a5f85de4ba6af42c7e9445b1fadc31fec7a16c",
+  "visible": 3492
+ },
+ "item.icon.signal-relay-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 6,
+  "clear": 7138,
+  "inputVersion": "777f26b14bd1e4f3997e85e8e6291f15c394286283df18fd9451389b1a6adbdc",
+  "sha256": "6f4fa82c56f8bfae1b94ca8bf111b7333eaa7d65bcada0dcf555bfa6a1bc51ca",
+  "visible": 1851
  },
  "item.icon.sinew": {
   "atlas": "l9/atlas-b.png",
@@ -599,6 +1791,23 @@
   "variantOf": "item.icon.sinew",
   "visible": 2047
  },
+ "item.icon.skull": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 6,
+  "clear": 4869,
+  "inputVersion": "368a2687a2841d4dcc0504fa4fdcaf853d6518711f6582639235511e935e478d",
+  "sha256": "b9865b1857feb6dfd4e379a5d2b741b0fb89c137e8b225e85e03ab56699be5ce",
+  "visible": 4202
+ },
+ "item.icon.skull-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 6,
+  "clear": 4869,
+  "inputVersion": "72abf155f101238cf7739fb7fb496790bbc6f6b5b2e4a4f5bb47c76f082d9d56",
+  "sha256": "b9865b1857feb6dfd4e379a5d2b741b0fb89c137e8b225e85e03ab56699be5ce",
+  "variantOf": "item.icon.skull",
+  "visible": 4202
+ },
  "item.icon.spear": {
   "atlas": "l9/atlas-c.png",
   "cell": 2,
@@ -606,6 +1815,63 @@
   "inputVersion": "d6b74a55ba2319b3930dd83d59114d78b93fe6c117034f6b9137ca7d3e098504",
   "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
   "visible": 1186
+ },
+ "item.icon.spear-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 11,
+  "clear": 7848,
+  "inputVersion": "7ba3930574be17860b2cff60f7767c5e6754a957cc006f103927813b8da2ed0e",
+  "sha256": "8ae25d6eee77cb04e3e09df65c53811556b5d4d48c27a2c0b9a6fbb41cf92e41",
+  "visible": 1209
+ },
+ "item.icon.spear-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 2,
+  "clear": 8022,
+  "inputVersion": "2d68d3538172f48e8351676b621d1d78c2ffbc687131299126ffd259149e5316",
+  "sha256": "a116fc8225854529a256428f4e1eb75e0b049a51f9118bd7006c1f57a5b1701d",
+  "visible": 1061
+ },
+ "item.icon.spear-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 8,
+  "clear": 8081,
+  "inputVersion": "115c1c229f483e77d0d1aeaf9c3b018dc1bde93b5c70ad9368998db5ca3e79ae",
+  "sha256": "61c6bc5b3ddb5c9d76a4cf658cdd9590f719cd984dc737bc29fac5134e3e67c2",
+  "visible": 991
+ },
+ "item.icon.spoiled-food": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 11,
+  "clear": 5830,
+  "inputVersion": "2425ccaa60a2c5717d33b4168a6aa04ca25180c14c60dcf5fff30325efc24a7d",
+  "sha256": "f4404509b35f8062ca8429382979a748d1462b531f2291aa5c0f08de59d8e65c",
+  "visible": 3235
+ },
+ "item.icon.spoiled-food-profile": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 11,
+  "clear": 5830,
+  "inputVersion": "775d77ff731c280b8fac395950d40806efe874593e5e4406fa4518c033ee1bfb",
+  "sha256": "f4404509b35f8062ca8429382979a748d1462b531f2291aa5c0f08de59d8e65c",
+  "variantOf": "item.icon.spoiled-food",
+  "visible": 3235
+ },
+ "item.icon.sprinkler": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 14,
+  "clear": 3329,
+  "inputVersion": "201c9add7a74ef8cf4fb2e123252ea2f9e2062430cca2ec34b77bcbb5cbc8a84",
+  "sha256": "142217eb5445548eadb81ea0318a598eac332b07af425fc4652532b7137dbcec",
+  "visible": 5648
+ },
+ "item.icon.stairs-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 11,
+  "clear": 5121,
+  "inputVersion": "38df56055c6a5778accd3da26490cc0bd1bc0825285c7629167fb5e535e2e387",
+  "sha256": "4f6cac303039380336b2e5eb37f9dd0e55ca660b2de80bf67cc6de357b25c721",
+  "visible": 3957
  },
  "item.icon.starter-axe": {
   "atlas": "l9/atlas-d.png",
@@ -631,6 +1897,22 @@
   "sha256": "89176a4b25d75a41a52927f2f85ff28845aed4ecd4ce01636c72289043990817",
   "visible": 1504
  },
+ "item.icon.steel": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 1,
+  "clear": 5883,
+  "inputVersion": "64595eb4bed3bf4a4e2e17a286aaf60e16231504af3829638c4215a18ab5fc68",
+  "sha256": "cb548982399e6cc68c76ad731a0fc819214785686178eee72e0438df2a6fa3cf",
+  "visible": 3219
+ },
+ "item.icon.stem-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 13,
+  "clear": 3875,
+  "inputVersion": "b7b39650a82f001fda86a25f1ebc6801d223b05742ab93d2f8b7302af4a50740",
+  "sha256": "079fa2815fc337f36af731770f939e668125298700508052c1c164a2c93dd5b3",
+  "visible": 5188
+ },
  "item.icon.stone": {
   "atlas": "l9/atlas-a.png",
   "cell": 5,
@@ -646,6 +1928,22 @@
   "inputVersion": "c0bd65865c32aa4318d3f602761631c1d1edfa71a0a2719172dad4aa61c11388",
   "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
   "visible": 2054
+ },
+ "item.icon.stone-block": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 5,
+  "clear": 4346,
+  "inputVersion": "d68435cbaf2a97e6e66465e95a7987f94a5a9eed4a18b447300578f8abd33797",
+  "sha256": "4b07e455a46953aeb3047df093eb8ac1ca18d83f2817a1a54162d20f9c1f3db8",
+  "visible": 4719
+ },
+ "item.icon.stone-floor-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 6,
+  "clear": 5713,
+  "inputVersion": "f5c98a864ffb418fee5ed4c15d631c981901c54cf9652f4a195a5b345fc24aaf",
+  "sha256": "cb08d302f06647ef16a571653cdcbc3f199ac1b7abf8e1d717d04cad4d85ad54",
+  "visible": 3367
  },
  "item.icon.stone-maul": {
   "atlas": "l9/atlas-c.png",
@@ -672,6 +1970,22 @@
   "variantOf": "item.icon.stone",
   "visible": 3955
  },
+ "item.icon.stone-roof-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 7,
+  "clear": 5454,
+  "inputVersion": "c2dbf60c1f2f70a987c432d250a4eae62a98ff94971dd1322de0a8b7e70f657c",
+  "sha256": "76463b15935124240f6d4ddeae336b6087cfb59104472ef09665ed1ac704ca4c",
+  "visible": 3619
+ },
+ "item.icon.stone-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 8,
+  "clear": 5014,
+  "inputVersion": "ae479a51487cfba62bc4eca33354317ab43b0a5937e531e1c19b2edaebf928e9",
+  "sha256": "cf1607b4dacc34ef11897f154ef2c6331b1934223138521fef5a22102b61cc10",
+  "visible": 4026
+ },
  "item.icon.storage-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 3,
@@ -680,6 +1994,102 @@
   "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
   "visible": 4550
  },
+ "item.icon.survey-sample": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 1,
+  "clear": 5258,
+  "inputVersion": "140e3e42297e3fe433aa66f1588762bf4a7650c616ffa6d0d3e95865dbf68d7f",
+  "sha256": "9f9256c62cb9df39dc30ed41bdd51cc8c541482cdcfd0051fc7720f73a184d37",
+  "visible": 3808
+ },
+ "item.icon.sword-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 12,
+  "clear": 7372,
+  "inputVersion": "c11d35c21c2cb613617066e14394ed2ed953187a14eb55b32968b88cbd3a2c80",
+  "sha256": "13e4bb792d4232d1c02253d1a234d7ef1738ef35e7866661aaa66a4192115635",
+  "visible": 1693
+ },
+ "item.icon.sword-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 3,
+  "clear": 7607,
+  "inputVersion": "fb066fb26257aa2d597cfb4c052c46dfa87da720a7f1186e5281b6f8372a2248",
+  "sha256": "141d48f89104ece5a2f97e958efe584f0687a930ef213f75d14d4fc21c24947a",
+  "visible": 1452
+ },
+ "item.icon.sword-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 9,
+  "clear": 7478,
+  "inputVersion": "2f99964a1ba3e6fcda2284e3084cd7f020cb0e5c51bdf608a909123e87e9320a",
+  "sha256": "9ba6b91dbd0d1b123e0697b58ec07292517ad20840cfd077147ced8f62f0c54c",
+  "visible": 1558
+ },
+ "item.icon.tanning-frame-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 1,
+  "clear": 5155,
+  "inputVersion": "0f173c234780ae32c06edf14626cff199bc31a90494c869781382c14782f5329",
+  "sha256": "04f5d9d008de26254bc325a1a92f5d2a29473b92aeface61bbfbc701d139ac79",
+  "visible": 3735
+ },
+ "item.icon.temperate-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 3,
+  "clear": 3467,
+  "inputVersion": "9f3cb376da1a134ef1b43597547559bf0d618410f632a74fd141cfa08ac5a72a",
+  "sha256": "47e1129c59e21d1bb966808fe3d1640064ebdd6c2647b5a659101e41ede7eac2",
+  "visible": 5563
+ },
+ "item.icon.temperate-bottom": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 15,
+  "clear": 5327,
+  "inputVersion": "09ac10ca9ab6eca7bbd54b7d7743be2f40377414e28806dab3a1343698f5904e",
+  "sha256": "0ea160dac161a39d97b71c8062f07396d282414b703a1377868715bb4c5e5dc8",
+  "visible": 3749
+ },
+ "item.icon.temperate-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 2,
+  "clear": 4986,
+  "inputVersion": "185a0cbd6a58f9d37c3b12d8e3ae4942fdc4e657c0ef219b3743c3bf21296517",
+  "sha256": "9e57865d32c1bc5c4aea56985d5f95f0f605906b6a39849d0a7ff77659778858",
+  "visible": 3993
+ },
+ "item.icon.temperate-head": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 13,
+  "clear": 5014,
+  "inputVersion": "39390455e45329f9276df537ecb48f9f7bae9abcd9b88a2988e936ad2b4c6951",
+  "sha256": "4d910b345f7935c49287efedf1e398b2356f5506b586a0c5632e7c304b250ffa",
+  "visible": 4056
+ },
+ "item.icon.temperate-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 1,
+  "clear": 4740,
+  "inputVersion": "ded8b2df00a368fcf8cae5b9d2f9c1f5a87e435c7c9d982411ef16a8e32ec4b9",
+  "sha256": "9e4f57a12bc379ec276c976418e1e93ceeeaba1f4d41d408d8fa8388486eb78c",
+  "visible": 4288
+ },
+ "item.icon.temperate-top": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 14,
+  "clear": 4917,
+  "inputVersion": "ca0db93a774a7347f59b905b3b5f82d413a92362418dad452af172a87c53f8f0",
+  "sha256": "03c9f6cf91bd080c4fbff8837ec776b1f5fa74eba05cb20a66e85bc27bdeb8af",
+  "visible": 4145
+ },
+ "item.icon.tent-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 3,
+  "clear": 5471,
+  "inputVersion": "3a89d5054f082f409ecc40c69952a0c513cab37b846693dcfa3090c44a9ac228",
+  "sha256": "d2c7c1cd09a6c1435b7dfc51c9a6c1a24e9bf4ebc7c4c1488b025b15b8faf384",
+  "visible": 3579
+ },
  "item.icon.thatch-bundle": {
   "atlas": "l9/atlas-b.png",
   "cell": 4,
@@ -687,6 +2097,145 @@
   "inputVersion": "42900381f79bfeb9eb98c17406400c072f092ec12346a1643806d384c90d5127",
   "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
   "visible": 3236
+ },
+ "item.icon.thick-leather": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 6,
+  "clear": 5097,
+  "inputVersion": "b055de214e0089f9e7813aeba5c52cf7a93555c070a05714acae777a21f7f943",
+  "sha256": "71d2fb582a4475dedfbe75fa29635e17f98cd85d7088fa966f1268e964f89481",
+  "visible": 3969
+ },
+ "item.icon.timber-beam": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 9,
+  "clear": 6056,
+  "inputVersion": "7ba1279e9d7c9c9cda3d01b14f4d3e22c0edb3e1612b421c61a5a10a00bccaef",
+  "sha256": "57ddefd4d6800576d9cc179aefd1ab49e801f0f151d7ebe2f3aade2413f61c71",
+  "visible": 3008
+ },
+ "item.icon.timber-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 10,
+  "clear": 4324,
+  "inputVersion": "cf171874aa14c83fa6881d52a8b4c15191732991b24d8f5bbdb04fe94cff0462",
+  "sha256": "deaec93f82f641be571968cc7d67087983920b56807ef0f7e61f2d58f3e035d9",
+  "visible": 4714
+ },
+ "item.icon.tooth": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 11,
+  "clear": 5845,
+  "inputVersion": "4563a67d3836966da5c2aaac3d4b77068a60e94ecec5f1ce428f557222003df3",
+  "sha256": "206d298d2bb7cef5d56d55b8f0bfb1f66e2dc991d770535ad91eab0cbc9fd9d2",
+  "visible": 3234
+ },
+ "item.icon.tooth-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 11,
+  "clear": 5845,
+  "inputVersion": "64c1b9d20bb3a6571282bcb5b8ba83e214dbb3424da6b3611b9203d6243d8d6f",
+  "sha256": "206d298d2bb7cef5d56d55b8f0bfb1f66e2dc991d770535ad91eab0cbc9fd9d2",
+  "variantOf": "item.icon.tooth",
+  "visible": 3234
+ },
+ "item.icon.tropical-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 9,
+  "clear": 3671,
+  "inputVersion": "dd4d8af7d00ca26e30d8f9f1a01e30806af8f9d5603d9219553ae6b21de5af90",
+  "sha256": "e23fd94006ecc6349c4bb070a9c1ef5772929501aa9330736030f19937b633b5",
+  "visible": 5385
+ },
+ "item.icon.tropical-bottom": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 6,
+  "clear": 4609,
+  "inputVersion": "03838e9daf48ec7286d4a451fb4a65f34849a1b78cd87af9fbe41d2e0c4052e1",
+  "sha256": "ea8dc536c1496a971f9260afe60e6b33dc95847b3e6fd686f493a9f92ae1c350",
+  "visible": 4443
+ },
+ "item.icon.tropical-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 8,
+  "clear": 5823,
+  "inputVersion": "7a58b7cf972f74ae47e158de8f5a26680acb566cc76e9aaefa7d962ac9462730",
+  "sha256": "6cdaec4210b692ac06c5c14da8e1a0e05c4a3ac7d4271f924614f6df1e6b0732",
+  "visible": 3206
+ },
+ "item.icon.tropical-head": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 4,
+  "clear": 5794,
+  "inputVersion": "09a9fa85166a1288b58437529d832e426596e7f8440d04effede2a5a99c53e21",
+  "sha256": "e4213943acf7cd3297f938a8b7b154799b1e9c8726d1ea9f91c0e7303438ae96",
+  "visible": 3281
+ },
+ "item.icon.tropical-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 7,
+  "clear": 5060,
+  "inputVersion": "6cc6a324764a5de486b146e72ca7b4af3049be224595cf7e63714a92fb302d5c",
+  "sha256": "7999c2343cd7914869ef5a7580a6594086ebe1f3a0a8a62ab8c641ae3fdb58d6",
+  "visible": 3943
+ },
+ "item.icon.tropical-top": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 5,
+  "clear": 4687,
+  "inputVersion": "e042dea37e5bfba9b3b07fa34d72720bc8360f0490f3f07cbf08f950277cf4e2",
+  "sha256": "6e77f3971c4ab7e16dcea76f05e293b65a5540d9754a297d98ba2f6b5ba65034",
+  "visible": 4361
+ },
+ "item.icon.tusk": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 13,
+  "clear": 6901,
+  "inputVersion": "419bc70ac6c5aafe9f2ff8e2fc726f5a844ae4cccdf6afa6911b7043421f2dde",
+  "sha256": "31eba790af004dad7a3c00bb03aca3017f145d4d8c9d3b7b6e521573e9caaeef",
+  "visible": 2167
+ },
+ "item.icon.tusk-profile": {
+  "atlas": "l9/atlas-u.png",
+  "cell": 13,
+  "clear": 6901,
+  "inputVersion": "fd92d6289c2732b3e514b0d617e6eb0676e24109434d7d4e9e7ab7f8ad30af60",
+  "sha256": "31eba790af004dad7a3c00bb03aca3017f145d4d8c9d3b7b6e521573e9caaeef",
+  "variantOf": "item.icon.tusk",
+  "visible": 2167
+ },
+ "item.icon.volcanic-alloy": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 2,
+  "clear": 5800,
+  "inputVersion": "2f4315ccd9bbc99fe149f542bfbb14c36ab43bda243b8813ca5021a3021124e4",
+  "sha256": "da4fb6b7f2fe1f86e8f91eeee486dcf48d3b3143d45f7f74f6cd2ba4545bd070",
+  "visible": 3282
+ },
+ "item.icon.volcanic-ash": {
+  "atlas": "l9/atlas-v.png",
+  "cell": 2,
+  "clear": 6336,
+  "inputVersion": "efec463baa6b4a7c24a9b0c99e72b40a5105fdbcc042b485b794129e765dd4de",
+  "sha256": "0fab904d122b2c0920187a89ff78768216d4f0d420cd228efdd24ab4e0304d7d",
+  "visible": 2459
+ },
+ "item.icon.volcanic-bone": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 3,
+  "clear": 6787,
+  "inputVersion": "e6f6bf4e541b21ae8bcddd9c07a7e4a3614cfa85c155cc106eccdaf7c38ae9ab",
+  "sha256": "d78ef8efc9c35da5e9822bab262932430d647f6de74ea7a291cc4b02e4410b26",
+  "visible": 2298
+ },
+ "item.icon.volcanic-bone-profile": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 3,
+  "clear": 6787,
+  "inputVersion": "9b4899a8c8985145ccc928f976855351c4253070677b5a8df5c01b53bff5646d",
+  "sha256": "d78ef8efc9c35da5e9822bab262932430d647f6de74ea7a291cc4b02e4410b26",
+  "variantOf": "item.icon.volcanic-bone",
+  "visible": 2298
  },
  "item.icon.volcanic-ore": {
   "atlas": "l9/atlas-c.png",
@@ -705,6 +2254,22 @@
   "variantOf": "item.icon.volcanic-ore",
   "visible": 4651
  },
+ "item.icon.volcanic-wall": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 15,
+  "clear": 4728,
+  "inputVersion": "966a3ebd0e765d88455de4228d8cca6e69901484cfed6b29a2484464e177b65a",
+  "sha256": "a2b6f805dd3d34525be9d594ef5035a4110ab94a230a38b31b16e15a6c486c84",
+  "visible": 4336
+ },
+ "item.icon.wall-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 10,
+  "clear": 5096,
+  "inputVersion": "4242b4340abf9804821a23758e38e9e6edc420ea1a33b4dd173cfccc0cfb21ea",
+  "sha256": "9b55d1f2a8152575f6e5b2c47d75ea3288908a2d29c9609dd3057aba0d36011d",
+  "visible": 3908
+ },
  "item.icon.water": {
   "atlas": "l9/atlas-b.png",
   "cell": 16,
@@ -722,6 +2287,14 @@
   "variantOf": "item.icon.water",
   "visible": 4201
  },
+ "item.icon.well-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 5,
+  "clear": 3883,
+  "inputVersion": "20017721494839ddd96535273576b65d82c687f3bbd7d0e717f90c32cbcaf842",
+  "sha256": "d76dd5d74aff0598bb43dbf8855952479528ea547dcd5561c97bfa37f17ab133",
+  "visible": 5114
+ },
  "item.icon.wheat": {
   "atlas": "l9/atlas-d.png",
   "cell": 16,
@@ -729,6 +2302,14 @@
   "inputVersion": "16a5982a73c928c224f02d3842a216ecd68088406c21166c2a54c82e4a053378",
   "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
   "visible": 2414
+ },
+ "item.icon.wheat-flatbread": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 3,
+  "clear": 4883,
+  "inputVersion": "6d38634aecd3b4db1ae5fb367c31624331b2e02c49130052bb84195c8836f57b",
+  "sha256": "49f13e5cbf89a0d85cb3b749a256227d00971e3b20bf21a00f88f536c08b9f1b",
+  "visible": 4196
  },
  "item.icon.wheat-profile": {
   "atlas": "l9/atlas-d.png",
@@ -738,6 +2319,23 @@
   "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
   "variantOf": "item.icon.wheat",
   "visible": 2414
+ },
+ "item.icon.wheat-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 5,
+  "clear": 5664,
+  "inputVersion": "e2fdd428fab71d99d8d4d0c8a6d2ce67bd23409095e48520d87e3c3a7bf0659c",
+  "sha256": "6674b6f14a9327a38ccecf221ef43581593db630c1b25b680f1c3e036b709a89",
+  "visible": 3375
+ },
+ "item.icon.wheat-seed-profile": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 5,
+  "clear": 5664,
+  "inputVersion": "977c76fdc8444b6027baaa89c7293ac1f9a46eea046dd005362f763ce3f5e2fd",
+  "sha256": "6674b6f14a9327a38ccecf221ef43581593db630c1b25b680f1c3e036b709a89",
+  "variantOf": "item.icon.wheat-seed",
+  "visible": 3375
  },
  "item.icon.wood": {
   "atlas": "l9/atlas-a.png",
@@ -772,6 +2370,94 @@
   "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
   "visible": 3509
  },
+ "item.icon.workbench-t2-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 12,
+  "clear": 4964,
+  "inputVersion": "38d24d2f8b63da7704bdb4d9253a55091036a80bc31a29682f0e4daf858f7199",
+  "sha256": "43810c82a58035396ee18f44778262f565b36150e70dfbe0e02505038a179767",
+  "visible": 4001
+ },
+ "item.icon.workbench-t3-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 13,
+  "clear": 4609,
+  "inputVersion": "cbc1401bf69a8a010813033a6c0697547d5a3074bb9028f8ef630a73ddcdce83",
+  "sha256": "1645eecbefb50b4c6ccb61a36d63530fe8caca98550b311760eae8def2adc242",
+  "visible": 4294
+ },
+ "recipe.icon.animal-pen": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 9,
+  "clear": 5677,
+  "inputVersion": "0f8ddaf7bd22b2fa2d4a51e9cc273e09ae91ca1a330ae2c3677917f233595460",
+  "sha256": "71eebf52e24100450597d0c6b4f8bde7a96d0ae32557429d7b2ba1f6fc6b2bd6",
+  "variantOf": "item.icon.animal-pen",
+  "visible": 3246
+ },
+ "recipe.icon.axe-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 13,
+  "clear": 6668,
+  "inputVersion": "bbac29cd7f0592784264c54f4979bdfd0e5e3748f44aa932a03281a70a68e3a9",
+  "sha256": "3933276e68d96d7457869a08871518755d5cfe917bbe297e9247366360e852cb",
+  "variantOf": "item.icon.axe-t1",
+  "visible": 2352
+ },
+ "recipe.icon.axe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 2,
+  "clear": 7189,
+  "inputVersion": "e22b5d46c50e6972cc8dcb94eacab8a646b2f0947bc3d313e44fef0fb7b74210",
+  "sha256": "6ce9da512d6a8e8256b1255264a5b9d08e7074e26a135e1d52c48383e60e2f3a",
+  "variantOf": "item.icon.axe-t2",
+  "visible": 1846
+ },
+ "recipe.icon.axe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 6,
+  "clear": 7126,
+  "inputVersion": "30f47ec5aded55f6cc0148a11d5244679fff71b7734c81ff96ceb68f47b966c2",
+  "sha256": "5e6dc03c592404b49baa840c536af480eaff5fe580e57db8decaf37328b14973",
+  "variantOf": "item.icon.axe-t3",
+  "visible": 1911
+ },
+ "recipe.icon.baked-apple": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 9,
+  "clear": 3750,
+  "inputVersion": "1a9f2bd1383c7260ec0644e01fa8b1ac0f159ad3439af7d712ee436162e75d20",
+  "sha256": "fb743df0bdd42ad243ca76915d7bd00320f9f4f9a37c77d0d42da24631f5cfd1",
+  "variantOf": "item.icon.baked-apple",
+  "visible": 5303
+ },
+ "recipe.icon.baked-potato": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 2,
+  "clear": 5528,
+  "inputVersion": "1f6b47dc2e5eb46d4345cd68af09adbf5b9084d57303595a06e7a12658f755db",
+  "sha256": "53cc9ee483d412fdcdcce3801b5bc0be8d67d9dc5f5f98df53f6f151c1845870",
+  "variantOf": "item.icon.baked-potato",
+  "visible": 3383
+ },
+ "recipe.icon.banana-mash": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 7,
+  "clear": 4222,
+  "inputVersion": "e82d39213c0bfaae8f52ab4a12a143b462ba5e2bb4058d4be2e079c9a8617dfe",
+  "sha256": "74691cfad90ebd9e98f74579795cf46439ae70e22903941ad7588c63fcdc6341",
+  "variantOf": "item.icon.banana-mash",
+  "visible": 4865
+ },
+ "recipe.icon.bed-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 4,
+  "clear": 6196,
+  "inputVersion": "385138a9873477c88f274c5c18445f4cbcc24368dd525971c439eb377b9e0239",
+  "sha256": "085a3ebb050e3ef9f19a9dbe48fea5bd7dbe1d4d743c5cc1704a455a87cf1593",
+  "variantOf": "item.icon.bed-kit",
+  "visible": 2855
+ },
  "recipe.icon.berry-meal": {
   "atlas": "l9/atlas-b.png",
   "cell": 10,
@@ -789,6 +2475,60 @@
   "sha256": "c25ce373ed3b84463902eeb126ae262b9f1fb6c50c5f3fe41d62ce11357637ad",
   "variantOf": "item.icon.bone-knife",
   "visible": 1786
+ },
+ "recipe.icon.bow-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 14,
+  "clear": 8098,
+  "inputVersion": "d30d906bacaf664f0ac5b36c213994d99124ae873ae31a250bcd1266e22d289d",
+  "sha256": "3d8568f2e97dc32cf088d9b4b33094f7e5fd1e6f639215d3a17b57f34bfa6c4d",
+  "variantOf": "item.icon.bow-t1",
+  "visible": 878
+ },
+ "recipe.icon.bow-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 5,
+  "clear": 7908,
+  "inputVersion": "9311a521d9543f10fd0b29f28764b18cbdd2f4c9631061497cff41ec22f95d8f",
+  "sha256": "74036e1998d7f895f5fd20d6e410bfbc08a3e74fd89d2a4c9e63fc2e7b3fa93a",
+  "variantOf": "item.icon.bow-t2",
+  "visible": 1040
+ },
+ "recipe.icon.bow-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 11,
+  "clear": 7868,
+  "inputVersion": "6d2066fb5d599b6a6d8281ff6f17d2843f0f76d9175982fcbf76e57ed5cd1f52",
+  "sha256": "e66862a77258d196f548706e8e1e7aea806473afba424a07331797206418b0dd",
+  "variantOf": "item.icon.bow-t3",
+  "visible": 1107
+ },
+ "recipe.icon.brick-floor-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 1,
+  "clear": 5648,
+  "inputVersion": "49ed6707cabe6245f0acb433d919bfd60701d79347360326286292f9c2dd3ac9",
+  "sha256": "6dd08eab4a4581c8348f3eb649ce933b74c470402a8194e5b6c5c4b6373b5489",
+  "variantOf": "item.icon.brick-floor-kit",
+  "visible": 3426
+ },
+ "recipe.icon.brick-roof-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 2,
+  "clear": 5305,
+  "inputVersion": "93fb686812b958049dd465f412662014028bda95dd32654ae6f3d77b979537e7",
+  "sha256": "5d4045dbcb76d58927de7749a72393f5378c902f5788edb4517537cabcf325e9",
+  "variantOf": "item.icon.brick-roof-kit",
+  "visible": 3757
+ },
+ "recipe.icon.brick-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 3,
+  "clear": 4083,
+  "inputVersion": "d58245d843058a4617601ebfd12dc5f30a34aaa1b5a5a8b7f99da50a58bb25a7",
+  "sha256": "2df56be3ddde74a87d2955e435d3433258ce2a7df197f6a8e03c4a5a10b8b5c3",
+  "variantOf": "item.icon.brick-wall-kit",
+  "visible": 4957
  },
  "recipe.icon.campfire-kit": {
   "atlas": "l9/atlas-d.png",
@@ -808,6 +2548,24 @@
   "variantOf": "item.icon.capture-bola",
   "visible": 1874
  },
+ "recipe.icon.capture-rope": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 15,
+  "clear": 6165,
+  "inputVersion": "052d9e94c022805add159d2bcc21511d11e4e4e909d02677f5418865941b7ac3",
+  "sha256": "22c17852fb8c1264a2fe2253d4181a7548f6054821efe7fe69ac527237046b49",
+  "variantOf": "item.icon.capture-rope",
+  "visible": 2916
+ },
+ "recipe.icon.carnivore-feed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 2,
+  "clear": 4916,
+  "inputVersion": "98f974ed028de0b15959aa7b7079a1fc6c838dcc06f9246f4c76bf308d386f71",
+  "sha256": "918249d1c96610d7774e08348f550ed3eccee67c2b33059bc7dd6ea8362f9f13",
+  "variantOf": "item.icon.carnivore-feed",
+  "visible": 4146
+ },
  "recipe.icon.cattail-flatbread": {
   "atlas": "l9/atlas-b.png",
   "cell": 13,
@@ -825,6 +2583,141 @@
   "sha256": "523f2d1309fbebbff5f878a9635711d56fb51f2efc9f5a6ee5582f59484faa43",
   "variantOf": "item.icon.clam-bake",
   "visible": 4384
+ },
+ "recipe.icon.clam-soup": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 15,
+  "clear": 4330,
+  "inputVersion": "3bba95329189bc0beeab8c1ec9aa644cbb455ba07c2592dc41cc4f2f8471dee8",
+  "sha256": "48c5c6db632b07338357cf66f1b795644d363c2ff74ca877ae31c5f19f303150",
+  "variantOf": "item.icon.clam-soup",
+  "visible": 4761
+ },
+ "recipe.icon.clan-hall-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 8,
+  "clear": 4892,
+  "inputVersion": "38bcb2dda3f4dfbd1839e82c56b54b556eef94f1207d15f35ebb6b6b61d6336e",
+  "sha256": "190142bf0281a5414364935a9f167965e103087695b45eeca5c103194dec5296",
+  "variantOf": "item.icon.clan-hall-kit",
+  "visible": 4162
+ },
+ "recipe.icon.club-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 10,
+  "clear": 6769,
+  "inputVersion": "75e9df77290b86c44897612659459603e4cafb5c400cd97871429db02428c3e0",
+  "sha256": "eefc1b65b188e2135651108245818d01fe1a6ac801d948eb9e8e4531ea427517",
+  "variantOf": "item.icon.club-t1",
+  "visible": 2315
+ },
+ "recipe.icon.club-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 1,
+  "clear": 7059,
+  "inputVersion": "11a927809553a2669f052a2b66157cda8a49aaca46dd55539d64211310581e4f",
+  "sha256": "f3ba683c360f86539962687a1be37daa6145dd2317db743f2b3b28c6978d2ea5",
+  "variantOf": "item.icon.club-t2",
+  "visible": 1994
+ },
+ "recipe.icon.club-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 7,
+  "clear": 7170,
+  "inputVersion": "25937014728ce81b6be4a8eaa5336a73be2f48f900d8e4c92b7d987053998780",
+  "sha256": "d5ddd990543c68c43f8e3f02312b3000ce6acc78e2b758ec9574734b6bcfe8a8",
+  "variantOf": "item.icon.club-t3",
+  "visible": 1886
+ },
+ "recipe.icon.cold-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 15,
+  "clear": 3694,
+  "inputVersion": "69e56421f3c5e6a60ae0a2a4d22354756a66ee2d99e0c0b5155bcc57373a8287",
+  "sha256": "a7096ec474de28f44e3d45e09c16d7b4a00f2156cd13b26c73c42971de20ada9",
+  "variantOf": "item.icon.cold-bag",
+  "visible": 5382
+ },
+ "recipe.icon.cold-bottom": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 12,
+  "clear": 4495,
+  "inputVersion": "dd2ef2c7d199352f112eb5f7693bb32fbe6b51b02814964ee33e3edef88d57f7",
+  "sha256": "2640a7a7f60fc2cca0f0407dbbfe6dd074dd990c19313f18308567cec3a18f9a",
+  "variantOf": "item.icon.cold-bottom",
+  "visible": 4573
+ },
+ "recipe.icon.cold-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 14,
+  "clear": 5082,
+  "inputVersion": "69682dff87d0fd82c4787f37519431ee26aacbcfff0a819a02e053da7d8a3660",
+  "sha256": "65a8ed5bfd2290b68e59c1b79d292eb324b7ca9f81d2a35efd857fa79ff82d77",
+  "variantOf": "item.icon.cold-gloves",
+  "visible": 3929
+ },
+ "recipe.icon.cold-head": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 10,
+  "clear": 4598,
+  "inputVersion": "6ddaab46d0eb60a30066e9f749345cdd0ee87e44a8a161998daf82be3e7a105b",
+  "sha256": "2546f6256e60a8a189578a0c82ec8bbfc39ccf70bfd050f31d87f17e61a611d0",
+  "variantOf": "item.icon.cold-head",
+  "visible": 4427
+ },
+ "recipe.icon.cold-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 13,
+  "clear": 4366,
+  "inputVersion": "13b939a926051caf5bf9af819d85457deaac2b4234548279b4960b5f0f271d0c",
+  "sha256": "50e903714a84b7fab9d6caaf8dc892fbb48dfa584787aa8faa7b9c261882c6df",
+  "variantOf": "item.icon.cold-shoes",
+  "visible": 4636
+ },
+ "recipe.icon.cold-top": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 11,
+  "clear": 3690,
+  "inputVersion": "0af8032424b8dd727c92b41eb550c59ce195cefc1644cf35c6959ba021c43326",
+  "sha256": "c9e665180f5b04f030610338d7d31124bc59b32e23bdc10eeedd8208fb508411",
+  "variantOf": "item.icon.cold-top",
+  "visible": 5361
+ },
+ "recipe.icon.compost-berry": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 9,
+  "clear": 5558,
+  "inputVersion": "cecf2daeb59518cc015927da33222aff6f7a3864a44118eacb3ea4bed96c1838",
+  "sha256": "a36f12b4931d4c3bc76159048abef255319e061d5b6b5ec793f5d7a01b410808",
+  "variantOf": "item.icon.berry-compost",
+  "visible": 3478
+ },
+ "recipe.icon.compost-fiber": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 8,
+  "clear": 5595,
+  "inputVersion": "552d58903def88c5b10999fca99c4f89a635bcc71466857791b8b103f3de8d31",
+  "sha256": "34b32210dc0ea07cb76b53782f4505b7aa2cb8a64f7fd78e324b49fde87f42f6",
+  "variantOf": "item.icon.fiber-compost",
+  "visible": 3439
+ },
+ "recipe.icon.compost-leaves": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 10,
+  "clear": 5471,
+  "inputVersion": "adc77c9beaebe490fe91c29344d6aced5e834132820a853d2d79858caec59295",
+  "sha256": "595dc9baccefdfc4b18cafd13f78e57d0ec1e074aaeeb64b0d72f7480e1744d6",
+  "variantOf": "item.icon.leaf-compost",
+  "visible": 3559
+ },
+ "recipe.icon.compost-spoiled-food": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 12,
+  "clear": 5476,
+  "inputVersion": "7f9111e0aa5f1a8b3b6388656d291883784ece789d739c5935940106817fbdbc",
+  "sha256": "f755de49aaf9bcbd75498676446e7cd4bf3eea78271a66d192d5646981eec5d4",
+  "variantOf": "item.icon.food-compost",
+  "visible": 3553
  },
  "recipe.icon.cooked-meat": {
   "atlas": "l9/atlas-a.png",
@@ -844,6 +2737,213 @@
   "variantOf": "item.icon.cord",
   "visible": 1788
  },
+ "recipe.icon.corn-porridge": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 1,
+  "clear": 4327,
+  "inputVersion": "47535e271888b5435e9ec64bbf85ff536f967588bd5c769efb84b7a7491b890b",
+  "sha256": "5914577dfad7025861d0fc35d43becb20a5e4508fe787f569cf1d87411bcf2e4",
+  "variantOf": "item.icon.corn-porridge",
+  "visible": 4726
+ },
+ "recipe.icon.crossbow-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 15,
+  "clear": 7244,
+  "inputVersion": "39c072dd8d9ada16e83c31ebe6f65c8fc12a9eba07d5d6c5688e04e6b2adbce0",
+  "sha256": "a43809f10c4a700ee0cd2bb1872ae2cdae88860481afe96d8f1eb2df44ab53eb",
+  "variantOf": "item.icon.crossbow-t1",
+  "visible": 1723
+ },
+ "recipe.icon.crossbow-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 6,
+  "clear": 6920,
+  "inputVersion": "7e858c40a826b0e355c8982ddc614c445fd0ce56399f962a624ac261cfd80fa6",
+  "sha256": "85e326170a4f9a645dd0592e3feb1bbd19760f93368debe915c006d6565bc1e7",
+  "variantOf": "item.icon.crossbow-t2",
+  "visible": 2002
+ },
+ "recipe.icon.crossbow-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 12,
+  "clear": 6874,
+  "inputVersion": "50314a360cde41fbc1603c29a2b2bacead4062be8bb2dda4aa07c684f11e330d",
+  "sha256": "b827e9e368824d0db9ae8597a3d65b26222b7a08fa70d9474052e8a70fa31d8e",
+  "variantOf": "item.icon.crossbow-t3",
+  "visible": 2058
+ },
+ "recipe.icon.door-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 12,
+  "clear": 5776,
+  "inputVersion": "2345b55f8540ac602dfac04399bddf213aff21ff7f1f8fae7d9bc144423f96c8",
+  "sha256": "1828cba0969bb94cec0d2379763b733dfe9a71d5b614ea0ef8378e4589e77755",
+  "variantOf": "item.icon.door-kit",
+  "visible": 3314
+ },
+ "recipe.icon.dry-fiber": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 2,
+  "clear": 6184,
+  "inputVersion": "8c19211169949099741afc28929ed40f02f2b545562f5ae3ba6f3b2c23da5fc7",
+  "sha256": "5d7920ec627a341e50054d58a93f91763e59caf314885961dd1e451429bdae60",
+  "variantOf": "item.icon.dried-fiber",
+  "visible": 2884
+ },
+ "recipe.icon.dry-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 3,
+  "clear": 4754,
+  "inputVersion": "76d16bc92b3b6ea2eb40d164054e5ac063271e740403ea3e0485f4a387a065a5",
+  "sha256": "76ea0479e4f5c40c434d460810e5cd91bcd82b9578f6f310ad80038219032d4d",
+  "variantOf": "item.icon.dried-hide",
+  "visible": 4270
+ },
+ "recipe.icon.dry-meat": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 4,
+  "clear": 5948,
+  "inputVersion": "096236d5cf02795004524443b2430d8f2edd755eca1d7d4ab034a1b8eaa87455",
+  "sha256": "f8d4b16b2675268e31ac4d8bc0df367ac12bb1296acd1a55fa412aaa9880c06d",
+  "variantOf": "item.icon.dried-meat",
+  "visible": 3006
+ },
+ "recipe.icon.dry-twig": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 1,
+  "clear": 5258,
+  "inputVersion": "aea9e80103eab6b63adca99f907d3b70344e81b01df43afd2aa447fcb84d2fba",
+  "sha256": "5da371d90c860c398f060d05a998627c51d2d898b7a70314c3fdf59001bd60ff",
+  "variantOf": "item.icon.dried-wood",
+  "visible": 3792
+ },
+ "recipe.icon.extract-apple-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 10,
+  "clear": 5571,
+  "inputVersion": "1b2285a863e8c871a086bf85d2d6a5d2580012dd1ad990ceae9c6b2b4b16195f",
+  "sha256": "12a9dd4029bb68f497d5a07391117ec330d6b35d473c27b9d08c5565842a6264",
+  "variantOf": "item.icon.apple-seed",
+  "visible": 3455
+ },
+ "recipe.icon.extract-banana-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 8,
+  "clear": 5315,
+  "inputVersion": "78a10e4bd5fa34d41640aefb186d914d31f4c12d8964d552786f7cb28b0c0096",
+  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
+  "variantOf": "item.icon.banana-seed",
+  "visible": 3706
+ },
+ "recipe.icon.extract-corn-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 3,
+  "clear": 5893,
+  "inputVersion": "301d6cd7a766f3ef2aad3d5bf21b6d466dfea967157ccf0d7152be4ed7b663a8",
+  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
+  "variantOf": "item.icon.corn-seed",
+  "visible": 3120
+ },
+ "recipe.icon.extract-fig-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 9,
+  "clear": 4570,
+  "inputVersion": "682ac8a621ef61d3d847a1620f6a7e0d3f0af07a04ba770169b25833a9097065",
+  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
+  "variantOf": "item.icon.fig-seed",
+  "visible": 4419
+ },
+ "recipe.icon.extract-flax-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 7,
+  "clear": 5562,
+  "inputVersion": "390144745fa194a21d0f9c0d9639fcf7c55bbcbb1f9180b0de3900901614486e",
+  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
+  "variantOf": "item.icon.flax-seed",
+  "visible": 3393
+ },
+ "recipe.icon.extract-onion-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 6,
+  "clear": 5799,
+  "inputVersion": "dd445824c0eda1888314dcd19d1fa540cefd6653ce0fa57f137549f2ba584a20",
+  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
+  "variantOf": "item.icon.onion-seed",
+  "visible": 3189
+ },
+ "recipe.icon.extract-potato-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 4,
+  "clear": 5464,
+  "inputVersion": "618ba1913805acc4ed7a8581575638df6249e1f32149cd95a134a66be05922b6",
+  "sha256": "58788435a5ee95fb23c116e61964217e8f37c7b20dc9809b5ebb1238fab034c1",
+  "variantOf": "item.icon.potato-seed",
+  "visible": 3598
+ },
+ "recipe.icon.extract-wheat-seed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 5,
+  "clear": 5664,
+  "inputVersion": "977c76fdc8444b6027baaa89c7293ac1f9a46eea046dd005362f763ce3f5e2fd",
+  "sha256": "6674b6f14a9327a38ccecf221ef43581593db630c1b25b680f1c3e036b709a89",
+  "variantOf": "item.icon.wheat-seed",
+  "visible": 3375
+ },
+ "recipe.icon.ferment-banana": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 5,
+  "clear": 4076,
+  "inputVersion": "08984bc755f61acd1d5eff3a65d7d252521f0868e7d729aadf5b48ea39f29eb6",
+  "sha256": "cf585ecae6a93b7dec6f0398676ea98828f21f90f885afc0d44ff35c58710873",
+  "variantOf": "item.icon.fermented-banana",
+  "visible": 4987
+ },
+ "recipe.icon.ferment-corn": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 3,
+  "clear": 3902,
+  "inputVersion": "1e17a5dbd958ac38a98c32fad5eb7c788ff58e6cc92e3dd47c0fca06be827b5a",
+  "sha256": "697b2e80476c1fb15b7de92d32ba3d007eeba5935e98f2ca2cb2ce67d664dc52",
+  "variantOf": "item.icon.fermented-corn",
+  "visible": 5141
+ },
+ "recipe.icon.ferment-fig": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 7,
+  "clear": 3892,
+  "inputVersion": "55cb6061345c5a9f3cc0d749339e2a9686ed6621717b8014c1d8b3f35095cdec",
+  "sha256": "7c523598fcaedcf926f55184a92598f85f3ff82274ffa767c28e2c230d5e71aa",
+  "variantOf": "item.icon.fermented-fig",
+  "visible": 5168
+ },
+ "recipe.icon.ferment-wheat": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 4,
+  "clear": 3845,
+  "inputVersion": "65e87b3adbe84dbf622922c6e11b0c74161cd60603e1796046de92c9d8a8fe7c",
+  "sha256": "e3fb090418d41c2d4776cae8fc9f105af730aa1ca94b8ca82c17a9252b4fe805",
+  "variantOf": "item.icon.fermented-wheat",
+  "visible": 5196
+ },
+ "recipe.icon.fig-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 8,
+  "clear": 4259,
+  "inputVersion": "f03f913eb399087ad4d8b6709f0c820e0328fc21fd984c2b1954a7fd06f4ba6b",
+  "sha256": "7be6915487a43d7a5178ed444007b6d03aa501afcfd867feb4c3bb0e7352e317",
+  "variantOf": "item.icon.fig-stew",
+  "visible": 4806
+ },
+ "recipe.icon.flax-seed-crisp": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 6,
+  "clear": 5756,
+  "inputVersion": "c8678bb72c8ab91cb50632a2e8b0189bd3d115f756af9bfc642b2bad48b77fcb",
+  "sha256": "f9b5c8b704d6b60923e54f3f359ead472730a4119d1905088312f22266ae413a",
+  "variantOf": "item.icon.flax-seed-crisp",
+  "visible": 3334
+ },
  "recipe.icon.flint-knife": {
   "atlas": "l9/atlas-c.png",
   "cell": 3,
@@ -861,6 +2961,159 @@
   "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
   "variantOf": "item.icon.floor-kit",
   "visible": 3308
+ },
+ "recipe.icon.fruit-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 12,
+  "clear": 3806,
+  "inputVersion": "a9e1887ee156b4dc37541868850f2b166a62d836f08fe814813a040468051fc9",
+  "sha256": "873862ff5d204c489a0b4fe4690f22532825168bc5e8ace3190d6c688a15cf1a",
+  "variantOf": "item.icon.fruit-fertilizer",
+  "visible": 5240
+ },
+ "recipe.icon.grilled-fish": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 14,
+  "clear": 4952,
+  "inputVersion": "c6319e4572531f33e8f7d6b556dd0b82cbe177add2785f3c573303482c939d7b",
+  "sha256": "9933c829191a6040d1f6bfb5c40d36e518e79ee75b9911eb44194dfff01ad18f",
+  "variantOf": "item.icon.grilled-fish",
+  "visible": 4120
+ },
+ "recipe.icon.hammer-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 13,
+  "clear": 6965,
+  "inputVersion": "f2bcfc90da12e4cd689367dd9258ccc56ed9f8a9ab2822797eede1944384aa72",
+  "sha256": "5c439895dcaac00b8a43ffadbe1414ea026b9892299e62666b46bd66d17d2425",
+  "variantOf": "item.icon.hammer-t1",
+  "visible": 2097
+ },
+ "recipe.icon.hammer-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 4,
+  "clear": 7237,
+  "inputVersion": "6255fa98bec7d529f29e0da0b70620e705fa872d495efcfbb56987821b9ea502",
+  "sha256": "5985a9ddb651a1f9b1207917fba18de831088482bf96ef91e53bc8a5bca0c543",
+  "variantOf": "item.icon.hammer-t2",
+  "visible": 1813
+ },
+ "recipe.icon.hammer-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 10,
+  "clear": 6994,
+  "inputVersion": "f5fa2ab8bf636b9d2aa3220f30d885fa00836489517065fe8a06cd50488fa094",
+  "sha256": "05683c64f8964456ac5dc567391e1ce09adc9a9e85e5b296ee73b345ba15394c",
+  "variantOf": "item.icon.hammer-t3",
+  "visible": 2050
+ },
+ "recipe.icon.herbivore-feed": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 1,
+  "clear": 4191,
+  "inputVersion": "9a7eb34ea95f82f91d6db771b6587d8431d536e8b15e782a265a53e4666373c5",
+  "sha256": "670f736804d5934ea82cb68de0a1966004a0e4bfcd0e9e1616163ead14e74565",
+  "variantOf": "item.icon.herbivore-feed",
+  "visible": 4851
+ },
+ "recipe.icon.hoe-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 1,
+  "clear": 7665,
+  "inputVersion": "e85076258b95e59e487068e3c63d0ecf9c42c41a2775402cecdc27786951a59a",
+  "sha256": "ae1ec334de0d6f97475dbf497008f5502628724ba0cf582439ff763ea666a041",
+  "variantOf": "item.icon.hoe-t1",
+  "visible": 1374
+ },
+ "recipe.icon.hoe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 5,
+  "clear": 7686,
+  "inputVersion": "02c7bd15a56fb37d0ecf0f7ab219a68415f01a68966b0e6ef9db0ea7633ebfa6",
+  "sha256": "5f002337876637a5af362a4c1dd0551e75f347654186e4882d2ebaa6ca4ff265",
+  "variantOf": "item.icon.hoe-t2",
+  "visible": 1346
+ },
+ "recipe.icon.hoe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 9,
+  "clear": 7577,
+  "inputVersion": "94c8c9c84af814be1f00455955771276d24a8903d2873bc31bdc1109dba9f89b",
+  "sha256": "9896b16f27a6723269d2e8cfe1a82841fde1a6439c84e1056c4d29ce15792edd",
+  "variantOf": "item.icon.hoe-t3",
+  "visible": 1456
+ },
+ "recipe.icon.kiln-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 11,
+  "clear": 4310,
+  "inputVersion": "be00f03950f0e367ce9c41ea9e5ccd03fd83ecc6af4a058f77a22077adf84e5e",
+  "sha256": "eac56a9e76097318b114ad76ecf780833b10587c0d2fc599efe262c12b6b0014",
+  "variantOf": "item.icon.kiln-kit",
+  "visible": 4762
+ },
+ "recipe.icon.kiln-t2-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 14,
+  "clear": 4402,
+  "inputVersion": "5404b59871b94e717c007951748645b64a90e9ebb774ae739d9682ed2bb5ebcb",
+  "sha256": "e10443801a32ba554b4388e0a6e7e5c45cb4e2c95150994b80b76aab57256c4d",
+  "variantOf": "item.icon.kiln-t2-kit",
+  "visible": 4664
+ },
+ "recipe.icon.kiln-t3-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 15,
+  "clear": 4573,
+  "inputVersion": "5dc233b98387bd35121885409cfc03b8b594f16041b36cc1a10b0a9033cbe71c",
+  "sha256": "980dc991790253e14e08a99924c8f09146c74d506eda9f99b0b3a1f0ebf875a2",
+  "variantOf": "item.icon.kiln-t3-kit",
+  "visible": 4466
+ },
+ "recipe.icon.knife-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 15,
+  "clear": 6632,
+  "inputVersion": "f8c36e64cda4f8490db49d3d64192cf17614107d7419a8dbed466dc688c0784f",
+  "sha256": "54038686adb661f6065c5640f4e98878e0e0bc5c63091b838f44a7d8fc697e87",
+  "variantOf": "item.icon.knife-t1",
+  "visible": 2434
+ },
+ "recipe.icon.knife-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 4,
+  "clear": 7257,
+  "inputVersion": "c0a8c72ad7640746c0e88a2fe85321485dfca2482d2a323df93e45513b5a8928",
+  "sha256": "aa5dc56e31fa51fa4e00fcd41bca81f585d4fec9e45aa35d73859404038b713d",
+  "variantOf": "item.icon.knife-t2",
+  "visible": 1822
+ },
+ "recipe.icon.knife-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 8,
+  "clear": 7098,
+  "inputVersion": "40f339b1872cf90e24048eca11da3f921b91b9434a4a153bce9f23831e196e0e",
+  "sha256": "2fc955c50286c0b0521d9e424ce578731a2d980b8e29f5ed0e528d1ceacf7e1f",
+  "variantOf": "item.icon.knife-t3",
+  "visible": 1995
+ },
+ "recipe.icon.laboratory-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 7,
+  "clear": 5687,
+  "inputVersion": "84580d687559e566ac8d729d2447fd5b6ee9d67fda067e536aae635fb29fc1af",
+  "sha256": "d631bc8b7f00f3e77a9189842afa78cb1b1f19a9e50d9582da1b7d6e1df6af42",
+  "variantOf": "item.icon.laboratory-kit",
+  "visible": 3164
+ },
+ "recipe.icon.lava-protection-boots": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 4,
+  "clear": 4160,
+  "inputVersion": "d1d5dcef516fbc1ccfffb3369d7b1f49b9933db216a27d72a59f69acc7737888",
+  "sha256": "5d776d098136685f7e246945d860a7461d06ec125be66d63fab22efd80db4bfa",
+  "variantOf": "item.icon.lava-protection-boots",
+  "visible": 4905
  },
  "recipe.icon.legacy-campfire-kit": {
   "atlas": "l9/atlas-d.png",
@@ -898,6 +3151,78 @@
   "variantOf": "item.icon.workbench-kit",
   "visible": 3509
  },
+ "recipe.icon.liquid-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 11,
+  "clear": 5324,
+  "inputVersion": "b67bee8f6920766856833e8e5b1f88c6d8dc44041c861261d510179a9acf5efc",
+  "sha256": "a79b1770cc085f9e3ccba02005f79dbfd21bd4403748dacfd2b6381ebc48a852",
+  "variantOf": "item.icon.liquid-fertilizer",
+  "visible": 3736
+ },
+ "recipe.icon.meat-potato-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 11,
+  "clear": 4315,
+  "inputVersion": "f7e78bba86bc72246fcb49db6f30d7eea2122da77a0bb2400bd6c8374207275c",
+  "sha256": "ec05c3c84401eca14bddaba24630592da29ca85ff7bd5e2563cede0e03a3dd2d",
+  "variantOf": "item.icon.meat-potato-stew",
+  "visible": 4746
+ },
+ "recipe.icon.mud-brick": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 4,
+  "clear": 5559,
+  "inputVersion": "dd4ea82ef280dcc6148897435ab69cc62fdf2257ca54f8421dcea4a4a36cbf09",
+  "sha256": "3ad28b6c5b9f052868d81b9074efac6a4e5afb0a3ba5bcb6182a0374a588bf87",
+  "variantOf": "item.icon.mud-brick",
+  "visible": 3509
+ },
+ "recipe.icon.onion-meat-skewer": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 12,
+  "clear": 6547,
+  "inputVersion": "29de53a54b316917c942acb9baad22e280bbb42d02d6a945ed30550231c6fbdd",
+  "sha256": "bb0815528f981c49ee6e208c361316c73b75b7afbdfe60e1e4acb1057d1b0a37",
+  "variantOf": "item.icon.onion-meat-skewer",
+  "visible": 2502
+ },
+ "recipe.icon.onion-soup": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 4,
+  "clear": 4320,
+  "inputVersion": "3fb5098cf25c618d129e79a9d7465248dc273dc04ef95b9b8bc8e7e7dccc3c21",
+  "sha256": "5ce1d185a0931fcb6cc7e6a75d93aeca27ec92f7d5a605011c329474b7c4f6b5",
+  "variantOf": "item.icon.onion-soup",
+  "visible": 4748
+ },
+ "recipe.icon.pickaxe-t1": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 14,
+  "clear": 7121,
+  "inputVersion": "622ba88d5fe112ea26a5c72af694c701ebe0ae0fdc5ad7ae3a3ab126b221c66f",
+  "sha256": "e13dd65da77584e94d8ea21bca98ea6ee3e81f8b60ce97ff05c6903b8940eabb",
+  "variantOf": "item.icon.pickaxe-t1",
+  "visible": 1948
+ },
+ "recipe.icon.pickaxe-t2": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 3,
+  "clear": 7563,
+  "inputVersion": "722fc82f02311a50b6037493b70493ff5b95dc7a49f8b16c2cacbd81ce59b9b1",
+  "sha256": "8b6425b352f8f999a3821b757ac0682649918ed479574d2c06de2b26dac94511",
+  "variantOf": "item.icon.pickaxe-t2",
+  "visible": 1481
+ },
+ "recipe.icon.pickaxe-t3": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 7,
+  "clear": 7451,
+  "inputVersion": "8d34f9defe2c7b9d39ae8d12af75973f6f30d75855df101d6af24f722e83e10c",
+  "sha256": "d90190c61d58764dcc8f5a42451d6d68c6e00cd9bf902d0b50f6d7431285f041",
+  "variantOf": "item.icon.pickaxe-t3",
+  "visible": 1586
+ },
  "recipe.icon.plank": {
   "atlas": "l9/atlas-c.png",
   "cell": 1,
@@ -907,6 +3232,42 @@
   "variantOf": "item.icon.plank",
   "visible": 3936
  },
+ "recipe.icon.polish-basalt": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 13,
+  "clear": 4976,
+  "inputVersion": "20845f8937cafa37b700b316c55345a9633bdaba6a6dd28b295adbc25fa14024",
+  "sha256": "6a23f2201c411df709dc2f21f91d8853c7f9771928e099c607c9b52a151788aa",
+  "variantOf": "item.icon.polished-basalt",
+  "visible": 4096
+ },
+ "recipe.icon.polish-bone": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 12,
+  "clear": 7010,
+  "inputVersion": "a4ca3297947b8ff5eeb6075c80fbbd9545aeb38305613613703c80b0f3d760f1",
+  "sha256": "d7ca69d580add1febf39a7951a9b68ca2fbe20f7aac88ce1cc96b6c7fe20027e",
+  "variantOf": "item.icon.polished-bone",
+  "visible": 2065
+ },
+ "recipe.icon.polish-flint": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 11,
+  "clear": 5800,
+  "inputVersion": "ae3ca701b1af0c283d90ed5dcc0f35f8cbb8a4950c6ca4b0eb06a5b5b062acba",
+  "sha256": "b25a88fa2d3ce1b87166e230047e3cf119e4bb1d27be3bd3519e81a7d69ec99c",
+  "variantOf": "item.icon.polished-flint",
+  "visible": 3272
+ },
+ "recipe.icon.polish-stone": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 10,
+  "clear": 4956,
+  "inputVersion": "c61d2d6a77add3e8b013b4d00be87db40bcb4d2a45c7a555277ba20bac55a8cf",
+  "sha256": "f68651b6069328d1b0435134cf164346978d4af84f6d84a0380f1768f68e45c8",
+  "variantOf": "item.icon.polished-stone",
+  "visible": 4122
+ },
  "recipe.icon.rawhide-lashing": {
   "atlas": "l9/atlas-a.png",
   "cell": 7,
@@ -915,6 +3276,42 @@
   "sha256": "a14b656263013fe26569309b859c8bad5d0ee51612873797f471a1911c5ef166",
   "variantOf": "item.icon.cord",
   "visible": 1788
+ },
+ "recipe.icon.recovery-feed": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 2,
+  "clear": 4834,
+  "inputVersion": "c964593f99e558d7f1b060b6b425691bf55ce058b74f69238e59b73116c1743f",
+  "sha256": "3099122d331b71b95dfaf282ddbb0ddd7caf3587b9ab2ea95c797bf049bf5d08",
+  "variantOf": "item.icon.recovery-feed",
+  "visible": 4184
+ },
+ "recipe.icon.refrigerator-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 2,
+  "clear": 3923,
+  "inputVersion": "eed97258f6ddeeb5667939ebd88ed2a7b8daebb77831f3c613c9e51331cd0cf5",
+  "sha256": "fde147dd6de740a0696ae7d149ed3da6ef01d95180a95dcbeecab0690427ecba",
+  "variantOf": "item.icon.refrigerator-kit",
+  "visible": 5118
+ },
+ "recipe.icon.rex-meat-stew": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 13,
+  "clear": 3608,
+  "inputVersion": "88eb6653a0687601c53dcd29ca7ea5cefcbb5fc45569964973147ce21bacd585",
+  "sha256": "acddc947836b6a0ce1d8a6de22bb5f6f60abd73ed52902c6a214827af0c5e26d",
+  "variantOf": "item.icon.rex-meat-stew",
+  "visible": 5416
+ },
+ "recipe.icon.roast-meat": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 10,
+  "clear": 5008,
+  "inputVersion": "66679f5561cc95c9d1269ba2785c20b21e5aa4f189b1a92518dae14337c81526",
+  "sha256": "a01c5ce50fbcab579234d2ce9e187f19a17ae316811087004bfbb933bdcc0f85",
+  "variantOf": "item.icon.roast-meat",
+  "visible": 4065
  },
  "recipe.icon.roasted-hazelnuts": {
   "atlas": "l9/atlas-b.png",
@@ -934,6 +3331,60 @@
   "variantOf": "item.icon.roof-kit",
   "visible": 3605
  },
+ "recipe.icon.saddle": {
+  "atlas": "l9/atlas-t.png",
+  "cell": 1,
+  "clear": 4371,
+  "inputVersion": "1fbfe08d1ae06d471b6c1b2d4f0ec9f3833e27f170513b65c1a0426682c3349c",
+  "sha256": "d15c0bbc8ecf0f3323d17679f6db2e2347b1a68f14c9478cfa936afed11499d2",
+  "variantOf": "item.icon.saddle",
+  "visible": 4693
+ },
+ "recipe.icon.signal-relay-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 6,
+  "clear": 7138,
+  "inputVersion": "da51a083f526b05efc0dceb897d2251dc2a9483d1a6bf02be7a0b041c3582362",
+  "sha256": "6f4fa82c56f8bfae1b94ca8bf111b7333eaa7d65bcada0dcf555bfa6a1bc51ca",
+  "variantOf": "item.icon.signal-relay-kit",
+  "visible": 1851
+ },
+ "recipe.icon.smelt-copper": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 14,
+  "clear": 6030,
+  "inputVersion": "b09b97063b8ea1f7819eacf80b056cc6cd9d8d2a94289387bde506206a80468f",
+  "sha256": "4b3fcdd5792c454212a624808e5c52e42d32917586d2de8bba27cd6d5df2c90f",
+  "variantOf": "item.icon.copper",
+  "visible": 3062
+ },
+ "recipe.icon.smelt-iron": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 15,
+  "clear": 6093,
+  "inputVersion": "0b0af4343288c69c3ce187812478ab698dff1d65007c71b201af6dedc191c2db",
+  "sha256": "59f667b33fa5b447087136c11e0f719d2f9a7897207143b3b2477cc527e14fd7",
+  "variantOf": "item.icon.iron",
+  "visible": 2997
+ },
+ "recipe.icon.smelt-steel": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 1,
+  "clear": 5883,
+  "inputVersion": "c036f9c97c2d3a95ce2b447051c358bdf205d3c397199ca5b0436c7072c7e115",
+  "sha256": "cb548982399e6cc68c76ad731a0fc819214785686178eee72e0438df2a6fa3cf",
+  "variantOf": "item.icon.steel",
+  "visible": 3219
+ },
+ "recipe.icon.smelt-volcanic-alloy": {
+  "atlas": "l9/atlas-n.png",
+  "cell": 2,
+  "clear": 5800,
+  "inputVersion": "5db8fcc8269bdf83ebffc87a107d471506db692688e81e348714693dbf2ab122",
+  "sha256": "da4fb6b7f2fe1f86e8f91eeee486dcf48d3b3143d45f7f74f6cd2ba4545bd070",
+  "variantOf": "item.icon.volcanic-alloy",
+  "visible": 3282
+ },
  "recipe.icon.spear": {
   "atlas": "l9/atlas-c.png",
   "cell": 2,
@@ -942,6 +3393,51 @@
   "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
   "variantOf": "item.icon.spear",
   "visible": 1186
+ },
+ "recipe.icon.spear-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 11,
+  "clear": 7848,
+  "inputVersion": "52afd3ef60967053dbaa2a2752219dfb34604467625a66268e030edef0f765e9",
+  "sha256": "8ae25d6eee77cb04e3e09df65c53811556b5d4d48c27a2c0b9a6fbb41cf92e41",
+  "variantOf": "item.icon.spear-t1",
+  "visible": 1209
+ },
+ "recipe.icon.spear-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 2,
+  "clear": 8022,
+  "inputVersion": "5c6607aabd3d6489c6824199f767def1355f18d3e4d434a9c070d564e0f84136",
+  "sha256": "a116fc8225854529a256428f4e1eb75e0b049a51f9118bd7006c1f57a5b1701d",
+  "variantOf": "item.icon.spear-t2",
+  "visible": 1061
+ },
+ "recipe.icon.spear-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 8,
+  "clear": 8081,
+  "inputVersion": "bd8dfab029a69224ae330d8372a7c3ca28e983d6d77120d130a0199ba543035e",
+  "sha256": "61c6bc5b3ddb5c9d76a4cf658cdd9590f719cd984dc737bc29fac5134e3e67c2",
+  "variantOf": "item.icon.spear-t3",
+  "visible": 991
+ },
+ "recipe.icon.sprinkler": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 14,
+  "clear": 3329,
+  "inputVersion": "d9ba3f64d3370e25bafc852ac0c6cd0fe5d2dbda8251442f0e7a6cda3ee92393",
+  "sha256": "142217eb5445548eadb81ea0318a598eac332b07af425fc4652532b7137dbcec",
+  "variantOf": "item.icon.sprinkler",
+  "visible": 5648
+ },
+ "recipe.icon.stairs-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 11,
+  "clear": 5121,
+  "inputVersion": "0198d46dbc269d3f00279c538b31b8a6993f0f4e76a955a962f779e948a123b9",
+  "sha256": "4f6cac303039380336b2e5eb37f9dd0e55ca660b2de80bf67cc6de357b25c721",
+  "variantOf": "item.icon.stairs-kit",
+  "visible": 3957
  },
  "recipe.icon.starter-axe": {
   "atlas": "l9/atlas-d.png",
@@ -970,6 +3466,15 @@
   "variantOf": "item.icon.starter-pickaxe",
   "visible": 1504
  },
+ "recipe.icon.stem-fertilizer": {
+  "atlas": "l9/atlas-s.png",
+  "cell": 13,
+  "clear": 3875,
+  "inputVersion": "7686ef80a378dfe2898304ba12ccd9a17abe3ac4889ac73a3662dd0cdf22b562",
+  "sha256": "079fa2815fc337f36af731770f939e668125298700508052c1c164a2c93dd5b3",
+  "variantOf": "item.icon.stem-fertilizer",
+  "visible": 5188
+ },
  "recipe.icon.stone-axe": {
   "atlas": "l9/atlas-a.png",
   "cell": 15,
@@ -978,6 +3483,24 @@
   "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
   "variantOf": "item.icon.stone-axe",
   "visible": 2054
+ },
+ "recipe.icon.stone-block": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 5,
+  "clear": 4346,
+  "inputVersion": "341a1a1610d80f622e3a4b7829c6b05709d094220b5059f499a729011f4ddde5",
+  "sha256": "4b07e455a46953aeb3047df093eb8ac1ca18d83f2817a1a54162d20f9c1f3db8",
+  "variantOf": "item.icon.stone-block",
+  "visible": 4719
+ },
+ "recipe.icon.stone-floor-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 6,
+  "clear": 5713,
+  "inputVersion": "afb2767321324aa9d9fb592f6c1499685bc6c9a1d44c9cedd1f2f600a1f9e0e8",
+  "sha256": "cb08d302f06647ef16a571653cdcbc3f199ac1b7abf8e1d717d04cad4d85ad54",
+  "variantOf": "item.icon.stone-floor-kit",
+  "visible": 3367
  },
  "recipe.icon.stone-maul": {
   "atlas": "l9/atlas-c.png",
@@ -997,6 +3520,24 @@
   "variantOf": "item.icon.stone-pick",
   "visible": 1745
  },
+ "recipe.icon.stone-roof-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 7,
+  "clear": 5454,
+  "inputVersion": "3794e48347eb7a0fdbaa891af6dda40db861addef9719990579588e449c44beb",
+  "sha256": "76463b15935124240f6d4ddeae336b6087cfb59104472ef09665ed1ac704ca4c",
+  "variantOf": "item.icon.stone-roof-kit",
+  "visible": 3619
+ },
+ "recipe.icon.stone-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 8,
+  "clear": 5014,
+  "inputVersion": "29947477920f4ffb80f36ba21685af8eb6707bdce0569ecf37b46f2d660a2d62",
+  "sha256": "cf1607b4dacc34ef11897f154ef2c6331b1934223138521fef5a22102b61cc10",
+  "variantOf": "item.icon.stone-wall-kit",
+  "visible": 4026
+ },
  "recipe.icon.storage-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 3,
@@ -1006,6 +3547,141 @@
   "variantOf": "item.icon.storage-kit",
   "visible": 4550
  },
+ "recipe.icon.sword-t1": {
+  "atlas": "l9/atlas-o.png",
+  "cell": 12,
+  "clear": 7372,
+  "inputVersion": "5dd454b44bc5a872fe7ec6279508ba5e32c60cbf2a395a3cfe05e15491e857e2",
+  "sha256": "13e4bb792d4232d1c02253d1a234d7ef1738ef35e7866661aaa66a4192115635",
+  "variantOf": "item.icon.sword-t1",
+  "visible": 1693
+ },
+ "recipe.icon.sword-t2": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 3,
+  "clear": 7607,
+  "inputVersion": "5bad73112a7c3f46481ff6ad893eaf73d1aa46843aa067900a6321ed0e920023",
+  "sha256": "141d48f89104ece5a2f97e958efe584f0687a930ef213f75d14d4fc21c24947a",
+  "variantOf": "item.icon.sword-t2",
+  "visible": 1452
+ },
+ "recipe.icon.sword-t3": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 9,
+  "clear": 7478,
+  "inputVersion": "83ca7992829550f946ca2346f02f57954c96d05805c5d3466d969873c897a4c1",
+  "sha256": "9ba6b91dbd0d1b123e0697b58ec07292517ad20840cfd077147ced8f62f0c54c",
+  "variantOf": "item.icon.sword-t3",
+  "visible": 1558
+ },
+ "recipe.icon.tan-fur-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 8,
+  "clear": 5925,
+  "inputVersion": "83140874733f2a282158b44ba7f4002cfc06ccbf2ffe7ef50dcd151e531a6648",
+  "sha256": "733677d5cfbb3b42737459a4519090cb9ef8c61ed7b9f365346feace818bfc7c",
+  "variantOf": "item.icon.fur-leather",
+  "visible": 3166
+ },
+ "recipe.icon.tan-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 5,
+  "clear": 5646,
+  "inputVersion": "2891a1d51985e897cd09c52c62e6355b3acdc3d7c977219deb525d3bd32412ec",
+  "sha256": "c0abd0ed8a8857694601639c0613c3e02128db685d9a35c0c22be1cffb9e4722",
+  "variantOf": "item.icon.leather",
+  "visible": 3428
+ },
+ "recipe.icon.tan-rex-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 9,
+  "clear": 5128,
+  "inputVersion": "b6afc646faae26f27920c7ee4c5fceee41bf2d3a6c8d7fc975b2f5c579a034fe",
+  "sha256": "52453ab792fe595ff44d14298d75b21ec665bee4298bad1f2eb4113fa31f7ad2",
+  "variantOf": "item.icon.rex-leather",
+  "visible": 3934
+ },
+ "recipe.icon.tan-thick-hide": {
+  "atlas": "l9/atlas-m.png",
+  "cell": 6,
+  "clear": 5097,
+  "inputVersion": "42b4f407faebd0bdfa6459bccba1faa2a259e91a248f7d31e9f45565bdaee8d1",
+  "sha256": "71d2fb582a4475dedfbe75fa29635e17f98cd85d7088fa966f1268e964f89481",
+  "variantOf": "item.icon.thick-leather",
+  "visible": 3969
+ },
+ "recipe.icon.tanning-frame-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 1,
+  "clear": 5155,
+  "inputVersion": "da2775279fd108575915881d86323cec4b4f0a11d4bcda025d548f7ee216177d",
+  "sha256": "04f5d9d008de26254bc325a1a92f5d2a29473b92aeface61bbfbc701d139ac79",
+  "variantOf": "item.icon.tanning-frame-kit",
+  "visible": 3735
+ },
+ "recipe.icon.temperate-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 3,
+  "clear": 3467,
+  "inputVersion": "e8ff7ac6a367c04e5215de2bab3c857efb21b3ae44e189e7421fae1a4da67e85",
+  "sha256": "47e1129c59e21d1bb966808fe3d1640064ebdd6c2647b5a659101e41ede7eac2",
+  "variantOf": "item.icon.temperate-bag",
+  "visible": 5563
+ },
+ "recipe.icon.temperate-bottom": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 15,
+  "clear": 5327,
+  "inputVersion": "9e71325012b7db01ec12ef0115423e057abeb60a4d22a8d5f2e8023c99dd48e7",
+  "sha256": "0ea160dac161a39d97b71c8062f07396d282414b703a1377868715bb4c5e5dc8",
+  "variantOf": "item.icon.temperate-bottom",
+  "visible": 3749
+ },
+ "recipe.icon.temperate-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 2,
+  "clear": 4986,
+  "inputVersion": "17a7e29dbc6f30d3595f7f54b83b19e049241cfb4ee3c1b2756b90d34b867d7e",
+  "sha256": "9e57865d32c1bc5c4aea56985d5f95f0f605906b6a39849d0a7ff77659778858",
+  "variantOf": "item.icon.temperate-gloves",
+  "visible": 3993
+ },
+ "recipe.icon.temperate-head": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 13,
+  "clear": 5014,
+  "inputVersion": "d14d48843fe23e797c34bed268cb8304c120072e02121ffe08baa4a0c318be42",
+  "sha256": "4d910b345f7935c49287efedf1e398b2356f5506b586a0c5632e7c304b250ffa",
+  "variantOf": "item.icon.temperate-head",
+  "visible": 4056
+ },
+ "recipe.icon.temperate-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 1,
+  "clear": 4740,
+  "inputVersion": "b16b4caf853994396945c103d0fc2b52bf9dd03106a6286eb4698ee292b54122",
+  "sha256": "9e4f57a12bc379ec276c976418e1e93ceeeaba1f4d41d408d8fa8388486eb78c",
+  "variantOf": "item.icon.temperate-shoes",
+  "visible": 4288
+ },
+ "recipe.icon.temperate-top": {
+  "atlas": "l9/atlas-p.png",
+  "cell": 14,
+  "clear": 4917,
+  "inputVersion": "25003805484cf654be76c73857d91cd7add5115f8dfc420aafd1564e376c8dcc",
+  "sha256": "03c9f6cf91bd080c4fbff8837ec776b1f5fa74eba05cb20a66e85bc27bdeb8af",
+  "variantOf": "item.icon.temperate-top",
+  "visible": 4145
+ },
+ "recipe.icon.tent-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 3,
+  "clear": 5471,
+  "inputVersion": "c183d24a962552d50e716dc1a30026ec4b1826f2018bae087f6dd9e8a8183306",
+  "sha256": "d2c7c1cd09a6c1435b7dfc51c9a6c1a24e9bf4ebc7c4c1488b025b15b8faf384",
+  "variantOf": "item.icon.tent-kit",
+  "visible": 3579
+ },
  "recipe.icon.thatch-bundle": {
   "atlas": "l9/atlas-b.png",
   "cell": 4,
@@ -1014,6 +3690,105 @@
   "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
   "variantOf": "item.icon.thatch-bundle",
   "visible": 3236
+ },
+ "recipe.icon.timber-beam": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 9,
+  "clear": 6056,
+  "inputVersion": "e1d1d36c52c8120fb4d31037ed34cda4d55cf2022cc1275f44fe649f8479a3ce",
+  "sha256": "57ddefd4d6800576d9cc179aefd1ab49e801f0f151d7ebe2f3aade2413f61c71",
+  "variantOf": "item.icon.timber-beam",
+  "visible": 3008
+ },
+ "recipe.icon.timber-wall-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 10,
+  "clear": 4324,
+  "inputVersion": "d0c3ed60431865bf61a6988847064a5df4f00f9c4934180c83813531ad89dbc3",
+  "sha256": "deaec93f82f641be571968cc7d67087983920b56807ef0f7e61f2d58f3e035d9",
+  "variantOf": "item.icon.timber-wall-kit",
+  "visible": 4714
+ },
+ "recipe.icon.tropical-bag": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 9,
+  "clear": 3671,
+  "inputVersion": "eefb890129894eafb409e8934912f2b01d73f252de5e7ae3ba4478d17c9c984d",
+  "sha256": "e23fd94006ecc6349c4bb070a9c1ef5772929501aa9330736030f19937b633b5",
+  "variantOf": "item.icon.tropical-bag",
+  "visible": 5385
+ },
+ "recipe.icon.tropical-bottom": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 6,
+  "clear": 4609,
+  "inputVersion": "f119838c7293f1eee70bc50dd6600565b76d6d4a08a8403853e281d7834b8c8a",
+  "sha256": "ea8dc536c1496a971f9260afe60e6b33dc95847b3e6fd686f493a9f92ae1c350",
+  "variantOf": "item.icon.tropical-bottom",
+  "visible": 4443
+ },
+ "recipe.icon.tropical-gloves": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 8,
+  "clear": 5823,
+  "inputVersion": "fc5dc1ad18c45e66946d214af0f83c8a87c0b76110390ed1f8207a3dca6d4c6e",
+  "sha256": "6cdaec4210b692ac06c5c14da8e1a0e05c4a3ac7d4271f924614f6df1e6b0732",
+  "variantOf": "item.icon.tropical-gloves",
+  "visible": 3206
+ },
+ "recipe.icon.tropical-head": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 4,
+  "clear": 5794,
+  "inputVersion": "1935e2a4c1166aee12f572c8625b3ae4f60ec94753840f1d7c1ecd46307cabf6",
+  "sha256": "e4213943acf7cd3297f938a8b7b154799b1e9c8726d1ea9f91c0e7303438ae96",
+  "variantOf": "item.icon.tropical-head",
+  "visible": 3281
+ },
+ "recipe.icon.tropical-shoes": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 7,
+  "clear": 5060,
+  "inputVersion": "ca9f584068bc9955eaa4109323f738f3882407270a8dcc03e0069358d475a591",
+  "sha256": "7999c2343cd7914869ef5a7580a6594086ebe1f3a0a8a62ab8c641ae3fdb58d6",
+  "variantOf": "item.icon.tropical-shoes",
+  "visible": 3943
+ },
+ "recipe.icon.tropical-top": {
+  "atlas": "l9/atlas-q.png",
+  "cell": 5,
+  "clear": 4687,
+  "inputVersion": "ffbd3644c4d7ec1bfac3b09297fe9013de0d8e6e665f9911ef459b93abd5f375",
+  "sha256": "6e77f3971c4ab7e16dcea76f05e293b65a5540d9754a297d98ba2f6b5ba65034",
+  "variantOf": "item.icon.tropical-top",
+  "visible": 4361
+ },
+ "recipe.icon.wall-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 10,
+  "clear": 5096,
+  "inputVersion": "0a085f9035ae6445fcf9d9214c04d03398ae47d6e52d89f25d45c479e1ed7603",
+  "sha256": "9b55d1f2a8152575f6e5b2c47d75ea3288908a2d29c9609dd3057aba0d36011d",
+  "variantOf": "item.icon.wall-kit",
+  "visible": 3908
+ },
+ "recipe.icon.well-kit": {
+  "atlas": "l9/atlas-l.png",
+  "cell": 5,
+  "clear": 3883,
+  "inputVersion": "be3ad610ad6d65e99faa8baed0d8ee7af33a9f5e2ec8d6124942f32cd0b36585",
+  "sha256": "d76dd5d74aff0598bb43dbf8855952479528ea547dcd5561c97bfa37f17ab133",
+  "variantOf": "item.icon.well-kit",
+  "visible": 5114
+ },
+ "recipe.icon.wheat-flatbread": {
+  "atlas": "l9/atlas-r.png",
+  "cell": 3,
+  "clear": 4883,
+  "inputVersion": "c0280fe606ccf0f73bde77d7ce848660c7f2420bcdcc70e09108c9b7436518f6",
+  "sha256": "49f13e5cbf89a0d85cb3b749a256227d00971e3b20bf21a00f88f536c08b9f1b",
+  "variantOf": "item.icon.wheat-flatbread",
+  "visible": 4196
  },
  "recipe.icon.woodland-skewer": {
   "atlas": "l9/atlas-b.png",
@@ -1032,6 +3807,24 @@
   "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
   "variantOf": "item.icon.workbench-kit",
   "visible": 3509
+ },
+ "recipe.icon.workbench-t2-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 12,
+  "clear": 4964,
+  "inputVersion": "4f88448598af2b45c354aac94e7a0e21a7ffdab79fb02ca1a31321c5e82cbc6e",
+  "sha256": "43810c82a58035396ee18f44778262f565b36150e70dfbe0e02505038a179767",
+  "variantOf": "item.icon.workbench-t2-kit",
+  "visible": 4001
+ },
+ "recipe.icon.workbench-t3-kit": {
+  "atlas": "l9/atlas-k.png",
+  "cell": 13,
+  "clear": 4609,
+  "inputVersion": "73b695cd881d9d6549ce509034bd5b54aef90c8bf486b98ba0d17ff767d03313",
+  "sha256": "1645eecbefb50b4c6ccb61a36d63530fe8caca98550b311760eae8def2adc242",
+  "variantOf": "item.icon.workbench-t3-kit",
+  "visible": 4294
  },
  "ui.icon.back": {
   "atlas": "l9/atlas-g.png",
