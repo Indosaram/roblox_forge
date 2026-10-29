@@ -373,6 +373,84 @@ return {
 			world:Destroy()
 		end
 	end,
+	["a pack visuals.tool hook dresses projected tools; without it or on false the default handle stays"] = function()
+		for _, case in
+			{
+				{ hook = nil, mesh = false },
+				{ hook = false, mesh = false },
+				{ hook = true, mesh = true },
+			} :: { any }
+		do
+			local module, _, world, _, _, spawn, actor, callbacks = fixture()
+			local bag: any = {
+				items = { axe = { itemId = "axe", catalogId = "stone-axe", quantity = 1, durabilityMilli = 100000 } },
+				reservations = {},
+			}
+			local seen: { string } = {}
+			local visuals = if case.hook == nil
+				then nil
+				else {
+					tool = function(tool: any, catalogId: string): boolean
+						table.insert(seen, catalogId)
+						if not case.hook then
+							return false
+						end
+						local handle = roblox.Instance.new("MeshPart")
+						handle.Name, handle.Parent = "Handle", tool
+						return true
+					end,
+				}
+			local api = module.new({
+				content = {
+					structures = {},
+					items = {
+						{ id = "stone-axe", name = "Flint Hatchet", tags = { "tool" }, maxDurabilityMilli = 100000 },
+					},
+				},
+				worldRevision = "map-v1",
+				spawn = spawn,
+				carriedContainer = "bag",
+				reachStuds = 8,
+				baseWalkSpeed = 16,
+				visuals = visuals,
+				respawnValues = { healthMilli = 100000, hungerMilli = 50000, fatigueMilli = 0 },
+			})
+			api.bind({
+				members = function()
+					return { "1" }
+				end,
+				snapshot = function()
+					return {
+						["survival-coop"] = { vitals = { healthMilli = 100000 }, inventory = { bag = { items = {} } } },
+					}
+				end,
+				personalTransfer = function()
+					return {
+						profile = function()
+							return {
+								data = {
+									envelope = {
+										genres = { ["survival-coop"] = { data = { inventory = { bag = bag } } } },
+									},
+								},
+							}
+						end,
+					}
+				end,
+			})
+			callbacks.heartbeat()
+			local tool = assert(actor:FindFirstChildOfClass("Backpack"):FindFirstChildOfClass("Tool"), "axe projected")
+			local handle = assert(tool:FindFirstChild("Handle"), "tool has a Handle")
+			assert(handle:IsA("MeshPart") == case.mesh, "hook decides the visual")
+			assert((tool:FindFirstChild("StoneHead") ~= nil) == not case.mesh, "default head only without the hook")
+			assert(
+				#seen == (if case.hook == nil then 0 else 1) and (seen[1] or "stone-axe") == "stone-axe",
+				"hook got the id"
+			)
+			api.destroy()
+			world:Destroy()
+		end
+	end,
 	["canonical claimed tools equip revoke and rebuild across character and membership lifecycle"] = function()
 		local equipped: any = nil
 		local module, _, world, character, _, spawn, actor, callbacks = fixture({

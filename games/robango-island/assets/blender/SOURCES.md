@@ -79,3 +79,7 @@ These were authored in code and carry no third-party input:
 ## Forbidden sources (AGENTS.md)
 
 None of the following were used: AudioCraft weights, Roblox Cube, Hunyuan3D-2, Studio `generate_mesh` / `generate_texture` / `generate_material`.
+
+## L7 hand tools, weapons and worn gear (`gen_tools.py`)
+
+`gen_tools.py` builds the `RobangoTools` package (manifest key `mesh-tools`): axe, pick, knife, club, hammer, hoe, spear and bow in three tiers, plus torch, sling, bola and back basket. All geometry is authored in code and has no third-party input. The FBX carries no textures and no materials. Colours and Roblox materials are applied at runtime by `src/shared/ToolVisuals.luau`.

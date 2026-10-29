@@ -713,6 +713,10 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
 		["../../../../core/domain/survival/Volcano"] = require("../../../../core/domain/survival/Volcano"),
 	}, nil)
+	-- L7 tool meshes: no InsertService here, so load() yields no templates and the genre's
+	-- primitive tools stay; specs inject rows through ToolVisuals.setTemplates.
+	forge.games["robango-island"].src.shared.ToolVisuals =
+		load("games/robango-island/src/shared/ToolVisuals.luau", {}, nil)
 	-- B3 mesh rows: the fake game has no InsertService, so load() yields no templates and the
 	-- primitive kits stay; specs inject templates through meshes.setTemplates.
 	local meshes = load("games/robango-island/src/server/StructureMeshes.luau", {}, nil)

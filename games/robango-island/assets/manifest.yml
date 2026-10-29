@@ -16909,3 +16909,28 @@ assets:
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
       created: 2026-10-28
+  - key: mesh-tools
+    kind: model
+    tool: blender
+    source: "L7 package RobangoTools: games/robango-island/assets/blender/gen_tools.py (headless Blender 5.2, seed 4371); 28 hand tool, weapon and worn gear rows, untextured (colour/material set at runtime by ToolVisuals.luau)"
+    assetId: 99344092243527
+    moderation: Approved
+    provenance:
+      digest: sha256:3850ef5b5482f5067a7f7f8e92dc065a7147e6d87bd34292f310f691ac3ddad6
+      recipe:
+        id: robango-gen-tools
+        version: 1
+        input: "assets/blender/gen_tools.py#RobangoTools"
+        inputVersion: sha256:cf9ee9c6793853a687a1f9f054413e6fdd7bf09775074ebb0846f03fb8d90197
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; no external textures"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://www.blender.org/about/license/"
+          version: "Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-28

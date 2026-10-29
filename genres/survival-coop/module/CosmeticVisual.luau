@@ -28,6 +28,9 @@ export type Piece = {
 }
 export type WearSet = { slot: string, pieces: { Piece } }
 export type Config = { mountSkins: { [string]: MountSkin }, wear: { [string]: WearSet } }
+-- Pack hook for one worn piece: returns the welded visual for a `wear` plan entry on `body`, or
+-- nil for the default primitive part.
+export type Builder = (entry: any, body: BasePart) -> Instance?
 
 --- True when the cosmetic id has a renderer (a mount skin or a worn set).
 function M.supported(config: Config, id: string): boolean
@@ -94,9 +97,23 @@ function M.wear(config: Config, appearance: { [string]: boolean }?): { any }
 	return plan
 end
 
+--- Default worn piece: one physics-inert part welded to `body` at the entry's offset.
+function M.piece(entry: any, body: BasePart): BasePart
+	local piece = Instance.new("Part")
+	piece.Size = Vector3.new(entry.size[1], entry.size[2], entry.size[3])
+	piece.Color = Color3.fromRGB(entry.color.r, entry.color.g, entry.color.b)
+	piece.Material = (Enum.Material :: any)[entry.material]
+	piece.CanCollide, piece.CanQuery, piece.CanTouch, piece.Massless = false, false, false, true
+	piece.CFrame = body.CFrame * CFrame.new(entry.offset[1], entry.offset[2], entry.offset[3])
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0, weld.Part1, weld.Parent = body, piece, piece
+	return piece
+end
+
 --- Engine adapter: rebuilds the character's cosmetic folder when the plan changed. Returns
 --- true when it changed anything. Pieces are physics-inert and welded to their body part.
-function M.dressWear(character: any, plan: { any }): boolean
+--- `build` (a pack hook) may supply a piece's visual; nil or a nil result keeps the primitive part.
+function M.dressWear(character: any, plan: { any }, build: Builder?): boolean
 	local keys = {}
 	for _, piece in plan do
 		table.insert(keys, piece.set .. ":" .. piece.id)
@@ -120,16 +137,9 @@ function M.dressWear(character: any, plan: { any }): boolean
 		if not body or not body:IsA("BasePart") then
 			continue
 		end
-		local piece = Instance.new("Part")
+		local piece: Instance = (if build then build(entry, body) else nil) or M.piece(entry, body)
 		piece.Name = "Cosmetic-" .. entry.id
-		piece.Size = Vector3.new(entry.size[1], entry.size[2], entry.size[3])
-		piece.Color = Color3.fromRGB(entry.color.r, entry.color.g, entry.color.b)
-		piece.Material = (Enum.Material :: any)[entry.material]
-		piece.CanCollide, piece.CanQuery, piece.CanTouch, piece.Massless = false, false, false, true
-		piece.CFrame = body.CFrame * CFrame.new(entry.offset[1], entry.offset[2], entry.offset[3])
 		piece:SetAttribute("ForgeCosmetic", entry.set)
-		local weld = Instance.new("WeldConstraint")
-		weld.Part0, weld.Part1, weld.Parent = body, piece, piece
 		piece.Parent = fresh
 	end
 	fresh.Parent = character

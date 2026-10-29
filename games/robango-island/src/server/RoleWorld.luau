@@ -17,6 +17,13 @@ local NodeMeshes = require(Forge.games["robango-island"].src.shared.NodeMeshes)
 local MeshTexture = require(Forge.games["robango-island"].src.shared.MeshTexture)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
+-- L7: tools and worn gear render the mesh-tools package (ToolVisuals) through the genre hooks.
+-- The package loads off the build path; tools projected before it lands keep the genre default.
+local function toolVisuals(): any
+	local ToolVisuals = require(Forge.games["robango-island"].src.shared.ToolVisuals)
+	task.spawn(ToolVisuals.load, Assets)
+	return ToolVisuals.hooks()
+end
 -- Tool names in the engine Backpack hotbar follow the owner's locale (locale/strings.csv,
 -- shipped as the Strings LocalizationTable); rows are read once, on first use.
 local packRows: any = nil
@@ -1085,6 +1092,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		baseWalkSpeed = 16,
 		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
 		itemNames = itemNames,
+		visuals = toolVisuals(),
 		wildlife = {
 			catalog = wildlife.catalog,
 			spawns = spawns,

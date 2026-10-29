@@ -29,6 +29,11 @@ export type DownHold = {
 	settle: (id: string) -> (),
 	holdSeconds: number,
 }
+export type Visuals = {
+	tool: ((tool: Tool, catalogId: string) -> boolean)?,
+	gear: ((entry: any, character: Model) -> Instance?)?,
+	wear: CosmeticVisual.Builder?,
+}
 export type Config = {
 	content: Content.Document,
 	worldRevision: string,
@@ -38,6 +43,12 @@ export type Config = {
 	baseWalkSpeed: number,
 	-- Paid cosmetic looks (mount skins, worn sets); absent means cosmetics render nothing.
 	cosmetics: CosmeticVisual.Config?,
+	-- Pack visual hooks (presentation only; authority stays the tools registry and the gear state).
+	-- `tool` dresses a fresh Tool for a catalog id and returns true when it built the visual (it
+	-- must leave a part named Handle); false or an absent hook keeps the genre's primitive handle.
+	-- `gear` returns the welded visual for one CharacterRules.dressing entry, or nil for the
+	-- primitive part. `wear` builds one worn cosmetic piece (CosmeticVisual.dressWear).
+	visuals: Visuals?,
 	-- Localized item names by catalog id for a LocaleId (the pack's player-facing copy). Tool
 	-- Name/ToolTip show in the engine Backpack hotbar, so they follow the owner's locale; an
 	-- absent table or id falls back to the catalog name.
@@ -60,6 +71,41 @@ export type Config = {
 }
 
 M.RETRY_INTERVAL_SECONDS = 1
+
+--- Default Tool visual (packs without a `visuals.tool` hook): a wooden Handle with a welded
+--- slate wedge head; spears get a longer shaft and a narrow tip.
+function M.toolVisual(tool: Tool, catalogId: string)
+	local handle = Instance.new("Part")
+	handle.Name, handle.Size = "Handle", Vector3.new(0.22, if catalogId == "spear" then 5 else 2.5, 0.22)
+	handle.Color, handle.Material = Color3.fromRGB(113, 77, 43), Enum.Material.Wood
+	handle.CanCollide, handle.Massless, handle.Parent = false, true, tool
+	local head = Instance.new("WedgePart")
+	head.Name, head.Size =
+		"StoneHead", if catalogId == "spear" then Vector3.new(0.65, 1.3, 0.25) else Vector3.new(1.5, 0.8, 0.4)
+	head.Color, head.Material = Color3.fromRGB(105, 116, 125), Enum.Material.Slate
+	head.CFrame = handle.CFrame * CFrame.new(0, handle.Size.Y / 2 + head.Size.Y / 2, 0)
+	head.CanCollide, head.Massless, head.Parent = false, true, tool
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0, weld.Part1, weld.Parent = handle, head, handle
+end
+
+--- Default worn-gear visual (packs without a `visuals.gear` hook): one light part welded to the
+--- entry's body part (CharacterRules.dressing). Nil when the character lacks that body part.
+function M.gearVisual(entry: any, character: Model): BasePart?
+	local body = character:FindFirstChild(entry.part) or character:FindFirstChild(entry.fallback)
+	if not body or not body:IsA("BasePart") then
+		return nil
+	end
+	local piece = Instance.new("Part")
+	piece.Size = Vector3.new(entry.size.x, entry.size.y, entry.size.z)
+	piece.Color = Color3.fromRGB(entry.color[1], entry.color[2], entry.color[3])
+	piece.Material = if entry.slot == "weapon" then Enum.Material.Wood else Enum.Material.Fabric
+	piece.CanCollide, piece.CanQuery, piece.CanTouch, piece.Massless = false, false, false, true
+	piece.CFrame = body.CFrame * CFrame.new(entry.offset.x, entry.offset.y, entry.offset.z)
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0, weld.Part1, weld.Parent = body, piece, piece
+	return piece
+end
 
 function M.new(config: Config)
 	assert(#config.worldRevision > 0 and #config.worldRevision <= 128, "invalid world revision")
@@ -609,7 +655,8 @@ function M.new(config: Config)
 				local shop = if extensions then extensions.monetization else nil
 				CosmeticVisual.dressWear(
 					actor.Character,
-					CosmeticVisual.wear(config.cosmetics, if type(shop) == "table" then shop.appearance else nil)
+					CosmeticVisual.wear(config.cosmetics, if type(shop) == "table" then shop.appearance else nil),
+					config.visuals and config.visuals.wear
 				)
 			end
 			local species = MountVisual.look(if extensions then extensions.taming else nil)
@@ -874,20 +921,10 @@ function M.new(config: Config)
 				local label = toolName(actor, item.catalogId)
 				tool.Name, tool.CanBeDropped, tool.RequiresHandle = label, false, true
 				tool.ToolTip = label
-				local handle = Instance.new("Part")
-				handle.Name, handle.Size =
-					"Handle", Vector3.new(0.22, if item.catalogId == "spear" then 5 else 2.5, 0.22)
-				handle.Color, handle.Material = Color3.fromRGB(113, 77, 43), Enum.Material.Wood
-				handle.CanCollide, handle.Massless, handle.Parent = false, true, tool
-				local head = Instance.new("WedgePart")
-				head.Name, head.Size =
-					"StoneHead",
-					if item.catalogId == "spear" then Vector3.new(0.65, 1.3, 0.25) else Vector3.new(1.5, 0.8, 0.4)
-				head.Color, head.Material = Color3.fromRGB(105, 116, 125), Enum.Material.Slate
-				head.CFrame = handle.CFrame * CFrame.new(0, handle.Size.Y / 2 + head.Size.Y / 2, 0)
-				head.CanCollide, head.Massless, head.Parent = false, true, tool
-				local weld = Instance.new("WeldConstraint")
-				weld.Part0, weld.Part1, weld.Parent = handle, head, handle
+				local dress = config.visuals and config.visuals.tool
+				if not (dress and dress(tool, item.catalogId)) then
+					M.toolVisual(tool, item.catalogId)
+				end
 				tool.Parent = backpack
 				api.registerTool(tool, id, itemId)
 				projected[tool] = character
@@ -927,20 +964,14 @@ function M.new(config: Config)
 			fresh.Name = "ForgeGear"
 			fresh:SetAttribute("ForgeGearSignature", signature)
 			for _, entry in plan do
-				local body = character:FindFirstChild(entry.part) or character:FindFirstChild(entry.fallback)
-				if not body or not body:IsA("BasePart") then
+				local hook = config.visuals and config.visuals.gear
+				local piece: Instance? = (if hook then hook(entry, character) else nil)
+					or M.gearVisual(entry, character)
+				if not piece then
 					continue
 				end
-				local piece = Instance.new("Part")
 				piece.Name = "Gear-" .. entry.slot
-				piece.Size = Vector3.new(entry.size.x, entry.size.y, entry.size.z)
-				piece.Color = Color3.fromRGB(entry.color[1], entry.color[2], entry.color[3])
-				piece.Material = if entry.slot == "weapon" then Enum.Material.Wood else Enum.Material.Fabric
-				piece.CanCollide, piece.CanQuery, piece.CanTouch, piece.Massless = false, false, false, true
-				piece.CFrame = body.CFrame * CFrame.new(entry.offset.x, entry.offset.y, entry.offset.z)
 				piece:SetAttribute("ForgeGearItem", entry.catalogId)
-				local weld = Instance.new("WeldConstraint")
-				weld.Part0, weld.Part1, weld.Parent = body, piece, piece
 				piece.Parent = fresh
 			end
 			fresh.Parent = character

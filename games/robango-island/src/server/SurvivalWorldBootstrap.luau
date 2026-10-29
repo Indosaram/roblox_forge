@@ -344,6 +344,12 @@ return function(content: any, source: any, wildlifePolicy, epochMillis, role: st
 		baseWalkSpeed = 16,
 		cosmetics = require(Forge.games["robango-island"].src.shared.CosmeticConfig),
 		itemNames = itemNames,
+		-- L7: mesh tools and worn gear (ToolVisuals); the package loads off the build path.
+		visuals = (function(): any
+			local ToolVisuals = require(Forge.games["robango-island"].src.shared.ToolVisuals)
+			task.spawn(ToolVisuals.load, require(Forge.games["robango-island"].src.shared.Assets))
+			return ToolVisuals.hooks()
+		end)(),
 		wildlife = if wildlifePolicy
 			then {
 				catalog = wildlifePolicy.catalog,
