@@ -4,7 +4,7 @@ items:
     foodEffects:
       fatigueMilli: 0
       healthMilli: 0
-      hungerMilli: 5000
+      hungerMilli: 9000
     id: "berry"
     name: "Bramble Berry"
     stackMax: 50
@@ -14,7 +14,7 @@ items:
     foodEffects:
       fatigueMilli: 0
       healthMilli: 0
-      hungerMilli: 15000
+      hungerMilli: 30000
     id: "berry-meal"
     name: "Berry Mash"
     stackMax: 50
@@ -112,7 +112,7 @@ items:
     foodEffects:
       fatigueMilli: 0
       healthMilli: 0
-      hungerMilli: 20000
+      hungerMilli: 35000
     id: "cooked-meat"
     name: "Ember-roast Meat"
     stackMax: 50
@@ -4664,10 +4664,14 @@ tags:
   - "sprinkler"
 vitals:
   fatigueMilliPerAction: 500
-  hungerMillisPerUnit: 18000
+  # p134 v53/v54: 18 s per unit starved a player in 22 min. 39 s per unit is ~45 min of active
+  # play from full to the hungry prompt (30) and ~65 min to 0; fighting costs a little more.
+  hungerMillisPerUnit: 39000
   respawnDelayMillis: 0
   restMilliPerSecond: 2000
   starvationMillisPerUnit: 5000
+  # p134 v53/v54: one combat strike (given or taken) costs 0.3 fullness on top of the drain.
+  strikeHungerMilli: 300
 wildlife:
   -
     attackStuds: 6
@@ -24973,6 +24977,19 @@ layouts:
         level: 1
         yield: 3
         respawnSeconds: 120
+      -
+        # p134 v53/v54: the only bush sat ~100 studs from where players stand after the opening,
+        # reached at +6 min. A second bramble patch beside the entry is the first food in reach.
+        id: "rw.onboarding.berry-2"
+        item: "berry"
+        position:
+          x: -12
+          y: 2
+          z: 78
+        stock: 20
+        level: 1
+        yield: 3
+        respawnSeconds: 90
       -
         id: "rw.onboarding.water"
         item: "water"

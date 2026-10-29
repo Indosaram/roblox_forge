@@ -744,6 +744,8 @@ local function fresh(guide: any): (any, any)
 	local server = boot(Memory.new(), "job:guide-" .. guide.id, at, nil, nil, nil, PLACE[guide.id], clan)
 	server.at = at
 	assert(server.session.join(ACTOR).ok, "join")
+	-- The player taps Start: the ADR-13 join hold ends and hunger runs (TitleFlow.bindWake).
+	assert(server.session.dispatch(ACTOR, "survival-coop:vitals-wake", {}).ok, "Start")
 	-- Open the guide's band: level and development grade from its gates.
 	assert(
 		server.session.personalTransaction(ACTOR, function(raw)

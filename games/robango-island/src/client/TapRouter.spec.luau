@@ -103,6 +103,56 @@ return {
 		assert(tap.handlers.node(nodePart(roblox.Vector3.new(1, 0, 0), prompt)) == true, "declined still handled")
 		assert(held == 1, "prompt fallback fired")
 	end,
+	-- p134 v53: a dodo died ~100 studs away and its carcass could never be opened: a dead body was
+	-- not a creature target (the tap fell to the ground walk) and the handler only ever attacked.
+	["a tap on your carcass routes to the harvest walk; a live creature still engages"] = function()
+		local Router = loadWithGame(roblox.Vector3.new(0, 0, 0))
+		local tap = fakeTap()
+		local calls = {}
+		local combat = {
+			engage = function(model)
+				table.insert(calls, "engage:" .. model.Name)
+				return true
+			end,
+			harvest = function(model)
+				table.insert(calls, "harvest:" .. model.Name)
+				return model.Name ~= "spoiled"
+			end,
+			pause = function() end,
+		}
+		Router.installActions(tap, {}, combat)
+		local function creature(name: string, hp: number): any
+			local anchor = {
+				Position = roblox.Vector3.new(100, 0, 0),
+				IsA = function(_, class)
+					return class == "BasePart"
+				end,
+			}
+			return {
+				Name = name,
+				Parent = {},
+				FindFirstChild = function(_, child)
+					return if child == "HumanoidRootPart" then anchor else nil
+				end,
+				GetAttribute = function(_, key)
+					return if key == "ForgeWildlifeId"
+						then name
+						elseif key == "ForgeWildlifeHealthMilli" then hp
+						else nil
+				end,
+			}
+		end
+		assert(tap.handlers.creature(creature("carcass", 0)) == true, "a dead body is handled")
+		assert(calls[1] == "harvest:carcass" and #calls == 1, "harvest, never an attack on a body")
+		assert(tap.handlers.creature(creature("spoiled", 0)) == false, "a body it declines falls through")
+		assert(tap.handlers.creature(creature("dodo", 45000)) == true and calls[3] == "engage:dodo", "live engages")
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		assert(
+			string.find(source, "alive(ancestor) or carcass(ancestor)", 1, true)
+				and string.find(source, "alive(model) or carcass(model)", 1, true),
+			"the world probe picks your carcass by ray and by fingertip"
+		)
+	end,
 	["a tap on scenery rock or tree gathers from a node beside it, else says where to gather"] = function()
 		-- Staging v40: the boulders and trees on screen are BiomeKits scenery (ForgeKitFamily rock/tree,
 		-- queryable), not gather nodes, so their taps fell through to a plain walk with no word.

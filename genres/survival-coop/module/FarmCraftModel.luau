@@ -221,9 +221,11 @@ function M.recipePreview(content: any, packet: any, recipe: any): any
 	}
 end
 
--- Inbox ledger: market claims (returned listings, bought items, sale proceeds) and
--- crafting results (ready output to collect, committed output, cancelled refunds).
--- Expedition results (the expedition snapshot's results ledger) come first, newest first.
+-- Inbox ledger: market claims (returned listings, bought items, sale proceeds) and crafting
+-- output still in a job (ready to collect, or running), one row per item with the summed quantity
+-- and its jobs. Committed and cancelled jobs are not inbox rows: their output or refund is already
+-- in the bag (p134 v53: a history of finished jobs filled the inbox as "Refunded: ... (job w11:1173)"
+-- rows and the empty state never showed). Expedition results come first, newest first.
 function M.inbox(packet: any, market: any, expedition: any?): { any }
 	local rows: { any } = {}
 	for _, entry in (type(expedition) == "table" and expedition.ledger) or {} do
@@ -256,27 +258,37 @@ function M.inbox(packet: any, market: any, expedition: any?): { any }
 		table.insert(ids, id)
 	end
 	table.sort(ids)
+	local groups: { [string]: any } = {}
 	for _, id in ids do
 		local job = workshop.entries[id].job
-		local kind = if job.state == "Ready"
-			then "ready"
-			elseif job.state == "Committed" then "crafted"
-			elseif job.state == "Cancelled" then "refund"
-			elseif job.state == "Running" then "running"
-			else nil
-		if kind then
-			local first = job.outputs[1] or job.inputs[1] or {}
-			table.insert(rows, {
-				id = "job:" .. id,
-				kind = kind,
-				job = id,
-				catalogId = first.catalogId,
-				quantity = first.quantity,
-				finishAt = job.finishAt,
-			})
+		local kind = if job.state == "Ready" then "ready" elseif job.state == "Running" then "running" else nil
+		local first = job.outputs[1] or {}
+		if kind and first.catalogId then
+			local key = kind .. ":" .. first.catalogId
+			local group = groups[key]
+			if group then
+				group.quantity += first.quantity or 0
+				table.insert(group.jobs, id)
+			else
+				group = {
+					id = "job:" .. key,
+					kind = kind,
+					job = id,
+					jobs = { id },
+					catalogId = first.catalogId,
+					quantity = first.quantity or 0,
+				}
+				groups[key] = group
+				table.insert(rows, group)
+			end
 		end
 	end
 	return rows
+end
+
+--- Whether an inbox row asks the player to do something (claim or collect, or wait on a craft).
+function M.inboxActionable(row: any): boolean
+	return row.kind ~= "expedition" or not row.claimed
 end
 
 function M.page(rows: { any }, page: number): ({ any }, number, number)

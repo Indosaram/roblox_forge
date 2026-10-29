@@ -98,8 +98,28 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 		end
 	end
 	table.sort(missing)
+	-- p134 v53: the universe refused robango-level-up ("User is not authorized"); every later cue
+	-- made a new Sound that failed (and logged) again. Once the engine reports an id's fetch failed,
+	-- that id stays silent for the session: no new Sound, no Play. Only a reported failure mutes;
+	-- an id still loading (or a status the engine does not track) keeps playing.
+	local refusedIds: { [string]: boolean } = {}
+	local function refusedId(id: string): boolean
+		if refusedIds[id] then
+			return true
+		end
+		local content = game:GetService("ContentProvider")
+		local ok, status = pcall(content.GetAssetFetchStatus, content, id)
+		if ok and (status == Enum.AssetFetchStatus.Failure or status == Enum.AssetFetchStatus.TimedOut) then
+			refusedIds[id] = true
+		end
+		return refusedIds[id] == true
+	end
 	local director = Director.new(config, {
 		play = function(name, slot)
+			local id = assets[slot.asset]
+			if id and refusedId(id) then
+				return
+			end
 			local sound = bank:play(name)
 			if not sound then
 				return
@@ -276,10 +296,11 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 		watchButton(object)
 	end
 	local facts: any = nil
-	local state = game:GetService("ReplicatedStorage"):WaitForChild("ForgeState")
-	table.insert(
-		connections,
-		state.OnClientEvent:Connect(function(packet)
+	-- No unbounded WaitForChild: on a town join ForgeState can arrive after this runs, and the wait
+	-- logged "Infinite yield possible" (p134 v54). Attach when the remote is present or appears.
+	local storage = game:GetService("ReplicatedStorage")
+	local function onPacket(packet: any)
+		do
 			if type(packet) == "table" and type(packet.snapshots) == "table" then
 				local edges
 				edges, facts = M.snapshotEdges(facts, packet.snapshots)
@@ -301,8 +322,22 @@ function M.start(SoundBank: any, Director: any, assets: { [string]: string }, co
 				player:SetAttribute("ForgeReducedEffects", settings.reducedEffects == true)
 				player:SetAttribute("ForgeTextScale", Settings.TEXT_SCALE[Settings.normalize(settings).textSize])
 			end
-		end)
-	)
+		end
+	end
+	local stateAttached = false
+	local function attachState(child: Instance)
+		if stateAttached or disposed or child.Name ~= "ForgeState" then
+			return
+		end
+		stateAttached = true
+		table.insert(connections, (child :: any).OnClientEvent:Connect(onPacket))
+	end
+	local stateRemote = storage:FindFirstChild("ForgeState")
+	if stateRemote then
+		attachState(stateRemote)
+	else
+		table.insert(connections, storage.ChildAdded:Connect(attachState))
+	end
 	return {
 		director = director,
 		missing = missing,

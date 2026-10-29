@@ -914,7 +914,7 @@
           'healthMilli':
            0
           'hungerMilli':
-           5000
+           9000
           
          'id':
           'berry'
@@ -946,7 +946,7 @@
           'healthMilli':
            0
           'hungerMilli':
-           15000
+           30000
           
          'id':
           'berry-meal'
@@ -1492,7 +1492,7 @@
           'healthMilli':
            0
           'hungerMilli':
-           20000
+           35000
           
          'id':
           'cooked-meat'
@@ -10062,13 +10062,15 @@
         'fatigueMilliPerAction':
          500
         'hungerMillisPerUnit':
-         18000
+         39000
         'respawnDelayMillis':
          0
         'restMilliPerSecond':
          2000
         'starvationMillisPerUnit':
          5000
+        'strikeHungerMilli':
+         300
         
       'wildlife':
         - 
@@ -10974,6 +10976,9 @@
     'startingBalance':
      100
     'survivalDeath':
+     true
+    # ADR-13: hunger holds from join until the title's Start (CraftingAdapter join hold).
+    'vitalsHold':
      true
     
    

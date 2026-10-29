@@ -172,6 +172,9 @@ local function client(live: any, tools: { any }?)
 		for id, npc in live.factory.services.survivalWildlife.snapshot(ACTOR) do
 			models[id]:SetAttribute("ForgeWildlifeHealthMilli", npc.healthMilli)
 			models[id]:SetAttribute("ForgeWildlifeState", npc.mode)
+			-- As WildlifeWorld publishes them: the carcass owner and kill clock of a dead body.
+			models[id]:SetAttribute("ForgeWildlifeKiller", if npc.healthMilli == 0 then npc.killer else nil)
+			models[id]:SetAttribute("ForgeWildlifeKilledAt", if npc.healthMilli == 0 then npc.killedAt else nil)
 		end
 	end
 	mirror()
@@ -352,6 +355,9 @@ local function client(live: any, tools: { any }?)
 		hidden = function()
 			return false
 		end,
+		serverNow = function()
+			return live.at.value
+		end,
 	})
 	local tap: any = { handlers = {} }
 	function tap.register(kind, fn)
@@ -400,10 +406,13 @@ local function client(live: any, tools: { any }?)
 		tap = function(id: string): boolean
 			return tap.handlers.creature(models[id]) ~= false
 		end,
-		-- One second: the server ticks (windups resolve), the world republishes, one HUD frame runs.
-		tick = function()
-			live.at.value += 1
-			t.value += 1
+		hud = hud,
+		playerGui = playerGui,
+		-- One second (or `seconds`): the server ticks (windups resolve), the world republishes, one
+		-- HUD frame runs.
+		tick = function(seconds: number?)
+			live.at.value += seconds or 1
+			t.value += seconds or 1
 			live.session.advance(live.clock.now())
 			handshake()
 			mirror()
@@ -480,6 +489,89 @@ return {
 		assert(bar.Track.Fill.Size.X.Scale == 0, "the target bar reads the kill")
 		-- Kill -> carcass: the fan offers the dodo's outputs over the body.
 		assert(phone.gui:FindFirstChild("CarcassFan").Visible, "the carcass fan opens over the body")
+		live.factory.close()
+	end,
+	-- p134 v53: a dodo died ~100 studs from the player and no carcass picker ever showed; nothing
+	-- reached the bag. The extension's wildlife port dropped killer/killedAt, so every carcass-take
+	-- was refused NOT_DEAD, a dead body was not tappable (the tap walked only), and the fan was the
+	-- only way in: opened once on the engaged kill, gone after 120 s or a Leave, never reopenable.
+	["a knifed dodo leaves a marked carcass that persists and harvests into the bag from afar"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local model = phone.models[DODO]
+		local died = model.HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(died.X + 15, 3, died.Z))
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		assert(hp(live, DODO) == 0, "the dodo died, health " .. hp(live, DODO))
+		local npc = live.factory.services.survivalWildlife.snapshot(ACTOR)[DODO]
+		assert(npc.killer == ACTOR and type(npc.killedAt) == "number", "the server recorded the kill")
+		-- The kill is announced and the body is marked where it fell.
+		local toast = phone.gui:FindFirstChild("KillToast")
+		assert(toast.Visible and toast.Text == string.format(Combat.text("en-us", "kill_toast"), "dodo"), toast.Text)
+		local marks = phone.playerGui:FindFirstChild("ForgeCarcassMarks")
+		local board = marks:FindFirstChild("CarcassMark")
+		assert(board and board.Adornee == model.HumanoidRootPart, "a name mark over the body")
+		assert(board.Label.Text == string.format(Combat.text("en-us", "carcass_mark"), "dodo"), board.Label.Text)
+		assert(marks:FindFirstChild("CarcassRing"), "a ground ring at the body")
+		-- It persists: four minutes on (the fan closed long ago), body, mark and kill are all still there.
+		for _ = 1, 12 do
+			phone.tick(20)
+		end
+		assert(not phone.gui:FindFirstChild("CarcassFan").Visible, "the kill-time fan closed by itself")
+		assert(not toast.Visible, "the toast faded")
+		assert(model.Parent and model.HumanoidRootPart.Position == died, "the body stays where it died")
+		assert(hp(live, DODO) == 0 and marks:FindFirstChild("CarcassMark"), "still a marked carcass")
+		-- A tap on the body from ~100 studs walks there and opens the harvest picker on arrival.
+		phone.place(roblox.Vector3.new(died.X + 100, 3, died.Z))
+		local walks = phone.approaches()
+		assert(phone.tap(DODO), "the far carcass tap is handled")
+		assert(phone.approaches() == walks + 1, "the character walked to the carcass")
+		assert(phone.hud.picking() == model, "the picker opened on arrival")
+		phone.tick()
+		assert(phone.gui:FindFirstChild("CarcassFan").Visible, "the harvest fan shows over the body")
+		local before = {}
+		for _, item in live.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items do
+			before[item.catalogId] = (before[item.catalogId] or 0) + item.quantity
+		end
+		local outputs = Combat.offer(Content, "dodo", {})
+		assert(#outputs == 2, "dodo offers meat and feathers")
+		for _ = 1, #outputs do
+			phone.hud.pick(1)
+			phone.tick()
+		end
+		local after = {}
+		for _, item in live.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items do
+			after[item.catalogId] = (after[item.catalogId] or 0) + item.quantity
+		end
+		for _, output in outputs do
+			assert(
+				(after[output.item] or 0) - (before[output.item] or 0) == output.quantity,
+				output.item .. " landed in the bag: " .. tostring(after[output.item])
+			)
+		end
+		assert(phone.hud.picking() == nil, "an emptied carcass closes the picker")
+		assert(not marks:FindFirstChild("CarcassMark"), "and loses its mark")
+		assert(not phone.tap(DODO), "an emptied carcass is no longer a tap target")
+		live.factory.close()
+	end,
+	["a carcass mark expires with the server harvest window"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local died = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(died.X + 3, 3, died.Z))
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		assert(hp(live, DODO) == 0, "killed")
+		local marks = phone.playerGui:FindFirstChild("ForgeCarcassMarks")
+		assert(marks:FindFirstChild("CarcassMark"), "marked")
+		for _ = 1, 16 do
+			phone.tick(20)
+		end
+		assert(not marks:FindFirstChild("CarcassMark"), "spoiled after the harvest window: no mark")
+		assert(not phone.tap(DODO), "and no walk to a body the server would refuse")
 		live.factory.close()
 	end,
 	-- p134 v51: walking the onboarding camp, the tester found nothing huntable in reach (the taps hit

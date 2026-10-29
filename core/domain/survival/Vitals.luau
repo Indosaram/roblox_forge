@@ -26,6 +26,8 @@ export type Config = {
 	staminaRegenMilliPerSecond: number?,
 	staminaCostMilliPerAction: number?,
 	respawnDelayMillis: number?,
+	-- Optional, standalone: fullness (milli) one combat strike costs, given or taken (exert, damage).
+	strikeHungerMilli: number?,
 }
 export type Zone = "safe" | "danger"
 export type State = {
@@ -121,6 +123,7 @@ function M.new(nowMillis: number, config: Config?): State
 	if delayed then
 		assert(integer(c.respawnDelayMillis, 86400000), "invalid respawn delay")
 	end
+	assert(c.strikeHungerMilli == nil or integer(c.strikeHungerMilli, MAX), "invalid strike hunger")
 	local now = clock(nowMillis)
 	return {
 		healthMilli = MAX,
@@ -324,10 +327,25 @@ function M.setEnvironment(state: State, tier: number, resistanceMilli: number): 
 	return s
 end
 
+--- One combat strike's fullness cost (`strikeHungerMilli`; unchanged when it is not configured).
+--- The sub-unit remainder is kept, so the drain clock is not reset by fighting.
+function M.exert(state: State): State
+	local cost = state.config.strikeHungerMilli
+	if cost == nil or cost == 0 or state.healthMilli == 0 then
+		return state
+	end
+	local s = table.clone(state)
+	s.hungerMilli = math.max(0, s.hungerMilli - cost)
+	if s.hungerMilli == 0 then
+		s.hungerRemainder = 0
+	end
+	return s
+end
+
 function M.damage(state: State, healthMilli: number): State
 	alive(state)
 	assert(integer(healthMilli, MAX), "invalid damage")
-	local s = table.clone(state)
+	local s: State = table.clone(if healthMilli > 0 then M.exert(state) else state)
 	s.healthMilli = math.max(0, s.healthMilli - healthMilli)
 	s.combatUntilMillis = s.clockMillis + 10000
 	s.resting = false

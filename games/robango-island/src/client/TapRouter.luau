@@ -402,6 +402,14 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 			and type(model:GetAttribute("ForgeWildlifeId")) == "string"
 			and (type(hp) ~= "number" or hp > 0)
 	end
+	-- p134 v53: a body the local player killed stays tappable (walk there, open the harvest picker);
+	-- before, a dead creature fell through to a ground tap and the carcass could not be reopened.
+	local function carcass(model: Instance): boolean
+		return model:IsA("Model")
+			and type(model:GetAttribute("ForgeWildlifeId")) == "string"
+			and model:GetAttribute("ForgeWildlifeHealthMilli") == 0
+			and model:GetAttribute("ForgeWildlifeKiller") == tostring(player.UserId)
+	end
 	-- C4: the player's own deployed pet is a creature target too (the pet ring opens on it).
 	local function ownPet(model: Instance): boolean
 		return model:IsA("Model") and model:GetAttribute("ForgePetOwner") == tostring(player.UserId)
@@ -420,7 +428,7 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		local creature: any, node: any = nil, nil
 		local ancestor: Instance? = hit and hit.Instance
 		while ancestor and ancestor ~= world do
-			if not creature and (alive(ancestor) or ownPet(ancestor)) then
+			if not creature and (alive(ancestor) or carcass(ancestor) or ownPet(ancestor)) then
 				creature = ancestor
 			end
 			if not node and ancestor:IsA("BasePart") and CollectionService:HasTag(ancestor, "ForgeSurvivalNode") then
@@ -437,7 +445,11 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		creature = creature
 			or pick(camera, x, y, candidates, function(model)
 				local anchor = model:FindFirstChild("HumanoidRootPart")
-				return if (alive(model) or ownPet(model)) and anchor and anchor:IsA("BasePart") then anchor else nil
+				return if (alive(model) or carcass(model) or ownPet(model))
+						and anchor
+						and anchor:IsA("BasePart")
+					then anchor
+					else nil
 			end)
 		if not node then
 			-- Fingertip pick on the node part and on its kit pieces (the visible bush or rock).
@@ -743,6 +755,11 @@ function M.installActions(
 		local id = model:GetAttribute("ForgeWildlifeId")
 		if not anchor or not anchor:IsA("BasePart") or type(id) ~= "string" then
 			return false
+		end
+		-- The local player's carcass (marked in the world): walk there from any distance, then the
+		-- harvest picker opens on arrival (CombatHud.harvest). Never an attack on a dead body.
+		if model:GetAttribute("ForgeWildlifeHealthMilli") == 0 then
+			return combat ~= nil and combat.harvest ~= nil and combat.harvest(model)
 		end
 		if combat then
 			return combat.engage(model)

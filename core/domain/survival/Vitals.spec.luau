@@ -321,4 +321,36 @@ return {
 			Vitals.deathPolicy(Vitals.new(0), "safe")
 		end)
 	end,
+	-- p134 v53: combat drains fullness a bit faster than walking; unconfigured packs are unchanged.
+	["a strike costs strikeHungerMilli of fullness and leaves the drain clock alone"] = function()
+		local plain = Vitals.new(0)
+		assert(Vitals.exert(plain) == plain, "no strike cost configured: no change")
+		local config = {
+			hungerMillisPerUnit = 39000,
+			fatigueMilliPerAction = 500,
+			restMilliPerSecond = 2000,
+			starvationMillisPerUnit = 5000,
+			strikeHungerMilli = 300,
+		}
+		local state = Vitals.advance(Vitals.new(0, config), 20000)
+		local remainder = state.hungerRemainder
+		local struck = Vitals.exert(state)
+		assert(struck.hungerMilli == state.hungerMilli - 300, "one strike costs 300")
+		assert(struck.hungerRemainder == remainder, "the drain remainder is kept")
+		local hit = Vitals.damage(state, 5000)
+		assert(hit.hungerMilli == state.hungerMilli - 300 and hit.healthMilli == state.healthMilli - 5000, "a hit")
+		assert(Vitals.damage(state, 0).hungerMilli == state.hungerMilli, "a dodged hit costs nothing")
+		rejects(function()
+			Vitals.new(
+				0,
+				{
+					hungerMillisPerUnit = 1,
+					fatigueMilliPerAction = 0,
+					restMilliPerSecond = 0,
+					starvationMillisPerUnit = 1,
+					strikeHungerMilli = -1,
+				} :: any
+			)
+		end)
+	end,
 }

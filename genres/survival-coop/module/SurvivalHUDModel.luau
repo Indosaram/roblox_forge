@@ -334,6 +334,30 @@ function M.hungry(vitals: any): boolean
 		and vitals.hungerMilli / 1000 < M.HUNGRY_BELOW
 end
 
+--- Which hungry line fits the bag (p134 v53: the player starved holding no food and never learnt
+--- that raw meat cooks at a campfire): "hungry" (something edible is carried), "hungry_cook"
+--- (only raw meat), "hungry_find" (nothing to eat), or nil when not hungry.
+function M.hungerHint(snapshot: any, items: { any }?): string?
+	if type(snapshot) ~= "table" or not M.hungry(snapshot.vitals) then
+		return nil
+	end
+	local edible: { [string]: boolean } = {}
+	for _, definition: any in (items or {}) :: { any } do
+		if definition.foodEffects then
+			edible[definition.id] = true
+		end
+	end
+	local bag = type(snapshot.inventory) == "table" and snapshot.inventory.bag
+	local meat = false
+	for _, item in if type(bag) == "table" and type(bag.items) == "table" then bag.items else {} do
+		if edible[item.catalogId] then
+			return "hungry"
+		end
+		meat = meat or item.catalogId == "meat"
+	end
+	return if meat then "hungry_cook" else "hungry_find"
+end
+
 --- Durable death count of a survival snapshot (deathBundles.lastSequence counts every death,
 --- bag dropped or not); nil until the first snapshot with vitals has arrived.
 function M.deathSequence(snapshot: any): number?

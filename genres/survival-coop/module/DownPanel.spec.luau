@@ -20,13 +20,37 @@ local function signal(list: { any }?)
 	}
 end
 
-local function mount(): (any, (any) -> ())
+local function mount(): (any, (any) -> (), any, any, any)
 	local I = roblox.Instance
 	local playerGui = I.new("PlayerGui")
+	-- Attributes fire their changed signals like the engine's, so the pack's backpack binding
+	-- (TitleFlow.bindBackpack) can run against this same player.
+	local attributes: { [string]: any } = {}
+	local watchers: { [string]: { () -> () } } = {}
 	local player = {
 		PlayerGui = playerGui,
 		WaitForChild = function()
 			return playerGui
+		end,
+		GetAttribute = function(_, name: string)
+			return attributes[name]
+		end,
+		SetAttribute = function(_, name: string, value: any)
+			if attributes[name] ~= value then
+				attributes[name] = value
+				for _, fn in watchers[name] or ({} :: { () -> () }) do
+					fn()
+				end
+			end
+		end,
+		GetAttributeChangedSignal = function(_, name: string)
+			return {
+				Connect = function(_, fn)
+					watchers[name] = watchers[name] or {}
+					table.insert(watchers[name], fn)
+					return { Disconnect = function() end }
+				end,
+			}
 		end,
 	}
 	local lighting = I.new("Lighting")
@@ -93,7 +117,7 @@ local function mount(): (any, (any) -> ())
 		end,
 	})
 	assert(started and listener, "factory subscribed")
-	return playerGui, listener :: (any) -> ()
+	return playerGui, listener :: (any) -> (), player, started, panel
 end
 
 return {
@@ -118,5 +142,30 @@ return {
 		assert(visible == 2, "two cards on the second snapshot, got " .. visible)
 		render({ rescue = { down = false, options = {} } })
 		assert(not gui.Enabled, "panel hides once up")
+	end,
+	-- p134 v53 (phone): the CoreGui Backpack hotbar (bone knife / bola tiles) drew over the middle
+	-- down card. The panel flags the player while shown; Robango's backpack binding hides the hotbar
+	-- under that flag and brings it back after the respawn.
+	["the backpack hotbar hides while the down panel shows and returns once up"] = function()
+		local playerGui, render, player, started, panel = mount()
+		local Flow = (require :: any)("../../../games/robango-island/src/first/TitleFlow")
+		assert(table.find(Flow.SHEET_ATTRIBUTES, panel.OPEN_ATTRIBUTE), "the binding reads the down flag")
+		player:SetAttribute("ForgeTitleDone", true)
+		local applied: { boolean } = {}
+		Flow.bindBackpack(player, function(shown: boolean)
+			table.insert(applied, shown)
+		end)
+		assert(applied[#applied] == true, "hotbar shown in play")
+		render({ rescue = { down = true, options = { "rift", "camp", "rescue" } } })
+		assert(playerGui:FindFirstChild("ForgeDownPanel").Enabled, "panel shown while down")
+		assert(applied[#applied] == false, "hotbar hidden under the down panel")
+		local count = #applied
+		render({ rescue = { down = true, options = { "rift", "camp" }, choice = "camp" } })
+		assert(#applied == count, "a second down snapshot changes nothing")
+		render({ rescue = { down = false, options = {} } })
+		assert(applied[#applied] == true, "hotbar back after the respawn")
+		render({ rescue = { down = true, options = { "camp" } } })
+		started.destroy()
+		assert(applied[#applied] == true, "destroying the panel never leaves the hotbar hidden")
 	end,
 }

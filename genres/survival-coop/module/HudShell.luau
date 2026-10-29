@@ -458,6 +458,21 @@ function M.gridCell(width: number, columns: number, gap: number?): number
 	return math.floor((width - 6 - 8 - (columns - 1) * g) / columns)
 end
 
+--- Bag slot of edge `cell` px (relative rects): the item icon fills the top-centre and the stack
+--- count is a compact badge in the bottom-right corner, sized to its digits at `textSize`.
+--- p134 v53 (phone): a 36x22 count box sat across the lower half of every 49-53 px slot's icon.
+function M.bagSlot(cell: number, textSize: number, count: string): { icon: Rect, badge: Rect }
+	local iconSize = math.floor(cell * 0.74)
+	local height = math.min(textSize + 4, math.floor(cell * 0.4))
+	-- BuilderSans digits are ~0.55 em wide; 2 px padding each side.
+	local digit = math.ceil(textSize * 0.55)
+	local width = math.min(cell - 4, math.max(height, #count * digit + 4))
+	return {
+		icon = rect(math.floor((cell - iconSize) / 2), 3, iconSize, iconSize),
+		badge = rect(cell - 2 - width, cell - 2 - height, width, height),
+	}
+end
+
 --- Panel rects in the space of a CoreUISafeInsets ScreenGui of `width` x `height` (`topClear` as in
 --- `regions`). `kind` is craft, market or bag. `hitTop` is the first gui row that receives presses
 --- (HudShell.hitClear): D2b Studio, the 1280x720 craft/bag Close at gui y 11 never activated by path

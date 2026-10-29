@@ -11,6 +11,7 @@ local Award = require("./ProgressionExtension").award
 local GatheringRuntime = require("./GatheringRuntime")
 local Content = require("../../../core/domain/survival/Content")
 local Inventory = require("../../../core/domain/inventory/Inventory")
+local Vitals = require("../../../core/domain/survival/Vitals")
 local Job = require("../../../core/domain/crafting/Job")
 local Ledger = require("../../../core/domain/command/Ledger")
 local Shared = require("../../../core/domain/genre/Contract")
@@ -178,6 +179,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			combat.nextAttack = intent.at + intent.cooldown
 			-- Windup end, so a stance switch can be refused while this strike is drawn.
 			combat.windupUntil = if intent.attack then intent.attack.resolveAt else nil
+			-- A swing costs fullness when the pack configures it (p134 v53: combat drains a bit faster).
+			if type(data.vitals) == "table" and type(data.vitals.config) == "table" then
+				data.vitals = Vitals.exert(data.vitals)
+			end
 		end
 		combat.receipts[id] = { charged = reason == nil, reason = reason, binding = intent.binding }
 		data.combat = combat

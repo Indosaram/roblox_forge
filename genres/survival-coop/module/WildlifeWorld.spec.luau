@@ -233,6 +233,20 @@ return {
 			npc:GetAttribute("ForgeWildlifeFeedback") == "hurt" and damage == 0,
 			"published hurt does not enqueue damage"
 		)
+		heartbeat.fire()
+		assert(npc:GetAttribute("ForgeWildlifeKiller") == nil, "a living creature has no carcass owner")
+		-- p134 v53: the killer's client marks the carcass and routes its tap from the published kill.
+		local killed = api.snapshot("h1")
+		killed.healthMilli, killed.version, killed.killer, killed.killedAt = 0, killed.version + 1, "1", 1100
+		api.publish(killed)
+		heartbeat.fire()
+		assert(npc:GetAttribute("ForgeWildlifeHealthMilli") == 0, "dead published")
+		-- The client's death fall (CreaturePose dead -> DinosaurRig/BonePose roll onto the flank) keys on it.
+		assert(npc:GetAttribute("ForgeWildlifeState") == "dead", "the dead state drives the death fall")
+		assert(
+			npc:GetAttribute("ForgeWildlifeKiller") == "1" and npc:GetAttribute("ForgeWildlifeKilledAt") == 1100,
+			"the carcass owner and kill clock are published"
+		)
 		npc.Parent = nil
 		heartbeat.fire()
 		assert(

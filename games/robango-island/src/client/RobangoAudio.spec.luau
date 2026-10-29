@@ -59,7 +59,10 @@ local function instance(class: string, name: string): any
 	return item
 end
 
-local function start()
+-- `opts.services` adds engine services, `opts.bank`/`opts.director`/`opts.assets`/`opts.config`
+-- replace the stubs, `opts.enum` is the Enum global.
+local function start(opts: any?)
+	local o = opts or {}
 	local playerGui = instance("PlayerGui", "PlayerGui")
 	local player = instance("Player", "Player")
 	function player.WaitForChild()
@@ -70,20 +73,28 @@ local function start()
 	function workspace.FindFirstChild(_, name)
 		return if name == "ForgeWildlife" then wildlife else nil
 	end
-	local stateEvent = { OnClientEvent = signal() }
+	local stateEvent = { Name = "ForgeState", OnClientEvent = signal() }
+	-- `opts.stateLate`: ForgeState is not there yet (a town join) and arrives through ChildAdded.
+	-- WaitForChild errors so an unbounded wait (the v54 "Infinite yield possible") fails the spec.
+	local storage: any = { ChildAdded = signal() }
+	function storage.FindFirstChild(_, name)
+		return if name == "ForgeState" and not o.stateLate then stateEvent else nil
+	end
+	function storage.WaitForChild()
+		error("unbounded WaitForChild on ReplicatedStorage")
+	end
 	local services: { [string]: any } = {
 		Players = { LocalPlayer = player },
-		ReplicatedStorage = {
-			WaitForChild = function()
-				return stateEvent
-			end,
-		},
+		ReplicatedStorage = storage,
 		CollectionService = {
 			GetTagged = function()
 				return {}
 			end,
 		},
 	}
+	for name, service in o.services or {} do
+		services[name] = service
+	end
 	local Audio = luau.load(fs.readFile("games/robango-island/src/client/RobangoAudio.luau"), {
 		environment = {
 			game = {
@@ -92,6 +103,7 @@ local function start()
 				end,
 			},
 			workspace = workspace,
+			Enum = o.enum,
 		},
 	})()
 	local bank = {
@@ -118,9 +130,9 @@ local function start()
 			}
 		end,
 	}
-	local config = { slots = {}, groups = {}, signals = {}, wildlife = {}, receiptLimit = 8 }
-	local audio = Audio.start(bank, director, {}, config, {})
-	return audio, playerGui, wildlife
+	local config = o.config or { slots = {}, groups = {}, signals = {}, wildlife = {}, receiptLimit = 8 }
+	local audio = Audio.start(o.bank or bank, o.director or director, o.assets or {}, config, {})
+	return audio, playerGui, wildlife, stateEvent, storage
 end
 
 return {
@@ -160,5 +172,86 @@ return {
 			wildlife.ChildRemoved.fire(model)
 		end
 		audio.destroy()
+	end,
+	-- p134 v53 (phone): the live universe refused robango-level-up 110021116520036 ("User is not
+	-- authorized"). Every cue built a new Sound for the same id and the engine logged the failure
+	-- again. Drives the real AudioDirector: after the engine reports the id failed, a level-up
+	-- never builds or plays another Sound; a cue whose asset loads keeps playing.
+	["a sound id the engine failed to load stays silent instead of retrying every cue"] = function()
+		local LEVEL, CONFIRM = "rbxassetid://110021116520036", "rbxassetid://140071037166740"
+		local Enum = { AssetFetchStatus = { Success = "Success", Failure = "Failure", Loading = "Loading" } }
+		local status: { [string]: string } = { [LEVEL] = "Loading", [CONFIRM] = "Loading" }
+		local fetched: { [string]: number } = {}
+		local content = {}
+		function content.GetAssetFetchStatus(self, id: string)
+			assert(self == content, "method call")
+			fetched[id] = (fetched[id] or 0) + 1
+			return status[id] or "None"
+		end
+		local made: { [string]: number } = {}
+		local cues: { [string]: string } = {}
+		local bank = {
+			new = function()
+				return {
+					define = function(_, name, cue)
+						cues[name] = cue.soundId
+					end,
+					play = function(_, name)
+						made[cues[name]] = (made[cues[name]] or 0) + 1
+						return { Destroy = function() end }
+					end,
+					setGroupVolume = function() end,
+					destroy = function() end,
+				}
+			end,
+		}
+		local slots = {
+			["level-up"] = { asset = "robango-level-up", group = "UI", looped = false },
+			["ui-confirm"] = { asset = "robango-ui-confirm", group = "UI", looped = false },
+		}
+		local config = {
+			slots = slots,
+			groups = { UI = 1 },
+			events = { ["level-up"] = "level-up", ["ui-confirm"] = "ui-confirm" },
+			regions = {},
+			signals = { levelUp = "level-up", uiClick = "ui-confirm" },
+			wildlife = {},
+			receiptLimit = 8,
+		}
+		local audio = start({
+			services = { ContentProvider = content },
+			enum = Enum,
+			bank = bank,
+			director = require("../../../../genres/survival-coop/module/AudioDirector"),
+			assets = { ["robango-level-up"] = LEVEL, ["robango-ui-confirm"] = CONFIRM },
+			config = config,
+		})
+		audio.signal("levelUp")
+		assert(made[LEVEL] == 1, "the first level-up requests the sound")
+		status[LEVEL], status[CONFIRM] = "Failure", "Success"
+		for _ = 1, 10 do
+			audio.signal("levelUp")
+			audio.signal("uiClick")
+		end
+		assert(made[LEVEL] == 1, "a refused id is never re-created, got " .. tostring(made[LEVEL]))
+		assert(made[CONFIRM] == 10, "a loaded id keeps playing")
+		local checks = fetched[LEVEL]
+		audio.signal("levelUp")
+		assert(fetched[LEVEL] == checks, "a refused id is remembered, not re-queried")
+		audio.destroy()
+	end,
+	-- p134 v54 (town join): `WaitForChild("ForgeState")` logged "Infinite yield possible" at
+	-- RobangoAudio:279. Start must not wait on it: it attaches once the remote arrives.
+	["audio starts without waiting for ForgeState and attaches when it arrives"] = function()
+		local audio, _, _, stateEvent, storage = start({ stateLate = true })
+		assert(stateEvent.OnClientEvent.live == 0, "nothing attached before the remote exists")
+		storage.ChildAdded.fire({ Name = "Other" })
+		storage.ChildAdded.fire(stateEvent)
+		assert(stateEvent.OnClientEvent.live == 1, "attached once ForgeState arrives")
+		storage.ChildAdded.fire(stateEvent)
+		assert(stateEvent.OnClientEvent.live == 1, "attached only once")
+		stateEvent.OnClientEvent.fire({ snapshots = {} })
+		audio.destroy()
+		assert(stateEvent.OnClientEvent.live == 0, "destroy disconnects")
 	end,
 }

@@ -1919,6 +1919,8 @@ hud.slots,Slots,genre text hud,Slots,칸
 hud.slow,Heavy load: movement reduced,genre text hud,Heavy load: movement reduced,짐이 무거워 이동 속도가 줄었어요
 hud.eat,Eat one,genre text hud,Eat one,하나 먹기
 hud.hungry,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,genre text hud,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,배가 고파요: 가방(I)을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.
+hud.hungry_cook,You are getting hungry: cook the raw meat at a campfire (Craft > Cooked Meat) and eat it.,genre text hud,You are getting hungry: cook the raw meat at a campfire (Craft > Cooked Meat) and eat it.,배가 고파요: 날고기를 모닥불에서 익혀(제작 > 잉걸불 구이) 드세요.
+hud.hungry_find,You are getting hungry: pick berries from a bramble bush or hunt a dodo for meat.,genre text hud,You are getting hungry: pick berries from a bramble bush or hunt a dodo for meat.,배가 고파요: 덤불딸기를 따거나 도도를 사냥해 고기를 얻으세요.
 hud.knocked_down,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,genre text hud,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,쓰러져서 캠프에서 다시 일어났어요. 야생 동물과 배고픔을 조심하세요.
 hud.deposit,Store one,genre text hud,Store one,하나 보관
 hud.withdraw,Take one,genre text hud,Take one,하나 꺼내기
@@ -2498,8 +2500,8 @@ fct.inbox_title,Inbox,genre text fct,Inbox,보관함
 fct.inbox_empty,No results waiting.,genre text fct,No results waiting.,받을 결과가 없어요.
 fct.inbox_item,Market item: %s x%d,genre text fct,Market item: %s x%d,장터 물품: %s x%d
 fct.inbox_coins,Sale proceeds: %d coins,genre text fct,Sale proceeds: %d coins,판매 대금: %d 조개돈
-fct.inbox_crafted,Crafted: %s (job %s),genre text fct,Crafted: %s (job %s),제작 완료: %s (작업 %s)
-fct.inbox_running,Crafting: %s (job %s),genre text fct,Crafting: %s (job %s),제작 중: %s (작업 %s)
+fct.inbox_crafted,Ready to collect: %s,genre text fct,Ready to collect: %s,제작 완료: %s
+fct.inbox_running,Crafting: %s,genre text fct,Crafting: %s,제작 중: %s
 fct.inbox_refund,Refunded: %s (job %s),genre text fct,Refunded: %s (job %s),환불됨: %s (작업 %s)
 fct.inbox_claim,Claim,genre text fct,Claim,받기
 fct.inbox_expedition,"%s: %d coins, %d XP",genre text fct,"%s: %d coins, %d XP","%s: 조개돈 %d, 경험치 %d"
@@ -3000,6 +3002,8 @@ cmb.attack.WEAPON_UNAVAILABLE,Hold or wear a weapon to attack,genre text cmb,Hol
 cmb.attack.BLOCKED,Something is in the way,genre text cmb,Something is in the way,사이에 막는 것이 있어요
 cmb.attack.NOT_FACING,Turn toward it,genre text cmb,Turn toward it,대상을 바라보세요
 cmb.attack.MOUNTED,Get off your mount to attack,genre text cmb,Get off your mount to attack,탈것에서 내려야 공격할 수 있어요
+cmb.kill_toast,%s down - tap the carcass to harvest,genre text cmb,%s down - tap the carcass to harvest,%s 쓰러뜨림 - 사체를 눌러 손질하세요
+cmb.carcass_mark,%s carcass - tap,genre text cmb,%s carcass - tap,%s 사체 - 누르기
 hud.shell.capture,Capture,genre text hud,Capture,포획
 hud.shell.dismount,Hop off,genre text hud,Hop off,내리기
 hud.shell.pet,Companion,genre text hud,Companion,동료

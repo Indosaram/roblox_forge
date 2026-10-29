@@ -195,6 +195,11 @@ return {
 					WaitForChild = function()
 						return playerGui
 					end,
+					-- DownPanel flags ForgeDownPanelOpen (the backpack hotbar hides under it).
+					GetAttribute = function()
+						return nil
+					end,
+					SetAttribute = function() end,
 				},
 				GetPlayerByUserId = function()
 					return nil

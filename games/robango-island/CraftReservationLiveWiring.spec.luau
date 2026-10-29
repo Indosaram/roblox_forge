@@ -211,6 +211,8 @@ local function arrive(live: any)
 	live.engine.move(ACTOR, Content.homePolicy.dock)
 	local body = live.engine.game:GetService("Players"):GetPlayerByUserId(tonumber(ACTOR)).Character
 	body:FindFirstChildOfClass("Humanoid").HealthChanged = body.AttributeChanged
+	-- The player taps Start: the ADR-13 join hold ends and hunger runs (TitleFlow.bindWake).
+	assert(live.session.dispatch(ACTOR, "survival-coop:vitals-wake", {}).ok, "Start")
 end
 
 local function bag(live: any): any

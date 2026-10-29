@@ -116,6 +116,12 @@ local function harness(locale: string): any
 	local ctx: any = {
 		locale = locale,
 		names = {},
+		-- The pack resolver shape (ItemIcons): one published image per catalog id.
+		icons = {
+			item = function(id: string): any
+				return { image = "rbxassetid://" .. #id, category = "item", text = id }
+			end,
+		},
 		instance = {
 			new = function()
 				return node()
@@ -160,6 +166,7 @@ local function harness(locale: string): any
 			return result
 		end,
 	}
+	h.hub = hub
 	h.sheet = Inbox.mount(ctx, hub)
 	function h.refresh()
 		hub.state.expedition = h.extension.snapshot("a")
@@ -202,6 +209,22 @@ local function harness(locale: string): any
 		return out
 	end
 	return h
+end
+
+-- A craft job entry of the workshop snapshot (FarmCraftModel.inbox reads job.state/outputs).
+local function job(state: string, catalogId: string, quantity: number): any
+	return {
+		job = {
+			recipeId = catalogId,
+			state = state,
+			inputs = { { itemId = "in", catalogId = "fiber", quantity = 2 } },
+			outputs = { { itemId = "out", catalogId = catalogId, quantity = quantity } },
+		},
+	}
+end
+
+local function workshop(entries: any): any
+	return { snapshots = { ["survival-coop"] = { workshop = { actorId = "a", entries = entries } } } }
 end
 
 local function route(locale: string, index: number): string
@@ -249,6 +272,66 @@ return {
 		end)
 		assert(not again.ok and again.reason == "ledger_claimed" and h.claims == 1, "second claim refused")
 		assert(Text.refusal("ko-kr", "ledger_claimed") == "이미 받았어요", "localized refusal")
+	end,
+	-- p134 v53 (phone): the inbox listed every finished craft job as plain text, "환불됨: 으깬 딸기죽
+	-- x1 (작업 w11:1173)" / "제작 완료: 꼰 끈 x1 (작업 w11:1173)" repeated, with no icon or grouping,
+	-- and the U6 empty card never showed. Finished (committed / cancelled) jobs are already in the
+	-- bag: they are not inbox rows. Ready output is one icon row per item, summed, without job ids.
+	["finished craft jobs leave the empty card; ready output is one grouped icon row without job ids"] = function()
+		for _, locale in { "ko-kr", "en-us" } do
+			local h = harness(locale)
+			h.documents.a.resultsLedger = {}
+			h.hub.state.packet = workshop({
+				["w11:1173"] = job("Cancelled", "berry-meal", 1),
+				["w11:1174"] = job("Committed", "capture-bola", 1),
+				["w11:1175"] = job("Committed", "cord", 1),
+				["w11:1176"] = job("Committed", "cord", 1),
+			})
+			h.refresh()
+			local texts = table.concat(h.texts(), " | ")
+			assert(
+				texts == Text.text(locale, "inbox_empty") .. "\n" .. Text.text(locale, "inbox_empty_hint"),
+				locale .. " finished jobs show the empty card, got: " .. texts
+			)
+			h.hub.state.packet = workshop({
+				["w11:1175"] = job("Ready", "cord", 1),
+				["w11:1176"] = job("Ready", "cord", 2),
+				["w11:1177"] = job("Committed", "cord", 1),
+				["w11:1178"] = job("Ready", "capture-bola", 1),
+			})
+			h.refresh()
+			local name = require("../../../games/robango-island/PackText.fixture").names(locale)
+			local cord = Text.text(locale, "inbox_crafted", name.cord .. " x3")
+			local bola = Text.text(locale, "inbox_crafted", name["capture-bola"] .. " x1")
+			local rows = h.rows()
+			assert(
+				#rows == 2,
+				locale .. " one row per ready item, got " .. #rows .. ": " .. table.concat(h.texts(), " | ")
+			)
+			for index, want in { cord, bola } do
+				local label = rows[index].children[1]
+				assert(label.Text == want, locale .. " row " .. index .. ": " .. tostring(label.Text))
+				local icon = label.children and label.children[1]
+				assert(icon and icon.Name == "ItemIcon", locale .. " row " .. index .. " has an item icon")
+				assert(string.match(icon.Image, "^rbxassetid://%d+$"), "icon art from the pack resolver")
+			end
+			for _, text in h.texts() do
+				assert(not string.find(text, "w11", 1, true), locale .. " raw job id in: " .. text)
+			end
+			-- Collect completes every ready job of the item.
+			local before = #h.sends
+			h.find("Collect-w11:1175").onClick()
+			local jobs = {}
+			for index = before + 1, #h.sends do
+				assert(h.sends[index].action == "survival-coop:craft-complete", "collect verb")
+				table.insert(jobs, h.sends[index].args[1])
+			end
+			table.sort(jobs)
+			assert(
+				table.concat(jobs, ",") == "w11:1175,w11:1176",
+				"both cord jobs collected: " .. table.concat(jobs, ",")
+			)
+		end
 	end,
 	["korean inbox text carries no raw ids and fits 360x640 and 1280x720"] = function()
 		for _, locale in { "ko-kr", "en-us" } do

@@ -282,4 +282,70 @@ return {
 			assert(rects.title.y >= view[3], "title under the top bar at " .. label)
 		end
 	end,
+	-- ADR-13 (p134 v53): Start reports vitals-wake so the server ends the join hold on hunger. A
+	-- refusal (profile still loading) is retried, bounded; nothing is sent while the title is up.
+	["Start reports vitals-wake once, retrying a refusal a bounded number of times"] = function()
+		local attributes: { [string]: any } = {}
+		local watchers: { [string]: { () -> () } } = {}
+		local player = {
+			GetAttribute = function(_, name: string)
+				return attributes[name]
+			end,
+			SetAttribute = function(_, name: string, value: any)
+				attributes[name] = value
+				for _, fn in watchers[name] or {} do
+					fn()
+				end
+			end,
+			GetAttributeChangedSignal = function(_, name: string)
+				return {
+					Connect = function(_, fn)
+						watchers[name] = watchers[name] or {}
+						table.insert(watchers[name], fn)
+						return { Disconnect = function() end }
+					end,
+				}
+			end,
+		}
+		local sent: { string } = {}
+		local answers = { { ok = false, reason = "profile not ready" }, { ok = false }, { ok = true } }
+		local retries: { () -> () } = {}
+		Flow.bindWake(player, function(action: string): any
+			table.insert(sent, action)
+			return table.remove(answers, 1) or { ok = true }
+		end, function(seconds: number, fn: () -> ())
+			assert(seconds == Flow.WAKE_RETRY_SECONDS, "retry delay")
+			table.insert(retries, fn)
+		end)
+		assert(#sent == 0, "nothing while the title is up")
+		player:SetAttribute("ForgeTitleDone", true)
+		while #retries > 0 do
+			table.remove(retries, 1)()
+		end
+		assert(#sent == 3 and sent[1] == Flow.WAKE_ACTION, "retried until accepted, sent " .. #sent)
+		player:SetAttribute("ForgeTitleDone", true)
+		assert(#sent == 3, "sent once")
+		-- A server that never accepts: bounded attempts, then the server's 10-minute cap ends the hold.
+		local refusals = 0
+		local stuck = {
+			GetAttribute = function()
+				return true
+			end,
+			GetAttributeChangedSignal = player.GetAttributeChangedSignal,
+		}
+		local pending: { () -> () } = {}
+		Flow.bindWake(stuck, function(): any
+			refusals += 1
+			return { ok = false }
+		end, function(_, fn)
+			table.insert(pending, fn)
+		end)
+		while #pending > 0 do
+			table.remove(pending, 1)()
+		end
+		assert(refusals == Flow.WAKE_ATTEMPTS, "bounded at " .. refusals)
+		-- The live wiring: the HUD client sends it through ForgeAction.
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(client, "Flow.bindWake(player", 1, true), "client binds the wake")
+	end,
 }

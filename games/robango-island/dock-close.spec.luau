@@ -1265,6 +1265,49 @@ return {
 				if section == "bag" or section == "craft" then
 					assert(counts > 0, where .. ": no item counts")
 				end
+				if section == "bag" then
+					-- p134 v53 (phone): each slot's count box covered the lower half of its icon. The count
+					-- is a compact bottom-right corner badge; the icon centre and most of the icon stay clear.
+					local grid
+					for _, item in frame:GetDescendants() do
+						grid = grid or (if item.Name == "InventoryGrid" then item else nil)
+					end
+					assert(grid, where .. ": bag grid")
+					local cell = grid:FindFirstChildOfClass("UIGridLayout").CellSize
+					local edge = cell.X.Offset
+					assert(edge > 0 and cell.Y.Offset == edge and cell.X.Scale == 0, where .. ": square px slots")
+					local slots = 0
+					for _, slot in grid:GetChildren() do
+						local badge, icon = slot:FindFirstChild("Quantity"), slot:FindFirstChild("IconFallback")
+						if not (badge and icon) then
+							continue
+						end
+						slots += 1
+						local function box(item: any): any
+							assert(item.Size.X.Scale == 0 and item.Position.X.Scale == 0, where .. ": offset rects")
+							assert(item.Size.Y.Scale == 0 and item.Position.Y.Scale == 0, where .. ": offset rects")
+							local left, top = item.Position.X.Offset, item.Position.Y.Offset
+							return { x = left, y = top, r = left + item.Size.X.Offset, b = top + item.Size.Y.Offset }
+						end
+						local q, i = box(badge), box(icon)
+						local slotAt = where .. " slot " .. badge.Text
+						assert(
+							q.x >= 0 and q.y >= 0 and q.r <= edge and q.b <= edge,
+							slotAt .. ": badge inside the slot"
+						)
+						assert(edge - q.r <= 4 and edge - q.b <= 4, slotAt .. ": badge in the bottom-right corner")
+						assert(q.b - q.y <= badge.TextSize + 6, slotAt .. ": badge one compact line")
+						assert((q.r - q.x) * (q.b - q.y) <= edge * edge * 0.22, slotAt .. ": badge compact")
+						local cx, cy = (i.x + i.r) / 2, (i.y + i.b) / 2
+						assert(q.x > cx and q.y > cy, slotAt .. ": badge clear of the icon centre")
+						local ow = math.max(0, math.min(q.r, i.r) - math.max(q.x, i.x))
+						local oh = math.max(0, math.min(q.b, i.b) - math.max(q.y, i.y))
+						local area = (i.r - i.x) * (i.b - i.y)
+						assert(ow * oh <= area * 0.2, slotAt .. ": badge covers " .. (ow * oh) .. " of " .. area)
+						assert(badge.ZIndex > icon.ZIndex, slotAt .. ": badge draws over the icon")
+					end
+					assert(slots == 2, where .. ": both stacks have a slot, got " .. slots)
+				end
 				laneClear(h, { { name = section .. " close", rect = x } }, where)
 				h.click(close)
 				assert(not frame.Visible, where .. ": X closes")

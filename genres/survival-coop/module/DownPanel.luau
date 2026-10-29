@@ -12,6 +12,8 @@ local Shell = require("./HudShell")
 local M = {}
 M.CHOOSE = "survival-coop:rescue-choose"
 M.REVIVE = "survival-coop:rescue-revive"
+-- Player attribute: true while the down panel shows (full-screen, like an open sheet).
+M.OPEN_ATTRIBUTE = "ForgeDownPanelOpen"
 
 local STRINGS: { [string]: { string } } = PackLocale.rows({}, { "rsc." })
 M.KEYS = {
@@ -322,6 +324,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local state = snapshot.rescue
 		local view = M.model(locale, state)
 		gui.Enabled, grade.Enabled = view ~= nil, view ~= nil
+		-- p134 v53: the CoreGui Backpack hotbar drew over the middle card. The pack's backpack
+		-- binding (TitleFlow.SHEET_ATTRIBUTES) hides it while this flag is set; up again clears it.
+		if player:GetAttribute(M.OPEN_ATTRIBUTE) ~= (view ~= nil) then
+			player:SetAttribute(M.OPEN_ATTRIBUTE, view ~= nil)
+		end
 		if view then
 			if not shownDown then
 				status.Text = ""
@@ -384,6 +391,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		destroy = function()
 			heartbeat:Disconnect()
 			unsubscribe()
+			player:SetAttribute(M.OPEN_ATTRIBUTE, nil)
 			grade:Destroy()
 			markers:Destroy()
 			gui:Destroy()

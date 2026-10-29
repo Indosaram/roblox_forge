@@ -122,12 +122,25 @@ return {
 		assert(math.abs(pc.endCombat.x - 1511) <= 2 and math.abs(pc.endCombat.y - 549) <= 2, "end-combat rect")
 	end,
 
+	["a carcass is marked only for its killer and only inside the server harvest window"] = function()
+		local Carcass = require("./CarcassExtension")
+		assert(Combat.CARCASS_SECONDS == Carcass.LIFETIME_SECONDS, "client mark lives as long as the server corpse")
+		assert(Combat.CARCASS_SECONDS >= 300, "a body stays harvestable for at least 5 minutes")
+		assert(Combat.HARVEST_REACH < Carcass.REACH_STUDS, "the walk stops inside the server reach")
+		assert(Combat.carcassOpen(0, "1", "1", 100, 100 + Combat.CARCASS_SECONDS - 1), "fresh kill")
+		assert(not Combat.carcassOpen(0, "1", "1", 100, 100 + Combat.CARCASS_SECONDS), "spoiled")
+		assert(not Combat.carcassOpen(0, "2", "1", 100, 101), "someone else's kill")
+		assert(not Combat.carcassOpen(5000, "1", "1", 100, 101), "alive")
+		assert(Combat.carcassOpen(0, "1", "1", nil, nil), "no clock: kept until the server says otherwise")
+	end,
 	["KO/EN copy comes from the pack strings; unknown refusals never show a raw code"] = function()
 		-- The shared fixture installs the pack's strings.csv lookup (the client installs the same).
 		local _packText = (require :: any)("../../../games/robango-island/PackText.fixture")
 		assert(Combat.text("en-us", "end_combat") == "Step back", "EN step back")
 		assert(Combat.text("ko-kr", "end_combat") == "물러서기", "KO step back (ui-spec section 7)")
-		for _, key in { "level", "taken", "dodged", "carcass_title", "carcass_leave", "refused" } do
+		for _, key in
+			{ "level", "taken", "dodged", "carcass_title", "carcass_leave", "refused", "kill_toast", "carcass_mark" }
+		do
 			assert(Combat.text("ko-kr", key) ~= key and Combat.text("en-us", key) ~= key, "row " .. key)
 		end
 		assert(Combat.refusal("ko-kr", "OUT_OF_RANGE") == "더 가까이 가세요", "specific refusal")

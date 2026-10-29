@@ -741,8 +741,12 @@ function M.new(ctx: any): any
 				local owner = session.personalTransfer(actor)
 				local repaired = assert(
 					owner.personal:update(owner.profile(), function(raw)
-						raw.envelope.genres["survival-coop"].data.inventory.bag.items["biology-weapon"].durabilityMilli =
-							100000
+						local data = raw.envelope.genres["survival-coop"].data
+						data.inventory.bag.items["biology-weapon"].durabilityMilli = 100000
+						-- Combat costs fullness (strikeHungerMilli): the long fixture fight eats between hits too.
+						if data.vitals then
+							data.vitals.hungerMilli = 100000
+						end
 						return raw
 					end),
 					"between-hit fixture repair"
@@ -1870,8 +1874,12 @@ function M.new(ctx: any): any
 					local owner = session.personalTransfer(actor)
 					owner.install(assert(
 						owner.personal:update(owner.profile(), function(raw)
-							local item = raw.envelope.genres["survival-coop"].data.inventory.bag.items[weapon]
-							item.durabilityMilli = 100000
+							local data = raw.envelope.genres["survival-coop"].data
+							data.inventory.bag.items[weapon].durabilityMilli = 100000
+							-- Combat costs fullness (strikeHungerMilli): the long fixture fight eats between hits too.
+							if data.vitals then
+								data.vitals.hungerMilli = 100000
+							end
 							return raw
 						end),
 						"between-hit fixture repair"

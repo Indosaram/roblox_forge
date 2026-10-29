@@ -1118,10 +1118,11 @@ function M.start(options: Options)
 			end
 		end
 		local hungry = Model.hungry(v)
+		local hint = Model.hungerHint(model.snapshot, content and content.items)
 		local detail = if model.reason
 			then Locale.refusal(locale, model.reason, refusedSkill)
 			elseif model.notice then t(model.notice)
-			elseif hungry then t("hungry")
+			elseif hint then t(hint)
 			else nil
 		-- Shell: the status slot shows only the notice itself; the idle "ready" headline above it
 		-- read as a second objective card in mid-screen on the phone (staging v26).
@@ -1265,12 +1266,23 @@ function M.start(options: Options)
 				if panelLayout and cells then
 					-- Six square cells (spec 6.3); the name moves to the detail card, the count stays >= 13 px.
 					cells.CellSize = UDim2.fromOffset(panelLayout.cell, panelLayout.cell)
+					-- The count is a corner badge at the sheet skin's body size (skinSheet never shrinks it).
+					local countSize = if shell and Theme.sheet
+						then math.max(HudShell.PANEL_MIN_TEXT, Theme.sheetText("body", gui.AbsoluteSize.Y))
+						else HudShell.PANEL_MIN_TEXT
 					for _, slot in grid.frame:GetChildren() do
 						local caption, quantity = slot:FindFirstChild("Caption"), slot:FindFirstChild("Quantity")
 						if caption and quantity then
 							caption.Visible = false
-							quantity.TextSize, quantity.Size = HudShell.PANEL_MIN_TEXT, UDim2.fromOffset(36, 22)
-							quantity.Position = UDim2.new(1, -38, 1, -24)
+							local cell = HudShell.bagSlot(panelLayout.cell, countSize, quantity.Text)
+							quantity.TextSize = countSize
+							quantity.Size = UDim2.fromOffset(cell.badge.width, cell.badge.height)
+							quantity.Position = UDim2.fromOffset(cell.badge.x, cell.badge.y)
+							local icon = slot:FindFirstChild("IconFallback")
+							if icon then
+								icon.Size = UDim2.fromOffset(cell.icon.width, cell.icon.height)
+								icon.Position = UDim2.fromOffset(cell.icon.x, cell.icon.y)
+							end
 							-- InventoryGrid re-mounts the icon on every update, so it became the later sibling
 							-- at the same ZIndex and covered the count's top half (phone v40: digits unreadable).
 							quantity.ZIndex = slot.ZIndex + 2

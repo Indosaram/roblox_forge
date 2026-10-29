@@ -1,7 +1,8 @@
 --!strict
 -- ui.inbox: persistent paged result ledger. Market claims (returned listings, bought items,
--- sale proceeds) Claim through market-claim; crafted output waiting in a job is collected
--- with craft-complete; committed outputs and cancellation refunds are listed with their job.
+-- sale proceeds) Claim through market-claim; crafted output waiting in jobs is one icon row per
+-- item (summed) collected with craft-complete. Finished jobs (committed, refunded) are not listed:
+-- their items are already in the bag. Nothing to claim or collect shows the empty-state card.
 -- Expedition results (results ledger, newest first) Claim through the expedition party-action
 -- claim verb; claimed rows stay listed as received.
 local Model = require("./FarmCraftModel")
@@ -37,12 +38,15 @@ function M.mount(ctx: any, hub: any): any
 		local rows = Model.inbox(hub.state.packet, hub.state.market, hub.state.expedition)
 		local shown, current, pages = Model.page(rows, page)
 		page = current
-		if #rows == 0 then
+		local actionable = false
+		for _, row in rows do
+			actionable = actionable or Model.inboxActionable(row)
+		end
+		if not actionable then
 			sheet.empty(t("inbox_empty"), t("inbox_empty_hint"), "inbox")
 		end
 		for _, row in shown do
 			local item = if row.catalogId then hub.name(row.catalogId) .. " x" .. tostring(row.quantity) else ""
-			local short = if row.job then string.sub(row.job, 1, 8) else ""
 			if row.kind == "expedition" then
 				local key = if row.claimed then "inbox_expedition_received" else "inbox_expedition"
 				sheet.label(t(key, route(row.route), row.coins, row.xp))
@@ -59,21 +63,32 @@ function M.mount(ctx: any, hub: any): any
 					end)
 				end
 			elseif row.kind == "item" or row.kind == "coins" then
-				sheet.label(
+				sheet.item(
+					row.catalogId,
 					if row.kind == "item"
 						then t("inbox_item", hub.name(row.catalogId), row.quantity)
-						else t("inbox_coins", row.coins or 0)
+						else t("inbox_coins", row.coins or 0),
+					{
+						name = "Claim-" .. row.claim,
+						text = t("inbox_claim"),
+						click = function()
+							sheet.send("market-claim", { row.claim })
+						end,
+					}
 				)
-				sheet.button("Claim-" .. row.claim, t("inbox_claim"), function()
-					sheet.send("market-claim", { row.claim })
-				end)
-			elseif row.kind == "ready" or row.kind == "running" then
-				sheet.label(t(if row.kind == "ready" then "inbox_crafted" else "inbox_running", item, short))
-				sheet.button("Collect-" .. row.job, t("job_collect"), function()
-					sheet.send("craft-complete", { row.job })
-				end)
+			elseif row.kind == "ready" then
+				-- One row per item: Collect completes every ready job of it.
+				sheet.item(row.catalogId, t("inbox_crafted", item), {
+					name = "Collect-" .. row.job,
+					text = t("job_collect"),
+					click = function()
+						for _, job in row.jobs do
+							sheet.send("craft-complete", { job })
+						end
+					end,
+				})
 			else
-				sheet.label(t(if row.kind == "crafted" then "inbox_crafted" else "inbox_refund", item, short))
+				sheet.item(row.catalogId, t("inbox_running", item))
 			end
 		end
 		if pages > 1 then

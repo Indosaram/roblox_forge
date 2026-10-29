@@ -181,3 +181,41 @@ real RoleWorld, SurvivalFactory, Session and MemoryBackend through two sessions:
 log off at fullness <= 10 with an empty bag, close, then rejoin on the same
 backend. The survivor joins at exactly 50 and loses no health over the next
 14 minutes. Without the clamp it joins at 2.
+
+**Amendment (2026-10-29, p134 v53/v54): Durango pace, title hold, food worth eating.**
+The floor alone did not stop starvation. On the phone, fullness drained about 3.5 per
+minute (18 s per unit): a returning account starved 22 minutes after Start, and after a
+respawn it went 99 -> 0 in 33 minutes. A berry gave +5 (+3 seen through the drain), so
+18 berries only took the gauge 26 -> 56. The title also sat 65 s before Start, so the
+floor of 50 already read 46 at the first HUD frame. In Durango, hunger is slow pressure,
+not a timer, so:
+- **Drain.** `content.yml` `vitals.hungerMillisPerUnit` 18000 -> 39000: full -> the
+  hungry prompt (30) in about 45 min of active play, and full -> 0 in about 65 min.
+  The new optional `vitals.strikeHungerMilli` (300) makes each combat strike, given or
+  taken (`Vitals.exert`, through `Vitals.damage` and the charged swing in
+  `WildlifeRuntime`), cost 0.3 more, so fighting drains a little faster. A save
+  written under the old rates adopts the new scalar rates on load (`CraftingAdapter`
+  `loadPlayer`, remainders reset); the old code refused such a save with
+  "vitals config mismatch".
+- **Title hold.** The opt-in config flag `vitalsHold` (on for robango-island) holds
+  hunger from `Session.join` until the client reports the title's Start with the
+  non-durable `survival-coop:vitals-wake` (`TitleFlow.bindWake`, retried at most 20
+  times). The hold is in memory only, and after `JOIN_HOLD_MAX_MILLIS` (10 min) it ends
+  by itself, so a client that never reports cannot freeze hunger. The floor of 50 now
+  reads 50 when play starts.
+- **Food.** A berry gives 9 (was 5), Berry Mash 30 (was 15) and Cooked Meat 35 (was
+  20). A second bramble patch `rw.onboarding.berry-2` stands about 13 studs from the entry
+  anchor, so the first food is reachable before the first hunger prompt. The dodo
+  carcass already offers meat (CarcassExtension, C3). The hungry hint now follows the
+  bag: eat what you carry, cook the raw meat at a campfire (`hud.hungry_cook`), or pick
+  berries / hunt a dodo (`hud.hungry_find`).
+
+**Evidence (amendment).** `OnboardingFood.spec.luau`: "fullness holds under the title
+and drains only after Start reports vitals-wake" (5 title minutes cost 0; the measured
+pace afterwards gives full -> hungry in 45-60 min), "the join hold ends by itself when a
+client never reports Start", "a survivor saved under the old hunger rate rejoins on the
+new rate", and "a berry is worth about a tenth of the gauge and a bush stands beside the
+entry". The floor spec now plays 59 min to empty and then 30 min with no health loss.
+`Vitals.spec.luau`: "a strike costs strikeHungerMilli of fullness and leaves the drain
+clock alone". On the old code all of these fail: 83 after 5 title minutes, berry 5, no
+exert, no wake action.

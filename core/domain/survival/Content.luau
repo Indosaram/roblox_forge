@@ -199,6 +199,8 @@ local VITALS_FIELDS = {
 	"starvationMillisPerUnit",
 	-- Optional, no default: its presence switches on the death zone (see Vitals.Config).
 	"respawnDelayMillis",
+	-- Optional, no default: fullness one combat strike costs (Vitals.exert).
+	"strikeHungerMilli",
 }
 local VITALS_DEFAULTS: VitalsConfig = {
 	hungerMillisPerUnit = 18000,

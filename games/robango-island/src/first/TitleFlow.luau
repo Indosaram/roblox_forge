@@ -186,7 +186,39 @@ function M.backpackShown(titleDone: boolean, sheetOpen: boolean): boolean
 	return titleDone and not sheetOpen
 end
 
-M.SHEET_ATTRIBUTES = table.freeze({ "ForgeSurvivalSheetOpen", "ForgeExtensionSheetOpen" })
+-- ForgeDownPanelOpen: the survival-coop down panel (p134 v53: the hotbar covered its middle card).
+M.SHEET_ATTRIBUTES = table.freeze({ "ForgeSurvivalSheetOpen", "ForgeExtensionSheetOpen", "ForgeDownPanelOpen" })
+
+-- ADR-13 join hold: the server holds hunger from join until Start reports `WAKE_ACTION`.
+M.WAKE_ACTION = "survival-coop:vitals-wake"
+M.WAKE_ATTEMPTS = 20
+M.WAKE_RETRY_SECONDS = 1
+
+--- Reports the title's Start to the server once ForgeTitleDone is set (now or later). `invoke`
+--- is ForgeAction:InvokeServer(action, args); `retry(seconds, fn)` schedules one retry. A refusal
+--- (profile still loading) is retried at most WAKE_ATTEMPTS times; the server's 10-minute cap ends
+--- the hold anyway. Returns the disconnect.
+function M.bindWake(player: any, invoke: (string, { any }) -> any, retry: (number, () -> ()) -> ()): () -> ()
+	local sent, attempts, stopped = false, 0, false
+	local function attempt()
+		if stopped or sent or player:GetAttribute("ForgeTitleDone") ~= true then
+			return
+		end
+		attempts += 1
+		local ok, result = pcall(invoke, M.WAKE_ACTION, {})
+		if ok and type(result) == "table" and result.ok == true then
+			sent = true
+		elseif attempts < M.WAKE_ATTEMPTS then
+			retry(M.WAKE_RETRY_SECONDS, attempt)
+		end
+	end
+	local connection = player:GetAttributeChangedSignal("ForgeTitleDone"):Connect(attempt)
+	attempt()
+	return function()
+		stopped = true
+		connection:Disconnect()
+	end
+end
 
 --- Keeps the Backpack CoreGui on `backpackShown` for the session: `apply(shown)` sets it (the boot
 --- passes StarterGui:SetCoreGuiEnabled). Applies at once (hidden under the title) and on every

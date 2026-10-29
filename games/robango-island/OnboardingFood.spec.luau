@@ -161,11 +161,15 @@ end
 local MINUTE = 60
 local STEP = 5
 
-local function arrive(live: any, actor: string)
+local function arrive(live: any, actor: string, titleUp: boolean?)
 	live.engine.move(actor, Content.homePolicy.dock)
 	-- The fixture Humanoid lacks HealthChanged, which the down hold connects to.
 	local character = live.engine.game:GetService("Players"):GetPlayerByUserId(tonumber(actor)).Character
 	character:FindFirstChildOfClass("Humanoid").HealthChanged = character.AttributeChanged
+	-- The player taps Start (TitleFlow.bindWake); `titleUp` keeps the title screen up instead.
+	if not titleUp then
+		assert(live.session.dispatch(actor, "survival-coop:vitals-wake", {}).ok, "Start")
+	end
 end
 
 local function vitals(live: any): any
@@ -278,7 +282,7 @@ return {
 		while berryId(first) do
 			assert(first.command(DOWNED, "survival-coop:food", { berryId(first) }).ok, "eat the starter berries")
 		end
-		play(first, 29 * MINUTE + 15, false)
+		play(first, 59 * MINUTE, false)
 		local left = vitals(first)
 		assert(left.healthMilli > 0 and left.hungerMilli <= 10000, "logged off nearly empty: " .. left.hungerMilli)
 		local leftAt = first.at.value
@@ -293,9 +297,126 @@ return {
 			"joined at fullness " .. joined.hungerMilli // 1000
 		)
 		assert(berryId(back) == nil, "still no food in the bag")
-		-- The floor is a real runway: 14 minutes of looking for food costs no health.
-		local lowest = play(back, 14 * MINUTE, false)
-		assert(lowest == joined.healthMilli, "health fell to " .. lowest .. " within 14 minutes of joining")
+		-- The floor is a real runway: 30 minutes of looking for food costs no health.
+		local lowest = play(back, 30 * MINUTE, false)
+		assert(lowest == joined.healthMilli, "health fell to " .. lowest .. " within 30 minutes of joining")
 		back.factory.close()
+	end,
+	-- p134 v53 (phone): the title sat 65 s before Start and the join floor 50 showed 46 at the first
+	-- HUD. Through the real Session.join and the client's wake: hunger holds until Start.
+	["fullness holds under the title and drains only after Start reports vitals-wake"] = function()
+		local Flow = require("./src/first/TitleFlow")
+		local live = boot()
+		assert(live.session.join(DOWNED).ok, "join")
+		arrive(live, DOWNED, true)
+		local joined = vitals(live).hungerMilli
+		-- Five minutes on the title screen: the server advances, fullness does not move.
+		play(live, 5 * MINUTE, false)
+		assert(vitals(live).hungerMilli == joined, "drained under the title to " .. vitals(live).hungerMilli)
+		local woke = live.session.dispatch(DOWNED, Flow.WAKE_ACTION, {})
+		assert(woke.ok, "wake: " .. tostring(woke.reason))
+		play(live, 5 * MINUTE, false)
+		local after = vitals(live).hungerMilli
+		assert(after < joined, "hunger runs after Start")
+		local perMinute = (joined - after) / 5 / 1000
+		-- Durango pace (ADR-13): full -> hungry (30) in roughly 45-60 min of active play.
+		local toHungry = (100 - 30) / perMinute
+		assert(toHungry >= 45 and toHungry <= 60, string.format("full -> hungry in %.1f min", toHungry))
+		live.factory.close()
+	end,
+	["the join hold ends by itself when a client never reports Start"] = function()
+		local Adapter = require("../../genres/survival-coop/module/CraftingAdapter")
+		local live = boot()
+		assert(live.session.join(DOWNED).ok, "join")
+		arrive(live, DOWNED, true)
+		local joined = vitals(live).hungerMilli
+		play(live, Adapter.JOIN_HOLD_MAX_MILLIS // 1000 + 3 * MINUTE, false)
+		local after = vitals(live).hungerMilli
+		assert(after < joined, "the hold capped, hunger runs")
+		assert(joined - after <= 4 * MINUTE * 1000 // 39, "only the time after the cap drained")
+		live.factory.close()
+	end,
+	-- Saves written under the old 18 s/unit rate must keep loading (the old code asserted
+	-- "vitals config mismatch" and refused the join), and adopt the new rate.
+	["a survivor saved under the old hunger rate rejoins on the new rate"] = function()
+		local first = boot()
+		assert(first.session.join(DOWNED).ok, "first join")
+		arrive(first, DOWNED)
+		local leftAt = first.at.value
+		assert(first.session.close(DOWNED).ok, "leave saves")
+		first.factory.close()
+		-- Rewrite the saved vitals config to the v53 shipped rates (no strike cost).
+		local rewritten = 0
+		local function rewrite(value: any)
+			if type(value) ~= "table" then
+				return
+			end
+			if type(value.config) == "table" and value.config.hungerMillisPerUnit ~= nil then
+				value.config.hungerMillisPerUnit, value.config.strikeHungerMilli = 18000, nil
+				value.hungerRemainder = math.min(value.hungerRemainder, 17999)
+				rewritten += 1
+			end
+			for _, child in value do
+				rewrite(child)
+			end
+		end
+		local backend = first.backend
+		local old = { update = backend.update }
+		for _, key in { "personal:" .. DOWNED, DOWNED } do
+			old.update(key, function(raw)
+				rewrite(raw)
+				return raw
+			end)
+		end
+		assert(rewritten > 0, "found the saved vitals")
+		local back = boot(backend, leftAt + 60)
+		local joined = back.session.join(DOWNED)
+		assert(joined.ok, "rejoin with an old-rate save: " .. tostring(joined.reason))
+		arrive(back, DOWNED)
+		local state = vitals(back)
+		assert(state.config.hungerMillisPerUnit == Content.vitals.hungerMillisPerUnit, "adopted the new rate")
+		assert(state.config.strikeHungerMilli == Content.vitals.strikeHungerMilli, "adopted the strike cost")
+		back.factory.close()
+	end,
+	-- p134 v54: 18 berries took fullness 26 -> 56 (+3 each with the join floor masking it) and the
+	-- only bush was ~100 studs from the start. Early food has to be worth the walk.
+	["a berry is worth about a tenth of the gauge and a bush stands beside the entry"] = function()
+		local effect: any = {}
+		for _, item in Content.items do
+			effect[item.id] = item.foodEffects
+		end
+		assert(effect.berry.hungerMilli >= 8000 and effect.berry.hungerMilli <= 10000, "berry +8..10")
+		assert(effect["cooked-meat"].hungerMilli >= 3 * effect.berry.hungerMilli, "cooked meat is a real meal")
+		local entry, nearest = nil :: any, math.huge
+		local layout: any
+		for _, candidate in Content.layouts do
+			layout = if candidate.id == "rw.onboarding" then candidate else layout
+		end
+		for _, anchor in layout.anchors do
+			entry = if anchor.id == "entry" then anchor.position else entry
+		end
+		for _, node in layout.resourceNodes do
+			if node.item == "berry" then
+				nearest =
+					math.min(nearest, math.sqrt((node.position.x - entry.x) ^ 2 + (node.position.z - entry.z) ^ 2))
+			end
+		end
+		assert(nearest <= 20, string.format("nearest berry bush %.0f studs from the entry", nearest))
+		-- And it is a live gather node on the real world, eaten through the real food command.
+		local live = boot()
+		assert(live.session.join(DOWNED).ok, "join")
+		arrive(live, DOWNED)
+		local nodes = live.factory.services.survivalGathering.snapshot(DOWNED)
+		assert(nodes.nodes["rw.onboarding.berry-2"], "the entry bush is a gather node")
+		local id = assert(berryId(live), "starter berries")
+		-- Room for a whole berry below full: eight minutes of play after Start.
+		play(live, 8 * MINUTE, false)
+		local before = vitals(live).hungerMilli
+		assert(before <= 100000 - effect.berry.hungerMilli, "room for a berry: " .. before)
+		local fed = live.command(DOWNED, "survival-coop:food", { id })
+		assert(fed.ok, "eat: " .. tostring(fed.reason))
+		local gained = vitals(live).hungerMilli - before
+		assert(gained >= 8000, "one berry gave " .. gained)
+		live.factory.close()
 	end,
 }

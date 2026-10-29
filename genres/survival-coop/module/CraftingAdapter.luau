@@ -51,6 +51,7 @@ export type Config = {
 	contentVersion: number,
 	survivalDeath: boolean?,
 	craftSeed: number?,
+	vitalsHold: boolean?,
 	inventory: {
 		content: any,
 		carriedContainer: string,
@@ -115,7 +116,11 @@ function M.validateConfig(data: Shared.ConfigData): { string }
 		inventory = true,
 		survivalDeath = true,
 		craftSeed = true,
+		vitalsHold = true,
 	}
+	if data.vitalsHold ~= nil and type(data.vitalsHold) ~= "boolean" then
+		table.insert(errors, "vitalsHold: expected boolean")
+	end
 	if data.craftSeed ~= nil and not bounded(data.craftSeed, 0, 2 ^ 53 - 1, true) then
 		table.insert(errors, "craftSeed: invalid bounded integer")
 	end
@@ -204,6 +209,11 @@ M.PREVIOUS_SAVE_VERSION = 2
 -- Fullness (milli) a living survivor has at least on join: 15 minutes before hunger hurts at the
 -- shipped 18 s per unit. Only raises; dead, fresh and fuller survivors are untouched (ADR-13).
 M.JOIN_FULLNESS_FLOOR_MILLI = 50000
+-- Join hold (opt-in `vitalsHold`, ADR-13): from join until the client reports the title's Start
+-- (`vitals-wake`), hunger does not drain. The hold lives only in memory and ends by itself after
+-- this long, so a client that never reports Start cannot freeze the survivor's hunger forever.
+M.JOIN_HOLD_MAX_MILLIS = 600000
+M.WAKE_ACTION = "vitals-wake"
 
 function M.upgradeSave(data: Shared.StateData): Shared.StateData
 	local copy = table.clone(data)
@@ -443,6 +453,21 @@ function M.new(
 		}
 	local lastAt = services.now()
 	assert(type(lastAt) == "number" and lastAt == lastAt and math.abs(lastAt) < math.huge, "invalid initial clock")
+	-- Join hold (ADR-13): actor -> the millisecond the hold ends by itself. In memory only.
+	local holds: { [string]: number } = {}
+	-- Advances vitals to `nowMillis`; a held actor's span up to the hold end counts as offline, so
+	-- hunger (and with it starvation) does not move while the title is up. Pure: never ends a hold.
+	local function advanceVitals(id: string, vitals: Vitals.State, nowMillis: number): Vitals.State
+		local hold = holds[id]
+		if hold and vitals.online and vitals.healthMilli > 0 and vitals.clockMillis < nowMillis then
+			local paused = table.clone(vitals)
+			paused.online = false
+			paused = Vitals.advance(paused, math.min(nowMillis, hold))
+			paused.online = true
+			vitals = paused
+		end
+		return Vitals.advance(vitals, nowMillis)
+	end
 	local observed: { { name: string, fields: Events.Fields } } = {}
 	local function savePlayer(
 		id: string,
@@ -785,7 +810,7 @@ function M.new(
 				err = "VITALS_NOT_CONFIGURED"
 			else
 				local nowMillis = if context and context.nowMillis then context.nowMillis else Clock.millis(lastAt)
-				local advanced = Vitals.advance(player.vitals, nowMillis)
+				local advanced = advanceVitals(id, player.vitals, nowMillis)
 				if action == "hazard-exposure" then
 					-- A downed actor never keeps ticking: exposure is refused once health is zero.
 					if not advanced.online or advanced.healthMilli == 0 then
@@ -1035,7 +1060,7 @@ function M.new(
 		end
 		bundles.serverId = context.serverId
 		local authority = { ownerId = id, serverId = context.serverId }
-		local advanced = Vitals.advance(live.vitals, now)
+		local advanced = advanceVitals(id, live.vitals, now)
 		local damageResult: Shared.Result? = nil
 		if action == "hazard-exposure" then
 			if not advanced.online or advanced.healthMilli == 0 then
@@ -1206,7 +1231,7 @@ function M.new(
 		if not config.survivalDeath or not player or not player.vitals then
 			return nil
 		end
-		local projected = Vitals.advance(player.vitals, nowMillis)
+		local projected = advanceVitals(id, player.vitals, nowMillis)
 		if player.vitals.healthMilli > 0 and projected.healthMilli == 0 then
 			return "death:" .. tostring(if player.death then player.death.bundles.lastSequence + 1 else 1)
 		end
@@ -1251,8 +1276,34 @@ function M.new(
 				return Vitals.new(nowMillis, content.vitals)
 			end
 			local restored = copyVitals(saved.vitals)
+			local migrated = false
 			for field, value in content.vitals do
-				assert(restored.config[field] == value, "vitals config mismatch")
+				if restored.config[field] ~= value then
+					-- A retuned scalar rate (p134 v53 hunger) is adopted; a gauge group appearing or
+					-- disappearing needs state fields the save lacks, so it stays a mismatch.
+					assert(field == "strikeHungerMilli" or restored.config[field] ~= nil, "vitals config mismatch")
+					migrated = true
+				end
+			end
+			for field in restored.config do
+				assert(content.vitals[field] ~= nil or field == "strikeHungerMilli", "vitals config mismatch")
+				migrated = migrated or content.vitals[field] == nil
+			end
+			if migrated then
+				local target = content.vitals :: any
+				if restored.config.hungerMillisPerUnit ~= target.hungerMillisPerUnit then
+					restored.hungerRemainder = 0
+				end
+				if restored.config.starvationMillisPerUnit ~= target.starvationMillisPerUnit then
+					restored.starvationRemainder = 0
+				end
+				if
+					restored.config.exposureDamageMillisPerUnit ~= target.exposureDamageMillisPerUnit
+					and restored.exposureDrainRemainder ~= nil
+				then
+					restored.exposureDrainRemainder = 0
+				end
+				restored.config = table.freeze(table.clone(target))
 			end
 			if rebase then
 				restored.combatUntilMillis = nowMillis + math.max(0, restored.combatUntilMillis - restored.clockMillis)
@@ -1266,7 +1317,7 @@ function M.new(
 					restored.starvationRemainder = 0
 				end
 			elseif nowMillis > restored.clockMillis then
-				local projected = Vitals.advance(restored, nowMillis)
+				local projected = advanceVitals(id, restored, nowMillis)
 				if not config.survivalDeath or restored.healthMilli == 0 or projected.healthMilli > 0 then
 					restored = projected
 				end
@@ -1416,7 +1467,11 @@ function M.new(
 			if players[id] ~= nil then
 				return { ok = false, reason = "already joined" }
 			end
-			return loadPlayer(id, saved, true)
+			local joined = loadPlayer(id, saved, true)
+			if joined.ok and config.vitalsHold and players[id].vitals then
+				holds[id] = Clock.millis(lastAt) + M.JOIN_HOLD_MAX_MILLIS
+			end
+			return joined
 		end,
 		hydrate = function(id, saved)
 			if not players[id] then
@@ -1430,19 +1485,32 @@ function M.new(
 				if config.survivalDeath then
 					local nowMillis = Clock.millis(services.now())
 					assert(pendingServerEvent(id, nowMillis) == nil, "DURABLE_VITALS_TICK_REQUIRED")
-					player.vitals = Vitals.disconnect(player.vitals, nowMillis)
+					player.vitals = Vitals.disconnect(advanceVitals(id, player.vitals, nowMillis), nowMillis)
 				else
-					player.vitals = Vitals.disconnect(player.vitals, Clock.millis(lastAt))
+					local at = Clock.millis(lastAt)
+					player.vitals = Vitals.disconnect(advanceVitals(id, player.vitals, at), at)
 				end
 			end
 		end,
 		leave = function(id)
 			players[id] = nil
+			holds[id] = nil
 		end,
 		stageCommand = tracked,
 		dispatch = function(id, action, args)
 			if players[id] == nil then
 				return { ok = false, reason = "not joined" }
+			end
+			if action == M.WAKE_ACTION then
+				-- The title's Start (ADR-13): hunger runs from here. Idempotent; no save, no state
+				-- beyond the in-memory hold, so it needs no durable command.
+				local player = players[id]
+				local hold = holds[id]
+				if hold and player.vitals then
+					player.vitals = advanceVitals(id, player.vitals, Clock.millis(lastAt))
+				end
+				holds[id] = nil
+				return { ok = true }
 			end
 			local staged = tracked(id, action, args)
 			if staged then
@@ -1462,12 +1530,21 @@ function M.new(
 		advance = function(now)
 			assert(bounded(now, lastAt, math.huge, false) and now < math.huge, "invalid authoritative time")
 			lastAt = now
-			for _, player in players do
+			local nowMillis = Clock.millis(now)
+			for id, player in players do
 				if player.vitals then
-					local projected = Vitals.advance(player.vitals, Clock.millis(now))
+					local projected = advanceVitals(id, player.vitals, nowMillis)
 					if not config.survivalDeath or player.vitals.healthMilli == 0 or projected.healthMilli > 0 then
 						player.vitals = projected
 					end
+				end
+				if
+					holds[id]
+					and nowMillis >= holds[id]
+					and player.vitals
+					and player.vitals.clockMillis >= holds[id]
+				then
+					holds[id] = nil
 				end
 			end
 		end,

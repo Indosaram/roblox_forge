@@ -1364,6 +1364,16 @@ walkTo = tapInput.moveTo
 -- R01 join screen (ReplicatedFirst RobangoBoot): the HUD, panels and camera above are built, so
 -- the loading screen may turn into the title now; its Start sets ForgeTitleDone.
 player:SetAttribute("ForgeHudReady", true)
+-- ADR-13 join hold: hunger stays put on the server until Start; report Start once it is tapped.
+do
+	local Flow = require(game:GetService("ReplicatedFirst"):WaitForChild("TitleFlow"))
+	local forgeAction = game:GetService("ReplicatedStorage"):WaitForChild("ForgeAction") :: RemoteFunction
+	Flow.bindWake(player, function(action: string, args: { any }): any
+		return forgeAction:InvokeServer(action, args)
+	end, function(seconds: number, fn: () -> ())
+		task.delay(seconds, fn)
+	end)
+end
 -- Title settings shortcut: each tap bumps ForgeTitleSettings; the settings sheet opens above it.
 player:GetAttributeChangedSignal("ForgeTitleSettings"):Connect(function()
 	if panels.open then
@@ -1396,6 +1406,10 @@ local combatHud = CombatHud.start({
 	end,
 	hidden = function(): boolean
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
+	end,
+	-- Carcass marks expire with the server's harvest window (killedAt is server seconds).
+	serverNow = function(): number
+		return workspace:GetServerTimeNow()
 	end,
 })
 local removeTapActions, send = TapRouter.installActions(

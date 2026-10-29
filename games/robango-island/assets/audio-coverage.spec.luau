@@ -223,4 +223,28 @@ return {
 		end
 		assert(table.find(played, "ui-confirm"), "published cues are still defined")
 	end,
+	-- p134 v53: the phone refused robango-level-up 110021116520036 ("User is not authorized") once
+	-- per kill level-up. It stays published: the fix is the universe Use grant (`forge assets
+	-- grant`), not a mute. Until the grant is verified on a phone, RobangoAudio stops requesting an
+	-- id after its first failed load (RobangoAudio.spec), so the refusal logs once, not per cue.
+	["a refused cue left published is covered by the universe grant"] = function()
+		local pendingGrant = { [110021116520036] = "robango-level-up" }
+		local assetsCommand = require("../../../cli/forge/commands/assets")
+		local assetsLib = require("../../../cli/forge/lib/assets")
+		local parsed = assert(
+			assetsLib.parseManifest(serde.decode("yaml", fs.readFile(ROOT .. "assets/manifest.yml"))),
+			"manifest parses"
+		)
+		local granted = assetsCommand.grantIds(parsed)
+		local byKey = manifest()
+		local Assets = require("../src/shared/Assets")
+		for id, key in pendingGrant do
+			local asset = byKey[key]
+			assert(asset and asset.assetId == id, key .. " still publishes " .. tostring(id))
+			assert(Assets[key] == "rbxassetid://" .. string.format("%.0f", id), key .. " is the cloud id")
+			assert(table.find(granted, string.format("%.0f", id)), key .. " is in the assets grant batch")
+		end
+		local audio = fs.readFile("games/robango-island/src/client/RobangoAudio.luau")
+		assert(string.find(audio, "GetAssetFetchStatus", 1, true), "RobangoAudio checks the load status")
+	end,
 }

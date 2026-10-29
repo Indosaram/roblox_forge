@@ -506,4 +506,10 @@ do
 		table.insert(assert(contract.extensionActions, "extension actions configured"), action.id)
 	end
 end
+-- ADR-13 join hold: the title's Start ends it (CraftingAdapter, `vitalsHold`). Not durable: it
+-- writes nothing, so it is neither an extension action nor in any durable policy.
+table.insert(
+	contract.actions,
+	{ id = "vitals-wake", args = {}, origin = "client", rate = { capacity = 2, refillPerSecond = 1 } }
+)
 return contract

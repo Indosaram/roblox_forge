@@ -1919,6 +1919,8 @@ hud.slots,original,agent:hephaestus/p97,2026-10-24
 hud.slow,original,agent:hephaestus/p97,2026-10-24
 hud.eat,original,agent:hephaestus/p97,2026-10-24
 hud.hungry,original,agent:hephaestus/p97,2026-10-24
+hud.hungry_cook,original,agent:hephaestus/p134-v53,2026-10-29
+hud.hungry_find,original,agent:hephaestus/p134-v53,2026-10-29
 hud.knocked_down,original,agent:hephaestus/p97,2026-10-24
 hud.deposit,original,agent:hephaestus/p97,2026-10-24
 hud.withdraw,original,agent:hephaestus/p97,2026-10-24
@@ -2996,6 +2998,8 @@ cmb.attack.WEAPON_UNAVAILABLE,original,agent:hephaestus/D2b-R08,2026-10-28
 cmb.attack.BLOCKED,original,agent:hephaestus/D2b-R08,2026-10-28
 cmb.attack.NOT_FACING,original,agent:hephaestus/D2b-R08,2026-10-28
 cmb.attack.MOUNTED,original,agent:hephaestus/D2b-R08,2026-10-28
+cmb.kill_toast,original,agent:hephaestus/p134-v53,2026-10-29
+cmb.carcass_mark,original,agent:hephaestus/p134-v53,2026-10-29
 hud.shell.capture,original,agent:hephaestus/C4,2026-10-27
 hud.shell.dismount,original,agent:hephaestus/C4,2026-10-27
 hud.shell.pet,original,agent:hephaestus/C4,2026-10-27

@@ -134,6 +134,8 @@ function M.new(config: Config)
 				"ForgeWildlifeHealthMilli",
 				"ForgeWildlifeDeadline",
 				"ForgeWildlifeHome",
+				"ForgeWildlifeKiller",
+				"ForgeWildlifeKilledAt",
 			}
 		do
 			entry.model:SetAttribute(name, nil)
@@ -382,8 +384,8 @@ function M.new(config: Config)
 		if wounded and attacker and herdOf[confirmed.id] then
 			api.provoke(confirmed.id, attacker)
 		end
-		entry.state.healthMilli, entry.state.version, entry.state.killer =
-			confirmed.healthMilli, confirmed.version, confirmed.killer
+		entry.state.healthMilli, entry.state.version, entry.state.killer, entry.state.killedAt =
+			confirmed.healthMilli, confirmed.version, confirmed.killer, confirmed.killedAt
 		entry.state.capturedUntil, entry.state.captureId = confirmed.capturedUntil, confirmed.captureId
 		if Wildlife.captured(confirmed, config.nowMillis()) then
 			-- Captured: the creature leaves the world (no access, no step, no strike) until the
@@ -536,6 +538,10 @@ function M.new(config: Config)
 			entry.model:SetAttribute("ForgeWildlifeTarget", state.target)
 			entry.model:SetAttribute("ForgeWildlifeHealthMilli", state.healthMilli)
 			entry.model:SetAttribute("ForgeWildlifeDeadline", state.deadline)
+			-- The carcass picker's owner and kill clock (server seconds): the killer's client marks the
+			-- body and lets a tap from any distance walk there and open the harvest picker.
+			entry.model:SetAttribute("ForgeWildlifeKiller", if state.healthMilli == 0 then state.killer else nil)
+			entry.model:SetAttribute("ForgeWildlifeKilledAt", if state.healthMilli == 0 then state.killedAt else nil)
 			-- Published so QA measures idle/leash against the registered home, not the authored spawn.
 			entry.model:SetAttribute("ForgeWildlifeHome", Vector3.new(state.home.x, state.home.y, state.home.z))
 			entry.motion.update(state, config.nowMillis(), entry.root.AssemblyLinearVelocity)

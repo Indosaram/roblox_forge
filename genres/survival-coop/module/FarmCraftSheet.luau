@@ -85,6 +85,42 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 		label.TextWrapped = true
 		return label
 	end
+	-- An item row: the item's icon (ItemIcons via ctx.icons) left of a title/detail label and, with
+	-- `action`, one button on the right. The icon is a row sibling so the shell styler's label
+	-- padding never moves it; spec engines (ctx.instance) get a plain "ItemIcon" node on the label.
+	function api.item(catalogId: string?, text: string, action: Cell?): any
+		local row = holder()
+		local width = if action then 0.66 else 1
+		local icon = if ctx.icons and catalogId then ctx.icons.item(catalogId) else nil
+		local label = components.label(theme, { text = text, size = UDim2.fromScale(width, 1), parent = row })
+		label.Name, label.TextWrapped = "ItemText", true
+		if icon and ctx.instance ~= nil then
+			local art = Instance.new("ImageLabel")
+			art.Name, art.Image, art.Parent = "ItemIcon", icon.image or "", label
+		elseif icon then
+			label.Size, label.Position = UDim2.new(width, -44, 1, 0), UDim2.fromOffset(44, 0)
+			local art = require("../../../core/ui-kit/IconFallback").mount(
+				row,
+				icon.category or "item",
+				UDim2.fromOffset(36, 36),
+				UDim2.new(0, 2, 0.5, -18),
+				if icon.image and icon.image ~= "" then icon.image else nil,
+				"ItemIcon"
+			)
+			art.BackgroundTransparency = 1
+		end
+		if action then
+			local button = components.button(theme, {
+				text = action.text,
+				size = UDim2.fromScale(0.32, 1),
+				position = UDim2.fromScale(0.68, 0),
+				parent = row,
+				onClick = action.click,
+			})
+			button.Name = action.name
+		end
+		return row
+	end
 	-- U6: SheetCards empty state (spec engines with ctx.instance keep the label).
 	function api.empty(title: string, hint: string?, icon: string?): any
 		if ctx.instance ~= nil then

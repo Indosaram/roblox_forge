@@ -317,7 +317,14 @@ function M.new(
 			if not state or Wildlife.captured(state, config.nowMillis()) then
 				return nil
 			end
-			return { catalogId = state.catalogId, healthMilli = state.healthMilli }
+			-- killer/killedAt: the carcass picker decides ownership and expiry from them (p134 v53: without
+			-- them every carcass-take was refused NOT_DEAD and no harvest output ever reached the bag).
+			return {
+				catalogId = state.catalogId,
+				healthMilli = state.healthMilli,
+				killer = state.killer,
+				killedAt = state.killedAt,
+			}
 		end,
 		captureWild = captureWild,
 		-- Late-bound: the monetization extension is built after taming in the factory list.

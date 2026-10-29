@@ -559,6 +559,25 @@ return {
 		local Locale = require("./SurvivalHUDLocale")
 		assert(string.find(Locale.text("ko-kr", "hungry"), "(I)", 1, true), "names the bag key")
 	end,
+	-- p134 v53: a hungry player holding only raw meat was told to eat food they did not have.
+	["the hungry hint follows the bag: eat, cook the raw meat, or find food"] = function()
+		local items: { any } = {
+			{ id = "berry", foodEffects = { hungerMilli = 9000, healthMilli = 0, fatigueMilli = 0 } },
+			{ id = "meat" },
+			{ id = "fiber" },
+		}
+		local function at(fullness: number, ...: string): any
+			local bag = {}
+			for index, catalogId in { ... } do
+				bag["i" .. index] = { catalogId = catalogId, quantity = 1 }
+			end
+			return { vitals = { hungerMilli = fullness * 1000 }, inventory = { bag = { items = bag } } }
+		end
+		assert(Model.hungerHint(at(80, "meat"), items) == nil, "not hungry, no hint")
+		assert(Model.hungerHint(at(20, "fiber", "berry"), items) == "hungry", "carries food: eat it")
+		assert(Model.hungerHint(at(20, "fiber", "meat"), items) == "hungry_cook", "only raw meat: cook it")
+		assert(Model.hungerHint(at(20, "fiber"), items) == "hungry_find", "nothing to eat: find food")
+	end,
 	["p78 a death revived within the same push raises the knockout toast"] = function()
 		local alive = { vitals = { healthMilli = 100000 } }
 		assert(Model.deathSequence({}) == nil, "no snapshot yet")

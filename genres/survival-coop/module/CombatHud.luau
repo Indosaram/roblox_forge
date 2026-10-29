@@ -50,6 +50,11 @@ M.COMBAT_GLOW = 0.12 -- corner glow opacity while a target is engaged
 M.MAX_GLOW = 0.6
 M.FAN_STEP = 40 -- degrees between carcass tokens (ui-spec section 3 shell fan)
 M.FAN_SPAN = 200
+-- Seconds a body can be harvested after the kill (CarcassExtension.LIFETIME_SECONDS; a spec pins
+-- the two together) and the flat studs the walk stops at (the server reaches 10 in 3D).
+M.CARCASS_SECONDS = 300
+M.HARVEST_REACH = 5
+M.TOAST_SECONDS = 4
 
 -- Refusals that end the auto loop (the target is gone, or nothing the player does here fixes it).
 M.FINAL = table.freeze({
@@ -221,6 +226,15 @@ function M.offer(content: any, kind: string?, taken: { [string]: boolean }): { {
 	return out
 end
 
+--- True while a body is the local player's open carcass: dead, killed by `me`, and (when the server
+--- clock is known) inside its harvest window. Bodies others killed or that spoiled are not marked.
+function M.carcassOpen(healthMilli: any, killer: any, me: string, killedAt: any, serverNow: number?): boolean
+	if healthMilli ~= 0 or killer ~= me then
+		return false
+	end
+	return serverNow == nil or type(killedAt) ~= "number" or serverNow < killedAt + M.CARCASS_SECONDS
+end
+
 --- Shell fan token centres (ui-spec section 3): `count` tokens on an arc above (cx, cy) that opens
 --- upward, FAN_STEP degrees apart and at most FAN_SPAN wide, symmetric about straight up.
 function M.fan(count: number, cx: number, cy: number, radius: number): { { x: number, y: number } }
@@ -243,7 +257,7 @@ end
 local env: any = getfenv()
 local game: any = env.game
 local Instance: any, Enum: any, UDim: any, UDim2: any = env.Instance, env.Enum, env.UDim, env.UDim2
-local Vector2: any, Vector3: any, Color3: any = env.Vector2, env.Vector3, env.Color3
+local Vector2: any, Vector3: any, Color3: any, CFrame: any = env.Vector2, env.Vector3, env.Color3, env.CFrame
 local NumberSequence: any, NumberSequenceKeypoint: any = env.NumberSequence, env.NumberSequenceKeypoint
 local task: any = env.task
 
@@ -262,6 +276,8 @@ export type Options = {
 	name: (string) -> string,
 	itemName: (string) -> string,
 	hidden: () -> boolean,
+	-- Server clock seconds (workspace:GetServerTimeNow); without it a carcass mark never expires.
+	serverNow: (() -> number)?,
 }
 
 function M.start(options: Options)
@@ -352,6 +368,20 @@ function M.start(options: Options)
 	titleCorner.CornerRadius, titleCorner.Parent = UDim.new(0.5, 0), fanTitle
 	fanTitle.Parent = fan
 	local fanTokens: { any } = {}
+	-- Kill toast (p134 v53: a dodo died off screen and nothing said so): "Dodo down - tap the carcass".
+	local toast = Instance.new("TextLabel")
+	toast.Name, toast.BackgroundColor3, toast.BackgroundTransparency = "KillToast", color(P.ink), 0.25
+	toast.TextColor3, toast.Font, toast.AnchorPoint = color(P.ochre), Enum.Font.BuilderSansBold, Vector2.new(0.5, 0)
+	toast.AutomaticSize, toast.Size, toast.Visible = Enum.AutomaticSize.X, UDim2.fromOffset(0, 30), false
+	toast.Position = UDim2.fromScale(0.5, 0.26)
+	-- Information only: a tap under it still reaches the world (the carcass itself).
+	toast:SetAttribute("ForgeTapThrough", true)
+	local toastPad = Instance.new("UIPadding")
+	toastPad.PaddingLeft, toastPad.PaddingRight, toastPad.Parent = UDim.new(0, 14), UDim.new(0, 14), toast
+	local toastCorner = Instance.new("UICorner")
+	toastCorner.CornerRadius, toastCorner.Parent = UDim.new(0.5, 0), toast
+	toast.Parent = gui
+	local toastUntil = -math.huge
 	-- Floating numbers: pooled billboards in PlayerGui. A respawn deletes every PlayerGui child that is
 	-- not a non-resetting LayerCollector, so a Folder here took the pool's labels with it and every
 	-- later hit indexed a missing "Text" (staging v40: CombatHud:316 ~57/s). A ScreenGui that does not
@@ -413,6 +443,33 @@ function M.start(options: Options)
 	local maxSeen: { [string]: number } = {}
 	local lastHealth: { [any]: number } = {}
 	local carcass: { model: any, kind: string?, taken: { [string]: boolean }, busy: boolean, opened: number }? = nil
+	-- Outputs already taken per corpse (wildId:killedAt), so a reopened picker offers only the rest.
+	local harvested: { [string]: { [string]: boolean } } = {}
+	-- World marks over the local player's open carcasses: a ground ring and a tappable name label.
+	local marks: { [any]: { board: any, ring: any } } = {}
+	local seenAlive: { [any]: boolean } = {}
+	local toasted: { [string]: boolean } = {}
+	local markFolder = Instance.new("ScreenGui")
+	markFolder.Name, markFolder.ResetOnSpawn = "ForgeCarcassMarks", false
+	markFolder.Parent = player:WaitForChild("PlayerGui")
+	local me = tostring(player.UserId)
+	local function corpseKey(model: any): string
+		return tostring(model:GetAttribute("ForgeWildlifeId"))
+			.. ":"
+			.. tostring(model:GetAttribute("ForgeWildlifeKilledAt"))
+	end
+	local function serverNow(): number?
+		return if options.serverNow then options.serverNow() else nil
+	end
+	local function mine(model: any): boolean
+		return M.carcassOpen(
+			model:GetAttribute("ForgeWildlifeHealthMilli"),
+			model:GetAttribute("ForgeWildlifeKiller"),
+			me,
+			model:GetAttribute("ForgeWildlifeKilledAt"),
+			serverNow()
+		)
+	end
 
 	local function rootOf(model: any): any
 		local part = model and model:FindFirstChild("HumanoidRootPart")
@@ -434,10 +491,13 @@ function M.start(options: Options)
 	end
 	local function openCarcass(model: any)
 		local kind = model:GetAttribute("ForgeWildlifeKind")
-		if #M.offer(options.content, kind, {}) == 0 then
+		local key = corpseKey(model)
+		local taken = harvested[key] or {}
+		if #M.offer(options.content, kind, taken) == 0 then
 			return
 		end
-		carcass = { model = model, kind = kind, taken = {}, busy = false, opened = clock() }
+		harvested[key] = taken
+		carcass = { model = model, kind = kind, taken = taken, busy = false, opened = clock() }
 	end
 	local function take(item: string)
 		local open = carcass
@@ -465,7 +525,10 @@ function M.start(options: Options)
 				open.taken[item] = true
 			elseif type(result) == "table" and type(result.reason) == "string" then
 				float(anchor, M.refusal(options.locale, result.reason), P.bone)
-				if result.reason ~= "OUT_OF_RANGE" and result.reason ~= "COMMAND_PENDING" then
+				if result.reason == "OUT_OF_RANGE" and anchor then
+					-- Walk up to the body; the fan stays so the pick can be tapped again on arrival.
+					options.approach(anchor.Position, M.HARVEST_REACH, function() end)
+				elseif result.reason ~= "COMMAND_PENDING" then
 					closeCarcass()
 				end
 			end
@@ -529,6 +592,48 @@ function M.start(options: Options)
 	end
 
 	local api = {}
+	--- A tap on one of the local player's open carcasses (body or its mark), from any distance: walk
+	--- there and open the harvest picker on arrival. False when the body is not one to harvest.
+	function api.harvest(model: any): boolean
+		local anchor = rootOf(model)
+		if not anchor or not mine(model) then
+			return false
+		end
+		if
+			#M.offer(options.content, model:GetAttribute("ForgeWildlifeKind"), harvested[corpseKey(model)] or {}) == 0
+		then
+			return false
+		end
+		session, targetModel = nil, nil
+		closeCarcass()
+		local function open()
+			if model.Parent and mine(model) then
+				openCarcass(model)
+			end
+		end
+		local _, root = body()
+		local gap = if root
+			then Vector3.new(anchor.Position.X - root.Position.X, 0, anchor.Position.Z - root.Position.Z).Magnitude
+			else math.huge
+		if gap <= M.HARVEST_REACH then
+			open()
+		else
+			options.approach(anchor.Position, M.HARVEST_REACH, open)
+		end
+		return true
+	end
+	--- The fan token at `index` (content order of the outputs still offered) was picked.
+	function api.pick(index: number)
+		local current = carcass
+		local list = if current then M.offer(options.content, current.kind, current.taken) else {}
+		if list[index] then
+			take(list[index].item)
+		end
+	end
+	--- The open carcass picker's body, or nil.
+	function api.picking(): any
+		return if carcass then carcass.model else nil
+	end
 	function api.engage(model: any): boolean
 		local id = model:GetAttribute("ForgeWildlifeId")
 		if type(id) ~= "string" then
@@ -599,6 +704,9 @@ function M.start(options: Options)
 					if lost and root and (anchor.Position - root.Position).Magnitude < 60 then
 						float(anchor, tostring(lost), P.ochre)
 					end
+					if hp > 0 then
+						seenAlive[model] = true
+					end
 					if hp == 0 and lastHealth[model] and lastHealth[model] > 0 and model == targetModel then
 						-- The engaged target fell: stop swinging, offer the carcass.
 						if session then
@@ -612,7 +720,72 @@ function M.start(options: Options)
 			for model in lastHealth do
 				if not model.Parent then
 					lastHealth[model] = nil
+					seenAlive[model] = nil
 				end
+			end
+			-- Carcass marks and the kill toast for the local player's open bodies.
+			local live: { [any]: boolean } = {}
+			for _, model in if folder then folder:GetChildren() else {} do
+				local anchor = rootOf(model)
+				local kind = model:GetAttribute("ForgeWildlifeKind")
+				local key = corpseKey(model)
+				if anchor and mine(model) and #M.offer(options.content, kind, harvested[key] or {}) > 0 then
+					live[model] = true
+					local name = options.name(if type(kind) == "string" then kind else "")
+					if seenAlive[model] and not toasted[key] then
+						toasted[key] = true
+						toast.Text = string.format(t("kill_toast"), name)
+						toastUntil = now + M.TOAST_SECONDS
+					end
+					local mark = marks[model]
+					if not mark then
+						local ring = Instance.new("CylinderHandleAdornment")
+						ring.Name, ring.Adornee, ring.Color3 = "CarcassRing", anchor, color(P.ochre)
+						ring.Radius, ring.InnerRadius, ring.Height = 3.2, 2.6, 0.2
+						ring.Transparency, ring.AlwaysOnTop, ring.ZIndex = 0.2, false, 1
+						local rig = model:FindFirstChildOfClass("Humanoid")
+						local drop = anchor.Size.Y * 0.5 + (if rig then rig.HipHeight else 0) - 0.1
+						ring.CFrame = CFrame.new(0, -drop, 0) * CFrame.Angles(math.rad(90), 0, 0)
+						ring.Parent = markFolder
+						local board = Instance.new("BillboardGui")
+						board.Name, board.Adornee, board.Size = "CarcassMark", anchor, UDim2.fromOffset(190, 34)
+						board.StudsOffset, board.AlwaysOnTop, board.LightInfluence = Vector3.new(0, 3.5, 0), true, 0
+						board.MaxDistance, board.Active = 400, true
+						local label = Instance.new("TextButton")
+						label.Name, label.AutoButtonColor, label.Size = "Label", false, UDim2.fromScale(1, 1)
+						label.BackgroundColor3, label.BackgroundTransparency = color(P.ink), 0.25
+						label.TextColor3, label.Font, label.TextScaled = color(P.ochre), Enum.Font.BuilderSansBold, true
+						local labelCorner = Instance.new("UICorner")
+						labelCorner.CornerRadius, labelCorner.Parent = UDim.new(0.5, 0), label
+						label.Parent = board
+						table.insert(
+							connections,
+							label.Activated:Connect(function()
+								api.harvest(model)
+							end)
+						)
+						board.Parent = markFolder
+						mark = { board = board, ring = ring }
+						marks[model] = mark
+					end
+					local markLabel = mark.board:FindFirstChild("Label")
+					if markLabel then
+						markLabel.Text = string.format(t("carcass_mark"), name)
+					end
+					mark.board.Enabled = not hidden
+					mark.ring.Visible = not hidden
+				end
+			end
+			for model, mark in marks do
+				if not live[model] then
+					mark.board:Destroy()
+					mark.ring:Destroy()
+					marks[model] = nil
+				end
+			end
+			toast.Visible = now < toastUntil and not hidden
+			if toast.Visible then
+				toast.TextSize = HudShell.textSize("label", regions.safeHeight)
 			end
 			if humanoid and root then
 				local health = humanoid.Health * 1000
@@ -729,13 +902,7 @@ function M.start(options: Options)
 						table.insert(
 							connections,
 							token.Activated:Connect(function()
-								local current = carcass
-								local list = if current
-									then M.offer(options.content, current.kind, current.taken)
-									else {}
-								if list[which] then
-									take(list[which].item)
-								end
+								api.pick(which)
 							end)
 						)
 						fanTokens[index] = token
@@ -773,6 +940,7 @@ function M.start(options: Options)
 		end
 		gui:Destroy()
 		numberFolder:Destroy()
+		markFolder:Destroy()
 	end
 	return api
 end
