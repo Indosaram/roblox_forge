@@ -589,13 +589,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					-- so paths and clearings keep their catalog slope instead of 32-stud steps (4-stud blocks
 					-- right at authored ground, where a 2.5-stud step limit applies).
 					local sub = if field.clear(column.x, column.z) < 48 then 4 else 8
+					-- Biome2: path-side ground outside the arrival ring takes the look's verge material
+					-- (grassland: the terrace lane's warm ochre), so path banks are not olive mud.
+					local verging = look ~= nil
+						and look.verge ~= nil
+						and not column.beach
+						and BiomeLook.away(layout, arrivals, column.x, column.z)
 					for sx = column.x - column.cell / 2 + sub / 2, column.x + column.cell / 2, sub do
 						for sz = column.z - column.cell / 2 + sub / 2, column.z + column.cell / 2, sub do
 							local y = field.height(sx, sz)
+							local cellMaterial = if verging
+								then BiomeLook.verge(look :: any, material, sx, sz, field.water(sx, sz) == nil)
+								else material
 							workspace.Terrain:FillBlock(
 								CFrame.new(sx, (y - 16) / 2, sz),
 								Vector3.new(sub, y + 16, sub),
-								materials[material]
+								materials[cellMaterial]
 							)
 						end
 					end
@@ -959,6 +968,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end
 	end
+	-- Biome2 (R11-3): standing water pools at the swamp dead-forest groves (BiomeKits.pools; the reed
+	-- rims are kit placements on the same centres). A dark mud ring, then a 4-stud-deep water disc
+	-- sunk to 1 stud under the ground (thinner water writes vanish, L12).
+	local pools: { { x: number, z: number, radius: number } } = if look and #columns > 0
+		then BiomeKits.pools(layout, columns, seed, Terrain)
+		else {}
+	local function writePools()
+		for _, pool in pools do
+			local top: number = probe(pool.x, pool.z) or Terrain.surface(layout, seed, pool.x, pool.z) or 0
+			workspace.Terrain:FillCylinder(CFrame.new(pool.x, top - 2, pool.z), 4, pool.radius + 3, Enum.Material.Mud)
+			workspace.Terrain:FillCylinder(CFrame.new(pool.x, top + 1.5, pool.z), 5, pool.radius, Enum.Material.Air)
+			workspace.Terrain:FillCylinder(CFrame.new(pool.x, top - 3, pool.z), 4, pool.radius, Enum.Material.Water)
+		end
+	end
 	paintStrokes()
 	if field then
 		task.spawn(function()
@@ -967,8 +990,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 			if (root :: any).Parent ~= nil then
 				paintStrokes()
+				writePools()
 			end
 		end)
+	else
+		writePools()
 	end
 	local entry = layout.anchors[1].position
 	for _, anchor in layout.anchors do

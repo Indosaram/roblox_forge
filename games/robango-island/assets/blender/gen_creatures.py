@@ -200,26 +200,34 @@ FEATHERS = {
     # R11-6: white body, dark slate neck and wings, white tail plume, red head.
     "gallimimus": dict(
         primary=(5, 0.15, 0.036, "#2c2f35", "#5a5e66", 0.35), secondary=(6, 0.12, 0.036, "#3e4148", "#6a6e76", 0.3),
-        covert=(5, 0.065, 0.03, "#d2cec6", "#8e8a82", 0.2), tail=(8, 0.12, 0.04, "#d8d4cb", "#f0ede6", 0.25),
-        tailcov=(6, 0.07, 0.034, "#bcb8ae", "#e8e5de", 0.2), ruff=(6, 0.055, 0.022, "#2e3136", "#4a4e55", 0.15),
+        covert=(5, 0.065, 0.03, "#d2cec6", "#8e8a82", 0.2), tail=(8, 0.12, 0.04, "#8e8a80", "#bdb8ac", 0.35),
+        tailcov=(6, 0.07, 0.034, "#a8a396", "#c6c1b5", 0.3), ruff=(6, 0.055, 0.022, "#2e3136", "#4a4e55", 0.15),
         back=(5, 0.07, 0.032, "#c4bfb3", "#e2ded6", 0.2), thigh=(4, 0.075, 0.03, "#c8c4ba", "#ebe8e1", 0.15)),
     # Pale grey-beige with dark dorsal bands that carry into a barred tail fan, dark barred wings.
     "utahraptor": dict(
         primary=(5, 0.15, 0.036, "#3a342e", "#1e1a16", 0.5), secondary=(6, 0.12, 0.036, "#6e675e", "#2e2924", 0.5),
-        covert=(5, 0.065, 0.03, "#c4beb1", "#7a7468", 0.25), tail=(8, 0.13, 0.04, "#bdb7aa", "#2e2924", 0.55),
-        tailcov=(6, 0.075, 0.034, "#8a8478", "#d0cabe", 0.4), ruff=(5, 0.055, 0.024, "#5e5750", "#bdb7aa", 0.2),
+        covert=(5, 0.065, 0.03, "#c4beb1", "#7a7468", 0.25), tail=(8, 0.13, 0.04, "#8a8274", "#2e2924", 0.55),
+        tailcov=(6, 0.075, 0.034, "#6e675e", "#a49d90", 0.4), ruff=(5, 0.055, 0.024, "#5e5750", "#bdb7aa", 0.2),
         back=(5, 0.07, 0.034, "#5e574e", "#9a9488", 0.3), thigh=(4, 0.07, 0.03, "#a8a296", "#d6d0c4", 0.2)),
     # Sandy speckled coat, rufous-brown barred wings and tail, dark mane, red face.
     "velociraptor": dict(
         primary=(4, 0.16, 0.04, "#3a2a1e", "#6e4e34", 0.5), secondary=(5, 0.13, 0.04, "#8a6a4a", "#3a2a1e", 0.5),
-        covert=(4, 0.07, 0.032, "#c4ae8e", "#6e5a44", 0.25), tail=(7, 0.14, 0.042, "#a08e76", "#2e241c", 0.55),
-        tailcov=(5, 0.08, 0.036, "#7a6450", "#c8b498", 0.4), ruff=(4, 0.06, 0.026, "#4a3828", "#8a6e54", 0.2),
+        covert=(4, 0.07, 0.032, "#c4ae8e", "#6e5a44", 0.25), tail=(7, 0.14, 0.042, "#8a7660", "#2e241c", 0.55),
+        tailcov=(5, 0.08, 0.036, "#5e4e3e", "#a48e72", 0.4), ruff=(4, 0.06, 0.026, "#4a3828", "#8a6e54", 0.2),
         back=(3, 0.075, 0.036, "#5e4c3c", "#9a8268", 0.3), thigh=(3, 0.075, 0.032, "#a08e76", "#cbb89c", 0.2)),
 }
+# Biome2: tail and tail-covert colours stay at or below sRGB 0xD0 per channel (no pure-white tiles);
+# tail roots are darker body tones, so the fan grades out of the body palette.
+for _key, _spec in FEATHERS.items():
+    for _zone in ("tail", "tailcov"):
+        for _hex in _spec[_zone][3:5]:
+            assert max(int(_hex[i : i + 2], 16) for i in (1, 3, 5)) <= 0xD0, (_key, _zone, _hex)
 CARD_TRIS = 10  # feather_card: 6 roof triangles + 2 quads underneath (triangulated)
 # Neck ruff rows: angle round the neck from the dorsal line (radians) and length factor.
 RUFF_ANGLES = ((0.0, 1.15), (0.85, 1.0), (-0.85, 1.0), (1.65, 0.8), (-1.65, 0.8))
 TAIL_PLUME = 3
+# Biome2: tail feathers narrow to this fraction of the vane width over their outer third.
+TAIL_TAPER = 0.45
 
 
 def feather_cards(key):
@@ -1703,7 +1711,7 @@ def build_fur(sp, sk, P, R, high, table=None):
     return obj
 
 
-def feather_card(bm, base, d, flat, length, width, droop=0.12):
+def feather_card(bm, base, d, flat, length, width, droop=0.12, taper=1.0):
     """One closed feather blade: quill base, the widest vane at 40%, a pointed tip curling a little
     toward -flat (lies on the body). Raptor2: the rachis is a raised ridge (a shallow roof over the
     vane), so each card catches the key light on one half and shades the other, and every card edge
@@ -1719,8 +1727,9 @@ def feather_card(bm, base, d, flat, length, width, droop=0.12):
     br = bm.verts.new(c - side * width - f * th * 0.3)
     top = bm.verts.new(c + f * th)
     und = bm.verts.new(c - f * th * 0.6)
-    tl = bm.verts.new(base + d * length * 0.78 + side * width * 0.45 - f * length * droop * 0.6)
-    tr = bm.verts.new(base + d * length * 0.78 - side * width * 0.45 - f * length * droop * 0.6)
+    # Biome2: `taper` < 1 narrows the outer third (a lanceolate tail feather, not a square tile).
+    tl = bm.verts.new(base + d * length * 0.78 + side * width * 0.45 * taper - f * length * droop * 0.6)
+    tr = bm.verts.new(base + d * length * 0.78 - side * width * 0.45 * taper - f * length * droop * 0.6)
     tip = bm.verts.new(base + d * length - f * length * droop)
     for face in ((b0, top, bl), (b0, br, top), (bl, top, tl), (top, tip, tl), (top, br, tr), (top, tr, tip),
                  (b0, bl, und), (b0, und, br), (bl, tl, tip, und), (und, tip, tr, br)):
@@ -1763,7 +1772,7 @@ def build_feathers(sp, sk, P, R, bvh, y_limit=None):
 
     groups = {}
 
-    def card(zone, bone, base, d, flat, ln, w, droop=0.12):
+    def card(zone, bone, base, d, flat, ln, w, droop=0.12, taper=1.0):
         key = (zone, bone)
         if key not in groups:
             groups[key] = (bmesh.new(), [])
@@ -1774,7 +1783,7 @@ def build_feathers(sp, sk, P, R, bvh, y_limit=None):
             reach = dn.y + 0.05
             if reach > 1e-3 and base.y + ln * reach > y_limit:
                 ln = max((y_limit - base.y) / reach, ln * 0.35)
-        made = feather_card(bm, base, dn, flat, ln, w * random.uniform(0.92, 1.08), droop)
+        made = feather_card(bm, base, dn, flat, ln, w * random.uniform(0.92, 1.08), droop, taper)
         if y_limit is not None:
             # Exact clamp: pull a card that still overshoots back toward its base.
             far = max(v.co.y for v, _t, _u in made)
@@ -1825,10 +1834,15 @@ def build_feathers(sp, sk, P, R, bvh, y_limit=None):
                 base = base - nrm * wf * L * 0.04 + Z * lift
                 d = tdir + sx * (outk - 0.25 * t) - Z * 0.03
                 flat = Z + sx * (0.25 if zone == "tail" else 0.1)
-                card(zone, f"Tail{min(seg + 1, 5)}", base, d, flat, lf * L * (0.75 + 0.45 * t), wf * L * (1.0 + 0.4 * t), 0.04)
+                # Biome2: tapered tail cards, staggered half a step between layers and tilted
+                # alternately, so the fan reads as overlapping feathers instead of flat tiles.
+                stagger = 0.5 / max(n - 1, 1) if zone == "tailcov" else 0.0
+                t = min(t + stagger * (t1 - t0), t1)
+                tilt = X * side * (0.12 if i % 2 else -0.06)
+                card(zone, f"Tail{min(seg + 1, 5)}", base, d, flat + tilt, lf * L * (0.75 + 0.45 * t), wf * L * (0.8 + 0.3 * t), 0.08, TAIL_TAPER)
     p, seg, tdir = _polyline(tails, 0.86)
     for k, a in enumerate((-0.4, 0.0, 0.4)):
-        card("tail", f"Tail{min(seg + 1, 5)}", p + Z * 0.008 * L, tdir + X * a, Z, spec["tail"][1] * L * (1.1 if k == 1 else 0.95), spec["tail"][2] * L, 0.05)
+        card("tail", f"Tail{min(seg + 1, 5)}", p + Z * 0.008 * L, tdir + X * a, Z, spec["tail"][1] * L * (1.1 if k == 1 else 0.95), spec["tail"][2] * L * 0.8, 0.08, TAIL_TAPER)
     # Ruff: RUFF_ANGLES rows wrapped round the neck, each card lying back toward the body.
     neck = [P["chest"].lerp(P["neck_a"], 0.3), P["neck_a"], P["neck_b"], P["head_back"]]
     n, lf, wf = spec["ruff"][:3]
@@ -2520,7 +2534,9 @@ def feather_mat(sp, zone):
         au = nodes.new("ShaderNodeMath")
         au.operation = "ABSOLUTE"
         links.new(u.outputs["Fac"], au.inputs[0])
-        edge = C.ramp(nodes, links, au.outputs["Value"], [(0.0, (0.8, 0.8, 0.8)), (0.12, (1.05, 1.05, 1.03)), (0.7, (1, 1, 1)), (1.0, (0.78, 0.78, 0.78))])
+        # Biome2: tail vanes fade darker toward their edges over a wider band (soft, not a hard tile).
+        soft = zone in ("tail", "tailcov")
+        edge = C.ramp(nodes, links, au.outputs["Value"], [(0.0, (0.8, 0.8, 0.8)), (0.12, (1.05, 1.05, 1.03)), (0.45 if soft else 0.7, (1, 1, 1)), (1.0, (0.6, 0.6, 0.58) if soft else (0.78, 0.78, 0.78))])
         col = multiply(nodes, links, col, edge.outputs["Color"])
         col = occlusion(nodes, links, col, sp["length"], sp, fur_ok=False)
         col = paint_light(nodes, links, col, None)

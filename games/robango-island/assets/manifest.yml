@@ -86,16 +86,16 @@ assets:
   - key: creature-gallimimus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
-    assetId: 85757559984124
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, biome2 tapered/staggered tail fan graded from the body palette, skinned FBX)"
+    assetId: 96337998246689
     moderation: Approved
     provenance:
-      digest: sha256:edbb354d9593744f7dd1ccfe2e822ad143b01500714cdc2abf300ae154cda721
+      digest: sha256:94df0b87e2955acbc6f1834546eb6f2392a99ddfb7dcf75ae6a5356cc541274d
       recipe:
         id: gen-creatures
-        version: 7
+        version: 8
         input: "assets/blender/gen_creatures.py#gallimimus"
-        inputVersion: sha256:edbb354d9593744f7dd1ccfe2e822ad143b01500714cdc2abf300ae154cda721
+        inputVersion: sha256:94df0b87e2955acbc6f1834546eb6f2392a99ddfb7dcf75ae6a5356cc541274d
       provider:
         name: forge-procgen
         version: 1
@@ -191,16 +191,16 @@ assets:
   - key: creature-utahraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
-    assetId: 75453334636437
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, biome2 tapered/staggered tail fan graded from the body palette, skinned FBX)"
+    assetId: 112278176534894
     moderation: Approved
     provenance:
-      digest: sha256:26c59ebd70b8589ae1cda6d16f434bc9d03e9d43bcc2630b9b60071944b0a79d
+      digest: sha256:0792c080490c20e042acf66e3b8bf2d9f6951e564ad9e924665e112d47057a1d
       recipe:
         id: gen-creatures
-        version: 7
+        version: 8
         input: "assets/blender/gen_creatures.py#utahraptor"
-        inputVersion: sha256:26c59ebd70b8589ae1cda6d16f434bc9d03e9d43bcc2630b9b60071944b0a79d
+        inputVersion: sha256:0792c080490c20e042acf66e3b8bf2d9f6951e564ad9e924665e112d47057a1d
       provider:
         name: forge-procgen
         version: 1
@@ -212,16 +212,16 @@ assets:
   - key: creature-velociraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
-    assetId: 131401281107516
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, biome2 tapered/staggered tail fan graded from the body palette, skinned FBX)"
+    assetId: 123254115956540
     moderation: Approved
     provenance:
-      digest: sha256:f5e7e4414631a2b934df756bd40f9b264f5407c06bac07d91add68610aa4908c
+      digest: sha256:de0893729408d103f9bbc70d0bbc603c9b48d8393ee8cab95f9daf2bdde5e38e
       recipe:
         id: gen-creatures
-        version: 7
+        version: 8
         input: "assets/blender/gen_creatures.py#velociraptor"
-        inputVersion: sha256:f5e7e4414631a2b934df756bd40f9b264f5407c06bac07d91add68610aa4908c
+        inputVersion: sha256:de0893729408d103f9bbc70d0bbc603c9b48d8393ee8cab95f9daf2bdde5e38e
       provider:
         name: forge-procgen
         version: 1
@@ -17363,16 +17363,16 @@ assets:
   - key: robango-kit-swamp
     kind: model
     tool: forge-procgen
-    source: "first-party Blender generator gen_kit_swamp.py (swamp biome kit (R11-3)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
-    assetId: 114622905863075
+    source: "first-party Blender generator gen_kit_swamp.py (swamp biome kit + biome2 grove rows (R11-3)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 81456369029841
     moderation: Approved
     provenance:
-      digest: sha256:7c9b4c99d5c3c32d1dcbe5f722a4c5cd9b8168a54eafaf921f5cc948ef29971e
+      digest: sha256:bb9afa9c8a052886430b87b194d9ed0f26dea767c3d2a70b49fff1d157fc3208
       recipe:
         id: blender-gen-kit-swamp
-        version: 2
+        version: 3
         input: "assets/blender/gen_kit_swamp.py"
-        inputVersion: sha256:48a384ec7c7d0bce2b43e920e20c0ebb6cb439bab979e8e5710984b0be814fe1
+        inputVersion: sha256:877831bf54db2150556a4f9b3fd04b353871249e4a8f7c089330ee081ec7c7f8
       provider:
         name: forge-procgen
         version: 1
@@ -17384,16 +17384,16 @@ assets:
   - key: robango-kit-desert
     kind: model
     tool: forge-procgen
-    source: "first-party Blender generator gen_kit_biomes.py (desert biome kit (R11-7)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
-    assetId: 103449045979924
+    source: "first-party Blender generator gen_kit_biomes.py (desert biome kit + biome2 grove rows (R11-7)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 97285913050623
     moderation: Approved
     provenance:
-      digest: sha256:d92ddcde3e948080073e839615f499802ec6813f7791e00ae2bc5b6fb4205fc8
+      digest: sha256:e81b3e084b1bb049a8f5cb7b92e3480b61fd69b900cc745f4ce8487ab1d6a5dc
       recipe:
         id: blender-gen-kit-biomes
-        version: 2
+        version: 3
         input: "assets/blender/gen_kit_biomes.py"
-        inputVersion: sha256:f7d2d414fd2eb7f5160bb438d53e988727a4784548825ca30b6b265e4ec913a1
+        inputVersion: sha256:8c8b4d5cafb4810764a4f5006d8260e88426dc46c42c8e64201b99b93f942c0b
       provider:
         name: forge-procgen
         version: 1
@@ -17405,16 +17405,16 @@ assets:
   - key: robango-kit-tundra
     kind: model
     tool: forge-procgen
-    source: "first-party Blender generator gen_kit_biomes.py (tundra biome kit (R11-6)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
-    assetId: 81040595490722
+    source: "first-party Blender generator gen_kit_biomes.py (tundra biome kit + biome2 grove rows (R11-6)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 97176465898378
     moderation: Approved
     provenance:
-      digest: sha256:529c28b265f29d3e2ca5de523485568aa8f1241937679e3eb8c14a0f531ffd2f
+      digest: sha256:b60d3aff316b375b457bd09541fdfd58b5f8e1027225c5c987987436a995d69f
       recipe:
         id: blender-gen-kit-biomes
-        version: 2
+        version: 3
         input: "assets/blender/gen_kit_biomes.py"
-        inputVersion: sha256:f7d2d414fd2eb7f5160bb438d53e988727a4784548825ca30b6b265e4ec913a1
+        inputVersion: sha256:8c8b4d5cafb4810764a4f5006d8260e88426dc46c42c8e64201b99b93f942c0b
       provider:
         name: forge-procgen
         version: 1
@@ -17426,16 +17426,16 @@ assets:
   - key: robango-kit-volcano
     kind: model
     tool: forge-procgen
-    source: "first-party Blender generator gen_kit_biomes.py (volcano biome kit (R11-4)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
-    assetId: 138043259549940
+    source: "first-party Blender generator gen_kit_biomes.py (volcano biome kit + biome2 grove rows (R11-4)); CC0 Poly Haven surfaces, see assets/blender/SOURCES.md"
+    assetId: 98970647557110
     moderation: Approved
     provenance:
-      digest: sha256:1211c5c4e6b07e7dc3ecd167f8b2dfe6eb809ba3dbbb2b9d40e4a5b9105c34bb
+      digest: sha256:aff0157c0ed0148595a4269d7a634133e99a3c5a53951490420a92708f1161ff
       recipe:
         id: blender-gen-kit-biomes
-        version: 2
+        version: 3
         input: "assets/blender/gen_kit_biomes.py"
-        inputVersion: sha256:f7d2d414fd2eb7f5160bb438d53e988727a4784548825ca30b6b265e4ec913a1
+        inputVersion: sha256:8c8b4d5cafb4810764a4f5006d8260e88426dc46c42c8e64201b99b93f942c0b
       provider:
         name: forge-procgen
         version: 1

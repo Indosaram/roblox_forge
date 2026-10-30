@@ -149,6 +149,8 @@ M.kits = {
 -- +-20% otherwise. B1b packages name each MeshPart `model` (dots/dashes as underscores), so the
 -- loader aliases that name to the row key.
 M.modelKey = {} :: { [string]: string }
+-- Biome2: LOD0 triangles per B1b row key (BiomeKitsB1b.tris, generator logs).
+M.tris = {} :: { [string]: number }
 for kit, data in B1b.kits do
 	M.packages[kit] = data.package
 	local rows = {}
@@ -156,11 +158,18 @@ for kit, data in B1b.kits do
 		local tree = entry.family == "tree"
 		local mask = if entry.family == "grass" then "band" elseif entry.family == "shrub" then "edge" else nil
 		local perScreen = (entry.density[1] + entry.density[2]) / 2
+		if perScreen <= 0 then
+			-- Biome2 grove-only rows (density 0): BiomeKits.groves places them, the scatter never does.
+			M.modelKey[entry.model] = entry.key
+			M.tris[entry.key] = B1b.tris[entry.model]
+			continue
+		end
 		table.insert(
 			rows,
 			row(entry.key, entry.family, perScreen, if tree then 0.9 else 0.8, if tree then 1.1 else 1.2, mask)
 		)
 		M.modelKey[entry.model] = entry.key
+		M.tris[entry.key] = B1b.tris[entry.model]
 	end
 	M.kits[kit] = rows
 end
@@ -479,8 +488,224 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 			end
 		end
 	end
+	M.groves(layout, kits, ground, terrain, stream:fork("groves"), result, crowdsArrival)
 	M.verge(layout, kits, ground, terrain, stream:fork("verge"), result, crowdsArrival)
 	return result
+end
+
+-- Biome2 (R11-3/R11-4/R11-6/R11-7): the B1b islands read as uniform scatter from the play camera.
+-- Groves are seeded clumps of the kit's low-poly grove rows (BiomeKitsB1b density-0 rows plus a
+-- few cheap scatter rows): a dead forest with standing pools and reed rims on swamps, scrub with
+-- cacti and rock clusters on deserts, snow pines with frozen shrubs and drift mounds on snow, and
+-- basalt stacks, dead stumps and lava glow cracks on volcanoes. The island's kit part and triangle
+-- totals never grow: grass cards are dropped evenly until both are back at or under the old plan
+-- (phone PSS is ~885 of 900 MB; no atlas or package is added, the rows live in the existing kit).
+-- `members`: { key, count {min, max} }; `pool` (swamp): standing water radius {min, max} at the grove
+-- centre, `rim` rows stand on its edge.
+export type GroveRule = {
+	perScreen: number,
+	radius: { number },
+	members: { { key: string, count: { number } } },
+	pool: { number }?,
+	rim: { { key: string, count: { number } } }?,
+}
+M.GROVES = table.freeze({
+	swamp = {
+		perScreen = 1.0,
+		radius = { 10, 24 },
+		pool = { 6, 11 },
+		members = { { key = "veg.swamp.dead-lean", count = { 3, 6 } } },
+		rim = { { key = "veg.swamp.reed-clump", count = { 5, 9 } } },
+	},
+	desert = {
+		perScreen = 1.4,
+		radius = { 6, 15 },
+		members = {
+			{ key = "veg.desert.scrub", count = { 3, 6 } },
+			{ key = "rock.desert.rock-cluster", count = { 1, 2 } },
+			{ key = "veg.desert.barrel-cactus", count = { 0, 1 } },
+		},
+	},
+	tundra = {
+		perScreen = 1.0,
+		radius = { 8, 18 },
+		members = {
+			{ key = "veg.tundra.snow-pine-b", count = { 1, 2 } },
+			{ key = "veg.tundra.frozen-shrub", count = { 3, 6 } },
+			{ key = "rock.tundra.drift-mound", count = { 1, 3 } },
+		},
+	},
+	volcano = {
+		perScreen = 1.2,
+		radius = { 6, 15 },
+		members = {
+			{ key = "rock.volcano.basalt-stack", count = { 1, 2 } },
+			{ key = "rock.volcano.dead-stump", count = { 1, 3 } },
+			{ key = "clutter.volcano.glow-crack", count = { 1, 2 } },
+		},
+	},
+} :: { [string]: GroveRule })
+-- Rows that render as glowing lava (BiomeKits.place: Neon in this colour, no texture).
+M.GLOW = table.freeze({ ["clutter.volcano.glow-crack"] = { 255, 104, 36 } } :: { [string]: { number } })
+
+local function rowFamily(kit: string, key: string): string?
+	local data = B1b.kits[kit]
+	for _, entry in if data then data.rows else {} do
+		if entry.key == key then
+			return entry.family
+		end
+	end
+	return nil
+end
+
+--- Grove centres (with swamp pool radii) of a role: deterministic for (layout, columns, seed).
+--- Shared by the scatter (M.groves) and the terrain writer (M.pools), so a pool and its reed rim
+--- always agree.
+function M.groveCentres(layout: any, kit: string, ground: Ground, terrain: any, rng: any): { any }
+	local rule = M.GROVES[kit]
+	local centres = {}
+	if not rule then
+		return centres
+	end
+	local low, high = layout.bounds.min, layout.bounds.max
+	local landArea = 0
+	for x = low.x, high.x, 32 do
+		for z = low.z, high.z, 32 do
+			local top = ground.top(x, z)
+			if top and top > M.LAND_TOP then
+				landArea += 32 * 32
+			end
+		end
+	end
+	local wanted = math.floor(rule.perScreen * landArea / M.SCREEN_AREA + 0.5)
+	local gx = math.max(1, math.ceil(math.sqrt(math.max(wanted, 1) * (high.x - low.x) / (high.z - low.z))))
+	local gz = math.max(1, math.ceil(math.max(wanted, 1) / gx))
+	local cw, ch = (high.x - low.x) / gx, (high.z - low.z) / gz
+	local tries = 0
+	while #centres < wanted and tries < wanted * 6 do
+		local index = tries % (gx * gz)
+		tries += 1
+		local x = low.x + (index % gx + rng:nextNumber()) * cw
+		local z = low.z + (index // gx + rng:nextNumber()) * ch
+		local radius = rule.radius[1] + rng:nextNumber() * (rule.radius[2] - rule.radius[1])
+		local pool = if rule.pool then rule.pool[1] + rng:nextNumber() * (rule.pool[2] - rule.pool[1]) else nil
+		local keep = if pool then pool + 4 else 4
+		if not M.allowed(layout, terrain, ground, x, z, keep) or ground.beach(x, z) then
+			continue
+		end
+		if pool and ground.slope(x, z) > 0.15 then
+			continue
+		end
+		table.insert(centres, { x = x, z = z, radius = radius, pool = pool })
+	end
+	return centres
+end
+
+--- Swamp standing-water pools for the terrain writer: { x, z, radius } per grove with a pool.
+function M.pools(
+	layout: any,
+	columns: { any },
+	seed: number,
+	terrain: any
+): { { x: number, z: number, radius: number } }
+	local kit = M.kitsFor(layout)[1]
+	local result = {}
+	local rule = M.GROVES[kit]
+	if #columns == 0 or not (rule and rule.pool) then
+		return result
+	end
+	local ground = M.ground(columns, kit == "desert")
+	local rng = Rng.new(seed):fork("biome-kits:" .. layout.id):fork("groves")
+	for _, centre in M.groveCentres(layout, kit, ground, terrain, rng:fork("centres")) do
+		table.insert(result, { x = centre.x, z = centre.z, radius = centre.pool })
+	end
+	return result
+end
+
+--- Adds the role's groves to `result`, then drops grass cards of the same kit (evenly over the plan
+--- order) until the plan holds no more parts and no more kit triangles than before the groves.
+function M.groves(
+	layout: any,
+	kits: { string },
+	ground: Ground,
+	terrain: any,
+	rng: any,
+	result: { Placement },
+	crowdsArrival: (string, number, number) -> boolean
+)
+	local kit = kits[1]
+	local rule = M.GROVES[kit]
+	if not rule then
+		return
+	end
+	local added, addedTris = 0, 0
+	local function put(key: string, x: number, z: number)
+		local family = rowFamily(kit, key) :: string
+		local clearance = if family == "tree" then 4 else 1
+		if
+			not M.allowed(layout, terrain, ground, x, z, clearance)
+			or ground.beach(x, z)
+			or crowdsArrival(family, x, z)
+		then
+			return
+		end
+		local scale = if family == "tree" then 0.9 + rng:nextNumber() * 0.2 else 0.8 + rng:nextNumber() * 0.4
+		added += 1
+		addedTris += M.tris[key] or 0
+		table.insert(result, {
+			key = key,
+			kit = kit,
+			family = family,
+			x = x,
+			y = ground.top(x, z) :: number,
+			z = z,
+			yaw = rng:nextNumber() * 360,
+			scale = scale,
+		})
+	end
+	for _, centre in M.groveCentres(layout, kit, ground, terrain, rng:fork("centres")) do
+		local inner = if centre.pool then centre.pool + 2 else 0
+		for _, member in rule.members do
+			for _ = 1, rng:nextInteger(member.count[1], member.count[2]) do
+				local angle = rng:nextNumber() * math.pi * 2
+				local d = inner + math.sqrt(rng:nextNumber()) * math.max(centre.radius - inner, 2)
+				put(member.key, centre.x + math.cos(angle) * d, centre.z + math.sin(angle) * d)
+			end
+		end
+		local rim: { { key: string, count: { number } } } = rule.rim or {}
+		for _, member in rim do
+			for _ = 1, rng:nextInteger(member.count[1], member.count[2]) do
+				local angle = rng:nextNumber() * math.pi * 2
+				local d = (centre.pool :: number) + 0.5 + rng:nextNumber() * 2.5
+				put(member.key, centre.x + math.cos(angle) * d, centre.z + math.sin(angle) * d)
+			end
+		end
+	end
+	-- Budget: drop at least `added` grass cards and at least `addedTris` worth of the cheapest grass.
+	local grass, cheapest = 0, math.huge
+	for _, p in result do
+		if p.family == "grass" and p.kit == kit then
+			grass += 1
+			cheapest = math.min(cheapest, M.tris[p.key] or math.huge)
+		end
+	end
+	if added == 0 or grass == 0 then
+		return
+	end
+	local drop = math.min(grass, math.max(added, math.ceil(addedTris / cheapest)))
+	local kept, seen, dropped = table.create(#result), 0, 0
+	for _, p in result do
+		if p.family == "grass" and p.kit == kit then
+			seen += 1
+			if math.floor(seen * drop / grass) > dropped then
+				dropped += 1
+				continue
+			end
+		end
+		table.insert(kept, p)
+	end
+	table.clear(result)
+	table.move(kept, 1, #kept, 1, result)
 end
 
 -- Terrace lane (R11-2/R11-3): jungle and swamp paths run through thick undergrowth. Shrub and fern
@@ -706,6 +931,14 @@ function M.place(
 		-- cards (leaf litter, gravel: ~0.02 thick) would vanish under it, so they ride 0.05 above.
 		local sink = if part.Size.Y < 0.6 then -0.05 else 0.3
 		part.CFrame = CFrame.new(p.x, y + part.Size.Y / 2 - sink, p.z) * CFrame.Angles(0, math.rad(p.yaw), 0)
+		local glow = M.GLOW[p.key]
+		if glow then
+			-- Lava glow crack: an emissive strip, not a textured card (no new texture memory).
+			part.TextureContent = Content.none
+			part.Material = Enum.Material.Neon
+			part.Color = Color3.fromRGB(table.unpack(glow))
+			part.CastShadow = false
+		end
 		part.Name = p.key
 		part:SetAttribute("ForgeKitFamily", p.family)
 		part:SetAttribute("ForgeKitIndex", (offset or 0) + index)

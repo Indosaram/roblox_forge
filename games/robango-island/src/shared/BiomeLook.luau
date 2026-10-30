@@ -23,6 +23,9 @@ export type Look = {
 	high: { material: string, from: number }?,
 	patch: { material: string, share: number, scale: number }?,
 	streak: { material: string, share: number }?,
+	-- Biome2: path-side band (inside CLEAR of authored ground but outside the arrival ring) graded to
+	-- `material` where the noise share allows (grassland: warm ochre meadow, not olive/mud).
+	verge: { material: string, share: number }?,
 	-- Day light: replaces DAY.water / grade tint, adds to grade saturation/contrast and to the
 	-- day Atmosphere density/haze (scaled by daylight, so night fog caps are untouched).
 	water: RGB,
@@ -73,6 +76,7 @@ M.looks = table.freeze({
 		terrain = colours(nil, { Rock = rgb(118, 112, 100), Sand = rgb(196, 180, 146), Salt = rgb(236, 238, 228),
 			Mud = rgb(84, 54, 38) }),
 		patch = { material = "Mud", share = 0.42, scale = 90 },
+		verge = { material = "Mud", share = 0.62 },
 		water = rgb(66, 132, 140), tint = rgb(255, 236, 204), saturation = -0.02, contrast = 0.02,
 		density = 0.02, haze = 0.3, transparency = 0.4, shelf = 3, foam = rgb(236, 238, 228),
 	},
@@ -92,9 +96,10 @@ M.looks = table.freeze({
 		density = 0.1, haze = 1.6, transparency = 0.5, air = rgb(196, 176, 190), shelf = 2, foam = rgb(240, 244, 238),
 	},
 	swamp = {
-		terrain = colours("swamp", { Mud = rgb(70, 60, 48), Rock = rgb(78, 80, 70), Sand = rgb(124, 116, 92),
+		-- Biome2 (R11-3 ground 43/33/38): darker, wetter mud; olive LeafyGrass only in small patches.
+		terrain = colours("swamp", { Mud = rgb(56, 48, 40), Rock = rgb(78, 80, 70), Sand = rgb(124, 116, 92),
 			Salt = rgb(170, 172, 142) }),
-		patch = { material = "LeafyGrass", share = 0.34, scale = 60 },
+		patch = { material = "LeafyGrass", share = 0.2, scale = 60 },
 		water = rgb(78, 84, 56), tint = rgb(214, 220, 200), saturation = -0.26, contrast = 0.08,
 		density = 0.16, haze = 2.4, transparency = 0.2, air = rgb(150, 156, 144), exposure = -0.25, shelf = 4, foam = rgb(170, 172, 142),
 	},
@@ -108,8 +113,9 @@ M.looks = table.freeze({
 	},
 	volcano = {
 		terrain = colours("volcano", { Basalt = rgb(58, 50, 50), Slate = rgb(84, 70, 70), Rock = rgb(74, 66, 64),
-			CrackedLava = rgb(160, 66, 32), Sand = rgb(96, 88, 84), Salt = rgb(200, 196, 188) }),
-		patch = { material = "Slate", share = 0.3, scale = 70 },
+			CrackedLava = rgb(160, 66, 32), Sand = rgb(104, 92, 94), Salt = rgb(200, 196, 188) }),
+		-- Biome2 (R11-4 ash-grey/maroon ground): soft ash (Sand tinted ash) patches over the basalt.
+		patch = { material = "Sand", share = 0.4, scale = 70 },
 		streak = { material = "CrackedLava", share = 0.05 },
 		water = rgb(70, 82, 80), tint = rgb(255, 224, 214), saturation = -0.1, contrast = 0.06,
 		density = 0.1, haze = 1.4, transparency = 0.3, shelf = 3, foam = rgb(200, 196, 188),
@@ -155,6 +161,19 @@ function M.grade(look: Look, material: string, base: string, x: number, z: numbe
 		end
 	end
 	return material
+end
+
+--- Biome2: graded material of a path-side cell (inside CLEAR of authored ground) on a look with a
+--- `verge` rule. Only grass and trampled ground change, and only where `away` (outside the arrival
+--- ring: L10b owns the spawn screen); a noise share keeps some grass in holes.
+M.VERGE_FROM = table.freeze({ Grass = true, Ground = true, LeafyGrass = true })
+function M.verge(look: Look, material: string, x: number, z: number, away: boolean): string
+	local rule = look.verge
+	if not rule or not away or not M.VERGE_FROM[material] then
+		return material
+	end
+	local n = math.noise(x / 40, z / 40, 2.7) + 0.3 * math.noise(x / 13, z / 13, 6.1)
+	return if n > 0.5 - rule.share * 1.6 then rule.material else material
 end
 
 --- True when (x, z) is outside every arrival/spawn ring of `layout` (`arrivals` from BiomeKits).

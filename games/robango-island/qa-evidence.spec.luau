@@ -222,7 +222,9 @@ end
 -- 2026-10-30 body (skinned survivors) pushed the static source proxy 559 B past its 15 KB margin. Raised 4.0 -> 4.2 MB.
 -- 2026-10-30 night (R20 travel screen module) added the 401st static instance. Raised 400 -> 420.
 -- The binding budget is the reference-phone measurement (v62 cold start: PSS 795 MiB of 900, 56-57 fps), which is unchanged.
-local PERF_BUDGET = { instances = 420, scripts = 340, sourceBytes = 4200000, fileBytes = 1900000 }
+-- 2026-10-30 town3 (square props, channels) and biome2 (biome clump placement) took the place file to
+-- 1.902 MB. fileBytes 1.9 -> 2.0 MB; the device budget above stays the binding one.
+local PERF_BUDGET = { instances = 420, scripts = 340, sourceBytes = 4200000, fileBytes = 2000000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 

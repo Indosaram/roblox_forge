@@ -136,6 +136,21 @@ def desert(rng, outdir):
     b = K.Builder()
     mat_patch(b, rng, V.rects["dry_twig_litter"], 2.6)
     objs.append(b.finish("clutter_desert_twig_litter", vm))
+    # Biome2 scrub (R11-7): low-poly rows for scrub clumps (no new atlas tiles).
+    b = K.Builder()  # low dry scrub: a fan of twig cards with a few grey-green leaf clusters
+    for i in range(12):
+        a = math.pi * i / 12
+        b.crossed(Vector((rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), 0)), rng.uniform(1.8, 2.6), rng.uniform(1.4, 2.0), V.rects["twigs" if i % 2 else "twigs2"], n=1, rot=a, lean=Vector((math.cos(2 * a) * 0.4, math.sin(2 * a) * 0.4, 0)), rows=2, bend=0.3)
+    leafy(b, rng, V.rects["desert_leaf"], Vector((0, 0, 0.2)), 1.0, 1.1, 16, (0.5, 0.8))
+    objs.append(b.finish("veg_desert_scrub", vm))
+    b = K.Builder()  # rock cluster: one bedded boulder and three small stones
+    b.rock(Vector((0, 0, 0.7)), (2.0, 1.6, 1.2), R.rects["rockface"], rng, sub=1, rough=0.3, strata=0.5)
+    for i in range(3):
+        a = i * 2.2 + rng.uniform(-0.4, 0.4)
+        r = rng.uniform(2.0, 2.8)
+        s = rng.uniform(0.5, 0.9)
+        b.rock(Vector((math.cos(a) * r, math.sin(a) * r, s * 0.35)), (s, s * 0.85, s * 0.6), R.rects["sandstone" if i % 2 else "rockface"], rng, sub=1, rough=0.3, flat=0.5)
+    objs.append(b.finish("rock_desert_rock_cluster", rm))
     return objs, (V, G, R), {"veg": vp, "grass": gp, "rock": rp}
 
 
@@ -233,6 +248,15 @@ def tundra(rng, outdir):
     b = K.Builder()
     mat_patch(b, rng, V.rects["snowpatch"], 3.2)
     objs.append(b.finish("clutter_tundra_snow_patch", vm))
+    # Biome2 scrub (R11-6): frozen shrub and snow drift mound (no new atlas tiles).
+    b = K.Builder()  # frozen shrub: snow-crusted twig fan
+    for i in range(10):
+        a = math.pi * i / 10
+        b.crossed(Vector((rng.uniform(-0.25, 0.25), rng.uniform(-0.25, 0.25), 0)), rng.uniform(2.0, 2.8), rng.uniform(1.6, 2.4), V.rects["frost_twigs2"], n=1, rot=a, lean=Vector((math.cos(2 * a) * 0.35, math.sin(2 * a) * 0.35, 0)), rows=2, bend=0.3)
+    objs.append(b.finish("veg_tundra_frozen_shrub", vm))
+    b = K.Builder()  # drift mound: a low wind-shaped snow hump
+    b.rock(Vector((0, 0, 0.0)), (4.2, 2.6, 1.1), R.rects["snow"], rng, sub=2, rough=0.18, flat=0.2, scale=1.1)
+    objs.append(b.finish("rock_tundra_drift_mound", rm))
     return objs, (V, G, R), {"veg": vp, "grass": gp, "rock": rp}
 
 
@@ -319,6 +343,35 @@ def volcano(rng, outdir):
     b = K.Builder()
     mat_patch(b, rng, V.rects["ash"], 3.4)
     objs.append(b.finish("clutter_volcano_ash_patch", vm))
+    # Biome2 (R11-4): basalt column stack, dead stump and a lava glow crack (no new atlas tiles).
+    b = K.Builder()  # basalt stack: tight cluster of tall hex columns, stepped tops
+    for i in range(7):
+        a = 2 * math.pi * i / 7 + rng.uniform(-0.2, 0.2)
+        r = 0 if i == 0 else rng.uniform(1.2, 1.9)
+        b.prism(Vector((math.cos(a) * r, math.sin(a) * r, -0.3)), rng.uniform(0.75, 1.0), (16 if i == 0 else rng.uniform(6, 13)), 6, R.rects["basalt"], rng, top_jit=0.03)
+    objs.append(b.finish("rock_volcano_basalt_stack", rm))
+    b = K.Builder()  # dead stump: broken charred trunk with two stubs
+    b.tube([Vector((0, 0, -0.3)), Vector((0.1, 0, 1.4)), Vector((0.15, 0.05, 2.6))], [0.75, 0.6, 0.45], V.rects["char_bark"], sides=7, v_scale=0.1, jitter=0.12, rng=rng)
+    for a in (0.6, 3.5):
+        o = Vector((math.cos(a), math.sin(a), 0))
+        b.tube([Vector((0, 0, 1.6)) + o * 0.4, Vector((0, 0, 2.4)) + o * 1.2], [0.2, 0.08], V.rects["char_bark"], sides=4, v_scale=0.1)
+    for i in range(4):
+        a = 2 * math.pi * i / 4 + 0.4
+        o = Vector((math.cos(a), math.sin(a), 0))
+        b.tube([o * 0.5 + Vector((0, 0, 0.3)), o * 1.5 + Vector((0, 0, -0.2))], [0.22, 0.1], V.rects["char_bark"], sides=4, v_scale=0.1)
+    objs.append(b.finish("rock_volcano_dead_stump", vm))
+    b = K.Builder()  # glow crack: branching thin strips lying on the ground (rendered Neon at runtime)
+    def crack(p, d, n, w, branch=True):
+        for k in range(n):
+            d = (d + Vector((rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5), 0))).normalized()
+            q = p + d * rng.uniform(0.9, 1.5)
+            side = Vector((-d.y, d.x, 0)) * w * (1 - k / (n + 1))
+            b.quad([p - side + Vector((0, 0, 0.04)), p + side + Vector((0, 0, 0.04)), q + side * 0.8 + Vector((0, 0, 0.04)), q - side * 0.8 + Vector((0, 0, 0.04))], R.rects["crust"])
+            if branch and k in (2, 4):
+                crack(q, Vector((-d.y, d.x, 0)) * (1 if k == 2 else -1), 3, w * 0.6, False)
+            p = q
+    crack(Vector((-3.5, 0, 0)), Vector((1, 0, 0)), 7, 0.28)
+    objs.append(b.finish("clutter_volcano_glow_crack", rm))
     return objs, (V, G, R), {"veg": vp, "grass": gp, "rock": rp}
 
 

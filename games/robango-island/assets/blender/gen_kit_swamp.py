@@ -183,6 +183,30 @@ def rotting_log(rng, R, mat):
     return b.finish("rock_swamp_rotting_log", mat), 2
 
 
+def dead_lean(rng, V, mat):
+    """Biome2 (R11-3 dead forest): a bare leaning snag, low-poly (about 300 tris) so groves of it
+    fit the island triangle budget; same bark/twig rects as dead_bare (no new atlas tiles)."""
+    b = K.Builder()
+    lean = Vector((0.42, 0.12, 1)).normalized()
+    pts = [Vector((0, 0, -0.5)), lean * 4.0, lean * 8.5 + Vector((0.3, 0, 0)), lean * 12.5 + Vector((0.9, 0.2, 0))]
+    b.tube(pts, [0.7, 0.5, 0.36, 0.2], V.rects["bark_dead"], sides=6, v_scale=0.05)
+    tips = []
+    for i in range(3):
+        a = i * 2.1 + rng.uniform(-0.3, 0.3)
+        d = Vector((math.cos(a) * 0.9, math.sin(a) * 0.9, 1.0))
+        K.grow_branches(b, rng, pts[1 + i], d, 4.2, 0.24, V.rects["bark_dead"], 1, spread=0.7, sides=4, segs=2, tips=tips, gnarl=0.3, min_r=0.06)
+    for p, d in tips[::3]:
+        b.crossed(p - d * 0.4, 2.2, 2.0, V.rects["twigs"], n=1, rot=rng.uniform(0, 3), lean=d * 0.6)
+    return b.finish("veg_swamp_dead_lean", mat), 13
+
+
+def reed_clump(rng, G, mat):
+    """Biome2: tall reed/cordgrass clump for pool rims (grass atlas, about 60 tris)."""
+    b = K.Builder()
+    K.grass_cluster(b, rng, [G.rects["cord"], G.rects["sedge"]], 5.5, 1.1, 14, width=1.2)
+    return b.finish("veg_swamp_reed_clump", mat), 5.5
+
+
 def litter(rng, V, mat):
     b = K.Builder()
     b.disc(Vector((0, 0, 0)), 3.0, V.rects["litter"], segs=14, rings=2, rng=rng, lift=0.05)
@@ -208,6 +232,8 @@ def main():
         (mud_stone, R, rm),
         (rotting_log, R, rm),
         (litter, V, vm),
+        (dead_lean, V, vm),
+        (reed_clump, G, gm),
     ):
         o, _ = fn(rng, at, m)
         objs.append(o)
