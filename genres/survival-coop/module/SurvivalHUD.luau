@@ -2403,6 +2403,18 @@ function M.start(options: Options)
 			end,
 			name = shellOptions.name,
 			hint = shellOptions.hint,
+			-- The focus label (HudShell declutter): the engaged creature (CombatHud sets its id on the
+			-- player), else the highlighted gather node (nearestGather).
+			focus = function(): Instance?
+				local fighting = player:GetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE)
+				local wildlife = if fighting ~= nil then world:FindFirstChild("ForgeWildlife") else nil
+				for _, animal in if wildlife then wildlife:GetChildren() else {} do
+					if animal:GetAttribute("ForgeWildlifeId") == fighting then
+						return animal
+					end
+				end
+				return if highlight.Enabled then highlight.Adornee else nil
+			end,
 			coordsText = function(px: number, pz: number): string
 				return string.format(t("shell.coords"), px, pz)
 			end,

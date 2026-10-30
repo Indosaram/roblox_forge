@@ -480,6 +480,94 @@ function M.labelBlocked(r: Rect, regions: any): boolean
 	return false
 end
 
+-- World label declutter (labels audit: at 800x360 "모닥불" drew over "프로토케라톱스" and "섬유 덤불"
+-- over the player; Durango R05-1 shows the focused label in full and few others). Rank by kind, lower
+-- first: the current target is 0, creatures and people 1, gather nodes and drops 2, structures 3.
+M.LABEL_RANK = table.freeze({ wildlife = 1, pet = 1, npc = 1, node = 2, drop = 2, station = 3, dock = 3 })
+-- Screen px { dx, dy } a label may move off its anchor point to clear a higher-priority one, in order.
+M.LABEL_NUDGES = table.freeze({ { 0, 0 }, { 0, -6 }, { 0, 6 }, { 0, -12 }, { 0, 12 }, { -12, 0 }, { 12, 0 } })
+-- The focus label never yields to another label; it may move further than the rest to clear the player
+-- and the HUD (a creature beside the player wears a wide name).
+M.LABEL_FOCUS_NUDGES = table.freeze({ { 0, -24 }, { 0, 24 }, { -40, 0 }, { 40, 0 }, { 0, -40 }, { -80, 0 }, { 80, 0 } })
+-- Labels drawn at once: a phone (safe height under 480 px) shows at most `phone`, a larger screen `wide`.
+M.LABEL_CAP = table.freeze({ phone = 6, wide = 12 })
+-- Clear px kept between two labels, and around the player's figure / a name tag (rounding and the 0.2 s
+-- label cadence against a moving camera must not let edges touch).
+M.LABEL_GAP = table.freeze({ label = 2, avoid = 4 })
+
+function M.labelCap(safeHeight: number): number
+	return if safeHeight < 480 then M.LABEL_CAP.phone else M.LABEL_CAP.wide
+end
+
+export type LabelItem = { id: string, kind: string, rect: Rect, distance: number, target: boolean? }
+
+--- Which world labels draw, and how far each moves: items sorted by rank (target, creatures, nodes,
+--- structures), then distance, then id. Each takes the first nudge (LABEL_NUDGES, screen px down) whose
+--- rect touches no placed label, no `avoid` rect (the local player's figure and plate, name tags) and,
+--- when given, nothing `blocked` rejects (HUD regions); otherwise it is hidden. At most `cap` draw.
+--- The focus (target) also tries LABEL_FOCUS_NUDGES. Returns { id, dx, dy } in draw order.
+function M.declutter(
+	items: { LabelItem },
+	avoid: { Rect },
+	cap: number,
+	blocked: ((Rect) -> boolean)?
+): { { id: string, dx: number, dy: number } }
+	local order = table.clone(items)
+	local function rank(item: LabelItem): number
+		return if item.target then 0 else M.LABEL_RANK[item.kind] or 3
+	end
+	table.sort(order, function(a, b)
+		local ra, rb = rank(a), rank(b)
+		if ra ~= rb then
+			return ra < rb
+		end
+		if a.distance ~= b.distance then
+			return a.distance < b.distance
+		end
+		return a.id < b.id
+	end)
+	local placed: { Rect } = {}
+	local out: { { id: string, dx: number, dy: number } } = {}
+	for _, item in order do
+		if #out >= cap then
+			break
+		end
+		local tries = M.LABEL_NUDGES
+		if item.target then
+			tries = table.clone(tries)
+			table.move(M.LABEL_FOCUS_NUDGES, 1, #M.LABEL_FOCUS_NUDGES, #tries + 1, tries)
+		end
+		for _, nudge in tries do
+			local dx, dy = nudge[1], nudge[2]
+			local r = rect(item.rect.x + dx, item.rect.y + dy, item.rect.width, item.rect.height)
+			local clear = not (blocked and blocked(r))
+			for _, other in avoid do
+				clear = clear and not hits(r, other, M.LABEL_GAP.avoid)
+			end
+			for _, other in placed do
+				clear = clear and not hits(r, other, M.LABEL_GAP.label)
+			end
+			if clear then
+				table.insert(placed, r)
+				table.insert(out, { id = item.id, dx = dx, dy = dy })
+				break
+			end
+		end
+	end
+	return out
+end
+
+--- Screen rect (gui space) of the local player's figure and own name plate: from `head` (the screen
+--- point over the head) down to `plate` (the plate centre, under the feet), as wide as the plate text
+--- (`name` at `size` px) and never narrower than the body.
+function M.playerRect(head: { x: number, y: number }, plate: { x: number, y: number }, name: string, size: number): Rect
+	local w = math.max(48, textWidth(name, size) + 8)
+	local top = math.min(head.y, plate.y - size)
+	local bottom = math.max(head.y, plate.y + size)
+	local cx = (head.x + plate.x) / 2
+	return rect(cx - w / 2, top, w, bottom - top)
+end
+
 --- Caption pill rect for the primary token `p` (`width` x `height`): left of the token, else under,
 --- else over it, else left of or above the whole cluster; the first spot inside the gui that touches none of
 --- `others` (the other shown tokens and HUD regions). Studio-after defect 3: the left-only pill sat
@@ -1609,6 +1697,9 @@ export type OverlayOptions = {
 	-- Small second label line under a world label (`kind`, labelled instance), e.g. a gather node's
 	-- tool hint ("Lv 1 . by hand"). Optional: nil or "" shows the name alone.
 	hint: ((string, any) -> string?)?,
+	-- The instance the player is acting on (combat target, highlighted gather node), or nil. Its label
+	-- wins every declutter conflict. Optional.
+	focus: (() -> any?)?,
 }
 
 -- CollectionService tag on world name tags the contextual banner must never cover (player tags,
@@ -1617,6 +1708,8 @@ M.NAME_TAG = "ForgeNameTag"
 
 -- Tags a pack/server sets on a ground drop or a deployed pet so it gets a label.
 M.DROP_TAG, M.PET_TAG = "ForgeWorldDrop", "ForgeWorldPet"
+-- Set on the local player (CombatHud) to the engaged creature's ForgeWildlifeId: its label is the focus.
+M.COMBAT_TARGET_ATTRIBUTE = "ForgeCombatTargetId"
 
 local function anchorOf(instance: any): any
 	if instance:IsA("BasePart") then
@@ -2030,33 +2123,130 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 						end
 					end
 				end
-				for _, target in M.labelTargets(candidates, origin.X, origin.Y, origin.Z) do
+				local full: string? = nil
+				local focus = if options.focus then options.focus() else nil
+				local targets = M.labelTargets(candidates, origin.X, origin.Y, origin.Z)
+				local focused: { [string]: boolean } = {}
+				for _, target in targets do
+					local holder = lookup[target.id][1]
+					if focus ~= nil and (holder == focus or holder.Parent == focus) then
+						focused[target.id] = true
+						full = full or target.id
+					end
+				end
+				-- The focus label shows in full (name + tool hint); without one, the nearest node does.
+				if not full then
+					for _, target in targets do
+						if target.kind == "node" then
+							full = target.id
+							break
+						end
+					end
+				end
+				local inset = if camera then options.gui.AbsolutePosition else Vector2.zero
+				-- Screen rects labels must stay off: the local player's figure and own plate, and every other
+				-- shown name tag (other players, the companion plate).
+				local avoid: { Rect } = {}
+				local own = rings[player]
+				if camera then
+					if own and own.tag.Enabled then
+						-- The own plate (ringFor) rides under the feet; the rect spans it up to the head.
+						local head = character:FindFirstChild("Head")
+						local top = if head and head:IsA("BasePart")
+							then head.Position + Vector3.new(0, head.Size.Y / 2, 0)
+							else origin + Vector3.new(0, 3, 0)
+						local a, seenA = camera:WorldToScreenPoint(top)
+						local b, seenB = camera:WorldToScreenPoint(origin + own.tag.StudsOffsetWorldSpace)
+						if seenA or seenB then
+							table.insert(
+								avoid,
+								M.playerRect(
+									{ x = a.X - inset.X, y = a.Y - inset.Y },
+									{ x = b.X - inset.X, y = b.Y - inset.Y },
+									tostring(player.DisplayName or ""),
+									tagSize.name
+								)
+							)
+						end
+					end
+					for _, tag in tags:GetTagged(M.NAME_TAG) do
+						local adornee = if tag:IsA("BillboardGui") then (tag.Adornee or tag.Parent) else nil
+						if
+							tag.Enabled
+							and tag.Parent ~= labelFolder
+							and not (own and tag == own.tag)
+							and adornee
+							and adornee:IsA("BasePart")
+						then
+							local at = adornee.Position + tag.StudsOffsetWorldSpace + tag.StudsOffset
+							local point, seen = camera:WorldToScreenPoint(at)
+							if seen then
+								local box = tag.AbsoluteSize
+								table.insert(
+									avoid,
+									rect(point.X - inset.X - box.X / 2, point.Y - inset.Y - box.Y / 2, box.X, box.Y)
+								)
+							end
+						end
+					end
+				end
+				-- Screen rect of every candidate label, then the declutter pass (M.declutter): priority, a few
+				-- px of nudge, else hidden; never over the HUD (LABEL_BLOCKERS) or the player; capped.
+				local items: { LabelItem } = {}
+				local lines: { [string]: string? } = {}
+				local order: { string } = {}
+				for index, target in targets do
 					local entry = lookup[target.id]
-					local lift = M.labelLift(entry[1])
-					local line = if entry[3] == "node" and options.hint then options.hint("node", entry[1]) else nil
-					-- A label whose text would land on a HUD region is not drawn (a BillboardGui is a world
-					-- overlay the ScreenGui cannot mask).
+					local line = if target.id == full
+							and entry[3] == "node"
+							and options.hint
+						then options.hint("node", entry[1])
+						else nil
+					lines[target.id] = line
 					if camera then
-						local inset = options.gui.AbsolutePosition
 						-- WorldToScreenPoint, not WorldToViewportPoint: AbsolutePosition is measured below the
 						-- top bar (GuiInset), so a viewport point tested every label 58 px (phone) / 36 px (PC)
 						-- under where it draws and labels through the vitals, the quest toggle and hotbar
 						-- slot 1 passed the check (p134 v60 lb4).
+						local lift = M.labelLift(entry[1])
 						local point, visible = camera:WorldToScreenPoint(entry[1].Position + Vector3.new(0, lift, 0))
-						if
-							visible
-							and M.labelBlocked(
-								M.labelRect(point.X - inset.X, point.Y - inset.Y, entry[2], line),
-								regions
-							)
-						then
-							continue
+						if visible then
+							local dx, dy = target.x - origin.X, target.z - origin.Z
+							table.insert(items, {
+								id = target.id,
+								kind = target.kind,
+								rect = M.labelRect(point.X - inset.X, point.Y - inset.Y, entry[2], line),
+								distance = math.sqrt(dx * dx + dy * dy) + index * 1e-6,
+								target = focused[target.id],
+							})
 						end
+					else
+						table.insert(order, target.id)
 					end
+				end
+				local cap = M.labelCap(regions.safeHeight)
+				local placed: { { id: string, dx: number, dy: number } } = {}
+				if camera then
+					placed = M.declutter(items, avoid, cap, function(r: Rect): boolean
+						return M.labelBlocked(r, regions)
+					end)
+				else
+					for index = 1, math.min(cap, #order) do
+						table.insert(placed, { id = order[index], dx = 0, dy = 0 })
+					end
+				end
+				for _, slot in placed do
+					local entry = lookup[slot.id]
+					local lift = M.labelLift(entry[1])
+					local line = lines[slot.id]
 					shown += 1
 					local item = board(shown)
 					item.Adornee, item.Enabled = entry[1], true
 					item.StudsOffsetWorldSpace = Vector3.new(0, lift, 0)
+					-- The nudge, in board sizes (SizeOffset +X moves the board right, +Y up the screen).
+					item.SizeOffset = Vector2.new(slot.dx / M.LABEL_BOARD.width, -slot.dy / M.LABEL_BOARD.height)
+					item:SetAttribute("ForgeLabelId", slot.id)
+					item:SetAttribute("ForgeLabelNudge", slot.dx .. "," .. slot.dy)
 					local text = item:FindFirstChild("Text") :: any
 					text.Text = entry[2]
 					-- One label style for every kind (R05-1 white text): creatures used to get a small coral

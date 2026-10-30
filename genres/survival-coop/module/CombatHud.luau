@@ -915,6 +915,11 @@ function M.start(options: Options)
 			end
 			-- Target bar.
 			local engaged = session ~= nil and targetModel ~= nil
+			-- The engaged creature's label is the focus of the world-label declutter (HudShell).
+			local focusId = if engaged and session then session.target else nil
+			if player:GetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE) ~= focusId then
+				player:SetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE, focusId)
+			end
 			bar.Visible = engaged and not hidden
 			stepBack.Visible = engaged and not hidden
 			if engaged then
@@ -1035,6 +1040,7 @@ function M.start(options: Options)
 		if player:GetAttribute(M.PICKER_ATTRIBUTE) ~= nil then
 			player:SetAttribute(M.PICKER_ATTRIBUTE, nil)
 		end
+		player:SetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE, nil)
 	end
 	return api
 end

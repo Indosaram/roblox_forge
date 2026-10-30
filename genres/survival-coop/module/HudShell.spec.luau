@@ -1466,4 +1466,288 @@ return {
 		assert(string.find(opening, "HudShell.fitQuestText(tracker,", 1, true), "the opening tracker uses it")
 		assert(string.find(opening, "M.placeSkip(skip, gui,", 1, true), "the cold-open skip is placed per frame")
 	end,
+	-- labels audit (hud2 sbs-hotbar-phone): at 800x360 "모닥불" drew over "프로토케라톱스" and "섬유 덤불"
+	-- over the player; every label in range drew with no overlap handling. Durango R05-1 shows the focus
+	-- label in full and few, clean others. Real startOverlays, a pinhole camera at the default Robango
+	-- framing (CameraConfig pitch / FOV / distance, top bar inset), a 12-step yaw orbit of a camp scene.
+	["labels: no two world labels overlap, none covers the player, the target wins and a phone shows few"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local CameraConfig = require("../../../games/robango-island/src/shared/CameraConfig")
+		local I, V3, CF = roblox.Instance, roblox.Vector3, roblox.CFrame
+		local NAMES: { [string]: string } = {
+			campfire = "모닥불",
+			workbench = "작업대",
+			protoceratops = "프로토케라톱스",
+			dodo = "도도",
+			fiber = "섬유 덤불",
+			stone = "돌무더기",
+			driftwood = "부싯돌 노두",
+			tree = "야자나무",
+			berry = "베리 덤불",
+			clay = "점토 웅덩이",
+		}
+		local function sweep(view: { number }, focusKey: string?): any
+			local result = { pairs = {}, onPlayer = {}, most = 0, focusShown = 0, focusSeen = 0 }
+			-- One fresh overlay per orbit step: Lune cannot clear a board's Adornee (a nil Ref), which the
+			-- overlay does when fewer boards show than the frame before.
+			for step = 0, 11 do
+				local width, height, bar = view[1], view[2], view[3]
+				local playerGui = I.new("PlayerGui")
+				local gui = I.new("ScreenGui")
+				gui.AbsoluteSize, gui.ResetOnSpawn, gui.Parent =
+					roblox.Vector2.new(width, height - bar), false, playerGui
+				gui.AbsolutePosition = roblox.Vector2.zero
+				local root = I.new("Part")
+				root.Name, root.Size, root.Position = "HumanoidRootPart", V3.new(2, 2, 1), V3.new(0, 3, 0)
+				local head = I.new("Part")
+				head.Name, head.Size, head.Position = "Head", V3.new(2, 1, 1), V3.new(0, 4.5, 0)
+				local humanoid = { Health = 100, HipHeight = 2 }
+				local character = {
+					FindFirstChild = function(_, name)
+						return if name == "HumanoidRootPart" then root elseif name == "Head" then head else nil
+					end,
+					FindFirstChildOfClass = function(_, class)
+						return if class == "Humanoid" then humanoid else nil
+					end,
+				}
+				local player = {
+					Character = character,
+					DisplayName = "indosaram5",
+					WaitForChild = function()
+						return playerGui
+					end,
+				}
+				local function part(kind: string, key: string, x: number, z: number): any
+					local item = I.new("Part")
+					item.Position = V3.new(x, 0.6, z)
+					item:SetAttribute(kind, key)
+					return item
+				end
+				-- The hud2 camp: the campfire with the protoceratops beside it, a fiber bush at the player's
+				-- feet, a workbench and a node field around.
+				local nodes = {
+					part("ForgeNodeKind", "fiber", 1, 1.5),
+					part("ForgeNodeKind", "stone", -9, 3),
+					part("ForgeNodeKind", "driftwood", -10, 0),
+					part("ForgeNodeKind", "tree", 9, -8),
+					part("ForgeNodeKind", "berry", 8, -9),
+					part("ForgeNodeKind", "clay", -6, -12),
+				}
+				local stations = {
+					part("ForgeStationKind", "campfire", -3, -6),
+					part("ForgeStationKind", "workbench", 6, 2),
+				}
+				local wild = I.new("Folder")
+				wild.Name = "ForgeWildlife"
+				local animals: { [string]: any } = {}
+				for _, spec in { { "protoceratops", -3.5, -5 }, { "dodo", 3, -15 } } :: { { any } } do
+					local animal = I.new("Model")
+					animal:SetAttribute("ForgeWildlifeKind", spec[1])
+					local body = I.new("Part")
+					body.Name, body.Position, body.Parent = "HumanoidRootPart", V3.new(spec[2], 1, spec[3]), animal
+					animal.PrimaryPart, animal.Parent = body, wild
+					animals[spec[1]] = animal
+				end
+				-- Pinhole camera: Roblox looks down -Z, FieldOfView is vertical over the whole viewport, and
+				-- the screen point is the viewport point less the top bar.
+				local camera: any = {}
+				local eye, forward, right, up = V3.zero, V3.zero, V3.zero, V3.zero
+				local function aim(yaw: number)
+					local pitch = math.rad(CameraConfig.pitch)
+					local d = CameraConfig.distance
+					local focus = root.Position
+					eye = focus
+						+ V3.new(
+							math.sin(yaw) * math.cos(pitch) * d,
+							math.sin(pitch) * d,
+							math.cos(yaw) * math.cos(pitch) * d
+						)
+					forward = (focus - eye).Unit
+					right = forward:Cross(V3.new(0, 1, 0)).Unit
+					up = right:Cross(forward)
+					camera.CFrame = CF.new(eye)
+				end
+				local f = (height / 2) / math.tan(math.rad(CameraConfig.fieldOfView) / 2)
+				local function viewport(at: any): (any, boolean)
+					local v = at - eye
+					local depth = v:Dot(forward)
+					local x, y = v:Dot(right), v:Dot(up)
+					return V3.new(width / 2 + x / depth * f, height / 2 - y / depth * f, depth), depth > 0
+				end
+				camera.WorldToViewportPoint = function(_, at)
+					return viewport(at)
+				end
+				camera.WorldToScreenPoint = function(_, at)
+					local p, seen = viewport(at)
+					return V3.new(p.X, p.Y - bar, p.Z), seen
+				end
+				local beats: { (number) -> () } = {}
+				local renders: { () -> () } = {}
+				local function signal(list: { any }?)
+					return {
+						Connect = function(_, fn)
+							if list then
+								table.insert(list, fn)
+							end
+							return { Disconnect = function() end }
+						end,
+					}
+				end
+				local services: { [string]: any } = {
+					Players = {
+						LocalPlayer = player,
+						PlayerRemoving = signal(),
+						GetPlayers = function()
+							return { player }
+						end,
+					},
+					CollectionService = {
+						GetTagged = function(_, tag)
+							return if tag == "ForgeSurvivalNode"
+								then nodes
+								elseif tag == "ForgeSurvivalStation" then stations
+								else {}
+						end,
+					},
+					Workspace = {
+						CurrentCamera = camera,
+						GetDescendants = function()
+							return {}
+						end,
+						FindFirstChild = function(_, name)
+							return if name == "ForgeWildlife" then wild else nil
+						end,
+					},
+					RunService = { RenderStepped = signal(renders), Heartbeat = signal(beats) },
+					UserInputService = { TouchEnabled = view[4] == 1 },
+					GuiService = {},
+				}
+				local environment: any = {
+					game = {
+						GetService = function(_, name)
+							return services[name]
+						end,
+					},
+				}
+				for key, value in roblox do
+					environment[key] = value
+				end
+				local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+					environment = environment,
+				})()
+				shell.startOverlays({
+					gui = gui,
+					hidden = function()
+						return false
+					end,
+					name = function(_, key)
+						return NAMES[key] or key
+					end,
+					coordsText = function()
+						return ""
+					end,
+					tribe = function()
+						return ""
+					end,
+					hint = function()
+						return "Lv 1 · 맨손"
+					end,
+					focus = function()
+						return if focusKey then animals[focusKey] else nil
+					end,
+				})
+				do
+					aim(step * math.pi / 6)
+					renders[1]()
+					beats[1](1)
+					local drawn: { { any } } = {}
+					for _, board in playerGui:FindFirstChild("ForgeWorldLabels"):GetChildren() do
+						if board:IsA("BillboardGui") and board.Name == "WorldLabel" and board.Enabled then
+							local p = camera:WorldToScreenPoint(board.Adornee.Position + board.StudsOffsetWorldSpace)
+							-- SizeOffset moves the board by that many board sizes (+X right, +Y up).
+							local dy = -board.SizeOffset.Y * board.Size.Y.Offset
+							local dx = board.SizeOffset.X * board.Size.X.Offset
+							local hint = if board.Hint.Visible then board.Hint.Text else nil
+							table.insert(drawn, {
+								board.Text.Text,
+								Shell.labelRect(p.X + dx, p.Y + dy, board.Text.Text, hint),
+								board.Adornee,
+							})
+						end
+					end
+					result.most = math.max(result.most, #drawn)
+					-- The player's figure, from the head top down to the own plate under the feet.
+					local top = camera:WorldToScreenPoint(head.Position + V3.new(0, 0.5, 0))
+					local tag = playerGui:FindFirstChild("ForgePlayerRings", true):FindFirstChild("NameTag")
+					local plate = camera:WorldToScreenPoint(root.Position + tag.StudsOffsetWorldSpace)
+					local figure = {
+						x = math.min(top.X, plate.X) - 24,
+						y = math.min(top.Y, plate.Y - 8),
+						width = math.abs(top.X - plate.X) + 48,
+						height = math.abs(plate.Y + 8 - top.Y),
+					}
+					if focusKey then
+						local _, seen = camera:WorldToScreenPoint(animals[focusKey].PrimaryPart.Position)
+						result.focusSeen += if seen then 1 else 0
+					end
+					for i, a in drawn do
+						if Shell.overlaps(a[2], figure) then
+							table.insert(result.onPlayer, step .. ":" .. a[1])
+						end
+						if focusKey and a[3] == animals[focusKey].PrimaryPart then
+							result.focusShown += 1
+						end
+						for j = i + 1, #drawn do
+							if Shell.overlaps(a[2], drawn[j][2]) then
+								table.insert(result.pairs, step .. ":" .. a[1] .. "/" .. drawn[j][1])
+							end
+						end
+					end
+				end
+			end
+			return result
+		end
+		local caps: { [number]: number } = { [360] = 6, [720] = 12 }
+		for _, view in { { 800, 360, 58, 1 }, { 1280, 720, 36, 0 } } do
+			local r = sweep(view, "protoceratops")
+			local at = view[1] .. "x" .. view[2]
+			assert(#r.pairs == 0, at .. " overlapping label pairs: " .. table.concat(r.pairs, ", "))
+			assert(#r.onPlayer == 0, at .. " labels over the player: " .. table.concat(r.onPlayer, ", "))
+			assert(r.most <= caps[view[2]], at .. " at most " .. caps[view[2]] .. " labels, saw " .. r.most)
+			assert(r.most >= 3, at .. " still labels the scene, saw " .. r.most)
+			-- The engaged creature keeps its label at every yaw it is on screen (it never yields).
+			assert(r.focusShown == r.focusSeen, at .. " target labelled " .. r.focusShown .. "/" .. r.focusSeen)
+		end
+		-- The rule itself: the target beats a nearer creature, a creature beats a structure, a node
+		-- nudges a few px off a nearer node, a full overlap hides, nothing goes over an avoid rect, capped.
+		local function item(id: string, kind: string, x: number, y: number, distance: number, target: boolean?): any
+			return {
+				id = id,
+				kind = kind,
+				rect = { x = x, y = y, width = 80, height = 22 },
+				distance = distance,
+				target = target,
+			}
+		end
+		local out = Shell.declutter({
+			item("fire", "station", 100, 100, 1),
+			item("proto", "wildlife", 100, 100, 3),
+			item("bush", "node", 300, 100, 1),
+			item("rock", "node", 300, 112, 2),
+			item("dodo", "wildlife", 500, 100, 9, true),
+			item("onme", "node", 700, 100, 0),
+		}, { { x = 690, y = 60, width = 100, height = 120 } }, 10)
+		local placed: { [string]: number } = {}
+		for _, slot in out do
+			placed[slot.id] = slot.dy
+		end
+		assert(out[1].id == "dodo", "the target is placed first")
+		assert(placed.proto == 0 and placed.fire == nil, "the creature keeps its spot, the campfire hides")
+		assert(placed.bush == 0 and placed.rock == 12, "a node 12 px off the nearer one nudges 12 px clear (2 px gap)")
+		assert(placed.onme == nil, "no label over the player")
+		assert(#Shell.declutter({ item("a", "node", 0, 0, 1), item("b", "node", 200, 0, 2) }, {}, 1) == 1, "cap")
+		assert(Shell.labelCap(302) == 6 and Shell.labelCap(684) == 12, "phone cap 6, PC 12")
+	end,
 }
