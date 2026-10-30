@@ -17252,16 +17252,16 @@ assets:
   - key: mesh-bld-atlas-a
     kind: model
     tool: blender
-    source: "B3 package RobangoBldA: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L5 v3) with CC0 Poly Haven surfaces (SOURCES.md)"
-    assetId: 81776776732914
+    source: "B3 package RobangoBldA: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L11 v4 camp kit: lashed timber, thatch/hide roofs, painted atlas) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 135134222103592
     moderation: Approved
     provenance:
-      digest: sha256:5e7ffffb6fb2f096e71ee0e7ada2da3b8076ca974f60270aa1b91191012f9843
+      digest: sha256:8795b6067a993e1130cba9e6fdb99c78e10c87b113e7b7d3b02666254b999e31
       recipe:
         id: robango-gen-buildings
-        version: 3
+        version: 4
         input: "assets/blender/gen_buildings.py#RobangoBldA"
-        inputVersion: sha256:8296d34ea610a01bfd5f19f0c530976df4fb4d836d60fe3b213c8f311948308f
+        inputVersion: sha256:c0a89f0270d1e0258c5ab0dab20d4b0c637f6550931f4f5b6ac61b50710d4248
       provider:
         name: blender
         version: 5.2.3
@@ -17273,20 +17273,20 @@ assets:
           version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
-      created: 2026-10-28
+      created: 2026-10-29
   - key: mesh-bld-atlas-b
     kind: model
     tool: blender
-    source: "B3 package RobangoBldB: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L5 v3) with CC0 Poly Haven surfaces (SOURCES.md)"
-    assetId: 127754261059179
+    source: "B3 package RobangoBldB: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L11 v4 camp kit: lashed timber, thatch/hide roofs, painted atlas) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 131463471684238
     moderation: Approved
     provenance:
-      digest: sha256:8189891a9926b9ec3b53e102fee3617e6c1faa0d3fb494961a26a70e7f4fe343
+      digest: sha256:458ed316b3685d29d3a035bd5851b89b04c3ba1ec04aec162fb54725d7674159
       recipe:
         id: robango-gen-buildings
-        version: 3
+        version: 4
         input: "assets/blender/gen_buildings.py#RobangoBldB"
-        inputVersion: sha256:8296d34ea610a01bfd5f19f0c530976df4fb4d836d60fe3b213c8f311948308f
+        inputVersion: sha256:c0a89f0270d1e0258c5ab0dab20d4b0c637f6550931f4f5b6ac61b50710d4248
       provider:
         name: blender
         version: 5.2.3
@@ -17298,20 +17298,20 @@ assets:
           version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
-      created: 2026-10-28
+      created: 2026-10-29
   - key: mesh-bld-atlas-c
     kind: model
     tool: blender
-    source: "B3 package RobangoBldC: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L5 v3) with CC0 Poly Haven surfaces (SOURCES.md)"
-    assetId: 94855231411578
+    source: "B3 package RobangoBldC: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L11 v4 camp kit: lashed timber, thatch/hide roofs, painted atlas) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 91103380048979
     moderation: Approved
     provenance:
-      digest: sha256:08e16a812a71c42b4574178ee53ddc9175d5926d597c3878fa333f0b0876d2c4
+      digest: sha256:338a8f76f891f895d737bb973fce5a809d7b60550fa00a3766ccb493665ae6d2
       recipe:
         id: robango-gen-buildings
-        version: 3
+        version: 4
         input: "assets/blender/gen_buildings.py#RobangoBldC"
-        inputVersion: sha256:8296d34ea610a01bfd5f19f0c530976df4fb4d836d60fe3b213c8f311948308f
+        inputVersion: sha256:c0a89f0270d1e0258c5ab0dab20d4b0c637f6550931f4f5b6ac61b50710d4248
       provider:
         name: blender
         version: 5.2.3
@@ -17323,7 +17323,7 @@ assets:
           version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
-      created: 2026-10-28
+      created: 2026-10-29
   - key: mesh-bld-hero
     kind: model
     tool: blender
@@ -17352,16 +17352,16 @@ assets:
   - key: mesh-town-kit
     kind: model
     tool: blender
-    source: "B3 package RobangoTownKit: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L5 v3) with CC0 Poly Haven surfaces (SOURCES.md)"
-    assetId: 91603779558362
+    source: "B3 package RobangoTownKit: games/robango-island/assets/blender/gen_buildings.py (headless Blender 5.2, seed 4310; L11 v4 camp kit: lashed timber, thatch/hide roofs, painted atlas) with CC0 Poly Haven surfaces (SOURCES.md)"
+    assetId: 71980652368668
     moderation: Approved
     provenance:
-      digest: sha256:fb92efeb851ffe49dcc906e5190279c32f3ed699394734e5c103c3f63f45ad03
+      digest: sha256:8de24657ee41c6514caea7c114daf361f3afa11f73b0bf962c0a61c9b53e64fe
       recipe:
         id: robango-gen-buildings
-        version: 3
+        version: 4
         input: "assets/blender/gen_buildings.py#RobangoTownKit"
-        inputVersion: sha256:8296d34ea610a01bfd5f19f0c530976df4fb4d836d60fe3b213c8f311948308f
+        inputVersion: sha256:c0a89f0270d1e0258c5ab0dab20d4b0c637f6550931f4f5b6ac61b50710d4248
       provider:
         name: blender
         version: 5.2.3
@@ -17373,7 +17373,7 @@ assets:
           version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
-      created: 2026-10-28
+      created: 2026-10-29
   - key: mesh-tools
     kind: model
     tool: blender

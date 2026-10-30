@@ -84,6 +84,91 @@ def weather_cloth(rgb, seed):
     return np.clip(rgb * shade[..., None], 0, 1)
 
 
+GRIME_BAND = 0.28  # bottom share of every texture tile (gen_buildings GROUND_BAND): ground grime
+
+
+def paint(rgb, name, seed):
+    """L11 painted pass: turn the photo scan into a hand-painted read at the 57 deg phone camera.
+    Roblox adds no AO to a MeshPart texture, so the colour map carries it:
+    - scan noise is softened (box blur blend) and the mid-frequency form is kept;
+    - cavities darken and raised grain catches a warm highlight (luminance high-pass);
+    - shadows lean cool, lights lean warm (a painter's split);
+    - the bottom GRIME_BAND of the tile is earth grime: gen_buildings maps faces that touch the
+      ground onto it, so every post foot, wall base and bench leg sits in a dark damp band;
+    - the top 10% is sun-bleached (post tops, rail tops, roof ridges map there)."""
+    rng = np.random.default_rng(seed)
+    n = rgb.shape[0]
+    soft = rgb.copy()
+    for _ in range(3):
+        soft = (soft + np.roll(soft, 1, 0) + np.roll(soft, -1, 0) + np.roll(soft, 1, 1) + np.roll(soft, -1, 1)) / 5
+    rgb = rgb * 0.45 + soft * 0.55
+    lum = (rgb * np.array([0.2126, 0.7152, 0.0722], np.float32)).sum(2)
+    cav = lum - blur(lum, 8)
+    cav = cav / (np.abs(cav).max() + 1e-6)
+    rgb = rgb * (1 + np.where(cav < 0, 0.9, 0.45)[..., None] * cav[..., None])
+    lum = (rgb * np.array([0.2126, 0.7152, 0.0722], np.float32)).sum(2, keepdims=True)
+    rel = np.clip(lum / (lum.mean() + 1e-6), 0, 2)
+    warm = np.array([1.06, 1.0, 0.9], np.float32)
+    cool = np.array([0.9, 0.95, 1.06], np.float32)
+    t = np.clip((rel - 0.6) / 0.8, 0, 1)
+    rgb = rgb * (cool + (warm - cool) * t)
+    big = blur(rng.standard_normal((n, n)).astype(np.float32), 30)
+    big = big / (np.abs(big).max() + 1e-6)
+    rgb = rgb * (1 + 0.1 * big[..., None])  # broad painted value variation
+    y = np.linspace(0, 1, n, dtype=np.float32)[:, None]  # 0 = image top = tile top (high V)
+    if name not in ("canvas", "teal", "hide"):  # the cloth tiles carry their own hem grime
+        from_bottom = 1 - y
+        g = np.clip(1 - from_bottom / GRIME_BAND, 0, 1) ** 1.3
+        earth = np.array([0.25, 0.2, 0.15], np.float32)
+        rgb = rgb * (1 - 0.55 * g[..., None]) + earth * 0.55 * g[..., None] * 0.6
+        streak = blur(rng.standard_normal((1, n)).astype(np.float32).repeat(n, 0), 2)
+        rgb = rgb * (1 - 0.08 * g[..., None] * (streak[..., None] > 0))
+    bleach = np.clip(1 - y / 0.1, 0, 1)
+    rgb = rgb + (np.array([0.9, 0.86, 0.76], np.float32) - rgb) * 0.12 * bleach[..., None]
+    return np.clip(rgb, 0, 1)
+
+
+def rope_tile(n, seed):
+    """Twisted hemp rope wraps: diagonal plies with dark gaps, read as lashing at any orientation."""
+    rng = np.random.default_rng(seed)
+    yy, xx = np.mgrid[:n, :n].astype(np.float32)
+    period = n / 16
+    phase = ((xx + yy * 0.8) % period) / period
+    ply = np.sin(phase * np.pi) ** 0.6
+    fibre = blur(rng.standard_normal((n, n)).astype(np.float32), 1)
+    fibre = fibre / (np.abs(fibre).max() + 1e-6)
+    base = hexrgb("#7f6c4a")
+    shade = 0.68 + 0.38 * ply + 0.08 * fibre
+    return np.clip(base[None, None, :] * shade[..., None], 0, 1)
+
+
+def hide_tile(rgb, seed):
+    """Scraped animal hide: hair-direction streaks, darker blotches, a pale scraped centre."""
+    rng = np.random.default_rng(seed)
+    n = rgb.shape[0]
+    streak = rng.standard_normal((n, n)).astype(np.float32)
+    for _ in range(6):
+        streak = (streak + np.roll(streak, 1, 0) + np.roll(streak, -1, 0)) / 3  # long along V
+    streak = streak / (np.abs(streak).max() + 1e-6)
+    blot = blur(rng.standard_normal((n, n)).astype(np.float32), 24)
+    blot = blot / (np.abs(blot).max() + 1e-6)
+    yy, xx = np.mgrid[:n, :n].astype(np.float32) / n
+    centre = np.exp(-(((xx - 0.5) ** 2 + (yy - 0.5) ** 2) / 0.08))
+    shade = 1 + 0.18 * streak - 0.22 * np.clip(blot, 0, 1) + 0.14 * centre
+    return np.clip(rgb * shade[..., None], 0, 1)
+
+
+def thatch_courses(rgb):
+    """Bundled thatch: four darker course lines across the tile (U), each course lighter at its
+    butt edge, so a roof plane reads as layered reed bundles from the phone camera."""
+    n = rgb.shape[0]
+    y = np.linspace(0, 1, n, dtype=np.float32)[:, None]
+    f = (y * 4) % 1.0  # 0 at each course top, 1 at its butt
+    shade = 0.78 + 0.32 * f ** 1.5
+    shade = np.where(f > 0.94, 0.62, shade)
+    return np.clip(rgb * shade[..., None], 0, 1)
+
+
 def grade(rgb, target, sat):
     lum = (rgb * np.array([0.2126, 0.7152, 0.0722], np.float32)).sum(2, keepdims=True)
     rgb = lum + (rgb - lum) * sat
@@ -112,6 +197,14 @@ def main():
         albedo[ys, xs] = grade(load(os.path.join(src, pid, "diff.jpg"), crop_top=crop), target, sat)
         if name in ("canvas", "teal", "hide"):
             albedo[ys, xs] = weather_cloth(albedo[ys, xs], index)
+        if name == "hide":
+            albedo[ys, xs] = hide_tile(albedo[ys, xs], index)
+        if name == "thatch":
+            albedo[ys, xs] = thatch_courses(albedo[ys, xs])
+        if name == "rope":
+            albedo[ys, xs] = rope_tile(CELL, index)
+        if name not in ("seaglass",):
+            albedo[ys, xs] = paint(albedo[ys, xs], name, index + 100)
         normal[ys, xs] = load(os.path.join(src, pid, "nor.jpg"), crop_top=crop)
         rough[ys, xs] = load(os.path.join(src, pid, "rough.jpg"), crop_top=crop)
         print(f"tile {index:2d} {name:8s} mean={albedo[ys, xs].reshape(-1, 3).mean(0).round(3)} target={target}")
