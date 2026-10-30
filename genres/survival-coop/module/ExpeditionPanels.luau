@@ -217,7 +217,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local zone = extensions["death-zone"] and extensions["death-zone"].zone
 		local invite = latest.party and latest.party.invites[1]
 		local results = latest.results
-		if Models.downed(vitals, taming) then
+		if Models.knockoutShown(vitals, taming, extensions.rescue) then
 			popupKind = "knockout"
 			popup.render(Models.knockout(
 				locale,

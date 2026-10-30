@@ -17825,3 +17825,30 @@ assets:
       author: agent:omo/hephaestus
       created: 2026-10-30
     decalAssetId: 95657747771670
+  - key: ui-title-key-art
+    kind: image
+    tool: gpt-image
+    source: "gpt-image store thumbnail rider-title (assets/store/store.yml), resized to 1024x576 for the R01 title backdrop"
+    path: assets/store/title-key-art.png
+    assetId: 84601583854695
+    moderation: Approved
+    provenance:
+      digest: sha256:0272bb980aa0c01c55537dffea026337bacb2f892bd7016c5d49e274a4b228b8
+      recipe:
+        id: robango-title-key-art
+        version: 1
+        input: "assets/store/rider-title.png"
+        inputVersion: sha256:0e95e57aae7883109e7445938591ac53f90a0bf7236f9b97d11d75dab1d6eec8
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 115525526981116

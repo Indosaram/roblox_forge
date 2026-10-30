@@ -22,11 +22,6 @@ local roleEnv = {
 	studioRole = if RunService:IsStudio() then workspace:GetAttribute("ForgeStudioRole") or "onboarding" else nil,
 }
 local worldRole, routingOnly = IslandBootstrap.select(roleEnv)
--- Title key art (TitleFlow.artPlace): every role shows the start place's store thumbnail, because only
--- the start place carries the uploaded art (p134 v54: the town title fell back to a default icon).
-if roles and type(roles.onboarding) == "number" then
-	workspace:SetAttribute("ForgeTitleArtPlace", roles.onboarding)
-end
 workspace:SetAttribute("ForgeWorldRole", worldRole)
 workspace:SetAttribute("ForgeTravelMode", if RunService:IsStudio() then "studio-single" else "live")
 local Clock = require(Forge.core.infra.genre.Clock)

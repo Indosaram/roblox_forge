@@ -2317,9 +2317,11 @@ function M.start(options: Options)
 				return
 			end
 			local best = nearestPrompt()
-			if best then
+			-- A hold prompt completes only by holding the token (hold-to-fill below); a tap on it
+			-- began and ended the hold at HoldDuration, which never fired the prompt (D2c R04).
+			if best and best.HoldDuration <= 0 then
 				best:InputHoldBegin()
-				task.delay(best.HoldDuration, function()
+				task.defer(function()
 					best:InputHoldEnd()
 				end)
 			end
@@ -2384,6 +2386,82 @@ function M.start(options: Options)
 		end
 		for _, id in { "interact", "mount", "skills", "consume", "build", "capture", "dismount", "pet" } do
 			shellButtons[id] = token(id)
+		end
+		-- D2c R04 hold-to-fill: pressing the interact token on a hold prompt holds it; the ring fills
+		-- over HoldDuration; the hold ends once the prompt fired, or cancels on an early release.
+		do
+			local holdToken = shellButtons.interact
+			local setRing = HudShell.holdRing(holdToken)
+			local hold: any = nil
+			local function finish(kind: string)
+				local current = hold
+				if not current then
+					return
+				end
+				hold = nil
+				current.connection:Disconnect()
+				current.prompt:InputHoldEnd()
+				setRing(0)
+				holdToken:SetAttribute("ForgeHoldResult", kind)
+			end
+			local function pressed(inputObject: InputObject): boolean
+				local kind = inputObject.UserInputType
+				return kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1
+			end
+			table.insert(
+				connections,
+				holdToken.InputBegan:Connect(function(inputObject: InputObject)
+					if hold or not pressed(inputObject) or nearest("campfire") then
+						return
+					end
+					local best = nearestPrompt()
+					if not best or best.HoldDuration <= 0 or not holdToken.Interactable then
+						return
+					end
+					local current: any = {
+						prompt = best,
+						started = os.clock(),
+						triggered = false,
+						released = false,
+					}
+					current.connection = best.Triggered:Connect(function()
+						current.triggered = true
+					end)
+					hold = current
+					holdToken:SetAttribute("ForgeHoldResult", "hold")
+					best:InputHoldBegin()
+				end)
+			)
+			table.insert(
+				connections,
+				holdToken.InputEnded:Connect(function(inputObject: InputObject)
+					if hold and pressed(inputObject) then
+						hold.released = true
+					end
+				end)
+			)
+			table.insert(
+				connections,
+				run.RenderStepped:Connect(function()
+					local current = hold
+					if not current then
+						return
+					end
+					local elapsed = os.clock() - current.started
+					local step = HudShell.holdStep({
+						elapsed = elapsed,
+						duration = current.prompt.HoldDuration,
+						triggered = current.triggered,
+						-- The prompt went away (walked off, beat over): same as letting go.
+						released = current.released or not shownPrompts[current.prompt] or not current.prompt.Enabled,
+					})
+					if step == "hold" then
+						setRing(math.max(0.01, HudShell.holdProgress(elapsed, current.prompt.HoldDuration)))
+					else
+						finish(step)
+					end
+				end)
+			)
 		end
 		shellButtons.attack, shellButtons.shoot = attackButton, defenseButtons.shoot
 		for _, id in { "dodge", "guard", "stance" } do

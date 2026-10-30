@@ -1662,7 +1662,7 @@ scr.arrival.goal_touch,"First goal: walk up to a resource and tap its button",re
 scr.arrival.premise,You washed ashore on a wild island of dinosaurs.,recovered screen,You washed ashore on a wild island of dinosaurs.,공룡이 사는 야생의 섬에 도착했어요.
 scr.arrival.skip,Skip arrival,recovered screen,Skip arrival,도착 장면 건너뛰기
 scr.arrival.skip_note,Skipping only skips the arrival scene. Your progress stays the same.,recovered screen,Skipping only skips the arrival scene. Your progress stays the same.,건너뛰기는 도착 장면만 건너뛰어요. 진행은 그대로예요.
-scr.arrival.title,Welcome to Robango,recovered screen,Welcome to Robango,로반고 섬에 오신 것을 환영해요
+scr.arrival.title,Welcome to Robango,recovered screen,Welcome to Robango,로방고 섬에 오신 것을 환영해요
 scr.arrival.together,"Gather, craft, build, explore together.",recovered screen,"Gather, craft, build, explore together.","함께 채집하고, 만들고, 짓고, 탐험하세요."
 scr.back,Back,recovered screen,Back,뒤로
 scr.clan.none,You are not in a clan. Create or join one first.,recovered screen,You are not in a clan. Create or join one first.,아직 부족이 없어요. 먼저 부족을 만들거나 가입하세요.

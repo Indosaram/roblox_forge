@@ -192,28 +192,15 @@ return {
 		end
 		assert(Flow.locale("en-us", "ko") == "ko-kr" and Flow.locale("ko-kr", "auto") == "ko-kr", "language rule")
 		assert(Flow.version(57) == "v57", "version string")
-		-- The backdrop is our own store art; nothing in an unpublished place.
-		assert(
-			Flow.background(132148614756932) == "rbxthumb://type=GameThumbnail&id=132148614756932&w=768&h=432",
-			"art"
-		)
-		assert(Flow.background(0) == nil, "Studio local place: palette only")
-		-- p134 v54: the town place showed its own default thumbnail; every role uses the start place's art.
-		assert(
-			Flow.background(119869707888496, 95467272687768)
-				== "rbxthumb://type=GameThumbnail&id=95467272687768&w=768&h=432",
-			"town shows the start place's art"
-		)
-		assert(
-			Flow.background(119869707888496, nil) == "rbxthumb://type=GameThumbnail&id=119869707888496&w=768&h=432",
-			"no published start place: own thumbnail"
-		)
-		assert(Flow.background(0, 95467272687768) == nil, "Studio local place stays palette only")
-		local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
-		assert(
-			string.find(server, 'workspace:SetAttribute("ForgeTitleArtPlace", roles.onboarding)', 1, true),
-			"server publishes the start place"
-		)
+		-- D2c R01: the backdrop is an uploaded image asset, the same in Studio (PlaceId 0), the start
+		-- place and every other role; a place-icon URL showed nothing in Studio.
+		local Assets = require("./src/shared/Assets")
+		assert(Assets["ui-title-key-art"] ~= "", "the key art is uploaded (manifest ui-title-key-art)")
+		assert(Flow.background() == Assets["ui-title-key-art"], "title art is the uploaded asset id")
+		assert(string.match(Flow.background(), "^rbxassetid://%d+$"), "an asset id, not a place thumbnail")
+		local boot = fs.readFile("games/robango-island/src/first/RobangoBoot.client.luau")
+		assert(not string.find(boot, "PlaceId", 1, true), "the title art never depends on the place id")
+		assert(not string.find(boot, "rbxthumb", 1, true), "no place-thumbnail URL")
 	end,
 	-- p134 v49: the Roblox Backpack hotbar (tool tiles) drew over the title and over the bottom of
 	-- the bag and craft sheets. It is hidden under the title, shown after Start, hidden again while a

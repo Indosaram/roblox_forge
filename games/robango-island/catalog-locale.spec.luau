@@ -79,4 +79,36 @@ return {
 		assert(#keys > 300, #keys .. " catalog rows")
 		check(keys, "catalog")
 	end,
+	-- D2c R03: the arrival card misspelled the name (반 for 방). The game is 로방고 everywhere: no locale or text
+	-- source of the pack, its genres or core may carry the misspelling.
+	["the game name is spelled 로방고 in every locale and text source"] = function()
+		local wrong = utf8.char(0xB85C, 0xBC18, 0xACE0) -- the misspelling, built from code points so this file never matches itself
+		assert(
+			byKey["scr.arrival.title"].ko == "로방고 섬에 오신 것을 환영해요",
+			byKey["scr.arrival.title"].ko
+		)
+		local hits: { string } = {}
+		local function walk(dir: string)
+			for _, name in fs.readDir(dir) do
+				local path = dir .. "/" .. name
+				if fs.isDir(path) then
+					walk(path)
+				elseif
+					string.match(name, "%.csv$")
+					or string.match(name, "%.luau$")
+					or string.match(name, "%.ya?ml$")
+					or string.match(name, "%.json$")
+					or string.match(name, "%.md$")
+				then
+					if string.find(fs.readFile(path), wrong, 1, true) then
+						table.insert(hits, path)
+					end
+				end
+			end
+		end
+		for _, root in { "games/robango-island", "genres/survival-coop", "core" } do
+			walk(root)
+		end
+		assert(#hits == 0, "misspelled game name in: " .. table.concat(hits, ", "))
+	end,
 }

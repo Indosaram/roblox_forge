@@ -43,17 +43,12 @@ gui.IgnoreGuiInset, gui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling
 local backdrop = Instance.new("Frame")
 backdrop.Name, backdrop.Size, backdrop.BorderSizePixel = "Backdrop", UDim2.fromScale(1, 1), 0
 backdrop.BackgroundColor3, backdrop.ClipsDescendants, backdrop.Parent = C.tealDeep, true, gui
--- Our own key art: the place's primary store thumbnail (assets/store/store.yml). Placed by
--- Flow.art below the top bar so its wordmark is never under it.
+-- Our own key art (Flow.background: an uploaded image asset, so it shows in Studio and every
+-- role). Placed by Flow.art below the top bar so its wordmark is never under it.
 local art = Instance.new("ImageLabel")
 art.Name, art.Size, art.BackgroundTransparency = "Art", UDim2.fromScale(1, 1), 1
-art.ScaleType, art.Image =
-	Enum.ScaleType.Stretch, Flow.background(game.PlaceId, workspace:GetAttribute("ForgeTitleArtPlace")) or ""
+art.ScaleType, art.Image = Enum.ScaleType.Stretch, Flow.background()
 art.Parent = backdrop
--- Non-start roles (town, harbor, ...) show the start place's art once the server publishes its id.
-local artPlace = workspace:GetAttributeChangedSignal("ForgeTitleArtPlace"):Connect(function()
-	art.Image = Flow.background(game.PlaceId, workspace:GetAttribute("ForgeTitleArtPlace")) or ""
-end)
 -- Left-side shade so the copy stays readable over the bright sea.
 local shade = Instance.new("Frame")
 shade.Name, shade.Size, shade.BorderSizePixel = "Shade", UDim2.fromScale(0.75, 1), 0
@@ -198,7 +193,6 @@ local function close()
 	end
 	resize:Disconnect()
 	inset:Disconnect()
-	artPlace:Disconnect()
 	start.Active, settings.Active = false, false
 	if controls then
 		controls:Enable()

@@ -535,4 +535,24 @@ return {
 			assert(Text.reason(locale, "party_self", "route-invite") ~= Text.text(locale, "exp_refused"), "party_self")
 		end
 	end,
+	-- D2c R18: a downed player saw two panels, DownPanel's three choice cards and this knockout sheet
+	-- ('You are down', 'stand up in 0 s') behind them, whose title collided with the cards' title.
+	["a downed player with the rescue screen gets one panel, not a second knockout sheet"] = function()
+		local h = mount("ko-kr")
+		local function packet(rescue: any?): any
+			return {
+				snapshots = {
+					["survival-coop"] = { vitals = { healthMilli = 0, respawnWaitMillis = 0 } },
+					survivalExtensions = { rescue = rescue },
+				},
+			}
+		end
+		h.push(state(), packet({ down = true, options = { "rift", "camp", "rescue" } }))
+		local popup = assert(h.find("ForgeExpeditionPopup"), "popup gui")
+		assert(not popup.Enabled, "DownPanel owns the down screen: no knockout sheet behind its cards")
+		assert(h.find("KnockoutWait") == nil, "no second 'down' title or wait line")
+		-- Without the rescue screen (a pack that does not publish it) the knockout sheet still shows.
+		h.push(state(), packet(nil))
+		assert(popup.Enabled and h.find("KnockoutWait"), "knockout sheet without the rescue screen")
+	end,
 }

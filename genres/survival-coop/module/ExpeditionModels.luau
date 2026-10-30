@@ -510,4 +510,14 @@ function M.downed(vitals: any?, taming: any?): boolean
 	return false
 end
 
+--- Whether the knockout popup shows. D2c R18: with the rescue extension published, DownPanel owns
+--- the down screen (title + three choice cards); a second 'down' sheet opened behind those cards
+--- and its title collided with theirs. One panel only: the popup stays for downed pets alone.
+function M.knockoutShown(vitals: any?, taming: any?, rescue: any?): boolean
+	if type(rescue) == "table" and rescue.down == true then
+		return false
+	end
+	return M.downed(vitals, taming)
+end
+
 return M

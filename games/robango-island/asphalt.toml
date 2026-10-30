@@ -4367,3 +4367,10 @@ output_path = "games/robango-island/src/shared"
 
 [inputs.ui-icon-xp.web]
 "ui.icon.xp.png" = { id = 91518219339615 }
+
+[inputs.ui-title-key-art]
+path = "assets/store/title-key-art.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-title-key-art.web]
+"title-key-art.png" = { id = 84601583854695 }

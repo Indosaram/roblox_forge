@@ -1278,6 +1278,81 @@ function M.iconToken(button: any, image: string?, state: string)
 	button.Font = Enum.Font.BuilderSansBold
 end
 
+-- D2c R04 hold-to-fill: a ProximityPrompt with a HoldDuration (the opening stakes' 1.2 s 'Pull')
+-- completes from the primary token only while the token is held; a ring of dots around the token
+-- fills with the hold. Ending the hold at exactly HoldDuration raced the prompt's own timer and the
+-- prompt never fired (stakes stayed 0/3), so the hold ends only once Triggered has fired.
+M.HOLD_RING = table.freeze({ dots = 24, dot = 6, gap = 5 })
+
+--- Pure: hold progress 0..1 after `elapsed` seconds of a `duration` second hold (1 when no hold).
+function M.holdProgress(elapsed: number, duration: number): number
+	if duration <= 0 then
+		return 1
+	end
+	return math.clamp(elapsed / duration, 0, 1)
+end
+
+--- Pure: how many of `dots` ring dots are lit at `progress` (0 none, all at 1).
+function M.holdLit(progress: number, dots: number): number
+	return math.clamp(math.floor(progress * dots + 1e-6), 0, dots)
+end
+
+--- Pure: centre offset of ring dot `index` (1-based, clockwise from 12 o'clock) for a `size` px
+--- token; the ring sits `gap` px outside the token's rim.
+function M.holdDot(index: number, dots: number, size: number): (number, number)
+	local radius = size / 2 + M.HOLD_RING.gap
+	local angle = (index - 1) / dots * 2 * math.pi
+	return size / 2 + radius * math.sin(angle), size / 2 - radius * math.cos(angle)
+end
+
+--- Pure: the hold step. `hold` = { elapsed, duration, triggered, released }. "end" once the prompt
+--- fired (complete), "cancel" on an early release, else "hold".
+function M.holdStep(hold: { elapsed: number, duration: number, triggered: boolean, released: boolean }): string
+	if hold.triggered then
+		return "end"
+	elseif hold.released then
+		return "cancel"
+	end
+	return "hold"
+end
+
+--- The ring on a token: `HoldRing` with HOLD_RING.dots round dots around the button. Returns a
+--- setter for the progress (0 hides the ring).
+function M.holdRing(button: any): (number) -> ()
+	local P = M.PALETTE
+	local cfg = M.HOLD_RING
+	local ring = button:FindFirstChild("HoldRing")
+	if not ring then
+		ring = Instance.new("Frame")
+		ring.Name, ring.BackgroundTransparency, ring.Size, ring.Active = "HoldRing", 1, UDim2.fromScale(1, 1), false
+		ring.ZIndex = button.ZIndex + 2
+		for index = 1, cfg.dots do
+			local dot = Instance.new("Frame")
+			dot.Name, dot.BorderSizePixel, dot.AnchorPoint = "Dot" .. index, 0, Vector2.new(0.5, 0.5)
+			dot.Size, dot.ZIndex = UDim2.fromOffset(cfg.dot, cfg.dot), ring.ZIndex
+			local round = Instance.new("UICorner")
+			round.CornerRadius, round.Parent = UDim.new(0.5, 0), dot
+			dot.Parent = ring
+		end
+		ring.Parent = button
+	end
+	return function(progress: number)
+		ring.Visible = progress > 0
+		if progress <= 0 then
+			return
+		end
+		local size = button.AbsoluteSize.X
+		local lit = M.holdLit(progress, cfg.dots)
+		for index = 1, cfg.dots do
+			local dot = ring:FindFirstChild("Dot" .. index)
+			local x, y = M.holdDot(index, cfg.dots, size)
+			dot.Position = UDim2.fromOffset(x, y)
+			dot.BackgroundColor3 = color(if index <= lit then P.tealPale else P.ink)
+			dot.BackgroundTransparency = if index <= lit then 0 else 0.45
+		end
+	end
+end
+
 --- Caption pill beside a token (the primary action's contextual name, e.g. "Gather"): placed
 --- left of `r`, vertically centred, in the token's ScreenGui space. Returns the caption label.
 --- `others` (optional) are the rects the pill must not cover; see M.captionRect.

@@ -630,7 +630,8 @@ return {
 		assert(sent[#sent][1] == "survival-coop:clan-relocate", "relocate sent")
 		assert(sent[#sent][2][2].territory == "rw.harbor" and sent[#sent][2][2].expectedRevision == 0, "bound args")
 		for _, item in nodes do
-			if item.Size and item.Parent ~= nil then
+			-- Rows carry text; the sheet's scroller (sized against its pinned footer) is not a row.
+			if item.Size and item.Parent ~= nil and item.Text then
 				assert(item.Size[4] >= 48, "rendered rows are 48 px targets")
 			end
 		end
@@ -1205,5 +1206,123 @@ return {
 		assert(string.find(sheet, "function M.open(id: string): boolean", 1, true), "character sheets open by id")
 		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		assert(string.find(client, "module.CharacterSheet).open", 1, true), "client passes the opener")
+	end,
+	-- D2c R03: at 800x360 the arrival card's Continue sat under the scroller fold (the five rows plus
+	-- padding outgrow the sheet). Continue and Skip are pinned in a footer under the scroller, so
+	-- they are on screen at any sheet height; the copy rows scroll above them.
+	["arrival Continue and Skip stay on screen at 800x360 and 1280x720"] = function()
+		local Panels = require("./ExtensionPanels")
+		for _, locale in LOCALES do
+			local rows = Screens.arrivalRows(locale, { tutorial = { step = "arrive" }, objective = "E" }, ACT)
+			local continue, skip
+			for _, row in rows do
+				if row.text == L.text(locale, "scr.arrival.continue") then
+					continue = row
+				elseif row.text == L.text(locale, "scr.arrival.skip") then
+					skip = row
+				end
+			end
+			assert(continue and continue.pin and skip and skip.pin, locale .. ": Continue and Skip are pinned")
+			local screens: { { width: number, height: number, touch: boolean } } = {
+				{ width = 800, height = 360, touch = true },
+				{ width = 1280, height = 720, touch = false },
+			}
+			for _, screen in screens do
+				local _, y, w, h = Panels.shellSheet(screen.width, screen.height, screen.touch)
+				local tag = locale .. " " .. screen.width .. "x" .. screen.height
+				local footer = Sheet.footerHeight(rows)
+				-- The footer's buttons end inside the sheet, and the sheet inside the screen.
+				assert(footer >= Sheet.MIN_ROW, tag .. ": a footer strip for the pinned rows")
+				assert(Sheet.HEADER + footer <= h, tag .. ": header and footer fit the sheet")
+				assert(y >= 0 and y + h <= screen.height, tag .. ": sheet inside the screen")
+				-- The unpinned copy rows alone would push a last row under the fold on the phone: that
+				-- is why Continue may not be a scrolled row.
+				local scrolled = 2 * 8
+				for _, row in rows do
+					scrolled += Sheet.rowHeight(row.text, Sheet.contentWidth(w)) + 6
+				end
+				if screen.width == 800 then
+					assert(scrolled > h - Sheet.HEADER, tag .. ": all rows do not fit, the footer is needed")
+				end
+			end
+		end
+	end,
+	["the shared sheet draws pinned rows in a footer and shortens the scroller"] = function()
+		local nodes: { any } = {}
+		local function node(): any
+			local item: any = { Visible = true, AbsoluteSize = { X = 640, Y = 344 } }
+			item.Activated = { Connect = function() end }
+			function item.Destroy(self: any)
+				self.Parent = nil
+			end
+			table.insert(nodes, item)
+			return item
+		end
+		local widgets = function(_theme: any, props: any): any
+			local item = node()
+			item.Text, item.Parent, item.Size = props.text, props.parent, props.size
+			return item
+		end
+		local frame, scroll = node(), node()
+		local panel = Sheet.mount({
+			playerGui = {},
+			instance = { new = node },
+			udim2 = {
+				new = function(...: any): any
+					return { ... }
+				end,
+			},
+			ui = {
+				theme = { default = {} },
+				components = {
+					modalSheet = function(): any
+						return { frame = frame, scroll = scroll, close = node() }
+					end,
+					label = widgets,
+					button = widgets,
+				},
+			},
+			onSnapshot = function(): () -> ()
+				return noop
+			end,
+		}, {
+			name = "Pin",
+			title = "t",
+			select = noop,
+			rows = function(): { any }
+				return {
+					{ text = "copy one" },
+					{ text = "copy two" },
+					{ text = "Continue", onClick = noop, pin = true },
+					{ text = "Skip", onClick = noop, pin = true },
+				}
+			end,
+		})
+		panel.open()
+		local footer
+		for _, item in nodes do
+			if item.Name == "Footer" then
+				footer = item
+			end
+		end
+		assert(footer and footer.Parent == frame and footer.Visible, "footer strip on the sheet frame")
+		local inFooter, inScroll = {}, {}
+		for _, item in nodes do
+			if item.Text and item.Parent == footer then
+				table.insert(inFooter, item.Text)
+			elseif item.Text and item.Parent == scroll then
+				table.insert(inScroll, item.Text)
+			end
+		end
+		assert(
+			table.concat(inFooter, ",") == "Continue,Skip",
+			"pinned rows in the footer: " .. table.concat(inFooter, ",")
+		)
+		assert(table.concat(inScroll, ",") == "copy one,copy two", "copy rows scroll")
+		local size = scroll.Size
+		assert(
+			size and size[4] == -(Sheet.HEADER + Sheet.footerHeight({ { text = "x", pin = true } })),
+			"scroller ends above the footer"
+		)
 	end,
 }

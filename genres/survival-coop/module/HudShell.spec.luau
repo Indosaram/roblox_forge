@@ -1022,7 +1022,7 @@ return {
 		shell.levelPortrait(other, failing, 99, "rbxassetid://1")
 		assert(other:FindFirstChild("Portrait").Image == "rbxassetid://1", "painted fallback kept")
 		-- The live HUD builds its level badge through it and writes the level into the pip.
-		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		local hud = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
 		assert(string.find(hud, "HudShell.levelPortrait(badge, players, player.UserId", 1, true), "HUD wiring")
 		assert(string.find(hud, "levelNumber.Text = ", 1, true), "level shown on the pip")
 	end,
@@ -1749,5 +1749,45 @@ return {
 		assert(placed.onme == nil, "no label over the player")
 		assert(#Shell.declutter({ item("a", "node", 0, 0, 1), item("b", "node", 200, 0, 2) }, {}, 1) == 1, "cap")
 		assert(Shell.labelCap(302) == 6 and Shell.labelCap(684) == 12, "phone cap 6, PC 12")
+	end,
+	-- D2c R04: the opening's stake prompt needs a 1.2 s hold; tapping the primary 'Pull' token began
+	-- and ended the hold at HoldDuration, the prompt never fired and the stakes stayed 0/3. The token
+	-- now holds while pressed, fills a ring, and ends the hold only after the prompt fired.
+	["R04 hold-to-fill: the ring fills over the hold and the hold ends only once the prompt fired"] = function()
+		assert(Shell.holdProgress(0, 1.2) == 0 and Shell.holdProgress(0.6, 1.2) == 0.5, "progress")
+		assert(Shell.holdProgress(5, 1.2) == 1 and Shell.holdProgress(0, 0) == 1, "clamped, instant prompts full")
+		local dots = Shell.HOLD_RING.dots
+		assert(Shell.holdLit(0, dots) == 0 and Shell.holdLit(0.5, dots) == dots // 2, "half the ring at half the hold")
+		assert(Shell.holdLit(1, dots) == dots, "the full ring at the end")
+		-- The ring circles the token just outside its rim (12 o'clock first, clockwise).
+		local size = 64
+		local x1, y1 = Shell.holdDot(1, dots, size)
+		assert(math.abs(x1 - size / 2) < 1e-6 and y1 < 0, "first dot above the token")
+		local x2 = Shell.holdDot(1 + dots // 4, dots, size)
+		assert(x2 > size, "a quarter round is right of the token")
+		for index = 1, dots do
+			local x, y = Shell.holdDot(index, dots, size)
+			local d = math.sqrt((x - size / 2) ^ 2 + (y - size / 2) ^ 2)
+			assert(math.abs(d - (size / 2 + Shell.HOLD_RING.gap)) < 1e-6, "dot " .. index .. " on the ring")
+		end
+		-- At HoldDuration the prompt has not necessarily fired yet: the hold keeps going.
+		assert(
+			Shell.holdStep({ elapsed = 1.2, duration = 1.2, triggered = false, released = false }) == "hold",
+			"no early end"
+		)
+		assert(
+			Shell.holdStep({ elapsed = 1.3, duration = 1.2, triggered = true, released = false }) == "end",
+			"end on fire"
+		)
+		assert(
+			Shell.holdStep({ elapsed = 0.4, duration = 1.2, triggered = false, released = true }) == "cancel",
+			"early release"
+		)
+		-- Wiring: the interact token holds on press (no timed release) and draws the ring.
+		local hud = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(not string.find(hud, "task.delay(best.HoldDuration", 1, true), "no InputHoldEnd timed to HoldDuration")
+		assert(string.find(hud, "HudShell.holdRing(holdToken)", 1, true), "the interact token carries the ring")
+		assert(string.find(hud, "holdToken.InputBegan:Connect", 1, true), "the hold starts on press")
+		assert(string.find(hud, "best.Triggered:Connect", 1, true), "the hold ends on the prompt's Triggered")
 	end,
 }

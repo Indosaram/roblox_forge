@@ -603,10 +603,11 @@ function M.arrivalRows(locale: string, state: any, act: any): { any }
 		{ text = L.text(locale, "scr.arrival.together") },
 		{ text = L.text(locale, if state.touch then "scr.arrival.goal_touch" else "scr.arrival.goal", view.objective) },
 		{ text = L.text(locale, "scr.arrival.skip_note") },
-		{ text = L.text(locale, "scr.arrival.continue"), onClick = act.close },
+		-- D2c R03: Continue (and Skip) are pinned under the copy so they stay on screen at 800x360.
+		{ text = L.text(locale, "scr.arrival.continue"), onClick = act.close, pin = true },
 	}
 	if view.canSkip then
-		table.insert(rows, { text = L.text(locale, "scr.arrival.skip"), onClick = act.skip })
+		table.insert(rows, { text = L.text(locale, "scr.arrival.skip"), onClick = act.skip, pin = true })
 	end
 	return rows
 end

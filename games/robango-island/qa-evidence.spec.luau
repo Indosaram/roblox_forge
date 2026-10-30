@@ -405,7 +405,8 @@ return {
 			asset.moderation = "Approved"
 		end
 		-- 2026-10-30 L13: +5 painted particle sprites (fx-puff/spark/chip/drop/ember).
-		assert(icons == 556 and audio == 78, "future budget must include every icon and audio cue")
+		-- 2026-10-30 D2c R01: +1 title key art (ui-title-key-art).
+		assert(icons == 557 and audio == 78, "future budget must include every icon and audio cue")
 		local futureBytes = measure.sourceBytes
 			- #fs.readFile(PACK .. "/src/shared/Assets.luau")
 			+ #assetsLib.renderLuau(manifest, "robango-island")

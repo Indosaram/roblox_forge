@@ -86,14 +86,15 @@ function M.locale(playerLocale: string, language: any): string
 	return if language == "ko" then "ko-kr" elseif language == "en" then "en-us" else playerLocale
 end
 
---- The background image: the start place's primary store thumbnail (assets/store/store.yml, uploaded
---- and approved), or nil in an unpublished place (Studio local), which falls back to the palette.
---- `artPlace` is the start (onboarding) place id the server publishes (ForgeTitleArtPlace): only that
---- place carries the store art, so every other role (town, harbor, ...) shows it too instead of its
---- own default thumbnail (p134 v54: the town title showed the Roblox placeholder).
-function M.background(placeId: number, artPlace: any): string?
-	local id = if type(artPlace) == "number" and artPlace > 0 then artPlace else placeId
-	return if placeId > 0 and id > 0 then "rbxthumb://type=GameThumbnail&id=" .. id .. "&w=768&h=432" else nil
+--- The background image: the title key art uploaded as its own image asset (manifest key
+--- ui-title-key-art, the store rider-title art at 1024x576). An asset id draws in every place,
+--- Studio (PlaceId 0) and every role included; the old store-thumbnail URL needed a published
+--- place id, so Studio and unpublished roles showed only the palette (D2c R01).
+--- ReplicatedFirst runs before ReplicatedStorage replicates, so the id lives here; the
+--- title-screen spec pins it to the generated Assets["ui-title-key-art"].
+M.ART_IMAGE = "rbxassetid://84601583854695"
+function M.background(): string
+	return M.ART_IMAGE
 end
 
 export type Machine = {
@@ -165,8 +166,8 @@ end
 
 export type Rect = { x: number, y: number, width: number, height: number, textSize: number? }
 
--- The store thumbnail's aspect (Flow.background asks for 768x432).
-M.ART_ASPECT = 768 / 432
+-- The key art's aspect (1024x576, 16:9).
+M.ART_ASPECT = 1024 / 576
 
 --- Key art rect for a `width` x `height` IgnoreGuiInset view whose top bar reaches `top` px. The
 --- wordmark sits at the top of the art, so the art starts below the top bar and fills the safe
