@@ -231,6 +231,22 @@ local function shown(part: any): string
 end
 
 return {
+	-- D2c R08b (Studio): after the shared node source's 120 s lease lapsed (a quiet world, a Studio
+	-- server stalled under load) every gather answered "lease lost" forever: the bone heap fan and the
+	-- carcass harvest did nothing. This server still owns the key, so the next gather takes it back.
+	["a gather after the node source lease lapsed is granted on the live onboarding server"] = function()
+		local live = boot()
+		assert(live.session.join(ACTOR).ok, "join")
+		arrive(live)
+		assert(gather(live, "rw.onboarding.fiber", "fiber").ok, "first gather")
+		live.at.value += 600
+		live.session.advance(live.at.value)
+		local before = count(live, "bone")
+		local result = gather(live, "rw.onboarding.carcass", "bone")
+		assert(result.ok, "gather after the lapse: " .. tostring(result.reason))
+		assert(count(live, "bone") > before, "bone granted after the lapse")
+		live.factory.close()
+	end,
 	-- Three node types (stone pile, bracken, bone heap), each output picked once on the live server.
 	["each offered output of three node types is picked and granted on the live onboarding server"] = function()
 		local live = boot()

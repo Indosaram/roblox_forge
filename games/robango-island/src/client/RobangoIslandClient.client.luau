@@ -1558,6 +1558,9 @@ local combatHud = CombatHud.start({
 	serverNow = function(): number
 		return workspace:GetServerTimeNow()
 	end,
+	spare = function(model: any): boolean
+		return petRing ~= nil and petRing.spare(model)
+	end,
 })
 local removeTapActions, send = TapRouter.installActions(
 	tapInput,

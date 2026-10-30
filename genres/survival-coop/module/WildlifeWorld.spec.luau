@@ -4,6 +4,7 @@ local luau = require("@lune/luau")
 local roblox: any = require("@lune/roblox")
 local Wildlife = require("./Wildlife")
 local Content = require("../../../core/domain/survival/Content")
+local Herd = require("./Herd")
 local DinosaurMotion = luau.load(fs.readFile("genres/survival-coop/module/DinosaurMotion.luau"), {
 	environment = {
 		Instance = roblox.Instance,
@@ -754,6 +755,121 @@ return {
 		local placed = npcRoot.CFrame.Position
 		assert(placed.X == home.x and placed.Z == home.z, "respawned at home")
 		assert(api.snapshot("d1").mode ~= "dead", "and alive")
+		api.destroy()
+	end,
+	-- R09 tame lane: the onboarding dodos spawn as a herd trio. A follower worn to the capture
+	-- threshold stood winded in Wildlife.step, but the world still walked it after its fleeing leader
+	-- (a winded creature has no target, so it read as a calm follower) and out of the 6-stud reach.
+	["a winded herd follower stays put while its leader flees"] = function()
+		local heartbeat = signal()
+		active.moved, active.owners = {}, {}
+		active.finished, active.obstacle, active.surface = signal(), false, nil
+		installMocks()
+		local world = roblox.Instance.new("Workspace")
+		active.world = world
+		local function rig(position: any)
+			local model = roblox.Instance.new("Model")
+			model.Parent = world
+			local root = roblox.Instance.new("Part")
+			root.Name, root.Parent, root.Position = "HumanoidRootPart", model, position
+			root.CFrame = roblox.CFrame.new(position)
+			root.AssemblyLinearVelocity = roblox.Vector3.zero
+			roblox.Instance.new("Humanoid").Parent = model
+			return model, root
+		end
+		local leaderModel, leaderRoot = rig(roblox.Vector3.new(0, 3, 0))
+		local followerModel = rig(roblox.Vector3.new(4, 3, 0))
+		local character = rig(roblox.Vector3.new(6, 3, 0))
+		local actor = { UserId = 1, Character = character }
+		local services = {
+			Workspace = world,
+			Players = {
+				GetPlayerByUserId = function(_, id)
+					return if id == 1 then actor else nil
+				end,
+				GetPlayers = function()
+					return { actor }
+				end,
+			},
+			RunService = {
+				Heartbeat = heartbeat,
+				IsStudio = function()
+					return true
+				end,
+			},
+			PathfindingService = {},
+		}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+				require = function(name)
+					return if name == "./Wildlife"
+						then Wildlife
+						elseif name == "./DinosaurMotion" then DinosaurMotion
+						elseif name == "./Herd" then Herd
+						else Content
+				end,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				-- Path computation never runs: only the requests are observed.
+				task = { spawn = function() end },
+			},
+		})()
+		local content, errors = Content.canonicalize({
+			survival_content = 1,
+			rules = Content.RULES,
+			limits = Content.DEFAULT_LIMITS,
+			items = { { id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 } },
+			wildlife = { { id = "grazer", behavior = "grazer" } },
+		})
+		assert(content, table.concat(errors, "; "))
+		local requested: { [string]: number } = {}
+		local api = module.new({
+			content = content,
+			catalog = { species = { grazer = { healthMilli = 20000, damageMilli = 0, drops = {} } }, weapons = {} },
+			maximum = 2,
+			nowMillis = function()
+				return 0
+			end,
+			alive = function()
+				return true
+			end,
+			equipment = function()
+				return {}
+			end,
+			damage = function() end,
+			observePath = function(event)
+				if event.phase == "requested" then
+					requested[event.npcId] = (requested[event.npcId] or 0) + 1
+				end
+			end,
+			herds = { Herd.new("trio", "lead", { "tail" }, { alarmStuds = 24, maxJoin = 4, maxChain = 2 }) },
+		})
+		api.register(leaderModel, "lead", "grazer")
+		api.register(followerModel, "tail", "grazer")
+		-- The player wears the follower down to a quarter of its health (a confirmed hit alarms the herd).
+		local worn = api.snapshot("tail")
+		worn.version += 1
+		worn.healthMilli, worn.provoker = 5000, "1"
+		api.publish(worn)
+		-- The leader has bolted 20 studs away: a calm follower would walk after it.
+		leaderRoot.Position = roblox.Vector3.new(-20, 3, 0)
+		leaderRoot.CFrame = roblox.CFrame.new(-20, 3, 0)
+		heartbeat.fire()
+		assert(api.snapshot("lead").mode == "flee", "the leader flees: " .. api.snapshot("lead").mode)
+		assert(api.snapshot("tail").mode == "stunned", "the follower stands winded")
+		assert(followerModel:GetAttribute("ForgeWildlifeState") == "stunned", "published winded")
+		assert(requested.tail == nil, "the winded follower is not walked after its leader")
 		api.destroy()
 	end,
 }

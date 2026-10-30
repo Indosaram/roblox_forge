@@ -3164,3 +3164,10 @@ fct.farm_stage_seed,Seeded,genre text fct,Seeded,씨앗
 fct.farm_stage_sprout,Sprouting,genre text fct,Sprouting,새싹
 fct.farm_stage_grow,Growing,genre text fct,Growing,자라는 중
 fct.farm_stage_ripe,Ripe - harvest now,genre text fct,Ripe - harvest now,다 익었어요 - 수확하세요
+rw.g31.first-capture.offer,"Tame your first animal. Hit a small creature (a dodo) until it stands winded, then tap Capture to throw the Hobble Bola the axe guide gave you.",RECONSTRUCTED Robango starter capture (first tame),"Tame your first animal. Hit a small creature (a dodo) until it stands winded, then tap Capture to throw the Hobble Bola the axe guide gave you.","첫 동물을 길들이세요. 작은 동물(도도)을 지칠 때까지 때린 뒤, 포획을 눌러 도끼 안내에서 받은 올가미 볼라를 던지세요."
+rw.g31.first-capture.complete,"Caught! Put it in the training pen from Menu > Pets, give it the feed, and it will follow you.",RECONSTRUCTED Robango starter capture (first tame),"Caught! Put it in the training pen from Menu > Pets, give it the feed, and it will follow you.",포획 성공! 메뉴 > 펫에서 훈련 우리에 넣고 먹이를 주면 당신을 따라다녀요.
+chr.guide_g31,First capture,genre text chr,First capture,첫 포획
+chr.guide_act_capture,Capture,genre text chr,Capture,포획
+chr.guide_target_creature,"a small creature (weaken it, then Capture)",genre text chr,"a small creature (weaken it, then Capture)",작은 동물 (약하게 만든 뒤 포획)
+guide_go_capture,"capture %s (hit it until winded, then tap Capture)",HUD objective guide action,"capture %s (hit it until winded, then tap Capture)",%s 포획하기 (지칠 때까지 때린 뒤 포획 누르기)
+cmb.spare_toast,"%s is winded - tap Capture, or tap it again to finish",genre text cmb,"%s is winded - tap Capture, or tap it again to finish",%s 지쳤어요 - 포획을 누르거나 다시 눌러 마무리하세요

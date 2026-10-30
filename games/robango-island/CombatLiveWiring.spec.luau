@@ -494,6 +494,37 @@ local function requestsAt(phone: any, id: string): number
 	return count
 end
 
+-- R09 starter capture: the durable sender of the phone (the PetRing sends through the same transport).
+local commands = 0
+local function command(live: any, action: string, args: { any }): any
+	local session = live.session
+	commands += 1
+	return session.command(ACTOR, {
+		requestId = "tame-" .. commands,
+		sessionEpoch = session.commandEpoch(ACTOR, action) or 0,
+		action = action,
+		args = args,
+	})
+end
+
+local function companions(live: any): any
+	return live.session.personalTransfer(ACTOR).profile().data.envelope.genres["survival-coop"].data.companions
+end
+
+-- The guide reward path: the first-axe guide's starter bola lands in the bag via the reward outbox.
+local function rewardBola(live: any)
+	local axe: any = nil
+	for _, guide in Content.guides do
+		axe = if guide.id == "rw.g02.first-axe" then guide else axe
+	end
+	local bola = false
+	for _, stack in axe.rewards.items do
+		bola = bola or stack.item == Content.progressionPolicy.companion.starterTool
+	end
+	assert(bola, "the first-axe guide rewards the starter bola")
+	stash(live, "guide:rw.g02.first-axe:2:1", "capture-bola", 100000)
+end
+
 local function fight(phone: any, live: any, id: string, seconds: number)
 	for _ = 1, seconds do
 		phone.tick()
@@ -1010,6 +1041,103 @@ return {
 			phone.tick()
 		end
 		assert(not phone.bar(), "it does not come back after the respawn")
+		live.factory.close()
+	end,
+	-- R09 (D2c): a fresh profile could not tame anything (melee_2 + survival_3 + club + rope, all far
+	-- past the opening). Robango redesign: a small basic creature is weakened with the opening knife,
+	-- stands winded at a quarter health, and the guide's starter bola captures it at level 1.
+	["a level 1 player weakens a dodo with the knife, the loop holds, and the starter bola captures it"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		rewardBola(live)
+		local phone = client(live)
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 15, 3, dodo.Z))
+		-- The PetRing hook: downed (<= 25%) tameable creature and a capture tool in the bag.
+		local spared = 0
+		phone.hud.setSpare(function(model: any): boolean
+			local health = model:GetAttribute("ForgeWildlifeHealthMilli")
+			local yes = type(health) == "number" and health > 0 and health <= FULL // 4
+			spared += if yes then 1 else 0
+			return yes
+		end)
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		local health = hp(live, DODO)
+		assert(health > 0 and health <= FULL // 4, "the loop held at the capture threshold, health " .. health)
+		assert(spared >= 1, "the spare hook was asked")
+		-- (The winded stand-still is Wildlife.step's rule: Wildlife.spec; this harness runs no behavior.)
+		for _ = 1, 5 do
+			phone.tick()
+		end
+		assert(hp(live, DODO) == health, "no more swings while held")
+		-- PetRing.spare reads this count: the starter bola is a capture tool in the published snapshot.
+		local function tools(): any
+			return live.session.snapshot(ACTOR).survivalExtensions.taming.captureTools
+		end
+		assert(tools() == 1, "the snapshot counts the bola as a capture tool: " .. tostring(tools()))
+		-- Capture: PetRing sends tame-hit then tame-capture with the bola; no skills, no club, no rope.
+		local hit = command(live, "survival-coop:tame-hit", { DODO })
+		assert(hit.ok, "stun: " .. tostring(hit.reason))
+		local caught = command(live, "survival-coop:tame-capture", { DODO })
+		assert(caught.ok, "capture: " .. tostring(caught.reason))
+		local bag = live.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items
+		local bola = bag["guide:rw.g02.first-axe:2:1"]
+		assert(bola and bola.durabilityMilli == 75000, "the bola wore one throw, not consumed")
+		local pets = companions(live).pets
+		if caught.data.captured then
+			assert(pets[DODO] and pets[DODO].phase == "Captured", "the dodo is mine")
+			local wild = live.factory.services.survivalWildlife.snapshot(ACTOR)[DODO]
+			assert(wild.captureId ~= nil and wild.capturedUntil > live.at.value * 1000, "out of the world")
+			-- The first-capture guide step counts the real capture and pays its feed.
+			local development = live.factory.expeditionStore.snapshot(ACTOR).development
+			assert(development.definitions["rw.g31.first-capture"], "first-capture guide completed")
+			local feed = 0
+			for _, item in live.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items do
+				feed += if item.catalogId == "herbivore-feed" then item.quantity else 0
+			end
+			assert(feed == 3, "the guide paid 3 feed, got " .. feed)
+			-- Pen, three feeds, five minutes, claim, deploy: the dodo is out with the player.
+			for _, verb in { "place", "train", "feed", "feed", "feed" } do
+				local r = command(live, "survival-coop:companion-action", { verb, DODO })
+				assert(r.ok, verb .. ": " .. tostring(r.reason))
+				live.at.value += 1
+			end
+			for _ = 1, 31 do
+				live.at.value += 10
+				live.session.advance(live.clock.now())
+			end
+			for _, verb in { "claim", "deploy" } do
+				local r = command(live, "survival-coop:companion-action", { verb, DODO })
+				assert(r.ok, verb .. ": " .. tostring(r.reason))
+			end
+			local pet = companions(live).pets[DODO]
+			assert(pet.phase == "Deployed", "summoned: " .. pet.phase)
+		else
+			assert(pets[DODO] == nil, "an escape leaves no pet")
+		end
+		live.factory.close()
+	end,
+	["the starter bola refuses a healthy dodo and anything bigger still needs the skilled path"] = function()
+		local live = server()
+		rewardBola(live)
+		local dodo = live.factory.services.survivalWildlife.snapshot(ACTOR)[DODO].home
+		live.engine.move(ACTOR, { x = dodo.x + 2, y = dodo.y, z = dodo.z })
+		local full = command(live, "survival-coop:tame-hit", { DODO })
+		assert(not full.ok and full.reason == "WEAKEN_FIRST", "a whole dodo: " .. tostring(full.reason))
+		local bigger = nil
+		for id, npc in live.factory.services.survivalWildlife.snapshot(ACTOR) do
+			for _, row in Content.wildlifeDetails do
+				if row.id == npc.catalogId and row.captureClass ~= "never" and row.health > 60 then
+					bigger = bigger or id
+				end
+			end
+		end
+		assert(bigger, "an onboarding creature bigger than the starter tier")
+		local home = live.factory.services.survivalWildlife.snapshot(ACTOR)[bigger].home
+		live.engine.move(ACTOR, { x = home.x + 2, y = home.y, z = home.z })
+		local refused = command(live, "survival-coop:tame-hit", { bigger })
+		assert(not refused.ok and refused.reason == "SUBDUE_GATED", "bigger: " .. tostring(refused.reason))
 		live.factory.close()
 	end,
 	["the combat bar clears when the player walks away from a paused fight"] = function()

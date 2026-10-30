@@ -3164,3 +3164,10 @@ fct.farm_stage_seed,original,agent:hephaestus/sheets4,2026-10-30
 fct.farm_stage_sprout,original,agent:hephaestus/sheets4,2026-10-30
 fct.farm_stage_grow,original,agent:hephaestus/sheets4,2026-10-30
 fct.farm_stage_ripe,original,agent:hephaestus/sheets4,2026-10-30
+rw.g31.first-capture.offer,original,agent:hephaestus/tame,2026-10-30
+rw.g31.first-capture.complete,original,agent:hephaestus/tame,2026-10-30
+chr.guide_g31,original,agent:hephaestus/tame,2026-10-30
+chr.guide_act_capture,original,agent:hephaestus/tame,2026-10-30
+chr.guide_target_creature,original,agent:hephaestus/tame,2026-10-30
+guide_go_capture,original,agent:hephaestus/tame,2026-10-30
+cmb.spare_toast,original,agent:hephaestus/tame,2026-10-30

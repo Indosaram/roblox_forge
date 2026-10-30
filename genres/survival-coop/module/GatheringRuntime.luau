@@ -140,6 +140,26 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		return nil, loadError
 	end
 	local source: Fenced.Profile = token
+	-- A lease that lapsed while this server still owns the key (Studio under load stalls the server
+	-- past the lease, a quiet world) is taken back, as WildlifeRuntime does; only a real takeover by
+	-- another session stays "lease lost". Without it every later gather answered "lease lost" forever.
+	local function reclaimed(err: string?): boolean
+		if err ~= "lease lost" then
+			return false
+		end
+		local taken = store:reclaim(source)
+		if taken then
+			source = taken
+		end
+		return taken ~= nil
+	end
+	local function write(transform: Fenced.Transform): (Fenced.Profile?, string?)
+		local updated, err = store:update(source, transform)
+		if not updated and reclaimed(err) then
+			updated, err = store:update(source, transform)
+		end
+		return updated, err
+	end
 	local function advance(personal: PersonalPort, grants: { any }): Result
 		local lens = personal.personal:inventoryLens()
 		local destinationKey = personal.profile().key
@@ -218,6 +238,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 	function runtime.receipt(actor, epoch, requestId)
 		local id = string.format("g%d:%s:%d:%d:%s", #actor, actor, epoch, #requestId, requestId)
 		local current, reason = store:refresh(source)
+		if not current and reclaimed(reason) then
+			current, reason = store:refresh(source)
+		end
 		if not current or reason then
 			return nil
 		end
@@ -297,7 +320,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local fresh: { grant: Content.SkillGrant, tools: Inventory.State }? = nil
 		local gathered: number? = nil
 		local retryMillis: number? = nil
-		local updated, err = store:update(source, function(data)
+		local updated, err = write(function(data)
 			reason, accepted, fresh, gathered, retryMillis = nil, nil, nil, nil, nil
 			local known = data.grants[id]
 			if known then
@@ -537,7 +560,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		local selected: { any } = {}
 		local retiring: { any } = {}
-		local updated, err = store:update(source, function(data)
+		local updated, err = write(function(data)
 			selected = {}
 			retiring = {}
 			replenish(data)
@@ -604,7 +627,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				return failed(hydrateError or "PERSONAL_UNAVAILABLE", "recovering")
 			end
 			personal.install(hydrated)
-			local cleared, clearError = store:update(source, function(data)
+			local cleared, clearError = write(function(data)
 				local receipt = data.itemTransfers.receipts[req.id]
 				assert(not receipt or receipt.phase == "FINALIZED", "MINT_NOT_FINALIZED")
 				data.expiredBefore = math.max(data.expiredBefore or -1, req.expiresAt)
@@ -627,7 +650,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				return failed(refreshError or "PERSONAL_UNAVAILABLE", "recovering")
 			end
 			personal.install(current)
-			local retired, retireError = store:update(source, function(data)
+			local retired, retireError = write(function(data)
 				local grant = data.grants[entry.grantId]
 				for index, mint in grant.mints do
 					if mint.request.id == req.id then
@@ -649,6 +672,9 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 	end
 	function runtime.snapshot()
 		local updated, err = store:renew(source)
+		if not updated and reclaimed(err) then
+			updated, err = source, nil
+		end
 		if not updated then
 			return nil, err
 		end

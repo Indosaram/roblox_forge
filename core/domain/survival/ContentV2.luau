@@ -171,6 +171,11 @@ local schemas: { [string]: { [string]: string } } = {
 		minPermille = "integer",
 		maxPermille = "integer",
 		seed = "integer",
+		-- Starter capture (Robango redesign, reference-game first tame): a basic species with at most
+		-- this much health is stunned and captured with `starterTool`, no melee_2/survival_3/club/rope.
+		starterHealth = "?positive",
+		starterTool = "?@items",
+		starterWearMilli = "?positive",
 	},
 	homeTier = { rank = "positive", sideStuds = "positive", plotCap = "positive", development = "integer" },
 	buybackRow = { item = "@items", price = "positive" },

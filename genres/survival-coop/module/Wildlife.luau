@@ -273,6 +273,12 @@ function M.step(
 		nextState.mode, nextState.target, nextState.deadline, nextState.engagedAt = "sleep", nil, 0, nil
 		return nextState, intent
 	end
+	-- A grazer worn down to the capture threshold (a quarter of its health) is winded: it stops
+	-- fleeing and stands, so a starter bola thrown from beside it can catch it (Robango redesign).
+	if archetype.engine == "grazer" and state.healthMilli * 4 <= rule.healthMilli then
+		nextState.mode, nextState.target = "stunned", nil
+		return nextState, intent
+	end
 	if archetype.engine == "grazer" then
 		local threat: Actor? = provoker or closest
 		local threatDistance = if provoker then M.distance(observation.position, provoker.position) else distance

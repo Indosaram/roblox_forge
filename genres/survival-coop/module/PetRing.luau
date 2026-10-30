@@ -400,6 +400,16 @@ function M.factory(ctx: any): any
 	end
 
 	local handle = {}
+	--- True when `model` is a downed tameable creature and the bag holds a capture tool (bola or
+	--- rope): combat holds its auto swing so the capture token can be used.
+	function handle.spare(model: any): boolean
+		local tools = if taming then taming.captureTools else nil
+		local kind = model and model:GetAttribute("ForgeWildlifeKind")
+		return type(tools) == "number"
+			and tools > 0
+			and type(kind) == "string"
+			and M.downed(ctx.content, tameable, kind, model:GetAttribute("ForgeWildlifeHealthMilli"))
+	end
 	function handle.capturable(): boolean
 		return not capturing and target() ~= nil
 	end

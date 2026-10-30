@@ -462,6 +462,21 @@ return {
 			end
 		end
 	end,
+	["a source lease that lapsed while this session still owns it is taken back on the next gather"] = function()
+		local c = fixture()
+		-- Studio under load: no write for longer than the 30 s lease. Session keeps the personal
+		-- fence (keepLease); the shared node source used to answer "lease lost" to every later gather.
+		c.now = 31
+		c.request.expiresAt = 60
+		c.token = assert(c.personal:reclaim(c.token))
+		local first = c.runtime.command(c.request)
+		assert(first.error ~= "lease lost" and first.status ~= "rejected", "gather after a lapsed lease")
+		for _ = 1, 3 do
+			c.runtime.recover("alice", 8)
+		end
+		conserved(c, true)
+		assert(c.runtime.snapshot(), "snapshot keeps the reclaimed lease")
+	end,
 	["accepted escrow survives expiry and full bag until capacity returns"] = function()
 		local c = fixture()
 		local lens = c.personal:inventoryLens()

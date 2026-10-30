@@ -162,6 +162,21 @@ return {
 		end
 		assert(farthest <= limit + 1e-6, string.format("fled %.1f studs from home, limit %d", farthest, limit))
 	end,
+	-- R09 tame lane: a weakened grazer that kept fleeing left the 6-stud capture reach.
+	["a grazer worn to a quarter health stands winded instead of fleeing; a healthier one flees"] = function()
+		local content, catalog, _, observation = fixture()
+		local state = Wildlife.new("grazer-1", "grazer", { x = 0, y = 0, z = 0 }, catalog)
+		observation.actors = { { id = "alice", position = { x = 3, y = 0, z = 0 }, alive = true } }
+		observation.provokedBy = "alice"
+		state.healthMilli = 5001
+		local fled, intent = Wildlife.step(state, content.wildlife[1], catalog.species.grazer, 0, observation)
+		assert(tostring(fled.mode) == "flee" and intent.destination, "above a quarter it flees")
+		state.healthMilli = 5000
+		local winded, still = Wildlife.step(state, content.wildlife[1], catalog.species.grazer, 1, observation)
+		assert(tostring(winded.mode) == "stunned" and still.destination == nil, "at a quarter it stands")
+		local later = Wildlife.step(winded, content.wildlife[1], catalog.species.grazer, 2, observation)
+		assert(tostring(later.mode) == "stunned" and later.healthMilli == 5000, "it stays winded")
+	end,
 	["combat refuses forged spatial equipment and reserved broken weapons"] = function()
 		local _, catalog, state = fixture()
 		local bag = Inventory.new("bag", { slots = 20, softWeightMilli = 60000, hardWeightMilli = 90000 })

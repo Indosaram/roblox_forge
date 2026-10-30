@@ -483,6 +483,58 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		send(server, "gather", { "flint-outcrop-01", 0 })
 		craft(server, at, "stone-axe", "hand")
 	end,
+	-- Tame lane (R09): weaken an onboarding dodo with the bone knife, then the starter bola captures it.
+	["rw.g31.first-capture.1"] = function(server)
+		local dodo = "rw.onboarding.dodo.01.1"
+		local wild = server.factory.services.survivalWildlife
+		give(server, "guide-knife", "bone-knife", 1)
+		server.session.personalTransaction(ACTOR, function(raw)
+			raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-knife"].durabilityMilli = 60000
+			return raw
+		end)
+		give(server, "guide-bola", "capture-bola", 1)
+		server.session.personalTransaction(ACTOR, function(raw)
+			raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-bola"].durabilityMilli = 100000
+			return raw
+		end)
+		server.equip(ACTOR, "guide-knife")
+		local full = 0
+		for _, row in content.wildlifeDetails do
+			full = if row.id == "dodo" then row.health * 1000 else full
+		end
+		local function command(action: string, args: { any }): any
+			sequence += 1
+			server.at.value += 1
+			server.session.advance(server.at.value)
+			return server.session.command(ACTOR, {
+				requestId = "guide-" .. sequence,
+				sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
+				action = "survival-coop:" .. action,
+				args = args,
+			})
+		end
+		for _ = 1, 40 do
+			local npc = wild.snapshot(ACTOR)[dodo]
+			if npc.healthMilli <= full // 4 then
+				break
+			end
+			local home = npc.home
+			server.move(ACTOR, { x = home.x + 2, y = home.y + 1, z = home.z })
+			command("attack", { dodo })
+		end
+		local health = wild.snapshot(ACTOR)[dodo].healthMilli
+		assert(health > 0 and health <= full // 4, "weakened to the capture threshold: " .. health)
+		for _ = 1, 4 do
+			server.at.value += 9
+			assert(command("tame-hit", { dodo }).ok, "bola stun")
+			local caught = command("tame-capture", { dodo })
+			assert(caught.ok, "capture: " .. tostring(caught.reason))
+			if caught.data.captured then
+				return
+			end
+		end
+		error("four bola throws all missed")
+	end,
 	["rw.g03.first-contract.1"] = function(server)
 		send(server, "contract-deliver", { "survey-driftwood" })
 	end,
@@ -741,7 +793,10 @@ local PLACE: { [string]: string } = {
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }
 	local clan = guide.id == "rw.g15.clan"
-	local server = boot(Memory.new(), "job:guide-" .. guide.id, at, nil, nil, nil, PLACE[guide.id], clan)
+	-- The starter capture needs the onboarding island's real wildlife and taming wiring.
+	local wilds = guide.id == "rw.g31.first-capture"
+	local server =
+		boot(Memory.new(), "job:guide-" .. guide.id, at, wilds or nil, nil, wilds or nil, PLACE[guide.id], clan)
 	server.at = at
 	assert(server.session.join(ACTOR).ok, "join")
 	-- The player taps Start: the ADR-13 join hold ends and hunger runs (TitleFlow.bindWake).
@@ -767,7 +822,9 @@ local function fresh(guide: any): (any, any)
 		end).ok,
 		"development"
 	)
-	send(server, "gather", { "fiber-bush-01", 0 })
+	if not wilds then
+		send(server, "gather", { "fiber-bush-01", 0 })
+	end
 	return server, at
 end
 
@@ -796,7 +853,8 @@ for _, guide in content.guides do
 		local development = server.factory.expeditionStore.snapshot(ACTOR).development
 		if #missing == 0 then
 			assert(development.definitions[guide.id], guide.id .. " did not complete")
-			assert(development.points >= (guide.gates.developmentRank or 0) * 100 + 50, "development awarded")
+			local award = guide.rewards.development or 0
+			assert(development.points >= (guide.gates.developmentRank or 0) * 100 + award, "development awarded")
 		else
 			assert(not development.definitions[guide.id], guide.id .. " completed without " .. missing[1])
 		end
@@ -902,7 +960,8 @@ end
 cases["the first band alone lifts a fresh player to island grade 2 (route 1)"] = function()
 	local server, at = fresh(content.guides[1])
 	for _, guide in content.guides do
-		if (guide.gates.developmentRank or 0) == 0 then
+		-- Development-paying start guides (the starter capture pays none and needs live wildlife).
+		if (guide.gates.developmentRank or 0) == 0 and (guide.rewards.development or 0) > 0 then
 			for _, objective in guide.objectives do
 				DRIVE[objective.id](server, at)
 			end

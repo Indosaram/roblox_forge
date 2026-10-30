@@ -80,6 +80,8 @@ local requirements = {
 	CLUB_REQUIRED = { "Bring a usable club", "사용 가능한 몽둥이가 필요해요" },
 	CAPTURE_GATED = { "Learn survival_3 and stun it", "생존 3을 배우고 기절시키세요" },
 	NO_ROPE = { "Bring Capture Rope", "포획 밧줄이 필요해요" },
+	WEAKEN_FIRST = { "Weaken it to 25% health first", "먼저 체력을 25% 이하로 낮추세요" },
+	NO_BOLA = { "Bring a Hobble Bola (craft: 6 fiber)", "올가미 볼라가 필요해요 (제작: 섬유 6)" },
 	NO_FEED_ITEM = { "Bring Herbivore Feed", "초식동물 사료가 필요해요" },
 }
 

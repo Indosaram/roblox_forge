@@ -586,13 +586,15 @@ function M.new(config: Config)
 				end
 				entry.recoveryPath, entry.failedPath = failure, nil
 			end
-			-- A calm follower keeps its offset from the leader.
+			-- A calm follower keeps its offset from the leader; a winded one (worn to the capture
+			-- threshold) stands where it is instead of trailing a fleeing leader out of capture reach.
 			local herd = herdOf[id]
 			local leader = if herd and herd.leader ~= id then entries[herd.leader] else nil
 			if
 				leader
 				and not intent.damage
 				and state.target == nil
+				and state.mode ~= "stunned"
 				and state.healthMilli > 0
 				and leader.state.healthMilli > 0
 				and leader.root:IsDescendantOf(world)

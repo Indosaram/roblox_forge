@@ -81,6 +81,8 @@ export type Session = {
 	reach: number?,
 	-- A Backpack tool was taken up after a WEAPON_UNAVAILABLE refusal (tried once per target).
 	armed: boolean?,
+	-- The loop already held fire once for a capture on this target.
+	spared: boolean?,
 }
 
 --- Engages `target` at `now`. Re-tapping the same target keeps its pacing.
@@ -321,6 +323,9 @@ export type Options = {
 	hidden: () -> boolean,
 	-- Server clock seconds (workspace:GetServerTimeNow); without it a carcass mark never expires.
 	serverNow: (() -> number)?,
+	-- True when the engaged creature can be captured right now (downed, tameable, a capture tool in
+	-- the bag): the auto loop holds its swing once so the player can capture instead of killing.
+	spare: ((any) -> boolean)?,
 }
 
 function M.start(options: Options)
@@ -709,6 +714,10 @@ function M.start(options: Options)
 		return true
 	end
 	--- A ground tap pauses the auto loop (the player walks away on purpose); the bar stays.
+	--- Replaces the capture-hold hook (the pet ring is built after the combat HUD).
+	function api.setSpare(fn: ((any) -> boolean)?)
+		options.spare = fn
+	end
 	function api.pause()
 		if session then
 			session.auto = false
@@ -877,6 +886,22 @@ function M.start(options: Options)
 				if Vector3.new(drift.X, 0, drift.Z).Magnitude > M.DRIFT then
 					session.approachUntil = nil
 				end
+			end
+			-- Hold fire once on a capturable target; a re-tap engages again and finishes it.
+			if
+				session
+				and session.auto
+				and alive
+				and not session.spared
+				and options.spare
+				and options.spare(targetModel)
+			then
+				session.auto, session.spared = false, true
+				toast.Text = string.format(
+					t("spare_toast"),
+					options.name(tostring(targetModel:GetAttribute("ForgeWildlifeKind")))
+				)
+				toastUntil = now + M.TOAST_SECONDS
 			end
 			local decision = M.step(session, now, alive, distance)
 			if decision == "approach" and session and anchor then

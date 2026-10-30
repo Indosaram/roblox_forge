@@ -210,7 +210,19 @@ return {
 	end,
 
 	["20 guides in 5 bands of 4 each award 50 development, then 10 waypoint guides toward route 1"] = function()
-		local guides = load().guides
+		-- The starter capture guide (tame lane redesign) sits in the start band; it pays no development.
+		local guides = {}
+		for _, guide in load().guides do
+			if guide.id == "rw.g31.first-capture" then
+				assert(
+					guide.gates.characterLevel == 1 and guide.gates.developmentRank == 0,
+					"starter capture opens at L1"
+				)
+				assert(guide.rewards.development == 0, "starter capture pays no development")
+			else
+				table.insert(guides, guide)
+			end
+		end
 		assert(#guides == 30, "30 guides")
 		for i, guide in guides do
 			if i > 20 then

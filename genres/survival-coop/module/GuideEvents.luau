@@ -134,7 +134,8 @@ function M.event(action: string, args: { any }, facts: any, result: any): any?
 	elseif action == "tame-feed" then
 		return event("feed", args[2])
 	elseif action == "tame-capture" then
-		return if data.captured then event("tame", data.species) else nil
+		-- A wild capture is the "capture" step (target: the species, or any "creature").
+		return if data.captured then event("capture", data.species, 1, "creature") else nil
 	elseif action == "market-list" then
 		-- Cross-server listings name a bag item id; the local market names the catalog id.
 		return event("list", catalogOf(bag, args[1]) or args[1], args[2])

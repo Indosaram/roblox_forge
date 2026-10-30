@@ -16,6 +16,18 @@ local NEAR_VERBS = { mount = true, stay = true, follow = true, feed = true }
 function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean } }?): any
 	local rules = ctx.content.progressionPolicy.companion
 	local catalog = Job.catalog(ctx.content)
+	-- Usable capture tools in the bag: starter bolas with durability left plus capture ropes.
+	local function captureTools(slice: any): number
+		local count = 0
+		for _, item in (slice.inventory and slice.inventory.bag and slice.inventory.bag.items) or {} do
+			if item.catalogId == rules.starterTool and item.durabilityMilli > 0 then
+				count += 1
+			elseif item.catalogId == rules.ropeItem then
+				count += item.quantity
+			end
+		end
+		return count
+	end
 	local function state(slice: any): any
 		return slice.companions or Companion.new({}, ctx.nowMillis())
 	end
@@ -35,7 +47,10 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 				local envelope = Data.clone(token.data.envelope)
 				local slice = envelope.genres["survival-coop"].data
 				slice.companions.captures[id].settled = true
-				if reason then
+				if reason and capture.starter then
+					slice.companions.pets[id] = nil
+					slice.companions.captures[id].reason = reason
+				elseif reason then
 					slice.companions.pets[id] = nil
 					slice.companions.captures[id].reason = reason
 					local bag = Inventory.fromSave(slice.inventory.bag, catalog)
@@ -145,7 +160,37 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 				local now = ctx.nowMillis()
 				current.stuns = current.stuns or {}
 				local captured = false
-				if action == "survival-coop:tame-hit" then
+				-- Starter capture (Robango redesign, reference-game style first tame): a small basic species
+				-- is stunned and caught with the guide's bola, no melee_2/survival_3/club/rope; the bola
+				-- wears per throw. Everything bigger keeps the skill-gated club and rope path.
+				local starterId = nil
+				local small = rules.starterTool ~= nil
+					and species.captureClass == "basic"
+					and species.health <= (rules.starterHealth or 0)
+				if small then
+					local best = -1
+					for id, item in slice.inventory.bag.items do
+						if
+							item.catalogId == rules.starterTool
+							and item.durabilityMilli > 0
+							and item.durabilityMilli > best
+						then
+							starterId, best = id, item.durabilityMilli
+						end
+					end
+				end
+				if action == "survival-coop:tame-hit" and starterId then
+					if wild.healthMilli > species.health * 250 then
+						return { ok = false, reason = "WEAKEN_FIRST" }
+					end
+					if now < (current.stunReadyAt or 0) then
+						return { ok = false, reason = "RECOVERY" }
+					end
+					current.stuns[args[1]], current.stunReadyAt = now + rules.stunMillis, now + rules.stunRecoveryMillis
+				elseif action == "survival-coop:tame-hit" and small and not tree.paid.melee_2 then
+					-- A small creature without the skilled club path: the bola is what is missing.
+					return { ok = false, reason = "NO_BOLA" }
+				elseif action == "survival-coop:tame-hit" then
 					if not tree.paid.melee_2 or wild.healthMilli > species.health * 250 then
 						return { ok = false, reason = "SUBDUE_GATED" }
 					end
@@ -176,8 +221,11 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 					end
 					local eligibility = ctx.world.captureEligibility
 					local advanced = eligibility ~= nil and eligibility(actor)
+					if starterId then
+						rope = 1
+					end
 					local success, _, reason = Ecology.rollCapture(species, {
-						survival3 = tree.paid.survival_3 ~= nil,
+						survival3 = tree.paid.survival_3 ~= nil or starterId ~= nil,
 						survival6 = tree.paid.survival_6 ~= nil,
 						stunned = now < (current.stuns[args[1]] or 0),
 						occupied = occupied,
@@ -190,12 +238,21 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 					if reason then
 						return { ok = false, reason = reason }
 					end
-					bag = assert(Inventory.consume(bag, assert(ropeId, "MISSING_CAPTURE_ROPE"), 1, bag.version))
+					if starterId then
+						local worn = Inventory.snapshot(bag)
+						local item = worn.items[starterId]
+						item.durabilityMilli = math.max(0, item.durabilityMilli - (rules.starterWearMilli or 0))
+						worn.version += 1
+						bag = worn
+					else
+						bag = assert(Inventory.consume(bag, assert(ropeId, "MISSING_CAPTURE_ROPE"), 1, bag.version))
+					end
 					slice.inventory.bag = Inventory.save(bag)
 					if success then
 						current = assert(Companion.capture(current, args[1], species.id, rules))
 						current.captures = current.captures or {}
-						current.captures[args[1]] = { receipt = actor .. ":" .. receipt, settled = false }
+						current.captures[args[1]] =
+							{ receipt = actor .. ":" .. receipt, settled = false, starter = starterId ~= nil or nil }
 						captured = true
 					end
 				end
@@ -331,6 +388,8 @@ function M.factory(ctx: any, skins: { [string]: { species: string, paid: boolean
 				animals = {},
 				feeds = { rules.feedItem },
 				tameable = tameable,
+				captureTools = captureTools(slice),
+				starterHealth = rules.starterHealth,
 				v2 = true,
 			},
 				nil
