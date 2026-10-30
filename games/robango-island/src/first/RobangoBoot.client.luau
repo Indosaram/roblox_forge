@@ -10,6 +10,18 @@ local RunService = game:GetService("RunService")
 local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
+local player = Players.LocalPlayer
+-- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
+-- p134 v64: the pin ran after the TravelScreen require and the phone stayed portrait on 3 cold
+-- starts, so it now runs before any other require or yield in this script.
+local LANDSCAPE = Enum.ScreenOrientation.LandscapeSensor
+local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+playerGui.ScreenOrientation = LANDSCAPE
+playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
+	if playerGui.ScreenOrientation ~= LANDSCAPE then
+		playerGui.ScreenOrientation = LANDSCAPE
+	end
+end)
 local Flow = require(script.Parent:WaitForChild("TitleFlow"))
 local Travel = require(script.Parent:WaitForChild("TravelScreen"))
 local TeleportService = game:GetService("TeleportService")
@@ -19,16 +31,6 @@ ReplicatedFirst:RemoveDefaultLoadingScreen()
 -- read it before anything yields so the hand-over has no blank frame.
 local arrivingGui = TeleportService:GetArrivingTeleportGui()
 
-local player = Players.LocalPlayer
--- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
-local LANDSCAPE = Enum.ScreenOrientation.LandscapeSensor
-local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
-playerGui.ScreenOrientation = LANDSCAPE
-playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
-	if playerGui.ScreenOrientation ~= LANDSCAPE then
-		playerGui.ScreenOrientation = LANDSCAPE
-	end
-end)
 -- The Roblox Backpack hotbar stays hidden under the title and under full sheets (TitleFlow).
 Flow.bindBackpack(player, function(shown: boolean)
 	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, shown)
