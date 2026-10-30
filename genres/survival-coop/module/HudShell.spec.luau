@@ -1790,4 +1790,348 @@ return {
 		assert(string.find(hud, "holdToken.InputBegan:Connect", 1, true), "the hold starts on press")
 		assert(string.find(hud, "best.Triggered:Connect", 1, true), "the hold ends on the prompt's Triggered")
 	end,
+	-- labels2 (p134 v63, phone): 7 labels near a dodo flock (lb_crea0_c: 3 dodo labels + the companion's
+	-- '텀블 (동료)' plate counted outside the cap), labels under the Roblox top-left buttons and on the
+	-- vitals' top edge (lb_d4_tl), '모닥불' on the companion plate after a respawn (dn4_c), and the gather
+	-- card over the own name tag (cs1). Real startOverlays at 800x360 with a 58 px top bar.
+	["labels2: a flock is one label, the cap counts plates, top bar and vitals pad, respawn, prompt hides tag"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local CameraConfig = require("../../../games/robango-island/src/shared/CameraConfig")
+		local I, V3, CF = roblox.Instance, roblox.Vector3, roblox.CFrame
+		local width, height, bar = 800, 360, 58
+		-- The Roblox top bar in gui space: the band above the gui (and the screen above it), and the
+		-- menu / chat / voice pill left of TopbarInset.Min.X = 220.
+		local core =
+			{ { x = -800, y = -458, width = 2400, height = 458 }, { x = 0, y = -58, width = 220, height = 58 } }
+		local v = Shell.regions(width, height - bar, 0, true).vitals
+		-- Integration: the real overlay, a 12-yaw orbit around a dodo flock beside camp.
+		local NAMES: { [string]: string } = {
+			berry = "텀블딸기",
+			corn = "옥수수 씨앗",
+			log = "쓰러진 통나무",
+			fiber = "고사리 섬유",
+			stone = "돌무더기",
+			campfire = "모닥불",
+			dodo = "도도",
+		}
+		local function run(step: number, respawn: boolean, prompt: boolean): any
+			local playerGui = I.new("PlayerGui")
+			local gui = I.new("ScreenGui")
+			gui.AbsoluteSize, gui.Parent = roblox.Vector2.new(width, height - bar), playerGui
+			gui.AbsolutePosition = roblox.Vector2.zero
+			local root = I.new("Part")
+			root.Name, root.Size, root.Position = "HumanoidRootPart", V3.new(2, 2, 1), V3.new(0, 3, 0)
+			local head = I.new("Part")
+			head.Name, head.Size, head.Position = "Head", V3.new(2, 1, 1), V3.new(0, 4.5, 0)
+			local humanoid = { Health = 100, HipHeight = 2 }
+			local character = {
+				FindFirstChild = function(_, name)
+					return if name == "HumanoidRootPart" then root elseif name == "Head" then head else nil
+				end,
+				FindFirstChildOfClass = function(_, class)
+					return if class == "Humanoid" then humanoid else nil
+				end,
+			}
+			local added: { () -> () } = {}
+			local player = {
+				Character = character,
+				DisplayName = "indosaram5",
+				WaitForChild = function()
+					return playerGui
+				end,
+				CharacterAdded = {
+					Connect = function(_, fn)
+						table.insert(added, fn)
+						return { Disconnect = function() end }
+					end,
+				},
+			}
+			local function part(kind: string, key: string, x: number, z: number): any
+				local item = I.new("Part")
+				item.Position = V3.new(x, 0.6, z)
+				item:SetAttribute(kind, key)
+				return item
+			end
+			local nodes = {
+				part("ForgeNodeKind", "berry", 6, -6),
+				part("ForgeNodeKind", "corn", -4, 6),
+				part("ForgeNodeKind", "log", -14, -10),
+				part("ForgeNodeKind", "stone", 10, 8),
+				part("ForgeNodeKind", "fiber", 1, 1.5),
+			}
+			local stations = { part("ForgeStationKind", "campfire", -2.5, -2.5) }
+			local wild = I.new("Folder")
+			wild.Name = "ForgeWildlife"
+			for index, at in { { -8, 4 }, { -10, 6 }, { -7, 8 }, { -11, 9 }, { -9, 11 } } :: { { number } } do
+				local animal = I.new("Model")
+				animal:SetAttribute("ForgeWildlifeKind", "dodo")
+				local body = I.new("Part")
+				body.Name, body.Position, body.Parent = "HumanoidRootPart", V3.new(at[1], 1, at[2]), animal
+				animal.Name, animal.PrimaryPart, animal.Parent = "dodo" .. index, body, wild
+			end
+			-- The companion plate OpeningClient draws (ForgeNameTag, StudsOffset 4.5 in camera space).
+			local tumble = I.new("Part")
+			tumble.Position = V3.new(-2, 1.5, -3)
+			local plate = I.new("BillboardGui")
+			plate.Size, plate.StudsOffset, plate.Parent = roblox.UDim2.fromOffset(160, 24), V3.new(0, 4.5, 0), tumble
+			plate.AbsoluteSize = roblox.Vector2.new(160, 24)
+			local camera: any = {}
+			local yaw = step * math.pi / 6
+			local pitch = math.rad(CameraConfig.pitch)
+			local d = CameraConfig.distance
+			local eye = root.Position
+				+ V3.new(math.sin(yaw) * math.cos(pitch) * d, math.sin(pitch) * d, math.cos(yaw) * math.cos(pitch) * d)
+			local forward = (root.Position - eye).Unit
+			local right = forward:Cross(V3.new(0, 1, 0)).Unit
+			local up = right:Cross(forward)
+			camera.CFrame = CF.lookAt(eye, root.Position)
+			camera.ViewportSize = roblox.Vector2.new(width, height)
+			local f = (height / 2) / math.tan(math.rad(CameraConfig.fieldOfView) / 2)
+			local function viewport(at: any): (any, boolean)
+				local offset = at - eye
+				local depth = offset:Dot(forward)
+				return V3.new(width / 2 + offset:Dot(right) / depth * f, height / 2 - offset:Dot(up) / depth * f, depth),
+					depth > 0
+			end
+			camera.WorldToScreenPoint = function(_, at)
+				local p, seen = viewport(at)
+				return V3.new(p.X, p.Y - bar, p.Z), seen
+			end
+			camera.WorldToViewportPoint = function(_, at)
+				return viewport(at)
+			end
+			local beats: { (number) -> () } = {}
+			local renders: { () -> () } = {}
+			local function signal(list: { any }?)
+				return {
+					Connect = function(_, fn)
+						if list then
+							table.insert(list, fn)
+						end
+						return { Disconnect = function() end }
+					end,
+				}
+			end
+			local services: { [string]: any } = {
+				Players = {
+					LocalPlayer = player,
+					PlayerRemoving = signal(),
+					GetPlayers = function()
+						return { player }
+					end,
+				},
+				CollectionService = {
+					GetTagged = function(_, tag)
+						if tag == "ForgeSurvivalNode" then
+							return nodes
+						elseif tag == "ForgeSurvivalStation" then
+							return stations
+						elseif tag == "ForgeNameTag" then
+							local out = { plate }
+							for _, item in playerGui:GetDescendants() do
+								if item:IsA("BillboardGui") and item:HasTag("ForgeNameTag") then
+									table.insert(out, item)
+								end
+							end
+							return out
+						end
+						return {}
+					end,
+				},
+				Workspace = {
+					CurrentCamera = camera,
+					GetDescendants = function()
+						return {}
+					end,
+					FindFirstChild = function(_, name)
+						return if name == "ForgeWildlife" then wild else nil
+					end,
+				},
+				RunService = { RenderStepped = signal(renders), Heartbeat = signal(beats) },
+				UserInputService = { TouchEnabled = true },
+				-- Phone top bar: 58 px, the Roblox menu / chat / voice pill left of x = 220.
+				GuiService = {
+					TopbarInset = { Min = roblox.Vector2.new(220, 0), Max = roblox.Vector2.new(800, 58) },
+					GetGuiInset = function()
+						return roblox.Vector2.new(0, 58), roblox.Vector2.zero
+					end,
+				},
+			}
+			local environment: any = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+			}
+			for key, value in roblox do
+				environment[key] = value
+			end
+			local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+				environment = environment,
+			})()
+			shell.startOverlays({
+				gui = gui,
+				hidden = function()
+					return false
+				end,
+				name = function(_, key)
+					return NAMES[key] or key
+				end,
+				coordsText = function()
+					return ""
+				end,
+				tribe = function()
+					return ""
+				end,
+			})
+			local function frame()
+				renders[1]()
+				beats[1](1)
+				renders[1]()
+			end
+			-- One label pass per overlay (Lune cannot clear a spare board's Adornee to a nil Ref).
+			if prompt then
+				-- Roblox's default prompt UI: PlayerGui.ProximityPrompts > BillboardGui "Prompt" on the node.
+				local prompts = I.new("ScreenGui")
+				prompts.Name, prompts.Parent = "ProximityPrompts", playerGui
+				local card = I.new("BillboardGui")
+				card.Name, card.Size, card.Adornee = "Prompt", roblox.UDim2.fromOffset(180, 72), nodes[5]
+				card.AbsoluteSize, card.Parent = roblox.Vector2.new(180, 72), prompts
+				frame()
+				beats[1](1)
+				renders[1]()
+			elseif respawn then
+				-- Respawn: CharacterAdded, then the next heartbeat (inside the 0.2 s cadence) labels the camp.
+				renders[1]()
+				for _, fn in added do
+					fn()
+				end
+				beats[1](0.01)
+				renders[1]()
+			else
+				frame()
+			end
+			local drawn: { { any } } = {}
+			for _, board in playerGui:FindFirstChild("ForgeWorldLabels"):GetChildren() do
+				if board:IsA("BillboardGui") and board.Name == "WorldLabel" and board.Enabled then
+					local p = camera:WorldToScreenPoint(board.Adornee.Position + board.StudsOffsetWorldSpace)
+					local dy = -board.SizeOffset.Y * board.Size.Y.Offset
+					local dx = board.SizeOffset.X * board.Size.X.Offset
+					local hint = if board.Hint.Visible then board.Hint.Text else nil
+					table.insert(drawn, { board.Text.Text, Shell.labelRect(p.X + dx, p.Y + dy, board.Text.Text, hint) })
+				end
+			end
+			-- The companion plate as Roblox draws it: StudsOffset is camera space (screen up).
+			local pp, seen =
+				camera:WorldToScreenPoint(tumble.Position + camera.CFrame:VectorToWorldSpace(plate.StudsOffset))
+			local onScreen = seen and pp.X > 0 and pp.X < width and pp.Y > 0 and pp.Y < height - bar
+			local tag = playerGui:FindFirstChild("ForgePlayerRings", true):FindFirstChild("NameTag")
+			local tp = camera:WorldToScreenPoint(root.Position + tag.StudsOffsetWorldSpace)
+			local gp = camera:WorldToScreenPoint(nodes[5].Position)
+			return {
+				drawn = drawn,
+				plate = if onScreen then { x = pp.X - 80, y = pp.Y - 12, width = 160, height = 24 } else nil,
+				tagEnabled = tag.Enabled,
+				tagRect = { x = tp.X - 60, y = tp.Y - 14, width = 120, height = 28 },
+				-- Roblox's default card for "고사리 섬유 / 채집하기": about 180 x 72 px centred on the node.
+				card = { x = gp.X - 90, y = gp.Y - 36, width = 180, height = 72 },
+			}
+		end
+		local most, bad, dodoLabels = 0, {}, 0
+		for step = 0, 11 do
+			for _, mode in { { false, false }, { true, false }, { false, true } } do
+				local r = run(step, mode[1], mode[2])
+				most = math.max(most, #r.drawn + (if r.plate then 1 else 0))
+				local at = step .. (if mode[1] then "R" elseif mode[2] then "P" else "") .. ":"
+				local dodo = 0
+				for i, a in r.drawn do
+					if string.find(a[1], "도도", 1, true) then
+						dodo += 1
+					end
+					if r.plate and Shell.overlaps(a[2], r.plate) then
+						table.insert(bad, at .. a[1] .. "/plate")
+					end
+					for _, c in core do
+						if Shell.overlaps(a[2], c) then
+							table.insert(bad, at .. a[1] .. "/topbar")
+						end
+					end
+					if
+						Shell.overlaps(a[2], { x = v.x - 4, y = v.y - 4, width = v.width + 8, height = v.height + 8 })
+					then
+						table.insert(bad, at .. a[1] .. "/vitals")
+					end
+					for j = i + 1, #r.drawn do
+						if Shell.overlaps(a[2], r.drawn[j][2]) then
+							table.insert(bad, at .. a[1] .. "/" .. r.drawn[j][1])
+						end
+					end
+				end
+				dodoLabels = math.max(dodoLabels, dodo)
+				if dodo > 1 then
+					table.insert(bad, at .. dodo .. " dodo labels")
+				end
+				if mode[1] and #r.drawn == 0 then
+					table.insert(bad, at .. "no labels on the first heartbeat after the respawn")
+				end
+				if mode[2] and r.tagEnabled and Shell.overlaps(r.card, r.tagRect) then
+					table.insert(bad, at .. "prompt card over the name tag")
+				end
+			end
+		end
+		if most > 6 then
+			table.insert(bad, 1, "phone shows at most 6 labels with the plate, saw " .. most)
+		end
+		assert(#bad == 0, "labels2 defects: " .. table.concat(bad, ", "))
+		assert(dodoLabels == 1, "the flock is labelled")
+		-- The rules themselves.
+		local dodos = {}
+		local texts = {}
+		for index = 1, 5 do
+			local id = "wildlife:" .. index
+			table.insert(dodos, { id = id, kind = "wildlife", x = index * 3, y = 0, z = 0 })
+			texts[id] = "도도"
+		end
+		table.insert(dodos, { id = "wildlife:far", kind = "wildlife", x = 60, y = 0, z = 0 })
+		texts["wildlife:far"] = "도도"
+		local kept, counts = Shell.flocks(dodos, texts, {})
+		assert(#kept == 2 and counts["wildlife:1"] == 5 and counts["wildlife:far"] == 1, "5 dodos chain into one")
+		assert(Shell.flockText("도도", 5) == "도도 ×5" and Shell.flockText("도도", 1) == "도도", "flock text")
+		local alone = Shell.flocks(dodos, texts, { ["wildlife:3"] = true })
+		assert(#alone == 3, "the focus dodo keeps its own label")
+		-- The Roblox buttons left of TopbarInset.Min.X, in gui space under a 58 px bar.
+		assert(Shell.coreRects(58, 220, 800, 58, 0, 0, 800)[2].width == 220, "the pill span")
+		local open = { safeHeight = 302 }
+		assert(Shell.labelBlocked(Shell.labelRect(60, -20, "쓰러진 통나무"), open, core), "under the Roblox pill")
+		assert(Shell.labelBlocked(Shell.labelRect(500, 4, "도도"), open, core), "the screen top edge")
+		assert(not Shell.labelBlocked(Shell.labelRect(500, 60, "도도"), open, core), "open ground")
+		local regions = Shell.regions(width, height - bar, 0, true)
+		local edge = Shell.labelRect(regions.vitals.x + 60, regions.vitals.y + 60, "프로토케라톱스")
+		edge.y = regions.vitals.y - edge.height - 2
+		assert(Shell.labelBlocked(edge, regions), "a label 2 px over the vitals' top edge is blocked (padding)")
+		local fixed = Shell.declutter({
+			{
+				id = "plate",
+				kind = "pet",
+				rect = { x = 100, y = 100, width = 90, height = 22 },
+				distance = 0,
+				fixed = true,
+			},
+			{ id = "fire", kind = "station", rect = { x = 110, y = 104, width = 60, height = 22 }, distance = 1 },
+		}, {}, 6)
+		assert(fixed[1].id == "plate" and #fixed == 1, "the plate keeps its spot, an overlapping '모닥불' yields")
+		assert(#Shell.declutter({
+			{
+				id = "plate",
+				kind = "pet",
+				rect = { x = 0, y = 0, width = 10, height = 10 },
+				distance = 0,
+				fixed = true,
+			},
+			{ id = "a", kind = "node", rect = { x = 100, y = 0, width = 10, height = 10 }, distance = 1 },
+		}, {}, 1) == 1, "the plate takes a cap slot")
+	end,
 }

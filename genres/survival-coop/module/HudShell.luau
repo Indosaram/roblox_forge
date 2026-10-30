@@ -465,19 +465,79 @@ M.LABEL_BLOCKERS = table.freeze({
 	"cluster",
 })
 
---- True when a label rect (gui space) touches a HUD region of `regions` (M.regions output).
-function M.labelBlocked(r: Rect, regions: any): boolean
+-- Clear px a world label keeps from every HUD region (labels2: with 0 px a label sat on the vitals
+-- panel's top edge on the phone, p134 v63 lb_d4_tl; text stroke and descenders draw past labelRect).
+M.LABEL_HUD_PAD = 6
+
+--- True when a label rect (gui space) touches a HUD region of `regions` (M.regions output), within
+--- LABEL_HUD_PAD, or one of `core` (the Roblox top bar buttons, M.coreRects).
+function M.labelBlocked(r: Rect, regions: any, core: { Rect }?): boolean
+	local pad = M.LABEL_HUD_PAD
 	local map = regions.minimap
-	if map and hits(r, { x = map.x - 6, y = map.y - 6, width = map.width + 12, height = map.height + 12 }, 0) then
+	if map and hits(r, { x = map.x - 6, y = map.y - 6, width = map.width + 12, height = map.height + 12 }, pad) then
 		return true
 	end
 	for _, key in M.LABEL_BLOCKERS do
 		local region = regions[key]
-		if region and region.width > 0 and region.height > 0 and hits(r, region, 0) then
+		if region and region.width > 0 and region.height > 0 and hits(r, region, pad) then
+			return true
+		end
+	end
+	for _, region in core or ({} :: { Rect }) do
+		if hits(r, region, pad) then
 			return true
 		end
 	end
 	return false
+end
+
+--- Gui-space rects of the Roblox top bar a world label must stay off (labels2: '프로토케라톱스' and
+--- '쓰러진 통나무' drew under the Roblox button pill, p134 v63 lb_d4_tl / lb_crea0_c). `inset` is
+--- GuiService:GetGuiInset()'s top-left (the bar height `y` that WorldToScreenPoint already takes off),
+--- `freeMinX` / `freeMaxX` the TopbarInset free span (left of it the Roblox menu/chat/voice buttons,
+--- right of it the right-side buttons), `barBottom` TopbarInset.Max.Y in viewport px, `guiTop` the
+--- gui's AbsolutePosition.Y, `width` the viewport width. The whole bar band (a label there is cut by
+--- the screen edge or drawn under the bar) and above it is one rect; the button spans reach down to
+--- `barBottom`.
+function M.coreRects(
+	inset: number,
+	freeMinX: number,
+	freeMaxX: number,
+	barBottom: number,
+	guiLeft: number,
+	guiTop: number,
+	width: number
+): { Rect }
+	local y0 = -inset - guiTop
+	local tall = math.max(inset, barBottom)
+	local out = { rect(-guiLeft - width, y0 - 400, 3 * width, 400 + inset) }
+	if freeMinX > 0 then
+		table.insert(out, rect(-guiLeft, y0, freeMinX, tall))
+	end
+	if freeMaxX > 0 and freeMaxX < width then
+		table.insert(out, rect(freeMaxX - guiLeft, y0, width - freeMaxX, tall))
+	end
+	return out
+end
+
+--- The Roblox top bar rects (M.coreRects) for a gui, from GuiService; none when the engine has no
+--- top bar API (headless spec engines).
+function M.coreBlockers(gui: any, guiService: any, viewportWidth: number): { Rect }
+	if not guiService then
+		return {}
+	end
+	local ok, topLeft = pcall(function()
+		return guiService:GetGuiInset()
+	end)
+	if not ok or not topLeft then
+		return {}
+	end
+	local bar = guiService.TopbarInset
+	local at = gui.AbsolutePosition
+	local minX = if bar then bar.Min.X else 0
+	local maxX = if bar and bar.Max.X > bar.Min.X then bar.Max.X else viewportWidth
+	local bottom = if bar then bar.Max.Y else topLeft.Y
+	return M.coreRects(topLeft.Y, minX, maxX, bottom, at.X, at.Y, viewportWidth)
 end
 
 -- World label declutter (labels audit: at 800x360 "모닥불" drew over "프로토케라톱스" and "섬유 덤불"
@@ -499,7 +559,97 @@ function M.labelCap(safeHeight: number): number
 	return if safeHeight < 480 then M.LABEL_CAP.phone else M.LABEL_CAP.wide
 end
 
-export type LabelItem = { id: string, kind: string, rect: Rect, distance: number, target: boolean? }
+-- Same-name creatures within this many studs of a flock member share one label '도도 ×5' (labels2:
+-- a dodo flock took three of the phone's six labels, p134 v63 lb_crea0_c).
+M.FLOCK_STUDS = 12
+
+--- Collapse flocks: wildlife targets with the same `texts[id]` chained within FLOCK_STUDS of each other
+--- keep only their first (nearest) member, which carries the flock size in the returned counts. Targets
+--- in `alone` (the focus) never merge. Order is kept.
+function M.flocks(
+	targets: { Candidate },
+	texts: { [string]: string },
+	alone: { [string]: boolean }
+): ({ Candidate }, { [string]: number })
+	local out: { Candidate } = {}
+	local counts: { [string]: number } = {}
+	local groups: { { leader: string, text: string, members: { Candidate } } } = {}
+	for _, target in targets do
+		local joined = false
+		if target.kind == "wildlife" and not alone[target.id] then
+			for _, group in groups do
+				if group.text == texts[target.id] then
+					for _, member in group.members do
+						local dx, dz = member.x - target.x, member.z - target.z
+						if dx * dx + dz * dz <= M.FLOCK_STUDS * M.FLOCK_STUDS then
+							table.insert(group.members, target)
+							counts[group.leader] += 1
+							joined = true
+							break
+						end
+					end
+				end
+				if joined then
+					break
+				end
+			end
+			if not joined then
+				table.insert(groups, { leader = target.id, text = texts[target.id], members = { target } })
+			end
+		end
+		if not joined then
+			counts[target.id] = 1
+			table.insert(out, target)
+		end
+	end
+	return out, counts
+end
+
+--- Flock label text: the name, then ' ×n' for more than one.
+function M.flockText(name: string, count: number): string
+	return if count > 1 then name .. " \u{00D7}" .. count else name
+end
+
+--- Screen rect (gui space) of a world name tag BillboardGui on `adornee`, or nil off screen.
+--- StudsOffset is camera space (screen up), StudsOffsetWorldSpace world space (labels2: adding
+--- StudsOffset as world up put the '텀블 (동료)' plate ~2 studs low at the 55 degree pitch, so
+--- '모닥불' was placed onto its top half, p134 v63 dn4_c). A pixel-sized plate uses its Size.
+function M.tagRect(camera: any, tag: any, adornee: any, inset: any): Rect?
+	local lift = tag.StudsOffsetWorldSpace + camera.CFrame:VectorToWorldSpace(tag.StudsOffset)
+	local point, seen = camera:WorldToScreenPoint(adornee.Position + lift)
+	if not seen then
+		return nil
+	end
+	local w, h = tag.Size.X.Offset, tag.Size.Y.Offset
+	if tag.Size.X.Scale ~= 0 or tag.Size.Y.Scale ~= 0 or w <= 0 or h <= 0 then
+		w, h = tag.AbsoluteSize.X, tag.AbsoluteSize.Y
+	end
+	return rect(point.X - inset.X - w / 2, point.Y - inset.Y - h / 2, w, h)
+end
+
+-- Roblox default ProximityPrompt card (px): the input button square plus the text column.
+M.PROMPT_CARD = table.freeze({ height = 72, button = 72, pad = 24, action = 19, object = 14 })
+
+--- Screen rect of a default prompt card centred at (x, y).
+function M.promptRect(x: number, y: number, action: string, object: string): Rect
+	local C = M.PROMPT_CARD
+	local w = C.button + C.pad + math.max(textWidth(action, C.action), textWidth(object, C.object))
+	return rect(x - w / 2, y - C.height / 2, w, C.height)
+end
+
+--- True when the own name tag (`tag`, screen rect) must hide because a shown prompt card covers it
+--- (labels2: the gather card '고사리 섬유 / 채집하기' sat on 'indosaram5', p134 v63 cs1). The card is
+--- Roblox's own billboard and cannot move off its node, so the tag yields while it shows.
+function M.tagCovered(tag: Rect, cards: { Rect }): boolean
+	for _, card in cards do
+		if hits(tag, card, M.LABEL_GAP.avoid) then
+			return true
+		end
+	end
+	return false
+end
+
+export type LabelItem = { id: string, kind: string, rect: Rect, distance: number, target: boolean?, fixed: boolean? }
 
 --- Which world labels draw, and how far each moves: items sorted by rank (target, creatures, nodes,
 --- structures), then distance, then id. Each takes the first nudge (LABEL_NUDGES, screen px down) whose
@@ -514,7 +664,7 @@ function M.declutter(
 ): { { id: string, dx: number, dy: number } }
 	local order = table.clone(items)
 	local function rank(item: LabelItem): number
-		return if item.target then 0 else M.LABEL_RANK[item.kind] or 3
+		return if item.fixed then -1 elseif item.target then 0 else M.LABEL_RANK[item.kind] or 3
 	end
 	table.sort(order, function(a, b)
 		local ra, rb = rank(a), rank(b)
@@ -531,6 +681,13 @@ function M.declutter(
 	for _, item in order do
 		if #out >= cap then
 			break
+		end
+		if item.fixed then
+			-- A plate another script draws (the companion's '텀블 (동료)'): it cannot move or hide, so it
+			-- takes its spot and a cap slot first (labels2: 6 labels plus the plate made 7 on the phone).
+			table.insert(placed, item.rect)
+			table.insert(out, { id = item.id, dx = 0, dy = 0 })
+			continue
 		end
 		local tries = M.LABEL_NUDGES
 		if item.target then
@@ -2090,6 +2247,24 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		end
 	end
 	table.insert(connections, players.PlayerRemoving:Connect(dropRing))
+	-- Prompt cards (labels2 fix 5): Roblox draws a shown ProximityPrompt's card as a BillboardGui under
+	-- PlayerGui.ProximityPrompts; a gather node at the feet put '고사리 섬유 / 채집하기' over the own name tag
+	-- (p134 v63 cs1). The card cannot move off its node, so the own tag hides while a drawn card covers it
+	-- (`tagCovered`, set by the label heartbeat). Only drawn cards count: a Custom prompt draws none.
+	local tagCovered = false
+	local elapsed = 0
+	-- Respawn (labels2 fix 4): the new character starts a fresh label pass at once, so no board keeps
+	-- the old body's placement and companion plates re-enter the overlap pass on the first frame.
+	local function rebuild()
+		for _, item in boards do
+			item.Enabled, item.SizeOffset = false, Vector2.zero
+		end
+		tagCovered = false
+		elapsed = math.huge
+	end
+	if player.CharacterAdded then
+		table.insert(connections, player.CharacterAdded:Connect(rebuild))
+	end
 	table.insert(
 		connections,
 		run.RenderStepped:Connect(function()
@@ -2104,7 +2279,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					and root:IsA("BasePart")
 					and humanoid ~= nil
 					and humanoid.Health > 0
-				entry.ring.Visible, entry.tag.Enabled = alive, alive
+				entry.ring.Visible, entry.tag.Enabled = alive, alive and not (owner == player and tagCovered)
 				for _, spoke in entry.fan do
 					spoke.Visible = alive
 				end
@@ -2140,7 +2315,6 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			end
 		end)
 	)
-	local elapsed = 0
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function(dt)
@@ -2219,6 +2393,16 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 						full = full or target.id
 					end
 				end
+				-- A flock is one label '도도 ×5' (M.flocks); the focus creature keeps its own.
+				local texts: { [string]: string } = {}
+				for _, target in targets do
+					texts[target.id] = lookup[target.id][2]
+				end
+				local counts: { [string]: number }
+				targets, counts = M.flocks(targets, texts, focused)
+				for _, target in targets do
+					texts[target.id] = M.flockText(texts[target.id], counts[target.id])
+				end
 				-- The focus label shows in full (name + tool hint); without one, the nearest node does.
 				if not full then
 					for _, target in targets do
@@ -2232,9 +2416,11 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 				-- Screen rects labels must stay off: the local player's figure and own plate, and every other
 				-- shown name tag (other players, the companion plate).
 				local avoid: { Rect } = {}
+				local fixed: { LabelItem } = {}
+				local plates = 0
 				local own = rings[player]
 				if camera then
-					if own and own.tag.Enabled then
+					if own and (own.tag.Enabled or tagCovered) then
 						-- The own plate (ringFor) rides under the feet; the rect spans it up to the head.
 						local head = character:FindFirstChild("Head")
 						local top = if head and head:IsA("BasePart")
@@ -2253,6 +2439,36 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 								)
 							)
 						end
+						-- Fix 5: the own tag yields while a drawn Roblox prompt card covers it.
+						local cards: { Rect } = {}
+						local promptGui = labelFolder.Parent and labelFolder.Parent:FindFirstChild("ProximityPrompts")
+						for _, card in if promptGui then promptGui:GetDescendants() else {} do
+							local holder = if card:IsA("BillboardGui") and card.Enabled then card.Adornee else nil
+							local at = if holder and holder:IsA("Attachment")
+								then holder.WorldPosition
+								elseif holder and holder:IsA("BasePart") then holder.Position
+								else nil
+							if at then
+								local box = M.tagRect(camera, card, { Position = at }, inset)
+								if box then
+									table.insert(cards, box)
+								end
+							end
+						end
+						tagCovered = seenB
+							and M.tagCovered(
+								rect(
+									b.X - inset.X - tagSize.width / 2,
+									b.Y - inset.Y - tagSize.height / 2,
+									tagSize.width,
+									tagSize.height
+								),
+								cards
+							)
+						if tagCovered then
+							own.tag.Enabled = false
+						end
+						labelFolder:SetAttribute("ForgeTagCovered", tagCovered)
 					end
 					for _, tag in tags:GetTagged(M.NAME_TAG) do
 						local adornee = if tag:IsA("BillboardGui") then (tag.Adornee or tag.Parent) else nil
@@ -2263,14 +2479,26 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 							and adornee
 							and adornee:IsA("BasePart")
 						then
-							local at = adornee.Position + tag.StudsOffsetWorldSpace + tag.StudsOffset
-							local point, seen = camera:WorldToScreenPoint(at)
-							if seen then
-								local box = tag.AbsoluteSize
-								table.insert(
-									avoid,
-									rect(point.X - inset.X - box.X / 2, point.Y - inset.Y - box.Y / 2, box.X, box.Y)
-								)
+							local box = M.tagRect(camera, tag, adornee, inset)
+							if box and tag.Parent == ringFolder then
+								table.insert(avoid, box)
+							elseif
+								box
+								and box.x < size.X
+								and box.x + box.width > 0
+								and box.y < size.Y
+								and box.y + box.height > 0
+							then
+								-- A pet / companion plate another script draws (OpeningClient's '텀블 (동료)'): a label
+								-- in the same overlap pass and cap, placed first since it cannot move (labels2).
+								plates += 1
+								table.insert(fixed, {
+									id = string.format("plate:%03d", plates),
+									kind = "pet",
+									rect = box,
+									distance = 0,
+									fixed = true,
+								})
 							end
 						end
 					end
@@ -2300,7 +2528,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 							table.insert(items, {
 								id = target.id,
 								kind = target.kind,
-								rect = M.labelRect(point.X - inset.X, point.Y - inset.Y, entry[2], line),
+								rect = M.labelRect(point.X - inset.X, point.Y - inset.Y, texts[target.id], line),
 								distance = math.sqrt(dx * dx + dy * dy) + index * 1e-6,
 								target = focused[target.id],
 							})
@@ -2312,16 +2540,29 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 				local cap = M.labelCap(regions.safeHeight)
 				local placed: { { id: string, dx: number, dy: number } } = {}
 				if camera then
+					-- The Roblox top bar buttons (GuiService:GetGuiInset / TopbarInset) block like the HUD.
+					local viewport = camera.ViewportSize
+					local core = M.coreBlockers(
+						options.gui,
+						game:GetService("GuiService"),
+						if viewport then viewport.X else size.X
+					)
+					table.move(fixed, 1, #fixed, #items + 1, items)
 					placed = M.declutter(items, avoid, cap, function(r: Rect): boolean
-						return M.labelBlocked(r, regions)
+						return M.labelBlocked(r, regions, core)
 					end)
 				else
 					for index = 1, math.min(cap, #order) do
 						table.insert(placed, { id = order[index], dx = 0, dy = 0 })
 					end
 				end
+				labelFolder:SetAttribute("ForgePlateCount", #fixed)
 				for _, slot in placed do
 					local entry = lookup[slot.id]
+					if not entry then
+						-- A fixed plate (another script's companion label): counted, never drawn here.
+						continue
+					end
 					local lift = M.labelLift(entry[1])
 					local line = lines[slot.id]
 					shown += 1
@@ -2333,7 +2574,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					item:SetAttribute("ForgeLabelId", slot.id)
 					item:SetAttribute("ForgeLabelNudge", slot.dx .. "," .. slot.dy)
 					local text = item:FindFirstChild("Text") :: any
-					text.Text = entry[2]
+					text.Text = texts[slot.id] or entry[2]
 					-- One label style for every kind (R05-1 white text): creatures used to get a small coral
 					-- line here plus the client's own nameplate (studio-after defects 8 and 9).
 					text.TextColor3 = color(P.bone)
