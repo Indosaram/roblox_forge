@@ -486,12 +486,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- Far ground grading (outside the arrival rings and away from authored ground): highland caps,
 	-- noise patches of a second ground material and, on volcanoes, lava streaks.
 	local arrivals = if look then BiomeKits.arrivals(layout) else {}
-	local function gradeColumn(column: any, material: string, clear: number): string
-		if not look then
+	-- Per 8-stud cell of a far column that may grade (terrace lane): the same rules on the cell centre
+	-- and its smoothed height, so patches and caps get noise edges, never 32-stud squares. Wet cells
+	-- (pond and stream beds) keep their material.
+	local function gradeCell(column: any, material: string, x: number, z: number, y: number, wet: boolean): string
+		if not look or wet then
 			return material
 		end
-		local away = clear >= BiomeLook.CLEAR and BiomeLook.away(layout, arrivals, column.x, column.z)
-		return BiomeLook.grade(look, material, Terrain.ground(layout, column.x), column.x, column.z, column.top, away)
+		return BiomeLook.grade(look, material, Terrain.ground(layout, column.x), x, z, y, true)
 	end
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
 	if field then
@@ -548,6 +550,27 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		table.sort(order, function(a, b)
 			return if a.distance ~= b.distance then a.distance < b.distance else a.key < b.key
 		end)
+		-- Far ground (terrace lane, R11-6/R11-7): column tops by cell, so a far column is written as
+		-- 8-stud blocks on the bilinear surface through its neighbours' tops instead of one flat
+		-- 32-stud block. Hills read as slopes, not stacked square terraces; a flat column stays one block.
+		local cellTops: { [string]: number } = {}
+		for _, column in columns do
+			cellTops[column.x .. "," .. column.z] = column.top
+		end
+		local SUB = 8
+		local CLIFF = 0.3
+		local function surface(column: any, sx: number, sz: number): number
+			local cell = column.cell
+			local fx, fz = (sx - column.x) / cell, (sz - column.z) / cell
+			local ix, iz = if fx < 0 then -1 else 1, if fz < 0 then -1 else 1
+			local function at(dx: number, dz: number): number
+				return cellTops[column.x + dx * cell .. "," .. column.z + dz * cell] or column.top
+			end
+			local ax, az = math.abs(fx), math.abs(fz)
+			local near = column.top + (at(ix, 0) - column.top) * ax
+			local far = at(0, iz) + (at(ix, iz) - at(0, iz)) * ax
+			return near + (far - near) * az
+		end
 		local function write(chunk: any)
 			for _, column in chunk.columns do
 				local material = column.material
@@ -557,8 +580,6 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				then
 					material = "Ground"
 				end
-				local base = material
-				local graded = gradeColumn(column, material, field.clear(column.x, column.z))
 				local top = column.top
 				if field.clear(column.x, column.z) < 96 then
 					-- Near authored ground the column is written as 8-stud blocks sampled from the field,
@@ -577,44 +598,74 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					end
 					continue
 				end
-				workspace.Terrain:FillBlock(
-					CFrame.new(column.x, (top - 16) / 2, column.z),
-					Vector3.new(column.cell, top + 16, column.cell),
-					materials[material]
-				)
-				-- A bevel ball rounds steps down to lower neighbours away from authored ground.
-				if field.clear(column.x, column.z) > 64 then
-					local r = column.cell * 0.75
-					workspace.Terrain:FillBall(Vector3.new(column.x, top - r, column.z), r, materials[material])
-				end
-				-- Discs spill ~20 studs past the column: none next to a pond or stream (they would fill its water).
-				local dry = true
-				for dx = -1, 1 do
-					for dz = -1, 1 do
-						dry = dry and field.water(column.x + dx * column.cell, column.z + dz * column.cell) == nil
+				-- Ponds and stream channels keep the exact field (their beds are narrower than a cell).
+				local wet = column.wet or field.water(column.x, column.z) ~= nil
+				local heights, lowest, highest = table.create(16), math.huge, -math.huge
+				for sx = column.x - column.cell / 2 + SUB / 2, column.x + column.cell / 2, SUB do
+					for sz = column.z - column.cell / 2 + SUB / 2, column.z + column.cell / 2, SUB do
+						local y = if wet then field.height(sx, sz) else surface(column, sx, sz)
+						table.insert(heights, y)
+						lowest, highest = math.min(lowest, y), math.max(highest, y)
 					end
 				end
-				if graded ~= base and dry then
-					-- A graded column reads as a soft blob, not a 32-stud square: the base material keeps the
-					-- column and two jittered flat discs of the graded one are painted over its top.
-					for k = 1, 2 do
-						local jx = math.noise(column.x / 7.3, column.z / 7.3, k) * column.cell * 0.5
-						local jz = math.noise(column.z / 7.3, column.x / 7.3, k + 2) * column.cell * 0.5
-						workspace.Terrain:FillCylinder(
-							CFrame.new(column.x + jx, top - 1, column.z + jz),
-							2.6,
-							column.cell * (0.5 + 0.12 * k),
-							materials[graded]
-						)
+				-- Far grading is per 8-stud cell (BiomeLook.grade on the cell centre), so patches and caps
+				-- have noise edges instead of 32-stud squares; base-material cells are merged.
+				-- Cliff faces are chosen per 8-stud cell from the smoothed slope (Rock where it is steeper
+				-- than CLIFF), so cliffs follow the hill instead of painting 32-stud squares.
+				local soil = Terrain.ground(layout, column.x)
+				local slopeRock = not wet and not column.beach and (material == "Rock" or material == soil)
+				local mayGrade = look ~= nil
+					and not wet
+					and (material == soil or slopeRock)
+					and field.clear(column.x, column.z) >= BiomeLook.CLEAR
+					and BiomeLook.away(layout, arrivals, column.x, column.z)
+				local flat = highest - lowest < 0.5 and not mayGrade and material ~= "Rock"
+				if flat then
+					workspace.Terrain:FillBlock(
+						CFrame.new(column.x, (top - 16) / 2, column.z),
+						Vector3.new(column.cell, top + 16, column.cell),
+						materials[material]
+					)
+				else
+					local index = 0
+					for sx = column.x - column.cell / 2 + SUB / 2, column.x + column.cell / 2, SUB do
+						for sz = column.z - column.cell / 2 + SUB / 2, column.z + column.cell / 2, SUB do
+							index += 1
+							local y = heights[index]
+							local cellMaterial = material
+							if slopeRock then
+								local gx = surface(column, sx + 2, sz) - surface(column, sx - 2, sz)
+								local gz = surface(column, sx, sz + 2) - surface(column, sx, sz - 2)
+								cellMaterial = if math.sqrt(gx * gx + gz * gz) / 4 > CLIFF then "Rock" else soil
+							end
+							if mayGrade and cellMaterial == soil then
+								cellMaterial = gradeCell(column, soil, sx, sz, y, wet)
+							end
+							workspace.Terrain:FillBlock(
+								CFrame.new(sx, (y - 16) / 2, sz),
+								Vector3.new(SUB, y + 16, SUB),
+								materials[cellMaterial]
+							)
+						end
 					end
 				end
 				local water = field.water(column.x, column.z)
-				if water and water > top then
-					workspace.Terrain:FillBlock(
-						CFrame.new(column.x, (top + water) / 2, column.z),
-						Vector3.new(column.cell, water - top, column.cell),
-						Enum.Material.Water
-					)
+				if water and water > lowest then
+					-- Water fills over each sub-cell bed below the surface (FillBlock replaces only air here).
+					local index = 0
+					for sx = column.x - column.cell / 2 + SUB / 2, column.x + column.cell / 2, SUB do
+						for sz = column.z - column.cell / 2 + SUB / 2, column.z + column.cell / 2, SUB do
+							index += 1
+							local y = heights[index]
+							if water > y then
+								workspace.Terrain:FillBlock(
+									CFrame.new(sx, (y + water) / 2, sz),
+									Vector3.new(SUB, water - y, SUB),
+									Enum.Material.Water
+								)
+							end
+						end
+					end
 				end
 			end
 		end

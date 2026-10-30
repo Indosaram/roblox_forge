@@ -479,7 +479,100 @@ function M.plan(layout: any, columns: { any }, seed: number, terrain: any): { Pl
 			end
 		end
 	end
+	M.verge(layout, kits, ground, terrain, stream:fork("verge"), result, crowdsArrival)
 	return result
+end
+
+-- Terrace lane (R11-2/R11-3): jungle and swamp paths run through thick undergrowth. Shrub and fern
+-- rows of the role's first kit line both sides of every authored path (VERGE.step studs apart per
+-- side, VERGE.reach studs past the walk clearance). The plan's instance count does not grow: as
+-- many grass cards as verge plants are dropped evenly across the island (phone memory budget, v58).
+M.VERGE = table.freeze({ kits = { jungle = true, swamp = true }, step = 3, reach = { 4, 12 } })
+function M.verge(
+	layout: any,
+	kits: { string },
+	ground: Ground,
+	terrain: any,
+	rng: any,
+	result: { Placement },
+	crowdsArrival: (string, number, number) -> boolean
+)
+	local kit = kits[1]
+	if not M.VERGE.kits[kit] then
+		return
+	end
+	local rows = {}
+	for _, entry in M.kits[kit] do
+		if entry.family == "shrub" or entry.family == "fern" then
+			table.insert(rows, entry)
+		end
+	end
+	local added = 0
+	for _, path in layout.paths do
+		for i = 2, #path.points do
+			local a, b = path.points[i - 1], path.points[i]
+			local dx, dz = b.x - a.x, b.z - a.z
+			local length = math.sqrt(dx * dx + dz * dz)
+			if length < 1 then
+				continue
+			end
+			local nx, nz = -dz / length, dx / length
+			for s = 0, length, M.VERGE.step do
+				for _, side in { -1, 1 } do
+					local entry = rows[rng:nextInteger(1, #rows)]
+					local off = path.width / 2
+						+ 4
+						+ M.VERGE.reach[1]
+						+ rng:nextNumber() * (M.VERGE.reach[2] - M.VERGE.reach[1])
+					local along = s + (rng:nextNumber() - 0.5) * M.VERGE.step
+					local x = a.x + dx / length * along + nx * side * off
+					local z = a.z + dz / length * along + nz * side * off
+					local yaw, scale =
+						rng:nextNumber() * 360, entry.scale[1] + rng:nextNumber() * (entry.scale[2] - entry.scale[1])
+					if
+						not M.allowed(layout, terrain, ground, x, z, 2)
+						or ground.beach(x, z)
+						or crowdsArrival(entry.family, x, z)
+					then
+						continue
+					end
+					added += 1
+					table.insert(result, {
+						key = entry.key,
+						kit = kit,
+						family = entry.family,
+						x = x,
+						y = ground.top(x, z) :: number,
+						z = z,
+						yaw = yaw,
+						scale = scale,
+					})
+				end
+			end
+		end
+	end
+	-- Keep the instance budget: drop `added` grass cards spread evenly over the plan order.
+	local grass = 0
+	for _, p in result do
+		grass += if p.family == "grass" and p.kit == kit then 1 else 0
+	end
+	local drop = math.min(added, grass)
+	if drop == 0 then
+		return
+	end
+	local kept, seen, dropped = table.create(#result), 0, 0
+	for _, p in result do
+		if p.family == "grass" and p.kit == kit then
+			seen += 1
+			if math.floor(seen * drop / grass) > dropped then
+				dropped += 1
+				continue
+			end
+		end
+		table.insert(kept, p)
+	end
+	table.clear(result)
+	table.move(kept, 1, #kept, 1, result)
 end
 
 --- Client LOD verdict for one instance at `distance` from the camera focus.

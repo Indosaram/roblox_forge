@@ -31,6 +31,9 @@ export type Look = {
 	contrast: number,
 	density: number,
 	haze: number,
+	-- Optional day air colour (replaces the dressing palette fog by day) and exposure offset.
+	air: RGB?,
+	exposure: number?,
 	transparency: number,
 	-- Coast: depth of the outer shallow shelf under the sea (studs) and the foam (Salt) colour.
 	shelf: number,
@@ -65,8 +68,11 @@ end
 -- stylua: ignore start
 M.looks = table.freeze({
 	grassland = {
-		terrain = colours(nil, { Rock = rgb(118, 112, 100), Sand = rgb(196, 180, 146), Salt = rgb(236, 238, 228) }),
-		patch = { material = "Ground", share = 0.26, scale = 90 },
+		-- Terrace lane (R11-8 warm ochre): the far meadow is Mud tinted dry ochre (Grass stays the L10
+		-- spawn-screen colour place-wide), with olive Grass left in noise holes; pond beds are under water.
+		terrain = colours(nil, { Rock = rgb(118, 112, 100), Sand = rgb(196, 180, 146), Salt = rgb(236, 238, 228),
+			Mud = rgb(84, 54, 38) }),
+		patch = { material = "Mud", share = 0.42, scale = 90 },
 		water = rgb(66, 132, 140), tint = rgb(255, 236, 204), saturation = -0.02, contrast = 0.02,
 		density = 0.02, haze = 0.3, transparency = 0.4, shelf = 3, foam = rgb(236, 238, 228),
 	},
@@ -83,14 +89,14 @@ M.looks = table.freeze({
 			Salt = rgb(240, 244, 238) }),
 		patch = { material = "Mud", share = 0.2, scale = 70 },
 		water = rgb(52, 146, 146), tint = rgb(252, 232, 226), saturation = -0.04, contrast = 0.04,
-		density = 0.06, haze = 0.9, transparency = 0.5, shelf = 2, foam = rgb(240, 244, 238),
+		density = 0.1, haze = 1.6, transparency = 0.5, air = rgb(196, 176, 190), shelf = 2, foam = rgb(240, 244, 238),
 	},
 	swamp = {
 		terrain = colours("swamp", { Mud = rgb(70, 60, 48), Rock = rgb(78, 80, 70), Sand = rgb(124, 116, 92),
 			Salt = rgb(170, 172, 142) }),
 		patch = { material = "LeafyGrass", share = 0.34, scale = 60 },
-		water = rgb(78, 84, 56), tint = rgb(230, 232, 206), saturation = -0.16, contrast = 0.06,
-		density = 0.12, haze = 1.6, transparency = 0.2, shelf = 4, foam = rgb(170, 172, 142),
+		water = rgb(78, 84, 56), tint = rgb(214, 220, 200), saturation = -0.26, contrast = 0.08,
+		density = 0.16, haze = 2.4, transparency = 0.2, air = rgb(150, 156, 144), exposure = -0.25, shelf = 4, foam = rgb(170, 172, 142),
 	},
 	snow = {
 		terrain = colours("tundra", { Snow = rgb(218, 222, 226), Glacier = rgb(168, 194, 206),
@@ -152,14 +158,19 @@ function M.grade(look: Look, material: string, base: string, x: number, z: numbe
 end
 
 --- True when (x, z) is outside every arrival/spawn ring of `layout` (`arrivals` from BiomeKits).
+--- The ring edge is pushed out by up to RING_JITTER studs of noise (never in), so the graded far
+--- ground meets the spawn screen along a ragged line, not a circle of 8-stud cells.
+M.RING_JITTER = 40
 function M.away(layout: any, arrivals: { { x: number, z: number } }, x: number, z: number): boolean
+	local ring = M.RING + (math.noise(x / 53, z / 53, 5.9) + 0.5) * M.RING_JITTER
+	ring = math.max(ring, M.RING)
 	for _, at in arrivals do
-		if (x - at.x) ^ 2 + (z - at.z) ^ 2 < M.RING * M.RING then
+		if (x - at.x) ^ 2 + (z - at.z) ^ 2 < ring * ring then
 			return false
 		end
 	end
 	for _, spawn in layout.spawns do
-		if (x - spawn.position.x) ^ 2 + (z - spawn.position.z) ^ 2 < M.RING * M.RING then
+		if (x - spawn.position.x) ^ 2 + (z - spawn.position.z) ^ 2 < ring * ring then
 			return false
 		end
 	end

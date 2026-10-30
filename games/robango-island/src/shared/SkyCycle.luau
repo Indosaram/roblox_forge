@@ -87,14 +87,20 @@ function M.at(hours: number, fog: RGB, look: any?): any
 	end
 	local ng, dg = NIGHT.grade, DAY.grade
 	local saturation, contrast = dg.saturation, dg.contrast
-	local density, haze = DAY.density, DAY.haze
+	local density, haze, exposure = DAY.density, DAY.haze, DAY.exposure
+	if look and look.air then
+		fog = look.air
+	end
+	if look and look.exposure then
+		exposure += look.exposure
+	end
 	if look then
 		saturation, contrast = saturation + look.saturation, contrast + look.contrast
 		density, haze = density + look.density, haze + look.haze
 	end
 	-- stylua: ignore start
 	return {
-		clockTime = hours, daylight = d, golden = g, brightness = f("brightness"), exposure = f("exposure"),
+		clockTime = hours, daylight = d, golden = g, brightness = f("brightness"), exposure = lerp(NIGHT.exposure, exposure, d),
 		ambient = c("ambient"), outdoorAmbient = c("outdoorAmbient"), colorShiftBottom = c("colorShiftBottom"),
 		colorShiftTop = mix(c("colorShiftTop"), GOLDEN_TINT, g * 0.5),
 		grade = { brightness = lerp(ng.brightness, dg.brightness, d), contrast = lerp(ng.contrast, contrast, d),
