@@ -2,44 +2,49 @@
  "item.icon.animal-pen": {
   "atlas": "l9/atlas-l.png",
   "cell": 9,
-  "clear": 5677,
+  "clear": 5909,
   "inputVersion": "9fc70623db6241b2c658ba6c6ef4bbe8a6957e123480536ab6fc9041e57e246e",
-  "sha256": "71eebf52e24100450597d0c6b4f8bde7a96d0ae32557429d7b2ba1f6fc6b2bd6",
-  "visible": 3246
+  "reslice": "l9/reslice.py",
+  "sha256": "a86a3df0be6f7533650c669196ddbfeebfbaa071c70875ced8f88a9667748044",
+  "visible": 3048
  },
  "item.icon.antler": {
   "atlas": "l9/atlas-u.png",
   "cell": 14,
-  "clear": 6878,
+  "clear": 6913,
   "inputVersion": "9752da3fd5432819332627e52128883ca26cfa44bfb5255b39c4ef7fec7b3872",
-  "sha256": "94a0de6979ad02e9f332c9cd2c46049e8749621161214ef2e882f74d4f20e0c3",
-  "visible": 2103
+  "reslice": "l9/reslice.py",
+  "sha256": "9d83d671966f89739818ca915bfb8b5a3e798a0573a8c74cb6dc3e7cb4c04a05",
+  "visible": 2079
  },
  "item.icon.antler-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 14,
-  "clear": 6878,
+  "clear": 6913,
   "inputVersion": "0c566fddbc72b007f973bda5a2d2c80d904fe5d0b5d17d1e9a669c85edcd0b2c",
-  "sha256": "94a0de6979ad02e9f332c9cd2c46049e8749621161214ef2e882f74d4f20e0c3",
+  "reslice": "l9/reslice.py",
+  "sha256": "9d83d671966f89739818ca915bfb8b5a3e798a0573a8c74cb6dc3e7cb4c04a05",
   "variantOf": "item.icon.antler",
-  "visible": 2103
+  "visible": 2079
  },
  "item.icon.apple": {
   "atlas": "l9/atlas-d.png",
   "cell": 11,
-  "clear": 4745,
+  "clear": 4938,
   "inputVersion": "42617eb30a8403232ea2f5e27a221edcd58f2363fa3c45107f48bba662809350",
-  "sha256": "4fd6da543180a69128030c570985c80dc4a60ea6e727dc97da7e42fbc6f548b2",
-  "visible": 4272
+  "reslice": "l9/reslice.py",
+  "sha256": "581dfff4ccbea8efa74a78cc1f3462822de83f133760c55fd4e2840451bb0a64",
+  "visible": 4082
  },
  "item.icon.apple-profile": {
   "atlas": "l9/atlas-d.png",
   "cell": 11,
-  "clear": 4745,
+  "clear": 4938,
   "inputVersion": "cbbdc2f744b2686c621a33a9f24999faed3b330176db395a4a6c4f1d78e644e3",
-  "sha256": "4fd6da543180a69128030c570985c80dc4a60ea6e727dc97da7e42fbc6f548b2",
+  "reslice": "l9/reslice.py",
+  "sha256": "581dfff4ccbea8efa74a78cc1f3462822de83f133760c55fd4e2840451bb0a64",
   "variantOf": "item.icon.apple",
-  "visible": 4272
+  "visible": 4082
  },
  "item.icon.apple-seed": {
   "atlas": "l9/atlas-s.png",
@@ -61,26 +66,29 @@
  "item.icon.axe-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 13,
-  "clear": 6668,
+  "clear": 6869,
   "inputVersion": "442ae5d7c5f4e578d26a5fca112923bd28ca6799f9fddbd8ee6a95d4d5c753fc",
-  "sha256": "3933276e68d96d7457869a08871518755d5cfe917bbe297e9247366360e852cb",
-  "visible": 2352
+  "reslice": "l9/reslice.py",
+  "sha256": "f1e868091399a1b8f99198c8fa44a7f25042641cb6b32ee464e530db26378be4",
+  "visible": 2204
  },
  "item.icon.axe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 2,
-  "clear": 7189,
+  "clear": 7529,
   "inputVersion": "f7e9c6519383b8262accc5b916a69d862f92eed2fceb2a30d908f1df4af5f3ed",
-  "sha256": "6ce9da512d6a8e8256b1255264a5b9d08e7074e26a135e1d52c48383e60e2f3a",
-  "visible": 1846
+  "reslice": "l9/reslice.py",
+  "sha256": "7b221e931b4aae7b7ba9c406e4f2cd4594dfb9adb6b9df130c91854c10487253",
+  "visible": 1554
  },
  "item.icon.axe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 6,
-  "clear": 7126,
+  "clear": 7478,
   "inputVersion": "3fcd2965c029d68e809849911dd086ca06803b97f42d589e0fd2522128d862c2",
-  "sha256": "5e6dc03c592404b49baa840c536af480eaff5fe580e57db8decaf37328b14973",
-  "visible": 1911
+  "reslice": "l9/reslice.py",
+  "sha256": "4e9b4b846a951183066b0650da7f47386c15fa9274861066ec59a44fcb4b17f9",
+  "visible": 1598
  },
  "item.icon.baked-apple": {
   "atlas": "l9/atlas-r.png",
@@ -93,10 +101,11 @@
  "item.icon.baked-potato": {
   "atlas": "l9/atlas-r.png",
   "cell": 2,
-  "clear": 5528,
+  "clear": 5699,
   "inputVersion": "4c337ac90bab29004827189ca371a04c20393d2c9ce42d8a56a484218a2c1aa3",
-  "sha256": "53cc9ee483d412fdcdcce3801b5bc0be8d67d9dc5f5f98df53f6f151c1845870",
-  "visible": 3383
+  "reslice": "l9/reslice.py",
+  "sha256": "40b6b5b029e0893878aae641f85035d8286d9dc94b881103e2ab03e1ff5bc0c5",
+  "visible": 3242
  },
  "item.icon.banana": {
   "atlas": "l9/atlas-d.png",
@@ -126,19 +135,21 @@
  "item.icon.banana-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 8,
-  "clear": 5315,
+  "clear": 5463,
   "inputVersion": "8476cee3cd793468e7032f5ea4384568aabe560c12e8373d5ae6129338ce577e",
-  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
-  "visible": 3706
+  "reslice": "l9/reslice.py",
+  "sha256": "93b1029686fd4cecf9b39c6a12fec6759f43fea1984c849e251fcb3cf31806b6",
+  "visible": 3579
  },
  "item.icon.banana-seed-profile": {
   "atlas": "l9/atlas-s.png",
   "cell": 8,
-  "clear": 5315,
+  "clear": 5463,
   "inputVersion": "78a10e4bd5fa34d41640aefb186d914d31f4c12d8964d552786f7cb28b0c0096",
-  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
+  "reslice": "l9/reslice.py",
+  "sha256": "93b1029686fd4cecf9b39c6a12fec6759f43fea1984c849e251fcb3cf31806b6",
   "variantOf": "item.icon.banana-seed",
-  "visible": 3706
+  "visible": 3579
  },
  "item.icon.bandage": {
   "atlas": "l9/atlas-d.png",
@@ -151,19 +162,21 @@
  "item.icon.basalt": {
   "atlas": "l9/atlas-c.png",
   "cell": 10,
-  "clear": 4069,
+  "clear": 4073,
   "inputVersion": "8efd0d20a0884b0ddf8c02173f1936b00c6178437fcf6e637a38ba6611211ecd",
-  "sha256": "49596f2be0e286fa15094d575fd9552b3396451ea4c2210fa9b349a09238250f",
-  "visible": 4986
+  "reslice": "l9/reslice.py",
+  "sha256": "14968f6f8fb6165002fc4e970af8191c062dfff36a13e7864661414168d34ecb",
+  "visible": 4984
  },
  "item.icon.basalt-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 10,
-  "clear": 4069,
+  "clear": 4073,
   "inputVersion": "5331901b50439d75a7fb1cb09542d6a947194595c5ffd63f1ae3fd5fe04aa095",
-  "sha256": "49596f2be0e286fa15094d575fd9552b3396451ea4c2210fa9b349a09238250f",
+  "reslice": "l9/reslice.py",
+  "sha256": "14968f6f8fb6165002fc4e970af8191c062dfff36a13e7864661414168d34ecb",
   "variantOf": "item.icon.basalt",
-  "visible": 4986
+  "visible": 4984
  },
  "item.icon.bed-kit": {
   "atlas": "l9/atlas-l.png",
@@ -184,18 +197,20 @@
  "item.icon.berry-compost": {
   "atlas": "l9/atlas-n.png",
   "cell": 9,
-  "clear": 5558,
+  "clear": 5708,
   "inputVersion": "3d6303d8b07950562948a7ffb7597ebe9fa9690381084b88b086ae2be97ce74b",
-  "sha256": "a36f12b4931d4c3bc76159048abef255319e061d5b6b5ec793f5d7a01b410808",
-  "visible": 3478
+  "reslice": "l9/reslice.py",
+  "sha256": "d6b25ff93a126876fcedd14a9644ae11906b169ede7bafcb9b3cf704d7b10069",
+  "visible": 3345
  },
  "item.icon.berry-meal": {
   "atlas": "l9/atlas-b.png",
   "cell": 10,
-  "clear": 4809,
+  "clear": 5310,
   "inputVersion": "68bf758ca2417ed2b7df621b39c1f7de700370b10e33e26f25d57e0ed745dff3",
-  "sha256": "d6152834df2f4728cb6c5eaa3a904a7ab8624db5988023529d8f6e21d4aab37d",
-  "visible": 4242
+  "reslice": "l9/reslice.py",
+  "sha256": "b3246503ff516a3e55fa4b1e619e450354bf203750afae8c4a4f9ffe274cd0d8",
+  "visible": 3754
  },
  "item.icon.berry-profile": {
   "atlas": "l9/atlas-a.png",
@@ -225,10 +240,11 @@
  "item.icon.bone-knife": {
   "atlas": "l9/atlas-a.png",
   "cell": 1,
-  "clear": 7292,
+  "clear": 7356,
   "inputVersion": "c56d8803e6d12b0f832f70db1ec34a78b6710a02bc9aec737c73543b9733f512",
-  "sha256": "c25ce373ed3b84463902eeb126ae262b9f1fb6c50c5f3fe41d62ce11357637ad",
-  "visible": 1786
+  "reslice": "l9/reslice.py",
+  "sha256": "8a19066fe2cfdf7a97e1f94f3331894561bdf6d7f352cfefd347803785009e9c",
+  "visible": 1732
  },
  "item.icon.bone-profile": {
   "atlas": "l9/atlas-a.png",
@@ -242,18 +258,20 @@
  "item.icon.bow-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 14,
-  "clear": 8098,
+  "clear": 8222,
   "inputVersion": "535436ba41474a855554ee98f7c2b046c16ce98308f664141140b16adfa79af8",
-  "sha256": "3d8568f2e97dc32cf088d9b4b33094f7e5fd1e6f639215d3a17b57f34bfa6c4d",
-  "visible": 878
+  "reslice": "l9/reslice.py",
+  "sha256": "125beec203de74f56acbc5b83f8495bd964af80767a28ee145fd0f8c5ebb0847",
+  "visible": 776
  },
  "item.icon.bow-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 5,
-  "clear": 7908,
+  "clear": 8001,
   "inputVersion": "219a8d9b55d4f7f2cbd2c52f2edde4dd2e937f00f83dcf89e8651d895fa690b0",
-  "sha256": "74036e1998d7f895f5fd20d6e410bfbc08a3e74fd89d2a4c9e63fc2e7b3fa93a",
-  "visible": 1040
+  "reslice": "l9/reslice.py",
+  "sha256": "8746908879e9953395baaf651952fc9d5606dae95aaf1262591ceff01ba94e69",
+  "visible": 972
  },
  "item.icon.bow-t3": {
   "atlas": "l9/atlas-p.png",
@@ -266,91 +284,102 @@
  "item.icon.branch": {
   "atlas": "l9/atlas-a.png",
   "cell": 3,
-  "clear": 7197,
+  "clear": 7288,
   "inputVersion": "1c9ec0e0fee00fddde816c73850f15adafd2b1289deb4c0aad0d3b6a348aeb94",
-  "sha256": "86a63e4a90136bad5408d7d38841373fb76579c3de681adf8ce375ba7572ff33",
-  "visible": 1847
+  "reslice": "l9/reslice.py",
+  "sha256": "d5d93d3ce7eb4c02c69c78a206356968599c29f0c1106d0dbeeb07ac78411bab",
+  "visible": 1758
  },
  "item.icon.branch-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 3,
-  "clear": 7197,
+  "clear": 7288,
   "inputVersion": "502ba0189491ef025ce25ec7d5d574df1f788a62f9af6482d913529de560a3a8",
-  "sha256": "86a63e4a90136bad5408d7d38841373fb76579c3de681adf8ce375ba7572ff33",
+  "reslice": "l9/reslice.py",
+  "sha256": "d5d93d3ce7eb4c02c69c78a206356968599c29f0c1106d0dbeeb07ac78411bab",
   "variantOf": "item.icon.branch",
-  "visible": 1847
+  "visible": 1758
  },
  "item.icon.brick-floor-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 1,
-  "clear": 5648,
+  "clear": 5814,
   "inputVersion": "4187b63e4adcb3aeb15600b0db16fef2b9f2fae5f9c02d199c3b7e494e74c8a9",
-  "sha256": "6dd08eab4a4581c8348f3eb649ce933b74c470402a8194e5b6c5c4b6373b5489",
-  "visible": 3426
+  "reslice": "l9/reslice.py",
+  "sha256": "e5998845b56afcfcf42ab73892acae2e88c8689eeb1a88af2135d37b01fed829",
+  "visible": 3271
  },
  "item.icon.brick-roof-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 2,
-  "clear": 5305,
+  "clear": 5510,
   "inputVersion": "2e1a0b61980cb6ecb1b3f1ea6e38e667c09a01c04df34c788dfa50475590f1be",
-  "sha256": "5d4045dbcb76d58927de7749a72393f5378c902f5788edb4517537cabcf325e9",
-  "visible": 3757
+  "reslice": "l9/reslice.py",
+  "sha256": "cd41c4d273a7329dcbc3b339c464794023148d2a878162ad84089d45c376831e",
+  "visible": 3563
  },
  "item.icon.brick-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 3,
-  "clear": 4083,
+  "clear": 4157,
   "inputVersion": "0a5a51237bd356731cf780068d36217c84e05c4877a4e7f3e48e3d0e685bc973",
-  "sha256": "2df56be3ddde74a87d2955e435d3433258ce2a7df197f6a8e03c4a5a10b8b5c3",
-  "visible": 4957
+  "reslice": "l9/reslice.py",
+  "sha256": "8329e49dd06da81cc32501ad1cf646feb9edae2c6e9b9f294a1f5ba43af457e5",
+  "visible": 4890
  },
  "item.icon.campfire-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 1,
-  "clear": 5391,
+  "clear": 5446,
   "inputVersion": "500e49f39410b0ca9beff7feab1a7ad7987caa243543a83fe482bb0bc92f3378",
-  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
-  "visible": 3592
+  "reslice": "l9/reslice.py",
+  "sha256": "5a236494022181d18463ef5756b718c99b5116999baf953b232467f18284abae",
+  "visible": 3567
  },
  "item.icon.capture-bola": {
   "atlas": "l9/atlas-a.png",
   "cell": 8,
-  "clear": 7136,
+  "clear": 7156,
   "inputVersion": "aa54fbd7b352db54b3cd36d4f2e54536d74d0dccd5ae8cd268a62ea76e4cdab1",
-  "sha256": "9983dc9a16318173bba0ceda9011f1a683383e7c184d0789e38aad6539c60d54",
-  "visible": 1874
+  "reslice": "l9/reslice.py",
+  "sha256": "0ad276c82f7e1feaf242b18b97e6e4609b57fb235a0be14ba54825714a3b009d",
+  "visible": 1859
  },
  "item.icon.capture-rope": {
   "atlas": "l9/atlas-s.png",
   "cell": 15,
-  "clear": 6165,
+  "clear": 6594,
   "inputVersion": "bd2186a5bd9257d010d5f3b47e89792e1572a7e9ea79a9b492629b50b1df3b36",
-  "sha256": "22c17852fb8c1264a2fe2253d4181a7548f6054821efe7fe69ac527237046b49",
-  "visible": 2916
+  "reslice": "l9/reslice.py",
+  "sha256": "f5d28a3a4e62c2c7df02b1e33725ac3a7ddb0baf21460bd6ab745558159dc714",
+  "visible": 2502
  },
  "item.icon.carnivore-feed": {
   "atlas": "l9/atlas-s.png",
   "cell": 2,
-  "clear": 4916,
+  "clear": 5148,
   "inputVersion": "006c0ac397e60bedc4f424db06f9bb2c3ce5d51a058f44819cd4e46310da2ee6",
-  "sha256": "918249d1c96610d7774e08348f550ed3eccee67c2b33059bc7dd6ea8362f9f13",
-  "visible": 4146
+  "reslice": "l9/reslice.py",
+  "sha256": "50a9a65d23ada4b1de3b3698eb446bff6165cc2299c2ea016f53aa4a32eca880",
+  "visible": 3906
  },
  "item.icon.cattail-flatbread": {
   "atlas": "l9/atlas-b.png",
   "cell": 13,
-  "clear": 4423,
+  "clear": 4457,
   "inputVersion": "55d353698f9f7195215eca2aa3506a83443ed504b5b02bce72eb9b220c04f198",
-  "sha256": "55aadb3857a431681282d43f9ac694fc4453fc35a6ac33d8dd8cd521a9b1938b",
-  "visible": 4644
+  "reslice": "l9/reslice.py",
+  "sha256": "6590eba4361d2ab0c2b995b15a738aeeec209c5091d7a216701d10c022c67f2d",
+  "visible": 4617
  },
  "item.icon.cattail-root": {
   "atlas": "l9/atlas-b.png",
   "cell": 6,
-  "clear": 6194,
+  "clear": 6223,
   "inputVersion": "193a533a91532eae8a3e01111f3665dd7741967cda053ef6fceb67605ce9df09",
-  "sha256": "9c8648cf9e1286a2cddd756c0a9816128a12ccb504e3491554c9e98cafe3e4b5",
-  "visible": 2568
+  "reslice": "l9/reslice.py",
+  "sha256": "7d6f1e8bc2b237581ca6cfeb6958fe30a0aa311bdb726d7a171ad8bc3d0f4764",
+  "visible": 2539
  },
  "item.icon.chanterelle": {
   "atlas": "l9/atlas-b.png",
@@ -363,27 +392,30 @@
  "item.icon.chapter": {
   "atlas": "l9/atlas-v.png",
   "cell": 3,
-  "clear": 5060,
+  "clear": 5040,
   "inputVersion": "80e236a55e1bd04fdbe0eea47b6f367496608bab72126a95a44ed0c5b9609683",
-  "sha256": "79718df2ee0ee8b1e511192f2b37e0b9e10f32b3f525ffbbeb9a107110a3352e",
-  "visible": 3995
+  "reslice": "l9/reslice.py",
+  "sha256": "2be1191c1c59f7147e64c38f7b88092e56ac08000486a3fffad404062c89d720",
+  "visible": 4027
  },
  "item.icon.charcoal": {
   "atlas": "l9/atlas-c.png",
   "cell": 5,
-  "clear": 4683,
+  "clear": 4798,
   "inputVersion": "74ac3afb8f23560ce91b095de28df5a20f9ec51187f1d2a693716f1006ffe05c",
-  "sha256": "5ede4e8cbd2e1100e409b92b4f0a2895322a1fe3cb2c5283eb02d47a20d0b991",
-  "visible": 4368
+  "reslice": "l9/reslice.py",
+  "sha256": "fb9d299e4e53f85e48b4660f115799d10850f3368164374e9a8e0a491335a26f",
+  "visible": 4257
  },
  "item.icon.charcoal-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 5,
-  "clear": 4683,
+  "clear": 4798,
   "inputVersion": "5dea25b0da0c3ff85d46117facac1bb9e51979e7ce81d582ad4844190051bdbf",
-  "sha256": "5ede4e8cbd2e1100e409b92b4f0a2895322a1fe3cb2c5283eb02d47a20d0b991",
+  "reslice": "l9/reslice.py",
+  "sha256": "fb9d299e4e53f85e48b4660f115799d10850f3368164374e9a8e0a491335a26f",
   "variantOf": "item.icon.charcoal",
-  "visible": 4368
+  "visible": 4257
  },
  "item.icon.clam": {
   "atlas": "l9/atlas-b.png",
@@ -413,35 +445,39 @@
  "item.icon.clam-soup": {
   "atlas": "l9/atlas-r.png",
   "cell": 15,
-  "clear": 4330,
+  "clear": 4317,
   "inputVersion": "bd6d5e632e30abbff430a2c79a432a5febea4e93b6a03c3ed48662721b4c27fe",
-  "sha256": "48c5c6db632b07338357cf66f1b795644d363c2ff74ca877ae31c5f19f303150",
-  "visible": 4761
+  "reslice": "l9/reslice.py",
+  "sha256": "e021c533fd6669e1e43567a14e64809544ea7199c78f465e2181451bfd7c79d8",
+  "visible": 4773
  },
  "item.icon.clan-hall-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 8,
-  "clear": 4892,
+  "clear": 5067,
   "inputVersion": "ab42f8e7c4f36b7afd62327734e8e10d4baf12d6de5554cc95909d6097835787",
-  "sha256": "190142bf0281a5414364935a9f167965e103087695b45eeca5c103194dec5296",
-  "visible": 4162
+  "reslice": "l9/reslice.py",
+  "sha256": "f37ddd02d69dd8b3bc4f12c3bdcd85976cb825c247337f60719e4c61a675471a",
+  "visible": 4002
  },
  "item.icon.claw": {
   "atlas": "l9/atlas-u.png",
   "cell": 10,
-  "clear": 6483,
+  "clear": 6556,
   "inputVersion": "a6922189b8c6c885298b544da8d29121a44608febdb377182a1c21fe5050bfaf",
-  "sha256": "ee3b121ff09129c917c787ef37d808017dddd338c8e80514188d50ce90162cf0",
-  "visible": 2578
+  "reslice": "l9/reslice.py",
+  "sha256": "056195882350df08d38e7bd7f0483c8981e271386d11a189cf238c88956960d2",
+  "visible": 2523
  },
  "item.icon.claw-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 10,
-  "clear": 6483,
+  "clear": 6556,
   "inputVersion": "ed2fe6445db94b7e8a123583bda9f73834ad49c9efb9395812395cd2e78261e8",
-  "sha256": "ee3b121ff09129c917c787ef37d808017dddd338c8e80514188d50ce90162cf0",
+  "reslice": "l9/reslice.py",
+  "sha256": "056195882350df08d38e7bd7f0483c8981e271386d11a189cf238c88956960d2",
   "variantOf": "item.icon.claw",
-  "visible": 2578
+  "visible": 2523
  },
  "item.icon.clay": {
   "atlas": "l9/atlas-c.png",
@@ -463,90 +499,101 @@
  "item.icon.club-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 10,
-  "clear": 6769,
+  "clear": 6787,
   "inputVersion": "4e07c6c0c38e497acda36b22cb0496932c90f8be6f99920bfeaee45ba83ac946",
-  "sha256": "eefc1b65b188e2135651108245818d01fe1a6ac801d948eb9e8e4531ea427517",
-  "visible": 2315
+  "reslice": "l9/reslice.py",
+  "sha256": "bdafae84bc23eb6e3c2f56d8e698d85749ff78266668653996307193fa482996",
+  "visible": 2285
  },
  "item.icon.club-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 1,
-  "clear": 7059,
+  "clear": 7200,
   "inputVersion": "522eaf49954445f3af9078748821206a22c06dcd42ca1ea249b285da8673fa25",
-  "sha256": "f3ba683c360f86539962687a1be37daa6145dd2317db743f2b3b28c6978d2ea5",
-  "visible": 1994
+  "reslice": "l9/reslice.py",
+  "sha256": "b3aea2bf08fb4bc0e8cf1df0b7192aa855d106bc47b04db192a35393a1c27fff",
+  "visible": 1884
  },
  "item.icon.club-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 7,
-  "clear": 7170,
+  "clear": 7322,
   "inputVersion": "68e576d12740474b1fd07ad37178363f8831ddea7f4c731cde0956c183282c89",
-  "sha256": "d5ddd990543c68c43f8e3f02312b3000ce6acc78e2b758ec9574734b6bcfe8a8",
-  "visible": 1886
+  "reslice": "l9/reslice.py",
+  "sha256": "9afe5ee2e9670cd60760f1f73e9056778f3bca5dee1c20c7615d3dd5d889424f",
+  "visible": 1745
  },
  "item.icon.cold-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 15,
-  "clear": 3694,
+  "clear": 3951,
   "inputVersion": "0dc356a2c31ea7e5193f5ebc73dd29bec444f3b4768eb868776f516e9fd4ebec",
-  "sha256": "a7096ec474de28f44e3d45e09c16d7b4a00f2156cd13b26c73c42971de20ada9",
-  "visible": 5382
+  "reslice": "l9/reslice.py",
+  "sha256": "33e73bdb12c123d7476cdd06527efdad3b90d41567f4c7062354ca70a5ab702a",
+  "visible": 5111
  },
  "item.icon.cold-bottom": {
   "atlas": "l9/atlas-q.png",
   "cell": 12,
-  "clear": 4495,
+  "clear": 4537,
   "inputVersion": "c9a4f274959a22300d064538bcdafab3ab060eda065d9f5001728b3aa4b1fac0",
-  "sha256": "2640a7a7f60fc2cca0f0407dbbfe6dd074dd990c19313f18308567cec3a18f9a",
-  "visible": 4573
+  "reslice": "l9/reslice.py",
+  "sha256": "82a17e36e6acb159748b56c90780deed248338f3c2d78f67810fb6f1c755e57a",
+  "visible": 4516
  },
  "item.icon.cold-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 14,
-  "clear": 5082,
+  "clear": 5219,
   "inputVersion": "427cf51db0473ee5cd24360cb3156e2c6f789ac3bbf6b2eb64961cb88914f989",
-  "sha256": "65a8ed5bfd2290b68e59c1b79d292eb324b7ca9f81d2a35efd857fa79ff82d77",
-  "visible": 3929
+  "reslice": "l9/reslice.py",
+  "sha256": "1d1884341ec926eb00601d478f0e2dbee3654b96f66ad6d51e11a262164d22ff",
+  "visible": 3822
  },
  "item.icon.cold-head": {
   "atlas": "l9/atlas-q.png",
   "cell": 10,
-  "clear": 4598,
+  "clear": 4626,
   "inputVersion": "59ee2d25829ae82a0ef20f2926177e776db86a325c29c52e87f39ae79f88315d",
-  "sha256": "2546f6256e60a8a189578a0c82ec8bbfc39ccf70bfd050f31d87f17e61a611d0",
-  "visible": 4427
+  "reslice": "l9/reslice.py",
+  "sha256": "517e71000dcce785a9b8b765aedf719e8682b5c40767be2e5eb7523ebf6cdfdb",
+  "visible": 4397
  },
  "item.icon.cold-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 13,
-  "clear": 4366,
+  "clear": 4597,
   "inputVersion": "555cf28a4b56f9ec7f386f4bfd8ef93b9de9156f348b578e9cc6995cb173b401",
-  "sha256": "50e903714a84b7fab9d6caaf8dc892fbb48dfa584787aa8faa7b9c261882c6df",
-  "visible": 4636
+  "reslice": "l9/reslice.py",
+  "sha256": "6590a89519174297568c1e30114f9378fd18d5e110ca350fc386cffb26a4f082",
+  "visible": 4445
  },
  "item.icon.cold-top": {
   "atlas": "l9/atlas-q.png",
   "cell": 11,
-  "clear": 3690,
+  "clear": 4287,
   "inputVersion": "193d2a95e6ea9eb523c50e0ec94182db1a623d4180b4f416753d7b4522631182",
-  "sha256": "c9e665180f5b04f030610338d7d31124bc59b32e23bdc10eeedd8208fb508411",
-  "visible": 5361
+  "reslice": "l9/reslice.py",
+  "sha256": "fe8dfac2a690ffb0e45894ec201524e375b42353f9595b32ffc4874922f90249",
+  "visible": 4777
  },
  "item.icon.cooked-meat": {
   "atlas": "l9/atlas-a.png",
   "cell": 14,
-  "clear": 4952,
+  "clear": 5064,
   "inputVersion": "64085b21e95723285a3f934e97f5c15a5a7b3f40fd90b2f82899812cec1bc7f7",
-  "sha256": "98c75858863ae4bb8c79ee474f6b2f01a9c1e8b451bf588012876fcd1c1da206",
-  "visible": 4046
+  "reslice": "l9/reslice.py",
+  "sha256": "0a34b44f170e10ee64550ac909f08c36ba1b5c51b225b097bcc33c1d7b5b4fc2",
+  "visible": 3801
  },
  "item.icon.copper": {
   "atlas": "l9/atlas-m.png",
   "cell": 14,
-  "clear": 6030,
+  "clear": 6189,
   "inputVersion": "e30e5b169540b040e88fa1fd96c00c3da286240bb3a813c1fed3ef00e039b383",
-  "sha256": "4b3fcdd5792c454212a624808e5c52e42d32917586d2de8bba27cd6d5df2c90f",
-  "visible": 3062
+  "reslice": "l9/reslice.py",
+  "sha256": "6a3e85cbb3489d958aac5757fbbc008061a71db5210045a6795cc2613241e193",
+  "visible": 2907
  },
  "item.icon.copper-ore": {
   "atlas": "l9/atlas-c.png",
@@ -576,68 +623,76 @@
  "item.icon.corn": {
   "atlas": "l9/atlas-d.png",
   "cell": 13,
-  "clear": 5413,
+  "clear": 5564,
   "inputVersion": "6273f39a88d116e935203b4cd761019cf03432d2db5ebdd331321312e425210c",
-  "sha256": "435b29dce1d8c8a9d0fbc3d7ec8e300d26c98aaf7061d9264fc69a4d6905abc0",
-  "visible": 3616
+  "reslice": "l9/reslice.py",
+  "sha256": "4a8909c460e6a2c8ec98ac2a12272dad1e972aebbc9e5cceb6e4cb4bc47df3fe",
+  "visible": 3461
  },
  "item.icon.corn-porridge": {
   "atlas": "l9/atlas-r.png",
   "cell": 1,
-  "clear": 4327,
+  "clear": 4536,
   "inputVersion": "b82510a6522373d417cf08f4828c02bef52511a9fb8aa3de4a24db8ef9b57c03",
-  "sha256": "5914577dfad7025861d0fc35d43becb20a5e4508fe787f569cf1d87411bcf2e4",
-  "visible": 4726
+  "reslice": "l9/reslice.py",
+  "sha256": "ce38e65dbba52a7090d09ebd1fd8624f804aba64edacda56618a20cd686cfa8e",
+  "visible": 4559
  },
  "item.icon.corn-profile": {
   "atlas": "l9/atlas-d.png",
   "cell": 13,
-  "clear": 5413,
+  "clear": 5564,
   "inputVersion": "b5a2a929d9ac3f4ecefab28e3e1eddf5829cedf52435730f2dbd9ba87b46443d",
-  "sha256": "435b29dce1d8c8a9d0fbc3d7ec8e300d26c98aaf7061d9264fc69a4d6905abc0",
+  "reslice": "l9/reslice.py",
+  "sha256": "4a8909c460e6a2c8ec98ac2a12272dad1e972aebbc9e5cceb6e4cb4bc47df3fe",
   "variantOf": "item.icon.corn",
-  "visible": 3616
+  "visible": 3461
  },
  "item.icon.corn-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 3,
-  "clear": 5893,
+  "clear": 5898,
   "inputVersion": "15104d612122dbfdc55d5f6873dba60f6023d4e7f61a2af0af92fedcbca13bd7",
-  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
-  "visible": 3120
+  "reslice": "l9/reslice.py",
+  "sha256": "de74bf431e3bf93f6673879a36c024ca3f9edd043e28dbc8e7960971390dee5b",
+  "visible": 3123
  },
  "item.icon.corn-seed-profile": {
   "atlas": "l9/atlas-s.png",
   "cell": 3,
-  "clear": 5893,
+  "clear": 5898,
   "inputVersion": "301d6cd7a766f3ef2aad3d5bf21b6d466dfea967157ccf0d7152be4ed7b663a8",
-  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
+  "reslice": "l9/reslice.py",
+  "sha256": "de74bf431e3bf93f6673879a36c024ca3f9edd043e28dbc8e7960971390dee5b",
   "variantOf": "item.icon.corn-seed",
-  "visible": 3120
+  "visible": 3123
  },
  "item.icon.crossbow-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 15,
-  "clear": 7244,
+  "clear": 7371,
   "inputVersion": "23be6602ff82320d4e31feff39c9c96f5910eba2c7dd4b382a94e5740c9b4ebb",
-  "sha256": "a43809f10c4a700ee0cd2bb1872ae2cdae88860481afe96d8f1eb2df44ab53eb",
-  "visible": 1723
+  "reslice": "l9/reslice.py",
+  "sha256": "820dd189bb1d62f5fc33854e4d036cc01e543096c05d6238f921f4bc327e120c",
+  "visible": 1584
  },
  "item.icon.crossbow-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 6,
-  "clear": 6920,
+  "clear": 7064,
   "inputVersion": "424cc939edcf6d3b2091c3fafd894503e286a2b9588be9c9baebcb6fd7a8ef7f",
-  "sha256": "85e326170a4f9a645dd0592e3feb1bbd19760f93368debe915c006d6565bc1e7",
-  "visible": 2002
+  "reslice": "l9/reslice.py",
+  "sha256": "cd0843269e33c1d5de9ce02084b17d02948e3e350be599713f30fecfd95fc4fa",
+  "visible": 1896
  },
  "item.icon.crossbow-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 12,
-  "clear": 6874,
+  "clear": 6900,
   "inputVersion": "61646ef0a4b27cad7492a1d87bd795b9c8bf5bd2d379e8f93df1e2406ae65f08",
-  "sha256": "b827e9e368824d0db9ae8597a3d65b26222b7a08fa70d9474052e8a70fa31d8e",
-  "visible": 2058
+  "reslice": "l9/reslice.py",
+  "sha256": "40f7cb0acac48471f945272f66e002d835561095471f2732fa4c8b4157640d2a",
+  "visible": 2034
  },
  "item.icon.door-kit": {
   "atlas": "l9/atlas-l.png",
@@ -650,34 +705,38 @@
  "item.icon.dried-fiber": {
   "atlas": "l9/atlas-m.png",
   "cell": 2,
-  "clear": 6184,
+  "clear": 6250,
   "inputVersion": "6914823eda7729f6711097ec737be5fb542ab5a7298a4a48610f8d8eac191e71",
-  "sha256": "5d7920ec627a341e50054d58a93f91763e59caf314885961dd1e451429bdae60",
-  "visible": 2884
+  "reslice": "l9/reslice.py",
+  "sha256": "25df37fbfd96cd08dfbcf977bcab1692bce322776b02a54060fd86f2b6848f30",
+  "visible": 2813
  },
  "item.icon.dried-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 3,
-  "clear": 4754,
+  "clear": 4657,
   "inputVersion": "453a5c1845170af57c8dc6a49f43cdd61db332cbbdec45adc188626379054382",
-  "sha256": "76ea0479e4f5c40c434d460810e5cd91bcd82b9578f6f310ad80038219032d4d",
-  "visible": 4270
+  "reslice": "l9/reslice.py",
+  "sha256": "60e01798b4ae8b415f48fe98d6783232faf044eb7dc38736e62f60a9663aae4a",
+  "visible": 4358
  },
  "item.icon.dried-meat": {
   "atlas": "l9/atlas-m.png",
   "cell": 4,
-  "clear": 5948,
+  "clear": 5876,
   "inputVersion": "bc7ab30781db0a7e36044191c04b1e90188d2fc35af0dd6306ba0842c2ed96bc",
-  "sha256": "f8d4b16b2675268e31ac4d8bc0df367ac12bb1296acd1a55fa412aaa9880c06d",
-  "visible": 3006
+  "reslice": "l9/reslice.py",
+  "sha256": "8562a379ada836edc53c8fccdac0cea847905ae1e4eabf7de8950157090f6772",
+  "visible": 3054
  },
  "item.icon.dried-wood": {
   "atlas": "l9/atlas-m.png",
   "cell": 1,
-  "clear": 5258,
+  "clear": 5438,
   "inputVersion": "5623db4de048694eb2c45e4b31d7127469bcc23f5d21b4586681d98447bbcc0d",
-  "sha256": "5da371d90c860c398f060d05a998627c51d2d898b7a70314c3fdf59001bd60ff",
-  "visible": 3792
+  "reslice": "l9/reslice.py",
+  "sha256": "a7d062b80c81490e03b6b6305388567a12c0dc784a9d2e632578c57482b8acbb",
+  "visible": 3629
  },
  "item.icon.fang": {
   "atlas": "l9/atlas-u.png",
@@ -699,19 +758,21 @@
  "item.icon.feather": {
   "atlas": "l9/atlas-u.png",
   "cell": 7,
-  "clear": 6390,
+  "clear": 6418,
   "inputVersion": "4596fd78f16914c4d9f1d7fd5792792ccd87a391d9a44ac5a0dde3676c39361c",
-  "sha256": "dfc49a8839227870493c38d3fa58c0d597a57836bce3e51c58cde5ceead6513f",
-  "visible": 2594
+  "reslice": "l9/reslice.py",
+  "sha256": "e0e740f3472a3bf6fa251d56fbea201bea8b78cbfbc268d7afebc53f63e04761",
+  "visible": 2566
  },
  "item.icon.feather-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 7,
-  "clear": 6390,
+  "clear": 6418,
   "inputVersion": "f66525d4677798221f51d0e6dff84351c022ea878f722fad647e023de3927d3e",
-  "sha256": "dfc49a8839227870493c38d3fa58c0d597a57836bce3e51c58cde5ceead6513f",
+  "reslice": "l9/reslice.py",
+  "sha256": "e0e740f3472a3bf6fa251d56fbea201bea8b78cbfbc268d7afebc53f63e04761",
   "variantOf": "item.icon.feather",
-  "visible": 2594
+  "visible": 2566
  },
  "item.icon.fermented-banana": {
   "atlas": "l9/atlas-n.png",
@@ -724,10 +785,11 @@
  "item.icon.fermented-corn": {
   "atlas": "l9/atlas-n.png",
   "cell": 3,
-  "clear": 3902,
+  "clear": 4083,
   "inputVersion": "31c53728ce616ea35906e06ee17597cbcdcbb4d319ca4d42f55a91f690d8abe9",
-  "sha256": "697b2e80476c1fb15b7de92d32ba3d007eeba5935e98f2ca2cb2ce67d664dc52",
-  "visible": 5141
+  "reslice": "l9/reslice.py",
+  "sha256": "3285da49e598d13d6e5fcba4575f381c24302e1abe887af6683c18f5bf668b54",
+  "visible": 4990
  },
  "item.icon.fermented-fig": {
   "atlas": "l9/atlas-n.png",
@@ -740,18 +802,20 @@
  "item.icon.fermented-wheat": {
   "atlas": "l9/atlas-n.png",
   "cell": 4,
-  "clear": 3845,
+  "clear": 4064,
   "inputVersion": "551540101bd180b64e6006b27281d87021a998aa21cacaf3e26ac393cd527612",
-  "sha256": "e3fb090418d41c2d4776cae8fc9f105af730aa1ca94b8ca82c17a9252b4fe805",
-  "visible": 5196
+  "reslice": "l9/reslice.py",
+  "sha256": "b4d52ca10901b947b6d9876825fe7ed81860428585dc6e3b80c7d83e59cc433b",
+  "visible": 4997
  },
  "item.icon.fiber": {
   "atlas": "l9/atlas-a.png",
   "cell": 2,
-  "clear": 6484,
+  "clear": 6677,
   "inputVersion": "3edf2ebfdd4393adf9199f948b6123fa3440db8a3f6a002b614cb5d3c5075db5",
-  "sha256": "667a8f562d8b018ac15760cda2c4befcf0f0a036514ba21c10bf1bfa324a8056",
-  "visible": 2575
+  "reslice": "l9/reslice.py",
+  "sha256": "1471ce372f66b8af70125c918329461bbf6a43a6b0b4c6a8ecfba1139ca68964",
+  "visible": 2385
  },
  "item.icon.fiber-compost": {
   "atlas": "l9/atlas-n.png",
@@ -764,11 +828,12 @@
  "item.icon.fiber-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 2,
-  "clear": 6484,
+  "clear": 6677,
   "inputVersion": "82f1a47ff958a87c701af943cfb17e4c1caf097186829db2724eb003199dfe2b",
-  "sha256": "667a8f562d8b018ac15760cda2c4befcf0f0a036514ba21c10bf1bfa324a8056",
+  "reslice": "l9/reslice.py",
+  "sha256": "1471ce372f66b8af70125c918329461bbf6a43a6b0b4c6a8ecfba1139ca68964",
   "variantOf": "item.icon.fiber",
-  "visible": 2575
+  "visible": 2385
  },
  "item.icon.fieldstone": {
   "atlas": "l9/atlas-c.png",
@@ -781,36 +846,40 @@
  "item.icon.fig": {
   "atlas": "l9/atlas-n.png",
   "cell": 6,
-  "clear": 4814,
+  "clear": 4902,
   "inputVersion": "76b96a68db9de41801a1f67a54f359e96ccd2877335c95992015a38558954694",
-  "sha256": "d7828b9cffe6d983d767f930921aa5264e98d8ce63288c84342e89d517ae3582",
-  "visible": 4214
+  "reslice": "l9/reslice.py",
+  "sha256": "69c234b35bf347c0dd289dbcf03032897894c947e2ec2791a7bd802997854b97",
+  "visible": 4127
  },
  "item.icon.fig-profile": {
   "atlas": "l9/atlas-n.png",
   "cell": 6,
-  "clear": 4814,
+  "clear": 4902,
   "inputVersion": "1a9c8b9742cf08315c95fb8d0f40101ef6cd4161f770ffe6025dc2dbb03a1688",
-  "sha256": "d7828b9cffe6d983d767f930921aa5264e98d8ce63288c84342e89d517ae3582",
+  "reslice": "l9/reslice.py",
+  "sha256": "69c234b35bf347c0dd289dbcf03032897894c947e2ec2791a7bd802997854b97",
   "variantOf": "item.icon.fig",
-  "visible": 4214
+  "visible": 4127
  },
  "item.icon.fig-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 9,
-  "clear": 4570,
+  "clear": 4958,
   "inputVersion": "63060c2c9011dddcaf1458028082ca8ff4b57b32cbe2d4d93a08b63ed4d85316",
-  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
-  "visible": 4419
+  "reslice": "l9/reslice.py",
+  "sha256": "bda84a510083f6bb69072fbdaa8df75361b869811cf03f51d810fc57621984df",
+  "visible": 4038
  },
  "item.icon.fig-seed-profile": {
   "atlas": "l9/atlas-s.png",
   "cell": 9,
-  "clear": 4570,
+  "clear": 4958,
   "inputVersion": "682ac8a621ef61d3d847a1620f6a7e0d3f0af07a04ba770169b25833a9097065",
-  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
+  "reslice": "l9/reslice.py",
+  "sha256": "bda84a510083f6bb69072fbdaa8df75361b869811cf03f51d810fc57621984df",
   "variantOf": "item.icon.fig-seed",
-  "visible": 4419
+  "visible": 4038
  },
  "item.icon.fig-stew": {
   "atlas": "l9/atlas-r.png",
@@ -823,44 +892,49 @@
  "item.icon.fish": {
   "atlas": "l9/atlas-b.png",
   "cell": 2,
-  "clear": 6242,
+  "clear": 6414,
   "inputVersion": "55ed4d87a81fc50def2a73b404c0b107e69252adea64a7aca4262208c1df40e2",
-  "sha256": "6cd19fd3188895006faed40721a38bcacd858f2d1013b704109d1df4cffa1dc7",
-  "visible": 2804
+  "reslice": "l9/reslice.py",
+  "sha256": "5fba97eb445565b9f29967d2d054b01a8fe55b0ff0d697480f91c0f9a0238a06",
+  "visible": 2635
  },
  "item.icon.fish-profile": {
   "atlas": "l9/atlas-b.png",
   "cell": 2,
-  "clear": 6242,
+  "clear": 6414,
   "inputVersion": "f557b091060cc6d8c0b7a8c47806b60d64cd71f13c507903a25e2e5080ed2636",
-  "sha256": "6cd19fd3188895006faed40721a38bcacd858f2d1013b704109d1df4cffa1dc7",
+  "reslice": "l9/reslice.py",
+  "sha256": "5fba97eb445565b9f29967d2d054b01a8fe55b0ff0d697480f91c0f9a0238a06",
   "variantOf": "item.icon.fish",
-  "visible": 2804
+  "visible": 2635
  },
  "item.icon.flax": {
   "atlas": "l9/atlas-c.png",
   "cell": 16,
-  "clear": 6017,
+  "clear": 6340,
   "inputVersion": "2c6eb68cc91d8d904a70ee2468cffdc271503babb4d9046fab613075b50a17c3",
-  "sha256": "49b3ecd784b80519e2de67dc7dbebca6691b487c93bfa2a3e649ba8eb45faae5",
-  "visible": 3014
+  "reslice": "l9/reslice.py",
+  "sha256": "0ab8ed7516596c531342df343f6a75bb6a12eb76cb597637434e2a47b317f901",
+  "visible": 2687
  },
  "item.icon.flax-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 16,
-  "clear": 6017,
+  "clear": 6340,
   "inputVersion": "89f4d64a615164c2a14e1618e898d74a68639fb9664f5fe79ba018f8e55819b2",
-  "sha256": "49b3ecd784b80519e2de67dc7dbebca6691b487c93bfa2a3e649ba8eb45faae5",
+  "reslice": "l9/reslice.py",
+  "sha256": "0ab8ed7516596c531342df343f6a75bb6a12eb76cb597637434e2a47b317f901",
   "variantOf": "item.icon.flax",
-  "visible": 3014
+  "visible": 2687
  },
  "item.icon.flax-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 7,
-  "clear": 5562,
+  "clear": 5474,
   "inputVersion": "cede158bc0a33fd05d4f2c10c4f58acfdf9c5f466cd94438f13d7d0149151613",
-  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
-  "visible": 3393
+  "reslice": "l9/reslice.py",
+  "sha256": "792093d56e551e762797519249e81abadbef08020ad70486c007935f2dbd0b5d",
+  "visible": 3488
  },
  "item.icon.flax-seed-crisp": {
   "atlas": "l9/atlas-r.png",
@@ -873,11 +947,12 @@
  "item.icon.flax-seed-profile": {
   "atlas": "l9/atlas-s.png",
   "cell": 7,
-  "clear": 5562,
+  "clear": 5474,
   "inputVersion": "390144745fa194a21d0f9c0d9639fcf7c55bbcbb1f9180b0de3900901614486e",
-  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
+  "reslice": "l9/reslice.py",
+  "sha256": "792093d56e551e762797519249e81abadbef08020ad70486c007935f2dbd0b5d",
   "variantOf": "item.icon.flax-seed",
-  "visible": 3393
+  "visible": 3488
  },
  "item.icon.flaxseed": {
   "atlas": "l9/atlas-r.png",
@@ -907,10 +982,11 @@
  "item.icon.flint-knife": {
   "atlas": "l9/atlas-c.png",
   "cell": 3,
-  "clear": 6816,
+  "clear": 6938,
   "inputVersion": "7d086e02dc2c3c53bf9f4022433813e8486187613bcc0c491815e228620ebd9e",
-  "sha256": "49ff9d5e3bbc74e631b578e8575e25fcfc2e2fa150a4987ada8a2a84813ee3ba",
-  "visible": 2249
+  "reslice": "l9/reslice.py",
+  "sha256": "9fc1df9ce592a0cefc2d15c88346ae6eb02e13cf618bd4bd7221656634f3a1c2",
+  "visible": 2151
  },
  "item.icon.flint-profile": {
   "atlas": "l9/atlas-a.png",
@@ -924,10 +1000,11 @@
  "item.icon.floor-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 4,
-  "clear": 5771,
+  "clear": 5761,
   "inputVersion": "2cdb09a0f3934ecb1f8321f5ef872d72bf2a39c96f1e63f19f4fd884cf1ca663",
-  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
-  "visible": 3308
+  "reslice": "l9/reslice.py",
+  "sha256": "e76c8321a2a16148ab9fbdcb9f75dd65ddb29c7a5ef42b75febb0bc644eb8bbc",
+  "visible": 3313
  },
  "item.icon.food-compost": {
   "atlas": "l9/atlas-n.png",
@@ -940,10 +1017,11 @@
  "item.icon.fragment": {
   "atlas": "l9/atlas-v.png",
   "cell": 4,
-  "clear": 4620,
+  "clear": 4546,
   "inputVersion": "7382f8edcda63626124218b4e9245625de014a3785b6b1a932444cab2e5b0bb7",
-  "sha256": "480e6d5e1604e78a3e4a60b6f89268d8fbe5c2c6fb3fe0b0bafde76fa8613b92",
-  "visible": 4399
+  "reslice": "l9/reslice.py",
+  "sha256": "a6dadbaaa63f7c8b9e770d5e3661ecb022eb5edccda2995f83cf28824b6f3470",
+  "visible": 4481
  },
  "item.icon.fruit-fertilizer": {
   "atlas": "l9/atlas-s.png",
@@ -956,76 +1034,85 @@
  "item.icon.fur": {
   "atlas": "l9/atlas-m.png",
   "cell": 7,
-  "clear": 5151,
+  "clear": 5243,
   "inputVersion": "0fe968b368076e2dad4b68d0f4228c81b2e6176921e092f75db99305daba8368",
-  "sha256": "a4fcff5da0548c8055b1bb41750410ca4de1441ae192f266dae9c28cc8b5684c",
-  "visible": 3918
+  "reslice": "l9/reslice.py",
+  "sha256": "91981018f5cce9ab34491935a05df36d572518adebed587ccdb9406ca658674e",
+  "visible": 3825
  },
  "item.icon.fur-leather": {
   "atlas": "l9/atlas-m.png",
   "cell": 8,
-  "clear": 5925,
+  "clear": 5941,
   "inputVersion": "58e83c0e41fdaa7353d202bc8894de9f01394d0228e848983ee23151c35b4c20",
-  "sha256": "733677d5cfbb3b42737459a4519090cb9ef8c61ed7b9f365346feace818bfc7c",
-  "visible": 3166
+  "reslice": "l9/reslice.py",
+  "sha256": "f1a192569ab56af8253c6f4a53bee823b50400f74051970ceb4f4206b9574e26",
+  "visible": 3144
  },
  "item.icon.fur-profile": {
   "atlas": "l9/atlas-m.png",
   "cell": 7,
-  "clear": 5151,
+  "clear": 5243,
   "inputVersion": "5492524eafd0c4b4304d8651e9ede6fb28c2729f80014377812c355241f0ec5a",
-  "sha256": "a4fcff5da0548c8055b1bb41750410ca4de1441ae192f266dae9c28cc8b5684c",
+  "reslice": "l9/reslice.py",
+  "sha256": "91981018f5cce9ab34491935a05df36d572518adebed587ccdb9406ca658674e",
   "variantOf": "item.icon.fur",
-  "visible": 3918
+  "visible": 3825
  },
  "item.icon.granite": {
   "atlas": "l9/atlas-c.png",
   "cell": 9,
-  "clear": 4745,
+  "clear": 4958,
   "inputVersion": "0ce486da3053eb49743de1a977aacb45e6f2c5788c6f5db7fd47d4850f7f5403",
-  "sha256": "ea07177371fec79e6e3932e640d1c945a81ab1682fe5ce9a2b026600b6bc9be3",
-  "visible": 4320
+  "reslice": "l9/reslice.py",
+  "sha256": "cadc72c8d139aa98fc3818055f94819ea9d52cd0f980845fbb386c8e1de860f3",
+  "visible": 4115
  },
  "item.icon.granite-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 9,
-  "clear": 4745,
+  "clear": 4958,
   "inputVersion": "8b34ced75d1a9c9737e40e6e0ee7321e05ec74fddfe3487d767af51bccb11a5d",
-  "sha256": "ea07177371fec79e6e3932e640d1c945a81ab1682fe5ce9a2b026600b6bc9be3",
+  "reslice": "l9/reslice.py",
+  "sha256": "cadc72c8d139aa98fc3818055f94819ea9d52cd0f980845fbb386c8e1de860f3",
   "variantOf": "item.icon.granite",
-  "visible": 4320
+  "visible": 4115
  },
  "item.icon.grilled-fish": {
   "atlas": "l9/atlas-r.png",
   "cell": 14,
-  "clear": 4952,
+  "clear": 5180,
   "inputVersion": "3b91c316603ccfd25060dc141a9778b06c49570f5194501d69a58f327bcff923",
-  "sha256": "9933c829191a6040d1f6bfb5c40d36e518e79ee75b9911eb44194dfff01ad18f",
-  "visible": 4120
+  "reslice": "l9/reslice.py",
+  "sha256": "d6d78c42f29c19b21e70610f311f6e8365f145f9c4471355bad649c17dd3e86b",
+  "visible": 3897
  },
  "item.icon.hammer-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 13,
-  "clear": 6965,
+  "clear": 6996,
   "inputVersion": "08cd9b7e5a9e8985a3af94a59d1af1eac8f040e4149fe715ef6679b2be2e1779",
-  "sha256": "5c439895dcaac00b8a43ffadbe1414ea026b9892299e62666b46bd66d17d2425",
-  "visible": 2097
+  "reslice": "l9/reslice.py",
+  "sha256": "246a405814affc54f96072c172d2b746d98c4d73d8c0523132440a74b5b3a20d",
+  "visible": 2066
  },
  "item.icon.hammer-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 4,
-  "clear": 7237,
+  "clear": 7195,
   "inputVersion": "69373120ccef573c011311769e51f7f10252a5e84011956c9938f9ac5e0957fa",
-  "sha256": "5985a9ddb651a1f9b1207917fba18de831088482bf96ef91e53bc8a5bca0c543",
-  "visible": 1813
+  "reslice": "l9/reslice.py",
+  "sha256": "470ca64d46f17364b335cbae3badffceb5deddc82eb0f0f8141fcc84ee535ffb",
+  "visible": 1884
  },
  "item.icon.hammer-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 10,
-  "clear": 6994,
+  "clear": 7130,
   "inputVersion": "898048718d3893826d0edf2c6b3a03069d6a42c37c8c21bf9e32524415cedcc5",
-  "sha256": "05683c64f8964456ac5dc567391e1ce09adc9a9e85e5b296ee73b345ba15394c",
-  "visible": 2050
+  "reslice": "l9/reslice.py",
+  "sha256": "275006cd302364019603c3799c3764e5605d4397a04c3eb11cd6f3919844b8df",
+  "visible": 1921
  },
  "item.icon.hazelnut": {
   "atlas": "l9/atlas-b.png",
@@ -1038,100 +1125,112 @@
  "item.icon.heat-brace": {
   "atlas": "l9/atlas-u.png",
   "cell": 4,
-  "clear": 5808,
+  "clear": 5929,
   "inputVersion": "70f2cb698eb5374341977f0723cfc309bf13dcbec650217b57d69f0f31e63721",
-  "sha256": "74e746a1b0d8b2c69d55e36979a7fdb9ae29ea1815d8e9de78b5966862e6f7f8",
-  "visible": 3271
+  "reslice": "l9/reslice.py",
+  "sha256": "0db7299f483f9fd5cfc7e7102dd75ecb5e80e78d1131883a3e09a5b752baecab",
+  "visible": 3158
  },
  "item.icon.herbivore-feed": {
   "atlas": "l9/atlas-s.png",
   "cell": 1,
-  "clear": 4191,
+  "clear": 4507,
   "inputVersion": "b82624099360db0f2eed87bb225a993b84c34b2b29b0045000002788f79132df",
-  "sha256": "670f736804d5934ea82cb68de0a1966004a0e4bfcd0e9e1616163ead14e74565",
-  "visible": 4851
+  "reslice": "l9/reslice.py",
+  "sha256": "fe2f50817af76349af6a9f5d58768dd5e2d094ca0aeada37ef40cb27293da681",
+  "visible": 4556
  },
  "item.icon.hide": {
   "atlas": "l9/atlas-a.png",
   "cell": 12,
-  "clear": 5149,
+  "clear": 5402,
   "inputVersion": "eba2d33152414a1c157668edc15004de394faefc8571beccc078bdd83e28e1df",
-  "sha256": "64109351f642002f65c3cbff5ee41a2e9a2afe937a153b870b9bc6acfd8ee4e2",
-  "visible": 3857
+  "reslice": "l9/reslice.py",
+  "sha256": "d989dea709c15151dfce6fdce1f4eaa9f99de956f6ad1e37e2da57ed05c90854",
+  "visible": 3622
  },
  "item.icon.hide-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 12,
-  "clear": 5149,
+  "clear": 5402,
   "inputVersion": "119cabedf574f0436f546d28d3efcb6569ca588a4f2c761871d5c2c1276faeff",
-  "sha256": "64109351f642002f65c3cbff5ee41a2e9a2afe937a153b870b9bc6acfd8ee4e2",
+  "reslice": "l9/reslice.py",
+  "sha256": "d989dea709c15151dfce6fdce1f4eaa9f99de956f6ad1e37e2da57ed05c90854",
   "variantOf": "item.icon.hide",
-  "visible": 3857
+  "visible": 3622
  },
  "item.icon.hoe-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 1,
-  "clear": 7665,
+  "clear": 7742,
   "inputVersion": "0342b0c6ce93a7cc0ff8920e32550c341e38f5539e005947423a7c6f20956496",
-  "sha256": "ae1ec334de0d6f97475dbf497008f5502628724ba0cf582439ff763ea666a041",
-  "visible": 1374
+  "reslice": "l9/reslice.py",
+  "sha256": "46a3a950002f5fcf99544d38c57eade2378fe8e8f8dd6310085ee034fbbdaf8e",
+  "visible": 1328
  },
  "item.icon.hoe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 5,
-  "clear": 7686,
+  "clear": 7778,
   "inputVersion": "7ef225fc4d1054e285842efcd9df3a1310973e96b07639d4771962a53b5d8767",
-  "sha256": "5f002337876637a5af362a4c1dd0551e75f347654186e4882d2ebaa6ca4ff265",
-  "visible": 1346
+  "reslice": "l9/reslice.py",
+  "sha256": "fe0998b2cc544a236a8ae9e7a35e954af1cc43a722397dad456f3760830e8ede",
+  "visible": 1287
  },
  "item.icon.hoe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 9,
-  "clear": 7577,
+  "clear": 7693,
   "inputVersion": "62d933e395fcd740d481d54b87484c58a0fbae06ae11735f75e9bab74116cbf7",
-  "sha256": "9896b16f27a6723269d2e8cfe1a82841fde1a6439c84e1056c4d29ce15792edd",
-  "visible": 1456
+  "reslice": "l9/reslice.py",
+  "sha256": "d99292aa1e4b4d4da03d5ea2f16d39363dd5219d6f0c07617247bf623f3e8d41",
+  "visible": 1373
  },
  "item.icon.horn": {
   "atlas": "l9/atlas-u.png",
   "cell": 9,
-  "clear": 6521,
+  "clear": 6606,
   "inputVersion": "5123bc4ce115f4cd2dac5839913ce06520db6db5fb22215ae14367dae7ef9545",
-  "sha256": "aa0a29308cc834337f921c7b02db4045747c6778debf76b1c81fb7aaea695746",
-  "visible": 2543
+  "reslice": "l9/reslice.py",
+  "sha256": "918d50bf249bb824a4f71aaffb93f091bdeff12f6d6458a8054c123b4e17eac2",
+  "visible": 2465
  },
  "item.icon.horn-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 9,
-  "clear": 6521,
+  "clear": 6606,
   "inputVersion": "b5043c90e680cc439cfe2d54b5babb1183b0a7f88cb0c378b2b81ad8e255308b",
-  "sha256": "aa0a29308cc834337f921c7b02db4045747c6778debf76b1c81fb7aaea695746",
+  "reslice": "l9/reslice.py",
+  "sha256": "918d50bf249bb824a4f71aaffb93f091bdeff12f6d6458a8054c123b4e17eac2",
   "variantOf": "item.icon.horn",
-  "visible": 2543
+  "visible": 2465
  },
  "item.icon.instrument-bass": {
   "atlas": "l9/atlas-t.png",
   "cell": 9,
-  "clear": 5948,
+  "clear": 6406,
   "inputVersion": "87d5329502a42d99322c8b8253906c7cf927382d66749373f45fd818af11e091",
-  "sha256": "025d666d2197eac7f038609401e6f6a2f274a861c2307d848b980a2778729e4c",
-  "visible": 3110
+  "reslice": "l9/reslice.py",
+  "sha256": "81d1a7926d91f88300a7fef039593cc876a8c02ba0503081fbe08d6aa353eaad",
+  "visible": 2653
  },
  "item.icon.instrument-clarinet": {
   "atlas": "l9/atlas-t.png",
   "cell": 12,
-  "clear": 7849,
+  "clear": 7852,
   "inputVersion": "8bb219016a5e71600b64d97e7771d4c704a605c3778be963b1b39f6a8c26d04a",
-  "sha256": "3d437d94692f39b1b9e6aa0ce8f003c64e746280354756d415c21c0f92069bba",
-  "visible": 1233
+  "reslice": "l9/reslice.py",
+  "sha256": "62c01351deacfc80c52cdbfa0f171479a675612df42fc927571c07123cb82eac",
+  "visible": 1232
  },
  "item.icon.instrument-drums": {
   "atlas": "l9/atlas-t.png",
   "cell": 14,
-  "clear": 5261,
+  "clear": 5525,
   "inputVersion": "9cf10da1c94efe270dda4a8691915bfe4697d93694f5da96e6ed85c60ecdcc67",
-  "sha256": "87719e3a1a5b5dcaec35807ce2c20204386850402aed98c4a93feefee96829b1",
-  "visible": 3755
+  "reslice": "l9/reslice.py",
+  "sha256": "7d4fd622a9dc025e61243e27595db231abf7246b44ea79a746e7388aa1503d79",
+  "visible": 3493
  },
  "item.icon.instrument-flute": {
   "atlas": "l9/atlas-t.png",
@@ -1144,34 +1243,38 @@
  "item.icon.instrument-guitar": {
   "atlas": "l9/atlas-t.png",
   "cell": 8,
-  "clear": 6265,
+  "clear": 6618,
   "inputVersion": "e8c4bede33af87e6791afbda8be9dada77081787c912426780d4db7cb156315d",
-  "sha256": "41c67f374c39ca25e1b12aaf77bbe37b3b7565dd96885042b00c5cef6c34956e",
-  "visible": 2777
+  "reslice": "l9/reslice.py",
+  "sha256": "c9e4aac49f40019cc8aeef7da0c2ea2d5f2f92aec11de3fa7a58d94bd587d10d",
+  "visible": 2450
  },
  "item.icon.instrument-piano": {
   "atlas": "l9/atlas-t.png",
   "cell": 7,
-  "clear": 3471,
+  "clear": 3925,
   "inputVersion": "86a9837e197fadbfc2754f2fc4dbb8c8d9a34ad86da51c7cac093e29bcba23b9",
-  "sha256": "0e36a822fcee89e6efadf746a140340cb89de01a6d8f3f4ae856edbbea40dd25",
-  "visible": 5546
+  "reslice": "l9/reslice.py",
+  "sha256": "060311016529f015439e65b75d51a4d92f742b77b4247c2daacbc849574c184b",
+  "visible": 5109
  },
  "item.icon.instrument-trumpet": {
   "atlas": "l9/atlas-t.png",
   "cell": 13,
-  "clear": 7032,
+  "clear": 7215,
   "inputVersion": "a8532f2bb2978212573c304d39c46909a4671625b89ed3531e28e58b2c2fa24d",
-  "sha256": "672005ad5d32f2f375d587be4d12d0cc12d9650c6ff42ba856787f5bf3b14746",
-  "visible": 1943
+  "reslice": "l9/reslice.py",
+  "sha256": "bd0807f3180879aa74efa52f9f0e464d1c80c6d1f2d8fd5867287d52fdcac011",
+  "visible": 1770
  },
  "item.icon.instrument-violin": {
   "atlas": "l9/atlas-t.png",
   "cell": 10,
-  "clear": 6719,
+  "clear": 6313,
   "inputVersion": "e607697a3220f8078a2488929bc9792c147289e2d296f66db904c6a030228e21",
-  "sha256": "51fef35157268bd10b3b1137fbdd6f10d13bc2166f6a3059e2642f3fabc7820f",
-  "visible": 2329
+  "reslice": "l9/reslice.py",
+  "sha256": "b139628a83303d2b35b60a578e46d87f25f4b9b40b179a354deec64b55d2a631",
+  "visible": 2613
  },
  "item.icon.iron": {
   "atlas": "l9/atlas-m.png",
@@ -1184,51 +1287,57 @@
  "item.icon.iron-ore": {
   "atlas": "l9/atlas-c.png",
   "cell": 12,
-  "clear": 4363,
+  "clear": 4428,
   "inputVersion": "3803594999c1cabfde547d4582b977741536e8e90746c83b211715ea53796e10",
-  "sha256": "fee9bdf31dbd51040132b511f9a2dc96b72fb8dc2552096efd5167a2cfca719b",
-  "visible": 4699
+  "reslice": "l9/reslice.py",
+  "sha256": "ae0ed1d00b33307f4d43811bad1e7d09e6f5423832b80184b32e6e9430aed2bc",
+  "visible": 4637
  },
  "item.icon.iron-ore-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 12,
-  "clear": 4363,
+  "clear": 4428,
   "inputVersion": "1a50a2b5205399b011910eefe276e835cc116a9429483f6f1f08dd7bfefe68d3",
-  "sha256": "fee9bdf31dbd51040132b511f9a2dc96b72fb8dc2552096efd5167a2cfca719b",
+  "reslice": "l9/reslice.py",
+  "sha256": "ae0ed1d00b33307f4d43811bad1e7d09e6f5423832b80184b32e6e9430aed2bc",
   "variantOf": "item.icon.iron-ore",
-  "visible": 4699
+  "visible": 4637
  },
  "item.icon.kiln-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 11,
-  "clear": 4310,
+  "clear": 4311,
   "inputVersion": "531d48e8060c6c8e242415fd00d57bca7d1dfef3b90ecc1bc5b2357d3f6b796a",
-  "sha256": "eac56a9e76097318b114ad76ecf780833b10587c0d2fc599efe262c12b6b0014",
-  "visible": 4762
+  "reslice": "l9/reslice.py",
+  "sha256": "f91ce9349e071d6229b62dddd6002dad916e52fb0dbe32be211022229772446f",
+  "visible": 4769
  },
  "item.icon.kiln-t2-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 14,
-  "clear": 4402,
+  "clear": 4534,
   "inputVersion": "5ca8e1a4313b50d9f26a676cad18a942bb10619e98b5b654398af5485d004b28",
-  "sha256": "e10443801a32ba554b4388e0a6e7e5c45cb4e2c95150994b80b76aab57256c4d",
-  "visible": 4664
+  "reslice": "l9/reslice.py",
+  "sha256": "a2c838db3ee3a1bf1cca8513366058de1c39d70454ca093a53ea80f5d17d645a",
+  "visible": 4518
  },
  "item.icon.kiln-t3-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 15,
-  "clear": 4573,
+  "clear": 5716,
   "inputVersion": "5f99d73e5d698f2fe8e678bf01f8e4c39b2844ddeaac4b997a70fe33a4f237e0",
-  "sha256": "980dc991790253e14e08a99924c8f09146c74d506eda9f99b0b3a1f0ebf875a2",
-  "visible": 4466
+  "reslice": "l9/reslice.py",
+  "sha256": "4a6dc32139da805ce4f1908115e96832f80cfdfc4eddd6236d0659ebbc22b1d6",
+  "visible": 3354
  },
  "item.icon.knife-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 15,
-  "clear": 6632,
+  "clear": 6683,
   "inputVersion": "8ae15a94d928eec32a8d601ee50be328686cfa01b05e9088e4f7709647e275cc",
-  "sha256": "54038686adb661f6065c5640f4e98878e0e0bc5c63091b838f44a7d8fc697e87",
-  "visible": 2434
+  "reslice": "l9/reslice.py",
+  "sha256": "0ca4c5cb03c343e3760bdcc14d53bafe5315bfb972c3dc521c0ba9d47e457ef0",
+  "visible": 2383
  },
  "item.icon.knife-t2": {
   "atlas": "l9/atlas-o.png",
@@ -1249,59 +1358,66 @@
  "item.icon.laboratory-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 7,
-  "clear": 5687,
+  "clear": 5649,
   "inputVersion": "748aef127dc6c69476d7501fce3a45c2e4a194632c5aa45a54ac85595f40bd6b",
-  "sha256": "d631bc8b7f00f3e77a9189842afa78cb1b1f19a9e50d9582da1b7d6e1df6af42",
-  "visible": 3164
+  "reslice": "l9/reslice.py",
+  "sha256": "1e5d54659d47564970baa38d2e7a19ca6572e0936cfc057f78432d87746c3b50",
+  "visible": 3190
  },
  "item.icon.lava-protection-boots": {
   "atlas": "l9/atlas-t.png",
   "cell": 4,
-  "clear": 4160,
+  "clear": 4317,
   "inputVersion": "8e627704a523395b9cb94d2eccb7775a793e3c1c52383bf96dd1d94a7f2aa3ff",
-  "sha256": "5d776d098136685f7e246945d860a7461d06ec125be66d63fab22efd80db4bfa",
-  "visible": 4905
+  "reslice": "l9/reslice.py",
+  "sha256": "109955946ad417785ad03121981edfeedff5f25eb1a9de577ac8bc692af883dc",
+  "visible": 4727
  },
  "item.icon.leaf-compost": {
   "atlas": "l9/atlas-n.png",
   "cell": 10,
-  "clear": 5471,
+  "clear": 5667,
   "inputVersion": "5aa8279d8e3d105ea5382847dca563c4331fcc8790750e37c31c9eddcac35ed4",
-  "sha256": "595dc9baccefdfc4b18cafd13f78e57d0ec1e074aaeeb64b0d72f7480e1744d6",
-  "visible": 3559
+  "reslice": "l9/reslice.py",
+  "sha256": "eddae8bc3a3f74966b6540680fb4caa2c71427c73b5c530750736646cd97fc65",
+  "visible": 3366
  },
  "item.icon.leather": {
   "atlas": "l9/atlas-m.png",
   "cell": 5,
-  "clear": 5646,
+  "clear": 5946,
   "inputVersion": "60b4b68a5c04e6f603b61e52dcfc614f3ecb471130db305e255d7549bbf8d6a4",
-  "sha256": "c0abd0ed8a8857694601639c0613c3e02128db685d9a35c0c22be1cffb9e4722",
-  "visible": 3428
+  "reslice": "l9/reslice.py",
+  "sha256": "a74c269d4c1e6b8b1191ca120fad93d0a3d955361d06e0d3a3d6d1bf1965b954",
+  "visible": 3133
  },
  "item.icon.leaves": {
   "atlas": "l9/atlas-a.png",
   "cell": 4,
-  "clear": 4678,
+  "clear": 4735,
   "inputVersion": "b7448ba0aa18d8b9015c154c9f6e9fe9e52b0a4d0c68ec69969de2ce61d3291a",
-  "sha256": "43fdbccb9dc467f5452a465726b734b600b50d4173e0e96fcdb46edae2f9abc4",
-  "visible": 4321
+  "reslice": "l9/reslice.py",
+  "sha256": "1153596a8e241ab1167fa1cc81de8f560a20e93a7b3b18abb44b0cf61b034f2c",
+  "visible": 4267
  },
  "item.icon.leaves-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 4,
-  "clear": 4678,
+  "clear": 4735,
   "inputVersion": "2f3b8dd61fcdcb6b71b98bfe2e0f7b7890a5fbe683fb6be1fa32c3171727c21d",
-  "sha256": "43fdbccb9dc467f5452a465726b734b600b50d4173e0e96fcdb46edae2f9abc4",
+  "reslice": "l9/reslice.py",
+  "sha256": "1153596a8e241ab1167fa1cc81de8f560a20e93a7b3b18abb44b0cf61b034f2c",
   "variantOf": "item.icon.leaves",
-  "visible": 4321
+  "visible": 4267
  },
  "item.icon.liquid-fertilizer": {
   "atlas": "l9/atlas-s.png",
   "cell": 11,
-  "clear": 5324,
+  "clear": 5584,
   "inputVersion": "ede2028482ccf2f8b74e40f7f7420b34bff8fb4cd0edda4c02b0cf872c54fb5e",
-  "sha256": "a79b1770cc085f9e3ccba02005f79dbfd21bd4403748dacfd2b6381ebc48a852",
-  "visible": 3736
+  "reslice": "l9/reslice.py",
+  "sha256": "9da7aad7e9ed5b374399d9d4b95c71f1c5fb312b69075c74d21ba4cb6c73a40e",
+  "visible": 3496
  },
  "item.icon.marsh-clay": {
   "atlas": "l9/atlas-c.png",
@@ -1314,27 +1430,30 @@
  "item.icon.meat": {
   "atlas": "l9/atlas-a.png",
   "cell": 13,
-  "clear": 4835,
+  "clear": 5035,
   "inputVersion": "929b9c4d44fd8415ea5e9a96b4a0ba6384acabb2d3746cf332d93f0d0bc44f85",
-  "sha256": "b5736f2bc7e34c6557a118a784cbe3afd4e66e05ddec5eb473f8723653836a55",
-  "visible": 4229
+  "reslice": "l9/reslice.py",
+  "sha256": "bd5d95e6181afd217dc0dd03d65e94f9694a49a8fab6bcb32571821f95921f73",
+  "visible": 4034
  },
  "item.icon.meat-potato-stew": {
   "atlas": "l9/atlas-r.png",
   "cell": 11,
-  "clear": 4315,
+  "clear": 4345,
   "inputVersion": "6fa70c8f6a1f9d3258c089f0cb68572559e98ac7435b0294584c1cbcb911b8b3",
-  "sha256": "ec05c3c84401eca14bddaba24630592da29ca85ff7bd5e2563cede0e03a3dd2d",
-  "visible": 4746
+  "reslice": "l9/reslice.py",
+  "sha256": "048b204008cefc033755d672743e392b505e3b188ecc1ae03d09c96024da09d6",
+  "visible": 4721
  },
  "item.icon.meat-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 13,
-  "clear": 4835,
+  "clear": 5035,
   "inputVersion": "8f573566bcdc5704bfdfad2f13049fb13de54049c600788f7c7f3337922ac6b2",
-  "sha256": "b5736f2bc7e34c6557a118a784cbe3afd4e66e05ddec5eb473f8723653836a55",
+  "reslice": "l9/reslice.py",
+  "sha256": "bd5d95e6181afd217dc0dd03d65e94f9694a49a8fab6bcb32571821f95921f73",
   "variantOf": "item.icon.meat",
-  "visible": 4229
+  "visible": 4034
  },
  "item.icon.mud-brick": {
   "atlas": "l9/atlas-k.png",
@@ -1347,10 +1466,11 @@
  "item.icon.onion": {
   "atlas": "l9/atlas-d.png",
   "cell": 15,
-  "clear": 5703,
+  "clear": 5754,
   "inputVersion": "c40df5c5dec3d1a50436f6857f0f480d20f0585559629a9387102421a1bc0779",
-  "sha256": "eef8d5958da5159e80d3bf081dc827726d487c1ddba439adc09d74fd38ccd6b4",
-  "visible": 3308
+  "reslice": "l9/reslice.py",
+  "sha256": "812e7b1af7cdba1b991c9fc2ad84761d2e0cbbf1403131b58de7c0d63d3d765c",
+  "visible": 3275
  },
  "item.icon.onion-meat-skewer": {
   "atlas": "l9/atlas-r.png",
@@ -1363,76 +1483,85 @@
  "item.icon.onion-profile": {
   "atlas": "l9/atlas-d.png",
   "cell": 15,
-  "clear": 5703,
+  "clear": 5754,
   "inputVersion": "fbec4c0fd4bd53478ba889a67330895aa49748fcbd3a11ba274cb95ccba851e9",
-  "sha256": "eef8d5958da5159e80d3bf081dc827726d487c1ddba439adc09d74fd38ccd6b4",
+  "reslice": "l9/reslice.py",
+  "sha256": "812e7b1af7cdba1b991c9fc2ad84761d2e0cbbf1403131b58de7c0d63d3d765c",
   "variantOf": "item.icon.onion",
-  "visible": 3308
+  "visible": 3275
  },
  "item.icon.onion-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 6,
-  "clear": 5799,
+  "clear": 5522,
   "inputVersion": "97011f00338a641ad67c9cc4725c2dfe7c943ba31487115eff17a8afe3807073",
-  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
-  "visible": 3189
+  "reslice": "l9/reslice.py",
+  "sha256": "8be8f4526eea76dab7ef95438d5d39ffa78edf975a20d5cef3e616b86345e4e6",
+  "visible": 3497
  },
  "item.icon.onion-seed-profile": {
   "atlas": "l9/atlas-s.png",
   "cell": 6,
-  "clear": 5799,
+  "clear": 5522,
   "inputVersion": "dd445824c0eda1888314dcd19d1fa540cefd6653ce0fa57f137549f2ba584a20",
-  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
+  "reslice": "l9/reslice.py",
+  "sha256": "8be8f4526eea76dab7ef95438d5d39ffa78edf975a20d5cef3e616b86345e4e6",
   "variantOf": "item.icon.onion-seed",
-  "visible": 3189
+  "visible": 3497
  },
  "item.icon.onion-soup": {
   "atlas": "l9/atlas-r.png",
   "cell": 4,
-  "clear": 4320,
+  "clear": 4293,
   "inputVersion": "db4b07234c21f9b3a82ad6050aa427acd074178ef7f649926c1fc0bfe99dea23",
-  "sha256": "5ce1d185a0931fcb6cc7e6a75d93aeca27ec92f7d5a605011c329474b7c4f6b5",
-  "visible": 4748
+  "reslice": "l9/reslice.py",
+  "sha256": "4c963e1d6df5fee3266bdac7be7672300c8d17656878d579bf036852abd5754b",
+  "visible": 4781
  },
  "item.icon.pickaxe-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 14,
-  "clear": 7121,
+  "clear": 7057,
   "inputVersion": "f9820c498f89c2c087a8c44b170dfa4ad324631936e2d715f39648e71fa29cc8",
-  "sha256": "e13dd65da77584e94d8ea21bca98ea6ee3e81f8b60ce97ff05c6903b8940eabb",
-  "visible": 1948
+  "reslice": "l9/reslice.py",
+  "sha256": "d509da196c4cd173859adf454ecea1bbd0771f65e6aaf53895ad653331d832a5",
+  "visible": 1999
  },
  "item.icon.pickaxe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 3,
-  "clear": 7563,
+  "clear": 7736,
   "inputVersion": "7d63216908b03068b448650e6e1694d91d8ad65fe984147f4defd1d1f9612c80",
-  "sha256": "8b6425b352f8f999a3821b757ac0682649918ed479574d2c06de2b26dac94511",
-  "visible": 1481
+  "reslice": "l9/reslice.py",
+  "sha256": "36371b2468d36b850ef70c84d5ad0c51816518234c0277ff87a91b15d15004d3",
+  "visible": 1325
  },
  "item.icon.pickaxe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 7,
-  "clear": 7451,
+  "clear": 7612,
   "inputVersion": "9e7981db7551cf47dcf339921c23a956f272b6f1f6194898eb186905307fc221",
-  "sha256": "d90190c61d58764dcc8f5a42451d6d68c6e00cd9bf902d0b50f6d7431285f041",
-  "visible": 1586
+  "reslice": "l9/reslice.py",
+  "sha256": "b4d7eae74bed13824cd4ef3e394d9b9af33fad20eb5bdc21506aa25046f0b00d",
+  "visible": 1418
  },
  "item.icon.pillar": {
   "atlas": "l9/atlas-l.png",
   "cell": 14,
-  "clear": 6339,
+  "clear": 6555,
   "inputVersion": "bf7e29f4a892f7b555425324e1a6d8474bad6291f9b022debc4992bcf851666b",
-  "sha256": "757bd30ba8b5c9147d4efa80b6f01b96bfb2ea66e900c2604032f9ee43a16a4b",
-  "visible": 2724
+  "reslice": "l9/reslice.py",
+  "sha256": "7d7665ff92e110eb9d032572587fe2a147527f61f1e43e2ae7b6e640d60aa1be",
+  "visible": 2549
  },
  "item.icon.plank": {
   "atlas": "l9/atlas-c.png",
   "cell": 1,
-  "clear": 5138,
+  "clear": 5486,
   "inputVersion": "4bd5917a0165f4d2553f218e39619093b90be72a523898e770d0e5b35e959bb2",
-  "sha256": "5ffd183b75b9902b8525b24b7040f42067ec6486ca0a75dde03ddbd7c97bd553",
-  "visible": 3936
+  "reslice": "l9/reslice.py",
+  "sha256": "05b0f5232739f0845452ca7c5d8967e159f148ce3280cf4fa87ec738c70a8102",
+  "visible": 3592
  },
  "item.icon.plate": {
   "atlas": "l9/atlas-u.png",
@@ -1454,10 +1583,11 @@
  "item.icon.polished-basalt": {
   "atlas": "l9/atlas-m.png",
   "cell": 13,
-  "clear": 4976,
+  "clear": 5040,
   "inputVersion": "8b49900543c8ee3038f8467c05f6deb672ca29e09c09656be03c0a90551820bc",
-  "sha256": "6a23f2201c411df709dc2f21f91d8853c7f9771928e099c607c9b52a151788aa",
-  "visible": 4096
+  "reslice": "l9/reslice.py",
+  "sha256": "f18afc1949423205656b3974ce4e2ba12a82daf335c98b59c44f8e11c6a2db8a",
+  "visible": 4042
  },
  "item.icon.polished-bone": {
   "atlas": "l9/atlas-m.png",
@@ -1520,42 +1650,47 @@
  "item.icon.practice-seedbed": {
   "atlas": "l9/atlas-t.png",
   "cell": 6,
-  "clear": 5129,
+  "clear": 5365,
   "inputVersion": "42fb2b3f6edf5c141acef6c2f0af4d51a825758500ecae197bc5dbde5572028d",
-  "sha256": "821486607d1d8449c68dce81b255298fc3ad6af7abe7846746d9e6b750083582",
-  "visible": 3874
+  "reslice": "l9/reslice.py",
+  "sha256": "81c1c27484384f44150b91850792e1dfd787c5ced1a874cfeea6799c53e6e3fe",
+  "visible": 3678
  },
  "item.icon.practice-stitch": {
   "atlas": "l9/atlas-t.png",
   "cell": 5,
-  "clear": 4269,
+  "clear": 5191,
   "inputVersion": "c4b2cbf14d870279819db5919fc529fbece845407c31027b692957cab965b7b5",
-  "sha256": "d7381e569e1666a139a703b32ea956edaabfc63505e76edd5461102756038ba5",
-  "visible": 4797
+  "reslice": "l9/reslice.py",
+  "sha256": "c2841648759435f50e8e3ffc564901f452af1fc47a17902b0b91c076b35f58d1",
+  "visible": 3834
  },
  "item.icon.recovery-feed": {
   "atlas": "l9/atlas-t.png",
   "cell": 2,
-  "clear": 4834,
+  "clear": 5244,
   "inputVersion": "aad5d3780c103ef3119f33e96be926a3a3fe10581047d27982a2237bff2ebdcb",
-  "sha256": "3099122d331b71b95dfaf282ddbb0ddd7caf3587b9ab2ea95c797bf049bf5d08",
-  "visible": 4184
+  "reslice": "l9/reslice.py",
+  "sha256": "c2e0d92ee5fede10d50be3e5de19f369b7e43b2a13b2ece843e1068120bd2866",
+  "visible": 3826
  },
  "item.icon.reed": {
   "atlas": "l9/atlas-b.png",
   "cell": 3,
-  "clear": 6853,
+  "clear": 6894,
   "inputVersion": "b45d95a0edad94e1db146b897544a049a0c9e3d46c7be4baa95a1e8f6c5c8391",
-  "sha256": "6b0812545dbe49c5a3fb169bf78b2bfa9a38d2a79b0e2a48ffe84db3e8b2d362",
-  "visible": 2018
+  "reslice": "l9/reslice.py",
+  "sha256": "3ec674c3b9110d8e2a180e6d545dcfa692b34b1559ec7f1b118fd2ff8b0b5567",
+  "visible": 1978
  },
  "item.icon.refrigerator-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 2,
-  "clear": 3923,
+  "clear": 4366,
   "inputVersion": "3ac11cde9b12c9856cfecfbbdf6d758a1463319089f1a76a090971c8016c5183",
-  "sha256": "fde147dd6de740a0696ae7d149ed3da6ef01d95180a95dcbeecab0690427ecba",
-  "visible": 5118
+  "reslice": "l9/reslice.py",
+  "sha256": "f751852fd892522cbd78f61589f794cc29d51c84791036378a297a2aab993bf6",
+  "visible": 4689
  },
  "item.icon.relief-unit": {
   "atlas": "l9/atlas-u.png",
@@ -1568,42 +1703,47 @@
  "item.icon.rescue-marker": {
   "atlas": "l9/atlas-d.png",
   "cell": 10,
-  "clear": 7201,
+  "clear": 7281,
   "inputVersion": "86e336f987b001333c5ffc09353d8239b9bb7220a86c17a82a375d977ec833bc",
-  "sha256": "9cd8ffca117bf4fc2f12945f96765bd8b8d06a96ae0c153a8d0eed9d4c6d021d",
-  "visible": 1855
+  "reslice": "l9/reslice.py",
+  "sha256": "a2022aed35a88d2a3c355bdd5425400f43e9c456440c0e50df0400418ade0bb5",
+  "visible": 1768
  },
  "item.icon.rescue-transponder": {
   "atlas": "l9/atlas-u.png",
   "cell": 5,
-  "clear": 5975,
+  "clear": 5994,
   "inputVersion": "304023d92f25aeef7946288d7933350d006849bd63e76d4fc44d6334de4c2c67",
-  "sha256": "eba9b07c7a3472b9e6dfb80a1c787fb9574874722d22fadacfb6d7a8cac8e726",
-  "visible": 3115
+  "reslice": "l9/reslice.py",
+  "sha256": "7ecd843d8f3ca734bae13e27d8aa4418027007c82acae282f46955b3c9833db5",
+  "visible": 3096
  },
  "item.icon.research-bundle": {
   "atlas": "l9/atlas-u.png",
   "cell": 2,
-  "clear": 5707,
+  "clear": 5715,
   "inputVersion": "ce3a5fba106674891984e19cdd776ec35d58e070d038856778bbaecad284d700",
-  "sha256": "f2710b713e2432e2cb464b1b901453aefc7bd0f101c367cfe7ca33e6a50ec8ed",
-  "visible": 3366
+  "reslice": "l9/reslice.py",
+  "sha256": "d2d9a46da791808469004ea6edaa8d7033f22ddba4b48bf8651ae2fefffc9d6f",
+  "visible": 3374
  },
  "item.icon.rex-leather": {
   "atlas": "l9/atlas-m.png",
   "cell": 9,
-  "clear": 5128,
+  "clear": 5450,
   "inputVersion": "2bd10d455f677c80b8958c1cf3677a05d6c8b831de13aba34b91c69db98db448",
-  "sha256": "52453ab792fe595ff44d14298d75b21ec665bee4298bad1f2eb4113fa31f7ad2",
-  "visible": 3934
+  "reslice": "l9/reslice.py",
+  "sha256": "f3cf3e11619e8b1299c03561da423665c9e425b087b699389bf4e78556a5d7f0",
+  "visible": 3631
  },
  "item.icon.rex-meat-stew": {
   "atlas": "l9/atlas-r.png",
   "cell": 13,
-  "clear": 3608,
+  "clear": 3797,
   "inputVersion": "1b6df2deab94d2d2e655081d337fed8c2d78eb8242b10cec5cfaed809c9085f3",
-  "sha256": "acddc947836b6a0ce1d8a6de22bb5f6f60abd73ed52902c6a214827af0c5e26d",
-  "visible": 5416
+  "reslice": "l9/reslice.py",
+  "sha256": "ff2abcc151b2b34a1f909ae9ec31626c0340d7129b2e1d7ec44a85f36b4949ae",
+  "visible": 5275
  },
  "item.icon.roast-meat": {
   "atlas": "l9/atlas-r.png",
@@ -1624,18 +1764,20 @@
  "item.icon.roof": {
   "atlas": "l9/atlas-l.png",
   "cell": 13,
-  "clear": 5435,
+  "clear": 5867,
   "inputVersion": "afa40df709aba386558f697890d4439467059d26c80bcd88a8f7a18a511db850",
-  "sha256": "c6a214cde751daffef4c002be033cd27c422d2f41227ecba6438d9fcb67711b2",
-  "visible": 3621
+  "reslice": "l9/reslice.py",
+  "sha256": "3941b0a3f2845dba683015c744cda37ebba206a85a1ed776fbe210b280b4c143",
+  "visible": 3203
  },
  "item.icon.roof-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 5,
-  "clear": 5421,
+  "clear": 5643,
   "inputVersion": "a22435fea91a9282ca0269489721175b51120a333768e61a17a76681490b39ca",
-  "sha256": "c284a15aac6a8b04b4fd8127ed03d9e65d2c726bf755ae7fc22b2585500778e8",
-  "visible": 3605
+  "reslice": "l9/reslice.py",
+  "sha256": "6bc3807b822f8313bde1a16cb6f28b0c2d7d705dff786e07a740beab6ab25eac",
+  "visible": 3382
  },
  "item.icon.rw-journal-seal-1": {
   "atlas": "l9/atlas-v.png",
@@ -1704,26 +1846,29 @@
  "item.icon.saddle": {
   "atlas": "l9/atlas-t.png",
   "cell": 1,
-  "clear": 4371,
+  "clear": 4717,
   "inputVersion": "ca456a2d0ad3e8b7f546f15e7067e832ac7535f94f4251ef31ab662d4116d12e",
-  "sha256": "d15c0bbc8ecf0f3323d17679f6db2e2347b1a68f14c9478cfa936afed11499d2",
-  "visible": 4693
+  "reslice": "l9/reslice.py",
+  "sha256": "1801c6ebbdcf2611f12bf31a66a38332f1023ecf890c03ac36c5c809c0263d2d",
+  "visible": 4344
  },
  "item.icon.samphire": {
   "atlas": "l9/atlas-c.png",
   "cell": 15,
-  "clear": 5591,
+  "clear": 5535,
   "inputVersion": "2a97786e3c9a0b558da2b8a09f204ae10b5957cb9c0d2ae913d394220289269c",
-  "sha256": "02084620c3aa1ca7e75357caffd43e75db940e5884018d7f45a7d1a22ed95a2a",
-  "visible": 3340
+  "reslice": "l9/reslice.py",
+  "sha256": "6e789c4174a8226f5cb8186beb628a929d2997ae1f1d1fb4d6ad27464f586904",
+  "visible": 3388
  },
  "item.icon.sample-case": {
   "atlas": "l9/atlas-u.png",
   "cell": 1,
-  "clear": 5417,
+  "clear": 5468,
   "inputVersion": "2d535a45df85edd7fae4eceb10b55e1792903aa63378e336e3add38e3d5f3cdf",
-  "sha256": "e8b0b34b94c3623b4568d0f7bc5db36e415705b3c1c6d04a8c2071e9e42b5098",
-  "visible": 3664
+  "reslice": "l9/reslice.py",
+  "sha256": "7b57c73a2578d2b94c205f537ac39e37bef0874237b1f60ec2634a10c4d61f6e",
+  "visible": 3612
  },
  "item.icon.shell-fragment": {
   "atlas": "l9/atlas-b.png",
@@ -1745,34 +1890,38 @@
  "item.icon.shelter-liner": {
   "atlas": "l9/atlas-u.png",
   "cell": 3,
-  "clear": 5455,
+  "clear": 5565,
   "inputVersion": "b77b843c2707a12b37add4fe8227c9ac227845c73e36c1f544b676a78e938b89",
-  "sha256": "1da01df04cb62bbe56bffbb6c7536a76ad9ffe7577785e6ad6795938a2447416",
-  "visible": 3613
+  "reslice": "l9/reslice.py",
+  "sha256": "f442c59c3b7f91df5a27fee1e4b7783fe55cdacd8d79701f40024b2791f4166f",
+  "visible": 3510
  },
  "item.icon.signal-fragment": {
   "atlas": "l9/atlas-c.png",
   "cell": 14,
-  "clear": 5003,
+  "clear": 5002,
   "inputVersion": "43f3d097eed604d71b00ebeaac2832a6c36851f543dd73cedd562ee9a6d6796b",
-  "sha256": "1cf7078fe42c2cedec36c152a2283292e6633d8c1819e48f292ce23753430d8f",
-  "visible": 4058
+  "reslice": "l9/reslice.py",
+  "sha256": "fd197a37b9c5b49f8b1d00ecb133e6dcc14b09bfb46a7419016abc0ba7fa8f23",
+  "visible": 4060
  },
  "item.icon.signal-lens": {
   "atlas": "l9/atlas-t.png",
   "cell": 15,
-  "clear": 4903,
+  "clear": 5401,
   "inputVersion": "d430d1bc85307f3f769e8309d05d4957900bd04186b94d040c149b62d33c36f0",
-  "sha256": "ff569cf33de9d70bbd1ba6c310a5f85de4ba6af42c7e9445b1fadc31fec7a16c",
-  "visible": 3492
+  "reslice": "l9/reslice.py",
+  "sha256": "49a5d485fa686c007bd7efc7d4867b90528cfd594bf71011776765e29aef97dc",
+  "visible": 3127
  },
  "item.icon.signal-relay-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 6,
-  "clear": 7138,
+  "clear": 7279,
   "inputVersion": "777f26b14bd1e4f3997e85e8e6291f15c394286283df18fd9451389b1a6adbdc",
-  "sha256": "6f4fa82c56f8bfae1b94ca8bf111b7333eaa7d65bcada0dcf555bfa6a1bc51ca",
-  "visible": 1851
+  "reslice": "l9/reslice.py",
+  "sha256": "9cef27fbfce1199f08b8b7aaeb858e7295948d9f21ed05cbf559892a687dc3de",
+  "visible": 1719
  },
  "item.icon.sinew": {
   "atlas": "l9/atlas-b.png",
@@ -1794,51 +1943,57 @@
  "item.icon.skull": {
   "atlas": "l9/atlas-u.png",
   "cell": 6,
-  "clear": 4869,
+  "clear": 4898,
   "inputVersion": "368a2687a2841d4dcc0504fa4fdcaf853d6518711f6582639235511e935e478d",
-  "sha256": "b9865b1857feb6dfd4e379a5d2b741b0fb89c137e8b225e85e03ab56699be5ce",
-  "visible": 4202
+  "reslice": "l9/reslice.py",
+  "sha256": "1148fefee445e8cba0ce308588d2fd6436eef14a723ca3ad4474e2587f15d924",
+  "visible": 4177
  },
  "item.icon.skull-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 6,
-  "clear": 4869,
+  "clear": 4898,
   "inputVersion": "72abf155f101238cf7739fb7fb496790bbc6f6b5b2e4a4f5bb47c76f082d9d56",
-  "sha256": "b9865b1857feb6dfd4e379a5d2b741b0fb89c137e8b225e85e03ab56699be5ce",
+  "reslice": "l9/reslice.py",
+  "sha256": "1148fefee445e8cba0ce308588d2fd6436eef14a723ca3ad4474e2587f15d924",
   "variantOf": "item.icon.skull",
-  "visible": 4202
+  "visible": 4177
  },
  "item.icon.spear": {
   "atlas": "l9/atlas-c.png",
   "cell": 2,
-  "clear": 7889,
+  "clear": 7915,
   "inputVersion": "d6b74a55ba2319b3930dd83d59114d78b93fe6c117034f6b9137ca7d3e098504",
-  "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
-  "visible": 1186
+  "reslice": "l9/reslice.py",
+  "sha256": "687e5c5d896ae4c0832c3216b668c9e3760ec45d5a648e0f28c492ec84f4ea72",
+  "visible": 1167
  },
  "item.icon.spear-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 11,
-  "clear": 7848,
+  "clear": 7875,
   "inputVersion": "7ba3930574be17860b2cff60f7767c5e6754a957cc006f103927813b8da2ed0e",
-  "sha256": "8ae25d6eee77cb04e3e09df65c53811556b5d4d48c27a2c0b9a6fbb41cf92e41",
-  "visible": 1209
+  "reslice": "l9/reslice.py",
+  "sha256": "29616953125d2d71ffd59d08d51bbbf77ca6178f2f816c633c0dc0072feed9f7",
+  "visible": 1247
  },
  "item.icon.spear-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 2,
-  "clear": 8022,
+  "clear": 8018,
   "inputVersion": "2d68d3538172f48e8351676b621d1d78c2ffbc687131299126ffd259149e5316",
-  "sha256": "a116fc8225854529a256428f4e1eb75e0b049a51f9118bd7006c1f57a5b1701d",
-  "visible": 1061
+  "reslice": "l9/reslice.py",
+  "sha256": "1f79840a1e16cc64b609edfe9e0241f28fb3c9c4a9190baa9f39157e38d46bc6",
+  "visible": 1070
  },
  "item.icon.spear-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 8,
-  "clear": 8081,
+  "clear": 8159,
   "inputVersion": "115c1c229f483e77d0d1aeaf9c3b018dc1bde93b5c70ad9368998db5ca3e79ae",
-  "sha256": "61c6bc5b3ddb5c9d76a4cf658cdd9590f719cd984dc737bc29fac5134e3e67c2",
-  "visible": 991
+  "reslice": "l9/reslice.py",
+  "sha256": "319daf5ad831901e317dcd29bb6ac30cd9558c487a8b969145049a9242c91681",
+  "visible": 917
  },
  "item.icon.spoiled-food": {
   "atlas": "l9/atlas-n.png",
@@ -1860,10 +2015,11 @@
  "item.icon.sprinkler": {
   "atlas": "l9/atlas-s.png",
   "cell": 14,
-  "clear": 3329,
+  "clear": 4076,
   "inputVersion": "201c9add7a74ef8cf4fb2e123252ea2f9e2062430cca2ec34b77bcbb5cbc8a84",
-  "sha256": "142217eb5445548eadb81ea0318a598eac332b07af425fc4652532b7137dbcec",
-  "visible": 5648
+  "reslice": "l9/reslice.py",
+  "sha256": "11b7200390169f79bf905ad33e0a1f411f85c33a429314e7404f0fbd78b94c6c",
+  "visible": 4968
  },
  "item.icon.stairs-kit": {
   "atlas": "l9/atlas-l.png",
@@ -1876,42 +2032,47 @@
  "item.icon.starter-axe": {
   "atlas": "l9/atlas-d.png",
   "cell": 6,
-  "clear": 7176,
+  "clear": 7303,
   "inputVersion": "20c360e82eb3c6db584dde6a97a63f47232e193efb162a604011cacf85bce748",
-  "sha256": "ab7ab2ef8b81d7f1b5adfcfc1206c26ab32bd0dd71fe388083fc4b269a010569",
-  "visible": 1884
+  "reslice": "l9/reslice.py",
+  "sha256": "90675e212c9e586a0d1b8af9f7a4443402325ba7dc6f460af8cf87b56891384a",
+  "visible": 1769
  },
  "item.icon.starter-club": {
   "atlas": "l9/atlas-d.png",
   "cell": 8,
-  "clear": 6658,
+  "clear": 6705,
   "inputVersion": "117e6b04837baee6582567314da2a7c35c2a51e9f7d2b0fc60605b5d409b93e6",
-  "sha256": "55335163ee3d589c16578e2062ff991100ea439ae2c2c628117f171699c5eb99",
-  "visible": 2406
+  "reslice": "l9/reslice.py",
+  "sha256": "ae98e68d57b6112ba14e328ec30bc315bbfbfdd0049048875bdaf2c000e22cb9",
+  "visible": 2367
  },
  "item.icon.starter-pickaxe": {
   "atlas": "l9/atlas-d.png",
   "cell": 7,
-  "clear": 7523,
+  "clear": 7644,
   "inputVersion": "41787f0171bf0bd672c3faef576723194b0a78b0aac2131fc1ca48f9994b4839",
-  "sha256": "89176a4b25d75a41a52927f2f85ff28845aed4ecd4ce01636c72289043990817",
-  "visible": 1504
+  "reslice": "l9/reslice.py",
+  "sha256": "54ff3251ef296049746b915b9c8623c2857985bd760a5295025aab31d3061eb7",
+  "visible": 1401
  },
  "item.icon.steel": {
   "atlas": "l9/atlas-n.png",
   "cell": 1,
-  "clear": 5883,
+  "clear": 5864,
   "inputVersion": "64595eb4bed3bf4a4e2e17a286aaf60e16231504af3829638c4215a18ab5fc68",
-  "sha256": "cb548982399e6cc68c76ad731a0fc819214785686178eee72e0438df2a6fa3cf",
-  "visible": 3219
+  "reslice": "l9/reslice.py",
+  "sha256": "70e8e8cc81949265088135e5d4a66d9a0c23043962e795cdbabefa7baa19a8b3",
+  "visible": 3218
  },
  "item.icon.stem-fertilizer": {
   "atlas": "l9/atlas-s.png",
   "cell": 13,
-  "clear": 3875,
+  "clear": 4145,
   "inputVersion": "b7b39650a82f001fda86a25f1ebc6801d223b05742ab93d2f8b7302af4a50740",
-  "sha256": "079fa2815fc337f36af731770f939e668125298700508052c1c164a2c93dd5b3",
-  "visible": 5188
+  "reslice": "l9/reslice.py",
+  "sha256": "c7b2fecee27a3a1d492a1688a2726fef11dbbdc3809b77ab1670612f3e95ca43",
+  "visible": 4917
  },
  "item.icon.stone": {
   "atlas": "l9/atlas-a.png",
@@ -1924,10 +2085,11 @@
  "item.icon.stone-axe": {
   "atlas": "l9/atlas-a.png",
   "cell": 15,
-  "clear": 6988,
+  "clear": 6875,
   "inputVersion": "c0bd65865c32aa4318d3f602761631c1d1edfa71a0a2719172dad4aa61c11388",
-  "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
-  "visible": 2054
+  "reslice": "l9/reslice.py",
+  "sha256": "7c5b81a1a8ce7115983a3b4fd362d9f5d1071da88ce4af9e3eb54f18363dccd8",
+  "visible": 2180
  },
  "item.icon.stone-block": {
   "atlas": "l9/atlas-k.png",
@@ -1940,26 +2102,29 @@
  "item.icon.stone-floor-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 6,
-  "clear": 5713,
+  "clear": 6022,
   "inputVersion": "f5c98a864ffb418fee5ed4c15d631c981901c54cf9652f4a195a5b345fc24aaf",
-  "sha256": "cb08d302f06647ef16a571653cdcbc3f199ac1b7abf8e1d717d04cad4d85ad54",
-  "visible": 3367
+  "reslice": "l9/reslice.py",
+  "sha256": "f07a52cfdaa45a7c5ff46e4af7366cda4a05bcfac73bf03bc5cb2671f23cfccb",
+  "visible": 3076
  },
  "item.icon.stone-maul": {
   "atlas": "l9/atlas-c.png",
   "cell": 4,
-  "clear": 6545,
+  "clear": 6548,
   "inputVersion": "2046a2de2db4f994e001c3f571656269100bf8d8c878532404d0de4e7b04762b",
-  "sha256": "7c8e8852f92bb6366c771c334726c5bd0bd414bccdd2750bce84454ac432047b",
-  "visible": 2524
+  "reslice": "l9/reslice.py",
+  "sha256": "caae3d6c053793d884a074cfc28be79dd871efe098dbe67a57377b88fefa1d81",
+  "visible": 2519
  },
  "item.icon.stone-pick": {
   "atlas": "l9/atlas-a.png",
   "cell": 16,
-  "clear": 7336,
+  "clear": 7137,
   "inputVersion": "b979b3bf71b7b549db61456f24dafb9f1b8b7278dd2880eee1ac80f5df9231bc",
-  "sha256": "eef7f4e1cacfce41215dfae99312f95b381551a4ee8310fcee2e5c3d521f3ad6",
-  "visible": 1745
+  "reslice": "l9/reslice.py",
+  "sha256": "36f817155077db06ac0dc21baefe6d6365be51ae81a5e217b1dc71befff745a9",
+  "visible": 1914
  },
  "item.icon.stone-profile": {
   "atlas": "l9/atlas-a.png",
@@ -1981,26 +2146,29 @@
  "item.icon.stone-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 8,
-  "clear": 5014,
+  "clear": 5147,
   "inputVersion": "ae479a51487cfba62bc4eca33354317ab43b0a5937e531e1c19b2edaebf928e9",
-  "sha256": "cf1607b4dacc34ef11897f154ef2c6331b1934223138521fef5a22102b61cc10",
-  "visible": 4026
+  "reslice": "l9/reslice.py",
+  "sha256": "e4c49dc31c6bdd3ee26402dc8d5310f0232bebe5f3ee56e6a1fbca5fa014d641",
+  "visible": 3922
  },
  "item.icon.storage-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 3,
-  "clear": 4525,
+  "clear": 4519,
   "inputVersion": "523a2542cf6556f6e566b716f3624a21c6ee825d8b74e58183c5697012881ca3",
-  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
-  "visible": 4550
+  "reslice": "l9/reslice.py",
+  "sha256": "9b38c813b0edbbf5453c6905f4251fb5faa177ff977c9a42df8073753a15b881",
+  "visible": 4558
  },
  "item.icon.survey-sample": {
   "atlas": "l9/atlas-v.png",
   "cell": 1,
-  "clear": 5258,
+  "clear": 5514,
   "inputVersion": "140e3e42297e3fe433aa66f1588762bf4a7650c616ffa6d0d3e95865dbf68d7f",
-  "sha256": "9f9256c62cb9df39dc30ed41bdd51cc8c541482cdcfd0051fc7720f73a184d37",
-  "visible": 3808
+  "reslice": "l9/reslice.py",
+  "sha256": "462262cb86a64373995da1683c261c2b30c01c2400d56f79102991a5c76298a4",
+  "visible": 3561
  },
  "item.icon.sword-t1": {
   "atlas": "l9/atlas-o.png",
@@ -2013,34 +2181,38 @@
  "item.icon.sword-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 3,
-  "clear": 7607,
+  "clear": 7641,
   "inputVersion": "fb066fb26257aa2d597cfb4c052c46dfa87da720a7f1186e5281b6f8372a2248",
-  "sha256": "141d48f89104ece5a2f97e958efe584f0687a930ef213f75d14d4fc21c24947a",
-  "visible": 1452
+  "reslice": "l9/reslice.py",
+  "sha256": "3c2d861d2c9a24edd4009a84051cc6916b076d4be2b561d582bfa01548fdac4e",
+  "visible": 1419
  },
  "item.icon.sword-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 9,
-  "clear": 7478,
+  "clear": 7666,
   "inputVersion": "2f99964a1ba3e6fcda2284e3084cd7f020cb0e5c51bdf608a909123e87e9320a",
-  "sha256": "9ba6b91dbd0d1b123e0697b58ec07292517ad20840cfd077147ced8f62f0c54c",
-  "visible": 1558
+  "reslice": "l9/reslice.py",
+  "sha256": "f0bb6ab0076d53d756eae5c8354e1581d1f2ff2cecbcc8871f17084bcd66f7c5",
+  "visible": 1387
  },
  "item.icon.tanning-frame-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 1,
-  "clear": 5155,
+  "clear": 5338,
   "inputVersion": "0f173c234780ae32c06edf14626cff199bc31a90494c869781382c14782f5329",
-  "sha256": "04f5d9d008de26254bc325a1a92f5d2a29473b92aeface61bbfbc701d139ac79",
-  "visible": 3735
+  "reslice": "l9/reslice.py",
+  "sha256": "1886805d6a5df53ac77bca5929863ceb9e3d17348689b350b842a0700510a310",
+  "visible": 3576
  },
  "item.icon.temperate-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 3,
-  "clear": 3467,
+  "clear": 3549,
   "inputVersion": "9f3cb376da1a134ef1b43597547559bf0d618410f632a74fd141cfa08ac5a72a",
-  "sha256": "47e1129c59e21d1bb966808fe3d1640064ebdd6c2647b5a659101e41ede7eac2",
-  "visible": 5563
+  "reslice": "l9/reslice.py",
+  "sha256": "9da990eecbe4b93f5e4f9db8f90393120a6b5ad6d038d82b4a25c3f2cc3a2ca5",
+  "visible": 5502
  },
  "item.icon.temperate-bottom": {
   "atlas": "l9/atlas-p.png",
@@ -2053,74 +2225,83 @@
  "item.icon.temperate-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 2,
-  "clear": 4986,
+  "clear": 5307,
   "inputVersion": "185a0cbd6a58f9d37c3b12d8e3ae4942fdc4e657c0ef219b3743c3bf21296517",
-  "sha256": "9e57865d32c1bc5c4aea56985d5f95f0f605906b6a39849d0a7ff77659778858",
-  "visible": 3993
+  "reslice": "l9/reslice.py",
+  "sha256": "3208547a2668625098b58326d4a79cadedd355ec1f12eb3abf51620b6ab2a0bd",
+  "visible": 3688
  },
  "item.icon.temperate-head": {
   "atlas": "l9/atlas-p.png",
   "cell": 13,
-  "clear": 5014,
+  "clear": 5394,
   "inputVersion": "39390455e45329f9276df537ecb48f9f7bae9abcd9b88a2988e936ad2b4c6951",
-  "sha256": "4d910b345f7935c49287efedf1e398b2356f5506b586a0c5632e7c304b250ffa",
-  "visible": 4056
+  "reslice": "l9/reslice.py",
+  "sha256": "36478764dcf999bae8fc1684e84218005eb0ebecf103a4c1b49a5bb3ec00fb71",
+  "visible": 3701
  },
  "item.icon.temperate-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 1,
-  "clear": 4740,
+  "clear": 4647,
   "inputVersion": "ded8b2df00a368fcf8cae5b9d2f9c1f5a87e435c7c9d982411ef16a8e32ec4b9",
-  "sha256": "9e4f57a12bc379ec276c976418e1e93ceeeaba1f4d41d408d8fa8388486eb78c",
-  "visible": 4288
+  "reslice": "l9/reslice.py",
+  "sha256": "a6a03aeab8f9702d04a305b7c461b3638733cec9c096e447e3107af320298400",
+  "visible": 4353
  },
  "item.icon.temperate-top": {
   "atlas": "l9/atlas-p.png",
   "cell": 14,
-  "clear": 4917,
+  "clear": 5173,
   "inputVersion": "ca0db93a774a7347f59b905b3b5f82d413a92362418dad452af172a87c53f8f0",
-  "sha256": "03c9f6cf91bd080c4fbff8837ec776b1f5fa74eba05cb20a66e85bc27bdeb8af",
-  "visible": 4145
+  "reslice": "l9/reslice.py",
+  "sha256": "640cf61788f5fd1af0bfc7a3dd8e8d088499e9fc071e49af2e38be48d21e3799",
+  "visible": 3904
  },
  "item.icon.tent-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 3,
-  "clear": 5471,
+  "clear": 5724,
   "inputVersion": "3a89d5054f082f409ecc40c69952a0c513cab37b846693dcfa3090c44a9ac228",
-  "sha256": "d2c7c1cd09a6c1435b7dfc51c9a6c1a24e9bf4ebc7c4c1488b025b15b8faf384",
-  "visible": 3579
+  "reslice": "l9/reslice.py",
+  "sha256": "1db4a34371888685064242538e5f5ef73fd2a1ef46682cf2bbf356ddf858ceaa",
+  "visible": 3343
  },
  "item.icon.thatch-bundle": {
   "atlas": "l9/atlas-b.png",
   "cell": 4,
-  "clear": 5824,
+  "clear": 5793,
   "inputVersion": "42900381f79bfeb9eb98c17406400c072f092ec12346a1643806d384c90d5127",
-  "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
-  "visible": 3236
+  "reslice": "l9/reslice.py",
+  "sha256": "1b6a7f4ca196839c94e6cc34caeb3aaf0e81e3a7a20d9d407a6856196c964005",
+  "visible": 3253
  },
  "item.icon.thick-leather": {
   "atlas": "l9/atlas-m.png",
   "cell": 6,
-  "clear": 5097,
+  "clear": 5241,
   "inputVersion": "b055de214e0089f9e7813aeba5c52cf7a93555c070a05714acae777a21f7f943",
-  "sha256": "71d2fb582a4475dedfbe75fa29635e17f98cd85d7088fa966f1268e964f89481",
-  "visible": 3969
+  "reslice": "l9/reslice.py",
+  "sha256": "84edbc85f22bce28efff3165eeef45d6ef429ef2d6494cfd3af9e8d925c0ac31",
+  "visible": 3830
  },
  "item.icon.timber-beam": {
   "atlas": "l9/atlas-k.png",
   "cell": 9,
-  "clear": 6056,
+  "clear": 6320,
   "inputVersion": "7ba1279e9d7c9c9cda3d01b14f4d3e22c0edb3e1612b421c61a5a10a00bccaef",
-  "sha256": "57ddefd4d6800576d9cc179aefd1ab49e801f0f151d7ebe2f3aade2413f61c71",
-  "visible": 3008
+  "reslice": "l9/reslice.py",
+  "sha256": "e8aa1816afa59c6165637bbd2c671f7e7aa77d63db2f0a230106f853cdfc017a",
+  "visible": 2756
  },
  "item.icon.timber-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 10,
-  "clear": 4324,
+  "clear": 4773,
   "inputVersion": "cf171874aa14c83fa6881d52a8b4c15191732991b24d8f5bbdb04fe94cff0462",
-  "sha256": "deaec93f82f641be571968cc7d67087983920b56807ef0f7e61f2d58f3e035d9",
-  "visible": 4714
+  "reslice": "l9/reslice.py",
+  "sha256": "e8484fe9f41792b36ef21b1afeb67e71a42c661ac99ab9099a05fe22abc71a5a",
+  "visible": 4275
  },
  "item.icon.tooth": {
   "atlas": "l9/atlas-u.png",
@@ -2142,117 +2323,131 @@
  "item.icon.tropical-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 9,
-  "clear": 3671,
+  "clear": 4323,
   "inputVersion": "dd4d8af7d00ca26e30d8f9f1a01e30806af8f9d5603d9219553ae6b21de5af90",
-  "sha256": "e23fd94006ecc6349c4bb070a9c1ef5772929501aa9330736030f19937b633b5",
-  "visible": 5385
+  "reslice": "l9/reslice.py",
+  "sha256": "059f3ddc43b64fb6e20539002d81dfdd7fa867768387ea987e30c2b48509ae85",
+  "visible": 4662
  },
  "item.icon.tropical-bottom": {
   "atlas": "l9/atlas-q.png",
   "cell": 6,
-  "clear": 4609,
+  "clear": 4724,
   "inputVersion": "03838e9daf48ec7286d4a451fb4a65f34849a1b78cd87af9fbe41d2e0c4052e1",
-  "sha256": "ea8dc536c1496a971f9260afe60e6b33dc95847b3e6fd686f493a9f92ae1c350",
-  "visible": 4443
+  "reslice": "l9/reslice.py",
+  "sha256": "dd55429d4bc1a626649d4b4ffa9627de1b429d8232eb80950c2896d897951e58",
+  "visible": 4342
  },
  "item.icon.tropical-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 8,
-  "clear": 5823,
+  "clear": 5872,
   "inputVersion": "7a58b7cf972f74ae47e158de8f5a26680acb566cc76e9aaefa7d962ac9462730",
-  "sha256": "6cdaec4210b692ac06c5c14da8e1a0e05c4a3ac7d4271f924614f6df1e6b0732",
-  "visible": 3206
+  "reslice": "l9/reslice.py",
+  "sha256": "cfc6b331086db4550a3d09a65ec11f69326d18cabd3f6db2af0e98115fbed14a",
+  "visible": 3149
  },
  "item.icon.tropical-head": {
   "atlas": "l9/atlas-q.png",
   "cell": 4,
-  "clear": 5794,
+  "clear": 6142,
   "inputVersion": "09a9fa85166a1288b58437529d832e426596e7f8440d04effede2a5a99c53e21",
-  "sha256": "e4213943acf7cd3297f938a8b7b154799b1e9c8726d1ea9f91c0e7303438ae96",
-  "visible": 3281
+  "reslice": "l9/reslice.py",
+  "sha256": "a49e7e2024847ca295dc5ec830957a90ed8049a02c58b035c8b6a47ea24e23be",
+  "visible": 2944
  },
  "item.icon.tropical-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 7,
-  "clear": 5060,
+  "clear": 5101,
   "inputVersion": "6cc6a324764a5de486b146e72ca7b4af3049be224595cf7e63714a92fb302d5c",
-  "sha256": "7999c2343cd7914869ef5a7580a6594086ebe1f3a0a8a62ab8c641ae3fdb58d6",
-  "visible": 3943
+  "reslice": "l9/reslice.py",
+  "sha256": "94c56badef2b9f39769ff9ea1fdae4761cfe47aafebf876ad2353492515cc1f1",
+  "visible": 3896
  },
  "item.icon.tropical-top": {
   "atlas": "l9/atlas-q.png",
   "cell": 5,
-  "clear": 4687,
+  "clear": 4919,
   "inputVersion": "e042dea37e5bfba9b3b07fa34d72720bc8360f0490f3f07cbf08f950277cf4e2",
-  "sha256": "6e77f3971c4ab7e16dcea76f05e293b65a5540d9754a297d98ba2f6b5ba65034",
-  "visible": 4361
+  "reslice": "l9/reslice.py",
+  "sha256": "959e9f8fae6b94c2fdefa1f2ec44d7c3f0da009ea3774ec330ecd9b7445e0af0",
+  "visible": 4150
  },
  "item.icon.tusk": {
   "atlas": "l9/atlas-u.png",
   "cell": 13,
-  "clear": 6901,
+  "clear": 6947,
   "inputVersion": "419bc70ac6c5aafe9f2ff8e2fc726f5a844ae4cccdf6afa6911b7043421f2dde",
-  "sha256": "31eba790af004dad7a3c00bb03aca3017f145d4d8c9d3b7b6e521573e9caaeef",
-  "visible": 2167
+  "reslice": "l9/reslice.py",
+  "sha256": "f65e2c221fdc5060ad57b22609cbfd34b805697bb8cfa92c022ce0c6ba6a5802",
+  "visible": 2129
  },
  "item.icon.tusk-profile": {
   "atlas": "l9/atlas-u.png",
   "cell": 13,
-  "clear": 6901,
+  "clear": 6947,
   "inputVersion": "fd92d6289c2732b3e514b0d617e6eb0676e24109434d7d4e9e7ab7f8ad30af60",
-  "sha256": "31eba790af004dad7a3c00bb03aca3017f145d4d8c9d3b7b6e521573e9caaeef",
+  "reslice": "l9/reslice.py",
+  "sha256": "f65e2c221fdc5060ad57b22609cbfd34b805697bb8cfa92c022ce0c6ba6a5802",
   "variantOf": "item.icon.tusk",
-  "visible": 2167
+  "visible": 2129
  },
  "item.icon.volcanic-alloy": {
   "atlas": "l9/atlas-n.png",
   "cell": 2,
-  "clear": 5800,
+  "clear": 5790,
   "inputVersion": "2f4315ccd9bbc99fe149f542bfbb14c36ab43bda243b8813ca5021a3021124e4",
-  "sha256": "da4fb6b7f2fe1f86e8f91eeee486dcf48d3b3143d45f7f74f6cd2ba4545bd070",
-  "visible": 3282
+  "reslice": "l9/reslice.py",
+  "sha256": "4516d2411f63812ba733cdfce24101cc239c0b221803f1c2af2bcfd99249bcec",
+  "visible": 3290
  },
  "item.icon.volcanic-ash": {
   "atlas": "l9/atlas-v.png",
   "cell": 2,
-  "clear": 6336,
+  "clear": 6328,
   "inputVersion": "efec463baa6b4a7c24a9b0c99e72b40a5105fdbcc042b485b794129e765dd4de",
-  "sha256": "0fab904d122b2c0920187a89ff78768216d4f0d420cd228efdd24ab4e0304d7d",
-  "visible": 2459
+  "reslice": "l9/reslice.py",
+  "sha256": "b5398c20b7553f10a6680772757cfc1abf5e86f955c6c86792099533e7f835b2",
+  "visible": 2474
  },
  "item.icon.volcanic-bone": {
   "atlas": "l9/atlas-t.png",
   "cell": 3,
-  "clear": 6787,
+  "clear": 6728,
   "inputVersion": "e6f6bf4e541b21ae8bcddd9c07a7e4a3614cfa85c155cc106eccdaf7c38ae9ab",
-  "sha256": "d78ef8efc9c35da5e9822bab262932430d647f6de74ea7a291cc4b02e4410b26",
-  "visible": 2298
+  "reslice": "l9/reslice.py",
+  "sha256": "04929b3bbb89e721ff17bf133666f75402829efd01af8d3cd07388e55c5a00be",
+  "visible": 2334
  },
  "item.icon.volcanic-bone-profile": {
   "atlas": "l9/atlas-t.png",
   "cell": 3,
-  "clear": 6787,
+  "clear": 6728,
   "inputVersion": "9b4899a8c8985145ccc928f976855351c4253070677b5a8df5c01b53bff5646d",
-  "sha256": "d78ef8efc9c35da5e9822bab262932430d647f6de74ea7a291cc4b02e4410b26",
+  "reslice": "l9/reslice.py",
+  "sha256": "04929b3bbb89e721ff17bf133666f75402829efd01af8d3cd07388e55c5a00be",
   "variantOf": "item.icon.volcanic-bone",
-  "visible": 2298
+  "visible": 2334
  },
  "item.icon.volcanic-ore": {
   "atlas": "l9/atlas-c.png",
   "cell": 13,
-  "clear": 4437,
+  "clear": 4370,
   "inputVersion": "484db7d05e48c3e0f33ef0f315d8036f2a40183fd2784e323ca70275ba00c7df",
-  "sha256": "0a0f849429047c2881f281d230eedb0dfbec2c7144f4fe4d240b5b7fa6d32830",
-  "visible": 4651
+  "reslice": "l9/reslice.py",
+  "sha256": "13a8b5c2ba9afb3630bcb2eb2c0e50ab35630b8504553d6a0ebeb16c20b17659",
+  "visible": 4693
  },
  "item.icon.volcanic-ore-profile": {
   "atlas": "l9/atlas-c.png",
   "cell": 13,
-  "clear": 4437,
+  "clear": 4370,
   "inputVersion": "aa881a57c1137bc628faf421a50ee492fffbdea59787aa762f3bfb7a2c587cac",
-  "sha256": "0a0f849429047c2881f281d230eedb0dfbec2c7144f4fe4d240b5b7fa6d32830",
+  "reslice": "l9/reslice.py",
+  "sha256": "13a8b5c2ba9afb3630bcb2eb2c0e50ab35630b8504553d6a0ebeb16c20b17659",
   "variantOf": "item.icon.volcanic-ore",
-  "visible": 4651
+  "visible": 4693
  },
  "item.icon.volcanic-wall": {
   "atlas": "l9/atlas-l.png",
@@ -2273,19 +2468,21 @@
  "item.icon.water": {
   "atlas": "l9/atlas-b.png",
   "cell": 16,
-  "clear": 4839,
+  "clear": 4919,
   "inputVersion": "302a9be4b7c132598fb5c998b7a2b5d3f5946ed1d8c03ca9882a8414fce7b2da",
-  "sha256": "8e7e868b9ac5b4625e66741ce4f8fb3a8997b157675630741ce82412a326c96b",
-  "visible": 4201
+  "reslice": "l9/reslice.py",
+  "sha256": "8a04feddba74982d6030580b82dc79a955fb4a7be3367c6ae70d7c1745dfceec",
+  "visible": 4157
  },
  "item.icon.water-profile": {
   "atlas": "l9/atlas-b.png",
   "cell": 16,
-  "clear": 4839,
+  "clear": 4919,
   "inputVersion": "049bbe872d9592897f5729fb24ce9f6ab63200a1d73945bb2e4c4e4b11d130f8",
-  "sha256": "8e7e868b9ac5b4625e66741ce4f8fb3a8997b157675630741ce82412a326c96b",
+  "reslice": "l9/reslice.py",
+  "sha256": "8a04feddba74982d6030580b82dc79a955fb4a7be3367c6ae70d7c1745dfceec",
   "variantOf": "item.icon.water",
-  "visible": 4201
+  "visible": 4157
  },
  "item.icon.well-kit": {
   "atlas": "l9/atlas-l.png",
@@ -2298,27 +2495,30 @@
  "item.icon.wheat": {
   "atlas": "l9/atlas-d.png",
   "cell": 16,
-  "clear": 6304,
+  "clear": 6460,
   "inputVersion": "16a5982a73c928c224f02d3842a216ecd68088406c21166c2a54c82e4a053378",
-  "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
-  "visible": 2414
+  "reslice": "l9/reslice.py",
+  "sha256": "96603d3ac7a73f5d7907ef009633e09558683679a896bc395234f4e4494464fb",
+  "visible": 2216
  },
  "item.icon.wheat-flatbread": {
   "atlas": "l9/atlas-r.png",
   "cell": 3,
-  "clear": 4883,
+  "clear": 4874,
   "inputVersion": "6d38634aecd3b4db1ae5fb367c31624331b2e02c49130052bb84195c8836f57b",
-  "sha256": "49f13e5cbf89a0d85cb3b749a256227d00971e3b20bf21a00f88f536c08b9f1b",
-  "visible": 4196
+  "reslice": "l9/reslice.py",
+  "sha256": "10e9a8166120f86e863bece83728c98f8a9169f87276a49432cc18f709fe2bae",
+  "visible": 4197
  },
  "item.icon.wheat-profile": {
   "atlas": "l9/atlas-d.png",
   "cell": 16,
-  "clear": 6304,
+  "clear": 6460,
   "inputVersion": "0853999171559613d3bf2bf0a0635adc87f3c81a1df0f83a7ee3cfb8517821e3",
-  "sha256": "ef69e3cae1004d8c44cef713eb66205fb439503a613e199d209cd8a36a9138f6",
+  "reslice": "l9/reslice.py",
+  "sha256": "96603d3ac7a73f5d7907ef009633e09558683679a896bc395234f4e4494464fb",
   "variantOf": "item.icon.wheat",
-  "visible": 2414
+  "visible": 2216
  },
  "item.icon.wheat-seed": {
   "atlas": "l9/atlas-s.png",
@@ -2340,87 +2540,97 @@
  "item.icon.wood": {
   "atlas": "l9/atlas-a.png",
   "cell": 10,
-  "clear": 5483,
+  "clear": 5510,
   "inputVersion": "0fc8314f9e777dcf1b55fd5ed77bf8aace3d00eaa8dc9f186180828795bac377",
-  "sha256": "8a6445b6c42145874c8257677c0b47f236764f330e5fb210ac91cd5733cd5fe2",
-  "visible": 3588
+  "reslice": "l9/reslice.py",
+  "sha256": "448244a11c1250f914dcb677a86f6d5ff89579d0d37ed75478b5e55921b744a6",
+  "visible": 3559
  },
  "item.icon.wood-profile": {
   "atlas": "l9/atlas-a.png",
   "cell": 10,
-  "clear": 5483,
+  "clear": 5510,
   "inputVersion": "24539825e5f7689cc7792f3ad6bcd8e111f0633d39f1b8809d57ebf2a63a2b44",
-  "sha256": "8a6445b6c42145874c8257677c0b47f236764f330e5fb210ac91cd5733cd5fe2",
+  "reslice": "l9/reslice.py",
+  "sha256": "448244a11c1250f914dcb677a86f6d5ff89579d0d37ed75478b5e55921b744a6",
   "variantOf": "item.icon.wood",
-  "visible": 3588
+  "visible": 3559
  },
  "item.icon.woodland-skewer": {
   "atlas": "l9/atlas-b.png",
   "cell": 11,
-  "clear": 6986,
+  "clear": 7030,
   "inputVersion": "1f4fd309b4e379ec4b5c8aaf92ab54a37c99e121a7c2310179ac3191fa4dbcd8",
-  "sha256": "5b445a370d7fa74a2845b65d0ce8cd2b7698036cc03a08d9baabbc863ea0abe7",
-  "visible": 2055
+  "reslice": "l9/reslice.py",
+  "sha256": "f394752f5e9a7f2ecefc660ef8fe69c7d45402e499ab97a76bff0361837d0ed1",
+  "visible": 2035
  },
  "item.icon.workbench-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 2,
-  "clear": 5508,
+  "clear": 5559,
   "inputVersion": "1aa239c60b0048c466f46254fcd359d020dc109ea558574c105ad5da5c1cc564",
-  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
-  "visible": 3509
+  "reslice": "l9/reslice.py",
+  "sha256": "2b909a818d2c8266e33a01d70343e238a86a07b6c5e477b0ed88c03810572aec",
+  "visible": 3460
  },
  "item.icon.workbench-t2-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 12,
-  "clear": 4964,
+  "clear": 5331,
   "inputVersion": "38d24d2f8b63da7704bdb4d9253a55091036a80bc31a29682f0e4daf858f7199",
-  "sha256": "43810c82a58035396ee18f44778262f565b36150e70dfbe0e02505038a179767",
-  "visible": 4001
+  "reslice": "l9/reslice.py",
+  "sha256": "56c538d6662876e7fa15c46c9b4888bd4770c32c5a8d6bed03dc531c1992f50c",
+  "visible": 3623
  },
  "item.icon.workbench-t3-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 13,
-  "clear": 4609,
+  "clear": 5123,
   "inputVersion": "cbc1401bf69a8a010813033a6c0697547d5a3074bb9028f8ef630a73ddcdce83",
-  "sha256": "1645eecbefb50b4c6ccb61a36d63530fe8caca98550b311760eae8def2adc242",
-  "visible": 4294
+  "reslice": "l9/reslice.py",
+  "sha256": "3d05e022ade15a5b0af72b71fe15e128449d925509c88f7ca3710426554d7718",
+  "visible": 3845
  },
  "recipe.icon.animal-pen": {
   "atlas": "l9/atlas-l.png",
   "cell": 9,
-  "clear": 5677,
+  "clear": 5909,
   "inputVersion": "0f8ddaf7bd22b2fa2d4a51e9cc273e09ae91ca1a330ae2c3677917f233595460",
-  "sha256": "71eebf52e24100450597d0c6b4f8bde7a96d0ae32557429d7b2ba1f6fc6b2bd6",
+  "reslice": "l9/reslice.py",
+  "sha256": "a86a3df0be6f7533650c669196ddbfeebfbaa071c70875ced8f88a9667748044",
   "variantOf": "item.icon.animal-pen",
-  "visible": 3246
+  "visible": 3048
  },
  "recipe.icon.axe-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 13,
-  "clear": 6668,
+  "clear": 6869,
   "inputVersion": "bbac29cd7f0592784264c54f4979bdfd0e5e3748f44aa932a03281a70a68e3a9",
-  "sha256": "3933276e68d96d7457869a08871518755d5cfe917bbe297e9247366360e852cb",
+  "reslice": "l9/reslice.py",
+  "sha256": "f1e868091399a1b8f99198c8fa44a7f25042641cb6b32ee464e530db26378be4",
   "variantOf": "item.icon.axe-t1",
-  "visible": 2352
+  "visible": 2204
  },
  "recipe.icon.axe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 2,
-  "clear": 7189,
+  "clear": 7529,
   "inputVersion": "e22b5d46c50e6972cc8dcb94eacab8a646b2f0947bc3d313e44fef0fb7b74210",
-  "sha256": "6ce9da512d6a8e8256b1255264a5b9d08e7074e26a135e1d52c48383e60e2f3a",
+  "reslice": "l9/reslice.py",
+  "sha256": "7b221e931b4aae7b7ba9c406e4f2cd4594dfb9adb6b9df130c91854c10487253",
   "variantOf": "item.icon.axe-t2",
-  "visible": 1846
+  "visible": 1554
  },
  "recipe.icon.axe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 6,
-  "clear": 7126,
+  "clear": 7478,
   "inputVersion": "30f47ec5aded55f6cc0148a11d5244679fff71b7734c81ff96ceb68f47b966c2",
-  "sha256": "5e6dc03c592404b49baa840c536af480eaff5fe580e57db8decaf37328b14973",
+  "reslice": "l9/reslice.py",
+  "sha256": "4e9b4b846a951183066b0650da7f47386c15fa9274861066ec59a44fcb4b17f9",
   "variantOf": "item.icon.axe-t3",
-  "visible": 1911
+  "visible": 1598
  },
  "recipe.icon.baked-apple": {
   "atlas": "l9/atlas-r.png",
@@ -2434,11 +2644,12 @@
  "recipe.icon.baked-potato": {
   "atlas": "l9/atlas-r.png",
   "cell": 2,
-  "clear": 5528,
+  "clear": 5699,
   "inputVersion": "1f6b47dc2e5eb46d4345cd68af09adbf5b9084d57303595a06e7a12658f755db",
-  "sha256": "53cc9ee483d412fdcdcce3801b5bc0be8d67d9dc5f5f98df53f6f151c1845870",
+  "reslice": "l9/reslice.py",
+  "sha256": "40b6b5b029e0893878aae641f85035d8286d9dc94b881103e2ab03e1ff5bc0c5",
   "variantOf": "item.icon.baked-potato",
-  "visible": 3383
+  "visible": 3242
  },
  "recipe.icon.banana-mash": {
   "atlas": "l9/atlas-r.png",
@@ -2461,38 +2672,42 @@
  "recipe.icon.berry-meal": {
   "atlas": "l9/atlas-b.png",
   "cell": 10,
-  "clear": 4809,
+  "clear": 5310,
   "inputVersion": "0b7cc5cb4f4690321d43ab3a391d0b840b2f3aa19f249b2fdd49aab91b491f97",
-  "sha256": "d6152834df2f4728cb6c5eaa3a904a7ab8624db5988023529d8f6e21d4aab37d",
+  "reslice": "l9/reslice.py",
+  "sha256": "b3246503ff516a3e55fa4b1e619e450354bf203750afae8c4a4f9ffe274cd0d8",
   "variantOf": "item.icon.berry-meal",
-  "visible": 4242
+  "visible": 3754
  },
  "recipe.icon.bone-knife": {
   "atlas": "l9/atlas-a.png",
   "cell": 1,
-  "clear": 7292,
+  "clear": 7356,
   "inputVersion": "bb289c8b34dff7e69f0ca33ae79584e6933415cc8231cf0fae108b8acea1ad19",
-  "sha256": "c25ce373ed3b84463902eeb126ae262b9f1fb6c50c5f3fe41d62ce11357637ad",
+  "reslice": "l9/reslice.py",
+  "sha256": "8a19066fe2cfdf7a97e1f94f3331894561bdf6d7f352cfefd347803785009e9c",
   "variantOf": "item.icon.bone-knife",
-  "visible": 1786
+  "visible": 1732
  },
  "recipe.icon.bow-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 14,
-  "clear": 8098,
+  "clear": 8222,
   "inputVersion": "d30d906bacaf664f0ac5b36c213994d99124ae873ae31a250bcd1266e22d289d",
-  "sha256": "3d8568f2e97dc32cf088d9b4b33094f7e5fd1e6f639215d3a17b57f34bfa6c4d",
+  "reslice": "l9/reslice.py",
+  "sha256": "125beec203de74f56acbc5b83f8495bd964af80767a28ee145fd0f8c5ebb0847",
   "variantOf": "item.icon.bow-t1",
-  "visible": 878
+  "visible": 776
  },
  "recipe.icon.bow-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 5,
-  "clear": 7908,
+  "clear": 8001,
   "inputVersion": "9311a521d9543f10fd0b29f28764b18cbdd2f4c9631061497cff41ec22f95d8f",
-  "sha256": "74036e1998d7f895f5fd20d6e410bfbc08a3e74fd89d2a4c9e63fc2e7b3fa93a",
+  "reslice": "l9/reslice.py",
+  "sha256": "8746908879e9953395baaf651952fc9d5606dae95aaf1262591ceff01ba94e69",
   "variantOf": "item.icon.bow-t2",
-  "visible": 1040
+  "visible": 972
  },
  "recipe.icon.bow-t3": {
   "atlas": "l9/atlas-p.png",
@@ -2506,74 +2721,82 @@
  "recipe.icon.brick-floor-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 1,
-  "clear": 5648,
+  "clear": 5814,
   "inputVersion": "49ed6707cabe6245f0acb433d919bfd60701d79347360326286292f9c2dd3ac9",
-  "sha256": "6dd08eab4a4581c8348f3eb649ce933b74c470402a8194e5b6c5c4b6373b5489",
+  "reslice": "l9/reslice.py",
+  "sha256": "e5998845b56afcfcf42ab73892acae2e88c8689eeb1a88af2135d37b01fed829",
   "variantOf": "item.icon.brick-floor-kit",
-  "visible": 3426
+  "visible": 3271
  },
  "recipe.icon.brick-roof-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 2,
-  "clear": 5305,
+  "clear": 5510,
   "inputVersion": "93fb686812b958049dd465f412662014028bda95dd32654ae6f3d77b979537e7",
-  "sha256": "5d4045dbcb76d58927de7749a72393f5378c902f5788edb4517537cabcf325e9",
+  "reslice": "l9/reslice.py",
+  "sha256": "cd41c4d273a7329dcbc3b339c464794023148d2a878162ad84089d45c376831e",
   "variantOf": "item.icon.brick-roof-kit",
-  "visible": 3757
+  "visible": 3563
  },
  "recipe.icon.brick-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 3,
-  "clear": 4083,
+  "clear": 4157,
   "inputVersion": "d58245d843058a4617601ebfd12dc5f30a34aaa1b5a5a8b7f99da50a58bb25a7",
-  "sha256": "2df56be3ddde74a87d2955e435d3433258ce2a7df197f6a8e03c4a5a10b8b5c3",
+  "reslice": "l9/reslice.py",
+  "sha256": "8329e49dd06da81cc32501ad1cf646feb9edae2c6e9b9f294a1f5ba43af457e5",
   "variantOf": "item.icon.brick-wall-kit",
-  "visible": 4957
+  "visible": 4890
  },
  "recipe.icon.campfire-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 1,
-  "clear": 5391,
+  "clear": 5446,
   "inputVersion": "c4ecd9069e057b84938e0d545d41c6b41ab7588e00a2045b0221f24cffe9370c",
-  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
+  "reslice": "l9/reslice.py",
+  "sha256": "5a236494022181d18463ef5756b718c99b5116999baf953b232467f18284abae",
   "variantOf": "item.icon.campfire-kit",
-  "visible": 3592
+  "visible": 3567
  },
  "recipe.icon.capture-bola": {
   "atlas": "l9/atlas-a.png",
   "cell": 8,
-  "clear": 7136,
+  "clear": 7156,
   "inputVersion": "18c735a6df4a4300375380e5dc4be8fa12eade83fe855445d46d4a1e357f2179",
-  "sha256": "9983dc9a16318173bba0ceda9011f1a683383e7c184d0789e38aad6539c60d54",
+  "reslice": "l9/reslice.py",
+  "sha256": "0ad276c82f7e1feaf242b18b97e6e4609b57fb235a0be14ba54825714a3b009d",
   "variantOf": "item.icon.capture-bola",
-  "visible": 1874
+  "visible": 1859
  },
  "recipe.icon.capture-rope": {
   "atlas": "l9/atlas-s.png",
   "cell": 15,
-  "clear": 6165,
+  "clear": 6594,
   "inputVersion": "052d9e94c022805add159d2bcc21511d11e4e4e909d02677f5418865941b7ac3",
-  "sha256": "22c17852fb8c1264a2fe2253d4181a7548f6054821efe7fe69ac527237046b49",
+  "reslice": "l9/reslice.py",
+  "sha256": "f5d28a3a4e62c2c7df02b1e33725ac3a7ddb0baf21460bd6ab745558159dc714",
   "variantOf": "item.icon.capture-rope",
-  "visible": 2916
+  "visible": 2502
  },
  "recipe.icon.carnivore-feed": {
   "atlas": "l9/atlas-s.png",
   "cell": 2,
-  "clear": 4916,
+  "clear": 5148,
   "inputVersion": "98f974ed028de0b15959aa7b7079a1fc6c838dcc06f9246f4c76bf308d386f71",
-  "sha256": "918249d1c96610d7774e08348f550ed3eccee67c2b33059bc7dd6ea8362f9f13",
+  "reslice": "l9/reslice.py",
+  "sha256": "50a9a65d23ada4b1de3b3698eb446bff6165cc2299c2ea016f53aa4a32eca880",
   "variantOf": "item.icon.carnivore-feed",
-  "visible": 4146
+  "visible": 3906
  },
  "recipe.icon.cattail-flatbread": {
   "atlas": "l9/atlas-b.png",
   "cell": 13,
-  "clear": 4423,
+  "clear": 4457,
   "inputVersion": "3adc43b8920fee96b0fd84bf29ccadffee18f760ddd33d7c7e58891139c3657e",
-  "sha256": "55aadb3857a431681282d43f9ac694fc4453fc35a6ac33d8dd8cd521a9b1938b",
+  "reslice": "l9/reslice.py",
+  "sha256": "6590eba4361d2ab0c2b995b15a738aeeec209c5091d7a216701d10c022c67f2d",
   "variantOf": "item.icon.cattail-flatbread",
-  "visible": 4644
+  "visible": 4617
  },
  "recipe.icon.clam-bake": {
   "atlas": "l9/atlas-b.png",
@@ -2587,110 +2810,122 @@
  "recipe.icon.clam-soup": {
   "atlas": "l9/atlas-r.png",
   "cell": 15,
-  "clear": 4330,
+  "clear": 4317,
   "inputVersion": "3bba95329189bc0beeab8c1ec9aa644cbb455ba07c2592dc41cc4f2f8471dee8",
-  "sha256": "48c5c6db632b07338357cf66f1b795644d363c2ff74ca877ae31c5f19f303150",
+  "reslice": "l9/reslice.py",
+  "sha256": "e021c533fd6669e1e43567a14e64809544ea7199c78f465e2181451bfd7c79d8",
   "variantOf": "item.icon.clam-soup",
-  "visible": 4761
+  "visible": 4773
  },
  "recipe.icon.clan-hall-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 8,
-  "clear": 4892,
+  "clear": 5067,
   "inputVersion": "38bcb2dda3f4dfbd1839e82c56b54b556eef94f1207d15f35ebb6b6b61d6336e",
-  "sha256": "190142bf0281a5414364935a9f167965e103087695b45eeca5c103194dec5296",
+  "reslice": "l9/reslice.py",
+  "sha256": "f37ddd02d69dd8b3bc4f12c3bdcd85976cb825c247337f60719e4c61a675471a",
   "variantOf": "item.icon.clan-hall-kit",
-  "visible": 4162
+  "visible": 4002
  },
  "recipe.icon.club-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 10,
-  "clear": 6769,
+  "clear": 6787,
   "inputVersion": "75e9df77290b86c44897612659459603e4cafb5c400cd97871429db02428c3e0",
-  "sha256": "eefc1b65b188e2135651108245818d01fe1a6ac801d948eb9e8e4531ea427517",
+  "reslice": "l9/reslice.py",
+  "sha256": "bdafae84bc23eb6e3c2f56d8e698d85749ff78266668653996307193fa482996",
   "variantOf": "item.icon.club-t1",
-  "visible": 2315
+  "visible": 2285
  },
  "recipe.icon.club-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 1,
-  "clear": 7059,
+  "clear": 7200,
   "inputVersion": "11a927809553a2669f052a2b66157cda8a49aaca46dd55539d64211310581e4f",
-  "sha256": "f3ba683c360f86539962687a1be37daa6145dd2317db743f2b3b28c6978d2ea5",
+  "reslice": "l9/reslice.py",
+  "sha256": "b3aea2bf08fb4bc0e8cf1df0b7192aa855d106bc47b04db192a35393a1c27fff",
   "variantOf": "item.icon.club-t2",
-  "visible": 1994
+  "visible": 1884
  },
  "recipe.icon.club-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 7,
-  "clear": 7170,
+  "clear": 7322,
   "inputVersion": "25937014728ce81b6be4a8eaa5336a73be2f48f900d8e4c92b7d987053998780",
-  "sha256": "d5ddd990543c68c43f8e3f02312b3000ce6acc78e2b758ec9574734b6bcfe8a8",
+  "reslice": "l9/reslice.py",
+  "sha256": "9afe5ee2e9670cd60760f1f73e9056778f3bca5dee1c20c7615d3dd5d889424f",
   "variantOf": "item.icon.club-t3",
-  "visible": 1886
+  "visible": 1745
  },
  "recipe.icon.cold-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 15,
-  "clear": 3694,
+  "clear": 3951,
   "inputVersion": "69e56421f3c5e6a60ae0a2a4d22354756a66ee2d99e0c0b5155bcc57373a8287",
-  "sha256": "a7096ec474de28f44e3d45e09c16d7b4a00f2156cd13b26c73c42971de20ada9",
+  "reslice": "l9/reslice.py",
+  "sha256": "33e73bdb12c123d7476cdd06527efdad3b90d41567f4c7062354ca70a5ab702a",
   "variantOf": "item.icon.cold-bag",
-  "visible": 5382
+  "visible": 5111
  },
  "recipe.icon.cold-bottom": {
   "atlas": "l9/atlas-q.png",
   "cell": 12,
-  "clear": 4495,
+  "clear": 4537,
   "inputVersion": "dd2ef2c7d199352f112eb5f7693bb32fbe6b51b02814964ee33e3edef88d57f7",
-  "sha256": "2640a7a7f60fc2cca0f0407dbbfe6dd074dd990c19313f18308567cec3a18f9a",
+  "reslice": "l9/reslice.py",
+  "sha256": "82a17e36e6acb159748b56c90780deed248338f3c2d78f67810fb6f1c755e57a",
   "variantOf": "item.icon.cold-bottom",
-  "visible": 4573
+  "visible": 4516
  },
  "recipe.icon.cold-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 14,
-  "clear": 5082,
+  "clear": 5219,
   "inputVersion": "69682dff87d0fd82c4787f37519431ee26aacbcfff0a819a02e053da7d8a3660",
-  "sha256": "65a8ed5bfd2290b68e59c1b79d292eb324b7ca9f81d2a35efd857fa79ff82d77",
+  "reslice": "l9/reslice.py",
+  "sha256": "1d1884341ec926eb00601d478f0e2dbee3654b96f66ad6d51e11a262164d22ff",
   "variantOf": "item.icon.cold-gloves",
-  "visible": 3929
+  "visible": 3822
  },
  "recipe.icon.cold-head": {
   "atlas": "l9/atlas-q.png",
   "cell": 10,
-  "clear": 4598,
+  "clear": 4626,
   "inputVersion": "6ddaab46d0eb60a30066e9f749345cdd0ee87e44a8a161998daf82be3e7a105b",
-  "sha256": "2546f6256e60a8a189578a0c82ec8bbfc39ccf70bfd050f31d87f17e61a611d0",
+  "reslice": "l9/reslice.py",
+  "sha256": "517e71000dcce785a9b8b765aedf719e8682b5c40767be2e5eb7523ebf6cdfdb",
   "variantOf": "item.icon.cold-head",
-  "visible": 4427
+  "visible": 4397
  },
  "recipe.icon.cold-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 13,
-  "clear": 4366,
+  "clear": 4597,
   "inputVersion": "13b939a926051caf5bf9af819d85457deaac2b4234548279b4960b5f0f271d0c",
-  "sha256": "50e903714a84b7fab9d6caaf8dc892fbb48dfa584787aa8faa7b9c261882c6df",
+  "reslice": "l9/reslice.py",
+  "sha256": "6590a89519174297568c1e30114f9378fd18d5e110ca350fc386cffb26a4f082",
   "variantOf": "item.icon.cold-shoes",
-  "visible": 4636
+  "visible": 4445
  },
  "recipe.icon.cold-top": {
   "atlas": "l9/atlas-q.png",
   "cell": 11,
-  "clear": 3690,
+  "clear": 4287,
   "inputVersion": "0af8032424b8dd727c92b41eb550c59ce195cefc1644cf35c6959ba021c43326",
-  "sha256": "c9e665180f5b04f030610338d7d31124bc59b32e23bdc10eeedd8208fb508411",
+  "reslice": "l9/reslice.py",
+  "sha256": "fe8dfac2a690ffb0e45894ec201524e375b42353f9595b32ffc4874922f90249",
   "variantOf": "item.icon.cold-top",
-  "visible": 5361
+  "visible": 4777
  },
  "recipe.icon.compost-berry": {
   "atlas": "l9/atlas-n.png",
   "cell": 9,
-  "clear": 5558,
+  "clear": 5708,
   "inputVersion": "cecf2daeb59518cc015927da33222aff6f7a3864a44118eacb3ea4bed96c1838",
-  "sha256": "a36f12b4931d4c3bc76159048abef255319e061d5b6b5ec793f5d7a01b410808",
+  "reslice": "l9/reslice.py",
+  "sha256": "d6b25ff93a126876fcedd14a9644ae11906b169ede7bafcb9b3cf704d7b10069",
   "variantOf": "item.icon.berry-compost",
-  "visible": 3478
+  "visible": 3345
  },
  "recipe.icon.compost-fiber": {
   "atlas": "l9/atlas-n.png",
@@ -2704,11 +2939,12 @@
  "recipe.icon.compost-leaves": {
   "atlas": "l9/atlas-n.png",
   "cell": 10,
-  "clear": 5471,
+  "clear": 5667,
   "inputVersion": "adc77c9beaebe490fe91c29344d6aced5e834132820a853d2d79858caec59295",
-  "sha256": "595dc9baccefdfc4b18cafd13f78e57d0ec1e074aaeeb64b0d72f7480e1744d6",
+  "reslice": "l9/reslice.py",
+  "sha256": "eddae8bc3a3f74966b6540680fb4caa2c71427c73b5c530750736646cd97fc65",
   "variantOf": "item.icon.leaf-compost",
-  "visible": 3559
+  "visible": 3366
  },
  "recipe.icon.compost-spoiled-food": {
   "atlas": "l9/atlas-n.png",
@@ -2722,11 +2958,12 @@
  "recipe.icon.cooked-meat": {
   "atlas": "l9/atlas-a.png",
   "cell": 14,
-  "clear": 4952,
+  "clear": 5064,
   "inputVersion": "f5c5701b3ac9b4188a578585c06211e38b76153b7ffaccab1301263905b75dcf",
-  "sha256": "98c75858863ae4bb8c79ee474f6b2f01a9c1e8b451bf588012876fcd1c1da206",
+  "reslice": "l9/reslice.py",
+  "sha256": "0a34b44f170e10ee64550ac909f08c36ba1b5c51b225b097bcc33c1d7b5b4fc2",
   "variantOf": "item.icon.cooked-meat",
-  "visible": 4046
+  "visible": 3801
  },
  "recipe.icon.cord": {
   "atlas": "l9/atlas-a.png",
@@ -2740,38 +2977,42 @@
  "recipe.icon.corn-porridge": {
   "atlas": "l9/atlas-r.png",
   "cell": 1,
-  "clear": 4327,
+  "clear": 4536,
   "inputVersion": "47535e271888b5435e9ec64bbf85ff536f967588bd5c769efb84b7a7491b890b",
-  "sha256": "5914577dfad7025861d0fc35d43becb20a5e4508fe787f569cf1d87411bcf2e4",
+  "reslice": "l9/reslice.py",
+  "sha256": "ce38e65dbba52a7090d09ebd1fd8624f804aba64edacda56618a20cd686cfa8e",
   "variantOf": "item.icon.corn-porridge",
-  "visible": 4726
+  "visible": 4559
  },
  "recipe.icon.crossbow-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 15,
-  "clear": 7244,
+  "clear": 7371,
   "inputVersion": "39c072dd8d9ada16e83c31ebe6f65c8fc12a9eba07d5d6c5688e04e6b2adbce0",
-  "sha256": "a43809f10c4a700ee0cd2bb1872ae2cdae88860481afe96d8f1eb2df44ab53eb",
+  "reslice": "l9/reslice.py",
+  "sha256": "820dd189bb1d62f5fc33854e4d036cc01e543096c05d6238f921f4bc327e120c",
   "variantOf": "item.icon.crossbow-t1",
-  "visible": 1723
+  "visible": 1584
  },
  "recipe.icon.crossbow-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 6,
-  "clear": 6920,
+  "clear": 7064,
   "inputVersion": "7e858c40a826b0e355c8982ddc614c445fd0ce56399f962a624ac261cfd80fa6",
-  "sha256": "85e326170a4f9a645dd0592e3feb1bbd19760f93368debe915c006d6565bc1e7",
+  "reslice": "l9/reslice.py",
+  "sha256": "cd0843269e33c1d5de9ce02084b17d02948e3e350be599713f30fecfd95fc4fa",
   "variantOf": "item.icon.crossbow-t2",
-  "visible": 2002
+  "visible": 1896
  },
  "recipe.icon.crossbow-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 12,
-  "clear": 6874,
+  "clear": 6900,
   "inputVersion": "50314a360cde41fbc1603c29a2b2bacead4062be8bb2dda4aa07c684f11e330d",
-  "sha256": "b827e9e368824d0db9ae8597a3d65b26222b7a08fa70d9474052e8a70fa31d8e",
+  "reslice": "l9/reslice.py",
+  "sha256": "40f7cb0acac48471f945272f66e002d835561095471f2732fa4c8b4157640d2a",
   "variantOf": "item.icon.crossbow-t3",
-  "visible": 2058
+  "visible": 2034
  },
  "recipe.icon.door-kit": {
   "atlas": "l9/atlas-l.png",
@@ -2785,38 +3026,42 @@
  "recipe.icon.dry-fiber": {
   "atlas": "l9/atlas-m.png",
   "cell": 2,
-  "clear": 6184,
+  "clear": 6250,
   "inputVersion": "8c19211169949099741afc28929ed40f02f2b545562f5ae3ba6f3b2c23da5fc7",
-  "sha256": "5d7920ec627a341e50054d58a93f91763e59caf314885961dd1e451429bdae60",
+  "reslice": "l9/reslice.py",
+  "sha256": "25df37fbfd96cd08dfbcf977bcab1692bce322776b02a54060fd86f2b6848f30",
   "variantOf": "item.icon.dried-fiber",
-  "visible": 2884
+  "visible": 2813
  },
  "recipe.icon.dry-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 3,
-  "clear": 4754,
+  "clear": 4657,
   "inputVersion": "76d16bc92b3b6ea2eb40d164054e5ac063271e740403ea3e0485f4a387a065a5",
-  "sha256": "76ea0479e4f5c40c434d460810e5cd91bcd82b9578f6f310ad80038219032d4d",
+  "reslice": "l9/reslice.py",
+  "sha256": "60e01798b4ae8b415f48fe98d6783232faf044eb7dc38736e62f60a9663aae4a",
   "variantOf": "item.icon.dried-hide",
-  "visible": 4270
+  "visible": 4358
  },
  "recipe.icon.dry-meat": {
   "atlas": "l9/atlas-m.png",
   "cell": 4,
-  "clear": 5948,
+  "clear": 5876,
   "inputVersion": "096236d5cf02795004524443b2430d8f2edd755eca1d7d4ab034a1b8eaa87455",
-  "sha256": "f8d4b16b2675268e31ac4d8bc0df367ac12bb1296acd1a55fa412aaa9880c06d",
+  "reslice": "l9/reslice.py",
+  "sha256": "8562a379ada836edc53c8fccdac0cea847905ae1e4eabf7de8950157090f6772",
   "variantOf": "item.icon.dried-meat",
-  "visible": 3006
+  "visible": 3054
  },
  "recipe.icon.dry-twig": {
   "atlas": "l9/atlas-m.png",
   "cell": 1,
-  "clear": 5258,
+  "clear": 5438,
   "inputVersion": "aea9e80103eab6b63adca99f907d3b70344e81b01df43afd2aa447fcb84d2fba",
-  "sha256": "5da371d90c860c398f060d05a998627c51d2d898b7a70314c3fdf59001bd60ff",
+  "reslice": "l9/reslice.py",
+  "sha256": "a7d062b80c81490e03b6b6305388567a12c0dc784a9d2e632578c57482b8acbb",
   "variantOf": "item.icon.dried-wood",
-  "visible": 3792
+  "visible": 3629
  },
  "recipe.icon.extract-apple-seed": {
   "atlas": "l9/atlas-s.png",
@@ -2830,47 +3075,52 @@
  "recipe.icon.extract-banana-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 8,
-  "clear": 5315,
+  "clear": 5463,
   "inputVersion": "78a10e4bd5fa34d41640aefb186d914d31f4c12d8964d552786f7cb28b0c0096",
-  "sha256": "cf31c4b812a980a69e12e432c9c217ff7bdbbb772dd24178ab073e1c988835db",
+  "reslice": "l9/reslice.py",
+  "sha256": "93b1029686fd4cecf9b39c6a12fec6759f43fea1984c849e251fcb3cf31806b6",
   "variantOf": "item.icon.banana-seed",
-  "visible": 3706
+  "visible": 3579
  },
  "recipe.icon.extract-corn-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 3,
-  "clear": 5893,
+  "clear": 5898,
   "inputVersion": "301d6cd7a766f3ef2aad3d5bf21b6d466dfea967157ccf0d7152be4ed7b663a8",
-  "sha256": "1f5ffc1d978d26fea21db302ef96b6de319f81448c43e7dc8e63ed8c97e8c366",
+  "reslice": "l9/reslice.py",
+  "sha256": "de74bf431e3bf93f6673879a36c024ca3f9edd043e28dbc8e7960971390dee5b",
   "variantOf": "item.icon.corn-seed",
-  "visible": 3120
+  "visible": 3123
  },
  "recipe.icon.extract-fig-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 9,
-  "clear": 4570,
+  "clear": 4958,
   "inputVersion": "682ac8a621ef61d3d847a1620f6a7e0d3f0af07a04ba770169b25833a9097065",
-  "sha256": "b7a9fe9ebdd81f05ecb3668291acd2bb6f89b057313971dadbefef415634d9e7",
+  "reslice": "l9/reslice.py",
+  "sha256": "bda84a510083f6bb69072fbdaa8df75361b869811cf03f51d810fc57621984df",
   "variantOf": "item.icon.fig-seed",
-  "visible": 4419
+  "visible": 4038
  },
  "recipe.icon.extract-flax-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 7,
-  "clear": 5562,
+  "clear": 5474,
   "inputVersion": "390144745fa194a21d0f9c0d9639fcf7c55bbcbb1f9180b0de3900901614486e",
-  "sha256": "58c8fd9db4c0097f37a7742bc8c76e584995240c52b95adc542a89a71502855d",
+  "reslice": "l9/reslice.py",
+  "sha256": "792093d56e551e762797519249e81abadbef08020ad70486c007935f2dbd0b5d",
   "variantOf": "item.icon.flax-seed",
-  "visible": 3393
+  "visible": 3488
  },
  "recipe.icon.extract-onion-seed": {
   "atlas": "l9/atlas-s.png",
   "cell": 6,
-  "clear": 5799,
+  "clear": 5522,
   "inputVersion": "dd445824c0eda1888314dcd19d1fa540cefd6653ce0fa57f137549f2ba584a20",
-  "sha256": "e0198c51287350e8d546375628c95739c2f7be9e681b0c95a5c921700c7bd7ff",
+  "reslice": "l9/reslice.py",
+  "sha256": "8be8f4526eea76dab7ef95438d5d39ffa78edf975a20d5cef3e616b86345e4e6",
   "variantOf": "item.icon.onion-seed",
-  "visible": 3189
+  "visible": 3497
  },
  "recipe.icon.extract-potato-seed": {
   "atlas": "l9/atlas-s.png",
@@ -2902,11 +3152,12 @@
  "recipe.icon.ferment-corn": {
   "atlas": "l9/atlas-n.png",
   "cell": 3,
-  "clear": 3902,
+  "clear": 4083,
   "inputVersion": "1e17a5dbd958ac38a98c32fad5eb7c788ff58e6cc92e3dd47c0fca06be827b5a",
-  "sha256": "697b2e80476c1fb15b7de92d32ba3d007eeba5935e98f2ca2cb2ce67d664dc52",
+  "reslice": "l9/reslice.py",
+  "sha256": "3285da49e598d13d6e5fcba4575f381c24302e1abe887af6683c18f5bf668b54",
   "variantOf": "item.icon.fermented-corn",
-  "visible": 5141
+  "visible": 4990
  },
  "recipe.icon.ferment-fig": {
   "atlas": "l9/atlas-n.png",
@@ -2920,11 +3171,12 @@
  "recipe.icon.ferment-wheat": {
   "atlas": "l9/atlas-n.png",
   "cell": 4,
-  "clear": 3845,
+  "clear": 4064,
   "inputVersion": "65e87b3adbe84dbf622922c6e11b0c74161cd60603e1796046de92c9d8a8fe7c",
-  "sha256": "e3fb090418d41c2d4776cae8fc9f105af730aa1ca94b8ca82c17a9252b4fe805",
+  "reslice": "l9/reslice.py",
+  "sha256": "b4d52ca10901b947b6d9876825fe7ed81860428585dc6e3b80c7d83e59cc433b",
   "variantOf": "item.icon.fermented-wheat",
-  "visible": 5196
+  "visible": 4997
  },
  "recipe.icon.fig-stew": {
   "atlas": "l9/atlas-r.png",
@@ -2947,20 +3199,22 @@
  "recipe.icon.flint-knife": {
   "atlas": "l9/atlas-c.png",
   "cell": 3,
-  "clear": 6816,
+  "clear": 6938,
   "inputVersion": "7b334e7464b61136791ec810f569b86bad70532d7cd03a03a2fe1f4732f40e99",
-  "sha256": "49ff9d5e3bbc74e631b578e8575e25fcfc2e2fa150a4987ada8a2a84813ee3ba",
+  "reslice": "l9/reslice.py",
+  "sha256": "9fc1df9ce592a0cefc2d15c88346ae6eb02e13cf618bd4bd7221656634f3a1c2",
   "variantOf": "item.icon.flint-knife",
-  "visible": 2249
+  "visible": 2151
  },
  "recipe.icon.floor-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 4,
-  "clear": 5771,
+  "clear": 5761,
   "inputVersion": "54fd05ae4a00e674caeb1f45c16a6862aad8f9616a04c857602d6e88b2dea419",
-  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
+  "reslice": "l9/reslice.py",
+  "sha256": "e76c8321a2a16148ab9fbdcb9f75dd65ddb29c7a5ef42b75febb0bc644eb8bbc",
   "variantOf": "item.icon.floor-kit",
-  "visible": 3308
+  "visible": 3313
  },
  "recipe.icon.fruit-fertilizer": {
   "atlas": "l9/atlas-s.png",
@@ -2974,110 +3228,122 @@
  "recipe.icon.grilled-fish": {
   "atlas": "l9/atlas-r.png",
   "cell": 14,
-  "clear": 4952,
+  "clear": 5180,
   "inputVersion": "c6319e4572531f33e8f7d6b556dd0b82cbe177add2785f3c573303482c939d7b",
-  "sha256": "9933c829191a6040d1f6bfb5c40d36e518e79ee75b9911eb44194dfff01ad18f",
+  "reslice": "l9/reslice.py",
+  "sha256": "d6d78c42f29c19b21e70610f311f6e8365f145f9c4471355bad649c17dd3e86b",
   "variantOf": "item.icon.grilled-fish",
-  "visible": 4120
+  "visible": 3897
  },
  "recipe.icon.hammer-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 13,
-  "clear": 6965,
+  "clear": 6996,
   "inputVersion": "f2bcfc90da12e4cd689367dd9258ccc56ed9f8a9ab2822797eede1944384aa72",
-  "sha256": "5c439895dcaac00b8a43ffadbe1414ea026b9892299e62666b46bd66d17d2425",
+  "reslice": "l9/reslice.py",
+  "sha256": "246a405814affc54f96072c172d2b746d98c4d73d8c0523132440a74b5b3a20d",
   "variantOf": "item.icon.hammer-t1",
-  "visible": 2097
+  "visible": 2066
  },
  "recipe.icon.hammer-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 4,
-  "clear": 7237,
+  "clear": 7195,
   "inputVersion": "6255fa98bec7d529f29e0da0b70620e705fa872d495efcfbb56987821b9ea502",
-  "sha256": "5985a9ddb651a1f9b1207917fba18de831088482bf96ef91e53bc8a5bca0c543",
+  "reslice": "l9/reslice.py",
+  "sha256": "470ca64d46f17364b335cbae3badffceb5deddc82eb0f0f8141fcc84ee535ffb",
   "variantOf": "item.icon.hammer-t2",
-  "visible": 1813
+  "visible": 1884
  },
  "recipe.icon.hammer-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 10,
-  "clear": 6994,
+  "clear": 7130,
   "inputVersion": "f5fa2ab8bf636b9d2aa3220f30d885fa00836489517065fe8a06cd50488fa094",
-  "sha256": "05683c64f8964456ac5dc567391e1ce09adc9a9e85e5b296ee73b345ba15394c",
+  "reslice": "l9/reslice.py",
+  "sha256": "275006cd302364019603c3799c3764e5605d4397a04c3eb11cd6f3919844b8df",
   "variantOf": "item.icon.hammer-t3",
-  "visible": 2050
+  "visible": 1921
  },
  "recipe.icon.herbivore-feed": {
   "atlas": "l9/atlas-s.png",
   "cell": 1,
-  "clear": 4191,
+  "clear": 4507,
   "inputVersion": "9a7eb34ea95f82f91d6db771b6587d8431d536e8b15e782a265a53e4666373c5",
-  "sha256": "670f736804d5934ea82cb68de0a1966004a0e4bfcd0e9e1616163ead14e74565",
+  "reslice": "l9/reslice.py",
+  "sha256": "fe2f50817af76349af6a9f5d58768dd5e2d094ca0aeada37ef40cb27293da681",
   "variantOf": "item.icon.herbivore-feed",
-  "visible": 4851
+  "visible": 4556
  },
  "recipe.icon.hoe-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 1,
-  "clear": 7665,
+  "clear": 7742,
   "inputVersion": "e85076258b95e59e487068e3c63d0ecf9c42c41a2775402cecdc27786951a59a",
-  "sha256": "ae1ec334de0d6f97475dbf497008f5502628724ba0cf582439ff763ea666a041",
+  "reslice": "l9/reslice.py",
+  "sha256": "46a3a950002f5fcf99544d38c57eade2378fe8e8f8dd6310085ee034fbbdaf8e",
   "variantOf": "item.icon.hoe-t1",
-  "visible": 1374
+  "visible": 1328
  },
  "recipe.icon.hoe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 5,
-  "clear": 7686,
+  "clear": 7778,
   "inputVersion": "02c7bd15a56fb37d0ecf0f7ab219a68415f01a68966b0e6ef9db0ea7633ebfa6",
-  "sha256": "5f002337876637a5af362a4c1dd0551e75f347654186e4882d2ebaa6ca4ff265",
+  "reslice": "l9/reslice.py",
+  "sha256": "fe0998b2cc544a236a8ae9e7a35e954af1cc43a722397dad456f3760830e8ede",
   "variantOf": "item.icon.hoe-t2",
-  "visible": 1346
+  "visible": 1287
  },
  "recipe.icon.hoe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 9,
-  "clear": 7577,
+  "clear": 7693,
   "inputVersion": "94c8c9c84af814be1f00455955771276d24a8903d2873bc31bdc1109dba9f89b",
-  "sha256": "9896b16f27a6723269d2e8cfe1a82841fde1a6439c84e1056c4d29ce15792edd",
+  "reslice": "l9/reslice.py",
+  "sha256": "d99292aa1e4b4d4da03d5ea2f16d39363dd5219d6f0c07617247bf623f3e8d41",
   "variantOf": "item.icon.hoe-t3",
-  "visible": 1456
+  "visible": 1373
  },
  "recipe.icon.kiln-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 11,
-  "clear": 4310,
+  "clear": 4311,
   "inputVersion": "be00f03950f0e367ce9c41ea9e5ccd03fd83ecc6af4a058f77a22077adf84e5e",
-  "sha256": "eac56a9e76097318b114ad76ecf780833b10587c0d2fc599efe262c12b6b0014",
+  "reslice": "l9/reslice.py",
+  "sha256": "f91ce9349e071d6229b62dddd6002dad916e52fb0dbe32be211022229772446f",
   "variantOf": "item.icon.kiln-kit",
-  "visible": 4762
+  "visible": 4769
  },
  "recipe.icon.kiln-t2-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 14,
-  "clear": 4402,
+  "clear": 4534,
   "inputVersion": "5404b59871b94e717c007951748645b64a90e9ebb774ae739d9682ed2bb5ebcb",
-  "sha256": "e10443801a32ba554b4388e0a6e7e5c45cb4e2c95150994b80b76aab57256c4d",
+  "reslice": "l9/reslice.py",
+  "sha256": "a2c838db3ee3a1bf1cca8513366058de1c39d70454ca093a53ea80f5d17d645a",
   "variantOf": "item.icon.kiln-t2-kit",
-  "visible": 4664
+  "visible": 4518
  },
  "recipe.icon.kiln-t3-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 15,
-  "clear": 4573,
+  "clear": 5716,
   "inputVersion": "5dc233b98387bd35121885409cfc03b8b594f16041b36cc1a10b0a9033cbe71c",
-  "sha256": "980dc991790253e14e08a99924c8f09146c74d506eda9f99b0b3a1f0ebf875a2",
+  "reslice": "l9/reslice.py",
+  "sha256": "4a6dc32139da805ce4f1908115e96832f80cfdfc4eddd6236d0659ebbc22b1d6",
   "variantOf": "item.icon.kiln-t3-kit",
-  "visible": 4466
+  "visible": 3354
  },
  "recipe.icon.knife-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 15,
-  "clear": 6632,
+  "clear": 6683,
   "inputVersion": "f8c36e64cda4f8490db49d3d64192cf17614107d7419a8dbed466dc688c0784f",
-  "sha256": "54038686adb661f6065c5640f4e98878e0e0bc5c63091b838f44a7d8fc697e87",
+  "reslice": "l9/reslice.py",
+  "sha256": "0ca4c5cb03c343e3760bdcc14d53bafe5315bfb972c3dc521c0ba9d47e457ef0",
   "variantOf": "item.icon.knife-t1",
-  "visible": 2434
+  "visible": 2383
  },
  "recipe.icon.knife-t2": {
   "atlas": "l9/atlas-o.png",
@@ -3100,74 +3366,82 @@
  "recipe.icon.laboratory-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 7,
-  "clear": 5687,
+  "clear": 5649,
   "inputVersion": "84580d687559e566ac8d729d2447fd5b6ee9d67fda067e536aae635fb29fc1af",
-  "sha256": "d631bc8b7f00f3e77a9189842afa78cb1b1f19a9e50d9582da1b7d6e1df6af42",
+  "reslice": "l9/reslice.py",
+  "sha256": "1e5d54659d47564970baa38d2e7a19ca6572e0936cfc057f78432d87746c3b50",
   "variantOf": "item.icon.laboratory-kit",
-  "visible": 3164
+  "visible": 3190
  },
  "recipe.icon.lava-protection-boots": {
   "atlas": "l9/atlas-t.png",
   "cell": 4,
-  "clear": 4160,
+  "clear": 4317,
   "inputVersion": "d1d5dcef516fbc1ccfffb3369d7b1f49b9933db216a27d72a59f69acc7737888",
-  "sha256": "5d776d098136685f7e246945d860a7461d06ec125be66d63fab22efd80db4bfa",
+  "reslice": "l9/reslice.py",
+  "sha256": "109955946ad417785ad03121981edfeedff5f25eb1a9de577ac8bc692af883dc",
   "variantOf": "item.icon.lava-protection-boots",
-  "visible": 4905
+  "visible": 4727
  },
  "recipe.icon.legacy-campfire-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 1,
-  "clear": 5391,
+  "clear": 5446,
   "inputVersion": "c4ecd9069e057b84938e0d545d41c6b41ab7588e00a2045b0221f24cffe9370c",
-  "sha256": "7a05beaf1874b065c9185416648162ed1f27efb24efc5877e0588bebb2b0df33",
+  "reslice": "l9/reslice.py",
+  "sha256": "5a236494022181d18463ef5756b718c99b5116999baf953b232467f18284abae",
   "variantOf": "item.icon.campfire-kit",
-  "visible": 3592
+  "visible": 3567
  },
  "recipe.icon.legacy-floor-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 4,
-  "clear": 5771,
+  "clear": 5761,
   "inputVersion": "54fd05ae4a00e674caeb1f45c16a6862aad8f9616a04c857602d6e88b2dea419",
-  "sha256": "69aa5d90b68081bbe8bb33d25868667514bcf8d9007503111cd51d81dcec3509",
+  "reslice": "l9/reslice.py",
+  "sha256": "e76c8321a2a16148ab9fbdcb9f75dd65ddb29c7a5ef42b75febb0bc644eb8bbc",
   "variantOf": "item.icon.floor-kit",
-  "visible": 3308
+  "visible": 3313
  },
  "recipe.icon.legacy-storage-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 3,
-  "clear": 4525,
+  "clear": 4519,
   "inputVersion": "648014e657a232d4014670d570c10cd621fe95d39882cd96913a09b78f3065dd",
-  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
+  "reslice": "l9/reslice.py",
+  "sha256": "9b38c813b0edbbf5453c6905f4251fb5faa177ff977c9a42df8073753a15b881",
   "variantOf": "item.icon.storage-kit",
-  "visible": 4550
+  "visible": 4558
  },
  "recipe.icon.legacy-workbench-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 2,
-  "clear": 5508,
+  "clear": 5559,
   "inputVersion": "39e4744cafa5778c7259c4b45072134175e2adde2a65cda8433b17b001d47160",
-  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
+  "reslice": "l9/reslice.py",
+  "sha256": "2b909a818d2c8266e33a01d70343e238a86a07b6c5e477b0ed88c03810572aec",
   "variantOf": "item.icon.workbench-kit",
-  "visible": 3509
+  "visible": 3460
  },
  "recipe.icon.liquid-fertilizer": {
   "atlas": "l9/atlas-s.png",
   "cell": 11,
-  "clear": 5324,
+  "clear": 5584,
   "inputVersion": "b67bee8f6920766856833e8e5b1f88c6d8dc44041c861261d510179a9acf5efc",
-  "sha256": "a79b1770cc085f9e3ccba02005f79dbfd21bd4403748dacfd2b6381ebc48a852",
+  "reslice": "l9/reslice.py",
+  "sha256": "9da7aad7e9ed5b374399d9d4b95c71f1c5fb312b69075c74d21ba4cb6c73a40e",
   "variantOf": "item.icon.liquid-fertilizer",
-  "visible": 3736
+  "visible": 3496
  },
  "recipe.icon.meat-potato-stew": {
   "atlas": "l9/atlas-r.png",
   "cell": 11,
-  "clear": 4315,
+  "clear": 4345,
   "inputVersion": "f7e78bba86bc72246fcb49db6f30d7eea2122da77a0bb2400bd6c8374207275c",
-  "sha256": "ec05c3c84401eca14bddaba24630592da29ca85ff7bd5e2563cede0e03a3dd2d",
+  "reslice": "l9/reslice.py",
+  "sha256": "048b204008cefc033755d672743e392b505e3b188ecc1ae03d09c96024da09d6",
   "variantOf": "item.icon.meat-potato-stew",
-  "visible": 4746
+  "visible": 4721
  },
  "recipe.icon.mud-brick": {
   "atlas": "l9/atlas-k.png",
@@ -3190,56 +3464,62 @@
  "recipe.icon.onion-soup": {
   "atlas": "l9/atlas-r.png",
   "cell": 4,
-  "clear": 4320,
+  "clear": 4293,
   "inputVersion": "3fb5098cf25c618d129e79a9d7465248dc273dc04ef95b9b8bc8e7e7dccc3c21",
-  "sha256": "5ce1d185a0931fcb6cc7e6a75d93aeca27ec92f7d5a605011c329474b7c4f6b5",
+  "reslice": "l9/reslice.py",
+  "sha256": "4c963e1d6df5fee3266bdac7be7672300c8d17656878d579bf036852abd5754b",
   "variantOf": "item.icon.onion-soup",
-  "visible": 4748
+  "visible": 4781
  },
  "recipe.icon.pickaxe-t1": {
   "atlas": "l9/atlas-n.png",
   "cell": 14,
-  "clear": 7121,
+  "clear": 7057,
   "inputVersion": "622ba88d5fe112ea26a5c72af694c701ebe0ae0fdc5ad7ae3a3ab126b221c66f",
-  "sha256": "e13dd65da77584e94d8ea21bca98ea6ee3e81f8b60ce97ff05c6903b8940eabb",
+  "reslice": "l9/reslice.py",
+  "sha256": "d509da196c4cd173859adf454ecea1bbd0771f65e6aaf53895ad653331d832a5",
   "variantOf": "item.icon.pickaxe-t1",
-  "visible": 1948
+  "visible": 1999
  },
  "recipe.icon.pickaxe-t2": {
   "atlas": "l9/atlas-o.png",
   "cell": 3,
-  "clear": 7563,
+  "clear": 7736,
   "inputVersion": "722fc82f02311a50b6037493b70493ff5b95dc7a49f8b16c2cacbd81ce59b9b1",
-  "sha256": "8b6425b352f8f999a3821b757ac0682649918ed479574d2c06de2b26dac94511",
+  "reslice": "l9/reslice.py",
+  "sha256": "36371b2468d36b850ef70c84d5ad0c51816518234c0277ff87a91b15d15004d3",
   "variantOf": "item.icon.pickaxe-t2",
-  "visible": 1481
+  "visible": 1325
  },
  "recipe.icon.pickaxe-t3": {
   "atlas": "l9/atlas-o.png",
   "cell": 7,
-  "clear": 7451,
+  "clear": 7612,
   "inputVersion": "8d34f9defe2c7b9d39ae8d12af75973f6f30d75855df101d6af24f722e83e10c",
-  "sha256": "d90190c61d58764dcc8f5a42451d6d68c6e00cd9bf902d0b50f6d7431285f041",
+  "reslice": "l9/reslice.py",
+  "sha256": "b4d7eae74bed13824cd4ef3e394d9b9af33fad20eb5bdc21506aa25046f0b00d",
   "variantOf": "item.icon.pickaxe-t3",
-  "visible": 1586
+  "visible": 1418
  },
  "recipe.icon.plank": {
   "atlas": "l9/atlas-c.png",
   "cell": 1,
-  "clear": 5138,
+  "clear": 5486,
   "inputVersion": "da445bd7e77311fd9e7960cb4040d688589b5f8a61bc80ecad0489d81183ea30",
-  "sha256": "5ffd183b75b9902b8525b24b7040f42067ec6486ca0a75dde03ddbd7c97bd553",
+  "reslice": "l9/reslice.py",
+  "sha256": "05b0f5232739f0845452ca7c5d8967e159f148ce3280cf4fa87ec738c70a8102",
   "variantOf": "item.icon.plank",
-  "visible": 3936
+  "visible": 3592
  },
  "recipe.icon.polish-basalt": {
   "atlas": "l9/atlas-m.png",
   "cell": 13,
-  "clear": 4976,
+  "clear": 5040,
   "inputVersion": "20845f8937cafa37b700b316c55345a9633bdaba6a6dd28b295adbc25fa14024",
-  "sha256": "6a23f2201c411df709dc2f21f91d8853c7f9771928e099c607c9b52a151788aa",
+  "reslice": "l9/reslice.py",
+  "sha256": "f18afc1949423205656b3974ce4e2ba12a82daf335c98b59c44f8e11c6a2db8a",
   "variantOf": "item.icon.polished-basalt",
-  "visible": 4096
+  "visible": 4042
  },
  "recipe.icon.polish-bone": {
   "atlas": "l9/atlas-m.png",
@@ -3280,29 +3560,32 @@
  "recipe.icon.recovery-feed": {
   "atlas": "l9/atlas-t.png",
   "cell": 2,
-  "clear": 4834,
+  "clear": 5244,
   "inputVersion": "c964593f99e558d7f1b060b6b425691bf55ce058b74f69238e59b73116c1743f",
-  "sha256": "3099122d331b71b95dfaf282ddbb0ddd7caf3587b9ab2ea95c797bf049bf5d08",
+  "reslice": "l9/reslice.py",
+  "sha256": "c2e0d92ee5fede10d50be3e5de19f369b7e43b2a13b2ece843e1068120bd2866",
   "variantOf": "item.icon.recovery-feed",
-  "visible": 4184
+  "visible": 3826
  },
  "recipe.icon.refrigerator-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 2,
-  "clear": 3923,
+  "clear": 4366,
   "inputVersion": "eed97258f6ddeeb5667939ebd88ed2a7b8daebb77831f3c613c9e51331cd0cf5",
-  "sha256": "fde147dd6de740a0696ae7d149ed3da6ef01d95180a95dcbeecab0690427ecba",
+  "reslice": "l9/reslice.py",
+  "sha256": "f751852fd892522cbd78f61589f794cc29d51c84791036378a297a2aab993bf6",
   "variantOf": "item.icon.refrigerator-kit",
-  "visible": 5118
+  "visible": 4689
  },
  "recipe.icon.rex-meat-stew": {
   "atlas": "l9/atlas-r.png",
   "cell": 13,
-  "clear": 3608,
+  "clear": 3797,
   "inputVersion": "88eb6653a0687601c53dcd29ca7ea5cefcbb5fc45569964973147ce21bacd585",
-  "sha256": "acddc947836b6a0ce1d8a6de22bb5f6f60abd73ed52902c6a214827af0c5e26d",
+  "reslice": "l9/reslice.py",
+  "sha256": "ff2abcc151b2b34a1f909ae9ec31626c0340d7129b2e1d7ec44a85f36b4949ae",
   "variantOf": "item.icon.rex-meat-stew",
-  "visible": 5416
+  "visible": 5275
  },
  "recipe.icon.roast-meat": {
   "atlas": "l9/atlas-r.png",
@@ -3325,38 +3608,42 @@
  "recipe.icon.roof-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 5,
-  "clear": 5421,
+  "clear": 5643,
   "inputVersion": "d37692f127b6372a34b9cf00b749f8a25712218e53c08accfae5859f7f73d8fa",
-  "sha256": "c284a15aac6a8b04b4fd8127ed03d9e65d2c726bf755ae7fc22b2585500778e8",
+  "reslice": "l9/reslice.py",
+  "sha256": "6bc3807b822f8313bde1a16cb6f28b0c2d7d705dff786e07a740beab6ab25eac",
   "variantOf": "item.icon.roof-kit",
-  "visible": 3605
+  "visible": 3382
  },
  "recipe.icon.saddle": {
   "atlas": "l9/atlas-t.png",
   "cell": 1,
-  "clear": 4371,
+  "clear": 4717,
   "inputVersion": "1fbfe08d1ae06d471b6c1b2d4f0ec9f3833e27f170513b65c1a0426682c3349c",
-  "sha256": "d15c0bbc8ecf0f3323d17679f6db2e2347b1a68f14c9478cfa936afed11499d2",
+  "reslice": "l9/reslice.py",
+  "sha256": "1801c6ebbdcf2611f12bf31a66a38332f1023ecf890c03ac36c5c809c0263d2d",
   "variantOf": "item.icon.saddle",
-  "visible": 4693
+  "visible": 4344
  },
  "recipe.icon.signal-relay-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 6,
-  "clear": 7138,
+  "clear": 7279,
   "inputVersion": "da51a083f526b05efc0dceb897d2251dc2a9483d1a6bf02be7a0b041c3582362",
-  "sha256": "6f4fa82c56f8bfae1b94ca8bf111b7333eaa7d65bcada0dcf555bfa6a1bc51ca",
+  "reslice": "l9/reslice.py",
+  "sha256": "9cef27fbfce1199f08b8b7aaeb858e7295948d9f21ed05cbf559892a687dc3de",
   "variantOf": "item.icon.signal-relay-kit",
-  "visible": 1851
+  "visible": 1719
  },
  "recipe.icon.smelt-copper": {
   "atlas": "l9/atlas-m.png",
   "cell": 14,
-  "clear": 6030,
+  "clear": 6189,
   "inputVersion": "b09b97063b8ea1f7819eacf80b056cc6cd9d8d2a94289387bde506206a80468f",
-  "sha256": "4b3fcdd5792c454212a624808e5c52e42d32917586d2de8bba27cd6d5df2c90f",
+  "reslice": "l9/reslice.py",
+  "sha256": "6a3e85cbb3489d958aac5757fbbc008061a71db5210045a6795cc2613241e193",
   "variantOf": "item.icon.copper",
-  "visible": 3062
+  "visible": 2907
  },
  "recipe.icon.smelt-iron": {
   "atlas": "l9/atlas-m.png",
@@ -3370,65 +3657,72 @@
  "recipe.icon.smelt-steel": {
   "atlas": "l9/atlas-n.png",
   "cell": 1,
-  "clear": 5883,
+  "clear": 5864,
   "inputVersion": "c036f9c97c2d3a95ce2b447051c358bdf205d3c397199ca5b0436c7072c7e115",
-  "sha256": "cb548982399e6cc68c76ad731a0fc819214785686178eee72e0438df2a6fa3cf",
+  "reslice": "l9/reslice.py",
+  "sha256": "70e8e8cc81949265088135e5d4a66d9a0c23043962e795cdbabefa7baa19a8b3",
   "variantOf": "item.icon.steel",
-  "visible": 3219
+  "visible": 3218
  },
  "recipe.icon.smelt-volcanic-alloy": {
   "atlas": "l9/atlas-n.png",
   "cell": 2,
-  "clear": 5800,
+  "clear": 5790,
   "inputVersion": "5db8fcc8269bdf83ebffc87a107d471506db692688e81e348714693dbf2ab122",
-  "sha256": "da4fb6b7f2fe1f86e8f91eeee486dcf48d3b3143d45f7f74f6cd2ba4545bd070",
+  "reslice": "l9/reslice.py",
+  "sha256": "4516d2411f63812ba733cdfce24101cc239c0b221803f1c2af2bcfd99249bcec",
   "variantOf": "item.icon.volcanic-alloy",
-  "visible": 3282
+  "visible": 3290
  },
  "recipe.icon.spear": {
   "atlas": "l9/atlas-c.png",
   "cell": 2,
-  "clear": 7889,
+  "clear": 7915,
   "inputVersion": "9cda1124db4843c57c3371a0f2b11e3d6823136aa804153e086ef8690eac48ba",
-  "sha256": "a8b090f0405fc5e8701b0aca8f8e354ec3afd336c1a1867983af44ce0cd869a7",
+  "reslice": "l9/reslice.py",
+  "sha256": "687e5c5d896ae4c0832c3216b668c9e3760ec45d5a648e0f28c492ec84f4ea72",
   "variantOf": "item.icon.spear",
-  "visible": 1186
+  "visible": 1167
  },
  "recipe.icon.spear-t1": {
   "atlas": "l9/atlas-o.png",
   "cell": 11,
-  "clear": 7848,
+  "clear": 7875,
   "inputVersion": "52afd3ef60967053dbaa2a2752219dfb34604467625a66268e030edef0f765e9",
-  "sha256": "8ae25d6eee77cb04e3e09df65c53811556b5d4d48c27a2c0b9a6fbb41cf92e41",
+  "reslice": "l9/reslice.py",
+  "sha256": "29616953125d2d71ffd59d08d51bbbf77ca6178f2f816c633c0dc0072feed9f7",
   "variantOf": "item.icon.spear-t1",
-  "visible": 1209
+  "visible": 1247
  },
  "recipe.icon.spear-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 2,
-  "clear": 8022,
+  "clear": 8018,
   "inputVersion": "5c6607aabd3d6489c6824199f767def1355f18d3e4d434a9c070d564e0f84136",
-  "sha256": "a116fc8225854529a256428f4e1eb75e0b049a51f9118bd7006c1f57a5b1701d",
+  "reslice": "l9/reslice.py",
+  "sha256": "1f79840a1e16cc64b609edfe9e0241f28fb3c9c4a9190baa9f39157e38d46bc6",
   "variantOf": "item.icon.spear-t2",
-  "visible": 1061
+  "visible": 1070
  },
  "recipe.icon.spear-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 8,
-  "clear": 8081,
+  "clear": 8159,
   "inputVersion": "bd8dfab029a69224ae330d8372a7c3ca28e983d6d77120d130a0199ba543035e",
-  "sha256": "61c6bc5b3ddb5c9d76a4cf658cdd9590f719cd984dc737bc29fac5134e3e67c2",
+  "reslice": "l9/reslice.py",
+  "sha256": "319daf5ad831901e317dcd29bb6ac30cd9558c487a8b969145049a9242c91681",
   "variantOf": "item.icon.spear-t3",
-  "visible": 991
+  "visible": 917
  },
  "recipe.icon.sprinkler": {
   "atlas": "l9/atlas-s.png",
   "cell": 14,
-  "clear": 3329,
+  "clear": 4076,
   "inputVersion": "d9ba3f64d3370e25bafc852ac0c6cd0fe5d2dbda8251442f0e7a6cda3ee92393",
-  "sha256": "142217eb5445548eadb81ea0318a598eac332b07af425fc4652532b7137dbcec",
+  "reslice": "l9/reslice.py",
+  "sha256": "11b7200390169f79bf905ad33e0a1f411f85c33a429314e7404f0fbd78b94c6c",
   "variantOf": "item.icon.sprinkler",
-  "visible": 5648
+  "visible": 4968
  },
  "recipe.icon.stairs-kit": {
   "atlas": "l9/atlas-l.png",
@@ -3442,47 +3736,52 @@
  "recipe.icon.starter-axe": {
   "atlas": "l9/atlas-d.png",
   "cell": 6,
-  "clear": 7176,
+  "clear": 7303,
   "inputVersion": "6a0e68cbe9cfb02cda4cfa25bd0bf9cd25b855d1036c77d1c2dedaa0c100d000",
-  "sha256": "ab7ab2ef8b81d7f1b5adfcfc1206c26ab32bd0dd71fe388083fc4b269a010569",
+  "reslice": "l9/reslice.py",
+  "sha256": "90675e212c9e586a0d1b8af9f7a4443402325ba7dc6f460af8cf87b56891384a",
   "variantOf": "item.icon.starter-axe",
-  "visible": 1884
+  "visible": 1769
  },
  "recipe.icon.starter-club": {
   "atlas": "l9/atlas-d.png",
   "cell": 8,
-  "clear": 6658,
+  "clear": 6705,
   "inputVersion": "e3997178a006d34770d0e42b032ee03c0c7ed41926c9dbbceeb1829d15975154",
-  "sha256": "55335163ee3d589c16578e2062ff991100ea439ae2c2c628117f171699c5eb99",
+  "reslice": "l9/reslice.py",
+  "sha256": "ae98e68d57b6112ba14e328ec30bc315bbfbfdd0049048875bdaf2c000e22cb9",
   "variantOf": "item.icon.starter-club",
-  "visible": 2406
+  "visible": 2367
  },
  "recipe.icon.starter-pickaxe": {
   "atlas": "l9/atlas-d.png",
   "cell": 7,
-  "clear": 7523,
+  "clear": 7644,
   "inputVersion": "56f73543f983f8325bbb88f9df06236a5a66c1e0b61bc5d0eb98478d479d167e",
-  "sha256": "89176a4b25d75a41a52927f2f85ff28845aed4ecd4ce01636c72289043990817",
+  "reslice": "l9/reslice.py",
+  "sha256": "54ff3251ef296049746b915b9c8623c2857985bd760a5295025aab31d3061eb7",
   "variantOf": "item.icon.starter-pickaxe",
-  "visible": 1504
+  "visible": 1401
  },
  "recipe.icon.stem-fertilizer": {
   "atlas": "l9/atlas-s.png",
   "cell": 13,
-  "clear": 3875,
+  "clear": 4145,
   "inputVersion": "7686ef80a378dfe2898304ba12ccd9a17abe3ac4889ac73a3662dd0cdf22b562",
-  "sha256": "079fa2815fc337f36af731770f939e668125298700508052c1c164a2c93dd5b3",
+  "reslice": "l9/reslice.py",
+  "sha256": "c7b2fecee27a3a1d492a1688a2726fef11dbbdc3809b77ab1670612f3e95ca43",
   "variantOf": "item.icon.stem-fertilizer",
-  "visible": 5188
+  "visible": 4917
  },
  "recipe.icon.stone-axe": {
   "atlas": "l9/atlas-a.png",
   "cell": 15,
-  "clear": 6988,
+  "clear": 6875,
   "inputVersion": "26188bd5475b44cda4c6f1ebb087ced07d0b1a8769ade2f432ab089f5548090a",
-  "sha256": "e96c21cb95d4f433ecd448177545ab29471e19fa3a18ee358075e5376254ad4b",
+  "reslice": "l9/reslice.py",
+  "sha256": "7c5b81a1a8ce7115983a3b4fd362d9f5d1071da88ce4af9e3eb54f18363dccd8",
   "variantOf": "item.icon.stone-axe",
-  "visible": 2054
+  "visible": 2180
  },
  "recipe.icon.stone-block": {
   "atlas": "l9/atlas-k.png",
@@ -3496,29 +3795,32 @@
  "recipe.icon.stone-floor-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 6,
-  "clear": 5713,
+  "clear": 6022,
   "inputVersion": "afb2767321324aa9d9fb592f6c1499685bc6c9a1d44c9cedd1f2f600a1f9e0e8",
-  "sha256": "cb08d302f06647ef16a571653cdcbc3f199ac1b7abf8e1d717d04cad4d85ad54",
+  "reslice": "l9/reslice.py",
+  "sha256": "f07a52cfdaa45a7c5ff46e4af7366cda4a05bcfac73bf03bc5cb2671f23cfccb",
   "variantOf": "item.icon.stone-floor-kit",
-  "visible": 3367
+  "visible": 3076
  },
  "recipe.icon.stone-maul": {
   "atlas": "l9/atlas-c.png",
   "cell": 4,
-  "clear": 6545,
+  "clear": 6548,
   "inputVersion": "b0a50dffdbf5c892168e86f018d9869f68cd23f56d2947751561708305aefb0a",
-  "sha256": "7c8e8852f92bb6366c771c334726c5bd0bd414bccdd2750bce84454ac432047b",
+  "reslice": "l9/reslice.py",
+  "sha256": "caae3d6c053793d884a074cfc28be79dd871efe098dbe67a57377b88fefa1d81",
   "variantOf": "item.icon.stone-maul",
-  "visible": 2524
+  "visible": 2519
  },
  "recipe.icon.stone-pick": {
   "atlas": "l9/atlas-a.png",
   "cell": 16,
-  "clear": 7336,
+  "clear": 7137,
   "inputVersion": "6585c19a2c3fe3ca90241d7ab43948f3b80f0397c7996db19489d50075ff4f1e",
-  "sha256": "eef7f4e1cacfce41215dfae99312f95b381551a4ee8310fcee2e5c3d521f3ad6",
+  "reslice": "l9/reslice.py",
+  "sha256": "36f817155077db06ac0dc21baefe6d6365be51ae81a5e217b1dc71befff745a9",
   "variantOf": "item.icon.stone-pick",
-  "visible": 1745
+  "visible": 1914
  },
  "recipe.icon.stone-roof-kit": {
   "atlas": "l9/atlas-k.png",
@@ -3532,20 +3834,22 @@
  "recipe.icon.stone-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 8,
-  "clear": 5014,
+  "clear": 5147,
   "inputVersion": "29947477920f4ffb80f36ba21685af8eb6707bdce0569ecf37b46f2d660a2d62",
-  "sha256": "cf1607b4dacc34ef11897f154ef2c6331b1934223138521fef5a22102b61cc10",
+  "reslice": "l9/reslice.py",
+  "sha256": "e4c49dc31c6bdd3ee26402dc8d5310f0232bebe5f3ee56e6a1fbca5fa014d641",
   "variantOf": "item.icon.stone-wall-kit",
-  "visible": 4026
+  "visible": 3922
  },
  "recipe.icon.storage-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 3,
-  "clear": 4525,
+  "clear": 4519,
   "inputVersion": "648014e657a232d4014670d570c10cd621fe95d39882cd96913a09b78f3065dd",
-  "sha256": "4cc893e3ce5845800e4ad5050b1fffa158a8566a1fde36ea6db6caa0dffe1856",
+  "reslice": "l9/reslice.py",
+  "sha256": "9b38c813b0edbbf5453c6905f4251fb5faa177ff977c9a42df8073753a15b881",
   "variantOf": "item.icon.storage-kit",
-  "visible": 4550
+  "visible": 4558
  },
  "recipe.icon.sword-t1": {
   "atlas": "l9/atlas-o.png",
@@ -3559,74 +3863,82 @@
  "recipe.icon.sword-t2": {
   "atlas": "l9/atlas-p.png",
   "cell": 3,
-  "clear": 7607,
+  "clear": 7641,
   "inputVersion": "5bad73112a7c3f46481ff6ad893eaf73d1aa46843aa067900a6321ed0e920023",
-  "sha256": "141d48f89104ece5a2f97e958efe584f0687a930ef213f75d14d4fc21c24947a",
+  "reslice": "l9/reslice.py",
+  "sha256": "3c2d861d2c9a24edd4009a84051cc6916b076d4be2b561d582bfa01548fdac4e",
   "variantOf": "item.icon.sword-t2",
-  "visible": 1452
+  "visible": 1419
  },
  "recipe.icon.sword-t3": {
   "atlas": "l9/atlas-p.png",
   "cell": 9,
-  "clear": 7478,
+  "clear": 7666,
   "inputVersion": "83ca7992829550f946ca2346f02f57954c96d05805c5d3466d969873c897a4c1",
-  "sha256": "9ba6b91dbd0d1b123e0697b58ec07292517ad20840cfd077147ced8f62f0c54c",
+  "reslice": "l9/reslice.py",
+  "sha256": "f0bb6ab0076d53d756eae5c8354e1581d1f2ff2cecbcc8871f17084bcd66f7c5",
   "variantOf": "item.icon.sword-t3",
-  "visible": 1558
+  "visible": 1387
  },
  "recipe.icon.tan-fur-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 8,
-  "clear": 5925,
+  "clear": 5941,
   "inputVersion": "83140874733f2a282158b44ba7f4002cfc06ccbf2ffe7ef50dcd151e531a6648",
-  "sha256": "733677d5cfbb3b42737459a4519090cb9ef8c61ed7b9f365346feace818bfc7c",
+  "reslice": "l9/reslice.py",
+  "sha256": "f1a192569ab56af8253c6f4a53bee823b50400f74051970ceb4f4206b9574e26",
   "variantOf": "item.icon.fur-leather",
-  "visible": 3166
+  "visible": 3144
  },
  "recipe.icon.tan-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 5,
-  "clear": 5646,
+  "clear": 5946,
   "inputVersion": "2891a1d51985e897cd09c52c62e6355b3acdc3d7c977219deb525d3bd32412ec",
-  "sha256": "c0abd0ed8a8857694601639c0613c3e02128db685d9a35c0c22be1cffb9e4722",
+  "reslice": "l9/reslice.py",
+  "sha256": "a74c269d4c1e6b8b1191ca120fad93d0a3d955361d06e0d3a3d6d1bf1965b954",
   "variantOf": "item.icon.leather",
-  "visible": 3428
+  "visible": 3133
  },
  "recipe.icon.tan-rex-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 9,
-  "clear": 5128,
+  "clear": 5450,
   "inputVersion": "b6afc646faae26f27920c7ee4c5fceee41bf2d3a6c8d7fc975b2f5c579a034fe",
-  "sha256": "52453ab792fe595ff44d14298d75b21ec665bee4298bad1f2eb4113fa31f7ad2",
+  "reslice": "l9/reslice.py",
+  "sha256": "f3cf3e11619e8b1299c03561da423665c9e425b087b699389bf4e78556a5d7f0",
   "variantOf": "item.icon.rex-leather",
-  "visible": 3934
+  "visible": 3631
  },
  "recipe.icon.tan-thick-hide": {
   "atlas": "l9/atlas-m.png",
   "cell": 6,
-  "clear": 5097,
+  "clear": 5241,
   "inputVersion": "42b4f407faebd0bdfa6459bccba1faa2a259e91a248f7d31e9f45565bdaee8d1",
-  "sha256": "71d2fb582a4475dedfbe75fa29635e17f98cd85d7088fa966f1268e964f89481",
+  "reslice": "l9/reslice.py",
+  "sha256": "84edbc85f22bce28efff3165eeef45d6ef429ef2d6494cfd3af9e8d925c0ac31",
   "variantOf": "item.icon.thick-leather",
-  "visible": 3969
+  "visible": 3830
  },
  "recipe.icon.tanning-frame-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 1,
-  "clear": 5155,
+  "clear": 5338,
   "inputVersion": "da2775279fd108575915881d86323cec4b4f0a11d4bcda025d548f7ee216177d",
-  "sha256": "04f5d9d008de26254bc325a1a92f5d2a29473b92aeface61bbfbc701d139ac79",
+  "reslice": "l9/reslice.py",
+  "sha256": "1886805d6a5df53ac77bca5929863ceb9e3d17348689b350b842a0700510a310",
   "variantOf": "item.icon.tanning-frame-kit",
-  "visible": 3735
+  "visible": 3576
  },
  "recipe.icon.temperate-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 3,
-  "clear": 3467,
+  "clear": 3549,
   "inputVersion": "e8ff7ac6a367c04e5215de2bab3c857efb21b3ae44e189e7421fae1a4da67e85",
-  "sha256": "47e1129c59e21d1bb966808fe3d1640064ebdd6c2647b5a659101e41ede7eac2",
+  "reslice": "l9/reslice.py",
+  "sha256": "9da990eecbe4b93f5e4f9db8f90393120a6b5ad6d038d82b4a25c3f2cc3a2ca5",
   "variantOf": "item.icon.temperate-bag",
-  "visible": 5563
+  "visible": 5502
  },
  "recipe.icon.temperate-bottom": {
   "atlas": "l9/atlas-p.png",
@@ -3640,128 +3952,142 @@
  "recipe.icon.temperate-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 2,
-  "clear": 4986,
+  "clear": 5307,
   "inputVersion": "17a7e29dbc6f30d3595f7f54b83b19e049241cfb4ee3c1b2756b90d34b867d7e",
-  "sha256": "9e57865d32c1bc5c4aea56985d5f95f0f605906b6a39849d0a7ff77659778858",
+  "reslice": "l9/reslice.py",
+  "sha256": "3208547a2668625098b58326d4a79cadedd355ec1f12eb3abf51620b6ab2a0bd",
   "variantOf": "item.icon.temperate-gloves",
-  "visible": 3993
+  "visible": 3688
  },
  "recipe.icon.temperate-head": {
   "atlas": "l9/atlas-p.png",
   "cell": 13,
-  "clear": 5014,
+  "clear": 5394,
   "inputVersion": "d14d48843fe23e797c34bed268cb8304c120072e02121ffe08baa4a0c318be42",
-  "sha256": "4d910b345f7935c49287efedf1e398b2356f5506b586a0c5632e7c304b250ffa",
+  "reslice": "l9/reslice.py",
+  "sha256": "36478764dcf999bae8fc1684e84218005eb0ebecf103a4c1b49a5bb3ec00fb71",
   "variantOf": "item.icon.temperate-head",
-  "visible": 4056
+  "visible": 3701
  },
  "recipe.icon.temperate-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 1,
-  "clear": 4740,
+  "clear": 4647,
   "inputVersion": "b16b4caf853994396945c103d0fc2b52bf9dd03106a6286eb4698ee292b54122",
-  "sha256": "9e4f57a12bc379ec276c976418e1e93ceeeaba1f4d41d408d8fa8388486eb78c",
+  "reslice": "l9/reslice.py",
+  "sha256": "a6a03aeab8f9702d04a305b7c461b3638733cec9c096e447e3107af320298400",
   "variantOf": "item.icon.temperate-shoes",
-  "visible": 4288
+  "visible": 4353
  },
  "recipe.icon.temperate-top": {
   "atlas": "l9/atlas-p.png",
   "cell": 14,
-  "clear": 4917,
+  "clear": 5173,
   "inputVersion": "25003805484cf654be76c73857d91cd7add5115f8dfc420aafd1564e376c8dcc",
-  "sha256": "03c9f6cf91bd080c4fbff8837ec776b1f5fa74eba05cb20a66e85bc27bdeb8af",
+  "reslice": "l9/reslice.py",
+  "sha256": "640cf61788f5fd1af0bfc7a3dd8e8d088499e9fc071e49af2e38be48d21e3799",
   "variantOf": "item.icon.temperate-top",
-  "visible": 4145
+  "visible": 3904
  },
  "recipe.icon.tent-kit": {
   "atlas": "l9/atlas-l.png",
   "cell": 3,
-  "clear": 5471,
+  "clear": 5724,
   "inputVersion": "c183d24a962552d50e716dc1a30026ec4b1826f2018bae087f6dd9e8a8183306",
-  "sha256": "d2c7c1cd09a6c1435b7dfc51c9a6c1a24e9bf4ebc7c4c1488b025b15b8faf384",
+  "reslice": "l9/reslice.py",
+  "sha256": "1db4a34371888685064242538e5f5ef73fd2a1ef46682cf2bbf356ddf858ceaa",
   "variantOf": "item.icon.tent-kit",
-  "visible": 3579
+  "visible": 3343
  },
  "recipe.icon.thatch-bundle": {
   "atlas": "l9/atlas-b.png",
   "cell": 4,
-  "clear": 5824,
+  "clear": 5793,
   "inputVersion": "0d0b6a385d7f8b5d36362109814f9a78bdddcec7904ea7075fc33945ad9bfa25",
-  "sha256": "fbd7ddaff0a4367154353d18f4c8ee380d6a4d50414bf2be8b4b194997edb3a6",
+  "reslice": "l9/reslice.py",
+  "sha256": "1b6a7f4ca196839c94e6cc34caeb3aaf0e81e3a7a20d9d407a6856196c964005",
   "variantOf": "item.icon.thatch-bundle",
-  "visible": 3236
+  "visible": 3253
  },
  "recipe.icon.timber-beam": {
   "atlas": "l9/atlas-k.png",
   "cell": 9,
-  "clear": 6056,
+  "clear": 6320,
   "inputVersion": "e1d1d36c52c8120fb4d31037ed34cda4d55cf2022cc1275f44fe649f8479a3ce",
-  "sha256": "57ddefd4d6800576d9cc179aefd1ab49e801f0f151d7ebe2f3aade2413f61c71",
+  "reslice": "l9/reslice.py",
+  "sha256": "e8aa1816afa59c6165637bbd2c671f7e7aa77d63db2f0a230106f853cdfc017a",
   "variantOf": "item.icon.timber-beam",
-  "visible": 3008
+  "visible": 2756
  },
  "recipe.icon.timber-wall-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 10,
-  "clear": 4324,
+  "clear": 4773,
   "inputVersion": "d0c3ed60431865bf61a6988847064a5df4f00f9c4934180c83813531ad89dbc3",
-  "sha256": "deaec93f82f641be571968cc7d67087983920b56807ef0f7e61f2d58f3e035d9",
+  "reslice": "l9/reslice.py",
+  "sha256": "e8484fe9f41792b36ef21b1afeb67e71a42c661ac99ab9099a05fe22abc71a5a",
   "variantOf": "item.icon.timber-wall-kit",
-  "visible": 4714
+  "visible": 4275
  },
  "recipe.icon.tropical-bag": {
   "atlas": "l9/atlas-q.png",
   "cell": 9,
-  "clear": 3671,
+  "clear": 4323,
   "inputVersion": "eefb890129894eafb409e8934912f2b01d73f252de5e7ae3ba4478d17c9c984d",
-  "sha256": "e23fd94006ecc6349c4bb070a9c1ef5772929501aa9330736030f19937b633b5",
+  "reslice": "l9/reslice.py",
+  "sha256": "059f3ddc43b64fb6e20539002d81dfdd7fa867768387ea987e30c2b48509ae85",
   "variantOf": "item.icon.tropical-bag",
-  "visible": 5385
+  "visible": 4662
  },
  "recipe.icon.tropical-bottom": {
   "atlas": "l9/atlas-q.png",
   "cell": 6,
-  "clear": 4609,
+  "clear": 4724,
   "inputVersion": "f119838c7293f1eee70bc50dd6600565b76d6d4a08a8403853e281d7834b8c8a",
-  "sha256": "ea8dc536c1496a971f9260afe60e6b33dc95847b3e6fd686f493a9f92ae1c350",
+  "reslice": "l9/reslice.py",
+  "sha256": "dd55429d4bc1a626649d4b4ffa9627de1b429d8232eb80950c2896d897951e58",
   "variantOf": "item.icon.tropical-bottom",
-  "visible": 4443
+  "visible": 4342
  },
  "recipe.icon.tropical-gloves": {
   "atlas": "l9/atlas-q.png",
   "cell": 8,
-  "clear": 5823,
+  "clear": 5872,
   "inputVersion": "fc5dc1ad18c45e66946d214af0f83c8a87c0b76110390ed1f8207a3dca6d4c6e",
-  "sha256": "6cdaec4210b692ac06c5c14da8e1a0e05c4a3ac7d4271f924614f6df1e6b0732",
+  "reslice": "l9/reslice.py",
+  "sha256": "cfc6b331086db4550a3d09a65ec11f69326d18cabd3f6db2af0e98115fbed14a",
   "variantOf": "item.icon.tropical-gloves",
-  "visible": 3206
+  "visible": 3149
  },
  "recipe.icon.tropical-head": {
   "atlas": "l9/atlas-q.png",
   "cell": 4,
-  "clear": 5794,
+  "clear": 6142,
   "inputVersion": "1935e2a4c1166aee12f572c8625b3ae4f60ec94753840f1d7c1ecd46307cabf6",
-  "sha256": "e4213943acf7cd3297f938a8b7b154799b1e9c8726d1ea9f91c0e7303438ae96",
+  "reslice": "l9/reslice.py",
+  "sha256": "a49e7e2024847ca295dc5ec830957a90ed8049a02c58b035c8b6a47ea24e23be",
   "variantOf": "item.icon.tropical-head",
-  "visible": 3281
+  "visible": 2944
  },
  "recipe.icon.tropical-shoes": {
   "atlas": "l9/atlas-q.png",
   "cell": 7,
-  "clear": 5060,
+  "clear": 5101,
   "inputVersion": "ca9f584068bc9955eaa4109323f738f3882407270a8dcc03e0069358d475a591",
-  "sha256": "7999c2343cd7914869ef5a7580a6594086ebe1f3a0a8a62ab8c641ae3fdb58d6",
+  "reslice": "l9/reslice.py",
+  "sha256": "94c56badef2b9f39769ff9ea1fdae4761cfe47aafebf876ad2353492515cc1f1",
   "variantOf": "item.icon.tropical-shoes",
-  "visible": 3943
+  "visible": 3896
  },
  "recipe.icon.tropical-top": {
   "atlas": "l9/atlas-q.png",
   "cell": 5,
-  "clear": 4687,
+  "clear": 4919,
   "inputVersion": "ffbd3644c4d7ec1bfac3b09297fe9013de0d8e6e665f9911ef459b93abd5f375",
-  "sha256": "6e77f3971c4ab7e16dcea76f05e293b65a5540d9754a297d98ba2f6b5ba65034",
+  "reslice": "l9/reslice.py",
+  "sha256": "959e9f8fae6b94c2fdefa1f2ec44d7c3f0da009ea3774ec330ecd9b7445e0af0",
   "variantOf": "item.icon.tropical-top",
-  "visible": 4361
+  "visible": 4150
  },
  "recipe.icon.wall-kit": {
   "atlas": "l9/atlas-l.png",
@@ -3784,47 +4110,52 @@
  "recipe.icon.wheat-flatbread": {
   "atlas": "l9/atlas-r.png",
   "cell": 3,
-  "clear": 4883,
+  "clear": 4874,
   "inputVersion": "c0280fe606ccf0f73bde77d7ce848660c7f2420bcdcc70e09108c9b7436518f6",
-  "sha256": "49f13e5cbf89a0d85cb3b749a256227d00971e3b20bf21a00f88f536c08b9f1b",
+  "reslice": "l9/reslice.py",
+  "sha256": "10e9a8166120f86e863bece83728c98f8a9169f87276a49432cc18f709fe2bae",
   "variantOf": "item.icon.wheat-flatbread",
-  "visible": 4196
+  "visible": 4197
  },
  "recipe.icon.woodland-skewer": {
   "atlas": "l9/atlas-b.png",
   "cell": 11,
-  "clear": 6986,
+  "clear": 7030,
   "inputVersion": "2ca75d9d91ce2e622cf1f9cb8c8caac22f764736ea496be37fb159e1310d9915",
-  "sha256": "5b445a370d7fa74a2845b65d0ce8cd2b7698036cc03a08d9baabbc863ea0abe7",
+  "reslice": "l9/reslice.py",
+  "sha256": "f394752f5e9a7f2ecefc660ef8fe69c7d45402e499ab97a76bff0361837d0ed1",
   "variantOf": "item.icon.woodland-skewer",
-  "visible": 2055
+  "visible": 2035
  },
  "recipe.icon.workbench-kit": {
   "atlas": "l9/atlas-d.png",
   "cell": 2,
-  "clear": 5508,
+  "clear": 5559,
   "inputVersion": "39e4744cafa5778c7259c4b45072134175e2adde2a65cda8433b17b001d47160",
-  "sha256": "23b8c8a3805a81adb0d789163be68558661efe59d5096e97d477022042442545",
+  "reslice": "l9/reslice.py",
+  "sha256": "2b909a818d2c8266e33a01d70343e238a86a07b6c5e477b0ed88c03810572aec",
   "variantOf": "item.icon.workbench-kit",
-  "visible": 3509
+  "visible": 3460
  },
  "recipe.icon.workbench-t2-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 12,
-  "clear": 4964,
+  "clear": 5331,
   "inputVersion": "4f88448598af2b45c354aac94e7a0e21a7ffdab79fb02ca1a31321c5e82cbc6e",
-  "sha256": "43810c82a58035396ee18f44778262f565b36150e70dfbe0e02505038a179767",
+  "reslice": "l9/reslice.py",
+  "sha256": "56c538d6662876e7fa15c46c9b4888bd4770c32c5a8d6bed03dc531c1992f50c",
   "variantOf": "item.icon.workbench-t2-kit",
-  "visible": 4001
+  "visible": 3623
  },
  "recipe.icon.workbench-t3-kit": {
   "atlas": "l9/atlas-k.png",
   "cell": 13,
-  "clear": 4609,
+  "clear": 5123,
   "inputVersion": "73b695cd881d9d6549ce509034bd5b54aef90c8bf486b98ba0d17ff767d03313",
-  "sha256": "1645eecbefb50b4c6ccb61a36d63530fe8caca98550b311760eae8def2adc242",
+  "reslice": "l9/reslice.py",
+  "sha256": "3d05e022ade15a5b0af72b71fe15e128449d925509c88f7ca3710426554d7718",
   "variantOf": "item.icon.workbench-t3-kit",
-  "visible": 4294
+  "visible": 3845
  },
  "ui.icon.back": {
   "atlas": "l9/atlas-g.png",
@@ -3837,122 +4168,137 @@
  "ui.icon.bag": {
   "atlas": "l9/atlas-e.png",
   "cell": 1,
-  "clear": 2787,
+  "clear": 3376,
   "inputVersion": "b2359630076d1519767660723341d1737f8ae3c3a34eabd636f8399c5e212ba2",
-  "sha256": "ab1a11cf03bebc51f808a1e522e5569d5f95c6122f0b4318191c8278b6b9845d",
-  "visible": 6202
+  "reslice": "l9/reslice.py",
+  "sha256": "82fcc935e23e41b419935c8feec245a4b3bea82e74396a97f2f38ed0ea287384",
+  "visible": 5670
  },
  "ui.icon.block": {
   "atlas": "l9/atlas-g.png",
   "cell": 3,
-  "clear": 4061,
+  "clear": 4104,
   "inputVersion": "026ecf30788aa0a4b0370aea00783089674aa7a86e17241f072b91ccb9289a93",
-  "sha256": "a5dfd0c21b03d4ca3c7133b2b906f3d0e02fb2598483685037710a9e27e30a3a",
-  "visible": 4962
+  "reslice": "l9/reslice.py",
+  "sha256": "3f90e27173099a70b554626f78375597e7144a5f9b48e8871902d7e7e53de94e",
+  "visible": 4928
  },
  "ui.icon.build": {
   "atlas": "l9/atlas-e.png",
   "cell": 3,
-  "clear": 4915,
+  "clear": 4822,
   "inputVersion": "a48331814f702148e364e2ce34191e396320a3ad3b44f3ae537f2ff445221f28",
-  "sha256": "7cf968bd9991ed0c3921bbd97d5911be179c16d9aad7942adcc70c59fa953345",
-  "visible": 3802
+  "reslice": "l9/reslice.py",
+  "sha256": "a062c5cec21f6e883699b74bcdf5b297f57fcf8dd636bccdf3ec5fdca952fbd4",
+  "visible": 3939
  },
  "ui.icon.capacity": {
   "atlas": "l9/atlas-f.png",
   "cell": 4,
-  "clear": 4192,
+  "clear": 4578,
   "inputVersion": "62a2d240b8b71397a4c2994fc694b331e65d3b2a6dd521ed39578d3079be7a54",
-  "sha256": "c13abf172d38f78ce2d37ad1a60d5498ecefdd531f6bda88ad26a80c529926e4",
-  "visible": 4863
+  "reslice": "l9/reslice.py",
+  "sha256": "1ee75f30e9433f189fc9ef03187e7e2d7718579b2ce7aac52a2c82f79c3de31b",
+  "visible": 4476
  },
  "ui.icon.capture": {
   "atlas": "l9/atlas-e.png",
   "cell": 13,
-  "clear": 3441,
+  "clear": 3810,
   "inputVersion": "5a1394499cf5b0e543d11247da5cc55a87a4581f2dff925bf0d24829305e586b",
-  "sha256": "dc498f3959c90981bffa49d7ffde97a5b741468b1d3fd80aa37432ce589aa6b4",
-  "visible": 5519
+  "reslice": "l9/reslice.py",
+  "sha256": "8a820cd124f20e11c118457a8bde13bd9426c97478cb6809cd9f5946f4e76bf6",
+  "visible": 5189
  },
  "ui.icon.cat.all": {
   "atlas": "l9/atlas-j.png",
   "cell": 1,
-  "clear": 4784,
+  "clear": 4778,
   "inputVersion": "cdb2a1395f65b6ac235a98e889a4a7d0c1a4691be559921221e582ce096ad5e8",
-  "sha256": "0ac038bc525c63274c7121eff37b6384f72ed8b4e34eb8fa462c405ec8d2032e",
-  "visible": 4290
+  "reslice": "l9/reslice.py",
+  "sha256": "b5d34c4d77423eaaca42dd07aad784b7a9291be2941b60411230d55ff8c35248",
+  "visible": 4289
  },
  "ui.icon.cat.building": {
   "atlas": "l9/atlas-j.png",
   "cell": 8,
-  "clear": 4923,
+  "clear": 4891,
   "inputVersion": "588a8dc0529fb5ca2bc3a3434f77e4615f072c7a502127aa8958f017f99eff59",
-  "sha256": "f26dbc3c6b973e6ef98be4a7f46dd3eaed240fdf71b0e5b89f3b31760b6a0477",
-  "visible": 4098
+  "reslice": "l9/reslice.py",
+  "sha256": "f596352c2f56570841fc2941bddc623942ff0e051c1d56f2350002fa68d4cfbd",
+  "visible": 4130
  },
  "ui.icon.cat.clothing": {
   "atlas": "l9/atlas-j.png",
   "cell": 4,
-  "clear": 4991,
+  "clear": 4927,
   "inputVersion": "05dc26db1e46105757464300adcb3453bb450186efddd98590f237502fb6552d",
-  "sha256": "253f9c202e7c5fc1625c560f8cd23099280d31ec7ec1fe091f60380063131b5f",
-  "visible": 4097
+  "reslice": "l9/reslice.py",
+  "sha256": "be23d28fb224ab3178ca56fee1b28b33a62aa9e2fd62b92269580707c797288e",
+  "visible": 4141
  },
  "ui.icon.cat.farm": {
   "atlas": "l9/atlas-j.png",
   "cell": 9,
-  "clear": 6541,
+  "clear": 6767,
   "inputVersion": "bf485b28032be393249c27920d40e946e6efadd837477dc8528b1269c311ba73",
-  "sha256": "8795896f7a064a1e3605c5a9785ec559db121dda97c46c9293ff76c1dd82751f",
-  "visible": 2345
+  "reslice": "l9/reslice.py",
+  "sha256": "184ba98548bc2dcdc726dd894c97c8142d09a61d3f54e4f36684fcdfa1542a11",
+  "visible": 2159
  },
  "ui.icon.cat.food": {
   "atlas": "l9/atlas-j.png",
   "cell": 5,
-  "clear": 5268,
+  "clear": 5600,
   "inputVersion": "a4abced86968c98aa8827cdb67af6ab012a0fdbc212db82aee20a0479c19a4f2",
-  "sha256": "ae2a628d01ca44697cb13008c8c27cb2ed59e02928645c24e203038ef2d6ec5c",
-  "visible": 3801
+  "reslice": "l9/reslice.py",
+  "sha256": "3247af24287dd488e13c278a0c19a8045c6d9d6242e73dc6d88d9e164216e33b",
+  "visible": 3481
  },
  "ui.icon.cat.material": {
   "atlas": "l9/atlas-j.png",
   "cell": 7,
-  "clear": 4911,
+  "clear": 4748,
   "inputVersion": "4018e92d52c8bafe375bf90d136b091a7cccf858dcd38fd4c4a22d7b7d45cc45",
-  "sha256": "c864abdb3f9b3dcb3b8b87659676d1b1f3d2baf41b6b0c7b513ff029bd7345ee",
-  "visible": 4173
+  "reslice": "l9/reslice.py",
+  "sha256": "dfba46af549428481a7ae9eadd78189b9ecc41f30ab75c004d9f359ae3943cc0",
+  "visible": 4308
  },
  "ui.icon.cat.medicine": {
   "atlas": "l9/atlas-j.png",
   "cell": 6,
-  "clear": 3939,
+  "clear": 4106,
   "inputVersion": "998d71e7729d4bae7e8677db15f082c030b3c8fbc5beb2c932e1fa23c0d212af",
-  "sha256": "a540f11b87303d1150b2f49289fd4dfc03cbac2dc5a093819409a4af03c6b8d6",
-  "visible": 5103
+  "reslice": "l9/reslice.py",
+  "sha256": "0c8fb56701764ce9612cbcebe3f66a0dcde49840a027c5aa356166f412486ab9",
+  "visible": 4941
  },
  "ui.icon.cat.pet": {
   "atlas": "l9/atlas-j.png",
   "cell": 10,
-  "clear": 5525,
+  "clear": 5671,
   "inputVersion": "6f45da626b66b86bf125884c21d3eb5d034beffe9d6794eb1bc190979e56b96f",
-  "sha256": "e8dcc58baf115534273caab5ea2c58b38585b72b36475d052a2f0eb6c140de15",
-  "visible": 3528
+  "reslice": "l9/reslice.py",
+  "sha256": "b9bcdd12804be106bbaff2bfcbf2fcbd6e2b933c7a6e032a5d0b0bf09fb60b8e",
+  "visible": 3378
  },
  "ui.icon.cat.tool": {
   "atlas": "l9/atlas-j.png",
   "cell": 2,
-  "clear": 6571,
+  "clear": 6777,
   "inputVersion": "c96379cc523a7bf99cc35f53b8935f4b846492c75bca066b7bf3a060a7b368ce",
-  "sha256": "c363b88727689a55ba2008af616c2bf032c1dae0be33bb6151703b5fd4b2e303",
-  "visible": 2452
+  "reslice": "l9/reslice.py",
+  "sha256": "d9d42ed5d5026fe0c13df8854c69c10f7bebdc4f7c2478e1cf37233bfa5e5d75",
+  "visible": 2276
  },
  "ui.icon.cat.weapon": {
   "atlas": "l9/atlas-j.png",
   "cell": 3,
-  "clear": 7910,
+  "clear": 7933,
   "inputVersion": "4d72a9f867f08b684410d02eab1f30f960772b304150f51d2118b5b01e190a97",
-  "sha256": "137aacf6c25db71269c0bb68dcadfca8dfdaa90305fef6578d70e611824111a5",
-  "visible": 1159
+  "reslice": "l9/reslice.py",
+  "sha256": "10318fb5274150450220f06df1d41f8b69451281f14f4c26c31ebfa8bece7674",
+  "visible": 1124
  },
  "ui.icon.claim": {
   "atlas": "l9/atlas-f.png",
@@ -3965,10 +4311,11 @@
  "ui.icon.clan": {
   "atlas": "l9/atlas-e.png",
   "cell": 14,
-  "clear": 5495,
+  "clear": 6561,
   "inputVersion": "723c96ffd55ecddcc23e7359b746e4d13303d4a53ac802b9b0e98d02affb9f97",
-  "sha256": "0a9694bd62055215decde1d109c14a3a56285c08f4f0895f9aa3de08c9ff550e",
-  "visible": 3483
+  "reslice": "l9/reslice.py",
+  "sha256": "e549408858539e88d79fd2ed4d7688e27790230a47d51b71153c6805a18848ec",
+  "visible": 2468
  },
  "ui.icon.clock": {
   "atlas": "l9/atlas-f.png",
@@ -3981,18 +4328,20 @@
  "ui.icon.close": {
   "atlas": "l9/atlas-g.png",
   "cell": 15,
-  "clear": 5707,
+  "clear": 5811,
   "inputVersion": "f10bb952d456c7ead564563d91cb316c3e26f33bbd4e3fe72f2edc07567359b7",
-  "sha256": "d033d49b2760cfb868e14ae6b9ca6a1be3af1c429b9345ee3aa3c87b06d4ae69",
-  "visible": 3282
+  "reslice": "l9/reslice.py",
+  "sha256": "21799f9ec09c8b986986a37da971517d7994cd3a15436927da9cd1f7295929af",
+  "visible": 3187
  },
  "ui.icon.craft": {
   "atlas": "l9/atlas-e.png",
   "cell": 2,
-  "clear": 5081,
+  "clear": 5104,
   "inputVersion": "d75dc4803e3b5f435864752f4908eb01913a5535290bb30a3d0ccedbf4eabf81",
-  "sha256": "f6edee56c16a241cb8586b1392c299d8d602edd63956c1c74a7781c710c88104",
-  "visible": 3925
+  "reslice": "l9/reslice.py",
+  "sha256": "26332ec550fee9613e6b8315b4a29ee68b3b277fe01bd809b56d29913a5c55f2",
+  "visible": 3889
  },
  "ui.icon.currency": {
   "atlas": "l9/atlas-e.png",
@@ -4005,26 +4354,29 @@
  "ui.icon.dock.building": {
   "atlas": "l9/atlas-j.png",
   "cell": 11,
-  "clear": 5340,
+  "clear": 5475,
   "inputVersion": "af93a4f019ee34c4bbf432af25228f5fb99b74331cb133b65b75f9d8a9fa6ad5",
-  "sha256": "8cba759d728cb1efea56b7aca5b726e7119366447c99d5873ae04a8e1a09af48",
-  "visible": 3668
+  "reslice": "l9/reslice.py",
+  "sha256": "fd4d66a2bf4ecb5cd638be8a4ec8b9c59e8eb15b1939dfe5eed253a11cdebdd0",
+  "visible": 3563
  },
  "ui.icon.dock.craft-preview": {
   "atlas": "l9/atlas-j.png",
   "cell": 12,
-  "clear": 4775,
+  "clear": 5111,
   "inputVersion": "e2c45b9916c62a66a91b000fe63e7014f5d2a0cd68c68d2066cdde34640d1089",
-  "sha256": "5422494c67aac5db2de66174a35153813002946ba23e19ca0270d0cb3357a895",
-  "visible": 4275
+  "reslice": "l9/reslice.py",
+  "sha256": "dadbada4436d95f7bf003175fdb5b21c1d857eacba65f63aade669b6874208b9",
+  "visible": 3958
  },
  "ui.icon.dock.crop-book": {
   "atlas": "l9/atlas-j.png",
   "cell": 13,
-  "clear": 4754,
+  "clear": 5084,
   "inputVersion": "8699b148804b0cf015599062b286d5fdfcf00497f849c9891ae69e9e8d7444e1",
-  "sha256": "784492e30c30a39c137d1fbf19055e813c228c2d7672eb9d1209086b030ef9af",
-  "visible": 4313
+  "reslice": "l9/reslice.py",
+  "sha256": "c992c5ac14a3529ced927d48b264fdd6f35021b52be20e0ad1f8af1f54d792c9",
+  "visible": 3995
  },
  "ui.icon.dock.operations": {
   "atlas": "l9/atlas-j.png",
@@ -4037,26 +4389,29 @@
  "ui.icon.dock.routes": {
   "atlas": "l9/atlas-j.png",
   "cell": 14,
-  "clear": 5727,
+  "clear": 5843,
   "inputVersion": "bce4db9240bbf39fd35d6352d7efe18280db83bdb61f16bb05b08475673d037a",
-  "sha256": "9514446cb8ac9e51b7c84e6e5bcc28edab7436ffcc882a12a917eb3ecb3beb4d",
-  "visible": 3129
+  "reslice": "l9/reslice.py",
+  "sha256": "f6500c1a15ae4237ca179a5a6ef089e68dc70eae385b2bec63aef3735d583835",
+  "visible": 3026
  },
  "ui.icon.dodge": {
   "atlas": "l9/atlas-h.png",
   "cell": 1,
-  "clear": 5876,
+  "clear": 5887,
   "inputVersion": "5c1e9a69f882e3d5b3c548d82ec7d0d0868ae6ac6eab1873ccf321d07147a6d4",
-  "sha256": "1e6f2147f96b7a76703694e477b24a6bf60d4818de2d956aa14aba515a5f8988",
-  "visible": 3124
+  "reslice": "l9/reslice.py",
+  "sha256": "34e39a6b7133d0f0af4bbe18685459ea1033956a34daa8f2d2e0fc70411153cc",
+  "visible": 3128
  },
  "ui.icon.durability": {
   "atlas": "l9/atlas-f.png",
   "cell": 2,
-  "clear": 3276,
+  "clear": 3578,
   "inputVersion": "f670d56e3d0535360baa6463838b039b15c501b16a69c5d2c7ffa8b0e70ee15e",
-  "sha256": "57e1d3738740856ccca08bd261de52836595748a7ddb06de0d55471bf0ea0a6c",
-  "visible": 5741
+  "reslice": "l9/reslice.py",
+  "sha256": "1d50c8952a25b9e09d41629a80001eda226b4f98e22034f15c98628eea2534ca",
+  "visible": 5499
  },
  "ui.icon.empty": {
   "atlas": "l9/atlas-h.png",
@@ -4069,74 +4424,83 @@
  "ui.icon.energy": {
   "atlas": "l9/atlas-g.png",
   "cell": 7,
-  "clear": 5295,
+  "clear": 5767,
   "inputVersion": "b0a96ff8ffee241c5b9051cdd85a66dbfb3f4c2a39632504cdfbc0763c65780c",
-  "sha256": "076059eae4c662db965f6d4e559b05d569e8543aff0198a3535d0640b57f8535",
-  "visible": 3748
+  "reslice": "l9/reslice.py",
+  "sha256": "a1ce3efd6fe237ef41f7ea1de803109ad98641c46f1023fd26c697c0b4a42e24",
+  "visible": 3308
  },
  "ui.icon.error": {
   "atlas": "l9/atlas-h.png",
   "cell": 3,
-  "clear": 3721,
+  "clear": 4004,
   "inputVersion": "671105f5941941eaa44f9a90d01c207cdfbbb72ec438866ffa7e3b65942ec945",
-  "sha256": "93f4efb9cc1de6cdc59147709e486d206f651791e9ba3ba5a496837b7a6acd59",
-  "visible": 5321
+  "reslice": "l9/reslice.py",
+  "sha256": "e9c85a5b63d44d2255e2b10fbfa5b407fd42bd21695e1b0ae15be2091ccef961",
+  "visible": 5073
  },
  "ui.icon.escrow": {
   "atlas": "l9/atlas-f.png",
   "cell": 10,
-  "clear": 4020,
+  "clear": 4293,
   "inputVersion": "66fa5294b567c00cbac99c69023e5deeb6ed9419a14b080a1fdf3d710a210642",
-  "sha256": "242ccaea37c419f72b1cf39fde73eb67bc6fd357db5e809546813acb0ad3d51a",
-  "visible": 5000
+  "reslice": "l9/reslice.py",
+  "sha256": "0f37cf750db087aa7f4f32087d9154ed47044e26b54fc17841f6d26682fbc9f9",
+  "visible": 4751
  },
  "ui.icon.exploration-rank": {
   "atlas": "l9/atlas-f.png",
   "cell": 7,
-  "clear": 4728,
+  "clear": 5023,
   "inputVersion": "8e18c7d3301b5cf58c5afa1385749749fc0bd49d8a056ede9845d2f318df0253",
-  "sha256": "64de9cbc9c97ec2102d6263eac653e71336594433d706e1699fd76cc42e6bc06",
-  "visible": 4305
+  "reslice": "l9/reslice.py",
+  "sha256": "cbe46f335db1606886979971c428db9c0637d00b03878267aaa369b9e659ffbd",
+  "visible": 4032
  },
  "ui.icon.explore": {
   "atlas": "l9/atlas-e.png",
   "cell": 6,
-  "clear": 5448,
+  "clear": 5511,
   "inputVersion": "60acdb4b55f0b35913b0eb2c669a77abcd3cd5ed2cc55ce43408569fd2c82506",
-  "sha256": "b32914010e4452b233c2afe026ab8a7c7ffc2eafbcfae435bc6bdcdfc945a85e",
-  "visible": 3592
+  "reslice": "l9/reslice.py",
+  "sha256": "4cdfe73d980849c40d0bf627747a4fb10b30fdc3e51f25b5ebda4fd7d0afcc1a",
+  "visible": 3557
  },
  "ui.icon.fatigue": {
   "atlas": "l9/atlas-g.png",
   "cell": 8,
-  "clear": 5064,
+  "clear": 5137,
   "inputVersion": "996de1ef40ccaa38c8faa7348e1f875edb08de99a54d398441da6037f4c9227c",
-  "sha256": "752f3985c48567e53503acb143476173f879adac81c1b30d1c9880a5a1269524",
-  "visible": 4010
+  "reslice": "l9/reslice.py",
+  "sha256": "e9591088df4250459bab5ce9a772a9e40f2e9ec4a375c350101f51564980c081",
+  "visible": 3938
  },
  "ui.icon.favorite": {
   "atlas": "l9/atlas-h.png",
   "cell": 4,
-  "clear": 5197,
+  "clear": 5338,
   "inputVersion": "f756d91357ff07e1c8bfdc77506cdf9cde61d387b4b07ddcb866b342c9fbcf81",
-  "sha256": "9093f3bd439c7844a28e823cb610edcbe8978c21f2aef43303d20cbec4c87865",
-  "visible": 3693
+  "reslice": "l9/reslice.py",
+  "sha256": "43be745ccbd61c7306a9ad97a474238f39fa6ef4307c8b8fef38018fad4b40b1",
+  "visible": 3568
  },
  "ui.icon.fertility": {
   "atlas": "l9/atlas-f.png",
   "cell": 5,
-  "clear": 5553,
+  "clear": 5661,
   "inputVersion": "54e6e29d6ffbfbb5613079342613bfbc99894170a6ab2dc8e33b2b779e4ba5d4",
-  "sha256": "69ced686ad1d21bfbe63807511878b8fa99b54562c45bf4cc718ea7f2a70e60b",
-  "visible": 3354
+  "reslice": "l9/reslice.py",
+  "sha256": "7fd94ae0ad0fe381ddebc5bc574413bb60e19d6ecf8869290879050702498e5c",
+  "visible": 3255
  },
  "ui.icon.filter": {
   "atlas": "l9/atlas-h.png",
   "cell": 5,
-  "clear": 5001,
+  "clear": 5429,
   "inputVersion": "1288f2aa3e1ec1d7eb6bac193e885812ef8d4394fe19eabd358ef94ce376402a",
-  "sha256": "435f06e70dff092ceaf350b307479d7a372979d7ace27aec74864026680e6862",
-  "visible": 3915
+  "reslice": "l9/reslice.py",
+  "sha256": "8a1333725eb914008fd15f29cc24fcf434ab3401212ae8e67d8963acc2011fb9",
+  "visible": 3499
  },
  "ui.icon.flexibility": {
   "atlas": "l9/atlas-h.png",
@@ -4165,42 +4529,47 @@
  "ui.icon.help": {
   "atlas": "l9/atlas-f.png",
   "cell": 3,
-  "clear": 5244,
+  "clear": 5642,
   "inputVersion": "f6799f292cae8facc094a125a2072353feb1db95f207c061948d25ef88ae701e",
-  "sha256": "51ab54812d87fd16fabaff961e48ce9e5ec784552825f8cb1350c95b3381ad48",
-  "visible": 3730
+  "reslice": "l9/reslice.py",
+  "sha256": "91ccf04ab0746061fe5ccb7d4b8747032fa4a7ad7b2614d4310afdeafa2aa1f1",
+  "visible": 3367
  },
  "ui.icon.hud.attack": {
   "atlas": "l9/atlas-hud.png",
   "cell": 5,
-  "clear": 6510,
+  "clear": 6804,
   "inputVersion": "2713fb4493bd408180ffc7c35fe1d0cd5f2cb0e5fd2c56912ca4f7c6dd488b30",
-  "sha256": "e7d5731f5d61223e16cd2c9fcc9df8fb5220cf5128b46c7256cc1598ed1dde7d",
-  "visible": 2513
+  "reslice": "l9/reslice.py",
+  "sha256": "4acca0deed3c257b88fd3e60df1cd160bc3cde7630bfe15f0754fc355bc3aa6f",
+  "visible": 2265
  },
  "ui.icon.hud.chat": {
   "atlas": "l9/atlas-hud.png",
   "cell": 4,
-  "clear": 4626,
+  "clear": 4629,
   "inputVersion": "e19e2544c65d268ce219e82afcad829f1cc2c1e70bc3f962e888e0af6850f05d",
-  "sha256": "b1daaec106e39a1c99f9df4d1649db0524b2488cc9c2c209f159aac9764ea40a",
-  "visible": 4430
+  "reslice": "l9/reslice.py",
+  "sha256": "333440940286e7fd85846a59fedc58d20f0109e896d82f8b33870f9269d6d418",
+  "visible": 4436
  },
  "ui.icon.hud.dismount": {
   "atlas": "l9/atlas-hud.png",
   "cell": 6,
-  "clear": 5148,
+  "clear": 5365,
   "inputVersion": "a3c6b71b151da19967177f217650effb1647ab6ef976a0e22e8f4b9a0ad11cab",
-  "sha256": "966903cb69ecf16933d75eca63ea1cf51f9358428b154f2e0024f06ca9d64b59",
-  "visible": 3906
+  "reslice": "l9/reslice.py",
+  "sha256": "9c072da5a4b42404d349bec822298bcf223164a4b8c59a97854b08451c34e32f",
+  "visible": 3650
  },
  "ui.icon.hud.emote": {
   "atlas": "l9/atlas-hud.png",
   "cell": 3,
-  "clear": 3649,
+  "clear": 3605,
   "inputVersion": "e2d52898857810272c76b782833f237a16a29e4dc5f0908fa994748bf95dfc2f",
-  "sha256": "6089799582a3a87d79c4ddbb5718dbf852d8ee29c3e8e14b3b7a133a59b2541b",
-  "visible": 5418
+  "reslice": "l9/reslice.py",
+  "sha256": "538624ffe40d8c01aefdd9e1057de1689d8274f55eef4f0ff02facfa442d87c0",
+  "visible": 5450
  },
  "ui.icon.hud.gather": {
   "atlas": "l9/atlas-hud.png",
@@ -4213,34 +4582,38 @@
  "ui.icon.hud.interact": {
   "atlas": "l9/atlas-hud.png",
   "cell": 1,
-  "clear": 5421,
+  "clear": 5481,
   "inputVersion": "98bd50b90784f1e8e8b80fba5b6bee4edfb642ae96ad59cbe97f42b61c109439",
-  "sha256": "686e91e14f27d88b2c6467a0f98f4d16a2dd9192fdfbca98e0bcf7206e1035d4",
-  "visible": 3568
+  "reslice": "l9/reslice.py",
+  "sha256": "934fa1405f2e649f0f122fd576b4a13ce9ba89b54a87948e7b46e1db57ab5504",
+  "visible": 3488
  },
  "ui.icon.hud.menu": {
   "atlas": "l9/atlas-hud.png",
   "cell": 2,
-  "clear": 2553,
+  "clear": 2408,
   "inputVersion": "f615b826b536b73b8f5fcf739f4f902d74464755df54ee019a92e02ec22c6c59",
-  "sha256": "df4fcae3d38183b95985eefcdf6397108659572a8b4a7b0e299ceb5c2d284b04",
-  "visible": 6380
+  "reslice": "l9/reslice.py",
+  "sha256": "253e7be848d5c8ba2f7fbf42252b51be17a6c32d82418fd85faa86bcbce13fe5",
+  "visible": 6463
  },
  "ui.icon.hud.rest": {
   "atlas": "l9/atlas-hud.png",
   "cell": 7,
-  "clear": 6020,
+  "clear": 6030,
   "inputVersion": "c1ad84b398aca83a3232180602373e62a95a32d2cfc2d664f01b13a88a1b3b92",
-  "sha256": "1e12d40738e36a2a792163ffee112d7893810acbc283d4983babf3c02caf453e",
-  "visible": 2764
+  "reslice": "l9/reslice.py",
+  "sha256": "a3da6c7ef7da5b2be7385152aec221ecc92dd63230cc29296375c44660d29c07",
+  "visible": 2747
  },
  "ui.icon.inbox": {
   "atlas": "l9/atlas-e.png",
   "cell": 10,
-  "clear": 6466,
+  "clear": 6611,
   "inputVersion": "6141b2ba3f687b9a46752b00fcd6b0f6f978be2c364bb579980d59d35908b9c3",
-  "sha256": "b1bee4bdd5e17637f733973db2a7cbb7298ed56047f7c5707672bddb5e1834c2",
-  "visible": 2613
+  "reslice": "l9/reslice.py",
+  "sha256": "9cb31e804b0d6ba9b27b977384f2d5129189237de68c27ca69710e7f4711d531",
+  "visible": 2475
  },
  "ui.icon.insulation": {
   "atlas": "l9/atlas-h.png",
@@ -4253,58 +4626,65 @@
  "ui.icon.invite": {
   "atlas": "l9/atlas-f.png",
   "cell": 13,
-  "clear": 4854,
+  "clear": 4963,
   "inputVersion": "316571aa51002fb19b986cc2c42f281356d3d5dd2850148c75d534702c14b093",
-  "sha256": "d817a7d718635c52078db23e16c3376c5bd34d7755f0dbb7de08d8c4ff6c6c30",
-  "visible": 4204
+  "reslice": "l9/reslice.py",
+  "sha256": "ff3a54c2dec3b6d37fa2cb9b4b2071ff27e10bc50d895950d83b95f2afffd64c",
+  "visible": 4100
  },
  "ui.icon.journal": {
   "atlas": "l9/atlas-e.png",
   "cell": 5,
-  "clear": 4390,
+  "clear": 4920,
   "inputVersion": "e55274401d8b9bd4acdcdaa3682a803d3b406da18de55671992fce935178b275",
-  "sha256": "6e0cb94e5b6269967bfefef72564cd5a85013c060076e465a4c5ca468a08a63f",
-  "visible": 4642
+  "reslice": "l9/reslice.py",
+  "sha256": "208a1720419f3e0404ff2e412a3ebe100a5754444fc3adb498cd9697f80ba754",
+  "visible": 4141
  },
  "ui.icon.leader": {
   "atlas": "l9/atlas-h.png",
   "cell": 9,
-  "clear": 5245,
+  "clear": 5563,
   "inputVersion": "e5b3ad58ffeb061746b1189569db385fb474d50bcefeeb382b80d65a5bd6e556",
-  "sha256": "21ac6144246bc593ec486bc8da061c3af460e1b93b5d9409371ae62efa1b63d0",
-  "visible": 3762
+  "reslice": "l9/reslice.py",
+  "sha256": "784a88db27d0b19ac73d5107f02c9cd20d117e00b44aea409077e38ebdff4a01",
+  "visible": 3468
  },
  "ui.icon.loading": {
   "atlas": "l9/atlas-h.png",
   "cell": 10,
-  "clear": 5449,
+  "clear": 5678,
   "inputVersion": "71bd5af5b94800256548f2ee08b839d64ea3fe681b1881f7522af1bfd7e56b67",
-  "sha256": "46b9ec237482d4f7e2a00b52c35bea5f8dd90f8cd008496532e9db10fbcfe32a",
-  "visible": 3502
+  "reslice": "l9/reslice.py",
+  "sha256": "6d4a17ea2af1c119300a08428938253d1a12e2383ebf2b5f8af9c6a8d03fcb54",
+  "visible": 3313
  },
  "ui.icon.locked": {
   "atlas": "l9/atlas-g.png",
   "cell": 12,
-  "clear": 5115,
+  "clear": 5322,
   "inputVersion": "5d251ff6b3b68da41897c32e827617ab4b0567eb88cbdd930f46029e74773411",
-  "sha256": "a6366d5030ac3248b4006c7f5e70ad22d0b2ca9a442f1601e446b2d59af69218",
-  "visible": 3906
+  "reslice": "l9/reslice.py",
+  "sha256": "4eeee41ba60ae54fe543854ef90f7ea7b6779f6f22535657a430026f547ffe85",
+  "visible": 3714
  },
  "ui.icon.market": {
   "atlas": "l9/atlas-e.png",
   "cell": 8,
-  "clear": 4642,
+  "clear": 4733,
   "inputVersion": "b5010c749a3cad9c3162c2e4debdee779c2ddd89cdb60149cdc667b0814bcd46",
-  "sha256": "58c9774ef821ca446451a42c578fae555ef5ffd4cdb2fce1ec5d165ef03415c7",
-  "visible": 4414
+  "reslice": "l9/reslice.py",
+  "sha256": "e379a9d4f62c8b23143c2862747dd0482e9fa3f99bd5ec6bba8b1dfbae8a4132",
+  "visible": 4340
  },
  "ui.icon.member": {
   "atlas": "l9/atlas-f.png",
   "cell": 1,
-  "clear": 6085,
+  "clear": 6139,
   "inputVersion": "4c2935c0fc6250b74e4ec10ba2b1c4b1bb552f9c50d0e0c648071861d6d1741b",
-  "sha256": "ba7d8e6f21b9a6020ab18784f68c774016107c9fe91e994b20ee3de1c1c6aeac",
-  "visible": 2980
+  "reslice": "l9/reslice.py",
+  "sha256": "113b7b6e06f7ac989b90a1c054341b3338b2bcd9d1cf9a77ab51bb83b404be68",
+  "visible": 2927
  },
  "ui.icon.music": {
   "atlas": "l9/atlas-e.png",
@@ -4325,50 +4705,56 @@
  "ui.icon.officer": {
   "atlas": "l9/atlas-f.png",
   "cell": 14,
-  "clear": 5665,
+  "clear": 6141,
   "inputVersion": "4b50aed50dbc2cf334d95891db36627a177f768335163b89415eb37237431bf9",
-  "sha256": "c0998d096ec3c3fc23d6adbfbf4381e45f22532251a870cea987e13994bb9bbc",
-  "visible": 3399
+  "reslice": "l9/reslice.py",
+  "sha256": "4029df5a48c04e4fc1ab5c4e13f2192a026ce9ef5cbeba30634eddb14d49e148",
+  "visible": 2929
  },
  "ui.icon.offline": {
   "atlas": "l9/atlas-h.png",
   "cell": 12,
-  "clear": 5445,
+  "clear": 5698,
   "inputVersion": "b9c8d9a1ea27a18d442e8f6bee5018bcb47fcd181f7f79d7cf707b414f4fcc91",
-  "sha256": "57114d7ea2983a89f3d2ef70eb30ae4dab018e0cf5c456d6f2b70dc07ce75787",
-  "visible": 3501
+  "reslice": "l9/reslice.py",
+  "sha256": "ecbfdb3348a392aa77115039370a4303f92ea22eef1a8ca94f128ff3b6a4bab8",
+  "visible": 3287
  },
  "ui.icon.owner": {
   "atlas": "l9/atlas-h.png",
   "cell": 13,
-  "clear": 4668,
+  "clear": 5211,
   "inputVersion": "5ad6b9a0f9bb8fb5d4d0329b1d3fb9f4dc2b42db5eb2a08c928c01f464572c10",
-  "sha256": "b4012db7dbbf7c61255ae1ece83cfba90af913d277db58acc108aa58d4a33cf7",
-  "visible": 4379
+  "reslice": "l9/reslice.py",
+  "sha256": "77ad7f23efeaf29e8057b0ac6cd4642bca7a94572027e29fcac3312adffb7563",
+  "visible": 3861
  },
  "ui.icon.party": {
   "atlas": "l9/atlas-e.png",
   "cell": 15,
-  "clear": 5851,
+  "clear": 6321,
   "inputVersion": "858388c46ef592131e4e16bf20bb5fab4b02bee2e09642fbacfa404cbfa0db8f",
-  "sha256": "afba7a4c4ce2d9518a6e2998cf7c77c59306c48ca197fb82d9bb5f64da703aaa",
-  "visible": 3030
+  "reslice": "l9/reslice.py",
+  "sha256": "d8de4b1f2c8fe464ad5fe6edb9a53437f11d0cf45fa2c41c38091d56de04dccc",
+  "visible": 2571
  },
  "ui.icon.pending": {
   "atlas": "l9/atlas-h.png",
   "cell": 14,
-  "clear": 5225,
+  "clear": 5727,
   "inputVersion": "58bb73fc1896804b629e4398d8fc478e825cd6b6e4e04c265f7ec78608987d5c",
-  "sha256": "338184eaedcaee0d86c4110f121b30a69a0d93b435f02db17da2dac478185b0a",
-  "visible": 3817
+  "reslice": "l9/reslice.py",
+  "sha256": "87c7d00129739057f98873d6d381873b76ae94029871a92b1ad91ff7a59be135",
+  "visible": 3331
  },
  "ui.icon.permission": {
   "atlas": "l9/atlas-g.png",
   "cell": 2,
-  "clear": 6869,
+  "clear": 6936,
   "inputVersion": "df9502a409371ad350dd56305ab213e8171186a657b8e1803dcb2e07a0bb5952",
-  "sha256": "7cbfcdd0a6e5dc07e4f1be61855892701e37d1456bb512ce7a0c81d4cedb6709",
-  "visible": 2118
+  "reslice": "l9/reslice.py",
+  "sha256": "740eadaa5922a9d6b9491f8f3eac01b94f05c64b0ca001bb4e1c1c821a0d17ec",
+  "visible": 2071
  },
  "ui.icon.processing-budget": {
   "atlas": "l9/atlas-f.png",
@@ -4381,18 +4767,20 @@
  "ui.icon.quality": {
   "atlas": "l9/atlas-g.png",
   "cell": 13,
-  "clear": 4109,
+  "clear": 4100,
   "inputVersion": "e5473edee6beea2459381e56716e1b0d7d715b2a7f02c25398cc826f979919ad",
-  "sha256": "dc9e8596b620657643e4bba76669e647b86168212ab869eb08118d06c11d2c31",
+  "reslice": "l9/reslice.py",
+  "sha256": "244914f41466a9ab1f9976a968f346fa80cf665eaf974cdf35c2b05169adb6e3",
   "visible": 4960
  },
  "ui.icon.ready": {
   "atlas": "l9/atlas-h.png",
   "cell": 15,
-  "clear": 5778,
+  "clear": 6371,
   "inputVersion": "4eb2b4bdd8411c208b992cbfc87104676ba93175f0e14979a51a9fce64cd1b8c",
-  "sha256": "4302b737ebaf82df68987c10f27555fc4428521bf7bdb04c72b6923d7379d716",
-  "visible": 3248
+  "reslice": "l9/reslice.py",
+  "sha256": "e9f8e24a32e78b03f4ae93a84da0c34caa770fdbd144ad271dc50eadee980901",
+  "visible": 2650
  },
  "ui.icon.refresh": {
   "atlas": "l9/atlas-f.png",
@@ -4405,18 +4793,20 @@
  "ui.icon.refund": {
   "atlas": "l9/atlas-h.png",
   "cell": 16,
-  "clear": 5267,
+  "clear": 5441,
   "inputVersion": "92af287583eb94bfd90b3ec520327529e04c39c87eea210139cdb6f6ce13aa2f",
-  "sha256": "b7cd3984c413ec002632af0c03a3e97cbab8fa574f0641b946dac0d43073bfc3",
-  "visible": 3651
+  "reslice": "l9/reslice.py",
+  "sha256": "377747ba89fbba75871020ed1c100b95697623c81027da85a91bf4037507c17c",
+  "visible": 3476
  },
  "ui.icon.search": {
   "atlas": "l9/atlas-f.png",
   "cell": 9,
-  "clear": 6566,
+  "clear": 6737,
   "inputVersion": "be5d04857504ffb5b5a6ac86652f770acd87dda7f23484a2d56b54c62d1b3264",
-  "sha256": "d0a7832efa709b47d583ab542215f11cd7fc36b48c568aac80803daa978630a9",
-  "visible": 2491
+  "reslice": "l9/reslice.py",
+  "sha256": "edb9e5a0cf55313000d7c1dd56fa731518ba8ac7237a261e1f6cc53f6278a330",
+  "visible": 2328
  },
  "ui.icon.settings": {
   "atlas": "l9/atlas-e.png",
@@ -4445,90 +4835,101 @@
  "ui.icon.skills": {
   "atlas": "l9/atlas-e.png",
   "cell": 4,
-  "clear": 4813,
+  "clear": 4697,
   "inputVersion": "e7782936d9f013eef58affbdc5a1a86f32692458f160856dd375a88595aa8f89",
-  "sha256": "0ec8b4dafbe3b498dc14b07266b4a27f81991d9e37ad75ec52334afffeea9af4",
-  "visible": 4235
+  "reslice": "l9/reslice.py",
+  "sha256": "34cf1a9d3dc4f12e288188237742f299ec4b72367c225e5662ab8c9ee0d46b50",
+  "visible": 4368
  },
  "ui.icon.social": {
   "atlas": "l9/atlas-e.png",
   "cell": 7,
-  "clear": 5389,
+  "clear": 5885,
   "inputVersion": "3f0fb3ac8b99d288397d00683c099610ca338a799e386a1078ce468c813a31d9",
-  "sha256": "6a2584403ee74cd2b74088e9fb62380c4c4b34a1f7448e4fe5dbd4ef0802f936",
-  "visible": 3604
+  "reslice": "l9/reslice.py",
+  "sha256": "51b14609e89f973bd06f85f2a256bceb412bd72d444e668b29481aa3fa4cd423",
+  "visible": 3151
  },
  "ui.icon.sort": {
   "atlas": "l9/atlas-f.png",
   "cell": 15,
-  "clear": 5090,
+  "clear": 5337,
   "inputVersion": "1338f016307605eefc9db90757cd76f42b31f23248287454a40d9f9d56f7c2f1",
-  "sha256": "0169cc1c771ad7c0f362763aac21b3a4f0fbc3f59a5040b3168ab90e2c0a0f1f",
-  "visible": 3961
+  "reslice": "l9/reslice.py",
+  "sha256": "bf15c3a76d39339ec475546f818e4e2dfd195ec0fa8156128c00653e276c0128",
+  "visible": 3723
  },
  "ui.icon.stale": {
   "atlas": "l9/atlas-i.png",
   "cell": 1,
-  "clear": 6069,
+  "clear": 6125,
   "inputVersion": "7de388e0e56e82e0112d51652cd875ac588d89af3c146a48256c6bb5b271b4c5",
-  "sha256": "cc58ede165571ab37c731256714561a749b5819a72a90d3353c364b5a6e3c0c4",
-  "visible": 2985
+  "reslice": "l9/reslice.py",
+  "sha256": "6019bc8a7398cc4fb39235897690e7e32df616f08014fecc12742c13b1d269b6",
+  "visible": 2908
  },
  "ui.icon.stance.attack": {
   "atlas": "l9/atlas-g.png",
   "cell": 4,
-  "clear": 6986,
+  "clear": 7199,
   "inputVersion": "cbbd9a3e4211c6b3738daa87c82263f3af6550b7a89b8baa178998bcd01cccdb",
-  "sha256": "072e19a147f51c67cac901586c2acc68847026c58a1177fcda4a5683f02e7f26",
-  "visible": 1999
+  "reslice": "l9/reslice.py",
+  "sha256": "fcacab3125b02024b751798adf3c64b848ec2db5196517134268df21aac190fd",
+  "visible": 1810
  },
  "ui.icon.stance.charge": {
   "atlas": "l9/atlas-i.png",
   "cell": 2,
-  "clear": 5512,
+  "clear": 5537,
   "inputVersion": "540a8c1dd10b38a7b950f87e2aa6c2fd402a7db07c4ca052591710dfd230d61c",
-  "sha256": "9b09d77e15d3328c75f17cda35555ba6e5df0c6cfeece64e06303283b6d01e05",
-  "visible": 3166
+  "reslice": "l9/reslice.py",
+  "sha256": "5befb78bce79111a8bb47bc364695b731702911aca3fcbe5c7283bb12cfb50c0",
+  "visible": 3118
  },
  "ui.icon.stance.counter": {
   "atlas": "l9/atlas-i.png",
   "cell": 3,
-  "clear": 3479,
+  "clear": 4015,
   "inputVersion": "f85d951e403ca74d07b55e52a8995419943cee47062691581b64318706d96aff",
-  "sha256": "4829347f6344d31fed0f8efa9ec53382c696b7e6674a4b584c592bf59518add1",
-  "visible": 5566
+  "reslice": "l9/reslice.py",
+  "sha256": "9a07d9d6b6778c017258ea8ae9daa4b26003daa0661c43b83a932c6fa97dd3d4",
+  "visible": 5052
  },
  "ui.icon.stance.defense": {
   "atlas": "l9/atlas-g.png",
   "cell": 5,
-  "clear": 5158,
+  "clear": 5423,
   "inputVersion": "1a45ba0dbc5e0c6174f651720199691b92927f101149c246f1b8aa09c9289baf",
-  "sha256": "053a9b211df52bac336b10bb66da63fc2b8d1265f5368762fe6d09a9bdec3719",
-  "visible": 3919
+  "reslice": "l9/reslice.py",
+  "sha256": "a7496f86cc8e329db7506f0e7cf8abe2d904a458a74c28918032679d17966131",
+  "visible": 3659
  },
  "ui.icon.stance.onslaught": {
   "atlas": "l9/atlas-i.png",
   "cell": 4,
-  "clear": 6486,
+  "clear": 6533,
   "inputVersion": "bd72708de9aad37e216ca0f978917a8693e82ce7a03aa0970ef41a98979940dd",
-  "sha256": "789742bb19fe279d0682cba6814016dd1ae391b5b58acc3f178333bfb88433ae",
-  "visible": 2427
+  "reslice": "l9/reslice.py",
+  "sha256": "604c310ae36673a83d5f9b8afaba16c22d4de573757a6a025954cbd41b2225d2",
+  "visible": 2378
  },
  "ui.icon.stance.shoot": {
   "atlas": "l9/atlas-i.png",
   "cell": 5,
-  "clear": 6902,
+  "clear": 7042,
   "inputVersion": "7b8c46b23d17698e1e7b4dc699abe1dadcbd75c0ae5c008cadd9495fdc55230f",
-  "sha256": "bf2840f2d6f90603794bd75f2cefd3aa548eee99991a404e26c257e1ee609c82",
-  "visible": 2114
+  "reslice": "l9/reslice.py",
+  "sha256": "e35da3b4cb7373b1c0ef5b6b574eb47bcb11ddd8539c4b6c27ca3dff54b5acbe",
+  "visible": 1992
  },
  "ui.icon.subdue": {
   "atlas": "l9/atlas-i.png",
   "cell": 6,
-  "clear": 6900,
+  "clear": 6889,
   "inputVersion": "253601ac2cdcb0698784828fd5c926d31c05af2d28974e05d58f9a3cf5913fb3",
-  "sha256": "15bb9a5ce289aae822d93b55fa2ca7efbfecced6ad170200f67f97193138cc36",
-  "visible": 2186
+  "reslice": "l9/reslice.py",
+  "sha256": "948f451eada399d8d990d903e569a1c3aff5d290f3fe13c4a716cb9a7500b964",
+  "visible": 2193
  },
  "ui.icon.success": {
   "atlas": "l9/atlas-g.png",
@@ -4549,18 +4950,20 @@
  "ui.icon.visitor": {
   "atlas": "l9/atlas-g.png",
   "cell": 1,
-  "clear": 6445,
+  "clear": 6587,
   "inputVersion": "09d0d5c16b7bce93fa39f3bff0d6176140a7e10316050961fd43335960e0d199",
-  "sha256": "e57baaef56ce8f03ba5dc6fc3c1cc39db5d887c091700b8455c4f5104ddf2166",
-  "visible": 2604
+  "reslice": "l9/reslice.py",
+  "sha256": "61e3060f7111a25923431a66cd46b23603107f84e8db31f18dda7b34f3de8f55",
+  "visible": 2463
  },
  "ui.icon.weather.clear": {
   "atlas": "l9/atlas-i.png",
   "cell": 7,
-  "clear": 5321,
+  "clear": 5309,
   "inputVersion": "ccb20f3349c95aaf50cd9c895c0efa549651d1bd185f1dc11daf56bf89dff567",
-  "sha256": "7d8053a2344b35970d00b3a01d00390f90415c94278a763ee7e10c0f71d6d567",
-  "visible": 3666
+  "reslice": "l9/reslice.py",
+  "sha256": "0569954291790364cbbe2eaa96d5df376765d3983a4241e73de101fcb306727d",
+  "visible": 3664
  },
  "ui.icon.weather.collapse": {
   "atlas": "l9/atlas-i.png",
@@ -4573,18 +4976,20 @@
  "ui.icon.weather.fog": {
   "atlas": "l9/atlas-i.png",
   "cell": 9,
-  "clear": 4730,
+  "clear": 4807,
   "inputVersion": "f44ac7ffa5a8e23452d8284bcacd8a655343a85da13db55ad920eb31d2821c87",
-  "sha256": "112d1edab756cb0f56885e54dcc55f240e2e48cad432023c958a28a482ad5d4f",
-  "visible": 3930
+  "reslice": "l9/reslice.py",
+  "sha256": "d16071114dcbf5ca82b3fe96491b416a5012ad9b5eda074afd0f60508ef35a58",
+  "visible": 3846
  },
  "ui.icon.weather.rain": {
   "atlas": "l9/atlas-i.png",
   "cell": 8,
-  "clear": 5961,
+  "clear": 5949,
   "inputVersion": "3ab6551a992fc73b0904a3eef1434f87e67568ad6c9892d1ec2bef3ce5edf582",
-  "sha256": "7a0d9176a149a055e8d65718edc4362d91613ac9aa150e5c1ff24170ccf8ccd6",
-  "visible": 3026
+  "reslice": "l9/reslice.py",
+  "sha256": "0653868311c0f4e2ec87207b065854f6ffb8af14f9649396a08db319a0e77293",
+  "visible": 3006
  },
  "ui.icon.weather.storm": {
   "atlas": "l9/atlas-i.png",
@@ -4597,10 +5002,11 @@
  "ui.icon.weight": {
   "atlas": "l9/atlas-g.png",
   "cell": 14,
-  "clear": 4386,
+  "clear": 4691,
   "inputVersion": "195dfb15f587df72ef082c86f2627e164841472aa19768191a3be4ea73c692dc",
-  "sha256": "48de760be9e780a15371873e95cc32bc5a59776eddafec721ee79408dcfd3f3c",
-  "visible": 4646
+  "reslice": "l9/reslice.py",
+  "sha256": "338e282e50261b3c711c45546c900fdd63799b5a96019f4906fa7890aa2ae53e",
+  "visible": 4357
  },
  "ui.icon.withdraw-capability": {
   "atlas": "l9/atlas-i.png",

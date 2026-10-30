@@ -383,6 +383,7 @@ M.TOKEN_ICONS = table.freeze({
 	rest = "hud.rest",
 	gather = "hud.gather",
 	quest = "todo",
+	questHide = "close",
 	currency = "currency",
 	level = "xp",
 })
@@ -997,6 +998,79 @@ function M.put(item: any, r: Rect, origin: any?)
 	item.AnchorPoint = Vector2.zero
 	item.Position = UDim2.fromOffset(r.x - o.X, r.y - o.Y)
 	item.Size = UDim2.fromOffset(r.width, r.height)
+end
+
+-- Level badge portrait (Durango R05-1 / R08-1): the player's avatar headshot inside the level ring,
+-- the level number on a small pip at the ring's foot. One thumbnail request per user id per client.
+local headshots: { [number]: string } = {}
+local headshotPending: { [number]: { any } } = {}
+
+--- Turns the round level badge into a portrait ring: a round "Portrait" image (the painted
+--- `fallback` until the headshot resolves, and for good if it never does) and a "LevelNumber" pip.
+--- Returns the pip; the caller writes the level into its Text.
+function M.levelPortrait(badge: any, players: any, userId: number, fallback: string?): any
+	local P = M.PALETTE
+	badge.Text, badge.TextTransparency = "", 1
+	local portrait = badge:FindFirstChild("Portrait")
+	if not portrait then
+		portrait = Instance.new("ImageLabel")
+		portrait.Name, portrait.BackgroundTransparency = "Portrait", 1
+		portrait.AnchorPoint, portrait.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+		portrait.Size, portrait.ScaleType = UDim2.fromScale(0.88, 0.88), Enum.ScaleType.Crop
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), portrait
+		portrait.Parent = badge
+	end
+	portrait.Image = headshots[userId] or fallback or ""
+	local pip = badge:FindFirstChild("LevelNumber")
+	if not pip then
+		pip = Instance.new("TextLabel")
+		pip.Name, pip.BackgroundColor3, pip.BackgroundTransparency = "LevelNumber", color(P.ink), 0.1
+		pip.TextColor3, pip.Font = color(P.bone), Enum.Font.BuilderSansBold
+		pip.AnchorPoint, pip.Position = Vector2.new(0.5, 1), UDim2.new(0.5, 0, 1, 2)
+		pip.Size, pip.ZIndex = UDim2.fromScale(0.62, 0.36), portrait.ZIndex + 1
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), pip
+		local rim = Instance.new("UIStroke")
+		rim.Color, rim.Thickness, rim.ApplyStrokeMode = color(P.ochre), 1, Enum.ApplyStrokeMode.Border
+		rim.Parent = pip
+		pip.Parent = badge
+	end
+	if headshots[userId] == nil and players ~= nil and userId > 0 then
+		local waiting = headshotPending[userId]
+		if waiting then
+			table.insert(waiting, portrait)
+		else
+			headshotPending[userId] = { portrait }
+			task.spawn(function()
+				local ok, content = pcall(
+					players.GetUserThumbnailAsync,
+					players,
+					userId,
+					Enum.ThumbnailType.HeadShot,
+					Enum.ThumbnailSize.Size150x150
+				)
+				local list = headshotPending[userId]
+				headshotPending[userId] = nil
+				if ok and type(content) == "string" and content ~= "" then
+					headshots[userId] = content
+					for _, image in list do
+						image.Image = content
+					end
+				end
+			end)
+		end
+	end
+	return pip
+end
+
+--- Quest card toggle look: the quest (to-do) glyph while the card is collapsed (tap to show it), the
+--- close glyph while it is shown (tap to hide it). `icon(id)` resolves a ui icon id to an image.
+function M.questToggleLook(button: any, collapsed: boolean, icon: (string) -> string?)
+	local id = M.TOKEN_ICONS[if collapsed then "quest" else "questHide"]
+	M.iconToken(button, icon(id), "normal")
+	button:SetAttribute("ForgeQuestCollapsed", collapsed)
+	button:SetAttribute("ForgeIcon", id)
 end
 
 --- Lays a Components.modalSheet out as a full-screen panel (spec section 6): the frame covers the

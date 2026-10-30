@@ -778,4 +778,84 @@ return {
 		assert(string.find(client, "walkTo(part.Position, within, arrive)", 1, true), "picker approach")
 		assert(string.find(client, "walkTo = tapInput.moveTo", 1, true), "bound to the tap router walk")
 	end,
+	["level badge shows the player's headshot in the ring, cached, with a painted fallback"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local environment: any = {
+			task = {
+				spawn = function(fn, ...)
+					fn(...)
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		local calls: { any } = {}
+		local players = {
+			GetUserThumbnailAsync = function(_, userId, kind, size)
+				table.insert(calls, { userId, kind, size })
+				return "rbxthumb://type=AvatarHeadShot&id=" .. userId .. "&w=150&h=150", true
+			end,
+		}
+		local badge = roblox.Instance.new("TextLabel")
+		badge.Text = "7"
+		local pip = shell.levelPortrait(badge, players, 42, "rbxassetid://1")
+		local portrait = badge:FindFirstChild("Portrait")
+		assert(portrait and portrait:IsA("ImageLabel"), "portrait image inside the badge")
+		assert(portrait.Image == "rbxthumb://type=AvatarHeadShot&id=42&w=150&h=150", "headshot shown")
+		assert(#calls == 1 and calls[1][2] == roblox.Enum.ThumbnailType.HeadShot, "one headshot request")
+		assert(portrait:FindFirstChildOfClass("UICorner"), "round portrait")
+		assert(pip and pip.Name == "LevelNumber" and pip.Parent == badge, "level number pip in the ring")
+		assert(badge.Text == "", "the bare number disc is gone")
+		-- Cached: a rebuilt badge for the same user draws the headshot at once, without a new request.
+		local again = roblox.Instance.new("TextLabel")
+		shell.levelPortrait(again, players, 42, "rbxassetid://1")
+		assert(#calls == 1, "headshot cached per user")
+		assert(again:FindFirstChild("Portrait").Image == portrait.Image, "cached headshot reused")
+		-- A failed request keeps the painted fallback.
+		local failing = {
+			GetUserThumbnailAsync = function()
+				error("HTTP 500")
+			end,
+		}
+		local other = roblox.Instance.new("TextLabel")
+		shell.levelPortrait(other, failing, 99, "rbxassetid://1")
+		assert(other:FindFirstChild("Portrait").Image == "rbxassetid://1", "painted fallback kept")
+		-- The live HUD builds its level badge through it and writes the level into the pip.
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, "HudShell.levelPortrait(badge, players, player.UserId", 1, true), "HUD wiring")
+		assert(string.find(hud, "levelNumber.Text = ", 1, true), "level shown on the pip")
+	end,
+	["quest card toggle shows a different glyph expanded and collapsed"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = table.clone(roblox),
+		})()
+		local function icon(id: string): string?
+			return "rbxassetid://" .. id
+		end
+		local button = roblox.Instance.new("TextButton")
+		shell.questToggleLook(button, false, icon)
+		local expanded = button:FindFirstChild("Glyph").Image
+		assert(button:GetAttribute("ForgeQuestCollapsed") == false, "expanded state")
+		shell.questToggleLook(button, true, icon)
+		local collapsed = button:FindFirstChild("Glyph").Image
+		assert(button:GetAttribute("ForgeQuestCollapsed") == true, "collapsed state")
+		assert(expanded ~= collapsed, "glyph changes with the card state")
+		assert(collapsed == "rbxassetid://" .. shell.TOKEN_ICONS.quest, "collapsed shows the quest glyph")
+		assert(fs.isFile("games/robango-island/assets/icons/ui.icon." .. shell.TOKEN_ICONS.questHide .. ".png"))
+		-- The dock's toggle restyles itself on every tap.
+		local panels = fs.readFile("genres/survival-coop/module/ExtensionPanels.luau")
+		local _, tap = string.find(panels, "questCollapsed = not questCollapsed", 1, true)
+		assert(tap, "toggle flips the state")
+		local after = string.sub(panels, tap, tap + 120)
+		assert(string.find(after, "HudShell.questToggleLook(questToggle, questCollapsed", 1, true), "tap restyles")
+	end,
 }

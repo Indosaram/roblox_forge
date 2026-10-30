@@ -161,6 +161,7 @@ function M.start(options: Options)
 	-- HUD polish (shell): slim icon + bar + number rows sized by HudShell.vitalsRows; the stat word is
 	-- dropped (the icon carries it) and a level badge sits at the panel's left.
 	local levelBadge: TextLabel? = nil
+	local levelNumber: TextLabel? = nil
 	if shell then
 		local badge = Instance.new("TextLabel")
 		badge.Name, badge.BackgroundColor3 = "Level", HudShell.color(HudShell.PALETTE.tealDeep)
@@ -171,6 +172,9 @@ function M.start(options: Options)
 		local ring = Instance.new("UIStroke")
 		ring.Color, ring.Thickness, ring.Parent = HudShell.color(HudShell.PALETTE.ochre), 2, badge
 		levelBadge = badge
+		-- Portrait in the ring (Durango R05-1 / R08-1); the painted member icon stands in until it loads.
+		local fallback = if options.icons then options.icons.ui("member") else nil
+		levelNumber = HudShell.levelPortrait(badge, players, player.UserId, fallback and fallback.image)
 	end
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
@@ -1183,9 +1187,9 @@ function M.start(options: Options)
 				bar.value.Text = tostring(math.floor(amount))
 			end
 		end
-		if levelBadge then
+		if levelNumber then
 			local progression = model.snapshot.progression
-			levelBadge.Text = if progression and progression.level then tostring(progression.level) else "1"
+			levelNumber.Text = if progression and progression.level then tostring(progression.level) else "1"
 		end
 		local hungry = Model.hungry(v)
 		local hint = Model.hungerHint(model.snapshot, content and content.items)
@@ -2525,7 +2529,9 @@ function M.start(options: Options)
 				local badge = levelBadge
 				if badge then
 					HudShell.put(badge, geometry.badge)
-					badge.TextSize = math.max(13, math.floor(geometry.badge.height * 0.42))
+					if levelNumber then
+						levelNumber.TextSize = math.max(11, math.floor(geometry.badge.height * 0.3))
+					end
 				end
 				for index, stat in { "health", "hunger", "fatigue" } do
 					local bar, row = statBars[stat], geometry.rows[index]

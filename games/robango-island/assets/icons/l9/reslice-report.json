@@ -1,0 +1,3830 @@
+[
+ {
+  "icon": "item.icon.bone-knife",
+  "atlas": "a",
+  "cell": 1,
+  "bbox": [
+   43,
+   65,
+   305,
+   284
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fiber",
+  "atlas": "a",
+  "cell": 2,
+  "bbox": [
+   324,
+   57,
+   622,
+   302
+  ],
+  "cut": [
+   "L",
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.branch",
+  "atlas": "a",
+  "cell": 3,
+  "bbox": [
+   661,
+   47,
+   934,
+   300
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.leaves",
+  "atlas": "a",
+  "cell": 4,
+  "bbox": [
+   951,
+   60,
+   1222,
+   291
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.capture-bola",
+  "atlas": "a",
+  "cell": 8,
+  "bbox": [
+   964,
+   325,
+   1231,
+   605
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.wood",
+  "atlas": "a",
+  "cell": 10,
+  "bbox": [
+   335,
+   662,
+   615,
+   889
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hide",
+  "atlas": "a",
+  "cell": 12,
+  "bbox": [
+   944,
+   649,
+   1234,
+   897
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.meat",
+  "atlas": "a",
+  "cell": 13,
+  "bbox": [
+   25,
+   956,
+   309,
+   1196
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cooked-meat",
+  "atlas": "a",
+  "cell": 14,
+  "bbox": [
+   332,
+   901,
+   624,
+   1187
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stone-axe",
+  "atlas": "a",
+  "cell": 15,
+  "bbox": [
+   650,
+   928,
+   931,
+   1203
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stone-pick",
+  "atlas": "a",
+  "cell": 16,
+  "bbox": [
+   956,
+   930,
+   1234,
+   1208
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fish",
+  "atlas": "b",
+  "cell": 2,
+  "bbox": [
+   342,
+   68,
+   624,
+   302
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.reed",
+  "atlas": "b",
+  "cell": 3,
+  "bbox": [
+   657,
+   40,
+   931,
+   307
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.thatch-bundle",
+  "atlas": "b",
+  "cell": 4,
+  "bbox": [
+   961,
+   62,
+   1227,
+   310
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cattail-root",
+  "atlas": "b",
+  "cell": 6,
+  "bbox": [
+   337,
+   363,
+   615,
+   608
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.berry-meal",
+  "atlas": "b",
+  "cell": 10,
+  "bbox": [
+   341,
+   644,
+   632,
+   899
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.woodland-skewer",
+  "atlas": "b",
+  "cell": 11,
+  "bbox": [
+   644,
+   646,
+   930,
+   909
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cattail-flatbread",
+  "atlas": "b",
+  "cell": 13,
+  "bbox": [
+   35,
+   964,
+   302,
+   1197
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.water",
+  "atlas": "b",
+  "cell": 16,
+  "bbox": [
+   977,
+   951,
+   1211,
+   1203
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.plank",
+  "atlas": "c",
+  "cell": 1,
+  "bbox": [
+   26,
+   60,
+   320,
+   319
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.spear",
+  "atlas": "c",
+  "cell": 2,
+  "bbox": [
+   335,
+   40,
+   624,
+   320
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.flint-knife",
+  "atlas": "c",
+  "cell": 3,
+  "bbox": [
+   653,
+   56,
+   936,
+   308
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stone-maul",
+  "atlas": "c",
+  "cell": 4,
+  "bbox": [
+   949,
+   53,
+   1232,
+   322
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.charcoal",
+  "atlas": "c",
+  "cell": 5,
+  "bbox": [
+   33,
+   362,
+   305,
+   613
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.granite",
+  "atlas": "c",
+  "cell": 9,
+  "bbox": [
+   30,
+   646,
+   308,
+   904
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.basalt",
+  "atlas": "c",
+  "cell": 10,
+  "bbox": [
+   343,
+   638,
+   610,
+   896
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.iron-ore",
+  "atlas": "c",
+  "cell": 12,
+  "bbox": [
+   951,
+   647,
+   1222,
+   903
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.volcanic-ore",
+  "atlas": "c",
+  "cell": 13,
+  "bbox": [
+   28,
+   941,
+   300,
+   1208
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.signal-fragment",
+  "atlas": "c",
+  "cell": 14,
+  "bbox": [
+   351,
+   951,
+   605,
+   1203
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.samphire",
+  "atlas": "c",
+  "cell": 15,
+  "bbox": [
+   645,
+   927,
+   928,
+   1209
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.flax",
+  "atlas": "c",
+  "cell": 16,
+  "bbox": [
+   939,
+   915,
+   1232,
+   1222
+  ],
+  "cut": [
+   "L",
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.campfire-kit",
+  "atlas": "d",
+  "cell": 1,
+  "bbox": [
+   37,
+   49,
+   305,
+   312
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.workbench-kit",
+  "atlas": "d",
+  "cell": 2,
+  "bbox": [
+   341,
+   65,
+   617,
+   316
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.storage-kit",
+  "atlas": "d",
+  "cell": 3,
+  "bbox": [
+   652,
+   66,
+   918,
+   307
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.floor-kit",
+  "atlas": "d",
+  "cell": 4,
+  "bbox": [
+   957,
+   84,
+   1227,
+   309
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.roof-kit",
+  "atlas": "d",
+  "cell": 5,
+  "bbox": [
+   26,
+   368,
+   310,
+   619
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.starter-axe",
+  "atlas": "d",
+  "cell": 6,
+  "bbox": [
+   346,
+   355,
+   624,
+   614
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.starter-pickaxe",
+  "atlas": "d",
+  "cell": 7,
+  "bbox": [
+   659,
+   361,
+   941,
+   612
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.starter-club",
+  "atlas": "d",
+  "cell": 8,
+  "bbox": [
+   974,
+   362,
+   1220,
+   616
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.rescue-marker",
+  "atlas": "d",
+  "cell": 10,
+  "bbox": [
+   393,
+   633,
+   622,
+   917
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.apple",
+  "atlas": "d",
+  "cell": 11,
+  "bbox": [
+   680,
+   662,
+   933,
+   900
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.corn",
+  "atlas": "d",
+  "cell": 13,
+  "bbox": [
+   34,
+   948,
+   307,
+   1206
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.onion",
+  "atlas": "d",
+  "cell": 15,
+  "bbox": [
+   679,
+   951,
+   870,
+   1208
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.wheat",
+  "atlas": "d",
+  "cell": 16,
+  "bbox": [
+   962,
+   933,
+   1234,
+   1216
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.bag",
+  "atlas": "e",
+  "cell": 1,
+  "bbox": [
+   39,
+   33,
+   319,
+   321
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.craft",
+  "atlas": "e",
+  "cell": 2,
+  "bbox": [
+   329,
+   41,
+   619,
+   318
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.build",
+  "atlas": "e",
+  "cell": 3,
+  "bbox": [
+   644,
+   48,
+   930,
+   334
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.skills",
+  "atlas": "e",
+  "cell": 4,
+  "bbox": [
+   960,
+   65,
+   1234,
+   325
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.journal",
+  "atlas": "e",
+  "cell": 5,
+  "bbox": [
+   16,
+   368,
+   324,
+   615
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.explore",
+  "atlas": "e",
+  "cell": 6,
+  "bbox": [
+   364,
+   338,
+   596,
+   616
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.social",
+  "atlas": "e",
+  "cell": 7,
+  "bbox": [
+   629,
+   405,
+   940,
+   602
+  ],
+  "cut": [
+   "L",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.market",
+  "atlas": "e",
+  "cell": 8,
+  "bbox": [
+   951,
+   366,
+   1241,
+   615
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.inbox",
+  "atlas": "e",
+  "cell": 10,
+  "bbox": [
+   317,
+   677,
+   610,
+   895
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.capture",
+  "atlas": "e",
+  "cell": 13,
+  "bbox": [
+   26,
+   936,
+   318,
+   1205
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.clan",
+  "atlas": "e",
+  "cell": 14,
+  "bbox": [
+   333,
+   893,
+   622,
+   1234
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.party",
+  "atlas": "e",
+  "cell": 15,
+  "bbox": [
+   641,
+   918,
+   931,
+   1231
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.member",
+  "atlas": "f",
+  "cell": 1,
+  "bbox": [
+   38,
+   72,
+   304,
+   310
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.durability",
+  "atlas": "f",
+  "cell": 2,
+  "bbox": [
+   355,
+   52,
+   626,
+   325
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.help",
+  "atlas": "f",
+  "cell": 3,
+  "bbox": [
+   707,
+   55,
+   873,
+   326
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.capacity",
+  "atlas": "f",
+  "cell": 4,
+  "bbox": [
+   950,
+   44,
+   1224,
+   331
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.fertility",
+  "atlas": "f",
+  "cell": 5,
+  "bbox": [
+   39,
+   361,
+   306,
+   617
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.exploration-rank",
+  "atlas": "f",
+  "cell": 7,
+  "bbox": [
+   628,
+   374,
+   926,
+   625
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.search",
+  "atlas": "f",
+  "cell": 9,
+  "bbox": [
+   37,
+   647,
+   313,
+   906
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.escrow",
+  "atlas": "f",
+  "cell": 10,
+  "bbox": [
+   346,
+   666,
+   624,
+   901
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.invite",
+  "atlas": "f",
+  "cell": 13,
+  "bbox": [
+   32,
+   964,
+   305,
+   1191
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.officer",
+  "atlas": "f",
+  "cell": 14,
+  "bbox": [
+   367,
+   929,
+   570,
+   1211
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.sort",
+  "atlas": "f",
+  "cell": 15,
+  "bbox": [
+   629,
+   951,
+   923,
+   1204
+  ],
+  "cut": [
+   "L",
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.visitor",
+  "atlas": "g",
+  "cell": 1,
+  "bbox": [
+   49,
+   26,
+   328,
+   321
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.permission",
+  "atlas": "g",
+  "cell": 2,
+  "bbox": [
+   376,
+   52,
+   634,
+   311
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.block",
+  "atlas": "g",
+  "cell": 3,
+  "bbox": [
+   672,
+   63,
+   931,
+   317
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.stance.attack",
+  "atlas": "g",
+  "cell": 4,
+  "bbox": [
+   996,
+   33,
+   1222,
+   319
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.stance.defense",
+  "atlas": "g",
+  "cell": 5,
+  "bbox": [
+   63,
+   333,
+   277,
+   624
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.energy",
+  "atlas": "g",
+  "cell": 7,
+  "bbox": [
+   624,
+   370,
+   931,
+   612
+  ],
+  "cut": [
+   "L",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.fatigue",
+  "atlas": "g",
+  "cell": 8,
+  "bbox": [
+   960,
+   372,
+   1243,
+   595
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.locked",
+  "atlas": "g",
+  "cell": 12,
+  "bbox": [
+   1007,
+   632,
+   1199,
+   907
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.quality",
+  "atlas": "g",
+  "cell": 13,
+  "bbox": [
+   40,
+   951,
+   292,
+   1203
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.weight",
+  "atlas": "g",
+  "cell": 14,
+  "bbox": [
+   346,
+   940,
+   627,
+   1203
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.close",
+  "atlas": "g",
+  "cell": 15,
+  "bbox": [
+   661,
+   947,
+   916,
+   1207
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.dodge",
+  "atlas": "h",
+  "cell": 1,
+  "bbox": [
+   42,
+   67,
+   300,
+   307
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.error",
+  "atlas": "h",
+  "cell": 3,
+  "bbox": [
+   672,
+   60,
+   902,
+   308
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.favorite",
+  "atlas": "h",
+  "cell": 4,
+  "bbox": [
+   987,
+   54,
+   1212,
+   306
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.filter",
+  "atlas": "h",
+  "cell": 5,
+  "bbox": [
+   40,
+   364,
+   318,
+   598
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.leader",
+  "atlas": "h",
+  "cell": 9,
+  "bbox": [
+   51,
+   683,
+   319,
+   871
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.loading",
+  "atlas": "h",
+  "cell": 10,
+  "bbox": [
+   408,
+   630,
+   574,
+   899
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.offline",
+  "atlas": "h",
+  "cell": 12,
+  "bbox": [
+   1013,
+   630,
+   1185,
+   906
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.owner",
+  "atlas": "h",
+  "cell": 13,
+  "bbox": [
+   68,
+   936,
+   273,
+   1191
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.pending",
+  "atlas": "h",
+  "cell": 14,
+  "bbox": [
+   363,
+   930,
+   595,
+   1180
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.ready",
+  "atlas": "h",
+  "cell": 15,
+  "bbox": [
+   655,
+   920,
+   908,
+   1197
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.refund",
+  "atlas": "h",
+  "cell": 16,
+  "bbox": [
+   984,
+   937,
+   1224,
+   1184
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "ui.icon.stale",
+  "atlas": "i",
+  "cell": 1,
+  "bbox": [
+   54,
+   74,
+   291,
+   313
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.stance.charge",
+  "atlas": "i",
+  "cell": 2,
+  "bbox": [
+   334,
+   65,
+   617,
+   315
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.stance.counter",
+  "atlas": "i",
+  "cell": 3,
+  "bbox": [
+   678,
+   64,
+   908,
+   316
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.stance.onslaught",
+  "atlas": "i",
+  "cell": 4,
+  "bbox": [
+   971,
+   66,
+   1215,
+   317
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 3
+ },
+ {
+  "icon": "ui.icon.stance.shoot",
+  "atlas": "i",
+  "cell": 5,
+  "bbox": [
+   71,
+   353,
+   294,
+   625
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.subdue",
+  "atlas": "i",
+  "cell": 6,
+  "bbox": [
+   345,
+   369,
+   598,
+   620
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.weather.clear",
+  "atlas": "i",
+  "cell": 7,
+  "bbox": [
+   659,
+   368,
+   917,
+   622
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.weather.rain",
+  "atlas": "i",
+  "cell": 8,
+  "bbox": [
+   973,
+   392,
+   1226,
+   617
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.weather.fog",
+  "atlas": "i",
+  "cell": 9,
+  "bbox": [
+   38,
+   681,
+   304,
+   920
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "ui.icon.cat.all",
+  "atlas": "j",
+  "cell": 1,
+  "bbox": [
+   39,
+   78,
+   304,
+   313
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.tool",
+  "atlas": "j",
+  "cell": 2,
+  "bbox": [
+   360,
+   51,
+   637,
+   323
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.weapon",
+  "atlas": "j",
+  "cell": 3,
+  "bbox": [
+   659,
+   51,
+   933,
+   325
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.clothing",
+  "atlas": "j",
+  "cell": 4,
+  "bbox": [
+   950,
+   79,
+   1237,
+   325
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.food",
+  "atlas": "j",
+  "cell": 5,
+  "bbox": [
+   24,
+   397,
+   316,
+   625
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.medicine",
+  "atlas": "j",
+  "cell": 6,
+  "bbox": [
+   376,
+   386,
+   619,
+   623
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.material",
+  "atlas": "j",
+  "cell": 7,
+  "bbox": [
+   650,
+   387,
+   928,
+   642
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.building",
+  "atlas": "j",
+  "cell": 8,
+  "bbox": [
+   960,
+   382,
+   1236,
+   627
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.cat.farm",
+  "atlas": "j",
+  "cell": 9,
+  "bbox": [
+   29,
+   657,
+   315,
+   924
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "ui.icon.cat.pet",
+  "atlas": "j",
+  "cell": 10,
+  "bbox": [
+   344,
+   662,
+   620,
+   915
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.dock.building",
+  "atlas": "j",
+  "cell": 11,
+  "bbox": [
+   647,
+   682,
+   932,
+   920
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.dock.craft-preview",
+  "atlas": "j",
+  "cell": 12,
+  "bbox": [
+   941,
+   679,
+   1232,
+   923
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.dock.crop-book",
+  "atlas": "j",
+  "cell": 13,
+  "bbox": [
+   33,
+   951,
+   313,
+   1214
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.dock.routes",
+  "atlas": "j",
+  "cell": 14,
+  "bbox": [
+   338,
+   931,
+   619,
+   1214
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.brick-floor-kit",
+  "atlas": "k",
+  "cell": 1,
+  "bbox": [
+   39,
+   97,
+   308,
+   297
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.brick-roof-kit",
+  "atlas": "k",
+  "cell": 2,
+  "bbox": [
+   342,
+   75,
+   622,
+   301
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.brick-wall-kit",
+  "atlas": "k",
+  "cell": 3,
+  "bbox": [
+   670,
+   60,
+   911,
+   303
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stone-floor-kit",
+  "atlas": "k",
+  "cell": 6,
+  "bbox": [
+   323,
+   369,
+   625,
+   598
+  ],
+  "cut": [
+   "L",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stone-wall-kit",
+  "atlas": "k",
+  "cell": 8,
+  "bbox": [
+   948,
+   371,
+   1223,
+   600
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.timber-beam",
+  "atlas": "k",
+  "cell": 9,
+  "bbox": [
+   33,
+   645,
+   317,
+   885
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.timber-wall-kit",
+  "atlas": "k",
+  "cell": 10,
+  "bbox": [
+   369,
+   625,
+   578,
+   899
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.kiln-kit",
+  "atlas": "k",
+  "cell": 11,
+  "bbox": [
+   641,
+   638,
+   910,
+   885
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.workbench-t2-kit",
+  "atlas": "k",
+  "cell": 12,
+  "bbox": [
+   937,
+   645,
+   1237,
+   894
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.workbench-t3-kit",
+  "atlas": "k",
+  "cell": 13,
+  "bbox": [
+   24,
+   937,
+   327,
+   1196
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.kiln-t2-kit",
+  "atlas": "k",
+  "cell": 14,
+  "bbox": [
+   353,
+   914,
+   612,
+   1183
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.kiln-t3-kit",
+  "atlas": "k",
+  "cell": 15,
+  "bbox": [
+   664,
+   904,
+   902,
+   1211
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tanning-frame-kit",
+  "atlas": "l",
+  "cell": 1,
+  "bbox": [
+   31,
+   67,
+   308,
+   309
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.refrigerator-kit",
+  "atlas": "l",
+  "cell": 2,
+  "bbox": [
+   349,
+   34,
+   610,
+   314
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tent-kit",
+  "atlas": "l",
+  "cell": 3,
+  "bbox": [
+   637,
+   55,
+   936,
+   317
+  ],
+  "cut": [
+   "L",
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.signal-relay-kit",
+  "atlas": "l",
+  "cell": 6,
+  "bbox": [
+   377,
+   332,
+   553,
+   626
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.laboratory-kit",
+  "atlas": "l",
+  "cell": 7,
+  "bbox": [
+   643,
+   378,
+   919,
+   628
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.clan-hall-kit",
+  "atlas": "l",
+  "cell": 8,
+  "bbox": [
+   948,
+   349,
+   1242,
+   608
+  ],
+  "cut": [
+   "L",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.animal-pen",
+  "atlas": "l",
+  "cell": 9,
+  "bbox": [
+   27,
+   696,
+   313,
+   905
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.roof",
+  "atlas": "l",
+  "cell": 13,
+  "bbox": [
+   20,
+   966,
+   322,
+   1212
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.pillar",
+  "atlas": "l",
+  "cell": 14,
+  "bbox": [
+   389,
+   934,
+   549,
+   1227
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.dried-wood",
+  "atlas": "m",
+  "cell": 1,
+  "bbox": [
+   32,
+   77,
+   310,
+   318
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.dried-fiber",
+  "atlas": "m",
+  "cell": 2,
+  "bbox": [
+   343,
+   78,
+   620,
+   318
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.dried-hide",
+  "atlas": "m",
+  "cell": 3,
+  "bbox": [
+   642,
+   57,
+   928,
+   324
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.dried-meat",
+  "atlas": "m",
+  "cell": 4,
+  "bbox": [
+   952,
+   80,
+   1238,
+   327
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.leather",
+  "atlas": "m",
+  "cell": 5,
+  "bbox": [
+   27,
+   381,
+   316,
+   607
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.thick-leather",
+  "atlas": "m",
+  "cell": 6,
+  "bbox": [
+   339,
+   373,
+   619,
+   609
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fur",
+  "atlas": "m",
+  "cell": 7,
+  "bbox": [
+   645,
+   388,
+   930,
+   613
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fur-leather",
+  "atlas": "m",
+  "cell": 8,
+  "bbox": [
+   952,
+   396,
+   1237,
+   610
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.rex-leather",
+  "atlas": "m",
+  "cell": 9,
+  "bbox": [
+   27,
+   674,
+   315,
+   919
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.polished-basalt",
+  "atlas": "m",
+  "cell": 13,
+  "bbox": [
+   41,
+   981,
+   302,
+   1187
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.copper",
+  "atlas": "m",
+  "cell": 14,
+  "bbox": [
+   337,
+   966,
+   622,
+   1190
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.steel",
+  "atlas": "n",
+  "cell": 1,
+  "bbox": [
+   39,
+   79,
+   301,
+   308
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.volcanic-alloy",
+  "atlas": "n",
+  "cell": 2,
+  "bbox": [
+   357,
+   81,
+   611,
+   306
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fermented-corn",
+  "atlas": "n",
+  "cell": 3,
+  "bbox": [
+   678,
+   62,
+   909,
+   306
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fermented-wheat",
+  "atlas": "n",
+  "cell": 4,
+  "bbox": [
+   992,
+   67,
+   1219,
+   306
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fig",
+  "atlas": "n",
+  "cell": 6,
+  "bbox": [
+   362,
+   369,
+   616,
+   602
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.berry-compost",
+  "atlas": "n",
+  "cell": 9,
+  "bbox": [
+   33,
+   682,
+   308,
+   877
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.leaf-compost",
+  "atlas": "n",
+  "cell": 10,
+  "bbox": [
+   349,
+   676,
+   622,
+   874
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.axe-t1",
+  "atlas": "n",
+  "cell": 13,
+  "bbox": [
+   51,
+   920,
+   312,
+   1197
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.pickaxe-t1",
+  "atlas": "n",
+  "cell": 14,
+  "bbox": [
+   352,
+   929,
+   621,
+   1199
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.knife-t1",
+  "atlas": "n",
+  "cell": 15,
+  "bbox": [
+   670,
+   950,
+   900,
+   1186
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hoe-t1",
+  "atlas": "o",
+  "cell": 1,
+  "bbox": [
+   44,
+   51,
+   341,
+   294
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.axe-t2",
+  "atlas": "o",
+  "cell": 2,
+  "bbox": [
+   371,
+   50,
+   656,
+   294
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.pickaxe-t2",
+  "atlas": "o",
+  "cell": 3,
+  "bbox": [
+   679,
+   61,
+   946,
+   296
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hoe-t2",
+  "atlas": "o",
+  "cell": 5,
+  "bbox": [
+   40,
+   350,
+   331,
+   586
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.axe-t3",
+  "atlas": "o",
+  "cell": 6,
+  "bbox": [
+   366,
+   349,
+   654,
+   596
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.pickaxe-t3",
+  "atlas": "o",
+  "cell": 7,
+  "bbox": [
+   682,
+   350,
+   951,
+   601
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hoe-t3",
+  "atlas": "o",
+  "cell": 9,
+  "bbox": [
+   47,
+   642,
+   343,
+   876
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.club-t1",
+  "atlas": "o",
+  "cell": 10,
+  "bbox": [
+   377,
+   636,
+   634,
+   890
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.spear-t1",
+  "atlas": "o",
+  "cell": 11,
+  "bbox": [
+   672,
+   637,
+   927,
+   890
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hammer-t1",
+  "atlas": "o",
+  "cell": 13,
+  "bbox": [
+   50,
+   923,
+   321,
+   1187
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.bow-t1",
+  "atlas": "o",
+  "cell": 14,
+  "bbox": [
+   386,
+   914,
+   603,
+   1199
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.crossbow-t1",
+  "atlas": "o",
+  "cell": 15,
+  "bbox": [
+   669,
+   934,
+   971,
+   1188
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.club-t2",
+  "atlas": "p",
+  "cell": 1,
+  "bbox": [
+   46,
+   65,
+   326,
+   327
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.spear-t2",
+  "atlas": "p",
+  "cell": 2,
+  "bbox": [
+   349,
+   52,
+   620,
+   320
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.sword-t2",
+  "atlas": "p",
+  "cell": 3,
+  "bbox": [
+   657,
+   53,
+   934,
+   313
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hammer-t2",
+  "atlas": "p",
+  "cell": 4,
+  "bbox": [
+   967,
+   59,
+   1228,
+   321
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.bow-t2",
+  "atlas": "p",
+  "cell": 5,
+  "bbox": [
+   46,
+   353,
+   312,
+   626
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.crossbow-t2",
+  "atlas": "p",
+  "cell": 6,
+  "bbox": [
+   339,
+   394,
+   627,
+   612
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.club-t3",
+  "atlas": "p",
+  "cell": 7,
+  "bbox": [
+   663,
+   346,
+   935,
+   628
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.spear-t3",
+  "atlas": "p",
+  "cell": 8,
+  "bbox": [
+   950,
+   345,
+   1220,
+   628
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.sword-t3",
+  "atlas": "p",
+  "cell": 9,
+  "bbox": [
+   41,
+   667,
+   321,
+   929
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.hammer-t3",
+  "atlas": "p",
+  "cell": 10,
+  "bbox": [
+   347,
+   655,
+   624,
+   922
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.crossbow-t3",
+  "atlas": "p",
+  "cell": 12,
+  "bbox": [
+   952,
+   705,
+   1235,
+   922
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.temperate-head",
+  "atlas": "p",
+  "cell": 13,
+  "bbox": [
+   35,
+   979,
+   316,
+   1199
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.temperate-top",
+  "atlas": "p",
+  "cell": 14,
+  "bbox": [
+   330,
+   972,
+   624,
+   1220
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.temperate-shoes",
+  "atlas": "q",
+  "cell": 1,
+  "bbox": [
+   22,
+   52,
+   292,
+   312
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.temperate-gloves",
+  "atlas": "q",
+  "cell": 2,
+  "bbox": [
+   337,
+   78,
+   627,
+   307
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.temperate-bag",
+  "atlas": "q",
+  "cell": 3,
+  "bbox": [
+   658,
+   49,
+   924,
+   320
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tropical-head",
+  "atlas": "q",
+  "cell": 4,
+  "bbox": [
+   948,
+   99,
+   1253,
+   290
+  ],
+  "cut": [
+   "L",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tropical-top",
+  "atlas": "q",
+  "cell": 5,
+  "bbox": [
+   16,
+   356,
+   309,
+   609
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tropical-bottom",
+  "atlas": "q",
+  "cell": 6,
+  "bbox": [
+   336,
+   353,
+   618,
+   613
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tropical-shoes",
+  "atlas": "q",
+  "cell": 7,
+  "bbox": [
+   641,
+   366,
+   929,
+   608
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.tropical-gloves",
+  "atlas": "q",
+  "cell": 8,
+  "bbox": [
+   955,
+   381,
+   1244,
+   610
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.tropical-bag",
+  "atlas": "q",
+  "cell": 9,
+  "bbox": [
+   31,
+   653,
+   313,
+   894
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.cold-head",
+  "atlas": "q",
+  "cell": 10,
+  "bbox": [
+   351,
+   639,
+   595,
+   904
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cold-top",
+  "atlas": "q",
+  "cell": 11,
+  "bbox": [
+   628,
+   630,
+   934,
+   915
+  ],
+  "cut": [
+   "L",
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cold-bottom",
+  "atlas": "q",
+  "cell": 12,
+  "bbox": [
+   952,
+   658,
+   1235,
+   915
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cold-shoes",
+  "atlas": "q",
+  "cell": 13,
+  "bbox": [
+   16,
+   919,
+   292,
+   1216
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cold-gloves",
+  "atlas": "q",
+  "cell": 14,
+  "bbox": [
+   326,
+   951,
+   617,
+   1205
+  ],
+  "cut": [
+   "L",
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.cold-bag",
+  "atlas": "q",
+  "cell": 15,
+  "bbox": [
+   637,
+   938,
+   934,
+   1214
+  ],
+  "cut": [
+   "L",
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.corn-porridge",
+  "atlas": "r",
+  "cell": 1,
+  "bbox": [
+   35,
+   80,
+   307,
+   305
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.baked-potato",
+  "atlas": "r",
+  "cell": 2,
+  "bbox": [
+   353,
+   24,
+   610,
+   309
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.wheat-flatbread",
+  "atlas": "r",
+  "cell": 3,
+  "bbox": [
+   644,
+   84,
+   919,
+   304
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.onion-soup",
+  "atlas": "r",
+  "cell": 4,
+  "bbox": [
+   958,
+   73,
+   1223,
+   308
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.meat-potato-stew",
+  "atlas": "r",
+  "cell": 11,
+  "bbox": [
+   642,
+   654,
+   928,
+   901
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.rex-meat-stew",
+  "atlas": "r",
+  "cell": 13,
+  "bbox": [
+   29,
+   927,
+   315,
+   1200
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.grilled-fish",
+  "atlas": "r",
+  "cell": 14,
+  "bbox": [
+   337,
+   941,
+   623,
+   1200
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.clam-soup",
+  "atlas": "r",
+  "cell": 15,
+  "bbox": [
+   644,
+   948,
+   925,
+   1195
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.herbivore-feed",
+  "atlas": "s",
+  "cell": 1,
+  "bbox": [
+   27,
+   59,
+   311,
+   309
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.carnivore-feed",
+  "atlas": "s",
+  "cell": 2,
+  "bbox": [
+   349,
+   73,
+   623,
+   300
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.corn-seed",
+  "atlas": "s",
+  "cell": 3,
+  "bbox": [
+   662,
+   95,
+   924,
+   303
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.onion-seed",
+  "atlas": "s",
+  "cell": 6,
+  "bbox": [
+   356,
+   382,
+   617,
+   594
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.flax-seed",
+  "atlas": "s",
+  "cell": 7,
+  "bbox": [
+   661,
+   379,
+   929,
+   600
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.banana-seed",
+  "atlas": "s",
+  "cell": 8,
+  "bbox": [
+   971,
+   321,
+   1225,
+   610
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fig-seed",
+  "atlas": "s",
+  "cell": 9,
+  "bbox": [
+   30,
+   643,
+   314,
+   894
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.liquid-fertilizer",
+  "atlas": "s",
+  "cell": 11,
+  "bbox": [
+   688,
+   629,
+   899,
+   913
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.stem-fertilizer",
+  "atlas": "s",
+  "cell": 13,
+  "bbox": [
+   32,
+   935,
+   312,
+   1192
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.sprinkler",
+  "atlas": "s",
+  "cell": 14,
+  "bbox": [
+   381,
+   926,
+   604,
+   1200
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.capture-rope",
+  "atlas": "s",
+  "cell": 15,
+  "bbox": [
+   640,
+   965,
+   952,
+   1184
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.saddle",
+  "atlas": "t",
+  "cell": 1,
+  "bbox": [
+   41,
+   87,
+   320,
+   329
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.recovery-feed",
+  "atlas": "t",
+  "cell": 2,
+  "bbox": [
+   354,
+   100,
+   632,
+   312
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.volcanic-bone",
+  "atlas": "t",
+  "cell": 3,
+  "bbox": [
+   667,
+   63,
+   925,
+   325
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.lava-protection-boots",
+  "atlas": "t",
+  "cell": 4,
+  "bbox": [
+   939,
+   68,
+   1207,
+   329
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.practice-stitch",
+  "atlas": "t",
+  "cell": 5,
+  "bbox": [
+   39,
+   371,
+   313,
+   612
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.practice-seedbed",
+  "atlas": "t",
+  "cell": 6,
+  "bbox": [
+   340,
+   375,
+   624,
+   618
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-piano",
+  "atlas": "t",
+  "cell": 7,
+  "bbox": [
+   643,
+   342,
+   923,
+   635
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-guitar",
+  "atlas": "t",
+  "cell": 8,
+  "bbox": [
+   958,
+   347,
+   1213,
+   642
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-bass",
+  "atlas": "t",
+  "cell": 9,
+  "bbox": [
+   44,
+   618,
+   322,
+   933
+  ],
+  "cut": [
+   "T",
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-violin",
+  "atlas": "t",
+  "cell": 10,
+  "bbox": [
+   353,
+   643,
+   636,
+   925
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "item.icon.instrument-clarinet",
+  "atlas": "t",
+  "cell": 12,
+  "bbox": [
+   962,
+   643,
+   1208,
+   928
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-trumpet",
+  "atlas": "t",
+  "cell": 13,
+  "bbox": [
+   25,
+   984,
+   329,
+   1192
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.instrument-drums",
+  "atlas": "t",
+  "cell": 14,
+  "bbox": [
+   352,
+   973,
+   625,
+   1189
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.signal-lens",
+  "atlas": "t",
+  "cell": 15,
+  "bbox": [
+   678,
+   932,
+   887,
+   1200
+  ],
+  "cut": [
+   "T"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.sample-case",
+  "atlas": "u",
+  "cell": 1,
+  "bbox": [
+   32,
+   90,
+   303,
+   300
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.research-bundle",
+  "atlas": "u",
+  "cell": 2,
+  "bbox": [
+   330,
+   87,
+   608,
+   302
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.shelter-liner",
+  "atlas": "u",
+  "cell": 3,
+  "bbox": [
+   634,
+   89,
+   927,
+   316
+  ],
+  "cut": [
+   "L",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.heat-brace",
+  "atlas": "u",
+  "cell": 4,
+  "bbox": [
+   949,
+   95,
+   1234,
+   299
+  ],
+  "cut": [
+   "L"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.rescue-transponder",
+  "atlas": "u",
+  "cell": 5,
+  "bbox": [
+   49,
+   337,
+   273,
+   615
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.skull",
+  "atlas": "u",
+  "cell": 6,
+  "bbox": [
+   335,
+   372,
+   615,
+   614
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.feather",
+  "atlas": "u",
+  "cell": 7,
+  "bbox": [
+   642,
+   349,
+   929,
+   612
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.horn",
+  "atlas": "u",
+  "cell": 9,
+  "bbox": [
+   42,
+   656,
+   306,
+   908
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.claw",
+  "atlas": "u",
+  "cell": 10,
+  "bbox": [
+   348,
+   685,
+   617,
+   894
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.tusk",
+  "atlas": "u",
+  "cell": 13,
+  "bbox": [
+   34,
+   932,
+   307,
+   1199
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.antler",
+  "atlas": "u",
+  "cell": 14,
+  "bbox": [
+   340,
+   930,
+   618,
+   1201
+  ],
+  "cut": [
+   "T",
+   "R"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.survey-sample",
+  "atlas": "v",
+  "cell": 1,
+  "bbox": [
+   60,
+   61,
+   272,
+   311
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.volcanic-ash",
+  "atlas": "v",
+  "cell": 2,
+  "bbox": [
+   342,
+   128,
+   603,
+   305
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.chapter",
+  "atlas": "v",
+  "cell": 3,
+  "bbox": [
+   653,
+   62,
+   923,
+   311
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "item.icon.fragment",
+  "atlas": "v",
+  "cell": 4,
+  "bbox": [
+   966,
+   67,
+   1222,
+   314
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.interact",
+  "atlas": "hud",
+  "cell": 1,
+  "bbox": [
+   31,
+   85,
+   304,
+   308
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.menu",
+  "atlas": "hud",
+  "cell": 2,
+  "bbox": [
+   351,
+   65,
+   596,
+   306
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.emote",
+  "atlas": "hud",
+  "cell": 3,
+  "bbox": [
+   670,
+   76,
+   903,
+   307
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.chat",
+  "atlas": "hud",
+  "cell": 4,
+  "bbox": [
+   975,
+   82,
+   1224,
+   304
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.attack",
+  "atlas": "hud",
+  "cell": 5,
+  "bbox": [
+   42,
+   350,
+   336,
+   615
+  ],
+  "cut": [
+   "R",
+   "B"
+  ],
+  "objects": 1
+ },
+ {
+  "icon": "ui.icon.hud.dismount",
+  "atlas": "hud",
+  "cell": 6,
+  "bbox": [
+   348,
+   367,
+   619,
+   601
+  ],
+  "cut": [
+   "R"
+  ],
+  "objects": 2
+ },
+ {
+  "icon": "ui.icon.hud.rest",
+  "atlas": "hud",
+  "cell": 7,
+  "bbox": [
+   667,
+   363,
+   901,
+   615
+  ],
+  "cut": [
+   "B"
+  ],
+  "objects": 1
+ }
+]

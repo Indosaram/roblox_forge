@@ -839,6 +839,10 @@ function M.start(
 	-- Collapsible quest tracker (shell): a round toggle at the card's left; collapsed shows only it.
 	local questToggle: any = nil
 	local questCollapsed = false
+	local function questIcon(id: string): string?
+		local icon = if options.icons then options.icons.ui(id) else nil
+		return icon and icon.image
+	end
 	if shell then
 		questToggle = ui.components.button(theme, {
 			text = "",
@@ -846,11 +850,11 @@ function M.start(
 			parent = dockGui,
 			onClick = function()
 				questCollapsed = not questCollapsed
+				HudShell.questToggleLook(questToggle, questCollapsed, questIcon)
 			end,
 		})
 		questToggle.Name = "QuestToggle"
-		local questIcon = if options.icons then options.icons.ui(HudShell.TOKEN_ICONS.quest) else nil
-		HudShell.iconToken(questToggle, questIcon and questIcon.image, "normal")
+		HudShell.questToggleLook(questToggle, questCollapsed, questIcon)
 	end
 	local function viewport(): any
 		return dockGui.AbsoluteSize
