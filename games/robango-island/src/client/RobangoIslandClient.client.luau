@@ -1669,7 +1669,10 @@ local function startCreatureAnimation(rigPose: (Model, string, number, number) -
 				local decor = model:GetAttribute("ForgeDecorFauna") == true
 				registry[model] = {
 					plated = decor
-						-- Mounts and pets wear the HUD shell's pet label instead (HudShell.collect).
+						-- Mounts and pets wear the HUD shell's pet label instead (HudShell.collect), and
+						-- live wildlife its white world label: a second plate doubled the name
+						-- (studio-after defect 8).
+						or (model.Parent ~= nil and model.Parent.Name == "ForgeWildlife")
 						or model:GetAttribute("ForgeMountSpecies") ~= nil
 						or model:GetAttribute("ForgePetOwner") ~= nil,
 					state = "idle",

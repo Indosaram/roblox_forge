@@ -69,6 +69,10 @@ M.NODE_LABEL_LIMIT = 8
 -- enabled and sized yet invisible. The board rides `clear` studs over the anchor's tallest child
 -- (a node's mesh) so the depth test never hides it inside the node it names.
 M.LABEL_BOARD = table.freeze({ width = 220, height = 40, name = 16, hint = 12, clear = 1.2, base = 3 })
+-- Which labels show is decided from the character (labelTargets: LABEL_RADIUS, nearest first, node
+-- cap), so the board itself never cuts on distance. BillboardGui.MaxDistance is measured from the
+-- camera, and a 48-stud cap hid every label behind a 50-60 stud play camera (studio-after defect 1).
+M.LABEL_DRAW_DISTANCE = math.huge
 M.MAP_WINDOW = 160
 
 -- Tide arc slots (spec section 3): { radius in H, angle in degrees from the right edge, size }.
@@ -307,6 +311,92 @@ end
 
 function M.overlaps(a: Rect, b: Rect): boolean
 	return hits(a, b, 0)
+end
+
+-- Rough rendered width of `text` at `size` px: Hangul is about one em per glyph, Latin narrower.
+local function textWidth(text: string, size: number): number
+	local width = 0
+	for _, code in utf8.codes(text) do
+		width += if code >= 0x1100 then size else size * 0.55
+	end
+	return width
+end
+
+--- Screen rect a world label's text covers when its board centre projects to (x, y): the name line,
+--- plus the hint line when there is one, as wide as the longer text (never past the board).
+function M.labelRect(x: number, y: number, name: string, hint: string?): Rect
+	local B = M.LABEL_BOARD
+	local wide = textWidth(name, B.name)
+	if hint and hint ~= "" then
+		wide = math.max(wide, textWidth(hint, B.hint))
+	end
+	local w = math.min(B.width, wide + 8)
+	local tall = if hint and hint ~= "" then B.name + B.hint + 8 else B.name + 6
+	return rect(x - w / 2, y - B.height / 2, w, tall)
+end
+
+-- HUD regions a world label must never draw over (studio-after defects 10 and 11: billboard text ran
+-- across the minimap, the quest card and the hotbar). The minimap grows by its bezel.
+M.LABEL_BLOCKERS = table.freeze({ "vitals", "chips", "coords", "quest", "questToggle", "hotbar", "row", "cluster" })
+
+--- True when a label rect (gui space) touches a HUD region of `regions` (M.regions output).
+function M.labelBlocked(r: Rect, regions: any): boolean
+	local map = regions.minimap
+	if map and hits(r, { x = map.x - 6, y = map.y - 6, width = map.width + 12, height = map.height + 12 }, 0) then
+		return true
+	end
+	for _, key in M.LABEL_BLOCKERS do
+		local region = regions[key]
+		if region and region.width > 0 and region.height > 0 and hits(r, region, 0) then
+			return true
+		end
+	end
+	return false
+end
+
+--- Caption pill rect for the primary token `p` (`width` x `height`): left of the token, else under,
+--- else over it, else left of or above the whole cluster; the first spot inside the gui that touches none of
+--- `others` (the other shown tokens and HUD regions). Studio-after defect 3: the left-only pill sat
+--- on the consume token and the slot under it.
+function M.captionRect(
+	p: Rect,
+	width: number,
+	height: number,
+	others: { Rect },
+	guiWidth: number,
+	guiHeight: number,
+	top: number?,
+	cluster: Rect?
+): Rect
+	local gap = 6
+	local cx, cy = p.x + p.width / 2, p.y + p.height / 2
+	local function clamp(r: Rect): Rect
+		local x = math.clamp(r.x, 0, math.max(0, guiWidth - r.width))
+		local y = math.clamp(r.y, top or 0, math.max(top or 0, guiHeight - r.height))
+		return rect(x, y, r.width, r.height)
+	end
+	local spots = {
+		rect(p.x - gap - width, cy - height / 2, width, height),
+		clamp(rect(cx - width / 2, p.y + p.height + 2, width, height)),
+		clamp(rect(cx - width / 2, p.y - 2 - height, width, height)),
+	}
+	if cluster then
+		-- Long captions on PC: on the primary's row left of the whole cluster, else above it.
+		table.insert(spots, rect(cluster.x - gap - width, cy - height / 2, width, height))
+		table.insert(spots, clamp(rect(cluster.x + cluster.width - width, cluster.y - gap - height, width, height)))
+	end
+	for _, spot in spots do
+		local clear = M.inside(spot, guiWidth, guiHeight, top)
+		for _, other in others do
+			if clear and hits(spot, other, 0) then
+				clear = false
+			end
+		end
+		if clear then
+			return spot
+		end
+	end
+	return spots[#spots]
 end
 
 --- Inside-panel geometry of the compact vitals (relative to the panel's top-left): a round level
@@ -970,26 +1060,84 @@ end
 
 --- Caption pill beside a token (the primary action's contextual name, e.g. "Gather"): placed
 --- left of `r`, vertically centred, in the token's ScreenGui space. Returns the caption label.
-function M.tokenCaption(gui: any, name: string, r: Rect, text: string, size: number): any
+--- `others` (optional) are the rects the pill must not cover; see M.captionRect.
+function M.tokenCaption(
+	gui: any,
+	name: string,
+	r: Rect,
+	text: string,
+	size: number,
+	others: { Rect }?,
+	top: number?,
+	cluster: Rect?
+): any
 	local P = M.PALETTE
 	local label = gui:FindFirstChild(name)
 	if not label then
 		label = Instance.new("TextLabel")
 		label.Name, label.BackgroundColor3, label.BackgroundTransparency = name, color(P.ink), 0.35
 		label.TextColor3, label.Font = color(P.bone), Enum.Font.BuilderSansBold
-		label.TextXAlignment, label.AutomaticSize = Enum.TextXAlignment.Center, Enum.AutomaticSize.X
-		label.AnchorPoint = Vector2.new(1, 0.5)
+		label.TextXAlignment = Enum.TextXAlignment.Center
 		local round = Instance.new("UICorner")
 		round.CornerRadius, round.Parent = UDim.new(0.5, 0), label
-		local pad = Instance.new("UIPadding")
-		pad.PaddingLeft, pad.PaddingRight, pad.Parent = UDim.new(0, 10), UDim.new(0, 10), label
 		label.Parent = gui
 	end
 	label.Text, label.TextSize = text, size
-	label.Size = UDim2.fromOffset(0, size + 10)
-	label.Position = UDim2.fromOffset(r.x - 6, r.y + r.height / 2)
+	local view = gui.AbsoluteSize
+	local spot = M.captionRect(r, textWidth(text, size) + 20, size + 10, others or {}, view.X, view.Y, top, cluster)
+	M.put(label, spot)
 	label.Visible = text ~= ""
 	return label
+end
+
+--- Coin chip (`coins`, a TextLabel `chip` px tall): the CoinIcon at the left, then the amount after
+--- it. The label had no UIPadding, so the amount started at x=0 under the icon and the pill read as
+--- empty (studio-after defect 2). Returns the left padding.
+function M.coinChip(coins: any, chip: number): number
+	local icon = coins:FindFirstChild("CoinIcon")
+	local side = chip - 2
+	local pad = coins:FindFirstChild("CoinPad")
+	if not pad then
+		pad = Instance.new("UIPadding")
+		pad.Name, pad.Parent = "CoinPad", coins
+	end
+	local left = if icon then 4 + side + 4 else 10
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, left), UDim.new(0, 8)
+	if icon then
+		-- Padding does not move children positioned in offsets against the padded box, so the
+		-- icon is placed back over the left padding.
+		icon.AnchorPoint, icon.Position = Vector2.new(0, 0.5), UDim2.new(0, 4 - left, 0.5, 0)
+		icon.Size = UDim2.fromOffset(side, side)
+	end
+	coins.TextXAlignment = Enum.TextXAlignment.Left
+	coins.TextSize = math.max(13, chip - 12)
+	return left
+end
+
+--- Quest-card text sizing: the card is as tall as its lines (capped at `limit` px, the quest slot),
+--- at a fixed label size. A card sized to the whole slot with TextScaled capped at 15 px left a dark
+--- box about 3x its two lines on PC (studio-after defect 13).
+M.QUEST_TEXT = table.freeze({ touch = 13, pc = 15 })
+function M.fitQuestText(label: any, limit: number?, touch: boolean)
+	label.TextScaled, label.TextWrapped = false, true
+	label.TextSize = if touch then M.QUEST_TEXT.touch else M.QUEST_TEXT.pc
+	label.Size, label.AutomaticSize = UDim2.fromScale(1, 0), Enum.AutomaticSize.Y
+	label.TextTruncate = Enum.TextTruncate.AtEnd
+	for _, fit in label:GetChildren() do
+		if fit.ClassName == "UITextSizeConstraint" then
+			fit:Destroy()
+		end
+	end
+	local cap = label:FindFirstChild("QuestCap")
+	if not cap then
+		cap = Instance.new("UISizeConstraint")
+		cap.Name, cap.Parent = "QuestCap", label
+	end
+	cap.MaxSize = Vector2.new(math.huge, if limit and limit > 0 then limit else math.huge)
+	local pad = label:FindFirstChildOfClass("UIPadding")
+	if pad then
+		pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 6), UDim.new(0, 6)
+	end
 end
 
 --- Places a GuiObject at a rect given in the space of `frame`'s ScreenGui (offset by `origin`).
@@ -1398,8 +1546,13 @@ M.HUD_GUIS = table.freeze({ ForgeSurvivalHUD = true, ForgePanelDock = true, Forg
 -- with Header > Close, directly or one level under the gui). Catches sheets the dock does not
 -- own, e.g. the survivor picker, so the HUD regions hide instead of drawing over them.
 function M.sheetOpen(playerGui: any): boolean
+	return M.openSheet(playerGui) ~= nil
+end
+
+--- The first full sheet frame another ScreenGui shows (see sheetOpen), or nil.
+function M.openSheet(playerGui: any): any
 	if not playerGui then
-		return false
+		return nil
 	end
 	local function sheet(item: any): boolean
 		if item.ClassName ~= "Frame" or not item.Visible then
@@ -1412,19 +1565,53 @@ function M.sheetOpen(playerGui: any): boolean
 		if gui.ClassName == "ScreenGui" and gui.Enabled and not M.HUD_GUIS[gui.Name] then
 			for _, child in gui:GetChildren() do
 				if sheet(child) then
-					return true
+					return child
 				end
 				if child.ClassName == "Frame" and child.Visible then
 					for _, inner in child:GetChildren() do
 						if sheet(inner) then
-							return true
+							return inner
 						end
 					end
 				end
 			end
 		end
 	end
-	return false
+	return nil
+end
+
+--- Rect of a corner button (`width` x `height`, wanted at the gui's top right) that never covers an
+--- open sheet `sheet` (gui space, or nil): beside the sheet in the right gutter, narrowed down to
+--- `minWidth`, else under the sheet's header row (`header` px) on the gutter edge. Studio-after
+--- defect 4: the cold open's Skip sat on the arrival sheet's close X.
+function M.cornerButton(
+	guiWidth: number,
+	guiHeight: number,
+	width: number,
+	height: number,
+	sheet: Rect?,
+	minWidth: number,
+	header: number
+): Rect
+	local edge = 12
+	local y = math.floor(guiHeight * 0.1 + 0.5)
+	local wanted = rect(guiWidth - edge - width, y, width, height)
+	if not sheet or not hits(wanted, sheet, 4) then
+		return wanted
+	end
+	local right = sheet.x + sheet.width
+	local room = guiWidth - right - 2 * 4
+	if room >= minWidth then
+		local w = math.min(width, room)
+		return rect(right + 4 + (room - w) / 2, math.max(y, sheet.y + header + 4), w, height)
+	end
+	local left = sheet.x - 2 * 4
+	if left >= minWidth then
+		local w = math.min(width, left)
+		return rect(sheet.x - 4 - w, math.max(y, sheet.y + header + 4), w, height)
+	end
+	-- No gutter: the bottom-right corner of the sheet body, clear of its header and close.
+	return rect(right - edge - width, sheet.y + sheet.height - edge - height, width, height)
 end
 
 function M.startOverlays(options: OverlayOptions): () -> ()
@@ -1515,7 +1702,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		local item = Instance.new("BillboardGui")
 		item.Name, item.Size, item.AlwaysOnTop = "WorldLabel", UDim2.fromOffset(B.width, B.height), false
 		item.StudsOffsetWorldSpace, item.LightInfluence = Vector3.new(0, B.base, 0), 0
-		item.MaxDistance = M.LABEL_RADIUS + 8
+		item.MaxDistance = M.LABEL_DRAW_DISTANCE
 		-- R05-1: floating white text with a dark stroke, no plate (the old ink pill read as UI chrome).
 		local text = Instance.new("TextLabel")
 		text.Name, text.BackgroundTransparency = "Text", 1
@@ -1648,7 +1835,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			end
 			elapsed = 0
 			local size = options.gui.AbsoluteSize
-			local regions = M.regions(size.X, size.Y, M.guiClear(options.gui))
+			local regions = M.regions(size.X, size.Y, M.guiClear(options.gui), touch)
 			M.put(map, regions.minimap)
 			local mm = regions.minimap
 			bezel.Position = UDim2.fromOffset(mm.x + mm.width / 2, mm.y + mm.height / 2)
@@ -1707,16 +1894,34 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					end
 				end
 				for _, target in M.labelTargets(candidates, origin.X, origin.Y, origin.Z) do
+					local entry = lookup[target.id]
+					local lift = M.labelLift(entry[1])
+					local line = if entry[3] == "node" and options.hint then options.hint("node", entry[1]) else nil
+					-- A label whose text would land on a HUD region is not drawn (a BillboardGui is a world
+					-- overlay the ScreenGui cannot mask).
+					if camera then
+						local inset = options.gui.AbsolutePosition
+						local point, visible = camera:WorldToViewportPoint(entry[1].Position + Vector3.new(0, lift, 0))
+						if
+							visible
+							and M.labelBlocked(
+								M.labelRect(point.X - inset.X, point.Y - inset.Y, entry[2], line),
+								regions
+							)
+						then
+							continue
+						end
+					end
 					shown += 1
 					local item = board(shown)
-					local entry = lookup[target.id]
 					item.Adornee, item.Enabled = entry[1], true
-					item.StudsOffsetWorldSpace = Vector3.new(0, M.labelLift(entry[1]), 0)
+					item.StudsOffsetWorldSpace = Vector3.new(0, lift, 0)
 					local text = item:FindFirstChild("Text") :: any
 					text.Text = entry[2]
-					text.TextColor3 = color(if entry[3] == "wildlife" then P.coral else P.bone)
+					-- One label style for every kind (R05-1 white text): creatures used to get a small coral
+					-- line here plus the client's own nameplate (studio-after defects 8 and 9).
+					text.TextColor3 = color(P.bone)
 					local hint = item:FindFirstChild("Hint") :: any
-					local line = if entry[3] == "node" and options.hint then options.hint("node", entry[1]) else nil
 					hint.Text, hint.Visible = line or "", line ~= nil and line ~= ""
 				end
 			end

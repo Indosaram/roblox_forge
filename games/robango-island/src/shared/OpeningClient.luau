@@ -46,6 +46,20 @@ function M.chargeProgress(charge: any, now: number): number
 	return math.clamp(elapsed / real, 0, 1)
 end
 
+--- Puts the cold open's Skip in the top-right corner, or beside / under an open sheet (the arrival
+--- sheet opens during the cold open) so it never covers that sheet's close X.
+function M.placeSkip(skip: any, gui: any, playerGui: any)
+	local open = HudShell.openSheet(playerGui)
+	local view, origin = gui.AbsoluteSize, gui.AbsolutePosition
+	local sheet: any = nil
+	if open then
+		local at, size = open.AbsolutePosition, open.AbsoluteSize
+		sheet = { x = at.X - origin.X, y = at.Y - origin.Y, width = size.X, height = size.Y }
+	end
+	local header = if open and open:FindFirstChild("Header") then open.Header.AbsoluteSize.Y else 44
+	HudShell.put(skip, HudShell.cornerButton(view.X, view.Y, 96, 44, sheet, 64, header))
+end
+
 function M.factory(ctx: any): any
 	local player = Players.LocalPlayer
 	local theme, components = ctx.ui.theme.default, ctx.ui.components
@@ -120,13 +134,12 @@ function M.factory(ctx: any): any
 		chip = true,
 	})
 	tracker.Name, tracker.LayoutOrder, tracker.Visible = "OpeningTracker", 0, false
-	tracker.TextScaled, tracker.TextWrapped = true, true
+	tracker.TextWrapped = true
 	tracker.TextXAlignment, tracker.TextYAlignment = Enum.TextXAlignment.Left, Enum.TextYAlignment.Top
 	-- Compact quest tracker (HUD polish): TextScaled filled the whole slot with 20+ px lines on the
 	-- phone (p134 v54 wc0); capped at a label size on a lighter, translucent card.
 	tracker.BackgroundTransparency = 0.4
-	local trackerFit = Instance.new("UITextSizeConstraint")
-	trackerFit.MinTextSize, trackerFit.MaxTextSize, trackerFit.Parent = 11, 15, tracker
+	HudShell.fitQuestText(tracker, nil, touch)
 
 	local view: any = nil
 	local function serverNow(): number
@@ -230,6 +243,9 @@ function M.factory(ctx: any): any
 				return
 			end
 			skip.Visible = t >= M.SKIP_AFTER
+			if skip.Visible then
+				M.placeSkip(skip, gui, player:FindFirstChild("PlayerGui"))
+			end
 			local key = M.caption(t)
 			caption.Visible, caption.Text = key ~= nil, if key then text(key) else ""
 			local root = rootPart()
@@ -377,6 +393,8 @@ function M.factory(ctx: any): any
 		tracker.Visible = title ~= nil
 		if title then
 			tracker.Text = title .. "\n" .. table.concat(lines, "\n")
+			local slot = ctx.objectiveSlot
+			HudShell.fitQuestText(tracker, if slot then slot.AbsoluteSize.Y else nil, touch)
 		end
 		if genre and genre:IsA("GuiObject") then
 			genre.Visible = title == nil

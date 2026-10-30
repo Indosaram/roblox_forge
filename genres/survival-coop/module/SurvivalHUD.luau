@@ -2414,6 +2414,8 @@ function M.start(options: Options)
 		end
 		local caption = ""
 		local primaryRect: any = nil
+		-- The caption pill keeps clear of every other shown token and the hotbar (studio-after defect 3).
+		local captionAvoid: { any } = { shellRegions.hotbar }
 		if not modal then
 			for _, entry in HudShell.tokens(flags) do
 				local item = shellButtons[entry.id]
@@ -2441,6 +2443,8 @@ function M.start(options: Options)
 					)
 					if entry.slot == "P" and enabled then
 						caption, primaryRect = tokenLabel, r
+					elseif entry.slot ~= "P" then
+						table.insert(captionAvoid, r)
 					end
 				end
 			end
@@ -2468,7 +2472,10 @@ function M.start(options: Options)
 			"PrimaryCaption",
 			primaryRect or { x = 0, y = 0, width = 0, height = 0 },
 			if primaryRect then caption else "",
-			HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
+			HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled),
+			captionAvoid,
+			HudShell.guiClear(gui),
+			shellRegions.cluster
 		)
 		restButton.Visible = false
 		local rowVisible = not modal
@@ -2514,17 +2521,7 @@ function M.start(options: Options)
 					coins,
 					{ x = chips.x, y = chips.y, width = chips.width, height = math.min(28, chips.height) }
 				)
-				local chipHeight = math.min(28, chips.height)
-				local coinIcon = coins:FindFirstChild("CoinIcon")
-				if coinIcon then
-					coinIcon.Position, coinIcon.Size =
-						UDim2.fromOffset(-4, 1), UDim2.fromOffset(chipHeight - 2, chipHeight - 2)
-				end
-				local coinPad = coins:FindFirstChildOfClass("UIPadding")
-				if coinPad then
-					coinPad.PaddingLeft = UDim.new(0, chipHeight + 4)
-				end
-				coins.TextSize = math.max(13, chipHeight - 12)
+				HudShell.coinChip(coins, math.min(28, chips.height))
 				local geometry = HudShell.vitalsRows(shellRegions.vitals)
 				local badge = levelBadge
 				if badge then

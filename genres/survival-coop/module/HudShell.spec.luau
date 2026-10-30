@@ -858,4 +858,266 @@ return {
 		local after = string.sub(panels, tap, tap + 120)
 		assert(string.find(after, "HudShell.questToggleLook(questToggle, questCollapsed", 1, true), "tap restyles")
 	end,
+	-- studio-after defects 1, 8/9, 10/11: at the default 50-60 stud camera no label drew (the board
+	-- cut at 48 studs from the camera), creatures got a coral label, and boards drew over the minimap
+	-- and hotbar. Labels are chosen from the character; a board never cuts on camera distance, every
+	-- kind uses the one white style, and a board whose text lands on a HUD region is not shown.
+	["world labels draw at the play camera, in one style, and never over HUD regions"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local CameraConfig = require("../../../games/robango-island/src/shared/CameraConfig")
+		local I = roblox.Instance
+		local playerGui = I.new("PlayerGui")
+		local gui = I.new("ScreenGui")
+		gui.AbsoluteSize, gui.ResetOnSpawn, gui.Parent = roblox.Vector2.new(800, 360), false, playerGui
+		gui.AbsolutePosition = roblox.Vector2.zero
+		local root = {
+			Position = roblox.Vector3.new(0, 0, 0),
+			CFrame = roblox.CFrame.new(),
+			IsA = function(_, class)
+				return class == "BasePart"
+			end,
+		}
+		local player = {
+			Character = {
+				FindFirstChild = function(_, name)
+					return if name == "HumanoidRootPart" then root else nil
+				end,
+			},
+			WaitForChild = function()
+				return playerGui
+			end,
+		}
+		local function part(x: number, z: number): any
+			local item = I.new("Part")
+			item.Position = roblox.Vector3.new(x, 0, z)
+			return item
+		end
+		local node = part(6, 0)
+		node:SetAttribute("ForgeNodeKind", "fiber")
+		local hidden = part(-6, 0)
+		hidden:SetAttribute("ForgeNodeKind", "stone")
+		local wild = I.new("Folder")
+		wild.Name = "ForgeWildlife"
+		local animal = I.new("Model")
+		animal:SetAttribute("ForgeWildlifeKind", "dodo")
+		local body = part(0, 8)
+		body.Name, body.Parent, animal.PrimaryPart, animal.Parent = "HumanoidRootPart", animal, body, wild
+		-- The play camera at its default distance; the fake projection puts the stone's label on the
+		-- minimap (top right) and the others in open ground.
+		local distance = math.max(CameraConfig.distance, 52)
+		local camera = {
+			CFrame = roblox.CFrame.new(0, distance * 0.8, distance * 0.6),
+			WorldToViewportPoint = function(_, at: any)
+				if at.X < 0 then
+					return roblox.Vector3.new(750, 40, 10), true
+				end
+				return roblox.Vector3.new(400 + at.X * 5, 180 + at.Z * 3, 10), true
+			end,
+		}
+		local beats: { (number) -> () } = {}
+		local function signal(list: { any }?)
+			return {
+				Connect = function(_, fn)
+					if list then
+						table.insert(list, fn)
+					end
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local services: { [string]: any } = {
+			Players = {
+				LocalPlayer = player,
+				PlayerRemoving = signal(),
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			CollectionService = {
+				GetTagged = function(_, tag)
+					return if tag == "ForgeSurvivalNode" then { node, hidden } else {}
+				end,
+			},
+			Workspace = {
+				CurrentCamera = camera,
+				GetDescendants = function()
+					return {}
+				end,
+				FindFirstChild = function(_, name)
+					return if name == "ForgeWildlife" then wild else nil
+				end,
+			},
+			RunService = { RenderStepped = signal(), Heartbeat = signal(beats) },
+			UserInputService = { TouchEnabled = true },
+			GuiService = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		shell.startOverlays({
+			gui = gui,
+			hidden = function()
+				return false
+			end,
+			name = function(_, key)
+				return key
+			end,
+			coordsText = function()
+				return ""
+			end,
+			tribe = function()
+				return ""
+			end,
+		})
+		beats[1](1)
+		local labels = playerGui:FindFirstChild("ForgeWorldLabels")
+		local shown: { [string]: any } = {}
+		for _, board in labels:GetChildren() do
+			if board:IsA("BillboardGui") and board.Enabled then
+				shown[board.Text.Text] = board
+			end
+		end
+		assert(shown.fiber and shown.dodo, "the near node and the creature are labelled")
+		assert(shown.stone == nil, "a label that would land on the minimap is not drawn")
+		assert(labels:GetAttribute("ForgeLabelCount") == 2, "two boards shown")
+		for key, board in shown do
+			local cameraGap = (board.Adornee.Position - camera.CFrame.Position).Magnitude
+			assert(board.MaxDistance >= cameraGap, key .. " board reaches the play camera, gap " .. cameraGap)
+			assert(board.MaxDistance >= CameraConfig.maxDistance + Shell.LABEL_RADIUS, key .. " any zoom")
+		end
+		assert(shown.dodo.Text.TextColor3 == shown.fiber.Text.TextColor3, "creatures use the node label style")
+		-- The region test itself, at both target screens.
+		for _, view: { any } in { { 800, 360, 0, true } :: { any }, { 1280, 720, 36, false } } do
+			local r = Shell.regions(view[1], view[2], view[3], view[4])
+			local function at(region: any)
+				return Shell.labelRect(
+					region.x + region.width / 2,
+					region.y + region.height / 2,
+					"파라사우롤로푸스"
+				)
+			end
+			for _, key in { "minimap", "quest", "hotbar", "cluster", "vitals" } do
+				assert(Shell.labelBlocked(at(r[key]), r), key .. " blocks labels at " .. view[1])
+			end
+			assert(not Shell.labelBlocked(Shell.labelRect(view[1] / 2, view[2] / 2, "도도"), r), "open ground")
+		end
+	end,
+	-- studio-after defect 2: the coin icon sat on the amount (the chip had no padding), so the pill
+	-- read as empty. Icon first, then the amount, never overlapping.
+	["coin chip lays out the icon, then the amount"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = table.clone(roblox),
+		})()
+		for _, chip in { 24, 28 } do
+			local coins = roblox.Instance.new("TextLabel")
+			coins.Text = "100"
+			local icon = roblox.Instance.new("ImageLabel")
+			icon.Name, icon.Parent = "CoinIcon", coins
+			local left = shell.coinChip(coins, chip)
+			local pad = coins:FindFirstChildOfClass("UIPadding")
+			assert(pad and pad.PaddingLeft.Offset == left, "the amount starts after the left padding")
+			-- Icon box in the chip's own space: the padded origin plus its offset.
+			local iconLeft = left + icon.Position.X.Offset - icon.AnchorPoint.X * icon.Size.X.Offset
+			local iconRight = iconLeft + icon.Size.X.Offset
+			assert(iconLeft >= 0, "icon inside the chip")
+			assert(iconRight <= left, "icon ends before the amount starts")
+			assert(coins.TextXAlignment == roblox.Enum.TextXAlignment.Left, "amount follows the icon")
+		end
+		local source = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(
+			string.find(source, "HudShell.coinChip(coins,", 1, true),
+			"SurvivalHUD lays the chip out through coinChip"
+		)
+	end,
+	-- studio-after defect 3: the primary caption ('채집하기', '모닥불에서 휴식 [R]') sat on the consume
+	-- token and the slot under it. It now takes the first clear spot around the primary token.
+	["the primary caption never covers another token or the hotbar"] = function()
+		for _, view: { any } in { { 800, 360, 0, true } :: { any }, { 1280, 720, 36, false }, { 640, 339, 0, true } } do
+			local width, height, top, touch = view[1], view[2], view[3], view[4]
+			local r = Shell.regions(width, height, top, touch)
+			for _, set in { { "P", "I1", "I3", "O1", "O2" }, { "P", "I1", "I2", "I3", "O1", "O2", "X" } } do
+				local others = { r.hotbar }
+				for _, slot in set do
+					if slot ~= "P" then
+						table.insert(others, r.tokens[slot])
+					end
+				end
+				for _, caption in { "채집하기", "모닥불에서 휴식 [R]", "Rest at the campfire [R]" } do
+					local size = Shell.tokenText("label", r.safeHeight, touch)
+					local w = 0
+					for _, code in utf8.codes(caption) do
+						w += if code >= 0x1100 then size else size * 0.55
+					end
+					local spot = Shell.captionRect(r.tokens.P, w + 20, size + 10, others, width, height, top, r.cluster)
+					assert(Shell.inside(spot, width, height, top), caption .. " inside at " .. width)
+					for index, other in others do
+						assert(
+							not Shell.overlaps(spot, other),
+							string.format("%s covers rect %d at %dx%d (%d tokens)", caption, index, width, height, #set)
+						)
+					end
+				end
+			end
+		end
+		local hud = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, "captionAvoid,", 1, true), "SurvivalHUD passes the rects to avoid")
+	end,
+	-- studio-after defect 4: the cold open's Skip (top right) covered the arrival sheet's close X.
+	["a corner button never covers an open sheet's header"] = function()
+		local EP = require("./ExtensionPanels")
+		for _, view: { any } in { { 800, 360, true } :: { any }, { 1280, 720, false }, { 640, 339, true } } do
+			local width, height = view[1], view[2]
+			local x, y, w, h = EP.shellSheet(width, height, view[3])
+			local sheet = { x = x, y = y, width = w, height = h }
+			local close = { x = x + w - 6 - 44, y = y, width = 44, height = 44 }
+			local header = { x = x, y = y, width = w, height = 44 }
+			local skip = Shell.cornerButton(width, height, 96, 44, sheet, 64, 44)
+			assert(Shell.inside(skip, width, height), "skip inside at " .. width)
+			assert(skip.width >= 64 and skip.height >= 44, "skip stays a touch target")
+			assert(not Shell.overlaps(skip, close), "skip clear of the close X at " .. width)
+			assert(not Shell.overlaps(skip, header), "skip clear of the header at " .. width)
+			local free = Shell.cornerButton(width, height, 96, 44, nil, 64, 44)
+			assert(free.x + free.width <= width - 8 and free.y < height / 2, "top-right without a sheet")
+		end
+	end,
+	-- studio-after defect 13: the PC quest card was a dark box ~3x its two lines. The text sizes to
+	-- its lines at a fixed label size, capped at the slot.
+	["quest card text is as tall as its lines"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = table.clone(roblox),
+		})()
+		local label = roblox.Instance.new("TextLabel")
+		label.TextScaled, label.Size = true, roblox.UDim2.fromScale(1, 1)
+		local fit = roblox.Instance.new("UITextSizeConstraint")
+		fit.Parent = label
+		shell.fitQuestText(label, 86, false)
+		assert(not label.TextScaled and label.TextSize == shell.QUEST_TEXT.pc, "fixed label size on PC")
+		assert(label.Size.Y.Scale == 0 and label.AutomaticSize == roblox.Enum.AutomaticSize.Y, "height follows lines")
+		assert(label:FindFirstChildOfClass("UITextSizeConstraint") == nil, "no scaled-text cap left")
+		assert(label:FindFirstChild("QuestCap").MaxSize.Y == 86, "never taller than the slot")
+		shell.fitQuestText(label, nil, true)
+		assert(label.TextSize == shell.QUEST_TEXT.touch, "touch size")
+		local opening = fs.readFile("games/robango-island/src/shared/OpeningClient.luau")
+		assert(not string.find(opening, "tracker.TextScaled, tracker.TextWrapped = true", 1, true), "no scaled tracker")
+		assert(string.find(opening, "HudShell.fitQuestText(tracker,", 1, true), "the opening tracker uses it")
+		assert(string.find(opening, "M.placeSkip(skip, gui,", 1, true), "the cold-open skip is placed per frame")
+	end,
 }

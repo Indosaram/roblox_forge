@@ -228,4 +228,19 @@ return {
 		end
 		assert(#near.head.plates == 1, "exactly one nameplate once the creature is in range")
 	end,
+	-- studio-after defect 8: live wildlife wore this small red nameplate next to the HUD shell's white
+	-- world label, so every animal's name was doubled. Wildlife keeps the shell label only.
+	["live wildlife wears no client nameplate (the HUD shell labels it)"] = function()
+		local dodo = model("Dodo1", { Species = "dodo", ForgeWildlifeKind = "dodo" })
+		local wild = folder("ForgeWildlife", { dodo })
+		dodo.Parent = wild
+		local start, renderStepped = harness({ wild }, RenderBudget.profiles.high, 10)
+		start(function() end)
+		for _ = 1, 2 do
+			for _, handler in renderStepped.handlers do
+				handler(1 / 60)
+			end
+		end
+		assert(#dodo.head.plates == 0, "no second label on a wild animal")
+	end,
 }
