@@ -17665,3 +17665,138 @@ assets:
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
       created: 2026-10-29
+  - key: fx-puff
+    kind: image
+    tool: gpt-image
+    source: "gpt-image L13 VFX particle sprite fx.puff (assets/fx/jobs.json)"
+    path: assets/fx/fx.puff.png
+    assetId: 99989866550173
+    moderation: Approved
+    provenance:
+      digest: sha256:5af1c98b74cd1e16b891f98dad61839efaf7ad78c6bbb51cefd976119da19bcd
+      recipe:
+        id: robango-fx-l13
+        version: 1
+        input: "assets/fx/jobs.json#fx.puff"
+        inputVersion: sha256:cf0b6921b3daf650789d00a367a9f43b4717a7aa2307578a5f71abf3e1a54b0a
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 92422184870951
+  - key: fx-spark
+    kind: image
+    tool: gpt-image
+    source: "gpt-image L13 VFX particle sprite fx.spark (assets/fx/jobs.json)"
+    path: assets/fx/fx.spark.png
+    assetId: 116935128115709
+    moderation: Approved
+    provenance:
+      digest: sha256:dc059bd617ed2b2090a3021289a0cce7499419848f156a10d1b1ea922675cb8a
+      recipe:
+        id: robango-fx-l13
+        version: 1
+        input: "assets/fx/jobs.json#fx.spark"
+        inputVersion: sha256:1a9f3b5a99efb7f6cc3d2ebf078e99b3fb0c6b60d21208f7477c831ec61c8e80
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 103273588045241
+  - key: fx-chip
+    kind: image
+    tool: gpt-image
+    source: "gpt-image L13 VFX particle sprite fx.chip (assets/fx/jobs.json)"
+    path: assets/fx/fx.chip.png
+    assetId: 134310922664427
+    moderation: Approved
+    provenance:
+      digest: sha256:39dc562b9f35fa6c9d52cbb7391e499d6a3b770b545fd08a04d6dabb4d98916a
+      recipe:
+        id: robango-fx-l13
+        version: 1
+        input: "assets/fx/jobs.json#fx.chip"
+        inputVersion: sha256:00fac2e69048005b6a12e20aba30d444bb61a7e9d356097ec838f51df4ea45c9
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 118694107339507
+  - key: fx-drop
+    kind: image
+    tool: gpt-image
+    source: "gpt-image L13 VFX particle sprite fx.drop (assets/fx/jobs.json)"
+    path: assets/fx/fx.drop.png
+    assetId: 121851877217154
+    moderation: Approved
+    provenance:
+      digest: sha256:a89a66953eb2181a37f733c5e7f00783c3b10be441069816b4e575f9787d60e9
+      recipe:
+        id: robango-fx-l13
+        version: 1
+        input: "assets/fx/jobs.json#fx.drop"
+        inputVersion: sha256:337ab519e5db82cd0c5daebada40189a51f0bf99848f3d66bf1ff41d288e685e
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 85296666878172
+  - key: fx-ember
+    kind: image
+    tool: gpt-image
+    source: "gpt-image L13 VFX particle sprite fx.ember (assets/fx/jobs.json)"
+    path: assets/fx/fx.ember.png
+    assetId: 76749102338900
+    moderation: Approved
+    provenance:
+      digest: sha256:4d7b65ae2c818cd299eb3553574316af58ca5efb0ef12285879661c832e990b7
+      recipe:
+        id: robango-fx-l13
+        version: 1
+        input: "assets/fx/jobs.json#fx.ember"
+        inputVersion: sha256:ce5dc4fd5c85cd11b74906daea88b8c52dc90f658b1388238f4db37eba6171fa
+      provider:
+        name: gpt-image
+        version: Responses-API
+      rights:
+        source: "OpenAI Services Agreement s4.1: customer owns Output; OpenAI assigns all right, title and interest in Output"
+        ownership: licensed
+        evidence:
+          document: "https://openai.com/policies/services-agreement/"
+          version: "2026-01-01"
+          verifiedBy: "agent:omo (lead, 2026-10-21; access via mahoquot proxy - owner to confirm proxy terms)"
+      author: agent:omo/hephaestus
+      created: 2026-10-30
+    decalAssetId: 95657747771670

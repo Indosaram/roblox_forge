@@ -17,6 +17,7 @@ local Durable = require("./src/shared/GenreDurable")
 
 local ACTOR = "11734795308"
 local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
+local FxStub = require("./src/client/FeedbackFx.fixture")
 
 local function boot(backend: any?, at: any?)
 	local engine = Engine.new(true)
@@ -137,6 +138,7 @@ local function boot(backend: any?, at: any?)
 	}
 end
 
+local packets: { any } = {}
 local function client(live: any): any
 	local session = live.session
 	local sequence = 0
@@ -152,10 +154,13 @@ local function client(live: any): any
 		model.receive({
 			durable = { actions = Durable.actions, sessionEpoch = session.commandEpoch(ACTOR), epochs = epochs },
 		})
-		model.receive({ revision = sequence, snapshots = session.snapshot(ACTOR) })
+		local packet = { revision = sequence, snapshots = session.snapshot(ACTOR) }
+		table.insert(packets, packet)
+		model.receive(packet)
 	end
 	handshake()
 	-- SurvivalHUD.send: the RemoteFunction reply goes straight into model.finish.
+	-- Every state packet the client saw, in order (L13 feeds them to FeedbackFx).
 	local function send(request: any): any
 		live.at.value += 1
 		session.advance(live.at.value)
@@ -201,6 +206,56 @@ return {
 			cords += if item.catalogId == "cord" then item.quantity else 0
 		end
 		assert(cords == 1, "one cord collected, got " .. cords)
+		-- L13: the same live snapshots drive the craft-complete pop. The workshop entry of the hand
+		-- craft turns Committed in the last packet: one burst, one "+1 Cord" toast, one icon fly.
+		local fx = FxStub.new()
+		local toasts, flown = {}, {}
+		local root = fx.instance("Part", "HumanoidRootPart")
+		root.Position = FxStub.vector(0, 3, 0)
+		local body = fx.instance("Model", "Character")
+		root.Parent = body
+		fx.player.Character = body
+		local stop = fx.Fx.start({
+			assets = {},
+			audio = require("./src/shared/RobangoAudioCatalog"),
+			profile = function()
+				return "low"
+			end,
+			reduced = function()
+				return false
+			end,
+			hidden = function()
+				return false
+			end,
+			icon = function(item: string)
+				table.insert(flown, item)
+				return "rbxassetid://icon-" .. item
+			end,
+			itemName = function(item: string)
+				return if item == "cord" then "Cord" else item
+			end,
+			toastFormat = "+%d %s",
+			toast = function(line: string)
+				table.insert(toasts, line)
+			end,
+			toastGui = fx.instance("ScreenGui", "ForgeGatherFan"),
+			names = {},
+			itemIds = {},
+			defaultOutput = function()
+				return nil
+			end,
+			bagPoint = function()
+				return { X = 40, Y = 680 }
+			end,
+		})
+		fx.player.UserId = tonumber(ACTOR)
+		for _, packet in packets do
+			fx.state.OnClientEvent:Fire(packet)
+		end
+		assert(#toasts == 1 and toasts[1] == "+1 Cord", "one craft toast, got " .. table.concat(toasts, " | "))
+		assert(flown[1] == "cord", "the cord icon flies to the bag")
+		assert(fx.emitters().gold.emitted > 0, "the craft pop bursts")
+		stop()
 		-- Eat is not blocked behind a stale request either.
 		assert(model.begin("food", { "starter-berry" }), "eat enabled")
 		live.factory.close()

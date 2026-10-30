@@ -17,6 +17,8 @@ local Clock = require("../../core/infra/genre/Clock")
 local Durable = require("./src/shared/GenreDurable")
 local Gathering = require("../../genres/survival-coop/module/Gathering")
 local GatherOffer = require("./src/client/GatherOffer")
+local FxStub = require("./src/client/FeedbackFx.fixture")
+local AudioCatalog = require("./src/shared/RobangoAudioCatalog")
 
 local ACTOR = "11734795308"
 
@@ -248,6 +250,81 @@ return {
 				)
 			end
 		end
+		live.factory.close()
+	end,
+	-- L13: the confirmed result GatheringClient publishes (ForgeGatherResult: nodeId, request,
+	-- result) from a real onboarding gather drives the shipped FeedbackFx: chips of the node's
+	-- material and sparks at the node, and the picked item's icon flies to the bag token.
+	["a live confirmed gather bursts material chips at the node and flies the picked icon to the bag"] = function()
+		local live = boot()
+		assert(live.session.join(ACTOR).ok, "join")
+		arrive(live)
+		local fx = FxStub.new()
+		local flown: { string } = {}
+		local stop = fx.Fx.start({
+			assets = {},
+			audio = AudioCatalog,
+			profile = function()
+				return "low"
+			end,
+			reduced = function()
+				return false
+			end,
+			hidden = function()
+				return false
+			end,
+			icon = function(item: string)
+				table.insert(flown, item)
+				return "rbxassetid://icon-" .. item
+			end,
+			itemName = tostring,
+			toastFormat = "+%d %s",
+			toast = function() end,
+			toastGui = fx.instance("ScreenGui", "ForgeGatherFan"),
+			names = {},
+			itemIds = {},
+			defaultOutput = function(part: any)
+				local offered = fan(part)
+				return if offered[1] then offered[1].item else nil
+			end,
+			bagPoint = function()
+				return { X = 40, Y = 680 }
+			end,
+		})
+		local result = fx.instance("BindableEvent", "ForgeGatherResult")
+		result.Parent = fx.player
+		for _, case in { { "rw.onboarding.stone", "stone" }, { "rw.onboarding.fiber", "plant" } } do
+			local id, material = case[1], case[2]
+			local real = nodePart(live, id)
+			-- The client-side node part carries the server's published attributes.
+			local part = fx.instance("Part", real.Name)
+			for _, key in { "ForgeNodeId", "ForgeNodeKind", "ForgeNodeItem" } do
+				part:SetAttribute(key, real:GetAttribute(key))
+			end
+			part.Position = FxStub.vector(real.Position.X, real.Position.Y, real.Position.Z)
+			part.Size = FxStub.vector(real.Size.X, real.Size.Y, real.Size.Z)
+			fx.tagged.ForgeSurvivalNode = { part }
+			local output = fan(real)[1].item
+			local nodes = live.factory.services.survivalGathering.snapshot(ACTOR).nodes
+			live.engine.move(ACTOR, nodes[id].position)
+			local version = live.factory.services.survivalGathering.snapshot(ACTOR).version
+			local request = { requestId = "fx-" .. id, action = "survival-coop:gather", args = { id, version, output } }
+			local answer = live.command(ACTOR, request.action, request.args)
+			assert(answer.ok, id .. ": " .. tostring(answer.reason))
+			local chips = fx.emitters()["chip-" .. material]
+			local before, sparks = chips.emitted, fx.emitters().spark.emitted
+			result.Event:Fire({ nodeId = id, requestId = request.requestId, request = request, result = answer })
+			assert(chips.emitted > before, id .. " bursts " .. material .. " chips")
+			assert(fx.emitters().spark.emitted > sparks, id .. " sparks")
+			local at = chips.emits[#chips.emits].at
+			assert(at.X == real.Position.X and at.Z == real.Position.Z, "the burst sits on the node")
+			assert(flown[#flown] == output, id .. " flies the picked " .. output .. ", got " .. tostring(flown[#flown]))
+			-- A refused gather shows nothing.
+			local quiet = chips.emitted
+			result.Event:Fire({ nodeId = id, request = request, result = { ok = false, reason = "NODE_DEPLETED" } })
+			assert(chips.emitted == quiet, "a refusal bursts nothing")
+		end
+		stop()
 		live.factory.close()
 	end,
 	["the last charge swaps the depleted mesh, the fan offers nothing, and the node regrows"] = function()

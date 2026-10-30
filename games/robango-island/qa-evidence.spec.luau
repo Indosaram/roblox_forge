@@ -217,7 +217,9 @@ end
 -- every asset id published); the device budget above stays the binding one.
 -- 2026-10-29: fileBytes 1.7 -> 1.8 MB with L6 survivor rigs, L7 tool visuals and C2 gather offers
 -- (1.708 MB built); the device budget above stays the binding one.
-local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 4000000, fileBytes = 1800000 }
+-- 2026-10-30: fileBytes 1.8 -> 1.9 MB with town round 2 (TownLife) and L13 effects (1.805 MB built);
+-- phone v56 measured PSS ~810 MB against the binding 900 MB device budget.
+local PERF_BUDGET = { instances = 400, scripts = 340, sourceBytes = 4000000, fileBytes = 1900000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 
@@ -402,7 +404,8 @@ return {
 			asset.assetId = 999999999999999
 			asset.moderation = "Approved"
 		end
-		assert(icons == 551 and audio == 78, "future budget must include every icon and audio cue")
+		-- 2026-10-30 L13: +5 painted particle sprites (fx-puff/spark/chip/drop/ember).
+		assert(icons == 556 and audio == 78, "future budget must include every icon and audio cue")
 		local futureBytes = measure.sourceBytes
 			- #fs.readFile(PACK .. "/src/shared/Assets.luau")
 			+ #assetsLib.renderLuau(manifest, "robango-island")

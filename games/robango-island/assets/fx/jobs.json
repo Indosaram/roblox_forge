@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-30",
+  "route": "bun C:/Users/sook/code/rmb-lanes/_tools/imagegen.mjs --size 1024x1024 --quality medium --background transparent",
+  "style": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background.",
+  "postprocess": "alpha bbox crop, centred square pad (ember: alpha>24 bbox, 15% pad), LANCZOS 128x128",
+  "jobs": {
+    "fx.puff": {
+      "prompt": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background. Subject: one round fluffy cloud puff of white-to-light-grey dust smoke whose soft edges fade fully to transparent."
+    },
+    "fx.spark": {
+      "prompt": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background. Subject: one bright cream-white four-point sparkle star glint with tapered rays and a soft warm glow core."
+    },
+    "fx.chip": {
+      "prompt": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background. Subject: one small flat irregular shard of pale neutral grey-white stone with three facets lit from the top-left, tintable."
+    },
+    "fx.drop": {
+      "prompt": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background. Subject: one teardrop water droplet of pale aqua-white water with a bright highlight."
+    },
+    "fx.ember": {
+      "prompt": "Hand-painted gouache game VFX particle sprite, centred, one subject only, soft painted edges, no outline, no text, transparent background. Subject: one tiny glowing orange-yellow ember speck with a soft hot glow halo."
+    }
+  }
+}

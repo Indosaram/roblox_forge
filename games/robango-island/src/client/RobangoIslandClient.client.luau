@@ -387,6 +387,54 @@ do
 	gui.Destroying:Connect(function()
 		claimWatch:Disconnect()
 	end)
+	-- L13 game feel: gather chips/sparks and the item flying into the bag, creature hit flash,
+	-- level-up burst, craft-complete pop, toast icons, footstep dust, splash and camp-fire smoke.
+	local itemIds: { string } = {}
+	for _, item in content.items do
+		table.insert(itemIds, item.id)
+	end
+	local stopFeedback = require(script.Parent:WaitForChild("FeedbackFx")).start({
+		assets = require(Shared.Assets),
+		audio = require(Shared.RobangoAudioCatalog),
+		profile = function(): string
+			return if profile == RenderBudget.profiles.low then "low" else "high"
+		end,
+		reduced = function(): boolean
+			return player:GetAttribute("ForgeReducedEffects") == true
+		end,
+		hidden = function(): boolean
+			return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true
+		end,
+		icon = function(item: string): string?
+			return itemIcons.item(item).image
+		end,
+		itemName = function(item: string): string
+			return names[item] or item
+		end,
+		toastFormat = clientText(locale, "cli.gather.toast") or "+%d %s",
+		toast = gatherPicker.toast,
+		toastGui = fanGui,
+		names = names,
+		itemIds = itemIds,
+		defaultOutput = function(part: BasePart): string?
+			local offered = GatherOffer.offered(part, function(kind: string, id: string)
+				local list, level = Gathering.offered(content :: any, kind, id)
+				return list, level
+			end)
+			return if offered[1] then offered[1].item else nil
+		end,
+		-- The bag lives behind the menu toggle (first token of the bottom-left row).
+		bagPoint = function(): Vector2?
+			local dock = player.PlayerGui:FindFirstChild("ForgePanelDock")
+			local toggle = dock and dock:FindFirstChild("MenuToggle", true)
+			if not (toggle and toggle:IsA("GuiObject") and toggle.Visible) then
+				return nil
+			end
+			return (dock :: ScreenGui).AbsolutePosition + toggle.AbsolutePosition + toggle.AbsoluteSize / 2
+		end,
+	})
+	gui.Destroying:Connect(stopFeedback)
+	script.Destroying:Connect(stopFeedback)
 end
 local toastGui = Instance.new("ScreenGui")
 toastGui.Name, toastGui.ResetOnSpawn = "BiomeToast", false

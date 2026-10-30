@@ -64,6 +64,41 @@ output_path = "games/robango-island/src/shared"
 [inputs.audio-instrument-violin.web]
 "violin.wav" = { id = 128907182514898 }
 
+[inputs.fx-chip]
+path = "assets/fx/fx.chip.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.fx-chip.web]
+"fx.chip.png" = { id = 134310922664427 }
+
+[inputs.fx-drop]
+path = "assets/fx/fx.drop.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.fx-drop.web]
+"fx.drop.png" = { id = 121851877217154 }
+
+[inputs.fx-ember]
+path = "assets/fx/fx.ember.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.fx-ember.web]
+"fx.ember.png" = { id = 76749102338900 }
+
+[inputs.fx-puff]
+path = "assets/fx/fx.puff.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.fx-puff.web]
+"fx.puff.png" = { id = 99989866550173 }
+
+[inputs.fx-spark]
+path = "assets/fx/fx.spark.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.fx-spark.web]
+"fx.spark.png" = { id = 116935128115709 }
+
 [inputs.item-icon-animal-pen]
 path = "assets/icons/item.icon.animal-pen.png"
 output_path = "games/robango-island/src/shared"

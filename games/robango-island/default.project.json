@@ -275,6 +275,9 @@
         "CreaturePose": {
           "$path": "src/client/CreaturePose.luau"
         },
+        "FeedbackFx": {
+          "$path": "src/client/FeedbackFx.luau"
+        },
         "GatherOffer": {
           "$path": "src/client/GatherOffer.luau"
         },
