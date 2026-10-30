@@ -59,6 +59,11 @@ def _scale_col(nodes, links, col, k):
     return _mix(nodes, links, 1.0, col, (k, k, k), "MULTIPLY")
 
 
+# Body lane: True while the painted pieces are baked onto the fused skin shell, which sits on
+# them: occlusion then only counts the piece itself.
+LOCAL_AO = False
+
+
 def _xyz(nodes, links):
     geo = nodes.new("ShaderNodeNewGeometry")
     sep = nodes.new("ShaderNodeSeparateXYZ")
@@ -107,6 +112,7 @@ def _shade(nodes, links, col, geo, ao_dist=0.18, key=0.5, dirt=True):
     col = _mix(nodes, links, 1.0, col, shade.outputs["Color"], "MULTIPLY")
     ao = nodes.new("ShaderNodeAmbientOcclusion")
     ao.samples = 16
+    ao.only_local = LOCAL_AO
     ao.inputs["Distance"].default_value = ao_dist
     aor = C.ramp(nodes, links, ao.outputs["AO"], [(0.1, (0.45, 0.42, 0.42)), (0.9, (1, 1, 1))])
     col = _mix(nodes, links, 1.0, col, aor.outputs["Color"], "MULTIPLY")
@@ -220,8 +226,9 @@ def skin(pal, head_s, cy=1.95, lip="#9a5a4a"):
         col = _mix(nodes, links, _mix(nodes, links, 0.3, ear, (0, 0, 0)), col, warm)
         # Eye sockets and an upper-lid line: the face reads as two dark marks at play distance.
         sock = _spot(nodes, links, _dist(nodes, links, x, y, z, (0.075 * s, 0.2 * s, cy + 0.045), sz=0.75), 0.04, 0.085)
-        col = _mix(nodes, links, _mix(nodes, links, 0.7, sock, (0, 0, 0)), col, _scale_col(nodes, links, _rgb(nodes, pal["skin"]), 0.45))
-        lid = _spot(nodes, links, _dist(nodes, links, x, y, z, (0.075 * s, 0.2 * s, cy + 0.068), sz=0.35), 0.03, 0.04)
+        col = _mix(nodes, links, _mix(nodes, links, 0.8, sock, (0, 0, 0)), col, _scale_col(nodes, links, _rgb(nodes, pal["skin"]), 0.38))
+        # Body lane: a heavier upper lid and lash line, so each eye is one dark mark at play distance.
+        lid = _spot(nodes, links, _dist(nodes, links, x, y, z, (0.075 * s, 0.2 * s, cy + 0.064), sz=0.4), 0.038, 0.05)
         col = _mix(nodes, links, lid, col, _rgb(nodes, "#2a1d16"))
         mouth = _spot(nodes, links, _dist(nodes, links, x, y, z, (0.0, 0.2 * s, cy - 0.12 * s), mirror=False, sz=0.3), 0.04, 0.055)
         col = _mix(nodes, links, _mix(nodes, links, 0.75, mouth, (0, 0, 0)), col, _rgb(nodes, lip))

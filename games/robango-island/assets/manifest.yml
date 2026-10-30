@@ -17668,16 +17668,16 @@ assets:
   - key: mesh-survivors
     kind: model
     tool: blender
-    source: "L6 package RobangoSurvivors: games/robango-island/assets/blender/gen_survivors.py (headless Blender 5.2, seed 6060): four R15-fitted survivor outfits on two body types; L6b: painted cloth, leather, hair and faces baked into one colour atlas per preset (survivor_paint.py), embedded"
-    assetId: 93336660479246
+    source: "L6 package RobangoSurvivors: games/robango-island/assets/blender/gen_survivors.py (headless Blender 5.2, seed 6060): four R15-fitted survivor outfits on two body types; L6b: painted cloth, leather, hair and faces baked into one colour atlas per preset (survivor_paint.py), embedded; body lane: one continuous skinned body per preset (survivor_skin.py: voxel-fused pieces, 15 R15-named bones, face islands enlarged in the same 1024 atlas), sculpted hair locks, hands and boots"
+    assetId: 72384875188867
     moderation: Approved
     provenance:
-      digest: sha256:6305c007935fc92a9b101666508f816ed572a6b3fea86076195501cd691bc017
+      digest: sha256:3f45bcdebdb184c8ccfed5612f373cf8ee8b344f1a74544f99f780e857eabf4e
       recipe:
         id: robango-gen-survivors
-        version: 2
+        version: 3
         input: "assets/blender/gen_survivors.py#RobangoSurvivors"
-        inputVersion: sha256:78b64611a149ee8bb47f7bb7d4fc5eec346a90b85b657bc3bba54b1aaeb4586a
+        inputVersion: sha256:0e5e0aa5d89fe20aa5b974075f042a73dcff342b447142a4a7d2c526dba0436f
       provider:
         name: blender
         version: 5.2.3

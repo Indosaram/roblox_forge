@@ -2,7 +2,7 @@
 
 Headless only:
   blender -b --factory-startup --python games/robango-island/assets/blender/gen_survivors.py -- build/l6
-Outputs build/l6/out/RobangoSurvivors.fbx (one package; one empty "survivor.<preset>" per preset), silhouettes, previews
+Outputs build/l6/out/RobangoSurvivors.fbx (one package; one armature "Rig__rig__<preset>" per preset), silhouettes, previews
 and build/l6/out/rows.json (pieces and triangles per preset).
 
 R15 fit (SurvivorAvatar.luau, kind "rig"): every mesh piece belongs to ONE R15 body part and is
@@ -21,6 +21,7 @@ insignia, badges or uniform cuts; no cords or loops at the neck. Seed 6060.
 import json
 import math
 import os
+import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -32,6 +33,7 @@ from mathutils import Vector
 import common as C
 import survivor_geo as G
 import survivor_paint as P
+import survivor_skin as S
 
 SEED = 6060
 PACKAGE = "RobangoSurvivors"
@@ -144,6 +146,8 @@ def body(fig, b, preset):
     skin = preset["skin"]
     # Neck (UpperTorso) up into the head.
     limb(fig, "UpperTorso", skin, 0, [1.42, 1.58, 1.74], [0.12 * b["g"] + 0.01, 0.11, 0.105], cz=0.02)
+    # Neck tendons into the collarbone notch (fused: no ring where the neck meets the head).
+    G.ellipsoid(fig.bm("UpperTorso", skin), None, (0, 1.62, -0.03), (0.13, 0.12, 0.11), nlat=6, nlon=10)
     for side, name in ((-1, "Left"), (1, "Right")):
         x = side * b["arm_x"]
         # Shoulder cap and upper arm, elbow ball on the forearm, hand.
@@ -154,8 +158,11 @@ def body(fig, b, preset):
                     (b["arm"] * 0.8,) * 3, nlat=6, nlon=10)
         limb(fig, f"{name}LowerArm", "forearm", x, [ELBOW, 0.45, WRIST - 0.04], [b["fore"], b["fore"] * 0.95, b["fore"] * 0.68])
         hand = fig.bm(f"{name}Hand", skin)
-        G.ellipsoid(hand, None, (x, -0.2, 0.0), (b["fore"] * 0.62, 0.15, b["fore"] * 1.05), nlat=8, nlon=10)
-        G.ellipsoid(hand, None, (x - side * 0.035, -0.17, -0.06), (0.03, 0.07, 0.03), nlat=5, nlon=8)
+        G.ellipsoid(hand, None, (x, -0.17, 0.0), (b["fore"] * 0.6, 0.11, b["fore"] * 1.0), nlat=8, nlon=10)  # palm
+        for k in range(4):  # slightly curled fingers side by side
+            fz = (k - 1.5) * b["fore"] * 0.42
+            G.ellipsoid(hand, None, (x + side * 0.008, -0.31 + abs(k - 1.5) * 0.015, fz), (0.026, 0.075, 0.021), nlat=5, nlon=8)
+        G.ellipsoid(hand, None, (x - side * 0.04, -0.2, -0.07), (0.026, 0.065, 0.026), nlat=5, nlon=8)  # thumb
         # Legs: thigh (UpperLeg), knee ball + shin (LowerLeg), foot under the boot.
         hx = side * b["hip_x"]
         limb(fig, f"{name}UpperLeg", "thigh", hx, [-0.25, -0.7, KNEE - 0.03], [b["thigh"], b["thigh"] * 0.85, b["calf"] * 0.95])
@@ -173,31 +180,29 @@ def head(fig, b, preset):
         x, y, z = p
         t = (cy - y) / (0.26 * s)  # >0 below the centre
         if t > 0:
-            x *= 1 - 0.32 * t ** 1.5
-            z = z * (1 - 0.18 * t) - 0.03 * t  # chin forward
+            x *= 1 - 0.2 * t ** 2  # broad, square jaw
+            z = z * (1 - 0.14 * t) - 0.03 * t  # chin forward
+        if z < -0.17 * s:
+            z = -0.17 * s + (z + 0.17 * s) * 0.55  # flatter face plane: cheeks and jaw read as planes
         return (x, y, z)
 
     h = fig.bm("Head", skin)
     G.ellipsoid(h, None, (0, cy, 0.0), (0.19 * s, 0.26 * s, 0.22 * s), nlat=12, nlon=18, deform=skull)
-    G.ellipsoid(h, None, (0, cy - 0.02, -0.215 * s), (0.032, 0.065, 0.045), nlat=6, nlon=8)  # nose
+    # Nose: bridge from the brow, a tip and wings (a clear plane change at play distance).
+    G.ellipsoid(h, None, (0, cy + 0.02, -0.2 * s), (0.026, 0.075, 0.035), nlat=6, nlon=8)
+    G.ellipsoid(h, None, (0, cy - 0.04, -0.222 * s), (0.034, 0.03, 0.036), nlat=6, nlon=8)
+    for side in (-1, 1):
+        G.ellipsoid(h, None, (side * 0.024, cy - 0.05, -0.2 * s), (0.02, 0.018, 0.022), nlat=4, nlon=8)  # nose wings
+        # Brow ridge over each eye: it shades the eye like a socket.
+        G.ellipsoid(h, None, (side * 0.07 * s, cy + 0.088, -0.183 * s), (0.06, 0.022, 0.03), nlat=5, nlon=10)
     for side in (-1, 1):
         G.ellipsoid(h, None, (side * 0.19 * s, cy, 0.02), (0.028, 0.06, 0.045), nlat=5, nlon=8)  # ear
-        G.ellipsoid(fig.bm("Head", "eye"), None, (side * 0.07 * s, cy + 0.045, -0.186 * s), (0.032, 0.022, 0.014), nlat=6, nlon=10)
-        G.ellipsoid(fig.bm("Head", "brow"), None, (side * 0.072 * s, cy + 0.095, -0.196 * s), (0.052, 0.017, 0.018), nlat=4, nlon=8)
+        G.ellipsoid(fig.bm("Head", "eye"), None, (side * 0.07 * s, cy + 0.045, -0.18 * s), (0.034, 0.024, 0.016), nlat=6, nlon=10)
+        G.ellipsoid(fig.bm("Head", "brow"), None, (side * 0.072 * s, cy + 0.1, -0.205 * s), (0.058, 0.02, 0.02), nlat=4, nlon=8)
     G.ellipsoid(fig.bm("Head", "lip"), None, (0, cy - 0.12 * s, -0.19 * s), (0.05, 0.012, 0.014), nlat=4, nlon=8)
     hair = fig.bm("Head", "hair")
     style = preset["hair"]
-    r = (0.205 * s, 0.25 * s, 0.235 * s)
-    if style == "short":
-        G.ellipsoid(hair, None, (0, cy + 0.035, 0.012), r, nlat=12, nlon=18,
-                    keep=lambda p: p[1] > cy + 0.06 - (0.16 if p[2] > 0.02 else 0) - (0.08 if abs(p[0]) > 0.15 and p[2] > -0.08 else 0))
-    else:
-        long = style == "ponytail"
-        G.ellipsoid(hair, None, (0, cy + 0.03, 0.015), (r[0] + 0.01, r[1] + 0.01, r[2]), nlat=12, nlon=18,
-                    keep=lambda p: p[1] > cy + 0.07 or (p[2] > -0.06 and p[1] > cy - (0.12 if long else 0.24)))
-        if long:
-            for i, (y, z, rr) in enumerate(((cy + 0.0, 0.25, 0.07), (cy - 0.15, 0.27, 0.065), (cy - 0.3, 0.25, 0.05))):
-                G.ellipsoid(hair, None, (0, y, z), (rr, 0.11, rr), nlat=6, nlon=10)
+    locks(hair, cy, s, style)
     if preset["beard"]:
         G.ellipsoid(hair, None, (0, cy - 0.07, -0.01), (0.185 * s, 0.2 * s, 0.215 * s), nlat=12, nlon=18,
                     keep=lambda p: p[1] < cy - 0.06 and p[2] < 0.02)
@@ -213,6 +218,63 @@ def head(fig, b, preset):
                     keep=lambda p: p[1] > cy + 0.1)
         G.ellipsoid(hb, None, (0, cy + 0.1, 0.01), (0.42 * s, 0.02, 0.42 * s), nlat=4, nlon=24)
         G.torus(fig.bm("Head", "band"), None, cy + 0.13, 0.215 * s, 0.235 * s, 0.02, None, cz=0.01, n=20, m=5)
+
+
+def lock(bm, at, along, radii):
+    """One sculpted hair lock: an ellipsoid whose long axis (y) runs `along`, centred `at`."""
+    y = Vector(along).normalized()
+    x = y.cross(Vector((0, 0, 1)))
+    if x.length < 1e-3:
+        x = Vector((1, 0, 0))
+    x.normalize()
+    z = x.cross(y)
+
+    def place(p):
+        q = Vector(at) + x * p[0] + y * p[1] + z * p[2]
+        return (q.x, q.y, q.z)
+
+    G.ellipsoid(bm, None, (0, 0, 0), radii, nlat=6, nlon=8, deform=place)
+
+
+def locks(bm, cy, s, style):
+    """Hair as overlapping locks over the skull (fused into one sculpted volume with grooves): rows
+    of locks swept back and down from a side part, a fringe swept across the brow, fuller sides."""
+    rng = random.Random(len(style) * 7 + 3)
+    rx, ry, rz = 0.2 * s, 0.26 * s, 0.225 * s
+    long = {"short": 0.0, "ponytail": 0.12, "bob": 0.26}[style]
+    for ring in range(5):
+        lat = 0.15 + ring * 0.3  # 0 = crown, rising toward the hairline
+        n = 6 + ring * 3
+        for k in range(n):
+            lon = 2 * math.pi * (k + 0.5 * (ring % 2)) / n
+            fx, fz = math.sin(lon), -math.cos(lon)  # fz < 0 at the face
+            sl = math.sin(lat)
+            p = Vector((rx * sl * fx * 1.04, cy + 0.02 + ry * math.cos(lat) * 1.0, 0.012 + rz * sl * fz * 1.04))
+            front = fz < -0.3
+            if front and ring >= 3 and abs(fx) < 0.75:
+                continue  # forehead stays bare under the fringe
+            if ring == 4 and not front and long == 0.0 and fz > 0.2:
+                p.y -= 0.02
+            flow = Vector((fx * 0.35, -1.0, fz * 0.5 + 0.35)) if not front else Vector((0.6 if fx >= 0 else 0.4, -0.45, -0.15))
+            length = 0.07 + 0.02 * ring + (long * 0.5 if (not front and ring >= 3) else 0.0)
+            p += flow.normalized() * length * 0.35
+            lock(bm, p, flow, (0.05 + rng.uniform(-0.008, 0.008), length, 0.03))
+    # Fringe swept across from a left part, and full sides over the ears.
+    for k in range(5):
+        t = k / 4
+        lock(bm, (-0.11 * s + 0.21 * s * t, cy + 0.17 - 0.03 * math.sin(t * math.pi), -0.165 * s + 0.02 * abs(t - 0.5)),
+             (1.0, -0.35, -0.1), (0.035, 0.085, 0.028))
+    for side in (-1, 1):
+        lock(bm, (side * 0.178 * s, cy + 0.08, 0.03), (side * 0.1, -1.0, 0.4), (0.026, 0.085 + long * 0.4, 0.065))
+    if style == "bob":
+        for k in range(7):
+            a = math.pi * (0.15 + 0.7 * k / 6)
+            lock(bm, (0.19 * s * math.cos(a) * 1.05, cy - 0.12, 0.2 * s * math.sin(a) * 0.95 + 0.02),
+                 (math.cos(a) * 0.15, -1.0, 0.1), (0.045, 0.12, 0.035))
+    if style == "ponytail":
+        lock(bm, (0, cy + 0.06, 0.235 * s), (0, -0.2, 1.0), (0.04, 0.035, 0.04))  # tie
+        for i, (y, z, rr) in enumerate(((cy - 0.02, 0.28, 0.065), (cy - 0.17, 0.3, 0.058), (cy - 0.31, 0.28, 0.045), (cy - 0.42, 0.25, 0.03))):
+            lock(bm, (0, y, z * s), (0, -1.0, 0.15 - 0.1 * i), (rr, 0.1, rr * 0.85))
 
 
 def clothes(fig, b, preset):
@@ -254,6 +316,9 @@ def clothes(fig, b, preset):
             return (p[0], max(p[1], FLOOR), p[2])
 
         G.ellipsoid(fig.bm(f"{name}Foot", "boots"), None, (hx, -2.23, -0.07), (0.105, 0.13, 0.22), nlat=8, nlon=14, deform=shoe)
+        G.ellipsoid(fig.bm(f"{name}Foot", "boots"), None, (hx, -2.27, -0.23), (0.095, 0.075, 0.075), nlat=6, nlon=10, deform=shoe)  # toe cap
+        G.ellipsoid(fig.bm(f"{name}Foot", "boots"), None, (hx, -2.27, 0.07), (0.09, 0.08, 0.07), nlat=6, nlon=10, deform=shoe)  # heel
+        G.ellipsoid(fig.bm(f"{name}Foot", "boots"), None, (hx, FLOOR + 0.035, -0.07), (0.12, 0.035, 0.25), nlat=4, nlon=14)  # sole
         G.ellipsoid(fig.bm(f"{name}Foot", "boots"), None, (hx, ANKLE - 0.03, 0.0), (0.095, 0.09, 0.1), nlat=6, nlon=10)
     # Outer layers.
     if over == "waistcoat":
@@ -368,36 +433,80 @@ def build(name):
     return objs
 
 
-def paint(name, objs, out, others):
-    """Bakes the preset's painted slots into one atlas (the Anchor keeps a flat material)."""
+RIGID = ("hat", "band")  # worn hats stay rigid pieces on the Head (ToolVisuals hides them under gear)
+BODY_TRIS = 9000
+
+
+def is_face(p):
+    return p[1] > 1.72 and p[2] < -0.02 and abs(p[0]) < 0.2
+
+
+def skinned(name, objs, out, others):
+    """Body lane: fuses the painted rest-pose pieces into one skinned shell, bakes their paint into
+    the preset's one 1024 atlas (face islands enlarged) and binds it to a 15-bone R15 armature.
+    Returns (export objects, atlas path, body, armature)."""
+    b = BODY[PRESETS[name]["body"]]
     pieces = [o for o in objs if not o.name.startswith("Anchor")]
-    return P.bake_atlas(pieces, f"{PACKAGE}_{name}", out, size=1024, hide=others)
+    fused = [o for o in pieces if o.name.split("__")[1] not in RIGID]
+    rigid = [o for o in pieces if o.name.split("__")[1] in RIGID]
+    body = S.fuse(fused, f"UpperTorso__body__{name}", 0.017, BODY_TRIS, b["arm_x"], b["hip_x"])
+    rig = S.bones(b["arm_x"], b["hip_x"])
+    groups = S.skin(body, rig, b["arm_x"], b["hip_x"])
+    lows = [body]
+    for o in rigid:
+        c = o.copy()
+        c.data = o.data.copy()
+        C.link(c)
+        lows.append(c)
+    S.atlas_uvs(lows, 2.6, is_face)
+    P.LOCAL_AO = True
+    atlas = S.bake_onto([(low, pieces if low is body else [o]) for low, o in zip(lows, [None] + rigid)],
+                        f"{PACKAGE}_{name}", out, size=1024, hide=others)
+    P.LOCAL_AO = False
+    keep = [o for o in objs if o.name.startswith("Anchor")]
+    for o in pieces:
+        bpy.data.objects.remove(o, do_unlink=True)
+    # Earlier presets' materials stay with their own meshes; the shared node materials of this
+    # preset's pieces are no longer needed.
+    for c in lows[1:]:
+        c.name = c.name.rsplit(".", 1)[0]
+        c.data.name = c.name
+    arm = S.armature(f"Rig__rig__{name}", rig, body, groups, name)
+    return keep + lows, atlas, body, arm
 
 
 def main():
     root = os.path.abspath(sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else "build/l6")
+    only = sys.argv[sys.argv.index("--") + 2:] if "--" in sys.argv else []
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
     rows = {}
     C.reset(SEED)
     everything = []
     for i, name in enumerate(PRESETS):
+        if only and name not in only:
+            continue
         objs = build(name)
-        empty = bpy.data.objects.new(f"survivor.{name}", None)
-        bpy.context.scene.collection.objects.link(empty)
+        others = [o for o in everything if o.type in ("MESH", "ARMATURE", "EMPTY")]
+        objs, atlas, body, arm = skinned(name, objs, out, others)
+        # No empty row: with armatures under "survivor.<preset>" empties the exported FBX lost the
+        # skin of two of the four bodies (Blender re-import, body lane); without empties all four
+        # keep it. The armature "Rig__rig__<preset>" is the preset's row; every piece hangs under it.
         for o in objs:
-            o.parent = empty
-        atlas = paint(name, objs, out, [o for o in everything if o.type == "MESH"])
+            if o is not body:
+                o.parent = arm
         tris = {o.name: C.triangles(o) for o in objs}
-        rows[name] = {"row": empty.name, "body": PRESETS[name]["body"], "triangles": sum(tris.values()),
-                      "pieces": sorted(tris), "atlas": os.path.basename(atlas)}
-        print("built", name, rows[name]["triangles"], "tris", len(objs), "pieces")
+        rows[name] = {"row": arm.name, "body": PRESETS[name]["body"], "triangles": sum(tris.values()),
+                      "pieces": sorted(tris), "atlas": os.path.basename(atlas),
+                      "bones": sorted(bn.name for bn in arm.data.bones), "skinned": body.name,
+                      "vertices": len(body.data.vertices)}
+        print("built", name, rows[name]["triangles"], "tris", len(objs), "pieces", len(arm.data.bones), "bones")
         visible = [o for o in objs if not o.name.startswith("Anchor")]
         for other in bpy.context.scene.objects:
             other.hide_render = other not in visible
         C.silhouette(name, out, visible)
         C.preview(name, out, visible)
-        everything += [empty] + objs
+        everything += [arm] + objs
     for o in everything:
         o.hide_render = False
     bpy.ops.object.select_all(action="DESELECT")
@@ -408,15 +517,17 @@ def main():
     bpy.ops.export_scene.fbx(
         filepath=path,
         use_selection=True,
-        object_types={"MESH", "EMPTY"},
+        object_types={"MESH", "ARMATURE"},
         apply_unit_scale=True,
         apply_scale_options="FBX_SCALE_ALL",
         path_mode="COPY",
         embed_textures=True,
+        add_leaf_bones=False,
         bake_anim=False,
         mesh_smooth_type="FACE",
     )
     print("exported", path, os.path.getsize(path))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, f"{PACKAGE}.blend"))
     with open(os.path.join(out, "rows.json"), "w") as f:
         json.dump(rows, f, indent=1, sort_keys=True)
     print("done")

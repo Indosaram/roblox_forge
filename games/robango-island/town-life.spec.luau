@@ -241,6 +241,32 @@ return {
 		-- fills ~8% of the screen height, ~29 px on a 360 px phone view (1x was the ~20 px speck).
 		assert(Life.FOLK_SCALE >= 1.3, "folk read at the play camera")
 	end,
+	-- Body lane: the skinned body's Bones move onto the character's R15 parts, so the Motor6D
+	-- animation bends the skin; each Bone keeps its rig-space rest frame relative to its part.
+	["skinned survivor bones mount on their R15 parts at the rest offset"] = function()
+		local layout = Survivor.layout("A")
+		local piece = roblox.Instance.new("Part")
+		local made = {}
+		for _, name in { "LeftUpperLeg", "Head", "Nope" } do
+			local bone = roblox.Instance.new("Bone")
+			bone.Name = name .. "__bone__ranger"
+			local rest = layout.rest[name] or { x = 0, y = 0, z = 0 }
+			bone:SetAttribute("ForgeRigOffset", roblox.CFrame.new(rest.x + 0.1, rest.y + 0.5, rest.z))
+			bone.Parent = piece
+			made[name] = bone
+		end
+		local parts = { LeftUpperLeg = roblox.Instance.new("Part"), Head = roblox.Instance.new("Part") }
+		Survivor.mountBones(piece, layout, function(name: string): any
+			return parts[name]
+		end)
+		assert(
+			made.LeftUpperLeg.Parent == parts.LeftUpperLeg and made.Head.Parent == parts.Head,
+			"bones on their parts"
+		)
+		assert(made.Nope.Parent == piece, "an unknown bone stays on the body")
+		local at = made.LeftUpperLeg.CFrame.Position
+		assert(math.abs(at.X - 0.1) < 1e-4 and math.abs(at.Y - 0.5) < 1e-4, "rest offset relative to the part centre")
+	end,
 	["survivor poses bend the limbs about their joints and seat the hips on the bench"] = function()
 		local layout = Survivor.layout("A")
 		local frames = Survivor.poseFrames("A", "sit")

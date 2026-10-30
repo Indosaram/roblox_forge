@@ -383,6 +383,11 @@ end
 -- The mesh pieces of `mesh-survivors` are authored in rig space (HumanoidRootPart centre at the
 -- origin, facing -Z, floor at y = -2.35, the blank R15 body's hip height). Each piece is named
 -- "<R15Part>__<slot>__<preset>"; the piece "Anchor__anchor__<preset>" sits on the rig origin.
+-- Body lane: each preset's body is ONE skinned MeshPart ("UpperTorso__body__<preset>": blended
+-- joints, no seams) with one Bone per R15 part ("<R15Part>__bone__<preset>"); only worn hats stay
+-- rigid pieces. On a character every Bone moves onto its R15 body part, so the Humanoid's own Motor6D
+-- animation bends the skin (Roblox skins to Bones under connected parts of the same Model).
+M.BONE_SLOT = "bone"
 M.RIG_PACKAGE = "mesh-survivors"
 M.RIG_FOLDER = "ForgeSurvivorRigs"
 M.RIG_PIECES = "ForgeSurvivorRig"
@@ -486,8 +491,15 @@ local waiting: { () -> () } = {}
 function M.prepareRigs(package: any, folder: any, bake: (any) -> number): { [string]: Model }
 	bake(package)
 	local byPreset: { [string]: { any } } = {}
+	local bonesOf: { [string]: { any } } = {}
 	for _, item in package:GetDescendants() do
-		if item:IsA("MeshPart") then
+		-- The importer puts the skinned body's Bones under a separate "RootPart" (Studio probe, body
+		-- lane); they are collected here and moved onto the preset's body piece below.
+		local _, boneSlot, bonePreset = M.piece(item.Name)
+		if item:IsA("Bone") and boneSlot == M.BONE_SLOT and bonePreset then
+			bonesOf[bonePreset] = bonesOf[bonePreset] or {}
+			table.insert(bonesOf[bonePreset], item)
+		elseif item:IsA("MeshPart") then
 			local part, _, preset = M.piece(item.Name)
 			if part and preset and M.find(preset) then
 				byPreset[preset] = byPreset[preset] or {}
@@ -529,6 +541,15 @@ function M.prepareRigs(package: any, folder: any, bake: (any) -> number): { [str
 				item.Material = (Enum.Material :: any)[material]
 			end
 			item.Parent = model
+			if slot == "body" then
+				local bones: { any } = bonesOf[id] or {}
+				for _, bone in bones do
+					local world = bone.WorldCFrame
+					bone:SetAttribute("ForgeRigOffset", origin:ToObjectSpace(world))
+					bone.Parent = item
+					bone.WorldCFrame = world
+				end
+			end
 		end
 		model.WorldPivot = origin
 		model.Parent = folder
@@ -653,6 +674,12 @@ function M.dressRig(character: any, preset: Preset, ports: any): (boolean, strin
 			previous:Destroy()
 		end
 	end
+	-- Bones of an earlier skinned body live on the body parts (below).
+	for _, item in character:GetDescendants() do
+		if item:IsA("Bone") and select(2, M.piece(item.Name)) == M.BONE_SLOT then
+			item:Destroy()
+		end
+	end
 	local folder = Instance.new("Folder")
 	folder.Name = M.RIG_PIECES
 	for _, source in template:GetChildren() do
@@ -669,10 +696,33 @@ function M.dressRig(character: any, preset: Preset, ports: any): (boolean, strin
 		weld.C0 = CFrame.new(vec(layout.rest[partName :: string])):Inverse() * offset
 		weld.Parent = piece
 		piece.Parent = folder
+		M.mountBones(piece, layout, function(name: string): Instance?
+			return character:FindFirstChild(name)
+		end)
 	end
 	folder.Parent = character
 	character:SetAttribute("ForgeSurvivor", preset.id)
 	return true, nil
+end
+
+--- Moves every Bone of a skinned body piece onto the character's R15 part of the same name, at the
+--- Bone's rest offset (attribute ForgeRigOffset, rig space), so the part's Motor6D drives it.
+function M.mountBones(piece: Instance, layout: Layout, part: (string) -> Instance?)
+	local found = {}
+	for _, item in piece:GetDescendants() do
+		if item:IsA("Bone") then
+			table.insert(found, item)
+		end
+	end
+	for _, bone in found do
+		local partName = M.piece(bone.Name)
+		local target = partName and layout.rest[partName] and part(partName :: string)
+		local offset = bone:GetAttribute("ForgeRigOffset")
+		if target and typeof(offset) == "CFrame" then
+			bone.Parent = target
+			bone.CFrame = CFrame.new(vec(layout.rest[partName :: string])):Inverse() * offset
+		end
+	end
 end
 
 --- A static survivor figure (townsperson, castaway) standing on `handle`'s floor and welded to it,
@@ -707,6 +757,17 @@ function M.figure(name: string, handle: BasePart, options: { pose: string?, scal
 				piece.Size *= scale
 			end
 			piece.CFrame = origin * offset
+			-- Skinned body: each Bone takes its part's bend; bone positions do not follow a Size
+			-- change, so they are scaled here too. Parents first (the rig's bones are flat).
+			for _, bone in piece:GetDescendants() do
+				local rest = bone:GetAttribute("ForgeRigOffset")
+				if bone:IsA("Bone") and typeof(rest) == "CFrame" then
+					local bonePart = M.piece(bone.Name)
+					local boneBend = bonePart and bends[bonePart]
+					local at: CFrame = if boneBend then boneBend * rest else rest
+					bone.WorldCFrame = origin * CFrame.new(at.Position * scale) * at.Rotation
+				end
+			end
 			piece.Anchored = false
 			local weld = Instance.new("Weld")
 			weld.Part0, weld.Part1, weld.C0 = handle, piece, handle.CFrame:ToObjectSpace(piece.CFrame)
