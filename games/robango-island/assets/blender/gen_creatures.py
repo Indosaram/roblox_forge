@@ -34,13 +34,13 @@ X = Vector((1, 0, 0))
 # A2b palette family targets (hide #6b5f3e, belly #8a7a58) so the herd reads realistic, not toy.
 SPECIES = {
     "compsognathus": dict(plan="theropod", envelope=(1, 1.5, 3), tris=4000, tex=512, length=3.0,
-        body="#5e6a38", stripe="#323a1e", belly="#a8a27a", accent="#56602f", dorsal="#2e361a",
-        head="#8a5a26", plume="#3a4222", plume_tip="#b8b08a", skin="feathers",
+        body="#8f9a52", stripe="#3e4a22", belly="#e2dcb4", accent="#6e7a3a", dorsal="#56622e",
+        head="#c07a34", plume="#6a7438", plume_tip="#e6dfbc", skin="feathers", pop=0.45, rim="#f2e2a6",
         knobs=dict(neck=1.15, head=0.9, tail=1.25, girth=0.8, legs=1.0, arms=1.0, snout=1.0, neckr=0.85, headw=0.85),
         features=["feathers"]),
     "oviraptor": dict(plan="theropod", envelope=(1.5, 3, 3), tris=4000, tex=512, length=3.0,
-        body="#6a4636", stripe="#3a2218", belly="#b0a084", accent="#3e6a7e", dorsal="#33221a",
-        head="#3e6a7e", plume="#2e2420", plume_tip="#d4c8b2", skin="feathers",
+        body="#a4623e", stripe="#4a2618", belly="#e6d8b8", accent="#4e8aa2", dorsal="#6a3a24",
+        head="#4e8aa2", plume="#6a4430", plume_tip="#f0e4cc", skin="feathers", pop=0.45, rim="#f6d6a0",
         knobs=dict(neck=1.1, head=1.0, tail=0.9, girth=1.0, legs=1.0, arms=1.15, snout=0.6, neckr=0.85, headw=0.9),
         features=["crest", "feathers"]),
     "gallimimus": dict(plan="theropod", envelope=(2, 6, 5), tris=7000, tex=512, length=5.0,
@@ -54,8 +54,8 @@ SPECIES = {
         knobs=dict(neck=1.0, head=1.05, tail=1.0, girth=1.15, legs=1.05, arms=1.15, snout=1.0, neckr=0.8, headw=0.82),
         features=["sickle", "feathers"]),
     "velociraptor": dict(plan="theropod", envelope=(2, 4, 4), tris=4000, tex=512, length=4.0,
-        body="#8a7c6a", stripe="#2a221c", belly="#d4ccbc", accent="#5e3e2c", dorsal="#4a3f34",
-        head="#8a2e22", plume="#4a4038", plume_tip="#e0d8c8", skin="feathers",
+        body="#a08e76", stripe="#2e241c", belly="#e2dacb", accent="#6e4630", dorsal="#5e4e3e",
+        head="#a83626", plume="#6a5a4a", plume_tip="#eee6d6", skin="feathers", pop=0.3, rim="#f0e0c0",
         knobs=dict(neck=1.0, head=0.95, tail=1.1, girth=0.85, legs=1.0, arms=1.05, snout=1.15, neckr=0.78, headw=0.78),
         features=["sickle", "feathers"]),
     "dilophosaurus": dict(plan="theropod", envelope=(3, 6, 6), tris=7000, tex=512, length=6.0,
@@ -90,19 +90,19 @@ SPECIES = {
         body="#4e6a62", stripe="#2e443e", belly="#9aa490", accent="#a0603a",
         knobs=dict(girth=1.0), features=["tubecrest", "duckbill"]),
     "smilodon": dict(plan="mammal", envelope=(3, 4, 5), tris=7000, tex=512, length=5.0,
-        body="#a08a66", stripe="#6a5640", belly="#d2c4a6", accent="#7a5c3a", stripe_lo=9, skin="fur", dorsal="#7a6448",
+        body="#b08e5e", stripe="#6a5034", belly="#e4d6b8", accent="#7a5c3a", stripe_lo=9, skin="fur", dorsal="#8e6c44", height_shade=True, pop=0.2, rim="#f0dcb0",
         knobs=dict(girth=1.12, legs=0.95, neck=0.9, head=1.1, snout=0.75, tail=0.55, maner=1.25, ear=0.7),
         features=["saber"], saber=0.24, foot="paw"),
     "tropicalSmilodon": dict(plan="mammal", envelope=(2.5, 3.5, 5), tris=7000, tex=512, length=5.0,
-        body="#a87a44", stripe="#3a2a1c", belly="#d0bc98", accent="#6a4a2c", stripe_lo=0.28, skin="fur",
+        body="#b8843e", stripe="#3a2a1c", belly="#e4d4b4", accent="#6a4a2c", stripe_lo=0.28, skin="fur", height_shade=True, pop=0.2, rim="#f4d8a0",
         knobs=dict(girth=0.95, legs=0.95, neck=0.9, head=1.0, snout=0.75, tail=1.15, ear=0.75),
         features=["saber"], saber=0.13, foot="paw"),
     "direWolf": dict(plan="mammal", envelope=(2.5, 3.5, 5), tris=7000, tex=512, length=5.0,
-        body="#7a7874", stripe="#46484c", belly="#c4c0b8", accent="#55575c", stripe_lo=9, skin="fur", dorsal="#4a4a4a",
+        body="#948a7c", stripe="#3e3a36", belly="#e0dace", accent="#5a544c", stripe_lo=9, skin="fur", dorsal="#4e4842", height_shade=True, pop=0.25, rim="#efe6d6",
         knobs=dict(girth=0.9, legs=1.05, neck=1.0, head=1.0, snout=1.35, tail=1.25, tailr=1.4, maner=1.3, ear=0.95),
         features=[], foot="paw"),
     "boar": dict(plan="mammal", envelope=(2.5, 3, 4), tris=4000, tex=512, length=4.0,
-        body="#6e5846", stripe="#3c2e24", belly="#9a8470", accent="#3a2c22", stripe_lo=9, skin="fur",
+        body="#86684e", stripe="#3c2e24", belly="#b8a088", accent="#3a2c22", stripe_lo=9, skin="fur", height_shade=True, pop=0.25, rim="#e0c8a4",
         knobs=dict(girth=1.25, legs=0.72, neck=0.6, head=1.2, snout=1.3, headup=0.2, tail=0.4, chestr=1.15),
         features=["tusks"], foot="hoof"),
     "deer": dict(plan="mammal", envelope=(2, 5, 4), tris=7000, tex=512, length=4.0,
@@ -110,16 +110,16 @@ SPECIES = {
         knobs=dict(girth=0.82, legs=1.3, neck=1.0, head=0.95, snout=1.1, headup=1.0, tail=0.3, tailup=1, ear=1.3, legr=0.75),
         features=["antlers"], foot="hoof", ivory="#8a7454", iris="#2a1e16"),
     "mammoth": dict(plan="elephant", envelope=(7, 10, 12), tris=10000, tex=1024, length=12.0,
-        body="#7a5638", stripe="#4a3222", belly="#94704e", accent="#4a3224", stripe_lo=9, skin="fur", dorsal="#5e4028",
+        body="#9a6a40", stripe="#4e3220", belly="#b48a5e", accent="#4a3224", stripe_lo=9, skin="fur", dorsal="#6a4426", height_shade=True, pop=0.2, rim="#e8c494",
         knobs=dict(girth=1.1, hump=1.0, ear=0.45), features=["longtusks"], iris="#2a1e16"),
     "elephant": dict(plan="elephant", envelope=(6, 9, 10), tris=10000, tex=1024, length=10.0,
-        body="#7a766e", stripe="#5e5a54", belly="#96918a", accent="#6a665e", stripe_lo=9, skin="wrinkle",
+        body="#8a8274", stripe="#544c44", belly="#a69e90", accent="#6a6258", stripe_lo=9, skin="wrinkle", dorsal="#a49a88", height_shade=True, pop=0.2, rim="#eadcc6",
         knobs=dict(girth=1.0, hump=0.0, ear=1.0), features=["tusks"], iris="#2a1e16"),
     "crocodile": dict(plan="crocodilian", envelope=(3, 2, 7), tris=7000, tex=512, length=7.0,
-        body="#4e5e3c", stripe="#2e3a24", belly="#a8a27a", accent="#3e4a30", stripe_lo=0.34, skin="plates",
+        body="#66764a", stripe="#2e3a24", belly="#d0c896", accent="#4a5836", stripe_lo=0.34, skin="plates", pop=0.25, rim="#e0dca8",
         knobs=dict(girth=1.0), features=["scutes", "teeth"]),
     "turtle": dict(plan="turtle", envelope=(1.5, 1, 2), tris=4000, tex=512, length=2.0,
-        body="#56653e", stripe="#2e3a22", belly="#b4aa7c", accent="#6e5636", stripe_lo=9, skin="plates", dorsal="#3a4628",
+        body="#748452", stripe="#2e3a22", belly="#d4ca98", accent="#9a7646", stripe_lo=9, skin="plates", dorsal="#56643a", pop=0.35, rim="#eae0aa",
         knobs=dict(girth=1.0), features=["shell"], iris="#2a1e16"),
     "dodo": dict(plan="bird", envelope=(1.5, 2, 2), tris=4000, tex=512, length=2.0,
         body="#7e766a", stripe="#4a4238", belly="#cfc8b8", accent="#c09a52", stripe_lo=9, skin="feathers",
@@ -142,13 +142,13 @@ PATTERNS = {
     "stegosaurus": [("blotch", "stripe", 0.6, "upper", dict(size=0.06, t=0.52)), ("saddle", "stripe", 0.3, None, {})],
     "ankylosaurus": [("spots", "stripe", 0.6, "upper", dict(size=0.04, r=0.3)), ("saddle", "stripe", 0.45, None, {})],
     "parasaurolophus": [("bands", "stripe", 0.45, "upper", dict(count=8, distortion=5)), ("blotch", "stripe", 0.25, "upper", dict(size=0.05, t=0.55))],
-    "smilodon": [("grizzle", "stripe", 0.25, None, {}), ("socks", "#c8b896", 0.35, None, {})],
+    "smilodon": [("grizzle", "stripe", 0.12, None, {}), ("saddle", "dorsal", 0.35, None, {}), ("head", "#8a6a44", 0.25, None, dict(r=0.5))],
     "tropicalSmilodon": [("bands", "stripe", 0.85, "upper", dict(count=12, distortion=7))],
-    "direWolf": [("saddle", "stripe", 0.55, None, {}), ("grizzle", "#2e2f31", 0.3, None, {})],
+    "direWolf": [("saddle", "stripe", 0.7, None, {}), ("grizzle", "#5a5248", 0.15, None, {}), ("socks", "#d8d0c0", 0.45, None, {})],
     "boar": [("grizzle", "#2a221c", 0.5, None, {}), ("socks", "stripe", 0.6, None, {})],
     "deer": [("saddle", "stripe", 0.3, None, {})],
-    "mammoth": [("saddle", "stripe", 0.45, None, {}), ("grizzle", "#2a1c14", 0.3, None, {})],
-    "elephant": [("blotch", "#615d57", 0.25, None, dict(size=0.1, t=0.55)), ("saddle", "stripe", 0.25, None, {})],
+    "mammoth": [("saddle", "stripe", 0.5, None, {}), ("grizzle", "#e0b07a", 0.18, None, {}), ("socks", "#3a2416", 0.45, None, {})],
+    "elephant": [("blotch", "#7e6e60", 0.3, None, dict(size=0.1, t=0.55)), ("dust", "#c4b8a2", 0.45, None, {}), ("socks", "#6e5442", 0.5, None, {})],
     "crocodile": [("blotch", "stripe", 0.7, "upper", dict(size=0.05, t=0.5)), ("saddle", "stripe", 0.3, None, {})],
     "turtle": [("blotch", "stripe", 0.4, None, dict(size=0.08, t=0.5))],
     "dodo": [("grizzle", "stripe", 0.15, None, {}), ("saddle", "stripe", 0.25, None, {})],
@@ -161,9 +161,9 @@ PATTERNS = {
 FUR = {
     # L4c: short-coated cats keep only a cheek ruff; the wolf keeps ruff, throat and brush tail
     # (the dorsal/haunch shells read as loose pebbles in game).
-    "smilodon": [("cheek", 18, 0.04, 0.018), ("throat", 14, 0.045, 0.018)],
-    "tropicalSmilodon": [("cheek", 14, 0.035, 0.016)],
-    "direWolf": [("mane", 60, 0.07, 0.026), ("cheek", 22, 0.045, 0.02), ("throat", 26, 0.06, 0.024), ("tail", 36, 0.065, 0.026)],
+    # L4d: the short-coated cats lose the cheek/throat shells (pale rings at play zoom) and the wolf
+    # its mane shells (scattered scales); the wolf keeps a small throat ruff and the brush tail.
+    "direWolf": [("throat", 18, 0.05, 0.022), ("tail", 36, 0.065, 0.026)],
     "boar": [("crest", 54, 0.06, 0.016), ("cheek", 14, 0.04, 0.016), ("all", 40, 0.035, 0.016)],
     "deer": [("throat", 24, 0.045, 0.02), ("tail", 8, 0.035, 0.018)],
     "mammoth": [("skirt", 220, 0.16, 0.03), ("crest", 44, 0.07, 0.03), ("cheek", 26, 0.055, 0.026), ("tail", 10, 0.05, 0.02)],
@@ -174,11 +174,12 @@ FUR = {
 PLUME = {
     "compsognathus": [("arm", 16, 0.07, 0.03), ("tailtip", 14, 0.09, 0.035), ("crest_neck", 18, 0.06, 0.03), ("dorsal", 14, 0.05, 0.03)],
     "oviraptor": [("arm", 22, 0.1, 0.04), ("tailtip", 18, 0.12, 0.04), ("crest_neck", 16, 0.06, 0.03), ("dorsal", 14, 0.05, 0.03)],
-    "gallimimus": [("arm", 24, 0.09, 0.032), ("tailtip", 18, 0.1, 0.035), ("crest_neck", 22, 0.05, 0.022), ("dorsal", 26, 0.05, 0.026), ("haunch", 14, 0.05, 0.026)],
-    "utahraptor": [("arm", 30, 0.1, 0.035), ("tailtip", 22, 0.11, 0.036), ("crest_neck", 30, 0.06, 0.026), ("dorsal", 28, 0.05, 0.026), ("haunch", 16, 0.05, 0.024)],
-    "velociraptor": [("arm", 20, 0.1, 0.036), ("tailtip", 16, 0.1, 0.034), ("crest_neck", 20, 0.06, 0.028), ("dorsal", 10, 0.05, 0.028)],
+    # L4d: gallimimus, utahraptor and velociraptor carry no plume shells (opaque shells read as
+    # white paper shards in game); their plumage is painted into the colour map (PAINTED_PLUME).
 }
 CLUMP_TRIS = 14
+# L4d painted plumage: (feather rows per body length, row contrast, wing/tail barring strength).
+PAINTED_PLUME = {"gallimimus": (34.0, 0.3, 0.45), "utahraptor": (30.0, 0.32, 0.5), "velociraptor": (36.0, 0.28, 0.4)}
 
 # B2a species keep their recorded seeds; B2b species seed from SEED + 100.
 B2A_SPECIES = sorted(k for k, v in SPECIES.items() if v["plan"] in ("theropod", "ceratopsian", "sauropod"))
@@ -1240,6 +1241,10 @@ def build_details_b2b(sp, sk, points, out):
 
 # Eye radius against the B2a/B2b value: real eyes are small next to the skull.
 EYE_SCALE = dict(theropod=0.58, ceratopsian=0.6, sauropod=0.6, armored=0.7, hadrosaur=0.68, mammal=0.78, elephant=0.5, crocodilian=0.8, turtle=0.9, bird=0.8)
+# L4d: eyes enlarged so they resolve at gameplay zoom (stylised, Durango-like proportion); small
+# species gain the most because their eye is a few pixels on a phone.
+EYE_GAIN = 1.25
+EYE_GAIN_SMALL = 1.45
 # Skull width/height against the head skin radius; m = limb muscle gain; lm = ilium/scapula bumps.
 SCULPT = {
     "theropod": dict(sw=0.82, sh=1.22, m=1.0, lm=False, cheek=1.0),
@@ -1280,7 +1285,7 @@ def eye_radius(sp, sk):
         r = 0.045 * s
     elif "eye_r" in sk:
         r = sk["eye_r"] * s
-    return r * EYE_SCALE[sp["plan"]]
+    return r * EYE_SCALE[sp["plan"]] * (EYE_GAIN_SMALL if sp["length"] <= 4 else EYE_GAIN)
 
 
 def sculpt_masses(sp, sk, P, R):
@@ -1809,6 +1814,14 @@ def make_hide_mat(sp, sk):
                 sm.inputs[1].default_value = hl * 0.35
                 links.new(vm.outputs["Value"], sm.inputs[2])
                 return C.ramp(nodes, links, sm.outputs["Value"], [(hl * q["r"] * 0.7, (1, 1, 1)), (hl * q["r"] * 1.15, (0, 0, 0))]).outputs["Color"]
+            if kind == "dust":
+                n0 = C.noise(nodes, 4.0 / length, 3, 0.6, coord, links)
+                add = nodes.new("ShaderNodeMath")
+                add.operation = "MULTIPLY_ADD"
+                links.new(n0.outputs["Fac"], add.inputs[0])
+                add.inputs[1].default_value = 0.35
+                links.new(nz.outputs["Z"], add.inputs[2])
+                return C.ramp(nodes, links, add.outputs["Value"], [(0.6, (0, 0, 0)), (0.95, (1, 1, 1))]).outputs["Color"]
             if kind == "grizzle":
                 n0 = C.noise(nodes, 60.0 / length, 2, 0.5, coord, links)
                 return C.ramp(nodes, links, n0.outputs["Fac"], [(0.5, (0, 0, 0)), (0.62, (1, 1, 1))]).outputs["Color"]
@@ -1861,6 +1874,28 @@ def make_hide_mat(sp, sk):
             stripe2 = nodes.new("ShaderNodeRGB")
             stripe2.outputs[0].default_value = (*C.hexlin(sp["stripe"]), 1)
             col = C.mix(nodes, links, k.outputs["Value"], col, stripe2.outputs[0])
+            # L4d: pale lid ring outside the socket (the eye reads as a framed spot, not a bead).
+            e0 = Vector((eye.x * side, eye.y, eye.z))
+            outer = dist_to(e0, es * 1.5, es * 2.1)
+            inner = dist_to(e0, es * 1.05, es * 1.35)
+            lid = nodes.new("ShaderNodeMath")
+            lid.operation = "SUBTRACT"
+            lid.use_clamp = True
+            links.new(outer, lid.inputs[0])
+            links.new(inner, lid.inputs[1])
+            lk = nodes.new("ShaderNodeMath")
+            lk.operation = "MULTIPLY"
+            lk.inputs[1].default_value = 0.35
+            links.new(lid.outputs["Value"], lk.inputs[0])
+            pale = nodes.new("ShaderNodeRGB")
+            pale.outputs[0].default_value = (*lerp3(C.hexlin(sp["belly"]), (1, 1, 1), 0.2), 1)
+            col = C.mix(nodes, links, lk.outputs["Value"], col, pale.outputs[0])
+            sock = dist_to(e0, es * 1.0, es * 1.3)
+            sk2 = nodes.new("ShaderNodeMath")
+            sk2.operation = "MULTIPLY"
+            sk2.inputs[1].default_value = 0.85
+            links.new(sock, sk2.inputs[0])
+            col = C.mix(nodes, links, sk2.outputs["Value"], col, dark.outputs[0])
         # CC0 leather scan as micro-detail at a constant texel density per stud.
         mp = nodes.new("ShaderNodeMapping")
         density = 1.25 if length < 8 else 0.7
@@ -1906,14 +1941,85 @@ def make_hide_mat(sp, sk):
         isf.attribute_name = "is_fur"
         tip = nodes.new("ShaderNodeAttribute")
         tip.attribute_name = "fur_tip"
-        tipc = C.ramp(nodes, links, tip.outputs["Fac"], [(0.0, (0.78, 0.78, 0.78)), (1.0, (1.0, 1.0, 0.98))])
+        root = 0.92 if sp.get("height_shade") else 0.78
+        tipc = C.ramp(nodes, links, tip.outputs["Fac"], [(0.0, (root, root, root)), (1.0, (1.04, 1.03, 1.0))])
         col = multiply(nodes, links, col, C.mix(nodes, links, isf.outputs["Fac"], white(nodes), tipc.outputs["Color"]))
+        if sp["key"] in PAINTED_PLUME:
+            col = painted_plume(nodes, links, coord, sp, sk, col, nz)
         col = occlusion(nodes, links, col, length, sp)
         col = paint_light(nodes, links, col, nb.outputs["Normal"])
+        col = rim_light(nodes, links, col, nb.outputs["Normal"], sp)
         rough = C.ramp(nodes, links, height, [(0.2, (rough_hi,) * 3), (0.8, (rough_lo,) * 3)])
         return col, rough.outputs["Color"], nb.outputs["Normal"]
 
     return hide_mat
+
+
+def painted_plume(nodes, links, coord, sp, sk, col, nz):
+    """L4d: plumage painted into the colour map instead of shells. Overlapping feather rows that
+    run back along the body (stretched scallops: a soft dark lower edge under each row), darker
+    barred wing and tail-tip feathering from the plume colours, and a soft darker underside of the
+    feather mass so the coat reads as layered, not flat."""
+    rows, contrast, bar = PAINTED_PLUME[sp["key"]]
+    L = sp["length"]
+    k = rows / L
+    mp = nodes.new("ShaderNodeMapping")
+    mp.inputs["Scale"].default_value = (k * 1.3, k * 0.45, k * 1.6)
+    links.new(coord, mp.inputs["Vector"])
+    v = nodes.new("ShaderNodeTexVoronoi")
+    v.feature = "F1"
+    v.inputs["Randomness"].default_value = 0.6
+    links.new(mp.outputs["Vector"], v.inputs["Vector"])
+    edge = C.ramp(nodes, links, v.outputs["Distance"], [(0.0, (1.06, 1.05, 1.03)), (0.55, (1, 1, 1)), (0.85, (1 - contrast,) * 3)])
+    col = multiply(nodes, links, col, edge.outputs["Color"])
+    # Barring on the wing (arm) and the tail-tip fan, in the plume colours.
+    sep = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(coord, sep.inputs["Vector"])
+    ty0, ty1 = sk["tail_y"]
+    tailm = C.ramp(nodes, links, sep.outputs["Y"], [(ty0 + (ty1 - ty0) * 0.6, (0, 0, 0)), (ty0 + (ty1 - ty0) * 0.8, (1, 1, 1))]).outputs["Color"]
+    side = nodes.new("ShaderNodeMath")
+    side.operation = "ABSOLUTE"
+    links.new(sep.outputs["X"], side.inputs[0])
+    arm_pts = [p for pts in sk["arm_pts"].values() for p in pts]
+    if arm_pts:
+        ay = sum(p[1] for p in arm_pts) / len(arm_pts)
+        az = sum(p[2] for p in arm_pts) / len(arm_pts)
+        vm = nodes.new("ShaderNodeVectorMath")
+        vm.operation = "DISTANCE"
+        cxyz = nodes.new("ShaderNodeCombineXYZ")
+        links.new(side.outputs["Value"], cxyz.inputs["X"])
+        links.new(sep.outputs["Y"], cxyz.inputs["Y"])
+        links.new(sep.outputs["Z"], cxyz.inputs["Z"])
+        links.new(cxyz.outputs["Vector"], vm.inputs[0])
+        ax = max(abs(p[0]) for p in arm_pts)
+        vm.inputs[1].default_value = (ax, ay, az)
+        armm = C.ramp(nodes, links, vm.outputs["Value"], [(0.06 * L, (1, 1, 1)), (0.11 * L, (0, 0, 0))]).outputs["Color"]
+        both = nodes.new("ShaderNodeMix")
+        both.data_type = "RGBA"
+        both.blend_type = "LIGHTEN"
+        both.inputs["Factor"].default_value = 1.0
+        links.new(tailm, both.inputs["A"])
+        links.new(armm, both.inputs["B"])
+        zone = both.outputs["Result"]
+    else:
+        zone = tailm
+    wave = nodes.new("ShaderNodeTexWave")
+    wave.wave_type = "BANDS"
+    wave.bands_direction = "Y"
+    wave.inputs["Scale"].default_value = 0.9 * rows / L
+    wave.inputs["Distortion"].default_value = 2.0
+    links.new(coord, wave.inputs["Vector"])
+    barc = C.ramp(nodes, links, wave.outputs["Fac"], [(0.35, C.hexlin(sp["plume"])), (0.65, lerp3(C.hexlin(sp["plume"]), C.hexlin(sp["plume_tip"]), 0.55))])
+    fac = nodes.new("ShaderNodeMath")
+    fac.operation = "MULTIPLY"
+    fac.inputs[1].default_value = bar
+    bw = nodes.new("ShaderNodeRGBToBW")
+    links.new(zone, bw.inputs["Color"])
+    links.new(bw.outputs["Val"], fac.inputs[0])
+    col = C.mix(nodes, links, fac.outputs["Value"], col, barc.outputs["Color"])
+    # Underside of the feather mass a little darker (the flank under the folded wing).
+    under = C.ramp(nodes, links, nz.outputs["Z"], [(-0.6, (0.88, 0.87, 0.86)), (-0.1, (1, 1, 1))])
+    return multiply(nodes, links, col, under.outputs["Color"])
 
 
 def white(nodes):
@@ -1999,7 +2105,9 @@ def skin_detail(nodes, links, coord, sp, col):
     links.new(n.outputs["Fac"], m.inputs[0])
     links.new(w.outputs["Fac"], m.inputs[1])
     h = C.ramp(nodes, links, m.outputs["Value"], [(0.05, (0, 0, 0)), (0.45, (1, 1, 1))])
-    tone = C.ramp(nodes, links, m.outputs["Value"], [(0.05, (edge_dark,) * 3), (0.5, (1.12, 1.1, 1.06))])
+    if sp.get("height_shade"):
+        edge_dark = 0.86
+    tone = C.ramp(nodes, links, m.outputs["Value"], [(0.05, (edge_dark,) * 3), (0.5, (1.08, 1.07, 1.04))])
     col = multiply(nodes, links, col, tone.outputs["Color"])
     return col, h.outputs["Color"], strength, 0.85, 0.97
 
@@ -2056,6 +2164,35 @@ def paint_light(nodes, links, col, normal, key=0.42, sat=1.06):
     links.new(col, hs.inputs["Color"])
     return hs.outputs["Color"]
 
+def rim_light(nodes, links, col, normal, sp):
+    """L4d: small dark species vanish against the olive ground at play zoom. A baked top rim
+    (upward-facing surfaces pushed toward a warm pale `rim` colour) plus a value lift (`pop`) keeps
+    the silhouette edge brighter than the ground; species without `pop` are unchanged."""
+    pop = sp.get("pop", 0.0)
+    if pop <= 0:
+        return col
+    sep = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(normal, sep.inputs["Vector"])
+    up = C.ramp(nodes, links, sep.outputs["Z"], [(0.35, (0, 0, 0)), (0.95, (1, 1, 1))])
+    k = nodes.new("ShaderNodeMath")
+    k.operation = "MULTIPLY"
+    k.inputs[1].default_value = pop * 0.55
+    links.new(up.outputs["Color"], k.inputs[0])
+    rc = nodes.new("ShaderNodeRGB")
+    rc.outputs[0].default_value = (*C.hexlin(sp.get("rim", "#f0e6cc")), 1)
+    scr = nodes.new("ShaderNodeMix")
+    scr.data_type = "RGBA"
+    scr.blend_type = "SCREEN"
+    links.new(k.outputs["Value"], scr.inputs["Factor"])
+    links.new(col, scr.inputs["A"])
+    links.new(rc.outputs[0], scr.inputs["B"])
+    lift = nodes.new("ShaderNodeHueSaturation")
+    lift.inputs["Value"].default_value = 1.0 + pop * 0.25
+    lift.inputs["Saturation"].default_value = 1.0 + pop * 0.15
+    links.new(scr.outputs["Result"], lift.inputs["Color"])
+    return lift.outputs["Color"]
+
+
 def plume_mat(sp, length):
     """Feather shells: dark plume at the root, pale tip, barb streaks, a little AO."""
 
@@ -2076,6 +2213,7 @@ def plume_mat(sp, length):
         bmp.inputs["Strength"].default_value = 0.35
         links.new(w.outputs["Fac"], bmp.inputs["Height"])
         col = paint_light(nodes, links, col, bmp.outputs["Normal"])
+        col = rim_light(nodes, links, col, bmp.outputs["Normal"], sp)
         r = nodes.new("ShaderNodeValue")
         r.outputs[0].default_value = 0.8
         return col, r.outputs[0], bmp.outputs["Normal"]
@@ -2103,7 +2241,10 @@ def eye_mat(nodes, links, iris="eye"):
     ax = nodes.new("ShaderNodeMath")
     ax.operation = "ABSOLUTE"
     links.new(sep.outputs["X"], ax.inputs[0])
-    col = C.ramp(nodes, links, ax.outputs["Value"], [(0.5, C.hexlin("#120e0a")), (0.6, C.hexlin(iris)), (0.8, lerp3(C.hexlin(iris), (0.02, 0.012, 0.004), 0.45)), (0.86, (0.003, 0.002, 0.002))])
+    # L4d: dark rim, a wide bright iris and a small pupil (the old 30-degree pupil plus a dim iris
+    # read as a black bead at phone zoom).
+    bright = lerp3(C.hexlin(iris), (1.0, 0.8, 0.35), 0.35)
+    col = C.ramp(nodes, links, ax.outputs["Value"], [(0.42, C.hexlin("#120e0a")), (0.5, lerp3(bright, (0.02, 0.012, 0.004), 0.6)), (0.58, bright), (0.86, C.hexlin(iris)), (0.91, (0.003, 0.002, 0.002))])
     # L4c: a baked catchlight (the device never gets roughness/specular maps): a small pale spot
     # on the up-front side of each eyeball so the eye reads wet and alive at phone zoom.
     lv = Vector((0.0, -0.55, 0.85)).normalized()
@@ -2115,7 +2256,7 @@ def eye_mat(nodes, links, iris="eye"):
     links.new(sep.outputs["Z"], ny.inputs["Z"])
     links.new(ny.outputs["Vector"], dl.inputs[0])
     dl.inputs[1].default_value = tuple(Vector((0.55, lv.y, lv.z)).normalized())
-    spot = C.ramp(nodes, links, dl.outputs["Value"], [(0.9, (0, 0, 0)), (0.95, (1, 1, 1))])
+    spot = C.ramp(nodes, links, dl.outputs["Value"], [(0.86, (0, 0, 0)), (0.92, (1, 1, 1))])
     hi = nodes.new("ShaderNodeRGB")
     hi.outputs[0].default_value = (0.85, 0.85, 0.8, 1)
     out = C.mix(nodes, links, spot.outputs["Color"], col.outputs["Color"], hi.outputs[0])
@@ -2337,7 +2478,7 @@ def main():
         "shell": C.material("shell", shell_mat(sp)),
         "fur": hide,
         "skin": hide,
-        "plume": C.material("plume", plume_mat(sp, sp["length"])) if "plume" in sp else hide,
+        "plume": C.material("plume", plume_mat(sp, sp["length"])) if "plume" in sp and key not in PAINTED_PLUME else hide,
     }
     parts = [body]
     for kind, objs in det.items():

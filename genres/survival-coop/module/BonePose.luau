@@ -92,6 +92,21 @@ local function each(plan: string, prefix: string, fn: (string, number) -> ())
 	end
 end
 
+-- Deterministic value noise in [-1, 1] from an integer step (no Rng: a pose is a pure function
+-- of its clock, so every client draws the same frame).
+local function hash(n: number, salt: number): number
+	local v = math.sin(n * 12.9898 + salt * 78.233) * 43758.5453
+	return (v - math.floor(v)) * 2 - 1
+end
+
+-- Held glances: a new target every `hold` seconds, eased in over the first 30% of the hold.
+local function glance(t: number, hold: number, salt: number): number
+	local step = math.floor(t / hold)
+	local k = math.clamp((t - step * hold) / (hold * 0.3), 0, 1)
+	k = k * k * (3 - 2 * k)
+	return hash(step - 1, salt) + (hash(step, salt) - hash(step - 1, salt)) * k
+end
+
 --- Samples one frame. `elapsed` is seconds in the current state, `speed` studs/s, `style` the
 --- rig's AttackStyle, `period` the graze cycle (seconds). Every plan bone gets an entry.
 function M.sample(plan: string, state: string, elapsed: number, speed: number, style: string?, period: number?): Frame
@@ -136,50 +151,106 @@ function M.sample(plan: string, state: string, elapsed: number, speed: number, s
 			frame[name].z += math.sin(t * (if plan == "elephant" then 1.6 else 0.5)) * 0.12
 		end)
 	end
-	if clip == "walk" or clip == "run" then
+	if clip == "idle" then
+		-- L4d: a living idle. Belly breathing through the spine, a slow weight shift between the
+		-- feet, held head glances (neck and head share the yaw), the odd ear flick and tail flick.
+		frame.Spine.x += breath * 0.012
+		frame.Root.z += math.sin(t * 0.45) * 0.025
+		frame.Root.lift = (frame.Root.lift or 0) + breath * 0.006
+		local yaw = glance(t, if heavy then 4.5 else 2.8, 1) * (if heavy then 0.18 else 0.32)
+		local pitch = glance(t, if heavy then 5.5 else 3.4, 2) * 0.08
+		local n = necks(plan)
+		for _, name in n do
+			frame[name].z += yaw * 0.5 / #n
+			frame[name].x += pitch * 0.5 / #n
+		end
+		frame.Head.z += yaw * (if #n > 0 then 0.5 else 1)
+		frame.Head.x += pitch * 0.5
+		-- Weight on one hind leg: that leg straightens, the other unloads at the knee.
+		local shift = math.sin(t * 0.45)
+		frame.ShinL.x += math.max(0, -shift) * 0.06
+		frame.ShinR.x += math.max(0, shift) * 0.06
+		local flick = math.max(0, math.sin(t * 2.3) * math.sin(t * 0.37) - 0.75) * 4
+		each(plan, "Ear", function(name)
+			frame[name].x -= flick * 0.25
+		end)
+		for i, name in tails(plan) do
+			frame[name].z += flick * 0.06 * i / 3
+		end
+	elseif clip == "walk" or clip == "run" then
 		local running = clip == "run"
 		local rate = if running then 9 else (if heavy or slow then 2.6 else 5)
 		local phase = t * rate * math.clamp((speed + 4) / (if running then 22 else 12), 0.6, 1.4)
-		local swing = if running then 0.75 else (if heavy or slow then 0.28 else 0.42)
+		local swing = if running then 0.75 else (if heavy or slow then 0.3 else 0.46)
 		-- Running mammals gallop: both hind legs strike together, the forelegs half a cycle later.
 		local gallop = running and plan == "mammal"
+		-- L4d stride: the thigh swings on sin(phase); a leg travels forward (swing phase) while its
+		-- angle falls, so the knee folds and the foot lifts only then (the old clip folded the knee
+		-- in stance, which skated). The foot counter-rotates to stay flat through stance and the
+		-- toe flicks back at push-off.
 		for _, side in { "L", "R" } do
 			local s = if side == "L" then 1 else -1
-			local p = if gallop then math.sin(phase + (if side == "L" then 0 else 0.35)) else math.sin(phase) * s
-			frame["Thigh" .. side].x += swing * p
-			frame["Shin" .. side].x += swing * 0.9 * math.max(0, math.sin(phase + 1.3) * s)
-			frame["Foot" .. side].x -= swing * 0.6 * p
+			local off = if gallop then (if side == "L" then 0 else 0.35) else (if side == "L" then 0 else math.pi)
+			local p = math.sin(phase + off)
+			local lifting = math.max(0, -math.cos(phase + off))
+			local fold = math.sin(math.min(1, lifting * 1.15) * math.pi * 0.5)
+			frame["Thigh" .. side].x += swing * p - swing * 0.35 * fold
+			frame["Shin" .. side].x += swing * (if running then 1.5 else 1.25) * fold
+			frame["Foot" .. side].x -= swing * 0.55 * p + swing * 0.7 * fold
+			frame["Toe" .. side].x += swing * 0.5 * math.max(0, p - 0.6) - swing * 0.3 * fold
 			if quad then
-				-- Diagonal gait: a foreleg moves opposite its own-side hind leg.
-				frame["UpperArm" .. side].x -= swing * 0.85 * p
-				frame["Forearm" .. side].x -= swing * 0.6 * math.max(0, -math.sin(phase + 1.3) * s)
+				-- Diagonal gait with a short lag: a foreleg moves opposite its own-side hind leg,
+				-- landing a beat after the hind foot (walking quadrupeds are never a pure trot).
+				local fq = off + math.pi + (if gallop then 0 else 0.35)
+				local fp = math.sin(phase + fq)
+				local flift = math.max(0, -math.cos(phase + fq))
+				local ffold = math.sin(math.min(1, flift * 1.15) * math.pi * 0.5)
+				frame["UpperArm" .. side].x += swing * 0.85 * fp - swing * 0.3 * ffold
+				frame["Forearm" .. side].x -= swing * 0.9 * ffold
+				frame["Hand" .. side].x += swing * 0.4 * ffold - swing * 0.4 * fp
 			else
-				frame["Toe" .. side].x -= swing * 0.3 * p
-				frame["Arm" .. side].x += 0.1 * p
+				-- Bipeds swing the arms against the legs, tucked in on the run.
+				frame["Arm" .. side].x += 0.12 * p - (if running then 0.35 else 0)
 				-- Bird: wings held out for balance on the walk, flapped on the run.
 				frame["Wing" .. side].y += s * (if running then 0.35 + math.sin(phase * 2) * 0.5 else 0.1)
 			end
 		end
 		if gallop then
-			frame.Spine.x += math.sin(phase) * 0.12
+			frame.Spine.x += math.sin(phase) * 0.14
+			frame.Chest.x -= math.sin(phase) * 0.06
 		end
-		frame.Root.lift = math.abs(math.sin(phase)) * (if running then 0.06 else 0.025)
+		-- Two bobs per stride: the body rides highest at mid-stance (walk) or in the flight
+		-- phase (run), with the pelvis rolling over and yawing toward the planted leg.
+		local bob = (1 - math.cos(phase * 2)) * 0.5
+		frame.Root.lift = if running then bob * 0.07 else (1 - bob) * (if heavy or slow then 0.02 else 0.035)
 		if bird then
 			-- Hop-waddle: two small hops per stride, the body rocking side to side.
 			frame.Root.lift = math.abs(math.sin(phase * (if running then 2 else 1))) * (if running then 0.16 else 0.06)
 			frame.Root.y += math.sin(phase) * 0.08
 		end
-		frame.Root.z += math.sin(phase) * 0.03
+		frame.Root.z += math.sin(phase) * (if quad then 0.025 else 0.05)
+		frame.Root.y += math.sin(phase) * (if quad then 0.02 else 0.04)
+		frame.Root.x += (if running then 0.12 else 0.03) + bob * 0.015
 		if running then
-			frame.Root.x += 0.1
 			frame.Chest.x -= 0.05
 		end
+		-- The tail counters the pelvis yaw with a travelling lag and rides level on the run.
 		for i, name in tails(plan) do
-			frame[name].z += math.sin(phase - i * 0.6) * (if running then 0.08 else 0.06)
-			frame[name].x += if running then 0.04 else 0
+			frame[name].z += math.sin(phase - i * 0.55) * (if running then 0.07 else 0.08) - math.sin(phase) * 0.03
+			frame[name].x += (if running then 0.05 else 0.015) + math.cos(phase * 2 - i * 0.5) * 0.015
 		end
-		for _, name in necks(plan) do
-			frame[name].x += math.sin(phase * 2) * 0.025 - (if running then 0.06 else 0)
+		-- The head stays steady: the neck counter-pitches the bob and counter-yaws the pelvis;
+		-- on the run it reaches forward and low.
+		local n = necks(plan)
+		for _, name in n do
+			frame[name].x += (bob - 0.5) * 0.04 + (if running then 0.08 else 0.02) / math.max(1, #n) * 2
+			frame[name].z -= math.sin(phase) * (if quad then 0.02 else 0.04) / math.max(1, #n)
+		end
+		frame.Head.x -= if running then 0.08 else 0.02
+		if plan == "elephant" then
+			each(plan, "Trunk", function(name, i)
+				frame[name].x += math.sin(phase - i * 0.6) * 0.07
+			end)
 		end
 	elseif clip == "graze" then
 		local cycle = (t % (period or 10)) / (period or 10)

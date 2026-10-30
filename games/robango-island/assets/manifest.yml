@@ -2,16 +2,16 @@ assets:
   - key: creature-allosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 140229566887441
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 119486850508872
     moderation: Approved
     provenance:
-      digest: sha256:850d94809dbbbc8824bf4e711d7b430d4e89b9d7dacae227b3bf74c25517d305
+      digest: sha256:740159ee1f0ec384af159f8ab82c13a969545009d37567770460b3656bdb1020
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#allosaurus"
-        inputVersion: sha256:850d94809dbbbc8824bf4e711d7b430d4e89b9d7dacae227b3bf74c25517d305
+        inputVersion: sha256:740159ee1f0ec384af159f8ab82c13a969545009d37567770460b3656bdb1020
       provider:
         name: forge-procgen
         version: 1
@@ -23,16 +23,16 @@ assets:
   - key: creature-brachiosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 79509044513787
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 120180190669610
     moderation: Approved
     provenance:
-      digest: sha256:ed879a98f463dbe57d1c3d2a960ec185664777e344722a2d9e29446dba764cd3
+      digest: sha256:f18e9deb7c40efeeed4a055e291afd9033e50f0167f598af7159b50ec4239a6f
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#brachiosaurus"
-        inputVersion: sha256:ed879a98f463dbe57d1c3d2a960ec185664777e344722a2d9e29446dba764cd3
+        inputVersion: sha256:f18e9deb7c40efeeed4a055e291afd9033e50f0167f598af7159b50ec4239a6f
       provider:
         name: forge-procgen
         version: 1
@@ -44,16 +44,16 @@ assets:
   - key: creature-compsognathus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 124525418826229
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 102364633608434
     moderation: Approved
     provenance:
-      digest: sha256:81c9eb066703b628db93c25cce841743e6acc4baf55b9ce03b2c29a31d21ea1e
+      digest: sha256:4f6752e0259c07dc5f08034be50a6b070b1ba2ea479818e6dc5ce8b03c3bb7a8
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#compsognathus"
-        inputVersion: sha256:81c9eb066703b628db93c25cce841743e6acc4baf55b9ce03b2c29a31d21ea1e
+        inputVersion: sha256:4f6752e0259c07dc5f08034be50a6b070b1ba2ea479818e6dc5ce8b03c3bb7a8
       provider:
         name: forge-procgen
         version: 1
@@ -65,16 +65,16 @@ assets:
   - key: creature-dilophosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 84058191147873
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 130151802508600
     moderation: Approved
     provenance:
-      digest: sha256:8566190f8248a8257108a521dc0d3d19f5c1e1766daeb4f52f03008ef65f384d
+      digest: sha256:79f88b42f0a34d874d73182c39c58e72a375e9a5de2a291d812eab2695ae0f43
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#dilophosaurus"
-        inputVersion: sha256:8566190f8248a8257108a521dc0d3d19f5c1e1766daeb4f52f03008ef65f384d
+        inputVersion: sha256:79f88b42f0a34d874d73182c39c58e72a375e9a5de2a291d812eab2695ae0f43
       provider:
         name: forge-procgen
         version: 1
@@ -86,16 +86,16 @@ assets:
   - key: creature-gallimimus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 83724426896438
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 128469045462010
     moderation: Approved
     provenance:
-      digest: sha256:0a9663ecae5394a54b9c4f93f910e97a87f80e4f63102a97a5e00676f02000da
+      digest: sha256:01c773e36fa2bba7dc41d9ac081d5ba32739eadeee492014fc6802ac94895fbc
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#gallimimus"
-        inputVersion: sha256:0a9663ecae5394a54b9c4f93f910e97a87f80e4f63102a97a5e00676f02000da
+        inputVersion: sha256:01c773e36fa2bba7dc41d9ac081d5ba32739eadeee492014fc6802ac94895fbc
       provider:
         name: forge-procgen
         version: 1
@@ -107,16 +107,16 @@ assets:
   - key: creature-oviraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 116243764448270
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 97887478130802
     moderation: Approved
     provenance:
-      digest: sha256:aefd1959aecdba3882000f9e0ad3d5b29a578c475d5911bbb8bff5f1900c3555
+      digest: sha256:9b93606243388efdd1f753d09c83517f9a78548ef4d4c0c42e396f7df74b192b
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#oviraptor"
-        inputVersion: sha256:aefd1959aecdba3882000f9e0ad3d5b29a578c475d5911bbb8bff5f1900c3555
+        inputVersion: sha256:9b93606243388efdd1f753d09c83517f9a78548ef4d4c0c42e396f7df74b192b
       provider:
         name: forge-procgen
         version: 1
@@ -128,16 +128,16 @@ assets:
   - key: creature-protoceratops
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 89773023909826
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 96930729128212
     moderation: Approved
     provenance:
-      digest: sha256:7c0434397805761b7c6370daca1a0dcbdeee835af0bd398e98b77235c33c266e
+      digest: sha256:164f42816a7424131adaffc754785c56d42cb8b349644693004a81c662a662f9
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#protoceratops"
-        inputVersion: sha256:7c0434397805761b7c6370daca1a0dcbdeee835af0bd398e98b77235c33c266e
+        inputVersion: sha256:164f42816a7424131adaffc754785c56d42cb8b349644693004a81c662a662f9
       provider:
         name: forge-procgen
         version: 1
@@ -149,16 +149,16 @@ assets:
   - key: creature-triceratops
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 85158149801573
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 75877766327983
     moderation: Approved
     provenance:
-      digest: sha256:e1ff08e76505813635d93d6e483ff253473e19c223329a640549ccbb1be1536c
+      digest: sha256:fc6cc7d7d881fe29737100399255d18bdc912512d2d08af4d40c0a3015cf5701
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#triceratops"
-        inputVersion: sha256:e1ff08e76505813635d93d6e483ff253473e19c223329a640549ccbb1be1536c
+        inputVersion: sha256:fc6cc7d7d881fe29737100399255d18bdc912512d2d08af4d40c0a3015cf5701
       provider:
         name: forge-procgen
         version: 1
@@ -170,16 +170,16 @@ assets:
   - key: creature-tyrannosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 118381979623940
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 89387516001030
     moderation: Approved
     provenance:
-      digest: sha256:1bc51313f26820fffa4a0b5a3fd892dd1488e146300a85825c0e1a68261537bb
+      digest: sha256:bee370ad340330f9945158d38bb425aa63d40aa8e137cdfd0bae7f675dfe1a48
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#tyrannosaurus"
-        inputVersion: sha256:1bc51313f26820fffa4a0b5a3fd892dd1488e146300a85825c0e1a68261537bb
+        inputVersion: sha256:bee370ad340330f9945158d38bb425aa63d40aa8e137cdfd0bae7f675dfe1a48
       provider:
         name: forge-procgen
         version: 1
@@ -191,16 +191,16 @@ assets:
   - key: creature-utahraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 82448205380756
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 79233126962034
     moderation: Approved
     provenance:
-      digest: sha256:45ab6fd747a9029e3b8a09659015933ca714aeab5831fac55a055a5011259363
+      digest: sha256:90221db411f9d8b1961ee54a36639dde4a19ea42b140e7bc8f0e16a871018caf
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#utahraptor"
-        inputVersion: sha256:45ab6fd747a9029e3b8a09659015933ca714aeab5831fac55a055a5011259363
+        inputVersion: sha256:90221db411f9d8b1961ee54a36639dde4a19ea42b140e7bc8f0e16a871018caf
       provider:
         name: forge-procgen
         version: 1
@@ -212,16 +212,16 @@ assets:
   - key: creature-velociraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 130784605757966
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 70968464699459
     moderation: Approved
     provenance:
-      digest: sha256:424bac66c1fc8a87b623ffaf296858d1f5d1f7400b67d048bee4a435cd5af8d2
+      digest: sha256:1f6f83e4069f28723c21fc5235ab3f0e94685067e7517f9d31a30bf1d40a1d4a
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#velociraptor"
-        inputVersion: sha256:424bac66c1fc8a87b623ffaf296858d1f5d1f7400b67d048bee4a435cd5af8d2
+        inputVersion: sha256:1f6f83e4069f28723c21fc5235ab3f0e94685067e7517f9d31a30bf1d40a1d4a
       provider:
         name: forge-procgen
         version: 1
@@ -233,16 +233,16 @@ assets:
   - key: creature-ankylosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 108322948708892
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 102524710159329
     moderation: Approved
     provenance:
-      digest: sha256:fe0cbc1d8687c4b8390f1585fd40ef7f792695d041a00567e734429f8fa993c5
+      digest: sha256:c94bbe0323cfc245016f611dbddcb706ccdee32b6783d4d88d8bf848c9f9bc01
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#ankylosaurus"
-        inputVersion: sha256:fe0cbc1d8687c4b8390f1585fd40ef7f792695d041a00567e734429f8fa993c5
+        inputVersion: sha256:c94bbe0323cfc245016f611dbddcb706ccdee32b6783d4d88d8bf848c9f9bc01
       provider:
         name: forge-procgen
         version: 1
@@ -254,16 +254,16 @@ assets:
   - key: creature-boar
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 111733049868833
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 133929120135703
     moderation: Approved
     provenance:
-      digest: sha256:33c29df21501b0e7d951389fd486166eb8f96312feb4d6e86b61951e98c2c184
+      digest: sha256:a470a93566b649e014a0d785c810aeb9eeb4c918f040ca55adac2e71c98247be
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#boar"
-        inputVersion: sha256:33c29df21501b0e7d951389fd486166eb8f96312feb4d6e86b61951e98c2c184
+        inputVersion: sha256:a470a93566b649e014a0d785c810aeb9eeb4c918f040ca55adac2e71c98247be
       provider:
         name: forge-procgen
         version: 1
@@ -275,16 +275,16 @@ assets:
   - key: creature-crocodile
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 121562165754142
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 105953570228100
     moderation: Approved
     provenance:
-      digest: sha256:6f8e3a5bee5753967f9d1c9f1f8147832f712303f2e39cd039f52c4f9cf052ee
+      digest: sha256:d56e561bd7438506a122e392f76361d20df0a069fe488fc72443f34d1dba57a0
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#crocodile"
-        inputVersion: sha256:6f8e3a5bee5753967f9d1c9f1f8147832f712303f2e39cd039f52c4f9cf052ee
+        inputVersion: sha256:d56e561bd7438506a122e392f76361d20df0a069fe488fc72443f34d1dba57a0
       provider:
         name: forge-procgen
         version: 1
@@ -296,16 +296,16 @@ assets:
   - key: creature-deer
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 126920997471926
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 127758593185232
     moderation: Approved
     provenance:
-      digest: sha256:6085f980d83bdd689eac657cea529f8c6bb3ec37f1c1d624f3b98e2154cf318b
+      digest: sha256:88dd303c452337f51b278a884814c64860082488e2d02163eb630cfe8866c66d
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#deer"
-        inputVersion: sha256:6085f980d83bdd689eac657cea529f8c6bb3ec37f1c1d624f3b98e2154cf318b
+        inputVersion: sha256:88dd303c452337f51b278a884814c64860082488e2d02163eb630cfe8866c66d
       provider:
         name: forge-procgen
         version: 1
@@ -317,16 +317,16 @@ assets:
   - key: creature-direwolf
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 83986739691481
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 122676063948214
     moderation: Approved
     provenance:
-      digest: sha256:85db8e9d2a1d8f7b614871a11604af82e6121986934e9b269ff3c41c0e7f4883
+      digest: sha256:7a88dbc463b3dad2ec9c87ef988fc1902240dc73872e9ff95e82df10192645e6
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#direWolf"
-        inputVersion: sha256:85db8e9d2a1d8f7b614871a11604af82e6121986934e9b269ff3c41c0e7f4883
+        inputVersion: sha256:7a88dbc463b3dad2ec9c87ef988fc1902240dc73872e9ff95e82df10192645e6
       provider:
         name: forge-procgen
         version: 1
@@ -338,16 +338,16 @@ assets:
   - key: creature-dodo
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 108013468258187
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 81571863929968
     moderation: Approved
     provenance:
-      digest: sha256:661f066d4373b8b22e5f87a6d68b425156f815639b42bbdefb840029ec6e143e
+      digest: sha256:124680950f96e412bcefbf89cd103fb990e1e75f6c51fe463657020bf4ff1929
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#dodo"
-        inputVersion: sha256:661f066d4373b8b22e5f87a6d68b425156f815639b42bbdefb840029ec6e143e
+        inputVersion: sha256:124680950f96e412bcefbf89cd103fb990e1e75f6c51fe463657020bf4ff1929
       provider:
         name: forge-procgen
         version: 1
@@ -359,16 +359,16 @@ assets:
   - key: creature-elephant
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 130203228963029
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 124536013381958
     moderation: Approved
     provenance:
-      digest: sha256:fc54bea4ff0114b19e38cf594eb75d8abfb339f13abb9a320752e90d898f0620
+      digest: sha256:f17fd3dd4b2470c417e824f53dc482bac30af21a2fa8bd643e8deee849555115
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#elephant"
-        inputVersion: sha256:fc54bea4ff0114b19e38cf594eb75d8abfb339f13abb9a320752e90d898f0620
+        inputVersion: sha256:f17fd3dd4b2470c417e824f53dc482bac30af21a2fa8bd643e8deee849555115
       provider:
         name: forge-procgen
         version: 1
@@ -380,16 +380,16 @@ assets:
   - key: creature-mammoth
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, skinned FBX)"
-    assetId: 138256420738750
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 123558368436747
     moderation: Approved
     provenance:
-      digest: sha256:e94bca70283261af211bf2f42c14bc34822363f6bd853ce1eaa5d221e5dfffbd
+      digest: sha256:0b29830265e8ec41a3e1f9ee434d12f93d5b3d16d6a9bd1a97b267c9873ff0c2
       recipe:
         id: gen-creatures
-        version: 3
+        version: 5
         input: "assets/blender/gen_creatures.py#mammoth"
-        inputVersion: sha256:e94bca70283261af211bf2f42c14bc34822363f6bd853ce1eaa5d221e5dfffbd
+        inputVersion: sha256:0b29830265e8ec41a3e1f9ee434d12f93d5b3d16d6a9bd1a97b267c9873ff0c2
       provider:
         name: forge-procgen
         version: 1
@@ -397,20 +397,20 @@ assets:
         source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
         ownership: first-party
       author: "agent:omo/hephaestus"
-      created: 2026-10-28
+      created: 2026-10-29
   - key: creature-parasaurolophus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 92971669491707
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 91579614249059
     moderation: Approved
     provenance:
-      digest: sha256:e605d7c18791fcc5b054c95beb110ada29db7028b6a4a5dc3bee6d13cd15f180
+      digest: sha256:5b6b7e1c868552ecb308970380da5026dda9977efe28f35b22207eec68823613
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#parasaurolophus"
-        inputVersion: sha256:e605d7c18791fcc5b054c95beb110ada29db7028b6a4a5dc3bee6d13cd15f180
+        inputVersion: sha256:5b6b7e1c868552ecb308970380da5026dda9977efe28f35b22207eec68823613
       provider:
         name: forge-procgen
         version: 1
@@ -422,16 +422,16 @@ assets:
   - key: creature-smilodon
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 105906251049641
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 79392465306736
     moderation: Approved
     provenance:
-      digest: sha256:20a6e1cd19f98a32905cee5ec84f647ae6b6ad25c35a2d5ccceee632fa20271a
+      digest: sha256:7962bafb6a70166117ff0a191e8801e7140de1b4106c735032c777818a07d00c
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#smilodon"
-        inputVersion: sha256:20a6e1cd19f98a32905cee5ec84f647ae6b6ad25c35a2d5ccceee632fa20271a
+        inputVersion: sha256:7962bafb6a70166117ff0a191e8801e7140de1b4106c735032c777818a07d00c
       provider:
         name: forge-procgen
         version: 1
@@ -443,16 +443,16 @@ assets:
   - key: creature-stegosaurus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 121243733920273
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 117865252273142
     moderation: Approved
     provenance:
-      digest: sha256:07839cef901bc4f16c3b627b85ceea281aad73b676719b525497c3467bcde4ed
+      digest: sha256:5ce5c43798e68d3d1fdfe17cbea9013f933a177c4e2573e562e59edbd833de26
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#stegosaurus"
-        inputVersion: sha256:07839cef901bc4f16c3b627b85ceea281aad73b676719b525497c3467bcde4ed
+        inputVersion: sha256:5ce5c43798e68d3d1fdfe17cbea9013f933a177c4e2573e562e59edbd833de26
       provider:
         name: forge-procgen
         version: 1
@@ -464,16 +464,16 @@ assets:
   - key: creature-tropicalsmilodon
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 71993526190925
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 138773987073590
     moderation: Approved
     provenance:
-      digest: sha256:0903bdeb9f9f42406236a483e2dbbaa7b6e2fa72495776af29a5c7b140634eb3
+      digest: sha256:689daaa66f1da27995e791cf7cb113eff75c2df79bdd05cbbefeb7c82598791d
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#tropicalSmilodon"
-        inputVersion: sha256:0903bdeb9f9f42406236a483e2dbbaa7b6e2fa72495776af29a5c7b140634eb3
+        inputVersion: sha256:689daaa66f1da27995e791cf7cb113eff75c2df79bdd05cbbefeb7c82598791d
       provider:
         name: forge-procgen
         version: 1
@@ -485,16 +485,16 @@ assets:
   - key: creature-turtle
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, face and coats in the colour map, skinned FBX)"
-    assetId: 124655802265503
+    source: "first-party headless Blender generator (B2b body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
+    assetId: 109722590392253
     moderation: Approved
     provenance:
-      digest: sha256:91f9d78b6f1c99911e4af734385c8d492d4e05687ff6561f3c295ad448aca519
+      digest: sha256:345f76bd2087f63d30f91e05e4e3ff81cae614a13512d2bea0f3363e137a00ab
       recipe:
         id: gen-creatures
-        version: 4
+        version: 5
         input: "assets/blender/gen_creatures.py#turtle"
-        inputVersion: sha256:91f9d78b6f1c99911e4af734385c8d492d4e05687ff6561f3c295ad448aca519
+        inputVersion: sha256:345f76bd2087f63d30f91e05e4e3ff81cae614a13512d2bea0f3363e137a00ab
       provider:
         name: forge-procgen
         version: 1
