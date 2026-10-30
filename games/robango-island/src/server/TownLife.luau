@@ -27,6 +27,11 @@ M.RADIUS = table.freeze({
 	["town.flower-bed"] = 3.4,
 	["bld.campfire"] = 3.1,
 	["town.lamp-post"] = 1.2,
+	["town.parasol"] = 4.2,
+	["town.market-canopy"] = 10.5,
+	["bld.well"] = 3.4,
+	["town.notice-board"] = 3,
+	["town.drift-camp-walkway"] = 8,
 } :: { [string]: number })
 
 -- Survivor figure poses (SurvivorAvatar.POSES): seated on a bench, carrying a load, working with a
@@ -79,12 +84,29 @@ local PROPS: { { any } } = {
 	{ "town.rowboat", -134, nil, 95 },
 	{ "town.rowboat", 112, nil, -80 },
 	{ "town.rowboat", 146, nil, -100 },
-	{ "town.fish-rack", -36, 552, 10 },
+	{ "town.fish-rack", -50, 572, 10 },
 	{ "town.fish-rack", 40, 540, -8 },
 	{ "town.sack-pile", -26, 574, 0 },
 	{ "town.crate-stack", 24, 578, 25 },
 	{ "town.barrel", 30, 571, 0 },
 	{ "town.barrel", -32, 566, 0 },
+	-- Harbour square at the arrival (R13-5 market, inside the spawn's play-camera frame): two
+	-- striped market canopies facing the main road, a parasol cluster, crates, barrels and sacks.
+	{ "town.market-canopy", -27, 540, 180 },
+	{ "town.market-canopy", 26, 532, 0 },
+	{ "town.parasol", -16, 556, 0 },
+	{ "town.parasol", 16, 556, 20 },
+	{ "town.parasol", -19, 520, 10 },
+	{ "town.parasol", 36, 552, 0 },
+	{ "town.parasol", -42, 556, 15 },
+	{ "town.crate-stack", 44, 520, 30 },
+	{ "town.barrel", 40, 545, 0 },
+	{ "town.barrel", -36, 556, 0 },
+	{ "town.sack-pile", 40, 570, 0 },
+	{ "town.crate-stack", -38, 520, -10 },
+	-- The arrival well and the notice board on the road (camp landmarks in the first frame).
+	{ "bld.well", -21, 564, 20 },
+	{ "town.notice-board", 16, 548, p(0, 548) },
 	-- Market square (z 330-395): two awning rows facing a central aisle, goods between.
 	{ "town.market-stall", -22, 340, p(0, 340) },
 	{ "town.market-stall", -22, 352, p(0, 352) },
@@ -145,7 +167,8 @@ local FIRES: { { any } } = {
 -- Lanterns along the street, the square and the back lanes (each a small warm spot at dusk).
 local LAMPS: { Point } = {
 	p(-16, 584),
-	p(16, 528),
+	p(-12, 550),
+	p(12, 520),
 	p(-16, 500),
 	p(16, 468),
 	p(-16, 444),
@@ -169,7 +192,15 @@ local LAMPS: { Point } = {
 
 -- { id, label, pose, x, z, face }
 local FOLK: { { any } } = {
-	{ "harbor.fisher.1", "folk.fisher", "work", -36, 546, p(-36, 552) },
+	{ "harbor.fisher.1", "folk.fisher", "work", -50, 566, p(-50, 572) },
+	{ "square.h.vendor.w", "folk.trader", "vend", -28, 540, p(0, 540) },
+	{ "square.h.vendor.e", "folk.trader", "vend", 27, 532, p(0, 532) },
+	{ "square.h.buyer.1", "folk.villager", "stand", -17, 538, p(-26, 538) },
+	{ "square.h.buyer.2", "folk.villager", "stand", -18, 530, p(-26, 532) },
+	{ "square.h.buyer.3", "folk.villager", "stand", 16, 534, p(26, 534) },
+	{ "square.h.well", "folk.villager", "work", -15, 566, p(-21, 564) },
+	{ "square.h.porter", "folk.porter", "carry", 6, 516, p(6, 440) },
+	{ "square.h.shade", "folk.villager", "stand", 22, 556, p(16, 556) },
 	{ "harbor.fisher.2", "folk.fisher", "work", 40, 546, p(40, 540) },
 	{ "harbor.porter.1", "folk.porter", "carry", -10, 560, p(-10, 480) },
 	{ "harbor.porter.2", "folk.porter", "carry", 10, 592, p(10, 640) },
@@ -199,11 +230,20 @@ local FOLK: { { any } } = {
 
 local SITTERS: { [string]: number } = { harbor = 3, square = 3, clan = 3, yard = 3 }
 
+-- Channel bed depth under the bank and the water line under the bank: shallow enough that a
+-- survivor wades across and steps out (Roblox auto-steps about 2 studs).
+M.CHANNEL_DEPTH = 1.6
+M.CHANNEL_WATER = 0.5
+
 --- The south bay's waterline z at `x` (|x| > LANDING): a beach falls 24 studs to it from the grass
 --- edge and the sea lies south of it, on an organic curve so the coast never reads as a ruled line.
+--- Beside the pier landing the waterline swings south (`corner`), so the landing's grass block meets
+--- the bay on a rounded shoulder instead of the straight 8-stud column edge the high view read as a
+--- flat strip (D2c R13).
 --- The pier landing (|x| <= LANDING) keeps its grass block; the pier and the cutter stand off it.
 function M.shore(x: number): number
-	return 574 + 7 * math.sin(x / 90) + 4 * math.sin(x / 37 + 1)
+	local corner = math.max(0, 48 - (math.abs(x) - 60)) * 0.8
+	return 574 + 7 * math.sin(x / 90) + 4 * math.sin(x / 37 + 1) + corner
 end
 
 -- Half width of the pier landing (the grass block the dock and the arrival stand on).
@@ -227,6 +267,7 @@ M.FIRE_LIGHT = 0.5
 M.GROUND =
 	table.freeze({
 		discs = {
+			{ x = -6, z = 540, r = 12 },
 			{ x = -40, z = 362, r = 10 },
 			{ x = 70, z = 550, r = 8 },
 			{ x = 176, z = 246, r = 8 },
@@ -244,8 +285,14 @@ M.GROUND =
 			{ points = { p(112, 330), p(150, 336), p(168, 346) }, width = 4 },
 			{ points = { p(112, 250), p(150, 246), p(168, 246) }, width = 4 },
 			{ points = { p(-16, 540), p(-40, 546) }, width = 3 },
+			{ points = { p(-12, 534), p(-30, 530), p(-66, 532) }, width = 4 },
 		},
 	} :: { discs: { { x: number, z: number, r: number } }, lanes: { { points: { Point }, width: number } } })
+
+-- The main street through the core (R13-5 dirt road): the catalog road paint lies under the 6-stud
+-- town columns, so the street read as the flat Limestone band of the high view (D2c). TownLife.worn
+-- paints it as ragged trodden earth with mud wheel ruts on the real surface.
+M.STREET = table.freeze({ points = { p(0, 236), p(-2, 330), p(2, 420), p(0, 520), p(0, 592) }, width = 12 })
 
 -- Ground cover between the yards and houses (B1 grassland rows, placed by RoleWorld as decor kit
 -- cards): meadow tufts, bracken, bramble and flower patches; never on a road, lane or yard.
@@ -259,6 +306,65 @@ M.COVER_ROWS = table.freeze({
 })
 -- Cover sample grid (studs) over the core and how far it stays from roads, lanes, yards and houses.
 M.COVER = table.freeze({ x0 = -150, x1 = 150, z0 = 240, z1 = 540, step = 7, clear = 3 })
+
+-- Marsh water channels (R12/R13-5: water between the yards, crossed by plank bridges): shallow
+-- ditches (the bed 2.4 studs under the water line, so a survivor wades, never swims) with mud
+-- banks, running from the south bay up behind the back rows. Centres wobble by noise in RoleWorld
+-- (TownLife.channelCells), so no bank is a ruled line.
+M.CHANNEL_WIDTH = 8
+M.CHANNEL_BANK = 3
+M.CHANNELS = table.freeze({
+	{ p(-72, 540), p(-86, 532), p(-120, 530), p(-142, 506), p(-140, 420), p(-146, 330), p(-140, 240) },
+	{ p(146, 548), p(140, 520), p(142, 430), p(136, 336), p(140, 236) },
+} :: { { Point } })
+-- Plank footbridges (town.footbridge, 14 studs along its local Z) where a lane or plank path
+-- crosses a channel; the yaw turns the span across the channel.
+M.BRIDGES = table.freeze({
+	{ x = -79, z = 536, yaw = 150 },
+	{ x = -112, z = 530, yaw = 0 },
+	{ x = -141, z = 259, yaw = 90 },
+	{ x = 137, z = 334, yaw = 90 },
+	{ x = 140, z = 247, yaw = 90 },
+} :: { { x: number, z: number, yaw: number } })
+-- Plank walkways (town.drift-camp-walkway, 16 studs along local Z) on the square's west path.
+M.PLANKS = table.freeze({
+	{ x = -44, z = 531, yaw = 90 },
+	{ x = -60, z = 532, yaw = 90 },
+} :: { { x: number, z: number, yaw: number } })
+
+-- Distance from (x, z) to the nearest channel centre line.
+function M.channelDistance(x: number, z: number): number
+	local best = math.huge
+	for _, line in M.CHANNELS do
+		for index = 2, #line do
+			local a, b = line[index - 1], line[index]
+			local dx, dz = b.x - a.x, b.z - a.z
+			local t = math.clamp(((x - a.x) * dx + (z - a.z) * dz) / math.max(dx * dx + dz * dz, 1e-9), 0, 1)
+			best = math.min(best, math.sqrt((x - a.x - dx * t) ^ 2 + (z - a.z - dz * t) ^ 2))
+		end
+	end
+	return best
+end
+
+--- Channel water samples (every 3 studs along each centre line): centre and radius, the centre
+--- swaying a stud or two and the radius breathing, so the banks read as a natural ditch.
+function M.channelCells(): { { x: number, z: number, r: number, top: number? } }
+	local out: { { x: number, z: number, r: number, top: number? } } = {}
+	for _, line in M.CHANNELS do
+		for index = 2, #line do
+			local a, b = line[index - 1], line[index]
+			local dx, dz = b.x - a.x, b.z - a.z
+			local length = math.sqrt(dx * dx + dz * dz)
+			for s = 0, length, 3 do
+				local x, z = a.x + dx * s / length, a.z + dz * s / length
+				local sway = math.noise(x / 31, z / 31, 4.2) * 3
+				local r = M.CHANNEL_WIDTH / 2 * (0.8 + 0.4 * (0.5 + 0.5 * math.noise(x / 13, z / 13, 9.4)))
+				table.insert(out, { x = x - dz / length * sway, z = z + dx / length * sway, r = r })
+			end
+		end
+	end
+	return out
+end
 
 -- A rowboat lies this far up the beach from the waterline (its stern reaches the water).
 M.BOAT_UP = 4
@@ -381,6 +487,7 @@ function M.cover(layout: any, blockers: { { x: number, z: number, r: number } })
 			for _, disc in M.GROUND.discs do
 				ok = ok and (x - disc.x) ^ 2 + (z - disc.z) ^ 2 > (disc.r + clear) ^ 2
 			end
+			ok = ok and M.channelDistance(x, z) > M.CHANNEL_WIDTH / 2 + M.CHANNEL_BANK + clear
 			for _, yard in M.YARDS do
 				ok = ok
 					and not (
@@ -430,6 +537,11 @@ function M.blockers(layout: any, buildings: { any }, setPieces: { any }): { { x:
 	for _, lamp in plan.lamps do
 		table.insert(out, { x = lamp.x, z = lamp.z, r = 1.5 })
 	end
+	for _, list in { M.BRIDGES, M.PLANKS } do
+		for _, item in list do
+			table.insert(out, { x = item.x, z = item.z, r = 8 })
+		end
+	end
 	return out
 end
 
@@ -460,7 +572,11 @@ function M.worn(): { Point }
 			end
 		end
 	end
+	local lanes: { any } = { M.STREET }
 	for _, lane in M.GROUND.lanes do
+		table.insert(lanes, lane)
+	end
+	for _, lane in lanes do
 		for index = 2, #lane.points do
 			local a, b = lane.points[index - 1], lane.points[index]
 			local dx, dz = b.x - a.x, b.z - a.z
@@ -479,6 +595,43 @@ function M.worn(): { Point }
 end
 
 export type Fence = { id: string, x: number, z: number, yaw: number }
+
+--- Mud cells (4-stud voxel origins) of the street's two wheel ruts and the puddled square around
+--- the arrival well: broken by noise so they read as wet tracks, never as painted stripes.
+function M.ruts(): { Point }
+	local out: { Point } = {}
+	local seen: { [string]: boolean } = {}
+	local function add(x: number, z: number)
+		local cx, cz = math.floor(x / 4) * 4, math.floor(z / 4) * 4
+		local key = cx .. "," .. cz
+		if not seen[key] then
+			seen[key] = true
+			table.insert(out, p(cx, cz))
+		end
+	end
+	local points = M.STREET.points
+	for index = 2, #points do
+		local a, b = points[index - 1], points[index]
+		local dx, dz = b.x - a.x, b.z - a.z
+		local length = math.sqrt(dx * dx + dz * dz)
+		for s = 0, length, 4 do
+			local x, z = a.x + dx * s / length, a.z + dz * s / length
+			for _, side in { -3, 3 } do
+				if math.noise(x / 9, z / 9 + side, 2.3) > -0.15 then
+					add(x - dz / length * side, z + dx / length * side)
+				end
+			end
+		end
+	end
+	for cx = -36, -6, 4 do
+		for cz = 552, 576, 4 do
+			if (cx + 21) ^ 2 + (cz - 564) ^ 2 < 140 and math.noise(cx / 7, cz / 7, 5.5) > -0.2 then
+				add(cx, cz)
+			end
+		end
+	end
+	return out
+end
 
 --- town.plot-fence segments (8 studs, centred) around every yard; the street side keeps a gate gap.
 function M.fences(): { Fence }

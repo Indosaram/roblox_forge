@@ -2202,6 +2202,88 @@ def sack_pile(m, cut, ex):
               "flower" if i % 2 else "leaf", n=5)
 
 
+def parasol(m, cut, ex):
+    """Market parasol (R13-5 umbrella rows): one pole, a striped 8-panel cloth cone on ribs, a
+    weighted crate foot. Panels alternate canvas / teal so a row of them reads as Durango's market."""
+    log(m, (0, 0, 0), (0, 0, 6.6), 0.13, n=5)
+    box(m, (0, 0, 0.35), (1.2, 1.2, 0.7), "plank")
+    n, r, rim, top = 8, 4.2, 5.0, 6.9
+    for i in range(n):
+        a0, a1 = i * 2 * math.pi / n, (i + 1) * 2 * math.pi / n
+        p0 = Vector((math.cos(a0) * r, math.sin(a0) * r, rim))
+        p1 = Vector((math.cos(a1) * r, math.sin(a1) * r, rim))
+        tile = "teal" if i % 2 else "canvas"
+        tip = Vector((0, 0, top))
+        m.face([p0, p1, tip], tile, center=Vector((0, 0, rim - 2)))
+        m.face([p1, p0, tip], tile, center=Vector((0, 0, top + 2)))
+        # scalloped valance under each panel edge
+        mid = (p0 + p1) / 2
+        m.face([p0, p1, mid - Vector((0, 0, 0.55))], tile, center=Vector((0, 0, rim)))
+        m.face([p1, p0, mid - Vector((0, 0, 0.55))], tile, center=Vector((0, 0, rim + 4)))
+        cyl(m, Vector((0, 0, top - 0.6)), p0 * 0.98 + Vector((0, 0, -0.08)), 0.04, 0.04, "log", n=3, cap=False)
+
+
+def market_canopy(m, cut, ex):
+    """Long open market canopy (R13-5 market hall): two rows of posts carrying a sagging striped
+    cloth roof 20 studs long, a plank counter along the front with goods, crates and sacks under it."""
+    L, d = 20.0, 7.0
+    for k in range(5):
+        y = -L / 2 + k * L / 4
+        log(m, (-d / 2, y, 0), (-d / 2, y, 5.2), 0.2, n=6)
+        log(m, (d / 2, y, 0), (d / 2, y, 6.6), 0.2, n=6)
+    for x, h in ((-d / 2, 5.1), (d / 2, 6.5)):
+        log(m, (x, -L / 2 - 0.4, h), (x, L / 2 + 0.4, h), 0.16, n=5)
+    for k in range(5):
+        y0 = -L / 2 - 0.6 + k * (L + 1.2) / 5
+        y1 = y0 + (L + 1.2) / 5
+        sheet(m, (-d / 2 - 0.9, y0, 4.9), (-d / 2 - 0.9, y1, 4.9), (d / 2 + 0.5, y0, 6.75), 3, 3,
+              "teal" if k % 2 else "canvas", sag=0.35)
+    for k in range(10):  # front valance flaps
+        y = -L / 2 + 1.0 + k * (L - 2) / 9
+        sheet(m, (-d / 2 - 0.92, y - 0.9, 4.9), (-d / 2 - 0.92, y + 0.9, 4.9), (-d / 2 - 0.92, y - 0.9, 4.25), 1, 1,
+              "canvas" if k % 2 else "teal")
+    box(m, (-d / 2 + 1.2, 0, 1.55), (1.4, L - 1.0, 0.25), "plank")
+    box(m, (-d / 2 + 1.2, 0, 0.75), (1.2, L - 1.4, 1.4), "plank")
+    for k in range(7):
+        y = -L / 2 + 2.0 + k * 2.6
+        lathe(m, (-d / 2 + 1.2, y, 1.68), [(0.55, 0), (0.6, 0.3), (0.32, 0.36)], "rope", n=8)
+        lathe(m, (-d / 2 + 1.2, y, 1.98), [(0.45, 0), (0.0, 0.32)], ("leaf", "flower", "clay")[k % 3], n=6)
+    crate(m, (d / 2 - 1.2, -L / 2 + 2.0, 0.9), 1.8, 8)
+    crate(m, (d / 2 - 1.0, -L / 2 + 2.3, 2.6), 1.5, -12)
+    crate(m, (d / 2 - 1.2, L / 2 - 2.5, 0.85), 1.7, 20)
+    sack(m, (d / 2 - 1.4, 0.0, 0), 1.6)
+    sack(m, (d / 2 - 1.0, 1.4, 0), 1.5, tile="hide")
+    lathe(m, (d / 2 - 1.3, 4.0, 0), [(0.8, 0), (0.9, 0.9), (0.8, 1.6), (0.85, 1.7)], "plank", n=10, close_top=True)
+
+
+def footbridge(m, cut, ex):
+    """Plank footbridge (R13-5 boardwalks over the marsh channels): 14 studs, a low hump, split
+    planks on two stringers, rough log handrail on one side."""
+    L = 14.0
+    for i in range(13):
+        y = -L / 2 + 0.55 + i * 1.07
+        z = 0.9 + math.sin(math.pi * (i + 0.5) / 13) * 0.7
+        box(m, (random.uniform(-0.1, 0.1), y, z), (4.4, 1.0, 0.24), "plank",
+            r=(0, random.uniform(-1.5, 1.5), random.uniform(-3, 3)))
+    for x in (-1.6, 1.6):
+        log(m, (x, -L / 2, 0.6), (x, 0, 1.4), 0.18, n=5)
+        log(m, (x, 0, 1.4), (x, L / 2, 0.6), 0.18, n=5)
+    for y in (-L / 2 + 0.4, 0, L / 2 - 0.4):
+        for x in (-2.3, 2.3):
+            log(m, (x, y, -1.5), (x, y, 1.2 + (0.7 if y == 0 else 0)), 0.22, n=6)
+    for y in (-L / 2 + 0.4, 0, L / 2 - 0.4):
+        log(m, (2.3, y, 1.0), (2.3, y, 3.4), 0.13, n=5)
+    log(m, (2.3, -L / 2 + 0.4, 3.2), (2.3, 0, 3.6), 0.11, n=5)
+    log(m, (2.3, 0, 3.6), (2.3, L / 2 - 0.4, 3.2), 0.11, n=5)
+
+
+ROWS_TOWN_SQUARE = [
+    ("town.parasol", parasol, "RobangoTownSquare", 400),
+    ("town.market-canopy", market_canopy, "RobangoTownSquare", 2600),
+    ("town.footbridge", footbridge, "RobangoTownSquare", 1200),
+]
+
+
 ROWS_TOWN_LIFE = [
     ("town.handcart", handcart, "RobangoTownLife", 1800),
     ("town.laundry-line", laundry_line, "RobangoTownLife", 900),
@@ -2282,7 +2364,7 @@ ROWS = [
     ("town.plot-gate", plot_gate, "RobangoTownKit", 900),
     ("opening.stake", opening_stake, "RobangoTownKit", 400),
     ("opening.mirror", opening_mirror, "RobangoTownKit", 500),
-] + ROWS_TOWN_LIFE
+] + ROWS_TOWN_LIFE + ROWS_TOWN_SQUARE
 SUFFIXES = ("cut", "wall", "ember", "glow", "lamp", "tag", "halo")
 
 

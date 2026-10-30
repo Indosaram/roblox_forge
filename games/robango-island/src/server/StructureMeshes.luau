@@ -13,8 +13,15 @@
 --   <key>__halo  rift shard halo
 local M = {}
 
-M.PACKAGES =
-	{ "mesh-bld-atlas-a", "mesh-bld-atlas-b", "mesh-bld-atlas-c", "mesh-bld-hero", "mesh-town-kit", "mesh-town-life" }
+M.PACKAGES = {
+	"mesh-bld-atlas-a",
+	"mesh-bld-atlas-b",
+	"mesh-bld-atlas-c",
+	"mesh-bld-hero",
+	"mesh-town-kit",
+	"mesh-town-life",
+	"mesh-town-square",
+}
 
 -- content.yml structures[].id -> catalog row key.
 M.STRUCTURES = {

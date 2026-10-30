@@ -477,6 +477,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if layoutId == "rw.town" then
 		-- The town paints no moss patches; its Limestone is the still grass of the road approaches.
 		workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(100, 114, 60))
+		-- Marsh channel banks and street ruts (TownLife): dark wet earth.
+		workspace.Terrain:SetMaterialColor(Enum.Material.Mud, Color3.fromRGB(84, 70, 50))
 	end
 	-- Biome islands: their own sand, rock, mud, snow, basalt, ... colours (BiomeLook never touches
 	-- the five L10 spawn-screen materials above).
@@ -2575,6 +2577,67 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		-- Worn earth (TownLife.worn): narrow ragged foot paths and small patches, cell by cell.
 		for _, cell in TownLife.worn() do
 			trample(cell.x, cell.z)
+		end
+		for _, cell in TownLife.ruts() do
+			local low = Vector3.new(cell.x, -4, cell.z)
+			workspace.Terrain:ReplaceMaterial(
+				Region3.new(low, low + Vector3.new(4, 12, 4)),
+				4,
+				Enum.Material.Ground,
+				Enum.Material.Mud
+			)
+		end
+		-- Marsh channels (TownLife.CHANNELS, R12/R13-5): a shallow ditch carved into the flat town,
+		-- mud banks around it and water standing in it; plank footbridges at the crossings.
+		local channel = TownLife.channelCells()
+		for _, cell in channel do
+			local top = probe(cell.x, cell.z) or 4
+			local bank = cell.r + TownLife.CHANNEL_BANK
+			local low = Vector3.new(math.floor((cell.x - bank) / 4) * 4, -8, math.floor((cell.z - bank) / 4) * 4)
+			local region = Region3.new(
+				low,
+				low + Vector3.new(math.ceil(bank * 2 / 4) * 4 + 4, 24, math.ceil(bank * 2 / 4) * 4 + 4)
+			)
+			for _, from in
+				{ Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Limestone, Enum.Material.Ground }
+			do
+				workspace.Terrain:ReplaceMaterial(region, 4, from, Enum.Material.Mud)
+			end
+			cell.top = top
+		end
+		for _, cell in channel do
+			local top: number = cell.top or 4
+			workspace.Terrain:FillCylinder(CFrame.new(cell.x, top - 1, cell.z), 6, cell.r, Enum.Material.Air)
+			workspace.Terrain:FillCylinder(
+				CFrame.new(cell.x, top - TownLife.CHANNEL_DEPTH - 1, cell.z),
+				2,
+				cell.r + 1,
+				Enum.Material.Mud
+			)
+		end
+		for _, cell in channel do
+			local top: number = cell.top or 4
+			local depth = TownLife.CHANNEL_DEPTH - TownLife.CHANNEL_WATER
+			workspace.Terrain:FillCylinder(
+				CFrame.new(cell.x, top - TownLife.CHANNEL_DEPTH + depth / 2, cell.z),
+				depth,
+				cell.r * 0.95,
+				Enum.Material.Water
+			)
+		end
+		for index, item in TownLife.BRIDGES do
+			local y = probe(item.x + 9, item.z) or probe(item.x, item.z)
+			if y then
+				local at = CFrame.new(item.x, y - 0.8, item.z) * CFrame.Angles(0, math.rad(item.yaw), 0)
+				Meshes.place("town.footbridge", at, life, "bridge." .. index)
+			end
+		end
+		for index, item in TownLife.PLANKS do
+			local y = probe(item.x, item.z)
+			if y then
+				local at = CFrame.new(item.x, y - 0.35, item.z) * CFrame.Angles(0, math.rad(item.yaw), 0)
+				Meshes.place("town.drift-camp-walkway", at, life, "planks." .. index)
+			end
 		end
 		-- Fenced yards (R12, TownLife.fences): town.plot-fence segments, a gate gap toward the street.
 		for _, segment in TownLife.fences() do

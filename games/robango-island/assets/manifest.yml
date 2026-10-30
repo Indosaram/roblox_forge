@@ -17615,6 +17615,31 @@ assets:
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
       created: 2026-10-29
+  - key: mesh-town-square
+    kind: model
+    tool: blender
+    source: "Town-square package RobangoTownSquare: games/robango-island/assets/blender/gen_buildings.py ROWS_TOWN_SQUARE (headless Blender 5.2, seed 4310): market parasol, open market canopy, plank footbridge on the shared B3 atlas (CC0 Poly Haven surfaces, SOURCES.md)"
+    assetId: 123565315699792
+    moderation: Approved
+    provenance:
+      digest: sha256:f5fe0786c5493104a7d87ac22956a7c83fc40c7693b6d89f708673d7a965e256
+      recipe:
+        id: robango-gen-buildings
+        version: 4
+        input: "assets/blender/gen_buildings.py#RobangoTownSquare"
+        inputVersion: sha256:b986060af71debbbf47fbc3f512705ec01423c33b06a76466ccf493a7b80a9a2
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
+      created: 2026-10-30
   - key: mesh-tools
     kind: model
     tool: blender
