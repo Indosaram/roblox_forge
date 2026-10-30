@@ -78,6 +78,9 @@ return {
 			)
 			local drawn = assert(string.find(source, "gui.Parent = playerGui", 1, true), "title parented")
 			assert(pin < drawn, role .. ": orientation is pinned before the title is drawn")
+			-- p134 v64: a require above the pin left the phone in portrait on 3 cold starts.
+			local firstRequire = string.find(source, "require(", 1, true)
+			assert(not firstRequire or pin < firstRequire, role .. ": orientation is pinned before any require")
 			assert(
 				string.find(source, 'GetPropertyChangedSignal("ScreenOrientation")', 1, true),
 				role .. ": a later change is put back"
