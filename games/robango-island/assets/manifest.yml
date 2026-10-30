@@ -86,16 +86,16 @@ assets:
   - key: creature-gallimimus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
-    assetId: 128469045462010
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
+    assetId: 107616141754281
     moderation: Approved
     provenance:
-      digest: sha256:01c773e36fa2bba7dc41d9ac081d5ba32739eadeee492014fc6802ac94895fbc
+      digest: sha256:8d379e40a734fcee45be1a259e1680e843736af817835126b70621e4511f8249
       recipe:
         id: gen-creatures
-        version: 5
+        version: 6
         input: "assets/blender/gen_creatures.py#gallimimus"
-        inputVersion: sha256:01c773e36fa2bba7dc41d9ac081d5ba32739eadeee492014fc6802ac94895fbc
+        inputVersion: sha256:8d379e40a734fcee45be1a259e1680e843736af817835126b70621e4511f8249
       provider:
         name: forge-procgen
         version: 1
@@ -103,7 +103,7 @@ assets:
         source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
         ownership: first-party
       author: "agent:omo"
-      created: 2026-10-29
+      created: 2026-10-30
   - key: creature-oviraptor
     kind: model
     tool: forge-procgen
@@ -191,16 +191,16 @@ assets:
   - key: creature-utahraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
-    assetId: 79233126962034
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
+    assetId: 109785893765521
     moderation: Approved
     provenance:
-      digest: sha256:90221db411f9d8b1961ee54a36639dde4a19ea42b140e7bc8f0e16a871018caf
+      digest: sha256:b7bb6251f85d6023d6311c76187f55615d28237cc72964adc279c3fd48d2dca9
       recipe:
         id: gen-creatures
-        version: 5
+        version: 6
         input: "assets/blender/gen_creatures.py#utahraptor"
-        inputVersion: sha256:90221db411f9d8b1961ee54a36639dde4a19ea42b140e7bc8f0e16a871018caf
+        inputVersion: sha256:b7bb6251f85d6023d6311c76187f55615d28237cc72964adc279c3fd48d2dca9
       provider:
         name: forge-procgen
         version: 1
@@ -208,20 +208,20 @@ assets:
         source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
         ownership: first-party
       author: "agent:omo"
-      created: 2026-10-29
+      created: 2026-10-30
   - key: creature-velociraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, skinned FBX)"
-    assetId: 70968464699459
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
+    assetId: 96764554890761
     moderation: Approved
     provenance:
-      digest: sha256:1f6f83e4069f28723c21fc5235ab3f0e94685067e7517f9d31a30bf1d40a1d4a
+      digest: sha256:e98a68bd1981db4d5244829c8392aeabec1058c33b2cafba083c02f2e1e32cc0
       recipe:
         id: gen-creatures
-        version: 5
+        version: 6
         input: "assets/blender/gen_creatures.py#velociraptor"
-        inputVersion: sha256:1f6f83e4069f28723c21fc5235ab3f0e94685067e7517f9d31a30bf1d40a1d4a
+        inputVersion: sha256:e98a68bd1981db4d5244829c8392aeabec1058c33b2cafba083c02f2e1e32cc0
       provider:
         name: forge-procgen
         version: 1
@@ -229,7 +229,7 @@ assets:
         source: "first-party generator games/robango-island/assets/blender/gen_creatures.py; CC0 1.0 Poly Haven brown_leather micro-detail (SOURCES.md)"
         ownership: first-party
       author: "agent:omo"
-      created: 2026-10-29
+      created: 2026-10-30
   - key: creature-ankylosaurus
     kind: model
     tool: forge-procgen

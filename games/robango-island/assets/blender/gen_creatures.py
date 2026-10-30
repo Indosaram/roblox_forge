@@ -44,18 +44,18 @@ SPECIES = {
         knobs=dict(neck=1.1, head=1.0, tail=0.9, girth=1.0, legs=1.0, arms=1.15, snout=0.6, neckr=0.85, headw=0.9),
         features=["crest", "feathers"]),
     "gallimimus": dict(plan="theropod", envelope=(2, 6, 5), tris=7000, tex=512, length=5.0,
-        body="#c9c3b6", stripe="#55504a", belly="#ece8de", accent="#5e4a32", dorsal="#8e887c",
-        head="#8a2a20", plume="#b4ada0", plume_tip="#f2efe8", skin="feathers",
+        body="#d6d2c8", stripe="#2e3034", belly="#eeebe4", accent="#5e4a32", dorsal="#a8a396",
+        head="#a42c22", plume="#464950", plume_tip="#9a9ca0", skin="feathers", neck="#3a3d43",
         knobs=dict(neck=1.6, head=0.72, tail=1.0, girth=0.9, legs=1.45, arms=1.1, snout=1.1, neckr=0.7, headw=0.8),
         features=["feathers"]),
     "utahraptor": dict(plan="theropod", envelope=(3, 6, 6), tris=7000, tex=512, length=6.0,
-        body="#bdb7aa", stripe="#3e3832", belly="#e6e1d6", accent="#a07c46", dorsal="#6e675e",
-        head="#8e2c20", plume="#7a736a", plume_tip="#eeeae2", skin="feathers",
+        body="#bdb7aa", stripe="#2e2924", belly="#e6e1d6", accent="#a07c46", dorsal="#6e675e",
+        head="#9a2e22", plume="#4e4740", plume_tip="#b8b0a4", skin="feathers",
         knobs=dict(neck=1.0, head=1.05, tail=1.0, girth=1.15, legs=1.05, arms=1.15, snout=1.0, neckr=0.8, headw=0.82),
         features=["sickle", "feathers"]),
     "velociraptor": dict(plan="theropod", envelope=(2, 4, 4), tris=4000, tex=512, length=4.0,
         body="#a08e76", stripe="#2e241c", belly="#e2dacb", accent="#6e4630", dorsal="#5e4e3e",
-        head="#a83626", plume="#6a5a4a", plume_tip="#eee6d6", skin="feathers", pop=0.3, rim="#f0e0c0",
+        head="#a83626", plume="#5a4434", plume_tip="#c8b498", skin="feathers", pop=0.3, rim="#f0e0c0",
         knobs=dict(neck=1.0, head=0.95, tail=1.1, girth=0.85, legs=1.0, arms=1.05, snout=1.15, neckr=0.78, headw=0.78),
         features=["sickle", "feathers"]),
     "dilophosaurus": dict(plan="theropod", envelope=(3, 6, 6), tris=7000, tex=512, length=6.0,
@@ -130,9 +130,11 @@ SPECIES = {
 PATTERNS = {
     "compsognathus": [("spots", "stripe", 0.75, "upper", dict(size=0.035, r=0.3)), ("saddle", "stripe", 0.35, None, {}), ("head", "head", 0.85, None, dict(r=0.75))],
     "oviraptor": [("blotch", "stripe", 0.55, "upper", dict(size=0.08, t=0.55)), ("saddle", "stripe", 0.4, None, {}), ("head", "head", 0.85, None, dict(r=0.75))],
-    "gallimimus": [("saddle", "stripe", 0.45, None, {}), ("spots", "stripe", 0.35, "upper", dict(size=0.016, r=0.25)), ("head", "head", 0.8, None, dict(r=0.6))],
-    "utahraptor": [("bands", "stripe", 0.55, "upper", dict(count=9, distortion=12)), ("spots", "stripe", 0.3, "upper", dict(size=0.02, r=0.25)), ("head", "head", 0.8, None, dict(r=0.6))],
-    "velociraptor": [("spots", "stripe", 0.85, "all", dict(size=0.018, r=0.34)), ("saddle", "stripe", 0.35, None, {}), ("head", "head", 0.8, None, dict(r=0.6))],
+    # Raptor lane: banded coats (dorsal bands that carry onto the tail) and, for gallimimus, the
+    # dark R11-6 neck under a red head.
+    "gallimimus": [("saddle", "dorsal", 0.4, None, {}), ("bands", "stripe", 0.42, "upper", dict(count=10, distortion=5)), ("neck", "neck", 0.92, None, {}), ("head", "head", 0.85, None, dict(r=0.6))],
+    "utahraptor": [("bands", "stripe", 0.7, "upper", dict(count=10, distortion=6)), ("spots", "stripe", 0.2, "upper", dict(size=0.02, r=0.25)), ("neck", "plume", 0.45, None, {}), ("head", "head", 0.85, None, dict(r=0.6))],
+    "velociraptor": [("bands", "stripe", 0.68, "upper", dict(count=11, distortion=6)), ("spots", "stripe", 0.4, "all", dict(size=0.018, r=0.3)), ("saddle", "stripe", 0.3, None, {}), ("head", "head", 0.8, None, dict(r=0.6))],
     "dilophosaurus": [("spots", "stripe", 0.75, "upper", dict(size=0.06, r=0.32))],
     "allosaurus": [("bands", "stripe", 0.55, "upper", dict(count=9, distortion=6)), ("saddle", "stripe", 0.3, None, {})],
     "tyrannosaurus": [("saddle", "stripe", 0.7, None, {}), ("blotch", "stripe", 0.4, "upper", dict(size=0.05, t=0.55))],
@@ -180,6 +182,36 @@ PLUME = {
 CLUMP_TRIS = 14
 # L4d painted plumage: (feather rows per body length, row contrast, wing/tail barring strength).
 PAINTED_PLUME = {"gallimimus": (34.0, 0.3, 0.45), "utahraptor": (30.0, 0.32, 0.5), "velociraptor": (36.0, 0.28, 0.4)}
+# Raptor lane: real feather volume for the three painted-plume species. Ordered, layered feather
+# cards (closed lanceolate blades, CARD_TRIS each, their bases sunk into the skin) laid out on the
+# skeleton instead of scattered shells. zone -> (cards per side, or per row on the midline,
+# length and width as body-length fractions, root colour, tip colour, bar strength):
+#   wing   = trailing remiges along the arm (each card rides the Arm bone),
+#   covert = a shorter, paler row laid over the wing roots,
+#   tail   = a horizontal lateral fan that sweeps back into a terminal plume (Tail1-5),
+#   crest  = a neck mane lying back along the dorsal line (Neck1/Neck2/Chest),
+#   back   = two shingled rows of flat contour feathers over chest and hips (Chest/Spine/Root),
+#   thigh  = feathered trousers hanging off the hip (Thigh).
+# Each zone has its own material: a root-to-tip ramp crossed by bars (banded remiges and tail).
+FEATHERS = {
+    # R11-6: white body, dark slate neck and wings, white tail plume, red head.
+    "gallimimus": dict(
+        wing=(9, 0.15, 0.04, "#3e4148", "#5c6066", 0.3), covert=(6, 0.075, 0.03, "#cfcbc2", "#9c988e", 0.2),
+        tail=(9, 0.13, 0.042, "#e6e3dc", "#bab6ad", 0.25), crest=(10, 0.07, 0.024, "#3a3d43", "#2a2c31", 0.15),
+        back=(5, 0.07, 0.032, "#cdc8bc", "#a6a194", 0.2), thigh=(4, 0.08, 0.032, "#d6d2c8", "#aaa598", 0.15)),
+    # Pale grey-beige with dark dorsal bands that carry into a barred tail fan, dark barred wings.
+    "utahraptor": dict(
+        wing=(9, 0.15, 0.04, "#6e675e", "#2a2520", 0.5), covert=(6, 0.075, 0.03, "#bdb7aa", "#857f73", 0.25),
+        tail=(9, 0.14, 0.042, "#bdb7aa", "#3a342e", 0.55), crest=(8, 0.065, 0.026, "#4e4740", "#2a2520", 0.2),
+        back=(5, 0.07, 0.034, "#6e675e", "#48423b", 0.3), thigh=(4, 0.075, 0.032, "#bdb7aa", "#8a8478", 0.2)),
+    # Sandy speckled coat, rufous-brown barred wings and tail, dark mane, red face.
+    "velociraptor": dict(
+        wing=(8, 0.16, 0.042, "#8a6a4a", "#3a2a1e", 0.5), covert=(4, 0.08, 0.032, "#a89478", "#6e5a44", 0.25),
+        tail=(8, 0.15, 0.044, "#a08e76", "#3a2a1e", 0.55), crest=(6, 0.07, 0.028, "#5a4434", "#2e241c", 0.2),
+        back=(3, 0.075, 0.036, "#6a5644", "#4a3a2c", 0.3), thigh=(3, 0.08, 0.034, "#a08e76", "#76644f", 0.2)),
+}
+CARD_TRIS = 14
+FEATHER_SIDED = ("wing", "covert", "tail", "back", "thigh")
 
 # B2a species keep their recorded seeds; B2b species seed from SEED + 100.
 B2A_SPECIES = sorted(k for k, v in SPECIES.items() if v["plan"] in ("theropod", "ceratopsian", "sauropod"))
@@ -1652,6 +1684,185 @@ def build_fur(sp, sk, P, R, high, table=None):
     return obj
 
 
+def feather_card(bm, base, d, flat, length, width, droop=0.12):
+    """One closed lanceolate feather blade: a narrow quill base, the widest vane at 45%, a pointed
+    tip curling a little toward -flat (lies on the body). `flat` is the vane's thickness axis.
+    CARD_TRIS triangles. Returns [(vert, t along, u across)] for the colour attributes."""
+    d = d.normalized()
+    f = (flat - d * flat.dot(d)).normalized()
+    side = d.cross(f).normalized()
+    th = width * 0.14
+    out = []
+    rings = []
+    for t, w in ((0.0, 0.32), (0.45, 1.0)):
+        c = base + d * length * t - f * length * droop * t * t
+        ring = []
+        for cx, cz in ((1, 0), (0, 1), (-1, 0), (0, -1)):
+            v = bm.verts.new(c + side * width * w * cx + f * th * (1 - 0.4 * t) * cz)
+            ring.append(v)
+            out.append((v, t, cx))
+        rings.append(ring)
+    tv = bm.verts.new(base + d * length - f * length * droop)
+    out.append((tv, 1.0, 0.0))
+    bm.faces.new(list(reversed(rings[0])))
+    for k in range(4):
+        a0, a1 = rings[0][k], rings[0][(k + 1) % 4]
+        b0, b1 = rings[1][k], rings[1][(k + 1) % 4]
+        bm.faces.new((a0, a1, b1, b0))
+        bm.faces.new((b0, b1, tv))
+    return out
+
+
+def _polyline(pts, t):
+    """Point and segment index at fraction t of a polyline's length."""
+    segs = [(pts[i], pts[i + 1]) for i in range(len(pts) - 1)]
+    total = sum((b - a).length for a, b in segs)
+    acc = 0.0
+    for i, (a, b) in enumerate(segs):
+        ln = (b - a).length
+        if acc + ln >= t * total or i == len(segs) - 1:
+            u = 0.0 if ln < 1e-9 else max(0.0, min(1.0, (t * total - acc) / ln))
+            return a.lerp(b, u), i, (b - a).normalized()
+        acc += ln
+
+
+def build_feathers(sp, sk, P, R, bvh):
+    """Raptor lane: ordered feather cards per zone (FEATHERS), each card rigid on one bone.
+    Returns {"feather_<zone>": [objects]} (one object per bone, tagged detail:<bone>)."""
+    spec = FEATHERS.get(sp["key"])
+    if not spec:
+        return {}
+    import random
+
+    L = sp["length"]
+
+    def rm(k):
+        return max(R[k]) if k in R else 0.0
+
+    def surf(p, push=None):
+        loc, n, _i, _dd = bvh.find_nearest(p if push is None else p + push)
+        return (p, Z) if loc is None else (loc, n)
+
+    groups = {}
+
+    def card(zone, bone, base, d, flat, ln, w, droop=0.12):
+        key = (zone, bone)
+        if key not in groups:
+            groups[key] = (bmesh.new(), [])
+        bm, attrs = groups[key]
+        jit = random.uniform(0.9, 1.1)
+        attrs.extend(feather_card(bm, base, d, flat, ln * jit, w * random.uniform(0.9, 1.1), droop))
+
+    sides = ((1, "L"), (-1, "R"))
+    # Wing: remiges trailing back and down from the forearm, longest at the hand (primaries).
+    n, lf, wf = spec["wing"][:3]
+    for side, sfx in sides:
+        arm = [P["shoulder" + sfx], P["elbow" + sfx], P["wrist" + sfx], P["finger0" + sfx].lerp(P["finger1" + sfx], 0.5)]
+        sx = X * side
+        for i in range(n):
+            t = 0.3 + 0.7 * i / max(n - 1, 1)
+            p, _seg, _dir = _polyline(arm, t)
+            base, nrm = surf(p, sx * rm("shoulder" + sfx))
+            base = base - nrm * wf * L * 0.05
+            # Fanned folded wing: secondaries lie back along the flank, primaries angle down.
+            ang = 0.12 + 0.55 * t
+            d = Y * math.cos(ang) - Z * math.sin(ang) + sx * 0.22
+            card("wing", "Arm" + sfx, base + sx * wf * L * 0.3 * t, d, sx, lf * L * (0.8 + 0.75 * t), wf * L * 1.1, 0.05)
+        # Coverts: a shorter row over the wing roots, set a little outward and higher.
+        nc, lc, wc = spec["covert"][:3]
+        for i in range(nc):
+            t = 0.12 + 0.7 * i / max(nc - 1, 1)
+            p, _seg, _dir = _polyline(arm, t)
+            base, nrm = surf(p + Z * rm("elbow" + sfx) * 0.6, sx * rm("shoulder" + sfx))
+            base = base + nrm * wc * L * 0.08
+            d = (Y * 0.85 - Z * 0.35 + sx * 0.1)
+            card("covert", "Arm" + sfx, base, d, sx, lc * L * (0.8 + 0.3 * t), wc * L, 0.1)
+    # Tail: a horizontal lateral fan that sweeps back into a terminal plume.
+    tails = [P["pelvis"]] + [P[f"tail{i}"] for i in range(1, 6) if f"tail{i}" in P]
+    n, lf, wf = spec["tail"][:3]
+    for side, sfx in sides:
+        sx = X * side
+        for i in range(n):
+            t = 0.34 + 0.66 * i / max(n - 1, 1)
+            p, seg, tdir = _polyline(tails, t)
+            tr = max(rm(f"tail{seg + 1}"), 0.012 * L)
+            base, nrm = surf(p, sx * tr)
+            base = base - nrm * wf * L * 0.04
+            out_k = 0.55 - 0.35 * t
+            d = tdir + sx * out_k - Z * 0.04
+            card("tail", f"Tail{min(seg + 1, 5)}", base, d, Z, lf * L * (0.7 + 0.5 * t), wf * L * (1.0 + 0.4 * t), 0.04)
+    # Terminal plume: three cards off the tail tip.
+    p, seg, tdir = _polyline(tails, 0.985)
+    for k, a in enumerate((-0.35, 0.0, 0.35)):
+        d = tdir + X * a
+        card("tail", "Tail5", p - tdir * 0.02 * L, d, Z, spec["tail"][1] * L * (1.15 if k == 1 else 1.0), spec["tail"][2] * L, 0.05)
+    # Crest: a mane along the dorsal line of the neck, lying back.
+    neck = [P["chest"].lerp(P["neck_a"], 0.4), P["neck_a"], P["neck_b"], P["head_back"]]
+    n, lf, wf = spec["crest"][:3]
+    for i in range(n):
+        t = 0.0 + 0.92 * i / max(n - 1, 1)
+        p, seg, ndir = _polyline(neck, t)
+        base, nrm = surf(p, Z * rm("neck_a") * 1.2)
+        base = base - nrm * wf * L * 0.1
+        d = (-ndir * 0.9 + Z * 0.55 + Y * 0.2)
+        bone = "Neck1" if seg == 0 else ("Neck2" if seg < 2 or t < 0.85 else "Head")
+        card("crest", bone, base, d, X, lf * L * (1.15 - 0.45 * t), wf * L, 0.18)
+    # Back: two shingled rows of contour feathers over the chest and hips.
+    n, lf, wf = spec["back"][:3]
+    spine = [P["chest"], P["belly"], P["pelvis"]]
+    for side, sfx in sides:
+        for row, (xo, zo) in enumerate(((0.35, 0.92), (0.72, 0.62))):
+            for i in range(n):
+                t = (i + 0.5 * row) / n
+                p, seg, _sd = _polyline(spine, min(t, 1.0))
+                r = max(rm("chest"), rm("belly"), rm("pelvis"))
+                base, nrm = surf(p, X * side * r * xo + Z * r * zo)
+                base = base - nrm * wf * L * 0.06
+                d = (Y * 0.9 - Z * 0.3 + X * side * 0.25 * (1 + row))
+                card("back", "Chest" if seg == 0 else "Spine", base, d, nrm, lf * L, wf * L, 0.15)
+    # Thigh: feathered trousers hanging off the hip.
+    n, lf, wf = spec["thigh"][:3]
+    for side, sfx in sides:
+        hip, knee = P["hip" + sfx], P["knee" + sfx]
+        for i in range(n):
+            t = 0.15 + 0.5 * i / max(n - 1, 1)
+            a = -0.6 + 1.2 * ((i * 0.618) % 1.0)
+            p = hip.lerp(knee, t)
+            base, nrm = surf(p, X * side * rm("hip" + sfx) * 1.2 + Y * rm("hip" + sfx) * a)
+            base = base - nrm * wf * L * 0.06
+            d = (-Z * 0.85 + Y * 0.45 + X * side * 0.12)
+            card("thigh", "Thigh" + sfx, base, d, nrm, lf * L, wf * L, 0.15)
+    floor = 0.04 * L
+    out = {}
+    for (zone, bone), (bm, attrs) in groups.items():
+        for v, _t, _u in attrs:
+            v.co.z = max(v.co.z, floor)
+        tv = {v: (t, u) for v, t, u in attrs}
+        bm.verts.index_update()
+        order = [tv[v] for v in bm.verts]
+        bmesh.ops.triangulate(bm, faces=bm.faces[:])
+        obj = detail_object(f"feathers_{zone}_{bone}", bm, bone)
+        me = obj.data
+        at = me.attributes.new("fthr_t", "FLOAT", "POINT")
+        au = me.attributes.new("fthr_u", "FLOAT", "POINT")
+        for i, (t, u) in enumerate(order):
+            at.data[i].value = t
+            au.data[i].value = u
+        for poly in me.polygons:
+            poly.use_smooth = True
+        out.setdefault("feather_" + zone, []).append(obj)
+    return out
+
+
+def feather_tris(key):
+    spec = FEATHERS.get(key)
+    if not spec:
+        return 0
+    cards = sum(v[0] * (2 if z in FEATHER_SIDED else 1) for z, v in spec.items())
+    cards += spec["back"][0] * 2 * 2 - spec["back"][0] * 2  # two rows per side
+    return (cards + 3) * CARD_TRIS
+
+
 def copy_fur_weights(body):
     """Each fur clump takes the bone weights of the body vertex under its base."""
     from mathutils.kdtree import KDTree
@@ -1825,6 +2036,26 @@ def make_hide_mat(sp, sk):
             if kind == "grizzle":
                 n0 = C.noise(nodes, 60.0 / length, 2, 0.5, coord, links)
                 return C.ramp(nodes, links, n0.outputs["Fac"], [(0.5, (0, 0, 0)), (0.62, (1, 1, 1))]).outputs["Color"]
+            if kind == "neck":
+                # Raptor lane: the neck tube (chest -> skull) in its own colour, soft at the ends.
+                acc = None
+                for pt, r in sk["neck_mask"]:
+                    vm = nodes.new("ShaderNodeVectorMath")
+                    vm.operation = "DISTANCE"
+                    links.new(coord, vm.inputs[0])
+                    vm.inputs[1].default_value = tuple(pt)
+                    m = C.ramp(nodes, links, vm.outputs["Value"], [(r * 0.85, (1, 1, 1)), (r * 1.3, (0, 0, 0))]).outputs["Color"]
+                    if acc is None:
+                        acc = m
+                    else:
+                        lt = nodes.new("ShaderNodeMix")
+                        lt.data_type = "RGBA"
+                        lt.blend_type = "LIGHTEN"
+                        lt.inputs["Factor"].default_value = 1.0
+                        links.new(acc, lt.inputs["A"])
+                        links.new(m, lt.inputs["B"])
+                        acc = lt.outputs["Result"]
+                return acc
             raise ValueError(kind)
 
         # Extremities: lower legs and feet, the tail tip and the muzzle tip run darker.
@@ -2221,6 +2452,50 @@ def plume_mat(sp, length):
     return build
 
 
+def feather_mat(sp, zone):
+    """Raptor lane feather cards: root colour -> tip colour along the card (fthr_t), crossed by
+    soft bars (banded remiges and tail), a darker rachis line and darker vane edges (fthr_u), the
+    shared AO/dirt, painted key light and rim, so the cards read as layered feathers, not plates."""
+    _n, _l, _w, root, tip, bar = FEATHERS[sp["key"]][zone]
+
+    def build(nodes, links):
+        t = nodes.new("ShaderNodeAttribute")
+        t.attribute_name = "fthr_t"
+        u = nodes.new("ShaderNodeAttribute")
+        u.attribute_name = "fthr_u"
+        base = C.ramp(nodes, links, t.outputs["Fac"], [(0.0, lerp3(C.hexlin(root), (0, 0, 0), 0.2)), (0.3, C.hexlin(root)), (0.95, C.hexlin(tip))])
+        # Bars across the vane: a cosine of t, broken by world noise so neighbours do not line up.
+        coord = nodes.new("ShaderNodeTexCoord").outputs["Object"]
+        nz = C.noise(nodes, 3.0 / sp["length"], 2, 0.5, coord, links)
+        k = nodes.new("ShaderNodeMath")
+        k.operation = "MULTIPLY_ADD"
+        links.new(t.outputs["Fac"], k.inputs[0])
+        k.inputs[1].default_value = 4.0
+        links.new(nz.outputs["Fac"], k.inputs[2])
+        sn = nodes.new("ShaderNodeMath")
+        sn.operation = "SINE"
+        m6 = nodes.new("ShaderNodeMath")
+        m6.operation = "MULTIPLY"
+        m6.inputs[1].default_value = 2 * math.pi
+        links.new(k.outputs["Value"], m6.inputs[0])
+        links.new(m6.outputs["Value"], sn.inputs[0])
+        bars = C.ramp(nodes, links, sn.outputs["Value"], [(-0.2, (1, 1, 1)), (0.5, (1 - bar,) * 3)])
+        col = multiply(nodes, links, base.outputs["Color"], bars.outputs["Color"])
+        au = nodes.new("ShaderNodeMath")
+        au.operation = "ABSOLUTE"
+        links.new(u.outputs["Fac"], au.inputs[0])
+        edge = C.ramp(nodes, links, au.outputs["Value"], [(0.0, (0.8, 0.8, 0.8)), (0.12, (1.05, 1.05, 1.03)), (0.7, (1, 1, 1)), (1.0, (0.78, 0.78, 0.78))])
+        col = multiply(nodes, links, col, edge.outputs["Color"])
+        col = occlusion(nodes, links, col, sp["length"], sp, fur_ok=False)
+        col = paint_light(nodes, links, col, None)
+        col = rim_light(nodes, links, col, nodes.new("ShaderNodeNewGeometry").outputs["Normal"], sp)
+        r = nodes.new("ShaderNodeValue")
+        r.outputs[0].default_value = 0.85
+        return col, r.outputs[0], None
+
+    return build
+
+
 def flat_mat(hexcol, rough):
     def build(nodes, links):
         c = nodes.new("ShaderNodeRGB")
@@ -2408,7 +2683,10 @@ def build_geometry(sp, raw, s, name, body_tris):
             radii[n] = (ra, rb)
     sk["eye_r_abs"] = eye_radius(sp, sk)
     sk["hip_z"] = points["pelvis"].z
-    fur_tris = sum(c * CLUMP_TRIS for t in (FUR, PLUME) for _z, c, _l, _w in t.get(sp["key"], []))
+    fur_tris = sum(c * CLUMP_TRIS for t in (FUR, PLUME) for _z, c, _l, _w in t.get(sp["key"], [])) + feather_tris(sp["key"])
+    if "neck_a" in points:
+        nk = [points["chest"].lerp(points["neck_a"], 0.5), points["neck_a"], points["neck_b"], points["head_back"]] if "neck_b" in points else [points["neck_a"], points["head_back"]]
+        sk["neck_mask"] = [(nk[i].lerp(nk[i + 1], u), max(max(radii[k]) for k in ("neck_a", "head_back")) * 1.5) for i in range(len(nk) - 1) for u in (0.0, 0.5)] + [(nk[-1], max(radii["head_back"]) * 1.2)]
     sk["head_c"] = points["head_back"].lerp(points["nose"], 0.45)
     sk["head_l"] = (points["nose"] - points["head_back"]).length
     tail_pts = [points[k] for k in points if k.startswith("tail")]
@@ -2422,6 +2700,7 @@ def build_geometry(sp, raw, s, name, body_tris):
     plume = build_fur(sp, sk, points, radii, high, PLUME)
     if plume is not None:
         det["plume"] = [plume]
+    det.update(build_feathers(sp, sk, points, radii, bvh))
     bpy.data.objects.remove(high)
     return body, det, sk, points
 
@@ -2480,6 +2759,8 @@ def main():
         "skin": hide,
         "plume": C.material("plume", plume_mat(sp, sp["length"])) if "plume" in sp and key not in PAINTED_PLUME else hide,
     }
+    for zone in FEATHERS.get(key, {}):
+        mats["feather_" + zone] = C.material("feather_" + zone, feather_mat(sp, zone))
     parts = [body]
     for kind, objs in det.items():
         for o in objs:
