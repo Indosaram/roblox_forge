@@ -25,11 +25,15 @@ local function harness(locale: string, reply: (string, any) -> any): any
 		end
 		return value
 	end
+	local destroyed: any = nil
 	local function node(): any
 		local raw: any = {
 			Activated = signal(),
 			Destroy = function(self)
 				self.destroyed = true
+				if destroyed then
+					destroyed()
+				end
 			end,
 		}
 		return setmetatable({}, {
@@ -53,6 +57,10 @@ local function harness(locale: string, reply: (string, any) -> any): any
 	local ctx: any = {
 		locale = locale,
 		names = {},
+		icons = require("./ItemIcons").new(
+			Content,
+			luau.load(fs.readFile("games/robango-island/src/shared/Assets.luau"))()
+		),
 		instance = {
 			new = function(class: string): any
 				local value = node()
@@ -129,7 +137,17 @@ local function harness(locale: string, reply: (string, any) -> any): any
 			return "station-1"
 		end,
 	})
-	local api = { sends = sends, docks = docks, mounted = mounted, titles = roots }
+	local api: any = { sends = sends, docks = docks, mounted = mounted, titles = roots, scrolls = scrolls }
+	-- Engine clamp: a ScrollingFrame's CanvasPosition never exceeds the canvas its live rows fill.
+	function api.clampScroll(id: string)
+		destroyed = function()
+			local live = 0
+			for _, row in scrolls[id].children or {} do
+				live += if row.destroyed then 0 else 1
+			end
+			scrolls[id].CanvasPosition = math.min(scrolls[id].CanvasPosition or 0, live * Sheet.ROW)
+		end
+	end
 	function api.push(extensions: any, packet: any)
 		listener(extensions, packet)
 	end
@@ -336,16 +354,7 @@ return {
 			sent.args[2].plot == "a" and sent.args[2].crop == "apple" and sent.args[2].seedItem == "none",
 			"first crop"
 		)
-		ui.press("farm", "Crop-1")
-		local cornIndex = 0
-		for index, crop in require("./FarmCraftModel").crops(Content) do
-			if crop.id == "corn" then
-				cornIndex = index
-			end
-		end
-		for _ = 3, cornIndex do
-			ui.press("farm", "Crop-1")
-		end
+		ui.press("farm", "Seed-1-corn")
 		ui.press("farm", "Plant-1")
 		assert(ui.sends[#ui.sends].args[2].crop == "corn" and ui.sends[#ui.sends].args[2].seedItem == "s", "seed stack")
 		ui.push({
@@ -364,6 +373,82 @@ return {
 		ui.mounted.sheets.farm.render()
 		ui.press("farm", "Harvest-1")
 		assert(ui.sends[#ui.sends].action == "survival-coop:home-harvest", "harvest sent")
+	end,
+	["sheets4: an empty plot invites planting with a seed tray of icons and counts and one Plant action"] = function()
+		local ui = harness("ko-kr", function(): any
+			return { ok = true }
+		end)
+		ui.open("farm")
+		ui.push({ home = home({}, { s = item("s", "corn-seed", 3), w = item("w", "water", 2) }) }, packet({}))
+		local crops = require("./FarmCraftModel").crops(Content)
+		assert(#crops >= 4, "crop list")
+		for _, crop in crops do
+			local chip = assert(ui.find("farm", "Seed-1-" .. crop.id), "seed chip " .. crop.id)
+			assert(chip.seed == crop.seed, crop.id .. " chip names its seed")
+			assert(chip.icon and string.match(chip.icon, "^rbxassetid://%d+$"), crop.id .. " seed icon")
+			assert(chip.Text == (if crop.id == "corn" then "3" else "0"), crop.id .. " count " .. tostring(chip.Text))
+			assert(chip.selected == (crop.id == crops[1].id), crop.id .. " selection")
+		end
+		assert(ui.find("farm", "Crop-1") == nil, "no cycling crop button; the tray picks")
+		ui.press("farm", "Seed-1-corn")
+		assert(
+			ui.find("farm", "Seed-1-corn").selected and not ui.find("farm", "Seed-1-" .. crops[1].id).selected,
+			"pick"
+		)
+		assert(ui.has("farm", Text.text("ko-kr", "farm_pick_seed", "corn")), "picked seed named on the card")
+		ui.press("farm", "Plant-1")
+		local sent = ui.sends[#ui.sends]
+		assert(
+			sent.action == "survival-coop:home-plant" and sent.args[2].crop == "corn" and sent.args[2].seedItem == "s",
+			"plant"
+		)
+	end,
+	["sheets4: a growing plot shows its growth stage and time left, a ripe one the ripe stage and Harvest"] = function()
+		local ui = harness("ko-kr", function(): any
+			return { ok = true }
+		end)
+		ui.open("farm")
+		local Model = require("./FarmCraftModel")
+		local function stage(now: number): any
+			ui.setNow(now)
+			ui.mounted.sheets.farm.render()
+			for _, row in ui.rows("farm") do
+				if row.Name == "Plot-1-Stage" then
+					return row.children[1]
+				end
+			end
+			return nil
+		end
+		ui.push({
+			home = home({ a = { crop = "corn", plantedAt = 0, readyAt = 600, quantity = 3, sequence = 1 } }, {}),
+		}, packet({}))
+		local cases: { { any } } = { { 60, 1, "9:00" }, { 300, 2, "5:00" }, { 530, 3, "1:10" } }
+		for _, case in cases do
+			local line = assert(stage(case[1]), "stage line at " .. case[1])
+			assert(line.stage == case[2], "stage " .. tostring(line.stage) .. " at " .. case[1])
+			assert(
+				line.Text == Text.text("ko-kr", Model.STAGES[case[2]]) .. "  " .. case[3],
+				"stage + time: " .. line.Text
+			)
+			assert(ui.find("farm", "Fertilize-1") and not ui.find("farm", "Harvest-1"), "growing actions")
+		end
+		local ripe = assert(stage(600), "ripe line")
+		assert(ripe.stage == 4 and ripe.Text == Text.text("ko-kr", "farm_stage_ripe"), "ripe stage, no clock")
+		assert(ui.find("farm", "Harvest-1") and not ui.find("farm", "Fertilize-1"), "ripe: one Harvest")
+	end,
+	["sheets4: a state push keeps the farm sheet's scroll position"] = function()
+		local ui = harness("en-us", refused("x"))
+		ui.open("farm")
+		ui.clampScroll("farm")
+		local state = home({}, { s = item("s", "corn-seed", 2) })
+		ui.push({ home = state }, packet({}))
+		local scroll = ui.scrolls.farm
+		scroll.CanvasPosition = 4 * Sheet.ROW
+		ui.push({ home = state }, packet({}))
+		assert(
+			scroll.CanvasPosition == 4 * Sheet.ROW,
+			"scroll kept across refresh: " .. tostring(scroll.CanvasPosition)
+		)
 	end,
 	["sprayer selects plots in radius and shows per-plot results"] = function()
 		local ui = harness("ko-kr", function(action: string): any

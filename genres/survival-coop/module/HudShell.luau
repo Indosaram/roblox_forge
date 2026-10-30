@@ -1666,6 +1666,10 @@ function M.skinSheet(frame: any, options: SkinOptions)
 					fit.MinTextSize = math.min(fit.MaxTextSize, math.max(fit.MinTextSize, options.body))
 				end
 			end
+			if class == "TextLabel" and item:GetAttribute("ForgeShellKeep") == true then
+				-- sheets4: build-card names and green/red material counts keep their own ink (size floor only).
+				continue
+			end
 			if stroke and class == "TextLabel" then
 				-- Ink on parchment needs no halo.
 				stroke.Transparency = 1

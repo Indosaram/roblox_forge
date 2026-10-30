@@ -1953,7 +1953,7 @@ hud.Z-,original,agent:hephaestus/p97,2026-10-24
 hud.Z+,original,agent:hephaestus/p97,2026-10-24
 hud.place,original,agent:hephaestus/p97,2026-10-24
 hud.preview,original,agent:hephaestus/p97,2026-10-24
-hud.buildHint,original,agent:hephaestus/p97,2026-10-24
+hud.buildHint,original,agent:hephaestus/sheets4,2026-10-30
 hud.select,original,agent:hephaestus/p97,2026-10-24
 hud.TRANSPORT_FAILED,original,agent:hephaestus/p97,2026-10-24
 hud.HANDSHAKE_FAILED,original,agent:hephaestus/p97,2026-10-24
@@ -3148,3 +3148,14 @@ cli.travel.isle.onboarding,original,agent:hephaestus/night-R20,2026-10-30
 cli.travel.isle.town,original,agent:hephaestus/night-R20,2026-10-30
 cli.travel.isle.brawl,original,agent:hephaestus/night-R20,2026-10-30
 cli.travel.isle.team-outpost,original,agent:hephaestus/night-R20,2026-10-30
+hud.build_action,original,agent:hephaestus/sheets4,2026-10-30
+hud.build_group_shelter,original,agent:hephaestus/sheets4,2026-10-30
+hud.build_group_storage,original,agent:hephaestus/sheets4,2026-10-30
+hud.build_group_station,original,agent:hephaestus/sheets4,2026-10-30
+hud.build_group_farm,original,agent:hephaestus/sheets4,2026-10-30
+hud.build_group_deco,original,agent:hephaestus/sheets4,2026-10-30
+fct.farm_pick_seed,original,agent:hephaestus/sheets4,2026-10-30
+fct.farm_stage_seed,original,agent:hephaestus/sheets4,2026-10-30
+fct.farm_stage_sprout,original,agent:hephaestus/sheets4,2026-10-30
+fct.farm_stage_grow,original,agent:hephaestus/sheets4,2026-10-30
+fct.farm_stage_ripe,original,agent:hephaestus/sheets4,2026-10-30

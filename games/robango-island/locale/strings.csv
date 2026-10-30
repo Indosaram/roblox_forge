@@ -1953,7 +1953,7 @@ hud.Z-,Move forward,genre text hud,Move forward,앞으로 이동
 hud.Z+,Move back,genre text hud,Move back,뒤로 이동
 hud.place,Place,genre text hud,Place,설치
 hud.preview,Preview only - server validates placement,genre text hud,Preview only - server validates placement,미리보기 - 서버가 설치 위치를 확인해요
-hud.buildHint,Tap or point at ground{{; Y rotates}}; reserve. Uses shared storage.,genre text hud,Tap or point at ground{{; Y rotates}}; reserve. Uses shared storage.,바닥을 터치하고{{ Y로 회전한 뒤}} 예약하세요. 공용 창고 재료를 써요.
+hud.buildHint,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}}",genre text hud,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}}","건설 후 바닥을 터치하세요. 초록은 설치 가능, 빨강은 막힘.{{ Y로 회전.}}"
 hud.select,Select an item for details,genre text hud,Select an item for details,아이템을 선택하면 정보가 나와요
 hud.TRANSPORT_FAILED,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,genre text hud,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,연결 상태가 불확실해요. 같은 요청을 재시도하세요.
 hud.HANDSHAKE_FAILED,"Supplies are not connected. Refresh, then try again.",genre text hud,"Supplies are not connected. Refresh, then try again.",보급품 연결이 안 됐어요. 새로 고친 뒤 다시 시도하세요.
@@ -3148,3 +3148,14 @@ cli.travel.isle.onboarding,Castaway Shore,client travel screen island name,Casta
 cli.travel.isle.town,Saltmeadow town,client travel screen island name,Saltmeadow town,소금풀밭 마을
 cli.travel.isle.brawl,Brawl arena,client travel screen island name,Brawl arena,난투장
 cli.travel.isle.team-outpost,Team outpost,client travel screen island name,Team outpost,팀 전초기지
+hud.build_action,Build,genre text hud,Build,건설
+hud.build_group_shelter,Shelter,genre text hud,Shelter,쉼터
+hud.build_group_storage,Storage,genre text hud,Storage,보관
+hud.build_group_station,Stations,genre text hud,Stations,제작 시설
+hud.build_group_farm,Farm,genre text hud,Farm,농장
+hud.build_group_deco,Deco,genre text hud,Deco,장식
+fct.farm_pick_seed,Seed: %s,genre text fct,Seed: %s,씨앗: %s
+fct.farm_stage_seed,Seeded,genre text fct,Seeded,씨앗
+fct.farm_stage_sprout,Sprouting,genre text fct,Sprouting,새싹
+fct.farm_stage_grow,Growing,genre text fct,Growing,자라는 중
+fct.farm_stage_ripe,Ripe - harvest now,genre text fct,Ripe - harvest now,다 익었어요 - 수확하세요

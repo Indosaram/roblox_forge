@@ -7,6 +7,79 @@ local M = {}
 
 -- The CoreGui tool hotbar (bottom 70px) wins input over every PlayerGui DisplayOrder.
 M.PLACEMENT_BOTTOM = 152
+
+-- sheets4 build sheet (Durango R06-3 Installation / Housing / Storage / Workbench / Farmland tabs):
+-- every structure sits in one group tab. A definition's own `group` wins; then the pack ids below;
+-- then floors / walls / roofs are shelter and any other station is a crafting station.
+M.BUILD_GROUPS = { "shelter", "storage", "station", "farm", "deco" }
+M.BUILD_GROUP_ICON = {
+	shelter = "cat.building",
+	storage = "capacity",
+	station = "craft",
+	farm = "cat.farm",
+	deco = "favorite",
+} :: { [string]: string }
+local BUILD_GROUP: { [string]: string } = {
+	tent = "shelter",
+	bed = "shelter",
+	["clan-hall"] = "shelter",
+	door = "shelter",
+	storage = "storage",
+	refrigerator = "storage",
+	["animal-pen"] = "farm",
+	well = "farm",
+	pillar = "deco",
+	stairs = "deco",
+}
+-- First builds lead their tab (v61 order: floor, campfire, workbench, storage, roof).
+local BUILD_PRIORITY: { [string]: number } = { floor = 1, campfire = 2, workbench = 3, storage = 4, roof = 5 }
+
+function M.buildGroup(definition: any): string
+	if type(definition.group) == "string" and table.find(M.BUILD_GROUPS, definition.group) then
+		return definition.group
+	end
+	local id = definition.id
+	if BUILD_GROUP[id] then
+		return BUILD_GROUP[id]
+	end
+	if string.find(id, "floor$") or string.find(id, "wall$") or string.find(id, "roof$") then
+		return "shelter"
+	end
+	return if definition.station then "station" else "shelter"
+end
+
+-- Structures of one group in card order (priority, then tier, then id).
+function M.buildList(structures: { any }, group: string): { any }
+	local list = {}
+	for _, definition in structures do
+		if M.buildGroup(definition) == group then
+			table.insert(list, definition)
+		end
+	end
+	table.sort(list, function(a: any, b: any)
+		local pa, pb = BUILD_PRIORITY[a.id] or 10, BUILD_PRIORITY[b.id] or 10
+		if pa ~= pb then
+			return pa < pb
+		end
+		if (a.tier or 0) ~= (b.tier or 0) then
+			return (a.tier or 0) < (b.tier or 0)
+		end
+		return a.id < b.id
+	end)
+	return list
+end
+
+-- Build card geometry in card px: 44 px art and a 2-line name, one 26 px material chip per cost
+-- (30 px pitch), then the 40 px Build button. Two columns from a 540 px sheet (800x360 phone,
+-- 1280x720 PC, 932 px phones) keep a chip's material name at least ~170 px wide; else one column.
+M.BUILD_CARD = table.freeze({ pad = 8, art = 44, chip = 26, pitch = 30, button = 40, chipTop = 58, count = 44 })
+function M.buildCardHeight(rows: number): number
+	local c = M.BUILD_CARD
+	return c.chipTop + rows * c.pitch + 2 + c.button + c.pad
+end
+function M.buildColumns(sheetWidth: number): number
+	return if sheetWidth >= 540 then 2 else 1
+end
 -- Success line (SurvivalHUDLocale key) shown after a confirmed action.
 M.SUCCESS = { ["survival-coop:item-repair"] = "repaired" } :: { [string]: string }
 -- Transient refusals re-sent automatically, one second apart, before only the Retry button is left.

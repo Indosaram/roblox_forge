@@ -1538,6 +1538,134 @@ return {
 			assert(#h.errors == 0, table.concat(h.errors, "\n"))
 		end
 	end,
+	-- sheets4 (phone v61 build sheet 3/5): cards grouped by tab (shelter, storage, stations, farm, deco),
+	-- each with kit art, material chips whose have/need count is green when covered and red when short,
+	-- one Build button that starts placement, and the green / red footprint hint. Fits 800x360 and 1280x720.
+	["sheets4: build cards sit in group tabs with art, green/red material chips and one Build button"] = function()
+		local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
+		local packet = {
+			revision = 1,
+			durable = { actions = { "survival-coop:settlement-reserve" }, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					progression = { level = 3, sp = 0, xp = 0, paid = {}, version = 1 },
+					inventory = {},
+					warehouse = {
+						kind = "warehouse",
+						items = {
+							w = {
+								itemId = "w",
+								catalogId = "wood",
+								quantity = 6,
+								qualityMilli = 1000,
+								durabilityMilli = 0,
+							},
+						},
+						reservations = {},
+					},
+				},
+				survivalExtensions = {},
+			},
+		}
+		local content: any = require("./src/shared/SurvivalContent")
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3], realHud = true, locale = "ko-kr" })
+			h.packet(packet)
+			local _, frame = sheetParts(h)
+			h.hud.open("build")
+			h.step()
+			local scroll = assert(frame:FindFirstChild("Content"), "sheet scroll")
+			local tabs = assert(scroll:FindFirstChild("BuildTabs"), "build tabs at " .. at)
+			local cards = assert(scroll:FindFirstChild("BuildCards"), "build cards")
+			local seen = {}
+			for _, group in Model.BUILD_GROUPS do
+				local tab = assert(tabs:FindFirstChild("BuildTab-" .. group), group .. " tab at " .. at)
+				assert(tab.Visible and tab.Text ~= "", group .. " tab label")
+				h.click(tab)
+				local shown = {}
+				for _, card in cards:GetChildren() do
+					if card.ClassName == "Frame" and card.Visible then
+						table.insert(shown, card)
+					end
+				end
+				local expected = Model.buildList(content.structures, group)
+				assert(
+					#shown == #expected and #shown > 0,
+					string.format("%s: %d cards, want %d", group, #shown, #expected)
+				)
+				for _, card in shown do
+					local id = string.sub(card.Name, 11)
+					assert(not seen[id], id .. " in two tabs")
+					seen[id] = true
+					assert(Model.buildGroup({ id = id, station = false }) ~= nil, id)
+					local art = card:FindFirstChild("ArtBed") and card.ArtBed:FindFirstChild("IconFallback")
+					local image = art and art:FindFirstChild("Asset")
+					assert(image and string.match(image.Image, "^rbxassetid://%d+$"), id .. " card art at " .. at)
+					local builds = 0
+					for _, child in card:GetChildren() do
+						if child.ClassName == "TextButton" then
+							builds += 1
+							assert(
+								child.Name == "Structure-" .. id and child.Text == "건설",
+								id .. " build button " .. child.Text
+							)
+							local cell = cards:FindFirstChildOfClass("UIGridLayout").CellSize
+							local bottom = child.Position.Y.Scale * cell.Y.Offset
+								+ child.Position.Y.Offset
+								+ child.Size.Y.Offset
+							assert(bottom <= cell.Y.Offset and child.Size.Y.Offset >= 40, id .. " build inside card")
+						elseif string.sub(child.Name, 1, 5) == "Cost-" then
+							local count = assert(child:FindFirstChild("RowCount"), "count")
+							local have, need = string.match(count.Text, "^(%d+)/(%d+)$")
+							assert(have and need, id .. " have/need " .. count.Text)
+							local green = tonumber(have) >= tonumber(need)
+							local c = count.TextColor3
+							if green then
+								assert(c.G > c.R, id .. " covered count is green at " .. at)
+							else
+								assert(c.R > c.G, id .. " short count is red at " .. at)
+							end
+							local name = assert(child:FindFirstChild("RowName"), "name")
+							local nr, cr = h.rect(name), h.rect(count)
+							assert(nr.x + nr.width <= cr.x + 0.5, id .. " name clears count at " .. at)
+							assert(cr.x + cr.width <= h.rect(child).x + h.rect(child).width + 0.5, "count inside chip")
+							assert(name.TextSize >= 14 and count.TextSize >= 14, "chip text floor")
+						end
+					end
+					assert(builds == 1, id .. " has " .. builds .. " buttons at " .. at)
+					local grid = cards:FindFirstChildOfClass("UIGridLayout")
+					local columns = math.floor(1 / grid.CellSize.X.Scale + 0.5)
+					local width = h.rect(cards).width
+					local cellWidth = grid.CellSize.X.Scale * width + grid.CellSize.X.Offset
+					assert(
+						columns * cellWidth + (columns - 1) * grid.CellPadding.X.Offset <= width + 0.5,
+						id .. " cards clipped sideways at " .. at
+					)
+				end
+			end
+			for _, definition in content.structures do
+				assert(seen[definition.id], definition.id .. " is in no tab")
+			end
+			-- Wood 6/4 covers the campfire: green, ready badge; the hint names the green/red footprint.
+			h.click(tabs:FindFirstChild("BuildTab-station"))
+			local camp = assert(cards:FindFirstChild("BuildCard-campfire"), "campfire card")
+			assert(camp:FindFirstChild("ReadyBadge").Visible, "campfire ready with 6 wood")
+			local hint = false
+			for _, item in scroll:GetChildren() do
+				hint = hint
+					or (
+						item.ClassName == "TextLabel"
+						and item.Visible
+						and string.find(item.Text, "초록", 1, true) ~= nil
+					)
+			end
+			assert(hint, "placement preview hint at " .. at)
+			h.click(camp:FindFirstChild("Structure-campfire"))
+			assert(not frame.Visible, "Build starts placement (sheet yields to the placement bar) at " .. at)
+			assert(#h.errors == 0, table.concat(h.errors, "; "))
+		end
+	end,
 	["L9: the down panel renders its cards with pack art and no script error"] = function()
 		local h = harness({ width = 800, height = 360, touch = true })
 		h.publish({ rescue = { down = true, options = { "rift", "camp", "rescue" }, flares = {} } })

@@ -39,25 +39,35 @@ function M.mount(ctx: any, hub: any): any
 					else t("farm_growing", cropName, Text.clock(plot.remaining))
 			)
 			-- sheets3: one card per plot with its crop (or the picked seed) art on a soil bed, the
-			-- growth bar and the plot's actions (crop picker + Plant, fertilizer + Fertilize, Harvest).
+			-- growth bar and the plot's actions. sheets4: the growth is a 4-step stage bar with the stage
+			-- name and a clock pill; an empty plot invites planting with the seed tray (icon + count per
+			-- seed, the picked one rimmed) and one Plant button.
 			if not planted then
 				local seeds, seedItem = Model.count(home.storage, crop.seed)
 				local water = Model.count(home.storage, "water")
+				local tray = {}
+				for _, entry in Model.seedTray(crops, home.storage) do
+					table.insert(tray, {
+						name = "Seed-" .. index .. "-" .. entry.crop,
+						catalogId = entry.seed,
+						count = entry.count,
+						selected = entry.index == cropIndex,
+						click = function()
+							cropIndex = entry.index
+							sheet.render()
+						end,
+					})
+				end
 				sheet.plot({
 					name = "Plot-" .. index,
 					catalogId = crop.seed,
 					text = text,
 					detail = t("farm_cost", seeds, water),
-					fraction = 0,
+					stage = 0,
+					stageText = t("farm_pick_seed", hub.name(crop.id)),
+					empty = true,
+					seeds = tray,
 					cells = {
-						{
-							name = "Crop-" .. index,
-							text = hub.name(crop.id),
-							click = function()
-								cropIndex = cropIndex % #crops + 1
-								sheet.render()
-							end,
-						},
 						{
 							name = "Plant-" .. index,
 							text = t("farm_plant"),
@@ -73,12 +83,15 @@ function M.mount(ctx: any, hub: any): any
 			else
 				local span = math.max(1, (planted.readyAt or 0) - (planted.plantedAt or 0))
 				local fraction = if plot.ready then 1 else 1 - plot.remaining / span
+				local stage = Model.stage(fraction, plot.ready)
 				sheet.plot({
 					name = "Plot-" .. index,
 					catalogId = planted.crop,
 					text = text,
 					detail = string.format("%s x%d", cropName, planted.quantity or 1),
-					fraction = fraction,
+					stage = stage,
+					stageText = t(Model.STAGES[stage]),
+					time = if plot.ready then nil else Text.clock(plot.remaining),
 					ready = plot.ready,
 					cells = if plot.ready
 						then {

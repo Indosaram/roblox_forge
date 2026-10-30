@@ -409,6 +409,18 @@ function M.start(options: Options)
 	local allRecipes = false
 	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
+	-- sheets4: build group tabs above the cards (Model.BUILD_GROUPS), scrolling sideways on a phone.
+	local buildGroup = "shelter"
+	local buildTabs = Instance.new("ScrollingFrame")
+	buildTabs.Name, buildTabs.BackgroundTransparency, buildTabs.BorderSizePixel, buildTabs.Visible =
+		"BuildTabs", 1, 0, false
+	buildTabs.Size, buildTabs.ScrollingDirection = UDim2.new(1, -8, 0, 40), Enum.ScrollingDirection.X
+	buildTabs.ScrollBarThickness, buildTabs.CanvasSize, buildTabs.AutomaticCanvasSize =
+		3, UDim2.new(), Enum.AutomaticSize.X
+	buildTabs.Parent = sheet.scroll
+	local tabFlow = Instance.new("UIListLayout")
+	tabFlow.FillDirection, tabFlow.Padding, tabFlow.SortOrder, tabFlow.Parent =
+		Enum.FillDirection.Horizontal, UDim.new(0, 6), Enum.SortOrder.LayoutOrder, buildTabs
 	-- Skills sheet (sheets3, Durango R06-3): a compact level / SP / XP strip in the sheet header, then
 	-- a 2-column category grid left and the selected category's next node right (Learn at its bottom),
 	-- so rows are on screen at 800x360 and 1280x720. The art per skill category is { resolver, id }.
@@ -556,16 +568,14 @@ function M.start(options: Options)
 	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
 		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
 	local function fitBuildCards()
-		-- U7: three columns from 560 px (the 800x360 phone sheet is ~590 wide), a 46 px art row.
-		local columns = if sheet.frame.AbsoluteSize.X >= 560
-			then 3
-			elseif sheet.frame.AbsoluteSize.X >= 400 then 2
-			else 1
+		-- sheets4: 2 columns from 380 px (the 800x360 phone and the 1280x720 PC sheet), cards as tall as
+		-- the shown group's longest material list (Model.buildCardHeight).
+		local columns = Model.buildColumns(sheet.frame.AbsoluteSize.X)
 		local rows = 1
-		for _, definition in content.structures do
+		for _, definition in Model.buildList(content.structures, buildGroup) do
 			rows = math.max(rows, #definition.cost)
 		end
-		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 48 + rows * 42)
+		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, Model.buildCardHeight(rows))
 	end
 	sheet.frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitBuildCards)
 	fitBuildCards()
@@ -1353,7 +1363,7 @@ function M.start(options: Options)
 			currency.Text = string.format(t("coins"), tonumber(model.snapshot.balance) or 0)
 		end
 		fitPanes()
-		buildCards.Visible = section == "build"
+		buildCards.Visible, buildTabs.Visible = section == "build", section == "build"
 		skillHead.Visible, skillBody.Visible = false, false
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
@@ -1921,78 +1931,205 @@ function M.start(options: Options)
 			end
 			renderJobs()
 		elseif section == "build" then
-			label(t("buildHint"), 36)
-			buildCards.LayoutOrder = controls.order()
-			local STRUCTURE_PRIORITY: { [string]: number } = {
-				["floor"] = 1,
-				["campfire"] = 2,
-				["workbench"] = 3,
-				["storage"] = 4,
-				["roof"] = 5,
-			}
-			local orderedStructures: { any } = table.clone(options.content.structures)
-			table.sort(orderedStructures, function(a: any, b: any)
-				local pa = STRUCTURE_PRIORITY[a.id] or 10
-				local pb = STRUCTURE_PRIORITY[b.id] or 10
-				if pa ~= pb then
-					return pa < pb
+			-- sheets4 (Durango R06-3 / R12-2): group tabs (shelter, storage, stations, farm, deco), cards
+			-- with the kit art, the name, one chip per material (icon, name, have/need in green or red)
+			-- and one Build button; the hint line says how placing works (green / red footprint).
+			local groups: { string } = {}
+			for _, group in Model.BUILD_GROUPS do
+				if #Model.buildList(options.content.structures, group) > 0 then
+					table.insert(groups, group)
 				end
-				return a.id < b.id
-			end)
-			for _, definition in orderedStructures do
+			end
+			if not table.find(groups, buildGroup) then
+				buildGroup = groups[1] or "shelter"
+			end
+			buildTabs.LayoutOrder = controls.order()
+			for index, group in groups do
+				local tab: any = buildTabs:FindFirstChild("BuildTab-" .. group)
+				if not tab then
+					tab = Components.button(theme, {
+						text = "",
+						size = UDim2.fromOffset(96, 36),
+						parent = buildTabs,
+						onClick = function()
+							buildGroup = group
+							sheet.scroll.CanvasPosition = Vector2.zero
+							render()
+						end,
+					})
+					tab.Name = "BuildTab-" .. group
+				end
+				tab.LayoutOrder, tab.Text, tab.TextScaled, tab.TextWrapped =
+					index, t("build_group_" .. group), false, false
+				tab.TextSize, tab.TextXAlignment = 14, Enum.TextXAlignment.Left
+				local pad: any = tab:FindFirstChild("TabPad") or Instance.new("UIPadding")
+				pad.Name, pad.PaddingLeft, pad.PaddingRight, pad.Parent = "TabPad", UDim.new(0, 30), UDim.new(0, 6), tab
+				local glyph = if options.icons then options.icons.ui(Model.BUILD_GROUP_ICON[group]) else nil
+				local mark = IconFallback.mount(
+					tab,
+					"building",
+					UDim2.fromOffset(22, 22),
+					UDim2.new(0, -24, 0.5, -11),
+					glyph and glyph.image
+				)
+				mark.BackgroundTransparency = 1
+				tab.Size = UDim2.fromOffset(36 + math.max(40, #tab.Text * 4), 36)
+				panelSelected[tab] = group == buildGroup
+			end
+			for _, tab: any in buildTabs:GetChildren() do
+				if tab:IsA("GuiButton") then
+					tab.Visible = table.find(groups, string.sub(tab.Name, 10)) ~= nil
+				end
+			end
+			label(t("buildHint"), 40)
+			buildCards.LayoutOrder = controls.order()
+			local listed = Model.buildList(options.content.structures, buildGroup)
+			local keep: { [Instance]: boolean } = {}
+			for cardIndex, definition in listed do
 				controls.parent = buildCards
-				local card = button("Structure-" .. definition.id, "", function()
-					structureId, ghostLocked = definition.id, false
-					focusBottom = "BuildReserve-" .. definition.id
-					render()
-				end, true)
+				local card: any = buildCards:FindFirstChild("BuildCard-" .. definition.id)
+				if not card then
+					card = Instance.new("Frame")
+					card.Name, card.BorderSizePixel = "BuildCard-" .. definition.id, 0
+					local corner = Instance.new("UICorner")
+					corner.CornerRadius, corner.Parent = UDim.new(0, 10), card
+					card.Parent = buildCards
+				end
+				keep[card] = true
+				card.LayoutOrder, card.Visible = cardIndex, true
+				card.BackgroundColor3, card.BackgroundTransparency = Color3.fromRGB(222, 208, 178), 0
 				-- The structure's kit art (item.icon.<id>-kit), else the build icon; the glyph without either.
 				local kit = if options.icons then options.icons.item(definition.id .. "-kit") else nil
+				local own = if options.icons then options.icons.item(definition.id) else nil
 				local art = if kit and kit.image
 					then kit.image
+					elseif own and own.image then own.image
 					elseif options.icons then options.icons.ui("build").image
 					else nil
-				-- U7: kit art (40 px since sheets3, so a whole card fits the 800x360 sheet under the hint), a bold
-				-- name beside it, a ready tick and rim when storage covers it.
-				IconFallback.mount(card, "building", UDim2.fromOffset(40, 40), UDim2.fromOffset(6, 3), art)
-				local title = card:FindFirstChild("StructureName")
-					or Components.label(
-						theme,
-						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -80, 0, 44) }
-					)
-				title.Name, title.Text = "StructureName", name(definition.id)
-				title.Size, title.Position = UDim2.new(1, -80, 0, 44), UDim2.fromOffset(52, 1)
-				title.TextScaled, title.TextWrapped, title.Font = true, true, Enum.Font.BuilderSansBold
-				fitText(title)
+				local C = Model.BUILD_CARD
+				local bed: any = card:FindFirstChild("ArtBed") or Instance.new("Frame")
+				bed.Name, bed.BorderSizePixel, bed.BackgroundColor3 = "ArtBed", 0, Color3.fromRGB(92, 66, 44)
+				bed.Position, bed.Size = UDim2.fromOffset(C.pad, C.pad), UDim2.fromOffset(C.art, C.art)
+				if not bed:FindFirstChild("Round") then
+					local r = Instance.new("UICorner")
+					r.Name, r.CornerRadius, r.Parent = "Round", UDim.new(0, 8), bed
+				end
+				bed.Parent = card
+				IconFallback.mount(bed, "building", UDim2.fromOffset(C.art - 6, C.art - 6), UDim2.fromOffset(3, 3), art)
+				local title: any = card:FindFirstChild("StructureName") or Instance.new("TextLabel")
+				title.Name, title.Text, title.BackgroundTransparency = "StructureName", name(definition.id), 1
+				title.Font, title.TextSize, title.TextWrapped = Enum.Font.BuilderSansBold, 15, true
+				title.TextScaled, title.TextXAlignment = false, Enum.TextXAlignment.Left
+				title.TextYAlignment, title.TextTruncate = Enum.TextYAlignment.Center, Enum.TextTruncate.AtEnd
+				title.TextColor3 = Color3.fromRGB(38, 30, 24)
+				title.Position = UDim2.fromOffset(C.pad + C.art + 8, C.pad)
+				title.Size = UDim2.new(1, -(C.pad + C.art + 8) - 30, 0, C.art)
+				title:SetAttribute("ForgeShellKeep", true)
+				title.Parent = card
 				local ready = true
-				for index, cost in Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost }) do
-					local chip = materialRow(cost.id, cost.available, cost.needed, card)
-					chip.Position = UDim2.fromOffset(4, 46 + (index - 1) * 42)
-					chip.BackgroundTransparency = 0.25
-					-- sheets3: the name takes the chip's full width on its own line (it wrapped into a cut second
-					-- line on the phone) and the have/need count sits right-aligned on the line under it.
-					local rowName, rowCount = chip:FindFirstChild("RowName"), chip:FindFirstChild("RowCount")
-					if rowName and rowCount then
-						rowName.Size, rowName.Position = UDim2.new(1, -4, 0, 20), UDim2.fromOffset(0, 1)
-						rowCount.Size, rowCount.Position = UDim2.new(1, -4, 0, 18), UDim2.fromOffset(0, 20)
-						rowName.TextTruncate, rowCount.TextTruncate = Enum.TextTruncate.AtEnd, Enum.TextTruncate.AtEnd
+				local costs = Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost })
+				for index, cost in costs do
+					local short = (cost.available or 0) < cost.needed
+					ready = ready and not short
+					local chip: any = card:FindFirstChild("Cost-" .. cost.id) or Instance.new("Frame")
+					chip.Name, chip.BorderSizePixel = "Cost-" .. cost.id, 0
+					chip.BackgroundColor3 = if short
+						then Color3.fromRGB(246, 222, 210)
+						else Color3.fromRGB(226, 240, 222)
+					chip.Position = UDim2.fromOffset(C.pad, C.chipTop + (index - 1) * C.pitch)
+					chip.Size = UDim2.new(1, -2 * C.pad, 0, C.chip)
+					chip:SetAttribute("ForgeShort", short)
+					if not chip:FindFirstChild("Round") then
+						local r = Instance.new("UICorner")
+						r.Name, r.CornerRadius, r.Parent = "Round", UDim.new(0.5, 0), chip
 					end
-					ready = ready and (cost.available or 0) >= cost.needed
+					local icon = if options.icons then options.icons.item(cost.id) else nil
+					local glyph = IconFallback.mount(
+						chip,
+						if icon then icon.category else "item",
+						UDim2.fromOffset(C.chip - 4, C.chip - 4),
+						UDim2.fromOffset(3, 2),
+						icon and icon.image
+					)
+					glyph.BackgroundTransparency = 1
+					local specs: { { any } } = {
+						{
+							"RowName",
+							name(cost.id),
+							UDim2.new(1, -C.chip - 6 - C.count, 1, 0),
+							UDim2.fromOffset(C.chip + 2, 0),
+						},
+						{
+							"RowCount",
+							cost.available .. "/" .. cost.needed,
+							UDim2.new(0, C.count, 1, 0),
+							UDim2.new(1, -C.count - 4, 0, 0),
+						},
+					}
+					for _, spec in specs do
+						local text: any = chip:FindFirstChild(spec[1]) or Instance.new("TextLabel")
+						text.Name, text.Text, text.BackgroundTransparency = spec[1], spec[2], 1
+						text.Size, text.Position, text.Visible = spec[3], spec[4], true
+						text.Font = if spec[1] == "RowCount" then Enum.Font.BuilderSansBold else Enum.Font.BuilderSans
+						text.TextSize, text.TextScaled, text.TextWrapped = 14, false, false
+						text.TextTruncate = Enum.TextTruncate.AtEnd
+						text.TextXAlignment = if spec[1] == "RowCount"
+							then Enum.TextXAlignment.Right
+							else Enum.TextXAlignment.Left
+						text.TextColor3 = if spec[1] ~= "RowCount"
+							then Color3.fromRGB(38, 30, 24)
+							elseif short then Color3.fromRGB(176, 52, 40)
+							else Color3.fromRGB(36, 120, 64)
+						text:SetAttribute("ForgeShellKeep", true)
+						text.Parent = chip
+					end
+					chip.Parent = card
+				end
+				for _, child: any in card:GetChildren() do
+					if string.sub(child.Name, 1, 5) == "Cost-" then
+						local still = false
+						for _, cost in costs do
+							still = still or child.Name == "Cost-" .. cost.id
+						end
+						if not still then
+							child:Destroy()
+						end
+					end
 				end
 				local tick = if options.icons then options.icons.ui("success").image else nil
 				local badge = IconFallback.mount(
 					card,
 					"item",
-					UDim2.fromOffset(24, 24),
-					UDim2.new(1, -28, 0, 4),
+					UDim2.fromOffset(22, 22),
+					UDim2.new(1, -28, 0, C.pad),
 					tick,
 					"ReadyBadge"
 				)
 				badge.BackgroundTransparency, badge.Visible = 1, ready
-				local rim = card:FindFirstChild("ReadyRim") or Instance.new("UIStroke")
-				rim.Name, rim.ApplyStrokeMode, rim.Thickness = "ReadyRim", Enum.ApplyStrokeMode.Border, 2
-				rim.Color, rim.Transparency, rim.Parent = Color3.fromRGB(58, 128, 118), if ready then 0 else 1, card
+				local rim: any = card:FindFirstChild("ReadyRim") or Instance.new("UIStroke")
+				rim.Name, rim.ApplyStrokeMode = "ReadyRim", Enum.ApplyStrokeMode.Border
+				rim.Thickness = if ready then 2 else 1
+				rim.Color = if ready then Color3.fromRGB(58, 128, 118) else Color3.fromRGB(122, 92, 62)
+				rim.Transparency, rim.Parent = if ready then 0 else 0.5, card
+				-- One Build button: picks the structure and starts placement (ghost + Reserve bar).
+				controls.parent = card
+				local build = button("Structure-" .. definition.id, t("build_action"), function()
+					structureId, ghostLocked = definition.id, false
+					focusBottom = "BuildReserve-" .. definition.id
+					render()
+				end, true)
+				build.Size = UDim2.new(1, -2 * C.pad, 0, C.button)
+				build.Position = UDim2.new(0, C.pad, 1, -C.pad - C.button)
+				build.TextScaled, build.TextSize = false, 15
+				build:SetAttribute("ForgeBuildReady", ready)
+				panelSelected[build] = ready
 			end
+			for _, card: any in buildCards:GetChildren() do
+				if card:IsA("Frame") and not keep[card] then
+					card.Visible = false
+				end
+			end
+			fitBuildCards()
 			controls.parent = sheet.scroll
 			local definition = selectedDefinition()
 			if definition then
@@ -2088,6 +2225,7 @@ function M.start(options: Options)
 					filterBar,
 					sheet.scroll,
 					buildCards,
+					buildTabs,
 					skillList,
 					if inventoryGrid then inventoryGrid.frame else listPane,
 				},

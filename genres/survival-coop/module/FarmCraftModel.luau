@@ -35,6 +35,25 @@ local function count(storage: any, catalogId: string): (number, string?)
 end
 M.count = count
 
+-- sheets4: growth stages a plot card draws as a 4-segment bar (Durango farmland: seed, sprout,
+-- growing, ripe). `fraction` is the grown share of the plot's growing time.
+M.STAGES = { "farm_stage_seed", "farm_stage_sprout", "farm_stage_grow", "farm_stage_ripe" }
+function M.stage(fraction: number, ready: boolean): number
+	if ready then
+		return 4
+	end
+	return if fraction < 0.25 then 1 elseif fraction < 0.6 then 2 else 3
+end
+
+-- Seed picker: one entry per crop with its seed and the seeds stored at home.
+function M.seedTray(crops: { any }, storage: any): { any }
+	local rows = {}
+	for index, crop in crops do
+		table.insert(rows, { index = index, crop = crop.id, seed = crop.seed, count = (count(storage, crop.seed)) })
+	end
+	return rows
+end
+
 function M.crops(content: any): { any }
 	local list = {}
 	for name, crop in HomeContent.crops(content) do

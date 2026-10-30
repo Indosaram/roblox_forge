@@ -300,8 +300,8 @@ return {
 				"UDim2.new(0, 8, 1, -56), UDim2.new(1, -16, 0, 48)",
 				"UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)",
 				"child.Size = UDim2.new(1 / 3, -6, 0, 48)",
-				"UDim2.new(1 / columns, -8, 0, 48 + rows * 42)",
-				"elseif sheet.frame.AbsoluteSize.X >= 400 then 2",
+				"UDim2.new(1 / columns, -8, 0, Model.buildCardHeight(rows))",
+				"Model.buildColumns(sheet.frame.AbsoluteSize.X)",
 				"UDim2.new(if wide then 0.52 else 1, if wide then -8 else 0, 0, 0)",
 				"UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -Model.PLACEMENT_BOTTOM)",
 				'{ "RowName", name(id), UDim2.new(1, -72, 1, 0)',
@@ -488,33 +488,68 @@ return {
 		end
 	end,
 	["build sheet cards chips and placement bar fit both target viewports"] = function()
-		local costRows = 1
-		for _, definition in Content.structures do
-			costRows = math.max(costRows, #definition.cost)
-		end
+		-- sheets4: group tabs, cards with 44 px art + 2-line name, 26 px material chips and one Build button.
+		local C = Model.BUILD_CARD
 		for _, viewport in HUD_VIEWPORTS do
 			local width, height = viewport[1], viewport[2]
 			local s = hudSheet(width, height, viewport[3])
 			local cards = s.width - 16 - 8
-			-- U7: three columns from 560 px; sheets3: a 40 px kit-art row, 42 px cost chips.
-			local columns = if s.width >= 560 then 3 elseif s.width >= 400 then 2 else 1
-			local cell = { width = cards / columns - 8, height = 48 + costRows * 42 }
-			local row = {}
-			for i = 0, columns - 1 do
-				table.insert(row, { x = i * (cell.width + 8), y = 0, width = cell.width, height = cell.height })
-			end
-			disjoint(row, "build cards")
-			inside(row[columns], cards, cell.height, "build card")
-			local title = { x = 52, y = 1, width = cell.width - 80, height = 44 }
-			local tick = { x = cell.width - 28, y = 4, width = 24, height = 24 }
-			local parts = { { x = 6, y = 3, width = 40, height = 40 }, title, tick }
-			for i = 1, costRows do
-				table.insert(parts, { x = 4, y = 46 + (i - 1) * 42, width = cell.width - 8, height = 40 })
-			end
-			for i, a in parts do
-				inside(a, cell.width, cell.height, "card part")
-				for j = i + 1, #parts do
-					assert(not overlaps(a, parts[j]), "card parts overlap")
+			local columns = Model.buildColumns(s.width)
+			for _, group in Model.BUILD_GROUPS do
+				local list = Model.buildList(Content.structures, group)
+				local costRows = 1
+				for _, definition in list do
+					costRows = math.max(costRows, #definition.cost)
+				end
+				local cell = { width = cards / columns - 8, height = Model.buildCardHeight(costRows) }
+				local row = {}
+				for i = 0, columns - 1 do
+					table.insert(row, { x = i * (cell.width + 8), y = 0, width = cell.width, height = cell.height })
+				end
+				disjoint(row, "build cards")
+				inside(row[columns], cards, cell.height, "build card")
+				local art = { x = C.pad, y = C.pad, width = C.art, height = C.art }
+				local title =
+					{ x = C.pad + C.art + 8, y = C.pad, width = cell.width - (C.pad + C.art + 8) - 30, height = C.art }
+				local tick = { x = cell.width - 28, y = C.pad, width = 22, height = 22 }
+				local parts = { art, title, tick }
+				for i = 1, costRows do
+					table.insert(parts, {
+						x = C.pad,
+						y = C.chipTop + (i - 1) * C.pitch,
+						width = cell.width - 2 * C.pad,
+						height = C.chip,
+					})
+				end
+				table.insert(
+					parts,
+					{ x = C.pad, y = cell.height - C.pad - C.button, width = cell.width - 2 * C.pad, height = C.button }
+				)
+				for i, a in parts do
+					inside(a, cell.width, cell.height, "card part " .. group)
+					for j = i + 1, #parts do
+						assert(not overlaps(a, parts[j]), "card parts overlap " .. group .. " " .. i .. "/" .. j)
+					end
+				end
+				for _, locale in LOCALES do
+					local name = namer(locale)
+					fits(longest(ids(list, name)), title.width, C.art, 15, 14, "structure title " .. group)
+					local costs = {}
+					for _, definition in list do
+						for _, cost in definition.cost do
+							table.insert(costs, name(cost.item))
+						end
+					end
+					-- Chip: icon (chip px), name, then the right-aligned have/need (C.count px); 14 px floor.
+					fits(
+						longest(costs),
+						cell.width - 2 * C.pad - C.chip - 6 - C.count,
+						C.chip,
+						14,
+						14,
+						"cost chip name " .. group
+					)
+					fits(Locale.text(locale, "build_group_" .. group), 120, 36, 14, 14, "build tab " .. group)
 				end
 			end
 			local bar = { x = width / 2 - 164, y = height - Model.PLACEMENT_BOTTOM, width = 328, height = 48 }
@@ -526,18 +561,11 @@ return {
 			}
 			disjoint(placement, "placement bar")
 			for _, locale in LOCALES do
-				local name, t = namer(locale), function(key)
+				local t = function(key)
 					return Locale.text(locale, key)
 				end
-				fits(longest(ids(Content.structures, name)), title.width, 52, 15, 10, "structure title")
-				local costs = {}
-				for _, definition in Content.structures do
-					for _, cost in definition.cost do
-						table.insert(costs, name(cost.item))
-					end
-				end
-				fits(longest(costs), cell.width - 8 - 40 - 72, 40, 15, 10, "cost chip name")
-				fits(t("buildHint"), s.width - 24, 48, 15, 15, "build hint")
+				fits(t("buildHint"), s.width - 24, 40, 14, 14, "build hint")
+				fits(t("build_action"), cards / columns - 8 - 2 * C.pad, C.button, 15, 15, "build button")
 				fits(t("rotate"), 80, 48, 15, 10, "rotate")
 				for _, key in { "place", "reserve", "cancel" } do
 					fits(t(key), 116, 48, 15, 10, "placement " .. key)
@@ -557,8 +585,8 @@ return {
 			-- Scroll body below the 44px header with 8px padding; first rows as each section renders them.
 			local body = s.height - 44 - 8
 			local at = width .. "x" .. height
-			-- One whole build card fits the body once the hint scrolls away (cell 48 + rows * 42).
-			assert(body >= 48 + costRows * 42, "one full build card at " .. at)
+			-- One whole build card fits the body once the tabs and hint scroll away.
+			assert(body >= Model.buildCardHeight(costRows), "one full build card at " .. at)
 			assert(body >= 8 + 6 + 92, "bag capacity bar plus one inventory row at " .. at)
 			assert(body >= 48 + 6 + 48, "skills level plus one skill row at " .. at)
 			local list, detail = craftPanes(s.width, s.height)
