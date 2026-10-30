@@ -74,7 +74,9 @@ function M.model(locale: string, data: any): { Sheet.Row }
 		{ name = "How", text = Text.text(locale, "guide_how"), height = 52 },
 	}
 	local done, nearest, lowest, upcoming = 0, nil, nil, {}
-	for _, guide in content.guides or {} do
+	-- Single-player mode (data.solo): guides whose steps need another player are not listed.
+	local guides = GuideEvents.visible(content, data.solo)
+	for _, guide in guides do
 		if definitions[guide.id] then
 			done += 1
 		elseif not GuideEvents.open(guide, level, grade) then
@@ -133,7 +135,7 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	end
 	table.insert(rows, 3, {
 		name = "Done",
-		text = Text.format(locale, "guide_done", done, #(content.guides or {})),
+		text = Text.format(locale, "guide_done", done, #guides),
 	})
 	table.sort(upcoming, before)
 	for index = 1, math.min(M.UPCOMING, #upcoming) do
@@ -201,11 +203,11 @@ function M.factory(ctx: any): any
 		order = -1,
 		menu = true,
 		model = function(l, d)
-			d.content, d.names = ctx.content, ctx.names
+			d.content, d.names, d.solo = ctx.content, ctx.names, ctx.solo
 			return M.model(l, d)
 		end,
 		cards = function(l, d, size)
-			d.content, d.names = ctx.content, ctx.names
+			d.content, d.names, d.solo = ctx.content, ctx.names, ctx.solo
 			return M.cards(l, d, size, ctx.icons)
 		end,
 	})

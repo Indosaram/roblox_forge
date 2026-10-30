@@ -30,6 +30,11 @@ local locale = Settings.locale(player.LocaleId, { language = player:GetAttribute
 local korean = string.sub(locale, 1, 2) == "ko"
 local PackText = require(Shared.PackText)
 local packRows = PackText.fromEntries(Forge.games["robango-island"].Strings:GetEntries())
+-- Single-player mode: `<key>_solo` rows replace their key (guides, tips and screens that would
+-- otherwise point at other players).
+if require(Shared.PlayMode).solo then
+	packRows = PackText.solo(packRows)
+end
 local names = PackText.names(packRows)(locale)
 local authoredText = PackText.authored(packRows)
 -- Client-only labels (clan/outpost, journal, island view) are the cli.* rows of the Strings table.

@@ -160,6 +160,43 @@ function M.ledgered(action: string): boolean
 	return LEDGERED[action] == true
 end
 
+-- Guide steps that only another player can complete: route invites go to a party member, clan
+-- drafts need a clan, loans are borrowed from another camp member and a market listing waits for a
+-- buyer. Single-player mode (PlayMode.solo) holds those screens, so a solo player never sees these
+-- guides in the guide sheet or the HUD objective.
+M.MULTIPLAYER = table.freeze({
+	["invite-training"] = "route invite to a party member",
+	revoke = "revokes a party member's route invite",
+	["preview-role"] = "roles inside a clan of players",
+	["draft-membership"] = "joins a clan of players",
+	["cancel-draft"] = "clan membership draft",
+	["equip-loan"] = "borrows gear another camp member lent",
+	["return-loan"] = "returns gear to another camp member",
+	list = "lists an item for other players to buy",
+	["settle-return-or-sale"] = "claims another player's purchase or the listing return",
+})
+
+--- True when some step of the guide needs another player (hidden in single-player mode).
+function M.multiplayer(guide: any): boolean
+	for _, objective in guide.objectives or {} do
+		if M.MULTIPLAYER[objective.action] then
+			return true
+		end
+	end
+	return false
+end
+
+--- The guides a player sees: all of them, or only those a solo player can finish.
+function M.visible(content: any, solo: boolean?): { any }
+	local out = {}
+	for _, guide in content.guides or {} do
+		if not (solo and M.multiplayer(guide)) then
+			table.insert(out, guide)
+		end
+	end
+	return out
+end
+
 --- True when the actor's level and development grade open the guide.
 function M.open(guide: any, level: number, grade: number): boolean
 	local gates = guide.gates or {}

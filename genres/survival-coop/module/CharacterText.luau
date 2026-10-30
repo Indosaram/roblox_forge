@@ -67,10 +67,11 @@ local function openGuide(
 	names: any,
 	level: number,
 	grade: number,
-	minRank: number
+	minRank: number,
+	solo: boolean?
 ): string?
 	local done, progress = ch.definitions or {}, ch.progress or {}
-	for _, g in content.guides or {} do
+	for _, g in Guide.visible(content, solo) do
 		if not done[g.id] and Guide.open(g, level, grade) and ((g.gates or {}).developmentRank or 0) >= minRank then
 			local o = g.objectives[1]
 			for _, objective in g.objectives do
@@ -97,16 +98,17 @@ end
 
 -- HUD objective: the next open start guide; after route 1's grade, the next open waypoint guide of
 -- that grade's band; with none open, route 1's gate plus the next authored step (a support region
--- opening at the harbor departure post, or the next guide's level).
-function M.guideObjective(locale: string, content: any, ch: any, names: any): string?
+-- opening at the harbor departure post, or the next guide's level). With `solo`, guides whose steps
+-- need another player (GuideEvents.multiplayer) are skipped.
+function M.guideObjective(locale: string, content: any, ch: any, names: any, solo: boolean?): string?
 	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
 	local needLevel, needRank = Party.gates(content, 1)
 	if grade < needRank then
-		return openGuide(locale, content, ch, names, level, grade, 0)
+		return openGuide(locale, content, ch, names, level, grade, 0, solo)
 	elseif level >= needLevel then
 		return M.text(locale, "guide_route_open")
 	end
-	local open = openGuide(locale, content, ch, names, level, grade, needRank)
+	local open = openGuide(locale, content, ch, names, level, grade, needRank, solo)
 	if open then
 		return open
 	end
@@ -119,7 +121,7 @@ function M.guideObjective(locale: string, content: any, ch: any, names: any): st
 		end
 	end
 	local nextGuide, guideAt = nil, nil
-	for _, g in content.guides or {} do
+	for _, g in Guide.visible(content, solo) do
 		local gates = g.gates or {}
 		local at = gates.characterLevel or 1
 		if

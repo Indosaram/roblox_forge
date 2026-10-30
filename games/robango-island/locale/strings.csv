@@ -3091,7 +3091,7 @@ cli.title.tip2,A creature winding up a charge is your cue to press Dodge.,client
 cli.title.tip3,"A bone knife comes first: bone, fiber and a little patience.",client loading tip,"A bone knife comes first: bone, fiber and a little patience.","첫 도구는 뼈칼이에요. 뼈, 섬유, 그리고 약간의 인내."
 cli.title.tip4,"Drift isles sink back into the sea, so bring home what you find.",client loading tip,"Drift isles sink back into the sea, so bring home what you find.",표류섬은 다시 바다에 잠겨요. 찾은 것은 집으로 가져오세요.
 cli.title.tip5,Open the sea chart at the harbor to pick your next island.,client loading tip,Open the sea chart at the harbor to pick your next island.,항구에서 해도를 펼쳐 다음 섬을 고르세요.
-cli.title.tip6,Sell spare goods at the trading post and buy what your camp lacks.,client loading tip,Sell spare goods at the trading post and buy what your camp lacks.,남는 물건은 교역소에 팔고 캠프에 필요한 것을 사세요.
+cli.title.tip6,Sell spare goods to the harbor for coins and spend them on what your camp lacks.,client loading tip,Sell spare goods to the harbor for coins and spend them on what your camp lacks.,남는 물건은 항구에 팔아 조개돈을 벌고 캠프에 필요한 것을 마련하세요.
 fct.inbox_empty_hint,"Market sales, crafted goods and expedition rewards arrive here.",genre text fct,"Market sales, crafted goods and expedition rewards arrive here.","장터 판매 대금, 완성된 제작품, 탐험 보상이 여기로 와요."
 cli.chart.pick,Tap an island to see its level and set sail.,client sea chart label,Tap an island to see its level and set sail.,섬을 눌러 레벨을 보고 출항하세요.
 fct.camp_sheet_title,Survival camp,survival camp sheet,Survival camp,생존 캠프
@@ -3171,3 +3171,18 @@ chr.guide_act_capture,Capture,genre text chr,Capture,포획
 chr.guide_target_creature,"a small creature (weaken it, then Capture)",genre text chr,"a small creature (weaken it, then Capture)",작은 동물 (약하게 만든 뒤 포획)
 guide_go_capture,"capture %s (hit it until winded, then tap Capture)",HUD objective guide action,"capture %s (hit it until winded, then tap Capture)",%s 포획하기 (지칠 때까지 때린 뒤 포획 누르기)
 cmb.spare_toast,"%s is winded - tap Capture, or tap it again to finish",genre text cmb,"%s is winded - tap Capture, or tap it again to finish",%s 지쳤어요 - 포획을 누르거나 다시 눌러 마무리하세요
+rw.g06.visit.offer_solo,Step through the home portal and look around the demonstration home. It shows what a finished island can become.,"guide g06 offer, single-player",Step through the home portal and look around the demonstration home. It shows what a finished island can become.,홈 포털을 지나 시범 주택을 둘러보세요. 다 지은 섬이 어떤 모습인지 보여 줘요.
+rw.g06.visit.complete_solo,Looking around changes nothing there. Your own island is where you build.,"guide g06 complete, single-player",Looking around changes nothing there. Your own island is where you build.,둘러보기만 해서는 그곳에 아무것도 바뀌지 않아요. 짓는 곳은 내 섬이에요.
+chr.guide_g06_solo,Demonstration home,"guide g06 title, single-player",Demonstration home,시범 주택
+chr.guide_act_visit_solo,Look around,"guide verb visit, single-player",Look around,둘러보기
+rw.g08.market.offer_solo,"The harbor buys spare goods. Open the trading post, pick an item from your bag and sell it for coins.","market station guide line, single-player","The harbor buys spare goods. Open the trading post, pick an item from your bag and sell it for coins.",항구에서 남는 물건을 사 줘요. 교역소를 열고 가방에서 물건을 골라 조개돈을 받고 파세요.
+rw.g18.technical-support.offer_solo,Preview the gear upgrade at the signal relay. You may look now; the upgrade itself opens at level sixty.,"guide g18 offer, single-player",Preview the gear upgrade at the signal relay. You may look now; the upgrade itself opens at level sixty.,"신호 중계기에서 장비 강화를 미리 보세요. 지금은 보기만 되고, 강화는 레벨 60부터 열려요."
+rw.g18.technical-support.complete_solo,The preview spent nothing and changed no gear.,"guide g18 complete, single-player",The preview spent nothing and changed no gear.,미리보기는 아무것도 쓰지 않았고 장비도 바꾸지 않았어요.
+chr.guide_g18_solo,Gear upgrade preview,"guide g18 title, single-player",Gear upgrade preview,장비 강화 미리보기
+rw.g20.rescue-preparation.complete_solo,"Treat the castaway first, lead them along the safe route, and see them onto the dock before you leave.","guide g20 complete, single-player","Treat the castaway first, lead them along the safe route, and see them onto the dock before you leave.","먼저 표류자를 치료하고, 안전한 길로 데려가서, 부두에 닿는 것을 본 다음 떠나세요."
+rw.c05.shared-research.complete_solo,Your contribution is recorded. The next marker is yours to find.,"chapter c05 complete, single-player",Your contribution is recorded. The next marker is yours to find.,기부가 기록됐어요. 다음 표식은 당신이 찾을 차례예요.
+rw.c05.shared-research.title_solo,Desert research,"chapter c05 title, single-player",Desert research,사막 연구
+tip_06_solo,Every camp project you finish makes your camp sturdier. Build it up and keep it standing.,"loading tip, single-player",Every camp project you finish makes your camp sturdier. Build it up and keep it standing.,캠프 공사를 하나씩 마칠수록 캠프가 튼튼해져요. 차근차근 짓고 지켜 내세요.
+scr.arrival.together_solo,"Gather, craft, build and explore your island.","arrival screen, single-player","Gather, craft, build and explore your island.","채집하고, 만들고, 짓고, 섬을 탐험하세요."
+scr.jobs.terms_solo,Cancelling taming returns the animal but not the feed.,"jobs screen terms, single-player",Cancelling taming returns the animal but not the feed.,길들이기를 취소하면 동물은 돌아오지만 먹이는 돌아오지 않아요.
+ko_danger_solo,Danger zone: your bag dropped here. Go back and pick it up.,"expedition knockout, single-player",Danger zone: your bag dropped here. Go back and pick it up.,위험 구역: 가방을 여기에 떨어뜨렸어요. 돌아가서 주우세요.

@@ -298,7 +298,9 @@ function M.factory(ctx: any): any
 
 	local unsubscribe = ctx.onSnapshot(function(snapshot)
 		local state, ch = snapshot.contracts, snapshot.character
-		guide = if ctx.content and ch then Text.guideObjective(locale, ctx.content, ch, ctx.names or {}) else nil
+		guide = if ctx.content and ch
+			then Text.guideObjective(locale, ctx.content, ch, ctx.names or {}, ctx.solo == true)
+			else nil
 		local done = Text.newGuides(locale, seen, ch)
 		if done then
 			flashFor(done)

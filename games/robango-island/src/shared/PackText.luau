@@ -43,6 +43,23 @@ function M.lookup(rows: { Row }, prefix: string): (string, string) -> string?
 	end
 end
 
+--- Single-player copy: every `<key>_solo` row replaces the text of `<key>` (game.yml
+--- play_mode.solo). The `_solo` rows stay in the result, so explicit soloText reads still work.
+function M.solo(rows: { Row }): { Row }
+	local solo: { [string]: Row } = {}
+	for _, row in rows do
+		if string.sub(row.key, -5) == "_solo" then
+			solo[string.sub(row.key, 1, -6)] = row
+		end
+	end
+	local out: { Row } = {}
+	for _, row in rows do
+		local swap = solo[row.key]
+		table.insert(out, if swap then { key = row.key, context = row.context, en = swap.en, ko = swap.ko } else row)
+	end
+	return out
+end
+
 --- Authored journal and mission NPC lines (rw.* keys).
 function M.authored(rows: { Row }): (string, string) -> string?
 	return M.lookup(rows, "rw.")
