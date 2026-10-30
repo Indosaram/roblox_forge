@@ -833,7 +833,24 @@ function M.start(
 		if outline then
 			outline:Destroy()
 		end
-		HudShell.pebble(menuToggle, false, true)
+		local menuIcon = if options.icons then options.icons.ui(HudShell.TOKEN_ICONS.menu) else nil
+		HudShell.iconToken(menuToggle, menuIcon and menuIcon.image, "normal")
+	end
+	-- Collapsible quest tracker (shell): a round toggle at the card's left; collapsed shows only it.
+	local questToggle: any = nil
+	local questCollapsed = false
+	if shell then
+		questToggle = ui.components.button(theme, {
+			text = "",
+			size = UDim2.fromOffset(HudShell.MIN_TOUCH, HudShell.MIN_TOUCH),
+			parent = dockGui,
+			onClick = function()
+				questCollapsed = not questCollapsed
+			end,
+		})
+		questToggle.Name = "QuestToggle"
+		local questIcon = if options.icons then options.icons.ui(HudShell.TOKEN_ICONS.quest) else nil
+		HudShell.iconToken(questToggle, questIcon and questIcon.image, "normal")
 	end
 	local function viewport(): any
 		return dockGui.AbsoluteSize
@@ -920,6 +937,11 @@ function M.start(
 				local quest = regions.quest
 				objectiveSlot.Position = UDim2.fromOffset(quest.x, quest.y)
 				objectiveSlot.Size = UDim2.fromOffset(quest.width, quest.height)
+				if questToggle then
+					local r = regions.questToggle
+					set(questToggle, "Position", UDim2.fromOffset(r.x, r.y))
+					set(questToggle, "Size", UDim2.fromOffset(r.width, r.height))
+				end
 				local slot = regions.rowSlots[1]
 				column.Position, column.Size =
 					UDim2.fromOffset(slot.x, slot.y), UDim2.fromOffset(slot.width, slot.height)
@@ -969,6 +991,10 @@ function M.start(
 				and not foreign
 				and players.LocalPlayer:GetAttribute("ForgeSurvivalSheetOpen") ~= true
 			objectiveSlot.Visible = objectiveSlot.Visible and not open and not foreign
+			if questToggle then
+				set(questToggle, "Visible", objectiveSlot.Visible)
+				objectiveSlot.Visible = objectiveSlot.Visible and not questCollapsed
+			end
 			players.LocalPlayer:SetAttribute("ForgeExtensionSheetOpen", open or menuList.Visible)
 			local sx, sy, sw, sh = HUDModel.contextSheet(size.X, size.Y, input.TouchEnabled)
 			if shell then

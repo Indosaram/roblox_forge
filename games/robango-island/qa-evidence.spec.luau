@@ -402,7 +402,7 @@ return {
 			asset.assetId = 999999999999999
 			asset.moderation = "Approved"
 		end
-		assert(icons == 543 and audio == 78, "future budget must include every icon and audio cue")
+		assert(icons == 551 and audio == 78, "future budget must include every icon and audio cue")
 		local futureBytes = measure.sourceBytes
 			- #fs.readFile(PACK .. "/src/shared/Assets.luau")
 			+ #assetsLib.renderLuau(manifest, "robango-island")

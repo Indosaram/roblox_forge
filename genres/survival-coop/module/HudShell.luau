@@ -55,7 +55,8 @@ M.MIN_TOUCH = 44
 function M.tokenSize(size: string, safeHeight: number, touch: boolean): number
 	local row = M.TOKEN[size]
 	local px = math.floor(row[1] * safeHeight / 360 + 0.5)
-	return if touch then math.max(M.MIN_TOUCH, px) else math.min(px, row[2])
+	-- HUD polish: every target is at least MIN_TOUCH on PC too (the spec's 36 px S token was small).
+	return if touch then math.max(M.MIN_TOUCH, px) else math.max(M.MIN_TOUCH, math.min(px, row[2]))
 end
 
 M.LABEL_RADIUS = 40
@@ -85,10 +86,20 @@ M.ARC_GAP = 2
 -- Touch screens keep tokens this fraction of the safe height off the bottom and side edges: on the
 -- phone the arc hugged the edge and the 회피 token's rim ran past the rounded screen corner (v25).
 M.EDGE = 0.03
-M.VITALS_MIN_HEIGHT = 78
--- Label 26+62, a bar track of at least 80 and the value 46 (SurvivalHUDModel.VITALS): narrower and the
--- bars collapsed to dots on the phone (staging v26).
-M.VITALS_MIN_WIDTH = 220
+-- Compact vitals (HUD polish, Durango R05-1 / R08-1): a level badge, then three slim rows of
+-- icon + bar + number, no stat words. Rows are VITALS_ROW px (clamped from 0.05H), the panel
+-- 3 rows + 8 px tall; the width keeps a bar track of at least 90 px (narrower collapsed the bars to
+-- dots on the phone, staging v26).
+M.VITALS_ROW = table.freeze({ 16, 22 })
+M.VITALS_MIN_HEIGHT = 3 * 16 + 8
+M.VITALS_MIN_WIDTH = 210
+M.VITALS_MAX_WIDTH = 300
+-- Item hotbar (bottom centre, Durango-style slots): at most this many backpack tools.
+M.HOTBAR_SLOTS = 6
+M.HOTBAR_GAP = 6
+-- The primary token keeps its L size on touch screens (only the other tokens shrink to the 44 px
+-- floor), so the contextual action reads as the big button (Durango R08-1).
+M.PRIMARY_MIN = 52
 
 local function rect(x: number, y: number, width: number, height: number): Rect
 	return {
@@ -122,13 +133,15 @@ function M.cluster(width: number, height: number, topClear: number?, touch: bool
 		for _, slot in M.SLOT_ORDER do
 			local spec = M.SLOTS[slot]
 			local size = M.tokenSize(spec[3], h, touch == true)
-			if touch then
+			if touch and slot == "P" then
+				size = math.max(M.PRIMARY_MIN, math.floor(size * shrink + 0.5))
+			elseif touch then
 				size = math.max(M.MIN_TOUCH, math.floor(size * shrink + 0.5))
 			end
 			local radius, angle = spec[1] * k * h, math.rad(spec[2])
 			local edge = if touch then M.EDGE * h else 0
 			local cx, cy = width - edge - radius * math.cos(angle), top + h - edge - radius * math.sin(angle)
-			local tall = size * M.PEBBLE.aspect
+			local tall = size
 			if touch then
 				tall = math.max(M.MIN_TOUCH, tall)
 			end
@@ -182,9 +195,6 @@ end
 function M.regions(width: number, height: number, topClear: number?, touch: boolean?): any
 	local top = topClear or 0
 	local h = height - top
-	local function tl(x0: number, x1: number, y0: number, y1: number): Rect
-		return rect(x0 * h, top + y0 * h, (x1 - x0) * h, (y1 - y0) * h)
-	end
 	local function tr(x0: number, x1: number, y0: number, y1: number): Rect
 		return rect(width - x1 * h, top + y0 * h, (x1 - x0) * h, (y1 - y0) * h)
 	end
@@ -194,10 +204,12 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 	-- The vitals panel holds three bar rows (SurvivalHUDModel.VITALS: 24 px steps, 26 px rows), so it
 	-- never gets shorter than VITALS_MIN_HEIGHT; chips and tracker stack under it. On a phone the
 	-- spec's 0.12H panel is 42 px and the rows spilled out of it over the coin chip (staging v25).
-	local vitals = tl(0.02, 0.46, 0.02, 0.14)
-	vitals.height = math.max(vitals.height, M.VITALS_MIN_HEIGHT)
-	vitals.width = math.max(vitals.width, M.VITALS_MIN_WIDTH)
-	local chips = rect(vitals.x, vitals.y + vitals.height + 0.015 * h, 0.40 * h, 0.07 * h)
+	local vitalsRow = math.clamp(math.floor(0.05 * h + 0.5), M.VITALS_ROW[1], M.VITALS_ROW[2])
+	local vitals =
+		rect(0.02 * h, top + 0.02 * h, math.clamp(0.56 * h, M.VITALS_MIN_WIDTH, M.VITALS_MAX_WIDTH), 3 * vitalsRow + 8)
+	-- Currency chip under the vitals: a slim pill (icon + amount), not a loose line of text.
+	local chips =
+		rect(vitals.x, vitals.y + vitals.height + 0.015 * h, math.clamp(0.25 * h, 96, 140), math.max(24, 0.07 * h))
 	local tracker = rect(vitals.x, chips.y + chips.height + 0.015 * h, 0.40 * h, 0.16 * h)
 	local minimap = tr(0.03, 0.25, 0.02, 0.24)
 	local coords = tr(0.05, 0.23, 0.245, 0.285)
@@ -215,6 +227,10 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 	local side = rect(minimap.x - 0.02 * h - 0.48 * h, minimap.y, 0.48 * h, minimap.height)
 	if touch and side.x >= status.x + status.width + 0.02 * h then
 		quest = side
+	elseif touch then
+		-- Under the minimap: wider than the spec card so a compact two-line objective fits beside
+		-- the collapse toggle.
+		quest = tr(0.03, 0.66, 0.30, 0.42)
 	end
 	-- Bottom-left row: S tokens bottom-aligned at 0.98H, starting 0.02H from the left edge.
 	local size = M.tokenSize("S", h, touch == true)
@@ -230,6 +246,23 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		-- Narrow phones: the quest card ends above the action cluster instead of running into it.
 		quest.height = math.max(0.06 * h, cluster.y - 2 - quest.y)
 	end
+	-- Collapsible quest tracker: a touch-size toggle at the card's left edge; the card text sits
+	-- right of it and collapsing leaves only the toggle.
+	if quest.y + M.MIN_TOUCH > cluster.y - 2 and quest.x + quest.width > cluster.x then
+		-- Short phones: no touch-height room above the arc, so the card sits left of the arc instead.
+		quest.x = math.floor(cluster.x - 4 - quest.width + 0.5)
+	end
+	quest.height = math.max(quest.height, M.MIN_TOUCH)
+	local questToggle = rect(quest.x, quest.y, M.MIN_TOUCH, M.MIN_TOUCH)
+	quest.x, quest.width = quest.x + M.MIN_TOUCH + 4, quest.width - M.MIN_TOUCH - 4
+	-- Item hotbar: bottom centre on the bottom-left row's line, between the row and the cluster.
+	local slotSize = if touch then M.MIN_TOUCH else math.max(M.MIN_TOUCH, math.min(52, math.floor(0.07 * h)))
+	-- As many of HOTBAR_SLOTS as fit centred between the row and the arc (narrow phones get fewer).
+	local rowRight = 0.02 * h + edge + 3 * (size + gap)
+	local room = 2 * math.min(width / 2 - rowRight, cluster.x - width / 2) - 2 * M.HOTBAR_GAP
+	local slots = math.clamp(math.floor((room + M.HOTBAR_GAP) / (slotSize + M.HOTBAR_GAP)), 0, M.HOTBAR_SLOTS)
+	local hotbarWidth = math.max(0, slots * slotSize + (slots - 1) * M.HOTBAR_GAP)
+	local hotbar = rect(width / 2 - hotbarWidth / 2, top + 0.98 * h - slotSize - edge, hotbarWidth, slotSize)
 	-- Combat (C3, G12): the target bar (name, Lv, HP) top-centre, kept right of the vitals panel and
 	-- left of the minimap on narrow screens, and the end-combat pill above the action cluster.
 	local target = tc(-0.4, 0.4, 0.02, 0.14)
@@ -259,6 +292,9 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		minimap = minimap,
 		coords = coords,
 		quest = quest,
+		questToggle = questToggle,
+		hotbar = hotbar,
+		hotbarSlots = slots,
 		status = status,
 		row = bounds(rowSlots),
 		rowSlots = rowSlots,
@@ -271,6 +307,29 @@ end
 
 function M.overlaps(a: Rect, b: Rect): boolean
 	return hits(a, b, 0)
+end
+
+--- Inside-panel geometry of the compact vitals (relative to the panel's top-left): a round level
+--- badge on the left, then per stat row an icon, a bar track and a right-aligned number.
+function M.vitalsRows(panel: Rect): { badge: Rect, rows: { { icon: Rect, track: Rect, value: Rect } }, text: number }
+	local row = math.floor((panel.height - 8) / 3)
+	local badgeSide = math.min(panel.height - 8, 3 * row)
+	local badge = rect(4, (panel.height - badgeSide) / 2, badgeSide, badgeSide)
+	local x0 = badge.x + badge.width + 6
+	local valueWidth = math.max(26, math.floor(row * 1.7))
+	local iconSide = row - 2
+	local rows = {}
+	for index = 1, 3 do
+		local y = 4 + (index - 1) * row
+		local trackX = x0 + iconSide + 4
+		local barHeight = math.max(6, math.floor(row * 0.42))
+		rows[index] = {
+			icon = rect(x0, y + 1, iconSide, iconSide),
+			track = rect(trackX, y + (row - barHeight) / 2, panel.width - trackX - valueWidth - 6, barHeight),
+			value = rect(panel.width - valueWidth - 4, y, valueWidth, row),
+		}
+	end
+	return { badge = badge, rows = rows, text = math.max(11, row - 4) }
 end
 
 --- Bounding circles of two tokens overlap (the tokens' hit test).
@@ -302,6 +361,51 @@ export type Flags = {
 	riding: boolean?,
 }
 export type Token = { slot: string, id: string, enabled: boolean }
+
+-- Painted glyph per token id (ui icon ids, ItemIcons.ui): every HUD action is an icon button.
+M.TOKEN_ICONS = table.freeze({
+	interact = "hud.interact",
+	attack = "hud.attack",
+	shoot = "stance.shoot",
+	dodge = "dodge",
+	guard = "stance.defense",
+	stance = "stance.attack",
+	mount = "cat.pet",
+	skills = "skills",
+	consume = "cat.food",
+	build = "build",
+	capture = "capture",
+	dismount = "hud.dismount",
+	pet = "cat.pet",
+	menu = "hud.menu",
+	emote = "hud.emote",
+	chat = "hud.chat",
+	rest = "hud.rest",
+	gather = "hud.gather",
+	quest = "todo",
+	currency = "currency",
+	level = "xp",
+})
+M.STANCE_ICONS = table.freeze({
+	attack = true,
+	charge = true,
+	counter = true,
+	defense = true,
+	onslaught = true,
+	shoot = true,
+})
+
+--- Icon id for a token. The interact token follows what it will do (rest at a campfire, gather at
+--- a node); the stance token shows the current stance.
+function M.tokenIcon(id: string, context: { rest: boolean?, gather: boolean?, stance: string? }?): string
+	local c: any = context or {}
+	if id == "interact" then
+		return if c.rest then M.TOKEN_ICONS.rest elseif c.gather then M.TOKEN_ICONS.gather else M.TOKEN_ICONS.interact
+	elseif id == "stance" and c.stance and M.STANCE_ICONS[c.stance] then
+		return "stance." .. c.stance
+	end
+	return M.TOKEN_ICONS[id] or M.TOKEN_ICONS.interact
+end
 
 function M.context(flags: Flags): string
 	return if flags.building
@@ -799,6 +903,94 @@ function M.pebble(button: any, active: boolean?, enabled: boolean?)
 	button.Font = Enum.Font.BuilderSans
 end
 
+-- HUD action token look (HUD polish, Durango R08-1 icon buttons): a round translucent disc with a
+-- driftwood rim and a painted glyph, no text. `state`: "primary" (the big contextual action, teal
+-- rim glow), "normal", or "disabled" (same disc, dimmed glyph and slate rim: reads as unavailable,
+-- never as a broken grey blob).
+M.TOKEN_STYLE = table.freeze({
+	fill = { normal = 0.22, primary = 0.12, disabled = 0.5 },
+	glyph = { normal = 0, primary = 0, disabled = 0.55 },
+	glyphScale = 0.68,
+})
+
+--- Pure: the token look for a state (fill transparency, glyph transparency, rim colour key).
+function M.tokenLook(state: string): { fill: number, glyph: number, rim: string, fillColor: string }
+	local S = M.TOKEN_STYLE
+	return {
+		fill = S.fill[state] or S.fill.normal,
+		glyph = S.glyph[state] or 0,
+		rim = if state == "primary" then "tealPale" elseif state == "disabled" then "slateLock" else "drift",
+		fillColor = if state == "primary" then "teal" else "panel",
+	}
+end
+
+--- Styles a GuiButton as a round HUD icon token and sets its glyph image. With no image the
+--- button keeps its text (the painted icon failed to resolve), so it is never a blank disc.
+function M.iconToken(button: any, image: string?, state: string)
+	local P = M.PALETTE
+	local look = M.tokenLook(state)
+	button.AutoButtonColor = false
+	button.BackgroundColor3 = color((P :: any)[look.fillColor])
+	button.BackgroundTransparency = look.fill
+	for _, child in button:GetChildren() do
+		if child:IsA("UIGradient") or (child:IsA("UICorner") and child.Name ~= "TokenCorner") then
+			child:Destroy()
+		end
+	end
+	local corner = button:FindFirstChild("TokenCorner") or Instance.new("UICorner")
+	corner.Name, corner.CornerRadius, corner.Parent = "TokenCorner", UDim.new(0.5, 0), button
+	local rim = button:FindFirstChild("PebbleRim")
+		or button:FindFirstChildOfClass("UIStroke")
+		or Instance.new("UIStroke")
+	rim.Name, rim.Color, rim.Transparency, rim.Parent = "PebbleRim", color((P :: any)[look.rim]), 0, button
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Thickness = if state == "primary" then 3 else 2
+	local glyph = button:FindFirstChild("Glyph")
+	if image and image ~= "" then
+		if not glyph then
+			glyph = Instance.new("ImageLabel")
+			glyph.Name, glyph.BackgroundTransparency = "Glyph", 1
+			glyph.AnchorPoint, glyph.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+			glyph.ScaleType, glyph.Active, glyph.Parent = Enum.ScaleType.Fit, false, button
+		end
+		glyph.Size = UDim2.fromScale(M.TOKEN_STYLE.glyphScale, M.TOKEN_STYLE.glyphScale)
+		glyph.Image, glyph.ImageTransparency, glyph.Visible = image, look.glyph, true
+		glyph.ImageColor3 = if state == "disabled" then Color3.fromRGB(150, 150, 150) else Color3.new(1, 1, 1)
+		button.TextTransparency = 1
+	else
+		if glyph then
+			glyph.Visible = false
+		end
+		button.TextTransparency = if state == "disabled" then 0.45 else 0
+		button.TextColor3 = color(if state == "primary" then P.ink else P.bone)
+	end
+	button.Font = Enum.Font.BuilderSansBold
+end
+
+--- Caption pill beside a token (the primary action's contextual name, e.g. "Gather"): placed
+--- left of `r`, vertically centred, in the token's ScreenGui space. Returns the caption label.
+function M.tokenCaption(gui: any, name: string, r: Rect, text: string, size: number): any
+	local P = M.PALETTE
+	local label = gui:FindFirstChild(name)
+	if not label then
+		label = Instance.new("TextLabel")
+		label.Name, label.BackgroundColor3, label.BackgroundTransparency = name, color(P.ink), 0.35
+		label.TextColor3, label.Font = color(P.bone), Enum.Font.BuilderSansBold
+		label.TextXAlignment, label.AutomaticSize = Enum.TextXAlignment.Center, Enum.AutomaticSize.X
+		label.AnchorPoint = Vector2.new(1, 0.5)
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), label
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft, pad.PaddingRight, pad.Parent = UDim.new(0, 10), UDim.new(0, 10), label
+		label.Parent = gui
+	end
+	label.Text, label.TextSize = text, size
+	label.Size = UDim2.fromOffset(0, size + 10)
+	label.Position = UDim2.fromOffset(r.x - 6, r.y + r.height / 2)
+	label.Visible = text ~= ""
+	return label
+end
+
 --- Places a GuiObject at a rect given in the space of `frame`'s ScreenGui (offset by `origin`).
 function M.put(item: any, r: Rect, origin: any?)
 	local o = origin or Vector2.zero
@@ -1169,26 +1361,43 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 	local player = players.LocalPlayer
 	local P = M.PALETTE
 	local connections: { any } = {}
-	-- Minimap: round, driftwood rim, tealDeep sea with a tealPale wash.
+	-- Minimap: round, tealDeep sea with a tealPale wash, in a framed bezel (HUD polish, Durango
+	-- R08-1): a dark outer ring behind the map, a driftwood rim and a north pip. Style only; the
+	-- map's placement and orientation stay below.
+	local bezel = Instance.new("Frame")
+	bezel.Name, bezel.BackgroundColor3, bezel.BackgroundTransparency = "MinimapFrame", color(P.ink), 0.25
+	bezel.AnchorPoint, bezel.Parent = Vector2.new(0.5, 0.5), options.gui
+	local bezelCorner = Instance.new("UICorner")
+	bezelCorner.CornerRadius, bezelCorner.Parent = UDim.new(0.5, 0), bezel
+	local bezelRim = Instance.new("UIStroke")
+	bezelRim.Color, bezelRim.Thickness, bezelRim.Transparency, bezelRim.Parent = color(P.driftDark), 1.5, 0.2, bezel
+	local north = Instance.new("TextLabel")
+	north.Name, north.BackgroundColor3, north.BackgroundTransparency = "North", color(P.coral), 0
+	north.Text, north.TextColor3, north.Font = "N", color(P.bone), Enum.Font.BuilderSansBold
+	north.AnchorPoint, north.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0)
+	north.Size, north.ZIndex, north.Parent = UDim2.fromOffset(16, 16), 4, bezel
+	local northRound = Instance.new("UICorner")
+	northRound.CornerRadius, northRound.Parent = UDim.new(0.5, 0), north
 	local map = Instance.new("Frame")
 	map.Name, map.BackgroundColor3, map.BackgroundTransparency = "Minimap", color(P.tealDeep), 0.1
 	map.ClipsDescendants, map.Parent = true, options.gui
 	local mapCorner = Instance.new("UICorner")
 	mapCorner.CornerRadius, mapCorner.Parent = UDim.new(0.5, 0), map
 	local mapRim = Instance.new("UIStroke")
-	mapRim.Color, mapRim.Thickness, mapRim.Parent = color(P.drift), 3, map
+	mapRim.Color, mapRim.Thickness, mapRim.Parent = color(P.driftPale), 2.5, map
 	local wash = Instance.new("UIGradient")
 	wash.Color = ColorSequence.new(color(P.tealDeep), color(P.tealPale))
 	wash.Transparency = NumberSequence.new(0, 0.55)
 	wash.Rotation, wash.Parent = 90, map
 	local arrow = Instance.new("TextLabel")
-	arrow.Name, arrow.BackgroundTransparency, arrow.Text = "Self", 1, "^"
+	arrow.Name, arrow.BackgroundTransparency, arrow.Text = "Self", 1, "\u{25B2}"
 	arrow.AnchorPoint, arrow.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
 	arrow.Size, arrow.TextColor3, arrow.Font = UDim2.fromOffset(20, 20), color(P.bone), Enum.Font.BuilderSansBold
-	arrow.TextSize, arrow.ZIndex, arrow.Parent = 20, 3, map
+	arrow.TextSize, arrow.ZIndex, arrow.Parent = 16, 3, map
+	arrow.TextStrokeColor3, arrow.TextStrokeTransparency = color(P.ink), 0.2
 	local coords = Instance.new("TextLabel")
-	coords.Name, coords.BackgroundColor3, coords.BackgroundTransparency = "Coordinates", color(P.ink), 0.3
-	coords.TextColor3, coords.Font, coords.Text = color(P.bone), Enum.Font.BuilderSans, ""
+	coords.Name, coords.BackgroundColor3, coords.BackgroundTransparency = "Coordinates", color(P.ink), 0.45
+	coords.TextColor3, coords.Font, coords.Text = color(P.boneShade), Enum.Font.BuilderSans, ""
 	coords.Parent = options.gui
 	local pill = Instance.new("UICorner")
 	pill.CornerRadius, pill.Parent = UDim.new(0.5, 0), coords
@@ -1367,11 +1576,14 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			local size = options.gui.AbsoluteSize
 			local regions = M.regions(size.X, size.Y, M.guiClear(options.gui))
 			M.put(map, regions.minimap)
+			local mm = regions.minimap
+			bezel.Position = UDim2.fromOffset(mm.x + mm.width / 2, mm.y + mm.height / 2)
+			bezel.Size = UDim2.fromOffset(mm.width + 10, mm.height + 10)
 			M.put(coords, regions.coords)
 			coords.TextSize = M.textSize("caption", regions.safeHeight)
 			tagSize = M.nameTag(regions.safeHeight, touch)
 			local hidden = options.hidden()
-			map.Visible, coords.Visible = not hidden, not hidden
+			map.Visible, coords.Visible, bezel.Visible = not hidden, not hidden, not hidden
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			used = 0
@@ -1448,6 +1660,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 			connection:Disconnect()
 		end
 		map:Destroy()
+		bezel:Destroy()
 		coords:Destroy()
 		labelFolder:Destroy()
 	end

@@ -122,6 +122,11 @@ function M.factory(ctx: any): any
 	tracker.Name, tracker.LayoutOrder, tracker.Visible = "OpeningTracker", 0, false
 	tracker.TextScaled, tracker.TextWrapped = true, true
 	tracker.TextXAlignment, tracker.TextYAlignment = Enum.TextXAlignment.Left, Enum.TextYAlignment.Top
+	-- Compact quest tracker (HUD polish): TextScaled filled the whole slot with 20+ px lines on the
+	-- phone (p134 v54 wc0); capped at a label size on a lighter, translucent card.
+	tracker.BackgroundTransparency = 0.4
+	local trackerFit = Instance.new("UITextSizeConstraint")
+	trackerFit.MinTextSize, trackerFit.MaxTextSize, trackerFit.Parent = 11, 15, tracker
 
 	local view: any = nil
 	local function serverNow(): number

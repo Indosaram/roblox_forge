@@ -4170,6 +4170,70 @@
   "sha256": "51ab54812d87fd16fabaff961e48ce9e5ec784552825f8cb1350c95b3381ad48",
   "visible": 3730
  },
+ "ui.icon.hud.attack": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 5,
+  "clear": 6510,
+  "inputVersion": "2713fb4493bd408180ffc7c35fe1d0cd5f2cb0e5fd2c56912ca4f7c6dd488b30",
+  "sha256": "e7d5731f5d61223e16cd2c9fcc9df8fb5220cf5128b46c7256cc1598ed1dde7d",
+  "visible": 2513
+ },
+ "ui.icon.hud.chat": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 4,
+  "clear": 4626,
+  "inputVersion": "e19e2544c65d268ce219e82afcad829f1cc2c1e70bc3f962e888e0af6850f05d",
+  "sha256": "b1daaec106e39a1c99f9df4d1649db0524b2488cc9c2c209f159aac9764ea40a",
+  "visible": 4430
+ },
+ "ui.icon.hud.dismount": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 6,
+  "clear": 5148,
+  "inputVersion": "a3c6b71b151da19967177f217650effb1647ab6ef976a0e22e8f4b9a0ad11cab",
+  "sha256": "966903cb69ecf16933d75eca63ea1cf51f9358428b154f2e0024f06ca9d64b59",
+  "visible": 3906
+ },
+ "ui.icon.hud.emote": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 3,
+  "clear": 3649,
+  "inputVersion": "e2d52898857810272c76b782833f237a16a29e4dc5f0908fa994748bf95dfc2f",
+  "sha256": "6089799582a3a87d79c4ddbb5718dbf852d8ee29c3e8e14b3b7a133a59b2541b",
+  "visible": 5418
+ },
+ "ui.icon.hud.gather": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 8,
+  "clear": 5082,
+  "inputVersion": "63d4489d06a23a6affaea2e6a98e5e07da8c9d1a309ad7f65a312705854b25b2",
+  "sha256": "f5276c3ae4990368e910d472203e7608ca47014da940d51b8d5f52bcd3625de1",
+  "visible": 3973
+ },
+ "ui.icon.hud.interact": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 1,
+  "clear": 5421,
+  "inputVersion": "98bd50b90784f1e8e8b80fba5b6bee4edfb642ae96ad59cbe97f42b61c109439",
+  "sha256": "686e91e14f27d88b2c6467a0f98f4d16a2dd9192fdfbca98e0bcf7206e1035d4",
+  "visible": 3568
+ },
+ "ui.icon.hud.menu": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 2,
+  "clear": 2553,
+  "inputVersion": "f615b826b536b73b8f5fcf739f4f902d74464755df54ee019a92e02ec22c6c59",
+  "sha256": "df4fcae3d38183b95985eefcdf6397108659572a8b4a7b0e299ceb5c2d284b04",
+  "visible": 6380
+ },
+ "ui.icon.hud.rest": {
+  "atlas": "l9/atlas-hud.png",
+  "cell": 7,
+  "clear": 6020,
+  "inputVersion": "c1ad84b398aca83a3232180602373e62a95a32d2cfc2d664f01b13a88a1b3b92",
+  "sha256": "1e12d40738e36a2a792163ffee112d7893810acbc283d4983babf3c02caf453e",
+  "visible": 2764
+ },
  "ui.icon.inbox": {
   "atlas": "l9/atlas-e.png",
   "cell": 10,

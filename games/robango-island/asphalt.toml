@@ -3941,6 +3941,62 @@ output_path = "games/robango-island/src/shared"
 [inputs.ui-icon-help.web]
 "ui.icon.help.png" = { id = 97586660714818 }
 
+[inputs.ui-icon-hud-attack]
+path = "assets/icons/ui.icon.hud.attack.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-attack.web]
+"ui.icon.hud.attack.png" = { id = 105246996872983 }
+
+[inputs.ui-icon-hud-chat]
+path = "assets/icons/ui.icon.hud.chat.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-chat.web]
+"ui.icon.hud.chat.png" = { id = 112977781236390 }
+
+[inputs.ui-icon-hud-dismount]
+path = "assets/icons/ui.icon.hud.dismount.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-dismount.web]
+"ui.icon.hud.dismount.png" = { id = 133991500596890 }
+
+[inputs.ui-icon-hud-emote]
+path = "assets/icons/ui.icon.hud.emote.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-emote.web]
+"ui.icon.hud.emote.png" = { id = 126800882184441 }
+
+[inputs.ui-icon-hud-gather]
+path = "assets/icons/ui.icon.hud.gather.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-gather.web]
+"ui.icon.hud.gather.png" = { id = 113437029382334 }
+
+[inputs.ui-icon-hud-interact]
+path = "assets/icons/ui.icon.hud.interact.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-interact.web]
+"ui.icon.hud.interact.png" = { id = 125506962828606 }
+
+[inputs.ui-icon-hud-menu]
+path = "assets/icons/ui.icon.hud.menu.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-menu.web]
+"ui.icon.hud.menu.png" = { id = 136391703065573 }
+
+[inputs.ui-icon-hud-rest]
+path = "assets/icons/ui.icon.hud.rest.png"
+output_path = "games/robango-island/src/shared"
+
+[inputs.ui-icon-hud-rest.web]
+"ui.icon.hud.rest.png" = { id = 82226617757394 }
+
 [inputs.ui-icon-inbox]
 path = "assets/icons/ui.icon.inbox.png"
 output_path = "games/robango-island/src/shared"

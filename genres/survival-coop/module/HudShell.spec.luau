@@ -6,7 +6,8 @@ local Shell = require("./HudShell")
 -- ImageLabel IsLoaded / GetPropertyChangedSignal for the picker specs (registered once per process).
 local _imageLoad = require("../../../core/ui-kit/ImageLoad.fixture")
 
-local REGIONS = { "vitals", "chips", "tracker", "status", "minimap", "coords", "quest", "row", "cluster" }
+local REGIONS =
+	{ "vitals", "chips", "tracker", "status", "minimap", "coords", "quest", "questToggle", "hotbar", "row", "cluster" }
 
 -- Viewports in gui (logical) px: { width, height, topClear, touch, physical scale, side inset }.
 local PHONE: { any } = { 850, 411, 58, true, 2.625, 32 }
@@ -86,14 +87,94 @@ local function flags(over: any): any
 end
 
 return {
+	-- HUD polish (Durango R05/R08): the owner's two target screens, phone 800x360 (CoreUISafeInsets,
+	-- no top clear) and PC 1280x720 (36 px top bar).
+	["HUD polish: compact regions at 800x360 phone and 1280x720 PC"] = function()
+		for _, view: { any } in { { 800, 360, 0, true } :: { any }, { 1280, 720, 36, false } } do
+			local width, height, top, touch = view[1], view[2], view[3], view[4]
+			local r = check(width, height, top, touch)
+			local at = string.format(" at %dx%d", width, height)
+			-- Slim vitals: at most a quarter of the width and 30% of the safe height (v54: half the corner).
+			assert(r.vitals.width <= width * 0.27 and r.vitals.height <= r.safeHeight * 0.3, "compact vitals" .. at)
+			local rows = Shell.vitalsRows(r.vitals)
+			assert(rows.badge.x >= 0 and rows.badge.y >= 0, "badge inside" .. at)
+			for index, row in rows.rows do
+				assert(row.track.width >= 80, "bar track stays a bar" .. at)
+				assert(row.icon.x >= rows.badge.x + rows.badge.width, "icon right of the badge" .. at)
+				assert(row.track.x >= row.icon.x + row.icon.width, "bar right of the icon" .. at)
+				assert(row.value.x >= row.track.x + row.track.width, "number right of the bar" .. at)
+				assert(row.value.x + row.value.width <= r.vitals.width, "number inside the panel" .. at)
+				assert(row.value.y + row.value.height <= r.vitals.height, "row inside the panel" .. at)
+				if index > 1 then
+					local above = rows.rows[index - 1].track
+					assert(row.track.y > above.y + above.height, "rows apart" .. at)
+				end
+			end
+			assert(rows.text >= 11, "vitals number readable" .. at)
+			-- Every touch target is at least 44 px; the primary token is the big one.
+			for slot, token in r.tokens do
+				assert(not touch or math.min(token.width, token.height) >= Shell.MIN_TOUCH, slot .. " touch" .. at)
+				if slot ~= "P" then
+					assert(r.tokens.P.width > token.width, "primary bigger than " .. slot .. at)
+				end
+			end
+			for _, rect in { r.questToggle, table.unpack(r.rowSlots) } do
+				assert(rect.width >= Shell.MIN_TOUCH and rect.height >= Shell.MIN_TOUCH, "toggle / row touch" .. at)
+			end
+			-- Hotbar slots: bottom centre, touch size, between the bottom-left row and the cluster.
+			local bar = r.hotbar
+			assert(bar.height >= Shell.MIN_TOUCH, "hotbar slot touch size" .. at)
+			assert(math.abs(bar.x + bar.width / 2 - width / 2) <= 1, "hotbar centred" .. at)
+			assert(
+				bar.x > r.row.x + r.row.width and bar.x + bar.width < r.cluster.x,
+				"hotbar between row and arc" .. at
+			)
+			assert(r.hotbarSlots == Shell.HOTBAR_SLOTS, "six slots" .. at)
+			-- The quest toggle sits left of the card on the card's top line.
+			assert(r.questToggle.y == r.quest.y and r.questToggle.x + r.questToggle.width < r.quest.x, "toggle" .. at)
+		end
+	end,
+
+	["HUD polish: every token has a painted icon and the disabled look reads as unavailable"] = function()
+		local fs = require("@lune/fs")
+		local manifest = fs.readFile("games/robango-island/assets/manifest.yml")
+		local ids = { "rest", "gather", "menu", "emote", "chat", "quest", "currency", "level", "dismount", "pet" }
+		for _, set in { flags({ combat = true, attack = true, shoot = true, capture = true }), flags({ mount = true }) } do
+			for _, token in Shell.tokens(set) do
+				table.insert(ids, token.id)
+			end
+		end
+		for _, id in ids do
+			local icon = assert(Shell.TOKEN_ICONS[id], "icon for " .. id)
+			local key = "key: ui-icon-" .. string.gsub(icon, "[.]", "-") .. "\n"
+			assert(string.find(manifest, key, 1, true), "manifest row for " .. icon)
+			assert(fs.isFile("games/robango-island/assets/icons/ui.icon." .. icon .. ".png"), "png for " .. icon)
+		end
+		-- The interact token shows what it will do; the stance token the current stance.
+		assert(Shell.tokenIcon("interact", { rest = true }) == "hud.rest", "rest glyph")
+		assert(Shell.tokenIcon("interact", { gather = true }) == "hud.gather", "gather glyph")
+		assert(Shell.tokenIcon("interact") == "hud.interact", "default glyph")
+		assert(Shell.tokenIcon("stance", { stance = "defense" }) == "stance.defense", "current stance")
+		assert(Shell.tokenIcon("stance", { stance = "none" }) == "stance.attack", "no stance")
+		-- Disabled: the same disc with the glyph dimmed and a slate rim, never a near-invisible blob.
+		local off, on, primary = Shell.tokenLook("disabled"), Shell.tokenLook("normal"), Shell.tokenLook("primary")
+		assert(off.fill < 0.7 and off.glyph > 0.3 and off.glyph < 0.8, "disabled stays visible but dim")
+		assert(off.rim == "slateLock" and on.rim == "drift" and primary.rim == "tealPale", "rims")
+		assert(primary.fill < on.fill and on.fill < off.fill, "primary most solid")
+	end,
+
 	["regions match ui-spec section 5 at 1920x1080 PC"] = function()
 		local r = check(PC[1], PC[2], PC[3], PC[4])
-		near("vitals", physical(r.vitals, PC), { 20, 78, 450, 123 }, 2)
+		-- HUD polish: the vitals panel is the compact Durango strip (spec corner, capped width) instead
+		-- of the spec's 450 px slab.
+		local v = physical(r.vitals, PC)
+		near("vitals corner", { v[1], v[2], 0, 0 }, { 20, 78, 0, 0 }, 2)
+		assert(r.vitals.width <= Shell.VITALS_MAX_WIDTH and r.vitals.height <= 3 * Shell.VITALS_ROW[2] + 8, "compact")
 		assert(r.vitals.height >= Shell.VITALS_MIN_HEIGHT, "vitals holds its three bar rows")
 		assert(r.chips.y >= r.vitals.y + r.vitals.height and r.tracker.y >= r.chips.y + r.chips.height, "stacked")
 		near("minimap", physical(r.minimap, PC), { 1664, 78, 225, 225 }, 2)
 		near("coords", physical(r.coords, PC), { 1685, 308, 184, 41 }, 2)
-		near("quest", physical(r.quest, PC), { 1389, 365, 501, 123 }, 2)
+		near("quest", physical(r.quest, PC), { 1389 + Shell.MIN_TOUCH + 4, 365, 501 - Shell.MIN_TOUCH - 4, 123 }, 2)
 		near("status", physical(r.status, PC), { 551, 222, 818, 102 }, 2)
 		assert(r.arcScale == 1, "PC tide arc at the spec radii")
 		-- The spec's own tide arc puts O2 (0.42H at 70 degrees) a little above its 0.62H region line, so
@@ -121,7 +202,7 @@ return {
 		-- over the coin chip on the phone (staging v25): the panel keeps the spec's top-left corner and
 		-- width, grows to VITALS_MIN_HEIGHT, and the chips and tracker stack under it.
 		local v = physical(r.vitals, PHONE)
-		near("vitals corner", { v[1], v[2], 408, 111 }, { 103, 171, 408, 111 }, 4)
+		near("vitals corner", { v[1], v[2], 0, 0 }, { 103, 171, 0, 0 }, 4)
 		assert(r.vitals.width >= Shell.VITALS_MIN_WIDTH, "vitals wide enough for a bar track")
 		assert(r.vitals.height >= Shell.VITALS_MIN_HEIGHT, "vitals holds its three bar rows")
 		assert(r.chips.y >= r.vitals.y + r.vitals.height, "chips under vitals")

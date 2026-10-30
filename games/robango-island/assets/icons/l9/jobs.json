@@ -468,6 +468,20 @@
         "rw-journal-seal-7": "a round bronze medallion embossed with a rising sun over water",
         "rw-journal-seal-8": "a round bronze medallion embossed with a four-point compass star"
       }
+    },
+    {
+      "id": "hud",
+      "kind": "ui",
+      "subjects": {
+        "hud.interact": "a small round amber glass bead resting in a ring of braided dry grass, glowing softly",
+        "hud.menu": "three short flat wooden planks stacked evenly one above another with small gaps, seen from the front",
+        "hud.emote": "a round wooden token carved with a simple smile curve and two dot eyes, a plain smiley glyph",
+        "hud.chat": "a rounded speech-bubble shaped piece of pale birch bark with a short pointed tail at the lower left",
+        "hud.attack": "a heavy wooden club with a flint stone lashed to its head, lying diagonal, head to the upper right",
+        "hud.dismount": "a leather saddle with a short carved wooden arrow beside it pointing down",
+        "hud.rest": "a small campfire of three crossed logs with a low warm flame",
+        "hud.gather": "a small woven basket tipped on its side spilling two berries and a leaf"
+      }
     }
   ]
 }

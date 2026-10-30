@@ -180,10 +180,11 @@ function M.art(width: number, height: number, top: number, aspect: number?): Rec
 end
 
 --- Whether the Roblox Backpack hotbar may show: never under the title (p134 v49: tool tiles drew
---- over it) and never under a full sheet (the bag and craft sheets reach the hotbar band).
+--- over it), never under a full sheet (the bag and craft sheets reach the hotbar band) and never
+--- while the HUD shell draws its own item hotbar (`hudHotbar`, LocalPlayer ForgeHudHotbar).
 --- Hiding the Backpack CoreGui only hides the bar; an equipped tool stays equipped.
-function M.backpackShown(titleDone: boolean, sheetOpen: boolean): boolean
-	return titleDone and not sheetOpen
+function M.backpackShown(titleDone: boolean, sheetOpen: boolean, hudHotbar: boolean?): boolean
+	return titleDone and not sheetOpen and hudHotbar ~= true
 end
 
 -- ForgeDownPanelOpen: the survival-coop down panel (p134 v53: the hotbar covered its middle card).
@@ -230,14 +231,18 @@ function M.bindBackpack(player: any, apply: (boolean) -> ()): () -> ()
 		for _, name in M.SHEET_ATTRIBUTES do
 			sheet = sheet or player:GetAttribute(name) == true
 		end
-		local shown = M.backpackShown(player:GetAttribute("ForgeTitleDone") == true, sheet)
+		local shown = M.backpackShown(
+			player:GetAttribute("ForgeTitleDone") == true,
+			sheet,
+			player:GetAttribute("ForgeHudHotbar") == true
+		)
 		if shown ~= last then
 			last = shown
 			apply(shown)
 		end
 	end
 	local connections = {}
-	for _, name in { "ForgeTitleDone", table.unpack(M.SHEET_ATTRIBUTES) } do
+	for _, name in { "ForgeTitleDone", "ForgeHudHotbar", table.unpack(M.SHEET_ATTRIBUTES) } do
 		table.insert(connections, player:GetAttributeChangedSignal(name):Connect(sync))
 	end
 	sync()

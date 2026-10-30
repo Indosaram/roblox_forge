@@ -241,6 +241,11 @@ return {
 		assert(applied[#applied] == true, "closing the sheet brings it back")
 		player:SetAttribute("ForgeExtensionSheetOpen", true)
 		assert(applied[#applied] == false, "an extension sheet hides it too")
+		-- HUD polish: the shell's own item hotbar replaces the engine bar while it is up.
+		player:SetAttribute("ForgeExtensionSheetOpen", false)
+		assert(applied[#applied] == true, "back after the extension sheet")
+		player:SetAttribute("ForgeHudHotbar", true)
+		assert(applied[#applied] == false, "the HUD hotbar hides the engine bar")
 		-- The live wiring: the boot applies it to the Backpack CoreGui and never unequips.
 		local boot = fs.readFile("games/robango-island/src/first/RobangoBoot.client.luau")
 		assert(string.find(boot, "Flow.bindBackpack(player, function(shown: boolean)", 1, true), "bound in the boot")

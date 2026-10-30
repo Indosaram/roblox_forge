@@ -148,7 +148,7 @@ function M.start(options: Options)
 	local vitals =
 		Components.label(theme, { text = t("loading"), size = UDim2.new(1, 0, 0, 52), parent = root, textSize = 15 })
 	vitals.Name = "Vitals"
-	vitals.BackgroundColor3, vitals.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
+	vitals.BackgroundColor3, vitals.BackgroundTransparency = Color3.fromRGB(22, 36, 33), if shell then 0.45 else 0.08
 	pcall(function()
 		local vc = Instance.new("UICorner")
 		vc.CornerRadius = UDim.new(0, 8)
@@ -158,6 +158,20 @@ function M.start(options: Options)
 		vs.Parent = vitals
 	end)
 	local statBars: { [string]: any } = {}
+	-- HUD polish (shell): slim icon + bar + number rows sized by HudShell.vitalsRows; the stat word is
+	-- dropped (the icon carries it) and a level badge sits at the panel's left.
+	local levelBadge: TextLabel? = nil
+	if shell then
+		local badge = Instance.new("TextLabel")
+		badge.Name, badge.BackgroundColor3 = "Level", HudShell.color(HudShell.PALETTE.tealDeep)
+		badge.TextColor3, badge.Font = HudShell.color(HudShell.PALETTE.bone), Enum.Font.BuilderSansBold
+		badge.Text, badge.Parent = "", vitals
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), badge
+		local ring = Instance.new("UIStroke")
+		ring.Color, ring.Thickness, ring.Parent = HudShell.color(HudShell.PALETTE.ochre), 2, badge
+		levelBadge = badge
+	end
 	for index, stat in { "health", "hunger", "fatigue" } do
 		local icon = if options.icons then options.icons.ui(if stat == "hunger" then "energy" else stat) else nil
 		local rowY = Model.VITALS.rowTop + (index - 1) * Model.VITALS.rowStep
@@ -205,10 +219,33 @@ function M.start(options: Options)
 			size = UDim2.fromOffset(38, Model.VITALS.rowHeight),
 			position = UDim2.new(1, -42, 0, rowY),
 		})
-		statBars[stat] = { fill = fill, value = value }
+		statBars[stat] = {
+			fill = fill,
+			value = value,
+			symbol = symbol,
+			track = track,
+			icon = vitals:FindFirstChild(stat .. "Asset"),
+		}
 	end
 	local coins = Components.label(theme, { text = "", size = UDim2.fromOffset(100, 28), parent = root, textSize = 13 })
 	coins.Name, coins.Visible, coins.BackgroundColor3 = "Coins", false, Color3.fromRGB(22, 36, 33)
+	if shell then
+		-- Currency chip: an ink pill with the shell-money icon and the amount (no loose text line).
+		coins.BackgroundColor3, coins.BackgroundTransparency = HudShell.color(HudShell.PALETTE.ink), 0.35
+		coins.TextColor3, coins.Font = HudShell.color(HudShell.PALETTE.bone), Enum.Font.BuilderSansBold
+		coins.TextXAlignment = Enum.TextXAlignment.Left
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0.5, 0), coins
+		local rim = Instance.new("UIStroke")
+		rim.Name, rim.ApplyStrokeMode = "ChipRim", Enum.ApplyStrokeMode.Border
+		rim.Color, rim.Thickness, rim.Transparency, rim.Parent = HudShell.color(HudShell.PALETTE.ochre), 1.5, 0.2, coins
+		local coinIcon = if options.icons then options.icons.ui("currency") else nil
+		if coinIcon and coinIcon.image then
+			local image = Instance.new("ImageLabel")
+			image.Name, image.BackgroundTransparency, image.Image = "CoinIcon", 1, coinIcon.image
+			image.ScaleType, image.Parent = Enum.ScaleType.Fit, coins
+		end
+	end
 	local status = Components.label(theme, {
 		text = t("loading"),
 		size = UDim2.new(1, 0, 0, 64),
@@ -1135,6 +1172,10 @@ function M.start(options: Options)
 				bar.fill.Size = UDim2.fromScale(math.clamp(amount / 100, 0, 1), 1)
 				bar.value.Text = tostring(math.floor(amount))
 			end
+		end
+		if levelBadge then
+			local progression = model.snapshot.progression
+			levelBadge.Text = if progression and progression.level then tostring(progression.level) else "1"
 		end
 		local hungry = Model.hungry(v)
 		local hint = Model.hungerHint(model.snapshot, content and content.items)
@@ -2201,11 +2242,130 @@ function M.start(options: Options)
 			end,
 		})
 	end
+	-- Item hotbar (shell, HUD polish): the backpack tools as icon slots bottom-centre, replacing the
+	-- engine Backpack bar (RobangoBoot hides it while ForgeHudHotbar is set). Tap or 1-6 equips,
+	-- tapping the held tool puts it away. Presentation only: the server tools registry stays the
+	-- authority over what a Tool does.
+	local hotbarSlots: { any } = {}
+	local hotbarTools: { [number]: any } = {}
+	local function equipSlot(index: number)
+		local tool = hotbarTools[index]
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not tool or not humanoid then
+			return
+		end
+		if tool.Parent == character then
+			humanoid:UnequipTools()
+		else
+			humanoid:EquipTool(tool)
+		end
+	end
+	local function hotbarStep(modal: boolean)
+		local region = shellRegions and shellRegions.hotbar
+		if not region then
+			return
+		end
+		local tools: { any } = {}
+		local character = player.Character
+		local backpack = player:FindFirstChildOfClass("Backpack")
+		for _, holder in { character, backpack } do
+			for _, child in if holder then holder:GetChildren() else {} do
+				if child:IsA("Tool") then
+					table.insert(tools, child)
+				end
+			end
+		end
+		-- Stable order: by catalog id then name, so a slot keeps its tool when it is equipped.
+		table.sort(tools, function(a, b)
+			local ka = tostring(a:GetAttribute("ForgeCatalogId") or "") .. a.Name
+			local kb = tostring(b:GetAttribute("ForgeCatalogId") or "") .. b.Name
+			return ka < kb
+		end)
+		local size = region.height
+		for index = 1, HudShell.HOTBAR_SLOTS do
+			local slot: any = hotbarSlots[index]
+			if not slot then
+				slot = Instance.new("TextButton")
+				slot.Name, slot.Text, slot.AutoButtonColor = "HotbarSlot" .. index, "", false
+				slot.BackgroundColor3 = HudShell.color(HudShell.PALETTE.ink)
+				slot.Font, slot.TextWrapped = Enum.Font.BuilderSansBold, true
+				slot.TextColor3 = HudShell.color(HudShell.PALETTE.bone)
+				local round = Instance.new("UICorner")
+				round.CornerRadius, round.Parent = UDim.new(0, 8), slot
+				local rim = Instance.new("UIStroke")
+				rim.Name, rim.ApplyStrokeMode, rim.Parent = "SlotRim", Enum.ApplyStrokeMode.Border, slot
+				local image = Instance.new("ImageLabel")
+				image.Name, image.BackgroundTransparency, image.ScaleType = "Icon", 1, Enum.ScaleType.Fit
+				image.AnchorPoint, image.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+				image.Size, image.Parent = UDim2.fromScale(0.78, 0.78), slot
+				local key = Instance.new("TextLabel")
+				key.Name, key.BackgroundTransparency, key.Text = "Key", 1, tostring(index)
+				key.Position, key.Size = UDim2.fromOffset(3, 1), UDim2.fromOffset(12, 12)
+				key.Font, key.TextSize = Enum.Font.BuilderSansBold, 11
+				key.TextColor3, key.TextXAlignment =
+					HudShell.color(HudShell.PALETTE.boneShade), Enum.TextXAlignment.Left
+				key.Parent = slot
+				slot.Activated:Connect(function()
+					equipSlot(index)
+				end)
+				slot.Parent = gui
+				hotbarSlots[index] = slot
+			end
+			local tool = tools[index]
+			hotbarTools[index] = tool
+			HudShell.put(slot, {
+				x = region.x + (index - 1) * (size + HudShell.HOTBAR_GAP),
+				y = region.y,
+				width = size,
+				height = size,
+			})
+			slot.Visible = not modal and index <= (shellRegions.hotbarSlots or 0)
+			local held = tool ~= nil and tool.Parent == character
+			local catalogId = tool and tool:GetAttribute("ForgeCatalogId")
+			local icon = if tool
+					and options.icons
+					and type(catalogId) == "string"
+				then options.icons.item(catalogId)
+				else nil
+			local image = slot:FindFirstChild("Icon") :: ImageLabel
+			image.Image = if icon and icon.image then icon.image else ""
+			-- No painted icon: the tool's first letter, never a blank slot.
+			slot.Text = if tool and image.Image == "" then utf8.char(utf8.codepoint(tool.Name, 1)) else ""
+			slot.TextSize = math.floor(size * 0.4)
+			slot.BackgroundTransparency = if tool then 0.3 else 0.7
+			slot.Active, slot.Interactable = tool ~= nil, tool ~= nil
+			local rim = slot:FindFirstChild("SlotRim") :: UIStroke
+			rim.Color = HudShell.color(if held then HudShell.PALETTE.ochre else HudShell.PALETTE.driftDark)
+			rim.Thickness, rim.Transparency = if held then 2.5 else 1.5, if tool then 0.1 else 0.5
+		end
+	end
+	if shell then
+		player:SetAttribute("ForgeHudHotbar", true)
+		table.insert(
+			connections,
+			input.InputBegan:Connect(function(key: InputObject, processed: boolean)
+				if processed or input:GetFocusedTextBox() then
+					return
+				end
+				local fanGui = player.PlayerGui:FindFirstChild("ForgeGatherFan")
+				local fan = fanGui and fanGui:FindFirstChild("GatherFan")
+				if fan and fan:IsA("GuiObject") and fan.Visible then
+					return -- 1-6 pick a gather output while the fan is open.
+				end
+				local number = key.KeyCode.Value - Enum.KeyCode.One.Value + 1
+				if number >= 1 and number <= HudShell.HOTBAR_SLOTS then
+					equipSlot(number)
+				end
+			end)
+		)
+	end
 	-- Shows the tokens for the current context at their tide-arc slots; hides the rest.
 	local function layoutShell(actions: any, modal: boolean)
 		if not shellRegions then
 			return
 		end
+		hotbarStep(modal or player:GetAttribute("ForgeDownPanelOpen") == true)
 		local taming = extensions.taming
 		local companions = if type(taming) == "table" then taming.companions else nil
 		local policy = model.durable
@@ -2225,6 +2385,21 @@ function M.start(options: Options)
 			riding = shell ~= nil and shell.pet ~= nil and type(taming) == "table" and taming.ride ~= nil,
 		}
 		local shown: { [string]: boolean } = {}
+		local stanceView = model.snapshot.contracts and model.snapshot.contracts.stance
+		local iconContext = {
+			rest = nearest("campfire") ~= nil,
+			gather = nearestPromptFn ~= nil and (function()
+				local best = nearestPromptFn()
+				return best ~= nil and best.Name == "ForgeGather"
+			end)(),
+			stance = if type(stanceView) == "table" then stanceView.current else nil,
+		}
+		local function glyph(id: string): string?
+			local icon = if options.icons then options.icons.ui(HudShell.tokenIcon(id, iconContext)) else nil
+			return if icon then icon.image else nil
+		end
+		local caption = ""
+		local primaryRect: any = nil
 		if not modal then
 			for _, entry in HudShell.tokens(flags) do
 				local item = shellButtons[entry.id]
@@ -2235,26 +2410,59 @@ function M.start(options: Options)
 					item.TextSize = HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
 					local enabled = entry.enabled and policy ~= nil and model.pending == nil
 					item.Active, item.Interactable = enabled, enabled
-					HudShell.pebble(item, entry.slot == "P" and enabled, enabled)
-					item.Text = if entry.id == "stance"
+					local tokenLabel = if entry.id == "stance"
 						then Model.stanceLabel(locale, model.snapshot.contracts and model.snapshot.contracts.stance, t)
 						elseif entry.id == "interact" and nearestPromptFn and not nearest("campfire") then labelOf(
 							nearestPromptFn()
 						)
+						elseif entry.id == "interact" and nearest("campfire") then t("rest")
 						else t("shell." .. entry.id)
+					item.Text = tokenLabel
+					-- Icon-only token; the label stays the button's Text (accessibility, QA) but is drawn
+					-- only as the primary action's caption pill.
+					HudShell.iconToken(
+						item,
+						glyph(entry.id),
+						if not enabled then "disabled" elseif entry.slot == "P" then "primary" else "normal"
+					)
+					if entry.slot == "P" and enabled then
+						caption, primaryRect = tokenLabel, r
+					end
 				end
 			end
 		end
 		for id, item in shellButtons do
 			item.Visible = shown[id] == true
 		end
+		-- The genre gather button (GatheringClient's ForgeGatherTouch.Gather, focus-aware) becomes the
+		-- primary token while a node is in reach: same slot, painted gather glyph, its own caption.
+		local gatherGui = player.PlayerGui:FindFirstChild("ForgeGatherTouch")
+		local gather = gatherGui and gatherGui:FindFirstChild("Gather")
+		local pSlot = shellRegions.tokens.P
+		if gather and gather:IsA("TextButton") and gather.Visible and not modal and pSlot then
+			HudShell.put(gather, pSlot)
+			HudShell.iconToken(gather, glyph("gather"), "primary")
+			if shellButtons.interact and shown.interact then
+				shellButtons.interact.Visible = false
+			end
+			if primaryRect == nil or primaryRect == pSlot then
+				caption, primaryRect = gather.Text, pSlot
+			end
+		end
+		HudShell.tokenCaption(
+			gui,
+			"PrimaryCaption",
+			primaryRect or { x = 0, y = 0, width = 0, height = 0 },
+			if primaryRect then caption else "",
+			HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
+		)
 		restButton.Visible = false
 		local rowVisible = not modal
 		for index, item in pairs(shellRow) do
 			HudShell.put(item, shellRegions.rowSlots[index])
 			item.Visible = rowVisible
 			item.TextSize = HudShell.tokenText("label", shellRegions.safeHeight, input.TouchEnabled)
-			HudShell.pebble(item, false, true)
+			HudShell.iconToken(item, glyph(if index == 2 then "emote" else "chat"), "normal")
 		end
 	end
 	local CHAT_RESERVE_WIDTH = 240
@@ -2288,7 +2496,46 @@ function M.start(options: Options)
 				HudShell.put(vitals, shellRegions.vitals)
 				HudShell.put(status, shellRegions.status)
 				local chips = shellRegions.chips
-				HudShell.put(coins, { x = chips.x, y = chips.y, width = 100, height = math.min(28, chips.height) })
+				HudShell.put(
+					coins,
+					{ x = chips.x, y = chips.y, width = chips.width, height = math.min(28, chips.height) }
+				)
+				local chipHeight = math.min(28, chips.height)
+				local coinIcon = coins:FindFirstChild("CoinIcon")
+				if coinIcon then
+					coinIcon.Position, coinIcon.Size =
+						UDim2.fromOffset(-4, 1), UDim2.fromOffset(chipHeight - 2, chipHeight - 2)
+				end
+				local coinPad = coins:FindFirstChildOfClass("UIPadding")
+				if coinPad then
+					coinPad.PaddingLeft = UDim.new(0, chipHeight + 4)
+				end
+				coins.TextSize = math.max(13, chipHeight - 12)
+				local geometry = HudShell.vitalsRows(shellRegions.vitals)
+				local badge = levelBadge
+				if badge then
+					HudShell.put(badge, geometry.badge)
+					badge.TextSize = math.max(13, math.floor(geometry.badge.height * 0.42))
+				end
+				for index, stat in { "health", "hunger", "fatigue" } do
+					local bar, row = statBars[stat], geometry.rows[index]
+					bar.symbol.Visible = bar.icon == nil
+					if bar.icon then
+						HudShell.put(bar.icon, row.icon)
+					else
+						-- No painted icon: the first letter of the stat word stands in.
+						HudShell.put(bar.symbol, row.icon)
+						bar.symbol.Text = utf8.char(utf8.codepoint(t(stat), 1))
+					end
+					HudShell.put(bar.track, row.track)
+					HudShell.put(bar.value, row.value)
+					bar.value.TextSize = geometry.text
+					bar.value.TextXAlignment = Enum.TextXAlignment.Right
+					local fit = bar.value:FindFirstChildOfClass("UITextSizeConstraint")
+					if fit then
+						fit.MaxTextSize, fit.MinTextSize = geometry.text, math.min(fit.MinTextSize, geometry.text)
+					end
+				end
 				if panelLayout then
 					render()
 				end
@@ -2505,7 +2752,11 @@ function M.start(options: Options)
 					or (shell ~= nil and HudShell.sheetOpen(player:FindFirstChild("PlayerGui")))
 				vitals.Visible = not modal and model.snapshot.vitals ~= nil
 				local balance = tonumber(model.snapshot.balance)
-				coins.Visible, coins.Text = not modal and balance ~= nil, string.format(t("coins"), balance or 0)
+				coins.Visible = not modal and balance ~= nil
+				-- Shell chip: the shell-money icon carries the name, the pill shows the amount.
+				coins.Text = if coins:FindFirstChild("CoinIcon")
+					then tostring(balance or 0)
+					else string.format(t("coins"), balance or 0)
 				local restTarget = nearest("campfire")
 				local character = player.Character
 				local pivot = if character then character:FindFirstChild("HumanoidRootPart") else nil
