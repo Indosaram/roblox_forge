@@ -739,7 +739,7 @@ def card_cluster(quad, rng, p, out, uvs, cards, size, flat=0.5):
 
 def branch_tree(tube, quad, rng, height, trunk_r, crown, uvs, *, fork=0.45, leaders=2, groups=7, clusters=30,
                 cards=8, card=3.0, roots=0, root_reach=2.6, root_h=2.0, lean=(0.0, 0.0), sides=8, mind=None,
-                zmin=-0.35, depth=(0.5, 1.0), flat=0.5, twigs=True, hang=None):
+                zmin=-0.35, depth=(0.5, 1.0), flat=0.5, twigs=True, hang=None, trunk_draw=True):
     """Clustered branch-card tree. tube(pts, radii, sides); quad(corners, uv).
     crown = (rx, ry, rz); the crown top sits at `height`. Returns the cluster centres."""
     rx, ry, rz = crown
@@ -748,7 +748,8 @@ def branch_tree(tube, quad, rng, height, trunk_r, crown, uvs, *, fork=0.45, lead
     F = Vector((lx * height * fork * 0.6, ly * height * fork * 0.6, height * fork))
     trunk = [Vector((0, 0, -0.3)), Vector((0, 0, 0.6)), F * 0.35 + Vector((rng.uniform(-0.2, 0.2), rng.uniform(-0.2, 0.2), 0)),
              F * 0.7 + Vector((rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), 0)), F]
-    tube(trunk, [trunk_r * 1.55, trunk_r * 1.2, trunk_r, trunk_r * 0.86, trunk_r * 0.72], sides)
+    if trunk_draw:
+        tube(trunk, [trunk_r * 1.55, trunk_r * 1.2, trunk_r, trunk_r * 0.86, trunk_r * 0.72], sides)
     for i in range(roots):
         a = 2 * math.pi * i / roots + rng.uniform(-0.25, 0.25)
         o = Vector((math.cos(a), math.sin(a), 0))
@@ -772,7 +773,11 @@ def branch_tree(tube, quad, rng, height, trunk_r, crown, uvs, *, fork=0.45, lead
         end = F + (m - F) * 0.45
         end.z = max(end.z, F.z + (centre.z - F.z) * 0.55)
         mid = (F + end) / 2 + Vector((rng.uniform(-0.4, 0.4), rng.uniform(-0.4, 0.4), 0.3))
-        tube([F, mid, end], [trunk_r * 0.72, trunk_r * 0.55, trunk_r * 0.4], max(5, sides - 2))
+        if trunk_draw:
+            tube([F, mid, end], [trunk_r * 0.72, trunk_r * 0.55, trunk_r * 0.4], max(5, sides - 2))
+        else:
+            # upper shelf: leaders from its own fork point (tiered_tree joins it to the lower fork)
+            tube([F, mid, end], [trunk_r * 0.5, trunk_r * 0.4, trunk_r * 0.3], max(4, sides - 3))
         ends.append(end)
     for gi, chunk in enumerate(chunks):
         if not chunk:
@@ -804,3 +809,157 @@ def clustered_shrub(quad, rng, rx, rz, clusters, cards, card, uvs, z0=0.0):
         card_cluster(quad, rng, p, out, uvs, cards, card, 0.35)
     return pts
 
+
+
+# ------------------------------------------------------------------ L12 environment pass
+# Painted bark, lit/shaded crown layers and rock strata (R11-1/2/3/8 at the 57 degree camera).
+# Everything here is opt-in: builders call it explicitly, so rows that do not ask keep their
+# L3 geometry and atlas tiles byte for byte.
+
+
+def paint_bark(w, h, rng, base, dark, light, moss=None, plates=11, fissure=0.55, knots=3, moss_cover=0.0):
+    """Hand-painted bark column (bottom-up RGBA, opaque): vertical plates split by dark fissures,
+    a warm lit edge on each plate, a few knots and an optional moss wash rising from the base.
+    Reads at phone zoom where a 1k scan graded to one colour turns into flat brown noise."""
+    t = np.zeros((h, w, 4), F32)
+    t[..., 3] = 1
+    yy, xx = np.mgrid[0:h, 0:w].astype(F32)
+    n_lo = noise2(rng, h, w, max(8, h // 10))
+    n_hi = noise2(rng, h, w, 6)
+    # plate boundaries wander along v so fissures read as split bark, not stripes
+    wob = (noise2(rng, h, 4, max(8, h // 6))[:, :1] - 0.5) * (w / plates) * 0.9
+    u = ((xx + wob) / (w / plates)) % 1.0
+    edge = np.minimum(u, 1 - u) * 2  # 0 at fissure, 1 mid-plate
+    fiss = np.clip(1 - edge / fissure, 0, 1) ** 1.6
+    lit = np.clip((u - 0.55) * 3.0, 0, 1) * (1 - fiss)  # right edge of each plate catches light
+    col = base[None, None, :] * (0.82 + 0.3 * n_lo[..., None] + 0.12 * (n_hi[..., None] - 0.5))
+    col = col * (1 - fiss[..., None]) + dark[None, None, :] * fiss[..., None]
+    col = col + (light - base)[None, None, :] * (lit * 0.55)[..., None]
+    # horizontal checks across the plates
+    checks = (noise2(rng, h, w, 3) > 0.83) & (edge > 0.3)
+    col[checks] = col[checks] * 0.72
+    for _ in range(knots):
+        cx, cy = rng.uniform(0.1, 0.9) * w, rng.uniform(0.15, 0.85) * h
+        rx, ry = rng.uniform(0.05, 0.09) * w, rng.uniform(0.02, 0.035) * h
+        d = ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2
+        ring = (d < 1.0) & (d > 0.45)
+        col[ring] = dark * 1.05
+        col[d <= 0.45] = base * 0.7
+    if moss is not None and moss_cover > 0:
+        v = yy / h
+        m = np.clip((moss_cover - v) * 4 + (n_lo - 0.5) * 1.6, 0, 1) * (1 - fiss * 0.6)
+        col = col * (1 - m[..., None]) + moss[None, None, :] * (0.8 + 0.4 * n_hi[..., None]) * m[..., None]
+    t[..., :3] = np.clip(col, 0, 1)
+    return t
+
+
+def light_tips(tile, amount=0.22, warm=(1.03, 1.0, 0.93)):
+    """Paint the crown light into a leaf/sprig tile: texels towards the tile top (the card tip,
+    which faces out and up) are lifted and warmed, the base darkened. Alpha is untouched."""
+    h = tile.shape[0]
+    v = (np.arange(h, dtype=F32) / h)[:, None, None]
+    k = (1 - amount) + 2 * amount * v
+    out = tile.copy()
+    out[..., :3] = np.clip(tile[..., :3] * k * np.array(warm, F32)[None, None, :] ** v, 0, 1)
+    return out
+
+
+def shade_tile(tile, amount=0.55, cool=(0.86, 0.95, 0.9)):
+    """Inner-canopy variant of a leaf tile: darker and slightly cooler (the self-shadow under the
+    lit outer clusters, which Roblox will not compute for alpha cards)."""
+    out = tile.copy()
+    out[..., :3] = np.clip(tile[..., :3] * amount * np.array(cool, F32)[None, None, :], 0, 1)
+    return out
+
+
+def canopy_core(quad, rng, centre, crown, uv, cards=10, size=3.0):
+    """Shade layer: a few large dark cards inside the crown so the gaps between lit clusters read
+    as depth (dark inner leaves) instead of sky, and the crown keeps its layered silhouette."""
+    rx, ry, rz = crown
+    for k in range(cards):
+        z = rng.uniform(-0.55, 0.35)
+        a = rng.uniform(0, 2 * math.pi)
+        r = rng.uniform(0.15, 0.55)
+        c = centre + Vector((math.cos(a) * rx * r, math.sin(a) * ry * r, z * rz))
+        t = Vector((math.cos(a + 1.3), math.sin(a + 1.3), rng.uniform(-0.25, 0.25))).normalized()
+        s = Vector((-t.y, t.x, 0)).normalized()
+        w = size * rng.uniform(0.85, 1.25)
+        quad([c - s * w / 2 - t * w / 2, c + s * w / 2 - t * w / 2, c + s * w / 2 + t * w / 2, c - s * w / 2 + t * w / 2], uv)
+
+
+def tiered_tree(tube, quad, rng, height, trunk_r, crown, uvs, shade_uv, *, tiers=2, core=10, core_size=3.2, **kw):
+    """Layered canopy (R11-8 oaks, R11-2 jungle giants): the crown is split into `tiers` stacked
+    shelves, each a branch_tree cluster layer with its own spread, plus a dark core layer. The
+    shelves give the crown a stepped, painterly silhouette at the top-down camera instead of one
+    round ball."""
+    rx, ry, rz = crown
+    pts_all = []
+    prev_fork = None
+    clusters = kw.pop("clusters", 30)
+    groups = kw.pop("groups", 7)
+    lean = kw.get("lean", (0.0, 0.0))
+    for i in range(tiers):
+        f = i / max(tiers - 1, 1)
+        top = height - rz * 0.9 * (1 - f) if tiers > 1 else height
+        spread = 1.0 - 0.42 * f
+        sub = dict(kw)
+        if i > 0:
+            sub["roots"] = 0
+        sub["trunk_draw"] = i == 0
+        fork = kw.get("fork", 0.45)
+        F = Vector((lean[0] * top * fork * 0.6, lean[1] * top * fork * 0.6, top * fork))
+        if i > 0:
+            # trunk continues from the lower shelf's fork up to this shelf's fork
+            tube([prev_fork, (prev_fork + F) / 2, F], [trunk_r * 0.7, trunk_r * 0.62, trunk_r * 0.55], max(5, kw.get("sides", 8) - 2))
+        prev_fork = F
+        pts = branch_tree(tube, quad, rng, top, trunk_r * (1 - 0.18 * i), (rx * spread, ry * spread, rz * (0.55 if tiers > 1 else 1)),
+                          uvs, clusters=max(6, int(clusters * (0.58 - 0.16 * f) * (2 if tiers == 1 else 1))),
+                          groups=max(3, groups - i), **sub)
+        pts_all += pts
+    centre = Vector((lean[0] * height, lean[1] * height, height - rz))
+    canopy_core(quad, rng, centre, crown, shade_uv, core, core_size)
+    return pts_all
+
+
+def strata(obj, step=0.9, amount=0.35, tilt=(0.08, 0.04)):
+    """Rock strata on a decimated scan rock: vertices are partly snapped to tilted bedding planes
+    every `step` studs, so the silhouette and the baked/painted bands read as layered rock."""
+    tx, ty = tilt
+    cx = sum(v.co.x for v in obj.data.vertices) / len(obj.data.vertices)
+    cy = sum(v.co.y for v in obj.data.vertices) / len(obj.data.vertices)
+    for v in obj.data.vertices:
+        p = v.co
+        plane = p.z + p.x * tx + p.y * ty
+        f = (plane / step) % 1.0
+        snapped = round(plane / step) * step
+        v.co.z = p.z + (snapped - plane) * amount
+        # each bed's upper lip juts out a little and its foot tucks in: a ledge with a shadow line
+        k = 1 + 0.07 * amount * math.cos(f * 2 * math.pi)
+        v.co.x = cx + (p.x - cx) * k
+        v.co.y = cy + (p.y - cy) * k
+    obj.data.update()
+
+
+def paint_strata(px, rng, z_of_row=None, step=48, dark=0.5, light=1.06, warm=(0.98, 0.97, 0.95)):
+    """Bands on a rock albedo atlas slot (bottom-up RGBA): alternating lighter beds and dark
+    seams with a soft top light, so a baked scan rock carries layered strata in its colour too."""
+    h, w = px.shape[:2]
+    n = noise2(rng, h, w, 24)
+    v = np.arange(h, dtype=F32)[:, None] + (n - 0.5) * step * 0.8
+    band = (v / step) % 1.0
+    seam = np.clip(1 - np.minimum(band, 1 - band) * 7, 0, 1)
+    bed = np.where((v // step) % 2 == 0, light, 1.0)
+    k = bed * (1 - seam * (1 - dark))
+    out = px.copy()
+    out[..., :3] = np.clip(px[..., :3] * k[..., None] * np.array(warm, F32)[None, None, :], 0, 1)
+    return out
+
+
+def top_light(px, amount=0.25):
+    """Lift the upper half of an opaque rock tile (sky light on top faces in a box-projected UV
+    tile is the tile top); keeps the scan detail."""
+    h = px.shape[0]
+    v = (np.arange(h, dtype=F32) / h)[:, None, None]
+    out = px.copy()
+    out[..., :3] = np.clip(px[..., :3] * ((1 - amount) + 2 * amount * v), 0, 1)
+    return out

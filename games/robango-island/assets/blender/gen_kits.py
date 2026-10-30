@@ -57,14 +57,26 @@ def cluster(rng, srcs, count, size, spread=0.32, lift=0.25):
     return tile
 
 
-def bark(name, target, sat=0.7):
+def bark(name, target, sat=0.7, rows=1024):
     base = os.path.join(C.SRC_DIR, name, "textures")
     if not os.path.isdir(base):
         base = os.path.join(C.SRC_DIR, name)
     f = [p for p in os.listdir(base) if "_diff" in p][0]
-    img = K.resize(K.load_px(os.path.join(base, f)), 1024, 128)
+    img = K.resize(K.load_px(os.path.join(base, f)), rows, 128)
     img[..., 3] = 1
     return K.grade(img, target, 0.8, sat)
+
+
+# L12 painted bark per hero-tree biome: (base, fissure, lit edge, moss, moss cover, plates).
+PAINTED_BARK = {
+    "grassland": {"bark0": ("#6e5c46", "#2a2118", "#a08a68", "#4e5a2c", 0.22, 9),
+                  "bark1": ("#c4bcac", "#3a342c", "#e2dccc", "#6a6a40", 0.1, 5)},
+    "jungle": {"bark1": ("#5a4c3a", "#1e1912", "#86745a", "#3a4626", 0.22, 12)},
+    "savanna": {"bark0": ("#7a6a54", "#30261c", "#a8946e", None, 0.0, 10),
+                "bark1": ("#8a7a66", "#3a3028", "#b0a084", None, 0.0, 14)},
+    "lake": {"bark0": ("#5c5040", "#211a14", "#8a7a5e", "#4a5a30", 0.35, 13),
+             "bark1": ("#6a6256", "#2a2620", "#988e7c", "#4e5a34", 0.28, 8)},
+}
 
 
 def clutter_tile(rng, tex, target, fill=0.7, sat=0.6):
@@ -113,15 +125,23 @@ def tree(m, A, height, trunk_r, bark, crowns, leaf_keys, card, branches=5, sides
         K.outward_cards(m, uvs, n, V((top.x, 0, z)), rx, rx * random.uniform(0.85, 1.1), rz, card, zmin=-0.35, top_cards=n // 6, top_z=rz * 0.75)
 
 
-def sprig_tile(rng, source, target, twig, sat=0.6, **kw):
-    """L3: branch-card tile (twig + side twigs + scanned leaves) for clustered crowns."""
-    return K.sprig(rng, leaves(source, target, sat), K.hexrgb(twig), **kw)
+def sprig_tile(rng, source, target, twig, sat=0.6, lit=0.0, **kw):
+    """L3: branch-card tile (twig + side twigs + scanned leaves) for clustered crowns.
+    L12: `lit` paints the crown light into the tile (lifted, warmer tips; darker base)."""
+    t = K.sprig(rng, leaves(source, target, sat), K.hexrgb(twig), **kw)
+    return K.light_tips(t, lit) if lit else t
 
 
 def hero(m, A, bark, keys, height, trunk_r, crown, **kw):
     """L3: clustered branch-card tree (kitlib.branch_tree) on the kit bark column."""
     return K.branch_tree(lambda pts, radii, sides: m.tube(pts, radii, sides, A.uv[bark]), m.quad, random, height, trunk_r, crown,
                          [A.uv[k] for k in keys], **kw)
+
+
+def tiered(m, A, bark, keys, height, trunk_r, crown, shade="shade0", **kw):
+    """L12: layered canopy (two shelves + a dark core) on the kit bark column."""
+    return K.tiered_tree(lambda pts, radii, sides: m.tube(pts, radii, sides, A.uv[bark]), m.quad, random, height, trunk_r, crown,
+                         [A.uv[k] for k in keys], A.uv[shade], **kw)
 
 
 def bush(m, A, rx, rz, clusters, cards, card, keys, stems=5, A_bark="bark1"):
@@ -181,8 +201,15 @@ def build_textures(biome, rng, outdir):
              "grassland": ("bark_brown_02", "bark", "bark_platanus", "#b9b2a2"),
              "savanna": ("bark_brown_02", "bark", "bark_platanus", "#8a7a62"),
              "lake": ("bark_willow", "bark", "bark_brown_02", "bark_dark")}[biome]
-    A.put("bark0", 0, 0, bark(barks[0], barks[1]))
-    A.put("bark1", 128, 0, bark(barks[2], barks[3], 0.4))
+    painted = PAINTED_BARK.get(biome, {})
+    for col, (name, target, sat) in enumerate(((barks[0], barks[1], 0.7), (barks[2], barks[3], 0.4))):
+        key = f"bark{col}"
+        if key in painted:
+            base, dark, light, moss, cover, plates = painted[key]
+            img = K.paint_bark(128, 768, rng, P(base), P(dark), P(light), P(moss) if moss else None, plates=plates, moss_cover=cover)
+        else:
+            img = bark(name, target, sat, 768 if biome != "beach" else 1024)
+        A.put(key, col * 128, 0, img)
     tiles = {}
     if biome in ("beach", "jungle"):
         tiles["frond"] = K.frond(256, 512, P("olive_light"), P("olive_dark"), rng)
@@ -196,8 +223,8 @@ def build_textures(biome, rng, outdir):
         gk = [("dune-a", P("olive_dark"), P("olive_light"), P("straw")), ("dune-b", P("straw_dry"), P("straw"), P("#b8a678"))]
     elif biome == "jungle":
         tiles["fan"] = K.fan(256, 256, P("olive_light"), P("olive_dark"), rng)
-        tiles["broad"] = sprig_tile(rng, CALATHEA, "olive", "#4a3c2c", 0.55, leaves=24, leaf_h=80, sides=5)
-        tiles["broad2"] = sprig_tile(rng, SHRUB4, "olive_dark", "#3e3226", 0.55, leaves=36, leaf_h=60, sides=5, spread=1.1)
+        tiles["broad"] = sprig_tile(rng, CALATHEA, "olive", "#4a3c2c", 0.55, lit=0.2, leaves=24, leaf_h=80, sides=5)
+        tiles["broad2"] = sprig_tile(rng, SHRUB4, "olive_dark", "#3e3226", 0.55, lit=0.2, leaves=36, leaf_h=60, sides=5, spread=1.1)
         tiles["fernA"] = cluster(rng, leaves(FERN, "olive", 0.6), 5, 230, 0.15, 0.05)
         tiles["ginger"] = K.bracts(256, 256, rng, P("berry") * 1.25, P("olive_dark"))
         tiles["vine"] = K.strands(256, 256, rng, P("olive"))
@@ -205,9 +232,9 @@ def build_textures(biome, rng, outdir):
         tiles["gravel"] = clutter_tile(rng, "red_laterite_soil_stones", "#7a5040")
         gk = [("tall", P("olive_dark"), P("olive"), P("straw")), ("elephant", P("olive_dark"), P("moss"), P("straw_dry"))]
     elif biome == "grassland":
-        tiles["oak"] = sprig_tile(rng, SHRUB4, "olive", "#4a3c2e", leaves=70, leaf_h=64, sides=6, reach=0.42)
-        tiles["oak2"] = sprig_tile(rng, SHRUB4, "#6a6a3a", "#4a3c2e", leaves=64, leaf_h=60, sides=6, spread=1.15, reach=0.42)
-        tiles["birch"] = sprig_tile(rng, SHRUB4, "olive_light", "#8a8070", leaves=64, leaf_h=46, sides=6, reach=0.36)
+        tiles["oak"] = sprig_tile(rng, SHRUB4, "olive", "#4a3c2e", lit=0.2, leaves=70, leaf_h=64, sides=6, reach=0.42)
+        tiles["oak2"] = sprig_tile(rng, SHRUB4, "#6a6a3a", "#4a3c2e", lit=0.2, leaves=64, leaf_h=60, sides=6, spread=1.15, reach=0.42)
+        tiles["birch"] = sprig_tile(rng, SHRUB4, "olive_light", "#8a8070", lit=0.2, leaves=64, leaf_h=46, sides=6, reach=0.36)
         tiles["hazel"] = sprig_tile(rng, NETTLE, "olive", "#4a3c2e", 0.55, leaves=40, leaf_h=62, sides=5)
         tiles["bramble"] = sprig_tile(rng, NETTLE, "olive_dark", "#3e3226", 0.5, leaves=24, leaf_h=50, sides=5, spread=1.2)
         tiles["fernA"] = cluster(rng, leaves(FERN, "moss", 0.55), 5, 230, 0.15, 0.05)
@@ -215,8 +242,8 @@ def build_textures(biome, rng, outdir):
         tiles["gravel"] = clutter_tile(rng, "gravel_floor_02", "rock_mid")
         gk = [("meadow", P("olive_dark"), P("olive"), P("straw")), ("flowers", P("olive_dark"), P("olive"), P("straw"))]
     elif biome == "savanna":
-        tiles["acacia"] = sprig_tile(rng, ROOIBOS, "#6a6a3c", "#4a3a2c", leaves=80, leaf_h=50, sides=6, spread=1.35, reach=0.45)
-        tiles["acacia2"] = sprig_tile(rng, ROOIBOS, "#74703e", "#4a3a2c", leaves=72, leaf_h=46, sides=7, spread=1.45, reach=0.46)
+        tiles["acacia"] = sprig_tile(rng, ROOIBOS, "#6a6a3c", "#4a3a2c", lit=0.2, leaves=80, leaf_h=50, sides=6, spread=1.35, reach=0.45)
+        tiles["acacia2"] = sprig_tile(rng, ROOIBOS, "#74703e", "#4a3a2c", lit=0.2, leaves=72, leaf_h=46, sides=7, spread=1.45, reach=0.46)
         tiles["thorn"] = cluster(rng, leaves(TWIGS, "#6a5a44", 0.5), 6, 200, 0.2, 0.05)
         tiles["tuft"] = K.blades(256, 256, rng, 60, P("straw_dry"), P("straw"), P("#c4ad78"), 1.5, 2.6, 0.5)
         tiles["mound"] = clutter_tile(rng, "red_laterite_soil_stones", "#9a5a3c", fill=0.95)
@@ -225,13 +252,23 @@ def build_textures(biome, rng, outdir):
         gk = [("gold-tall", P("straw_dry"), P("straw"), P("#c4ad78")), ("gold-short", P("#7a5a34"), P("#a8783e"), P("#c49a5a"))]
     else:  # lake
         tiles["willow"] = K.strands(256, 256, rng, P("olive"), 22)
-        tiles["alder"] = sprig_tile(rng, NETTLE, "olive", "#3e3428", 0.55, leaves=56, leaf_h=58, sides=6, reach=0.42)
+        tiles["alder"] = sprig_tile(rng, NETTLE, "olive", "#3e3428", 0.55, lit=0.2, leaves=56, leaf_h=58, sides=6, reach=0.42)
         tiles["sedge"] = K.blades(256, 256, rng, 70, P("olive_dark"), P("olive"), P("straw"), 1.5, 2.5, 0.4)
         tiles["lily"] = K.lily(256, 256, rng, P("olive") * 0.9)
         tiles["lilyflower"] = K.flowers(256, 256, rng, [np.array([0.92, 0.88, 0.86]), np.array([0.9, 0.7, 0.75])], 6)
         tiles["litter"] = clutter_tile(rng, "forest_leaves_02", "#5e5236")
         tiles["gravel"] = clutter_tile(rng, "clean_pebbles", "rock_mid")
         gk = [("reed", P("olive_dark"), P("olive"), P("straw")), ("cattail", P("olive_dark"), P("moss"), P("straw"))]
+    # L12: inner-canopy shade tiles (darker, cooler copies of the main crown tile, 128x256) above the
+    # 768-row bark columns; the dark core layer of tiered crowns uses them.
+    shade_src = {"grassland": ("oak", "birch"), "jungle": ("broad2", "broad"), "savanna": ("acacia", "acacia2"),
+                 "lake": ("alder", "willow")}.get(biome)
+    if shade_src:
+        for col, key in enumerate(shade_src):
+            src_tile = tiles[key]
+            half = K.resize(src_tile, 256, 128)
+            half[..., 3] = (half[..., 3] > 0.5).astype(np.float32)
+            A.put(f"shade{col}", col * 128, 768, K.shade_tile(half, 0.5 if col == 0 else 0.6))
     # place tiles: tall frond tiles first (2 rows each), then square tiles
     slots = [(c, r) for r in range(4) for c in range(3)]
     used = set()
@@ -278,15 +315,30 @@ def rocks(biome, outdir, R):
                   ("rock.beach.reef-shelf", P("namaqualand_boulder_04", "namaqualand_boulder_04.gltf"), 16, 900, "rock_dark", 0.3)],
         "jungle": [("rock.jungle.mossy-boulder", P("rock_moss_set_01", "rock_moss_set_01.gltf"), 6.5, 800, "moss", 1.0),
                    ("rock.jungle.red-bank", P("namaqualand_boulder_02", "namaqualand_boulder_02.gltf"), 8.5, 700, "#7a4e3a", 0.8)],
-        "grassland": [("rock.grassland.grey-boulder", P("boulder_01", "boulder_01.gltf"), 5.5, 700, "rock_mid", 1.0),
-                      ("rock.grassland.boulder-cluster", P("namaqualand_boulder_02", "namaqualand_boulder_02.gltf"), 6, 340, "rock_light", 1.0)],
+        "grassland": [("rock.grassland.grey-boulder", P("boulder_01", "boulder_01.gltf"), 5.5, 700, "#5e5c55", 1.0),
+                      ("rock.grassland.boulder-cluster", P("namaqualand_boulder_02", "namaqualand_boulder_02.gltf"), 6, 340, "#6a675e", 1.0)],
         "savanna": [("rock.savanna.kopje-slab", P("namaqualand_boulder_04", "namaqualand_boulder_04.gltf"), 7, 400, "#9a8a74", 0.55),
                     ("rock.savanna.sun-boulder", P("namaqualand_boulder_02", "namaqualand_boulder_02.gltf"), 4.5, 600, "#a8977e", 1.0)],
         "lake": [("rock.lake.river-stones", P("boulder_01", "boulder_01.gltf"), 3.2, 170, "rock_mid", 0.6)],
     }[biome]
+    # L12 strata (R11-8 grey boulders, R03-3 outcrops): bedding-plane snap on the decimated mesh plus
+    # painted beds/seams and a top light in the baked albedo. (step studs, snap, band px, tilt)
+    bedding = {"rock.grassland.grey-boulder": (1.0, 0.6, 34, (0.1, 0.05)),
+               "rock.grassland.boulder-cluster": (0.9, 0.55, 32, (0.06, -0.08)),
+               "rock.savanna.kopje-slab": (1.1, 0.7, 40, (0.04, 0.02)),
+               "rock.savanna.sun-boulder": (0.9, 0.55, 32, (0.12, 0.0)),
+               "rock.jungle.red-bank": (1.0, 0.6, 36, (0.08, 0.1)),
+               "rock.beach.reef-shelf": (0.8, 0.65, 30, (0.03, 0.03))}
+    srng = np.random.default_rng(SEEDS[biome] + 77)
     out = {}
     for i, (key, gltf, size, tris, target, squash) in enumerate(specs):
         obj, maps = K.scan_rock(gltf, key, size, tris, target, outdir, squash)
+        if key in bedding:
+            step, amount, band, tilt = bedding[key]
+            K.strata(obj, step, amount, tilt)
+            maps["albedo"] = K.top_light(K.paint_strata(maps["albedo"], srng, step=band), 0.1)
+        else:
+            maps["albedo"] = K.top_light(maps["albedo"], 0.08)
         x, y = (i % 2) * 512, (i // 2) * 512
         R.put(f"slot{i}", x, y, maps["albedo"], maps["normal"])
         K.remap_uv(obj, R.uv[f"slot{i}"])
@@ -361,8 +413,8 @@ def build_kit(biome, outdir):
                         m.card(p - V((0, 0, ln)), UP, V((-math.sin(a), math.cos(a), 0)), 1.6, ln, A.uv["vine"], rows=1)
 
                 crown = ((11, 9.5, 5.5), (9, 10, 6.5))[variant]
-                hero(m, A, "bark1", ["broad", "broad2", "broad2"], h, r, crown, fork=(0.5, 0.42)[variant], leaders=(3, 2)[variant],
-                     groups=(8, 6)[variant], clusters=(44, 38)[variant], cards=8, card=4.4, mind=3.4, roots=5, root_reach=2.8, root_h=3.2,
+                tiered(m, A, "bark1", ["broad", "broad2", "broad2"], h, r, crown, tiers=(3, 2)[variant], core=12, core_size=4.0,
+                       fork=(0.5, 0.42)[variant], leaders=(3, 2)[variant], groups=(8, 6)[variant], clusters=(48, 42)[variant], cards=8, card=4.4, mind=3.4, roots=5, root_reach=2.8, root_h=3.2,
                      lean=((0.02, 0.0), (-0.03, 0.02))[variant], sides=10, hang=vine)
             return build
         make("veg.jungle.buttress-giant", giant(0))
@@ -376,7 +428,7 @@ def build_kit(biome, outdir):
                     pts = [V((math.cos(a + z * 0.08) * 1.25, math.sin(a + z * 0.08) * 1.25, z)) for z in range(0, int(h * 0.5), 3)]
                     m.tube(pts, [0.42] * len(pts), 5, A.uv["bark1"])
                 crown = ((8.5, 7.5, 5.0), (7.5, 8.5, 4.5))[variant]
-                hero(m, A, "bark1", ["broad2", "broad"], h, 1.0, crown, fork=0.55, leaders=2, groups=(6, 5)[variant],
+                tiered(m, A, "bark1", ["broad2", "broad"], h, 1.0, crown, core=9, core_size=3.6, fork=0.55, leaders=2, groups=(6, 5)[variant],
                      clusters=(32, 28)[variant], cards=8, card=4.0, mind=3.1, roots=4, root_reach=2.2, root_h=1.4,
                      lean=((0.03, 0.0), (0.0, -0.04))[variant])
             return build
@@ -394,10 +446,10 @@ def build_kit(biome, outdir):
         K.assign(objs[-1], rmat)
     elif biome == "grassland":
         # L3: 3 oak and 2 birch variants; forked tapered trunks, clustered branch-card crowns with gaps.
-        make("veg.grassland.oak", lambda m: hero(m, A, "bark0", ["oak", "oak2"], 25, 1.2, (10.5, 9.5, 6.5), fork=0.4, leaders=3, groups=8, clusters=46, cards=9, card=4.2, mind=3.3, roots=4, root_reach=2.2, root_h=1.2))
-        make("veg.grassland.oak-b", lambda m: hero(m, A, "bark0", ["oak2", "oak"], 21, 1.05, (9.0, 7.5, 5.5), fork=0.34, leaders=2, groups=7, clusters=38, cards=9, card=4.0, mind=3.1, roots=3, root_reach=2.0, root_h=1.0, lean=(0.06, 0.02)))
-        make("veg.grassland.oak-c", lambda m: hero(m, A, "bark0", ["oak", "oak2"], 27, 1.0, (7.5, 8.0, 8.0), fork=0.48, leaders=2, groups=6, clusters=40, cards=8, card=4.0, mind=3.0, roots=3, root_reach=1.8, root_h=1.0, lean=(-0.03, 0.04)))
-        make("veg.grassland.birch", lambda m: hero(m, A, "bark1", ["birch"], 24, 0.55, (4.8, 4.4, 7.5), fork=0.5, leaders=2, groups=6, clusters=30, cards=8, card=3.3, mind=2.5, sides=7, zmin=-0.6))
+        make("veg.grassland.oak", lambda m: tiered(m, A, "bark0", ["oak", "oak2"], 25, 1.2, (10.5, 9.5, 6.5), fork=0.4, leaders=3, groups=8, clusters=50, cards=9, card=4.2, mind=3.3, roots=4, root_reach=2.2, root_h=1.2))
+        make("veg.grassland.oak-b", lambda m: tiered(m, A, "bark0", ["oak2", "oak"], 21, 1.05, (9.0, 7.5, 5.5), fork=0.34, leaders=2, groups=7, clusters=42, cards=9, card=4.0, mind=3.1, roots=3, root_reach=2.0, root_h=1.0, lean=(0.06, 0.02)))
+        make("veg.grassland.oak-c", lambda m: tiered(m, A, "bark0", ["oak", "oak2"], 27, 1.0, (7.5, 8.0, 8.0), tiers=3, core=12, fork=0.48, leaders=2, groups=6, clusters=48, cards=8, card=4.0, mind=3.0, roots=3, root_reach=1.8, root_h=1.0, lean=(-0.03, 0.04)))
+        make("veg.grassland.birch", lambda m: tiered(m, A, "bark1", ["birch"], 24, 0.55, (4.8, 4.4, 7.5), shade="shade1", core=6, core_size=2.4, fork=0.5, leaders=2, groups=6, clusters=34, cards=8, card=3.3, mind=2.5, sides=7, zmin=-0.6))
         make("veg.grassland.birch-b", lambda m: hero(m, A, "bark1", ["birch"], 20, 0.5, (5.5, 4.2, 6.0), fork=0.42, leaders=3, groups=6, clusters=28, cards=8, card=3.2, mind=2.4, sides=7, zmin=-0.6, lean=(0.05, -0.03)))
         make("veg.grassland.hazel", lambda m: bush(m, A, 3.2, 6.0, 16, 8, 2.3, ["hazel"]))
         make("veg.grassland.bramble", lambda m: bush(m, A, 2.4, 3.4, 14, 8, 1.8, ["bramble"]))
@@ -412,7 +464,7 @@ def build_kit(biome, outdir):
     elif biome == "savanna":
         # L3: umbrella acacias as wide flat layers of branch-card clusters on a forked, leaning trunk (3 variants).
         def flattop(h, crown, lean, leaders, clusters, keys):
-            return lambda m: hero(m, A, "bark0", keys, h, 0.62, crown, fork=0.55, leaders=leaders, groups=leaders * 2 + 1, clusters=clusters,
+            return lambda m: tiered(m, A, "bark0", keys, h, 0.62, crown, core=8, core_size=3.8, fork=0.55, leaders=leaders, groups=leaders * 2 + 1, clusters=clusters + 6,
                                   cards=9, card=4.6, mind=3.2, roots=0, lean=lean, zmin=-0.25, depth=(0.35, 1.0), flat=0.85)
         make("veg.savanna.flat-top", flattop(20, (10.5, 9.0, 2.0), (0.04, 0.0), 3, 40, ["acacia", "acacia2"]))
         make("veg.savanna.flat-top-b", flattop(16, (8.0, 7.0, 1.8), (-0.06, 0.03), 2, 28, ["acacia2", "acacia"]))
@@ -441,11 +493,11 @@ def build_kit(biome, outdir):
                     ln = random.uniform(5, 9) * (0.6 + 0.4 * p.z / 22)
                     c = p + V((math.cos(a), math.sin(a), 0)) * random.uniform(0.5, 1.5)
                     m.card(c - V((0, 0, ln)), UP, V((-math.sin(a), math.cos(a), 0)), 2.4, ln, A.uv["willow"], rows=1)
-            hero(m, A, "bark0", ["willow", "alder"], 22, 1.15, (9.5, 9.0, 4.0), fork=0.4, leaders=3, groups=7, clusters=30, cards=6, card=3.4, mind=2.6,
+            tiered(m, A, "bark0", ["willow", "alder"], 22, 1.15, (9.5, 9.0, 4.0), shade="shade1", core=8, fork=0.4, leaders=3, groups=7, clusters=34, cards=6, card=3.4, mind=2.6,
                  roots=4, root_reach=2.0, root_h=1.0, hang=curtain)
         make("veg.lake.willow", willow)
-        make("veg.lake.alder", lambda m: hero(m, A, "bark1", ["alder"], 21, 0.7, (5.5, 5.0, 7.0), fork=0.4, leaders=2, groups=6, clusters=34, cards=8, card=3.4, mind=2.6, sides=7, zmin=-0.55))
-        make("veg.lake.alder-b", lambda m: hero(m, A, "bark1", ["alder"], 18, 0.65, (6.5, 5.5, 5.5), fork=0.36, leaders=3, groups=6, clusters=32, cards=8, card=3.3, mind=2.5, sides=7, lean=(0.05, 0.03)))
+        make("veg.lake.alder", lambda m: tiered(m, A, "bark1", ["alder"], 21, 0.7, (5.5, 5.0, 7.0), core=7, core_size=2.6, fork=0.4, leaders=2, groups=6, clusters=38, cards=8, card=3.4, mind=2.6, sides=7, zmin=-0.55))
+        make("veg.lake.alder-b", lambda m: tiered(m, A, "bark1", ["alder"], 18, 0.65, (6.5, 5.5, 5.5), core=7, core_size=2.6, fork=0.36, leaders=3, groups=6, clusters=36, cards=8, card=3.3, mind=2.5, sides=7, lean=(0.05, 0.03)))
         make("veg.lake.sedge-clump", lambda m: fern(m, A, 40, 3.2, ["sedge"], (1.1, 1.45), 2, 0.6))
         make("veg.lake.lily-pads", lambda m: (mat(m, A, 6, 70, ["lily"], 0.06), mat(m, A, 2.5, 4, ["lilyflower"], 0.4)))
         make("veg.lake.reed-card", lambda m: grass(m, G, ["reed0", "reed1"], 32, 4.8, 6.0, 0.5, 1.0), gmat)

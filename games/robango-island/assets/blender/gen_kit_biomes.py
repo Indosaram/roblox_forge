@@ -73,8 +73,10 @@ def desert(rng, outdir):
     G.put("dry2", 256, 0, K.paint_blades(K.tile(256), rng, 56, "#7a6440", "#c2a878", height=(0.25, 0.6), width=(0.6, 1.0), lean=0.9))
     gm, gp = G.save(outdir, alpha=True)
     R = K.Atlas("RobangoKitDesert_rock", 1024)
-    R.put("sandstone", 0, 0, K.scan_tile("sandstone_cracks/textures/sandstone_cracks_diff_1k.jpg", 512, "sandstone", 0.8, 0.6), K.scan_normal("sandstone_cracks/textures/sandstone_cracks_nor_gl_1k.jpg", 512), K.scan_rough("sandstone_cracks/textures/sandstone_cracks_rough_1k.jpg", 512))
-    R.put("rockface", 512, 0, K.scan_tile("rock_face/textures/rock_face_diff_1k.jpg", 512, "sand_rock", 0.85, 0.5), K.scan_normal("rock_face/textures/rock_face_nor_gl_1k.jpg", 512), K.scan_rough("rock_face/textures/rock_face_rough_1k.jpg", 512))
+    import kitlib
+    srng = np.random.default_rng(seed_of("desert") + 77)
+    R.put("sandstone", 0, 0, kitlib.top_light(kitlib.paint_strata(K.scan_tile("sandstone_cracks/textures/sandstone_cracks_diff_1k.jpg", 512, "sandstone", 0.8, 0.6), srng, step=40, dark=0.55, light=1.12), 0.1), K.scan_normal("sandstone_cracks/textures/sandstone_cracks_nor_gl_1k.jpg", 512), K.scan_rough("sandstone_cracks/textures/sandstone_cracks_rough_1k.jpg", 512))
+    R.put("rockface", 512, 0, kitlib.paint_strata(K.scan_tile("rock_face/textures/rock_face_diff_1k.jpg", 512, "sand_rock", 0.85, 0.5), srng, step=30, dark=0.6, light=1.1), K.scan_normal("rock_face/textures/rock_face_nor_gl_1k.jpg", 512), K.scan_rough("rock_face/textures/rock_face_rough_1k.jpg", 512))
     rm, rp = R.save(outdir, alpha=False, with_rough=True)
 
     objs = []
@@ -122,11 +124,11 @@ def desert(rng, outdir):
     objs.append(b.finish("clutter_desert_creosote", vm))
     b = K.Builder()  # layered sandstone chunk
     for i, (h, s) in enumerate(((1.4, 4.6), (1.2, 3.8), (1.0, 2.8))):
-        b.rock(Vector((rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), i * 1.05 + 0.4)), (s, s * 0.8, h * 0.6), R.rects["sandstone"], rng, sub=3, rough=0.12, flat=0.6, scale=1.0)
+        b.rock(Vector((rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), i * 1.05 + 0.4)), (s, s * 0.8, h * 0.6), R.rects["sandstone"], rng, sub=3, rough=0.12, flat=0.6, scale=1.0, strata=0.35)
     objs.append(b.finish("rock_desert_sandstone_chunk", rm))
     b = K.Builder()  # wind-carved boulder: undercut mushroom shape
-    b.rock(Vector((0, 0, 1.4)), (3.0, 2.6, 1.8), R.rects["rockface"], rng, sub=3, rough=0.25)
-    b.rock(Vector((0.3, 0, 4.4)), (5.2, 4.2, 2.0), R.rects["rockface"], rng, sub=3, rough=0.3)
+    b.rock(Vector((0, 0, 1.4)), (3.0, 2.6, 1.8), R.rects["rockface"], rng, sub=3, rough=0.25, strata=0.6)
+    b.rock(Vector((0.3, 0, 4.4)), (5.2, 4.2, 2.0), R.rects["rockface"], rng, sub=3, rough=0.3, strata=0.6)
     objs.append(b.finish("rock_desert_wind_boulder", rm))
     b = K.Builder()
     mat_patch(b, rng, V.rects["pebbles"], 3.0)
@@ -142,7 +144,7 @@ def desert(rng, outdir):
 
 def tundra(rng, outdir):
     V = K.Atlas("RobangoKitTundra_veg", 1024)
-    V.put("pine_bark", 0, 0, K.scan_tile("pine_bark/textures/pine_bark_diff_1k.jpg", 512, "bark_dark", 0.85, 0.5)[:, :256], K.scan_normal("pine_bark/textures/pine_bark_nor_gl_1k.jpg", 512)[:, :256])
+    V.put("pine_bark", 0, 0, K.painted_bark(512, rng, "#5a4434", "#1c1410", "#8a6a4e", None, 0.0, plates=8), K.scan_normal("pine_bark/textures/pine_bark_nor_gl_1k.jpg", 512)[:, :256])
     V.put("birch_bark", 256, 0, K.scan_tile("bark_willow/textures/bark_willow_diff_1k.jpg", 512, "birch_bark", 0.9, 0.2)[:, :256], K.scan_normal("bark_willow/textures/bark_willow_nor_gl_1k.jpg", 512)[:, :256])
     tw = K.load_scan("fir_tree_01/textures/fir_tree_01_twig_diff_1k.jpg")
     al = K.load_scan("fir_tree_01/textures/fir_tree_01_twig_alpha_1k.jpg")
@@ -219,7 +221,7 @@ def tundra(rng, outdir):
     K.grass_cluster(b, rng, [G.rects["tussock0"], G.rects["tussock1"]], 2.5, 0.8, 28, width=1.3)
     objs.append(b.finish("veg_tundra_frost_tussock", gm))
     b = K.Builder()  # snowy ice-crusted boulder: rock + snow cap
-    b.rock(Vector((0, 0, 1.6)), (3.2, 2.7, 2.2), R.rects["rock"], rng, sub=3, rough=0.3)
+    b.rock(Vector((0, 0, 1.6)), (3.2, 2.7, 2.2), R.rects["rock"], rng, sub=3, rough=0.3, strata=0.7)
     b.rock(Vector((0.1, 0.1, 3.0)), (2.7, 2.2, 0.9), R.rects["snow"], rng, sub=3, rough=0.2, flat=0.2)
     objs.append(b.finish("rock_tundra_ice_boulder", rm))
     b = K.Builder()  # blue ice shard cluster
@@ -303,7 +305,7 @@ def volcano(rng, outdir):
         b.prism(Vector((math.cos(a) * r, math.sin(a) * r, -0.2)), rng.uniform(0.9, 1.3), rng.uniform(4, 13), 6, R.rects["basalt"], rng, top_jit=0.05)
     objs.append(b.finish("rock_volcano_basalt_columns", rm))
     b = K.Builder()
-    b.rock(Vector((0, 0, 1.8)), (3.0, 2.5, 2.4), R.rects["obsidian"], rng, sub=3, rough=0.45, scale=0.9)
+    b.rock(Vector((0, 0, 1.8)), (3.0, 2.5, 2.4), R.rects["obsidian"], rng, sub=3, rough=0.45, scale=0.9, strata=0.6)
     objs.append(b.finish("rock_volcano_obsidian_boulder", rm))
     b = K.Builder()  # lava crust slab with ember seams
     b.rock(Vector((0, 0, 0.2)), (7.0, 5.5, 0.7), R.rects["crust"], rng, sub=3, rough=0.2, flat=0.3, scale=1.2)
@@ -318,6 +320,10 @@ def volcano(rng, outdir):
     mat_patch(b, rng, V.rects["ash"], 3.4)
     objs.append(b.finish("clutter_volcano_ash_patch", vm))
     return objs, (V, G, R), {"veg": vp, "grass": gp, "rock": rp}
+
+
+def seed_of(biome):
+    return SEEDS[biome]
 
 
 def main():

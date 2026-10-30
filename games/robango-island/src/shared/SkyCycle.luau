@@ -3,6 +3,7 @@
 -- recorded seed (day-night.spec.luau); ensure/apply/torch/start touch the engine (Roblox only).
 local Rng = require("../../../../core/domain/random/Rng")
 local Volcano = require("../../../../core/domain/survival/Volcano")
+local BiomeLook = require("./BiomeLook")
 local M = {}
 
 M.DAY_SECONDS = 24 * 60
@@ -68,11 +69,16 @@ function M.golden(hours: number): number
 	return math.clamp(1 - near / 1.5, 0, 1)
 end
 
-function M.at(hours: number, fog: RGB): any
+-- L12: a biome island's look (BiomeLook.of) swaps the day water colour and grade tint and adds its
+-- saturation/contrast and air on top of DAY, all scaled by daylight, so night stays the same moonlit
+-- grey-blue on every role and the night fog caps (M.fog) are untouched.
+function M.at(hours: number, fog: RGB, look: any?): any
 	local d = M.daylight(hours)
 	local n = 1 - d
 	local g = M.golden(hours) * d
-	local tint = mix(mix(NIGHT.grade.tint, DAY.grade.tint, d), GOLDEN_TINT, g * 0.6)
+	local dayTint = if look then look.tint else DAY.grade.tint
+	local dayWater = if look then look.water else DAY.water
+	local tint = mix(mix(NIGHT.grade.tint, dayTint, d), GOLDEN_TINT, g * 0.6)
 	local function f(key: string): number
 		return lerp(NIGHT[key], DAY[key], d)
 	end
@@ -80,24 +86,31 @@ function M.at(hours: number, fog: RGB): any
 		return mix(NIGHT[key], DAY[key], d)
 	end
 	local ng, dg = NIGHT.grade, DAY.grade
+	local saturation, contrast = dg.saturation, dg.contrast
+	local density, haze = DAY.density, DAY.haze
+	if look then
+		saturation, contrast = saturation + look.saturation, contrast + look.contrast
+		density, haze = density + look.density, haze + look.haze
+	end
 	-- stylua: ignore start
 	return {
 		clockTime = hours, daylight = d, golden = g, brightness = f("brightness"), exposure = f("exposure"),
 		ambient = c("ambient"), outdoorAmbient = c("outdoorAmbient"), colorShiftBottom = c("colorShiftBottom"),
 		colorShiftTop = mix(c("colorShiftTop"), GOLDEN_TINT, g * 0.5),
-		grade = { brightness = lerp(ng.brightness, dg.brightness, d), contrast = lerp(ng.contrast, dg.contrast, d),
-			saturation = lerp(ng.saturation, dg.saturation, d), tint = tint },
+		grade = { brightness = lerp(ng.brightness, dg.brightness, d), contrast = lerp(ng.contrast, contrast, d),
+			saturation = lerp(ng.saturation, saturation, d), tint = tint },
 		atmosphere = { color = mix(NIGHT.fog, mix(fog, GOLDEN_TINT, g * 0.35), d), decay = c("decay"),
-			density = f("density"), haze = f("haze"), glare = f("glare") },
-		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5), water = c("water"),
+			density = lerp(NIGHT.density, density, d), haze = lerp(NIGHT.haze, haze, d), glare = f("glare") },
+		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5),
+		water = mix(NIGHT.water, dayWater, d),
 		fire = { brightness = lerp(DAY.fire.brightness, NIGHT.fire.brightness, n),
 			range = lerp(DAY.fire.range, NIGHT.fire.range, n) },
 	}
 	-- stylua: ignore end
 end
 
-function M.state(seconds: number, origin: number, fog: RGB): any
-	return M.at(M.clockTime(seconds, origin), fog)
+function M.state(seconds: number, origin: number, fog: RGB, look: any?): any
+	return M.at(M.clockTime(seconds, origin), fog, look)
 end
 
 M.WINDOW_SECONDS = 240
@@ -436,6 +449,7 @@ function M.start(ctx: any): () -> ()
 
 	local layoutId: string? = nil
 	local layout: any = nil
+	local look: any = nil
 	local fireBrightness = -1
 	local elapsed = M.STEP_SECONDS
 	local stepping = game:GetService("RunService").Heartbeat:Connect(function(dt: number)
@@ -457,6 +471,7 @@ function M.start(ctx: any): () -> ()
 					layout = candidate
 				end
 			end
+			look = if layout then BiomeLook.of(layout) else nil
 		end
 		if not layout then
 			return
@@ -471,7 +486,7 @@ function M.start(ctx: any): () -> ()
 			then { startsAt = startsAt, policy = ctx.content.brawlPolicy }
 			else nil
 		local stormOrigin = workspace:GetAttribute("ForgeStormOrigin")
-		local state = M.state(now, origin, palette)
+		local state = M.state(now, origin, palette, look)
 		local weather = M.weatherAt(
 			ctx.content,
 			layout,

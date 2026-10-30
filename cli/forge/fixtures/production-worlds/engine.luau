@@ -717,10 +717,13 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	-- NodeMeshes builds CFrames through engine globals; specs inject node templates via setTemplates.
 	forge.games["robango-island"].src.shared.NodeMeshes =
 		load("games/robango-island/src/shared/NodeMeshes.luau", {}, nil)
+	forge.games["robango-island"].src.shared.BiomeLook =
+		require("../../../../games/robango-island/src/shared/BiomeLook")
 	-- SkyCycle writes Lighting through engine globals, so it loads in the fake environment.
 	forge.games["robango-island"].src.shared.SkyCycle = load("games/robango-island/src/shared/SkyCycle.luau", {
 		["../../../../core/domain/random/Rng"] = require("../../../../core/domain/random/Rng"),
 		["../../../../core/domain/survival/Volcano"] = require("../../../../core/domain/survival/Volcano"),
+		["./BiomeLook"] = forge.games["robango-island"].src.shared.BiomeLook,
 	}, nil)
 	-- L7 tool meshes: no InsertService here, so load() yields no templates and the genre's
 	-- primitive tools stay; specs inject rows through ToolVisuals.setTemplates.

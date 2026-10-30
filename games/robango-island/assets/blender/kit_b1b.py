@@ -679,7 +679,7 @@ def row_layout(objects, gap=4.0):
 SHRUB4_BOXES = [(135, 100, 232, 330), (540, 75, 628, 338), (440, 410, 552, 645), (618, 395, 712, 598), (238, 655, 338, 940), (383, 712, 492, 952), (562, 698, 652, 905), (52, 735, 152, 962)]
 
 
-def sprig_tile(size, rng, target, twig, sat=0.55, **kw):
+def sprig_tile(size, rng, target, twig, sat=0.55, lit=0.0, **kw):
     """Branch-card tile: twig + side twigs + scanned shrub_04 leaves (CC0), base at the bottom."""
     import kitlib
 
@@ -689,7 +689,22 @@ def sprig_tile(size, rng, target, twig, sat=0.55, **kw):
     diff = grade(diff, target, strength=0.8, sat=sat, mask=m)
     diff[..., 3] = m.astype(np.float32)
     leaves = [diff[1024 - y1 : 1024 - y0, x0:x1].copy() for x0, y0, x1, y1 in SHRUB4_BOXES]
-    return kitlib.sprig(rng, leaves, hexrgb(twig), size=size, **kw)
+    t = kitlib.sprig(rng, leaves, hexrgb(twig), size=size, **kw)
+    return kitlib.light_tips(t, lit) if lit else t
+
+
+def painted_bark(size, rng, base, dark, light, moss=None, cover=0.0, plates=10):
+    """L12: hand-painted bark tile (kitlib.paint_bark), size x size//2 wide column."""
+    import kitlib
+
+    return kitlib.paint_bark(size // 2, size, rng, hexrgb(base), hexrgb(dark), hexrgb(light), hexrgb(moss) if moss else None, plates=plates, moss_cover=cover)
+
+
+def tiered(b, rng, bark, rects, shade, height, trunk_r, crown, **kw):
+    """L12: layered canopy with a dark core on a Builder (kitlib.tiered_tree)."""
+    import kitlib
+
+    return kitlib.tiered_tree(lambda pts, radii, sides: b.tube(pts, radii, bark, sides=sides, v_scale=0.05), b.quad, rng, height, trunk_r, crown, rects, shade, **kw)
 
 
 def hero(b, rng, bark, rects, height, trunk_r, crown, **kw):

@@ -18,6 +18,7 @@ local MeshTexture = require(Forge.games["robango-island"].src.shared.MeshTexture
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
 local TownLife = require("./TownLife")
+local BiomeLook = require(Forge.games["robango-island"].src.shared.BiomeLook)
 -- L7: tools and worn gear render the mesh-tools package (ToolVisuals) through the genre hooks.
 -- The package loads off the build path; tools projected before it lands keep the genre default.
 local function toolVisuals(): any
@@ -430,9 +431,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace:SetAttribute("ForgeSkyFog", Color3.fromRGB(table.unpack(dressing.palette.fog)))
 	SkyCycle.ensure(lighting)
 	local buildSeconds = nowMillis() / 1000
+	-- L12: biome islands carry their own day grade, water, material colours, grading and coast.
+	local look = BiomeLook.of(layout)
 	SkyCycle.apply(
 		lighting,
-		SkyCycle.state(buildSeconds, skyOrigin, dressing.palette.fog),
+		SkyCycle.state(buildSeconds, skyOrigin, dressing.palette.fog, look),
 		SkyCycle.weatherAt(content, layout, seed, buildSeconds, buildSeconds, nil),
 		true,
 		workspace.Terrain
@@ -440,7 +443,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	local correction: any = lighting:FindFirstChild(SkyCycle.GRADE)
 	local bloom: any = lighting:FindFirstChild(SkyCycle.BLOOM)
 	local atmosphere: any = lighting:FindFirstChild(SkyCycle.ATMOSPHERE)
-	workspace.Terrain.WaterTransparency = 0.35
+	workspace.Terrain.WaterTransparency = if look then look.transparency else 0.35
 	local field = if Terrain.relief(layout) then Terrain.field(layout, seed) else nil
 	if not field then
 		-- The sea covers the island plus a margin; the 1536-stud town (C5a) is wider than the 1400 default.
@@ -473,6 +476,22 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if layoutId == "rw.town" then
 		-- The town paints no moss patches; its Limestone is the still grass of the road approaches.
 		workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(100, 114, 60))
+	end
+	-- Biome islands: their own sand, rock, mud, snow, basalt, ... colours (BiomeLook never touches
+	-- the five L10 spawn-screen materials above).
+	local lookColours: { [string]: { number } } = if look then look.terrain else {}
+	for name, colour in lookColours do
+		workspace.Terrain:SetMaterialColor((Enum.Material :: any)[name], Color3.fromRGB(table.unpack(colour)))
+	end
+	-- Far ground grading (outside the arrival rings and away from authored ground): highland caps,
+	-- noise patches of a second ground material and, on volcanoes, lava streaks.
+	local arrivals = if look then BiomeKits.arrivals(layout) else {}
+	local function gradeColumn(column: any, material: string, clear: number): string
+		if not look then
+			return material
+		end
+		local away = clear >= BiomeLook.CLEAR and BiomeLook.away(layout, arrivals, column.x, column.z)
+		return BiomeLook.grade(look, material, Terrain.ground(layout, column.x), column.x, column.z, column.top, away)
 	end
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
 	if field then
@@ -538,6 +557,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				then
 					material = "Ground"
 				end
+				local base = material
+				local graded = gradeColumn(column, material, field.clear(column.x, column.z))
 				local top = column.top
 				if field.clear(column.x, column.z) < 96 then
 					-- Near authored ground the column is written as 8-stud blocks sampled from the field,
@@ -566,6 +587,27 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					local r = column.cell * 0.75
 					workspace.Terrain:FillBall(Vector3.new(column.x, top - r, column.z), r, materials[material])
 				end
+				-- Discs spill ~20 studs past the column: none next to a pond or stream (they would fill its water).
+				local dry = true
+				for dx = -1, 1 do
+					for dz = -1, 1 do
+						dry = dry and field.water(column.x + dx * column.cell, column.z + dz * column.cell) == nil
+					end
+				end
+				if graded ~= base and dry then
+					-- A graded column reads as a soft blob, not a 32-stud square: the base material keeps the
+					-- column and two jittered flat discs of the graded one are painted over its top.
+					for k = 1, 2 do
+						local jx = math.noise(column.x / 7.3, column.z / 7.3, k) * column.cell * 0.5
+						local jz = math.noise(column.z / 7.3, column.x / 7.3, k + 2) * column.cell * 0.5
+						workspace.Terrain:FillCylinder(
+							CFrame.new(column.x + jx, top - 1, column.z + jz),
+							2.6,
+							column.cell * (0.5 + 0.12 * k),
+							materials[graded]
+						)
+					end
+				end
 				local water = field.water(column.x, column.z)
 				if water and water > top then
 					workspace.Terrain:FillBlock(
@@ -574,6 +616,21 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 						Enum.Material.Water
 					)
 				end
+			end
+		end
+		if look then
+			-- Shallows and foam: a sand shelf steps down out of the beach under clear water, with a
+			-- Salt foam line at the waterline and a broken surf line on the shelf.
+			local coastLook = BiomeLook.coast(look, coast, Terrain.SEA)
+			for _, ball in coastLook.shelf do
+				workspace.Terrain:FillBall(Vector3.new(ball.x, ball.y, ball.z), ball.radius, Enum.Material.Sand)
+			end
+			for _, strip in coastLook.foam do
+				workspace.Terrain:FillBlock(
+					CFrame.new(strip.x, strip.top - 2, strip.z) * CFrame.Angles(0, strip.yaw, 0),
+					Vector3.new(strip.width, 4, strip.length),
+					Enum.Material.Salt
+				)
 			end
 		end
 		local later = {}

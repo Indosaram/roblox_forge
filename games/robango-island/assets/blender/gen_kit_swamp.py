@@ -24,16 +24,20 @@ def atlases(outdir, rng):
     veg = K.Atlas(PACKAGE + "_veg", 1024)
     bark = K.scan_tile("dead_tree_trunk/textures/dead_tree_trunk_diff_1k.jpg", 512, "deadwood", strength=0.85, sat=0.35)
     veg.put("bark_dead", 0, 0, bark[:, :256], K.scan_normal("dead_tree_trunk/textures/dead_tree_trunk_nor_gl_1k.jpg", 512)[:, :256])
-    wb = K.scan_tile("bark_willow/textures/bark_willow_diff_1k.jpg", 512, "bark_dark", strength=0.85, sat=0.5)
-    veg.put("bark_dark", 256, 0, wb[:, :256], K.scan_normal("bark_willow/textures/bark_willow_nor_gl_1k.jpg", 512)[:, :256])
+    # L12: painted dark wet bark with a moss wash rising from the waterline (R11-3).
+    wb = K.painted_bark(512, rng, "#4a3e30", "#18130e", "#6e604a", "#4a5428", cover=0.5, plates=11)
+    veg.put("bark_dark", 256, 0, wb, K.scan_normal("bark_willow/textures/bark_willow_nor_gl_1k.jpg", 512)[:, :256])
     veg.put("twigs", 512, 0, K.paint_twigs(K.tile(256), rng, "deadwood_dark", "deadwood", trunks=3, depth=6))
     veg.put("moss", 768, 0, K.paint_strands(K.tile(256), rng, 34, "#5c5f3a", "#7a7a52"))
     veg.put("bush_a", 512, 256, K.sprig_tile(256, rng, "swamp_olive", "#3e3428", sat=0.55, leaves=44, leaf_h=58, sides=5))
     veg.put("bush_b", 768, 256, K.sprig_tile(256, rng, "olive_dark", "#3e3428", sat=0.5, leaves=44, leaf_h=58, sides=5))
     veg.put("fern", 0, 512, K.paint_frond(K.tile(256), rng, "#3d3a26", "#4f5a30", "#6a7040"))
-    veg.put("cypress_leaf", 256, 512, K.sprig_tile(256, rng, "#3f4a2a", "#3b3026", sat=0.5, leaves=70, leaf_h=40, sides=7, reach=0.4))
+    veg.put("cypress_leaf", 256, 512, K.sprig_tile(256, rng, "#3f4a2a", "#3b3026", sat=0.5, lit=0.2, leaves=70, leaf_h=40, sides=7, reach=0.4))
     # L3: branch-card sprigs (twig + leaves with gaps) instead of solid leaf-cluster tiles.
-    veg.put("mangrove_leaf", 512, 512, K.sprig_tile(256, rng, "olive", "#3e3428", sat=0.6, leaves=60, leaf_h=50, sides=6, reach=0.42))
+    mleaf = K.sprig_tile(256, rng, "olive", "#3e3428", sat=0.6, lit=0.2, leaves=60, leaf_h=50, sides=6, reach=0.42)
+    veg.put("mangrove_leaf", 512, 512, mleaf)
+    import kitlib
+    veg.put("shade", 0, 768, kitlib.shade_tile(mleaf, 0.5))
     litter = K.tile(256)
     K.paint_blotch(litter, rng, "swamp_mud", "#5a4a38", scale=5.0, cover=0.75, seed=3)
     K.paint_twigs(litter, rng, "deadwood_dark", "deadwood", trunks=2, depth=3, thick=1.6)
@@ -94,8 +98,8 @@ def mangrove(rng, V, mat, variant=0, name="veg_swamp_mangrove"):
             pts.append(out * (0.4 + rr * u) + Vector((0, 0, base_z * (1 - u) + 1.8 * math.sin(u * math.pi) - 0.3 * u)))
         b.tube(pts, [0.32, 0.28, 0.24, 0.2, 0.17, 0.15], rk, sides=5, v_scale=0.08)
     # L3: forked trunk over the prop roots, crown of separated branch-card clusters.
-    K.hero(b, rng, rk, [V.rects["mangrove_leaf"]], (15.5, 13.5)[variant], 0.62, ((6.5, 6.0, 3.6), (5.5, 6.5, 3.2))[variant],
-           fork=0.55, leaders=(3, 2)[variant], groups=6, clusters=(26, 22)[variant], cards=7, card=3.2, mind=2.4, sides=7,
+    K.tiered(b, rng, rk, [V.rects["mangrove_leaf"]], V.rects["shade"], (15.5, 13.5)[variant], 0.62, ((6.5, 6.0, 3.6), (5.5, 6.5, 3.2))[variant],
+           core=7, core_size=3.0, fork=0.55, leaders=(3, 2)[variant], groups=6, clusters=(30, 26)[variant], cards=7, card=3.2, mind=2.4, sides=7,
            lean=((0.02, 0.0), (-0.04, 0.03))[variant], depth=(0.45, 1.0))
     return b.finish(name, mat), 16
 
@@ -120,8 +124,8 @@ def cypress(rng, V, mat, variant=0, name="veg_swamp_cypress"):
             ln = rng.uniform(3.0, 5.5)
             b.card(p - Vector((0, 0, ln)), Vector((0, 0, 1)), s, 1.4, ln, moss, rows=2)
 
-    K.hero(b, rng, rk, [V.rects["cypress_leaf"]], h, 0.75, ((6.0, 5.5, 7.5), (6.5, 5.0, 6.0))[variant], fork=0.42,
-           leaders=2, groups=6, clusters=(30, 24)[variant], cards=7, card=3.0, mind=2.4, sides=8,
+    K.tiered(b, rng, rk, [V.rects["cypress_leaf"]], V.rects["shade"], h, 0.75, ((6.0, 5.5, 7.5), (6.5, 5.0, 6.0))[variant], tiers=3,
+           core=8, core_size=3.0, fork=0.42, leaders=2, groups=6, clusters=(36, 30)[variant], cards=7, card=3.0, mind=2.4, sides=8,
            lean=((0.01, 0.01), (0.04, -0.02))[variant], hang=drape)
     return b.finish(name, mat), 27
 
@@ -162,7 +166,7 @@ def sedge(rng, G, mat):
 
 def mud_stone(rng, R, mat):
     b = K.Builder()
-    b.rock(Vector((0, 0, 0.6)), (2.6, 2.2, 1.7), R.rects["stone"], rng, sub=3, rough=0.25, flat=0.4)
+    b.rock(Vector((0, 0, 0.6)), (2.6, 2.2, 1.7), R.rects["stone"], rng, sub=3, rough=0.25, flat=0.4, strata=0.55)
     b.rock(Vector((0.4, 0.2, -0.1)), (3.2, 2.8, 0.7), R.rects["mud"], rng, sub=2, rough=0.3, flat=0.3)
     return b.finish("rock_swamp_mud_stone", mat), 2.5
 

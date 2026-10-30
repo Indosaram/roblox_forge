@@ -27,7 +27,8 @@ SEEDS = {"A": 5201, "B": 5202}
 
 def atlas(pkg, rng):
     A = K.Atlas(f"Nodes_{pkg}", 1024)
-    A.put("bark", 0, 0, bark("bark_brown_02", "bark"))
+    # L12: painted bark (plates, fissures, lit edges, moss foot) so log nodes read as wood at phone zoom
+    A.put("bark", 0, 0, K.paint_bark(128, 896, rng, K.hexrgb("#6a5640"), K.hexrgb("#221a12"), K.hexrgb("#9c8462"), K.hexrgb("#4e5a2c"), plates=9, moss_cover=0.18))
     A.put("drift", 128, 0, bark("bark_platanus", "#9c9484", 0.3))
     T = lambda c, r: (256 + c * 256, r * 256)
     P = K.hexrgb
@@ -50,6 +51,14 @@ def atlas(pkg, rng):
     # solid swatches in the last slot: 8 x 32px squares
     x, y = T(2, 3)
     A.pt = {}
+    # L12 end-grain rings (cut log faces) in the free 128-wide strip right of the bark columns' tops
+    ring = np.zeros((128, 128, 4), np.float32)
+    yy, xx = np.mgrid[0:128, 0:128].astype(np.float32)
+    rr = np.sqrt((xx - 64) ** 2 + (yy - 64) ** 2) / 64
+    ring[..., :3] = K.hexrgb("#b89a6c") * (0.82 + 0.18 * np.sin(rr * 38))[..., None]
+    ring[rr > 0.86, :3] = K.hexrgb("#3a2c1e")
+    ring[..., 3] = 1
+    A.put("endgrain", 0, 896, ring)
     for i, (name, hexc) in enumerate([("berry", "berry"), ("fruit", "fruit"), ("mush", "#c07a2a"), ("shell", "#c8bca8"),
                                       ("cloth", "#3a7a7a"), ("hide", "hide"), ("bone", "#cfc4a8"), ("water", "#3c5a5a"),
                                       ("crate", "#7a6040"), ("rope", "#9c8a5a"), ("glint", "#9ad0d0"), ("fish", "#4a5a5a"),
@@ -66,8 +75,23 @@ def sw(A, name):
     return (u - 0.01, v - 0.01, u + 0.01, v + 0.01)
 
 
-def log(m, A, a, b, r, key="bark", sides=7):
+def log(m, A, a, b, r, key="bark", sides=7, caps=False):
     m.tube([a, (a + b) / 2, b], [r, r * 0.95, r * 0.85], sides, A.uv[key])
+    if caps:
+        # L12: pale cut end-grain discs on both ends (the woodcutter's read: "logs")
+        for c, rad, d in ((a, r, (a - b).normalized()), (b, r * 0.85, (b - a).normalized())):
+            s1 = d.orthogonal().normalized()
+            s2 = d.cross(s1).normalized()
+            u0, v0, u1, v1 = A.uv["endgrain"]
+            cu, cv = (u0 + u1) / 2, (v0 + v1) / 2
+            pts = [c + d * 0.01 + (s1 * math.cos(2 * math.pi * k / sides) + s2 * math.sin(2 * math.pi * k / sides)) * rad for k in range(sides)]
+            for k in range(sides):
+                p0, p1 = pts[k], pts[(k + 1) % sides]
+                a0, a1 = 2 * math.pi * k / sides, 2 * math.pi * (k + 1) / sides
+                f = m.bm.faces.new([m.bm.verts.new(c + d * 0.01), m.bm.verts.new(p0), m.bm.verts.new(p1)])
+                for loop, uv in zip(f.loops, ((cu, cv), (cu + math.cos(a0) * (u1 - u0) * 0.45, cv + math.sin(a0) * (v1 - v0) * 0.45),
+                                              (cu + math.cos(a1) * (u1 - u0) * 0.45, cv + math.sin(a1) * (v1 - v0) * 0.45))):
+                    loop[m.uvl].uv = uv
 
 
 def rock(m, A, c, r, key="rock", sub=1, sq=(1, 1, 0.7)):
@@ -88,7 +112,7 @@ def branch_pile(m, A, full):
     for i in range(6 if full else 2):
         a = random.uniform(0, math.pi)
         d = V((math.cos(a), math.sin(a), 0)) * random.uniform(1.6, 2.2)
-        log(m, A, -d + V((0, 0, 0.2 + i * 0.12)), d + V((0, 0, 0.3)), 0.14, sides=5)
+        log(m, A, -d + V((0, 0, 0.2 + i * 0.12)), d + V((0, 0, 0.3)), 0.18, sides=6, caps=True)
 
 
 def stone_pile(m, A, full):
@@ -98,14 +122,17 @@ def stone_pile(m, A, full):
 
 def fallen_tree(m, A, full):
     if full:
-        log(m, A, V((-6, 0, 0.9)), V((6, 0, 0.7)), 0.9, sides=10)
+        log(m, A, V((-6, 0, 0.9)), V((6, 0, 0.7)), 0.9, sides=10, caps=True)
         for i in range(4):
             a = i * 1.57
             log(m, A, V((-6, 0, 0.9)), V((-6.3, math.cos(a) * 2, 0.9 + math.sin(a) * 1.8)), 0.25, sides=5)
         for i in range(3):
             log(m, A, V((-1 + i * 3, 0, 1.4)), V((-0.2 + i * 3, 1.6, 2.8)), 0.14, sides=5)
     else:
-        log(m, A, V((-6, 0, 0.0)), V((-6, 0, 1.3)), 0.9, sides=10)
+        log(m, A, V((-6, 0, 0.0)), V((-6, 0, 1.3)), 0.9, sides=10, caps=True)
+        # stacked cut rounds beside the stump: the felled-and-split read
+        for i in range(3):
+            log(m, A, V((-3.5 + i * 1.9, 1.2, 0.55)), V((-3.5 + i * 1.9, 1.2 + 1.1, 0.55)), 0.55, sides=8, caps=True)
 
 
 def driftwood(m, A, full):
@@ -113,7 +140,7 @@ def driftwood(m, A, full):
         a = random.uniform(-0.4, 0.4)
         d = V((math.cos(a), math.sin(a), 0)) * random.uniform(2.5, 4.5)
         c = V((random.uniform(-2.5, 2.5), random.uniform(-0.8, 0.8), 0.25))
-        log(m, A, c - d, c + d, random.uniform(0.15, 0.3), "drift", 6)
+        log(m, A, c - d, c + d, random.uniform(0.18, 0.32), "drift", 6, caps=True)
 
 
 def fiber_bush(m, A, full):
