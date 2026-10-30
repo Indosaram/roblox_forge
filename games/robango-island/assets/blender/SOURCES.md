@@ -82,4 +82,6 @@ None of the following were used: AudioCraft weights, Roblox Cube, Hunyuan3D-2, S
 
 ## L7 hand tools, weapons and worn gear (`gen_tools.py`)
 
-`gen_tools.py` builds the `RobangoTools` package (manifest key `mesh-tools`): axe, pick, knife, club, hammer, hoe, spear and bow in three tiers, plus torch, sling, bola and back basket. All geometry is authored in code and has no third-party input. The FBX carries no textures and no materials. Colours and Roblox materials are applied at runtime by `src/shared/ToolVisuals.luau`.
+`gen_tools.py` builds the `RobangoTools` package (manifest key `mesh-tools`): axe, pick, knife, club, hammer, hoe, spear and bow in three tiers, plus torch, sling and bola. All geometry is authored in code and has no third-party input.
+
+L7b: `gen_tools.py` also builds `RobangoGear` (manifest key `mesh-gear`): the back basket plus a hat and a cloak per climate, fitted to the L6 survivor rigs. Both packages embed one 1024 colour atlas painted by `build_tool_atlas.py` (Pillow + numpy, seed 4372). Every tile (wood grain, rawhide lashing, knapped flint, bone, hammered copper, cobble, wicker, ember, fur, wool, straw, palm, hide, cord, leather) is generated procedurally from noise and code. No photo, scan or third-party texture is used. At runtime `src/shared/ToolVisuals.luau` bakes the imported SurfaceAppearance onto `MeshPart.TextureContent` (`MeshTexture.bake`).

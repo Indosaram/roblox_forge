@@ -38,6 +38,11 @@ local function exported(): { [string]: boolean }
 	for key in string.gmatch(source, '"(tool%.%a+)", None') do
 		rows[key] = true
 	end
+	-- Worn rows: gear.head.<climate> and gear.top.<climate> for every climate tuple.
+	for climate in string.gmatch(source, '%("(%a+)", hat_%a+, cloak_%a+%)') do
+		rows["gear.head." .. climate] = true
+		rows["gear.top." .. climate] = true
+	end
 	return rows
 end
 
@@ -70,16 +75,19 @@ return {
 		local count = 0
 		for _, item in Content.items do
 			local slot = Rules.slotOf(item.id)
-			if slot == "weapon" or slot == "bag" or item.id == "capture-bola" then
+			if slot == "weapon" or slot == "bag" or slot == "head" or slot == "top" or item.id == "capture-bola" then
 				local key = ToolVisuals.row(item.id)
 				assert(key, item.id .. " has no tool row")
 				assert(rows[key], item.id .. " -> " .. key .. " is not exported by gen_tools.py")
 				count += 1
 			end
 		end
-		assert(count >= 40, "mapped " .. count)
-		assert(type(Assets[ToolVisuals.PACKAGE]) == "string", "mesh-tools is in Assets.luau")
-		assert(string.match(Assets[ToolVisuals.PACKAGE], "^rbxassetid://%d+$"), "mesh-tools is uploaded")
+		assert(count >= 46, "mapped " .. count)
+		assert(rows["gear.head.cold"] and rows["gear.top.tropical"], "parsed gear rows")
+		for _, package in ToolVisuals.PACKAGES do
+			assert(type(Assets[package]) == "string", package .. " is in Assets.luau")
+			assert(string.match(Assets[package], "^rbxassetid://%d+$"), package .. " is uploaded")
+		end
 	end,
 	["tier heads read stone, bone and copper; wood, lashing and ember keep their roles"] = function()
 		local ToolVisuals = load()
@@ -127,7 +135,45 @@ return {
 		local main = assert(worn:FindFirstChild("tool.basket"), "basket main")
 		assert(main:FindFirstChildOfClass("WeldConstraint").Part0 == body.UpperTorso, "welded to the torso")
 		assert(main.CFrame.Position.Z > body.UpperTorso.CFrame.Position.Z, "on the back")
-		assert(ToolVisuals.dressGear({ slot = "head", catalogId = "cold-head" }, body) == nil, "clothing stays default")
+		assert(
+			ToolVisuals.dressGear({ slot = "head", catalogId = "cold-head" }, body) == nil,
+			"no hat template: default"
+		)
+		assert(ToolVisuals.dressGear({ slot = "shoes", catalogId = "cold-shoes" }, body) == nil, "shoes stay default")
+		ToolVisuals.setTemplates(nil)
+	end,
+	["worn hats and cloaks weld to their body part and hide the survivor's own hat while worn"] = function()
+		local ToolVisuals = load()
+		ToolVisuals.setTemplates({
+			["gear.head.cold"] = template("gear.head.cold", { "", "__bind" }),
+			["gear.top.temperate"] = template("gear.top.temperate", { "", "__bind" }),
+		})
+		local body = character()
+		local head = roblox.Instance.new("Part")
+		head.Name, head.CFrame = "Head", roblox.CFrame.new(0, 5.4, 0)
+		head.Parent = body
+		local rig = roblox.Instance.new("Folder")
+		rig.Name = "ForgeSurvivorRig"
+		rig.Parent = body
+		local own = roblox.Instance.new("MeshPart")
+		own.Name = "Head__hat__forager"
+		own.Parent = rig
+		local hat = assert(ToolVisuals.dressGear({ slot = "head", catalogId = "cold-head" }, body), "hat worn")
+		assert(hat:GetAttribute("ForgeToolRow") == "gear.head.cold", "hat row")
+		assert(
+			hat:FindFirstChild("gear.head.cold"):FindFirstChildOfClass("WeldConstraint").Part0 == head,
+			"on the head"
+		)
+		assert(own.Transparency == 1, "survivor's own hat hidden under the gear hat")
+		local cloak = assert(ToolVisuals.dressGear({ slot = "top", catalogId = "temperate-top" }, body), "cloak worn")
+		assert(
+			cloak:FindFirstChild("gear.top.temperate"):FindFirstChildOfClass("WeldConstraint").Part0 == body.UpperTorso,
+			"cloak on the torso"
+		)
+		assert(ToolVisuals.dressGear({ slot = "top", catalogId = "cold-head" }, body) == nil, "a hat is not a top")
+		assert(ToolVisuals.dressTool(roblox.Instance.new("Tool"), "cold-head") == false, "a hat is not a hand tool")
+		assert(ToolVisuals.texturedMaterial({ material = "Wood" }) == "SmoothPlastic", "texture carries the grain")
+		assert(ToolVisuals.texturedMaterial({ material = "Metal" }) == "Metal", "copper keeps its sheen")
 		ToolVisuals.setTemplates(nil)
 	end,
 }

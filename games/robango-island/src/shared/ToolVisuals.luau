@@ -6,12 +6,19 @@
 -- so the genre default stays.
 -- Rows: a Model per key (`tool.<family>.t<n>` or `tool.<family>`) whose MeshParts carry a role
 -- suffix: none = wood, `__head` = working part (tier look), `__bind` = lashing/cord, `__ember`.
--- The FBX has no textures (Open Cloud FBX imports leave SurfaceAppearance TexturePacks empty and
--- phone clients fail them), so every role is coloured here with plain Color + Material.
+-- L7b: the rows carry a painted atlas (build_tool_atlas.py). The Open Cloud import gives each
+-- MeshPart a SurfaceAppearance phones cannot render, so load() bakes it onto TextureContent
+-- (MeshTexture.bake); a baked part shows its texture under a white tint. A part without a texture
+-- (bake found nothing) keeps the plain Color + Material look below.
 -- Row frame: the grip point is the origin and the haft runs along +Y (Blender +Z).
+-- `mesh-gear` (RobangoGear) holds the worn rows: the back basket, hats (`gear.head.<climate>`,
+-- Head frame) and cloaks (`gear.top.<climate>`, UpperTorso frame), authored around the L6
+-- survivor rigs (SurvivorAvatar): the frame origin is the R15 part's rest centre.
 local M = {}
 
 M.PACKAGE = "mesh-tools"
+M.GEAR_PACKAGE = "mesh-gear"
+M.PACKAGES = { M.PACKAGE, M.GEAR_PACKAGE }
 
 -- Material tiers: t1 knapped stone, t2 bone/antler, t3 copper.
 local HEAD = {
@@ -25,6 +32,12 @@ local ROLE = {
 	ember = { color = { 255, 140, 50 }, material = "Neon" },
 	wicker = { color = { 168, 128, 74 }, material = "Wood" },
 	bundle = { color = { 92, 66, 42 }, material = "Fabric" },
+}
+-- Untextured fallback per worn row: main shell, then trim.
+local GEAR = {
+	cold = { { color = { 214, 206, 188 }, material = "Fabric" }, { color = { 132, 98, 66 }, material = "Leather" } },
+	temperate = { { color = { 104, 116, 80 }, material = "Fabric" }, { color = { 112, 78, 50 }, material = "Leather" } },
+	tropical = { { color = { 206, 178, 112 }, material = "Fabric" }, { color = { 96, 140, 64 }, material = "Fabric" } },
 }
 
 -- Catalog item -> row key. Families without a row of their own borrow the nearest primitive
@@ -51,9 +64,11 @@ for _, family in { "axe", "pickaxe", "club", "hammer", "hoe", "knife", "spear", 
 		M.ITEMS[family .. "-t" .. tier] = "tool." .. row .. ".t" .. tier
 	end
 end
--- Worn bags render as the back basket.
+-- Worn bags render as the back basket; worn hats and tops as the climate's hat and cloak.
 for _, climate in { "cold", "temperate", "tropical" } do
 	M.ITEMS[climate .. "-bag"] = "tool.basket"
+	M.ITEMS[climate .. "-head"] = "gear.head." .. climate
+	M.ITEMS[climate .. "-top"] = "gear.top." .. climate
 end
 M.SCALE = { sword = 1.5 } :: { [string]: number }
 
@@ -71,6 +86,10 @@ end
 function M.look(key: string, name: string): { color: { number }, material: string }
 	local suffix = string.match(name, "__(%a+)$")
 	local tier = tonumber(string.match(key, "%.t(%d)$"))
+	local climate = string.match(key, "^gear%.%a+%.(%a+)$")
+	if climate and GEAR[climate] then
+		return GEAR[climate][if suffix == "bind" then 2 else 1]
+	end
 	if suffix == "head" then
 		return HEAD[tier or 1]
 	elseif suffix == "ember" then
@@ -98,12 +117,31 @@ function M.setTemplates(value: { [string]: any }?)
 	templates = value
 end
 
+--- Pure: the Material of a part that carries the baked painted texture. The texture holds the
+--- grain and wear, so the engine's own patterned materials would only add noise over it; copper
+--- keeps Metal for its sheen and the ember stays Neon.
+function M.texturedMaterial(look: { material: string }): string
+	return if look.material == "Metal" or look.material == "Neon" then look.material else "SmoothPlastic"
+end
+
+local function textured(part: any): boolean
+	local ok, uri = pcall(function()
+		return part.TextureContent.Uri
+	end)
+	return ok and type(uri) == "string" and uri ~= ""
+end
+
 local function paint(key: string, model: any)
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
 			local look = M.look(key, part.Name)
-			part.Color = Color3.fromRGB(look.color[1], look.color[2], look.color[3])
-			part.Material = (Enum.Material :: any)[look.material]
+			if textured(part) and look.material ~= "Neon" then
+				part.Color = Color3.fromRGB(255, 255, 255)
+				part.Material = (Enum.Material :: any)[M.texturedMaterial(look)]
+			else
+				part.Color = Color3.fromRGB(look.color[1], look.color[2], look.color[3])
+				part.Material = (Enum.Material :: any)[look.material]
+			end
 			part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch, part.Massless =
 				false, false, false, false, true
 			part.CastShadow = false
@@ -125,35 +163,37 @@ function M.load(assets: { [string]: any }?): { [string]: any }
 	if not ok or not insert or not assets then
 		return loaded
 	end
-	local id = tonumber(string.match(tostring(assets[M.PACKAGE] or ""), "%d+$") or "")
-	if not id then
-		return loaded
-	end
-	local success, result = pcall(insert.LoadAsset, insert, id)
-	if not success then
-		warn("ToolVisuals: " .. M.PACKAGE .. " not loaded, primitive tools stay: " .. tostring(result))
-		return loaded
-	end
-	-- The FBX carries no textures today; baking keeps a future textured re-export off the
-	-- SurfaceAppearance path phones cannot render (mesh-texture.spec guards every loader).
 	local MeshTexture =
 		require(game:GetService("ReplicatedStorage").Forge.games["robango-island"].src.shared.MeshTexture)
-	MeshTexture.bake(result)
 	local storage = Instance.new("Folder")
 	storage.Name, storage.Parent = "ForgeToolTemplates", game:GetService("ServerStorage")
-	for _, row in result:GetDescendants() do
-		if row:IsA("Model") and row:FindFirstChildWhichIsA("MeshPart") then
-			local key = string.gsub(row.Name, "%.%d%d%d$", "")
-			for _, part in row:GetDescendants() do
-				if part:IsA("BasePart") then
-					part.Name = string.gsub(part.Name, "%.%d%d%d$", "")
-				end
-			end
-			row.Name, row.WorldPivot, row.Parent = key, CFrame.new(), storage
-			loaded[key] = row
+	for _, package in M.PACKAGES do
+		local id = tonumber(string.match(tostring(assets[package] or ""), "%d+$") or "")
+		if not id then
+			continue
 		end
+		local success, result = pcall(insert.LoadAsset, insert, id)
+		if not success then
+			warn("ToolVisuals: " .. package .. " not loaded, primitive tools stay: " .. tostring(result))
+			continue
+		end
+		-- The painted atlas arrives as a SurfaceAppearance phones cannot render: bake it onto
+		-- TextureContent (mesh-texture.spec guards every loader).
+		MeshTexture.bake(result)
+		for _, row in result:GetDescendants() do
+			if row:IsA("Model") and row:FindFirstChildWhichIsA("MeshPart") then
+				local key = string.gsub(row.Name, "%.%d%d%d$", "")
+				for _, part in row:GetDescendants() do
+					if part:IsA("BasePart") then
+						part.Name = string.gsub(part.Name, "%.%d%d%d$", "")
+					end
+				end
+				row.Name, row.WorldPivot, row.Parent = key, CFrame.new(), storage
+				loaded[key] = row
+			end
+		end
+		result:Destroy()
 	end
-	result:Destroy()
 	return loaded
 end
 
@@ -198,7 +238,7 @@ end
 --- Handle; Grip puts the row origin (the grip point) in the hand with the haft raised by `hold`.
 function M.dressTool(tool: any, catalogId: string): boolean
 	local key = M.row(catalogId)
-	if not key or key == "tool.basket" then
+	if not key or not string.match(key, "^tool%.") or key == "tool.basket" then
 		return false
 	end
 	local family = string.match(catalogId, "^(%a+)%-t%d$") or ""
@@ -219,17 +259,61 @@ end
 -- Worn gear placement on the UpperTorso (Torso on R6): the basket sits on the back, a worn
 -- weapon is slung diagonally across it. The character faces -Z, so the back is +Z.
 local SLING = {
-	bag = CFrame.new(0, 0.15, 1.05),
+	-- Basket top at the shoulder blades, clear of the widest outfit back (L6 jacket, z 0.28).
+	bag = CFrame.new(0, -0.05, 0.95),
 	weapon = CFrame.new(0.15, -0.1, 0.75) * CFrame.Angles(0, 0, math.rad(-35)) * CFrame.new(0, -0.6, 0),
+	-- Hats and cloaks are authored in their part's rest frame (L6 rig space): they sit at the origin.
+	head = CFrame.new(),
+	top = CFrame.new(),
 }
+-- Body part each worn slot is welded to (R6 fallback second).
+local BODY = {
+	head = { "Head", "Head" },
+	top = { "UpperTorso", "Torso" },
+	bag = { "UpperTorso", "Torso" },
+	weapon = { "UpperTorso", "Torso" },
+}
+-- Row family a slot accepts.
+local FAMILY = { head = "^gear%.head%.", top = "^gear%.top%.", bag = "^tool%.basket$", weapon = "^tool%." }
+
+-- A worn hat replaces the survivor preset's own hat and hat band (L6 rig pieces "Head__hat__*",
+-- "Head__band__*"): they turn invisible while the gear hat is worn and come back when it goes.
+local function hideRigHat(character: any, model: any)
+	local rig = character:FindFirstChild("ForgeSurvivorRig")
+	if not rig then
+		return
+	end
+	local hidden = {}
+	for _, piece in rig:GetChildren() do
+		if
+			piece:IsA("BasePart")
+			and (string.match(piece.Name, "^Head__hat__") or string.match(piece.Name, "^Head__band__"))
+		then
+			table.insert(hidden, { piece, piece.Transparency })
+			piece.Transparency = 1
+		end
+	end
+	-- pcall: headless engines (Lune specs) carry no instance signals.
+	pcall(function()
+		model.Destroying:Connect(function()
+			for _, entry in hidden do
+				entry[1].Transparency = entry[2]
+			end
+		end)
+	end)
+end
 
 --- Genre hook `visuals.gear`: the welded visual for one CharacterRules.dressing entry, or nil
 --- (clothing slots, unmapped items, no template) so the genre's primitive part stays.
 function M.dressGear(entry: any, character: any): any
 	local place = SLING[entry.slot]
 	local key = M.row(entry.catalogId)
-	local body = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-	if not place or not key or not body or (entry.slot == "bag") ~= (key == "tool.basket") then
+	local names = BODY[entry.slot]
+	local body = names and (character:FindFirstChild(names[1]) or character:FindFirstChild(names[2]))
+	if not place or not key or not body or not string.match(key, FAMILY[entry.slot]) then
+		return nil
+	end
+	if entry.slot == "weapon" and key == "tool.basket" then
 		return nil
 	end
 	local main, rest = assemble(key, 1)
@@ -246,6 +330,9 @@ function M.dressGear(entry: any, character: any): any
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0, weld.Part1, weld.Parent = body, main, main
 	model:SetAttribute("ForgeToolRow", key)
+	if entry.slot == "head" then
+		hideRigHat(character, model)
+	end
 	return model
 end
 
