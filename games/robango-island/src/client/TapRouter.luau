@@ -655,9 +655,25 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 		steer = nil
 		gesture.cancel()
 	end)
+	-- A walk toward a world point that stops at the shore (the combat loop's approach). p134 v58/v59
+	-- and Studio D2: the loop followed a fleeing dodo into the sea (x -423, -172/-378, -760). Returns
+	-- false when no land lies toward the goal (nothing to walk to).
+	local function moveAshore(goal: Vector3, arrive: number?, onArrive: (() -> ())?): boolean
+		local _, root = body()
+		if not root then
+			return false
+		end
+		local x, z = M.shore(root.Position, goal, isLand)
+		if not x or not z then
+			return false
+		end
+		moveTo(if x == goal.X and z == goal.Z then goal else Vector3.new(x, goal.Y, z), arrive, onArrive)
+		return true
+	end
 	return {
 		register = router.register,
 		moveTo = moveTo,
+		moveAshore = moveAshore,
 		stop = stop,
 		destroy = function()
 			for _, connection in connections do

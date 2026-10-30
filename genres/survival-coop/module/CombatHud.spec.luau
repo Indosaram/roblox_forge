@@ -13,6 +13,14 @@ local function nearly(a: number, b: number): boolean
 end
 
 return {
+	-- p134 v59: the loop followed a fleeing dodo ~450 studs to sea and ~120 onto the dock.
+	["an auto chase gives up past CHASE_STUDS from where the fight began"] = function()
+		local s = Combat.engage(nil, "dodo-1", 0)
+		assert(not Combat.release(s, true, true, 6, Combat.CHASE_STUDS - 1), "a short chase continues")
+		assert(Combat.release(s, true, true, 6, Combat.CHASE_STUDS + 1), "a long chase is given up")
+		assert(Combat.CHASE_STUDS <= 60, "the leash keeps the fight on the beach")
+		assert(not Combat.release(s, true, true, 6, nil), "no origin, no leash")
+	end,
 	["a tap engages: approach when far, swing in reach, never two swings in flight"] = function()
 		local s = Combat.engage(nil, "rex-1", 10)
 		assert(s.auto and s.target == "rex-1" and s.nextAt == 10, "engaged now")

@@ -907,8 +907,17 @@ function M.factory(ctx: any): any
 			render(latest)
 		end
 	end
+	-- p134 v58/v59 memory: the server pushes every second (other slices tick), and rebuilding the
+	-- market grid on each push churned ~95 instances/s. Only a change in what it shows rebuilds it.
+	local lastShown: string? = nil
+	local http = game:GetService("HttpService")
 	local unsubscribe = ctx.onSnapshot(function(snapshot)
 		latest = snapshot
+		local ok, shown = pcall(http.JSONEncode, http, { snapshot.market, snapshot["harbor-buyback"] })
+		if ok and shown == lastShown then
+			return
+		end
+		lastShown = if ok then shown else nil
 		render(snapshot)
 	end)
 	-- One open state for the dock, the X and the prompt.

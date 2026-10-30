@@ -236,7 +236,14 @@ local function nodeRows(): { any }
 	end
 	return rowsOfNodes :: { any }
 end
+-- The HUD attack button hands its pick to the combat loop (CombatHud, started further down).
+local engageCreature: (Model) -> boolean = function(_model: Model): boolean
+	return false
+end
 local hud = SurvivalHUD.start({
+	engage = function(model: Model): boolean
+		return engageCreature(model)
+	end,
 	icons = itemIcons,
 	contextual = true,
 	shell = {
@@ -1515,8 +1522,9 @@ local combatHud = CombatHud.start({
 	send = function(verb: string, args: { any }): any
 		return sendCommand(verb, args)
 	end,
-	approach = function(goal: any, within: number, arrive: () -> ())
-		tapInput.moveTo(goal, within, arrive)
+	-- The fight never walks into the sea: the approach stops at the shore (TapRouter.moveAshore).
+	approach = function(goal: any, within: number, arrive: () -> ()): boolean
+		return tapInput.moveAshore(goal, within, arrive)
 	end,
 	stop = function()
 		tapInput.stop()
@@ -1551,6 +1559,7 @@ local removeTapActions, send = TapRouter.installActions(
 	end
 )
 sendCommand = send
+engageCreature = combatHud.engage
 -- L10: one outline on the gather node in focus (open fan > mouse hover > nearest in reach).
 local stopNodeFocus = require(script.Parent:WaitForChild("NodeFocus")).start({
 	open = function(): any

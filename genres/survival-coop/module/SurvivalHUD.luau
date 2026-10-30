@@ -84,6 +84,9 @@ export type Options = {
 	names: { [string]: string }?,
 	contextual: boolean?,
 	openPanel: ((string) -> boolean)?,
+	-- Melee attack press on a creature model: hands it to the pack's combat loop (CombatHud.engage);
+	-- true when engaged. Absent sends one raw attack command per press.
+	engage: ((Model) -> boolean)?,
 	-- Landscape HUD shell (ui-spec "Tideglass", Robango A4); used only with contextual = true.
 	-- `name(kind, key)` labels world entities; `open(id)` opens a panel by id (the mount token opens
 	-- "taming"). The menu token is ExtensionPanels' own toggle (its shell option), in row slot 1.
@@ -747,7 +750,7 @@ function M.start(options: Options)
 						table.insert(candidates, {
 							kind = instance:GetAttribute("ForgeWildlifeKind"),
 							distance = d,
-							target = { id = id, position = rootPart.Position },
+							target = { id = id, position = rootPart.Position, model = instance },
 						})
 					end
 				end
@@ -757,6 +760,12 @@ function M.start(options: Options)
 		local picked = Model.autoTarget(content, candidates, playerLevel())
 		local target: string? = if picked then picked.id else nil
 		local targetPos: Vector3? = if picked then picked.position else nil
+		-- p134 v58: one raw swing per press refused OUT_OF_RANGE (picked at 8 studs, the knife
+		-- reaches 5) or COOLDOWN (presses 1 s apart, swing + windup 1.6 s) and read "Action refused".
+		-- With the pack's combat loop, a melee press engages it: walk into reach, paced swings.
+		if picked and not ranged and options.engage and options.engage(picked.model) then
+			return
+		end
 		if target and targetPos then
 			local flat = Vector3.new(targetPos.X - pivot.Position.X, 0, targetPos.Z - pivot.Position.Z)
 			if flat.Magnitude > 0.001 then

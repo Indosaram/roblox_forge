@@ -1241,6 +1241,15 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			facingDot = 0,
 		}
 		wildlife.catalog.weapons[combat.starterWeapon] = starter
+		-- Bare hands punch (Durango): a quarter of the starter club's strike, same reach and pace,
+		-- no wear. Studio D2 / p134 v60: unarmed swings were refused and nothing happened.
+		wildlife.catalog.unarmed = {
+			damageMilli = math.max(1000, combat.weaponDamageMilli // 4),
+			wearMilli = 1,
+			rangeStuds = combat.weaponRangeStuds,
+			cooldownMillis = combat.weaponCooldownMillis,
+			facingDot = 0,
+		}
 		-- D2b R08: every melee weapon-tool strikes wildlife (the opening's bone knife was refused
 		-- WEAPON_UNAVAILABLE, so no swing ever landed). An item without its own rule strikes like the
 		-- starter club; worn performance still adds per tier. Bows and crossbows stay ranged-only.

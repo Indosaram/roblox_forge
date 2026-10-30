@@ -59,7 +59,16 @@ function M.factory(ctx: any): any
 		rowConnections, rows = {}, {}
 	end
 	local render: () -> ()
+	-- p134 v58/v59 memory: the server pushes a snapshot every second, and a full rebuild of every
+	-- chapter card per push (~450 instances/s while closed) grew the client heap all session. A
+	-- closed sheet only marks itself stale; it renders when it opens.
+	local stale = true
 	render = function()
+		if not sheet.frame.Visible then
+			stale = true
+			return
+		end
+		stale = false
 		clear()
 		for index, chapter in M.model(ctx.content, state, level) do
 			if ctx.cards then
@@ -164,6 +173,9 @@ function M.factory(ctx: any): any
 	return {
 		open = function()
 			sheet.frame.Visible = true
+			if stale then
+				render()
+			end
 		end,
 		isOpen = function()
 			return sheet.frame.Visible

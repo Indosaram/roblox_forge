@@ -376,7 +376,7 @@ function M.render(
 	assert(rendered, table.concat(errors, "; "))
 	files[rendered.path] = rendered.content
 	files["content.yml"] = serde.encode("yaml", raw)
-	files["src/shared/WildlifePolicy.luau"] = "--!strict\nexport type Spawn = {id:string,catalogId:string,position:{x:number,y:number,z:number}}\nexport type Species={healthMilli:number,damageMilli:number,drops:{{item:string,quantity:number}}}\nexport type Weapon={damageMilli:number,wearMilli:number,rangeStuds:number,facingDot:number,cooldownMillis:number}\nlocal policy: {version:number,sourceKey:string,maximum:number,maxReceipts:number,catalog:{species:{[string]:Species},weapons:{[string]:Weapon}},spawns:{Spawn}} = "
+	files["src/shared/WildlifePolicy.luau"] = "--!strict\nexport type Spawn = {id:string,catalogId:string,position:{x:number,y:number,z:number}}\nexport type Species={healthMilli:number,damageMilli:number,drops:{{item:string,quantity:number}}}\nexport type Weapon={damageMilli:number,wearMilli:number,rangeStuds:number,facingDot:number,cooldownMillis:number}\nlocal policy: {version:number,sourceKey:string,maximum:number,maxReceipts:number,catalog:{species:{[string]:Species},weapons:{[string]:Weapon},unarmed:Weapon?},spawns:{Spawn}} = "
 		.. contract.serialize(M.wildlifePolicy())
 		.. "\nreturn policy\n"
 	local worldConfig = existingWorld or M.worldConfig()

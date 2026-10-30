@@ -141,13 +141,27 @@ function M.pickWeapon(content: any, children: { any }): any
 	return best
 end
 
---- True when the combat bar must clear: player dead or bodiless, target gone, or walked away
---- from a paused loop (p134 v50: the step-back pill outlived a death by ~10 min).
-function M.release(session: Session?, playerAlive: boolean, targetAlive: boolean, distance: number?): boolean
+-- Flat studs the player may be led from where the fight began before the loop gives up the chase.
+-- p134 v59: the loop followed a fleeing dodo ~450 studs out to sea and ~120 studs onto the dock.
+M.CHASE_STUDS = 40
+
+--- True when the combat bar must clear: player dead or bodiless, target gone, walked away from a
+--- paused loop (p134 v50: the step-back pill outlived a death by ~10 min), or the target led the
+--- chase more than CHASE_STUDS from where it began (`chased`, flat studs).
+function M.release(
+	session: Session?,
+	playerAlive: boolean,
+	targetAlive: boolean,
+	distance: number?,
+	chased: number?
+): boolean
 	if not session then
 		return false
 	end
 	if not playerAlive or not targetAlive or distance == nil then
+		return true
+	end
+	if session.auto and chased and chased > M.CHASE_STUDS then
 		return true
 	end
 	return not session.auto and distance > M.RELEASE_STUDS
@@ -298,7 +312,9 @@ export type Options = {
 	-- Sends a durable client command and returns the server result (TapRouter.installActions).
 	send: (string, { any }) -> any,
 	-- Walks toward a world point and calls back on arrival (TapRouter moveTo).
-	approach: (any, number, () -> ()) -> (),
+	-- Walks toward a point; false means there is no land path toward it (the target is out at sea),
+	-- and the loop gives up the chase.
+	approach: (any, number, () -> ()) -> boolean?,
 	stop: () -> (),
 	name: (string) -> string,
 	itemName: (string) -> string,
@@ -512,6 +528,8 @@ function M.start(options: Options)
 		carcass = nil
 		fan.Visible = false
 	end
+	-- Where the player stood when the current fight began (CHASE_STUDS leash).
+	local chaseFrom: any = nil
 	local function disengage()
 		session, targetModel = nil, nil
 		options.stop()
@@ -598,6 +616,11 @@ function M.start(options: Options)
 			return
 		end
 		current.inFlight = true
+		-- Empty hands with a melee weapon in the Backpack: raise it before the first swing (bare
+		-- hands now punch, so a WEAPON_UNAVAILABLE refusal no longer prompts it).
+		if not current.armed and arm() then
+			current.armed = true
+		end
 		task.spawn(function()
 			local result = options.send("survival-coop:attack", { current.target })
 			if session and session.target == current.target then
@@ -610,6 +633,16 @@ function M.start(options: Options)
 					return
 				end
 				local line = M.attackRefusal(options.locale, session.reason)
+				if
+					type(result) == "table"
+					and result.ok
+					and type(result.data) == "table"
+					and result.data.outcome == "MISS"
+				then
+					-- The swing was charged but the target got out of reach during the windup.
+					line = t("attack.MISS")
+					previous = nil
+				end
 				if line and session.reason ~= previous then
 					local _, root = body()
 					float(rootOf(targetModel) or root, line, P.bone)
@@ -666,7 +699,12 @@ function M.start(options: Options)
 		if type(id) ~= "string" then
 			return false
 		end
+		local fresh = not session or session.target ~= id
 		session, targetModel = M.engage(session, id, clock()), model
+		local _, root = body()
+		if fresh or not chaseFrom then
+			chaseFrom = if root then root.Position else nil
+		end
 		closeCarcass()
 		return true
 	end
@@ -845,18 +883,32 @@ function M.start(options: Options)
 				local walking = session
 				walking.approachUntil = now + M.APPROACH_SECONDS
 				approachGoal = anchor.Position
-				options.approach(anchor.Position, walking.reach or M.REACH, function()
+				local walkable = options.approach(anchor.Position, walking.reach or M.REACH, function()
 					if session == walking then
 						walking.approachUntil = nil
 					end
 				end)
+				if walkable == false then
+					-- The target is out in the water: stop here and say it got away.
+					options.stop()
+					float(anchor, t("attack.FLED"), P.bone)
+					session, targetModel, chaseFrom = nil, nil, nil
+				end
 			elseif decision == "swing" then
 				swing()
 			end
 			local playerAlive = humanoid ~= nil and root ~= nil and humanoid.Health > 0
-			if session and M.release(session, playerAlive, alive or carcass ~= nil, distance) then
+			local chased = if chaseFrom and root
+				then Vector3.new(root.Position.X - chaseFrom.X, 0, root.Position.Z - chaseFrom.Z).Magnitude
+				else nil
+			if session and M.release(session, playerAlive, alive or carcass ~= nil, distance, chased) then
+				-- Gave up a chase: stop the walk where it is, and say so over the target.
+				if session.auto and alive and chased and chased > M.CHASE_STUDS then
+					options.stop()
+					float(anchor or root, t("attack.FLED"), P.bone)
+				end
 				-- A carcass on the engaged kill keeps the bar until the fan closes.
-				session, targetModel = nil, nil
+				session, targetModel, chaseFrom = nil, nil, nil
 				if not playerAlive then
 					closeCarcass()
 				end

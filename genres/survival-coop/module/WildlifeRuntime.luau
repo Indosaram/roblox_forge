@@ -27,6 +27,29 @@ export type Request = {
 	-- "ranged" fires an equipped bow/crossbow (content.brawlPolicy.weapons rows); nil is melee.
 	mode: string?,
 }
+-- Bare-hand melee (catalog.unarmed, optional): a virtual fist that is never in any bag and never
+-- wears. Durango lets a player punch; Studio D2 / p134 v60: unarmed swings were refused
+-- WEAPON_UNAVAILABLE with nothing on screen.
+M.FIST = "~fist"
+M.FIST_BAG = (function(): any
+	local fist = {
+		itemId = M.FIST,
+		catalogId = M.FIST,
+		quantity = 1,
+		qualityMilli = 1000,
+		durabilityMilli = 1,
+		attributes = {},
+	}
+	return { version = 0, items = { [M.FIST] = fist }, reservations = {}, limits = {} }
+end)()
+function M.fistCatalog(policy: any): any
+	return { species = policy.species, weapons = { [M.FIST] = policy.unarmed } }
+end
+local function fist(access: any): any
+	local bare = table.clone(access)
+	bare.equipped = { [M.FIST] = true }
+	return bare
+end
 -- Auxiliary material spec: every bow/crossbow draws for 0.4 s; ammunition is durability-backed.
 M.RANGED_WINDUP_MILLIS = 400
 M.RANGED_WEAR_MILLI = 1000
@@ -172,10 +195,13 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return "PERSONAL_RECEIPT_LIMIT"
 		end
 		local bag = Inventory.fromSave(data.inventory[config.carriedContainer], items)
-		local item = bag.items[intent.itemId]
+		local fists = intent.itemId == M.FIST
+		local item = if fists then nil else bag.items[intent.itemId]
 		local reason: string? = nil
 		if combat.nextAttack > intent.at then
 			reason = "COOLDOWN"
+		elseif fists then
+			reason = nil
 		elseif
 			not item
 			or item.catalogId ~= intent.weaponId
@@ -184,11 +210,13 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		then
 			reason = "WEAPON_UNAVAILABLE"
 		end
-		if not reason then
+		if not reason and not fists then
 			bag.items[intent.itemId].durabilityMilli =
 				math.max(0, bag.items[intent.itemId].durabilityMilli - intent.wear)
 			bag.version += 1
 			data.inventory[config.carriedContainer] = Inventory.save(bag)
+		end
+		if not reason then
 			combat.nextAttack = intent.at + intent.cooldown
 			-- Windup end, so a stance switch can be refused while this strike is drawn.
 			combat.windupUntil = if intent.attack then intent.attack.resolveAt else nil
@@ -221,8 +249,16 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			if not access or not access.alive then
 				damage = 0
 			else
+				-- Melee reach is measured from where the attacker stands when the blow lands (p134
+				-- v59: a chased, fleeing dodo was always more than 5 studs from the spot where the
+				-- 0.6 s windup began, so 46 swings missed for 0 damage). Ranged keeps its draw point.
+				local strike = accepted.attack
+				if strike.mode == "melee" then
+					strike = table.clone(strike)
+					strike.origin, strike.direction = access.position, access.facing
+				end
 				local _, resolved = Combat.resolve(
-					accepted.attack,
+					strike,
 					config.nowMillis(),
 					accepted.request.targetId,
 					access.targetPosition,
@@ -379,6 +415,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			stateVersion = ledger.stateVersion,
 			data = { status = if intent.phase == "REJECTED" then "rejected" else "confirmed", targetId = req.targetId },
 		}
+		-- A charged swing that dealt nothing (the target got out of reach during the windup) says so.
+		if intent.phase ~= "REJECTED" and damage == 0 then
+			(result.data :: any).outcome = "MISS"
+		end
 		epoch.outcomes[req.requestId] = {
 			binding = intent.commandBinding,
 			result = copy(result),
@@ -576,19 +616,30 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				end
 			else
 				local candidate, reason = Wildlife.attack(npc, bag, policy, at, nextAttack, access)
+				if not candidate and reason == "WEAPON_UNAVAILABLE" and policy.unarmed then
+					-- Bare hands (catalog.unarmed): nothing usable is held, so the player punches for
+					-- low damage, no wear. The same reach, sight and facing rules apply.
+					candidate, reason =
+						Wildlife.attack(npc, M.FIST_BAG, M.fistCatalog(policy), at, nextAttack, fist(access))
+					if candidate then
+						selected, weapon = M.FIST_BAG.items[M.FIST], policy.unarmed
+					end
+				end
 				if not candidate then
 					refusal = reason
 					return data
 				end
-				local itemId: string? = nil
-				for key, item in candidate.inventory.items do
-					if item.durabilityMilli ~= bag.items[key].durabilityMilli then
-						itemId = key
-						break
+				if not selected then
+					local itemId: string? = nil
+					for key, item in candidate.inventory.items do
+						if item.durabilityMilli ~= bag.items[key].durabilityMilli then
+							itemId = key
+							break
+						end
 					end
+					selected = bag.items[assert(itemId, "MISSING_WEAR")]
+					weapon = policy.weapons[selected.catalogId]
 				end
-				selected = bag.items[assert(itemId, "MISSING_WEAR")]
-				weapon = policy.weapons[selected.catalogId]
 			end
 			local mode = req.mode or "melee"
 			-- Worn weapon performance adds to the authored strike; a carried-only weapon does not.

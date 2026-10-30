@@ -3117,3 +3117,15 @@ fct.camp_have,%s %d/%d,survival camp sheet,%s %d/%d,%s %d/%d
 fct.camp_give,Give,survival camp sheet,Give,기부
 fct.camp_build,Build,survival camp sheet,Build,건설
 hud.skill_more,More below,skills sheet scroll hint,More below,아래에 더 있어요
+hud.COOLDOWN,Still recovering from the last swing - attack again in a moment.,genre text hud,Still recovering from the last swing - attack again in a moment.,직전 공격 후 숨을 고르는 중이에요. 잠시 뒤 다시 공격하세요.
+hud.RECOVERY,Still recovering from the last swing - attack again in a moment.,genre text hud,Still recovering from the last swing - attack again in a moment.,직전 공격 후 숨을 고르는 중이에요. 잠시 뒤 다시 공격하세요.
+hud.OUT_OF_RANGE,Too far away - move closer to attack.,genre text hud,Too far away - move closer to attack.,너무 멀어요. 더 가까이 가서 공격하세요.
+hud.NOT_FACING,Turn toward the creature to attack.,genre text hud,Turn toward the creature to attack.,대상을 바라봐야 공격할 수 있어요.
+hud.BLOCKED,Something is in the way.,genre text hud,Something is in the way.,사이에 막는 것이 있어요.
+hud.ALREADY_DEAD,It is already down.,genre text hud,It is already down.,이미 쓰러졌어요.
+hud.UNKNOWN_TARGET,That creature is gone.,genre text hud,That creature is gone.,그 동물은 이제 없어요.
+hud.NOT_ALIVE,You are down - get up before you attack.,genre text hud,You are down - get up before you attack.,쓰러진 상태예요. 일어난 뒤 공격하세요.
+hud.MOUNTED,Get off your mount to attack.,genre text hud,Get off your mount to attack.,탈것에서 내려야 공격할 수 있어요.
+hud.ALREADY_CAPTURED,That creature has been tamed.,genre text hud,That creature has been tamed.,그 동물은 이미 길들여졌어요.
+cmb.attack.MISS,Missed - it got away,genre text cmb,Missed - it got away,빗나갔어요 - 도망쳤어요
+cmb.attack.FLED,It ran off - tap it again to chase,genre text cmb,It ran off - tap it again to chase,도망쳤어요 - 다시 눌러 쫓아가세요

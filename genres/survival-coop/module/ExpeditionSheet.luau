@@ -45,10 +45,14 @@ function M.mount(ctx: any, options: { name: string, title: string, dock: string?
 		end
 	end)
 	local lastKey = ""
+	local lastShape = ""
+	local built: { any } = {}
+	local handlers: { [any]: (() -> ())? } = {}
 	function shell.render(title: string, items: { Item })
-		local key = title
-		for _, item in items do
+		local key, shape = title, ""
+		for index, item in items do
 			key ..= "|" .. item.kind .. ":" .. item.text
+			shape ..= "|" .. item.kind .. ":" .. (item.name or ("Row" .. index)) .. ":" .. item.height
 		end
 		if key == lastKey then
 			return
@@ -59,6 +63,18 @@ function M.mount(ctx: any, options: { name: string, title: string, dock: string?
 		if label then
 			label.Text = title
 		end
+		-- p134 v58/v59 memory: a route countdown changes every second; rebuilding every row of a
+		-- hidden sheet per push churned ~170 instances/s. Same rows: update text and handlers only.
+		if shape == lastShape and #built == #items then
+			for index, item in items do
+				built[index].Text = item.text
+				handlers[built[index]] = item.onClick
+			end
+			return
+		end
+		lastShape = shape
+		table.clear(built)
+		table.clear(handlers)
 		for _, child in sheet.scroll:GetChildren() do
 			if child:IsA("GuiObject") then
 				child:Destroy()
@@ -66,12 +82,26 @@ function M.mount(ctx: any, options: { name: string, title: string, dock: string?
 		end
 		for index, item in items do
 			local size = UDim2.new(1, 0, 0, item.height)
-			local node = if item.kind == "button"
-				then ui.components.button(theme, { text = item.text, size = size, onClick = item.onClick })
-				else ui.components.label(theme, { text = item.text, size = size })
+			local node: any
+			if item.kind == "button" then
+				node = ui.components.button(theme, {
+					text = item.text,
+					size = size,
+					onClick = function()
+						local handler = handlers[node]
+						if handler then
+							handler()
+						end
+					end,
+				})
+			else
+				node = ui.components.label(theme, { text = item.text, size = size })
+			end
+			handlers[node] = item.onClick
 			node.Name, node.LayoutOrder = item.name or ("Row" .. index), index
 			node.TextWrapped = true
 			node.Parent = sheet.scroll
+			built[index] = node
 		end
 	end
 	function shell.open(open: boolean)

@@ -8,6 +8,8 @@ local CapacityPolicy = require("../../../core/domain/survival/CapacityPolicy")
 local M = {}
 --- Observer radius used by the world binding for hibernation LOD.
 M.HIBERNATE_STUDS = Archetype.HIBERNATE_STUDS
+--- A fleeing grazer stays within this many fleeStuds of its home.
+M.FLEE_RANGE = 2
 export type Position = { x: number, y: number, z: number }
 export type Actor = { id: string, position: Position, alive: boolean }
 export type Species = { healthMilli: number, damageMilli: number, drops: { Content.Quantity } }
@@ -18,7 +20,8 @@ export type Weapon = {
 	facingDot: number,
 	cooldownMillis: number,
 }
-export type Catalog = { species: { [string]: Species }, weapons: { [string]: Weapon } }
+-- `unarmed`: an optional bare-hand strike used when no usable weapon is held (WildlifeRuntime).
+export type Catalog = { species: { [string]: Species }, weapons: { [string]: Weapon }, unarmed: Weapon? }
 export type State = {
 	id: string,
 	catalogId: string,
@@ -146,6 +149,15 @@ function M.catalog(content: Content.Document, catalog: Catalog): Catalog
 		assert(rule.facingDot == rule.facingDot and rule.facingDot >= 0 and rule.facingDot <= 1, "INVALID_FACING")
 		result.weapons[id] = table.clone(rule)
 	end
+	local fist = catalog.unarmed
+	if fist then
+		assert(integer(fist.damageMilli, 1, 100000) and integer(fist.rangeStuds, 1, 8), "INVALID_UNARMED")
+		assert(
+			integer(fist.cooldownMillis, 1, 86400000) and fist.facingDot >= 0 and fist.facingDot <= 1,
+			"INVALID_UNARMED"
+		)
+		result.unarmed = table.clone(fist)
+	end
 	return result
 end
 function M.new(id: string, kind: string, home: Position, catalog: Catalog): State
@@ -272,11 +284,22 @@ function M.step(
 			if length == 0 then
 				dx, dz, length = 1, 0, 1
 			end
-			intent.destination = {
-				x = observation.position.x + dx / length * assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD"),
+			local flee = assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD")
+			local goal = {
+				x = observation.position.x + dx / length * flee,
 				y = observation.position.y,
-				z = observation.position.z + dz / length * assert(definition.fleeStuds, "MISSING_BEHAVIOR_FIELD"),
+				z = observation.position.z + dz / length * flee,
 			}
+			-- p134 v58/v59: flight had no bound, so a chased dodo ran off its beach into the sea
+			-- (X -760) with the player in tow. A grazer never flees past FLEE_RANGE x fleeStuds from
+			-- home: a goal outside that circle is pulled back onto its edge.
+			local range = flee * M.FLEE_RANGE
+			local hx, hz = goal.x - state.home.x, goal.z - state.home.z
+			local out = math.sqrt(hx * hx + hz * hz)
+			if out > range then
+				goal.x, goal.z = state.home.x + hx / out * range, state.home.z + hz / out * range
+			end
+			intent.destination = goal
 		else
 			nextState.mode, nextState.target, nextState.provoker = "roam", nil, nil
 			intent.destination = table.clone(state.home)

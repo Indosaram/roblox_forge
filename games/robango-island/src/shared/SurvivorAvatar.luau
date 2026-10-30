@@ -1280,14 +1280,29 @@ function M.picker(ctx: any): any
 		if M.pickerNeeded(view) and not asked and not (ctx.held and ctx.held()) then
 			asked = true
 			gui.Enabled = true
+			if not shown and view then
+				preview(focus or view.preset)
+			end
 		end
 	end
+	-- A closed picker holds no preview rig.
+	table.insert(
+		connections,
+		gui:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if not gui.Enabled and shown then
+				shown:Destroy()
+				shown = nil
+			end
+		end)
+	)
 	local stop = ctx.onSnapshot(function(snapshot)
 		local trip = if type(snapshot) == "table" then snapshot.archipelago else nil
 		local next = if type(trip) == "table" then trip.survivor else nil
 		if next then
 			view = next
-			if not focus or not gui.Enabled then
+			-- Rebuild the 3D preview only when shown and its survivor changes: re-cloning the rig on
+			-- every per-second snapshot churned ~26 MeshParts/s for the whole session (p134 v59 memory).
+			if gui.Enabled and (not focus or (not shown and view.preset ~= focus)) then
 				preview(view.preset)
 			end
 			render()

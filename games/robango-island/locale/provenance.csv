@@ -3117,3 +3117,15 @@ fct.camp_have,original,agent:hephaestus/text-audit,2026-10-30
 fct.camp_give,original,agent:hephaestus/text-audit,2026-10-30
 fct.camp_build,original,agent:hephaestus/text-audit,2026-10-30
 hud.skill_more,original,agent:hephaestus/text-audit,2026-10-30
+hud.COOLDOWN,original,agent:hephaestus/combat-v58,2026-10-30
+hud.RECOVERY,original,agent:hephaestus/combat-v58,2026-10-30
+hud.OUT_OF_RANGE,original,agent:hephaestus/combat-v58,2026-10-30
+hud.NOT_FACING,original,agent:hephaestus/combat-v58,2026-10-30
+hud.BLOCKED,original,agent:hephaestus/combat-v58,2026-10-30
+hud.ALREADY_DEAD,original,agent:hephaestus/combat-v58,2026-10-30
+hud.UNKNOWN_TARGET,original,agent:hephaestus/combat-v58,2026-10-30
+hud.NOT_ALIVE,original,agent:hephaestus/combat-v58,2026-10-30
+hud.MOUNTED,original,agent:hephaestus/combat-v58,2026-10-30
+hud.ALREADY_CAPTURED,original,agent:hephaestus/combat-v58,2026-10-30
+cmb.attack.MISS,original,agent:hephaestus/combat-v58,2026-10-30
+cmb.attack.FLED,original,agent:hephaestus/combat-v58,2026-10-30

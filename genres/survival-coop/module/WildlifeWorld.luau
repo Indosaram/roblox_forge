@@ -10,6 +10,15 @@ local M = {}
 local FALL_RECOVERY_STUDS = 60
 -- Studs above and below a dead body the surface probe searches (shallows and shore slopes).
 M.SURFACE_PROBE = 64
+-- Modes that run (runSpeed); every other move walks (walkSpeed).
+local RUNNING: { [string]: boolean } = { flee = true, chase = true, ["return"] = true }
+--- Humanoid WalkSpeed for a species row in `mode`, or nil when the row authors no speeds (the
+--- engine default 16 stays). p134 v58/v59: no rig speed was ever set, so a Lv 10 dodo (run 10)
+--- fled at 16, exactly the player's pace, and a tap-to-attack chase never closed the gap.
+function M.pace(definition: any, mode: string): number?
+	local speed = if RUNNING[mode] then definition.runSpeed else definition.walkSpeed
+	return if type(speed) == "number" and speed > 0 then speed else nil
+end
 export type PathObservation = {
 	npcId: string,
 	serial: number,
@@ -285,6 +294,14 @@ function M.new(config: Config)
 			end
 		end
 		assert(definition, "UNKNOWN_SPECIES")
+		-- Authored speeds live on the species details row (content v2); a runtime row may carry them too.
+		local paced = table.clone(definition) :: any
+		for _, detail in (config.content :: any).wildlifeDetails or {} do
+			if detail.id == kind then
+				paced.walkSpeed = paced.walkSpeed or detail.walkSpeed
+				paced.runSpeed = paced.runSpeed or detail.runSpeed
+			end
+		end
 		assert(model:IsDescendantOf(world), "NPC_NOT_IN_WORLD")
 		for _, entry in entries do
 			assert(entry.model ~= model, "DUPLICATE_RIG")
@@ -303,7 +320,7 @@ function M.new(config: Config)
 			root = part,
 			humanoid = humanoid,
 			state = state,
-			definition = table.clone(definition),
+			definition = paced,
 			serial = 0,
 			failed = false,
 			moving = false,
@@ -584,6 +601,10 @@ function M.new(config: Config)
 				intent.destination = if Wildlife.distance(point(entry.root.Position), goal) > 4 then goal else nil
 			end
 			if intent.destination and Wildlife.distance(point(entry.root.Position), intent.destination) > 1 then
+				local pace = M.pace(entry.definition, state.mode)
+				if pace and entry.humanoid.WalkSpeed ~= pace then
+					entry.humanoid.WalkSpeed = pace
+				end
 				move(entry, intent.destination)
 			elseif entry.moving then
 				cancel(entry)

@@ -140,6 +140,28 @@ return {
 		nextState = Wildlife.step(nextState, content.wildlife[1], catalog.species.grazer, 2, observation)
 		assert(tostring(nextState.mode) == "roam" and tostring(state.mode) == "idle", "wildlife invariant")
 	end,
+	-- p134 v58/v59: a chased dodo kept fleeing fleeStuds further every step, off the beach and out to
+	-- sea (X -760; -172,-378), with the tap-to-attack loop walking the player after it.
+	["a grazer chased step after step never flees past twice its flee distance from home"] = function()
+		local content, catalog, _, observation = fixture()
+		local definition = content.wildlife[1]
+		local state = Wildlife.new("grazer-1", "grazer", { x = 0, y = 0, z = 0 }, catalog)
+		local limit = assert(definition.fleeStuds, "flee distance") * Wildlife.FLEE_RANGE
+		local farthest = 0
+		for step = 1, 40 do
+			-- The chaser stays 3 studs behind wherever the grazer is, always on the same side.
+			observation.actors = {
+				{ id = "alice", position = { x = observation.position.x + 3, y = 0, z = 0 }, alive = true },
+			}
+			local nextState, intent = Wildlife.step(state, definition, catalog.species.grazer, step, observation)
+			state = nextState
+			assert(tostring(state.mode) == "flee", "still fleeing at step " .. step)
+			local goal = assert(intent.destination, "a flee goal")
+			farthest = math.max(farthest, math.sqrt(goal.x * goal.x + goal.z * goal.z))
+			observation.position = { x = goal.x, y = 0, z = goal.z }
+		end
+		assert(farthest <= limit + 1e-6, string.format("fled %.1f studs from home, limit %d", farthest, limit))
+	end,
 	["combat refuses forged spatial equipment and reserved broken weapons"] = function()
 		local _, catalog, state = fixture()
 		local bag = Inventory.new("bag", { slots = 20, softWeightMilli = 60000, hardWeightMilli = 90000 })

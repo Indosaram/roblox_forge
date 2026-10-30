@@ -352,6 +352,7 @@ local function client(live: any, tools: { any }?)
 	})()
 	local send: any = nil
 	local approaches = 0
+	local sea: { x: number? } = {}
 	local hud = Hud.start({
 		content = Content,
 		locale = "en-us",
@@ -359,13 +360,18 @@ local function client(live: any, tools: { any }?)
 			return send(verb, args)
 		end,
 		-- The walk: arrive half a stud inside `within` (flat) of the goal, on the server too.
-		approach = function(goal: any, within: number, arrive: () -> ())
+		-- `sea`: x beyond which the world is water; the real approach (TapRouter.moveAshore) refuses it.
+		approach = function(goal: any, within: number, arrive: () -> ()): boolean
+			if sea.x and goal.X < sea.x then
+				return false
+			end
 			approaches += 1
 			local flat = roblox.Vector3.new(root.Position.X - goal.X, 0, root.Position.Z - goal.Z)
 			local away = if flat.Magnitude > 0 then flat.Unit else roblox.Vector3.new(1, 0, 0)
 			local offset = away * (within - 0.5)
 			place(roblox.Vector3.new(goal.X + offset.X, 3, goal.Z + offset.Z))
 			arrive()
+			return true
 		end,
 		stop = function() end,
 		name = function(id: string)
@@ -427,6 +433,8 @@ local function client(live: any, tools: { any }?)
 		approaches = function(): number
 			return approaches
 		end,
+		sea = sea,
+		root = root,
 		tap = function(id: string): boolean
 			return tap.handlers.creature(models[id]) ~= false
 		end,
@@ -676,6 +684,10 @@ return {
 		)
 		local wiring = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
 		assert(string.find(wiring, "hudModel.autoEligible(content", 1, true), "the tap router's pick filters by level")
+		-- p134 v58: the attack button sent one raw swing per press (picked at 8 studs, the knife
+		-- reaches 5), refused OUT_OF_RANGE/COOLDOWN as 'Action refused'. It engages the loop instead.
+		assert(string.find(hudSource, "options.engage(picked.model)", 1, true), "the attack button engages")
+		assert(string.find(wiring, "engageCreature = combatHud.engage", 1, true), "wired to the combat loop")
 		-- A direct tap on the parasaurolophus is the player's choice: it engages.
 		phone.place(roblox.Vector3.new(p.X + 3, 3, p.Z))
 		assert(phone.tap(paraId), "a tapped Lv 20 engages")
@@ -795,6 +807,122 @@ return {
 		assert(swingsAt(phone, id) <= MAX_SWINGS, "within " .. MAX_SWINGS .. " swings")
 		live.factory.close()
 	end,
+	-- p134 v58/v59 (SM-N981N): attack presses on a fleeing dodo did no damage (v58 'Action refused',
+	-- v59 46 silent swings at 45/45). The server's 0.6 s windup resolved melee from where the swing
+	-- began; the chased dodo was always past the knife's 5 studs from there. Drives the phone's
+	-- loop and the real onboarding command path, the dodo and the player both moving on in the windup.
+	["a dodo fleeing through the windup still takes the blow from a player who keeps up"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local home = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(home.X + 3, 3, home.Z))
+		assert(phone.tap(DODO), "engage")
+		phone.tick(0)
+		local accepted = phone.results[#phone.results]
+		assert(accepted and accepted.result.reason == "WINDUP", "the swing was accepted into its windup")
+		-- It bolts 6 studs; the player keeps up, 3 studs behind it the whole time.
+		local fled = { x = home.X - 6, y = home.Y, z = home.Z }
+		live.engine.wildlifeAt(DODO, fled)
+		phone.place(roblox.Vector3.new(fled.x + 3, 3, fled.z))
+		phone.tick()
+		assert(hp(live, DODO) < FULL, "the fleeing dodo took the blow, health " .. hp(live, DODO))
+		live.engine.wildlifeAt(DODO, nil)
+		live.factory.close()
+	end,
+	-- p134 v58/v59: no rig speed was set, so a dodo (content run 10) fled at the engine default 16,
+	-- the player's own pace, and a chase never closed in. The live world paces each species.
+	-- p134 v58: a refused attack read 'Action refused / refresh and review your supplies' (the
+	-- hud.unknown fallback): no attack refusal had its own HUD line.
+	["every final attack refusal has its own HUD line, and an accepted windup is no refusal"] = function()
+		local Hud = (require :: any)("../../genres/survival-coop/module/SurvivalHUDLocale")
+		local Model = (require :: any)("../../genres/survival-coop/module/SurvivalHUDModel")
+		local fallback = Hud.refusal("ko-kr", "NO_SUCH_REASON")
+		for _, reason in
+			{
+				"COOLDOWN",
+				"RECOVERY",
+				"OUT_OF_RANGE",
+				"NOT_FACING",
+				"BLOCKED",
+				"ALREADY_DEAD",
+				"UNKNOWN_TARGET",
+				"NOT_ALIVE",
+				"MOUNTED",
+				"ALREADY_CAPTURED",
+				"WEAPON_UNAVAILABLE",
+			}
+		do
+			for _, locale in { "en-us", "ko-kr" } do
+				assert(Hud.refusal(locale, reason) ~= Hud.refusal(locale, "NO_SUCH_REASON"), reason .. " " .. locale)
+			end
+		end
+		assert(fallback ~= "", "fallback exists")
+		assert(Model.TRANSIENT.WINDUP, "a swing in its windup is pending, not 'Action refused'")
+		local state = Model.new(ACTOR, function()
+			return "r1"
+		end)
+		state.durable = { actions = { "survival-coop:attack" }, sessionEpoch = 0 }
+		assert(state.begin("attack", { DODO }), "begin")
+		state.finish(true, { ok = false, reason = "WINDUP", data = { status = "pending" } })
+		assert(state.status == "pending" and state.reason == nil, "windup shows as pending, got " .. state.status)
+		assert(Combat.text("ko-kr", "attack.MISS") ~= "attack.MISS", "a miss has copy")
+		assert(Combat.text("ko-kr", "attack.FLED") ~= "attack.FLED", "a given-up chase has copy")
+	end,
+	["creatures walk and run at their authored speeds, slower than the player"] = function()
+		local fs2 = require("@lune/fs")
+		local luau2 = require("@lune/luau")
+		local World = luau2.load(fs2.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				require = function()
+					return {}
+				end,
+				game = {
+					GetService = function()
+						return {}
+					end,
+				},
+			},
+		})()
+		local dodo: any = nil
+		for _, detail in (Content :: any).wildlifeDetails do
+			if detail.id == "dodo" then
+				dodo = detail
+			end
+		end
+		assert(dodo and dodo.runSpeed < 16, "the dodo runs slower than a player walks")
+		local row = { id = "dodo", walkSpeed = dodo.walkSpeed, runSpeed = dodo.runSpeed }
+		assert(World.pace(row, "flee") == dodo.runSpeed, "a fleeing dodo runs at its runSpeed")
+		assert(World.pace(row, "roam") == dodo.walkSpeed, "a roaming dodo walks")
+		assert(World.pace({ id = "x" }, "flee") == nil, "a row without speeds keeps the engine default")
+		-- The live registration reads the details row (content.wildlife has no speeds).
+		local source = fs2.readFile("genres/survival-coop/module/WildlifeWorld.luau")
+		assert(string.find(source, "humanoid.WalkSpeed = pace", 1, true), "the pace drives the rig")
+	end,
+	-- Studio D2 (x -423, X282 Y388) and p134 v58/v59 (-172,-378; X -760): the loop chased a fleeing
+	-- dodo into the sea. The approach stops at the shore and the chase ends with a line on screen.
+	["a dodo fleeing out over the water is not chased into the sea"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local home = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(home.X + 20, 3, home.Z))
+		phone.sea.x = home.X - 10
+		-- It is already out over the water when the fight starts.
+		phone.models[DODO].HumanoidRootPart.Position = roblox.Vector3.new(home.X - 30, home.Y, home.Z)
+		assert(phone.tap(DODO), "engage")
+		phone.tick()
+		assert(phone.approaches() == 0, "no walk toward a target in the sea")
+		assert(phone.root.Position.X > phone.sea.x, "the player is still ashore")
+		assert(not phone.bar(), "the chase ended")
+		assert(table.find(phone.floats(), Combat.text("en-us", "attack.FLED")), "it says the dodo got away")
+		-- And the auto loop leash: a chase that keeps going ends past CHASE_STUDS.
+		assert(Combat.CHASE_STUDS <= 60, "the leash is short")
+		-- The phone's approach is the shore-stopping walk (TapRouter.moveAshore over TapRouter.shore).
+		local wiring = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(wiring, "tapInput.moveAshore(goal, within, arrive)", 1, true), "approach stops ashore")
+		live.factory.close()
+	end,
 	["tapping a second creature retargets the loop and it dies too"] = function()
 		local live = server()
 		hold(live, "bone-knife", 60000)
@@ -820,20 +948,26 @@ return {
 		)
 		live.factory.close()
 	end,
-	["an unarmed swing says why instead of failing silently"] = function()
+	-- Studio D2 / p134 v60: an empty-handed player's swings were refused WEAPON_UNAVAILABLE and
+	-- nothing showed. Bare hands punch (Durango): small hits that land, no item, no wear.
+	["an empty-handed player punches a dodo for low damage on the real command path"] = function()
 		local live = server()
 		local phone = client(live)
 		local dodo = phone.models[DODO].HumanoidRootPart.Position
 		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
 		assert(phone.tap(DODO), "engage")
-		for _ = 1, 4 do
+		for _ = 1, 6 do
 			phone.tick()
 		end
-		local line = Combat.text("en-us", "attack.WEAPON_UNAVAILABLE")
-		assert(line ~= "attack.WEAPON_UNAVAILABLE", "the refusal has pack copy")
-		assert(table.find(phone.floats(), line), "the refusal shows over the target")
-		assert(requestsAt(phone, DODO) == 1, "a final refusal stops the loop")
-		assert(hp(live, DODO) == FULL, "no damage without a weapon")
+		local lost = FULL - hp(live, DODO)
+		assert(lost > 0, "a bare-hand punch landed, health " .. hp(live, DODO))
+		for _, entry in phone.results do
+			assert(entry.result.reason ~= "WEAPON_UNAVAILABLE", "no weapon refusal for bare hands")
+		end
+		local punch = live.world.roleWildlife.catalog.unarmed
+		local club = live.world.roleWildlife.catalog.weapons["starter-club"]
+		assert(punch and punch.damageMilli < club.damageMilli, "a punch hits softer than the starter club")
+		assert(swingsAt(phone, DODO) >= 1 and requestsAt(phone, DODO) >= 1, "swings were sent and accepted")
 		live.factory.close()
 	end,
 	-- p134 v50: a fresh player with the bone knife in the bag but nothing in hand. The loop's first

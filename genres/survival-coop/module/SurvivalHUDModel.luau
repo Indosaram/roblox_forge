@@ -16,6 +16,8 @@ M.AUTO_RETRIES, M.AUTO_RETRY_SECONDS = 10, 1
 M.TRANSIENT = table.freeze({
 	COMMAND_PENDING = true,
 	COMBAT_PENDING = true,
+	-- An accepted swing in its windup: the same request settles once the blow resolves.
+	WINDUP = true,
 	SERVER_EVENT_PENDING = true,
 	TRANSFER_PENDING = true,
 	SOURCE_BUSY = true,

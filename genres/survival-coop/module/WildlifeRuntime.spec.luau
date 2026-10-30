@@ -14,7 +14,7 @@ local function encode(value: any): string
 end
 local Robango = require("../../../games/robango-island/src/shared/SurvivalContent")
 local Tree = require("../../../core/domain/progression/SkillTree")
-local function fixture(windup: boolean?, progression: boolean?): any
+local function fixture(windup: boolean?, progression: boolean?, fists: boolean?): any
 	local c: any = { now = 0, calls = 0, failAt = 0, lost = false, capacity = 32 }
 	local definitions: { any } = {
 		{ id = "spear", name = "Spear", stackMax = 1, weightMilli = 100, maxDurabilityMilli = 1000 },
@@ -63,6 +63,9 @@ local function fixture(windup: boolean?, progression: boolean?): any
 		weapons = {
 			spear = { damageMilli = 20000, wearMilli = 100, rangeStuds = 8, facingDot = 0.5, cooldownMillis = 2000 },
 		},
+		unarmed = if fists
+			then { damageMilli = 3000, wearMilli = 1, rangeStuds = 8, facingDot = 0.5, cooldownMillis = 2000 }
+			else nil,
 	})
 	c.memory = Memory.new()
 	c.read = function(key: string): any
@@ -215,11 +218,15 @@ local function fixture(windup: boolean?, progression: boolean?): any
 				return {
 					actorId = actor,
 					alive = true,
-					position = { x = 0, y = 0, z = 0 },
+					position = { x = c.actorX or 0, y = 0, z = 0 },
 					facing = { x = 1, y = 0, z = 0 },
-					targetPosition = { x = if c.outOfRange then 40 elseif c.far then 30 else 4, y = 0, z = 0 },
+					targetPosition = {
+						x = c.targetX or (if c.outOfRange then 40 elseif c.far then 30 else 4),
+						y = 0,
+						z = 0,
+					},
 					lineOfSight = true,
-					equipped = { spear = true, bow = c.bow == true },
+					equipped = { spear = not c.unequip, bow = c.bow == true },
 				}
 			end,
 		}, store))
@@ -302,6 +309,46 @@ local specs: { [string]: () -> () } = {
 		assert(c.read("wildlife:one").data.npcs.hunter.healthMilli == 20000, "moving away causes miss")
 		local bag = c.read("combat:alice").data.envelope.genres["survival-coop"].data.inventory.bag
 		assert(bag.items.spear.durabilityMilli == 900, "miss still pays one attempt")
+	end,
+	-- p134 v59: 46 attack taps on a fleeing dodo did 0 damage with no refusal. The player chases it
+	-- through the 0.6 s windup, so the dodo is always out of reach of the spot the swing began at;
+	-- melee must measure from where the attacker stands when the blow lands.
+	["a melee swing chasing a fleeing target lands when the attacker keeps it in reach"] = function()
+		local c = fixture(true)
+		local result = c.session.command("alice", c.request("grazer", "chase"))
+		assert(not result.ok and result.reason == "WINDUP", "accepted into its windup")
+		-- Both move 6 studs on during the windup: still 4 studs apart, 10 from the swing's start.
+		c.now, c.actorX, c.targetX = 1, 6, 10
+		assert(c.runtime.recover("alice", 8).ok, "strike resolves")
+		assert(
+			c.read("wildlife:one").data.npcs.grazer.healthMilli == 20000,
+			"the chased grazer took the spear's 20 damage, health "
+				.. c.read("wildlife:one").data.npcs.grazer.healthMilli
+		)
+		local replay = c.session.command("alice", c.request("grazer", "chase"))
+		assert(replay.ok and replay.data.outcome == nil, "a landed blow is no miss")
+	end,
+	["a swing whose target escaped during the windup is confirmed as a miss"] = function()
+		local c = fixture(true)
+		assert(c.session.command("alice", c.request("grazer", "escape")).reason == "WINDUP", "accepted")
+		c.now, c.targetX = 1, 20
+		assert(c.runtime.recover("alice", 8).ok, "strike resolves")
+		local replay = c.session.command("alice", c.request("grazer", "escape"))
+		assert(replay.ok and replay.data.outcome == "MISS", "the result says it missed")
+		assert(c.read("wildlife:one").data.npcs.grazer.healthMilli == 40000, "no damage")
+	end,
+	["bare hands punch for the unarmed rule without wear; without one the swing is refused"] = function()
+		local c = fixture()
+		c.unequip = true
+		local refused = c.session.command("alice", c.request("grazer", "bare"))
+		assert(not refused.ok and refused.reason == "WEAPON_UNAVAILABLE", "no unarmed rule: refused")
+		local d = fixture(false, false, true)
+		d.unequip = true
+		local punched = d.session.command("alice", d.request("grazer", "punch"))
+		assert(punched.ok, "a bare-hand punch is accepted: " .. tostring(punched.reason))
+		assert(d.read("wildlife:one").data.npcs.grazer.healthMilli == 37000, "3 damage landed")
+		local bag = d.read("combat:alice").data.envelope.genres["survival-coop"].data.inventory.bag
+		assert(bag.items.spear.durabilityMilli == 1000, "nothing in the bag wore")
 	end,
 	["idle recovery sweeps keep the world lease alive past its original expiry"] = function()
 		local c = fixture()

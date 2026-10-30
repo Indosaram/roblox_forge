@@ -8,6 +8,7 @@ local M = { fullScan = false }
 function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 	local callbacks: { any } = {}
 	local actors: any = {}
+	local wildlifeAt: { [string]: any } = {}
 	local tags: any = {}
 	local terrainWrites: { any } = {}
 	-- Like Roblox, voxel writes become raycastable only after the engine steps.
@@ -636,14 +637,15 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 						end
 						local position = player.Character:FindFirstChild("HumanoidRootPart").Position
 						local point = { x = position.X, y = position.Y, z = position.Z }
-						local delta =
-							{ x = state.home.x - point.x, y = state.home.y - point.y, z = state.home.z - point.z }
+						-- A spec may move a creature off its home (wildlifeAt): a fleeing body.
+						local at = wildlifeAt[target] or state.home
+						local delta = { x = at.x - point.x, y = at.y - point.y, z = at.z - point.z }
 						return {
 							actorId = actor,
 							alive = config.alive(actor),
 							position = point,
 							facing = delta,
-							targetPosition = state.home,
+							targetPosition = at,
 							lineOfSight = true,
 							equipped = config.equipment(actor) or {},
 						}
@@ -814,6 +816,10 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			local tool = instance("Tool")
 			tool.Parent = actors[actor].Character
 			world.registerTool(tool, actor, itemId)
+		end,
+		-- Where the headless wildlife binding reports creature `id` (nil: back at its home).
+		wildlifeAt = function(id: string, position: any?)
+			wildlifeAt[id] = position
 		end,
 		move = function(actor, position)
 			local player = actors[actor]
