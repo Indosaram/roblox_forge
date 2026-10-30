@@ -17589,6 +17589,31 @@ assets:
           version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
           verifiedBy: agent:omo/hephaestus
       author: agent:omo/hephaestus
+      created: 2026-10-28
+  - key: mesh-town-life
+    kind: model
+    tool: blender
+    source: "Town-life package RobangoTownLife: games/robango-island/assets/blender/gen_buildings.py ROWS_TOWN_LIFE (headless Blender 5.2, seed 4310): handcart, laundry line, log bench, rowboat, fish rack, woodpile, sack pile on the B3 atlas (CC0 Poly Haven surfaces, SOURCES.md)"
+    assetId: 94813353225569
+    moderation: Approved
+    provenance:
+      digest: sha256:4b9286db74f85a46ba46e6a9d185de5b2561b94b0baef5bf85e3efc83b9acd2b
+      recipe:
+        id: robango-gen-buildings
+        version: 4
+        input: "assets/blender/gen_buildings.py#RobangoTownLife"
+        inputVersion: sha256:cc0074b401ecdde394096f4296a7ffe2b2874fc56fddd5619c7cdd310b9f5bc9
+      provider:
+        name: blender
+        version: 5.2.3
+      rights:
+        source: "first-party geometry authored in code; Blender (GPL) output belongs to its author; surfaces CC0 1.0 Poly Haven"
+        ownership: first-party
+        evidence:
+          document: "games/robango-island/assets/blender/SOURCES.md; https://polyhaven.com/license; https://www.blender.org/about/license/"
+          version: "CC0 1.0; Blender GPL-3.0-or-later output clause"
+          verifiedBy: agent:omo/hephaestus
+      author: agent:omo/hephaestus
       created: 2026-10-29
   - key: mesh-tools
     kind: model

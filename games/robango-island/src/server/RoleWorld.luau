@@ -17,6 +17,7 @@ local NodeMeshes = require(Forge.games["robango-island"].src.shared.NodeMeshes)
 local MeshTexture = require(Forge.games["robango-island"].src.shared.MeshTexture)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
+local TownLife = require("./TownLife")
 -- L7: tools and worn gear render the mesh-tools package (ToolVisuals) through the genre hooks.
 -- The package loads off the build path; tools projected before it lands keep the genre default.
 local function toolVisuals(): any
@@ -224,7 +225,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- L6: townspeople and castaways stand as survivor figures (SurvivorAvatar rigs, welded to the
 	-- handle so moving it moves them) once the survivor package loads; until then, or when it
 	-- fails or the engine is headless, the handle part stays the visible stand-in.
-	local function survivorFigure(name: string, handle: BasePart)
+	local function survivorFigure(name: string, handle: BasePart, options: any?)
 		-- Headless fixtures carry no SurvivorAvatar module (a plain table without the key).
 		local module = (Forge.games["robango-island"].src.shared :: any).SurvivorAvatar
 		if not module then
@@ -235,7 +236,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			return
 		end
 		Survivor.onRigs(function()
-			if handle.Parent and Survivor.figure(name, handle) then
+			if handle.Parent and Survivor.figure(name, handle, options) then
 				handle.Transparency = 1
 			end
 		end)
@@ -469,6 +470,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	workspace.Terrain:SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(90, 108, 54))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(102, 118, 62))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Pavement, Color3.fromRGB(122, 116, 102))
+	if layoutId == "rw.town" then
+		-- The town paints no moss patches; its Limestone is the still grass of the road approaches.
+		workspace.Terrain:SetMaterialColor(Enum.Material.Limestone, Color3.fromRGB(100, 114, 60))
+	end
 	local tops, blobs, blobRng = {}, {}, Rng.new(seed):fork(layoutId .. ":ground")
 	if field then
 		-- Relief islands: per-island sea fill beyond the coast (no shared slab), then land in
@@ -600,7 +605,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	for _, column in legacy do
 		local protected = Terrain.protected(layout, column.x, column.z, column.cell)
 		local material = column.material
+		-- Town: the road approaches stay clear of avatar-height animated grass, but as Limestone tinted
+		-- to the grass colour (still, short) instead of bare Ground: the old 68-stud Ground bands along
+		-- every road read as dark rectangles beside R12. TownLife paints the narrow dirt foot paths.
 		if
+			layoutId == "rw.town"
+			and (material == "Grass" or material == "LeafyGrass")
+			and interactionGround(column.x, column.z, column.cell)
+		then
+			material = "Limestone"
+		elseif
 			(material == "Grass" or material == "LeafyGrass")
 			and (layoutId == "rw.onboarding" or interactionGround(column.x, column.z, column.cell))
 		then
@@ -619,6 +633,16 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				and column.z > layout.bounds.min.z + 64
 			then
 				top, material = -5, "Sand"
+			elseif layoutId == "rw.town" then
+				-- Sand only on the beach: a land column touching the sea, never the whole flat island.
+				local shoreline = top < 1
+				for dx = -1, 1 do
+					for dz = -1, 1 do
+						local near = tops[column.x + dx * column.cell .. "," .. column.z + dz * column.cell]
+						shoreline = shoreline or (near ~= nil and near < 1)
+					end
+				end
+				material = if shoreline then "Sand" else material
 			elseif if column.beach == nil then top < 8 else column.beach then
 				material = "Sand"
 			elseif table.find(layout.biomes, "volcano") and column.x < -32 then
@@ -1587,7 +1611,7 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				-- Face the anchor they stand beside.
 				handle.CFrame =
 					CFrame.lookAt(handle.Position, Vector3.new(anchor.position.x, handle.Position.Y, anchor.position.z))
-				survivorFigure("town:" .. anchor.id, handle)
+				survivorFigure("town:" .. anchor.id, handle, { scale = TownLife.FOLK_SCALE })
 			end
 		end
 	end
@@ -2315,6 +2339,23 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			for _, p in dressing.kits do
 				table.insert(placements, p)
 			end
+			if layoutId == TownLife.LAYOUT then
+				-- Ground cover between the core's yards and houses (TownLife.cover): grassland kit cards.
+				for _, card in
+					TownLife.cover(layout, TownLife.blockers(layout, Dressing.town(layout), Meshes.SET_PIECES))
+				do
+					table.insert(placements, {
+						key = card.key,
+						kit = "grassland",
+						family = card.family,
+						x = card.x,
+						y = 4,
+						z = card.z,
+						yaw = card.yaw,
+						scale = card.scale,
+					})
+				end
+			end
 			local loaded = BiomeKits.load(BiomeKits.kitsFor(layout), Assets)
 			if root.Parent == nil then
 				return
@@ -2351,11 +2392,155 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			end
 		end)
 	end
+	--- Saltmeadow town life (TownLife plan, R12/R13): the south bay shore, trampled squares and lanes,
+	--- carts, laundry, fish racks, woodpiles, stalls and boats, campfire rings with seated folk, warm
+	--- lamp posts, and posed survivor figures with a floating role label. All decor: no prompts, no
+	--- collision; a missing row just leaves its spot empty.
+	local function dressTownLife()
+		local plan = TownLife.plan(layout)
+		local life = Instance.new("Folder")
+		life.Name, life.Parent = "ForgeTownLife", root
+		-- South bay: grass south of the waterline becomes beach sloping into the sea, so the pier and the
+		-- cutter stand in water and the hauled-up rowboats lie on sand.
+		for x = -232, 232, 8 do
+			if math.abs(x) <= TownLife.LANDING then
+				continue -- the pier landing keeps its grass block
+			end
+			local shore = TownLife.shore(x)
+			local from = shore - 24
+			workspace.Terrain:FillBlock(
+				CFrame.new(x, -4, (from + 680) / 2),
+				Vector3.new(8, 24, 680 - from),
+				Enum.Material.Air
+			)
+			-- Beach: 24 studs falling from the grass edge to the waterline, then a sand shelf under water.
+			for step = 0, 2 do
+				local top = 3.4 - step * 1.6
+				workspace.Terrain:FillBlock(
+					CFrame.new(x, (top - 16) / 2, from + 4 + step * 8),
+					Vector3.new(8, top + 16, 8),
+					Enum.Material.Sand
+				)
+			end
+			workspace.Terrain:FillBlock(
+				CFrame.new(x, -12, (shore + 680) / 2),
+				Vector3.new(8, 8, 680 - shore),
+				Enum.Material.Sand
+			)
+			workspace.Terrain:FillBlock(
+				CFrame.new(x, -6, (shore + 680) / 2),
+				Vector3.new(8, 4, 680 - shore),
+				Enum.Material.Water
+			)
+		end
+		-- Trampled earth: swap the surface material only (the ground height never changes).
+		local function trample(cx: number, cz: number)
+			-- ReplaceMaterial needs a region aligned to the 4-stud voxel grid.
+			local low = Vector3.new(math.floor(cx / 4) * 4, -4, math.floor(cz / 4) * 4)
+			local region = Region3.new(low, low + Vector3.new(4, 12, 4))
+			for _, from in { Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Limestone } do
+				workspace.Terrain:ReplaceMaterial(region, 4, from, Enum.Material.Ground)
+			end
+		end
+		-- Worn earth (TownLife.worn): narrow ragged foot paths and small patches, cell by cell.
+		for _, cell in TownLife.worn() do
+			trample(cell.x, cell.z)
+		end
+		-- Fenced yards (R12, TownLife.fences): town.plot-fence segments, a gate gap toward the street.
+		for _, segment in TownLife.fences() do
+			local y = probe(segment.x, segment.z)
+			if y then
+				local at = CFrame.new(segment.x, y - 0.1, segment.z) * CFrame.Angles(0, math.rad(segment.yaw), 0)
+				Meshes.place("town.plot-fence", at, life, segment.id)
+			end
+		end
+		local function frame(item: any): CFrame?
+			local y = probe(item.x, item.z)
+			if not y then
+				return nil
+			end
+			local at = Vector3.new(item.x, y, item.z)
+			if item.face then
+				-- The row's front is local -Z: lookAt points -Z at the target.
+				return CFrame.lookAt(at, Vector3.new(item.face.x, y, item.face.z))
+			end
+			return CFrame.new(at) * CFrame.Angles(0, math.rad(item.yaw or 0), 0)
+		end
+		for _, prop in plan.props do
+			local at = frame(prop)
+			if at then
+				Meshes.place(prop.row, at, life, prop.id)
+			end
+		end
+		for _, fire in plan.fires do
+			local at = frame(fire)
+			if at then
+				local placed = Meshes.place(fire.row, at, life, fire.id)
+				if placed then
+					-- The row's __ember carries Fire + PointLight (a SkyDriver fire light); a town fire lights
+					-- its whole bench ring.
+					for _, item in placed:GetDescendants() do
+						if item:IsA("PointLight") then
+							item.Range = 16
+							(item.Parent :: Instance):SetAttribute(SkyCycle.FIRE_SCALE, TownLife.FIRE_LIGHT)
+							SkyCycle.glow(item.Parent :: Instance, 9)
+						end
+					end
+				end
+			end
+		end
+		for _, lamp in plan.lamps do
+			local y = probe(lamp.x, lamp.z)
+			if y then
+				-- Lantern arms lean toward the main road; a dense town keeps each lamp a small warm spot.
+				local head = torch(Vector3.new(lamp.x, y, lamp.z), if lamp.x > 0 then 180 else 0)
+				head:SetAttribute(SkyCycle.FIRE_SCALE, TownLife.LAMP_LIGHT)
+				SkyCycle.glow(head, 5)
+			end
+		end
+		-- Folk: invisible handles carrying a posed survivor figure (1.35x, so they read at the play
+		-- camera beside the 1x player) and a role label above the head.
+		for _, folk in plan.folk do
+			local y = probe(folk.x, folk.z)
+			if not y then
+				continue
+			end
+			local handle = Instance.new("Part")
+			handle.Name, handle.Anchored, handle.Size = folk.id, true, Vector3.new(2, 1, 2)
+			handle.Transparency, handle.CanCollide, handle.CanQuery, handle.CanTouch = 1, false, false, false
+			handle.CFrame =
+				CFrame.lookAt(Vector3.new(folk.x, y + 0.5, folk.z), Vector3.new(folk.face.x, y + 0.5, folk.face.z))
+			handle:SetAttribute("ForgeTownFolk", folk.label)
+			handle.Parent = life
+			local label = Instance.new("BillboardGui")
+			label.Name, label.Size = "ForgeFolkLabel", UDim2.fromOffset(96, 18)
+			label.StudsOffsetWorldSpace = Vector3.new(0, if folk.pose == "sit" then 6.4 else 8.4, 0)
+			-- Seated folk around one fire share a single label (the first sitter's).
+			label.Enabled = folk.pose ~= "sit" or string.sub(folk.id, -2) == ".1"
+			label.MaxDistance, label.LightInfluence = 220, 0
+			local text = Instance.new("TextLabel")
+			text.Size, text.BackgroundTransparency = UDim2.fromScale(1, 1), 1
+			text.Font, text.TextSize = Enum.Font.BuilderSansBold, 13
+			text.TextColor3, text.TextStrokeTransparency = Color3.fromRGB(240, 232, 214), 0.35
+			text.Text = WorldText.text("en-us", folk.label)
+			text:SetAttribute("ForgeTextKey", folk.label)
+			text.Parent = label
+			label.Parent = handle
+			survivorFigure(
+				"town:" .. folk.id,
+				handle,
+				{ pose = folk.pose, scale = TownLife.FOLK_SCALE, seat = folk.seat }
+			)
+		end
+	end
 	local destroy = world.destroy
 	-- SpawnGate seats characters here (Players.CharacterAutoLoads is off in the place).
 	world.spawnPart = spawn
 	world.spawnReady = function(): boolean
 		return root:GetAttribute("ForgeSpawnReady") == true
+	end
+	if layoutId == TownLife.LAYOUT then
+		dressTownLife()
 	end
 	for _, piece in Meshes.SET_PIECES do
 		if piece.layout == layoutId then

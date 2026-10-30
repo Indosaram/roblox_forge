@@ -2049,6 +2049,171 @@ def plot_fence_corner(m, cut, ex):
 
 
 # ---------------------------------------------------------------- rows table
+# Town life (R12/R13 lived-in town dressing): package RobangoTownLife. Same atlas and helpers; each
+# row is seeded by its own key, so adding them leaves every earlier row byte-identical.
+
+
+def wheel(m, c, r, w):
+    """Spoked cart wheel on an X axle at c: a 12-sided plank rim, hub and four spokes."""
+    cx, cy, cz = c
+    a, b = Vector((cx - w / 2, cy, cz)), Vector((cx + w / 2, cy, cz))
+    outer = ring(a, Vector((1, 0, 0)), r, 12)
+    inner = ring(a, Vector((1, 0, 0)), r * 0.8, 12)
+    off = Vector((w, 0, 0))
+    for i in range(12):
+        j = (i + 1) % 12
+        m.face([outer[i], outer[j], outer[j] + off, outer[i] + off], "plank", center=(a + b) / 2)
+        m.face([inner[j], inner[i], inner[i] + off, inner[j] + off], "plank", center=a + off * 3)
+        m.face([outer[j], outer[i], inner[i], inner[j]], "plank", center=a + off)
+        m.face([outer[i] + off, outer[j] + off, inner[j] + off, inner[i] + off], "plank", center=a)
+    cyl(m, a - Vector((0.15, 0, 0)), b + Vector((0.15, 0, 0)), r * 0.2, r * 0.2, "log", n=6)
+    for k in range(4):
+        t = k * math.pi / 4
+        d = Vector((0, math.cos(t), math.sin(t))) * r * 0.82
+        cyl(m, (a + b) / 2 - d, (a + b) / 2 + d, 0.08, 0.08, "log", n=4, cap=False)
+
+
+def sack(m, c, h, tile="canvas", lean=0.0):
+    x, y, z = c
+    lathe(m, (x, y, z), [(h * 0.32, 0), (h * 0.42, h * 0.3), (h * 0.38, h * 0.7), (h * 0.18, h * 0.88),
+                         (h * 0.12, h)], tile, n=8, close_bottom=True, jitter=0.08)
+    lathe(m, (x + lean, y, z + h * 0.86), [(h * 0.14, 0), (h * 0.14, h * 0.08)], "rope", n=6, close_top=False)
+
+
+def handcart(m, cut, ex):
+    """Two-wheel handcart with sacks and a crate; the handles reach toward -Z (front)."""
+    box(m, (0, 0, 2.2), (3.6, 5.0, 0.25), "plank")
+    for s in (-1, 1):
+        box(m, (s * 1.75, 0, 2.8), (0.2, 5.0, 1.0), "plank")
+    box(m, (0, -2.45, 2.8), (3.6, 0.2, 1.0), "plank")
+    for s in (-1, 1):  # shafts run forward to the ground
+        log(m, (s * 1.3, -2.0, 2.1), (s * 1.1, 4.6, 0.9), 0.14, n=5)
+    wheel(m, (-2.3, -0.6, 1.5), 1.5, 0.35)
+    wheel(m, (2.3 - 0.35, -0.6, 1.5), 1.5, 0.35)
+    log(m, (0, 2.0, 2.1), (0, 2.0, 0.0), 0.12, n=5)  # prop leg at the front
+    sack(m, (-0.8, -1.0, 2.35), 1.6)
+    sack(m, (0.7, -1.4, 2.35), 1.5, tile="hide")
+    sack(m, (0.0, 0.2, 2.35), 1.4)
+    crate(m, (0.6, 1.2, 3.1), 1.4, 12)
+
+
+def laundry_line(m, cut, ex):
+    """Two forked posts 11 studs apart with a sagging line and hanging washing; basket at the foot."""
+    for x in (-5.5, 5.5):
+        log(m, (x, 0, 0), (x, 0, 6.0), 0.18, n=6)
+        log(m, (x, 0, 5.4), (x - 0.5, 0, 6.6), 0.08, n=4)
+        log(m, (x, 0, 5.4), (x + 0.5, 0, 6.6), 0.08, n=4)
+        rock(m, (x, 0, 0), 0.9, "stone")
+    pts = []
+    for k in range(7):
+        t = k / 6
+        pts.append(Vector((-5.5 + 11 * t, 0, 5.8 - 0.6 * math.sin(math.pi * t))))
+    for k in range(6):
+        cyl(m, pts[k], pts[k + 1], 0.04, 0.04, "rope", n=3, cap=False)
+    hangs = [(-4.2, 1.6, 1.8, "canvas"), (-2.2, 1.4, 2.4, "teal"), (-0.3, 1.8, 1.6, "hide"), (1.8, 1.6, 2.2, "canvas"),
+             (3.7, 1.2, 1.4, "teal")]
+    for x, w, h, tile in hangs:
+        t = (x + 5.5) / 11
+        z = 5.8 - 0.6 * math.sin(math.pi * t) - 0.05
+        sheet(m, (x - w / 2, 0.03, z), (x + w / 2, 0.03, z), (x - w / 2, 0.03, z - h), 2, 3, tile, noise=0.08)
+    lathe(m, (3.6, -1.0, 0), [(0.9, 0), (1.1, 0.7), (1.1, 0.75)], "rope", n=10, close_bottom=True, close_top=False)
+    sheet(m, (2.9, -1.4, 0.7), (4.3, -1.4, 0.7), (2.9, -0.6, 0.9), 2, 1, "canvas", noise=0.1)
+
+
+def log_bench(m, cut, ex):
+    for x in (-2.0, 2.0):
+        lathe(m, (x, 0, 0), [(0.55, 0), (0.5, 1.2), (0.5, 1.25)], "log", n=8, jitter=0.05)
+    box(m, (0, 0, 1.45), (5.6, 1.1, 0.4), "plank")
+    log(m, (-2.8, 0.35, 1.45), (2.8, 0.35, 1.45), 0.28, n=6)
+
+
+def rowboat(m, cut, ex):
+    """Small clinker rowboat hauled up on the sand, bow toward -Z, tilted a little to one side."""
+    L, W = 11.0, 3.8
+    prof = []
+    for k in range(7):
+        t = k / 6
+        y = -L / 2 + t * L
+        prof.append((y, max(W / 2 * math.sin(math.pi * min(1.0, 0.06 + t * 0.94)) ** 0.6, 0.15)))
+    for k in range(len(prof) - 1):
+        (y0, h0), (y1, h1) = prof[k], prof[k + 1]
+        for s in (-1, 1):
+            for z0, z1, f0, f1 in ((0.0, 0.7, 0.45, 0.8), (0.7, 1.5, 0.8, 1.0)):
+                q = [(s * h0 * f0, y0, z0), (s * h1 * f0, y1, z0), (s * h1 * f1, y1, z1), (s * h0 * f1, y0, z1)]
+                m.face(q, "plank")
+                m.face(list(reversed(q)), "plank")
+        m.face([(-h0 * 0.45, y0, 0.05), (-h1 * 0.45, y1, 0.05), (h1 * 0.45, y1, 0.05), (h0 * 0.45, y0, 0.05)],
+               "plank", center=(0, (y0 + y1) / 2, 1.0))
+    for y in (-1.6, 1.4):  # thwarts
+        box(m, (0, y, 1.0), (W * 0.85, 0.7, 0.18), "plank")
+    log(m, (0, -L / 2 - 0.2, 1.2), (0, L / 2 + 0.3, 1.4), 0.12, n=5)  # gunwale ridge / stem
+    lathe(m, (0.6, 3.6, 0.2), [(0.5, 0), (0.55, 0.3), (0.3, 0.32)], "rope", n=8)  # coiled painter
+
+
+def fish_rack(m, cut, ex):
+    """A-frame drying rack with split fish on three poles."""
+    for x in (-3.5, 3.5):
+        log(m, (x, -1.4, 0), (x, 0, 4.4), 0.14, n=5)
+        log(m, (x, 1.4, 0), (x, 0, 4.4), 0.14, n=5)
+        lash(m, (x, 0, 4.1), (x, 0, 4.4), 0.16)
+    log(m, (-4.0, 0, 4.3), (4.0, 0, 4.3), 0.12, n=5)
+    for y, z in ((-0.7, 2.6), (0.7, 2.6)):
+        log(m, (-3.8, y, z), (3.8, y, z), 0.09, n=4)
+    for zrow, ys in ((4.3, (0.0,)), (2.6, (-0.7, 0.7))):
+        for y in ys:
+            for i in range(6):
+                x = -2.9 + i * 1.15 + random.uniform(-0.1, 0.1)
+                top = Vector((x, y, zrow - 0.1))
+                body = [top + Vector((-0.28, 0, -0.35)), top + Vector((0.28, 0, -0.35)),
+                        top + Vector((0.18, 0, -1.3)), top + Vector((-0.18, 0, -1.3))]
+                m.face(body, "metal")
+                m.face(list(reversed(body)), "metal")
+                tail = [top + Vector((-0.3, 0, -1.3)), top + Vector((0.3, 0, -1.3)), top + Vector((0, 0, -1.65))]
+                m.face(tail, "hide")
+                m.face(list(reversed(tail)), "hide")
+    lathe(m, (2.6, -2.2, 0), [(0.8, 0), (0.9, 0.6), (0.9, 0.65)], "rope", n=10, close_bottom=True, close_top=False)
+
+
+def woodpile(m, cut, ex):
+    """Split logs stacked between end stakes, with a chopping stump."""
+    for x in (-2.9, 2.9):
+        for y in (-0.7, 0.7):
+            log(m, (x, y, 0), (x, y, 3.4), 0.12, n=5)
+    for row in range(4):
+        for k in range(5 - row % 2):
+            y = -0.55 + (k % 3) * 0.55
+            z = 0.35 + row * 0.6 + (0.25 if k >= 3 else 0)
+            log(m, (-2.7, y + random.uniform(-0.05, 0.05), z), (2.7, y, z), 0.3, n=5)
+    sheet(m, (-3.4, -1.3, 3.5), (3.4, -1.3, 3.5), (-3.4, 1.3, 3.9), 3, 2, "plank")
+    lathe(m, (4.6, -0.8, 0), [(0.7, 0), (0.65, 1.0), (0.65, 1.05)], "log", n=8)
+    log(m, (4.6, -0.8, 1.05), (4.2, -0.4, 1.4), 0.25, n=5, tile="plank")
+
+
+def sack_pile(m, cut, ex):
+    """Grain sacks and a produce basket: market and storehouse clutter."""
+    for i, (x, y, h, tile) in enumerate(((-1.2, 0.2, 1.7, "canvas"), (0.0, 0.5, 1.8, "hide"), (1.2, 0.0, 1.6, "canvas"),
+                                         (-0.5, -0.9, 1.5, "canvas"))):
+        sack(m, (x, y, 0), h, tile=tile)
+    sack(m, (0.4, 0.1, 1.45), 1.3, tile="canvas")
+    lathe(m, (2.6, -0.4, 0), [(0.7, 0), (0.95, 0.6), (1.0, 0.75)], "rope", n=10, close_bottom=True, close_top=False)
+    for i in range(6):
+        a = i * math.pi / 3
+        lathe(m, (2.6 + math.cos(a) * 0.45, -0.4 + math.sin(a) * 0.45, 0.55), [(0.28, 0), (0.0, 0.32)],
+              "flower" if i % 2 else "leaf", n=5)
+
+
+ROWS_TOWN_LIFE = [
+    ("town.handcart", handcart, "RobangoTownLife", 1800),
+    ("town.laundry-line", laundry_line, "RobangoTownLife", 900),
+    ("town.log-bench", log_bench, "RobangoTownLife", 300),
+    ("town.rowboat", rowboat, "RobangoTownLife", 900),
+    ("town.fish-rack", fish_rack, "RobangoTownLife", 1200),
+    ("town.woodpile", woodpile, "RobangoTownLife", 1400),
+    ("town.sack-pile", sack_pile, "RobangoTownLife", 900),
+]
+
+
+# ---------------------------------------------------------------- rows table
 # key, builder, package, tri budget
 ROWS = [
     ("bld.campfire", campfire, "RobangoBldA", 1200),
@@ -2117,7 +2282,7 @@ ROWS = [
     ("town.plot-gate", plot_gate, "RobangoTownKit", 900),
     ("opening.stake", opening_stake, "RobangoTownKit", 400),
     ("opening.mirror", opening_mirror, "RobangoTownKit", 500),
-]
+] + ROWS_TOWN_LIFE
 SUFFIXES = ("cut", "wall", "ember", "glow", "lamp", "tag", "halo")
 
 

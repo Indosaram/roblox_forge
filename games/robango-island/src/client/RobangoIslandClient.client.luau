@@ -41,6 +41,11 @@ local WorldText = require(Shared.WorldText)
 local TamingText = require(Forge.genres["survival-coop"].module.TamingPanel)
 local biomeNames: { [string]: string } = {}
 local function localizeJournal(object: Instance)
+	-- Town folk role labels (RoleWorld town life) carry their WorldText key.
+	if object:IsA("TextLabel") and object:GetAttribute("ForgeTextKey") then
+		object.Text = WorldText.text(locale, tostring(object:GetAttribute("ForgeTextKey")))
+		return
+	end
 	if object:IsA("TextLabel") and object.Parent and object.Parent:IsA("BillboardGui") then
 		local sign = object.Parent
 		local board = sign.Parent

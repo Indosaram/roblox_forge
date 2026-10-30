@@ -1,5 +1,5 @@
 --!strict
--- B3 mesh templates (asset-catalog sections 6-7): the five uploaded building packages are
+-- B3 mesh templates (asset-catalog sections 6-7): the six uploaded building packages are
 -- loaded once per server through InsertService:LoadAsset and cloned in place of the primitive
 -- Part kits. Callers keep their own gameplay part (tags, prompts, attributes) and only receive
 -- a visual Model, so a failed load leaves the Part kits in place.
@@ -13,7 +13,8 @@
 --   <key>__halo  rift shard halo
 local M = {}
 
-M.PACKAGES = { "mesh-bld-atlas-a", "mesh-bld-atlas-b", "mesh-bld-atlas-c", "mesh-bld-hero", "mesh-town-kit" }
+M.PACKAGES =
+	{ "mesh-bld-atlas-a", "mesh-bld-atlas-b", "mesh-bld-atlas-c", "mesh-bld-hero", "mesh-town-kit", "mesh-town-life" }
 
 -- content.yml structures[].id -> catalog row key.
 M.STRUCTURES = {
@@ -130,16 +131,16 @@ M.SET_PIECES = {
 	{ layout = "rw.town", row = "town.chart-table", x = 80, z = 576, yaw = 0 },
 	{ layout = "rw.town", row = "town.npc-booth", x = -176, z = 208, yaw = 90 },
 	{ layout = "rw.town", row = "town.npc-booth", x = 192, z = 304, yaw = -90 },
-	{ layout = "rw.town", row = "town.market-stall", x = -80, z = 304, yaw = 180 },
-	{ layout = "rw.town", row = "town.market-stall", x = 80, z = 304, yaw = 180 },
+	{ layout = "rw.town", row = "town.market-stall", x = -40, z = 384, yaw = -90 },
+	{ layout = "rw.town", row = "town.market-stall", x = 40, z = 356, yaw = 90 },
 	{ layout = "rw.town", row = "town.notice-board", x = -40, z = 96, yaw = 0 },
 	{ layout = "rw.town", row = "town.shipwright-yard", x = 176, z = 360, yaw = 0 },
 	{ layout = "rw.town", row = "town.banner-pole", x = 176, z = 160, yaw = 0 },
 	{ layout = "rw.town", row = "town.banner-pole", x = 272, z = 160, yaw = 0 },
 	{ layout = "rw.town", row = "town.banner-pole", x = -32, z = 352, yaw = 0 },
 	{ layout = "rw.town", row = "town.banner-pole", x = 32, z = 352, yaw = 0 },
-	{ layout = "rw.town", row = "town.lamp-post", x = 20, z = 480, yaw = 0 },
-	{ layout = "rw.town", row = "town.lamp-post", x = -20, z = 400, yaw = 180 },
+	{ layout = "rw.town", row = "town.lamp-post", x = 15, z = 494, yaw = 0 },
+	{ layout = "rw.town", row = "town.lamp-post", x = -15, z = 362, yaw = 180 },
 	{ layout = "rw.town", row = "town.lamp-post", x = 20, z = -96, yaw = 0 },
 	{ layout = "rw.town", row = "town.lamp-post", x = -20, z = -320, yaw = 180 },
 	{ layout = "rw.town", row = "town.road-sign", x = -288, z = 48, yaw = 90 },

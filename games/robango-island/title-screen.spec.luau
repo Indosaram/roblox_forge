@@ -198,6 +198,22 @@ return {
 			"art"
 		)
 		assert(Flow.background(0) == nil, "Studio local place: palette only")
+		-- p134 v54: the town place showed its own default thumbnail; every role uses the start place's art.
+		assert(
+			Flow.background(119869707888496, 95467272687768)
+				== "rbxthumb://type=GameThumbnail&id=95467272687768&w=768&h=432",
+			"town shows the start place's art"
+		)
+		assert(
+			Flow.background(119869707888496, nil) == "rbxthumb://type=GameThumbnail&id=119869707888496&w=768&h=432",
+			"no published start place: own thumbnail"
+		)
+		assert(Flow.background(0, 95467272687768) == nil, "Studio local place stays palette only")
+		local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")
+		assert(
+			string.find(server, 'workspace:SetAttribute("ForgeTitleArtPlace", roles.onboarding)', 1, true),
+			"server publishes the start place"
+		)
 	end,
 	-- p134 v49: the Roblox Backpack hotbar (tool tiles) drew over the title and over the bottom of
 	-- the bag and craft sheets. It is hidden under the title, shown after Start, hidden again while a

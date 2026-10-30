@@ -201,6 +201,9 @@
       "StructureMeshes": {
         "$path": "src/server/StructureMeshes.luau"
       },
+      "TownLife": {
+        "$path": "src/server/TownLife.luau"
+      },
       "HomeWorld": {
         "$path": "src/server/HomeWorld.luau"
       },

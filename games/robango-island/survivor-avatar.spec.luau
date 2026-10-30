@@ -325,7 +325,7 @@ return {
 			{
 				"survivorFigure(facility.anchor, target)",
 				'survivorFigure("castaway:" .. actor, npc)',
-				'survivorFigure("town:" .. anchor.id, handle)',
+				'survivorFigure("town:" .. anchor.id, handle, { scale = TownLife.FOLK_SCALE })',
 			}
 		do
 			assert(string.find(role, needle, 1, true), "RoleWorld wires " .. needle)

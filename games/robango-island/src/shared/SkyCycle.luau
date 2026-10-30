@@ -294,9 +294,42 @@ function M.isFireLight(light: any): boolean
 		)
 end
 
+-- Town lamps and fires carry this attribute (0..1): SkyDriver scales their night light by it, so a
+-- dense town reads as warm spots instead of overlapping 24-stud pools.
+M.FIRE_SCALE = "ForgeFireScale"
+
+-- A night halo (BillboardGui named GLOW on a fire light's host): concentric soft discs in the air
+-- around the flame or lantern, so a town light reads as an orange glow, not a pale ground disc.
+M.GLOW = "ForgeGlow"
+M.GLOW_FROM = 1.6
+
+function M.glow(host: Instance, size: number): Instance
+	local gui = Instance.new("BillboardGui")
+	gui.Name, gui.Size, gui.LightInfluence = M.GLOW, UDim2.fromScale(size, size), 0
+	gui.Enabled, gui.MaxDistance = false, 260
+	for index, alpha in { 0.86, 0.74, 0.55 } do
+		local disc = Instance.new("Frame")
+		local share = 1 - (index - 1) * 0.3
+		disc.AnchorPoint, disc.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
+		disc.Size, disc.BorderSizePixel = UDim2.fromScale(share, share), 0
+		disc.BackgroundColor3, disc.BackgroundTransparency = Color3.fromRGB(255, 150, 60), alpha
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius, corner.Parent = UDim.new(0.5, 0), disc
+		disc.Parent = gui
+	end
+	gui.Parent = host
+	return gui
+end
+
 function M.applyFire(light: any, state: any)
-	light.Brightness, light.Range = state.fire.brightness, state.fire.range
+	local host = light.Parent
+	local scale = if host then tonumber(host:GetAttribute(M.FIRE_SCALE)) or 1 else 1
+	light.Brightness, light.Range = state.fire.brightness * scale, state.fire.range * scale
 	light.Shadows = false
+	local glow = host and host:FindFirstChild(M.GLOW)
+	if glow then
+		glow.Enabled = state.fire.brightness >= M.GLOW_FROM
+	end
 end
 
 -- Lantern glass of the town.lamp-post row in the row's local frame (gen_buildings.lamp_post).

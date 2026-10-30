@@ -86,10 +86,14 @@ function M.locale(playerLocale: string, language: any): string
 	return if language == "ko" then "ko-kr" elseif language == "en" then "en-us" else playerLocale
 end
 
---- The background image: the place's primary store thumbnail (assets/store/store.yml, uploaded
+--- The background image: the start place's primary store thumbnail (assets/store/store.yml, uploaded
 --- and approved), or nil in an unpublished place (Studio local), which falls back to the palette.
-function M.background(placeId: number): string?
-	return if placeId > 0 then "rbxthumb://type=GameThumbnail&id=" .. placeId .. "&w=768&h=432" else nil
+--- `artPlace` is the start (onboarding) place id the server publishes (ForgeTitleArtPlace): only that
+--- place carries the store art, so every other role (town, harbor, ...) shows it too instead of its
+--- own default thumbnail (p134 v54: the town title showed the Roblox placeholder).
+function M.background(placeId: number, artPlace: any): string?
+	local id = if type(artPlace) == "number" and artPlace > 0 then artPlace else placeId
+	return if placeId > 0 and id > 0 then "rbxthumb://type=GameThumbnail&id=" .. id .. "&w=768&h=432" else nil
 end
 
 export type Machine = {

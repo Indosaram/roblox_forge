@@ -672,18 +672,35 @@ end
 
 --- A static survivor figure (townsperson, castaway) standing on `handle`'s floor and welded to it,
 --- so moving the handle moves the figure. Returns nil until the rig package loaded.
-function M.figure(name: string, handle: BasePart): Model?
+--- options.pose bends the rig (M.POSES: sit, carry, work, vend, stand); options.scale enlarges the
+--- figure (town folk read at the play camera); options.seat is the seat height above the floor for
+--- `sit` (the hips rest on it, the shins hang to the floor).
+function M.figure(name: string, handle: BasePart, options: { pose: string?, scale: number?, seat: number? }?): Model?
 	local preset = M.figurePreset(name)
 	local template = M.rig(preset.id)
 	if not template then
 		return nil
 	end
+	local pose = options and options.pose or "stand"
+	local scale = options and options.scale or 1
 	local model = template:Clone()
 	model.Name = "ForgeSurvivorFigure"
-	local origin = handle.CFrame * CFrame.new(0, -handle.Size.Y / 2 + M.ROOT_HEIGHT, 0)
+	model:SetAttribute("ForgeFigurePose", pose)
+	local lift = M.rootLift(pose, scale, options and options.seat)
+	local origin = handle.CFrame * CFrame.new(0, -handle.Size.Y / 2 + lift, 0)
+	local bends = M.poseFrames(preset.rigBody or "A", pose)
 	for _, piece in model:GetChildren() do
 		if piece:IsA("BasePart") then
 			local offset: CFrame = (piece :: any):GetAttribute("ForgeRigOffset")
+			local part = M.piece(piece.Name)
+			local bend = part and bends[part]
+			if bend then
+				offset = bend * offset
+			end
+			if scale ~= 1 then
+				offset = CFrame.new(offset.Position * scale) * offset.Rotation
+				piece.Size *= scale
+			end
 			piece.CFrame = origin * offset
 			piece.Anchored = false
 			local weld = Instance.new("Weld")
@@ -693,6 +710,77 @@ function M.figure(name: string, handle: BasePart): Model?
 	end
 	model.Parent = handle
 	return model
+end
+
+-- Idle poses for town folk: joint bends (degrees about the rig's X axis; + swings the limb toward the
+-- front, -Z), applied parent first. The rig's limbs are rigid per R15 part, so a bend is a rotation
+-- of the child part and everything below it about the joint pivot (M.layout).
+M.POSES = table.freeze({
+	stand = { { "LeftShoulder", 6 }, { "RightShoulder", -6 } },
+	sit = {
+		{ "LeftHip", 90 },
+		{ "RightHip", 84 },
+		{ "LeftKnee", -90 },
+		{ "RightKnee", -78 },
+		{ "LeftShoulder", 28 },
+		{ "RightShoulder", 34 },
+		{ "LeftElbow", 30 },
+		{ "RightElbow", 24 },
+	},
+	carry = { { "LeftShoulder", 62 }, { "RightShoulder", 62 }, { "LeftElbow", 58 }, { "RightElbow", 58 } },
+	work = {
+		{ "RightShoulder", 150 },
+		{ "RightElbow", 25 },
+		{ "LeftShoulder", 48 },
+		{ "LeftElbow", 40 },
+		{ "LeftHip", 14 },
+		{ "LeftKnee", -14 },
+	},
+	vend = { { "LeftShoulder", 42 }, { "RightShoulder", 46 }, { "LeftElbow", 48 }, { "RightElbow", 44 } },
+} :: { [string]: { { any } } })
+
+-- Hip centre to the underside of the thigh when seated (studs, unscaled).
+M.SEAT_CLEARANCE = 0.25
+
+--- Height of the rig origin (HumanoidRootPart centre) above the floor for a pose: ROOT_HEIGHT standing,
+--- else for `sit` the hips rest on a seat `seat` studs high.
+function M.rootLift(pose: string, scale: number, seat: number?): number
+	if pose == "sit" then
+		local hip = -M.layout("A").joints.LeftHip.at.y
+		return (seat or 1.65) + (M.SEAT_CLEARANCE + hip) * scale
+	end
+	return M.ROOT_HEIGHT * scale
+end
+
+-- Every R15 part below a joint's child (the bend moves the whole chain).
+local BELOW: { [string]: { string } } = {
+	LeftUpperLeg = { "LeftUpperLeg", "LeftLowerLeg", "LeftFoot" },
+	RightUpperLeg = { "RightUpperLeg", "RightLowerLeg", "RightFoot" },
+	LeftLowerLeg = { "LeftLowerLeg", "LeftFoot" },
+	RightLowerLeg = { "RightLowerLeg", "RightFoot" },
+	LeftUpperArm = { "LeftUpperArm", "LeftLowerArm", "LeftHand" },
+	RightUpperArm = { "RightUpperArm", "RightLowerArm", "RightHand" },
+	LeftLowerArm = { "LeftLowerArm", "LeftHand" },
+	RightLowerArm = { "RightLowerArm", "RightHand" },
+}
+
+--- Rig-space CFrame per R15 part for a pose (parts missing from the map stay at rest).
+function M.poseFrames(bodyId: string, pose: string): { [string]: CFrame }
+	local layout = M.layout(bodyId)
+	local frames: { [string]: CFrame } = {}
+	local bends: { { any } } = M.POSES[pose] or {}
+	for _, bend in bends do
+		local joint = layout.joints[bend[1]]
+		local chain = joint and BELOW[joint.child]
+		if chain then
+			local at = (frames[joint.child] or CFrame.new()) * vec(joint.at)
+			local turn = CFrame.new(at) * CFrame.Angles(math.rad(bend[2]), 0, 0) * CFrame.new(-at)
+			for _, part in chain do
+				frames[part] = turn * (frames[part] or CFrame.new())
+			end
+		end
+	end
+	return frames
 end
 
 -- Server engine adapter (SurvivorWardrobe): dresses every character as its saved survivor on each
