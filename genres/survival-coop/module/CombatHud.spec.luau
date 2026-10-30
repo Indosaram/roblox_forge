@@ -169,8 +169,15 @@ return {
 				return if class == "Humanoid" then humanoid else nil
 			end,
 		}
+		local attributes: { [string]: any } = {}
 		local player = {
 			Character = character,
+			GetAttribute = function(_, key)
+				return attributes[key]
+			end,
+			SetAttribute = function(_, key, value)
+				attributes[key] = value
+			end,
 			WaitForChild = function()
 				return playerGui
 			end,

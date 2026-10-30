@@ -218,9 +218,29 @@ local function client(live: any, tools: { any }?)
 			return if class == "Humanoid" then humanoid elseif class == "Tool" then held else nil
 		end,
 	}
+	local attributes: { [string]: any } = {}
+	local watchers: { [string]: { () -> () } } = {}
 	local player = {
 		Character = character,
 		UserId = tonumber(ACTOR),
+		GetAttribute = function(_, key)
+			return attributes[key]
+		end,
+		SetAttribute = function(_, key, value)
+			attributes[key] = value
+			for _, fn in watchers[key] or {} do
+				fn()
+			end
+		end,
+		GetAttributeChangedSignal = function(_, key)
+			return {
+				Connect = function(_, fn)
+					watchers[key] = watchers[key] or {}
+					table.insert(watchers[key], fn)
+					return { Disconnect = function() end }
+				end,
+			}
+		end,
 		WaitForChild = function()
 			return playerGui
 		end,
@@ -250,6 +270,8 @@ local function client(live: any, tools: { any }?)
 		}
 	end
 	local guid = 0
+	-- Where every world point lands on screen (the body's screen point for the picker).
+	local view = { point = roblox.Vector3.new(400, 200, 0) }
 	local services: { [string]: any } = {
 		Players = { LocalPlayer = player },
 		RunService = { Heartbeat = signal(beats) },
@@ -259,7 +281,7 @@ local function client(live: any, tools: { any }?)
 			end,
 			CurrentCamera = {
 				WorldToViewportPoint = function()
-					return roblox.Vector3.new(400, 200, 0), true
+					return view.point, true
 				end,
 			},
 		},
@@ -386,6 +408,8 @@ local function client(live: any, tools: { any }?)
 	gui.AbsoluteSize, gui.AbsolutePosition = roblox.Vector2.new(1280, 720), roblox.Vector2.zero
 	return {
 		models = models,
+		player = player,
+		view = view,
 		sent = sent,
 		results = results,
 		place = place,
@@ -513,6 +537,8 @@ return {
 		local marks = phone.playerGui:FindFirstChild("ForgeCarcassMarks")
 		local board = marks:FindFirstChild("CarcassMark")
 		assert(board and board.Adornee == model.HumanoidRootPart, "a name mark over the body")
+		-- p134 v55: drawn over terrain and water at any play-camera distance.
+		assert(board.AlwaysOnTop and board.MaxDistance >= 120, "the mark shows through water from afar")
 		assert(board.Label.Text == string.format(Combat.text("en-us", "carcass_mark"), "dodo"), board.Label.Text)
 		assert(marks:FindFirstChild("CarcassRing"), "a ground ring at the body")
 		-- It persists: four minutes on (the fan closed long ago), body, mark and kill are all still there.
@@ -554,6 +580,148 @@ return {
 		assert(phone.hud.picking() == nil, "an emptied carcass closes the picker")
 		assert(not marks:FindFirstChild("CarcassMark"), "and loses its mark")
 		assert(not phone.tap(DODO), "an emptied carcass is no longer a tap target")
+		live.factory.close()
+	end,
+	-- p134 v55 (SM-N981N): the body lay low on screen and the picker's 'Leave it' pill sat on the
+	-- Roblox Backpack hotbar; the tap selected the bola slot and the picker stayed open.
+	["the harvest picker stays above the hotbar band and hides the hotbar while open"] = function()
+		local Flow = (require :: any)("./src/first/TitleFlow")
+		-- HudKit needs the engine to load; its hotbar reserve is read from source.
+		local reserve =
+			tonumber(string.match(fs.readFile("core/ui-kit/genre/HudKit.luau"), "M%.HOTBAR_RESERVE = (%d+)"))
+		assert(reserve and Combat.FAN_HOTBAR_RESERVE >= reserve, "the picker keeps the hotbar band clear")
+		local Kit = { HOTBAR_RESERVE = reserve :: number }
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		phone.player:SetAttribute("ForgeTitleDone", true)
+		local shown: { boolean } = {}
+		Flow.bindBackpack(phone.player, function(on: boolean)
+			table.insert(shown, on)
+		end)
+		assert(shown[#shown] == true, "hotbar shown in play")
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		assert(hp(live, DODO) == 0, "killed")
+		local fan = phone.gui:FindFirstChild("CarcassFan")
+		for _, size in { { 800, 360 }, { 1280, 720 } } do
+			local w, h = size[1], size[2]
+			phone.gui.AbsoluteSize = roblox.Vector2.new(w, h)
+			-- The body sits right where the hotbar is: bottom centre of the screen.
+			phone.view.point = roblox.Vector3.new(w / 2, h - 30, 10)
+			phone.tick(0)
+			assert(fan.Visible, "picker open at " .. w)
+			local band = h - Kit.HOTBAR_RESERVE
+			local leave = fan:FindFirstChild("Leave")
+			assert(
+				leave.Position.Y.Offset + leave.Size.Y.Offset <= band,
+				string.format(
+					"Leave pill bottom %d clears the hotbar band %d at %dx%d",
+					leave.Position.Y.Offset + leave.Size.Y.Offset,
+					band,
+					w,
+					h
+				)
+			)
+			for _, token in fan:GetChildren() do
+				if token.Name == "Output" and token.Visible then
+					local bottom = token.Position.Y.Offset + token.Size.Y.Offset / 2
+					local top = token.Position.Y.Offset - token.Size.Y.Offset / 2
+					assert(bottom <= band and top >= 0, "output token on screen above the hotbar at " .. w)
+				end
+			end
+			assert(phone.player:GetAttribute(Combat.PICKER_ATTRIBUTE) == true, "picker flag set")
+			assert(shown[#shown] == false, "the hotbar hides while the picker shows at " .. w)
+		end
+		-- The picker closes by itself after two minutes; the hotbar comes back.
+		phone.tick(121)
+		assert(not fan.Visible, "picker closed")
+		assert(phone.player:GetAttribute(Combat.PICKER_ATTRIBUTE) == nil, "picker flag cleared")
+		assert(shown[#shown] == true, "the hotbar is back once the picker closes")
+		live.factory.close()
+	end,
+	-- p134 v53/v55 (SM-N981N): by the ford herd the knife's attack and taps beside a dodo picked the
+	-- Lv 20 parasaurolophus (325 HP) first. Automatic picks (attack button, fingertip pick) skip a
+	-- creature far above the player; a tapped creature still engages whatever its level.
+	["automatic targeting skips the Lv 20 parasaurolophus for a fresh player; a direct tap still engages it"] = function()
+		local Model = (require :: any)("../../genres/survival-coop/module/SurvivalHUDModel")
+		local live = server()
+		local level = live.session.snapshot(ACTOR)["survival-coop"].progression.level
+		assert(level < 10, "a fresh player is below the onboarding herd's level, got " .. tostring(level))
+		local phone = client(live)
+		local para: string? = nil
+		for id, model in phone.models do
+			if model:GetAttribute("ForgeWildlifeKind") == "parasaurolophus" then
+				para = id
+			end
+		end
+		assert(para, "the ford herd is on the onboarding island")
+		local paraId = para :: string
+		local p = phone.models[paraId].HumanoidRootPart.Position
+		local candidates = {
+			{ kind = "parasaurolophus", distance = 2, target = paraId },
+			{ kind = "dodo", distance = 7, target = DODO },
+		}
+		assert(Model.autoTarget(Content, candidates, level) == DODO, "the dodo, not the nearer Lv 20")
+		assert(Model.autoTarget(Content, { candidates[1] }, level) == nil, "a lone Lv 20 is no automatic target")
+		assert(Model.autoTarget(Content, { candidates[1] }, 20) == paraId, "a Lv 20 player may auto-target it")
+		assert(Model.autoEligible(Content, "boar", level), "every Lv 10 onboarding species stays eligible")
+		-- The runtime pickers read it: the attack button, the context buttons and the tap pick.
+		local hudSource = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(
+			select(2, string.gsub(hudSource, "Model%.auto", "")) >= 2,
+			"SurvivalHUD attack + buttons filter by level"
+		)
+		local wiring = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(wiring, "hudModel.autoEligible(content", 1, true), "the tap router's pick filters by level")
+		-- A direct tap on the parasaurolophus is the player's choice: it engages.
+		phone.place(roblox.Vector3.new(p.X + 3, 3, p.Z))
+		assert(phone.tap(paraId), "a tapped Lv 20 engages")
+		phone.tick()
+		assert(phone.bar(), "the bar shows the tapped target")
+		live.factory.close()
+	end,
+	-- p134 v55: the first dodo took ~30 min to find: a killed creature never came back, so the
+	-- onboarding trio by the path thinned out for good. After its carcass window it is back at home.
+	["a killed onboarding dodo respawns at home, whole, a few minutes after its carcass window"] = function()
+		local Runtime = (require :: any)("../../genres/survival-coop/module/WildlifeRuntime")
+		local Carcass = (require :: any)("../../genres/survival-coop/module/CarcassExtension")
+		assert(Runtime.RESPAWN_SECONDS > Carcass.LIFETIME_SECONDS, "the body is harvestable for its whole window")
+		assert(Runtime.RESPAWN_SECONDS <= 600, "back within a few minutes")
+		-- The wildlife store is durable per provision: a body saved dead before kills respawned (or
+		-- before killedAt existed) comes back on the next sweep instead of staying dead for good.
+		assert(Runtime.respawnDue({ healthMilli = 0 } :: any, 0), "a legacy body with no kill clock respawns")
+		assert(not Runtime.respawnDue({ healthMilli = 0, killedAt = 0, captureId = "c" } :: any, 1e9), "not a tame")
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		fight(phone, live, DODO, 40)
+		assert(hp(live, DODO) == 0, "killed")
+		local killedAt = live.factory.services.survivalWildlife.snapshot(ACTOR)[DODO].killedAt
+		phone.pause()
+		phone.place(roblox.Vector3.new(dodo.X + 120, 3, dodo.Z))
+		-- Still a carcass inside its window.
+		while live.at.value < killedAt + Carcass.LIFETIME_SECONDS - 5 do
+			phone.tick(5)
+		end
+		assert(hp(live, DODO) == 0, "a body inside its harvest window stays a body")
+		for _ = 1, math.ceil((Runtime.RESPAWN_SECONDS - Carcass.LIFETIME_SECONDS + 30) / 10) do
+			phone.tick(10)
+		end
+		local npc = live.factory.services.survivalWildlife.snapshot(ACTOR)[DODO]
+		assert(npc.healthMilli == FULL, "the dodo is back with full health, got " .. npc.healthMilli)
+		assert(npc.killer == nil and npc.killedAt == nil and npc.mode ~= "dead", "a fresh creature")
+		assert(phone.models[DODO]:GetAttribute("ForgeWildlifeKiller") == nil, "no carcass mark is left")
+		-- And it can be hunted again.
+		phone.place(roblox.Vector3.new(npc.home.x + 3, 3, npc.home.z))
+		assert(phone.tap(DODO), "the respawned dodo engages")
+		fight(phone, live, DODO, 40)
+		assert(hp(live, DODO) == 0, "and dies again")
 		live.factory.close()
 	end,
 	["a carcass mark expires with the server harvest window"] = function()

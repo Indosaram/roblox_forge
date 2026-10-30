@@ -251,6 +251,33 @@ function M.fan(count: number, cx: number, cy: number, radius: number): { { x: nu
 	return out
 end
 
+-- The picker's title pill and Leave pill hang under the anchor (offsets from the anchor's y).
+M.FAN_TITLE_DROP, M.FAN_LEAVE_DROP, M.FAN_LEAVE_HEIGHT = 18, 50, 30
+-- p134 v55: 'Leave it' sat on the Roblox Backpack hotbar (bottom centre) and a tap on it selected
+-- the bola instead; the picker stayed open. The whole picker (arc, title, Leave) is kept inside the
+-- screen and above the hotbar band (HudKit.HOTBAR_RESERVE from the bottom), whatever the body's
+-- screen point. Returns the clamped anchor (cx, cy) the arc and pills are laid out from.
+M.FAN_HOTBAR_RESERVE = 116
+function M.fanAnchor(
+	px: number,
+	py: number,
+	width: number,
+	height: number,
+	radius: number,
+	token: number
+): (number, number)
+	local margin = 8
+	local half = radius + token / 2 + margin
+	local low = height - M.FAN_HOTBAR_RESERVE - M.FAN_LEAVE_DROP - M.FAN_LEAVE_HEIGHT
+	local y = math.min(py, low)
+	y = math.max(y, radius + token / 2 + margin)
+	local x = math.clamp(px, math.min(half, width / 2), math.max(width - half, width / 2))
+	return x, y
+end
+-- Set on the local player while the picker shows: Robango's Backpack binding (TitleFlow
+-- SHEET_ATTRIBUTES) hides the hotbar under it, so no picker tap can land on a hotbar slot.
+M.PICKER_ATTRIBUTE = "ForgeCarcassPickerOpen"
+
 -- ---------------------------------------------------------------------------------------------
 -- Runtime (Roblox only). Engine globals come through the environment, as in HudShell, so Lune
 -- specs can load the pure part above.
@@ -891,7 +918,16 @@ function M.start(options: Options)
 				local offset = gui.AbsolutePosition
 				local outputs = M.offer(options.content, open.kind, open.taken)
 				local tokenSize = HudShell.tokenSize("M", regions.safeHeight, true)
-				local spots = M.fan(#outputs, point.X - offset.X, point.Y - offset.Y, 0.22 * regions.safeHeight)
+				local radius = 0.22 * regions.safeHeight
+				local ax, ay = M.fanAnchor(
+					point.X - offset.X,
+					point.Y - offset.Y,
+					size.X,
+					size.Y,
+					radius,
+					math.floor(tokenSize * HudShell.PEBBLE.aspect + 0.5)
+				)
+				local spots = M.fan(#outputs, ax, ay, radius)
 				for index, output in outputs do
 					local token = fanTokens[index]
 					if not token then
@@ -919,13 +955,16 @@ function M.start(options: Options)
 				end
 				fanTitle.Text = t("carcass_title")
 				fanTitle.TextSize = HudShell.textSize("heading", regions.safeHeight)
-				fanTitle.Position = UDim2.fromOffset(point.X - offset.X, point.Y - offset.Y + 18)
+				fanTitle.Position = UDim2.fromOffset(ax, ay + M.FAN_TITLE_DROP)
 				fanClose.TextSize = HudShell.textSize("label", regions.safeHeight)
-				fanClose.Size = UDim2.fromOffset(0, 30)
-				fanClose.Position = UDim2.fromOffset(point.X - offset.X, point.Y - offset.Y + 50)
+				fanClose.Size = UDim2.fromOffset(0, M.FAN_LEAVE_HEIGHT)
+				fanClose.Position = UDim2.fromOffset(ax, ay + M.FAN_LEAVE_DROP)
 				fan.Visible = onScreen and #outputs > 0
 			else
 				fan.Visible = false
+			end
+			if player:GetAttribute(M.PICKER_ATTRIBUTE) ~= (fan.Visible or nil) then
+				player:SetAttribute(M.PICKER_ATTRIBUTE, fan.Visible or nil)
 			end
 		end)
 	)
@@ -941,6 +980,9 @@ function M.start(options: Options)
 		gui:Destroy()
 		numberFolder:Destroy()
 		markFolder:Destroy()
+		if player:GetAttribute(M.PICKER_ATTRIBUTE) ~= nil then
+			player:SetAttribute(M.PICKER_ATTRIBUTE, nil)
+		end
 	end
 	return api
 end

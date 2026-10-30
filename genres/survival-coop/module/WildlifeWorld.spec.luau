@@ -42,7 +42,7 @@ end
 -- exactly once, here, and read the per-case state through `active`. Registering them per case would
 -- either raise on re-registration or - worse - let a case silently inherit another case's closures,
 -- and wrapping that registration in a blanket pcall would hide a real failure in exactly that path.
-local active: any = { owners = {}, moved = {}, finished = nil, obstacle = false, world = nil }
+local active: any = { owners = {}, moved = {}, finished = nil, obstacle = false, world = nil, surface = nil }
 local mocksInstalled = false
 local function installMocks()
 	if mocksInstalled then
@@ -59,7 +59,19 @@ local function installMocks()
 	roblox.implementProperty("Humanoid", "MoveToFinished", function()
 		return active.finished
 	end)
-	roblox.implementMethod("Workspace", "Raycast", function()
+	roblox.implementMethod("Workspace", "Raycast", function(_, origin, direction, params): any
+		-- `surface`: terrain at a land height and a water surface above it (the shallows).
+		local surface = active.surface
+		if params and params.FilterType == roblox.Enum.RaycastFilterType.Include then
+			if not surface then
+				return nil -- no terrain in this case
+			end
+			local y = if params.IgnoreWater then surface.land else math.max(surface.land, surface.water)
+			local t = (y - origin.Y) / direction.Y
+			return if t >= 0 and t <= 1
+				then { Instance = active.world, Position = roblox.Vector3.new(origin.X, y, origin.Z) }
+				else nil
+		end
 		return if active.obstacle then { Instance = active.world } else nil
 	end)
 end
@@ -68,7 +80,7 @@ return {
 	["engine binding reads physical positions fences stale paths and disposes signals"] = function()
 		local heartbeat, finished, blocked = signal(), signal(), signal()
 		active.moved, active.owners = {}, {}
-		active.finished, active.obstacle = finished, false
+		active.finished, active.obstacle, active.surface = finished, false, nil
 		installMocks()
 		local computations = 0
 		local world = roblox.Instance.new("Workspace")
@@ -275,7 +287,7 @@ return {
 		-- The shared mock is installed once for the whole file; this case only publishes its own state,
 		-- so no registration is attempted and no error can be swallowed here.
 		active.moved, active.owners = {}, {}
-		active.finished, active.obstacle = signal(), false
+		active.finished, active.obstacle, active.surface = signal(), false, nil
 		installMocks()
 		local world = roblox.Instance.new("Workspace")
 		active.world = world
@@ -408,7 +420,7 @@ return {
 	["thirty third NPC spawn is refused and the cap cannot be raised"] = function()
 		local heartbeat = signal()
 		active.moved, active.owners = {}, {}
-		active.finished, active.obstacle = signal(), false
+		active.finished, active.obstacle, active.surface = signal(), false, nil
 		installMocks()
 		local world = roblox.Instance.new("Workspace")
 		active.world = world
@@ -511,7 +523,7 @@ return {
 	["a captured wild leaves the world and respawns at home after its window"] = function()
 		local heartbeat = signal()
 		active.moved, active.owners = {}, {}
-		active.finished, active.obstacle = signal(), false
+		active.finished, active.obstacle, active.surface = signal(), false, nil
 		installMocks()
 		local world = roblox.Instance.new("Workspace")
 		active.world = world
@@ -625,6 +637,123 @@ return {
 		local recovered = npcRoot.CFrame.Position
 		assert(recovered.X == home.x and recovered.Y == home.y and recovered.Z == home.z, "fallen rig returns home")
 		assert(npc.Parent == folder and api.snapshot("h1") ~= nil, "fallen rig stays registered")
+		api.destroy()
+	end,
+	-- p134 v55 (SM-N981N): a dodo killed at the shore lay at Y -4.4 under the water line (rigs are
+	-- seated on the seabed) and its carcass label never showed. A dead body is held on the surface
+	-- above it; once the owner respawns it, it is a free creature at home again.
+	["a body killed in the shallows rests on the water surface and a respawn frees it at home"] = function()
+		local heartbeat = signal()
+		active.moved, active.owners = {}, {}
+		active.finished, active.obstacle = signal(), false
+		installMocks()
+		local world = roblox.Instance.new("Workspace")
+		active.world = world
+		active.surface = { land = -6, water = 0 }
+		local folder = roblox.Instance.new("Folder")
+		folder.Parent = world
+		local npc = roblox.Instance.new("Model")
+		npc.Parent = folder
+		local npcRoot = roblox.Instance.new("Part")
+		npcRoot.Name, npcRoot.Parent = "HumanoidRootPart", npc
+		npcRoot.Size = roblox.Vector3.new(2, 2, 2)
+		npcRoot.CFrame = roblox.CFrame.new(0, -4.4, 0)
+		npcRoot.Position = npcRoot.CFrame.Position
+		npcRoot.AssemblyLinearVelocity = roblox.Vector3.zero
+		-- A leg hangs 2 studs under the root (rigs have HipHeight 0; their parts reach the ground).
+		local leg = roblox.Instance.new("Part")
+		leg.Name, leg.Parent, leg.Size = "Leg", npc, roblox.Vector3.new(1, 2, 1)
+		leg.CFrame = roblox.CFrame.new(0, -6.4, 0)
+		local humanoid = roblox.Instance.new("Humanoid")
+		humanoid.Parent = npc
+		local services = {
+			Workspace = world,
+			Players = {
+				GetPlayerByUserId = function()
+					return nil
+				end,
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			RunService = {
+				Heartbeat = heartbeat,
+				IsStudio = function()
+					return true
+				end,
+			},
+			PathfindingService = {},
+		}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+				require = function(name)
+					return if name == "./Wildlife"
+						then Wildlife
+						elseif name == "./DinosaurMotion" then DinosaurMotion
+						else Content
+				end,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				task = { spawn = function() end },
+			},
+		})()
+		local content, errors = Content.canonicalize({
+			survival_content = 1,
+			rules = Content.RULES,
+			limits = Content.DEFAULT_LIMITS,
+			items = { { id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 } },
+			wildlife = { { id = "hunter", behavior = "hunter" } },
+		})
+		assert(content, table.concat(errors, "; "))
+		local api = module.new({
+			content = content,
+			catalog = { species = { hunter = { healthMilli = 40000, damageMilli = 10000, drops = {} } }, weapons = {} },
+			maximum = 1,
+			nowMillis = function()
+				return 0
+			end,
+			alive = function()
+				return true
+			end,
+			equipment = function()
+				return {}
+			end,
+			damage = function() end,
+		})
+		api.register(npc, "d1", "hunter")
+		local dead = api.snapshot("d1")
+		dead.version += 1
+		dead.healthMilli, dead.killer, dead.killedAt = 0, "1", 100
+		api.publish(dead)
+		local body = npcRoot.CFrame.Position
+		-- Lune does not move welded parts with the root: the leg sat 2 below the root, its foot 3 below.
+		assert(
+			body.Y - 3 >= -1e-6,
+			string.format("the body's feet are at or above the water line, root Y %.2f", body.Y)
+		)
+		assert(npcRoot.Anchored, "the body is held there (no sinking back under)")
+		heartbeat.fire()
+		assert(npc:GetAttribute("ForgeWildlifeKiller") == "1", "the carcass is published")
+		local alive = api.snapshot("d1")
+		alive.version += 1
+		alive.healthMilli, alive.killer, alive.killedAt = 40000, nil, nil
+		api.publish(alive)
+		assert(not npcRoot.Anchored, "a respawned creature is free again")
+		local home = api.snapshot("d1").home
+		local placed = npcRoot.CFrame.Position
+		assert(placed.X == home.x and placed.Z == home.z, "respawned at home")
+		assert(api.snapshot("d1").mode ~= "dead", "and alive")
 		api.destroy()
 	end,
 }

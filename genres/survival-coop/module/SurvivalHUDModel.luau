@@ -611,6 +611,39 @@ function M.biomeToast(previous: string, current: string, remaining: number, dt: 
 	return left, 1 - math.min(1, left)
 end
 
+-- p134 v53/v55: in the ford herd a knife player's attack and a tap beside a dodo picked the Lv 20
+-- parasaurolophus (325 HP) first. An automatic pick (the attack button, the fingertip pick around a
+-- tap) only takes a creature at most AUTO_LEVEL_MARGIN levels above max(player level, the easiest
+-- species); a creature the tap ray hits directly is the player's own choice and always wins.
+M.AUTO_LEVEL_MARGIN = 5
+function M.autoEligible(content: any, kind: any, playerLevel: number?): boolean
+	local level: number? = nil
+	local floor = math.huge
+	for _, row in (content and content.wildlifeDetails) or {} do
+		if type(row.level) == "number" then
+			floor = math.min(floor, row.level)
+			if row.id == kind then
+				level = row.level
+			end
+		end
+	end
+	if level == nil then
+		return true
+	end
+	return level <= math.max(playerLevel or 1, floor) + M.AUTO_LEVEL_MARGIN
+end
+
+--- The nearest eligible candidate ({ kind, distance, target }) or nil.
+function M.autoTarget(content: any, candidates: { any }, playerLevel: number?): any?
+	local best, distance = nil, math.huge
+	for _, candidate in candidates do
+		if candidate.distance < distance and M.autoEligible(content, candidate.kind, playerLevel) then
+			best, distance = candidate.target, candidate.distance
+		end
+	end
+	return best
+end
+
 -- Client search radius for a ranged target; the server rechecks the weapon's own range.
 M.RANGED_STUDS = 40
 M.STANCE_ORDER = { "none", "attack", "defense", "counter", "onslaught", "charge", "shoot" }

@@ -8,6 +8,8 @@ local Content = require("../../../core/domain/survival/Content")
 local M = {}
 -- How far below its home a creature may drop before it is returned there (off-island fall).
 local FALL_RECOVERY_STUDS = 60
+-- Studs above and below a dead body the surface probe searches (shallows and shore slopes).
+M.SURFACE_PROBE = 64
 export type PathObservation = {
 	npcId: string,
 	serial: number,
@@ -122,8 +124,48 @@ function M.new(config: Config)
 		table.clear(entry.connections)
 		entry.humanoid:MoveTo(entry.root.Position)
 	end
+	-- p134 v55: a dodo killed in the shore shallows lay at Y -4.4 under the water line (rigs are
+	-- seated on the seabed: DinosaurRig ignores water). The body is held where it fell, lifted so
+	-- its feet are on the land or water surface below it, never lowered.
+	local function surface(entry: Entry)
+		local body = entry.root
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Include
+		params.FilterDescendantsInstances = { world:FindFirstChildOfClass("Terrain") :: Instance }
+		params.IgnoreWater = false
+		local at = body.CFrame.Position
+		local hit = world:Raycast(
+			Vector3.new(at.X, at.Y + M.SURFACE_PROBE, at.Z),
+			Vector3.new(0, -2 * M.SURFACE_PROBE, 0),
+			params
+		)
+		body.Anchored = true
+		body.AssemblyLinearVelocity = Vector3.zero
+		if not hit then
+			return
+		end
+		-- The rig's lowest point (feet or belly), as DinosaurRig seats it (rigs have HipHeight 0).
+		local lowest = math.huge
+		for _, piece in entry.model:GetDescendants() do
+			if piece:IsA("BasePart") then
+				local cf, size = piece.CFrame, piece.Size
+				local half = (
+					math.abs(cf.RightVector.Y) * size.X
+					+ math.abs(cf.UpVector.Y) * size.Y
+					+ math.abs(cf.LookVector.Y) * size.Z
+				) / 2
+				lowest = math.min(lowest, cf.Position.Y - half)
+			end
+		end
+		local lift = hit.Position.Y - lowest
+		if lift > 0 then
+			body.CFrame = body.CFrame + Vector3.new(0, lift, 0)
+		end
+	end
 	local function dispose(entry: Entry)
 		cancel(entry)
+		-- A carcass hold (surface) ends with the registration.
+		entry.root.Anchored = false
 		entry.motion.destroy()
 		for _, name in
 			{
@@ -400,8 +442,20 @@ function M.new(config: Config)
 			return
 		end
 		if confirmed.healthMilli == 0 then
+			if entry.state.mode ~= "dead" then
+				cancel(entry)
+				surface(entry)
+			end
 			entry.state.mode = "dead"
-			cancel(entry)
+		elseif entry.state.mode == "dead" then
+			-- Respawned by the owner (WildlifeRuntime.RESPAWN_SECONDS after the kill): a fresh
+			-- creature back at home.
+			entry.root.Anchored = false
+			entry.state.mode, entry.state.target, entry.state.deadline = "idle", nil, 0
+			entry.state.provoker, entry.state.engagedAt, entry.provokedBy = nil, nil, nil
+			local home = entry.state.home
+			entry.root.CFrame = CFrame.new(home.x, home.y, home.z)
+			entry.root.AssemblyLinearVelocity = Vector3.zero
 		end
 		entry.motion.update(entry.state, config.nowMillis(), entry.root.AssemblyLinearVelocity)
 	end

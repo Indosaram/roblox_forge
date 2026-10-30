@@ -149,7 +149,8 @@ return {
 		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
 		assert(
 			string.find(source, "alive(ancestor) or carcass(ancestor)", 1, true)
-				and string.find(source, "alive(model) or carcass(model)", 1, true),
+				-- Fingertip: your carcass always, a live creature only when level-eligible (p134 v55).
+				and string.find(source, "local wanted = carcass(model)", 1, true),
 			"the world probe picks your carcass by ray and by fingertip"
 		)
 	end,
@@ -292,6 +293,31 @@ return {
 		do
 			assert(string.find(source, needle, 1, true), needle .. " wired")
 		end
+	end,
+	-- p134 v54/v55 (SM-N981N): after a hotbar tap selected the knife / bola, ground taps did nothing
+	-- for ~1 min. That touch's InputObject stayed in Begin with no end ever delivered, so the liveness
+	-- probe kept it and every later tap was a pinch's second finger.
+	["a frozen hotbar touch stuck in Begin stops counting as a finger and the next ground tap walks"] = function()
+		local at = { value = 0 }
+		local g = TapRouter.gesture(function()
+			return true -- the engine still reports every touch live (frozen in Begin)
+		end, function()
+			return at.value
+		end)
+		g.began("hotbar", 640, 690, true) -- the Backpack slot tap; its end never arrives
+		at.value = 2
+		g.began("tap", 300, 300, false)
+		assert(g.ended("tap", 301, 300) == "tap", "the ground tap after the hotbar tap walks")
+		g.began("drag", 300, 300, false)
+		assert(g.moved("drag", 380, 300) == "steer" and g.ended("drag", 380, 300) == "release", "swipes steer")
+		-- A real pinch (second finger within the window, fingers moving) is still a pinch.
+		g.began("a", 100, 100, false)
+		at.value = 2.5
+		g.moved("a", 101, 100)
+		g.began("b", 200, 200, false)
+		assert(g.ended("b", 200, 200) == nil and g.ended("a", 100, 100) == nil, "pinch is no tap")
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		assert(string.find(source, "end, os.clock)", 1, true), "the runtime gesture expires stale touches")
 	end,
 	["picking prefers the closest visible candidate inside the radius"] = function()
 		local list = {

@@ -609,6 +609,10 @@ function M.start(options: Options)
 			render()
 		end
 	end
+	local function playerLevel(): number?
+		local progression = model.snapshot and model.snapshot.progression
+		return if type(progression) == "table" and type(progression.level) == "number" then progression.level else nil
+	end
 	local function attack(ranged: boolean?)
 		if model.pending then
 			send(model.retry())
@@ -623,23 +627,29 @@ function M.start(options: Options)
 		if not pivot or not pivot:IsA("BasePart") then
 			return
 		end
-		local target: string? = nil
-		local targetPos: Vector3? = nil
-		local distance = if ranged then Model.RANGED_STUDS else 8
+		local reach = if ranged then Model.RANGED_STUDS else 8
+		local candidates = {}
 		for _, instance in world:GetDescendants() do
 			local id = instance:GetAttribute("ForgeWildlifeId")
 			local hp = instance:GetAttribute("ForgeWildlifeHealthMilli")
 			if instance:IsA("Model") and type(id) == "string" and (type(hp) ~= "number" or hp > 0) then
 				local rootPart = instance:FindFirstChild("HumanoidRootPart")
 				if rootPart and rootPart:IsA("BasePart") then
-					local offset = rootPart.Position - pivot.Position
-					local d = offset.Magnitude
-					if d < distance then
-						target, targetPos, distance = id, rootPart.Position, d
+					local d = (rootPart.Position - pivot.Position).Magnitude
+					if d < reach then
+						table.insert(candidates, {
+							kind = instance:GetAttribute("ForgeWildlifeKind"),
+							distance = d,
+							target = { id = id, position = rootPart.Position },
+						})
 					end
 				end
 			end
 		end
+		-- Never an automatic swing at a creature far above the player (Model.autoTarget).
+		local picked = Model.autoTarget(content, candidates, playerLevel())
+		local target: string? = if picked then picked.id else nil
+		local targetPos: Vector3? = if picked then picked.position else nil
 		if target and targetPos then
 			local flat = Vector3.new(targetPos.X - pivot.Position.X, 0, targetPos.Z - pivot.Position.Z)
 			if flat.Magnitude > 0.001 then
@@ -2765,11 +2775,18 @@ function M.start(options: Options)
 				local distance = 8
 				local rangedDistance = Model.RANGED_STUDS
 				local wildlife = world:FindFirstChild("ForgeWildlife")
+				local level = playerLevel()
 				if pivot and pivot:IsA("BasePart") and wildlife then
 					for _, animal in wildlife:GetChildren() do
 						local anchor = animal:FindFirstChild("HumanoidRootPart")
 						local hp = animal:GetAttribute("ForgeWildlifeHealthMilli")
-						if anchor and anchor:IsA("BasePart") and type(hp) == "number" and hp > 0 then
+						if
+							anchor
+							and anchor:IsA("BasePart")
+							and type(hp) == "number"
+							and hp > 0
+							and Model.autoEligible(content, animal:GetAttribute("ForgeWildlifeKind"), level)
+						then
 							local d = (anchor.Position - pivot.Position).Magnitude
 							if d < distance then
 								attackTarget, distance = anchor, d
@@ -2873,6 +2890,8 @@ function M.start(options: Options)
 		isOpen = function(): boolean
 			return sheet.frame.Visible or placementBar.Visible
 		end,
+		-- The player's progression level (nil before the first snapshot), for automatic targeting.
+		level = playerLevel,
 		opened = sheet.frame:GetPropertyChangedSignal("Visible"),
 	}
 end

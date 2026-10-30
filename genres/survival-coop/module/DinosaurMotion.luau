@@ -36,6 +36,9 @@ function M.new(model: Model, root: BasePart, initial: State, now: number): Contr
 		end
 		if state.healthMilli == 0 and health > 0 then
 			deadAt = millis
+		elseif state.healthMilli > 0 and health == 0 then
+			-- Respawned after its carcass window: alive again, out of the death pose.
+			deadAt = math.huge
 		end
 		health, strike = state.healthMilli, state.strike
 		local dt = math.clamp((millis - last) / 1000, 0, 0.1)

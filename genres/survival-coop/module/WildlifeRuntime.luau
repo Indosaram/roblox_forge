@@ -38,6 +38,19 @@ local function rangedRule(content: any, catalogId: string): any?
 	end
 	return nil
 end
+-- Seconds after a kill before the creature is back at home: past CarcassExtension.LIFETIME_SECONDS
+-- (300; the body stays harvestable for its whole window first, a spec pins the order) plus a minute
+-- with no body at all, so a spoiled carcass is not mistaken for the fresh creature.
+M.RESPAWN_SECONDS = 360
+--- True when a killed (not captured) creature's respawn time has come (`now` in seconds). A body
+--- saved before kills were clocked has no killedAt and comes back at once. The wildlife store is
+--- durable per provision, so before respawns every creature a returning player had ever killed
+--- stayed dead for good.
+function M.respawnDue(npc: Wildlife.State, now: number): boolean
+	return npc.healthMilli == 0
+		and npc.captureId == nil
+		and (type(npc.killedAt) ~= "number" or now >= npc.killedAt + M.RESPAWN_SECONDS)
+end
 export type Config = {
 	key: string,
 	content: Content.Document,
@@ -634,6 +647,33 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		end
 		return progress(id, personal)
 	end
+	-- p134 v55: a fresh player took ~30 min to find a dodo: a killed creature stayed dead forever
+	-- (Wildlife.step keeps mode "dead"), so the onboarding trio by the path thinned out for good.
+	-- A body stays harvestable for its carcass window, then the creature comes back at home whole.
+	local function respawn()
+		local now = config.now()
+		local due = false
+		for id, npc in source.data.npcs do
+			if M.respawnDue(npc, now) and not source.data.locks[id] then
+				due = true
+				break
+			end
+		end
+		if not due then
+			return
+		end
+		update(function(data)
+			for id, npc in data.npcs do
+				if M.respawnDue(npc, now) and not data.locks[id] then
+					npc.healthMilli = policy.species[npc.catalogId].healthMilli
+					npc.mode, npc.target, npc.deadline = "idle", nil, 0
+					npc.killer, npc.killedAt, npc.provoker, npc.engagedAt = nil, nil, nil, nil
+					npc.version += 1
+				end
+			end
+			return data
+		end)
+	end
 	function runtime.recover(actor: string, maximum: number): Shared.Result
 		assert(maximum >= 1 and maximum <= 64 and maximum % 1 == 0, "INVALID_RECOVERY_BOUND")
 		-- `source` is this session's fenced profile and every write in this
@@ -650,6 +690,7 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			return pending(renewError or "SOURCE_UNKNOWN")
 		end
 		source = renewed
+		respawn()
 		local id = source.data.actors[actor]
 		if not id then
 			return { ok = true, data = { status = "confirmed" } }

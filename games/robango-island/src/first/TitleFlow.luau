@@ -192,7 +192,14 @@ function M.backpackShown(titleDone: boolean, sheetOpen: boolean, hudHotbar: bool
 end
 
 -- ForgeDownPanelOpen: the survival-coop down panel (p134 v53: the hotbar covered its middle card).
-M.SHEET_ATTRIBUTES = table.freeze({ "ForgeSurvivalSheetOpen", "ForgeExtensionSheetOpen", "ForgeDownPanelOpen" })
+-- ForgeCarcassPickerOpen: the carcass harvest picker (p134 v55: a tap on its Leave pill selected
+-- the bola slot under it).
+M.SHEET_ATTRIBUTES = table.freeze({
+	"ForgeSurvivalSheetOpen",
+	"ForgeExtensionSheetOpen",
+	"ForgeDownPanelOpen",
+	"ForgeCarcassPickerOpen",
+})
 
 -- ADR-13 join hold: the server holds hunger from join until Start reports `WAKE_ACTION`.
 M.WAKE_ACTION = "survival-coop:vitals-wake"

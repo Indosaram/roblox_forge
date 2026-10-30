@@ -1478,6 +1478,10 @@ local tapInput = TapRouter.start({
 	blocked = function(): boolean
 		return hud.isOpen() or player:GetAttribute("ForgeExtensionSheetOpen") == true or aerialControls.Visible
 	end,
+	-- A fingertip pick never lands on a creature far above the player (a direct hit still does).
+	eligible = function(model: Model): boolean
+		return hudModel.autoEligible(content, model:GetAttribute("ForgeWildlifeKind"), hud.level())
+	end,
 })
 walkTo = tapInput.moveTo
 -- R01 join screen (ReplicatedFirst RobangoBoot): the HUD, panels and camera above are built, so

@@ -163,16 +163,24 @@ end
 -- CoreGui overlay took it) left the count at 1, so every later touch was a "second finger" (pinch)
 -- that never tapped or steered until a respawn cancelled it. Touches are now tracked by id, and a
 -- touch the engine already ended (`live(id)` false) is dropped before a new one begins.
-function M.gesture(live: ((any) -> boolean)?)
-	local active: { [any]: boolean } = {}
+-- p134 v54/v55: after a tap on the Roblox Backpack hotbar (the knife, then the bola, got selected)
+-- ground taps did nothing for ~1 min. A CoreGui hotbar touch never reaches PlayerGui, its end can
+-- be swallowed, and its InputObject can stay frozen in Begin (an engine bug), so the liveness probe
+-- kept it and every later tap was a pinch's second finger. A finger that sent no begin/move for
+-- STALE_TOUCH seconds no longer counts as down once a new touch begins (`clock` given): a real
+-- pinch moves, and a resting thumb plus a tap now walks instead of freezing input.
+M.STALE_TOUCH = 1.5
+function M.gesture(live: ((any) -> boolean)?, clock: (() -> number)?)
+	local active: { [any]: number } = {}
 	local session: { id: any, x: number, y: number, ui: boolean, dragging: boolean, multi: boolean }? = nil
 	local g = {}
+	local function now(): number
+		return if clock then clock() else 0
+	end
 	local function prune()
-		if not live then
-			return
-		end
-		for id in active do
-			if not live(id) then
+		local at = now()
+		for id, seen in active do
+			if (live and not live(id)) or (clock and at - seen > M.STALE_TOUCH) then
 				active[id] = nil
 				if session and session.id == id then
 					session = nil
@@ -182,7 +190,7 @@ function M.gesture(live: ((any) -> boolean)?)
 	end
 	function g.began(id: any, x: number, y: number, overUi: boolean)
 		prune()
-		active[id] = true
+		active[id] = now()
 		local first = next(active)
 		if next(active, first) == nil then
 			session = { id = id, x = x, y = y, ui = overUi, dragging = false, multi = false }
@@ -191,6 +199,9 @@ function M.gesture(live: ((any) -> boolean)?)
 		end
 	end
 	function g.moved(id: any, x: number, y: number): string?
+		if active[id] then
+			active[id] = now()
+		end
 		local s = session
 		if not s or s.id ~= id or s.ui or s.multi then
 			return nil
@@ -253,7 +264,7 @@ function M.overUi(player: Player, x: number, y: number): boolean
 	return false
 end
 
-function M.start(options: { player: Player, blocked: () -> boolean })
+function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((Model) -> boolean)? })
 	local moveKeys = { W = 1, A = 1, S = 1, D = 1, Up = 1, Down = 1, Left = 1, Right = 1 }
 	local UserInputService = game:GetService("UserInputService")
 	local RunService = game:GetService("RunService")
@@ -269,7 +280,7 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		end
 		local state = (id :: InputObject).UserInputState
 		return state == Enum.UserInputState.Begin or state == Enum.UserInputState.Change
-	end)
+	end, os.clock)
 	local connections: { RBXScriptConnection } = {}
 	local function on(signal: RBXScriptSignal, fn: (...any) -> ())
 		table.insert(connections, signal:Connect(fn))
@@ -448,14 +459,17 @@ function M.start(options: { player: Player, blocked: () -> boolean })
 		for _, model in if petFolder then petFolder:GetChildren() else {} do
 			table.insert(candidates, model)
 		end
+		-- The fingertip pick is automatic: a live wild creature far above the player is never picked
+		-- for a tap beside it (p134 v55: taps by a dodo engaged the Lv 20 parasaurolophus). A ray
+		-- that hits the creature itself (above) is the player's choice and always wins.
+		local eligible = options.eligible
 		creature = creature
 			or pick(camera, x, y, candidates, function(model)
 				local anchor = model:FindFirstChild("HumanoidRootPart")
-				return if (alive(model) or carcass(model) or ownPet(model))
-						and anchor
-						and anchor:IsA("BasePart")
-					then anchor
-					else nil
+				local wanted = carcass(model)
+					or ownPet(model)
+					or (alive(model) and (not eligible or eligible(model :: Model)))
+				return if wanted and anchor and anchor:IsA("BasePart") then anchor else nil
 			end)
 		if not node then
 			-- Fingertip pick on the node part and on its kit pieces (the visible bush or rock).
