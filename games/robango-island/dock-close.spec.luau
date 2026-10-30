@@ -1576,13 +1576,33 @@ return {
 			h.hud.open("build")
 			h.step()
 			local scroll = assert(frame:FindFirstChild("Content"), "sheet scroll")
-			local tabs = assert(scroll:FindFirstChild("BuildTabs"), "build tabs at " .. at)
+			-- sheets4b: the tabs and the (?) hint toggle live in the header, between the title and Close.
+			local header = frame:FindFirstChild("Header")
+			local head = assert(header:FindFirstChild("BuildHead"), "build header strip at " .. at)
+			local tabs = assert(head:FindFirstChild("BuildTabs"), "build tabs in the header at " .. at)
+			assert(scroll:FindFirstChild("BuildTabs") == nil, "no tab row in the body at " .. at)
 			local cards = assert(scroll:FindFirstChild("BuildCards"), "build cards")
+			local hr, cr2 = h.rect(head), h.rect(header:FindFirstChild("Close"))
+			local tr = h.rect(header:FindFirstChild("Title"))
+			assert(hr.x + hr.width <= cr2.x + 0.5, "tab strip clears Close at " .. at)
+			assert(tr.x + tr.width <= hr.x + 0.5, "title clears the tab strip at " .. at)
+			assert(hr.y >= h.rect(header).y - 0.5 and hr.height <= 44, "tab strip inside the header at " .. at)
 			local seen = {}
 			for _, group in Model.BUILD_GROUPS do
 				local tab = assert(tabs:FindFirstChild("BuildTab-" .. group), group .. " tab at " .. at)
-				assert(tab.Visible and tab.Text ~= "", group .. " tab label")
+				assert(tab.Visible and tab:GetAttribute("ForgeLabel") ~= "", group .. " tab label")
+				-- Phone: icon-only 40 px tabs (the label stays as an attribute); PC: the label shows.
+				if view[3] then
+					assert(tab.Text == "" and tab.Size.X.Offset == 40, group .. " icon-only tab on the phone")
+				else
+					assert(tab.Text == tab:GetAttribute("ForgeLabel"), group .. " labelled tab on PC")
+					assert(tab.TextSize >= 16, group .. " tab text floor on PC")
+				end
+				assert(tab.Size.Y.Offset >= 36, group .. " tab touch height")
+				local icon = tab:FindFirstChild("IconFallback")
+				assert(icon and icon:FindFirstChild("Asset"), group .. " tab icon from the atlas")
 				h.click(tab)
+				assert(tab:GetAttribute("ForgeSelected") == true, group .. " tab selected")
 				local shown = {}
 				for _, card in cards:GetChildren() do
 					if card.ClassName == "Frame" and card.Visible then
@@ -1647,20 +1667,46 @@ return {
 			for _, definition in content.structures do
 				assert(seen[definition.id], definition.id .. " is in no tab")
 			end
-			-- Wood 6/4 covers the campfire: green, ready badge; the hint names the green/red footprint.
+			-- Wood 6/4 covers the campfire: green, ready badge.
 			h.click(tabs:FindFirstChild("BuildTab-station"))
 			local camp = assert(cards:FindFirstChild("BuildCard-campfire"), "campfire card")
 			assert(camp:FindFirstChild("ReadyBadge").Visible, "campfire ready with 6 wood")
-			local hint = false
-			for _, item in scroll:GetChildren() do
-				hint = hint
-					or (
-						item.ClassName == "TextLabel"
-						and item.Visible
-						and string.find(item.Text, "초록", 1, true) ~= nil
-					)
+			-- sheets4b: the cards start the body, so the first card row is whole without scrolling.
+			local function hintShown(): boolean
+				for _, item in scroll:GetChildren() do
+					if item.ClassName == "TextLabel" and item.Visible and string.find(item.Text, "초록", 1, true) then
+						return true
+					end
+				end
+				return false
 			end
-			assert(hint, "placement preview hint at " .. at)
+			assert(not hintShown(), "placement hint folded behind (?) at " .. at)
+			local grid = cards:FindFirstChildOfClass("UIGridLayout")
+			local body = h.rect(scroll)
+			local before = 8 -- scroll top padding; nothing else above the cards
+			for _, item in scroll:GetChildren() do
+				if
+					item.Visible ~= false
+					and item ~= cards
+					and item.ClassName ~= "UIListLayout"
+					and item.ClassName ~= "UIPadding"
+				then
+					assert((item.LayoutOrder or 0) > cards.LayoutOrder, item.Name .. " above the cards at " .. at)
+				end
+			end
+			assert(
+				before + grid.CellSize.Y.Offset <= body.height,
+				string.format(
+					"first card row %d px in a %d px body at %s",
+					before + grid.CellSize.Y.Offset,
+					body.height,
+					at
+				)
+			)
+			h.click(head:FindFirstChild("BuildHelp"))
+			assert(hintShown(), "(?) shows the placement preview hint at " .. at)
+			h.click(head:FindFirstChild("BuildHelp"))
+			assert(not hintShown(), "(?) folds the hint again at " .. at)
 			h.click(camp:FindFirstChild("Structure-campfire"))
 			assert(not frame.Visible, "Build starts placement (sheet yields to the placement bar) at " .. at)
 			assert(#h.errors == 0, table.concat(h.errors, "; "))
@@ -1947,8 +1993,10 @@ return {
 			assert(not string.find(craft, "%d+s%f[%A]"), "craft time in s at " .. at .. ": " .. craft)
 			h.hud.open("build")
 			h.step()
+			-- sheets4b: the build hint sits behind the header's (?) toggle.
+			h.click(frame:FindFirstChild("Header"):FindFirstChild("BuildHead"):FindFirstChild("BuildHelp"))
 			local build = texts(frame)
-			assert(string.find(build, "바닥을 터치하고", 1, true), "build hint at " .. at)
+			assert(string.find(build, "바닥을 터치하세요", 1, true), "build hint at " .. at)
 			assert((string.find(build, "Y로", 1, true) ~= nil) == not touch, "Y hint at " .. at .. ": " .. build)
 			assert(not string.find(build, "{{", 1, true), "raw hint braces at " .. at)
 			h.hud.open("bag")

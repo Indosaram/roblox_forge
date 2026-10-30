@@ -409,18 +409,50 @@ function M.start(options: Options)
 	local allRecipes = false
 	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
-	-- sheets4: build group tabs above the cards (Model.BUILD_GROUPS), scrolling sideways on a phone.
+	-- sheets4: build group tabs (Model.BUILD_GROUPS). sheets4b: they sit in the sheet header between
+	-- the title and Close (icon-only on the phone, Model.buildTabStrip) with a (?) toggle that shows the
+	-- one-line placement hint, so the first card row is on screen at 800x360 without scrolling.
 	local buildGroup = "shelter"
+	local buildHelp = false
+	-- render is defined further down; the header controls reach it through this forwarder.
+	local renderLater: (() -> ())? = nil
+	local function requestRender()
+		if renderLater then
+			renderLater()
+		end
+	end
+	local header: any = sheet.frame:FindFirstChild("Header")
+	local titleSize = header.Title.Size
+	local buildHead = Instance.new("Frame")
+	buildHead.Name, buildHead.BackgroundTransparency, buildHead.Visible = "BuildHead", 1, false
+	buildHead.AnchorPoint = Vector2.new(1, 0.5)
+	buildHead.Position = UDim2.new(1, -Model.BUILD_TAB.right, 0.5, 0)
+	buildHead.Size, buildHead.ZIndex = UDim2.fromOffset(0, Model.BUILD_TAB.height), 52
+	buildHead.Parent = header
 	local buildTabs = Instance.new("ScrollingFrame")
-	buildTabs.Name, buildTabs.BackgroundTransparency, buildTabs.BorderSizePixel, buildTabs.Visible =
-		"BuildTabs", 1, 0, false
-	buildTabs.Size, buildTabs.ScrollingDirection = UDim2.new(1, -8, 0, 40), Enum.ScrollingDirection.X
-	buildTabs.ScrollBarThickness, buildTabs.CanvasSize, buildTabs.AutomaticCanvasSize =
-		3, UDim2.new(), Enum.AutomaticSize.X
-	buildTabs.Parent = sheet.scroll
+	buildTabs.Name, buildTabs.BackgroundTransparency, buildTabs.BorderSizePixel = "BuildTabs", 1, 0
+	buildTabs.Size = UDim2.new(1, -Model.BUILD_TAB.help - Model.BUILD_TAB.gap, 1, 0)
+	buildTabs.ScrollingDirection, buildTabs.ScrollBarThickness = Enum.ScrollingDirection.X, 0
+	buildTabs.CanvasSize, buildTabs.AutomaticCanvasSize = UDim2.new(), Enum.AutomaticSize.X
+	buildTabs.ZIndex, buildTabs.Parent = 52, buildHead
 	local tabFlow = Instance.new("UIListLayout")
-	tabFlow.FillDirection, tabFlow.Padding, tabFlow.SortOrder, tabFlow.Parent =
-		Enum.FillDirection.Horizontal, UDim.new(0, 6), Enum.SortOrder.LayoutOrder, buildTabs
+	tabFlow.FillDirection, tabFlow.Padding, tabFlow.SortOrder =
+		Enum.FillDirection.Horizontal, UDim.new(0, Model.BUILD_TAB.gap), Enum.SortOrder.LayoutOrder
+	tabFlow.VerticalAlignment, tabFlow.Parent = Enum.VerticalAlignment.Center, buildTabs
+	local buildHelpButton = Instance.new("TextButton")
+	buildHelpButton.Name, buildHelpButton.Text, buildHelpButton.BorderSizePixel = "BuildHelp", "?", 0
+	buildHelpButton.Size = UDim2.fromOffset(Model.BUILD_TAB.help, Model.BUILD_TAB.height)
+	buildHelpButton.AnchorPoint, buildHelpButton.Position = Vector2.new(1, 0), UDim2.fromScale(1, 0)
+	buildHelpButton.Font, buildHelpButton.TextSize, buildHelpButton.ZIndex = Enum.Font.BuilderSansBold, 18, 53
+	buildHelpButton.TextColor3 = Color3.fromRGB(246, 238, 220)
+	buildHelpButton:SetAttribute("ForgeShellKeep", true)
+	local helpRound = Instance.new("UICorner")
+	helpRound.CornerRadius, helpRound.Parent = UDim.new(0.5, 0), buildHelpButton
+	buildHelpButton.Activated:Connect(function()
+		buildHelp = not buildHelp
+		requestRender()
+	end)
+	buildHelpButton.Parent = buildHead
 	-- Skills sheet (sheets3, Durango R06-3): a compact level / SP / XP strip in the sheet header, then
 	-- a 2-column category grid left and the selected category's next node right (Learn at its bottom),
 	-- so rows are on screen at 800x360 and 1280x720. The art per skill category is { resolver, id }.
@@ -615,6 +647,9 @@ function M.start(options: Options)
 	local requestEvent = Instance.new("BindableEvent")
 	requestEvent.Name, requestEvent.Parent = "ForgeHUDRequested", player
 	local render: () -> ()
+	renderLater = function()
+		render()
+	end
 	local refresh: () -> ()
 	local handshakeRetries, hand = 0, {}
 	local reportedDeaths: number? = nil
@@ -1363,7 +1398,14 @@ function M.start(options: Options)
 			currency.Text = string.format(t("coins"), tonumber(model.snapshot.balance) or 0)
 		end
 		fitPanes()
-		buildCards.Visible, buildTabs.Visible = section == "build", section == "build"
+		buildCards.Visible, buildHead.Visible = section == "build", section == "build"
+		if section ~= "build" then
+			-- The title takes the whole header again outside the build sheet (sheets4b narrows it).
+			local title: any = sheet.frame.Header:FindFirstChild("Title")
+			if title then
+				title.Size = titleSize
+			end
+		end
 		skillHead.Visible, skillBody.Visible = false, false
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
@@ -1943,45 +1985,80 @@ function M.start(options: Options)
 			if not table.find(groups, buildGroup) then
 				buildGroup = groups[1] or "shelter"
 			end
-			buildTabs.LayoutOrder = controls.order()
+			-- Tab labels at the shell body size (14 px phone floor, 16 px on PC).
+			local tabText = if Theme.sheet then Theme.sheetText("body", gui.AbsoluteSize.Y) else 14
+			local labelWidths = {}
+			for index, group in groups do
+				labelWidths[index] = Model.labelWidth(t("build_group_" .. group), tabText)
+			end
+			local T = Model.BUILD_TAB
+			local compact, strip = Model.buildTabStrip(
+				sheet.frame.AbsoluteSize.X,
+				labelWidths,
+				input.TouchEnabled and not input.KeyboardEnabled
+			)
+			buildHead.Size = UDim2.fromOffset(strip, T.height)
+			buildHead:SetAttribute("ForgeCompact", compact)
+			-- The title keeps only the left of the header; the tab strip owns the rest up to Close.
+			header.Title.Size = UDim2.fromOffset(T.left - 20, 44)
 			for index, group in groups do
 				local tab: any = buildTabs:FindFirstChild("BuildTab-" .. group)
 				if not tab then
-					tab = Components.button(theme, {
-						text = "",
-						size = UDim2.fromOffset(96, 36),
-						parent = buildTabs,
-						onClick = function()
-							buildGroup = group
-							sheet.scroll.CanvasPosition = Vector2.zero
-							render()
-						end,
-					})
-					tab.Name = "BuildTab-" .. group
+					tab = Instance.new("TextButton")
+					tab.Name, tab.AutoButtonColor, tab.BorderSizePixel, tab.ZIndex = "BuildTab-" .. group, true, 0, 53
+					local round = Instance.new("UICorner")
+					round.CornerRadius, round.Parent = UDim.new(0, 8), tab
+					tab.Activated:Connect(function()
+						buildGroup = group
+						sheet.scroll.CanvasPosition = Vector2.zero
+						requestRender()
+					end)
+					tab.Parent = buildTabs
 				end
-				tab.LayoutOrder, tab.Text, tab.TextScaled, tab.TextWrapped =
-					index, t("build_group_" .. group), false, false
-				tab.TextSize, tab.TextXAlignment = 14, Enum.TextXAlignment.Left
+				local on = group == buildGroup
+				local text = t("build_group_" .. group)
+				tab.LayoutOrder, tab.TextScaled, tab.TextWrapped = index, false, false
+				tab.Text = if compact then "" else text
+				tab:SetAttribute("ForgeLabel", text)
+				tab:SetAttribute("ForgeSelected", on)
+				tab:SetAttribute("ForgeShellKeep", true)
+				tab.Font, tab.TextSize, tab.TextXAlignment =
+					Enum.Font.BuilderSansBold, tabText, Enum.TextXAlignment.Left
+				tab.BackgroundColor3 = if on then Color3.fromRGB(58, 128, 118) else Color3.fromRGB(104, 76, 54)
+				tab.TextColor3 = Color3.fromRGB(246, 238, 220)
+				local edge: any = tab:FindFirstChild("Edge") or Instance.new("UIStroke")
+				edge.Name, edge.ApplyStrokeMode = "Edge", Enum.ApplyStrokeMode.Border
+				edge.Color, edge.Thickness = Color3.fromRGB(246, 238, 220), 2
+				edge.Transparency, edge.Parent = if on then 0 else 1, tab
 				local pad: any = tab:FindFirstChild("TabPad") or Instance.new("UIPadding")
-				pad.Name, pad.PaddingLeft, pad.PaddingRight, pad.Parent = "TabPad", UDim.new(0, 30), UDim.new(0, 6), tab
+				pad.Name, pad.PaddingLeft, pad.PaddingRight, pad.Parent =
+					"TabPad", UDim.new(0, if compact then 0 else 30), UDim.new(0, if compact then 0 else 6), tab
 				local glyph = if options.icons then options.icons.ui(Model.BUILD_GROUP_ICON[group]) else nil
 				local mark = IconFallback.mount(
 					tab,
 					"building",
-					UDim2.fromOffset(22, 22),
-					UDim2.new(0, -24, 0.5, -11),
+					UDim2.fromOffset(24, 24),
+					if compact then UDim2.new(0.5, -12, 0.5, -12) else UDim2.new(0, -26, 0.5, -12),
 					glyph and glyph.image
 				)
-				mark.BackgroundTransparency = 1
-				tab.Size = UDim2.fromOffset(36 + math.max(40, #tab.Text * 4), 36)
-				panelSelected[tab] = group == buildGroup
+				mark.BackgroundTransparency, mark.ZIndex = 1, 54
+				tab.Size = UDim2.fromOffset(
+					if compact then T.icon else math.max(T.icon, math.ceil(labelWidths[index]) + T.labelPad),
+					T.height
+				)
 			end
 			for _, tab: any in buildTabs:GetChildren() do
 				if tab:IsA("GuiButton") then
 					tab.Visible = table.find(groups, string.sub(tab.Name, 10)) ~= nil
 				end
 			end
-			label(t("buildHint"), 40)
+			buildHelpButton:SetAttribute("ForgeSelected", buildHelp)
+			buildHelpButton.BackgroundColor3 = if buildHelp
+				then Color3.fromRGB(58, 128, 118)
+				else Color3.fromRGB(104, 76, 54)
+			if buildHelp then
+				label(t("buildHint"), 40).Name = "BuildHint"
+			end
 			buildCards.LayoutOrder = controls.order()
 			local listed = Model.buildList(options.content.structures, buildGroup)
 			local keep: { [Instance]: boolean } = {}
@@ -2225,7 +2302,6 @@ function M.start(options: Options)
 					filterBar,
 					sheet.scroll,
 					buildCards,
-					buildTabs,
 					skillList,
 					if inventoryGrid then inventoryGrid.frame else listPane,
 				},

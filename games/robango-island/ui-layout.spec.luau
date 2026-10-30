@@ -549,8 +549,41 @@ return {
 						14,
 						"cost chip name " .. group
 					)
-					fits(Locale.text(locale, "build_group_" .. group), 120, 36, 14, 14, "build tab " .. group)
+					local T = Model.BUILD_TAB
+					local labelled = select(1, Model.buildTabStrip(s.width, {}, viewport[3])) == false
+					if labelled then
+						fits(Locale.text(locale, "build_group_" .. group), 200, T.height, 16, 14, "build tab " .. group)
+					end
 				end
+			end
+			-- sheets4b: header tab strip between the title and Close; icon tabs on touch, labels when they fit.
+			local T = Model.BUILD_TAB
+			for _, locale in LOCALES do
+				local widths = {}
+				for index, group in Model.BUILD_GROUPS do
+					widths[index] = HudFit.textWidth(Locale.text(locale, "build_group_" .. group), 16)
+				end
+				local compact, strip = Model.buildTabStrip(s.width, widths, viewport[3])
+				local title = { x = 14, y = 0, width = T.left - 20, height = 44 }
+				local head = { x = s.width - T.right - strip, y = 4, width = strip, height = T.height }
+				local close = { x = s.width - 50, y = 0, width = 44, height = 44 }
+				assert(
+					not overlaps(title, head) and not overlaps(head, close),
+					"header strip " .. locale .. " " .. width
+				)
+				local need = T.help
+				for _, w in widths do
+					need += T.gap + (if compact then T.icon else math.max(T.icon, w + T.labelPad))
+				end
+				-- 740 px and wider (the 800x360 target): every tab and (?) at once; narrower phones scroll.
+				if width >= 740 then
+					assert(
+						need <= strip,
+						string.format("tabs %d px in a %d px strip at %dx%d", need, strip, width, height)
+					)
+				end
+				assert(compact == (viewport[3] or need > strip), "compact rule " .. width)
+				fits(Locale.text(locale, "build"), title.width, 44, 18, 14, "build title " .. locale)
 			end
 			local bar = { x = width / 2 - 164, y = height - Model.PLACEMENT_BOTTOM, width = 328, height = 48 }
 			inside(bar, width, height, "placement bar")
@@ -585,7 +618,8 @@ return {
 			-- Scroll body below the 44px header with 8px padding; first rows as each section renders them.
 			local body = s.height - 44 - 8
 			local at = width .. "x" .. height
-			-- One whole build card fits the body once the tabs and hint scroll away.
+			-- sheets4b: the tabs live in the header and the hint behind (?), so the first card row starts
+			-- the body: a whole card is on screen without scrolling.
 			assert(body >= Model.buildCardHeight(costRows), "one full build card at " .. at)
 			assert(body >= 8 + 6 + 92, "bag capacity bar plus one inventory row at " .. at)
 			assert(body >= 48 + 6 + 48, "skills level plus one skill row at " .. at)

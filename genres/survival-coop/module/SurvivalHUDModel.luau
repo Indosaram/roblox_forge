@@ -80,6 +80,43 @@ end
 function M.buildColumns(sheetWidth: number): number
 	return if sheetWidth >= 540 then 2 else 1
 end
+
+-- sheets4b: the build group tabs sit in the sheet header strip between the title and Close (like the
+-- skills sheet's stats strip), followed by a 36 px (?) toggle for the placement hint. The strip spans
+-- from `left` px after the header's left edge to Close. Tabs are icon-only (40 px) on a touch device
+-- (the 800x360 phone) or when the labelled tabs plus the toggle do not fit; the strip scrolls
+-- sideways when even icon tabs overflow (portrait). The body then starts with the cards.
+M.BUILD_TAB = table.freeze({ icon = 40, height = 36, gap = 4, help = 36, left = 110, right = 58, labelPad = 36 })
+-- Estimated label width in px (Hangul/CJK a full em, Latin letters and digits 0.62 em, spaces 0.3,
+-- other marks 0.35), the same estimate the ui-kit HudFit uses, kept here because HudFit is not
+-- shipped to the place.
+function M.labelWidth(text: string, size: number): number
+	local width = 0
+	for _, code in utf8.codes(text) do
+		if
+			code >= 0x1100
+			and (code <= 0x115F or (code >= 0x2E80 and code <= 0xD7A3) or (code >= 0xF900 and code <= 0xFFE6))
+		then
+			width += size
+		elseif code == 32 then
+			width += size * 0.3
+		elseif (code >= 48 and code <= 57) or (code >= 65 and code <= 90) or (code >= 97 and code <= 122) then
+			width += size * 0.62
+		else
+			width += size * 0.35
+		end
+	end
+	return width
+end
+function M.buildTabStrip(sheetWidth: number, labels: { number }, touch: boolean): (boolean, number)
+	local T = M.BUILD_TAB
+	local strip = math.max(0, sheetWidth - T.left - T.right)
+	local labelled = T.help
+	for _, width in labels do
+		labelled += T.gap + math.max(T.icon, width + T.labelPad)
+	end
+	return touch or labelled > strip, strip
+end
 -- Success line (SurvivalHUDLocale key) shown after a confirmed action.
 M.SUCCESS = { ["survival-coop:item-repair"] = "repaired" } :: { [string]: string }
 -- Transient refusals re-sent automatically, one second apart, before only the Retry button is left.

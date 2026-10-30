@@ -1640,6 +1640,10 @@ function M.skinSheet(frame: any, options: SkinOptions)
 			end
 		elseif class == "TextLabel" or class == "TextButton" then
 			local stroke = item:FindFirstChildOfClass("UIStroke")
+			if header and item:IsDescendantOf(header) and item:GetAttribute("ForgeShellKeep") == true then
+				-- sheets4b: the build group tabs and the (?) toggle in the header keep their own look.
+				continue
+			end
 			if header and item:IsDescendantOf(header) then
 				item.TextScaled, item.TextSize = false, options.title
 				item.TextColor3 = rgb(C.headerText)
