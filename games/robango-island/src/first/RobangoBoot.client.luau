@@ -10,6 +10,13 @@ local RunService = game:GetService("RunService")
 local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
+
+ReplicatedFirst:RemoveDefaultLoadingScreen()
+-- R20: a player arriving from an island hop keeps the travel screen it left with (SetTeleportGui);
+-- read it before anything yields so the hand-over has no blank frame.
+local arrivingGui = TeleportService:GetArrivingTeleportGui()
+
 local player = Players.LocalPlayer
 -- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
 -- p134 v64: the pin ran after the TravelScreen require and the phone stayed portrait on 3 cold
@@ -24,12 +31,6 @@ playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
 end)
 local Flow = require(script.Parent:WaitForChild("TitleFlow"))
 local Travel = require(script.Parent:WaitForChild("TravelScreen"))
-local TeleportService = game:GetService("TeleportService")
-
-ReplicatedFirst:RemoveDefaultLoadingScreen()
--- R20: a player arriving from an island hop keeps the travel screen it left with (SetTeleportGui);
--- read it before anything yields so the hand-over has no blank frame.
-local arrivingGui = TeleportService:GetArrivingTeleportGui()
 
 -- The Roblox Backpack hotbar stays hidden under the title and under full sheets (TitleFlow).
 Flow.bindBackpack(player, function(shown: boolean)
