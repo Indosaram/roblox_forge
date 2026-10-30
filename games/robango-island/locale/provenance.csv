@@ -1925,6 +1925,7 @@ hud.knocked_down,original,agent:hephaestus/p97,2026-10-24
 hud.deposit,original,agent:hephaestus/p97,2026-10-24
 hud.withdraw,original,agent:hephaestus/p97,2026-10-24
 hud.warehouse,original,agent:hephaestus/p97,2026-10-24
+hud.warehouse_solo,original,agent:hephaestus/p134-route,2026-10-30
 hud.reserve,original,agent:hephaestus/p97,2026-10-24
 hud.make,original,agent:hephaestus/p97,2026-10-24
 hud.missing,original,agent:hephaestus/p97,2026-10-24
@@ -1954,6 +1955,7 @@ hud.Z+,original,agent:hephaestus/p97,2026-10-24
 hud.place,original,agent:hephaestus/p97,2026-10-24
 hud.preview,original,agent:hephaestus/p97,2026-10-24
 hud.buildHint,original,agent:hephaestus/sheets4,2026-10-30
+hud.buildHint_solo,original,agent:hephaestus/p134-route,2026-10-30
 hud.select,original,agent:hephaestus/p97,2026-10-24
 hud.TRANSPORT_FAILED,original,agent:hephaestus/p97,2026-10-24
 hud.HANDSHAKE_FAILED,original,agent:hephaestus/p97,2026-10-24
@@ -2664,6 +2666,7 @@ scr.buy.confirm,original,agent:hephaestus/p101,2026-10-25
 scr.buy.done,original,agent:hephaestus/p101,2026-10-25
 scr.buy.open_market,original,agent:hephaestus/p101,2026-10-25
 scr.storage.title,original,agent:hephaestus/p101,2026-10-25
+scr.storage.title_solo,original,agent:hephaestus/p134-route,2026-10-30
 scr.storage.unavailable,original,agent:hephaestus/p101,2026-10-25
 scr.storage.capacity,original,agent:hephaestus/p101,2026-10-25
 scr.storage.bag,original,agent:hephaestus/p101,2026-10-25
@@ -3038,6 +3041,8 @@ cli.chart.your_island,original,agent:omo/c7,2026-10-28
 cli.chart.town,original,agent:omo/c7,2026-10-28
 cli.chart.here,original,agent:omo/c7,2026-10-28
 cli.chart.locked,original,agent:omo/c7,2026-10-28
+cli.chart.opens_at,original,agent:hephaestus/p134-route,2026-10-30
+cli.chart.needs_grade,original,agent:hephaestus/p134-route,2026-10-30
 cli.chart.time_left,original,agent:omo/c7,2026-10-28
 cli.chart.open,original,agent:omo/c7,2026-10-28
 cli.chart.sail,original,agent:omo/c7,2026-10-28

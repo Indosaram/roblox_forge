@@ -85,7 +85,8 @@ return {
 				assert(ok, layout.id .. " admitted: " .. tostring(refused))
 			end
 		end
-		assert(Setup.stageGates(Content, "rw.a1", 1).level == 30, "rw.a1 needs level 30, not the old 2")
+		-- Route p134 redesign: a1 is the first-session route (level 2).
+		assert(Setup.stageGates(Content, "rw.a1", 1).level == 2, "rw.a1 needs level 2")
 	end,
 	["the Studio server seeds through stageGates and only under IsStudio"] = function()
 		local server = fs.readFile("games/robango-island/src/server/RobangoIslandServer.server.luau")

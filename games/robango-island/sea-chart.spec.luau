@@ -660,4 +660,70 @@ return {
 			end
 		end
 	end,
+	["route p134: a Lv 2-8 profile after the start guides sails to a1 and the chart names each unlock"] = function()
+		-- Staging v62: a Lv 8 account saw every route island locked; a1 needed level 30 and grade 2.
+		-- Robango redesign: a1 opens at level 2 with island grade 2, which the four start guides give.
+		local level, rank = Party.gates(Content, 1)
+		assert(level <= 5, "a1 entry level reachable in the first session, got " .. level)
+		local points, xp = 0, 0
+		for _, guide in Content.guides do
+			if (guide.gates.developmentRank or 0) == 0 and (guide.gates.characterLevel or 1) <= 1 then
+				points += guide.rewards.development or 0
+				xp += guide.rewards.xp or 0
+			end
+		end
+		assert(points // 100 >= rank, "start guides give the a1 grade: " .. points .. " points for rank " .. rank)
+		local tree, reached = Content.progressionPolicy.tree, 1
+		while xp >= tree.xpBase + tree.xpStep * reached do
+			xp -= tree.xpBase + tree.xpStep * reached
+			reached += 1
+		end
+		assert(reached >= level, "start guide xp reaches the a1 level: L" .. reached .. " < L" .. level)
+		local en = text("en-us")
+		for at = 2, 8 do
+			local facts = { level = at, developmentRank = points // 100, instabilityAccess = 1 }
+			local ok, reason = Party.routeGate(Content, 1, facts)
+			assert(ok, "a1 at level " .. at .. ": " .. tostring(reason))
+			local cards = {}
+			for _, card in SeaChart.islands(Content, { role = "harbor", level = at, facts = facts }) do
+				cards[card.id] = card
+			end
+			assert(not cards.drift1.locked, "drift1 (a1) open on the chart at level " .. at)
+			assert(cards.drift2.locked and cards.drift2.needLevel == 35, "drift2 names its level")
+			assert(SeaChart.copy(cards.drift2, en).status == "Opens at Lv 35", SeaChart.copy(cards.drift2, en).status)
+			assert(cards.explore10.needLevel == 10, "explore10 names its level")
+		end
+		local ko = SeaChart.copy({ id = "drift2", locked = true, needLevel = 35, band = { min = 35 } }, text("ko-kr"))
+		assert(ko.status == "레벨 35에 열려요", ko.status)
+		local graded = { level = 8, developmentRank = 1, instabilityAccess = 1 }
+		local cards = SeaChart.islands(Content, { role = "harbor", level = 8, facts = graded })
+		for _, card in cards do
+			if card.id == "drift1" then
+				assert(card.locked and card.needRank == rank, "a1 below its grade names the grade")
+				assert(SeaChart.copy(card, en).status == "Needs island grade " .. rank, SeaChart.copy(card, en).status)
+			end
+		end
+		-- Away from the harbor a drift isle is refused by the role edge, not by level.
+		local home = SeaChart.islands(Content, { role = "home", level = 8, facts = { level = 8, developmentRank = 2 } })
+		for _, card in home do
+			if card.id == "drift1" then
+				assert(card.locked and card.reason == "transition_not_allowed" and card.needLevel == nil, "home edge")
+			end
+		end
+	end,
+	["route p134: the harbor (selling, departures) is open right after the opening"] = function()
+		-- Staging v63: a Lv 8 solo account on onboarding saw the harbor padlocked ('Depart from the
+		-- harbor'); harbor buyback only works on rw.harbor, so nothing could be sold.
+		for _, from in { "onboarding", "home", "town" } do
+			local ok, reason = SeaChart.sail("harbor", from, 1, "dock")
+			assert(ok, from .. " -> harbor at level 1: " .. tostring(reason))
+			for _, card in SeaChart.islands(Content, { role = from, level = 1, facts = { level = 1 } }) do
+				if card.id == "harbor" then
+					assert(not card.locked, from .. ": harbor card open")
+				end
+			end
+		end
+		-- Onboarding still cannot sail past the harbor directly.
+		assert(select(2, SeaChart.sail("explore10", "onboarding", 60, "dock")) == "transition_not_allowed", "edge")
+	end,
 }

@@ -1594,7 +1594,7 @@ function S.factory(ctx: any): any
 	panel = Sheet.mount(ctx, {
 		id = "storage",
 		name = "Storage",
-		title = L.text(ctx.locale, "scr.storage.title"),
+		title = L.text(ctx.locale, if ctx.solo then "scr.storage.title_solo" else "scr.storage.title"),
 		order = 41,
 		hidden = true,
 		select = function(_extensions: any, packet: any): any

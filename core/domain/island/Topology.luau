@@ -26,7 +26,8 @@ Topology.ROLES = {
 -- (POLICY_CAPACITY, ADR-04); only the town is larger (plan G17 supersedes ADR-04 for it).
 Topology.ROLE_CAPACITY = table.freeze({ town = 32 })
 local ROLE_EDGES: { [string]: { [string]: boolean } } = {
-	onboarding = { home = true, town = true },
+	-- Robango route p134: the harbor (sales, departures) is reachable straight after the opening.
+	onboarding = { home = true, town = true, harbor = true },
 	home = { harbor = true, town = true },
 	town = { harbor = true, archipelago = true },
 	harbor = {

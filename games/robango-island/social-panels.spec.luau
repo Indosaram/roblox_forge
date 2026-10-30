@@ -764,4 +764,42 @@ cases["station dialogue shows authored offer and complete lines in KO and EN"] =
 	assert(count >= 120, "authored rows checked")
 end
 
+cases["route p134: a respawn's pending rescue-choose never opens the settlement sheet"] = function()
+	-- Staging v62 (solo): after 'Wake at camp' a '거래 정산 / 전달 완료' sheet opened with no trade.
+	local h = harness("ko-kr", 800, 360, true)
+	local observe: any = nil
+	h.ctx.onSend = function(callback: any)
+		observe = callback
+		return function() end
+	end
+	Panels.transaction.factory(h.ctx)
+	-- DownPanel.choose: the death commit holds the profile, then the retry lands.
+	observe("survival-coop:rescue-choose", { "camp" }, { ok = false, reason = "COMMAND_PENDING" }, "406160e8")
+	assert(not h.frame.Visible, "a pending respawn choice is not a settlement")
+	observe("survival-coop:rescue-choose", { "camp" }, { ok = true }, "406160e8")
+	assert(not h.frame.Visible and not h.has("전달 완료."), "no delivered row for a respawn")
+	for _, action in { "survival-coop:craft-start", "survival-coop:camp-contribute", "survival-coop:respawn" } do
+		observe(action, {}, { ok = false, data = { status = "recovering" } }, "r-" .. action)
+		assert(not h.frame.Visible, action .. " is not a settlement")
+	end
+	-- A real pending trade still surfaces.
+	observe("survival-coop:trade-confirm", { "t", 2 }, { ok = false, reason = "COMMAND_PENDING" }, "req-9")
+	assert(h.frame.Visible and h.has("참조 req-9"), "pending trade surfaced")
+end
+
+cases["route p134: solo storage wording never says shared storage"] = function()
+	local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+	for _, key in { "warehouse", "buildHint" } do
+		local solo = HudLocale.soloText("ko-kr", key, true)
+		assert(not string.find(solo, "공용", 1, true), key .. ": " .. solo)
+	end
+	-- The multiplayer storage label keeps 공용 (sheets4's build hint no longer names the storage).
+	assert(string.find(HudLocale.soloText("ko-kr", "warehouse", false), "공용", 1, true), "multiplayer keeps 공용")
+	assert(HudLocale.soloText("ko-kr", "warehouse", true) == "창고", "solo warehouse label")
+	assert(HudLocale.soloText("en-us", "select", true) == HudLocale.text("en-us", "select"), "no solo row falls back")
+	local source = fs.readFile("genres/survival-coop/module/RecoveredScreens.luau")
+	assert(string.find(source, '"scr.storage.title_solo"', 1, true), "storage sheet title has a solo row")
+	assert(PackText.packText("ko-kr", "scr.storage.title_solo") == "창고", "solo storage sheet title")
+end
+
 return cases

@@ -84,6 +84,8 @@ export type Options = {
 	names: { [string]: string }?,
 	contextual: boolean?,
 	openPanel: ((string) -> boolean)?,
+	-- Single-player mode (game.yml play_mode.solo): texts with a `<key>_solo` row use it.
+	solo: boolean?,
 	-- Melee attack press on a creature model: hands it to the pack's combat loop (CombatHud.engage);
 	-- true when engaged. Absent sends one raw attack command per press.
 	engage: ((Model) -> boolean)?,
@@ -127,7 +129,10 @@ function M.start(options: Options)
 	-- Keyboard hints: a trailing " [I]" and any {{...}} span (e.g. "가방{{(I)}}", "{{ Y로 회전한 뒤}}")
 	-- show only while a keyboard is the input; on a touch-only phone they are dropped (p134 v61).
 	local function t(key: string): string
-		return Locale.keyHints(Locale.text(locale, key), input.TouchEnabled and not input.KeyboardEnabled)
+		return Locale.keyHints(
+			Locale.soloText(locale, key, options.solo),
+			input.TouchEnabled and not input.KeyboardEnabled
+		)
 	end
 	local function name(id: string): string
 		return if options.names and options.names[id] then options.names[id] else t(id)

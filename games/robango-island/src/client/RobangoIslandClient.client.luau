@@ -261,6 +261,7 @@ local engageCreature: (Model) -> boolean = function(_model: Model): boolean
 	return false
 end
 local hud = SurvivalHUD.start({
+	solo = PlayMode.solo,
 	engage = function(model: Model): boolean
 		return engageCreature(model)
 	end,

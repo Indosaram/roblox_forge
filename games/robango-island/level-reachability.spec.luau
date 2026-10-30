@@ -39,7 +39,7 @@ return {
 	end,
 	["route gates and mission xp follow the world-spec index table"] = function()
 		local document = load()
-		local spec = { { 30, 700, 170 }, { 35, 800, 195 }, { 40, 900, 220 }, { 50, 1100, 270 }, { 60, 1300, 320 } }
+		local spec = { { 2, 700, 170 }, { 35, 800, 195 }, { 40, 900, 220 }, { 50, 1100, 270 }, { 60, 1300, 320 } }
 		for _, stage in document.stages do
 			local index = tonumber(string.match(stage.id, "^rw%.a(%d)%."))
 			if index then

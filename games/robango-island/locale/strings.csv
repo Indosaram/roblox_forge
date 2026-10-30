@@ -1925,6 +1925,7 @@ hud.knocked_down,You were knocked out and woke up back at camp. Watch out for wi
 hud.deposit,Store one,genre text hud,Store one,하나 보관
 hud.withdraw,Take one,genre text hud,Take one,하나 꺼내기
 hud.warehouse,Shared storage,genre text hud,Shared storage,공용 창고
+hud.warehouse_solo,Storage,genre text hud solo,Storage,창고
 hud.reserve,Reserve ingredients,genre text hud,Reserve ingredients,재료 예약
 hud.make,Make (auto-collect),genre text hud,Make (auto-collect),만들기 (자동 수령)
 hud.missing,Missing,genre text hud,Missing,부족한 재료
@@ -1954,6 +1955,7 @@ hud.Z+,Move back,genre text hud,Move back,뒤로 이동
 hud.place,Place,genre text hud,Place,설치
 hud.preview,Preview only - server validates placement,genre text hud,Preview only - server validates placement,미리보기 - 서버가 설치 위치를 확인해요
 hud.buildHint,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}}",genre text hud,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}}","건설 후 바닥을 터치하세요. 초록은 설치 가능, 빨강은 막힘.{{ Y로 회전.}}"
+hud.buildHint_solo,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}} Uses your storage.",genre text hud solo,"Build, then tap the ground: green fits, red is blocked.{{ Y rotates.}} Uses your storage.","건설 후 바닥을 터치하세요. 초록은 설치 가능, 빨강은 막힘.{{ Y로 회전.}} 창고 재료를 써요."
 hud.select,Select an item for details,genre text hud,Select an item for details,아이템을 선택하면 정보가 나와요
 hud.TRANSPORT_FAILED,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,genre text hud,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,연결 상태가 불확실해요. 같은 요청을 재시도하세요.
 hud.HANDSHAKE_FAILED,"Supplies are not connected. Refresh, then try again.",genre text hud,"Supplies are not connected. Refresh, then try again.",보급품 연결이 안 됐어요. 새로 고친 뒤 다시 시도하세요.
@@ -2664,6 +2666,7 @@ scr.buy.confirm,Buy for %d shellmoney,recovered screen,Buy for %d shellmoney,조
 scr.buy.done,Bought. The bundle arrives in your collection box.,recovered screen,Bought. The bundle arrives in your collection box.,구매했어요. 묶음은 수령함으로 들어와요.
 scr.buy.open_market,Back to the market,recovered screen,Back to the market,장터로 돌아가기
 scr.storage.title,Camp storage,recovered screen,Camp storage,공용 창고
+scr.storage.title_solo,Storage,recovered screen solo,Storage,창고
 scr.storage.unavailable,Camp storage is not connected on this server yet. Walk to the storage crate and try again.,recovered screen,Camp storage is not connected on this server yet. Walk to the storage crate and try again.,이 서버에서는 아직 공용 창고가 연결되지 않았어요. 보관 상자 가까이 가서 다시 시도하세요.
 scr.storage.capacity,"Storage: %d/%d slots, %s/%s kg",recovered screen,"Storage: %d/%d slots, %s/%s kg","창고: %d/%d칸, %s/%s kg"
 scr.storage.bag,"Bag: %d/%d slots, %s/%s kg",recovered screen,"Bag: %d/%d slots, %s/%s kg","가방: %d/%d칸, %s/%s kg"
@@ -3044,6 +3047,8 @@ cli.chart.your_island,Your island,client sea chart label,Your island,내 섬
 cli.chart.town,Town,client sea chart label,Town,마을
 cli.chart.here,You are here,client sea chart label,You are here,현재 위치
 cli.chart.locked,Locked,client sea chart label,Locked,잠김
+cli.chart.opens_at,Opens at Lv %d,client sea chart label,Opens at Lv %d,레벨 %d에 열려요
+cli.chart.needs_grade,Needs island grade %d,client sea chart label,Needs island grade %d,섬 등급 %d 필요
 cli.chart.time_left,Time left %s,client sea chart label,Time left %s,남은 시간 %s
 cli.chart.open,Open waters,client sea chart label,Open waters,열린 바다
 cli.chart.sail,Set sail,client sea chart label,Set sail,출항

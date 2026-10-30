@@ -127,6 +127,13 @@ function M.islands(content: any, view: any): { any }
 			end
 		end
 		card.locked = card.locked == true
+		-- What unlocks it (route p134): the level the player still needs, or the island grade a
+		-- drift isle needs, so a locked card names its unlock instead of only a refusal.
+		if card.locked and card.band and level < card.band.min then
+			card.needLevel = card.band.min
+		elseif card.locked and island.route and card.reason == "development_gate" then
+			card.needRank = select(2, Party.gates(content, island.route))
+		end
 		table.insert(cards, card)
 	end
 	return cards
@@ -303,6 +310,8 @@ function M.copy(card: any, text: (string, ...any) -> string, now: number?, reaso
 	end
 	local status = if card.here
 		then text("here")
+		elseif card.needLevel then text("opens_at", card.needLevel)
+		elseif card.needRank then text("needs_grade", card.needRank)
 		elseif card.locked then (if reason and card.reason then reason(card.reason) else text("locked"))
 		elseif card.drift and left then text("time_left", left)
 		else text("open")

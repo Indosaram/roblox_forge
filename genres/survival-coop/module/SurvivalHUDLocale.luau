@@ -6,6 +6,11 @@ function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key
 end
+--- Single-player wording: the `<key>_solo` row when the pack has one (camp storage is not shared
+--- in solo, p134 v63), otherwise the plain row.
+function M.soloText(locale: string, key: string, solo: boolean?): string
+	return M.text(locale, if solo and strings[key .. "_solo"] then key .. "_solo" else key)
+end
 --- Keyboard hints in a string: a trailing " [I]" and every {{...}} span. A touch-only device drops
 --- them ("bag{{ (I)}} open" -> "bag open"); with a keyboard the span shows without its braces.
 function M.keyHints(text: string, touchOnly: boolean): string

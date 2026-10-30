@@ -715,14 +715,17 @@ return {
 		for _, guide in { "rw.g01.first-gather", "rw.g02.first-axe", "rw.g03.first-contract", "rw.g04.camp-donation" } do
 			assert(document.development.definitions[guide], guide .. " completed")
 		end
-		-- Grade 2 meets route 1's development gate; its level gate (30) still holds a fresh player.
+		-- Grade 2 and level 2 (route p134 redesign): the start guides alone open route 1.
 		local unlocked = session.snapshot(FIRST).survivalExtensions.expedition
 		assert(unlocked.facts.developmentRank >= 2, "grade " .. tostring(unlocked.facts.developmentRank))
 		assert(unlocked.facts.developmentRank >= unlocked.routes[1].rank, "route 1 grade met")
-		assert(unlocked.routes[1].reason == "level_gate", "route 1 reason: " .. tostring(unlocked.routes[1].reason))
+		assert(unlocked.facts.level >= unlocked.routes[1].level, "route 1 level met: L" .. unlocked.facts.level)
+		assert(
+			unlocked.routes[1].reason == nil and unlocked.routes[1].ok,
+			"route 1 open: " .. tostring(unlocked.routes[1].reason)
+		)
 		local _, after = card()
-		local prefix = string.format("레벨 %d/30", unlocked.facts.level)
-		assert(after.gate and string.sub(after.gate, 1, #prefix) == prefix, "level gate line: " .. tostring(after.gate))
+		assert(after.gate == nil, "an open route card shows no gate line: " .. tostring(after.gate))
 		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
 	end,
 	["p45 the default Studio preview island lets a fresh player finish g01-g04 and unlock route 1"] = function()
@@ -776,7 +779,7 @@ return {
 		local unlocked = session.snapshot(FIRST).survivalExtensions.expedition
 		assert(unlocked.facts.developmentRank >= 2, "grade " .. tostring(unlocked.facts.developmentRank))
 		assert(unlocked.routes[1].reason ~= "development_gate", "route 1 grade gate met")
-		assert(unlocked.routes[1].reason == "level_gate", "route 1 reason: " .. tostring(unlocked.routes[1].reason))
+		assert(unlocked.routes[1].ok, "route 1 open after g01-g04: " .. tostring(unlocked.routes[1].reason))
 		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
 	end,
 	["p45 a deposit out of warehouse reach names the reach, not a generic refusal"] = function()

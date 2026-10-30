@@ -1,7 +1,7 @@
 --!strict
--- ui.transaction: surfaces unknown/recovering settlements. Every durable send is observed;
--- a COMMAND_PENDING or data.status == "recovering" result keeps its operation open, keyed by
--- the server operationId (trade id) or the durable requestId. Check status sends the
+-- ui.transaction: surfaces unknown/recovering settlements. Every trade and market send is
+-- observed (M.settles); a COMMAND_PENDING or data.status == "recovering" result keeps its
+-- operation open, keyed by the server operationId (trade id) or the durable requestId. Check status sends the
 -- read-only survival-coop:operation-status query for that id. Only when the server has no
 -- record yet (UNKNOWN_OPERATION) of a still-pending durable request is that SAME request
 -- re-sent (ExtensionPanels reuses its requestId), so a check never becomes a fresh debit.
@@ -25,6 +25,20 @@ end
 
 M.QUERY = "survival-coop:operation-status"
 
+-- Only exchanges between players or across servers are settlements: direct trades and the market.
+-- Staging v62: a respawn's rescue-choose answered COMMAND_PENDING during the death commit, was
+-- tracked as "settling" and opened this sheet on a solo account; its retry then read "Delivered".
+M.SETTLEMENT_PREFIXES = table.freeze({ "survival-coop:trade-", "survival-coop:market-" })
+
+function M.settles(action: string): boolean
+	for _, prefix in M.SETTLEMENT_PREFIXES do
+		if string.sub(action, 1, #prefix) == prefix then
+			return true
+		end
+	end
+	return false
+end
+
 -- Apply a status query reply to its entry: verifying/settling/delivered/rejected from the
 -- server records. An unknown operationId is refused and the entry stays as it was.
 function M.applyStatus(entry: any, result: any)
@@ -40,7 +54,7 @@ end
 
 -- Track one operation per action; returns the updated entry or nil when not tracked.
 function M.track(entries: { [string]: any }, action: string, args: any, result: any, requestId: string?): any?
-	if action == M.QUERY then
+	if action == M.QUERY or not M.settles(action) then
 		return nil
 	end
 	local status = M.classify(result)

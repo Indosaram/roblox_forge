@@ -186,6 +186,6 @@ return {
 			end
 		end
 		local failures = violations(document)
-		assert(table.find(failures, "rw.a1.s1.gather:wood@30") ~= nil, "old content must fail the gate")
+		assert(table.find(failures, "rw.a1.s1.gather:wood@2") ~= nil, "old content must fail the gate")
 	end,
 }
