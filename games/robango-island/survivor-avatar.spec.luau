@@ -19,6 +19,49 @@ local function store(backend: any, session: string): any
 end
 
 return {
+	-- p134 v60: the first tap on the gold confirm did nothing and the second closed the picker. The
+	-- live session answers COMMAND_PENDING while another command (a trade settlement) is in flight,
+	-- and the confirm dropped that refusal. One tap now retries until the pick lands.
+	["one confirm tap saves the pick through a transient COMMAND_PENDING / DOCUMENT_BUSY refusal"] = function()
+		local replies = {
+			{ ok = false, reason = "COMMAND_PENDING" },
+			{ ok = false, reason = "DOCUMENT_BUSY" },
+			{ ok = true, data = { preset = "scout" } },
+		}
+		local sent: { any } = {}
+		local waited = 0
+		local result = Survivor.confirmPick(
+			function(action, args)
+				table.insert(sent, { action, args })
+				return replies[#sent]
+			end,
+			"scout",
+			function(seconds)
+				waited += seconds
+			end
+		)
+		assert(result.ok == true, "one tap ends saved")
+		assert(#sent == 3 and sent[1][1] == Survivor.PICK_ACTION, "retried the same pick")
+		assert(sent[3][2][1] == "survivor" and sent[3][2][2] == "scout", "same survivor every time")
+		assert(waited > 0, "waits between attempts")
+		-- A real refusal is not retried, and retries stop at the cap.
+		local calls = 0
+		local refused = Survivor.confirmPick(function()
+			calls += 1
+			return { ok = false, reason = "UNKNOWN_SURVIVOR" }
+		end, "nobody", function() end)
+		assert(refused.ok == false and calls == 1, "a final refusal is sent once")
+		calls = 0
+		Survivor.confirmPick(function()
+			calls += 1
+			return { ok = false, reason = "COMMAND_PENDING" }
+		end, "scout", function() end)
+		assert(calls == Survivor.CONFIRM_ATTEMPTS, "bounded retries")
+		-- The picker's confirm goes through it and ignores taps while a pick is in flight.
+		local source = require("@lune/fs").readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
+		assert(string.find(source, "M.confirmPick(ctx.send, id, task.wait)", 1, true), "confirm uses confirmPick")
+		assert(string.find(source, "if sending then", 1, true), "in-flight taps are ignored")
+	end,
 	["at least four presets mix body and face choices and use only verified catalog ids"] = function()
 		assert(#Survivor.PRESETS >= 4, "four presets")
 		local heads, ids = {}, {}

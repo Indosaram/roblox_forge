@@ -101,6 +101,11 @@ M.VITALS_MAX_WIDTH = 300
 -- Item hotbar (bottom centre, Durango-style slots): at most this many backpack tools.
 M.HOTBAR_SLOTS = 6
 M.HOTBAR_GAP = 6
+-- The framed tray behind the slots reaches this far past them (iconfix capture: bare slot numbers
+-- floated over the ground with no visible frame).
+M.HOTBAR_TRAY_PAD = 4
+-- Contextual banners (hunger hint, notices, skill level-up) are this many H tall (two lines).
+M.BANNER_HEIGHT = 0.10
 -- The primary token keeps its L size on touch screens (only the other tokens shrink to the 44 px
 -- floor), so the contextual action reads as the big button (Durango R08-1).
 M.PRIMARY_MIN = 52
@@ -278,6 +283,25 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 	if target.x + target.width > mapGap then
 		target.width = math.max(0, mapGap - target.x)
 	end
+	-- Contextual banner lanes (p134 v57: the hunger line at 0.16H covered half of the companion's
+	-- name tag). First choice is the top strip between the vitals and the minimap / quest card,
+	-- above where the player and companion tags draw; the alternate sits in the left column under the
+	-- tracker, clear of the screen middle. `bannerRect` picks the first that hits no shown tag.
+	local laneHeight = math.max(30, M.BANNER_HEIGHT * h)
+	local laneLeft = clearX
+	local laneRight = minimap.x - 0.02 * h
+	if questToggle.y < top + 0.02 * h + laneHeight and questToggle.x < laneRight then
+		laneRight = questToggle.x - 0.02 * h
+	end
+	local laneWidth = math.max(0, math.min(1.2 * h, laneRight - laneLeft))
+	local banner = rect((laneLeft + laneRight) / 2 - laneWidth / 2, top + 0.02 * h, laneWidth, laneHeight)
+	local altY = tracker.y + tracker.height + 0.02 * h
+	local bannerAlt = rect(
+		vitals.x,
+		altY,
+		math.max(vitals.width, tracker.width),
+		math.max(0, math.min(laneHeight * 1.4, rowSlots[1].y - 0.02 * h - altY))
+	)
 	local endCombat = rect(width - 0.40 * h, top + 0.48 * h, 0.37 * h, 0.10 * h)
 	if endCombat.y + endCombat.height > cluster.y - M.ARC_GAP then
 		endCombat.y = math.floor(cluster.y - M.ARC_GAP - endCombat.height + 0.5)
@@ -306,7 +330,98 @@ function M.regions(width: number, height: number, topClear: number?, touch: bool
 		tokens = tokens,
 		target = target,
 		endCombat = endCombat,
+		banner = banner,
+		bannerAlt = bannerAlt,
+		-- The framed hotbar as drawn: tray plus the selected slot's tooltip band above it.
+		hotbarFrame = (function(): Rect
+			local tray = M.hotbarTray(hotbar)
+			local tip = M.tokenText("caption", h, touch == true) + 8 + 3
+			return rect(tray.x, tray.y - tip, tray.width, tray.height + tip)
+		end)(),
 	}
+end
+
+--- The rect a contextual banner takes: the first of the top lane, the left lane and the old status
+--- region that overlaps none of `avoid` (screen rects of shown name tags, the combat target bar).
+function M.bannerRect(regions: any, avoid: { Rect }): Rect
+	for _, candidate in { regions.banner, regions.bannerAlt, regions.status } do
+		local clear = candidate.width > 0 and candidate.height > 0
+		for _, other in avoid do
+			clear = clear and not hits(candidate, other, 2)
+		end
+		if clear then
+			return candidate
+		end
+	end
+	return regions.banner
+end
+
+-- Hotbar slot looks (Durango R05-1 / R08-1 framed item slots): an empty slot stays a visible but
+-- dim frame, a filled slot a solid framed tile, the selected (held) slot the ochre highlight.
+M.HOTBAR_LOOK = table.freeze({
+	empty = table.freeze({
+		fill = 0.55,
+		fillColor = "panel",
+		rim = "slateLock",
+		rimWidth = 1.5,
+		rimAlpha = 0.25,
+		key = 0.45,
+	}),
+	filled = table.freeze({ fill = 0.15, fillColor = "panel", rim = "drift", rimWidth = 2, rimAlpha = 0, key = 0.15 }),
+	selected = table.freeze({ fill = 0.05, fillColor = "tealDeep", rim = "ochre", rimWidth = 3, rimAlpha = 0, key = 0 }),
+})
+
+function M.hotbarLook(state: string): any
+	return M.HOTBAR_LOOK[state] or M.HOTBAR_LOOK.empty
+end
+
+--- Inside-slot geometry for a `size` px slot (relative rects): the item icon in the middle, the
+--- slot number in the top-left corner and the stack count in the bottom-right corner, all inside.
+function M.hotbarSlot(size: number): { icon: Rect, key: Rect, count: Rect, text: number }
+	local text = math.max(10, math.floor(size * 0.26))
+	local icon = math.floor(size * 0.68)
+	return {
+		icon = rect((size - icon) / 2, (size - icon) / 2, icon, icon),
+		key = rect(3, 2, text, text + 2),
+		count = rect(size - 3 - 3 * text, size - 3 - text - 2, 3 * text, text + 2),
+		text = text,
+	}
+end
+
+--- The framed tray behind the hotbar slots.
+function M.hotbarTray(hotbar: Rect): Rect
+	local pad = M.HOTBAR_TRAY_PAD
+	return rect(hotbar.x - pad, hotbar.y - pad, hotbar.width + 2 * pad, hotbar.height + 2 * pad)
+end
+
+--- The one name tooltip (selected slot only): a pill above the tray, centred on slot `index` and
+--- kept within the tray's width so it never reaches the bottom-left row or the action cluster.
+function M.hotbarTip(hotbar: Rect, index: number, textSize: number): Rect
+	local tray = M.hotbarTray(hotbar)
+	local size = hotbar.height
+	local width = math.min(tray.width, 3 * size + 2 * M.HOTBAR_GAP)
+	local centre = hotbar.x + (index - 1) * (size + M.HOTBAR_GAP) + size / 2
+	local x = math.clamp(centre - width / 2, tray.x, tray.x + tray.width - width)
+	local height = textSize + 8
+	return rect(x, tray.y - 3 - height, width, height)
+end
+
+--- Whether the hotbar and the bottom-left row hide: under a full modal sheet (`playerGui` shows one,
+--- e.g. the survivor picker) or while a flagged surface is up (D2c: the hotbar drew over the down
+--- card and under the carcass harvest picker's Leave pill). `attribute` reads a LocalPlayer attribute.
+M.BOTTOM_HIDE_ATTRIBUTES = table.freeze({
+	"ForgeSurvivalSheetOpen",
+	"ForgeExtensionSheetOpen",
+	"ForgeDownPanelOpen",
+	"ForgeCarcassPickerOpen",
+})
+function M.bottomHidden(playerGui: any, attribute: (string) -> any): boolean
+	for _, name in M.BOTTOM_HIDE_ATTRIBUTES do
+		if attribute(name) == true then
+			return true
+		end
+	end
+	return M.sheetOpen(playerGui)
 end
 
 function M.overlaps(a: Rect, b: Rect): boolean
@@ -337,7 +452,18 @@ end
 
 -- HUD regions a world label must never draw over (studio-after defects 10 and 11: billboard text ran
 -- across the minimap, the quest card and the hotbar). The minimap grows by its bezel.
-M.LABEL_BLOCKERS = table.freeze({ "vitals", "chips", "coords", "quest", "questToggle", "hotbar", "row", "cluster" })
+-- `hotbarFrame` is the framed tray plus the selected slot's name tooltip above it (hud2).
+M.LABEL_BLOCKERS = table.freeze({
+	"vitals",
+	"chips",
+	"coords",
+	"quest",
+	"questToggle",
+	"hotbar",
+	"hotbarFrame",
+	"row",
+	"cluster",
+})
 
 --- True when a label rect (gui space) touches a HUD region of `regions` (M.regions output).
 function M.labelBlocked(r: Rect, regions: any): boolean
@@ -931,7 +1057,12 @@ end
 
 --- Item-gain toast stack (spec section 5: top-right, 0.46-0.58H, three lines) and the level-up
 --- banner (top-centre, the status region). Lines are `caption`-scale but never under 13 px.
-function M.feedback(width: number, height: number, topClear: number?): { toasts: { Rect }, banner: Rect }
+function M.feedback(
+	width: number,
+	height: number,
+	topClear: number?,
+	touch: boolean?
+): { toasts: { Rect }, banner: Rect }
 	local top = topClear or 0
 	local h = height - top
 	local toasts = {}
@@ -939,8 +1070,9 @@ function M.feedback(width: number, height: number, topClear: number?): { toasts:
 	for index = 1, 3 do
 		toasts[index] = rect(width - 1.0 * h, top + 0.46 * h + (index - 1) * line, 0.55 * h, line - 2)
 	end
-	local bannerWidth = math.min(1.4 * h, width - 16)
-	return { toasts = toasts, banner = rect(width / 2 - bannerWidth / 2, top + 0.16 * h, bannerWidth, 0.10 * h) }
+	-- The skill banner takes the contextual banner's top lane (never the screen middle, where the
+	-- player and companion tags draw: p134 v57).
+	return { toasts = toasts, banner = M.regions(width, height, topClear, touch).banner }
 end
 
 -- ---------------------------------------------------------------------------------------------
@@ -1479,6 +1611,10 @@ export type OverlayOptions = {
 	hint: ((string, any) -> string?)?,
 }
 
+-- CollectionService tag on world name tags the contextual banner must never cover (player tags,
+-- pet labels, a pack's companion plate): SurvivalHUD steers the banner around their screen rects.
+M.NAME_TAG = "ForgeNameTag"
+
 -- Tags a pack/server sets on a ground drop or a deployed pet so it gets a label.
 M.DROP_TAG, M.PET_TAG = "ForgeWorldDrop", "ForgeWorldPet"
 
@@ -1749,6 +1885,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		end
 		local tag = Instance.new("BillboardGui")
 		tag.Name, tag.Size, tag.AlwaysOnTop, tag.LightInfluence = "NameTag", UDim2.fromOffset(220, 40), true, 0
+		tag:AddTag(M.NAME_TAG)
 		tag.Parent = ringFolder
 		local nameLine = Instance.new("TextLabel")
 		nameLine.Name, nameLine.BackgroundTransparency, nameLine.Size = "Name", 1, UDim2.new(1, 0, 0, 22)
@@ -1901,7 +2038,11 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					-- overlay the ScreenGui cannot mask).
 					if camera then
 						local inset = options.gui.AbsolutePosition
-						local point, visible = camera:WorldToViewportPoint(entry[1].Position + Vector3.new(0, lift, 0))
+						-- WorldToScreenPoint, not WorldToViewportPoint: AbsolutePosition is measured below the
+						-- top bar (GuiInset), so a viewport point tested every label 58 px (phone) / 36 px (PC)
+						-- under where it draws and labels through the vitals, the quest toggle and hotbar
+						-- slot 1 passed the check (p134 v60 lb4).
+						local point, visible = camera:WorldToScreenPoint(entry[1].Position + Vector3.new(0, lift, 0))
 						if
 							visible
 							and M.labelBlocked(
@@ -1921,6 +2062,12 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					-- One label style for every kind (R05-1 white text): creatures used to get a small coral
 					-- line here plus the client's own nameplate (studio-after defects 8 and 9).
 					text.TextColor3 = color(P.bone)
+					-- Pet / companion labels are name tags the contextual banner steers around.
+					if entry[3] == "pet" then
+						item:AddTag(M.NAME_TAG)
+					else
+						item:RemoveTag(M.NAME_TAG)
+					end
 					local hint = item:FindFirstChild("Hint") :: any
 					hint.Text, hint.Visible = line or "", line ~= nil and line ~= ""
 				end
@@ -2213,7 +2360,7 @@ function M.startPicker(options: PickerOptions): any
 			local h = size.Y - clear
 			local now = os.clock()
 			-- Feedback.
-			local feedback = M.feedback(size.X, size.Y, clear)
+			local feedback = M.feedback(size.X, size.Y, clear, touch)
 			while #toastLines > 0 and now - toastLines[#toastLines].at > 3 do
 				table.remove(toastLines)
 			end

@@ -44,7 +44,7 @@ end
 
 -- Headless panel: SeaChart.panel on a fake Instance tree with the v40 phone numbers (an 800x360
 -- IgnoreGuiInset gui at AbsolutePosition y -54 under a 54 px top bar) and a pushed snapshot.
-local function mountPanel(role: string, snapshot: any): any
+local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): any
 	local made: { any } = {}
 	local function signal(): any
 		local handlers = {}
@@ -126,6 +126,7 @@ local function mountPanel(role: string, snapshot: any): any
 		UDim = roblox.UDim,
 		UDim2 = roblox.UDim2,
 		Vector2 = roblox.Vector2,
+		os = { clock = clock or os.clock },
 		require = function(path: string): any
 			if string.find(path, "Rng$") then
 				return require("../../core/domain/random/Rng")
@@ -158,8 +159,12 @@ local function mountPanel(role: string, snapshot: any): any
 		send = function()
 			return { ok = false }
 		end,
-		dock = function()
-			return { open = function() end }
+		dock = function(entry)
+			return {
+				open = function()
+					entry.setOpen(true)
+				end,
+			}
 		end,
 		onSnapshot = function(callback)
 			callback(snapshot, {})
@@ -182,7 +187,7 @@ local function mountPanel(role: string, snapshot: any): any
 			height = item.Size.Y.Offset,
 		}
 	end
-	return { made = made, find = find, box = box, destroy = handle.destroy }
+	return { made = made, find = find, box = box, destroy = handle.destroy, gui = find("ForgeSeaChart") }
 end
 
 local function layoutOf(id: string): any
@@ -216,6 +221,33 @@ local function openTrip(now: number): any
 end
 
 return {
+	-- p134 v60: the close X sits over the HUD minimap spot, and a minimap tap opens the chart, so a
+	-- second tap there just after closing reopened it. The minimap ignores taps for REOPEN_GUARD.
+	["closing the chart does not reopen it from the minimap tap that lands right after"] = function()
+		local t = 100
+		local panel = mountPanel("harbor", { expedition = harborView(8, 0) }, function()
+			return t
+		end)
+		local gui = assert(panel.gui, "chart gui")
+		local minimap: any = nil
+		for _, item in panel.made do
+			minimap = if item.Name == "MinimapChart" then item else minimap
+		end
+		local close = assert(panel.find("Close"), "close")
+		assert(minimap, "minimap opener")
+		minimap.Activated:Fire()
+		assert(gui.Enabled == true, "a minimap tap opens the chart")
+		close.Activated:Fire()
+		assert(gui.Enabled == false, "X closes it")
+		t += 0.1
+		minimap.Activated:Fire()
+		assert(gui.Enabled == false, "the tap landing on the minimap spot right after the close does not reopen")
+		t += SeaChart.REOPEN_GUARD
+		minimap.Activated:Fire()
+		assert(gui.Enabled == true, "a later minimap tap opens it again")
+		assert(SeaChart.minimapOpens(nil, 0), "never closed: opens")
+		panel.destroy()
+	end,
 	["chart layout: no overlap, touch >= 44 px, text >= 13 px at 800x360, 850x411 and 1920x1080"] = function()
 		for _, v in { VIEWPORTS[1], VIEWPORTS[2], VIEWPORTS[3], SQUEEZED } do
 			local width, height, top = v[1], v[2], v[3]

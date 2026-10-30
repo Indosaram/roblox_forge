@@ -479,6 +479,9 @@ function M.factory(ctx: any): any
 					local created = Instance.new("BillboardGui")
 					created.Name, created.Size = "OpeningName", UDim2.fromOffset(160, 24)
 					created.StudsOffset, created.AlwaysOnTop = Vector3.new(0, 4.5, 0), true
+					-- The HUD's contextual banner steers clear of this plate (p134 v57: the hunger
+					-- line covered half of "텀블 (동료)").
+					created:AddTag("ForgeNameTag")
 					local label = Instance.new("TextLabel")
 					label.Name, label.Size, label.BackgroundTransparency = "Text", UDim2.fromScale(1, 1), 1
 					label.TextColor3, label.TextStrokeTransparency, label.TextScaled = P.bone, 0.4, true

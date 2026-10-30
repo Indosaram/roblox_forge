@@ -327,6 +327,17 @@ local LAND: { [string]: { number } } = {
 	swamp = { 104, 114, 72 },
 }
 
+-- p134 v60: the chart's close X sits where the HUD minimap is, and the minimap opens the chart, so a
+-- second tap on the X spot right after closing reopened it. The minimap ignores taps this long after
+-- a close.
+M.REOPEN_GUARD = 0.4
+
+--- Whether a minimap tap at `now` may open the chart, the last close having been at `closedAt`
+--- (seconds on the same UI clock; nil = never closed).
+function M.minimapOpens(closedAt: number?, now: number): boolean
+	return closedAt == nil or now - closedAt >= M.REOPEN_GUARD
+end
+
 --- Panel factory (ExtensionPanels context plus `text`, `reason`, `biome` and `content`). Opens
 --- from the menu tile, the minimap and the world prompts ForgePanel = sea-chart-dock / -rift.
 function M.panel(ctx: any): any
@@ -665,11 +676,16 @@ function M.panel(ctx: any): any
 			})
 		)
 	end
+	-- UI debounce only (presentation clock, never game logic).
+	local closedAt: number? = nil
 	close.Activated:Connect(function()
+		closedAt = os.clock()
 		setOpen(false, "view")
 	end)
 	minimap.Activated:Connect(function()
-		entries[1].open()
+		if M.minimapOpens(closedAt, os.clock()) then
+			entries[1].open()
+		end
 	end)
 	local stop = ctx.onSnapshot(function(snapshot)
 		latest, received = snapshot, os.clock()

@@ -905,6 +905,44 @@ end
 -- Copy comes from the cli.survivor.* rows of locale/strings.csv.
 M.PICK_ACTION = "survival-coop:mission-action"
 
+-- p134 v60: the first confirm tap did nothing and the second closed the picker. The live session
+-- refuses a command while another one for the actor is in flight (COMMAND_PENDING: here a trade
+-- settlement that surfaced right after the close) and the expedition document answers DOCUMENT_BUSY
+-- during a concurrent read; the confirm dropped any non-ok result. Transient refusals are retried.
+M.CONFIRM_ATTEMPTS = 8
+M.CONFIRM_RETRY_SECONDS = 0.5
+local TRANSIENT = {
+	COMMAND_PENDING = true,
+	DOCUMENT_BUSY = true,
+	SERVER_EVENT_PENDING = true,
+	COMMAND_UNAVAILABLE = true,
+}
+
+--- True when a send result is a refusal that clears by itself (retry the same pick).
+function M.transient(result: any): boolean
+	if type(result) ~= "table" or result.ok == true then
+		return false
+	end
+	local reason = tostring(result.reason or "")
+	return TRANSIENT[reason] == true
+		or string.sub(reason, 1, 16) == "TRANSPORT_FAILED"
+		or (type(result.data) == "table" and result.data.status == "recovering")
+end
+
+--- Sends the survivor pick, retrying transient refusals (`wait(seconds)` between attempts) up to
+--- CONFIRM_ATTEMPTS sends. Returns the last result.
+function M.confirmPick(send: (string, { any }) -> any, id: string, wait: (number) -> ()): any
+	local result: any = nil
+	for attempt = 1, M.CONFIRM_ATTEMPTS do
+		result = send(M.PICK_ACTION, { "survivor", id })
+		if not M.transient(result) or attempt == M.CONFIRM_ATTEMPTS then
+			break
+		end
+		wait(M.CONFIRM_RETRY_SECONDS)
+	end
+	return result
+end
+
 --- Picker rows: { id, text } per preset, the worn one marked. `text(key)` resolves cli.survivor.*.
 function M.pickerRows(presets: { any }, view: any, text: (string) -> string): { { string } }
 	local rows = {}
@@ -1074,6 +1112,7 @@ function M.picker(ctx: any): any
 	local focus: string? = nil
 	local view: any = nil
 	local asked = false
+	local sending = false
 	local connections = {}
 	local cards: { [string]: any } = {}
 	local function template(id: string): Model?
@@ -1215,8 +1254,15 @@ function M.picker(ctx: any): any
 	table.insert(
 		connections,
 		confirm.Activated:Connect(function()
+			if sending then
+				return -- one pick in flight; a repeat tap must not queue a second request
+			end
+			sending = true
+			confirm.AutoButtonColor, confirm.BackgroundTransparency = false, 0.35
 			local id = focus or (if view then view.preset else M.DEFAULT)
-			local result = ctx.send(M.PICK_ACTION, { "survivor", id })
+			local result = M.confirmPick(ctx.send, id, task.wait)
+			sending = false
+			confirm.AutoButtonColor, confirm.BackgroundTransparency = true, 0
 			if result and result.ok then
 				view = { preset = id, chosen = true }
 				render()

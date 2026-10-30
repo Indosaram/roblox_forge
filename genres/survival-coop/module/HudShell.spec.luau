@@ -87,6 +87,201 @@ local function flags(over: any): any
 end
 
 return {
+	-- hud2 (iconfix capture hud-phone-800x360): the hotbar drew bare numbers 1-6 over the ground with
+	-- no slot frames, and each slot's item name sat under the bar, stacking into the next line
+	-- ("돌무더기" over another). Framed tray and slots, icon + count inside the slot, one tooltip.
+	["hud2: hotbar slots are framed, hold icon and count inside, and show one tooltip above the tray"] = function()
+		for _, view: { any } in { { 800, 360, 0, true } :: { any }, { 1280, 720, 36, false } } do
+			local width, height, top, touch = view[1], view[2], view[3], view[4]
+			local r = Shell.regions(width, height, top, touch)
+			local at = string.format(" at %dx%d", width, height)
+			local tray = Shell.hotbarTray(r.hotbar)
+			assert(Shell.inside(tray, width, height, top), "tray inside" .. at)
+			assert(
+				tray.x < r.hotbar.x and tray.x + tray.width > r.hotbar.x + r.hotbar.width,
+				"tray frames the slots" .. at
+			)
+			assert(not Shell.overlaps(tray, r.row) and not Shell.overlaps(tray, r.cluster), "tray clears buttons" .. at)
+			for _, token in r.tokens do
+				assert(not Shell.overlaps(tray, token), "tray clears every action token" .. at)
+			end
+			local inside = Shell.hotbarSlot(r.hotbar.height)
+			local parts: { { any } } = { { "icon", inside.icon }, { "key", inside.key }, { "count", inside.count } }
+			for _, part in parts do
+				local name: string, rect: any = part[1], part[2]
+				assert(
+					rect.x >= 0
+						and rect.y >= 0
+						and rect.x + rect.width <= r.hotbar.height
+						and rect.y + rect.height <= r.hotbar.height,
+					name .. " inside the slot" .. at
+				)
+			end
+			assert(inside.icon.width >= r.hotbar.height * 0.6, "icon fills the slot" .. at)
+			-- One tooltip for the selected slot: above the tray, within its width, under the screen's
+			-- middle band where the character stands (it never covers the player).
+			for index = 1, r.hotbarSlots do
+				local tip = Shell.hotbarTip(r.hotbar, index, 13)
+				assert(tip.y + tip.height <= tray.y, "tooltip above the tray" .. at)
+				assert(tip.x >= tray.x and tip.x + tip.width <= tray.x + tray.width, "tooltip within the tray" .. at)
+				assert(tip.y >= top + 0.62 * (height - top), "tooltip clear of the character" .. at)
+				assert(
+					not Shell.overlaps(tip, r.row) and not Shell.overlaps(tip, r.cluster),
+					"tooltip clears buttons" .. at
+				)
+			end
+		end
+		-- The framed hotbar (tray + selected-slot tooltip) blocks world labels (iconfix frame: the
+		-- stone-pile label "돌무더기 / 맨손" read through the slots).
+		local phone = Shell.regions(800, 360, 0, true)
+		local frame = phone.hotbarFrame
+		local tray = Shell.hotbarTray(phone.hotbar)
+		assert(frame.y < tray.y and frame.y + frame.height == tray.y + tray.height, "frame covers tray and tip")
+		assert(
+			Shell.labelBlocked(Shell.labelRect(580, tray.y + tray.height - 4, "돌무더기", "맨손"), phone),
+			"slots"
+		)
+		assert(Shell.labelBlocked(Shell.labelRect(tray.x + 30, frame.y + 6, "도도"), phone), "tooltip band")
+		local empty, filled, selected =
+			Shell.hotbarLook("empty"), Shell.hotbarLook("filled"), Shell.hotbarLook("selected")
+		assert(empty.fill > filled.fill and filled.fill >= selected.fill, "empty slot dimmed, filled solid")
+		assert(empty.fill < 1 and empty.rimAlpha < 1, "an empty slot still shows its frame")
+		assert(
+			selected.rim == "ochre" and filled.rim ~= "ochre" and selected.rimWidth > filled.rimWidth,
+			"selected slot highlighted"
+		)
+		-- The HUD wires it: a tray, the per-slot count, one HotbarTip.
+		local source = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		for _, needle in
+			{
+				'"HotbarTray"',
+				'"HotbarTip"',
+				'"Count"',
+				"HudShell.hotbarSlot(",
+				"HudShell.hotbarLook(",
+				"HudShell.hotbarTip(",
+			}
+		do
+			assert(string.find(source, needle, 1, true), "SurvivalHUD hotbar uses " .. needle)
+		end
+	end,
+	-- D2c top fix: the hotbar (and the bottom-left row) hid only under the HUD's own sheet; it drew
+	-- over the down card, under the carcass picker's Leave pill and over the survivor picker.
+	["hud2: the hotbar and bottom row hide under any full sheet or picker and return on close"] = function()
+		local attributes: { [string]: any } = {}
+		local function read(name: string): any
+			return attributes[name]
+		end
+		local function gui(enabled: boolean): any
+			local close = { ClassName = "TextButton", Name = "Close" }
+			local header = {
+				ClassName = "Frame",
+				Name = "Header",
+				FindFirstChild = function(_, n)
+					return if n == "Close" then close else nil
+				end,
+			}
+			local frame = {
+				ClassName = "Frame",
+				Name = "SurvivorPicker",
+				Visible = true,
+				FindFirstChild = function(_, n)
+					return if n == "Header" then header else nil
+				end,
+				GetChildren = function()
+					return { header }
+				end,
+			}
+			return {
+				ClassName = "ScreenGui",
+				Name = "ForgeSurvivorPicker",
+				Enabled = enabled,
+				GetChildren = function()
+					return { frame }
+				end,
+			}
+		end
+		local children: { any } = {}
+		local playerGui = {
+			GetChildren = function()
+				return children
+			end,
+		}
+		assert(Shell.bottomHidden(playerGui, read) == false, "shown in play")
+		for _, flag in
+			{
+				"ForgeSurvivalSheetOpen",
+				"ForgeExtensionSheetOpen",
+				"ForgeDownPanelOpen",
+				"ForgeCarcassPickerOpen",
+			}
+		do
+			attributes[flag] = true
+			assert(Shell.bottomHidden(playerGui, read), "hidden under " .. flag)
+			attributes[flag] = nil
+			assert(not Shell.bottomHidden(playerGui, read), "back after " .. flag)
+		end
+		children[1] = gui(true)
+		assert(Shell.bottomHidden(playerGui, read), "hidden under the survivor picker")
+		children[1] = gui(false)
+		assert(not Shell.bottomHidden(playerGui, read), "back once the picker closes")
+		-- SurvivalHUD drives both the hotbar and the bottom-left row from it.
+		local source = require("@lune/fs").readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(source, "HudShell.bottomHidden(", 1, true), "HUD asks bottomHidden")
+		assert(string.find(source, "hotbarStep(bottomHidden)", 1, true), "hotbar follows it")
+		assert(string.find(source, "local rowVisible = not bottomHidden", 1, true), "bottom row follows it")
+	end,
+	-- p134 v57: the hunger banner (status region, 0.16H, screen middle) covered half of the companion
+	-- name tag. Banners now sit in a top lane between the vitals and the minimap/quest card and move
+	-- to the next lane when a shown name tag (or the combat target bar) is in the way.
+	["hud2: contextual banners never overlap world name tags of the player or companion"] = function()
+		local views: { { any } } = { { 800, 360, 0, true }, { 1280, 720, 36, false }, { 1280, 720, 0, false } }
+		for _, view in views do
+			local width, height, top, touch = view[1], view[2], view[3], view[4]
+			local r = Shell.regions(width, height, top, touch)
+			local h = height - top
+			local at = string.format(" at %dx%d", width, height)
+			for _, lane in { r.banner, r.bannerAlt } do
+				assert(lane.width >= 200 and lane.height >= 30, "lane holds two lines" .. at)
+				assert(Shell.inside(lane, width, height, top), "lane inside" .. at)
+				for _, id in REGIONS do
+					if id ~= "status" then
+						assert(not Shell.overlaps(lane, r[id]), "banner lane clears " .. id .. at)
+					end
+				end
+			end
+			-- The v57 frame: the companion tag sat at about 0.15-0.22H, in the old status region; the
+			-- player's own tag hangs under the character mid-screen.
+			local companion = { x = width / 2 - 80, y = top + 0.15 * h, width = 160, height = 26 }
+			local own = { x = width / 2 - 110, y = top + 0.5 * h, width = 220, height = 40 }
+			assert(Shell.overlaps(r.status, companion), "fixture reproduces the v57 overlap" .. at)
+			local chosen = Shell.bannerRect(r, { companion, own })
+			assert(
+				not Shell.overlaps(chosen, companion) and not Shell.overlaps(chosen, own),
+				"banner clears the tags" .. at
+			)
+			assert(chosen.y + chosen.height <= top + 0.15 * h, "default lane is above the tag band" .. at)
+			-- A tag (or the target bar) up in the top lane: the banner takes the left lane instead.
+			local high = { x = r.banner.x + 20, y = r.banner.y, width = 160, height = 26 }
+			local moved = Shell.bannerRect(r, { high, own })
+			assert(
+				not Shell.overlaps(moved, high) and not Shell.overlaps(moved, own),
+				"banner moves off a high tag" .. at
+			)
+			assert(
+				not Shell.overlaps(Shell.feedback(width, height, top, touch).banner, companion),
+				"skill banner clears the companion tag" .. at
+			)
+		end
+		-- Name tags are tagged for the HUD to steer around: player tags, pet labels, the companion plate.
+		local fs = require("@lune/fs")
+		local shell = fs.readFile("genres/survival-coop/module/HudShell.luau")
+		assert(select(2, string.gsub(shell, "AddTag%(M%.NAME_TAG%)", "")) >= 2, "player tag and pet label tagged")
+		local opening = fs.readFile("games/robango-island/src/shared/OpeningClient.luau")
+		assert(string.find(opening, 'AddTag("' .. Shell.NAME_TAG .. '")', 1, true), "companion plate tagged")
+		local hud = fs.readFile("genres/survival-coop/module/SurvivalHUD.luau")
+		assert(string.find(hud, "HudShell.bannerRect(shellRegions", 1, true), "HUD places the banner around tags")
+	end,
 	-- HUD polish (Durango R05/R08): the owner's two target screens, phone 800x360 (CoreUISafeInsets,
 	-- no top clear) and PC 1280x720 (36 px top bar).
 	["HUD polish: compact regions at 800x360 phone and 1280x720 PC"] = function()
@@ -916,6 +1111,8 @@ return {
 				return roblox.Vector3.new(400 + at.X * 5, 180 + at.Z * 3, 10), true
 			end,
 		}
+		-- No top bar in this gui: screen and viewport points coincide.
+		camera.WorldToScreenPoint = camera.WorldToViewportPoint
 		local beats: { (number) -> () } = {}
 		local function signal(list: { any }?)
 			return {
@@ -1008,11 +1205,160 @@ return {
 					"파라사우롤로푸스"
 				)
 			end
-			for _, key in { "minimap", "quest", "hotbar", "cluster", "vitals" } do
+			for _, key in { "minimap", "quest", "questToggle", "hotbar", "hotbarFrame", "cluster", "vitals" } do
 				assert(Shell.labelBlocked(at(r[key]), r), key .. " blocks labels at " .. view[1])
 			end
 			assert(not Shell.labelBlocked(Shell.labelRect(view[1] / 2, view[2] / 2, "도도"), r), "open ground")
 		end
+	end,
+	-- p134 v60 lb4: node labels drew through the vitals panel, under the quest toggle and over hotbar
+	-- slot 1. The skip tested WorldToViewportPoint against regions laid out in gui space, but the HUD
+	-- gui (CoreUISafeInsets) starts under the top bar while its AbsolutePosition reads 0, and a viewport
+	-- point is one bar height (58 px on the phone, Studio probe 331,136 vs screen 331,78) lower than the
+	-- screen point. Every test ran a bar height below where the label draws. Now: the screen point.
+	["v60: world labels skip the vitals, the quest toggle and the framed hotbar under a top bar"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local I, V3 = roblox.Instance, roblox.Vector3
+		local INSET = 58
+		local playerGui = I.new("PlayerGui")
+		local gui = I.new("ScreenGui")
+		gui.AbsoluteSize, gui.ResetOnSpawn, gui.Parent = roblox.Vector2.new(800, 302), false, playerGui
+		gui.AbsolutePosition = roblox.Vector2.zero
+		local r = Shell.regions(800, 302, 0, true)
+		local function centre(region: any, dy: number?): { number }
+			return { region.x + region.width / 2, region.y + region.height / 2 + (dy or 0) }
+		end
+		-- Gui points each node's label draws at, keyed by the node's x stud.
+		local targets: { [number]: { number } } = {
+			[1] = centre(r.vitals),
+			[2] = centre(r.questToggle),
+			[3] = { r.hotbar.x + r.hotbar.height / 2, r.hotbar.y + r.hotbar.height - 6 },
+			[4] = { 400, 140 },
+		}
+		local root = {
+			Position = V3.new(0, 0, 0),
+			CFrame = roblox.CFrame.new(),
+			IsA = function(_, class)
+				return class == "BasePart"
+			end,
+		}
+		local player = {
+			Character = {
+				FindFirstChild = function(_, name)
+					return if name == "HumanoidRootPart" then root else nil
+				end,
+			},
+			WaitForChild = function()
+				return playerGui
+			end,
+		}
+		local nodes = {}
+		for index, key in { "vitals", "toggle", "slot1", "open" } do
+			local node = I.new("Part")
+			node.Position = V3.new(index, 0, 0)
+			node:SetAttribute("ForgeNodeKind", key)
+			table.insert(nodes, node)
+		end
+		local function project(at: any): any
+			local t = targets[math.floor(at.X + 0.5)]
+			return V3.new(t[1], t[2], 10)
+		end
+		local camera = {
+			CFrame = roblox.CFrame.new(0, 40, 30),
+			-- The screen point is where the label draws in this gui; the viewport point is the same
+			-- spot measured from above the top bar (INSET px more).
+			WorldToScreenPoint = function(_, at: any)
+				return project(at), true
+			end,
+			WorldToViewportPoint = function(_, at: any)
+				local p = project(at)
+				return V3.new(p.X, p.Y + INSET, p.Z), true
+			end,
+		}
+		local beats: { (number) -> () } = {}
+		local function signal(list: { any }?)
+			return {
+				Connect = function(_, fn)
+					if list then
+						table.insert(list, fn)
+					end
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local services: { [string]: any } = {
+			Players = {
+				LocalPlayer = player,
+				PlayerRemoving = signal(),
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			CollectionService = {
+				GetTagged = function(_, tag)
+					return if tag == "ForgeSurvivalNode" then nodes else {}
+				end,
+			},
+			Workspace = {
+				CurrentCamera = camera,
+				GetDescendants = function()
+					return {}
+				end,
+				FindFirstChild = function()
+					return nil
+				end,
+			},
+			RunService = { RenderStepped = signal(), Heartbeat = signal(beats) },
+			UserInputService = { TouchEnabled = true },
+			GuiService = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		shell.startOverlays({
+			gui = gui,
+			hidden = function()
+				return false
+			end,
+			name = function(_, key)
+				return key
+			end,
+			coordsText = function()
+				return ""
+			end,
+			tribe = function()
+				return ""
+			end,
+		})
+		beats[1](1)
+		local shown: { [string]: boolean } = {}
+		for _, board in playerGui:FindFirstChild("ForgeWorldLabels"):GetChildren() do
+			if board:IsA("BillboardGui") and board.Enabled then
+				shown[board.Text.Text] = true
+			end
+		end
+		assert(shown.open, "a label over open ground still draws")
+		assert(not shown.vitals, "no label through the vitals panel")
+		assert(not shown.toggle, "no label under the quest toggle")
+		assert(not shown.slot1, "no label over hotbar slot 1")
+		-- The skip set names the framed hotbar (tray + tooltip) and the quest toggle.
+		assert(table.find(Shell.LABEL_BLOCKERS, "hotbarFrame"), "framed hotbar blocks labels")
+		assert(
+			table.find(Shell.LABEL_BLOCKERS, "questToggle") and table.find(Shell.LABEL_BLOCKERS, "vitals"),
+			"blockers"
+		)
 	end,
 	-- studio-after defect 2: the coin icon sat on the amount (the chip had no padding), so the pill
 	-- read as empty. Icon first, then the amount, never overlapping.

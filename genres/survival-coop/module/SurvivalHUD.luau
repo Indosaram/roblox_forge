@@ -2455,12 +2455,51 @@ function M.start(options: Options)
 			return ka < kb
 		end)
 		local size = region.height
+		local inside = HudShell.hotbarSlot(size)
+		local shownSlots = if modal then 0 else (shellRegions.hotbarSlots or 0)
+		-- Framed tray behind the slots (iconfix capture: bare numbers floated over the ground).
+		local tray: any = gui:FindFirstChild("HotbarTray")
+		if not tray then
+			tray = Instance.new("Frame")
+			tray.Name, tray.BorderSizePixel, tray.Active = "HotbarTray", 0, false
+			tray.BackgroundColor3, tray.BackgroundTransparency = HudShell.color(HudShell.PALETTE.ink), 0.45
+			local round = Instance.new("UICorner")
+			round.CornerRadius, round.Parent = UDim.new(0, 10), tray
+			local rim = Instance.new("UIStroke")
+			rim.Color, rim.Thickness, rim.Transparency = HudShell.color(HudShell.PALETTE.driftDark), 1.5, 0.2
+			rim.ApplyStrokeMode, rim.Parent = Enum.ApplyStrokeMode.Border, tray
+			tray.Parent = gui
+		end
+		HudShell.put(
+			tray,
+			HudShell.hotbarTray({
+				x = region.x,
+				y = region.y,
+				width = shownSlots * size + math.max(0, shownSlots - 1) * HudShell.HOTBAR_GAP,
+				height = size,
+			})
+		)
+		tray.Visible = shownSlots > 0
+		-- One name tooltip, for the selected (held) slot only: the per-slot names stacked into each
+		-- other under the bar ("돌무더기" over another line).
+		local tip: any = gui:FindFirstChild("HotbarTip")
+		if not tip then
+			tip = Instance.new("TextLabel")
+			tip.Name, tip.BorderSizePixel, tip.Active = "HotbarTip", 0, false
+			tip.BackgroundColor3, tip.BackgroundTransparency = HudShell.color(HudShell.PALETTE.ink), 0.25
+			tip.TextColor3, tip.Font = HudShell.color(HudShell.PALETTE.bone), Enum.Font.BuilderSansBold
+			tip.TextTruncate = Enum.TextTruncate.AtEnd
+			local round = Instance.new("UICorner")
+			round.CornerRadius, round.Parent = UDim.new(0.5, 0), tip
+			tip.Parent = gui
+		end
+		local bag = Model.bag(model.snapshot)
+		local heldSlot: number? = nil
 		for index = 1, HudShell.HOTBAR_SLOTS do
 			local slot: any = hotbarSlots[index]
 			if not slot then
 				slot = Instance.new("TextButton")
 				slot.Name, slot.Text, slot.AutoButtonColor = "HotbarSlot" .. index, "", false
-				slot.BackgroundColor3 = HudShell.color(HudShell.PALETTE.ink)
 				slot.Font, slot.TextWrapped = Enum.Font.BuilderSansBold, true
 				slot.TextColor3 = HudShell.color(HudShell.PALETTE.bone)
 				local round = Instance.new("UICorner")
@@ -2469,15 +2508,20 @@ function M.start(options: Options)
 				rim.Name, rim.ApplyStrokeMode, rim.Parent = "SlotRim", Enum.ApplyStrokeMode.Border, slot
 				local image = Instance.new("ImageLabel")
 				image.Name, image.BackgroundTransparency, image.ScaleType = "Icon", 1, Enum.ScaleType.Fit
-				image.AnchorPoint, image.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.5)
-				image.Size, image.Parent = UDim2.fromScale(0.78, 0.78), slot
+				image.Parent = slot
 				local key = Instance.new("TextLabel")
 				key.Name, key.BackgroundTransparency, key.Text = "Key", 1, tostring(index)
-				key.Position, key.Size = UDim2.fromOffset(3, 1), UDim2.fromOffset(12, 12)
-				key.Font, key.TextSize = Enum.Font.BuilderSansBold, 11
+				key.Font, key.ZIndex = Enum.Font.BuilderSansBold, 2
 				key.TextColor3, key.TextXAlignment =
 					HudShell.color(HudShell.PALETTE.boneShade), Enum.TextXAlignment.Left
-				key.Parent = slot
+				key.TextYAlignment, key.Parent = Enum.TextYAlignment.Top, slot
+				local count = Instance.new("TextLabel")
+				count.Name, count.BackgroundTransparency, count.Text = "Count", 1, ""
+				count.Font, count.ZIndex = Enum.Font.BuilderSansBold, 2
+				count.TextColor3, count.TextXAlignment =
+					HudShell.color(HudShell.PALETTE.bone), Enum.TextXAlignment.Right
+				count.TextStrokeColor3, count.TextStrokeTransparency = HudShell.color(HudShell.PALETTE.ink), 0.2
+				count.Parent = slot
 				slot.Activated:Connect(function()
 					equipSlot(index)
 				end)
@@ -2492,8 +2536,11 @@ function M.start(options: Options)
 				width = size,
 				height = size,
 			})
-			slot.Visible = not modal and index <= (shellRegions.hotbarSlots or 0)
+			slot.Visible = index <= shownSlots
 			local held = tool ~= nil and tool.Parent == character
+			if held and slot.Visible then
+				heldSlot = index
+			end
 			local catalogId = tool and tool:GetAttribute("ForgeCatalogId")
 			local icon = if tool
 					and options.icons
@@ -2501,16 +2548,36 @@ function M.start(options: Options)
 				then options.icons.item(catalogId)
 				else nil
 			local image = slot:FindFirstChild("Icon") :: ImageLabel
+			HudShell.put(image, inside.icon)
 			image.Image = if icon and icon.image then icon.image else ""
 			-- No painted icon: the tool's first letter, never a blank slot.
 			slot.Text = if tool and image.Image == "" then utf8.char(utf8.codepoint(tool.Name, 1)) else ""
 			slot.TextSize = math.floor(size * 0.4)
-			slot.BackgroundTransparency = if tool then 0.3 else 0.7
+			local key = slot:FindFirstChild("Key") :: TextLabel
+			HudShell.put(key, inside.key)
+			key.TextSize = inside.text
+			-- Stack count inside the slot (bottom right), only when more than one is carried.
+			local amount = if bag and type(catalogId) == "string" then Model.held(bag, catalogId) else 0
+			local count = slot:FindFirstChild("Count") :: TextLabel
+			HudShell.put(count, inside.count)
+			count.TextSize, count.Text = inside.text, if amount > 1 then tostring(amount) else ""
+			local look = HudShell.hotbarLook(if held then "selected" elseif tool then "filled" else "empty")
+			slot.BackgroundColor3 = HudShell.color((HudShell.PALETTE :: any)[look.fillColor])
+			slot.BackgroundTransparency = look.fill
+			key.TextTransparency = look.key
+			slot:SetAttribute("ForgeSlotState", if held then "selected" elseif tool then "filled" else "empty")
 			slot.Active, slot.Interactable = tool ~= nil, tool ~= nil
 			local rim = slot:FindFirstChild("SlotRim") :: UIStroke
-			rim.Color = HudShell.color(if held then HudShell.PALETTE.ochre else HudShell.PALETTE.driftDark)
-			rim.Thickness, rim.Transparency = if held then 2.5 else 1.5, if tool then 0.1 else 0.5
+			rim.Color = HudShell.color((HudShell.PALETTE :: any)[look.rim])
+			rim.Thickness, rim.Transparency = look.rimWidth, look.rimAlpha
 		end
+		local tipText = HudShell.tokenText("caption", shellRegions.safeHeight, input.TouchEnabled)
+		local held = heldSlot and hotbarTools[heldSlot]
+		if held then
+			HudShell.put(tip, HudShell.hotbarTip(region, heldSlot :: number, tipText))
+			tip.Text, tip.TextSize = held.Name, tipText
+		end
+		tip.Visible = held ~= nil
 	end
 	if shell then
 		player:SetAttribute("ForgeHudHotbar", true)
@@ -2537,7 +2604,13 @@ function M.start(options: Options)
 		if not shellRegions then
 			return
 		end
-		hotbarStep(modal or player:GetAttribute("ForgeDownPanelOpen") == true)
+		-- D2c: the hotbar and the bottom-left row hide under any full sheet or flagged picker (down
+		-- panel, carcass harvest picker, survivor picker) and come back when it closes.
+		local bottomHidden = modal
+			or HudShell.bottomHidden(player:FindFirstChild("PlayerGui"), function(attribute: string): any
+				return player:GetAttribute(attribute)
+			end)
+		hotbarStep(bottomHidden)
 		local taming = extensions.taming
 		local companions = if type(taming) == "table" then taming.companions else nil
 		local policy = model.durable
@@ -2573,7 +2646,7 @@ function M.start(options: Options)
 		local caption = ""
 		local primaryRect: any = nil
 		-- The caption pill keeps clear of every other shown token and the hotbar (studio-after defect 3).
-		local captionAvoid: { any } = { shellRegions.hotbar }
+		local captionAvoid: { any } = { shellRegions.hotbarFrame }
 		if not modal then
 			for _, entry in HudShell.tokens(flags) do
 				local item = shellButtons[entry.id]
@@ -2636,7 +2709,7 @@ function M.start(options: Options)
 			shellRegions.cluster
 		)
 		restButton.Visible = false
-		local rowVisible = not modal
+		local rowVisible = not bottomHidden
 		for index, item in pairs(shellRow) do
 			HudShell.put(item, shellRegions.rowSlots[index])
 			item.Visible = rowVisible
@@ -2673,7 +2746,7 @@ function M.start(options: Options)
 				local view = gui.AbsoluteSize
 				shellRegions = HudShell.regions(view.X, view.Y, HudShell.guiClear(gui), input.TouchEnabled)
 				HudShell.put(vitals, shellRegions.vitals)
-				HudShell.put(status, shellRegions.status)
+				HudShell.put(status, shellRegions.banner)
 				local chips = shellRegions.chips
 				HudShell.put(
 					coins,
@@ -2754,6 +2827,41 @@ function M.start(options: Options)
 	-- the sheet's rows (D2b: "pending" top-centre over bag, skills and build). Back to the HUD slots
 	-- when the sheet closes.
 	local laned = false
+	-- p134 v57: the hunger line (status region, 0.16H) covered half of the companion's name tag. The
+	-- contextual banner takes the first lane (HudShell.bannerRect) that misses every shown world name
+	-- tag (HudShell.NAME_TAG: player tags, the companion plate) and the combat target bar.
+	local function placeBanner()
+		if not shell or not shellRegions or not status.Visible then
+			return
+		end
+		local camera = world.CurrentCamera
+		local origin = gui.AbsolutePosition
+		local avoid: { HudShell.Rect } = {}
+		for _, tag in tags:GetTagged(HudShell.NAME_TAG) do
+			local adornee = if tag:IsA("BillboardGui") then (tag.Adornee or tag.Parent) else nil
+			if camera and tag.Enabled and adornee and adornee:IsA("BasePart") then
+				local lift = tag.StudsOffsetWorldSpace + adornee.CFrame:VectorToWorldSpace(tag.StudsOffset)
+				-- Screen point (top-bar inset applied), the same space as the gui's AbsolutePosition.
+				local point, visible = camera:WorldToScreenPoint(adornee.Position + lift)
+				if visible then
+					local size = tag.AbsoluteSize
+					table.insert(avoid, {
+						x = point.X - origin.X - size.X / 2,
+						y = point.Y - origin.Y - size.Y / 2,
+						width = size.X,
+						height = size.Y,
+					})
+				end
+			end
+		end
+		local combat = player.PlayerGui:FindFirstChild("ForgeCombatHUD")
+		local bar = combat and combat:FindFirstChild("TargetBar")
+		if bar and bar:IsA("GuiObject") and bar.Visible then
+			local at = bar.AbsolutePosition - origin
+			table.insert(avoid, { x = at.X, y = at.Y, width = bar.AbsoluteSize.X, height = bar.AbsoluteSize.Y })
+		end
+		HudShell.put(status, HudShell.bannerRect(shellRegions, avoid), status.Parent.AbsolutePosition - origin)
+	end
 	placeNotices = function()
 		if not sheet.frame.Visible then
 			if laned then
@@ -2761,6 +2869,7 @@ function M.start(options: Options)
 				toast.Size, toast.Position = UDim2.new(1, -24, 0, 52), UDim2.new(0, 12, 1, -264)
 				resize()
 			end
+			placeBanner()
 			return
 		end
 		laned = true
