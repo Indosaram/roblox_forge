@@ -586,6 +586,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 				workspace = workspace,
 				Instance = { new = instance },
 				Vector3 = roblox.Vector3,
+				Vector2 = roblox.Vector2,
 				CFrame = roblox.CFrame,
 				Region3 = roblox.Region3,
 				Color3 = roblox.Color3,
@@ -727,6 +728,9 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		["../../../../core/domain/survival/Volcano"] = require("../../../../core/domain/survival/Volcano"),
 		["./BiomeLook"] = forge.games["robango-island"].src.shared.BiomeLook,
 	}, nil)
+	-- R20 rift effects build Instances through engine globals.
+	forge.games["robango-island"].src.shared.RiftFx = load("games/robango-island/src/shared/RiftFx.luau", {}, nil)
+	forge.games["robango-island"].src.shared.Assets = require("../../../../games/robango-island/src/shared/Assets")
 	-- L7 tool meshes: no InsertService here, so load() yields no templates and the genre's
 	-- primitive tools stay; specs inject rows through ToolVisuals.setTemplates.
 	forge.games["robango-island"].src.shared.ToolVisuals =

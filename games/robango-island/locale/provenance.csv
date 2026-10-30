@@ -3141,3 +3141,10 @@ hud.seconds,original,agent:hephaestus/solo-audit,2026-10-30
 exp_depart_body_solo,original,agent:hephaestus/solo-audit,2026-10-30
 hud.panel.harbor_no_buy,original,agent:hephaestus/solo-audit,2026-10-30
 hud.panel.tab.sell_solo,original,agent:hephaestus/solo-audit,2026-10-30
+cli.travel.sail,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.rift,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.loading,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.isle.onboarding,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.isle.town,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.isle.brawl,original,agent:hephaestus/night-R20,2026-10-30
+cli.travel.isle.team-outpost,original,agent:hephaestus/night-R20,2026-10-30

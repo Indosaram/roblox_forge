@@ -136,6 +136,9 @@
       },
       "TitleFlow": {
         "$path": "src/first/TitleFlow.luau"
+      },
+      "TravelScreen": {
+        "$path": "src/first/TravelScreen.luau"
       }
     },
     "ReplicatedStorage": {

@@ -20,6 +20,13 @@ type RGB = { number }
 -- as daytime green and the town as dark teal: the night grade now desaturates hard (-0.55) under a
 -- moon-blue tint and lifts exposure, so every role gets the same readable blue-grey moonlight; the
 -- grade is the only per-frame post effect, so it applies identically on every role world.
+-- Night lane (R17, Studio-tuned at 01:00 on the onboarding camp and the town, PC + phone): the
+-- old grey-white grade plus 24-stud fires washed the camp to white (D2c 2/5). The night is now a
+-- moon blue carried mostly by the light (blue ambient/outdoor ambient/sky shift, a light blue grade
+-- tint, desaturation -0.6, exposure +1.8 so it stays readable), bloom is almost off, and fires are
+-- small saturated
+-- orange pools (range 9, Color follows the cycle) so warm light only sits around fires, torches
+-- and lamps.
 -- stylua: ignore start
 -- L10 (R03-2/R03-3/R05-1): the day grade is a warm late-afternoon haze, muted olive-ochre rather
 -- than clean saturated green: warmer tint and sky shift, a little more contrast and haze.
@@ -27,12 +34,12 @@ local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, o
 	colorShiftTop = { 255, 224, 182 }, colorShiftBottom = { 92, 82, 64 }, decay = { 150, 140, 122 },
 	grade = { brightness = 0.03, contrast = 0.14, saturation = -0.18, tint = { 255, 237, 208 } },
 	density = 0.3, haze = 1.35, glare = 0.3, bloom = 0.08, sunRays = 0.04, starCount = 0,
-	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10 } }
-local NIGHT: any = { brightness = 2.2, exposure = 1.3, ambient = { 120, 140, 190 }, outdoorAmbient = { 130, 162, 236 },
-	colorShiftTop = { 150, 176, 250 }, colorShiftBottom = { 50, 64, 100 }, decay = { 70, 86, 120 },
-	grade = { brightness = 0.04, contrast = 0, saturation = -0.55, tint = { 196, 212, 244 } },
-	fog = { 110, 130, 165 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.3, sunRays = 0, starCount = 3000,
-	water = { 100, 92, 62 }, fire = { brightness = 3, range = 24 } }
+	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10, color = { 255, 150, 70 } } }
+local NIGHT: any = { brightness = 1.6, exposure = 1.8, ambient = { 75, 100, 215 }, outdoorAmbient = { 85, 118, 255 },
+	colorShiftTop = { 100, 128, 255 }, colorShiftBottom = { 30, 40, 80 }, decay = { 60, 76, 120 },
+	grade = { brightness = 0, contrast = 0.1, saturation = -0.6, tint = { 185, 205, 255 } },
+	fog = { 100, 120, 170 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.05, sunRays = 0, starCount = 3000,
+	water = { 100, 92, 62 }, fire = { brightness = 2.2, range = 9, color = { 255, 100, 20 } } }
 -- stylua: ignore end
 -- Sunrise/sunset push the warm grade further toward amber.
 local GOLDEN_TINT = { 255, 214, 172 }
@@ -110,7 +117,7 @@ function M.at(hours: number, fog: RGB, look: any?): any
 		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5),
 		water = mix(NIGHT.water, dayWater, d),
 		fire = { brightness = lerp(DAY.fire.brightness, NIGHT.fire.brightness, n),
-			range = lerp(DAY.fire.range, NIGHT.fire.range, n) },
+			range = lerp(DAY.fire.range, NIGHT.fire.range, n), color = mix(NIGHT.fire.color, DAY.fire.color, d) },
 	}
 	-- stylua: ignore end
 end
@@ -344,7 +351,7 @@ function M.applyFire(light: any, state: any)
 	local host = light.Parent
 	local scale = if host then tonumber(host:GetAttribute(M.FIRE_SCALE)) or 1 else 1
 	light.Brightness, light.Range = state.fire.brightness * scale, state.fire.range * scale
-	light.Shadows = false
+	light.Color, light.Shadows = rgb(state.fire.color), false
 	local glow = host and host:FindFirstChild(M.GLOW)
 	if glow then
 		glow.Enabled = state.fire.brightness >= M.GLOW_FROM
@@ -435,13 +442,20 @@ function M.start(ctx: any): () -> ()
 	volume.Parent = camera
 
 	local fires: { [Instance]: boolean } = {}
+	-- A light that streams in after the last cycle step takes the current fire state at once,
+	-- not its build-time default (a town lamp arriving at night would otherwise stay a day lamp).
+	local current: any = nil
 	local function track(object: Instance)
+		local light: Instance? = nil
 		if object:IsA("PointLight") and M.isFireLight(object) then
-			fires[object] = true
+			light = object
 		elseif object:IsA("Fire") or object.Name == "ForgeEffect" then
-			local light = object.Parent and object.Parent:FindFirstChildOfClass("PointLight")
-			if light then
-				fires[light] = true
+			light = object.Parent and object.Parent:FindFirstChildOfClass("PointLight")
+		end
+		if light then
+			fires[light] = true
+			if current then
+				M.applyFire(light, current)
 			end
 		end
 	end
@@ -511,6 +525,7 @@ function M.start(ctx: any): () -> ()
 		if rays then
 			rays.Enabled = not low
 		end
+		current = state
 		if math.abs(state.fire.brightness - fireBrightness) > 0.05 then
 			fireBrightness = state.fire.brightness
 			for light in fires do

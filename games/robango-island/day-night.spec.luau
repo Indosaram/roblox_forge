@@ -109,7 +109,8 @@ return {
 		end
 		local day, night = DayNight.at(12, FOG), DayNight.at(0, FOG)
 		assert(night.fire.brightness > day.fire.brightness * 2, "fire stronger at night")
-		assert(night.fire.range > day.fire.range, "fire reaches further at night")
+		-- R17 lane: a tighter pool at night (D2c: 24-stud night fires washed the camp white).
+		assert(night.fire.range <= day.fire.range, "night fire pool no wider than by day")
 		assert(DayNight.at(17.5, FOG).golden > 0.5, "golden hour at sunset")
 	end,
 	["night grade turns grass and sand moon blue-grey, not daytime green (D2b R17)"] = function()
@@ -117,11 +118,57 @@ return {
 		local grass, sand = onScreen(night, GRASS), onScreen(night, { 180, 170, 140 })
 		-- D2b captured explore10 grass at 01:00 as green (G - B = 27 on screen): the grade must pull
 		-- green to grey-blue on every role, since grass covers every island.
-		assert(saturation(grass) <= 0.2, "night grass desaturated: " .. saturation(grass))
+		assert(grass[3] > grass[1] and grass[3] > grass[2], "night grass reads moon blue, not green")
 		assert(grass[2] - grass[3] <= 10, "night grass is not green: G - B = " .. grass[2] - grass[3])
 		assert(night.grade.saturation <= -0.4, "night grade desaturates")
 		assert(sand[3] >= sand[1], "night sand reads moon blue")
 		assert(night.exposure >= 1.25, "town night lifted: exposure " .. night.exposure)
+	end,
+	["R17 night lane: deep moon-blue light, small saturated warm fire pools, near-zero bloom"] = function()
+		-- Studio 01:00 (night lane, onboarding camp + town, 800x360 and 1280x720): the old grade
+		-- (grey-white tint, ambient lum ~150, bloom 0.3, 24-stud fires) turned the camp white and the
+		-- town grey-green. The tuned night carries its blue in the light itself.
+		local night = DayNight.at(1, FOG)
+		for _, c in { night.ambient, night.outdoorAmbient, night.colorShiftTop } do
+			assert(c[3] >= 200 and c[3] >= c[1] + 120, "moon-blue light: " .. table.concat(c, ","))
+		end
+		assert(
+			luminance(night.outdoorAmbient) >= 70,
+			"not black: outdoor ambient lum " .. luminance(night.outdoorAmbient)
+		)
+		assert(luminance(night.outdoorAmbient) <= 130, "deep, not a grey wash: " .. luminance(night.outdoorAmbient))
+		local tint = night.grade.tint
+		assert(tint[3] - tint[1] <= 72, "a light grade tint (the light carries the blue, not a heavy filter)")
+		assert(night.bloom <= 0.1, "bloom nearly off at night: " .. night.bloom)
+		assert(night.fire.range <= 12, "fire pools stay local: range " .. night.fire.range)
+		assert(night.fire.brightness >= 2, "fires still read at night")
+		local fire = assert(night.fire.color, "night fire colour")
+		assert(fire[1] == 255 and fire[3] <= 40 and saturation(fire) >= 0.85, "saturated orange fire at night")
+		local dayFire = assert(DayNight.at(12, FOG).fire.color, "day fire colour")
+		assert(saturation(dayFire) < saturation(fire), "day fire is the softer lamp colour")
+	end,
+	["dusk and dawn blend every lit value with no jump"] = function()
+		local fields = { "exposure", "brightness", "bloom" }
+		for _, span in { { 4, 8 }, { 16, 20 } } do
+			local previous = DayNight.at(span[1], FOG)
+			for step = 1, 40 do
+				local state = DayNight.at(span[1] + step * 0.1, FOG)
+				for _, key in fields do
+					assert(math.abs(state[key] - previous[key]) <= 0.2, key .. " jumps at " .. state.clockTime)
+				end
+				for _, key in { "outdoorAmbient", "ambient" } do
+					for i = 1, 3 do
+						assert(math.abs(state[key][i] - previous[key][i]) <= 24, key .. " jumps at " .. state.clockTime)
+					end
+				end
+				local a, b = assert(state.fire.color, "fire colour"), assert(previous.fire.color, "fire colour")
+				for i = 1, 3 do
+					assert(math.abs(a[i] - b[i]) <= 12, "fire colour jumps at " .. state.clockTime)
+				end
+				assert(math.abs(state.fire.range - previous.fire.range) <= 1, "fire range jumps")
+				previous = state
+			end
+		end
 	end,
 	["volcano layouts follow the content storm timeline with ash"] = function()
 		local layout = layoutWith(function(l)

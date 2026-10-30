@@ -546,6 +546,25 @@ local routing = IslandBootstrap.start({
 	end,
 })
 -- BEGIN production world interactions.
+-- R20 travel screen: the client shows the destination's travel screen (and hands it to
+-- TeleportService:SetTeleportGui) as soon as ForgeTravelTo names it; a refused route clears it.
+local TravelScreen = require(game:GetService("ReplicatedFirst"):WaitForChild("TravelScreen"))
+local travelSerial = 0
+local function announceTravel(
+	player: Player,
+	destination: string,
+	route: number?,
+	mode: string,
+	go: () -> (boolean, any)
+): (boolean, any)
+	travelSerial += 1
+	player:SetAttribute(TravelScreen.ATTRIBUTE, TravelScreen.encode(destination, route, mode, travelSerial))
+	local ok, reason = go()
+	if not ok and player.Parent then
+		player:SetAttribute(TravelScreen.ATTRIBUTE, nil)
+	end
+	return ok, reason
+end
 local liveWorld: any = world
 liveWorld.travel = function(player: Player, destination: string, route: number?, extra: any?)
 	local token: string? = nil
@@ -587,7 +606,16 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 		return false,
 			if ok or destination == "next-island" or destination == "archipelago" then "studio_no_teleport" else reason
 	end
-	return routing.travel(player, destination, token)
+	local index = route
+	if destination == "archipelago" then
+		local document = (factory :: any).expeditionStore.snapshot(tostring(player.UserId))
+		local trip = if document then document.archipelago else nil
+		index = if trip then trip.index else route
+	end
+	local from = if (world :: any).sailPoint then (world :: any).sailPoint(tostring(player.UserId)) else nil
+	return announceTravel(player, destination, index, if from == "rift" then "rift" else "sail", function()
+		return routing.travel(player, destination, token)
+	end)
 end
 -- C7 drift isles (G25): when an active drift isle's window ends, its layout regenerates from a
 -- new recorded seed (SeaChart.driftReset) and the actor re-enters the archipelago, whose server
@@ -624,11 +652,15 @@ if worldRole == "archipelago" then
 						player:SetAttribute("ForgeTravelResult", "drift_reset|" .. tostring(reset.data.seed))
 						local party = reset.data.party
 						if routing.travel and player.Parent then
-							routing.travel(
-								player,
-								"archipelago",
-								if party then party.token .. ":drift:" .. tostring(reset.data.seed) else nil
-							)
+							local fresh = (factory :: any).expeditionStore.snapshot(actor)
+							local index = if fresh and fresh.archipelago then fresh.archipelago.index else nil
+							announceTravel(player, "archipelago", index, "rift", function()
+								return routing.travel(
+									player,
+									"archipelago",
+									if party then party.token .. ":drift:" .. tostring(reset.data.seed) else nil
+								)
+							end)
 						end
 					end
 					resetting[actor] = nil
@@ -703,7 +735,9 @@ provision.returnHome = function(actor: string)
 	if not player or not routing.travel then
 		return { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
 	end
-	local ok, reason = routing.travel(player, "home")
+	local ok, reason = announceTravel(player, "home", nil, "rift", function()
+		return routing.travel(player, "home")
+	end)
 	return { ok = ok, reason = reason }
 end
 -- Only server code may request travel. A gameplay interaction must resolve the
@@ -711,7 +745,11 @@ end
 if routing.travel then
 	local travel = Instance.new("BindableFunction")
 	travel.Name = "ForgeTravel"
-	travel.OnInvoke = routing.travel
+	travel.OnInvoke = function(player: Player, destination: string, token: string?)
+		return announceTravel(player, destination, nil, "sail", function()
+			return routing.travel(player, destination, token)
+		end)
+	end
 	travel.Parent = ServerStorage
 end
 -- C1 opening (onboarding role): server-owned beat steps. Boarding the Gannet resolves the

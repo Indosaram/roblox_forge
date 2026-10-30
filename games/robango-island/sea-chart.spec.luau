@@ -7,6 +7,7 @@ local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
 local SeaChart = require("./src/shared/SeaChart")
+local RiftFx = require("./src/shared/RiftFx")
 local Dressing = require("./src/server/WorldDressing")
 local Terrain = require("../../core/domain/island/ArchipelagoTerrain")
 local Archipelago = require("../../core/domain/island/Archipelago")
@@ -580,6 +581,83 @@ return {
 			end
 			assert(world.sailPoint("1") == "rift", id .. " rift in reach")
 			world.destroy()
+		end
+	end,
+	["R20 rift: a swirling ember crater (spinning transparent layers, embers, warm light), not a white slab"] = function()
+		-- D2c Studio: the drift-camp rift read as a flat glowing pink-white slab (R20 2/5). Durango's
+		-- warp hole is a red-orange glowing crack over a dark crater (R20-2/R20-3).
+		local rowNames = { "town.rift-ring", "town.rift-ring__glow", "town.rift-ring__halo" }
+		for _, id in { "rw.a1.s1", "rw.harbor" } do
+			local engine = Engine.new()
+			-- With the rift row loaded (the live case) and without it (headless fallback).
+			for _, loaded in { true, false } do
+				if loaded then
+					local model = engine.newInstance("Model")
+					model.Name = "town.rift-ring"
+					for _, name in rowNames do
+						local mesh = engine.newInstance("MeshPart")
+						mesh.Name, mesh.Size = name, roblox.Vector3.new(4, 2, 4)
+						mesh.Material, mesh.Color = roblox.Enum.Material.Neon, roblox.Color3.fromRGB(150, 236, 220)
+						local light = engine.newInstance("PointLight")
+						light.Parent = mesh
+						mesh.Parent = model
+					end
+					engine.meshes.setTemplates({ ["town.rift-ring"] = model })
+				else
+					engine.meshes.setTemplates({})
+				end
+				local world = engine.role.build(Content, Source, Policy, function()
+					return 0
+				end, id, 1776)
+				local root = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld")
+				local prefix = if id == "rw.harbor" then "HarborRift" else "DriftCamp.rift"
+				local host = root:FindFirstChild(prefix .. ".ForgeRiftFx")
+				assert(host, id .. " rift effect host (loaded=" .. tostring(loaded) .. ")")
+				assert(host.Transparency == 1 and host.CanCollide == false, "the host is invisible")
+				assert(host:GetAttribute("ForgeEffectRank") == 1, "the phone profile keeps the rift effects")
+				local spinning, embers, total = 0, 0, 0
+				for _, item in host:GetDescendants() do
+					if item.ClassName == "ParticleEmitter" then
+						total += item.Rate
+
+						assert(item.Texture ~= "", item.Name .. " uses an uploaded fx texture")
+						if item.Orientation == roblox.Enum.ParticleOrientation.VelocityPerpendicular then
+							assert(item.RotSpeed.Max ~= 0, item.Name .. " spins")
+							local alpha = item.Transparency.Keypoints[2].Value
+							assert(alpha > 0 and alpha < 1, item.Name .. " is partly transparent")
+							spinning += 1
+						else
+							embers += 1
+						end
+					end
+				end
+				assert(spinning >= 3, "layered swirl: " .. spinning .. " spinning layers")
+				-- Studio threw "NumberRange: invalid range" on a reversed RotSpeed (counter-spin layer):
+				-- lune swaps min/max silently, so the ranges RiftFx builds are pinned in order here.
+				for _, layer in RiftFx.LAYERS do
+					local low, high = RiftFx.spinRange(layer.spin)
+					assert(low <= high, layer.name .. " spin range ordered")
+				end
+				assert(embers >= 1, "rising embers")
+				assert(total <= 40, "particle budget per rift: " .. total)
+				local light = host:FindFirstChildOfClass("PointLight")
+				assert(
+					light and light.Color.R > light.Color.B + 0.5 and light.Shadows == false,
+					"one warm unshadowed glow"
+				)
+				assert(host:GetAttribute("ForgeTorch") == true, "the rift light follows the day-night fire cycle")
+				local set = root:FindFirstChild(prefix .. ".set")
+				if loaded and id == "rw.a1.s1" then
+					local glow = assert(set and set:FindFirstChild("town.rift-ring__glow", true), "row glow")
+					assert(glow.Color.R > glow.Color.B + 0.5, "cleft glow is ember red, not teal-white")
+					assert(glow.Transparency > 0, "cleft glow is see-through, not a solid slab")
+					assert(glow:FindFirstChildOfClass("PointLight") == nil, "one light per rift (row light dropped)")
+				elseif not loaded then
+					local fissure = assert(root:FindFirstChild(prefix .. ".fissure"), "fallback fissure")
+					assert(fissure.Color.R > fissure.Color.B + 0.5, "fallback fissure is ember red, not lilac")
+				end
+				world.destroy()
+			end
 		end
 	end,
 }

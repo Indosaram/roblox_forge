@@ -3141,3 +3141,10 @@ hud.seconds,%ss,craft panel duration in seconds,%ss,%s초
 exp_depart_body_solo,Stage 1 of 4. Closes in %s. You return to your home island.,"expedition lane, single-player depart",Stage 1 of 4. Closes in %s. You return to your home island.,4단계 중 1단계. %s 후 마감. 돌아오면 집 섬으로 와요.
 hud.panel.harbor_no_buy,The harbor does not buy this item.,trading post solo sell detail,The harbor does not buy this item.,항구에서는 이 물건을 사지 않아요.
 hud.panel.tab.sell_solo,Sell to the harbor,trading post solo tab,Sell to the harbor,항구에 팔기
+cli.travel.sail,Setting sail for,client travel screen,Setting sail for,출항 중
+cli.travel.rift,Stepping through the rift to,client travel screen,Stepping through the rift to,균열을 지나는 중
+cli.travel.loading,Reaching the island...,client travel screen,Reaching the island...,섬에 다가가는 중...
+cli.travel.isle.onboarding,Castaway Shore,client travel screen island name,Castaway Shore,표류자 해안
+cli.travel.isle.town,Saltmeadow town,client travel screen island name,Saltmeadow town,소금풀밭 마을
+cli.travel.isle.brawl,Brawl arena,client travel screen island name,Brawl arena,난투장
+cli.travel.isle.team-outpost,Team outpost,client travel screen island name,Team outpost,팀 전초기지

@@ -150,6 +150,13 @@ return {
 			MarketplaceService = {},
 			PolicyService = {},
 			TeleportService = {},
+			-- R20: the server reads the travel-screen channel (TravelScreen.ATTRIBUTE) from ReplicatedFirst.
+			ReplicatedFirst = {
+				WaitForChild = function(_, name)
+					assert(name == "TravelScreen", "replicated-first module")
+					return require("./src/first/TravelScreen")
+				end,
+			},
 		}
 		local bootForge = table.clone(forge)
 		bootForge.core = table.clone(forge.core)

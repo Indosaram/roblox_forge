@@ -11,8 +11,13 @@ local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
 local Flow = require(script.Parent:WaitForChild("TitleFlow"))
+local Travel = require(script.Parent:WaitForChild("TravelScreen"))
+local TeleportService = game:GetService("TeleportService")
 
 ReplicatedFirst:RemoveDefaultLoadingScreen()
+-- R20: a player arriving from an island hop keeps the travel screen it left with (SetTeleportGui);
+-- read it before anything yields so the hand-over has no blank frame.
+local arrivingGui = TeleportService:GetArrivingTeleportGui()
 
 local player = Players.LocalPlayer
 -- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
@@ -156,7 +161,13 @@ local function loadText(): boolean
 	local rows: { [string]: string } = {}
 	for _, entry in strings:GetEntries() do
 		local key = entry.Key
-		if key == "game_name" or string.sub(key, 1, 10) == "cli.title." then
+		if
+			key == "game_name"
+			or string.sub(key, 1, 10) == "cli.title."
+			or string.sub(key, 1, 11) == "cli.travel."
+			or string.sub(key, 1, 15) == "cli.chart.isle."
+			or string.sub(key, 1, 16) == "cli.chart.biome_"
+		then
 			rows[key] = entry.Values[column] or entry.Values["en-us"] or key
 		end
 	end
@@ -184,6 +195,106 @@ end)
 
 local machine = Flow.machine()
 local stepper: RBXScriptConnection? = nil
+
+-- R20 travel screen: departures announced by the server (LocalPlayer ForgeTravelTo), the
+-- teleport loading GUI, the arrival hand-over and in-place island changes.
+local travelFlow = Travel.flow()
+local travel: Travel.Screen? = nil
+local travelArt: { [string]: string } = {}
+local function travelScreen(): Travel.Screen
+	if not travel then
+		local screen = if arrivingGui
+				and arrivingGui:IsA("ScreenGui")
+				and arrivingGui.Name == Travel.GUI
+			then Travel.adopt(arrivingGui)
+			else Travel.build()
+		screen.gui.Parent = playerGui
+		travel = screen
+	end
+	return travel :: Travel.Screen
+end
+local function travelText(key: string?): string?
+	if not key then
+		return nil
+	end
+	local strings = (text or {}) :: { [string]: string }
+	return strings[key]
+end
+local function placeTravel()
+	if travel then
+		local size = (workspace.CurrentCamera :: Camera).ViewportSize
+		travel.place(size.X, size.Y, math.max(GuiService.TopbarInset.Max.Y, Flow.TOP_INSET))
+	end
+end
+local function onTravel()
+	local info = Travel.parse(player:GetAttribute(Travel.ATTRIBUTE))
+	if not info then
+		-- Cleared: the route was refused after all; the departure screen goes away.
+		if travelFlow.phase == "departing" then
+			travelFlow.cancel()
+		end
+		return
+	end
+	local shared = (game:GetService("ReplicatedStorage"):WaitForChild("Forge") :: any).games["robango-island"].src.shared
+	local Content = require(shared.SurvivalContent) :: any
+	travelArt = require(shared.Assets) :: any
+	local view = Travel.describe(Content, info.island, info.mode)
+	local screen = travelScreen()
+	screen.fill({
+		heading = travelText(view.heading),
+		name = travelText(view.name),
+		biome = travelText(view.biome),
+		art = travelArt[view.art],
+		backdrop = Flow.background(),
+	})
+	placeTravel()
+	screen.gui.Enabled = true
+	travelFlow.depart(os.clock(), workspace:FindFirstChild("ForgeRoleWorld"))
+	-- Roblox shows this GUI while the teleport loads and hands it to the destination's boot.
+	pcall(TeleportService.SetTeleportGui, TeleportService, screen.gui)
+end
+player:GetAttributeChangedSignal(Travel.ATTRIBUTE):Connect(onTravel)
+-- A teleport that fails after the server accepted it lands the player back here: drop the screen.
+player.OnTeleport:Connect(function(state: Enum.TeleportState)
+	if state == Enum.TeleportState.Failed and travelFlow.phase == "departing" then
+		travelFlow.cancel()
+	end
+end)
+camera:GetPropertyChangedSignal("ViewportSize"):Connect(placeTravel)
+if arrivingGui then
+	-- Arrived through a hop: the travel screen stays up over this place's load, then the world
+	-- shows directly (the title already ran on the first island of this session).
+	local screen = travelScreen()
+	screen.gui.Enabled = true
+	placeTravel()
+	travelFlow.arrive(os.clock())
+end
+RunService.RenderStepped:Connect(function()
+	if travelFlow.phase == "idle" then
+		if travel and travel.gui.Enabled then
+			travel.gui.Enabled = false
+		end
+		return
+	end
+	local world = workspace:FindFirstChild("ForgeRoleWorld")
+	local character = player.Character
+	local signals: Flow.Signals = {
+		loaded = game:IsLoaded(),
+		text = text ~= nil,
+		queue = ContentProvider.RequestQueueSize,
+		ground = world ~= nil and world:GetAttribute("ForgeSpawnReady") == true,
+		character = character ~= nil and character:FindFirstChild("HumanoidRootPart") ~= nil,
+		hud = player:GetAttribute("ForgeHudReady") == true,
+	}
+	-- In place the HUD is already built; the new world's ground and the character decide.
+	local ready = signals.ground and signals.character and (travelFlow.phase ~= "arriving" or Flow.ready(signals))
+	local shows = travelFlow.step(os.clock(), world, ready, Flow.progress(signals, 1))
+	local screen = travelScreen()
+	screen.setProgress(travelFlow.progress)
+	screen.setTip(travelText(Travel.TIP_KEYS[travelFlow.tip]) or "")
+	screen.setStatus(travelText("cli.travel.loading") or "")
+	screen.gui.Enabled = shows
+end)
 local function close()
 	if not machine.start() then
 		return
@@ -253,7 +364,9 @@ stepper = RunService.RenderStepped:Connect(function()
 	-- Title: the loading block gives way to Start.
 	tip.Visible, status.Visible, track.Visible = false, false, false
 	start.Visible, settings.Visible = true, true
-	if RunService:IsStudio() and workspace:GetAttribute("ForgeQASkipTitle") == true then
-		close() -- Studio QA only: scenarios that start in-world skip the tap
+	if arrivingGui or (RunService:IsStudio() and workspace:GetAttribute("ForgeQASkipTitle") == true) then
+		-- A hop arrival goes straight into the world (the title ran on the first island);
+		-- Studio QA scenarios that start in-world skip the tap too.
+		close()
 	end
 end)

@@ -77,16 +77,18 @@ return {
 		local noon = SkyCycle.fog(SkyCycle.at(12, FOG), SkyCycle.VISUALS.fog)
 		assert(noon.density >= 0.5, "day fog weather stays thick")
 	end,
-	["night is moonlit and grey-blue, not a saturated blue wash"] = function()
+	["night is moonlit blue light, not a blue filter or a black frame"] = function()
+		-- R17 lane (Studio-tuned): the blue lives in the light (ambients, sky shift); the grade tint
+		-- stays near neutral and fires stay local pools (day-night.spec has the full lane spec).
 		local night = SkyCycle.at(1, FOG)
 		local lum = function(c: { number }): number
 			return 0.2126 * c[1] + 0.7152 * c[2] + 0.0722 * c[3]
 		end
-		assert(lum(night.outdoorAmbient) >= 160, "brighter moonlit outdoor ambient")
-		assert(lum(night.ambient) >= 130, "brighter moonlit ambient")
+		assert(lum(night.outdoorAmbient) >= 70, "moonlit outdoor ambient is not black")
+		assert(lum(night.ambient) >= 60, "moonlit ambient is not black")
 		local tint = night.grade.tint
-		assert(tint[3] - tint[1] <= 48, "grade tint is grey-blue, not saturated blue")
-		assert(night.fire.range >= 24, "fire pools reach further at night")
+		assert(tint[3] - tint[1] <= 72, "a light grade tint, not a saturated blue filter")
+		assert(night.fire.range <= 12, "fire pools stay local at night")
 	end,
 	["warm lights pool at the spawn, the explore camp and the town at night"] = function()
 		local engine = Engine.new()

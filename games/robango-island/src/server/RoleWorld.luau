@@ -17,6 +17,7 @@ local NodeMeshes = require(Forge.games["robango-island"].src.shared.NodeMeshes)
 local MeshTexture = require(Forge.games["robango-island"].src.shared.MeshTexture)
 local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local SkyCycle = require(Forge.games["robango-island"].src.shared.SkyCycle)
+local RiftFx = require(Forge.games["robango-island"].src.shared.RiftFx)
 local TownLife = require("./TownLife")
 local BiomeLook = require(Forge.games["robango-island"].src.shared.BiomeLook)
 -- L7: tools and worn gear render the mesh-tools package (ToolVisuals) through the genre hooks.
@@ -1767,6 +1768,18 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			then CFrame.lookAt(ground, Vector3.new(facing.X, ground.Y, facing.Z))
 			else CFrame.new(ground)
 		local placed = visual or Meshes.place("town.rift-ring", frame, root, id .. ".set")
+		-- R20: a swirling ember crater (layered spinning discs, embers, one warm light) over the
+		-- cleft, and the cleft glow recoloured ember red, instead of a flat white-pink Neon slab.
+		local glows: { BasePart } = {}
+		if placed then
+			for _, item in placed:GetDescendants() do
+				if item:IsA("BasePart") and string.sub(item.Name, -6) == "__glow" then
+					table.insert(glows, item)
+				end
+			end
+		end
+		local fx = RiftFx.build(root, ground, glows, Assets)
+		fx.Name = id .. "." .. RiftFx.HOST
 		if placed then
 			base.Transparency = 1
 			return
@@ -1776,8 +1789,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			y = 7,
 			z = 4,
 		})
-		fissure.Material, fissure.Color = Enum.Material.Neon, Color3.fromRGB(154, 143, 181)
-		fissure.CanCollide, fissure.CanQuery, fissure.Transparency = false, false, 0.15
+		fissure.Material, fissure.Color = Enum.Material.Neon, Color3.fromRGB(table.unpack(RiftFx.CORE))
+		fissure.CanCollide, fissure.CanQuery, fissure.Transparency = false, false, 0.35
 		local ring = part(id .. ".ring", { x = ground.X, y = ground.Y + 4.5, z = ground.Z }, { x = 1, y = 10, z = 10 })
 		ring.Shape, ring.Material = Enum.PartType.Cylinder, Enum.Material.Slate
 		ring.Color, ring.Transparency = Color3.fromRGB(74, 61, 49), 0.6
