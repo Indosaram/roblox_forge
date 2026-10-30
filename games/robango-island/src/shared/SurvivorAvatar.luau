@@ -6,8 +6,9 @@
 -- L6: every preset is kind "rig": the pack's own survivor meshes (assets/blender/gen_survivors.py,
 -- package `mesh-survivors`), four period work outfits on two body types. The server loads the package
 -- once, relays the R15 joints to the preset's body type and welds each mesh piece to its R15 body part;
--- the blank R15 parts turn invisible. The pieces are untextured and coloured per slot from `palette`
--- (MeshPart.Color + Material): no SurfaceAppearance reaches the client. When the package does not load,
+-- the blank R15 parts turn invisible. L6b: every preset carries one painted colour atlas (cloth
+-- patterns, leather, hair, painted face); MeshTexture.bake moves it onto MeshPart.TextureContent, so no
+-- SurfaceAppearance reaches the client. Untextured pieces keep the per-slot `palette` colour. When the package does not load,
 -- the preset falls back to the catalog look below, so a player never spawns as a blank body.
 --
 -- Every catalog id below was checked on 2026-10-27 through
@@ -518,6 +519,10 @@ function M.prepareRigs(package: any, folder: any, bake: (any) -> number): { [str
 			item.CastShadow, item.Massless = part ~= "Anchor", true
 			if part == "Anchor" then
 				item.Transparency = 1
+			elseif item.TextureContent.Uri ~= nil and item.TextureContent.Uri ~= "" then
+				-- L6b: the painted atlas carries the colour; a white base keeps it untinted.
+				item.Color = Color3.new(1, 1, 1)
+				item.Material = Enum.Material.SmoothPlastic
 			else
 				local rgb, material = M.slotStyle(preset, slot :: string)
 				item.Color = Color3.fromRGB(rgb.r, rgb.g, rgb.b)
@@ -919,102 +924,294 @@ function M.pickerNeeded(view: any): boolean
 	return type(view) == "table" and view.chosen == false
 end
 
---- Panel factory (ExtensionPanels context plus `presets` and `text`).
+export type Rect = { x: number, y: number, width: number, height: number }
+
+--- L6b (R02-1/R02-3): character-creation screen geometry for a gui of width x height whose top `top`
+--- pixels belong to the Roblox top bar; `left` (TopbarInset.Min.X) is where the free part of that band
+--- starts. When the band is tall enough the header lives inside it, right of the Roblox buttons. Landscape: a large 3D stage on the left, a 2x2 grid of
+--- archetype cards on the right and one wide confirm button under the cards. Portrait: stage on top,
+--- cards and confirm below. Pure: the picker and the layout spec use the same rectangles.
+function M.pickerLayout(width: number, height: number, top: number, left: number?): any
+	local compact = math.min(width, height) < 500
+	local pad = if compact then 8 else 16
+	local inBand = left ~= nil and top >= 44 and left < width / 2
+	local headerHeight = if inBand then top elseif compact then 40 else 52
+	local headerY = if inBand then 0 else top
+	local header = { x = 0, y = headerY, width = width, height = headerHeight }
+	local close = { x = width - pad - 44, y = headerY + (headerHeight - 44) // 2, width = 44, height = 44 }
+	local titleX = if inBand then (left :: number) + pad else pad
+	local title = { x = titleX, y = headerY, width = close.x - pad - titleX, height = headerHeight }
+	local bodyY = headerY + headerHeight + pad
+	local bodyHeight = height - bodyY - pad
+	local confirmHeight = if compact then 48 else 60
+	local stage: Rect, panel: Rect
+	if width >= height then
+		local stageWidth = math.floor((width - 3 * pad) * 0.42)
+		stage = { x = pad, y = bodyY, width = stageWidth, height = bodyHeight }
+		local px = 2 * pad + stageWidth
+		panel = { x = px, y = bodyY, width = width - px - pad, height = bodyHeight }
+	else
+		local stageHeight = math.floor((bodyHeight - pad) * 0.45)
+		stage = { x = pad, y = bodyY, width = width - 2 * pad, height = stageHeight }
+		local py = bodyY + stageHeight + pad
+		panel = { x = pad, y = py, width = width - 2 * pad, height = height - pad - py }
+	end
+	local confirm =
+		{ x = panel.x, y = panel.y + panel.height - confirmHeight, width = panel.width, height = confirmHeight }
+	local gridHeight = confirm.y - pad - panel.y
+	local cardWidth = (panel.width - pad) // 2
+	local cardHeight = (gridHeight - pad) // 2
+	local cards = {}
+	for index = 0, 3 do
+		table.insert(cards, {
+			x = panel.x + (index % 2) * (cardWidth + pad),
+			y = panel.y + (index // 2) * (cardHeight + pad),
+			width = cardWidth,
+			height = cardHeight,
+		})
+	end
+	local art = math.min(cardHeight - 8, math.floor(cardWidth * 0.45))
+	return {
+		compact = compact,
+		header = header,
+		title = title,
+		close = close,
+		stage = stage,
+		cards = cards,
+		confirm = confirm,
+		-- Inside a card: portrait art on the left, name and outfit note on the right.
+		art = { x = 4, y = 4, width = art, height = art },
+		name = { x = art + 12, y = 6, width = cardWidth - art - 18, height = if compact then 20 else 26 },
+		note = {
+			x = art + 12,
+			y = if compact then 28 else 36,
+			width = cardWidth - art - 18,
+			height = cardHeight - (if compact then 32 else 42),
+		},
+		text = {
+			title = if compact then 20 else 26,
+			name = if compact then 17 else 22,
+			note = if compact then 12 else 15,
+			confirm = if compact then 20 else 24,
+			stageName = if compact then 22 else 32,
+		},
+	}
+end
+
+--- Panel factory (ExtensionPanels context plus `presets` and `text`). L6b: a full-screen
+--- character-creation screen (R02): a large turning 3D preview, archetype cards with a live
+--- portrait of each painted survivor and one clear confirm button.
 function M.picker(ctx: any): any
 	local player = game:GetService("Players").LocalPlayer
+	local replicated = game:GetService("ReplicatedStorage")
+	local guiService = game:GetService("GuiService")
 	local gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder, gui.Enabled = "ForgeSurvivorPicker", false, 26, false
+	gui.IgnoreGuiInset, gui.ZIndexBehavior = true, Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
-	local sheet = ctx.ui.components.modalSheet(ctx.ui.theme.default, {
-		name = "SurvivorPicker",
-		title = ctx.text("title"),
-		parent = gui,
-	})
-	assert(ctx.fitSheet, "SURVIVOR_SHEET_REQUIRED")(sheet.frame)
-	sheet.frame.Visible = true
-	local intro = ctx.ui.components.label(ctx.ui.theme.default, {
-		text = ctx.text("intro"),
-		size = UDim2.new(1, 0, 0, 40),
-		parent = sheet.scroll,
-	})
-	intro.TextWrapped, intro.LayoutOrder = true, 0
-	-- L6 (R02-1): a turning 3D preview of the highlighted survivor above the rows. A row tap
-	-- previews; the confirm button under the preview saves the choice.
-	local stage = Instance.new("ViewportFrame")
-	stage.Name, stage.LayoutOrder, stage.Size = "SurvivorPreview", 0, UDim2.new(1, 0, 0, 220)
-	stage.BackgroundColor3, stage.BorderSizePixel = Color3.fromRGB(46, 40, 34), 0
+	local INK, CREAM, GOLD = Color3.fromRGB(16, 13, 10), Color3.fromRGB(240, 230, 210), Color3.fromRGB(242, 182, 48)
+	local function box(class: string, name: string, parent: Instance, color: Color3?): any
+		local item = Instance.new(class) :: any
+		item.Name, item.BorderSizePixel = name, 0
+		if color then
+			item.BackgroundColor3 = color
+		else
+			item.BackgroundTransparency = 1
+		end
+		item.Parent = parent
+		return item
+	end
+	local function text(name: string, parent: Instance, color: Color3): TextLabel
+		local item = box("TextLabel", name, parent) :: TextLabel
+		item.Font, item.TextColor3, item.TextXAlignment = Enum.Font.GothamBold, color, Enum.TextXAlignment.Left
+		item.TextWrapped, item.TextTruncate = true, Enum.TextTruncate.AtEnd
+		return item
+	end
+	local function round(item: Instance, radius: number)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius, corner.Parent = UDim.new(0, radius), item
+	end
+	local function put(item: any, rect: Rect)
+		item.Position, item.Size = UDim2.fromOffset(rect.x, rect.y), UDim2.fromOffset(rect.width, rect.height)
+	end
+	-- Root: a dedicated screen over the world (HudShell.sheetOpen sees Header > Close and hides the HUD).
+	local root = box("Frame", "SurvivorPicker", gui, Color3.fromRGB(26, 22, 18))
+	root.Size = UDim2.fromScale(1, 1)
+	local header = box("Frame", "Header", root, INK)
+	local title = text("Title", header, CREAM)
+	title.Text, title.TextWrapped, title.TextYAlignment = ctx.text("title"), false, Enum.TextYAlignment.Center
+	local close = box("TextButton", "Close", header, Color3.fromRGB(176, 52, 40)) :: TextButton
+	close.Text, close.Font, close.TextColor3, close.TextSize = "X", Enum.Font.GothamBold, CREAM, 20
+	round(close, 22)
+	-- Stage: warm backdrop, floor disc and the highlighted survivor turning slowly in a 3/4 view.
+	local backdrop = box("Frame", "Backdrop", root, Color3.fromRGB(255, 255, 255))
+	round(backdrop, 8)
+	local shade = Instance.new("UIGradient")
+	shade.Color = ColorSequence.new(Color3.fromRGB(92, 76, 56), Color3.fromRGB(28, 24, 20))
+	shade.Rotation, shade.Parent = 90, backdrop
+	local stage = box("ViewportFrame", "SurvivorPreview", backdrop) :: ViewportFrame
+	stage.Size = UDim2.fromScale(1, 1)
 	stage.Ambient, stage.LightColor, stage.LightDirection =
-		Color3.fromRGB(196, 186, 172), Color3.fromRGB(255, 244, 228), Vector3.new(-0.4, -0.8, 0.6)
-	stage.Parent = sheet.scroll
+		Color3.fromRGB(150, 140, 128), Color3.fromRGB(255, 242, 222), Vector3.new(-0.5, -0.7, 0.5)
 	local camera = Instance.new("Camera")
 	camera.FieldOfView, camera.Parent = 30, stage
+	-- Framed from the first frame (the sway below only moves it; a busy client may skip ticks).
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0.7, -9.6), Vector3.new(0, -0.1, 0))
 	stage.CurrentCamera = camera
+	local floor = Instance.new("Part")
+	floor.Shape, floor.Anchored, floor.Size = Enum.PartType.Cylinder, true, Vector3.new(0.2, 4.2, 4.2)
+	floor.CFrame = CFrame.new(0, -2.46, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	floor.Color, floor.Material, floor.Parent = Color3.fromRGB(64, 52, 40), Enum.Material.SmoothPlastic, stage
+	local stageName = text("StageName", backdrop, CREAM)
+	stageName.TextYAlignment = Enum.TextYAlignment.Bottom
+	local stageStroke = Instance.new("UIStroke")
+	stageStroke.Color, stageStroke.Thickness, stageStroke.Parent = Color3.fromRGB(0, 0, 0), 2, stageName
+	local confirm = box("TextButton", "Survivor-confirm", root, GOLD) :: TextButton
+	confirm.Text, confirm.Font, confirm.TextColor3 = ctx.text("confirm"), Enum.Font.GothamBold, INK
+	round(confirm, 8)
 	local shown: Model? = nil
-	local yaw = 0
+	local clock = 0
 	local focus: string? = nil
-	local confirm = ctx.ui.components.button(ctx.ui.theme.default, {
-		text = ctx.text("confirm"),
-		size = UDim2.new(1, 0, 0, 48),
-		parent = sheet.scroll,
-	})
-	confirm.Name, confirm.LayoutOrder = "Survivor-confirm", #ctx.presets + 1
+	local view: any = nil
+	local asked = false
+	local connections = {}
+	local cards: { [string]: any } = {}
+	local function template(id: string): Model?
+		local folder = replicated:FindFirstChild(M.RIG_FOLDER)
+		return if folder then folder:FindFirstChild(id) :: any else nil
+	end
+	local function render()
+		local current = if view then view.preset else nil
+		for id, card in cards do
+			local picked = id == focus
+			card.frame.BackgroundColor3 = if picked then Color3.fromRGB(78, 64, 42) else Color3.fromRGB(48, 42, 34)
+			card.stroke.Color = if picked then GOLD else Color3.fromRGB(96, 84, 66)
+			card.stroke.Thickness = if picked then 3 else 1
+			card.name.Text = ctx.text(id) .. (if id == current then " (" .. ctx.text("current") .. ")" else "")
+		end
+		stageName.Text = if focus then ctx.text(focus) else ""
+	end
 	local function preview(id: string)
 		focus = id
 		if shown then
 			shown:Destroy()
 			shown = nil
 		end
-		local rigFolder = game:GetService("ReplicatedStorage"):FindFirstChild(M.RIG_FOLDER)
-		local template = rigFolder and rigFolder:FindFirstChild(id)
-		if template then
-			local model = template:Clone()
+		local source = template(id)
+		if source then
+			local model = source:Clone()
 			model:PivotTo(CFrame.new())
 			model.Parent = stage
 			shown = model
 		end
-		stage.Visible = shown ~= nil
+		render()
 	end
-	local view: any = nil
-	local asked = false
-	local connections = {}
-	local buttons: { [string]: TextButton } = {}
-	local function render()
-		for _, row in M.pickerRows(ctx.presets, view, ctx.text) do
-			local button = buttons[row[1]]
-			if button then
-				button.Text = row[2]
-				button.BorderSizePixel = if row[1] == focus then 2 else 0
+	local function portraits()
+		for id, card in cards do
+			if card.figure then
+				continue
+			end
+			local source = template(id)
+			if source then
+				local model = source:Clone()
+				model:PivotTo(CFrame.new())
+				model.Parent = card.art
+				card.figure = model
 			end
 		end
+		if focus and not shown then
+			preview(focus)
+		end
+	end
+	for index, preset in ctx.presets do
+		local id = preset.id
+		local frame = box("TextButton", "Survivor-" .. id, root, Color3.fromRGB(48, 42, 34)) :: TextButton
+		frame.Text, frame.AutoButtonColor = "", true
+		round(frame, 8)
+		local stroke = Instance.new("UIStroke")
+		stroke.ApplyStrokeMode, stroke.Parent = Enum.ApplyStrokeMode.Border, frame
+		local art = box("ViewportFrame", "Portrait", frame, Color3.fromRGB(70, 58, 44)) :: ViewportFrame
+		art.Ambient, art.LightColor, art.LightDirection =
+			Color3.fromRGB(150, 140, 128), Color3.fromRGB(255, 242, 222), Vector3.new(-0.5, -0.6, 0.6)
+		round(art, 6)
+		local lens = Instance.new("Camera")
+		-- Head and shoulders, a little to the side (R02-1 portrait tile).
+		lens.FieldOfView = 30
+		lens.CFrame = CFrame.lookAt(Vector3.new(0.9, 1.95, -2.7), Vector3.new(0, 1.62, 0))
+		lens.Parent, art.CurrentCamera = art, lens
+		local name = text("Name", frame, CREAM)
+		local note = text("Note", frame, Color3.fromRGB(206, 192, 166))
+		note.Text, note.Font, note.TextYAlignment = ctx.text(id .. "_note"), Enum.Font.Gotham, Enum.TextYAlignment.Top
+		cards[id] = { frame = frame, stroke = stroke, art = art, name = name, note = note, order = index }
+		table.insert(
+			connections,
+			frame.Activated:Connect(function()
+				preview(id)
+			end)
+		)
+	end
+	local function layout()
+		local size = gui.AbsoluteSize
+		local inset = guiService.TopbarInset
+		local L = M.pickerLayout(size.X, size.Y, if inset then inset.Max.Y else 0, if inset then inset.Min.X else nil)
+		-- The header bar always starts at the screen top (behind the Roblox buttons when it sits below
+		-- the band); title and X keep their own rectangles.
+		header.Position = UDim2.fromOffset(0, 0)
+		header.Size = UDim2.fromOffset(L.header.width, L.header.y + L.header.height)
+		put(title, L.title)
+		put(close, L.close)
+		title.TextSize, close.TextSize = L.text.title, L.text.title
+		put(backdrop, L.stage)
+		put(stageName, {
+			x = 12,
+			y = L.stage.height - L.text.stageName - 14,
+			width = L.stage.width - 24,
+			height = L.text.stageName + 4,
+		})
+		stageName.TextSize = L.text.stageName
+		put(confirm, L.confirm)
+		confirm.TextSize = L.text.confirm
+		for _, card in cards do
+			put(card.frame, L.cards[card.order])
+			put(card.art, L.art)
+			put(card.name, L.name)
+			put(card.note, L.note)
+			card.name.TextSize, card.note.TextSize = L.text.name, L.text.note
+		end
+	end
+	layout()
+	table.insert(connections, gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout))
+	table.insert(connections, guiService:GetPropertyChangedSignal("TopbarInset"):Connect(layout))
+	-- The rig templates replicate after the server loads the package: fill the art when they arrive.
+	local function watch(folder: Instance)
+		table.insert(connections, folder.ChildAdded:Connect(portraits))
+		task.defer(portraits)
+	end
+	table.insert(
+		connections,
+		replicated.ChildAdded:Connect(function(child)
+			if child.Name == M.RIG_FOLDER then
+				watch(child)
+			end
+		end)
+	)
+	local existing = replicated:FindFirstChild(M.RIG_FOLDER)
+	if existing then
+		watch(existing)
 	end
 	table.insert(
 		connections,
 		game:GetService("RunService").RenderStepped:Connect(function(dt: number)
 			if gui.Enabled and shown then
-				yaw += dt * 0.6
-				-- 3/4 view about two body heights away (R02-1), turning slowly.
-				local eye = Vector3.new(math.sin(yaw) * 12, 0.8, -math.cos(yaw) * 12)
+				clock += dt
+				-- 3/4 front view, the whole figure on its floor disc (R02-1), swaying slowly between
+				-- both 3/4 sides so the face and the outfit front stay in view.
+				local yaw = 0.55 * math.sin(clock * 0.45)
+				local eye = Vector3.new(math.sin(yaw) * 9.6, 0.7, -math.cos(yaw) * 9.6)
 				camera.CFrame = CFrame.lookAt(eye, Vector3.new(0, -0.1, 0))
 			end
 		end)
 	)
-	for index, row in M.pickerRows(ctx.presets, view, ctx.text) do
-		local id = row[1]
-		local button = ctx.ui.components.button(ctx.ui.theme.default, {
-			text = row[2],
-			size = UDim2.new(1, 0, 0, 48),
-			parent = sheet.scroll,
-		})
-		button.Name, button.LayoutOrder, button.TextWrapped = "Survivor-" .. id, index, true
-		buttons[id] = button
-		table.insert(
-			connections,
-			button.Activated:Connect(function()
-				preview(id)
-				render()
-			end)
-		)
-	end
 	table.insert(
 		connections,
 		confirm.Activated:Connect(function()
@@ -1029,7 +1226,7 @@ function M.picker(ctx: any): any
 	)
 	table.insert(
 		connections,
-		sheet.close.Activated:Connect(function()
+		close.Activated:Connect(function()
 			gui.Enabled = false
 		end)
 	)

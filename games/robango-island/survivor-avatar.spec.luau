@@ -315,6 +315,67 @@ return {
 		assert(not ok and why == "RIG_NOT_LOADED" and not applied, "no package: nothing changes (catalog look follows)")
 		assert(Survivor.figure("npc.pip", {} :: any) == nil, "no figure before the package loads")
 	end,
+	-- L6b: the picker is a full character-creation screen; its geometry is pure (pickerLayout).
+	["L6b picker layout: big stage, four cards, confirm, nothing overlaps at phone, PC and portrait"] = function()
+		local function inside(r: any, w: number, h: number, what: string)
+			assert(r.x >= 0 and r.y >= 0 and r.x + r.width <= w and r.y + r.height <= h, what .. " inside the screen")
+		end
+		local function overlaps(a: any, b: any): boolean
+			return a.x < b.x + b.width and b.x < a.x + a.width and a.y < b.y + b.height and b.y < a.y + a.height
+		end
+		-- { width, height, top bar height, top bar free-band start (TopbarInset.Min.X) }
+		local screens = {
+			{ 799, 339, 58, 164 },
+			{ 800, 360, 58, nil },
+			{ 1280, 720, 58, 164 },
+			{ 1279, 720, 36, 120 },
+			{ 412, 860, 58, 164 },
+		}
+		for _, screen in screens do
+			local w, h = screen[1], screen[2]
+			local L = Survivor.pickerLayout(w, h, screen[3], screen[4])
+			local tag = w .. "x" .. h
+			local boxes = { header = L.header, stage = L.stage, confirm = L.confirm }
+			for index, card in L.cards do
+				boxes["card" .. index] = card
+				assert(card.width >= 120 and card.height >= 56, tag .. " card " .. index .. " is touch sized")
+			end
+			for name, r in boxes do
+				inside(r, w, h, tag .. " " .. name)
+				for other, q in boxes do
+					assert(name == other or not overlaps(r, q), tag .. " " .. name .. " overlaps " .. other)
+				end
+			end
+			if L.header.y < screen[3] then
+				-- Header inside the top bar band: the title starts right of the Roblox buttons.
+				assert(L.title.x >= (screen[4] or math.huge), tag .. " title clears the Roblox buttons")
+			end
+			assert(L.stage.y >= screen[3], tag .. " stage clears the top bar")
+			assert(not overlaps(L.close, L.title), tag .. " title clears the close button")
+			assert(L.close.width >= 44 and L.confirm.height >= 48, tag .. " close and confirm are touch sized")
+			-- The stage is the largest element (R02-1: the figure takes 30-45% of the width).
+			assert(L.stage.width * L.stage.height >= 3 * L.cards[1].width * L.cards[1].height, tag .. " large stage")
+			if w > h then
+				assert(L.stage.width >= 0.38 * w and L.stage.height >= 0.6 * h, tag .. " stage size")
+			end
+			-- Card art, name and note sit inside the card and do not overlap each other.
+			local cw, ch = L.cards[1].width, L.cards[1].height
+			for name, r in { art = L.art, name = L.name, note = L.note } do
+				inside(r, cw, ch, tag .. " card " .. name)
+			end
+			assert(not overlaps(L.art, L.name) and not overlaps(L.name, L.note), tag .. " card parts disjoint")
+			assert(L.name.width >= 60, tag .. " card name has room")
+		end
+	end,
+	["L6b painted survivors: textured pieces are not tinted and the picker builds card art"] = function()
+		local fs = require("@lune/fs")
+		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")
+		assert(string.find(source, "item.TextureContent.Uri", 1, true), "textured pieces keep a white base")
+		assert(string.find(source, '"Portrait"', 1, true), "each card carries portrait art")
+		assert(string.find(source, '"Survivor-confirm"', 1, true), "one confirm button")
+		local generator = fs.readFile("games/robango-island/assets/blender/gen_survivors.py")
+		assert(string.find(generator, "embed_textures=True", 1, true), "the package embeds its atlases")
+	end,
 	["L6 wiring: the wardrobe loads the rig package and NPCs and castaways reuse the figures"] = function()
 		local fs = require("@lune/fs")
 		local source = fs.readFile("games/robango-island/src/shared/SurvivorAvatar.luau")

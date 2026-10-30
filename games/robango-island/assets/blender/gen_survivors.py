@@ -10,8 +10,10 @@ named "<R15Part>__<slot>__<preset>" (unique across the package). The geometry is
 (characterR15.rbxm, scale 1: HumanoidRootPart centre at the origin, joints below), so the runtime
 welds each piece to its body part at the offset it has here. The piece "Anchor" is a tiny
 octahedron centred on the rig origin: the runtime measures every piece against it, which makes
-the fit independent of where the importer puts the model. Pieces carry no texture: the runtime
-colours them per slot (MeshPart.Color + Material), so no SurfaceAppearance is ever needed.
+the fit independent of where the importer puts the model.
+L6b: every preset is painted (survivor_paint.py: woven cloth patterns, folds, leather, painted face,
+hair strands, form light and occlusion) and baked into ONE colour atlas per preset; all pieces of a
+preset share it. The runtime moves it onto MeshPart.TextureContent (MeshTexture.bake).
 Shapes are our own and code-authored; nothing was traced from the reference game. No weapons,
 insignia, badges or uniform cuts; no cords or loops at the neck. Seed 6060.
 """
@@ -29,6 +31,7 @@ from mathutils import Vector
 
 import common as C
 import survivor_geo as G
+import survivor_paint as P
 
 SEED = 6060
 PACKAGE = "RobangoSurvivors"
@@ -37,7 +40,8 @@ PACKAGE = "RobangoSurvivors"
 WAIST, NECK, SHOULDER, ELBOW, WRIST = 0.05, 1.65, 1.413, 0.685, -0.075
 HIP, KNEE, ANKLE, FLOOR = -0.35, -1.172, -2.098, -2.35
 
-# Preview colours only; the shipped colours live in SurvivorAvatar.luau PRESETS[*].palette.
+# Base colours of the baked atlases (sRGB). SurvivorAvatar.luau PRESETS[*].palette keeps the
+# untextured fallback colours; they follow these.
 PREVIEW = {
     "skin": "#c08f6c", "skin_dark": "#7c5640", "skin_light": "#e2bc9c", "eye": "#2a211c",
     "lip": "#9a5a4a", "brow": "#3a2a1e", "hair": "#4a3222", "hair_dark": "#231a14",
@@ -49,9 +53,9 @@ PREVIEW = {
 BODY = {
     # x: arm centre line; hip: thigh centre; scale factors for girth.
     "A": {"arm_x": 0.56, "hip_x": 0.2, "g": 1.0, "chest": 0.45, "waist": 0.35, "hips": 0.37,
-          "arm": 0.12, "fore": 0.09, "thigh": 0.19, "calf": 0.13, "head": 1.0},
+          "arm": 0.12, "fore": 0.09, "thigh": 0.19, "calf": 0.13, "head": 1.08},
     "B": {"arm_x": 0.5, "hip_x": 0.2, "g": 0.9, "chest": 0.39, "waist": 0.29, "hips": 0.38,
-          "arm": 0.1, "fore": 0.078, "thigh": 0.19, "calf": 0.12, "head": 0.95},
+          "arm": 0.1, "fore": 0.078, "thigh": 0.19, "calf": 0.12, "head": 1.03},
 }
 
 PRESETS = {
@@ -63,6 +67,33 @@ PRESETS = {
                 "legs": "trousers", "boots": "ankle", "hat": "brim", "beard": False},
     "drifter": {"body": "A", "skin": "skin", "hair": "short", "top": "rolled", "over": "overalls",
                 "legs": "overall", "boots": "ankle", "hat": "cap", "beard": True},
+}
+
+
+PALETTES = {
+    "ranger": {"skin": "#ba8e68", "shirt": "#b4a88c", "vest": "#4e3a28", "trousers": "#5a5040",
+               "belt": "#3a2a1c", "boots": "#4a3424", "hair": "#4a3222", "brow": "#2e2016",
+               "iris": "#4a3020", "lip": "#9a5a4a"},
+    "scout": {"skin": "#e4be9e", "shirt": "#8a3e30", "braces": "#33231a", "trousers": "#625a44",
+              "belt": "#3a2a1c", "boots": "#5a3c26", "hair": "#7a4a2a", "brow": "#4a2c1a",
+              "iris": "#3e5a46", "lip": "#a8605a"},
+    "forager": {"skin": "#7c563e", "shirt": "#a89c80", "jacket": "#7e6234", "trousers": "#454a38",
+                "belt": "#3a2a1c", "boots": "#3e2c20", "hair": "#231a14", "brow": "#16100c",
+                "hat": "#5e4e36", "band": "#2a1e14", "iris": "#2a1a10", "lip": "#7a4436"},
+    "drifter": {"skin": "#a07050", "shirt": "#a8a492", "overall": "#34496a", "trousers": "#34496a",
+                "belt": "#3a2a1c", "boots": "#4a3424", "hair": "#46301f", "brow": "#2a1c12",
+                "hat": "#4a4a46", "iris": "#3a3a46", "lip": "#8a5444"},
+}
+
+# Woven patterns per slot (no camouflage, no insignia).
+LOOKS = {
+    "ranger": {"shirt": {"pattern": "pinstripe", "accent": "#8a8a96"}, "vest": {"pattern": "tweed", "accent": "#7a6044"},
+               "trousers": {"pattern": "canvas"}},
+    "scout": {"shirt": {"pattern": "check", "accent": "#4a2a24"}, "trousers": {"pattern": "canvas"}},
+    "forager": {"jacket": {"pattern": "canvas"}, "shirt": {"pattern": "pinstripe", "accent": "#9a8a6a"},
+                "trousers": {"pattern": "canvas"}, "hat": {"pattern": "tweed", "accent": "#55493a"}},
+    "drifter": {"overall": {"pattern": "denim"}, "trousers": {"pattern": "denim"},
+                "shirt": {"pattern": "check", "accent": "#7a8090"}, "hat": {"pattern": "tweed", "accent": "#3a3a36"}},
 }
 
 
@@ -151,8 +182,8 @@ def head(fig, b, preset):
     G.ellipsoid(h, None, (0, cy - 0.02, -0.215 * s), (0.032, 0.065, 0.045), nlat=6, nlon=8)  # nose
     for side in (-1, 1):
         G.ellipsoid(h, None, (side * 0.19 * s, cy, 0.02), (0.028, 0.06, 0.045), nlat=5, nlon=8)  # ear
-        G.ellipsoid(fig.bm("Head", "eye"), None, (side * 0.07 * s, cy + 0.045, -0.188 * s), (0.026, 0.017, 0.012), nlat=4, nlon=8)
-        G.ellipsoid(fig.bm("Head", "brow"), None, (side * 0.072 * s, cy + 0.09, -0.195 * s), (0.045, 0.012, 0.016), nlat=4, nlon=8)
+        G.ellipsoid(fig.bm("Head", "eye"), None, (side * 0.07 * s, cy + 0.045, -0.186 * s), (0.032, 0.022, 0.014), nlat=6, nlon=10)
+        G.ellipsoid(fig.bm("Head", "brow"), None, (side * 0.072 * s, cy + 0.095, -0.196 * s), (0.052, 0.017, 0.018), nlat=4, nlon=8)
     G.ellipsoid(fig.bm("Head", "lip"), None, (0, cy - 0.12 * s, -0.19 * s), (0.05, 0.012, 0.014), nlat=4, nlon=8)
     hair = fig.bm("Head", "hair")
     style = preset["hair"]
@@ -331,15 +362,16 @@ def build(name):
         for poly in obj.data.polygons:
             poly.use_smooth = True
         if slot not in mats:
-            m = bpy.data.materials.new(f"{slot}.{name}")
-            m.diffuse_color = (*C.hexlin(PREVIEW.get(preset["skin"] if slot == "skin" else slot, "#808080")), 1.0)
-            m.use_nodes = True
-            m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = m.diffuse_color
-            m.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.85
-            mats[slot] = m
+            mats[slot] = P.material_for(slot, name, PALETTES[name], LOOKS[name], b["head"])
         obj.data.materials.append(mats[slot])
         objs.append(obj)
     return objs
+
+
+def paint(name, objs, out, others):
+    """Bakes the preset's painted slots into one atlas (the Anchor keeps a flat material)."""
+    pieces = [o for o in objs if not o.name.startswith("Anchor")]
+    return P.bake_atlas(pieces, f"{PACKAGE}_{name}", out, size=1024, hide=others)
 
 
 def main():
@@ -355,9 +387,10 @@ def main():
         bpy.context.scene.collection.objects.link(empty)
         for o in objs:
             o.parent = empty
+        atlas = paint(name, objs, out, [o for o in everything if o.type == "MESH"])
         tris = {o.name: C.triangles(o) for o in objs}
         rows[name] = {"row": empty.name, "body": PRESETS[name]["body"], "triangles": sum(tris.values()),
-                      "pieces": sorted(tris)}
+                      "pieces": sorted(tris), "atlas": os.path.basename(atlas)}
         print("built", name, rows[name]["triangles"], "tris", len(objs), "pieces")
         visible = [o for o in objs if not o.name.startswith("Anchor")]
         for other in bpy.context.scene.objects:
@@ -378,8 +411,8 @@ def main():
         object_types={"MESH", "EMPTY"},
         apply_unit_scale=True,
         apply_scale_options="FBX_SCALE_ALL",
-        path_mode="AUTO",
-        embed_textures=False,
+        path_mode="COPY",
+        embed_textures=True,
         bake_anim=False,
         mesh_smooth_type="FACE",
     )
