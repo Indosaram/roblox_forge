@@ -5,7 +5,8 @@
 --   upload-images additionally takes [--limit <n>] [--only <key1,key2,...>]`:
 --   grant        - grant the pack's deploy.yml universe (per --env) Use permission on every
 --                  uploaded asset through the asset-permissions API (Restricted images do not
---                  draw in a published experience without it)
+--                  draw in a published experience without it), plus every mesh/image id
+--                  referenced inside each `kind: model` package (read back via asset delivery)
 --   check        - gate a manifest's provenance (lawful tool/provider, recorded
 --                  recipe and rights, digest matching the artifact bytes on disk)
 --                  and its moderation state. With --quality-profile it additionally
@@ -26,6 +27,7 @@
 local fs = require("@lune/fs")
 local net = require("@lune/net")
 local process = require("@lune/process")
+local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 local task = require("@lune/task")
@@ -1003,6 +1005,32 @@ function M.grantIds(manifest: assetsLib.Manifest): { string }
 	return ids
 end
 
+-- p134 v57: a `kind: model` upload is a package whose MeshParts/SurfaceAppearances/Decals point at
+-- their own mesh and image assets. Those are separate Restricted uploads; the live server refused
+-- 27 of them (AssetDelivery403InvalidPermission) until they were granted too. Nothing local records
+-- them, so `grant` reads each model package back through asset delivery and grants its children.
+local DELIVERY_URL = "https://apis.roblox.com/asset-delivery-api/v1/assetId/"
+
+--- Distinct `rbxassetid://` / `?id=` content ids referenced anywhere inside a model package
+--- (rbxm or rbxmx bytes), in document order.
+function M.packageChildIds(bytes: string): { string }
+	local instances = roblox.deserializeModel(bytes)
+	local xml = roblox.serializeModel(instances, true)
+	for _, instance in instances do
+		instance:Destroy()
+	end
+	local ids, seen = {}, {}
+	for _, pattern in { "rbxassetid://(%d+)", "[?&]id=(%d+)" } do
+		for id in string.gmatch(xml, pattern) do
+			if not seen[id] and (tonumber(id) or 0) > 0 then
+				seen[id] = true
+				table.insert(ids, id)
+			end
+		end
+	end
+	return ids
+end
+
 local function runGrant(options: any, deps: UploadDeps): boolean
 	local env = deps.env or process.env
 	local deployPath = options.packDir .. "/deploy.yml"
@@ -1018,8 +1046,21 @@ local function runGrant(options: any, deps: UploadDeps): boolean
 	end
 	local universe = string.format("%.0f", target.universeId)
 	local ids = M.grantIds(options.manifest)
+	local models = {}
+	for _, asset in options.manifest.assets do
+		if asset.kind == "model" and asset.assetId > 0 and asset.moderation ~= "Rejected" then
+			table.insert(models, asset)
+		end
+	end
 	if options.dryRun then
-		stdio.write(string.format("assets grant: DRY-RUN (%d assets -> universe %s Use)\n", #ids, universe))
+		stdio.write(
+			string.format(
+				"assets grant: DRY-RUN (%d assets + children of %d model packages -> universe %s Use)\n",
+				#ids,
+				#models,
+				universe
+			)
+		)
 		return true
 	end
 	local apiKey, keyName = M.grantApiKey(env)
@@ -1033,7 +1074,73 @@ local function runGrant(options: any, deps: UploadDeps): boolean
 	local wait = deps.wait or function(seconds: number)
 		task.wait(seconds)
 	end
-	local granted, failed = 0, 0
+	local function send(params: any): any
+		local response: any = nil
+		for attempt = 1, STATUS_ATTEMPTS do
+			response = request(params)
+			if response.statusCode ~= 429 or attempt == STATUS_ATTEMPTS then
+				break
+			end
+			wait(math.min(60, math.max(2 ^ (attempt - 1), retryAfterSeconds(response) or 0)))
+		end
+		return response
+	end
+	-- Package download needs legacy-assets read, which the permissions key usually lacks.
+	local deliveryKey = env.ROBLOX_ASSET_API_KEY
+	if deliveryKey == nil or deliveryKey == "" then
+		deliveryKey = env.ROBLOX_API_KEY
+	end
+	if deliveryKey == nil or deliveryKey == "" then
+		deliveryKey = apiKey
+	end
+	local seen, children, discoveryFailed = {}, 0, 0
+	for _, id in ids do
+		seen[id] = true
+	end
+	for _, asset in models do
+		local ok, result = pcall(function(): { string }
+			local located = send({
+				url = DELIVERY_URL .. string.format("%.0f", asset.assetId),
+				method = "GET",
+				headers = { ["x-api-key"] = deliveryKey },
+			})
+			assert(located.ok, string.format("delivery HTTP %d %s", located.statusCode, tostring(located.body)))
+			local location = serde.decode("json", located.body).location
+			assert(type(location) == "string", "delivery has no location")
+			-- Signed CDN URL: deliberately no Open Cloud secret on this request.
+			local bytes = send({ url = location, method = "GET" })
+			assert(bytes.ok, string.format("package download HTTP %d", bytes.statusCode))
+			return M.packageChildIds(bytes.body)
+		end)
+		if ok then
+			for _, id in result do
+				if not seen[id] then
+					seen[id] = true
+					children += 1
+					table.insert(ids, id)
+				end
+			end
+		else
+			discoveryFailed += 1
+			stdio.ewrite(
+				string.format(
+					"asset %s (%.0f): package children not read: %s\n",
+					asset.key,
+					asset.assetId,
+					tostring(result)
+				)
+			)
+		end
+	end
+	stdio.write(
+		string.format(
+			"assets grant: %d package children from %d model packages included (%d packages unreadable)\n",
+			children,
+			#models,
+			discoveryFailed
+		)
+	)
+	local granted, failed = 0, discoveryFailed
 	for first = 1, #ids, M.GRANT_BATCH do
 		local requests = {}
 		for index = first, math.min(first + M.GRANT_BATCH - 1, #ids) do
@@ -1045,19 +1152,12 @@ local function runGrant(options: any, deps: UploadDeps): boolean
 			action = "Use",
 			requests = requests,
 		})
-		local response: any = nil
-		for attempt = 1, STATUS_ATTEMPTS do
-			response = request({
-				url = PERMISSIONS_URL,
-				method = "PATCH",
-				headers = { ["x-api-key"] = apiKey, ["content-type"] = "application/json" },
-				body = body,
-			})
-			if response.statusCode ~= 429 or attempt == STATUS_ATTEMPTS then
-				break
-			end
-			wait(math.min(60, math.max(2 ^ (attempt - 1), retryAfterSeconds(response) or 0)))
-		end
+		local response: any = send({
+			url = PERMISSIONS_URL,
+			method = "PATCH",
+			headers = { ["x-api-key"] = apiKey, ["content-type"] = "application/json" },
+			body = body,
+		})
 		if not response.ok then
 			stdio.ewrite(
 				string.format(

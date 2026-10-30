@@ -6,6 +6,7 @@
 local assetsCommand = require("./assets")
 local assetsLib = require("../lib/assets")
 local fs = require("@lune/fs")
+local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 local tempdir = require("../lib/tempdir")
 
@@ -645,6 +646,93 @@ return {
 			assert(#ids == 2 and ids[1] == 11 and ids[2] == 12, "distinct uploaded, non-rejected ids only")
 			local dry = assetsCommand.run({ "assets", "grant", "--pack-dir", packDir, "--dry-run" }, nil, deps)
 			assert(dry and #sent == 1, "dry run sends nothing")
+		end)
+		if fs.isDir(root) then
+			fs.removeDir(root)
+		end
+		assert(ok, tostring(reason))
+	end,
+	-- p134 v57: a model package's MeshPart/SurfaceAppearance/Decal content ids are separate uploads
+	-- that the live server refuses until they too are granted; grant reads each package back.
+	["assets grant also grants the mesh and image children of model packages"] = function()
+		local root = tempdir.root() .. "/forge-grantkids-" .. serde.hash("sha256", tostring(os.clock())):sub(1, 16)
+		local packDir = root .. "/grantpack"
+		local ok, reason = pcall(function()
+			fs.writeDir(packDir .. "/assets")
+			local rows = { { "creature", "model", "21" }, { "icon", "image", "11" } }
+			local lines = { "assets:" }
+			for _, row in rows do
+				for _, line in
+					{
+						"  - key: " .. row[1],
+						"    kind: " .. row[2],
+						"    tool: forge-procgen",
+						"    source: generated",
+						"    assetId: " .. row[3],
+						"    moderation: Approved",
+					}
+				do
+					table.insert(lines, line)
+				end
+			end
+			fs.writeFile(packDir .. "/assets/manifest.yml", table.concat(lines, "\n") .. "\n")
+			fs.writeFile(
+				packDir .. "/deploy.yml",
+				"environments:\n  staging:\n    universeId: ${FORGE_STAGING_UNIVERSE_ID}\n    placeId: 7\n"
+			)
+			local model = roblox.Instance.new("Model")
+			local mesh = roblox.Instance.new("MeshPart")
+			mesh.MeshId = "rbxassetid://31"
+			mesh.TextureID = "rbxassetid://11" -- already a manifest row: deduped
+			mesh.Parent = model
+			local surface = roblox.Instance.new("SurfaceAppearance")
+			surface.ColorMap = "rbxassetid://32"
+			surface.Parent = mesh
+			local decal = roblox.Instance.new("Decal")
+			decal.Texture = "http://www.roblox.com/asset/?id=33"
+			decal.Parent = model
+			local package = roblox.serializeModel({ model })
+			local patched: { number } = {}
+			local deliveryKeys = {}
+			local deps: any = {
+				env = {
+					FORGE_STAGING_UNIVERSE_ID = "424242",
+					ROBLOX_ASSET_PERMISSIONS_API_KEY = "perm-key",
+					ROBLOX_ASSET_API_KEY = "read-key",
+				},
+				wait = function() end,
+				request = function(params: any): any
+					if
+						params.method == "GET" and string.find(params.url, "asset-delivery-api/v1/assetId/21", 1, true)
+					then
+						table.insert(deliveryKeys, params.headers["x-api-key"])
+						return {
+							ok = true,
+							statusCode = 200,
+							body = serde.encode("json", { location = "https://cdn.test/package21" }),
+						}
+					elseif params.method == "GET" and params.url == "https://cdn.test/package21" then
+						assert(params.headers == nil, "no secret on the CDN request")
+						return { ok = true, statusCode = 200, body = package }
+					end
+					assert(params.method == "PATCH", "unexpected request " .. tostring(params.url))
+					assert(params.headers["x-api-key"] == "perm-key", "permissions key on PATCH")
+					local granted = {}
+					for _, entry in serde.decode("json", params.body).requests do
+						table.insert(patched, entry.assetId)
+						table.insert(granted, entry.assetId)
+					end
+					return { ok = true, statusCode = 200, body = serde.encode("json", { successAssetIds = granted }) }
+				end,
+			}
+			local passed = assetsCommand.run({ "assets", "grant", "--pack-dir", packDir }, nil, deps)
+			assert(passed, "grant passes")
+			assert(#deliveryKeys == 1 and deliveryKeys[1] == "read-key", "one package read with the asset key")
+			table.sort(patched)
+			assert(
+				table.concat(patched, ",") == "11,21,31,32,33",
+				"manifest ids plus deduped package children: " .. table.concat(patched, ",")
+			)
 		end)
 		if fs.isDir(root) then
 			fs.removeDir(root)
