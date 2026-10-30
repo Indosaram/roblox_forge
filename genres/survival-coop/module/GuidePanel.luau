@@ -164,6 +164,36 @@ function M.model(locale: string, data: any): { Sheet.Row }
 	return rows
 end
 
+-- U7: development-grade hero (grade, points bar, guides done / next gate chips) over the rows.
+local HERO = { Grade = true, How = true, Done = true, Locked = true }
+function M.cards(locale: string, data: any, size: number, icons: any): (string, any, (any) -> ())
+	local by = {}
+	for _, row in M.model(locale, data) do
+		by[row.name] = row.text
+	end
+	if not by.Grade then
+		return "", {}, function() end
+	end
+	local points = (data.character or {}).points or 0
+	local grade = Rules.rank(points)
+	local chips = { { icon = icons.ui("success"), text = by.Done } }
+	if by.Locked then
+		table.insert(chips, { icon = icons.ui("locked"), text = by.Locked })
+	end
+	return by.Grade .. by.Done .. (by.Locked or ""),
+		HERO,
+		function(parent)
+			require("./SheetCards").hero(parent, {
+				icon = icons.ui("help"),
+				title = by.Grade,
+				fraction = if grade >= Rules.MAX_RANK then 1 else (points % Rules.RANK_POINTS) / Rules.RANK_POINTS,
+				caption = by.How,
+				chips = chips,
+				size = size,
+			})
+		end
+end
+
 function M.factory(ctx: any): any
 	return Sheet.mount(ctx, {
 		id = "guides",
@@ -173,6 +203,10 @@ function M.factory(ctx: any): any
 		model = function(l, d)
 			d.content, d.names = ctx.content, ctx.names
 			return M.model(l, d)
+		end,
+		cards = function(l, d, size)
+			d.content, d.names = ctx.content, ctx.names
+			return M.cards(l, d, size, ctx.icons)
 		end,
 	})
 end

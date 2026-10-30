@@ -62,6 +62,45 @@ function M.factory(ctx: any): any
 	render = function()
 		clear()
 		for index, chapter in M.model(ctx.content, state, level) do
+			if ctx.cards then
+				-- U7: a chapter card (seal art, title, completed / level badge, summary, checked
+				-- objectives, the gate or refusal in red) above its action button.
+				local lines = {}
+				for _, objective in chapter.objectives do
+					local done = objective.count >= objective.quantity
+					table.insert(lines, {
+						icon = ctx.icons.ui(if done then "success" else "todo"),
+						text = string.format(
+							"%s  %d/%d",
+							ctx.text(objective.textKey),
+							objective.count,
+							objective.quantity
+						),
+						done = done,
+					})
+				end
+				local notes = {}
+				for _, reason in { chapter.reason, errorReason } do
+					if reason and not chapter.completed then
+						table.insert(notes, ctx.text(reason))
+					end
+				end
+				local card = ctx.cards.section(sheet.scroll, {
+					name = "Chapter" .. index,
+					order = index * 2,
+					icon = ctx.icons.item("rw-journal-seal-" .. index),
+					title = ctx.text(chapter.titleKey),
+					badge = if chapter.completed then ctx.text("ALREADY_COMPLETED") else nil,
+					caption = ctx.text(chapter.summaryKey),
+					lines = lines,
+					note = table.concat(notes, "\n"),
+					size = ctx.sheetText("body"),
+				})
+				table.insert(rows, card)
+				if not (chapter.canOpen or chapter.canClaim) then
+					continue
+				end
+			end
 			local lines = { ctx.text(chapter.titleKey), ctx.text(chapter.summaryKey) }
 			for _, objective in chapter.objectives do
 				table.insert(
@@ -76,7 +115,7 @@ function M.factory(ctx: any): any
 				table.insert(lines, ctx.text(errorReason))
 			end
 			local label = components.label(theme, { text = table.concat(lines, "\n"), size = ctx.rowSize(#lines) })
-			label.Parent = sheet.scroll
+			label.Parent = if ctx.cards then nil else sheet.scroll
 			label.LayoutOrder = index * 2
 			label.ZIndex = 52
 			if ctx.fitRow then

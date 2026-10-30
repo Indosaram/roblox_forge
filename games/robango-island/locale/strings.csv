@@ -3088,3 +3088,4 @@ cli.title.tip4,"Drift isles sink back into the sea, so bring home what you find.
 cli.title.tip5,Open the sea chart at the harbor to pick your next island.,client loading tip,Open the sea chart at the harbor to pick your next island.,항구에서 해도를 펼쳐 다음 섬을 고르세요.
 cli.title.tip6,Sell spare goods at the trading post and buy what your camp lacks.,client loading tip,Sell spare goods at the trading post and buy what your camp lacks.,남는 물건은 교역소에 팔고 캠프에 필요한 것을 사세요.
 fct.inbox_empty_hint,"Market sales, crafted goods and expedition rewards arrive here.",genre text fct,"Market sales, crafted goods and expedition rewards arrive here.","장터 판매 대금, 완성된 제작품, 탐험 보상이 여기로 와요."
+cli.chart.pick,Tap an island to see its level and set sail.,client sea chart label,Tap an island to see its level and set sail.,섬을 눌러 레벨을 보고 출항하세요.

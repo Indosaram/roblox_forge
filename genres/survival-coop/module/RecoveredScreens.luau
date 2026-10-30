@@ -59,7 +59,12 @@ function M.trackerRows(locale: string, state: any, act: any): { any }
 	local rows: { any } = {}
 	local tracked = RecipeMarks.tracker(state.bag, state.warehouse, state.recipes or {}, state.marks)
 	if #tracked == 0 then
-		table.insert(rows, { text = L.text(locale, "scr.tracker.empty"), empty = "todo" })
+		-- U7: the limit line is the empty card's hint instead of a separate row.
+		table.insert(rows, {
+			text = L.text(locale, "scr.tracker.empty"),
+			empty = "todo",
+			hint = L.text(locale, "scr.tracker.limit", RecipeMarks.TODO_LIMIT),
+		})
 	end
 	for _, row in tracked do
 		local label = name(state.names, row.recipeId)
@@ -108,11 +113,13 @@ function M.trackerRows(locale: string, state: any, act: any): { any }
 			end,
 		})
 	end
-	table.insert(rows, { text = L.text(locale, "scr.tracker.limit", RecipeMarks.TODO_LIMIT) })
+	if #tracked > 0 then
+		table.insert(rows, { text = L.text(locale, "scr.tracker.limit", RecipeMarks.TODO_LIMIT) })
+	end
 	if state.status then
 		table.insert(rows, { text = state.status })
 	end
-	table.insert(rows, { text = L.text(locale, "scr.tracker.open_craft"), onClick = act.craft })
+	table.insert(rows, { text = L.text(locale, "scr.tracker.open_craft"), onClick = act.craft, icon = "craft" })
 	return rows
 end
 

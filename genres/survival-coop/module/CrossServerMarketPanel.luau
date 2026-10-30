@@ -179,6 +179,12 @@ function M.shellPanel(
 	currency.TextColor3 = Shell.color(Shell.PALETTE.ink)
 	local pill = Instance.new("UICorner")
 	pill.CornerRadius, pill.Parent = UDim.new(0.5, 0), currency
+	-- U7: the kit label's halo stroke smeared ink digits on the ochre pill; plain bold ink.
+	local halo = currency:FindFirstChildOfClass("UIStroke")
+	if halo then
+		halo:Destroy()
+	end
+	currency.Font = Enum.Font.BuilderSansBold
 	local view: any = { tab = "buy", item = nil, listing = nil, own = nil, claim = nil, sell = nil }
 	local layout: any = nil
 	local order = 0
@@ -267,6 +273,37 @@ function M.shellPanel(
 	end
 	local CATEGORY_KEY = { all = "all", material = "material", food = "food", gear = "tool", building = "building" }
 	local GLYPH = { all = "item", material = "wood", food = "food", gear = "tool", building = "building" }
+	-- U7: pack category art (ui.icon.cat.<id>) on the buy grid; nil keeps the glyph.
+	local function catArt(key: string): string?
+		local icon = if ctx.icons and ctx.icons.ui then ctx.icons.ui("cat." .. CATEGORY_KEY[key]) else nil
+		return if icon and icon.image and icon.image ~= "" then icon.image else nil
+	end
+	-- An empty pane: icon + one line, centred, bone on the panel ("pick a category", no bundles).
+	local function emptyNote(parent: any, value: string, iconId: string)
+		order += 1
+		local holder = Instance.new("Frame")
+		holder.Name, holder.BackgroundTransparency, holder.LayoutOrder = "EmptyNote", 1, order
+		holder.Size, holder.Parent = UDim2.new(1, -8, 0, 150), parent
+		local icon = if ctx.icons and ctx.icons.ui then ctx.icons.ui(iconId) else nil
+		local art = IconFallback.mount(
+			holder,
+			"item",
+			UDim2.fromOffset(72, 72),
+			UDim2.new(0.5, -36, 0, 8),
+			if icon and icon.image and icon.image ~= "" then icon.image else nil,
+			"EmptyArt"
+		)
+		art.BackgroundTransparency = 1
+		local line = ctx.ui.components.label(theme, {
+			text = value,
+			size = UDim2.new(1, 0, 0, 60),
+			position = UDim2.fromOffset(0, 86),
+			parent = holder,
+			textSize = layout.text.body,
+		})
+		line.Name, line.TextWrapped, line.TextYAlignment = "EmptyText", true, Enum.TextYAlignment.Top
+		line.TextColor3 = Shell.color(Shell.PALETTE.bone)
+	end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(rerender)
 	return function(snapshot: any)
 		place()
@@ -312,7 +349,18 @@ function M.shellPanel(
 					tile.LayoutOrder, tile.TextSize, tile.TextWrapped = index, layout.text.label, true
 					tile.TextYAlignment = Enum.TextYAlignment.Bottom
 					Shell.panelButton(tile, browse.category == key)
-					IconFallback.mount(tile, GLYPH[key], UDim2.fromScale(0.42, 0.42), UDim2.fromScale(0.29, 0.12), nil)
+					local pad = Instance.new("UIPadding")
+					pad.PaddingBottom, pad.Parent = UDim.new(0, 6), tile
+					local badge = IconFallback.mount(
+						tile,
+						GLYPH[key],
+						UDim2.fromScale(0.56, 0.56),
+						UDim2.fromScale(0.22, 0.06),
+						catArt(key)
+					)
+					if catArt(key) then
+						badge.BackgroundTransparency = 1
+					end
 				end
 			else
 				press(list, t("panel.back"), false, function()
@@ -346,7 +394,7 @@ function M.shellPanel(
 				text(detail, ctx.icons.item(state.filter).text, "heading")
 			end
 			if #state.listings == 0 then
-				text(detail, t("panel.no_bundles"), "body", 60).TextWrapped = true
+				emptyNote(detail, t("panel.no_bundles"), if state.filter then "empty" else "market")
 			end
 			for _, listing in state.listings do
 				if view.listing == nil then
@@ -409,7 +457,7 @@ function M.shellPanel(
 				)
 			end
 			if #ids == 0 then
-				text(list, t("panel.nothing_to_sell"), "body", 60).TextWrapped = true
+				emptyNote(list, t("panel.nothing_to_sell"), "bag")
 			end
 			local picked = if view.sell then state.items[view.sell] else nil
 			if picked then
@@ -457,7 +505,7 @@ function M.shellPanel(
 			end
 		elseif view.tab == "mine" then
 			if #state.listed == 0 then
-				text(list, t("panel.no_listings"), "body", 48).TextWrapped = true
+				emptyNote(list, t("panel.no_listings"), "market")
 			end
 			for _, listing in state.listed do
 				if view.own == nil then
@@ -486,7 +534,7 @@ function M.shellPanel(
 			end
 		else
 			if #state.claims == 0 then
-				text(list, t("panel.no_claims"), "body", 48).TextWrapped = true
+				emptyNote(list, t("panel.no_claims"), "inbox")
 			end
 			for _, claim in state.claims do
 				if view.claim == nil then

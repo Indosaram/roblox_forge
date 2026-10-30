@@ -7,6 +7,7 @@ local game: any = env.game
 local Instance: any = env.Instance
 local Enum: any = env.Enum
 local UDim2: any = env.UDim2
+local UDim: any = env.UDim
 local Color3: any = env.Color3
 local M = {}
 
@@ -78,19 +79,62 @@ function M.factory(ctx: any): any
 	local view = Sheet.mount(ctx, "navigator", "nav_title", false, 0)
 	local status = view.label("NavigatorStatus")
 	status.Visible = false
+	-- U7: with pack icons the destinations are an icon tile grid (R15-5 main menu), 2-3 columns.
+	local grid: any = nil
+	if ctx.icons then
+		grid = Instance.new("Frame")
+		grid.Name, grid.BackgroundTransparency, grid.LayoutOrder = "NavGrid", 1, 100
+		grid.Size, grid.AutomaticSize = UDim2.new(1, -6, 0, 0), Enum.AutomaticSize.Y
+		local cells = Instance.new("UIGridLayout")
+		cells.CellPadding, cells.SortOrder, cells.Parent = UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, grid
+		local function fit()
+			local width = view.sheet.scroll.AbsoluteSize.X - 30
+			local columns = math.clamp(math.floor(width / 200), 2, 3)
+			cells.CellSize = UDim2.new(1 / columns, -8, 0, 56)
+		end
+		view.sheet.scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+		fit()
+		grid.Parent = view.sheet.scroll
+	end
 	local buttons: { any } = {}
 	local function render()
 		for _, button in buttons do
 			button:Destroy()
 		end
 		table.clear(buttons)
-		for _, row in M.model(ctx.locale, ctx.availability) do
+		for index, row in M.model(ctx.locale, ctx.availability) do
 			local button = view.button("Nav-" .. tostring(row.id or row.text), row.text, function()
 				local reason = M.press(row, ctx.open)
 				status.Text, status.Visible = reason or "", reason ~= nil
 			end)
 			button.BackgroundTransparency = if row.open then 0 else 0.45
 			button.TextWrapped = true
+			if grid then
+				local Panels = require("./ExtensionPanels")
+				button.Parent, button.LayoutOrder = grid, if row.open then index else 100 + index
+				button.TextXAlignment = Enum.TextXAlignment.Left
+				local pad = Instance.new("UIPadding")
+				pad.PaddingLeft, pad.PaddingRight, pad.Parent = UDim.new(0, 50), UDim.new(0, 6), button
+				local badge = Panels.mountIcon(
+					button,
+					Panels.iconId(row.id or "inbox", ctx.icons),
+					ctx.icons,
+					UDim2.fromOffset(36, 36),
+					UDim2.new(0, -42, 0.5, -18),
+					"NavIcon",
+					{ r = 237, g = 230, b = 214 }
+				)
+				local asset = badge and badge:FindFirstChild("Asset")
+				if asset and not row.open then
+					asset.ImageTransparency = 0.5
+				end
+				if not row.open then
+					-- Locked: the name only; the reason shows in the status line on a tap.
+					button.Text = ScreenText.has(M.ROWS[index][1]) and ScreenText.text(ctx.locale, M.ROWS[index][1])
+						or Text.text(ctx.locale, M.ROWS[index][1])
+					button:SetAttribute("ForgeNavLocked", row.text)
+				end
+			end
 			table.insert(buttons, button)
 		end
 	end

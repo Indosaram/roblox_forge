@@ -23,14 +23,16 @@ function M.mount(ctx: any, hub: any): any
 		local crops = Model.crops(hub.content)
 		local plots = Model.plots(home, hub.now())
 		if not home or #plots == 0 then
-			sheet.label(t("farm_none"))
+			sheet.empty(t("farm_none"), nil, "fertility")
 		end
 		local crop = crops[cropIndex]
 		local fertilizer = Farming.FERTILIZER_ORDER[fertIndex]
 		for index, plot in plots do
 			local planted = plot.planted
 			local cropName = if planted then hub.name(planted.crop) else ""
-			sheet.label(
+			-- U7: each plot row carries its crop (or the picked seed) art.
+			sheet.item(
+				if planted then planted.crop elseif crop then crop.seed else nil,
 				t(
 					"farm_plot",
 					index,
@@ -44,7 +46,7 @@ function M.mount(ctx: any, hub: any): any
 			if not planted then
 				local seeds, seedItem = Model.count(home.storage, crop.seed)
 				local water = Model.count(home.storage, "water")
-				sheet.label(t("farm_cost", seeds, water))
+				sheet.item("water", t("farm_cost", seeds, water))
 				sheet.row(Sheet.SPLIT2, {
 					{
 						name = "Crop-" .. index,

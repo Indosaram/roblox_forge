@@ -289,8 +289,24 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				ui.components.label(theme, { text = summaryText, size = UDim2.new(1, 0, 0, 28), parent = rows })
 			summary.Name, summary.LayoutOrder = "CompanionSummary", 0
 			if #list == 0 then
+				local copy =
+					M.text(ctx.locale, if v2 or type(state) ~= "table" then "companion_empty" else "tame_empty")
+				if ctx.icons and ctx.sheetText then
+					-- U7: one empty-state card (capture-rope art, headline, the how-to steps as its hint).
+					local headline, steps = string.match(copy, "^(.-[%.%?!])%s+(.+)$")
+					local card = require("./SheetCards").empty(rows, {
+						name = "CompanionEmpty",
+						order = 1,
+						icon = ctx.icons.item("capture-rope"),
+						title = headline or copy,
+						hint = steps,
+						size = ctx.sheetText("body"),
+					})
+					card.Size = UDim2.fromScale(1, 0)
+					return
+				end
 				local empty = ui.components.label(theme, {
-					text = M.text(ctx.locale, if v2 or type(state) ~= "table" then "companion_empty" else "tame_empty"),
+					text = copy,
 					size = UDim2.new(1, 0, 0, 120),
 					parent = rows,
 				})

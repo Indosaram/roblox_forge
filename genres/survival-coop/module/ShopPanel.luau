@@ -15,6 +15,9 @@ local SELECT = "survival-coop:skin-select"
 M.ROW_HEIGHT = 48
 M.DESCRIPTION_HEIGHT = 40
 M.DESCRIPTION_TEXT_SIZE = 14
+-- U7 listing art (ItemIcons.ui id) per catalog section, and the text inset it takes.
+M.ART = { pass = "capacity", product = "currency", subscription = "clan" }
+M.ICON_INSET = 72
 
 -- shop_* rows of the pack locale table (games/robango-island/locale/strings.csv).
 local PackLocale = require("./PackLocale")
@@ -109,24 +112,49 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				line.Name, line.BackgroundTransparency = "Row" .. index, 1
 				line.Size = UDim2.new(1, 0, 0, M.ROW_HEIGHT + M.DESCRIPTION_HEIGHT)
 				line.Parent = rows
+				local inset = 0
+				if ctx.icons then
+					-- U7: a parchment card with the listing's art left of its name, price and description.
+					inset = M.ICON_INSET
+					line.BackgroundTransparency, line.BackgroundColor3 = 0, Color3.fromRGB(222, 208, 178)
+					local round = Instance.new("UICorner")
+					round.CornerRadius, round.Parent = UDim.new(0, 10), line
+					local art = Instance.new("ImageLabel")
+					art.Name, art.BackgroundTransparency, art.ScaleType = "ShopArt", 1, Enum.ScaleType.Fit
+					art.Size, art.Position = UDim2.fromOffset(56, 56), UDim2.new(0, 8, 0.5, -28)
+					art.Image = ctx.icons.ui(if row.skin then "capture" else M.ART[row.kind] or "currency").image or ""
+					art.Parent = line
+				end
 				local label = ui.components.label(theme, {
 					text = "",
-					size = UDim2.new(0.62, 0, 0, M.ROW_HEIGHT),
+					size = UDim2.new(0.62, -inset, 0, M.ROW_HEIGHT),
+					position = UDim2.fromOffset(inset, 0),
 					parent = line,
 				})
 				local detail = ui.components.label(theme, {
 					text = "",
-					size = UDim2.new(1, 0, 0, M.DESCRIPTION_HEIGHT),
-					position = UDim2.fromOffset(0, M.ROW_HEIGHT),
+					size = UDim2.new(1, -inset - 8, 0, M.DESCRIPTION_HEIGHT),
+					position = UDim2.fromOffset(inset, M.ROW_HEIGHT),
 					textSize = M.DESCRIPTION_TEXT_SIZE,
 					parent = line,
 				})
 				detail.Name = "Description"
+				if ctx.icons then
+					label.Font = Enum.Font.BuilderSansBold
+					label:SetAttribute("ForgeShellKeep", true)
+					detail:SetAttribute("ForgeShellKeep", true)
+					for _, text in { label, detail } do
+						text.TextXAlignment, text.TextWrapped = Enum.TextXAlignment.Left, true
+						text.TextColor3 = Color3.fromRGB(38, 30, 24)
+						text.TextSize = math.max(text.TextSize, if ctx.sheetText then ctx.sheetText("body") else 15)
+					end
+					detail.TextColor3, detail.TextYAlignment = Color3.fromRGB(92, 76, 60), Enum.TextYAlignment.Top
+				end
 				local created: any = nil
 				local button = ui.components.button(theme, {
 					text = "",
-					size = UDim2.new(0.36, 0, 0, M.ROW_HEIGHT),
-					position = UDim2.fromScale(0.64, 0),
+					size = UDim2.new(0.34, -8, 0, M.ROW_HEIGHT - 8),
+					position = UDim2.new(0.66, 0, 0, 6),
 					parent = line,
 					onClick = function()
 						local current = created.row
@@ -157,7 +185,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			current.label.Text = (
 				if ctx.names and ctx.names["shop:" .. row.key] then ctx.names["shop:" .. row.key] else row.name
 			)
-				.. "  "
+				.. (if ctx.icons then "\n" else "  ")
 				.. M.text(ctx.locale, "shop_price", row.price)
 			-- What the purchase gives ("shopdesc:<key>", locale/strings.csv shop_desc_*).
 			current.detail.Text = if ctx.names then ctx.names["shopdesc:" .. row.key] or "" else ""

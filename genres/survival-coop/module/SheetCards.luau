@@ -221,6 +221,74 @@ function M.tiles(
 	return frame
 end
 
+export type Line = { icon: Icon?, text: string, done: boolean? }
+
+-- U7 section card: icon + bold title (+ right badge), muted caption, icon lines, a muted note.
+function M.section(
+	parent: any,
+	spec: {
+		name: string?,
+		order: number?,
+		icon: Icon?,
+		title: string,
+		badge: string?,
+		caption: string?,
+		lines: { Line }?,
+		note: string?,
+		size: number,
+	}
+): any
+	local frame = card(spec.name or "Section", spec.order or 0)
+	local list = Instance.new("UIListLayout")
+	list.SortOrder, list.Padding, list.Parent = Enum.SortOrder.LayoutOrder, UDim.new(0, 4), frame
+	local head = Instance.new("Frame")
+	head.Name, head.BackgroundTransparency, head.LayoutOrder = "Head", 1, 1
+	head.Size = UDim2.new(1, 0, 0, math.max(32, spec.size + 14))
+	badge(head, spec.icon, 30, UDim2.new(0, 0, 0.5, -15), "SectionIcon")
+	local title = text("SectionTitle", spec.title, spec.size + 2, C.ink, true)
+	title.TextXAlignment, title.TextTruncate, title.TextWrapped =
+		Enum.TextXAlignment.Left, Enum.TextTruncate.AtEnd, false
+	title.Position, title.Size = UDim2.fromOffset(38, 0), UDim2.new(1, if spec.badge then -150 else -38, 1, 0)
+	title.Parent = head
+	if spec.badge then
+		local pill = text("SectionBadge", spec.badge, spec.size, C.headerText, true)
+		pill.BackgroundTransparency, pill.BackgroundColor3 = 0, rgb(C.marker)
+		pill.AnchorPoint, pill.Position = Vector2.new(1, 0.5), UDim2.fromScale(1, 0.5)
+		pill.Size, pill.AutomaticSize, pill.TextWrapped =
+			UDim2.fromOffset(0, spec.size + 10), Enum.AutomaticSize.X, false
+		corner(pill, (spec.size + 10) // 2)
+		local inset = Instance.new("UIPadding")
+		inset.PaddingLeft, inset.PaddingRight, inset.Parent = UDim.new(0, 10), UDim.new(0, 10), pill
+		pill.Parent = head
+	end
+	head.Parent = frame
+	local function line(name: string, value: string, order: number, color: any, inset: number): any
+		local label = text(name, value, spec.size, color)
+		label.TextXAlignment, label.LayoutOrder = Enum.TextXAlignment.Left, order
+		label.Size, label.AutomaticSize = UDim2.fromScale(1, 0), Enum.AutomaticSize.Y
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft, pad.Parent = UDim.new(0, inset), label
+		label.Parent = frame
+		return label
+	end
+	if spec.caption and spec.caption ~= "" then
+		line("SectionCaption", spec.caption, 2, C.inkMuted, 0)
+	end
+	local lines: { Line } = spec.lines or {}
+	for index, entry in lines do
+		local row = line("Line" .. index, entry.text, 2 + index, if entry.done then C.inkMuted else C.ink, 30)
+		row.TextYAlignment = Enum.TextYAlignment.Center
+		local floor = Instance.new("UISizeConstraint")
+		floor.MinSize, floor.Parent = Vector2.new(0, 26), row
+		badge(row, entry.icon, 22, UDim2.new(0, -28, 0.5, -11), "LineIcon")
+	end
+	if spec.note and spec.note ~= "" then
+		line("SectionNote", spec.note, 100, C.close, 0)
+	end
+	frame.Parent = parent
+	return frame
+end
+
 function M.columns(width: number): number
 	return math.clamp(math.floor(width / 190), 2, 4)
 end

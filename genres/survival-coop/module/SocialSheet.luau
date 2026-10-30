@@ -6,7 +6,7 @@
 local M = {}
 
 -- `empty` (U6): ItemIcons.ui id of a SheetCards empty card for this row.
-export type Row = { text: string, onClick: (() -> ())?, icon: string?, empty: string? }
+export type Row = { text: string, onClick: (() -> ())?, icon: string?, empty: string?, hint: string? }
 
 M.TEXT_SIZE = 15
 M.MIN_ROW = 48
@@ -99,6 +99,7 @@ function M.mount(ctx: any, spec: any): any
 					order = index,
 					icon = if ctx.icons then ctx.icons.ui(row.empty) else nil,
 					title = row.text,
+					hint = row.hint,
 					size = size,
 				})
 				table.insert(shown, card)

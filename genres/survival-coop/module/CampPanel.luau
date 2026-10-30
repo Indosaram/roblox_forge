@@ -143,22 +143,50 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			return holder
 		end
 		local head = add(22)
-		components.label(theme, {
-			text = string.format(
-				"%s %d/%d  %s",
-				Model.text(ctx.locale, "camp_rung"),
-				model.rung,
-				model.rungs,
-				if model.role == "member"
-					then Model.text(ctx.locale, "camp_facility") .. " " .. #model.facilities
-					else Model.text(ctx.locale, "camp_visitor") .. ": " .. (if model.pass
-						then tostring(model.pass) .. "s"
-						else Model.text(ctx.locale, "camp_visitor_none"))
-			),
-			size = UDim2.fromScale(1, 1),
-			parent = head,
-		})
-		if model.role == "member" and (model.visitors > 0 or model.cooldowns > 0) then
+		local headText = string.format(
+			"%s %d/%d  %s",
+			Model.text(ctx.locale, "camp_rung"),
+			model.rung,
+			model.rungs,
+			if model.role == "member"
+				then Model.text(ctx.locale, "camp_facility") .. " " .. #model.facilities
+				else Model.text(ctx.locale, "camp_visitor") .. ": " .. (if model.pass
+					then tostring(model.pass) .. "s"
+					else Model.text(ctx.locale, "camp_visitor_none"))
+		)
+		if ctx.icons and ctx.sheetText then
+			-- U7: rung hero (camp art, rung bar, visitor / re-join chips) instead of two text lines.
+			head.Size, head.AutomaticSize = UDim2.new(1, -6, 0, 0), Enum.AutomaticSize.Y
+			require("./SheetCards").hero(head, {
+				icon = ctx.icons.item("tent-kit"),
+				title = headText,
+				fraction = if model.rungs > 0 then model.rung / model.rungs else 0,
+				chips = if model.role == "member"
+					then {
+						{
+							icon = ctx.icons.ui("visitor"),
+							text = Model.text(ctx.locale, "camp_visitors") .. " " .. model.visitors,
+						},
+						{
+							icon = ctx.icons.ui("clock"),
+							text = Model.text(ctx.locale, "camp_cooldown") .. " " .. model.cooldowns,
+						},
+					}
+					else nil,
+				size = ctx.sheetText("body"),
+			})
+		else
+			components.label(theme, {
+				text = headText,
+				size = UDim2.fromScale(1, 1),
+				parent = head,
+			})
+		end
+		if
+			not (ctx.icons and ctx.sheetText)
+			and model.role == "member"
+			and (model.visitors > 0 or model.cooldowns > 0)
+		then
 			local info = add(20)
 			components.label(theme, {
 				text = Model.text(ctx.locale, "camp_visitors") .. " " .. model.visitors .. "  " .. Model.text(
@@ -268,22 +296,43 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		for _, row in orderedRows do
 			local holder = add(66)
 			local label = if ctx.names and ctx.names["camp:" .. row.id] then ctx.names["camp:" .. row.id] else row.label
+			local inset = 0
+			if ctx.icons then
+				-- U7: the project's first material as its art, left of name, bar and cost line.
+				inset = 52
+				holder.Size = UDim2.new(1, 0, 0, 72)
+				local first = (row.costs or {})[1]
+				local art = Instance.new("ImageLabel")
+				art.Name, art.BackgroundTransparency, art.ScaleType = "ProjectArt", 1, Enum.ScaleType.Fit
+				art.Size, art.Position = UDim2.fromOffset(44, 44), UDim2.fromOffset(0, 8)
+				art.Image = if first then ctx.icons.item(first.item).image or "" else ""
+				art.Parent = holder
+			end
 			components.label(theme, {
 				text = label .. "  " .. row.delivered .. "/" .. row.need,
-				size = UDim2.new(0.62, 0, 0, 18),
+				size = UDim2.new(0.62, -inset, 0, 18),
+				position = UDim2.fromOffset(inset, 0),
 				parent = holder,
 			})
 			local bar, setProgress = components.progressBar(theme, {
-				size = UDim2.new(0.6, 0, 0, 14),
-				position = UDim2.fromOffset(0, 24),
+				size = UDim2.new(0.6, -inset, 0, 14),
+				position = UDim2.fromOffset(inset, 24),
 				parent = holder,
 			})
 			setProgress(if row.need > 0 then row.delivered / row.need else 0)
 			bar.Name = "Progress_" .. row.id
+			if ctx.icons then
+				-- Parchment track, sea-glass fill (the kit's dark bar read as a black slab, U7 audit).
+				bar.BackgroundColor3 = Color3.fromRGB(196, 186, 166)
+				local fill = bar:FindFirstChild("Fill")
+				if fill then
+					fill.BackgroundColor3 = Color3.fromRGB(58, 128, 118)
+				end
+			end
 			components.label(theme, {
 				text = Model.costLine(ctx.locale, row, ctx.names),
-				size = UDim2.new(1, 0, 0, 18),
-				position = UDim2.fromOffset(0, 48),
+				size = UDim2.new(1, -inset, 0, 18),
+				position = UDim2.fromOffset(inset, 48),
 				parent = holder,
 				textSize = 12,
 			})

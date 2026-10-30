@@ -361,6 +361,22 @@ function M.start(options: Options)
 	local allRecipes = false
 	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
+	-- U7 skills sheet: the level hero card and the art per skill category ({ resolver, id }).
+	local skillHero: Frame? = nil
+	local SKILL_ART: { [string]: { string } } = {
+		survival = { "ui", "health" },
+		butchering = { "item", "knife-t1" },
+		gathering = { "item", "axe-t1" },
+		processing = { "ui", "processing-budget" },
+		weapon_tool = { "item", "hammer-t1" },
+		tailoring = { "ui", "cat.clothing" },
+		cooking = { "ui", "cat.food" },
+		farming = { "ui", "cat.farm" },
+		construction = { "ui", "build" },
+		melee = { "ui", "stance.attack" },
+		ranged = { "ui", "stance.shoot" },
+		defense = { "ui", "stance.defense" },
+	}
 	buildCards.Name, buildCards.BackgroundTransparency = "BuildCards", 1
 	buildCards.Size, buildCards.AutomaticSize, buildCards.Parent =
 		UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, sheet.scroll
@@ -368,15 +384,16 @@ function M.start(options: Options)
 	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
 		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
 	local function fitBuildCards()
-		local columns = if sheet.frame.AbsoluteSize.X >= 600
+		-- U7: three columns from 560 px (the 800x360 phone sheet is ~590 wide), a 56 px art row.
+		local columns = if sheet.frame.AbsoluteSize.X >= 560
 			then 3
-			elseif sheet.frame.AbsoluteSize.X >= 480 then 2
+			elseif sheet.frame.AbsoluteSize.X >= 400 then 2
 			else 1
 		local rows = 1
 		for _, definition in content.structures do
 			rows = math.max(rows, #definition.cost)
 		end
-		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 44 + rows * 40)
+		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 58 + rows * 42)
 	end
 	sheet.frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitBuildCards)
 	fitBuildCards()
@@ -1145,6 +1162,9 @@ function M.start(options: Options)
 		end
 		fitPanes()
 		buildCards.Visible = section == "build"
+		if skillHero then
+			skillHero.Visible = false
+		end
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
 		contentParent = if panes.Visible then listPane else sheet.scroll
@@ -1390,12 +1410,41 @@ function M.start(options: Options)
 		elseif section == "skills" then
 			local progression = model.snapshot.progression
 			if progression then
-				local heading = label(string.format(t("level_sp"), progression.level, progression.sp), 40)
-				if shell then
-					-- U6: bold level / SP heading with the skill-point badge.
-					heading.Font, heading.TextSize = Enum.Font.BuilderSansBold, math.max(heading.TextSize, 18)
-					if options.icons then
-						itemIcon(heading, options.icons.ui("skill-point"))
+				local tree = content.progressionPolicy and content.progressionPolicy.tree
+				if shell and options.icons and tree and Theme.sheetText then
+					-- U7: level hero (XP bar, SP chip) over one row per skill category.
+					local xp = CharacterRules.character(content, progression, 0)
+					local heroText = string.format(t("level_sp"), progression.level, progression.sp)
+					local key = heroText
+						.. "/"
+						.. xp.xp
+						.. "/"
+						.. xp.nextXP
+						.. "@"
+						.. Theme.sheetText("body", gui.AbsoluteSize.Y)
+					if not skillHero or skillHero:GetAttribute("ForgeCardKey") ~= key then
+						if skillHero then
+							skillHero:Destroy()
+						end
+						skillHero = require("./SheetCards").hero(sheet.scroll, {
+							name = "SkillHero",
+							icon = options.icons.ui("skills"),
+							title = heroText,
+							fraction = if xp.nextXP > 0 then xp.xp / xp.nextXP else 1,
+							caption = string.format("XP %d / %d", xp.xp, xp.nextXP),
+							chips = { { icon = options.icons.ui("skill-point"), text = progression.sp .. " SP" } },
+							size = Theme.sheetText("body", gui.AbsoluteSize.Y),
+						});
+						(skillHero :: any):SetAttribute("ForgeCardKey", key)
+					end
+					(skillHero :: any).LayoutOrder, (skillHero :: any).Visible = controls.order(), true
+				else
+					local heading = label(string.format(t("level_sp"), progression.level, progression.sp), 40)
+					if shell then
+						heading.Font, heading.TextSize = Enum.Font.BuilderSansBold, math.max(heading.TextSize, 18)
+						if options.icons then
+							itemIcon(heading, options.icons.ui("skill-point"))
+						end
 					end
 				end
 				button("skill-reset", t("skill_reset"), function()
@@ -1403,13 +1452,48 @@ function M.start(options: Options)
 						command("skill-reset", { progression.version })
 					end
 				end, true)
-				for _, node in content.skillNodes or {} do
-					local learned = progression.paid[node.id] ~= nil
-					local row = button("learn-" .. node.id, Locale.skill(locale, node), function()
-						command("skill-learn", { node.id })
-					end, not learned)
-					if shell and options.icons then
-						itemIcon(row, options.icons.ui(if learned then "success" else "skill-point"))
+				if shell and options.icons then
+					-- One row per category: its art, the next rank to learn (or "max") and learned/total.
+					local order, byCategory = {}, {}
+					for _, node in content.skillNodes or {} do
+						if not byCategory[node.category] then
+							byCategory[node.category] = {}
+							table.insert(order, node.category)
+						end
+						table.insert(byCategory[node.category], node)
+					end
+					for _, category in order do
+						local nodes, learned, nextNode = byCategory[category], 0, nil
+						for _, node in nodes do
+							if progression.paid[node.id] ~= nil then
+								learned += 1
+							elseif not nextNode then
+								nextNode = node
+							end
+						end
+						local count = string.format("  ·  %d/%d", learned, #nodes)
+						local row = if nextNode
+							then button("learn-" .. nextNode.id, Locale.skill(locale, nextNode) .. count, function()
+								command("skill-learn", { nextNode.id })
+							end, progression.sp >= nextNode.cost)
+							else button(
+								"learned-" .. category,
+								Locale.skillName(locale, category) .. count,
+								function() end,
+								false
+							)
+						local art = SKILL_ART[category] or { "ui", "skills" }
+						itemIcon(row, options.icons[art[1]](art[2]))
+					end
+				else
+					for _, node in content.skillNodes or {} do
+						local learned = progression.paid[node.id] ~= nil
+						local row = button("learn-" .. node.id, Locale.skill(locale, node), function()
+							command("skill-learn", { node.id })
+						end, not learned)
+						if shell and options.icons then
+							itemIcon(row, options.icons.ui(if learned then "success" else "skill-point"))
+						end
 					end
 				end
 			end
@@ -1633,21 +1717,37 @@ function M.start(options: Options)
 					then kit.image
 					elseif options.icons then options.icons.ui("build").image
 					else nil
-				IconFallback.mount(card, "building", UDim2.fromOffset(28, 28), UDim2.fromOffset(6, 6), art)
+				-- U7: 48 px kit art, a bold name beside it, a ready tick and rim when storage covers it.
+				IconFallback.mount(card, "building", UDim2.fromOffset(48, 48), UDim2.fromOffset(6, 5), art)
 				local title = card:FindFirstChild("StructureName")
 					or Components.label(
 						theme,
-						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -44, 0, 40) }
+						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -88, 0, 52) }
 					)
 				title.Name, title.Text = "StructureName", name(definition.id)
-				title.Size, title.Position = UDim2.new(1, -44, 0, 40), UDim2.fromOffset(40, 0)
-				title.TextScaled, title.TextWrapped = true, true
+				title.Size, title.Position = UDim2.new(1, -88, 0, 52), UDim2.fromOffset(60, 3)
+				title.TextScaled, title.TextWrapped, title.Font = true, true, Enum.Font.BuilderSansBold
 				fitText(title)
+				local ready = true
 				for index, cost in Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost }) do
 					local chip = materialRow(cost.id, cost.available, cost.needed, card)
-					chip.Position = UDim2.fromOffset(4, 42 + (index - 1) * 40)
+					chip.Position = UDim2.fromOffset(4, 58 + (index - 1) * 42)
 					chip.BackgroundTransparency = 0.25
+					ready = ready and (cost.available or 0) >= cost.needed
 				end
+				local tick = if options.icons then options.icons.ui("success").image else nil
+				local badge = IconFallback.mount(
+					card,
+					"item",
+					UDim2.fromOffset(24, 24),
+					UDim2.new(1, -28, 0, 4),
+					tick,
+					"ReadyBadge"
+				)
+				badge.BackgroundTransparency, badge.Visible = 1, ready
+				local rim = card:FindFirstChild("ReadyRim") or Instance.new("UIStroke")
+				rim.Name, rim.ApplyStrokeMode, rim.Thickness = "ReadyRim", Enum.ApplyStrokeMode.Border, 2
+				rim.Color, rim.Transparency, rim.Parent = Color3.fromRGB(58, 128, 118), if ready then 0 else 1, card
 			end
 			controls.parent = sheet.scroll
 			local definition = selectedDefinition()

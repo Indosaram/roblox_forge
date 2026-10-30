@@ -313,6 +313,19 @@ end
 
 local PARCHMENT, INK, LOCK, LILAC = { 185, 165, 140 }, { 27, 34, 36 }, { 110, 116, 119 }, { 154, 143, 181 }
 local WASH, HOME = { 127, 163, 91 }, { 201, 154, 59 }
+-- U7: each isle is land in its first biome's colour on a sea disc (R19-3 green/brown blobs on
+-- parchment); a locked isle keeps its land, faded, under a padlock badge instead of a grey blob.
+local SEA, LEATHER, BONE, CLOSE = { 96, 150, 150 }, { 74, 52, 36 }, { 246, 238, 220 }, { 176, 72, 52 }
+local LAND: { [string]: { number } } = {
+	grassland = { 127, 163, 91 },
+	beach = { 226, 204, 152 },
+	tropical = { 84, 146, 80 },
+	desert = { 208, 164, 98 },
+	snow = { 232, 236, 238 },
+	volcano = { 132, 74, 62 },
+	forest = { 72, 112, 70 },
+	swamp = { 104, 114, 72 },
+}
 
 --- Panel factory (ExtensionPanels context plus `text`, `reason`, `biome` and `content`). Opens
 --- from the menu tile, the minimap and the world prompts ForgePanel = sea-chart-dock / -rift.
@@ -360,14 +373,33 @@ function M.panel(ctx: any): any
 	end
 	-- HudShell.sheetOpen reads a visible Frame with Header > Close as a full sheet.
 	local header = Instance.new("Frame")
-	header.Name, header.BackgroundTransparency, header.Parent = "Header", 1, sheetFrame
-	local title = label(sheetFrame, "Title", 20, INK)
-	title.Text, title.TextXAlignment = ctx.text("title"), Enum.TextXAlignment.Left
+	header.Name, header.BackgroundColor3, header.Parent = "Header", rgb(LEATHER), sheetFrame
+	header.BorderSizePixel = 0
+	local function art(parent: Instance, name: string, id: string): ImageLabel
+		local image = Instance.new("ImageLabel")
+		image.Name, image.BackgroundTransparency, image.ScaleType = name, 1, Enum.ScaleType.Fit
+		local icon = if ctx.icons then ctx.icons.ui(id) else nil
+		image.Image, image.Parent = if icon and icon.image then icon.image else "", parent
+		return image
+	end
+	local headerIcon = art(header, "TitleIcon", "exploration-rank")
+	local title = label(sheetFrame, "Title", 20, BONE)
+	title.Text, title.TextXAlignment, title.ZIndex = ctx.text("title"), Enum.TextXAlignment.Left, 2
 	local close = Instance.new("TextButton")
-	close.Name, close.Text, close.TextColor3 = "Close", "X", rgb(INK)
-	close.BackgroundColor3, close.Font, close.Parent = Color3.fromRGB(237, 230, 214), Enum.Font.GothamBold, header
+	close.Name, close.Text, close.TextColor3 = "Close", "X", rgb(BONE)
+	close.BackgroundColor3, close.Font, close.Parent = rgb(CLOSE), Enum.Font.GothamBold, header
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius, closeCorner.Parent = UDim.new(0.5, 0), close
+	local hint = label(sheetFrame, "PickHint", 14, BONE)
+	hint.Text, hint.BackgroundTransparency, hint.BackgroundColor3 = ctx.text("pick"), 0.1, rgb(LEATHER)
+	local hintCorner = Instance.new("UICorner")
+	hintCorner.CornerRadius, hintCorner.Parent = UDim.new(0.5, 0), hint
 	local compass = label(sheetFrame, "Compass", 18, INK)
-	compass.Text = ctx.text("compass")
+	compass.Text, compass.TextYAlignment = ctx.text("compass"), Enum.TextYAlignment.Top
+	compass.BackgroundColor3, compass.BackgroundTransparency = rgb(BONE), 0.35
+	local rose = art(compass, "Rose", "explore")
+	rose.AnchorPoint, rose.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.5, 0.58)
+	rose.Size = UDim2.fromScale(0.6, 0.6)
 	-- Border mode: a UIStroke on a TextLabel defaults to Contextual and outlines the glyph, which
 	-- read as an unlabelled black blob under the frontier50 isle (staging v40).
 	local compassRing = Instance.new("UIStroke")
@@ -386,6 +418,8 @@ function M.panel(ctx: any): any
 	sheet.Parent = sheetFrame
 	local sheetCorner = Instance.new("UICorner")
 	sheetCorner.CornerRadius, sheetCorner.Parent = UDim.new(0, 12), sheet
+	local sheetStroke = Instance.new("UIStroke")
+	sheetStroke.Color, sheetStroke.Thickness, sheetStroke.Parent = Color3.fromRGB(122, 92, 62), 3, sheet
 	local sheetName = label(sheetFrame, "SheetName", 16, INK)
 	local sheetInfo = label(sheetFrame, "SheetInfo", 13, INK)
 	local sheetStatus = label(sheetFrame, "SheetStatus", 13, INK)
@@ -396,6 +430,8 @@ function M.panel(ctx: any): any
 	sail.Name, sail.BackgroundColor3, sail.TextColor3 =
 		"Sail", Color3.fromRGB(31, 78, 76), Color3.fromRGB(237, 230, 214)
 	sail.Font, sail.ZIndex, sail.Visible, sail.Parent = Enum.Font.GothamBold, 3, false, sheetFrame
+	local sailCorner = Instance.new("UICorner")
+	sailCorner.CornerRadius, sailCorner.Parent = UDim.new(0, 10), sail
 	local timer = label(hud, "DriftTimer", 14, { 237, 230, 214 })
 	timer.BackgroundTransparency, timer.BackgroundColor3, timer.Visible = 0.2, rgb(LILAC), false
 	local timerCorner = Instance.new("UICorner")
@@ -433,6 +469,12 @@ function M.panel(ctx: any): any
 		put(header, layout.header)
 		put(title, layout.title)
 		title.TextSize = sizes.title
+		-- Header icon left of the title (U7): the title starts one icon width further right.
+		local iconSide = math.floor(layout.header.height * 0.72)
+		headerIcon.Size = UDim2.fromOffset(iconSide, iconSide)
+		headerIcon.Position = UDim2.fromOffset(layout.title.x - layout.header.x, (layout.header.height - iconSide) // 2)
+		title.Position = UDim2.fromOffset(layout.title.x + iconSide + 8, layout.title.y)
+		title.Size = UDim2.fromOffset(layout.title.width - iconSide - 8, layout.title.height)
 		-- Close is a child of Header (HudShell.sheetOpen reads Header > Close): header-relative.
 		put(close, layout.close)
 		close.Position = UDim2.fromOffset(layout.close.x - layout.header.x, layout.close.y - layout.header.y)
@@ -450,17 +492,21 @@ function M.panel(ctx: any): any
 			put(tile.chip, r.chip)
 			tile.name.Text, tile.name.TextSize = copy.name, sizes.name
 			tile.chip.Text, tile.chip.TextSize = copy.chip, sizes.chip
-			tile.marker.BackgroundColor3 =
-				rgb(if card.locked then LOCK elseif card.drift then LILAC elseif card.home then HOME else WASH)
-			tile.marker.BackgroundTransparency = if card.locked then 0.35 else 0.15
-			tile.stroke.Color = rgb(if card.drift then LILAC else INK)
-			tile.stroke.Thickness = if card.here then 4 else 2
+			-- Sea disc with the isle's land; home is gold, the current isle has a thick bone ring.
+			tile.marker.BackgroundColor3 = rgb(if card.home then HOME else SEA)
+			tile.marker.BackgroundTransparency = if card.locked then 0.45 else 0.1
+			tile.land.BackgroundColor3 = rgb(LAND[(card.biomes or {})[1] or ""] or WASH)
+			tile.land.BackgroundTransparency = if card.locked then 0.5 else 0
+			tile.land.Visible = not card.home
+			tile.stroke.Color = rgb(if card.here then BONE elseif card.drift then LILAC else INK)
+			tile.stroke.Thickness = if card.here then 5 elseif card.id == selected then 4 else 2
 			tile.lock.Visible = card.locked
+			tile.name.TextColor3 = rgb(if card.locked then LOCK else INK)
 			tile.rift.Visible = card.rift
 			-- Drift isles: the band chip carries the window countdown as a lilac pill.
 			local counting = card.drift and card.expiresAt ~= nil
-			tile.chip.BackgroundColor3 = rgb(LILAC)
-			tile.chip.BackgroundTransparency = if counting then 0.25 else 1
+			tile.chip.BackgroundColor3 = rgb(if counting then LILAC else BONE)
+			tile.chip.BackgroundTransparency = if counting then 0.25 else 0.45
 			if card.id == selected then
 				put(sheet, layout.sheet.frame)
 				put(sheetName, layout.sheet.name)
@@ -485,6 +531,19 @@ function M.panel(ctx: any): any
 		local shown = selected ~= nil
 		for _, item: GuiObject in { sheet :: GuiObject, sheetName, sheetInfo, sheetStatus, sail } do
 			item.Visible = shown
+		end
+		-- Nothing picked yet: one pill where the island sheet opens says what to do.
+		hint.Visible = not shown
+		if not shown then
+			local at = layout.sheet.frame
+			local hintW = math.min(at.width, math.floor(sizes.name * 0.62 * (utf8.len(hint.Text) or 20) + 48))
+			put(hint, {
+				x = at.x + (at.width - hintW) // 2,
+				y = at.y + at.height - sizes.name - 22,
+				width = hintW,
+				height = sizes.name + 14,
+			})
+			hint.TextSize = sizes.name
 		end
 		-- HUD: the drift-isle countdown on an active drift isle, and the minimap as a chart opener.
 		local playerGui = gui.Parent :: Instance
@@ -513,11 +572,20 @@ function M.panel(ctx: any): any
 		corner.CornerRadius, corner.Parent = UDim.new(0.45, 0), marker
 		local stroke = Instance.new("UIStroke")
 		stroke.ApplyStrokeMode, stroke.Parent = Enum.ApplyStrokeMode.Border, marker
+		-- Land: an off-centre rounded blob inside the sea disc.
+		local land = Instance.new("Frame")
+		land.Name, land.BorderSizePixel, land.Rotation = "Land", 0, 18
+		land.AnchorPoint, land.Position = Vector2.new(0.5, 0.5), UDim2.fromScale(0.48, 0.52)
+		land.Size, land.Parent = UDim2.fromScale(0.62, 0.5), marker
+		local landCorner = Instance.new("UICorner")
+		landCorner.CornerRadius, landCorner.Parent = UDim.new(0.5, 0), land
 		local lock = Instance.new("Frame")
-		lock.Name, lock.BackgroundColor3, lock.Size = "Lock", rgb(LOCK), UDim2.fromScale(0.36, 0.36)
-		lock.Position, lock.AnchorPoint, lock.Parent = UDim2.fromScale(1, 1), Vector2.new(1, 1), marker
+		lock.Name, lock.BackgroundColor3, lock.Size = "Lock", rgb(BONE), UDim2.fromScale(0.42, 0.42)
+		lock.Position, lock.AnchorPoint, lock.Parent = UDim2.fromScale(1.04, 1.04), Vector2.new(1, 1), marker
 		local lockCorner = Instance.new("UICorner")
 		lockCorner.CornerRadius, lockCorner.Parent = UDim.new(0.5, 0), lock
+		local padlock = art(lock, "Padlock", "locked")
+		padlock.Position, padlock.Size = UDim2.fromScale(0.1, 0.1), UDim2.fromScale(0.8, 0.8)
 		-- Rift badge (top-left, opposite the lock): a lilac disc with an ink rim and a bone fissure.
 		local rift = Instance.new("Frame")
 		rift.Name, rift.BackgroundColor3, rift.Size = "Rift", rgb(LILAC), UDim2.fromScale(0.4, 0.4)
@@ -535,7 +603,8 @@ function M.panel(ctx: any): any
 		local chip = label(sheetFrame, "Chip-" .. island.id, 13, INK)
 		local chipCorner = Instance.new("UICorner")
 		chipCorner.CornerRadius, chipCorner.Parent = UDim.new(0.5, 0), chip
-		tiles[island.id] = { marker = marker, stroke = stroke, lock = lock, rift = rift, name = name, chip = chip }
+		tiles[island.id] =
+			{ marker = marker, stroke = stroke, land = land, lock = lock, rift = rift, name = name, chip = chip }
 		marker.Activated:Connect(function()
 			selected, status = island.id, nil
 			render()

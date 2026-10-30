@@ -803,13 +803,32 @@ table.insert(panelFactories, function(ctx)
 	local current = SheetSettings.normalize(nil)
 	local connections = {}
 	local buttons: { [string]: TextButton } = {}
+	-- U7: each setting is a row with its icon, the name left and the current value in a pill right.
+	local SETTING_ICONS = {
+		muted = "music",
+		volume = "music",
+		music = "music",
+		sfx = "music",
+		ensemble = "social",
+		reducedEffects = "weather.clear",
+		language = "help",
+		textSize = "journal",
+	}
+	local function show(created: TextButton, text: string)
+		local name, value = string.match(text, "^(.-):%s*(.+)$")
+		created.Text = name or text
+		local pill = created:FindFirstChild("Value") :: TextLabel?
+		if pill then
+			pill.Text, pill.Visible = value or "", value ~= nil
+		end
+	end
 	local function render()
 		for _, row in SheetSettings.rows(locale, current) do
 			local created = buttons[row[1]]
 			if created then
 				-- Pack text is built once per session, so a new language applies on rejoin.
 				local pending = row[1] == "language" and SheetSettings.locale(player.LocaleId, current) ~= locale
-				created.Text = row[2] .. (if pending then " - " .. SheetSettings.text(locale, "lang_rejoin") else "")
+				show(created, row[2] .. (if pending then " - " .. SheetSettings.text(locale, "lang_rejoin") else ""))
 			end
 		end
 	end
@@ -818,9 +837,28 @@ table.insert(panelFactories, function(ctx)
 		local created = ctx.ui.components.button(ctx.ui.theme.default, {
 			text = row[2],
 			size = UDim2.new(1, 0, 0, 48),
-			parent = sheet.scroll,
 		})
 		created.Name, created.LayoutOrder = "Setting-" .. key, index
+		created.TextXAlignment = Enum.TextXAlignment.Left
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft, pad.PaddingRight, pad.Parent = UDim.new(0, 48), UDim.new(0, 8), created
+		local art = Instance.new("ImageLabel")
+		art.Name, art.BackgroundTransparency, art.ScaleType = "SettingIcon", 1, Enum.ScaleType.Fit
+		art.Size, art.Position = UDim2.fromOffset(32, 32), UDim2.new(0, -40, 0.5, -16)
+		art.Image, art.Parent = itemIcons.ui(SETTING_ICONS[key] or "settings").image or "", created
+		local pill = Instance.new("TextLabel")
+		pill.Name, pill.AnchorPoint, pill.Position = "Value", Vector2.new(1, 0.5), UDim2.fromScale(1, 0.5)
+		pill.Size, pill.AutomaticSize = UDim2.fromOffset(0, 32), Enum.AutomaticSize.X
+		pill.BackgroundColor3, pill.TextColor3 = Color3.fromRGB(246, 238, 220), Color3.fromRGB(38, 30, 24)
+		pill.Font, pill.TextSize = Enum.Font.BuilderSansBold, 16
+		pill:SetAttribute("ForgeShellKeep", true)
+		local pillCorner = Instance.new("UICorner")
+		pillCorner.CornerRadius, pillCorner.Parent = UDim.new(0.5, 0), pill
+		local pillPad = Instance.new("UIPadding")
+		pillPad.PaddingLeft, pillPad.PaddingRight, pillPad.Parent = UDim.new(0, 12), UDim.new(0, 12), pill
+		pill.Parent = created
+		show(created, row[2])
+		created.Parent = sheet.scroll
 		buttons[key] = created
 		table.insert(
 			connections,
@@ -1015,6 +1053,10 @@ table.insert(panelFactories, function(ctx)
 		label.AutomaticSize, label.TextYAlignment = Enum.AutomaticSize.Y, Enum.TextYAlignment.Top
 	end
 	journalContext.buttonSize = UDim2.new(1, 0, 0, 48)
+	-- U7: chapter cards (SheetCards.section) with the journal seal art.
+	if ctx.icons and ctx.sheetText then
+		journalContext.cards = require(Forge.genres["survival-coop"].module.SheetCards)
+	end
 	local panel = require(Forge.genres["survival-coop"].module.JournalPanel).factory(journalContext)
 	local disconnect = ctx.onSnapshot(function(_, packet)
 		panel.snapshot(packet.snapshots or {})
