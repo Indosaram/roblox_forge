@@ -183,35 +183,54 @@ CLUMP_TRIS = 14
 # L4d painted plumage: (feather rows per body length, row contrast, wing/tail barring strength).
 PAINTED_PLUME = {"gallimimus": (34.0, 0.3, 0.45), "utahraptor": (30.0, 0.32, 0.5), "velociraptor": (36.0, 0.28, 0.4)}
 # Raptor lane: real feather volume for the three painted-plume species. Ordered, layered feather
-# cards (closed lanceolate blades, CARD_TRIS each, their bases sunk into the skin) laid out on the
-# skeleton instead of scattered shells. zone -> (cards per side, or per row on the midline,
-# length and width as body-length fractions, root colour, tip colour, bar strength):
-#   wing   = trailing remiges along the arm (each card rides the Arm bone),
-#   covert = a shorter, paler row laid over the wing roots,
-#   tail   = a horizontal lateral fan that sweeps back into a terminal plume (Tail1-5),
-#   crest  = a neck mane lying back along the dorsal line (Neck1/Neck2/Chest),
-#   back   = two shingled rows of flat contour feathers over chest and hips (Chest/Spine/Root),
-#   thigh  = feathered trousers hanging off the hip (Thigh).
-# Each zone has its own material: a root-to-tip ramp crossed by bars (banded remiges and tail).
+# cards (closed ridged blades, CARD_TRIS each, their bases sunk into the skin) laid out on the
+# skeleton instead of scattered shells. zone -> (cards per side / per row, length and width as
+# body-length fractions, root colour, tip colour, bar strength).
+# Raptor2: the folded wing is four stacked tiers, each one card-step further out from the flank,
+# shorter and higher than the one under it (primaries under secondaries under two covert rows), so
+# the wing shows stepped edges and shadowed roots instead of one painted plate; the tail is a
+# rectrix fan under a shorter covert layer, clamped to the catalog length envelope; the neck carries
+# a ruff of RUFF_ANGLES rows wrapped round it (not one thin midline mane).
+#   primary   = long remiges off the hand (bottom tier, hanging back and down),
+#   secondary = remiges along the forearm (tier 2),
+#   covert    = greater (tier 3) and lesser (tier 4) coverts over the wing roots,
+#   tail      = horizontal rectrix fan (Tail1-5), tailcov = shorter coverts laid over it,
+#   ruff      = neck rows (Neck1/Neck2/Head), back = two shingled rows, thigh = trousers.
 FEATHERS = {
     # R11-6: white body, dark slate neck and wings, white tail plume, red head.
     "gallimimus": dict(
-        wing=(9, 0.15, 0.04, "#3e4148", "#5c6066", 0.3), covert=(6, 0.075, 0.03, "#cfcbc2", "#9c988e", 0.2),
-        tail=(9, 0.13, 0.042, "#e6e3dc", "#bab6ad", 0.25), crest=(10, 0.07, 0.024, "#3a3d43", "#2a2c31", 0.15),
-        back=(5, 0.07, 0.032, "#cdc8bc", "#a6a194", 0.2), thigh=(4, 0.08, 0.032, "#d6d2c8", "#aaa598", 0.15)),
+        primary=(5, 0.15, 0.036, "#2c2f35", "#5a5e66", 0.35), secondary=(6, 0.12, 0.036, "#3e4148", "#6a6e76", 0.3),
+        covert=(5, 0.065, 0.03, "#d2cec6", "#8e8a82", 0.2), tail=(8, 0.12, 0.04, "#d8d4cb", "#f0ede6", 0.25),
+        tailcov=(6, 0.07, 0.034, "#bcb8ae", "#e8e5de", 0.2), ruff=(6, 0.055, 0.022, "#2e3136", "#4a4e55", 0.15),
+        back=(5, 0.07, 0.032, "#c4bfb3", "#e2ded6", 0.2), thigh=(4, 0.075, 0.03, "#c8c4ba", "#ebe8e1", 0.15)),
     # Pale grey-beige with dark dorsal bands that carry into a barred tail fan, dark barred wings.
     "utahraptor": dict(
-        wing=(9, 0.15, 0.04, "#6e675e", "#2a2520", 0.5), covert=(6, 0.075, 0.03, "#bdb7aa", "#857f73", 0.25),
-        tail=(9, 0.14, 0.042, "#bdb7aa", "#3a342e", 0.55), crest=(8, 0.065, 0.026, "#4e4740", "#2a2520", 0.2),
-        back=(5, 0.07, 0.034, "#6e675e", "#48423b", 0.3), thigh=(4, 0.075, 0.032, "#bdb7aa", "#8a8478", 0.2)),
+        primary=(5, 0.15, 0.036, "#3a342e", "#1e1a16", 0.5), secondary=(6, 0.12, 0.036, "#6e675e", "#2e2924", 0.5),
+        covert=(5, 0.065, 0.03, "#c4beb1", "#7a7468", 0.25), tail=(8, 0.13, 0.04, "#bdb7aa", "#2e2924", 0.55),
+        tailcov=(6, 0.075, 0.034, "#8a8478", "#d0cabe", 0.4), ruff=(5, 0.055, 0.024, "#5e5750", "#bdb7aa", 0.2),
+        back=(5, 0.07, 0.034, "#5e574e", "#9a9488", 0.3), thigh=(4, 0.07, 0.03, "#a8a296", "#d6d0c4", 0.2)),
     # Sandy speckled coat, rufous-brown barred wings and tail, dark mane, red face.
     "velociraptor": dict(
-        wing=(8, 0.16, 0.042, "#8a6a4a", "#3a2a1e", 0.5), covert=(4, 0.08, 0.032, "#a89478", "#6e5a44", 0.25),
-        tail=(8, 0.15, 0.044, "#a08e76", "#3a2a1e", 0.55), crest=(6, 0.07, 0.028, "#5a4434", "#2e241c", 0.2),
-        back=(3, 0.075, 0.036, "#6a5644", "#4a3a2c", 0.3), thigh=(3, 0.08, 0.034, "#a08e76", "#76644f", 0.2)),
+        primary=(4, 0.16, 0.04, "#3a2a1e", "#6e4e34", 0.5), secondary=(5, 0.13, 0.04, "#8a6a4a", "#3a2a1e", 0.5),
+        covert=(4, 0.07, 0.032, "#c4ae8e", "#6e5a44", 0.25), tail=(7, 0.14, 0.042, "#a08e76", "#2e241c", 0.55),
+        tailcov=(5, 0.08, 0.036, "#7a6450", "#c8b498", 0.4), ruff=(4, 0.06, 0.026, "#4a3828", "#8a6e54", 0.2),
+        back=(3, 0.075, 0.036, "#5e4c3c", "#9a8268", 0.3), thigh=(3, 0.075, 0.032, "#a08e76", "#cbb89c", 0.2)),
 }
-CARD_TRIS = 14
-FEATHER_SIDED = ("wing", "covert", "tail", "back", "thigh")
+CARD_TRIS = 10  # feather_card: 6 roof triangles + 2 quads underneath (triangulated)
+# Neck ruff rows: angle round the neck from the dorsal line (radians) and length factor.
+RUFF_ANGLES = ((0.0, 1.15), (0.85, 1.0), (-0.85, 1.0), (1.65, 0.8), (-1.65, 0.8))
+TAIL_PLUME = 3
+
+
+def feather_cards(key):
+    """Card count per species (both sides, every tier/row); drives the body triangle deduction."""
+    spec = FEATHERS.get(key)
+    if not spec:
+        return 0
+    per_side = spec["primary"][0] + spec["secondary"][0] + 2 * spec["covert"][0] + spec["tail"][0] + spec["tailcov"][0]
+    per_side += 2 * spec["back"][0] + spec["thigh"][0]
+    return 2 * per_side + spec["ruff"][0] * len(RUFF_ANGLES) + TAIL_PLUME
+
 
 # B2a species keep their recorded seeds; B2b species seed from SEED + 100.
 B2A_SPECIES = sorted(k for k, v in SPECIES.items() if v["plan"] in ("theropod", "ceratopsian", "sauropod"))
@@ -1685,32 +1704,29 @@ def build_fur(sp, sk, P, R, high, table=None):
 
 
 def feather_card(bm, base, d, flat, length, width, droop=0.12):
-    """One closed lanceolate feather blade: a narrow quill base, the widest vane at 45%, a pointed
-    tip curling a little toward -flat (lies on the body). `flat` is the vane's thickness axis.
-    CARD_TRIS triangles. Returns [(vert, t along, u across)] for the colour attributes."""
+    """One closed feather blade: quill base, the widest vane at 40%, a pointed tip curling a little
+    toward -flat (lies on the body). Raptor2: the rachis is a raised ridge (a shallow roof over the
+    vane), so each card catches the key light on one half and shades the other, and every card edge
+    casts a step onto the card under it. `flat` is the vane normal. CARD_TRIS triangles.
+    Returns [(vert, t along, u across)] for the colour attributes."""
     d = d.normalized()
     f = (flat - d * flat.dot(d)).normalized()
     side = d.cross(f).normalized()
-    th = width * 0.14
-    out = []
-    rings = []
-    for t, w in ((0.0, 0.32), (0.45, 1.0)):
-        c = base + d * length * t - f * length * droop * t * t
-        ring = []
-        for cx, cz in ((1, 0), (0, 1), (-1, 0), (0, -1)):
-            v = bm.verts.new(c + side * width * w * cx + f * th * (1 - 0.4 * t) * cz)
-            ring.append(v)
-            out.append((v, t, cx))
-        rings.append(ring)
-    tv = bm.verts.new(base + d * length - f * length * droop)
-    out.append((tv, 1.0, 0.0))
-    bm.faces.new(list(reversed(rings[0])))
-    for k in range(4):
-        a0, a1 = rings[0][k], rings[0][(k + 1) % 4]
-        b0, b1 = rings[1][k], rings[1][(k + 1) % 4]
-        bm.faces.new((a0, a1, b1, b0))
-        bm.faces.new((b0, b1, tv))
-    return out
+    th = width * 0.16
+    c = base + d * length * 0.4 - f * length * droop * 0.16
+    b0 = bm.verts.new(base)
+    bl = bm.verts.new(c + side * width - f * th * 0.3)
+    br = bm.verts.new(c - side * width - f * th * 0.3)
+    top = bm.verts.new(c + f * th)
+    und = bm.verts.new(c - f * th * 0.6)
+    tl = bm.verts.new(base + d * length * 0.78 + side * width * 0.45 - f * length * droop * 0.6)
+    tr = bm.verts.new(base + d * length * 0.78 - side * width * 0.45 - f * length * droop * 0.6)
+    tip = bm.verts.new(base + d * length - f * length * droop)
+    for face in ((b0, top, bl), (b0, br, top), (bl, top, tl), (top, tip, tl), (top, br, tr), (top, tr, tip),
+                 (b0, bl, und), (b0, und, br), (bl, tl, tip, und), (und, tip, tr, br)):
+        bm.faces.new(face)
+    return [(b0, 0.0, 0.0), (bl, 0.4, 1.0), (br, 0.4, -1.0), (top, 0.4, 0.0), (und, 0.4, 0.0),
+            (tl, 0.78, 0.6), (tr, 0.78, -0.6), (tip, 1.0, 0.0)]
 
 
 def _polyline(pts, t):
@@ -1726,9 +1742,11 @@ def _polyline(pts, t):
         acc += ln
 
 
-def build_feathers(sp, sk, P, R, bvh):
-    """Raptor lane: ordered feather cards per zone (FEATHERS), each card rigid on one bone.
-    Returns {"feather_<zone>": [objects]} (one object per bone, tagged detail:<bone>)."""
+def build_feathers(sp, sk, P, R, bvh, y_limit=None):
+    """Raptor lane: ordered, layered feather cards per zone (FEATHERS), each card rigid on one bone.
+    y_limit (raptor2): no card tip reaches past this Y (the catalog length envelope behind the
+    nose); a card that would is shortened. Returns {"feather_<zone>": [objects]} (one object per
+    bone, tagged detail:<bone>)."""
     spec = FEATHERS.get(sp["key"])
     if not spec:
         return {}
@@ -1750,63 +1768,82 @@ def build_feathers(sp, sk, P, R, bvh):
         if key not in groups:
             groups[key] = (bmesh.new(), [])
         bm, attrs = groups[key]
-        jit = random.uniform(0.9, 1.1)
-        attrs.extend(feather_card(bm, base, d, flat, ln * jit, w * random.uniform(0.9, 1.1), droop))
+        ln *= random.uniform(0.92, 1.08)
+        dn = d.normalized()
+        if y_limit is not None:
+            reach = dn.y + 0.05
+            if reach > 1e-3 and base.y + ln * reach > y_limit:
+                ln = max((y_limit - base.y) / reach, ln * 0.35)
+        made = feather_card(bm, base, dn, flat, ln, w * random.uniform(0.92, 1.08), droop)
+        if y_limit is not None:
+            # Exact clamp: pull a card that still overshoots back toward its base.
+            far = max(v.co.y for v, _t, _u in made)
+            if far > y_limit and far - base.y > 1e-6:
+                k = max((y_limit - base.y) / (far - base.y), 0.0)
+                for v, _t, _u in made:
+                    v.co = base + (v.co - base) * k
+        attrs.extend(made)
 
     sides = ((1, "L"), (-1, "R"))
-    # Wing: remiges trailing back and down from the forearm, longest at the hand (primaries).
-    n, lf, wf = spec["wing"][:3]
+    step = 0.011 * L  # outward step between stacked wing tiers
     for side, sfx in sides:
         arm = [P["shoulder" + sfx], P["elbow" + sfx], P["wrist" + sfx], P["finger0" + sfx].lerp(P["finger1" + sfx], 0.5)]
         sx = X * side
-        for i in range(n):
-            t = 0.3 + 0.7 * i / max(n - 1, 1)
-            p, _seg, _dir = _polyline(arm, t)
-            base, nrm = surf(p, sx * rm("shoulder" + sfx))
-            base = base - nrm * wf * L * 0.05
-            # Fanned folded wing: secondaries lie back along the flank, primaries angle down.
-            ang = 0.12 + 0.55 * t
-            d = Y * math.cos(ang) - Z * math.sin(ang) + sx * 0.22
-            card("wing", "Arm" + sfx, base + sx * wf * L * 0.3 * t, d, sx, lf * L * (0.8 + 0.75 * t), wf * L * 1.1, 0.05)
-        # Coverts: a shorter row over the wing roots, set a little outward and higher.
-        nc, lc, wc = spec["covert"][:3]
-        for i in range(nc):
-            t = 0.12 + 0.7 * i / max(nc - 1, 1)
-            p, _seg, _dir = _polyline(arm, t)
-            base, nrm = surf(p + Z * rm("elbow" + sfx) * 0.6, sx * rm("shoulder" + sfx))
-            base = base + nrm * wc * L * 0.08
-            d = (Y * 0.85 - Z * 0.35 + sx * 0.1)
-            card("covert", "Arm" + sfx, base, d, sx, lc * L * (0.8 + 0.3 * t), wc * L, 0.1)
-    # Tail: a horizontal lateral fan that sweeps back into a terminal plume.
+        rs = rm("shoulder" + sfx)
+
+        def wing_row(zone, n, t0, t1, ln_of, w, ang0, ang1, tier, lift, droop):
+            for i in range(n):
+                u = i / max(n - 1, 1)
+                t = t0 + (t1 - t0) * u
+                p, _seg, _dir = _polyline(arm, t)
+                base, _nrm = surf(p + Z * lift, sx * rs)
+                base = base + sx * step * tier
+                ang = ang0 + (ang1 - ang0) * u
+                d = Y * math.cos(ang) - Z * math.sin(ang) + sx * 0.08
+                # Vane normal tilted up and out: each tier's lower edge tucks under the next.
+                flat = sx + Z * (0.3 + 0.08 * tier) + Y * random.uniform(-0.12, 0.12)
+                card(zone, "Arm" + sfx, base, d, flat, ln_of(u), w, droop)
+
+        n, lf, wf = spec["primary"][:3]
+        wing_row("primary", n, 0.62, 1.0, lambda u: lf * L * (0.85 + 0.3 * u), wf * L, 0.55, 0.85, 0, -0.01 * L, 0.06)
+        n, lf, wf = spec["secondary"][:3]
+        wing_row("secondary", n, 0.12, 0.72, lambda u: lf * L * (0.9 + 0.2 * u), wf * L, 0.18, 0.5, 1, 0.0, 0.06)
+        n, lf, wf = spec["covert"][:3]
+        wing_row("covert", n, 0.1, 0.78, lambda u: lf * L * (1.0 + 0.2 * u), wf * L, 0.2, 0.45, 2, 0.022 * L, 0.1)
+        wing_row("covert", n, 0.0, 0.55, lambda u: lf * L * 0.62, wf * L * 0.9, 0.15, 0.35, 3, 0.04 * L, 0.12)
+    # Tail: a horizontal rectrix fan with a shorter covert layer over its roots, then a plume.
     tails = [P["pelvis"]] + [P[f"tail{i}"] for i in range(1, 6) if f"tail{i}" in P]
-    n, lf, wf = spec["tail"][:3]
-    for side, sfx in sides:
-        sx = X * side
-        for i in range(n):
-            t = 0.34 + 0.66 * i / max(n - 1, 1)
-            p, seg, tdir = _polyline(tails, t)
-            tr = max(rm(f"tail{seg + 1}"), 0.012 * L)
-            base, nrm = surf(p, sx * tr)
-            base = base - nrm * wf * L * 0.04
-            out_k = 0.55 - 0.35 * t
-            d = tdir + sx * out_k - Z * 0.04
-            card("tail", f"Tail{min(seg + 1, 5)}", base, d, Z, lf * L * (0.7 + 0.5 * t), wf * L * (1.0 + 0.4 * t), 0.04)
-    # Terminal plume: three cards off the tail tip.
-    p, seg, tdir = _polyline(tails, 0.985)
-    for k, a in enumerate((-0.35, 0.0, 0.35)):
-        d = tdir + X * a
-        card("tail", "Tail5", p - tdir * 0.02 * L, d, Z, spec["tail"][1] * L * (1.15 if k == 1 else 1.0), spec["tail"][2] * L, 0.05)
-    # Crest: a mane along the dorsal line of the neck, lying back.
-    neck = [P["chest"].lerp(P["neck_a"], 0.4), P["neck_a"], P["neck_b"], P["head_back"]]
-    n, lf, wf = spec["crest"][:3]
+    for zone, t0, t1, lift, outk in (("tail", 0.32, 0.97, 0.0, 0.62), ("tailcov", 0.26, 0.86, 0.012 * L, 0.38)):
+        n, lf, wf = spec[zone][:3]
+        for side, sfx in sides:
+            sx = X * side
+            for i in range(n):
+                t = t0 + (t1 - t0) * i / max(n - 1, 1)
+                p, seg, tdir = _polyline(tails, t)
+                tr = max(rm(f"tail{seg + 1}"), 0.012 * L)
+                base, nrm = surf(p + Z * lift, sx * tr)
+                base = base - nrm * wf * L * 0.04 + Z * lift
+                d = tdir + sx * (outk - 0.25 * t) - Z * 0.03
+                flat = Z + sx * (0.25 if zone == "tail" else 0.1)
+                card(zone, f"Tail{min(seg + 1, 5)}", base, d, flat, lf * L * (0.75 + 0.45 * t), wf * L * (1.0 + 0.4 * t), 0.04)
+    p, seg, tdir = _polyline(tails, 0.86)
+    for k, a in enumerate((-0.4, 0.0, 0.4)):
+        card("tail", f"Tail{min(seg + 1, 5)}", p + Z * 0.008 * L, tdir + X * a, Z, spec["tail"][1] * L * (1.1 if k == 1 else 0.95), spec["tail"][2] * L, 0.05)
+    # Ruff: RUFF_ANGLES rows wrapped round the neck, each card lying back toward the body.
+    neck = [P["chest"].lerp(P["neck_a"], 0.3), P["neck_a"], P["neck_b"], P["head_back"]]
+    n, lf, wf = spec["ruff"][:3]
+    rn = max(rm("neck_a"), rm("neck_b"))
     for i in range(n):
-        t = 0.0 + 0.92 * i / max(n - 1, 1)
+        t = 0.04 + 0.86 * i / max(n - 1, 1)
         p, seg, ndir = _polyline(neck, t)
-        base, nrm = surf(p, Z * rm("neck_a") * 1.2)
-        base = base - nrm * wf * L * 0.1
-        d = (-ndir * 0.9 + Z * 0.55 + Y * 0.2)
-        bone = "Neck1" if seg == 0 else ("Neck2" if seg < 2 or t < 0.85 else "Head")
-        card("crest", bone, base, d, X, lf * L * (1.15 - 0.45 * t), wf * L, 0.18)
+        upv = (Z - ndir * Z.dot(ndir)).normalized()
+        bone = "Neck1" if seg == 0 else ("Head" if t > 0.86 else "Neck2")
+        for ang, kl in RUFF_ANGLES:
+            o = upv * math.cos(ang) + X * math.sin(ang)
+            base, nrm = surf(p, o * rn * 1.4)
+            base = base - nrm * wf * L * 0.08
+            d = -ndir * 0.85 + o * 0.4
+            card("ruff", bone, base, d, o, lf * L * kl * (1.2 - 0.4 * t), wf * L, 0.2)
     # Back: two shingled rows of contour feathers over the chest and hips.
     n, lf, wf = spec["back"][:3]
     spine = [P["chest"], P["belly"], P["pelvis"]]
@@ -1840,6 +1877,7 @@ def build_feathers(sp, sk, P, R, bvh):
         tv = {v: (t, u) for v, t, u in attrs}
         bm.verts.index_update()
         order = [tv[v] for v in bm.verts]
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
         bmesh.ops.triangulate(bm, faces=bm.faces[:])
         obj = detail_object(f"feathers_{zone}_{bone}", bm, bone)
         me = obj.data
@@ -1848,19 +1886,15 @@ def build_feathers(sp, sk, P, R, bvh):
         for i, (t, u) in enumerate(order):
             at.data[i].value = t
             au.data[i].value = u
+        # Flat shading keeps the ridge: the two vane halves bake to different values.
         for poly in me.polygons:
-            poly.use_smooth = True
+            poly.use_smooth = False
         out.setdefault("feather_" + zone, []).append(obj)
     return out
 
 
 def feather_tris(key):
-    spec = FEATHERS.get(key)
-    if not spec:
-        return 0
-    cards = sum(v[0] * (2 if z in FEATHER_SIDED else 1) for z, v in spec.items())
-    cards += spec["back"][0] * 2 * 2 - spec["back"][0] * 2  # two rows per side
-    return (cards + 3) * CARD_TRIS
+    return feather_cards(key) * CARD_TRIS
 
 
 def copy_fur_weights(body):
@@ -2463,7 +2497,9 @@ def feather_mat(sp, zone):
         t.attribute_name = "fthr_t"
         u = nodes.new("ShaderNodeAttribute")
         u.attribute_name = "fthr_u"
-        base = C.ramp(nodes, links, t.outputs["Fac"], [(0.0, lerp3(C.hexlin(root), (0, 0, 0), 0.2)), (0.3, C.hexlin(root)), (0.95, C.hexlin(tip))])
+        base = C.ramp(nodes, links, t.outputs["Fac"], [(0.0, lerp3(C.hexlin(root), (0, 0, 0), 0.45)), (0.35, C.hexlin(root)), (0.95, C.hexlin(tip))])
+        # Raptor2: the root third is shadowed (it sits under the card above), so each tier reads as
+        # a separate layer in the colour map the device gets.
         # Bars across the vane: a cosine of t, broken by world noise so neighbours do not line up.
         coord = nodes.new("ShaderNodeTexCoord").outputs["Object"]
         nz = C.noise(nodes, 3.0 / sp["length"], 2, 0.5, coord, links)
@@ -2700,7 +2736,10 @@ def build_geometry(sp, raw, s, name, body_tris):
     plume = build_fur(sp, sk, points, radii, high, PLUME)
     if plume is not None:
         det["plume"] = [plume]
-    det.update(build_feathers(sp, sk, points, radii, bvh))
+    # Raptor2: feather tips stay inside the catalog length envelope measured from the nose.
+    y_front = min(v.co.y for v in high.data.vertices)
+    y_limit = y_front + sp["envelope"][2] if "envelope" in sp else None
+    det.update(build_feathers(sp, sk, points, radii, bvh, y_limit))
     bpy.data.objects.remove(high)
     return body, det, sk, points
 

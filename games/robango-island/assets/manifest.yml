@@ -86,16 +86,16 @@ assets:
   - key: creature-gallimimus
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
-    assetId: 107616141754281
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
+    assetId: 85757559984124
     moderation: Approved
     provenance:
-      digest: sha256:8d379e40a734fcee45be1a259e1680e843736af817835126b70621e4511f8249
+      digest: sha256:edbb354d9593744f7dd1ccfe2e822ad143b01500714cdc2abf300ae154cda721
       recipe:
         id: gen-creatures
-        version: 6
+        version: 7
         input: "assets/blender/gen_creatures.py#gallimimus"
-        inputVersion: sha256:8d379e40a734fcee45be1a259e1680e843736af817835126b70621e4511f8249
+        inputVersion: sha256:edbb354d9593744f7dd1ccfe2e822ad143b01500714cdc2abf300ae154cda721
       provider:
         name: forge-procgen
         version: 1
@@ -191,16 +191,16 @@ assets:
   - key: creature-utahraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
-    assetId: 109785893765521
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
+    assetId: 75453334636437
     moderation: Approved
     provenance:
-      digest: sha256:b7bb6251f85d6023d6311c76187f55615d28237cc72964adc279c3fd48d2dca9
+      digest: sha256:26c59ebd70b8589ae1cda6d16f434bc9d03e9d43bcc2630b9b60071944b0a79d
       recipe:
         id: gen-creatures
-        version: 6
+        version: 7
         input: "assets/blender/gen_creatures.py#utahraptor"
-        inputVersion: sha256:b7bb6251f85d6023d6311c76187f55615d28237cc72964adc279c3fd48d2dca9
+        inputVersion: sha256:26c59ebd70b8589ae1cda6d16f434bc9d03e9d43bcc2630b9b60071944b0a79d
       provider:
         name: forge-procgen
         version: 1
@@ -212,16 +212,16 @@ assets:
   - key: creature-velociraptor
     kind: model
     tool: forge-procgen
-    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, skinned FBX)"
-    assetId: 96764554890761
+    source: "first-party headless Blender generator (B2a body plans, v2 sculpt, L4b baked skin detail/AO, L4c painted form light, L4d value lift, rim, framed eyes and clean coats in the colour map, raptor-lane layered feather cards and banded coat, raptor2 stacked wing tiers, tail coverts, neck ruff and length-clamped tail, skinned FBX)"
+    assetId: 131401281107516
     moderation: Approved
     provenance:
-      digest: sha256:e98a68bd1981db4d5244829c8392aeabec1058c33b2cafba083c02f2e1e32cc0
+      digest: sha256:f5e7e4414631a2b934df756bd40f9b264f5407c06bac07d91add68610aa4908c
       recipe:
         id: gen-creatures
-        version: 6
+        version: 7
         input: "assets/blender/gen_creatures.py#velociraptor"
-        inputVersion: sha256:e98a68bd1981db4d5244829c8392aeabec1058c33b2cafba083c02f2e1e32cc0
+        inputVersion: sha256:f5e7e4414631a2b934df756bd40f9b264f5407c06bac07d91add68610aa4908c
       provider:
         name: forge-procgen
         version: 1
