@@ -447,6 +447,37 @@ function M.start(options: Options)
 	local skillGrid = Instance.new("UIGridLayout")
 	skillGrid.CellSize, skillGrid.CellPadding = UDim2.new(0.5, -8, 0, 44), UDim2.fromOffset(6, 6)
 	skillGrid.SortOrder, skillGrid.Parent = Enum.SortOrder.LayoutOrder, skillList
+	-- text audit: at 800x360 the grid shows ~2.5 of its 7 rows and the 6 px bar was easy to miss.
+	-- A 10 px opaque bar, a parchment fade over the last visible row and a "more below" pill that
+	-- hides at the bottom of the canvas show that the categories continue.
+	skillList.ScrollBarThickness, skillList.ScrollBarImageTransparency = 10, 0
+	skillList.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	local skillFade = Instance.new("Frame")
+	skillFade.Name, skillFade.BorderSizePixel, skillFade.Visible = "SkillMoreFade", 0, false
+	skillFade.BackgroundColor3, skillFade.Active = Color3.fromRGB(236, 226, 203), false
+	skillFade.AnchorPoint, skillFade.Position = Vector2.new(0, 1), UDim2.fromScale(0, 1)
+	skillFade.Size, skillFade.ZIndex = UDim2.new(0.58, -18, 0, 40), 8
+	skillFade.Parent = skillBody
+	local fadeRamp = Instance.new("UIGradient")
+	fadeRamp.Rotation = 90
+	fadeRamp.Transparency = NumberSequence.new(1, 0.05)
+	fadeRamp.Parent = skillFade
+	local skillMore = Instance.new("TextLabel")
+	skillMore.Name, skillMore.BorderSizePixel, skillMore.ZIndex = "SkillMore", 0, 9
+	skillMore.AnchorPoint, skillMore.Position = Vector2.new(0.5, 1), UDim2.new(0.5, 0, 1, -2)
+	skillMore.Size = UDim2.fromOffset(148, 26)
+	skillMore.BackgroundColor3, skillMore.BackgroundTransparency = Color3.fromRGB(222, 208, 178), 0
+	skillMore.Font, skillMore.TextColor3 = Enum.Font.BuilderSansBold, Color3.fromRGB(38, 30, 24)
+	skillMore.Parent = skillFade
+	local moreRound = Instance.new("UICorner")
+	moreRound.CornerRadius, moreRound.Parent = UDim.new(0, 12), skillMore
+	local skillCanvas = 0 -- grid content height in px, set by render from the cell count
+	local function skillHint()
+		local below = skillCanvas - (skillList.CanvasPosition.Y + skillList.AbsoluteSize.Y)
+		skillFade.Visible = skillBody.Visible and below > 8
+	end
+	skillList:GetPropertyChangedSignal("CanvasPosition"):Connect(skillHint)
+	skillList:GetPropertyChangedSignal("AbsoluteSize"):Connect(skillHint)
 	local skillDetail = Instance.new("Frame")
 	skillDetail.Name, skillDetail.BorderSizePixel = "SkillDetail", 0
 	skillDetail.Position, skillDetail.Size = UDim2.new(0.58, 2, 0, 0), UDim2.new(0.42, -2, 1, 0)
@@ -1605,6 +1636,9 @@ function M.start(options: Options)
 						end
 					end, true)
 					itemIcon(reset, options.icons.ui("refund"))
+					skillCanvas = math.ceil((#order + 1) / 2) * (skillGrid.CellSize.Y.Offset + 6)
+					skillMore.Text = t("skill_more")
+					skillHint()
 					local category = skillCategory :: string
 					local nextNode, learned = nextOf(category)
 					local node = nextNode or byCategory[category][#byCategory[category]]

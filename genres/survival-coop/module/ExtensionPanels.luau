@@ -57,6 +57,7 @@ local ColorSequence: any = env.ColorSequence
 local M = {}
 local categories: { [string]: { number | string } } = {
 	bag = { 1, "bag" },
+	survival = { 1, "health" },
 	craft = { 1, "craft" },
 	build = { 1, "build" },
 	skills = { 1, "skills" },

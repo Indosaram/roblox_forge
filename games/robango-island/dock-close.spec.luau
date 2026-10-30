@@ -1343,6 +1343,183 @@ return {
 			assert(#h.errors == 0, table.concat(h.errors, "\n"))
 		end
 	end,
+	-- text audit: the Korean skills sheet showed catalog English ("carcass meat extraction") as the
+	-- node effect. Every category of the real SurvivalHUD skills sheet, plus bag, craft and build,
+	-- is rendered in ko-kr at 800x360 and 1280x720 and every visible string is scanned: no English
+	-- word of 3+ letters (SP / XP / HP units and Roblox names excepted) may reach the player.
+	["text audit: the Korean survival sheets render no catalog English"] = function()
+		local ALLOWED = { SP = true, XP = true, HP = true, Lv = true }
+		local function english(text: string): string?
+			for word in string.gmatch(text, "%a%a%a+") do
+				if not ALLOWED[word] then
+					return word
+				end
+			end
+			return nil
+		end
+		local function shown(item: any, root: any): boolean
+			local current = item
+			while current and current ~= root do
+				if current.Visible == false then
+					return false
+				end
+				current = current.Parent
+			end
+			return true
+		end
+		local function scan(frame: any, where: string): number
+			local count = 0
+			for _, item in frame:GetDescendants() do
+				local class = item.ClassName
+				if (class == "TextLabel" or class == "TextButton") and item.Text ~= "" and shown(item, frame) then
+					count += 1
+					local word = english(item.Text)
+					assert(word == nil, string.format("%s: English '%s' in %q", where, tostring(word), item.Text))
+				end
+			end
+			return count
+		end
+		local actions = {}
+		for _, verb in { "food", "gear-equip", "transfer-deposit", "craft-reserve", "skill-learn", "skill-reset" } do
+			table.insert(actions, "survival-coop:" .. verb)
+		end
+		local packet = {
+			revision = 1,
+			durable = { actions = actions, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					balance = 100,
+					vitals = { healthMilli = 90000, hungerMilli = 70000, fatigueMilli = 20000 },
+					progression = { level = 3, sp = 40, xp = 10, paid = { survival_1 = 1 }, version = 1 },
+					inventory = {
+						{
+							kind = "carried",
+							items = {
+								a = {
+									itemId = "a",
+									catalogId = "fiber",
+									quantity = 12,
+									qualityMilli = 1000,
+									durabilityMilli = 1000,
+								},
+							},
+							reservations = {},
+							limits = { slots = 20, softWeightMilli = 40000, hardWeightMilli = 60000 },
+							weightMilli = 2000,
+						},
+					},
+				},
+				survivalExtensions = {},
+			},
+		}
+		local content: any = require("./src/shared/SurvivalContent")
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3], realHud = true })
+			h.packet(packet)
+			local _, frame = sheetParts(h)
+			for _, section in { "bag", "craft", "build" } do
+				h.hud.open(section)
+				h.step()
+				assert(scan(frame, section .. " " .. at) > 0, section .. " rendered nothing at " .. at)
+			end
+			h.hud.open("skills")
+			h.step()
+			local categories: { [string]: boolean } = {}
+			for _, node in content.skillNodes do
+				categories[node.category] = true
+			end
+			local visited = 0
+			for category in categories do
+				local cell
+				for _, item in frame:GetDescendants() do
+					cell = cell or (if item.Name == "skill-" .. category then item else nil)
+				end
+				assert(cell, "skill cell " .. category .. " at " .. at)
+				h.click(cell)
+				local effect
+				for _, item in frame:GetDescendants() do
+					effect = effect or (if item.Name == "SkillEffect" then item else nil)
+				end
+				assert(effect and effect.Text ~= "", category .. ": no effect line at " .. at)
+				scan(frame, "skills/" .. category .. " " .. at)
+				visited += 1
+			end
+			assert(visited == 12, visited .. " skill categories rendered at " .. at)
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+		-- Every docked menu sheet (journal, guides, contracts, camp, market, shop, taming, ...) in ko-kr.
+		local h = harness({ width = 1280, height = 720, touch = false })
+		h.publish({ market = MARKET, operations = {}, camp = { role = "guest", hosts = { ["2"] = true } } })
+		local scanned = 0
+		for _, tile in h.tiles() do
+			local id = string.sub(tile.Name, 6)
+			if not tile.Visible or LAUNCHERS[id] then
+				continue
+			end
+			h.step()
+			h.click(h.toggle)
+			h.click(tile)
+			for _, sheet in h.sheets() do
+				scanned += scan(sheet.frame, "sheet " .. id)
+				h.click(sheet.close)
+			end
+			h.hud.close()
+		end
+		assert(scanned > 100, scanned .. " docked sheet strings scanned")
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
+	end,
+	-- text audit goal 2: at 800x360 the skills grid showed ~2.5 of 7 rows with a thin bar, so it
+	-- did not read as scrollable. A wide opaque bar, a fade and a "more below" pill over the last
+	-- visible row show the rest; the hint goes once the grid is scrolled to its end.
+	["text audit: the skills grid shows it scrolls at 800x360 and the hint clears at the bottom"] = function()
+		local packet = {
+			revision = 1,
+			durable = { actions = { "survival-coop:skill-learn" }, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					progression = { level = 1, sp = 3, xp = 0, paid = {}, version = 1 },
+					inventory = {},
+				},
+				survivalExtensions = {},
+			},
+		}
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3], realHud = true, locale = "ko-kr" })
+			h.packet(packet)
+			local _, frame = sheetParts(h)
+			h.hud.open("skills")
+			h.step()
+			local list, fade, more
+			for _, item in frame:GetDescendants() do
+				list = list or (if item.Name == "SkillCategories" then item else nil)
+				fade = fade or (if item.Name == "SkillMoreFade" then item else nil)
+				more = more or (if item.Name == "SkillMore" then item else nil)
+			end
+			assert(list and fade and more, "skills grid, fade and pill at " .. at)
+			assert(list.ScrollBarThickness >= 10 and list.ScrollBarImageTransparency == 0, "bold bar at " .. at)
+			local cells = 0
+			for _, child in list:GetChildren() do
+				cells += if child.ClassName == "TextButton" then 1 else 0
+			end
+			local grid = list:FindFirstChildOfClass("UIGridLayout")
+			local canvas = math.ceil(cells / 2) * (grid.CellSize.Y.Offset + grid.CellPadding.Y.Offset)
+			local height = list.AbsoluteSize.Y
+			if view[1] == 800 then
+				assert(canvas > height, string.format("phone grid %d px in %d px: expected to scroll", canvas, height))
+			end
+			assert(fade.Visible == (canvas - height > 8), string.format("fade at %s (%d in %d)", at, canvas, height))
+			if fade.Visible then
+				assert(more.Text == "아래에 더 있어요", "pill text " .. more.Text)
+				assert(more.TextSize >= 14, "pill text size at " .. at)
+				list.CanvasPosition = roblox.Vector2.new(0, canvas - height)
+				list:GetPropertyChangedSignal("CanvasPosition"):Fire()
+				assert(not fade.Visible, "hint clears at the bottom at " .. at)
+			end
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
 	["L9: the down panel renders its cards with pack art and no script error"] = function()
 		local h = harness({ width = 800, height = 360, touch = true })
 		h.publish({ rescue = { down = true, options = { "rift", "camp", "rescue" }, flares = {} } })

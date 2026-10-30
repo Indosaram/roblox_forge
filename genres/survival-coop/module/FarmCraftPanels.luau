@@ -13,8 +13,9 @@ M.screens = {
 	processing = require("./ProcessingPanel"),
 	["craft-preview"] = require("./CraftPreviewPanel"),
 	inbox = require("./InboxPanel"),
+	survival = require("./SurvivalCampPanel"),
 }
-M.ORDER = { "farm", "farm-area", "crop-book", "crop-specialize", "processing", "craft-preview", "inbox" }
+M.ORDER = { "farm", "farm-area", "crop-book", "crop-specialize", "processing", "craft-preview", "inbox", "survival" }
 
 function M.mount(ctx: any, hub: any): any
 	local sheets: { [string]: any } = {}
@@ -36,7 +37,7 @@ function M.mount(ctx: any, hub: any): any
 	end
 	local unsubscribe = ctx.onSnapshot(function(extensions: any, packet: any)
 		hub.state.home, hub.state.market, hub.state.packet = extensions.home, extensions.market, packet
-		hub.state.expedition = extensions.expedition
+		hub.state.expedition, hub.state.camp = extensions.expedition, extensions.camp
 		for _, sheet in sheets do
 			sheet.render()
 		end

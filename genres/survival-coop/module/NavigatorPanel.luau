@@ -12,7 +12,7 @@ local Color3: any = env.Color3
 local M = {}
 
 M.ROWS = {
-	{ "nav_survival", "bag" },
+	{ "nav_survival", "survival" },
 	{ "nav_craft", "craft" },
 	{ "nav_build", "build" },
 	{ "nav_skills", "skills" },

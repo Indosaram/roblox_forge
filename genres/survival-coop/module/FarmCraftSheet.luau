@@ -10,7 +10,9 @@ M.ROW = 48
 M.SPLIT2 = { { 0, 0.62 }, { 0.64, 0.36 } }
 M.SPLIT3 = { { 0, 0.32 }, { 0.34, 0.32 }, { 0.68, 0.32 } }
 
-function M.new(ctx: any, options: { id: string, title: string, order: number, hidden: boolean? }): any
+-- `hidden` locks the entry (opened only by its owner); `menu = false` keeps it openable by id
+-- (navigator, ctx.openPanel) without a tile on the menu grid.
+function M.new(ctx: any, options: { id: string, title: string, order: number, hidden: boolean?, menu: boolean? }): any
 	local Instance = ctx.instance or env.Instance
 	local Enum = ctx.enum or env.Enum
 	local UDim2 = ctx.udim2 or env.UDim2
@@ -35,6 +37,7 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 			id = options.id,
 			label = options.title,
 			order = options.order,
+			hidden = options.menu == false,
 			setOpen = function(open: boolean)
 				gui.Enabled = open
 				if open and api.render then
@@ -75,6 +78,8 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 	end
 	local function holder(): any
 		order += 1
+		-- A row ends the current card grid: cards after it start a new grid below the row.
+		plotGrid = nil
 		local frame = Instance.new("Frame")
 		frame.Name, frame.LayoutOrder, frame.BackgroundTransparency = "Row" .. order, order, 1
 		frame.Size = UDim2.new(1, 0, 0, M.ROW)
