@@ -30,64 +30,86 @@ function M.mount(ctx: any, hub: any): any
 		for index, plot in plots do
 			local planted = plot.planted
 			local cropName = if planted then hub.name(planted.crop) else ""
-			-- U7: each plot row carries its crop (or the picked seed) art.
-			sheet.item(
-				if planted then planted.crop elseif crop then crop.seed else nil,
-				t(
-					"farm_plot",
-					index,
-					if not planted
-						then t("farm_empty")
-						elseif plot.ready then t("farm_ready", cropName)
-						else t("farm_growing", cropName, Text.clock(plot.remaining))
-				)
-			).Name = "Plot-"
-				.. index
+			local text = t(
+				"farm_plot",
+				index,
+				if not planted
+					then t("farm_empty")
+					elseif plot.ready then t("farm_ready", cropName)
+					else t("farm_growing", cropName, Text.clock(plot.remaining))
+			)
+			-- sheets3: one card per plot with its crop (or the picked seed) art on a soil bed, the
+			-- growth bar and the plot's actions (crop picker + Plant, fertilizer + Fertilize, Harvest).
 			if not planted then
 				local seeds, seedItem = Model.count(home.storage, crop.seed)
 				local water = Model.count(home.storage, "water")
-				sheet.item("water", t("farm_cost", seeds, water))
-				sheet.row(Sheet.SPLIT2, {
-					{
-						name = "Crop-" .. index,
-						text = hub.name(crop.id),
-						click = function()
-							cropIndex = cropIndex % #crops + 1
-							sheet.render()
-						end,
-					},
-					{
-						name = "Plant-" .. index,
-						text = t("farm_plant"),
-						click = function()
-							sheet.send(
-								"home-plant",
-								{ home.homeId, { crop = crop.id, plot = plot.id, seedItem = seedItem or "none" } }
-							)
-						end,
+				sheet.plot({
+					name = "Plot-" .. index,
+					catalogId = crop.seed,
+					text = text,
+					detail = t("farm_cost", seeds, water),
+					fraction = 0,
+					cells = {
+						{
+							name = "Crop-" .. index,
+							text = hub.name(crop.id),
+							click = function()
+								cropIndex = cropIndex % #crops + 1
+								sheet.render()
+							end,
+						},
+						{
+							name = "Plant-" .. index,
+							text = t("farm_plant"),
+							click = function()
+								sheet.send(
+									"home-plant",
+									{ home.homeId, { crop = crop.id, plot = plot.id, seedItem = seedItem or "none" } }
+								)
+							end,
+						},
 					},
 				})
-			elseif plot.ready then
-				sheet.button("Harvest-" .. index, t("farm_harvest"), function()
-					sheet.send("home-harvest", { home.homeId, { plot = plot.id } })
-				end)
 			else
-				sheet.row(Sheet.SPLIT2, {
-					{
-						name = "Fertilizer-" .. index,
-						text = t(fertilizer),
-						click = function()
-							fertIndex = fertIndex % #Farming.FERTILIZER_ORDER + 1
-							sheet.render()
-						end,
-					},
-					{
-						name = "Fertilize-" .. index,
-						text = t("farm_fertilize"),
-						click = function()
-							sheet.send("home-fertilize", { home.homeId, { plot = plot.id, fertilizer = fertilizer } })
-						end,
-					},
+				local span = math.max(1, (planted.readyAt or 0) - (planted.plantedAt or 0))
+				local fraction = if plot.ready then 1 else 1 - plot.remaining / span
+				sheet.plot({
+					name = "Plot-" .. index,
+					catalogId = planted.crop,
+					text = text,
+					detail = string.format("%s x%d", cropName, planted.quantity or 1),
+					fraction = fraction,
+					ready = plot.ready,
+					cells = if plot.ready
+						then {
+							{
+								name = "Harvest-" .. index,
+								text = t("farm_harvest"),
+								click = function()
+									sheet.send("home-harvest", { home.homeId, { plot = plot.id } })
+								end,
+							},
+						}
+						else {
+							{
+								name = "Fertilizer-" .. index,
+								text = t(fertilizer),
+								click = function()
+									fertIndex = fertIndex % #Farming.FERTILIZER_ORDER + 1
+									sheet.render()
+								end,
+							},
+							{
+								name = "Fertilize-" .. index,
+								text = t("farm_fertilize"),
+								click = function()
+									sheet.send(
+										"home-fertilize",
+										{ home.homeId, { plot = plot.id, fertilizer = fertilizer } }
+									)
+								end,
+							},
+						},
 				})
 			end
 		end

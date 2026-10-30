@@ -402,8 +402,80 @@ function M.start(options: Options)
 	local allRecipes = false
 	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
-	-- U7 skills sheet: the level hero card and the art per skill category ({ resolver, id }).
-	local skillHero: Frame? = nil
+	-- Skills sheet (sheets3, Durango R06-3): a compact level / SP / XP strip in the sheet header, then
+	-- a 2-column category grid left and the selected category's next node right (Learn at its bottom),
+	-- so rows are on screen at 800x360 and 1280x720. The art per skill category is { resolver, id }.
+	local skillCategory: string? = nil
+	local skillHead = Instance.new("Frame")
+	skillHead.Name, skillHead.BackgroundTransparency, skillHead.Visible = "SkillStats", 1, false
+	skillHead.AnchorPoint, skillHead.Position = Vector2.new(1, 0), UDim2.new(1, -58, 0, 0)
+	skillHead.Size, skillHead.ZIndex = UDim2.new(1, -150, 1, 0), 52
+	skillHead.Parent = sheet.frame:FindFirstChild("Header")
+	local headFlow = Instance.new("UIListLayout")
+	headFlow.FillDirection, headFlow.HorizontalAlignment = Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Right
+	headFlow.VerticalAlignment, headFlow.SortOrder = Enum.VerticalAlignment.Center, Enum.SortOrder.LayoutOrder
+	headFlow.Padding, headFlow.Parent = UDim.new(0, 8), skillHead
+	local skillLevel = Instance.new("TextLabel")
+	skillLevel.Name, skillLevel.BackgroundTransparency, skillLevel.LayoutOrder = "SkillLevel", 1, 2
+	skillLevel.Size, skillLevel.AutomaticSize = UDim2.fromScale(0, 1), Enum.AutomaticSize.X
+	skillLevel.Font, skillLevel.TextWrapped, skillLevel.ZIndex = Enum.Font.BuilderSansBold, false, 52
+	skillLevel.Parent = skillHead
+	local xpTrack = Instance.new("Frame")
+	xpTrack.Name, xpTrack.BorderSizePixel, xpTrack.LayoutOrder = "XPBar", 0, 3
+	xpTrack.Size, xpTrack.BackgroundColor3, xpTrack.ZIndex = UDim2.fromOffset(84, 10), Color3.fromRGB(28, 20, 14), 52
+	xpTrack.Parent = skillHead
+	local xpFill = Instance.new("Frame")
+	xpFill.Name, xpFill.BorderSizePixel, xpFill.BackgroundColor3 = "Fill", 0, Color3.fromRGB(222, 176, 82)
+	xpFill.ZIndex, xpFill.Parent = 52, xpTrack
+	for _, bar in { xpTrack, xpFill } do
+		local round = Instance.new("UICorner")
+		round.CornerRadius, round.Parent = UDim.new(0, 5), bar
+	end
+	local skillXP = Instance.new("TextLabel")
+	skillXP.Name, skillXP.BackgroundTransparency, skillXP.LayoutOrder = "SkillXP", 1, 4
+	skillXP.Size, skillXP.AutomaticSize = UDim2.fromScale(0, 1), Enum.AutomaticSize.X
+	skillXP.Font, skillXP.TextWrapped, skillXP.ZIndex = Enum.Font.BuilderSans, false, 52
+	skillXP.Parent = skillHead
+	local skillBody = Instance.new("Frame")
+	skillBody.Name, skillBody.BackgroundTransparency, skillBody.Visible = "SkillPanes", 1, false
+	skillBody.Size, skillBody.Parent = UDim2.new(1, -8, 0, 120), sheet.scroll
+	local skillList = Instance.new("ScrollingFrame")
+	skillList.Name, skillList.BackgroundTransparency, skillList.BorderSizePixel = "SkillCategories", 1, 0
+	skillList.Size, skillList.ScrollBarThickness = UDim2.new(0.58, -6, 1, 0), 6
+	skillList.CanvasSize, skillList.AutomaticCanvasSize = UDim2.new(), Enum.AutomaticSize.Y
+	skillList.Parent = skillBody
+	local skillGrid = Instance.new("UIGridLayout")
+	skillGrid.CellSize, skillGrid.CellPadding = UDim2.new(0.5, -8, 0, 44), UDim2.fromOffset(6, 6)
+	skillGrid.SortOrder, skillGrid.Parent = Enum.SortOrder.LayoutOrder, skillList
+	local skillDetail = Instance.new("Frame")
+	skillDetail.Name, skillDetail.BorderSizePixel = "SkillDetail", 0
+	skillDetail.Position, skillDetail.Size = UDim2.new(0.58, 2, 0, 0), UDim2.new(0.42, -2, 1, 0)
+	skillDetail.BackgroundColor3, skillDetail.BackgroundTransparency = Color3.fromRGB(222, 208, 178), 0
+	skillDetail.Parent = skillBody
+	local detailRound = Instance.new("UICorner")
+	detailRound.CornerRadius, detailRound.Parent = UDim.new(0, 10), skillDetail
+	local skillInfo = Instance.new("ScrollingFrame")
+	skillInfo.Name, skillInfo.BackgroundTransparency, skillInfo.BorderSizePixel = "SkillInfo", 1, 0
+	skillInfo.Position, skillInfo.Size = UDim2.fromOffset(8, 6), UDim2.new(1, -12, 1, -60)
+	skillInfo.ScrollBarThickness, skillInfo.CanvasSize = 4, UDim2.new()
+	skillInfo.AutomaticCanvasSize, skillInfo.Parent = Enum.AutomaticSize.Y, skillDetail
+	local infoFlow = Instance.new("UIListLayout")
+	infoFlow.SortOrder, infoFlow.Padding, infoFlow.Parent = Enum.SortOrder.LayoutOrder, UDim.new(0, 4), skillInfo
+	local skillLines: { [string]: TextLabel } = {}
+	for index, key in { "SkillName", "SkillEffect", "SkillNeed" } do
+		local line = Instance.new("TextLabel")
+		line.Name, line.BackgroundTransparency, line.LayoutOrder = key, 1, index
+		line.Size, line.AutomaticSize = UDim2.new(1, -6, 0, 0), Enum.AutomaticSize.Y
+		line.Font = if key == "SkillName" then Enum.Font.BuilderSansBold else Enum.Font.BuilderSans
+		line.TextWrapped, line.TextXAlignment, line.Parent = true, Enum.TextXAlignment.Left, skillInfo
+		skillLines[key] = line
+	end
+	local function fitSkillBody()
+		-- The panes fill the scroll's visible height (its 8 px top and bottom padding off).
+		skillBody.Size = UDim2.new(1, -8, 0, math.max(96, sheet.scroll.AbsoluteSize.Y - 16))
+	end
+	sheet.scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitSkillBody)
+	fitSkillBody()
 	local SKILL_ART: { [string]: { string } } = {
 		survival = { "ui", "health" },
 		butchering = { "item", "knife-t1" },
@@ -425,7 +497,7 @@ function M.start(options: Options)
 	buildLayout.CellPadding, buildLayout.SortOrder, buildLayout.Parent =
 		UDim2.fromOffset(8, 8), Enum.SortOrder.LayoutOrder, buildCards
 	local function fitBuildCards()
-		-- U7: three columns from 560 px (the 800x360 phone sheet is ~590 wide), a 56 px art row.
+		-- U7: three columns from 560 px (the 800x360 phone sheet is ~590 wide), a 46 px art row.
 		local columns = if sheet.frame.AbsoluteSize.X >= 560
 			then 3
 			elseif sheet.frame.AbsoluteSize.X >= 400 then 2
@@ -434,7 +506,7 @@ function M.start(options: Options)
 		for _, definition in content.structures do
 			rows = math.max(rows, #definition.cost)
 		end
-		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 58 + rows * 42)
+		buildLayout.CellSize = UDim2.new(1 / columns, -8, 0, 48 + rows * 42)
 	end
 	sheet.frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitBuildCards)
 	fitBuildCards()
@@ -1217,9 +1289,7 @@ function M.start(options: Options)
 		end
 		fitPanes()
 		buildCards.Visible = section == "build"
-		if skillHero then
-			skillHero.Visible = false
-		end
+		skillHead.Visible, skillBody.Visible = false, false
 		capacityTrack.Visible = section == "bag"
 		panes.LayoutOrder = 1
 		contentParent = if panes.Visible then listPane else sheet.scroll
@@ -1467,48 +1537,15 @@ function M.start(options: Options)
 			if progression then
 				local tree = content.progressionPolicy and content.progressionPolicy.tree
 				if shell and options.icons and tree and Theme.sheetText then
-					-- U7: level hero (XP bar, SP chip) over one row per skill category.
+					-- sheets3: level / SP / XP in the header strip; category grid left, the selected
+					-- category's next node right with Learn at its bottom; reset is the grid's last cell.
 					local xp = CharacterRules.character(content, progression, 0)
-					local heroText = string.format(t("level_sp"), progression.level, progression.sp)
-					local key = heroText
-						.. "/"
-						.. xp.xp
-						.. "/"
-						.. xp.nextXP
-						.. "@"
-						.. Theme.sheetText("body", gui.AbsoluteSize.Y)
-					if not skillHero or skillHero:GetAttribute("ForgeCardKey") ~= key then
-						if skillHero then
-							skillHero:Destroy()
-						end
-						skillHero = require("./SheetCards").hero(sheet.scroll, {
-							name = "SkillHero",
-							icon = options.icons.ui("skills"),
-							title = heroText,
-							fraction = if xp.nextXP > 0 then xp.xp / xp.nextXP else 1,
-							caption = string.format("XP %d / %d", xp.xp, xp.nextXP),
-							chips = { { icon = options.icons.ui("skill-point"), text = progression.sp .. " SP" } },
-							size = Theme.sheetText("body", gui.AbsoluteSize.Y),
-						});
-						(skillHero :: any):SetAttribute("ForgeCardKey", key)
-					end
-					(skillHero :: any).LayoutOrder, (skillHero :: any).Visible = controls.order(), true
-				else
-					local heading = label(string.format(t("level_sp"), progression.level, progression.sp), 40)
-					if shell then
-						heading.Font, heading.TextSize = Enum.Font.BuilderSansBold, math.max(heading.TextSize, 18)
-						if options.icons then
-							itemIcon(heading, options.icons.ui("skill-point"))
-						end
-					end
-				end
-				button("skill-reset", t("skill_reset"), function()
-					if not (options.openPanel and options.openPanel("skill-reset")) then
-						command("skill-reset", { progression.version })
-					end
-				end, true)
-				if shell and options.icons then
-					-- One row per category: its art, the next rank to learn (or "max") and learned/total.
+					skillHead.Visible, skillBody.Visible = true, true
+					skillBody.LayoutOrder = controls.order()
+					fitSkillBody()
+					skillLevel.Text = string.format(t("level_sp"), progression.level, progression.sp)
+					skillXP.Text = string.format("XP %d/%d", xp.xp, xp.nextXP)
+					xpFill.Size = UDim2.fromScale(if xp.nextXP > 0 then math.clamp(xp.xp / xp.nextXP, 0, 1) else 1, 1)
 					local order, byCategory = {}, {}
 					for _, node in content.skillNodes or {} do
 						if not byCategory[node.category] then
@@ -1517,30 +1554,107 @@ function M.start(options: Options)
 						end
 						table.insert(byCategory[node.category], node)
 					end
-					for _, category in order do
-						local nodes, learned, nextNode = byCategory[category], 0, nil
-						for _, node in nodes do
+					local function nextOf(category: string): (any, number)
+						local learned, nextNode = 0, nil
+						for _, node in byCategory[category] do
 							if progression.paid[node.id] ~= nil then
 								learned += 1
 							elseif not nextNode then
 								nextNode = node
 							end
 						end
-						local count = string.format("  ·  %d/%d", learned, #nodes)
-						local row = if nextNode
-							then button("learn-" .. nextNode.id, Locale.skill(locale, nextNode) .. count, function()
-								command("skill-learn", { nextNode.id })
-							end, progression.sp >= nextNode.cost)
-							else button(
-								"learned-" .. category,
-								Locale.skillName(locale, category) .. count,
-								function() end,
-								false
-							)
-						local art = SKILL_ART[category] or { "ui", "skills" }
-						itemIcon(row, options.icons[art[1]](art[2]))
+						return nextNode, learned
 					end
+					if not skillCategory or not byCategory[skillCategory] then
+						skillCategory = order[1]
+						for _, category in order do
+							local nextNode = nextOf(category)
+							if nextNode and progression.sp >= nextNode.cost then
+								skillCategory = category
+								break
+							end
+						end
+					end
+					controls.parent = skillList
+					local body = Theme.sheetText("body", gui.AbsoluteSize.Y)
+					skillGrid.CellSize = UDim2.new(0.5, -8, 0, math.max(44, 2 * body + 14))
+					for _, category in order do
+						local nextNode, learned = nextOf(category)
+						local cell = button(
+							"skill-" .. category,
+							string.format(
+								"%s\n%d/%d%s",
+								(string.gsub(Locale.skillName(locale, category), "%s+$", "")),
+								learned,
+								#byCategory[category],
+								if nextNode and progression.sp >= nextNode.cost then "  +" else ""
+							),
+							function()
+								skillCategory = category
+								render()
+							end
+						)
+						cell.TextYAlignment = Enum.TextYAlignment.Center
+						local art = SKILL_ART[category] or { "ui", "skills" }
+						itemIcon(cell, options.icons[art[1]](art[2]))
+						panelSelected[cell] = category == skillCategory
+					end
+					local reset = button("skill-reset", t("skill_reset"), function()
+						if not (options.openPanel and options.openPanel("skill-reset")) then
+							command("skill-reset", { progression.version })
+						end
+					end, true)
+					itemIcon(reset, options.icons.ui("refund"))
+					local category = skillCategory :: string
+					local nextNode, learned = nextOf(category)
+					local node = nextNode or byCategory[category][#byCategory[category]]
+					skillLines.SkillName.Text = if nextNode
+						then Locale.skill(locale, nextNode)
+						else string.format("%s  %d/%d", Locale.skillName(locale, category), learned, learned)
+					local effect = Locale.text(locale, "skills." .. node.id)
+					skillLines.SkillEffect.Text = if effect ~= "skills." .. node.id then effect else ""
+					local missing = {}
+					for _, id in node.prerequisites or {} do
+						if progression.paid[id] == nil then
+							table.insert(missing, Locale.skillName(locale, id))
+						end
+					end
+					skillLines.SkillNeed.Text = if nextNode and #missing > 0
+						then string.format(t("skill_needed"), table.concat(missing, ", "))
+						elseif nextNode then string.format("SP %d / %d", nextNode.cost, progression.sp)
+						else ""
+					skillLines.SkillNeed.TextColor3 = if #missing > 0
+						then Color3.fromRGB(176, 72, 52)
+						else skillLines.SkillName.TextColor3
+					if nextNode then
+						controls.parent = skillDetail
+						local learn = button(
+							"learn-" .. nextNode.id,
+							t("learn") .. "  ·  " .. nextNode.cost .. " SP",
+							function()
+								command("skill-learn", { nextNode.id })
+							end,
+							progression.sp >= nextNode.cost
+						)
+						learn.AnchorPoint, learn.Position = Vector2.new(0, 1), UDim2.new(0, 6, 1, -6)
+						learn.Size = UDim2.new(1, -12, 0, 44)
+						itemIcon(learn, options.icons.ui("skill-point"))
+					end
+					skillInfo.Size = UDim2.new(1, -12, 1, if nextNode then -60 else -12)
+					controls.parent = sheet.scroll
 				else
+					local heading = label(string.format(t("level_sp"), progression.level, progression.sp), 40)
+					if shell then
+						heading.Font, heading.TextSize = Enum.Font.BuilderSansBold, math.max(heading.TextSize, 18)
+						if options.icons then
+							itemIcon(heading, options.icons.ui("skill-point"))
+						end
+					end
+					button("skill-reset", t("skill_reset"), function()
+						if not (options.openPanel and options.openPanel("skill-reset")) then
+							command("skill-reset", { progression.version })
+						end
+					end, true)
 					for _, node in content.skillNodes or {} do
 						local learned = progression.paid[node.id] ~= nil
 						local row = button("learn-" .. node.id, Locale.skill(locale, node), function()
@@ -1741,7 +1855,7 @@ function M.start(options: Options)
 			end
 			renderJobs()
 		elseif section == "build" then
-			label(t("buildHint"), 48)
+			label(t("buildHint"), 36)
 			buildCards.LayoutOrder = controls.order()
 			local STRUCTURE_PRIORITY: { [string]: number } = {
 				["floor"] = 1,
@@ -1772,22 +1886,31 @@ function M.start(options: Options)
 					then kit.image
 					elseif options.icons then options.icons.ui("build").image
 					else nil
-				-- U7: 48 px kit art, a bold name beside it, a ready tick and rim when storage covers it.
-				IconFallback.mount(card, "building", UDim2.fromOffset(48, 48), UDim2.fromOffset(6, 5), art)
+				-- U7: kit art (40 px since sheets3, so a whole card fits the 800x360 sheet under the hint), a bold
+				-- name beside it, a ready tick and rim when storage covers it.
+				IconFallback.mount(card, "building", UDim2.fromOffset(40, 40), UDim2.fromOffset(6, 3), art)
 				local title = card:FindFirstChild("StructureName")
 					or Components.label(
 						theme,
-						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -88, 0, 52) }
+						{ text = "", parent = card, textSize = 12, size = UDim2.new(1, -80, 0, 44) }
 					)
 				title.Name, title.Text = "StructureName", name(definition.id)
-				title.Size, title.Position = UDim2.new(1, -88, 0, 52), UDim2.fromOffset(60, 3)
+				title.Size, title.Position = UDim2.new(1, -80, 0, 44), UDim2.fromOffset(52, 1)
 				title.TextScaled, title.TextWrapped, title.Font = true, true, Enum.Font.BuilderSansBold
 				fitText(title)
 				local ready = true
 				for index, cost in Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost }) do
 					local chip = materialRow(cost.id, cost.available, cost.needed, card)
-					chip.Position = UDim2.fromOffset(4, 58 + (index - 1) * 42)
+					chip.Position = UDim2.fromOffset(4, 46 + (index - 1) * 42)
 					chip.BackgroundTransparency = 0.25
+					-- sheets3: the name takes the chip's full width on its own line (it wrapped into a cut second
+					-- line on the phone) and the have/need count sits right-aligned on the line under it.
+					local rowName, rowCount = chip:FindFirstChild("RowName"), chip:FindFirstChild("RowCount")
+					if rowName and rowCount then
+						rowName.Size, rowName.Position = UDim2.new(1, -4, 0, 20), UDim2.fromOffset(0, 1)
+						rowCount.Size, rowCount.Position = UDim2.new(1, -4, 0, 18), UDim2.fromOffset(0, 20)
+						rowName.TextTruncate, rowCount.TextTruncate = Enum.TextTruncate.AtEnd, Enum.TextTruncate.AtEnd
+					end
 					ready = ready and (cost.available or 0) >= cost.needed
 				end
 				local tick = if options.icons then options.icons.ui("success").image else nil
@@ -1838,7 +1961,7 @@ function M.start(options: Options)
 				end
 			end
 		end
-		if section ~= "bag" and section ~= "craft" then
+		if section ~= "bag" and section ~= "craft" and not skillBody.Visible then
 			button("Refresh", t("refresh"), refresh)
 			button("CameraHelp", t("cameraHelp"), function()
 				helpVisible = not helpVisible
@@ -1899,6 +2022,7 @@ function M.start(options: Options)
 					filterBar,
 					sheet.scroll,
 					buildCards,
+					skillList,
 					if inventoryGrid then inventoryGrid.frame else listPane,
 				},
 			})

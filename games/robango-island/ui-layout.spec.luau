@@ -300,7 +300,7 @@ return {
 				"UDim2.new(0, 8, 1, -56), UDim2.new(1, -16, 0, 48)",
 				"UDim2.fromOffset(8, 44), UDim2.new(1, -16, 0, bounds.height)",
 				"child.Size = UDim2.new(1 / 3, -6, 0, 48)",
-				"UDim2.new(1 / columns, -8, 0, 58 + rows * 42)",
+				"UDim2.new(1 / columns, -8, 0, 48 + rows * 42)",
 				"elseif sheet.frame.AbsoluteSize.X >= 400 then 2",
 				"UDim2.new(if wide then 0.52 else 1, if wide then -8 else 0, 0, 0)",
 				"UDim2.fromOffset(328, 48), UDim2.new(0.5, -164, 1, -Model.PLACEMENT_BOTTOM)",
@@ -496,20 +496,20 @@ return {
 			local width, height = viewport[1], viewport[2]
 			local s = hudSheet(width, height, viewport[3])
 			local cards = s.width - 16 - 8
-			-- U7: three columns from 560 px, a 48 px kit-art row, 42 px cost chips.
+			-- U7: three columns from 560 px; sheets3: a 40 px kit-art row, 42 px cost chips.
 			local columns = if s.width >= 560 then 3 elseif s.width >= 400 then 2 else 1
-			local cell = { width = cards / columns - 8, height = 58 + costRows * 42 }
+			local cell = { width = cards / columns - 8, height = 48 + costRows * 42 }
 			local row = {}
 			for i = 0, columns - 1 do
 				table.insert(row, { x = i * (cell.width + 8), y = 0, width = cell.width, height = cell.height })
 			end
 			disjoint(row, "build cards")
 			inside(row[columns], cards, cell.height, "build card")
-			local title = { x = 60, y = 3, width = cell.width - 88, height = 52 }
+			local title = { x = 52, y = 1, width = cell.width - 80, height = 44 }
 			local tick = { x = cell.width - 28, y = 4, width = 24, height = 24 }
-			local parts = { { x = 6, y = 5, width = 48, height = 48 }, title, tick }
+			local parts = { { x = 6, y = 3, width = 40, height = 40 }, title, tick }
 			for i = 1, costRows do
-				table.insert(parts, { x = 4, y = 58 + (i - 1) * 42, width = cell.width - 8, height = 40 })
+				table.insert(parts, { x = 4, y = 46 + (i - 1) * 42, width = cell.width - 8, height = 40 })
 			end
 			for i, a in parts do
 				inside(a, cell.width, cell.height, "card part")
@@ -557,8 +557,8 @@ return {
 			-- Scroll body below the 44px header with 8px padding; first rows as each section renders them.
 			local body = s.height - 44 - 8
 			local at = width .. "x" .. height
-			-- One whole build card fits the body once the hint scrolls away (cell 58 + rows * 42).
-			assert(body >= 58 + costRows * 42, "one full build card at " .. at)
+			-- One whole build card fits the body once the hint scrolls away (cell 48 + rows * 42).
+			assert(body >= 48 + costRows * 42, "one full build card at " .. at)
 			assert(body >= 8 + 6 + 92, "bag capacity bar plus one inventory row at " .. at)
 			assert(body >= 48 + 6 + 48, "skills level plus one skill row at " .. at)
 			local list, detail = craftPanes(s.width, s.height)

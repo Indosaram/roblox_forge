@@ -532,18 +532,27 @@ function M.panel(ctx: any): any
 		for _, item: GuiObject in { sheet :: GuiObject, sheetName, sheetInfo, sheetStatus, sail } do
 			item.Visible = shown
 		end
-		-- Nothing picked yet: one pill where the island sheet opens says what to do.
+		-- Nothing picked yet: one pill in the header strip, between the title and Close, says what to
+		-- do (sheets3: at the sheet's slot it covered the bottom row's isle names and band chips).
 		hint.Visible = not shown
 		if not shown then
-			local at = layout.sheet.frame
-			local hintW = math.min(at.width, math.floor(sizes.name * 0.62 * (utf8.len(hint.Text) or 20) + 48))
+			local hintH = math.min(layout.header.height - 8, sizes.name + 14)
+			local right = layout.close.x - 12
+			local left = layout.title.x
+				+ iconSide
+				+ 8
+				+ math.floor(sizes.title * (utf8.len(title.Text) or 4) + 0.5)
+				+ 16
+			local hintW =
+				math.min(math.max(0, right - left), math.floor(sizes.name * 0.62 * (utf8.len(hint.Text) or 20) + 48))
 			put(hint, {
-				x = at.x + (at.width - hintW) // 2,
-				y = at.y + at.height - sizes.name - 22,
+				x = right - hintW,
+				y = layout.header.y + (layout.header.height - hintH) // 2,
 				width = hintW,
-				height = sizes.name + 14,
+				height = hintH,
 			})
-			hint.TextSize = sizes.name
+			hint.TextSize, hint.ZIndex = sizes.name, 3
+			hint.BackgroundColor3, hint.BackgroundTransparency = rgb(BONE), 0.82
 		end
 		-- HUD: the drift-isle countdown on an active drift isle, and the minimap as a chart opener.
 		local playerGui = gui.Parent :: Instance
