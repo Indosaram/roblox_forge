@@ -1,0 +1,4 @@
+Building project 'robango-island'
+Built project to robango-island.rbxl
+robango-island: build PASS project=games/robango-island/default.project.json revision=025292725456-dirty output=build/robango-island.rbxl sha256=b56d957bb6ae7234a18182668adb61a4834dbe47cbbc717159ca9706d17d1666
+robango-island: inspect PASS output=build/robango-island.rbxl sha256=b56d957bb6ae7234a18182668adb61a4834dbe47cbbc717159ca9706d17d1666 (778 requires resolved)

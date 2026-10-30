@@ -14,6 +14,9 @@ local env: any = getfenv()
 -- item picker is a searchable, category-filtered, paged list instead of one button per id.
 M.PAGE_SIZE = 8
 M.CATEGORIES = { "all", "material", "food", "gear", "building" }
+-- Single-player mode keeps only the harbor (NPC) buyback; buying, own listings and the collection
+-- box need other players' listings.
+M.SOLO_TABS = table.freeze({ "sell" })
 -- Browse category of a content item (the storage screen owns it; same buckets).
 M.category = BuyScreen.storage.category
 
@@ -318,8 +321,14 @@ function M.shellPanel(
 		if title then
 			title.Text = t("panel.trading_post")
 		end
-		for _, tab in Shell.MARKET_TABS do
-			press(rail, t("panel.tab." .. tab), view.tab == tab, function()
+		-- Single-player mode: buy, my listings and the collection box are the player market; only
+		-- selling to the harbor (NPC buyback) works alone, so it is the one tab.
+		local tabs: { string } = if ctx.solo then M.SOLO_TABS else Shell.MARKET_TABS
+		if not table.find(tabs, view.tab) then
+			view.tab = tabs[1]
+		end
+		for _, tab in tabs do
+			press(rail, t("panel.tab." .. tab .. (if ctx.solo then "_solo" else "")), view.tab == tab, function()
 				view.tab, status = tab, ""
 				rerender()
 			end, layout.categoryRow)
@@ -424,8 +433,10 @@ function M.shellPanel(
 			-- Bag grid (6 columns) of tradable goods; the detail prices the picked stack.
 			local cells = grid(list, Shell.BAG_COLUMNS)
 			local ids = {}
+			local buys = snapshot["harbor-buyback"] and snapshot["harbor-buyback"].prices or {}
 			for id, item in state.items do
-				if table.find(state.catalogIds, item.catalogId) then
+				-- Solo: what the harbor buys; otherwise what the player market trades.
+				if if ctx.solo then buys[item.catalogId] ~= nil else table.find(state.catalogIds, item.catalogId) then
 					table.insert(ids, id)
 				end
 			end
@@ -465,7 +476,7 @@ function M.shellPanel(
 				local draft = drafts[id] or { quantity = 1, price = 10 }
 				drafts[id] = draft
 				text(detail, ctx.icons.item(picked.catalogId).text .. " x" .. tostring(picked.quantity), "heading")
-				if state.eligible == false then
+				if state.eligible == false and not ctx.solo then
 					local blocked = text(detail, M.listRefusal(ctx.locale, state.ineligibleReason), "body", 60)
 					blocked.Name, blocked.TextWrapped = "ListBlocked", true
 				end
@@ -474,19 +485,27 @@ function M.shellPanel(
 					draft.quantity = math.clamp(draft.quantity + step, 1, picked.quantity)
 					rerender()
 				end)
-				text(detail, string.format(t("panel.price"), draft.price), "label")
-				stepper(detail, Shell.PRICE_STEPS, function(step)
-					draft.price = Shell.stepPrice(draft.price, step)
-					rerender()
-				end)
-				local fee = text(detail, M.feeText(ctx.locale, draft.price), "caption", 40)
-				fee.Name, fee.TextWrapped = "ListFee", true
-				primaryText = t("panel.list")
-				action = function()
-					send("list", { id, draft.quantity, draft.price }, true)
+				if not ctx.solo then
+					text(detail, string.format(t("panel.price"), draft.price), "label")
+					stepper(detail, Shell.PRICE_STEPS, function(step)
+						draft.price = Shell.stepPrice(draft.price, step)
+						rerender()
+					end)
+				end
+				if not ctx.solo then
+					local fee = text(detail, M.feeText(ctx.locale, draft.price), "caption", 40)
+					fee.Name, fee.TextWrapped = "ListFee", true
+					primaryText = t("panel.list")
+					action = function()
+						send("list", { id, draft.quantity, draft.price }, true)
+					end
 				end
 				local harbor = snapshot["harbor-buyback"]
 				local each = harbor and harbor.prices[picked.catalogId]
+				if ctx.solo and not each then
+					local none = text(detail, t("panel.harbor_no_buy"), "body", 44)
+					none.Name, none.TextWrapped = "HarborNoBuy", true
+				end
 				if each then
 					press(
 						detail,

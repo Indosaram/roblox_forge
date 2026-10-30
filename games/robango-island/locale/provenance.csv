@@ -3129,3 +3129,15 @@ hud.MOUNTED,original,agent:hephaestus/combat-v58,2026-10-30
 hud.ALREADY_CAPTURED,original,agent:hephaestus/combat-v58,2026-10-30
 cmb.attack.MISS,original,agent:hephaestus/combat-v58,2026-10-30
 cmb.attack.FLED,original,agent:hephaestus/combat-v58,2026-10-30
+camp_put_in,original,agent:hephaestus/solo-audit,2026-10-30
+camp_solo_given,original,agent:hephaestus/solo-audit,2026-10-30
+camp_solo_done,original,agent:hephaestus/solo-audit,2026-10-30
+camp_solo_nothing,original,agent:hephaestus/solo-audit,2026-10-30
+fct.camp_put_in,original,agent:hephaestus/solo-audit,2026-10-30
+fct.camp_storage_solo,original,agent:hephaestus/solo-audit,2026-10-30
+fct.camp_storage_none_solo,original,agent:hephaestus/solo-audit,2026-10-30
+fct.camp_storage_hint_solo,original,agent:hephaestus/solo-audit,2026-10-30
+hud.seconds,original,agent:hephaestus/solo-audit,2026-10-30
+exp_depart_body_solo,original,agent:hephaestus/solo-audit,2026-10-30
+hud.panel.harbor_no_buy,original,agent:hephaestus/solo-audit,2026-10-30
+hud.panel.tab.sell_solo,original,agent:hephaestus/solo-audit,2026-10-30

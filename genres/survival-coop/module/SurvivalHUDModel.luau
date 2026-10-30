@@ -339,6 +339,16 @@ end
 --- Which hungry line fits the bag (p134 v53: the player starved holding no food and never learnt
 --- that raw meat cooks at a campfire): "hungry" (something edible is carried), "hungry_cook"
 --- (only raw meat), "hungry_find" (nothing to eat), or nil when not hungry.
+--- True when the item wears out (its content row has maxDurabilityMilli); materials and food do not.
+function M.wears(content: any, catalogId: string): boolean
+	for _, item in if type(content) == "table" then content.items or {} else {} do
+		if item.id == catalogId then
+			return type(item.maxDurabilityMilli) == "number" and item.maxDurabilityMilli > 0
+		end
+	end
+	return false
+end
+
 function M.hungerHint(snapshot: any, items: { any }?): string?
 	if type(snapshot) ~= "table" or not M.hungry(snapshot.vitals) then
 		return nil

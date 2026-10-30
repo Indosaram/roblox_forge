@@ -1,0 +1,7 @@
+[selene] PASS (1.2 s)
+[stylua] PASS (2.5 s)
+[luau-lsp] PASS (23.9 s)
+[game] PASS (0.2 s)
+[locale] PASS (3.7 s)
+[provenance] PASS (3.7 s)
+check: PASS (6 stages, 35.6 s)

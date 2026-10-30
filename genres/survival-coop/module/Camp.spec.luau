@@ -79,6 +79,9 @@ return {
 		local solo, soloError = Camp.complete(state, l, s, "owner", 1, "palisade")
 		assert(solo == nil and soloError == "NOT_JOINT", "single contributor is not a joint build")
 		assert(Camp.rung(state, l) == 0, "no progress")
+		-- Single-player mode lowers the floor to one member; the same delivery then completes.
+		local alone = assert(Camp.complete(state, l, s, "owner", 1, "palisade", 1), "solo floor completes")
+		assert(Camp.rung(alone, l) == 1 and alone.completed.palisade == 1, "solo completion counts")
 	end,
 	["restore re-derives facilities and rejects forged progress"] = function()
 		local l, s = ladder(), camp()

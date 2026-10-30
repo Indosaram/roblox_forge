@@ -101,6 +101,10 @@ export type Options = {
 			capturable: () -> boolean,
 			act: (string) -> (),
 		}?,
+		-- false: no chat token in the bottom-left row (single-player mode). Default true.
+		chat: boolean?,
+		-- false: the own name tag drops its clan line ("No clan"). Default true.
+		clanTag: boolean?,
 	}?,
 }
 
@@ -120,10 +124,10 @@ function M.start(options: Options)
 	local content = options.content
 	local contextual = options.contextual == true
 	local shell = if contextual then options.shell else nil
+	-- Keyboard hints: a trailing " [I]" and any {{...}} span (e.g. "가방{{(I)}}", "{{ Y로 회전한 뒤}}")
+	-- show only while a keyboard is the input; on a touch-only phone they are dropped (p134 v61).
 	local function t(key: string): string
-		local text = Locale.text(locale, key)
-		local touchOnly = input.TouchEnabled and not input.KeyboardEnabled
-		return if touchOnly then (string.gsub(text, " %[%u%]$", "")) else text
+		return Locale.keyHints(Locale.text(locale, key), input.TouchEnabled and not input.KeyboardEnabled)
 	end
 	local function name(id: string): string
 		return if options.names and options.names[id] then options.names[id] else t(id)
@@ -453,12 +457,21 @@ function M.start(options: Options)
 	-- text audit: at 800x360 the grid shows ~2.5 of its 7 rows and the 6 px bar was easy to miss.
 	-- A 10 px opaque bar, a parchment fade over the last visible row and a "more below" pill that
 	-- hides at the bottom of the canvas show that the categories continue.
+	-- p134 v61: the parchment-tinted bar could not be seen in a still phone capture. Dark ink on a
+	-- visible tan track (SkillScrollTrack) reads on parchment; the shell styler leaves it alone.
 	skillList.ScrollBarThickness, skillList.ScrollBarImageTransparency = 10, 0
+	skillList.ScrollBarImageColor3 = Color3.fromRGB(74, 52, 34)
+	skillList:SetAttribute("ForgeShellKeep", true)
 	skillList.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	local skillTrack = Instance.new("Frame")
+	skillTrack.Name, skillTrack.BorderSizePixel, skillTrack.ZIndex = "SkillScrollTrack", 0, 0
+	skillTrack.BackgroundColor3, skillTrack.BackgroundTransparency = Color3.fromRGB(196, 176, 140), 0.2
+	skillTrack.AnchorPoint, skillTrack.Position = Vector2.new(1, 0), UDim2.new(0.58, -6, 0, 0)
+	skillTrack.Size, skillTrack.Parent = UDim2.new(0, 10, 1, 0), skillBody
 	local skillFade = Instance.new("Frame")
 	skillFade.Name, skillFade.BorderSizePixel, skillFade.Visible = "SkillMoreFade", 0, false
 	skillFade.BackgroundColor3, skillFade.Active = Color3.fromRGB(236, 226, 203), false
-	skillFade.AnchorPoint, skillFade.Position = Vector2.new(0, 1), UDim2.fromScale(0, 1)
+	skillFade.AnchorPoint, skillFade.Position = Vector2.new(0, 1), UDim2.new(0, 0, 1, -28)
 	skillFade.Size, skillFade.ZIndex = UDim2.new(0.58, -18, 0, 40), 8
 	skillFade.Parent = skillBody
 	local fadeRamp = Instance.new("UIGradient")
@@ -467,17 +480,29 @@ function M.start(options: Options)
 	fadeRamp.Parent = skillFade
 	local skillMore = Instance.new("TextLabel")
 	skillMore.Name, skillMore.BorderSizePixel, skillMore.ZIndex = "SkillMore", 0, 9
-	skillMore.AnchorPoint, skillMore.Position = Vector2.new(0.5, 1), UDim2.new(0.5, 0, 1, -2)
-	skillMore.Size = UDim2.fromOffset(148, 26)
+	-- p134 v61: the pill sat on the faded row and touched its name ("원거리아래에 더 있어요"). It now
+	-- has its own strip under the grid: the list stops SKILL_PILL px short while the hint shows.
+	skillMore.AnchorPoint, skillMore.Position = Vector2.new(0.5, 0), UDim2.new(0.5, 0, 1, 2)
+	skillMore.Size = UDim2.fromOffset(148, 24)
 	skillMore.BackgroundColor3, skillMore.BackgroundTransparency = Color3.fromRGB(222, 208, 178), 0
 	skillMore.Font, skillMore.TextColor3 = Enum.Font.BuilderSansBold, Color3.fromRGB(38, 30, 24)
 	skillMore.Parent = skillFade
 	local moreRound = Instance.new("UICorner")
 	moreRound.CornerRadius, moreRound.Parent = UDim.new(0, 12), skillMore
 	local skillCanvas = 0 -- grid content height in px, set by render from the cell count
+	local SKILL_PILL = 28
 	local function skillHint()
+		-- Overflowing grid: the list stops SKILL_PILL px short so the pill strip never covers a row;
+		-- the fade and pill show while more than 8 px of the grid is still below the window.
+		local overflow = skillBody.Visible and skillCanvas - skillBody.AbsoluteSize.Y > 8
+		local inset = if overflow then -SKILL_PILL else 0
+		if skillList.Size.Y.Offset ~= inset then
+			skillList.Size = UDim2.new(0.58, -6, 1, inset)
+			skillTrack.Size = UDim2.new(0, 10, 1, inset)
+		end
+		skillTrack.Visible = overflow
 		local below = skillCanvas - (skillList.CanvasPosition.Y + skillList.AbsoluteSize.Y)
-		skillFade.Visible = skillBody.Visible and below > 8
+		skillFade.Visible = overflow and below > 8
 	end
 	skillList:GetPropertyChangedSignal("CanvasPosition"):Connect(skillHint)
 	skillList:GetPropertyChangedSignal("AbsoluteSize"):Connect(skillHint)
@@ -1503,10 +1528,10 @@ function M.start(options: Options)
 							.. t("quality")
 							.. " "
 							.. item.qualityMilli / 1000
-							.. "  "
-							.. t("durability")
-							.. " "
-							.. item.durabilityMilli / 1000
+							-- Materials and food have no durability (no maxDurabilityMilli): no "durability 0".
+							.. (if Model.wears(options.content, item.catalogId)
+								then "  " .. t("durability") .. " " .. item.durabilityMilli / 1000
+								else "")
 							.. (if fresh then "\n" .. Locale.freshness(locale, fresh) else ""),
 						if fresh then 84 else 64
 					)
@@ -1805,8 +1830,7 @@ function M.start(options: Options)
 				local recipe = row.recipe
 				local recipeButton = button(
 					"Recipe-" .. recipe.id,
-					(if row.favorite then "* " else "")
-						.. name(recipe.id)
+					name(recipe.id)
 						.. "\n"
 						.. (
 							if row.ready
@@ -1850,8 +1874,7 @@ function M.start(options: Options)
 					label(
 						(if recipe.station then name(recipe.station) else t("hand"))
 							.. " / "
-							.. recipe.craftMillis / 1000
-							.. "s",
+							.. string.format(t("seconds"), tostring(recipe.craftMillis / 1000)),
 						32
 					)
 					if recipe.requiredToolTag then
@@ -2366,7 +2389,8 @@ function M.start(options: Options)
 		for _, id in { "dodge", "guard", "stance" } do
 			shellButtons[id] = defenseButtons[id]
 		end
-		for index, id in { "emote", "chat" } do
+		local rowTokens: { string } = if shellOptions.chat == false then { "emote" } else { "emote", "chat" }
+		for index, id in rowTokens do
 			shellRow[index + 1] = token(id)
 		end
 		for _, item in shellButtons do
@@ -2419,6 +2443,9 @@ function M.start(options: Options)
 				return string.format(t("shell.coords"), px, pz)
 			end,
 			tribe = function(): string
+				if shellOptions.clanTag == false then
+					return ""
+				end
 				local clan = extensions.clan
 				return if type(clan) == "table"
 						and type(clan.clanId) == "string"

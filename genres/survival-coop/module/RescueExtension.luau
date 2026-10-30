@@ -28,6 +28,8 @@ export type Port = {
 	-- Display name for the flare line.
 	name: (actor: string) -> string,
 	policy: Rescue.Policy?,
+	-- false: no flare card (single-player mode: nobody else can answer one). Default true.
+	flares: boolean?,
 }
 
 function M.actions(): { any }
@@ -48,6 +50,18 @@ function M.actions(): { any }
 	}
 end
 
+--- The cards a downed actor sees: Rescue.options without the flare when the port turns flares off.
+function M.options(port: Port): { string }
+	local options = Rescue.options(port.safe())
+	if port.flares == false then
+		local index = table.find(options, "rescue")
+		if index then
+			table.remove(options, index)
+		end
+	end
+	return options
+end
+
 --- Builds the extension over a trusted port and a millisecond clock. Also returns the
 --- SurvivalWorld down-hold callbacks (assigned to `world.downHold`; wake points are { x, y, z }).
 function M.new(port: Port, nowMillis: () -> number, members: () -> { string }): (any, any)
@@ -66,6 +80,9 @@ function M.new(port: Port, nowMillis: () -> number, members: () -> { string }): 
 				return admitted
 			end
 			local now = nowMillis()
+			if action == M.CHOOSE and args[1] == "rescue" and port.flares == false then
+				return { ok = false, reason = "INVALID_OPTION" }
+			end
 			if action == M.CHOOSE then
 				local ok, reason =
 					Rescue.choose(state, actor, args[1], down(actor), port.safe(), port.position(actor), now)
@@ -105,7 +122,7 @@ function M.new(port: Port, nowMillis: () -> number, members: () -> { string }): 
 			local choice = state.choices[actor]
 			return {
 				down = down(actor),
-				options = Rescue.options(port.safe()),
+				options = M.options(port),
 				choice = if choice then choice.option else nil,
 				waitingMillis = Rescue.waiting(state, actor, now),
 				windowMillis = state.policy.windowMillis,

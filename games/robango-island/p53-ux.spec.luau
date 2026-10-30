@@ -81,7 +81,8 @@ return {
 			seen,
 			{ definitions = { ["rw.g01.first-gather"] = true, ["rw.g04.camp-donation"] = true } }
 		)
-		assert(line == "Guide complete: Camp donation", tostring(line))
+		-- Single-player mode: g04 reads as a camp project you put materials into, not a donation.
+		assert(line == "Guide complete: Camp project", tostring(line))
 		local camp, contracts = fs.readFile(MODULE .. "CampPanel.luau"), fs.readFile(MODULE .. "ContractsPanel.luau")
 		assert(
 			string.find(camp, "Model.given(", 1, true) and string.find(camp, "Text.newGuides(", 1, true),

@@ -1,0 +1,52 @@
+D2_Phone_800
+799, 339
+hud ok phone-hud.png
+tokens nil emote=true
+camp true sheets=CampPanel ok phone-camp.png
+survival true sheets=Forge-survival ok phone-survival.png
+scroll set=499 after6s=499 canvas=720
+survival-bottom ok phone-survival-bottom.png
+navigator true sheets=ForgeMusic-navigator ok phone-navigator.png
+navrows survival,craft,build,skills,journal,explore,market,music,score-import,inbox,recipe-tracker,score-library,build-manage,arrival,jobs,audio
+party false sheets= ok phone-party.png
+players false sheets= ok phone-players.png
+clan false sheets= ok phone-clan.png
+direct-trade false sheets= ok phone-direct-trade.png
+market true sheets=ForgeCrossServerMarket ok phone-market.png
+inbox true sheets=Forge-inbox ok phone-inbox.png
+score-import true sheets=ForgeMusic-score-import ok phone-score-import.png
+explore true sheets= ok phone-explore.png
+skills true
+skills ok phone-skills.png
+craft true
+craft ok phone-craft.png
+build true
+build ok phone-build.png
+bag true
+bag ok phone-bag.png
+D2_PC_1280
+1279, 720
+hud ok pc-hud.png
+tokens nil emote=true
+camp true sheets=CampPanel ok pc-camp.png
+survival true sheets=Forge-survival ok pc-survival.png
+scroll set=238 after6s=238 canvas=736
+survival-bottom ok pc-survival-bottom.png
+navigator true sheets=ForgeMusic-navigator ok pc-navigator.png
+navrows survival,craft,build,skills,journal,explore,market,music,score-import,inbox,recipe-tracker,score-library,build-manage,arrival,jobs,audio
+party false sheets= ok pc-party.png
+players false sheets= ok pc-players.png
+clan false sheets= ok pc-clan.png
+direct-trade false sheets= ok pc-direct-trade.png
+market true sheets=ForgeCrossServerMarket ok pc-market.png
+inbox true sheets=Forge-inbox ok pc-inbox.png
+score-import true sheets=ForgeMusic-score-import ok pc-score-import.png
+explore true sheets= ok pc-explore.png
+skills true
+skills ok pc-skills.png
+craft true
+craft ok pc-craft.png
+build true
+build ok pc-build.png
+bag true
+bag ok pc-bag.png

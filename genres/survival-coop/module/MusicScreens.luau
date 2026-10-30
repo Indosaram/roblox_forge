@@ -224,14 +224,17 @@ function M.factory(ctx: any): any
 			importStatus.Text = Text.refusal(locale, saved.reason)
 		end
 	end)
-	local lookup = import.box("ScoreLookup", Text.text(locale, "import_lookup"))
-	import.button("ScoreLookupUse", Text.text(locale, "import_use"), function()
-		local selection, message = M.lookup(locale, lookup.Text)
-		if selection then
-			Selection.set(selection)
-		end
-		importStatus.Text = message
-	end)
+	-- Score-id lookup picks up a score another player shared; single-player mode keeps JSON import.
+	if not ctx.solo then
+		local lookup = import.box("ScoreLookup", Text.text(locale, "import_lookup"))
+		import.button("ScoreLookupUse", Text.text(locale, "import_use"), function()
+			local selection, message = M.lookup(locale, lookup.Text)
+			if selection then
+				Selection.set(selection)
+			end
+			importStatus.Text = message
+		end)
+	end
 
 	local share = Sheet.mount(ctx, "score-share", "share_title", true, 21)
 	local refLine = share.label("ShareRef")

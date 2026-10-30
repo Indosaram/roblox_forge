@@ -139,3 +139,39 @@
   'town': 0
 'slug':
   'robango-island'
+# Single-player first (owner, 2026-10-30): multiplayer is on hold, so `solo: true` hides every
+# affordance that only acts on other players and lets one player finish what a group would.
+# Set `solo: false` to bring the multiplayer surfaces back; their code is untouched.
+# Runtime mirror: src/shared/PlayMode.luau (play-mode.spec.luau asserts equality).
+#   campMinContributors: distinct members a camp project needs before it can be finished.
+#   held: menu tiles kept off the grid (dock id -> why it only acts on other players).
+#   navHidden: navigator rows hidden (label key -> why).
+#   flares: whether a downed player may send up a rescue flare (someone else must answer it).
+#   population: whether docks and route cards show how many players are there now.
+#   chat: whether the HUD chat token and the Roblox chat window show.
+#   clanTag: whether the own name tag carries the clan line ("No clan").
+'play_mode':
+  'solo': true
+  'campMinContributors': 1
+  'flares': false
+  'population': false
+  'chat': false
+  'clanTag': false
+  'held':
+    'brawl': 'brawl needs minimumPlayers 2'
+    'direct-trade': 'trades with another player on this server'
+    'outpost': 'team siege: one clan against another'
+    'party': 'invites other players to an expedition party'
+    'clan': 'a clan is a group of players'
+    'clan-membership': 'create or join a clan of players'
+    'home-permissions': 'grants visit/use/build to friends and clan members'
+    'death-zone': 'opt-in PvP zone, only used by brawl and team siege'
+    'players': 'lists the other players on this server'
+    'clan-treasury': 'a clan treasury is shared by clan members'
+    'clan-research': 'clan research is funded by clan members'
+    'clan-roles': 'roles inside a clan of players'
+    'territory': 'clan territory claims against other clans'
+    'ensemble-lobby': 'plays a score together with other players'
+    'score-share': 'shares a score with another player'
+  'navHidden':
+    'nav_social': 'the Together row opens the camp as a group space; Survival opens it solo'

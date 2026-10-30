@@ -68,13 +68,41 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 	function api.close()
 		gui.Enabled = false
 	end
+	-- Every hub sheet rebuilds its rows on each state push (clear, rows, footer). Destroying the rows
+	-- shrank the canvas and the scroll snapped to the top, so on the v61 phone a finger scroll below
+	-- the first cards bounced back and the lower rows were unreachable. clear() keeps the reading
+	-- position and footer() (the end of every render) puts it back, again after the next layout pass.
+	local kept: any = nil
 	function api.clear()
+		kept = kept or sheet.scroll.CanvasPosition
 		for _, child in shown do
 			child:Destroy()
 		end
 		table.clear(shown)
 		order = 0
 		plotGrid = nil
+	end
+	-- AutomaticCanvasSize grows the canvas back only on the next layout pass, so a position past the
+	-- still-short canvas is clamped: hold it as `pending` and apply it again when the canvas grows.
+	local pending: any = nil
+	local canvasConnection = if sheet.scroll.GetPropertyChangedSignal
+		then sheet.scroll:GetPropertyChangedSignal("AbsoluteCanvasSize"):Connect(function()
+			if pending ~= nil then
+				sheet.scroll.CanvasPosition = pending
+				if sheet.scroll.CanvasPosition == pending then
+					pending = nil
+				end
+			end
+		end)
+		else nil
+	local function restore()
+		local at = kept
+		kept = nil
+		if at == nil then
+			return
+		end
+		sheet.scroll.CanvasPosition = at
+		pending = if sheet.scroll.CanvasPosition == at then nil else at
 	end
 	local function holder(): any
 		order += 1
@@ -317,9 +345,13 @@ function M.new(ctx: any, options: { id: string, title: string, order: number, hi
 		if api.status ~= "" then
 			api.label(api.status).Name = "Status"
 		end
+		restore()
 	end
 	function api.destroy()
 		closeConnection:Disconnect()
+		if canvasConnection then
+			canvasConnection:Disconnect()
+		end
 		gui:Destroy()
 	end
 	return api

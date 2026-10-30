@@ -175,6 +175,7 @@ return {
 				"SurvivorAvatar",
 				"BiomeKits",
 				"Assets",
+				"PlayMode",
 			}
 		do
 			shared[name] = require("./src/shared/" .. name)

@@ -358,6 +358,7 @@ local function harness(options: any?): any
 		return "guid-" .. guid
 	end
 	services.UserInputService.TouchEnabled = opts.touch ~= false
+	services.UserInputService.KeyboardEnabled = opts.touch == false
 	function services.UserInputService.GetFocusedTextBox()
 		return nil
 	end
@@ -435,6 +436,12 @@ local function harness(options: any?): any
 	}
 	local cache: { [string]: any } = {}
 	local load: (string) -> any
+	if opts.multiplayer then
+		-- game.yml play_mode.solo = false: the multiplayer surfaces these tests cover are all routed.
+		local mode = table.clone(require("./src/shared/PlayMode"))
+		mode.solo = false
+		cache["games/robango-island/src/shared/PlayMode"] = mode
+	end
 	local function proxy(path: string): any
 		return setmetatable({}, {
 			__index = function(_self, key)
@@ -517,6 +524,9 @@ local function harness(options: any?): any
 					return env.names[key]
 				end,
 				open = function() end,
+				-- The client passes PlayMode's chat / clan-tag switches (RobangoIslandClient shell).
+				chat = opts.chat,
+				clanTag = opts.clanTag,
 			},
 			openPanel = function()
 				return false
@@ -540,9 +550,16 @@ local function harness(options: any?): any
 		end,
 	}
 	env.gui, env.script = node("ScreenGui", "ForgeGenreUI"), node("LocalScript", "RobangoIslandClient")
-	luau.load(section, { debugName = CLIENT, environment = env })()
+	local panels = luau.load(section, { debugName = CLIENT, environment = env })()
 	local dock = assert(playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
-	local h: any = { errors = errors, heartbeat = heartbeat, attributes = attributes, playerGui = playerGui, hud = hud }
+	local h: any = {
+		errors = errors,
+		heartbeat = heartbeat,
+		attributes = attributes,
+		playerGui = playerGui,
+		hud = hud,
+		panels = panels,
+	}
 	h.rect = layoutRect
 	-- Device change: every enabled ScreenGui is laid out again and reports it; a disabled one is not.
 	function h.setViewport(width: number, height: number, inset: number)
@@ -867,7 +884,7 @@ return {
 	["D2 F4: the trading post fills 800x360, 850x411 (58 px inset) and 1920x1080 after any device change; X closes it"] = function()
 		for _, locale in { "ko-kr", "en-us" } do
 			-- Studio order: the panels start on a PC window, the device simulator then switches screens.
-			local h = harness({ width = 1279, height = 662, touch = false, locale = locale })
+			local h = harness({ width = 1279, height = 662, touch = false, locale = locale, multiplayer = true })
 			h.publish({
 				market = MARKET,
 				["harbor-buyback"] = { prices = { antler = 1 }, dailyUnits = 200, remaining = 7 },
@@ -888,7 +905,7 @@ return {
 		end
 	end,
 	["D2 F4: an open trading post follows a device change and its X still closes it"] = function()
-		local h = harness({ width = 1279, height = 662, touch = false })
+		local h = harness({ width = 1279, height = 662, touch = false, multiplayer = true })
 		h.publish({ market = MARKET })
 		h.step()
 		h.click(h.toggle)
@@ -923,7 +940,8 @@ return {
 		assert(#h.errors == 0, table.concat(h.errors, "\n"))
 	end,
 	["every dock entry opened from its tile closes by X and returns the menu column"] = function()
-		local h = harness()
+		-- Multiplayer mode: party, clan, trade... tiles exist and open (solo blocks them; see below).
+		local h = harness({ multiplayer = true })
 		local opened, ids = 0, {}
 		for _, tile in h.tiles() do
 			local id = string.sub(tile.Name, 6)
@@ -1539,5 +1557,321 @@ return {
 			end
 		end
 		assert(shown == 3, "three down cards, got " .. shown)
+	end,
+	-- Single-player mode (owner: multiplayer on hold; game.yml play_mode): no screen that only acts
+	-- on other players is reachable from the menu or the navigator, the HUD row has no chat token,
+	-- and the camp panel (from the camp sheet's 프로젝트) shows no visitor / rejoin chips, no friend
+	-- visit, no item picker and no loans: one 재료 넣기 per project.
+	["solo: menu, navigator, HUD row and camp panel show nothing that needs another player"] = function()
+		local PlayMode = require("./src/shared/PlayMode")
+		local CAMP_SLICE = {
+			role = "member",
+			version = 2,
+			rung = 0,
+			facilities = {},
+			completed = {},
+			active = {},
+			cooldowns = { ["9"] = 99999 },
+			passes = { ["8"] = { expiresAt = 99999999999 } },
+			loans = {},
+			ladder = {
+				rungs = { { rung = 1, completions = 1, facility = "camp-cache" } },
+				projects = {
+					windbreak = { id = "windbreak", rung = 1, cost = { { item = "fiber", quantity = 40 } } },
+				},
+				leagueRung = 1,
+			},
+		}
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({
+				width = view[1],
+				height = view[2],
+				touch = view[3],
+				realHud = true,
+				chat = PlayMode.chat,
+				clanTag = PlayMode.clanTag,
+			})
+			h.packet({
+				revision = 1,
+				durable = { actions = { "survival-coop:camp-contribute" }, epochs = {} },
+				snapshots = {
+					["survival-coop"] = {
+						inventory = {
+							{
+								kind = "carried",
+								items = {
+									f = {
+										itemId = "f",
+										catalogId = "fiber",
+										quantity = 12,
+										qualityMilli = 1000,
+										durabilityMilli = 0,
+									},
+								},
+								reservations = {},
+							},
+						},
+					},
+					survivalExtensions = { camp = CAMP_SLICE, market = MARKET, operations = {} },
+				},
+			})
+			for _, tile in h.tiles() do
+				local id = string.sub(tile.Name, 6)
+				assert(not (PlayMode.held[id] and tile.Visible), id .. " (other players only) is on the menu at " .. at)
+			end
+			-- Navigator: no row leads to a held screen, and the 함께 (Together) row is gone.
+			h.click(h.toggle)
+			h.click(h.tile("navigator"))
+			local rows = {}
+			for _, item in h.playerGui:GetDescendants() do
+				if item.ClassName == "TextButton" and string.sub(item.Name, 1, 4) == "Nav-" then
+					local id = string.sub(item.Name, 5)
+					table.insert(rows, id)
+					assert(not PlayMode.held[id], "navigator row " .. id .. " opens a held screen at " .. at)
+				end
+			end
+			assert(#rows > 10, "navigator rows at " .. at .. ": " .. #rows)
+			assert(not table.find(rows, "camp"), "the Together row (camp) is on the solo navigator at " .. at)
+			for _, sheet in h.sheets() do
+				h.click(sheet.close)
+			end
+			-- HUD row: menu + emote, no chat token.
+			local hudGui = assert(h.playerGui:FindFirstChild("ForgeSurvivalHUD"), "hud")
+			assert(hudGui:FindFirstChild("Token-emote"), "emote token at " .. at)
+			assert(not hudGui:FindFirstChild("Token-chat"), "chat token on the solo HUD at " .. at)
+			-- Camp panel (the camp sheet's 프로젝트 button): no chips, no visit, no picker, no loans.
+			local camp = assert(h.playerGui:FindFirstChild("CampPanel"), "camp panel gui")
+			local texts, names = {}, {}
+			for _, item in camp:GetDescendants() do
+				if (item.ClassName == "TextLabel" or item.ClassName == "TextButton") and item.Text ~= "" then
+					table.insert(texts, item.Text)
+				end
+				names[item.Name] = item
+			end
+			local all = table.concat(texts, " | ")
+			for _, word in { "방문자", "재가입", "방문", "빌려", "기부" } do
+				assert(not string.find(all, word, 1, true), word .. " on the solo camp panel at " .. at .. ": " .. all)
+			end
+			assert(not names.ItemPicker, "item picker on the solo camp panel")
+			local put = assert(names["PutIn-windbreak"], "재료 넣기 on the windbreak at " .. at .. ": " .. all)
+			assert(put.Text == "재료 넣기", "solo action: " .. put.Text)
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	-- Solo follow-up (after captures: 파티 still opened via ForgeQAOpen and told the player to invite
+	-- others). Party, players, clan and trade-with-player sheets have no way in: not the menu, not a
+	-- navigator row, not ctx.open (QA, shortcuts, in-panel buttons). The trading post keeps only the
+	-- harbor (NPC) sell tab, and score import drops the shared score-id lookup.
+	["solo: no route into a multiplayer-only sheet; navigator rows all work alone"] = function()
+		local PlayMode = require("./src/shared/PlayMode")
+		-- Every navigator row id in solo, and the reason it works alone.
+		local SOLO_ROWS = {
+			survival = "camp projects (one contributor)",
+			craft = "own recipes",
+			build = "own island",
+			skills = "own skill points",
+			journal = "own quests",
+			explore = "routes depart alone",
+			market = "harbor (NPC) sell only",
+			music = "own instrument",
+			["score-import"] = "own JSON score; no shared score-id lookup",
+			inbox = "own craft jobs, expedition results and market claims",
+			["recipe-tracker"] = "own recipes",
+			["score-library"] = "own saved scores",
+			["build-manage"] = "own pieces",
+			arrival = "own route arrival",
+			jobs = "own craft jobs",
+			audio = "settings",
+		}
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local h = harness({ width = view[1], height = view[2], touch = view[3] })
+			h.publish({
+				market = MARKET,
+				["harbor-buyback"] = { prices = { antler = 4 }, remaining = 50, dailyUnits = 50 },
+			})
+			h.click(h.toggle)
+			h.click(h.tile("navigator"))
+			local rows = {}
+			for _, item in h.playerGui:GetDescendants() do
+				if item.ClassName == "TextButton" and string.sub(item.Name, 1, 4) == "Nav-" then
+					local id = string.sub(item.Name, 5)
+					table.insert(rows, id)
+					assert(SOLO_ROWS[id], "navigator row " .. id .. " is not on the solo list at " .. at)
+				end
+			end
+			assert(#rows >= 12, "solo navigator rows at " .. at .. ": " .. table.concat(rows, ","))
+			for _, sheet in h.sheets() do
+				h.click(sheet.close)
+			end
+			-- Party, players, clan, direct trade and every other held sheet: ctx.open (ForgeQAOpen,
+			-- shortcuts, in-panel buttons) refuses, and nothing comes on screen.
+			for id in PlayMode.held do
+				assert(h.panels.open(id) == false, id .. " opened by id in solo at " .. at)
+				h.step()
+				assert(#h.sheets() == 0, id .. " put a sheet on screen in solo at " .. at)
+			end
+			-- Trading post: one tab (sell to the harbor), no list price, no buy, no collection box.
+			assert(h.panels.open("market"), "market opens at " .. at)
+			h.step()
+			local open = h.sheets()
+			assert(#open == 1 and open[1].frame.Name == "TradeSheet", "trading post at " .. at)
+			local market = open[1].frame
+			local texts = {}
+			for _, item in market:GetDescendants() do
+				if (item.ClassName == "TextLabel" or item.ClassName == "TextButton") and item.Text ~= "" then
+					table.insert(texts, item.Text)
+				end
+			end
+			local all = table.concat(texts, " | ")
+			assert(string.find(all, "항구에 팔기", 1, true), "harbor sell tab at " .. at .. ": " .. all)
+			for _, word in { "사기", "내 물건", "수령함", "등록", "수수료", "묶음 가격" } do
+				assert(
+					not string.find(all, word, 1, true),
+					word .. " on the solo trading post at " .. at .. ": " .. all
+				)
+			end
+			assert(string.find(all, "개당 4", 1, true) or string.find(all, "4", 1, true), "harbor price at " .. at)
+			for _, sheet in h.sheets() do
+				h.click(sheet.close)
+			end
+			-- Score import: JSON stays, the shared score-id lookup is gone.
+			assert(h.panels.open("score-import"), "score import opens at " .. at)
+			local named = {}
+			for _, item in h.playerGui:GetDescendants() do
+				named[item.Name] = true
+			end
+			assert(named.ImportText, "JSON import box at " .. at)
+			assert(not named.ScoreLookup, "shared score-id lookup in solo at " .. at)
+			assert(#h.errors == 0, table.concat(h.errors, "; "))
+		end
+	end,
+	-- p134 v61 phone text leftovers: craft time "3s", desktop key hints on a phone ("가방(I)을",
+	-- "Y로 회전한 뒤"), the "* 꼰 끈" favorite asterisk and "내구도 0" on a material in the bag.
+	["v61 text: Korean craft seconds, no key hints on a phone, no asterisk, no durability on materials"] = function()
+		local function stack(id: string, catalogId: string, quantity: number): any
+			return {
+				itemId = id,
+				catalogId = catalogId,
+				quantity = quantity,
+				qualityMilli = 1000,
+				durabilityMilli = 0,
+				attributes = {},
+			}
+		end
+		local actions = {}
+		for _, verb in { "food", "gear-equip", "craft-reserve", "recipe-mark", "building-place" } do
+			table.insert(actions, "survival-coop:" .. verb)
+		end
+		for _, view in { { 800, 360, true }, { 1280, 720, false } } do
+			local at = view[1] .. "x" .. view[2]
+			local touch = view[3]
+			local h = harness({ width = view[1], height = view[2], touch = touch, realHud = true, locale = "ko-kr" })
+			h.packet({
+				revision = 1,
+				durable = { actions = actions, epochs = {} },
+				snapshots = {
+					["survival-coop"] = {
+						vitals = { healthMilli = 90000, hungerMilli = 10000, fatigueMilli = 0 },
+						progression = { level = 2, sp = 0, xp = 0, paid = {}, version = 1 },
+						recipeMarks = { favorites = { cord = true }, todo = {} },
+						-- Keyed by container name, as CraftingAdapter publishes it.
+						inventory = {
+							bag = {
+								kind = "carried",
+								items = {
+									c = stack("c", "cord", 2),
+									b = stack("b", "berry", 3),
+									f = stack("f", "fiber", 9),
+								},
+								reservations = {},
+								limits = { slots = 20, softWeightMilli = 40000, hardWeightMilli = 60000 },
+								weightMilli = 1000,
+							},
+						},
+					},
+					survivalExtensions = {},
+				},
+			})
+			local gui, frame = sheetParts(h)
+			local function texts(root: any): string
+				local out = {}
+				for _, item in root:GetDescendants() do
+					if (item.ClassName == "TextLabel" or item.ClassName == "TextButton") and item.Text ~= "" then
+						table.insert(out, item.Text)
+					end
+				end
+				return table.concat(out, " | ")
+			end
+			-- Hunger caption (status line): the bag key only with a keyboard.
+			local status = texts(gui)
+			assert(string.find(status, "배가 고파요", 1, true), "hunger caption at " .. at .. ": " .. status)
+			assert(
+				(string.find(status, "(I)", 1, true) ~= nil) == not touch,
+				"hunger (I) hint at " .. at .. ": " .. status
+			)
+			h.hud.open("craft")
+			h.step()
+			local craft = texts(frame)
+			assert(not string.find(craft, "* ", 1, true), "asterisk in the craft list at " .. at .. ": " .. craft)
+			assert(string.find(craft, "%d초"), "craft time in 초 at " .. at .. ": " .. craft)
+			assert(not string.find(craft, "%d+s%f[%A]"), "craft time in s at " .. at .. ": " .. craft)
+			h.hud.open("build")
+			h.step()
+			local build = texts(frame)
+			assert(string.find(build, "바닥을 터치하고", 1, true), "build hint at " .. at)
+			assert((string.find(build, "Y로", 1, true) ~= nil) == not touch, "Y hint at " .. at .. ": " .. build)
+			assert(not string.find(build, "{{", 1, true), "raw hint braces at " .. at)
+			h.hud.open("bag")
+			h.step()
+			for _, item in frame:GetDescendants() do
+				if item.ClassName == "TextButton" and string.find(item.Text, "꼰 끈", 1, true) then
+					h.click(item)
+					break
+				end
+			end
+			local bag = texts(frame)
+			assert(string.find(bag, "품질", 1, true), "item detail open at " .. at .. ": " .. bag)
+			assert(not string.find(bag, "내구도 0", 1, true), "durability 0 on a material at " .. at .. ": " .. bag)
+			assert(#h.errors == 0, table.concat(h.errors, "\n"))
+		end
+	end,
+	-- p134 v61: the "아래에 더 있어요" pill sat on the faded row and touched its name, and the
+	-- parchment-tinted bar could not be seen in a still capture.
+	["v61 skills: the more pill has its own strip under the grid and the bar is dark on a track"] = function()
+		local packet = {
+			revision = 1,
+			durable = { actions = { "survival-coop:skill-learn" }, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					progression = { level = 1, sp = 3, xp = 0, paid = {}, version = 1 },
+					inventory = {},
+				},
+				survivalExtensions = {},
+			},
+		}
+		local h = harness({ width = 800, height = 360, touch = true, realHud = true, locale = "ko-kr" })
+		h.packet(packet)
+		local _, frame = sheetParts(h)
+		h.hud.open("skills")
+		h.step()
+		local list, more, track
+		for _, item in frame:GetDescendants() do
+			list = list or (if item.Name == "SkillCategories" then item else nil)
+			more = more or (if item.Name == "SkillMore" then item else nil)
+			track = track or (if item.Name == "SkillScrollTrack" then item else nil)
+		end
+		assert(list and more, "grid and pill")
+		local bar = list.ScrollBarImageColor3
+		assert(bar.R + bar.G + bar.B < 1.2, string.format("bar too light (%.2f %.2f %.2f)", bar.R, bar.G, bar.B))
+		assert(track and track.Visible and track.BackgroundTransparency < 0.5, "visible scroll track")
+		assert(more.Text ~= "", "pill shows at the top")
+		local pill, grid = h.rect(more), h.rect(list)
+		assert(
+			pill.y >= grid.y + grid.height,
+			string.format("pill (y %d) overlaps the grid rows (bottom %d)", pill.y, grid.y + grid.height)
+		)
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
 	end,
 }

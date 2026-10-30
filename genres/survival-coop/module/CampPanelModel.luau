@@ -9,7 +9,7 @@ local M = {}
 
 export type Row = { id: string, label: string, delivered: number, need: number, locked: boolean, costs: { any } }
 export type Host = { id: string, name: string }
-export type Choice = { itemId: string, label: string, available: number }
+export type Choice = { itemId: string, label: string, available: number, catalogId: string? }
 export type Model = {
 	role: string,
 	rung: number,
@@ -212,6 +212,7 @@ function M.choices(locale: string, packet: any, names: { [string]: string }?): {
 				itemId = row.item.itemId,
 				label = names and names[row.item.catalogId] or HudLocale.text(locale, row.item.catalogId),
 				available = row.available,
+				catalogId = row.item.catalogId,
 			})
 		end
 	end
@@ -245,6 +246,51 @@ end
 function M.given(locale: string, item: string, quantity: number, project: string, row: Row): string
 	local total = math.min(row.need, row.delivered + quantity)
 	return string.format(M.text(locale, "camp_given"), item, quantity, project, total, row.need)
+end
+
+export type Fill = { itemId: string, catalogId: string, quantity: number }
+
+--- Single-player "put materials in" (재료 넣기): every stack in your own bag that the project still
+--- needs, capped at what is missing per material, in cost order. Empty when nothing you carry fits.
+function M.fill(row: Row, choices: { Choice }): { Fill }
+	local out: { Fill } = {}
+	for _, cost in row.costs do
+		local missing = math.min(cost.need - cost.delivered, M.MAX_QUANTITY)
+		for _, choice in choices do
+			if missing <= 0 then
+				break
+			end
+			if choice.catalogId == cost.item and choice.available > 0 then
+				local quantity = math.min(missing, choice.available)
+				table.insert(out, { itemId = choice.itemId, catalogId = cost.item, quantity = quantity })
+				missing -= quantity
+			end
+		end
+	end
+	return out
+end
+
+--- Sends the fill as camp-contribute commands (each one advances the camp version) and, when the
+--- project is then fully delivered, finishes it with camp-complete. Stops at the first refusal.
+--- Returns the last result and how many items went in.
+function M.putIn(send: (string, { any }) -> any, row: Row, choices: { Choice }, version: number): (any, number)
+	local result: any = { ok = false, reason = "ITEM_NOT_NEEDED" }
+	local given = 0
+	local delivered = row.delivered
+	for _, part in M.fill(row, choices) do
+		result = send("survival-coop:camp-contribute", { row.id, part.itemId, part.quantity, version })
+		if not result.ok then
+			return result, given
+		end
+		local data = result.data
+		version = if type(data) == "table" and type(data.camp) == "number" then data.camp else version + 1
+		given += part.quantity
+		delivered += part.quantity
+	end
+	if delivered >= row.need and row.need > 0 then
+		result = send("survival-coop:camp-complete", { row.id, version })
+	end
+	return result, given
 end
 
 function M.clamp(quantity: number, available: number): number

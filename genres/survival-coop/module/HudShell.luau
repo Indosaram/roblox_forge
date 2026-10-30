@@ -1560,7 +1560,9 @@ function M.skinSheet(frame: any, options: SkinOptions)
 		if class == "Frame" and (item.Name == "IconFallback" or item.Name == "ShellIcon") then
 			M.skinIcon(item, if header and item:IsDescendantOf(header) then C.headerText else C.ink)
 		elseif class == "ScrollingFrame" then
-			item.ScrollBarImageColor3 = rgb(C.rim)
+			if item:GetAttribute("ForgeShellKeep") ~= true then
+				item.ScrollBarImageColor3 = rgb(C.rim)
+			end
 		elseif class == "TextLabel" or class == "TextButton" then
 			local stroke = item:FindFirstChildOfClass("UIStroke")
 			if header and item:IsDescendantOf(header) then

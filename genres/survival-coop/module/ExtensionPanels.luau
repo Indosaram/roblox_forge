@@ -25,6 +25,12 @@ export type Context = {
 	content: any?,
 	-- The pack's icon resolver (ItemIcons: ui/item/recipe -> { image, category }), when given.
 	icons: any?,
+	-- Single-player mode (pack play_mode): panels drop affordances that only act on other players.
+	solo: boolean?,
+	-- Navigator rows hidden in this mode (label key -> reason), from the start options.
+	navHidden: { [string]: string }?,
+	-- Dock ids held off the menu in this mode (id -> reason); the navigator skips them too.
+	held: { [string]: string }?,
 }
 export type DockEntry = {
 	id: string,
@@ -627,10 +633,21 @@ function M.start(
 		-- toggle becomes the first pebble of the bottom-left row instead of a top-right button.
 		shell: boolean?,
 		-- Dock ids kept off the menu grid (id -> reason). The panel still mounts and still opens
-		-- through ctx.open / world prompts; only its tile is hidden.
+		-- through ctx.open / world prompts; only its tile is hidden. The navigator hides them too.
 		held: { [string]: string }?,
+		-- Navigator rows hidden by label key (id -> reason), e.g. a second route to a held screen.
+		navHidden: { [string]: string }?,
+		-- Single-player mode: handed to every panel as ctx.solo. With solo, every held entry is also
+		-- blocked: no menu tile, navigator row, ctx.open / openPanel button, invite auto-open or QA
+		-- open can show it (its panel still mounts, so turning solo off restores every route).
+		solo: boolean?,
 	}
 ): Started
+	-- held / navHidden are single-player switches: with solo off every entry and row is routed.
+	if options.solo ~= true and (options.held or options.navHidden) then
+		options = table.clone(options)
+		options.held, options.navHidden = nil, nil
+	end
 	local storage = game:GetService("ReplicatedStorage")
 	local http = game:GetService("HttpService")
 	local action = storage:WaitForChild("ForgeAction")
@@ -670,6 +687,8 @@ function M.start(
 		names = options.names,
 		content = options.content,
 		icons = options.icons,
+		solo = options.solo,
+		navHidden = options.navHidden,
 		send = function(actionId, args)
 			local epoch = if durable and durable.epochs then durable.epochs[actionId] else nil
 			if not CommandTransport.durable(durable, actionId) or (pending[actionId] == nil and epoch == nil) then
@@ -1243,10 +1262,22 @@ function M.start(
 		end
 	end
 	local locks: { [string]: { any } } = {}
+	local function blocked(id: string): boolean
+		return options.solo == true and options.held ~= nil and options.held[id] ~= nil
+	end
 	context.dock = function(entry: DockEntry): DockHandle
 		if options.held and options.held[entry.id] then
 			entry = table.clone(entry)
 			entry.hidden = true
+		end
+		if blocked(entry.id) then
+			-- Solo: this sheet only acts on other players. Every opener ends here, so it never shows.
+			local setOpen = entry.setOpen
+			entry.setOpen = function(open: boolean)
+				if not open then
+					setOpen(false)
+				end
+			end
 		end
 		table.insert(entries, entry)
 		if tokens and lastFitted then
@@ -1255,6 +1286,9 @@ function M.start(
 		end
 		locks[entry.id] = { true }
 		local function open()
+			if blocked(entry.id) then
+				return
+			end
 			if options.onOpen then
 				options.onOpen()
 			end
@@ -1306,6 +1340,9 @@ function M.start(
 	end
 	-- Navigator ports: open any entry or launcher by id; report (known, available, lock reason).
 	context.open = function(id: string): boolean
+		if blocked(id) then
+			return false
+		end
 		for _, entry in entries do
 			if entry.id == id and (locks[id] or { true })[1] then
 				if options.onOpen then
@@ -1328,17 +1365,24 @@ function M.start(
 		end
 		return false
 	end
+	context.held = options.held
 	context.availability = function(id: string): (boolean, boolean, string?)
 		for _, launcher in launchers do
 			if launcher.id == id then
 				return true, true, nil
 			end
 		end
+		if blocked(id) then
+			return false, false, nil
+		end
 		local lock = locks[id]
 		return lock ~= nil, lock ~= nil and lock[1] == true, if lock then lock[2] else nil
 	end
 	local panels: { Panel } = {}
 	local function openPanel(panel: string)
+		if blocked(panel) then
+			return
+		end
 		for _, entry in entries do
 			if entry.id == panel then
 				if options.onOpen then

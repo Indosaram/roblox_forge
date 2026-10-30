@@ -1,0 +1,26 @@
+D2_Phone_800
+799, 339
+hud ok phone-hud.png
+camp true ok phone-camp.png
+survival true ok phone-survival.png
+navigator true ok phone-navigator.png
+party true ok phone-party.png
+players true ok phone-players.png
+D2_PC_1280
+1279, 720
+hud ok pc-hud.png
+camp true ok pc-camp.png
+survival true ok pc-survival.png
+navigator true ok pc-navigator.png
+party true ok pc-party.png
+players true ok pc-players.png
+png
+players true ok phone-players.png
+D2_PC_1280
+1279, 720
+hud ok pc-hud.png
+camp true ok pc-camp.png
+survival true ok pc-survival.png
+navigator true ok pc-navigator.png
+party true ok pc-party.png
+players true NOCAP Network action ScreenCaptureTool.CaptureScreen sent to DMN_RSRVD_FOCUSED failed - Target is not reachable (ScreenCaptureTool.CaptureScreen, DMN_RSRVD_FOCUSED). No OnInvoke handler responded for this a

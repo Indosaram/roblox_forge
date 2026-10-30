@@ -127,7 +127,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					view = { kind = "list" }
 					render()
 				end,
-			}))
+			}, ctx.solo == true))
 		elseif view.kind == "travel" and view.route then
 			local route = view.route :: number
 			routes.render(Models.travel(locale, route, view.failure, function()
@@ -246,7 +246,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				latest.cargo
 			))
 			popup.open(true)
-		elseif invite and not seenInvites[invite.from .. ":" .. invite.expiresAt] then
+		elseif invite and not ctx.solo and not seenInvites[invite.from .. ":" .. invite.expiresAt] then
+			-- Single-player mode never shows a party invite (the party sheet is held).
 			popupKind = "invite"
 			popup.render(Models.invite(locale, latest, invite, function(verb, from)
 				seenInvites[invite.from .. ":" .. invite.expiresAt] = true

@@ -34,6 +34,7 @@ local MarketplacePort = require("../../core/infra/monetization/MarketplacePort")
 local PolicyPort = require("../../core/infra/monetization/PolicyPort")
 local MarketPorts = require("./src/shared/MarketPorts")
 local CampPanelModel = require("../../genres/survival-coop/module/CampPanelModel")
+local PlayMode = require("./src/shared/PlayMode")
 local MarketPanel = require("../../genres/survival-coop/module/CrossServerMarketPanel")
 local wildlifePolicy = require("./src/shared/WildlifePolicy")
 local tamingPolicy = require("./src/shared/TamingConfig")
@@ -281,6 +282,8 @@ local function boot(
 			fence = { sessionId = "clans-" .. server, leaseSeconds = 120, leasedReads = true, now = now },
 		})
 	end
+	-- RobangoIslandServer: visitWorld.campMinContributors = PlayMode.campMinContributors.
+	world.campMinContributors = PlayMode.campMinContributors
 	local factory = assert(Factory(content, source, world, backend, clock, {
 		sessionId = "server-" .. server,
 		leaseSeconds = 120,
@@ -553,6 +556,59 @@ return {
 			session.snapshot(FIRST).survivalExtensions.camp.active.windbreak.delivered.fiber == 1,
 			"refusals move nothing"
 		)
+		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
+	end,
+	-- Single-player mode: a solo player finishes the camp's first project alone. Gathers the
+	-- windbreak's branch x30 and fiber x40 on the real onboarding island, then the camp panel's
+	-- "Put materials in" (CampPanelModel.putIn) sends camp-contribute per stack and camp-complete.
+	-- Before solo mode the completion needed two members, so it was refused NOT_JOINT.
+	["solo: one player gathers and finishes the windbreak through the camp panel's Put materials in"] = function()
+		local at = { value = 1000 }
+		local server = boot(Memory.new(), "job:solo-camp", at, nil, nil, true)
+		local session = server.session
+		assert(session.join(FIRST).ok, "fresh admission")
+		local sequence = 0
+		local function send(action: string, args: { any }): any
+			sequence += 1
+			at.value += 3
+			session.advance(at.value)
+			return command(session, FIRST, "solo-" .. sequence, string.gsub(action, "^survival%-coop:", ""), args)
+		end
+		assert(send("tutorial-skip-arrival", {}).ok, "arrival")
+		local function gather(node: string, times: number)
+			for index = 1, times do
+				local version = server.factory.services.survivalGathering.snapshot(FIRST).version
+				local result = send("gather", { node, version })
+				assert(result.ok, node .. " gather " .. index .. ": " .. serde.encode("json", result))
+			end
+		end
+		gather("rw.onboarding.branch", 10) -- 3 per gather: 30 branches
+		gather("rw.onboarding.fiber", 14) -- 42 fibers (12 starter fibers on top)
+		local function camp(): any
+			return session.snapshot(FIRST).survivalExtensions.camp
+		end
+		local model = assert(CampPanelModel.model(camp(), at.value, nil), "camp model")
+		assert(model.role == "member" and model.rung == 0, "a fresh solo camp at rung 0")
+		local row
+		for _, candidate in model.rows do
+			row = if candidate.id == "windbreak" then candidate else row
+		end
+		assert(row and not row.locked and row.need == 70, "windbreak needs 70")
+		-- The client hands choices() the whole state packet ({ snapshots = ... }).
+		local choices = CampPanelModel.choices("ko-kr", { snapshots = session.snapshot(FIRST) }, nil)
+		local fill = CampPanelModel.fill(row, choices)
+		local planned = 0
+		for _, part in fill do
+			planned += part.quantity
+		end
+		assert(planned == 70, "the bag covers the whole windbreak: " .. planned)
+		local result, given = CampPanelModel.putIn(send, row, choices, model.version)
+		assert(given == 70, "put in " .. given)
+		assert(result.ok, "solo completion: " .. serde.encode("json", result))
+		local after = camp()
+		assert(after.completed.windbreak == 1 and after.rung == 1, "rung 1 reached alone")
+		assert(after.facilities["camp-cache"] == true, "camp cache unlocked")
+		assert(after.active.windbreak == nil, "the project is closed")
 		assert(session.close(FIRST).ok and server.factory.close().ok, "release")
 	end,
 	["p45 harbor market List sends the panel's args; the eligibility refusal names its gate in KO/EN"] = function()

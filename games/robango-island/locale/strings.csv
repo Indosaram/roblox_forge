@@ -462,29 +462,29 @@ camp_not_friend,Only friends can visit,camp visit refusal not friend,Only friend
 camp_no_pass,Ask to visit first,camp help refusal no pass,Ask to visit first,먼저 방문을 요청하세요
 camp_expired,Visit pass expired,camp visit pass expired,Visit pass expired,방문 허가가 만료됐어요
 camp_refused,Camp action refused,camp generic refusal,Camp action refused,캠프 작업이 거절됐어요
-camp_forbidden,Only camp members can give to camp projects,camp panel refusal,Only camp members can give to camp projects,캠프 구성원만 프로젝트에 기부할 수 있어요
-camp_stale,The camp or your bag just changed. Check the new amounts and give again.,camp panel refusal,The camp or your bag just changed. Check the new amounts and give again.,캠프나 가방이 방금 바뀌었어요. 수량을 확인하고 다시 기부하세요.
+camp_forbidden,Only camp members can put materials into camp projects,camp panel refusal,Only camp members can put materials into camp projects,캠프 구성원만 프로젝트에 재료를 넣을 수 있어요
+camp_stale,The camp or your bag just changed. Check the new amounts and try again.,camp panel refusal,The camp or your bag just changed. Check the new amounts and try again.,캠프나 가방이 방금 바뀌었어요. 수량을 확인하고 다시 넣어 주세요.
 camp_not_needed,This project does not need that item,camp panel refusal,This project does not need that item,이 프로젝트에는 필요 없는 재료예요
 camp_over,That is more than the project still needs. Lower the amount.,camp panel refusal,That is more than the project still needs. Lower the amount.,프로젝트에 남은 필요량보다 많아요. 수량을 줄이세요.
-camp_locked_project,Finish the previous rung before giving to this project,camp panel refusal,Finish the previous rung before giving to this project,이전 단계를 먼저 완성해야 기부할 수 있어요
+camp_locked_project,Finish the previous rung before putting materials into this project,camp panel refusal,Finish the previous rung before putting materials into this project,이전 단계를 먼저 완성해야 이 프로젝트에 재료를 넣을 수 있어요
 camp_unknown_project,That project no longer exists. Reopen the camp.,camp panel refusal,That project no longer exists. Reopen the camp.,없는 프로젝트예요. 캠프를 다시 여세요.
 camp_bad_quantity,Choose an amount between 1 and what you carry,camp panel refusal,Choose an amount between 1 and what you carry,"1개 이상, 가진 만큼만 고르세요"
 camp_short,You no longer carry that many (some may be reserved). Pick again.,camp panel refusal,You no longer carry that many (some may be reserved). Pick again.,그만큼 가지고 있지 않아요 (예약된 재료 제외). 다시 고르세요.
 camp_missing_item,That item is no longer in your bag,camp panel refusal,That item is no longer in your bag,그 아이템이 가방에 없어요
-camp_busy,Camp storage is busy. Wait a moment and give again; nothing was lost.,camp panel refusal,Camp storage is busy. Wait a moment and give again; nothing was lost.,캠프 저장소가 바빠요. 잠시 뒤 다시 기부하세요. 잃은 재료는 없어요.
-camp_receipts,Too many recent camp deliveries. Try again later.,camp panel refusal,Too many recent camp deliveries. Try again later.,최근 캠프 기부가 너무 많아요. 나중에 다시 시도하세요.
-camp_retry,Connection uncertain. Press Give again; it will not give twice.,camp panel refusal,Connection uncertain. Press Give again; it will not give twice.,연결이 불확실해요. 다시 기부를 누르세요. 두 번 기부되지 않아요.
+camp_busy,Camp storage is busy. Wait a moment and try again; nothing was lost.,camp panel refusal,Camp storage is busy. Wait a moment and try again; nothing was lost.,캠프 저장소가 바빠요. 잠시 뒤 다시 넣어 주세요. 잃은 재료는 없어요.
+camp_receipts,Too many recent camp deliveries. Try again later.,camp panel refusal,Too many recent camp deliveries. Try again later.,최근 캠프에 넣은 횟수가 너무 많아요. 나중에 다시 시도하세요.
+camp_retry,Connection uncertain. Press the button again; nothing goes in twice.,camp panel refusal,Connection uncertain. Press the button again; nothing goes in twice.,연결이 불확실해요. 버튼을 다시 누르세요. 두 번 들어가지 않아요.
 camp_expired_session,Session expired. Reopen the camp and try again.,camp panel refusal,Session expired. Reopen the camp and try again.,세션이 만료됐어요. 캠프를 다시 열고 시도하세요.
-camp_left,You left the camp server. Rejoin to give.,camp panel refusal,You left the camp server. Rejoin to give.,캠프 서버를 떠났어요. 다시 접속한 뒤 기부하세요.
-camp_rate,"Too fast. Wait a moment, then give again.",camp panel refusal,"Too fast. Wait a moment, then give again.",너무 빨라요. 잠시 뒤 다시 기부하세요.
+camp_left,You left the camp server. Rejoin to put materials in.,camp panel refusal,You left the camp server. Rejoin to put materials in.,캠프 서버를 떠났어요. 다시 접속한 뒤 재료를 넣으세요.
+camp_rate,"Too fast. Wait a moment, then try again.",camp panel refusal,"Too fast. Wait a moment, then try again.",너무 빨라요. 잠시 뒤 다시 넣어 주세요.
 camp_tribe,This camp could not be found. Reopen the camp.,camp panel refusal,This camp could not be found. Reopen the camp.,캠프를 찾을 수 없어요. 캠프를 다시 여세요.
 camp_host,That camp's host is not here right now,camp panel refusal,That camp's host is not here right now,그 캠프 주인이 지금 없어요
 camp_member_already,You are already in this camp. Use Give.,camp panel refusal,You are already in this camp. Use Give.,이미 이 캠프 구성원이에요. 기부를 사용하세요.
 camp_pass_limit,This camp has too many visitors right now,camp panel refusal,This camp has too many visitors right now,지금 이 캠프에 방문자가 너무 많아요
-camp_incomplete,Deliver every material before finishing,camp panel refusal,Deliver every material before finishing,모든 재료를 기부해야 완료할 수 있어요
+camp_incomplete,Put in every material before finishing,camp panel refusal,Put in every material before finishing,모든 재료를 넣어야 완료할 수 있어요
 camp_not_joint,Two different members must give before finishing,camp panel refusal,Two different members must give before finishing,서로 다른 구성원 두 명이 기부해야 완료할 수 있어요
-camp_combat,"A wildlife fight is still settling. Wait a moment, then give again.",camp panel refusal,"A wildlife fight is still settling. Wait a moment, then give again.",야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 기부하세요.
-camp_not_started,Nobody has given to this project yet,camp panel refusal,Nobody has given to this project yet,아직 아무도 이 프로젝트에 기부하지 않았어요
+camp_combat,"A wildlife fight is still settling. Wait a moment, then try again.",camp panel refusal,"A wildlife fight is still settling. Wait a moment, then try again.",야생 동물과의 전투를 정산하는 중이에요. 잠시 뒤 다시 넣어 주세요.
+camp_not_started,Nothing has gone into this project yet,camp panel refusal,Nothing has gone into this project yet,아직 이 프로젝트에 넣은 재료가 없어요
 zone_title,Region safety,region safety panel title,Region safety,지역 안전
 zone_safe,Safe zone: you keep your bag when you fall,"death zone indicator, safe",Safe zone: you keep your bag when you fall,안전 구역: 쓰러져도 가방을 지켜요
 zone_danger,Danger zone: your bag drops when you fall,"death zone indicator, danger",Danger zone: your bag drops when you fall,위험 구역: 쓰러지면 가방을 떨어뜨려요
@@ -1028,8 +1028,8 @@ rw.g02.first-axe.complete,An axe opens the windfall logs. Keep it equipped when 
 npc.hop,Hop,RECONSTRUCTED Robango catalog source,Hop,홉
 rw.g03.first-contract.offer,Open the contract board and deliver any contract.,RECONSTRUCTED Robango catalog source,Open the contract board and deliver any contract.,계약 게시판을 열고 아무 계약이나 납품하세요.
 rw.g03.first-contract.complete,Contracts pay coins and build trust with the factions.,RECONSTRUCTED Robango catalog source,Contracts pay coins and build trust with the factions.,계약을 마치면 조개돈과 세력 신뢰를 얻어요.
-rw.g04.camp-donation.offer,Donate any material to a camp project.,RECONSTRUCTED Robango catalog source,Donate any material to a camp project.,캠프 공사에 재료를 하나라도 기부하세요.
-rw.g04.camp-donation.complete,Every donation moves the camp toward its next facility.,RECONSTRUCTED Robango catalog source,Every donation moves the camp toward its next facility.,기부할 때마다 캠프가 다음 시설에 가까워져요.
+rw.g04.camp-donation.offer,Put any material into a camp project.,RECONSTRUCTED Robango catalog source,Put any material into a camp project.,캠프 공사에 재료를 하나라도 넣어 보세요.
+rw.g04.camp-donation.complete,Every material you put in moves the camp toward its next facility.,RECONSTRUCTED Robango catalog source,Every material you put in moves the camp toward its next facility.,재료를 넣을 때마다 캠프가 다음 시설에 가까워져요.
 rw.g05.home-expansion.offer,Your development has earned more land. Apply the new boundary at your dock.,RECONSTRUCTED Robango catalog source,Your development has earned more land. Apply the new boundary at your dock.,개발 실적 덕분에 땅을 더 받을 수 있어요. 부두에서 새 경계를 적용하세요.
 rw.g05.home-expansion.complete,The boundary is expanded. Existing buildings and permissions remain yours.,RECONSTRUCTED Robango catalog source,The boundary is expanded. Existing buildings and permissions remain yours.,경계가 넓어졌어요. 기존 건물과 권한은 그대로 당신 것이에요.
 rw.g06.visit.offer,Visit the public demonstration home. Its owner has already permitted visitors.,RECONSTRUCTED Robango catalog source,Visit the public demonstration home. Its owner has already permitted visitors.,공개 시범 주택에 들러 보세요. 집주인이 이미 방문을 허락해 뒀어요.
@@ -1579,7 +1579,7 @@ guide_next,%s: %s %d/%d,HUD objective next start guide,%s: %s %d/%d,%s: %s %d/%d
 guide_go_gather,"gather %s (walk up, press E)",HUD objective guide action,"gather %s (walk up, press E)",%s 채집 (다가가서 E)
 guide_go_craft,"craft %s (C key, Menu > Craft)",HUD objective guide action,"craft %s (C key, Menu > Craft)","%s 제작 (C 키, 메뉴 > 제작)"
 guide_go_deliver,deliver %s (Menu > Contracts),HUD objective guide action,deliver %s (Menu > Contracts),%s 납품 (메뉴 > 계약)
-guide_go_donate,give to %s (Menu > Camp > Give),HUD objective guide action,give to %s (Menu > Camp > Give),%s에 기부 (메뉴 > 캠프 > 기부)
+guide_go_donate,put materials into %s (Menu > Survival > Put in),HUD objective guide action,put materials into %s (Menu > Survival > Put in),%s에 재료 넣기 (메뉴 > 생존 > 재료 넣기)
 guide_route_level,Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes,HUD objective route gate,Grade %d reached. Route 1 opens at level %d (now %d): Menu > Routes,등급 %d 달성. 항로 1은 레벨 %d에 열려요 (현재 %d): 메뉴 > 항로
 guide_route_open,Route 1 is open: Menu > Routes,HUD objective route gate,Route 1 is open: Menu > Routes,항로 1이 열렸어요: 메뉴 > 항로
 hud_make,Make (auto-collect),hand craft one-click button,Make (auto-collect),만들기 (자동 수령)
@@ -1918,7 +1918,7 @@ hud.weight,Weight,genre text hud,Weight,무게
 hud.slots,Slots,genre text hud,Slots,칸
 hud.slow,Heavy load: movement reduced,genre text hud,Heavy load: movement reduced,짐이 무거워 이동 속도가 줄었어요
 hud.eat,Eat one,genre text hud,Eat one,하나 먹기
-hud.hungry,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,genre text hud,You are getting hungry: open the bag (I) and press Eat one on berries or cooked food.,배가 고파요: 가방(I)을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.
+hud.hungry,You are getting hungry: open the bag{{ (I)}} and press Eat one on berries or cooked food.,genre text hud,You are getting hungry: open the bag{{ (I)}} and press Eat one on berries or cooked food.,배가 고파요: 가방{{(I)}}을 열고 열매나 익힌 음식의 '하나 먹기'를 누르세요.
 hud.hungry_cook,You are getting hungry: cook the raw meat at a campfire (Craft > Cooked Meat) and eat it.,genre text hud,You are getting hungry: cook the raw meat at a campfire (Craft > Cooked Meat) and eat it.,배가 고파요: 날고기를 모닥불에서 익혀(제작 > 잉걸불 구이) 드세요.
 hud.hungry_find,You are getting hungry: pick berries from a bramble bush or hunt a dodo for meat.,genre text hud,You are getting hungry: pick berries from a bramble bush or hunt a dodo for meat.,배가 고파요: 덤불딸기를 따거나 도도를 사냥해 고기를 얻으세요.
 hud.knocked_down,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,genre text hud,You were knocked out and woke up back at camp. Watch out for wild animals and hunger.,쓰러져서 캠프에서 다시 일어났어요. 야생 동물과 배고픔을 조심하세요.
@@ -1953,7 +1953,7 @@ hud.Z-,Move forward,genre text hud,Move forward,앞으로 이동
 hud.Z+,Move back,genre text hud,Move back,뒤로 이동
 hud.place,Place,genre text hud,Place,설치
 hud.preview,Preview only - server validates placement,genre text hud,Preview only - server validates placement,미리보기 - 서버가 설치 위치를 확인해요
-hud.buildHint,Tap or point at ground; Y rotates; reserve. Uses shared storage.,genre text hud,Tap or point at ground; Y rotates; reserve. Uses shared storage.,바닥을 터치하고 Y로 회전한 뒤 예약하세요. 공용 창고 재료를 써요.
+hud.buildHint,Tap or point at ground{{; Y rotates}}; reserve. Uses shared storage.,genre text hud,Tap or point at ground{{; Y rotates}}; reserve. Uses shared storage.,바닥을 터치하고{{ Y로 회전한 뒤}} 예약하세요. 공용 창고 재료를 써요.
 hud.select,Select an item for details,genre text hud,Select an item for details,아이템을 선택하면 정보가 나와요
 hud.TRANSPORT_FAILED,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,genre text hud,Connection uncertain. Retry the same request; do not repeat the purchase or craft.,연결 상태가 불확실해요. 같은 요청을 재시도하세요.
 hud.HANDSHAKE_FAILED,"Supplies are not connected. Refresh, then try again.",genre text hud,"Supplies are not connected. Refresh, then try again.",보급품 연결이 안 됐어요. 새로 고친 뒤 다시 시도하세요.
@@ -2020,7 +2020,7 @@ chr.guide_upcoming,Locked: %s · level %d · +%d development · %d coins,genre t
 chr.guide_g01,First gather,genre text chr,First gather,첫 채집
 chr.guide_g02,First axe,genre text chr,First axe,첫 도끼
 chr.guide_g03,First contract,genre text chr,First contract,첫 계약
-chr.guide_g04,Camp donation,genre text chr,Camp donation,캠프 기부
+chr.guide_g04,Camp project,genre text chr,Camp project,캠프 공사
 chr.guide_g05,Home expansion,genre text chr,Home expansion,집 확장
 chr.guide_g06,Visit a home,genre text chr,Visit a home,집 방문
 chr.guide_g07,Cook and eat,genre text chr,Cook and eat,요리와 식사
@@ -2055,7 +2055,7 @@ chr.guide_act_craft,Craft,genre text chr,Craft,제작
 chr.guide_act_place,Place,genre text chr,Place,설치
 chr.guide_act_rest,Rest at,genre text chr,Rest at,휴식
 chr.guide_act_deliver,Deliver,genre text chr,Deliver,납품
-chr.guide_act_donate,Donate to,genre text chr,Donate to,기부
+chr.guide_act_donate,Put materials into,genre text chr,Put materials into,재료 넣기
 chr.guide_act_expand,Expand,genre text chr,Expand,확장
 chr.guide_act_visit,Visit,genre text chr,Visit,방문
 chr.guide_act_eat,Eat,genre text chr,Eat,먹기
@@ -3129,3 +3129,15 @@ hud.MOUNTED,Get off your mount to attack.,genre text hud,Get off your mount to a
 hud.ALREADY_CAPTURED,That creature has been tamed.,genre text hud,That creature has been tamed.,그 동물은 이미 길들여졌어요.
 cmb.attack.MISS,Missed - it got away,genre text cmb,Missed - it got away,빗나갔어요 - 도망쳤어요
 cmb.attack.FLED,It ran off - tap it again to chase,genre text cmb,It ran off - tap it again to chase,도망쳤어요 - 다시 눌러 쫓아가세요
+camp_put_in,Put materials in,camp panel solo button: put what the project needs in from your own bag,Put materials in,재료 넣기
+camp_solo_given,Put in %d: %s %d/%d,camp panel solo put-in result,Put in %d: %s %d/%d,%d개 넣음: %s %d/%d
+camp_solo_done,%s finished,camp panel solo project finished,%s finished,%s 완성
+camp_solo_nothing,Your bag has none of the materials this project still needs,camp panel solo put-in with nothing that fits,Your bag has none of the materials this project still needs,이 프로젝트에 더 필요한 재료가 가방에 없어요
+fct.camp_put_in,Put in,survival camp sheet solo project action,Put in,재료 넣기
+fct.camp_storage_solo,Camp storage %d/%d slots,survival camp sheet solo,Camp storage %d/%d slots,캠프 창고 %d/%d칸
+fct.camp_storage_none_solo,Camp storage is not set up yet,survival camp sheet solo,Camp storage is not set up yet,캠프 창고가 아직 없어요
+fct.camp_storage_hint_solo,Build materials come from your camp storage,survival camp sheet solo,Build materials come from your camp storage,건설 재료는 캠프 창고에서 나가요
+hud.seconds,%ss,craft panel duration in seconds,%ss,%s초
+exp_depart_body_solo,Stage 1 of 4. Closes in %s. You return to your home island.,"expedition lane, single-player depart",Stage 1 of 4. Closes in %s. You return to your home island.,4단계 중 1단계. %s 후 마감. 돌아오면 집 섬으로 와요.
+hud.panel.harbor_no_buy,The harbor does not buy this item.,trading post solo sell detail,The harbor does not buy this item.,항구에서는 이 물건을 사지 않아요.
+hud.panel.tab.sell_solo,Sell to the harbor,trading post solo tab,Sell to the harbor,항구에 팔기

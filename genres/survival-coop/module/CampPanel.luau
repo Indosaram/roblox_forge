@@ -1,6 +1,9 @@
 --!strict
 -- Camp ladder panel: rung, project bars, item picker, contribute/visit buttons, pass status.
 -- Every action is a durable `send`; the view model lives in CampPanelModel.
+-- Single-player mode (ctx.solo): no visitor / rejoin chips, no friend visits, no item picker and no
+-- loans; each open project has one "Put materials in" button that puts what it still needs in from
+-- your own bag and finishes the project when that completes it (CampPanelModel.putIn).
 local Model = require("./CampPanelModel")
 local Text = require("./CharacterText")
 local M = {}
@@ -98,6 +101,24 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		return table.concat(parts, "|")
 	end
+	local solo = ctx.solo == true
+	-- Solo: put what the project still needs in from the bag, then finish it when it is complete.
+	local function putIn(row: any, choices: { any }, version: number, label: string)
+		status = ""
+		local result, given = Model.putIn(ctx.send, row, choices, version)
+		local own = if result.ok
+			then (if row.delivered + given >= row.need
+				then Model.text(ctx.locale, "camp_solo_done"):format(label)
+				else Model.text(ctx.locale, "camp_solo_given")
+					:format(given, label, math.min(row.need, row.delivered + given), row.need))
+			elseif result.reason == "ITEM_NOT_NEEDED" and given == 0 then Model.text(
+				ctx.locale,
+				"camp_solo_nothing"
+			)
+			else Model.refusal(ctx.locale, result.reason)
+		status = if own ~= "" and status ~= "" then own .. "\n" .. status else own .. status
+		render(true)
+	end
 	local function act(action: string, args: { any }, success: string?)
 		status = ""
 		local result = ctx.send(action, args)
@@ -161,7 +182,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				icon = ctx.icons.item("tent-kit"),
 				title = headText,
 				fraction = if model.rungs > 0 then model.rung / model.rungs else 0,
-				chips = if model.role == "member"
+				chips = if model.role == "member" and not solo
 					then {
 						{
 							icon = ctx.icons.ui("visitor"),
@@ -184,6 +205,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		if
 			not (ctx.icons and ctx.sheetText)
+			and not solo
 			and model.role == "member"
 			and (model.visitors > 0 or model.cooldowns > 0)
 		then
@@ -198,7 +220,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			})
 		end
 		-- Guests and visitors without a live pass can ask to visit any friend's camp.
-		if model.role ~= "member" and model.pass == nil then
+		if not solo and model.role ~= "member" and model.pass == nil then
 			for _, host in model.hosts do
 				local visit = add(44)
 				components.button(theme, {
@@ -214,7 +236,15 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local choice = Model.select(choices, selected)
 		selected = if choice then choice.itemId else nil
 		local canGive = #model.rows > 0 and (model.role == "member" or model.pass ~= nil)
-		if canGive then
+		if canGive and solo and #choices == 0 then
+			local empty = add(44)
+			components.label(theme, {
+				text = Model.text(ctx.locale, "camp_no_items"),
+				size = UDim2.fromScale(1, 1),
+				parent = empty,
+			}).Name =
+				"CampBagEmpty"
+		elseif canGive and not solo then
 			local picker = add(44)
 			if choice == nil then
 				components.label(theme, {
@@ -336,7 +366,18 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				parent = holder,
 				textSize = 12,
 			})
-			if canGive and choice and not row.locked then
+			if canGive and solo and not row.locked and row.delivered < row.need then
+				local button = components.button(theme, {
+					text = Model.text(ctx.locale, "camp_put_in"),
+					size = UDim2.new(0.35, 0, 0, 44),
+					position = UDim2.new(0.65, 0, 0, 2),
+					parent = holder,
+					onClick = function()
+						putIn(row, choices, model.version, label)
+					end,
+				})
+				button.Name = "PutIn-" .. row.id
+			elseif canGive and choice and not solo and not row.locked then
 				local helping = model.role ~= "member"
 				components.button(theme, {
 					text = Model.text(ctx.locale, if helping then "camp_help" else "camp_contribute"),
@@ -389,7 +430,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			people[entry.id] = entry.name
 		end
 		local me = tostring((players.LocalPlayer :: Player).UserId)
-		for _, row in Model.loans(ctx.locale, slice, me, choice, people, ctx.names) do
+		local loanRows: { Model.LoanRow } = if solo
+			then {}
+			else Model.loans(ctx.locale, slice, me, choice, people, ctx.names)
+		for _, row in loanRows do
 			local holder = add(48)
 			local props = { text = row.text, size = UDim2.fromScale(1, 1), parent = holder }
 			local args = row.args

@@ -76,20 +76,24 @@ function M.routes(
 end
 
 -- ui.depart-confirm: destination, stage, party eligibility, expiry and return destination.
-function M.confirm(locale: string, state: any, route: number, actions: any): (string, { any })
+-- `solo` (single-player mode): no party line, only the stage, the expiry and the return.
+function M.confirm(locale: string, state: any, route: number, actions: any, solo: boolean?): (string, { any })
 	local card = state.routes[route]
 	local ready = true
 	for _, row in (state.party and state.party.roster) or {} do
 		ready = ready and row.ready
 	end
+	local closes = Text.duration(if card then card.expiresAt - state.now else 0)
 	local items = {
 		label(
-			Text.text(
-				locale,
-				"exp_depart_body",
-				Text.text(locale, if ready then "exp_yes" else "exp_no"),
-				Text.duration(if card then card.expiresAt - state.now else 0)
-			),
+			if solo
+				then Text.text(locale, "exp_depart_body_solo", closes)
+				else Text.text(
+					locale,
+					"exp_depart_body",
+					Text.text(locale, if ready then "exp_yes" else "exp_no"),
+					closes
+				),
 			BODY + 16,
 			"DepartBody"
 		),

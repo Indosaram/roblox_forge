@@ -6,6 +6,14 @@ function M.text(locale: string, key: string): string
 	local entry = strings[key]
 	return if entry then entry[if string.sub(locale, 1, 2) == "ko" then 2 else 1] else key
 end
+--- Keyboard hints in a string: a trailing " [I]" and every {{...}} span. A touch-only device drops
+--- them ("bag{{ (I)}} open" -> "bag open"); with a keyboard the span shows without its braces.
+function M.keyHints(text: string, touchOnly: boolean): string
+	if touchOnly then
+		return (string.gsub(string.gsub(text, "{{.-}}", ""), " %[%u%]$", ""))
+	end
+	return (string.gsub(text, "{{(.-)}}", "%1"))
+end
 -- Food freshness line from remaining permille; under a quarter left it warns to eat or refrigerate.
 function M.freshness(locale: string, permille: number): string
 	return string.format(M.text(locale, if permille < 250 then "freshness_spoiling" else "freshness"), permille // 10)

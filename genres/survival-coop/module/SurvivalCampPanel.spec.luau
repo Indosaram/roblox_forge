@@ -63,10 +63,34 @@ local function names(locale: string): (string) -> string
 end
 
 -- Spec engine for FarmCraftSheet (ctx.instance): every row and its controls by name.
-local function harness(locale: string): any
+local function harness(locale: string, solo: boolean?): any
 	local docks, opened = {}, {}
 	local listener: any = nil
-	local scroll: any = { children = {} }
+	-- CanvasPosition clamps to the canvas the remaining rows fill, as the engine does: destroying
+	-- every row (clear) drops it to 0 until rows are added again.
+	local scroll: any = { children = {}, canvas = 0, Parent = {} }
+	local function rowsLeft(): number
+		local count = 0
+		for _, row in scroll.children do
+			count += if row.destroyed then 0 else 1
+		end
+		return count
+	end
+	setmetatable(scroll, {
+		__index = function(_, key): any
+			if key == "CanvasPosition" then
+				return math.min(rawget(scroll, "canvas") :: number, rowsLeft() * 48)
+			end
+			return nil
+		end,
+		__newindex = function(_, key, value: any)
+			if key == "CanvasPosition" then
+				rawset(scroll, "canvas", math.min(value :: number, rowsLeft() * 48))
+			else
+				rawset(scroll, key, value)
+			end
+		end,
+	})
 	local function node(): any
 		local raw: any = { children = {} }
 		return setmetatable({}, {
@@ -86,17 +110,20 @@ local function harness(locale: string): any
 		value.onClick = props.onClick
 		value.Destroy = function(self)
 			self.destroyed = true
+			scroll.CanvasPosition = scroll.CanvasPosition -- the engine clamps as the canvas shrinks
 		end
 		return value
 	end
 	local ctx: any = {
 		locale = locale,
+		solo = solo,
 		instance = {
 			new = function(class: string): any
 				local value = node()
 				value.ClassName = class
 				value.Destroy = function(self)
 					self.destroyed = true
+					scroll.CanvasPosition = scroll.CanvasPosition
 				end
 				return value
 			end,
@@ -185,7 +212,7 @@ local function harness(locale: string): any
 			return "hand"
 		end,
 	})
-	local api: any = { docks = docks, opened = opened, mounted = mounted }
+	local api: any = { docks = docks, opened = opened, mounted = mounted, scroll = scroll }
 	function api.push(extensions: any, whole: any)
 		listener(extensions, whole)
 	end
@@ -278,6 +305,42 @@ return {
 					end
 				end
 			end
+		end
+	end,
+	["solo: projects put materials in from your bag and storage is the camp's own"] = function()
+		for _, case in
+			{ { "ko-kr", "재료 넣기", "캠프 창고 2/40칸" }, { "en-us", "Put in", "Camp storage 2/40 slots" } }
+		do
+			local ui = harness(case[1], true)
+			ui.docks.survival.setOpen(true)
+			ui.push({ camp = CAMP }, packet({}, false))
+			local all = table.concat(ui.texts(), "\n")
+			assert(string.find(all, case[3], 1, true), case[1] .. ": camp storage line in\n" .. all)
+			assert(not string.find(all, "공용", 1, true) and not string.find(all, "Shared", 1, true), "no shared")
+			local go = assert(ui.find("Go-project-drying-rack"), "drying rack project card")
+			assert(go.Text == case[2], case[1] .. " project action: " .. tostring(go.Text))
+			assert(not string.find(all, "기부", 1, true) and not string.find(all, "Give", 1, true), "no Give")
+		end
+		-- Multiplayer (solo off) keeps its Give wording.
+		local ui = harness("ko-kr", false)
+		ui.docks.survival.setOpen(true)
+		ui.push({ camp = CAMP }, packet({}, false))
+		assert(assert(ui.find("Go-project-drying-rack"), "card").Text == "기부", "multiplayer keeps 기부")
+	end,
+	-- p134 v61 phone: the sheet rebuilt on every state push and snapped back to the top, so the
+	-- next-project cards below 지은 건물 could not be reached by a finger scroll.
+	["a state push keeps the camp sheet's scroll position"] = function()
+		local ui = harness("ko-kr", true)
+		ui.docks.survival.setOpen(true)
+		ui.push({ camp = CAMP }, packet({}, false))
+		ui.scroll.CanvasPosition = 300
+		assert(ui.scroll.CanvasPosition == 300, "scrolled to the next projects")
+		for tick = 1, 3 do
+			ui.push({ camp = CAMP }, packet({ placement("p" .. tick, "campfire") }, tick % 2 == 0))
+			assert(
+				ui.scroll.CanvasPosition == 300,
+				"tick " .. tick .. " reset the scroll to " .. ui.scroll.CanvasPosition
+			)
 		end
 	end,
 	["an empty camp says so and its actions route to the camp, build and storage sheets"] = function()

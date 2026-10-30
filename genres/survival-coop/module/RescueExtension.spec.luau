@@ -8,7 +8,7 @@ local _packText = (require :: any)("../../../games/robango-island/PackText.fixtu
 
 type World = { health: { [string]: number }, at: { [string]: any }, safe: boolean, now: number, admits: number }
 
-local function build(): (any, any, World)
+local function build(flares: boolean?): (any, any, World)
 	local w: World = {
 		health = { ["1"] = 0, ["2"] = 100000, ["3"] = 100000 },
 		at = { ["1"] = { x = 0, y = 0, z = 0 }, ["2"] = { x = 4, y = 0, z = 3 }, ["3"] = { x = 80, y = 0, z = 0 } },
@@ -32,6 +32,7 @@ local function build(): (any, any, World)
 		name = function(actor: string)
 			return "P" .. actor
 		end,
+		flares = flares,
 	}
 	local extension, hold = RescueExtension.new(port, function()
 		return w.now
@@ -49,6 +50,18 @@ local function send(extension: any, w: World, actor: string, action: string, arg
 end
 
 return {
+	-- Single-player mode (Robango play_mode.flares = false): nobody else can answer a flare, so the
+	-- down screen offers only rift and camp and a stale client's flare choice is refused.
+	["flares off: no flare card and the flare choice is refused"] = function()
+		local extension, _, w = build(false)
+		local options = extension.snapshot("1").options
+		assert(table.concat(options, ",") == "rift,camp", "solo cards: " .. table.concat(options, ","))
+		local refused = send(extension, w, "1", RescueExtension.CHOOSE, { "rescue" })
+		assert(not refused.ok and refused.reason == "INVALID_OPTION", "flare refused: " .. tostring(refused.reason))
+		assert(send(extension, w, "1", RescueExtension.CHOOSE, { "camp" }).ok, "camp still works")
+		local multi = build(nil)
+		assert(table.find(multi.snapshot("1").options, "rescue"), "default keeps the flare")
+	end,
 	["opt-in: no rescue port means no extension"] = function()
 		assert(RescueExtension.factory({ world = nil }) == nil, "no world")
 		assert(RescueExtension.factory({ world = {} }) == nil, "world without rescue port")

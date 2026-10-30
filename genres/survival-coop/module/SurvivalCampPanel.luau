@@ -27,7 +27,17 @@ end
 
 --- Pure view model: { level, fire, shelter, storage, built, next } from the camp slice, the
 --- survival-coop snapshot and the shared settlement/warehouse. `name` maps ids to display names.
-function M.model(locale: string, content: any, camp: any, packet: any, now: number, name: (string) -> string): any
+--- `solo` (single-player mode): projects read "Put materials in" (from your own bag) instead of Give,
+--- and storage is "Camp storage" rather than shared storage.
+function M.model(
+	locale: string,
+	content: any,
+	camp: any,
+	packet: any,
+	now: number,
+	name: (string) -> string,
+	solo: boolean?
+): any
 	local t = function(key: string, ...: any): string
 		return Text.text(locale, key, ...)
 	end
@@ -85,12 +95,16 @@ function M.model(locale: string, content: any, camp: any, packet: any, now: numb
 		end
 		local slots = (warehouse.limits and warehouse.limits.slots) or 0
 		view.storage = {
-			text = t("camp_storage", used, slots),
-			detail = t("camp_storage_hint"),
+			text = t(if solo then "camp_storage_solo" else "camp_storage", used, slots),
+			detail = t(if solo then "camp_storage_hint_solo" else "camp_storage_hint"),
 			fraction = if slots > 0 then used / slots else 0,
 		}
 	else
-		view.storage = { text = t("camp_storage_none"), detail = t("camp_storage_hint"), fraction = 0 }
+		view.storage = {
+			text = t(if solo then "camp_storage_none_solo" else "camp_storage_none"),
+			detail = t(if solo then "camp_storage_hint_solo" else "camp_storage_hint"),
+			fraction = 0,
+		}
 	end
 	local ids = {}
 	for id in built do
@@ -115,7 +129,7 @@ function M.model(locale: string, content: any, camp: any, packet: any, now: numb
 				detail = table.concat(parts, " · "),
 				fraction = if row.need > 0 then row.delivered / row.need else 0,
 				panel = "camp",
-				action = t("camp_give"),
+				action = t(if solo then "camp_put_in" else "camp_give"),
 			})
 		end
 	end
@@ -168,7 +182,8 @@ function M.mount(ctx: any, hub: any): any
 			return
 		end
 		sheet.clear()
-		local view = M.model(ctx.locale, hub.content, hub.state.camp, hub.state.packet, hub.now(), hub.name)
+		local view =
+			M.model(ctx.locale, hub.content, hub.state.camp, hub.state.packet, hub.now(), hub.name, ctx.solo == true)
 		local function card(name: string, art: string?, row: any, cells: { any })
 			sheet.plot({
 				name = name,

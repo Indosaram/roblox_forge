@@ -21,7 +21,8 @@ export type State = {
 	facilities: { [string]: boolean },
 }
 
--- Two distinct members must contribute before a project counts as joint.
+-- Two distinct members must contribute before a project counts as joint. A pack may lower the
+-- floor (Robango single-player mode: 1) through complete's `minimum` argument.
 M.MIN_CONTRIBUTORS = 2
 
 local MAX_CLOCK = 2 ^ 53 - 1
@@ -165,14 +166,15 @@ function M.assist(
 end
 
 -- Completes a fully delivered joint project, counting it toward the ladder and
--- granting every facility whose rung is now reached.
+-- granting every facility whose rung is now reached. `minimum` overrides MIN_CONTRIBUTORS.
 function M.complete(
 	state: State,
 	ladder: Ladder,
 	settlement: Settlement.State,
 	actorId: string,
 	version: number,
-	projectId: string
+	projectId: string,
+	minimum: number?
 ): (State?, string?)
 	if settlement.config.tribeId ~= state.tribeId then
 		return nil, "TRIBE_MISMATCH"
@@ -197,7 +199,7 @@ function M.complete(
 	for _ in progress.contributors do
 		contributors += 1
 	end
-	if contributors < M.MIN_CONTRIBUTORS then
+	if contributors < (minimum or M.MIN_CONTRIBUTORS) then
 		return nil, "NOT_JOINT"
 	end
 	local result = copy(state) :: State

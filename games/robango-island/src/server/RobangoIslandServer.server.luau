@@ -9,6 +9,8 @@ local RunService = game:GetService("RunService")
 local IslandBootstrap = require(Forge.genres["survival-coop"].module.IslandBootstrap)
 local Topology = require(Forge.core.domain.island.Topology)
 local SeaChart = require(Shared.SeaChart)
+-- Single-player mode (game.yml play_mode): what a solo player can finish and see.
+local PlayMode = require(Shared.PlayMode)
 local ServerStorage = game:GetService("ServerStorage")
 local roleConfig = ServerStorage:FindFirstChild("ForgePlaceRoles")
 local roles = if roleConfig and roleConfig:IsA("StringValue") then HttpService:JSONDecode(roleConfig.Value) else nil
@@ -251,6 +253,8 @@ require(script.Parent.StudioSetup).gallery({
 })
 -- Friend visits: Player:IsFriendsWith behind the IslandBootstrap-style availability guard.
 local visitWorld: any = world
+-- A solo player finishes camp projects alone (CampExtension minContributors).
+visitWorld.campMinContributors = PlayMode.campMinContributors
 visitWorld.isFriend = require(Forge.core.infra.island.Friends).source({
 	players = game:GetService("Players"),
 	isStudio = RunService:IsStudio(),
@@ -274,6 +278,8 @@ world.rescue = {
 	safe = function(): boolean
 		return worldRole == "home" or worldRole == "harbor"
 	end,
+	-- No flare card while solo: nobody else is there to answer it.
+	flares = PlayMode.flares,
 	camp = function(actor: string)
 		local at = world.nearestStation(actor, { "campfire", "fireplace" })
 		return if at then { x = at.X, y = at.Y, z = at.Z } else nil
@@ -866,6 +872,10 @@ end)
 game:BindToClose(presence.stop)
 -- Route cards read the summed population of each archipelago route (ExpeditionExtension).
 visitWorld.population = function(listing: string): number?
+	-- Solo: no "N here now" on route cards (play_mode.population).
+	if not PlayMode.population then
+		return nil
+	end
 	local counts = presence.counts
 	return if counts then counts[listing] or 0 else nil
 end

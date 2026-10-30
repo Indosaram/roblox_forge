@@ -23,6 +23,44 @@ local function slice(): any
 end
 
 return {
+	-- Single-player 재료 넣기: put in only what the project still needs from your own bag, one
+	-- camp-contribute per stack with the version each accept returns, then camp-complete when full.
+	["solo put-in fills the missing materials from the bag and finishes a full project"] = function()
+		local row = assert(Model.model(slice(), 0)).rows[1] -- fiber 12/40, branch 30/30
+		local choices = {
+			{ itemId = "f1", catalogId = "fiber", label = "f", available = 20 },
+			{ itemId = "f2", catalogId = "fiber", label = "f", available = 20 },
+			{ itemId = "b1", catalogId = "branch", label = "b", available = 5 },
+			{ itemId = "w1", catalogId = "wood", label = "w", available = 9 },
+		}
+		local fill = Model.fill(row, choices)
+		assert(#fill == 2 and fill[1].itemId == "f1" and fill[1].quantity == 20, "first fiber stack")
+		assert(fill[2].itemId == "f2" and fill[2].quantity == 8, "the rest of the 28 missing fibers")
+		local sent = {}
+		local version = 3
+		local result, given = Model.putIn(function(action, args)
+			table.insert(sent, { action = action, args = args })
+			version += 1
+			return { ok = true, data = { camp = version } }
+		end, row, choices, 3)
+		assert(result.ok and given == 28, "put in 28")
+		assert(#sent == 3, "two contributes and a complete: " .. #sent)
+		assert(sent[1].action == "survival-coop:camp-contribute" and sent[1].args[4] == 3, "first at version 3")
+		assert(sent[2].args[4] == 4, "second uses the version the first returned")
+		assert(sent[3].action == "survival-coop:camp-complete" and sent[3].args[1] == "windbreak", "complete")
+		assert(sent[3].args[2] == 5, "complete at the latest version")
+		-- Not enough to finish: contribute only, no complete; nothing that fits: no command at all.
+		local partial = {}
+		Model.putIn(function(action, _args)
+			table.insert(partial, action)
+			return { ok = true, data = { camp = 4 } }
+		end, row, { choices[1] }, 3)
+		assert(#partial == 1 and partial[1] == "survival-coop:camp-contribute", "partial put-in")
+		local none, count = Model.putIn(function()
+			error("no command")
+		end, row, { choices[4] }, 3)
+		assert(not none.ok and none.reason == "ITEM_NOT_NEEDED" and count == 0, "nothing fits")
+	end,
 	["camp rows keep each material's delivered and needed amount"] = function()
 		local row = assert(Model.model(slice(), 0)).rows[1]
 		assert(row.delivered == 42 and row.need == 70, "total still summed")

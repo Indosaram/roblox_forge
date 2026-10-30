@@ -62,6 +62,9 @@ export type Config = {
 	-- Trusted friendship source (for example a Players:IsFriendsWithAsync cache).
 	isFriend: ((string, string) -> boolean)?,
 	visitSeconds: number?,
+	-- Distinct contributors a project needs before it can be finished (default Camp.MIN_CONTRIBUTORS;
+	-- a single-player pack sets 1 so one player can finish every project alone).
+	minContributors: number?,
 	legacyCamp: ((string) -> { source: any, sourceVersion: string }?)?,
 }
 export type Built = Shared.Extension & Session.ActorLifecycle & { close: (() -> Shared.Result)? }
@@ -677,7 +680,8 @@ function M.new(config: Config): Built?
 			local nextData = copy(data)
 			prune(nextData, config.now())
 			local state = Camp.fromSave(nextData.camp, ladder)
-			local nextState, why = Camp.complete(state, ladder, settlement, actor, args[2], args[1])
+			local nextState, why =
+				Camp.complete(state, ladder, settlement, actor, args[2], args[1], config.minContributors)
 			if not nextState then
 				reason = why
 				return data
@@ -897,6 +901,7 @@ function M.factory(ctx: any): Built?
 		personalTransfer = ctx.personalTransfer,
 		members = ctx.members,
 		isFriend = if ctx.world then (ctx.world :: any).isFriend else nil,
+		minContributors = if ctx.world then (ctx.world :: any).campMinContributors else nil,
 		legacyCamp = ctx.legacyCamp,
 	})
 end

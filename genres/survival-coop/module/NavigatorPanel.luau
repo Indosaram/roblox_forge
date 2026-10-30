@@ -38,9 +38,18 @@ M.ROWS = {
 	{ "nav_settings", "audio" },
 } :: { { any } }
 
-function M.model(locale: string, availability: (string) -> (boolean, boolean, string?)): { any }
+--- `hidden` (optional): rows the pack keeps off in this mode, by label key or destination id
+--- (single-player mode: screens that only act on other players).
+function M.model(
+	locale: string,
+	availability: (string) -> (boolean, boolean, string?),
+	hidden: ((string, string?) -> boolean)?
+): { any }
 	local rows = {}
 	for _, row in M.ROWS do
+		if hidden and hidden(row[1], row[2]) then
+			continue
+		end
 		local label = if ScreenText.has(row[1]) then ScreenText.text(locale, row[1]) else Text.text(locale, row[1])
 		local id = row[2]
 		local open, reason = false, nil
@@ -56,6 +65,7 @@ function M.model(locale: string, availability: (string) -> (boolean, boolean, st
 			reason = Text.text(locale, row[3])
 		end
 		table.insert(rows, {
+			key = row[1],
 			id = id,
 			open = open,
 			reason = reason,
@@ -102,7 +112,11 @@ function M.factory(ctx: any): any
 			button:Destroy()
 		end
 		table.clear(buttons)
-		for index, row in M.model(ctx.locale, ctx.availability) do
+		local function hidden(key: string, id: string?): boolean
+			return (ctx.navHidden ~= nil and ctx.navHidden[key] ~= nil)
+				or (id ~= nil and ctx.held ~= nil and ctx.held[id] ~= nil)
+		end
+		for index, row in M.model(ctx.locale, ctx.availability, hidden) do
 			local button = view.button("Nav-" .. tostring(row.id or row.text), row.text, function()
 				local reason = M.press(row, ctx.open)
 				status.Text, status.Visible = reason or "", reason ~= nil
@@ -130,8 +144,8 @@ function M.factory(ctx: any): any
 				end
 				if not row.open then
 					-- Locked: the name only; the reason shows in the status line on a tap.
-					button.Text = ScreenText.has(M.ROWS[index][1]) and ScreenText.text(ctx.locale, M.ROWS[index][1])
-						or Text.text(ctx.locale, M.ROWS[index][1])
+					button.Text = ScreenText.has(row.key) and ScreenText.text(ctx.locale, row.key)
+						or Text.text(ctx.locale, row.key)
 					button:SetAttribute("ForgeNavLocked", row.text)
 				end
 			end

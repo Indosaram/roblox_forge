@@ -21,7 +21,7 @@ local function signal(): any
 	}
 end
 
-local function mount(locale: string, replies: { [string]: any }?): any
+local function mount(locale: string, replies: { [string]: any }?, solo: boolean?): any
 	local nodes: { any } = {}
 	local methods: any = {}
 	methods.__index = methods
@@ -96,6 +96,7 @@ local function mount(locale: string, replies: { [string]: any }?): any
 	end
 	local ctx = {
 		locale = locale,
+		solo = solo,
 		names = {},
 		clock = function()
 			return h.now
@@ -214,6 +215,25 @@ return {
 		assert(h.find("DepartRefusal").Text == Text.reason("ko-kr", "level_gate"), "gate shown before confirm")
 		h.click("DepartStay")
 		assert(h.find("Route-1"), "stay returns to the list")
+	end,
+	-- Single-player mode (game.yml play_mode.solo): the depart card has no party line, and an incoming
+	-- party invite never pops up (the party sheet is held).
+	["solo: depart confirm names no party and a party invite does not pop up"] = function()
+		local h = mount("ko-kr", nil, true)
+		h.push(state())
+		h.click("Route-1")
+		local body = assert(h.find("DepartBody"), "depart confirm shown").Text
+		assert(not string.find(body, "파티", 1, true), "party line on the solo depart card: " .. body)
+		assert(string.find(body, "4단계 중 1단계", 1, true), "stage and expiry stay: " .. body)
+		h.click("DepartStay")
+		local invited = state()
+		invited.party.invites = { { from = "8", route = 1, expiresAt = 220, members = 2, capacity = 8 } }
+		h.push(invited)
+		assert(h.find("InviteBody") == nil, "a party invite popped up in solo")
+		local multi = mount("ko-kr")
+		multi.push(state())
+		multi.click("Route-1")
+		assert(string.find(multi.find("DepartBody").Text, "파티", 1, true), "multiplayer keeps the party line")
 	end,
 	["party invites a player on this server and a received invite can be accepted"] = function()
 		local h = mount("en-us", { invite = { ok = false, reason = "party_full" } })

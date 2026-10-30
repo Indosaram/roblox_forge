@@ -93,6 +93,22 @@ for _, object in workspace:GetDescendants() do
 end
 -- Render profile: low on SavedQualityLevel <= low.qualityLevelMax (Automatic on touch).
 local RenderBudget = require(Shared.RenderBudget)
+-- Single-player mode (game.yml play_mode): the other-player surfaces it hides.
+local PlayMode = require(Shared.PlayMode)
+if not PlayMode.chat then
+	-- Solo: no chat window or chat bar (nobody to talk to); the HUD drops its chat token too.
+	pcall(function()
+		local chat = game:GetService("TextChatService")
+		local window = chat:FindFirstChildOfClass("ChatWindowConfiguration")
+		local bar = chat:FindFirstChildOfClass("ChatInputBarConfiguration")
+		if window then
+			window.Enabled = false
+		end
+		if bar then
+			bar.Enabled = false
+		end
+	end)
+end
 local BiomeKits = require(Shared.BiomeKits)
 local userSettings: any = UserSettings():GetService("UserGameSettings")
 local function renderProfile(): RenderBudget.Profile
@@ -196,6 +212,10 @@ local WildlifeNames = require(Forge.genres["survival-coop"].module.WildlifeNames
 -- G22: live player counts per destination role, published by the server's SocialPresence.
 local populationText, population = nil, nil
 local function populationCounts(): { [string]: number }?
+	-- Solo: dock labels name the destination only, never "N here" (play_mode.population).
+	if not PlayMode.population then
+		return nil
+	end
 	local text = workspace:GetAttribute("ForgePopulation")
 	if text ~= populationText then
 		populationText = text
@@ -281,6 +301,8 @@ local hud = SurvivalHUD.start({
 				shellPanels.open(id)
 			end
 		end,
+		chat = PlayMode.chat,
+		clanTag = PlayMode.clanTag,
 		pet = {
 			capturable = function(): boolean
 				return petRing ~= nil and petRing.capturable()
@@ -1278,23 +1300,16 @@ local panels = ExtensionPanels.start({
 	shell = true,
 	content = content,
 	icons = itemIcons,
-	-- Multiplayer is on hold (owner): these screens only act on other players, so a single player
-	-- gets nothing from them and their tiles stay off the menu until multiplayer resumes (delete
-	-- this table then). The panels still mount and still open from their own triggers (an incoming
-	-- trade invite, an expedition party invite, ctx.open from the navigator or an NPC).
-	-- D2b (08bc5d0, PC 1280x720): the grid had 36 tiles and showed 28 (7 rows x 4) before scrolling,
-	-- so shop, music, audio, brawl, home-move, home-permissions and organizations sat below the
-	-- fold. With these 8 tiles held the PC grid fits on one screen.
-	held = {
-		brawl = "brawl needs minimumPlayers 2",
-		["direct-trade"] = "trades with another player on this server",
-		outpost = "team siege: one clan against another",
-		party = "invites other players to an expedition party",
-		clan = "a clan is a group of players",
-		["clan-membership"] = "create or join a clan of players",
-		["home-permissions"] = "grants visit/use/build to friends and clan members",
-		["death-zone"] = "opt-in PvP zone, only used by brawl and team siege",
-	},
+	-- Multiplayer is on hold (owner): screens that only act on other players stay off the menu and
+	-- the navigator while game.yml play_mode.solo is on (PlayMode.held / navHidden, each with its
+	-- reason). The panels still mount, but in solo nothing opens them: no tile, no navigator row, no
+	-- ctx.open / QA open, no party invite popup. ExtensionPanels applies held / navHidden only
+	-- while solo is on, so solo = false brings every multiplayer route back.
+	held = require(Shared.PlayMode).held,
+	navHidden = require(Shared.PlayMode).navHidden,
+	-- Solo camp: materials go in from your own bag ("재료 넣기"), no visitor / rejoin chips, no
+	-- friend visits and no lending to other members.
+	solo = require(Shared.PlayMode).solo,
 	launchers = {
 		{
 			id = "explore",
