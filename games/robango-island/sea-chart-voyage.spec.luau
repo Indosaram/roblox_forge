@@ -150,6 +150,51 @@ return {
 		assert(#handoffs == 1 and handoffs[1].destination == "harbor", "one voyage to the harbor")
 		assert(handoffs[1].ok, "handoff refused: " .. tostring(handoffs[1].reason))
 	end,
+	["a voyage waits for other session work holding the actor right after load (no COMMAND_PENDING)"] = function()
+		-- p134 v66: the first chart sail after a load met COMMAND_PENDING because the deferred voyage
+		-- ran while other session work (a personal transaction yielding on a cold DataStore) held
+		-- the actor; the second press 77 s later sailed.
+		local live = server()
+		live.engine.move(ACTOR, Content.homePolicy.dock)
+		live.world.sailPoint = function()
+			return "dock"
+		end
+		local handoffs: { any } = {}
+		live.world.travel = function(_player, destination)
+			local ready = live.session.prepareHandoff(ACTOR)
+			table.insert(handoffs, { destination = destination, ok = ready.ok, reason = ready.reason })
+			if ready.ok then
+				live.session.resumeHandoff(ACTOR)
+			end
+			return ready.ok, ready.reason
+		end
+		assert(sail(live, "harbor").ok, "sail command accepted")
+		-- Before the deferred voyage runs, another write takes the actor and waits on its backend.
+		local holding = true
+		local holder = task.spawn(function()
+			assert(
+				live.session.personalTransaction(ACTOR, function(raw)
+					coroutine.yield()
+					return raw
+				end),
+				"held transaction commits"
+			)
+			holding = false
+		end)
+		assert(not live.session.settled(ACTOR), "actor held by the transaction")
+		task.wait()
+		assert(#handoffs == 0, "no handoff while the actor is held: " .. tostring(handoffs[1] and handoffs[1].reason))
+		coroutine.resume(holder)
+		assert(not holding and live.session.settled(ACTOR), "transaction released the actor")
+		for _ = 1, 10 do
+			if #handoffs > 0 then
+				break
+			end
+			task.wait()
+		end
+		assert(#handoffs == 1 and handoffs[1].destination == "harbor", "one voyage to the harbor")
+		assert(handoffs[1].ok, "handoff refused: " .. tostring(handoffs[1].reason))
+	end,
 	["a voyage refused after the sail command is published to the player with its own text"] = function()
 		local live = server()
 		live.engine.move(ACTOR, Content.homePolicy.dock)

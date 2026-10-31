@@ -708,12 +708,34 @@ return function(content: any, source, world, backend, clock, options, provision,
 	local function SeaChartRole(layoutId: string): string
 		return require(Forge.games["robango-island"].src.shared.SeaChart).roleOf(layoutId)
 	end
+	-- p134 v66: the first chart sail after a load was still refused COMMAND_PENDING. The deferred
+	-- voyage ran while the actor was held by other session work that yields on a cold DataStore
+	-- (the post-command push's recovery sweep, the 1 Hz advance, a guide/xp personal transaction,
+	-- another durable command), and prepareHandoff refuses on busy or any staged command. The voyage
+	-- waits (bounded, one Heartbeat at a time) until the session can hand the actor off.
+	local HANDOFF_WAIT_SECONDS = 5
 	local function travelAfterCommand(player: any, destination: string, route: number?, extra: any?): any
 		task.defer(function()
-			local ok: any, reason = world.travel(player, destination, route, extra)
-			if type(ok) == "table" then
-				ok, reason = ok.ok, ok.reason
+			local actor = tostring(player.UserId)
+			local waited = 0
+			local function settle()
+				while activeSession and not activeSession.settled(actor) and waited < HANDOFF_WAIT_SECONDS do
+					waited += task.wait()
+				end
 			end
+			local ok: any, reason
+			repeat
+				settle()
+				ok, reason = world.travel(player, destination, route, extra)
+				if type(ok) == "table" then
+					ok, reason = ok.ok, ok.reason
+				end
+				-- Other work can take the actor between the check and the handoff: wait again.
+				local retry = ok ~= true and reason == "COMMAND_PENDING" and waited < HANDOFF_WAIT_SECONDS
+				if retry then
+					waited += task.wait()
+				end
+			until not retry
 			if ok ~= true and world.publishTravel then
 				world.publishTravel(player, tostring(reason or "travel_failed"))
 			end

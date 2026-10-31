@@ -39,6 +39,9 @@ export type Session = {
 	join: (string) -> LifecycleResult,
 	close: (string) -> LifecycleResult,
 	prepareHandoff: (string) -> LifecycleResult,
+	-- True when no profile operation holds the actor and no durable command is staged on this
+	-- server: the state in which prepareHandoff does not answer COMMAND_PENDING.
+	settled: (string) -> boolean,
 	resumeHandoff: (string) -> LifecycleResult,
 	completeHandoff: (string) -> LifecycleResult,
 	save: (string) -> Contract.Result,
@@ -643,6 +646,9 @@ function M.new(
 		departed[id] = true
 		executor.discard(id)
 		return { ok = true }
+	end
+	function session.settled(id)
+		return joined[id] == true and not busy[id] and next(pending) == nil
 	end
 	function session.resumeHandoff(id)
 		if departed[id] and profiles[id] == nil then
