@@ -700,6 +700,27 @@ return function(content: any, source, world, backend, clock, options, provision,
 				else { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
 		end,
 	})
+	-- p134 v65: a voyage asked for by a durable command (sea chart sail, drift-isle depart) teleports
+	-- only after that command returns. Inside it the Session holds the actor busy, so the handoff
+	-- (Session.prepareHandoff) refused every chart voyage with COMMAND_PENDING while the dock prompt,
+	-- which is no command, travelled. The command answers "travelling"; a later refusal is published
+	-- on ForgeTravelResult like a dock result.
+	local function SeaChartRole(layoutId: string): string
+		return require(Forge.games["robango-island"].src.shared.SeaChart).roleOf(layoutId)
+	end
+	local function travelAfterCommand(player: any, destination: string, route: number?, extra: any?): any
+		task.defer(function()
+			local ok: any, reason = world.travel(player, destination, route, extra)
+			if type(ok) == "table" then
+				ok, reason = ok.ok, ok.reason
+			end
+			if ok ~= true and world.publishTravel then
+				world.publishTravel(player, tostring(reason or "travel_failed"))
+			end
+		end)
+		local accepted: any = { ok = true, reason = "travelling" }
+		return accepted
+	end
 	table.insert(extensionFactories, function()
 		return require(Forge.core.infra.genre.Session).registerLifecycle({
 			id = "archipelago",
@@ -741,12 +762,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 						local refused: any = { ok = false, reason = reason or "travel_unavailable" }
 						return refused
 					end
-					local moved: any, why = (world :: any).travel(player, args[2])
-					if type(moved) == "table" then
-						return moved
-					end
-					local sailed: any = { ok = moved == true, reason = if moved then nil else why or "travel_failed" }
-					return sailed
+					return travelAfterCommand(player, args[2])
 				end
 				return archipelago.mission(actor, args[1], args[2])
 			end,
@@ -850,12 +866,16 @@ return function(content: any, source, world, backend, clock, options, provision,
 					local unavailable: any = { ok = false, reason = "travel_unavailable" }
 					return unavailable
 				end
-				local ok: any, reason = world.travel(player, destination, route, extra)
-				if type(ok) == "table" then
-					return ok
+				-- Leaving a drift isle for home settles the expedition (no teleport): answered in the command.
+				if destination == "home" and world.layout and SeaChartRole(world.layout.id) == "archipelago" then
+					local ok: any, reason = world.travel(player, destination, route, extra)
+					if type(ok) == "table" then
+						return ok
+					end
+					local result: any = { ok = ok == true, reason = if ok then nil else reason or "travel_failed" }
+					return result
 				end
-				local result: any = { ok = ok == true, reason = if ok then nil else reason or "travel_failed" }
-				return result
+				return travelAfterCommand(player, destination, route, extra)
 			end,
 		}))
 	end)

@@ -3186,3 +3186,14 @@ tip_06_solo,Every camp project you finish makes your camp sturdier. Build it up 
 scr.arrival.together_solo,"Gather, craft, build and explore your island.","arrival screen, single-player","Gather, craft, build and explore your island.","채집하고, 만들고, 짓고, 섬을 탐험하세요."
 scr.jobs.terms_solo,Cancelling taming returns the animal but not the feed.,"jobs screen terms, single-player",Cancelling taming returns the animal but not the feed.,길들이기를 취소하면 동물은 돌아오지만 먹이는 돌아오지 않아요.
 ko_danger_solo,Danger zone: your bag dropped here. Go back and pick it up.,"expedition knockout, single-player",Danger zone: your bag dropped here. Go back and pick it up.,위험 구역: 가방을 여기에 떨어뜨렸어요. 돌아가서 주우세요.
+trv.COMMAND_PENDING,Still finishing your last action. Try again in a moment,dock travel result,Still finishing your last action. Try again in a moment,마지막 행동을 처리하는 중이에요. 잠시 후 다시 시도하세요
+trv.teleport_failed,The voyage could not start. Try again,dock travel result,The voyage could not start. Try again,항해를 시작하지 못했어요. 다시 시도하세요
+trv.handoff_refused,Saving your progress failed. Try again,dock travel result,Saving your progress failed. Try again,진행 상황 저장에 실패했어요. 다시 시도하세요
+trv.missing_actor_facts,Your profile is still loading. Try again,dock travel result,Your profile is still loading. Try again,프로필을 불러오는 중이에요. 다시 시도하세요
+trv.unconfigured_destination,That island is not open on this server yet,dock travel result,That island is not open on this server yet,이 서버에서는 아직 열리지 않은 섬이에요
+trv.unknown_target_role,That island is not on the chart,dock travel result,That island is not on the chart,해도에 없는 섬입니다
+trv.missing_home_reservation,Your island is still being prepared. Try again,dock travel result,Your island is still being prepared. Try again,내 섬을 준비하는 중이에요. 다시 시도하세요
+trv.party_reservation_failed,The drift isle server could not be reserved. Try again,dock travel result,The drift isle server could not be reserved. Try again,표류섬 서버를 잡지 못했어요. 다시 시도하세요
+trv.travel_failed,The voyage could not start. Try again,dock travel result,The voyage could not start. Try again,항해를 시작하지 못했어요. 다시 시도하세요
+trv.travel_unavailable,Travel is not available here,dock travel result,Travel is not available here,여기서는 이동할 수 없어요
+trv.travel_refused,The voyage was refused. Try again,dock travel result,The voyage was refused. Try again,항해가 거절됐어요. 다시 시도하세요

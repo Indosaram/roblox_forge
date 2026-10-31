@@ -3186,3 +3186,14 @@ tip_06_solo,original,agent:hephaestus/solo-guides,2026-10-30
 scr.arrival.together_solo,original,agent:hephaestus/solo-guides,2026-10-30
 scr.jobs.terms_solo,original,agent:hephaestus/solo-guides,2026-10-30
 ko_danger_solo,original,agent:hephaestus/solo-guides,2026-10-30
+trv.COMMAND_PENDING,original,agent:maho/travel,2026-10-31
+trv.teleport_failed,original,agent:maho/travel,2026-10-31
+trv.handoff_refused,original,agent:maho/travel,2026-10-31
+trv.missing_actor_facts,original,agent:maho/travel,2026-10-31
+trv.unconfigured_destination,original,agent:maho/travel,2026-10-31
+trv.unknown_target_role,original,agent:maho/travel,2026-10-31
+trv.missing_home_reservation,original,agent:maho/travel,2026-10-31
+trv.party_reservation_failed,original,agent:maho/travel,2026-10-31
+trv.travel_failed,original,agent:maho/travel,2026-10-31
+trv.travel_unavailable,original,agent:maho/travel,2026-10-31
+trv.travel_refused,original,agent:maho/travel,2026-10-31

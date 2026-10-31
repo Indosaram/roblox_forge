@@ -1864,6 +1864,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			tent.Position
 		)
 	end
+	-- Deferred voyage results (SurvivalFactory travelAfterCommand) use the dock result channel.
+	world.publishTravel = M.publishTravel
 	--- The sail point ("dock" or "rift") the actor stands at, or nil. Dock prompts count as docks.
 	world.sailPoint = function(actor: string): string?
 		for _, point in sailPoints do
