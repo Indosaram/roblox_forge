@@ -632,6 +632,24 @@ return {
 					end
 				end
 				assert(spinning >= 3, "layered swirl: " .. spinning .. " spinning layers")
+				-- Night2 (R20-3): a 14-20 stud glowing ring around a dark centre, not a narrow slit.
+				local span = math.max(host.Size.X, host.Size.Z)
+				assert(span >= 14 and span <= 20, "rift ring span " .. span)
+				local ring = host:FindFirstChild(RiftFx.RING.name)
+				assert(
+					ring and ring.Shape == roblox.Enum.ParticleEmitterShape.Disc and ring.ShapePartial >= 0.5,
+					"glowing ring emits from the outer annulus"
+				)
+				assert(ring.LightEmission == 1, "the ring glows")
+				local core: any = nil
+				for _, item in host:GetDescendants() do
+					if item.ClassName == "ParticleEmitter" and item.Name == "DarkCore" then
+						core = item
+					end
+				end
+				assert(core, "dark centre emitter")
+				assert(core.LightEmission == 0, "dark centre does not glow")
+				assert(core.Color.Keypoints[1].Value.R < 0.2, "dark centre colour")
 				-- Studio threw "NumberRange: invalid range" on a reversed RotSpeed (counter-spin layer):
 				-- lune swaps min/max silently, so the ranges RiftFx builds are pinned in order here.
 				for _, layer in RiftFx.LAYERS do

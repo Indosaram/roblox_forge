@@ -257,8 +257,10 @@ M.FOLK_SCALE = 1.35
 -- light reaches 24 studs, and 21 lamps at full range washed the dusk town into flat beige discs;
 -- the lead review still read 0.45 as pale ground discs, so the glow lives in the lantern/flame
 -- (bloom on a neon core, RoleWorld) and the PointLight only tints a few studs around it.
-M.LAMP_LIGHT = 0.35
-M.FIRE_LIGHT = 0.5
+-- Night2: the night fire light is now an 8-stud pool, so lamps and town fires get a larger share
+-- back (5.6 / 7.2 studs) and read as warm pools on the blue street, not dots.
+M.LAMP_LIGHT = 0.7
+M.FIRE_LIGHT = 0.9
 
 -- Trampled earth (terrain material only, the ground height never changes): narrow ragged dirt foot
 -- paths (3-4 studs, R12) instead of the old 10-46 stud bands that read as dark rectangles, and small

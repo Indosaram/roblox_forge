@@ -27,6 +27,13 @@ type RGB = { number }
 -- small saturated
 -- orange pools (range 9, Color follows the cycle) so warm light only sits around fires, torches
 -- and lamps.
+-- Night2 lane (v64 phone + Studio 800x360 at 01:00): the camp still washed out pale lilac-white
+-- (~3x the wild) and the town read teal. Studio bisection: with every light off the camp kept a
+-- pale disc, the low camp ground is terrain Sand (143,126,95 vs Ground 112,100,66), and +1.8
+-- exposure clipped it while -0.6 saturation bleached the fire pool pink-white. The night now
+-- runs exposure 1.7 with a lighter -0.2 desaturation (the warm pool stays orange, grass stays
+-- blue instead of teal), deeper blue ambients, brighter but shorter fires (2.6 / 8 studs), and
+-- Sand dims to SAND_NIGHT of its day colour at night (state.sand, set on the client terrain).
 -- stylua: ignore start
 -- L10 (R03-2/R03-3/R05-1): the day grade is a warm late-afternoon haze, muted olive-ochre rather
 -- than clean saturated green: warmer tint and sky shift, a little more contrast and haze.
@@ -35,12 +42,16 @@ local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, o
 	grade = { brightness = 0.03, contrast = 0.14, saturation = -0.18, tint = { 255, 237, 208 } },
 	density = 0.3, haze = 1.35, glare = 0.3, bloom = 0.08, sunRays = 0.04, starCount = 0,
 	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10, color = { 255, 150, 70 } } }
-local NIGHT: any = { brightness = 1.6, exposure = 1.8, ambient = { 75, 100, 215 }, outdoorAmbient = { 85, 118, 255 },
-	colorShiftTop = { 100, 128, 255 }, colorShiftBottom = { 30, 40, 80 }, decay = { 60, 76, 120 },
-	grade = { brightness = 0, contrast = 0.1, saturation = -0.6, tint = { 185, 205, 255 } },
+local NIGHT: any = { brightness = 1.6, exposure = 1.7, ambient = { 56, 68, 240 }, outdoorAmbient = { 62, 76, 255 },
+	colorShiftTop = { 82, 102, 255 }, colorShiftBottom = { 30, 38, 80 }, decay = { 60, 76, 120 },
+	grade = { brightness = 0, contrast = 0.1, saturation = -0.2, tint = { 205, 210, 255 } },
 	fog = { 100, 120, 170 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.05, sunRays = 0, starCount = 3000,
-	water = { 100, 92, 62 }, fire = { brightness = 2.2, range = 9, color = { 255, 100, 20 } } }
+	water = { 100, 92, 62 }, fire = { brightness = 2.6, range = 8, color = { 255, 120, 20 } } }
 -- stylua: ignore end
+-- Terrain Sand: the engine default (the onboarding camp pad and every beach without a biome look)
+-- and the share of its day colour kept at full night.
+M.SAND = table.freeze({ 143, 126, 95 })
+M.SAND_NIGHT = 0.67
 -- Sunrise/sunset push the warm grade further toward amber.
 local GOLDEN_TINT = { 255, 214, 172 }
 
@@ -85,6 +96,7 @@ function M.at(hours: number, fog: RGB, look: any?): any
 	local g = M.golden(hours) * d
 	local dayTint = if look then look.tint else DAY.grade.tint
 	local dayWater = if look then look.water else DAY.water
+	local daySand: RGB = if look and look.terrain and look.terrain.Sand then look.terrain.Sand else M.SAND
 	local tint = mix(mix(NIGHT.grade.tint, dayTint, d), GOLDEN_TINT, g * 0.6)
 	local function f(key: string): number
 		return lerp(NIGHT[key], DAY[key], d)
@@ -116,6 +128,7 @@ function M.at(hours: number, fog: RGB, look: any?): any
 			density = lerp(NIGHT.density, density, d), haze = lerp(NIGHT.haze, haze, d), glare = f("glare") },
 		bloom = f("bloom"), sunRays = f("sunRays"), starCount = math.floor(f("starCount") + 0.5),
 		water = mix(NIGHT.water, dayWater, d),
+		sand = mix(daySand, { daySand[1] * M.SAND_NIGHT, daySand[2] * M.SAND_NIGHT, daySand[3] * M.SAND_NIGHT }, n),
 		fire = { brightness = lerp(DAY.fire.brightness, NIGHT.fire.brightness, n),
 			range = lerp(DAY.fire.range, NIGHT.fire.range, n), color = mix(NIGHT.fire.color, DAY.fire.color, d) },
 	}
@@ -269,10 +282,18 @@ function M.ensure(lighting: Instance)
 	ensure(lighting, "Atmosphere", M.ATMOSPHERE).Offset = 0.12
 end
 
+local sandApplied: { [any]: string } = setmetatable({}, { __mode = "k" }) :: any
+
 function M.apply(lighting: any, state: any, weather: any, atmosphere: boolean, terrain: any?)
 	local dim = 1 - weather.dim
 	if terrain then
 		terrain.WaterColor = rgb(state.water)
+		-- The cycle steps every 0.25 s: recolour Sand only when the colour actually changes.
+		local key = table.concat(state.sand, ",")
+		if sandApplied[terrain] ~= key then
+			sandApplied[terrain] = key
+			terrain:SetMaterialColor(Enum.Material.Sand, rgb(state.sand))
+		end
 	end
 	lighting.ClockTime = state.clockTime
 	lighting.Brightness = state.brightness * dim

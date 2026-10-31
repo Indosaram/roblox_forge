@@ -120,7 +120,11 @@ return {
 		-- green to grey-blue on every role, since grass covers every island.
 		assert(grass[3] > grass[1] and grass[3] > grass[2], "night grass reads moon blue, not green")
 		assert(grass[2] - grass[3] <= 10, "night grass is not green: G - B = " .. grass[2] - grass[3])
-		assert(night.grade.saturation <= -0.4, "night grade desaturates")
+		-- Night2 (v64 phone, Studio 01:00): a -0.6 grade bleached the camp fire pool pink-white; the
+		-- grade only trims saturation now, so the fire pool keeps its warm hue on screen.
+		assert(night.grade.saturation < 0 and night.grade.saturation >= -0.3, "night grade trims, not bleaches")
+		local pool = onScreen(night, GRASS, true)
+		assert(pool[1] - pool[3] > grass[1] - grass[3] + 20, "the fire pool reads warmer than the moonlit grass")
 		assert(sand[3] >= sand[1], "night sand reads moon blue")
 		assert(night.exposure >= 1.25, "town night lifted: exposure " .. night.exposure)
 	end,
@@ -146,6 +150,24 @@ return {
 		assert(fire[1] == 255 and fire[3] <= 40 and saturation(fire) >= 0.85, "saturated orange fire at night")
 		local dayFire = assert(DayNight.at(12, FOG).fire.color, "day fire colour")
 		assert(saturation(dayFire) < saturation(fire), "day fire is the softer lamp colour")
+	end,
+	["night2: camp sand dims at night and the night exposure no longer clips the camp"] = function()
+		-- Studio bisection (all lights off): the pale lilac-white camp disc was terrain Sand under +1.8
+		-- exposure. Sand dims with the cycle; the exposure stays under the clipping level.
+		local day, night = DayNight.at(12, FOG), DayNight.at(1, FOG)
+		assert(night.exposure < 1.8, "night exposure under the camp clip: " .. night.exposure)
+		for i = 1, 3 do
+			assert(day.sand[i] == SkyCycle.SAND[i], "day sand keeps its colour")
+		end
+		assert(luminance(night.sand) <= 0.7 * luminance(day.sand), "night sand dims")
+		local previous = DayNight.at(16, FOG).sand
+		for step = 1, 40 do
+			local sand = DayNight.at(16 + step * 0.1, FOG).sand
+			for i = 1, 3 do
+				assert(math.abs(sand[i] - previous[i]) <= 6, "sand colour jumps")
+			end
+			previous = sand
+		end
 	end,
 	["dusk and dawn blend every lit value with no jump"] = function()
 		local fields = { "exposure", "brightness", "bloom" }
