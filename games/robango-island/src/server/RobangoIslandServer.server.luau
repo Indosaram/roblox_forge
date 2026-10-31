@@ -1,4 +1,7 @@
 --!strict
+-- Landscape at the place level too (the Rojo project sets it; this covers a place file whose
+-- StarterGui lost it), before any yield, so each new PlayerGui is created landscape.
+game:GetService("StarterGui").ScreenOrientation = Enum.ScreenOrientation.LandscapeSensor
 local Forge = game:GetService("ReplicatedStorage"):WaitForChild("Forge")
 local Shared = Forge.games["robango-island"].src.shared
 local Server = require(Forge.core.infra.genre.Server)

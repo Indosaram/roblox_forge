@@ -150,6 +150,8 @@ return {
 			MarketplaceService = {},
 			PolicyService = {},
 			TeleportService = {},
+			-- p134 v66: the server pins StarterGui.ScreenOrientation to landscape at boot.
+			StarterGui = {},
 			-- R20: the server reads the travel-screen channel (TravelScreen.ATTRIBUTE) from ReplicatedFirst.
 			ReplicatedFirst = {
 				WaitForChild = function(_, name)
@@ -209,7 +211,11 @@ return {
 				return { UnixTimestampMillis = 1000000 }
 			end,
 		}
-		bootEnv.Enum = { ProductPurchaseDecision = {}, SortDirection = { Ascending = "asc", Descending = "desc" } }
+		bootEnv.Enum = {
+			ProductPurchaseDecision = {},
+			SortDirection = { Ascending = "asc", Descending = "desc" },
+			ScreenOrientation = { LandscapeSensor = "LandscapeSensor" },
+		}
 		bootEnv.workspace = {
 			GetAttribute = function()
 				return nil

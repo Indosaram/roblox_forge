@@ -21,14 +21,49 @@ local player = Players.LocalPlayer
 -- p134 v50: onboarding ran portrait on a phone despite StarterGui LandscapeSensor; pin it here.
 -- p134 v64: the pin ran after the TravelScreen require and the phone stayed portrait on 3 cold
 -- starts, so it now runs before any other require or yield in this script.
+-- p134 v66: cold start 1 of 2 stayed portrait with no native 'setting orientation: 6' line. The
+-- Android shell holds SENSOR_PORTRAIT until its own game-loaded hook applies the place's
+-- orientation, and on that load the hook never ran. PlayerGui is created with StarterGui's
+-- LandscapeSensor, so assigning LandscapeSensor again is no change and nothing reaches the
+-- shell. So after load, while a touch viewport is still portrait, the pin kicks: a real change
+-- to LandscapeLeft, then back to LandscapeSensor, which sends the shell a fresh landscape request.
 local LANDSCAPE = Enum.ScreenOrientation.LandscapeSensor
+local KICK = Enum.ScreenOrientation.LandscapeLeft
+local KICK_SECONDS, WATCH_SECONDS, MAX_KICKS = 0.25, 2, 10
 local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+local kicking, kicks = false, 0
 playerGui.ScreenOrientation = LANDSCAPE
 playerGui:GetPropertyChangedSignal("ScreenOrientation"):Connect(function()
-	if playerGui.ScreenOrientation ~= LANDSCAPE then
+	local value = playerGui.ScreenOrientation
+	if value ~= LANDSCAPE and not (kicking and value == KICK) then
 		playerGui.ScreenOrientation = LANDSCAPE
 	end
 end)
+local function watchOrientation()
+	local camera = workspace.CurrentCamera
+	local size = camera and camera.ViewportSize
+	local touch = game:GetService("UserInputService").TouchEnabled
+	if size and touch and size.Y > size.X and not kicking and kicks < MAX_KICKS then
+		kicking, kicks = true, kicks + 1
+		playerGui.ScreenOrientation = KICK
+		task.delay(KICK_SECONDS, function()
+			kicking = false
+			playerGui.ScreenOrientation = LANDSCAPE
+		end)
+	end
+	if kicks < MAX_KICKS then
+		task.delay(WATCH_SECONDS, watchOrientation)
+	end
+end
+-- The first look is one watch period after load: the shell's own hook rotates within ~0.5 s.
+if game:IsLoaded() then
+	task.delay(WATCH_SECONDS, watchOrientation)
+else
+	game.Loaded:Once(function()
+		task.delay(WATCH_SECONDS, watchOrientation)
+	end)
+end
+-- end orientation pin
 local Flow = require(script.Parent:WaitForChild("TitleFlow"))
 local Travel = require(script.Parent:WaitForChild("TravelScreen"))
 

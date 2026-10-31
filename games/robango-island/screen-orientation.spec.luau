@@ -67,6 +67,19 @@ return {
 				end
 			end
 			local first = place:FindFirstChildOfClass("ReplicatedFirst")
+			local server = place:FindFirstChildOfClass("ServerScriptService")
+			local main = server and server:FindFirstChild("RobangoIslandServer", true)
+			assert(main and main:IsA("Script"), role .. ": the server script ships")
+			local serverSource: string = main.Source
+			local set = string.find(
+				serverSource,
+				'game:GetService("StarterGui").ScreenOrientation = Enum.ScreenOrientation.LandscapeSensor',
+				1,
+				true
+			)
+			assert(set, role .. ": the server sets StarterGui landscape")
+			local yields = string.find(serverSource, "WaitForChild(", 1, true)
+			assert(not yields or set < yields, role .. ": the server sets it before any yield")
 			local boot = first and first:FindFirstChild("RobangoBoot")
 			assert(boot and boot:IsA("LocalScript"), role .. ": the ReplicatedFirst boot script ships")
 			local source: string = boot.Source
@@ -87,14 +100,19 @@ return {
 			)
 		end
 	end,
-	["the boot pin runs and restores landscape after a change"] = function()
-		-- Run the pin block from the real boot script against a stand-in PlayerGui.
+	["the boot pin restores landscape and re-requests it when a cold start stays portrait"] = function()
+		-- p134 v66: PlayerGui starts at StarterGui's LandscapeSensor, so re-assigning it is no change
+		-- and the Android shell, left in SENSOR_PORTRAIT when its own load hook did not run, never
+		-- hears a landscape request. The pin must send a real orientation change after load while
+		-- a touch viewport is still portrait. Run the pin block from the real boot script against
+		-- stand-ins that, like the engine, fire the property signal only on a real change.
 		local source = fs.readFile(PACK .. "/src/first/RobangoBoot.client.luau")
 		local from = assert(string.find(source, "local LANDSCAPE =", 1, true))
-		local to = assert(string.find(source, "\nend)\n", from, true)) + 5
+		local to = assert(string.find(source, "local Flow = require(", from, true)) - 1
 		local listeners: { () -> () } = {}
-		local gui: any = {
-			ScreenOrientation = "Portrait",
+		local changes: { string } = {}
+		local state = { ScreenOrientation = "LandscapeSensor" }
+		local gui: any = setmetatable({
 			GetPropertyChangedSignal = function(_, name)
 				assert(name == "ScreenOrientation", name)
 				return {
@@ -103,21 +121,100 @@ return {
 					end,
 				}
 			end,
-		}
+		}, {
+			__index = state,
+			__newindex = function(_, key, value)
+				assert(key == "ScreenOrientation", key)
+				if state.ScreenOrientation ~= value then
+					state.ScreenOrientation = value
+					table.insert(changes, value)
+					for _, fn in table.clone(listeners) do
+						fn()
+					end
+				end
+			end,
+		})
 		local player = {
 			WaitForChild = function(_, name)
 				assert(name == "PlayerGui", name)
 				return gui
 			end,
 		}
-		local Enum = { ScreenOrientation = { LandscapeSensor = "LandscapeSensor", Portrait = "Portrait" } }
+		local now, timers = 0, {} :: { { at: number, fn: () -> () } }
+		local task = {
+			delay = function(seconds: number, fn: () -> ())
+				table.insert(timers, { at = now + seconds, fn = fn })
+			end,
+		}
+		local function advance(seconds: number)
+			local stop = now + seconds
+			while true do
+				table.sort(timers, function(a, b)
+					return a.at < b.at
+				end)
+				local nextTimer = timers[1]
+				if not nextTimer or nextTimer.at > stop then
+					break
+				end
+				table.remove(timers, 1)
+				now = nextTimer.at
+				nextTimer.fn()
+			end
+			now = stop
+		end
+		local viewport = { X = 1080, Y = 2400 }
+		local loaded: (() -> ())? = nil
+		local game = {
+			IsLoaded = function()
+				return false
+			end,
+			Loaded = {
+				Once = function(_, fn)
+					loaded = fn
+				end,
+			},
+			GetService = function(_, name)
+				assert(name == "UserInputService", name)
+				return { TouchEnabled = true }
+			end,
+		}
+		local Enum = {
+			ScreenOrientation = {
+				LandscapeSensor = "LandscapeSensor",
+				LandscapeLeft = "LandscapeLeft",
+				Portrait = "Portrait",
+			},
+		}
 		require("@lune/luau").load(string.sub(source, from, to), {
-			environment = { player = player, Enum = Enum },
+			environment = {
+				player = player,
+				Enum = Enum,
+				game = game,
+				task = task,
+				workspace = { CurrentCamera = { ViewportSize = viewport } },
+			},
 		})()
 		assert(gui.ScreenOrientation == "LandscapeSensor", "pinned on join")
 		assert(#listeners == 1, "watches the property")
 		gui.ScreenOrientation = "Portrait"
-		listeners[1]()
 		assert(gui.ScreenOrientation == "LandscapeSensor", "a portrait change is put back")
+		table.clear(changes)
+		assert(loaded, "waits for game.Loaded");
+		(loaded :: () -> ())()
+		advance(5)
+		assert(#changes > 0, "a portrait viewport after load sends a real orientation change to the shell")
+		assert(gui.ScreenOrientation == "LandscapeSensor", "ends on LandscapeSensor")
+		for _, value in changes do
+			assert(value ~= "Portrait", "never requests portrait")
+		end
+		-- Once the shell has rotated, the pin stays quiet.
+		viewport.X, viewport.Y = 2400, 1080
+		table.clear(changes)
+		advance(30)
+		assert(#changes == 0, "no kick while the viewport is landscape")
+		-- Bounded: a device that cannot rotate is not kicked forever.
+		viewport.X, viewport.Y = 1080, 2400
+		advance(600)
+		assert(#changes <= 20, "kicks are capped, got " .. #changes)
 	end,
 }
