@@ -24921,6 +24921,21 @@ layouts:
       - {id: "opening.jetty", position: {x: 0, y: 2, z: -72}}
     resourceNodes:
       -
+        # p134 C1 fix 1: the phone run's first craft took 22 min, the bone heap sat 30 studs off the
+        # crash site with nothing pointing at it. A bone pile among the wreck, beside the stakes and the
+        # fiber, puts the knife's bone a few steps from the last stake (no gate, bare-handed; level is
+        # bone-profile's lowest material level, not a character requirement).
+        id: "rw.onboarding.crash-bones"
+        item: "bone"
+        position:
+          x: 2
+          y: 2
+          z: 60
+        stock: 6
+        level: 10
+        yield: 1
+        respawnSeconds: 60
+      -
         # C1 opening: the bone heap is the first gather, bare-handed, 19 studs from spawn.
         id: "rw.onboarding.carcass"
         item: "bone"

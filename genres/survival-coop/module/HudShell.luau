@@ -1108,7 +1108,8 @@ end
 function M.bagSlot(cell: number, textSize: number, count: string): { icon: Rect, badge: Rect }
 	local iconSize = math.floor(cell * 0.74)
 	local height = math.min(textSize + 4, math.floor(cell * 0.4))
-	-- BuilderSans digits are ~0.55 em wide; 2 px padding each side.
+	-- BuilderSans digits are ~0.55 em wide; 2 px padding each side. The badge label never wraps
+	-- (skinSheet): a wrapped "15" showed as "1" (p134 C1).
 	local digit = math.ceil(textSize * 0.55)
 	local width = math.min(cell - 4, math.max(height, #count * digit + 4))
 	return {
@@ -1891,7 +1892,9 @@ function M.skinSheet(frame: any, options: SkinOptions)
 					item.TextXAlignment = Enum.TextXAlignment.Left
 				end
 				if item.Name == "Quantity" then
-					-- Inventory cell count: an ink pill bottom-right of the cell, bone digits.
+					-- Inventory cell count: an ink pill bottom-right of the cell, bone digits. One line: a
+					-- wrapped "15" showed only "1" in the badge (p134 C1 bag2: 12 + 15 fiber read "1" and "1").
+					item.TextWrapped = false
 					item.BackgroundColor3, item.BackgroundTransparency = rgb(C.header), 0.05
 					item.TextColor3 = rgb(C.headerText)
 				elseif item.Name == "RowCount" and item.TextColor3 == Color3.fromRGB(255, 155, 132) then

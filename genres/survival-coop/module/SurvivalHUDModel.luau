@@ -202,6 +202,7 @@ function M.new(actor: string, newId: () -> string): any
 				and packet.snapshots.survivalExtensions.contracts
 			model.snapshot.recipeMarks = packet.snapshots.survivalExtensions
 				and packet.snapshots.survivalExtensions["recipe-marks"]
+			model.snapshot.extensionPin = M.extensionPin(packet.snapshots.survivalExtensions)
 			local shared = packet.snapshots.survivalSettlement
 			if shared then
 				model.snapshot.settlement, model.snapshot.warehouse = shared.settlement, shared.warehouse
@@ -513,6 +514,36 @@ function M.axePin(bag: any, recipes: { any }): string
 		return "starter-axe"
 	end
 	return "stone-axe"
+end
+
+--- Recipe a pack extension asks the craft sheet to preselect: the first extension snapshot (by id)
+--- publishing a string `craftPin` (Robango's opening tracker: the Bone Knife while it asks for one).
+function M.extensionPin(extensions: any): string?
+	if type(extensions) ~= "table" then
+		return nil
+	end
+	local ids = {}
+	for id, view in extensions do
+		if type(id) == "string" and type(view) == "table" and type(view.craftPin) == "string" then
+			table.insert(ids, id)
+		end
+	end
+	table.sort(ids)
+	return if ids[1] then extensions[ids[1]].craftPin else nil
+end
+
+--- The craft sheet's pinned (preselected) recipe for a snapshot: an extension's pin wins (p134 C1:
+--- the sheet opened on the Flint Hatchet while the opening tracker asked for the Bone Knife), then
+--- the tutorial's axe step pin; nil pins nothing.
+function M.craftPin(snapshot: any, bag: any, recipes: { any }): string?
+	if type(snapshot) ~= "table" then
+		return nil
+	end
+	if type(snapshot.extensionPin) == "string" then
+		return snapshot.extensionPin
+	end
+	local tutorial = snapshot.contracts and snapshot.contracts.tutorial
+	return if tutorial and tutorial.step == "craft-stone-axe" then M.axePin(bag, recipes) else nil
 end
 
 function M.recipeOrder(

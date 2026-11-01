@@ -1792,10 +1792,7 @@ function M.start(options: Options)
 				end
 			end
 		elseif section == "craft" then
-			local tutorial = model.snapshot.contracts and model.snapshot.contracts.tutorial
-			local pin = if tutorial and tutorial.step == "craft-stone-axe"
-				then Model.axePin(bag, options.content.recipes)
-				else nil
+			local pin = Model.craftPin(model.snapshot, bag, options.content.recipes)
 			local activeJobs = Model.jobs(model.snapshot, model.actor)
 			local jobs = {}
 			for _, entry in activeJobs do
@@ -2369,6 +2366,10 @@ function M.start(options: Options)
 	end
 	local function open(key: string)
 		section = if section == key then "" else key
+		if section == "craft" then
+			-- Opening the sheet selects its first row: the pinned recipe (Model.craftPin) when any.
+			recipeId = nil
+		end
 		sheet.frame.Visible = section ~= ""
 		local title = sheet.frame:WaitForChild("Header"):WaitForChild("Title") :: TextLabel
 		title.Text = t(key)

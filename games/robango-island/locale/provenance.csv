@@ -2875,6 +2875,7 @@ item_bone_knife,original,agent:omo/c1,2026-10-27
 recipe_bone_knife,original,agent:omo/c1,2026-10-27
 node_onboarding_carcass,original,agent:omo/c1,2026-10-27
 node_onboarding_flint,original,agent:omo/c1,2026-10-27
+node_onboarding_crash_bones,original,agent:hephaestus/c1-fix1,2026-11-01
 opening.skip,original,agent:omo/c1,2026-10-27
 opening.cold.1,original,agent:omo/c1,2026-10-27
 opening.cold.2,original,agent:omo/c1,2026-10-27
@@ -2929,6 +2930,9 @@ opening.prompt.beacon,original,agent:omo/c1,2026-10-27
 opening.prompt.boat,original,agent:omo/c1,2026-10-27
 opening.way.show,original,agent:maho/c1-arrow,2026-11-01
 opening.way.meters,original,agent:maho/c1-arrow,2026-11-01
+opening.refusal.already_pulled,original,agent:hephaestus/c1-fix1,2026-11-01
+opening.refusal.not_now,original,agent:hephaestus/c1-fix1,2026-11-01
+opening.refusal.too_far,original,agent:hephaestus/c1-fix1,2026-11-01
 world.population,original,agent:hephaestus/C5b,2026-10-27
 exp_route_population,original,agent:hephaestus/C5b,2026-10-27
 rsc.title,original,agent:hephaestus/C6,2026-10-27

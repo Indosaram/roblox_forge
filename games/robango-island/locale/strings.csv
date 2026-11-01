@@ -2875,6 +2875,7 @@ item_bone_knife,Bone Knife,entity bone-knife,Bone Knife,뼈칼
 recipe_bone_knife,Bone Knife recipe,entity bone-knife-recipe,Bone Knife recipe,뼈칼 제작법
 node_onboarding_carcass,Sea-beast Bone Heap,entity rw-onboarding-carcass,Sea-beast Bone Heap,바다짐승 뼈무덤
 node_onboarding_flint,Flint Scree,entity rw-onboarding-extra-1,Flint Scree,부싯돌 너덜
+node_onboarding_crash_bones,Crash-site Bone Pile,entity rw-onboarding-crash-bones,Crash-site Bone Pile,추락 현장 뼈 더미
 opening.skip,Skip,opening beat 0 skip button,Skip,건너뛰기
 opening.cold.1,Eleventh year after the Tidal Rift. Route Guild research balloon Skylark.,opening beat 0 caption,Eleventh year after the Tidal Rift. Route Guild research balloon Skylark.,조수 균열 이후 열한 번째 해. 항로단 연구 기구 종다리호.
 opening.cold.2,...the wind turned.,opening beat 0 caption,...the wind turned.,...바람이 바뀌었다.
@@ -2886,14 +2887,14 @@ opening.tumble.name,Tumble (your companion),opening beats 1-7 world label once f
 opening.tumble.stake,Rope stake,opening beat 1 world label,Rope stake,밧줄 말뚝
 opening.tumble.stakes,□ Pull the stakes pinning Tumble (%d/3),opening beat 1 tracker line,□ Pull the stakes pinning Tumble (%d/3),□ 텀블을 묶은 밧줄 말뚝 뽑기 (%d/3)
 opening.tumble.dodges,□ Dodge the charge (%d/2),opening beat 1 tracker line,□ Dodge the charge (%d/2),□ 돌진 피하기 (%d/2)
-opening.tumble.charge,It's charging! Press Dodge,opening beat 1 card,It's charging! Press Dodge,돌진이 온다! 피하기를 누르세요
+opening.tumble.charge,It's charging! Press Dodge before the red ring fills,opening beat 1 card,It's charging! Press Dodge before the red ring fills,돌진이 온다! 빨간 원이 다 차기 전에 피하기
 opening.tumble.retry,Again! Dodge when the red mark shows,opening beat 1 card after a hit,Again! Dodge when the red mark shows,한 번 더! 빨간 표시가 보이면 피하기
 opening.tumble.snort,(snort),opening beat 1 speech bubble,(snort),(콧김)
 opening.mirror.title,Mirror on the ridge,opening beat 2 tracker title,Mirror on the ridge,등성이의 거울 신호
 opening.mirror.signal,"Flash—flash-flash. If you're alive: flint by the bone heap on the beach. Make a blade, then climb the ridge. — Marit Ossel, Survey Society",opening beat 2 signal card,"Flash—flash-flash. If you're alive: flint by the bone heap on the beach. Make a blade, then climb the ridge. — Marit Ossel, Survey Society","깜빡—깜빡깜빡. 「살아 있으면 해변 뼈무덤 옆 부싯돌. 칼부터 만들고 등성이로.」 — 마리트 오셀, 측량회"
-opening.mirror.heap,□ Check the bone heap on the beach,opening beat 2 tracker line,□ Check the bone heap on the beach,□ 해변 뼈무덤 살펴보기
+opening.mirror.heap,□ Check the bone pile by the wreck,opening beat 2 tracker line,□ Check the bone pile by the wreck,□ 추락 현장 뼈 더미 살펴보기
 opening.knife.title,A first tool,opening beat 3 tracker title,A first tool,첫 도구
-opening.knife.bone,□ 1 bone from the bone heap,opening beat 3 tracker line,□ 1 bone from the bone heap,□ 뼈무덤에서 뼈 1개
+opening.knife.bone,□ 1 bone from the glowing pile by the wreck,opening beat 3 tracker line,□ 1 bone from the glowing pile by the wreck,□ 추락 현장의 빛나는 뼈 더미에서 뼈 1개
 opening.knife.fiber,□ 3 fiber,opening beat 3 tracker line,□ 3 fiber,□ 섬유 3개
 opening.knife.craft,□ Craft a Bone Knife,opening beat 3 tracker line,□ Craft a Bone Knife,□ 뼈칼 만들기
 opening.knife.banner,First tool: Bone Knife,opening beat 3 first-craft banner,First tool: Bone Knife,첫 도구: 뼈칼
@@ -2929,6 +2930,9 @@ opening.prompt.beacon,Mirror beacon,opening beat 7 beacon label,Mirror beacon,�
 opening.prompt.boat,Gannet,opening beat 7 boat label,Gannet,가넷호
 opening.way.show,Show the way,opening waypoint walk-to button,Show the way,길 안내
 opening.way.meters,%d m,opening waypoint distance under the arrow,%d m,%dm
+opening.refusal.already_pulled,That stake is already out. Find a glowing one,opening beat 1 refused pull toast,That stake is already out. Find a glowing one,이미 뽑은 말뚝이에요. 빛나는 말뚝을 찾으세요
+opening.refusal.not_now,Not yet. Dodge the charge first,opening beat 1 refused pull toast,Not yet. Dodge the charge first,아직이에요. 먼저 돌진을 피하세요
+opening.refusal.too_far,Too far. Step closer to the stake,opening beat 1 refused pull toast,Too far. Step closer to the stake,너무 멀어요. 말뚝에 더 다가가세요
 world.population,"%s · %d here",world prompt,"%s · %d here","%s · 지금 %d명"
 exp_route_population,%d here now,expedition lane,%d here now,지금 %d명
 rsc.title,You're down,down screen title,You're down,쓰러졌다

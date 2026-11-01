@@ -455,6 +455,132 @@ function M.factory(ctx: any): any
 
 	local glintAt: number? = nil
 	local hintUntil = 0
+	-- Dead end 1 (p134 C1): stake staging from Scene.stakeMarks on the local copies of the stake parts.
+	type StakeLook = { fallen: boolean, glow: Highlight?, light: PointLight? }
+	local stakeLook: { [number]: StakeLook } = {}
+	local function stageStakes()
+		for index, stakeMark in Scene.stakeMarks(view) do
+			local stake = opening("OpeningStake" .. index)
+			if not stake or not stake:IsA("BasePart") then
+				continue
+			end
+			local look: StakeLook = stakeLook[index] or { fallen = false, glow = nil, light = nil }
+			stakeLook[index] = look
+			local prompt = stake:FindFirstChild("ForgeOpeningStake")
+			if prompt and prompt:IsA("ProximityPrompt") then
+				prompt.Enabled = stakeMark.prompt
+			end
+			if stakeMark.fallen and not look.fallen then
+				-- Pulled: the peg lies on the sand and its guy line is cut.
+				look.fallen = true
+				local ground = stake.Position - Vector3.new(0, stake.Size.Y / 2, 0)
+				local down = CFrame.new(ground + Vector3.new(0, 0.35, 0)) * CFrame.Angles(0, 0, math.rad(84))
+				local visual = stake:FindFirstChild("ForgeMeshVisual")
+				if visual and visual:IsA("Model") then
+					visual:PivotTo(down * CFrame.new(-stake.Size.Y / 2, 0, 0))
+				end
+				for _, piece in stake:GetChildren() do
+					if piece:IsA("BasePart") and (piece.Name == "GuyLine" or piece.Name == "Cap") then
+						piece.Transparency = 1
+					elseif piece:IsA("BasePart") and piece.Name == "Lashing" then
+						piece.CFrame = down
+					end
+				end
+				stake.CFrame = down
+			end
+			if stakeMark.glow and not look.glow then
+				-- Still to pull: a warm outline over terrain and a small light, so it reads as the
+				-- stake to pull and not a tent guy-line post, day or night.
+				local glow = Instance.new("Highlight")
+				glow.Name, glow.FillColor, glow.OutlineColor = "OpeningStakeGlow", P.ochre, P.ochre
+				glow.FillTransparency, glow.OutlineTransparency = 0.55, 0
+				glow.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				glow.Adornee = stake:FindFirstChild("ForgeMeshVisual") or stake
+				glow.Parent = stake
+				local light = Instance.new("PointLight")
+				light.Name, light.Color, light.Range, light.Brightness = "OpeningStakeLight", P.ochre, 10, 1.5
+				light.Parent = stake
+				look.glow, look.light = glow, light
+			elseif not stakeMark.glow and look.glow then
+				(look.glow :: Highlight):Destroy()
+				if look.light then
+					look.light:Destroy()
+				end
+				look.glow, look.light = nil, nil
+			end
+			local lit = look.glow
+			if lit then
+				lit.FillTransparency = 0.45 + 0.25 * math.sin(os.clock() * 4)
+			end
+		end
+	end
+	-- The node the tracker points at (crash-site bone pile, fiber, flint) carries a soft outline.
+	local guide: Highlight? = nil
+	local function stageGuide()
+		local id = Scene.guideNode(view)
+		local target: Instance? = nil
+		if id then
+			for _, part in game:GetService("CollectionService"):GetTagged("ForgeSurvivalNode") do
+				target = if part:GetAttribute("ForgeNodeId") == id then part else target
+			end
+		end
+		if guide and (target == nil or guide.Parent ~= target) then
+			guide:Destroy()
+			guide = nil
+		end
+		if target and not guide then
+			local created = Instance.new("Highlight")
+			created.Name, created.FillColor, created.OutlineColor = "OpeningGuide", P.teal, P.ochre
+			created.FillTransparency, created.DepthMode = 0.7, Enum.HighlightDepthMode.AlwaysOnTop
+			created.Parent = target
+			guide = created
+		end
+	end
+	-- Beat 1 telegraph: a red ground ring under the player from TELEGRAPH_LEAD_MILLIS before each
+	-- charge to the end of its dodge grace, filling toward the strike (p134 C1: never seen on screen).
+	local ringPart: BasePart? = nil
+	local function stageRing(now: number, root: BasePart?)
+		local charge = if view and view.step == "dodge" then view.charge else nil
+		local shown, fill = Scene.telegraph(charge, now)
+		if not shown or not root then
+			if ringPart then
+				ringPart:Destroy()
+				ringPart = nil
+			end
+			return
+		end
+		local ringNow = ringPart
+		if not ringNow then
+			local created = Instance.new("Part")
+			created.Name, created.Shape, created.Anchored = "OpeningTelegraph", Enum.PartType.Cylinder, true
+			created.CanCollide, created.CanQuery, created.CanTouch, created.CastShadow = false, false, false, false
+			created.Material, created.Color = Enum.Material.Neon, P.coral
+			created.Parent = stage
+			ringNow = created
+			ringPart = created
+		end
+		local disc = ringNow :: BasePart
+		local floor = groundY(root.Position) or (root.Position.Y - 3)
+		local across = 9 - 3 * fill
+		disc.Size = Vector3.new(0.2, across, across)
+		disc.Transparency = 0.5 - 0.35 * fill
+		disc.CFrame = CFrame.new(root.Position.X, floor + 0.15, root.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	end
+	-- Refused prompts (OpeningDirector REFUSAL_ATTRIBUTE) toast on the coach card, KO or EN.
+	local function refusalToast()
+		local raw = player:GetAttribute("ForgeOpeningRefusal")
+		local reason = if type(raw) == "string" then string.match(raw, "^([%u_]+)#") else nil
+		if not reason then
+			return
+		end
+		showCard("notice", text(Scene.refusalKey(reason)))
+		task.delay(3, function()
+			if cardKind == "notice" and card.Text == text(Scene.refusalKey(reason)) then
+				showCard(nil)
+			end
+		end)
+	end
+	table.insert(connections, player:GetAttributeChangedSignal("ForgeOpeningRefusal"):Connect(refusalToast))
 	local function frame()
 		local now = serverNow()
 		local active = view ~= nil and view.active == true
@@ -470,6 +596,9 @@ function M.factory(ctx: any): any
 		if genre and genre:IsA("GuiObject") then
 			genre.Visible = title == nil
 		end
+		stageStakes()
+		stageGuide()
+		stageRing(now, rootPart())
 		if not active then
 			way.step(nil, nil)
 			trackerTap.Visible, wayButton.Visible = false, false
@@ -530,7 +659,9 @@ function M.factory(ctx: any): any
 				HudShell.pebble(dodge, true, true)
 				ring.Thickness = 3 + math.abs(math.sin(os.clock() * 6)) * 3
 			end
-			showCard("coach", text(if view.hit then "opening.tumble.retry" else "opening.tumble.charge"))
+			if cardKind ~= "notice" then
+				showCard("coach", text(if view.hit then "opening.tumble.retry" else "opening.tumble.charge"))
+			end
 		else
 			dodge.Visible = false
 			if boar then

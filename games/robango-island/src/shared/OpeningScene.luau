@@ -75,6 +75,22 @@ M.STAKES = 3
 -- zoom. D2b (R04) never saw the boar in 8 dodge-beat frames: the run started at the lane anchor,
 -- ~33 studs off, at the anchor's y=2 (under the relief terrain); the client now grounds it.
 M.CHARGE_REACH = 14
+-- C1 fix 1 (p134 C1 phone run: "no red telegraph was ever caught on screen"): a red ground ring
+-- under the player shows this long before each charge starts and stays until the dodge grace ends.
+M.TELEGRAPH_LEAD_MILLIS = 1500
+
+--- Red ground-ring telegraph for `charge` at server time `now` (ms): shown, and its fill 0..1
+--- (0 when it appears, 1 at the strike).
+function M.telegraph(charge: any, now: number): (boolean, number)
+	if type(charge) ~= "table" then
+		return false, 0
+	end
+	local from = charge.startAt - M.TELEGRAPH_LEAD_MILLIS
+	if now < from or now > charge.strikeAt + M.GRACE_MILLIS then
+		return false, 0
+	end
+	return true, math.clamp((now - from) / math.max(1, charge.strikeAt - from), 0, 1)
+end
 
 --- Flat (x, z) start of a boar run from the lane anchor toward the player at (px, pz).
 function M.chargeFrom(lx: number, lz: number, px: number, pz: number): (number, number)
@@ -362,10 +378,65 @@ function M.tumbleLabel(view: any): string?
 	return if view.freed then "opening.tumble.name" else "opening.tumble.label"
 end
 
+--- Per-stake staging for a view (C1 fix 1, dead end 1): the client applies it to its local copy of
+--- the shared stake parts. A stake's prompt is on only while `pull` would accept it (the nearest
+--- enabled prompt is never a stake that refuses), a pulled stake lies fallen with its rope cut, and
+--- every stake that can be pulled now glows so it is not mistaken for a tent guy-line post.
+function M.stakeMarks(view: any): { { prompt: boolean, fallen: boolean, glow: boolean } }
+	local marks = {}
+	if type(view) ~= "table" or view.active ~= true then
+		return marks
+	end
+	local pulled = view.pulled or {}
+	local pulling = view.step == "tumble" or (view.step == "dodge" and count(pulled) < 2)
+	for index = 1, M.STAKES do
+		local out = pulled[index] == true
+		marks[index] = { prompt = not out and pulling, fallen = out, glow = not out and pulling }
+	end
+	return marks
+end
+
+-- Refusal reasons a stake or beacon prompt can surface as a toast (KO and EN: opening.refusal.*).
+M.REFUSALS = table.freeze({ "ALREADY_PULLED", "NOT_NOW", "TOO_FAR" })
+
+--- Pack string key of a prompt refusal toast.
+function M.refusalKey(reason: string): string
+	return "opening.refusal." .. string.lower(reason)
+end
+
+-- Gather node the tracker's current step points at (the client marks it with a glow).
+M.BONE_NODE = "rw.onboarding.crash-bones"
+local GUIDE_NODES: { [string]: string } = {
+	mirror = M.BONE_NODE,
+	bone = M.BONE_NODE,
+	fiber = "rw.onboarding.fiber",
+	flint = "rw.onboarding.extra-1",
+}
+function M.guideNode(view: any): string?
+	if type(view) ~= "table" or view.active ~= true then
+		return nil
+	end
+	return GUIDE_NODES[view.step]
+end
+
+--- The recipe the craft sheet preselects for a view: the one the opening tracker is asking for.
+function M.craftPin(view: any): string?
+	if type(view) ~= "table" or view.active ~= true then
+		return nil
+	end
+	local step = view.step
+	if step == "bone" or step == "fiber" or step == "bone-knife" then
+		return "bone-knife"
+	elseif step == "flint" or step == "hatchet" then
+		return "stone-axe"
+	end
+	return nil
+end
+
 --- The per-player view the client stages (published as JSON on the Player).
 function M.view(state: State, facts: Facts): any
 	local step = M.current(state)
-	return {
+	local view = {
 		v = 1,
 		active = step ~= nil,
 		step = if step then step.id else nil,
@@ -383,6 +454,9 @@ function M.view(state: State, facts: Facts): any
 		flint = math.min(facts.items.flint or 0, 2),
 		wood = math.min(facts.items.wood or 0, 7),
 	}
+	-- The craft sheet preselects the recipe the tracker asks for (SurvivalHUDModel.extensionPin).
+	view.craftPin = M.craftPin(view)
+	return view
 end
 
 --- Waypoint target (layout anchor or resource node id) of the view's current step, or nil.

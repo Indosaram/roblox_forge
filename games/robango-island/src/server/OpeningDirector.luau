@@ -13,6 +13,8 @@ local Scene = require(Forge.games["robango-island"].src.shared.OpeningScene)
 local M = {}
 
 M.SET_PIECE_TAG = "ForgeSetPiece"
+-- Player attribute "<REASON>#<n>": the latest refused opening prompt (the client toasts it).
+M.REFUSAL_ATTRIBUTE = "ForgeOpeningRefusal"
 M.NEAR_FORD, M.NEAR_MARIT = 30, 20
 -- opening.mirror row: the pane centre sits 3.9 studs over the tripod's ground pivot (L5 ROWS).
 M.MIRROR_PANE = 3.9
@@ -239,6 +241,9 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 	local dirty: { [string]: boolean } = {}
 	local windbreak: { [string]: boolean } = {}
 	local facts: { [string]: Scene.Facts } = {}
+	local refusals: { [string]: string } = {}
+	local refusalCount = 0
+	local syncStakes: () -> () = function() end
 	local ports: Ports? = nil
 	local api: any = { folder = folder, stakes = stakes, beacon = beacon, boat = boat, mirror = mirror }
 
@@ -346,10 +351,13 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 				advance(actor, now)
 			end
 		end
+		syncStakes()
 	end
 	function api.leave(actor: string)
 		flush(actor)
 		states[actor], facts[actor], windbreak[actor], dirty[actor] = nil, nil, nil, nil
+		refusals[actor] = nil
+		syncStakes()
 	end
 	function api.state(actor: string): Scene.State?
 		return states[actor]
@@ -382,30 +390,63 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		end
 		return ok, if ok then nil else reason
 	end
-	local function onPrompt(target: BasePart, action: (string, Scene.State, number) -> boolean)
+	local function onPrompt(target: BasePart, action: (string, Scene.State, number) -> (boolean, string?))
 		local value = target:FindFirstChildOfClass("ProximityPrompt") :: ProximityPrompt
 		value.Triggered:Connect(function(player: Player)
 			local actor = tostring(player.UserId)
 			local p, state = ports, states[actor]
-			if not p or not state or not p.near(actor, target) then
+			if not p or not state or Scene.finished(state) then
 				return
 			end
 			local now = nowMillis()
-			if action(actor, state, now) then
+			local ok: boolean, reason: string? = false, "TOO_FAR"
+			if p.near(actor, target) then
+				ok, reason = action(actor, state, now)
+			end
+			if ok then
 				dirty[actor] = true
 				advance(actor, now)
+				syncStakes()
+				return
 			end
+			-- p134 C1 dead end 1: a refused pull used to do nothing on screen. The client toasts it
+			-- (opening.refusal.*, KO and EN) from this attribute; the counter makes repeats fire.
+			refusalCount += 1
+			local why = if reason and table.find(Scene.REFUSALS, reason) then reason else "NOT_NOW"
+			refusals[actor] = why
+			pcall(function()
+				player:SetAttribute(M.REFUSAL_ATTRIBUTE, why .. "#" .. refusalCount)
+			end)
 		end)
 	end
+	--- Latest prompt refusal reason surfaced to `actor` (nil when none).
+	function api.refusal(actor: string): string?
+		return refusals[actor]
+	end
+	local stakePrompts: { ProximityPrompt } = {}
 	for index, stake in stakes do
-		prompt(stake, "ForgeOpeningStake", "opening.prompt.pull", "opening.tumble.stake", 1.2)
+		stakePrompts[index] = prompt(stake, "ForgeOpeningStake", "opening.prompt.pull", "opening.tumble.stake", 1.2)
 		onPrompt(stake, function(_, state, now)
-			return (Scene.pull(state, index, now))
+			return Scene.pull(state, index, now)
 		end)
 	end
+	-- A stake's server prompt is on only while some staged player can pull it now (a solo server: that
+	-- player). A pulled stake no longer wins the action button over the next one; each client also
+	-- applies its own Scene.stakeMarks locally (fallen visual, glow, its own prompt state).
+	syncStakes = function()
+		for index, value in stakePrompts do
+			local pullable = false
+			for actor, state in states do
+				local marks = Scene.stakeMarks(Scene.view(state, facts[actor] or { items = {} } :: any))
+				pullable = pullable or (marks[index] ~= nil and marks[index].prompt)
+			end
+			value.Enabled = pullable
+		end
+	end
+	syncStakes()
 	prompt(pole, "ForgeOpeningBeacon", "opening.prompt.light", "opening.prompt.beacon", 2)
 	onPrompt(pole, function(_, state, now)
-		return Scene.lightBeacon(state, now)
+		return Scene.lightBeacon(state, now), "NOT_NOW"
 	end)
 	-- Tapping the boat opens the client's boarding card; the card's Board sends the intent.
 	prompt(hull, "ForgeOpeningBoard", "opening.beacon.yes", "opening.prompt.boat", 0)
