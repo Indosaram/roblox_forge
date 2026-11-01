@@ -3167,6 +3167,7 @@ hud.build_group_storage,Storage,genre text hud,Storage,보관
 hud.build_group_station,Stations,genre text hud,Stations,제작 시설
 hud.build_group_farm,Farm,genre text hud,Farm,농장
 hud.build_group_deco,Deco,genre text hud,Deco,장식
+hud.build_from_bag,"Bag covers %d: moved to camp storage on reserve",genre text hud build card line,"Bag covers %d: moved to camp storage on reserve","가방에서 %d개 사용: 예약 때 창고로 옮겨요"
 fct.farm_pick_seed,Seed: %s,genre text fct,Seed: %s,씨앗: %s
 fct.farm_stage_seed,Seeded,genre text fct,Seeded,씨앗
 fct.farm_stage_sprout,Sprouting,genre text fct,Sprouting,새싹

@@ -221,7 +221,7 @@ return {
 		local layout = world.layout
 		local plot
 		for _, anchor in layout.anchors do
-			plot = if anchor.id == "station.campfire.t1" then anchor.position else plot
+			plot = if anchor.id == "opening.camp-plot" then anchor.position else plot
 		end
 		local origin = world.roleSource.tribe.origin
 		assert(origin.x == plot.x and origin.z == plot.z, "camp grid starts at the camp plot anchor")

@@ -206,9 +206,11 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	root:SetAttribute("ForgeWorldSeed", seed)
 	-- C1: the camp plot grid starts at the ridge camp plot anchor (opening-script.md section 1). Set
 	-- before the root replicates: the client reads it once, right after ForgeRoleWorld arrives.
+	-- p134 C1 dead end 3: the grid used to start at station.campfire.t1 (-48, -4), 50 studs from the
+	-- ridge camp the opening sends the player to, so every campfire there was OUT_OF_BOUNDS.
 	local campPlot = { x = -32, z = -16 }
 	for _, anchor in layout.anchors do
-		campPlot = if anchor.id == "station.campfire.t1" then anchor.position else campPlot
+		campPlot = if anchor.id == "opening.camp-plot" then anchor.position else campPlot
 	end
 	if layoutId == "rw.onboarding" then
 		root:SetAttribute("ForgeCampOrigin", Vector3.new(campPlot.x, 4, campPlot.z))
@@ -1921,7 +1923,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	world.roleSource.tribe = table.clone(source.tribe)
 	if layoutId == "rw.onboarding" then
 		-- The live island is elevated; the preview's depot target is below its terrain.
-		world.roleSource.tribe.warehousePosition = { x = -16, y = 5, z = -4 }
+		-- p134 C1: the camp warehouse crate stands at the ridge camp beside Marit, off the camp grid.
+		world.roleSource.tribe.warehousePosition = { x = -8, y = 5, z = -48 }
 		world.roleSource.tribe.origin = { x = campPlot.x, y = 4, z = campPlot.z }
 		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
 		local Opening = require("./OpeningDirector")
@@ -1954,6 +1957,20 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 		WorldText.bind(prompt, "warehouse_open", "warehouse")
 		prompt.MaxActivationDistance, prompt.RequiresLineOfSight, prompt.Parent = 8, false, depot
 		prompt:SetAttribute("ForgeWarehouse", true)
+		-- p134 C1: Marit stands at the ridge camp (the opening's 'take Marit's request' step had no one to
+		-- talk to). Her prompt talks first; the dialogue's service choice opens the contracts board.
+		for _, anchor in layout.anchors do
+			if anchor.id == "npc.marit" then
+				local marit = part("npc.marit", interactionPosition(anchor.position, 4), { x = 2, y = 4, z = 2 })
+				marit:SetAttribute("ForgeHarborFacility", "npc.marit")
+				world.anchorParts["npc.marit"] = marit
+				survivorFigure("npc.marit", marit)
+				local talk = Instance.new("ProximityPrompt")
+				WorldText.bind(talk, "interact", "npc.marit")
+				talk.MaxActivationDistance, talk.RequiresLineOfSight, talk.Parent = 8, false, marit
+				talk:SetAttribute("ForgePanel", "contracts")
+			end
+		end
 	end
 	world.roleSource.resourceNodes = layout.resourceNodes
 	world.roleSource.nodes, world.roleSource.worldRevision = nodes, revision

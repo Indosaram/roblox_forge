@@ -24919,6 +24919,11 @@ layouts:
       - {id: "opening.mirror-ridge", position: {x: 0, y: 2, z: -60}}
       - {id: "opening.beacon", position: {x: 8, y: 2, z: -50}}
       - {id: "opening.jetty", position: {x: 0, y: 2, z: -72}}
+      # p134 C1 dead end 3: the camp plot grid origin. Its 16x12 cells of 4 studs span x -20..44,
+      # z -44..4: the ridge camp just south of Marit (npc.marit, 4 studs past its north edge), where
+      # the opening asks for the campfire. The grid used to start at station.campfire.t1, 50 studs
+      # from her. Its corner is 44 studs from the boar's home.
+      - {id: "opening.camp-plot", position: {x: -20, y: 2, z: -44}}
     resourceNodes:
       -
         # p134 C1 fix 1: the phone run's first craft took 22 min, the bone heap sat 30 studs off the

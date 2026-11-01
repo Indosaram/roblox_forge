@@ -53,6 +53,12 @@ return function(content: any, source, world, backend, clock, options, provision,
 		Vector3.new(origin.x, origin.y, origin.z),
 		Vector3.new(warehouse.x, warehouse.y, warehouse.z)
 	)
+	-- p134 C1 dead end 3: on the onboarding island a build's shortfall is paid from the bag (the card
+	-- showed campfire wood 0/4 with 9 logs carried). The reserve command first deposits those stacks into
+	-- the camp warehouse through the real transfer; for that one deposit the build site is the reach.
+	local bagBuild = world.layout ~= nil and world.layout.id == "rw.onboarding"
+	local buildDeposit: { [string]: boolean } = {}
+	local bagSent: { [string]: any } = {}
 	local tribeConfig: Settlement.Config = {
 		tribeId = tribe.config.tribeId,
 		width = tribe.config.width,
@@ -1424,7 +1430,10 @@ return function(content: any, source, world, backend, clock, options, provision,
 						),
 					},
 					verifyTransfer = function(actor, proof)
-						if provision.verifyTransfer(actor, proof) and ports.warehouse(actor) then
+						if
+							provision.verifyTransfer(actor, proof)
+							and (buildDeposit[actor] == true or ports.warehouse(actor))
+						then
 							return true
 						end
 						return false
@@ -1680,7 +1689,78 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end
 		for _, method in { "command", "commandServer" } do
 			local command = session[method]
+			-- Onboarding bag-paid build (see bagBuild): deposit the warehouse shortfall of the structure's
+			-- cost from the bag, then send the reserve with the warehouse version that deposit produced.
+			local function fromBag(actor: string, request: any): any
+				-- A resend of the same request (lost answer) replays the rewritten args, not a conflict.
+				local key = actor .. ":" .. tostring(request.sessionEpoch) .. ":" .. tostring(request.requestId)
+				if bagSent[key] then
+					return bagSent[key]
+				end
+				local definition = definitions[request.args[1]]
+				local shared = session.snapshot(actor).survivalSettlement
+				local data = personalData(actor)
+				if not definition or not shared or not data or request.args[6] ~= shared.warehouse.version then
+					return request
+				end
+				local moved = 0
+				for _, cost in definition.cost do
+					local stored = 0
+					for itemId, item in shared.warehouse.items do
+						if item.catalogId == cost.item then
+							stored += Inventory.available(shared.warehouse, itemId)
+						end
+					end
+					local short = cost.quantity - stored
+					local stacks = {}
+					for itemId, item in data.inventory.bag.items do
+						if item.catalogId == cost.item then
+							table.insert(stacks, itemId)
+						end
+					end
+					table.sort(stacks)
+					for _, itemId in stacks do
+						local bag = personalData(actor).inventory.bag
+						local quantity = math.min(short, Inventory.available(bag, itemId))
+						if quantity <= 0 then
+							continue
+						end
+						moved += 1
+						buildDeposit[actor] = true
+						local ok, result = pcall(command, actor, {
+							requestId = request.requestId .. ":bag" .. moved,
+							sessionEpoch = session.commandEpoch(actor, "survival-coop:transfer-deposit"),
+							action = "survival-coop:transfer-deposit",
+							args = { itemId, quantity },
+						})
+						buildDeposit[actor] = nil
+						if not ok or not result.ok then
+							return request
+						end
+						short -= quantity
+					end
+				end
+				if moved == 0 then
+					return request
+				end
+				local args = table.clone(request.args)
+				args[6] = session.snapshot(actor).survivalSettlement.warehouse.version
+				local sent = table.clone(request)
+				sent.args = args
+				bagSent[key] = sent
+				return sent
+			end
 			session[method] = function(actor: string, request: any)
+				if
+					bagBuild
+					and method == "command"
+					and type(request) == "table"
+					and request.action == "survival-coop:settlement-reserve"
+					and type(request.args) == "table"
+					and #request.args == 7
+				then
+					request = fromBag(actor, request)
+				end
 				local data = personalData(actor)
 				local chapterId = if data and data.journal then data.journal.active else nil
 				local action = string.gsub(request.action, "^survival%-coop:", "")

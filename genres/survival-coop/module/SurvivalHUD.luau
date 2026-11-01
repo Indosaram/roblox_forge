@@ -86,6 +86,9 @@ export type Options = {
 	openPanel: ((string) -> boolean)?,
 	-- Single-player mode (game.yml play_mode.solo): texts with a `<key>_solo` row use it.
 	solo: boolean?,
+	-- Builds pay their warehouse shortfall from the carried bag (the server deposits it on reserve; the
+	-- Robango onboarding island). Cards count bag stock and say so on one line.
+	bagBuild: boolean?,
 	-- Melee attack press on a creature model: hands it to the pack's combat loop (CombatHud.engage);
 	-- true when engaged. Absent sends one raw attack command per press.
 	engage: ((Model) -> boolean)?,
@@ -626,7 +629,12 @@ function M.start(options: Options)
 	toast.Name, toast.Visible = "MaterialToast", false
 	toast.BackgroundColor3, toast.BackgroundTransparency = Color3.fromRGB(22, 36, 33), 0.08
 	local function suppliesAvailable(bag: any, inputs: { any }): boolean
-		local missing = Model.missingMaterials(bag, inputs)
+		local missing = {}
+		for _, row in Model.buildCosts(bag, Model.bag(model.snapshot), inputs, options.bagBuild) do
+			if row.available < row.needed then
+				table.insert(missing, row)
+			end
+		end
 		local details = {}
 		for _, ingredient in missing do
 			table.insert(details, name(ingredient.id) .. " " .. ingredient.available .. "/" .. ingredient.needed)
@@ -956,10 +964,48 @@ function M.start(options: Options)
 		return nil
 	end
 	local placementReason: string? = nil
+	-- p134 C1 dead end 3: placement drew only the footprint, so on the phone nothing showed where the
+	-- camp grid was. The whole grid is outlined while placing (thin lines on the ground).
+	local gridLines = Instance.new("Folder")
+	gridLines.Name, gridLines.Parent = "ForgeBuildGrid", world
+	local gridShown: string? = nil
+	local function drawGrid(settlement: any?)
+		local config = if settlement then settlement.config else nil
+		local key = if config then string.format("%d:%d:%d", config.width, config.depth, config.cellStuds) else nil
+		if key == gridShown then
+			return
+		end
+		gridShown = key
+		gridLines:ClearAllChildren()
+		if not config then
+			return
+		end
+		local size, o = config.cellStuds, options.settlementOrigin
+		local w, d = config.width * size, config.depth * size
+		local terrain = RaycastParams.new()
+		terrain.FilterType, terrain.FilterDescendantsInstances = Enum.RaycastFilterType.Include, { world.Terrain }
+		local hit = world:Raycast(o + Vector3.new(w / 2, 128, d / 2), Vector3.new(0, -256, 0), terrain)
+		local y = (if hit then hit.Position.Y else o.Y) + 0.12
+		local function line(lineName: string, center: Vector3, span: Vector3)
+			local part = Instance.new("Part")
+			part.Name, part.Anchored, part.CanCollide, part.CanTouch, part.CanQuery =
+				lineName, true, false, false, false
+			part.Size, part.Position = span, center
+			part.Material, part.Color, part.Transparency = Enum.Material.Neon, Color3.fromRGB(246, 238, 220), 0.35
+			part.Parent = gridLines
+		end
+		for i = 0, config.width do
+			line("GridX" .. i, Vector3.new(o.X + i * size, y, o.Z + d / 2), Vector3.new(0.15, 0.1, d))
+		end
+		for j = 0, config.depth do
+			line("GridZ" .. j, Vector3.new(o.X + w / 2, y, o.Z + j * size), Vector3.new(w, 0.1, 0.15))
+		end
+	end
 	local function preview()
 		ghost:ClearAllChildren()
 		placementReason = nil
 		local definition, settlement = selectedDefinition(), model.snapshot.settlement
+		drawGrid(if section == "build" and definition then settlement else nil)
 		if section ~= "build" or not definition or not settlement then
 			return
 		end
@@ -1182,14 +1228,23 @@ function M.start(options: Options)
 			end
 		end
 		local ray = camera:ScreenPointToRay(position.X, position.Y)
-		if math.abs(ray.Direction.Y) < 0.001 then
-			return
+		-- The tapped ground (terrain), else the grid plane: the plane alone missed by the height gap.
+		local terrain = RaycastParams.new()
+		terrain.FilterType, terrain.FilterDescendantsInstances = Enum.RaycastFilterType.Include, { world.Terrain }
+		local ground = world:Raycast(ray.Origin, ray.Direction * 1024, terrain)
+		local hit: Vector3
+		if ground then
+			hit = ground.Position
+		else
+			if math.abs(ray.Direction.Y) < 0.001 then
+				return
+			end
+			local distance = (options.settlementOrigin.Y - ray.Origin.Y) / ray.Direction.Y
+			if distance < 0 then
+				return
+			end
+			hit = ray.Origin + ray.Direction * distance
 		end
-		local distance = (options.settlementOrigin.Y - ray.Origin.Y) / ray.Direction.Y
-		if distance < 0 then
-			return
-		end
-		local hit = ray.Origin + ray.Direction * distance
 		local nextX, nextZ =
 			Model.pointerCell(hit.X, hit.Z, options.settlementOrigin.X, options.settlementOrigin.Z, settlement.config)
 		if nextX ~= x or nextZ ~= z then
@@ -2103,10 +2158,19 @@ function M.start(options: Options)
 				title.TextColor3 = Color3.fromRGB(38, 30, 24)
 				title.Position = UDim2.fromOffset(C.pad + C.art + 8, C.pad)
 				title.Size = UDim2.new(1, -(C.pad + C.art + 8) - 30, 0, C.art)
+				if options.bagBuild then
+					-- The bag line takes the bottom 14 px of the name column.
+					title.Size = UDim2.new(1, -(C.pad + C.art + 8) - 30, 0, C.art - 14)
+				end
 				title:SetAttribute("ForgeShellKeep", true)
 				title.Parent = card
 				local ready = true
-				local costs = Model.ingredients(model.snapshot.warehouse, { inputs = definition.cost })
+				local costs, bagUsed = Model.buildCosts(
+					model.snapshot.warehouse,
+					Model.bag(model.snapshot),
+					definition.cost,
+					options.bagBuild
+				)
 				for index, cost in costs do
 					local short = (cost.available or 0) < cost.needed
 					ready = ready and not short
@@ -2185,6 +2249,21 @@ function M.start(options: Options)
 					"ReadyBadge"
 				)
 				badge.BackgroundTransparency, badge.Visible = 1, ready
+				-- p134 C1: say when the bag pays (the card read 0/4 with 9 logs carried; only ? help told).
+				local fromBag = 0
+				for _, cost in costs do
+					fromBag += cost.fromBag or 0
+				end
+				local bagLine: any = card:FindFirstChild("BagLine") or Instance.new("TextLabel")
+				bagLine.Name, bagLine.BackgroundTransparency, bagLine.Visible = "BagLine", 1, bagUsed
+				bagLine.Text = string.format(t("build_from_bag"), fromBag)
+				bagLine.Font, bagLine.TextSize, bagLine.TextScaled = Enum.Font.BuilderSans, 12, false
+				bagLine.TextXAlignment, bagLine.TextTruncate = Enum.TextXAlignment.Left, Enum.TextTruncate.AtEnd
+				bagLine.TextColor3 = Color3.fromRGB(36, 120, 64)
+				bagLine.Position = UDim2.fromOffset(C.pad + C.art + 8, C.pad + C.art - 14)
+				bagLine.Size = UDim2.new(1, -(C.pad + C.art + 8) - C.pad, 0, 14)
+				bagLine:SetAttribute("ForgeShellKeep", true)
+				bagLine.Parent = card
 				local rim: any = card:FindFirstChild("ReadyRim") or Instance.new("UIStroke")
 				rim.Name, rim.ApplyStrokeMode = "ReadyRim", Enum.ApplyStrokeMode.Border
 				rim.Thickness = if ready then 2 else 1
@@ -2194,6 +2273,20 @@ function M.start(options: Options)
 				controls.parent = card
 				local build = button("Structure-" .. definition.id, t("build_action"), function()
 					structureId, ghostLocked = definition.id, false
+					-- The ghost starts under the player (p134 C1: it started at the grid corner, off screen).
+					local character = player.Character
+					local body = if character then character:FindFirstChild("HumanoidRootPart") else nil
+					local settlement = model.snapshot.settlement
+					if body and body:IsA("BasePart") and settlement then
+						x, z = Model.startCell(
+							body.Position.X,
+							body.Position.Z,
+							options.settlementOrigin.X,
+							options.settlementOrigin.Z,
+							settlement.config,
+							definition
+						)
+					end
 					focusBottom = "BuildReserve-" .. definition.id
 					render()
 				end, true)
@@ -3479,6 +3572,7 @@ function M.start(options: Options)
 			connection:Disconnect()
 		end
 		ghost:Destroy()
+		gridLines:Destroy()
 		highlight:Destroy()
 		resultEvent:Destroy()
 		requestEvent:Destroy()

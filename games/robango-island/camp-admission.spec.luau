@@ -841,7 +841,8 @@ return {
 		local wood = command(session, FIRST, "real-wood", "gather", { "rw.onboarding.extra-0", 2 })
 		assert(wood.ok, "axe-gated wood: " .. serde.encode("json", wood))
 		assert(command(session, FIRST, "real-wood2", "gather", { "rw.onboarding.extra-0", 3 }).ok, "more wood")
-		server.move(FIRST, { x = -16, y = 7, z = -4 })
+		-- p134 C1: the camp warehouse crate stands at the ridge camp beside Marit.
+		server.move(FIRST, { x = -8, y = 7, z = -46 })
 		local stacks = woodStacks(session, FIRST)
 		assert(#stacks > 0, "canonical wood available to recipes")
 		for index, id in stacks do
@@ -852,7 +853,7 @@ return {
 			)
 		end
 		-- C1: the camp grid starts at the ridge camp plot anchor; stand by cell 4,4 to build.
-		server.move(FIRST, { x = -30, y = 7, z = 12 })
+		server.move(FIRST, { x = -2, y = 7, z = -26 })
 		local camp = session.snapshot(FIRST).survivalSettlement
 		local reserved = command(session, FIRST, "real-build", "settlement-reserve", {
 			"campfire",

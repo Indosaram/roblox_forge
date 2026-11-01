@@ -414,6 +414,38 @@ function M.missingMaterials(bag: any, inputs: { any }): { any }
 	return missing
 end
 
+--- Build cost rows (p134 C1 dead end 3): warehouse stock, plus the carried bag when the pack pays
+--- builds from the bag (the onboarding server deposits the shortfall on reserve). `fromBag` on a row
+--- is how many of it the bag adds; `bagUsed` is true when the bag covers any shortfall.
+function M.buildCosts(warehouse: any, bag: any, cost: { any }, bagBuild: boolean?): ({ any }, boolean)
+	local rows = M.ingredients(warehouse, { inputs = cost })
+	local carried = if bagBuild then M.ingredients(bag, { inputs = cost }) else {}
+	local bagUsed = false
+	for index, row in rows do
+		local extra =
+			math.min(carried[index] and carried[index].available or 0, math.max(0, row.needed - row.available))
+		row.fromBag = extra
+		row.available += if carried[index] then carried[index].available else 0
+		bagUsed = bagUsed or extra > 0
+	end
+	return rows, bagUsed
+end
+
+--- The cell a placement starts on: the footprint under the player (clamped so the footprint and its
+--- entry, one cell before the origin, stay on the grid), not the grid corner.
+function M.startCell(
+	px: number,
+	pz: number,
+	originX: number,
+	originZ: number,
+	config: any,
+	definition: any
+): (number, number)
+	local x, z = M.pointerCell(px, pz, originX, originZ, config)
+	return math.clamp(x, 0, config.width - definition.footprintX),
+		math.clamp(z, 1, config.depth - definition.footprintZ)
+end
+
 function M.pointerCell(hitX: number, hitZ: number, originX: number, originZ: number, config: any): (number, number)
 	return math.clamp(math.floor((hitX - originX) / config.cellStuds), 0, config.width - 1),
 		math.clamp(math.floor((hitZ - originZ) / config.cellStuds), 0, config.depth - 1)

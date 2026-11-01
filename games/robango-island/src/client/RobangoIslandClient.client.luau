@@ -267,6 +267,8 @@ local engageCreature: (Model) -> boolean = function(_model: Model): boolean
 end
 local hud = SurvivalHUD.start({
 	solo = PlayMode.solo,
+	-- p134 C1: the onboarding server pays a build's shortfall from the bag (SurvivalFactory bagBuild).
+	bagBuild = roleRoot ~= nil,
 	engage = function(model: Model): boolean
 		return engageCreature(model)
 	end,
