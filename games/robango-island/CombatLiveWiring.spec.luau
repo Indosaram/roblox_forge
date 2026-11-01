@@ -154,6 +154,7 @@ end
 local function client(live: any, tools: { any }?)
 	local I = roblox.Instance
 	local t = { value = 0 }
+	local parked: { thread } = {}
 	local folder = I.new("Folder")
 	folder.Name = "ForgeWildlife"
 	local models: { [string]: any } = {}
@@ -319,12 +320,14 @@ local function client(live: any, tools: { any }?)
 				return t.value
 			end,
 		},
-		-- A swing runs to its reply at once; a float animation parks at its first frame wait.
+		-- A swing runs to its reply at once; a float animation parks at its first frame wait until
+		-- `frames` steps the render clock (other specs never do, so their floats stay parked).
 		task = {
 			spawn = function(fn, ...)
 				coroutine.resume(coroutine.create(fn), ...)
 			end,
 			wait = function()
+				table.insert(parked, (coroutine.running()))
 				coroutine.yield()
 			end,
 		},
@@ -449,6 +452,20 @@ local function client(live: any, tools: { any }?)
 			handshake()
 			mirror()
 			beats[1]()
+		end,
+		-- `seconds` of rendered frames at `fps` with no server tick: every parked float animation
+		-- runs one frame per step on the advancing clock.
+		frames = function(seconds: number, fps: number)
+			for _ = 1, math.floor(seconds * fps + 0.5) do
+				t.value += 1 / fps
+				local due = parked
+				parked = {}
+				for _, thread in due do
+					if coroutine.status(thread) == "suspended" then
+						coroutine.resume(thread)
+					end
+				end
+			end
 		end,
 		floats = function(): { string }
 			local out = {}
@@ -604,6 +621,85 @@ return {
 			end
 		end
 		assert(hits >= 2, "several landed hits each floated a number, got " .. hits)
+		live.factory.close()
+	end,
+	-- p134 v68 (SM-N981N, 2400x1080): one hit took a dodo 45 -> 5 and no '-N' was in the phone frame
+	-- after it. The old board began fading 0.45 s after the hit and was gone at 0.9 s, at a fixed
+	-- 160x56 px. Order reproduced: the hit lands, then frames render at the phone's 30 fps capture
+	-- rate with no further server tick; the number must stay opaque and large for >= 0.8 s.
+	["a landed hit's number stays opaque and phone-sized for at least 0.8 s of 30 fps frames"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		phone.gui.AbsoluteSize = roblox.Vector2.new(2400, 1080)
+		local model = phone.models[DODO]
+		local dodo = model.HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		local board: any = nil
+		for _ = 1, 10 do
+			local before = hp(live, DODO)
+			phone.tick()
+			if hp(live, DODO) < before then
+				local want = Combat.damageText(Combat.hit(before, hp(live, DODO)) :: number)
+				for _, item in phone.playerGui:FindFirstChild("ForgeDamageNumbers"):GetChildren() do
+					if item.Enabled and item.Adornee == model.HumanoidRootPart and item.Text.Text == want then
+						board = item
+					end
+				end
+				break
+			end
+		end
+		assert(board, "the landed hit floated its number over the dodo")
+		-- Phone-sized: at least ~8% of the 1080 px short side tall.
+		assert(board.Size.Y.Offset >= 86, "number board height " .. board.Size.Y.Offset .. " px at 2400x1080")
+		local text = board.Text.Text
+		for frame = 1, 24 do -- 0.8 s at 30 fps
+			phone.frames(1 / 30, 30)
+			assert(
+				board.Enabled and board.Text.Text == text and board.Text.TextTransparency <= 0.1,
+				string.format(
+					"frame %d (%.2f s): '%s' enabled=%s transparency=%.2f",
+					frame,
+					frame / 30,
+					board.Text.Text,
+					tostring(board.Enabled),
+					board.Text.TextTransparency
+				)
+			)
+		end
+		-- And it does go away.
+		phone.frames(1.5, 30)
+		assert(not board.Enabled, "the number clears after its life")
+		live.factory.close()
+	end,
+	-- The engaged-only rule: a swing accepted into its windup, then the player taps a second dodo
+	-- before the server resolves it. The first dodo's drop landed while it was no longer the engaged
+	-- target, so the old code floated it as a small ochre aside (or nothing beyond 60 studs).
+	["a hit that resolves after the player retargets still floats a big number over the struck dodo"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		phone.gui.AbsoluteSize = roblox.Vector2.new(2400, 1080)
+		local first = phone.models[DODO]
+		local at = first.HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(at.X + 3, 3, at.Z))
+		assert(phone.tap(DODO), "engage the first dodo")
+		phone.tick(0)
+		local accepted = phone.results[#phone.results]
+		assert(accepted and accepted.result.reason == "WINDUP", "the swing is in its windup")
+		assert(phone.tap(SECOND), "retarget before the blow resolves")
+		phone.tick()
+		local lost = FULL - hp(live, DODO)
+		assert(lost > 0, "the windup blow landed on the first dodo")
+		local want = Combat.damageText(Combat.hit(FULL, hp(live, DODO)) :: number)
+		local big = false
+		for _, item in phone.playerGui:FindFirstChild("ForgeDamageNumbers"):GetChildren() do
+			if item.Enabled and item.Adornee == first.HumanoidRootPart and item.Text.Text == want then
+				big = big or item.Size.Y.Offset >= 86
+			end
+		end
+		assert(big, "a big " .. want .. " over the dodo the player just hit")
 		live.factory.close()
 	end,
 	["the engaged border fades out after the player steps back"] = function()

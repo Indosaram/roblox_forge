@@ -232,6 +232,32 @@ function M.ease(current: number, target: number, dt: number): number
 	return math.max(target, current - dt * M.MAX_GLOW / M.BORDER_OUT_SECONDS)
 end
 
+-- Floating numbers (p134 v68: one hit took a dodo 45 -> 5 and no '-40' was in the phone frame
+-- after it). The old board started fading at 0.45 s and was gone at 0.9 s, while the phone pass
+-- captured every ~2 s with a slow screencap, so most hits were never in a frame. A number now holds
+-- fully opaque NUMBER_HOLD_SECONDS, then fades over NUMBER_FADE_SECONDS. Boards scale with the short
+-- screen side (the old fixed 160x56 px read small at 2400x1080).
+M.NUMBER_HOLD_SECONDS = 1.2
+M.NUMBER_FADE_SECONDS = 0.4
+M.NUMBER_POOL = 16
+-- Seconds after a swing during which the struck creature's health drops float like the engaged
+-- target's (a retarget or release while the windup resolves still shows the blow).
+M.RECENT_HIT_SECONDS = 3
+
+--- Floating number board size (px) for a screen whose shorter side is `short` px: the engaged /
+--- just-hit number (`big`) is ~9% of the short side, other lines ~6%, never under the old sizes.
+function M.numberSize(short: number, big: boolean?): (number, number)
+	local height = if big
+		then math.max(56, math.floor(short * 0.09 + 0.5))
+		else math.max(40, math.floor(short * 0.06 + 0.5))
+	return height * 3, height
+end
+
+--- Floating number text opacity `elapsed` seconds after it showed (0 = opaque, 1 = gone).
+function M.numberFade(elapsed: number): number
+	return math.clamp((elapsed - M.NUMBER_HOLD_SECONDS) / M.NUMBER_FADE_SECONDS, 0, 1)
+end
+
 --- Floating number text for health lost on a creature ("-8").
 function M.damageText(lost: number): string
 	return "-" .. tostring(lost)
@@ -476,6 +502,7 @@ function M.start(options: Options)
 	numberFolder.Name, numberFolder.ResetOnSpawn = "ForgeDamageNumbers", false
 	numberFolder.Parent = player:WaitForChild("PlayerGui")
 	local pool: { any } = {}
+	local floatSerial = 0
 	local function float(anchor: any, text: string, tint: any, big: boolean?)
 		if not anchor or not anchor.Parent then
 			return
@@ -488,16 +515,29 @@ function M.start(options: Options)
 			end
 		end
 		local board: any = nil
+		local oldest: any = nil
 		for _, item in pool do
 			if not item.Enabled then
 				board = item
 				break
 			end
+			if
+				not oldest
+				or (item:GetAttribute("ForgeFloatSerial") or 0) < (oldest:GetAttribute("ForgeFloatSerial") or 0)
+			then
+				oldest = item
+			end
 		end
 		if not board then
-			if #pool >= 16 then
-				return
+			if #pool >= M.NUMBER_POOL then
+				-- A full pool never drops a hit number: the oldest line gives its board up.
+				if not big then
+					return
+				end
+				board = oldest
 			end
+		end
+		if not board then
 			board = Instance.new("BillboardGui")
 			board.Name, board.Size, board.AlwaysOnTop, board.LightInfluence =
 				"DamageNumber", UDim2.fromOffset(120, 40), true, 0
@@ -510,19 +550,33 @@ function M.start(options: Options)
 		end
 		local label = board:FindFirstChild("Text")
 		label.Text, label.TextColor3, label.TextTransparency = text, color(tint), 0
-		-- A hit on the engaged target reads larger (Durango R08: white numbers over the creature).
-		board.Size = if big then UDim2.fromOffset(160, 56) else UDim2.fromOffset(120, 40)
+		-- A hit on the engaged target reads larger (Durango R08: white numbers over the creature),
+		-- sized from the screen so it reads on a 2400x1080 phone.
+		local screen = gui.AbsoluteSize
+		local width, height = M.numberSize(math.min(screen.X, screen.Y), big)
+		board.Size = UDim2.fromOffset(width, height)
 		board.Adornee, board.Enabled = anchor, true
+		board.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
+		floatSerial += 1
+		local serial = floatSerial
+		board:SetAttribute("ForgeFloatSerial", serial)
 		local started = clock()
+		local life = M.NUMBER_HOLD_SECONDS + M.NUMBER_FADE_SECONDS
 		local drift = (#text % 3 - 1) * 0.6
 		task.spawn(function()
-			while not destroyed and board.Enabled and clock() - started < 0.9 do
-				local p = (clock() - started) / 0.9
-				board.StudsOffsetWorldSpace = Vector3.new(drift, 3 + p * 2.5, 0)
-				label.TextTransparency = math.max(0, (p - 0.5) * 2)
+			-- A board taken over by a newer line (full pool) belongs to that line's loop from then on.
+			while not destroyed and board:GetAttribute("ForgeFloatSerial") == serial and board.Enabled do
+				local elapsed = clock() - started
+				if elapsed >= life then
+					break
+				end
+				board.StudsOffsetWorldSpace = Vector3.new(drift, 3 + elapsed / life * 2.5, 0)
+				label.TextTransparency = M.numberFade(elapsed)
 				task.wait()
 			end
-			board.Enabled, board.Adornee = false, nil
+			if board:GetAttribute("ForgeFloatSerial") == serial then
+				board.Enabled, board.Adornee = false, nil
+			end
 		end)
 	end
 
@@ -530,6 +584,8 @@ function M.start(options: Options)
 	local targetModel: any = nil
 	local maxSeen: { [string]: number } = {}
 	local lastHealth: { [any]: number } = {}
+	-- Clock of the last swing sent at each creature id (the "just hit" numbers).
+	local struck: { [string]: number } = {}
 	local carcass: { model: any, kind: string?, taken: { [string]: boolean }, busy: boolean, opened: number }? = nil
 	-- Outputs already taken per corpse (wildId:killedAt), so a reopened picker offers only the rest.
 	local harvested: { [string]: { [string]: boolean } } = {}
@@ -666,6 +722,9 @@ function M.start(options: Options)
 		if not current.armed and arm() then
 			current.armed = true
 		end
+		-- The swing's creature: its next health drop floats big even if the player steps back or
+		-- retargets while the windup resolves (RECENT_HIT_SECONDS).
+		struck[current.target] = clock()
 		task.spawn(function()
 			local result = options.send("survival-coop:attack", { current.target })
 			if session and session.target == current.target then
@@ -860,8 +919,12 @@ function M.start(options: Options)
 						maxSeen[kind] = math.max(maxSeen[kind] or 0, hp)
 					end
 					local lost = M.hit(lastHealth[model], hp)
-					if lost and model == targetModel then
-						-- The engaged target: a big "-N" over it on every landed hit, at any distance.
+					local id = model:GetAttribute("ForgeWildlifeId")
+					local swung = if type(id) == "string" then struck[id] else nil
+					local recent = swung ~= nil and now - swung <= M.RECENT_HIT_SECONDS
+					if lost and (model == targetModel or recent) then
+						-- The engaged or just-struck creature: a big "-N" over it on every landed hit, at
+						-- any distance.
 						float(anchor, M.damageText(lost), P.bone, true)
 					elseif lost and root and (anchor.Position - root.Position).Magnitude < 60 then
 						float(anchor, M.damageText(lost), P.ochre)
@@ -877,6 +940,11 @@ function M.start(options: Options)
 						openCarcass(model)
 					end
 					lastHealth[model] = hp
+				end
+			end
+			for id, at in struck do
+				if now - at > M.RECENT_HIT_SECONDS then
+					struck[id] = nil
 				end
 			end
 			for model in lastHealth do
