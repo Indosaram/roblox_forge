@@ -83,7 +83,7 @@ return {
 		-- Level 8: the open waypoint is the objective.
 		local eight = Text.guideObjective("en-us", old, { level = 8, points = 200, definitions = done }, NAMES)
 		assert(
-			string.find(eight :: string, "Daily contracts", 1, true) and string.find(eight :: string, "0/2", 1, true),
+			string.find(eight :: string, "Daily contracts", 1, true) and string.find(eight :: string, "0/1", 1, true),
 			tostring(eight)
 		)
 		-- Waypoints up to level 9 finished: the next step is the level 10 harbor departure post.
