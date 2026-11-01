@@ -221,6 +221,55 @@ function M.tiles(
 	return frame
 end
 
+--- Height of a pressTile with `lines` text rows at text `size`.
+function M.pressTileHeight(lines: number, size: number): number
+	return math.max(56, lines * (size + 4) + 14)
+end
+
+--- R14 pressable item tile on parchment: icon left, a bold title row, then muted rows (quality,
+--- count) and an ink price row. An ImageButton, so the sheet skin (TextButton recolouring) leaves
+--- its chip fill alone; the selected tile is the body colour in a sea-glass rim.
+function M.pressTile(
+	parent: any,
+	spec: {
+		name: string?,
+		order: number?,
+		icon: Icon?,
+		title: string,
+		lines: { string },
+		price: string,
+		selected: boolean?,
+		size: number,
+	}
+): any
+	local cell = Instance.new("ImageButton")
+	cell.Name, cell.LayoutOrder, cell.BorderSizePixel = spec.name or "PressTile", spec.order or 0, 0
+	cell.Image, cell.AutoButtonColor, cell.BackgroundTransparency = "", false, 0
+	cell.BackgroundColor3 = rgb(if spec.selected then C.body else C.chip)
+	corner(cell, Theme.sheet.space.corner)
+	local rim = Instance.new("UIStroke")
+	rim.Color = rgb(if spec.selected then C.marker else C.rim)
+	rim.Thickness, rim.Transparency = if spec.selected then 3 else 1, if spec.selected then 0 else 0.35
+	rim.Parent = cell
+	badge(cell, spec.icon, 40, UDim2.fromOffset(8, 8), "TileIcon")
+	local rows: { { name: string, value: string, color: any, bold: boolean } } =
+		{ { name = "TileName", value = spec.title, color = C.ink, bold = true } }
+	for index, line in spec.lines do
+		table.insert(rows, { name = "TileMeta" .. index, value = line, color = C.inkMuted, bold = false })
+	end
+	table.insert(rows, { name = "TilePrice", value = spec.price, color = C.ink, bold = true })
+	for index, row in rows do
+		local label = text(row.name, row.value, spec.size, row.color, row.bold)
+		label.TextXAlignment, label.TextYAlignment = Enum.TextXAlignment.Left, Enum.TextYAlignment.Center
+		label.TextTruncate, label.TextWrapped = Enum.TextTruncate.AtEnd, false
+		label.Position = UDim2.fromOffset(56, 7 + (index - 1) * (spec.size + 4))
+		label.Size = UDim2.new(1, -62, 0, spec.size + 4)
+		label.Parent = cell
+	end
+	cell.Parent = parent
+	return cell
+end
+
 export type Line = { icon: Icon?, text: string, done: boolean? }
 
 -- U7 section card: icon + bold title (+ right badge), muted caption, icon lines, a muted note.

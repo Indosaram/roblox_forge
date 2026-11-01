@@ -3209,3 +3209,8 @@ tame_next_how,"Hit it until it is winded (a quarter health), then tap Capture to
 tame_next_go,Show me the nearest one,taming next step button,Show me the nearest one,가장 가까운 곳 보기
 tame_next_marked,"%s marked, %dm away",taming next step marked,"%s marked, %dm away","%s 표시함, %dm 거리"
 tame_next_none,No %s nearby. Look around the camp meadow.,taming next step none nearby,No %s nearby. Look around the camp meadow.,근처에 %s 없어요. 캠프 주변 풀밭을 둘러보세요.
+hud.panel.tile_level,Lv %d,trading post sell tile item level,Lv %d,Lv %d
+hud.panel.tile_held,Held %d,trading post sell tile held count,Held %d,보유 %d
+hud.panel.tile_price,%d each,trading post sell tile harbor unit price,%d each,개당 %d
+hud.panel.tile_no_price,Not bought here,trading post sell tile without a harbor price,Not bought here,매입 안 함
+hud.panel.sale_preview,Sell %d for %d shellmoney,trading post sale preview,Sell %d for %d shellmoney,%d개 팔면 조개돈 %d

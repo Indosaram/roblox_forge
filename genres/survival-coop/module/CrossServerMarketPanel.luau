@@ -8,6 +8,8 @@ local BuyScreen = require("./RecoveredScreens")
 local SocialLocale = require("./SocialLocale")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local Shell = require("./HudShell")
+local Cards = require("./SheetCards")
+local Theme = require("../../../core/ui-kit/Theme")
 local env: any = getfenv()
 
 -- Catalog browse page size: the tradeable set is the whole content catalog (~200 ids), so the
@@ -126,6 +128,27 @@ function M.listRefusalCodes(): { string }
 	return codes
 end
 
+--- Sell tile columns for a list pane `width` px wide: tiles stay at least 170 px (name, quality and
+--- price rows unclipped beside a 40 px icon), one to four across.
+function M.sellColumns(width: number): number
+	return math.clamp(math.floor(width / 170), 1, 4)
+end
+
+--- Tile rows of a bag stack: its quality line (level only when the item has one), the held count
+--- and the harbor's unit price (or the not-bought line).
+function M.tileLines(locale: string, item: any, each: number?): (string, string, string)
+	local quality = Locale.text(locale, "quality") .. " " .. tostring(math.floor((item.qualityMilli or 0) / 1000))
+	local level = tonumber(item.attributes and item.attributes.level) or 0
+	if level > 0 then
+		quality ..= " · " .. string.format(Locale.text(locale, "panel.tile_level"), level)
+	end
+	local held = string.format(Locale.text(locale, "panel.tile_held"), item.quantity)
+	local price = if each
+		then string.format(Locale.text(locale, "panel.tile_price"), each)
+		else Locale.text(locale, "panel.tile_no_price")
+	return quality, held, price
+end
+
 --- Listing fee line: the same fee the server books (CrossServer.fee), and what the seller collects.
 function M.feeText(locale: string, price: number): string
 	local fee = CrossServer.fee(price)
@@ -223,6 +246,8 @@ function M.shellPanel(
 		item.TextColor3 = Shell.color(Shell.PALETTE.bone)
 		return item
 	end
+	-- R14: buttons drawn selected this render (the sheet skin keeps them sea-glass, others chips).
+	local chosen: { [any]: true } = {}
 	local function press(parent: any, value: string, selected: boolean, callback: () -> (), height: number?): any
 		order += 1
 		local item = ctx.ui.components.button(theme, {
@@ -233,6 +258,9 @@ function M.shellPanel(
 		})
 		item.LayoutOrder, item.TextSize, item.TextWrapped = order, layout.text.label, true
 		Shell.panelButton(item, selected)
+		if selected then
+			chosen[item] = true
+		end
 		return item
 	end
 	local function grid(parent: any, columns: number): any
@@ -281,31 +309,17 @@ function M.shellPanel(
 		local icon = if ctx.icons and ctx.icons.ui then ctx.icons.ui("cat." .. CATEGORY_KEY[key]) else nil
 		return if icon and icon.image and icon.image ~= "" then icon.image else nil
 	end
-	-- An empty pane: icon + one line, centred, bone on the panel ("pick a category", no bundles).
+	-- An empty pane: the parchment empty-state card (icon ring + one line), as craft and bag show it.
 	local function emptyNote(parent: any, value: string, iconId: string)
 		order += 1
-		local holder = Instance.new("Frame")
-		holder.Name, holder.BackgroundTransparency, holder.LayoutOrder = "EmptyNote", 1, order
-		holder.Size, holder.Parent = UDim2.new(1, -8, 0, 150), parent
 		local icon = if ctx.icons and ctx.icons.ui then ctx.icons.ui(iconId) else nil
-		local art = IconFallback.mount(
-			holder,
-			"item",
-			UDim2.fromOffset(72, 72),
-			UDim2.new(0.5, -36, 0, 8),
-			if icon and icon.image and icon.image ~= "" then icon.image else nil,
-			"EmptyArt"
-		)
-		art.BackgroundTransparency = 1
-		local line = ctx.ui.components.label(theme, {
-			text = value,
-			size = UDim2.new(1, 0, 0, 60),
-			position = UDim2.fromOffset(0, 86),
-			parent = holder,
-			textSize = layout.text.body,
+		Cards.empty(parent, {
+			name = "EmptyNote",
+			order = order,
+			icon = { image = icon and icon.image, category = "item" },
+			title = value,
+			size = Theme.sheetText("body", layout.safeHeight),
 		})
-		line.Name, line.TextWrapped, line.TextYAlignment = "EmptyText", true, Enum.TextYAlignment.Top
-		line.TextColor3 = Shell.color(Shell.PALETTE.bone)
 	end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(rerender)
 	return function(snapshot: any)
@@ -316,6 +330,7 @@ function M.shellPanel(
 			clear(frame)
 		end
 		order, action = 0, nil
+		table.clear(chosen)
 		local header = sheet.frame:FindFirstChild("Header")
 		local title = header and header:FindFirstChild("Title")
 		if title then
@@ -430,42 +445,70 @@ function M.shellPanel(
 				end
 			end
 		elseif view.tab == "sell" then
-			-- Bag grid (6 columns) of tradable goods; the detail prices the picked stack.
-			local cells = grid(list, Shell.BAG_COLUMNS)
-			local ids = {}
-			local buys = snapshot["harbor-buyback"] and snapshot["harbor-buyback"].prices or {}
+			-- R14 (D2 phone 2.75): the sell sheet is the craft/bag parchment family. Category chips under
+			-- the tab, a tile grid in the middle (icon, name, quality, held count, harbor unit price on
+			-- every tile) and the picked stack's card, quantity, sale preview and primary on the right.
+			local harbor = snapshot["harbor-buyback"]
+			local buys = harbor and harbor.prices or {}
+			local tradable = {}
+			local present: { [string]: boolean } = {}
 			for id, item in state.items do
 				-- Solo: what the harbor buys; otherwise what the player market trades.
 				if if ctx.solo then buys[item.catalogId] ~= nil else table.find(state.catalogIds, item.catalogId) then
+					table.insert(tradable, id)
+					present[M.category(definitions[item.catalogId])] = true
+				end
+			end
+			table.sort(tradable)
+			view.sellCategory = if present[view.sellCategory or ""] then view.sellCategory else "all"
+			for _, key in M.CATEGORIES do
+				if key == "all" or present[key] then
+					local chip = press(rail, t("cat." .. CATEGORY_KEY[key]), view.sellCategory == key, function()
+						view.sellCategory = key
+						rerender()
+					end, layout.categoryRow)
+					chip.Name = "SellCategory-" .. key
+				end
+			end
+			local ids = {}
+			for _, id in tradable do
+				local catalogId = state.items[id].catalogId
+				if view.sellCategory == "all" or M.category(definitions[catalogId]) == view.sellCategory then
 					table.insert(ids, id)
 				end
 			end
-			table.sort(ids)
-			if state.items[view.sell or ""] == nil then
+			if not table.find(ids, view.sell) then
 				view.sell = ids[1]
 			end
+			local size = Theme.sheetText("body", layout.safeHeight)
+			local columns = M.sellColumns(layout.list.width)
+			order += 1
+			local tiles = Instance.new("Frame")
+			tiles.Name, tiles.BackgroundTransparency, tiles.LayoutOrder = "SellTiles", 1, order
+			tiles.Size, tiles.AutomaticSize, tiles.Parent = UDim2.new(1, -8, 0, 0), Enum.AutomaticSize.Y, list
+			local cells = Instance.new("UIGridLayout")
+			cells.CellSize =
+				UDim2.fromOffset(Shell.gridCell(layout.list.width, columns, layout.gap), Cards.pressTileHeight(4, size))
+			cells.CellPadding = UDim2.fromOffset(layout.gap, layout.gap)
+			cells.SortOrder, cells.Parent = Enum.SortOrder.LayoutOrder, tiles
 			for index, id in ids do
 				local item = state.items[id]
 				local icon = ctx.icons.item(item.catalogId)
-				local tile = ctx.ui.components.button(theme, {
-					text = "x" .. tostring(item.quantity),
-					size = UDim2.fromOffset(64, 64),
-					parent = cells,
-					onClick = function()
-						view.sell = id
-						rerender()
-					end,
+				local quality, held, price = M.tileLines(ctx.locale, item, buys[item.catalogId])
+				local tile = Cards.pressTile(tiles, {
+					name = "SellTile-" .. id,
+					order = index,
+					icon = icon,
+					title = icon.text,
+					lines = { quality, held },
+					price = price,
+					selected = view.sell == id,
+					size = size,
 				})
-				tile.LayoutOrder, tile.TextSize = index, Shell.PANEL_MIN_TEXT
-				tile.TextXAlignment, tile.TextYAlignment = Enum.TextXAlignment.Right, Enum.TextYAlignment.Bottom
-				Shell.panelButton(tile, view.sell == id)
-				IconFallback.mount(
-					tile,
-					M.category(definitions[item.catalogId]) == "food" and "food" or "item",
-					UDim2.fromScale(0.6, 0.6),
-					UDim2.fromScale(0.2, 0.08),
-					icon.image
-				)
+				tile.Activated:Connect(function()
+					view.sell = id
+					rerender()
+				end)
 			end
 			if #ids == 0 then
 				emptyNote(list, t("panel.nothing_to_sell"), "bag")
@@ -475,7 +518,18 @@ function M.shellPanel(
 				local id = view.sell :: string
 				local draft = drafts[id] or { quantity = 1, price = 10 }
 				drafts[id] = draft
-				text(detail, ctx.icons.item(picked.catalogId).text .. " x" .. tostring(picked.quantity), "heading")
+				draft.quantity = math.clamp(draft.quantity, 1, math.max(1, picked.quantity))
+				local icon = ctx.icons.item(picked.catalogId)
+				local quality, held, price = M.tileLines(ctx.locale, picked, buys[picked.catalogId])
+				order += 1
+				Cards.hero(detail, {
+					name = "SellCard",
+					order = order,
+					icon = icon,
+					title = icon.text,
+					caption = quality .. " · " .. held .. "\n" .. price,
+					size = size,
+				})
 				if state.eligible == false and not ctx.solo then
 					local blocked = text(detail, M.listRefusal(ctx.locale, state.ineligibleReason), "body", 60)
 					blocked.Name, blocked.TextWrapped = "ListBlocked", true
@@ -500,26 +554,39 @@ function M.shellPanel(
 						send("list", { id, draft.quantity, draft.price }, true)
 					end
 				end
-				local harbor = snapshot["harbor-buyback"]
-				local each = harbor and harbor.prices[picked.catalogId]
+				local each = buys[picked.catalogId]
 				if ctx.solo and not each then
 					local none = text(detail, t("panel.harbor_no_buy"), "body", 44)
 					none.Name, none.TextWrapped = "HarborNoBuy", true
 				end
 				if each then
-					press(
+					local preview = text(
 						detail,
-						string.format(Locale.text(ctx.locale, "sell"), ctx.icons.item(picked.catalogId).text, each),
-						false,
-						function()
-							local result = ctx.send("survival-coop:harbor-sell", { picked.catalogId, draft.quantity })
-							status = if result.ok
-								then t("panel.done")
-								else M.sellRefusal(ctx.locale, result.reason, state.items, picked.catalogId)
-							rerender()
-						end,
-						Shell.MIN_TOUCH
+						string.format(t("panel.sale_preview"), draft.quantity, draft.quantity * each),
+						"body",
+						44
 					)
+					preview.Name, preview.TextWrapped = "SalePreview", true
+					local cap = text(
+						detail,
+						string.format(Locale.text(ctx.locale, "harbor"), harbor.remaining, harbor.dailyUnits),
+						"label"
+					)
+					cap.Name = "HarborCap"
+					local function sell()
+						local result = ctx.send("survival-coop:harbor-sell", { picked.catalogId, draft.quantity })
+						status = if result.ok
+							then t("panel.done")
+							else M.sellRefusal(ctx.locale, result.reason, state.items, picked.catalogId)
+						rerender()
+					end
+					local label = string.format(Locale.text(ctx.locale, "sell"), icon.text, each)
+					if ctx.solo then
+						-- Solo: selling to the harbor is the sheet's one primary action.
+						primaryText, action = label, sell
+					else
+						press(detail, label, false, sell, Shell.MIN_TOUCH)
+					end
 				end
 			end
 		elseif view.tab == "mine" then
@@ -589,6 +656,25 @@ function M.shellPanel(
 		primary.Visible = primaryText ~= nil
 		primary.Text = primaryText or ""
 		Shell.panelButton(primary, true)
+		primary.TextWrapped = true
+		-- R14: the craft/bag sheet skin (Theme.sheet parchment, leather bar, chip rows, sea-glass
+		-- selection and primary), the same pass SurvivalHUD runs on its panels.
+		local safe = layout.safeHeight
+		local lists = { rail, list, detail }
+		for _, child in list:GetChildren() do
+			if child.Name == "Grid" then
+				table.insert(lists, child)
+			end
+		end
+		Shell.skinSheet(sheet.frame, {
+			tokens = Theme.sheet,
+			body = Theme.sheetText("body", safe),
+			title = Theme.sheetText("title", safe),
+			selected = function(item: any): boolean
+				return chosen[item] == true
+			end,
+			lists = lists,
+		})
 		list.CanvasPosition, detail.CanvasPosition = keep[1], keep[2]
 	end
 end

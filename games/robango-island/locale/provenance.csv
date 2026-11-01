@@ -3209,3 +3209,8 @@ tame_next_how,original,agent:hephaestus/polish-tame,2026-10-31
 tame_next_go,original,agent:hephaestus/polish-tame,2026-10-31
 tame_next_marked,original,agent:hephaestus/polish-tame,2026-10-31
 tame_next_none,original,agent:hephaestus/polish-tame,2026-10-31
+hud.panel.tile_level,original,agent:hephaestus/r14-market,2026-11-01
+hud.panel.tile_held,original,agent:hephaestus/r14-market,2026-11-01
+hud.panel.tile_price,original,agent:hephaestus/r14-market,2026-11-01
+hud.panel.tile_no_price,original,agent:hephaestus/r14-market,2026-11-01
+hud.panel.sale_preview,original,agent:hephaestus/r14-market,2026-11-01
