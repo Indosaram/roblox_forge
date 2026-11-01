@@ -7605,6 +7605,7 @@ materials:
       nutrition: 4
       fertility: 1
     levels:
+      - 10
       - 20
       - 30
     quality: 0

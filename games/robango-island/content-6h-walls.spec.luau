@@ -272,6 +272,36 @@ return {
 			end
 		end
 	end,
+	["every spawned node mints a level its material profile declares"] = function()
+		-- journey6h on v71: the audit6h explore10 clam node (level 10) crashed every gather with
+		-- INVALID_MATERIAL_LEVEL because clam-profile only listed 20 and 30.
+		local document = load()
+		local levels: { [string]: { number } } = {}
+		for _, profile in document.materials do
+			levels[profile.item] = profile.levels
+		end
+		local function walk(value: any)
+			if type(value) ~= "table" then
+				return
+			end
+			if
+				type(value.id) == "string"
+				and type(value.item) == "string"
+				and type(value.level) == "number"
+				and value.stock ~= nil
+			then
+				local allowed = levels[value.item]
+				assert(
+					allowed == nil or table.find(allowed, value.level) ~= nil,
+					value.id .. " mints " .. value.item .. " level " .. value.level .. " outside its profile"
+				)
+			end
+			for _, child in value do
+				walk(child)
+			end
+		end
+		walk(document)
+	end,
 	["rank 3 of every skill category is reachable within 100 category actions"] = function()
 		local document = load()
 		for _, node in document.skillNodes do
