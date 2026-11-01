@@ -62,7 +62,7 @@ export type Config = {
 	hazards: { layout: any, origin: number? }?,
 	wildlife: {
 		catalog: Wildlife.Catalog,
-		spawns: { { id: string, catalogId: string, position: Wildlife.Position } },
+		spawns: { { id: string, catalogId: string, position: Wildlife.Position, coat: Color3? } },
 		nowMillis: () -> number,
 		maximum: number,
 		-- Optional herds (Herd.new) over spawn ids; absent keeps every spawn solitary.
@@ -1177,6 +1177,10 @@ function M.new(config: Config)
 				end
 				local model = DinosaurRig.new(engine, spawn.id, Vector3.new(p.x, p.y, p.z), folder, envelope, visual)
 				DinosaurRig.ground(model)
+				if spawn.coat then
+					-- Read by DinosaurMotion (registered below) as the rig's resting coat tint.
+					model:SetAttribute("ForgeCoatTint", spawn.coat)
+				end
 				wildlife.register(model, spawn.id, spawn.catalogId)
 			end
 		end

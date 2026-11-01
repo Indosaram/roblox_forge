@@ -1211,6 +1211,138 @@ return {
 			assert(not Shell.labelBlocked(Shell.labelRect(view[1] / 2, view[2] / 2, "도도"), r), "open ground")
 		end
 	end,
+	-- D2 R07 (p134 v63 lb_d1): four '프로토케라톱스' labels stacked top-centre over one onboarding herd whose
+	-- members grazed more than FLOCK_STUDS apart. The real overlay labels a herd (ForgeHerdId) once.
+	["D2 R07: the real overlay draws at most one label per herd"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		local I = roblox.Instance
+		local playerGui = I.new("PlayerGui")
+		local gui = I.new("ScreenGui")
+		gui.AbsoluteSize, gui.ResetOnSpawn, gui.Parent = roblox.Vector2.new(800, 360), false, playerGui
+		gui.AbsolutePosition = roblox.Vector2.zero
+		local root = {
+			Position = roblox.Vector3.new(0, 0, 0),
+			CFrame = roblox.CFrame.new(),
+			IsA = function(_, class)
+				return class == "BasePart"
+			end,
+		}
+		local player = {
+			Character = {
+				FindFirstChild = function(_, name)
+					return if name == "HumanoidRootPart" then root else nil
+				end,
+			},
+			WaitForChild = function()
+				return playerGui
+			end,
+		}
+		local wild = I.new("Folder")
+		wild.Name = "ForgeWildlife"
+		-- Two herds of four, members 15 studs apart (no FLOCK_STUDS chain), and one lone dodo.
+		local function animal(kind: string, herd: string?, x: number, z: number)
+			local model = I.new("Model")
+			model:SetAttribute("ForgeWildlifeKind", kind)
+			if herd then
+				model:SetAttribute("ForgeHerdId", herd)
+			end
+			local body = I.new("Part")
+			body.Name, body.Position, body.Parent = "HumanoidRootPart", roblox.Vector3.new(x, 0, z), model
+			model.PrimaryPart, model.Parent = body, wild
+		end
+		for index = 0, 3 do
+			animal("protoceratops", "rw.onboarding.protoceratops.01", -24 + index * 15, -16)
+			animal("parasaurolophus", "rw.onboarding.parasaurolophus.01", -24 + index * 15, 16)
+		end
+		animal("dodo", nil, 30, 0)
+		-- Spread-out projection: every creature lands in open ground, far from the HUD regions.
+		local camera = {
+			CFrame = roblox.CFrame.new(0, 40, 30),
+			WorldToViewportPoint = function(_, at: any)
+				return roblox.Vector3.new(400 + at.X * 5, 180 + at.Z * 3, 10), true
+			end,
+		}
+		camera.WorldToScreenPoint = camera.WorldToViewportPoint
+		local beats: { (number) -> () } = {}
+		local function signal(list: { any }?)
+			return {
+				Connect = function(_, fn)
+					if list then
+						table.insert(list, fn)
+					end
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		local services: { [string]: any } = {
+			Players = {
+				LocalPlayer = player,
+				PlayerRemoving = signal(),
+				GetPlayers = function()
+					return {}
+				end,
+			},
+			CollectionService = {
+				GetTagged = function()
+					return {}
+				end,
+			},
+			Workspace = {
+				CurrentCamera = camera,
+				GetDescendants = function()
+					return {}
+				end,
+				FindFirstChild = function(_, name)
+					return if name == "ForgeWildlife" then wild else nil
+				end,
+			},
+			RunService = { RenderStepped = signal(), Heartbeat = signal(beats) },
+			UserInputService = { TouchEnabled = true },
+			GuiService = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		shell.startOverlays({
+			gui = gui,
+			hidden = function()
+				return false
+			end,
+			name = function(_, key)
+				return key
+			end,
+			coordsText = function()
+				return ""
+			end,
+			tribe = function()
+				return ""
+			end,
+		})
+		beats[1](1)
+		local per: { [string]: number } = {}
+		for _, board in playerGui:FindFirstChild("ForgeWorldLabels"):GetChildren() do
+			if board:IsA("BillboardGui") and board.Enabled then
+				local name = string.match(board.Text.Text, "^(%a+)") or board.Text.Text
+				per[name] = (per[name] or 0) + 1
+			end
+		end
+		for _, kind in { "protoceratops", "parasaurolophus" } do
+			assert(per[kind] == 1, kind .. " herd shows one label, saw " .. tostring(per[kind]))
+		end
+		assert(per.dodo == 1, "a lone creature keeps its label")
+	end,
 	-- p134 v60 lb4: node labels drew through the vitals panel, under the quest toggle and over hotbar
 	-- slot 1. The skip tested WorldToViewportPoint against regions laid out in gui space, but the HUD
 	-- gui (CoreUISafeInsets) starts under the top bar while its AbsolutePosition reads 0, and a viewport
@@ -2102,6 +2234,19 @@ return {
 		assert(Shell.flockText("도도", 5) == "도도 ×5" and Shell.flockText("도도", 1) == "도도", "flock text")
 		local alone = Shell.flocks(dodos, texts, { ["wildlife:3"] = true })
 		assert(#alone == 3, "the focus dodo keeps its own label")
+		-- D2 R07: four '프로토케라톱스' labels stacked over one wandering herd. Herd members (ForgeHerdId) share
+		-- one label however far apart they stand, and the focused member carries it.
+		local herd, herdTexts, herdIds = {}, {}, {}
+		for index = 1, 4 do
+			local id = "wildlife:p" .. index
+			table.insert(herd, { id = id, kind = "wildlife", x = index * 20, y = 0, z = 0 })
+			herdTexts[id], herdIds[id] = "프로토케라톱스", "rw.onboarding.protoceratops.01"
+		end
+		local one, herdCounts = Shell.flocks(herd, herdTexts, {}, herdIds)
+		assert(#one == 1 and one[1].id == "wildlife:p1", "one label per herd, saw " .. #one)
+		assert(herdCounts["wildlife:p1"] == 4, "the herd label counts every member")
+		local focusHerd = Shell.flocks(herd, herdTexts, { ["wildlife:p3"] = true }, herdIds)
+		assert(#focusHerd == 1 and focusHerd[1].id == "wildlife:p3", "the focused member carries the herd label")
 		-- The Roblox buttons left of TopbarInset.Min.X, in gui space under a 58 px bar.
 		assert(Shell.coreRects(58, 220, 800, 58, 0, 0, 800)[2].width == 220, "the pill span")
 		local open = { safeHeight = 302 }

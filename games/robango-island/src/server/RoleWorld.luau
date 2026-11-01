@@ -1135,13 +1135,19 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- count > 1 spawns a herd, laid out from the recorded seed.
 	local herds = {}
 	local herdStream = Rng.new(seed):fork("herd")
+	local Onboarding = require(Forge.games["robango-island"].src.shared.OnboardingWildlife)
 	for _, authored in layout.spawns do
 		local stream = herdStream:fork(authored.id)
 		local members = Herd.place(authored.id, authored.position, authored.count, authored.radius, function()
 			return stream:nextNumber()
 		end)
+		local tint = Onboarding.coat(layoutId, authored.speciesId)
+		local coat = if tint then Color3.fromRGB(tint[1], tint[2], tint[3]) else nil
 		for _, member in members do
-			table.insert(spawns, { id = member.id, catalogId = authored.speciesId, position = member.position })
+			table.insert(
+				spawns,
+				{ id = member.id, catalogId = authored.speciesId, position = member.position, coat = coat }
+			)
 		end
 		if #members > 1 then
 			local followers = {}

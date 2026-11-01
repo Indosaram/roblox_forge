@@ -187,6 +187,7 @@ function M.new(config: Config)
 				"ForgeWildlifeHome",
 				"ForgeWildlifeKiller",
 				"ForgeWildlifeKilledAt",
+				"ForgeHerdId",
 			}
 		do
 			entry.model:SetAttribute(name, nil)
@@ -332,6 +333,8 @@ function M.new(config: Config)
 		count += 1
 		model:SetAttribute("ForgeWildlifeId", id)
 		model:SetAttribute("ForgeWildlifeKind", kind)
+		-- The HUD labels a whole herd once (HudShell.flocks).
+		model:SetAttribute("ForgeHerdId", if herdOf[id] then herdOf[id].id else nil)
 		return true
 	end
 	function api.access(actorId: string, targetId: string): Wildlife.Access?

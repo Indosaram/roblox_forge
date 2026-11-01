@@ -566,15 +566,45 @@ M.FLOCK_STUDS = 12
 --- Collapse flocks: wildlife targets with the same `texts[id]` chained within FLOCK_STUDS of each other
 --- keep only their first (nearest) member, which carries the flock size in the returned counts. Targets
 --- in `alone` (the focus) never merge. Order is kept.
+--- D2 R07 (four '프로토케라톱스' labels stacked over one herd): members of one herd (`herds[id]`, the
+--- ForgeHerdId attribute) always share a single label, however far apart they wander; the focused
+--- member carries it when it is in the herd, else the nearest member.
 function M.flocks(
 	targets: { Candidate },
 	texts: { [string]: string },
-	alone: { [string]: boolean }
+	alone: { [string]: boolean },
+	herds: { [string]: string }?
 ): ({ Candidate }, { [string]: number })
+	local herdOf: { [string]: string } = herds or {}
+	local lead: { [string]: string } = {}
+	local size: { [string]: number } = {}
+	for _, target in targets do
+		local herd = if target.kind == "wildlife" then herdOf[target.id] else nil
+		if herd then
+			size[herd] = (size[herd] or 0) + 1
+			if alone[target.id] and lead[herd] == nil then
+				lead[herd] = target.id
+			end
+		end
+	end
+	for _, target in targets do
+		local herd = if target.kind == "wildlife" then herdOf[target.id] else nil
+		if herd and lead[herd] == nil then
+			lead[herd] = target.id
+		end
+	end
 	local out: { Candidate } = {}
 	local counts: { [string]: number } = {}
 	local groups: { { leader: string, text: string, members: { Candidate } } } = {}
 	for _, target in targets do
+		local herd = if target.kind == "wildlife" then herdOf[target.id] else nil
+		if herd then
+			if lead[herd] == target.id then
+				counts[target.id] = size[herd]
+				table.insert(out, target)
+			end
+			continue
+		end
 		local joined = false
 		if target.kind == "wildlife" and not alone[target.id] then
 			for _, group in groups do
@@ -2366,7 +2396,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 						local text = if type(entry[3]) == "string" then options.name(entry[2], entry[3]) else nil
 						if text then
 							local id = string.format("%s:%06d", entry[2], index)
-							lookup[id] = { anchor, text, entry[2] }
+							lookup[id] = { anchor, text, entry[2], entry[1] }
 							table.insert(candidates, { id = id, kind = entry[2], x = at.X, y = at.Y, z = at.Z })
 						end
 					end
@@ -2393,13 +2423,20 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 						full = full or target.id
 					end
 				end
-				-- A flock is one label '도도 ×5' (M.flocks); the focus creature keeps its own.
+				-- A flock is one label '도도 ×5' (M.flocks); the focus creature keeps its own. A herd
+				-- (ForgeHerdId, WildlifeWorld) is always one label.
 				local texts: { [string]: string } = {}
+				local herdIds: { [string]: string } = {}
 				for _, target in targets do
-					texts[target.id] = lookup[target.id][2]
+					local entry = lookup[target.id]
+					texts[target.id] = entry[2]
+					local herd = if entry[3] == "wildlife" then entry[4]:GetAttribute("ForgeHerdId") else nil
+					if type(herd) == "string" then
+						herdIds[target.id] = herd
+					end
 				end
 				local counts: { [string]: number }
-				targets, counts = M.flocks(targets, texts, focused)
+				targets, counts = M.flocks(targets, texts, focused, herdIds)
 				for _, target in targets do
 					texts[target.id] = M.flockText(texts[target.id], counts[target.id])
 				end

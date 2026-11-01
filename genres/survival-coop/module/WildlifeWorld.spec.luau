@@ -857,6 +857,11 @@ return {
 		})
 		api.register(leaderModel, "lead", "grazer")
 		api.register(followerModel, "tail", "grazer")
+		-- D2 R07: the HUD labels a herd once by this attribute.
+		assert(
+			leaderModel:GetAttribute("ForgeHerdId") == "trio" and followerModel:GetAttribute("ForgeHerdId") == "trio",
+			"herd members carry their herd id"
+		)
 		-- The player wears the follower down to a quarter of its health (a confirmed hit alarms the herd).
 		local worn = api.snapshot("tail")
 		worn.version += 1

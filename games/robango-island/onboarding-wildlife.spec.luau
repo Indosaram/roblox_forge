@@ -72,6 +72,84 @@ local function step(world: any, spawn: any, gap: number, provoked: boolean): (an
 end
 
 return {
+	-- D2 R07 (p134 v63 lb_d1): at the default 50-stud camera the protoceratops herd read grey on grey
+	-- ground. Every onboarding herd wears a species coat that stands off the painted onboarding ground
+	-- (luminance or hue) and off every other herd's coat.
+	["D2 R07: onboarding herds wear species coats that read against the onboarding ground"] = function()
+		local engine = Engine.new(nil, true)
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.onboarding", 1776)
+		local function luma(c: Color3): number
+			return 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B
+		end
+		local function hsv(c: Color3): (number, number)
+			local high, low = math.max(c.R, c.G, c.B), math.min(c.R, c.G, c.B)
+			local d = high - low
+			local h = 0
+			if d > 0 then
+				h = if high == c.R
+					then ((c.G - c.B) / d) % 6
+					elseif high == c.G then (c.B - c.R) / d + 2
+					else (c.R - c.G) / d + 4
+			end
+			return h * 60, if high > 0 then d / high else 0
+		end
+		local function apart(a: Color3, b: Color3): (boolean, string)
+			local ha, sa = hsv(a)
+			local hb = hsv(b)
+			local dh = math.abs(ha - hb)
+			dh = math.min(dh, 360 - dh)
+			local dl = math.abs(luma(a) - luma(b))
+			return dl >= 0.15 or (dh >= 60 and sa >= 0.4), string.format("dLuma %.3f dHue %.0f sat %.2f", dl, dh, sa)
+		end
+		local kinds = details()
+		local herds: { [string]: Color3 } = {}
+		local members: { [string]: number } = {}
+		for _, spawn in world.roleWildlife.spawns do
+			local detail = kinds[spawn.catalogId]
+			if detail and detail.behaviour ~= "predator" then
+				members[spawn.catalogId] = (members[spawn.catalogId] or 0) + 1
+				if spawn.coat then
+					herds[spawn.catalogId] = spawn.coat
+				end
+			end
+		end
+		local herdCount = 0
+		for species, count in members do
+			if count > 1 then
+				herdCount += 1
+				assert(typeof(herds[species]) == "Color3", species .. " herd wears a coat tint")
+			end
+		end
+		assert(herdCount >= 4 and herds.protoceratops, "the onboarding herds (protoceratops first) were checked")
+		local grounds = 0
+		for material, ground in engine.terrainColors do
+			grounds += 1
+			for species, coat in herds do
+				local ok, why = apart(coat, ground)
+				assert(ok, species .. " coat reads as " .. material .. " ground: " .. why)
+			end
+		end
+		assert(grounds >= 3 and engine.terrainColors.Grass, "the onboarding ground colours were read")
+		for a, coatA in herds do
+			for b, coatB in herds do
+				if a < b then
+					local ha, hb = hsv(coatA), hsv(coatB)
+					local dh = math.min(math.abs(ha - hb), 360 - math.abs(ha - hb))
+					local dl = math.abs(luma(coatA) - luma(coatB))
+					assert(dh >= 30 or dl >= 0.15, a .. " and " .. b .. " share a coat")
+				end
+			end
+		end
+		world.destroy()
+		-- Off onboarding nothing is tinted.
+		local other = build("rw.explore10")
+		for _, spawn in other.roleWildlife.spawns do
+			assert(spawn.coat == nil, spawn.id .. " keeps its authored look off onboarding")
+		end
+		other.destroy()
+	end,
 	["onboarding herbivores never engage a player who walks up to them"] = function()
 		local world = build("rw.onboarding")
 		local kinds = details()

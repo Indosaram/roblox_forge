@@ -71,4 +71,29 @@ return {
 			)
 		end
 	end,
+	-- D2 R07: an onboarding rig's coat tint (ForgeCoatTint) is the resting fill of its one feedback
+	-- Highlight; a cue swaps it to the outline look and the coat returns afterwards.
+	["a coat tint fills the rig at rest and yields to feedback cues"] = function()
+		local rig =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), { environment = environment })()
+		local motion =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurMotion.luau"), { environment = environment })()
+		local world = roblox.Instance.new("Workspace")
+		local model = rig.new("grazer", "coat", roblox.Vector3.zero, world)
+		local coat = roblox.Color3.fromRGB(240, 150, 50)
+		model:SetAttribute("ForgeCoatTint", coat)
+		local state = { mode = "idle", healthMilli = 40000, strike = 0 }
+		local controller = motion.new(model, model.PrimaryPart, state, 0)
+		local fill = model:FindFirstChild("WildlifeFeedback")
+		assert(fill.Enabled and fill.FillColor == coat and fill.FillTransparency < 1, "coat shows at rest")
+		state.healthMilli = 30000
+		controller.update(state, 100, roblox.Vector3.zero)
+		assert(fill.Enabled and fill.FillTransparency == 1, "a hurt cue shows the outline only")
+		controller.update(state, 600, roblox.Vector3.zero)
+		assert(fill.Enabled and fill.FillTransparency == motion.COAT_FILL, "the coat returns after the cue")
+		controller.destroy()
+		local plain = rig.new("grazer", "plain", roblox.Vector3.zero, world)
+		motion.new(plain, plain.PrimaryPart, state, 0)
+		assert(not plain:FindFirstChild("WildlifeFeedback").Enabled, "no coat, no resting fill")
+	end,
 }

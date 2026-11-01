@@ -69,6 +69,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		local name = if type(material) == "string" then material else tostring(material and material.Name or material)
 		assert(terrainMaterials[name], "Invalid terrain material " .. name)
 	end
+	local terrainColors: { [string]: any } = {}
 	local function instance(className): any
 		if className == "Terrain" then
 			local properties: any = {
@@ -105,8 +106,11 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 						)
 					end
 				end,
-				SetMaterialColor = function(_, material)
+				SetMaterialColor = function(_, material: any, color)
 					terrainMaterial(material)
+					-- Recorded so look specs can read the painted ground colours.
+					local name: string = if type(material) == "string" then material else tostring(material.Name)
+					terrainColors[name] = color
 				end,
 				-- Recolours voxels in place (occupancy unchanged): the physical terrain heights are untouched.
 				ReplaceMaterial = function(_, _region, resolution: number, from, to)
@@ -866,6 +870,7 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 		end,
 		parts = callbacks,
 		terrainWrites = terrainWrites,
+		terrainColors = terrainColors,
 		-- Drop instances whose root ancestor was destroyed (a closed world). Every lookup and the
 		-- warehouse ray scan walk this list, so without pruning each world rebuild gets slower.
 		-- Order is kept, so reverse-order lookups (interact) behave the same.

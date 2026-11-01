@@ -6,6 +6,22 @@ local M = {}
 M.LAYOUT = "rw.onboarding"
 -- Milli HP per strike: a provoked herd of four needs ~25 s to down a player (100 000).
 M.DAMAGE_CAP_MILLI = 3000
+-- D2 R07 (phone, CameraConfig distance 50): the first herds read grey on grey ground. Each onboarding
+-- herbivore wears a species coat tint (SurvivalWorld spawn.coat -> DinosaurMotion fill Highlight over
+-- the baked texture; no new texture). Every coat is either much brighter than the onboarding ground or
+-- far from its olive hue (onboarding-wildlife.spec), and no two species share one.
+M.COATS = table.freeze({
+	dodo = { 120, 140, 240 },
+	protoceratops = { 240, 150, 50 },
+	parasaurolophus = { 60, 200, 190 },
+	triceratops = { 220, 60, 140 },
+	turtle = { 245, 225, 120 },
+})
+
+--- Coat tint { r, g, b } of an onboarding spawn's species, nil elsewhere (no tint).
+function M.coat(layoutId: string, speciesId: string): { number }?
+	return if layoutId == M.LAYOUT then M.COATS[speciesId] else nil
+end
 
 --- Rewrites runtime wildlife rows and catalog species in place; no-op off onboarding.
 function M.apply(content: any, layoutId: string, wildlife: { any }, species: { [string]: any })

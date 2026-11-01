@@ -2,6 +2,13 @@
 -- Server presentation only. C0 replicates; Motor6D.Transform does not.
 -- A strike gesture is an attempted attack, never a damage receipt.
 local M = {}
+-- D2 R07 coat: a rig whose spawn carries ForgeCoatTint (Color3) wears it as a translucent fill on its
+-- one feedback Highlight while no cue shows, so the baked texture still reads through it (the opaque
+-- baked map ignores MeshPart.Color). Cues swap the same Highlight to the outline look.
+M.COAT_ATTRIBUTE = "ForgeCoatTint"
+M.COAT_FILL = 0.5
+M.COAT_EDGE = Color3.fromRGB(36, 28, 20)
+M.COAT_EDGE_TRANSPARENCY = 0.55
 export type State = { mode: string, healthMilli: number, strike: number }
 export type Controller = {
 	update: (State, number, Vector3) -> (),
@@ -19,6 +26,17 @@ function M.new(model: Model, root: BasePart, initial: State, now: number): Contr
 	outline.DepthMode = Enum.HighlightDepthMode.Occluded
 	outline.FillTransparency, outline.OutlineTransparency = 1, 0.25
 	outline.Enabled, outline.Parent = false, model
+	local coat = model:GetAttribute(M.COAT_ATTRIBUTE)
+	local function settle()
+		if typeof(coat) == "Color3" then
+			outline.FillColor, outline.FillTransparency = coat, M.COAT_FILL
+			outline.OutlineColor, outline.OutlineTransparency = M.COAT_EDGE, M.COAT_EDGE_TRANSPARENCY
+			outline.Enabled = true
+		else
+			outline.Enabled = false
+		end
+	end
+	settle()
 	local health, strike = initial.healthMilli, initial.strike
 	local last, rendered, phase = now, now - 50, 0
 	local hurtAt, attackAt, deadAt = -math.huge, -math.huge, if health == 0 then now else math.huge
@@ -69,12 +87,16 @@ function M.new(model: Model, root: BasePart, initial: State, now: number): Contr
 		if cue ~= feedback then
 			feedback = cue
 			model:SetAttribute("ForgeWildlifeFeedback", if cue == "" then nil else cue)
-			outline.Enabled = cue ~= ""
-			outline.OutlineColor = if dead
-				then Color3.fromRGB(112, 116, 105)
-				elseif hurt > 0 then Color3.fromRGB(180, 146, 119)
-				elseif attack > 0 then Color3.fromRGB(170, 108, 76)
-				else Color3.fromRGB(190, 163, 98)
+			if cue == "" then
+				settle()
+			else
+				outline.Enabled, outline.FillTransparency, outline.OutlineTransparency = true, 1, 0.25
+				outline.OutlineColor = if dead
+					then Color3.fromRGB(112, 116, 105)
+					elseif hurt > 0 then Color3.fromRGB(180, 146, 119)
+					elseif attack > 0 then Color3.fromRGB(170, 108, 76)
+					else Color3.fromRGB(190, 163, 98)
+			end
 		end
 		local function pose(name: string, x: number, y: number, z: number, lift: number?)
 			local binding = joints[name .. "Joint"]
