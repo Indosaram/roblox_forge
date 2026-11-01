@@ -536,6 +536,94 @@ local function fight(phone: any, live: any, id: string, seconds: number)
 end
 
 return {
+	-- D2 phone R08 (v63-v67): no target bar, damage number or engaged border showed in any frame; the
+	-- engaged cue was four faint (0.12) coral corners. A tap opens the bar at once, every landed hit
+	-- floats "-N" over the target, and a full-edge red border shows while engaged and fades after.
+	["a creature tap opens the target bar at once, each hit floats a number, and a red edge border shows while engaged"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		phone.gui.AbsoluteSize = roblox.Vector2.new(2400, 1080)
+		local model = phone.models[DODO]
+		local dodo = model.HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 15, 3, dodo.Z))
+		assert(not phone.bar(), "no bar before the tap")
+		assert(phone.tap(DODO), "the creature tap engages")
+		-- Before any frame, swing or server reply: the bar names the target and reads full health.
+		assert(phone.bar(), "the tap itself opens the target bar and step-back pill")
+		local bar = phone.gui:FindFirstChild("TargetBar")
+		assert(string.find(bar:FindFirstChild("Name").Text, "dodo", 1, true), "the bar names the dodo")
+		assert(bar.Track.Fill.Size.X.Scale == 1, "an unhurt dodo reads full")
+		assert(bar.Track.Health.Text == string.format("%d / %d", FULL // 1000, FULL // 1000), bar.Track.Health.Text)
+		-- The border: its own inset-ignoring gui of four full-length bands.
+		local edge = phone.playerGui:FindFirstChild("ForgeCombatEdge")
+		assert(edge and edge.IgnoreGuiInset, "an edge border gui that reaches the physical screen edge")
+		local border = edge:FindFirstChild("EngagedBorder")
+		assert(border:GetAttribute("ForgeTapThrough"), "the border never swallows a world tap")
+		-- Enabled number boards over the dodo, by text (the harness parks each float on its first frame).
+		local function over(): { [string]: number }
+			local counts: { [string]: number } = {}
+			for _, board in phone.playerGui:FindFirstChild("ForgeDamageNumbers"):GetChildren() do
+				if board.Enabled and board.Adornee == model.HumanoidRootPart then
+					counts[board.Text.Text] = (counts[board.Text.Text] or 0) + 1
+				end
+			end
+			return counts
+		end
+		local health = FULL
+		local hits = 0
+		for _ = 1, 40 do
+			local shown = over()
+			phone.tick()
+			local now = hp(live, DODO)
+			if now < health then
+				local want = Combat.damageText(Combat.hit(health, now) :: number)
+				assert(string.sub(want, 1, 1) == "-", "a damage number reads as a loss")
+				assert((over()[want] or 0) == (shown[want] or 0) + 1, "the hit floated " .. want .. " over the dodo")
+				hits += 1
+				health = now
+			end
+			if now == 0 then
+				break
+			end
+			if hits == 1 then
+				-- Mid-fight on a 2400x1080 phone: a visible red band along every edge.
+				assert(border.Visible, "the border shows while engaged")
+				assert(border:GetAttribute("ForgeGlow") >= 0.3, "strong enough to read on a phone")
+				local names = {}
+				for _, band in border:GetChildren() do
+					names[band.Name] = true
+					local across = band.Name == "Top" or band.Name == "Bottom"
+					local long = if across then band.Size.X else band.Size.Y
+					local deep = if across then band.Size.Y else band.Size.X
+					assert(long.Scale == 1, band.Name .. " spans the full edge")
+					assert(deep.Offset >= 100, band.Name .. " band depth " .. deep.Offset .. " px")
+					assert(band.BackgroundColor3.R > 0.6 and band.BackgroundColor3.G < 0.3, band.Name .. " is red")
+				end
+				assert(names.Top and names.Bottom and names.Left and names.Right, "all four edges")
+			end
+		end
+		assert(hits >= 2, "several landed hits each floated a number, got " .. hits)
+		live.factory.close()
+	end,
+	["the engaged border fades out after the player steps back"] = function()
+		local live = server()
+		hold(live, "bone-knife", 60000)
+		local phone = client(live)
+		local dodo = phone.models[DODO].HumanoidRootPart.Position
+		phone.place(roblox.Vector3.new(dodo.X + 3, 3, dodo.Z))
+		assert(phone.tap(DODO), "engage")
+		phone.tick()
+		local border = phone.playerGui:FindFirstChild("ForgeCombatEdge"):FindFirstChild("EngagedBorder")
+		assert(border.Visible, "engaged: border up")
+		phone.hud.disengage()
+		phone.tick(0.2)
+		assert(not phone.bar(), "stepped back: no bar")
+		assert(border.Visible and border:GetAttribute("ForgeGlow") > 0, "the border fades rather than snaps off")
+		phone.tick(1)
+		assert(not border.Visible, "faded out after disengage")
+		live.factory.close()
+	end,
 	["a tapped dodo is walked up to and struck until it dies, holding the opening bone knife"] = function()
 		local live = server()
 		hold(live, "bone-knife", 60000)

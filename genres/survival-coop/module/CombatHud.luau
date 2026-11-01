@@ -2,11 +2,11 @@
 -- Combat presentation (Robango plan C3, G12; ui-spec "Tideglass"). A tapped creature becomes the
 -- target and the character attacks it semi-automatically: approach to reach, swing, wait, swing
 -- again until it falls, the player steps back, or the server refuses for good. Around that: a
--- target bar (name, Lv, HP), the end-combat pill ("Step back"), floating damage numbers, a coral
--- corner vignette that deepens at low health, a short dodge hop, and on a kill the carcass fan
--- (CarcassExtension outputs: meat, hide, bone ...). The client is presentation only: every swing
--- and every carcass take is a durable command the server validates (range, cooldown, death,
--- killer, reach); a refusal only steers what the client shows or tries next.
+-- target bar (name, Lv, HP), the end-combat pill ("Step back"), floating damage numbers, a red
+-- full-edge border while engaged that deepens at low health, a short dodge hop, and on a kill the
+-- carcass fan (CarcassExtension outputs: meat, hide, bone ...). The client is presentation only:
+-- every swing and every carcass take is a durable command the server validates (range, cooldown,
+-- death, killer, reach); a refusal only steers what the client shows or tries next.
 --
 -- Pure helpers first (Lune specs); the Roblox runtime follows (M.start). One module on purpose:
 -- the pack's QA-PERF-01 static budget counts every shipped ModuleScript.
@@ -46,8 +46,14 @@ M.SWING_SECONDS = 0.9 -- pause after a confirmed swing before the next
 M.BACKOFF_SECONDS = 0.4 -- pause after a transient refusal (cooldown, windup, busy)
 M.APPROACH_SECONDS = 4 -- an approach that has not arrived by then is retried
 M.LOW_HEALTH = 0.35 -- health fraction under which the vignette deepens
-M.COMBAT_GLOW = 0.12 -- corner glow opacity while a target is engaged
-M.MAX_GLOW = 0.6
+-- D2 phone R08: the old 0.12 corner glow never read on a phone. Engaged now draws a full-edge red
+-- border (Durango R08-1) at this opacity on the outer edge, easing in and fading out after release.
+M.COMBAT_GLOW = 0.42 -- edge border opacity while a target is engaged
+M.MAX_GLOW = 0.7
+M.BORDER_DEPTH = 0.16 -- border band depth as a fraction of the shorter screen side
+M.BORDER_IN_SECONDS = 0.25 -- seconds to ease from clear to full
+M.BORDER_OUT_SECONDS = 0.8 -- seconds to fade from full to clear after disengage
+M.BORDER_COLOR = table.freeze({ r = 204, g = 40, b = 34 })
 M.FAN_STEP = 40 -- degrees between carcass tokens (ui-spec section 3 shell fan)
 M.FAN_SPAN = 200
 -- Seconds a body can be harvested after the kill (CarcassExtension.LIFETIME_SECONDS; a spec pins
@@ -206,7 +212,7 @@ function M.fraction(healthMilli: number?, maxMilli: number?): number
 	return math.clamp(healthMilli / maxMilli, 0, 1)
 end
 
---- Corner vignette opacity for the local health fraction: a faint coral glow while engaged,
+--- Edge border opacity for the local health fraction: a red full-edge border while engaged,
 --- deepening linearly from LOW_HEALTH down to MAX_GLOW at zero health in or out of combat.
 function M.vignette(health: number, engaged: boolean): number
 	local base = if engaged then M.COMBAT_GLOW else 0
@@ -215,6 +221,20 @@ function M.vignette(health: number, engaged: boolean): number
 	end
 	local depth = 1 - math.max(health, 0) / M.LOW_HEALTH
 	return math.max(base, M.COMBAT_GLOW + (M.MAX_GLOW - M.COMBAT_GLOW) * depth)
+end
+
+--- Border opacity one frame on: moves `current` toward `target` at the in (rising) or out
+--- (falling) rate over `dt` seconds, never overshooting.
+function M.ease(current: number, target: number, dt: number): number
+	if target > current then
+		return math.min(target, current + dt * M.MAX_GLOW / M.BORDER_IN_SECONDS)
+	end
+	return math.max(target, current - dt * M.MAX_GLOW / M.BORDER_OUT_SECONDS)
+end
+
+--- Floating number text for health lost on a creature ("-8").
+function M.damageText(lost: number): string
+	return "-" .. tostring(lost)
 end
 
 --- Species level and full health (milli) from content wildlifeDetails; nil level for legacy ids.
@@ -346,22 +366,40 @@ function M.start(options: Options)
 	local gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn, gui.IgnoreGuiInset = "ForgeCombatHUD", false, false
 	gui.ScreenInsets, gui.DisplayOrder = Enum.ScreenInsets.CoreUISafeInsets, 5
-	-- Vignette: four corner squares, coral fading toward the screen centre (corners only).
-	local corners: { any } = {}
-	for index, spec in { { 0, 0, 45 }, { 1, 0, 135 }, { 0, 1, -45 }, { 1, 1, -135 } } do
-		local corner = Instance.new("Frame")
-		corner.Name = "Vignette" .. index
-		corner.AnchorPoint, corner.Position = Vector2.new(spec[1], spec[2]), UDim2.fromScale(spec[1], spec[2])
-		corner.BorderSizePixel, corner.BackgroundColor3, corner.Active = 0, color(P.coral), false
-		corner.ZIndex = 0
-		-- The glow is decoration: a tap on a creature under a corner must still reach the world.
-		corner:SetAttribute("ForgeTapThrough", true)
+	-- Engaged border (D2 phone R08): four edge bands, red fading toward the screen centre, around the
+	-- whole screen. Its own gui ignores the safe insets so the band reaches the physical edge on a
+	-- notched phone. Decoration only: a tap under it still reaches the world.
+	local edgeGui = Instance.new("ScreenGui")
+	edgeGui.Name, edgeGui.ResetOnSpawn, edgeGui.IgnoreGuiInset = "ForgeCombatEdge", false, true
+	edgeGui.ScreenInsets, edgeGui.DisplayOrder = Enum.ScreenInsets.None, 4
+	local border = Instance.new("Frame")
+	border.Name, border.BackgroundTransparency, border.Size, border.Visible =
+		"EngagedBorder", 1, UDim2.fromScale(1, 1), false
+	border.Active = false
+	border:SetAttribute("ForgeTapThrough", true)
+	border:SetAttribute("ForgeGlow", 0)
+	border.Parent = edgeGui
+	local bands: { any } = {}
+	-- Anchor x/y, full-length axis ("x" spans the width), gradient rotation (keypoint 0 = the edge).
+	local edges: { { name: string, ax: number, ay: number, axis: string, rotation: number } } = {
+		{ name = "Top", ax = 0, ay = 0, axis = "x", rotation = 90 },
+		{ name = "Bottom", ax = 0, ay = 1, axis = "x", rotation = -90 },
+		{ name = "Left", ax = 0, ay = 0, axis = "y", rotation = 0 },
+		{ name = "Right", ax = 1, ay = 0, axis = "y", rotation = 180 },
+	}
+	for _, spec in edges do
+		local band = Instance.new("Frame")
+		band.Name, band.BorderSizePixel, band.Active = spec.name, 0, false
+		band.BackgroundColor3, band.BackgroundTransparency = color(M.BORDER_COLOR), 0
+		band.AnchorPoint, band.Position = Vector2.new(spec.ax, spec.ay), UDim2.fromScale(spec.ax, spec.ay)
+		band:SetAttribute("ForgeTapThrough", true)
+		band:SetAttribute("ForgeAxis", spec.axis)
 		local fade = Instance.new("UIGradient")
-		fade.Rotation = spec[3]
-		fade.Parent = corner
-		corner.Parent = gui
-		table.insert(corners, corner)
+		fade.Rotation, fade.Parent = spec.rotation, band
+		band.Parent = border
+		table.insert(bands, band)
 	end
+	edgeGui.Parent = player:WaitForChild("PlayerGui")
 	-- Target bar: name and Lv on one line, the HP track under it.
 	local bar = Instance.new("Frame")
 	bar.Name, bar.BackgroundColor3, bar.BackgroundTransparency, bar.Visible = "TargetBar", color(P.ink), 0.35, false
@@ -438,7 +476,7 @@ function M.start(options: Options)
 	numberFolder.Name, numberFolder.ResetOnSpawn = "ForgeDamageNumbers", false
 	numberFolder.Parent = player:WaitForChild("PlayerGui")
 	local pool: { any } = {}
-	local function float(anchor: any, text: string, tint: any)
+	local function float(anchor: any, text: string, tint: any, big: boolean?)
 		if not anchor or not anchor.Parent then
 			return
 		end
@@ -472,6 +510,8 @@ function M.start(options: Options)
 		end
 		local label = board:FindFirstChild("Text")
 		label.Text, label.TextColor3, label.TextTransparency = text, color(tint), 0
+		-- A hit on the engaged target reads larger (Durango R08: white numbers over the creature).
+		board.Size = if big then UDim2.fromOffset(160, 56) else UDim2.fromOffset(120, 40)
 		board.Adornee, board.Enabled = anchor, true
 		local started = clock()
 		local drift = (#text % 3 - 1) * 0.6
@@ -657,6 +697,47 @@ function M.start(options: Options)
 	end
 
 	local api = {}
+	--- Paints the target bar (name, Lv, HP) and the step-back pill for the engaged target; true when
+	--- engaged. Runs every frame and once at the tap itself, so the bar is up before any hit or reply.
+	local function paintBar(regions: any?, hidden: boolean?): boolean
+		local engaged = session ~= nil and targetModel ~= nil
+		local off = if hidden == nil then options.hidden() else hidden
+		-- The engaged creature's label is the focus of the world-label declutter (HudShell).
+		local focusId = if engaged and session then session.target else nil
+		if player:GetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE) ~= focusId then
+			player:SetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE, focusId)
+		end
+		bar.Visible = engaged and not off
+		stepBack.Visible = engaged and not off
+		if not engaged then
+			return false
+		end
+		local size = gui.AbsoluteSize
+		local r = regions or HudShell.regions(size.X, size.Y, HudShell.guiClear(gui), true)
+		HudShell.put(bar, r.target)
+		local hp = targetModel:GetAttribute("ForgeWildlifeHealthMilli")
+		local kind = targetModel:GetAttribute("ForgeWildlifeKind")
+		local level, full = M.species(options.content, kind)
+		local maximum = math.max(full or 0, if type(kind) == "string" then maxSeen[kind] or 0 else 0, 1)
+		-- Health not replicated yet: a fresh creature reads full.
+		local health = if type(hp) == "number" then hp else maximum
+		barName.TextSize = HudShell.textSize("heading", r.safeHeight)
+		local name = options.name(if type(kind) == "string" then kind else "")
+		barName.Text = if level
+			then string.format(
+				'%s  <font color="#%02X%02X%02X">%s</font>',
+				name,
+				P.coral.r,
+				P.coral.g,
+				P.coral.b,
+				string.format(t("level"), level)
+			)
+			else name
+		fill.Size = UDim2.fromScale(M.fraction(health, maximum), 1)
+		hpText.TextSize = HudShell.textSize("caption", r.safeHeight)
+		hpText.Text = string.format("%d / %d", math.ceil(health / 1000), math.ceil(maximum / 1000))
+		return true
+	end
 	--- A tap on one of the local player's open carcasses (body or its mark), from any distance: walk
 	--- there and open the harvest picker on arrival. False when the body is not one to harvest.
 	function api.harvest(model: any): boolean
@@ -711,6 +792,7 @@ function M.start(options: Options)
 			chaseFrom = if root then root.Position else nil
 		end
 		closeCarcass()
+		paintBar()
 		return true
 	end
 	--- A ground tap pauses the auto loop (the player walks away on purpose); the bar stays.
@@ -753,6 +835,9 @@ function M.start(options: Options)
 	end
 	local ownHealth: number? = nil
 	local approachGoal: any = nil
+	-- Engaged border state: eased opacity, last frame clock, and what the bands were last drawn at.
+	local glow, drawn, drawnDepth = 0, -1, -1
+	local lastFrame = clock()
 	table.insert(
 		connections,
 		run.Heartbeat:Connect(function()
@@ -775,8 +860,11 @@ function M.start(options: Options)
 						maxSeen[kind] = math.max(maxSeen[kind] or 0, hp)
 					end
 					local lost = M.hit(lastHealth[model], hp)
-					if lost and root and (anchor.Position - root.Position).Magnitude < 60 then
-						float(anchor, tostring(lost), P.ochre)
+					if lost and model == targetModel then
+						-- The engaged target: a big "-N" over it on every landed hit, at any distance.
+						float(anchor, M.damageText(lost), P.bone, true)
+					elseif lost and root and (anchor.Position - root.Position).Magnitude < 60 then
+						float(anchor, M.damageText(lost), P.ochre)
 					end
 					if hp > 0 then
 						seenAlive[model] = true
@@ -874,8 +962,8 @@ function M.start(options: Options)
 			local hp = targetModel and targetModel:GetAttribute("ForgeWildlifeHealthMilli")
 			local alive = anchor ~= nil
 				and targetModel.Parent ~= nil
-				and type(hp) == "number"
-				and hp > 0
+				-- Health not replicated yet reads as alive (a fresh tap must not drop the bar at once).
+				and (type(hp) ~= "number" or hp > 0)
 				and targetModel:GetAttribute("ForgeWildlifeState") ~= "captured"
 			local distance = if anchor and root
 				then Vector3.new(anchor.Position.X - root.Position.X, 0, anchor.Position.Z - root.Position.Z).Magnitude
@@ -939,53 +1027,34 @@ function M.start(options: Options)
 				end
 			end
 			-- Target bar.
-			local engaged = session ~= nil and targetModel ~= nil
-			-- The engaged creature's label is the focus of the world-label declutter (HudShell).
-			local focusId = if engaged and session then session.target else nil
-			if player:GetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE) ~= focusId then
-				player:SetAttribute(HudShell.COMBAT_TARGET_ATTRIBUTE, focusId)
-			end
-			bar.Visible = engaged and not hidden
-			stepBack.Visible = engaged and not hidden
+			local engaged = paintBar(regions, hidden)
 			if engaged then
-				HudShell.put(bar, regions.target)
 				HudShell.put(stepBack, regions.endCombat)
-				local kind = targetModel:GetAttribute("ForgeWildlifeKind")
-				local level, full = M.species(options.content, kind)
-				local maximum = math.max(full or 0, if type(kind) == "string" then maxSeen[kind] or 0 else 0, 1)
-				local heading = HudShell.textSize("heading", regions.safeHeight)
-				barName.TextSize = heading
-				local name = options.name(if type(kind) == "string" then kind else "")
-				barName.Text = if level
-					then string.format(
-						'%s  <font color="#%02X%02X%02X">%s</font>',
-						name,
-						P.coral.r,
-						P.coral.g,
-						P.coral.b,
-						string.format(t("level"), level)
-					)
-					else name
-				fill.Size = UDim2.fromScale(M.fraction(hp, maximum), 1)
-				hpText.TextSize = HudShell.textSize("caption", regions.safeHeight)
-				hpText.Text = string.format("%d / %d", math.ceil((hp or 0) / 1000), math.ceil(maximum / 1000))
 				stepBack.TextSize = HudShell.textSize("label", regions.safeHeight)
 			end
-			-- Vignette.
+			-- Engaged border: eased toward the engaged / low-health level, fading out after release.
 			local health = if humanoid and humanoid.MaxHealth > 0 then humanoid.Health / humanoid.MaxHealth else 1
-			local glow = if hidden then 0 else M.vignette(health, engaged)
+			local want = if hidden then 0 else M.vignette(health, engaged)
+			glow = M.ease(glow, want, math.max(0, now - lastFrame))
+			lastFrame = now
 			local pulse = if health < M.LOW_HEALTH then 0.85 + 0.15 * math.sin(now * 5) else 1
-			local edge = math.floor(math.min(size.X, size.Y) * (0.28 + 0.2 * glow) + 0.5)
-			for _, corner in corners do
-				corner.Size = UDim2.fromOffset(edge, edge)
-				corner.BackgroundTransparency = 0
-				local fade = corner:FindFirstChildOfClass("UIGradient")
-				fade.Transparency = NumberSequence.new({
-					NumberSequenceKeypoint.new(0, 1 - glow * pulse),
-					NumberSequenceKeypoint.new(0.6, 1),
+			local shown = glow * pulse
+			border.Visible = shown > 0.005
+			border:SetAttribute("ForgeGlow", math.floor(shown * 100 + 0.5) / 100)
+			local depth = math.floor(math.min(size.X, size.Y) * M.BORDER_DEPTH + 0.5)
+			if border.Visible and (math.abs(shown - drawn) > 0.01 or depth ~= drawnDepth) then
+				drawn, drawnDepth = shown, depth
+				local fadeOut = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 1 - shown),
+					NumberSequenceKeypoint.new(0.45, 1 - shown * 0.35),
 					NumberSequenceKeypoint.new(1, 1),
 				})
-				corner.Visible = glow > 0
+				for _, band in bands do
+					band.Size = if band:GetAttribute("ForgeAxis") == "x"
+						then UDim2.new(1, 0, 0, depth)
+						else UDim2.new(0, depth, 1, 0)
+					band:FindFirstChildOfClass("UIGradient").Transparency = fadeOut
+				end
 			end
 			-- Carcass fan over the body.
 			local open = carcass
@@ -1060,6 +1129,7 @@ function M.start(options: Options)
 			connection:Disconnect()
 		end
 		gui:Destroy()
+		edgeGui:Destroy()
 		numberFolder:Destroy()
 		markFolder:Destroy()
 		if player:GetAttribute(M.PICKER_ATTRIBUTE) ~= nil then
