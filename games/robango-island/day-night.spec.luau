@@ -27,14 +27,26 @@ local function saturation(c: { number }): number
 	return if high <= 0 then 0 else (high - low) / high
 end
 
+-- HSV hue in degrees (0..360).
+local function hue(c: { number }): number
+	local r, g, b = c[1], c[2], c[3]
+	local high, low = math.max(r, g, b), math.min(r, g, b)
+	if high == low then
+		return 0
+	end
+	local d = high - low
+	local h = if high == r then ((g - b) / d) % 6 elseif high == g then (b - r) / d + 2 else (r - g) / d + 4
+	return h * 60
+end
+
 -- First-order estimate of a lit surface on screen from the pure lighting state: outdoor ambient
 -- plus sky light (scaled by daylight), exposure, the grade tint and saturation. Studio captures
 -- (p134/lane150) showed the night sea follows Terrain.WaterColor, not its reflectance, so water
 -- is estimated as a lit surface of `state.water`. Thresholds were confirmed on those captures.
 local GRASS = { 86, 110, 60 }
-local FIRE = { 255, 150, 70 } -- campfire PointLight colour (SkyCycle.torch)
--- `fire` adds the campfire PointLight at half its range (roughly linear falloff: half strength).
-local function onScreen(state: any, albedo: { number }, fire: boolean?): { number }
+-- `fire` adds the cycle's fire PointLight colour (SkyCycle.applyFire) at `share` of its strength
+-- (default half: the pool at half its range under a roughly linear falloff).
+local function onScreen(state: any, albedo: { number }, fire: boolean?, share: number?): { number }
 	local d = state.daylight
 	local k = state.brightness * (d + (1 - d) * 0.25) * 0.6
 	local e = 2 ^ state.exposure
@@ -42,7 +54,7 @@ local function onScreen(state: any, albedo: { number }, fire: boolean?): { numbe
 	for i = 1, 3 do
 		local light = state.outdoorAmbient[i] / 255 + k * state.colorShiftTop[i] / 255
 		if fire then
-			light += FIRE[i] / 255 * state.fire.brightness * 0.5
+			light += state.fire.color[i] / 255 * state.fire.brightness * (share or 0.5)
 		end
 		out[i] = albedo[i] * light * e * state.grade.tint[i] / 255
 	end
@@ -134,7 +146,7 @@ return {
 		-- town grey-green. The tuned night carries its blue in the light itself.
 		local night = DayNight.at(1, FOG)
 		for _, c in { night.ambient, night.outdoorAmbient, night.colorShiftTop } do
-			assert(c[3] >= 200 and c[3] >= c[1] + 120, "moon-blue light: " .. table.concat(c, ","))
+			assert(c[3] >= 150 and c[3] >= c[1] + 85, "moon-blue light: " .. table.concat(c, ","))
 		end
 		assert(
 			luminance(night.outdoorAmbient) >= 70,
@@ -147,7 +159,7 @@ return {
 		assert(night.fire.range <= 12, "fire pools stay local: range " .. night.fire.range)
 		assert(night.fire.brightness >= 2, "fires still read at night")
 		local fire = assert(night.fire.color, "night fire colour")
-		assert(fire[1] == 255 and fire[3] <= 40 and saturation(fire) >= 0.85, "saturated orange fire at night")
+		assert(fire[1] == 255 and fire[3] <= 60 and saturation(fire) >= 0.75, "saturated orange fire at night")
 		local dayFire = assert(DayNight.at(12, FOG).fire.color, "day fire colour")
 		assert(saturation(dayFire) < saturation(fire), "day fire is the softer lamp colour")
 	end,
@@ -191,6 +203,46 @@ return {
 				previous = state
 			end
 		end
+	end,
+	["night3: blue-teal moonlight and orange fire, never a purple or magenta cast"] = function()
+		-- v66 phone (lead review ~3.5/5): night ambients at hue ~235 / saturation ~0.77 read purple
+		-- and the camp fire pool mixed to magenta on sand. Durango's night (R17-1) is a desaturated
+		-- blue-teal; the fire is orange. A hue drift toward violet or a pink fire fails here.
+		local night = DayNight.at(1, FOG)
+		local lights = {
+			ambient = night.ambient,
+			outdoorAmbient = night.outdoorAmbient,
+			colorShiftTop = night.colorShiftTop,
+			tint = night.grade.tint,
+			fog = night.atmosphere.color,
+		}
+		for name, c in lights do
+			local h = hue(c)
+			assert(h >= 195 and h <= 230, string.format("night %s hue %.1f outside [195,230]", name, h))
+			assert(saturation(c) <= 0.65, string.format("night %s saturation %.2f > 0.65", name, saturation(c)))
+		end
+		assert(saturation(night.grade.tint) <= 0.25, "night grade tint stays a light filter")
+		for _, at in { 0, 1, 3, 22 } do
+			local fire = DayNight.at(at, FOG).fire.color
+			local h = hue(fire)
+			assert(h >= 20 and h <= 40, string.format("fire hue %.1f outside [20,40] at %d", h, at))
+		end
+		-- The pool's falloff from rim to core on grass, dirt, camp sand and wood: no step may read
+		-- violet/magenta (hue 250..345) with visible colour.
+		local sand = { 180 * SkyCycle.SAND_NIGHT, 170 * SkyCycle.SAND_NIGHT, 140 * SkyCycle.SAND_NIGHT }
+		for _, albedo in { GRASS, sand, { 112, 100, 66 }, { 96, 66, 40 } } do
+			for step = 0, 20 do
+				local c = onScreen(night, albedo, true, step / 20)
+				local h, s = hue(c), saturation(c)
+				assert(
+					s <= 0.08 or h < 250 or h > 345,
+					string.format("magenta pool at share %.2f: %.0f,%.0f,%.0f", step / 20, c[1], c[2], c[3])
+				)
+			end
+		end
+		-- Readability no worse than night2 (grass lum 116, camp sand lum 129 on screen).
+		assert(luminance(onScreen(night, GRASS)) >= 116, "night grass stays readable")
+		assert(luminance(onScreen(night, sand)) >= 129, "night camp sand stays readable")
 	end,
 	["volcano layouts follow the content storm timeline with ash"] = function()
 		local layout = layoutWith(function(l)

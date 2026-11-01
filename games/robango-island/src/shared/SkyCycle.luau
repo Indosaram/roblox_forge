@@ -34,6 +34,12 @@ type RGB = { number }
 -- runs exposure 1.7 with a lighter -0.2 desaturation (the warm pool stays orange, grass stays
 -- blue instead of teal), deeper blue ambients, brighter but shorter fires (2.6 / 8 studs), and
 -- Sand dims to SAND_NIGHT of its day colour at night (state.sand, set on the client terrain).
+-- Night3 lane (lead review ~3.5/5 on v66 phone captures): the night read purple and the camp fire
+-- pool magenta. The ambients sat at hue ~235 with saturation ~0.77 (a violet-leaning royal blue), so
+-- red fire light added to that blue landed on magenta. Durango's night (R17-1) is a desaturated
+-- blue-teal moonlight: every night light and the grade tint now sit at hue ~210-222 with more green
+-- and less saturation (ambient sat ~0.6, grade -0.3), so fire mixes to orange/grey instead of pink.
+-- The fire is a warmer orange (255,140,50, hue ~26) at 2.2 so its pool clips less on sand.
 -- stylua: ignore start
 -- L10 (R03-2/R03-3/R05-1): the day grade is a warm late-afternoon haze, muted olive-ochre rather
 -- than clean saturated green: warmer tint and sky shift, a little more contrast and haze.
@@ -42,11 +48,11 @@ local DAY: any = { brightness = 2.4, exposure = 0, ambient = { 118, 110, 98 }, o
 	grade = { brightness = 0.03, contrast = 0.14, saturation = -0.18, tint = { 255, 237, 208 } },
 	density = 0.3, haze = 1.35, glare = 0.3, bloom = 0.08, sunRays = 0.04, starCount = 0,
 	water = { 69, 139, 153 }, fire = { brightness = 0.8, range = 10, color = { 255, 150, 70 } } }
-local NIGHT: any = { brightness = 1.6, exposure = 1.7, ambient = { 56, 68, 240 }, outdoorAmbient = { 62, 76, 255 },
-	colorShiftTop = { 82, 102, 255 }, colorShiftBottom = { 30, 38, 80 }, decay = { 60, 76, 120 },
-	grade = { brightness = 0, contrast = 0.1, saturation = -0.2, tint = { 205, 210, 255 } },
-	fog = { 100, 120, 170 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.05, sunRays = 0, starCount = 3000,
-	water = { 100, 92, 62 }, fire = { brightness = 2.6, range = 8, color = { 255, 120, 20 } } }
+local NIGHT: any = { brightness = 1.6, exposure = 1.7, ambient = { 56, 86, 150 }, outdoorAmbient = { 62, 94, 162 },
+	colorShiftTop = { 86, 118, 190 }, colorShiftBottom = { 30, 42, 64 }, decay = { 60, 80, 112 },
+	grade = { brightness = 0, contrast = 0.1, saturation = -0.3, tint = { 194, 214, 242 } },
+	fog = { 84, 108, 138 }, density = 0.16, haze = 0.6, glare = 0, bloom = 0.05, sunRays = 0, starCount = 3000,
+	water = { 100, 92, 62 }, fire = { brightness = 2.2, range = 8, color = { 255, 140, 50 } } }
 -- stylua: ignore end
 -- Terrain Sand: the engine default (the onboarding camp pad and every beach without a biome look)
 -- and the share of its day colour kept at full night.
