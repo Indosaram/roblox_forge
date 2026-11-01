@@ -8,6 +8,13 @@ local Model = require("./CampPanelModel")
 local Text = require("./CharacterText")
 local M = {}
 
+local opener: ((string?) -> boolean)? = nil
+--- Opens the mounted camp panel on `project` (its row first, outlined: CampFocus). False when no camp
+--- panel is mounted or the camp is not published, so the caller can say so.
+function M.show(project: string?): boolean
+	return opener ~= nil and (opener :: (string?) -> boolean)(project)
+end
+
 function M.factory(ctx: any): { destroy: () -> () }?
 	local ui = ctx.ui
 	local theme, components = ui.theme.default, ui.components
@@ -24,6 +31,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	-- Opened from the shared dock; without a dock (headless) it shows whenever there is a model.
 	local wanted = ctx.dock == nil
 	local available = false
+	local focus: string? = nil
 	local dock = if ctx.dock
 		then ctx.dock({
 			id = "camp",
@@ -31,6 +39,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			order = 4,
 			setOpen = function(open: boolean)
 				wanted = open
+				focus = if open then focus else nil
 				gui.Enabled = open and available
 			end,
 			isOpen = function()
@@ -48,7 +57,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		ctx.fitSheet(sheet.frame)
 	end
 	sheet.close.Activated:Connect(function()
-		wanted = false
+		wanted, focus = false, nil
 		gui.Enabled = false
 	end)
 	local order = 0
@@ -85,6 +94,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			tostring(#model.facilities),
 			tostring(selected),
 			tostring(quantity),
+			tostring(focus),
 			status,
 		}
 		for _, h in model.hosts do
@@ -314,17 +324,29 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		local orderedRows: { any } = {}
 		for _, row in model.rows do
-			if not row.locked then
+			if row.id == focus then
 				table.insert(orderedRows, row)
 			end
 		end
 		for _, row in model.rows do
-			if row.locked then
+			if row.id == focus then
+				continue
+			elseif not row.locked then
+				table.insert(orderedRows, row)
+			end
+		end
+		for _, row in model.rows do
+			if row.locked and row.id ~= focus then
 				table.insert(orderedRows, row)
 			end
 		end
 		for _, row in orderedRows do
 			local holder = add(66)
+			if row.id == focus then
+				local mark = Instance.new("UIStroke")
+				mark.Name, mark.Thickness, mark.Color, mark.Parent =
+					"CampFocus", 2, Color3.fromRGB(58, 128, 118), holder
+			end
 			local label = if ctx.names and ctx.names["camp:" .. row.id] then ctx.names["camp:" .. row.id] else row.label
 			local inset = 0
 			if ctx.icons then
@@ -455,6 +477,17 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			text.Name, text.TextWrapped = "CampNotice", true
 		end
 	end
+	opener = function(project: string?): boolean
+		focus = project
+		if dock then
+			dock.open()
+		else
+			wanted = true
+		end
+		render(true)
+		return gui.Enabled
+	end
+	local mine = opener
 	local seen = {}
 	local unsubscribe = ctx.onSnapshot(function(extensions, whole)
 		slice, packet = extensions.camp, whole
@@ -466,6 +499,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	end)
 	return {
 		destroy = function()
+			opener = if opener == mine then nil else opener
 			unsubscribe()
 			gui:Destroy()
 		end,

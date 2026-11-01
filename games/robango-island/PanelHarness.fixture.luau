@@ -573,6 +573,7 @@ local function harness(options: any?): any
 		panels = panels,
 		player = player,
 		workspace = workspace,
+		game = game,
 		new = node,
 	}
 	h.rect = layoutRect

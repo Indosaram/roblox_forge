@@ -12,12 +12,16 @@ local HudLocale = require("../../../../genres/survival-coop/module/SurvivalHUDLo
 local DinosaurRig = require("../../../../genres/survival-coop/module/DinosaurRig")
 local CameraConfig = require("./CameraConfig")
 local Waypoint = require("./Waypoint")
+local CampPanel = require("../../../../genres/survival-coop/module/CampPanel")
 local M = {}
 
 M.COLD_OPEN_SECONDS, M.SKIP_AFTER = 25, 1.0
 M.FOLLOW_STUDS = 4
 M.WAY_OFFER_SECONDS = 5 -- the tracker tap's 'show the way' pebble stays this long
 M.WAY_ARRIVE = 6 -- the walk-to stops this close to the target (inside Waypoint.HIDE_STUDS)
+-- Set on the local player while a camp-project step runs: the warehouse crate prompt opens the Camp
+-- panel on that project (this module) instead of the storage sheet (RobangoIslandClient).
+M.PROJECT_ATTRIBUTE = "ForgeOpeningProject"
 
 --- Whether `item` and every GuiObject above it are visible and its ScreenGui is enabled (the dock
 --- hides the quest card's slot, not the card, under the menu grid).
@@ -463,6 +467,22 @@ function M.factory(ctx: any): any
 	})
 	wayButton.Name, wayButton.Visible = "OpeningShowWay", false
 	HudShell.pebble(wayButton, true, true)
+	-- p134 v69: a camp-project step (the windbreak) is fed through the Camp panel, which nothing on
+	-- screen led to. The quest card carries a direct Open camp button for it (Scene.cardAction).
+	local function openCamp(): boolean
+		local action = Scene.cardAction(view)
+		return action ~= nil and CampPanel.show(action.project)
+	end
+	local campButton = components.button(theme, {
+		text = text("opening.camp.open"),
+		size = UDim2.fromOffset(120, 44),
+		parent = way.gui,
+		onClick = function()
+			openCamp()
+		end,
+	})
+	campButton.Name, campButton.Visible = "OpeningOpenCamp", false
+	HudShell.pebble(campButton, true, true)
 	local wayOfferUntil = 0
 	trackerTap.Activated:Connect(function()
 		wayOfferUntil = os.clock() + M.WAY_OFFER_SECONDS
@@ -599,9 +619,19 @@ function M.factory(ctx: any): any
 		end)
 	end
 	table.insert(connections, player:GetAttributeChangedSignal("ForgeOpeningRefusal"):Connect(refusalToast))
+	table.insert(
+		connections,
+		game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, actor)
+			if actor == player and prompt:GetAttribute("ForgeWarehouse") then
+				openCamp()
+			end
+		end)
+	)
 	local function frame()
 		local now = serverNow()
 		local active = view ~= nil and view.active == true
+		local campAction = Scene.cardAction(view)
+		player:SetAttribute(M.PROJECT_ATTRIBUTE, if campAction then campAction.project else nil)
 		-- Quest card: the opening tracker replaces the genre tracker line while a beat runs.
 		local genre = ctx.objectiveSlot and ctx.objectiveSlot:FindFirstChild("ObjectiveTracker")
 		local title, lines = Scene.tracker(view, text)
@@ -619,7 +649,7 @@ function M.factory(ctx: any): any
 		stageRing(now, rootPart())
 		if not active then
 			way.step(nil, nil)
-			trackerTap.Visible, wayButton.Visible = false, false
+			trackerTap.Visible, wayButton.Visible, campButton.Visible = false, false, false
 			dodge.Visible = false
 			if boar then
 				boar:Destroy()
@@ -790,11 +820,19 @@ function M.factory(ctx: any): any
 			and tracker.AbsoluteSize.X > 0
 			and target ~= nil
 		trackerTap.Visible = trackerSeen
+		local cardShown = not modal and M.shownChain(tracker) and tracker.AbsoluteSize.X > 0
+		campButton.Visible = cardShown and campAction ~= nil
+		if cardShown then
+			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize
+			campButton.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y + size.Y + 6)
+		end
 		if trackerSeen then
 			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize
 			trackerTap.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y)
 			trackerTap.Size = UDim2.fromOffset(size.X, size.Y)
-			wayButton.Position = UDim2.fromOffset(at.X - guiAt.X + size.X - 120, at.Y - guiAt.Y + size.Y + 6)
+			-- Under the Open camp button when both would not fit side by side.
+			local below = if campButton.Visible and size.X < 246 then 50 else 0
+			wayButton.Position = UDim2.fromOffset(at.X - guiAt.X + size.X - 120, at.Y - guiAt.Y + size.Y + 6 + below)
 		end
 		wayButton.Visible = trackerSeen
 			and os.clock() < wayOfferUntil

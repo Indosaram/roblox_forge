@@ -18,6 +18,9 @@ local Clock = require("../../core/infra/genre/Clock")
 local Durable = require("./src/shared/GenreDurable")
 local Scene = require("./src/shared/OpeningScene")
 local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
+local roblox: any = require("@lune/roblox")
+local Harness = require("./PanelHarness.fixture")
+local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
 
 local ACTOR = "11734795308"
 
@@ -174,6 +177,12 @@ local function boot()
 			args = args,
 		})
 	end
+	-- A request the client built (ForgeAction "command"), on the same session.
+	local function request(body: any): any
+		at.value += 1
+		session.advance(clock.now())
+		return session.command(ACTOR, body)
+	end
 	local function tick()
 		at.value += 1
 		world.opening.tick({ ACTOR }, at.value * 1000)
@@ -184,6 +193,7 @@ local function boot()
 		factory = factory,
 		session = session,
 		command = command,
+		request = request,
 		tick = tick,
 		steps = steps,
 		travelled = function()
@@ -273,74 +283,80 @@ local function toRidgeCamp(live: any)
 	assert(step(live) == "campfire", "at the ridge camp the opening asks for the campfire: " .. tostring(step(live)))
 end
 
+-- From the ridge camp: the campfire placed from the bag, Marit's request accepted and delivered, up to
+-- the windbreak step (a camp project fed through the Camp panel).
+local function toWindbreak(live: any)
+	-- The camp grid is where the opening sent the player: Marit's camp is on (or beside) it.
+	local origin = live.world.roleSource.tribe.origin
+	local camp = live.session.snapshot(ACTOR).survivalSettlement
+	local config = camp.settlement.config
+	local marit = anchor(live.world, "npc.marit")
+	local stand = { x = marit.x, z = marit.z + 6 }
+	local definition: any
+	for _, row in Content.structures do
+		definition = if row.id == "campfire" then row else definition
+	end
+	-- The HUD's first cell: the footprint under the player.
+	local cx, cz = Model.startCell(stand.x, stand.z, origin.x, origin.z, config, definition)
+	local cellX, cellZ = origin.x + (cx + 1) * config.cellStuds, origin.z + (cz + 1) * config.cellStuds
+	assert(
+		math.abs(cellX - stand.x) <= config.cellStuds * 2 and math.abs(cellZ - stand.z) <= config.cellStuds * 2,
+		string.format("the campfire cell (%d,%d) is under the player at Marit's camp", cellX, cellZ)
+	)
+	-- The build card counts the bag: 9 logs cover wood 4 although the warehouse is empty.
+	local costs, bagUsed = Model.buildCosts(
+		camp.warehouse,
+		Model.bag(live.session.snapshot(ACTOR)["survival-coop"]),
+		definition.cost,
+		true
+	)
+	assert(bagUsed and costs[1].available >= costs[1].needed and costs[1].fromBag == 4, "card: bag covers 4 wood")
+	-- Reserve and place exactly as the HUD sends them (warehouse version from the snapshot).
+	local reserved = live.command("settlement-reserve", {
+		"campfire",
+		cx,
+		cz,
+		0,
+		camp.settlement.version,
+		camp.warehouse.version,
+		camp.settlement.membershipRevision,
+	})
+	assert(reserved.ok, "campfire reserve at the ridge camp: " .. serde.encode("json", reserved))
+	assert(bagCount(live, "wood") == 5, "4 of the 9 bag logs paid the campfire")
+	camp = live.session.snapshot(ACTOR).survivalSettlement
+	local placed = live.command(
+		"settlement-place",
+		{ reserved.data.reservationId, camp.settlement.version, camp.warehouse.version }
+	)
+	assert(placed.ok, "campfire placed: " .. serde.encode("json", placed))
+	live.tick()
+	assert(step(live) == "accept", "campfire step completes: " .. tostring(step(live)))
+	-- Marit stands at the ridge camp with a talk prompt that opens her contracts.
+	local figure = assert(live.world.anchorParts["npc.marit"], "Marit's part at the ridge camp")
+	local prompt = figure:FindFirstChildOfClass("ProximityPrompt")
+	assert(prompt and prompt:GetAttribute("ForgePanel") == "contracts", "Marit opens the contracts board")
+	local offers = live.session.snapshot(ACTOR).survivalExtensions.contracts.offers
+	local contract = assert(offers[1], "a first-day contract on offer").id
+	assert(live.command("contract-accept", { contract }).ok, "Marit's request accepted")
+	live.tick()
+	assert(step(live) == "deliver", "deliver step: " .. tostring(step(live)))
+	-- Deliver what the contract asks for (3 wood for the beacon is the first-day pick).
+	for _, item in offers[1].deliver do
+		if bagCount(live, item.item) < item.quantity then
+			give(live, "deliver-" .. item.item, item.item, item.quantity)
+		end
+	end
+	local delivered = live.command("contract-deliver", { contract })
+	assert(delivered.ok, "delivered: " .. serde.encode("json", delivered))
+	live.tick()
+	assert(step(live) == "windbreak", "windbreak step: " .. tostring(step(live)))
+end
+
 return {
 	["a fresh actor at the ridge camp with 9 bag logs places the campfire and the opening reaches departure"] = function()
 		local live = boot()
 		toRidgeCamp(live)
-		-- The camp grid is where the opening sent the player: Marit's camp is on (or beside) it.
-		local origin = live.world.roleSource.tribe.origin
-		local camp = live.session.snapshot(ACTOR).survivalSettlement
-		local config = camp.settlement.config
-		local marit = anchor(live.world, "npc.marit")
-		local stand = { x = marit.x, z = marit.z + 6 }
-		local definition: any
-		for _, row in Content.structures do
-			definition = if row.id == "campfire" then row else definition
-		end
-		-- The HUD's first cell: the footprint under the player.
-		local cx, cz = Model.startCell(stand.x, stand.z, origin.x, origin.z, config, definition)
-		local cellX, cellZ = origin.x + (cx + 1) * config.cellStuds, origin.z + (cz + 1) * config.cellStuds
-		assert(
-			math.abs(cellX - stand.x) <= config.cellStuds * 2 and math.abs(cellZ - stand.z) <= config.cellStuds * 2,
-			string.format("the campfire cell (%d,%d) is under the player at Marit's camp", cellX, cellZ)
-		)
-		-- The build card counts the bag: 9 logs cover wood 4 although the warehouse is empty.
-		local costs, bagUsed = Model.buildCosts(
-			camp.warehouse,
-			Model.bag(live.session.snapshot(ACTOR)["survival-coop"]),
-			definition.cost,
-			true
-		)
-		assert(bagUsed and costs[1].available >= costs[1].needed and costs[1].fromBag == 4, "card: bag covers 4 wood")
-		-- Reserve and place exactly as the HUD sends them (warehouse version from the snapshot).
-		local reserved = live.command("settlement-reserve", {
-			"campfire",
-			cx,
-			cz,
-			0,
-			camp.settlement.version,
-			camp.warehouse.version,
-			camp.settlement.membershipRevision,
-		})
-		assert(reserved.ok, "campfire reserve at the ridge camp: " .. serde.encode("json", reserved))
-		assert(bagCount(live, "wood") == 5, "4 of the 9 bag logs paid the campfire")
-		camp = live.session.snapshot(ACTOR).survivalSettlement
-		local placed = live.command(
-			"settlement-place",
-			{ reserved.data.reservationId, camp.settlement.version, camp.warehouse.version }
-		)
-		assert(placed.ok, "campfire placed: " .. serde.encode("json", placed))
-		live.tick()
-		assert(step(live) == "accept", "campfire step completes: " .. tostring(step(live)))
-		-- Marit stands at the ridge camp with a talk prompt that opens her contracts.
-		local figure = assert(live.world.anchorParts["npc.marit"], "Marit's part at the ridge camp")
-		local prompt = figure:FindFirstChildOfClass("ProximityPrompt")
-		assert(prompt and prompt:GetAttribute("ForgePanel") == "contracts", "Marit opens the contracts board")
-		local offers = live.session.snapshot(ACTOR).survivalExtensions.contracts.offers
-		local contract = assert(offers[1], "a first-day contract on offer").id
-		assert(live.command("contract-accept", { contract }).ok, "Marit's request accepted")
-		live.tick()
-		assert(step(live) == "deliver", "deliver step: " .. tostring(step(live)))
-		-- Deliver what the contract asks for (3 wood for the beacon is the first-day pick).
-		for _, item in offers[1].deliver do
-			if bagCount(live, item.item) < item.quantity then
-				give(live, "deliver-" .. item.item, item.item, item.quantity)
-			end
-		end
-		local delivered = live.command("contract-deliver", { contract })
-		assert(delivered.ok, "delivered: " .. serde.encode("json", delivered))
-		live.tick()
-		assert(step(live) == "windbreak", "windbreak step: " .. tostring(step(live)))
+		toWindbreak(live)
 		-- Beat 7: one fiber to the camp windbreak (the camp panel's Put materials in).
 		give(live, "windbreak-fiber", "fiber", 1)
 		local campState = live.session.snapshot(ACTOR).survivalExtensions.camp
@@ -361,5 +377,146 @@ return {
 		for _, id in { "campfire", "accept", "deliver", "windbreak", "beacon", "board" } do
 			assert(table.find(live.steps, id), "opening_step " .. id .. ": " .. table.concat(live.steps, ","))
 		end
+	end,
+	-- p134 v69 (staging, phone): at the windbreak step nothing on screen led to the Camp panel, the only
+	-- way to feed a camp project (the camp tile sat below the phone menu fold, the warehouse crate opened
+	-- storage, the waypoint pointed at Marit). On the shipped panel wiring (PanelHarness: the client's
+	-- ExtensionPanels section with the real OpeningClient, CampPanel and SurvivalHUD) fed with the live
+	-- onboarding session's own packets, and its commands sent back into that session: the quest card's
+	-- Open camp opens the Camp panel on the windbreak and its Put materials in moves the opening on; the
+	-- waypoint and the crate prompt lead to the Camp panel; the camp tile is on the first menu rows.
+	["windbreak step: the quest card, the warehouse crate and the menu open the Camp panel on the windbreak"] = function()
+		local live = boot()
+		toRidgeCamp(live)
+		toWindbreak(live)
+		give(live, "windbreak-fiber", "fiber", 1)
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		local storage = h.game:GetService("ReplicatedStorage")
+		local actions: { string } = {}
+		local function push()
+			local epochs = {}
+			for _, name in Durable.actions do
+				epochs[name] = live.session.commandEpoch(ACTOR, name)
+			end
+			h.packet({
+				revision = live.at.value,
+				durable = { actions = Durable.actions, epochs = epochs },
+				snapshots = live.session.snapshot(ACTOR),
+			})
+		end
+		storage:WaitForChild("ForgeAction").InvokeServer = function(_self, kind: string, body: any)
+			assert(kind == "command", "durable command: " .. tostring(kind))
+			table.insert(actions, body.action)
+			local result = live.request(body)
+			live.tick()
+			push()
+			return result
+		end
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.onboarding")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		local marit = anchor(live.world, "npc.marit")
+		root.Position = roblox.Vector3.new(marit.x + 20, 5, marit.z + 30)
+		root.CFrame, root.Parent = roblox.CFrame.new(root.Position), character
+		character.Parent = h.workspace
+		h.player.Character = character
+		push()
+		local view = live.session.snapshot(ACTOR).survivalExtensions.opening
+		assert(view.step == "windbreak", "published view at the windbreak: " .. tostring(view.step))
+		-- The client model's action for this step, and its waypoint on the warehouse crate.
+		local action = Scene.cardAction(view)
+		assert(action and action.id == "open-camp" and action.project == "windbreak", "open-camp action")
+		assert(Scene.target(view) == "opening.warehouse", "waypoint target: " .. tostring(Scene.target(view)))
+		local crate = live.world.roleSource.tribe.warehousePosition
+		local target = anchor(live.world, "opening.warehouse")
+		assert(target.x == crate.x and target.z == crate.z, "the waypoint anchor is where the warehouse crate stands")
+		local function find(name: string): any
+			for _, item in h.playerGui:GetDescendants() do
+				if item.Name == name then
+					return item
+				end
+			end
+			return nil
+		end
+		-- Hit-testable: visible up the chain and its ScreenGui enabled.
+		local function shown(item: any): boolean
+			local at = item
+			while at and at.ClassName ~= "ScreenGui" do
+				if at.Visible == false then
+					return false
+				end
+				at = at.Parent
+			end
+			return at ~= nil and at.Enabled ~= false
+		end
+		local campGui = assert(h.playerGui:FindFirstChild("CampPanel"), "camp panel gui")
+		local function firstRow(): any
+			local rows = {}
+			for _, row in campGui:GetDescendants() do
+				if
+					row.ClassName == "Frame"
+					and string.match(row.Name, "^Row%d+$")
+					and row:FindFirstChild("ProjectArt")
+				then
+					table.insert(rows, row)
+				end
+			end
+			table.sort(rows, function(a, b)
+				return a.LayoutOrder < b.LayoutOrder
+			end)
+			return rows[1]
+		end
+		-- (1) The quest card's direct button opens the Camp panel on the windbreak.
+		local button = assert(find("OpeningOpenCamp"), "Open camp button on the quest card")
+		assert(shown(button), "Open camp shows under the quest card at the windbreak step")
+		assert(button.Text == "캠프 열기", "ko label: " .. button.Text)
+		assert(not campGui.Enabled, "the camp panel starts closed")
+		h.click(button)
+		assert(campGui.Enabled and #h.sheets() == 1, "Open camp opens the Camp panel")
+		local first = assert(firstRow(), "a project row")
+		assert(first:FindFirstChild("CampFocus"), "the windbreak row is first and outlined")
+		local put = assert(first:FindFirstChild("PutIn-windbreak"), "Put materials in on the windbreak row")
+		assert(not shown(button), "the quest card button hides under the open sheet")
+		-- Put materials in sends camp-contribute through the client transport; the opening moves on.
+		h.click(put)
+		assert(table.find(actions, "survival-coop:camp-contribute"), "camp-contribute: " .. table.concat(actions, ","))
+		assert(step(live) == "beacon", "the windbreak step completes from the panel: " .. tostring(step(live)))
+		h.click(h.sheets()[1].close)
+		assert(not campGui.Enabled, "the X closes the Camp panel")
+		assert(not shown(button), "no Open camp once the step is done")
+		assert(h.player:GetAttribute("ForgeOpeningProject") == nil, "the crate is storage again")
+		-- (3) A fresh actor at the windbreak step: the warehouse crate prompt opens the Camp panel.
+		live = boot()
+		toRidgeCamp(live)
+		toWindbreak(live)
+		push()
+		assert(h.player:GetAttribute("ForgeOpeningProject") == "windbreak", "the crate opens the camp now")
+		local prompt = h.new("ProximityPrompt", "ForgeWarehouse")
+		prompt:SetAttribute("ForgeWarehouse", true)
+		h.game:GetService("ProximityPromptService").PromptTriggered:Fire(prompt, h.player)
+		h.step()
+		assert(campGui.Enabled, "the crate opens the Camp panel")
+		assert(firstRow():FindFirstChild("CampFocus"), "on the windbreak")
+		h.click(h.sheets()[1].close)
+		-- (2) The camp tile: on the menu for a camp member, within the phone's on-screen menu rows.
+		h.click(h.toggle)
+		local tile = h.tile("camp")
+		assert(tile.Visible, "camp tile on the menu")
+		local before = 0
+		for _, other in h.tiles() do
+			before += if other.Visible and other.LayoutOrder < tile.LayoutOrder then 1 else 0
+		end
+		local grid = h.menu:FindFirstChildOfClass("UIGridLayout")
+		local columns = (h.rect(h.menu).width - Panels.MENU_SCROLLBAR) // (grid.CellSize.X.Offset + Panels.MENU_GAP)
+		local rows = h.rect(h.menu).height // (grid.CellSize.Y.Offset + Panels.MENU_GAP)
+		assert(
+			before // columns < rows,
+			string.format("camp tile in row %d of %d on screen", before // columns + 1, rows)
+		)
+		h.click(tile)
+		assert(campGui.Enabled, "the camp tile opens the Camp panel")
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
 	end,
 }

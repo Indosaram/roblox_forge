@@ -2928,6 +2928,7 @@ opening.prompt.pull,Pull,opening beat 1 stake prompt,Pull,뽑기
 opening.prompt.light,Light,opening beat 7 beacon prompt,Light,켜기
 opening.prompt.beacon,Mirror beacon,opening beat 7 beacon label,Mirror beacon,거울 봉화
 opening.prompt.boat,Gannet,opening beat 7 boat label,Gannet,가넷호
+opening.camp.open,Open camp,opening quest card camp-project button,Open camp,캠프 열기
 opening.way.show,Show the way,opening waypoint walk-to button,Show the way,길 안내
 opening.way.meters,%d m,opening waypoint distance under the arrow,%d m,%dm
 opening.refusal.already_pulled,That stake is already out. Find a glowing one,opening beat 1 refused pull toast,That stake is already out. Find a glowing one,이미 뽑은 말뚝이에요. 빛나는 말뚝을 찾으세요

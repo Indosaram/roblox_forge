@@ -499,7 +499,8 @@ gui.Destroying:Connect(function()
 	toastGui:Destroy()
 end)
 local warehouseConnection = game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt, actor)
-	if actor == player and prompt:GetAttribute("ForgeWarehouse") then
+	-- An opening camp-project step (the windbreak): OpeningClient opens the Camp panel instead.
+	if actor == player and prompt:GetAttribute("ForgeWarehouse") and not player:GetAttribute("ForgeOpeningProject") then
 		if not require(Forge.genres["survival-coop"].module.RecoveredScreens).storage.show() then
 			hud.open("bag")
 		end

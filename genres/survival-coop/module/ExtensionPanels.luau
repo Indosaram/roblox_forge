@@ -77,7 +77,8 @@ local categories: { [string]: { number | string } } = {
 	clan = { 3, "clan" },
 	tribe = { 3, "social" },
 	outpost = { 3, "build" },
-	camp = { 3, "party" },
+	-- p134 v69: the camp projects (the opening's windbreak) sat 20th, below the phone fold.
+	camp = { 1, "party" },
 	market = { 3, "market" },
 	["clan-join"] = { 3, "invite" },
 	construction = { 3, "build" },

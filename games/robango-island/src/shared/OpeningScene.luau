@@ -8,7 +8,17 @@ local M = {}
 
 -- `target`: the layout anchor or resource node the step sends the player to (Waypoint arrow, minimap
 -- pin and beam; p134 c1 dead end 2). A craft step points at the next stop: crafting runs anywhere.
-export type Step = { id: string, beat: number, line: string?, count: string?, of: number?, target: string? }
+-- `project`: a camp ladder project the step is fed through (the Camp panel's camp-contribute); the quest
+-- card then carries an Open camp button and the warehouse crate prompt opens the Camp panel on it.
+export type Step = {
+	id: string,
+	beat: number,
+	line: string?,
+	count: string?,
+	of: number?,
+	target: string?,
+	project: string?,
+}
 export type Facts = {
 	tutorialIndex: number,
 	tutorialComplete: boolean,
@@ -43,7 +53,13 @@ M.STEPS = table.freeze({
 	{ id = "campfire", beat = 6, line = "opening.camp.place", target = "station.campfire.t1" },
 	{ id = "accept", beat = 6, line = "opening.camp.accept", target = "npc.marit" },
 	{ id = "deliver", beat = 6, line = "opening.camp.deliver", target = "opening.beacon" },
-	{ id = "windbreak", beat = 7, line = "opening.beacon.windbreak", target = "npc.marit" },
+	{
+		id = "windbreak",
+		beat = 7,
+		line = "opening.beacon.windbreak",
+		target = "opening.warehouse",
+		project = "windbreak",
+	},
 	{ id = "beacon", beat = 7, line = "opening.beacon.light", target = "opening.beacon" },
 	{ id = "board", beat = 7, line = "opening.beacon.board", target = "opening.jetty" },
 } :: { Step })
@@ -466,6 +482,17 @@ function M.target(view: any): string?
 	end
 	local index = INDEX[view.step]
 	return if index then M.STEPS[index].target else nil
+end
+
+--- The quest card's direct action for a view: a camp-project step opens the Camp panel on that
+--- project ({ id = "open-camp", panel = "camp", project }); nil on every other step.
+function M.cardAction(view: any): { id: string, panel: string, project: string }?
+	if type(view) ~= "table" or view.active ~= true or type(view.step) ~= "string" then
+		return nil
+	end
+	local index = INDEX[view.step]
+	local project = if index then M.STEPS[index].project else nil
+	return if project then { id = "open-camp", panel = "camp", project = project } else nil
 end
 
 --- Quest-card tracker for a view: the beat title and its lines (done lines checked). Beat 0 has

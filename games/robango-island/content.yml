@@ -24924,6 +24924,9 @@ layouts:
       # the opening asks for the campfire. The grid used to start at station.campfire.t1, 50 studs
       # from her. Its corner is 44 studs from the boar's home.
       - {id: "opening.camp-plot", position: {x: -20, y: 2, z: -44}}
+      # The camp warehouse crate beside Marit (RoleWorld stands it here): the opening's camp-project
+      # steps (the windbreak) point their waypoint at it and its prompt opens the Camp panel then.
+      - {id: "opening.warehouse", position: {x: -8, y: 2, z: -48}}
     resourceNodes:
       -
         # p134 C1 fix 1: the phone run's first craft took 22 min, the bone heap sat 30 studs off the

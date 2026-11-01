@@ -1977,7 +1977,13 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	if layoutId == "rw.onboarding" then
 		-- The live island is elevated; the preview's depot target is below its terrain.
 		-- p134 C1: the camp warehouse crate stands at the ridge camp beside Marit, off the camp grid.
+		-- Its spot is the opening.warehouse anchor, the waypoint target of the opening's camp-project steps.
 		world.roleSource.tribe.warehousePosition = { x = -8, y = 5, z = -48 }
+		for _, anchor in layout.anchors do
+			if anchor.id == "opening.warehouse" then
+				world.roleSource.tribe.warehousePosition = { x = anchor.position.x, y = 5, z = anchor.position.z }
+			end
+		end
 		world.roleSource.tribe.origin = { x = campPlot.x, y = 4, z = campPlot.z }
 		-- C1 opening beats: stakes, beacon, Gannet and the server step owner (OpeningDirector).
 		local Opening = require("./OpeningDirector")
