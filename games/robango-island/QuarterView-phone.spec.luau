@@ -40,11 +40,12 @@ local function bodyShare(f: any, heading: number): number
 	return (high - low) / 2
 end
 
-local function start(): (any, any)
+local function start(distance: number?): (any, any)
 	local f = Fixture.new()
 	f.world.CurrentCamera = f.camera()
 	f.world.CurrentCamera.ViewportSize = PHONE
 	local config = table.clone(Config) :: any
+	config.distance = distance or Config.distance
 	config.yaw = 45
 	config.pinchBlocked = function()
 		return false
@@ -75,12 +76,21 @@ return {
 		assert(string.find(router, "function M.overUi(player: Player, x: number, y: number): boolean", 1, true))
 		assert(string.find(router, "return M.overUi(player, x, y)", 1, true), "taps use the shared UI test")
 	end,
-	["default view shows the survivor 50-70 px tall on an 800x360 phone, closest zoom 4x that"] = function()
+	["default view shows the survivor at ~11% of a 2400x1080 phone's height, closest zoom 4x that"] = function()
+		-- D2 R16 (v68 R15_hud_camp_day, 2400x1080, distance 50): the visible survivor measured ~96 px
+		-- head to feet (8.9%) and the score said tiny. The body box above over-reads the figure, so
+		-- the box share is scaled by that capture: figure = box * 0.089 / box(distance 50).
+		local old, oldApi = start(50)
+		local calibration = 0.089 / bodyShare(old, 0)
+		oldApi.stop()
 		local f, api = start()
 		near(f.cast.direction.Magnitude, Config.distance)
 		for heading = 0, 90, 30 do
-			local px = bodyShare(f, heading) * PHONE.Y
-			assert(px >= 50 and px <= 70, string.format("default survivor %.0f px at heading %d", px, heading))
+			local figure = bodyShare(f, heading) * calibration
+			assert(
+				figure >= 0.10 and figure <= 0.13,
+				string.format("default survivor %.1f%% of the height at heading %d", figure * 100, heading)
+			)
 		end
 		-- Farthest zoom still reads (Durango R08: ~12% of the frame height).
 		api.zoomTo(1000)

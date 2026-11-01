@@ -1814,6 +1814,13 @@ return {
 					local top = camera:WorldToScreenPoint(head.Position + V3.new(0, 0.5, 0))
 					local tag = playerGui:FindFirstChild("ForgePlayerRings", true):FindFirstChild("NameTag")
 					local plate = camera:WorldToScreenPoint(root.Position + tag.StudsOffsetWorldSpace)
+					-- D2 R16: the own name reads on grass and sand: an ink plate behind it, a solid ink stroke.
+					local name = tag:FindFirstChild("Name")
+					local ink = Shell.PALETTE.ink
+					assert(name.TextStrokeTransparency <= 0.1, "name stroke " .. name.TextStrokeTransparency)
+					assert(name.TextStrokeColor3 == roblox.Color3.fromRGB(ink.r, ink.g, ink.b), "ink stroke")
+					assert(name.BackgroundTransparency <= 0.5, "name plate " .. name.BackgroundTransparency)
+					assert(name.BackgroundColor3 == roblox.Color3.fromRGB(ink.r, ink.g, ink.b), "ink plate")
 					local figure = {
 						x = math.min(top.X, plate.X) - 24,
 						y = math.min(top.Y, plate.Y - 8),

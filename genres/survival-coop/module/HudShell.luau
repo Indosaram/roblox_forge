@@ -1980,6 +1980,9 @@ export type OverlayOptions = {
 -- CollectionService tag on world name tags the contextual banner must never cover (player tags,
 -- pet labels, a pack's companion plate): SurvivalHUD steers the banner around their screen rects.
 M.NAME_TAG = "ForgeNameTag"
+-- Player name plate (D2 R16): ink plate transparency behind the name, the name's ink stroke
+-- transparency and the plate's side padding in px.
+M.NAME_PLATE = table.freeze({ plate = 0.35, stroke = 0, pad = 6 })
 
 -- Tags a pack/server sets on a ground drop or a deployed pet so it gets a label.
 M.DROP_TAG, M.PET_TAG = "ForgeWorldDrop", "ForgeWorldPet"
@@ -2255,10 +2258,22 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 		tag.Name, tag.Size, tag.AlwaysOnTop, tag.LightInfluence = "NameTag", UDim2.fromOffset(220, 40), true, 0
 		tag:AddTag(M.NAME_TAG)
 		tag.Parent = ringFolder
+		-- D2 R16 (v68): the bone name with a 0.4 stroke was faint on grass and sand. The name sits on an
+		-- ink plate sized to its text (M.NAME_PLATE) under a solid ink stroke.
 		local nameLine = Instance.new("TextLabel")
-		nameLine.Name, nameLine.BackgroundTransparency, nameLine.Size = "Name", 1, UDim2.new(1, 0, 0, 22)
-		nameLine.TextColor3, nameLine.Font, nameLine.TextSize = color(P.bone), Enum.Font.BuilderSansMedium, 16
-		nameLine.TextStrokeTransparency, nameLine.Parent = 0.4, tag
+		nameLine.Name, nameLine.Size = "Name", UDim2.fromOffset(0, 22)
+		nameLine.AutomaticSize, nameLine.AnchorPoint = Enum.AutomaticSize.X, Vector2.new(0.5, 0)
+		nameLine.Position = UDim2.fromScale(0.5, 0)
+		nameLine.BackgroundColor3 = color(P.ink)
+		nameLine.BackgroundTransparency = M.NAME_PLATE.plate
+		nameLine.TextColor3, nameLine.Font, nameLine.TextSize = color(P.bone), Enum.Font.BuilderSansBold, 16
+		nameLine.TextStrokeColor3, nameLine.TextStrokeTransparency = color(P.ink), M.NAME_PLATE.stroke
+		nameLine.Parent = tag
+		local namePad = Instance.new("UIPadding")
+		namePad.PaddingLeft, namePad.PaddingRight = UDim.new(0, M.NAME_PLATE.pad), UDim.new(0, M.NAME_PLATE.pad)
+		namePad.Parent = nameLine
+		local nameCorner = Instance.new("UICorner")
+		nameCorner.CornerRadius, nameCorner.Parent = UDim.new(0, 6), nameLine
 		local tribeLine = Instance.new("TextLabel")
 		tribeLine.Name, tribeLine.BackgroundTransparency = "Tribe", 1
 		tribeLine.Position, tribeLine.Size = UDim2.fromOffset(0, 22), UDim2.new(1, 0, 0, 16)
@@ -2338,7 +2353,7 @@ function M.startOverlays(options: OverlayOptions): () -> ()
 					if entry.sized ~= tagSize.name then
 						entry.sized = tagSize.name
 						entry.tag.Size = UDim2.fromOffset(tagSize.width, tagSize.height)
-						entry.name.Size = UDim2.new(1, 0, 0, tagSize.name + 4)
+						entry.name.Size = UDim2.fromOffset(0, tagSize.name + 4)
 						entry.name.TextSize = tagSize.name
 						entry.tribe.Position = UDim2.fromOffset(0, tagSize.name + 4)
 						entry.tribe.Size = UDim2.new(1, 0, 0, tagSize.tribe + 2)
