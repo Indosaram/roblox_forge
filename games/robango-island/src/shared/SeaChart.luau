@@ -144,6 +144,50 @@ end
 --- Server voyage gate for a role island picked on the chart. `from` is the sail point the actor
 --- stands at ("dock" or "rift", nil when none is in reach); the level gate is the live
 --- Topology rule, so a locked island is refused here and again by the teleport router.
+-- Sail reach in studs (flat) around a dock or rift (RoleWorld.SAIL_REACH, the server's rule). Further
+-- out the chart card shows 'show the dock' (walk + waypoint to the nearest sail spot) instead of
+-- Set sail (p134 v68: the tester spent 14 min finding the onboarding town dock).
+M.SAIL_REACH = 20
+M.DOCK_ARRIVE = 6 -- the 'show the dock' walk stops this close to the sail spot
+M.DOCK_MARK_SECONDS = 60 -- an unpressed dock mark (chart opened away from it) stays this long
+
+--- Whether the chart offers 'show the dock' for a player at `root` with `spot` the nearest sail
+--- spot (nil: none known, never offered).
+function M.awayFromDock(root: any?, spot: any?): boolean
+	if root == nil or spot == nil then
+		return false
+	end
+	return math.sqrt((root.X - spot.X) ^ 2 + (root.Z - spot.Z) ^ 2) > M.SAIL_REACH
+end
+
+--- Sail spots RoleWorld publishes on ForgeRoleWorld (attribute ForgeSailSpots, `kind:x,y,z;...`):
+--- every dock and rift a chart voyage leaves from. Rows { kind, X, Y, Z }.
+function M.spots(encoded: any): { any }
+	local rows = {}
+	if type(encoded) ~= "string" then
+		return rows
+	end
+	for kind, x, y, z in string.gmatch(encoded, "(%a+):([%-%d%.]+),([%-%d%.]+),([%-%d%.]+)") do
+		local px, py, pz = tonumber(x), tonumber(y), tonumber(z)
+		if px and py and pz then
+			table.insert(rows, { kind = kind, X = px, Y = py, Z = pz })
+		end
+	end
+	return rows
+end
+
+--- The sail spot nearest `at` (flat distance), or nil when none is published.
+function M.nearestSpot(encoded: any, at: any): any?
+	local best, bestDistance = nil, math.huge
+	for _, spot in M.spots(encoded) do
+		local d = (spot.X - at.X) ^ 2 + (spot.Z - at.Z) ^ 2
+		if d < bestDistance then
+			best, bestDistance = spot, d
+		end
+	end
+	return best
+end
+
 function M.sail(destination: any, role: string, level: number, from: string?): (boolean, string?)
 	if from ~= "dock" and from ~= "rift" then
 		return false, "sail_unreachable"
@@ -455,6 +499,11 @@ function M.panel(ctx: any): any
 	local selected: string? = nil
 	local status: string? = nil
 	local mode = "view"
+	-- 'Show the dock' state (see markDock below): the card's primary walks to the nearest sail spot.
+	local showDock, refusedReach = false, false
+	local nearestDock: () -> Vector3?, rootPosition: () -> Vector3?
+	local setOpen: (boolean, string) -> ()
+	local closedAt: number? = nil
 	local cards: { any } = {}
 	local latest: any, received = nil, os.clock()
 	local sheet = Instance.new("Frame")
@@ -569,8 +618,18 @@ function M.panel(ctx: any): any
 				sheetName.Text = copy.name .. (if card.drift then " · " .. ctx.text("drift") else "")
 				sheetInfo.Text = copy.chip .. (if #climate > 0 then " · " .. table.concat(climate, ", ") else "")
 				sheetStatus.Text = status or copy.status
-				sail.Text = ctx.text(if mode == "rift" then "step" else "sail")
-				sail.Active = not card.locked and not card.here
+				-- Away from every dock and rift (or refused for reach) an open island's primary is
+				-- 'show the dock' and the status names why (p134 v68).
+				local openCard = not card.locked and not card.here
+				showDock = openCard
+					and mode == "view"
+					and (refusedReach or M.awayFromDock(rootPosition(), nearestDock()))
+					and nearestDock() ~= nil
+				if showDock and not status then
+					sheetStatus.Text = ctx.reason("sail_unreachable")
+				end
+				sail.Text = ctx.text(if showDock then "show_dock" elseif mode == "rift" then "step" else "sail")
+				sail.Active = openCard
 				sail.AutoButtonColor = sail.Active
 				sail.BackgroundTransparency = if sail.Active then 0 else 0.5
 			end
@@ -667,12 +726,92 @@ function M.panel(ctx: any): any
 		end)
 	end
 	local busy = false
+	-- 'Show the dock' (p134 v68): away from every dock and rift the card's primary walks to the
+	-- nearest sail spot (TapRouter pathfinding via ctx.walkTo) and pins the Waypoint marker (arrow,
+	-- minimap pin, beam) on it; the opening's own step marker yields while it is pinned. Opening the
+	-- chart away from a dock arms the marker for DOCK_MARK_SECONDS after it closes, pressed or not.
+	local Waypoint = require("./Waypoint")
+	local dockWay: any = nil
+	local dockTarget: Vector3? = nil
+	local dockUntil: number? = nil -- presentation clock; nil while pinned by the button
+	function rootPosition(): Vector3?
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		return if root then root.Position else nil
+	end
+	function nearestDock(): Vector3?
+		local world = workspace:FindFirstChild("ForgeRoleWorld")
+		local at = rootPosition()
+		local spot = if world and at then M.nearestSpot(world:GetAttribute("ForgeSailSpots"), at) else nil
+		return if spot then Vector3.new(spot.X, spot.Y, spot.Z) else nil
+	end
+	local function markDock(target: Vector3?, pinned: boolean)
+		dockTarget = target
+		dockUntil = if target and not pinned then os.clock() + M.DOCK_MARK_SECONDS else nil
+		player:SetAttribute(Waypoint.OVERRIDE_ATTRIBUTE, if target and pinned then target else nil)
+		if target and not dockWay then
+			local playerGui = player:WaitForChild("PlayerGui")
+			local minimapCache: Instance? = nil
+			dockWay = Waypoint.start({
+				name = "ForgeDockWaypoint",
+				playerGui = playerGui,
+				stage = workspace,
+				camera = function()
+					return workspace.CurrentCamera
+				end,
+				minimap = function(): any
+					if not minimapCache or not minimapCache:IsDescendantOf(playerGui) then
+						minimapCache = playerGui:FindFirstChild("Minimap", true)
+					end
+					return minimapCache
+				end,
+				label = function(meters: number): string
+					return ctx.text("dock_meters", meters)
+				end,
+				color = Color3.fromRGB(110, 196, 178),
+			})
+			dockWay.beam.Name = "DockBeam"
+			dockWay.arrow.Activated:Connect(function()
+				if dockTarget and ctx.walkTo then
+					ctx.walkTo(dockTarget, M.DOCK_ARRIVE)
+				end
+			end)
+		end
+	end
+	local function stepDock()
+		if not dockWay then
+			return
+		end
+		local at = rootPosition()
+		local expired = dockUntil ~= nil and not gui.Enabled and os.clock() > dockUntil
+		if dockTarget and (expired or (at and not Waypoint.shown(at, dockTarget))) then
+			markDock(nil, false) -- arrived (or the unpressed mark ran out)
+		end
+		dockWay.step(at, dockTarget)
+		-- The arrow is a button: it never sits over the chart or another sheet.
+		dockWay.gui.Enabled = not gui.Enabled
+			and not Waypoint.covered(gui.Parent, function(name: string): any
+				return player:GetAttribute(name)
+			end)
+	end
 	sail.Activated:Connect(function()
 		local card: any = nil
 		for _, candidate in cards do
 			card = if candidate.id == selected then candidate else card
 		end
 		if busy or not card or card.locked or card.here then
+			return
+		end
+		if showDock then
+			local target = nearestDock()
+			if target then
+				markDock(target, true)
+				if ctx.walkTo then
+					ctx.walkTo(target, M.DOCK_ARRIVE)
+				end
+				closedAt = os.clock()
+				setOpen(false, "view")
+			end
 			return
 		end
 		busy = true
@@ -682,13 +821,21 @@ function M.panel(ctx: any): any
 		busy = false
 		local reason = if result and result.ok then "travelling" else (result and result.reason or "travel_refused")
 		status = ctx.reason(reason)
+		-- The server refused for reach: the card's primary turns into 'show the dock'.
+		refusedReach = reason == "sail_unreachable"
 		render()
 	end)
-	local function setOpen(open: boolean, opened: string)
+	function setOpen(open: boolean, opened: string)
 		gui.Enabled = open
 		mode = opened
+		refusedReach = false
 		if not open then
 			selected, status = nil, nil
+		elseif opened == "view" and dockTarget == nil then
+			local target = nearestDock()
+			if M.awayFromDock(rootPosition(), target) then
+				markDock(target, false)
+			end
 		end
 		render()
 	end
@@ -713,7 +860,6 @@ function M.panel(ctx: any): any
 		)
 	end
 	-- UI debounce only (presentation clock, never game logic).
-	local closedAt: number? = nil
 	close.Activated:Connect(function()
 		closedAt = os.clock()
 		setOpen(false, "view")
@@ -729,6 +875,7 @@ function M.panel(ctx: any): any
 	end)
 	local elapsed = 0
 	local beat = run.Heartbeat:Connect(function(dt)
+		stepDock()
 		elapsed += dt
 		if elapsed >= 0.5 then
 			elapsed = 0
@@ -739,6 +886,10 @@ function M.panel(ctx: any): any
 		destroy = function()
 			stop()
 			beat:Disconnect()
+			if dockWay then
+				dockWay.destroy()
+			end
+			player:SetAttribute(Waypoint.OVERRIDE_ATTRIBUTE, nil)
 			gui:Destroy()
 			hud:Destroy()
 			minimap:Destroy()

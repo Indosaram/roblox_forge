@@ -443,4 +443,69 @@ return {
 		assert(router.dispatch({ decor = "fern", ground = V.new(1, 0, 1) }) == "ground", "the walk still runs")
 		assert(said[1] == "fern", "the player is told where fiber comes from")
 	end,
+	["ui69: a walk re-paths after a MoveTo timeout until it arrives, and gives up when blocked"] = function()
+		-- p134 v68: the first 'show the way' walk stopped after ~23 studs (Y72 -> Y49); a second press
+		-- finished it. Pathfinding returned a partial route / the MoveTo timed out and the walk ended.
+		local function world(blockAt: number?): any
+			local at = { X = 0, Y = 0, Z = 72 }
+			local paths, steps = 0, 0
+			local io = {}
+			function io.live()
+				return true
+			end
+			function io.position()
+				return at
+			end
+			function io.path(from, goal)
+				paths += 1
+				-- Each computed path only reaches ~23 studs toward the goal (then a MoveTo timeout).
+				local dz = goal.Z - from.Z
+				local reach = math.sign(dz) * math.min(math.abs(dz), 23)
+				return "Success",
+					{
+						{ position = from, jump = false },
+						{ position = { X = from.X, Y = 0, Z = from.Z + reach / 2 }, jump = false },
+						{ position = { X = from.X, Y = 0, Z = from.Z + reach }, jump = false },
+						{ position = goal, jump = false },
+					}
+			end
+			function io.step(point)
+				steps += 1
+				local wall = blockAt
+				if wall and point.position.Z < wall then
+					at = { X = at.X, Y = 0, Z = wall }
+					return false
+				end
+				if math.abs(point.position.Z - at.Z) > 23 then
+					return false -- MoveTo timed out on the far waypoint
+				end
+				at = { X = point.position.X, Y = 0, Z = point.position.Z }
+				return true
+			end
+			return io, function()
+				return paths, steps, at
+			end
+		end
+		local goal = { X = 0, Y = 0, Z = -48 }
+		local io, stats = world(nil)
+		assert(TapRouter.walk(io, goal, 6), "the walk arrives on one press")
+		local paths, _, at = stats()
+		assert(math.abs(at.Z - goal.Z) <= 6, "inside the arrival radius: " .. at.Z)
+		assert(paths > 1 and paths <= TapRouter.WALK_LEGS, "re-pathed, bounded: " .. paths)
+		-- A wall at Z 30: two legs without progress end the walk instead of looping.
+		local blocked, blockedStats = world(30)
+		assert(not TapRouter.walk(blocked, goal, 6), "blocked walk gives up")
+		local blockedPaths = blockedStats()
+		assert(blockedPaths <= 3, "gives up within two stalled legs: " .. blockedPaths)
+		-- A newer walk (or a stop) cancels it at once.
+		local cancelled = world(nil)
+		cancelled.live = function()
+			return false
+		end
+		assert(not TapRouter.walk(cancelled, goal, 6), "cancelled walk stops")
+		-- moveTo drives the walk through the bounded re-path loop.
+		local source = fs.readFile("games/robango-island/src/client/TapRouter.luau")
+		local body = assert(string.find(source, "local function moveTo(", 1, true), "moveTo")
+		assert(string.find(source, "M.walk({", body, true), "moveTo walks via M.walk")
+	end,
 }

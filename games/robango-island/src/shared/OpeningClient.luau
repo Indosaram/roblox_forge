@@ -19,6 +19,22 @@ M.FOLLOW_STUDS = 4
 M.WAY_OFFER_SECONDS = 5 -- the tracker tap's 'show the way' pebble stays this long
 M.WAY_ARRIVE = 6 -- the walk-to stops this close to the target (inside Waypoint.HIDE_STUDS)
 
+--- Whether `item` and every GuiObject above it are visible and its ScreenGui is enabled (the dock
+--- hides the quest card's slot, not the card, under the menu grid).
+function M.shownChain(item: any): boolean
+	local at = item
+	while at do
+		if at.ClassName == "ScreenGui" then
+			return at.Enabled ~= false
+		end
+		if at.Visible == false then
+			return false
+		end
+		at = at.Parent
+	end
+	return false
+end
+
 --- Beat-0 camera at `t` seconds: pitch, distance, yaw drift (degrees) and shake amplitude.
 function M.shot(t: number): (number, number, number, number)
 	local shake = if t >= 8 and t < 8.4 then 0.6 else 0
@@ -431,14 +447,16 @@ function M.factory(ctx: any): any
 		end
 	end
 	way.arrow.Activated:Connect(showWay)
-	-- Tapping the quest card offers the walk (it no longer only reads as a collapse target).
+	-- Tapping the quest card offers the walk (it no longer only reads as a collapse target). Both live
+	-- in the waypoint gui, below every sheet, the menu grid and the sea chart (p134 v68: on the
+	-- opening gui, DisplayOrder 40, the button took the taps meant for a sheet's X).
 	local trackerTap = Instance.new("TextButton")
 	trackerTap.Name, trackerTap.Text, trackerTap.BackgroundTransparency = "OpeningTrackerTap", "", 1
-	trackerTap.AutoButtonColor, trackerTap.Visible, trackerTap.Parent = false, false, gui
+	trackerTap.AutoButtonColor, trackerTap.Visible, trackerTap.Parent = false, false, way.gui
 	local wayButton = components.button(theme, {
 		text = text("opening.way.show"),
 		size = UDim2.fromOffset(120, 44),
-		parent = gui,
+		parent = way.gui,
 		onClick = function()
 			showWay()
 		end,
@@ -751,13 +769,26 @@ function M.factory(ctx: any): any
 			showCard(nil)
 		end
 		placeBoat(now)
-		-- Waypoint toward the current step's target; the tracker tap offers the walk there.
+		-- Waypoint toward the current step's target; the tracker tap offers the walk there. Another
+		-- guide's marker (the sea chart's 'show the dock') takes the one marker while it is set.
 		local target = wayTarget()
-		way.step(if root then root.Position else nil, target)
-		-- The screen arrow never draws over an open sheet; the beam and the pin stay.
-		way.gui.Enabled = not HudShell.sheetOpen(playerGui)
-		local guiAt = gui.AbsolutePosition
-		local trackerSeen = tracker.Visible and tracker.AbsoluteSize.X > 0 and target ~= nil
+		local yielded = typeof(player:GetAttribute(Waypoint.OVERRIDE_ATTRIBUTE)) == "Vector3"
+		way.step(if root then root.Position else nil, if yielded then nil else target)
+		-- Under any sheet, the menu grid or the sea chart the arrow, the tracker tap and the walk button
+		-- hide (the beam and the pin stay), and the quest card itself may be hidden by its dock.
+		local modal = Waypoint.covered(playerGui, function(name: string): any
+			return player:GetAttribute(name)
+		end)
+		way.gui.Enabled = not modal
+		if modal then
+			wayOfferUntil = 0
+		end
+		local guiAt = way.gui.AbsolutePosition
+		local trackerSeen = not modal
+			and not yielded
+			and M.shownChain(tracker)
+			and tracker.AbsoluteSize.X > 0
+			and target ~= nil
 		trackerTap.Visible = trackerSeen
 		if trackerSeen then
 			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize

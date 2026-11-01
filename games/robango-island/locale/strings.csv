@@ -3102,6 +3102,8 @@ cli.title.tip5,Open the sea chart at the harbor to pick your next island.,client
 cli.title.tip6,Sell spare goods to the harbor for coins and spend them on what your camp lacks.,client loading tip,Sell spare goods to the harbor for coins and spend them on what your camp lacks.,남는 물건은 항구에 팔아 조개돈을 벌고 캠프에 필요한 것을 마련하세요.
 fct.inbox_empty_hint,"Market sales, crafted goods and expedition rewards arrive here.",genre text fct,"Market sales, crafted goods and expedition rewards arrive here.","장터 판매 대금, 완성된 제작품, 탐험 보상이 여기로 와요."
 cli.chart.pick,Tap an island to see its level and set sail.,client sea chart label,Tap an island to see its level and set sail.,섬을 눌러 레벨을 보고 출항하세요.
+cli.chart.show_dock,Show the dock,client sea chart label,Show the dock,부두 안내
+cli.chart.dock_meters,Dock %d m,client sea chart label,Dock %d m,부두 %dm
 fct.camp_sheet_title,Survival camp,survival camp sheet,Survival camp,생존 캠프
 fct.camp_level,Camp level %d/%d,survival camp sheet,Camp level %d/%d,캠프 레벨 %d/%d
 fct.camp_level_none,No camp level yet,survival camp sheet,No camp level yet,아직 캠프 레벨이 없어요

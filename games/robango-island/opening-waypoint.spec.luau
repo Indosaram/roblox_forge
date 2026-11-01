@@ -10,6 +10,7 @@ local Content = require("./src/shared/SurvivalContent")
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local HudShell = require("../../genres/survival-coop/module/HudShell")
 local Fixture = require("./PackText.fixture")
+local Harness = require("./PanelHarness.fixture")
 
 local function onboarding(): any
 	for _, layout in Content.layouts do
@@ -136,5 +137,73 @@ return {
 				"metres format"
 			)
 		end
+	end,
+	["ui69: the quest card's 'show the way' hides under sheets, the menu grid and the chart, and sits below them"] = function()
+		-- p134 v68: the button drew over the Character sheet's X, the menu grid tiles and the sea chart
+		-- card; taps meant for them toggled it (bug_sheetX_hits_guide.png, bug_guide_over_menu.png).
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.onboarding")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Position, root.Parent = roblox.Vector3.new(-10, 2, 20), character
+		character.Parent = h.workspace
+		h.player.Character = character
+		h.publish({ opening = { active = true, beat = 5, step = "camp" } })
+		local function find(name: string): any
+			for _, item in h.playerGui:GetDescendants() do
+				if item.Name == name then
+					return item
+				end
+			end
+			return nil
+		end
+		local function owner(item: any): any
+			return item:FindFirstAncestorWhichIsA("ScreenGui")
+		end
+		-- Hit-testable on screen: visible up the chain and its ScreenGui enabled.
+		local function live(item: any): boolean
+			local at = item
+			while at and at.ClassName ~= "ScreenGui" do
+				if at.Visible == false then
+					return false
+				end
+				at = at.Parent
+			end
+			return at ~= nil and at.Enabled ~= false
+		end
+		local tap, button = assert(find("OpeningTrackerTap"), "tracker tap"), assert(find("OpeningShowWay"), "button")
+		assert(live(tap), "the quest card offers the walk on the open world")
+		h.click(tap)
+		assert(live(button), "the walk button shows after a tracker tap")
+		-- Below every sheet gui and the dock (menu grid) in draw order.
+		local dock = assert(h.playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
+		local chart = assert(h.playerGui:FindFirstChild("ForgeSeaChart"), "chart gui")
+		for _, item in { tap, button } do
+			local order = owner(item).DisplayOrder
+			assert(order < dock.DisplayOrder and order < chart.DisplayOrder, item.Name .. " below dock and chart")
+			assert(order < 20, item.Name .. " below every fitted sheet (DisplayOrder >= 20): " .. order)
+		end
+		-- Menu grid open: nothing of the guide is hit-testable.
+		h.click(h.toggle)
+		assert(h.menu.Visible, "menu grid open")
+		assert(not live(button) and not live(tap), "hidden under the menu grid")
+		h.click(h.toggle)
+		assert(not h.menu.Visible, "menu grid closed")
+		-- A docked sheet (Character): hidden, and the X closes the sheet.
+		assert(h.panels.open("character"), "character sheet opens")
+		h.step()
+		local sheets = h.sheets()
+		assert(#sheets == 1, "one sheet")
+		assert(not live(button) and not live(tap), "hidden under the character sheet")
+		h.click(sheets[1].close)
+		assert(#h.sheets() == 0, "the X closes the sheet")
+		-- The sea chart: hidden while it is open.
+		assert(h.panels.open("sea-chart"), "chart opens")
+		h.step()
+		assert(chart.Enabled, "chart open")
+		assert(not live(button) and not live(tap), "hidden under the sea chart")
+		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 }

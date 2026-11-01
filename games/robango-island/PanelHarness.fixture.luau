@@ -201,6 +201,8 @@ local function harness(options: any?): any
 			return self.ClassName == "TextButton" or self.ClassName == "ImageButton"
 		elseif kind == "LayerCollector" then
 			return self.ClassName == "ScreenGui"
+		elseif kind == "BasePart" then
+			return self.ClassName == "Part" or self.ClassName == "BasePart"
 		end
 		return self.ClassName == kind
 	end
@@ -299,6 +301,20 @@ local function harness(options: any?): any
 	function methods.ReleaseFocus() end
 	function methods.GetServerTimeNow()
 		return 0
+	end
+	function methods.AddTag() end
+	function methods.Raycast()
+		return nil
+	end
+	-- Camera: every world point projects off the right edge, in front (the waypoint arrow clamps).
+	function methods.WorldToViewportPoint()
+		return roblox.Vector3.new(100000, 100, 10), false
+	end
+	function methods.PivotTo(self, cframe)
+		rawget(getmetatable(self) :: any, "data").pivot = cframe
+	end
+	function methods.GetPivot(self)
+		return rawget(getmetatable(self) :: any, "data").pivot or roblox.CFrame.new()
 	end
 	function methods.Play() end
 	function methods.Stop() end
@@ -555,6 +571,9 @@ local function harness(options: any?): any
 		playerGui = playerGui,
 		hud = hud,
 		panels = panels,
+		player = player,
+		workspace = workspace,
+		new = node,
 	}
 	h.rect = layoutRect
 	-- Device change: every enabled ScreenGui is laid out again and reports it; a disabled one is not.

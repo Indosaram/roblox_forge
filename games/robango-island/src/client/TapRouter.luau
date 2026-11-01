@@ -85,6 +85,58 @@ function M.route(
 	return { { position = goal, jump = false } }
 end
 
+-- A walk keeps going waypoint to waypoint and re-paths from where it stands whenever a route runs
+-- out or a MoveTo times out short of the goal (p134 v68: the opening's 'show the way' stopped after
+-- 23 studs and needed a second press). Bounded: at most WALK_LEGS paths, and two legs in a row that
+-- gain less than WALK_STALL studs end it (blocked).
+M.WALK_LEGS, M.WALK_STALL = 8, 2
+local function flat(a: any, b: any): number
+	return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)
+end
+--- Drives one walk to `goal`, done within `within` studs (flat). `io.position()` is the root
+--- position, `io.path(from, goal)` returns a path status name and its waypoints ({ position, jump }),
+--- `io.step(waypoint)` walks to one waypoint and returns true (reached), false (MoveTo timed out or
+--- blocked) or nil (the walk was cancelled), `io.live()` is false once a newer walk or a stop took
+--- over. Returns whether the walk arrived.
+function M.walk(io: any, goal: any, within: number): boolean
+	local stalls = 0
+	for _ = 1, M.WALK_LEGS do
+		if not io.live() then
+			return false
+		end
+		local before = flat(io.position(), goal)
+		if before <= within then
+			return true
+		end
+		local status, points = io.path(io.position(), goal)
+		for _, step in M.route(status, points, goal) do
+			if not io.live() or flat(io.position(), goal) <= within then
+				break
+			end
+			local reached = io.step(step)
+			if reached == nil then
+				return false
+			end
+			if reached == false then
+				break -- re-path from here
+			end
+		end
+		local after = flat(io.position(), goal)
+		if after <= within then
+			return true
+		end
+		if before - after < M.WALK_STALL then
+			stalls += 1
+			if stalls >= 2 then
+				return false
+			end
+		else
+			stalls = 0
+		end
+	end
+	return io.live() and flat(io.position(), goal) <= within
+end
+
 -- Shore stop: walk the straight line from `from` toward `goal` in `step`-stud samples and return
 -- the last land point before the line first leaves land (the goal itself when it stays on land).
 -- Water before any land is crossed, so a wading player can still walk back ashore. Returns nil
@@ -352,40 +404,48 @@ function M.start(options: { player: Player, blocked: () -> boolean, eligible: ((
 				AgentCanJump = true,
 				Costs = { Water = math.huge },
 			})
-			local ok = pcall(function()
-				path:ComputeAsync(root.Position, goal)
-			end)
-			local points = {}
-			if ok and path.Status == Enum.PathStatus.Success then
-				for _, waypoint in path:GetWaypoints() do
-					table.insert(points, {
-						position = waypoint.Position,
-						jump = waypoint.Action == Enum.PathWaypointAction.Jump,
-					})
-				end
-			end
-			local route = M.route(if ok then path.Status.Name else "Error", points, goal)
 			local within = arrive or 1
-			for _, step in route do
-				if mine ~= serial or flatDistance(root.Position, goal) <= within then
-					break
-				end
-				if step.jump then
-					humanoid.Jump = true
-				end
-				humanoid:MoveTo(step.position)
-				local finished: boolean? = nil
-				local done = humanoid.MoveToFinished:Once(function(reached)
-					finished = reached
-				end)
-				while finished == nil and mine == serial and flatDistance(root.Position, goal) > within do
-					RunService.Heartbeat:Wait()
-				end
-				done:Disconnect()
-				if finished == false then
-					break
-				end
-			end
+			M.walk({
+				live = function(): boolean
+					return mine == serial and root.Parent ~= nil and humanoid.Health > 0
+				end,
+				position = function(): Vector3
+					return root.Position
+				end,
+				path = function(from: Vector3, to: Vector3): (string, { any })
+					local ok = pcall(function()
+						path:ComputeAsync(from, to)
+					end)
+					local points = {}
+					if ok and path.Status == Enum.PathStatus.Success then
+						for _, waypoint in path:GetWaypoints() do
+							table.insert(points, {
+								position = waypoint.Position,
+								jump = waypoint.Action == Enum.PathWaypointAction.Jump,
+							})
+						end
+					end
+					return if ok then path.Status.Name else "Error", points
+				end,
+				step = function(step: any): boolean?
+					if step.jump then
+						humanoid.Jump = true
+					end
+					humanoid:MoveTo(step.position)
+					local finished: boolean? = nil
+					local done = humanoid.MoveToFinished:Once(function(reached)
+						finished = reached
+					end)
+					while finished == nil and mine == serial and flatDistance(root.Position, goal) > within do
+						RunService.Heartbeat:Wait()
+					end
+					done:Disconnect()
+					if mine ~= serial then
+						return nil
+					end
+					return finished ~= false
+				end,
+			}, goal, within)
 			if mine ~= serial then
 				return
 			end

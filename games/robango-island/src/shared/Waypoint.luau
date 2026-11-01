@@ -14,6 +14,13 @@ M.HIDE_STUDS = 8
 M.EDGE_MARGIN = 36 -- px from the gui edge for the clamped arrow
 M.BEAM_HEIGHT, M.BEAM_WIDTH = 90, 2.5
 M.MARKER_LIFT = 7 -- studs above the ground where the on-screen marker points
+-- p134 v68: the arrow gui (and the opening's 'show the way' button in it) sat above every sheet,
+-- the menu dock (30) and the sea chart (31), so a sheet's X toggled the walk. It sits below every
+-- sheet (ExtensionPanels.fitSheet lifts sheet guis to >= 20) and above the HUD (15).
+M.DISPLAY_ORDER = 19
+-- Player attribute (Vector3): another guide (the sea chart's 'show the dock') owns the marker; the
+-- opening's own step target yields to it.
+M.OVERRIDE_ATTRIBUTE = "ForgeWaypointOverride"
 
 --- Position of `id` in a content layout: an anchor, else a resource node (the bone heap, the fiber
 --- bush, the flint scree are nodes). nil when the layout has neither.
@@ -49,6 +56,13 @@ end
 --- Whole metres shown for a stud distance.
 function M.meters(studs: number): number
 	return math.max(0, math.floor(studs + 0.5))
+end
+
+--- Whether a modal surface covers the screen: a full sheet in another gui (HudShell.sheetOpen: the
+--- sea chart, the survivor picker, docked sheets) or a flagged one (the menu grid sets
+--- ForgeExtensionSheetOpen). Waypoint buttons hide then. `attribute` reads a LocalPlayer attribute.
+function M.covered(playerGui: any, attribute: (string) -> any): boolean
+	return HudShell.bottomHidden(playerGui, attribute)
 end
 
 --- Whether the marker shows for a player at `root` and a target at `target`.
@@ -115,6 +129,7 @@ export type Options = {
 	label: (meters: number) -> string,
 	ground: ((Vector3) -> number?)?,
 	color: Color3?,
+	name: string?, -- ScreenGui name (default ForgeWaypoint)
 }
 
 function M.start(options: Options): any
@@ -151,7 +166,7 @@ function M.start(options: Options): any
 	local round = Instance.new("UICorner")
 	round.CornerRadius, round.Parent = UDim.new(0.5, 0), distance
 	local gui = Instance.new("ScreenGui")
-	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = "ForgeWaypoint", false, 30
+	gui.Name, gui.ResetOnSpawn, gui.DisplayOrder = options.name or "ForgeWaypoint", false, M.DISPLAY_ORDER
 	gui.IgnoreGuiInset, gui.ScreenInsets = true, Enum.ScreenInsets.None
 	gui.Parent = options.playerGui
 	arrow.Parent = gui

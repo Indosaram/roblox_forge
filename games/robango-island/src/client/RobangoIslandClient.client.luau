@@ -1288,6 +1288,12 @@ table.insert(panelFactories, function(ctx)
 	scoped.biome = function(id: string): string
 		return clientText(locale, "cli.chart.biome_" .. id) or id
 	end
+	-- 'Show the dock' walks to the nearest sail spot with the tap router's pathfinding walk.
+	scoped.walkTo = function(goal: Vector3, arrive: number)
+		if walkTo then
+			walkTo(goal, arrive, function() end)
+		end
+	end
 	return require(Shared.SeaChart).panel(scoped)
 end)
 -- Recovered spec screens (tracker, score library, clan treasury/research, territory, build manage,

@@ -178,6 +178,20 @@ function M.startMeshes(load: (number) -> Instance, storage: Instance, ids: { [st
 end
 
 M.travelSerial = 0
+-- Sea chart reach (p134 v68): a chart voyage leaves within this many studs (flat) of a dock or rift
+-- sail point, not only inside nearPart's 12 (the pier beside the town dock was refused). Matches
+-- SeaChart.SAIL_REACH, which decides when the chart shows 'show the dock' instead of Set sail.
+M.SAIL_REACH = 20
+
+--- `kind:x,y,z;...` for the ForgeSailSpots attribute (Waypoint.spots reads it on the client).
+function M.encodeSpots(spots: { { kind: string, position: any } }): string
+	local rows = {}
+	for _, spot in spots do
+		local p = spot.position
+		table.insert(rows, string.format("%s:%.1f,%.1f,%.1f", spot.kind, p.X, p.Y, p.Z))
+	end
+	return table.concat(rows, ";")
+end
 --- Publishes a dock travel result to the player as "<outcome>|<serial>"; the HUD
 --- tracker shows each new value for a few seconds. Also logged for Studio QA.
 function M.publishTravel(player: any, outcome: string)
@@ -1882,6 +1896,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	-- Deferred voyage results (SurvivalFactory travelAfterCommand) use the dock result channel.
 	world.publishTravel = M.publishTravel
 	--- The sail point ("dock" or "rift") the actor stands at, or nil. Dock prompts count as docks.
+	--- Within SAIL_REACH studs (flat, 12 vertical) of one counts too (p134 v68: the onboarding town
+	--- dock refused the chart from the pier beside it).
+	local function spotParts(): { { part: BasePart, kind: string } }
+		local list = table.clone(sailPoints)
+		for _, item in root:GetChildren() do
+			if item:FindFirstChild("ForgeDock") and item:IsA("BasePart") then
+				table.insert(list, { part = item, kind = "dock" })
+			end
+		end
+		return list
+	end
 	world.sailPoint = function(actor: string): string?
 		for _, point in sailPoints do
 			if point.part.Parent and world.nearPart(actor, point.part) then
@@ -1893,7 +1918,28 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				return "dock"
 			end
 		end
+		local at = world.services.survivalDeath.position(actor)
+		if at then
+			for _, point in spotParts() do
+				local p = point.part.Position
+				if
+					point.part.Parent
+					and math.sqrt((p.X - at.x) ^ 2 + (p.Z - at.z) ^ 2) <= M.SAIL_REACH
+					and math.abs(p.Y - at.y) <= 12
+				then
+					return point.kind
+				end
+			end
+		end
 		return nil
+	end
+	-- Every sail spot for the client: the chart's 'show the dock' walks to the nearest one.
+	do
+		local spots = {}
+		for _, point in spotParts() do
+			table.insert(spots, { kind = point.kind, position = point.part.Position })
+		end
+		root:SetAttribute("ForgeSailSpots", M.encodeSpots(spots))
 	end
 	-- Archipelago cells: a boundary marker at the island edge beside the entry dock opens
 	-- ui.island-rank. Its cell bounds and required rank come from the layout data.

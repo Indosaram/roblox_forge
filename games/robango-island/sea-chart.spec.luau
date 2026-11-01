@@ -45,8 +45,12 @@ end
 
 -- Headless panel: SeaChart.panel on a fake Instance tree with the v40 phone numbers (an 800x360
 -- IgnoreGuiInset gui at AbsolutePosition y -54 under a 54 px top bar) and a pushed snapshot.
-local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): any
+-- `options.at` (Vector3): the character's root; `options.spots` the world's ForgeSailSpots;
+-- `options.walkTo(goal, arrive)` the tap router walk.
+local function mountPanel(role: string, snapshot: any, clock: (() -> number)?, options: any?): any
+	local opts = options or {}
 	local made: { any } = {}
+	local entries: { any } = {}
 	local function signal(): any
 		local handlers = {}
 		return {
@@ -90,6 +94,22 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): 
 		function item:WaitForChild(name)
 			return assert(self:FindFirstChild(name), name)
 		end
+		function item:GetChildren()
+			local list = {}
+			for _, other in made do
+				if other.Parent == self then
+					table.insert(list, other)
+				end
+			end
+			return list
+		end
+		function item:GetAttribute(key)
+			return (self.attributes or {})[key]
+		end
+		function item:SetAttribute(key, value)
+			self.attributes = self.attributes or {}
+			self.attributes[key] = value
+		end
 		function item:Destroy()
 			self.Parent = nil
 		end
@@ -105,31 +125,54 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): 
 		end
 	end
 	local attributes = { ForgeWorldRole = role }
+	local roleWorld = new("Folder")
+	roleWorld.Name = "ForgeRoleWorld"
+	roleWorld:SetAttribute("ForgeSailSpots", opts.spots)
+	if opts.at then
+		local character = new("Model")
+		local root = new("Part")
+		root.Name, root.Parent, root.Position = "HumanoidRootPart", character, opts.at
+		player.Character = character
+	end
+	local stage = new("Workspace")
 	local services: any = {
 		Players = { LocalPlayer = player },
 		RunService = { Heartbeat = signal() },
 		GuiService = { TopbarInset = { Max = roblox.Vector2.new(800, 54) } },
 	}
-	local env: any = {
+	local env: any
+	env = {
 		game = {
 			GetService = function(_, key)
 				return services[key]
 			end,
 		},
-		workspace = {
+		workspace = setmetatable({
 			GetAttribute = function(_, key)
 				return attributes[key]
 			end,
-		},
+			FindFirstChild = function(_, name)
+				return if name == "ForgeRoleWorld" then roleWorld else nil
+			end,
+		}, { __index = stage }),
 		Instance = { new = new },
 		Enum = roblox.Enum,
 		Color3 = roblox.Color3,
 		UDim = roblox.UDim,
 		UDim2 = roblox.UDim2,
 		Vector2 = roblox.Vector2,
+		Vector3 = roblox.Vector3,
+		CFrame = roblox.CFrame,
 		os = { clock = clock or os.clock },
 		require = function(path: string): any
-			if string.find(path, "Rng$") then
+			if string.find(path, "Waypoint$") then
+				-- The real marker module on the same fake Instance tree.
+				local wenv = table.clone(env)
+				wenv.require = function()
+					return HudShell
+				end
+				return luau.load(fs.readFile("games/robango-island/src/shared/Waypoint.luau"), { environment = wenv })()
+			elseif string.find(path, "Rng$") then
 				return require("../../core/domain/random/Rng")
 			elseif string.find(path, "Topology$") then
 				return require("../../core/domain/island/Topology")
@@ -160,7 +203,9 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): 
 		send = function()
 			return { ok = false }
 		end,
+		walkTo = opts.walkTo,
 		dock = function(entry)
+			table.insert(entries, entry)
 			return {
 				open = function()
 					entry.setOpen(true)
@@ -188,7 +233,17 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?): 
 			height = item.Size.Y.Offset,
 		}
 	end
-	return { made = made, find = find, box = box, destroy = handle.destroy, gui = find("ForgeSeaChart") }
+	return {
+		made = made,
+		find = find,
+		box = box,
+		destroy = handle.destroy,
+		gui = find("ForgeSeaChart"),
+		player = player,
+		entries = entries,
+		stage = env.workspace,
+		heartbeat = services.RunService.Heartbeat,
+	}
 end
 
 local function layoutOf(id: string): any
@@ -830,5 +885,99 @@ return {
 		local frame = panel.box(sheet)
 		assert(not overlaps(frame, panel.box(panel.find("Isle-harbor"))), "harbor sheet clear of the harbor tile")
 		panel.destroy()
+	end,
+	["dock3: away from every dock the chart card shows 'show the dock', walks there and marks it"] = function()
+		-- p134 v68: the chart refused '부두나 균열 앞에서 출항하세요' everywhere but within ~8 studs of the
+		-- onboarding town dock, and nothing marked the dock: the tester looked for it for 14 minutes.
+		local dock = roblox.Vector3.new(23, 2, -72)
+		local spots = "dock:23.0,2.0,-72.0;dock:-1.0,2.0,173.0;rift:400.0,2.0,400.0"
+		local walks: { any } = {}
+		local facts = { level = 3, developmentRank = 0, instabilityAccess = 0 }
+		local panel = mountPanel("onboarding", { expedition = { now = 1, facts = facts } }, nil, {
+			at = roblox.Vector3.new(-44, 2, 0),
+			spots = spots,
+			walkTo = function(goal, arrive)
+				table.insert(walks, { goal = goal, arrive = arrive })
+			end,
+		})
+		local chart = panel.gui
+		panel.find("Isle-town").Activated:Fire()
+		chart.Enabled = true
+		panel.find("Isle-town").Activated:Fire()
+		local sail = assert(panel.find("Sail"), "card primary")
+		local ko = text("ko-kr")
+		assert(sail.Text == ko("show_dock"), "away from a dock the primary reads 'show the dock': " .. sail.Text)
+		assert(sail.Active, "the primary is pressable")
+		assert(panel.find("SheetStatus").Text == "sail_unreachable", "the card says why")
+		sail.Activated:Fire()
+		assert(#walks == 1, "one walk")
+		assert(walks[1].goal.X == 23 and walks[1].goal.Z == -72, "walks to the nearest dock")
+		assert(walks[1].arrive <= SeaChart.SAIL_REACH, "stops inside the sail reach")
+		assert(not chart.Enabled, "the chart closes for the walk")
+		assert(panel.player:GetAttribute("ForgeWaypointOverride") == dock, "the dock owns the waypoint")
+		panel.heartbeat:Fire(1 / 60)
+		local beam = assert(panel.find("DockBeam"), "beam at the dock")
+		assert(beam.Parent == panel.stage and beam.CFrame.Position.X == 23, "beam stands on the dock")
+		local arrow = assert(panel.find("ForgeDockWaypoint"), "dock arrow gui")
+		assert(arrow.Enabled, "the dock arrow shows once the chart is closed")
+		assert(arrow.DisplayOrder < chart.DisplayOrder, "the dock arrow sits under the chart")
+		-- Arriving clears the mark and hands the waypoint back to the opening.
+		panel.player.Character:FindFirstChild("HumanoidRootPart").Position = roblox.Vector3.new(21, 2, -70)
+		panel.heartbeat:Fire(1 / 60)
+		assert(panel.player:GetAttribute("ForgeWaypointOverride") == nil, "arrived: override cleared")
+		assert(beam.Parent == nil, "arrived: beam hidden")
+		-- At the dock (inside SAIL_REACH, beyond the old 8-stud prompt) the primary sails.
+		chart.Enabled = true
+		panel.find("Isle-town").Activated:Fire()
+		assert(sail.Text == ko("sail"), "at the dock the primary sails: " .. sail.Text)
+		panel.destroy()
+		-- Opening the chart away from a dock marks the dock even before any press.
+		local marked = mountPanel("onboarding", { expedition = { now = 1, facts = facts } }, nil, {
+			at = roblox.Vector3.new(-44, 2, 0),
+			spots = spots,
+		})
+		marked.entries[1].setOpen(true) -- the menu tile / minimap open (view mode)
+		assert(marked.gui.Enabled, "chart opened")
+		assert(marked.player:GetAttribute("ForgeWaypointOverride") == nil, "an unpressed mark does not take the guide")
+		marked.heartbeat:Fire(1 / 60)
+		local mark = assert(marked.find("DockBeam"), "opening the chart away from a dock marks it")
+		assert(mark.Parent == marked.stage and mark.CFrame.Position.X == 23, "beam on the nearest dock")
+		assert(not marked.find("ForgeDockWaypoint").Enabled, "no arrow button over the open chart")
+		marked.destroy()
+		for _, locale in { "en-us", "ko-kr" } do
+			assert(Fixture.packText(locale, "cli.chart.show_dock"), locale .. " show_dock")
+			assert(string.format(text(locale)("dock_meters"), 12):find("12"), locale .. " dock_meters")
+		end
+	end,
+	["dock3: the server sails within SAIL_REACH studs of a dock and publishes every sail spot"] = function()
+		local engine = Engine.new()
+		local world = engine.role.build(Content, Source, Policy, function()
+			return 0
+		end, "rw.onboarding", 1776)
+		world.bind({} :: any)
+		local root = engine.game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld")
+		local spots = SeaChart.spots(root:GetAttribute("ForgeSailSpots"))
+		local town: any = nil
+		for _, item in root:GetChildren() do
+			if item.Name == "town-dock" then
+				town = item
+			end
+		end
+		assert(town, "onboarding town dock")
+		local listed = false
+		for _, spot in spots do
+			listed = listed or (spot.kind == "dock" and spot.X == math.floor(town.Position.X * 10 + 0.5) / 10)
+		end
+		assert(listed and #spots >= 2, "the town dock and the home dock are published: " .. #spots)
+		-- nearPart (12 studs + a clear ray) fails on the pier beside the dock; the flat reach still sails.
+		world.nearPart = function()
+			return false
+		end
+		local p = town.Position
+		engine.move("1", { x = p.X + 15, y = p.Y, z = p.Z })
+		assert(world.sailPoint("1") == "dock", "15 studs from the dock sails")
+		engine.move("1", { x = p.X + SeaChart.SAIL_REACH + 30, y = p.Y, z = p.Z + 40 })
+		assert(world.sailPoint("1") == nil, "far from every dock refuses")
+		world.destroy()
 	end,
 }

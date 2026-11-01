@@ -3102,6 +3102,8 @@ cli.title.tip5,original,agent:hephaestus/R01-title,2026-10-28
 cli.title.tip6,original,agent:hephaestus/R01-title,2026-10-28
 fct.inbox_empty_hint,original,agent:hephaestus/u6,2026-10-29
 cli.chart.pick,original,agent:hephaestus/u7,2026-10-29
+cli.chart.show_dock,original,agent:hephaestus/ui69,2026-11-01
+cli.chart.dock_meters,original,agent:hephaestus/ui69,2026-11-01
 fct.camp_sheet_title,original,agent:hephaestus/text-audit,2026-10-30
 fct.camp_level,original,agent:hephaestus/text-audit,2026-10-30
 fct.camp_level_none,original,agent:hephaestus/text-audit,2026-10-30
