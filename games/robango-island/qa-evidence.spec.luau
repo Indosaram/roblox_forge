@@ -226,7 +226,9 @@ end
 -- 1.902 MB. fileBytes 1.9 -> 2.0 MB; the device budget above stays the binding one.
 -- 2026-11-01 opening waypoint (C1 dead end 2: shared Waypoint module) is the 341st script. Raised
 -- 340 -> 350; v67 phone PSS 783 MiB of the binding 900 MB device budget.
-local PERF_BUDGET = { instances = 420, scripts = 350, sourceBytes = 4200000, fileBytes = 2000000 }
+-- 2026-11-02 first-6h content (15 guides g32-g46, audit6h rows) grew the generated content; 4.20 -> 4.25 MB
+-- of Luau source (device budget binds on memory: v67 PSS 783 of 900 MB).
+local PERF_BUDGET = { instances = 420, scripts = 350, sourceBytes = 4250000, fileBytes = 2000000 }
 
 type Measure = { instances: number, scripts: number, sourceBytes: number, fileBytes: number }
 

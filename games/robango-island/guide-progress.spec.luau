@@ -503,12 +503,16 @@ local function captureDodo(server: any)
 	for _, row in content.wildlifeDetails do
 		full = if row.id == "dodo" then row.health * 1000 else full
 	end
+	-- Capture rolls are seeded by the request id; a per-call counter keeps the rolls independent of
+	-- which guide drives ran before this one in the shard (the module-wide sequence is order-dependent).
+	local local_sequence = 0
 	local function command(action: string, args: { any }): any
 		sequence += 1
+		local_sequence += 1
 		server.at.value += 1
 		server.session.advance(server.at.value)
 		return server.session.command(ACTOR, {
-			requestId = "guide-" .. sequence,
+			requestId = "guide-capture-" .. local_sequence,
 			sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
 			action = "survival-coop:" .. action,
 			args = args,
@@ -795,7 +799,6 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	-- p59 waypoint guides (levels 6-28, grade 2).
 	["rw.g21.daily-board.1"] = function(server)
 		send(server, "contract-deliver", { "survey-driftwood" })
-		send(server, "contract-deliver", { "eco-fiber-sample" })
 	end,
 	["rw.g22.wilds-spear.1"] = function(server, at)
 		send(server, "gather", { "fallen-tree-01", 0 })
@@ -829,7 +832,7 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		send(server, "gather", { "marsh-clam-bed-01", 0 })
 	end,
 	["rw.g30.route-supplies.1"] = function(server)
-		-- audit6h P5: two board deliveries (g21 already used two of a four-contract day).
+		-- audit6h P5: two board deliveries (g21 one, g44 one: four on a four-contract day).
 		for _, id in { "survey-driftwood", "guild-stone-axe" } do
 			send(server, "contract-deliver", { id })
 		end

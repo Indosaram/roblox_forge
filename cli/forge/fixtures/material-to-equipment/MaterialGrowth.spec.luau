@@ -77,11 +77,12 @@ return {
 		)
 		local _, level = Materials.craft(Content, "tan-hide", { raw("hide", 10, 2) })
 		assert(level == "INPUT_MISMATCH", "progression contract 44")
-		local low = raw("hide", 10, 1)
+		-- audit6h P2 dropped the L10 processes to material level 1; smelting copper keeps level 20.
+		local low = raw("copper-ore", 20, 1)
 		low.level = 1
 		local inputs = { low }
 		local before = serde.encode("json", inputs)
-		local result, gate = Materials.craft(Content, "tan-hide", inputs)
+		local result, gate = Materials.craft(Content, "smelt-copper", inputs)
 		assert(result == nil and gate == "MATERIAL_LEVEL_GATE", "progression contract 48")
 		assert(serde.encode("json", inputs) == before, "wrong material level consumes no quantity budget or attributes")
 	end,

@@ -33223,7 +33223,7 @@ guides:
         id: "rw.g21.daily-board.1"
         action: "deliver"
         target: "contract"
-        quantity: 2
+        quantity: 1
     rewards:
       xp: 225
       coins: 25
