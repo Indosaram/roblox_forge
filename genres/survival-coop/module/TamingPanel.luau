@@ -177,6 +177,122 @@ function M.companions(locale: string, state: any, content: any, nowMillis: numbe
 	return summary, rows
 end
 
+--- Starter-capture species (R09 polish): basic creatures at or under the companion rule's
+--- starterHealth. Returns the id set and the fallback species to name (lowest health, then id), or
+--- nil when the pack has no starter tool.
+function M.starterSpecies(content: any): ({ [string]: boolean }?, string?)
+	local rules = content and content.progressionPolicy and content.progressionPolicy.companion
+	if not rules or not rules.starterTool or not rules.starterHealth then
+		return nil, nil
+	end
+	local set, best = {}, nil
+	for _, row in content.wildlifeDetails or {} do
+		if row.captureClass == "basic" and row.health <= rules.starterHealth then
+			set[row.id] = true
+			if not best or row.health < best.health or row.health == best.health and row.id < best.id then
+				best = row
+			end
+		end
+	end
+	return set, if best then best.id else nil
+end
+
+export type Candidate = { kind: string, x: number, z: number, alive: boolean }
+
+--- Nearest alive candidate of a starter species to (x, z), with its flat distance in studs.
+function M.nearestStarter(candidates: { any }, x: number, z: number, species: { [string]: boolean }): (any?, number)
+	local best, gap = nil, math.huge
+	for _, entry in candidates do
+		if entry.alive and species[entry.kind] then
+			local d = math.sqrt((entry.x - x) ^ 2 + (entry.z - z) ^ 2)
+			if d < gap then
+				best, gap = entry, d
+			end
+		end
+	end
+	return best, gap
+end
+
+--- Usable starter tools in a carried bag (InventorySnapshot), or nil without a bag.
+function M.toolsOwned(bag: any, tool: string): number?
+	if type(bag) ~= "table" or type(bag.items) ~= "table" then
+		return nil
+	end
+	local count = 0
+	for _, item in bag.items do
+		if item.catalogId == tool and (item.durabilityMilli or 0) > 0 then
+			count += item.quantity or 1
+		end
+	end
+	return count
+end
+
+export type NextStep = { kind: string, title: string, tool: string, owned: number, how: string, go: string }
+
+--- Pure view model of the empty sheet's next-step card (specced): what to catch (`data.kind`, else
+--- the fallback starter species), the starter tool with the owned count (`data.bag`, else
+--- `data.captureTools`), how, and where to get the tool when none is owned (the guide that grants it
+--- while that guide is open, else its recipe). Nil when the pack has no starter capture.
+function M.nextStep(locale: string, content: any, names: { [string]: string }?, data: any): NextStep?
+	local species, fallback = M.starterSpecies(content)
+	local kind = if species and data.kind and species[data.kind] then data.kind else fallback
+	if not species or not kind then
+		return nil
+	end
+	local tool = content.progressionPolicy.companion.starterTool
+	local function name(id: string): string
+		if names and names[id] then
+			return names[id]
+		end
+		for _, item in content.items or {} do
+			if item.id == id then
+				return item.name or id
+			end
+		end
+		return id
+	end
+	local owned = M.toolsOwned(data.bag, tool) or (if type(data.captureTools) == "number" then data.captureTools else 0)
+	local toolLine = string.format(M.text(locale, "tame_next_tool"), name(tool), owned)
+	if owned <= 0 then
+		local done = (data.character and data.character.definitions) or {}
+		local source: string? = nil
+		for _, guide in content.guides or {} do
+			for _, reward in (guide.rewards and guide.rewards.items) or {} do
+				if reward.item == tool and not done[guide.id] and not source then
+					local short = string.match(guide.id, "^rw%.(g%d+)") or guide.id
+					local key = "chr.guide_" .. short
+					source = string.format(
+						M.text(locale, "tame_next_from_guide"),
+						if strings[key] then M.text(locale, key) else guide.id
+					)
+				end
+			end
+		end
+		if not source then
+			for _, recipe in content.recipes or {} do
+				if not source and recipe.outputs and recipe.outputs[1] and recipe.outputs[1].item == tool then
+					local parts = {}
+					for _, input in recipe.inputs or {} do
+						table.insert(parts, name(input.item) .. " x" .. input.quantity)
+					end
+					source = string.format(M.text(locale, "tame_next_craft"), table.concat(parts, ", "))
+				end
+			end
+		end
+		if source then
+			toolLine ..= "\n" .. source
+		end
+	end
+	return {
+		kind = kind,
+		title = string.format(M.text(locale, "tame_next_title"), M.species(locale, kind)),
+		tool = toolLine,
+		owned = owned,
+		how = M.text(locale, "tame_next_how"),
+		go = M.text(locale, "tame_next_go"),
+	}
+end
+
 export type Gauge = { wildId: string?, level: number, max: number, full: boolean? }
 
 --- Pure prompt selection (specced): "capture" once the known gauge for this wild id is full,
@@ -270,7 +386,70 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end
 		end
 	end
-	local function render(snapshot: { [string]: any })
+	-- R09 next step: the starter species models in the wildlife folder, as nearestStarter candidates.
+	local starter = M.starterSpecies(ctx.content)
+	local function nearestWild(): (Model?, number)
+		local character = players.LocalPlayer.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not starter or not root then
+			return nil, math.huge
+		end
+		local folder = workspace:FindFirstChild("ForgeWildlife")
+		if not folder then
+			return nil, math.huge
+		end
+		local candidates = {}
+		for _, model in folder:GetChildren() do
+			local anchor = model:FindFirstChild("HumanoidRootPart")
+			local kind, health = model:GetAttribute("ForgeWildlifeKind"), model:GetAttribute("ForgeWildlifeHealthMilli")
+			if anchor and type(kind) == "string" then
+				table.insert(candidates, {
+					model = model,
+					kind = kind,
+					x = anchor.Position.X,
+					z = anchor.Position.Z,
+					alive = health == nil or (type(health) == "number" and health > 0),
+				})
+			end
+		end
+		local best, gap = M.nearestStarter(candidates, root.Position.X, root.Position.Z, starter)
+		return if best then best.model else nil, gap
+	end
+	-- "Show me": outline the nearest starter creature (drawn through scenery), close the sheet and walk
+	-- there with the tap router's waypoint walk (ctx.walkTo: path + ground marker), when the pack gives it.
+	local guideMark: Instance? = nil
+	local function guideToNearest()
+		local model, gap = nearestWild()
+		if guideMark then
+			guideMark:Destroy()
+			guideMark = nil
+		end
+		if not model then
+			local _, fallback = M.starterSpecies(ctx.content)
+			status.Text = M.text(ctx.locale, "tame_next_none", M.species(ctx.locale, fallback or ""))
+			return
+		end
+		local kind = tostring(model:GetAttribute("ForgeWildlifeKind"))
+		local mark = Instance.new("Highlight")
+		mark.Name, mark.FillColor, mark.OutlineColor =
+			"ForgeTameGuide", Color3.fromRGB(255, 184, 56), Color3.fromRGB(255, 184, 56)
+		mark.FillTransparency, mark.DepthMode = 0.6, Enum.HighlightDepthMode.AlwaysOnTop
+		mark.Parent = model
+		guideMark = mark
+		task.delay(90, function()
+			if guideMark == mark then
+				mark:Destroy()
+				guideMark = nil
+			end
+		end)
+		status.Text = string.format(M.text(ctx.locale, "tame_next_marked"), M.species(ctx.locale, kind), math.ceil(gap))
+		local anchor = model:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if ctx.walkTo and anchor then
+			gui.Enabled = false
+			ctx.walkTo(anchor.Position, 5)
+		end
+	end
+	local function render(snapshot: { [string]: any }, packet: any?)
 		for _, child in rows:GetChildren() do
 			if child:IsA("GuiObject") then
 				child:Destroy()
@@ -291,6 +470,72 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				ui.components.label(theme, { text = summaryText, size = UDim2.new(1, 0, 0, 28), parent = rows })
 			summary.Name, summary.LayoutOrder = "CompanionSummary", 0
 			if #list == 0 then
+				local genre = if type(packet) == "table" and type(packet.snapshots) == "table"
+					then packet.snapshots["survival-coop"]
+					else nil
+				local bag = nil
+				for _, view in (if type(genre) == "table" then genre.inventory else nil) or {} do
+					bag = if view.kind == "carried" then view else bag
+				end
+				local near = nearestWild()
+				local step = M.nextStep(ctx.locale, ctx.content, ctx.names, {
+					kind = if near then near:GetAttribute("ForgeWildlifeKind") else nil,
+					bag = bag,
+					captureTools = if type(state) == "table" then state.captureTools else nil,
+					character = snapshot.character,
+				})
+				if step then
+					-- R09: the next-step card (tool art, species chip, what / tool / how, Show me) leads the sheet.
+					local card = Instance.new("Frame")
+					card.Name, card.BackgroundTransparency, card.LayoutOrder = "TameNextStep", 1, 1
+					card.Size, card.Parent = UDim2.new(1, 0, 0, 204), rows
+					local art = Instance.new("ImageLabel")
+					art.Name, art.BackgroundTransparency, art.Size = "NextStepArt", 1, UDim2.fromOffset(56, 56)
+					art.Image = if ctx.icons
+						then ctx.icons.item(ctx.content.progressionPolicy.companion.starterTool).image or ""
+						else ""
+					art.Parent = card
+					local body = nil
+					for _, row in ctx.content.wildlifeDetails do
+						body = if row.id == step.kind and row.visual then row.visual.body else body
+					end
+					local chip = Instance.new("Frame")
+					chip.Name, chip.BorderSizePixel = "NextStepSpecies", 0
+					chip.Size, chip.Position = UDim2.fromOffset(22, 22), UDim2.fromOffset(38, 38)
+					chip.BackgroundColor3 = if body
+						then Color3.fromRGB(body.r, body.g, body.b)
+						else Color3.fromRGB(150, 150, 150)
+					chip.Parent = card
+					local title = ui.components.label(theme, {
+						text = step.title,
+						size = UDim2.new(1, -66, 0, 48),
+						position = UDim2.fromOffset(66, 0),
+						parent = card,
+					})
+					title.Name = "NextStepTitle"
+					local tool = ui.components.label(theme, {
+						text = step.tool,
+						size = UDim2.new(1, -66, 0, 44),
+						position = UDim2.fromOffset(66, 48),
+						parent = card,
+					})
+					tool.Name = "NextStepTool"
+					local how = ui.components.label(theme, {
+						text = step.how,
+						size = UDim2.new(1, 0, 0, 56),
+						position = UDim2.fromOffset(0, 96),
+						parent = card,
+					})
+					how.Name = "NextStepHow"
+					local go = ui.components.button(theme, {
+						text = step.go,
+						size = UDim2.new(1, 0, 0, 48),
+						position = UDim2.fromOffset(0, 156),
+						parent = card,
+						onClick = guideToNearest,
+					})
+					go.Name = "NextStepGo"
+				end
 				local copy =
 					M.text(ctx.locale, if v2 or type(state) ~= "table" then "companion_empty" else "tame_empty")
 				if ctx.icons and ctx.sheetText then
@@ -298,7 +543,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					local headline, steps = string.match(copy, "^(.-[%.%?!])%s+(.+)$")
 					local card = require("./SheetCards").empty(rows, {
 						name = "CompanionEmpty",
-						order = 1,
+						order = 2,
 						icon = ctx.icons.item("capture-rope"),
 						title = headline or copy,
 						hint = steps,
@@ -312,12 +557,12 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					size = UDim2.new(1, 0, 0, 120),
 					parent = rows,
 				})
-				empty.Name, empty.LayoutOrder = "CompanionEmpty", 1
+				empty.Name, empty.LayoutOrder = "CompanionEmpty", 2
 				if ctx.icons then -- U6: capture-rope art over the how-to text
 					local art = Instance.new("ImageLabel")
-					art.LayoutOrder, art.BackgroundTransparency, art.ScaleType = 1, 1, Enum.ScaleType.Fit
+					art.LayoutOrder, art.BackgroundTransparency, art.ScaleType = 2, 1, Enum.ScaleType.Fit
 					art.Size, art.Image = UDim2.new(1, 0, 0, 64), ctx.icons.item("capture-rope").image or ""
-					art.Parent, empty.LayoutOrder = rows, 2
+					art.Parent, empty.LayoutOrder = rows, 3
 				end
 				return
 			end
@@ -509,6 +754,10 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		end
 		updateAll()
 		if action == CAPTURE and result.ok and data.captured then
+			if guideMark then
+				guideMark:Destroy()
+				guideMark = nil
+			end
 			gui.Enabled = true
 		end
 	end
@@ -577,7 +826,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			task.spawn(attach, child)
 		end
 	end)
-	local unsubscribe = ctx.onSnapshot(function(snapshot: { [string]: any })
+	local unsubscribe = ctx.onSnapshot(function(snapshot: { [string]: any }, packet: any?)
 		local state = snapshot.taming
 		if type(state) == "table" then
 			table.clear(tameable)
@@ -590,7 +839,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			end
 			updateAll()
 		end
-		render(snapshot)
+		render(snapshot, packet)
 	end)
 	task.spawn(function()
 		while alive do

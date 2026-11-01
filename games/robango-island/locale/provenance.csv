@@ -3199,3 +3199,11 @@ trv.party_reservation_failed,original,agent:maho/travel,2026-10-31
 trv.travel_failed,original,agent:maho/travel,2026-10-31
 trv.travel_unavailable,original,agent:maho/travel,2026-10-31
 trv.travel_refused,original,agent:maho/travel,2026-10-31
+tame_next_title,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_tool,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_from_guide,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_craft,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_how,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_go,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_marked,original,agent:hephaestus/polish-tame,2026-10-31
+tame_next_none,original,agent:hephaestus/polish-tame,2026-10-31

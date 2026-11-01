@@ -180,11 +180,12 @@ return {
 			end
 			assert(count.CompanionEmpty == 1, locale .. ": empty rows " .. tostring(count.CompanionEmpty))
 			assert(count.CompanionSummary == 1, locale .. ": summary rows " .. tostring(count.CompanionSummary))
+			assert(count.TameNextStep == 1, locale .. ": next-step cards " .. tostring(count.TameNextStep))
 			local layout
 			for _, child in children() do
 				layout = if child.ClassName == "UIListLayout" then child else layout
 			end
-			assert(#children() == 3 and layout, locale .. ": stale rows " .. #children())
+			assert(#children() == 4 and layout, locale .. ": stale rows " .. #children())
 			assert(layout.SortOrder == 2, "rows sort by LayoutOrder so the summary line is first")
 		end
 	end,

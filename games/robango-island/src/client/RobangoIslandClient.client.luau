@@ -576,6 +576,17 @@ for index, factory in panelFactories do
 			end
 			return require(Forge.genres["survival-coop"].module.CrossServerMarketPanel).factory(trade)
 		end
+	elseif factory == require(Forge.genres["survival-coop"].module.TamingPanel).factory then
+		-- R09: the empty sheet's "Show me" walks to the nearest starter creature with the tap router.
+		panelFactories[index] = function(ctx)
+			local taming: any = table.clone(ctx)
+			taming.walkTo = function(at: Vector3, within: number)
+				if walkTo then
+					walkTo(at, within, function() end)
+				end
+			end
+			return factory(taming)
+		end
 	elseif factory == require(Forge.genres["survival-coop"].module.BrawlPanel).factory then
 		-- Weather rows show the ui.icon.weather.* art published for this pack.
 		panelFactories[index] = function(ctx)

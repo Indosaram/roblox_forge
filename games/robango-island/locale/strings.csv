@@ -3199,3 +3199,11 @@ trv.party_reservation_failed,The drift isle server could not be reserved. Try ag
 trv.travel_failed,The voyage could not start. Try again,dock travel result,The voyage could not start. Try again,항해를 시작하지 못했어요. 다시 시도하세요
 trv.travel_unavailable,Travel is not available here,dock travel result,Travel is not available here,여기서는 이동할 수 없어요
 trv.travel_refused,The voyage was refused. Try again,dock travel result,The voyage was refused. Try again,항해가 거절됐어요. 다시 시도하세요
+tame_next_title,Next: catch a %s,taming next step title,Next: catch a %s,다음 할 일: %s 잡기
+tame_next_tool,Tool: %s (you have %d),taming next step tool,Tool: %s (you have %d),도구: %s (보유 %d개)
+tame_next_from_guide,Get one from the guide: %s,taming next step tool source guide,Get one from the guide: %s,안내에서 받으세요: %s
+tame_next_craft,Craft one: %s,taming next step tool source recipe,Craft one: %s,제작하세요: %s
+tame_next_how,"Hit it until it is winded (a quarter health), then tap Capture to throw the bola.",taming next step how,"Hit it until it is winded (a quarter health), then tap Capture to throw the bola.",지칠 때까지(체력 4분의 1) 때린 뒤 포획을 눌러 볼라를 던지세요.
+tame_next_go,Show me the nearest one,taming next step button,Show me the nearest one,가장 가까운 곳 보기
+tame_next_marked,"%s marked, %dm away",taming next step marked,"%s marked, %dm away","%s 표시함, %dm 거리"
+tame_next_none,No %s nearby. Look around the camp meadow.,taming next step none nearby,No %s nearby. Look around the camp meadow.,근처에 %s 없어요. 캠프 주변 풀밭을 둘러보세요.
