@@ -162,6 +162,38 @@ return {
 		end
 		assert(farthest <= limit + 1e-6, string.format("fled %.1f studs from home, limit %d", farthest, limit))
 	end,
+	-- D2 v68 R08: an onboarding dodo bolted as soon as the tap-to-attack walk came near, so the first
+	-- fight read as a chase. A flee-on-hit grazer grazes while targeted, runs one short leg per hit,
+	-- then grazes again where the player can re-engage it.
+	["a flee-on-hit grazer grazes while targeted, flees one short leg when hit, then grazes again"] = function()
+		local content, catalog, _, observation = fixture()
+		local definition = table.clone(content.wildlife[1]) :: any
+		definition.fleeOnHitStuds = 8
+		local state = Wildlife.new("grazer-1", "grazer", { x = 0, y = 0, z = 0 }, catalog)
+		observation.actors = { { id = "alice", position = { x = 2, y = 0, z = 0 }, alive = true } }
+		local calm, still = Wildlife.step(state, definition, catalog.species.grazer, 0, observation)
+		assert(tostring(calm.mode) == "roam" and still.destination == nil, "a player beside it: it keeps grazing")
+		observation.provokedBy = "alice"
+		local fled, leg = Wildlife.step(calm, definition, catalog.species.grazer, 100, observation)
+		assert(tostring(fled.mode) == "flee" and fled.target == "alice", "a hit makes it flee its striker")
+		local goal = assert(leg.destination, "a flee goal")
+		local run = math.sqrt(goal.x * goal.x + goal.z * goal.z)
+		assert(goal.x < 0 and run <= 8 + 1e-6, string.format("a short leg away from the striker: %.1f studs", run))
+		observation.provokedBy = nil
+		observation.position = { x = -4, y = 0, z = 0 }
+		observation.actors[1].position = { x = -1, y = 0, z = 0 }
+		local mid, rest = Wildlife.step(fled, definition, catalog.species.grazer, 100 + 1000, observation)
+		assert(tostring(mid.mode) == "flee", "the leg runs its course")
+		local midGoal = assert(rest.destination, "a shrinking goal")
+		assert(math.abs(midGoal.x - observation.position.x) < 8, "the rest of the leg is shorter than a full leg")
+		local after, stop =
+			Wildlife.step(mid, definition, catalog.species.grazer, 100 + Wildlife.FLEE_LEG_MILLIS, observation)
+		assert(tostring(after.mode) == "roam" and stop.destination == nil, "after the leg it grazes again")
+		assert(after.provoker == nil and after.target == nil, "the next hit starts a fresh leg")
+		-- The default grazer (no fleeOnHitStuds) still bolts from a player who walks up.
+		local wild = Wildlife.step(state, content.wildlife[1], catalog.species.grazer, 0, observation)
+		assert(tostring(wild.mode) == "flee", "authored grazers elsewhere keep fleeing on sight")
+	end,
 	-- R09 tame lane: a weakened grazer that kept fleeing left the 6-stud capture reach.
 	["a grazer worn to a quarter health stands winded instead of fleeing; a healthier one flees"] = function()
 		local content, catalog, _, observation = fixture()

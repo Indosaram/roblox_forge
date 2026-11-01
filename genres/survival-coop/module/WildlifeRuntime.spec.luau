@@ -325,6 +325,8 @@ local specs: { [string]: () -> () } = {
 			"the chased grazer took the spear's 20 damage, health "
 				.. c.read("wildlife:one").data.npcs.grazer.healthMilli
 		)
+		-- D2 v68 R08: the landed blow names its striker, so the world makes a flee-on-hit grazer bolt.
+		assert(c.read("wildlife:one").data.npcs.grazer.provoker == "alice", "the striker is the provoker")
 		local replay = c.session.command("alice", c.request("grazer", "chase"))
 		assert(replay.ok and replay.data.outcome == nil, "a landed blow is no miss")
 	end,
@@ -336,6 +338,7 @@ local specs: { [string]: () -> () } = {
 		local replay = c.session.command("alice", c.request("grazer", "escape"))
 		assert(replay.ok and replay.data.outcome == "MISS", "the result says it missed")
 		assert(c.read("wildlife:one").data.npcs.grazer.healthMilli == 40000, "no damage")
+		assert(c.read("wildlife:one").data.npcs.grazer.provoker == nil, "a miss provokes nothing")
 	end,
 	["bare hands punch for the unarmed rule without wear; without one the swing is refused"] = function()
 		local c = fixture()

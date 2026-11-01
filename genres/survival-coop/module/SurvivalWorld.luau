@@ -67,6 +67,10 @@ export type Config = {
 		maximum: number,
 		-- Optional herds (Herd.new) over spawn ids; absent keeps every spawn solitary.
 		herds: { Herd.Herd }?,
+		-- Optional night factor (0 day .. 1 full night) for the resting coat look (DinosaurMotion).
+		night: (() -> number)?,
+		-- Optional species id -> flee-on-hit studs (WildlifeWorld fleeOnHit).
+		fleeOnHit: { [string]: number }?,
 	}?,
 }
 
@@ -1138,6 +1142,8 @@ function M.new(config: Config)
 				catalog = policy.catalog,
 				maximum = policy.maximum,
 				herds = policy.herds,
+				night = policy.night,
+				fleeOnHit = policy.fleeOnHit,
 				observePath = function(observation)
 					event:Fire(observation)
 				end,

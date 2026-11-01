@@ -281,6 +281,10 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 				assert(data.locks[npc.id] == id and npc.version == intent.npcVersion, "NPC_INTENT_OWNERSHIP")
 				npc.healthMilli = math.max(0, npc.healthMilli - damage)
 				npc.version += 1
+				-- The striker of a landed blow: the world binding provokes the creature (and its herd) at it.
+				if damage > 0 then
+					npc.provoker = intent.request.actorId
+				end
 				intent.phase = "APPLIED"
 				intent.mints = {}
 				if npc.healthMilli == 0 then

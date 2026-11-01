@@ -10,6 +10,8 @@ local M = {}
 M.HIBERNATE_STUDS = Archetype.HIBERNATE_STUDS
 --- A fleeing grazer stays within this many fleeStuds of its home.
 M.FLEE_RANGE = 2
+--- A flee-on-hit grazer (fleeOnHitStuds) runs one leg this long per hit, then grazes again.
+M.FLEE_LEG_MILLIS = 1500
 export type Position = { x: number, y: number, z: number }
 export type Actor = { id: string, position: Position, alive: boolean }
 export type Species = { healthMilli: number, damageMilli: number, drops: { Content.Quantity } }
@@ -277,6 +279,48 @@ function M.step(
 	-- fleeing and stands, so a starter bola thrown from beside it can catch it (Robango redesign).
 	if archetype.engine == "grazer" and state.healthMilli * 4 <= rule.healthMilli then
 		nextState.mode, nextState.target = "stunned", nil
+		return nextState, intent
+	end
+	-- Optional runtime row field `fleeOnHitStuds` (a game pack's onboarding rule): the grazer keeps
+	-- grazing while players walk up to it or target it; only a hit makes it bolt, one FLEE_LEG_MILLIS
+	-- leg aimed this many studs away (never past FLEE_RANGE times that from home), and then it grazes
+	-- where it stopped, so the player can close in and strike again.
+	local hitOnly: number? = (definition :: any).fleeOnHitStuds
+	if archetype.engine == "grazer" and hitOnly then
+		local hit = observation.provokedBy ~= nil and provoker ~= nil and provoker.id == observation.provokedBy
+		local fleeing = state.mode == "flee" and now < state.deadline
+		if provoker and (hit or fleeing) then
+			nextState.mode, nextState.target = "flee", provoker.id
+			if hit then
+				nextState.deadline = now + M.FLEE_LEG_MILLIS
+			end
+			local dx, dz = observation.position.x - provoker.position.x, observation.position.z - provoker.position.z
+			local length = math.sqrt(dx * dx + dz * dz)
+			if length == 0 then
+				dx, dz, length = 1, 0, 1
+			end
+			-- The goal shrinks with the leg's remaining time, so one leg covers about hitOnly studs.
+			local reach = hitOnly * math.clamp((nextState.deadline - now) / M.FLEE_LEG_MILLIS, 0, 1)
+			local goal = {
+				x = observation.position.x + dx / length * reach,
+				y = observation.position.y,
+				z = observation.position.z + dz / length * reach,
+			}
+			local range = hitOnly * M.FLEE_RANGE
+			local hx, hz = goal.x - state.home.x, goal.z - state.home.z
+			local out = math.sqrt(hx * hx + hz * hz)
+			if out > range then
+				goal.x, goal.z = state.home.x + hx / out * range, state.home.z + hz / out * range
+			end
+			intent.destination = goal
+		else
+			-- Grazing: it stands where it is (no walk toward the player), drifting home only once it
+			-- has strayed past its short flee range.
+			nextState.mode, nextState.target, nextState.provoker, nextState.deadline = "roam", nil, nil, 0
+			if homeDistance > hitOnly * M.FLEE_RANGE then
+				intent.destination = table.clone(state.home)
+			end
+		end
 		return nextState, intent
 	end
 	if archetype.engine == "grazer" then

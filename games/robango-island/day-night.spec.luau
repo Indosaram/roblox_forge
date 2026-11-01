@@ -6,6 +6,19 @@ local Content = require("./src/shared/SurvivalContent")
 local SkyCycle = require("./src/shared/SkyCycle")
 local DayNight, Weather = SkyCycle, SkyCycle
 local Volcano = require("../../core/domain/survival/Volcano")
+local Onboarding = require("./src/shared/OnboardingWildlife")
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
+local roblox: any = require("@lune/roblox")
+local Motion = luau.load(fs.readFile("genres/survival-coop/module/DinosaurMotion.luau"), {
+	environment = {
+		Instance = roblox.Instance,
+		Vector3 = roblox.Vector3,
+		CFrame = roblox.CFrame,
+		Color3 = roblox.Color3,
+		Enum = roblox.Enum,
+	},
+})()
 
 local FOG = { 192, 215, 205 }
 
@@ -243,6 +256,56 @@ return {
 		-- Readability no worse than night2 (grass lum 116, camp sand lum 129 on screen).
 		assert(luminance(onScreen(night, GRASS)) >= 116, "night grass stays readable")
 		assert(luminance(onScreen(night, sand)) >= 129, "night camp sand stays readable")
+	end,
+	-- D2 v68 R07 (p134 default_zoom, night): the onboarding dodo's coat (a half-transparent Highlight
+	-- fill over the moonlit baked texture) and its dark edge read near-black on dark ground. The coat
+	-- is unlit (a Highlight), so on screen it is the colour graded by the night grade, composited over
+	-- the darkest baked marking lit by the night state. At night3 every species coat must stand
+	-- clearly above the night grass and its rim must be light, while the day look is unchanged.
+	["night3: onboarding species coats stay readable above the night ground"] = function()
+		local night = DayNight.at(1, FOG)
+		local function graded(c: { number }): { number }
+			local out = {}
+			for i = 1, 3 do
+				out[i] = c[i] * night.grade.tint[i] / 255
+			end
+			local y = luminance(out)
+			for i = 1, 3 do
+				out[i] =
+					math.clamp(y + (out[i] - y) * (1 + night.grade.saturation) + night.grade.brightness * 255, 0, 255)
+			end
+			return out
+		end
+		local function rgb(c: any): { number }
+			return { c.R * 255, c.G * 255, c.B * 255 }
+		end
+		local marking: { [string]: { number } } = {}
+		for _, detail in Content.wildlifeDetails do
+			local m = detail.visual and detail.visual.marking
+			if m then
+				marking[detail.id] = { m.r, m.g, m.b }
+			end
+		end
+		local grass = luminance(onScreen(night, GRASS))
+		local checked = 0
+		for species, tint in Onboarding.COATS do
+			local coat = roblox.Color3.fromRGB(tint[1], tint[2], tint[3])
+			local fill, fillT, edge, edgeT = Motion.coatLook(coat, 1 - night.daylight)
+			local under = luminance(onScreen(night, assert(marking[species], species .. " marking")))
+			local body = luminance(graded(rgb(fill))) * (1 - fillT) + under * fillT
+			local rim = luminance(graded(rgb(edge))) * (1 - edgeT) + grass * edgeT
+			assert(
+				body >= 1.15 * grass,
+				string.format("%s coat lum %.0f vs night grass %.0f: reads dark at night", species, body, grass)
+			)
+			assert(rim >= grass, string.format("%s rim lum %.0f darker than night grass %.0f", species, rim, grass))
+			-- By day the coat keeps the reviewed day look.
+			local dayFill, dayFillT, dayEdge, dayEdgeT = Motion.coatLook(coat, 0)
+			assert(dayFill == coat and dayFillT == Motion.COAT_FILL, species .. " day fill unchanged")
+			assert(dayEdge == Motion.COAT_EDGE and dayEdgeT == Motion.COAT_EDGE_TRANSPARENCY, species .. " day edge")
+			checked += 1
+		end
+		assert(checked >= 5 and Onboarding.COATS.dodo, "every onboarding coat, the dodo first, was checked")
 	end,
 	["volcano layouts follow the content storm timeline with ash"] = function()
 		local layout = layoutWith(function(l)

@@ -210,6 +210,68 @@ return {
 		assert(fastest > 0, "speeds read from content")
 		world.destroy()
 	end,
+	-- D2 v68 R08: the onboarding dodos bolted (sense 10, flee 24) as soon as the tap-to-attack walk
+	-- came near, so the first fight read as a chase. An onboarding grazer now stays put while a player
+	-- walks up to it, and a hit sends it one short leg a walking player closes in about a second.
+	["onboarding grazers stay while targeted and flee a short leg only once hit"] = function()
+		local world = build("rw.onboarding")
+		local byId, species = rows(world)
+		local fleeOnHit = assert(world.roleWildlife.fleeOnHit, "the onboarding world hands WildlifeWorld fleeOnHit")
+		local catalog = Wildlife.catalog(world.roleContent, world.roleWildlife.catalog)
+		local checked: { [string]: boolean } = {}
+		for _, spawn in world.roleWildlife.spawns do
+			local authored = byId[spawn.catalogId]
+			if authored.behavior ~= "grazer" and authored.behavior ~= "herd-grazer" then
+				assert(fleeOnHit[spawn.catalogId] == nil, spawn.catalogId .. " is no flee-on-hit grazer")
+				continue
+			end
+			local short = fleeOnHit[spawn.catalogId]
+			assert(type(short) == "number" and short <= PLAYER_WALK, spawn.catalogId .. " flees a short leg")
+			-- The definition WildlifeWorld.register builds from the row and fleeOnHit.
+			local row = table.clone(authored)
+			row.fleeOnHitStuds = short
+			local function frame(provoked: boolean): (any, any)
+				return Wildlife.step(
+					Wildlife.new(spawn.id, spawn.catalogId, spawn.position, catalog),
+					row,
+					species[spawn.catalogId],
+					1000,
+					{
+						position = spawn.position,
+						actors = {
+							{
+								id = "11734795308",
+								alive = true,
+								position = { x = spawn.position.x + 3, y = spawn.position.y, z = spawn.position.z },
+							},
+						},
+						pathFailed = false,
+						lineOfSight = function()
+							return true
+						end,
+						provokedBy = if provoked then "11734795308" else nil,
+					}
+				)
+			end
+			local calm, still = frame(false)
+			assert(
+				calm.mode ~= "flee" and still.destination == nil,
+				spawn.id .. " left a player who walked up to target it: " .. calm.mode
+			)
+			local fled, leg = frame(true)
+			assert(fled.mode == "flee", spawn.id .. " flees once hit")
+			local goal = assert(leg.destination, spawn.id .. " flee goal")
+			local run = Wildlife.distance(spawn.position, goal)
+			assert(run <= short + 1e-6, string.format("%s fled %.1f studs on one hit", spawn.id, run))
+			checked[spawn.catalogId] = true
+		end
+		assert(checked.dodo and checked.turtle, "the onboarding dodo trios and the turtle were checked")
+		world.destroy()
+		-- Off onboarding the authored grazers keep fleeing on sight.
+		local other = build("rw.explore10")
+		assert(other.roleWildlife.fleeOnHit == nil, "no flee-on-hit off onboarding")
+		other.destroy()
+	end,
 	["the onboarding rule leaves predators and every other island as authored"] = function()
 		local kinds = details()
 		for _, detail in Content.wildlifeDetails do
@@ -218,6 +280,8 @@ return {
 				local species = { [detail.id] = { healthMilli = 1, damageMilli = 50000, drops = {} } }
 				Onboarding.apply(Content, "rw.onboarding", list, species)
 				assert(list[1].flag == nil, detail.id .. " keeps its own flag")
+				local map = Onboarding.fleeOnHit("rw.onboarding", list)
+				assert(map and map[detail.id] == nil, detail.id .. " never turns flee-on-hit")
 				assert(species[detail.id].damageMilli == Onboarding.DAMAGE_CAP_MILLI, "predators are capped too")
 			end
 		end

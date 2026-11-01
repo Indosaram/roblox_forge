@@ -760,6 +760,128 @@ return {
 	-- R09 tame lane: the onboarding dodos spawn as a herd trio. A follower worn to the capture
 	-- threshold stood winded in Wildlife.step, but the world still walked it after its fleeing leader
 	-- (a winded creature has no target, so it read as a calm follower) and out of the 6-stud reach.
+	-- D2 v68 R08: a lone onboarding dodo (fleeOnHitStuds) bolted the moment a player walked up to
+	-- target it. It now grazes until a confirmed hit, which alone (no herd) sends it off its striker.
+	["a flee-on-hit grazer stays while a player walks up and bolts only on a confirmed hit"] = function()
+		local heartbeat = signal()
+		active.moved, active.owners = {}, {}
+		active.finished, active.obstacle, active.surface = signal(), false, nil
+		installMocks()
+		local world = roblox.Instance.new("Workspace")
+		active.world = world
+		local function rig(position: any)
+			local model = roblox.Instance.new("Model")
+			model.Parent = world
+			local root = roblox.Instance.new("Part")
+			root.Name, root.Parent, root.Position = "HumanoidRootPart", model, position
+			root.CFrame = roblox.CFrame.new(position)
+			root.AssemblyLinearVelocity = roblox.Vector3.zero
+			roblox.Instance.new("Humanoid").Parent = model
+			return model, root
+		end
+		local dodo = rig(roblox.Vector3.new(0, 3, 0))
+		local character = rig(roblox.Vector3.new(3, 3, 0))
+		local actor = { UserId = 1, Character = character }
+		local services = {
+			Workspace = world,
+			Players = {
+				GetPlayerByUserId = function(_, id)
+					return if id == 1 then actor else nil
+				end,
+				GetPlayers = function()
+					return { actor }
+				end,
+			},
+			RunService = {
+				Heartbeat = heartbeat,
+				IsStudio = function()
+					return true
+				end,
+			},
+			PathfindingService = {},
+		}
+		local module = luau.load(fs.readFile("genres/survival-coop/module/WildlifeWorld.luau"), {
+			environment = {
+				game = {
+					GetService = function(_, name)
+						return services[name]
+					end,
+				},
+				require = function(name)
+					return if name == "./Wildlife"
+						then Wildlife
+						elseif name == "./DinosaurMotion" then DinosaurMotion
+						elseif name == "./Herd" then Herd
+						else Content
+				end,
+				Vector3 = roblox.Vector3,
+				CFrame = roblox.CFrame,
+				Enum = roblox.Enum,
+				RaycastParams = {
+					new = function()
+						return {}
+					end,
+				},
+				task = { spawn = function() end },
+			},
+		})()
+		local content, errors = Content.canonicalize({
+			survival_content = 1,
+			rules = Content.RULES,
+			limits = Content.DEFAULT_LIMITS,
+			items = { { id = "meat", name = "Meat", stackMax = 10, weightMilli = 100 } },
+			wildlife = { { id = "grazer", behavior = "grazer" } },
+		})
+		assert(content, table.concat(errors, "; "))
+		local requested: { any } = {}
+		local now = 0
+		local api = module.new({
+			content = content,
+			catalog = { species = { grazer = { healthMilli = 45000, damageMilli = 0, drops = {} } }, weapons = {} },
+			maximum = 1,
+			-- What a game pack's onboarding rule hands the world (OnboardingWildlife.fleeOnHit).
+			fleeOnHit = { grazer = 8 },
+			nowMillis = function()
+				return now
+			end,
+			alive = function()
+				return true
+			end,
+			equipment = function()
+				return {}
+			end,
+			damage = function() end,
+			observePath = function(event)
+				if event.phase == "requested" then
+					table.insert(requested, event)
+				end
+			end,
+		})
+		api.register(dodo, "dodo", "grazer")
+		-- The player stands 3 studs off (inside the 12-stud sense radius) with it targeted.
+		for _ = 1, 3 do
+			now += 250
+			heartbeat.fire()
+		end
+		assert(api.snapshot("dodo").mode == "roam", "targeted but unhit, it grazes: " .. api.snapshot("dodo").mode)
+		assert(#requested == 0, "it does not walk off while the player closes in")
+		-- A swing lands (the owner confirms the hit and names the striker).
+		local hit = api.snapshot("dodo")
+		hit.version += 1
+		hit.healthMilli, hit.provoker = 40000, "1"
+		api.publish(hit)
+		now += 250
+		heartbeat.fire()
+		assert(api.snapshot("dodo").mode == "flee", "a hit makes it bolt: " .. api.snapshot("dodo").mode)
+		local leg = assert(requested[1], "a flee leg is requested")
+		assert(leg.goal.x < 0, "away from the striker")
+		local run = math.sqrt(leg.goal.x * leg.goal.x + leg.goal.z * leg.goal.z)
+		assert(run <= 8 + 1e-6, string.format("a short leg: %.1f studs", run))
+		now += 2000
+		heartbeat.fire()
+		assert(api.snapshot("dodo").mode == "roam", "after the leg it grazes again")
+		api.destroy()
+	end,
 	["a winded herd follower stays put while its leader flees"] = function()
 		local heartbeat = signal()
 		active.moved, active.owners = {}, {}

@@ -96,4 +96,39 @@ return {
 		motion.new(plain, plain.PrimaryPart, state, 0)
 		assert(not plain:FindFirstChild("WildlifeFeedback").Enabled, "no coat, no resting fill")
 	end,
+	-- D2 v68 R07: the resting coat follows the world's night factor (coatLook) and returns to the day
+	-- look at dawn; cues still take the outline look in between.
+	["a coated rig lifts its resting coat at night and returns to the day coat"] = function()
+		local rig =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), { environment = environment })()
+		local motion =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurMotion.luau"), { environment = environment })()
+		local world = roblox.Instance.new("Workspace")
+		local model = rig.new("grazer", "coat", roblox.Vector3.zero, world)
+		local coat = roblox.Color3.fromRGB(120, 140, 240)
+		model:SetAttribute("ForgeCoatTint", coat)
+		local night = 0
+		local state = { mode = "idle", healthMilli = 40000, strike = 0 }
+		local controller = motion.new(model, model.PrimaryPart, state, 0, function()
+			return night
+		end)
+		local fill = model:FindFirstChild("WildlifeFeedback")
+		assert(fill.FillColor == coat and fill.FillTransparency == motion.COAT_FILL, "day coat")
+		night = 1
+		controller.update(state, 100, roblox.Vector3.zero)
+		local lit, litT, rim, rimT = motion.coatLook(coat, 1)
+		local function near(a: any, b: any): boolean
+			return math.abs(a.R - b.R) + math.abs(a.G - b.G) + math.abs(a.B - b.B) < 1e-3
+		end
+		assert(near(fill.FillColor, lit) and math.abs(fill.FillTransparency - litT) < 1e-3, "night coat on the rig")
+		assert(near(fill.OutlineColor, rim) and math.abs(fill.OutlineTransparency - rimT) < 1e-3, "light rim at night")
+		assert(litT < motion.COAT_FILL and lit.R > coat.R, "the night coat is lighter and more opaque")
+		state.healthMilli = 30000
+		controller.update(state, 200, roblox.Vector3.zero)
+		assert(fill.FillTransparency == 1, "a cue still shows the outline only")
+		night = 0
+		controller.update(state, 800, roblox.Vector3.zero)
+		assert(fill.FillColor == coat and fill.FillTransparency == motion.COAT_FILL, "back to the day coat")
+		controller.destroy()
+	end,
 }

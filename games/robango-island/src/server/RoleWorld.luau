@@ -1261,12 +1261,17 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 	end
 	wildlife.spawns = spawns
 	wildlife.herds = herds
+	-- D2 v68 R07: species coats lift at night (DinosaurMotion.coatLook) on the cycle clients light.
+	function wildlife.night(): number
+		return 1 - SkyCycle.daylight(SkyCycle.clockTime(nowMillis() / 1000, skyOrigin))
+	end
 	require(Forge.games["robango-island"].src.shared.OnboardingWildlife).apply(
 		content,
 		layoutId,
 		runtimeContent.wildlife,
 		wildlife.catalog.species
 	)
+	wildlife.fleeOnHit = Onboarding.fleeOnHit(layoutId, runtimeContent.wildlife)
 	if content.missionPolicy then
 		local combat = content.missionPolicy
 		wildlife.catalog.weapons = table.clone(wildlife.catalog.weapons)
@@ -1327,6 +1332,8 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 			maximum = wildlife.maximum,
 			nowMillis = nowMillis,
 			herds = herds,
+			night = wildlife.night,
+			fleeOnHit = wildlife.fleeOnHit,
 		},
 		-- Full fullness on a respawn (p134 v43): 50 emptied in 15 min and the next death followed
 		-- ~8 min later, so a player still looking for food starved every ~23 min (3 deaths/hour).

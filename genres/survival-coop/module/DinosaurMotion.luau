@@ -9,12 +9,31 @@ M.COAT_ATTRIBUTE = "ForgeCoatTint"
 M.COAT_FILL = 0.5
 M.COAT_EDGE = Color3.fromRGB(36, 28, 20)
 M.COAT_EDGE_TRANSPARENCY = 0.55
+-- D2 v68 R07: at night the half-transparent coat over the moonlit baked texture and the dark edge
+-- read near-black on dark ground. With a night factor (0 day .. 1 full night, from the world's day
+-- cycle) the resting coat lifts toward white and turns nearly opaque, and the edge becomes a light
+-- rim of the coat, so the coat no longer depends on the lit texture under it (day-night.spec).
+M.COAT_NIGHT_LIFT = 0.5
+M.COAT_NIGHT_FILL = 0.1
+M.COAT_NIGHT_EDGE_LIFT = 0.7
+M.COAT_NIGHT_EDGE_TRANSPARENCY = 0.3
+--- Resting coat look at night factor `night` (0..1): fill colour, fill transparency, outline colour,
+--- outline transparency. night 0 is exactly the day look.
+function M.coatLook(coat: Color3, night: number): (Color3, number, Color3, number)
+	local n = math.clamp(night, 0, 1)
+	local white = Color3.new(1, 1, 1)
+	return coat:Lerp(white, M.COAT_NIGHT_LIFT * n),
+		M.COAT_FILL + (M.COAT_NIGHT_FILL - M.COAT_FILL) * n,
+		M.COAT_EDGE:Lerp(coat:Lerp(white, M.COAT_NIGHT_EDGE_LIFT), n),
+		M.COAT_EDGE_TRANSPARENCY + (M.COAT_NIGHT_EDGE_TRANSPARENCY - M.COAT_EDGE_TRANSPARENCY) * n
+end
 export type State = { mode: string, healthMilli: number, strike: number }
 export type Controller = {
 	update: (State, number, Vector3) -> (),
 	destroy: () -> (),
 }
-function M.new(model: Model, root: BasePart, initial: State, now: number): Controller
+--- `night` (optional) reads the world's night factor (0..1); absent keeps the day coat.
+function M.new(model: Model, root: BasePart, initial: State, now: number, night: (() -> number)?): Controller
 	local joints: { [string]: { joint: Motor6D, rest: CFrame } } = {}
 	for _, child in root:GetChildren() do
 		if child:IsA("Motor6D") then
@@ -27,10 +46,17 @@ function M.new(model: Model, root: BasePart, initial: State, now: number): Contr
 	outline.FillTransparency, outline.OutlineTransparency = 1, 0.25
 	outline.Enabled, outline.Parent = false, model
 	local coat = model:GetAttribute(M.COAT_ATTRIBUTE)
+	-- Night factor in tenths: the resting coat is rewritten only when it changes.
+	local function dark(): number
+		return if night then math.floor(math.clamp(night(), 0, 1) * 10 + 0.5) / 10 else 0
+	end
+	local shown = dark()
 	local function settle()
 		if typeof(coat) == "Color3" then
-			outline.FillColor, outline.FillTransparency = coat, M.COAT_FILL
-			outline.OutlineColor, outline.OutlineTransparency = M.COAT_EDGE, M.COAT_EDGE_TRANSPARENCY
+			shown = dark()
+			local fill, fillT, edge, edgeT = M.coatLook(coat, shown)
+			outline.FillColor, outline.FillTransparency = fill, fillT
+			outline.OutlineColor, outline.OutlineTransparency = edge, edgeT
 			outline.Enabled = true
 		else
 			outline.Enabled = false
@@ -84,6 +110,9 @@ function M.new(model: Model, root: BasePart, initial: State, now: number): Contr
 			elseif attack > 0 then "strike"
 			elseif warning then state.mode
 			else ""
+		if cue == "" and feedback == "" and typeof(coat) == "Color3" and dark() ~= shown then
+			settle()
+		end
 		if cue ~= feedback then
 			feedback = cue
 			model:SetAttribute("ForgeWildlifeFeedback", if cue == "" then nil else cue)

@@ -44,6 +44,11 @@ export type Config = {
 	observePath: ((PathObservation) -> ())?,
 	-- Optional herds: followers move with the leader; a hit alarms the herd.
 	herds: { Herd.Herd }?,
+	-- Optional night factor (0 day .. 1 full night): coated rigs lift their resting coat at night.
+	night: (() -> number)?,
+	-- Optional species id -> studs: those grazers graze until hit, then flee one short leg
+	-- (Wildlife fleeOnHitStuds on the runtime definition).
+	fleeOnHit: { [string]: number }?,
 }
 type Entry = {
 	model: Model,
@@ -303,6 +308,9 @@ function M.new(config: Config)
 				paced.runSpeed = paced.runSpeed or detail.runSpeed
 			end
 		end
+		if config.fleeOnHit and config.fleeOnHit[kind] then
+			paced.fleeOnHitStuds = config.fleeOnHit[kind]
+		end
 		assert(model:IsDescendantOf(world), "NPC_NOT_IN_WORLD")
 		for _, entry in entries do
 			assert(entry.model ~= model, "DUPLICATE_RIG")
@@ -328,7 +336,7 @@ function M.new(config: Config)
 			computing = false,
 			settle = "pending",
 			connections = {},
-			motion = DinosaurMotion.new(model, part, state, config.nowMillis()),
+			motion = DinosaurMotion.new(model, part, state, config.nowMillis(), config.night),
 		}
 		count += 1
 		model:SetAttribute("ForgeWildlifeId", id)
@@ -440,10 +448,11 @@ function M.new(config: Config)
 			return
 		end
 		assert(confirmed.catalogId == entry.state.catalogId and confirmed.version >= entry.state.version, "STALE_NPC")
-		-- A confirmed hit on a herd member alarms the herd (Herd.alarm).
+		-- A confirmed hit on a herd member alarms the herd (Herd.alarm); a flee-on-hit grazer
+		-- (fleeOnHitStuds) bolts from its striker even when it grazes alone.
 		local wounded = confirmed.healthMilli < entry.state.healthMilli and confirmed.healthMilli > 0
 		local attacker = confirmed.provoker or entry.state.target or entry.state.provoker
-		if wounded and attacker and herdOf[confirmed.id] then
+		if wounded and attacker and (herdOf[confirmed.id] or (entry.definition :: any).fleeOnHitStuds) then
 			api.provoke(confirmed.id, attacker)
 		end
 		entry.state.healthMilli, entry.state.version, entry.state.killer, entry.state.killedAt =

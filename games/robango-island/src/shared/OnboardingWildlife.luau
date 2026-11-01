@@ -6,6 +6,11 @@ local M = {}
 M.LAYOUT = "rw.onboarding"
 -- Milli HP per strike: a provoked herd of four needs ~25 s to down a player (100 000).
 M.DAMAGE_CAP_MILLI = 3000
+-- D2 v68 R08: an onboarding dodo bolted (sense 10, flee 24) as soon as the tap-to-attack walk came
+-- near, so the first fight read as a chase. Onboarding grazers keep grazing until hit, then run one
+-- leg this far (M.fleeOnHit -> WildlifeWorld fleeOnHit -> Wildlife fleeOnHitStuds), half a second of
+-- walking for a player at 16.
+M.FLEE_ON_HIT_STUDS = 8
 -- D2 R07 (phone, CameraConfig distance 50): the first herds read grey on grey ground. Each onboarding
 -- herbivore wears a species coat tint (SurvivalWorld spawn.coat -> DinosaurMotion fill Highlight over
 -- the baked texture; no new texture). Every coat is either much brighter than the onboarding ground or
@@ -21,6 +26,21 @@ M.COATS = table.freeze({
 --- Coat tint { r, g, b } of an onboarding spawn's species, nil elsewhere (no tint).
 function M.coat(layoutId: string, speciesId: string): { number }?
 	return if layoutId == M.LAYOUT then M.COATS[speciesId] else nil
+end
+
+--- Species id -> flee-on-hit studs (WildlifeWorld fleeOnHit) for an onboarding layout's grazers;
+--- nil elsewhere. Kept off the content rows, which stay canonical content.
+function M.fleeOnHit(layoutId: string, wildlife: { any }): { [string]: number }?
+	if layoutId ~= M.LAYOUT then
+		return nil
+	end
+	local out: { [string]: number } = {}
+	for _, row in wildlife do
+		if row.behavior == "grazer" or row.behavior == "herd-grazer" then
+			out[row.id] = M.FLEE_ON_HIT_STUDS
+		end
+	end
+	return out
 end
 
 --- Rewrites runtime wildlife rows and catalog species in place; no-op off onboarding.
