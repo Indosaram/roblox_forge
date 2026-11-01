@@ -293,23 +293,35 @@ local function harness(options: any?): any
 	function methods.GetAttributes()
 		return {}
 	end
-	function methods.InvokeServer()
+	-- opts.invoke(remote, ...): a spec bridges ForgeAction (and other RemoteFunctions) to a real server.
+	function methods.InvokeServer(self, ...)
+		if opts.invoke then
+			return opts.invoke(self, ...)
+		end
 		return { ok = false, reason = "COMMAND_UNAVAILABLE" }
 	end
 	function methods.FireServer() end
+	-- BindableEvent:Fire -> its Event (SurvivalHUD's ForgeHUDResult / ForgeHUDRequested).
+	function methods.Fire(self, ...)
+		self.Event:Fire(...)
+	end
 	function methods.CaptureFocus() end
 	function methods.ReleaseFocus() end
 	function methods.GetServerTimeNow()
-		return 0
+		return if opts.serverNow then opts.serverNow() else 0
 	end
 	function methods.AddTag() end
 	function methods.Raycast()
 		return nil
 	end
+	function methods.GetPartBoundsInBox()
+		return {}
+	end
 	-- Camera: every world point projects off the right edge, in front (the waypoint arrow clamps).
 	function methods.WorldToViewportPoint()
 		return roblox.Vector3.new(100000, 100, 10), false
 	end
+	methods.WorldToScreenPoint = methods.WorldToViewportPoint
 	function methods.PivotTo(self, cframe)
 		rawget(getmetatable(self) :: any, "data").pivot = cframe
 	end
@@ -320,7 +332,7 @@ local function harness(options: any?): any
 	function methods.Stop() end
 
 	local player = node("Player", "Player")
-	player.UserId, player.DisplayName, player.LocaleId = 1, "Player", locale
+	player.UserId, player.DisplayName, player.LocaleId = opts.userId or 1, "Player", locale
 	function player.GetAttribute(_self, key)
 		return attributes[key]
 	end
@@ -352,7 +364,7 @@ local function harness(options: any?): any
 		return { player }
 	end
 	function services.Players.GetPlayerByUserId(_self, id)
-		return if id == 1 then player else nil
+		return if id == player.UserId then player else nil
 	end
 	services.RunService.Heartbeat = heartbeat
 	function services.RunService.IsStudio()
@@ -364,18 +376,20 @@ local function harness(options: any?): any
 	function services.HttpService.JSONDecode(_self, text)
 		return serde.decode("json", text)
 	end
+	-- opts.guidPrefix: a fresh client per server (journey6h) must not reuse the last one's ids.
 	local guid = 0
 	function services.HttpService.GenerateGUID()
 		guid += 1
-		return "guid-" .. guid
+		return (opts.guidPrefix or "guid-") .. guid
 	end
 	services.UserInputService.TouchEnabled = opts.touch ~= false
 	services.UserInputService.KeyboardEnabled = opts.touch == false
 	function services.UserInputService.GetFocusedTextBox()
 		return nil
 	end
-	function services.CollectionService.GetTagged()
-		return {}
+	-- opts.tagged(tag) -> client instances (journey6h mirrors the server's station parts).
+	function services.CollectionService.GetTagged(_, tag)
+		return if opts.tagged then opts.tagged(tag) else {}
 	end
 	function services.CollectionService.GetInstanceAddedSignal()
 		return signal()
@@ -409,11 +423,18 @@ local function harness(options: any?): any
 		base[name] = roblox[name]
 	end
 	base.TweenInfo = { new = function() end }
+	-- opts.clock: os.clock on the spec's clock (journey6h); toasts and travel lines expire in sim time.
+	if opts.clock then
+		local fake = table.clone(os)
+		fake.clock = opts.clock
+		base.os = fake
+	end
 	base.RaycastParams = {
 		new = function()
 			return {}
 		end,
 	}
+	base.OverlapParams = base.RaycastParams
 	base.typeof = function(value)
 		return if type(value) == "table"
 				and getmetatable(value)
@@ -435,7 +456,11 @@ local function harness(options: any?): any
 	base.task = {
 		spawn = spawn,
 		defer = spawn,
-		delay = function(_seconds, _fn)
+		delay = function(seconds, fn, ...)
+			-- opts.delayed: a spec queues delayed work and runs it on its own clock (journey6h).
+			if opts.delayed and type(fn) == "function" then
+				table.insert(opts.delayed, { seconds = seconds or 0, fn = fn, args = table.pack(...) })
+			end
 			return coroutine.create(function() end)
 		end,
 		wait = function()
@@ -549,7 +574,9 @@ local function harness(options: any?): any
 				grid = load("core/ui-kit/InventoryGrid"),
 				theme = load("core/ui-kit/Theme"),
 			},
-			settlementOrigin = roblox.Vector3.new(0, 0, 0),
+			settlementOrigin = opts.settlementOrigin or roblox.Vector3.new(0, 0, 0),
+			bagBuild = opts.bagBuild,
+			solo = opts.solo,
 			locale = locale,
 			names = env.names,
 		})

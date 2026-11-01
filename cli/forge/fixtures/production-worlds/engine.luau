@@ -25,10 +25,18 @@ function M.new(physicalWarehouse: boolean?, physicalTerrain: boolean?): any
 			Wait = function() end,
 			Connect = function(_, fn)
 				table.insert(handlers, fn)
-				return { Disconnect = function() end }
+				-- A real disconnect: a closed world's Heartbeat handlers stop (journey6h re-enters roles).
+				return {
+					Disconnect = function()
+						local at = table.find(handlers, fn)
+						if at then
+							table.remove(handlers, at)
+						end
+					end,
+				}
 			end,
 			Fire = function(_, ...)
-				for _, fn in handlers do
+				for _, fn in table.clone(handlers) do
 					fn(...)
 				end
 			end,
