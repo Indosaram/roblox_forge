@@ -30982,9 +30982,9 @@ stages:
     id: "rw.a1.s1.gather"
     layout: "rw.a1.s1"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s1.gather"
@@ -30997,9 +30997,9 @@ stages:
     id: "rw.a1.s1.survey"
     layout: "rw.a1.s1"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s1.survey"
@@ -31012,9 +31012,9 @@ stages:
     id: "rw.a1.s2.craft"
     layout: "rw.a1.s2"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s1.gather"
         - "rw.a1.s1.survey"
@@ -31030,9 +31030,9 @@ stages:
     id: "rw.a1.s2.rescue"
     layout: "rw.a1.s2"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s1.gather"
         - "rw.a1.s1.survey"
@@ -31048,9 +31048,9 @@ stages:
     id: "rw.a1.s3.hunt"
     layout: "rw.a1.s3"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s2.craft"
         - "rw.a1.s2.rescue"
@@ -31066,9 +31066,9 @@ stages:
     id: "rw.a1.s3.transport"
     layout: "rw.a1.s3"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s2.craft"
         - "rw.a1.s2.rescue"
@@ -31084,9 +31084,9 @@ stages:
     id: "rw.a1.s4.survey"
     layout: "rw.a1.s4"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s3.hunt"
         - "rw.a1.s3.transport"
@@ -31102,9 +31102,9 @@ stages:
     id: "rw.a1.s4.hunt"
     layout: "rw.a1.s4"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
       completed:
         - "rw.a1.s3.hunt"
         - "rw.a1.s3.transport"
@@ -31743,9 +31743,9 @@ missions:
   -
     id: "rw.m1.gather"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s1.gather"
@@ -31770,9 +31770,9 @@ missions:
   -
     id: "rw.m1.craft"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s2.craft"
@@ -31797,9 +31797,9 @@ missions:
   -
     id: "rw.m1.survey"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s1.survey"
@@ -31830,9 +31830,9 @@ missions:
   -
     id: "rw.m1.rescue"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s2.rescue"
@@ -31857,9 +31857,9 @@ missions:
   -
     id: "rw.m1.hunt"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s3.hunt"
@@ -31892,9 +31892,9 @@ missions:
   -
     id: "rw.m1.transport"
     gates:
-      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 2 (the four start guides).
+      # Robango redesign value: a1 is the first route, reachable in the first session: Lv 2 plus island grade 1 (any two of the four 50-point start guides; v66: a Lv 9 account sat at 100/200 for hours).
       characterLevel: 2
-      developmentRank: 2
+      developmentRank: 1
     objectives:
       -
         id: "rw.a1.s3.transport"

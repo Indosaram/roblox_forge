@@ -19,6 +19,8 @@ M.GRID = { columns = 5, rows = 3 }
 local islandRows: { any } = {
 	{ id = "home", role = "home", cell = { 0, 1 }, nudge = { 0.35, 0.3 } },
 	{ id = "harbor", role = "harbor", cell = { 1, 1 }, nudge = { 0.6, 0.55 }, rift = true },
+	-- Saltmeadow, the shared plot town (C5a): onboarding, home and the harbor sail there (Topology).
+	{ id = "town", role = "town", cell = { 0, 0 }, nudge = { 0.4, 0.6 } },
 	{ id = "explore10", role = "explore10", cell = { 1, 0 }, nudge = { 0.2, 0.75 } },
 	{ id = "explore20", role = "explore20", cell = { 2, 0 }, nudge = { 0.7, 0.35 } },
 	{ id = "frontier30", role = "frontier30", cell = { 3, 0 }, nudge = { 0.3, 0.8 } },
@@ -297,11 +299,33 @@ function M.layoutAt(width: number, height: number, top: number): any
 	}
 end
 
+--- The bottom sheet for a selected island: at the bottom of the chart unless that would cover the
+--- selected tile, then at the top of the chart (v65: the harbor card's lines were drawn over the
+--- first drift isle's name and chip). The sheet is opaque and drawn above the tiles it covers.
+function M.sheetFor(layout: any, islandId: string?): any
+	local sheet = layout.sheet
+	local tile = if islandId then layout.tiles[islandId] else nil
+	if not tile then
+		return sheet
+	end
+	local box, frame = tile.tile, sheet.frame
+	local covered = box.y < frame.y + frame.height and frame.y < box.y + box.height
+	if not covered then
+		return sheet
+	end
+	local dy = layout.chart.y - frame.y
+	local moved = {}
+	for key, r in sheet do
+		moved[key] = { x = r.x, y = r.y + dy, width = r.width, height = r.height }
+	end
+	return moved
+end
+
 --- Card copy through `text(key, ...)` (cli.chart.* rows). Returns name, band chip and status.
 function M.copy(card: any, text: (string, ...any) -> string, now: number?, reason: ((string) -> string)?): any
 	local band = card.band
 	local chip = if not band
-		then text(if card.home then "your_island" else "town")
+		then text(if card.home then "your_island" elseif card.role == "harbor" then "harbor" else "town")
 		elseif band.max then text("band", band.min, band.max)
 		else text("band_open", band.min)
 	local left = if card.expiresAt and now then M.clock(card.expiresAt - now) else nil
@@ -435,6 +459,8 @@ function M.panel(ctx: any): any
 	local latest: any, received = nil, os.clock()
 	local sheet = Instance.new("Frame")
 	sheet.Name, sheet.BackgroundColor3, sheet.Visible = "IslandSheet", Color3.fromRGB(237, 230, 214), false
+	-- Above the isle tiles (ZIndex 1) it covers, below its own lines and button (ZIndex 3).
+	sheet.ZIndex = 2
 	sheet.Parent = sheetFrame
 	local sheetCorner = Instance.new("UICorner")
 	sheetCorner.CornerRadius, sheetCorner.Parent = UDim.new(0, 12), sheet
@@ -528,11 +554,12 @@ function M.panel(ctx: any): any
 			tile.chip.BackgroundColor3 = rgb(if counting then LILAC else BONE)
 			tile.chip.BackgroundTransparency = if counting then 0.25 else 0.45
 			if card.id == selected then
-				put(sheet, layout.sheet.frame)
-				put(sheetName, layout.sheet.name)
-				put(sheetInfo, layout.sheet.info)
-				put(sheetStatus, layout.sheet.status)
-				put(sail, layout.sheet.sail)
+				local placed = M.sheetFor(layout, selected)
+				put(sheet, placed.frame)
+				put(sheetName, placed.name)
+				put(sheetInfo, placed.info)
+				put(sheetStatus, placed.status)
+				put(sail, placed.sail)
 				sheetName.TextSize, sheetInfo.TextSize, sheetStatus.TextSize = sizes.heading, sizes.chip, sizes.chip
 				sail.TextSize = sizes.heading
 				local climate = {}

@@ -149,7 +149,8 @@ return {
 			assert(cell.width > 0 and cell.depth > 0, cell.id .. " bounds")
 			assert(cell.bounds.max.x > cell.bounds.min.x, cell.id .. " ordered")
 		end
-		assert(cells[1].id == "rw.a1.s1" and cells[1].rank == 2 and cells[1].open, "first cell rank 2 open at rank 2")
+		-- chart2: route 1 opens at island grade 1 (two start guides), later routes need more.
+		assert(cells[1].id == "rw.a1.s1" and cells[1].rank == 1 and cells[1].open, "first cell rank 1 open at rank 2")
 		local locked = 0
 		for _, cell in cells do
 			locked += if cell.open then 0 else 1

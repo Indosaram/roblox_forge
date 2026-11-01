@@ -22,6 +22,7 @@ local function oldGate(document: any): any
 	for _, stage in document.stages do
 		if string.match(stage.id, "^rw%.a1%.") then
 			stage.gates.characterLevel = 30
+			stage.gates.developmentRank = 2
 		end
 	end
 	return document

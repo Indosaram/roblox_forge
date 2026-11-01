@@ -406,7 +406,7 @@ return {
 				biomes[biome] = true
 			end
 			drift += if card.drift then 1 else 0
-			if card.role and card.role ~= "home" and card.role ~= "harbor" then
+			if card.role and card.role ~= "home" and card.role ~= "harbor" and card.role ~= "town" then
 				assert(card.band and card.band.min >= 10, card.id .. " band")
 			end
 		end
@@ -414,7 +414,7 @@ return {
 		for _ in biomes do
 			count += 1
 		end
-		assert(#cards >= 13 and drift == 5, "13 chart islands, 5 drift isles")
+		assert(#cards >= 14 and drift == 5, "14 chart islands (town included), 5 drift isles")
 		assert(count >= 6, "at least six biomes on the chart, got " .. count)
 		local band = SeaChart.band(Content, { role = "explore10" })
 		assert(band.min == 10 and band.max == 19, "explore10 band 10-19")
@@ -680,7 +680,7 @@ return {
 	end,
 	["route p134: a Lv 2-8 profile after the start guides sails to a1 and the chart names each unlock"] = function()
 		-- Staging v62: a Lv 8 account saw every route island locked; a1 needed level 30 and grade 2.
-		-- Robango redesign: a1 opens at level 2 with island grade 2, which the four start guides give.
+		-- Robango redesign: a1 opens at level 2 with the island grade the start guides give.
 		local level, rank = Party.gates(Content, 1)
 		assert(level <= 5, "a1 entry level reachable in the first session, got " .. level)
 		local points, xp = 0, 0
@@ -713,12 +713,12 @@ return {
 		end
 		local ko = SeaChart.copy({ id = "drift2", locked = true, needLevel = 35, band = { min = 35 } }, text("ko-kr"))
 		assert(ko.status == "레벨 35에 열려요", ko.status)
-		local graded = { level = 8, developmentRank = 1, instabilityAccess = 1 }
+		local graded = { level = 8, developmentRank = rank - 1, instabilityAccess = 1 }
 		local cards = SeaChart.islands(Content, { role = "harbor", level = 8, facts = graded })
 		for _, card in cards do
 			if card.id == "drift1" then
 				assert(card.locked and card.needRank == rank, "a1 below its grade names the grade")
-				assert(SeaChart.copy(card, en).status == "Needs island grade " .. rank, SeaChart.copy(card, en).status)
+				assert(SeaChart.copy(card, en).status == en("needs_grade", rank), SeaChart.copy(card, en).status)
 			end
 		end
 		-- Away from the harbor a drift isle is refused by the role edge, not by level.
@@ -743,5 +743,92 @@ return {
 		end
 		-- Onboarding still cannot sail past the harbor directly.
 		assert(select(2, SeaChart.sail("explore10", "onboarding", 60, "dock")) == "transition_not_allowed", "edge")
+	end,
+	["chart2: the shared town is a chart destination from onboarding, home and the harbor"] = function()
+		-- v66/v67: the chart had no town tile, so Saltmeadow (C5a, 28 plots) was unreachable from it.
+		local tile: any = nil
+		for _, island in SeaChart.ISLANDS do
+			tile = if island.role == "town" then island else tile
+		end
+		assert(tile, "a town tile on the chart")
+		for _, from in { "onboarding", "home", "harbor" } do
+			local ok, reason = SeaChart.sail("town", from, 1, "dock")
+			assert(ok, from .. " -> town at level 1: " .. tostring(reason))
+			local card: any = nil
+			for _, c in SeaChart.islands(Content, { role = from, level = 1, facts = { level = 1 } }) do
+				card = if c.id == tile.id then c else card
+			end
+			assert(card and not card.locked and card.role == "town", from .. ": town card open")
+		end
+		local here: any = nil
+		for _, c in SeaChart.islands(Content, { role = "town", level = 1, facts = { level = 1 } }) do
+			here = if c.id == tile.id then c else here
+		end
+		assert(here.here and not here.locked, "in town the town tile is 'you are here'")
+		assert(select(2, SeaChart.sail("town", "town", 1, "dock")) == "transition_not_allowed", "not to itself")
+		for _, locale in { "en-us", "ko-kr" } do
+			assert(Fixture.packText(locale, "cli.chart.isle.town"), "town chart name " .. locale)
+		end
+	end,
+	["chart2: a fresh account reaches the a1 island grade within its first two start guides"] = function()
+		-- v66: a Lv 9 account after hours of play was at grade 1 (100/200) and a1 needed grade 2.
+		-- Grade = points // 100; the 50-point start guides are gather fiber x3, craft an axe, deliver
+		-- a contract and donate to the camp. Any two of them must open a1 (first hour target).
+		local _, rank = Party.gates(Content, 1)
+		local paying = {}
+		for _, guide in Content.guides do
+			if (guide.gates.developmentRank or 0) == 0 and (guide.gates.characterLevel or 1) <= 1 then
+				if (guide.rewards.development or 0) > 0 then
+					table.insert(paying, guide.rewards.development)
+				end
+			end
+		end
+		table.sort(paying)
+		assert(#paying >= 2, "two development-paying start guides")
+		local two = paying[1] + paying[2]
+		assert(two // 100 >= rank, "two start guides give " .. two .. " points; a1 needs grade " .. rank)
+		-- Every stage of route 1 and every route 1 mission opens at that grade too.
+		for _, stage in Content.stages do
+			if string.match(stage.layout, "^rw%.a1%.") then
+				assert((stage.gates.developmentRank or 0) <= rank, stage.id .. " grade")
+			end
+		end
+		-- Below the grade the locked a1 tile says what to do in both languages (the guides).
+		local facts = { level = 9, developmentRank = rank - 1, instabilityAccess = 1 }
+		for _, card in SeaChart.islands(Content, { role = "harbor", level = 9, facts = facts }) do
+			if card.id == "drift1" then
+				assert(card.locked and card.needRank == rank, "a1 names its grade")
+				for _, locale in { "en-us", "ko-kr" } do
+					local status = SeaChart.copy(card, text(locale)).status
+					assert(status == text(locale)("needs_grade", rank), locale .. " " .. status)
+				end
+			end
+		end
+	end,
+	["chart2: the selected-island sheet never covers the selected tile"] = function()
+		-- v65: the harbor card text was drawn over the first drift isle's name and chip.
+		for _, v in { VIEWPORTS[1], VIEWPORTS[2], VIEWPORTS[3], SQUEEZED } do
+			local layout = SeaChart.layout(v[1], v[2], v[3])
+			for _, island in SeaChart.ISLANDS do
+				local placed = SeaChart.sheetFor(layout, island.id)
+				local tag = v[1] .. "x" .. v[2] .. " " .. island.id
+				assert(not overlaps(placed.frame, layout.tiles[island.id].tile), tag .. " sheet covers the selection")
+				assert(not overlaps(placed.frame, layout.header), tag .. " sheet under the header")
+				assert(placed.frame.y + placed.frame.height <= v[2], tag .. " sheet on screen")
+				for _, key in { "name", "info", "status", "sail" } do
+					assert(inside(placed[key], placed.frame), tag .. " " .. key .. " inside the sheet")
+				end
+			end
+		end
+		-- The panel draws the sheet above the tiles it covers.
+		local facts = { level = 9, developmentRank = 1, instabilityAccess = 1 }
+		local panel = mountPanel("harbor", { expedition = { now = 1, facts = facts } })
+		local sheet = assert(panel.find("IslandSheet"), "sheet")
+		assert((sheet.ZIndex or 1) > (panel.find("Isle-drift1").ZIndex or 1), "sheet above isle tiles")
+		assert((sheet.ZIndex or 1) > (panel.find("Name-drift1").ZIndex or 1), "sheet above isle names")
+		panel.find("Isle-harbor").Activated:Fire()
+		local frame = panel.box(sheet)
+		assert(not overlaps(frame, panel.box(panel.find("Isle-harbor"))), "harbor sheet clear of the harbor tile")
+		panel.destroy()
 	end,
 }

@@ -48,6 +48,7 @@ M.ISLAND_ART = table.freeze({
 })
 -- Chart islands (SeaChart.ISLANDS) are named by cli.chart.isle.*; the other roles by cli.travel.isle.*.
 local CHART = {
+	town = true,
 	home = true,
 	harbor = true,
 	explore10 = true,

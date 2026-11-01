@@ -3043,6 +3043,8 @@ cli.chart.here,original,agent:omo/c7,2026-10-28
 cli.chart.locked,original,agent:omo/c7,2026-10-28
 cli.chart.opens_at,original,agent:hephaestus/p134-route,2026-10-30
 cli.chart.needs_grade,original,agent:hephaestus/p134-route,2026-10-30
+cli.chart.harbor,original,agent:hephaestus/chart2,2026-11-01
+cli.chart.isle.town,original,agent:hephaestus/chart2,2026-11-01
 cli.chart.time_left,original,agent:omo/c7,2026-10-28
 cli.chart.open,original,agent:omo/c7,2026-10-28
 cli.chart.sail,original,agent:omo/c7,2026-10-28

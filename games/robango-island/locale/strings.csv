@@ -3045,10 +3045,12 @@ cli.chart.band,Lv %d-%d,client sea chart label,Lv %d-%d,레벨 %d-%d
 cli.chart.band_open,Lv %d+,client sea chart label,Lv %d+,레벨 %d+
 cli.chart.your_island,Your island,client sea chart label,Your island,내 섬
 cli.chart.town,Town,client sea chart label,Town,마을
+cli.chart.harbor,Harbor,client sea chart label,Harbor,항구
+cli.chart.isle.town,Saltmeadow,client sea chart label,Saltmeadow,소금풀밭 마을
 cli.chart.here,You are here,client sea chart label,You are here,현재 위치
 cli.chart.locked,Locked,client sea chart label,Locked,잠김
 cli.chart.opens_at,Opens at Lv %d,client sea chart label,Opens at Lv %d,레벨 %d에 열려요
-cli.chart.needs_grade,Needs island grade %d,client sea chart label,Needs island grade %d,섬 등급 %d 필요
+cli.chart.needs_grade,Needs island grade %d: finish guides (Menu > Guides),client sea chart label,Needs island grade %d: finish guides (Menu > Guides),섬 등급 %d 필요: 메뉴 > 안내를 완료하세요
 cli.chart.time_left,Time left %s,client sea chart label,Time left %s,남은 시간 %s
 cli.chart.open,Open waters,client sea chart label,Open waters,열린 바다
 cli.chart.sail,Set sail,client sea chart label,Set sail,출항
