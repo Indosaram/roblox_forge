@@ -108,7 +108,10 @@ function M.guideObjective(locale: string, content: any, ch: any, names: any, sol
 	elseif level >= needLevel then
 		return M.text(locale, "guide_route_open")
 	end
+	-- Grade met but below the route level: a guide of the route's grade first, else any still-open
+	-- start guide (chart2 lowered route 1 to grade 1, reached after two of the four start guides).
 	local open = openGuide(locale, content, ch, names, level, grade, needRank, solo)
+		or openGuide(locale, content, ch, names, level, grade, 0, solo)
 	if open then
 		return open
 	end

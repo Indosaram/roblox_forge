@@ -12,9 +12,25 @@ local luau = require("@lune/luau")
 -- These pack-only modules are intentionally absent from other packs' sourcemaps.
 local Content: any = luau.load(fs.readFile("games/robango-island/src/shared/SurvivalContent.luau"))()
 local Rng = require("../../../core/domain/random/Rng")
+-- The home scatter (D2 R12) dresses the island from the shared B1 biome kits.
+-- Loaded from source (pack-only, Roblox-typed) with its relative requires resolved here.
+local BiomeKits: any = luau.load(fs.readFile("games/robango-island/src/shared/BiomeKits.luau"), {
+	environment = {
+		require = function(key)
+			if key == "../../../../core/domain/random/Rng" then
+				return Rng
+			end
+			local file = "games/robango-island/src/shared/" .. string.sub(key, 3) .. ".luau"
+			return luau.load(fs.readFile(file))()
+		end,
+	},
+})()
 local Dressing: any = luau.load(fs.readFile("games/robango-island/src/server/WorldDressing.luau"), {
 	environment = {
 		require = function(key)
+			if key == "../shared/BiomeKits" then
+				return BiomeKits
+			end
 			assert(key == "../../../../core/domain/random/Rng", "unexpected dressing dependency")
 			return Rng
 		end,
