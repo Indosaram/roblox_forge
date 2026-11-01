@@ -4978,7 +4978,7 @@ contracts:
     - "survey-driftwood"
     - "guild-stone-axe"
     - "eco-fiber-sample"
-  dailyCount: 3
+  dailyCount: 4
   swapCooldownMillis: 3600000
   dayMillis: 86400000
   factions:
@@ -5453,7 +5453,7 @@ skillNodes:
     category: "survival"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "survival_3"
     effects:
@@ -5468,7 +5468,7 @@ skillNodes:
     category: "survival"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "survival_4"
     effects:
@@ -5483,7 +5483,7 @@ skillNodes:
     category: "survival"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "survival_5"
     effects:
@@ -5512,7 +5512,7 @@ skillNodes:
     category: "butchering"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "butchering_1"
     effects:
@@ -5527,7 +5527,7 @@ skillNodes:
     category: "butchering"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "butchering_2"
     effects:
@@ -5542,7 +5542,7 @@ skillNodes:
     category: "butchering"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "butchering_3"
     effects:
@@ -5557,7 +5557,7 @@ skillNodes:
     category: "butchering"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "butchering_4"
     effects:
@@ -5572,7 +5572,7 @@ skillNodes:
     category: "butchering"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "butchering_5"
     effects:
@@ -5601,7 +5601,7 @@ skillNodes:
     category: "gathering"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "gathering_1"
     effects:
@@ -5616,7 +5616,7 @@ skillNodes:
     category: "gathering"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "gathering_2"
     effects:
@@ -5631,7 +5631,7 @@ skillNodes:
     category: "gathering"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "gathering_3"
     effects:
@@ -5646,7 +5646,7 @@ skillNodes:
     category: "gathering"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "gathering_4"
     effects:
@@ -5661,7 +5661,7 @@ skillNodes:
     category: "gathering"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "gathering_5"
     effects:
@@ -5690,7 +5690,7 @@ skillNodes:
     category: "processing"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "processing_1"
     effects:
@@ -5705,7 +5705,7 @@ skillNodes:
     category: "processing"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "processing_2"
     effects:
@@ -5720,7 +5720,7 @@ skillNodes:
     category: "processing"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "processing_3"
     effects:
@@ -5735,7 +5735,7 @@ skillNodes:
     category: "processing"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "processing_4"
     effects:
@@ -5750,7 +5750,7 @@ skillNodes:
     category: "processing"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "processing_5"
     effects:
@@ -5779,7 +5779,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "weapon_tool_1"
     effects:
@@ -5794,7 +5794,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "weapon_tool_2"
     effects:
@@ -5809,7 +5809,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "weapon_tool_3"
     effects:
@@ -5824,7 +5824,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "weapon_tool_4"
     effects:
@@ -5839,7 +5839,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "weapon_tool_5"
     effects:
@@ -5868,7 +5868,7 @@ skillNodes:
     category: "ranged"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "ranged_1"
     effects:
@@ -5883,7 +5883,7 @@ skillNodes:
     category: "ranged"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "ranged_2"
     effects:
@@ -5898,7 +5898,7 @@ skillNodes:
     category: "ranged"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "ranged_3"
     effects:
@@ -5913,7 +5913,7 @@ skillNodes:
     category: "ranged"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "ranged_4"
     effects:
@@ -5928,7 +5928,7 @@ skillNodes:
     category: "ranged"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "ranged_5"
     effects:
@@ -5972,7 +5972,7 @@ skillNodes:
     category: "melee"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "melee_2"
     effects:
@@ -5987,7 +5987,7 @@ skillNodes:
     category: "melee"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "melee_3"
     effects:
@@ -6002,7 +6002,7 @@ skillNodes:
     category: "melee"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "melee_4"
     effects:
@@ -6017,7 +6017,7 @@ skillNodes:
     category: "melee"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "melee_5"
     effects:
@@ -6046,7 +6046,7 @@ skillNodes:
     category: "construction"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "construction_1"
     effects:
@@ -6061,7 +6061,7 @@ skillNodes:
     category: "construction"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "construction_2"
     effects:
@@ -6076,7 +6076,7 @@ skillNodes:
     category: "construction"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "construction_3"
     effects:
@@ -6091,7 +6091,7 @@ skillNodes:
     category: "construction"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "construction_4"
     effects:
@@ -6106,7 +6106,7 @@ skillNodes:
     category: "construction"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "construction_5"
     effects:
@@ -6135,7 +6135,7 @@ skillNodes:
     category: "farming"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "farming_1"
     effects:
@@ -6150,7 +6150,7 @@ skillNodes:
     category: "farming"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "farming_2"
     effects:
@@ -6165,7 +6165,7 @@ skillNodes:
     category: "farming"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "farming_3"
     effects:
@@ -6180,7 +6180,7 @@ skillNodes:
     category: "farming"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "farming_4"
     effects:
@@ -6195,7 +6195,7 @@ skillNodes:
     category: "farming"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "farming_5"
     effects:
@@ -6224,7 +6224,7 @@ skillNodes:
     category: "tailoring"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "tailoring_1"
     effects:
@@ -6239,7 +6239,7 @@ skillNodes:
     category: "tailoring"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "tailoring_2"
     effects:
@@ -6254,7 +6254,7 @@ skillNodes:
     category: "tailoring"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "tailoring_3"
     effects:
@@ -6269,7 +6269,7 @@ skillNodes:
     category: "tailoring"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "tailoring_4"
     effects:
@@ -6284,7 +6284,7 @@ skillNodes:
     category: "tailoring"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "tailoring_5"
     effects:
@@ -6313,7 +6313,7 @@ skillNodes:
     category: "cooking"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "cooking_1"
     effects:
@@ -6328,7 +6328,7 @@ skillNodes:
     category: "cooking"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "cooking_2"
     effects:
@@ -6343,7 +6343,7 @@ skillNodes:
     category: "cooking"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "cooking_3"
     effects:
@@ -6358,7 +6358,7 @@ skillNodes:
     category: "cooking"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "cooking_4"
     effects:
@@ -6373,7 +6373,7 @@ skillNodes:
     category: "cooking"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "cooking_5"
     effects:
@@ -6402,7 +6402,7 @@ skillNodes:
     category: "defense"
     rank: 2
     cost: 4
-    proficiency: 10
+    proficiency: 3
     prerequisites:
       - "defense_1"
     effects:
@@ -6417,7 +6417,7 @@ skillNodes:
     category: "defense"
     rank: 3
     cost: 6
-    proficiency: 20
+    proficiency: 6
     prerequisites:
       - "defense_2"
     effects:
@@ -6432,7 +6432,7 @@ skillNodes:
     category: "defense"
     rank: 4
     cost: 8
-    proficiency: 30
+    proficiency: 10
     prerequisites:
       - "defense_3"
     effects:
@@ -6447,7 +6447,7 @@ skillNodes:
     category: "defense"
     rank: 5
     cost: 10
-    proficiency: 45
+    proficiency: 18
     prerequisites:
       - "defense_4"
     effects:
@@ -6462,7 +6462,7 @@ skillNodes:
     category: "defense"
     rank: 6
     cost: 12
-    proficiency: 60
+    proficiency: 30
     prerequisites:
       - "defense_5"
     effects:
@@ -9646,7 +9646,7 @@ recipeDetails:
   -
     id: "dry-hide"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "hide"
     auxiliaryInputs: []
@@ -9658,7 +9658,7 @@ recipeDetails:
   -
     id: "dry-meat"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "meat"
     auxiliaryInputs: []
@@ -9670,7 +9670,7 @@ recipeDetails:
   -
     id: "tan-hide"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "hide"
     auxiliaryInputs: []
@@ -9719,7 +9719,7 @@ recipeDetails:
   -
     id: "polish-stone"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "stone"
     auxiliaryInputs: []
@@ -9732,7 +9732,7 @@ recipeDetails:
   -
     id: "polish-flint"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "flint"
     auxiliaryInputs: []
@@ -9825,7 +9825,7 @@ recipeDetails:
   -
     id: "ferment-corn"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "corn"
     auxiliaryInputs: []
@@ -9837,7 +9837,7 @@ recipeDetails:
   -
     id: "ferment-wheat"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "wheat"
     auxiliaryInputs: []
@@ -9897,7 +9897,7 @@ recipeDetails:
   -
     id: "compost-leaves"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leaves"
     auxiliaryInputs: []
@@ -9909,7 +9909,7 @@ recipeDetails:
   -
     id: "compost-spoiled-food"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "spoiled-food"
     auxiliaryInputs: []
@@ -9921,7 +9921,7 @@ recipeDetails:
   -
     id: "axe-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -9936,7 +9936,7 @@ recipeDetails:
   -
     id: "pickaxe-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-flint"
@@ -9951,7 +9951,7 @@ recipeDetails:
   -
     id: "knife-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-flint"
@@ -9966,7 +9966,7 @@ recipeDetails:
   -
     id: "hoe-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -10101,7 +10101,7 @@ recipeDetails:
   -
     id: "club-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -10116,7 +10116,7 @@ recipeDetails:
   -
     id: "spear-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-flint"
@@ -10131,7 +10131,7 @@ recipeDetails:
   -
     id: "sword-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-flint"
@@ -10146,7 +10146,7 @@ recipeDetails:
   -
     id: "hammer-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -10161,7 +10161,7 @@ recipeDetails:
   -
     id: "bow-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs:
@@ -10175,7 +10175,7 @@ recipeDetails:
   -
     id: "crossbow-t1"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -10370,7 +10370,7 @@ recipeDetails:
   -
     id: "temperate-head"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10384,7 +10384,7 @@ recipeDetails:
   -
     id: "temperate-top"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10398,7 +10398,7 @@ recipeDetails:
   -
     id: "temperate-bottom"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10412,7 +10412,7 @@ recipeDetails:
   -
     id: "temperate-shoes"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10426,7 +10426,7 @@ recipeDetails:
   -
     id: "temperate-gloves"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10440,7 +10440,7 @@ recipeDetails:
   -
     id: "temperate-bag"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
     auxiliaryInputs:
@@ -10622,7 +10622,7 @@ recipeDetails:
   -
     id: "corn-porridge"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "fermented-corn"
     auxiliaryInputs:
@@ -10636,7 +10636,7 @@ recipeDetails:
   -
     id: "baked-potato"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "potato"
     auxiliaryInputs: []
@@ -10648,7 +10648,7 @@ recipeDetails:
   -
     id: "wheat-flatbread"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "fermented-wheat"
     auxiliaryInputs:
@@ -10661,7 +10661,7 @@ recipeDetails:
   -
     id: "onion-soup"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "onion"
     auxiliaryInputs:
@@ -10724,7 +10724,7 @@ recipeDetails:
   -
     id: "roast-meat"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "meat"
     auxiliaryInputs: []
@@ -10736,7 +10736,7 @@ recipeDetails:
   -
     id: "meat-potato-stew"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "meat"
       - "potato"
@@ -10750,7 +10750,7 @@ recipeDetails:
   -
     id: "onion-meat-skewer"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "meat"
       - "onion"
@@ -10779,7 +10779,7 @@ recipeDetails:
   -
     id: "grilled-fish"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "fish"
     auxiliaryInputs: []
@@ -10791,7 +10791,7 @@ recipeDetails:
   -
     id: "clam-soup"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "clam"
     auxiliaryInputs:
@@ -10817,7 +10817,7 @@ recipeDetails:
   -
     id: "carnivore-feed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "meat"
       - "dried-meat"
@@ -10830,7 +10830,7 @@ recipeDetails:
   -
     id: "extract-corn-seed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "corn"
     auxiliaryInputs: []
@@ -10843,7 +10843,7 @@ recipeDetails:
   -
     id: "extract-potato-seed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "potato"
     auxiliaryInputs: []
@@ -10856,7 +10856,7 @@ recipeDetails:
   -
     id: "extract-wheat-seed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "wheat"
     auxiliaryInputs: []
@@ -10869,7 +10869,7 @@ recipeDetails:
   -
     id: "extract-onion-seed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "onion"
     auxiliaryInputs: []
@@ -10934,7 +10934,7 @@ recipeDetails:
   -
     id: "liquid-fertilizer"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "fiber-compost"
     auxiliaryInputs:
@@ -10948,7 +10948,7 @@ recipeDetails:
   -
     id: "fruit-fertilizer"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "berry-compost"
     auxiliaryInputs:
@@ -10962,7 +10962,7 @@ recipeDetails:
   -
     id: "stem-fertilizer"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leaf-compost"
     auxiliaryInputs:
@@ -11005,7 +11005,7 @@ recipeDetails:
   -
     id: "animal-pen"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "polished-stone"
@@ -11035,7 +11035,7 @@ recipeDetails:
   -
     id: "recovery-feed"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "corn"
       - "meat"
@@ -11128,7 +11128,7 @@ recipeDetails:
   -
     id: "kiln-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "stone"
       - "clay"
@@ -11141,7 +11141,7 @@ recipeDetails:
   -
     id: "tanning-frame-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "branch"
       - "stone"
@@ -11172,7 +11172,7 @@ recipeDetails:
   -
     id: "storage-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs:
@@ -11186,7 +11186,7 @@ recipeDetails:
   -
     id: "tent-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "leather"
       - "dried-wood"
@@ -11201,7 +11201,7 @@ recipeDetails:
   -
     id: "bed-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
       - "leather"
@@ -11216,7 +11216,7 @@ recipeDetails:
   -
     id: "well-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "polished-stone"
       - "dried-wood"
@@ -11276,7 +11276,7 @@ recipeDetails:
   -
     id: "wall-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs:
@@ -11290,7 +11290,7 @@ recipeDetails:
   -
     id: "floor-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs: []
@@ -11303,7 +11303,7 @@ recipeDetails:
   -
     id: "stairs-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs:
@@ -11317,7 +11317,7 @@ recipeDetails:
   -
     id: "door-kit"
     minCharacterLevel: 10
-    primaryMaterialLevel: 10
+    primaryMaterialLevel: 1
     primaryInputs:
       - "dried-wood"
     auxiliaryInputs:
@@ -13190,6 +13190,10 @@ gatherPolicy:
       outputs:
         - {item: "leaves", quantity: 2}
         - {item: "branch", quantity: 2}
+    - item: "birch-bark"
+      outputs:
+        - {item: "branch", quantity: 2}
+        - {item: "leaves", quantity: 2}
     - item: "bone"
       outputs:
         - {item: "sinew", quantity: 1}
@@ -13330,6 +13334,10 @@ gatherPolicy:
       outputs:
         - {item: "fieldstone", quantity: 2}
         - {item: "clay", quantity: 2}
+    - item: "survey-sample"
+      outputs:
+        - {item: "stone", quantity: 2}
+        - {item: "fieldstone", quantity: 2}
     - item: "volcanic-ore"
       outputs:
         - {item: "basalt", quantity: 2}
@@ -13524,7 +13532,7 @@ layouts:
         yield: 3
         respawnSeconds: 120
       -
-        id: "rw.a1.s1.chapter.survey-sample"
+        id: "rw.a1.s1.material.survey-sample"
         item: "survey-sample"
         # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
@@ -14131,7 +14139,7 @@ layouts:
         yield: 3
         respawnSeconds: 120
       -
-        id: "rw.a1.s2.chapter.birch-bark"
+        id: "rw.a1.s2.material.birch-bark"
         item: "birch-bark"
         # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
@@ -15355,26 +15363,6 @@ layouts:
         count: 1
         radius: 8
       -
-        id: "rw.a1.s4.velociraptor.02"
-        speciesId: "velociraptor"
-        level: 20
-        position:
-          x: -96
-          y: 8
-          z: 296
-        count: 1
-        radius: 8
-      -
-        id: "rw.a1.s4.velociraptor.03"
-        speciesId: "velociraptor"
-        level: 20
-        position:
-          x: -112
-          y: 8
-          z: 280
-        count: 1
-        radius: 8
-      -
         id: "rw.a1.s4.gallimimus.01"
         speciesId: "gallimimus"
         # Robango redesign value: a1 is the first route (entry level 2); lowest profile level.
@@ -15561,38 +15549,6 @@ layouts:
             z: 200
           -
             x: -96
-            y: 8
-            z: 280
-        width: 16
-      -
-        id: "rw.a1.s4.habitat-velociraptor-2"
-        points:
-          -
-            x: 0
-            y: 8
-            z: 200
-          -
-            x: -96
-            y: 8
-            z: 200
-          -
-            x: -96
-            y: 8
-            z: 296
-        width: 16
-      -
-        id: "rw.a1.s4.habitat-velociraptor-3"
-        points:
-          -
-            x: 0
-            y: 8
-            z: 200
-          -
-            x: -112
-            y: 8
-            z: 200
-          -
-            x: -112
             y: 8
             z: 280
         width: 16
@@ -17507,7 +17463,7 @@ layouts:
         yield: 3
         respawnSeconds: 120
       -
-        id: "rw.a2.s4.chapter.survey-sample"
+        id: "rw.a2.s4.material.survey-sample"
         item: "survey-sample"
         # Robango redesign value: node moved onto the arrival trail, 25-90 studs from the stage spawn.
         position:
@@ -26357,7 +26313,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 3
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26368,7 +26324,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 2
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26379,7 +26335,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 3
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26390,7 +26346,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 2
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26401,7 +26357,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 1
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26412,7 +26368,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 3
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26434,7 +26390,7 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 3
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -26445,7 +26401,29 @@ layouts:
           x: -48
           y: 4
           z: 100
-        stock: 3
+        stock: 12
+        level: 10
+        yield: 3
+        respawnSeconds: 120
+      -
+        id: "rw.explore10.legacy-forest-birch-stand-birch-bark"
+        item: "birch-bark"
+        position:
+          x: -56
+          y: 4
+          z: 100
+        stock: 6
+        level: 10
+        yield: 2
+        respawnSeconds: 150
+      -
+        id: "rw.explore10.additional-clam"
+        item: "clam"
+        position:
+          x: -40
+          y: 4
+          z: 100
+        stock: 12
         level: 10
         yield: 3
         respawnSeconds: 120
@@ -32874,11 +32852,6 @@ guides:
         target: "corn"
         quantity: 1
       -
-        id: "rw.g09.farming.4"
-        action: "water"
-        target: "corn"
-        quantity: 1
-      -
         id: "rw.g09.farming.5"
         action: "harvest"
         target: "corn"
@@ -33466,7 +33439,7 @@ guides:
         id: "rw.g30.route-supplies.1"
         action: "deliver"
         target: "contract"
-        quantity: 3
+        quantity: 2
     rewards:
       xp: 775
       coins: 25

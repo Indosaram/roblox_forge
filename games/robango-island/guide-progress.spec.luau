@@ -651,9 +651,8 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	end,
 	["rw.g09.farming.3"] = function(server)
 		give(server, "guide-seed", "corn-seed", 1, { level = 1 })
-		give(server, "guide-fertilizer", "liquid-fertilizer", 1)
-		give(server, "guide-sprinkler", "sprinkler", 1)
-		for _, id in { "guide-seed", "guide-water", "guide-fertilizer", "guide-sprinkler" } do
+		-- audit6h P4: no water step, so no sprinkler (farming_5) or fertilizer; planting takes water.
+		for _, id in { "guide-seed", "guide-water" } do
 			local quantity = server.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items[id].quantity
 			send(server, "home-deposit", { "home:" .. ACTOR, { itemId = id, quantity = quantity } })
 		end
@@ -661,13 +660,6 @@ local DRIVE: { [string]: (any, any) -> () } = {
 			server,
 			"home-plant",
 			{ "home:" .. ACTOR, { plot = "starter-farm", crop = "corn", seedItem = stored(server, "corn-seed") } }
-		)
-	end,
-	["rw.g09.farming.4"] = function(server)
-		send(
-			server,
-			"home-area",
-			{ "home:" .. ACTOR, { plot = "starter-farm", plots = "starter-farm", fertilizer = "liquid-fertilizer" } }
 		)
 	end,
 	["rw.g09.farming.5"] = function(server, at)
@@ -837,7 +829,8 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		send(server, "gather", { "marsh-clam-bed-01", 0 })
 	end,
 	["rw.g30.route-supplies.1"] = function(server)
-		for _, id in { "survey-driftwood", "guild-stone-axe", "eco-fiber-sample" } do
+		-- audit6h P5: two board deliveries (g21 already used two of a four-contract day).
+		for _, id in { "survey-driftwood", "guild-stone-axe" } do
 			send(server, "contract-deliver", { id })
 		end
 	end,
