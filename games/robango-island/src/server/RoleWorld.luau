@@ -2340,10 +2340,14 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 					local ground = definition.ground
 					local hit =
 						workspace:Raycast(Vector3.new(ground.x, 512, ground.z), Vector3.new(0, -1024, 0), groundParams)
-					if hit and not visual then
-						Meshes.place(row, CFrame.new(hit.Position), folder, definition.kit .. ".mesh")
-					elseif hit and visual then
-						(visual :: Model):PivotTo(CFrame.new(hit.Position))
+					-- A turned kit (the starter house faces the camp) turns its mesh row with it.
+					local frame = if hit
+						then CFrame.new(hit.Position) * CFrame.Angles(0, math.rad(definition.kitYaw or 0), 0)
+						else nil
+					if frame and not visual then
+						Meshes.place(row, frame, folder, definition.kit .. ".mesh")
+					elseif frame and visual then
+						(visual :: Model):PivotTo(frame)
 					end
 				end
 			elseif definition.kind and Meshes.STRUCTURES[definition.kind] and not definition.decorative then

@@ -1277,9 +1277,219 @@ function M.resource(item: any): string
 	end
 end
 
-function M.home(parts: { any }, home: any, rules: any)
+-- D2 R12 (personal island): outside the camp ring the home island read as bare ground. A seeded
+-- scatter of the beach kit rows (the kit the home already loads for its shore palms, so no new
+-- package or texture) dresses the land between the camp ring and the coast. `perScreen` matches the
+-- B1 onboarding target (>= 20 mesh vegetation per default-zoom screen, BiomeKits.SCREEN_AREA): a
+-- rank-1 island fits in one screen, so it gets 20; larger ranks scale with their land area.
+-- `ground` rocks/litter come on top at `groundShare` of the vegetation count. Pieces keep
+-- `margin` studs off every pad, plot, structure, camp kit, gather node and anchor, and off the
+-- dock path ribbon and authored home paths.
+M.HOME_SCATTER = table.freeze({
+	ring = 24,
+	coast = 0.95,
+	perScreen = 20,
+	oversupply = 1.35,
+	groundShare = 0.3,
+	spacing = 2.5,
+	treeSpacing = 9,
+	margin = 2,
+	vegetation = {
+		{ key = "veg.beach.dune-grass-a", weight = 6 },
+		{ key = "veg.beach.dune-grass-b", weight = 3 },
+		{ key = "veg.beach.vine-mat", weight = 3 },
+		{ key = "veg.beach.seagrape", weight = 3 },
+		{ key = "veg.beach.palm-lean", weight = 1 },
+	},
+	ground = {
+		{ key = "rock.beach.tide-boulder", weight = 2 },
+		{ key = "rock.beach.pebble-scatter", weight = 2 },
+		{ key = "clutter.beach.leaf-litter", weight = 2 },
+	},
+})
+-- Starter house beside the camp (R12: "no house"): the Saltmeadow cottage kit, rendered by its B3
+-- row (StructureMeshes.DRESSING.house, mesh-bld-hero, already loaded on every server). Door faces
+-- the camp path (west). Skipped while a placed structure stands on its lot.
+M.HOME_HOUSE = table.freeze({ x = 15, z = -2, yaw = -90, halfX = 4.5, halfZ = 5.5 })
+
+local function segmentDistance(x: number, z: number, a: any, b: any): number
+	local dx, dz = b.x - a.x, b.z - a.z
+	local length = dx * dx + dz * dz
+	local t = if length == 0 then 0 else math.clamp(((x - a.x) * dx + (z - a.z) * dz) / length, 0, 1)
+	return math.sqrt((x - a.x - dx * t) ^ 2 + (z - a.z - dz * t) ^ 2)
+end
+
+-- Axis-aligned xz boxes of plan parts, one per kit (its pieces' extents) or per plain part.
+local function footprints(parts: { any }, from: number, to: number, out: { any })
+	local byKit: { [string]: any } = {}
+	for n = from, to do
+		local p = parts[n]
+		if p.kind == "land" or p.kind == "biome-kit" or p.id == "home.path" then
+			continue
+		end
+		local size = p.size or { x = 0, y = 0, z = 0 }
+		local hx, hz = size.x / 2, size.z / 2
+		if p.kit then
+			-- Kit pieces may be rolled or turned: their largest side bounds them on both axes.
+			local r = math.max(size.x, size.y, size.z) / 2
+			hx, hz = r, r
+		end
+		local box = { x0 = p.position.x - hx, x1 = p.position.x + hx, z0 = p.position.z - hz, z1 = p.position.z + hz }
+		local key = p.kit
+		if key and byKit[key] then
+			local b = byKit[key]
+			b.x0, b.x1 = math.min(b.x0, box.x0), math.max(b.x1, box.x1)
+			b.z0, b.z1 = math.min(b.z0, box.z0), math.max(b.z1, box.z1)
+		else
+			box.id = key or p.id
+			table.insert(out, box)
+			if key then
+				byKit[key] = box
+			end
+		end
+	end
+end
+
+local function inBox(boxes: { any }, x: number, z: number, margin: number): boolean
+	for _, b in boxes do
+		if x >= b.x0 - margin and x <= b.x1 + margin and z >= b.z0 - margin and z <= b.z1 + margin then
+			return true
+		end
+	end
+	return false
+end
+
+--- Home footprints a scatter piece must stay off: plan parts (pads, plots, structures, dock, camp
+--- kits) as boxes. Exposed for the home dressing spec.
+function M.homeFootprints(parts: { any }): { any }
+	local boxes = {}
+	footprints(parts, 1, #parts, boxes)
+	return boxes
+end
+
+--- True when (x, z) is on the home dock path: the dock ribbon (home.path, 7 studs wide along z)
+--- or an authored rw.home path, widened by `margin`.
+function M.onHomePath(layout: any?, x: number, z: number, margin: number): boolean
+	if math.abs(x) <= 3.5 + margin then
+		return true
+	end
+	if layout then
+		for _, path in layout.paths do
+			for j = 2, #path.points do
+				if segmentDistance(x, z, path.points[j - 1], path.points[j]) <= path.width / 2 + margin then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+local function pick(rows: { any }, roll: number): string
+	local total = 0
+	for _, row in rows do
+		total += row.weight
+	end
+	local at = roll * total
+	for _, row in rows do
+		at -= row.weight
+		if at < 0 then
+			return row.key
+		end
+	end
+	return rows[#rows].key
+end
+
+-- Seeded home scatter (M.HOME_SCATTER). The candidate stream depends only on the home seed and
+-- land rank: rank-fixed blockers (layout, camp kits) reject a candidate, while a candidate on a
+-- player-owned part (pads, plots, structures, dock) is drawn and counted but not emitted, so
+-- building something only drops the pieces it covers; the rest of the island never reshuffles.
+local function homeScatter(parts: { any }, home: any, half: number, layout: any?, owned: { any }, fixed: { any })
+	local rule = M.HOME_SCATTER
+	local B1 = kits()
+	local rows: { [string]: any } = {}
+	for _, row in B1.kits.beach do
+		rows[row.key] = row
+	end
+	local side = half * 2
+	-- `oversupply` covers the pads, plots and dock the player owns: candidates under them are drawn
+	-- (so the stream never depends on what was built) but not emitted.
+	local wantVeg = math.ceil(math.max(rule.perScreen, rule.perScreen * side * side / B1.SCREEN_AREA) * rule.oversupply)
+	local wantGround = math.ceil(wantVeg * rule.groundShare)
+	local outer = half * rule.coast
+	local rng = Rng.new(home.seed):fork("home-scatter:" .. tostring(home.landRank))
+	local kept: { any } = {}
+	for _, p in parts do
+		if p.kind == "biome-kit" then
+			table.insert(kept, { x = p.position.x, z = p.position.z, tree = p.family == "tree" })
+		end
+	end
+	local veg, ground = 0, 0
+	local tries = 0
+	while (veg < wantVeg or ground < wantGround) and tries < (wantVeg + wantGround) * 80 do
+		tries += 1
+		local angle = rng:nextNumber() * math.pi * 2
+		local reach = math.sqrt(rule.ring ^ 2 + rng:nextNumber() * (outer ^ 2 - rule.ring ^ 2))
+		local roll, yaw, size = rng:nextNumber(), rng:nextNumber() * 360, rng:nextNumber()
+		local x, z = math.cos(angle) * reach, math.sin(angle) * reach
+		-- The class is a per-candidate roll (not the running counts), so one candidate always
+		-- yields the same row; a full class skips its candidates.
+		local isVeg = rng:nextNumber() < wantVeg / (wantVeg + wantGround)
+		if (isVeg and veg >= wantVeg) or (not isVeg and ground >= wantGround) then
+			continue
+		end
+		local key = pick(if isVeg then rule.vegetation else rule.ground, roll)
+		local row = rows[key]
+		local tree = row.family == "tree"
+		local margin = if tree then rule.margin + 2 else rule.margin
+		if M.onHomePath(layout, x, z, margin) or inBox(fixed, x, z, margin) then
+			continue
+		end
+		local blocked = false
+		if layout then
+			for _, node in layout.resourceNodes do
+				blocked = blocked or (x - node.position.x) ^ 2 + (z - node.position.z) ^ 2 < (6 + margin) ^ 2
+			end
+			for _, anchor in layout.anchors do
+				blocked = blocked or (x - anchor.position.x) ^ 2 + (z - anchor.position.z) ^ 2 < (4 + margin) ^ 2
+			end
+		end
+		for _, other in kept do
+			local gap = if tree and other.tree then rule.treeSpacing else rule.spacing
+			blocked = blocked or (x - other.x) ^ 2 + (z - other.z) ^ 2 < gap * gap
+		end
+		if blocked then
+			continue
+		end
+		table.insert(kept, { x = x, z = z, tree = tree })
+		if isVeg then
+			veg += 1
+		else
+			ground += 1
+		end
+		if inBox(owned, x, z, margin) then
+			continue
+		end
+		table.insert(parts, {
+			-- Keyed by candidate index: a new building drops the pieces under it, never renames the rest.
+			id = "home.scatter." .. tries,
+			kind = "biome-kit",
+			kit = "beach",
+			key = key,
+			family = row.family,
+			position = { x = x, y = 0, z = z },
+			yaw = yaw,
+			scale = row.scale[1] + size * (row.scale[2] - row.scale[1]),
+			decorative = true,
+		})
+	end
+end
+
+function M.home(parts: { any }, home: any, rules: any, layout: any?)
 	local palette = palettes.grassland
 	local half = rules.landSizes[home.landRank] / 2
+	-- Parts so far (land, dock, pads, placed structures) belong to the player's home state.
+	local ownedEnd = #parts
 	for _, z in { -half + 3, half - 3 } do
 		for x = -half + 8, half - 8, 8 do
 			-- Leave a wide entrance in both fences, never seal the travel dock.
@@ -1295,6 +1505,20 @@ function M.home(parts: { any }, home: any, rules: any)
 	M.kit(parts, "home.rack", { x = -20, y = 1, z = 4 }, "drying-rack", palette)
 	M.kit(parts, "home.storage", { x = -half + 17, y = 1, z = -half + 19 }, "chest", palette)
 	M.kit(parts, "home.farm", { x = half - 12, y = 1, z = -half + 14 }, "farm", palette)
+	local lot = M.HOME_HOUSE
+	local built = false
+	for _, record in home.structures do
+		built = built
+			or (
+				math.abs(record.position.x - lot.x) < lot.halfX + 3
+				and math.abs(record.position.z - lot.z) < lot.halfZ + 3
+			)
+	end
+	if not built then
+		local start = #parts + 1
+		M.kit(parts, "home.house", { x = lot.x, y = 1, z = lot.z }, "house", palette)
+		turn(parts, start, lot.x, lot.z, lot.yaw)
+	end
 	add(parts, "home.path", { x = 0, y = 1.05, z = 0 }, { x = 7, y = 0.2, z = half * 2 }, "Ground", { 167, 142, 98 })
 	-- Palms stay on the east coast, clear of the camp: B1 beach kit rows (RoleWorld renderHome
 	-- places kind "biome-kit" through BiomeKits.place), never primitive palm kits.
@@ -1312,6 +1536,16 @@ function M.home(parts: { any }, home: any, rules: any)
 			decorative = true,
 		})
 	end
+	local owned, fixed = {}, {}
+	footprints(parts, 1, ownedEnd, owned)
+	footprints(parts, ownedEnd + 1, #parts, fixed)
+	-- The dock kit follows the (movable) home dock: it blocks like the player's own parts.
+	for index = #fixed, 1, -1 do
+		if fixed[index].id == "home.dock" then
+			table.insert(owned, table.remove(fixed, index))
+		end
+	end
+	homeScatter(parts, home, half, layout, owned, fixed)
 end
 
 return M

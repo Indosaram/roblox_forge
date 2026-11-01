@@ -43,7 +43,7 @@ function M.plan(content: any, home: any, rules: any): { any }
 		local record = home.structures[id]
 		table.insert(parts, { id = id, kind = record.kind, position = record.position, size = rules.structureSize })
 	end
-	Dressing.home(parts, home, rules)
+	Dressing.home(parts, home, rules, layout)
 	return parts
 end
 
