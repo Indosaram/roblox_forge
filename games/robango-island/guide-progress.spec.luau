@@ -59,6 +59,7 @@ local forge = {
 				JournalExtension = require("../../genres/survival-coop/module/JournalExtension"),
 				ProgressionExtension = require("../../genres/survival-coop/module/ProgressionExtension"),
 				ToolTiers = require("../../genres/survival-coop/module/ToolTiers"),
+				CharacterRules = require("../../genres/survival-coop/module/CharacterRules"),
 				GuideEvents = require("../../genres/survival-coop/module/GuideEvents"),
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),
@@ -138,7 +139,8 @@ local function boot(
 	preview: boolean?,
 	realRole: boolean?,
 	layoutId: string?,
-	clan: boolean?
+	clan: boolean?,
+	roleLayout: string?
 ): Server
 	local source = defaultSource
 	local move: any = nil
@@ -177,8 +179,9 @@ local function boot(
 					return nil
 				end,
 				station = function(_actor, id)
-					local kind = string.match(id, "^station%.(%a+)%.t1$")
-					return if kind == "campfire" or kind == "workbench" then { kind = kind, reachable = true } else nil
+					local kind = string.match(id, "^station%.([%a%-]+)%.t%d$")
+					local known = kind == "campfire" or kind == "workbench" or kind == "tanning-frame" or kind == "kiln"
+					return if known then { kind = kind, reachable = true } else nil
 				end,
 			},
 		},
@@ -229,7 +232,7 @@ local function boot(
 		if realRole then
 			world = engine.role.build(content, source, wildlifePolicy, function()
 				return clockAt.value
-			end, "rw.onboarding", 1776)
+			end, roleLayout or "rw.onboarding", 1776)
 			source = world.roleSource
 			engine.move(FIRST, { x = -16, y = 7, z = -4 })
 		else
@@ -359,7 +362,15 @@ local function boot(
 		return realCommand(actor, request)
 	end
 	factory.bind(session)
-	return { session = session, factory = factory, provision = provision, now = now, move = move, equip = equip }
+	return {
+		session = session,
+		factory = factory,
+		provision = provision,
+		now = now,
+		move = move,
+		equip = equip,
+		world = world,
+	}
 end
 
 local ACTOR = FIRST
@@ -474,6 +485,106 @@ local function craft(server: any, at: any, recipe: string, station: string)
 	send(server, "craft-complete", { reserved.data.jobId })
 end
 
+local function captureDodo(server: any)
+	local dodo = "rw.onboarding.dodo.01.1"
+	local wild = server.factory.services.survivalWildlife
+	give(server, "guide-knife", "bone-knife", 1)
+	server.session.personalTransaction(ACTOR, function(raw)
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-knife"].durabilityMilli = 60000
+		return raw
+	end)
+	give(server, "guide-bola", "capture-bola", 1)
+	server.session.personalTransaction(ACTOR, function(raw)
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-bola"].durabilityMilli = 100000
+		return raw
+	end)
+	server.equip(ACTOR, "guide-knife")
+	local full = 0
+	for _, row in content.wildlifeDetails do
+		full = if row.id == "dodo" then row.health * 1000 else full
+	end
+	local function command(action: string, args: { any }): any
+		sequence += 1
+		server.at.value += 1
+		server.session.advance(server.at.value)
+		return server.session.command(ACTOR, {
+			requestId = "guide-" .. sequence,
+			sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
+			action = "survival-coop:" .. action,
+			args = args,
+		})
+	end
+	for _ = 1, 40 do
+		local npc = wild.snapshot(ACTOR)[dodo]
+		if npc.healthMilli <= full // 4 then
+			break
+		end
+		local home = npc.home
+		server.move(ACTOR, { x = home.x + 2, y = home.y + 1, z = home.z })
+		command("attack", { dodo })
+	end
+	local health = wild.snapshot(ACTOR)[dodo].healthMilli
+	assert(health > 0 and health <= full // 4, "weakened to the capture threshold: " .. health)
+	for _ = 1, 4 do
+		server.at.value += 9
+		assert(command("tame-hit", { dodo }).ok, "bola stun")
+		local caught = command("tame-capture", { dodo })
+		assert(caught.ok, "capture: " .. tostring(caught.reason))
+		if caught.data.captured then
+			return
+		end
+	end
+	error("four bola throws all missed")
+end
+
+-- Skill nodes for a drive: every category's proficiency at its cap and enough SP, then each node is
+-- learned through the real skill-learn command (prerequisites listed first).
+local function learn(server: any, nodes: { string })
+	server.session.personalTransaction(ACTOR, function(raw)
+		local progression = raw.envelope.genres["survival-coop"].data.progression
+		for _, mastery in progression.mastery do
+			mastery.level = content.progressionPolicy.tree.maxMastery
+		end
+		progression.sp += 200
+		return raw
+	end)
+	for _, node in nodes do
+		if not server.session.snapshot(ACTOR)["survival-coop"].progression.paid[node] then
+			send(server, "skill-learn", { node })
+		end
+	end
+end
+
+-- A wearable tool in the bag (given items need durability set).
+local function tool(server: any, id: string, catalogId: string)
+	give(server, id, catalogId, 1)
+	server.session.personalTransaction(ACTOR, function(raw)
+		raw.envelope.genres["survival-coop"].data.inventory.bag.items[id].durabilityMilli = 100000
+		return raw
+	end)
+end
+
+local function stock(server: any, items: { [string]: number })
+	for catalogId, quantity in items do
+		give(server, "guide-" .. catalogId, catalogId, quantity)
+	end
+end
+
+-- Moves a crafted kit into home storage and places its structure on the home island.
+local function place(server: any, kit: string, kind: string, x: number)
+	send(server, "home-deposit", { "home:" .. ACTOR, { itemId = bagItem(server, kit), quantity = 1 } })
+	send(server, "home-place", {
+		"home:" .. ACTOR,
+		{ id = "guide-" .. kind, kind = kind, position = { x = x, y = 0, z = -12 } },
+	})
+end
+
+-- Stands on a station part of the real role world (12-stud reach, clear ray).
+local function atStation(server: any, anchor: string)
+	local part = assert(server.world.anchorParts[anchor], anchor)
+	server.move(ACTOR, { x = part.Position.X, y = part.Position.Y + 3.5, z = part.Position.Z })
+end
+
 -- The command(s) that satisfy each supported objective, keyed by objective id.
 local DRIVE: { [string]: (any, any) -> () } = {
 	["rw.g01.first-gather.1"] = function(server)
@@ -485,55 +596,7 @@ local DRIVE: { [string]: (any, any) -> () } = {
 	end,
 	-- Tame lane (R09): weaken an onboarding dodo with the bone knife, then the starter bola captures it.
 	["rw.g31.first-capture.1"] = function(server)
-		local dodo = "rw.onboarding.dodo.01.1"
-		local wild = server.factory.services.survivalWildlife
-		give(server, "guide-knife", "bone-knife", 1)
-		server.session.personalTransaction(ACTOR, function(raw)
-			raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-knife"].durabilityMilli = 60000
-			return raw
-		end)
-		give(server, "guide-bola", "capture-bola", 1)
-		server.session.personalTransaction(ACTOR, function(raw)
-			raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-bola"].durabilityMilli = 100000
-			return raw
-		end)
-		server.equip(ACTOR, "guide-knife")
-		local full = 0
-		for _, row in content.wildlifeDetails do
-			full = if row.id == "dodo" then row.health * 1000 else full
-		end
-		local function command(action: string, args: { any }): any
-			sequence += 1
-			server.at.value += 1
-			server.session.advance(server.at.value)
-			return server.session.command(ACTOR, {
-				requestId = "guide-" .. sequence,
-				sessionEpoch = server.session.commandEpoch(ACTOR, "survival-coop:" .. action) or 0,
-				action = "survival-coop:" .. action,
-				args = args,
-			})
-		end
-		for _ = 1, 40 do
-			local npc = wild.snapshot(ACTOR)[dodo]
-			if npc.healthMilli <= full // 4 then
-				break
-			end
-			local home = npc.home
-			server.move(ACTOR, { x = home.x + 2, y = home.y + 1, z = home.z })
-			command("attack", { dodo })
-		end
-		local health = wild.snapshot(ACTOR)[dodo].healthMilli
-		assert(health > 0 and health <= full // 4, "weakened to the capture threshold: " .. health)
-		for _ = 1, 4 do
-			server.at.value += 9
-			assert(command("tame-hit", { dodo }).ok, "bola stun")
-			local caught = command("tame-capture", { dodo })
-			assert(caught.ok, "capture: " .. tostring(caught.reason))
-			if caught.data.captured then
-				return
-			end
-		end
-		error("four bola throws all missed")
+		captureDodo(server)
 	end,
 	["rw.g03.first-contract.1"] = function(server)
 		send(server, "contract-deliver", { "survey-driftwood" })
@@ -778,6 +841,149 @@ local DRIVE: { [string]: (any, any) -> () } = {
 			send(server, "contract-deliver", { id })
 		end
 	end,
+	-- audit6h P9 guides (hours 1.5-6, grade 2).
+	["rw.g32.tanning-frame.1"] = function(server, at)
+		learn(server, { "construction_1" })
+		stock(server, { branch = 8, stone = 2 })
+		craft(server, at, "tanning-frame-kit", "station.workbench.t1")
+	end,
+	["rw.g32.tanning-frame.2"] = function(server)
+		place(server, "tanning-frame-kit", "tanning-frame", -12)
+	end,
+	["rw.g33.first-leather.1"] = function(server)
+		learn(server, { "processing_1", "processing_2" })
+	end,
+	["rw.g33.first-leather.2"] = function(server, at)
+		stock(server, { hide = 2 })
+		for _ = 1, 2 do
+			craft(server, at, "tan-hide", "station.tanning-frame.t1")
+		end
+	end,
+	["rw.g34.hunting-bow.1"] = function(server, at)
+		learn(server, { "weapon_tool_1" })
+		stock(server, { ["dried-wood"] = 4, ["dried-fiber"] = 4 })
+		craft(server, at, "bow-t1", "station.workbench.t1")
+	end,
+	["rw.g34.hunting-bow.2"] = function(server)
+		send(server, "gear-equip", { bagItem(server, "bow-t1") })
+	end,
+	["rw.g35.first-polish.1"] = function(server)
+		learn(server, { "processing_1", "processing_2", "processing_3" })
+	end,
+	["rw.g35.first-polish.2"] = function(server, at)
+		stock(server, { flint = 3 })
+		for _ = 1, 3 do
+			craft(server, at, "polish-flint", "station.workbench.t1")
+		end
+	end,
+	["rw.g36.flint-pick.1"] = function(server, at)
+		learn(server, { "weapon_tool_1" })
+		stock(server, { ["dried-wood"] = 3, ["polished-flint"] = 3, ["dried-fiber"] = 2 })
+		craft(server, at, "pickaxe-t1", "station.workbench.t1")
+	end,
+	["rw.g37.first-crop.1"] = function(server)
+		learn(server, { "farming_1" })
+	end,
+	["rw.g37.first-crop.2"] = function(server)
+		give(server, "guide-seed", "corn-seed", 1, { level = 1 })
+		give(server, "guide-water", "water", 1)
+		for _, id in { "guide-seed", "guide-water" } do
+			send(server, "home-deposit", { "home:" .. ACTOR, { itemId = id, quantity = 1 } })
+		end
+		send(
+			server,
+			"home-plant",
+			{ "home:" .. ACTOR, { plot = "starter-farm", crop = "corn", seedItem = stored(server, "corn-seed") } }
+		)
+	end,
+	["rw.g37.first-crop.3"] = function(server, at)
+		wait(server, at, 900)
+		send(server, "home-harvest", { "home:" .. ACTOR, { plot = "starter-farm" } })
+	end,
+	["rw.g38.kiln.1"] = function(server, at)
+		learn(server, { "construction_1" })
+		stock(server, { stone = 12, clay = 8 })
+		craft(server, at, "kiln-kit", "hand")
+	end,
+	["rw.g38.kiln.2"] = function(server)
+		place(server, "kiln-kit", "kiln", 12)
+	end,
+	-- Copper: the real Deep wilds (explore20) node, mined with a Pickaxe T1 worn, smelted at its kiln.
+	["rw.g39.copper.1"] = function(server)
+		learn(server, { "gathering_1" })
+		-- pickaxe-t1 has no `tool` tag (never a held Tool): the worn weapon/tool slot is the evidence.
+		tool(server, "guide-pick", "pickaxe-t1")
+		send(server, "gear-equip", { "guide-pick" })
+		for _ = 1, 2 do
+			send(server, "gather", { "rw.explore20.extra-3", 0 })
+		end
+	end,
+	["rw.g39.copper.2"] = function(server, at)
+		learn(server, { "processing_1", "processing_2", "processing_3", "processing_4" })
+		atStation(server, "station.kiln.t1")
+		for _ = 1, 3 do
+			craft(server, at, "smelt-copper", "station.kiln.t1")
+		end
+	end,
+	["rw.g40.temperate-set.1"] = function(server, at)
+		learn(server, { "tailoring_1" })
+		stock(server, { leather = 8, ["dried-fiber"] = 3 })
+		craft(server, at, "temperate-top", "station.workbench.t1")
+	end,
+	["rw.g40.temperate-set.2"] = function(server, at)
+		craft(server, at, "temperate-shoes", "station.workbench.t1")
+	end,
+	["rw.g41.second-pet.1"] = function(server)
+		captureDodo(server)
+	end,
+	["rw.g41.second-pet.2"] = function(server)
+		stock(server, { ["herbivore-feed"] = 3 })
+		for _ = 1, 3 do
+			send(server, "companion-action", { "feed", "rw.onboarding.dodo.01.1" })
+		end
+	end,
+	["rw.g42.storage.1"] = function(server, at)
+		learn(server, { "construction_1", "construction_2" })
+		stock(server, { ["dried-wood"] = 8, ["dried-fiber"] = 4 })
+		craft(server, at, "storage-kit", "station.workbench.t1")
+	end,
+	["rw.g42.storage.2"] = function(server)
+		place(server, "storage-kit", "storage", -12)
+	end,
+	["rw.g43.t1-weapon.1"] = function(server, at)
+		learn(server, { "weapon_tool_1" })
+		stock(server, { ["dried-wood"] = 5, ["polished-stone"] = 2, ["dried-fiber"] = 2 })
+		craft(server, at, "club-t1", "station.workbench.t1")
+	end,
+	["rw.g43.t1-weapon.2"] = function(server)
+		send(server, "gear-equip", { bagItem(server, "club-t1") })
+	end,
+	["rw.g44.second-route.1"] = function(server)
+		send(server, "contract-deliver", { "daily-guild-cord" })
+	end,
+	["rw.g45.bone-work.1"] = function(server)
+		learn(server, { "weapon_tool_1", "weapon_tool_2", "weapon_tool_3" })
+	end,
+	["rw.g45.bone-work.2"] = function(server, at)
+		learn(server, { "processing_1", "processing_2", "processing_3" })
+		stock(server, { bone = 6 })
+		for _ = 1, 6 do
+			craft(server, at, "polish-bone", "station.workbench.t1")
+			wait(server, at, 1) -- renews the fenced leases across the long craft run
+		end
+	end,
+	["rw.g45.bone-work.3"] = function(server, at)
+		stock(server, { hide = 3 })
+		for _ = 1, 3 do
+			craft(server, at, "tan-thick-hide", "station.tanning-frame.t1")
+			wait(server, at, 1) -- renews the fenced leases across the long craft run
+		end
+	end,
+	["rw.g46.t2-tool.1"] = function(server, at)
+		learn(server, { "weapon_tool_1", "weapon_tool_2", "weapon_tool_3" })
+		stock(server, { ["polished-bone"] = 5, ["thick-leather"] = 2, ["dried-fiber"] = 2 })
+		craft(server, at, "pickaxe-t2", "station.workbench.t2")
+	end,
 }
 
 -- Guides acted out at a place: home commands need the home role, facility anchors the harbor.
@@ -788,15 +994,36 @@ local PLACE: { [string]: string } = {
 	["rw.g16.refrigeration"] = "rw.home",
 	["rw.g18.technical-support"] = "rw.harbor",
 	["rw.g20.rescue-preparation"] = "rw.harbor",
+	["rw.g32.tanning-frame"] = "rw.home",
+	["rw.g37.first-crop"] = "rw.home",
+	["rw.g38.kiln"] = "rw.home",
+	["rw.g42.storage"] = "rw.home",
 }
+-- Guides driven in a real role world (RoleWorld geometry, resource nodes and station parts).
+local ROLE: { [string]: string } = {
+	["rw.g31.first-capture"] = "rw.onboarding",
+	["rw.g39.copper"] = "rw.explore20",
+	["rw.g41.second-pet"] = "rw.onboarding",
+}
+-- The captures need the onboarding island's real wildlife and taming wiring.
+local WILDS: { [string]: boolean } = { ["rw.g31.first-capture"] = true, ["rw.g41.second-pet"] = true }
 
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }
 	local clan = guide.id == "rw.g15.clan"
-	-- The starter capture needs the onboarding island's real wildlife and taming wiring.
-	local wilds = guide.id == "rw.g31.first-capture"
-	local server =
-		boot(Memory.new(), "job:guide-" .. guide.id, at, wilds or nil, nil, wilds or nil, PLACE[guide.id], clan)
+	local wilds = WILDS[guide.id] == true
+	local role = ROLE[guide.id]
+	local server = boot(
+		Memory.new(),
+		"job:guide-" .. guide.id,
+		at,
+		wilds or nil,
+		nil,
+		role ~= nil or nil,
+		PLACE[guide.id],
+		clan,
+		role
+	)
 	server.at = at
 	assert(server.session.join(ACTOR).ok, "join")
 	-- The player taps Start: the ADR-13 join hold ends and hunger runs (TitleFlow.bindWake).
@@ -822,7 +1049,7 @@ local function fresh(guide: any): (any, any)
 		end).ok,
 		"development"
 	)
-	if not wilds then
+	if not role then
 		send(server, "gather", { "fiber-bush-01", 0 })
 	end
 	return server, at

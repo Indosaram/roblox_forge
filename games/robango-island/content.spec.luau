@@ -152,6 +152,119 @@ local function prefixed(list: { any }, prefix: string): number
 	return count
 end
 
+-- audit6h P9: the authored steps for hours 1.5-6 (Robango gap report section 5). Gate level, XP,
+-- objectives; every one opens at island grade 2 and pays no development.
+local P9: { [string]: { level: number, xp: number, objectives: { string } } } = {
+	["rw.g32.tanning-frame"] = {
+		level = 11,
+		xp = 150,
+		objectives = { "craft tanning-frame-kit", "place tanning-frame" },
+	},
+	["rw.g33.first-leather"] = { level = 12, xp = 150, objectives = { "purchase processing_2", "craft tan-hide" } },
+	["rw.g34.hunting-bow"] = { level = 13, xp = 200, objectives = { "craft bow-t1", "equip bow-t1" } },
+	["rw.g35.first-polish"] = { level = 15, xp = 200, objectives = { "purchase processing_3", "craft polish-flint" } },
+	["rw.g36.flint-pick"] = { level = 16, xp = 200, objectives = { "craft pickaxe-t1" } },
+	["rw.g37.first-crop"] = {
+		level = 17,
+		xp = 200,
+		objectives = { "purchase farming_1", "plant corn", "harvest corn" },
+	},
+	["rw.g38.kiln"] = { level = 21, xp = 200, objectives = { "craft kiln-kit", "place kiln" } },
+	["rw.g39.copper"] = { level = 23, xp = 250, objectives = { "gather copper-ore", "craft smelt-copper" } },
+	["rw.g40.temperate-set"] = {
+		level = 26,
+		xp = 250,
+		objectives = { "craft temperate-top", "craft temperate-shoes" },
+	},
+	["rw.g41.second-pet"] = { level = 31, xp = 250, objectives = { "capture creature", "feed herbivore-feed" } },
+	["rw.g42.storage"] = { level = 33, xp = 250, objectives = { "craft storage-kit", "place storage" } },
+	["rw.g43.t1-weapon"] = { level = 36, xp = 300, objectives = { "craft club-t1", "equip club-t1" } },
+	["rw.g44.second-route"] = { level = 37, xp = 300, objectives = { "deliver contract" } },
+	["rw.g45.bone-work"] = {
+		level = 42,
+		xp = 350,
+		objectives = { "purchase weapon_tool_3", "craft polish-bone", "craft tan-thick-hide" },
+	},
+	["rw.g46.t2-tool"] = { level = 45, xp = 400, objectives = { "craft pickaxe-t2" } },
+}
+
+-- Every id a guide objective names must resolve in the document: craft -> recipe (or a tool family
+-- the craft event carries as `also`), place -> structure, purchase -> skill node, gather/plant/
+-- harvest/equip/feed -> item, capture -> a species or "creature", deliver -> a contract or
+-- "contract". Returns "<objective id>: <action> <target>" for each that does not.
+local function unresolved(document: any): { string }
+	local function ids(rows: { any }?): { [string]: boolean }
+		local out = {}
+		for _, row in rows or {} do
+			out[row.id] = true
+		end
+		return out
+	end
+	local recipes, structures, nodes = ids(document.recipes), ids(document.structures), ids(document.skillNodes)
+	local items, wildlife = ids(document.items), ids(document.wildlifeDetails)
+	local contracts = ids((document.contracts or {}).entries)
+	for _, family in (document.toolPolicy or {}).families or {} do
+		recipes[family.id] = true
+	end
+	local resolve = {
+		craft = recipes,
+		place = structures,
+		purchase = nodes,
+		gather = items,
+		plant = items,
+		harvest = items,
+		equip = items,
+		feed = items,
+	}
+	local out = {}
+	for _, guide in document.guides or {} do
+		for _, objective in guide.objectives do
+			local known = resolve[objective.action]
+			local ok = if objective.action == "capture"
+				then objective.target == "creature" or wildlife[objective.target] == true
+				elseif objective.action == "deliver" then objective.target == "contract"
+					or contracts[objective.target] == true
+				elseif known then known[objective.target] == true
+				else true
+			if not ok then
+				table.insert(out, objective.id .. ": " .. objective.action .. " " .. objective.target)
+			end
+		end
+	end
+	return out
+end
+
+-- Largest jump between consecutive gate levels of the guides a solo player sees, over [from, to].
+local function soloGap(document: any, from: number, to: number): (number, number?)
+	local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
+	local levels: { number } = {}
+	for _, guide in GuideEvents.visible(document, true) do
+		local level = (guide.gates or {}).characterLevel or 1
+		if not table.find(levels, level) then
+			table.insert(levels, level)
+		end
+	end
+	table.sort(levels)
+	local worst, at = 0, nil
+	for i = 2, #levels do
+		if levels[i - 1] >= from and levels[i - 1] < to and levels[i] - levels[i - 1] > worst then
+			worst, at = levels[i] - levels[i - 1], levels[i - 1]
+		end
+	end
+	return worst, at
+end
+
+local function withoutP9(document: any): any
+	local kept = {}
+	for _, guide in document.guides do
+		if not P9[guide.id] then
+			table.insert(kept, guide)
+		end
+	end
+	document.guides = kept
+	return document
+end
+
 return {
 	["content.yml validates against the current survival schema"] = function()
 		local errors = Content.validate(load())
@@ -211,9 +324,12 @@ return {
 
 	["20 guides in 5 bands of 4 each award 50 development, then 10 waypoint guides toward route 1"] = function()
 		-- The starter capture guide (tame lane redesign) sits in the start band; it pays no development.
+		-- The audit6h P9 guides (g32..g46) are checked by their own cases below.
 		local guides = {}
 		for _, guide in load().guides do
-			if guide.id == "rw.g31.first-capture" then
+			if P9[guide.id] then
+				continue
+			elseif guide.id == "rw.g31.first-capture" then
 				assert(
 					guide.gates.characterLevel == 1 and guide.gates.developmentRank == 0,
 					"starter capture opens at L1"
@@ -239,6 +355,77 @@ return {
 			assert(guide.rewards.development == 50, "50 development " .. guide.id)
 			assert(guide.gates.developmentRank == ((i - 1) // 4) * 2, "band rank " .. guide.id)
 			assert(guide.gates.characterLevel == first.gates.characterLevel, "band level " .. guide.id)
+		end
+	end,
+
+	["audit6h P9: the hours 1.5-6 guides open at grade 2 at their level, pay XP only, as authored"] = function()
+		local seen = {}
+		for _, guide in load().guides do
+			local spec = P9[guide.id]
+			if spec then
+				seen[guide.id] = true
+				assert(guide.gates.characterLevel == spec.level, guide.id .. " level " .. guide.gates.characterLevel)
+				assert(guide.gates.developmentRank == 2, guide.id .. " grade")
+				assert(guide.rewards.development == 0, guide.id .. " pays no development")
+				assert(guide.rewards.xp == spec.xp, guide.id .. " xp " .. tostring(guide.rewards.xp))
+				assert(#guide.objectives == #spec.objectives, guide.id .. " objective count")
+				for i, objective in guide.objectives do
+					local text = objective.action .. " " .. objective.target
+					assert(text == spec.objectives[i], guide.id .. " objective " .. i .. ": " .. text)
+					assert(objective.id == guide.id .. "." .. i, objective.id)
+				end
+				assert(
+					guide.dialogueKeys[1] == guide.id .. ".offer" and guide.dialogueKeys[2] == guide.id .. ".complete",
+					guide.id .. " dialogue keys"
+				)
+			end
+		end
+		for id in P9 do
+			assert(seen[id], id .. " missing from content.yml")
+		end
+	end,
+
+	["every guide objective names an id that exists in the content"] = function()
+		local missing = unresolved(load())
+		assert(#missing == 0, "unresolved guide targets:\n" .. table.concat(missing, "\n"))
+		-- The check bites: a renamed recipe and a misspelled structure are both reported.
+		local broken = load()
+		for _, guide in broken.guides do
+			if guide.id == "rw.g36.flint-pick" then
+				guide.objectives[1].target = "pickaxe-t9"
+			elseif guide.id == "rw.g38.kiln" then
+				guide.objectives[2].target = "kiln-x"
+			end
+		end
+		local found = unresolved(broken)
+		assert(#found == 2, table.concat(found, "\n"))
+	end,
+
+	["the solo guide list has no gap above 6 levels between level 10 and 46 (fails on the old data)"] = function()
+		local gap, at = soloGap(load(), 10, 46)
+		assert(gap <= 6, "solo guide gap of " .. gap .. " levels after L" .. tostring(at))
+		-- Without the P9 guides the solo list jumps from L40 to L50 (g08/g12/g15/g17/g19 are hidden).
+		local old, oldAt = soloGap(withoutP9(load()), 10, 46)
+		assert(old > 6 and oldAt == 40, "old data gap " .. old .. " after L" .. tostring(oldAt))
+	end,
+
+	["every P9 guide has en and ko offer, complete and title rows with provenance"] = function()
+		local parsed = Strings.parseCsv(fs.readFile(PACK .. "/locale/strings.csv"))
+		local rows: { [string]: { string } } = {}
+		for _, row in parsed.rows do
+			rows[row[1]] = row
+		end
+		local provenance: { [string]: boolean } = {}
+		for line in string.gmatch(fs.readFile(PACK .. "/locale/provenance.csv"), "[^\n]+") do
+			provenance[string.match(line, "^([^,]+)") or ""] = true
+		end
+		for id in P9 do
+			local short = assert(string.match(id, "^rw%.(g%d+)%."), id)
+			for _, key in { id .. ".offer", id .. ".complete", "chr.guide_" .. short } do
+				local row = rows[key]
+				assert(row and row[4] ~= "" and row[5] ~= "", key .. " needs en and ko text")
+				assert(provenance[key], key .. " needs a provenance row")
+			end
 		end
 	end,
 

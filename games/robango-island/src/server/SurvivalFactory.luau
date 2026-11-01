@@ -14,6 +14,7 @@ local ArchipelagoExtension = require(Forge.genres["survival-coop"].module.Archip
 local Archipelago = require(Forge.core.domain.island.Archipelago)
 local Award = require(Forge.genres["survival-coop"].module.ProgressionExtension).award
 local ToolTiers = require(Forge.genres["survival-coop"].module.ToolTiers)
+local CharacterRules = require(Forge.genres["survival-coop"].module.CharacterRules)
 local GuideEvents = require(Forge.genres["survival-coop"].module.GuideEvents)
 return function(content: any, source, world, backend, clock, options, provision, wildlifePolicy): (any, string?)
 	content, source, wildlifePolicy =
@@ -1493,14 +1494,47 @@ return function(content: any, source, world, backend, clock, options, provision,
 				return { ok = true }
 			end
 			development.events[receiptId] = true
-			local level = ((personalData(actor) or {}).progression or { level = 1 }).level
-			for _, guide in
-				GuideEvents.apply(content, development, level, function(points)
-					return developmentFacts({ development = { points = points } }).grade
-				end, event)
-			do
-				ArchipelagoExtension.enqueueGuide(document, guide)
-				guideCompleted = true
+			local data = personalData(actor) or {}
+			local progression = data.progression or { level = 1, paid = {} }
+			local level = progression.level
+			local function grade(points)
+				return developmentFacts({ development = { points = points } }).grade
+			end
+			local function record(applied)
+				for _, guide in GuideEvents.apply(content, development, level, grade, applied) do
+					ArchipelagoExtension.enqueueGuide(document, guide)
+					guideCompleted = true
+				end
+			end
+			record(event)
+			-- A skill node learned or gear worn before its guide opened can never be learned or put on
+			-- again, so holding it satisfies an open guide's purchase/equip step (audit6h P9 guides).
+			local worn = {}
+			local bag = if data.inventory then data.inventory.bag else nil
+			for _, itemId in if data.gear then data.gear.equipped or {} else {} do
+				local item = if bag then bag.items[itemId] else nil
+				if item then
+					worn[item.catalogId] = true
+				end
+			end
+			local paid = progression.paid or {}
+			for _, guide in content.guides or {} do
+				if
+					not development.definitions[guide.id]
+					and GuideEvents.open(guide, level, grade(development.points))
+				then
+					for _, objective in guide.objectives do
+						local held = (objective.action == "purchase" and paid[objective.target] ~= nil)
+							or (objective.action == "equip" and worn[objective.target] == true)
+						if held and (development.progress[objective.id] or 0) < objective.quantity then
+							record({
+								action = objective.action,
+								target = objective.target,
+								quantity = objective.quantity,
+							})
+						end
+					end
+				end
 			end
 			document.development = development
 			return { ok = true }
@@ -1593,7 +1627,13 @@ return function(content: any, source, world, backend, clock, options, provision,
 						end
 					end
 					if node.tool then
-						local equipped = world.services.survivalDeath.equipment(actor) or {}
+						-- Same evidence as GatheringRuntime: a tool in hand or the worn weapon/tool slot (the t1+
+						-- pickaxes carry no `tool` tag, so they are never a held Tool; copper needs pickaxe-t1).
+						local equipped = CharacterRules.toolEvidence(
+							data.gear,
+							data.inventory.bag,
+							world.services.survivalDeath.equipment(actor) or {}
+						)
 						local found = false
 						for id, item in data.inventory.bag.items do
 							found = found

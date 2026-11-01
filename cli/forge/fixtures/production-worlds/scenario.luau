@@ -141,6 +141,7 @@ function M.new(ctx: any): any
 	module.SurvivalBootstrap = require("../../../../genres/survival-coop/module/SurvivalBootstrap")
 	module.Gathering = require("../../../../genres/survival-coop/module/Gathering")
 	module.ToolTiers = require("../../../../genres/survival-coop/module/ToolTiers")
+	module.CharacterRules = require("../../../../genres/survival-coop/module/CharacterRules")
 	module.GuideEvents = require("../../../../genres/survival-coop/module/GuideEvents")
 	module.Wildlife = require("../../../../genres/survival-coop/module/Wildlife")
 	module.HomeExtension = require("../../../../genres/survival-coop/module/HomeExtension")

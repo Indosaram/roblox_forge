@@ -49,6 +49,7 @@ local forge = {
 				RecipeMarks = require("../../genres/survival-coop/module/RecipeMarks"),
 				ProgressionExtension = require("../../genres/survival-coop/module/ProgressionExtension"),
 				ToolTiers = require("../../genres/survival-coop/module/ToolTiers"),
+				CharacterRules = require("../../genres/survival-coop/module/CharacterRules"),
 				GuideEvents = require("../../genres/survival-coop/module/GuideEvents"),
 				ExpeditionExtension = require("../../genres/survival-coop/module/ExpeditionExtension"),
 				ProgressionPorts = require("../../genres/survival-coop/module/ProgressionPorts"),

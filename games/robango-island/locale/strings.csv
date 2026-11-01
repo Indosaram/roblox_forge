@@ -3222,3 +3222,52 @@ hud.panel.tile_held,Held %d,trading post sell tile held count,Held %d,보유 %d
 hud.panel.tile_price,%d each,trading post sell tile harbor unit price,%d each,개당 %d
 hud.panel.tile_no_price,Not bought here,trading post sell tile without a harbor price,Not bought here,매입 안 함
 hud.panel.sale_preview,Sell %d for %d shellmoney,trading post sale preview,Sell %d for %d shellmoney,%d개 팔면 조개돈 %d
+rw.g32.tanning-frame.offer,"Build a tanning frame kit at a workbench from branches, stone and fiber, then place the tanning frame on your home island.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Build a tanning frame kit at a workbench from branches, stone and fiber, then place the tanning frame on your home island.","작업대에서 나뭇가지, 돌, 섬유로 무두질 틀 꾸러미를 만든 뒤 내 섬에 무두질 틀을 설치하세요."
+rw.g32.tanning-frame.complete,Your first station of your own. Hides turn into leather here.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Your first station of your own. Hides turn into leather here.,처음으로 내 작업 시설이 생겼어요. 이제 가죽을 무두질할 수 있어요.
+chr.guide_g32,Tanning frame,genre text chr,Tanning frame,무두질 틀
+rw.g33.first-leather.offer,"Learn Processing 2 (tanning) in the Skills tab, then tan two hides at a tanning frame.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Learn Processing 2 (tanning) in the Skills tab, then tan two hides at a tanning frame.",기술 탭에서 가공 2(무두질)를 배운 뒤 무두질 틀에서 가죽 두 장을 무두질하세요.
+rw.g33.first-leather.complete,"Leather is the base of clothing, bags and bows. Skill points buy every new craft.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Leather is the base of clothing, bags and bows. Skill points buy every new craft.","무두질 가죽은 옷, 가방, 활의 재료예요. 새 제작법은 모두 기술 포인트로 배워요."
+chr.guide_g33,First leather,genre text chr,First leather,첫 무두질 가죽
+rw.g34.hunting-bow.offer,"Craft a Bow T1 at a workbench from dried wood and dried fiber, then equip it.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Craft a Bow T1 at a workbench from dried wood and dried fiber, then equip it.",작업대에서 말린 나무와 말린 섬유로 활 1단계를 만들고 장착하세요.
+rw.g34.hunting-bow.complete,A bow hits from range. Keep your distance from animals that charge.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),A bow hits from range. Keep your distance from animals that charge.,활은 멀리서 맞힐 수 있어요. 돌진하는 동물과는 거리를 두세요.
+chr.guide_g34,Hunting bow,genre text chr,Hunting bow,사냥용 활
+rw.g35.first-polish.offer,"Learn Processing 3 (polishing) in the Skills tab, then polish three flint at a workbench.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Learn Processing 3 (polishing) in the Skills tab, then polish three flint at a workbench.",기술 탭에서 가공 3(연마)을 배운 뒤 작업대에서 부싯돌 세 개를 연마하세요.
+rw.g35.first-polish.complete,Polished flint and stone are what every tier 1 tool is made from.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Polished flint and stone are what every tier 1 tool is made from.,연마한 부싯돌과 돌로 1단계 도구를 모두 만들어요.
+chr.guide_g35,First polish,genre text chr,First polish,첫 연마
+rw.g36.flint-pick.offer,"Craft a Pickaxe T1 at a workbench from dried wood, polished flint and dried fiber.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Craft a Pickaxe T1 at a workbench from dried wood, polished flint and dried fiber.","작업대에서 말린 나무, 연마한 부싯돌, 말린 섬유로 곡괭이 1단계를 만드세요."
+rw.g36.flint-pick.complete,Equip it to mine copper ore in the Deep wilds (Lv 20).,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Equip it to mine copper ore in the Deep wilds (Lv 20).,장착하면 깊은 야생 지대(레벨 20)에서 구리 광석을 캘 수 있어요.
+chr.guide_g36,Flint pickaxe,genre text chr,Flint pickaxe,부싯돌 곡괭이
+rw.g37.first-crop.offer,"Learn Farming 1 in the Skills tab, put a corn seed and water in home storage, then plant and harvest corn on the home farm plot.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Learn Farming 1 in the Skills tab, put a corn seed and water in home storage, then plant and harvest corn on the home farm plot.","기술 탭에서 농사 1을 배우고 옥수수 씨앗과 물을 집 보관함에 넣은 뒤, 집 밭에 옥수수를 심고 거두세요."
+rw.g37.first-crop.complete,Corn grows in ten minutes while you are away. Keep a seed back for the next planting.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Corn grows in ten minutes while you are away. Keep a seed back for the next planting.,옥수수는 자리를 비운 사이 10분이면 자라요. 다음에 심을 씨앗은 남겨 두세요.
+chr.guide_g37,First crop,genre text chr,First crop,첫 농사
+rw.g38.kiln.offer,"Make a kiln kit from twelve stone and eight clay, then place the kiln on your home island.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Make a kiln kit from twelve stone and eight clay, then place the kiln on your home island.",돌 열두 개와 점토 여덟 개로 가마 꾸러미를 만든 뒤 내 섬에 가마를 설치하세요.
+rw.g38.kiln.complete,The kiln smelts ore into metal. Copper is next.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),The kiln smelts ore into metal. Copper is next.,가마로 광석을 녹여 금속을 얻어요. 다음은 구리예요.
+chr.guide_g38,Kiln,genre text chr,Kiln,가마
+rw.g39.copper.offer,"Mine six copper ore in the Deep wilds (Harbor > Deep wilds (Lv 20)) with a Pickaxe T1 equipped, then smelt three copper at a kiln.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Mine six copper ore in the Deep wilds (Harbor > Deep wilds (Lv 20)) with a Pickaxe T1 equipped, then smelt three copper at a kiln.","곡괭이 1단계를 들고 깊은 야생 지대(항구 > 깊은 야생 지대 (레벨 20))에서 구리 광석 여섯 개를 캔 뒤, 가마에서 구리 세 개를 제련하세요."
+rw.g39.copper.complete,"Copper goes into the signal relay, the sprinkler and the refrigerator.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Copper goes into the signal relay, the sprinkler and the refrigerator.","구리는 신호 중계기, 스프링클러, 냉장고에 들어가요."
+chr.guide_g39,Copper,genre text chr,Copper,구리
+rw.g40.temperate-set.offer,Craft a Temperate Top and Temperate Shoes at a workbench from leather and dried fiber.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Craft a Temperate Top and Temperate Shoes at a workbench from leather and dried fiber.,작업대에서 무두질 가죽과 말린 섬유로 온대 상의와 온대 신발을 만드세요.
+rw.g40.temperate-set.complete,Wear them from the Equipment screen. Clothing slows hunger and cold.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Wear them from the Equipment screen. Clothing slows hunger and cold.,장비 화면에서 입으세요. 옷을 입으면 허기와 추위가 천천히 와요.
+chr.guide_g40,Temperate clothing,genre text chr,Temperate clothing,온대 옷
+rw.g41.second-pet.offer,"Capture another animal (weaken it, then tap Capture), then give your pets three herbivore feed from Menu > Pets.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Capture another animal (weaken it, then tap Capture), then give your pets three herbivore feed from Menu > Pets.","동물을 하나 더 포획한 뒤(약하게 만든 뒤 포획), 메뉴 > 펫에서 펫에게 초식동물 사료 세 개를 주세요."
+rw.g41.second-pet.complete,A fed pet stays healthy. Put it in the training pen to tame it fully.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),A fed pet stays healthy. Put it in the training pen to tame it fully.,먹이를 먹은 펫은 건강해요. 훈련 우리에 넣으면 완전히 길들일 수 있어요.
+chr.guide_g41,Second pet,genre text chr,Second pet,두 번째 펫
+rw.g42.storage.offer,"Learn Construction 2, craft a storage kit at a workbench, then place the storage on your home island.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Learn Construction 2, craft a storage kit at a workbench, then place the storage on your home island.",건축 2를 배우고 작업대에서 상자 꾸러미를 만든 뒤 내 섬에 보관 상자를 설치하세요.
+rw.g42.storage.complete,Storage keeps materials safe at home while you sail.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Storage keeps materials safe at home while you sail.,보관 상자에 넣은 재료는 항해하는 동안 집에 안전하게 남아요.
+chr.guide_g42,Home storage,genre text chr,Home storage,집 보관 상자
+rw.g43.t1-weapon.offer,"Craft a Club T1 at a workbench from dried wood, polished stone and dried fiber, then equip it.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Craft a Club T1 at a workbench from dried wood, polished stone and dried fiber, then equip it.","작업대에서 말린 나무, 연마한 돌, 말린 섬유로 곤봉 1단계를 만들고 장착하세요."
+rw.g43.t1-weapon.complete,Route 2 animals hit hard. A tier 1 weapon keeps fights short.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Route 2 animals hit hard. A tier 1 weapon keeps fights short.,항로 2의 동물은 세게 때려요. 1단계 무기가 있으면 싸움이 짧아져요.
+chr.guide_g43,Route weapon,genre text chr,Route weapon,항로 무기
+rw.g44.second-route.offer,Deliver any daily contract (Menu > Contracts).,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Deliver any daily contract (Menu > Contracts).,아무 일일 계약이나 납품하세요 (메뉴 > 계약).
+rw.g44.second-route.complete,New contracts arrive every day. They are steady coins between routes.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),New contracts arrive every day. They are steady coins between routes.,계약은 매일 새로 들어와요. 항로 사이사이 꾸준한 조개돈이 돼요.
+chr.guide_g44,Daily round,genre text chr,Daily round,하루 일과
+rw.g45.bone-work.offer,"Learn Weapon Tool 3 (tier 2 recipes), polish six bone at a workbench, then tan three thick hides at a tanning frame.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Learn Weapon Tool 3 (tier 2 recipes), polish six bone at a workbench, then tan three thick hides at a tanning frame.","무기·도구 3(2단계 제작법)을 배우고 작업대에서 뼈 여섯 개를 연마한 뒤, 무두질 틀에서 두꺼운 가죽 세 장을 무두질하세요."
+rw.g45.bone-work.complete,Polished bone and thick leather make every tier 2 tool.,RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),Polished bone and thick leather make every tier 2 tool.,연마한 뼈와 두꺼운 무두질 가죽으로 2단계 도구를 모두 만들어요.
+chr.guide_g45,Bone work,genre text chr,Bone work,뼈 가공
+rw.g46.t2-tool.offer,"Craft a Pickaxe T2 at a tier 2 workbench from polished bone, thick leather and dried fiber.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"Craft a Pickaxe T2 at a tier 2 workbench from polished bone, thick leather and dried fiber.","2단계 작업대에서 연마한 뼈, 두꺼운 무두질 가죽, 말린 섬유로 곡괭이 2단계를 만드세요."
+rw.g46.t2-tool.complete,"A tier 2 pickaxe mines granite, basalt and volcanic ore on the farther islands.",RECONSTRUCTED Robango hours 1.5-6 guide (audit6h P9),"A tier 2 pickaxe mines granite, basalt and volcanic ore on the farther islands.","2단계 곡괭이로 더 먼 섬의 화강암, 현무암, 화산 광석을 캘 수 있어요."
+chr.guide_g46,Tier 2 pickaxe,genre text chr,Tier 2 pickaxe,2단계 곡괭이
+chr.guide_act_equip,Equip,genre text chr,Equip,장착
+chr.guide_target_processing_2,Processing 2 (tanning),genre text chr,Processing 2 (tanning),가공 2 (무두질)
+chr.guide_target_processing_3,Processing 3 (polishing),genre text chr,Processing 3 (polishing),가공 3 (연마)
+chr.guide_target_weapon_tool_3,Weapon Tool 3 (tier 2 recipes),genre text chr,Weapon Tool 3 (tier 2 recipes),무기·도구 3 (2단계 제작법)

@@ -33480,6 +33480,410 @@ guides:
       - "rw.g30.route-supplies.complete"
     provenance:
       classification: "RECONSTRUCTED"
+  # audit6h P9: authored steps for hours 1.5-6 (grade 2, XP only, no development). They replace
+  # the multiplayer band guides a solo player never sees (g08/g12/g15/g17/g19).
+  -
+    id: "rw.g32.tanning-frame"
+    gates:
+      characterLevel: 11
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g32.tanning-frame.1"
+        action: "craft"
+        target: "tanning-frame-kit"
+        quantity: 1
+      -
+        id: "rw.g32.tanning-frame.2"
+        action: "place"
+        target: "tanning-frame"
+        quantity: 1
+    rewards:
+      xp: 150
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "hide"
+          quantity: 2
+    dialogueKeys:
+      - "rw.g32.tanning-frame.offer"
+      - "rw.g32.tanning-frame.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g33.first-leather"
+    gates:
+      characterLevel: 12
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g33.first-leather.1"
+        action: "purchase"
+        target: "processing_2"
+        quantity: 1
+      -
+        id: "rw.g33.first-leather.2"
+        action: "craft"
+        target: "tan-hide"
+        quantity: 2
+    rewards:
+      xp: 150
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "fiber"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g33.first-leather.offer"
+      - "rw.g33.first-leather.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g34.hunting-bow"
+    gates:
+      characterLevel: 13
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g34.hunting-bow.1"
+        action: "craft"
+        target: "bow-t1"
+        quantity: 1
+      -
+        id: "rw.g34.hunting-bow.2"
+        action: "equip"
+        target: "bow-t1"
+        quantity: 1
+    rewards:
+      xp: 200
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "branch"
+          quantity: 10
+    dialogueKeys:
+      - "rw.g34.hunting-bow.offer"
+      - "rw.g34.hunting-bow.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g35.first-polish"
+    gates:
+      characterLevel: 15
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g35.first-polish.1"
+        action: "purchase"
+        target: "processing_3"
+        quantity: 1
+      -
+        id: "rw.g35.first-polish.2"
+        action: "craft"
+        target: "polish-flint"
+        quantity: 3
+    rewards:
+      xp: 200
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g35.first-polish.offer"
+      - "rw.g35.first-polish.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g36.flint-pick"
+    gates:
+      characterLevel: 16
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g36.flint-pick.1"
+        action: "craft"
+        target: "pickaxe-t1"
+        quantity: 1
+    rewards:
+      xp: 200
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "water"
+          quantity: 2
+    dialogueKeys:
+      - "rw.g36.flint-pick.offer"
+      - "rw.g36.flint-pick.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g37.first-crop"
+    gates:
+      characterLevel: 17
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g37.first-crop.1"
+        action: "purchase"
+        target: "farming_1"
+        quantity: 1
+      -
+        id: "rw.g37.first-crop.2"
+        action: "plant"
+        target: "corn"
+        quantity: 1
+      -
+        id: "rw.g37.first-crop.3"
+        action: "harvest"
+        target: "corn"
+        quantity: 1
+    rewards:
+      xp: 200
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "corn-seed"
+          quantity: 2
+    dialogueKeys:
+      - "rw.g37.first-crop.offer"
+      - "rw.g37.first-crop.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g38.kiln"
+    gates:
+      characterLevel: 21
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g38.kiln.1"
+        action: "craft"
+        target: "kiln-kit"
+        quantity: 1
+      -
+        id: "rw.g38.kiln.2"
+        action: "place"
+        target: "kiln"
+        quantity: 1
+    rewards:
+      xp: 200
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "clay"
+          quantity: 4
+    dialogueKeys:
+      - "rw.g38.kiln.offer"
+      - "rw.g38.kiln.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g39.copper"
+    gates:
+      characterLevel: 23
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g39.copper.1"
+        action: "gather"
+        target: "copper-ore"
+        quantity: 6
+      -
+        id: "rw.g39.copper.2"
+        action: "craft"
+        target: "smelt-copper"
+        quantity: 3
+    rewards:
+      xp: 250
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g39.copper.offer"
+      - "rw.g39.copper.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g40.temperate-set"
+    gates:
+      characterLevel: 26
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g40.temperate-set.1"
+        action: "craft"
+        target: "temperate-top"
+        quantity: 1
+      -
+        id: "rw.g40.temperate-set.2"
+        action: "craft"
+        target: "temperate-shoes"
+        quantity: 1
+    rewards:
+      xp: 250
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "hide"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g40.temperate-set.offer"
+      - "rw.g40.temperate-set.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g41.second-pet"
+    gates:
+      characterLevel: 31
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g41.second-pet.1"
+        action: "capture"
+        target: "creature"
+        quantity: 1
+      -
+        id: "rw.g41.second-pet.2"
+        action: "feed"
+        target: "herbivore-feed"
+        quantity: 3
+    rewards:
+      xp: 250
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "herbivore-feed"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g41.second-pet.offer"
+      - "rw.g41.second-pet.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g42.storage"
+    gates:
+      characterLevel: 33
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g42.storage.1"
+        action: "craft"
+        target: "storage-kit"
+        quantity: 1
+      -
+        id: "rw.g42.storage.2"
+        action: "place"
+        target: "storage"
+        quantity: 1
+    rewards:
+      xp: 250
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g42.storage.offer"
+      - "rw.g42.storage.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g43.t1-weapon"
+    gates:
+      characterLevel: 36
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g43.t1-weapon.1"
+        action: "craft"
+        target: "club-t1"
+        quantity: 1
+      -
+        id: "rw.g43.t1-weapon.2"
+        action: "equip"
+        target: "club-t1"
+        quantity: 1
+    rewards:
+      xp: 300
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g43.t1-weapon.offer"
+      - "rw.g43.t1-weapon.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g44.second-route"
+    gates:
+      characterLevel: 37
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g44.second-route.1"
+        action: "deliver"
+        target: "contract"
+        quantity: 1
+    rewards:
+      xp: 300
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g44.second-route.offer"
+      - "rw.g44.second-route.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g45.bone-work"
+    gates:
+      characterLevel: 42
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g45.bone-work.1"
+        action: "purchase"
+        target: "weapon_tool_3"
+        quantity: 1
+      -
+        id: "rw.g45.bone-work.2"
+        action: "craft"
+        target: "polish-bone"
+        quantity: 6
+      -
+        id: "rw.g45.bone-work.3"
+        action: "craft"
+        target: "tan-thick-hide"
+        quantity: 3
+    rewards:
+      xp: 350
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g45.bone-work.offer"
+      - "rw.g45.bone-work.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
+    id: "rw.g46.t2-tool"
+    gates:
+      characterLevel: 45
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g46.t2-tool.1"
+        action: "craft"
+        target: "pickaxe-t2"
+        quantity: 1
+    rewards:
+      xp: 400
+      coins: 0
+      development: 0
+    dialogueKeys:
+      - "rw.g46.t2-tool.offer"
+      - "rw.g46.t2-tool.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
 chapters:
   -
     id: "rw.c01.signal-trace"
