@@ -2927,6 +2927,8 @@ opening.prompt.pull,Pull,opening beat 1 stake prompt,Pull,뽑기
 opening.prompt.light,Light,opening beat 7 beacon prompt,Light,켜기
 opening.prompt.beacon,Mirror beacon,opening beat 7 beacon label,Mirror beacon,거울 봉화
 opening.prompt.boat,Gannet,opening beat 7 boat label,Gannet,가넷호
+opening.way.show,Show the way,opening waypoint walk-to button,Show the way,길 안내
+opening.way.meters,%d m,opening waypoint distance under the arrow,%d m,%dm
 world.population,"%s · %d here",world prompt,"%s · %d here","%s · 지금 %d명"
 exp_route_population,%d here now,expedition lane,%d here now,지금 %d명
 rsc.title,You're down,down screen title,You're down,쓰러졌다

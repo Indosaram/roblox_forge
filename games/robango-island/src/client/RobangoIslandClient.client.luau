@@ -1209,6 +1209,12 @@ table.insert(panelFactories, function(ctx)
 	scoped.held = function(): boolean
 		return titleHeld() or pickerShown()
 	end
+	-- The opening waypoint's 'show the way' reuses the tap router's pathfinding walk.
+	scoped.walkTo = function(goal: Vector3, arrive: number)
+		if walkTo then
+			walkTo(goal, arrive, function() end)
+		end
+	end
 	return require(Shared.OpeningClient).factory(scoped)
 end)
 -- Social / home / trade sheets (ui.home-permissions, ui.home-move, ui.siege-*, ui.transaction,

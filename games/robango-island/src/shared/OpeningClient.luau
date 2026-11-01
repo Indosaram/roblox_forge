@@ -11,10 +11,13 @@ local HudShell = require("../../../../genres/survival-coop/module/HudShell")
 local HudLocale = require("../../../../genres/survival-coop/module/SurvivalHUDLocale")
 local DinosaurRig = require("../../../../genres/survival-coop/module/DinosaurRig")
 local CameraConfig = require("./CameraConfig")
+local Waypoint = require("./Waypoint")
 local M = {}
 
 M.COLD_OPEN_SECONDS, M.SKIP_AFTER = 25, 1.0
 M.FOLLOW_STUDS = 4
+M.WAY_OFFER_SECONDS = 5 -- the tracker tap's 'show the way' pebble stays this long
+M.WAY_ARRIVE = 6 -- the walk-to stops this close to the target (inside Waypoint.HIDE_STUDS)
 
 --- Beat-0 camera at `t` seconds: pitch, distance, yaw drift (degrees) and shake amplitude.
 function M.shot(t: number): (number, number, number, number)
@@ -178,6 +181,23 @@ function M.factory(ctx: any): any
 		local world = workspace:FindFirstChild("ForgeRoleWorld")
 		local folder = world and world:FindFirstChild("ForgeOpening")
 		return folder and folder:FindFirstChild(name)
+	end
+	--- World position of the current step's waypoint target (OpeningScene.target), or nil. The
+	--- campfire step follows the server's camp grid origin when it publishes one.
+	local function wayTarget(): Vector3?
+		local id = Scene.target(view)
+		if not id then
+			return nil
+		end
+		local world = workspace:FindFirstChild("ForgeRoleWorld")
+		if id == "station.campfire.t1" and world then
+			local origin = world:GetAttribute("ForgeCampOrigin")
+			if typeof(origin) == "Vector3" then
+				return origin
+			end
+		end
+		local layoutId = world and world:GetAttribute("ForgeLayoutId")
+		return Waypoint.resolve(Waypoint.layout(ctx.content, layoutId), id)
 	end
 
 	-- Beat 0: cold open.
@@ -382,6 +402,57 @@ function M.factory(ctx: any): any
 		localize(object)
 	end
 
+	-- Objective waypoint (p134 c1 dead end 2): arrow + distance, minimap pin and a beam at the
+	-- current step's target; one set of instances reused for every step.
+	local playerGui = player:WaitForChild("PlayerGui")
+	local minimapCache: Instance? = nil
+	local way = Waypoint.start({
+		playerGui = playerGui,
+		stage = stage,
+		camera = function()
+			return workspace.CurrentCamera
+		end,
+		minimap = function(): any
+			if not minimapCache or not minimapCache:IsDescendantOf(playerGui) then
+				minimapCache = playerGui:FindFirstChild("Minimap", true)
+			end
+			return minimapCache
+		end,
+		label = function(meters: number): string
+			return string.format(text("opening.way.meters"), meters)
+		end,
+		ground = groundY,
+	})
+	-- 'Show the way': the tap-walk (TapRouter.moveTo) to the current target.
+	local function showWay()
+		local target = wayTarget()
+		if target and ctx.walkTo then
+			ctx.walkTo(target, M.WAY_ARRIVE)
+		end
+	end
+	way.arrow.Activated:Connect(showWay)
+	-- Tapping the quest card offers the walk (it no longer only reads as a collapse target).
+	local trackerTap = Instance.new("TextButton")
+	trackerTap.Name, trackerTap.Text, trackerTap.BackgroundTransparency = "OpeningTrackerTap", "", 1
+	trackerTap.AutoButtonColor, trackerTap.Visible, trackerTap.Parent = false, false, gui
+	local wayButton = components.button(theme, {
+		text = text("opening.way.show"),
+		size = UDim2.fromOffset(120, 44),
+		parent = gui,
+		onClick = function()
+			showWay()
+		end,
+	})
+	wayButton.Name, wayButton.Visible = "OpeningShowWay", false
+	HudShell.pebble(wayButton, true, true)
+	local wayOfferUntil = 0
+	trackerTap.Activated:Connect(function()
+		wayOfferUntil = os.clock() + M.WAY_OFFER_SECONDS
+	end)
+	wayButton.Activated:Connect(function()
+		wayOfferUntil = 0
+	end)
+
 	local glintAt: number? = nil
 	local hintUntil = 0
 	local function frame()
@@ -400,6 +471,8 @@ function M.factory(ctx: any): any
 			genre.Visible = title == nil
 		end
 		if not active then
+			way.step(nil, nil)
+			trackerTap.Visible, wayButton.Visible = false, false
 			dodge.Visible = false
 			if boar then
 				boar:Destroy()
@@ -547,6 +620,23 @@ function M.factory(ctx: any): any
 			showCard(nil)
 		end
 		placeBoat(now)
+		-- Waypoint toward the current step's target; the tracker tap offers the walk there.
+		local target = wayTarget()
+		way.step(if root then root.Position else nil, target)
+		-- The screen arrow never draws over an open sheet; the beam and the pin stay.
+		way.gui.Enabled = not HudShell.sheetOpen(playerGui)
+		local guiAt = gui.AbsolutePosition
+		local trackerSeen = tracker.Visible and tracker.AbsoluteSize.X > 0 and target ~= nil
+		trackerTap.Visible = trackerSeen
+		if trackerSeen then
+			local at, size = tracker.AbsolutePosition, tracker.AbsoluteSize
+			trackerTap.Position = UDim2.fromOffset(at.X - guiAt.X, at.Y - guiAt.Y)
+			trackerTap.Size = UDim2.fromOffset(size.X, size.Y)
+			wayButton.Position = UDim2.fromOffset(at.X - guiAt.X + size.X - 120, at.Y - guiAt.Y + size.Y + 6)
+		end
+		wayButton.Visible = trackerSeen
+			and os.clock() < wayOfferUntil
+			and Waypoint.shown(if root then root.Position else nil, target)
 	end
 	table.insert(connections, RunService.Heartbeat:Connect(frame))
 	local stop = ctx.onSnapshot(function(latest)
@@ -559,6 +649,7 @@ function M.factory(ctx: any): any
 			for _, connection in connections do
 				connection:Disconnect()
 			end
+			way.destroy()
 			stage:Destroy()
 			gui:Destroy()
 			tracker:Destroy()

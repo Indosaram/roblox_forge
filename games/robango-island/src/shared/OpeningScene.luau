@@ -6,7 +6,9 @@
 -- Time is always a parameter (milliseconds); nothing here reads a clock or randomness.
 local M = {}
 
-export type Step = { id: string, beat: number, line: string?, count: string?, of: number? }
+-- `target`: the layout anchor or resource node the step sends the player to (Waypoint arrow, minimap
+-- pin and beam; p134 c1 dead end 2). A craft step points at the next stop: crafting runs anywhere.
+export type Step = { id: string, beat: number, line: string?, count: string?, of: number?, target: string? }
 export type Facts = {
 	tutorialIndex: number,
 	tutorialComplete: boolean,
@@ -22,21 +24,28 @@ M.STEPS = table.freeze({
 	{ id = "arrive", beat = 0 },
 	{ id = "dodge", beat = 1, line = "opening.tumble.dodges", count = "dodges", of = 2 },
 	{ id = "tumble", beat = 1, line = "opening.tumble.stakes", count = "stakes", of = 3 },
-	{ id = "mirror", beat = 2, line = "opening.mirror.heap" },
-	{ id = "bone", beat = 3, line = "opening.knife.bone" },
-	{ id = "fiber", beat = 3, line = "opening.knife.fiber" },
-	{ id = "bone-knife", beat = 3, line = "opening.knife.craft" },
-	{ id = "flint", beat = 4, line = "opening.hatchet.flint", count = "flint", of = 2 },
-	{ id = "hatchet", beat = 4, line = "opening.hatchet.craft" },
-	{ id = "stream", beat = 5, line = "opening.ridge.stream" },
-	{ id = "wood", beat = 5, line = "opening.ridge.wood", count = "wood", of = 7 },
-	{ id = "camp", beat = 5, line = "opening.ridge.camp" },
-	{ id = "campfire", beat = 6, line = "opening.camp.place" },
-	{ id = "accept", beat = 6, line = "opening.camp.accept" },
-	{ id = "deliver", beat = 6, line = "opening.camp.deliver" },
-	{ id = "windbreak", beat = 7, line = "opening.beacon.windbreak" },
-	{ id = "beacon", beat = 7, line = "opening.beacon.light" },
-	{ id = "board", beat = 7, line = "opening.beacon.board" },
+	{ id = "mirror", beat = 2, line = "opening.mirror.heap", target = "rw.onboarding.carcass" },
+	{ id = "bone", beat = 3, line = "opening.knife.bone", target = "rw.onboarding.carcass" },
+	{ id = "fiber", beat = 3, line = "opening.knife.fiber", target = "rw.onboarding.fiber" },
+	{ id = "bone-knife", beat = 3, line = "opening.knife.craft", target = "rw.onboarding.extra-1" },
+	{
+		id = "flint",
+		beat = 4,
+		line = "opening.hatchet.flint",
+		count = "flint",
+		of = 2,
+		target = "rw.onboarding.extra-1",
+	},
+	{ id = "hatchet", beat = 4, line = "opening.hatchet.craft", target = "opening.ford" },
+	{ id = "stream", beat = 5, line = "opening.ridge.stream", target = "opening.ford" },
+	{ id = "wood", beat = 5, line = "opening.ridge.wood", count = "wood", of = 7, target = "opening.windfall" },
+	{ id = "camp", beat = 5, line = "opening.ridge.camp", target = "npc.marit" },
+	{ id = "campfire", beat = 6, line = "opening.camp.place", target = "station.campfire.t1" },
+	{ id = "accept", beat = 6, line = "opening.camp.accept", target = "npc.marit" },
+	{ id = "deliver", beat = 6, line = "opening.camp.deliver", target = "opening.beacon" },
+	{ id = "windbreak", beat = 7, line = "opening.beacon.windbreak", target = "npc.marit" },
+	{ id = "beacon", beat = 7, line = "opening.beacon.light", target = "opening.beacon" },
+	{ id = "board", beat = 7, line = "opening.beacon.board", target = "opening.jetty" },
 } :: { Step })
 M.TITLES = table.freeze({
 	"opening.tumble.title",
@@ -374,6 +383,15 @@ function M.view(state: State, facts: Facts): any
 		flint = math.min(facts.items.flint or 0, 2),
 		wood = math.min(facts.items.wood or 0, 7),
 	}
+end
+
+--- Waypoint target (layout anchor or resource node id) of the view's current step, or nil.
+function M.target(view: any): string?
+	if type(view) ~= "table" or view.active ~= true or type(view.step) ~= "string" then
+		return nil
+	end
+	local index = INDEX[view.step]
+	return if index then M.STEPS[index].target else nil
 end
 
 --- Quest-card tracker for a view: the beat title and its lines (done lines checked). Beat 0 has
