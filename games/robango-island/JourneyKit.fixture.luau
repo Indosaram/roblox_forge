@@ -41,4 +41,33 @@ function M.anchorOf(layout: any, id: string): any
 	return nil
 end
 
+-- Walk the recipe's displayed material chain before choosing a workshop island.
+function M.missingStation(
+	recipes: { any },
+	recipe: any,
+	held: (string) -> number,
+	available: (string) -> boolean,
+	seen: any?
+): string?
+	local visited = seen or {}
+	if visited[recipe.id] then
+		return nil
+	end
+	visited[recipe.id] = true
+	for _, input in recipe.inputs do
+		if held(input.item) < input.quantity then
+			for _, source in recipes do
+				if source.outputs[1].item == input.item then
+					local missing = M.missingStation(recipes, source, held, available, visited)
+					if missing then
+						return missing
+					end
+					break
+				end
+			end
+		end
+	end
+	return if recipe.station and not available(recipe.station) then recipe.station else nil
+end
+
 return M

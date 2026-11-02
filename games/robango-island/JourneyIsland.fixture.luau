@@ -675,6 +675,32 @@ function M.run(host: any, p: any, options: any?): any
 			elseif o.action == "craft" then
 				local recipe = if o.target == "axe" then recipeFor("stone-axe") else recipeFor(o.target)
 				if recipe then
+					local missing = Kit.missingStation(Content.recipes, recipe, function(item: string): number
+						return count(p.bag().items, item)
+					end, function(kind: string): boolean
+						for _, part in
+							host.engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation")
+						do
+							if part:GetAttribute("ForgeStationKind") == kind then
+								return true
+							end
+						end
+						return false
+					end)
+					if missing then
+						-- Recipes name their station; the chart's island layouts supply its visible destination.
+						for _, row in require("./src/shared/SeaChart").ISLANDS do
+							local destination = row.role and layoutOf("rw." .. row.role)
+							if destination and anchorOf(destination, "station." .. missing .. ".t1") then
+								local ok = sail(row.id)
+								if not ok and host.role ~= "harbor" then
+									sail("harbor")
+								end
+								break
+							end
+						end
+						continue
+					end
 					local here = true
 					for _, input in recipe.inputs do
 						if count(p.bag().items, input.item) < input.quantity then
@@ -696,7 +722,10 @@ function M.run(host: any, p: any, options: any?): any
 							p.walk(station, 3)
 						end
 					end
-					p.craft(recipe.id)
+					local crafted, why = p.craft(recipe.id)
+					if not crafted then
+						p.event("guide-craft-failed", { recipe = recipe.id, reason = why, layout = host.layoutId })
+					end
 				end
 			elseif o.action == "place" then
 				if host.role ~= "home" then

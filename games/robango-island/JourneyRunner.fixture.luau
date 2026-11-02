@@ -674,7 +674,7 @@ function M.run(Journey: any, options: any): any
 			end
 			if not station then
 				preparing[recipeId] = nil
-				return false, "STATION_UNAVAILABLE"
+				return false, "STATION_UNAVAILABLE:" .. recipe.station
 			end
 			walk(station, 3)
 		end
