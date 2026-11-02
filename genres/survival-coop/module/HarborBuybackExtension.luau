@@ -1,6 +1,8 @@
 --!strict
 -- harborPolicy: the harbor buys raw units for Coins (daily cap); a repair operation enables
 -- item-repair at Job.repairCost for items carrying one of the operation's eligibleTags.
+-- item-drop discards up to `quantity` unreserved, unworn units of one bag stack anywhere (journey6h
+-- @92.4m: a full bag on a route island had no way to make room, so the stage gather dead-ended).
 -- One atomic bag+Coins write each.
 local Shared = require("../../../core/domain/genre/Contract")
 local Buyback = require("../../../core/domain/market/Buyback")
@@ -11,11 +13,46 @@ local Data = require("../../../core/domain/genre/SerializedData")
 local M = {}
 M.SELL = "survival-coop:harbor-sell"
 M.REPAIR = "survival-coop:item-repair"
+M.DROP = "survival-coop:item-drop"
 local GENRE = "survival-coop"
 local HARBOR_LAYOUT = "rw.harbor"
 local MAX_BALANCE = 1e9
 
 --- Buyback policy from content, or nil when the pack declares none.
+--- The item-drop action (appended last to the genre Contract so earlier durable indices stay put).
+function M.actions(): { any }
+	local Schema = require("../../../core/infra/net/Schema")
+	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	local quantity = Schema.number({ min = 1, max = 1000, integer = true })
+	return {
+		{ id = "item-drop", args = { id, quantity }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+	}
+end
+
+--- Pure drop on a personal slice: removes up to `quantity` available units of bag stack `itemId`.
+--- Worn gear and reserved units stay. Returns the new bag save and the dropped count.
+function M.drop(slice: any, catalog: any, bagSave: any, itemId: any, quantity: any): (any?, number?, string?)
+	local bag = Inventory.fromSave(bagSave, catalog)
+	local item = bag.items[itemId]
+	if not item then
+		return nil, nil, "UNKNOWN_ITEM"
+	end
+	for _, worn in (slice.gear and slice.gear.equipped) or {} do
+		if worn == itemId then
+			return nil, nil, "ITEM_EQUIPPED"
+		end
+	end
+	local take = math.min(quantity, Inventory.available(bag, itemId))
+	if take <= 0 then
+		return nil, nil, "ITEM_RESERVED"
+	end
+	local nextBag, err = Inventory.consume(bag, itemId, take, bag.version)
+	if not nextBag then
+		return nil, nil, err
+	end
+	return Inventory.save(nextBag), take, nil
+end
+
 function M.policy(content: any): Buyback.Policy?
 	local raw = content and content.harborPolicy
 	if raw == nil then
@@ -80,11 +117,16 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 	local extension = {
 		id = "harbor-buyback",
 		handles = function(action: string): boolean
-			return action == M.SELL and policy ~= nil or action == M.REPAIR and repair ~= nil
+			return action == M.SELL and policy ~= nil or action == M.REPAIR and repair ~= nil or action == M.DROP
 		end,
 		command = function(actor, action, args, _context, _origin, admit): Shared.Result
 			local catalogId: any, quantity: any, repairing = args[1], args[2], action == M.REPAIR
-			if not repairing and (policy :: any).prices[catalogId] == nil then
+			local dropping = action == M.DROP
+			if dropping then
+				if type(catalogId) ~= "string" or type(quantity) ~= "number" or quantity < 1 or quantity % 1 ~= 0 then
+					return { ok = false, reason = "INVALID_ARGUMENT" }
+				end
+			elseif not repairing and (policy :: any).prices[catalogId] == nil then
 				return { ok = false, reason = "NOT_BOUGHT" }
 			elseif not repairing and not atHarbor() then
 				return { ok = false, reason = "NOT_AT_HARBOR" }
@@ -107,6 +149,16 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 				if saved == nil or type(slice.balance) ~= "number" then
 					outcome = { ok = false, reason = "WALLET_UNAVAILABLE" }
 					return view
+				end
+				if dropping then
+					local nextBag, dropped, refused = M.drop(slice, catalog, saved, catalogId, quantity)
+					if not nextBag then
+						outcome = { ok = false, reason = refused }
+						return view
+					end
+					setBag(work.envelope, path, nextBag)
+					outcome = { ok = true, data = { itemId = catalogId, quantity = dropped } }
+					return work
 				end
 				if repairing then
 					local bag = Inventory.fromSave(saved, catalog)

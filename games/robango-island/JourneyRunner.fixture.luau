@@ -34,6 +34,11 @@ M.KNOWN_GOOD = {
 local CharacterText = require("../../genres/survival-coop/module/CharacterText")
 
 local Kit = require("./JourneyKit.fixture")
+local GatheringClient = require("../../genres/survival-coop/module/GatheringClient")
+local weightOf: { [string]: number } = {}
+for _, definition in Content.items do
+	weightOf[definition.id] = definition.weightMilli or 0
+end
 M.owner, M.count, M.anchorOf = Kit.owner, Kit.count, Kit.anchorOf
 
 local function firstItem(items: any, catalogId: string): string?
@@ -406,8 +411,10 @@ function M.run(Journey: any, options: any): any
 					wait(2)
 					result = gather(node.id)
 				end
-				-- A full bag answers pending (the grant waits in escrow) on every press: that is no
-				-- progress. Record it once and stop gathering this item.
+				-- A full bag is refused before escrow (GatheringRuntime) with the notice GatheringClient
+				-- shows ("가방이 가득 찼어요 ... 가방에서 버려"); the player opens the Bag sheet, picks the
+				-- heaviest non-tool stack and taps Drop until the press lands. Only when that fails (or the
+				-- press answers pending with the grant held in escrow) is it a dead end.
 				local blocked = if type(result.data) == "table" then result.reason or result.data.error else nil
 				if
 					not result.ok
@@ -418,22 +425,75 @@ function M.run(Journey: any, options: any): any
 					for _, stack in bag().items do
 						carried[stack.catalogId] = (carried[stack.catalogId] or 0) + stack.quantity
 					end
-					bagFullFlag = true
-					event(
-						"bag-full",
-						{ item = item, node = node.id, reason = blocked, layout = host.layoutId, bag = carried }
-					)
-					stall(
-						"dead-end",
-						"bag full ("
-							.. blocked
-							.. ") gathering "
-							.. item
-							.. "; the press answers pending (grant held in escrow), no 'bag full' refusal",
-						M.owner("genres/survival-coop/module/GatheringRuntime.luau", 'result.status = "pending"'),
-						"refuse a gather that cannot fit with a visible 'bag full' (no escrow wait) and point at the warehouse / harbor sale"
-					)
-					return false
+					local notice = GatheringClient.refusalText("ko-kr", result)
+					local escrowed = type(result.data) == "table" and result.data.status == "pending"
+					local dropped = 0
+					if not escrowed and notice and string.find(notice, "버려", 1, true) then
+						for _ = 1, 8 do
+							local heaviest, weight = nil, 0
+							for itemId, stack in bag().items do
+								local w = stack.quantity * (weightOf[stack.catalogId] or 0)
+								if w > weight and stack.catalogId ~= item and (stack.durabilityMilli or 0) == 0 then
+									heaviest, weight = itemId, w
+								end
+							end
+							if not heaviest then
+								break
+							end
+							closeSheets()
+							h.hud.open("bag")
+							render()
+							local cell = find(heaviest)
+							if cell then
+								click(cell)
+							end
+							local drop = find("Drop-" .. heaviest)
+							if not drop then
+								break
+							end
+							click(drop)
+							dropped += 1
+							-- The HUD sends on a task; the sheet's next Drop is enabled once the answer lands.
+							wait(1)
+							closeSheets()
+							result = gather(node.id)
+							if result.ok then
+								break
+							end
+						end
+					end
+					event("bag-full", {
+						item = item,
+						node = node.id,
+						reason = blocked,
+						layout = host.layoutId,
+						bag = carried,
+						notice = notice,
+						drops = dropped,
+						landed = result.ok,
+					})
+					if not result.ok then
+						bagFullFlag = true
+						stall(
+							"dead-end",
+							"bag full ("
+								.. blocked
+								.. ") gathering "
+								.. item
+								.. (
+									if escrowed
+										then "; the press answers pending (grant held in escrow), no 'bag full' refusal"
+										else "; notice '"
+											.. tostring(notice)
+											.. "', "
+											.. dropped
+											.. " Drop taps did not make room"
+								),
+							M.owner("genres/survival-coop/module/GatheringRuntime.luau", 'result.status = "pending"'),
+							"refuse a gather that cannot fit with a visible 'bag full' (no escrow wait) and point at the warehouse / harbor sale"
+						)
+						return false
+					end
 				end
 				if not result.ok and not (type(result.data) == "table" and result.data.status == "pending") then
 					local tools = {}

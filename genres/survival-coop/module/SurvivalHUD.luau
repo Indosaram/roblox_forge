@@ -1678,6 +1678,12 @@ function M.start(options: Options)
 						command("transfer-deposit", { item.itemId, 1 })
 					end)
 					controls.parent = detailPane
+					-- Drop: makes room anywhere (a full bag on a route island refuses every gather).
+					if not wornHere then
+						mutation("Drop-" .. item.itemId, t("drop"), "item-drop", function()
+							command("item-drop", { item.itemId, 5 })
+						end)
+					end
 					local cost = Model.repairCost(item, options.content)
 					if cost then
 						mutation("Repair-" .. item.itemId, string.format(t("repair"), cost), "item-repair", function()
@@ -2462,6 +2468,9 @@ function M.start(options: Options)
 		if section == "craft" then
 			-- Opening the sheet selects its first row: the pinned recipe (Model.craftPin) when any.
 			recipeId = nil
+		elseif section == "build" then
+			-- Opening the build sheet shows the pinned structure's tab (Model.buildPinGroup) when any.
+			buildGroup = Model.buildPinGroup(model.snapshot, content.structures) or buildGroup
 		end
 		sheet.frame.Visible = section ~= ""
 		local title = sheet.frame:WaitForChild("Header"):WaitForChild("Title") :: TextLabel

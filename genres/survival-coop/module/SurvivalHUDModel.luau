@@ -203,6 +203,7 @@ function M.new(actor: string, newId: () -> string): any
 			model.snapshot.recipeMarks = packet.snapshots.survivalExtensions
 				and packet.snapshots.survivalExtensions["recipe-marks"]
 			model.snapshot.extensionPin = M.extensionPin(packet.snapshots.survivalExtensions)
+			model.snapshot.buildPin = M.extensionBuildPin(packet.snapshots.survivalExtensions)
 			local shared = packet.snapshots.survivalSettlement
 			if shared then
 				model.snapshot.settlement, model.snapshot.warehouse = shared.settlement, shared.warehouse
@@ -259,10 +260,15 @@ function M.new(actor: string, newId: () -> string): any
 		end
 		local action = if model.pending then model.pending.action else nil
 		model.pending = Transport.settle(model.pending, result)
-		-- A personal extension (repair) commits without a stateVersion: an accepted result that
+		-- A personal extension (repair, drop) commits without a stateVersion: an accepted result that
 		-- is not an in-flight phase is final, so a retry cannot replay it into a refusal.
 		local phase = if type(result.data) == "table" then result.data.status else nil
-		if result.ok and action == "survival-coop:item-repair" and phase ~= "pending" and phase ~= "recovering" then
+		if
+			result.ok
+			and (action == "survival-coop:item-repair" or action == "survival-coop:item-drop")
+			and phase ~= "pending"
+			and phase ~= "recovering"
+		then
 			model.pending = nil
 		end
 		if action and M.TOGGLES[action] and not M.TRANSIENT[result.reason] then
@@ -562,6 +568,37 @@ function M.extensionPin(extensions: any): string?
 	end
 	table.sort(ids)
 	return if ids[1] then extensions[ids[1]].craftPin else nil
+end
+
+--- Structure a pack extension asks the build sheet to open on: the first extension snapshot (by id)
+--- publishing a string `buildPin` (Robango's opening tracker: the campfire while it asks for one).
+function M.extensionBuildPin(extensions: any): string?
+	if type(extensions) ~= "table" then
+		return nil
+	end
+	local ids = {}
+	for id, view in extensions do
+		if type(id) == "string" and type(view) == "table" and type(view.buildPin) == "string" then
+			table.insert(ids, id)
+		end
+	end
+	table.sort(ids)
+	return if ids[1] then extensions[ids[1]].buildPin else nil
+end
+
+--- The build tab the sheet opens on for a snapshot: the group of the pinned structure (an extension's
+--- buildPin) when it is in `structures`, else nil (the sheet keeps its last tab).
+function M.buildPinGroup(snapshot: any, structures: { any }): string?
+	local pin = type(snapshot) == "table" and snapshot.buildPin or nil
+	if type(pin) ~= "string" then
+		return nil
+	end
+	for _, definition in structures do
+		if definition.id == pin then
+			return M.buildGroup(definition)
+		end
+	end
+	return nil
 end
 
 --- The craft sheet's pinned (preselected) recipe for a snapshot: an extension's pin wins (p134 C1:

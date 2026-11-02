@@ -191,8 +191,12 @@ function M.tick(state: any, content: any, position: any, now: number): boolean
 			state.escortAtStart = false
 		end
 		escort.lastAt, state.escort = now, escort
+		-- The castaway trails followStuds behind the player, so a player standing on the entry leaves it
+		-- about followStuds short of the entry (journey6h @17.9m): it counts as arrived when it is at the
+		-- entry or keeping up (within followStuds, plus float slack) with a player at the entry.
+		local keepingUp = distance(escort.position, position) <= policy.followStuds + 0.5
 		if
-			distance(escort.position, anchors.entry) <= policy.followStuds
+			(distance(escort.position, anchors.entry) <= policy.followStuds or keepingUp)
 			and distance(position, anchors.entry) <= policy.interactionStuds
 		then
 			Archipelago.record(state, content, receipt(state, objective, "arrival"), now)

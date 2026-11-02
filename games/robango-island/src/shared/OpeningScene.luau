@@ -449,6 +449,15 @@ function M.craftPin(view: any): string?
 	return nil
 end
 
+--- The structure the build sheet opens on for a view: the campfire while the tracker asks for it
+--- (journey6h @1.9m: the sheet opened on Shelter while the campfire sits under Station).
+function M.buildPin(view: any): string?
+	if type(view) ~= "table" or view.active ~= true then
+		return nil
+	end
+	return if view.step == "camp" or view.step == "campfire" then "campfire" else nil
+end
+
 --- The per-player view the client stages (published as JSON on the Player).
 function M.view(state: State, facts: Facts): any
 	local step = M.current(state)
@@ -472,6 +481,8 @@ function M.view(state: State, facts: Facts): any
 	}
 	-- The craft sheet preselects the recipe the tracker asks for (SurvivalHUDModel.extensionPin).
 	view.craftPin = M.craftPin(view)
+	-- The build sheet opens on the pinned structure's tab (SurvivalHUDModel.extensionBuildPin).
+	view.buildPin = M.buildPin(view)
 	return view
 end
 

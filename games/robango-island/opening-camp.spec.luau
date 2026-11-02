@@ -353,6 +353,37 @@ local function toWindbreak(live: any)
 end
 
 return {
+	["the build sheet opens on the campfire's tab while the opening tracker asks for it"] = function()
+		local state = Scene.new(0)
+		state.index = Scene.INDEX.campfire
+		local view = Scene.view(state, { items = {}, tutorialIndex = 7 } :: any)
+		assert(view.buildPin == "campfire", "campfire step pins the campfire: " .. tostring(view.buildPin))
+		state.index = Scene.INDEX.accept
+		assert(Scene.view(state, { items = {}, tutorialIndex = 7 } :: any).buildPin == nil, "pin ends after")
+		local packet = {
+			revision = 1,
+			durable = { actions = { "survival-coop:settlement-reserve" }, epochs = {} },
+			snapshots = {
+				["survival-coop"] = {
+					progression = { level = 1, sp = 0, xp = 0, paid = {}, version = 1 },
+					inventory = {},
+				},
+				survivalExtensions = { opening = view },
+			},
+		}
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		h.packet(packet)
+		h.hud.open("build")
+		h.step()
+		local gui = assert(h.playerGui:FindFirstChild("ForgeSurvivalHUD"), "survival hud gui")
+		local frame = gui:FindFirstChild("SafeArea"):FindFirstChild("SurvivalSheet")
+		local tabs = frame:FindFirstChild("Header"):FindFirstChild("BuildHead"):FindFirstChild("BuildTabs")
+		local station = assert(tabs:FindFirstChild("BuildTab-station"), "station tab")
+		assert(station:GetAttribute("ForgeSelected") == true, "build sheet opens on the campfire's Station tab")
+		local cards = frame:FindFirstChild("Content"):FindFirstChild("BuildCards")
+		assert(cards:FindFirstChild("BuildCard-campfire"), "campfire card shown without hunting tabs")
+		assert(#h.errors == 0, table.concat(h.errors, "; "))
+	end,
 	["a fresh actor at the ridge camp with 9 bag logs places the campfire and the opening reaches departure"] = function()
 		local live = boot()
 		toRidgeCamp(live)

@@ -72,7 +72,9 @@ function M.refusalText(locale: string?, result: any, names: { [string]: string }
 	elseif reason == "NODE_UNREACHABLE" then
 		return if ko then "너무 멉니다. 더 가까이 가세요" else "Too far away, move closer"
 	elseif string.find(reason, "WEIGHT") or string.find(reason, "SLOTS") or string.find(reason, "CAPACITY") then
-		return if ko then "가방이 가득 찼습니다" else "Your bag is full"
+		-- Name where to make room (journey6h @92.4m: a full bag gave no visible reason).
+		return PackLocale.get(locale or "en-us", "gth.bag_full")
+			or if ko then "가방이 가득 찼어요" else "Your bag is full"
 	elseif reason == "STALE_VERSION" then
 		return nil -- the node changed under the request; the next press uses the new version
 	elseif

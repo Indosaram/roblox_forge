@@ -499,6 +499,8 @@ for _, actions in
 		require("./RescueExtension").actions(),
 		-- C3 carcass picker (opt-in factory; the action id is declared for every pack).
 		require("./CarcassExtension").actions(),
+		-- item-drop (bag full away from any warehouse); appended last like the rows above.
+		require("./HarborBuybackExtension").actions(),
 	}
 do
 	for _, action in actions do

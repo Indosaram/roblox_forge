@@ -163,6 +163,9 @@ local function fixture(skilled: boolean?): any
 				}
 			end,
 			access = function(req, bag, _data)
+				if c.onAccess then
+					c.onAccess()
+				end
 				if not c.allowed or req.actorId ~= "alice" or req.sessionEpoch ~= 0 then
 					return nil
 				end
@@ -477,16 +480,35 @@ return {
 		conserved(c, true)
 		assert(c.runtime.snapshot(), "snapshot keeps the reclaimed lease")
 	end,
-	["accepted escrow survives expiry and full bag until capacity returns"] = function()
+	["a gather that cannot fit the bag is refused before escrow and keeps the node charge"] = function()
 		local c = fixture()
-		local lens = c.personal:inventoryLens()
 		assert(
-			lens:update(c.token, function(data)
+			c.personal:inventoryLens():update(c.token, function(data)
 				data.inventory.limits.slots = 1
 				return data
 			end),
 			"fill bag"
 		)
+		local refused = c.runtime.command(c.request)
+		assert(refused.status == "rejected" and refused.error == "FULL_SLOTS", "refused: " .. tostring(refused.error))
+		conserved(c, false)
+		assert(next(c.read("nodes:world-1").data.itemTransfers.receipts) == nil, "nothing escrowed")
+	end,
+	["accepted escrow survives expiry and full bag until capacity returns"] = function()
+		local c = fixture()
+		-- The bag fills after the source accepted the grant (a race with another bag write): the
+		-- accepted grant is irrevocable and waits in escrow until capacity returns.
+		c.onAccess = function()
+			c.onAccess = nil
+			local filled = assert(
+				c.personal:inventoryLens():update(c.token, function(data)
+					data.inventory.limits.slots = 1
+					return data
+				end),
+				"fill bag"
+			)
+			c.token = assert(c.personal:refresh(filled))
+		end
 		assert(c.runtime.command(c.request).error == "FULL_SLOTS", "pending capacity")
 		conserved(c, true)
 		c.now = 30

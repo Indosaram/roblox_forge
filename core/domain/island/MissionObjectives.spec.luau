@@ -78,6 +78,67 @@ return {
 		Archipelago.recover(state, 21, "disconnect")
 		assert(state.treated and state.bandage == 0 and state.escort == nil, "disconnect preserves treatment")
 	end,
+	["escort completes when the castaway keeps up with the player standing at the entry"] = function()
+		local state = open(2)
+		local points = anchors(state)
+		local origin, entry = points.objective, points.entry
+		local offset = Content.missionPolicy.bandageOffset
+		assert(
+			Missions.apply(
+				state,
+				Content,
+				"bandage-claim",
+				"",
+				{ x = origin.x + offset.x, y = origin.y + offset.y, z = origin.z + offset.z },
+				1
+			)
+		)
+		assert(Missions.apply(state, Content, "rescue-treat", "", origin, 1))
+		-- Walk the player from the objective toward the entry in short legs and stop 1.6 studs short of
+		-- it on the approach (as journey6h did); the castaway trails followStuds behind.
+		local now = 1
+		local dx, dy, dz = entry.x - origin.x, entry.y - origin.y, entry.z - origin.z
+		local length = math.sqrt(dx * dx + dy * dy + dz * dz)
+		local stopAt = (length - 1.6) / length
+		local legs = math.ceil(length / 4)
+		for leg = 1, legs do
+			now += 1
+			local f = stopAt * leg / legs
+			Missions.tick(state, Content, { x = origin.x + dx * f, y = origin.y + dy * f, z = origin.z + dz * f }, now)
+		end
+		local stand = { x = origin.x + dx * stopAt, y = origin.y + dy * stopAt, z = origin.z + dz * stopAt }
+		for _ = 1, 4 do
+			now += 1
+			Missions.tick(state, Content, stand, now)
+		end
+		local trail = math.sqrt(
+			(state.escort.position.x - entry.x) ^ 2
+				+ (state.escort.position.y - entry.y) ^ 2
+				+ (state.escort.position.z - entry.z) ^ 2
+		)
+		assert(trail > Content.missionPolicy.followStuds, "the castaway trails short of the entry: " .. trail)
+		assert(state.completed["rw.a1.s2.rescue"], "escort completes with the player on the entry")
+	end,
+	["escort does not complete when the player reaches the entry without the castaway"] = function()
+		local state = open(2)
+		local points = anchors(state)
+		local origin, entry = points.objective, points.entry
+		local offset = Content.missionPolicy.bandageOffset
+		assert(
+			Missions.apply(
+				state,
+				Content,
+				"bandage-claim",
+				"",
+				{ x = origin.x + offset.x, y = origin.y + offset.y, z = origin.z + offset.z },
+				1
+			)
+		)
+		assert(Missions.apply(state, Content, "rescue-treat", "", origin, 1))
+		Missions.tick(state, Content, entry, 1)
+		Missions.tick(state, Content, entry, 1)
+		assert(not state.completed["rw.a1.s2.rescue"], "the castaway is still at the objective")
+	end,
 	["cargo has one complete separate slot and expiry clears only unsettled cargo"] = function()
 		local state = open(3)
 		local points = anchors(state)

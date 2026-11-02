@@ -45,6 +45,7 @@ local policy: Policy = {
 		[129] = "survival-coop:rescue-revive",
 		[13] = "survival-coop:settlement-reserve",
 		[130] = "survival-coop:carcass-take",
+		[131] = "survival-coop:item-drop",
 		[14] = "survival-coop:settlement-place",
 		[15] = "survival-coop:settlement-cancel",
 		[16] = "survival-coop:settlement-demolish",

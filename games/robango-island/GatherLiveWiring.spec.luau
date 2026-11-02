@@ -19,6 +19,8 @@ local Gathering = require("../../genres/survival-coop/module/Gathering")
 local GatherOffer = require("./src/client/GatherOffer")
 local FxStub = require("./src/client/FeedbackFx.fixture")
 local AudioCatalog = require("./src/shared/RobangoAudioCatalog")
+-- Installs the pack copy lookup (PackLocale) the client builds from the shipped strings.
+require("./PackText.fixture")
 
 local ACTOR = "11734795308"
 
@@ -341,6 +343,73 @@ return {
 			assert(chips.emitted == quiet, "a refusal bursts nothing")
 		end
 		stop()
+		live.factory.close()
+	end,
+	-- journey6h @92.4m: a full bag answered every press "pending" (the grant sat in escrow), showed no
+	-- reason, and the stage gather objective never moved. A gather that cannot fit is refused before
+	-- escrow with the bag-full reason the client names, the node keeps its charge, and item-drop makes
+	-- room anywhere so the next press is granted.
+	["a full bag refuses the gather with a named reason, and a dropped stack lets the next gather land"] = function()
+		local live = boot()
+		assert(live.session.join(ACTOR).ok, "join")
+		arrive(live)
+		-- Fiber up to within one unit of the hard weight limit (stacks of stackMax): a stone overflows.
+		local stackMax, weightOf = 1, {}
+		for _, item in Content.items do
+			stackMax = if item.id == "fiber" then item.stackMax else stackMax
+			weightOf[item.id] = item.weightMilli
+		end
+		live.session.personalTransaction(ACTOR, function(raw)
+			local bag = raw.envelope.genres["survival-coop"].data.inventory.bag
+			local items, carried = bag.items, 0
+			for _, item in items do
+				carried += weightOf[item.catalogId] * item.quantity
+			end
+			local fill = (bag.limits.hardWeightMilli - carried) // weightOf.fiber
+			local left, index = fill, 0
+			while left > 0 do
+				index += 1
+				local take = math.min(left, stackMax)
+				local itemId = if index == 1 then "heavy-fiber" else "heavy-fiber-" .. index
+				items[itemId] = {
+					itemId = itemId,
+					catalogId = "fiber",
+					quantity = take,
+					qualityMilli = 1000,
+					durabilityMilli = 0,
+					attributes = {},
+				}
+				left -= take
+			end
+			return raw
+		end)
+		local fiberBefore = count(live, "fiber")
+		local id = "rw.onboarding.stone"
+		local charges = live.factory.services.survivalGathering.snapshot(ACTOR).nodes[id].charges
+		local refused = gather(live, id, "stone")
+		assert(
+			not refused.ok and refused.reason == "FULL_WEIGHT",
+			"full bag refused: " .. serde.encode("json", refused)
+		)
+		local text = require("../../genres/survival-coop/module/GatheringClient").refusalText("ko-kr", refused)
+		assert(
+			text and string.find(text, "가방이 가득 찼어요", 1, true),
+			"the notice names the full bag: " .. tostring(text)
+		)
+		assert(string.find(text, "버려", 1, true), "the notice says where to make room: " .. text)
+		local after = live.factory.services.survivalGathering.snapshot(ACTOR).nodes[id].charges
+		assert(after == charges, "the refused press keeps the node charge")
+		assert(count(live, "stone") == 0, "nothing granted")
+		-- No grant waits in escrow for this actor: the session can hand off (travel is not held).
+		local recovered = live.factory.services.survivalGathering.recover(ACTOR, 8)
+		assert(recovered.status == "confirmed", "no escrowed grant left: " .. serde.encode("json", recovered))
+		-- Drop from the bag (the Bag sheet's Drop button sends item-drop {itemId, 5}).
+		local dropped = live.command(ACTOR, "survival-coop:item-drop", { "heavy-fiber", 5 })
+		assert(dropped.ok, "drop: " .. tostring(dropped.reason))
+		assert(count(live, "fiber") == fiberBefore - 5, "five fiber dropped: " .. count(live, "fiber"))
+		local granted = gather(live, id, "stone")
+		assert(granted.ok, "gather after the drop: " .. tostring(granted.reason))
+		assert(count(live, "stone") > 0, "stone granted after the drop")
 		live.factory.close()
 	end,
 	["the last charge swaps the depleted mesh, the fan offers nothing, and the node regrows"] = function()

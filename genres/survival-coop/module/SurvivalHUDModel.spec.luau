@@ -316,6 +316,14 @@ return {
 		state.finish(true, { ok = false, reason = "NOTHING_TO_REPAIR" })
 		assert(state.notice == nil and state.reason == "NOTHING_TO_REPAIR", "a later refusal replaces the line")
 	end,
+	["an accepted bag drop settles so the next Drop is not locked behind a pending request"] = function()
+		local state = model()
+		state.receive({ durable = { actions = { "survival-coop:item-drop" }, sessionEpoch = 4 } })
+		assert(state.begin("item-drop", { "fiber", 5 } :: { any }), "first drop sent")
+		state.finish(true, { ok = true, data = { itemId = "fiber", quantity = 5 } })
+		assert(state.pending == nil and state.retry() == nil, "the drop settled")
+		assert(state.begin("item-drop", { "fiber", 5 } :: { any }), "the next drop can be sent")
+	end,
 	["a success line expires on its own, but never clears a newer line or an in-flight request"] = function()
 		local state = model()
 		state.receive({ durable = { actions = { "survival-coop:item-repair" }, sessionEpoch = 4 } })

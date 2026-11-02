@@ -419,6 +419,19 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 					},
 				})
 			end
+			-- A grant the bag cannot take is refused here, before escrow (journey6h @92.4m: a full bag
+			-- answered every press "pending" with the items held at source, so the stage gather objective
+			-- never advanced and travel waited on the escrow). The node keeps its charge; the client
+			-- names the full bag and where to make room.
+			local probe = bag
+			for _, mint in mints do
+				local fitted, fitError = Inventory.addStacked(probe, catalog, mint.item, probe.version)
+				if fitError == "FULL_WEIGHT" or fitError == "FULL_SLOTS" then
+					reason = fitError
+					return data
+				end
+				probe = fitted or probe
+			end
 			local minted, mintError = Transfer.stageMint(data, catalog, config.key, binding, mints, {
 				maxReceipts = config.maxReceipts,
 				now = config.now,

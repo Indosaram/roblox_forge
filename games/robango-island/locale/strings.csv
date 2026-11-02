@@ -3275,3 +3275,5 @@ exp.exp_sail_harbor,Sail to the harbor (routes depart there),genre text exp,Sail
 cli.chart.via_harbor,Sail from the harbor,client sea chart label,Sail from the harbor,항구에서 출항하세요
 cli.chart.sail_harbor,Sail to the harbor,client sea chart label,Sail to the harbor,항구로 출항
 exp.exp_next_window,Next window opens in %s,genre text exp,Next window opens in %s,다음 항로는 %s 후에 열려요
+gth.bag_full,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag",gather refusal when the gathered items do not fit the bag,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag","가방이 가득 찼어요. 창고에 보관하거나 항구에서 팔거나, 가방에서 버려 공간을 만드세요"
+hud.drop,Drop 5,genre text hud,Drop 5,5개 버리기
