@@ -14,12 +14,12 @@ return {
 			declared = declared or (action.id == "clan-browse" and action.origin == "client")
 		end
 		local extensionActions = Contract.extensionActions :: { string }
-		-- Later appends (C6 rescue, C3 carcass) follow clan-browse; clan-browse follows camp-loan.
+		-- Later appends (C6 rescue, C3 carcass, journey6h bag drop) follow clan-browse; clan-browse follows camp-loan.
 		local at = table.find(extensionActions, "clan-browse") :: number
 		assert(declared and at == (table.find(extensionActions, "camp-loan") :: number) + 1, "appended after camp-loan")
 		for index = at + 1, #extensionActions do
 			assert(
-				table.find({ "rescue-choose", "rescue-revive", "carcass-take" }, extensionActions[index]),
+				table.find({ "rescue-choose", "rescue-revive", "carcass-take", "item-drop" }, extensionActions[index]),
 				"only later extensions follow: " .. extensionActions[index]
 			)
 		end
