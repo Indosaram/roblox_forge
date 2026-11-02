@@ -2000,6 +2000,7 @@ chr.reset_busy_note,Not during combat or crafting,genre text chr,Not during comb
 chr.reset_confirm,Confirm reset,genre text chr,Confirm reset,초기화 확인
 chr.reset_done,Skills reset. SP refunded,genre text chr,Skills reset. SP refunded,기술을 초기화하고 SP를 돌려받았어요
 chr.rank_title,Island rank,genre text chr,Island rank,섬 등급
+chr.rank_expand,Expand home at your dock,genre text chr,Expand home at your dock,개인 섬 선착장에서 확장
 chr.rank_points,Development %d (100 per rank),genre text chr,Development %d (100 per rank),개발 점수 %d (등급당 100)
 chr.rank_next,Next rank at %d,genre text chr,Next rank at %d,다음 등급: %d
 chr.rank_max,Highest rank reached,genre text chr,Highest rank reached,최고 등급 달성
@@ -2436,6 +2437,7 @@ mus.instrument_clarinet,Clarinet,genre text mus,Clarinet,클라리넷
 mus.instrument_trumpet,Trumpet,genre text mus,Trumpet,트럼펫
 mus.instrument_drums,Drums,genre text mus,Drums,드럼
 fct.farm_title,Farm plots,genre text fct,Farm plots,밭
+fct.farm_store,Store %s at home,genre text fct,Store %s at home,%s 개인 섬에 보관
 fct.farm_none,Visit your home island and place a farm plot.,genre text fct,Visit your home island and place a farm plot.,개인 섬에 밭을 설치하세요.
 fct.farm_plot,Plot %d: %s,genre text fct,Plot %d: %s,밭 %d: %s
 fct.farm_empty,Empty,genre text fct,Empty,비어 있음
@@ -2790,6 +2792,7 @@ scr.refuse.WRONG_IDENTITY,No clan has that ID. Check it and try again.,recovered
 chr.UNKNOWN_OPERATION,That support tier is not available,genre text chr,That support tier is not available,그 기술 지원 단계는 없어요
 chr.SAVE_FAILED,Could not save. Try again,genre text chr,Could not save. Try again,저장하지 못했어요. 다시 시도하세요
 chr.PROGRESSION_UNAVAILABLE,Your progress is still loading. Try again in a moment,genre text chr,Your progress is still loading. Try again in a moment,진행 정보를 불러오는 중이에요. 잠시 뒤 다시 시도하세요
+hud.skill_proficiency,Proficiency %d / %d - practice this skill first,genre text hud,Proficiency %d / %d - practice this skill first,숙련도 %d / %d - 먼저 이 기술을 연습하세요
 hud.skill_needed,Locked: learn %s,genre text hud,Locked: learn %s,잠김: %s 기술 필요
 hud.skill_needed_refusal,Learn the %s skill first (Skills tab),genre text hud,Learn the %s skill first (Skills tab),먼저 %s 기술을 배우세요 (기술 탭)
 chr.guide_target_rw.home,your home island,genre text chr,your home island,내 개인 섬
@@ -3280,7 +3283,7 @@ hud.drop,Drop 5,genre text hud,Drop 5,5개 버리기
 guide_go_purchase,learn the %s skill (Menu > Skills),HUD objective guide action,learn the %s skill (Menu > Skills),%s 기술 배우기 (메뉴 > 기술)
 guide_go_place,"place %s (B key, Menu > Build)",HUD objective guide action,"place %s (B key, Menu > Build)","%s 설치하기 (B 키, 메뉴 > 건설)"
 guide_go_equip,equip %s (Menu > Equipment),HUD objective guide action,equip %s (Menu > Equipment),%s 장착하기 (메뉴 > 장비)
-guide_go_plant,plant %s (Menu > Farm),HUD objective guide action,plant %s (Menu > Farm),%s 심기 (메뉴 > 농장)
+guide_go_plant,plant %s at your home plot (Menu > Farm; store seed and water there),HUD objective guide action,plant %s at your home plot (Menu > Farm; store seed and water there),개인 섬 밭에 %s 심기 (메뉴 > 농장; 씨앗과 물 보관)
 guide_go_harvest,harvest %s (Menu > Farm),HUD objective guide action,harvest %s (Menu > Farm),%s 수확하기 (메뉴 > 농장)
 guide_go_feed,feed %s to your pet (Menu > Taming),HUD objective guide action,feed %s to your pet (Menu > Taming),반려동물에게 %s 먹이기 (메뉴 > 길들이기)
 guide_go_eat,eat %s (Bag > Eat one),HUD objective guide action,eat %s (Bag > Eat one),%s 먹기 (가방 > 하나 먹기)

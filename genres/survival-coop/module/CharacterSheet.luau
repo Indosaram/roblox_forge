@@ -35,6 +35,7 @@ function M.data(extensions: any, packet: any): any
 	local snapshots = (packet or {}).snapshots or {}
 	return {
 		survival = snapshots["survival-coop"],
+		home = (extensions or {}).home,
 		character = (extensions or {}).character,
 		late = (extensions or {})["late-equipment"],
 	}

@@ -228,6 +228,34 @@ function M.run(Journey: any, options: any): any
 			fix = fix,
 			extra = extra,
 		}
+		if text == "" then
+			-- A blank line: name the first hidden ancestor of the quest card (what hid the HUD line).
+			for _, item in h.playerGui:GetDescendants() do
+				if item.Name == "ObjectiveTracker" then
+					local current, hidden = item, {}
+					while current and current ~= h.playerGui do
+						if current.Visible == false or current.Enabled == false then
+							table.insert(hidden, current.Name)
+						end
+						current = current.Parent
+					end
+					row.hudHidden = {
+						by = hidden,
+						text = item.Text,
+						menu = h.menu.Visible,
+						survivalSheet = h.player:GetAttribute("ForgeSurvivalSheetOpen"),
+						hud = h.hud.isOpen(),
+						sheets = (function()
+							local names = {}
+							for _, sheet in h.sheets() do
+								table.insert(names, sheet.frame.Name)
+							end
+							return names
+						end)(),
+					}
+				end
+			end
+		end
 		table.insert(log.stalls, row)
 		print(string.format("WORKING journey6h stall @%.1f min [%s] %s (%s)", minutes(), kind, why, owner))
 		print(

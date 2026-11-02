@@ -28,6 +28,15 @@ function M.model(locale: string, data: any): { Sheet.Row }
 		},
 		{ name = "Guide", text = Text.text(locale, "rank_guide") },
 	}
+	if data.home then
+		table.insert(rows, {
+			name = "Expand",
+			text = Text.text(locale, "rank_expand"),
+			action = "survival-coop:home-expand",
+			args = { data.home.homeId, {} },
+			enabled = rank > data.home.landRank,
+		})
+	end
 	for _, cell in Rules.cells(content, rank) do
 		table.insert(rows, {
 			name = "Cell-" .. cell.id,

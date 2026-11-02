@@ -26,6 +26,25 @@ function M.mount(ctx: any, hub: any): any
 			sheet.empty(t("farm_none"), nil, "fertility")
 		end
 		local crop = crops[cropIndex]
+		-- Plant consumes home storage, never the bag or the tribe warehouse. Offer the
+		-- real transfer here so carried seeds and water can reach that storage.
+		if home and crop then
+			for _, row in Model.bagRows(hub.state.packet) do
+				local item = row.item
+				if row.available > 0 and (item.catalogId == crop.seed or item.catalogId == "water") then
+					local itemId = item.itemId
+					sheet.row(Sheet.SPLIT2, {
+						{
+							name = "Store-" .. itemId,
+							text = t("farm_store", hub.name(item.catalogId)),
+							click = function()
+								sheet.send("home-deposit", { home.homeId, { itemId = itemId, quantity = 1 } })
+							end,
+						},
+					})
+				end
+			end
+		end
 		local fertilizer = Farming.FERTILIZER_ORDER[fertIndex]
 		for index, plot in plots do
 			local planted = plot.planted

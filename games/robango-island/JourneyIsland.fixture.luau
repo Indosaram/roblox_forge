@@ -511,19 +511,27 @@ function M.run(host: any, p: any, options: any?): any
 				end
 			end
 		end
-		p.stall(
-			"friction",
-			asker
-				.. " needs "
-				.. item
-				.. " but no node on "
-				.. tostring(host.layoutId)
-				.. " gives it; the HUD line names no island (nodes on: "
-				.. tostring(isle)
-				.. ")",
-			owner("genres/survival-coop/module/CharacterText.luau", "local function openGuide("),
-			"name the island (or the chart pin) in the guide line when the current island has no such node"
-		)
+		local Text = require("../../genres/survival-coop/module/CharacterText")
+		local label = isle and Text.text("ko-kr", "cli.chart.isle." .. isle)
+		local hinted = label ~= nil and string.find(p.objective(), label, 1, true) ~= nil
+		local itemName = require("./PackText.fixture").names("ko-kr")[item] or item
+		-- A just-completed guide announcement can occupy the slot for this turn; it says
+		-- nothing about this item's navigation and is not evidence of a missing island hint.
+		if not hinted and string.find(p.objective(), itemName, 1, true) then
+			p.stall(
+				"friction",
+				asker
+					.. " needs "
+					.. item
+					.. " but no node on "
+					.. tostring(host.layoutId)
+					.. " gives it; the HUD line names no island (nodes on: "
+					.. tostring(isle)
+					.. ")",
+				owner("genres/survival-coop/module/CharacterText.luau", "local function openGuide("),
+				"name the island (or the chart pin) in the guide line when the current island has no such node"
+			)
+		end
 		if not isle then
 			return true
 		end
@@ -681,6 +689,8 @@ function M.run(host: any, p: any, options: any?): any
 		if M.unload and p.bagFull() and host.role ~= "archipelago" then
 			M.unload()
 		end
+		-- A modal deliberately hides the objective slot. Dismiss it before reading the next goal.
+		p.closeSheets()
 		local text = p.objective()
 		local role = host.role
 		-- A raw string key on the HUD (a guide id outside the guide_gNN rows, e.g. mission rw.m1.*).
@@ -875,6 +885,212 @@ function M.run(host: any, p: any, options: any?): any
 						p.closeSheets()
 					end
 				end
+			elseif o.action == "purchase" then
+				p.h().hud.open("skills")
+				p.render()
+				for _, node in Content.skillNodes do
+					if node.id == o.target then
+						clickNamed("skill-" .. node.category)
+						-- The category detail offers its next node, not arbitrary descendants.
+						for _ = 1, #Content.skillNodes do
+							if (p.personal().progression.paid or {})[node.id] ~= nil then
+								break
+							end
+							local learn = p.findPrefix("learn-")[1]
+							if not learn then
+								break
+							end
+							local before = p.personal().progression.version
+							p.click(learn)
+							if p.personal().progression.version == before then
+								-- Train the category's authored entry action through the craft sheet or
+								-- practice stand; Learn never bypasses the server's proficiency gate.
+								local category = nil
+								for _, row in Content.skillCategories do
+									if row.id == node.category then
+										category = row
+									end
+								end
+								local trained = false
+								for _, action in if category then category.entryActions else {} do
+									local recipe = recipeFor(action)
+									if recipe then
+										p.closeSheets()
+										local station = recipe.station and anchor("station." .. recipe.station .. ".t1")
+										if recipe.station and not station and host.role ~= "harbor" then
+											if sail("harbor") then
+												trained = true
+												break
+											end
+										end
+										for _, input in recipe.inputs do
+											p.obtain(input.item, input.quantity, 120)
+										end
+										if station then
+											p.walk(station, 3)
+										end
+										trained = p.craft(recipe.id)
+										break
+									elseif anchor(action) then
+										for _, operation in Content.operations do
+											if operation.id == action then
+												for _, input in operation.inputs do
+													p.obtain(input.item, input.quantity, 120)
+												end
+											end
+										end
+										p.walk(anchor(action), 2)
+										for _, prompt in p.prompts() do
+											if prompt:GetAttribute("ForgeOperation") == action then
+												p.trigger(prompt)
+												trained = true
+												break
+											end
+										end
+										break
+									end
+								end
+								if not trained or host.at.value >= p.deadline then
+									break
+								end
+								p.h().hud.open("skills")
+								p.render()
+								clickNamed("skill-" .. node.category)
+							end
+						end
+						break
+					end
+				end
+				p.closeSheets()
+			elseif o.action == "expand" then
+				if host.role ~= "home" then
+					if sail("home") then
+						continue
+					end
+				else
+					p.walk(Content.homePolicy.dock, 2)
+					p.openTile("character")
+					clickNamed("OpenRank")
+					clickNamed("Expand")
+					p.closeSheets()
+				end
+			elseif o.action == "plant" then
+				if host.role ~= "home" then
+					if sail("home") then
+						continue
+					end
+				else
+					local farm = require("../../genres/survival-coop/module/FarmCraftModel")
+					local home = extensions().home
+					local plots = farm.plots(home, host.at.value)
+					local plot = plots[1]
+					if plot then
+						p.walk(plot.position, 2)
+						p.openTile("farm")
+						clickNamed("Seed-1-" .. o.target)
+						for _, crop in farm.crops(Content) do
+							if crop.id == o.target then
+								p.closeSheets()
+								p.obtain(crop.seed, 1, 300)
+								p.obtain("water", 1, 300)
+								p.walk(plot.position, 2)
+								p.openTile("farm")
+								clickNamed("Seed-1-" .. o.target)
+								for id, stack in p.bag().items do
+									if stack.catalogId == crop.seed or stack.catalogId == "water" then
+										clickNamed("Store-" .. id)
+									end
+								end
+								clickNamed("Plant-1")
+								break
+							end
+						end
+						p.closeSheets()
+					end
+				end
+			elseif o.action == "harvest" then
+				if host.role ~= "home" then
+					if sail("home") then
+						continue
+					end
+				else
+					local farm = require("../../genres/survival-coop/module/FarmCraftModel")
+					for _, plot in farm.plots(extensions().home, host.at.value) do
+						if plot.planted and plot.planted.crop == o.target then
+							p.wait(plot.remaining)
+							p.walk(plot.position, 2)
+							p.openTile("farm")
+							local harvest = p.findPrefix("Harvest-")[1]
+							if harvest then
+								p.click(harvest)
+							end
+							p.closeSheets()
+							break
+						end
+					end
+				end
+			elseif o.action == "eat" then
+				if p.obtain(o.target, 1, 300) then
+					p.h().hud.open("bag")
+					p.render()
+					for id, stack in p.bag().items do
+						if stack.catalogId == o.target then
+							clickNamed(id)
+							clickNamed("Eat-" .. id)
+							break
+						end
+					end
+					p.closeSheets()
+				end
+			elseif o.action == "practice" or o.action == "visit" then
+				local facility = if o.action == "visit" then "visitor-portal" else o.target
+				local at = anchor(facility)
+				if not at and host.role ~= "harbor" then
+					if sail("harbor") then
+						continue
+					end
+				elseif at then
+					p.walk(at, 2)
+					if o.action == "visit" then
+						-- The guide's Visit row is the acknowledgement; it is range-gated at this portal.
+						p.openTile("guides")
+						clickNamed("Objective-" .. o.id)
+						p.closeSheets()
+						for _, prompt in p.prompts() do
+							if
+								prompt.Parent
+								and prompt.Parent:GetAttribute("ForgeHarborFacility") == "visitor-portal"
+							then
+								p.trigger(prompt)
+								settleTravel()
+								break
+							end
+						end
+					else
+						for _, operation in Content.operations do
+							if operation.id == o.target then
+								for _, input in operation.inputs do
+									p.obtain(input.item, input.quantity, 300)
+								end
+							end
+						end
+						p.walk(at, 2)
+						for _, prompt in p.prompts() do
+							if prompt:GetAttribute("ForgeOperation") == o.target then
+								p.trigger(prompt)
+								break
+							end
+						end
+						p.closeSheets()
+					end
+				end
+			elseif o.action == "preview-refund" or o.action == "cancel-preview" then
+				p.openTile("character")
+				clickNamed("OpenReset")
+				p.closeSheets()
+				p.openTile("guides")
+				clickNamed("Objective-" .. o.id)
+				p.closeSheets()
 			elseif o.action == "deliver" then
 				M.contract(p, extensions)
 			elseif o.action == "donate" then

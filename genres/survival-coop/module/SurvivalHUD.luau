@@ -1805,8 +1805,14 @@ function M.start(options: Options)
 							table.insert(missing, Locale.skillName(locale, id))
 						end
 					end
-					skillLines.SkillNeed.Text = if nextNode and #missing > 0
-						then string.format(t("skill_needed"), table.concat(missing, ", "))
+					local mastery = progression.mastery[node.category].level
+					local proficiency = mastery >= node.proficiency
+					skillLines.SkillNeed.Text = if nextNode and not proficiency
+						then string.format(t("skill_proficiency"), mastery, node.proficiency)
+						elseif nextNode and #missing > 0 then string.format(
+							t("skill_needed"),
+							table.concat(missing, ", ")
+						)
 						elseif nextNode then string.format("SP %d / %d", nextNode.cost, progression.sp)
 						else ""
 					skillLines.SkillNeed.TextColor3 = if #missing > 0
@@ -1820,7 +1826,7 @@ function M.start(options: Options)
 							function()
 								command("skill-learn", { nextNode.id })
 							end,
-							progression.sp >= nextNode.cost
+							progression.sp >= nextNode.cost and proficiency and #missing == 0
 						)
 						learn.AnchorPoint, learn.Position = Vector2.new(0, 1), UDim2.new(0, 6, 1, -6)
 						learn.Size = UDim2.new(1, -12, 0, 44)
