@@ -117,7 +117,7 @@ local function fixture(windup: boolean?, progression: boolean?, fists: boolean?)
 		local durable = {
 			actions = { "survival-coop:attack", "survival-coop:attack-ranged", "survival-coop:inventory-split" },
 			windowSeconds = 86400,
-			maxOutcomes = c.capacity,
+			maxOutcomes = c.outcomes or c.capacity,
 			personal = {
 				namespace = "combat",
 				inventoryPath = { "genres", "survival-coop", "data", "inventory", "bag" },
@@ -265,6 +265,36 @@ local function check(c: any, charged: boolean)
 	assert(source.npcs.hunter.healthMilli == (if charged then 0 else 20000), "exactly one lethal hit")
 end
 local specs: { [string]: () -> () } = {
+	-- journey6h 6 h run @303 min (rw.a1.s3 hunt boar): every attack was refused REQUEST_WINDOW_FULL.
+	-- The runtime counted the player's whole command window (every durable command of the 24 h
+	-- epoch, crafts and gathers included) against its own receipt limit (512), and it never let go
+	-- of a finished swing: the shared intent and the personal charge receipt stayed forever, so the
+	-- world (RECEIPT_LIMIT) and the player (PERSONAL_RECEIPT_LIMIT) ran out of attacks for good.
+	["a long session keeps attacking: the window is the ledger's and finished swings are released"] = function()
+		local c = fixture(false, false, true)
+		c.capacity, c.outcomes, c.unequip = 4, 64, true
+		c.open()
+		for i = 1, 12 do
+			c.now = i * 3
+			c.session.advance(c.now)
+			local result = c.session.command("alice", c.request("grazer", "punch-" .. i))
+			assert(result.ok, "punch " .. i .. " lands: " .. tostring(result.reason))
+		end
+		assert(c.read("wildlife:one").data.npcs.grazer.healthMilli == 4000, "twelve punches of 3")
+		local intents = 0
+		for _ in c.read("wildlife:one").data.intents do
+			intents += 1
+		end
+		assert(intents <= 4, "finished intents released: " .. intents)
+		local receipts = 0
+		for _ in c.read("combat:alice").data.envelope.genres["survival-coop"].data.combat.receipts do
+			receipts += 1
+		end
+		assert(receipts <= 4, "finished charge receipts released: " .. receipts)
+		local replay = c.session.command("alice", c.request("grazer", "punch-12"))
+		assert(replay.ok, "the last swing still replays from the ledger")
+		assert(c.read("wildlife:one").data.npcs.grazer.healthMilli == 4000, "a replay deals nothing")
+	end,
 	["a ranged shot hits wildlife beyond melee reach with an equipped bow"] = function()
 		local c = fixture(true, true)
 		local seeded = c.session.personalTransfer("alice")

@@ -220,10 +220,9 @@ function M.new(options: any?): any
 				local document = host.factory.expeditionStore.snapshot(actor)
 				destination = if document.archipelago.status == "complete" then "home" else "archipelago"
 			elseif destination == "home" and role == "archipelago" then
-				local recovered = host.factory.archipelago.recover(actor, "return")
-				if type(recovered) == "table" and not recovered.ok then
-					return false, recovered.reason
-				end
+				-- RobangoIslandServer returns the settle result; the voyage home (provision.returnHome)
+				-- leaves after the command returns.
+				return host.factory.archipelago.recover(actor, "return")
 			end
 			if destination ~= "next-island" then
 				-- IslandBootstrap.travel: the role edge and level gate, then the expedition admission.
@@ -330,6 +329,22 @@ function M.new(options: any?): any
 			source.tribe.config.tribeId,
 			{ studio = false, server = "journey-" .. sequence }
 		)
+		-- RobangoIslandServer provision.returnHome: the router home (role edge, then the handoff).
+		provision.returnHome = function(actor: string)
+			local Topology = require("../../core/domain/island/Topology")
+			local level = (personal(actor) or {}).progression and personal(actor).progression.level or 1
+			local ok, reason = Topology.validateRoleTransition(roleName, "home", level)
+			if not ok then
+				return { ok = false, reason = reason }
+			end
+			local ready = host.session.prepareHandoff(actor)
+			if not ready.ok then
+				return { ok = false, reason = ready.reason }
+			end
+			host.session.resumeHandoff(actor)
+			host.pendingTravel = { from = roleName, to = "home", at = at.value }
+			return { ok = true }
+		end
 		local factoryOptions: any = {
 			sessionId = "journey-" .. sequence,
 			leaseSeconds = 120,

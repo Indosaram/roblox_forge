@@ -678,6 +678,38 @@ return function(content: any, source, world, backend, clock, options, provision,
 		end
 		return nil
 	end
+	-- p134 v65: a voyage asked for by a durable command teleports only after that command returns
+	-- (see travelAfterCommand); `go` runs the handoff and answers (ok, reason) or a result table.
+	local HANDOFF_WAIT_SECONDS = 5
+	local function deferTravel(player: any, go: () -> (any, any)): any
+		task.defer(function()
+			local actor = tostring(player.UserId)
+			local waited = 0
+			local function settle()
+				while activeSession and not activeSession.settled(actor) and waited < HANDOFF_WAIT_SECONDS do
+					waited += task.wait()
+				end
+			end
+			local ok: any, reason
+			repeat
+				settle()
+				ok, reason = go()
+				if type(ok) == "table" then
+					ok, reason = ok.ok, ok.reason
+				end
+				-- Other work can take the actor between the check and the handoff: wait again.
+				local retry = ok ~= true and reason == "COMMAND_PENDING" and waited < HANDOFF_WAIT_SECONDS
+				if retry then
+					waited += task.wait()
+				end
+			until not retry
+			if ok ~= true and world.publishTravel then
+				world.publishTravel(player, tostring(reason or "travel_failed"))
+			end
+		end)
+		local accepted: any = { ok = true, reason = "travelling" }
+		return accepted
+	end
 	local archipelago = ArchipelagoExtension.new({
 		content = content,
 		entryBuffer = source.archipelago.entryBufferSeconds,
@@ -701,10 +733,18 @@ return function(content: any, source, world, backend, clock, options, provision,
 		gatherReceipt = function(actor, epoch, requestId)
 			return if gatherReceipt then gatherReceipt(actor, epoch, requestId) else nil
 		end,
+		-- The trip is settled in the caller's transaction; the handoff home waits until the command
+		-- returns (journey6h 304 min: Expedition > Home > Confirm ran the router inside party-action,
+		-- where the Session holds the actor and prepareHandoff refuses).
 		returnHome = function(actor)
-			return if provision.returnHome
-				then provision.returnHome(actor)
-				else { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
+			local player = game:GetService("Players"):GetPlayerByUserId(tonumber(actor) or 0)
+			if not provision.returnHome or not player then
+				return { ok = false, reason = "HOME_ROUTE_UNAVAILABLE" }
+			end
+			return deferTravel(player, function()
+				local result = provision.returnHome(actor)
+				return result.ok, result.reason
+			end)
 		end,
 	})
 	-- p134 v65: a voyage asked for by a durable command (sea chart sail, drift-isle depart) teleports
@@ -720,35 +760,10 @@ return function(content: any, source, world, backend, clock, options, provision,
 	-- (the post-command push's recovery sweep, the 1 Hz advance, a guide/xp personal transaction,
 	-- another durable command), and prepareHandoff refuses on busy or any staged command. The voyage
 	-- waits (bounded, one Heartbeat at a time) until the session can hand the actor off.
-	local HANDOFF_WAIT_SECONDS = 5
 	local function travelAfterCommand(player: any, destination: string, route: number?, extra: any?): any
-		task.defer(function()
-			local actor = tostring(player.UserId)
-			local waited = 0
-			local function settle()
-				while activeSession and not activeSession.settled(actor) and waited < HANDOFF_WAIT_SECONDS do
-					waited += task.wait()
-				end
-			end
-			local ok: any, reason
-			repeat
-				settle()
-				ok, reason = world.travel(player, destination, route, extra)
-				if type(ok) == "table" then
-					ok, reason = ok.ok, ok.reason
-				end
-				-- Other work can take the actor between the check and the handoff: wait again.
-				local retry = ok ~= true and reason == "COMMAND_PENDING" and waited < HANDOFF_WAIT_SECONDS
-				if retry then
-					waited += task.wait()
-				end
-			until not retry
-			if ok ~= true and world.publishTravel then
-				world.publishTravel(player, tostring(reason or "travel_failed"))
-			end
+		return deferTravel(player, function()
+			return world.travel(player, destination, route, extra)
 		end)
-		local accepted: any = { ok = true, reason = "travelling" }
-		return accepted
 	end
 	table.insert(extensionFactories, function()
 		return require(Forge.core.infra.genre.Session).registerLifecycle({

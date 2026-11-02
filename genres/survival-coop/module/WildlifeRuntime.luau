@@ -65,6 +65,8 @@ end
 -- (300; the body stays harvestable for its whole window first, a spec pins the order) plus a minute
 -- with no body at all, so a spoiled carcass is not mistaken for the fresh creature.
 M.RESPAWN_SECONDS = 360
+-- Outcomes one command epoch may hold (Ledger.valid's bound).
+M.WINDOW_OUTCOMES = 4096
 --- True when a killed (not captured) creature's respawn time has come (`now` in seconds). A body
 --- saved before kills were clocked has no killedAt and comes back at once. The wildlife store is
 --- durable per provision, so before respawns every creature a returning player had ever killed
@@ -190,6 +192,24 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		local count = 0
 		for _ in combat.receipts do
 			count += 1
+		end
+		-- A charge receipt only guards its swing while the intent is in flight (charge is retried
+		-- until the shared intent resolves). Receipts of swings this world finished are dropped;
+		-- they used to pile up until PERSONAL_RECEIPT_LIMIT ended combat for good (journey6h,
+		-- 303 min). At the limit, receipts of swings on islands the actor left go too (the Session
+		-- drains combat before every handoff, so those swings are settled).
+		for _, foreign in { false, true } do
+			for receiptId in combat.receipts do
+				local shared = source.data.intents[receiptId]
+				local finished = if shared then shared.phase == "FINALIZED" else foreign
+				if receiptId ~= id and finished then
+					combat.receipts[receiptId] = nil
+					count -= 1
+				end
+			end
+			if count < config.maxReceipts then
+				break
+			end
 		end
 		if count >= config.maxReceipts then
 			return "PERSONAL_RECEIPT_LIMIT"
@@ -516,11 +536,14 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 		if not epoch or config.now() >= epoch.expiresAt then
 			return rejected("REQUEST_EXPIRED")
 		end
+		-- The window is the actor's whole command ledger (crafts, gathers, travel...), so it is held
+		-- to the ledger's own bound, not to this world's receipt limit: journey6h at 303 min had 512
+		-- commands in its 24 h epoch and every attack was refused REQUEST_WINDOW_FULL.
 		local count = 0
 		for _ in epoch.outcomes do
 			count += 1
 		end
-		if count >= config.maxReceipts then
+		if count >= M.WINDOW_OUTCOMES then
 			return rejected("REQUEST_WINDOW_FULL")
 		end
 		if source.data.actors[req.actorId] then
@@ -535,6 +558,13 @@ function M.new(config: Config, store: Fenced.Store): (Runtime?, string?)
 			refusal = nil
 			if data.intents[id] then
 				return data
+			end
+			-- A finished swing's result lives in the actor's command ledger (written before it is
+			-- marked FINALIZED, and replayed from there), so only swings in flight hold a receipt.
+			for intentId, finished in data.intents do
+				if finished.phase == "FINALIZED" then
+					data.intents[intentId] = nil
+				end
 			end
 			local size = 0
 			for _ in data.intents do
