@@ -580,6 +580,86 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		p.clearBagFull()
 	end
+	local function captureHere(): boolean
+		p.closeSheets()
+		local h = p.h()
+		local ids = {}
+		for id, model in h.creatures or {} do
+			if
+				model:GetAttribute("ForgeWildlifeKind") == "dodo"
+				and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
+			then
+				table.insert(ids, id)
+			end
+		end
+		table.sort(ids)
+		local model = h.creatures and h.creatures[ids[1]]
+		if not model then
+			return false
+		end
+		local at = model:FindFirstChild("HumanoidRootPart").Position
+		p.walk({ x = at.X + 2, y = at.Y, z = at.Z }, 0)
+		p.equipFor("bone-knife")
+		local combat = h.load("genres/survival-coop/module/CombatHud").start({
+			content = Content,
+			locale = "ko-kr",
+			send = h.captureSend,
+			approach = function(goal, _within, arrive)
+				p.walk({ x = goal.X + 2, y = goal.Y, z = goal.Z }, 0)
+				arrive()
+				return true
+			end,
+			stop = function() end,
+			hidden = function()
+				return false
+			end,
+			itemName = function(item)
+				return item
+			end,
+			name = function(kind)
+				return kind
+			end,
+			spare = h.petRing.spare,
+		})
+		combat.engage(model)
+		for _ = 1, 40 do
+			if h.petRing.capturable() then
+				break
+			end
+			p.wait(1)
+			-- Re-tap after a fleeing grazer breaks the combat chase leash.
+			combat.engage(model)
+		end
+		combat.destroy()
+		p.event("capture-weakened", {
+			id = ids[1],
+			health = model:GetAttribute("ForgeWildlifeHealthMilli"),
+			command = p.lastCommand(),
+			errors = h.errors,
+		})
+		for _ = 1, 4 do
+			if not h.petRing.capturable() then
+				break
+			end
+			local token = p.find("Token-capture")
+			if not token then
+				break
+			end
+			p.click(token)
+			p.wait(9) -- explicit game time: stun recovery, not a wall-clock sleep
+		end
+		return model:GetAttribute("ForgeWildlifeHealthMilli") == 0
+	end
+	local function feedCaptured()
+		p.openTile("taming")
+		for _, verb in { "place-", "train-", "feed-" } do
+			local button = p.findPrefix(verb)[1]
+			if button then
+				p.click(button)
+			end
+		end
+		p.closeSheets()
+	end
 	local soldOnce, townVisited = false, false
 	local reentered: string? = nil
 	local abandoned: { [string]: boolean } = {}
@@ -640,6 +720,20 @@ function M.run(host: any, p: any, options: any?): any
 			same = 0
 		end
 		if role == "archipelago" then
+			local captureGuide, objective = guideTarget()
+			if objective and objective.action == "capture" then
+				if captureHere() then
+					p.milestone("captured:" .. captureGuide.id)
+					if (extensions().character.definitions or {})[captureGuide.id] then
+						p.milestone("completed:" .. captureGuide.id)
+					end
+				end
+			elseif objective and objective.action == "feed" and captureGuide.id == "rw.g41.second-pet" then
+				feedCaptured()
+				if (extensions().character.definitions or {})[captureGuide.id] then
+					p.milestone("completed:" .. captureGuide.id)
+				end
+			end
 			local result = stage()
 			if result == "stuck" or result == "inactive" then
 				p.openTile("expedition")
@@ -667,7 +761,15 @@ function M.run(host: any, p: any, options: any?): any
 		if g and o then
 			p.milestone("guide:" .. g.id)
 			local had = ((extensions().character or {}).progress or {})[o.id] or 0
-			if o.action == "gather" then
+			if o.action == "capture" then
+				-- Ashore, follow the HUD's Route 1 direction through the Routes flow below.
+				captureHere()
+			elseif o.action == "feed" and g.id == "rw.g41.second-pet" then
+				feedCaptured()
+				if (extensions().character.definitions or {})[g.id] then
+					p.milestone("completed:" .. g.id)
+				end
+			elseif o.action == "gather" then
 				if not seek(o.target, "guide " .. g.id) then
 					continue
 				end
@@ -777,7 +879,7 @@ function M.run(host: any, p: any, options: any?): any
 			end
 			local ch = extensions().character or {}
 			progressed = ((ch.progress or {})[o.id] or 0) > had or (ch.definitions or {})[g.id] == true
-			if not progressed then
+			if not progressed and o.action ~= "capture" then
 				skipGuide[g.id] = true
 				p.stall(
 					if o.action == "capture" then "dead-end" else "refused",

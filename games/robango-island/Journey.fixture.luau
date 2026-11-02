@@ -626,6 +626,9 @@ function M.new(options: any?): any
 			character = h.new("Model", "Character")
 			local part = h.new("Part", "HumanoidRootPart")
 			part.Parent = character
+			local humanoid = h.new("Humanoid", "Humanoid")
+			humanoid.Health, humanoid.MaxHealth = 100, 100
+			humanoid.Parent = character
 			character.Parent = h.workspace
 			h.player.Character = character
 		end
@@ -661,6 +664,32 @@ function M.new(options: any?): any
 			mirror:SetAttribute("ForgeStationKind", part:GetAttribute("ForgeStationKind"))
 			mirror:SetAttribute("ForgeStationId", part:GetAttribute("ForgeStationId"))
 		end
+		-- Wildlife replicates below the role world, as it does in the shipped server.
+		local wildlife = folder:FindFirstChild("ForgeWildlife")
+		if not wildlife then
+			wildlife = h.new("Folder", "ForgeWildlife")
+			wildlife.Parent = folder
+		end
+		c.creatures = c.creatures or {}
+		for id, npc in host.factory.services.survivalWildlife.snapshot(M.ACTOR) do
+			local model = c.creatures[id]
+			if not model then
+				model = h.new("Model", id)
+				local part = h.new("Part", "HumanoidRootPart")
+				part.Parent = model
+				model.Parent = wildlife
+				c.creatures[id] = model
+			end
+			local location = npc.position or npc.home
+			local part = model:FindFirstChild("HumanoidRootPart")
+			part.Position = roblox.Vector3.new(location.x, location.y, location.z)
+			part.CFrame = roblox.CFrame.new(part.Position)
+			model:SetAttribute("ForgeWildlifeId", id)
+			model:SetAttribute("ForgeWildlifeKind", npc.catalogId)
+			model:SetAttribute("ForgeWildlifeHealthMilli", if npc.captureId then 0 else npc.healthMilli)
+			model:SetAttribute("ForgeWildlifeState", if npc.captureId then "captured" else nil)
+		end
+		h.creatures = c.creatures
 		folder:SetAttribute("ForgeLayoutId", host.layoutId)
 		h.workspace:SetAttribute("ForgeWorldRole", host.role)
 		local player = engine.game:GetService("Players"):GetPlayerByUserId(tonumber(M.ACTOR))

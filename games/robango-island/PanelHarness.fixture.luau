@@ -219,10 +219,16 @@ local function harness(options: any?): any
 		end
 		return out
 	end
-	function methods.FindFirstChild(self, name)
+	function methods.FindFirstChild(self, name, recursive)
 		for _, child in rawget(getmetatable(self) :: any, "data").children do
 			if child.Name == name then
 				return child
+			end
+			if recursive then
+				local found = methods.FindFirstChild(child, name, true)
+				if found then
+					return found
+				end
 			end
 		end
 		return nil
@@ -521,7 +527,7 @@ local function harness(options: any?): any
 	local client = fs.readFile(CLIENT)
 	local first = assert(string.find(client, "local ExtensionPanels = require", 1, true), "panel section")
 	local last = assert(string.find(client, "local QuarterView = require", first, true), "panel section end")
-	local section = string.sub(client, first, last - 1) .. "\nreturn panels\n"
+	local section = string.sub(client, first, last - 1) .. "\nreturn {panels = panels, petRing = petRing}\n"
 	local env = table.clone(base)
 	local forge = proxy("")
 	env.require = function(target)
@@ -562,6 +568,16 @@ local function harness(options: any?): any
 				end,
 				open = function() end,
 				-- The client passes PlayMode's chat / clan-tag switches (RobangoIslandClient shell).
+				pet = {
+					capturable = function()
+						return env.petRing ~= nil and env.petRing.capturable()
+					end,
+					act = function(id)
+						if env.petRing then
+							env.petRing.act(id)
+						end
+					end,
+				},
 				chat = opts.chat,
 				clanTag = opts.clanTag,
 			},
@@ -589,7 +605,16 @@ local function harness(options: any?): any
 		end,
 	}
 	env.gui, env.script = node("ScreenGui", "ForgeGenreUI"), node("LocalScript", "RobangoIslandClient")
-	local panels = luau.load(section, { debugName = CLIENT, environment = env })()
+	local captureContext: any = nil
+	local petModule = load("genres/survival-coop/module/PetRing")
+	local petFactory = petModule.factory
+	petModule.factory = function(ctx)
+		captureContext = ctx
+		return petFactory(ctx)
+	end
+	local handles = luau.load(section, { debugName = CLIENT, environment = env })()
+	local panels = handles.panels
+	env.petRing = handles.petRing
 	local dock = assert(playerGui:FindFirstChild("ForgePanelDock"), "dock gui")
 	local h: any = {
 		errors = errors,
@@ -598,6 +623,11 @@ local function harness(options: any?): any
 		playerGui = playerGui,
 		hud = hud,
 		panels = panels,
+		petRing = handles.petRing,
+		load = load,
+		captureSend = function(action, args)
+			return captureContext.send(action, args)
+		end,
 		player = player,
 		workspace = workspace,
 		game = game,

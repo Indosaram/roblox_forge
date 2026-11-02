@@ -340,7 +340,7 @@ function M.factory(ctx: any): any
 		return mine
 	end
 	local function target(): Model?
-		local folder = workspace:FindFirstChild("ForgeWildlife")
+		local folder = workspace:FindFirstChild("ForgeWildlife", true)
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local rules = ctx.content and ctx.content.progressionPolicy and ctx.content.progressionPolicy.companion

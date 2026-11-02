@@ -394,7 +394,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		if not starter or not root then
 			return nil, math.huge
 		end
-		local folder = workspace:FindFirstChild("ForgeWildlife")
+		local folder = workspace:FindFirstChild("ForgeWildlife", true)
 		if not folder then
 			return nil, math.huge
 		end
@@ -809,10 +809,8 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	end
 	local alive = true
 	local folderConnections: { RBXScriptConnection } = {}
-	task.spawn(function()
-		-- The wildlife folder is created when the server world binds, possibly after this panel.
-		local folder = workspace:WaitForChild("ForgeWildlife", math.huge)
-		if not alive or not folder then
+	local function bindFolder(folder: Instance)
+		if not alive or folder.Name ~= "ForgeWildlife" then
 			return
 		end
 		table.insert(
@@ -824,6 +822,21 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		table.insert(folderConnections, folder.ChildRemoved:Connect(detach))
 		for _, child in folder:GetChildren() do
 			task.spawn(attach, child)
+		end
+	end
+	task.spawn(function()
+		local wildlifeFolder = workspace:FindFirstChild("ForgeWildlife", true)
+		if wildlifeFolder then
+			bindFolder(wildlifeFolder)
+		else
+			local added: RBXScriptConnection
+			added = workspace.DescendantAdded:Connect(function(child)
+				if child.Name == "ForgeWildlife" then
+					added:Disconnect()
+					bindFolder(child)
+				end
+			end)
+			table.insert(folderConnections, added)
 		end
 	end)
 	local unsubscribe = ctx.onSnapshot(function(snapshot: { [string]: any }, packet: any?)

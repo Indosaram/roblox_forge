@@ -909,7 +909,7 @@ function M.start(options: Options)
 			local hidden = options.hidden()
 			local humanoid, root = body()
 			-- Floating numbers: any creature within 60 studs that lost health, and the local player.
-			local folder = world:FindFirstChild("ForgeWildlife")
+			local folder = world:FindFirstChild("ForgeWildlife", true)
 			for _, model in if folder then folder:GetChildren() else {} do
 				local hp = model:GetAttribute("ForgeWildlifeHealthMilli")
 				local anchor = rootOf(model)
