@@ -41,16 +41,6 @@ for _, definition in Content.items do
 end
 M.owner, M.count, M.anchorOf = Kit.owner, Kit.count, Kit.anchorOf
 
-local function firstItem(items: any, catalogId: string): string?
-	local best: string? = nil
-	for id, item in items or {} do
-		if item.catalogId == catalogId and (best == nil or id < best) then
-			best = id
-		end
-	end
-	return best
-end
-
 local count, anchorOf = M.count, M.anchorOf
 
 function M.run(Journey: any, options: any): any
@@ -317,7 +307,18 @@ function M.run(Journey: any, options: any): any
 	-- Backpack, so the held Tool is registered directly (engine.equip) for the bag item.
 	local held: any = nil
 	local function equip(catalogId: string): boolean
-		local itemId = firstItem(bag().items, catalogId)
+		-- The hotbar offers only usable tools: a broken (durability 0) or reserved stack is not a slot.
+		local itemId: string? = nil
+		for id, item in bag().items do
+			if
+				item.catalogId == catalogId
+				and (item.durabilityMilli or 0) > 0
+				and (item.reserved or 0) < (item.quantity or 1)
+				and (itemId == nil or id < itemId)
+			then
+				itemId = id
+			end
+		end
 		if not itemId then
 			return false
 		end
