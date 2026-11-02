@@ -31,8 +31,9 @@ function M.format(locale: string, key: string, ...: any): string
 end
 
 -- Lowest character gate of a support region whose layout is the only source of `item`
--- (no ungated region has a node for it), or nil when the item is gathered at level 1.
-local function regionLevel(content: any, item: string): number?
+-- (no ungated region has a node for it), or nil when the item is gathered at level 1. The second
+-- value is that region's role (the sea chart isle to sail to).
+local function regionLevel(content: any, item: string): (number?, string?)
 	local nodes = {}
 	for _, layout in content.layouts or {} do
 		for _, node in layout.resourceNodes or {} do
@@ -41,17 +42,95 @@ local function regionLevel(content: any, item: string): number?
 			end
 		end
 	end
-	local best: number? = nil
+	local best: number?, role: string? = nil, nil
 	for _, region in content.supportRegions or {} do
 		if nodes[region.layout] then
 			local gate = (region.gates or {}).characterLevel or 1
 			if gate <= 1 then
-				return nil
+				return nil, nil
 			end
-			best = math.min(best or gate, gate)
+			if best == nil or gate < best then
+				best, role = gate, region.role
+			end
 		end
 	end
-	return best
+	return best, role
+end
+
+-- "<thing> (Sea chart > <isle>, level N+)" when `item` only grows on a gated wild isle.
+local function whereIsle(locale: string, content: any, item: string, what: string): string?
+	local level, role = regionLevel(content, item)
+	if not level then
+		return nil
+	end
+	local isle = if role and strings["cli.chart.isle." .. role] then M.text(locale, "cli.chart.isle." .. role) else nil
+	if isle and strings.guide_where_isle then
+		return M.format(locale, "guide_where_isle", what, isle, level)
+	end
+	return M.format(locale, "guide_where_region", what, level)
+end
+
+local function recipeOf(content: any, target: string): any?
+	for _, recipe in content.recipes or {} do
+		if recipe.id == target then
+			return recipe
+		end
+	end
+	for _, recipe in content.recipes or {} do
+		if recipe.outputs and recipe.outputs[1] and recipe.outputs[1].item == target then
+			return recipe
+		end
+	end
+	return nil
+end
+
+local function hasNode(content: any, item: string): boolean
+	for _, layout in content.layouts or {} do
+		for _, node in layout.resourceNodes or {} do
+			if node.item == item then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- Inputs of a craft target the player cannot just pick up here: processed inputs (no node
+-- anywhere) name their recipe's station, wild-isle inputs name the isle. nil when none.
+local function craftInputs(locale: string, content: any, target: string, names: any): string?
+	local recipe = recipeOf(content, target)
+	if not recipe or not strings.guide_inputs then
+		return nil
+	end
+	local parts = {}
+	for _, input in recipe.inputs or {} do
+		local name = names[input.item] or input.item
+		if not hasNode(content, input.item) then
+			local source = recipeOf(content, input.item)
+			if source then
+				local station = if source.station then names[source.station] or source.station else nil
+				table.insert(parts, if station then M.format(locale, "guide_input_station", name, station) else name)
+			end
+		else
+			local placed = whereIsle(locale, content, input.item, name)
+			if placed then
+				table.insert(parts, placed)
+			end
+		end
+	end
+	return if #parts > 0 then table.concat(parts, ", ") else nil
+end
+
+-- Display name of a guide target: guide_target_<id>, a skill node (skills.<id>), else the
+-- entity name.
+local function targetName(locale: string, target: string, names: any): string
+	local key = "guide_target_" .. target
+	if strings[key] then
+		return M.text(locale, key)
+	elseif strings["skills." .. target] then
+		return M.text(locale, "skills." .. target)
+	end
+	return names[target] or target
 end
 
 local function title(locale: string, guide: any, names: any): string
@@ -81,12 +160,26 @@ local function openGuide(
 				end
 			end
 			local go = "guide_go_" .. o.action
+			local verb = "guide_act_" .. string.gsub(o.action, "%-", "_")
+			if not strings[go] and strings[verb] and strings.guide_go_sheet then
+				-- Steps without a HUD verb row read as "<Verb> <target> (Menu > Guides)": the guide
+				-- sheet row carries that step's own button.
+				local what =
+					M.format(locale, "guide_go_sheet", M.text(locale, verb), targetName(locale, o.target, names))
+				local have = math.min(progress[o.id] or 0, o.quantity)
+				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
+			end
 			if strings[go] then
-				local t = "guide_target_" .. o.target
-				local what = M.format(locale, go, if strings[t] then M.text(locale, t) else names[o.target] or o.target)
-				local where = if o.action == "gather" then regionLevel(content, o.target) else nil
-				if where then
-					what = M.format(locale, "guide_where_region", what, where)
+				local what = M.format(locale, go, targetName(locale, o.target, names))
+				if o.action == "gather" then
+					what = whereIsle(locale, content, o.target, what) or what
+				elseif o.action == "craft" then
+					local inputs = craftInputs(locale, content, o.target, names)
+					if inputs then
+						what = M.format(locale, "guide_inputs", what, inputs)
+					end
+				elseif o.action == "capture" and strings.guide_where_capture then
+					what = M.format(locale, "guide_where_capture", what)
 				end
 				local have = math.min(progress[o.id] or 0, o.quantity)
 				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)
@@ -106,7 +199,10 @@ function M.guideObjective(locale: string, content: any, ch: any, names: any, sol
 	if grade < needRank then
 		return openGuide(locale, content, ch, names, level, grade, 0, solo)
 	elseif level >= needLevel then
-		return M.text(locale, "guide_route_open")
+		-- Route open: an open guide of the bands past the route grade leads (route 1 stays on the
+		-- Routes card); only with none open does the line point at the route.
+		return openGuide(locale, content, ch, names, level, grade, needRank + 1, solo)
+			or M.text(locale, "guide_route_open")
 	end
 	-- Grade met but below the route level: a guide of the route's grade first, else any still-open
 	-- start guide (chart2 lowered route 1 to grade 1, reached after two of the four start guides).

@@ -3277,3 +3277,15 @@ cli.chart.sail_harbor,Sail to the harbor,client sea chart label,Sail to the harb
 exp.exp_next_window,Next window opens in %s,genre text exp,Next window opens in %s,다음 항로는 %s 후에 열려요
 gth.bag_full,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag",gather refusal when the gathered items do not fit the bag,"Your bag is full. Store items at the warehouse, sell at the harbor, or drop some in the bag","가방이 가득 찼어요. 창고에 보관하거나 항구에서 팔거나, 가방에서 버려 공간을 만드세요"
 hud.drop,Drop 5,genre text hud,Drop 5,5개 버리기
+guide_go_purchase,learn the %s skill (Menu > Skills),HUD objective guide action,learn the %s skill (Menu > Skills),%s 기술 배우기 (메뉴 > 기술)
+guide_go_place,"place %s (B key, Menu > Build)",HUD objective guide action,"place %s (B key, Menu > Build)","%s 설치하기 (B 키, 메뉴 > 건설)"
+guide_go_equip,equip %s (Menu > Equipment),HUD objective guide action,equip %s (Menu > Equipment),%s 장착하기 (메뉴 > 장비)
+guide_go_plant,plant %s (Menu > Farm),HUD objective guide action,plant %s (Menu > Farm),%s 심기 (메뉴 > 농장)
+guide_go_harvest,harvest %s (Menu > Farm),HUD objective guide action,harvest %s (Menu > Farm),%s 수확하기 (메뉴 > 농장)
+guide_go_feed,feed %s to your pet (Menu > Taming),HUD objective guide action,feed %s to your pet (Menu > Taming),반려동물에게 %s 먹이기 (메뉴 > 길들이기)
+guide_go_eat,eat %s (Bag > Eat one),HUD objective guide action,eat %s (Bag > Eat one),%s 먹기 (가방 > 하나 먹기)
+guide_where_isle,"%s (Sea chart > %s, level %d+)",HUD objective next step,"%s (Sea chart > %s, level %d+)","%s (해도 > %s, 레벨 %d+)"
+guide_inputs,%s. First make: %s,HUD objective craft inputs,%s. First make: %s,%s. 먼저 준비: %s
+guide_input_station,%s at the %s,HUD objective craft input station,%s at the %s,%s (%s에서 제작)
+guide_where_capture,%s: dodos roam the Route 1 drift isles,HUD objective capture place,%s: dodos roam the Route 1 drift isles,%s: 도도는 항로 1 표류섬에 있어요
+guide_go_sheet,%s %s (Menu > Guides),HUD objective guide action (guide sheet step),%s %s (Menu > Guides),%s %s (메뉴 > 안내)

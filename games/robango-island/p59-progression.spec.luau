@@ -95,7 +95,7 @@ return {
 		local ten = Text.guideObjective("en-us", old, { level = 10, points = 200, definitions = nine }, NAMES)
 		assert(
 			string.find(ten :: string, "Hazelnut", 1, true)
-				and string.find(ten :: string, "Harbor > departure post, level 10 area", 1, true),
+				and string.find(ten :: string, "Sea chart > Fernreach Wilds, level 10+", 1, true),
 			tostring(ten)
 		)
 		-- Every level 5..29 yields a line that is more than the bare gate.
@@ -109,5 +109,45 @@ return {
 		assert(#gateOnly == 0, "bare gate at levels " .. table.concat(gateOnly, ","))
 		local open = Text.guideObjective("en-us", old, { level = 30, points = 200, definitions = done }, NAMES)
 		assert(open == Text.text("en-us", "guide_route_open"), tostring(open))
+	end,
+	["journey6h: every solo guide step shows an action, processed inputs name their station, wild items their isle"] = function()
+		local Guide = require("../../genres/survival-coop/module/GuideEvents")
+		local names = (require("./PackText.fixture") :: any).names("en-us")
+		local missing = {}
+		for _, guide in Guide.visible(Content, true) do
+			local level, grade = guide.gates.characterLevel or 1, guide.gates.developmentRank or 0
+			for index, objective in guide.objectives do
+				local progress = {}
+				for earlier = 1, index - 1 do
+					progress[guide.objectives[earlier].id] = guide.objectives[earlier].quantity
+				end
+				local done = {}
+				for _, other in Content.guides do
+					if other.id ~= guide.id then
+						done[other.id] = true
+					end
+				end
+				local line = Text.guideObjective(
+					"en-us",
+					Content,
+					{ level = math.max(level, 2), points = grade * 100, definitions = done, progress = progress },
+					names,
+					true
+				)
+				if not line or line == Text.text("en-us", "guide_route_open") then
+					table.insert(missing, guide.id .. "#" .. index .. " " .. objective.action .. ": " .. tostring(line))
+				end
+			end
+		end
+		assert(#missing == 0, "guide steps with no HUD action: " .. table.concat(missing, "; "))
+		local done = {}
+		for _, other in Content.guides do
+			done[other.id] = other.id ~= "rw.g34.hunting-bow"
+		end
+		local bow = Text.guideObjective("en-us", Content, { level = 13, points = 200, definitions = done }, names, true)
+		assert(
+			bow and string.find(bow, "Campfire", 1, true),
+			"bow names the campfire for dried inputs: " .. tostring(bow)
+		)
 	end,
 }
