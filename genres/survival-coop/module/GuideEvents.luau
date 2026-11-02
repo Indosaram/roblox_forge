@@ -61,6 +61,9 @@ function M.event(action: string, args: { any }, facts: any, result: any): any?
 		return event("craft", facts.recipe, 1, M.family(facts.content, facts.recipe))
 	elseif action == "rest" then
 		return event("rest", "rw.onboarding.rest-mat")
+	elseif action == "settlement-place" then
+		local placement = facts.settlement and facts.settlement.reservations[args[1]]
+		return event("place", placement and placement.definition.id)
 	elseif action == "home-place" then
 		return event("place", type(args[2]) == "table" and args[2].kind or nil)
 	elseif action == "home-expand" then

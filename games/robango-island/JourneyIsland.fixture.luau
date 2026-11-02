@@ -678,8 +678,13 @@ function M.run(host: any, p: any, options: any?): any
 					local here = true
 					for _, input in recipe.inputs do
 						if count(p.bag().items, input.item) < input.quantity then
-							here = here and seek(input.item, "guide " .. g.id .. " (" .. recipe.id .. " input)")
-							p.gatherItem(input.item, input.quantity, 600)
+							local processed = false
+							for _, source in Content.recipes do
+								processed = processed or source.outputs[1].item == input.item
+							end
+							if not processed then
+								here = here and seek(input.item, "guide " .. g.id .. " (" .. recipe.id .. " input)")
+							end
 						end
 					end
 					if not here then
@@ -692,6 +697,40 @@ function M.run(host: any, p: any, options: any?): any
 						end
 					end
 					p.craft(recipe.id)
+				end
+			elseif o.action == "place" then
+				if host.role ~= "home" then
+					if sail("home") then
+						continue
+					end
+				else
+					local definition = nil
+					for _, structure in Content.structures do
+						if structure.id == o.target then
+							definition = structure
+						end
+					end
+					if definition then
+						local pad = anchor("station-pad")
+						if pad then
+							p.walk({ x = pad.x, y = pad.y, z = pad.z + 6 }, 0)
+						end
+						p.closeSheets()
+						p.h().hud.open("build")
+						p.render()
+						if not p.find("Structure-" .. o.target) then
+							for _, tab in p.findPrefix("BuildTab-") do
+								p.click(tab)
+								if p.find("Structure-" .. o.target) then
+									break
+								end
+							end
+						end
+						clickNamed("Structure-" .. o.target)
+						clickNamed("ConfirmPlacement")
+						clickNamed("ConfirmPlacement")
+						p.closeSheets()
+					end
 				end
 			elseif o.action == "deliver" then
 				M.contract(p, extensions)

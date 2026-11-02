@@ -57,7 +57,7 @@ return function(content: any, source, world, backend, clock, options, provision,
 	-- p134 C1 dead end 3: on the onboarding island a build's shortfall is paid from the bag (the card
 	-- showed campfire wood 0/4 with 9 logs carried). The reserve command first deposits those stacks into
 	-- the camp warehouse through the real transfer; for that one deposit the build site is the reach.
-	local bagBuild = world.layout ~= nil and world.layout.id == "rw.onboarding"
+	local bagBuild = world.layout ~= nil
 	local buildDeposit: { [string]: boolean } = {}
 	local bagSent: { [string]: any } = {}
 	local tribeConfig: Settlement.Config = {
@@ -1840,6 +1840,9 @@ return function(content: any, source, world, backend, clock, options, provision,
 				local guideFacts = {
 					recipe = recipe,
 					content = content,
+					settlement = if action == "settlement-place"
+						then session.snapshot(actor).survivalSettlement.settlement
+						else nil,
 					bag = if data then data.inventory.bag.items else nil,
 					market = if data then data.market else nil,
 					companions = if data then data.companions else nil,

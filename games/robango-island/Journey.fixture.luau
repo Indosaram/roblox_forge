@@ -591,7 +591,7 @@ function M.new(options: any?): any
 			clock = function()
 				return at.value
 			end,
-			bagBuild = onboarding,
+			bagBuild = host.world.layout ~= nil,
 			userId = tonumber(M.ACTOR),
 			guidPrefix = "guid-" .. sequence .. "-",
 			tagged = function(tag: string): { any }

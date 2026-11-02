@@ -369,6 +369,31 @@ function M.run(Journey: any, options: any): any
 		if options.debug and not result.ok then
 			print("DEBUG gather", node.id, result.reason, serde.encode("json", result.data or {}))
 		end
+		if not result.ok and result.reason == "SKILL_LOCKED" and type(result.data) == "table" then
+			-- GatheringClient's refusal names the required skill; use that Skills category's Learn.
+			local need = result.data.requirement or result.data
+			if type(need.skill) == "string" then
+				closeSheets()
+				h.hud.open("skills")
+				render()
+				for _, definition in Content.skillNodes do
+					if definition.id == need.skill then
+						local category = find("skill-" .. definition.category)
+						if category then
+							click(category)
+						end
+						local learn = find("learn-" .. need.skill)
+						if learn then
+							click(learn)
+							host.tick(1)
+						end
+						break
+					end
+				end
+				closeSheets()
+				result = press()
+			end
+		end
 		if not result.ok and result.reason == "TOOL_UNAVAILABLE" and type(result.data) == "table" then
 			-- The refusal toast names the tool (GatheringClient "<tool> equip it"); tap it on the hotbar.
 			local need = result.data.requirement or result.data
@@ -521,50 +546,23 @@ function M.run(Journey: any, options: any): any
 
 	-- Craft: the HUD craft sheet's recipe row, then Reserve/Make (the hand chain runs on delays).
 	local craft: (recipeId: string) -> (boolean, string?)
-	-- No accepted tool in the bag: craft the first hand recipe (no station) whose output the node
-	-- accepts, gathering its inputs first; a station recipe is left to the stage's craft objective.
-	local crafting = false
-	-- Craft one of the first recipe whose output `wanted` accepts and whose inputs this island's
-	-- nodes (or the bag) give; a station recipe walks to the layout's station anchor first.
+	local crafting: { [string]: boolean } = {}
 	local function make(label: string, wanted: (output: string) -> boolean): boolean
-		if crafting then
+		if crafting[label] then
 			return false
 		end
-		crafting = true
+		crafting[label] = true
 		local made = false
-		local required = label
 		for _, recipe in Content.recipes do
-			local output = recipe.outputs[1].item
-			local reachable = wanted(output)
-			for _, input in recipe.inputs do
-				reachable = reachable
-					and (count(bag().items, input.item) >= input.quantity or nodeFor(input.item) ~= nil)
-			end
-			local station = if recipe.station then anchorOf(layout(), "station." .. recipe.station .. ".t1") else nil
-			if reachable and (recipe.station == nil or station ~= nil) then
-				event("craft-tool", { need = required, recipe = recipe.id, station = recipe.station })
-				local stocked = true
-				for _, input in recipe.inputs do
-					stocked = stocked and gatherItem(input.item, input.quantity, 300)
+			if wanted(recipe.outputs[1].item) then
+				local ok = craft(recipe.id)
+				made = ok
+				if made then
+					break
 				end
-				if stocked and station then
-					walk(station, 3)
-				end
-				local crafted: boolean, why: string? = false, "inputs"
-				if stocked then
-					crafted, why = craft(recipe.id)
-				end
-				event("craft-tool-result", {
-					recipe = recipe.id,
-					ok = crafted,
-					why = why,
-					bag = { branch = count(bag().items, "branch"), stone = count(bag().items, "stone") },
-				})
-				made = crafted
-				break
 			end
 		end
-		crafting = false
+		crafting[label] = nil
 		return made
 	end
 	craftTool = function(required: string): boolean
@@ -592,7 +590,11 @@ function M.run(Journey: any, options: any): any
 		end
 		return count(bag().items, item) >= want
 	end
+	local preparing: { [string]: boolean } = {}
 	craft = function(recipeId: string): (boolean, string?)
+		if preparing[recipeId] then
+			return false, "RECIPE_CYCLE"
+		end
 		h.hud.open("craft")
 		render()
 		local row = find("Recipe-" .. recipeId)
@@ -608,7 +610,35 @@ function M.run(Journey: any, options: any): any
 			closeSheets()
 			return false, "RECIPE_NOT_LISTED"
 		end
+		local shownRecipe = row.Text
 		click(row)
+		-- The recipe row names a missing skill. Find that name on the Skills sheet, then Learn.
+		local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+		for _, node in Content.skillNodes do
+			local skillName = Locale.skillName("ko-kr", node.id)
+			if string.find(shownRecipe, skillName, 1, true) then
+				closeSheets()
+				h.hud.open("skills")
+				render()
+				local category = find("skill-" .. node.category)
+				if category then
+					click(category)
+				end
+				local learn = find("learn-" .. node.id)
+				if learn then
+					click(learn)
+					host.tick(1)
+				end
+				closeSheets()
+				h.hud.open("craft")
+				render()
+				row = find("Recipe-" .. recipeId)
+				if row then
+					click(row)
+				end
+				break
+			end
+		end
 		local reserve = find("Reserve-" .. recipeId)
 		if not reserve then
 			closeSheets()
@@ -620,6 +650,55 @@ function M.run(Journey: any, options: any): any
 			recipe = if r.id == recipeId then r else recipe
 		end
 		local output = recipe.outputs[1].item
+		-- Only after selecting the shown recipe do its material rows drive the input chain.
+		preparing[recipeId] = true
+		closeSheets()
+		for _, input in recipe.inputs do
+			if not obtain(input.item, input.quantity, 300) then
+				preparing[recipeId] = nil
+				return false, "INPUT_UNAVAILABLE:" .. input.item
+			end
+		end
+		if recipe.station then
+			-- World stations are visibly placed, including home structures and higher tiers.
+			local station = nil
+			local distance = math.huge
+			for _, part in host.engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation") do
+				if part:GetAttribute("ForgeStationKind") == recipe.station then
+					local at = part.Position
+					local d = (at.X - position.x) ^ 2 + (at.Z - position.z) ^ 2
+					if d < distance then
+						station, distance = { x = at.X, y = at.Y, z = at.Z }, d
+					end
+				end
+			end
+			if not station then
+				preparing[recipeId] = nil
+				return false, "STATION_UNAVAILABLE"
+			end
+			walk(station, 3)
+		end
+		preparing[recipeId] = nil
+		h.hud.open("craft")
+		render()
+		row = find("Recipe-" .. recipeId)
+		if not row then
+			local filter = find("RecipeFilter")
+			if filter then
+				click(filter)
+				row = find("Recipe-" .. recipeId)
+			end
+		end
+		if not row then
+			closeSheets()
+			return false, "RECIPE_NOT_LISTED"
+		end
+		click(row)
+		reserve = find("Reserve-" .. recipeId)
+		if not reserve then
+			closeSheets()
+			return false, "NO_RESERVE_BUTTON"
+		end
 		before = count(bag().items, output)
 		click(reserve)
 		if options.debug then
