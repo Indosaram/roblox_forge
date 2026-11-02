@@ -786,7 +786,21 @@ function M.run(host: any, p: any, options: any?): any
 			end
 		end
 		if p.level() >= 2 and not live then
-			if t and t.status == "active" and role ~= "archipelago" and not abandoned[t.id] then
+			-- Try the shown depart first; the workaround runs only when that is refused by the trip.
+			local blocked = false
+			if t and t.status == "active" and role == "harbor" and not abandoned[t.id] then
+				p.openTile("routes")
+				clickNamed("Route-1")
+				clickNamed("DepartConfirm")
+				p.closeSheets()
+				if settleTravel() then
+					continue
+				end
+				local last = p.lastCommand()
+				local why = last and last.action == "survival-coop:party-action" and last.reason
+				blocked = why == "expedition_active" or why == "route_expired"
+			end
+			if blocked and t and not abandoned[t.id] then
 				-- Workaround, not a client affordance: the expired trip blocks every depart (open answers
 				-- expedition_active, admission route_expired) and only the archipelago drift worker resets it.
 				abandoned[t.id] = true
@@ -824,6 +838,28 @@ function M.run(host: any, p: any, options: any?): any
 					continue
 				end
 				clickNamed("TravelBack")
+			end
+			-- Final ten minutes of a window: the card names the next window; the player waits for it.
+			if p.find("RouteNext-1") and role == "harbor" then
+				local card = ((extensions().expedition or {}).routes or {})[1] or {}
+				local left = (card.expiresAt or 0) - ((extensions().expedition or {}).now or 0)
+				p.event("route-wait", { seconds = left, text = cut(p.find("RouteNext-1").Text, 60) })
+				p.closeSheets()
+				if left > 0 and left <= 600 then
+					p.wait(left + 1)
+					continue
+				end
+			end
+			-- Off the harbor the card offers 'sail to the harbor' (it opens the sea chart).
+			local viaHarbor = p.find("RouteHarbor-1")
+			if viaHarbor and role ~= "harbor" then
+				p.click(viaHarbor)
+				p.closeSheets()
+				local ok, why = sail("harbor")
+				p.event("sail", { to = "harbor", ok = ok, reason = why, from = host.layoutId, via = "RouteHarbor-1" })
+				if ok then
+					continue
+				end
 			end
 			local choose = p.find("Route-1")
 			local shownRoutes = {}

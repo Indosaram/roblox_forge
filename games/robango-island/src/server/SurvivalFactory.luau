@@ -863,6 +863,18 @@ return function(content: any, source, world, backend, clock, options, provision,
 			onExpedition = function()
 				return workspace:GetAttribute("ForgeWorldRole") == "archipelago"
 			end,
+			-- This server's role from its layout id (SeaChart.roleOf's rule, inline: not every host
+			-- mounts the pack's shared modules).
+			role = function(): string?
+				local id: any = if world.layout then world.layout.id else nil
+				if type(id) ~= "string" then
+					return nil
+				end
+				local role: string = if string.match(id, "^rw%.a%d+%.s%d+$")
+					then "archipelago"
+					else (string.gsub(id, "^rw%.", ""))
+				return role
+			end,
 			-- G22: live player count per route (SocialPresence via the server's world.population).
 			population = function(listing)
 				return if world.population then world.population(listing) else nil

@@ -4,6 +4,44 @@ local Content = require("../../../games/robango-island/src/shared/SurvivalConten
 local World = require("../../../games/robango-island/src/server/ArchipelagoWorld")
 local serde = require("@lune/serde")
 return {
+	["fxB: an expired trip never entered is settled on the next open instead of blocking it"] = function()
+		-- journey6h @13.5m: open -> expedition_active forever ashore once the trip window ended.
+		local document: any = {}
+		local now = 10
+		local extension = Extension.new({
+			content = Content,
+			entryBuffer = 30,
+			now = function()
+				return now
+			end,
+			facts = function()
+				return { level = 60, developmentRank = 10, instabilityAccess = 5 }
+			end,
+			store = {
+				transaction = function(_actor, transform)
+					local candidate = serde.decode("json", serde.encode("json", document))
+					local result = transform(candidate)
+					if result.ok then
+						document = candidate
+					end
+					return result
+				end,
+				snapshot = function()
+					return document
+				end,
+			},
+		})
+		local function open(id: string): any
+			return extension.open("a", { id = id, index = 1, seed = 7, ttl = 1000, revision = "v", entryBuffer = 30 })
+		end
+		assert(open("first").ok, "first trip opens")
+		now = 500
+		assert(open("busy").reason == "expedition_active", "a live trip still blocks")
+		now = 1000
+		local second = open("second")
+		assert(second.ok, "the expired trip is settled and the next opens: " .. tostring(second.reason))
+		assert(document.archipelago.id == "second" and document.archipelago.status == "active", "new trip")
+	end,
 	["a member on a shared route opens it with the owner's route access but their own level gate"] = function()
 		local documents: any = { owner = { routeShare = { route = 2, members = { b = "member", c = "invited" } } } }
 		local extension = Extension.new({

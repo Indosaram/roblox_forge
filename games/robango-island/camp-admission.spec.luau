@@ -721,9 +721,10 @@ return {
 		assert(unlocked.facts.developmentRank >= 2, "grade " .. tostring(unlocked.facts.developmentRank))
 		assert(unlocked.facts.developmentRank >= unlocked.routes[1].rank, "route 1 grade met")
 		assert(unlocked.facts.level >= unlocked.routes[1].level, "route 1 level met: L" .. unlocked.facts.level)
+		-- Gates met: on onboarding the card only says the route departs from the harbor (fxB).
 		assert(
-			unlocked.routes[1].reason == nil and unlocked.routes[1].ok,
-			"route 1 open: " .. tostring(unlocked.routes[1].reason)
+			unlocked.routes[1].reason == "transition_not_allowed",
+			"route 1 gates met, harbor-only here: " .. tostring(unlocked.routes[1].reason)
 		)
 		local _, after = card()
 		assert(after.gate == nil, "an open route card shows no gate line: " .. tostring(after.gate))

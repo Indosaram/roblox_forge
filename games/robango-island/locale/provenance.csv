@@ -3271,3 +3271,7 @@ chr.guide_act_equip,original,agent:hephaestus/guides6h,2026-11-01
 chr.guide_target_processing_2,original,agent:hephaestus/guides6h,2026-11-01
 chr.guide_target_processing_3,original,agent:hephaestus/guides6h,2026-11-01
 chr.guide_target_weapon_tool_3,original,agent:hephaestus/guides6h,2026-11-01
+exp.exp_sail_harbor,original,agent:hephaestus/fxB,2026-11-02
+cli.chart.via_harbor,original,agent:hephaestus/fxB,2026-11-02
+cli.chart.sail_harbor,original,agent:hephaestus/fxB,2026-11-02
+exp.exp_next_window,original,agent:hephaestus/fxB,2026-11-02

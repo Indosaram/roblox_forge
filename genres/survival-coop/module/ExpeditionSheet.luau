@@ -23,20 +23,26 @@ function M.mount(ctx: any, options: { name: string, title: string, dock: string?
 	if ctx.fitSheet then
 		ctx.fitSheet(sheet.frame)
 	end
+	local shell: any
 	local dock = if ctx.dock and options.dock
 		then ctx.dock({
 			id = options.dock,
 			label = options.title,
 			order = options.order or 9,
 			setOpen = function(open: boolean)
+				local opening = open and not gui.Enabled
 				gui.Enabled = open
+				-- A tile open starts from the panel's home view (shell.onOpen, optional).
+				if opening and shell.onOpen then
+					shell.onOpen()
+				end
 			end,
 			isOpen = function()
 				return gui.Enabled
 			end,
 		})
 		else nil
-	local shell: any = { gui = gui, sheet = sheet, dock = dock, onClose = nil }
+	shell = { gui = gui, sheet = sheet, dock = dock, onClose = nil, onOpen = nil }
 	sheet.close.Activated:Connect(function()
 		gui.Enabled = false
 		-- The header X is a real dismissal: the panel acknowledges whatever it was showing.

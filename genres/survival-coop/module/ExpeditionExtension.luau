@@ -4,6 +4,7 @@
 -- this extension only reads authoritative facts and hands a validated departure to the
 -- server's travel port. A party is server-local and owns no property or permissions.
 local Party = require("../../../core/domain/island/Party")
+local Topology = require("../../../core/domain/island/Topology")
 local Journal = require("../../../core/domain/command/Journal")
 local Archipelago = require("../../../core/domain/island/Archipelago")
 local Volcano = require("../../../core/domain/survival/Volcano")
@@ -37,14 +38,31 @@ local VERBS = {
 	["route-accept"] = true,
 	["route-revoke"] = true,
 }
+-- Verbs that take no target: the client sends "" as the second arg.
+local UNTARGETED = { leave = true, next = true, home = true }
 
 -- Declared through Contract's trailing action loop, so existing durable indices never shift.
 function M.actions(): { any }
 	local Schema = require("../../../core/infra/net/Schema")
 	local id = Schema.string({ maxLen = 128, pattern = ".+" })
+	-- Verbs without a target (home, next, leave) send an empty second arg; each verb checks its own.
+	local target = Schema.string({ maxLen = 128, pattern = ".*" })
 	return {
-		{ id = "party-action", args = { id, id }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
+		{ id = "party-action", args = { id, target }, origin = "client", rate = { capacity = 5, refillPerSecond = 2 } },
 	}
+end
+
+--- Off the harbor every route card that is not level- or grade-locked reads
+--- transition_not_allowed (depart from the harbor), so no card offers a Depart that refuses.
+function M.harborOnly(cards: { any }, off: boolean): { any }
+	if off then
+		for _, card in cards do
+			if card.reason ~= "level_gate" and card.reason ~= "development_gate" then
+				card.ok, card.reason = false, "transition_not_allowed"
+			end
+		end
+	end
+	return cards
 end
 
 -- Mission rewards of the actor's latest expedition, keyed exactly as MissionRewards.enqueue keys them.
@@ -243,6 +261,18 @@ function M.new(env: any): any
 		return out
 	end
 	local ttl = env.ttl or M.TTL
+	-- Drift-isle routes depart only where the role graph reaches the archipelago (the harbor).
+	-- env.role (optional) names this server's world role; elsewhere every route card says so and
+	-- a depart is refused before any trip opens.
+	local function offHarbor(actor: string): boolean
+		local role = if env.role then env.role() else nil
+		if type(role) ~= "string" or role == "archipelago" then
+			return false
+		end
+		local facts = env.facts(actor)
+		local _, reason = Topology.validateRoleTransition(role, "archipelago", facts.level or 1)
+		return reason == "transition_not_allowed"
+	end
 	local function depart(actor: string, route: number): any
 		local party = Party.partyOf(state, actor)
 		if party and party.leader ~= actor then
@@ -272,6 +302,9 @@ function M.new(env: any): any
 		end
 		if env.onExpedition() then
 			return { ok = false, reason = "expedition_active" }
+		end
+		if offHarbor(actor) then
+			return { ok = false, reason = "transition_not_allowed" }
 		end
 		local now = env.now()
 		local open, reason = Party.entry(Party.window(now, ttl), now)
@@ -377,6 +410,9 @@ function M.new(env: any): any
 			if type(verb) ~= "string" or not VERBS[verb] then
 				return { ok = false, reason = "INVALID_VERB" }
 			end
+			if arg == "" and not UNTARGETED[verb] then
+				return { ok = false, reason = "INVALID_TARGET" }
+			end
 			local admitted = admit()
 			if not admitted.ok then
 				return admitted
@@ -464,7 +500,10 @@ function M.new(env: any): any
 				party = view,
 				routeShare = if document then document.routeShare else nil,
 				routeInvites = routeInvites(actor, document),
-				routes = M.withPopulation(Party.routes(env.content, env.facts(actor), now, ttl), env.population),
+				routes = M.harborOnly(
+					M.withPopulation(Party.routes(env.content, env.facts(actor), now, ttl), env.population),
+					offHarbor(actor)
+				),
 				-- The player's own level and island grade, so a locked route can say what is missing.
 				facts = env.facts(actor),
 				results = results,

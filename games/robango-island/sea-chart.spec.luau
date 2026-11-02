@@ -200,7 +200,7 @@ local function mountPanel(role: string, snapshot: any, clock: (() -> number)?, o
 		biome = function(id: string): string
 			return id
 		end,
-		send = function()
+		send = opts.send or function()
 			return { ok = false }
 		end,
 		walkTo = opts.walkTo,
@@ -783,6 +783,44 @@ return {
 				assert(card.locked and card.reason == "transition_not_allowed" and card.needLevel == nil, "home edge")
 			end
 		end
+	end,
+	["fxB: an isle only the harbor reaches says 'sail from the harbor' and its primary sails there"] = function()
+		-- journey6h @23m: from rw.home the chart sail to explore10 was refused with a nil reason and the
+		-- tile offered a Set sail that went nowhere. Now the card names the harbor and sails to it.
+		local facts = { level = 20, developmentRank = 2, instabilityAccess = 1 }
+		for _, from in { "home", "explore10", "explore20" } do
+			for _, card in SeaChart.islands(Content, { role = from, level = 20, facts = facts }) do
+				if card.locked then
+					assert(card.reason ~= nil, from .. " -> " .. card.id .. ": a locked card has a reason")
+				end
+				local wild = card.role == "explore10" or card.role == "explore20" or card.id == "drift1"
+				if wild and not card.here then
+					assert(card.viaHarbor, from .. " -> " .. card.id .. " routes via the harbor")
+					local en = text("en-us")
+					assert(SeaChart.copy(card, en, 0).status == en("via_harbor"), SeaChart.copy(card, en, 0).status)
+				end
+			end
+		end
+		-- Above its level an isle still names the level, never 'sail from the harbor'.
+		for _, card in SeaChart.islands(Content, { role = "home", level = 1, facts = { level = 1 } }) do
+			if card.role == "explore20" then
+				assert(card.needLevel == 20 and not card.viaHarbor, "explore20 at level 1 names its level")
+			end
+		end
+		local sent = {}
+		local panel = mountPanel("home", { expedition = { now = 1, facts = facts } }, nil, {
+			send = function(action, args)
+				table.insert(sent, action .. ":" .. table.concat(args, ","))
+				return { ok = true, reason = "travelling" }
+			end,
+		})
+		panel.gui.Enabled = true
+		panel.find("Isle-explore10").Activated:Fire()
+		local sail = assert(panel.find("Sail"), "card primary")
+		assert(sail.Text == text("ko-kr")("sail_harbor") and sail.Active, "primary sails to the harbor: " .. sail.Text)
+		sail.Activated:Fire()
+		assert(sent[1] == "survival-coop:mission-action:sail,harbor", "sails to the harbor: " .. tostring(sent[1]))
+		panel.destroy()
 	end,
 	["route p134: the harbor (selling, departures) is open right after the opening"] = function()
 		-- Staging v63: a Lv 8 solo account on onboarding saw the harbor padlocked ('Depart from the

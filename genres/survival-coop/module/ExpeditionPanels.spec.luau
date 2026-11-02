@@ -88,7 +88,7 @@ local function mount(locale: string, replies: { [string]: any }?, solo: boolean?
 		return if name == "ExpeditionModels" then Models else Text
 	end
 	local clicks: { [any]: () -> () } = {}
-	local h: any = { sent = {}, docks = {}, listener = nil, closes = {}, now = 0 }
+	local h: any = { sent = {}, docks = {}, listener = nil, closes = {}, now = 0, opened = {} }
 	local function make(props: any): any
 		local item = node("TextLabel")
 		item.Text = props.text
@@ -128,6 +128,10 @@ local function mount(locale: string, replies: { [string]: any }?, solo: boolean?
 				end,
 			},
 		},
+		open = function(id: string): boolean
+			table.insert(h.opened, id)
+			return true
+		end,
 		send = function(action: string, args: { any })
 			table.insert(h.sent, action .. ":" .. table.concat(args, ","))
 			return (replies and replies[args[1]]) or { ok = true }
@@ -215,6 +219,64 @@ return {
 		assert(h.find("DepartRefusal").Text == Text.reason("ko-kr", "level_gate"), "gate shown before confirm")
 		h.click("DepartStay")
 		assert(h.find("Route-1"), "stay returns to the list")
+	end,
+	["fxB: Routes reopens on the route list after a refusal, and a new window drops the refusal"] = function()
+		-- journey6h @13.5m: the Routes tile reopened on the last 'expiry_imminent' overlay.
+		local h = mount("ko-kr", { depart = { ok = false, reason = "expiry_imminent" } })
+		h.push(state())
+		h.docks.routes.setOpen(true)
+		h.click("Route-1")
+		h.click("DepartConfirm")
+		assert(h.find("TravelRefusal"), "refusal shown")
+		h.closes.ForgeRoutesSheet.Activated.fire()
+		h.docks.routes.setOpen(true)
+		assert(h.find("Route-1") and not h.find("TravelRefusal"), "header X then reopen: the route list")
+		h.click("Route-1")
+		h.click("DepartConfirm")
+		h.docks.routes.setOpen(false) -- the HUD closes the sheet without its header X
+		h.docks.routes.setOpen(true)
+		assert(h.find("Route-1") and not h.find("TravelRefusal"), "tile reopen: the route list")
+		h.click("Route-1")
+		h.click("DepartConfirm")
+		assert(h.find("TravelRefusal"), "refused again")
+		local later = state({ now = 1900 })
+		for _, card in later.routes do
+			card.expiresAt = 3600
+		end
+		h.push(later)
+		assert(h.find("Route-1") and not h.find("TravelRefusal"), "a new route window drops the stale refusal")
+	end,
+	["fxB: off the harbor a route card sails to the harbor instead of a Depart that refuses"] = function()
+		-- journey6h @3m: Routes > Route 1 > Depart from rw.home was refused transition_not_allowed.
+		local h = mount("en-us")
+		local away = state()
+		away.routes[1].ok, away.routes[1].reason = false, "transition_not_allowed"
+		h.push(away)
+		assert(not h.find("Route-1"), "no Depart button off the harbor")
+		local card = assert(h.find("RouteHarbor-1"), "the card offers the harbor")
+		assert(card.Text == Text.text("en-us", "exp_sail_harbor"), card.Text)
+		h.click("RouteHarbor-1")
+		assert(h.opened[1] == "sea-chart" and #h.sent == 0, "opens the sea chart, sends no depart")
+		assert(h.find("Route-2"), "a level-locked card keeps its locked button")
+		local closing = state()
+		closing.routes[1].ok, closing.routes[1].reason = false, "expiry_imminent"
+		h.push(closing)
+		assert(not h.find("Route-1"), "no Depart in the final ten minutes")
+		local wait = assert(h.find("RouteNext-1"), "the card names the next window")
+		assert(wait.Text == Text.text("en-us", "exp_next_window", Text.duration(1700)), wait.Text)
+	end,
+	["fxB: Expedition > Home > Confirm sends an arg the server schema accepts"] = function()
+		-- journey6h 6 h run @92.7m: party-action {home, ""} was refused 'arg 2: pattern mismatch'.
+		local Schema = require("../../../core/infra/net/Schema")
+		local action = require("./ExpeditionExtension").actions()[1]
+		local h = mount("en-us")
+		h.push(state({ tracker = { route = 1, stage = 1, expiresAt = 1800, unlocked = false, objectives = {} } }))
+		h.click("ExpeditionHome")
+		h.click("TravelConfirm")
+		local verb, arg = string.match(h.sent[1], "^[^:]+:[^:]+:([^,]*),(.*)$")
+		assert(verb == "home", "home sent: " .. tostring(h.sent[1]))
+		local ok, reason = Schema.check(Schema.tuple(action.args), { verb, arg })
+		assert(ok, "server schema refuses the shipped Home confirm: " .. tostring(reason))
 	end,
 	-- Single-player mode (game.yml play_mode.solo): the depart card has no party line, and an incoming
 	-- party invite never pops up (the party sheet is held).

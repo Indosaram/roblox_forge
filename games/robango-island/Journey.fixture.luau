@@ -191,6 +191,14 @@ function M.new(options: any?): any
 			local actor = M.ACTOR
 			local Topology = require("../../core/domain/island/Topology")
 			if destination == "archipelago" then
+				-- RobangoIslandServer: the role edge is checked before archipelago.open.
+				if role ~= "archipelago" then
+					local level = (personal(actor) or {}).progression and personal(actor).progression.level or 1
+					local allowed, refused = Topology.validateRoleTransition(role, destination, level)
+					if not allowed then
+						return false, refused
+					end
+				end
 				local opened = host.factory.archipelago.open(actor, {
 					id = "journey-trip-" .. tostring(at.value), -- server: HttpService:GenerateGUID (unique per open)
 					index = route or 1,

@@ -44,6 +44,9 @@ local function harness(facts: { [string]: any }, now: number?, onExpedition: boo
 		onExpedition = function()
 			return onExpedition == true
 		end,
+		role = function()
+			return h.role
+		end,
 		travel = function(actor: string, destination: string, route: any)
 			table.insert(h.travels, actor .. ">" .. destination .. ":" .. tostring(route))
 			return { ok = true }
@@ -70,6 +73,28 @@ return {
 			"handles only its own"
 		)
 		assert(h.send("1", "bogus").reason == "INVALID_VERB", "unknown verb refused")
+	end,
+	["fxB: off the harbor every open route card says so and a depart is refused before travel"] = function()
+		local h = harness({ a = READY })
+		h.role = "home"
+		local cards = h.extension.snapshot("a").routes
+		assert(cards[1].ok == false and cards[1].reason == "transition_not_allowed", "home: route 1 harbor-only")
+		local refused = h.send("a", "depart", "1")
+		assert(not refused.ok and refused.reason == "transition_not_allowed", tostring(refused.reason))
+		assert(#h.travels == 0, "no travel and no trip opened")
+		local low = harness({})
+		low.role = "home"
+		local gated = low.extension.snapshot("x").routes[5]
+		assert(gated.reason == "level_gate", "a level lock keeps naming the level")
+		h.role = "harbor"
+		assert(h.extension.snapshot("a").routes[1].ok, "harbor: route 1 open")
+		assert(h.send("a", "depart", "1").ok and #h.travels == 1, "harbor departs")
+	end,
+	["fxB: untargeted verbs take an empty arg, targeted verbs refuse it"] = function()
+		local h = harness({ a = READY })
+		assert(h.send("a", "invite", "").reason == "INVALID_TARGET", "invite needs a target")
+		assert(h.send("a", "leave", "").reason ~= "INVALID_TARGET", "leave takes none")
+		assert(h.send("a", "home", "").reason == "missing_expedition", "home reaches its own check")
 	end,
 	["depart refuses a gated member and moves the whole ready party leader last"] = function()
 		local facts = { a = READY, b = { level = 1, developmentRank = 2, instabilityAccess = 1 }, c = READY }

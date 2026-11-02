@@ -573,6 +573,15 @@ liveWorld.travel = function(player: Player, destination: string, route: number?,
 	local token: string? = nil
 	if destination == "archipelago" then
 		local actor = tostring(player.UserId)
+		-- The role edge (drift isles sail only from the harbor) and level gate first: a refused
+		-- departure never leaves an open trip behind. An expired trip is settled before opening.
+		if worldRole ~= "archipelago" then
+			local facts = routingFacts(player.UserId, destination)
+			local allowed, refused = Topology.validateRoleTransition(worldRole, destination, facts and facts.level or 1)
+			if not allowed then
+				return false, refused
+			end
+		end
 		local opened = (factory :: any).archipelago.open(actor, {
 			id = HttpService:GenerateGUID(false),
 			index = route or 1,

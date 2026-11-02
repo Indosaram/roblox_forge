@@ -40,7 +40,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		{ name = "ForgeExpedition", title = Text.text(locale, "exp_routes"), dock = "expedition", order = 10 }
 	)
 	local popup = Sheet.mount(ctx, { name = "ForgeExpeditionPopup", title = "" })
-	local view: { kind: string, route: number?, failure: string?, verb: string? } = { kind = "list" }
+	local view: { kind: string, route: number?, failure: string?, verb: string?, window: number? } = { kind = "list" }
 	local popupKind: string? = nil
 	local seenResults: string? = nil
 	local seenArrival: string? = nil
@@ -73,12 +73,21 @@ function M.factory(ctx: any): { destroy: () -> () }?
 		local result = ctx.send(Models.PARTY_ACTION, { verb, arg })
 		return if type(result) == "table" then result else { ok = false }
 	end
+	local function windowOf(route: number): number?
+		local card = latest and (latest.routes or {})[route]
+		return if card then card.expiresAt else nil
+	end
 	local function depart(route: number)
 		view = { kind = "travel", route = route }
 		render()
 		local result = act("depart", tostring(route))
 		if not result.ok then
-			view = { kind = "travel", route = route, failure = result.reason or "travel_failed" }
+			view = {
+				kind = "travel",
+				route = route,
+				failure = result.reason or "travel_failed",
+				window = windowOf(route),
+			}
 		end
 		render()
 	end
@@ -128,6 +137,11 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					render()
 				end,
 			}, ctx.solo == true))
+		elseif view.kind == "travel" and view.route and view.window ~= nil and view.window ~= windowOf(view.route) then
+			-- A new route window opened since the refusal: back to the list (rendered next push).
+			view = { kind = "list" }
+			render()
+			return
 		elseif view.kind == "travel" and view.route then
 			local route = view.route :: number
 			routes.render(Models.travel(locale, route, view.failure, function()
@@ -137,15 +151,27 @@ function M.factory(ctx: any): { destroy: () -> () }?
 				render()
 			end))
 		else
-			routes.render(Models.routes(locale, latest, ctx.names, function(route)
-				view = { kind = "confirm", route = route }
-				render()
-			end, function()
-				-- Guides raise the island grade; the rank sheet lists them (contracts give XP).
-				if ctx.open and not ctx.open("guides") and not ctx.open("island-rank") then
-					ctx.open("contracts")
-				end
-			end))
+			routes.render(Models.routes(
+				locale,
+				latest,
+				ctx.names,
+				function(route)
+					view = { kind = "confirm", route = route }
+					render()
+				end,
+				function()
+					-- Guides raise the island grade; the rank sheet lists them (contracts give XP).
+					if ctx.open and not ctx.open("guides") and not ctx.open("island-rank") then
+						ctx.open("contracts")
+					end
+				end,
+				if ctx.open
+					then function()
+						-- The sea chart sails to the harbor, where the routes depart.
+						ctx.open("sea-chart")
+					end
+					else nil
+			))
 		end
 		party.render(Models.party(locale, latest, me, others(), function(verb, arg)
 			local result = act(verb, arg)
@@ -305,8 +331,19 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	-- Closing the arrival sheet with its header X acknowledges the arrival exactly like Stay,
 	-- so the next snapshot of the same arrival does not reopen it (p36 Studio: X reopened 0.6 s later).
 	routes.onClose = function()
+		-- Closing the sheet drops a stale confirm or refusal: the Routes tile reopens on the list.
+		local stale = view.kind ~= "list"
+		view = { kind = "list" }
 		if shownArrival then
 			seenArrival = shownArrival
+		end
+		if shownArrival or stale then
+			render()
+		end
+	end
+	routes.onOpen = function()
+		if view.kind ~= "list" then
+			view = { kind = "list" }
 			render()
 		end
 	end

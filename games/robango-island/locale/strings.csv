@@ -3271,3 +3271,7 @@ chr.guide_act_equip,Equip,genre text chr,Equip,장착
 chr.guide_target_processing_2,Processing 2 (tanning),genre text chr,Processing 2 (tanning),가공 2 (무두질)
 chr.guide_target_processing_3,Processing 3 (polishing),genre text chr,Processing 3 (polishing),가공 3 (연마)
 chr.guide_target_weapon_tool_3,Weapon Tool 3 (tier 2 recipes),genre text chr,Weapon Tool 3 (tier 2 recipes),무기·도구 3 (2단계 제작법)
+exp.exp_sail_harbor,Sail to the harbor (routes depart there),genre text exp,Sail to the harbor (routes depart there),항구로 출항 (항로는 항구에서 출발해요)
+cli.chart.via_harbor,Sail from the harbor,client sea chart label,Sail from the harbor,항구에서 출항하세요
+cli.chart.sail_harbor,Sail to the harbor,client sea chart label,Sail to the harbor,항구로 출항
+exp.exp_next_window,Next window opens in %s,genre text exp,Next window opens in %s,다음 항로는 %s 후에 열려요

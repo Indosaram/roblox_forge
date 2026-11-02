@@ -24,7 +24,8 @@ function M.routes(
 	state: any,
 	names: any,
 	choose: (number) -> (),
-	openGuides: (() -> ())?
+	openGuides: (() -> ())?,
+	sailHarbor: (() -> ())?
 ): (string, { any })
 	local items = {}
 	local facts = state.facts or {}
@@ -65,12 +66,33 @@ function M.routes(
 				)
 			end
 		end
-		table.insert(
-			items,
-			button(Text.text(locale, if card.ok then "exp_choose" else "exp_locked"), "Route-" .. card.route, function()
-				choose(card.route)
-			end)
-		)
+		-- Off the harbor the route departs only from there: the card's button sails to the harbor
+		-- (sea chart) instead of a Depart the server refuses.
+		if card.reason == "expiry_imminent" then
+			-- The final ten minutes admit no new entry: the card names when the next window opens
+			-- instead of a Depart the server refuses.
+			table.insert(
+				items,
+				label(
+					Text.text(locale, "exp_next_window", Text.duration(card.expiresAt - state.now)),
+					LINE,
+					"RouteNext-" .. card.route
+				)
+			)
+		elseif card.reason == "transition_not_allowed" and sailHarbor then
+			table.insert(items, button(Text.text(locale, "exp_sail_harbor"), "RouteHarbor-" .. card.route, sailHarbor))
+		else
+			table.insert(
+				items,
+				button(
+					Text.text(locale, if card.ok then "exp_choose" else "exp_locked"),
+					"Route-" .. card.route,
+					function()
+						choose(card.route)
+					end
+				)
+			)
+		end
 	end
 	return Text.text(locale, "exp_routes"), items
 end

@@ -113,6 +113,12 @@ function M.new(env: any): any
 		end,
 		open = function(actor: string, options: any): any
 			return change(actor, function(document): any
+				-- An active trip whose window ended (typically one this actor never entered) is settled
+				-- as expired first, so it never blocks the next departure ashore.
+				local stale = document.archipelago
+				if stale and stale.status == "active" and env.now() >= stale.expiresAt then
+					Archipelago.recover(stale, env.now(), "expired")
+				end
 				if document.archipelago and document.archipelago.status == "active" then
 					return { ok = false, reason = "expedition_active" }
 				end

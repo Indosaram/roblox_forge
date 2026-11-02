@@ -111,6 +111,11 @@ function M.islands(content: any, view: any): { any }
 			card.expiresAt = card.expiresAt or (if route then route.expiresAt else nil)
 			if view.role ~= "harbor" then
 				card.locked, card.reason = not card.here, if card.here then nil else "transition_not_allowed"
+				if not card.here and view.role ~= "archipelago" then
+					local gate = route
+						or { ok = Party.routeGate(content, island.route, view.facts or { level = level }) }
+					card.viaHarbor = gate.ok == true or gate.reason == "expiry_imminent"
+				end
 			elseif route then
 				card.locked, card.reason = not route.ok, route.reason
 			else
@@ -126,6 +131,11 @@ function M.islands(content: any, view: any): { any }
 			else
 				local ok, reason = roleGate(view.role or "harbor", island.role, level)
 				card.locked, card.reason = not ok, reason
+				-- Not reachable from this port but from the harbor: the card sails to the harbor first.
+				if reason == "transition_not_allowed" and view.role ~= "archipelago" and view.role ~= "harbor" then
+					card.viaHarbor = roleGate(view.role or "harbor", "harbor", level)
+						and roleGate("harbor", island.role, level)
+				end
 			end
 		end
 		card.locked = card.locked == true
@@ -380,6 +390,7 @@ function M.copy(card: any, text: (string, ...any) -> string, now: number?, reaso
 		then text("here")
 		elseif card.needLevel then text("opens_at", card.needLevel)
 		elseif card.needRank then text("needs_grade", card.needRank)
+		elseif card.viaHarbor then text("via_harbor")
 		elseif card.locked then (if reason and card.reason then reason(card.reason) else text("locked"))
 		elseif card.drift and left then text("time_left", left)
 		else text("open")
@@ -620,7 +631,7 @@ function M.panel(ctx: any): any
 				sheetStatus.Text = status or copy.status
 				-- Away from every dock and rift (or refused for reach) an open island's primary is
 				-- 'show the dock' and the status names why (p134 v68).
-				local openCard = not card.locked and not card.here
+				local openCard = (not card.locked or card.viaHarbor == true) and not card.here
 				showDock = openCard
 					and mode == "view"
 					and (refusedReach or M.awayFromDock(rootPosition(), nearestDock()))
@@ -628,7 +639,13 @@ function M.panel(ctx: any): any
 				if showDock and not status then
 					sheetStatus.Text = ctx.reason("sail_unreachable")
 				end
-				sail.Text = ctx.text(if showDock then "show_dock" elseif mode == "rift" then "step" else "sail")
+				sail.Text = ctx.text(
+					if showDock
+						then "show_dock"
+						elseif card.viaHarbor then "sail_harbor"
+						elseif mode == "rift" then "step"
+						else "sail"
+				)
 				sail.Active = openCard
 				sail.AutoButtonColor = sail.Active
 				sail.BackgroundTransparency = if sail.Active then 0 else 0.5
@@ -799,7 +816,7 @@ function M.panel(ctx: any): any
 		for _, candidate in cards do
 			card = if candidate.id == selected then candidate else card
 		end
-		if busy or not card or card.locked or card.here then
+		if busy or not card or (card.locked and not card.viaHarbor) or card.here then
 			return
 		end
 		if showDock then
@@ -815,8 +832,9 @@ function M.panel(ctx: any): any
 			return
 		end
 		busy = true
-		local result = if card.drift
-			then ctx.send("survival-coop:party-action", { "depart", tostring(card.route) })
+		local result = if card.viaHarbor
+			then ctx.send("survival-coop:mission-action", { "sail", "harbor" })
+			elseif card.drift then ctx.send("survival-coop:party-action", { "depart", tostring(card.route) })
 			else ctx.send("survival-coop:mission-action", { "sail", card.role })
 		busy = false
 		local reason = if result and result.ok then "travelling" else (result and result.reason or "travel_refused")
