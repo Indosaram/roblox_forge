@@ -34,6 +34,18 @@ return {
 		for index, stall in log.stalls do
 			print(string.format("  stall %d @%.1f min [%s] %s", index, stall.minutes, stall.kind, stall.why))
 		end
+		local fun = log.fun or {}
+		print(
+			string.format(
+				"WORKING journey6h fun: maxGap %.1f min (before %s), maxRepeat %d (%s), firstCapture %s min, wait %d s",
+				fun.maxGapMinutes or 0,
+				tostring(fun.gapBefore),
+				fun.maxRepeat or 0,
+				tostring(fun.repeatedRecipe),
+				tostring(fun.firstCaptureMinutes),
+				fun.waitSeconds or 0
+			)
+		)
 		-- Known-good prefix (6ff723b): opening, home, the harbor sale and route 1's four drift isles.
 		local reached: { [string]: boolean } = {}
 		for _, row in log.pace do

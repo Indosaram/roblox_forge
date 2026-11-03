@@ -1069,8 +1069,51 @@ function M.run(Journey: any, options: any): any
 		end
 	end
 	log.minutes, log.level, log.xp = minutes(), level(), xp()
+	log.fun = M.fun(log)
 	log.budgetMinutes = budget / 60
 	return log
+end
+
+-- Fun pacing of a finished journey (.omo/plans/robango-fun-first-6h.md): the longest gap between
+-- consecutive milestones, the most successful reserves of one recipe, when the first creature was
+-- captured and how long the player was told to wait for a route window.
+function M.fun(log: any): any
+	local maxGap, gapBefore, previous = 0, nil, 0
+	local firstCapture = nil
+	for _, row in log.pace do
+		if row.minutes - previous > maxGap then
+			maxGap, gapBefore = row.minutes - previous, row.milestone
+		end
+		previous = row.minutes
+		if firstCapture == nil and string.sub(row.milestone, 1, 9) == "captured:" then
+			firstCapture = row.minutes
+		end
+	end
+	local repeats: { [string]: number } = {}
+	local maxRepeat, repeated = 0, nil
+	for _, command in log.commands or {} do
+		if command.ok and command.action == "survival-coop:craft-reserve" then
+			local recipe = tostring((command.args or {})[1])
+			repeats[recipe] = (repeats[recipe] or 0) + 1
+			if repeats[recipe] > maxRepeat then
+				maxRepeat, repeated = repeats[recipe], recipe
+			end
+		end
+	end
+	local waitSeconds = 0
+	for _, entry in log.events or {} do
+		if entry.kind == "route-wait" then
+			waitSeconds += tonumber((entry.detail or {}).seconds) or 0
+		end
+	end
+	return {
+		maxGapMinutes = math.floor(maxGap * 10 + 0.5) / 10,
+		gapBefore = gapBefore,
+		maxRepeat = maxRepeat,
+		repeatedRecipe = repeated,
+		firstCaptureMinutes = firstCapture,
+		waitSeconds = waitSeconds,
+	}
 end
 
 -- Leg 1: the opening, from the cold open to boarding the Gannet.
