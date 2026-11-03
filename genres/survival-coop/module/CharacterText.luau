@@ -3,6 +3,7 @@
 -- (char_*). Refusal reasons map to sentences; a raw reason code is never shown.
 local Party = require("../../../core/domain/island/Party")
 local Guide = require("./GuideEvents")
+local SkillTraining = require("./SkillTraining")
 local M = {}
 
 local PackLocale = require("./PackLocale")
@@ -121,6 +122,27 @@ local function craftInputs(locale: string, content: any, target: string, names: 
 	return if #parts > 0 then table.concat(parts, ", ") else nil
 end
 
+-- "<what>. Practice N more times: <entry action>" when the step needs a skill node whose category
+-- proficiency the player has not reached (the server refuses PROFICIENCY_GATE until then).
+local function practiceFirst(locale: string, content: any, ch: any, names: any, what: string, node: string): string
+	local mastery = ch.mastery
+	if type(mastery) ~= "table" or not strings.guide_practice or not content.progressionPolicy then
+		return what
+	end
+	for _, row in content.skillNodes or {} do
+		if row.id == node then
+			local have = mastery[row.category] or { level = 0, xp = 0 }
+			if (have.level or 0) >= row.proficiency then
+				return what
+			end
+			local training = SkillTraining.forNode(content, { mastery = { [row.category] = have } }, row)
+			local action = training.action or row.category
+			return M.format(locale, "guide_practice", what, training.count, names[action] or action)
+		end
+	end
+	return what
+end
+
 -- Display name of a guide target: guide_target_<id>, a skill node (skills.<id>), else the
 -- entity name.
 local function targetName(locale: string, target: string, names: any): string
@@ -180,6 +202,17 @@ local function openGuide(
 					end
 				elseif o.action == "capture" and strings.guide_where_capture then
 					what = M.format(locale, "guide_where_capture", what)
+				end
+				if o.action == "purchase" then
+					what = practiceFirst(locale, content, ch, names, what, o.target)
+				elseif o.action == "craft" then
+					for _, detail in content.recipeDetails or {} do
+						if detail.id == o.target then
+							for _, node in detail.skillNodes or {} do
+								what = practiceFirst(locale, content, ch, names, what, node)
+							end
+						end
+					end
 				end
 				local have = math.min(progress[o.id] or 0, o.quantity)
 				return M.format(locale, "guide_next", title(locale, g, names), what, have, o.quantity)

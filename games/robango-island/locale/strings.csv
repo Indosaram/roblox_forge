@@ -3292,5 +3292,6 @@ guide_go_eat,eat %s (Bag > Eat one),HUD objective guide action,eat %s (Bag > Eat
 guide_where_isle,"%s (Sea chart > %s, level %d+)",HUD objective next step,"%s (Sea chart > %s, level %d+)","%s (해도 > %s, 레벨 %d+)"
 guide_inputs,%s. First make: %s,HUD objective craft inputs,%s. First make: %s,%s. 먼저 준비: %s
 guide_input_station,%s at the %s,HUD objective craft input station,%s at the %s,%s (%s에서 제작)
+guide_practice,"%s. Practice %d more times first: %s",HUD objective proficiency gate practice,"%s. Practice %d more times first: %s","%s. 먼저 %d회 더 연습: %s"
 guide_where_capture,%s: dodos roam the Route 1 drift isles,HUD objective capture place,%s: dodos roam the Route 1 drift isles,%s: 도도는 항로 1 표류섬에 있어요
 guide_go_sheet,%s %s (Menu > Guides),HUD objective guide action (guide sheet step),%s %s (Menu > Guides),%s %s (메뉴 > 안내)

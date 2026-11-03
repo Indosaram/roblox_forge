@@ -103,6 +103,8 @@ function M.factory(ctx: any): (Shared.Extension & { close: (() -> Shared.Result)
 				definitions = Data.clone(dev.definitions or {}),
 				progress = Data.clone(dev.progress or {}),
 				level = if slice.progression then slice.progression.level else 1,
+				-- Category proficiency: the HUD guide line names the practice a gated skill step needs.
+				mastery = Data.clone(if slice.progression then slice.progression.mastery or {} else {}),
 				now = ctx.now(),
 			} :: any,
 				nil
