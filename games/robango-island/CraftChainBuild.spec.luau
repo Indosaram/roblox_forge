@@ -5,6 +5,30 @@ local Catalog = require("../../core/domain/inventory/ItemCatalog")
 local Content: any = require("./src/shared/SurvivalContent")
 
 return {
+	["closed-world tagged stations are not replicated into the next island client"] = function()
+		local host = Journey.new()
+		host.enter("rw.harbor")
+		local workspace = host.engine.game:GetService("Workspace")
+		local stale = nil
+		for _, part in workspace:FindFirstChild("ForgeRoleWorld"):GetDescendants() do
+			if part:IsA("BasePart") then
+				stale = part
+				break
+			end
+		end
+		assert(stale ~= nil, "role world contains a part")
+		stale:SetAttribute("ForgeStationKind", "campfire")
+		stale:SetAttribute("ForgeStationId", "closed-world-fire")
+		host.engine.game:GetService("CollectionService"):AddTag(stale, "ForgeSurvivalStation")
+		stale:Destroy()
+		local h = host.render()
+		for _, part in h.workspace:GetDescendants() do
+			assert(
+				part:GetAttribute("ForgeStationId") ~= "closed-world-fire",
+				"detached station must not reappear on the harbor"
+			)
+		end
+	end,
 	["home Build pays the carried kit advertised by the shipped client"] = function()
 		local host = Journey.new()
 		host.enter("home", { x = 0, y = 5, z = -10 })

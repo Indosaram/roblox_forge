@@ -51,6 +51,18 @@ function M.run(Journey: any, options: any): any
 	local startAt = host.at.value
 	log.commands = {}
 	host.onCommand = function(request: any, result: any)
+		if
+			not result.ok
+			and (string.find(request.action, "craft", 1, true) or string.find(request.action, "skill", 1, true))
+		then
+			print(
+				"WORKING journey6h craft-command "
+					.. serde.encode(
+						"json",
+						{ action = request.action, args = request.args, reason = result.reason, data = result.data }
+					)
+			)
+		end
 		table.insert(log.commands, {
 			minutes = math.floor((host.at.value - startAt) / 6 + 0.5) / 10,
 			action = request.action,
@@ -85,6 +97,14 @@ function M.run(Journey: any, options: any): any
 	end
 	local function event(kind: string, detail: any?)
 		table.insert(log.events, { minutes = minutes(), kind = kind, detail = detail })
+		if
+			kind == "guide-craft-route"
+			or kind == "guide-craft-failed"
+			or kind == "craft-unfinished"
+			or kind == "obtain-failed"
+		then
+			print("WORKING journey6h " .. kind .. " " .. serde.encode("json", detail))
+		end
 	end
 
 	-- The client view ----------------------------------------------------------------------------
@@ -555,8 +575,14 @@ function M.run(Journey: any, options: any): any
 		local made = false
 		for _, recipe in Content.recipes do
 			if wanted(recipe.outputs[1].item) then
-				local ok = craft(recipe.id)
+				local ok, why = craft(recipe.id)
 				made = ok
+				if not ok then
+					event(
+						"guide-craft-failed",
+						{ recipe = recipe.id, reason = why, layout = host.layoutId, input = label }
+					)
+				end
 				if made then
 					break
 				end
@@ -614,9 +640,11 @@ function M.run(Journey: any, options: any): any
 		click(row)
 		-- The recipe row names a missing skill. Find that name on the Skills sheet, then Learn.
 		local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+		require("../../genres/survival-coop/module/PackLocale").use(PackText.packText)
 		for _, node in Content.skillNodes do
 			local skillName = Locale.skillName("ko-kr", node.id)
 			if string.find(shownRecipe, skillName, 1, true) then
+				print("WORKING journey6h recipe-skill " .. recipeId .. " " .. node.id .. " " .. shownRecipe)
 				closeSheets()
 				h.hud.open("skills")
 				render()
@@ -664,7 +692,10 @@ function M.run(Journey: any, options: any): any
 			local station = nil
 			local distance = math.huge
 			for _, part in host.engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation") do
-				if part:GetAttribute("ForgeStationKind") == recipe.station then
+				if
+					part:IsDescendantOf(host.engine.game:GetService("Workspace"))
+					and part:GetAttribute("ForgeStationKind") == recipe.station
+				then
 					local at = part.Position
 					local d = (at.X - position.x) ^ 2 + (at.Z - position.z) ^ 2
 					if d < distance then

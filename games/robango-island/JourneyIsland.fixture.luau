@@ -681,12 +681,16 @@ function M.run(host: any, p: any, options: any?): any
 						for _, part in
 							host.engine.game:GetService("CollectionService"):GetTagged("ForgeSurvivalStation")
 						do
-							if part:GetAttribute("ForgeStationKind") == kind then
+							if
+								part:IsDescendantOf(host.engine.game:GetService("Workspace"))
+								and part:GetAttribute("ForgeStationKind") == kind
+							then
 								return true
 							end
 						end
 						return false
 					end)
+					p.event("guide-craft-route", { recipe = recipe.id, missing = missing, layout = host.layoutId })
 					if missing then
 						-- Recipes name their station; the chart's island layouts supply its visible destination.
 						for _, row in require("./src/shared/SeaChart").ISLANDS do

@@ -644,6 +644,9 @@ function M.new(options: any?): any
 		c.stations = c.stations or {}
 		local tags = engine.game:GetService("CollectionService")
 		for _, part in tags:GetTagged("ForgeSurvivalStation") do
+			if not part:IsDescendantOf(engine.game:GetService("Workspace")) then
+				continue
+			end
 			local mirror = c.stations[part]
 			if not mirror then
 				mirror = h.new("Part", "Station")
