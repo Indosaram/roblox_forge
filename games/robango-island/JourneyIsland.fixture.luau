@@ -1059,6 +1059,33 @@ function M.run(host: any, p: any, options: any?): any
 						end
 					end
 				end
+			elseif o.action == "equip" then
+				-- The HUD line says Menu > Equipment: select the bag row, then its Equip button.
+				if p.obtain(o.target, 1, 300) then
+					p.openTile("equipment")
+					p.render()
+					local equipped = false
+					for id, stack in p.bag().items do
+						if stack.catalogId == o.target and clickNamed("Equip-" .. id) then
+							equipped = true
+							break
+						end
+					end
+					p.closeSheets()
+					if not equipped then
+						p.h().hud.open("bag")
+						p.render()
+						for id, stack in p.bag().items do
+							if stack.catalogId == o.target then
+								clickNamed(id)
+								if clickNamed("Equip-" .. id) then
+									break
+								end
+							end
+						end
+						p.closeSheets()
+					end
+				end
 			elseif o.action == "eat" then
 				if p.obtain(o.target, 1, 300) then
 					p.h().hud.open("bag")

@@ -357,11 +357,26 @@ function M.run(Journey: any, options: any): any
 	local function equip(catalogId: string): boolean
 		-- The hotbar offers only usable tools: a broken (durability 0) or reserved stack is not a slot.
 		local itemId: string? = nil
-		for id, item in bag().items do
+		local carried = bag()
+		for id, item in carried.items do
+			-- A stack a craft job holds as input (bag reservations) is not offered either.
+			local available = item.quantity or 1
+			for _, reservation in carried.reservations or {} do
+				available -= reservation[id] or 0
+			end
+			local definition = nil
+			for _, row in Content.items do
+				if row.id == catalogId then
+					definition = row
+				end
+			end
 			if
 				item.catalogId == catalogId
+				and definition
+				and table.find(definition.tags, "tool")
+				and (definition.maxDurabilityMilli or 0) > 0
 				and (item.durabilityMilli or 0) > 0
-				and (item.reserved or 0) < (item.quantity or 1)
+				and available > 0
 				and (itemId == nil or id < itemId)
 			then
 				itemId = id
@@ -378,7 +393,13 @@ function M.run(Journey: any, options: any): any
 				held.tool:Destroy()
 			end)
 		end
-		host.engine.equip(host.world, ACTOR, itemId)
+		-- The hotbar holds only what the world registers as a tool (tool tag, durability, an
+		-- unreserved stack); a refusal there is a slot the hotbar would not offer, not a crash.
+		local registered, refusal = pcall(host.engine.equip, host.world, ACTOR, itemId)
+		if not registered then
+			event("equip-refused", { item = catalogId, reason = tostring(refusal) })
+			return false
+		end
 		if options.debug then
 			print(
 				"DEBUG equip",
@@ -395,8 +416,12 @@ function M.run(Journey: any, options: any): any
 	local ToolTiers = require("../../genres/survival-coop/module/ToolTiers")
 	local function equipFor(required: string): boolean
 		for _, item in bag().items do
-			if item.durabilityMilli > 0 and ToolTiers.accepts(Content, required, item.catalogId) then
-				return equip(item.catalogId)
+			if
+				item.durabilityMilli > 0
+				and ToolTiers.accepts(Content, required, item.catalogId)
+				and equip(item.catalogId)
+			then
+				return true
 			end
 		end
 		return false
@@ -645,10 +670,42 @@ function M.run(Journey: any, options: any): any
 		return count(bag().items, item) >= want
 	end
 	local preparing: { [string]: boolean } = {}
+	-- The HUD status says "hungry: open the bag and press Eat one"; a player does that before
+	-- crafting on (a long practice run starved the actor and every command answered NOT_ALIVE).
+	local function eatIfHungry()
+		local vitals = personal().vitals or {}
+		if (vitals.hungerMilli or 100000) > 40000 then
+			return
+		end
+		local food: { [string]: boolean } = {}
+		for _, definition in Content.items do
+			if definition.foodEffects and (definition.foodEffects.hungerMilli or 0) > 0 then
+				food[definition.id] = true
+			end
+		end
+		h.hud.open("bag")
+		render()
+		for id, stack in bag().items do
+			if food[stack.catalogId] then
+				local row = find(id)
+				if row then
+					click(row)
+				end
+				local eat = find("Eat-" .. id)
+				if eat then
+					click(eat)
+					event("eat", stack.catalogId)
+					break
+				end
+			end
+		end
+		closeSheets()
+	end
 	craft = function(recipeId: string): (boolean, string?)
 		if preparing[recipeId] then
 			return false, "RECIPE_CYCLE"
 		end
+		eatIfHungry()
 		h.hud.open("craft")
 		render()
 		local row = find("Recipe-" .. recipeId)
