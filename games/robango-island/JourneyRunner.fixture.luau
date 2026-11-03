@@ -688,6 +688,45 @@ function M.run(Journey: any, options: any): any
 		end
 		return count(bag().items, item) >= want
 	end
+	-- A craft collect refused FULL_SLOTS: the bag sheet's Drop (5 per tap) empties the smallest stack
+	-- of a plain material (not a tool, not what is being made) so the output gets a slot.
+	local function freeSlot(keep: string): boolean
+		local before = 0
+		for _ in bag().items do
+			before += 1
+		end
+		local smallest, quantity = nil, math.huge
+		for itemId, stack in bag().items do
+			if stack.catalogId ~= keep and (stack.durabilityMilli or 0) == 0 and stack.quantity < quantity then
+				smallest, quantity = itemId, stack.quantity
+			end
+		end
+		if not smallest then
+			return false
+		end
+		for _ = 1, math.ceil(quantity / 5) do
+			closeSheets()
+			h.hud.open("bag")
+			render()
+			local cell = find(smallest)
+			if cell then
+				click(cell)
+			end
+			local drop = find("Drop-" .. smallest)
+			if not drop then
+				break
+			end
+			click(drop)
+			wait(1)
+		end
+		closeSheets()
+		local after = 0
+		for _ in bag().items do
+			after += 1
+		end
+		event("free-slot", { item = smallest, before = before, after = after })
+		return after < before
+	end
 	local preparing: { [string]: boolean } = {}
 	-- The HUD status says "hungry: open the bag and press Eat one"; a player does that before
 	-- crafting on (a long practice run starved the actor and every command answered NOT_ALIVE).
@@ -894,6 +933,16 @@ function M.run(Journey: any, options: any): any
 				click(start)
 			elseif complete then
 				click(complete)
+				local last = log.commands[#log.commands]
+				if last and last.action == "survival-coop:craft-complete" and last.reason == "FULL_SLOTS" then
+					freeSlot(output)
+					h.hud.open("craft")
+					render()
+					local again = find("Recipe-" .. recipeId)
+					if again then
+						click(again)
+					end
+				end
 			end
 			wait(math.ceil(recipe.craftMillis / 1000) + 1)
 		end
