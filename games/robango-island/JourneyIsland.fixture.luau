@@ -945,12 +945,14 @@ function M.run(host: any, p: any, options: any?): any
 											p.openTile("processing")
 											trained = clickNamed("Start-" .. recipe.id)
 											for _ = 1, 3 do
+												-- Collect finished jobs before starting more: the workshop holds at most
+												-- Workshop.MAX_ACTIVE jobs and refuses JOB_QUEUE_FULL past that.
 												local start = p.findPrefix("start-")[1]
 												local complete = p.findPrefix("complete-")[1]
-												if start then
-													p.click(start)
-												elseif complete then
+												if complete then
 													p.click(complete)
+												elseif start then
+													p.click(start)
 												end
 												p.wait(math.ceil(recipe.craftMillis / 1000) + 1)
 											end
