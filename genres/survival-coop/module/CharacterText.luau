@@ -137,7 +137,10 @@ local function practiceFirst(locale: string, content: any, ch: any, names: any, 
 			end
 			local training = SkillTraining.forNode(content, { mastery = { [row.category] = have } }, row)
 			local action = training.action or row.category
-			return M.format(locale, "guide_practice", what, training.count, names[action] or action)
+			-- An entry action with no display name (home-harvest, ranged-hit) reads as its category.
+			local label = names[action]
+				or (if strings["skills." .. row.category] then M.text(locale, "skills." .. row.category) else nil)
+			return M.format(locale, "guide_practice", what, training.count, label or action)
 		end
 	end
 	return what

@@ -5444,7 +5444,7 @@ skillNodes:
     category: "survival"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5533,7 +5533,7 @@ skillNodes:
     category: "butchering"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5622,7 +5622,7 @@ skillNodes:
     category: "gathering"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5711,7 +5711,7 @@ skillNodes:
     category: "processing"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5800,7 +5800,7 @@ skillNodes:
     category: "weapon_tool"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5889,7 +5889,7 @@ skillNodes:
     category: "ranged"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -5978,7 +5978,7 @@ skillNodes:
     category: "melee"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -6067,7 +6067,7 @@ skillNodes:
     category: "construction"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -6156,7 +6156,7 @@ skillNodes:
     category: "farming"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -6245,7 +6245,7 @@ skillNodes:
     category: "tailoring"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -6334,7 +6334,7 @@ skillNodes:
     category: "cooking"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -
@@ -6423,7 +6423,7 @@ skillNodes:
     category: "defense"
     rank: 1
     cost: 2
-    proficiency: 1
+    proficiency: 0
     prerequisites: []
     effects:
       -

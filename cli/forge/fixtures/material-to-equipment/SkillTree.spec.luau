@@ -13,7 +13,8 @@ return {
 		for _, category in categories do
 			assert(state.mastery[category.id].level == 0, "progression contract 12")
 		end
-		local _, missing = Tree.learn(Content, state, "tailoring_1")
+		-- Rank-1 nodes need no practice (fun-first); rank 2 is still proficiency-gated.
+		local _, missing = Tree.learn(Content, state, "tailoring_2")
 		assert(missing == "PROFICIENCY_GATE", "progression contract 15")
 		state = Tree.award(state, policy, "tailoring", "practice:1")
 		assert(Tree.award(state, policy, "tailoring", "practice:1") == state, "progression contract 17")
