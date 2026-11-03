@@ -1806,15 +1806,20 @@ function M.start(options: Options)
 							table.insert(missing, Locale.skillName(locale, id))
 						end
 					end
-					local mastery = progression.mastery[node.category].level
+					local mastery = ((progression.mastery or {})[node.category] or { level = 0 }).level
 					local proficiency = mastery >= node.proficiency
 					local training = SkillTraining.forNode(content, progression, node)
 					skillLines.SkillNeed.Text = if nextNode and not proficiency
-						then string.format(t("skill_proficiency"), mastery, node.proficiency) .. "\n" .. string.format(
-							t("skill_train"),
-							training.count,
-							name(training.action or node.category)
-						)
+						then string.format(t("skill_proficiency"), mastery, node.proficiency)
+							.. "\n"
+							.. string.format(
+								t("skill_train"),
+								training.count,
+								-- An entry action with no display name (e.g. ranged-hit) reads as its category.
+								if training.action and name(training.action) ~= training.action
+									then name(training.action)
+									else Locale.skillName(locale, node.category)
+							)
 						elseif nextNode and #missing > 0 then string.format(
 							t("skill_needed"),
 							table.concat(missing, ", ")

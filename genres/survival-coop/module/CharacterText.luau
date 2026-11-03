@@ -201,7 +201,9 @@ local function openGuide(
 						what = M.format(locale, "guide_inputs", what, inputs)
 					end
 				elseif o.action == "capture" and strings.guide_where_capture then
-					what = M.format(locale, "guide_where_capture", what)
+					-- The dodo line names dodos; a named species gets its own drift-isle hint.
+					local species = o.target ~= "creature" and o.target ~= "dodo" and strings.guide_where_species
+					what = M.format(locale, if species then "guide_where_species" else "guide_where_capture", what)
 				end
 				if o.action == "purchase" then
 					what = practiceFirst(locale, content, ch, names, what, o.target)

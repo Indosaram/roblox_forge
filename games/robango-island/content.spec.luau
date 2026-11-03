@@ -176,7 +176,11 @@ local P9: { [string]: { level: number, xp: number, objectives: { string } } } = 
 		xp = 250,
 		objectives = { "craft temperate-top", "craft temperate-shoes" },
 	},
-	["rw.g41.second-pet"] = { level = 31, xp = 250, objectives = { "capture creature", "feed herbivore-feed" } },
+	["rw.g41.second-pet"] = {
+		level = 12,
+		xp = 250,
+		objectives = { "capture creature", "place-training creature", "feed herbivore-feed", "tame creature" },
+	},
 	["rw.g42.storage"] = { level = 33, xp = 250, objectives = { "craft storage-kit", "place storage" } },
 	["rw.g43.t1-weapon"] = { level = 36, xp = 300, objectives = { "craft club-t1", "equip club-t1" } },
 	["rw.g44.second-route"] = { level = 37, xp = 300, objectives = { "deliver contract" } },
@@ -186,6 +190,21 @@ local P9: { [string]: { level: number, xp: number, objectives: { string } } } = 
 		objectives = { "purchase weapon_tool_3", "craft polish-bone", "craft tan-thick-hide" },
 	},
 	["rw.g46.t2-tool"] = { level = 45, xp = 400, objectives = { "craft pickaxe-t2" } },
+	["rw.g47.first-ride"] = {
+		level = 43,
+		xp = 500,
+		objectives = {
+			"purchase melee_2",
+			"purchase survival_3",
+			"craft capture-rope",
+			"capture protoceratops",
+			"place-training protoceratops",
+			"tame protoceratops",
+			"craft saddle",
+			"saddle protoceratops",
+			"ride protoceratops",
+		},
+	},
 }
 
 -- Every id a guide objective names must resolve in the document: craft -> recipe (or a tool family

@@ -588,7 +588,7 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		p.clearBagFull()
 	end
-	local function captureHere(): boolean
+	local function captureHere(want: string?): boolean
 		p.closeSheets()
 		if (extensions().taming.captureTools or 0) == 0 then
 			if not p.obtain("capture-bola", count(p.bag().items, "capture-bola") + 1, 120) then
@@ -601,7 +601,7 @@ function M.run(host: any, p: any, options: any?): any
 		local ids = {}
 		for id, model in h.creatures or {} do
 			if
-				model:GetAttribute("ForgeWildlifeKind") == "dodo"
+				model:GetAttribute("ForgeWildlifeKind") == (want or "dodo")
 				and not pets[id]
 				and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
 			then
@@ -676,6 +676,76 @@ function M.run(host: any, p: any, options: any?): any
 		end
 		p.closeSheets()
 	end
+	-- Taming sheet steps for one pet of `species` ("creature": any pet), pressing only the buttons
+	-- the sheet shows: place -> train -> feed during training -> claim -> deploy -> saddle -> ride.
+	local function tend(action: string, species: string): boolean
+		local rules = Content.progressionPolicy.companion
+		local function pet(): (string?, any)
+			local pets = (extensions().taming.companions or {}).pets or {}
+			local ids = {}
+			for id, row in pets do
+				if species == "creature" or row.species == species then
+					table.insert(ids, id)
+				end
+			end
+			table.sort(ids)
+			return ids[1], ids[1] and pets[ids[1]]
+		end
+		local function press(verb: string, id: string): boolean
+			p.closeSheets()
+			p.openTile("taming")
+			p.render()
+			local ok = clickNamed(verb .. "-" .. id)
+			p.closeSheets()
+			return ok
+		end
+		for _ = 1, 12 do
+			local id, row = pet()
+			if not id then
+				return false
+			end
+			local phase = row.phase
+			if phase == "Captured" then
+				press("place", id)
+			elseif phase == "PenPlaced" then
+				press("train", id)
+				if action == "place-training" then
+					return true
+				end
+			elseif phase == "Taming" then
+				if action == "place-training" then
+					return true
+				end
+				if (row.feeds or 0) < rules.feedCount then
+					p.obtain(rules.feedItem, rules.feedCount - (row.feeds or 0), 300)
+					press("feed", id)
+				elseif not press("claim", id) then
+					p.wait(math.ceil(rules.trainingMillis / 1000 / 4))
+				end
+			elseif action == "tame" or action == "place-training" then
+				return true
+			elseif phase == "Stored" and action == "saddle" and not row.saddle then
+				p.obtain("saddle", 1, 600)
+				press("saddle", id)
+				return true
+			elseif phase == "Stored" then
+				press("deploy", id)
+			elseif phase == "Deployed" and not row.saddle then
+				p.obtain("saddle", 1, 600)
+				press("saddle", id)
+				if action == "saddle" then
+					return true
+				end
+			elseif phase == "Deployed" then
+				press("mount", id)
+				return true
+			else
+				press("recover", id)
+				p.wait(30)
+			end
+		end
+		return false
+	end
 	local soldOnce, townVisited = false, false
 	local reentered: string? = nil
 	local abandoned: { [string]: boolean } = {}
@@ -740,7 +810,7 @@ function M.run(host: any, p: any, options: any?): any
 		if role == "archipelago" then
 			local captureGuide, objective = guideTarget()
 			if objective and objective.action == "capture" then
-				if captureHere() then
+				if captureHere(if objective.target ~= "creature" then objective.target else nil) then
 					p.milestone("captured:" .. captureGuide.id)
 					if (extensions().character.definitions or {})[captureGuide.id] then
 						p.milestone("completed:" .. captureGuide.id)
@@ -781,12 +851,23 @@ function M.run(host: any, p: any, options: any?): any
 			local had = ((extensions().character or {}).progress or {})[o.id] or 0
 			if o.action == "capture" then
 				-- Ashore, follow the HUD's Route 1 direction through the Routes flow below.
-				captureHere()
+				captureHere(if o.target ~= "creature" then o.target else nil)
 			elseif o.action == "feed" and g.id == "rw.g41.second-pet" then
 				feedCaptured()
 				if (extensions().character.definitions or {})[g.id] then
 					p.milestone("completed:" .. g.id)
 				end
+			elseif
+				o.action == "place-training"
+				or o.action == "tame"
+				or o.action == "saddle"
+				or o.action == "ride"
+				or (o.action == "feed" and o.target == Content.progressionPolicy.companion.feedItem)
+			then
+				tend(
+					if o.action == "feed" then "tame" else o.action,
+					if o.action == "feed" then "creature" else o.target
+				)
 			elseif o.action == "gather" then
 				if not seek(o.target, "guide " .. g.id) then
 					continue

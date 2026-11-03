@@ -3295,3 +3295,15 @@ guide_input_station,%s at the %s,HUD objective craft input station,%s at the %s,
 guide_practice,"%s. Practice %d more times first: %s",HUD objective proficiency gate practice,"%s. Practice %d more times first: %s","%s. 먼저 %d회 더 연습: %s"
 guide_where_capture,%s: dodos roam the Route 1 drift isles,HUD objective capture place,%s: dodos roam the Route 1 drift isles,%s: 도도는 항로 1 표류섬에 있어요
 guide_go_sheet,%s %s (Menu > Guides),HUD objective guide action (guide sheet step),%s %s (Menu > Guides),%s %s (메뉴 > 안내)
+chr.guide_g47,First ride,genre text chr,First ride,첫 탑승
+rw.g47.first-ride.offer,"Learn the club and capture skills, craft a capture rope, catch a protoceratops, tame it in the training pen, craft a saddle and ride it.",RECONSTRUCTED Robango fun-first guide (first ride),"Learn the club and capture skills, craft a capture rope, catch a protoceratops, tame it in the training pen, craft a saddle and ride it.","곤봉 기술과 포획 기술을 익히고 포획 밧줄을 만든 다음, 뿔 달린 작은 공룡을 붙잡아 내 편으로 만든 뒤 안장을 채워서 직접 몰아 봐요."
+rw.g47.first-ride.complete,A saddled dinosaur carries you faster across every island.,RECONSTRUCTED Robango fun-first guide (first ride),A saddled dinosaur carries you faster across every island.,안장을 얹은 공룡을 타면 어느 섬이든 더 빨리 다닐 수 있어요.
+chr.guide_act_saddle,Saddle,genre text chr,Saddle,안장 얹기
+chr.guide_act_ride,Ride,genre text chr,Ride,타기
+guide_go_place_training,put %s in the training pen and start training (Menu > Taming),HUD objective guide action,put %s in the training pen and start training (Menu > Taming),%s 훈련 우리에 넣고 훈련 시작 (메뉴 > 길들이기)
+guide_go_tame,"finish taming %s: feed it during training, then Claim (Menu > Taming)",HUD objective guide action,"finish taming %s: feed it during training, then Claim (Menu > Taming)",%s 길들이기 완료: 훈련 중 먹이를 주고 받기 (메뉴 > 길들이기)
+guide_go_saddle,put a saddle on %s (Menu > Taming),HUD objective guide action,put a saddle on %s (Menu > Taming),%s에 안장 얹기 (메뉴 > 길들이기)
+guide_go_ride,"ride %s (Menu > Taming: Deploy, then Ride)",HUD objective guide action,"ride %s (Menu > Taming: Deploy, then Ride)",%s 타기 (메뉴 > 길들이기: 내보내기 후 타기)
+guide_where_species,%s: it roams the Route 1 drift isles,HUD objective capture place,%s: it roams the Route 1 drift isles,%s: 항로 1 표류섬에 있어요
+chr.guide_target_melee_2,Melee 2 (club stun),genre text chr,Melee 2 (club stun),근접 2 (곤봉 기절)
+chr.guide_target_survival_3,Survival 3 (capture),genre text chr,Survival 3 (capture),생존 3 (포획)

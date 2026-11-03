@@ -117,11 +117,15 @@ function M.event(action: string, args: { any }, facts: any, result: any): any?
 		if not pet or not rules then
 			return nil
 		elseif args[1] == "place" then
-			return event("place-training", pet.species)
+			return event("place-training", pet.species, 1, "creature")
 		elseif args[1] == "feed" then
 			return event("feed", rules.feedItem)
+		elseif args[1] == "saddle" then
+			return event("saddle", pet.species, 1, "creature")
+		elseif args[1] == "mount" then
+			return event("ride", pet.species, 1, "creature")
 		end
-		return if args[1] == "claim" then event("tame", pet.species) else nil
+		return if args[1] == "claim" then event("tame", pet.species, 1, "creature") else nil
 	elseif action == "home-plant" then
 		return event("plant", type(args[2]) == "table" and args[2].crop or nil)
 	elseif action == "home-harvest" then

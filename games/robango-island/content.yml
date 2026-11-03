@@ -11065,7 +11065,8 @@ recipeDetails:
     skillNodes:
       - "tailoring_3"
     seconds: 20
-    stationTier: 2
+    # Fun-first (owner 2026-11-03): the first saddle is made at any workbench so riding comes sooner.
+    stationTier: 1
     provenance:
       classification: "RECONSTRUCTED"
   -
@@ -33745,9 +33746,11 @@ guides:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    # Fun-first (owner 2026-11-03): the second creature and its taming come in the first hour
+    # (was L31, capture + feed only; taming waited for g14 at L40).
     id: "rw.g41.second-pet"
     gates:
-      characterLevel: 31
+      characterLevel: 12
       developmentRank: 2
     objectives:
       -
@@ -33757,9 +33760,19 @@ guides:
         quantity: 1
       -
         id: "rw.g41.second-pet.2"
+        action: "place-training"
+        target: "creature"
+        quantity: 1
+      -
+        id: "rw.g41.second-pet.3"
         action: "feed"
         target: "herbivore-feed"
         quantity: 3
+      -
+        id: "rw.g41.second-pet.4"
+        action: "tame"
+        target: "creature"
+        quantity: 1
     rewards:
       xp: 250
       coins: 0
@@ -33891,6 +33904,68 @@ guides:
     dialogueKeys:
       - "rw.g46.t2-tool.offer"
       - "rw.g46.t2-tool.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  # Fun-first (owner 2026-11-03): riding a dinosaur is the core fantasy of this genre and was missing
+  # from the guided first 6 hours. Protoceratops (rideable) roam the Route 1 drift isle a1.s2.
+  -
+    id: "rw.g47.first-ride"
+    gates:
+      characterLevel: 43
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g47.first-ride.1"
+        action: "purchase"
+        target: "melee_2"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.2"
+        action: "purchase"
+        target: "survival_3"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.3"
+        action: "craft"
+        target: "capture-rope"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.4"
+        action: "capture"
+        target: "protoceratops"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.5"
+        action: "place-training"
+        target: "protoceratops"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.6"
+        action: "tame"
+        target: "protoceratops"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.7"
+        action: "craft"
+        target: "saddle"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.8"
+        action: "saddle"
+        target: "protoceratops"
+        quantity: 1
+      -
+        id: "rw.g47.first-ride.9"
+        action: "ride"
+        target: "protoceratops"
+        quantity: 1
+    rewards:
+      xp: 500
+      coins: 50
+      development: 0
+    dialogueKeys:
+      - "rw.g47.first-ride.offer"
+      - "rw.g47.first-ride.complete"
     provenance:
       classification: "RECONSTRUCTED"
 chapters:

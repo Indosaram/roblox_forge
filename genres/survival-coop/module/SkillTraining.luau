@@ -27,7 +27,11 @@ function M.forNode(content: any, progression: any, node: any): any
 	end
 	return {
 		action = action,
-		count = M.actions(content.progressionPolicy.tree, progression.mastery[node.category], node.proficiency),
+		count = M.actions(
+			content.progressionPolicy.tree,
+			(progression.mastery or {})[node.category] or { level = 0, xp = 0 },
+			node.proficiency
+		),
 	}
 end
 return M

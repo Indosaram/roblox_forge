@@ -127,7 +127,15 @@ local STUBBED = {
 	["market-claim"] = true,
 }
 
-type Server = { session: any, factory: any, provision: any, now: () -> number, move: any, equip: any }
+type Server = {
+	session: any,
+	factory: any,
+	provision: any,
+	now: () -> number,
+	move: any,
+	equip: any,
+	world: any,
+}
 local reach = { warehouse = true }
 -- live = true wires what RobangoIslandServer configures: wildlife, taming, shop and market (whose
 -- tutorial gate reads the contracts snapshot, as the server script does).
@@ -485,8 +493,8 @@ local function craft(server: any, at: any, recipe: string, station: string)
 	send(server, "craft-complete", { reserved.data.jobId })
 end
 
-local function captureDodo(server: any)
-	local dodo = "rw.onboarding.dodo.01.1"
+local function captureDodo(server: any, target: string?, species: string?)
+	local dodo = target or "rw.onboarding.dodo.01.1"
 	local wild = server.factory.services.survivalWildlife
 	give(server, "guide-knife", "bone-knife", 1)
 	server.session.personalTransaction(ACTOR, function(raw)
@@ -501,7 +509,7 @@ local function captureDodo(server: any)
 	server.equip(ACTOR, "guide-knife")
 	local full = 0
 	for _, row in content.wildlifeDetails do
-		full = if row.id == "dodo" then row.health * 1000 else full
+		full = if row.id == (species or "dodo") then row.health * 1000 else full
 	end
 	-- Capture rolls are seeded by the request id; a per-call counter keeps the rolls independent of
 	-- which guide drives ran before this one in the shard (the module-wide sequence is order-dependent).
@@ -531,7 +539,8 @@ local function captureDodo(server: any)
 	assert(health > 0 and health <= full // 4, "weakened to the capture threshold: " .. health)
 	for _ = 1, 4 do
 		server.at.value += 9
-		assert(command("tame-hit", { dodo }).ok, "bola stun")
+		local stun = command("tame-hit", { dodo })
+		assert(stun.ok, "bola stun: " .. tostring(stun.reason))
 		local caught = command("tame-capture", { dodo })
 		assert(caught.ok, "capture: " .. tostring(caught.reason))
 		if caught.data.captured then
@@ -933,10 +942,72 @@ local DRIVE: { [string]: (any, any) -> () } = {
 		captureDodo(server)
 	end,
 	["rw.g41.second-pet.2"] = function(server)
+		send(server, "companion-action", { "place", "rw.onboarding.dodo.01.1" })
+		send(server, "companion-action", { "train", "rw.onboarding.dodo.01.1" })
+	end,
+	["rw.g41.second-pet.3"] = function(server)
 		stock(server, { ["herbivore-feed"] = 3 })
 		for _ = 1, 3 do
 			send(server, "companion-action", { "feed", "rw.onboarding.dodo.01.1" })
 		end
+	end,
+	["rw.g41.second-pet.4"] = function(server, at)
+		wait(server, at, 301)
+		send(server, "companion-action", { "claim", "rw.onboarding.dodo.01.1" })
+	end,
+	-- Fun-first first ride: a protoceratops from the onboarding herd, tamed, saddled and ridden.
+	["rw.g47.first-ride.1"] = function(server)
+		-- A protoceratops is not small: subduing it needs the club path (melee_2).
+		learn(server, { "melee_1", "melee_2" })
+		-- The club stun needs a club in the bag (g43 crafts the tier-1 club before this guide).
+		give(server, "guide-club", "starter-club", 1)
+		server.session.personalTransaction(ACTOR, function(raw)
+			raw.envelope.genres["survival-coop"].data.inventory.bag.items["guide-club"].durabilityMilli = 100000
+			return raw
+		end)
+	end,
+	["rw.g47.first-ride.2"] = function(server)
+		-- Capturing a stunned creature that is not small needs survival_3.
+		learn(server, { "survival_1", "survival_2", "survival_3" })
+	end,
+	["rw.g47.first-ride.3"] = function(server, at)
+		-- A creature that is not small is tied with a capture rope (fiber + cord at the workbench).
+		stock(server, { fiber = 6, cord = 1 })
+		atStation(server, "station.workbench.t1")
+		craft(server, at, "capture-rope", "station.workbench.t1")
+	end,
+	["rw.g47.first-ride.4"] = function(server)
+		captureDodo(server, "rw.onboarding.protoceratops.01.1", "protoceratops")
+	end,
+	["rw.g47.first-ride.5"] = function(server)
+		send(server, "companion-action", { "place", "rw.onboarding.protoceratops.01.1" })
+		send(server, "companion-action", { "train", "rw.onboarding.protoceratops.01.1" })
+	end,
+	["rw.g47.first-ride.6"] = function(server, at)
+		stock(server, { ["herbivore-feed"] = 3 })
+		for _ = 1, 3 do
+			send(server, "companion-action", { "feed", "rw.onboarding.protoceratops.01.1" })
+		end
+		wait(server, at, 301)
+		send(server, "companion-action", { "claim", "rw.onboarding.protoceratops.01.1" })
+	end,
+	["rw.g47.first-ride.7"] = function(server, at)
+		learn(server, { "tailoring_1", "tailoring_2", "tailoring_3" })
+		stock(server, { ["thick-leather"] = 6, ["polished-bone"] = 2, ["dried-fiber"] = 4 })
+		atStation(server, "station.workbench.t1")
+		craft(server, at, "saddle", "station.workbench.t1")
+	end,
+	["rw.g47.first-ride.8"] = function(server)
+		send(server, "companion-action", { "saddle", "rw.onboarding.protoceratops.01.1" })
+	end,
+	["rw.g47.first-ride.9"] = function(server)
+		send(server, "companion-action", { "deploy", "rw.onboarding.protoceratops.01.1" })
+		-- The fixture engine runs no character heartbeat, so no pet body spawns: the body stands beside
+		-- the player (reach itself is covered by PersonalCompanionExtension.spec).
+		server.world.petDistance = function()
+			return 1
+		end
+		send(server, "companion-action", { "mount", "rw.onboarding.protoceratops.01.1" })
 	end,
 	["rw.g42.storage.1"] = function(server, at)
 		learn(server, { "construction_1", "construction_2" })
@@ -1000,9 +1071,11 @@ local ROLE: { [string]: string } = {
 	["rw.g31.first-capture"] = "rw.onboarding",
 	["rw.g39.copper"] = "rw.explore20",
 	["rw.g41.second-pet"] = "rw.onboarding",
+	["rw.g47.first-ride"] = "rw.onboarding",
 }
 -- The captures need the onboarding island's real wildlife and taming wiring.
-local WILDS: { [string]: boolean } = { ["rw.g31.first-capture"] = true, ["rw.g41.second-pet"] = true }
+local WILDS: { [string]: boolean } =
+	{ ["rw.g31.first-capture"] = true, ["rw.g41.second-pet"] = true, ["rw.g47.first-ride"] = true }
 
 local function fresh(guide: any): (any, any)
 	local at = { value = 1000 }
