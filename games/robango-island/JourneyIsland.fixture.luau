@@ -582,11 +582,19 @@ function M.run(host: any, p: any, options: any?): any
 	end
 	local function captureHere(): boolean
 		p.closeSheets()
+		if (extensions().taming.captureTools or 0) == 0 then
+			if not p.obtain("capture-bola", count(p.bag().items, "capture-bola") + 1, 120) then
+				return false
+			end
+			p.render()
+		end
 		local h = p.h()
+		local pets = (extensions().taming.companions or {}).pets or {}
 		local ids = {}
 		for id, model in h.creatures or {} do
 			if
 				model:GetAttribute("ForgeWildlifeKind") == "dodo"
+				and not pets[id]
 				and (model:GetAttribute("ForgeWildlifeHealthMilli") or 0) > 0
 			then
 				table.insert(ids, id)
@@ -648,7 +656,7 @@ function M.run(host: any, p: any, options: any?): any
 			p.click(token)
 			p.wait(9) -- explicit game time: stun recovery, not a wall-clock sleep
 		end
-		return model:GetAttribute("ForgeWildlifeHealthMilli") == 0
+		return ((extensions().taming.companions or {}).pets or {})[ids[1]] ~= nil
 	end
 	local function feedCaptured()
 		p.openTile("taming")
