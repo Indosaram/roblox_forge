@@ -106,6 +106,22 @@ return {
 			assert(f.state.storageSlots == want and f.state.storage.limits.slots == want, "slots " .. want)
 		end
 	end,
+	["a seed with no authored level plants at level 1"] = function()
+		local f = M.fixture()
+		local bag = Inventory.fromSave(f.state.storage, f.ctx.catalog)
+		bag = assert(Inventory.add(bag, f.ctx.catalog, {
+			itemId = "reward-seed",
+			catalogId = "corn-seed",
+			quantity = 1,
+			qualityMilli = 1000,
+			durabilityMilli = 0,
+			attributes = {},
+		}, bag.version))
+		f.state.storage = Inventory.save(bag)
+		local planted, reason = apply(f, "plant", { plot = "p1", crop = "corn", seedItem = "reward-seed" })
+		assert(planted, reason)
+		assert(planted.plots.p1.level == 1, "unlevelled seed plants at level 1")
+	end,
 	["expiry overflow remains loadable and refuses harvest until space exists"] = function()
 		local f = M.fixture()
 		f.ctx.entitlements = { patron = true, warehouse = true, monthly = true }

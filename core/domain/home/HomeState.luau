@@ -291,7 +291,9 @@ function M.apply(state: any, actor: string, homeId: string, action: string, args
 		then
 			return nil, "WRONG_SEED"
 		end
-		local level = seedItem.attributes.level
+		-- A seed with no authored level (a guide reward, a shop or trade stack) plants at level 1;
+		-- refusing it left the farm guide with no plantable seed (journey6h g09, 173 min).
+		local level = if seedItem.attributes.level == nil then 1 else seedItem.attributes.level
 		if type(level) ~= "number" or level < 1 then
 			return nil, "SEED_LEVEL_REQUIRED"
 		end
