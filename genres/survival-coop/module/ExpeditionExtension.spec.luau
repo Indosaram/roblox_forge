@@ -111,10 +111,11 @@ return {
 		assert(ok.ok and ok.data.members == 2, "party departs")
 		assert(h.travels[1] == "c>archipelago:1" and h.travels[2] == "a>archipelago:1", "leader travels last")
 	end,
-	["depart refuses inside the final ten minutes and while already on an expedition"] = function()
+	["depart late in a clock window still departs; refused while already on an expedition"] = function()
+		-- Fun-first: the trip runs a full window from departure, so no "next route opens in 9:59".
 		local late = harness({ a = READY }, 1800 - 600)
-		local refused = late.send("a", "depart", "1")
-		assert(not refused.ok and refused.reason == "expiry_imminent", "final ten minutes refused")
+		local departed = late.send("a", "depart", "1")
+		assert(departed.ok and late.travels[1] == "a>archipelago:1", "late departure travels at once")
 		local away = harness({ a = READY }, 0, true)
 		assert(away.send("a", "depart", "1").reason == "expedition_active", "already on an expedition")
 		assert(away.send("a", "next").ok and away.travels[1] == "a>next-island:nil", "next island uses travel")

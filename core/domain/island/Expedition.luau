@@ -99,8 +99,9 @@ function Expedition.seedFor(worldSeed: number, routeId: string, dayKey: number):
 	return Rng.new(worldSeed):fork("expedition"):fork(routeId .. "|" .. tostring(dayKey)):nextU32()
 end
 
--- Opens (or re-derives) the island for a route card at `now`. The island
--- expires at the end of the current rotation window.
+-- Opens the island for a route card at `now`. The seed follows the rotation window (whole
+-- windows since epoch 0); the island lasts one full window from its opening, so departing late
+-- in a window never shortens the trip or makes the player wait for the next one.
 function Expedition.open(card: RouteCard, worldSeed: number, now: number, ttl: number?): Island
 	checkCard(card)
 	local window = checkTtl(ttl)
@@ -110,7 +111,7 @@ function Expedition.open(card: RouteCard, worldSeed: number, now: number, ttl: n
 		templateId = card.templateId,
 		seed = Expedition.seedFor(worldSeed, card.routeId, day),
 		delta = {},
-		expiresAt = (day + 1) * window,
+		expiresAt = now + window,
 	}
 end
 

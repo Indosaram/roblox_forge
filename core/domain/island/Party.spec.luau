@@ -92,7 +92,9 @@ return {
 		assert(not open and why == "instability_gate", "previous route required")
 		assert(Party.routeGate(Content, 2, READY), "ready")
 		local expires = Party.window(100, 1800)
-		assert(expires == 1800, "window ends at the rotation boundary")
+		assert(expires == 1900, "a trip runs a full window from its departure")
+		-- Departing one minute before a rotation boundary still gets the whole trip (no wait).
+		assert(Party.entry(Party.window(1740, 1800), 1740), "late departure is never refused")
 		local late, lateReason = Party.entry(expires, expires - Party.FINAL_ENTRY_SECONDS)
 		assert(not late and lateReason == "expiry_imminent", "no entry inside the final ten minutes")
 		assert(Party.entry(expires, expires - Party.FINAL_ENTRY_SECONDS - 1), "entry before the last ten minutes")

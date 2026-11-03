@@ -14,12 +14,12 @@ local function encode(value: any): string
 end
 
 return {
-	["open builds the island document with a window-bounded expiry"] = function()
+	["open builds the island document with a full window from opening"] = function()
 		local now = 3 * DAY + 100
 		local island = Expedition.open(card, 77, now)
 		assert(island.templateId == "exp-forest-low-a", "template")
 		assert(next(island.delta) == nil, "empty delta")
-		assert(island.expiresAt == 4 * DAY, "expires at window end")
+		assert(island.expiresAt == now + DAY, "a full window from opening, not the rotation boundary")
 		assert(island.seed == Expedition.seedFor(77, "route-forest-1", 3), "seed matches derivation")
 		local expected = Rng.new(77):fork("expedition"):fork("route-forest-1|3"):nextU32()
 		assert(island.seed == expected, "seed goes through Rng fork('expedition')")
@@ -38,9 +38,9 @@ return {
 
 	["expired route is refused"] = function()
 		local island = Expedition.open(card, 1, 10 * DAY + 5)
-		local ok, code = Expedition.canEnter(island, 11 * DAY - 1)
+		local ok, code = Expedition.canEnter(island, 11 * DAY + 4)
 		assert(ok and code == nil, "still open one second before expiry")
-		ok, code = Expedition.canEnter(island, 11 * DAY)
+		ok, code = Expedition.canEnter(island, 11 * DAY + 5)
 		assert(not ok and code == "route_expired", "refused at expiry")
 		assert(Expedition.isExpired(island, 12 * DAY), "expired later too")
 	end,
@@ -48,6 +48,10 @@ return {
 	["custom ttl and invalid inputs"] = function()
 		local island = Expedition.open(card, 1, 7200, 3600)
 		assert(island.expiresAt == 10800, "hourly window")
+		assert(
+			Expedition.open(card, 1, 7200 + 3599, 3600).expiresAt == 7200 + 3599 + 3600,
+			"late opening keeps a full hour"
+		)
 		assert(not (pcall(Expedition.open, card, 1, -1)), "negative now")
 		assert(not (pcall(Expedition.open, { routeId = "", templateId = "t" }, 1, 0)), "empty route id")
 		assert(not (pcall(Expedition.open, card, 1, 0, 0)), "zero ttl")

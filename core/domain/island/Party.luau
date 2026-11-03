@@ -293,9 +293,11 @@ function M.shareRevoke(share: any?, target: string): (any?, string?)
 	return out, nil
 end
 
--- Expiry of a route opened at `now` (the same rotation window Expedition.open uses).
+-- Expiry of a route opened at `now` (the same window Expedition.open uses). A trip runs a full
+-- `ttl` from its departure: clock-aligned windows made a fresh player at the harbor wait out the
+-- last ten minutes of a window ("next route opens in 9:59") before the first drift isle.
 function M.window(now: number, ttl: number): number
-	return (now // ttl + 1) * ttl
+	return now + ttl
 end
 
 function M.entry(expiresAt: number, now: number): (boolean, string?)
