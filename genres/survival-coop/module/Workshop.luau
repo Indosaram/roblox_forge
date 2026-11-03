@@ -121,14 +121,38 @@ function M.reserve(
 		return nil, "ALREADY_RESERVED"
 	end
 	local active, retained = 0, 0
-	for _, entry in jobs.entries do
+	local finished: { string } = {}
+	for jobId, entry in jobs.entries do
 		retained += 1
 		if not terminal(entry.job) then
 			active += 1
+		else
+			table.insert(finished, jobId)
 		end
 	end
-	if active >= M.MAX_ACTIVE or retained >= M.MAX_RETAINED then
+	if active >= M.MAX_ACTIVE then
 		return nil, "JOB_QUEUE_FULL"
+	end
+	-- A finished job's command result is replayed from the actor's command ledger (which also
+	-- refuses a reused request id), so at the retention bound the oldest finished jobs make room.
+	-- Nothing else releases them in play: after 64 crafts every craft was refused JOB_QUEUE_FULL
+	-- (journey6h, 42 min onwards).
+	table.sort(finished, function(a, b)
+		local left, right = jobs.entries[a], jobs.entries[b]
+		if left.retainedThroughEpoch ~= right.retainedThroughEpoch then
+			return left.retainedThroughEpoch < right.retainedThroughEpoch
+		end
+		if left.job.reservedAt ~= right.job.reservedAt then
+			return left.job.reservedAt < right.job.reservedAt
+		end
+		return a < b
+	end)
+	for _, jobId in finished do
+		if retained < M.MAX_RETAINED then
+			break
+		end
+		jobs.entries[jobId] = nil
+		retained -= 1
 	end
 	if access.carriedContainer ~= inventory.id then
 		return nil, "WRONG_CONTAINER"

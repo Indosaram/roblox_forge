@@ -685,6 +685,37 @@ function M.run(Journey: any, options: any): any
 					click(learn)
 					host.tick(1)
 				end
+				-- Learn stays refused until the category's proficiency is reached; the HUD line names
+				-- the practice ("Practice N more times first: <entry action>"), so craft that first.
+				local SkillTraining = require("../../genres/survival-coop/module/SkillTraining")
+				local practice, practiceUntil = 0, host.at.value + 1800
+				while
+					learn
+					and not ((personal().progression or {}).paid or {})[node.id]
+					and practice < 200
+					and host.at.value < practiceUntil
+				do
+					local training = SkillTraining.forNode(Content, personal().progression, node)
+					if not training.action or training.action == recipeId or training.count == 0 then
+						break
+					end
+					closeSheets()
+					if not craft(training.action) then
+						break
+					end
+					practice += 1
+					h.hud.open("skills")
+					render()
+					local again = find("skill-" .. node.category)
+					if again then
+						click(again)
+					end
+					learn = find("learn-" .. node.id)
+					if learn then
+						click(learn)
+						host.tick(1)
+					end
+				end
 				closeSheets()
 				h.hud.open("craft")
 				render()

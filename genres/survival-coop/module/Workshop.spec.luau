@@ -270,8 +270,20 @@ return {
 			assert(cancelled, "cancel retained job")
 			state, bag = cancelled.jobs, cancelled.inventory
 		end
-		local _, retainedError = Workshop.reserve(state, bag, context, content, "rev1", "cord", 0, access)
-		assert(retainedError == "JOB_QUEUE_FULL", "bounded terminal retention")
+		local full = state
+		local evicting = { actorId = "alice", sessionEpoch = 1, requestId = "evicting" }
+		local evicted = Workshop.reserve(full, bag, evicting, content, "rev1", "cord", 0, access)
+		assert(evicted, "finished jobs make room at the retention bound")
+		local kept = 0
+		for _ in evicted.jobs.entries do
+			kept += 1
+		end
+		assert(kept == Workshop.MAX_RETAINED, "retention stays bounded")
+		assert(evicted.jobs.entries[evicted.jobId], "new job retained")
+		assert(
+			not evicted.jobs.entries[Workshop.identity({ actorId = "alice", sessionEpoch = 1, requestId = "1" }) :: string],
+			"oldest finished job released"
+		)
 		local pruned = Workshop.prune(state, 2)
 		assert(next(pruned.entries) == nil and next(state.entries) ~= nil, "detached safe cleanup")
 		pruned =
