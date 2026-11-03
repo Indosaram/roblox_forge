@@ -385,7 +385,16 @@ function M.run(Journey: any, options: any): any
 		if not itemId then
 			return false
 		end
-		if held and held.item == itemId and held.world == host.world then
+		local character = host.engine.game:GetService("Players"):GetPlayerByUserId(tonumber(ACTOR)).Character
+		-- The held Tool can leave the hand without this cache knowing (equipping gear from the
+		-- Equipment sheet, a respawn): reuse it only while it is still in the character.
+		if
+			held
+			and held.item == itemId
+			and held.world == host.world
+			and held.tool
+			and held.tool.Parent == character
+		then
 			return true
 		end
 		if held and held.tool then
@@ -408,7 +417,7 @@ function M.run(Journey: any, options: any): any
 				serde.encode("json", host.world.services.survivalDeath.equipment(ACTOR) or {})
 			)
 		end
-		local character = host.engine.game:GetService("Players"):GetPlayerByUserId(tonumber(ACTOR)).Character
+		character = host.engine.game:GetService("Players"):GetPlayerByUserId(tonumber(ACTOR)).Character
 		held = { item = itemId, world = host.world, tool = character:FindFirstChildOfClass("Tool") }
 		event("equip", catalogId)
 		return true
@@ -530,8 +539,18 @@ function M.run(Journey: any, options: any): any
 					if not escrowed and notice and string.find(notice, "버려", 1, true) then
 						for _ = 1, 8 do
 							local heaviest, weight = nil, 0
+							local slotsFull = string.find(blocked, "SLOTS") ~= nil
+							local totals: { [string]: number } = {}
+							for _, stack in bag().items do
+								totals[stack.catalogId] = (totals[stack.catalogId] or 0) + stack.quantity
+							end
 							for itemId, stack in bag().items do
 								local w = stack.quantity * (weightOf[stack.catalogId] or 0)
+								if slotsFull then
+									-- A full bag of slots frees a slot only when a whole stack goes (Drop takes 5):
+									-- the smallest stack of the most-carried material.
+									w = totals[stack.catalogId] * 1000 - stack.quantity
+								end
 								if w > weight and stack.catalogId ~= item and (stack.durabilityMilli or 0) == 0 then
 									heaviest, weight = itemId, w
 								end
@@ -902,6 +921,12 @@ function M.run(Journey: any, options: any): any
 				end
 			end
 			event("craft-unfinished", { recipe = recipeId, layout = host.layoutId, shown = shownText })
+			-- A job left Reserved holds its inputs (tools included); the card's Cancel releases them.
+			local cancel = findPrefix("cancel-")[1]
+			if cancel then
+				click(cancel)
+				host.tick(1)
+			end
 		end
 		closeSheets()
 		return ok, if ok then nil else "CRAFT_DID_NOT_FINISH"

@@ -772,6 +772,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -788,6 +790,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -803,6 +807,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -1018,6 +1024,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1034,6 +1042,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1049,6 +1059,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -1352,6 +1364,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1368,6 +1382,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1383,6 +1399,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -1590,6 +1608,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1606,6 +1626,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -1621,6 +1643,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -2032,6 +2056,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2048,6 +2074,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2063,6 +2091,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -2138,6 +2168,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2154,6 +2186,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2169,6 +2203,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -2386,6 +2422,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2402,6 +2440,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2417,6 +2457,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -2608,6 +2650,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2624,6 +2668,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -2639,6 +2685,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -3240,6 +3288,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -3256,6 +3306,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -3271,6 +3323,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -3361,6 +3415,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
@@ -3558,6 +3614,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -3574,6 +3632,8 @@
           1
          'tags':
           - 
+           'tool'
+          - 
            'weapon-tool'
           
          'weightMilli':
@@ -3589,6 +3649,8 @@
          'stackMax':
           1
          'tags':
+          - 
+           'tool'
           - 
            'weapon-tool'
           
