@@ -892,7 +892,7 @@ function M.run(host: any, p: any, options: any?): any
 					if node.id == o.target then
 						clickNamed("skill-" .. node.category)
 						-- The category detail offers its next node, not arbitrary descendants.
-						for _ = 1, #Content.skillNodes do
+						for _ = 1, 200 do
 							if (p.personal().progression.paid or {})[node.id] ~= nil then
 								break
 							end
@@ -917,8 +917,20 @@ function M.run(host: any, p: any, options: any?): any
 									if recipe then
 										p.closeSheets()
 										local station = recipe.station and anchor("station." .. recipe.station .. ".t1")
-										if recipe.station and not station and host.role ~= "harbor" then
-											if sail("harbor") then
+										if recipe.station and not station then
+											for _, part in host.world.tieredStations or {} do
+												if part:GetAttribute("ForgeStationKind") == recipe.station then
+													station = {
+														x = part.Position.X,
+														y = part.Position.Y,
+														z = part.Position.Z,
+													}
+													break
+												end
+											end
+										end
+										if recipe.station and not station then
+											if sail("home") then
 												trained = true
 												break
 											end
@@ -929,7 +941,23 @@ function M.run(host: any, p: any, options: any?): any
 										if station then
 											p.walk(station, 3)
 										end
-										trained = p.craft(recipe.id)
+										if node.category == "processing" and station then
+											p.openTile("processing")
+											trained = clickNamed("Start-" .. recipe.id)
+											for _ = 1, 3 do
+												local start = p.findPrefix("start-")[1]
+												local complete = p.findPrefix("complete-")[1]
+												if start then
+													p.click(start)
+												elseif complete then
+													p.click(complete)
+												end
+												p.wait(math.ceil(recipe.craftMillis / 1000) + 1)
+											end
+											p.closeSheets()
+										else
+											trained = p.craft(recipe.id)
+										end
 										break
 									elseif anchor(action) then
 										for _, operation in Content.operations do

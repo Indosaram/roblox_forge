@@ -6,6 +6,7 @@ local Locale = require("./SurvivalHUDLocale")
 local HudShell = require("./HudShell")
 local IconFallback = require("../../../core/ui-kit/IconFallback")
 local CharacterRules = require("./CharacterRules")
+local SkillTraining = require("./SkillTraining")
 local Spoilage = require("../../../core/domain/survival/Spoilage")
 local M = {}
 M.NOTICE_SECONDS = 5
@@ -1807,8 +1808,13 @@ function M.start(options: Options)
 					end
 					local mastery = progression.mastery[node.category].level
 					local proficiency = mastery >= node.proficiency
+					local training = SkillTraining.forNode(content, progression, node)
 					skillLines.SkillNeed.Text = if nextNode and not proficiency
-						then string.format(t("skill_proficiency"), mastery, node.proficiency)
+						then string.format(t("skill_proficiency"), mastery, node.proficiency) .. "\n" .. string.format(
+							t("skill_train"),
+							training.count,
+							name(training.action or node.category)
+						)
 						elseif nextNode and #missing > 0 then string.format(
 							t("skill_needed"),
 							table.concat(missing, ", ")
