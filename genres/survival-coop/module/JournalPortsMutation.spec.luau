@@ -2,6 +2,7 @@
 -- Source mutations execute in memory and never touch shared runtime files.
 local fs = require("@lune/fs")
 local Data = require("../../../core/domain/genre/SerializedData")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Chapters = require("../../../core/domain/journal/Chapters")
 local Ledger = require("../../../core/domain/command/Ledger")
 local Topology = require("../../../core/domain/settlement/Multistorey")
@@ -16,6 +17,7 @@ local Aerial = require("./AerialView")
 
 local dependencies: any = {
 	["../../../core/domain/genre/SerializedData"] = Data,
+	["../../../core/domain/progression/SkillTree"] = SkillTree,
 	["../../../core/domain/journal/Chapters"] = Chapters,
 	["../../../core/domain/command/Ledger"] = Ledger,
 	["../../../core/domain/settlement/Multistorey"] = Topology,

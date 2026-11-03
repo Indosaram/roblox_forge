@@ -16,10 +16,13 @@ end
 return {
 	["training count follows the shipped proficiency curve"] = function()
 		local p = Content.progressionPolicy.tree
-		assert(Training.actions(p, { level = 0, xp = 0 }, 3) == 24, "processing rank two needs 24 actions from zero")
-		assert(Training.actions(p, { level = 1, xp = 0 }, 3) == 23, "first action already earned")
+		assert(
+			Training.actions(p, { level = 0, xp = 0 }, 3) == 5,
+			"processing rank two needs 5 actions from zero (fun-first curve)"
+		)
+		assert(Training.actions(p, { level = 1, xp = 0 }, 3) == 4, "first action already earned")
 		assert(Training.actions(p, { level = 3, xp = 0 }, 3) == 0, "eligible node needs no practice")
-		assert(Training.actions(p, { level = 0, xp = 0 }, 6) == 76, "rank three training cost remains explicit")
+		assert(Training.actions(p, { level = 0, xp = 0 }, 6) == 16, "rank three training cost remains explicit")
 	end,
 	["HUD guide line names the practice a proficiency-gated skill step needs"] = function()
 		local ch = {
@@ -30,11 +33,11 @@ return {
 		}
 		local line = Text.guideObjective("en-us", Content, ch, {}, true)
 		assert(
-			line and string.find(line, "Practice 23 more times first", 1, true),
+			line and string.find(line, "Practice 4 more times first", 1, true),
 			"gated learn names the practice: " .. tostring(line)
 		)
 		local ko = Text.guideObjective("ko-kr", Content, ch, {}, true)
-		assert(ko and string.find(ko, "23회 더 연습", 1, true), "korean line: " .. tostring(ko))
+		assert(ko and string.find(ko, "4회 더 연습", 1, true), "korean line: " .. tostring(ko))
 		ch.mastery.processing.level = 3
 		local ready = Text.guideObjective("en-us", Content, ch, {}, true)
 		assert(

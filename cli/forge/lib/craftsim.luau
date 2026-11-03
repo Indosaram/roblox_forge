@@ -10,6 +10,7 @@
 -- draw comes from Rng.new(seed) forks. Action durations that the content does not author are
 -- named ASSUMPTIONS and reported in the JSON.
 local Rng = require("../../../core/domain/random/Rng")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local Buyback = require("../../../core/domain/market/Buyback")
 local Job = require("../../../core/domain/crafting/Job")
 local MissionRewards = require("../../../genres/survival-coop/module/MissionRewards")
@@ -110,7 +111,7 @@ function M.simulate(content: any, options: Options): { [string]: any }
 		totalXP += amount
 		xp += amount
 		while level < tree.maxLevel do
-			local required = tree.xpBase + tree.xpStep * level
+			local required = SkillTree.characterRequired(tree, level)
 			if xp < required then
 				break
 			end

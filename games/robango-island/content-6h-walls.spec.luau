@@ -11,17 +11,18 @@ local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
 local Farming = require("../../core/domain/home/Farming")
+local SkillTree = require("../../core/domain/progression/SkillTree")
 
 local WINDOW = 50 -- highest guide/chapter level gate on the first-6-hours path (audit6h §2)
-local SKILL_BUDGET = 200 -- category actions a player spends on one skill line inside 6 hours
-local RANK3_BUDGET = 100 -- category actions to the rank-3 node of every category
+local SKILL_BUDGET = 50 -- category actions a player spends on one skill line inside 6 hours (fun-first: no grind)
+local RANK3_BUDGET = 20 -- category actions to the rank-3 node of every category
 
 local function load(): any
 	return serde.decode("yaml", fs.readFile("games/robango-island/content.yml"))
 end
 
 -- Category actions to reach `proficiency` (SkillTree.award: the first action gives level 1, then
--- each action adds actionXP against xpBase + xpStep * level).
+-- each action adds actionXP against SkillTree.masteryRequired).
 local function actions(document: any, proficiency: number): number
 	local tree = document.progressionPolicy.tree
 	if proficiency <= 1 then
@@ -31,7 +32,7 @@ local function actions(document: any, proficiency: number): number
 	while level < proficiency do
 		count += 1
 		xp += tree.actionXP
-		local required = tree.xpBase + tree.xpStep * level
+		local required = SkillTree.masteryRequired(tree, level)
 		if xp >= required then
 			xp -= required
 			level += 1

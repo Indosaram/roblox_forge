@@ -4632,7 +4632,11 @@ progressionPolicy:
   # Spec restored by owner decision 2026-10-23 (robango-fidelity-contracts R01): next level needs
   # 100+25*(L-1) = xpBase+xpStep*L. Melee XP is per kill (actionXP + killXP), not per hit; actionXP+killXP = 70
   # is the spec 20+5*creatureLevel at the level-10 tier (flat until kills know the creature level).
-  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 75, xpStep: 25, killXP: 60}
+  # Fun-first retune (owner 2026-11-03: first 6 hours fun over long, length moves to the endgame):
+  # mastery has its own curve 5 + 8*L (+20*(L-9)^2 from L10): proficiency 3/6/10 = 5/16/42 actions
+  # (was 24/76/181), proficiency 18/30 = 540/6104 (was 511/1306). The character curve is unchanged
+  # through L39 and adds 10*(L-39)^2 from L40 (endgame).
+  tree: {maxLevel: 60, spPerLevel: 3, maxMastery: 60, actionXP: 10, xpBase: 75, xpStep: 25, killXP: 60, xpQuad: 10, xpQuadFrom: 40, masteryBase: 5, masteryStep: 8, masteryQuad: 20, masteryQuadFrom: 10}
   sharpnessPerPoint: 0.02
   insulationCold: 0.1
   minimumWear: 0.5

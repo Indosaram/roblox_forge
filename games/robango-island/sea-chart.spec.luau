@@ -3,6 +3,7 @@
 -- (locked islands refused), drift-isle seeds (reset = new recorded seed, same seed = same layout)
 -- and the drift camp with its rift on every archipelago stage.
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
+local SkillTree = require("../../core/domain/progression/SkillTree")
 local Content = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
 local Policy = require("./src/shared/WildlifePolicy")
@@ -747,8 +748,8 @@ return {
 		end
 		assert(points // 100 >= rank, "start guides give the a1 grade: " .. points .. " points for rank " .. rank)
 		local tree, reached = Content.progressionPolicy.tree, 1
-		while xp >= tree.xpBase + tree.xpStep * reached do
-			xp -= tree.xpBase + tree.xpStep * reached
+		while xp >= SkillTree.characterRequired(tree, reached) do
+			xp -= SkillTree.characterRequired(tree, reached)
 			reached += 1
 		end
 		assert(reached >= level, "start guide xp reaches the a1 level: L" .. reached .. " < L" .. level)

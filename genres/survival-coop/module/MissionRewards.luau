@@ -283,7 +283,7 @@ function M.settle(actor: string, env: any): any
 				local bonus = if entry.repeatClear then M.repeatBonus(env.content, progression.level) else 0
 				local xp = (progression.xp or 0) + (rewards.xp or 0) + bonus
 				while progression.level < policy.maxLevel do
-					local required = policy.xpBase + policy.xpStep * progression.level
+					local required = SkillTree.characterRequired(policy, progression.level)
 					if xp < required then
 						break
 					end

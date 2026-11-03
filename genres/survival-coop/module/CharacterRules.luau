@@ -466,7 +466,7 @@ function M.character(content: any, tree: any, points: number): any
 		level = tree.level,
 		maxLevel = policy.maxLevel,
 		xp = tree.xp or 0,
-		nextXP = if tree.level >= policy.maxLevel then 0 else policy.xpBase + policy.xpStep * tree.level,
+		nextXP = if tree.level >= policy.maxLevel then 0 else Tree.characterRequired(policy, tree.level),
 		sp = tree.sp,
 		totalSP = tree.sp + paid,
 		rank = rank,

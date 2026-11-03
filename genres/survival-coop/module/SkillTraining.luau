@@ -1,5 +1,6 @@
 --!strict
 -- Remaining finalized category actions, using the same mastery curve as SkillTree.award.
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local M = {}
 function M.actions(policy: any, mastery: any, target: number): number
 	local level, xp, count = mastery.level, mastery.xp or 0, 0
@@ -9,8 +10,8 @@ function M.actions(policy: any, mastery: any, target: number): number
 			level = 1
 		else
 			xp += policy.actionXP
-			while level < target and xp >= policy.xpBase + policy.xpStep * level do
-				xp -= policy.xpBase + policy.xpStep * level
+			while level < target and xp >= SkillTree.masteryRequired(policy, level) do
+				xp -= SkillTree.masteryRequired(policy, level)
 				level += 1
 			end
 		end

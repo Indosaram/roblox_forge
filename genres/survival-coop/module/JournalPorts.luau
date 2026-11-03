@@ -1,5 +1,6 @@
 --!strict
 local Data = require("../../../core/domain/genre/SerializedData")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local M = {}
 
 function M.personal(session: any): any
@@ -82,7 +83,7 @@ function M.new(documents: any, content: any): any
 			local progression = Data.clone(document.progression)
 			local xp = (progression.xp or 0) + reward.xp
 			while progression.level < policy.maxLevel do
-				local required = policy.xpBase + policy.xpStep * progression.level
+				local required = SkillTree.characterRequired(policy, progression.level)
 				if xp < required then
 					break
 				end

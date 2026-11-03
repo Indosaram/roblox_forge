@@ -21,6 +21,34 @@ export type Policy = {
 	xpBase: number,
 	xpStep: number,
 }
+-- Optional policy fields (read untyped so older policy tables stay compatible):
+-- xpQuad, xpQuadFrom: endgame term of the character curve, + xpQuad * (level - xpQuadFrom + 1)^2.
+-- masteryBase, masteryStep, masteryQuad, masteryQuadFrom: the category mastery curve; without
+-- masteryBase mastery follows xpBase + xpStep * level.
+
+local function endgame(quad: number?, from: number?, level: number): number
+	if quad == nil or level < (from or 1) then
+		return 0
+	end
+	return quad * (level - (from or 1) + 1) ^ 2
+end
+
+--- XP the character needs to go from `level` to the next one.
+function M.characterRequired(policy: Policy, level: number): number
+	local extra: any = policy
+	return policy.xpBase + policy.xpStep * level + endgame(extra.xpQuad, extra.xpQuadFrom, level)
+end
+
+--- Category XP (actionXP per finalized action) to go from mastery `level` to the next one.
+function M.masteryRequired(policy: Policy, level: number): number
+	local extra: any = policy
+	if extra.masteryBase == nil then
+		return policy.xpBase + policy.xpStep * level
+	end
+	return extra.masteryBase
+		+ (extra.masteryStep or 0) * level
+		+ endgame(extra.masteryQuad, extra.masteryQuadFrom, level)
+end
 
 function M.copy(state: State): State
 	local result = table.clone(state)
@@ -57,7 +85,7 @@ function M.grantXP(state: State, policy: Policy, amount: number): State
 	local result = M.copy(state)
 	local xp = (result.xp or 0) + amount
 	while result.level < policy.maxLevel do
-		local required = policy.xpBase + policy.xpStep * result.level
+		local required = M.characterRequired(policy, result.level)
 		if xp < required then
 			break
 		end
@@ -81,7 +109,7 @@ function M.award(state: State, policy: Policy, category: string, receipt: string
 	-- Older saves start at zero remaining XP; replayed receipts award neither.
 	local characterXP = (result.xp or 0) + policy.actionXP
 	while result.level < policy.maxLevel do
-		local required = policy.xpBase + policy.xpStep * result.level
+		local required = M.characterRequired(policy, result.level)
 		if characterXP < required then
 			break
 		end
@@ -96,7 +124,7 @@ function M.award(state: State, policy: Policy, category: string, receipt: string
 	else
 		mastery.xp += policy.actionXP
 		while mastery.level < policy.maxMastery do
-			local required = policy.xpBase + policy.xpStep * mastery.level
+			local required = M.masteryRequired(policy, mastery.level)
 			if mastery.xp < required then
 				break
 			end

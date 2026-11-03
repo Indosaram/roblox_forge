@@ -2,6 +2,7 @@
 -- Static supply-path proof, not a simulation of simultaneous island stock.
 local Operations = require("../../../genres/survival-coop/module/OperationExtension")
 local MissionRewards = require("../../../genres/survival-coop/module/MissionRewards")
+local SkillTree = require("../../../core/domain/progression/SkillTree")
 local M = {}
 
 -- levelReachability budget: every character-level route gate must be reached within this many
@@ -539,8 +540,8 @@ function M.levelReachability(document: any): { any }
 	local cleared, claimed = {}, {}
 	local function add(amount: number)
 		xp += amount
-		while level < tree.maxLevel and xp >= tree.xpBase + tree.xpStep * level do
-			xp -= tree.xpBase + tree.xpStep * level
+		while level < tree.maxLevel and xp >= SkillTree.characterRequired(tree, level) do
+			xp -= SkillTree.characterRequired(tree, level)
 			level += 1
 		end
 	end
