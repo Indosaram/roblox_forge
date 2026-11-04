@@ -85,6 +85,14 @@ function M.placeSkip(skip: any, gui: any, playerGui: any)
 	HudShell.put(skip, HudShell.cornerButton(view.X, view.Y, 96, 44, sheet, 64, header))
 end
 
+--- Height cap (px) of the opening quest card: down to just above the action cluster, never less
+--- than its slot. p134 v74 #3 (phone): capped at the slot (~78 px) the title plus three wrapped lines
+--- ended in '...' ('첫 도구 / … 뼈 1개 / ■ 섬유 3개...'); the card grows with its lines instead.
+function M.questLimit(slotHeight: number?, regions: any): number?
+	local room = regions.cluster.y - 4 - regions.quest.y
+	return if slotHeight and slotHeight > 0 then math.max(slotHeight, room) else nil
+end
+
 function M.factory(ctx: any): any
 	local player = Players.LocalPlayer
 	local theme, components = ctx.ui.theme.default, ctx.ui.components
@@ -712,7 +720,8 @@ function M.factory(ctx: any): any
 		if title then
 			tracker.Text = title .. "\n" .. table.concat(lines, "\n")
 			local slot = ctx.objectiveSlot
-			HudShell.fitQuestText(tracker, if slot then slot.AbsoluteSize.Y else nil, touch)
+			local regions = HudShell.regions(gui.AbsoluteSize.X, gui.AbsoluteSize.Y, HudShell.guiClear(gui), touch)
+			HudShell.fitQuestText(tracker, M.questLimit(if slot then slot.AbsoluteSize.Y else nil, regions), touch)
 		end
 		if genre and genre:IsA("GuiObject") then
 			genre.Visible = title == nil

@@ -137,4 +137,33 @@ return {
 		assert(card.Visible and card.Text == PackText.packText("ko-kr", "opening.beacon.farewell"), card.Text)
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
+	-- #3: the opening quest card was capped at its slot (~78 px on the phone), so the title and three
+	-- wrapped lines ended in '...'. It now grows down to just above the action cluster.
+	["v74 #3: the opening quest card has room for its title and wrapped lines on phone sizes"] = function()
+		-- OpeningClient reads engine services at load: load it on the panel harness engine.
+		local Client = Harness.harness({ width = 800, height = 360 }).load("games/robango-island/src/shared/OpeningClient")
+		local HudShell = require("../../genres/survival-coop/module/HudShell")
+		local ko = function(key: string): string
+			return assert(PackText.packText("ko-kr", key), key)
+		end
+		local state = Scene.new(0)
+		state.index = Scene.INDEX.fiber
+		local title, lines = Scene.tracker(Scene.view(state, { items = {} } :: any), ko)
+		assert(title and #lines == 3, "beat 3 card")
+		local size = HudShell.QUEST_TEXT.touch
+		-- SM-N981N landscape (914x411 dp, with and without the 58 px top bar) and a larger phone.
+		for _, screen in { { 914, 411, 58 }, { 914, 411, 0 }, { 1000, 450, 58 } } do
+			local r = HudShell.regions(screen[1], screen[2], screen[3], true)
+			local perLine = math.max(1, math.floor(r.quest.width / size)) -- Hangul: ~1 em per glyph
+			local rows = 0
+			for _, line in { title :: string, table.unpack(lines) } do
+				rows += math.ceil(utf8.len(line) / perLine)
+			end
+			local need = rows * size + 12 -- LineHeight 1, 6 px padding top and bottom
+			assert(r.quest.height < need, "the slot alone cuts the card (the v74 '...')")
+			local limit = assert(Client.questLimit(r.quest.height, r), "a cap")
+			assert(limit >= need, string.format("%dx%d: %d rows need %d px, cap %d", screen[1], screen[2], rows, need, limit))
+			assert(r.quest.y + limit <= r.cluster.y, "the card stays above the action cluster")
+		end
+	end,
 }
