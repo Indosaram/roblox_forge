@@ -379,6 +379,11 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 	function api.state(actor: string): Scene.State?
 		return states[actor]
 	end
+	--- True when the actor's opening is done (or bypassed); false while it runs or is not loaded.
+	function api.finished(actor: string): boolean
+		local state = states[actor]
+		return state ~= nil and Scene.finished(state)
+	end
 	--- Client intents for presentation-only beats; each is checked against the server state.
 	function api.intent(actor: string, kind: any): (boolean, string?)
 		local state = states[actor]

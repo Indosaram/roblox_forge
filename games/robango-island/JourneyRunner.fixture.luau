@@ -22,6 +22,8 @@ M.KNOWN_GOOD = {
 	"opening:hatchet",
 	"opening:campfire",
 	"depart:onboarding",
+	"opening-guide:rw.g01.first-gather",
+	"opening-guide:rw.g02.first-axe",
 	"arrive:home",
 	"arrive:rw.harbor",
 	"harbor:first-sale",
@@ -1127,6 +1129,15 @@ function M.run(Journey: any, options: any): any
 		end,
 	}, options)
 	if log.opening.step == "done" and host.pendingTravel then
+		-- p134 v75 A3: the real opening (starter bag, no guide-driven fiber gather) must finish the first
+		-- gather and first axe guides before departure; on staging g01 sat at 'fiber 0/3' for 70 min.
+		local document = host.factory.expeditionStore.snapshot(ACTOR)
+		local done = if document and document.development then document.development.definitions or {} else {}
+		for _, id in { "rw.g01.first-gather", "rw.g02.first-axe" } do
+			if done[id] then
+				milestone("opening-guide:" .. id)
+			end
+		end
 		local travel = host.pendingTravel
 		host.pendingTravel = nil
 		event("travel", travel)

@@ -749,6 +749,17 @@ function M.factory(ctx: any): any
 		stageStakes()
 		stageGuide()
 		stageRing(now, rootPart())
+		-- p134 v75 A2: after the beacon the jetty walk ended on the onboarding docks and their 'Travel'
+		-- won the action button: one tap sailed to Saltmeadow with no confirm, skipping home and the
+		-- harbor the guides continue at. While the opening runs, the Gannet (its Board card, then home)
+		-- is the only way off; the docks wake once it is finished.
+		local roleWorld = workspace:FindFirstChild("ForgeRoleWorld")
+		for _, item in if roleWorld then roleWorld:GetChildren() else {} do
+			local dockPrompt = item:FindFirstChild("ForgeDock")
+			if dockPrompt and dockPrompt:IsA("ProximityPrompt") then
+				dockPrompt.Enabled = not active
+			end
+		end
 		if not active then
 			placeWay(guideCard(), guideTarget(), rootPart(), nil)
 			dodge.Visible = false

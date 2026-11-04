@@ -2581,6 +2581,7 @@ trv.dock_unreachable,original,agent:hephaestus/p97,2026-10-24
 trv.transition_not_allowed,original,agent:hephaestus/p97,2026-10-24
 trv.studio_no_teleport,original,agent:hephaestus/p97,2026-10-24
 trv.travelling,original,agent:hephaestus/p97,2026-10-24
+trv.opening_gannet,original,agent:hephaestus/p134-v75,2026-11-04
 trv.portal_unreachable,original,agent:hephaestus/p125,2026-10-26
 trv.town_claimed,original,agent:hephaestus/c5a,2026-10-27
 trv.town_unavailable,original,agent:hephaestus/c5a,2026-10-27

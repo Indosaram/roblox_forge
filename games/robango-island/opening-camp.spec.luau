@@ -21,6 +21,8 @@ local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
 local roblox: any = require("@lune/roblox")
 local Harness = require("./PanelHarness.fixture")
 local Panels = require("../../genres/survival-coop/module/ExtensionPanels")
+local CharacterText = require("../../genres/survival-coop/module/CharacterText")
+local PackText = require("./PackText.fixture")
 
 local ACTOR = "11734795308"
 
@@ -241,7 +243,7 @@ end
 
 -- A fresh actor's opening up to the ridge camp: the beats before the camp, completed from the same
 -- server facts the live director reads (tutorial state, bag, position).
-local function toRidgeCamp(live: any)
+local function toRidgeCamp(live: any, skipGather: boolean?)
 	live.engine.move(ACTOR, Content.homePolicy.dock)
 	live.tick() -- the director loads the fresh actor
 	assert(live.command("tutorial-skip-arrival", {}).ok, "arrival")
@@ -260,8 +262,16 @@ local function toRidgeCamp(live: any)
 	-- (they feed the genre tutorial the campfire step reads); the knife is handed over.
 	live.engine.move(ACTOR, { x = 6, y = 5, z = 68 })
 	local version = live.factory.services.survivalGathering.snapshot(ACTOR).version
-	local gathered = live.command("gather", { "rw.onboarding.fiber", version, "fiber" })
-	assert(gathered.ok, "first gather: " .. serde.encode("json", gathered))
+	if not skipGather then
+		local gathered = live.command("gather", { "rw.onboarding.fiber", version, "fiber" })
+		assert(gathered.ok, "first gather: " .. serde.encode("json", gathered))
+	else
+		-- The fiber step ticks on the starter bag's 12 fiber; the genre tutorial's gather step still
+		-- waits for a gather (any node), so the bone pile the opening's bone step points at serves it.
+		live.engine.move(ACTOR, { x = 2, y = 5, z = 60 })
+		local bone = live.command("gather", { "rw.onboarding.crash-bones", version })
+		assert(bone.ok, "bone gather: " .. serde.encode("json", bone))
+	end
 	give(live, "opening-knife", "bone-knife", 1)
 	give(live, "opening-flint", "flint", 2)
 	local axe = live.command("craft-reserve", { "stone-axe", "hand" })
@@ -408,6 +418,68 @@ return {
 		for _, id in { "campfire", "accept", "deliver", "windbreak", "beacon", "board" } do
 			assert(table.find(live.steps, id), "opening_step " .. id .. ": " .. table.concat(live.steps, ","))
 		end
+	end,
+	-- p134 v75 A3 (staging, phone): the guide chain stuck on 'first gather: fiber 0/3' for 70 min. The
+	-- opening's fiber step ticks on the starter bag's 12 fiber, so a fresh player never gathers fiber
+	-- and g01 never got a gather event; no later start guide reached the HUD and no capture bola. A
+	-- fresh actor plays the real opening without a fiber gather (bone pile only), and at departure
+	-- g01 and g02 are complete, the bola is in the bag and the HUD line names the first capture.
+	["v75 A3: an opening with no fiber gather completes the first gather guide and hands over the bola"] = function()
+		local live = boot()
+		toRidgeCamp(live, true)
+		toWindbreak(live)
+		give(live, "windbreak-fiber", "fiber", 1)
+		local campState = live.session.snapshot(ACTOR).survivalExtensions.camp
+		assert(
+			live.command("camp-contribute", { "windbreak", "windbreak-fiber", 1, campState.version }).ok,
+			"windbreak fiber"
+		)
+		live.tick()
+		assert(step(live) == "beacon", "beacon step: " .. tostring(step(live)))
+		local document = live.factory.expeditionStore.snapshot(ACTOR)
+		local development = document.development or {}
+		local done = development.definitions or {}
+		for _, id in { "rw.g01.first-gather", "rw.g02.first-axe" } do
+			assert(done[id], id .. " completed: " .. serde.encode("json", development))
+		end
+		assert(bagCount(live, "capture-bola") >= 1, "g02 handed over the capture bola")
+		-- The HUD tracker's guide line (ContractsPanel) now names an open start guide past g01/g02; once
+		-- the opening's contract and camp donation count, that is the first capture.
+		local data = live.session.snapshot(ACTOR)["survival-coop"]
+		local ch = {
+			level = data.progression.level,
+			points = development.points,
+			definitions = done,
+			progress = development.progress,
+		}
+		local line, objective = CharacterText.guideObjective("ko-kr", Content, ch, PackText.names, true, true)
+		assert(objective and objective.id ~= "rw.g01.first-gather.1", "HUD past first gather: " .. tostring(line))
+		if done["rw.g03.first-contract"] and done["rw.g04.camp-donation"] then
+			assert(objective.id == "rw.g31.first-capture.1", "HUD names the first capture: " .. tostring(line))
+		end
+	end,
+	-- p134 v75 A2 (staging, phone): after the beacon the jetty walk ended on the onboarding docks and one
+	-- tap on their 'Travel' sailed to Saltmeadow, skipping home and the harbor. While the opening runs the
+	-- server refuses a dock (the Gannet is the way off); once it is finished the docks sail again.
+	["v75 A2: the onboarding docks do not sail while the opening runs"] = function()
+		local live = boot()
+		toRidgeCamp(live)
+		local sailed = {}
+		live.world.travel = function(_player, destination)
+			table.insert(sailed, destination)
+			return true
+		end
+		local docks = 0
+		for _, item in live.engine.game:GetService("Workspace"):GetDescendants() do
+			if item:IsA("ProximityPrompt") and item.Name == "ForgeDock" then
+				docks += 1
+				local part = item.Parent
+				live.engine.move(ACTOR, { x = part.Position.X, y = part.Position.Y + 3, z = part.Position.Z })
+				item.Triggered:Fire({ UserId = tonumber(ACTOR), SetAttribute = function() end })
+			end
+		end
+		assert(docks >= 2, "the home and town docks stand on the onboarding island")
+		assert(#sailed == 0, "no dock sails during the opening: " .. table.concat(sailed, ","))
 	end,
 	-- p134 v69 (staging, phone): at the windbreak step nothing on screen led to the Camp panel, the only
 	-- way to feed a camp project (the camp tile sat below the phone menu fold, the warehouse crate opened

@@ -1572,6 +1572,10 @@ function M.build(content: any, source: any, policy: any, nowMillis: any, layoutI
 				outcome = "expedition_inactive"
 			elseif not world.nearPart(actor, target) then
 				outcome = "dock_unreachable"
+			elseif world.opening and world.opening.state(actor) and not world.opening.finished(actor) then
+				-- p134 v75 A2: during the opening the Gannet is the way off (Board, then home and the harbor
+				-- the guides continue at); a dock tap sailed straight to Saltmeadow with no confirm.
+				outcome = "opening_gannet"
 			else
 				local ok, reason = world.travel(player, destination)
 				outcome = if ok then "travelling" else tostring(reason or "travel_refused")

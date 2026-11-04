@@ -1551,8 +1551,22 @@ return function(content: any, source, world, backend, clock, options, provision,
 				record(event)
 				-- A skill node learned or gear worn before its guide opened can never be learned or put on
 				-- again, so holding it satisfies an open guide's purchase/equip step (audit6h P9 guides).
-				local worn = {}
+				-- p134 v75 A3: the opening's fiber step ticks on the 12 starter fiber, so a fresh player is never
+				-- made to gather fiber and g01 'first gather: fiber 0/3' stayed open for 70 min (no later
+				-- start guide on the HUD, no g02 capture bola). Holding the gathered item satisfies an open
+				-- guide's gather step, and holding a tool of the family satisfies its craft step (g02 'craft
+				-- axe': the opening's hatchet).
+				local worn, carried = {}, {}
 				local bag = if data.inventory then data.inventory.bag else nil
+				for _, item in if bag then bag.items else {} do
+					carried[item.catalogId] = (carried[item.catalogId] or 0) + item.quantity
+				end
+				local tools = {}
+				for _, family in if content.toolPolicy then content.toolPolicy.families else {} do
+					for _, member in family.members do
+						tools[family.id] = tools[family.id] or (carried[member.item] or 0) > 0
+					end
+				end
 				for _, itemId in if data.gear then data.gear.equipped or {} else {} do
 					local item = if bag then bag.items[itemId] else nil
 					if item then
@@ -1568,6 +1582,8 @@ return function(content: any, source, world, backend, clock, options, provision,
 						for _, objective in guide.objectives do
 							local held = (objective.action == "purchase" and paid[objective.target] ~= nil)
 								or (objective.action == "equip" and worn[objective.target] == true)
+								or (objective.action == "gather" and (carried[objective.target] or 0) >= objective.quantity)
+								or (objective.action == "craft" and tools[objective.target] == true)
 							if held and (development.progress[objective.id] or 0) < objective.quantity then
 								record({
 									action = objective.action,
