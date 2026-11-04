@@ -19,6 +19,8 @@ M.NEAR_FORD, M.NEAR_MARIT = 30, 20
 -- Stake prompt reach: from one stake the next one (8-9 studs apart) is still in reach; inside the
 -- server's 12-stud part reach (SurvivalWorld.nearPart).
 M.STAKE_REACH = 12
+-- Beacon prompt reach (flat studs from the pole): the tower legs splay 2.4 studs out.
+M.BEACON_REACH = 10
 -- opening.mirror row: the pane centre sits 3.9 studs over the tripod's ground pivot (L5 ROWS).
 M.MIRROR_PANE = 3.9
 
@@ -400,7 +402,11 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		end
 		return ok, if ok then nil else reason
 	end
-	local function onPrompt(target: BasePart, action: (string, Scene.State, number) -> (boolean, string?))
+	local function onPrompt(
+		target: BasePart,
+		action: (string, Scene.State, number) -> (boolean, string?),
+		flat: number?
+	)
 		local value = target:FindFirstChildOfClass("ProximityPrompt") :: ProximityPrompt
 		value.Triggered:Connect(function(player: Player)
 			local actor = tostring(player.UserId)
@@ -410,7 +416,13 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 			end
 			local now = nowMillis()
 			local ok: boolean, reason: string? = false, "TOO_FAR"
-			if p.near(actor, target) then
+			-- `flat`: reach by flat distance alone. nearPart's ray to the pole top crossed the tower's own
+			-- deck and basket (p134 v74 #5: the beacon refused a player standing at its foot).
+			local at = if flat then p.position(actor) else nil
+			local close = at ~= nil
+				and flat ~= nil
+				and (Vector3.new(target.Position.X, at.Y, target.Position.Z) - at).Magnitude <= flat
+			if close or p.near(actor, target) then
 				ok, reason = action(actor, state, now)
 			end
 			if ok then
@@ -458,10 +470,11 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		end
 	end
 	syncStakes()
-	prompt(pole, "ForgeOpeningBeacon", "opening.prompt.light", "opening.prompt.beacon", 2)
+	-- p134 v74 #5: a 2 s hold the interact token never fires on a tap; a tap lights it now.
+	prompt(pole, "ForgeOpeningBeacon", "opening.prompt.light", "opening.prompt.beacon", 0, M.BEACON_REACH)
 	onPrompt(pole, function(_, state, now)
 		return Scene.lightBeacon(state, now), "NOT_NOW"
-	end)
+	end, M.BEACON_REACH)
 	-- Tapping the boat opens the client's boarding card; the card's Board sends the intent.
 	prompt(hull, "ForgeOpeningBoard", "opening.beacon.yes", "opening.prompt.boat", 0)
 

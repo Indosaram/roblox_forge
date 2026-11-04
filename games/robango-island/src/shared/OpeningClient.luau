@@ -497,6 +497,7 @@ function M.factory(ctx: any): any
 	end)
 
 	local glintAt: number? = nil
+	local litShown = false
 	local hintUntil = 0
 	-- Dead end 1 (p134 C1): stake staging from Scene.stakeMarks on the local copies of the stake parts.
 	type StakeLook = { fallen: boolean, glow: Highlight?, light: PointLight? }
@@ -870,6 +871,24 @@ function M.factory(ctx: any): any
 			showCard(nil)
 		end
 		placeBoat(now)
+		-- p134 v74 #5: at the beacon step Marit's talk prompt (8 studs from the pole) won the interact
+		-- token over the beacon's Light and opened her dialog; it rests until the beacon is lit.
+		local world = workspace:FindFirstChild("ForgeRoleWorld")
+		local marit = world and world:FindFirstChild("npc.marit")
+		local talk = marit and marit:FindFirstChildOfClass("ProximityPrompt")
+		if talk then
+			talk.Enabled = view.step ~= "beacon"
+		end
+		-- The lit beacon answers on the card (Marit's farewell) while the Gannet comes in.
+		if view.beaconAt and not litShown then
+			litShown = true
+			showCard("notice", text("opening.beacon.farewell"))
+			task.delay(4, function()
+				if cardKind == "notice" and card.Text == text("opening.beacon.farewell") then
+					showCard(nil)
+				end
+			end)
+		end
 		placeWay(tracker, wayTarget(), root, campAction)
 	end
 	table.insert(connections, RunService.Heartbeat:Connect(frame))
