@@ -1189,6 +1189,26 @@ function M.start(options: Options)
 		end,
 	})
 	cancelPlacement.Name = "CancelPlacement"
+	-- p134 v74 #9 (phone): after a placed structure the bar stayed open with the same structure picked,
+	-- and its preview on the now occupied cell read 'blocked'. A placed structure ends build mode.
+	table.insert(
+		connections,
+		resultEvent.Event:Connect(function(payload: any)
+			local result = payload.result
+			if
+				payload.request.action ~= "survival-coop:settlement-place"
+				or type(result) ~= "table"
+				or not result.ok
+			then
+				return
+			end
+			structureId, ghostLocked = nil, false
+			section = ""
+			sheet.frame.Visible, placementBar.Visible = false, false
+			preview()
+			blocked.Text = ""
+		end)
+	)
 	local rotatePlacement = Components.button(theme, {
 		text = t("rotate"),
 		parent = placementBar,

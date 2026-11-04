@@ -550,4 +550,79 @@ return {
 		assert(campGui.Enabled, "the camp tile opens the Camp panel")
 		assert(#h.errors == 0, table.concat(h.errors, "\n"))
 	end,
+	-- p134 v74 #9 (phone): the second press of the bar ('설치') placed the campfire, but build mode stayed
+	-- open until Cancel with '설치 공간이나 입구가 막혔어요' over it. On the shipped HUD and the live session:
+	-- Reserve then Place closes the placement bar and leaves no blocked line.
+	["v74 #9: a placed campfire closes build mode without a blocked line"] = function()
+		local live = boot()
+		toRidgeCamp(live)
+		-- The onboarding client: bag-paid builds, the camp grid at the ridge camp, the live actor.
+		local origin = live.world.roleSource.tribe.origin
+		local h = Harness.harness({
+			width = 800,
+			height = 360,
+			realHud = true,
+			bagBuild = true,
+			userId = tonumber(ACTOR),
+			settlementOrigin = roblox.Vector3.new(origin.x, origin.y, origin.z),
+		})
+		local storage = h.game:GetService("ReplicatedStorage")
+		local actions: { string } = {}
+		local function push()
+			local epochs = {}
+			for _, name in Durable.actions do
+				epochs[name] = live.session.commandEpoch(ACTOR, name)
+			end
+			h.packet({
+				revision = live.at.value,
+				durable = { actions = Durable.actions, epochs = epochs },
+				snapshots = live.session.snapshot(ACTOR),
+			})
+		end
+		local results: { any } = {}
+		storage:WaitForChild("ForgeAction").InvokeServer = function(_self, kind: string, body: any)
+			assert(kind == "command", "durable command: " .. tostring(kind))
+			table.insert(actions, body.action)
+			local result = live.request(body)
+			table.insert(results, result)
+			live.tick()
+			push()
+			return result
+		end
+		-- Standing at Marit's camp (the server's actor and the client's character at one spot).
+		local marit = anchor(live.world, "npc.marit")
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Position = roblox.Vector3.new(marit.x, 5, marit.z + 6)
+		root.CFrame, root.Parent = roblox.CFrame.new(root.Position), character
+		character.Parent = h.workspace
+		h.player.Character = character
+		push()
+		local function find(name: string): any
+			for _, item in h.playerGui:GetDescendants() do
+				if item.Name == name then
+					return item
+				end
+			end
+			return nil
+		end
+		h.hud.open("build")
+		h.step()
+		h.click(assert(find("Structure-campfire"), "campfire card"))
+		local bar = assert(find("PlacementControls"), "placement bar")
+		assert(bar.Visible, "build mode after Build")
+		local confirm = assert(find("ConfirmPlacement"), "Reserve / Place")
+		h.click(confirm) -- reserve
+		h.click(confirm) -- place
+		assert(
+			table.find(actions, "survival-coop:settlement-place"),
+			"placed: " .. table.concat(actions, ",") .. " " .. serde.encode("json", results)
+		)
+		assert(results[#results].ok, "place accepted: " .. serde.encode("json", results[#results]))
+		assert(step(live) == "accept", "the campfire step completes: " .. tostring(step(live)))
+		assert(not bar.Visible, "build mode closes after a successful place")
+		local reason = find("PlacementReason")
+		assert(reason == nil or reason.Text == "", "no blocked line: " .. tostring(reason and reason.Text))
+		assert(#h.errors == 0, table.concat(h.errors, "\n"))
+	end,
 }
