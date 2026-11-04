@@ -498,7 +498,9 @@ function M.wears(content: any, catalogId: string): boolean
 	return false
 end
 
-function M.hungerHint(snapshot: any, items: { any }?): string?
+--- `spoiled(item)` (optional) is true for a carried stack that can no longer be eaten (freshness 0):
+--- the hint never tells the player to eat it (p134 v73).
+function M.hungerHint(snapshot: any, items: { any }?, spoiled: ((any) -> boolean)?): string?
 	if type(snapshot) ~= "table" or not M.hungry(snapshot.vitals) then
 		return nil
 	end
@@ -511,7 +513,7 @@ function M.hungerHint(snapshot: any, items: { any }?): string?
 	local bag = type(snapshot.inventory) == "table" and snapshot.inventory.bag
 	local meat = false
 	for _, item in if type(bag) == "table" and type(bag.items) == "table" then bag.items else {} do
-		if edible[item.catalogId] then
+		if edible[item.catalogId] and not (spoiled and spoiled(item)) then
 			return "hungry"
 		end
 		meat = meat or item.catalogId == "meat"

@@ -19,8 +19,12 @@ function M.keyHints(text: string, touchOnly: boolean): string
 	end
 	return (string.gsub(text, "{{(.-)}}", "%1"))
 end
--- Food freshness line from remaining permille; under a quarter left it warns to eat or refrigerate.
+-- Food freshness line from remaining permille; under a quarter left it warns to eat or refrigerate,
+-- at 0 it has spoiled and can no longer be eaten (p134 v73: '0% - eat it soon' on a spoiled berry).
 function M.freshness(locale: string, permille: number): string
+	if permille <= 0 and strings.freshness_spoiled then
+		return M.text(locale, "freshness_spoiled")
+	end
 	return string.format(M.text(locale, if permille < 250 then "freshness_spoiling" else "freshness"), permille // 10)
 end
 -- Skills row: category name, rank and cost; an unknown category shows its id with spaces.

@@ -419,4 +419,49 @@ return {
 		assert(gained >= 8000, "one berry gave " .. gained)
 		live.factory.close()
 	end,
+	-- p134 v73 (phone): Bag > Bramble berry (freshness 0%) > Eat one answered the generic "Action
+	-- refused / refresh and review your supplies" and the berry turned into spoiled food. The stack had
+	-- expired: the command settles it into spoiled food first, which is NOT_FOOD. The refusal names it.
+	["eating a berry that spoiled in the bag is refused as spoiled, not with a generic line"] = function()
+		local Locale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+		require("./PackText.fixture") -- installs the strings.csv lookup the HUD text reads
+		local first = boot()
+		assert(first.session.join(DOWNED).ok, "first join")
+		arrive(first, DOWNED)
+		local leftAt = first.at.value
+		assert(first.session.close(DOWNED).ok, "leave saves")
+		first.factory.close()
+		-- Age every carried berry past the food-spoilage limit (48 h).
+		local aged = 0
+		local function age(value: any)
+			if type(value) ~= "table" then
+				return
+			end
+			if value.catalogId == "berry" and type(value.attributes) == "table" then
+				value.attributes.freshAt, value.attributes.freshAge = 0, 172800000
+				aged += 1
+			end
+			for _, child in value do
+				age(child)
+			end
+		end
+		for _, key in { "personal:" .. DOWNED, DOWNED } do
+			first.backend.update(key, function(raw)
+				age(raw)
+				return raw
+			end)
+		end
+		assert(aged > 0, "found the carried berries")
+		local back = boot(first.backend, leftAt + 60)
+		assert(back.session.join(DOWNED).ok, "rejoin")
+		arrive(back, DOWNED)
+		local id = assert(berryId(back), "the berry stack")
+		local fed = back.command(DOWNED, "survival-coop:food", { id })
+		assert(not fed.ok and fed.reason == "FOOD_SPOILED", "eat a spoiled berry: " .. tostring(fed.reason))
+		local line = Locale.refusal("ko-kr", fed.reason)
+		assert(line ~= Locale.text("ko-kr", "unknown") and string.find(line, "상해", 1, true), line)
+		-- The refusal releases the actor at once: a voyage handoff right after is not COMMAND_PENDING.
+		assert(back.session.settled(DOWNED), "the refused eat holds nothing")
+		back.factory.close()
+	end,
 }

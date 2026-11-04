@@ -2,6 +2,9 @@
 -- p134 v73 phone acceptance (SM-N981N, ko-kr) defects.
 local Content = require("./src/shared/SurvivalContent")
 local Text = require("../../genres/survival-coop/module/CharacterText")
+local Model = require("../../genres/survival-coop/module/SurvivalHUDModel")
+local HudLocale = require("../../genres/survival-coop/module/SurvivalHUDLocale")
+local Spoilage = require("../../core/domain/survival/Spoilage")
 require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read
 
 local NAMES = { fiber = "고사리 섬유", ["axe-t1"] = "도끼" }
@@ -34,5 +37,30 @@ return {
 				assert(not namesKey(string.format(touch, "x")), locale .. " " .. action .. ": " .. touch)
 			end
 		end
+	end,
+	["v73 #3: the hunger tip never says eat a stack at freshness 0, and its freshness line says spoiled"] = function()
+		local policy = assert(Spoilage.policy(Content), "food-spoilage policy")
+		local now = policy.limitMillis + 5000
+		local stale = { catalogId = "berry", quantity = 1, attributes = { freshAt = 0, freshAge = 0 } }
+		local fresh = { catalogId = "berry", quantity = 1, attributes = { freshAt = now, freshAge = 0 } }
+		local function spoiled(item: any): boolean
+			return Spoilage.freshness(item, policy, now, false) == 0
+		end
+		local function snapshot(...: any): any
+			local bag = {}
+			for index, item in { ... } do
+				bag["i" .. index] = item
+			end
+			return { vitals = { hungerMilli = 16000 }, inventory = { bag = { items = bag } } }
+		end
+		local only = Model.hungerHint(snapshot(stale), Content.items, spoiled)
+		assert(only == "hungry_find", "only a spoiled berry: find food, got " .. tostring(only))
+		assert(Model.hungerHint(snapshot(stale, fresh), Content.items, spoiled) == "hungry", "a fresh berry: eat")
+		local line = HudLocale.freshness("ko-kr", 0)
+		assert(not string.find(line, "곧 먹", 1, true) and string.find(line, "상함", 1, true), line)
+		assert(
+			HudLocale.freshness("ko-kr", 200) == "신선도 20% - 곧 먹거나 냉장고에 넣으세요",
+			"spoiling unchanged"
+		)
 	end,
 }

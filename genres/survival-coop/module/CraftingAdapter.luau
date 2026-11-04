@@ -902,6 +902,13 @@ function M.new(
 					if err == "UNAVAILABLE" and type(args[1]) == "string" and bag.items[args[1]] then
 						err = "ITEM_RESERVED"
 					end
+					-- p134 v73: an expired berry turns into the spoilage output before this command runs
+					-- (Spoilage.settle), so eating it answered NOT_FOOD, which the HUD showed as a generic
+					-- "refresh supplies" refusal. Name the spoilage.
+					local stack = if type(args[1]) == "string" then bag.items[args[1]] else nil
+					if err == "NOT_FOOD" and spoilage and stack and stack.catalogId == spoilage.output then
+						err = "FOOD_SPOILED"
+					end
 				elseif action == "rest" then
 					local fire = if services.survivalSpatial
 						then services.survivalSpatial.campfire(id, args[1])

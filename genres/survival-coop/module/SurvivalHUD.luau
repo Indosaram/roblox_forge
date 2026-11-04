@@ -1435,7 +1435,11 @@ function M.start(options: Options)
 			levelNumber.Text = if progression and progression.level then tostring(progression.level) else "1"
 		end
 		local hungry = Model.hungry(v)
-		local hint = Model.hungerHint(model.snapshot, content and content.items)
+		local spoilPolicy = if content then Spoilage.policy(content) else nil
+		local spoilAt = math.floor(world:GetServerTimeNow() * 1000)
+		local hint = Model.hungerHint(model.snapshot, content and content.items, function(item: any): boolean
+			return spoilPolicy ~= nil and Spoilage.freshness(item, spoilPolicy, spoilAt, false) == 0
+		end)
 		local detail = if model.reason
 			then Locale.refusal(locale, model.reason, refusedSkill)
 			elseif model.notice then t(model.notice)
