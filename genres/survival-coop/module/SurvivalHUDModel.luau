@@ -662,6 +662,8 @@ function M.recipeOrder(
 			or favorite
 			or recipe.id == filter.pin
 			or (filter.jobs and filter.jobs[recipe.id])
+			-- Rows already on screen stay listed while the sheet is open (Model.keepOrder).
+			or (filter.keep and table.find(filter.keep, recipe.id))
 			or complete
 			-- Station recipes surface in range only once an input is held; bare hand recipes never do.
 			or (recipe.station ~= nil and stationReady and held)
@@ -692,6 +694,36 @@ function M.recipeOrder(
 		return a.recipe.id < b.recipe.id
 	end)
 	return rows
+end
+
+--- Staging (SM-N981N): a craft re-sorted the open list, so the row under the finger changed and the
+--- second tap crafted another recipe. `order` is the recipe id order fixed when the sheet opened (nil:
+--- fix it now from `rows`); rows keep that order and new rows join at the end. Returns rows, order.
+function M.keepOrder(order: { string }?, rows: { any }): ({ any }, { string })
+	if not order then
+		local ids = {}
+		for _, row in rows do
+			table.insert(ids, row.recipe.id)
+		end
+		return rows, ids
+	end
+	local byId, out = {}, {}
+	for _, row in rows do
+		byId[row.recipe.id] = row
+	end
+	for _, id in order do
+		if byId[id] then
+			table.insert(out, byId[id])
+			byId[id] = nil
+		end
+	end
+	for _, row in rows do
+		if byId[row.recipe.id] then
+			table.insert(out, row)
+			table.insert(order, row.recipe.id)
+		end
+	end
+	return out, order
 end
 
 function M.craftPanes(_width: number, height: number): any

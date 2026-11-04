@@ -416,6 +416,8 @@ function M.start(options: Options)
 	local section, selected, recipeId, structureId = "", nil, nil, nil
 	local ghostLocked = false
 	local allRecipes = false
+	-- Recipe order fixed when the craft sheet opens or its filter/category changes (Model.keepOrder).
+	local craftOrder: { string }? = nil
 	local refusedSkill = nil
 	local buildCards = Instance.new("Frame")
 	-- sheets4: build group tabs (Model.BUILD_GROUPS). sheets4b: they sit in the sheet header between
@@ -1894,8 +1896,10 @@ function M.start(options: Options)
 					progression = model.snapshot.progression,
 					details = options.content.recipeDetails,
 					favorites = if model.snapshot.recipeMarks then model.snapshot.recipeMarks.favorites else nil,
+					keep = craftOrder,
 				}
 			)
+			orderedRecipes, craftOrder = Model.keepOrder(craftOrder, orderedRecipes)
 			if panelLayout then
 				-- Category rail (spec 6.1): only categories with at least one recipe, output item's category.
 				local outputs = {}
@@ -1909,7 +1913,7 @@ function M.start(options: Options)
 				contentParent, controls.parent = categoryPane, categoryPane
 				for _, id in rail do
 					local tab = button("Category-" .. id, t("cat." .. id), function()
-						panelCategory, recipeId = id, nil
+						panelCategory, recipeId, craftOrder = id, nil, nil
 						render()
 					end)
 					-- Pack art for the category (ui.icon.cat.<id>) when published; the glyph otherwise.
@@ -1934,7 +1938,7 @@ function M.start(options: Options)
 			end
 			button("RecipeFilter", t(if allRecipes then "craft_nearby" else "craft_all"), function()
 				allRecipes = not allRecipes
-				recipeId = nil
+				recipeId, craftOrder = nil, nil
 				render()
 			end)
 			local visible = false
@@ -2486,6 +2490,7 @@ function M.start(options: Options)
 	end
 	local function open(key: string)
 		section = if section == key then "" else key
+		craftOrder = nil
 		if section == "craft" then
 			-- Opening the sheet selects its first row: the pinned recipe (Model.craftPin) when any.
 			recipeId = nil
