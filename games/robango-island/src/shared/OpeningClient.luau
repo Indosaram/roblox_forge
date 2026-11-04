@@ -685,28 +685,48 @@ function M.factory(ctx: any): any
 	end
 	-- The HUD guide step's quest card (the genre ObjectiveTracker) while it shows that step's line.
 	local guideLine: string?, guideObjective: any = nil, nil
+	local stageState: any = nil
 	local function guideCard(): any
 		local genre = ctx.objectiveSlot and ctx.objectiveSlot:FindFirstChild("ObjectiveTracker")
 		if genre and guideLine and string.find(genre.Text, guideLine, 1, true) then
 			return genre
 		end
+		-- A drift isle's stage objective line (p134 v74 #7: no 'show the way' on it).
+		if genre and stageState and workspace:GetAttribute("ForgeWorldRole") == "archipelago" then
+			return genre
+		end
 		return nil
 	end
-	--- World point of the HUD guide step in the current world: the nearest node of a gather step, or
-	--- the anchor an acknowledgement step is performed at when it stands in this world.
+	--- World point of the HUD step in the current world: on a drift isle the stage objective's (the
+	--- nearest node of its gather item, else the nearest unsurveyed cairn); else the guide step's: the
+	--- anchor an acknowledgement step is performed at when it stands in this world, or the nearest
+	--- node of a gather step.
 	local function guideTarget(): Vector3?
+		local world = workspace:FindFirstChild("ForgeRoleWorld")
+		local layoutId = world and world:GetAttribute("ForgeLayoutId")
+		local root = rootPart()
+		local layout = Waypoint.layout(ctx.content, layoutId)
+		local from = if root then root.Position else nil
+		if stageState and workspace:GetAttribute("ForgeWorldRole") == "archipelago" then
+			local surveys = {}
+			for _, cairn in game:GetService("CollectionService"):GetTagged("ForgeSurvey") do
+				if cairn:IsA("BasePart") and not cairn:GetAttribute("ForgeSurveyed" .. player.UserId) then
+					table.insert(surveys, cairn.Position)
+				end
+			end
+			local stageAt = Waypoint.stageTarget(ctx.content, stageState, layout, from, surveys)
+			if stageAt then
+				return stageAt
+			end
+		end
 		if not guideObjective then
 			return nil
 		end
-		local world = workspace:FindFirstChild("ForgeRoleWorld")
-		local layoutId = world and world:GetAttribute("ForgeLayoutId")
-		local layout = Waypoint.layout(ctx.content, layoutId)
 		local at, anchorId = GuideEvents.where(ctx.content, guideObjective.action, guideObjective.target, layoutId)
 		if at ~= nil and at == layoutId and anchorId then
 			return Waypoint.resolve(layout, anchorId)
 		end
-		local root = rootPart()
-		return Waypoint.guideTarget(layout, guideObjective, if root then root.Position else nil)
+		return Waypoint.guideTarget(layout, guideObjective, from)
 	end
 	local function frame()
 		local now = serverNow()
@@ -904,6 +924,7 @@ function M.factory(ctx: any): any
 	local stop = ctx.onSnapshot(function(latest)
 		view = if type(latest) == "table" then latest.opening else nil
 		local ch = if type(latest) == "table" then latest.character else nil
+		stageState = if type(latest) == "table" then latest.archipelago else nil
 		guideLine, guideObjective = nil, nil
 		if ctx.content and type(ch) == "table" then
 			-- The same line ContractsPanel puts on the HUD tracker (without its touch wording, which

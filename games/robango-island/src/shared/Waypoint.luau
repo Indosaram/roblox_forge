@@ -68,6 +68,42 @@ function M.layout(content: any, layoutId: string?): any?
 	return nil
 end
 
+--- World target of the drift isle's current stage objective (p134 v74 #7: 'fallen logs 0/5 ·
+--- survey 0/1' had no direction, at night): the first unfinished objective of the active stage in
+--- `state` (the archipelago snapshot); a gather step leads to the nearest node of its item in
+--- `layout`, a survey step to the nearest of `surveys` (the unsurveyed cairn positions). nil when no
+--- stage is active, every objective is done, or the step has no place to point at.
+function M.stageTarget(content: any, state: any, layout: any, from: Vector3?, surveys: { Vector3 }): Vector3?
+	if type(state) ~= "table" or state.status ~= "active" or type(content) ~= "table" then
+		return nil
+	end
+	local id = tostring(state.templateId) .. ".s" .. tostring(state.stage)
+	for _, stage in content.stages or {} do
+		if stage.layout == id then
+			for _, objective in stage.objectives do
+				local done = (state.completed and state.completed[objective.id])
+					or ((state.progress and state.progress[objective.id]) or 0) >= objective.quantity
+				if not done then
+					if objective.action == "gather" then
+						return M.guideTarget(layout, objective, from)
+					elseif objective.action == "survey" then
+						local best: Vector3?, distance = nil, math.huge
+						for _, at in surveys do
+							local d = if from then M.distance(from, at) else 0
+							if d < distance then
+								best, distance = at, d
+							end
+						end
+						return best
+					end
+					return nil
+				end
+			end
+		end
+	end
+	return nil
+end
+
 --- Flat (x, z) distance in studs.
 function M.distance(a: Vector3, b: Vector3): number
 	return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)

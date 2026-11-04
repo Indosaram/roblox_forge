@@ -131,4 +131,28 @@ return {
 		assert(fill.FillColor == coat and fill.FillTransparency == motion.COAT_FILL, "back to the day coat")
 		controller.destroy()
 	end,
+	-- p134 v74 #7: drift-isle rigs carry no coat tint; at night they get a pale rim so a dodo the
+	-- minimap shows is readable on screen, and nothing at day.
+	["an uncoated rig shows a pale night rim and none by day"] = function()
+		local rig =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurRig.luau"), { environment = environment })()
+		local motion =
+			luau.load(fs.readFile("genres/survival-coop/module/DinosaurMotion.luau"), { environment = environment })()
+		local world = roblox.Instance.new("Workspace")
+		local model = rig.new("grazer", "plain-night", roblox.Vector3.zero, world)
+		local night = 1
+		local state = { mode = "idle", healthMilli = 40000, strike = 0 }
+		local controller = motion.new(model, model.PrimaryPart, state, 0, function()
+			return night
+		end)
+		local rim = model:FindFirstChild("WildlifeFeedback")
+		assert(rim.Enabled, "an uncoated rig is outlined at night")
+		assert(rim.OutlineTransparency <= 0.3, "the night rim is strong: " .. rim.OutlineTransparency)
+		local c = rim.OutlineColor
+		assert(c.R + c.G + c.B > 2.4, "the night rim is pale")
+		night = 0
+		controller.update(state, 100, roblox.Vector3.zero)
+		assert(not rim.Enabled, "no outline by day")
+		controller.destroy()
+	end,
 }

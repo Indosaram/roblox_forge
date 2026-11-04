@@ -17,6 +17,10 @@ M.COAT_NIGHT_LIFT = 0.5
 M.COAT_NIGHT_FILL = 0.1
 M.COAT_NIGHT_EDGE_LIFT = 0.7
 M.COAT_NIGHT_EDGE_TRANSPARENCY = 0.3
+-- Uncoated rigs at night: a pale moonlit rim (opacity scales with the night factor) and a faint fill.
+M.NIGHT_RIM = Color3.fromRGB(235, 240, 250)
+M.NIGHT_RIM_OPACITY = 0.75
+M.NIGHT_FILL = 0.25
 --- Resting coat look at night factor `night` (0..1): fill colour, fill transparency, outline colour,
 --- outline transparency. night 0 is exactly the day look.
 function M.coatLook(coat: Color3, night: number): (Color3, number, Color3, number)
@@ -52,11 +56,17 @@ function M.new(model: Model, root: BasePart, initial: State, now: number, night:
 	end
 	local shown = dark()
 	local function settle()
+		shown = dark()
 		if typeof(coat) == "Color3" then
-			shown = dark()
 			local fill, fillT, edge, edgeT = M.coatLook(coat, shown)
 			outline.FillColor, outline.FillTransparency = fill, fillT
 			outline.OutlineColor, outline.OutlineTransparency = edge, edgeT
+			outline.Enabled = true
+		elseif shown > 0 then
+			-- p134 v74 #7: drift-isle rigs carry no coat, so at night nothing lifted them and the dodos on
+			-- the minimap were invisible on screen. An uncoated rig gets a light rim and a faint fill.
+			outline.FillColor, outline.FillTransparency = M.NIGHT_RIM, 1 - M.NIGHT_FILL * shown
+			outline.OutlineColor, outline.OutlineTransparency = M.NIGHT_RIM, 1 - M.NIGHT_RIM_OPACITY * shown
 			outline.Enabled = true
 		else
 			outline.Enabled = false
@@ -110,7 +120,7 @@ function M.new(model: Model, root: BasePart, initial: State, now: number, night:
 			elseif attack > 0 then "strike"
 			elseif warning then state.mode
 			else ""
-		if cue == "" and feedback == "" and typeof(coat) == "Color3" and dark() ~= shown then
+		if cue == "" and feedback == "" and dark() ~= shown then
 			settle()
 		end
 		if cue ~= feedback then

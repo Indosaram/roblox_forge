@@ -3,6 +3,7 @@
 local Content = require("./src/shared/SurvivalContent")
 local Text = require("../../genres/survival-coop/module/CharacterText")
 local Harness = require("./PanelHarness.fixture")
+local roblox: any = require("@lune/roblox")
 require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read
 
 local NAMES = { fiber = "고사리 섬유", creature = "동물" }
@@ -84,6 +85,44 @@ return {
 		local later = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
 		assert(string.find(later, "\n", 1, true), "still a guide line: " .. later)
 		assert(not string.find(later, Text.text("ko-kr", "guide_g31"), 1, true), later)
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
+	["v74 #7: the drift-isle stage objective points the waypoint and 'show the way' at its fallen logs"] = function()
+		local isle: any = nil
+		for _, layout in Content.layouts do
+			isle = if layout.id == "rw.a1.s1" then layout else isle
+		end
+		local wood: any = nil
+		for _, node in isle.resourceNodes do
+			wood = if node.item == "wood" then node.position else wood
+		end
+		assert(wood, "route 1 isle 1 has a wood node")
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		h.workspace:SetAttribute("ForgeWorldRole", "archipelago")
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.a1.s1")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Position, root.Parent = roblox.Vector3.new(wood.x + 60, wood.y, wood.z + 40), character
+		character.Parent = h.workspace
+		h.player.Character = character
+		local ch = offOpening()
+		ch.definitions["rw.g31.first-capture"] = true
+		h.publish({
+			archipelago = { status = "active", templateId = "rw.a1", stage = 1, progress = {}, completed = {} },
+			character = ch,
+		})
+		local line = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		assert(string.find(line, "0/5", 1, true), "the stage objective: " .. line)
+		local beam = assert(find(h, "WaypointBeam") or h.workspace:FindFirstChild("WaypointBeam", true), "beam")
+		assert(beam.Parent ~= nil, "a beam marks the stage target")
+		local at = beam.CFrame.Position
+		assert(math.abs(at.X - wood.x) < 0.01 and math.abs(at.Z - wood.z) < 0.01, "beam on the wood node")
+		local tap = assert(find(h, "OpeningTrackerTap"), "quest card tap")
+		assert(tap.Visible, "the stage card offers the walk")
+		h.click(tap)
+		assert(assert(find(h, "OpeningShowWay"), "show the way").Visible, "'show the way' after a card tap")
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 }
