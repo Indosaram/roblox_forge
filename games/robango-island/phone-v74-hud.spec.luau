@@ -179,6 +179,55 @@ return {
 		assert(assert(find(h, "OpeningShowWay"), "show the way").Visible, "'show the way' after a card tap")
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
+	["journey6h @253.3: a guide unlocked after the pinned one is named on the HUD, not hidden behind it"] = function()
+		-- L50 grade 8: g45 bone work (L42, polish bone 5/6) still open and leading; g47 first ride (L43),
+		-- g18 technical support and g20 rescue preparation (L50) are open too. Only g45 reached the HUD.
+		local definitions = {}
+		for _, g in GuideEvents.visible(Content, true) do
+			if ((g.gates or {}).characterLevel or 1) < 42 or g.id == "rw.g46.t2-tool" then
+				definitions[g.id] = true
+			end
+		end
+		local ch = {
+			level = 50,
+			points = 800,
+			definitions = definitions,
+			progress = { ["rw.g45.bone-work.1"] = 1, ["rw.g45.bone-work.2"] = 5 },
+		}
+		local later = { "guide_g47", "guide_g18", "guide_g20" }
+		-- Harbor / home tracker (ContractsPanel's line).
+		local harbor = assert(Text.guideObjective("ko-kr", Content, ch, NAMES, true, true), "a line")
+		assert(string.find(harbor, Text.text("ko-kr", "guide_g45"), 1, true), "g45 still leads: " .. harbor)
+		for _, key in later do
+			assert(string.find(harbor, Text.text("ko-kr", key), 1, true), key .. " on the HUD: " .. harbor)
+		end
+		-- Drift-isle tracker: stage objective, the step done here, then the other open guides.
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		h.workspace:SetAttribute("ForgeWorldRole", "archipelago")
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.a1.s3")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Parent = character
+		character.Parent = h.workspace
+		h.player.Character = character
+		h.publish({
+			archipelago = { status = "active", templateId = "rw.a1", stage = 3, progress = {}, completed = {} },
+			character = ch,
+		})
+		local line = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		assert(string.find(line, "목표: ", 1, true), "the stage objective leads: " .. line)
+		local step = assert(string.match(line, "^[^\n]+\n([^\n]+)"), "a guide line under the stage: " .. line)
+		assert(string.find(step, Text.text("ko-kr", "guide_g45"), 1, true), "the first open step: " .. step)
+		for _, key in later do
+			assert(string.find(line, Text.text("ko-kr", key), 1, true), key .. " on the drift isle: " .. line)
+		end
+		-- Guides sharing the leader's unlock level stay a sequence (v74: g13 then g14), never listed.
+		local six = Text.guideStep("ko-kr", Content, rankSix(), NAMES, true, true) :: string
+		assert(not string.find(six, "\n", 1, true), six)
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
 	["v74 #6b: when the island grade blocks route 1 the HUD names that gate and the guide that raises it"] = function()
 		-- Level 4 (route 1 opens at 2) but grade 0: the Routes card shows 'island grade 0/1 · Locked'.
 		local ch = { level = 4, points = 0, definitions = {}, progress = {} }

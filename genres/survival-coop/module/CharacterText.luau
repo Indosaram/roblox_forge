@@ -300,7 +300,7 @@ end
 -- hints that name a key (E, C, B) read their guide_go_<action>_touch row instead. The second value
 -- is the guide objective the line names ({ id, action, target, quantity }), nil when the line names
 -- none. The first line alone is the guide step (a drift isle shows it under its stage objective).
-function M.guideObjective(
+local function leadObjective(
 	locale: string,
 	content: any,
 	ch: any,
@@ -372,6 +372,73 @@ function M.guideObjective(
 	return gate
 end
 
+-- "Also open: <guide>, ..." naming every other open unfinished guide that unlocks at a level other
+-- than the line's guide (journey6h @145.6/@253.3: g46, g47, g18 and g20 were open for hours while
+-- the HUD named only g45, so they never reached the screen). Guides sharing the leader's unlock
+-- level are one authored sequence (g13 -> g14 -> g16) and stay behind it. Nil with no line guide.
+local ALSO_CAP = 3
+local function alsoOpen(locale: string, content: any, ch: any, names: any, solo: boolean?, objective: any?): string?
+	if objective == nil or not strings.guide_also_open then
+		return nil
+	end
+	local leader: any = nil
+	for _, g in content.guides or {} do
+		if table.find(g.objectives, objective) then
+			leader = g
+		end
+	end
+	if leader == nil then
+		return nil
+	end
+	local level, grade, done = ch.level or 1, math.floor((ch.points or 0) / 100), ch.definitions or {}
+	local at = (leader.gates or {}).characterLevel or 1
+	local titles, more = {}, 0
+	for _, g in Guide.visible(content, solo) do
+		if
+			g ~= leader
+			and not done[g.id]
+			and Guide.open(g, level, grade)
+			and ((g.gates or {}).characterLevel or 1) ~= at
+		then
+			if #titles < ALSO_CAP then
+				table.insert(titles, title(locale, g, names))
+			else
+				more += 1
+			end
+		end
+	end
+	if #titles == 0 then
+		return nil
+	end
+	local list = table.concat(titles, ", ") .. if more > 0 then ", +" .. more else ""
+	return M.format(locale, "guide_also_open", list)
+end
+
+local function withAlso(
+	locale: string,
+	content: any,
+	ch: any,
+	names: any,
+	solo: boolean?,
+	line: string?,
+	objective: any?
+): (string?, any?)
+	local also = if line then alsoOpen(locale, content, ch, names, solo, objective) else nil
+	return if also and line then line .. "\n" .. also else line, objective
+end
+
+function M.guideObjective(
+	locale: string,
+	content: any,
+	ch: any,
+	names: any,
+	solo: boolean?,
+	touch: boolean?
+): (string?, any?)
+	local line, objective = leadObjective(locale, content, ch, names, solo, touch)
+	return withAlso(locale, content, ch, names, solo, line, objective)
+end
+
 --- The next open guide step in unlock order (level, grade, id), any band, with the objective it
 --- names: the second line under a drift isle's stage objective (p134 v74 #8). With `here` (the
 --- current layout id), the first open step that can be done here leads: journey6h @80.5 showed the
@@ -390,11 +457,11 @@ function M.guideStep(
 	if here then
 		local line, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch, here)
 		if line then
-			return line, objective
+			return withAlso(locale, content, ch, names, solo, line, objective)
 		end
 	end
 	local line, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
-	return line, objective
+	return withAlso(locale, content, ch, names, solo, line, objective)
 end
 
 -- "Guide complete" line for guides finished since the previous snapshot.

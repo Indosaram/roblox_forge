@@ -3322,3 +3322,4 @@ cli.way.nopath,"No walkable way from here. Step around the obstacle and press ag
 guide_go_sheet_at,"%s %s (Sea chart > %s, then Menu > Guides)",HUD objective guide action (guide sheet step bound to a place),"%s %s (Sea chart > %s, then Menu > Guides)","%s %s (해도 > %s, 그다음 메뉴 > 안내)"
 guide_away,This step works only at %s. Go there and tap it again.,guide sheet row refusal: the step is performed at a place,This step works only at %s. Go there and tap it again.,이 단계는 %s에서만 돼요. 그곳에 가서 다시 누르세요.
 guide_go_assemble,assemble %s: tap Make in the Practice tile (Menu),HUD objective guide action,assemble %s: tap Make in the Practice tile (Menu),%s 조립: 메뉴 > 연습과 악기 > 만들기
+guide_also_open,Also open: %s (Menu > Guides),HUD objective other open guides,Also open: %s (Menu > Guides),함께 열린 안내: %s (메뉴 > 안내)
