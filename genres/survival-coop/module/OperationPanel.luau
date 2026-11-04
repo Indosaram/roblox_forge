@@ -121,6 +121,13 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	-- Rows and status grow with wrapped or 1.2x text; the authored height is the minimum (p129).
 	local grow = Enum.AutomaticSize.Y
 	status.Name, status.LayoutOrder, status.AutomaticSize, status.Parent = "OperationStatus", 0, grow, sheet.scroll
+	-- p134 v74 #13 (phone): the empty status line was the sheet's first row (an empty bullet), and a
+	-- Make result went to that top line, scrolled out of view under the last row. The line shows only
+	-- with text, right under the row whose Make was pressed (`order`), or on top for a world prompt.
+	status.Visible = false
+	local function say(text: string, order: number)
+		status.Text, status.LayoutOrder, status.Visible = text, order, text ~= ""
+	end
 	-- The nearest registered station of `kind` within reach; the server re-checks reach.
 	local function stationId(kind: string?): string
 		local character = players.LocalPlayer.Character
@@ -166,7 +173,7 @@ function M.factory(ctx: any): { destroy: () -> () }?
 			guides[row.id] = row.guide
 			local text = row.label .. "\n" .. row.inputs .. " / " .. (row.locked or row.where)
 			local label = components.label(theme, { text = text, size = UDim2.new(1, 0, 0, 44) })
-			label.Name, label.LayoutOrder, label.AutomaticSize = "Operation-" .. row.id, index * 2, grow
+			label.Name, label.LayoutOrder, label.AutomaticSize = "Operation-" .. row.id, index * 3, grow
 			label.Parent = sheet.scroll
 			table.insert(shown, label)
 			if not row.locked then
@@ -175,12 +182,15 @@ function M.factory(ctx: any): { destroy: () -> () }?
 					size = UDim2.new(1, 0, 0, 44),
 					onClick = function()
 						local result = ctx.send(M.RUN, { row.id, stationId(row.station) })
-						status.Text = if result.ok
-							then M.text(ctx.locale, "operation_done")
-							else M.refusal(ctx.locale, result.reason, row.guide)
+						say(
+							if result.ok
+								then row.label .. ": " .. M.text(ctx.locale, "operation_done")
+								else M.refusal(ctx.locale, result.reason, row.guide),
+							index * 3 + 2
+						)
 					end,
 				})
-				make.Name, make.LayoutOrder, make.Parent = "Make-" .. row.id, index * 2 + 1, sheet.scroll
+				make.Name, make.LayoutOrder, make.Parent = "Make-" .. row.id, index * 3 + 1, sheet.scroll
 				table.insert(shown, make)
 			end
 		end
@@ -189,10 +199,14 @@ function M.factory(ctx: any): { destroy: () -> () }?
 	-- World prompts (harbor practice stands) send the command directly; show its outcome here.
 	local unsend = if ctx.onSend
 		then ctx.onSend(function(action: string, args: any, result: any)
-			if action == M.RUN and type(result) == "table" then
-				status.Text = if result.ok
-					then M.text(ctx.locale, "operation_done")
-					else M.refusal(ctx.locale, result.reason, guides[(args or {})[1]])
+			-- The sheet's own Make already placed its line under the row.
+			if action == M.RUN and type(result) == "table" and not gui.Enabled then
+				say(
+					if result.ok
+						then M.text(ctx.locale, "operation_done")
+						else M.refusal(ctx.locale, result.reason, guides[(args or {})[1]]),
+					0
+				)
 			end
 		end)
 		else nil

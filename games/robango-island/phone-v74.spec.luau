@@ -260,5 +260,66 @@ return {
 		assert(arm > 80, string.format("the arm keeps its length through the tower: %.2f", arm))
 		api.stop()
 		world.destroy()
+	end,	-- #13: the 연습과 악기 sheet opened on an empty bullet (the empty status line, row 0) and Make gave
+	-- no feedback (its line went to that top row, scrolled out of view under the last row).
+	["v74 #13: the practice sheet has no empty row and Make says what it made under the row"] = function()
+		local h = Harness.harness({ width = 914, height = 411, inset = 58, realHud = true })
+		local sent = 0
+		h.game:GetService("ReplicatedStorage"):WaitForChild("ForgeAction").InvokeServer = function(_self, kind, body)
+			assert(kind == "command" and body.action == "survival-coop:operation-run", tostring(body.action))
+			sent += 1
+			return { ok = true, stateVersion = 2 }
+		end
+		h.packet({
+			revision = 1,
+			durable = { actions = { "survival-coop:operation-run" }, epochs = { ["survival-coop:operation-run"] = 1 } },
+			snapshots = {
+				survivalExtensions = {
+					operations = {
+						operations = {
+							{
+								id = "practice-sewing",
+								inputs = { { item = "fiber", quantity = 2 } },
+								outputs = { { item = "practice-sewing", quantity = 1 } },
+							},
+							{
+								id = "instrument-drum",
+								station = "workbench",
+								inputs = { { item = "wood", quantity = 6 } },
+								outputs = { { item = "instrument-drum", quantity = 1 } },
+								reason = "CHARACTER_LEVEL_GATE",
+							},
+						},
+					},
+				},
+			},
+		})
+		local gui = assert(h.playerGui:FindFirstChild("ForgeOperations"), "operations gui")
+		local scroll = gui:FindFirstChild("OperationsSheet", true):FindFirstChild("Content")
+		local function visibleRows(): { any }
+			local rows = {}
+			for _, item in scroll:GetChildren() do
+				if (item.ClassName == "TextLabel" or item.ClassName == "TextButton") and item.Visible then
+					table.insert(rows, item)
+				end
+			end
+			table.sort(rows, function(a, b)
+				return a.LayoutOrder < b.LayoutOrder
+			end)
+			return rows
+		end
+		for _, row in visibleRows() do
+			assert(row.Text ~= "", "an empty row on the sheet: " .. row.Name)
+		end
+		local make = assert(scroll:FindFirstChild("Make-practice-sewing"), "Make on the open row")
+		h.click(make)
+		h.step()
+		assert(sent == 1, "Make sends operation-run")
+		local rows = visibleRows()
+		local at = table.find(rows, make)
+		local line = rows[(at :: number) + 1]
+		assert(line and line.Name == "OperationStatus", "the result line sits right under Make")
+		assert(string.find(line.Text, PackText.packText("ko-kr", "operation_done"), 1, true), line.Text)
+		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
 }
