@@ -2835,18 +2835,19 @@ recipes:
         quantity: 1
     station: "workbench"
   -
+    # Fun-first (owner 2026-11-03): the first club asks 3 dried wood + 2 polished stone + 1 dried fiber (was 5+2+2); journey6h spent 14.5 min on g43 gathering and drying.
     id: "club-t1"
     craftMillis: 10000
     inputs:
       -
         item: "dried-wood"
-        quantity: 5
+        quantity: 3
       -
         item: "polished-stone"
         quantity: 2
       -
         item: "dried-fiber"
-        quantity: 2
+        quantity: 1
     outputs:
       -
         item: "club-t1"
