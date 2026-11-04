@@ -43,7 +43,7 @@ return {
 		assert(first.attributes.sharpness ~= second.attributes.sharpness, "progression contract 17")
 		local leather = raw("hide", 10, 1)
 		leather = assert(Materials.craft(Content, "tan-hide", { leather }), "progression contract 19")
-		leather.quantity = 5
+		leather.quantity = 3
 		leather.quality = 2
 		local auxiliary = raw("fiber", 60, 2)
 		auxiliary.item = "dried-fiber"
