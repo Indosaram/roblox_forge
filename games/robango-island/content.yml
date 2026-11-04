@@ -33559,6 +33559,47 @@ guides:
     provenance:
       classification: "RECONSTRUCTED"
   -
+    # Fun-first (owner 2026-11-03): the second creature and its taming come in the first hour
+    # (was L31, capture + feed only; taming waited for g14 at L40).
+    id: "rw.g41.second-pet"
+    gates:
+      characterLevel: 12
+      developmentRank: 2
+    objectives:
+      -
+        id: "rw.g41.second-pet.1"
+        action: "capture"
+        target: "creature"
+        quantity: 1
+      -
+        id: "rw.g41.second-pet.2"
+        action: "place-training"
+        target: "creature"
+        quantity: 1
+      -
+        id: "rw.g41.second-pet.3"
+        action: "feed"
+        target: "herbivore-feed"
+        quantity: 3
+      -
+        id: "rw.g41.second-pet.4"
+        action: "tame"
+        target: "creature"
+        quantity: 1
+    rewards:
+      xp: 250
+      coins: 0
+      development: 0
+      items:
+        -
+          item: "herbivore-feed"
+          quantity: 3
+    dialogueKeys:
+      - "rw.g41.second-pet.offer"
+      - "rw.g41.second-pet.complete"
+    provenance:
+      classification: "RECONSTRUCTED"
+  -
     id: "rw.g34.hunting-bow"
     gates:
       characterLevel: 13
@@ -33751,47 +33792,6 @@ guides:
     dialogueKeys:
       - "rw.g40.temperate-set.offer"
       - "rw.g40.temperate-set.complete"
-    provenance:
-      classification: "RECONSTRUCTED"
-  -
-    # Fun-first (owner 2026-11-03): the second creature and its taming come in the first hour
-    # (was L31, capture + feed only; taming waited for g14 at L40).
-    id: "rw.g41.second-pet"
-    gates:
-      characterLevel: 12
-      developmentRank: 2
-    objectives:
-      -
-        id: "rw.g41.second-pet.1"
-        action: "capture"
-        target: "creature"
-        quantity: 1
-      -
-        id: "rw.g41.second-pet.2"
-        action: "place-training"
-        target: "creature"
-        quantity: 1
-      -
-        id: "rw.g41.second-pet.3"
-        action: "feed"
-        target: "herbivore-feed"
-        quantity: 3
-      -
-        id: "rw.g41.second-pet.4"
-        action: "tame"
-        target: "creature"
-        quantity: 1
-    rewards:
-      xp: 250
-      coins: 0
-      development: 0
-      items:
-        -
-          item: "herbivore-feed"
-          quantity: 3
-    dialogueKeys:
-      - "rw.g41.second-pet.offer"
-      - "rw.g41.second-pet.complete"
     provenance:
       classification: "RECONSTRUCTED"
   -
