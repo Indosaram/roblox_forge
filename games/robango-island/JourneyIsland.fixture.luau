@@ -766,6 +766,8 @@ function M.run(host: any, p: any, options: any?): any
 				if (row.feeds or 0) < rules.feedCount then
 					p.obtain(rules.feedItem, rules.feedCount - (row.feeds or 0), 300)
 					press("feed", id)
+				elseif action == "feed" then
+					return true
 				elseif not press("claim", id) then
 					p.wait(math.ceil(rules.trainingMillis / 1000 / 4))
 				end
@@ -911,10 +913,7 @@ function M.run(host: any, p: any, options: any?): any
 				or o.action == "ride"
 				or (o.action == "feed" and o.target == Content.progressionPolicy.companion.feedItem)
 			then
-				tend(
-					if o.action == "feed" then "tame" else o.action,
-					if o.action == "feed" then "creature" else o.target
-				)
+				tend(o.action, if o.action == "feed" then "creature" else o.target)
 			elseif o.action == "gather" then
 				if not seek(o.target, "guide " .. g.id) then
 					continue
