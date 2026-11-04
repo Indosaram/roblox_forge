@@ -3351,11 +3351,14 @@ function M.start(options: Options)
 				end
 			end
 		end
-		for _, pill in tags:GetTagged(HudShell.HUD_PILL_TAG) do
-			local owner = if pill:IsA("GuiObject") then pill:FindFirstAncestorWhichIsA("ScreenGui") else nil
-			if pill.Visible and owner and owner.Enabled then
-				local at = pill.AbsolutePosition - origin
-				table.insert(avoid, { x = at.X, y = at.Y, width = pill.AbsoluteSize.X, height = pill.AbsoluteSize.Y })
+		for _, hudPill in tags:GetTagged(HudShell.HUD_PILL_TAG) do
+			local owner = if hudPill:IsA("GuiObject") then hudPill:FindFirstAncestorWhichIsA("ScreenGui") else nil
+			if hudPill.Visible and owner and owner.Enabled then
+				local at = hudPill.AbsolutePosition - origin
+				table.insert(
+					avoid,
+					{ x = at.X, y = at.Y, width = hudPill.AbsoluteSize.X, height = hudPill.AbsoluteSize.Y }
+				)
 			end
 		end
 		local combat = player.PlayerGui:FindFirstChild("ForgeCombatHUD")

@@ -130,7 +130,14 @@ return {
 		h.publish({ opening = { active = true, beat = 7, step = "beacon", pulled = { true, true, true } } })
 		assert(talk.Enabled == false, "Marit's prompt does not take the beacon's token")
 		h.publish({
-			opening = { active = true, beat = 7, step = "board", beaconAt = 1, boatAt = 4001, pulled = { true, true, true } },
+			opening = {
+				active = true,
+				beat = 7,
+				step = "board",
+				beaconAt = 1,
+				boatAt = 4001,
+				pulled = { true, true, true },
+			},
 		})
 		assert(talk.Enabled == true, "Marit talks again once the beacon is lit")
 		local card = assert(h.playerGui:FindFirstChild("OpeningCard", true), "opening card")
@@ -141,7 +148,8 @@ return {
 	-- wrapped lines ended in '...'. It now grows down to just above the action cluster.
 	["v74 #3: the opening quest card has room for its title and wrapped lines on phone sizes"] = function()
 		-- OpeningClient reads engine services at load: load it on the panel harness engine.
-		local Client = Harness.harness({ width = 800, height = 360 }).load("games/robango-island/src/shared/OpeningClient")
+		local Client = Harness.harness({ width = 800, height = 360 })
+			.load("games/robango-island/src/shared/OpeningClient")
 		local HudShell = require("../../genres/survival-coop/module/HudShell")
 		local ko = function(key: string): string
 			return assert(PackText.packText("ko-kr", key), key)
@@ -162,10 +170,14 @@ return {
 			local need = rows * size + 12 -- LineHeight 1, 6 px padding top and bottom
 			assert(r.quest.height < need, "the slot alone cuts the card (the v74 '...')")
 			local limit = assert(Client.questLimit(r.quest.height, r), "a cap")
-			assert(limit >= need, string.format("%dx%d: %d rows need %d px, cap %d", screen[1], screen[2], rows, need, limit))
+			assert(
+				limit >= need,
+				string.format("%dx%d: %d rows need %d px, cap %d", screen[1], screen[2], rows, need, limit)
+			)
 			assert(r.quest.y + limit <= r.cluster.y, "the card stays above the action cluster")
 		end
-	end,	-- #11: the hunger tip sat under the drift-isle timer pill and over sheet title bars; the landscape
+	end,
+	-- #11: the hunger tip sat under the drift-isle timer pill and over sheet title bars; the landscape
 	-- welcome sheet's 4th copy line was clipped by its pinned Continue.
 	["v74 #11: the hunger tip clears the drift-isle timer and waits under sheets"] = function()
 		local h = Harness.harness({ width = 914, height = 411, inset = 58, realHud = true })
@@ -233,11 +245,19 @@ return {
 				end
 				assert(
 					used - S.gap <= room,
-					string.format("%s %dx%d: copy %d px in a %d px scroller", tutorial.step, screen[1], screen[2], used, room)
+					string.format(
+						"%s %dx%d: copy %d px in a %d px scroller",
+						tutorial.step,
+						screen[1],
+						screen[2],
+						used,
+						room
+					)
 				)
 			end
 		end
-	end,	-- #12: near the beacon tower the play camera snapped into an extreme close-up: its collision cast
+	end,
+	-- #12: near the beacon tower the play camera snapped into an extreme close-up: its collision cast
 	-- (QuarterView) shortens the arm on any untagged solid hit, and the tower's legs, deck and basket
 	-- were untagged. Tagged ForgeCameraOccluder, the camera ignores them for collision and fades them.
 	["v74 #12: the beacon tower (and every opening set piece) is a camera occluder, not a camera wall"] = function()
@@ -260,7 +280,8 @@ return {
 		assert(arm > 80, string.format("the arm keeps its length through the tower: %.2f", arm))
 		api.stop()
 		world.destroy()
-	end,	-- #13: the 연습과 악기 sheet opened on an empty bullet (the empty status line, row 0) and Make gave
+	end,
+	-- #13: the 연습과 악기 sheet opened on an empty bullet (the empty status line, row 0) and Make gave
 	-- no feedback (its line went to that top row, scrolled out of view under the last row).
 	["v74 #13: the practice sheet has no empty row and Make says what it made under the row"] = function()
 		local h = Harness.harness({ width = 914, height = 411, inset = 58, realHud = true })
