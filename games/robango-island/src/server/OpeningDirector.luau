@@ -343,17 +343,23 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 			return
 		end
 		facts[actor] = current
+		local fiberDone = false
 		local changed = Scene.advance(state, current, now, function(step, index, beat)
-			-- The opening accepts starter stock for this beat instead of requiring a fiber gather.
-			-- Credit only that completed beat, not held inventory during eat/join/other guide events.
-			local record = recordDevelopment
-			if step == "fiber" and record then
-				record(actor, "opening:fiber", { action = "gather", target = "fiber", quantity = 3 })
-			end
+			fiberDone = fiberDone or step == "fiber"
 			p.analytics(actor, step, index, beat)
 		end)
 		if changed then
 			dirty[actor] = true
+		end
+		-- The opening accepts starter stock for this beat instead of requiring a fiber gather.
+		-- Credit only that completed beat, not held inventory during eat/join/other guide events.
+		-- p134 v76: never inside Scene.advance's emit. The credit yields on the live expedition store;
+		-- the next heartbeat ticks re-entered advance on the same step and each stepped the index on
+		-- its return, so one bone gather skipped the knife and flint steps (flint 2/2 with no flint,
+		-- the beam on the ford's grass).
+		local record = recordDevelopment
+		if fiberDone and record then
+			record(actor, "opening:fiber", { action = "gather", target = "fiber", quantity = 3 })
 		end
 		flush(actor)
 	end

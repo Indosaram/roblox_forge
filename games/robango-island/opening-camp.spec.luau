@@ -8,6 +8,7 @@
 -- 9 bag logs, places the campfire there from the bag, and plays the rest of the opening (Marit's
 -- request, the beacon wood, the windbreak, the beacon, boarding) to the departure.
 local serde = require("@lune/serde")
+local task = require("@lune/task")
 local Engine = require("../../cli/forge/fixtures/production-worlds/engine")
 local Content: any = require("./src/shared/SurvivalContent")
 local Source = require("./src/shared/SurvivalWorldConfig")
@@ -363,6 +364,121 @@ local function toWindbreak(live: any)
 end
 
 return {
+	-- p134 v76 (staging 12df9def, phone): the bone gather jumped the tracker to 'Knap a hatchet' with
+	-- 'flint (2/2)' checked and an empty bag, and the beam stood on the ford's empty grass (X-7 Y23, the
+	-- hatchet step's target) ~35 m from the flint scree. The fiber step's guide credit
+	-- (recordDevelopment) ran inside Scene.advance's emit and yields on the live expedition store; the
+	-- next director ticks re-entered advance on the same step and every one of them stepped the index
+	-- on its return (fiber -> bone-knife -> flint -> hatchet). Here the expedition document is held by
+	-- another writer (a live UpdateAsync) while three director ticks run, as the 0.25 s heartbeat does.
+	["v76: a yielding guide credit never skips the opening's knife and flint steps"] = function()
+		local live = boot()
+		live.engine.move(ACTOR, Content.homePolicy.dock)
+		live.tick()
+		assert(live.command("tutorial-skip-arrival", {}).ok, "arrival")
+		assert(live.world.opening.intent(ACTOR, "cold-open-done"), "cold open")
+		local state = assert(live.world.opening.state(ACTOR))
+		assert(Scene.pull(state, 1, live.at.value * 1000) and Scene.pull(state, 2, live.at.value * 1000), "stakes 1-2")
+		for _ = 1, Scene.MAX_TRIES do
+			live.at.value += 8
+			live.world.opening.tick({ ACTOR }, live.at.value * 1000)
+		end
+		assert(Scene.pull(state, 3, live.at.value * 1000), "stake 3")
+		live.tick()
+		assert(live.world.opening.intent(ACTOR, "mirror-dismiss"), "mirror")
+		assert(step(live) == "bone", "bone step: " .. tostring(step(live)))
+		live.engine.move(ACTOR, { x = 2, y = 5, z = 60 })
+		local version = live.factory.services.survivalGathering.snapshot(ACTOR).version
+		assert(live.command("gather", { "rw.onboarding.crash-bones", version }).ok, "bone gather")
+		-- Another writer holds the expedition document until the director's guide credit is refused.
+		local store = live.factory.expeditionStore
+		local transaction = store.transaction
+		local holding, released = true, false
+		store.transaction = function(actor, transform)
+			local result = transaction(actor, transform)
+			if not result.ok and result.reason == "DOCUMENT_BUSY" then
+				released = true
+			end
+			return result
+		end
+		task.spawn(function()
+			transaction(ACTOR, function(_document)
+				local spins = 0
+				while holding and spins < 2000 do
+					spins += 1
+					task.wait()
+				end
+				return { ok = true }
+			end)
+		end)
+		local running = 0
+		for _ = 1, 3 do
+			running += 1
+			task.spawn(function()
+				live.tick()
+				running -= 1
+			end)
+		end
+		assert(released, "the guide credit met the held document")
+		holding = false
+		for _ = 1, 2000 do
+			if running == 0 then
+				break
+			end
+			task.wait()
+		end
+		assert(running == 0, "director ticks settled")
+		live.tick()
+		-- The counter: the tracker is on the knife, and its flint line counts the bag.
+		local view = live.world.opening.extension.snapshot(ACTOR)
+		assert(view.step == "bone-knife", "after the bone gather the knife is next, got " .. tostring(view.step))
+		assert(bagCount(live, "flint") == 0 and view.flint == 0, "flint counter " .. tostring(view.flint))
+		local document = store.snapshot(ACTOR)
+		assert(
+			((document.development or {}).definitions or {})["rw.g01.first-gather"],
+			"the fiber beat still credits the first gather guide"
+		)
+		-- The knife, then the flint step: its counter is the bag's flint and its beam stands on a flint
+		-- node the knife can gather from where the beam is.
+		local knife = live.command("craft-reserve", { "bone-knife", "hand" })
+		assert(knife.ok, "knife reserve: " .. serde.encode("json", knife))
+		assert(live.command("craft-start", { knife.data.jobId }).ok, "knife start")
+		live.at.value += 5
+		assert(live.command("craft-complete", { knife.data.jobId }).ok, "knife crafted")
+		for id, item in live.session.snapshot(ACTOR)["survival-coop"].inventory.bag.items do
+			if item.catalogId == "bone-knife" then
+				assert(live.command("gear-equip", { id }).ok, "knife equipped")
+			end
+		end
+		live.tick()
+		view = live.world.opening.extension.snapshot(ACTOR)
+		assert(view.step == "flint", "flint step: " .. tostring(view.step))
+		local _, lines = Scene.tracker(view, function(key)
+			return PackText.packText("en-us", key) or key
+		end)
+		local flintLine = assert(lines[1], "flint line")
+		assert(
+			string.find(flintLine, "(0/2)", 1, true) and string.sub(flintLine, 1, 3) == "□",
+			"unchecked 0/2: " .. flintLine
+		)
+		local target = assert(Scene.target(view), "flint step target")
+		local node
+		for _, row in live.world.layout.resourceNodes do
+			node = if row.id == target then row else node
+		end
+		assert(node and node.item == "flint", "the beam stands on a flint node: " .. target)
+		live.engine.move(ACTOR, { x = node.position.x, y = 5, z = node.position.z })
+		version = live.factory.services.survivalGathering.snapshot(ACTOR).version
+		local gathered = live.command("gather", { target, version })
+		assert(gathered.ok, "flint gathered at the beam: " .. serde.encode("json", gathered))
+		live.tick()
+		view = live.world.opening.extension.snapshot(ACTOR)
+		assert(
+			view.flint == math.min(bagCount(live, "flint"), 2) and bagCount(live, "flint") > 0,
+			"counter follows the bag: " .. tostring(view.flint)
+		)
+		store.transaction = transaction
+	end,
 	["the build sheet opens on the campfire's tab while the opening tracker asks for it"] = function()
 		local state = Scene.new(0)
 		state.index = Scene.INDEX.campfire
