@@ -34,8 +34,10 @@ M.STEPS = table.freeze({
 	{ id = "arrive", beat = 0 },
 	{ id = "dodge", beat = 1, line = "opening.tumble.dodges", count = "dodges", of = 2 },
 	{ id = "tumble", beat = 1, line = "opening.tumble.stakes", count = "stakes", of = 3 },
-	{ id = "mirror", beat = 2, line = "opening.mirror.heap", target = "rw.onboarding.carcass" },
-	{ id = "bone", beat = 3, line = "opening.knife.bone", target = "rw.onboarding.carcass" },
+	-- The crash-site bone pile the lines name and the glow marks (BONE_NODE), not the Lv 10 sea-beast
+	-- heap 20 studs west (p134 v75 A1/B1: the beam and 'show the way' led to the wrong heap).
+	{ id = "mirror", beat = 2, line = "opening.mirror.heap", target = "rw.onboarding.crash-bones" },
+	{ id = "bone", beat = 3, line = "opening.knife.bone", target = "rw.onboarding.crash-bones" },
 	{ id = "fiber", beat = 3, line = "opening.knife.fiber", target = "rw.onboarding.fiber" },
 	{ id = "bone-knife", beat = 3, line = "opening.knife.craft", target = "rw.onboarding.extra-1" },
 	{

@@ -594,4 +594,55 @@ return {
 			assert(line and line ~= "cli.way.nopath", locale .. " cli.way.nopath")
 		end
 	end,
+	-- Staging v75 (SM-N981N): one 'show the way' press by the bone pile walked west 40 -> 74 -> 123 ->
+	-- 170 -> 218 -> 234 m away from the target, with no blocked-path message. The pathfinder answered
+	-- Success with a route that heads away (round the island), and each leg followed it to its end:
+	-- every leg made "progress" against its own start only after the whole detour, so stalls never
+	-- counted. A leg that takes the walk WALK_AWAY studs farther from the goal is cut and counts as a
+	-- stall; WALK_STALLS of them end the walk as 'nopath'. Fails on 87898fe6 (walks 200+ studs off).
+	["v75: a walk that heads away from the target stops with nopath instead of walking off"] = function()
+		local at = { X = -17, Y = 0, Z = 58 }
+		local goal = { X = 2, Y = 0, Z = 60 }
+		local farthest = 0
+		local io: any = {}
+		function io.live()
+			return true
+		end
+		function io.position()
+			return at
+		end
+		function io.point(x, y, z)
+			return { X = x, Y = y, Z = z }
+		end
+		function io.path(from, _goal)
+			-- A "Success" route that goes west round the island: 50 waypoints, 5 studs apart.
+			local points = { { position = from, jump = false } }
+			for index = 1, 50 do
+				table.insert(points, { position = { X = from.X - index * 5, Y = 0, Z = from.Z }, jump = false })
+			end
+			return "Success", points
+		end
+		function io.step(point)
+			at = { X = point.position.X, Y = 0, Z = point.position.Z }
+			local dx, dz = at.X - goal.X, at.Z - goal.Z
+			farthest = math.max(farthest, math.sqrt(dx * dx + dz * dz))
+			return true
+		end
+		local arrived, why = TapRouter.walk(io, goal, 6)
+		-- The phone run's marker went from 40 to 234 m; the walk now gives up within ~a hundred studs.
+		assert(farthest <= 120, string.format("never walks far off: %.0f studs from the target", farthest))
+		assert(not arrived and why == "nopath", "a walk heading away says no path: " .. tostring(why))
+		-- A route that dips away a little and then comes back still arrives.
+		at = { X = 0, Y = 0, Z = 100 }
+		local detour: any = table.clone(io)
+		function detour.path(from, to)
+			return "Success",
+				{
+					{ position = from, jump = false },
+					{ position = { X = from.X + 6, Y = 0, Z = from.Z + 4 }, jump = false },
+					{ position = { X = to.X, Y = 0, Z = to.Z }, jump = false },
+				}
+		end
+		assert(TapRouter.walk(detour, goal, 6), "a short dodge round an obstacle is still a walk")
+	end,
 }

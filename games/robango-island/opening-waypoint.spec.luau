@@ -39,6 +39,12 @@ return {
 			assert(Waypoint.resolve(layout, id) ~= nil, step.id .. " target " .. id .. " is not on the layout")
 		end
 		-- The ridge leg the c1 tester could not find: the ford, then Marit's camp.
+		-- p134 v75 A1/B1: the bone steps' beam and 'show the way' pointed at the Lv 10 sea-beast heap
+		-- while the line and the glow named the crash-site pile by the wreck.
+		for _, step in { "mirror", "bone" } do
+			local view = { active = true, step = step }
+			assert(Scene.target(view) == Scene.guideNode(view), step .. " waypoint is the glowing node")
+		end
 		local ford = Waypoint.resolve(layout, Scene.target({ active = true, step = "stream" }))
 		local camp = Waypoint.resolve(layout, Scene.target({ active = true, step = "camp" }))
 		assert(ford.X == -10 and ford.Z == 20, "stream points at opening.ford")

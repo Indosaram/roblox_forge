@@ -94,6 +94,11 @@ end
 -- WALK_SIDESTEP studs aside (alternating sides) and re-paths; only WALK_STALLS stalled legs in a row
 -- end the walk (no path), and WALK_LEGS is a runaway guard, not a distance budget.
 M.WALK_LEGS, M.WALK_STALL, M.WALK_STALLS, M.WALK_SIDESTEP = 64, 2, 4, 6
+-- p134 v75 A1: one press near the bone pile walked 40 -> 234 m AWAY from the target with no message:
+-- the pathfinder's Success route went round the island and each leg followed it to the end. A leg
+-- that takes the character WALK_AWAY studs farther from the goal than where it started is cut there
+-- and counts as a stalled leg (sidestep, re-path), so WALK_STALLS such legs end the walk as 'nopath'.
+M.WALK_AWAY = 12
 local function flat(a: any, b: any): number
 	return math.sqrt((a.X - b.X) ^ 2 + (a.Z - b.Z) ^ 2)
 end
@@ -124,6 +129,7 @@ function M.walk(io: any, goal: any, within: number): (boolean, string?)
 			end
 		end
 		local status, points = io.path(io.position(), goal)
+		local start = flat(io.position(), goal)
 		for _, step in M.route(status, points, goal) do
 			if not io.live() or flat(io.position(), goal) <= within then
 				break
@@ -132,8 +138,8 @@ function M.walk(io: any, goal: any, within: number): (boolean, string?)
 			if reached == nil then
 				return false, "cancelled"
 			end
-			if reached == false then
-				break -- re-path from here
+			if reached == false or flat(io.position(), goal) > start + M.WALK_AWAY then
+				break -- re-path from here (heading away counts as no progress)
 			end
 		end
 		local after = flat(io.position(), goal)
