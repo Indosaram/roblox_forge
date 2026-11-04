@@ -37,7 +37,8 @@ return {
 		assert(open("first").ok, "first trip opens")
 		now = 500
 		assert(open("busy").reason == "expedition_active", "a live trip still blocks")
-		now = 1000
+		-- A trip runs a full ttl from its opening (fun-first: no clock-aligned window).
+		now = 1010
 		local second = open("second")
 		assert(second.ok, "the expired trip is settled and the next opens: " .. tostring(second.reason))
 		assert(document.archipelago.id == "second" and document.archipelago.status == "active", "new trip")

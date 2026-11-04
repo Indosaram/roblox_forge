@@ -350,6 +350,8 @@ local function harness(options: any?): any
 	player.PlayerGui = playerGui
 	local workspace = node("Workspace", "Workspace")
 	workspace.CurrentCamera = node("Camera", "Camera")
+	-- The minimap pin reads the camera heading (recursive FindFirstChild now finds the minimap frame).
+	workspace.CurrentCamera.CFrame = roblox.CFrame.new()
 	local services: any = {
 		Players = node("Players"),
 		RunService = node("RunService"),

@@ -490,7 +490,7 @@ return {
 		ui.press("crop-book", "Specialize-corn")
 		assert(ui.docks["crop-specialize"].isOpen(), "specialize dialog opens")
 		assert(ui.has("crop-specialize", Text.text("en-us", "spec_chosen", Text.text("en-us", "time"))), "chosen shown")
-		assert(ui.has("crop-specialize", Text.text("en-us", "spec_preview", "corn", 540, 4, 1000)), "next crop preview")
+		assert(ui.has("crop-specialize", Text.text("en-us", "spec_preview", "corn", 108, 4, 1000)), "next crop preview")
 		ui.press("crop-specialize", "Confirm")
 		local sent = ui.sends[#ui.sends]
 		assert(sent.action == "survival-coop:home-specialize" and sent.args[2].effect == "yield", "first open effect")

@@ -32,7 +32,7 @@ return {
 				assert(facility.panel == "operations", facility.anchor .. " opens the operations sheet")
 			end
 		end
-		assert(kinds.npc == 7 and kinds.dock == 2 and kinds.market == 1 and kinds.station == 6, "trade invariant")
+		assert(kinds.npc == 7 and kinds.dock == 2 and kinds.market == 1 and kinds.station == 7, "trade invariant")
 		assert(not pcall(Harbor.describe, { layouts = {} }), "trade invariant")
 	end,
 	["fresh journey table covers every content stage without duplicate catalog numbers"] = function()

@@ -9206,9 +9206,10 @@ operations:
       skillNodes:
         - "farming_1"
     effects:
+      # Fun-first (owner 2026-11-03): the first crop (corn) is ready in 2 minutes (was 10); later crops keep their times.
       -
         id: "growth-minutes"
-        value: 10
+        value: 2
         unit: "minutes"
       -
         id: "harvest-yield"
@@ -9812,8 +9813,9 @@ recipeDetails:
     primaryInputs:
       - "copper-ore"
     auxiliaryInputs: []
+    # Fun-first (owner 2026-11-03): the first smelt needs processing_3 (16 actions), not processing_4 (42).
     skillNodes:
-      - "processing_4"
+      - "processing_3"
     seconds: 10
     stationTier: 1
     provenance:

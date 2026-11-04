@@ -104,8 +104,9 @@ end
 return {
 	["fresh player practices the seedbed, learns farming_1 and plants corn"] = function()
 		local h = harness({ stack("f", "fiber", 2), stack("w", "water", 1) })
-		local _, locked = Tree.learn(Content, h.slice().progression, "farming_1")
-		assert(locked == "PROFICIENCY_GATE", "farming_1 is locked before practice: " .. tostring(locked))
+		-- Rank-1 nodes need no practice (fun-first); farming_2 still waits for practice.
+		local _, locked = Tree.learn(Content, h.slice().progression, "farming_2")
+		assert(locked == "PROFICIENCY_GATE", "farming_2 is locked before practice: " .. tostring(locked))
 		local practiced = h.run("practice-seedbed")
 		assert(practiced.ok, "practice-seedbed: " .. tostring(practiced.reason))
 		assert(h.held("fiber") == 0 and h.held("water") == 0 and h.held("practice-seedbed") == 1, "inputs -> output")

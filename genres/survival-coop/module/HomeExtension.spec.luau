@@ -106,7 +106,7 @@ return {
 		for _ in crops do
 			count += 1
 		end
-		assert(count == 8 and crops.flax.output == "flaxseed" and crops.corn.seconds == 600, "home invariant: 20")
+		assert(count == 8 and crops.flax.output == "flaxseed" and crops.corn.seconds == 120, "home invariant: 20")
 	end,
 	["home extension fenced new server persistence handoff idempotency and stolen lease"] = function()
 		local backend = Memory.new()
@@ -205,10 +205,10 @@ return {
 		assert(assert(life.resumeActor)("owner").ok, "home invariant: 55")
 		assert(extension.close().ok, "home invariant: 56")
 		server = "server-b"
-		now = 610
+		now = 130
 		extension = new()
 		local snapshot = assert(extension.snapshot("owner"))
-		assert(snapshot.homeId == "home:owner" and snapshot.plots.p1.readyAt == 610, "home invariant: 61")
+		assert(snapshot.homeId == "home:owner" and snapshot.plots.p1.readyAt == 130, "home invariant: 61")
 		assert(
 			command(extension, "intruder", "home-harvest", { plot = "p1" }, "intruder").reason == "FORBIDDEN",
 			"home invariant: 62"
