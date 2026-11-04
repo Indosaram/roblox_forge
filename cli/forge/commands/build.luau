@@ -1,5 +1,5 @@
 --!strict
--- `forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>]`
+-- `forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>] [--env staging|production]`
 --
 -- Every selector resolves through lib/buildtargets, so build and the default
 -- check verify exactly the same target matrix. With no selector this builds the
@@ -31,9 +31,30 @@ end
 --- dispatcher's argument-less `run()` call still reaches every selector.
 function M.run(args: { string }?): BuildResult
 	local argv = args or process.args
-	local selection, selectorErr = buildtargets.parseSelectors(argv, 2)
+	-- `--env <staging|production>` (with an explicit --pack) embeds that
+	-- environment's deploy.yml role and product maps before the identity hash.
+	local environment: string? = nil
+	local selectorArgs: { string } = {}
+	local index = 1
+	while index <= #argv do
+		if argv[index] == "--env" and index >= 2 then
+			local value = argv[index + 1]
+			if environment ~= nil or (value ~= "staging" and value ~= "production") then
+				return failure({ "build: --env requires exactly one of staging|production" })
+			end
+			environment = value
+			index += 2
+		else
+			table.insert(selectorArgs, argv[index])
+			index += 1
+		end
+	end
+	local selection, selectorErr = buildtargets.parseSelectors(selectorArgs, 2)
 	if selection == nil then
 		return failure({ "build: " .. tostring(selectorErr) })
+	end
+	if environment ~= nil and selection.mode ~= "pack" then
+		return failure({ "build: --env requires --pack <slug>" })
 	end
 
 	local targets, resolveErrors = buildtargets.resolveTargets(selection, "single")
@@ -42,7 +63,7 @@ function M.run(args: { string }?): BuildResult
 		table.insert(lines, "build: " .. err)
 	end
 
-	local results = buildtargets.runTargets(targets)
+	local results = buildtargets.runTargets(targets, environment)
 	local ok = #resolveErrors == 0
 	for _, result in results do
 		for _, log in result.logs do

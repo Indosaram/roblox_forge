@@ -428,6 +428,40 @@ return {
 	end,
 
 	-- real commands ----------------------------------------------------------
+	["build --env needs --pack and one known environment before any build"] = function()
+		local build = require("../commands/build")
+		for _, args in
+			{
+				{ "build", "--env", "production" },
+				{ "build", "--all", "--env", "production" },
+				{ "build", "--pack", "kaiju-egg-raiders", "--env", "live" },
+				{ "build", "--pack", "kaiju-egg-raiders", "--env" },
+				{ "build", "--pack", "kaiju-egg-raiders", "--env", "staging", "--env", "production" },
+			}
+		do
+			local res = build.run(args)
+			assert(not res.ok and #res.results == 0, "refused before building: " .. table.concat(args, " "))
+			assert(string.find(res.output, "--env", 1, true) ~= nil, res.output)
+		end
+	end,
+
+	["environment build refuses a target without deploy.yml before touching the artifact"] = function()
+		local dir = FIXTURE_ROOT .. "/env-missing-deploy"
+		removeFixture(dir)
+		writeValidPack(dir, "env-missing-deploy")
+		writeFile(dir .. "/prior.rbxl", "prior artifact")
+		local result = buildtargets.runTarget({
+			kind = "pack",
+			slug = "env-missing-deploy",
+			packDir = dir,
+			projectPath = dir .. "/default.project.json",
+			outputPath = dir .. "/prior.rbxl",
+		}, nil, "production", {})
+		local prior = fs.readFile(dir .. "/prior.rbxl")
+		removeFixture(dir)
+		assert(not result.ok and hasText(result.errors, "deploy.yml"), joined(result.errors))
+		assert(prior == "prior artifact", "refusal leaves the prior artifact untouched")
+	end,
 	["forge build --project builds and inspects one fixture project"] = function()
 		local dir = FIXTURE_ROOT .. "/project-ok"
 		removeFixture(dir)

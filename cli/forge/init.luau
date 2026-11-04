@@ -379,11 +379,15 @@ local USAGE_ENTRIES: { { name: string, text: string } } = {
 	{
 		name = "build",
 		text = [=[
-  build [--all | --pack <slug> | --project <path>] [--packs-root <dir>]
+  build [--all | --pack <slug> | --project <path>] [--packs-root <dir>] [--env staging|production]
                             Build game places with rojo into build/<target>.rbxl. With no
                             selector the default pack is built; --all builds every discovered
                             pack, --pack builds one, and --project builds one project file.
-                            Selectors are mutually exclusive]=],
+                            Selectors are mutually exclusive. --env (with --pack) embeds that
+                            deploy.yml environment's ServerStorage.ForgePlaceRoles and
+                            ForgeMonetizationIds (ids resolved from the process environment)
+                            before hashing, producing the artifact a non-development deploy
+                            --env publishes unchanged]=],
 	},
 	{
 		name = "test",

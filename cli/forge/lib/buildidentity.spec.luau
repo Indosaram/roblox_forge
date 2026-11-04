@@ -35,6 +35,42 @@ local function fixture(callback: (string) -> ())
 end
 
 return {
+	["environment values mount in ServerStorage of the overlay only and refuse unknown or reserved names"] = function()
+		fixture(function(root)
+			local project, output = root .. "/default.project.json", root .. "/place.rbxl"
+			local original = fs.readFile(project)
+			local values = { ForgePlaceRoles = '{"onboarding":7}', ForgeMonetizationIds = '{"patron":0}' }
+			local overlay = identity.prepare(project, root, output, nil, values)
+			local document = serde.decode("json", fs.readFile(overlay.projectPath))
+			for name, value in values do
+				local node = document.tree.ServerStorage[name]
+				assert(node["$className"] == "StringValue" and node["$properties"].Value == value, name)
+			end
+			assert(fs.readFile(project) == original, "shared pack project unchanged")
+			assert(
+				identity.snapshot(project, root, output).id == overlay.identity.id,
+				"environment values never change the source identity"
+			)
+			fs.removeDir(overlay.directory)
+			assert(
+				not pcall(identity.prepare, project, root, output, nil, { Other = "x" }),
+				"unknown ServerStorage value refused"
+			)
+			assert(not fs.isDir(overlay.directory), "refusal precedes the overlay")
+			fs.writeFile(
+				project,
+				serde.encode("json", {
+					name = "identity",
+					tree = {
+						["$className"] = "DataModel",
+						ServerStorage = { ForgePlaceRoles = { ["$className"] = "StringValue" } },
+					},
+				})
+			)
+			assert(not pcall(identity.prepare, project, root, output, nil, values), "an authored map is never shadowed")
+			assert(not fs.isDir(overlay.directory), "refusal precedes the overlay")
+		end)
+	end,
 	["owned QA overlay marks only temporary artifact project"] = function()
 		fixture(function(root)
 			local project, output = root .. "/default.project.json", root .. "/place.rbxl"

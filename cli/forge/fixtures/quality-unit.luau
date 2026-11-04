@@ -9,6 +9,7 @@ local imports: { [string]: any } = {
 	["@lune/process"] = require("@lune/process"),
 	["@lune/serde"] = require("@lune/serde"),
 	["@lune/stdio"] = require("@lune/stdio"),
+	["@lune/roblox"] = require("@lune/roblox"),
 	["./qualityprofile"] = require("../lib/qualityprofile"),
 	["./qualityregistration"] = require("../lib/qualityregistration"),
 	["./buildidentity"] = require("../lib/buildidentity"),

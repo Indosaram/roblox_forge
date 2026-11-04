@@ -85,7 +85,7 @@ lune run cli/forge check [--pack <slug> | --project <path> | --all] [--packs-roo
 Compiles project definitions into binary Roblox place files (`.rbxl`).
 
 ```powershell
-lune run cli/forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>]
+lune run cli/forge build [--all | --pack <slug> | --project <path>] [--packs-root <dir>] [--env <staging|production>]
 ```
 
 - **Arguments**:
@@ -94,6 +94,7 @@ lune run cli/forge build [--all | --pack <slug> | --project <path>] [--packs-roo
   - `--pack <slug>`: Compiles specified pack to `build/<slug>.rbxl`.
   - `--project <path>`: Compiles specified project file to `build/project-<slug>-<tag>.rbxl`.
   - `--packs-root <dir>`: Sets custom discovery root; writes to `build/packs-<root>-<tag>/<slug>.rbxl`.
+  - `--env <staging|production>`: Requires `--pack`. Embeds the environment's `deploy.yml` role map and monetization ids (resolved from the process environment) as `ServerStorage.ForgePlaceRoles` / `ServerStorage.ForgeMonetizationIds` before hashing, so the identity sidecar binds the bytes a non-development `deploy --env <env>` publishes unchanged. Any other selector, an unknown or repeated environment, a missing `deploy.yml` or a role plan error exits 1 before the artifact is touched.
 - **Output**:
   - Binary place file at the resolved output path.
   - Summary logs showing Rojo build status and place inspection results.
@@ -460,7 +461,7 @@ lune run cli/forge deploy plan --env <staging|production> [--pack <slug>] [--pac
   - Missing, malformed, inconclusive, stale, or downgraded quality evidence refuses before report writes, builds, or network requests. The gate binds source/config/assets/build and actual loaded runtime evidence; local hash attestation is not cryptographic signing.
   - Live deployment requires the selected `ROBLOX_STAGING_API_KEY` or `ROBLOX_PRODUCTION_API_KEY`, with no `ROBLOX_API_KEY` fallback. A `deploy.yml` target id is a literal positive finite integer or a `${FORGE_<ENV>_UNIVERSE_ID}` / `${FORGE_<ENV>_PLACE_ID}` reference resolved from the environment when the file loads; an unset reference is refused by name before any network call, never defaulted. `ROBLOX_<ENV>_UNIVERSE_ID` and `ROBLOX_<ENV>_PLACE_ID` must exactly match the resolved target as decimal strings. Equal loaded environment keys and overlapping configured universe/place targets are refused. Live production additionally requires `FORGE_ALLOW_PRODUCTION=1`; the switch does not replace human-merged approval or explicit external-release authorization.
 - Artifact behavior:
-  - Assessed deployment publishes the existing approved `build/<pack>.rbxl` without rebuilding. Changed artifacts must be built and assessed separately before deployment.
+  - Assessed deployment publishes the existing approved `build/<pack>.rbxl` without rebuilding. Changed artifacts must be built and assessed separately before deployment. Build that artifact with `build --pack <pack> --env <env>` (or `buildtargets.runTarget(target, ownedQaToken, env)`) so it already carries the environment's role and product maps; deploy refuses any other map with `role artifact configuration mismatch` / `monetization artifact configuration mismatch`.
   - Live development staging uses `buildtargets.runTarget` to build and inspect the place and emit its identity sidecar.
   - The final quality check precedes upload; held upload bytes must still match the artifact after that check.
 - Plan output includes `quality`, `externalReleaseAuthorized: false`, and `apiVerified: false`. Successful dry-run is not API proof or permission to publish. See [Release authorization](authorization.md).

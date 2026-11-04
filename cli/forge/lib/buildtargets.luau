@@ -28,6 +28,7 @@ local run = require("./run")
 local inspector = require("./inspect")
 local packidentity = require("./packidentity")
 local buildidentity = require("./buildidentity")
+local deploytarget = require("./deploytarget")
 local packpublication = require("./packpublication")
 
 local M = {}
@@ -487,10 +488,42 @@ local function ensureDir(path: string)
 	end
 end
 
+--- Resolves the ServerStorage values an environment build embeds from the
+--- pack's deploy.yml and `variables` (see deploytarget.environmentStorage).
+function M.environmentStorage(
+	target: Target,
+	environment: string,
+	variables: { [string]: string? }
+): ({ [string]: string }?, string?)
+	if target.packDir == nil then
+		return nil, "an environment build requires a pack target"
+	end
+	local path = (target.packDir :: string) .. "/deploy.yml"
+	if not fs.isFile(path) then
+		return nil, "missing " .. path
+	end
+	local decoded, deploy = pcall(function()
+		return serde.decode("yaml", fs.readFile(path))
+	end)
+	if not decoded then
+		return nil, "failed to decode " .. path
+	end
+	return deploytarget.environmentStorage(deploy, environment, variables)
+end
+
 --- Builds and inspects one target. Any previous artifact at the output path is
 --- deleted first and, when the build fails, no artifact is left behind: a
 --- failed target is never inspected and can never report a stale pass.
-function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
+--- With `environment`, the environment's `ForgePlaceRoles` / `ForgeMonetizationIds`
+--- (resolved from deploy.yml and `variables`, default the process environment)
+--- are mounted in ServerStorage by the identity overlay, so they are in the bytes
+--- the sidecar digest binds; a non-development deploy publishes that artifact as is.
+function M.runTarget(
+	target: Target,
+	ownedQaToken: string?,
+	environment: string?,
+	variables: { [string]: string? }?
+): TargetResult
 	local result: TargetResult = {
 		target = target,
 		revision = "unknown",
@@ -507,6 +540,19 @@ function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
 	if pending then
 		table.insert(result.errors, target.slug .. ": " .. pending)
 		return result
+	end
+	local serverStorage: { [string]: string }? = nil
+	if environment ~= nil then
+		local values, storageError =
+			M.environmentStorage(target, environment, variables or require("@lune/process").env)
+		if values == nil then
+			table.insert(
+				result.errors,
+				target.slug .. ": environment " .. environment .. ": " .. tostring(storageError)
+			)
+			return result
+		end
+		serverStorage = values
 	end
 	local ready, prerequisiteError = run.preflight({ "rojo" })
 	if not ready then
@@ -525,7 +571,7 @@ function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
 		fs.removeFile(identityPath)
 	end
 	local prepared, overlay =
-		pcall(buildidentity.prepare, target.projectPath, target.packDir, target.outputPath, ownedQaToken)
+		pcall(buildidentity.prepare, target.projectPath, target.packDir, target.outputPath, ownedQaToken, serverStorage)
 	if not prepared then
 		table.insert(result.errors, target.slug .. ": build identity failed: " .. tostring(overlay))
 		return result
@@ -574,6 +620,18 @@ function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
 	result.built = true
 	local artifact = fs.readFile(target.outputPath)
 	local inspected, matches = pcall(buildidentity.inspectArtifact, artifact, overlay.identity, overlay.ownedQaToken)
+	if inspected and matches and serverStorage ~= nil then
+		inspected, matches = pcall(function()
+			local storage = require("@lune/roblox").deserializePlace(artifact):FindFirstChild("ServerStorage")
+			for name, value in serverStorage :: { [string]: string } do
+				local emitted: any = storage and storage:FindFirstChild(name)
+				if emitted == nil or emitted.ClassName ~= "StringValue" or emitted.Value ~= value then
+					return false
+				end
+			end
+			return true
+		end)
+	end
 	if not inspected or not matches then
 		table.insert(result.errors, target.slug .. ": emitted identity source mismatch")
 		fs.removeFile(target.outputPath)
@@ -619,6 +677,7 @@ function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
 			build = "sha256:" .. (result.digest :: string),
 			revision = result.revision,
 			ownedQaToken = overlay.ownedQaToken,
+			environment = environment,
 		}, true)
 	)
 	result.ok = true
@@ -626,11 +685,12 @@ function M.runTarget(target: Target, ownedQaToken: string?): TargetResult
 end
 
 --- Runs every target, independently: one failing target never stops the rest,
---- and every target is reported.
-function M.runTargets(targets: { Target }): { TargetResult }
+--- and every target is reported. `environment` embeds that deploy.yml
+--- environment's role and product maps (see runTarget).
+function M.runTargets(targets: { Target }, environment: string?): { TargetResult }
 	local results: { TargetResult } = {}
 	for _, target in targets do
-		table.insert(results, M.runTarget(target))
+		table.insert(results, M.runTarget(target, nil, environment))
 	end
 	return results
 end

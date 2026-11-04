@@ -6,6 +6,8 @@
 -- `universeId: ${FORGE_STAGING_UNIVERSE_ID}`). A reference that names an unset or
 -- empty variable is refused with the variable's name, never silently defaulted.
 
+local serde = require("@lune/serde")
+
 local M = {}
 
 local REFERENCE_PATTERN = "^%$%{([A-Za-z_][A-Za-z0-9_]*)%}$"
@@ -84,6 +86,129 @@ function M.unsettableId(value: any, variables: { [string]: string? }): (number?,
 		return resolved, nil
 	end
 	return nil, "requires a finite nonnegative integer (literal or ${ENV_VAR})"
+end
+
+export type RolePlace = { role: string, placeId: number, url: string? }
+export type RolePlan = {
+	universeId: number?,
+	startPlaceId: number?,
+	places: { RolePlace },
+	missing: { string },
+	map: { [string]: number },
+	errors: { string },
+}
+
+--- Resolves every role of a role-configured environment into the publish list
+--- used by `--all-roles` and by the dry run. Ids are literal integers or
+--- `${NAME}` references. Every Topology role needs its own positive distinct
+--- place id (IslandBootstrap refuses a duplicate), and `onboarding` must be the
+--- environment's start place because new players join there. The start place
+--- is published last so it never routes players to a stale role place.
+function M.rolePlan(deploy: any, environment: string, variables: { [string]: string? }): RolePlan?
+	local Topology = require("../../../core/domain/island/Topology")
+	local selected = if type(deploy) == "table" and type(deploy.environments) == "table"
+		then deploy.environments[environment]
+		else nil
+	if type(selected) ~= "table" or type(selected.roles) ~= "table" then
+		return nil
+	end
+	local result: RolePlan = { places = {}, missing = {}, map = {}, errors = {} }
+	local universe = M.expand(selected.universeId, variables)
+	local start = M.expand(selected.placeId, variables)
+	result.universeId = if M.isTargetId(universe) then universe else nil
+	result.startPlaceId = if M.isTargetId(start) then start else nil
+	local names: { string } = {}
+	for role in Topology.ROLES do
+		table.insert(names, role :: string)
+	end
+	for role in selected.roles do
+		if Topology.ROLES[role] == nil then
+			table.insert(result.errors, "unknown_role:" .. tostring(role))
+		end
+	end
+	table.sort(names, function(a, b)
+		if (a == "onboarding") ~= (b == "onboarding") then
+			return b == "onboarding"
+		end
+		return a < b
+	end)
+	local owners: { [number]: string } = {}
+	for _, role in names do
+		local id, unset = M.expand(selected.roles[role], variables)
+		if unset ~= nil or id == nil or id == 0 then
+			table.insert(result.missing, role)
+		elseif not M.isTargetId(id) then
+			table.insert(result.errors, "invalid_place_id:" .. role)
+		elseif owners[id] then
+			table.insert(result.errors, "duplicate_place_id:" .. owners[id] .. "," .. role)
+		else
+			owners[id] = role
+			result.map[role] = id
+			table.insert(result.places, {
+				role = role,
+				placeId = id,
+				url = if result.universeId
+					then string.format(
+						"https://apis.roblox.com/universes/v1/%d/places/%d/versions?versionType=Published",
+						result.universeId,
+						id
+					)
+					else nil,
+			})
+		end
+	end
+	if result.startPlaceId and result.map.onboarding and result.map.onboarding ~= result.startPlaceId then
+		table.insert(result.errors, "onboarding_not_start_place")
+	end
+	return result
+end
+
+--- Product ids for `environments.<env>.monetization`, keyed by game.yml monetization key.
+--- Values are literal ids or `${NAME}` references; an unset reference or 0 maps to 0, which the
+--- shop lists but never prompts, so a missing production product can never sell the staging item.
+--- Returns nil when the environment declares no monetization block.
+function M.monetizationIds(deploy: any, environment: string, variables: { [string]: string? }): { [string]: any }?
+	local selected = if type(deploy) == "table" and type(deploy.environments) == "table"
+		then deploy.environments[environment]
+		else nil
+	if type(selected) ~= "table" or type(selected.monetization) ~= "table" then
+		return nil
+	end
+	local ids: { [string]: any } = {}
+	for key, value in selected.monetization do
+		local id, unset = M.expand(value, variables)
+		ids[tostring(key)] = if unset ~= nil or id == nil or id == "" then 0 else id
+	end
+	return ids
+end
+
+--- The ServerStorage StringValues (name -> JSON text) an environment build embeds:
+--- `ForgePlaceRoles` from the resolved role plan and `ForgeMonetizationIds` from
+--- the monetization block, the exact maps `deploy` later requires in the artifact.
+--- An environment that declares neither yields an empty table. Role plan errors
+--- (unknown role, duplicate id, onboarding not the start place) refuse; missing
+--- roles are left out of the map (and `deploy --all-roles` refuses them).
+function M.environmentStorage(
+	deploy: any,
+	environment: string,
+	variables: { [string]: string? }
+): ({ [string]: string }?, string?)
+	if type(deploy) ~= "table" or type(deploy.environments) ~= "table" or deploy.environments[environment] == nil then
+		return nil, "deploy.yml declares no environments." .. environment
+	end
+	local values: { [string]: string } = {}
+	local plan = M.rolePlan(deploy, environment, variables)
+	if plan ~= nil then
+		if #plan.errors > 0 then
+			return nil, "environments." .. environment .. ".roles: " .. table.concat(plan.errors, ",")
+		end
+		values.ForgePlaceRoles = serde.encode("json", plan.map)
+	end
+	local ids = M.monetizationIds(deploy, environment, variables)
+	if ids ~= nil then
+		values.ForgeMonetizationIds = serde.encode("json", ids)
+	end
+	return values, nil
 end
 
 return M

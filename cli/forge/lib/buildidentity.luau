@@ -222,10 +222,31 @@ local function relativeMount(fromDir: string, target: string): string
 	return #parts > 0 and table.concat(parts, "/") or "."
 end
 
-function M.prepare(projectPath: string, packDir: string?, outputPath: string, ownedQaToken: string?): any
+-- The ServerStorage StringValues an environment build may embed. They are part
+-- of the built bytes (and so of the artifact sha256), never of the source identity.
+M.ENVIRONMENT_VALUES = { ForgePlaceRoles = true, ForgeMonetizationIds = true }
+
+function M.prepare(
+	projectPath: string,
+	packDir: string?,
+	outputPath: string,
+	ownedQaToken: string?,
+	serverStorage: { [string]: string }?
+): any
 	local identity, document = M.snapshot(projectPath, packDir, outputPath)
 	local server, client = M.runtime(identity)
 	local tree = document.tree
+	if serverStorage ~= nil then
+		tree.ServerStorage = tree.ServerStorage or { ["$className"] = "ServerStorage" }
+		for name, value in serverStorage do
+			assert(
+				M.ENVIRONMENT_VALUES[name] and type(value) == "string",
+				"INVALID_ENVIRONMENT_VALUE: " .. tostring(name)
+			)
+			assert(tree.ServerStorage[name] == nil, "ENVIRONMENT_VALUE_RESERVED: " .. name)
+			tree.ServerStorage[name] = { ["$className"] = "StringValue", ["$properties"] = { Value = value } }
+		end
+	end
 	if ownedQaToken ~= nil then
 		assert(
 			#ownedQaToken >= 16 and #ownedQaToken <= 128 and string.match(ownedQaToken, "^[%w%-]+$"),
@@ -275,7 +296,13 @@ function M.prepare(projectPath: string, packDir: string?, outputPath: string, ow
 		fs.removeDir(directory)
 		error(err)
 	end
-	return { identity = identity, projectPath = path, directory = directory, ownedQaToken = ownedQaToken }
+	return {
+		identity = identity,
+		projectPath = path,
+		directory = directory,
+		ownedQaToken = ownedQaToken,
+		serverStorage = serverStorage,
+	}
 end
 
 function M.inspectArtifact(bytes: string, identity: any, ownedQaToken: string?): boolean

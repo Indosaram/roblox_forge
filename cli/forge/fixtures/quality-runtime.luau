@@ -7,11 +7,11 @@ local identity = require("../lib/buildidentity")
 local Png = require("../lib/png")
 local Pixels = require("../../../core/domain/procgen/Pixels")
 local roblox = require("@lune/roblox")
-return function(profile: any, input: any, review: any, ownedQaToken: string?): any
+return function(profile: any, input: any, review: any, ownedQaToken: string?, tree: any?): any
 	local root = input.root
 	fs.writeFile(
 		root .. "/" .. input.packDir .. "/default.project.json",
-		serde.encode("json", { name = "fixture", tree = { ["$className"] = "DataModel" } })
+		serde.encode("json", { name = "fixture", tree = tree or { ["$className"] = "DataModel" } })
 	)
 	local current = identity.snapshot(
 		root .. "/" .. input.packDir .. "/default.project.json",
