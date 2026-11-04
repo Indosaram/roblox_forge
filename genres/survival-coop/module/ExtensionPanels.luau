@@ -1131,6 +1131,7 @@ function M.start(
 				-- Archipelago roles: the onboarding tutorial does not apply; show the stage. The next open
 				-- guide step rides on a second line (p134 v74 #8: the first capture and the pet steps never
 				-- reached the HUD on the drift isles where their dodos roam).
+				local roleWorld = game:GetService("Workspace"):FindFirstChild("ForgeRoleWorld")
 				local step = if latest.character
 					then CharacterText.guideStep(
 						options.locale,
@@ -1138,7 +1139,8 @@ function M.start(
 						latest.character,
 						options.names or {},
 						options.solo == true,
-						input.TouchEnabled
+						input.TouchEnabled,
+						roleWorld and roleWorld:GetAttribute("ForgeLayoutId")
 					)
 					else nil
 				tracker.Text = (if ko then "목표: " else "Objective: ")

@@ -204,7 +204,8 @@ local function title(locale: string, guide: any, names: any): string
 end
 
 -- First open unfinished guide with a HUD action: "<guide>: <action> have/need". The third value is
--- the guide the line names.
+-- the guide the line names. With `here` (a layout id), a guide whose open step is bound to another
+-- place (GuideEvents.where: the harbor laboratory, home storage) is passed over.
 local function openGuide(
 	locale: string,
 	content: any,
@@ -214,7 +215,8 @@ local function openGuide(
 	grade: number,
 	minRank: number,
 	solo: boolean?,
-	touch: boolean?
+	touch: boolean?,
+	here: string?
 ): (string?, any?, any?)
 	local done, progress = ch.definitions or {}, ch.progress or {}
 	for _, g in Guide.visible(content, solo) do
@@ -225,6 +227,10 @@ local function openGuide(
 					o = objective
 					break
 				end
+			end
+			local at = if here then Guide.where(content, o.action, o.target, here) else nil
+			if at and at ~= here then
+				continue
 			end
 			-- Row keys use underscores (guide_go_place_training): a hyphenated action never matched its row.
 			local go = "guide_go_" .. (string.gsub(o.action, "%-", "_"))
@@ -367,17 +373,27 @@ function M.guideObjective(
 end
 
 --- The next open guide step in unlock order (level, grade, id), any band, with the objective it
---- names: the second line under a drift isle's stage objective (p134 v74 #8).
+--- names: the second line under a drift isle's stage objective (p134 v74 #8). With `here` (the
+--- current layout id), the first open step that can be done here leads: journey6h @80.5 showed the
+--- harbor-only g13 laboratory step on every drift isle, never g14's capture that happens there.
+--- With no such step, the first open step in unlock order.
 function M.guideStep(
 	locale: string,
 	content: any,
 	ch: any,
 	names: any,
 	solo: boolean?,
-	touch: boolean?
+	touch: boolean?,
+	here: string?
 ): (string?, any?)
-	local line, objective =
-		openGuide(locale, content, ch, names, ch.level or 1, math.floor((ch.points or 0) / 100), 0, solo, touch)
+	local level, grade = ch.level or 1, math.floor((ch.points or 0) / 100)
+	if here then
+		local line, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch, here)
+		if line then
+			return line, objective
+		end
+	end
+	local line, objective = openGuide(locale, content, ch, names, level, grade, 0, solo, touch)
 	return line, objective
 end
 

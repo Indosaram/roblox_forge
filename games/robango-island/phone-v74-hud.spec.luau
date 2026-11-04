@@ -2,6 +2,7 @@
 -- p134 v74 phone acceptance (SM-N981N, ko-kr, touch) defects: fresh-player HUD flow.
 local Content = require("./src/shared/SurvivalContent")
 local Text = require("../../genres/survival-coop/module/CharacterText")
+local GuideEvents = require("../../genres/survival-coop/module/GuideEvents")
 local Harness = require("./PanelHarness.fixture")
 local roblox: any = require("@lune/roblox")
 require("./PackText.fixture") -- installs the strings.csv lookup the genre text tables read
@@ -33,7 +34,60 @@ local function find(h: any, name: string): any
 	return nil
 end
 
+-- journey6h @80.4: L38, the rank-6 band open (g13 laboratory at the harbor, g14 taming whose
+-- capture happens on the Route 1 drift isles); every earlier guide done.
+local function rankSix(): any
+	local definitions = {}
+	for _, g in GuideEvents.visible(Content, true) do
+		if ((g.gates or {}).characterLevel or 1) < 38 then
+			definitions[g.id] = true
+		end
+	end
+	return { level = 38, points = 650, definitions = definitions, progress = {} }
+end
+
 return {
+	["journey6h @80.4: a 'guide complete' flash rides under the next step, never replacing it"] = function()
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.home")
+		world.Parent = h.workspace
+		local before = rankSix()
+		before.definitions["rw.g21.daily-board"] = nil
+		local contracts = { tutorial = { step = "declare-settlement", hint = "tutorial.declare-settlement" } }
+		h.publish({ contracts = contracts, character = before })
+		-- g21 completes: the next snapshot flashes its completion.
+		h.publish({ contracts = contracts, character = rankSix() })
+		local line = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		local done = Text.format("ko-kr", "guide_complete", Text.text("ko-kr", "guide_g21"))
+		assert(string.find(line, done, 1, true), "the completion shows: " .. line)
+		assert(string.find(line, "물결 항구", 1, true), "the next step (g13 at the harbor) stays: " .. line)
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
+	["journey6h @80.5: on a drift isle the second line is the step done there, not the harbor laboratory"] = function()
+		local h = Harness.harness({ width = 800, height = 360, realHud = true })
+		h.workspace:SetAttribute("ForgeWorldRole", "archipelago")
+		local world = h.new("Folder", "ForgeRoleWorld")
+		world:SetAttribute("ForgeLayoutId", "rw.a1.s1")
+		world.Parent = h.workspace
+		local character = h.new("Model", "Character")
+		local root = h.new("Part", "HumanoidRootPart")
+		root.Parent = character
+		character.Parent = h.workspace
+		h.player.Character = character
+		h.publish({
+			archipelago = { status = "active", templateId = "rw.a1", stage = 1, progress = {}, completed = {} },
+			character = rankSix(),
+		})
+		local line = assert(find(h, "ObjectiveTracker"), "HUD tracker").Text
+		local second = assert(string.match(line, "\n(.+)$"), "a guide line under the stage: " .. line)
+		assert(string.find(second, Text.text("ko-kr", "guide_g14"), 1, true), "g14's capture: " .. second)
+		assert(not string.find(second, Text.text("ko-kr", "guide_g13"), 1, true), second)
+		-- Without a layout, unlock order still leads with g13.
+		local any = Text.guideStep("ko-kr", Content, rankSix(), NAMES, true, true)
+		assert(any and string.find(any, Text.text("ko-kr", "guide_g13"), 1, true), tostring(any))
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
 	["v74 #8: at the harbor the HUD names the still-open first capture, with route 1 on the next line"] = function()
 		local ch = offOpening()
 		local ko, objective = Text.guideObjective("ko-kr", Content, ch, NAMES, true, true)

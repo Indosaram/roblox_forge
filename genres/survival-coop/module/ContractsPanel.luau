@@ -216,9 +216,12 @@ function M.factory(ctx: any): any
 		status.Text, status.Visible = line or "", line ~= nil
 		sheet.scroll.Size = UDim2.new(1, 0, 1, if line then -100 else -44)
 		tracker:SetAttribute("ForgeContractsNotice", line ~= nil)
-		tracker.Text = line or objective
+		-- A refusal replaces the line; a success flash (delivery, guide complete) rides under the
+		-- objective, which keeps naming the next open step (journey6h @80.4: '안내 완료: 하루 일과'
+		-- alone hid that g13 is performed at the harbor).
+		tracker.Text = if text then text elseif flash then objective .. "\n" .. flash else objective
 	end
-	-- Success lines (delivery, guide complete) show for a few seconds.
+	-- Success lines (delivery, guide complete) show for a few seconds under the objective.
 	local function flashFor(text: string)
 		flash = text
 		setNotice(notice)

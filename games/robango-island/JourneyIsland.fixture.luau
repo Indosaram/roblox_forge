@@ -86,7 +86,9 @@ function M.run(host: any, p: any, options: any?): any
 	local skipGuide: { [string]: boolean } = {}
 	local routeVisits: { [string]: number } = {}
 	-- The next open guide objective, as CharacterText.guideObjective picks it for the HUD line.
-	local function guideTarget(): (any, any)
+	-- With `here`, as CharacterText.guideStep picks the drift-isle second line: a step bound to
+	-- another place is passed over while one doable here is open.
+	local function guideTarget(here: string?): (any, any)
 		local ch = extensions().character or {}
 		local done, progress = ch.definitions or {}, ch.progress or {}
 		local level, grade = ch.level or 1, math.floor((ch.points or 0) / 100)
@@ -94,10 +96,17 @@ function M.run(host: any, p: any, options: any?): any
 			if not done[g.id] and not skipGuide[g.id] and GuideEvents.open(g, level, grade) then
 				for _, o in g.objectives do
 					if (progress[o.id] or 0) < o.quantity then
-						return g, o
+						local at = if here then GuideEvents.where(Content, o.action, o.target, here) else nil
+						if not at or at == here then
+							return g, o
+						end
+						break
 					end
 				end
 			end
+		end
+		if here then
+			return guideTarget()
 		end
 		return nil, nil
 	end
@@ -846,6 +855,24 @@ function M.run(host: any, p: any, options: any?): any
 		-- A modal deliberately hides the objective slot. Dismiss it before reading the next goal.
 		p.closeSheets()
 		local text = p.objective()
+		-- A 'guide complete' notice is not a step: wait out the flash and re-read the line (journey6h
+		-- @80.4 acted on '안내 완료: 하루 일과' and looked for g13's place in it).
+		local donePrefix = string.match(CharacterText.text("ko-kr", "guide_complete"), "^(.-)%%s") or ""
+		local function stripDone(line: string): string
+			local kept = {}
+			for _, row in string.split(line, "\n") do
+				if donePrefix == "" or string.sub(row, 1, #donePrefix) ~= donePrefix then
+					table.insert(kept, row)
+				end
+			end
+			return table.concat(kept, "\n")
+		end
+		-- While the flash holds the tracker (a drift isle's stage line is hidden under it) re-read later.
+		if stripDone(text) ~= text then
+			p.wait(6)
+			text = p.objective()
+		end
+		text = stripDone(text)
 		local role = host.role
 		-- A raw string key on the HUD (a guide id outside the guide_gNN rows, e.g. mission rw.m1.*).
 		local raw = string.match(text, "guide_[%w_]+")
@@ -892,7 +919,7 @@ function M.run(host: any, p: any, options: any?): any
 			same = 0
 		end
 		if role == "archipelago" then
-			local captureGuide, objective = guideTarget()
+			local captureGuide, objective = guideTarget(host.layoutId)
 			-- Only a step the HUD shows (the guide line under the stage objective, v74 #8): the guide
 			-- list itself is behind Menu > Guides, which a player following the HUD never opens.
 			local shownStep = captureGuide ~= nil
