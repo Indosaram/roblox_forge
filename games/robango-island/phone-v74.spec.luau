@@ -343,4 +343,11 @@ return {
 		assert(string.find(line.Text, PackText.packText("ko-kr", "operation_done"), 1, true), line.Text)
 		assert(#h.errors == 0, tostring(h.errors[1]))
 	end,
+	["v75: the opening Dodge button names no keyboard key on a touch phone"] = function()
+		local h = Harness.harness({ width = 914, height = 411, inset = 58, realHud = true, touch = true })
+		local dodge = assert(h.playerGui:FindFirstChild("OpeningDodge", true), "the opening Dodge button")
+		assert(not string.find(dodge.Text, "[", 1, true), "touch Dodge shows a key hint: " .. dodge.Text)
+		assert(dodge.Text ~= "", "the Dodge button keeps its label")
+		assert(#h.errors == 0, tostring(h.errors[1]))
+	end,
 }

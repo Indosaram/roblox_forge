@@ -150,7 +150,11 @@ function M.factory(ctx: any): any
 	local board: TextButton, notYet: TextButton
 	-- The Dodge pebble sits on the HUD shell's dodge slot (I1) while the scripted boar charges.
 	local dodge = components.button(theme, {
-		text = HudLocale.text(ctx.locale, "dodge"),
+		-- The trailing " [Q]" key hint only shows with a keyboard (p134 v75: '회피 [Q]' on the phone).
+		text = HudLocale.keyHints(
+			HudLocale.text(ctx.locale, "dodge"),
+			touch and not game:GetService("UserInputService").KeyboardEnabled
+		),
 		size = UDim2.fromOffset(56, 56),
 		parent = gui,
 		onClick = function()
