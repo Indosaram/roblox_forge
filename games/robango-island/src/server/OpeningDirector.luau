@@ -16,6 +16,9 @@ M.SET_PIECE_TAG = "ForgeSetPiece"
 -- Player attribute "<REASON>#<n>": the latest refused opening prompt (the client toasts it).
 M.REFUSAL_ATTRIBUTE = "ForgeOpeningRefusal"
 M.NEAR_FORD, M.NEAR_MARIT = 30, 20
+-- Stake prompt reach: from one stake the next one (8-9 studs apart) is still in reach; inside the
+-- server's 12-stud part reach (SurvivalWorld.nearPart).
+M.STAKE_REACH = 12
 -- opening.mirror row: the pane centre sits 3.9 studs over the tripod's ground pivot (L5 ROWS).
 M.MIRROR_PANE = 3.9
 
@@ -79,10 +82,17 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 		value.Parent = parent
 		return value
 	end
-	local function prompt(target: BasePart, name: string, key: string, object: string, hold: number): ProximityPrompt
+	local function prompt(
+		target: BasePart,
+		name: string,
+		key: string,
+		object: string,
+		hold: number,
+		reach: number?
+	): ProximityPrompt
 		local value = Instance.new("ProximityPrompt")
 		value.Name, value.HoldDuration, value.RequiresLineOfSight = name, hold, false
-		value.MaxActivationDistance = 8
+		value.MaxActivationDistance = reach or 8
 		-- The client localizes from the pack strings (opening.prompt.*).
 		value:SetAttribute("ForgeOpeningAction", key)
 		value:SetAttribute("ForgeOpeningObject", object)
@@ -423,9 +433,13 @@ function M.new(layout: any, root: Instance, nowMillis: () -> number): any
 	function api.refusal(actor: string): string?
 		return refusals[actor]
 	end
+	-- p134 v74 #2 (phone): a 1.2 s hold prompt ignored taps on the interact token (only a ~2.5 s press
+	-- pulled, ~5 min lost), and at 8 studs the next stake (8-9 studs on) was out of reach after a pull, so
+	-- the token greyed out until the player moved. A tap pulls now, and the next stake stays in reach.
 	local stakePrompts: { ProximityPrompt } = {}
 	for index, stake in stakes do
-		stakePrompts[index] = prompt(stake, "ForgeOpeningStake", "opening.prompt.pull", "opening.tumble.stake", 1.2)
+		stakePrompts[index] =
+			prompt(stake, "ForgeOpeningStake", "opening.prompt.pull", "opening.tumble.stake", 0, M.STAKE_REACH)
 		onPrompt(stake, function(_, state, now)
 			return Scene.pull(state, index, now)
 		end)
