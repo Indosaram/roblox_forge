@@ -1,0 +1,155 @@
+# Release-candidate first play (runbook .omo/plans/robango-release-candidate-runbook.md, section 5.3).
+# One owned Studio server + two clients through Studio MCP: owner = desktop 1280x720 (AV-captured
+# actor), guest = Phone portrait 390x844. No touch (TOUCH_INPUT_UNAVAILABLE) and no shortcut op
+# (dispatch, command, server_command, advance_*, begin_clock, restore, obstacle): every state change
+# is a real key press, mouse click or prompt.
+#
+# Goals the owner's attested observations cite (the supplement links them to these steps):
+#   objective-identified          step 7, the spawn capture of both clients (<= 10 min).
+#   first-gather-craft-meal-rest  step 26, the owner's R rest (gather flint, craft and claim the Flint
+#                                 Hatchet, eat a berry, rest; <= 10 min).
+#   shared-facility               step 97, the capture of both clients after the windbreak completes
+#                                 (<= 20 min).
+# shared-facility: game.yml play_mode campMinContributors is 1, so one player could finish the
+# windbreak (30 branch + 40 fiber) alone. Here the owner's Put materials in delivers exactly 15 branch
+# and 12 fiber (asserted on the camp), and only then does the guest's Put materials in deliver the
+# remaining 15 branch + 28 fiber, which completes the project (camp completed.windbreak = 1, facility
+# camp-cache). Both actors therefore contribute to the same camp project before one completes it.
+#
+# Robango specifics (read from source, not yet exercised live by this scenario):
+# - The C2 gather fan: the first E on a node opens the fan, the next E gathers its default output;
+#   activate_prompt retries the press inside one step, so its timeout covers two attempts.
+# - The camp sheet, combat loop and fan send through panel/tap transports, not ForgeHUDResult, so
+#   those steps are proven by exact snapshot predicates instead of resultAction.
+# - Solo camp sheet rows: Row2 is the rung header, Row3 the windbreak (drying-rack is locked).
+# - The preview island's only branch source is branch-pile-01 (3 charges, 120 s respawn), so the 10
+#   branch gathers wait for three respawns; fiber-bush-01 respawns once.
+# - HUD clicks on a Phone-emulated client never raise Activated (full-coop-rejoin), so the guest
+#   switches to the desktop profile only for its camp clicks and back to Phone before the capture.
+#
+# AV: the `capture` block arms the owned recorder on the owner's client and freezes the coverage
+# policy before the run: each interval is the measured window of the named owner step.
+name: release-first-play
+genre: survival-coop
+pack: robango-island
+kind: studio
+contract_api: 1
+timeout_seconds: 1200
+players: [owner, guest]
+capture:
+  actor: owner
+  maxGapSeconds: 0.5
+  maxClockErrorSeconds: 2
+  intervals:
+    - {id: gather-flint, cue: gather, step: 9, op: activate_prompt, motion: false}
+    - {id: craft-hatchet, cue: craft, step: 17, op: click, motion: false}
+    - {id: walk-to-campfire, cue: ambient, step: 25, op: walk_to, motion: true}
+    - {id: hit-dodo, cue: hit, step: 42, op: keyboard, motion: false}
+steps:
+  # 1-7: two clients, both surfaces, same camp.
+  - {op: join, player: owner}
+  - {op: join, player: guest}
+  - {op: device, player: owner, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: device, player: guest, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: survivalExtensions.camp.role, equals: member}
+  - {op: capture, target: spawn-objective-both-surfaces, settle: true}
+  # 8-27: the owner's first loop: gather flint, craft and claim the Flint Hatchet, eat, rest.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01, withinStuds: 3.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.flint-outcrop-01.ForgeGatherAnchor.ForgeGather, nodeId: flint-outcrop-01, key: E, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-stone-axe, timeout_seconds: 20}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-stone-axe, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: axe-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: axe-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 20}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: axe-job}, job, finishAt], label: axe-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: axe-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: axe-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: [workshop, entries, {ref: axe-job}, job, state], equals: Committed}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.InventoryGrid.starter-berry, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Eat-starter-berry, resultAction: 'survival-coop:food', expect: ok, timeout_seconds: 10}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: inventory.bag.items.starter-berry.quantity, equals: 2}
+  - {op: keyboard, player: owner, key: I, timeout_seconds: 5}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.campfire, withinStuds: 5, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: R, resultAction: 'survival-coop:rest', expect: ok, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.fatigueMilli, equals: 0}}
+  - {op: capture, target: first-loop-gather-craft-meal-rest, settle: true}
+  # 28-43: a first hit: gather wood, craft and equip the spear (the preview catalog's only melee
+  # weapon), then F near the dodo trio grazing beside BuildApproach.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.wildlife-approach-01, withinStuds: 1.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.fallen-tree-01.ForgeGatherAnchor.ForgeGather, nodeId: fallen-tree-01, key: E, timeout_seconds: 40}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5, untilState: {source: property, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet, field: Visible, equals: true}}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Recipe-spear, timeout_seconds: 20}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgeSurvivalHUD.SafeArea.SurvivalSheet.Content.Reserve-spear, resultAction: 'survival-coop:craft-reserve', expect: ok, timeout_seconds: 10}
+  - {op: bind_result, player: owner, field: data.jobId, label: spear-job}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'start-'}], resultAction: 'survival-coop:craft-start', expect: ok, timeout_seconds: 20}
+  - {op: bind_snapshot, player: owner, field: [workshop, entries, {ref: spear-job}, job, finishAt], label: spear-finish}
+  - {op: wait_for, player: owner, timeout_seconds: 15, predicate: {source: snapshot, field: vitals.clockMillis, at_least: {ref: spear-finish}}}
+  - {op: click, player: owner, target: [Players, LocalPlayer, PlayerGui, ForgeSurvivalHUD, SafeArea, SurvivalSheet, Content, {ref: spear-job, prefix: 'complete-'}], resultAction: 'survival-coop:craft-complete', expect: ok, timeout_seconds: 10}
+  - {op: keyboard, player: owner, key: C, timeout_seconds: 5}
+  - {op: equip, player: owner, target: 'Players.LocalPlayer.Backpack.Fire-hardened Spear', timeout_seconds: 10}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.BuildApproach, withinStuds: 2, timeout_seconds: 40}
+  # The combat loop engages the nearest creature in reach; a charged swing sets combat.nextAttack.
+  - {op: keyboard, player: owner, key: F, timeout_seconds: 30, untilState: {source: snapshot, field: combat.nextAttack, at_least: 1}}
+  - {op: capture, target: first-hit-near-camp, settle: true}
+  # 44-61: materials for the windbreak. Owner: 5 branch gathers (15). Guest: 6 fiber gathers (18, plus
+  # 12 starter fiber) and 5 branch gathers (15). branch-pile-01 respawns three times along the way.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 3.5, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  - {op: wait_for, player: owner, timeout_seconds: 150, predicate: {source: attribute, target: Workspace.DevelopmentIsland.branch-pile-01, field: ForgeNodeDepleted, equals: false}}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: owner, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01, withinStuds: 3.5, timeout_seconds: 40}
+  - {op: wait_for, player: guest, timeout_seconds: 150, predicate: {source: attribute, target: Workspace.DevelopmentIsland.fiber-bush-01, field: ForgeNodeDepleted, equals: false}}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.fiber-bush-01.ForgeGatherAnchor.ForgeGather, nodeId: fiber-bush-01, key: E, timeout_seconds: 40}
+  # 62-69: the owner puts its materials in while branch-pile-01 regrows.
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 3, timeout_seconds: 40}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.MenuToggle, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Menu.Dock-camp, timeout_seconds: 10}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.CampPanel.Camp.Content.Row3.PutIn-windbreak, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 30, predicate: {source: snapshot, field: survivalExtensions.camp.active.windbreak.delivered.branch, equals: 15}}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: survivalExtensions.camp.active.windbreak.delivered.fiber, equals: 12}
+  - {op: capture, target: owner-contributed-windbreak, settle: true}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.CampPanel.Camp.Header.Close, timeout_seconds: 5}
+  # 70-79: the guest's last branch.
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01, withinStuds: 3, timeout_seconds: 40}
+  - {op: wait_for, player: guest, timeout_seconds: 150, predicate: {source: attribute, target: Workspace.DevelopmentIsland.branch-pile-01, field: ForgeNodeDepleted, equals: false}}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: wait_for, player: guest, timeout_seconds: 150, predicate: {source: attribute, target: Workspace.DevelopmentIsland.branch-pile-01, field: ForgeNodeDepleted, equals: false}}
+  - {op: activate_prompt, player: guest, target: Workspace.DevelopmentIsland.branch-pile-01.ForgeGatherAnchor.ForgeGather, nodeId: branch-pile-01, key: E, timeout_seconds: 40}
+  - {op: walk_to, player: guest, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 3, timeout_seconds: 40}
+  - {op: walk_to, player: owner, target: Workspace.DevelopmentIsland.WarehouseApproach, withinStuds: 3, timeout_seconds: 40}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: survivalExtensions.camp.active.windbreak.delivered.branch, equals: 15}
+  # 80-97: the guest's Put materials in completes the same project; both clients capture it.
+  - {op: device, player: guest, surface: desktop, width: 1280, height: 720, timeout_seconds: 15}
+  - {op: click, player: guest, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.MenuToggle, timeout_seconds: 5}
+  - {op: click, player: guest, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Menu.Dock-camp, timeout_seconds: 10}
+  - {op: click, player: guest, target: Players.LocalPlayer.PlayerGui.CampPanel.Camp.Content.Row3.PutIn-windbreak, timeout_seconds: 10}
+  - {op: wait_for, player: guest, timeout_seconds: 30, predicate: {source: snapshot, field: survivalExtensions.camp.completed.windbreak, equals: 1}}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: survivalExtensions.camp.facilities.camp-cache, equals: true}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: survivalExtensions.camp.completed.windbreak, equals: 1}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: survivalExtensions.camp.active.windbreak, is_nil: true}
+  - {op: device, player: guest, surface: mobile, width: 390, height: 844, timeout_seconds: 15}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.MenuToggle, timeout_seconds: 5}
+  - {op: click, player: owner, target: Players.LocalPlayer.PlayerGui.ForgePanelDock.Dock.Menu.Dock-camp, timeout_seconds: 10}
+  - {op: wait_for, player: owner, timeout_seconds: 10, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.CampPanel, field: Enabled, equals: true}}
+  - {op: wait_for, player: guest, timeout_seconds: 10, predicate: {source: property, target: Players.LocalPlayer.PlayerGui.CampPanel, field: Enabled, equals: true}}
+  - {op: expect_members, members: [owner, guest]}
+  - {op: expect_snapshot, player: owner, genre: survival-coop, field: survivalExtensions.camp.role, equals: member}
+  - {op: expect_snapshot, player: guest, genre: survival-coop, field: survivalExtensions.camp.role, equals: member}
+  - {op: wait_for, player: owner, timeout_seconds: 10, predicate: {source: snapshot, field: survivalExtensions.camp.completed.windbreak, equals: 1}}
+  - {op: capture, target: shared-facility-windbreak-complete-both-clients, settle: true}
