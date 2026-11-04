@@ -3091,6 +3091,7 @@ cli.gather.decor_fern,original,agent:hephaestus/v49-fixes,2026-10-29
 cli.gather.decor_shrub,original,agent:hephaestus/v49-fixes,2026-10-29
 cli.gather.hand,original,agent:hephaestus/L10b,2026-10-29
 cli.gather.tool,original,agent:hephaestus/L10b,2026-10-29
+cli.gather.again,original,agent:hephaestus/v75,2026-11-04
 gth.connecting,original,agent:omo/d1-join,2026-10-28
 gth.queued,original,agent:omo/d1-join,2026-10-28
 cli.title.tagline,original,agent:hephaestus/R01-title,2026-10-28

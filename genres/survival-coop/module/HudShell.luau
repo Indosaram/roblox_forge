@@ -1249,9 +1249,11 @@ M.DOLL_SLOTS = table.freeze({ "head", "top", "bottom", "shoes", "gloves", "bag",
 -- the node's screen point, 40 degrees apart (200 degrees at six), radius 0.22H grown until the
 -- tokens part; captions sit outside the ring, the node name pill under the target. The fan is
 -- shifted as a whole so every token, caption and the pill stays inside the safe area.
-M.FAN = table.freeze({ radius = 0.22, step = 40, maximum = 6, caption = 18, pill = 22 })
+-- `hint` is the line under the pill that says what a tap does next (p134 v75 B1: the first tap only
+-- opened the fan and nothing said a second tap gathers) or why the gather was refused (B3).
+M.FAN = table.freeze({ radius = 0.22, step = 40, maximum = 6, caption = 18, pill = 22, hint = 22 })
 
-export type Fan = { tokens: { Rect }, captions: { Rect }, name: Rect, x: number, y: number }
+export type Fan = { tokens: { Rect }, captions: { Rect }, name: Rect, hint: Rect, x: number, y: number }
 
 function M.fan(
 	width: number,
@@ -1289,7 +1291,8 @@ function M.fan(
 	end
 	-- The name pill sits under the target and under the lowest pebble or caption of a wide fan.
 	local pillTop = math.max(6, y1 + 4)
-	y1 = pillTop + pill
+	local hintTop = pillTop + pill + 2
+	y1 = hintTop + M.FAN.hint
 	-- Touch keeps the spec's 32 px camera-cutout side inset as well as the edge margin.
 	local edge = if touch then math.max(M.EDGE * h, 32) else 4
 	local px = math.clamp(x, edge - x0, width - edge - x1)
@@ -1304,6 +1307,7 @@ function M.fan(
 		tokens = tokens,
 		captions = captions,
 		name = shift(rect(-pillWidth / 2, pillTop, pillWidth, pill)),
+		hint = shift(rect(-pillWidth / 2, hintTop, pillWidth, M.FAN.hint)),
 		x = px,
 		y = py,
 	}
@@ -2704,6 +2708,9 @@ export type PickerOptions = {
 	-- router's moveTo; a newer walk or tap supersedes it and `arrive` never runs). With it, a pick
 	-- out of gather reach walks up first, and a NODE_UNREACHABLE answer walks closer and retries once.
 	approach: ((any, number, () -> ()) -> ())?,
+	-- Player-facing line for a refused gather (nil: say nothing). It shows under the node name inside
+	-- the fan: a separate bottom bar drew under the fan's name pill (p134 v75 B3 '...필요').
+	refusal: ((any) -> string?)?,
 }
 
 -- Flat studs: a pick farther than PICK_REACH from its node walks to PICK_STOP first (server reach is
@@ -2735,6 +2742,19 @@ function M.startPicker(options: PickerOptions): any
 	namePill.Font, namePill.Parent = Enum.Font.BuilderSansBold, root
 	local pillCorner = Instance.new("UICorner")
 	pillCorner.CornerRadius, pillCorner.Parent = UDim.new(0.5, 0), namePill
+	-- What a tap does next, or why the gather was refused (FAN.hint).
+	local hintLabel = Instance.new("TextLabel")
+	hintLabel.Name, hintLabel.BackgroundColor3, hintLabel.BackgroundTransparency = "GatherHint", color(P.ink), 0.3
+	hintLabel.TextColor3, hintLabel.Font, hintLabel.Parent = color(P.bone), Enum.Font.BuilderSansBold, root
+	hintLabel.TextWrapped, hintLabel.Text = true, ""
+	local hintCorner = Instance.new("UICorner")
+	hintCorner.CornerRadius, hintCorner.Parent = UDim.new(0.5, 0), hintLabel
+	local function setHint(line: string, alert: boolean)
+		hintLabel.Text = line
+		hintLabel.BackgroundColor3 = color(if alert then P.coral else P.ink)
+		hintLabel.TextColor3 = color(if alert then P.ink else P.bone)
+		hintLabel.BackgroundTransparency = if alert then 0.05 else 0.3
+	end
 	local tokens: { any } = {}
 	local function token(index: number): any
 		local entry = tokens[index]
@@ -2832,6 +2852,16 @@ function M.startPicker(options: PickerOptions): any
 		busy = true
 		local result = options.gather(part, entry.item)
 		busy = false
+		local refused = if options.refusal
+				and type(result) == "table"
+				and result.ok == false
+			then options.refusal(result)
+			else nil
+		if refused and current == part then
+			setHint(refused, true)
+		elseif type(result) == "table" and result.ok == true and current == part then
+			setHint(options.text("again"), false)
+		end
 		if type(result) == "table" and result.ok == true then
 			table.insert(toastLines, 1, {
 				text = string.format(options.text("toast"), entry.quantity, options.itemName(entry.item)),
@@ -2881,6 +2911,7 @@ function M.startPicker(options: PickerOptions): any
 		root:SetAttribute("ForgeGatherNode", part:GetAttribute("ForgeNodeId"))
 		local name = options.nodeName(part)
 		namePill.Text = if level then name .. "  " .. string.format(options.text("level"), level) else name
+		setHint(options.text("again"), false)
 		for index, entry in tokens do
 			entry.button.Visible, entry.caption.Visible = index <= #offered, index <= #offered
 		end
@@ -2970,6 +3001,8 @@ function M.startPicker(options: PickerOptions): any
 			local fan = M.fan(size.X, size.Y, clear, touch, x, y :: number, #outputs)
 			M.put(namePill, fan.name)
 			namePill.TextSize = M.tokenText("label", h, touch)
+			M.put(hintLabel, fan.hint)
+			hintLabel.TextSize = M.tokenText("caption", h, touch)
 			for index = 1, #outputs do
 				local entry = tokens[index]
 				M.put(entry.button, fan.tokens[index])

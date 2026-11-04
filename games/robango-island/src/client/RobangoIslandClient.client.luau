@@ -386,6 +386,9 @@ do
 			return clientText(locale, "cli.gather." .. key) or key
 		end,
 		reach = 10,
+		refusal = function(result: any): string?
+			return GatheringClient.noticeText(locale, result, names, true)
+		end,
 		approach = function(part: BasePart, within: number, arrive: () -> ())
 			if walkTo then
 				walkTo(part.Position, within, arrive)

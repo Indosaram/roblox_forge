@@ -858,6 +858,117 @@ return {
 		assert(#sent == 1 and sent[1] == "fiber", "the second open gathers the first output")
 		picker.destroy()
 	end,
+	-- p134 v75 B1/B3 (SM-N981N, ko-kr): the first tap on a node only opened the fan and nothing said a
+	-- second tap gathers (~15 min at the bone pile); a bare-hand flint gather's red '...필요' bar drew
+	-- under the fan's name pill. The fan carries a hint line under the pill: what the next tap does,
+	-- and the refusal in its place when the gather is refused. Fails on 87898fe6 (no hint row).
+	["v75: the gather fan says a second tap gathers and shows a refusal under the node name"] = function()
+		local roblox: any = require("@lune/roblox")
+		local fs = require("@lune/fs")
+		local luau = require("@lune/luau")
+		for _, view in { { 800, 360, 36 }, { 914, 411, 58 }, { 1920, 1080, 58 } } do
+			for count = 1, Shell.FAN.maximum do
+				local fan = Shell.fan(view[1], view[2], view[3], true, view[1] / 2, view[2] / 2, count)
+				assert(fan.hint and Shell.inside(fan.hint, view[1], view[2], view[3]), "hint row inside")
+				assert(fan.hint.y >= fan.name.y + fan.name.height, "the hint sits under the node name")
+				assert(not Shell.overlaps(fan.hint, fan.name), "the hint never covers the name")
+				for _, token in fan.tokens do
+					assert(not Shell.overlaps(fan.hint, token), "the hint clears the pebbles")
+				end
+			end
+		end
+		local gui = roblox.Instance.new("ScreenGui")
+		local node = roblox.Instance.new("Part")
+		local function signal()
+			return {
+				Connect = function()
+					return { Disconnect = function() end }
+				end,
+			}
+		end
+		pcall(roblox.implementProperty, "TextButton", "Activated", function()
+			return signal()
+		end)
+		local services: { [string]: any } = {
+			RunService = { RenderStepped = signal() },
+			GuiService = {},
+			UserInputService = { InputBegan = signal() },
+			Players = { LocalPlayer = {} },
+			Workspace = {},
+		}
+		local environment: any = {
+			game = {
+				GetService = function(_, name)
+					return services[name]
+				end,
+			},
+			task = {
+				spawn = function(fn, ...)
+					fn(...)
+				end,
+			},
+		}
+		for key, value in roblox do
+			environment[key] = value
+		end
+		local shell = luau.load(fs.readFile("genres/survival-coop/module/HudShell.luau"), {
+			environment = environment,
+		})()
+		local answer: any = { ok = false, reason = "TOOL_UNAVAILABLE" }
+		local picker = shell.startPicker({
+			gui = gui,
+			touch = function()
+				return true
+			end,
+			hidden = function()
+				return false
+			end,
+			offered = function()
+				return { { item = "flint", quantity = 3 } }, 1
+			end,
+			nodeName = function()
+				return "scree"
+			end,
+			itemName = function(item)
+				return item
+			end,
+			icon = function()
+				return nil
+			end,
+			gather = function()
+				return answer
+			end,
+			text = function(key)
+				return if key == "again" then "TAP AGAIN" elseif key == "toast" then "+%d %s" else key
+			end,
+			refusal = function(result)
+				return "NEEDS " .. result.reason
+			end,
+			reach = 10,
+		})
+		local root = gui:FindFirstChild("GatherFan")
+		assert(picker.open(node), "the first tap opens the fan")
+		local hint: any = root and root:FindFirstChild("GatherHint")
+		local function line(): string
+			return hint and hint.Text or ""
+		end
+		assert(line() == "TAP AGAIN", "the fan says the next tap gathers")
+		picker.open(node)
+		assert(line() == "NEEDS TOOL_UNAVAILABLE", "the refusal shows in the fan: " .. line())
+		answer = { ok = true }
+		picker.open(node)
+		assert(line() == "TAP AGAIN", "a gather that worked goes back to the next-tap line")
+		picker.destroy()
+		-- The live wiring: the refusal is the gather notice's text, and GatheringClient leaves its own
+		-- bottom bar to the fan while a fan is open.
+		local client = fs.readFile("games/robango-island/src/client/RobangoIslandClient.client.luau")
+		assert(string.find(client, "GatheringClient.noticeText(locale, result, names, true)", 1, true), "refusal")
+		local Fixture = require("../../../games/robango-island/PackText.fixture")
+		for _, locale in { "en-us", "ko-kr" } do
+			local copy = Fixture.packText(locale, "cli.gather.again")
+			assert(copy and copy ~= "cli.gather.again", locale .. " cli.gather.again")
+		end
+	end,
 	-- p134 v49: the first pick on a fan opened from the gather button answered "too far, move
 	-- closer" (server reach 8 studs with a clear ray). A pick out of reach now walks up first and then
 	-- gathers, like the combat approach; a NODE_UNREACHABLE answer walks closer and retries once.

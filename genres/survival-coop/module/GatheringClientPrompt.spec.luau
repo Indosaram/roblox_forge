@@ -288,4 +288,25 @@ return {
 		assert(not h.notice().Visible, "a confirmed gather clears the connecting banner")
 		h.destroy()
 	end,
+	-- p134 v75 B3: a bare-hand flint gather drew '...장착 필요' in the bottom bar, hidden under the gather
+	-- fan's name pill. With a fan open the fan shows the refusal (HudShell.startPicker refusal), so
+	-- this bar stays hidden; with no fan it still explains. Fails on 87898fe6.
+	["v75: a refusal for the node in an open gather fan is left to the fan, not the hidden bottom bar"] = function()
+		local open: any = nil
+		local h = clientHarness(function()
+			return { ok = false, reason = "TOOL_UNAVAILABLE", data = { status = "rejected" } }
+		end, {
+			focus = function()
+				return open
+			end,
+		})
+		open = h.node
+		h.press()
+		assert(#h.sent == 1, "the gather was sent")
+		assert(not h.notice().Visible, "the fan says it, not the bar under the pill")
+		open = nil
+		h.press()
+		assert(h.notice().Visible and h.notice().Text == "맞는 도구를 장착하세요", "no fan: the bar explains")
+		h.destroy()
+	end,
 }

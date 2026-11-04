@@ -3003,6 +3003,7 @@ cli.gather.decor_fern,"Scenery fern: gather fiber at a marked fiber tuft or brac
 cli.gather.decor_shrub,"Scenery bush: gather berries at a marked berry bush or bramble patch.",gather tap on a decorative bush with no gather node nearby,"Scenery bush: gather berries at a marked berry bush or bramble patch.","풍경 덤불이에요. 열매는 표시된 딸기 덤불이나 나무딸기 덤불에서 모아요."
 cli.gather.hand,By hand,"gather node floating label hint: the node needs no tool",By hand,맨손
 cli.gather.tool,Needs %s,"gather node floating label hint: the tool tag the node needs",Needs %s,%s 필요
+cli.gather.again,"Tap a pebble, or the big button, to gather",gather picker line under the node name: what the next tap does,"Tap a pebble, or the big button, to gather","동그라미나 큰 채집 버튼을 한 번 더 누르면 모아요"
 cmb.end_combat,Step back,genre text cmb,Step back,물러서기
 cmb.level,Lv %d,genre text cmb,Lv %d,Lv %d
 cmb.taken,+%d %s,genre text cmb,+%d %s,+%d %s

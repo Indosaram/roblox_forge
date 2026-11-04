@@ -250,6 +250,11 @@ function M.start(options: Options?)
 			end
 		end
 		local text = M.noticeText(options and options.locale, result, names, live)
+		-- With a gather fan open the fan says it under the node name (HudShell.startPicker refusal);
+		-- this bottom bar drew under the fan's name pill and read as '...필요' (p134 v75 B3).
+		if text and options and options.focus and options.focus() ~= nil and not M.transient(result) then
+			text = nil
+		end
 		if text then
 			noticeSerial += 1
 			local serial = noticeSerial
